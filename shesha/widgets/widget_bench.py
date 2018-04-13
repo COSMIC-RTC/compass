@@ -1,7 +1,7 @@
 """Widget to simulate a closed loop
 
 Usage:
-  widget_ao.py [<parameters_filename>] [options]
+  widget_bench.py [<parameters_filename>] [options]
 
 with 'parameters_filename' the path to the parameters file
 
@@ -38,8 +38,11 @@ BenchWindowTemplate, BenchClassTemplate = loadUiType(
         os.environ["SHESHA_ROOT"] + "/widgets/widget_bench.ui")  # type: type, type
 
 from widget_base import WidgetBase
-from supervisor.benchSupervisor import BenchSupervisor
 import matplotlib.pyplot as plt
+
+from supervisor.rtcSupervisor import RTCSupervisor as Supervisor
+
+# from supervisor.benchSupervisor import BenchSupervisor as Supervisor
 
 # For debug
 # from IPython.core.debugger import Pdb
@@ -132,7 +135,8 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
         configFile = str(self.uiBase.wao_selectConfig.currentText())
         sys.path.insert(0, self.defaultParPath)
 
-        self.supervisor = BenchSupervisor(configFile, self.BRAHMA)
+        self.supervisor = Supervisor(configFile, self.BRAHMA)
+
         self.config = self.supervisor.getConfig()
 
         # if self.devices:

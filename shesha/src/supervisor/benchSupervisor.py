@@ -3,7 +3,6 @@ import numpy as np
 
 from hraa.devices.camera.fakecam import Fakecam
 from shesha_init import rtc_standalone, dm_init_standalone
-import rtcData.DataInit as di
 from shesha_sim import Simulator, SimulatorBrahma
 from sutra_bind.wrap import naga_context
 from shesha_constants import WFSType, CentroiderType
@@ -229,7 +228,9 @@ class BenchSupervisor(AbstractSupervisor):
         if self._sim.config.p_wfss[0].type == WFSType.SH:
             self.npix = self._sim.config.p_wfss[0].npix
 
-            if self._sim.config.p_nvalid is None:
+            if "p_nvalid" not in self._sim.config.__dict__.keys(
+            ) or self._sim.config.p_nvalid is None:
+                import rtcData.DataInit as di
                 dataS = di.makeSH(wfsNb=wfsNb, frameSize=self.cam.getWidth(),
                                   roiSize=self._sim.config.p_wfss[0].nxsub,
                                   subSize=self.npix)

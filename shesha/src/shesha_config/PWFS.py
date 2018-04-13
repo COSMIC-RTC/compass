@@ -581,7 +581,7 @@ class Param_wfs:
 
         :return: (tuple) : (self._validsubsx, self._validsubsy)
         """
-        return self._validsubsx, self._validsubsy
+        return np.stack([self._validsubsx, self._validsubsy])
 
     def set_Nfft(self, n):
         """ Set the size of FFT support for a subap

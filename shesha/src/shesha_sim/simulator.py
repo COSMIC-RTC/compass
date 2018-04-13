@@ -91,48 +91,7 @@ class Simulator:
             filepath: (str): path to the parameters file
 
         """
-        self.loaded = False
-        self.is_init = False
-        filename = filepath.split('/')[-1]
-        if (len(filepath.split('.')) > 1 and filepath.split('.')[-1] != "py"):
-            raise ValueError("Config file must be .py")
-
-        pathfile = filepath.split(filename)[0]
-        if (pathfile not in sys.path):
-            sys.path.insert(0, pathfile)
-
-        print("loading: %s" % filename.split(".py")[0])
-        self.config = __import__(filename.split(".py")[0])
-        del sys.modules[self.config.__name__]  # Forced reload
-        self.config = __import__(filename.split(".py")[0])
-
-        # exec("import %s as wao_config" % filename.split(".py")[0])
-        sys.path.remove(pathfile)
-
-        # Set missing config attributes to None
-        if not hasattr(self.config, 'p_loop'):
-            self.config.p_loop = None
-        if not hasattr(self.config, 'p_geom'):
-            self.config.p_geom = None
-        if not hasattr(self.config, 'p_tel'):
-            self.config.p_tel = None
-        if not hasattr(self.config, 'p_atmos'):
-            self.config.p_atmos = None
-        if not hasattr(self.config, 'p_dms'):
-            self.config.p_dms = None
-        if not hasattr(self.config, 'p_target'):
-            self.config.p_target = None
-        if not hasattr(self.config, 'p_wfss'):
-            self.config.p_wfss = None
-        if not hasattr(self.config, 'p_centroiders'):
-            self.config.p_centroiders = None
-        if not hasattr(self.config, 'p_controllers'):
-            self.config.p_controllers = None
-
-        if not hasattr(self.config, 'simul_name'):
-            self.config.simul_name = None
-
-        self.loaded = True
+        load_config_from_file(self, filepath)
 
     def clear_init(self) -> None:
         """
@@ -283,7 +242,7 @@ class Simulator:
 
     def next(self, *, move_atmos: bool=True, see_atmos: bool=True, nControl: int=0,
              tar_trace: Iterable[int]=None, wfs_trace: Iterable[int]=None,
-             apply_control: bool=True) -> None:
+             do_control: bool=True, apply_control: bool=True) -> None:
         '''
         Iterates the AO loop, with optional parameters
 
@@ -298,12 +257,12 @@ class Simulator:
 
              apply_control: (bool): (optional) if True (default), apply control on DMs
         '''
-        if tar_trace is None:
+        if tar_trace is None and self.tar is not None:
             tar_trace = range(self.config.p_target.ntargets)
-        if wfs_trace is None:
+        if wfs_trace is None and self.wfs is not None:
             wfs_trace = range(len(self.config.p_wfss))
 
-        if move_atmos:
+        if move_atmos and self.atm is not None:
             self.atm.move_atmos()
 
         if (
@@ -332,9 +291,10 @@ class Simulator:
                 else:
                     self.wfs.raytrace(w, b"telncpa", tel=self.tel, rst=1, ncpa=1)
 
-                if not self.config.p_wfss[w].openloop:
+                if not self.config.p_wfss[w].openloop and self.dms is not None:
                     self.wfs.raytrace(w, b"dm", dms=self.dms)
                 self.wfs.comp_img(w)
+        if do_control:
             self.rtc.do_centroids(nControl)
             self.rtc.do_control(nControl)
             self.rtc.do_clipping(0, -1e5, 1e5)
@@ -366,3 +326,55 @@ class Simulator:
         t1 = time.time()
         print(" loop execution time:", t1 - t0, "  (", n, "iterations), ", (t1 - t0) / n,
               "(mean)  ", n / (t1 - t0), "Hz")
+
+
+def load_config_from_file(sim_class, filepath: str) -> None:
+    """
+    Load the parameters from the parameters file
+
+    :parameters:
+        filepath: (str): path to the parameters file
+
+    """
+    sim_class.loaded = False
+    sim_class.is_init = False
+    filename = filepath.split('/')[-1]
+    if (len(filepath.split('.')) > 1 and filepath.split('.')[-1] != "py"):
+        raise ValueError("Config file must be .py")
+
+    pathfile = filepath.split(filename)[0]
+    if (pathfile not in sys.path):
+        sys.path.insert(0, pathfile)
+
+    print("loading: %s" % filename.split(".py")[0])
+    sim_class.config = __import__(filename.split(".py")[0])
+    del sys.modules[sim_class.config.__name__]  # Forced reload
+    sim_class.config = __import__(filename.split(".py")[0])
+
+    # exec("import %s as wao_config" % filename.split(".py")[0])
+    sys.path.remove(pathfile)
+
+    # Set missing config attributes to None
+    if not hasattr(sim_class.config, 'p_loop'):
+        sim_class.config.p_loop = None
+    if not hasattr(sim_class.config, 'p_geom'):
+        sim_class.config.p_geom = None
+    if not hasattr(sim_class.config, 'p_tel'):
+        sim_class.config.p_tel = None
+    if not hasattr(sim_class.config, 'p_atmos'):
+        sim_class.config.p_atmos = None
+    if not hasattr(sim_class.config, 'p_dms'):
+        sim_class.config.p_dms = None
+    if not hasattr(sim_class.config, 'p_target'):
+        sim_class.config.p_target = None
+    if not hasattr(sim_class.config, 'p_wfss'):
+        sim_class.config.p_wfss = None
+    if not hasattr(sim_class.config, 'p_centroiders'):
+        sim_class.config.p_centroiders = None
+    if not hasattr(sim_class.config, 'p_controllers'):
+        sim_class.config.p_controllers = None
+
+    if not hasattr(sim_class.config, 'simul_name'):
+        sim_class.config.simul_name = None
+
+    sim_class.loaded = True

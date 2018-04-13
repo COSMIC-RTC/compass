@@ -348,10 +348,10 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             key = 'slpComp_%d' % i
             key = 'slpGeom_%d' % i
 
-            if self.config.p_wfss[i].type == scons.WFSType.SH:
-                key = "SH_%d" % i
-                self.addSHGrid(self.docks[key].widgets[0],
-                               self.config.p_wfss[i].get_validsub(), 8, 8)
+            # if self.config.p_wfss[i].type == scons.WFSType.SH:
+            #     key = "SH_%d" % i
+            #     self.addSHGrid(self.docks[key].widgets[0],
+            #                    self.config.p_wfss[i].get_validsub(), 8, 8)
 
         for i in range(self.ndm):
             key = "dm_%d" % i

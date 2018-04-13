@@ -7,7 +7,8 @@ with 'parameters_filename' the path to the parameters file
 
 Options:
   -h --help          Show this help message and exit
-  --brahma            Distribute data with BRAHMA
+  --brahma           Distribute data with BRAHMA
+  --rtcsim           COMPASS simulation linked to real RTC with Octopus
   --bench            For a timed call
   -d, --devices devices      Specify the devices
 """
@@ -21,11 +22,16 @@ param_file = arguments["<parameters_filename>"]
 
 # Get parameters from file
 if arguments["--bench"]:
-    sim = shesha_sim.Bench(param_file)
+    from shesha_sim.bench import Bench as Simulator
+
 elif arguments["--brahma"]:
-    sim = shesha_sim.SimulatorBrahma(param_file)
+    from shesha_sim.simulatorBrahma import SimulatorBrahma as Simulator
+elif arguments["--rtcsim"]:
+    from shesha_sim.simulatorRTC import SimulatorRTC as Simulator
 else:
-    sim = shesha_sim.Simulator(param_file)
+    from shesha_sim.simulator import Simulator
+
+sim = Simulator(param_file)
 
 if arguments["--devices"]:
     sim.config.p_loop.set_devices([
