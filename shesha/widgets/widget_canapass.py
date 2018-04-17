@@ -25,6 +25,9 @@ from docopt import docopt
 
 from widget_ao import widgetAOWindow
 
+global server
+server = None
+
 
 class widgetCanapassWindowPyro(widgetAOWindow):
 
@@ -51,6 +54,8 @@ class widgetCanapassWindowPyro(widgetAOWindow):
     def initConfig(self) -> None:
         self.supervisor.clearInitSim()
         super().initConfig()
+        global server
+        server = self.startPyroServer()
 
     def loadConfig(self) -> None:
         '''
@@ -129,6 +134,33 @@ class widgetCanapassWindowPyro(widgetAOWindow):
     def updateCurrentLoopFrequency(self, freq):
         self.uiAO.wao_currentFreq.setValue(freq)
 
+    def startPyroServer(self):
+        try:
+            from subprocess import Popen, PIPE
+            from hraa.server.pyroServer import PyroServer
+
+            # Init looper
+            wao_loop = loopHandler(self)
+
+            # Find username
+            p = Popen("whoami", shell=True, stdout=PIPE, stderr=PIPE)
+            out, err = p.communicate()
+            if (err != b''):
+                print(err)
+                raise ValueError("ERROR CANNOT RECOGNIZE USER")
+            else:
+                user = out.split(b"\n")[0].decode("utf-8")
+                print("User is " + user)
+
+            server = PyroServer()
+            server.add_device(self.supervisor, "waoconfig_" + user)
+            server.add_device(wao_loop, "waoloop_" + user)
+            server.start()
+        except:
+            raise EnvironmentError("Missing dependencies (code HRAA, Pyro4)")
+
+        return server
+
 
 class loopHandler:
 
@@ -152,25 +184,4 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     app.setStyle('cleanlooks')
     wao = widgetCanapassWindowPyro(arguments["<parameters_filename>"], BRAMA=True)
-    wao_loop = loopHandler(wao)
-
-    try:
-        from subprocess import Popen, PIPE
-        from hraa.server.pyroServer import PyroServer
-
-        p = Popen("whoami", shell=True, stdout=PIPE, stderr=PIPE)
-        out, err = p.communicate()
-        if (err != b''):
-            print(err)
-            raise ValueError("ERROR CANNOT RECOGNIZE USER")
-        else:
-            user = out.split(b"\n")[0].decode("utf-8")
-            print("User is " + user)
-        server = PyroServer()
-        server.add_device(wao.supervisor, "waoconfig_" + user)
-        server.add_device(wao_loop, "waoloop_" + user)
-        server.start()
-    except:
-        raise EnvironmentError("Missing dependencies (code HRAA, Pyro4)")
-
     wao.show()
