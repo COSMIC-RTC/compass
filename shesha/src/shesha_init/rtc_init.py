@@ -8,9 +8,8 @@ from shesha_constants import CONST
 
 import shesha_ao as shao
 
-from shesha_util import utilities as util
-from shesha_util import rtc_util
-from shesha_init import dm_init as dmi
+from shesha_util import utilities, rtc_util
+from shesha_init import dm_init
 
 import numpy as np
 from sutra_bind.wrap import naga_context, Sensors, Dms, Target, Rtc, Rtc_brahma, Atmos, Telescope
@@ -81,8 +80,8 @@ def rtc_init(context: naga_context, tel: Telescope, wfs: Sensors, dms: Dms, atmo
                     imat = None
 
                 if p_dms[0].type == scons.DmType.PZT:
-                    dmi.correct_dm(dms, p_dms, p_controllers[i], p_geom, imat,
-                                   dataBase=dataBase, use_DB=use_DB)
+                    dm_init.correct_dm(dms, p_dms, p_controllers[i], p_geom, imat,
+                                       dataBase=dataBase, use_DB=use_DB)
 
                 init_controller(i, p_controllers[i], p_wfss, p_geom, p_dms, p_atmos,
                                 ittime, p_tel, rtc, dms, wfs, tel, atmos, do_refslp,
@@ -110,11 +109,16 @@ def rtc_init(context: naga_context, tel: Telescope, wfs: Sensors, dms: Dms, atmo
 
 
 def rtc_standalone(context: naga_context, nwfs: int, nvalid, nactu: int,
-                   centroider_type: bytes, delay: float, offset: float, scale: float):
+                   centroider_type: bytes, delay: float, offset: float, scale: float,
+                   brahma: bool=False):
     """
     TODO docstring
     """
-    rtc = Rtc(context)
+    if brahma:
+        rtc = Rtc_brahma(context)
+    else:
+        rtc = Rtc(context)
+
     for k in range(nwfs):
         rtc.add_centroider_standalone(k, nvalid[k], centroider_type, offset, scale)
 
@@ -200,8 +204,8 @@ def comp_weights(p_centroider: conf.Param_centroider, p_wfs: conf.Param_wfs, npi
 
         if (p_wfs.gsalt > 0):
             tmp = p_wfs._lgskern
-            tmp2 = util.makegaussian(tmp.shape[1],
-                                     npix * p_wfs._nrebin).astype(np.float32)
+            tmp2 = utilities.makegaussian(tmp.shape[1],
+                                          npix * p_wfs._nrebin).astype(np.float32)
             tmp3 = np.zeros((tmp.shape[1], tmp.shape[1], p_wfs._nvalid),
                             dtype=np.float32)
 
@@ -229,15 +233,15 @@ def comp_weights(p_centroider: conf.Param_centroider, p_wfs: conf.Param_wfs, npi
         if p_centroider.width is None:
             p_centroider.width = npix
         if (p_wfs.npix % 2 == 1):
-            p_centroider.weights = util.makegaussian(
+            p_centroider.weights = utilities.makegaussian(
                     p_wfs.npix, p_centroider.width, p_wfs.npix // 2 + 1,
                     p_wfs.npix // 2 + 1).astype(np.float32)
         elif (p_centroider.type == scons.CentroiderType.CORR):
-            p_centroider.weights = util.makegaussian(p_wfs.npix, p_centroider.width,
-                                                     p_wfs.npix // 2,
-                                                     p_wfs.npix // 2).astype(np.float32)
+            p_centroider.weights = utilities.makegaussian(
+                    p_wfs.npix, p_centroider.width, p_wfs.npix // 2,
+                    p_wfs.npix // 2).astype(np.float32)
         else:
-            p_centroider.weights = util.makegaussian(
+            p_centroider.weights = utilities.makegaussian(
                     p_wfs.npix, p_centroider.width, p_wfs.npix // 2 + 0.5,
                     p_wfs.npix // 2 + 0.5).astype(np.float32)
 

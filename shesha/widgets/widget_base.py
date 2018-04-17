@@ -57,7 +57,6 @@ class WidgetBase(BaseClassTemplate):
         self.defaultParPath = "."
         self.defaultAreaPath = "."
         self.uiBase.wao_loadConfig.clicked.connect(self.loadConfig)
-        self.loadDefaultConfig()
         self.uiBase.wao_loadArea.clicked.connect(self.loadArea)
         self.uiBase.wao_saveArea.clicked.connect(self.saveArea)
         self.uiBase.wao_init.clicked.connect(self.initConfig)

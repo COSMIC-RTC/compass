@@ -302,7 +302,16 @@ class Simulator:
                 self.rtc.apply_control(nControl, self.dms)
         self.iter += 1
 
-    def loop(self, n=1, monitoring_freq=100, **kwargs):
+    def print_strehl(self, monitoring_freq: int, t1: float, nCur: int=0, nTot: int=0,
+                     nTar: int=0):
+        framerate = monitoring_freq / t1
+        self.tar.comp_image(nTar)
+        strehltmp = self.tar.get_strehl(nTar)
+        etr = (nTot - nCur) / framerate
+        print("%d \t %.3f \t  %.3f\t     %.1f \t %.1f" % (nCur + 1, strehltmp[0],
+                                                          strehltmp[1], etr, framerate))
+
+    def loop(self, n: int=1, monitoring_freq: int=100, **kwargs):
         """
         Perform the AO loop for n iterations
 
@@ -314,15 +323,21 @@ class Simulator:
         print("iter# | S.E. SR | L.E. SR | ETR (s) | Framerate (Hz)")
         print("----------------------------------------------------")
         t0 = time.time()
+        t1 = time.time()
+        if n == -1:
+            i = 0
+            while (True):
+                self.next(**kwargs)
+                if ((i + 1) % monitoring_freq == 0):
+                    self.print_strehl(monitoring_freq, time.time() - t1)
+                    t1 = time.time()
+                i += 1
+
         for i in range(n):
             self.next(**kwargs)
             if ((i + 1) % monitoring_freq == 0):
-                framerate = (i + 1) / (time.time() - t0)
-                self.tar.comp_image(0)
-                strehltmp = self.tar.get_strehl(0)
-                etr = (n - i) / framerate
-                print("%d \t %.3f \t  %.3f\t     %.1f \t %.1f" %
-                      (i + 1, strehltmp[0], strehltmp[1], etr, framerate))
+                self.print_strehl(monitoring_freq, time.time() - t1, i, n)
+                t1 = time.time()
         t1 = time.time()
         print(" loop execution time:", t1 - t0, "  (", n, "iterations), ", (t1 - t0) / n,
               "(mean)  ", n / (t1 - t0), "Hz")

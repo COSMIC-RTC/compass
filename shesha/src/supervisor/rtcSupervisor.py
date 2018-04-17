@@ -10,7 +10,7 @@ from shesha_constants import WFSType, CentroiderType
 
 class RTCSupervisor(BenchSupervisor):
 
-    def __init__(self, configFile: str=None, BRAHMA: bool=False):
+    def __init__(self, rtcfilepath: str=None, BRAHMA: bool=False):
         '''
         Init the COMPASS wih the configFile
         '''
@@ -19,13 +19,14 @@ class RTCSupervisor(BenchSupervisor):
         self.rtc = None
         self.npix = 0
         self.BRAHMA = BRAHMA
+        self._sim = lambda x: None
 
         self._sim.is_init = False  # type: bool
         self._sim.loaded = False  # type: bool
         self._sim.config = None  # type: Any # types.ModuleType ?
 
-        if configFile is not None:
-            self.loadConfig(configFile)
+        if rtcfilepath is not None:
+            self.loadConfig(rtcfilepath)
 
     def clearInitSim(self) -> None:
         """
@@ -34,18 +35,8 @@ class RTCSupervisor(BenchSupervisor):
         if self._sim.loaded and self._sim.is_init:
             self._sim.iter = 0
 
-            del self._sim.atm
-            self._sim.atm = None
-            del self._sim.tel
-            self._sim.tel = None
-            del self._sim.tar
-            self._sim.tar = None
             del self._sim.rtc
             self._sim.rtc = None
-            del self._sim.wfs
-            self._sim.wfs = None
-            del self._sim.dms
-            self._sim.dms = None
 
             # del self._sim.c  # What is this supposed to do ... ?
             # self._sim.c = None
@@ -63,8 +54,8 @@ class RTCSupervisor(BenchSupervisor):
         '''
         Move atmos -> getSlope -> applyControl ; One integrator step
         '''
-        frame_size = int(np.sqrt(self.fakewfs.size))
-        frame = np.zeros((frame_size, frame_size), dtype=np.float32)
+        frame = np.zeros((self._sim.config.p_wfss[0]._framesizex,
+                          self._sim.config.p_wfss[0]._framesizey), dtype=np.float32)
         # print("Wait a frame...")
         self.fakewfs.recv(frame, 0)
         self.rtc.load_rtc_img(0, frame.astype(np.float32))
@@ -78,27 +69,34 @@ class RTCSupervisor(BenchSupervisor):
         comms = self.rtc.get_com(0)
         self.fakedms.send(comms)
 
-    def loadConfig(self, configFile: str) -> None:
+    def loadConfig(self, configFile: str, rtcfilepath: str=None) -> None:
         '''
         Init the COMPASS wih the configFile
         '''
         load_config_from_file(self._sim, configFile)
+
+        if rtcfilepath is not None:
+            load_config_from_file(self._sim, rtcfilepath)
 
     def initConfig(self) -> None:
         '''
         Initialize the simulation
         '''
         print("->cam")
-        self.fakewfs = GFInterface("compass_wfs")
-        self.fakedms = GFInterface("compass_dms")
-        nact = self.fakedms.size
+        self.fakewfs = GFInterface(
+                self._sim.config.p_wfss[0]._frameShmName)  # "compass_wfs")
+        self.fakedms = GFInterface(
+                self._sim.config.p_dms[0]._actuShmName)  # "compass_dms")
+        nact = self._sim.config.p_dms[0].nact
 
-        self.cmat = GFInterface("compass_cmat")
+        self.cmat = GFInterface(
+                self._sim.config.p_controllers[0]._cmatShmName)  # "compass_cmat")
         cMat_data = np.zeros(self.cmat.size, dtype=np.float32)
         self.cmat.recv(cMat_data)
-        nvalid = self.cmat.size // nact // 2
+        nvalid = self._sim.config.p_wfss[0]._nvalid
 
-        self.valid = GFInterface("compass_valid")
+        self.valid = GFInterface(
+                self._sim.config.p_wfss[0]._validsubsShmName)  # "compass_valid")
         tmp_valid = np.zeros(self.valid.size, dtype=np.float32)
         self.valid.recv(tmp_valid)
         self._sim.config.p_nvalid = np.reshape(tmp_valid, (2, nvalid))
@@ -132,7 +130,7 @@ class RTCSupervisor(BenchSupervisor):
 
             self.rtc = rtc_standalone(self.context, wfsNb, [nvalid], nact,
                                       self._sim.config.p_centroiders[0].type, 1, offset,
-                                      scale)
+                                      scale, brahma=self.BRAHMA)
             self.rtc.set_decayFactor(0, np.ones(nact, dtype=np.float32))
             self.rtc.set_matE(0, np.identity(nact, dtype=np.float32))
             self.rtc.set_mgain(0, np.ones(nact, dtype=np.float32) * gain)

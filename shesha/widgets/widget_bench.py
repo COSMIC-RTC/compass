@@ -40,9 +40,7 @@ BenchWindowTemplate, BenchClassTemplate = loadUiType(
 from widget_base import WidgetBase
 import matplotlib.pyplot as plt
 
-from supervisor.rtcSupervisor import RTCSupervisor as Supervisor
-
-# from supervisor.benchSupervisor import BenchSupervisor as Supervisor
+from supervisor.benchSupervisor import BenchSupervisor as Supervisor
 
 # For debug
 # from IPython.core.debugger import Pdb
