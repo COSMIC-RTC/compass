@@ -8,7 +8,7 @@ def smart_import(mod, cls, verbose=False, silent=False):
         my_module = __import__(mod)
         return getattr(my_module, cls)
 
-    except ImportError as err:
+    except (ImportError, AttributeError) as err:
         if not silent:
             import warnings
             warnings.warn("Error importing %s, it will be simulated due to: %s" %

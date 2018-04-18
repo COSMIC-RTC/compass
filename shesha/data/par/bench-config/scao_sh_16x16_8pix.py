@@ -13,6 +13,8 @@ class Param_camera:
         self.framerate = 0
 
 
+# Camera params
+# TODO set CameraType
 p_cams = [Param_camera()]
 p_cams[0].camAddr = ""
 p_cams[0].width = 128
@@ -22,25 +24,35 @@ p_cams[0].offset_h = 0
 p_cams[0].expo_usec = 1000
 p_cams[0].framerate = 100
 
+# WFS params
 p_wfss = [conf.Param_wfs()]
 p_wfss[0].set_type("sh")
 p_wfss[0].set_nxsub(16)
 p_wfss[0].set_npix(8)
-p_nvalid = None  # [X0, X1, ..., XN, Y0, Y1, ..., YN]
 
+p_nvalid = None
+# for SH p_nvalid.shape(2,Nsubap) lowerleft corner for each ssp
+# 	[[X0, X1, ..., XN], [Y0, Y1, ..., YN]]
+# for PYR p_nvalid.shape(2,4*nPixPerPupil)
+#       [[P0X0, P0X1, ..., P0XN, P1X0, ..., P4XN],
+# 	 [P0Y0, P0Y1, ..., P0YN, P1Y0, ..., P4YN]]
+# for PYRGEN p_nvalid.shape(2,nPixTot)
+#       [[X0, X1, ..., XN], [Y0, Y1, ..., YN]]
+
+#DM params
 p_dms = [conf.Param_dm()]
 p_dms[0].set_type("pzt")
 p_dms[0].set_alt(0.)
 p_dms[0].set_nact(4096)
 
-# centroiders0
+# Centroiders params
 p_centroiders = [conf.Param_centroider()]
 p_centroiders[0].set_nwfs(0)
 p_centroiders[0].set_type("cog")
 # p_centroiders[0].set_type("corr")
 # p_centroiders[0].set_type_fct("model")
 
-# controllers
+# Controller params
 p_controllers = [conf.Param_controller()]
 p_controllers[0].set_type("ls")
 p_controllers[0].set_nwfs([0])
