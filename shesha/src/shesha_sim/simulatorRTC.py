@@ -5,6 +5,7 @@ import sys
 import os
 
 from .simulator import Simulator, init, Iterable, load_config_from_file
+from shesha_constants import WFSType, CentroiderType
 
 from CacaoInterfaceWrap import CacaoInterfaceFloat as GFInterface
 
@@ -48,30 +49,48 @@ class SimulatorRTC(Simulator):
     def init_sim(self) -> None:
         super().init_sim()
 
-        if self.wfs.get_binimg(0).shape != (self.rtcconf.config.p_wfss[0]._framesizex,
-                                            self.rtcconf.config.p_wfss[0]._framesizey):
+        wfsNb = len(self.rtcconf.config.p_wfss)
+        if wfsNb > 1:
+            raise RuntimeError("multi WFS not supported")
+        p_wfs = self.rtcconf.config.p_wfss[0]
+
+        nact = self.rtcconf.config.p_dms[0].nact
+        framesizex = p_wfs._framesizex
+        framesizey = p_wfs._framesizey
+        nvalid = p_wfs._nvalid
+        if p_wfs.type == WFSType.SH:
+            frame = self.wfs.get_binimg(0)
+        elif p_wfs.type == WFSType.PYRHR:
+            frame = self.wfs.get_pyrimg(0)
+        else:
+            raise RuntimeError("WFS Type not usable")
+
+        if frame.shape != (framesizex, framesizey):
             raise RuntimeError("framesize not match with the simulation")
 
-        if self.rtc.get_voltage(0).size != self.rtcconf.config.p_dms[0].nact:
+        if self.rtc.get_voltage(0).size != nact:
             raise RuntimeError("nact not match with the simulation")
 
-        if self.rtc.get_cmat(0).shape != (self.rtcconf.config.p_dms[0].nact,
-                                          self.rtcconf.config.p_wfss[0]._nvalid * 2):
+        if self.rtc.get_cmat(0).shape != (nact, nvalid * 2):
             raise RuntimeError("cmat not match with the simulation")
 
-        self.fakewfs = GFInterface(self.rtcconf.config.p_wfss[
-                0]._frameShmName)  # "compass_wfs", self.wfs.get_binimg(0).shape, 1)
-        self.nact = self.rtcconf.config.p_dms[0].nact
-        self.fakedms = GFInterface(self.rtcconf.config.p_dms[
-                0]._actuShmName)  # "compass_dms", (1, self.rtc.get_voltage(0).size), 1)
+        self.fakewfs = GFInterface(p_wfs._frameShmName)
+
+        self.comp = np.zeros(nact, dtype=np.float32)
+        self.fakedms = GFInterface(self.rtcconf.config.p_dms[0]._actuShmName)
+
         tmp_cmat = self.rtc.get_cmat(0)
-        self.cmat = GFInterface(self.rtcconf.config.p_controllers[0]
-                                ._cmatShmName)  # "compass_cmat", tmp_cmat.shape, 1)
+        self.cmat = GFInterface(self.rtcconf.config.p_controllers[0]._cmatShmName)
         self.cmat.send(tmp_cmat)
+
         tmp_valid = self.config.p_wfss[0].get_validsub()
-        self.valid = GFInterface(self.rtcconf.config.p_wfss[
-                0]._validsubsShmName)  # "compass_valid", tmp_valid.shape, 1)
-        self.valid.send(tmp_valid * self.config.p_wfss[0].npix)
+        self.valid = GFInterface(p_wfs._validsubsShmName)
+        if p_wfs.type == WFSType.SH:
+            self.valid.send(tmp_valid * self.config.p_wfss[0].npix)
+        elif p_wfs.type == WFSType.PYRHR:
+            self.valid.send(tmp_valid)
+        else:
+            raise RuntimeError("WFS Type not usable")
 
     def next(self, *, move_atmos: bool=True, see_atmos: bool=True, nControl: int=0,
              tar_trace: Iterable[int]=None, wfs_trace: Iterable[int]=None,
@@ -83,9 +102,15 @@ class SimulatorRTC(Simulator):
                        nControl=nControl, tar_trace=[0], wfs_trace=[0], do_control=False)
 
         # print("Send a frame")
-        self.fakewfs.send(self.wfs.get_binimg(0))
+        p_wfs = self.rtcconf.config.p_wfss[0]
+        if p_wfs.type == WFSType.SH:
+            frame = self.wfs.get_binimg(0)
+        elif p_wfs.type == WFSType.PYRHR:
+            frame = self.wfs.get_pyrimg(0)
+        else:
+            raise RuntimeError("WFS Type not usable")
+        self.fakewfs.send(frame)
         if apply_control:
-            comp = np.zeros(self.nact, dtype=np.float32)
             # print("Wait a command...")
-            self.fakedms.recv(comp, 0)
-            self.dms.set_full_comm(comp)
+            self.fakedms.recv(self.comp, 0)
+            self.dms.set_full_comm(self.comp)
