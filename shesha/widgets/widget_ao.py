@@ -250,7 +250,6 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         self.ndm = len(self.config.p_dms)
         for dm in range(self.ndm):
             name = 'dm_%d' % dm
-            w = QtGui.QCheckBox(name)
             self.add_dispDock(name, self.wao_phasesgroup_cb)
 
         self.ntar = self.config.p_target.ntargets

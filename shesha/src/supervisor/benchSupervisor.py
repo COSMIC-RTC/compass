@@ -1,7 +1,6 @@
 from .abstractSupervisor import AbstractSupervisor
 import numpy as np
 
-from hraa.devices.camera.fakecam import Fakecam
 from shesha_init import rtc_standalone, dm_init_standalone
 from shesha_sim import Simulator, SimulatorBrahma
 from sutra_bind.wrap import naga_context
@@ -33,7 +32,7 @@ class BenchSupervisor(AbstractSupervisor):
         Set or unset whether atmos is enabled when running loop (see singleNext)
         '''
         raise NotImplementedError("Not implemented")
-        self._seeAtmos = enable
+        # self._seeAtmos = enable
 
     def setCommand(self, command: np.ndarray) -> None:
         '''
@@ -71,8 +70,8 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         Move atmos -> getSlope -> applyControl ; One integrator step
         '''
-        frame = self.cam.getFrame()
-        self.rtc.load_rtc_img(0, frame.astype(np.float32))
+        self.frame = self.cam.getFrame()
+        self.rtc.load_rtc_img(0, self.frame.astype(np.float32))
         if self._sim.config.p_wfss[0].type == WFSType.SH:
             #for SH
             self.rtc.fill_rtc_bincube(0, self.npix)
@@ -126,7 +125,7 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         Get an image from the WFS
         '''
-        return self.cam.getFrame()
+        return self.frame
 
     def getTarImage(self, tarID, expoType: str="se") -> np.ndarray:
         '''
@@ -163,6 +162,7 @@ class BenchSupervisor(AbstractSupervisor):
         self.cam = None
         self.rtc = None
         self.npix = 0
+        self.frame = None
 
         if configFile is not None:
             self.loadConfig(configFile, BRAHMA)
@@ -212,8 +212,11 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         Initialize the simulation
         '''
+        import hraa.devices.camera as m_cam
+
+        Camera = m_cam.getCamClass(self._sim.config.p_cams[0].type)
         print("->cam")
-        self.cam = Fakecam(
+        self.cam = Camera(
                 self._sim.config.p_cams[0].camAddr, self._sim.config.p_cams[0].width,
                 self._sim.config.p_cams[0].height, self._sim.config.p_cams[0].offset_w,
                 self._sim.config.p_cams[0].offset_h,

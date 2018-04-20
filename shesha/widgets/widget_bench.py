@@ -40,7 +40,7 @@ BenchWindowTemplate, BenchClassTemplate = loadUiType(
 from widget_base import WidgetBase
 import matplotlib.pyplot as plt
 
-from supervisor.benchSupervisor import BenchSupervisor as Supervisor
+from supervisor.benchSupervisor import WFSType, BenchSupervisor as Supervisor
 
 # For debug
 # from IPython.core.debugger import Pdb
@@ -279,10 +279,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
 
                 if (time.time() - self.refreshTime > refreshDisplayTime):
                     currentFreq = 1 / loopTime
-                    refreshFreq = 1 / (time.time() - self.refreshTime)
-
                     self.uiBench.wao_currentFreq.setValue(currentFreq)
-
                     self.refreshTime = start
             except:
                 print("error!!")

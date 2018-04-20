@@ -4,6 +4,7 @@ import shesha_config as conf
 class Param_camera:
 
     def __init__(self) -> None:
+        self.type = "FakeCam"  # "FakeCam", "Vimbacam" or "EVTcam"
         self.camAddr = ""
         self.width = 0
         self.height = 0
@@ -16,6 +17,7 @@ class Param_camera:
 # Camera params
 # TODO set CameraType
 p_cams = [Param_camera()]
+p_cams[0].type = "FakeCam"
 p_cams[0].camAddr = ""
 p_cams[0].width = 128
 p_cams[0].height = 128
