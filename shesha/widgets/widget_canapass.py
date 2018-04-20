@@ -125,15 +125,6 @@ class widgetCanapassWindowPyro(widgetAOWindow):
     def getAi(self):
         return self.wpyr.ai
 
-    def updateSRSE(self, SRSE):
-        self.uiAO.wao_strehlSE.setText(SRSE)
-
-    def updateSRLE(self, SRLE):
-        self.uiAO.wao_strehlLE.setText(SRLE)
-
-    def updateCurrentLoopFrequency(self, freq):
-        self.uiAO.wao_currentFreq.setValue(freq)
-
     def startPyroServer(self):
         try:
             from subprocess import Popen, PIPE

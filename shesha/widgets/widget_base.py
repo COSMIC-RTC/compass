@@ -329,6 +329,15 @@ class WidgetBase(BaseClassTemplate):
                            movable=False))
             pg_image.addItem(self.gridSH[-1])
 
+    def printInPlace(self, text: str) -> None:
+        # This seems to trigger the GUI and keep it responsive
+        print(text, end='\r', flush=True)
+
+    def run(self):
+        self.loopOnce()
+        if not self.stop:
+            QTimer.singleShot(0, self.run)  # Update loop
+
 
 class WorkerThread(QThread):
     jobFinished = pyqtSignal()

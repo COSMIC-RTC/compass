@@ -85,6 +85,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         #############################################################
         #                 CONNECTED BUTTONS                         #
         #############################################################
+
         # Default path for config files
         self.defaultParPath = os.environ["SHESHA_ROOT"] + "/data/par/par4bench"
         self.defaultAreaPath = os.environ["SHESHA_ROOT"] + "/data/layouts"
@@ -523,6 +524,15 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             finally:
                 self.loopLock.release()
 
+    def updateSRSE(self, SRSE):
+        self.uiAO.wao_strehlSE.setText(SRSE)
+
+    def updateSRLE(self, SRLE):
+        self.uiAO.wao_strehlLE.setText(SRLE)
+
+    def updateCurrentLoopFrequency(self, freq):
+        self.uiAO.wao_currentFreq.setValue(freq)
+
     def loopOnce(self) -> None:
         if not self.loopLock.acquire(False):
             print("Display locked")
@@ -551,9 +561,10 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                     currentFreq = 1 / loopTime
                     refreshFreq = 1 / (time.time() - self.refreshTime)
 
-                    self.uiAO.wao_strehlSE.setText(signal_se)
-                    self.uiAO.wao_strehlLE.setText(signal_le)
-                    self.uiAO.wao_currentFreq.setValue(currentFreq)
+                    self.updateSRSE(signal_se)
+                    self.updateSRLE(signal_le)
+                    self.updateCurrentLoopFrequency(currentFreq)
+
                     if (self.dispStatsInTerminal):
                         self.printInPlace(
                                 "iter #%d SR: (L.E, S.E.)= (%s, %s) running at %4.1fHz (real %4.1fHz)"
@@ -566,20 +577,13 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             finally:
                 self.loopLock.release()
 
-    def printInPlace(self, text: str) -> None:
-        # This seems to trigger the GUI and keep it responsive
-        print(text + "\r", end=' ')
-        sys.stdout.flush()
-
-    def run(self, stop=False):
-        if stop:
-            return
-        self.loopOnce()
+    def run(self):
+        super().run()
         if not self.uiAO.wao_forever.isChecked():
             self.nbiter -= 1
-        if self.nbiter > 0 and not self.stop:
-            QTimer.singleShot(0, self.run)  # Update loop
-        else:
+
+        if self.nbiter <= 0:
+            self.stop = True
             self.uiAO.wao_run.setChecked(False)
 
 

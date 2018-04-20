@@ -233,33 +233,34 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
                         data = None
                         if "wfs" in key:
                             data = self.supervisor.getRawWFSImage(index)
-                        if (data is not None):
-                            autoscale = True  # self.uiBench.actionAuto_Scale.isChecked()
-                            # if (autoscale):
-                            #     # inits levels
-                            #     self.hist.setLevels(data.min(), data.max())
-                            self.imgs[key].setImage(data, autoLevels=autoscale)
-                            # self.p1.autoRange()
+                            if (data is not None):
+                                autoscale = True  # self.uiBench.actionAuto_Scale.isChecked()
+                                # if (autoscale):
+                                #     # inits levels
+                                #     self.hist.setLevels(data.min(), data.max())
+                                self.imgs[key].setImage(data, autoLevels=autoscale)
+                                # self.p1.autoRange()
                         elif "slp" in key:  # Slope display
                             self.imgs[key].canvas.axes.clear()
                             if "Comp" in key:
                                 centroids = self.supervisor.getSlope()
                                 nvalid = [2 * o._nvalid for o in self.config.p_wfss]
                                 ind = np.sum(nvalid[:index], dtype=np.int32)
-                                # if (self.config.p_wfss[index].type ==
-                                #             scons.WFSType.PYRHR):
-                                #     #TODO: DEBUG...
-                                #     plpyr(centroids[ind:ind + nvalid[index]],
-                                #           self.config.p_wfs0._isvalid)
-                                # else:
-                                #     x, y, vx, vy = plsh(
-                                #             centroids[ind:ind + nvalid[index]],
-                                #             self.config.p_wfss[index].nxsub,
-                                #             self.config.p_tel.cobs, returnquiver=True
-                                #     )  # Preparing mesh and vector for display
-                                # self.imgs[key].canvas.axes.quiver(
-                                #         x, y, vx, vy, pivot='mid')
-                                # plt.plot(centroids)
+                                if (self.config.p_wfss[index].type == WFSType.PYRHR):
+                                    #TODO: DEBUG...
+                                    plpyr(centroids[ind:ind + nvalid[index]],
+                                          self.config.p_wfs0._isvalid)
+                                else:  #TODO: DEBUG...
+                                    #TODO: REMOVE hardcoded value...
+                                    cobs = -1
+                                    x, y, vx, vy = plsh(
+                                            centroids[ind:ind + nvalid[index]],
+                                            self.config.p_wfss[index].nxsub, cobs,
+                                            returnquiver=True
+                                    )  # Preparing mesh and vector for display
+                                self.imgs[key].canvas.axes.quiver(
+                                        x, y, vx, vy, pivot='mid')
+                                plt.plot(centroids)
                             self.imgs[key].canvas.draw()
 
             finally:
@@ -286,18 +287,13 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
             finally:
                 self.loopLock.release()
 
-    def printInPlace(self, text: str) -> None:
-        # This seems to trigger the GUI and keep it responsive
-        print(text + "\r", end=' ')
-        sys.stdout.flush()
-
     def run(self):
-        self.loopOnce()
+        super().run()
         if not self.uiBench.wao_forever.isChecked():
             self.nbiter -= 1
-        if self.nbiter > 0 and not self.stop:
-            QTimer.singleShot(0, self.run)  # Update loop
-        else:
+
+        if self.nbiter <= 0:
+            self.stop = True
             self.uiBench.wao_run.setChecked(False)
 
 
