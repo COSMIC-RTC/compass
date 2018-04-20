@@ -16,8 +16,8 @@ __global__ void fillamplikrnl(cuFloatComplex *amplipup, float *phase, int *where
       amplipup[nim].x = 1.0f;
       amplipup[nim].y = 0.0f;
     } else if(puponly == 0) {
-      amplipup[nim].x = cosf(scale * phase[tid]);
-      amplipup[nim].y = sinf(scale * phase[tid]);
+      amplipup[nim].x = cosf(-scale * phase[tid]);
+      amplipup[nim].y = sinf(-scale * phase[tid]);
     } else if(puponly == 2) {
       amplipup[nim].x = phase[tid];
       amplipup[nim].y = 0.0f;

@@ -70,6 +70,7 @@ class Roket(Simulator):
         self.fit = np.zeros(self.n)
         self.psf_ortho = self.tar.get_image(0, b'se') * 0
         self.centroid_gain = 0
+        self.centroid_gain2 = 0
         self.slopes = np.zeros((self.n, self.nslopes), dtype=np.float32)
         #gamma = 1.0
         self.config.p_loop.set_niter(self.n)
@@ -209,6 +210,7 @@ class Roket(Simulator):
             self.trunc_com[self.iter_number + 1, :] = self.gRD.dot(
                     self.trunc_com[self.iter_number, :]) + g * (E - self.gamma * F)
         self.centroid_gain += centroid_gain(E, F)
+        self.centroid_gain2 += centroid_gain(Derr, F)
         ###########################################################################
         ## Aliasing contribution on WFS direction
         ###########################################################################
@@ -359,6 +361,9 @@ class Roket(Simulator):
                         (self.config.p_loop.niter - self.N_preloop),
                 "centroid_gain":
                         self.centroid_gain / (self.config.p_loop.niter - self.N_preloop),
+                "centroid_gain2":
+                        self.centroid_gain2 /
+                        (self.config.p_loop.niter - self.N_preloop),
                 "dm.xpos":
                         self.config.p_dms[0]._xpos,
                 "dm.ypos":

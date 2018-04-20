@@ -323,7 +323,7 @@ int sutra_gamora::psf_rec_roket(float *err) {
 
     // complex amplitude in the pupil put in the fft support
     fill_amplipup(this->d_amplipup->getData(), this->d_phase->getData(), this->d_wherephase->getData(),
-                  this->scale * (-1), this->Npts,  this->size, this->d_amplipup->getDims()[1], 0, this->current_context->get_device(this->device));
+                  this->scale, this->Npts,  this->size, this->d_amplipup->getDims()[1], 0, this->current_context->get_device(this->device));
     // complex amplitude in the focal plane
     carma_fft(this->d_amplipup->getData(), this->d_amplipup->getData(), 1,
               *this->d_amplipup->getPlan());
