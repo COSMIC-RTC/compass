@@ -3,7 +3,7 @@ import pstats as ps
 import sys, os
 sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/widgets/")
 
-import tools
+from shesha_util import tools
 import numpy as np
 import naga as ch
 import shesha as ao

@@ -33,15 +33,13 @@ from typing import Any, Dict, Tuple, Callable, List
 from docopt import docopt
 from collections import deque
 
-from matplotlibwidget import MatplotlibWidget
-
 BenchWindowTemplate, BenchClassTemplate = loadUiType(
         os.environ["SHESHA_ROOT"] + "/widgets/widget_bench.ui")  # type: type, type
 
 from widget_base import WidgetBase
 import matplotlib.pyplot as plt
 
-from supervisor.benchSupervisor import WFSType, BenchSupervisor as Supervisor
+from shesha_supervisor.benchSupervisor import WFSType, BenchSupervisor as Supervisor
 
 # For debug
 # from IPython.core.debugger import Pdb

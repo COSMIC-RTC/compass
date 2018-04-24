@@ -17,7 +17,7 @@ from PyQt5.QtCore import QThread, QObject, QTimer, pyqtSignal
 
 from typing import Any, Dict, Tuple, Callable, List
 
-from matplotlibwidget import MatplotlibWidget
+from shesha_util.matplotlibwidget import MatplotlibWidget
 
 BaseWidgetTemplate, BaseClassTemplate = loadUiType(
         os.environ["SHESHA_ROOT"] + "/widgets/widget_base.ui")  # type: type, type

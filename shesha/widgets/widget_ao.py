@@ -36,14 +36,12 @@ from typing import Any, Dict, Tuple, Callable, List
 from docopt import docopt
 from collections import deque
 
-from matplotlibwidget import MatplotlibWidget
-
 AOWindowTemplate, AOClassTemplate = loadUiType(
         os.environ["SHESHA_ROOT"] + "/widgets/widget_ao.ui")  # type: type, type
 
 from widget_base import WidgetBase
 from widget_ao_expert import WidgetAOExpert
-from supervisor.compassSupervisor import CompassSupervisor, scons
+from shesha_supervisor.compassSupervisor import CompassSupervisor, scons
 
 # For debug
 # from IPython.core.debugger import Pdb

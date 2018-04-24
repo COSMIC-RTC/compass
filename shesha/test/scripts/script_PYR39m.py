@@ -5,7 +5,7 @@ sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/widgets/")
 sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/lib/")
 
 #from adoptLib import computeKLModesImat, computeCmatModal
-import tools
+from shesha_util import tools
 import numpy as np
 import naga as ch
 import shesha as ao

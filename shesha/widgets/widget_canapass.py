@@ -19,7 +19,7 @@ from tools import plsh, plpyr
 from tqdm import trange
 import astropy.io.fits as pfits
 from PyQt5 import QtWidgets
-from supervisor.canapassSupervisor import CanapassSupervisor
+from shesha_supervisor.canapassSupervisor import CanapassSupervisor
 
 from typing import Any, Dict, Tuple, Callable, List
 from docopt import docopt
