@@ -65,6 +65,10 @@ class CompassSupervisor(AbstractSupervisor):
         raise NotImplementedError("Not implemented")
         return np.empty(1)
 
+    def next(self, nbiters, see_atmos=True):
+        for _ in trange(nbiters):
+            self._sim.next(see_atmos=see_atmos)
+
     def singleNext(self, moveAtmos: bool=True, showAtmos: bool=True, getPSF: bool=False,
                    getResidual: bool=False) -> None:
         '''
@@ -112,12 +116,28 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         self._sim.rtc.set_cmat(0, cMat)
 
+    def setNoise(self, noise, numwfs=0):
+        '''
+        Set noise value of WFS numwfs
+        '''
+        self._sim.wfs.set_noise(numwfs, noise)
+        print("Noise set to: %d" % noise)
+
     def setPyrModulation(self, pyrMod: float) -> None:
         '''
         Set pyramid modulation value - in l/D units
         '''
         self._sim.rtc.set_pyr_ampl(0, pyrMod, self._sim.config.p_wfss,
                                    self._sim.config.p_tel)
+        print("PYR modulation set to: %f L/D" % pyrmod)
+
+    def setPyrMethod(self, pyrMethod):
+        '''
+        Set pyramid compute method
+        '''
+        self._sim.rtc.set_pyr_method(
+                0, pyrMethod, self._sim.config.p_centroiders)  # Sets the pyr method
+        print("PYR method set to: %d" % self._sim.rtc.get_pyr_method(0))
 
     def getRawWFSImage(self, numWFS: int=0) -> np.ndarray:
         '''

@@ -75,7 +75,7 @@ class CanapassSupervisor(CompassSupervisor):
 
     def loadConfig(self, configFile: str, BRAMA: bool=True) -> None:
         ''' Load the configuration for the compass supervisor'''
-        super().loadConfig(configFile, BRAMA)
+        CompassSupervisor.loadConfig(self, configFile, BRAMA)
         print("switching to a generic controller")
         self._sim.config.p_controllers[0].type = scons.ControllerType.GENERIC
 
@@ -151,7 +151,7 @@ class CanapassSupervisor(CompassSupervisor):
             return self.KL2V, 0
 
     def setGain(self, gain: float) -> None:
-        super().setGain(gain)
+        CompassSupervisor.setGain(self, gain)
 
     def compute_Btt2(self, inv_method: str="gpu_evd"):
         IF = self._sim.rtc.get_IFsparse(1)
@@ -501,20 +501,15 @@ class CanapassSupervisor(CompassSupervisor):
         self._sim.rtc.set_centroids_ref(0, self.getSlopes() * 0.)
 
     def setPyrModulation(self, pyrmod):
-        self._sim.rtc.set_pyr_ampl(0, pyrmod, self._sim.config.p_wfss,
-                                   self._sim.config.p_tel)
-        print("PYR modulation set to: %f L/D" % pyrmod)
+        CompassSupervisor.setPyrModulation(self, pyrmod)
         self._sim.rtc.do_centroids(0)  # To be ready for the next getSlopes
 
     def setPyrMethod(self, pyrmethod):
-        self._sim.rtc.set_pyr_method(
-                0, pyrmethod, self._sim.config.p_centroiders)  # Sets the pyr method
-        print("PYR method set to: %d" % self._sim.rtc.get_pyr_method(0))
+        CompassSupervisor.setPyrMethod(self, pyrmethod)
         self._sim.rtc.do_centroids(0)  # To be ready for the next getSlopes
 
     def setNoise(self, noise, numwfs=0):
-        self._sim.wfs.set_noise(numwfs, noise)
-        print("Noise set to: %d" % noise)
+        CompassSupervisor.setNoise(self, noise, numwfs)
 
     def setNcpaWfs(self, ncpa, wfsnum):
         self._sim.wfs.set_ncpa_phase(wfsnum, ncpa.astype(np.float32).copy())
@@ -525,7 +520,7 @@ class CanapassSupervisor(CompassSupervisor):
     def set_phaseWFS(self, numwfs, phase):
         pph = phase.astype(np.float32)
         self._sim.wfs.set_phase(0, pph)
-        _ = self.computeSlopes()
+        self.computeSlopes()
 
     def getIpupil(self):
         return self._sim.config.p_geom._ipupil

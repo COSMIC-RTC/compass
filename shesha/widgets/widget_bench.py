@@ -9,6 +9,7 @@ Options:
   -h --help          Show this help message and exit
   --brahma            Distribute data with BRAHMA
   -d, --devices devices      Specify the devices
+  -i, --interactive  keep the script interactive
 """
 
 import os, sys
@@ -121,7 +122,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
         self.uiBench.wao_nbiters.setDisabled(state)
 
     def add_dispDock(self, name: str, parent, type: str="pg_image") -> None:
-        d = super().add_dispDock(name, parent, type)
+        d = WidgetBase.add_dispDock(self, name, parent, type)
         if type == "SR":
             d.addWidget(self.uiBench.wao_Strehl)
 
@@ -129,7 +130,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
         '''
             Callback when 'LOAD' button is hit
         '''
-        super().loadConfig()
+        WidgetBase.loadConfig(self)
         configFile = str(self.uiBase.wao_selectConfig.currentText())
         sys.path.insert(0, self.defaultParPath)
 
@@ -190,7 +191,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
 
     def initConfig(self) -> None:
         self.supervisor.clearInitSim()
-        super().initConfig()
+        WidgetBase.initConfig(self)
 
     def initConfigThread(self) -> None:
         # self.uiBench.wao_deviceNumber.setDisabled(True)
@@ -214,7 +215,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
         self.uiBench.wao_openLoop.setDisabled(False)
         self.uiBench.wao_unzoom.setDisabled(False)
 
-        super().initConfigFinished()
+        WidgetBase.initConfigFinished(self)
 
     def updateDisplay(self) -> None:
         if (self.supervisor is None) or (not self.supervisor.isInit()) or (
@@ -241,26 +242,23 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
                                 self.imgs[key].setImage(data, autoLevels=autoscale)
                                 # self.p1.autoRange()
                         elif "slp" in key:  # Slope display
+                            if (self.config.p_wfss[index].type == WFSType.PYRHR):
+                                raise RuntimeError("PYRHR not usable")
                             self.imgs[key].canvas.axes.clear()
-                            if "Comp" in key:
-                                centroids = self.supervisor.getSlope()
-                                nvalid = [2 * o._nvalid for o in self.config.p_wfss]
-                                ind = np.sum(nvalid[:index], dtype=np.int32)
-                                if (self.config.p_wfss[index].type == WFSType.PYRHR):
-                                    #TODO: DEBUG...
-                                    plpyr(centroids[ind:ind + nvalid[index]],
-                                          self.config.p_wfs0._isvalid)
-                                else:  #TODO: DEBUG...
-                                    #TODO: REMOVE hardcoded value...
-                                    cobs = -1
-                                    x, y, vx, vy = plsh(
-                                            centroids[ind:ind + nvalid[index]],
-                                            self.config.p_wfss[index].nxsub, cobs,
-                                            returnquiver=True
-                                    )  # Preparing mesh and vector for display
-                                self.imgs[key].canvas.axes.quiver(
-                                        x, y, vx, vy, pivot='mid')
-                                plt.plot(centroids)
+                            x, y = self.supervisor._sim.config.p_wfss[
+                                    index].get_validsub()
+
+                            nssp = x.size
+                            centroids = self.supervisor.getSlope()
+                            vx = centroids[:nssp]
+                            vy = centroids[nssp:]
+
+                            offset = (self.supervisor._sim.config.p_wfss[index].npix - 1
+                                      ) / 2
+                            self.imgs[key].canvas.axes.quiver(
+                                    x + offset, y + offset, vy, vx, angles='xy',
+                                    scale_units='xy', scale=1
+                            )  # wao.supervisor._sim.config.p_wfss[0].pixsize)
                             self.imgs[key].canvas.draw()
 
             finally:
@@ -288,7 +286,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
                 self.loopLock.release()
 
     def run(self):
-        super().run()
+        WidgetBase.run(self)
         if not self.uiBench.wao_forever.isChecked():
             self.nbiter -= 1
 
@@ -304,3 +302,7 @@ if __name__ == '__main__':
     wao = widgetBenchWindow(arguments["<parameters_filename>"],
                             BRAHMA=arguments["--brahma"], devices=arguments["--devices"])
     wao.show()
+    if arguments["--interactive"]:
+        from shesha_util.ipython_embed import embed
+        from os.path import basename
+        embed(basename(__file__), locals())

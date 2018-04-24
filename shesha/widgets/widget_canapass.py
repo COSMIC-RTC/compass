@@ -7,6 +7,7 @@ with 'parameters_filename' the path to the parameters file
 
 Options:
   -h --help          Show this help message and exit
+  -i, --interactive  keep the script interactive
 """
 
 import os, sys
@@ -53,7 +54,7 @@ class widgetCanapassWindowPyro(widgetAOWindow):
 
     def initConfig(self) -> None:
         self.supervisor.clearInitSim()
-        super().initConfig()
+        WidgetBase.initConfig(self)
         global server
         server = self.startPyroServer()
 
@@ -61,10 +62,10 @@ class widgetCanapassWindowPyro(widgetAOWindow):
         '''
             Callback when 'LOAD' button is hit
         '''
-        super().loadConfig(ISupervisor=CanapassSupervisor)
+        WidgetBase.loadConfig(self, ISupervisor=CanapassSupervisor)
 
     def loopOnce(self) -> None:
-        super().loopOnce()
+        WidgetBase.loopOnce(self)
         if (self.uiAO.actionShow_Pyramid_Tools.isChecked()):  # PYR only
             self.wpyr.Fe = 1 / self.config.p_loop.ittime  # needs Fe for PSD...
             if (self.wpyr.CBNumber == 1):
@@ -176,3 +177,7 @@ if __name__ == '__main__':
     app.setStyle('cleanlooks')
     wao = widgetCanapassWindowPyro(arguments["<parameters_filename>"], BRAMA=True)
     wao.show()
+    if arguments["--interactive"]:
+        from shesha_util.ipython_embed import embed
+        from os.path import basename
+        embed(basename(__file__), locals())

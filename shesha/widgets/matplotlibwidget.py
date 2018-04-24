@@ -32,7 +32,6 @@ class MatplotlibWidget(QtGui.QWidget):
         self.setLayout(self.vbl)
 """
 
-#!/usr/bin/python
 import sys
 import platform
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -42,12 +41,14 @@ from PyQt5.QtGui import *
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigationtoolbar
 from matplotlib.figure import Figure
-import matplotlib.gridspec as gridspec
-import matplotlib
-#matplotlib.use('Qt4Agg')
-#matplotlib.rcParams['backend.qt4']='PySide'
-#matplotlib.style.use('ggplot')
-matplotlib.style.use('seaborn-muted')
+from matplotlib import gridspec
+
+# import matplotlib
+# matplotlib.use('Qt5Agg')
+
+# matplotlib.rcParams['backend.qt4']='PySide'
+# matplotlib.style.use('ggplot')
+# matplotlib.style.use('seaborn-muted')
 
 
 #Embeddable matplotlib figure/canvas

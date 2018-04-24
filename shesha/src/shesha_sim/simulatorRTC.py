@@ -47,7 +47,7 @@ class SimulatorRTC(Simulator):
             load_config_from_file(self.rtcconf, rtcfilepath)
 
     def init_sim(self) -> None:
-        super().init_sim()
+        Simulator.init_sim(self)
 
         wfsNb = len(self.rtcconf.config.p_wfss)
         if wfsNb > 1:

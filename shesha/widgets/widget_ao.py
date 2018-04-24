@@ -1,3 +1,4 @@
+#!/bin/env python
 """Widget to simulate a closed loop
 
 Usage:
@@ -10,6 +11,7 @@ Options:
   --brahma            Distribute data with BRAHMA
   --expert           Display expert panel
   -d, --devices devices      Specify the devices
+  -i, --interactive  keep the script interactive
 """
 
 import os, sys
@@ -78,7 +80,6 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         self.uiAO.wao_nbiters.setValue(1000)  # Default GUI nIter box value
         self.nbiter = self.uiAO.wao_nbiters.value()
         self.refreshTime = 0  # type: float  # System time at last display refresh
-        self.loopThread = None  # type: QThread
         self.assistant = None  # type: Any
         self.see_atmos = 1
 
@@ -183,7 +184,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             self.supervisor.resetStrehl(tarnum)
 
     def add_dispDock(self, name: str, parent, type: str="pg_image") -> None:
-        d = super().add_dispDock(name, parent, type)
+        d = WidgetBase.add_dispDock(self, name, parent, type)
         if type == "SR":
             d.addWidget(self.uiAO.wao_Strehl)
 
@@ -194,7 +195,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             if a positional is allowed the QPushButton will send a boolean value
             and hence overwrite ISupervisor...
         '''
-        super().loadConfig()
+        WidgetBase.loadConfig(self)
         for key, pgpl in self.SRcircles.items():
             self.viewboxes[key].removeItem(pgpl)
 
@@ -313,7 +314,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
 
     def initConfig(self) -> None:
         self.supervisor.clearInitSim()
-        super().initConfig()
+        WidgetBase.initConfig(self)
 
     def initConfigThread(self) -> None:
         self.uiAO.wao_deviceNumber.setDisabled(True)
@@ -408,7 +409,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         self.uiAO.wao_unzoom.setDisabled(False)
         self.uiAO.wao_resetSR.setDisabled(False)
 
-        super().initConfigFinished()
+        WidgetBase.initConfigFinished(self)
 
     def circleCoords(self, ampli: float, npts: int, datashape0: int,
                      datashape1: int) -> Tuple[float, float]:
@@ -495,8 +496,6 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                                         slopes, self.config.p_wfss[index].nxsub,
                                         self.config.p_tel.cobs, returnquiver=True
                                 )  # Preparing mesh and vector for display
-                                self.imgs[key].canvas.axes.quiver(
-                                        x, y, vx, vy, pivot='mid')
                             if "Comp" in key:
                                 centroids = self.supervisor.getSlope()
                                 nmes = [
@@ -517,8 +516,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                                             self.config.p_wfss[index].nxsub,
                                             self.config.p_tel.cobs, returnquiver=True
                                     )  # Preparing mesh and vector for display
-                                self.imgs[key].canvas.axes.quiver(
-                                        x, y, vx, vy, pivot='mid')
+                                self.imgs[key].canvas.axes.quiver(x, y, vx, vy)
                             self.imgs[key].canvas.draw()
 
             finally:
@@ -578,7 +576,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                 self.loopLock.release()
 
     def run(self):
-        super().run()
+        WidgetBase.run(self)
         if not self.uiAO.wao_forever.isChecked():
             self.nbiter -= 1
 
@@ -595,3 +593,7 @@ if __name__ == '__main__':
                          BRAHMA=arguments["--brahma"], expert=arguments["--expert"],
                          devices=arguments["--devices"])
     wao.show()
+    if arguments["--interactive"]:
+        from shesha_util.ipython_embed import embed
+        from os.path import basename
+        embed(basename(__file__), locals())

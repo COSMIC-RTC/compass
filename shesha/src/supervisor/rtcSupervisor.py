@@ -124,8 +124,8 @@ class RTCSupervisor(BenchSupervisor):
             xvalid = self._sim.config.p_nvalid[0, :] / self.npix
             yvalid = self._sim.config.p_nvalid[1, :] / self.npix
 
-            offset = self.npix // 2 + 0.5
-            scale = 0.29005988378497927
+            offset = (self.npix - 1) / 2
+            scale = 1
         elif p_wfs.type == WFSType.PYRHR:
             self._sim.config.p_nvalid = np.reshape(tmp_valid, (2, nvalid * 4))
             xvalid = self._sim.config.p_nvalid[1, :]

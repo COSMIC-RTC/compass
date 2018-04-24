@@ -296,9 +296,9 @@ class WidgetBase(BaseClassTemplate):
         self.loopLock.acquire(True)
         self.uiBase.wao_loadConfig.setDisabled(True)
         self.uiBase.wao_init.setDisabled(True)
-        thread = WorkerThread(self, self.initConfigThread)
-        thread.jobFinished.connect(self.initConfigFinished)
-        thread.start()
+        self.thread = WorkerThread(self.initConfigThread)
+        self.thread.finished.connect(self.initConfigFinished)
+        self.thread.start()
 
     def initConfigThread(self) -> None:
         pass
@@ -340,19 +340,15 @@ class WidgetBase(BaseClassTemplate):
 
 
 class WorkerThread(QThread):
-    jobFinished = pyqtSignal()
 
-    def __init__(self, parentThread: QObject, parentLoop: Callable) -> None:
-        QThread.__init__(self, parentThread)
-        self.loopFunc = parentLoop
+    def __init__(self, loopFunc: Callable) -> None:
+        QThread.__init__(self)
+        self.loopFunc = loopFunc
 
     def run(self) -> None:
-        self.running = True
         self.loopFunc()
-        self.jobFinished.emit()
 
     def stop(self) -> None:
-        self.running = False
         pass
 
     def cleanUp(self) -> None:

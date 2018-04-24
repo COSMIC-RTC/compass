@@ -32,14 +32,21 @@ p_wfss[0].set_type("sh")
 p_wfss[0].set_nxsub(16)
 p_wfss[0].set_npix(8)
 
-p_nvalid = None
-# for SH p_nvalid.shape(2,Nsubap) lowerleft corner for each ssp
-# 	[[X0, X1, ..., XN], [Y0, Y1, ..., YN]]
-# for PYR p_nvalid.shape(2,4*nPixPerPupil)
-#       [[P0X0, P0X1, ..., P0XN, P1X0, ..., P4XN],
-# 	 [P0Y0, P0Y1, ..., P0YN, P1Y0, ..., P4YN]]
-# for PYRGEN p_nvalid.shape(2,nPixTot)
-#       [[X0, X1, ..., XN], [Y0, Y1, ..., YN]]
+# p_wfss[0].set_validsubsx( validsubsx )
+# for SH p_nvalid.shape(Nsubap) lowerleft corner for each ssp
+# 	[X0, X1, ..., XN]
+# for PYR p_nvalid.shape(4*nPixPerPupil)
+#   [P0X0, P0X1, ..., P0XN, P1X0, ..., P4XN]
+# for PYRGEN p_nvalid.shape(nPixTot)
+#   [X0, X1, ..., XN]
+
+# p_wfss[0].set_validsubsy( validsubsx )
+# for SH p_nvalid.shape(Nsubap) lowerleft corner for each ssp
+# 	[Y0, Y1, ..., YN]
+# for PYR p_nvalid.shape(4*nPixPerPupil)
+#   [P0Y0, P0Y1, ..., P0YN, P1Y0, ..., P4YN]
+# for PYRGEN p_nvalid.shape(nPixTot)
+#   [Y0, Y1, ..., YN]
 
 #DM params
 p_dms = [conf.Param_dm()]
