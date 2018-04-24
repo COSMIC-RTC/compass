@@ -183,13 +183,13 @@ def dependencies_module(name):
     try:
         dep = dependencies[name]
         print(("dependencies:", dep))
-        if (os.path.exists("src/sutra_bind/" + name + ".cpp")):
+        if (os.path.exists("shesha/sutra_bind/" + name + ".cpp")):
             for d in dep:
-                if (os.stat("src/sutra_bind/" + d + ".pyx").st_mtime >
-                            os.stat("src/sutra_bind/" + name + ".cpp").st_mtime):
+                if (os.stat("shesha/sutra_bind/" + d + ".pyx").st_mtime >
+                            os.stat("shesha/sutra_bind/" + name + ".cpp").st_mtime):
                     # cpp file outdated if exists
-                    if (os.path.exists("src/sutra_bind/" + name + ".cpp")):
-                        os.remove("src/sutra_bind/" + name + ".cpp")
+                    if (os.path.exists("shesha/sutra_bind/" + name + ".cpp")):
+                        os.remove("shesha/sutra_bind/" + name + ".cpp")
     except:  # KeyError e:
         print("No depencies found")
 
@@ -200,7 +200,7 @@ def compile_module(name):
     print("=======================================")
     ext = Extension(
             shesha_path + "/lib/" + name,
-            sources=['src/sutra_bind/' + name + '.pyx'],
+            sources=['shesha/sutra_bind/' + name + '.pyx'],
             extra_compile_args=[
                     "-Wno-unused-function",
                     "-Wno-unused-label",

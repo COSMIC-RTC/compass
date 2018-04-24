@@ -1,5 +1,5 @@
-import shesha_config as conf
-import shesha_constants as scons
+import shesha.config as conf
+import shesha.constants as scons
 
 simul_name = ""
 

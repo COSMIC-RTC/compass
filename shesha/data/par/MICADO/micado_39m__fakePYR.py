@@ -1,4 +1,4 @@
-import shesha_config as ao
+import shesha.config as ao
 import numpy as np
 
 simul_name = "fake_pyr"

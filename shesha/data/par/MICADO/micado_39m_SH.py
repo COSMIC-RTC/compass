@@ -1,4 +1,4 @@
-import shesha_config as conf
+import shesha.config as conf
 
 simul_name = "micado_39m_SH"
 layout = "layoutDeFab_SH"

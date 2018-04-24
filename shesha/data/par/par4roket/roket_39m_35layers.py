@@ -1,4 +1,4 @@
-import shesha_config as conf
+import shesha.config as conf
 import numpy as np
 
 simul_name = ""

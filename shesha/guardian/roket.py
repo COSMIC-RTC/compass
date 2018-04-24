@@ -14,15 +14,15 @@ import pstats as ps
 import sys, os
 import numpy as np
 from naga import naga_context
-from shesha_sim import Simulator
-from shesha_util.rtc_util import centroid_gain
-from shesha_ao.tomo import create_nact_geom
-from shesha_ao.basis import compute_Btt, compute_cmat_with_Btt
-import shesha_constants as scons
+from shesha.sim import Simulator
+from shesha.util.rtc_util import centroid_gain
+from shesha.ao.tomo import create_nact_geom
+from shesha.ao.basis import compute_Btt, compute_cmat_with_Btt
+import shesha.constants as scons
 import time
 import matplotlib.pyplot as pl
 pl.ion()
-import shesha_util.hdf5_utils as h5u
+import shesha.util.hdf5_utils as h5u
 import pandas
 from scipy.sparse import csr_matrix
 

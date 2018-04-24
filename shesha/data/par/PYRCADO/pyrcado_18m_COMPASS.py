@@ -1,5 +1,5 @@
-import shesha_config as conf
-import shesha_constants as scons
+import shesha.config as conf
+import shesha.constants as scons
 import numpy as np
 
 simul_name = ""
@@ -9,7 +9,7 @@ p_loop = conf.Param_loop()
 
 p_loop.set_niter(1000)
 p_loop.set_ittime(1 / 500.)  # =1/500
-p_loop.set_devices([4,5,6,7])
+p_loop.set_devices([4, 5, 6, 7])
 
 # geom
 p_geom = conf.Param_geom()

@@ -1,5 +1,5 @@
-import shesha_config as ao
-import shesha_constants as scons
+import shesha.config as ao
+import shesha.constants as scons
 import numpy as np
 simul_name = ""
 layout = "layoutDeFab"

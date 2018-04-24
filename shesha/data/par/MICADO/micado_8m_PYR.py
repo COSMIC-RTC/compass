@@ -1,5 +1,5 @@
-import shesha_config as conf
-import shesha_constants as scons
+import shesha.config as conf
+import shesha.constants as scons
 import numpy as np
 
 simul_name = "micado_8m_SH"
@@ -92,8 +92,7 @@ p_dm0.set_nact(nact)
 p_dm0.set_alt(0.)
 p_dm0.set_thresh(0.3)  # fraction units
 p_dm0.set_coupling(
-        0.2
-)  # !!!!!!!!!!!!!!!!!!!!!!!!! attention pas autre chose que 0.2 !!!!!!!!!
+        0.2)  # !!!!!!!!!!!!!!!!!!!!!!!!! attention pas autre chose que 0.2 !!!!!!!!!
 #p_dm0.set_unitpervolt(0.01)
 #p_dm0.set_push4imat(100.)
 p_dm0.set_unitpervolt(1)
