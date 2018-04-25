@@ -1,11 +1,11 @@
 cimport numpy as np
 
-from Rtc cimport *
-from Telescope cimport *
-from Atmos cimport *
-from Sensors cimport *
-from Target cimport *
-from Dms cimport *
+from shesha.sutra_bind.Rtc cimport *
+from shesha.sutra_bind.Telescope cimport *
+from shesha.sutra_bind.Atmos cimport *
+from shesha.sutra_bind.Sensors cimport *
+from shesha.sutra_bind.Target cimport *
+from shesha.sutra_bind.Dms cimport *
 
 cdef class Roket:
 

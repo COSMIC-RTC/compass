@@ -2,18 +2,26 @@
 import re
 import datetime
 now = datetime.datetime.now()
-template_strs = ['CLASSNAME','DIM','C_TYPE','NUMPY_TYPENAME_T','NUMPY_TYPENAME','CAST','C_FFT_TYPE','PY_FFT_TYPE']
+template_strs = [
+    'CLASSNAME',
+    'DIM',
+    'C_TYPE',
+    'NUMPY_TYPENAME_T',
+    'NUMPY_TYPENAME',
+    'CAST',
+    'C_FFT_TYPE',
+    'PY_FFT_TYPE']
 template_type_str = 'ARRAY_TYPE'
 c_types_info = {
-                'float':  ['Float', '1', 'float', 'np.float32_t', 'np.float32','SIMPLE','cuFloatComplex','ComplexS',[]],
+    'float': ['Float', '1', 'float', 'np.float32_t', 'np.float32', 'SIMPLE', 'cuFloatComplex', 'ComplexS', []],
 
-                'double':['Double', '1', 'double', 'np.float64_t', 'np.float64','SIMPLE','cuDoubleComplex','ComplexD',[]],
-                }
+    'double': ['Double', '1', 'double', 'np.float64_t', 'np.float64', 'SIMPLE', 'cuDoubleComplex', 'ComplexD', []],
+}
 ?>
 
 import numpy as np
-cimport numpy as np
-#np.import_array()
+
+from libcpp cimport bool
 
 from scipy.sparse import csr_matrix
 
@@ -22,22 +30,21 @@ assert sizeof(float) == sizeof(np.float32_t)
 assert sizeof(double) == sizeof(np.float64_t)
 
 
-
 <?py
-pxd_code_str ='''
+pxd_code_str = '''
 
 
 ##########################################################
 #  P-Class `CLASSNAME`
 #########################################################
-cdef class naga_sparse_obj_CLASSNAME:
+cdef class sparse_obj_CLASSNAME:
 
     def __cinit__(self,
-                  naga_sparse_obj_CLASSNAME obj=None,
+                  sparse_obj_CLASSNAME obj=None,
                   np.ndarray[ndim=DIM, dtype=NUMPY_TYPENAME_T] data=None,
                   np.ndarray[ndim=1, dtype=np.int64_t] dims=None,
                   ):
-        """naga_obj_CLASSNAME constructor.
+        """obj_CLASSNAME constructor.
 
       carma_sparse_obj(carma_context *current_context)
 
@@ -111,10 +118,9 @@ cdef class naga_sparse_obj_CLASSNAME:
 '''
 
 
+for ctype, info in c_types_info.items():
 
-for ctype,info in c_types_info.items():
-
-#code available for all dimensions (constructor, getters, copy...)
+    # code available for all dimensions (constructor, getters, copy...)
     code = pxd_code_str
 
     code = code.replace(template_strs[0], info[0])

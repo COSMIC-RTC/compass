@@ -1,8 +1,8 @@
 include "sutra.pxd"
-from naga_context cimport *
-from naga_obj cimport *
-from naga_sparse_obj cimport *
-from naga_magma cimport *
+from naga.context cimport context as naga_context
+from naga.obj cimport *
+from naga.sparse_obj cimport *
+from naga.magma cimport *
 
 cimport numpy as np
 
@@ -19,9 +19,9 @@ from libc.stdint cimport uintptr_t
 
 from cpython.string cimport PyString_AsString
 
-from Sensors cimport *
-from Dms cimport *
-from Target cimport *
+from shesha.sutra_bind.Sensors cimport *
+from shesha.sutra_bind.Dms cimport *
+from shesha.sutra_bind.Target cimport *
 
 
 #################################################

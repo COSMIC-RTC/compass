@@ -1,7 +1,7 @@
 cimport numpy as np
-from naga_context cimport *
-from naga_obj cimport *
-from naga_sparse_obj cimport *
+from naga.context cimport context as naga_context
+from naga.obj cimport *
+from naga.sparse_obj cimport *
 
 include "sutra.pxd"
 

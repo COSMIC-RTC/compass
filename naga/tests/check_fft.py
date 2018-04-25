@@ -1,17 +1,19 @@
 import numpy as np
 import numpy.fft as npf
 import numpy.testing as npt
-import naga as ch
 import time
 
-c = ch.naga_context()
+from naga.context import context
+from naga.obj import obj_ComplexD2D, obj_Double2D, obj_ComplexD3D
+
+c = context()
 
 sizex = 256
 sizey = 512
 sizez = 10
 
 dec = 5
-prec = 10 ** -dec
+prec = 10**-dec
 
 
 def test_fft_C2C():
@@ -24,9 +26,9 @@ def test_fft_C2C():
     nElem = m * n
 
     #generating random carma_obj
-    C1 = ch.naga_obj_ComplexD2D(c, dims=np.array((m, n), dtype=np.int64))
-    C1.random(time.clock() * 10 ** 6)
-    C2 = ch.naga_obj_ComplexD2D(c, dims=np.array((m, n), dtype=np.int64))
+    C1 = obj_ComplexD2D(c, dims=np.array((m, n), dtype=np.int64))
+    C1.random(time.clock() * 10**6)
+    C2 = obj_ComplexD2D(c, dims=np.array((m, n), dtype=np.int64))
 
     #matrix associated to carma_obj
     C1_data = C1.device2host()
@@ -51,11 +53,11 @@ def test_fft_C2C():
     MI = np.argmax(err.imag)
 
     dR = 1
-    if(0 < np.abs(data.item(MR).real)):
-        dR = 10 ** np.ceil(np.log10(np.abs(data.item(MR).real)))
+    if (0 < np.abs(data.item(MR).real)):
+        dR = 10**np.ceil(np.log10(np.abs(data.item(MR).real)))
     dI = 1
-    if(0 < np.abs(data.item(MI).imag)):
-        dI = 10 ** np.ceil(np.log10(np.abs(data.item(MI).imag)))
+    if (0 < np.abs(data.item(MI).imag)):
+        dI = 10**np.ceil(np.log10(np.abs(data.item(MI).imag)))
 
     print("")
     print("Test FFT forward C2C")
@@ -64,8 +66,10 @@ def test_fft_C2C():
     print("Python: ", t2 - t1)
     print("Carma : ", t3 - t2)
 
-    npt.assert_almost_equal(data.item(MR).real / dR, data_gpu.item(MR).real / dR, decimal=dec)
-    npt.assert_almost_equal(data.item(MI).imag / dI, data_gpu.item(MI).imag / dI, decimal=dec)
+    npt.assert_almost_equal(
+            data.item(MR).real / dR, data_gpu.item(MR).real / dR, decimal=dec)
+    npt.assert_almost_equal(
+            data.item(MI).imag / dI, data_gpu.item(MI).imag / dI, decimal=dec)
 
     #IFFT
     t1 = time.clock()
@@ -86,11 +90,11 @@ def test_fft_C2C():
     MI = np.argmax(np.abs(err.imag))
 
     dR = 1
-    if(0 < np.abs(data.item(MR).real)):
-        dR = 10 ** np.ceil(np.log10(np.abs(data.item(MR).real)))
+    if (0 < np.abs(data.item(MR).real)):
+        dR = 10**np.ceil(np.log10(np.abs(data.item(MR).real)))
     dI = 1
-    if(0 < np.abs(data.item(MI).imag)):
-        dI = 10 ** np.ceil(np.log10(np.abs(data.item(MI).imag)))
+    if (0 < np.abs(data.item(MI).imag)):
+        dI = 10**np.ceil(np.log10(np.abs(data.item(MI).imag)))
 
     print("")
     print("Test FFT backward C2C")
@@ -99,8 +103,10 @@ def test_fft_C2C():
     print("Python: ", t2 - t1)
     print("Carma : ", t3 - t2)
 
-    npt.assert_almost_equal(data.item(MR).real / dR, data_gpu.item(MR).real / dR, decimal=dec)
-    npt.assert_almost_equal(data.item(MI).imag / dI, data_gpu.item(MI).imag / dI, decimal=dec)
+    npt.assert_almost_equal(
+            data.item(MR).real / dR, data_gpu.item(MR).real / dR, decimal=dec)
+    npt.assert_almost_equal(
+            data.item(MI).imag / dI, data_gpu.item(MI).imag / dI, decimal=dec)
 
     npt.assert_array_almost_equal(C1_data, cpu_B, decimal=dec)
 
@@ -117,8 +123,8 @@ def test_fft_R2C_C2R():
     ncElem = (n + 1) / 2 * m
 
     #generating random carma_obj
-    R1 = ch.naga_obj_Double2D(c, dims=np.array((m, n), dtype=np.int64))
-    R1.random(time.clock() * 10 ** 6)
+    R1 = obj_Double2D(c, dims=np.array((m, n), dtype=np.int64))
+    R1.random(time.clock() * 10**6)
 
     #matrix associated to carma_obj
     R1_data = R1.device2host()
@@ -144,11 +150,11 @@ def test_fft_R2C_C2R():
     MI = np.argmax(err.imag)
 
     dR = 1
-    if(0 < np.abs(data.item(MR).real)):
-        dR = 10 ** np.ceil(np.log10(np.abs(data.item(MR).real)))
+    if (0 < np.abs(data.item(MR).real)):
+        dR = 10**np.ceil(np.log10(np.abs(data.item(MR).real)))
     dI = 1
-    if(0 < np.abs(data.item(MI)).imag):
-        dI = 10 ** np.ceil(np.log10(np.abs(data.item(MI).imag)))
+    if (0 < np.abs(data.item(MI)).imag):
+        dI = 10**np.ceil(np.log10(np.abs(data.item(MI).imag)))
 
     print("")
     print("Test FFT R2C")
@@ -157,8 +163,10 @@ def test_fft_R2C_C2R():
     print("Python: ", t2 - t1)
     print("Carma : ", t3 - t2)
 
-    npt.assert_almost_equal(data.item(MR).real / dR, data_gpu.item(MR).real / dR, decimal=dec)
-    npt.assert_almost_equal(data.item(MI).imag / dI, data_gpu.item(MI).imag / dI, decimal=dec)
+    npt.assert_almost_equal(
+            data.item(MR).real / dR, data_gpu.item(MR).real / dR, decimal=dec)
+    npt.assert_almost_equal(
+            data.item(MI).imag / dI, data_gpu.item(MI).imag / dI, decimal=dec)
 
     #IFFT
     t1 = time.clock()
@@ -178,8 +186,8 @@ def test_fft_R2C_C2R():
     MR = np.argmax(err.real)
 
     dR = 1
-    if(0 < np.abs(data.item(MR).real)):
-        dR = 10 ** np.ceil(np.log10(np.abs(data.item(MR).real)))
+    if (0 < np.abs(data.item(MR).real)):
+        dR = 10**np.ceil(np.log10(np.abs(data.item(MR).real)))
 
     print("")
     print("Test FFT C2R")
@@ -188,7 +196,8 @@ def test_fft_R2C_C2R():
     print("Python: ", t2 - t1)
     print("Carma : ", t3 - t2)
 
-    npt.assert_almost_equal(data.item(MR).real / dR, data_gpu.item(MR).real / dR, decimal=dec)
+    npt.assert_almost_equal(
+            data.item(MR).real / dR, data_gpu.item(MR).real / dR, decimal=dec)
     npt.assert_array_almost_equal(R2_data, cpu_C2R, decimal=dec)
 
 
@@ -204,14 +213,14 @@ def Ntest_fft_multi():
 
     nElem = m * n
 
-    C1 = ch.naga_obj_ComplexD3D(c, dims=np.array((m, n, l), dtype=np.int64))
-    C2 = ch.naga_obj_ComplexD3D(c, dims=np.array((m, n, l), dtype=np.int64))
-    C3 = ch.naga_obj_ComplexD3D(c, dims=np.array((m, n, l), dtype=np.int64))
+    C1 = obj_ComplexD3D(c, dims=np.array((m, n, l), dtype=np.int64))
+    C2 = obj_ComplexD3D(c, dims=np.array((m, n, l), dtype=np.int64))
+    C3 = obj_ComplexD3D(c, dims=np.array((m, n, l), dtype=np.int64))
 
     cpu_F = np.ones((m, n, l), dtype=np.complex128)
     cpu_B = np.ones((m, n, l), dtype=np.complex128)
 
-    C1.random(time.clock() * 10 ** 6)
+    C1.random(time.clock() * 10**6)
     R1_data = C1.device2host()
 
     #cufftManyPlan: l successive 2D plan ( != 3D fft)

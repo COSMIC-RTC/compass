@@ -1,6 +1,5 @@
 include "sutra.pxd"
 
-from naga_context cimport *
 cimport numpy as np
 
 from libc.stdlib cimport malloc, free
@@ -16,10 +15,10 @@ from cpython.string cimport PyString_AsString
 
 from libc.math cimport sin
 
-from naga_sparse_obj cimport *
+from naga.sparse_obj cimport sparse_obj_Double, sparse_obj_Float
+from naga.context cimport context as naga_context
 
-from Sensors import *
-from Sensors cimport *
+from shesha.sutra_bind.Sensors cimport *
 
 
 #################################################

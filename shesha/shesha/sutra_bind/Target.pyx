@@ -1,6 +1,5 @@
 include "../../par.pxi"
 import numpy as np
-cimport numpy as np
 
 cdef class Target:
 

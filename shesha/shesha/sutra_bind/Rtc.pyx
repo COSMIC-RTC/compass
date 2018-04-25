@@ -1,12 +1,12 @@
 include "../../par.pxi"
 
-import numpy as np
-cimport numpy as np
-# np.import_array()
 import os
+import numpy as np
 import shesha.constants as scons
 
 from cython.operator cimport dereference as deref, preincrement as inc
+
+from naga.context import context as naga_context
 
 from tqdm import tqdm
 
@@ -1834,7 +1834,7 @@ cdef class Rtc:
         """
         cdef sutra_controller_geo * controller_geo
         cdef bytes type = self.rtc.d_control[ncontrol].get_type()
-        sparse = naga_sparse_obj_Double()
+        sparse = sparse_obj_Double()
         if(type == scons.ControllerType.GEO):
             controller_geo = dynamic_cast_controller_geo_ptr(
                 self.rtc.d_control[ncontrol])

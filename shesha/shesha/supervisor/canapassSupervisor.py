@@ -25,9 +25,9 @@ import shesha.constants as scons
 from typing import Any, Dict, Tuple, Callable, List
 from .compassSupervisor import CompassSupervisor
 
-from naga import naga_obj_Double2D, syevd_Double, naga_context
+from naga.obj import obj_Double2D, syevd_Double, naga_context
 
-# from naga import naga_host_obj_Double1D, naga_host_obj_Double2D, svd_host_Double, naga_context
+from naga.host_obj import host_obj_Double1D, host_obj_Double2D, svd_host_Double, naga_context
 
 
 class CanapassSupervisor(CompassSupervisor):
@@ -184,13 +184,13 @@ class CanapassSupervisor(CompassSupervisor):
         elif inv_method == "gpu_svd":
             print("Doing SVD on CPU of a matrix...")
             m = gdg.shape[0]
-            h_mat = naga_host_obj_Double2D(data=gdg, mallocType="pagelock")
-            h_eig = naga_host_obj_Double1D(data=np.zeros([m], dtype=np.float64),
-                                           mallocType="pagelock")
-            h_U = naga_host_obj_Double2D(data=np.zeros((m, m), dtype=np.float64),
-                                         mallocType="pagelock")
-            h_VT = naga_host_obj_Double2D(data=np.zeros((m, m), dtype=np.float64),
-                                          mallocType="pagelock")
+            h_mat = host_obj_Double2D(data=gdg, mallocType="pagelock")
+            h_eig = host_obj_Double1D(data=np.zeros([m], dtype=np.float64),
+                                      mallocType="pagelock")
+            h_U = host_obj_Double2D(data=np.zeros((m, m), dtype=np.float64),
+                                    mallocType="pagelock")
+            h_VT = host_obj_Double2D(data=np.zeros((m, m), dtype=np.float64),
+                                     mallocType="pagelock")
             svd_host_Double(h_mat, h_eig, h_U, h_VT)
             U = h_U.getData().T.copy()
             s = h_eig.getData()[::-1].copy()
@@ -198,8 +198,8 @@ class CanapassSupervisor(CompassSupervisor):
             print("Doing EVD on GPU of a matrix...")
             c = naga_context()
             m = gdg.shape[0]
-            d_mat = naga_obj_Double2D(c, data=gdg)
-            d_U = naga_obj_Double2D(c, data=np.zeros([m, m], dtype=np.float64))
+            d_mat = obj_Double2D(c, data=gdg)
+            d_U = obj_Double2D(c, data=np.zeros([m, m], dtype=np.float64))
             h_s = np.zeros(m, dtype=np.float64)
             syevd_Double(d_mat, h_s, d_U)
             U = d_U.device2host().T.copy()

@@ -1,12 +1,11 @@
 cimport numpy as np
 
-from naga_obj cimport * 
-from naga_obj import *
-from naga_host_obj cimport * 
-from naga_host_obj import *
+from naga.obj cimport carma_obj, cublasHandle_t
+from naga.host_obj cimport carma_host_obj
+
+from libcpp cimport bool
 
 cdef extern from "cublas_api.h":
-
     ctypedef enum cublasStatus_t:
         CUBLAS_STATUS_SUCCESS = 0
         CUBLAS_STATUS_NOT_INITIALIZED = 1
@@ -44,4 +43,3 @@ cdef extern from "carma_host_obj.h":
 cdef extern from "carma_cublas.h":
     cublasStatus_t carma_axpy[T](cublasHandle_t cublas_handle, int n, T alpha, T * vectx,
         int incx, T * vecty, int incy)
-

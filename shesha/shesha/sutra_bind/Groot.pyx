@@ -1,6 +1,6 @@
 import numpy as np
-cimport numpy as np
-# np.import_array()
+
+from naga.context import context as naga_context
 
 
 def groot_init(int nactus, int nlayers, float gsangle, float fc,
@@ -101,9 +101,9 @@ cdef class GrootS:
         cdef int device
         device = context.get_activeDevice()
         self.device = device
-        cdef np.ndarray[dtype = np.float32_t] pzt2tt_F = pzt2tt.flatten("F")
-        cdef np.ndarray[dtype = np.float32_t] TTPfilter_F = TTPfilter.flatten("F")
-        cdef np.ndarray[dtype = np.float32_t] Nact_F = Nact.flatten("F")
+        cdef np.ndarray[dtype= np.float32_t] pzt2tt_F = pzt2tt.flatten("F")
+        cdef np.ndarray[dtype= np.float32_t] TTPfilter_F = TTPfilter.flatten("F")
+        cdef np.ndarray[dtype= np.float32_t] Nact_F = Nact.flatten("F")
 
         self.groot = new sutra_groot[float](context, device, nactus, nlayers,
                                             gsangle, < float * > vdt.data,
@@ -134,13 +134,13 @@ cdef class GrootS:
         """
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.groot.device, 1)
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data
         cdef const long * dims = NULL
 
         dims = self.groot.d_Cerr.getDims()
         data_F = np.zeros((dims[2], dims[1]), dtype=np.float32)
-        self.groot.d_Cerr.device2host( < float * > data_F.data)
+        self.groot.d_Cerr.device2host(< float * > data_F.data)
         data = np.reshape(data_F.flatten("F"), (dims[1], dims[2]))
 
         return data
@@ -155,13 +155,13 @@ cdef class GrootS:
         """
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.groot.device, 1)
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data
         cdef const long * dims = NULL
 
         dims = self.groot.d_TT.getDims()
         data_F = np.zeros((dims[2], dims[1]), dtype=np.float32)
-        self.groot.d_TT.device2host( < float * > data_F.data)
+        self.groot.d_TT.device2host(< float * > data_F.data)
         data = np.reshape(data_F.flatten("F"), (dims[1], dims[2]))
 
         return data
@@ -174,12 +174,12 @@ cdef class GrootS:
         """
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.groot.device, 1)
-        cdef np.ndarray[ndim = 1, dtype = np.float32_t] data
+        cdef np.ndarray[ndim= 1, dtype = np.float32_t] data
         cdef const long * dims = NULL
 
         dims = self.groot.d_tab_int_x.getDims()
         data = np.zeros(dims[1], dtype=np.float32)
-        self.groot.d_tab_int_x.device2host( < float * > data.data)
+        self.groot.d_tab_int_x.device2host(< float * > data.data)
 
         return data
 
@@ -191,12 +191,12 @@ cdef class GrootS:
         """
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.groot.device, 1)
-        cdef np.ndarray[ndim = 1, dtype = np.float32_t] data
+        cdef np.ndarray[ndim= 1, dtype = np.float32_t] data
         cdef const long * dims = NULL
 
         dims = self.groot.d_tab_int_y.getDims()
         data = np.zeros(dims[1], dtype=np.float32)
-        self.groot.d_tab_int_y.device2host( < float * > data.data)
+        self.groot.d_tab_int_y.device2host(< float * > data.data)
 
         return data
 
@@ -235,9 +235,9 @@ cdef class GrootD:
         cdef int device
         device = context.get_activeDevice()
         self.device = device
-        cdef np.ndarray[dtype = np.float64_t] pzt2tt_F = pzt2tt.flatten("F")
-        cdef np.ndarray[dtype = np.float64_t] TTPfilter_F = TTPfilter.flatten("F")
-        cdef np.ndarray[dtype = np.float64_t] Nact_F = Nact.flatten("F")
+        cdef np.ndarray[dtype= np.float64_t] pzt2tt_F = pzt2tt.flatten("F")
+        cdef np.ndarray[dtype= np.float64_t] TTPfilter_F = TTPfilter.flatten("F")
+        cdef np.ndarray[dtype= np.float64_t] Nact_F = Nact.flatten("F")
 
         self.groot = new sutra_groot[double](context, device, nactus, nlayers,
                                              gsangle, < double * > vdt.data,
@@ -268,13 +268,13 @@ cdef class GrootD:
         """
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.groot.device, 1)
-        cdef np.ndarray[ndim = 2, dtype = np.float64_t] data_F
-        cdef np.ndarray[ndim = 2, dtype = np.float64_t] data
+        cdef np.ndarray[ndim= 2, dtype = np.float64_t] data_F
+        cdef np.ndarray[ndim= 2, dtype = np.float64_t] data
         cdef const long * dims = NULL
 
         dims = self.groot.d_Cerr.getDims()
         data_F = np.zeros((dims[2], dims[1]), dtype=np.float64)
-        self.groot.d_Cerr.device2host( < double * > data_F.data)
+        self.groot.d_Cerr.device2host(< double * > data_F.data)
         data = np.reshape(data_F.flatten("F"), (dims[1], dims[2]))
 
         return data
@@ -289,13 +289,13 @@ cdef class GrootD:
         """
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.groot.device, 1)
-        cdef np.ndarray[ndim = 2, dtype = np.float64_t] data_F
-        cdef np.ndarray[ndim = 2, dtype = np.float64_t] data
+        cdef np.ndarray[ndim= 2, dtype = np.float64_t] data_F
+        cdef np.ndarray[ndim= 2, dtype = np.float64_t] data
         cdef const long * dims = NULL
 
         dims = self.groot.d_TT.getDims()
         data_F = np.zeros((dims[2], dims[1]), dtype=np.float64)
-        self.groot.d_TT.device2host( < double * > data_F.data)
+        self.groot.d_TT.device2host(< double * > data_F.data)
         data = np.reshape(data_F.flatten("F"), (dims[1], dims[2]))
 
         return data
@@ -308,12 +308,12 @@ cdef class GrootD:
         """
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.groot.device, 1)
-        cdef np.ndarray[ndim = 1, dtype = np.float64_t] data
+        cdef np.ndarray[ndim= 1, dtype = np.float64_t] data
         cdef const long * dims = NULL
 
         dims = self.groot.d_tab_int_x.getDims()
         data = np.zeros(dims[1], dtype=np.float64)
-        self.groot.d_tab_int_x.device2host( < double * > data.data)
+        self.groot.d_tab_int_x.device2host(< double * > data.data)
 
         return data
 
@@ -325,11 +325,11 @@ cdef class GrootD:
         """
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.groot.device, 1)
-        cdef np.ndarray[ndim = 1, dtype = np.float64_t] data
+        cdef np.ndarray[ndim= 1, dtype = np.float64_t] data
         cdef const long * dims = NULL
 
         dims = self.groot.d_tab_int_y.getDims()
         data = np.zeros(dims[1], dtype=np.float64)
-        self.groot.d_tab_int_y.device2host( < double * > data.data)
+        self.groot.d_tab_int_y.device2host(< double * > data.data)
 
         return data

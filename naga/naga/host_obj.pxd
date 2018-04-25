@@ -13,12 +13,9 @@ cdef extern from "driver_types.h":
             cudaMemcpyDefault = 4
 
 
-from naga_context cimport * 
-from naga_context import *
-from naga_obj cimport * 
-from naga_obj import *
-from naga_streams cimport * 
-from naga_streams import *
+from naga.context cimport carma_context, context as naga_context
+from naga.streams cimport carma_streams
+from naga.obj cimport carma_obj, float2, double2, cuFloatComplex, cuDoubleComplex
 
 #################################################
 # C-Class carma_host_obj
@@ -83,88 +80,87 @@ cdef extern from "carma_host_obj.h":
 
 
 #################################################
-# P-Classes naga_host_obj
+# P-Classes naga.host_obj
 #################################################
-cdef class naga_host_obj_Int1D:
+cdef class host_obj_Int1D:
     cdef carma_host_obj[int] * c_h
     cdef int * data_h
-cdef class naga_host_obj_Int2D:
+cdef class host_obj_Int2D:
     cdef carma_host_obj[int] * c_h
     cdef int * data_h
-cdef class naga_host_obj_Int3D:
+cdef class host_obj_Int3D:
     cdef carma_host_obj[int] * c_h
     cdef int * data_h
-cdef class naga_host_obj_Int4D:
+cdef class host_obj_Int4D:
     cdef carma_host_obj[int] * c_h
     cdef int * data_h
 
 
-cdef class naga_host_obj_UInt1D:
+cdef class host_obj_UInt1D:
     cdef carma_host_obj[unsigned int] * c_h
     cdef unsigned int * data_h
-cdef class naga_host_obj_UInt2D:
+cdef class host_obj_UInt2D:
     cdef carma_host_obj[unsigned int] * c_h
     cdef unsigned int * data_h
-cdef class naga_host_obj_UInt3D:
+cdef class host_obj_UInt3D:
     cdef carma_host_obj[unsigned int] * c_h
     cdef unsigned int * data_h
-cdef class naga_host_obj_UInt4D:
+cdef class host_obj_UInt4D:
     cdef carma_host_obj[unsigned int] * c_h
     cdef unsigned int * data_h
 
 
-cdef class naga_host_obj_Float1D:
+cdef class host_obj_Float1D:
     cdef carma_host_obj[float] * c_h
     cdef float * data_h
-cdef class naga_host_obj_Float2D:
+cdef class host_obj_Float2D:
     cdef carma_host_obj[float] * c_h
     cdef float * data_h
-cdef class naga_host_obj_Float3D:
+cdef class host_obj_Float3D:
     cdef carma_host_obj[float] * c_h
     cdef float * data_h
-cdef class naga_host_obj_Float4D:
+cdef class host_obj_Float4D:
     cdef carma_host_obj[float] * c_h
     cdef float * data_h
 
 
-cdef class naga_host_obj_Double1D:
+cdef class host_obj_Double1D:
     cdef carma_host_obj[double] * c_h
     cdef double * data_h
-cdef class naga_host_obj_Double2D:
+cdef class host_obj_Double2D:
     cdef carma_host_obj[double] * c_h
     cdef double * data_h
-cdef class naga_host_obj_Double3D:
+cdef class host_obj_Double3D:
     cdef carma_host_obj[double] * c_h
     cdef double * data_h
-cdef class naga_host_obj_Double4D:
+cdef class host_obj_Double4D:
     cdef carma_host_obj[double] * c_h
     cdef double * data_h
 
 
-cdef class naga_host_obj_ComplexS1D:
+cdef class host_obj_ComplexS1D:
     cdef carma_host_obj[float2] * c_h
     cdef float2 * data_h
-cdef class naga_host_obj_ComplexS2D:
+cdef class host_obj_ComplexS2D:
     cdef carma_host_obj[float2] * c_h
     cdef float2 * data_h
-cdef class naga_host_obj_ComplexS3D:
+cdef class host_obj_ComplexS3D:
     cdef carma_host_obj[float2] * c_h
     cdef float2 * data_h
-cdef class naga_host_obj_ComplexS4D:
+cdef class host_obj_ComplexS4D:
     cdef carma_host_obj[float2] * c_h
     cdef float2 * data_h
 
 
-cdef class naga_host_obj_ComplexD1D:
+cdef class host_obj_ComplexD1D:
     cdef carma_host_obj[double2] * c_h
     cdef double2 * data_h
-cdef class naga_host_obj_ComplexD2D:
+cdef class host_obj_ComplexD2D:
     cdef carma_host_obj[double2] * c_h
     cdef double2 * data_h
-cdef class naga_host_obj_ComplexD3D:
+cdef class host_obj_ComplexD3D:
     cdef carma_host_obj[double2] * c_h
     cdef double2 * data_h
-cdef class naga_host_obj_ComplexD4D:
+cdef class host_obj_ComplexD4D:
     cdef carma_host_obj[double2] * c_h
     cdef double2 * data_h
-

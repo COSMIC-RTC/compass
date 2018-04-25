@@ -13,10 +13,7 @@ cdef extern from "carma_timer.h":
         double elapsed()
 
 #################################################
-# P-Class naga_timer
+# P-Class naga.timer
 #################################################
-cdef class naga_timer:
+cdef class timer:
     cdef carma_timer * timer
-
-
-

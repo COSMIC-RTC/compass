@@ -1,9 +1,9 @@
 cimport numpy as np
+from libcpp cimport bool
 
-from naga_context cimport * 
-from naga_context import *
-from naga_obj cimport * 
-from naga_obj import *
+from naga.context cimport carma_context
+from naga.obj cimport carma_obj
+from naga.host_obj cimport carma_host_obj
 
 
 cdef extern from "cusparse.h":
@@ -58,7 +58,7 @@ cdef extern from "carma_sparse_obj.h":
       void resize(int nnz_, int dim1_, int dim2_)
       void init_from_transpose(carma_sparse_obj[T_data] * M)
       bool isColumnMajor()
-      char get_majorDim() 
+      char get_majorDim()
       void set_majorDim(char c)
 
       #  /**< General Utilities */
@@ -69,11 +69,11 @@ cdef extern from "carma_sparse_obj.h":
       #    return &d_data[index];
       #      }
       T_data * getData()
-      T_data * getData(int index) 
-      const long * getDims() 
-      long getDims(int i) 
-      int getNzElem() 
-      carma_context * getContext() 
+      T_data * getData(int index)
+      const long * getDims()
+      long getDims(int i)
+      int getNzElem()
+      carma_context * getContext()
 
       int getDevice()
 
@@ -96,42 +96,39 @@ cdef extern from "carma_sparse_obj.h":
       cusparseStatus_t carma_gemv(cusparseHandle_t handle, char op_A, T_data alpha,
           carma_sparse_obj[T_data] * A, carma_obj[T_data] * x, T_data beta,
           carma_obj[T_data] * y);
-  
+
       cusparseStatus_t carma_gemm(cusparseHandle_t handle, char op_A, T_data alpha,
           carma_sparse_obj[T_data] * A, carma_obj[T_data] * B, T_data beta,
           carma_obj[T_data] * C);
-  
+
       cusparseStatus_t carma_gemm(cusparseHandle_t handle, char op_A, char op_B,
           carma_sparse_obj[T_data] * A, carma_sparse_obj[T_data] * B,
           carma_sparse_obj[T_data] * C);
-  
+
       cusparseStatus_t carma_csr2dense(carma_sparse_obj[T_data] * src, T_data * dest);
-  
+
       cusparseStatus_t carma_csr2bsr(carma_sparse_obj[T_data] * src, int blockDim,
           carma_sparse_obj[T_data] * dest);
-  
+
       cusparseStatus_t carma_bsr2csr(carma_sparse_obj[T_data] * src,
           carma_sparse_obj[T_data] * dest);
-  
+
       int carma_magma_csr2ell(carma_sparse_obj[T_data] * dA);
-  
+
       int carma_magma_spmv(T_data alpha, carma_sparse_obj[T_data] * dA, carma_obj[T_data] * dx, T_data beta, carma_obj[T_data] * dy);
-  
+
       int carma_sparse_magma_free(carma_sparse_obj[T_data] * dA);
-  
+
       #    int carma_kgemv(carma_sparse_obj[T_data]* A, T_data alpha,
       #    const T_data* __restrict x, T_data beta, T_data *y);
 
 #################################################
-# P-Classes naga_sparse_obj
+# P-Classes naga.sparse_obj
 #################################################
-cdef class naga_sparse_obj_Float:
+cdef class sparse_obj_Float:
     cdef carma_sparse_obj[float] * c_sparse_obj
     cdef copy(self, carma_sparse_obj[float] * c_sparse_obj)
 
-cdef class naga_sparse_obj_Double:
+cdef class sparse_obj_Double:
     cdef carma_sparse_obj[double] * c_sparse_obj
     cdef copy(self, carma_sparse_obj[double] * c_sparse_obj)
-
-
-

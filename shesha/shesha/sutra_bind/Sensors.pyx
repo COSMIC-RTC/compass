@@ -1,6 +1,7 @@
 import numpy as np
-cimport numpy as np
 
+from naga.context import context as naga_context
+from naga.obj import obj_Float2D, obj_Int1D
 
 cdef class Sensors:
     """
@@ -994,7 +995,7 @@ cdef class Sensors:
         else:
             raise TypeError("wfs should be a pyr")
 
-    cpdef copy_pyrimg(self, int n, naga_obj_Float2D data, naga_obj_Int1D validx, naga_obj_Int1D validy):
+    cpdef copy_pyrimg(self, int n, obj_Float2D data, obj_Int1D validx, obj_Int1D validy):
         """Set the image of a pyr wfsr
 
         :param n: (int) : number of the wfs to get the image from

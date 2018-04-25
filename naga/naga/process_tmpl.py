@@ -36,7 +36,7 @@ Notice:
 This script is adapted from the nice projet pySPH:
 https://bitbucket.org/pysph/pysph
 
-    
+
 '''
 
 import os
@@ -44,12 +44,14 @@ import sys
 import re
 from io import StringIO
 
+
 def is_modified_later(filename1, filename2):
     ''' return `True` if the file1 is modified later than file2'''
     if not os.path.exists(filename2):
         return True
     else:
         return os.stat(filename1).st_mtime > os.stat(filename2).st_mtime
+
 
 class FileGenerator(object):
     '''class to generate source file from template'''
@@ -108,11 +110,13 @@ class FileGenerator(object):
         ret = eval(expr_str, self.dict)
         return ret
 
+
 def get_tmpl_src_files(dirname):
     '''returns all files in directory having and extension `.in`'''
     ls = os.listdir(dirname)
-    ls = [os.path.join(dirname,f) for f in ls if f.endswith('.in')]
+    ls = [os.path.join(dirname, f) for f in ls if f.endswith('.in')]
     return ls
+
 
 def generate_files(src_files, if_modified=True):
     '''generates source files from the template files with extension `.in`
@@ -126,8 +130,9 @@ def generate_files(src_files, if_modified=True):
         outfile = filename[:-3]
         if if_modified and not is_modified_later(filename, outfile):
             print('not', end=' ')
-        print('generating file %s from %s' %(outfile, filename))
+        print('generating file %s from %s' % (outfile, filename))
         generator.generate_file_if_modified(filename, outfile, if_modified)
+
 
 def main(paths=None):
     '''generates source files using template files
@@ -138,11 +143,12 @@ def main(paths=None):
     '''
     if paths is None:
         files = get_tmpl_src_files(os.path.dirname(__file__))
-    elif len(paths)>0:
+    elif len(paths) > 0:
         files = paths
     else:
         files = get_tmpl_src_files(os.path.curdir)
     generate_files(files)
+
 
 if __name__ == '__main__':
     import sys
@@ -150,11 +156,9 @@ if __name__ == '__main__':
         print('usage:')
         print('    process_tmpl.py [filenames]')
         print()
-        print('    Convert template files with extension `.in` into '
-        'source files')
+        print('    Convert template files with extension `.in` into ' 'source files')
         print('    If filenames is omitted all `.in` files in current '
-        'directory will be converted')
+              'directory will be converted')
 
     else:
         main(sys.argv[1:])
-

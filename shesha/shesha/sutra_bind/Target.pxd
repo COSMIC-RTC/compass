@@ -1,11 +1,8 @@
 include "sutra.pxd"
 
-from Telescope import *
-from Telescope cimport *
-from Atmos import *
-from Atmos cimport *
-from Dms import *
-from Dms cimport *
+from shesha.sutra_bind.Telescope cimport *
+from shesha.sutra_bind.Atmos cimport *
+from shesha.sutra_bind.Dms cimport *
 
 
 

@@ -1,9 +1,4 @@
 import numpy as np
-cimport numpy as np
-# np.import_array()
-
-from libcpp.string cimport string
-from libc.stdint cimport int32_t
 
 """
 #################################################
@@ -19,16 +14,16 @@ cdef extern from "carma_context.h":
         int get_activeDevice()
 """
 #################################################
-# P-Class naga_context
+# P-Class naga.context
 #################################################
-cdef class naga_context:
+cdef class context:
 
     def __cinit__(self, device=None, np.ndarray[ndim=1, dtype=int32_t] devices=None):
-        if device is not None :
+        if device is not None:
             self.c = &carma_context.instance_1gpu(device)
-        elif devices is not None :
-            self.c = &carma_context.instance_ngpu(devices.size, <int32_t*>devices.data)
-        else :
+        elif devices is not None:
+            self.c = &carma_context.instance_ngpu(devices.size, < int32_t * >devices.data)
+        else:
             self.c = &carma_context.instance()
 
     def get_ndevice(self):
@@ -38,9 +33,9 @@ cdef class naga_context:
     def get_device_names(self):
         """Return names of devices."""
         cdef int nb_dev = self.c.get_ndevice()
-        names = ['']*nb_dev
+        names = [''] * nb_dev
         for num_dev in range(nb_dev):
-            names[num_dev]=self.c.get_device(num_dev).getName()
+            names[num_dev] = self.c.get_device(num_dev).getName()
         return names
 
     def set_activeDevice(self, int newDevice, int silent=1):

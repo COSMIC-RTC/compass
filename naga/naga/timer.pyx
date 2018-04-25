@@ -1,8 +1,8 @@
 #################################################
-# P-Class naga_timer
+# P-Class naga.timer
 #################################################
 
-cdef class naga_timer:
+cdef class timer:
 
     def __cinit__(self):
         self.timer = new carma_timer()

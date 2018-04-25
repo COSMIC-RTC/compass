@@ -21,25 +21,19 @@ for key, value in list(cfg_vars.items()):
         cfg_vars[key] = value.replace("-Wstrict-prototypes", "")
 # ==================================
 
-listMod = [
-        'naga_context', 'naga_streams', 'naga_obj', 'naga_host_obj',
-        'naga_magma', 'naga_timer', 'naga_sparse_obj']
+listMod = ['context', 'streams', 'host_obj', 'obj', 'magma', 'timer', 'sparse_obj']
 dependencies = {
-        'naga_streams': ['naga_context'],
-        'naga_obj': ['naga_context', 'naga_streams'],
-        'naga_host_obj': ['naga_context', 'naga_streams'],
-        'naga_magma': ['naga_obj',
-                       'naga_host_obj'], 'naga_timer': ['naga_context'],
-        'naga_sparse_obj': ['naga_context', 'naga_obj']}
+        'streams': ['context'],
+        'host_obj': ['context', 'streams'],
+        'obj': ['context', 'streams'],
+        'magma': ['obj', 'host_obj'],
+        'timer': ['context'],
+        'sparse_obj': ['context', 'obj']
+}
 
 naga_path = os.environ.get('NAGA_ROOT')
 if (naga_path is None):
     raise EnvironmentError("Environment variable 'NAGA_ROOT' must be define")
-sys.path.append(naga_path + '/src')
-if not os.path.exists(naga_path + "/lib"):
-    os.makedirs(naga_path + "/lib")
-
-sys.path.append(naga_path + "/lib")
 
 # deprecated
 # def find_in_path(name, path):
@@ -59,13 +53,14 @@ def locate_compass():
     if 'COMPASS_ROOT' in os.environ:
         root_compass = os.environ['COMPASS_ROOT']
     else:
-        raise EnvironmentError(
-                "Environment variable 'COMPASS_ROOT' must be define")
+        raise EnvironmentError("Environment variable 'COMPASS_ROOT' must be define")
 
     compass_config = {
             'inc_sutra': root_compass + '/libsutra/include.h',
             'inc_carma': root_compass + '/libcarma/include.h',
-            'inc_naga': root_compass + '/naga', 'lib': root_compass}
+            'inc_naga': root_compass + '/naga',
+            'lib': root_compass
+    }
 
     return compass_config
 
@@ -105,14 +100,16 @@ class clean(_clean):
         module_lib = pjoin('.', 'naga.so')
         if (os.path.exists(module_lib)):
             os.remove(module_lib)
-        if (os.path.exists('./src/naga.cpp')):
-            os.remove('./src/naga.cpp')
-        if (os.path.exists('./src/naga_obj.pyx')):
-            os.remove('./src/naga_obj.pyx')
-        if (os.path.exists('./src/naga_host_obj.pyx')):
-            os.remove('./src/naga_host_obj.pyx')
-        if (os.path.exists('./src/naga_magma.pyx')):
-            os.remove('./src/naga_magma.pyx')
+        if (os.path.exists('./naga')):
+            os.remove('./naga')
+        if (os.path.exists('./naga/*.cpp')):
+            os.remove('./naga/*.cpp')
+        if (os.path.exists('./naga/obj.pyx')):
+            os.remove('./naga/obj.pyx')
+        if (os.path.exists('./naga/host_obj.pyx')):
+            os.remove('./naga/host_obj.pyx')
+        if (os.path.exists('./naga/magma.pyx')):
+            os.remove('./naga/magma.pyx')
         if (os.path.exists('./build')):
             remove_tree('./build')
         if (os.path.exists('./dist')):
@@ -137,8 +134,7 @@ if 'CUDA_INC_PATH' in os.environ:
     library_dirs.append(os.environ['CUDA_LIB_PATH_64'])
     libraries.append('cudart')
 else:
-    raise EnvironmentError(
-            "Environment variable 'CUDA_INC_PATH' must be define")
+    raise EnvironmentError("Environment variable 'CUDA_INC_PATH' must be define")
 
 # print("library_dirs", library_dirs)
 # print("libraries", libraries)
@@ -207,7 +203,7 @@ else:
 
 # dal with generated sources files
 if 'build_ext' in sys.argv or 'develop' in sys.argv or 'install' in sys.argv:
-    generator = os.path.join(os.path.abspath('.'), 'src/process_tmpl.py')
+    generator = os.path.join(os.path.abspath('.'), 'naga/process_tmpl.py')
     d = {'__file__': generator}
     exec(compile(open(generator).read(), generator, 'exec'), d)
     d['main'](None)
@@ -220,15 +216,14 @@ def dependencies_module(name):
     try:
         dep = dependencies[name]
         print("dependencies:", dep)
-        if (os.path.exists("src/" + name + ".cpp")):
+        if (os.path.exists("naga/" + name + ".cpp")):
             for d in dep:
-                if (
-                        os.stat("src/" + d + ".pyx").st_mtime >
-                        os.stat("src/" + name + ".cpp").st_mtime):
+                if (os.stat("naga/" + d + ".pyx").st_mtime >
+                            os.stat("naga/" + name + ".cpp").st_mtime):
                     # cpp file outdated
                     # cpp file outdated if exists
-                    if (os.path.exists("src/" + name + ".cpp")):
-                        os.remove("src/" + name + ".cpp")
+                    if (os.path.exists("naga/" + name + ".cpp")):
+                        os.remove("naga/" + name + ".cpp")
     except KeyError as e:
         print(e)
 
@@ -238,8 +233,8 @@ def compile_module(name):
     print("creating module ", name)
     print("=======================================")
     ext = Extension(
-            naga_path + "/lib/" + name,
-            sources=['src/' + name + '.pyx'],
+            naga_path + "/naga/" + name,
+            sources=[naga_path + '/naga/' + name + '.pyx'],
             extra_compile_args=[
                     "-Wno-unused-function",
                     "-Wno-unused-label",

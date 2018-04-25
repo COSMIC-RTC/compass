@@ -1,6 +1,8 @@
 from libcpp.string cimport string
 from libc.stdint cimport int32_t
 
+cimport numpy as np
+
 cdef extern from "cublas_v2.h":
     pass
 
@@ -58,7 +60,7 @@ cdef extern from "carma_context.h":
 
 
 #################################################
-# P-Class naga_context
+# P-Class naga.context
 #################################################
-cdef class naga_context:
+cdef class context:
     cdef carma_context *c

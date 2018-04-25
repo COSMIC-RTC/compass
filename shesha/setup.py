@@ -43,16 +43,11 @@ dependencies = {
 naga_path = os.environ.get('NAGA_ROOT')
 if (naga_path is None):
     raise EnvironmentError("Environment variable 'NAGA_ROOT' must be define")
-sys.path.append(naga_path + '/src')
+sys.path.append(naga_path)
 
 shesha_path = os.environ.get('SHESHA_ROOT')
 if (shesha_path is None):
     raise EnvironmentError("Environment variable 'SHESHA_ROOT' must be define")
-
-if not os.path.exists(shesha_path + "/lib"):
-    os.makedirs(shesha_path + "/lib")
-
-sys.path.append(shesha_path + "/lib")
 
 
 def locate_compass():
@@ -67,7 +62,7 @@ def locate_compass():
     compass_config = {
             'inc_sutra': root_compass + '/libsutra/include.h',
             'inc_carma': root_compass + '/libcarma/include.h',
-            'inc_naga': root_compass + '/naga',
+            'inc_naga': naga_path,
             'lib': root_compass
     }
 
@@ -85,7 +80,7 @@ except AttributeError:
 libraries = ['sutra']
 include_dirs = [
         numpy_include, COMPASS['inc_carma'], COMPASS['inc_sutra'], COMPASS['inc_naga']
-]  # , shesha_path+"/src"]
+]
 
 library_dirs = [COMPASS['lib'] + "/libsutra"]
 
@@ -199,8 +194,8 @@ def compile_module(name):
     print(("creating module ", name))
     print("=======================================")
     ext = Extension(
-            shesha_path + "/lib/" + name,
-            sources=['shesha/sutra_bind/' + name + '.pyx'],
+            shesha_path + "/shesha/sutra_bind/" + name,
+            sources=[shesha_path + '/shesha/sutra_bind/' + name + '.pyx'],
             extra_compile_args=[
                     "-Wno-unused-function",
                     "-Wno-unused-label",

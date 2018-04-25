@@ -3,41 +3,47 @@ import re
 import datetime
 
 now = datetime.datetime.now()
-template_strs = ['CLASSNAME','DIM','C_TYPE','NUMPY_TYPENAME_T','NUMPY_TYPENAME','CAST','C_FFT_TYPE','PY_FFT_TYPE']
+template_strs = [
+    'CLASSNAME',
+    'DIM',
+    'C_TYPE',
+    'NUMPY_TYPENAME_T',
+    'NUMPY_TYPENAME',
+    'CAST',
+    'C_FFT_TYPE',
+    'PY_FFT_TYPE']
 template_type_str = 'ARRAY_TYPE'
 c_types_info = {
-                'int1':['Int', '1', 'int','np.int32_t', 'np.int32','SIMPLE','','',[]],
-                'int2':['Int', '2', 'int','np.int32_t', 'np.int32','SIMPLE','','',[]],
-                'int3':['Int', '3', 'int','np.int32_t', 'np.int32','SIMPLE','','',[]],
-                'int4':['Int', '4', 'int','np.int32_t', 'np.int32','SIMPLE','','',[]],
-                'unsigned int1':['UInt', '1','unsigned int','np.uint32_t', 'np.uint32','SIMPLE','','', []],
-                'unsigned int2':['UInt', '2','unsigned int','np.uint32_t', 'np.uint32','SIMPLE','','', []],
-                'unsigned int3':['UInt', '3','unsigned int','np.uint32_t', 'np.uint32','SIMPLE','','', []],
-                'unsigned int4':['UInt', '4','unsigned int','np.uint32_t', 'np.uint32','SIMPLE','','', []],
+    'int1': ['Int', '1', 'int', 'np.int32_t', 'np.int32', 'SIMPLE', '', '', []],
+    'int2': ['Int', '2', 'int', 'np.int32_t', 'np.int32', 'SIMPLE', '', '', []],
+    'int3': ['Int', '3', 'int', 'np.int32_t', 'np.int32', 'SIMPLE', '', '', []],
+    'int4': ['Int', '4', 'int', 'np.int32_t', 'np.int32', 'SIMPLE', '', '', []],
+    'unsigned int1': ['UInt', '1', 'unsigned int', 'np.uint32_t', 'np.uint32', 'SIMPLE', '', '', []],
+    'unsigned int2': ['UInt', '2', 'unsigned int', 'np.uint32_t', 'np.uint32', 'SIMPLE', '', '', []],
+    'unsigned int3': ['UInt', '3', 'unsigned int', 'np.uint32_t', 'np.uint32', 'SIMPLE', '', '', []],
+    'unsigned int4': ['UInt', '4', 'unsigned int', 'np.uint32_t', 'np.uint32', 'SIMPLE', '', '', []],
 
-                'float1':  ['Float', '1', 'float', 'np.float32_t', 'np.float32','SIMPLE','cuFloatComplex','ComplexS',[]],
-                'float2':  ['Float', '2', 'float', 'np.float32_t', 'np.float32','SIMPLE','cuFloatComplex','ComplexS',[]],
-                'float3':   ['Float'   ,'3', 'float', 'np.float32_t', 'np.float32','SIMPLE','cuFloatComplex','ComplexS',[]],
-                'float4':   ['Float'   ,'4', 'float', 'np.float32_t', 'np.float32','SIMPLE','cuFloatComplex','ComplexS',[]],
-                'complexS1':['ComplexS', '1', 'cuFloatComplex', 'np.complex64_t', 'np.complex64','COMPLEX','float','Float',[]],
-                'complexS2':['ComplexS', '2', 'cuFloatComplex', 'np.complex64_t', 'np.complex64','COMPLEX','float','Float',[]],
-                'complexS3':['ComplexS', '3', 'cuFloatComplex', 'np.complex64_t', 'np.complex64','COMPLEX','float','Float',[]],
-                'complexS4':['ComplexS', '4', 'cuFloatComplex', 'np.complex64_t', 'np.complex64','COMPLEX','float','Float',[]],
+    'float1': ['Float', '1', 'float', 'np.float32_t', 'np.float32', 'SIMPLE', 'cuFloatComplex', 'ComplexS', []],
+    'float2': ['Float', '2', 'float', 'np.float32_t', 'np.float32', 'SIMPLE', 'cuFloatComplex', 'ComplexS', []],
+    'float3': ['Float', '3', 'float', 'np.float32_t', 'np.float32', 'SIMPLE', 'cuFloatComplex', 'ComplexS', []],
+    'float4': ['Float', '4', 'float', 'np.float32_t', 'np.float32', 'SIMPLE', 'cuFloatComplex', 'ComplexS', []],
+    'complexS1': ['ComplexS', '1', 'cuFloatComplex', 'np.complex64_t', 'np.complex64', 'COMPLEX', 'float', 'Float', []],
+    'complexS2': ['ComplexS', '2', 'cuFloatComplex', 'np.complex64_t', 'np.complex64', 'COMPLEX', 'float', 'Float', []],
+    'complexS3': ['ComplexS', '3', 'cuFloatComplex', 'np.complex64_t', 'np.complex64', 'COMPLEX', 'float', 'Float', []],
+    'complexS4': ['ComplexS', '4', 'cuFloatComplex', 'np.complex64_t', 'np.complex64', 'COMPLEX', 'float', 'Float', []],
 
-                'double1':['Double', '1', 'double', 'np.float64_t', 'np.float64','SIMPLE','cuDoubleComplex','ComplexD',[]],
-                'double2':['Double', '2', 'double', 'np.float64_t', 'np.float64','SIMPLE','cuDoubleComplex','ComplexD',[]],
-                'double3':['Double', '3', 'double', 'np.float64_t', 'np.float64','SIMPLE','cuDoubleComplex','ComplexD',[]],
-                'double4':['Double', '4', 'double', 'np.float64_t', 'np.float64','SIMPLE','cuDoubleComplex','ComplexD',[]],
-                'complexD1':['ComplexD', '1', 'cuDoubleComplex', 'np.complex128_t', 'np.complex128','COMPLEX','double','Double',[]],
-                'complexD2':['ComplexD', '2', 'cuDoubleComplex', 'np.complex128_t', 'np.complex128','COMPLEX','double','Double',[]],
-                'complexD3':['ComplexD', '3', 'cuDoubleComplex', 'np.complex128_t', 'np.complex128','COMPLEX','double','Double',[]],
-                'complexD4':['ComplexD', '4', 'cuDoubleComplex', 'np.complex128_t', 'np.complex128','COMPLEX','double','Double',[]],
-                }
+    'double1': ['Double', '1', 'double', 'np.float64_t', 'np.float64', 'SIMPLE', 'cuDoubleComplex', 'ComplexD', []],
+    'double2': ['Double', '2', 'double', 'np.float64_t', 'np.float64', 'SIMPLE', 'cuDoubleComplex', 'ComplexD', []],
+    'double3': ['Double', '3', 'double', 'np.float64_t', 'np.float64', 'SIMPLE', 'cuDoubleComplex', 'ComplexD', []],
+    'double4': ['Double', '4', 'double', 'np.float64_t', 'np.float64', 'SIMPLE', 'cuDoubleComplex', 'ComplexD', []],
+    'complexD1': ['ComplexD', '1', 'cuDoubleComplex', 'np.complex128_t', 'np.complex128', 'COMPLEX', 'double', 'Double', []],
+    'complexD2': ['ComplexD', '2', 'cuDoubleComplex', 'np.complex128_t', 'np.complex128', 'COMPLEX', 'double', 'Double', []],
+    'complexD3': ['ComplexD', '3', 'cuDoubleComplex', 'np.complex128_t', 'np.complex128', 'COMPLEX', 'double', 'Double', []],
+    'complexD4': ['ComplexD', '4', 'cuDoubleComplex', 'np.complex128_t', 'np.complex128', 'COMPLEX', 'double', 'Double', []],
+}
 ?>
 
 import numpy as np
-cimport numpy as np
-#np.import_array()
 
 assert sizeof(int) == sizeof(np.int32_t)
 assert sizeof(float) == sizeof(np.float32_t)
@@ -154,86 +160,83 @@ cdef extern from "carma_obj.h":
     cdef int carma_fftconv(carma_obj[float] *data_out, carma_obj[float] *padded_data,
         carma_obj[cuFloatComplex] *padded_spectrum, int kernelY, int kernelX)
 """
-#Dictionary fft available:
+# Dictionary fft available:
 # Dictionary contain fft input type
 # key:   fft output type
 # value: cufftType
-cdef dict_fft_Float1D={naga_obj_ComplexS1D:(CUFFT_R2C)}
-cdef dict_fft_Float2D={naga_obj_ComplexS2D:(CUFFT_R2C)}
-cdef dict_fft_Float3D={naga_obj_ComplexS3D:(CUFFT_R2C)}
-cdef dict_fft_Float4D={naga_obj_ComplexS4D:(CUFFT_R2C)}
-cdef dict_fft_Double1D={naga_obj_ComplexD1D:(CUFFT_D2Z)}
-cdef dict_fft_Double2D={naga_obj_ComplexD2D:(CUFFT_D2Z)}
-cdef dict_fft_Double3D={naga_obj_ComplexD3D:(CUFFT_D2Z)}
-cdef dict_fft_Double4D={naga_obj_ComplexD4D:(CUFFT_D2Z)}
-cdef dict_fft_ComplexS1D={
-    naga_obj_Float1D:(CUFFT_C2R),
-    naga_obj_ComplexS1D:(CUFFT_C2C)
+cdef dict_fft_Float1D = {obj_ComplexS1D: (CUFFT_R2C)}
+cdef dict_fft_Float2D = {obj_ComplexS2D: (CUFFT_R2C)}
+cdef dict_fft_Float3D = {obj_ComplexS3D: (CUFFT_R2C)}
+cdef dict_fft_Float4D = {obj_ComplexS4D: (CUFFT_R2C)}
+cdef dict_fft_Double1D = {obj_ComplexD1D: (CUFFT_D2Z)}
+cdef dict_fft_Double2D = {obj_ComplexD2D: (CUFFT_D2Z)}
+cdef dict_fft_Double3D = {obj_ComplexD3D: (CUFFT_D2Z)}
+cdef dict_fft_Double4D = {obj_ComplexD4D: (CUFFT_D2Z)}
+cdef dict_fft_ComplexS1D = {
+    obj_Float1D: (CUFFT_C2R),
+    obj_ComplexS1D: (CUFFT_C2C)
 }
-cdef dict_fft_ComplexS2D={
-    naga_obj_Float2D:(CUFFT_C2R),
-    naga_obj_ComplexS2D:(CUFFT_C2C)
+cdef dict_fft_ComplexS2D = {
+    obj_Float2D: (CUFFT_C2R),
+    obj_ComplexS2D: (CUFFT_C2C)
 }
-cdef dict_fft_ComplexS3D={
-    naga_obj_Float3D:(CUFFT_C2R),
-    naga_obj_ComplexS3D:(CUFFT_C2C)
+cdef dict_fft_ComplexS3D = {
+    obj_Float3D: (CUFFT_C2R),
+    obj_ComplexS3D: (CUFFT_C2C)
 }
-cdef dict_fft_ComplexS4D={
-    naga_obj_Float4D:(CUFFT_C2R),
-    naga_obj_ComplexS4D:(CUFFT_C2C)
+cdef dict_fft_ComplexS4D = {
+    obj_Float4D: (CUFFT_C2R),
+    obj_ComplexS4D: (CUFFT_C2C)
 }
-cdef dict_fft_ComplexD1D={
-    naga_obj_Double1D:(CUFFT_Z2D),
-    naga_obj_ComplexD1D:(CUFFT_Z2Z)
+cdef dict_fft_ComplexD1D = {
+    obj_Double1D: (CUFFT_Z2D),
+    obj_ComplexD1D: (CUFFT_Z2Z)
 }
-cdef dict_fft_ComplexD2D={
-    naga_obj_Double2D:(CUFFT_Z2D),
-    naga_obj_ComplexD2D:(CUFFT_Z2Z)
+cdef dict_fft_ComplexD2D = {
+    obj_Double2D: (CUFFT_Z2D),
+    obj_ComplexD2D: (CUFFT_Z2Z)
 }
-cdef dict_fft_ComplexD3D={
-    naga_obj_Double3D:(CUFFT_Z2D),
-    naga_obj_ComplexD3D:(CUFFT_Z2Z)
+cdef dict_fft_ComplexD3D = {
+    obj_Double3D: (CUFFT_Z2D),
+    obj_ComplexD3D: (CUFFT_Z2Z)
 }
-cdef dict_fft_ComplexD4D={
-    naga_obj_Double4D:(CUFFT_Z2D),
-    naga_obj_ComplexD4D:(CUFFT_Z2Z)
+cdef dict_fft_ComplexD4D = {
+    obj_Double4D: (CUFFT_Z2D),
+    obj_ComplexD4D: (CUFFT_Z2Z)
 }
-
 
 
 <?py
 
 
-
-
-pxd_code_str ='''
+pxd_code_str = '''
 ##########################################################
 #  P-Class `CLASSNAMEDIMD`
 #########################################################
 
 
-cdef class naga_obj_CLASSNAMEDIMD:
+cdef class obj_CLASSNAMEDIMD:
 
     def __cinit__(self,naga_context ctxt=None ,
-                  naga_obj_CLASSNAMEDIMD obj=None,
+                  obj_CLASSNAMEDIMD obj=None,
                   np.ndarray[ndim=DIM, dtype=NUMPY_TYPENAME_T] data=None,
                   np.ndarray[ndim=1, dtype=np.int64_t] dims=None,
                   ):
-        """naga_obj_CLASSNAMEDIMD constructor.
+        """obj_CLASSNAMEDIMD constructor.
 
-        naga_obj(naga_obj obj)
-        naga_obj(naga_context ctxt, naga_obj obj)
-        naga_obj(naga_context ctxt, np.ndarray dims)
-        naga_obj(naga_context ctxt, np.ndarray data)
+        obj(obj obj)
+        obj(naga_context ctxt, obj obj)
+        obj(naga_context ctxt, np.ndarray dims)
+        obj(naga_context ctxt, np.ndarray data)
 
         input data must be a np.ndarray with ndim=DIM
         """
 
         if (ctxt is None):
             #if no context: copy constructor
-            #using the context associated to the naga_obj argument
+            #using the context associated to the obj argument
             if(obj is None):
-                raise ValueError("Missing argument naga_context or naga_obj")
+                raise ValueError("Missing argument naga.context or obj")
             else:
                 obj.activateDevice()
                 self.c_o=new carma_obj[C_TYPE](obj.c_o)
@@ -289,7 +292,7 @@ cdef class naga_obj_CLASSNAMEDIMD:
 
 
     def get_Dims(self):
-        """Return the dimensions of the naga_obj."""
+        """Return the dimensions of the obj."""
 
         cdef np.ndarray dims = np.ndarray((DIM+1),dtype=np.int64)
         cdef const long *cdims
@@ -306,18 +309,18 @@ cdef class naga_obj_CLASSNAMEDIMD:
 
 
     def getDevice(self):
-        """Return the device used by the current naga_obj."""
+        """Return the device used by the current obj."""
         return self.c_o.getDevice()
 
 
     def activateDevice(self, int silent=1):
-        """Activate the device used by the current naga_obj."""
+        """Activate the device used by the current obj."""
         cdef int dev = self.c_o.getDevice()
         self.context.set_activeDevice(dev,silent)
 
 
     def getContext(self):
-        """Return a pointer to the carma_context associated with the current naga_obj."""
+        """Return a pointer to the carma_context associated with the current obj."""
         return self.context
 
 
@@ -368,10 +371,10 @@ cdef class naga_obj_CLASSNAMEDIMD:
         return res
 
 
-    def copyFrom(self, naga_obj_CLASSNAMEDIMD src):
-        """Copy the data from src to the current naga_obj.
+    def copyFrom(self, obj_CLASSNAMEDIMD src):
+        """Copy the data from src to the current obj.
 
-        src -- naga_obj_CLASSNAMEDIMD: object to copy the data from.
+        src -- obj_CLASSNAMEDIMD: object to copy the data from.
         """
         if(self.getDevice()!=src.getDevice()):
             raise ValueError("copy only on the same device")
@@ -379,10 +382,10 @@ cdef class naga_obj_CLASSNAMEDIMD:
         self.c_o.copyFrom( src.c_o.getData(), src.c_o.getNbElem())
 
 
-    def copyInto(self, naga_obj_CLASSNAMEDIMD dest):
-        """Copy data from current naga_obj to dest.
+    def copyInto(self, obj_CLASSNAMEDIMD dest):
+        """Copy data from current obj to dest.
 
-        dest -- naga_obj_CLASSNAMEDIMD: object to copy the data into.
+        dest -- obj_CLASSNAMEDIMD: object to copy the data into.
         """
         if(self.getDevice()!=dest.getDevice()):
             raise ValueError("copy only on the same device")
@@ -390,7 +393,7 @@ cdef class naga_obj_CLASSNAMEDIMD:
         self.c_o.copyInto(dest.c_o.getData(), dest.c_o.getNbElem())
 
     def reset(self):
-        """Set naga_obj to zero.
+        """Set obj to zero.
 
         """
         self.context.set_activeDeviceForCpy(self.getDevice())
@@ -402,7 +405,7 @@ cdef class naga_obj_CLASSNAMEDIMD:
 
 
 '''
-pxd_code_str2='''
+pxd_code_str2 = '''
     def imax (self):
         """Cublas amax.
 
@@ -419,10 +422,10 @@ pxd_code_str2='''
         return self.c_o.imin(1)
 
 
-    def dot(self,naga_obj_CLASSNAMEDIMD src):
+    def dot(self,obj_CLASSNAMEDIMD src):
         """Cublas dot
 
-        src -- naga_obj_CLASSNAMEDIMD
+        src -- obj_CLASSNAMEDIMD
         return the dot product of src and self.
         """
         if(self.getDevice()!=src.getDevice()):
@@ -448,10 +451,10 @@ ENDCOMPLEX
         self.c_o.scale(a,1)
 
 
-    def swap(self, naga_obj_CLASSNAMEDIMD src):
+    def swap(self, obj_CLASSNAMEDIMD src):
         """Cublas swap
 
-        src -- naga_obj_CLASSNAMEDIMD
+        src -- obj_CLASSNAMEDIMD
         Swap data contents of naga objects self and src.
         """
         if(self.getDevice()!=src.getDevice()):
@@ -460,10 +463,10 @@ ENDCOMPLEX
         self.c_o.swap(src.c_o,1,1)
 
 
-    def copy(self, naga_obj_CLASSNAMEDIMD src):
+    def copy(self, obj_CLASSNAMEDIMD src):
         """Cublas copy
 
-        src -- naga_obj_CLASSNAMEDIMD
+        src -- obj_CLASSNAMEDIMD
         Copy data from src into self
         """
         if(self.getDevice()!=src.getDevice()):
@@ -506,18 +509,18 @@ CASTSIMPLE
 ENDSIMPLE
 
 '''
-pxd_code_str_1D='''
-    def axpy( self, NUMPY_TYPENAME_T alpha, naga_obj_CLASSNAME1D dest=None):
+pxd_code_str_1D = '''
+    def axpy( self, NUMPY_TYPENAME_T alpha, obj_CLASSNAME1D dest=None):
         """cublas axpy
 
-        dest -- naga_obj_CLASSNAME1D
+        dest -- obj_CLASSNAME1D
         alpha-- NUMPY_TYPENAME
         beta -- NUMPY_TYPENAME
         Return dest=alpha*self +dest
         """
         if(dest==None):
             c=self.getContext()
-            dest=naga_obj_CLASSNAMEDIMD(ctxt=self.getContext(),dims=self.get_Dims())
+            dest=obj_CLASSNAMEDIMD(ctxt=self.getContext(),dims=self.get_Dims())
         if(self.getDevice()!=dest.getDevice()):
             raise ValueError("axpy only on the same device")
         self.context.set_activeDeviceForCpy(self.getDevice())
@@ -533,13 +536,13 @@ ENDCOMPLEX
         return dest
 
 
-    def ger(self, naga_obj_CLASSNAME1D Y, NUMPY_TYPENAME_T alpha=1.0,
-            naga_obj_CLASSNAME2D A=None):
+    def ger(self, obj_CLASSNAME1D Y, NUMPY_TYPENAME_T alpha=1.0,
+            obj_CLASSNAME2D A=None):
         """Cublas ger
 
-        Y -- naga_obj_CLASSNAME1D
+        Y -- obj_CLASSNAME1D
         alpha -- NUMPY_TYPENAME (default = 1)
-        A -- naga_obj_CLASSNAME2D (default = None)
+        A -- obj_CLASSNAME2D (default = None)
 
         Return A=alpha*self*t(y)+A
         """
@@ -551,7 +554,7 @@ ENDCOMPLEX
             dimA=np.ndarray(2,dtype=np.int64)
             dimA[0]=dimY[0]
             dimA[1]=dimX[0]
-            A=naga_obj_CLASSNAME2D(self.getContext(),dims=dimA)
+            A=obj_CLASSNAME2D(self.getContext(),dims=dimA)
         if(device !=Y.getDevice() or
            device !=A.getDevice()):
             raise ValueError(" ger only on the same device")
@@ -570,14 +573,14 @@ ENDCOMPLEX
 
 '''
 
-pxd_code_str_2D='''
-    def gemv(self, naga_obj_CLASSNAME1D Vx, NUMPY_TYPENAME_T alpha=1,
-             naga_obj_CLASSNAME1D Vy=None, NUMPY_TYPENAME_T beta=0 ):
+pxd_code_str_2D = '''
+    def gemv(self, obj_CLASSNAME1D Vx, NUMPY_TYPENAME_T alpha=1,
+             obj_CLASSNAME1D Vy=None, NUMPY_TYPENAME_T beta=0 ):
         """Cublas gemv
 
-        Vx -- naga_obj_CLASSNAME1D
+        Vx -- obj_CLASSNAME1D
         alpha -- NUMPY_TYPENAME (default = 1)
-        Vy -- naga_obj_CLASSNAME1D (default = None)
+        Vy -- obj_CLASSNAME1D (default = None)
         beta -- NUMPY_TYPENAME (default = 0)
         Return  Vy=alpha*self*Vx+beta*Vy
         """
@@ -585,7 +588,7 @@ pxd_code_str_2D='''
         self.context.set_activeDeviceForCpy(device)
         cdef dimM=self.get_Dims()
         if(Vy is None):
-            Vy=naga_obj_CLASSNAME1D(ctxt=self.getContext(),dims=dimM[0:1])
+            Vy=obj_CLASSNAME1D(ctxt=self.getContext(),dims=dimM[0:1])
 
         if( (self.getDevice()!=Vx.getDevice()) or
              self.getDevice()!= Vy.getDevice()):
@@ -609,13 +612,13 @@ ENDCOMPLEX
         return Vy
 
 
-    def symv(self,naga_obj_CLASSNAME1D Vx, NUMPY_TYPENAME_T alpha=1,
-             naga_obj_CLASSNAME1D Vy=None , NUMPY_TYPENAME_T beta=0):
+    def symv(self,obj_CLASSNAME1D Vx, NUMPY_TYPENAME_T alpha=1,
+             obj_CLASSNAME1D Vy=None , NUMPY_TYPENAME_T beta=0):
         """Cublas symv
 
-        Vx -- naga_obj_CLASSNAME1D
+        Vx -- obj_CLASSNAME1D
         alpha -- NUMPY_TYPENAME (default = 1)
-        Vy -- naga_obj_CLASSNAME1D (default = None)
+        Vy -- obj_CLASSNAME1D (default = None)
         beta -- NUMPY_TYPENAME (default = 0)
         Return Vy=alpha*self*Vx+beta*Vy
         """
@@ -624,8 +627,8 @@ ENDCOMPLEX
         cdef dimM=self.get_Dims()
         if(Vy is None):
             #dimY=np.array([1,dimM[1]],dtype=np.int64)
-            #Vy=naga_obj_CLASSNAMEDIMD(ctxt=self.getContext(),dims=dimY)
-            Vy=naga_obj_CLASSNAMEDIMD(ctxt=self.getContext(),dims=dimM)
+            #Vy=obj_CLASSNAMEDIMD(ctxt=self.getContext(),dims=dimY)
+            Vy=obj_CLASSNAMEDIMD(ctxt=self.getContext(),dims=dimM)
         if(device !=Vx.getDevice() or
            device !=Vy.getDevice() ):
             raise ValueError("symv only on the same device")
@@ -648,15 +651,15 @@ ENDCOMPLEX
         return Vy
 
 
-    def gemm(self,naga_obj_CLASSNAME2D B, str opA='n', str opB='n',
-             NUMPY_TYPENAME_T alpha=1, naga_obj_CLASSNAME2D C=None, NUMPY_TYPENAME_T beta=0):
+    def gemm(self,obj_CLASSNAME2D B, str opA='n', str opB='n',
+             NUMPY_TYPENAME_T alpha=1, obj_CLASSNAME2D C=None, NUMPY_TYPENAME_T beta=0):
         """Cublas gemm
 
-        B -- naga_obj_CLASSNAME2D
+        B -- obj_CLASSNAME2D
         opA -- char (default = 'n')
         opB -- char (default = 'n')
         alpha -- NUMPY_TYPENAME (default = 1)
-        C -- naga_obj_CLASSNAME2D (default = None)
+        C -- obj_CLASSNAME2D (default = None)
         beta  -- NUMPY_TYPENAME (default = 0)
 
         opA (opB): transposition on matrix self (B),
@@ -672,7 +675,7 @@ ENDCOMPLEX
             dimC=np.ndarray(2,dtype=np.int64)
             dimC[0]= dimA[0] if opA=='n' else dimA[1]
             dimC[1]= dimB[1] if opB=='n' else dimB[0]
-            C=naga_obj_CLASSNAMEDIMD(ctxt=self.getContext(), dims=dimC)
+            C=obj_CLASSNAMEDIMD(ctxt=self.getContext(), dims=dimC)
         else:
             dimC=C.get_Dims()
 
@@ -698,14 +701,14 @@ ENDCOMPLEX
         return C
 
 
-    def symm(self, naga_obj_CLASSNAME2D B, str side='l', NUMPY_TYPENAME_T alpha=1,
-             naga_obj_CLASSNAME2D C=None, NUMPY_TYPENAME_T beta=0):
+    def symm(self, obj_CLASSNAME2D B, str side='l', NUMPY_TYPENAME_T alpha=1,
+             obj_CLASSNAME2D C=None, NUMPY_TYPENAME_T beta=0):
         """Cublas symm
 
-        B -- naga_obj_CLASSNAME2D
+        B -- obj_CLASSNAME2D
         side -- char (default = 'l')
         alpha -- NUMPY_TYPENAME (default =1)
-        C -- naga_obj_CLASSNAME2D (default = None)
+        C -- obj_CLASSNAME2D (default = None)
         beta -- NUMPY_TYPENAME (default =0)
 
         return alpha*A*B+beta*C     if side='l'
@@ -726,7 +729,7 @@ ENDCOMPLEX
                 dimC[0]= dimA[1]
                 dimC[1]= dimB[0]
 
-            C=naga_obj_CLASSNAMEDIMD(ctxt=self.getContext(), dims=dimC)
+            C=obj_CLASSNAMEDIMD(ctxt=self.getContext(), dims=dimC)
         else:
             dimC=C.get_Dims()
 
@@ -751,13 +754,13 @@ ENDCOMPLEX
         return C
 
 
-    def syrk(self, str opA='n', NUMPY_TYPENAME_T alpha=1, naga_obj_CLASSNAME2D C=None,
+    def syrk(self, str opA='n', NUMPY_TYPENAME_T alpha=1, obj_CLASSNAME2D C=None,
              NUMPY_TYPENAME_T beta=0):
         """Cublas syrk
 
         opA -- char (default = 'n')
         alpha -- NUMPY_TYPENAME (default = 1)
-        C -- naga_obj_CLASSNAME2D (default = None)
+        C -- obj_CLASSNAME2D (default = None)
         beta -- NUMPY_TYPENAME (default = 0)
 
         opA: transposition on matrix self
@@ -778,7 +781,7 @@ ENDCOMPLEX
                 dimC[0]=dimA[1]
                 dimC[1]=dimA[1]
 
-            C=naga_obj_CLASSNAMEDIMD(ctxt=self.getContext(), dims=dimC)
+            C=obj_CLASSNAMEDIMD(ctxt=self.getContext(), dims=dimC)
         else:
             dimC=C.get_Dims()
 
@@ -802,14 +805,14 @@ ENDCOMPLEX
         return C
 
 
-    def syrkx(self, naga_obj_CLASSNAME2D B, str opA='n',
-              NUMPY_TYPENAME_T alpha=1, naga_obj_CLASSNAME2D C=None, NUMPY_TYPENAME_T beta=0):
+    def syrkx(self, obj_CLASSNAME2D B, str opA='n',
+              NUMPY_TYPENAME_T alpha=1, obj_CLASSNAME2D C=None, NUMPY_TYPENAME_T beta=0):
         """Cublas syrkx
 
-        B -- naga_obj_CLASSNAME2D
+        B -- obj_CLASSNAME2D
         opA -- char (default = 'n')
         apha -- NUMPY_TYPENAME (default = 1)
-        C -- naga_obj_CLASSNAME2D (default = None)
+        C -- obj_CLASSNAME2D (default = None)
         beta -- NUMPY_TYPENAME (default = 0)
 
         opA (opB): transposition on matrix self (B),
@@ -829,7 +832,7 @@ ENDCOMPLEX
             else:
                 dimC[0]=dimA[1]
                 dimC[1]=dimB[1]
-            C=naga_obj_CLASSNAMEDIMD(self.getContext(),dims=dimC)
+            C=obj_CLASSNAMEDIMD(self.getContext(),dims=dimC)
         else:
             dimC=C.get_Dims()
 
@@ -855,16 +858,16 @@ ENDCOMPLEX
         return C
 
 
-    def geam(self, naga_obj_CLASSNAME2D B, NUMPY_TYPENAME_T alpha=1, NUMPY_TYPENAME_T beta=0,
-             str opA='n', str opB='n', naga_obj_CLASSNAME2D C=None):
+    def geam(self, obj_CLASSNAME2D B, NUMPY_TYPENAME_T alpha=1, NUMPY_TYPENAME_T beta=0,
+             str opA='n', str opB='n', obj_CLASSNAME2D C=None):
         """Cublas geam
 
-        B -- naga_obj_CLASSNAME2D
+        B -- obj_CLASSNAME2D
         alpha -- NUMPY_TYPENAME (default = 1)
         beta -- NUMPY_TYPENAME (default = 0)
         opA -- char (default = 'n')
         opB -- char (default = 'n')
-        C -- naga_obj_CLASSNAME2D (default = None)
+        C -- obj_CLASSNAME2D (default = None)
 
         opA (opB): transposition on matrix self (B),
         'n': no transposition
@@ -883,7 +886,7 @@ ENDCOMPLEX
             else:
                 dimC[0]=dimA[1]
                 dimC[1]=dimA[0]
-            C=naga_obj_CLASSNAMEDIMD(self.getContext(),dims=dimC)
+            C=obj_CLASSNAMEDIMD(self.getContext(),dims=dimC)
         else:
             dimC=C.get_Dims()
 
@@ -909,13 +912,13 @@ ENDCOMPLEX
         return C
 
 
-    def dgmm(self, naga_obj_CLASSNAME1D X, str sidec='l',
-             naga_obj_CLASSNAME2D C=None):
+    def dgmm(self, obj_CLASSNAME1D X, str sidec='l',
+             obj_CLASSNAME2D C=None):
         """Cublas dgmm
 
-        X -- naga_obj_CLASSNAME1D
+        X -- obj_CLASSNAME1D
         side -- char (default = 'l')
-        C -- naga_obj_CLASSNAME2D (default = None)
+        C -- obj_CLASSNAME2D (default = None)
 
         Return self*diag(X)     if sidec='l'
                diag(X)*self     otherwise
@@ -933,7 +936,7 @@ ENDCOMPLEX
             else:
                 dimC[0]=dimA[1]
                 dimC[1]=dimA[0]
-            C=naga_obj_CLASSNAMEDIMD(self.getContext(),dims=dimC)
+            C=obj_CLASSNAMEDIMD(self.getContext(),dims=dimC)
         else:
             dimC=C.getDims()
 
@@ -947,7 +950,7 @@ ENDCOMPLEX
         return C
 
 
-    def transpose(self, naga_obj_CLASSNAMEDIMD dest=None):
+    def transpose(self, obj_CLASSNAMEDIMD dest=None):
         """
         """
         cdef device=self.getDevice()
@@ -957,7 +960,7 @@ ENDCOMPLEX
             dimD=np.ndarray(2,dtype=np.int64)
             dimD[0]=dimA[1]
             dimD[1]=dimA[0]
-            dest= naga_obj_CLASSNAMEDIMD(self.getContext,dims=dimD)
+            dest= obj_CLASSNAMEDIMD(self.getContext,dims=dimD)
         else:
             dimD=dest.getDims()
 
@@ -971,7 +974,7 @@ ENDCOMPLEX
 '''
 
 
-pxd_code_str_Ncplx='''
+pxd_code_str_Ncplx = '''
     def nrm2(self):
         """Cublas nrm2. Return the Euclidean norm """
         self.context.set_activeDevice(self.getDevice())
@@ -993,9 +996,8 @@ pxd_code_str_Ncplx='''
 '''
 
 
-
-pxd_code_str_fftR='''
-    def fft(self, naga_obj_PY_FFT_TYPEDIMD dest=None, int direction=1):
+pxd_code_str_fftR = '''
+    def fft(self, obj_PY_FFT_TYPEDIMD dest=None, int direction=1):
         cdef plan
         cdef cufftHandle *handle = self.c_o.getPlan()
         cdef uintptr_t output
@@ -1011,7 +1013,7 @@ pxd_code_str_fftR='''
         if(dest is None):
             dd=self.get_Dims()
             dd[DIM-1]=dd[DIM-1]/2+1
-            dest=naga_obj_PY_FFT_TYPEDIMD(self.getContext(),dims=dd)
+            dest=obj_PY_FFT_TYPEDIMD(self.getContext(),dims=dd)
 
         try:
             plan=dict_fft_CLASSNAMEDIMD[dest.__class__]
@@ -1026,11 +1028,11 @@ pxd_code_str_fftR='''
         return dest
 
 '''
-pxd_code_str_fftC='''
+pxd_code_str_fftC = '''
     def fft(self, bool inplace=False, bool C2R=False, dest=None, int direction=1):
         """Compute fft, using "cufftExec"
 
-        dest -- naga_obj (default = None)
+        dest -- obj (default = None)
         dir -- integer (default 1)
 
         dir: fft's direction
@@ -1066,9 +1068,9 @@ pxd_code_str_fftC='''
                 dest=self
             else:
                 if(C2R):
-                    dest=naga_obj_PY_FFT_TYPEDIMD(self.getContext(),dims=dd)
+                    dest=obj_PY_FFT_TYPEDIMD(self.getContext(),dims=dd)
                 else:
-                    dest=naga_obj_CLASSNAMEDIMD(self.getContext(),dims=dd)
+                    dest=obj_CLASSNAMEDIMD(self.getContext(),dims=dd)
 
         cdef t_dest=dest.__class__
         try:
@@ -1090,11 +1092,11 @@ pxd_code_str_fftC='''
 
 '''
 
-pxd_code_str_fftconv='''
+pxd_code_str_fftconv = '''
 #see dims array
 #dims[0]:first dimension (dims do not contain the number of dimensions)
 #in code below: dims[0]:number of dimensions (folowed by dimensions)
-    def fftconv_init(self, naga_obj_FloatDIMD ker, type="real"):
+    def fftconv_init(self, obj_FloatDIMD ker, type="real"):
         cdef dimsIm=self.get_Dims()
         cdef dimsKer=ker.get_Dims()
         cdef dims_data=np.ndarray((DIM+1),dtype=np.int64)
@@ -1110,17 +1112,17 @@ pxd_code_str_fftconv='''
         self.activateDevice()
 
         if(type=="real"):
-            dest=naga_obj_FloatDIMD(self.getContext(),dims=dims_data)
+            dest=obj_FloatDIMD(self.getContext(),dims=dims_data)
         elif(type=="complex"):
             dims_data[2]=dims_data[2]/2+1
-            dest=naga_obj_ComplexSDIMD(self.getContext(),dims=dims_data)
+            dest=obj_ComplexSDIMD(self.getContext(),dims=dims_data)
         else:
             raise ValueError("""argument "type" must be "real" (default) or "complex" """)
 
         return dest
 
 
-    def fftconv(self, naga_obj_FloatDIMD im, naga_obj_FloatDIMD ker, naga_obj_FloatDIMD pdata, naga_obj_ComplexSDIMD pspec, int kernelX, int kernelY):
+    def fftconv(self, obj_FloatDIMD im, obj_FloatDIMD ker, obj_FloatDIMD pdata, obj_ComplexSDIMD pspec, int kernelX, int kernelY):
         dev=self.getDevice()
         if(dev !=im.getDevice() or
            dev !=ker.getDevice() or
@@ -1135,46 +1137,46 @@ pxd_code_str_fftconv='''
 
 '''
 
-for ctype,info in c_types_info.items():
+for ctype, info in c_types_info.items():
 
-#code available for all dimensions (constructor, getters, copy...)
+    # code available for all dimensions (constructor, getters, copy...)
     code = pxd_code_str
 
-    if(info[0]!='Int' and info[0]!='UInt'):
+    if(info[0] != 'Int' and info[0] != 'UInt'):
 
-        code+=pxd_code_str2
+        code += pxd_code_str2
 
-        if(info[1]=='1'):
-#code specific to vector (cublas functions)
-            code+= pxd_code_str_1D
+        if(info[1] == '1'):
+            # code specific to vector (cublas functions)
+            code += pxd_code_str_1D
 
-        elif(info[1]=='2'):
-#code specific to matrix (cublas functions)
-            code+= pxd_code_str_2D
+        elif(info[1] == '2'):
+            # code specific to matrix (cublas functions)
+            code += pxd_code_str_2D
 
-        if(info[0]=="Float" or info[0]=="Double"):
-#code with no template (yet) for other types than float and double
-#(sum,nrm2...)
+        if(info[0] == "Float" or info[0] == "Double"):
+            # code with no template (yet) for other types than float and double
+            #(sum,nrm2...)
             code += pxd_code_str_Ncplx
-            code+=pxd_code_str_fftR
+            code += pxd_code_str_fftR
 
-        if(info[0]=="ComplexS" or info[0]=="ComplexD"):
-            code+=pxd_code_str_fftC
+        if(info[0] == "ComplexS" or info[0] == "ComplexD"):
+            code += pxd_code_str_fftC
 
 #        if(info[0]=="Float"):
 #            code+=pxd_code_str_fftconv
 
-    if(info[5]=="SIMPLE"):
-        code=re.sub("CASTSIMPLE(\n)?","",code)
-        code=re.sub("ENDSIMPLE","",code)
+    if(info[5] == "SIMPLE"):
+        code = re.sub("CASTSIMPLE(\n)?", "", code)
+        code = re.sub("ENDSIMPLE", "", code)
 
-        code=re.sub(r"\ *CASTCOMPLEX(.*?\n?)*?ENDCOMPLEX(\n)?","" ,code)
+        code = re.sub(r"\ *CASTCOMPLEX(.*?\n?)*?ENDCOMPLEX(\n)?", "", code)
 
-    elif(info[5]=="COMPLEX"):
-        code=re.sub(r"\ *CASTSIMPLE(.*?\n?)*?ENDSIMPLE(\n)","" ,code)
+    elif(info[5] == "COMPLEX"):
+        code = re.sub(r"\ *CASTSIMPLE(.*?\n?)*?ENDSIMPLE(\n)", "", code)
 
-        code=re.sub("CASTCOMPLEX(\n)?","",code)
-        code=re.sub("ENDCOMPLEX","",code)
+        code = re.sub("CASTCOMPLEX(\n)?", "", code)
+        code = re.sub("ENDCOMPLEX", "", code)
 
     code = code.replace(template_strs[0], info[0])
     code = code.replace(template_strs[1], info[1])

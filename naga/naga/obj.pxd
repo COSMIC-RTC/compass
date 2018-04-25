@@ -3,10 +3,8 @@ cimport numpy as np
 from libc.stdint cimport uintptr_t
 from libcpp cimport bool
 
-from naga_context cimport *
-from naga_context import *
-from naga_streams cimport *
-from naga_streams import *
+from naga.context cimport carma_context, context as naga_context
+from naga.streams cimport carma_streams
 
 cdef extern from "vector_types.h":
     struct float2:
@@ -180,84 +178,84 @@ cdef extern from "carma_obj.h":
 
 
 #################################################
-# P-Classes naga_obj
+# P-Classes naga.obj
 #################################################
-cdef class naga_obj_Int1D:
+cdef class obj_Int1D:
     cdef carma_obj[int] * c_o
     cdef naga_context context
-cdef class naga_obj_Int2D:
+cdef class obj_Int2D:
     cdef carma_obj[int] * c_o
     cdef naga_context context
-cdef class naga_obj_Int3D:
+cdef class obj_Int3D:
     cdef carma_obj[int] * c_o
     cdef naga_context context
-cdef class naga_obj_Int4D:
+cdef class obj_Int4D:
     cdef carma_obj[int] * c_o
     cdef naga_context context
 
-cdef class naga_obj_UInt1D:
+cdef class obj_UInt1D:
     cdef carma_obj[unsigned int] * c_o
     cdef naga_context context
-cdef class naga_obj_UInt2D:
+cdef class obj_UInt2D:
     cdef carma_obj[unsigned int] * c_o
     cdef naga_context context
-cdef class naga_obj_UInt3D:
+cdef class obj_UInt3D:
     cdef carma_obj[unsigned int] * c_o
     cdef naga_context context
-cdef class naga_obj_UInt4D:
+cdef class obj_UInt4D:
     cdef carma_obj[unsigned int] * c_o
     cdef naga_context context
 
-cdef class naga_obj_Float1D:
+cdef class obj_Float1D:
     cdef carma_obj[float] * c_o
     cdef naga_context context
-cdef class naga_obj_Float2D:
+cdef class obj_Float2D:
     cdef carma_obj[float] * c_o
     cdef naga_context context
-cdef class naga_obj_Float3D:
+cdef class obj_Float3D:
     cdef carma_obj[float] * c_o
     cdef naga_context context
-cdef class naga_obj_Float4D:
+cdef class obj_Float4D:
     cdef carma_obj[float] * c_o
     cdef naga_context context
 
-cdef class naga_obj_Double1D:
+cdef class obj_Double1D:
     cdef carma_obj[double] * c_o
     cdef naga_context context
-cdef class naga_obj_Double2D:
+cdef class obj_Double2D:
     cdef carma_obj[double] * c_o
     cdef naga_context context
-cdef class naga_obj_Double3D:
+cdef class obj_Double3D:
     cdef carma_obj[double] * c_o
     cdef naga_context context
-cdef class naga_obj_Double4D:
+cdef class obj_Double4D:
     cdef carma_obj[double] * c_o
     cdef naga_context context
 
 # use float2 and double2
 # cuFloatComplex (cuDoubleComplex) dont go through compilation
-cdef class naga_obj_ComplexS1D:
+cdef class obj_ComplexS1D:
     cdef carma_obj[float2] * c_o
     cdef naga_context context
-cdef class naga_obj_ComplexS2D:
+cdef class obj_ComplexS2D:
     cdef carma_obj[float2] * c_o
     cdef naga_context context
-cdef class naga_obj_ComplexS3D:
+cdef class obj_ComplexS3D:
     cdef carma_obj[float2] * c_o
     cdef naga_context context
-cdef class naga_obj_ComplexS4D:
+cdef class obj_ComplexS4D:
     cdef carma_obj[float2] * c_o
     cdef naga_context context
 
-cdef class naga_obj_ComplexD1D:
+cdef class obj_ComplexD1D:
     cdef carma_obj[double2] * c_o
     cdef naga_context context
-cdef class naga_obj_ComplexD2D:
+cdef class obj_ComplexD2D:
     cdef carma_obj[double2] * c_o
     cdef naga_context context
-cdef class naga_obj_ComplexD3D:
+cdef class obj_ComplexD3D:
     cdef carma_obj[double2] * c_o
     cdef naga_context context
-cdef class naga_obj_ComplexD4D:
+cdef class obj_ComplexD4D:
     cdef carma_obj[double2] * c_o
     cdef naga_context context

@@ -2,6 +2,9 @@ from cython.operator cimport dereference as deref, preincrement as inc
 
 import numpy as np
 
+from naga.sparse_obj import sparse_obj_Double, sparse_obj_Float
+from naga.context import context as naga_context
+
 import pandas as pd
 from scipy import interpolate
 import shesha.constants as scons
@@ -90,7 +93,7 @@ cdef class Dms:
         """
         cdef int inddm = self.dms.get_inddm(type, alt)
         if(inddm < 0):
-            raise StandardError("Error in reset dm ")
+            raise RuntimeError("Error in reset dm ")
 
         self.context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
         self.dms.d_dms[inddm].reset_shape()
@@ -110,7 +113,7 @@ cdef class Dms:
         """
         cdef int inddm = self.dms.get_inddm(type, alt)
         if(inddm < 0):
-            raise StandardError("One actuator error")
+            raise RuntimeError("One actuator error")
 
         self.context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
         self.dms.d_dms[inddm].comp_oneactu(nactu, ampli)
@@ -530,7 +533,7 @@ g        :return:
 
         if(type == scons.DmType.PZT):
             d_indx = new carma_obj[int](self.context.c, dims, < int * > indx_pup.data)
-            sparse = naga_sparse_obj_Double()
+            sparse = sparse_obj_Double()
             self.dms.d_dms[inddm].get_IF_sparse(
                 d_IFsparse, d_indx.getData(), indx_pup.size, float(1.0), 1)
             sparse.copy(d_IFsparse)

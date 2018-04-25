@@ -3,20 +3,26 @@ import re
 import datetime
 
 now = datetime.datetime.now()
-template_strs = ['CLASSNAME','DIM','C_TYPE','NUMPY_TYPENAME_T','NUMPY_TYPENAME','CAST','C_FFT_TYPE','PY_FFT_TYPE']
+template_strs = [
+    'CLASSNAME',
+    'DIM',
+    'C_TYPE',
+    'NUMPY_TYPENAME_T',
+    'NUMPY_TYPENAME',
+    'CAST',
+    'C_FFT_TYPE',
+    'PY_FFT_TYPE']
 template_type_str = 'ARRAY_TYPE'
 c_types_info = {
 
-                'float1':  ['Float', '1', 'float', 'np.float32_t', 'np.float32','SIMPLE','cuFloatComplex','ComplexS',[]],
-                'float2':  ['Float', '2', 'float', 'np.float32_t', 'np.float32','SIMPLE','cuFloatComplex','ComplexS',[]],
+    'float1': ['Float', '1', 'float', 'np.float32_t', 'np.float32', 'SIMPLE', 'cuFloatComplex', 'ComplexS', []],
+    'float2': ['Float', '2', 'float', 'np.float32_t', 'np.float32', 'SIMPLE', 'cuFloatComplex', 'ComplexS', []],
 
-                'double1':['Double', '1', 'double', 'np.float64_t', 'np.float64','SIMPLE','cuDoubleComplex','ComplexD',[]],
-                'double2':['Double', '2', 'double', 'np.float64_t', 'np.float64','SIMPLE','cuDoubleComplex','ComplexD',[]],
-                }
+    'double1': ['Double', '1', 'double', 'np.float64_t', 'np.float64', 'SIMPLE', 'cuDoubleComplex', 'ComplexD', []],
+    'double2': ['Double', '2', 'double', 'np.float64_t', 'np.float64', 'SIMPLE', 'cuDoubleComplex', 'ComplexD', []],
+}
 ?>
 import numpy as np
-cimport numpy as np
-#np.import_array()
 
 """
 cdef extern from "carma_obj.h":
@@ -37,52 +43,55 @@ cdef extern from "carma_host_obj.h":
 """
 <?py
 
-pxd_code_str='''
+pxd_code_str = '''
 
-def svd_host_CLASSNAME(naga_host_obj_CLASSNAME2D mat,
-                    naga_host_obj_CLASSNAME1D eigenvals,
-                    naga_host_obj_CLASSNAME2D U,
-                    naga_host_obj_CLASSNAME2D VT):
+from naga.obj cimport obj_CLASSNAME1D, obj_CLASSNAME2D
+from naga.host_obj cimport host_obj_CLASSNAME1D, host_obj_CLASSNAME2D
+
+def svd_host_CLASSNAME(host_obj_CLASSNAME2D mat,
+                    host_obj_CLASSNAME1D eigenvals,
+                    host_obj_CLASSNAME2D U,
+                    host_obj_CLASSNAME2D VT):
     """Call carma_svd_cpu
 
-    naga_host_obj_CLASSNAME2D mat:
-    naga_host_obj_CLASSNAME1D eigenvals:
-    naga_host_obj_CLASSNAME2D U:
-    naga_host_obj_CLASSNAME2D VT:
+    host_obj_CLASSNAME2D mat:
+    host_obj_CLASSNAME1D eigenvals:
+    host_obj_CLASSNAME2D U:
+    host_obj_CLASSNAME2D VT:
     """
     carma_svd_cpu[C_TYPE](mat.c_h, eigenvals.c_h, VT.c_h, U.c_h)
 
-def svd_CLASSNAME(naga_obj_CLASSNAME2D mat,
-                naga_obj_CLASSNAME1D eigenvals,
-                naga_obj_CLASSNAME2D U,
-                naga_obj_CLASSNAME2D VT):
+def svd_CLASSNAME(obj_CLASSNAME2D mat,
+                obj_CLASSNAME1D eigenvals,
+                obj_CLASSNAME2D U,
+                obj_CLASSNAME2D VT):
     """Call carma_svd
     """
 
     carma_svd[C_TYPE](mat.c_o, eigenvals.c_o, VT.c_o, U.c_o)
 
 
-def getri_CLASSNAME(naga_obj_CLASSNAME2D d_mat):
+def getri_CLASSNAME(obj_CLASSNAME2D d_mat):
     return carma_getri[C_TYPE](d_mat.c_o)
 
 
-def getri_host_CLASSNAME(naga_host_obj_CLASSNAME2D h_mat):
+def getri_host_CLASSNAME(host_obj_CLASSNAME2D h_mat):
     cdef const long *dims=h_mat.c_h.getDims()
     return carma_getri_cpu[C_TYPE](dims[1],h_mat.data_h)
 
 
-def potri_CLASSNAME(naga_obj_CLASSNAME2D d_mat ):
+def potri_CLASSNAME(obj_CLASSNAME2D d_mat ):
     return carma_potri[C_TYPE](d_mat.c_o)
 
 
-def potri_host_CLASSNAME(naga_host_obj_CLASSNAMEDIMD h_mat):
+def potri_host_CLASSNAME(host_obj_CLASSNAMEDIMD h_mat):
     cdef const long *dims=h_mat.c_h.getDims()
     return carma_potri_cpu[C_TYPE](dims[1],h_mat.c_h.getData())
 
 
-def syevd_CLASSNAME(naga_obj_CLASSNAME2D d_A,
+def syevd_CLASSNAME(obj_CLASSNAME2D d_A,
                 np.ndarray[ndim=1,dtype=NUMPY_TYPENAME_T] eigenvals,
-                naga_obj_CLASSNAME2D U=None,
+                obj_CLASSNAME2D U=None,
                 bool computeU=True):
 
     cdef long N=eigenvals.shape[0]
@@ -101,9 +110,9 @@ def syevd_CLASSNAME(naga_obj_CLASSNAME2D d_A,
 
 
 
-def syevd_host_CLASSNAME(naga_host_obj_CLASSNAME2D h_A,
+def syevd_host_CLASSNAME(host_obj_CLASSNAME2D h_A,
                 np.ndarray[ndim=1,dtype=NUMPY_TYPENAME_T] eigenvals,
-                naga_host_obj_CLASSNAME2D U=None,
+                host_obj_CLASSNAME2D U=None,
                 bool computeU=True):
 
     cdef long N=eigenvals.shape[0]
@@ -124,22 +133,22 @@ def syevd_host_CLASSNAME(naga_host_obj_CLASSNAME2D h_A,
 '''
 
 
-for ctype,info in c_types_info.items():
+for ctype, info in c_types_info.items():
 
-    #code available for all dimensions (constructor, getters, copy...)
+    # code available for all dimensions (constructor, getters, copy...)
     code = pxd_code_str
 
-    if(info[5]=="SIMPLE"):
-        code=re.sub("CASTSIMPLE(\n)?","",code)
-        code=re.sub("ENDSIMPLE","",code)
+    if(info[5] == "SIMPLE"):
+        code = re.sub("CASTSIMPLE(\n)?", "", code)
+        code = re.sub("ENDSIMPLE", "", code)
 
-        code=re.sub(r"\ *CASTCOMPLEX(.*?\n?)*?ENDCOMPLEX(\n)?","" ,code)
+        code = re.sub(r"\ *CASTCOMPLEX(.*?\n?)*?ENDCOMPLEX(\n)?", "", code)
 
-    elif(info[5]=="COMPLEX"):
-        code=re.sub(r"\ *CASTSIMPLE(.*?\n?)*?ENDSIMPLE(\n)","" ,code)
+    elif(info[5] == "COMPLEX"):
+        code = re.sub(r"\ *CASTSIMPLE(.*?\n?)*?ENDSIMPLE(\n)", "", code)
 
-        code=re.sub("CASTCOMPLEX(\n)?","",code)
-        code=re.sub("ENDCOMPLEX","",code)
+        code = re.sub("CASTCOMPLEX(\n)?", "", code)
+        code = re.sub("ENDCOMPLEX", "", code)
 
     code = code.replace(template_strs[0], info[0])
     code = code.replace(template_strs[1], info[1])

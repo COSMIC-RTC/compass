@@ -83,10 +83,12 @@ LIB_NVCCFLAGS += -isystem $(COMPASS_ROOT)/libcarma/$(H_DIR) -isystem $(CURED_INC
 ifneq ($(GENCODE),)
   LIB_NVCCFLAGS += -gencode $(GENCODE)
 else
-  ifneq($(CUDA_SM),)
-  GENCODE_FLAGS=""
-  $(foreach sm,$(CUDA_SM),$(eval GENCODE_FLAGS += -gencode arch=compute_$(sm),code=sm_$(sm)))
-  LIB_NVCCFLAGS += $(GENCODE_FLAGS)
+  ifneq ($(CUDA_SM),)
+    $(foreach sm,$(CUDA_SM),$(eval GENCODE_FLAGS += -gencode arch=compute_$(sm),code=sm_$(sm)))
+    LIB_NVCCFLAGS += $(GENCODE_FLAGS)
+  else
+     $(warning "WARNING GENCODE and CUDA_SM not found, it will compile for all architectures")
+  endif
 endif
 
 ifneq ($(DEBUG),)

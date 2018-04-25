@@ -1,6 +1,4 @@
 import numpy as np
-cimport numpy as np
-# np.import_array()
 
 
 def roket_init(Rtc rtc, Sensors sensors, Target target, Dms dms, Telescope tel,
@@ -69,10 +67,10 @@ cdef class Roket:
         cdef carma_context * context = &carma_context.instance()
         cdef int device
         device = 1
-        cdef np.ndarray[dtype = np.float32_t] Btt_F = Btt.flatten("F")
-        cdef np.ndarray[dtype = np.float32_t] P_F = P.flatten("F")
-        cdef np.ndarray[dtype = np.float32_t] gRD_F = gRD.flatten("F")
-        cdef np.ndarray[dtype = np.float32_t] RD_F = RD.flatten("F")
+        cdef np.ndarray[dtype= np.float32_t] Btt_F = Btt.flatten("F")
+        cdef np.ndarray[dtype= np.float32_t] P_F = P.flatten("F")
+        cdef np.ndarray[dtype= np.float32_t] gRD_F = gRD.flatten("F")
+        cdef np.ndarray[dtype= np.float32_t] RD_F = RD.flatten("F")
 
         self.roket = new sutra_roket(context, device, rtc.rtc, sensors.sensors,
                                      target.target, dms.dms, tel.telescope, atm.s_a,
@@ -95,8 +93,8 @@ cdef class Roket:
         """
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.roket.device, 1)
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data
         cdef carma_obj[float] * buffer
         cdef const long * dims = NULL
 
@@ -120,7 +118,7 @@ cdef class Roket:
 
         dims = buffer.getDims()
         data_F = np.zeros((dims[1], dims[2]), dtype=np.float32)
-        buffer.device2host( < float * > data_F.data)
+        buffer.device2host(< float * > data_F.data)
         data = np.reshape(data_F.flatten("F"), (dims[1], dims[2]))
 
         return data_F
@@ -133,13 +131,13 @@ cdef class Roket:
         """
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.roket.device, 1)
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data
         cdef const long * dims = NULL
 
         dims = self.roket.d_Btt.getDims()
         data_F = np.zeros((dims[2], dims[1]), dtype=np.float32)
-        self.roket.d_Btt.device2host( < float * > data_F.data)
+        self.roket.d_Btt.device2host(< float * > data_F.data)
         data = np.reshape(data_F.flatten("F"), (dims[1], dims[2]))
 
         return data
@@ -152,13 +150,13 @@ cdef class Roket:
         """
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.roket.device, 1)
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data
         cdef const long * dims = NULL
 
         dims = self.roket.d_covv.getDims()
         data_F = np.zeros((dims[2], dims[1]), dtype=np.float32)
-        self.roket.d_covv.device2host( < float * > data_F.data)
+        self.roket.d_covv.device2host(< float * > data_F.data)
         data = np.reshape(data_F.flatten("F"), (dims[1], dims[2]))
 
         return data
@@ -171,13 +169,13 @@ cdef class Roket:
         """
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.roket.device, 1)
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data
         cdef const long * dims = NULL
 
         dims = self.roket.d_covm.getDims()
         data_F = np.zeros((dims[2], dims[1]), dtype=np.float32)
-        self.roket.d_covm.device2host( < float * > data_F.data)
+        self.roket.d_covm.device2host(< float * > data_F.data)
         data = np.reshape(data_F.flatten("F"), (dims[1], dims[2]))
 
         return data
@@ -190,13 +188,13 @@ cdef class Roket:
         """
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.roket.device, 1)
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data
         cdef const long * dims = NULL
 
         dims = self.roket.d_psfortho.getDims()
         data_F = np.zeros((dims[2], dims[1]), dtype=np.float32)
-        self.roket.d_psfortho.device2host( < float * > data_F.data)
+        self.roket.d_psfortho.device2host(< float * > data_F.data)
         data = np.reshape(data_F.flatten("F"), (dims[1], dims[2]))
 
         return data
@@ -209,12 +207,12 @@ cdef class Roket:
         """
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.roket.device, 1)
-        cdef np.ndarray[ndim = 1, dtype = np.float32_t] data
+        cdef np.ndarray[ndim= 1, dtype = np.float32_t] data
         cdef const long * dims = NULL
 
         dims = self.roket.d_filtmodes.getDims()
         data = np.zeros(dims[1], dtype=np.float32)
-        self.roket.d_filtmodes.device2host( < float * > data.data)
+        self.roket.d_filtmodes.device2host(< float * > data.data)
 
         return data
 
@@ -226,12 +224,12 @@ cdef class Roket:
         """
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.roket.device, 1)
-        cdef np.ndarray[ndim = 1, dtype = np.float32_t] data
+        cdef np.ndarray[ndim= 1, dtype = np.float32_t] data
         cdef const long * dims = NULL
 
         dims = self.roket.d_modes.getDims()
         data = np.zeros(dims[1], dtype=np.float32)
-        self.roket.d_modes.device2host( < float * > data.data)
+        self.roket.d_modes.device2host(< float * > data.data)
 
         return data
 
@@ -243,13 +241,13 @@ cdef class Roket:
         """
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.roket.device, 1)
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data
         cdef const long * dims = NULL
 
         dims = self.roket.d_RD.getDims()
         data_F = np.zeros((dims[2], dims[1]), dtype=np.float32)
-        self.roket.d_RD.device2host( < float * > data_F.data)
+        self.roket.d_RD.device2host(< float * > data_F.data)
         data = np.reshape(data_F.flatten("F"), (dims[1], dims[2]))
 
         return data
@@ -262,13 +260,13 @@ cdef class Roket:
         """
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.roket.device, 1)
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data
         cdef const long * dims = NULL
 
         dims = self.roket.d_gRD.getDims()
         data_F = np.zeros((dims[2], dims[1]), dtype=np.float32)
-        self.roket.d_gRD.device2host( < float * > data_F.data)
+        self.roket.d_gRD.device2host(< float * > data_F.data)
         data = np.reshape(data_F.flatten("F"), (dims[1], dims[2]))
 
         return data
@@ -281,13 +279,13 @@ cdef class Roket:
         """
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.roket.device, 1)
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data
         cdef const long * dims = NULL
 
         dims = self.roket.d_P.getDims()
         data_F = np.zeros((dims[2], dims[1]), dtype=np.float32)
-        self.roket.d_P.device2host( < float * > data_F.data)
+        self.roket.d_P.device2host(< float * > data_F.data)
         data = np.reshape(data_F.flatten("F"), (dims[1], dims[2]))
 
         return data

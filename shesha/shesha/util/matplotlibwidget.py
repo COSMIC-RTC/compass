@@ -35,8 +35,6 @@ class MatplotlibWidget(QtGui.QWidget):
 import sys
 import platform
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigationtoolbar

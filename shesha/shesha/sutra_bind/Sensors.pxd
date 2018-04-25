@@ -1,5 +1,3 @@
-from naga_context cimport *
-
 cimport numpy as np
 
 include "sutra.pxd"
@@ -17,15 +15,12 @@ from cpython.string cimport PyString_AsString
 
 from libc.math cimport sin
 
-from naga_obj cimport naga_obj_Float2D
+from naga.context cimport context as naga_context
+from naga.obj cimport obj_Float2D, obj_Int1D
 
-from Telescope import *
-from Telescope cimport *
-#from shesha_param import *
-#from shesha_param cimport *
-from Atmos import *
-from Atmos cimport *
-from Dms cimport *
+from shesha.sutra_bind.Telescope cimport *
+from shesha.sutra_bind.Atmos cimport *
+from shesha.sutra_bind.Dms cimport *
 
 
 #################################################
@@ -60,5 +55,5 @@ cdef class Sensors:
     cdef _get_slopesDims(self, int n)
     cdef _get_slopes(self, int n)
     cdef _get_hrmap(self, int n)
-    cpdef copy_pyrimg(self, int n, naga_obj_Float2D data,  naga_obj_Int1D validx, naga_obj_Int1D validy)
+    cpdef copy_pyrimg(self, int n, obj_Float2D data,  obj_Int1D validx, obj_Int1D validy)
     cdef _set_validpix(self, int n, np.ndarray[ndim=1, dtype=np.int32_t] datax, np.ndarray[ndim=1, dtype=np.int32_t] datay)

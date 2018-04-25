@@ -10,12 +10,11 @@ obj
 # cython generated files
 build
 cython_debug
-naga/src/*.cpp
-naga/src/naga_host_obj.pyx
-naga/src/naga_magma.pyx
-naga/src/naga_obj.pyx
-naga/src/naga_sparse_obj.pyx
-shesha/shesha/*.cpp
+naga/naga/*.cpp
+naga/naga/host_obj.pyx
+naga/naga/magma.pyx
+naga/naga/obj.pyx
+naga/naga/sparse_obj.pyx
 shesha/shesha/sutra_bind/*.cpp
 
 # python bytecodes

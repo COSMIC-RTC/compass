@@ -1,12 +1,11 @@
 include "../../par.pxi"
 
-from naga_context cimport carma_context, carma_device
-from naga_obj cimport carma_obj
-from naga_host_obj cimport carma_host_obj
-from naga_sparse_obj cimport carma_sparse_obj
-from naga_streams cimport carma_streams
-from naga_obj cimport cuFloatComplex, cuDoubleComplex, cufftHandle, tuple_t
-# from naga cimport *
+from naga.context cimport carma_context, carma_device
+from naga.obj cimport carma_obj
+from naga.host_obj cimport carma_host_obj
+from naga.sparse_obj cimport carma_sparse_obj
+from naga.streams cimport carma_streams
+from naga.obj cimport cuFloatComplex, cuDoubleComplex, cufftHandle, tuple_t
 
 cimport numpy as np
 

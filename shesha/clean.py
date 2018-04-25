@@ -8,14 +8,13 @@ import os
 import shutil
 import glob
 
-SRC = 'src/sutra_bind'
-LIB = 'lib/'
+SRC = 'shesha/sutra_bind'
 
 for dirname in ('build', '__pycache__'):
     if os.path.exists(dirname):
         shutil.rmtree(dirname)
 
-for filepattern in ('*.so', LIB + '*.so', SRC + '*.pyc', SRC + '*.cpp'):
+for filepattern in ('*.so', SRC + '/*.so', SRC + '/*.pyc', SRC + '/*.cpp'):
     for filename in glob.glob(filepattern):
 
         print(("delete {}".format(filename)))

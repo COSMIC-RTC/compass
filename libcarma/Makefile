@@ -68,10 +68,12 @@ LIB_NVCCFLAGS  = -Xcompiler -fPIC -use_fast_math -c -Xptxas -dlcm=ca --maxrregco
 ifneq ($(GENCODE),)
   LIB_NVCCFLAGS += -gencode $(GENCODE)
 else
-  ifneq($(CUDA_SM),)
-  GENCODE_FLAGS=""
-  $(foreach sm,$(CUDA_SM),$(eval GENCODE_FLAGS += -gencode arch=compute_$(sm),code=sm_$(sm)))
-  LIB_NVCCFLAGS += $(GENCODE_FLAGS)
+  ifneq ($(CUDA_SM),)
+    $(foreach sm,$(CUDA_SM),$(eval GENCODE_FLAGS += -gencode arch=compute_$(sm),code=sm_$(sm)))
+    LIB_NVCCFLAGS += $(GENCODE_FLAGS)
+  else
+     $(warning "WARNING GENCODE and CUDA_SM not found, it will compile for all architectures")
+  endif
 endif
 
 LIB_NVCCFLAGS += -isystem $(CUH_DIR) -isystem $(H_DIR) -isystem $(CUDA_INC_PATH)

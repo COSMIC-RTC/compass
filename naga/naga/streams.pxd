@@ -1,9 +1,7 @@
-from naga_context cimport * 
 
 cdef extern from "driver_types.h":
     ctypedef cudaStream_t
     ctypedef cudaEvent_t
-
 
 
 
@@ -31,7 +29,3 @@ cdef extern from "carma_streams.h":
         int wait_event(int stream)
         int wait_stream(int stream)
         int wait_all_streams()
-
-
-
-

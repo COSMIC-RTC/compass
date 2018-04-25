@@ -6,7 +6,6 @@ Created on Sat Jul 12 21:00:56 2014
 """
 
 import numpy as np
-# from matplotlib.pylab import *
 
 import shlex
 from subprocess import Popen, PIPE  # , call

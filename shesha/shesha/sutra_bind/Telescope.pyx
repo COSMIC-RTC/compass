@@ -1,6 +1,6 @@
 import numpy as np
-cimport numpy as np
-# np.import_array()
+
+from naga.context import context as naga_context
 
 cdef class Telescope:
 
