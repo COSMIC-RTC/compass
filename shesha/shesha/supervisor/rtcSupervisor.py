@@ -58,11 +58,11 @@ class RTCSupervisor(BenchSupervisor):
         self.fakewfs.recv(self.frame, 0)
         p_wfs = self._sim.config.p_wfss[0]
         if p_wfs.type == WFSType.SH:
-            self.rtc.load_rtc_img(0, self.frame.astype(np.float32))
+            self.rtc.load_rtc_img(0, self.frame)
             #for SH
             self.rtc.fill_rtc_bincube(0, self.npix)
         elif p_wfs.type == WFSType.PYRHR:
-            self.rtc.load_rtc_pyrimg(0, self.frame.astype(np.float32))
+            self.rtc.load_rtc_pyrimg(0, self.frame)
         else:
             raise RuntimeError("WFS Type not usable")
         self.rtc.do_centroids(0)
@@ -90,23 +90,24 @@ class RTCSupervisor(BenchSupervisor):
             raise RuntimeError("multi WFS not supported")
         p_wfs = self._sim.config.p_wfss[0]
 
+        self.context = naga_context(devices=np.array([0], dtype=np.int32))
+
         print("->cam")
         self.frame = np.zeros((p_wfs._framesizex, p_wfs._framesizey), dtype=np.float32)
         self.fakewfs = GFInterface(p_wfs._frameShmName)
         self.fakedms = GFInterface(self._sim.config.p_dms[0]._actuShmName)
-        nact = self._sim.config.p_dms[0].nact
 
         print("->RTC")
-        self.context = naga_context(devices=np.array([0], dtype=np.int32))
+        nact = self._sim.config.p_dms[0].nact
+        nvalid = p_wfs._nvalid
+        self.valid = GFInterface(p_wfs._validsubsShmName)
+        tmp_valid = np.zeros((2, self.valid.size // 2), dtype=np.float32)
+        self.valid.recv(tmp_valid)
+        self._sim.config.p_nvalid = tmp_valid
 
         self.cmat = GFInterface(self._sim.config.p_controllers[0]._cmatShmName)
-        cMat_data = np.zeros(self.cmat.size, dtype=np.float32)
+        cMat_data = np.zeros((nact, nvalid * 2), dtype=np.float32)
         self.cmat.recv(cMat_data)
-        nvalid = p_wfs._nvalid
-
-        self.valid = GFInterface(p_wfs._validsubsShmName)
-        tmp_valid = np.zeros(self.valid.size, dtype=np.float32)
-        self.valid.recv(tmp_valid)
 
         if p_wfs.type == WFSType.SH:
             self.npix = p_wfs.npix
@@ -120,14 +121,11 @@ class RTCSupervisor(BenchSupervisor):
             #     xvalid = dataS.data["roiTab"].data[0, :] / self.npix
             #     yvalid = dataS.data["roiTab"].data[1, :] / self.npix
             # else:
-            self._sim.config.p_nvalid = np.reshape(tmp_valid, (2, nvalid))
             xvalid = self._sim.config.p_nvalid[0, :] / self.npix
             yvalid = self._sim.config.p_nvalid[1, :] / self.npix
-
             offset = (self.npix - 1) / 2
-            scale = 1
+            scale = 0.29005988378497927
         elif p_wfs.type == WFSType.PYRHR:
-            self._sim.config.p_nvalid = np.reshape(tmp_valid, (2, nvalid * 4))
             xvalid = self._sim.config.p_nvalid[1, :]
             yvalid = self._sim.config.p_nvalid[0, :]
             offset = 0
@@ -136,15 +134,17 @@ class RTCSupervisor(BenchSupervisor):
             raise RuntimeError("WFS Type not usable")
         print("nvalid : %d" % nvalid)
         print("nact : %d" % nact)
+        p_wfs._nvalid = nvalid
 
         gain = self._sim.config.p_controllers[0].gain
+        print("gain : %f" % gain)
         self.rtc = rtc_standalone(self.context, wfsNb, [nvalid], nact,
                                   self._sim.config.p_centroiders[0].type, 1, offset,
                                   scale, brahma=self.BRAHMA)
         self.rtc.set_decayFactor(0, np.ones(nact, dtype=np.float32))
         self.rtc.set_matE(0, np.identity(nact, dtype=np.float32))
         self.rtc.set_mgain(0, np.ones(nact, dtype=np.float32) * gain)
-        self.rtc.set_cmat(0, np.reshape(cMat_data, (nact, cMat_data.size // nact)))
+        self.rtc.set_cmat(0, cMat_data)
         self.rtc.load_rtc_validpos(0, xvalid.astype(np.int32), yvalid.astype(np.int32))
 
         self._sim.is_init = True

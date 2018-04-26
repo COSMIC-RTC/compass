@@ -341,7 +341,7 @@ class Simulator:
             while (True):
                 self.next(**kwargs)
                 if ((i + 1) % monitoring_freq == 0):
-                    self.print_strehl(monitoring_freq, time.time() - t1)
+                    self.print_strehl(monitoring_freq, time.time() - t1, i, i)
                     t1 = time.time()
                 i += 1
 
