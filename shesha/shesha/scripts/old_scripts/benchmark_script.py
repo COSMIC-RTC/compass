@@ -1,16 +1,20 @@
-from pandas import HDFStore, DataFrame
+import datetime
 #import hdf5_utils as h5u
 import os
-import sys
-import numpy as np
-from naga import naga_context, naga_timer, threadSync
-import shesha.init as init
-import shesha.constants as scons
-import time
-import datetime
-from subprocess import check_output
 import platform
 import re
+import sys
+import time
+from subprocess import check_output
+
+import numpy as np
+from pandas import DataFrame, HDFStore
+
+import shesha.constants as scons
+import shesha.init as init
+from naga.context import context as naga_context
+from naga.timer import timer as naga_timer
+from naga.timer import threadSync
 
 
 def get_processor_name():
