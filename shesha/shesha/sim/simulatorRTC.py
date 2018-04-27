@@ -17,8 +17,7 @@ class SimulatorRTC(Simulator):
         Class SimulatorRTC: COMPASS simulation linked to real RTC with Octopus
     """
 
-    def __init__(self, filepath: str=None, rtcfilepath: str=None,
-                 use_DB: bool=False) -> None:
+    def __init__(self, filepath: str=None) -> None:
         """
         Initializes a Simulator instance
 
@@ -27,13 +26,13 @@ class SimulatorRTC(Simulator):
             rtcfilepath: (str): (optional) path to the rtc parameters file
             use_DB: (bool): (optional) flag to use dataBase system
         """
-        Simulator.__init__(self, filepath, use_DB)
+        Simulator.__init__(self)
         self.rtcconf = lambda x: None
 
         if filepath is not None:
-            self.load_from_file(filepath, rtcfilepath)
+            self.load_from_file(filepath)
 
-    def load_from_file(self, filepath: str, rtcfilepath: str=None) -> None:
+    def load_from_file(self, filepath: str) -> None:
         """
         Load the parameters from the parameters file
 
@@ -41,10 +40,13 @@ class SimulatorRTC(Simulator):
             filepath: (str): path to the parameters file
 
         """
-        Simulator.load_from_file(self, filepath)
+        if "KRAKEN_ROOT" in os.environ:
+            kraken_pathfile = "{}/KrakenConf/data".format(os.environ["KRAKEN_ROOT"])
+            if (kraken_pathfile not in sys.path):
+                sys.path.insert(0, kraken_pathfile)
 
-        if rtcfilepath is not None:
-            load_config_from_file(self.rtcconf, rtcfilepath)
+        load_config_from_file(self.rtcconf, filepath)
+        Simulator.load_from_file(self, self.rtcconf.config.p_sim)
 
     def init_sim(self) -> None:
         Simulator.init_sim(self)

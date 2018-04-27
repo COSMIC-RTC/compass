@@ -10,7 +10,7 @@ from shesha.constants import WFSType, CentroiderType
 
 class RTCSupervisor(BenchSupervisor):
 
-    def __init__(self, rtcfilepath: str=None, BRAHMA: bool=False):
+    def __init__(self, configFile: str=None, BRAHMA: bool=False):
         '''
         Init the COMPASS wih the configFile
         '''
@@ -25,8 +25,8 @@ class RTCSupervisor(BenchSupervisor):
         self._sim.loaded = False  # type: bool
         self._sim.config = None  # type: Any # types.ModuleType ?
 
-        if rtcfilepath is not None:
-            self.loadConfig(rtcfilepath)
+        if configFile is not None:
+            self.loadConfig(configFile)
 
     def clearInitSim(self) -> None:
         """
@@ -72,14 +72,11 @@ class RTCSupervisor(BenchSupervisor):
         comms = self.rtc.get_com(0)
         self.fakedms.send(comms)
 
-    def loadConfig(self, configFile: str, rtcfilepath: str=None) -> None:
+    def loadConfig(self, configFile: str) -> None:
         '''
         Init the COMPASS wih the configFile
         '''
         load_config_from_file(self._sim, configFile)
-
-        if rtcfilepath is not None:
-            load_config_from_file(self._sim, rtcfilepath)
 
     def initConfig(self) -> None:
         '''
@@ -102,12 +99,12 @@ class RTCSupervisor(BenchSupervisor):
         nvalid = p_wfs._nvalid
         self.valid = GFInterface(p_wfs._validsubsShmName)
         tmp_valid = np.zeros((2, self.valid.size // 2), dtype=np.float32)
-        self.valid.recv(tmp_valid)
+        self.valid.recv(tmp_valid, 0)
         self._sim.config.p_nvalid = tmp_valid
 
         self.cmat = GFInterface(self._sim.config.p_controllers[0]._cmatShmName)
         cMat_data = np.zeros((nact, nvalid * 2), dtype=np.float32)
-        self.cmat.recv(cMat_data)
+        self.cmat.recv(cMat_data, 0)
 
         if p_wfs.type == WFSType.SH:
             self.npix = p_wfs.npix

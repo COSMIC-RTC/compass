@@ -2,20 +2,18 @@
 
 """
 
-import os, sys
-import numpy as np
-
-import pyqtgraph as pg
-from pyqtgraph.dockarea import Dock, DockArea
-
+import os
+import sys
 import threading
 import warnings
+from typing import Any, Callable, Dict, List, Tuple
 
+import numpy as np
+import pyqtgraph as pg
 from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtCore import QObject, QThread, QTimer, pyqtSignal
 from PyQt5.uic import loadUiType
-from PyQt5.QtCore import QThread, QObject, QTimer, pyqtSignal
-
-from typing import Any, Dict, Tuple, Callable, List
+from pyqtgraph.dockarea import Dock, DockArea
 
 from shesha.util.matplotlibwidget import MatplotlibWidget
 
