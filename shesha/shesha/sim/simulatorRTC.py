@@ -1,15 +1,15 @@
 """
 Class SimulatorRTC: COMPASS simulation linked to real RTC with Octopus
 """
-import sys
 import os
-
-from .simulator import Simulator, init, Iterable, load_config_from_file
-from shesha.constants import WFSType, CentroiderType
-
-from CacaoInterfaceWrap import CacaoInterfaceFloat as GFInterface
+import sys
 
 import numpy as np
+
+import Octopus
+from shesha.constants import CentroiderType, WFSType
+
+from .simulator import Iterable, Simulator, init, load_config_from_file
 
 
 class SimulatorRTC(Simulator):
@@ -76,20 +76,29 @@ class SimulatorRTC(Simulator):
         if self.rtc.get_cmat(0).shape != (nact, nvalid * 2):
             raise RuntimeError("cmat not match with the simulation")
 
-        self.fakewfs = GFInterface(p_wfs._frameShmName)
+        GFInterfaceWfs = Octopus.getInterfacceClass(p_wfs._frameInterface[0])
+        self.fakewfs = GFInterfaceWfs(p_wfs._frameInterface[1])
 
         self.comp = np.zeros(nact, dtype=np.float32)
-        self.fakedms = GFInterface(self.rtcconf.config.p_dms[0]._actuShmName)
+        GFInterfaceDms = Octopus.getInterfacceClass(
+                self.rtcconf.config.p_dms[0]._actuInterface[0])
+        self.fakedms = GFInterfaceDms(self.rtcconf.config.p_dms[0]._actuInterface[1])
 
         tmp_cmat = self.rtc.get_cmat(0)
-        self.cmat = GFInterface(self.rtcconf.config.p_controllers[0]._cmatShmName)
+        GFInterfaceCmat = Octopus.getInterfacceClass(
+                self.rtcconf.config.p_controllers[0]._cmatInterface[0])
+        self.cmat = GFInterfaceCmat(
+                self.rtcconf.config.p_controllers[0]._cmatInterface[1])
         self.cmat.send(tmp_cmat)
 
         tmp_valid = self.config.p_wfss[0].get_validsub()
-        self.valid = GFInterface(p_wfs._validsubsShmName)
-        if p_wfs.type == WFSType.SH:
-            self.valid.send(tmp_valid * self.config.p_wfss[0].npix)
-        elif p_wfs.type == WFSType.PYRHR:
+        GFInterfaceVsubs = Octopus.getInterfacceClass(
+                self.rtcconf.config.p_wfss[0]._validsubsInterface[0])
+        self.valid = GFInterfaceVsubs(
+                self.rtcconf.config.p_wfss[0]._validsubsInterface[1])
+        if self.rtcconf.config.p_wfss[0].type == WFSType.SH:
+            self.valid.send(tmp_valid * self.rtcconf.config.p_wfss[0].npix)
+        elif self.rtcconf.config.p_wfss[0].type == WFSType.PYRHR:
             self.valid.send(tmp_valid)
         else:
             raise RuntimeError("WFS Type not usable")

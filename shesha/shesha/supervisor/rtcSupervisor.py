@@ -1,11 +1,10 @@
-from .benchSupervisor import BenchSupervisor, naga_context, rtc_standalone
-from shesha.sim.simulator import load_config_from_file
-
 import numpy as np
 
-from CacaoInterfaceWrap import CacaoInterfaceFloat as GFInterface
+import Octopus
+from shesha.constants import CentroiderType, WFSType
+from shesha.sim.simulator import load_config_from_file
 
-from shesha.constants import WFSType, CentroiderType
+from .benchSupervisor import BenchSupervisor, naga_context, rtc_standalone
 
 
 class RTCSupervisor(BenchSupervisor):
@@ -91,18 +90,26 @@ class RTCSupervisor(BenchSupervisor):
 
         print("->cam")
         self.frame = np.zeros((p_wfs._framesizex, p_wfs._framesizey), dtype=np.float32)
-        self.fakewfs = GFInterface(p_wfs._frameShmName)
-        self.fakedms = GFInterface(self._sim.config.p_dms[0]._actuShmName)
+        GFInterfaceWfs = Octopus.getInterfacceClass(p_wfs._frameInterface[0])
+        self.fakewfs = GFInterfaceWfs(p_wfs._frameInterface[1])
+
+        print("->dm")
+        GFInterfaceDms = Octopus.getInterfacceClass(
+                self._sim.config.p_dms[0]._actuInterface[0])
+        self.fakedms = GFInterfaceDms(self._sim.config.p_dms[0]._actuInterface[1])
 
         print("->RTC")
         nact = self._sim.config.p_dms[0].nact
         nvalid = p_wfs._nvalid
-        self.valid = GFInterface(p_wfs._validsubsShmName)
+        GFInterfaceVsubs = Octopus.getInterfacceClass(p_wfs._validsubsInterface[0])
+        self.valid = GFInterfaceVsubs(p_wfs._validsubsInterface[1])
         tmp_valid = np.zeros((2, self.valid.size // 2), dtype=np.float32)
         self.valid.recv(tmp_valid, 0)
         self._sim.config.p_nvalid = tmp_valid
 
-        self.cmat = GFInterface(self._sim.config.p_controllers[0]._cmatShmName)
+        GFInterfaceCmat = Octopus.getInterfacceClass(
+                self._sim.config.p_controllers[0]._cmatInterface[0])
+        self.cmat = GFInterfaceCmat(self._sim.config.p_controllers[0]._cmatInterface[1])
         cMat_data = np.zeros((nact, nvalid * 2), dtype=np.float32)
         self.cmat.recv(cMat_data, 0)
 
