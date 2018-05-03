@@ -76,26 +76,20 @@ class SimulatorRTC(Simulator):
         if self.rtc.get_cmat(0).shape != (nact, nvalid * 2):
             raise RuntimeError("cmat not match with the simulation")
 
-        GFInterfaceWfs = Octopus.getInterfacceClass(p_wfs._frameInterface[0])
-        self.fakewfs = GFInterfaceWfs(p_wfs._frameInterface[1])
+        self.fakewfs = Octopus.getInterface(**p_wfs._frameInterface)
 
         self.comp = np.zeros(nact, dtype=np.float32)
-        GFInterfaceDms = Octopus.getInterfacceClass(
-                self.rtcconf.config.p_dms[0]._actuInterface[0])
-        self.fakedms = GFInterfaceDms(self.rtcconf.config.p_dms[0]._actuInterface[1])
+        self.fakedms = Octopus.getInterface(
+                **self.rtcconf.config.p_dms[0]._actuInterface)
 
         tmp_cmat = self.rtc.get_cmat(0)
-        GFInterfaceCmat = Octopus.getInterfacceClass(
-                self.rtcconf.config.p_controllers[0]._cmatInterface[0])
-        self.cmat = GFInterfaceCmat(
-                self.rtcconf.config.p_controllers[0]._cmatInterface[1])
+        self.cmat = Octopus.getInterface(
+                **self.rtcconf.config.p_controllers[0]._cmatInterface)
         self.cmat.send(tmp_cmat)
 
         tmp_valid = self.config.p_wfss[0].get_validsub()
-        GFInterfaceVsubs = Octopus.getInterfacceClass(
-                self.rtcconf.config.p_wfss[0]._validsubsInterface[0])
-        self.valid = GFInterfaceVsubs(
-                self.rtcconf.config.p_wfss[0]._validsubsInterface[1])
+        self.valid = Octopus.getInterface(
+                **self.rtcconf.config.p_wfss[0]._validsubsInterface)
         if self.rtcconf.config.p_wfss[0].type == WFSType.SH:
             self.valid.send(tmp_valid * self.rtcconf.config.p_wfss[0].npix)
         elif self.rtcconf.config.p_wfss[0].type == WFSType.PYRHR:

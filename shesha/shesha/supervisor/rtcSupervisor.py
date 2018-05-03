@@ -90,26 +90,21 @@ class RTCSupervisor(BenchSupervisor):
 
         print("->cam")
         self.frame = np.zeros((p_wfs._framesizex, p_wfs._framesizey), dtype=np.float32)
-        GFInterfaceWfs = Octopus.getInterfacceClass(p_wfs._frameInterface[0])
-        self.fakewfs = GFInterfaceWfs(p_wfs._frameInterface[1])
+        self.fakewfs = Octopus.getInterface(**p_wfs._frameInterface)
 
         print("->dm")
-        GFInterfaceDms = Octopus.getInterfacceClass(
-                self._sim.config.p_dms[0]._actuInterface[0])
-        self.fakedms = GFInterfaceDms(self._sim.config.p_dms[0]._actuInterface[1])
+        self.fakedms = Octopus.getInterface(**self._sim.config.p_dms[0]._actuInterface)
 
         print("->RTC")
         nact = self._sim.config.p_dms[0].nact
         nvalid = p_wfs._nvalid
-        GFInterfaceVsubs = Octopus.getInterfacceClass(p_wfs._validsubsInterface[0])
-        self.valid = GFInterfaceVsubs(p_wfs._validsubsInterface[1])
+        self.valid = Octopus.getInterface(**p_wfs._validsubsInterface)
         tmp_valid = np.zeros((2, self.valid.size // 2), dtype=np.float32)
         self.valid.recv(tmp_valid, 0)
         self._sim.config.p_nvalid = tmp_valid
 
-        GFInterfaceCmat = Octopus.getInterfacceClass(
-                self._sim.config.p_controllers[0]._cmatInterface[0])
-        self.cmat = GFInterfaceCmat(self._sim.config.p_controllers[0]._cmatInterface[1])
+        self.cmat = Octopus.getInterface(
+                **self._sim.config.p_controllers[0]._cmatInterface)
         cMat_data = np.zeros((nact, nvalid * 2), dtype=np.float32)
         self.cmat.recv(cMat_data, 0)
 
