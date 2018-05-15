@@ -17,7 +17,7 @@ class SimulatorRTC(Simulator):
         Class SimulatorRTC: COMPASS simulation linked to real RTC with Octopus
     """
 
-    def __init__(self, filepath: str=None) -> None:
+    def __init__(self, filepath: str=None, fastMode: bool=False) -> None:
         """
         Initializes a Simulator instance
 
@@ -28,6 +28,8 @@ class SimulatorRTC(Simulator):
         """
         Simulator.__init__(self)
         self.rtcconf = lambda x: None
+        self.frame = None
+        self.fastMode = fastMode
 
         if filepath is not None:
             self.load_from_file(filepath)
@@ -47,6 +49,8 @@ class SimulatorRTC(Simulator):
 
         load_config_from_file(self.rtcconf, filepath)
         Simulator.load_from_file(self, self.rtcconf.config.p_sim)
+        if self.fastMode:
+            self.config.p_controllers[0].set_type("generic")
 
     def init_sim(self) -> None:
         Simulator.init_sim(self)
@@ -61,13 +65,13 @@ class SimulatorRTC(Simulator):
         framesizey = p_wfs._framesizey
         nvalid = p_wfs._nvalid
         if p_wfs.type == WFSType.SH:
-            frame = self.wfs.get_binimg(0)
+            self.frame = self.wfs.get_binimg(0)
         elif p_wfs.type == WFSType.PYRHR:
-            frame = self.wfs.get_pyrimg(0)
+            self.frame = self.wfs.get_pyrimg(0)
         else:
             raise RuntimeError("WFS Type not usable")
 
-        if frame.shape != (framesizex, framesizey):
+        if self.frame.shape != (framesizex, framesizey):
             raise RuntimeError("framesize not match with the simulation")
 
         if self.rtc.get_voltage(0).size != nact:
@@ -78,6 +82,7 @@ class SimulatorRTC(Simulator):
 
         self.fakewfs = Octopus.getInterface(**p_wfs._frameInterface)
 
+        self.frame = np.ones((framesizex, framesizey), dtype=np.float32)
         self.comp = np.zeros(nact, dtype=np.float32)
         self.fakedms = Octopus.getInterface(
                 **self.rtcconf.config.p_dms[0]._actuInterface)
@@ -103,18 +108,20 @@ class SimulatorRTC(Simulator):
         """
         Overload of the Simulator.next() function
         """
-        Simulator.next(self, move_atmos=move_atmos, see_atmos=see_atmos,
-                       nControl=nControl, tar_trace=[0], wfs_trace=[0], do_control=False)
+        if not self.fastMode:
+            Simulator.next(self, move_atmos=move_atmos, see_atmos=see_atmos,
+                           nControl=nControl, tar_trace=[0], wfs_trace=[0],
+                           do_control=False)
+            # print("Send a frame")
+            p_wfs = self.rtcconf.config.p_wfss[0]
+            if p_wfs.type == WFSType.SH:
+                self.frame = self.wfs.get_binimg(0)
+            elif p_wfs.type == WFSType.PYRHR:
+                self.frame = self.wfs.get_pyrimg(0)
+            else:
+                raise RuntimeError("WFS Type not usable")
 
-        # print("Send a frame")
-        p_wfs = self.rtcconf.config.p_wfss[0]
-        if p_wfs.type == WFSType.SH:
-            frame = self.wfs.get_binimg(0)
-        elif p_wfs.type == WFSType.PYRHR:
-            frame = self.wfs.get_pyrimg(0)
-        else:
-            raise RuntimeError("WFS Type not usable")
-        self.fakewfs.send(frame)
+        self.fakewfs.send(self.frame)
         if apply_control:
             # print("Wait a command...")
             self.fakedms.recv(self.comp, 0)
