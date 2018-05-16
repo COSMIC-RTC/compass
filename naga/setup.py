@@ -1,10 +1,7 @@
 import os
 import re
 from os.path import join as pjoin
-from distutils.core import setup
-# from setuptools import setup
-from distutils.extension import Extension
-# from Cython.Distutils import build_ext
+from distutils.core import setup, Extension
 import numpy
 import sys
 from distutils.command.clean import clean as _clean
@@ -233,7 +230,7 @@ def compile_module(name):
     print("creating module ", name)
     print("=======================================")
     ext = Extension(
-            naga_path + "/naga/" + name,
+            "naga." + name,
             sources=[naga_path + '/naga/' + name + '.pyx'],
             extra_compile_args=[
                     "-Wno-unused-function",

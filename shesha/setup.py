@@ -5,7 +5,7 @@ import os
 from os.path import isfile
 
 import subprocess
-from distutils.core import setup
+from distutils.core import setup, Extension
 
 import codecs
 
@@ -17,7 +17,6 @@ import codecs
 from Cython.Build import cythonize
 
 import numpy
-from distutils.extension import Extension
 
 # Remove the "-Wstrict-prototypes" compiler option, which isn't valid for C++.
 import distutils.sysconfig
@@ -194,7 +193,7 @@ def compile_module(name):
     print(("creating module ", name))
     print("=======================================")
     ext = Extension(
-            shesha_path + "/shesha/sutra_bind/" + name,
+            "shesha.sutra_bind." + name,
             sources=[shesha_path + '/shesha/sutra_bind/' + name + '.pyx'],
             extra_compile_args=[
                     "-Wno-unused-function",
