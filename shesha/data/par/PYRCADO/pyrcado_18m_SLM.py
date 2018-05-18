@@ -68,6 +68,17 @@ p_dm0.set_coupling(
 p_dm0.set_unitpervolt(1)
 p_dm0.set_push4imat(1.)
 
+
+# PyrCentro adhoc
+class p_pyrCentro:
+    rebin = 4  # Rebin factor of HR pixels
+    radiusForce = -1.  # Force fitted HR pupil radius to given value; -1 bypasses
+    radiusGuard = 0.  # Add this number of HR pixels to value fitted
+    controlMethod = 'ABCD'
+    latency = 2
+    rMod = 2.
+
+
 # p_controller0 = conf.Param_controller()
 # p_controllers = [p_controller0]
 # p_controller0.set_ndm([0])
