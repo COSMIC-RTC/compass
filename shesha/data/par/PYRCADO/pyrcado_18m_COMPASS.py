@@ -14,7 +14,7 @@ p_loop.set_devices([4, 5, 6, 7])
 # geom
 p_geom = conf.Param_geom()
 p_geom.set_zenithangle(0.)
-#p_geom.set_pupdiam(500)
+#p_geom.set_pupdiam(304)
 
 # tel
 p_tel = conf.Param_tel()
@@ -102,3 +102,13 @@ p_controller0.set_ndm([0, 1])
 p_controller0.set_maxcond(150.)
 p_controller0.set_delay(1)
 p_controller0.set_gain(1)
+
+
+# PyrCentro adhoc
+class p_pyrCentro:
+    rebin = 5  # Rebin factor of HR pixels
+    radiusForce = -1.  # Force fitted HR pupil radius to given value; -1 bypasses
+    radiusGuard = 0.  # Add this number of HR pixels to value fitted
+    controlMethod = 'ABCD'
+    latency = 2
+    rMod = 2.

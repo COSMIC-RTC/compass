@@ -1,5 +1,5 @@
-import shesha.config as ao
-import shesha.constants as scons
+import shesha_config as ao
+import shesha_constants as scons
 import numpy as np
 
 simul_name = ""
@@ -89,7 +89,7 @@ p_wfs0.set_noise(0.3)  # in electrons units
 p_wfs0.set_atmos_seen(1)
 p_wfs0.set_fstop("square")
 p_wfs0.set_fssize(1.6)
-rMod = 3
+rMod = 40
 p_wfs0.set_pyr_npts(int(np.ceil(int(rMod * 2 * 3.141592653589793) / 4.) * 4))
 #p_wfs0.set_pyr_npts(31)
 p_wfs0.set_pyr_ampl(rMod)
