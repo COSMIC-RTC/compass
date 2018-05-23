@@ -1,9 +1,0 @@
-setup.py:116: Warning: par.pxi found, it will not be updated
-  warnings.warn("par.pxi found, it will not be updated", Warning)
-/home/sevin/workspace/compass/shesha/shesha/sutra_bind/Rtc.cpp: In function ‘PyObject* __pyx_pf_6shesha_10sutra_bind_3Rtc_3Rtc_60do_imat_kl(__pyx_obj_6shesha_10sutra_bind_3Rtc_Rtc*, int, __pyx_obj_6shesha_10sutra_bind_3Dms_Dms*, PyObject*, PyArrayObject*, bool)’:
-/home/sevin/workspace/compass/shesha/shesha/sutra_bind/Rtc.cpp:12405:34: warning: ‘__pyx_v_dmtt’ may be used uninitialized in this function [-Wmaybe-uninitialized]
-       if (unlikely(__pyx_v_dmtt->push4imat == 0)) {
-                                  ^~~~~~~~~
-/home/sevin/workspace/compass/shesha/shesha/sutra_bind/Rtc.cpp:12445:32: warning: ‘__pyx_v_dm’ may be used uninitialized in this function [-Wmaybe-uninitialized]
-       if (unlikely(__pyx_v_dm->push4imat == 0)) {
-                                ^~~~~~~~~
