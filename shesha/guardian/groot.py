@@ -4,7 +4,7 @@ Python module for modelization of error covariance matrix
 """
 import numpy as np
 import h5py
-from Groot import groot_init
+from shesha.sutra_bind.Groot import groot_init
 import time
 import sys
 import os

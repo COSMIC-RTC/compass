@@ -13,8 +13,7 @@ import pstats as ps
 
 import sys, os
 import numpy as np
-from naga import naga_context
-from shesha.sim import Simulator
+from shesha.sim.simulator import Simulator
 from shesha.util.rtc_util import centroid_gain
 from shesha.ao.tomo import create_nact_geom
 from shesha.ao.basis import compute_Btt, compute_cmat_with_Btt

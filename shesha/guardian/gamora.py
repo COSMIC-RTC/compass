@@ -8,8 +8,8 @@ Note: GPU devices used are hardcoded here. Change gpudevices if needed
 import numpy as np
 import matplotlib.pyplot as plt
 import h5py
-import naga as ch
-from Gamora import gamora_init, Gamora
+from naga.context import context
+from shesha.sutra_bind.Gamora import gamora_init, Gamora
 from scipy.sparse import csr_matrix
 from sys import stdout
 import time
@@ -18,7 +18,7 @@ from guardian.tools import roket_exploitation as rexp
 plt.ion()
 
 gpudevices = np.array([0], dtype=np.int32)
-c = ch.naga_context(devices=gpudevices)
+c = context(devices=gpudevices)
 
 
 def psf_rec_roket_file(filename, err=None):
