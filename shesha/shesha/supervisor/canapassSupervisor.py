@@ -25,9 +25,11 @@ import shesha.constants as scons
 from typing import Any, Dict, Tuple, Callable, List
 from .compassSupervisor import CompassSupervisor
 
-from naga.obj import obj_Double2D, syevd_Double, naga_context
+from naga.obj import obj_Double2D
+from naga.magma import syevd_Double, svd_host_Double
+from naga.context import context as naga_context
 
-from naga.host_obj import host_obj_Double1D, host_obj_Double2D, svd_host_Double, naga_context
+from naga.host_obj import host_obj_Double1D, host_obj_Double2D
 
 
 class CanapassSupervisor(CompassSupervisor):

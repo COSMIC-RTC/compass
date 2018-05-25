@@ -24,7 +24,7 @@ from shesha.supervisor.canapassSupervisor import CanapassSupervisor
 from typing import Any, Dict, Tuple, Callable, List
 from docopt import docopt
 
-from .widget_ao import widgetAOWindow
+from shesha.widgets.widget_ao import widgetAOWindow, widgetAOWindow
 
 global server
 server = None
@@ -54,7 +54,7 @@ class widgetCanapassWindowPyro(widgetAOWindow):
 
     def initConfig(self) -> None:
         self.supervisor.clearInitSim()
-        WidgetBase.initConfig(self)
+        widgetAOWindow.initConfig(self)
         global server
         server = self.startPyroServer()
 
@@ -62,10 +62,10 @@ class widgetCanapassWindowPyro(widgetAOWindow):
         '''
             Callback when 'LOAD' button is hit
         '''
-        WidgetBase.loadConfig(self, ISupervisor=CanapassSupervisor)
+        widgetAOWindow.loadConfig(self, ISupervisor=CanapassSupervisor)
 
     def loopOnce(self) -> None:
-        WidgetBase.loopOnce(self)
+        widgetAOWindow.loopOnce(self)
         if (self.uiAO.actionShow_Pyramid_Tools.isChecked()):  # PYR only
             self.wpyr.Fe = 1 / self.config.p_loop.ittime  # needs Fe for PSD...
             if (self.wpyr.CBNumber == 1):
@@ -177,7 +177,7 @@ if __name__ == '__main__':
     app.setStyle('cleanlooks')
     wao = widgetCanapassWindowPyro(arguments["<parameters_filename>"], BRAMA=True)
     wao.show()
-    if arguments["--interactive"]:
-        from shesha.util.ipython_embed import embed
-        from os.path import basename
-        embed(basename(__file__), locals())
+    # if arguments["--interactive"]:
+    #     from shesha.util.ipython_embed import embed
+    #     from os.path import basename
+    #     embed(basename(__file__), locals())
