@@ -5,7 +5,7 @@ import os
 from os.path import isfile
 
 import subprocess
-from distutils.core import setup
+from distutils.core import setup, Extension
 
 import codecs
 
@@ -17,7 +17,6 @@ import codecs
 from Cython.Build import cythonize
 
 import numpy
-from distutils.extension import Extension
 
 # Remove the "-Wstrict-prototypes" compiler option, which isn't valid for C++.
 import distutils.sysconfig
@@ -44,16 +43,11 @@ dependencies = {
 naga_path = os.environ.get('NAGA_ROOT')
 if (naga_path is None):
     raise EnvironmentError("Environment variable 'NAGA_ROOT' must be define")
-sys.path.append(naga_path + '/src')
+sys.path.append(naga_path)
 
 shesha_path = os.environ.get('SHESHA_ROOT')
 if (shesha_path is None):
     raise EnvironmentError("Environment variable 'SHESHA_ROOT' must be define")
-
-if not os.path.exists(shesha_path + "/lib"):
-    os.makedirs(shesha_path + "/lib")
-
-sys.path.append(shesha_path + "/lib")
 
 
 def locate_compass():
@@ -68,7 +62,7 @@ def locate_compass():
     compass_config = {
             'inc_sutra': root_compass + '/libsutra/include.h',
             'inc_carma': root_compass + '/libcarma/include.h',
-            'inc_naga': root_compass + '/naga',
+            'inc_naga': naga_path,
             'lib': root_compass
     }
 
@@ -86,7 +80,7 @@ except AttributeError:
 libraries = ['sutra']
 include_dirs = [
         numpy_include, COMPASS['inc_carma'], COMPASS['inc_sutra'], COMPASS['inc_naga']
-]  # , shesha_path+"/src"]
+]
 
 library_dirs = [COMPASS['lib'] + "/libsutra"]
 
@@ -184,13 +178,13 @@ def dependencies_module(name):
     try:
         dep = dependencies[name]
         print(("dependencies:", dep))
-        if (os.path.exists("src/sutra_bind/" + name + ".cpp")):
+        if (os.path.exists("shesha/sutra_bind/" + name + ".cpp")):
             for d in dep:
-                if (os.stat("src/sutra_bind/" + d + ".pyx").st_mtime >
-                            os.stat("src/sutra_bind/" + name + ".cpp").st_mtime):
+                if (os.stat("shesha/sutra_bind/" + d + ".pyx").st_mtime >
+                            os.stat("shesha/sutra_bind/" + name + ".cpp").st_mtime):
                     # cpp file outdated if exists
-                    if (os.path.exists("src/sutra_bind/" + name + ".cpp")):
-                        os.remove("src/sutra_bind/" + name + ".cpp")
+                    if (os.path.exists("shesha/sutra_bind/" + name + ".cpp")):
+                        os.remove("shesha/sutra_bind/" + name + ".cpp")
     except:  # KeyError e:
         print("No depencies found")
 
@@ -200,8 +194,8 @@ def compile_module(name):
     print(("creating module ", name))
     print("=======================================")
     ext = Extension(
-            shesha_path + "/lib/" + name,
-            sources=['src/sutra_bind/' + name + '.pyx'],
+            "shesha.sutra_bind." + name,
+            sources=[shesha_path + '/shesha/sutra_bind/' + name + '.pyx'],
             extra_compile_args=[
                     "-Wno-unused-function",
                     "-Wno-unused-label",

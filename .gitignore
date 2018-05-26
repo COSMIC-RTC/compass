@@ -10,13 +10,12 @@ obj
 # cython generated files
 build
 cython_debug
-naga/src/*.cpp
-naga/src/naga_host_obj.pyx
-naga/src/naga_magma.pyx
-naga/src/naga_obj.pyx
-naga/src/naga_sparse_obj.pyx
-shesha/src/*.cpp
-shesha/src/sutra_bind/*.cpp
+naga/naga/*.cpp
+naga/naga/host_obj.pyx
+naga/naga/magma.pyx
+naga/naga/obj.pyx
+naga/naga/sparse_obj.pyx
+shesha/shesha/sutra_bind/*.cpp
 
 # python bytecodes
 *.pyc
@@ -47,13 +46,13 @@ Pyro_NS_URI
 .mypy_cache
 
 shesha/data/M4data/
-shesha/test/scripts/resultatsScripts/
+shesha/shesha_test/scripts/resultatsScripts/
 shesha/data/bench-results/
 
 # Fuse stuffs
 .fuse*
 
-shesha/test/scripts/resultatsScripts/
+shesha/shesha_test/scripts/resultatsScripts/
 *.gch
 
 doc/compass-doc

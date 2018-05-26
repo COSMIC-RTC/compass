@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pylab as plt
 plt.ion()
 #from iterkolmo import *
-import shesha_util.iterkolmo
+import shesha.util.iterkolmo
 import pylab
 import sys
 import os
@@ -32,13 +32,12 @@ Note :
 
 def generate_kolmo(n):
 
-    Zx, Zy, Xx, Xy, istencil = iterkolmo.create_stencil(
-            n)  # create the indicial matrix
+    Zx, Zy, Xx, Xy, istencil = iterkolmo.create_stencil(n)  # create the indicial matrix
     pxx = iterkolmo.Cxx(n, Zx, Zy, Xx, Xy)  # covariance matrixes definition
     pzz = iterkolmo.Czz(n, Zx, Zy, istencil)
     pxz = iterkolmo.Cxz(n, Zx, Zy, Xx, Xy, istencil)
-    A, B = iterkolmo.AB(
-            pxz, pxx, pzz, n)  # Matrix creation for Kolmogorov law application
+    A, B = iterkolmo.AB(pxz, pxx, pzz,
+                        n)  # Matrix creation for Kolmogorov law application
     p = np.zeros((n, n))  # declaration of the phase screen
 
     for i in range(2 * n):
@@ -55,23 +54,8 @@ def rebin(a, shape):
     return a.reshape(sh).mean(-1).mean(1)
 
 
-def pyr_analysis(
-        n,
-        mod,
-        N,
-        Dtel,
-        obs,
-        nrebin,
-        l,
-        _pix,
-        Amp,
-        mv,
-        Pangle,
-        p,
-        pupsub,
-        pup=False,
-        noise=False,
-        disp=True):
+def pyr_analysis(n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pupsub,
+                 pup=False, noise=False, disp=True):
     """
     DOCUMENT
     Simulate perfect pyramid wavefront sensor analysis without noise;
@@ -153,8 +137,7 @@ def pyr_analysis(
     x = y.T
     d2 = x * x + y * y
     if (pup is False):
-        pup = (d2 < r * r) & (d2 >
-                              (obs * r)**2)  #Pupille et obstruction centrale
+        pup = (d2 < r * r) & (d2 > (obs * r)**2)  #Pupille et obstruction centrale
 
     ppup = pup[int(n / 2 - D / 2) + 1:int(n / 2 + D / 2) + 1,
                int(n / 2 - D / 2) + 1:int(n / 2 + D / 2) + 1]
@@ -182,15 +165,12 @@ def pyr_analysis(
         axes1[0, 1].matshow(p * pup)  # Phase in pupil
         axes1[0, 1].set_title("Phase in HR pupil")
         # PSF on top of Pyramid
-        PSF0 = np.fft.fftshift(
-                np.abs(np.fft.fft2(pup * Amp * np.exp(1j * (p))))
-                **2)  #PSF not modulated
+        PSF0 = np.fft.fftshift(np.abs(np.fft.fft2(pup * Amp * np.exp(1j * (p))))
+                               **2)  #PSF not modulated
         axes1[1, 1].matshow(PSF0, cmap="gist_earth")
-        axes1[1, 1].plot((PSF0.shape[0] / 2, PSF0.shape[0] / 2),
-                         (0, PSF0.shape[0]),
+        axes1[1, 1].plot((PSF0.shape[0] / 2, PSF0.shape[0] / 2), (0, PSF0.shape[0]),
                          color="blue")
-        axes1[1, 1].plot((0, PSF0.shape[0]),
-                         (PSF0.shape[0] / 2, PSF0.shape[0] / 2),
+        axes1[1, 1].plot((0, PSF0.shape[0]), (PSF0.shape[0] / 2, PSF0.shape[0] / 2),
                          color="blue")
         axes1[1, 1].set_title("PSF on top of Pyramid")
 
@@ -204,18 +184,12 @@ def pyr_analysis(
         PUPIM += PUPYR
 
         if (disp):
-            axes1[1, 1].scatter(
-                    a[i] * larg + PSF0.shape[0] / 2,
-                    b[i] * larg + PSF0.shape[1] / 2,
-                    color="red",
-                    marker='x',
-                    s=20)  # Modulation points
-            axes1[1, 0].scatter(
-                    a[i], b[i], color="red", marker='x',
-                    s=20)  # Modulation points
-            diffractionCircle = pylab.Circle((a[i], b[i]),
-                                             radius=0.5,
-                                             alpha=0.5)
+            axes1[1, 1].scatter(a[i] * larg + PSF0.shape[0] / 2,
+                                b[i] * larg + PSF0.shape[1] / 2, color="red", marker='x',
+                                s=20)  # Modulation points
+            axes1[1, 0].scatter(a[i], b[i], color="red", marker='x',
+                                s=20)  # Modulation points
+            diffractionCircle = pylab.Circle((a[i], b[i]), radius=0.5, alpha=0.5)
             axes1[1, 0].add_patch(diffractionCircle)
             axes1[1, 0].set_title("Modulation points (in lambda/D)")
         print("Modulation iter=", i, "/", N)
@@ -225,9 +199,8 @@ def pyr_analysis(
     #    pli(PUPIM,win=1) # pli
 
     Nph = 10**(-0.4 * mv + 3)  #photons/cm^2/s/Angstrom
-    Nph *= 3000 * 1 / 200. * (
-            np.pi * (Dtel * 100 / 2.)**2 - np.pi *
-            (0.28 * Dtel * 100 / 2.)**2)  #photons
+    Nph *= 3000 * 1 / 200. * (np.pi * (Dtel * 100 / 2.)**2 - np.pi *
+                              (0.28 * Dtel * 100 / 2.)**2)  #photons
 
     S = np.sum(PUPIM)
     PUPIM /= S
@@ -261,8 +234,7 @@ def pyr_analysis(
     ID = PUPIM_compass[int(n/2-D/2+Pangle)+1 : int(n/2+D/2+Pangle)+1 , int(n/2-D/2+Pangle)+1 : int(n/2+D/2+Pangle)+1]
     """
 
-    PUPIM_LR = rebin(
-            PUPIM0, (PUPIM0.shape[0] / nrebin, PUPIM0.shape[1] / nrebin))
+    PUPIM_LR = rebin(PUPIM0, (PUPIM0.shape[0] / nrebin, PUPIM0.shape[1] / nrebin))
 
     Itot = IA + IB + IC + ID
     Sx = ppup * ((IA + IC) - (IB + ID)) / (Itot)
@@ -371,24 +343,11 @@ def compPyrCOMPASS(wao):
     pup = p.copy()
     p[(n - ncompass) / 2:(n + ncompass) / 2, (n - ncompass) / 2:(
             n + ncompass) / 2] = phasehrCOMPASS * 2 * np.pi / l * 1e-6
-    pup[(n - ncompass) / 2:(n + ncompass) / 2, (n - ncompass) / 2:(
-            n + ncompass) / 2] = pupCOMPASS
+    pup[(n - ncompass) / 2:(n + ncompass) / 2, (n - ncompass) / 2:(n + ncompass
+                                                                   ) / 2] = pupCOMPASS
     pupsub = wao.config.p_wfs0._isvalid[1:-1, 1:-1]
     PUPIM0, PUPIM, dwx, dwy, IA, IB, IC, ID, slopes = pyr_analysis(
-            n,
-            mod,
-            N,
-            Dtel,
-            obs,
-            nrebin,
-            l,
-            _pix,
-            Amp,
-            mv,
-            Pangle,
-            p,
-            pupsub,
-            pup=pup)
+            n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pupsub, pup=pup)
     return PUPIM0, PUPIM, dwx, dwy, IA, IB, IC, ID, slopes
 
 

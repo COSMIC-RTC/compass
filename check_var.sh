@@ -14,7 +14,7 @@ check_var CUDA_ROOT $CUDA_ROOT
 check_var CUDA_INC_PATH $CUDA_INC_PATH
 check_var CUDA_LIB_PATH $CUDA_LIB_PATH
 check_var CUDA_LIB_PATH_64 $CUDA_LIB_PATH_64
-check_var GENCODE $GENCODE
+check_var CUDA_SM $CUDA_SM
 
 echo *** check MAGMA definitions
 check_var MAGMA_ROOT $MAGMA_ROOT

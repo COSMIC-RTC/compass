@@ -1,0 +1,137 @@
+<?py
+import re
+import datetime
+now = datetime.datetime.now()
+template_strs = [
+    'CLASSNAME',
+    'DIM',
+    'C_TYPE',
+    'NUMPY_TYPENAME_T',
+    'NUMPY_TYPENAME',
+    'CAST',
+    'C_FFT_TYPE',
+    'PY_FFT_TYPE']
+template_type_str = 'ARRAY_TYPE'
+c_types_info = {
+    'float': ['Float', '1', 'float', 'np.float32_t', 'np.float32', 'SIMPLE', 'cuFloatComplex', 'ComplexS', []],
+
+    'double': ['Double', '1', 'double', 'np.float64_t', 'np.float64', 'SIMPLE', 'cuDoubleComplex', 'ComplexD', []],
+}
+?>
+
+import numpy as np
+
+from libcpp cimport bool
+
+from scipy.sparse import csr_matrix
+
+assert sizeof(int) == sizeof(np.int32_t)
+assert sizeof(float) == sizeof(np.float32_t)
+assert sizeof(double) == sizeof(np.float64_t)
+
+
+<?py
+pxd_code_str = '''
+
+
+##########################################################
+#  P-Class `CLASSNAME`
+#########################################################
+cdef class sparse_obj_CLASSNAME:
+
+    def __cinit__(self,
+                  sparse_obj_CLASSNAME obj=None,
+                  np.ndarray[ndim=DIM, dtype=NUMPY_TYPENAME_T] data=None,
+                  np.ndarray[ndim=1, dtype=np.int64_t] dims=None,
+                  ):
+        """obj_CLASSNAME constructor.
+
+      carma_sparse_obj(carma_context *current_context)
+
+      notimplemented
+      carma_sparse_obj(carma_obj[C_TYPE]* M)
+      notimplemented
+      carma_sparse_obj(carma_sparse_obj[C_TYPE]* M)
+      notimplemented
+      #carma_sparse_obj(carma_context *current_context, carma_sparse_host_obj[C_TYPE]* M)
+      notimplemented
+      carma_sparse_obj(carma_context *current_context, const long *dims, T_data * M, bool loadFromHost)
+      notimplemented
+      carma_sparse_obj(carma_context *current_context, const long *dims,
+          T_data *values, int *colind, int *rowind, int nz, bool loadFromHost)
+
+        input data must be a np.ndarray with ndim=DIM
+        """
+
+        cdef carma_context *ctxt=&carma_context.instance()
+
+        if(obj is not None):
+            #copy constructor
+            #TODO
+            ctxt.set_activeDevice(obj.getDevice(),1)
+            self.c_sparse_obj=new carma_sparse_obj[C_TYPE](obj.c_sparse_obj)
+            return
+
+        cdef int i
+
+        if(data is None):
+            if(dims is None):
+                self.c_sparse_obj=new carma_sparse_obj[C_TYPE](ctxt)
+                return
+
+            if( dims.shape[0]!=DIM ):
+                raise ValueError("Wrong number of dimension: got ",dims.shape[0]," (expected: DIM)")
+
+            raise NotImplementedError
+            #return
+
+        #TODO
+        cdef np.ndarray data_F=np.asfortranarray(data)
+        raise NotImplementedError
+
+
+    def __dealloc__(self):
+        del self.c_sparse_obj
+
+
+
+    cdef copy(self, carma_sparse_obj[C_TYPE] *c_sparse_obj):
+        del self.c_sparse_obj
+        self.c_sparse_obj=new carma_sparse_obj[C_TYPE](c_sparse_obj)
+
+
+
+    def get_sparse(self):
+        cdef int dims[2]
+        dims[0]=self.c_sparse_obj.getDims(1)
+        dims[1]=self.c_sparse_obj.getDims(2)
+        cdef int nnz=self.c_sparse_obj.nz_elem
+
+        cdef np.ndarray[ndim=1,dtype=np.int32_t]          rowInd=np.zeros(dims[0]+1,dtype=np.int32)
+        cdef np.ndarray[ndim=1,dtype=np.int32_t]          colInd=np.zeros(nnz    ,dtype=np.int32)
+        cdef np.ndarray[ndim=1,dtype=NUMPY_TYPENAME_T]    data=np.zeros(nnz,dtype=NUMPY_TYPENAME)
+
+
+        self.c_sparse_obj.sparse_to_host(<int*>rowInd.data,<int*>colInd.data,<C_TYPE*>data.data)
+        return csr_matrix((data,colInd,rowInd),shape=(dims[0],dims[1]))
+
+'''
+
+
+for ctype, info in c_types_info.items():
+
+    # code available for all dimensions (constructor, getters, copy...)
+    code = pxd_code_str
+
+    code = code.replace(template_strs[0], info[0])
+    code = code.replace(template_strs[1], info[1])
+    code = code.replace(template_type_str, ctype)
+    code = code.replace(template_strs[2], info[2])
+    code = code.replace(template_strs[3], info[3])
+    code = code.replace(template_strs[4], info[4])
+    code = code.replace(template_strs[6], info[6])
+    code = code.replace(template_strs[7], info[7])
+
+    out.write(code)
+
+?>

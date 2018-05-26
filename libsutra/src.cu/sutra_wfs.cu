@@ -33,9 +33,9 @@ __global__ void camplipup_krnl(cuFloatComplex *amplipup,
 
     int idx = idimx + idimy * Nfft + nim * Nfft * Nfft;
 
-    amplipup[idx].x = (cosf(phase[idphase] * scale - offset[idim]))
+    amplipup[idx].x = (cosf(-phase[idphase] * scale - offset[idim]))
                       * mask[idphase];
-    amplipup[idx].y = (sinf(phase[idphase] * scale - offset[idim]))
+    amplipup[idx].y = (sinf(-phase[idphase] * scale - offset[idim]))
                       * mask[idphase];
     tid += blockDim.x * gridDim.x;
   }
@@ -1069,20 +1069,20 @@ pyr_getpup<cuDoubleComplex, double>(cuDoubleComplex *d_odata,
 
 
 __global__ void copyImginBinimg_krnl(float *binimg, int *validsubsx,int *validsubsy,
-                    int Nb, float *img, int *validx, int *validy, int Nim, int Npix){
+                                     int Nb, float *img, int *validx, int *validy, int Nim, int Npix) {
 
-    int tid = blockIdx.x * blockDim.x + threadIdx.x;
-    while(tid < Npix){
-        int bind = validsubsx[tid] + validsubsy[tid] * Nb;
-        int iind = validx[tid] + validy[tid] * Nim;
-        binimg[bind] = img[iind];
+  int tid = blockIdx.x * blockDim.x + threadIdx.x;
+  while(tid < Npix) {
+    int bind = validsubsx[tid] + validsubsy[tid] * Nb;
+    int iind = validx[tid] + validy[tid] * Nim;
+    binimg[bind] = img[iind];
 
-        tid += blockDim.x * gridDim.x;
-    }
+    tid += blockDim.x * gridDim.x;
+  }
 }
 
 void copyImginBinimg(float *binimg, int *validsubsx,int *validsubsy,
-                    int Nb, float *img, int *validx, int *validy, int Nim, int Npix, carma_device *device){
+                     int Nb, float *img, int *validx, int *validy, int Nim, int Npix, carma_device *device) {
 
   int nBlocks, nThreads;
 
@@ -1090,7 +1090,7 @@ void copyImginBinimg(float *binimg, int *validsubsx,int *validsubsy,
   dim3 grid(nBlocks), threads(nThreads);
 
   copyImginBinimg_krnl<<< grid, threads>>>(binimg, validsubsx, validsubsy, Nb,
-                                                img, validx, validy, Nim, Npix);
+      img, validx, validy, Nim, Npix);
   carmaCheckMsg("copyImginBinimg_krnl<<<>>> execution failed\n");
 }
 

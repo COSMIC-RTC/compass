@@ -1,6 +1,6 @@
 import astropy.io.fits as pfits
 import time
-import tools
+from shesha.util import tools
 
 
 def applyVoltGetSlopes(wao, noise=False):

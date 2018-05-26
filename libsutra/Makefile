@@ -79,7 +79,17 @@ endif
 NVCC = $(CUDA_ROOT)/bin/nvcc
 LIB_NVCCFLAGS  = -Xcompiler -fPIC -use_fast_math -c -Xptxas -dlcm=ca --maxrregcount 32 -std=c++11 $(NVCCFLAGS)
 LIB_NVCCFLAGS += -isystem $(CUH_DIR)  -isystem $(H_DIR) -isystem $(COMPASS_ROOT)/libcarma/$(CUH_DIR)
-LIB_NVCCFLAGS += -isystem $(COMPASS_ROOT)/libcarma/$(H_DIR) -isystem $(CURED_INC_PATH) -gencode $(GENCODE)
+LIB_NVCCFLAGS += -isystem $(COMPASS_ROOT)/libcarma/$(H_DIR) -isystem $(CURED_INC_PATH)
+ifneq ($(GENCODE),)
+  LIB_NVCCFLAGS += -gencode $(GENCODE)
+else
+  ifneq ($(CUDA_SM),)
+    $(foreach sm,$(CUDA_SM),$(eval GENCODE_FLAGS += -gencode arch=compute_$(sm),code=sm_$(sm)))
+    LIB_NVCCFLAGS += $(GENCODE_FLAGS)
+  else
+     $(warning "WARNING GENCODE and CUDA_SM not found, it will compile for all architectures")
+  endif
+endif
 
 ifneq ($(DEBUG),)
   LIB_CPPFLAGS+= -g -DDEBUG
