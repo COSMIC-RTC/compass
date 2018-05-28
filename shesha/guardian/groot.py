@@ -8,6 +8,7 @@ from shesha.sutra_bind.Groot import groot_init
 import time
 import sys
 import os
+from tqdm import tqdm
 
 #from guardian import gamora
 from guardian.tools import Dphi
@@ -491,7 +492,7 @@ def compute_PSF(filename):
     return psf
 
 
-def compute_Calias(filename, slopes_space=False, modal=True):
+def compute_Calias(filename, slopes_space=False, modal=True, npts=3):
     """ Returns the aliasing slopes covariance matrix using CPU version of GROOT
     from a ROKET file and a model based on structure function
     :parameter:
@@ -528,13 +529,34 @@ def compute_Calias(filename, slopes_space=False, modal=True):
     fc = d  #/ npix
     xx = np.tile(x, (nsub, 1))
     yy = np.tile(y, (nsub, 1))
-    Ca = compute_Calias_element(xx, yy, fc, d, nsub, tabx, taby)
-    Ca += compute_Calias_element(xx, yy, fc, d, nsub, tabx, taby, xoff=0.5)
-    Ca += compute_Calias_element(xx, yy, fc, d, nsub, tabx, taby, xoff=-0.5)
-    Ca += compute_Calias_element(xx, yy, fc, d, nsub, tabx, taby, yoff=0.5)
-    Ca += compute_Calias_element(xx, yy, fc, d, nsub, tabx, taby, yoff=-0.5)
-    Ca = Ca * scale / 5
+    # Ca = compute_Calias_element(xx, yy, fc, d, nsub, tabx, taby)
+    # Ca += compute_Calias_element(xx, yy, fc, d, nsub, tabx, taby, xoff=0.5)
+    # Ca += compute_Calias_element(xx, yy, fc, d, nsub, tabx, taby, xoff=-0.5)
+    # Ca += compute_Calias_element(xx, yy, fc, d, nsub, tabx, taby, yoff=0.5)
+    # Ca += compute_Calias_element(xx, yy, fc, d, nsub, tabx, taby, yoff=-0.5)
+    # Ca = Ca * scale / 5
+    Ca = np.zeros((2 * nsub, 2 * nsub))
 
+    for k in tqdm(range(npts)):
+        Ca += compute_Calias_element_XX(xx, yy, fc, d, nsub, tabx, taby, yoff=k /
+                                        (npts - 1)) * (npts - k)
+        Ca += compute_Calias_element_YY(xx, yy, fc, d, nsub, tabx, taby, xoff=k /
+                                        (npts - 1)) * (npts - k)
+        if k > 0:
+            Ca += compute_Calias_element_XX(xx, yy, fc, d, nsub, tabx, taby, yoff=-k /
+                                            (npts - 1)) * (npts - k)
+            Ca += compute_Calias_element_YY(xx, yy, fc, d, nsub, tabx, taby, xoff=-k /
+                                            (npts - 1)) * (npts - k)
+    # Ca += compute_Calias_element_XX(xx, yy, fc, d, nsub, tabx, taby) * 18
+    # Ca += compute_Calias_element_YY(xx, yy, fc, d, nsub, tabx, taby) * 18
+    # Ca += compute_Calias_element_XX(xx, yy, fc, d, nsub, tabx, taby, yoff = 0.5) * 8
+    # Ca += compute_Calias_element_XX(xx, yy, fc, d, nsub, tabx, taby, yoff = -0.5) * 8
+    # Ca += compute_Calias_element_XX(xx, yy, fc, d, nsub, tabx, taby, yoff = 1.0)
+    # Ca += compute_Calias_element_XX(xx, yy, fc, d, nsub, tabx, taby, yoff = -1.0)
+    # Ca += compute_Calias_element_YY(xx, yy, fc, d, nsub, tabx, taby, xoff = 0.5) * 8
+    # Ca += compute_Calias_element_YY(xx, yy, fc, d, nsub, tabx, taby, xoff = -0.5) * 8
+    # Ca += compute_Calias_element_YY(xx, yy, fc, d, nsub, tabx, taby, xoff = 1.0)
+    # Ca += compute_Calias_element_YY(xx, yy, fc, d, nsub, tabx, taby, xoff = -1.0)
     if not slopes_space:
         R = f["R"][:]
         Ca = R.dot(Ca).dot(R.T)
@@ -543,6 +565,108 @@ def compute_Calias(filename, slopes_space=False, modal=True):
             Ca = P.dot(Ca).dot(P.T)
     f.close()
 
+    return Ca * scale / npts**2
+
+
+def compute_Calias_element_XX(xx, yy, fc, d, nsub, tabx, taby, xoff=0, yoff=0):
+    """
+        Compute the element of the aliasing covariance matrix
+
+    :parameters:
+        Ca: (np.ndarray(ndim=2, dtype=np.float32)): aliasing covariance matrix to fill
+        xx: (np.ndarray(ndim=2, dtype=np.float32)): X positions of the WFS subap
+        yy: (np.ndarray(ndim=2, dtype=np.float32)): Y positions of the WFS subap
+        fc: (float): cut-off frequency for Dphi
+        d: (float): subap diameter
+        nsub: (int): number of subap
+        tabx: (np.ndarray(ndim=1, dtype=np.float32)): X tabulation for dphi
+        taby: (np.ndarray(ndim=1, dtype=np.float32)): Y tabulation for dphi
+        xoff: (float) : (optionnal) offset to apply on the WFS xpos (units of d)
+        yoff: (float) : (optionnal) offset to apply on the WFS ypos (units of d)
+    """
+    xx = xx - xx.T + xoff * d
+    yy = yy - yy.T + yoff * d
+    xx = np.triu(xx) - np.triu(xx, -1).T
+    yy = np.triu(yy) - np.triu(yy, -1).T
+    Ca = np.zeros((2 * nsub, 2 * nsub))
+
+    # XX covariance
+    AB = np.linalg.norm([xx, yy], axis=0)
+    Ab = np.linalg.norm([xx - d, yy], axis=0)
+    aB = np.linalg.norm([xx + d, yy], axis=0)
+    ab = AB
+
+    Ca[:nsub, :nsub] += Dphi.dphi_highpass(Ab, fc, tabx, taby) + Dphi.dphi_highpass(
+            aB, fc, tabx, taby) - 2 * Dphi.dphi_highpass(AB, fc, tabx, taby)
+
+    return Ca
+
+
+def compute_Calias_element_YY(xx, yy, fc, d, nsub, tabx, taby, xoff=0, yoff=0):
+    """
+        Compute the element of the aliasing covariance matrix
+
+    :parameters:
+        Ca: (np.ndarray(ndim=2, dtype=np.float32)): aliasing covariance matrix to fill
+        xx: (np.ndarray(ndim=2, dtype=np.float32)): X positions of the WFS subap
+        yy: (np.ndarray(ndim=2, dtype=np.float32)): Y positions of the WFS subap
+        fc: (float): cut-off frequency for Dphi
+        d: (float): subap diameter
+        nsub: (int): number of subap
+        tabx: (np.ndarray(ndim=1, dtype=np.float32)): X tabulation for dphi
+        taby: (np.ndarray(ndim=1, dtype=np.float32)): Y tabulation for dphi
+        xoff: (float) : (optionnal) offset to apply on the WFS xpos (units of d)
+        yoff: (float) : (optionnal) offset to apply on the WFS ypos (units of d)
+    """
+    xx = xx - xx.T + xoff * d
+    yy = yy - yy.T + yoff * d
+    xx = np.triu(xx) - np.triu(xx, -1).T
+    yy = np.triu(yy) - np.triu(yy, -1).T
+    Ca = np.zeros((2 * nsub, 2 * nsub))
+
+    # YY covariance
+    CD = np.linalg.norm([xx, yy], axis=0)
+    Cd = np.linalg.norm([xx, yy - d], axis=0)
+    cD = np.linalg.norm([xx, yy + d], axis=0)
+    cd = CD
+
+    Ca[nsub:, nsub:] += Dphi.dphi_highpass(Cd, fc, tabx, taby) + Dphi.dphi_highpass(
+            cD, fc, tabx, taby) - 2 * Dphi.dphi_highpass(CD, fc, tabx, taby)
+
+    return Ca
+
+
+def compute_Calias_element_XY(xx, yy, fc, d, nsub, tabx, taby, xoff=0, yoff=0):
+    """
+        Compute the element of the aliasing covariance matrix
+
+    :parameters:
+        Ca: (np.ndarray(ndim=2, dtype=np.float32)): aliasing covariance matrix to fill
+        xx: (np.ndarray(ndim=2, dtype=np.float32)): X positions of the WFS subap
+        yy: (np.ndarray(ndim=2, dtype=np.float32)): Y positions of the WFS subap
+        fc: (float): cut-off frequency for Dphi
+        d: (float): subap diameter
+        nsub: (int): number of subap
+        tabx: (np.ndarray(ndim=1, dtype=np.float32)): X tabulation for dphi
+        taby: (np.ndarray(ndim=1, dtype=np.float32)): Y tabulation for dphi
+        xoff: (float) : (optionnal) offset to apply on the WFS xpos (units of d)
+        yoff: (float) : (optionnal) offset to apply on the WFS ypos (units of d)
+    """
+    xx = xx - xx.T + xoff * d
+    yy = yy - yy.T + yoff * d
+    Ca = np.zeros((2 * nsub, 2 * nsub))
+
+    # YY covariance
+    aD = np.linalg.norm([xx + d / 2, yy + d / 2], axis=0)
+    ad = np.linalg.norm([xx + d / 2, yy - d / 2], axis=0)
+    Ad = np.linalg.norm([xx - d / 2, yy - d / 2], axis=0)
+    AD = np.linalg.norm([xx - d / 2, yy + d / 2], axis=0)
+
+    Ca[nsub:, :nsub] = 0.25 * (
+            Dphi.dphi_highpass(Ad, d, tabx, taby) + Dphi.dphi_highpass(
+                    aD, d, tabx, taby) - Dphi.dphi_highpass(AD, d, tabx, taby) -
+            Dphi.dphi_highpass(ad, d, tabx, taby)) * (1 / r0)**(5. / 3.)
+    Ca[:nsub, nsub:] = Ca[nsub:, :nsub].copy()
     return Ca
 
 
