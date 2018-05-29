@@ -521,7 +521,8 @@ def compute_Calias(filename, slopes_space=False, modal=True, npts=3):
     Lambda_wfs = f.attrs["_Param_wfs__Lambda"][0]
     d = f.attrs["_Param_tel__diam"] / nssp
     RASC = 180 / np.pi * 3600
-    scale = 0.5 * (1 / r0)**(5 / 3) * (RASC * Lambda_wfs * 1e-6 / 2 / np.pi)**2 / d**2
+    scale = 0.5 * (1 / r0)**(5 / 3)
+    c = (RASC * Lambda_wfs * 1e-6 / 2 / np.pi)
     x = (np.arange(nssp) - nssp / 2) * d
     x, y = np.meshgrid(x, x)
     x = x[ivalid]
@@ -536,27 +537,19 @@ def compute_Calias(filename, slopes_space=False, modal=True, npts=3):
     # Ca += compute_Calias_element(xx, yy, fc, d, nsub, tabx, taby, yoff=-0.5)
     # Ca = Ca * scale / 5
     Ca = np.zeros((2 * nsub, 2 * nsub))
-
+    coeff = simpson_coeff(npts)
     for k in tqdm(range(npts)):
+        weight = (coeff[k:] * coeff[:npts - k]).sum()
         Ca += compute_Calias_element_XX(xx, yy, fc, d, nsub, tabx, taby, yoff=k /
-                                        (npts - 1)) * (npts - k)
+                                        (npts - 1)) * weight
         Ca += compute_Calias_element_YY(xx, yy, fc, d, nsub, tabx, taby, xoff=k /
-                                        (npts - 1)) * (npts - k)
+                                        (npts - 1)) * weight
         if k > 0:
             Ca += compute_Calias_element_XX(xx, yy, fc, d, nsub, tabx, taby, yoff=-k /
-                                            (npts - 1)) * (npts - k)
+                                            (npts - 1)) * weight
             Ca += compute_Calias_element_YY(xx, yy, fc, d, nsub, tabx, taby, xoff=-k /
-                                            (npts - 1)) * (npts - k)
-    # Ca += compute_Calias_element_XX(xx, yy, fc, d, nsub, tabx, taby) * 18
-    # Ca += compute_Calias_element_YY(xx, yy, fc, d, nsub, tabx, taby) * 18
-    # Ca += compute_Calias_element_XX(xx, yy, fc, d, nsub, tabx, taby, yoff = 0.5) * 8
-    # Ca += compute_Calias_element_XX(xx, yy, fc, d, nsub, tabx, taby, yoff = -0.5) * 8
-    # Ca += compute_Calias_element_XX(xx, yy, fc, d, nsub, tabx, taby, yoff = 1.0)
-    # Ca += compute_Calias_element_XX(xx, yy, fc, d, nsub, tabx, taby, yoff = -1.0)
-    # Ca += compute_Calias_element_YY(xx, yy, fc, d, nsub, tabx, taby, xoff = 0.5) * 8
-    # Ca += compute_Calias_element_YY(xx, yy, fc, d, nsub, tabx, taby, xoff = -0.5) * 8
-    # Ca += compute_Calias_element_YY(xx, yy, fc, d, nsub, tabx, taby, xoff = 1.0)
-    # Ca += compute_Calias_element_YY(xx, yy, fc, d, nsub, tabx, taby, xoff = -1.0)
+                                            (npts - 1)) * weight
+
     if not slopes_space:
         R = f["R"][:]
         Ca = R.dot(Ca).dot(R.T)
@@ -565,7 +558,25 @@ def compute_Calias(filename, slopes_space=False, modal=True, npts=3):
             Ca = P.dot(Ca).dot(P.T)
     f.close()
 
-    return Ca * scale / npts**2
+    return Ca * scale * c**2 / (npts - 1)**2 / 9
+
+
+def simpson_coeff(n):
+    """
+    Returns the n weights to apply for a Simpson integration on n elements
+    :parameters:
+        n: (int): number of elements, must be odd
+    :return:
+        coeff: (np.array[ndims=1,dtype=np.int64]): simpson coefficients
+    """
+    if (n % 2):
+        coeff = np.ones(n)
+        coeff[1::2] = 4
+        coeff[2:-1:2] = 2
+    else:
+        raise ValueError("n must be odd")
+
+    return coeff
 
 
 def compute_Calias_element_XX(xx, yy, fc, d, nsub, tabx, taby, xoff=0, yoff=0):
@@ -664,8 +675,8 @@ def compute_Calias_element_XY(xx, yy, fc, d, nsub, tabx, taby, xoff=0, yoff=0):
 
     Ca[nsub:, :nsub] = 0.25 * (
             Dphi.dphi_highpass(Ad, d, tabx, taby) + Dphi.dphi_highpass(
-                    aD, d, tabx, taby) - Dphi.dphi_highpass(AD, d, tabx, taby) -
-            Dphi.dphi_highpass(ad, d, tabx, taby)) * (1 / r0)**(5. / 3.)
+                    aD, d, tabx, taby) - Dphi.dphi_highpass(
+                            AD, d, tabx, taby) - Dphi.dphi_highpass(ad, d, tabx, taby))
     Ca[:nsub, nsub:] = Ca[nsub:, :nsub].copy()
     return Ca
 
