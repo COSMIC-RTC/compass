@@ -4,7 +4,7 @@ Python module for modelization of error covariance matrix
 """
 import numpy as np
 import h5py
-from shesha.sutra_bind.Groot import groot_init
+from shesha.sutra_bind.Groot import groot_init, groot_init_alias
 import time
 import sys
 import os
@@ -89,20 +89,8 @@ def compute_Cerr(filename, modal=True, ctype="float", speed=None, H=None, theta=
                            yactu.astype(np.float32),
                            pzt2tt.astype(np.float32),
                            Tf.astype(np.float32), Nact.astype(np.float32))
-    elif (ctype == "double"):
-        groot = groot_initD(Nact.shape[0],
-                            int(f.attrs["_Param_atmos__nscreens"]), angleht, fc,
-                            vdt.astype(np.float64),
-                            Htheta.astype(np.float64),
-                            L0.astype(np.float64),
-                            theta.astype(np.float64),
-                            scale.astype(np.float64),
-                            xactu.astype(np.float64),
-                            yactu.astype(np.float64),
-                            pzt2tt.astype(np.float64),
-                            Tf.astype(np.float64), Nact.astype(np.float64))
     else:
-        raise TypeError("Unknown ctype : must be float or double")
+        raise TypeError("Unknown ctype : must be float")
     tic = time.time()
     groot.compute_Cerr()
     Cerr = groot.get_Cerr()
@@ -492,6 +480,51 @@ def compute_PSF(filename):
     return psf
 
 
+def compute_Calias_gpu(filename, slopes_space=False, modal=True, npts=3):
+    f = h5py.File(filename, 'r')
+    nsub = f["R"][:].shape[1] // 2
+    nssp = f.attrs["_Param_wfs__nxsub"][0]
+    npix = f.attrs["_Param_wfs__npix"][0]
+    validint = f.attrs["_Param_tel__cobs"]
+    x = np.linspace(-1, 1, nssp)
+    x, y = np.meshgrid(x, x)
+    r = np.sqrt(x * x + y * y)
+    rorder = np.sort(r.reshape(nssp * nssp))
+    ncentral = nssp * nssp - np.sum(r >= validint, dtype=np.int32)
+    validext = rorder[ncentral + nsub]
+    valid = (r < validext) & (r >= validint)
+    ivalid = np.where(valid)
+    r0 = f.attrs["_Param_atmos__r0"]
+    Lambda_wfs = f.attrs["_Param_wfs__Lambda"][0]
+    d = f.attrs["_Param_tel__diam"] / nssp
+    RASC = 180 / np.pi * 3600
+    scale = 0.5 * (1 / r0)**(5 / 3)
+    c = (RASC * Lambda_wfs * 1e-6 / 2 / np.pi) / d**2
+    h = d / (npts - 1)
+    x = (np.arange(nssp) - nssp / 2) * d
+    x, y = np.meshgrid(x, x)
+    x = x[ivalid].astype(np.float32)
+    y = y[ivalid].astype(np.float32)
+    fc = 1 / (2 * d)  #/ npix
+    scale = scale * c**2 * (h / 3)**2
+    coeff = simpson_coeff(npts)
+    weights = np.zeros(npts)
+    for k in range(npts):
+        weights[k] = (coeff[k:] * coeff[:npts - k]).sum()
+    groot = groot_init_alias(nsub, fc, scale, d, npts, x, y, weights.astype(np.float32))
+    groot.compute_Calias()
+    Ca = groot.get_Calias()
+    if not slopes_space:
+        R = f["R"][:]
+        Ca = R.dot(Ca).dot(R.T)
+        if modal:
+            P = f["P"][:]
+            Ca = P.dot(Ca).dot(P.T)
+    f.close()
+
+    return Ca
+
+
 def compute_Calias(filename, slopes_space=False, modal=True, npts=3):
     """ Returns the aliasing slopes covariance matrix using CPU version of GROOT
     from a ROKET file and a model based on structure function
@@ -522,7 +555,7 @@ def compute_Calias(filename, slopes_space=False, modal=True, npts=3):
     d = f.attrs["_Param_tel__diam"] / nssp
     RASC = 180 / np.pi * 3600
     scale = 0.5 * (1 / r0)**(5 / 3)
-    c = (RASC * Lambda_wfs * 1e-6 / 2 / np.pi)
+    c = (RASC * Lambda_wfs * 1e-6 / 2 / np.pi) / d**2
     x = (np.arange(nssp) - nssp / 2) * d
     x, y = np.meshgrid(x, x)
     x = x[ivalid]
@@ -538,17 +571,25 @@ def compute_Calias(filename, slopes_space=False, modal=True, npts=3):
     # Ca = Ca * scale / 5
     Ca = np.zeros((2 * nsub, 2 * nsub))
     coeff = simpson_coeff(npts)
+    # for k in tqdm(range(npts)):
+    #     weight = (coeff[k:] * coeff[:npts - k]).sum()
+    #     Ca += compute_Calias_element_XX(xx, yy, fc, d, nsub, tabx, taby, yoff=k /
+    #                                     (npts - 1)) * weight
+    #     Ca += compute_Calias_element_YY(xx, yy, fc, d, nsub, tabx, taby, xoff=k /
+    #                                     (npts - 1)) * weight
+    #     if k > 0:
+    #         Ca += compute_Calias_element_XX(xx, yy, fc, d, nsub, tabx, taby, yoff=-k /
+    #                                         (npts - 1)) * weight
+    #         Ca += compute_Calias_element_YY(xx, yy, fc, d, nsub, tabx, taby, xoff=-k /
+    #                                         (npts - 1)) * weight
+
+    h = d / (npts - 1)
     for k in tqdm(range(npts)):
-        weight = (coeff[k:] * coeff[:npts - k]).sum()
-        Ca += compute_Calias_element_XX(xx, yy, fc, d, nsub, tabx, taby, yoff=k /
-                                        (npts - 1)) * weight
-        Ca += compute_Calias_element_YY(xx, yy, fc, d, nsub, tabx, taby, xoff=k /
-                                        (npts - 1)) * weight
-        if k > 0:
-            Ca += compute_Calias_element_XX(xx, yy, fc, d, nsub, tabx, taby, yoff=-k /
-                                            (npts - 1)) * weight
-            Ca += compute_Calias_element_YY(xx, yy, fc, d, nsub, tabx, taby, xoff=-k /
-                                            (npts - 1)) * weight
+        for p in tqdm(range(npts)):
+            Ca += (compute_Calias_element_XX(xx, yy, fc, d, nsub, tabx, taby, yoff=(
+                    k - p) * h) * coeff[k] * coeff[p])
+            Ca += (compute_Calias_element_YY(xx, yy, fc, d, nsub, tabx, taby, xoff=(
+                    k - p) * h) * coeff[k] * coeff[p])
 
     if not slopes_space:
         R = f["R"][:]
@@ -558,7 +599,7 @@ def compute_Calias(filename, slopes_space=False, modal=True, npts=3):
             Ca = P.dot(Ca).dot(P.T)
     f.close()
 
-    return Ca * scale * c**2 / (npts - 1)**2 / 9
+    return Ca * scale * c**2 * (h / 3)**2
 
 
 def simpson_coeff(n):
@@ -571,8 +612,8 @@ def simpson_coeff(n):
     """
     if (n % 2):
         coeff = np.ones(n)
-        coeff[1::2] = 4
-        coeff[2:-1:2] = 2
+        coeff[1::2] = 2
+        coeff[2:-1:2] = 4
     else:
         raise ValueError("n must be odd")
 
@@ -595,16 +636,16 @@ def compute_Calias_element_XX(xx, yy, fc, d, nsub, tabx, taby, xoff=0, yoff=0):
         xoff: (float) : (optionnal) offset to apply on the WFS xpos (units of d)
         yoff: (float) : (optionnal) offset to apply on the WFS ypos (units of d)
     """
-    xx = xx - xx.T + xoff * d
-    yy = yy - yy.T + yoff * d
-    xx = np.triu(xx) - np.triu(xx, -1).T
-    yy = np.triu(yy) - np.triu(yy, -1).T
+    xx = xx - xx.T  #+ xoff * d
+    yy = yy - yy.T  #+ yoff * d
+    #xx = np.triu(xx) - np.triu(xx, -1).T
+    #yy = np.triu(yy) - np.triu(yy, -1).T
     Ca = np.zeros((2 * nsub, 2 * nsub))
 
     # XX covariance
-    AB = np.linalg.norm([xx, yy], axis=0)
-    Ab = np.linalg.norm([xx - d, yy], axis=0)
-    aB = np.linalg.norm([xx + d, yy], axis=0)
+    AB = np.linalg.norm([xx, yy + yoff], axis=0)
+    Ab = np.linalg.norm([xx - d, yy + yoff], axis=0)
+    aB = np.linalg.norm([xx + d, yy + yoff], axis=0)
     ab = AB
 
     Ca[:nsub, :nsub] += Dphi.dphi_highpass(Ab, fc, tabx, taby) + Dphi.dphi_highpass(
@@ -629,16 +670,16 @@ def compute_Calias_element_YY(xx, yy, fc, d, nsub, tabx, taby, xoff=0, yoff=0):
         xoff: (float) : (optionnal) offset to apply on the WFS xpos (units of d)
         yoff: (float) : (optionnal) offset to apply on the WFS ypos (units of d)
     """
-    xx = xx - xx.T + xoff * d
-    yy = yy - yy.T + yoff * d
-    xx = np.triu(xx) - np.triu(xx, -1).T
-    yy = np.triu(yy) - np.triu(yy, -1).T
+    xx = xx - xx.T  #+ xoff * d
+    yy = yy - yy.T  #+ yoff * d
+    #xx = np.triu(xx) - np.triu(xx, -1).T
+    #yy = np.triu(yy) - np.triu(yy, -1).T
     Ca = np.zeros((2 * nsub, 2 * nsub))
 
     # YY covariance
-    CD = np.linalg.norm([xx, yy], axis=0)
-    Cd = np.linalg.norm([xx, yy - d], axis=0)
-    cD = np.linalg.norm([xx, yy + d], axis=0)
+    CD = np.linalg.norm([xx + xoff, yy], axis=0)
+    Cd = np.linalg.norm([xx + xoff, yy - d], axis=0)
+    cD = np.linalg.norm([xx + xoff, yy + d], axis=0)
     cd = CD
 
     Ca[nsub:, nsub:] += Dphi.dphi_highpass(Cd, fc, tabx, taby) + Dphi.dphi_highpass(

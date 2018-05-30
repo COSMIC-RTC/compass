@@ -338,7 +338,6 @@ __device__ double Ij0t83(double x, double *tab_x, double *tab_y, long npts) {
 }
 
 
-
 template<class T_data, typename Fn>
 __device__ T_data DPHI_highpass_gen(Fn const &ptr_pow, T_data r, T_data fc, T_data *tab_x,
                                     T_data *tab_y, long npts) {
@@ -356,6 +355,19 @@ __device__ double DPHI_highpass(double r, double fc, double *tab_x,
   return DPHI_highpass_gen<double, double(*)(double, double)>(pow, r, fc, tab_x, tab_y, npts);
 }
 
+template<class T_data, typename Fn>
+__device__ T_data DPHI_highpass_gen(Fn const &ptr_sqrt, T_data x, T_data y, T_data fc, T_data *tab_x, T_data *tab_y, long npts) {
+  return DPHI_highpass(ptr_sqrt(x*x+y*y), fc, tab_x, tab_y, npts);
+}
+
+__device__ float DPHI_highpass(float x, float y, float fc, float *tab_x,
+                               float *tab_y, long npts) {
+  return DPHI_highpass_gen<float>(sqrtf, x, y, fc, tab_x, tab_y, npts);
+}
+__device__ double DPHI_highpass(double x, double y, double fc, double *tab_x,
+                                double *tab_y, long npts) {
+  return DPHI_highpass_gen<double, double(*)(double)>(sqrt, x, y, fc, tab_x, tab_y, npts);
+}
 
 template<class T_data, typename Fn>
 __device__ T_data DPHI_lowpass_gen(Fn const &ptr_sqrt, T_data x, T_data y, T_data L0,
@@ -376,6 +388,64 @@ __device__ double DPHI_lowpass(double x, double y, double L0,
                                long npts) {
   return DPHI_lowpass_gen<double, double(*)(double)>(sqrt, x, y, L0, fc, tab_int_x, tab_int_y, npts);
 }
+
+template<class T_data>
+__global__ void compute_Ca_element_XX(T_data *CaXX, int N, T_data *tab_int_x, T_data *tab_int_y,
+                                      T_data *xpos, T_data *ypos, T_data d, T_data fc, T_data scale, T_data weight, T_data offset, int Ntab) {
+
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  while(tid < N*N) {
+    int i = tid / N;
+    int j = tid - i * N;
+    T_data yoff = offset;
+    // if(j < i)
+    //   yoff = -offset;
+    T_data xij = xpos[i] - xpos[j];
+    T_data yij = ypos[i] - ypos[j] + yoff;
+
+    CaXX[tid] += ((DPHI_highpass(xij - d, yij, fc, tab_int_x,
+                                 tab_int_y, Ntab) + DPHI_highpass(xij + d, yij, fc, tab_int_x,
+                                     tab_int_y, Ntab) - 2 * DPHI_highpass(xij, yij, fc, tab_int_x,tab_int_y, Ntab)) * scale * weight);
+
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+template
+__global__ void compute_Ca_element_XX(float *CaXX, int nssp, float *tab_int_x, float *tab_int_y,
+                                      float *xpos, float *ypos, float d, float fc, float scale, float weight, float offset, int Ntab);
+template
+__global__ void compute_Ca_element_XX(double *CaXX, int nssp, double *tab_int_x, double *tab_int_y,
+                                      double *xpos, double *ypos, double d, double fc, double scale, double weight, double offset, int Ntab);
+
+template<class T_data>
+__global__ void compute_Ca_element_YY(T_data *CaYY, int N, T_data *tab_int_x, T_data *tab_int_y,
+                                      T_data *xpos, T_data *ypos, T_data d, T_data fc, T_data scale, T_data weight, T_data offset, int Ntab) {
+
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  while(tid < N*N) {
+    int i = tid / N;
+    int j = tid - i * N;
+    T_data xoff = offset;
+    // if(j < i)
+    //   xoff = -offset;
+    T_data xij = xpos[i] - xpos[j] + xoff;
+    T_data yij = ypos[i] - ypos[j];
+
+    CaYY[tid] += ((DPHI_highpass(xij, yij - d, fc, tab_int_x,
+                                 tab_int_y, Ntab) + DPHI_highpass(xij, yij + d, fc, tab_int_x,
+                                     tab_int_y, Ntab) - 2 * DPHI_highpass(xij, yij, fc, tab_int_x,tab_int_y, Ntab)) * scale * weight);
+
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+template
+__global__ void compute_Ca_element_YY(float *CaYY, int nssp, float *tab_int_x, float *tab_int_y,
+                                      float *xpos, float *ypos, float d, float fc, float scale, float weight, float offset, int Ntab);
+template
+__global__ void compute_Ca_element_YY(double *CaYY, int nssp, double *tab_int_x, double *tab_int_y,
+                                      double *xpos, double *ypos, double d, double fc, double scale, double weight, double offset, int Ntab);
 
 template<class T_data, typename Fnc, typename Fns>
 __device__ void compute_Cerr_element_gen(Fnc const &ptr_cos, Fns const &ptr_sin,
@@ -522,3 +592,32 @@ template
 int add_transpose<float>(float *Cerr, int N, carma_device *device);
 template
 int add_transpose<double>(double *Cerr, int N, carma_device *device);
+
+template<class T_data>
+int compute_Ca(T_data *CaXX, T_data *CaYY, int nssp, T_data *tab_int_x, T_data *tab_int_y,
+               T_data *xpos, T_data *ypos, T_data offset, T_data d,
+               T_data fc, T_data scale, T_data weight, int Ntab, carma_device *device) {
+
+  int nthreads = 0, nblocks = 0;
+  getNumBlocksAndThreads(device, nssp * nssp, nblocks, nthreads);
+  dim3 grid(nblocks), threads(nthreads);
+
+  compute_Ca_element_XX<<< grid, threads>>>(CaXX, nssp, tab_int_x, tab_int_y,
+      xpos, ypos, d, fc, scale, weight, offset, Ntab);
+  carmaCheckMsg("compute_Cerr_element_XX<<<>>> execution failed\n");
+
+  compute_Ca_element_YY<<< grid, threads>>>(CaYY, nssp, tab_int_x, tab_int_y,
+      xpos, ypos, d, fc, scale, weight, offset, Ntab);
+  carmaCheckMsg("compute_Cerr_element_XX<<<>>> execution failed\n");
+
+  return EXIT_SUCCESS;
+}
+
+template
+int compute_Ca(float *CaXX, float *CaYY, int nssp, float *tab_int_x, float *tab_int_y,
+               float *xpos, float *ypos, float offset, float d,
+               float fc, float scale, float weight, int Ntab, carma_device *device);
+template
+int compute_Ca(double *CaXX, double *CaYY, int nssp, double *tab_int_x, double *tab_int_y,
+               double *xpos, double *ypos, double offset, double d,
+               double fc, double scale, double weight, int Ntab, carma_device *device);
