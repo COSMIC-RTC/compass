@@ -356,7 +356,7 @@ cdef extern from "sutra_wfs.h":
         sutra_wfs(carma_context * context, sutra_telescope * d_tel, long nxsub, long nvalid, long nphase,
                   long npup, float pdiam, int device)
         sutra_wfs(const sutra_wfs & wfs)
-
+        int load_pupil(float *pupil)
         int wfs_initarrays(int * phasemap, int * hrmap, int * binmap, float * offsets,
                            float * fluxPerSub, int * validsubsx,
                            int * validsubsy, int * istart, int * jstart, cuFloatComplex * kernel)

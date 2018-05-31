@@ -59,6 +59,7 @@ class sutra_wfs {
   carma_host_obj<float> *image_telemetry;
 
   sutra_source *d_gs;
+  std::vector<carma_obj<float>*> d_pupil_ngpu;
 
   carma_streams *streams;
   int nstreams;
@@ -82,7 +83,7 @@ class sutra_wfs {
   int wfs_initgs(sutra_sensors *sensors, float xpos, float ypos, float lambda,
                  float mag, float zerop, long size, float noise, long seed,
                  float G, float thetaML, float dx, float dy);
-
+  int load_pupil(float *pupil);
   int get_ncpa_phase(float *h_src, size_t size);
   int set_ncpa_phase(float *h_dest, size_t size);
   int load_kernels(float *lgskern);
@@ -283,6 +284,6 @@ void roof_fillbin(T *d_odata, T *d_idata, int nrebin, int np, int ns, int nim,
                   carma_device *device);
 
 void copyImginBinimg(float *binimg, int *validsubsx,int *validsubsy,
-                    int Nb, float *img, int *validx, int *validy, int Nim, int Npix, carma_device *device);
+                     int Nb, float *img, int *validx, int *validy, int Nim, int Npix, carma_device *device);
 
 #endif // _SUTRA_WFS_H_

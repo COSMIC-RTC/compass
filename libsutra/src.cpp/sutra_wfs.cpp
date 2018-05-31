@@ -111,6 +111,17 @@ int sutra_wfs::set_noise(float noise, long seed) {
   return EXIT_SUCCESS;
 }
 
+int sutra_wfs::load_pupil(float *pupil) {
+  current_context->set_activeDevice(device, 1);
+  this->d_pupil->host2device(pupil);
+  int nbdevices = d_pupil_ngpu.size();
+  for (int ndevice = 1; ndevice < nbdevices; ndevice++) {
+    current_context->set_activeDevice(ndevice,1);
+    d_pupil_ngpu[ndevice]->host2device(pupil);
+  }
+  return EXIT_SUCCESS;
+}
+
 int sutra_wfs::load_kernels(float *lgskern) {
   current_context->set_activeDevice(device, 1);
   if (this->lgs)

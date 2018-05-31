@@ -1,0 +1,467 @@
+[2018-05-25 16:50:35.442,Pyro4,INFO] Pyro log configured using built-in defaults, level=DEBUG
+[2018-05-25 16:50:35.594,Pyro4.core,DEBUG] exposing all members of <class 'Pyro4.core.DaemonObject'>
+[2018-05-25 16:50:35.664,Pyro4.core,DEBUG] locating the NS: PYRO:Pyro.NameServer@localhost:9090
+[2018-05-25 16:50:35.665,Pyro4.core,DEBUG] connecting to PYRO:Pyro.NameServer@localhost:9090
+[2018-05-25 16:50:35.668,Pyro4.core,DEBUG] from meta: methods=['count', 'list', 'lookup', 'ping', 'register', 'remove', 'set_metadata'], oneway methods=[], attributes=[]
+[2018-05-25 16:50:35.669,Pyro4.core,DEBUG] connected to PYRO:Pyro.NameServer@localhost:9090 - IPv4 - unencrypted
+[2018-05-25 16:50:35.669,Pyro4.core,DEBUG] reusing existing metadata
+[2018-05-25 16:50:35.669,Pyro4.core,DEBUG] located NS
+[2018-05-25 16:50:35.669,Pyro4.multiplexserver,INFO] starting multiplexed socketserver
+[2018-05-25 16:50:35.669,Pyro4.multiplexserver,DEBUG] selector implementation: selectors.EpollSelector
+[2018-05-25 16:50:35.669,Pyro4.multiplexserver,INFO] not using SSL
+[2018-05-25 16:50:35.670,Pyro4.core,DEBUG] daemon created on localhost:33367 - IPv4 (pid 16208)
+[2018-05-25 16:50:35.670,Pyro4.core,DEBUG] accepted serializers: {'serpent', 'json', 'pickle', 'marshal'}
+[2018-05-25 16:50:35.670,Pyro4.core,DEBUG] pyro protocol version: 48  pickle version: 4
+[2018-05-25 16:50:35.670,Pyro4.core,DEBUG] exposing all members of <class 'shesha.supervisor.canapassSupervisor.CanapassSupervisor'>
+[2018-05-25 16:50:35.671,Pyro4.core,DEBUG] exposing all members of <class 'shesha.supervisor.compassSupervisor.CompassSupervisor'>
+[2018-05-25 16:50:35.672,Pyro4.core,DEBUG] exposing all members of <class 'shesha.supervisor.abstractSupervisor.AbstractSupervisor'>
+[2018-05-25 16:50:35.672,Pyro4.core,DEBUG] exposing all members of <class 'abc.ABC'>
+[2018-05-25 16:50:35.674,Pyro4.core,DEBUG] exposing all members of <class '__main__.loopHandler'>
+[2018-05-25 16:50:35.676,Pyro4.core,INFO] daemon localhost:33367 entering requestloop
+[2018-05-25 16:50:35.676,Pyro4.multiplexserver,DEBUG] entering multiplexed requestloop
+[2018-05-25 16:51:59.505,Pyro4,INFO] Pyro log configured using built-in defaults, level=DEBUG
+[2018-05-25 16:51:59.628,Pyro4.core,DEBUG] exposing all members of <class 'Pyro4.core.DaemonObject'>
+[2018-05-25 16:51:59.695,Pyro4.core,DEBUG] locating the NS: PYRO:Pyro.NameServer@localhost:9090
+[2018-05-25 16:51:59.697,Pyro4.core,DEBUG] connecting to PYRO:Pyro.NameServer@localhost:9090
+[2018-05-25 16:51:59.699,Pyro4.core,DEBUG] from meta: methods=['count', 'list', 'lookup', 'ping', 'register', 'remove', 'set_metadata'], oneway methods=[], attributes=[]
+[2018-05-25 16:51:59.700,Pyro4.core,DEBUG] connected to PYRO:Pyro.NameServer@localhost:9090 - IPv4 - unencrypted
+[2018-05-25 16:51:59.700,Pyro4.core,DEBUG] reusing existing metadata
+[2018-05-25 16:51:59.700,Pyro4.core,DEBUG] located NS
+[2018-05-25 16:51:59.700,Pyro4.multiplexserver,INFO] starting multiplexed socketserver
+[2018-05-25 16:51:59.700,Pyro4.multiplexserver,DEBUG] selector implementation: selectors.EpollSelector
+[2018-05-25 16:51:59.700,Pyro4.multiplexserver,INFO] not using SSL
+[2018-05-25 16:51:59.701,Pyro4.core,DEBUG] daemon created on localhost:37051 - IPv4 (pid 16941)
+[2018-05-25 16:51:59.701,Pyro4.core,DEBUG] accepted serializers: {'json', 'serpent', 'marshal', 'pickle'}
+[2018-05-25 16:51:59.701,Pyro4.core,DEBUG] pyro protocol version: 48  pickle version: 4
+[2018-05-25 16:51:59.701,Pyro4.core,DEBUG] exposing all members of <class 'shesha.supervisor.canapassSupervisor.CanapassSupervisor'>
+[2018-05-25 16:51:59.702,Pyro4.core,DEBUG] exposing all members of <class 'shesha.supervisor.compassSupervisor.CompassSupervisor'>
+[2018-05-25 16:51:59.702,Pyro4.core,DEBUG] exposing all members of <class 'shesha.supervisor.abstractSupervisor.AbstractSupervisor'>
+[2018-05-25 16:51:59.703,Pyro4.core,DEBUG] exposing all members of <class 'abc.ABC'>
+[2018-05-25 16:51:59.704,Pyro4.core,DEBUG] exposing all members of <class '__main__.loopHandler'>
+[2018-05-25 16:51:59.705,Pyro4.core,INFO] daemon localhost:37051 entering requestloop
+[2018-05-25 16:51:59.706,Pyro4.multiplexserver,DEBUG] entering multiplexed requestloop
+[2018-05-31 11:57:36.116,Pyro4,INFO] Pyro log configured using built-in defaults, level=DEBUG
+[2018-05-31 11:57:36.225,Pyro4.core,DEBUG] exposing all members of <class 'Pyro4.core.DaemonObject'>
+[2018-05-31 11:57:36.293,Pyro4.core,DEBUG] locating the NS: PYRO:Pyro.NameServer@localhost:9090
+[2018-05-31 11:57:36.294,Pyro4.core,DEBUG] connecting to PYRO:Pyro.NameServer@localhost:9090
+[2018-05-31 11:57:36.297,Pyro4.core,DEBUG] from meta: methods=['count', 'list', 'lookup', 'ping', 'register', 'remove', 'set_metadata'], oneway methods=[], attributes=[]
+[2018-05-31 11:57:36.297,Pyro4.core,DEBUG] connected to PYRO:Pyro.NameServer@localhost:9090 - IPv4 - unencrypted
+[2018-05-31 11:57:36.297,Pyro4.core,DEBUG] reusing existing metadata
+[2018-05-31 11:57:36.297,Pyro4.core,DEBUG] located NS
+[2018-05-31 11:57:36.297,Pyro4.multiplexserver,INFO] starting multiplexed socketserver
+[2018-05-31 11:57:36.297,Pyro4.multiplexserver,DEBUG] selector implementation: selectors.EpollSelector
+[2018-05-31 11:57:36.297,Pyro4.multiplexserver,INFO] not using SSL
+[2018-05-31 11:57:36.298,Pyro4.core,DEBUG] daemon created on localhost:41577 - IPv4 (pid 31713)
+[2018-05-31 11:57:36.298,Pyro4.core,DEBUG] accepted serializers: {'serpent', 'json', 'pickle', 'marshal'}
+[2018-05-31 11:57:36.298,Pyro4.core,DEBUG] pyro protocol version: 48  pickle version: 4
+[2018-05-31 11:57:36.298,Pyro4.core,DEBUG] exposing all members of <class 'shesha.supervisor.canapassSupervisor.CanapassSupervisor'>
+[2018-05-31 11:57:36.299,Pyro4.core,DEBUG] exposing all members of <class 'shesha.supervisor.compassSupervisor.CompassSupervisor'>
+[2018-05-31 11:57:36.299,Pyro4.core,DEBUG] exposing all members of <class 'shesha.supervisor.abstractSupervisor.AbstractSupervisor'>
+[2018-05-31 11:57:36.299,Pyro4.core,DEBUG] exposing all members of <class 'abc.ABC'>
+[2018-05-31 11:57:36.300,Pyro4.core,DEBUG] exposing all members of <class '__main__.loopHandler'>
+[2018-05-31 11:57:36.301,Pyro4.core,INFO] daemon localhost:41577 entering requestloop
+[2018-05-31 11:57:36.301,Pyro4.multiplexserver,DEBUG] entering multiplexed requestloop
+[2018-05-31 11:58:12.732,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 11:58:12.733,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 11:58:12.733,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 11:58:12.733,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 11:58:12.733,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 11:58:12.733,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 11:58:13.776,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 11:58:13.776,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 11:58:13.776,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 11:58:13.776,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 11:58:13.777,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 11:58:13.777,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 11:58:23.740,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 11:58:23.740,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 11:58:23.740,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 11:58:23.740,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 11:58:23.740,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 11:58:23.740,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 11:58:30.076,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 11:58:30.076,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 11:58:30.076,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 11:58:30.076,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 11:58:30.077,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 11:58:30.077,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 11:58:33.328,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 11:58:33.329,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 11:58:33.329,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 11:58:33.329,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 11:58:33.329,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 11:58:33.329,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 11:58:35.544,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 11:58:35.544,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 11:58:35.546,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 11:58:35.546,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 11:58:35.546,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 11:58:35.546,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 11:58:35.756,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 11:58:35.756,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 11:58:35.756,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 11:58:35.756,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 11:58:35.756,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 11:58:35.756,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 11:58:37.759,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 11:58:37.759,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 11:58:37.759,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 11:58:37.759,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 11:58:37.760,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 11:58:37.760,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 11:58:38.935,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 11:58:38.935,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 11:58:38.935,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 11:58:38.935,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 11:58:38.935,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 11:58:38.935,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 12:07:38.052,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 12:07:38.053,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 12:07:38.053,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 12:07:38.053,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 12:07:38.053,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 12:07:38.053,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 12:07:38.398,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 12:07:38.399,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 12:07:38.399,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 12:07:38.399,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 12:07:38.399,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 12:07:38.399,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 12:07:46.544,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 12:07:46.545,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 12:07:46.545,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 12:07:46.545,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 12:07:46.545,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 12:07:46.546,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 12:07:52.130,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 12:07:52.132,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 12:07:52.132,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 12:07:52.132,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 12:07:52.133,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 12:07:52.133,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 12:07:53.528,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 12:07:53.528,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 12:07:53.528,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 12:07:53.528,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 12:07:53.529,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 12:07:53.529,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 12:08:20.741,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 12:08:20.742,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 12:08:20.742,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 12:08:20.742,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 12:08:20.742,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 12:08:20.742,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 12:08:22.962,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 12:08:22.962,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 12:08:22.963,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 12:08:22.963,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 12:08:22.963,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 12:08:22.963,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 12:08:24.527,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 12:08:24.527,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 12:08:24.527,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 12:08:24.528,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 12:08:24.528,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 12:08:24.528,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 12:08:28.543,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 12:08:28.543,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 12:08:28.543,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 12:08:28.543,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 12:08:28.544,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 12:08:28.544,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 12:08:29.323,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 12:08:29.323,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 12:08:29.323,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 12:08:29.323,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 12:08:29.324,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 12:08:29.324,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 12:08:36.339,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 12:08:36.339,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 12:08:36.339,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 12:08:36.339,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 12:08:36.339,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 12:08:36.339,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 12:08:36.382,parso.cache,DEBUG] pickle loaded: /home/fvidal/miniconda3/lib/python3.6/site-packages/matplotlib/pyplot.py
+[2018-05-31 12:08:58.925,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 12:08:58.925,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 12:08:58.925,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 12:08:58.925,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 12:08:58.926,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 12:08:58.926,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 12:09:03.532,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 12:09:03.532,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 12:09:03.532,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 12:09:03.532,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 12:09:03.532,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 12:09:03.532,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 12:09:11.331,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 12:09:11.331,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 12:09:11.331,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 12:09:11.331,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 12:09:11.332,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 12:09:11.332,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 12:09:12.528,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 12:09:12.529,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 12:09:12.529,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 12:09:12.529,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 12:09:12.529,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 12:09:12.529,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 12:09:12.727,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 12:09:12.728,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 12:09:12.728,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 12:09:12.728,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 12:09:12.728,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 12:09:12.728,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 12:09:14.337,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 12:09:14.338,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 12:09:14.338,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 12:09:14.338,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 12:09:14.338,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 12:09:14.338,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 12:09:14.529,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 12:09:14.529,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 12:09:14.529,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 12:09:14.529,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 12:09:14.530,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 12:09:14.530,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 12:09:18.124,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 12:09:18.124,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 12:09:18.124,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 12:09:18.124,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 12:09:18.125,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 12:09:18.125,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 12:10:07.529,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 12:10:07.529,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 12:10:07.531,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 12:10:07.531,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 12:10:07.532,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 12:10:07.532,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 12:10:07.543,parso.cache,DEBUG] pickle loaded: /home/fvidal/miniconda3/lib/python3.6/site-packages/numpy/__init__.py
+[2018-05-31 12:10:18.145,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 12:10:18.145,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 12:10:18.145,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 12:10:18.145,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 12:10:18.146,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 12:10:18.146,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 12:10:18.345,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 12:10:18.345,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 12:10:18.345,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 12:10:18.345,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 12:10:18.346,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 12:10:18.346,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 12:10:23.923,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 12:10:23.924,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 12:10:23.925,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 12:10:23.926,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 12:10:23.927,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 12:10:23.927,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 12:10:25.381,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 12:10:25.381,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 12:10:25.382,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 12:10:25.382,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 12:10:25.383,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 12:10:25.383,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 12:10:49.326,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 12:10:49.327,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 12:10:49.327,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 12:10:49.327,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 12:10:49.328,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 12:10:49.328,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 12:10:50.249,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 12:10:50.249,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 12:10:50.249,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 12:10:50.249,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 12:10:50.249,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 12:10:50.249,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 12:10:52.757,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 12:10:52.757,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 12:10:52.757,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 12:10:52.757,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 12:10:52.758,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 12:10:52.758,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 12:14:00.845,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 12:14:00.845,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 12:14:00.845,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 12:14:00.845,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 12:14:00.846,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 12:14:00.846,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 12:14:05.238,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 12:14:05.238,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 12:14:05.238,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 12:14:05.238,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 12:14:05.239,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 12:14:05.239,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 13:47:33.248,Pyro4.multiplexserver,DEBUG] connected ('127.0.0.1', 40940) - unencrypted
+[2018-05-31 13:47:33.253,Pyro4.multiplexserver,DEBUG] connected ('127.0.0.1', 40942) - unencrypted
+[2018-05-31 13:48:13.529,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 13:48:13.529,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 13:48:13.529,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 13:48:13.529,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 13:48:13.530,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 13:48:13.530,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 13:48:20.471,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 13:48:20.472,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 13:48:20.472,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 13:48:20.472,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 13:48:20.473,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 13:48:20.473,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 13:48:21.687,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 13:48:21.687,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 13:48:21.688,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 13:48:21.688,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 13:48:21.688,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 13:48:21.688,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 13:48:21.959,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 13:48:21.959,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 13:48:21.959,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 13:48:21.960,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 13:48:21.960,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 13:48:21.960,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 13:48:23.335,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 13:48:23.336,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 13:48:23.336,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 13:48:23.336,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 13:48:23.336,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 13:48:23.336,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 13:48:24.951,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 13:48:24.952,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 13:48:24.952,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 13:48:24.952,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 13:48:24.953,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 13:48:24.953,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 13:48:25.159,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 13:48:25.159,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 13:48:25.159,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 13:48:25.159,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 13:48:25.160,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 13:48:25.160,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 13:48:27.783,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 13:48:27.783,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 13:48:27.783,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 13:48:27.783,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 13:48:27.783,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 13:48:27.784,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 13:48:28.023,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 13:48:28.023,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 13:48:28.023,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 13:48:28.024,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 13:48:28.024,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 13:48:28.024,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 13:48:42.024,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 13:48:42.024,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 13:48:42.024,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 13:48:42.024,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 13:48:42.025,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 13:48:42.025,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 13:48:45.896,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 13:48:45.896,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 13:48:45.896,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 13:48:45.896,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 13:48:45.897,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 13:48:45.897,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 13:49:03.816,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 13:49:03.816,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 13:49:03.816,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 13:49:03.816,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 13:49:03.817,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 13:49:03.817,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 13:49:04.311,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 13:49:04.311,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 13:49:04.312,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 13:49:04.312,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 13:49:04.312,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 13:49:04.312,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 13:49:04.350,parso.cache,DEBUG] pickle loaded: /home/fvidal/miniconda3/lib/python3.6/site-packages/matplotlib/__init__.py
+[2018-05-31 13:49:04.382,parso.cache,DEBUG] pickle loaded: /home/fvidal/miniconda3/lib/python3.6/site-packages/matplotlib/ticker.py
+[2018-05-31 13:50:11.117,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 13:50:11.117,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 13:50:11.118,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 13:50:11.118,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 13:50:11.119,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 13:50:11.119,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 13:50:11.368,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 13:50:11.369,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 13:50:11.369,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 13:50:11.369,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 13:50:11.369,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 13:50:11.370,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 13:50:14.749,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 13:50:14.749,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 13:50:14.749,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 13:50:14.749,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 13:50:14.750,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 13:50:14.750,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 13:50:18.504,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 13:50:18.504,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 13:50:18.504,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 13:50:18.505,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 13:50:18.505,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 13:50:18.505,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 13:50:20.490,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 13:50:20.490,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 13:50:20.490,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 13:50:20.490,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 13:50:20.491,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 13:50:20.491,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 13:50:22.041,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 13:50:22.042,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 13:50:22.042,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 13:50:22.042,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 13:50:22.042,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 13:50:22.042,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 13:50:22.345,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 13:50:22.345,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 13:50:22.345,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 13:50:22.345,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 13:50:22.346,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 13:50:22.346,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 13:50:24.120,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 13:50:24.121,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 13:50:24.121,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 13:50:24.121,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 13:50:24.121,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 13:50:24.122,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 13:50:25.272,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 13:50:25.272,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 13:50:25.273,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 13:50:25.273,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 13:50:25.273,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 13:50:25.273,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 13:50:29.913,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 13:50:29.914,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 13:50:29.916,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 13:50:29.916,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 13:50:29.917,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 13:50:29.917,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 13:50:50.441,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 13:50:50.441,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 13:50:50.441,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 13:50:50.441,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 13:50:50.442,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 13:50:50.442,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 13:50:52.489,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 13:50:52.489,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 13:50:52.489,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 13:50:52.489,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 13:50:52.490,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 13:50:52.490,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 13:50:53.881,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 13:50:53.881,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 13:50:53.881,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 13:50:53.881,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 13:50:53.882,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 13:50:53.882,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 13:50:54.057,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 13:50:54.057,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 13:50:54.057,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 13:50:54.057,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 13:50:54.058,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 13:50:54.058,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 13:50:57.256,parso.python.diff,DEBUG] diff parser start
+[2018-05-31 13:50:57.256,parso.python.diff,DEBUG] diff parser calculated
+[2018-05-31 13:50:57.256,parso.python.diff,DEBUG] diff: line_lengths old: 1, new: 1
+[2018-05-31 13:50:57.256,parso.python.diff,DEBUG] diff replace old[1:1] new[1:1]
+[2018-05-31 13:50:57.257,parso.python.diff,DEBUG] parse_part from 1 to 1 (to 0 in part parser)
+[2018-05-31 13:50:57.257,parso.python.diff,DEBUG] diff parser end
+[2018-05-31 14:27:29.547,Pyro4.multiplexserver,DEBUG] disconnected ('127.0.0.1', 40942)
+[2018-05-31 14:27:29.547,Pyro4.multiplexserver,DEBUG] disconnected ('127.0.0.1', 40940)

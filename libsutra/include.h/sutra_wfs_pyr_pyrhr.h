@@ -47,7 +47,6 @@ class sutra_wfs_pyr_pyrhr: public sutra_wfs_pyr {
   std::vector<carma_obj<cuFloatComplex>*> d_camplifoc_ngpu;
   std::vector<carma_obj<cuFloatComplex>*> d_phalfxy_ngpu;
   std::vector<carma_obj<cuFloatComplex>*> d_fttotim_ngpu;
-  std::vector<carma_obj<float>*> d_pupil_ngpu;
   std::vector<carma_obj<float>*> d_screen_ngpu;
   std::vector<carma_obj<float>*> d_hrimg_ngpu;
   std::vector<carma_obj<float>*> d_submask_ngpu;
