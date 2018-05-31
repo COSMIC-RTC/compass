@@ -33,7 +33,7 @@ from typing import Any, Dict, Tuple, Callable, List
 from docopt import docopt
 from collections import deque
 
-from .widget_base import WidgetBase, uiLoader
+from shesha.widgets.widget_base import WidgetBase, uiLoader
 BenchWindowTemplate, BenchClassTemplate = uiLoader('widget_bench')
 
 import matplotlib.pyplot as plt
