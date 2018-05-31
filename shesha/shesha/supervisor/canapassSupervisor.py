@@ -670,4 +670,4 @@ if __name__ == '__main__':
         server.add_device(supervisor, "waoconfig_" + user)
         server.start()
     except:
-        raise EnvironmentError("Missing dependencies (code HRAA, Pyro4)")
+        raise EnvironmentError("Missing dependencies (code HRAA or Pyro4 or Dill Serializer)")
