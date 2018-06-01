@@ -476,9 +476,23 @@ int sutra_wfs_pyr_pyrhr::slopes_geom(int type) {
 }
 
 int sutra_wfs_pyr_pyrhr::copyValidPix(float *img, int *validx, int *validy, int im_dim) {
-
+  current_context->set_activeDevice(device,1);
   copyImginBinimg(this->d_binimg->getData(), this->d_validsubsx->getData(),this->d_validsubsy->getData(),
                   this->d_binimg->getDims(1), img, validx, validy, im_dim,
                   this->d_validsubsx->getDims(1), this->current_context->get_device(device));
+  return EXIT_SUCCESS;
+}
+
+int sutra_wfs_pyr_pyrhr::set_pyr_modulation(float *cx, float *cy, int npts) {
+  current_context->set_activeDevice(device,1);
+  this->npup = npts;
+  if(this->pyr_cx != 0L) {
+    delete this->pyr_cx;
+    delete this->pyr_cy;
+  }
+  long dims_data1[2] = {1, npts};
+  this->pyr_cx = new carma_host_obj<float>(dims_data1, cx, MA_WRICOMB);
+  this->pyr_cy = new carma_host_obj<float>(dims_data1, cy, MA_WRICOMB);
+
   return EXIT_SUCCESS;
 }

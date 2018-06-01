@@ -40,7 +40,7 @@ class sutra_wfs_pyr_pyrhr: public sutra_wfs_pyr {
   void comp_modulation(int cpt);
 
   int copyValidPix(float *img, int *validx, int *validy, int im_dim);
-
+  int set_pyr_modulation(float *cx, float *cy, int npts);
  private:
   int comp_generic();
   std::vector<carma_obj<cuFloatComplex>*> d_camplipup_ngpu;

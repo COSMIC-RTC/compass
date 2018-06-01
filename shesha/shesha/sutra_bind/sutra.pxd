@@ -442,6 +442,7 @@ cdef extern from "sutra_wfs_pyr_pyrhr.h":
         int slopes_geom(int type)
         int set_submask(float *submask)
         int copyValidPix(float *img, int *validx, int *validy, int im_dim)
+        int set_pyr_modulation(float *cx, float *cy, int npts)
 #################################################
 # C-Class sutra_wfs_geom
 #################################################
