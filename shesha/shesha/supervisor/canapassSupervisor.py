@@ -500,7 +500,7 @@ class CanapassSupervisor(CompassSupervisor):
         print("refslopes done")
 
     def resetRefslopes(self):
-        self._sim.rtc.set_centroids_ref(0, self.getSlopes() * 0.)
+        self._sim.rtc.set_centroids_ref(0, self.getSlope() * 0.)
 
     def setPyrModulation(self, pyrmod):
         CompassSupervisor.setPyrModulation(self, pyrmod)
@@ -523,6 +523,15 @@ class CanapassSupervisor(CompassSupervisor):
         pph = phase.astype(np.float32)
         self._sim.wfs.set_phase(0, pph)
         self.computeSlopes()
+
+    def setMpupil(self, mpupil, numwfs=0):
+        oldmpup = self.getMpupil()
+        dimx = oldmpup.shape[0]
+        dimy = oldmpup.shape[1]
+        if ((mpupil.shape[0] != dimx) or (mpupil.shape[1] != dimy)):
+            print("Error mpupil shape on wfs %d must be: (%d,%d)" % (numwfs, dimx, dimy))
+        else:
+            self._sim.wfs.set_pupil(numwfs, mpupil.astype(np.float32))
 
     def getIpupil(self):
         return self._sim.config.p_geom._ipupil
