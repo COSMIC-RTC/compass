@@ -1,6 +1,6 @@
 #include <sutra_aotemplate.h>
 
-sutra_aotemplate::sutra_aotemplate(carma_context *context, const char* type,
+sutra_aotemplate::sutra_aotemplate(carma_context *context, const char *type,
                                    long dim, int device) {
   // some inits
   this->current_context = context;
@@ -15,7 +15,6 @@ sutra_aotemplate::sutra_aotemplate(carma_context *context, const char* type,
   this->d_data = new carma_obj<float>(context, dims_data1);
   this->d_res = new carma_obj<float>(context, dims_data1);
   delete[] dims_data1;
-
 }
 
 sutra_aotemplate::~sutra_aotemplate() {
@@ -42,7 +41,8 @@ int sutra_aotemplate::fill_data() {
 int sutra_aotemplate::do_compute() {
   // do computation on data and store in result
   int nthreads = 0, nblocks = 0;
-  getNumBlocksAndThreads(current_context->get_device(device), this->dim, nblocks, nthreads);
+  getNumBlocksAndThreads(current_context->get_device(device), this->dim,
+                         nblocks, nthreads);
 
   comp_aotemplate(nthreads, nblocks, this->d_data->getData(),
                   this->d_res->getData(), this->d_data->getNbElem());

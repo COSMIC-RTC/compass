@@ -1,9 +1,12 @@
 #include <sutra_ao_utils.h>
-#include <sutra_telescope.h>
 #include <sutra_phase.h>
+#include <sutra_telescope.h>
 
-sutra_telescope::sutra_telescope(carma_context *current_context, long n_pup, long npos, float *pupil, float *phase_ab_M1, long n_pup_m, float *pupil_m, float *phase_ab_M1_m) {
-  this->current_context=current_context;
+sutra_telescope::sutra_telescope(carma_context *current_context, long n_pup,
+                                 long npos, float *pupil, float *phase_ab_M1,
+                                 long n_pup_m, float *pupil_m,
+                                 float *phase_ab_M1_m) {
+  this->current_context = current_context;
   this->device = current_context->get_activeDevice();
 
   this->pup_size = n_pup;
@@ -30,7 +33,8 @@ sutra_telescope::sutra_telescope(carma_context *current_context, long n_pup, lon
   this->d_pupil_m = new carma_obj<float>(this->current_context, dims_data3);
   this->d_pupil_m->host2device(pupil_m);
 
-  this->d_phase_ab_M1_m = new carma_obj<float>(this->current_context, dims_data3);
+  this->d_phase_ab_M1_m =
+      new carma_obj<float>(this->current_context, dims_data3);
   this->d_phase_ab_M1_m->host2device(phase_ab_M1_m);
 
   delete[] dims_data2;
@@ -38,8 +42,8 @@ sutra_telescope::sutra_telescope(carma_context *current_context, long n_pup, lon
 }
 
 sutra_telescope::~sutra_telescope() {
-  //delete this->current_context;
-  current_context->set_activeDevice(device,1);
+  // delete this->current_context;
+  current_context->set_activeDevice(device, 1);
   delete this->d_pupil;
   delete this->d_phase_ab_M1;
   delete this->d_pupil_m;

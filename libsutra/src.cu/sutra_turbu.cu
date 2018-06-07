@@ -1,5 +1,5 @@
-#include <sutra_turbu.h>
 #include <cublas_v2.h>
+#include <sutra_turbu.h>
 
 extern __shared__ float cache_shm[];
 
@@ -17,28 +17,29 @@ __global__ void vonkarman_krnl(cuFloatComplex *odata, float *idata, float k0,
         if ((i == 0) && (j == 0)) {
           float xc = nx / 2;
           float yc = ny / 2;
-          float tmp = sqrtf(
-                        (xc - x) * (xc - x) + (yc - y) * (yc - y) + k0 * k0);
+          float tmp =
+              sqrtf((xc - x) * (xc - x) + (yc - y) * (yc - y) + k0 * k0);
           if (tmp > 1.)
             cache_shm[threadIdx.x + threadIdx.y * blockSize] =
-              (6.88f * 0.00969f) * pow(tmp, -1.83333f);
+                (6.88f * 0.00969f) * pow(tmp, -1.83333f);
           else
             cache_shm[threadIdx.x + threadIdx.y * blockSize] =
-              (6.88f * 0.00969f);
+                (6.88f * 0.00969f);
         } else {
           float xc = x * nx + nx / 2;
           float yc = y * ny + ny / 2;
-          cache_shm[threadIdx.x + threadIdx.y * blockSize] += (6.88f * 0.00969f)
-              * pow(sqrtf((xc - x) * (xc - x) + (yc - y) * (yc - y) + k0 * k0),
-                    -1.83333f);
+          cache_shm[threadIdx.x + threadIdx.y * blockSize] +=
+              (6.88f * 0.00969f) *
+              pow(sqrtf((xc - x) * (xc - x) + (yc - y) * (yc - y) + k0 * k0),
+                  -1.83333f);
         }
       }
     }
 
-    odata[x + y * nx].x = cache_shm[threadIdx.x + threadIdx.y * blockSize]
-                          * cosf(2.0f * 3.14159f * idata[x + y * nx]);
-    odata[x + y * nx].y = cache_shm[threadIdx.x + threadIdx.y * blockSize]
-                          * sinf(2.0f * 3.14159f * idata[x + y * nx]);
+    odata[x + y * nx].x = cache_shm[threadIdx.x + threadIdx.y * blockSize] *
+                          cosf(2.0f * 3.14159f * idata[x + y * nx]);
+    odata[x + y * nx].y = cache_shm[threadIdx.x + threadIdx.y * blockSize] *
+                          sinf(2.0f * 3.14159f * idata[x + y * nx]);
   }
 
   if ((x == 0) && (y == 0)) {
@@ -49,15 +50,16 @@ __global__ void vonkarman_krnl(cuFloatComplex *odata, float *idata, float k0,
 
 int gene_vonkarman(cuFloatComplex *d_odata, float *d_idata, float k0,
                    int nalias, int nx, int ny, int block_size) {
-  int nnx = nx + block_size - nx % block_size; // find next multiple of BLOCK_SZ
+  int nnx =
+      nx + block_size - nx % block_size;  // find next multiple of BLOCK_SZ
   int nny = ny + block_size - ny % block_size;
-  dim3 blocks(nnx / block_size, nny / block_size), threads(block_size,
-      block_size);
+  dim3 blocks(nnx / block_size, nny / block_size),
+      threads(block_size, block_size);
 
   int smemSize = (block_size + 1) * (block_size + 1) * sizeof(float);
 
   vonkarman_krnl<<<blocks, threads, smemSize>>>(d_odata, d_idata, k0, nalias,
-      nx, ny, block_size);
+                                                nx, ny, block_size);
 
   carmaCheckMsg("raytrace_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
@@ -65,25 +67,23 @@ int gene_vonkarman(cuFloatComplex *d_odata, float *d_idata, float k0,
 
 __global__ void dphix_krnl(float *odata, float *idata, int N, int iter,
                            int nx) {
-
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid + iter < N) {
     if (tid % nx < nx - iter)
-      odata[tid] = (idata[tid] - idata[tid + iter])
-                   * (idata[tid] - idata[tid + iter]);
+      odata[tid] =
+          (idata[tid] - idata[tid + iter]) * (idata[tid] - idata[tid + iter]);
     tid += blockDim.x * gridDim.x;
   }
 }
 
 __global__ void dphiy_krnl(float *odata, float *idata, int N, int iter,
                            int nx) {
-
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid + iter * nx < N) {
-    odata[tid] = (idata[tid] - idata[tid + iter * nx])
-                 * (idata[tid] - idata[tid + iter * nx]);
+    odata[tid] = (idata[tid] - idata[tid + iter * nx]) *
+                 (idata[tid] - idata[tid + iter * nx]);
     tid += blockDim.x * gridDim.x;
   }
 }
@@ -104,23 +104,25 @@ int norm_pscreen(float *d_odata, float *d_idata, int nx, int ny,
     carmaSafeCall(cudaMemset(d_odata, 0, sizeof(float) * nx * ny));
     dphix_krnl<<<grid, threads>>>(d_odata, d_idata, nx * ny, i, nx);
     carmaCheckMsg("dphix_kernel<<<>>> execution failed\n");
-    //sfx  = cublasSasum(nx*ny,d_odata,1)/((nx-i)*ny);
-    // here we can use asum because the initial array is positive (result of a square)
+    // sfx  = cublasSasum(nx*ny,d_odata,1)/((nx-i)*ny);
+    // here we can use asum because the initial array is positive (result of a
+    // square)
     cublasSasum(cublas_handle, nx * ny, d_odata, 1, &sfx);
 
     carmaSafeCall(cudaMemset(d_odata, 0, sizeof(float) * nx * ny));
     dphiy_krnl<<<grid, threads>>>(d_odata, d_idata, nx * ny, i, nx);
     carmaCheckMsg("dphiy_kernel<<<>>> execution failed\n");
-    //sfy  = cublasSasum(nx*ny,d_odata,1)/((ny-i)*nx);
+    // sfy  = cublasSasum(nx*ny,d_odata,1)/((ny-i)*nx);
     cublasSasum(cublas_handle, nx * ny, d_odata, 1, &sfy);
 
-    //norm += sqrtf((sfx/((nx-i)*ny) + sfy/((ny-i)*nx))/2.0f)/sqrtf(6.88*pow(i,1.66));
+    // norm += sqrtf((sfx/((nx-i)*ny) +
+    // sfy/((ny-i)*nx))/2.0f)/sqrtf(6.88*pow(i,1.66));
     norm += sqrtf(sfx / ((nx - i) * ny)) / sqrtf(6.88 * pow(i, 1.66));
   }
   norm /= npts;
 
   carmaSafeCall(cudaMemset(d_odata, 0, sizeof(float) * nx * ny));
-  //cublasSaxpy(nx*ny,1.0f/norm*norm_fact, d_idata, 1, d_odata, 1);
+  // cublasSaxpy(nx*ny,1.0f/norm*norm_fact, d_idata, 1, d_odata, 1);
   norm = (1.0f / norm) * norm_fact;
   cublasSaxpy(cublas_handle, nx * ny, &norm, d_idata, 1, d_odata, 1);
 
@@ -129,7 +131,8 @@ int norm_pscreen(float *d_odata, float *d_idata, int nx, int ny,
 }
 
 /*
- __global__ void cgetscreen_krnl(float *odata, cuFloatComplex *idata, int N, int nx)
+ __global__ void cgetscreen_krnl(float *odata, cuFloatComplex *idata, int N, int
+ nx)
  {
 
  int tid = threadIdx.x + blockIdx.x * blockDim.x;
@@ -140,7 +143,8 @@ int norm_pscreen(float *d_odata, float *d_idata, int nx, int ny,
  }
  }
 
- int cgetscreen(float *d_odata,cuFloatComplex *d_idata,int N,carma_device *device)
+ int cgetscreen(float *d_odata,cuFloatComplex *d_idata,int N,carma_device
+ *device)
  {
 
  int nthreads = 0,nblocks = 0;

@@ -2,65 +2,65 @@
 #define _SUTRA_TARGET_H_
 
 #include <carma.h>
-#include <map>
-#include <string>
 #include <sutra_dm.h>
 #include <sutra_lgs.h>
 #include <sutra_telemetry.h>
 #include <sutra_telescope.h>
 #include <sutra_turbu.h>
+#include <map>
+#include <string>
 #include <vector>
 
+using std::map;
 using std::string;
 using std::vector;
-using std::map;
 
 class sutra_source {
  public:
   carma_context *current_context;
-  int device;     // device #
-  float tposx;    // x position of target on the sky
-  float tposy;    // y position of target on the sky
-  long npos;      // number of points in the pupil
-  float mag;      // brightness of target
-  float lambda;   // imaging lambda
-  float zp;       // imaging zero point
-  float scale;    // phase scale
-  bool lgs;       // flag for lgs
-  float G;        // Magnifying factor for WFS misalignment
-  float thetaML;  // Pupil rotation angle
-  float dx;       // WFS misalignment
-  float dy;       // WFS misalignment
-  string type;    // type of source : target / wfs
-  int block_size; // optimum block size of device
+  int device;      // device #
+  float tposx;     // x position of target on the sky
+  float tposy;     // y position of target on the sky
+  long npos;       // number of points in the pupil
+  float mag;       // brightness of target
+  float lambda;    // imaging lambda
+  float zp;        // imaging zero point
+  float scale;     // phase scale
+  bool lgs;        // flag for lgs
+  float G;         // Magnifying factor for WFS misalignment
+  float thetaML;   // Pupil rotation angle
+  float dx;        // WFS misalignment
+  float dy;        // WFS misalignment
+  string type;     // type of source : target / wfs
+  int block_size;  // optimum block size of device
 
-  float strehl_se;     // short exposure strehl
-  float strehl_le;     // long exposure strehl
-  float ref_strehl;    // reference for strehl computation
-  int strehl_counter;  // counter for le strehl computation
-  float phase_var;     // current phase variance in the pupil
-  float phase_var_avg; // average phase variance in the pupil
-  int phase_var_count; // counter for average phase variance in the pupil
+  float strehl_se;      // short exposure strehl
+  float strehl_le;      // long exposure strehl
+  float ref_strehl;     // reference for strehl computation
+  int strehl_counter;   // counter for le strehl computation
+  float phase_var;      // current phase variance in the pupil
+  float phase_var_avg;  // average phase variance in the pupil
+  int phase_var_count;  // counter for average phase variance in the pupil
 
-  sutra_phase *d_phase; // phase for this target
+  sutra_phase *d_phase;  // phase for this target
   // INTRO PHASE INSTRU
   // sutra_phase *d_phase_instru;
   //
-  carma_host_obj<float> *phase_telemetry; //
-  sutra_lgs *d_lgs;                       // the lgs object
-  carma_obj<float> *object;               // the object intensity map
-  carma_obj<float> *d_pupil;              // the pupil mask
-  carma_obj<float> *d_image;              // the resulting image for this target
-  carma_obj<float> *d_leimage; // the long exposure image for this target
+  carma_host_obj<float> *phase_telemetry;  //
+  sutra_lgs *d_lgs;                        // the lgs object
+  carma_obj<float> *object;                // the object intensity map
+  carma_obj<float> *d_pupil;               // the pupil mask
+  carma_obj<float> *d_image;    // the resulting image for this target
+  carma_obj<float> *d_leimage;  // the long exposure image for this target
   carma_obj<cuFloatComplex>
-  *d_amplipup; // the complex amplitude in the pupil plane
+      *d_amplipup;  // the complex amplitude in the pupil plane
   carma_obj<float>
-  *d_phasepts; // the valid phase points in the pupil (target only)
-  carma_obj<int> *d_wherephase; // positions of valid phase points in the pupil
+      *d_phasepts;  // the valid phase points in the pupil (target only)
+  carma_obj<int> *d_wherephase;  // positions of valid phase points in the pupil
   // (target only)
-  map<type_screen, float> xoff; // x reference for raytracing
-  map<type_screen, float> yoff; // y reference for raytracing
-  carma_obj<float> *d_ncpa_phase; // ncpa phase
+  map<type_screen, float> xoff;    // x reference for raytracing
+  map<type_screen, float> yoff;    // y reference for raytracing
+  carma_obj<float> *d_ncpa_phase;  // ncpa phase
 
  public:
   sutra_source(carma_context *context, float xpos, float ypos, float lambda,
@@ -78,8 +78,8 @@ class sutra_source {
   // int get_phase(float *h_dest);
   int get_ncpa_phase(float *h_src, size_t size);
   int set_ncpa_phase(float *h_dest, size_t size);
-  int raytrace(sutra_atmos *atmos, bool async=false);
-  int raytrace(sutra_dms *ydms, int rst, int do_phase_var, bool async=false);
+  int raytrace(sutra_atmos *atmos, bool async = false);
+  int raytrace(sutra_dms *ydms, int rst, int do_phase_var, bool async = false);
   int raytrace(int rst);
   int raytrace_shm(sutra_atmos *atmos);
   int comp_image(int puponly, bool comp_le);
@@ -128,4 +128,4 @@ int fill_amplipup(cuFloatComplex *amplipup, float *phase, float *mask,
                   float scale, int puponly, int nx, int ny, int Nx,
                   carma_device *device);
 
-#endif // _SUTRA_TARGET_H_
+#endif  // _SUTRA_TARGET_H_

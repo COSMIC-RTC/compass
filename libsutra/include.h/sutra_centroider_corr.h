@@ -3,7 +3,7 @@
 
 #include <sutra_centroider.h>
 
-class sutra_centroider_corr: public sutra_centroider {
+class sutra_centroider_corr : public sutra_centroider {
  public:
   int npix;
   int interp_sizex;
@@ -16,29 +16,23 @@ class sutra_centroider_corr: public sutra_centroider {
   carma_obj<float> *d_interpmat;
 
  public:
-  sutra_centroider_corr(carma_context *context, sutra_sensors *sensors, int nwfs, long nvalid,
-                        float offset, float scale, int device);
-  sutra_centroider_corr(const sutra_centroider_corr& centroider);
+  sutra_centroider_corr(carma_context *context, sutra_sensors *sensors,
+                        int nwfs, long nvalid, float offset, float scale,
+                        int device);
+  sutra_centroider_corr(const sutra_centroider_corr &centroider);
   ~sutra_centroider_corr();
 
-  string
-  get_type();
+  string get_type();
 
-  int
-  init_corr(int isizex, int isizey, float *interpmat);
-  int
-  load_corr(float *corr, float *corr_norm, int ndim);
+  int init_corr(int isizex, int isizey, float *interpmat);
+  int load_corr(float *corr, float *corr_norm, int ndim);
 
-  int
-  init_bincube(int npix);
+  int init_bincube(int npix);
 
-  int
-  get_cog(carma_streams *streams, float *cube, float *subsum, float *centroids,
-          int nvalid, int npix, int ntot);
-  int
-  get_cog(float *subsum, float *slopes, bool noise);
-  int
-  get_cog();
+  int get_cog(carma_streams *streams, float *cube, float *subsum,
+              float *centroids, int nvalid, int npix, int ntot);
+  int get_cog(float *subsum, float *slopes, bool noise);
+  int get_cog();
 };
 
-#endif // _SUTRA_CENTROIDER_CORR_H_
+#endif  // _SUTRA_CENTROIDER_CORR_H_

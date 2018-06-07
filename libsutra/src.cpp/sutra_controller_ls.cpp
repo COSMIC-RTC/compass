@@ -2,9 +2,10 @@
 #include <string>
 
 sutra_controller_ls::sutra_controller_ls(carma_context *context, long nvalid,
-    long nactu, float delay, sutra_dms *dms, char **type, float *alt, int ndm) :
-  sutra_controller(context, nvalid * 2, nactu, delay, dms, type, alt, ndm) {
-
+                                         long nactu, float delay,
+                                         sutra_dms *dms, char **type,
+                                         float *alt, int ndm)
+    : sutra_controller(context, nvalid * 2, nactu, delay, dms, type, alt, ndm) {
   this->d_imat = 0L;
   this->d_cmat = 0L;
   this->d_eigenvals = 0L;
@@ -15,8 +16,8 @@ sutra_controller_ls::sutra_controller_ls(carma_context *context, long nvalid,
 
   this->is_modopti = 0;
 
-  long dims_data1[2] = { 1, 0 };
-  long dims_data2[3] = { 2, 0, 0 };
+  long dims_data1[2] = {1, 0};
+  long dims_data2[3] = {2, 0, 0};
 
   dims_data2[1] = nvalid * 2;
   dims_data2[2] = nactu;
@@ -61,7 +62,7 @@ sutra_controller_ls::sutra_controller_ls(carma_context *context, long nvalid,
 }
 
 sutra_controller_ls::~sutra_controller_ls() {
-  current_context->set_activeDevice(device,1);
+  current_context->set_activeDevice(device, 1);
 
   delete this->d_imat;
   delete this->d_cmat;
@@ -69,12 +70,11 @@ sutra_controller_ls::~sutra_controller_ls() {
   delete this->d_eigenvals;
   delete this->h_eigenvals;
 
-  if (this->d_cenbuff)
-    delete this->d_cenbuff;
+  if (this->d_cenbuff) delete this->d_cenbuff;
   delete this->d_err;
   delete this->d_gain;
 
-  if(this->is_modopti) {
+  if (this->is_modopti) {
     delete this->d_M2V;
     delete this->d_S2M;
     delete this->d_slpol;
@@ -86,39 +86,40 @@ sutra_controller_ls::~sutra_controller_ls() {
   }
 }
 
-string sutra_controller_ls::get_type() {
-  return "ls";
-}
+string sutra_controller_ls::get_type() { return "ls"; }
 
 int sutra_controller_ls::svdec_imat() {
   // doing U = Dt.D where D is i_mat
   float one = 1., zero = 0.;
 
-  current_context->set_activeDevice(device,1);
+  current_context->set_activeDevice(device, 1);
   if (carma_syrk<float>(cublas_handle(), CUBLAS_FILL_MODE_LOWER, 't', nactu(),
-                        nslope(), one, *d_imat, nslope(), zero, *d_U, nactu())) {
+                        nslope(), one, *d_imat, nslope(), zero, *d_U,
+                        nactu())) {
     return EXIT_FAILURE;
   }
 
   if (!magma_disabled()) {
     // we can skip this step syevd use only the lower part
-    //fill_sym_matrix('U', d_U->getData(), nactu, nactu * nactu);
+    // fill_sym_matrix('U', d_U->getData(), nactu, nactu * nactu);
 
     // doing evd of U inplace
-    if (carma_syevd<float,1>('V', d_U, h_eigenvals) == EXIT_FAILURE) {
-      //if (syevd_f('V', d_U, h_eigenvals) == EXIT_FAILURE) {
-      //Case where MAGMA is not feeling good :-/
+    if (carma_syevd<float, 1>('V', d_U, h_eigenvals) == EXIT_FAILURE) {
+      // if (syevd_f('V', d_U, h_eigenvals) == EXIT_FAILURE) {
+      // Case where MAGMA is not feeling good :-/
       return EXIT_FAILURE;
     }
     d_eigenvals->host2device(*h_eigenvals);
-  } else { // CULA case
-    //We fill the upper matrix part of the matrix
-    fill_sym_matrix<float>('L', *d_U, nactu(), nactu() * nactu(), current_context->get_device(device));
+  } else {  // CULA case
+    // We fill the upper matrix part of the matrix
+    fill_sym_matrix<float>('L', *d_U, nactu(), nactu() * nactu(),
+                           current_context->get_device(device));
 
     carma_obj<float> d_tmp(d_U);
     carma_obj<float> d_tmp2(d_U);
 
-    if (carma_cula_svd<float>(&d_tmp, d_eigenvals, d_U, &d_tmp2) == EXIT_FAILURE) {
+    if (carma_cula_svd<float>(&d_tmp, d_eigenvals, d_U, &d_tmp2) ==
+        EXIT_FAILURE) {
       return EXIT_FAILURE;
     }
     d_eigenvals->device2host(*h_eigenvals);
@@ -132,13 +133,13 @@ int sutra_controller_ls::set_gain(float gain) {
 }
 
 int sutra_controller_ls::set_cmat(float *cmat) {
-  current_context->set_activeDevice(device,1);
+  current_context->set_activeDevice(device, 1);
   this->d_cmat->host2device(cmat);
   return EXIT_SUCCESS;
 }
 
 int sutra_controller_ls::set_mgain(float *mgain) {
-  current_context->set_activeDevice(device,1);
+  current_context->set_activeDevice(device, 1);
   this->d_gain->host2device(mgain);
   return EXIT_SUCCESS;
 }
@@ -149,13 +150,14 @@ int sutra_controller_ls::set_delay(float delay) {
 }
 
 int sutra_controller_ls::build_cmat(int nfilt, bool filt_tt) {
-  current_context->set_activeDevice(device,1);
+  current_context->set_activeDevice(device, 1);
 
-  long dims_data1[2] = { 1, 0 };
-  long dims_data2[3] = { 2, 0, 0 };
+  long dims_data1[2] = {1, 0};
+  long dims_data2[3] = {2, 0, 0};
 
   dims_data2[1] = dims_data2[2] = nactu();
-  carma_obj<float> d_tmp(current_context, dims_data2), d_tmp2(current_context, dims_data2);
+  carma_obj<float> d_tmp(current_context, dims_data2),
+      d_tmp2(current_context, dims_data2);
 
   dims_data1[1] = nactu();
   carma_obj<float> d_eigenvals_inv(current_context, dims_data1);
@@ -174,14 +176,13 @@ int sutra_controller_ls::build_cmat(int nfilt, bool filt_tt) {
   if (!magma_disabled()) {
     for (int cc = nfilt; cc < nb_elem; cc++) {
       float eigenval = (*this->h_eigenvals)[cc];
-      h_eigenvals_inv[cc] = //1.0f / eigenval;
-        (fabs(eigenval) > 1.e-9) ? 1.0f / eigenval : 0.f;
+      h_eigenvals_inv[cc] =  // 1.0f / eigenval;
+          (fabs(eigenval) > 1.e-9) ? 1.0f / eigenval : 0.f;
     }
   } else {
-    for (int cc =  0; cc < nb_elem-nfilt ; cc++) {
+    for (int cc = 0; cc < nb_elem - nfilt; cc++) {
       float eigenval = (*this->h_eigenvals)[cc];
-      h_eigenvals_inv[cc] =
-        (fabs(eigenval) > 1.e-9) ? 1.0f / eigenval : 0.f;
+      h_eigenvals_inv[cc] = (fabs(eigenval) > 1.e-9) ? 1.0f / eigenval : 0.f;
     }
   }
   d_eigenvals_inv.host2device(h_eigenvals_inv.getData());
@@ -200,7 +201,7 @@ int sutra_controller_ls::build_cmat(int nfilt, bool filt_tt) {
 }
 
 int sutra_controller_ls::build_cmat(int nfilt) {
-  current_context->set_activeDevice(device,1);
+  current_context->set_activeDevice(device, 1);
   return this->build_cmat(nfilt, false);
 }
 
@@ -208,51 +209,56 @@ int sutra_controller_ls::frame_delay() {
   // here we place the content of d_centroids into cenbuf and get
   // the actual centroid frame for error computation depending on delay value
 
-  current_context->set_activeDevice(device,1);
+  current_context->set_activeDevice(device, 1);
   if (delay > 0) {
     for (int cc = 0; cc < delay; cc++)
       shift_buf(this->d_cenbuff->getDataAt(cc * this->nslope()), 1,
                 this->nslope(), this->current_context->get_device(device));
 
     carmaSafeCall(
-      cudaMemcpy(this->d_cenbuff->getDataAt((int)delay * this->nslope()),
-                 this->d_centroids->getData(), sizeof(float) * this->nslope(),
-                 cudaMemcpyDeviceToDevice));
+        cudaMemcpy(this->d_cenbuff->getDataAt((int)delay * this->nslope()),
+                   this->d_centroids->getData(), sizeof(float) * this->nslope(),
+                   cudaMemcpyDeviceToDevice));
 
     carmaSafeCall(
-      cudaMemcpy(this->d_centroids->getData(), this->d_cenbuff->getData(),
-                 sizeof(float) * this->nslope(), cudaMemcpyDeviceToDevice));
+        cudaMemcpy(this->d_centroids->getData(), this->d_cenbuff->getData(),
+                   sizeof(float) * this->nslope(), cudaMemcpyDeviceToDevice));
   }
 
   return EXIT_SUCCESS;
 }
 
 int sutra_controller_ls::comp_com() {
+  current_context->set_activeDevice(device, 1);
 
-  current_context->set_activeDevice(device,1);
-
-  //this->frame_delay();
+  // this->frame_delay();
   int nstreams = streams->get_nbStreams();
 
-  //Modal Control Optimization
-  if(this->is_modopti) {
-    //Refresh when enough slopes have been recorded
-    if(this->cpt_rec >= this->nrec + this->delay) {
-      std::cout <<"Refreshing modal gains..."<< std::endl;
+  // Modal Control Optimization
+  if (this->is_modopti) {
+    // Refresh when enough slopes have been recorded
+    if (this->cpt_rec >= this->nrec + this->delay) {
+      std::cout << "Refreshing modal gains..." << std::endl;
       modalControlOptimization();
       this->cpt_rec = 0;
     }
-    if(cpt_rec>=this->delay) {
-      // POLC to retrieve open-loop measurements for further refreshing modal gains
+    if (cpt_rec >= this->delay) {
+      // POLC to retrieve open-loop measurements for further refreshing modal
+      // gains
       this->d_com2->copy(this->d_com1, 1, 1);
       this->d_com1->copy(this->d_com, 1, 1);
       // POLC equations
-      carma_geam<float>(cublas_handle(), 'n', 'n', nactu(), 1, (float)(delay-1), this->d_com2->getData(),
-                        nactu(), 1.0f - (delay-1), this->d_com1->getData(), nactu(), this->d_compbuff->getData(), nactu());
-      carma_gemv<float>(cublas_handle(), 'n', nslope(), nactu(), 1.0f, *d_imat, nslope(),
-                        *d_compbuff, 1, 0.0f, *d_compbuff2, 1);
-      carma_geam<float>(cublas_handle(), 'n', 'n', nslope(), 1, 1.0f, *d_centroids,
-                        nslope(), -1.0f, *d_compbuff2, nslope(), this->d_slpol->getDataAt((this->cpt_rec-(int)this->delay)*nslope()), nslope());
+      carma_geam<float>(cublas_handle(), 'n', 'n', nactu(), 1,
+                        (float)(delay - 1), this->d_com2->getData(), nactu(),
+                        1.0f - (delay - 1), this->d_com1->getData(), nactu(),
+                        this->d_compbuff->getData(), nactu());
+      carma_gemv<float>(cublas_handle(), 'n', nslope(), nactu(), 1.0f, *d_imat,
+                        nslope(), *d_compbuff, 1, 0.0f, *d_compbuff2, 1);
+      carma_geam<float>(cublas_handle(), 'n', 'n', nslope(), 1, 1.0f,
+                        *d_centroids, nslope(), -1.0f, *d_compbuff2, nslope(),
+                        this->d_slpol->getDataAt(
+                            (this->cpt_rec - (int)this->delay) * nslope()),
+                        nslope());
     }
     this->cpt_rec++;
   }
@@ -263,70 +269,70 @@ int sutra_controller_ls::comp_com() {
     float beta = 0.0f;
 
     for (int i = 0; i < nstreams; i++) {
-      int istart1 = i * this->d_cmat->getDims(2) * this->d_cmat->getDims(1)
-                    / nstreams;
+      int istart1 =
+          i * this->d_cmat->getDims(2) * this->d_cmat->getDims(1) / nstreams;
       int istart2 = i * this->d_cmat->getDims(1) / nstreams;
 
-      //cout << istart1 << " " << istart2 << endl;
+      // cout << istart1 << " " << istart2 << endl;
 
       cublasSetStream(cublas_handle(), this->streams->get_stream(i));
 
       cublasOperation_t trans = carma_char2cublasOperation('n');
 
-      carma_checkCublasStatus(
-        cublasSgemv(cublas_handle(), trans,
-                    this->d_cmat->getDims(1) / nstreams, this->d_cmat->getDims(2),
-                    &alpha, &((this->d_cmat->getData())[istart1]),
-                    this->d_cmat->getDims(1) / nstreams, this->d_centroids->getData(),
-                    1, &beta, &((this->d_err->getData())[istart2]), 1));
+      carma_checkCublasStatus(cublasSgemv(
+          cublas_handle(), trans, this->d_cmat->getDims(1) / nstreams,
+          this->d_cmat->getDims(2), &alpha,
+          &((this->d_cmat->getData())[istart1]),
+          this->d_cmat->getDims(1) / nstreams, this->d_centroids->getData(), 1,
+          &beta, &((this->d_err->getData())[istart2]), 1));
     }
 
     mult_int(this->d_com->getData(), this->d_err->getData(),
-             this->d_gain->getData(), this->gain, this->nactu(), this->current_context->get_device(device),
-             this->streams);
+             this->d_gain->getData(), this->gain, this->nactu(),
+             this->current_context->get_device(device), this->streams);
 
     this->streams->wait_all_streams();
 
   } else {
-//    float *cmat=(float*)malloc(this->d_cmat->getNbElem()*sizeof(float));
-//    d_cmat->device2host(cmat);
-//    DEBUG_TRACE("here %f %f %d", cmat[0], this->gain, this->open_loop);
+    //    float *cmat=(float*)malloc(this->d_cmat->getNbElem()*sizeof(float));
+    //    d_cmat->device2host(cmat);
+    //    DEBUG_TRACE("here %f %f %d", cmat[0], this->gain, this->open_loop);
     // compute error
     this->d_err->gemv('n', -1.0f, this->d_cmat, this->d_cmat->getDims(1),
                       this->d_centroids, 1, 0.0f, 1);
 
     // apply modal gain & loop gain
-    if(this->is_modopti)
-      mult_int(this->d_com->getData(), this->d_err->getData(),
-               this->gain, this->nactu(), this->current_context->get_device(device));
+    if (this->is_modopti)
+      mult_int(this->d_com->getData(), this->d_err->getData(), this->gain,
+               this->nactu(), this->current_context->get_device(device));
     else
       mult_int(this->d_com->getData(), this->d_err->getData(),
-               this->d_gain->getData(), this->gain, this->nactu(), this->current_context->get_device(device));
-
+               this->d_gain->getData(), this->gain, this->nactu(),
+               this->current_context->get_device(device));
   }
 
   return EXIT_SUCCESS;
 }
 
 int sutra_controller_ls::build_cmat_modopti() {
-
-  current_context->set_activeDevice(device,1);
-  long dims_data2[3] = {2,nactu(),this->nmodes};
-  carma_obj<float> d_tmp(current_context,dims_data2);
+  current_context->set_activeDevice(device, 1);
+  long dims_data2[3] = {2, nactu(), this->nmodes};
+  carma_obj<float> d_tmp(current_context, dims_data2);
 
   // Compute cmat as M2V*(modal gains)*S2M
-  carma_dgmm(cublas_handle(),CUBLAS_SIDE_RIGHT,nactu(),this->nmodes,
-             this->d_M2V->getData(),nactu(),this->d_gain->getData(),1,
-             d_tmp.getData(),nactu());
-  carma_gemm(cublas_handle(),'n','n',nactu(),nslope(),this->nmodes,1.0f,
-             d_tmp.getData(),nactu(),this->d_S2M->getData(),this->nmodes,0.0f,
-             this->d_cmat->getData(),nactu());
+  carma_dgmm(cublas_handle(), CUBLAS_SIDE_RIGHT, nactu(), this->nmodes,
+             this->d_M2V->getData(), nactu(), this->d_gain->getData(), 1,
+             d_tmp.getData(), nactu());
+  carma_gemm(cublas_handle(), 'n', 'n', nactu(), nslope(), this->nmodes, 1.0f,
+             d_tmp.getData(), nactu(), this->d_S2M->getData(), this->nmodes,
+             0.0f, this->d_cmat->getData(), nactu());
 
   return EXIT_SUCCESS;
 }
 
-int sutra_controller_ls::init_modalOpti(int nmodes, int nrec, float *M2V, float gmin, float gmax,
-                                        int ngain, float Fs) {
+int sutra_controller_ls::init_modalOpti(int nmodes, int nrec, float *M2V,
+                                        float gmin, float gmax, int ngain,
+                                        float Fs) {
   current_context->set_activeDevice(device, 1);
   this->is_modopti = 1;
   this->cpt_rec = 0;
@@ -337,29 +343,29 @@ int sutra_controller_ls::init_modalOpti(int nmodes, int nrec, float *M2V, float 
   this->ngain = ngain;
   this->gain = 1.0f;
   this->Fs = Fs;
-  long dims_data1[2] = {1,nmodes};
-  this->d_gain = new carma_obj<float>(current_context,dims_data1);
+  long dims_data1[2] = {1, nmodes};
+  this->d_gain = new carma_obj<float>(current_context, dims_data1);
   dims_data1[1] = nactu();
-  this->d_com1 = new carma_obj<float>(current_context,dims_data1);
-  this->d_com2 = new carma_obj<float>(current_context,dims_data1);
+  this->d_com1 = new carma_obj<float>(current_context, dims_data1);
+  this->d_com2 = new carma_obj<float>(current_context, dims_data1);
   this->d_compbuff = new carma_obj<float>(this->current_context, dims_data1);
   dims_data1[1] = nslope();
   this->d_compbuff2 = new carma_obj<float>(this->current_context, dims_data1);
-  long dims_data2[3] = {2,nactu(),nmodes};
-  this->d_M2V = new carma_obj<float>(current_context,dims_data2,M2V);
+  long dims_data2[3] = {2, nactu(), nmodes};
+  this->d_M2V = new carma_obj<float>(current_context, dims_data2, M2V);
   dims_data2[1] = nslope();
   dims_data2[2] = nrec;
-  this->d_slpol = new carma_obj<float>(current_context,dims_data2);
+  this->d_slpol = new carma_obj<float>(current_context, dims_data2);
   dims_data2[1] = nmodes;
   dims_data2[2] = nslope();
-  this->d_S2M = new carma_obj<float>(current_context,dims_data2);
+  this->d_S2M = new carma_obj<float>(current_context, dims_data2);
   dims_data2[1] = nslope();
   dims_data2[2] = nmodes;
-  carma_obj<float> *d_tmp = new carma_obj<float>(current_context,dims_data2);
+  carma_obj<float> *d_tmp = new carma_obj<float>(current_context, dims_data2);
   dims_data2[1] = nmodes;
-  carma_obj<float> *d_tmp2 = new carma_obj<float>(current_context,dims_data2);
+  carma_obj<float> *d_tmp2 = new carma_obj<float>(current_context, dims_data2);
 
-  std::cout << "Computing S2M matrix..."<< std::endl;
+  std::cout << "Computing S2M matrix..." << std::endl;
   // 1. tmp = D*M2V
   carma_gemm(cublas_handle(), 'n', 'n', nslope(), nmodes, nactu(), 1.0f,
              this->d_imat->getData(), nslope(), d_M2V->getData(), nactu(), 0.0f,
@@ -379,45 +385,50 @@ int sutra_controller_ls::init_modalOpti(int nmodes, int nrec, float *M2V, float 
   delete d_tmp;
   delete d_tmp2;
 
-  std::cout <<"Computing transfer functions..."<< std::endl;
+  std::cout << "Computing transfer functions..." << std::endl;
   compute_Hcor();
 
   return EXIT_SUCCESS;
 }
 
 int sutra_controller_ls::modalControlOptimization() {
-
-  current_context->set_activeDevice(device,1);
-  long dims_data[2] = {1,this->nrec/2 + 1};
-  carma_obj<cuFloatComplex> d_FFT(current_context,dims_data);
-  dims_data[1] = this->nrec/2;
-  carma_obj<float> d_fftmodes(current_context,dims_data);
+  current_context->set_activeDevice(device, 1);
+  long dims_data[2] = {1, this->nrec / 2 + 1};
+  carma_obj<cuFloatComplex> d_FFT(current_context, dims_data);
+  dims_data[1] = this->nrec / 2;
+  carma_obj<float> d_fftmodes(current_context, dims_data);
   dims_data[1] = this->ngain;
-  carma_obj<float> d_phaseError(current_context,dims_data);
-  long dims_data2[3] = {2,this->nrec,this->nmodes};
-  carma_obj<float> d_modes(current_context,dims_data2);
+  carma_obj<float> d_phaseError(current_context, dims_data);
+  long dims_data2[3] = {2, this->nrec, this->nmodes};
+  carma_obj<float> d_modes(current_context, dims_data2);
   int imin;
   float mgain[this->nmodes];
 
   // 1. modes = S2M * slopes_open_loop and transpose for fft
-  carma_gemm(cublas_handle(),'t','t',this->nrec,this->nmodes,nslope(),1.0f,
-             this->d_slpol->getData(),nslope(),this->d_S2M->getData(),this->nmodes,0.0f,
-             d_modes.getData(),this->nrec);
-  this->d_slpol->scale(0.0f,1);
+  carma_gemm(cublas_handle(), 't', 't', this->nrec, this->nmodes, nslope(),
+             1.0f, this->d_slpol->getData(), nslope(), this->d_S2M->getData(),
+             this->nmodes, 0.0f, d_modes.getData(), this->nrec);
+  this->d_slpol->scale(0.0f, 1);
 
   // 2. Init and compute FFT modes
   dims_data[1] = this->nrec;
-  carma_initfft<float,cuFloatComplex>(dims_data,d_modes.getPlan(),CUFFT_R2C);
-  for(int i=0; i < this->nmodes ; i++) {
-    carma_fft<float,cuFloatComplex>(d_modes.getDataAt(i*this->nrec),d_FFT.getData(),1,*d_modes.getPlan());
-    absnormfft(d_FFT.getData(),d_fftmodes.getData(),this->nrec/2,2.0f/(float)this->nrec,this->current_context->get_device(device));
-    carma_gemv(cublas_handle(),'n',this->ngain,this->nrec/2,1.0f,
-               this->d_Hcor->getData(),this->ngain,
-               d_fftmodes.getData(),1,0.0f, d_phaseError.getData(),1);
+  carma_initfft<float, cuFloatComplex>(dims_data, d_modes.getPlan(), CUFFT_R2C);
+  for (int i = 0; i < this->nmodes; i++) {
+    carma_fft<float, cuFloatComplex>(d_modes.getDataAt(i * this->nrec),
+                                     d_FFT.getData(), 1, *d_modes.getPlan());
+    absnormfft(d_FFT.getData(), d_fftmodes.getData(), this->nrec / 2,
+               2.0f / (float)this->nrec,
+               this->current_context->get_device(device));
+    carma_gemv(cublas_handle(), 'n', this->ngain, this->nrec / 2, 1.0f,
+               this->d_Hcor->getData(), this->ngain, d_fftmodes.getData(), 1,
+               0.0f, d_phaseError.getData(), 1);
 
     // Find and store optimum gain for mode i
-    imin = carma_wheremin(cublas_handle(), this->ngain, d_phaseError.getData(), 1) - 1;
-    mgain[i] = this->gmin + imin*(this->gmax - this->gmin)/(this->ngain-1);
+    imin = carma_wheremin(cublas_handle(), this->ngain, d_phaseError.getData(),
+                          1) -
+           1;
+    mgain[i] =
+        this->gmin + imin * (this->gmax - this->gmin) / (this->ngain - 1);
   }
 
   this->d_gain->host2device(mgain);
@@ -428,7 +439,6 @@ int sutra_controller_ls::modalControlOptimization() {
 }
 
 int sutra_controller_ls::loadOpenLoopSlp(float *ol_slopes) {
-
   current_context->set_activeDevice(device, 1);
   this->d_slpol->host2device(ol_slopes);
 
@@ -436,12 +446,13 @@ int sutra_controller_ls::loadOpenLoopSlp(float *ol_slopes) {
 }
 
 int sutra_controller_ls::compute_Hcor() {
+  current_context->set_activeDevice(device, 1);
+  long dims_data[3] = {2, this->ngain, this->nrec / 2};
+  this->d_Hcor = new carma_obj<float>(current_context, dims_data);
 
-  current_context->set_activeDevice(device,1);
-  long dims_data[3] = {2,this->ngain,this->nrec/2};
-  this->d_Hcor = new carma_obj<float>(current_context,dims_data);
-
-  compute_Hcor_gpu(this->d_Hcor->getData(),this->ngain,this->nrec/2,this->Fs,this->gmin,this->gmax,this->delay,this->current_context->get_device(device));
+  compute_Hcor_gpu(this->d_Hcor->getData(), this->ngain, this->nrec / 2,
+                   this->Fs, this->gmin, this->gmax, this->delay,
+                   this->current_context->get_device(device));
 
   return EXIT_SUCCESS;
 }

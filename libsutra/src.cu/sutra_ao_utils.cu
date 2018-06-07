@@ -2,7 +2,6 @@
 #include "carma_utils.cuh"
 
 __global__ void cfillrealp_krnl(cuFloatComplex *odata, float *idata, int N) {
-
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
@@ -11,8 +10,8 @@ __global__ void cfillrealp_krnl(cuFloatComplex *odata, float *idata, int N) {
   }
 }
 
-int cfillrealp(cuFloatComplex *d_odata, float *d_idata, int N, carma_device *device) {
-
+int cfillrealp(cuFloatComplex *d_odata, float *d_idata, int N,
+               carma_device *device) {
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, N, nblocks, nthreads);
 
@@ -25,7 +24,6 @@ int cfillrealp(cuFloatComplex *d_odata, float *d_idata, int N, carma_device *dev
 }
 
 __global__ void cgetrealp_krnl(float *odata, cuFloatComplex *idata, int N) {
-
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
@@ -34,8 +32,8 @@ __global__ void cgetrealp_krnl(float *odata, cuFloatComplex *idata, int N) {
   }
 }
 
-int cgetrealp(float *d_odata, cuFloatComplex *d_idata, int N, carma_device *device) {
-
+int cgetrealp(float *d_odata, cuFloatComplex *d_idata, int N,
+              carma_device *device) {
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, N, nblocks, nthreads);
 
@@ -71,7 +69,8 @@ int abs2(float *d_odata, cuFloatComplex *d_idata, int N, carma_device *device) {
   return EXIT_SUCCESS;
 }
 
-__global__ void abs2_krnl(float *odata, cuFloatComplex *idata, int N, float fact) {
+__global__ void abs2_krnl(float *odata, cuFloatComplex *idata, int N,
+                          float fact) {
   cuFloatComplex cache;
 
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
@@ -83,7 +82,8 @@ __global__ void abs2_krnl(float *odata, cuFloatComplex *idata, int N, float fact
   }
 }
 
-int abs2(float *d_odata, cuFloatComplex *d_idata, int N, float fact, carma_device *device) {
+int abs2(float *d_odata, cuFloatComplex *d_idata, int N, float fact,
+         carma_device *device) {
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, N, nblocks, nthreads);
 
@@ -108,12 +108,13 @@ __global__ void abs2c_krnl(cuFloatComplex *odata, cuFloatComplex *idata,
   }
 }
 
-int abs2c(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N, carma_device *device) {
+int abs2c(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N,
+          carma_device *device) {
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, N, nblocks, nthreads);
 
   dim3 grid(nblocks), threads(nthreads);
-  //DEBUG_TRACE("N = %d, nthreads = %d, nblocks = %d;",N , nthreads, nblocks);
+  // DEBUG_TRACE("N = %d, nthreads = %d, nblocks = %d;",N , nthreads, nblocks);
   abs2c_krnl<<<grid, threads>>>(d_odata, d_idata, N);
   carmaCheckMsg("abs2c_kernel<<<>>> execution failed\n");
 
@@ -122,11 +123,10 @@ int abs2c(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N, carma_device 
 
 __global__ void subapnorm_krnl(float *odata, float *idata, float *fact,
                                float *norm, float nphot, int n, int N) {
-
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
-    if(norm[tid / n] != 0) {
+    if (norm[tid / n] != 0) {
       odata[tid] = idata[tid] * fact[tid / n] / norm[tid / n] * nphot;
     }
     tid += blockDim.x * gridDim.x;
@@ -147,8 +147,8 @@ int subap_norm(float *d_odata, float *d_idata, float *fact, float *norm,
 }
 
 __global__ void subapnormasync_krnl(float *odata, float *idata, float *fact,
-                                    float *norm, float nphot, int n, int N, int istart) {
-
+                                    float *norm, float nphot, int n, int N,
+                                    int istart) {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
   tid += istart;
   while (tid < N) {
@@ -158,7 +158,8 @@ __global__ void subapnormasync_krnl(float *odata, float *idata, float *fact,
 }
 
 int subap_norm_async(float *d_odata, float *d_idata, float *fact, float *norm,
-                     float nphot, int n, int N, carma_streams *streams, carma_device *device) {
+                     float nphot, int n, int N, carma_streams *streams,
+                     carma_device *device) {
   int nthreads = 0, nblocks = 0;
   int nstreams = streams->get_nbStreams();
   getNumBlocksAndThreads(device, N / nstreams, nblocks, nthreads);
@@ -166,8 +167,8 @@ int subap_norm_async(float *d_odata, float *d_idata, float *fact, float *norm,
   dim3 grid(nblocks), threads(nthreads);
 
   for (int i = 0; i < nstreams; i++) {
-    subapnormasync_krnl<<<grid, threads, 0, streams->get_stream(i)>>>(d_odata,
-        d_idata, fact, norm, nphot, n, N, i * nblocks * nthreads);
+    subapnormasync_krnl<<<grid, threads, 0, streams->get_stream(i)>>>(
+        d_odata, d_idata, fact, norm, nphot, n, N, i * nblocks * nthreads);
     carmaCheckMsg("subapnormasync_kernel<<<>>> execution failed\n");
   }
 
@@ -176,7 +177,6 @@ int subap_norm_async(float *d_odata, float *d_idata, float *fact, float *norm,
 
 __global__ void krnl_fillindx(float *odata, float *idata, int *indx,
                               float alpha, float beta, int N) {
-
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
@@ -199,18 +199,16 @@ int fillindx(float *d_odata, float *d_idata, int *indx, float alpha, float beta,
   return EXIT_SUCCESS;
 }
 
-int fillindx(float *d_odata, float *d_idata, int *indx, int N, carma_device *device) {
+int fillindx(float *d_odata, float *d_idata, int *indx, int N,
+             carma_device *device) {
   return fillindx(d_odata, d_idata, indx, 1.0f, 0.0f, N, device);
-
 }
 int fillindx(float *d_odata, float *d_idata, int *indx, float alpha, int N,
              carma_device *device) {
   return fillindx(d_odata, d_idata, indx, alpha, 0.0f, N, device);
-
 }
 __global__ void fillarr2d_krnl(float *odata, float *idata, int tidx0, int Ncol,
                                int NC, int N, int dir) {
-
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
   int tidB;
 
@@ -219,16 +217,16 @@ __global__ void fillarr2d_krnl(float *odata, float *idata, int tidx0, int Ncol,
       tidB = tidx0 + (tid / Ncol) * NC + (tid % Ncol);
     else
       tidB = tidx0 + tid * NC;
-    if(dir > 0)
+    if (dir > 0)
       odata[tidB] = idata[tid];
     else
-      odata[tidB] = idata[N-1-tid];
+      odata[tidB] = idata[N - 1 - tid];
     tid += blockDim.x * gridDim.x;
   }
 }
 
-int fillarr2d(float *d_odata, float *d_idata, int x0, int Ncol, int NC, int N, int dir,
-              carma_device *device) {
+int fillarr2d(float *d_odata, float *d_idata, int x0, int Ncol, int NC, int N,
+              int dir, carma_device *device) {
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, N, nblocks, nthreads);
 
@@ -242,12 +240,10 @@ int fillarr2d(float *d_odata, float *d_idata, int x0, int Ncol, int NC, int N, i
 }
 int fillarr2d(float *d_odata, float *d_idata, int x0, int Ncol, int NC, int N,
               carma_device *device) {
-
-  return fillarr2d(d_odata,d_idata,x0,Ncol,NC,N,1,device);
+  return fillarr2d(d_odata, d_idata, x0, Ncol, NC, N, 1, device);
 }
 __global__ void getarr2d_krnl(float *odata, float *idata, int tidx0, int Ncol,
                               int NC, int N) {
-
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
   int tidB;
 
@@ -275,9 +271,8 @@ int getarr2d(float *d_odata, float *d_idata, int x0, int Ncol, int NC, int N,
   return EXIT_SUCCESS;
 }
 
-template<class T>
-__global__ void addai_krnl(T *odata, T* idata, int i, int sgn, int N) {
-
+template <class T>
+__global__ void addai_krnl(T *odata, T *idata, int i, int sgn, int N) {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
@@ -289,7 +284,7 @@ __global__ void addai_krnl(T *odata, T* idata, int i, int sgn, int N) {
   }
 }
 
-template<class T>
+template <class T>
 int addai(T *d_odata, T *i_data, int i, int sgn, int N, carma_device *device) {
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, N, nblocks, nthreads);
@@ -302,12 +297,12 @@ int addai(T *d_odata, T *i_data, int i, int sgn, int N, carma_device *device) {
 
   return EXIT_SUCCESS;
 }
-template
-int addai<float>(float *d_odata, float *i_data, int i, int sgn, int N, carma_device *device);
-template
-int addai<double>(double *d_odata, double *i_data, int i, int sgn, int N, carma_device *device);
+template int addai<float>(float *d_odata, float *i_data, int i, int sgn, int N,
+                          carma_device *device);
+template int addai<double>(double *d_odata, double *i_data, int i, int sgn,
+                           int N, carma_device *device);
 
-template<class T>
+template <class T>
 __global__ void roll_krnl(T *idata, int N, int M, int Nim) {
   T tmp;
 
@@ -321,19 +316,18 @@ __global__ void roll_krnl(T *idata, int N, int M, int Nim) {
     int yy = (y + M / 2) % M;
     int tid2 = xx + yy * N;
 
-    for (int ii=0; ii<Nim; ii++) {
-      tmp = idata[tid+ii*N*M];
-      idata[tid+ii*N*M] = idata[tid2+ii*N*M];
-      idata[tid2+ii*N*M] = tmp;
+    for (int ii = 0; ii < Nim; ii++) {
+      tmp = idata[tid + ii * N * M];
+      idata[tid + ii * N * M] = idata[tid2 + ii * N * M];
+      idata[tid2 + ii * N * M] = tmp;
     }
 
     tid += blockDim.x * gridDim.x;
   }
 }
 
-template<class T>
+template <class T>
 int roll(T *idata, int N, int M, int nim, carma_device *device) {
-
   long Ntot = N * M;
   int nBlocks, nThreads;
   getNumBlocksAndThreads(device, Ntot / 2, nBlocks, nThreads);
@@ -344,19 +338,18 @@ int roll(T *idata, int N, int M, int nim, carma_device *device) {
 
   carmaCheckMsg("roll_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
-
 }
 
-template int
-roll<float>(float *idata, int N, int M, int nim, carma_device *device);
+template int roll<float>(float *idata, int N, int M, int nim,
+                         carma_device *device);
 
-template int
-roll<double>(double *idata, int N, int M, int nim, carma_device *device);
+template int roll<double>(double *idata, int N, int M, int nim,
+                          carma_device *device);
 
-template int
-roll<cuFloatComplex>(cuFloatComplex *idata, int N, int M, int nim, carma_device *device);
+template int roll<cuFloatComplex>(cuFloatComplex *idata, int N, int M, int nim,
+                                  carma_device *device);
 
-template<class T>
+template <class T>
 __global__ void roll_krnl(T *idata, int N, int M) {
   T tmp;
 
@@ -378,9 +371,8 @@ __global__ void roll_krnl(T *idata, int N, int M) {
   }
 }
 
-template<class T>
+template <class T>
 int roll(T *idata, int N, int M, carma_device *device) {
-
   long Ntot = N * M;
   int nBlocks, nThreads;
   getNumBlocksAndThreads(device, Ntot / 2, nBlocks, nThreads);
@@ -391,19 +383,16 @@ int roll(T *idata, int N, int M, carma_device *device) {
 
   carmaCheckMsg("roll_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
-
 }
 
-template int
-roll<float>(float *idata, int N, int M, carma_device *device);
+template int roll<float>(float *idata, int N, int M, carma_device *device);
 
-template int
-roll<double>(double *idata, int N, int M, carma_device *device);
+template int roll<double>(double *idata, int N, int M, carma_device *device);
 
-template int
-roll<cuFloatComplex>(cuFloatComplex *idata, int N, int M, carma_device *device);
+template int roll<cuFloatComplex>(cuFloatComplex *idata, int N, int M,
+                                  carma_device *device);
 
-template<class T>
+template <class T>
 __global__ void roll_mult_krnl(T *odata, T *idata, int N, int M, T alpha) {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -422,9 +411,8 @@ __global__ void roll_mult_krnl(T *odata, T *idata, int N, int M, T alpha) {
   }
 }
 
-template<class T>
+template <class T>
 int roll_mult(T *odata, T *idata, int N, int M, T alpha, carma_device *device) {
-
   long Ntot = N * M;
   int nBlocks, nThreads;
   getNumBlocksAndThreads(device, Ntot / 2, nBlocks, nThreads);
@@ -435,49 +423,46 @@ int roll_mult(T *odata, T *idata, int N, int M, T alpha, carma_device *device) {
 
   carmaCheckMsg("roll_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
-
 }
 
-template int
-roll_mult<float>(float *odata, float *idata, int N, int M, float alpha, carma_device *device);
+template int roll_mult<float>(float *odata, float *idata, int N, int M,
+                              float alpha, carma_device *device);
 
-template int
-roll_mult<double>(double *odata, double *idata, int N, int M, double alpha, carma_device *device);
+template int roll_mult<double>(double *odata, double *idata, int N, int M,
+                               double alpha, carma_device *device);
 
-template<class T>
+template <class T>
 __global__ void avg_krnl(T *data, T *p_sum, int N) {
   T *sdata = SharedMemory<T>();
-  //Load shared memory
+  // Load shared memory
   int tid = threadIdx.x + blockDim.x * blockIdx.x;
   int sid = threadIdx.x;
 
-  if(tid<N)
+  if (tid < N)
     sdata[sid] = data[tid];
   else
     sdata[sid] = 0;
 
   __syncthreads();
 
-  reduce_krnl(sdata,blockDim.x,sid);
+  reduce_krnl(sdata, blockDim.x, sid);
 
   __syncthreads();
 
-  if (threadIdx.x == 0)
-    p_sum[blockIdx.x] = sdata[0];
+  if (threadIdx.x == 0) p_sum[blockIdx.x] = sdata[0];
 }
 
-template<class T>
+template <class T>
 __global__ void remove_avg_krnl(T *data, int N, T avg) {
   int tid = threadIdx.x + blockDim.x * blockIdx.x;
-  while(tid < N) {
+  while (tid < N) {
     data[tid] -= avg;
     tid += blockDim.x * gridDim.x;
   }
 }
 
-template<class T>
+template <class T>
 int remove_avg(T *data, int N, carma_device *device) {
-
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, N, nblocks, nthreads);
   dim3 grid(nblocks), threads(nthreads);
@@ -485,34 +470,29 @@ int remove_avg(T *data, int N, carma_device *device) {
 
   T p_sum_c[nblocks];
   T *p_sum;
-  carmaSafeCall(
-    cudaMalloc((void** )&(p_sum), sizeof(T) * nblocks));
+  carmaSafeCall(cudaMalloc((void **)&(p_sum), sizeof(T) * nblocks));
 
-  avg_krnl<<< grid, threads, smemSize>>>(data,p_sum,N);
+  avg_krnl<<<grid, threads, smemSize>>>(data, p_sum, N);
   carmaCheckMsg("avg_krnl<<<>>> execution failed\n");
   carmaSafeCall(
-    cudaMemcpy(p_sum_c,p_sum,nblocks*sizeof(T),cudaMemcpyDeviceToHost));
-  carmaSafeCall(
-    cudaFree(p_sum));
+      cudaMemcpy(p_sum_c, p_sum, nblocks * sizeof(T), cudaMemcpyDeviceToHost));
+  carmaSafeCall(cudaFree(p_sum));
 
   T avg = 0;
-  for(int i=0 ; i<nblocks ; i++) {
+  for (int i = 0; i < nblocks; i++) {
     avg += p_sum_c[i];
   }
   avg /= N;
-  remove_avg_krnl<<< grid, threads >>>(data,N,avg);
+  remove_avg_krnl<<<grid, threads>>>(data, N, avg);
   carmaCheckMsg("remove_avg_krnl<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
 
-template int
-remove_avg<float>(float *data, int N, carma_device *device);
-template int
-remove_avg<double>(double *data, int N, carma_device *device);
+template int remove_avg<float>(float *data, int N, carma_device *device);
+template int remove_avg<double>(double *data, int N, carma_device *device);
 
 __global__ void conv_krnl(cuFloatComplex *odata, cuFloatComplex *idata, int N) {
-
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
   cuFloatComplex tmp;
 
@@ -537,8 +517,8 @@ int convolve(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N,
   return EXIT_SUCCESS;
 }
 
-__global__ void convmod_krnl(cuFloatComplex *odata, cuFloatComplex *idata,int mod, int N) {
-
+__global__ void convmod_krnl(cuFloatComplex *odata, cuFloatComplex *idata,
+                             int mod, int N) {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
   cuFloatComplex tmp;
 
@@ -550,14 +530,14 @@ __global__ void convmod_krnl(cuFloatComplex *odata, cuFloatComplex *idata,int mo
   }
 }
 
-int convolve_modulate(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int mod, int N,
-                      carma_device *device) {
+int convolve_modulate(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int mod,
+                      int N, carma_device *device) {
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, N, nblocks, nthreads);
 
   dim3 grid(nblocks), threads(nthreads);
 
-  convmod_krnl<<<grid, threads>>>(d_odata, d_idata,mod, N);
+  convmod_krnl<<<grid, threads>>>(d_odata, d_idata, mod, N);
 
   carmaCheckMsg("conv_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;

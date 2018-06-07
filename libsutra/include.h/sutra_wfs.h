@@ -1,17 +1,17 @@
 #ifndef _SUTRA_WFS_H_
 #define _SUTRA_WFS_H_
 
-#include <map>
 #include <sutra_lgs.h>
 #include <sutra_phase.h>
 #include <sutra_target.h>
 #include <sutra_telemetry.h>
 #include <sutra_telescope.h>
+#include <map>
 #include <vector>
 //#include <sutra_slopes.h>
 
-using std::string;
 using std::map;
+using std::string;
 
 class sutra_sensors;
 class sutra_wfs {
@@ -59,14 +59,14 @@ class sutra_wfs {
   carma_host_obj<float> *image_telemetry;
 
   sutra_source *d_gs;
-  std::vector<carma_obj<float>*> d_pupil_ngpu;
+  std::vector<carma_obj<float> *> d_pupil_ngpu;
 
   carma_streams *streams;
   int nstreams;
 
   carma_obj<int> *d_phasemap;
-  carma_obj<int> *d_validsubsx; // nvalid
-  carma_obj<int> *d_validsubsy; // nvalid
+  carma_obj<int> *d_validsubsx;  // nvalid
+  carma_obj<int> *d_validsubsy;  // nvalid
 
   carma_context *current_context;
 
@@ -78,7 +78,7 @@ class sutra_wfs {
   int *count_bincube;
 
  public:
-  virtual ~sutra_wfs() {};
+  virtual ~sutra_wfs(){};
 
   int wfs_initgs(sutra_sensors *sensors, float xpos, float ypos, float lambda,
                  float mag, float zerop, long size, float noise, long seed,
@@ -112,9 +112,7 @@ class sutra_sensors {
   int device;
   bool error_budget;
   carma_context *current_context;
-  size_t nsensors() {
-    return d_wfs.size();
-  }
+  size_t nsensors() { return d_wfs.size(); }
   vector<sutra_wfs *> d_wfs;
   map<vector<int>, cufftHandle *> campli_plans;
   map<vector<int>, cufftHandle *> fttotim_plans;
@@ -283,7 +281,8 @@ template <class T>
 void roof_fillbin(T *d_odata, T *d_idata, int nrebin, int np, int ns, int nim,
                   carma_device *device);
 
-void copyImginBinimg(float *binimg, int *validsubsx,int *validsubsy,
-                     int Nb, float *img, int *validx, int *validy, int Nim, int Npix, carma_device *device);
+void copyImginBinimg(float *binimg, int *validsubsx, int *validsubsy, int Nb,
+                     float *img, int *validx, int *validy, int Nim, int Npix,
+                     carma_device *device);
 
-#endif // _SUTRA_WFS_H_
+#endif  // _SUTRA_WFS_H_

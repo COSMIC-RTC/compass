@@ -1,12 +1,6 @@
 #ifndef _SUTRA_RTC_H_
 #define _SUTRA_RTC_H_
 
-#include <sutra_controller_geo.h>
-#include <sutra_controller_generic.h>
-#include <sutra_controller_ls.h>
-#include <sutra_controller_mv.h>
-#include <sutra_controller_cured.h>
-#include <sutra_controller_kalman.h>
 #include <sutra_centroider_bpcog.h>
 #include <sutra_centroider_cog.h>
 #include <sutra_centroider_corr.h>
@@ -14,6 +8,12 @@
 #include <sutra_centroider_roof.h>
 #include <sutra_centroider_tcog.h>
 #include <sutra_centroider_wcog.h>
+#include <sutra_controller_cured.h>
+#include <sutra_controller_generic.h>
+#include <sutra_controller_geo.h>
+#include <sutra_controller_kalman.h>
+#include <sutra_controller_ls.h>
+#include <sutra_controller_mv.h>
 
 class sutra_rtc {
  public:
@@ -26,17 +26,17 @@ class sutra_rtc {
 
  public:
   sutra_rtc(carma_context *context);
-  sutra_rtc(const sutra_rtc& yrtc);
+  sutra_rtc(const sutra_rtc &yrtc);
   ~sutra_rtc();
 
   int add_centroider(sutra_sensors *sensors, int nwfs, long nvalid,
                      float offset, float scale, long device, char *typec);
-  int add_centroider(int nwfs, long nvalid,
-                     float offset, float scale, long device, char *typec);
+  int add_centroider(int nwfs, long nvalid, float offset, float scale,
+                     long device, char *typec);
   int rm_centroider();
   int add_controller_geo(int nactu, int Nphi, float delay, long device,
-                         sutra_dms *dms, char **type_dmseen, float *alt, int ndm,
-                         bool wfs_direction);
+                         sutra_dms *dms, char **type_dmseen, float *alt,
+                         int ndm, bool wfs_direction);
   int add_controller(int nactu, float delay, long device, const char *typec,
                      sutra_dms *dms, char **type_dmseen, float *alt, int ndm);
   int add_controller(int nactu, float delay, long device, const char *typec);
@@ -60,7 +60,6 @@ class sutra_rtc {
   int remove_ref(int ncntrl);
   int set_centroids_ref(int ncntrl, float *centroids_ref);
   int get_centroids_ref(int ncntrl, float *centroids_ref);
-
 };
 
-#endif // _SUTRA_RTC_H_
+#endif  // _SUTRA_RTC_H_

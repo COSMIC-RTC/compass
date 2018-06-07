@@ -1,12 +1,11 @@
 #ifndef _sutra_controller_generic_H_
 #define _sutra_controller_generic_H_
 
-#include <sutra_controller.h>
 #include <sutra_acquisim.h>
+#include <sutra_controller.h>
 
-class sutra_controller_generic: public sutra_controller {
+class sutra_controller_generic : public sutra_controller {
  public:
-
   carma_obj<float> *d_matE;
   carma_obj<float> *d_cmat;
   carma_obj<float> *d_gain;
@@ -17,26 +16,19 @@ class sutra_controller_generic: public sutra_controller {
 
  public:
   sutra_controller_generic(carma_context *context, long nvalid, long nactu,
-                           float delay, sutra_dms *dms, char **type, float *alt, int ndm);
-  sutra_controller_generic(const sutra_controller_generic& controller);
+                           float delay, sutra_dms *dms, char **type, float *alt,
+                           int ndm);
+  sutra_controller_generic(const sutra_controller_generic &controller);
   ~sutra_controller_generic();
 
-  string
-  get_type();
-  string
-  get_commandlaw();
-  int
-  set_decayFactor(float *decayFactor);
-  int
-  set_mgain(float *gain);
-  int
-  set_cmat(float *cmat);
-  int
-  set_matE(float *matE);
-  int
-  set_commandlaw(string law);
-  int
-  comp_com();
+  string get_type();
+  string get_commandlaw();
+  int set_decayFactor(float *decayFactor);
+  int set_mgain(float *gain);
+  int set_cmat(float *cmat);
+  int set_matE(float *matE);
+  int set_commandlaw(string law);
+  int comp_com();
 };
 
-#endif // _sutra_controller_generic_H_
+#endif  // _sutra_controller_generic_H_

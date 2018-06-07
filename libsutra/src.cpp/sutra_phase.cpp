@@ -1,7 +1,7 @@
 #include <sutra_phase.h>
 
 sutra_phase::sutra_phase(carma_context *current_context, long size) {
-  this->current_context=current_context;
+  this->current_context = current_context;
   this->screen_size = size;
   this->mat = 0;
   this->zernikes = 0;
@@ -18,6 +18,6 @@ sutra_phase::sutra_phase(carma_context *current_context, long size) {
 }
 
 sutra_phase::~sutra_phase() {
-  current_context->set_activeDevice(device,1);
+  current_context->set_activeDevice(device, 1);
   delete this->d_screen;
 }

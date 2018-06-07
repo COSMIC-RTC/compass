@@ -7,22 +7,21 @@ __global__ void fftconv_upadkrnl(float *odata, float *idata, int fftW,
 
   int x = threadIdx.x + blockIdx.x * blockDim.x;
   int y = threadIdx.y + blockIdx.y * blockDim.y;
-  //int tid = x + y *blockDim.x * gridDim.x;
+  // int tid = x + y *blockDim.x * gridDim.x;
 
   if (y * fftW + x < N)
-    cache[BLOCK_SZ - 1 - threadIdx.x][BLOCK_SZ - 1 - threadIdx.y] = idata[y
-        * fftW + x];
+    cache[BLOCK_SZ - 1 - threadIdx.x][BLOCK_SZ - 1 - threadIdx.y] =
+        idata[y * fftW + x];
 
   __syncthreads();
 
   if (y * dataW + x < n)
-    odata[y * dataW + x] = cache[BLOCK_SZ - 1 - threadIdx.x][BLOCK_SZ - 1
-                           - threadIdx.y];
+    odata[y * dataW + x] =
+        cache[BLOCK_SZ - 1 - threadIdx.x][BLOCK_SZ - 1 - threadIdx.y];
 }
 
 int fftconv_unpad_old(float *d_odata, float *d_idata, int fftW, int dataH,
                       int dataW, int N, int n) {
-
   dim3 blocks(dataH / BLOCK_SZ, dataW / BLOCK_SZ), threads(BLOCK_SZ, BLOCK_SZ);
 
   fftconv_upadkrnl<<<blocks, threads>>>(d_odata, d_idata, fftW, dataW, N, n);

@@ -6,10 +6,10 @@
 #include <thrust/reduce.h>
 #include "kp_KFPP.h"
 
-template<typename real> class kp_cu_vector;
+template <typename real>
+class kp_cu_vector;
 
-template<typename real>
+template <typename real>
 real kp_cu_reduce(const kp_cu_vector<real>& v);
-
 
 #endif

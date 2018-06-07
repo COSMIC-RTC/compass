@@ -1,21 +1,20 @@
 #ifndef _SUTRA_WFS_SH_H_
 #define _SUTRA_WFS_SH_H_
 
-#include <vector>
-#include <map>
-#include <sutra_telemetry.h>
-#include <sutra_target.h>
-#include <sutra_phase.h>
 #include <sutra_lgs.h>
+#include <sutra_phase.h>
+#include <sutra_target.h>
+#include <sutra_telemetry.h>
 #include <sutra_wfs.h>
+#include <map>
+#include <vector>
 
-class sutra_wfs_sh: public sutra_wfs {
+class sutra_wfs_sh : public sutra_wfs {
  public:
-
   // sh only
   carma_obj<int> *d_binmap;
-  carma_obj<int> *d_istart; // nxsub
-  carma_obj<int> *d_jstart; // nxsub
+  carma_obj<int> *d_istart;  // nxsub
+  carma_obj<int> *d_jstart;  // nxsub
 
  public:
   sutra_wfs_sh(carma_context *context, sutra_telescope *d_tel,
@@ -23,7 +22,7 @@ class sutra_wfs_sh: public sutra_wfs {
                long nphase, long nrebin, long nfft, long ntot, long npup,
                float pdiam, float nphotons, float nphot4imat, int lgs,
                int device);
-  sutra_wfs_sh(const sutra_wfs_sh& wfs);
+  sutra_wfs_sh(const sutra_wfs_sh &wfs);
   ~sutra_wfs_sh();
 
   int define_mpi_rank(int rank, int size);
@@ -40,7 +39,6 @@ class sutra_wfs_sh: public sutra_wfs {
 
  private:
   int comp_generic();
-
 };
 
-#endif // _SUTRA_WFS_SH_H_
+#endif  // _SUTRA_WFS_SH_H_

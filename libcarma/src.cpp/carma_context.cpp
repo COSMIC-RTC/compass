@@ -6,28 +6,31 @@
 #ifdef USE_CULA
 
 // CULA headers
-# include <cula.hpp>
-#endif // USE_CULA
+#include <cula.hpp>
+#endif  // USE_CULA
 
 #ifdef USE_MAGMA
 // MAGMA headers
-# include "magma.h"
-# include "magma_lapack.h"
-#endif // USE_MAGMA
+#include "magma.h"
+#include "magma_lapack.h"
+#endif  // USE_MAGMA
 
 carma_device::carma_device(int devid) {
   carmaSafeCall(cudaSetDevice(devid));
 
-  // Instruct CUDA to yield its thread when waiting for results from the device. This can increase latency when waiting for the device, but can increase the performance of CPU threads performing work in parallel with the device.
-  // see also: cudaDeviceScheduleAuto, cudaDeviceScheduleSpin, cudaDeviceScheduleYield
+  // Instruct CUDA to yield its thread when waiting for results from the device.
+  // This can increase latency when waiting for the device, but can increase the
+  // performance of CPU threads performing work in parallel with the device. see
+  // also: cudaDeviceScheduleAuto, cudaDeviceScheduleSpin,
+  // cudaDeviceScheduleYield
   // carmaSafeCall(cudaSetDeviceFlags(cudaDeviceScheduleYield));
 
   this->id = devid;
   cudaGetDeviceProperties(&(this->properties), devid);
-  this->cores_per_sm = ConvertSMVer2Cores(this->properties.major,
-                                          this->properties.minor);
-  this->compute_perf = this->properties.multiProcessorCount
-                       * this->cores_per_sm * this->properties.clockRate;
+  this->cores_per_sm =
+      ConvertSMVer2Cores(this->properties.major, this->properties.minor);
+  this->compute_perf = this->properties.multiProcessorCount *
+                       this->cores_per_sm * this->properties.clockRate;
 
   this->p2p_activate = false;
 
@@ -52,33 +55,35 @@ carma_device::~carma_device() {
 
 std::shared_ptr<carma_context> carma_context::s_instance;
 
-carma_context& carma_context::instance_1gpu(int num_device) {
-  if (!carma_context::s_instance) {
-    carma_context::s_instance = std::shared_ptr<carma_context>(new carma_context(num_device));
-  }
-  return *carma_context::s_instance;
-}
-
-carma_context& carma_context::instance_ngpu(int      nb_devices,
-    int32_t *devices_id) {
+carma_context &carma_context::instance_1gpu(int num_device) {
   if (!carma_context::s_instance) {
     carma_context::s_instance =
-      std::shared_ptr<carma_context>(new carma_context(nb_devices, devices_id));
+        std::shared_ptr<carma_context>(new carma_context(num_device));
   }
   return *carma_context::s_instance;
 }
 
-carma_context& carma_context::instance() {
+carma_context &carma_context::instance_ngpu(int nb_devices,
+                                            int32_t *devices_id) {
   if (!carma_context::s_instance) {
-    carma_context::s_instance = std::shared_ptr<carma_context>(new carma_context());
+    carma_context::s_instance = std::shared_ptr<carma_context>(
+        new carma_context(nb_devices, devices_id));
+  }
+  return *carma_context::s_instance;
+}
+
+carma_context &carma_context::instance() {
+  if (!carma_context::s_instance) {
+    carma_context::s_instance =
+        std::shared_ptr<carma_context>(new carma_context());
   }
   return *carma_context::s_instance;
 }
 
 carma_context::carma_context(int num_device) {
-  can_access_peer    = nullptr;
+  can_access_peer = nullptr;
   this->activeDevice = -1;
-  this->ndevice      = -1;
+  this->ndevice = -1;
 
   int devices[1];
   devices[0] = num_device;
@@ -87,7 +92,7 @@ carma_context::carma_context(int num_device) {
 
 carma_context::carma_context() {
   carmaSafeCall(cudaGetDeviceCount(&(this->ndevice)));
-  can_access_peer    = nullptr;
+  can_access_peer = nullptr;
   this->activeDevice = -1;
 
   if (this->ndevice == 0) {
@@ -96,17 +101,16 @@ carma_context::carma_context() {
   }
 
   int const size = this->ndevice;
-  int32_t   devices_id[size];
+  int32_t devices_id[size];
 
   for (int i = 0; i < size; ++i) devices_id[i] = i;
   init_context(this->ndevice, devices_id);
 }
 
-carma_context::carma_context(int      nb_devices,
-                             int32_t *devices_id) {
-  can_access_peer    = nullptr;
+carma_context::carma_context(int nb_devices, int32_t *devices_id) {
+  can_access_peer = nullptr;
   this->activeDevice = -1;
-  this->ndevice      = -1;
+  this->ndevice = -1;
 
   init_context(nb_devices, devices_id);
 }
@@ -125,9 +129,10 @@ void carma_context::init_context(const int nb_devices, int32_t *devices_id) {
   }
 
   if (nb_devices > n_cuda_devices) {
-    DEBUG_TRACE("carma_context() CUDA error: not enougth devices supporting CUDA. ask %d, available %d",
-                nb_devices,
-                n_cuda_devices);
+    DEBUG_TRACE(
+        "carma_context() CUDA error: not enougth devices supporting CUDA. ask "
+        "%d, available %d",
+        nb_devices, n_cuda_devices);
     throw "carma_context() CUDA error: not enougth devices supporting CUDA.";
   }
 
@@ -151,12 +156,14 @@ void carma_context::init_context(const int nb_devices, int32_t *devices_id) {
 
 #ifdef USE_UVA
 
-  int gpuid[this->ndevice]; // we want to find the first two GPU's that can support P2P
-  int gpu_count = 0;        // GPUs that meet the criteria
+  int gpuid[this->ndevice];  // we want to find the first two GPU's that can
+                             // support P2P
+  int gpu_count = 0;         // GPUs that meet the criteria
   current_device = 0;
 
   while (current_device < this->ndevice) {
-    if (devices[current_device]->isGPUCapableP2P()) gpuid[gpu_count++] = current_device;
+    if (devices[current_device]->isGPUCapableP2P())
+      gpuid[gpu_count++] = current_device;
     current_device++;
   }
 
@@ -167,41 +174,35 @@ void carma_context::init_context(const int nb_devices, int32_t *devices_id) {
       has_uva &= devices[gpuid[i]]->get_properties().unifiedAddressing;
 
       for (int j = i + 1; j < gpu_count; j++) {
-        carmaSafeCall(
-          cudaDeviceCanAccessPeer(
-            &can_access_peer[gpuid[i]][gpuid[j]],
-            devices_id[gpuid[i]], devices_id[gpuid[j]]));
-        carmaSafeCall(
-          cudaDeviceCanAccessPeer(
-            &can_access_peer[gpuid[j]][gpuid[i]],
-            devices_id[gpuid[j]], devices_id[gpuid[i]]));
+        carmaSafeCall(cudaDeviceCanAccessPeer(
+            &can_access_peer[gpuid[i]][gpuid[j]], devices_id[gpuid[i]],
+            devices_id[gpuid[j]]));
+        carmaSafeCall(cudaDeviceCanAccessPeer(
+            &can_access_peer[gpuid[j]][gpuid[i]], devices_id[gpuid[j]],
+            devices_id[gpuid[i]]));
 
-        if ((can_access_peer[gpuid[i]][gpuid[j]] == 1)
-            && (can_access_peer[gpuid[j]][gpuid[i]] == 1)) {
-          printf(
-            "*** Enabling peer access between GPU%d and GPU%d... ***\n",
-            devices_id[gpuid[i]], devices_id[gpuid[j]]);
+        if ((can_access_peer[gpuid[i]][gpuid[j]] == 1) &&
+            (can_access_peer[gpuid[j]][gpuid[i]] == 1)) {
+          printf("*** Enabling peer access between GPU%d and GPU%d... ***\n",
+                 devices_id[gpuid[i]], devices_id[gpuid[j]]);
           carmaSafeCall(cudaSetDevice(devices_id[gpuid[i]]));
-          carmaSafeCall(
-            cudaDeviceEnablePeerAccess(devices_id[gpuid[j]],
-                                       0));
+          carmaSafeCall(cudaDeviceEnablePeerAccess(devices_id[gpuid[j]], 0));
           carmaSafeCall(cudaSetDevice(devices_id[gpuid[j]]));
-          carmaSafeCall(
-            cudaDeviceEnablePeerAccess(devices_id[gpuid[i]],
-                                       0));
+          carmaSafeCall(cudaDeviceEnablePeerAccess(devices_id[gpuid[i]], 0));
         }
       }
     }
     has_uva &=
-      devices[gpuid[gpu_count - 1]]->get_properties().unifiedAddressing;
+        devices[gpuid[gpu_count - 1]]->get_properties().unifiedAddressing;
 
     if (has_uva) {
       printf("*** All GPUs listed can support UVA... ***\n");
     }
   }
-#endif // USE_UVA
+#endif  // USE_UVA
 
-  this->activeDevice = set_activeDeviceForce(0, 1);    // get_maxGflopsDeviceId(), 1);
+  this->activeDevice =
+      set_activeDeviceForce(0, 1);  // get_maxGflopsDeviceId(), 1);
 
 #ifdef USE_CULA
 
@@ -213,26 +214,26 @@ void carma_context::init_context(const int nb_devices, int32_t *devices_id) {
     culaGetErrorInfoString(status, culaGetErrorInfo(), buf, sizeof(buf));
     printf("%s\n", buf);
   }
-#endif // USE_CULA
+#endif  // USE_CULA
 
 #ifdef USE_MAGMA
 
   // MAGMA init
-# ifdef USE_MAGMA_PATCHED
+#ifdef USE_MAGMA_PATCHED
   magma_init(nb_devices, devices_id);
-# else // ifdef USE_MAGMA_PATCHED
+#else   // ifdef USE_MAGMA_PATCHED
   magma_init();
-# endif // USE_MAGMA_PATCHED
+#endif  // USE_MAGMA_PATCHED
 
-# if DEBUG
+#if DEBUG
 
   //  magma_print_environment();
-# endif // DEBUG
+#endif  // DEBUG
 #endif  // USE_MAGMA
 
 #if DEBUG
   printf("CARMA Context created @ %p\n", this);
-#endif // DEBUG
+#endif  // DEBUG
 }
 
 carma_context::~carma_context() {
@@ -240,13 +241,13 @@ carma_context::~carma_context() {
 
   // CULA finalize
   culaShutdown();
-#endif // USE_CULA
+#endif  // USE_CULA
 
 #ifdef USE_MAGMA
 
   // MAGMA finalize
   magma_finalize();
-#endif // USE_MAGMA
+#endif  // USE_MAGMA
 
   size_t idx = 0;
 
@@ -262,11 +263,11 @@ carma_context::~carma_context() {
 
 #if DEBUG
   printf("CARMA Context deleted @ %p\n", this);
-#endif // DEBUG
+#endif  // DEBUG
 }
 
 int carma_context::_set_activeDeviceForce(int newDevice, int silent,
-    std::string file, int line) {
+                                          std::string file, int line) {
   if (newDevice < ndevice) {
     carmaSafeCall(cudaSetDevice(devices[newDevice]->get_id()));
 #ifdef USE_CULA
@@ -277,25 +278,25 @@ int carma_context::_set_activeDeviceForce(int newDevice, int silent,
       culaGetErrorInfoString(status, culaGetErrorInfo(), buf, sizeof(buf));
       printf("%s\n", buf);
     }
-#endif // USE_CULA
+#endif  // USE_CULA
 #if DEBUG
     silent = 0;
-#endif // DEBUG
+#endif  // DEBUG
 
     if (!silent) {
       std::cout << "Using device " << devices[newDevice]->get_id() << ": \""
                 << devices[newDevice]->get_properties().name
                 << "\" with Compute "
                 << devices[newDevice]->get_properties().major << "."
-                << devices[newDevice]->get_properties().minor
-                << " capability" << std::endl;
+                << devices[newDevice]->get_properties().minor << " capability"
+                << std::endl;
     }
     activeDevice = newDevice;
   } else {
-    fprintf(
-      stderr,
-      "[%s:%d] Invalid Device Id : %d, Your system has only %d CUDA capable device(s) available ",
-      file.c_str(), line, newDevice, ndevice);
+    fprintf(stderr,
+            "[%s:%d] Invalid Device Id : %d, Your system has only %d CUDA "
+            "capable device(s) available ",
+            file.c_str(), line, newDevice, ndevice);
     std::cerr << "Leaving activeDevice to its current value : " << activeDevice
               << std::endl;
   }
@@ -309,9 +310,8 @@ std::string carma_context::get_DeviceName(int device) {
 std::string carma_context::get_DeviceInfo(int device) {
   std::stringstream buf;
 
-  buf << "device " << device << ": \""
-      << devices[device]->get_properties().name << "\" with Compute "
-      << devices[device]->get_properties().major << "."
+  buf << "device " << device << ": \"" << devices[device]->get_properties().name
+      << "\" with Compute " << devices[device]->get_properties().major << "."
       << devices[device]->get_properties().minor << " capability";
   return buf.str();
 }
@@ -319,11 +319,10 @@ std::string carma_context::get_DeviceInfo(int device) {
 std::string carma_context::get_DeviceMemInfo(int device) {
   std::stringstream buf;
   size_t totalMem = devices[device]->getTotalMem() / 1024 / 1024;
-  size_t usedMem  = totalMem - devices[device]->getFreeMem() / 1024 / 1024;
+  size_t usedMem = totalMem - devices[device]->getFreeMem() / 1024 / 1024;
 
-  buf << "device " << device << ": \""
-      << devices[device]->get_properties().name << "\" memory used "
-      << usedMem << "MB / " << totalMem << "MB ("
+  buf << "device " << device << ": \"" << devices[device]->get_properties().name
+      << "\" memory used " << usedMem << "MB / " << totalMem << "MB ("
       << usedMem * 100. / totalMem << "%)";
   return buf.str();
 }
@@ -331,11 +330,12 @@ std::string carma_context::get_DeviceMemInfo(int device) {
 int carma_context::get_maxGflopsDeviceId() {
   /*! \brief Get the fastest device on the machine (with maximum GFLOPS).
    *
-   * This function returns the identifier of the best available GPU (with maximum GFLOPS)
+   * This function returns the identifier of the best available GPU (with
+   * maximum GFLOPS)
    */
-  int current_device   = 0, cores_per_sm = 0;
+  int current_device = 0, cores_per_sm = 0;
   int max_compute_perf = 0, max_perf_device = 0;
-  int device_count     = 0, best_SM_arch = 0;
+  int device_count = 0, best_SM_arch = 0;
   cudaDeviceProp deviceProp;
 
   cudaGetDeviceCount(&device_count);
@@ -358,11 +358,10 @@ int carma_context::get_maxGflopsDeviceId() {
       if ((deviceProp.major == 9999) && (deviceProp.minor == 9999)) {
         cores_per_sm = 1;
       } else {
-        cores_per_sm = ConvertSMVer2Cores(deviceProp.major,
-                                          deviceProp.minor);
+        cores_per_sm = ConvertSMVer2Cores(deviceProp.major, deviceProp.minor);
       }
-      int compute_perf = deviceProp.multiProcessorCount * cores_per_sm
-                         * deviceProp.clockRate;
+      int compute_perf =
+          deviceProp.multiProcessorCount * cores_per_sm * deviceProp.clockRate;
 
       if (compute_perf >= max_compute_perf) {
         // If we find GPU with SM major > 2, search only these
@@ -370,11 +369,11 @@ int carma_context::get_maxGflopsDeviceId() {
           // If our device==dest_SM_arch, choose this, or else pass
           if (deviceProp.major == best_SM_arch) {
             max_compute_perf = compute_perf;
-            max_perf_device  = current_device;
+            max_perf_device = current_device;
           }
         } else {
           max_compute_perf = compute_perf;
-          max_perf_device  = current_device;
+          max_perf_device = current_device;
         }
       }
     }
@@ -387,16 +386,14 @@ std::string carma_context::magma_info() {
   std::ostringstream stream;
 #ifdef USE_MAGMA
   magma_int_t major, minor, micro;
-  magma_version(&major,
-                &minor,
-                &micro);
+  magma_version(&major, &minor, &micro);
 
-  stream << "MAGMA " << (long long)major << "." << (long long)minor << "." <<
-         (long long)micro << ", " <<
-         (long long)(8 * sizeof(magma_int_t)) << "-bit magma_int_t, " <<
-         (long long)(8 * sizeof(void *)) << "-bit pointer.";
-#else // ifdef USE_MAGMA
+  stream << "MAGMA " << (long long)major << "." << (long long)minor << "."
+         << (long long)micro << ", " << (long long)(8 * sizeof(magma_int_t))
+         << "-bit magma_int_t, " << (long long)(8 * sizeof(void *))
+         << "-bit pointer.";
+#else   // ifdef USE_MAGMA
   stream << "MAGMA not used";
-#endif // USE_MAGMA
+#endif  // USE_MAGMA
   return stream.str();
 }

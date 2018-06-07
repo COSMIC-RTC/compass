@@ -1,4 +1,4 @@
-//kp_KFPP.h
+// kp_KFPP.h
 
 #ifndef __COMPASS__KP_KFPP_H__
 #define __COMPASS__KP_KFPP_H__

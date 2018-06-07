@@ -5,24 +5,23 @@
 #include <carma_obj.h>
 #include <sutra_ao_utils.h>
 #include <sutra_rtc.h>
-#include <sutra_wfs.h>
 #include <sutra_target.h>
-#include <sutra_turbu.h>
 #include <sutra_telescope.h>
-#include <sutra_ao_utils.h>
+#include <sutra_turbu.h>
+#include <sutra_wfs.h>
 
 class sutra_roket {
  public:
   carma_context *current_context;
   int device;
-  float gain; // Loop gain
-  int nfilt; // Number of filtered modes
-  int nactus; // number of actuators
-  int nmodes; // number of modes
-  int iterk; // current iteration number
+  float gain;  // Loop gain
+  int nfilt;   // Number of filtered modes
+  int nactus;  // number of actuators
+  int nmodes;  // number of modes
+  int iterk;   // current iteration number
   int niter;
-  int loopcontroller; // index of the loop controller
-  int geocontroller; // index of the geo controller
+  int loopcontroller;  // index of the loop controller
+  int geocontroller;   // index of the geo controller
   int nslopes;
   // sutra objects to supervise
   sutra_rtc *rtc;
@@ -54,7 +53,7 @@ class sutra_roket {
   // Command loop backup
   carma_obj<float> *d_bkup_com;
   // Target screen backup
-  carma_obj<float> * d_bkup_screen;
+  carma_obj<float> *d_bkup_screen;
   // Additional buffers
   carma_obj<float> *d_commanded;
   carma_obj<float> *d_modes;
@@ -71,23 +70,21 @@ class sutra_roket {
   carma_obj<float> *d_covm;
 
  public:
-  sutra_roket(carma_context *context, int device, sutra_rtc *rtc, sutra_sensors *sensors,
-              sutra_target *target, sutra_dms *dms, sutra_telescope *tel, sutra_atmos *atm, int loopcontroller, int geocontroller,
-              int nactus, int nmodes, int nfilt, int niter, float *Btt, float *P, float *gRD, float *RD);
+  sutra_roket(carma_context *context, int device, sutra_rtc *rtc,
+              sutra_sensors *sensors, sutra_target *target, sutra_dms *dms,
+              sutra_telescope *tel, sutra_atmos *atm, int loopcontroller,
+              int geocontroller, int nactus, int nmodes, int nfilt, int niter,
+              float *Btt, float *P, float *gRD, float *RD);
   ~sutra_roket();
 
-  int
-  compute_breakdown();
-  int
-  save_loop_state();
-  int
-  restore_loop_state();
-  int
-  apply_loop_filter(carma_obj<float> *d_odata, carma_obj<float> *d_idata1,
-                    carma_obj<float> *d_idata2, float gain, int k);
+  int compute_breakdown();
+  int save_loop_state();
+  int restore_loop_state();
+  int apply_loop_filter(carma_obj<float> *d_odata, carma_obj<float> *d_idata1,
+                        carma_obj<float> *d_idata2, float gain, int k);
 };
 
-int
-separate_modes(float *modes, float *filtmodes, int nmodes, int nfilt, carma_device *device);
+int separate_modes(float *modes, float *filtmodes, int nmodes, int nfilt,
+                   carma_device *device);
 
 #endif

@@ -10,7 +10,7 @@
 
 #include <string>
 
-#define Carma_Error(s) CarmaException(s,__FILE__,__LINE__)
+#define Carma_Error(s) CarmaException(s, __FILE__, __LINE__)
 
 //! Carma exception throw by libcarma
 /*!
@@ -23,11 +23,10 @@
 
 class CarmaException {
  private:
-  std::string aReason; //!< a detailed description of the error
-  std::string aFile; //!< in which file this exception has been created
-  unsigned int aLine; //!< on which line this exception has been created
+  std::string aReason;  //!< a detailed description of the error
+  std::string aFile;    //!< in which file this exception has been created
+  unsigned int aLine;   //!< on which line this exception has been created
  public:
-
   /*!
    *  \brief Constructor
    *
@@ -38,9 +37,8 @@ class CarmaException {
    *  \param line : which line this exception has been created
    */
 
-  CarmaException(std::string reason, std::string file, unsigned int line) :
-    aReason(reason), aFile(file), aLine(line) {
-  }
+  CarmaException(std::string reason, std::string file, unsigned int line)
+      : aReason(reason), aFile(file), aLine(line) {}
 
   /*!
    *  \brief Destructor
@@ -48,8 +46,7 @@ class CarmaException {
    *  CarmaException Destructor
    */
 
-  ~CarmaException() {
-  }
+  ~CarmaException() {}
 
   /*!
    *  \brief Format into a const char *

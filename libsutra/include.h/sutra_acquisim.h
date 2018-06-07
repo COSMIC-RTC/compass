@@ -26,7 +26,7 @@ class sutra_acquisim {
 
  public:
   sutra_acquisim(sutra_sensors *sensors, int wfs_num);
-  sutra_acquisim(const sutra_acquisim& acquisim);
+  sutra_acquisim(const sutra_acquisim &acquisim);
   ~sutra_acquisim();
 
   int set_validsubs(int64_t nvalid, int32_t *validsubsx, int32_t *validsubsy);
@@ -40,21 +40,21 @@ class sutra_acquisim {
 };
 
 // General utilities
-template<class T>
+template <class T>
 int fillbincube_2D(T *bimage, T *bcube, int npix, int nsub, int *valid);
 
-template<class T>
+template <class T>
 int fillbincube(T *bimage, T *bcube, int npix, int nsub, int Nsub, int *ivalid,
                 int *jvalid, carma_device *device);
 
-template<class T>
+template <class T>
 int fillbincube_async(carma_streams *streams, carma_obj<T> *bimage,
-                      carma_obj<T> *bcube, int npix, int nsub, int Nsub, int *ivalid, int *jvalid,
-                      carma_device *device);
+                      carma_obj<T> *bcube, int npix, int nsub, int Nsub,
+                      int *ivalid, int *jvalid, carma_device *device);
 
-template<class T>
+template <class T>
 int fillbincube_async(carma_host_obj<T> *image_telemetry, T *bimage, T *bcube,
-                      int npix, int nsub, int Nsub, int *ivalid, int *jvalid, int nim,
-                      carma_device *device);
+                      int npix, int nsub, int Nsub, int *ivalid, int *jvalid,
+                      int nim, carma_device *device);
 
 #endif /* SUTRA_ACQUISIM_H_ */

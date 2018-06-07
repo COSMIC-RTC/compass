@@ -10,10 +10,10 @@
  * |____/ \___|_|  \___|\___|_| |_| |____/ \___|_| |_|_| |_|_|\__|_|\___/|_| |_|
  */
 
-sutra_tscreen::sutra_tscreen(carma_context *context, long size, long stencilSize,
-                             float r0, float altitude, float windspeed,
-                             float winddir, float deltax, float deltay,
-                             int device) {
+sutra_tscreen::sutra_tscreen(carma_context *context, long size,
+                             long stencilSize, float r0, float altitude,
+                             float windspeed, float winddir, float deltax,
+                             float deltay, int device) {
   this->current_context = context;
   this->screen_size = size;
   this->amplitude = powf(r0, -5.0f / 6.0f);
@@ -30,7 +30,7 @@ sutra_tscreen::sutra_tscreen(carma_context *context, long size, long stencilSize
   this->deltax = deltax;
   this->deltay = deltay;
   this->device = device;
-  this->current_context->set_activeDevice(device,1);
+  this->current_context->set_activeDevice(device, 1);
 
   this->norm_vk = 0;
   this->d_tscreen_c = 0;
@@ -38,8 +38,8 @@ sutra_tscreen::sutra_tscreen(carma_context *context, long size, long stencilSize
   std::cout << "r0^-5/6 :" << this->amplitude << std::endl;
 
   this->d_tscreen = new sutra_phase(current_context, this->screen_size);
-  this->channelDesc = cudaCreateChannelDesc(32, 0, 0, 0,
-                      cudaChannelFormatKindFloat);
+  this->channelDesc =
+      cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);
 
   long dims_data2[3];
   dims_data2[0] = 2;
@@ -75,15 +75,14 @@ sutra_tscreen::~sutra_tscreen() {
   delete this->d_z;
   delete this->d_noise;
   delete this->d_ytmp;
-  if (vk_on)
-    delete d_tscreen_c;
-  //delete current_context;
+  if (vk_on) delete d_tscreen_c;
+  // delete current_context;
 }
 
 int sutra_tscreen::init_screen(float *h_A, float *h_B,
                                unsigned int *h_istencilx,
                                unsigned int *h_istencily, int seed) {
-  this->current_context->set_activeDevice(device,1);
+  this->current_context->set_activeDevice(device, 1);
   // initial memcopies
   this->d_A->host2device(h_A);
   this->d_B->host2device(h_B);
@@ -99,12 +98,12 @@ int sutra_tscreen::init_screen(float *h_A, float *h_B,
 }
 
 int sutra_tscreen::refresh_screen() {
-  this->current_context->set_activeDevice(device,1);
+  this->current_context->set_activeDevice(device, 1);
   this->d_tscreen->d_screen->reset();
   this->accumx = 0.0f;
   this->accumy = 0.0f;
 
-  for(int i = 0; i < 2 * this->screen_size; i++) {
+  for (int i = 0; i < 2 * this->screen_size; i++) {
     if (this->deltax > 0) {
       this->extrude(1);
     } else {
@@ -122,23 +121,22 @@ int sutra_tscreen::set_seed(int seed) {
 }
 
 int sutra_tscreen::init_vk(int seed, int pupd) {
-  this->current_context->set_activeDevice(device,1);
+  this->current_context->set_activeDevice(device, 1);
   long *dims_data2 = new long[3];
   dims_data2[0] = 2;
   dims_data2[1] = this->screen_size;
   dims_data2[2] = this->screen_size;
-  this->d_tscreen_c = new carma_obj<cuFloatComplex>(current_context,
-      dims_data2);
+  this->d_tscreen_c =
+      new carma_obj<cuFloatComplex>(current_context, dims_data2);
   cufftHandle *plan = this->d_tscreen_c->getPlan();
   carmafftSafeCall(
-    cufftPlan2d(plan, this->screen_size, this->screen_size, CUFFT_C2C));
+      cufftPlan2d(plan, this->screen_size, this->screen_size, CUFFT_C2C));
 
   if (this->d_tscreen_o->is_rng_init() == false)
     this->d_tscreen_o->init_prng_host(seed);
 
-  this->norm_vk = pow(pupd * pow(this->amplitude, 6.0f / 5.0f), 5.0f / 6.0f)
-                  * 0.5f
-                  / (2.0f * 3.14159);
+  this->norm_vk = pow(pupd * pow(this->amplitude, 6.0f / 5.0f), 5.0f / 6.0f) *
+                  0.5f / (2.0f * 3.14159);
 
   this->vk_on = true;
 
@@ -147,13 +145,12 @@ int sutra_tscreen::init_vk(int seed, int pupd) {
 }
 
 int sutra_tscreen::generate_vk(float l0, int nalias) {
-  this->current_context->set_activeDevice(device,1);
+  this->current_context->set_activeDevice(device, 1);
   this->d_tscreen_o->prng_host('N');
 
   cuFloatComplex *data = this->d_tscreen_c->getData();
-  carmaSafeCall(
-    cudaMemset(data, 0,
-               this->screen_size * this->screen_size * sizeof(cuFloatComplex)));
+  carmaSafeCall(cudaMemset(
+      data, 0, this->screen_size * this->screen_size * sizeof(cuFloatComplex)));
 
   float k0 = (l0 == 0. ? 0.0f : this->screen_size / l0);
   int block_size = 8;
@@ -182,25 +179,25 @@ int sutra_tscreen::generate_vk(float l0, int nalias) {
 }
 
 int sutra_tscreen::extrude(int dir) {
-// dir =1 moving in x
+  // dir =1 moving in x
 
-  this->current_context->set_activeDevice(device,1);
+  this->current_context->set_activeDevice(device, 1);
   int x0, Ncol, NC, N;
   NC = screen_size;
 
-  if (dir == 1 || dir == -1) { // adding a column to the left
+  if (dir == 1 || dir == -1) {  // adding a column to the left
     fillindx(this->d_z->getData(), this->d_tscreen->d_screen->getData(),
-             (int *) this->d_istencilx->getData(), this->d_z->getNbElem(),
+             (int *)this->d_istencilx->getData(), this->d_z->getNbElem(),
              current_context->get_device(device));
-    if(dir == 1)
-      x0 = this->screen_size - 1; //not in stencil
+    if (dir == 1)
+      x0 = this->screen_size - 1;  // not in stencil
     else
       x0 = this->screen_size * (this->screen_size - 1);
   } else {
     fillindx(this->d_z->getData(), this->d_tscreen->d_screen->getData(),
-             (int *) this->d_istencily->getData(), this->d_z->getNbElem(),
+             (int *)this->d_istencily->getData(), this->d_z->getNbElem(),
              current_context->get_device(device));
-    if(dir == 2)
+    if (dir == 2)
       x0 = this->screen_size * (this->screen_size - 1);
     else
       x0 = this->screen_size - 1;
@@ -223,17 +220,15 @@ int sutra_tscreen::extrude(int dir) {
                current_context->get_device(device));
 
   if (dir == 1 || dir == -1) {
-    if(dir == 1)
+    if (dir == 1)
       x0 = 1;
     else
       x0 = 0;
     Ncol = this->screen_size - 1;
     N = this->screen_size * (this->screen_size - 1);
   } else {
-    if(dir == 2)
-      x0 = this->screen_size;
-    if(dir == -2)
-      x0 = 0;
+    if (dir == 2) x0 = this->screen_size;
+    if (dir == -2) x0 = 0;
     Ncol = this->screen_size;
     N = this->screen_size * (this->screen_size - 1);
   }
@@ -241,28 +236,23 @@ int sutra_tscreen::extrude(int dir) {
   getarr2d(this->d_tscreen_o->getData(), this->d_tscreen->d_screen->getData(),
            x0, Ncol, NC, N, current_context->get_device(device));
 
-  if (dir > 0)
-    x0 = 0;
-  if (dir == -1)
-    x0 = 1;
-  if (dir == -2)
-    x0 = this->screen_size;
+  if (dir > 0) x0 = 0;
+  if (dir == -1) x0 = 1;
+  if (dir == -2) x0 = this->screen_size;
 
   fillarr2d(this->d_tscreen->d_screen->getData(), this->d_tscreen_o->getData(),
             x0, Ncol, NC, N, current_context->get_device(device));
 
   if (dir == 1 || dir == -1) {
-    if(dir == 1)
+    if (dir == 1)
       x0 = this->screen_size - 1;
     else
       x0 = 0;
     Ncol = 1;
     N = this->screen_size;
   } else {
-    if(dir == 2)
-      x0 = this->screen_size * (this->screen_size - 1);
-    if(dir == -2)
-      x0 = 0;
+    if (dir == 2) x0 = this->screen_size * (this->screen_size - 1);
+    if (dir == -2) x0 = 0;
     Ncol = this->screen_size;
     N = this->screen_size;
   }
@@ -285,19 +275,16 @@ sutra_atmos::sutra_atmos(carma_context *context, int nscreens, float *r0,
                          float *windspeed, float *winddir, float *deltax,
                          float *deltay, int device) {
   this->nscreens = nscreens;
-  //this->r0       = r0;
+  // this->r0       = r0;
   this->current_context = context;
   this->r0 = 0;
 
   for (int i = 0; i < nscreens; i++) {
-    d_screens.insert(
-      pair<float, sutra_tscreen *>(
-        altitude[i],
-        new sutra_tscreen(context, size[i], stencilSize[i], r0[i], altitude[i],
-                          windspeed[i], winddir[i], deltax[i], deltay[i],
-                          device)));
+    d_screens.insert(pair<float, sutra_tscreen *>(
+        altitude[i], new sutra_tscreen(context, size[i], stencilSize[i], r0[i],
+                                       altitude[i], windspeed[i], winddir[i],
+                                       deltax[i], deltay[i], device)));
   }
-
 }
 
 sutra_atmos::~sutra_atmos() {
@@ -307,7 +294,7 @@ sutra_atmos::~sutra_atmos() {
     it->second = 0;
   }
   d_screens.clear();
-  //d_screens.erase(d_screens.begin(),d_screens.end());
+  // d_screens.erase(d_screens.begin(),d_screens.end());
 }
 
 int sutra_atmos::init_screen(float altitude, float *h_A, float *h_B,
@@ -319,14 +306,15 @@ int sutra_atmos::init_screen(float altitude, float *h_A, float *h_B,
   return EXIT_SUCCESS;
 }
 
-int sutra_atmos::get_screen(const float alt, float * data_F) {
+int sutra_atmos::get_screen(const float alt, float *data_F) {
   if (d_screens.find(alt) == d_screens.end()) {
     std::cout << "There is no screen at this altitude" << std::endl;
     std::cout << "No screen erased" << std::endl;
     return EXIT_FAILURE;
   }
-  this->current_context->set_activeDevice(d_screens[alt]->device,1);
-  // float* data_F = (float *) malloc(d_screens[alt]->d_tscreen->d_screen->getNbElem() * sizeof(float));
+  this->current_context->set_activeDevice(d_screens[alt]->device, 1);
+  // float* data_F = (float *)
+  // malloc(d_screens[alt]->d_tscreen->d_screen->getNbElem() * sizeof(float));
   d_screens[alt]->d_tscreen->d_screen->device2host(data_F);
   return EXIT_SUCCESS;
 }
@@ -340,9 +328,10 @@ int sutra_atmos::add_screen(float alt, long size, long stencilSize,
     return EXIT_FAILURE;
   }
 
-  sutra_tscreen* screen = new sutra_tscreen(current_context, size, stencilSize, amplitude,
-      alt, windspeed, winddir, deltax, deltay, device);
-  d_screens.insert(pair<float, sutra_tscreen*>(alt, screen));
+  sutra_tscreen *screen =
+      new sutra_tscreen(current_context, size, stencilSize, amplitude, alt,
+                        windspeed, winddir, deltax, deltay, device);
+  d_screens.insert(pair<float, sutra_tscreen *>(alt, screen));
   nscreens++;
   return EXIT_SUCCESS;
 }
@@ -359,7 +348,7 @@ int sutra_atmos::del_screen(const float alt) {
   return EXIT_SUCCESS;
 }
 
-int sutra_atmos::list_alt(float* alts) {
+int sutra_atmos::list_alt(float *alts) {
   int i = 0;
   for (map<float, sutra_tscreen *>::iterator it = d_screens.begin();
        it != d_screens.end(); ++it) {
@@ -370,7 +359,6 @@ int sutra_atmos::list_alt(float* alts) {
 }
 
 int sutra_atmos::move_atmos() {
-
   map<float, sutra_tscreen *>::iterator p;
   p = this->d_screens.begin();
 
@@ -378,15 +366,13 @@ int sutra_atmos::move_atmos() {
     p->second->accumx += p->second->deltax;
     p->second->accumy += p->second->deltay;
 
-    int deltax = (int) p->second->accumx;
-    int deltay = (int) p->second->accumy;
-    int cx = deltax>0 ? 1 : -1;
-    int cy = deltay>0 ? 1 : -1;
-    for (int cc = 0; cc < cx*deltax; cc++)
-      p->second->extrude(1*cx);
+    int deltax = (int)p->second->accumx;
+    int deltay = (int)p->second->accumy;
+    int cx = deltax > 0 ? 1 : -1;
+    int cy = deltay > 0 ? 1 : -1;
+    for (int cc = 0; cc < cx * deltax; cc++) p->second->extrude(1 * cx);
     p->second->accumx -= deltax;
-    for (int cc = 0; cc < cy*deltay; cc++)
-      p->second->extrude(2*cy);
+    for (int cc = 0; cc < cy * deltay; cc++) p->second->extrude(2 * cy);
     p->second->accumy -= deltay;
     p++;
   }

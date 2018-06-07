@@ -9,22 +9,23 @@
  |_|
  */
 
-// Transpose that effectively reorders execution of thread blocks along diagonals of the
-// matrix (also coalesced and has no bank conflicts)
+// Transpose that effectively reorders execution of thread blocks along
+// diagonals of the matrix (also coalesced and has no bank conflicts)
 //
-// Here blockIdx.x is interpreted as the distance along a diagonal and blockIdx.y as
-// corresponding to different diagonals
+// Here blockIdx.x is interpreted as the distance along a diagonal and
+// blockIdx.y as corresponding to different diagonals
 //
-// blockIdx_x and blockIdx_y expressions map the diagonal coordinates to the more commonly
-// used cartesian coordinates so that the only changes to the code from the coalesced version
-// are the calculation of the blockIdx_x and blockIdx_y and replacement of blockIdx.x and
-// bloclIdx.y with the subscripted versions in the remaining code
-#define TILE_DIM    32
-#define BLOCK_ROWS  16
+// blockIdx_x and blockIdx_y expressions map the diagonal coordinates to the
+// more commonly used cartesian coordinates so that the only changes to the code
+// from the coalesced version are the calculation of the blockIdx_x and
+// blockIdx_y and replacement of blockIdx.x and bloclIdx.y with the subscripted
+// versions in the remaining code
+#define TILE_DIM 32
+#define BLOCK_ROWS 16
 
-#define FLOOR(a,b) (a-(a%b))
+#define FLOOR(a, b) (a - (a % b))
 
-template<class T>
+template <class T>
 __global__ void transposeDiagonal(T *odata, T *idata, long width, long height,
                                   int nreps) {
   __shared__ T tile[TILE_DIM][TILE_DIM + 1];
@@ -41,16 +42,16 @@ __global__ void transposeDiagonal(T *odata, T *idata, long width, long height,
     blockIdx_x = ((bid / gridDim.y) + blockIdx_y) % gridDim.x;
   }
 
-  // from here on the code is same as previous kernel except blockIdx_x replaces blockIdx.x
-  // and similarly for y
+  // from here on the code is same as previous kernel except blockIdx_x replaces
+  // blockIdx.x and similarly for y
 
   int xIndex = blockIdx_x * TILE_DIM + threadIdx.x;
   int yIndex = blockIdx_y * TILE_DIM + threadIdx.y;
-  int index_in = xIndex + (yIndex) * width;
+  int index_in = xIndex + (yIndex)*width;
 
   xIndex = blockIdx_y * TILE_DIM + threadIdx.x;
   yIndex = blockIdx_x * TILE_DIM + threadIdx.y;
-  int index_out = xIndex + (yIndex) * height;
+  int index_out = xIndex + (yIndex)*height;
 
   for (int r = 0; r < nreps; r++) {
     for (int i = 0; i < TILE_DIM; i += BLOCK_ROWS) {
@@ -86,7 +87,7 @@ __global__ void transposeDiagonal(T *odata, T *idata, long width, long height,
  }
  */
 
-template<class T>
+template <class T>
 int transposeCU(T *d_idata, T *d_odata, long N1, long N2) {
   /*
    int totTile = get_tdim<T>();
@@ -112,16 +113,16 @@ int transposeCU(T *d_idata, T *d_odata, long N1, long N2) {
   return EXIT_SUCCESS;
 }
 
-template int
-transposeCU<float>(float *d_idata, float *d_odata, long N1, long N2);
+template int transposeCU<float>(float *d_idata, float *d_odata, long N1,
+                                long N2);
 
-template int
-transposeCU<double>(double *d_idata, double *d_odata, long N1, long N2);
+template int transposeCU<double>(double *d_idata, double *d_odata, long N1,
+                                 long N2);
 
-template int
-transposeCU<cuFloatComplex>(cuFloatComplex *d_idata, cuFloatComplex *d_odata
-                            , long N1, long N2);
+template int transposeCU<cuFloatComplex>(cuFloatComplex *d_idata,
+                                         cuFloatComplex *d_odata, long N1,
+                                         long N2);
 
-template int
-transposeCU<cuDoubleComplex>(cuDoubleComplex *d_idata, cuDoubleComplex *d_odata
-                             , long N1, long N2);
+template int transposeCU<cuDoubleComplex>(cuDoubleComplex *d_idata,
+                                          cuDoubleComplex *d_odata, long N1,
+                                          long N2);

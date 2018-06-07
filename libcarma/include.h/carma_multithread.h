@@ -1,15 +1,15 @@
 #ifndef CARMA_MULTITHREAD_H
 #define CARMA_MULTITHREAD_H
 
-//Simple portable thread library.
+// Simple portable thread library.
 
-//POSIX threads.
+// POSIX threads.
 #include <pthread.h>
 
 typedef pthread_t carma_thread;
-typedef void * (*CARMAT_routine)(void *);
+typedef void *(*CARMAT_routine)(void *);
 
-#define CARMAT_THREADPROC void*
+#define CARMAT_THREADPROC void *
 #define CARMAT_THREADEND return 0
 
 struct carma_thread_barrier {
@@ -23,25 +23,25 @@ struct carma_thread_barrier {
 extern "C" {
 #endif
 
-//Create thread
+// Create thread
 carma_thread carma_start_thread(CARMAT_routine func, void *data);
-//Wait for thread to finish
+// Wait for thread to finish
 void carma_end_thread(carma_thread thread);
-//Destroy thread
+// Destroy thread
 void carma_destroy_thread(carma_thread thread);
-//Wait for multiple threads
+// Wait for multiple threads
 void carma_wait4thread(const carma_thread *threads, int num);
-//Create barrier.
+// Create barrier.
 carma_thread_barrier carma_create_barrier(int releaseCount);
-//Increment barrier. (excution continues)
+// Increment barrier. (excution continues)
 void carma_increment_barrier(carma_thread_barrier *barrier);
-//Wait for barrier release.
+// Wait for barrier release.
 void carma_wait4barrier(carma_thread_barrier *barrier);
-//Destory barrier
+// Destory barrier
 void carma_destroy_barrier(carma_thread_barrier *barrier);
 
 #ifdef __cplusplus
-} //extern "C"
+}  // extern "C"
 #endif
 
-#endif //CARMA_MULTITHREAD_H
+#endif  // CARMA_MULTITHREAD_H

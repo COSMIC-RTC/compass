@@ -69,4 +69,4 @@ int rotate3d(cuFloatComplex *d_odata, cudaMemcpy3DParms copyParams,
              int height, float *theta, float center, int Ntot,
              carma_device *device);
 
-#endif // _SUTRA_LGS_H_
+#endif  // _SUTRA_LGS_H_

@@ -3,37 +3,35 @@
 
 #include <sutra_controller.h>
 
-class sutra_controller_cured: public sutra_controller {
+class sutra_controller_cured : public sutra_controller {
  public:
   float gain;
-  int ndivs; //number of subdivision levels for cured
-  bool tt_flag; //flag for separate tt
+  int ndivs;     // number of subdivision levels for cured
+  bool tt_flag;  // flag for separate tt
 
   // data for CuReD */
   carma_host_obj<float> *h_centroids;
   carma_host_obj<float> *h_err;
-  carma_obj<float> *d_err; // current error
-  carma_obj<float> *d_cenbuff; // centroids circular buffer
+  carma_obj<float> *d_err;      // current error
+  carma_obj<float> *d_cenbuff;  // centroids circular buffer
 
   // data for CuReD */
   carma_obj<float> *d_imat;
 
   // structures needed to run CuReD */
-  //sysCure* h_syscure;
-  void* h_syscure;
-  //parCure* h_parcure;
-  void* h_parcure;
+  // sysCure* h_syscure;
+  void *h_syscure;
+  // parCure* h_parcure;
+  void *h_parcure;
 
  public:
   sutra_controller_cured(carma_context *context, long nvalid, long nactu,
                          float delay, sutra_dms *dms, char **type, float *alt,
                          int ndm);
-  sutra_controller_cured(const sutra_controller_cured& controller);
+  sutra_controller_cured(const sutra_controller_cured &controller);
   ~sutra_controller_cured();
 
-  string get_type() {
-    return "cured";
-  }
+  string get_type() { return "cured"; }
   int set_gain(float gain);
 
   int comp_com();
@@ -43,4 +41,4 @@ class sutra_controller_cured: public sutra_controller {
   int set_delay(float delay);
 };
 
-#endif // _sutra_controller_cured_H_
+#endif  // _sutra_controller_cured_H_
