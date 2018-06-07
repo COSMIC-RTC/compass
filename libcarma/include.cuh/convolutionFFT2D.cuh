@@ -9,6 +9,11 @@
  *
  */
 
+#ifndef _CARMA_CONVOLUTIONFFT2D_CUH_
+#define _CARMA_CONVOLUTIONFFT2D_CUH_
+
+#include "convolutionFFT2D_common.h"
+
 #define USE_TEXTURE 1
 #define POWER_OF_TWO 1
 
@@ -382,3 +387,4 @@ __global__ void spProcess2D_kernel(fComplex *d_Dst, fComplex *d_SrcA,
     d_Dst[pos2] = D2;
   }
 }
+#endif  //_CARMA_CONVOLUTIONFFT2D_CUH_
