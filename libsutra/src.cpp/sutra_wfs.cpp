@@ -153,6 +153,7 @@ int sutra_wfs::load_pupil(float *pupil) {
     current_context->set_activeDevice(ndevice, 1);
     d_pupil_ngpu[ndevice]->host2device(pupil);
   }
+  current_context->set_activeDevice(device, 1);
   return EXIT_SUCCESS;
 }
 

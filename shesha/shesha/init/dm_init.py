@@ -227,8 +227,10 @@ def make_pzt_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, cobs: float,
     if p_dm.type_pattern == scons.PatternType.HEXA:
         print("Pattern type : hexa")
         cub = dm_util.createHexaPattern(pitch, p_geom.pupdiam * 1.1)
+        keepAllActu = True
     elif p_dm.type_pattern == scons.PatternType.HEXAM4:
         print("Pattern type : hexaM4")
+        keepAllActu = True
         cub = dm_util.createDoubleHexaPattern(pitch, p_geom.pupdiam * 1.1)
     elif p_dm.type_pattern == scons.PatternType.SQUARE:
         print("Pattern type : square")
