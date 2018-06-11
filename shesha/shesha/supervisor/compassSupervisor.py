@@ -127,9 +127,13 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         Set pyramid modulation value - in l/D units
         '''
-        self._sim.rtc.set_pyr_ampl(0, pyrMod, self._sim.config.p_wfss,
-                                   self._sim.config.p_tel)
-        print("PYR modulation set to: %f L/D" % pyrMod)
+        from shesha.ao.wfs import comp_new_pyr_ampl
+
+        _, _, _, pyr_npts = comp_new_pyr_ampl(0, pyrMod, self._sim.wfs, self._sim.rtc,
+                                              self._sim.config.p_wfss,
+                                              self._sim.config.p_tel)
+
+        print("PYR modulation set to: %f L/D using %d points" % (pyrMod, pyr_npts))
 
     def setPyrMethod(self, pyrMethod):
         '''

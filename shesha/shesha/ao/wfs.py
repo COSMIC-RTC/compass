@@ -11,43 +11,47 @@ import numpy as np
 from shesha.sutra_bind.wrap import Sensors, Rtc
 
 
-def comp_new_pyr_ampl(rtc: Rtc, n: int, p_centroider: conf.Param_centroider,
-                      p_wfss: list, p_tel: conf.Param_tel, ampli: float):
+def comp_new_pyr_ampl(nwfs: int, ampli: float, wfs: Sensors, rtc: Rtc, p_wfss: list,
+                      p_tel: conf.Param_tel):
     """ Set the pyramid modulation amplitude
 
     :parameters:
 
-        rtc: (Rtc): rtc object
-
-        n : (int): centroider index
-
-        p_centroider : (Param_centroider) : pyr centroider settings
+        nwfs : (int): WFS index
 
         ampli : (float) : new amplitude in units of lambda/D
+
+        wfs: (Sensors): wfs object
+
+        rtc: (Rtc): rtc object
 
         p_wfss : (list of Param_wfs) : list of wfs parameters
 
         p_tel : (Param_tel) : Telescope parameters
     """
-    nwfs = p_centroider.nwfs
+
     pwfs = p_wfss[nwfs]
     pwfs.set_pyr_ampl(ampli)
 
+    pyr_npts = int(np.ceil(int(ampli * 2 * np.pi) / 4.) * 4)
+
     pixsize = pwfs._qpixsize * CONST.ARCSEC2RAD
-    scale_fact = 2 * np.pi / pwfs._Nfft * \
-        (pwfs.Lambda * 1e-6 / p_tel.diam) / pixsize * ampli
+    scale_fact = 2 * np.pi / pwfs._Nfft * (
+            pwfs.Lambda * 1e-6 / p_tel.diam) / pixsize * ampli
     cx = scale_fact * \
-        np.sin((np.arange(pwfs.pyr_npts, dtype=np.float32))
-               * 2. * np.pi / pwfs.pyr_npts)
+        np.sin((np.arange(pyr_npts, dtype=np.float32)) * 2. * np.pi / pyr_npts)
     cy = scale_fact * \
-        np.cos((np.arange(pwfs.pyr_npts, dtype=np.float32))
-               * 2. * np.pi / pwfs.pyr_npts)
+        np.cos((np.arange(pyr_npts, dtype=np.float32)) * 2. * np.pi / pyr_npts)
+
+    pwfs.set_pyr_npts(pyr_npts)
     pwfs.set_pyr_cx(cx)
     pwfs.set_pyr_cy(cy)
+    wfs.set_pyr_modulation(nwfs, cx, cy)
 
     scale = pwfs.Lambda * 1e-6 / p_tel.diam * ampli * 180. / np.pi * 3600.
+    rtc.set_centroider_scale(nwfs, scale)
 
-    rtc.set_pyr_ampl(nwfs, cx, cy, scale)
+    return cx, cy, scale, pyr_npts
 
 
 def noise_cov(nw: int, p_wfs: conf.Param_wfs, p_atmos: conf.Param_atmos,

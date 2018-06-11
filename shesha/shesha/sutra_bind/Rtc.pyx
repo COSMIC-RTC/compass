@@ -1034,26 +1034,15 @@ cdef class Rtc:
                 self.rtc.d_centro[n].get_type()
             raise ValueError(e)
 
-    def set_pyr_ampl(self, int n, np.ndarray[ndim=1, dtype=np.float32_t] cx,
-                     np.ndarray[ndim=1, dtype=np.float32_t] cy, float scale):
+    def set_centroider_scale(self, int n, float scale):
         """Set the pyramid modulation amplitude
         :parameters:
         n : (int) : pyr centroider number
-        cx : (np.ndarray[ndim=1, dtype=np.float32]) : X position of new modulation points
-        cy : (np.ndarray[ndim=1, dtype=np.float32]) : Y position of new modulation points
         scale : (float) : scaling factor
         """
         self.context.set_activeDevice(self.device, 1)
 
-        if(self.rtc.d_centro[n].is_type(scons.WFSType.PYRHR)):
-            centro = self.rtc.d_centro.at(n)
-            pyr = dynamic_cast_wfs_pyr_ptr(centro.wfs)
-            pyr.pyr_cx.fill_from(< float * >cx.data)
-            pyr.pyr_cy.fill_from(< float * >cy.data)
-        else:
-            e = "Centroider should be pyrhr, got " + \
-                self.rtc.d_centro[n].get_type()
-            raise ValueError(e)
+        self.rtc.d_centro[n].scale = scale
 
     def set_thresh(self, int ncentro, float thresh):
         """set threshold for the centroider #ncentro

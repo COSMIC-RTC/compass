@@ -9,6 +9,7 @@ from PyQt5.uic import loadUiType
 import shesha.ao as ao
 import shesha.constants as scons
 from shesha.constants import CONST
+from shesha.ao.wfs import comp_new_pyr_ampl
 
 from .widget_base import uiLoader
 ExpertWidgetTemplate, ExpertClassTemplate = uiLoader('widget_ao_expert')
@@ -81,9 +82,10 @@ class WidgetAOExpert(ExpertClassTemplate):
 
     def updatePyrAmpl(self) -> None:
         if (self.sim.rtc):
-            self.sim.rtc.set_pyr_ampl(0,
-                                      self.uiExpert.wao_pyr_ampl.value(),
-                                      self.sim.config.p_wfss, self.sim.config.p_tel)
+            comp_new_pyr_ampl(0,
+                              self.uiExpert.wao_pyr_ampl.value(), self.sim.wfs,
+                              self.sim.rtc, self.sim.config.p_wfss,
+                              self.sim.config.p_tel)
             print("Pyramid modulation updated on GPU")
             self.updatePlotWfs()
 
