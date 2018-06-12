@@ -63,7 +63,7 @@ class CompassSupervisor(AbstractSupervisor):
         with/without atmos shown to WFS
         '''
         raise NotImplementedError("Not implemented")
-        return np.empty(1)
+        # return np.empty(1)
 
     def next(self, nbiters, see_atmos=True):
         for _ in trange(nbiters):
@@ -165,7 +165,7 @@ class CompassSupervisor(AbstractSupervisor):
         Return sum of intensities in subaps. Size nSubaps, same order as slopes
         '''
         raise NotImplementedError("Not implemented")
-        return np.empty(1)
+        # return np.empty(1)
 
     def getAllDataLoop(self, nIter: int, slope: bool, command: bool, target: bool,
                        intensity: bool, targetPhase: bool) -> np.ndarray:
@@ -174,7 +174,7 @@ class CompassSupervisor(AbstractSupervisor):
         Requires loop to be asynchronously running
         '''
         raise NotImplementedError("Not implemented")
-        return np.empty(1)
+        # return np.empty(1)
 
     #  ____                  _ _   _        __  __      _   _               _
     # / ___| _ __   ___  ___(_) |_(_) ___  |  \/  | ___| |_| |__   ___   __| |___

@@ -98,15 +98,15 @@ class RTCSupervisor(BenchSupervisor):
         print("->RTC")
         nact = self._sim.config.p_dms[0].nact
         nvalid = p_wfs._nvalid
-        self.valid = Octopus.getInterface(**p_wfs._validsubsInterface)
-        tmp_valid = np.zeros((2, self.valid.size // 2), dtype=np.float32)
-        self.valid.recv(tmp_valid, 0)
-        self._sim.config.p_nvalid = tmp_valid
-
         self.cmat = Octopus.getInterface(
                 **self._sim.config.p_controllers[0]._cmatInterface)
         cMat_data = np.zeros((nact, nvalid * 2), dtype=np.float32)
         self.cmat.recv(cMat_data, 0)
+
+        self.valid = Octopus.getInterface(**p_wfs._validsubsInterface)
+        tmp_valid = np.zeros((2, self.valid.size // 2), dtype=np.float32)
+        self.valid.recv(tmp_valid, 0)
+        self._sim.config.p_nvalid = tmp_valid
 
         if p_wfs.type == WFSType.SH:
             self.npix = p_wfs.npix
