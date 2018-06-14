@@ -267,8 +267,18 @@ cdef class Rtc:
             img: (np.ndarray[ndim=2, dtype=np.float32_t]): SH image
         """
         self.context.set_activeDevice(self.rtc.device, 1)
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] img_F = img.T.copy()
-        self.rtc.d_centro[ncentro].load_img( < float * > img_F.data, img.shape[0])
+        self.rtc.d_centro[ncentro].load_img( < float * > img.data, img.shape[0])
+
+    def load_rtc_img_gpu(self, int ncentro, np.ndarray[ndim=2, dtype=np.float32_t] img):
+        """
+            Load a SH image in a RTC standalone
+
+        :parameters:
+            ncentro: (int): centroider index
+            img: (np.ndarray[ndim=2, dtype=np.float32_t]): SH image
+        """
+        self.context.set_activeDevice(self.rtc.device, 1)
+        self.rtc.d_centro[ncentro].load_img_gpu( < float * > img.data, img.shape[0])
 
     def load_rtc_pyrimg(self, int ncentro, np.ndarray[ndim=2, dtype=np.float32_t] img):
         """

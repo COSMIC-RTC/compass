@@ -39,6 +39,16 @@ int sutra_centroider::load_img(float *img, int n) {
   return EXIT_SUCCESS;
 }
 
+int sutra_centroider::load_img_gpu(float *img, int n) {
+  current_context->set_activeDevice(device, 1);
+  if (this->d_img == nullptr) {
+    long dims_data2[3] = {2, n, n};
+    this->d_img = new carma_obj<float>(current_context, dims_data2);
+  }
+  this->d_img->copyFrom(img, n * n);
+  return EXIT_SUCCESS;
+}
+
 int sutra_centroider::load_pyrimg(float *img, int n) {
   current_context->set_activeDevice(device, 1);
   if (this->d_bincube == nullptr) {

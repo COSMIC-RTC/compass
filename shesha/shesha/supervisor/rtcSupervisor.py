@@ -53,17 +53,28 @@ class RTCSupervisor(BenchSupervisor):
         '''
         Move atmos -> getSlope -> applyControl ; One integrator step
         '''
-        # print("Wait a frame...")
-        self.fakewfs.recv(self.frame, 0)
-        p_wfs = self._sim.config.p_wfss[0]
-        if p_wfs.type == WFSType.SH:
-            self.rtc.load_rtc_img(0, self.frame)
-            #for SH
-            self.rtc.fill_rtc_bincube(0, self.npix)
-        elif p_wfs.type == WFSType.PYRHR:
-            self.rtc.load_rtc_pyrimg(0, self.frame)
-        else:
-            raise RuntimeError("WFS Type not usable")
+        try:
+            from GPUIPCInterfaceWrap import GPUIPCInterfaceFloat
+            # print("Wait a frame...")
+            if self.fakewfs is not GPUIPCInterfaceFloat:
+                raise RuntimeError("Fallback to basic OCtopus API")
+            if p_wfs.type == WFSType.SH:
+                self.fakewfs.wait()
+                self.rtc.load_rtc_img_gpu(0, np.array(self.fakewfs.buffer, copy=False))
+                self.rtc.fill_rtc_bincube(0, self.npix)
+            else:
+                raise RuntimeError("WFS Type not usable")
+        except:
+            self.fakewfs.recv(self.frame, 0)
+            p_wfs = self._sim.config.p_wfss[0]
+            if p_wfs.type == WFSType.SH:
+                self.rtc.load_rtc_img(0, self.frame.T.copy())
+                #for SH
+                self.rtc.fill_rtc_bincube(0, self.npix)
+            elif p_wfs.type == WFSType.PYRHR:
+                self.rtc.load_rtc_pyrimg(0, self.frame)
+            else:
+                raise RuntimeError("WFS Type not usable")
         self.rtc.do_centroids(0)
         self.rtc.do_control(0)
         self.rtc.save_com(0)

@@ -33,6 +33,7 @@ class sutra_centroider {
   int load_img(float *img, int n);
   int load_pyrimg(float *img, int n);
   bool is_type(string typec) { return (typec.compare(get_type()) == 0); }
+  int load_img_gpu(float *img, int n);
 
   virtual string get_type() = 0;
 
