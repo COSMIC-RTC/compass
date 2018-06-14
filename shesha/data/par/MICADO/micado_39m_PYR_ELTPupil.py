@@ -17,15 +17,21 @@ p_geom.set_zenithangle(0.)
 
 # tel
 p_tel = ao.Param_tel()
+
+#E_ELT PUPIL Rico like
+p_tel.set_type_ap("EELT")
+p_tel.set_diam(39)
+p_tel.set_pupangle(0)  #ELT pup rotation in degrees
+p_tel.set_t_spiders(0.51)  #Spider size in meters
+"""
+#E_ELT PUPIL Alexis like
 p_tel.set_diam(38.542)
 p_tel.set_cobs(0.28)
-
-#E_ELT PUPIL
-
 p_tel.set_type_ap("EELT-Nominal")
 p_tel.set_spiders_type("six")
 p_tel.set_pupangle(0)
-p_tel.set_t_spiders(0)
+p_tel.set_t_spiders(0.)
+"""
 """
 p_tel.set_nbrmissing(7)
 p_tel.set_referr(0.01)
@@ -78,7 +84,7 @@ p_wfs0.set_type("pyrhr")
 p_wfs0.set_nxsub(
         92
 )  # 92 sub aps for hexagonal grid of actuators eq. 78 subaps square grid. (pitch = 0.5m)
-p_wfs0.set_fracsub(0.8)
+p_wfs0.set_fracsub(0.1)
 p_wfs0.set_xpos(0.)
 p_wfs0.set_ypos(0.)
 p_wfs0.set_Lambda(0.7)

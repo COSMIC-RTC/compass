@@ -139,7 +139,8 @@ class ApertureType:
         Telescope apertures
     """
     GENERIC = b'Generic'
-    EELT_NOMINAL = b'EELT-Nominal'
+    EELT_NOMINAL = b'EELT-Nominal'  # Alexis Carlotti method
+    EELT = b'EELT'  # E. Gendron method
     EELT_BP1 = b'EELT-BP1'
     EELT_BP3 = b'EELT-BP3'
     EELT_BP5 = b'EELT-BP5'

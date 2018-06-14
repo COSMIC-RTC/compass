@@ -265,7 +265,6 @@ class CanapassSupervisor(CompassSupervisor):
     def doImatPhase(self, cubePhase, Nslopes, noise=False, nmodesMax=0, withTurbu=False,
                     pushPull=False, wfsnum=0):
         iMatPhase = np.zeros((cubePhase.shape[0], Nslopes))
-
         for nphase in trange(cubePhase.shape[0], desc="Phase IM"):
             if ((pushPull is True) or
                 (withTurbu is True)):  # with turbulence/aberrations => push/pull
@@ -296,7 +295,8 @@ class CanapassSupervisor(CompassSupervisor):
                                        self._sim.dms, rst=reset, ncpa=1)
             self._sim.wfs.comp_img(w, noise=noise)
         self._sim.rtc.do_centroids(0)
-        return self._sim.rtc.get_centroids(0)
+        c = self._sim.rtc.get_centroids(0)
+        return c
 
     def computeModalResiduals(self):
         self._sim.rtc.do_control_geo(1, self._sim.dms, self._sim.tar, 0)
@@ -531,7 +531,7 @@ class CanapassSupervisor(CompassSupervisor):
         if ((mpupil.shape[0] != dimx) or (mpupil.shape[1] != dimy)):
             print("Error mpupil shape on wfs %d must be: (%d,%d)" % (numwfs, dimx, dimy))
         else:
-            self._sim.wfs.set_pupil(numwfs, mpupil.astype(np.float32))
+            self._sim.wfs.set_pupil(numwfs, mpupil.copy())
 
     def getIpupil(self):
         return self._sim.config.p_geom._ipupil
@@ -623,36 +623,37 @@ class CanapassSupervisor(CompassSupervisor):
 
         #wao.sim.config.p_geom._ipupil
         """
-        plt.matshow(wao.sim.config.p_geom._ipupil, fignum=1)
+        plt.matshow(wao.config.p_geom._ipupil, fignum=1)
 
         # DM positions in iPupil:
-        dmposx = wao.sim.config.p_dm0._xpos
-        dmposy = wao.sim.config.p_dm0._ypos
-        plt.scatter(dmposx, dmposy, color="blue")
-
-
-
+        dmposx = wao.config.p_dm0._xpos -0.5
+        dmposy = wao.config.p_dm0._ypos -0.5
+        plt.scatter(dmposy, dmposx, color="blue")
 
         #WFS position in ipupil
-        ipup = wao.sim.config.p_geom._ipupil
-        spup = wao.sim.config.p_geom._spupil
+        ipup = wao.config.p_geom._ipupil
+        spup = wao.config.p_geom._spupil
         s2ipup = (ipup.shape[0] - spup.shape[0]) / 2.
-        posx = wao.sim.config.p_wfss[0]._istart + s2ipup
-        posx = posx *  wao.sim.config.p_wfss[0]._isvalid
-        posx = posx[np.where(posx > 0)] - ipup.shape[0] / 2 - 1
-        posy = wao.sim.config.p_wfss[0]._jstart + s2ipup
-        posy = posy * wao.sim.config.p_wfss[0]._isvalid
-        posy = posy.T[np.where(posy > 0)] - ipup.shape[0] / 2 - 1
+        posx = wao.config.p_wfss[0]._istart + s2ipup
+        posx = np.tile(posx,(posx.size,1))
+        posy = posx.T.copy()
+        posx = posx *  wao.config.p_wfss[0]._isvalid
+        posx = posx[np.where(posx > 0)] - ipup.shape[0] / 2 -wao.config.p_wfs0.npix
+        posy = posy * wao.config.p_wfss[0]._isvalid
+        posy = posy[np.where(posy > 0)] - ipup.shape[0] / 2 -wao.config.p_wfs0.npix
 
         #center of ssp position in ipupil
         demissp = (posx[1]-posx[0])/2
         sspx = posx+ipup.shape[0]/2+demissp
         sspy = posy+ipup.shape[0]/2+demissp
-        plt.scatter(sspx, sspy, color="red")
-        imat = wao.sim.rtc.get_imat(0)
+        plt.scatter(sspy, sspx, color="red")
 
-        influDM = wao.sim.dms.get_influ(b"pzt", 0)
-        influTT = wao.sim.dms.get_influ(b"tt", 0)
+
+
+        imat = wao.rtc.get_imat(0)
+
+        influDM = wao.dms.get_influ(b"pzt", 0)
+        influTT = wao.dms.get_influ(b"tt", 0)
 
         """
 
@@ -679,4 +680,5 @@ if __name__ == '__main__':
         server.add_device(supervisor, "waoconfig_" + user)
         server.start()
     except:
-        raise EnvironmentError("Missing dependencies (code HRAA or Pyro4 or Dill Serializer)")
+        raise EnvironmentError(
+                "Missing dependencies (code HRAA or Pyro4 or Dill Serializer)")

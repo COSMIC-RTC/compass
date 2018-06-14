@@ -9,7 +9,7 @@ from shesha.constants import CONST
 import shesha.util.make_pupil as mkP
 import shesha.util.utilities as util
 from shesha.sutra_bind.wrap import naga_context, Telescope
-
+from shesha.constants import ApertureType
 import numpy as np
 
 
@@ -116,14 +116,17 @@ def init_wfs_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
         print("pupdiam used: ", p_geom.pupdiam)
         if p_wfs.type == scons.WFSType.PYRHR:
             geom_init(p_geom, p_tel, padding=p_wfs._nrebin)
-        else:
+        elif (p_wfs.type == scons.WFSType.SH):
             geom_init(p_geom, p_tel)
+        else:
+            raise RuntimeError("This WFS can not be used")
 
     if (p_wfs.type == scons.WFSType.PYRHR):
         init_pyrhr_geom(p_wfs, r0, p_tel, p_geom, ittime, verbose=1)
-
-    if (p_wfs.type == scons.WFSType.SH):
+    elif (p_wfs.type == scons.WFSType.SH):
         init_sh_geom(p_wfs, r0, p_tel, p_geom, ittime, verbose=1)
+    else:
+        raise RuntimeError("This WFS can not be used")
 
 
 def init_wfs_size(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel, verbose=1):
@@ -714,7 +717,6 @@ def geom_init(p_geom: conf.Param_geom, p_tel: conf.Param_tel, padding=2):
     # Useful pupil
     p_geom._spupil = mkP.make_pupil(p_geom.pupdiam, p_geom.pupdiam, p_tel, cent,
                                     cent).astype(np.float32)
-
     p_geom._phase_ab_M1 = mkP.make_phase_ab(p_geom.pupdiam, p_geom.pupdiam, p_tel,
                                             p_geom._spupil).astype(np.float32)
 
@@ -723,7 +725,6 @@ def geom_init(p_geom: conf.Param_geom, p_tel: conf.Param_tel, padding=2):
 
     # useful pupil + 4 pixels
     p_geom._mpupil = util.pad_array(p_geom._spupil, p_geom._n).astype(np.float32)
-
     p_geom._phase_ab_M1_m = util.pad_array(p_geom._phase_ab_M1,
                                            p_geom._n).astype(np.float32)
 
