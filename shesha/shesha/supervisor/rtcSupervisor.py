@@ -68,7 +68,7 @@ class RTCSupervisor(BenchSupervisor):
             self.fakewfs.recv(self.frame, 0)
             p_wfs = self._sim.config.p_wfss[0]
             if p_wfs.type == WFSType.SH:
-                self.rtc.load_rtc_img(0, self.frame.T.copy())
+                self.rtc.load_rtc_img(0, self.frame.copy())
                 #for SH
                 self.rtc.fill_rtc_bincube(0, self.npix)
             elif p_wfs.type == WFSType.PYRHR:
@@ -133,7 +133,7 @@ class RTCSupervisor(BenchSupervisor):
             # else:
             xvalid = self._sim.config.p_nvalid[0, :] / self.npix
             yvalid = self._sim.config.p_nvalid[1, :] / self.npix
-            offset = (self.npix - 1) / 2
+            offset = (self.npix + 1) / 2
             scale = 0.29005988378497927
         elif p_wfs.type == WFSType.PYRHR:
             xvalid = self._sim.config.p_nvalid[1, :]
