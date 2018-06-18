@@ -393,7 +393,7 @@ export COMPASS_ROOT=$HOME/compass
 export NAGA_ROOT=$COMPASS_ROOT/naga
 export SHESHA_ROOT=$COMPASS_ROOT/shesha
 export LD_LIBRARY_PATH=$COMPASS_ROOT/libcarma:$COMPASS_ROOT/libsutra:$LD_LIBRARY_PATH
-export PYTHONPATH=$NAGA_ROOT/lib:$NAGA_ROOT/src:$SHESHA_ROOT/lib:$SHESHA_ROOT/src:$PYTHONPATH
+export PYTHONPATH=$NAGA_ROOT:$SHESHA_ROOT:$PYTHONPATH
 ```
 
 ### Install dependencies (if not already done)
