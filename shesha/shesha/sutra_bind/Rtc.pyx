@@ -267,7 +267,8 @@ cdef class Rtc:
             img: (np.ndarray[ndim=2, dtype=np.float32_t]): SH image
         """
         self.context.set_activeDevice(self.rtc.device, 1)
-        self.rtc.d_centro[ncentro].load_img( < float * > img.data, img.shape[0])
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] img_F = img.T.copy()
+        self.rtc.d_centro[ncentro].load_img( < float * > img_F.data, img.shape[0])
 
     def load_rtc_img_gpu(self, int ncentro, np.ndarray[ndim=2, dtype=np.float32_t] img):
         """
@@ -294,11 +295,12 @@ cdef class Rtc:
 
     def load_rtc_validpos(self, int ncentro, np.ndarray[ndim=1, dtype=np.int32_t] validx, np.ndarray[ndim=1, dtype=np.int32_t] validy):
         """
-            Load a PYR image in a RTC standalone
+            Load valid SSP positions in a RTC standalone
 
         :parameters:
             ncentro: (int): centroider index
-            img: (np.ndarray[ndim=2, dtype=np.float32_t]): PYR image
+            validx: (np.ndarray[ndim=1, dtype=np.int32_t]): validx
+            validy: (np.ndarray[ndim=1, dtype=np.int32_t]): validy
         """
         self.context.set_activeDevice(self.rtc.device, 1)
         self.rtc.d_centro[ncentro].load_validpos(< int * > validx.data, < int * > validy.data, validx.size)

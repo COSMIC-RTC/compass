@@ -334,6 +334,7 @@ class Simulator:
         print("----------------------------------------------------")
         print("iter# | S.E. SR | L.E. SR | ETR (s) | Framerate (Hz)")
         print("----------------------------------------------------")
+        self.next(**kwargs)
         t0 = time.time()
         t1 = time.time()
         if n == -1:
@@ -345,7 +346,7 @@ class Simulator:
                     t1 = time.time()
                 i += 1
 
-        for i in range(n):
+        for i in range(n-1):
             self.next(**kwargs)
             if ((i + 1) % monitoring_freq == 0):
                 self.print_strehl(monitoring_freq, time.time() - t1, i, n)

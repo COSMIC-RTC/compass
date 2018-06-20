@@ -53,10 +53,12 @@ class RTCSupervisor(BenchSupervisor):
         '''
         Move atmos -> getSlope -> applyControl ; One integrator step
         '''
+        p_wfs = self._sim.config.p_wfss[0]
+
         try:
             from GPUIPCInterfaceWrap import GPUIPCInterfaceFloat
             # print("Wait a frame...")
-            if self.fakewfs is not GPUIPCInterfaceFloat:
+            if type(self.fakewfs) is not GPUIPCInterfaceFloat:
                 raise RuntimeError("Fallback to basic OCtopus API")
             if p_wfs.type == WFSType.SH:
                 self.fakewfs.wait()
@@ -75,11 +77,17 @@ class RTCSupervisor(BenchSupervisor):
                 self.rtc.load_rtc_pyrimg(0, self.frame)
             else:
                 raise RuntimeError("WFS Type not usable")
+        # print("frame")
+        # print(self.frame)
         self.rtc.do_centroids(0)
+        print("slopes")
+        print(self.rtc.get_centroids(0))
         self.rtc.do_control(0)
         self.rtc.save_com(0)
         # print("Send a command")
         comms = self.rtc.get_com(0)
+        print("comms")
+        print(comms)
         self.fakedms.send(comms)
 
     def loadConfig(self, configFile: str) -> None:
@@ -114,8 +122,8 @@ class RTCSupervisor(BenchSupervisor):
         cMat_data = np.zeros((nact, nvalid * 2), dtype=np.float32)
         self.cmat.recv(cMat_data, 0)
 
+        tmp_valid = np.zeros((2, nvalid), dtype=np.int32)
         self.valid = Octopus.getInterface(**p_wfs._validsubsInterface)
-        tmp_valid = np.zeros((2, self.valid.size // 2), dtype=np.float32)
         self.valid.recv(tmp_valid, 0)
         self._sim.config.p_nvalid = tmp_valid
 
@@ -131,10 +139,10 @@ class RTCSupervisor(BenchSupervisor):
             #     xvalid = dataS.data["roiTab"].data[0, :] / self.npix
             #     yvalid = dataS.data["roiTab"].data[1, :] / self.npix
             # else:
-            xvalid = self._sim.config.p_nvalid[0, :] / self.npix
-            yvalid = self._sim.config.p_nvalid[1, :] / self.npix
+            xvalid = self._sim.config.p_nvalid[0, :] // self.npix
+            yvalid = self._sim.config.p_nvalid[1, :] // self.npix
             offset = (self.npix + 1) / 2
-            scale = 0.29005988378497927
+            scale = p_wfs.pixsize
         elif p_wfs.type == WFSType.PYRHR:
             xvalid = self._sim.config.p_nvalid[1, :]
             yvalid = self._sim.config.p_nvalid[0, :]
@@ -145,6 +153,8 @@ class RTCSupervisor(BenchSupervisor):
         print("nvalid : %d" % nvalid)
         print("nact : %d" % nact)
         p_wfs._nvalid = nvalid
+        p_wfs.set_validsubsx(xvalid)
+        p_wfs.set_validsubsy(yvalid)
 
         gain = self._sim.config.p_controllers[0].gain
         print("gain : %f" % gain)
@@ -155,7 +165,7 @@ class RTCSupervisor(BenchSupervisor):
         self.rtc.set_matE(0, np.identity(nact, dtype=np.float32))
         self.rtc.set_mgain(0, np.ones(nact, dtype=np.float32) * gain)
         self.rtc.set_cmat(0, cMat_data)
-        self.rtc.load_rtc_validpos(0, xvalid.astype(np.int32), yvalid.astype(np.int32))
+        self.rtc.load_rtc_validpos(0, xvalid, yvalid)
 
         self._sim.is_init = True
 

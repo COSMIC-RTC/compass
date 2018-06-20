@@ -102,6 +102,11 @@ class SimulatorRTC(Simulator):
         else:
             raise RuntimeError("WFS Type not usable")
 
+        if self.fastMode:
+            p_wfs = self.rtcconf.config.p_wfss[0]
+            self.frame = np.random.random((p_wfs._framesizex, p_wfs._framesizey)).astype(np.float32)
+
+
     def next(self, *, move_atmos: bool=True, see_atmos: bool=True, nControl: int=0,
              tar_trace: Iterable[int]=None, wfs_trace: Iterable[int]=None,
              do_control: bool=True, apply_control: bool=True) -> None:
@@ -114,14 +119,27 @@ class SimulatorRTC(Simulator):
                            do_control=False)
             # print("Send a frame")
             p_wfs = self.rtcconf.config.p_wfss[0]
-            if p_wfs.type == WFSType.SH:
-                self.frame = self.wfs.get_binimg(0)
-            elif p_wfs.type == WFSType.PYRHR:
-                self.frame = self.wfs.get_pyrimg(0)
-            else:
-                raise RuntimeError("WFS Type not usable")
 
-        self.fakewfs.send(self.frame)
+            try:
+                from GPUIPCInterfaceWrap import GPUIPCInterfaceFloat
+                # print("Wait a frame...")
+                if type(self.fakewfs) is not GPUIPCInterfaceFloat:
+                    raise RuntimeError("Fallback to basic OCtopus API")
+                if p_wfs.type == WFSType.SH:
+                    self.wfs.get_binimg_gpu(0, np.array(self.fakewfs.buffer, copy=False))
+                    self.fakewfs.notify()
+                else:
+                    raise RuntimeError("WFS Type not usable")
+            except:
+                p_wfs = self.rtcconf.config.p_wfss[0]
+                if p_wfs.type == WFSType.SH:
+                    self.frame = self.wfs.get_binimg(0)
+                elif p_wfs.type == WFSType.PYRHR:
+                    self.frame = self.wfs.get_pyrimg(0)
+                else:
+                    raise RuntimeError("WFS Type not usable")
+
+                self.fakewfs.send(self.frame)
         if apply_control:
             # print("Wait a command...")
             self.fakedms.recv(self.comp, 0)

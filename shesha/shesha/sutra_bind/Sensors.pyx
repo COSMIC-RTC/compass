@@ -449,6 +449,28 @@ cdef class Sensors:
         data_F[np.where(data_F < 0)] = 0
         return data_F.T.copy()
 
+    def get_binimg_gpu(self, int n, np.ndarray[ndim = 2, dtype = np.float32_t] data, Telescope tel=None, Atmos atmos=None, Dms dms=None):
+        """
+            Return the 'binimg' array of a given wfs
+
+        :param
+            n: (int) :number of the wfs to get the 'binimg' from
+        :options for raw image computation
+            tel (Telescope) : shesha telescope
+            atmos (Atmos) : shesha atmos
+            dms (Dms) : shesha dms
+        """
+
+        cdef carma_obj[float] * img
+
+        if (tel and atmos and dms):
+            self.sensor_trace(n, "all", tel, atmos, dms)
+            self.sensor_compimg(n)
+        img = self.sensors.d_wfs[n].d_binimg
+        cdef long nbelem = img.getNbElem()
+
+        img.copyInto( < float * > data.data, nbelem)
+
     def get_binimg_not_noisy(self, int n):
         """
             Return the 'binimg_notnoisy' array of a given pyrhr wfs
