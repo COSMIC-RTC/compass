@@ -288,3 +288,120 @@ def add_fitting_to_psf(filename, otf, otffit):
     psf *= (psf.shape[0] * psf.shape[0] / float(np.where(spup)[0].shape[0]))
 
     return psf
+
+
+def intersample(Cvvmap, pupilImage, IFImage, pixscale, dactu, lambdaIR):
+    """
+    res = intersample( Cvvmap, pupilImage, IFImage, pixscale, dactu, lambdaIR)
+
+    Cvvmap is the 'map' of the Cvv matrix (cov matrix of tomo error
+    expressed on volts). The "volts" unit must be used together with
+    the influence function funcInflu(x,y,dm.x0) expressed in meters.
+
+    Then, the result of intersample is in meter^2.
+
+    <Cvvmap>     : output of Cvvmap=getMap(Cvv)
+    <pupilImage> : pupil image, of size (N,N), shall be properly zero-padded,
+                   ready for FFT
+    <IFImage>    : image of influence function of 1 actu. Same support
+                   as pupilImage, same sampling.
+    <pixscale>   : size of pixel (in pupil space, meters) of pupilImage
+                   and IFImage
+    <dactu>      : inter-actuator pitch in pupil space (meters)
+    <lambdaIR>   : in microns
+
+    Units of IFImage and Cvvmap shall be such that the product of Cvvmap
+    numbers and IFImage^2 is microns^2
+
+
+    SEE ALSO:  getMap()
+
+
+    # pour test/debug :
+    N = 1024
+    D=39.
+    npup=300
+    pixscale = D/npup
+    dactu = 4*pixscale
+    x=(np.arange(N)-N/2)*pixscale
+    x,y = np.meshgrid(x,x,indexing='ij')
+    r2=(x**2+y**2)
+    IFImage = np.exp(-1.5* r2 / dactu**2)
+    pupilImage = generateEeltPupilReflectivity(1., N, 0.53, N/2, N/2, pixscale, 0.03, -10., softGap=1)
+    Nactu = int(np.round(D/dactu))+1
+    ncov = 2*Nactu+1
+    x=np.arange(ncov)-Nactu
+    x,y = np.meshgrid(x,x,indexing='ij')
+    r=np.sqrt(x**2+y**2)
+    Cvvmap = np.exp(-r/3)
+    Cvvmap = np.zeros((ncov, ncov))
+    Cvvmap[Nactu, Nactu]=1.
+
+
+    """
+
+    print("Interpolating Dphi map")
+
+    # image size
+    N = pupilImage.shape[0]
+
+    # size of the side of Cvvmap (always odd number)
+    ncov = Cvvmap.shape[0]
+    if (ncov % 2) == 0:
+        ncov = 3 / 0
+        print("Fucking error")
+
+    # nber of elements on each side of the center of Cvvmap
+    nelem = (ncov - 1) // 2
+    # compute inter-actuator distance in pixels dactupix
+    # dactupix *should* be an integer : pixscale shall be chosen in such a way
+    # that dactupix is an integer. However, for safety here, we round the
+    # result.
+    dactupix = int(np.round(dactu / pixscale))
+    # Fill MAP array with values of Cvvmap. Centre of MAP is located at
+    # index [ncmap, ncmap] (i.e. Fourier-centred)
+    MAP = np.zeros((N, N))
+    ncmap = N // 2  # central element of the MAP, in a Fourier-sense
+    i = ncmap - nelem * dactupix
+    j = ncmap + nelem * dactupix + 1
+    MAP[i:j:dactupix, i:j:dactupix] = Cvvmap
+    print("done")
+
+    # Computing the phase correlation function
+    # One should have corr(0) = phase_variance.
+    # Computing corr(0) is done using the <v_i^2> (diagonal of Cvv).
+    # We decided that <v^2> is the average value for 1 single actuator (i.e. it's the average
+    # of the diagonal of Cvv).
+    # Then the average phase variance over the pupil equals to
+    # (1/S_pupil) * $_pupil(fi^2) * Nactu * <v^2>
+    # with S_pupil the surface, and $ is an integral. Nactu needs to be here
+    # because if it wasn't, we'd have computed the phase variance over the pupil
+    # with only 1 single actu moving.
+    # So, in our formula, we have replaced the value of (S_pupil/Nactu) by (dactu^2).
+    # The (dactu^2) needs to be expressed in pixels because our integral $(fi^2) is not
+    # a real integral : it's just summing pixels instead.
+
+    corr = np.fft.fft2(np.abs(np.fft.fft2(IFImage))**2 * np.fft.fft2(MAP)).real / (
+            IFImage.size * dactupix**2)
+    # From correlation to Dphi
+    # Dphi(r) = 2*C(0) - 2*C(r)
+    # We take advantage we need to do a multiplication to multiply by another factor
+    # in the same line. This is to translate dphi from m^2 into rd^2
+    fact = 2 * (2 * np.pi / lambdaIR)**2
+    corr = np.fft.fftshift(corr)
+    dphi = fact * corr[0, 0] - fact * corr
+
+    # computation of the PSF
+    FTOtel = np.fft.ifft2(np.abs(np.fft.fft2(pupilImage))**2).real
+    # FTOtel is normalized with np.sum(FTOtel)=1
+    # This ensures to get a PSF with SR=np.max(psf), when the PSF is computed
+    # using just np.fft.fft2() without other normalisation
+    FTOtel /= np.sum(FTOtel)
+    # variable mask could be omitted because FTOtel should be zero after
+    # telescope cutoff. However, numeric errors lead to FTOtel small but not
+    # zero, and multiplying with exp(dphi) with dphi undefined after
+    # telescope cutoff may lead to unexpected results.
+    mask = FTOtel > (FTOtel[0, 0] / 1e9)
+    psf = np.fft.fftshift(np.fft.fft2(np.exp(-0.5 * dphi * mask) * FTOtel).real)
+
+    return psf
