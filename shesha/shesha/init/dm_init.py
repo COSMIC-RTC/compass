@@ -394,7 +394,7 @@ def init_pzt_from_hdf5(p_dm: conf.Param_dm, p_geom: conf.Param_geom, diam: float
 
         influ = influ_h5[:, :, i]
         f = interpolate.interp2d(x, y, influ, kind='cubic')
-        influ_new[:, :, i] = f(xnew, ynew).T
+        influ_new[:, :, i] = f(xnew, ynew)
 
     p_dm._xpos = np.float32(xpos)
     p_dm._ypos = np.float32(ypos)
