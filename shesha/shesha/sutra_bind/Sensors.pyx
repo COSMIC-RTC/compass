@@ -420,7 +420,7 @@ cdef class Sensors:
         wfs.fill_binimage(1)
         img.fill_into( < float * > data.data)
         data[np.where(data < 0)] = 0
-        return data
+        return data.T.copy()
 
     def get_binimg(self, int n, Telescope tel=None, Atmos atmos=None, Dms dms=None):
         """

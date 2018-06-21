@@ -113,33 +113,36 @@ class SimulatorRTC(Simulator):
         """
         Overload of the Simulator.next() function
         """
-        if not self.fastMode:
-            Simulator.next(self, move_atmos=move_atmos, see_atmos=see_atmos,
-                           nControl=nControl, tar_trace=[0], wfs_trace=[0],
-                           do_control=False)
-            # print("Send a frame")
-            p_wfs = self.rtcconf.config.p_wfss[0]
+        # print("Send a frame")
+        p_wfs = self.rtcconf.config.p_wfss[0]
 
-            try:
-                from GPUIPCInterfaceWrap import GPUIPCInterfaceFloat
-                # print("Wait a frame...")
-                if type(self.fakewfs) is not GPUIPCInterfaceFloat:
-                    raise RuntimeError("Fallback to basic OCtopus API")
+        try:
+            from GPUIPCInterfaceWrap import GPUIPCInterfaceFloat
+            if type(self.fakewfs) is not GPUIPCInterfaceFloat:
+                raise RuntimeError("Fallback to basic OCtopus API")
+            if not self.fastMode:
                 if p_wfs.type == WFSType.SH:
-                    self.wfs.get_binimg_gpu(0, np.array(self.fakewfs.buffer, copy=False))
-                    self.fakewfs.notify()
+                    Simulator.next(self, move_atmos=move_atmos, see_atmos=see_atmos,
+                                nControl=nControl, tar_trace=[0], wfs_trace=[0],
+                                do_control=False)
                 else:
                     raise RuntimeError("WFS Type not usable")
-            except:
-                p_wfs = self.rtcconf.config.p_wfss[0]
+            self.wfs.get_binimg_gpu(0, np.array(self.fakewfs.buffer, copy=False))
+            self.fakewfs.notify()
+            # print("Send a frame using GPUIPCInterfaceFloat...")
+        except:
+            if not self.fastMode:
+                Simulator.next(self, move_atmos=move_atmos, see_atmos=see_atmos,
+                            nControl=nControl, tar_trace=[0], wfs_trace=[0],
+                            do_control=False)
                 if p_wfs.type == WFSType.SH:
                     self.frame = self.wfs.get_binimg(0)
                 elif p_wfs.type == WFSType.PYRHR:
                     self.frame = self.wfs.get_pyrimg(0)
                 else:
                     raise RuntimeError("WFS Type not usable")
+            self.fakewfs.send(self.frame)
 
-                self.fakewfs.send(self.frame)
         if apply_control:
             # print("Wait a command...")
             self.fakedms.recv(self.comp, 0)

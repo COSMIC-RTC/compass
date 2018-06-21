@@ -64,6 +64,7 @@ class RTCSupervisor(BenchSupervisor):
                 self.fakewfs.wait()
                 self.rtc.load_rtc_img_gpu(0, np.array(self.fakewfs.buffer, copy=False))
                 self.rtc.fill_rtc_bincube(0, self.npix)
+                # print("Received a frame using GPUIPCInterfaceFloat...")
             else:
                 raise RuntimeError("WFS Type not usable")
         except:
@@ -80,14 +81,14 @@ class RTCSupervisor(BenchSupervisor):
         # print("frame")
         # print(self.frame)
         self.rtc.do_centroids(0)
-        print("slopes")
-        print(self.rtc.get_centroids(0))
+        # print("slopes")
+        # print(self.rtc.get_centroids(0))
         self.rtc.do_control(0)
         self.rtc.save_com(0)
         # print("Send a command")
         comms = self.rtc.get_com(0)
-        print("comms")
-        print(comms)
+        # print("comms")
+        # print(comms)
         self.fakedms.send(comms)
 
     def loadConfig(self, configFile: str) -> None:
