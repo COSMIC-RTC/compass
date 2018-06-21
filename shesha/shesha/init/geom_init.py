@@ -712,7 +712,7 @@ def geom_init(p_geom: conf.Param_geom, p_tel: conf.Param_tel, padding=2):
     p_geom._n1 = p_geom._p1 - padding
     p_geom._n2 = p_geom._p2 + padding
 
-    cent = p_geom.pupdiam / 2. - 0.5
+    cent = p_geom.pupdiam / 2. + 0.5
 
     # Useful pupil
     p_geom._spupil = mkP.make_pupil(p_geom.pupdiam, p_geom.pupdiam, p_tel, cent,
