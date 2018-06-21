@@ -117,7 +117,7 @@ class SimulatorRTC(Simulator):
         p_wfs = self.rtcconf.config.p_wfss[0]
 
         try:
-            from GPUIPCInterfaceWrap import GPUIPCInterfaceFloat
+            # from GPUIPCInterfaceWrap import GPUIPCInterfaceFloat
             if type(self.fakewfs) is not GPUIPCInterfaceFloat:
                 raise RuntimeError("Fallback to basic OCtopus API")
             if not self.fastMode:

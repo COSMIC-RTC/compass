@@ -56,7 +56,7 @@ class RTCSupervisor(BenchSupervisor):
         p_wfs = self._sim.config.p_wfss[0]
 
         try:
-            from GPUIPCInterfaceWrap import GPUIPCInterfaceFloat
+            # from GPUIPCInterfaceWrap import GPUIPCInterfaceFloat
             # print("Wait a frame...")
             if type(self.fakewfs) is not GPUIPCInterfaceFloat:
                 raise RuntimeError("Fallback to basic OCtopus API")
