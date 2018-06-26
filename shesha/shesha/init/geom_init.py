@@ -359,11 +359,16 @@ def init_pyrhr_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
     x = y.T
 
     Pangle = pup_sep * nrebin  # Pyramid angle in HR pixels
-    centers = Pangle * np.array([[-1, 1], [1, 1], [-1, -1], [1, -1]], dtype=np.float32)
+    if not hasattr(p_wfs, 'nPupils'):
+        p_wfs.nPupils = 4
+    centers = Pangle / np.sin(np.pi / p_wfs.nPupils) * np.c_[
+            np.cos((2 * np.arange(p_wfs.nPupils) + 1) * np.pi / p_wfs.nPupils),
+            np.sin((2 * np.arange(p_wfs.nPupils) + 1) * np.pi / p_wfs.nPupils)]
+
     if p_wfs.pyr_misalignments is not None:
         mis = np.asarray(p_wfs.pyr_misalignments) * nrebin
     else:
-        mis = np.zeros((4, 2), dtype=np.float32)
+        mis = np.zeros((p_wfs.nPupils, 2), dtype=np.float32)
     # Pyrarmid as minimal intersect of 4 tilting planes
     pyr = 2 * np.pi / pyrsize * np.min(
             np.asarray([(c[0] + m[0]) * x + (c[1] + m[1]) * y
@@ -377,7 +382,7 @@ def init_pyrhr_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
     pup[pyrsize // 2 - p_geom._n // 2:pyrsize // 2 + p_geom._n // 2,
         pyrsize // 2 - p_geom._n // 2:pyrsize // 2 + p_geom._n // 2] = p_geom._mpupil
 
-    for qIdx in range(4):
+    for qIdx in range(p_wfs.nPupils):
         quadOnCenter = np.roll(pup,
                                tuple((centers[qIdx] + mis[qIdx]).astype(np.int32)), (0,
                                                                                      1))
@@ -397,9 +402,7 @@ def init_pyrhr_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
     validRow = []
     validCol = []
 
-    for qIdx in [
-            2, 1, 3, 0
-    ]:  # Do not change order !! Corresponds to what happens A-B-C-D x-y // row-col
+    for qIdx in range(p_wfs.nPupils):
         tmpWh = np.where(
                 np.roll(stackedSubap,
                         tuple((centers[qIdx] / nrebin).astype(np.int32)), (0, 1)))
@@ -453,13 +456,11 @@ def init_pyrhr_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
     p_wfs._sincar = sincar.astype(np.float32)
 
     #pup = p_geom._mpupil
-    pupreb = util.rebin(pup * 1., [pyrsize // nrebin, pyrsize // nrebin])
+    # pupreb = util.rebin(pup * 1., [pyrsize // nrebin, pyrsize // nrebin])
     a = pyrsize // nrebin
     b = p_geom._n // nrebin
-    pupreb = pupreb[a // 2 - b // 2:a // 2 + b // 2, a // 2 - b // 2:a // 2 + b // 2]
-    wsubok = np.where(pupreb >= p_wfs.fracsub)
-    pupvalid = pupreb * 0.
-    pupvalid[wsubok] = 1
+    pupvalid = stackedSubap[a // 2 - b // 2:a // 2 + b // 2, a // 2 - b // 2:
+                            a // 2 + b // 2]
     p_wfs._isvalid = pupvalid.T.astype(np.int32)
 
     validsubsx = np.where(pupvalid)[0].astype(np.int32)
