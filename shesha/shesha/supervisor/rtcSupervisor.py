@@ -123,12 +123,13 @@ class RTCSupervisor(BenchSupervisor):
         cMat_data = np.zeros((nact, nvalid * 2), dtype=np.float32)
         self.cmat.recv(cMat_data, 0)
 
-        tmp_valid = np.zeros((2, nvalid), dtype=np.int32)
         self.valid = Octopus.getInterface(**p_wfs._validsubsInterface)
-        self.valid.recv(tmp_valid, 0)
-        self._sim.config.p_nvalid = tmp_valid
 
         if p_wfs.type == WFSType.SH:
+            tmp_valid = np.zeros((2, nvalid), dtype=np.int32)
+            self.valid.recv(tmp_valid, 0)
+            self._sim.config.p_nvalid = tmp_valid
+
             self.npix = p_wfs.npix
 
             # if "p_nvalid" not in self._sim.config.__dict__.keys(
@@ -140,13 +141,17 @@ class RTCSupervisor(BenchSupervisor):
             #     xvalid = dataS.data["roiTab"].data[0, :] / self.npix
             #     yvalid = dataS.data["roiTab"].data[1, :] / self.npix
             # else:
-            xvalid = self._sim.config.p_nvalid[0, :] // self.npix
-            yvalid = self._sim.config.p_nvalid[1, :] // self.npix
+            
+            xvalid = tmp_valid[0, :] // self.npix
+            yvalid = tmp_valid[1, :] // self.npix
             offset = (self.npix + 1) / 2
             scale = p_wfs.pixsize
         elif p_wfs.type == WFSType.PYRHR:
-            xvalid = self._sim.config.p_nvalid[1, :]
-            yvalid = self._sim.config.p_nvalid[0, :]
+            tmp_valid = np.zeros((2, nvalid*4), dtype=np.int32)
+            self.valid.recv(tmp_valid, 0)
+            self._sim.config.p_nvalid = tmp_valid
+            xvalid = tmp_valid[0, :]
+            yvalid = tmp_valid[1, :]
             offset = 0
             scale = self._sim.config.p_centroiders[0].pyrscale
         else:
