@@ -12,7 +12,7 @@ from shesha.sutra_bind.wrap import Sensors, Rtc
 
 
 def comp_new_pyr_ampl(nwfs: int, ampli: float, wfs: Sensors, rtc: Rtc, p_wfss: list,
-                      p_tel: conf.Param_tel):
+                      p_tel: conf.Param_tel, npts_force: int=None):
     """ Set the pyramid modulation amplitude
 
     :parameters:
@@ -32,8 +32,17 @@ def comp_new_pyr_ampl(nwfs: int, ampli: float, wfs: Sensors, rtc: Rtc, p_wfss: l
 
     pwfs = p_wfss[nwfs]
     pwfs.set_pyr_ampl(ampli)
+    nFace = pwfs.nPupils
 
-    pyr_npts = int(np.ceil(int(ampli * 2 * np.pi) / 4.) * 4)
+    if npts_force is None:
+        if ampli == 0.:
+            pyr_npts = 1
+        elif ampli < 2.:
+            pyr_npts = int(np.ceil(int(2 * 2 * np.pi) / nFace) * nFace)
+        else:
+            pyr_npts = int(np.ceil(int(ampli * 2 * np.pi) / nFace) * nFace)
+    else:
+        pyr_npts = npts_force
 
     pixsize = pwfs._qpixsize * CONST.ARCSEC2RAD
     scale_fact = 2 * np.pi / pwfs._Nfft * (
