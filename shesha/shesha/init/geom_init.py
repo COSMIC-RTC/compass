@@ -353,7 +353,7 @@ def init_pyrhr_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
         pup_sep = int(p_wfs.nxsub)
     else:
         pup_sep = p_wfs.pyr_pup_sep
-    # number of pix betw two centers two pupil images
+    # number of pix between two centers two pupil images
 
     y = np.tile(np.arange(pyrsize) - pyrsize / 2, (pyrsize, 1))
     x = y.T
@@ -361,27 +361,32 @@ def init_pyrhr_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
     Pangle = pup_sep * nrebin  # Pyramid angle in HR pixels
     if not hasattr(p_wfs, 'nPupils'):
         p_wfs.nPupils = 4
+    # Centers is a nPupils x 2 array describing the position of the quadrant centers
     centers = Pangle / np.sin(np.pi / p_wfs.nPupils) * np.c_[
             np.cos((2 * np.arange(p_wfs.nPupils) + 1) * np.pi / p_wfs.nPupils),
             np.sin((2 * np.arange(p_wfs.nPupils) + 1) * np.pi / p_wfs.nPupils)]
-
+    # In case nPupils == 4, we put the centers back in the normal A-B-C-D ordering scheme, for misalignment processing.
+    if p_wfs.nPupils == 4:
+        centers = np.round(centers[[1, 0, 2, 3], :]).astype(np.int32)
+    # Add in the misalignments of quadrant centers, in LR px units
     if p_wfs.pyr_misalignments is not None:
         mis = np.asarray(p_wfs.pyr_misalignments) * nrebin
     else:
         mis = np.zeros((p_wfs.nPupils, 2), dtype=np.float32)
-    # Pyrarmid as minimal intersect of 4 tilting planes
+    # Pyramid as minimal intersect of 4 tilting planes
     pyr = 2 * np.pi / pyrsize * np.min(
             np.asarray([(c[0] + m[0]) * x + (c[1] + m[1]) * y
                         for c, m in zip(centers, mis)]), axis=0)
-
     p_wfs._halfxy = np.fft.fftshift(pyr.T)
 
     # Valid pixels identification
     # Generate buffer with pupil at center
     pup = np.zeros((pyrsize, pyrsize), dtype=np.int32)
     pup[pyrsize // 2 - p_geom._n // 2:pyrsize // 2 + p_geom._n // 2,
-        pyrsize // 2 - p_geom._n // 2:pyrsize // 2 + p_geom._n // 2] = p_geom._mpupil
+        pyrsize // 2 - p_geom._n // 2:pyrsize // 2 + p_geom._n // 2] = \
+            p_geom._mpupil
 
+    # Shift the mask to obtain the geometrically valid pixels
     for qIdx in range(p_wfs.nPupils):
         quadOnCenter = np.roll(pup,
                                tuple((centers[qIdx] + mis[qIdx]).astype(np.int32)), (0,
@@ -399,16 +404,18 @@ def init_pyrhr_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
                                     (0, 1))
             mskRebTot += (mskRebin >= fracsub).astype(np.int32) * (qIdx + 1)
 
-    validRow = []
-    validCol = []
-
+    validRow, validCol = [], []
+    # If n == 4, we need to tweak -again- the order to feed
+    # compass XY controllers in the appropriate order
+    if p_wfs.nPupils == 4:
+        centers = centers[[2, 1, 3, 0], :]
+        # mis = mis[[2, 1, 3, 0], :] # We don't need mis anymore - but if so keep the order of centers
     for qIdx in range(p_wfs.nPupils):
         tmpWh = np.where(
                 np.roll(stackedSubap,
                         tuple((centers[qIdx] / nrebin).astype(np.int32)), (0, 1)))
         validRow += [tmpWh[0].astype(np.int32)]
         validCol += [tmpWh[1].astype(np.int32)]
-
     nvalid = validRow[0].size
     validRow = np.asarray(validRow).flatten()
     validCol = np.asarray(validCol).flatten()
@@ -456,7 +463,6 @@ def init_pyrhr_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
     p_wfs._sincar = sincar.astype(np.float32)
 
     #pup = p_geom._mpupil
-    # pupreb = util.rebin(pup * 1., [pyrsize // nrebin, pyrsize // nrebin])
     a = pyrsize // nrebin
     b = p_geom._n // nrebin
     pupvalid = stackedSubap[a // 2 - b // 2:a // 2 + b // 2, a // 2 - b // 2:
