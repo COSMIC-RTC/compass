@@ -41,9 +41,12 @@ p_target.set_Lambda([0.65])
 p_target.set_mag([10.])
 
 # wfs
-p_wfs_lgs = [conf.Param_wfs()] * 6
-p_wfs_ngs = [conf.Param_wfs()] * 3
-p_wfss = p_wfs_lgs + p_wfs_ngs
+n_lgs = 6
+n_ngs = 3
+
+p_wfs_lgs = [conf.Param_wfs() for _ in range(n_lgs)]
+p_wfs_ngs = [conf.Param_wfs() for _ in range(n_ngs)]
+p_wfss = p_wfs_lgs  #+ p_wfs_ngs
 
 for p_wfs in p_wfs_lgs:
     p_wfs.set_type("sh")
@@ -126,7 +129,7 @@ p_dm2.set_unitpervolt(0.01)
 p_dm2.set_push4imat(100.)
 
 # centroiders
-p_centroiders = [conf.Param_centroider()] * 9
+p_centroiders = [conf.Param_centroider() for _ in range(len(p_wfss))]
 
 k = 0
 for p_centroider in p_centroiders:
@@ -138,8 +141,8 @@ for p_centroider in p_centroiders:
 p_controller0 = conf.Param_controller()
 p_controllers = [p_controller0]
 
-p_controller0.set_type("generic")
-p_controller0.set_nwfs(np.arange(9))
+p_controller0.set_type("mv")
+p_controller0.set_nwfs(np.arange(len(p_wfss)))
 p_controller0.set_ndm([0, 1, 2])
 p_controller0.set_maxcond(150.)
 p_controller0.set_delay(1.)
