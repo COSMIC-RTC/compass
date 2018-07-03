@@ -102,7 +102,7 @@ cdef class Target:
             self.target.d_targets[n].raytrace(rst)
 
         if tel is not None:
-            d_screen.axpy(1.0, tel.telescope.d_phase_ab_M1_m, 1, 1)
+            d_screen.axpy(1.0, tel.telescope.d_phase_ab_M1, 1, 1)
 
     def reset_strehl(self, int n):
         """Reset the target's strehl

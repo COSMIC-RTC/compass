@@ -462,9 +462,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                         if "psf" in key:
                             if (self.uiAO.actionPSF_Log_Scale.isChecked()):
                                 if np.any(data <= 0):
-                                    warnings.warn(
-                                            "\nZeros founds, filling with min nonzero value.\n"
-                                    )
+                                    # warnings.warn("\nZeros founds, filling with min nonzero value.\n")
                                     data[data <= 0] = np.min(data[data > 0])
                                 data = np.log10(data)
 
