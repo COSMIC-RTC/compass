@@ -27,7 +27,7 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         return self._sim.config
 
-    def enableAtmos(self, enable=True) -> None:
+    def enableAtmos(self, enable) -> None:
         ''' TODO
         Set or unset whether atmos is enabled when running loop (see singleNext)
         '''
@@ -104,7 +104,7 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         Set the scalar gain of feedback controller loop
         '''
-        if ((type(gainMat) is float) or (type(gainMat) is int)):
+        if type(gainMat) in [int, float]:
             gainMat = np.ones(
                     np.sum(self._sim.config.p_controller0.nactu),
                     dtype=np.float32) * gainMat

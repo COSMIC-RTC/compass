@@ -163,6 +163,8 @@ class Param_wfs:
         self.__pyrtype = None
         """ Type of pyramid, either 0 for "Pyramid" or 1 for "RoofPrism"."""
         self.__pyr_pup_sep = -1
+        """ Number of Pyramid facets """
+        self.nPupils = 4
         """ Pyramid pupil separation. (default: long(wfs.nxsub))"""
         self.__pyr_misalignments = None
         """ Pyramid quadrant misalignments: by how much pupil subimages
@@ -539,7 +541,8 @@ class Param_wfs:
     def set_pyr_misalignments(self, misalignments: np.ndarray) -> None:
 
         self.__pyr_misalignments = csu.enforce_arrayMultiDim(misalignments.copy(),
-                                                             (4, 2), dtype=np.float32)
+                                                             (self.nPupils,
+                                                              2), dtype=np.float32)
 
     pyr_misalignments = property(lambda x: x.__pyr_misalignments, set_pyr_misalignments)
 
@@ -558,7 +561,8 @@ class Param_wfs:
         :param vx: (np.array(dim=1, dtype=np.int32)) : validsubsx
         """
         if self.__type == scons.WFSType.PYRHR:
-            self.__validsubsx = csu.enforce_array(vx, 4 * self.__nvalid, dtype=np.int32)
+            self.__validsubsx = csu.enforce_array(vx, self.nPupils * self.__nvalid,
+                                                  dtype=np.int32)
         else:
             self.__validsubsx = csu.enforce_array(vx, self.__nvalid, dtype=np.int32)
 
@@ -570,7 +574,8 @@ class Param_wfs:
         :param vy: (np.array(dim=1, dtype=np.int32)) : validsubsy
         """
         if self.__type == scons.WFSType.PYRHR:
-            self.__validsubsy = csu.enforce_array(vy, 4 * self.__nvalid, dtype=np.int32)
+            self.__validsubsy = csu.enforce_array(vy, self.nPupils * self.__nvalid,
+                                                  dtype=np.int32)
         else:
             self.__validsubsy = csu.enforce_array(vy, self.__nvalid, dtype=np.int32)
 

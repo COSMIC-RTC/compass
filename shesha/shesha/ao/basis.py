@@ -265,6 +265,13 @@ def compute_cmat_with_KL(rtc: Rtc, KL2V: np.ndarray, nfilt: int):
 
 def compute_fourier(nActu: int, pitch: float, actu_x_pos: np.ndarray,
                     actu_y_pos: np.ndarray, periodic='n'):
+    '''
+        Values you are looking for are:
+            config.p_dm0.nact
+            config.p_dm0._pitch
+            config.p_dm0._i1
+            config.p_dm0._j1
+    '''
     # Offset xpos and ypos to get integer indices.
     # Compute nact x nact x nact x nact Fourier basis # Periodic condition n / n-1 as option
     # Extract values for actuators - flatten
@@ -330,7 +337,7 @@ def compute_Btt(IFpzt, IFtt):
 
     # Tip-tilt + piston
     Tp = np.ones((IFtt.shape[0], IFtt.shape[1] + 1))
-    Tp[:, :2] = IFtt.copy()
+    Tp[:, :2] = IFtt.toarray().copy()
     deltaT = IFpzt.T.dot(Tp) / N
     # Tip tilt projection on the pzt dm
     tau = np.linalg.inv(delta).dot(deltaT)
