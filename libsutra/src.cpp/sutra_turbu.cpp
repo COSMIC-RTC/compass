@@ -16,6 +16,7 @@ sutra_tscreen::sutra_tscreen(carma_context *context, long size,
                              float deltay, int device) {
   this->current_context = context;
   this->screen_size = size;
+  this->r0 = r0;
   this->amplitude = powf(r0, -5.0f / 6.0f);
   // ajust amplitude so that phase screens are generated in microns
   // r0 has been given @0.5µm
@@ -270,14 +271,14 @@ int sutra_tscreen::extrude(int dir) {
  * /_/   \_\__|_| |_| |_|\___/|___/ |____/ \___|_| |_|_| |_|_|\__|_|\___/|_| |_|
  */
 
-sutra_atmos::sutra_atmos(carma_context *context, int nscreens, float *r0,
-                         long *size, long *stencilSize, float *altitude,
-                         float *windspeed, float *winddir, float *deltax,
-                         float *deltay, int device) {
+sutra_atmos::sutra_atmos(carma_context *context, int nscreens, float global_r0,
+                         float *r0, long *size, long *stencilSize,
+                         float *altitude, float *windspeed, float *winddir,
+                         float *deltax, float *deltay, int device) {
   this->nscreens = nscreens;
   // this->r0       = r0;
   this->current_context = context;
-  this->r0 = 0;
+  this->r0 = global_r0;
 
   for (int i = 0; i < nscreens; i++) {
     d_screens.insert(pair<float, sutra_tscreen *>(
@@ -320,7 +321,7 @@ int sutra_atmos::get_screen(const float alt, float *data_F) {
 }
 
 int sutra_atmos::add_screen(float alt, long size, long stencilSize,
-                            float amplitude, float windspeed, float winddir,
+                            float r0_thislayer, float windspeed, float winddir,
                             float deltax, float deltay, int device) {
   if (d_screens.find(alt) != d_screens.end()) {
     std::cout << "There is already a screen at this altitude" << std::endl;
@@ -329,8 +330,10 @@ int sutra_atmos::add_screen(float alt, long size, long stencilSize,
   }
 
   sutra_tscreen *screen =
-      new sutra_tscreen(current_context, size, stencilSize, amplitude, alt,
+      new sutra_tscreen(current_context, size, stencilSize, r0_thislayer, alt,
                         windspeed, winddir, deltax, deltay, device);
+  this->r0 = powf(powf(r0, -5.0f / 3.0f) + powf(r0_thislayer, -5.0f / 3.0f),
+                  -3.0f / 5.0f);
   d_screens.insert(pair<float, sutra_tscreen *>(alt, screen));
   nscreens++;
   return EXIT_SUCCESS;
@@ -343,6 +346,9 @@ int sutra_atmos::del_screen(const float alt) {
     return EXIT_FAILURE;
   }
   nscreens--;
+  this->r0 =
+      powf(powf(r0, -5.0f / 3.0f) - powf(d_screens[alt]->r0, -5.0f / 3.0f),
+           -3.0f / 5.0f);
   delete d_screens[alt];
   d_screens.erase(alt);
   return EXIT_SUCCESS;
@@ -376,5 +382,17 @@ int sutra_atmos::move_atmos() {
     p->second->accumy -= deltay;
     p++;
   }
+  return EXIT_SUCCESS;
+}
+
+int sutra_atmos::set_global_r0(float r0) {
+  // this->amplitude = powf(r0, -5.0f / 6.0f)
+  float scaling = powf(r0 / this->r0, -5.0f / 6.0f);
+  for (map<float, sutra_tscreen *>::iterator it = d_screens.begin();
+       it != d_screens.end(); ++it) {
+    it->second->r0 *= this->r0 / r0;
+    it->second->amplitude *= scaling;
+  }
+  this->r0 = r0;
   return EXIT_SUCCESS;
 }

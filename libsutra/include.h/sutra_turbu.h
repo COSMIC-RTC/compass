@@ -24,6 +24,7 @@ class sutra_tscreen {
   carma_obj<float> *d_noise;             // tmp array containing random numbers
   carma_obj<float> *d_ytmp;  // contains the extrude update (row or column)
   long screen_size;          // size of phase screens
+  float r0;                  // layer r0 (pixel units)
   float amplitude;           // amplitude for extrusion (r0^-5/6)
   float altitude;
   float windspeed;
@@ -66,9 +67,9 @@ class sutra_atmos {
   carma_context *current_context;
 
  public:
-  sutra_atmos(carma_context *context, int nscreens, float *r0, long *size,
-              long *size2, float *altitude, float *windspeed, float *winddir,
-              float *deltax, float *deltay, int device);
+  sutra_atmos(carma_context *context, int nscreens, float global_r0, float *r0,
+              long *size, long *size2, float *altitude, float *windspeed,
+              float *winddir, float *deltax, float *deltay, int device);
   ~sutra_atmos();
 
   int init_screen(float alt, float *h_A, float *h_B, unsigned int *h_istencilx,
@@ -82,6 +83,7 @@ class sutra_atmos {
   int list_alt(float *alts);
 
   int move_atmos();
+  int set_global_r0(float r0);
 };
 
 int gene_vonkarman(cuFloatComplex *d_odata, float *d_idata, float k0,

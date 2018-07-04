@@ -61,7 +61,7 @@ cdef class Atmos:
         cdef np.ndarray[ndim= 1, dtype = np.int64_t] stencil_size
         stencil_size = itK.stencil_size_array(dim_screens)
 
-        self.s_a = new sutra_atmos(self.context.c, nscreens,
+        self.s_a = new sutra_atmos(self.context.c, nscreens, r0,
                                    < np.float32_t * > r0_layers.data,
                                    < long * > dim_screens.data,
                                    < long * > stencil_size.data,
@@ -166,6 +166,12 @@ cdef class Atmos:
         cdef np.ndarray alts = np.zeros(self.s_a.nscreens, dtype=np.float32)
         self.s_a.list_alt(< float * > alts.data)
         return alts
+
+    def set_global_r0(self, r0):
+        """
+            Change the current global r0 of all layers
+        """
+        self.s_a.set_global_r0(r0)
 
     def move_atmos(self):
         """

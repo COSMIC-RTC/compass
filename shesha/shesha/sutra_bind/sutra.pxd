@@ -139,7 +139,7 @@ cdef extern from "sutra_turbu.h":
         # carma_obj[float] *d_pupil
         carma_context * current_context
 
-        sutra_atmos(carma_context * context, int nscreens, float * r0, long * size,
+        sutra_atmos(carma_context * context, int nscreens, float global_r0, float * r0, long * size,
                     long * size2, float * altitude, float *
                     windspeed, float * winddir,
                     float * deltax, float * deltay, int device)
@@ -151,6 +151,7 @@ cdef extern from "sutra_turbu.h":
         int del_screen(const float alt)
         int list_alt(float* alts)
         int move_atmos()
+        int set_global_r0(float r0)
 
 
 cdef extern from "sutra_target.h":
