@@ -24,9 +24,9 @@ __global__ void camplipup_krnl(cuFloatComplex *amplipup, float *phase,
     int idx = idimx + idimy * Nfft + nim * Nfft * Nfft;
 
     amplipup[idx].x =
-        (cosf(-phase[idphase] * scale - offset[idim])) * mask[idphase];
+        (cosf(phase[idphase] * scale - offset[idim])) * mask[idphase];
     amplipup[idx].y =
-        (sinf(-phase[idphase] * scale - offset[idim])) * mask[idphase];
+        (sinf(phase[idphase] * scale - offset[idim])) * mask[idphase];
     tid += blockDim.x * gridDim.x;
   }
 }
