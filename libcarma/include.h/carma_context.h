@@ -107,13 +107,13 @@ class carma_context {
 
   int get_cudaRuntimeGetVersion() {
     int runtimeVersion;
-    cudaRuntimeGetVersion(&runtimeVersion);
+    carmaSafeCall(cudaRuntimeGetVersion(&runtimeVersion));
     return runtimeVersion;
   }
 
   int get_cudaDriverGetVersion() {
     int driverVersion;
-    cudaRuntimeGetVersion(&driverVersion);
+    carmaSafeCall(cudaRuntimeGetVersion(&driverVersion));
     return driverVersion;
   }
 

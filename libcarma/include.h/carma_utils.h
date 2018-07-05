@@ -78,7 +78,7 @@ enum CUTBoolean { CUTFalse = 0, CUTTrue = 1 };
 // they can debug
 #ifdef DEBUG
 #define carmaSafeCallNoSync(err) __carmaSafeCallNoSync(err, __FILE__, __LINE__)
-#define carmaSafeCall(err) __carmaSafeCall(err, __FILE__, __LINE__)
+#define carmaSafeCall(err) __carmaSafeCall((err), #err, __FILE__, __LINE__)
 #define carmaSafeDeviceSynchronize() \
   __carmaSafeDeviceSynchronize(__FILE__, __LINE__)
 #define carmafftSafeCall(err) __carmafftSafeCall(err, __FILE__, __LINE__)
@@ -140,17 +140,18 @@ void carma_stop_profile();
 inline void __carmaSafeCallNoSync(cudaError err, const char *file,
                                   const int line) {
   if (cudaSuccess != err) {
-    fprintf(stderr, "(%s:%i) : cudaSafeCallNoSync() Runtime API error : %s.\n",
+    fprintf(stderr, "(%s:%i) : carmaSafeCallNoSync() Runtime API error : %s.\n",
             file, line, cudaGetErrorString(err));
     // exit(EXIT_FAILURE);
     throw cudaGetErrorString(err);
   }
 }
 
-inline void __carmaSafeCall(cudaError err, const char *file, const int line) {
+inline void __carmaSafeCall(cudaError err, const char *code, const char *file,
+                            const int line) {
   if (cudaSuccess != err) {
-    fprintf(stderr, "(%s:%i) : cudaSafeCall() Runtime API error : %s.\n", file,
-            line, cudaGetErrorString(err));
+    fprintf(stderr, "[%s:%i] %s\n carmaSafeCall() Runtime API error : %s.\n",
+            file, line, code, cudaGetErrorString(err));
     // exit(EXIT_FAILURE);
     throw cudaGetErrorString(err);
   }

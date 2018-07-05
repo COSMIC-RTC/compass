@@ -99,26 +99,30 @@ int sutra_centroider_corr::load_corr(float *corr, float *corr_norm, int ndim) {
 
   this->d_corrnorm->host2device(corr_norm);
 
-  float *tmp;  ///< Input data
+  float *tmp; ///< Input data
+  cudaError err;
 
   if (ndim == 3) {
-    carmaSafeCall(cudaMalloc(
-        (void **)&tmp, sizeof(float) * this->npix * this->npix * this->nvalid));
-    carmaSafeCall(cudaMemcpy(
-        tmp, corr, sizeof(float) * this->npix * this->npix * this->nvalid,
-        cudaMemcpyHostToDevice));
+    carmaSafeCall(
+      err = cudaMalloc((void** )&tmp,
+                       sizeof(float) * this->npix * this->npix * this->nvalid));
+    carmaSafeCall(
+      err = cudaMemcpy(tmp, corr,
+                       sizeof(float) * this->npix * this->npix * this->nvalid,
+                       cudaMemcpyHostToDevice));
   } else {
     carmaSafeCall(
-        cudaMalloc((void **)&tmp, sizeof(float) * this->npix * this->npix));
-    carmaSafeCall(cudaMemcpy(tmp, corr, sizeof(float) * this->npix * this->npix,
-                             cudaMemcpyHostToDevice));
+      err = cudaMalloc((void** )&tmp, sizeof(float) * this->npix * this->npix));
+    carmaSafeCall(
+      err = cudaMemcpy(tmp, corr, sizeof(float) * this->npix * this->npix,
+                       cudaMemcpyHostToDevice));
   }
 
   fillcorr(*(this->d_corrfnct), tmp, this->npix, 2 * this->npix,
            this->npix * this->npix * this->nvalid, nval,
            this->current_context->get_device(device));
 
-  carmaSafeCall(cudaFree(tmp));
+  carmaSafeCall(err = cudaFree(tmp));
 
   carma_fft<cuFloatComplex, cuFloatComplex>(*(this->d_corrfnct),
                                             *(this->d_corrfnct), 1,
@@ -128,13 +132,14 @@ int sutra_centroider_corr::load_corr(float *corr, float *corr_norm, int ndim) {
 }
 
 int sutra_centroider_corr::get_cog(carma_streams *streams, float *cube,
-                                   float *subsum, float *centroids, int nvalid,
-                                   int npix, int ntot) {
-  current_context->set_activeDevice(device, 1);
-  // set corrspot to 0
+                                   float *subsum, float *centroids, int nvalid, int npix, int ntot) {
+  current_context->set_activeDevice(device,1);
+  cudaError err;
+
+  //set corrspot to 0
   carmaSafeCall(
-      cudaMemset(*(this->d_corrspot), 0,
-                 sizeof(cuFloatComplex) * this->d_corrspot->getNbElem()));
+    err = cudaMemset(*(this->d_corrspot), 0,
+                     sizeof(cuFloatComplex) * this->d_corrspot->getNbElem()));
   // correlation algorithm
 
   fillcorr(*(this->d_corrspot), cube, this->npix, 2 * this->npix,

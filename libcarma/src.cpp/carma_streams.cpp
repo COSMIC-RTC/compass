@@ -13,9 +13,9 @@ carma_streams::carma_streams(unsigned int nbStreams) {
   }
 
   // carmaSafeCall(cudaEventCreateWithFlags(&(this->start_event),
-  // cudaDeviceBlockingSync)); carmaSafeCall(
-  // cudaEventCreateWithFlags(&(this->stop_event), cudaDeviceBlockingSync));
-  // cudaEventDefault
+  // cudaDeviceBlockingSync));
+  // carmaSafeCall(cudaEventCreateWithFlags(&(this->stop_event),
+  // cudaDeviceBlockingSync)); cudaEventDefault
 }
 
 /*
@@ -38,6 +38,7 @@ int carma_streams::get_nbStreams() { return this->streams.size(); }
 
 int carma_streams::add_stream() {
   cudaStream_t stream_tmp;
+
   carmaSafeCall(cudaStreamCreate(&stream_tmp));
   this->streams.push_back(stream_tmp);
 

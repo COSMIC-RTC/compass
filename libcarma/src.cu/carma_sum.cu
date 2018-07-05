@@ -225,6 +225,10 @@ template void reduce<int>(int size, int threads, int blocks, int *d_idata,
 template void reduce<float>(int size, int threads, int blocks, float *d_idata,
                             float *d_odata);
 
+template void
+reduce<unsigned int>(int size, int threads, int blocks, unsigned int *d_idata,
+                     unsigned int *d_odata);
+
 #if (__CUDA_ARCH__ < 600)
 template <>
 void reduce<double>(int size, int threads, int blocks, double *d_idata,
@@ -244,8 +248,14 @@ void reduce<cuFloatComplex>(int size, int threads, int blocks,
   DEBUG_TRACE("Not implemented");
 }
 
-template <class T>
-T reduce(T *data, int N) {
+template<> void
+reduce<cuDoubleComplex>(int size, int threads, int blocks, cuDoubleComplex *d_idata,
+                        cuDoubleComplex *d_odata) {
+  DEBUG_TRACE("Not implemented");
+}
+
+template<class T>
+T reduce(T * data, int N) {
   thrust::device_ptr<T> dev_ptr(data);
   return thrust::reduce(dev_ptr, dev_ptr + N);
 }

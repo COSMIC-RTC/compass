@@ -70,8 +70,8 @@ template <class T_data>
 cublasStatus_t carma_swap(cublasHandle_t cublas_handle, int n, T_data *vectx,
                           int incx, T_data *vecty, int incy);
 
-template <class T_data>
-cublasStatus_t carma_copy(cublasHandle_t cublas_handle, int n, T_data *vectx,
+template<class T_data>
+cublasStatus_t carma_copy(cublasHandle_t cublas_handle, int n, const T_data *vectx,
                           int incx, T_data *vecty, int incy);
 
 template <class T_data>

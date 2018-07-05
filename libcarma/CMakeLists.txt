@@ -1,11 +1,12 @@
-cmake_minimum_required (VERSION 3.5)
-project(carma 
-    VERSION 1.0 
+cmake_minimum_required (VERSION 3.8)
+
+project(carma
+    VERSION 1.0
     DESCRIPTION "COMPASS CARMA lirary"
-    LANGUAGES CXX CUDA)
+    LANGUAGES CXX CUDA
+)
+
 include(GNUInstallDirs)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include.h
-                    ${CMAKE_CURRENT_SOURCE_DIR}/include.cuh)
 
 # EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
 # message( STATUS "Architecture: ${ARCHITECTURE}" )
@@ -28,29 +29,12 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include.h
 #   endif
 # endif
 
-# add_compile_options("-fPIC -Wall -fno-common -std=c++11 ")
-
-find_package( CUDA REQUIRED)
-
-# nvcc flags                                                                                                                                                                                               
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -Xcompiler -fPIC -use_fast_math -std=c++11 -gencode $ENV{GENCODE})
+find_package(CUDA)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(MAGMA REQUIRED magma)
 
-message(STATUS ${MAGMA_LIBRARY_DIRS})
 link_directories( ${MAGMA_LIBRARY_DIRS} )
-
-cuda_compile(CU_O 
-    ./src.cu/carma_fft_conv.cu
-    ./src.cu/carma_rng.cu
-    ./src.cu/carma_svd.cu
-    ./src.cu/carma_utils.cu
-    ./src.cu/convolutionFFT2D.cu
-    ./src.cu/carma_obj.cu
-    ./src.cu/carma_sum.cu
-    ./src.cu/carma_transpose.cu
-)
 
 add_library(carma SHARED
     ./src.cpp/carma_context.cpp
@@ -70,44 +54,42 @@ add_library(carma SHARED
     ./src.cpp/carma_streams.cpp
     ./src.cpp/carma_utils.cpp
     ./src.cpp/carma_obj.cpp
-    ${CU_O}
-    )    
+    ./src.cu/carma_fft_conv.cu
+    ./src.cu/carma_rng.cu
+    ./src.cu/carma_svd.cu
+    ./src.cu/carma_utils.cu
+    ./src.cu/convolutionFFT2D.cu
+    ./src.cu/carma_obj.cu
+    ./src.cu/carma_sum.cu
+    ./src.cu/carma_transpose.cu
+)
 
-set_target_properties(carma PROPERTIES 
+set_target_properties(carma
+    PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION 1
-    PUBLIC_HEADER include.h/carma.h
-    PUBLIC_HEADER include.h/carma_context.h
-    PUBLIC_HEADER include.h/carma_cublas.h
-    PUBLIC_HEADER include.h/carma_cusparse.h
-    PUBLIC_HEADER include.h/carma_exception.h
-    PUBLIC_HEADER include.h/carma_fft.h
-    PUBLIC_HEADER include.h/carma_host_obj.h
-    PUBLIC_HEADER include.h/carma_multithread.h
-    PUBLIC_HEADER include.h/carma_sparse_host_obj.h
-    PUBLIC_HEADER include.h/carma_sparse_obj.h
-    PUBLIC_HEADER include.h/carma_streams.h
-    PUBLIC_HEADER include.h/carma_timer.h
-    PUBLIC_HEADER include.h/carma_utils.h
-    PUBLIC_HEADER include.h/convolutionFFT2D_common.h
-    PUBLIC_HEADER include.h/carma_ipcs.h
-    PUBLIC_HEADER include.h/carma_obj.h
-    PUBLIC_HEADER include.cuh/carma_utils.cuh
-    PUBLIC_HEADER include.cuh/convolutionFFT2D.cuh
-    PUBLIC_HEADER include.cuh/carma_utils.cuh
-    PUBLIC_HEADER include.cuh/convolutionFFT2D.cuh 
-)    
+    # CUDA_SEPARABLE_COMPILATION ON
+)
 
-target_include_directories(carma PRIVATE .)
-target_link_libraries(carma PRIVATE ${MAGMA_LIBRARIES})
-target_include_directories(carma PUBLIC ${MAGMA_INCLUDE_DIRS})
-target_compile_options(carma PUBLIC -DUSE_MAGMA ${MAGMA_CFLAGS_OTHER})
+target_include_directories(carma
+    PUBLIC
+    $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/include.h ${MAGMA_INCLUDE_DIRS}>
+    $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CURRENT_SOURCE_DIR}/include.h ${CMAKE_CURRENT_SOURCE_DIR}/include.cuh>
+)
+
+target_compile_options(carma
+    PRIVATE
+    $<$<COMPILE_LANGUAGE:CXX>:-DUSE_MAGMA ${MAGMA_CFLAGS_OTHER}>
+    $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -fPIC -use_fast_math -std=c++11 -gencode $ENV{GENCODE}>
+)
+
+target_link_libraries(carma PRIVATE ${MAGMA_LIBRARIES} ${CUDA_LIBRARIES} ${CUDA_cufft_LIBRARY} ${CUDA_cublas_LIBRARY} ${CUDA_curand_LIBRARY} ${CUDA_cusparse_LIBRARY} )
 
 configure_file(carma.pc.in carma.pc @ONLY)
 
 install(TARGETS carma
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-)    
+)
 
 install(FILES ${CMAKE_BINARY_DIR}/carma.pc DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)

@@ -100,6 +100,7 @@ template <class T_data>
 class carma_obj {
  protected:
   T_data *d_data;  ///< Input data  => change to vector
+  std::vector<T_data> h_data;
   T_data *o_data;  ///< optional data (used for scan / reduction)
   int ndim;
   long *dims_data;  ///< dimensions of the array
@@ -139,6 +140,13 @@ class carma_obj {
             int nb_streams);
   ~carma_obj();
 
+  void sync_h_data() {
+    if (h_data.empty()) h_data = std::vector<T_data>(nb_elem);
+    device2host(h_data.data());
+  }
+
+  T_data *get_h_data() { return h_data.data(); }
+
   int get_nbStreams() {
     /** \brief get the number of streams attached to the host object
      */
@@ -174,13 +182,16 @@ class carma_obj {
 
   /**< General Utilities */
   operator T_data *() { return d_data; }
-  operator std::string() {
+
+  std::string toString() {
     std::ostringstream stream;
     stream << *this;
     return stream.str();
   }
-  inline char const *c_str() { return string(*this).c_str(); }
-  const T_data &operator[](int index) const {
+
+  operator std::string() { return this->toString(); }
+  inline char const *c_str() { return this->toString().c_str(); }
+  const T_data operator[](int index) const {
     T_data tmp_float;
     carmaSafeCall(cudaMemcpy(&tmp_float, &d_data[index], sizeof(T_data),
                              cudaMemcpyDeviceToHost));

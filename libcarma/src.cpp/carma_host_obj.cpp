@@ -370,8 +370,10 @@ void carma_host_obj<T_data>::get_devpntr(void **pntr_dev) {
 /*
  template<class T_data>
  carma_host_obj<T_data>& carma_host_obj<T_data>::operator= (const
- carma_host_obj<T_data>& obj){ if(this->d_data!=0L) carmaSafeCall(
- cudaFree(this->d_data) ); if(this->dims_data!=0L) delete(this->dims_data);
+ carma_host_obj<T_data>& obj){
+
+ if(this->d_data!=0L) carmaSafeCall( cudaFree(this->d_data) );
+ if(this->dims_data!=0L) delete(this->dims_data);
  carma_host_obj<T_data> *new_obj = new carma_host_obj(obj);
  return new_obj;
  }
@@ -381,6 +383,7 @@ template <class T_data>
 carma_host_obj<T_data>::~carma_host_obj() {
   /** \brief carma_host_obj destructor.
    */
+
   if (this->h_data != 0L) {
     if (mallocType == MA_MALLOC)
       delete[] this->h_data;
