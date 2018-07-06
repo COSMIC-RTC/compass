@@ -58,3 +58,5 @@ shesha/shesha_test/scripts/resultatsScripts/
 doc/compass-doc
 
 \.vscode/
+setup.cfg
+compass.egg-info

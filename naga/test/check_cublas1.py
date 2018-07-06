@@ -3,7 +3,7 @@ import numpy as np
 import numpy.testing as npt
 import time
 
-size = 128
+size = 1024
 dec = 4
 prec = 10**-dec
 

@@ -42,6 +42,30 @@ void declare_naga_obj(py::module &mod, std::string suffix)
         return std::unique_ptr<Class>(new Class(&c, &data));
       }))
 
+      // .def_buffer([](Class &frame) -> py::array_t<T> {
+
+      //   py::array_t<T> array(frame.getNbElem());
+      //   auto info = array.request();
+
+      //   const long *dims = frame.getDims();
+      //   std::vector<ssize_t> shape(dims[0]);
+      //   std::vector<ssize_t> strides(dims[0]);
+      //   ssize_t stride = sizeof(T);
+      //   for (ssize_t dim(dims[0] - 1); dim >= 0; --dim)
+      //   {
+      //     // cerr << dim <<  endl;
+      //     shape[dim] = dims[dim + 1];
+      //     strides[dim] = stride;
+      //     stride *= shape[dim];
+      //   }
+
+      //   info.ndim = dims[0];
+      //   info.shape = shape;
+      //   info.strides = strides;
+
+      //   return array;
+      // })
+
       .def_buffer([](Class &frame) -> py::buffer_info {
         frame.sync_h_data();
         const long *dims = frame.getDims();

@@ -18,23 +18,25 @@ int carma_obj<T>::init_prng(long seed) {
   if (this->d_states == NULL)
     carmaSafeCall(cudaMalloc((void **)&(this->d_states),
                              blockCount * genPerBlock * sizeof(curandState)));
-  cudaMemset(this->d_states, 0, blockCount * genPerBlock * sizeof(curandState));
+  carmaSafeCall(cudaMemset(this->d_states, 0,
+                           blockCount * genPerBlock * sizeof(curandState)));
 
   this->nThreads = genPerBlock;
   this->nBlocks = blockCount;
   // randomize();
-  int aseed[genPerBlock * blockCount];
+  std::vector<int> aseed(genPerBlock * blockCount);
   for (int cc = 0; cc <= genPerBlock * blockCount; cc++)
     aseed[cc] = seed + cc;  // random();
 
   int *seeds;
   carmaSafeCall(
       cudaMalloc((void **)&seeds, genPerBlock * blockCount * sizeof(int)));
-  carmaSafeCall(cudaMemcpy(seeds, aseed, genPerBlock * blockCount * sizeof(int),
+  carmaSafeCall(cudaMemcpy(seeds, aseed.data(),
+                           genPerBlock * blockCount * sizeof(int),
                            cudaMemcpyHostToDevice));
 
   // cerr << genPerBlock << " | " << blockCount << endl;
-  carma_prng_init((int *)seeds, genPerBlock, blockCount, this->d_states);
+  carma_prng_init(seeds, genPerBlock, blockCount, this->d_states);
 
   carmaSafeCall(cudaFree(seeds));
 
