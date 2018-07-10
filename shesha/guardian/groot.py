@@ -582,8 +582,10 @@ def compute_Calias(filename, slopes_space=False, modal=True, npts=3):
     #                                         (npts - 1)) * weight
     #         Ca += compute_Calias_element_YY(xx, yy, fc, d, nsub, tabx, taby, xoff=-k /
     #                                         (npts - 1)) * weight
-
-    h = d / (npts - 1)
+    if (npts > 1):
+        h = d / (npts - 1)
+    else:
+        h = 1
     for k in tqdm(range(npts)):
         for p in tqdm(range(npts)):
             Ca += (compute_Calias_element_XX(xx, yy, fc, d, nsub, tabx, taby, yoff=(
@@ -610,12 +612,15 @@ def simpson_coeff(n):
     :return:
         coeff: (np.array[ndims=1,dtype=np.int64]): simpson coefficients
     """
-    if (n % 2):
+    if (n == 1):
         coeff = np.ones(n)
-        coeff[1::2] = 2
-        coeff[2:-1:2] = 4
     else:
-        raise ValueError("n must be odd")
+        if (n % 2):
+            coeff = np.ones(n)
+            coeff[1::2] = 4
+            coeff[2:-1:2] = 2
+        else:
+            raise ValueError("n must be odd")
 
     return coeff
 
