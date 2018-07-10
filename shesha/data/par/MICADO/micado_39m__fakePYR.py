@@ -45,11 +45,11 @@ p_atmos.set_L0([25.])  # Not simulated in Yorick?
 
 # target
 p_target = ao.Param_target()
-p_target.set_ntargets(1)
-p_target.set_xpos([0])
-p_target.set_ypos([0.])
-p_target.set_Lambda([1.65])
-p_target.set_mag([4.])
+p_targets = [p_target]
+p_target.set_xpos(0)
+p_target.set_ypos(0.)
+p_target.set_Lambda(1.65)
+p_target.set_mag(4.)
 
 # wfs
 #p_wfs0 = ao.Param_wfs(error_budget=True)

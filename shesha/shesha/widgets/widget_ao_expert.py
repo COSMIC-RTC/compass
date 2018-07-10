@@ -249,11 +249,11 @@ class WidgetAOExpert(ExpertClassTemplate):
         ntarget = self.uiExpert.wao_selectTarget.currentIndex()
         if (ntarget < 0):
             ntarget = 0
-        self.uiExpert.wao_numberofTargets.setText(str(self.sim.config.p_target.ntargets))
-        self.uiExpert.wao_targetMag.setValue(self.sim.config.p_target.mag[ntarget])
-        self.uiExpert.wao_targetXpos.setValue(self.sim.config.p_target.xpos[ntarget])
-        self.uiExpert.wao_targetYpos.setValue(self.sim.config.p_target.ypos[ntarget])
-        self.uiExpert.wao_targetLambda.setValue(self.sim.config.p_target.Lambda[ntarget])
+        self.uiExpert.wao_numberofTargets.setText(str(len(self.sim.config.p_targets)))
+        self.uiExpert.wao_targetMag.setValue(self.sim.config.p_target[ntarget].mag)
+        self.uiExpert.wao_targetXpos.setValue(self.sim.config.p_target[ntarget].xpos)
+        self.uiExpert.wao_targetYpos.setValue(self.sim.config.p_target[ntarget].ypos)
+        self.uiExpert.wao_targetLambda.setValue(self.sim.config.p_target[ntarget].Lambda)
 
     def updatePanels(self) -> None:
         self.updateTelescopePanel()

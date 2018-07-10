@@ -369,7 +369,7 @@ def loopStaticAtmos(wao, nIter):
         wao.rtc.docontrol(0)
         wao.rtc.apply_control(0, wao.dms)
 
-    for t in range(wao.config.p_target.ntargets):
+    for t in range(len(wao.config.p_targets)):
         wao.tar.atmos_trace(t, wao.atm, wao.tel)
         wao.tar.dmtrace(t, wao.dms)
 
@@ -409,7 +409,7 @@ def AOLoop(nIter, wao, cmat=None, pyrc=None, reset=None, gain=0.7, clip=-1,
             wao.wfs.sensors_compimg(w)
 
     def trace_tar(showAtmos):
-        for t in range(wao.config.p_target.ntargets):
+        for t in range(len(wao.config.p_targets)):
             wao.tar.reset_phase(t)
             if showAtmos:
                 wao.tar.atmos_trace(t, wao.atm, wao.tel)
@@ -525,7 +525,7 @@ def simuAndRecord(wao, nIter):
 def doubleWFSLoop(wao):
     wao.atm.move_atmos()
 
-    for t in range(wao.config.p_target.ntargets):
+    for t in range(len(wao.config.p_targets)):
         wao.tar.atmos_trace(t, wao.atm, wao.tel)
         wao.tar.dmtrace(t, wao.dms)
     for w in range(len(wao.config.p_wfss)):

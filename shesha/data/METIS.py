@@ -58,11 +58,12 @@ p_atmos.set_L0([
 
 #target
 p_target = conf.Param_target()
-p_target.set_ntargets(1)
-p_target.set_xpos([0.])
-p_target.set_ypos([0.])
-p_target.set_Lambda([2.2])  #Sensing wavelength = K-band
-p_target.set_mag([10.])  #Star mag at the WFS wavelength
+p_targets = [p_target]
+
+p_target.set_xpos(0.)
+p_target.set_ypos(0.)
+p_target.set_Lambda(2.2)  #Sensing wavelength = K-band
+p_target.set_mag(10.)  #Star mag at the WFS wavelength
 
 #wfs
 p_wfs0 = conf.Param_wfs()

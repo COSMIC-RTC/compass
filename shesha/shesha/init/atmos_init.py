@@ -12,7 +12,7 @@ import numpy as np
 
 
 def atmos_init(context: naga_context, p_atmos: conf.Param_atmos, p_tel: conf.Param_tel,
-               p_geom: conf.Param_geom, ittime=None, p_wfss=None, p_target=None,
+               p_geom: conf.Param_geom, ittime=None, p_wfss=None, p_targets=None,
                dataBase={}, use_DB=False):
     """
     Initializes an Atmos object
@@ -24,7 +24,7 @@ def atmos_init(context: naga_context, p_atmos: conf.Param_atmos, p_tel: conf.Par
         p_geom: (Param_geom): Geometry parameters
         ittime: (float): (optional) exposition time [s]
         p_wfss: (list of Param_wfs): (optional) WFS parameters
-        p_target: (Param_target): (optional) target parameters
+        p_targets: (list of Param_target): (optional) target parameters
         dataBase: (dict): (optional) dictionary for data base
         use_DB: (bool): (optional) flag for using the dataBase system
     :return:
@@ -52,8 +52,8 @@ def atmos_init(context: naga_context, p_atmos: conf.Param_atmos, p_tel: conf.Par
     norms = [0.]
     if p_wfss is not None:
         norms += [(w.xpos**2 + w.ypos**2)**0.5 for w in p_wfss]
-    if p_target is not None:
-        norms += list((p_target.xpos**2 + p_target.ypos**2)**0.5)
+    if p_targets is not None:
+        norms += [(p_target.xpos**2 + p_target.ypos**2)**0.5 for p_target in p_targets]
 
     max_size = max(norms)
 

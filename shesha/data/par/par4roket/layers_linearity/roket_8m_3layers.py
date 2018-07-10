@@ -32,13 +32,12 @@ p_atmos.set_L0([100, 100, 100])
 p_atmos.set_seeds([1234, 1235, 1236])
 
 #target
-p_target = ao.Param_target()
-
-p_target.set_ntargets(1)
-p_target.set_xpos([0.])
-p_target.set_ypos([0.])
-p_target.set_Lambda([1.65])
-p_target.set_mag([10])
+p_target = conf.Param_target()
+p_targets = [p_target]
+p_target.set_xpos(0.)
+p_target.set_ypos(0.)
+p_target.set_Lambda(1.65)
+p_target.set_mag(10.)
 
 #wfs
 #p_wfs0= ao.Param_wfs()

@@ -41,12 +41,14 @@ p_atmos.set_windspeed([10.])
 p_atmos.set_winddir([45.])
 p_atmos.set_L0([1.e5])  # Not simulated in Yorick?
 
-p_target = conf.Param_target()
-p_target.set_ntargets(2)
-p_target.set_xpos([0, 0])
-p_target.set_ypos([0, 0])
-p_target.set_Lambda([1.65, 0.5])
-p_target.set_mag([4, 4.])
+p_targets = [conf.Param_target() for _ in range(2)]
+Lambda = [1.65, 0.5]
+k = 0
+for p_target in p_targets:
+    p_target.set_xpos(0.)
+    p_target.set_ypos(0.)
+    p_target.set_Lambda(Lambda[k])
+    p_target.set_mag(4.)
 
 #target
 # p_target=conf.Param_target()

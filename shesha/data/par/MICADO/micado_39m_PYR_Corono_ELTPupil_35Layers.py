@@ -117,27 +117,31 @@ p_atmos.set_L0([25.] * nbLayers)  # Not simulated in Yorick?
 
 # target
 #p_target = ao.Param_target()
-#p_target.set_nTargets(1)
-#p_target.set_xpos([0])
-#p_target.set_ypos([0.])
-#p_target.set_Lambda([1.65])
-#p_target.set_mag([4.])
+#p_targets = [p_target]
+
+#p_target.set_xpos(0)
+#p_target.set_ypos(0.)
+#p_target.set_Lambda(1.65)
+#p_target.set_mag(4.)
 
 # 3 Lambda targets
-#p_target=ao.Param_target()
-#p_target.set_nTargets(3)
-#p_target.set_xpos([0, 0, 0])
-#p_target.set_ypos([0, 0, 0])
-#p_target.set_Lambda([1.2, 1.65, 2.2])
-#p_target.set_mag([4, 4., 4])
+#p_targets= [ao.Param_target() for _ in range(3)]
+#Lambda = [1.2, 1.65, 2.2]
+#k = 0
+#for p_target in p_targets:
+#p_target.set_xpos(0.)
+#p_target.set_ypos(0.)
+#p_target.set_Lambda(Lambda[k])
+#p_target.set_mag(4.)
+#k += 1
 
 # 1 Lambda targets
 p_target = ao.Param_target()
-p_target.set_ntargets(1)
-p_target.set_xpos([0])
-p_target.set_ypos([0])
-p_target.set_Lambda([2.2])
-p_target.set_mag([4])
+p_targets = [p_target]
+p_target.set_xpos(0)
+p_target.set_ypos(0)
+p_target.set_Lambda(2.2)
+p_target.set_mag(4)
 """
 p_target=ao.Param_target()
 p_target.set_ntargets(11)

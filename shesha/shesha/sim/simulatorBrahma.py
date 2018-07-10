@@ -18,9 +18,9 @@ class SimulatorBrahma(Simulator):
         '''
         Initializes a Target_Brahma object
         '''
-        if self.config.p_target is not None:
+        if self.config.p_targets is not None:
             print("->target")
-            self.tar = init.target_init(self.c, self.tel, self.config.p_target,
+            self.tar = init.target_init(self.c, self.tel, self.config.p_targets,
                                         self.config.p_atmos, self.config.p_tel,
                                         self.config.p_geom, self.config.p_dms,
                                         brahma=True)

@@ -8,8 +8,7 @@ p_loop = ao.Param_loop()
 
 p_loop.set_niter(1000)
 p_loop.set_ittime(1 / 500.)  # =1/500
-p_loop.set_devices([0,1,2])
-
+p_loop.set_devices([0, 1, 2])
 
 # geom
 p_geom = ao.Param_geom()
@@ -32,15 +31,18 @@ p_atmos.set_winddir([45.])
 p_atmos.set_L0([25.])  # Not simulated in Yorick?
 
 # Lambda target(s)
-p_target=ao.Param_target()
-p_target.set_nTargets(2)
-p_target.set_xpos([0,0])
-p_target.set_ypos([0,0])
-p_target.set_Lambda([0.658,1.65])
-p_target.set_mag([4.,4.])
+p_targets = [conf.Param_target() for _ in range(2)]
+Lambda = [0.658, 1.65]
+k = 0
+for p_target in p_targets:
+    p_target.set_xpos(0.)
+    p_target.set_ypos(0.)
+    p_target.set_Lambda(Lambda[k])
+    p_target.set_mag(4.)
+    k += 1
 
 # wfs
-p_wfs0= ao.Param_wfs()
+p_wfs0 = ao.Param_wfs()
 p_wfss = [p_wfs0]
 
 p_wfs0.set_type("pyrhr")
@@ -51,7 +53,7 @@ p_wfs0.set_ypos(0.)
 p_wfs0.set_Lambda(0.658)
 p_wfs0.set_gsmag(13)
 p_wfs0.set_optthroughput(0.5)
-p_wfs0.set_zerop(2.6e10) # 2.6e10 ph/s/m**2 computed by Rico in R band for MOSAIC
+p_wfs0.set_zerop(2.6e10)  # 2.6e10 ph/s/m**2 computed by Rico in R band for MOSAIC
 p_wfs0.set_noise(-1)  # in electrons units
 p_wfs0.set_atmos_seen(1)
 p_wfs0.set_fstop("square")
@@ -59,7 +61,7 @@ p_wfs0.set_fssize(1.6)
 
 rMod = 8
 
-p_wfs0.set_pyr_npts(int(np.ceil(int(rMod*2* 3.141592653589793)/4.)*4))
+p_wfs0.set_pyr_npts(int(np.ceil(int(rMod * 2 * 3.141592653589793) / 4.) * 4))
 p_wfs0.set_pyr_ampl(rMod)
 p_wfs0.set_pyr_pup_sep((64))
 

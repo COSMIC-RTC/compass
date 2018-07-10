@@ -32,12 +32,15 @@ p_atmos.set_winddir([45.])
 p_atmos.set_L0([25.])  # Not simulated in Yorick?
 
 # Lambda target(s)
-p_target = conf.Param_target()
-p_target.set_ntargets(2)
-p_target.set_xpos([0, 0])
-p_target.set_ypos([0, 0])
-p_target.set_Lambda([0.658, 1.65])
-p_target.set_mag([4., 4.])
+p_targets = [conf.Param_target() for _ in range(2)]
+Lambda = [0.658, 1.65]
+k = 0
+for p_target in p_targets:
+    p_target.set_xpos(0.)
+    p_target.set_ypos(0.)
+    p_target.set_Lambda(Lambda[k])
+    p_target.set_mag(4.)
+    k += 1
 
 # wfs
 p_wfs0 = conf.Param_wfs()

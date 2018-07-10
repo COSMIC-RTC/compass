@@ -36,14 +36,12 @@ p_atmos.set_winddir([345, -292, -115, -161, -179, -266, -208, 185, 265, 116, 6, 
 p_atmos.set_L0([100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100])
 
 #target
-p_target = ao.Param_target()
-
-p_target.set_ntargets(1)
-p_target.set_xpos([0.])
-p_target.set_ypos([0.])
-p_target.set_Lambda([1.65])
-p_target.set_mag([10])
-
+p_target = conf.Param_target()
+p_targets = [p_target]
+p_target.set_xpos(0.)
+p_target.set_ypos(0.)
+p_target.set_Lambda(1.65)
+p_target.set_mag(10.)
 #wfs
 #p_wfs0= ao.Param_wfs()
 #p_wfs1= ao.Param_wfs()
