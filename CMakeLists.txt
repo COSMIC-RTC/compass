@@ -13,4 +13,5 @@ message("Building for Compute Capability ${CUDA_SM}")
 
 add_subdirectory(libcarma)
 add_subdirectory(naga)
-# add_subdirectory(libsutra)
+add_subdirectory(libsutra)
+add_subdirectory(shesha)

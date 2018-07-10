@@ -84,8 +84,8 @@ class CMakeBuildExt(build_ext):
 ext_modules = [
         CMakeExtension('libcarma'),
         CMakeExtension('naga'),
-        # CMakeExtension('libsutra'),
-        # CMakeExtension('shesha'),
+        CMakeExtension('libsutra'),
+        CMakeExtension('shesha'),
 ]
 
 setup(

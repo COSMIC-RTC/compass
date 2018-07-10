@@ -301,12 +301,22 @@ sutra_atmos::~sutra_atmos() {
 int sutra_atmos::init_screen(float altitude, float *h_A, float *h_B,
                              unsigned int *h_istencilx,
                              unsigned int *h_istencily, int seed) {
-  d_screens[altitude]->init_screen(h_A, h_B, h_istencilx, h_istencily, seed);
-  d_screens[altitude]->refresh_screen();
+  if (this->d_screens.count(altitude)) {
+    d_screens[altitude]->init_screen(h_A, h_B, h_istencilx, h_istencily, seed);
+    d_screens[altitude]->refresh_screen();
+  } else
+    DEBUG_TRACE("Screen not found at this altitude");
 
   return EXIT_SUCCESS;
 }
 
+int sutra_atmos::refresh_screen(float altitude) {
+  if (this->d_screens.count(altitude))
+    this->d_screens[altitude]->refresh_screen();
+  else
+    DEBUG_TRACE("Screen not found at this altitude");
+  return EXIT_SUCCESS;
+}
 int sutra_atmos::get_screen(const float alt, float *data_F) {
   if (d_screens.find(alt) == d_screens.end()) {
     std::cout << "There is no screen at this altitude" << std::endl;
@@ -394,5 +404,14 @@ int sutra_atmos::set_global_r0(float r0) {
     it->second->amplitude *= scaling;
   }
   this->r0 = r0;
+  return EXIT_SUCCESS;
+}
+
+int sutra_atmos::set_seed(float alt, float seed) {
+  if (this->d_screens.count(alt))
+    this->d_screens[alt]->set_seed(seed);
+  else
+    DEBUG_TRACE("Screen not found at this altitude");
+
   return EXIT_SUCCESS;
 }

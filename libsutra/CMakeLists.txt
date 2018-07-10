@@ -43,7 +43,7 @@ add_library(sutra SHARED
     src.cpp/sutra_centroider_tcog.cpp
     src.cpp/sutra_centroider_wcog.cpp
     src.cpp/sutra_controller.cpp
-    # src.cpp/sutra_controller_cured.cpp
+    src.cpp/sutra_controller_cured.cpp
     src.cpp/sutra_controller_generic.cpp
     src.cpp/sutra_controller_geo.cpp
     src.cpp/sutra_controller_kalman.cpp
@@ -87,6 +87,7 @@ add_library(sutra SHARED
     src.cu/sutra_target.cu
     src.cu/sutra_turbu.cu
     src.cu/sutra_wfs.cu
+    aao/cured/cured.cpp
 )
 
 set_target_properties(sutra
@@ -98,7 +99,7 @@ set_target_properties(sutra
 
 target_include_directories(sutra
     PUBLIC
-    $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/include.h>
+    $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/include.h ${CMAKE_CURRENT_SOURCE_DIR}/aao/cured>
     $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CURRENT_SOURCE_DIR}/include.h ${CMAKE_CURRENT_SOURCE_DIR}/include.cuh>
 )
 

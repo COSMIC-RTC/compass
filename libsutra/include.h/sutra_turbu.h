@@ -80,10 +80,12 @@ class sutra_atmos {
                  float windspeed, float winddir, float deltax, float deltay,
                  int device);
   int del_screen(const float alt);
+  int refresh_screen(float altitude);
   int list_alt(float *alts);
 
   int move_atmos();
   int set_global_r0(float r0);
+  int set_seed(float alt, float seed);
 };
 
 int gene_vonkarman(cuFloatComplex *d_odata, float *d_idata, float k0,

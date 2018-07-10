@@ -14,9 +14,9 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(MAGMA REQUIRED magma)
 
 link_directories( ${MAGMA_LIBRARY_DIRS} )
-
-add_subdirectory(../pybind11 pybind11)
-
+if(NOT TARGET wyrm)
+    add_subdirectory(../wyrm wyrm)
+endif()
 add_library(naga MODULE
                     src/naga_context.cpp
                     src/naga.cpp
@@ -26,7 +26,7 @@ add_library(naga MODULE
                     src/naga_obj_int.cpp
                     src/naga_obj_uint.cpp)
 
-target_link_libraries(naga PRIVATE pybind11::module carma)
+target_link_libraries(naga PRIVATE wyrm carma)
 
 set_target_properties(naga PROPERTIES PREFIX "${PYTHON_MODULE_PREFIX}"
                                       SUFFIX "${PYTHON_MODULE_EXTENSION}")

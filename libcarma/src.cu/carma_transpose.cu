@@ -113,14 +113,13 @@ int transposeCU(T *d_idata, T *d_odata, long N1, long N2) {
   return EXIT_SUCCESS;
 }
 
-template int
-transposeCU<int>(int *d_idata, int *d_odata, long N1, long N2);
+template int transposeCU<int>(int *d_idata, int *d_odata, long N1, long N2);
 
-template int
-transposeCU<unsigned int>(unsigned int *d_idata, unsigned int *d_odata, long N1, long N2);
+template int transposeCU<unsigned int>(unsigned int *d_idata,
+                                       unsigned int *d_odata, long N1, long N2);
 
-template int
-transposeCU<float>(float *d_idata, float *d_odata, long N1, long N2);
+template int transposeCU<float>(float *d_idata, float *d_odata, long N1,
+                                long N2);
 
 template int transposeCU<double>(double *d_idata, double *d_odata, long N1,
                                  long N2);
@@ -132,3 +131,6 @@ template int transposeCU<cuFloatComplex>(cuFloatComplex *d_idata,
 template int transposeCU<cuDoubleComplex>(cuDoubleComplex *d_idata,
                                           cuDoubleComplex *d_odata, long N1,
                                           long N2);
+template int transposeCU<tuple_t<float>>(tuple_t<float> *d_idata,
+                                         tuple_t<float> *d_odata, long N1,
+                                         long N2);

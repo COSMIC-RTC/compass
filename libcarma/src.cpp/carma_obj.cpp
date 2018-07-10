@@ -335,4 +335,4 @@ template class carma_obj<float>;
 template class carma_obj<double>;
 template class carma_obj<cuFloatComplex>;
 template class carma_obj<cuDoubleComplex>;
-// template class carma_obj<struct tuple_t<float> >;
+template class carma_obj<struct tuple_t<float> >;
