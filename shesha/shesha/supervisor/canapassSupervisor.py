@@ -318,7 +318,7 @@ class CanapassSupervisor(CompassSupervisor):
 
         # WFS
         aodict.update({"nbWfs": len(self._sim.config.p_wfss)})
-        aodict.update({"nbTargets": int(self._sim.config.p_target.ntargets)})
+        aodict.update({"nbTargets": len(self._sim.config.p_targets)})
         aodict.update({"nbCam": aodict["nbWfs"]})
         aodict.update({"nbOffaxis": 0})
         aodict.update({"nbNgsWFS": 1})
@@ -462,11 +462,11 @@ class CanapassSupervisor(CompassSupervisor):
         listTargetsDmsSeen = []
         listTargetsMag = []
         for k in range(aodict["nbTargets"]):
-            listTargetsLambda.append(self._sim.config.p_target.Lambda[k])
-            listTargetsXpos.append(self._sim.config.p_target.xpos[k])
-            listTargetsYpos.append(self._sim.config.p_target.ypos[k])
-            listTargetsMag.append(self._sim.config.p_target.mag[k])
-            listTargetsDmsSeen.append(self._sim.config.p_target.dms_seen[k])
+            listTargetsLambda.append(self._sim.config.p_targets[k].Lambda)
+            listTargetsXpos.append(self._sim.config.p_targets[k].xpos)
+            listTargetsYpos.append(self._sim.config.p_targets[k].ypos)
+            listTargetsMag.append(self._sim.config.p_targets[k].mag)
+            listTargetsDmsSeen.append(self._sim.config.p_targets[k].dms_seen)
 
         aodict.update({"listTARGETS_Lambda": listTargetsLambda})
         aodict.update({"listTARGETS_Xpos": listTargetsXpos})
@@ -582,13 +582,13 @@ class CanapassSupervisor(CompassSupervisor):
         aiData = None
         k = 0
         # Resets the target so that the PSF LE is synchro with the data
-        for i in range(self._sim.config.p_target.ntargets):
+        for i in range(len(self._sim.config.p_targets)):
             self._sim.tar.reset_strehl(i)
 
         # Starting CB loop...
         for j in trange(CBcount, desc="recording"):
             self._sim.next(see_atmos=seeAtmos)
-            for t in range(self._sim.config.p_target.ntargets):
+            for t in range(len(self._sim.config.p_targets)):
                 self._sim.tar.comp_image(t)
 
             if (j % subSample == 0):

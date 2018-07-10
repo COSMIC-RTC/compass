@@ -31,15 +31,19 @@ p_atmos.set_winddir([0., 10., 20., 25.])
 p_atmos.set_L0([25., 25., 25., 25.])
 
 # target
-p_target = conf.Param_target()
+ntargets = 49
+p_targets = [conf.Param_target() for _ in range(49)]
 
-p_target.set_ntargets(49)
 xpos, ypos = np.meshgrid(np.linspace(-15, 15, 7), np.linspace(-15, 15, 7))
-p_target.set_xpos(xpos.flatten())
-p_target.set_ypos(ypos.flatten())
-p_target.set_Lambda([0.65])
-p_target.set_mag([10.])
-
+xpos = xpos.flatten()
+ypos = ypos.flatten()
+k = 0
+for p_target in p_targets:
+    p_target.set_xpos(xpos[k])
+    p_target.set_ypos(ypos[k])
+    p_target.set_Lambda(0.65)
+    p_target.set_mag(10.)
+    k += 1
 # wfs
 n_lgs = 6
 n_ngs = 3

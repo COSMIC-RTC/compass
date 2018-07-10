@@ -194,7 +194,7 @@ class Simulator:
             print("->atmos")
             self.atm = init.atmos_init(
                     self.c, self.config.p_atmos, self.config.p_tel, self.config.p_geom,
-                    ittime, p_wfss=self.config.p_wfss, p_target=self.config.p_target,
+                    ittime, p_wfss=self.config.p_wfss, p_targets=self.config.p_targets,
                     dataBase=self.matricesToLoad, use_DB=self.use_DB)
         else:
             self.atm = None
@@ -215,9 +215,9 @@ class Simulator:
         """
         Initializes the Target object in the simulator
         """
-        if self.config.p_target is not None:
+        if self.config.p_targets is not None:
             print("->target")
-            self.tar = init.target_init(self.c, self.tel, self.config.p_target,
+            self.tar = init.target_init(self.c, self.tel, self.config.p_targets,
                                         self.config.p_atmos, self.config.p_tel,
                                         self.config.p_geom, self.config.p_dms,
                                         brahma=False)
@@ -270,7 +270,7 @@ class Simulator:
              apply_control: (bool): (optional) if True (default), apply control on DMs
         '''
         if tar_trace is None and self.tar is not None:
-            tar_trace = range(self.config.p_target.ntargets)
+            tar_trace = range(len(self.config.p_targets))
         if wfs_trace is None and self.wfs is not None:
             wfs_trace = range(len(self.config.p_wfss))
 
@@ -346,7 +346,7 @@ class Simulator:
                     t1 = time.time()
                 i += 1
 
-        for i in range(n-1):
+        for i in range(n - 1):
             self.next(**kwargs)
             if ((i + 1) % monitoring_freq == 0):
                 self.print_strehl(monitoring_freq, time.time() - t1, i, n)
@@ -393,8 +393,8 @@ def load_config_from_file(sim_class, filepath: str) -> None:
         sim_class.config.p_atmos = None
     if not hasattr(sim_class.config, 'p_dms'):
         sim_class.config.p_dms = None
-    if not hasattr(sim_class.config, 'p_target'):
-        sim_class.config.p_target = None
+    if not hasattr(sim_class.config, 'p_targets'):
+        sim_class.config.p_targets = None
     if not hasattr(sim_class.config, 'p_wfss'):
         sim_class.config.p_wfss = None
     if not hasattr(sim_class.config, 'p_centroiders'):

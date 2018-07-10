@@ -53,12 +53,15 @@ p_target.set_mag([4.])
 """
 
 # 3 targets
-p_target = conf.Param_target()
-p_target.set_ntargets(3)
-p_target.set_xpos([0, 0, 0])
-p_target.set_ypos([0, 0, 0])
-p_target.set_Lambda([1.2, 1.65, 2.2])
-p_target.set_mag([4, 4., 4])
+p_targets = [conf.Param_target() for _ in range(3)]
+Lambda = [1.2, 1.65, 2.2]
+k = 0
+for p_target in p_targets:
+    p_target.set_xpos(0.)
+    p_target.set_ypos(0.)
+    p_target.set_Lambda(Lambda[k])
+    p_target.set_mag(4.)
+
 #wfs
 
 p_wfs0 = conf.Param_wfs(error_budget=True)

@@ -175,7 +175,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
 
     def resetSR(self) -> None:
         if self.uiAO.wao_allTarget.isChecked():
-            for t in range(self.config.p_target.ntargets):
+            for t in range(len(self.config.p_targets)):
                 self.supervisor.resetStrehl(t)
         else:
             tarnum = self.uiAO.wao_resetSR_tarNum.value()
@@ -253,7 +253,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             name = 'dm_%d' % dm
             self.add_dispDock(name, self.wao_phasesgroup_cb)
 
-        self.ntar = self.config.p_target.ntargets
+        self.ntar = len(self.config.p_targets)
         for tar in range(self.ntar):
             name = 'tar_%d' % tar
             self.add_dispDock(name, self.wao_phasesgroup_cb)
@@ -267,10 +267,10 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         self.add_dispDock("Strehl", self.wao_graphgroup_cb, "SR")
 
         self.uiAO.wao_resetSR_tarNum.setValue(0)
-        self.uiAO.wao_resetSR_tarNum.setMaximum(self.config.p_target.ntargets - 1)
+        self.uiAO.wao_resetSR_tarNum.setMaximum(len(self.config.p_targets) - 1)
 
         self.uiAO.wao_dispSR_tar.setValue(0)
-        self.uiAO.wao_dispSR_tar.setMaximum(self.config.p_target.ntargets - 1)
+        self.uiAO.wao_dispSR_tar.setMaximum(len(self.config.p_targets) - 1)
 
         self.uiAO.wao_run.setDisabled(True)
         self.uiAO.wao_next.setDisabled(True)
@@ -364,7 +364,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             self.viewboxes[key].addItem(self.SRcircles[key])
             self.SRcircles[key].setPoints(cx, cy)
 
-        for i in range(self.config.p_target.ntargets):
+        for i in range(len(self.config.p_targets)):
             key = "tar_%d" % i
             data = self.supervisor.getTarPhase(i)
             cx, cy = self.circleCoords(self.config.p_geom.pupdiam / 2, 1000,
@@ -543,7 +543,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                 if (time.time() - self.refreshTime > refreshDisplayTime):
                     signal_le = ""
                     signal_se = ""
-                    for t in range(self.config.p_target.ntargets):
+                    for t in range(len(self.config.p_targets)):
                         SR = self.supervisor.getStrehl(t)
                         # TODO: handle that !
                         if (t == self.uiAO.wao_dispSR_tar.value(
