@@ -185,25 +185,8 @@ cdef class Dms:
       influ3 = new struct tuple_t<float>[ntot_influpos];
 
       for(int  i = 0; i < ntot_influpos; i++)
-    	  influ3[i] = {influpos2[i], influ2[i]};
+    	  influ3[i] = {influpos2[i], influpos[i] / n};
 
-#elif(COMPN == 3)
-      influ3 = new struct tuple_t<float>[ntot_istart * MAXSPOT];
-
-      //For each pixel of screen
-      int count = 0;
-      for(int  i = 0; i < ntot_istart; i++)
-      {
-    	  int j = 0;
-    	  //For each influence function, cpy the value of postition and influ
-    	  for(; j < npoints[i]; j++){
-    		  influ3[i * MAXSPOT + j] = {influpos2[count], influ2[count]};
-    		  count++;
-    	  }
-    	  //Fill the last element with 0
-    	  for(; j < MAXSPOT; j++)
-    		  influ3[i * MAXSPOT + j] = {0, 0.0};
-      }
 #endif
         """
 

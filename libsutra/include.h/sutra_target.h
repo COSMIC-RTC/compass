@@ -58,8 +58,8 @@ class sutra_source {
       *d_phasepts;  // the valid phase points in the pupil (target only)
   carma_obj<int> *d_wherephase;  // positions of valid phase points in the pupil
   // (target only)
-  map<type_screen, float> xoff;    // x reference for raytracing
-  map<type_screen, float> yoff;    // y reference for raytracing
+  map<type_screen, int> xoff;      // x reference for raytracing
+  map<type_screen, int> yoff;      // y reference for raytracing
   carma_obj<float> *d_ncpa_phase;  // ncpa phase
 
  public:
@@ -73,8 +73,8 @@ class sutra_source {
   inline int init_source(carma_context *context, float xpos, float ypos,
                          float lambda, float mag, float zerop, long size,
                          string type, int device);
-  int add_layer(string type, float alt, float xoff, float yoff);
-  int remove_layer(string type, float alt);
+  int add_layer(string type, int idx, float xoff, float yoff);
+  int remove_layer(string type, int idx);
   // int get_phase(float *h_dest);
   int get_ncpa_phase(float *h_src, size_t size);
   int set_ncpa_phase(float *h_dest, size_t size);

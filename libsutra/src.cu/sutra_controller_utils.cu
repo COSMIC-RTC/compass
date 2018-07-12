@@ -1256,9 +1256,9 @@ void update_tomo_atm_gpu_gb(struct gtomo_struct *tomo_gpu,
 
   double h[atmos->nscreens];
   int ii = 0;
-  for (map<float, sutra_tscreen *>::iterator it = atmos->d_screens.begin();
+  for (vector<sutra_tscreen *>::iterator it = atmos->d_screens.begin();
        it != atmos->d_screens.end(); ++it) {
-    h[ii] = (double)it->second->altitude;
+    h[ii] = (double)(*it)->altitude;
     ii++;
   }
   // DEBUG_TRACE("Here !\n");
@@ -2211,9 +2211,9 @@ void matcov_gpu_4(float *data, int nrows, int ncols, int xoffset, int yoffset,
   // for each DIFFERENT L0
   double h[atmos->nscreens];
   int ii = 0;
-  for (map<float, sutra_tscreen *>::iterator it = atmos->d_screens.begin();
+  for (vector<sutra_tscreen *>::iterator it = atmos->d_screens.begin();
        it != atmos->d_screens.end(); ++it) {
-    h[ii] = (double)it->second->altitude;
+    h[ii] = (double)(*it)->altitude;
     ii++;
   }
 
@@ -2313,9 +2313,9 @@ void CPHIM(float *data, int nrows, int ncols, int xoffset, int yoffset, int lda,
 
   double h[atmos->nscreens];
   int ii = 0;
-  for (map<float, sutra_tscreen *>::iterator it = atmos->d_screens.begin();
+  for (vector<sutra_tscreen *>::iterator it = atmos->d_screens.begin();
        it != atmos->d_screens.end(); ++it) {
-    h[ii] = (double)it->second->altitude;
+    h[ii] = (double)(*it)->altitude;
     ii++;
   }
 
@@ -2740,9 +2740,9 @@ void update_cphim_atm(struct cphim_struct *cphim_struct, sutra_sensors *sensors,
 
   double h[atmos->nscreens];
   int ii = 0;
-  for (map<float, sutra_tscreen *>::iterator it = atmos->d_screens.begin();
+  for (vector<sutra_tscreen *>::iterator it = atmos->d_screens.begin();
        it != atmos->d_screens.end(); ++it) {
-    h[ii] = (double)it->second->altitude;
+    h[ii] = (double)(*it)->altitude;
     ii++;
   }
   // DEBUG_TRACE("Here !\n");

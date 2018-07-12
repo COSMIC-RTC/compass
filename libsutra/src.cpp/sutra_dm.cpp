@@ -676,13 +676,16 @@ int sutra_dms::get_inddm(string type, float alt) {
   return -1;
 }
 
-int sutra_dms::remove_dm(string type, float alt) {
-  int pos = get_inddm(type, alt);
-  if (pos < 0) return EXIT_FAILURE;
-  sutra_dm *dm = d_dms.at(pos);
-  d_dms.erase(d_dms.begin() + pos);
-  d_type.erase(d_type.begin() + pos);
-  delete dm;
+int sutra_dms::remove_dm(int idx) {
+  if (idx < this->d_dms.size()) {
+    delete d_dms[idx];
+    d_dms.erase(d_dms.begin() + idx);
+    d_type.erase(d_type.begin() + idx);
+  }
+
+  else
+    DEBUG_TRACE("Index exceed vector size");
+
   return EXIT_SUCCESS;
 }
 

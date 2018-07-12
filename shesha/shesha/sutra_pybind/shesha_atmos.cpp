@@ -23,7 +23,8 @@ void declare_shesha_atmos(py::module &mod) {
         ------------
         context: (carma_context) : current carma context
         nscreens: (float) : number of turbulent layers
-        r0_per_layer: (float) : global r0
+        global_r0: (float): global r0
+        r0_per_layer: (float) : r0 per layer
         size1: (np.ndarray[ndim=1, dtype=np.int64_t]) : First size of screens
         size2: (np.ndarray[ndim=1, dtype=np.int64_t]) : Second size of screens
         altitude: (np.ndarray[ndim=1,dtype=np.float32_t]) : altitudes [m]
@@ -53,12 +54,11 @@ void declare_shesha_atmos(py::module &mod) {
       .def_property_readonly("r0", [](sutra_atmos &sa) { return sa.r0; },
                              "Global r0")
 
-      .def_property_readonly(
-          "d_screens",
-          [](sutra_atmos &sa) -> map<float, sutra_tscreen *> & {
-            return sa.d_screens;
-          },
-          "Map of screens")
+      .def_property_readonly("d_screens",
+                             [](sutra_atmos &sa) -> vector<sutra_tscreen *> & {
+                               return sa.d_screens;
+                             },
+                             "Vector of tscreens")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝
@@ -77,15 +77,15 @@ void declare_shesha_atmos(py::module &mod) {
 
         Parameters
         ------------
-        altitude: (float): altitude of the screen
+        idx: (int): index of the screen
         A: (np.ndarray[ndim=2, dtype=np.float32]): A matrix (cf. Assemat)
         B: (np.ndarray[ndim=2, dtype=np.float32]): B matrix (cf. Assemat)
         istencilx: (np.ndarray[ndim=2, dtype=int32]): X stencil index
         istencily: (np.ndarray[ndim=2, dtype=int32]): Y stencil index
         seed: (int): seed for RNG
         )pbdoc",
-           py::arg("altitude"), py::arg("A"), py::arg("B"),
-           py::arg("istencilx"), py::arg("istencily"), py::arg("seed"))
+           py::arg("idx"), py::arg("A"), py::arg("B"), py::arg("istencilx"),
+           py::arg("istencily"), py::arg("seed"))
 
       .def("add_screen", wy::castParameter(&sutra_atmos::add_screen), R"pbdoc(
         Add a screen to the atmos object.
@@ -111,32 +111,30 @@ void declare_shesha_atmos(py::module &mod) {
         Refresh the selected screen by extrusion
         Parameters
         ------------
-        alt: (float): altitude of the screen to refresh
+        idx: (int): index of the screen
         )pbdoc",
-           py::arg("alt"))
+           py::arg("idx"))
 
       .def("del_screen", wy::castParameter(&sutra_atmos::del_screen), R"pbdoc(
         Delete the selected screen
         Parameters
         ------------
-        alt: (float): altitude of the screen to delete
+        idx: (int): index of the screen
         )pbdoc",
-           py::arg("alt"))
+           py::arg("idx"))
 
       .def("__str__",
            [](sutra_atmos &sa) {
              std::cout << "Screen # | alt.(m) | speed (m/s) | dir.(deg) | r0 "
                           "(pix) | deltax | deltay"
                        << std::endl;
-             map<float, sutra_tscreen *>::iterator it = sa.d_screens.begin();
-             sutra_tscreen *screen;
+             vector<sutra_tscreen *>::iterator it = sa.d_screens.begin();
              int i = 0;
              while (it != sa.d_screens.end()) {
-               screen = it->second;
-               std::cout << i << " | " << screen->altitude << " | "
-                         << screen->windspeed << " | " << screen->winddir
-                         << " | " << powf(screen->amplitude, -6 / 5) << " | "
-                         << screen->deltax << " | " << screen->deltay
+               std::cout << i << " | " << (*it)->altitude << " | "
+                         << (*it)->windspeed << " | " << (*it)->winddir << " | "
+                         << powf((*it)->amplitude, -6 / 5) << " | "
+                         << (*it)->deltax << " | " << (*it)->deltay
                          << std::endl;
                i++;
                it++;
@@ -166,8 +164,8 @@ void declare_shesha_atmos(py::module &mod) {
 
         Parameters
         ------------
-        alt: (float) :altitude of the screen to modify
+        idx: (int): index of the screen
         seed: (int) :new seed
         )pbdoc",
-           py::arg("alt"), py::arg("seed"));
+           py::arg("idx"), py::arg("seed"));
 };

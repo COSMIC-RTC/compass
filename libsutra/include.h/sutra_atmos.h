@@ -2,15 +2,14 @@
 #define _SUTRA_ATMOS_H_
 
 #include <sutra_tscreen.h>
-#include <map>
 
-using std::map;
 using std::pair;
+using std::vector;
 
 class sutra_atmos {
  public:
   int nscreens;
-  map<float, sutra_tscreen *> d_screens;
+  vector<sutra_tscreen *> d_screens;
   float r0;
   carma_context *current_context;
 
@@ -20,18 +19,18 @@ class sutra_atmos {
               float *winddir, float *deltax, float *deltay, int device);
   ~sutra_atmos();
 
-  int init_screen(float alt, float *h_A, float *h_B, unsigned int *h_istencilx,
+  int init_screen(int idx, float *h_A, float *h_B, unsigned int *h_istencilx,
                   unsigned int *h_istencily, int seed);
 
-  int add_screen(float alt, long size, long stencilSize, float amplitude,
+  int add_screen(float altitude, long size, long stencilSize, float amplitude,
                  float windspeed, float winddir, float deltax, float deltay,
                  int device);
-  int del_screen(const float alt);
-  int refresh_screen(float altitude);
+  int del_screen(const int idx);
+  int refresh_screen(int idx);
 
   int move_atmos();
   int set_global_r0(float r0);
-  int set_seed(float alt, float seed);
+  int set_seed(int idx, float seed);
 };
 
 #endif  // _SUTRA_ATMOS_H_

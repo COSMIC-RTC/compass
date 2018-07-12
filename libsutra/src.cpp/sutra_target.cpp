@@ -255,52 +255,18 @@ int sutra_source::reset_strehlmeter() {
   return EXIT_SUCCESS;
 }
 
-int sutra_source::add_layer(string type, float alt, float mxoff, float myoff) {
+int sutra_source::add_layer(string type, int idx, float mxoff, float myoff) {
   current_context->set_activeDevice(device, 1);
-  xoff[make_pair(type, alt)] = mxoff;
-  yoff[make_pair(type, alt)] = myoff;
+  xoff[make_pair(type, idx)] = mxoff;
+  yoff[make_pair(type, idx)] = myoff;
 
   return EXIT_SUCCESS;
 }
 
-int sutra_source::remove_layer(string type, float alt) {
+int sutra_source::remove_layer(string type, int idx) {
   current_context->set_activeDevice(device, 1);
-  xoff.erase(make_pair(type, alt));
-  yoff.erase(make_pair(type, alt));
-
-  return EXIT_SUCCESS;
-}
-
-int sutra_source::raytrace_shm(sutra_atmos *yatmos) {
-  current_context->set_activeDevice(device, 1);
-  carmaSafeCall(
-      cudaMemset(this->d_phase->d_screen->getData(), 0,
-                 sizeof(float) * this->d_phase->d_screen->getNbElem()));
-
-  map<type_screen, float>::iterator p;
-  p = xoff.begin();
-  while (p != xoff.end()) {
-    string types = p->first.first;
-    if (types.find("atmos") == 0) {
-      float alt = p->first.second;
-      map<float, sutra_tscreen *>::iterator ps;
-      ps = yatmos->d_screens.find(alt);
-      if (ps != yatmos->d_screens.end()) {
-        target_texraytrace(this->d_phase->d_screen->getData(),
-                           ps->second->d_tscreen->d_screen->getData(),
-                           (int)d_phase->d_screen->getDims(1),
-                           (int)d_phase->d_screen->getDims(2),
-                           (int)ps->second->d_tscreen->d_screen->getDims(1),
-                           (int)ps->second->d_tscreen->d_screen->getDims(2),
-                           xoff[std::make_pair("atmos", alt)],
-                           yoff[std::make_pair("atmos", alt)],
-                           ps->second->d_tscreen->d_screen->getNbElem(),
-                           ps->second->channelDesc,
-                           current_context->get_device(device));
-      }
-    }
-    p++;
-  }
+  xoff.erase(make_pair(type, idx));
+  yoff.erase(make_pair(type, idx));
 
   return EXIT_SUCCESS;
 }
@@ -313,16 +279,16 @@ int sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
                  sizeof(float) * this->d_phase->d_screen->getNbElem()));
 
   float delta;
-  map<type_screen, float>::iterator p;
+  map<type_screen, int>::iterator p;
   p = xoff.begin();
 
   while (p != xoff.end()) {
     string types = p->first.first;
 
     if (types.find("atmos") == 0) {
-      float alt = p->first.second;
+      int idx = p->first.second;
       sutra_tscreen *ps;
-      ps = yatmos->d_screens[alt];
+      ps = yatmos->d_screens[idx];
       p++;
       if ((p == xoff.end()) && async) {
         target_raytrace_async(
@@ -331,19 +297,19 @@ int sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
             (int)d_phase->d_screen->getDims(1),
             (int)d_phase->d_screen->getDims(2),
             (int)ps->d_tscreen->d_screen->getDims(1),
-            xoff[std::make_pair("atmos", alt)],
-            yoff[std::make_pair("atmos", alt)], this->block_size);
+            xoff[std::make_pair("atmos", idx)],
+            yoff[std::make_pair("atmos", idx)], this->block_size);
       } else {
         if (this->lgs) {
-          delta = 1.0f - alt / this->d_lgs->hg;
+          delta = 1.0f - ps->altitude / this->d_lgs->hg;
           if (delta > 0)
             target_lgs_raytrace(this->d_phase->d_screen->getData(),
                                 ps->d_tscreen->d_screen->getData(),
                                 (int)d_phase->d_screen->getDims(1),
                                 (int)d_phase->d_screen->getDims(2),
                                 (int)ps->d_tscreen->d_screen->getDims(1),
-                                xoff[make_pair(types, alt)],
-                                yoff[make_pair(types, alt)], delta,
+                                xoff[make_pair(types, idx)],
+                                yoff[make_pair(types, idx)], delta,
                                 this->block_size);
         } else
 
@@ -352,8 +318,8 @@ int sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
                           (int)d_phase->d_screen->getDims(1),
                           (int)d_phase->d_screen->getDims(2),
                           (int)ps->d_tscreen->d_screen->getDims(1),
-                          xoff[std::make_pair("atmos", alt)],
-                          yoff[std::make_pair("atmos", alt)], this->G,
+                          xoff[std::make_pair("atmos", idx)],
+                          yoff[std::make_pair("atmos", idx)], this->G,
                           this->thetaML, this->dx, this->dy, this->block_size);
       }
     } else
@@ -367,33 +333,33 @@ int sutra_source::raytrace(sutra_dms *ydms, int rst, int do_phase_var,
                            bool async) {
   current_context->set_activeDevice(device, 1);
   if (rst == 1) this->d_phase->d_screen->reset();
-  map<type_screen, float>::iterator p;
+  map<type_screen, int>::iterator p;
   p = xoff.begin();
   while (p != xoff.end()) {
     string types = p->first.first;
     if ((types.find("pzt") == 0) || (types.find("tt") == 0) ||
         (types.find("kl") == 0)) {
-      float alt = p->first.second;
-      int inddm = ydms->get_inddm(types, alt);
+      int inddm = p->first.second;
       if (inddm < 0) throw "error in sutra_source::raytrace, dm not find";
       sutra_dm *ps = ydms->d_dms[inddm];
       p++;
       if ((p == xoff.end()) && async) {
-        target_raytrace_async(
-            this->phase_telemetry, this->d_phase->d_screen->getData(),
-            ps->d_shape->d_screen->getData(),
-            (int)d_phase->d_screen->getDims(1),
-            (int)d_phase->d_screen->getDims(2),
-            (int)ps->d_shape->d_screen->getDims(1), xoff[make_pair(types, alt)],
-            yoff[make_pair(types, alt)], this->block_size);
+        target_raytrace_async(this->phase_telemetry,
+                              this->d_phase->d_screen->getData(),
+                              ps->d_shape->d_screen->getData(),
+                              (int)d_phase->d_screen->getDims(1),
+                              (int)d_phase->d_screen->getDims(2),
+                              (int)ps->d_shape->d_screen->getDims(1),
+                              xoff[make_pair(types, inddm)],
+                              yoff[make_pair(types, inddm)], this->block_size);
       } else {
         target_raytrace(this->d_phase->d_screen->getData(),
                         ps->d_shape->d_screen->getData(),
                         (int)d_phase->d_screen->getDims(1),
                         (int)d_phase->d_screen->getDims(2),
                         (int)ps->d_shape->d_screen->getDims(1),
-                        xoff[std::make_pair(types, alt)],
-                        yoff[std::make_pair(types, alt)], this->G,
+                        xoff[std::make_pair(types, inddm)],
+                        yoff[std::make_pair(types, inddm)], this->G,
                         this->thetaML, this->dx, this->dy, this->block_size);
       }
     } else
@@ -545,6 +511,7 @@ sutra_target::sutra_target(carma_context *context, sutra_telescope *yTelescope,
   }
 }
 
+/*
 sutra_target::~sutra_target() {
   //  for (size_t idx = 0; idx < (this->d_targets).size(); idx++) {
   while ((this->d_targets).size() > 0) {
@@ -552,3 +519,38 @@ sutra_target::~sutra_target() {
     d_targets.pop_back();
   }
 }
+
+int sutra_source::raytrace_shm(sutra_atmos *yatmos) {
+  current_context->set_activeDevice(device, 1);
+  carmaSafeCall(
+      cudaMemset(this->d_phase->d_screen->getData(), 0,
+                 sizeof(float) * this->d_phase->d_screen->getNbElem()));
+
+  map<type_screen, int>::iterator p;
+  p = xoff.begin();
+  while (p != xoff.end()) {
+    string types = p->first.first;
+    if (types.find("atmos") == 0) {
+      int idx = p->first.second;
+      map<float, sutra_tscreen *>::iterator ps;
+      ps = yatmos->d_screens[idx];
+      if (ps != yatmos->d_screens.end()) {
+        target_texraytrace(this->d_phase->d_screen->getData(),
+                           ps->second->d_tscreen->d_screen->getData(),
+                           (int)d_phase->d_screen->getDims(1),
+                           (int)d_phase->d_screen->getDims(2),
+                           (int)ps->second->d_tscreen->d_screen->getDims(1),
+                           (int)ps->second->d_tscreen->d_screen->getDims(2),
+                           xoff[std::make_pair("atmos", idx)],
+                           yoff[std::make_pair("atmos", idx)],
+                           ps->second->d_tscreen->d_screen->getNbElem(),
+                           ps->second->channelDesc,
+                           current_context->get_device(device));
+      }
+    }
+    p++;
+  }
+
+  return EXIT_SUCCESS;
+}
+*/
