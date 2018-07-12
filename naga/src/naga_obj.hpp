@@ -13,7 +13,7 @@ void declare_naga_obj(py::module &mod, std::string suffix)
   using Class = carma_obj<T>;
 
   py::class_<Class>(mod, ("naga_obj_" + suffix).c_str(), py::buffer_protocol())
-      .def(py::init([](carma_context &c, const py::array_t<T> &data) {
+      .def(py::init([](carma_context &c, const py::array_t<T, py::array::f_style | py::array::forcecast> &data) {
         int ndim = data.ndim() + 1;
         std::vector<long> data_dims(ndim);
         data_dims[0] = data.ndim();
@@ -53,13 +53,23 @@ void declare_naga_obj(py::module &mod, std::string suffix)
 
       .def_buffer([](Class &frame) -> py::buffer_info {
         frame.sync_h_data();
+
         const long *dims = frame.getDims();
         std::vector<ssize_t> shape(dims[0]);
         std::vector<ssize_t> strides(dims[0]);
         ssize_t stride = sizeof(T);
-        for (ssize_t dim(dims[0] - 1); dim >= 0; --dim)
+
+        // C-style
+        // for (ssize_t dim(dims[0] - 1); dim >= 0; --dim)
+        // {
+        //   shape[dim] = dims[dim + 1];
+        //   strides[dim] = stride;
+        //   stride *= shape[dim];
+        // }
+
+        // F-style
+        for (ssize_t dim(0); dim < dims[0]; ++dim)
         {
-          // cerr << dim <<  endl;
           shape[dim] = dims[dim + 1];
           strides[dim] = stride;
           stride *= shape[dim];
@@ -113,11 +123,11 @@ void declare_naga_obj(py::module &mod, std::string suffix)
       .def("getDevice", &Class::getDevice)
 
       // int host2device(T_data *data);
-      .def("host2device", [](Class &c, py::array_t<T> &data) {
+      .def("host2device", [](Class &c, py::array_t<T, py::array::f_style | py::array::forcecast> &data) {
         c.host2device((const T*)data.data());
       })
       // int device2host(T_data *data);
-      .def("device2host", [](Class &c, py::array_t<T> &data) {
+      .def("device2host", [](Class &c, py::array_t<T, py::array::f_style | py::array::forcecast> &data) {
         c.device2host((T*)data.mutable_data());
       })
 
@@ -164,43 +174,27 @@ void declare_naga_obj(py::module &mod, std::string suffix)
       // void gemv(char trans, T_data alpha, carma_obj<T_data> *matA, int lda,
       //           carma_obj<T_data> *vectx, int incx, T_data beta, int incy);
       .def("gemv", [](Class &mat, Class &vectx, Class &vecty, char op, T alpha, T beta) {
-        int lda;
-        if (op == 'N' || op == 'n')
-        {
-          lda = mat.getDims(2);
-        }
-        else
-        {
-          lda = mat.getDims(1);
-        }
-        vecty.gemv(op, alpha, &mat, lda, &vectx, 1, beta, 1);
+        vecty.gemv(op, alpha, &mat, mat.getDims(1), &vectx, 1, beta, 1);
       },
-           "this method performs one of the matrix‐vector operations vecty = alpha * op(mat) * vectx + beta * vecty", py::arg("vectx"), py::arg("vecty"), py::arg("op") = 'N', py::arg("alpha") = 1, py::arg("beta") = 0) // &Class::gemv)
+           "this method performs one of the matrix‐vector operations vecty = alpha * op(mat) * vectx + beta * vecty",
+           py::arg("vectx"), py::arg("vecty"), py::arg("op") = 'N', py::arg("alpha") = 1, py::arg("beta") = 0) // &Class::gemv)
       .def("gemv", [](Class &mat, Class &vectx, char op, T alpha) -> std::unique_ptr<Class> {
-        int lda, m, n;
-        char op_cublas;
+        long dims[] = {1, 0};
         if (op == 'N' || op == 'n')
         {
-          m = mat.getDims(2);
-          n = mat.getDims(1);
-          lda = m;
-          op_cublas = 't';
+          dims[1] = mat.getDims(1);
         }
         else
         {
-          m = mat.getDims(1);
-          n = mat.getDims(2);
-          lda = m;
-          op_cublas = 'n';
+          dims[1] = mat.getDims(2);
         }
-        long dims[] = {1, n};
         std::unique_ptr<Class> vecty(new Class(mat.getContext(), dims));
-        T beta = 0;
-        carma_gemv(mat.getContext()->get_cublasHandle(), op_cublas, m, n, alpha, mat.getData(), lda, vectx.getData(), 1, beta, vecty->getData(), 1);
-        // vecty->gemv(op, alpha, &mat, lda, &vectx, 1, beta, 1);
+        vecty->gemv(op, alpha, &mat, mat.getDims(1), &vectx, 1, 0, 1);
+
         return vecty;
       },
-           "this method performs one of the matrix‐vector operations vecty = alpha * op(mat) * vectx", py::arg("vectx"), py::arg("op") = 'N', py::arg("alpha") = 1) // &Class::gemv)
+           "this method performs one of the matrix‐vector operations vecty = alpha * op(mat) * vectx",
+           py::arg("vectx"), py::arg("op") = 'N', py::arg("alpha") = 1) // &Class::gemv)
       // void ger(T_data alpha, carma_obj<T_data> *vectx, int incx,
       //          carma_obj<T_data> *vecty, int incy, int lda);
       .def("ger", [](Class &vectx, Class &vecty, Class *mat, T alpha) -> std::unique_ptr<Class> {
@@ -238,41 +232,70 @@ void declare_naga_obj(py::module &mod, std::string suffix)
       // void gemm(char transa, char transb, T_data alpha, carma_obj<T_data> *matA,
       //           int lda, carma_obj<T_data> *matB, int ldb, T_data beta, int ldc);
       .def("gemm",  [](Class &matA, Class &matB, char op_a, char op_b, T alpha, Class &matC, T beta
-      // , int m, int n, int k, int lda, int ldb, int ldc
       ) /*-> std::unique_ptr<Class>*/  {
-        char op_cublas_A='t', op_cublas_B='t';
-
-// 1 2 4 4 2 1  seems GOOD!
-// 128 256 512 512 256 128
 
         int lda, ldb, ldc, m, n, k;
         if (op_a == 'N' || op_a == 'n')
         {
-          m = matA.getDims(1); // 1
-          n = matB.getDims(2); // 2
-          k = matA.getDims(2); // 2
-          lda = k; // m
-          ldb = n; // k
-          ldc = m; // m
-          op_cublas_A = 't';
-          op_cublas_B = 't';
+          m = matA.getDims(1);
+          k = matA.getDims(2);
         }
         else
         {
-          m = matA.getDims(1);
-          n = matA.getDims(2);
-          lda = matA.getDims(1);
-          op_cublas_A = 'n';
+          m = matA.getDims(2);
+          k = matA.getDims(1);
         }
 
-        long dims[] = {2, n, m};
-        std::unique_ptr<Class> matTMP(new Class(matA.getContext(),dims));
-        carma_geam<T>(matA.getContext()->get_cublasHandle(), 'n', 't',m, n, 0, matTMP->getData(), m, 1, matC.getData(), n, matTMP->getData(), m);
-        // T beta = 0;
-        carma_gemm<T>(matA.getContext()->get_cublasHandle(), op_cublas_B, op_cublas_A, m, n, k, alpha, matA.getData(), lda, matB.getData(), ldb, beta, matTMP->getData(), ldc);
-        carma_geam<T>(matA.getContext()->get_cublasHandle(), 'n', 't',n,m, 0, matC.getData(), n, 1, matTMP->getData(), m, matC.getData(), n);
-        // return matC;
-      })
+        if (op_b == 'N' || op_b == 'n')
+        {
+          k = matB.getDims(1);
+          n = matB.getDims(2);
+        }
+        else
+        {
+          k = matB.getDims(2);
+          n = matB.getDims(1);
+        }
+
+        carma_gemm<T>(matA.getContext()->get_cublasHandle(), op_a, op_b, m, n, k, alpha, matA.getData(), matA.getDims(1), matB.getData(), matB.getDims(1), beta, matC.getData(), matC.getDims(1));
+      },
+           "this method performs one of the matrix‐marix operations matC = alpha * op_a(matA) * op_b(matB) + beta * matC",
+           py::arg("matB"), py::arg("op_a")='N', py::arg("op_b")="N", py::arg("alpha")=1, py::arg("matC"), py::arg("beta") = 0)
+
+      .def("gemm",  [](Class &matA, Class &matB, char op_a, char op_b, T alpha
+      ) /*-> std::unique_ptr<Class>*/  {
+
+        int lda, ldb, ldc, m, n, k;
+        if (op_a == 'N' || op_a == 'n')
+        {
+          m = matA.getDims(1);
+          k = matA.getDims(2);
+        }
+        else
+        {
+          m = matA.getDims(2);
+          k = matA.getDims(1);
+        }
+
+        if (op_b == 'N' || op_b == 'n')
+        {
+          k = matB.getDims(1);
+          n = matB.getDims(2);
+        }
+        else
+        {
+          k = matB.getDims(2);
+          n = matB.getDims(1);
+        }
+
+        long dims[] = {2, m, n};
+        std::unique_ptr<Class> matC(new Class(matA.getContext(), dims));
+        T beta = 0;
+        carma_gemm<T>(matA.getContext()->get_cublasHandle(), op_a, op_b, m, n, k, alpha, matA.getData(), matA.getDims(1), matB.getData(), matB.getDims(1), beta, matC->getData(), matC->getDims(1));
+        return matC;
+      },
+           "this method performs one of the matrix‐marix operations matC = alpha * op_a(matA) * op_b(matB)",
+           py::arg("matB"), py::arg("op_a")='N', py::arg("op_b")="N", py::arg("alpha")=1)
 
 // cublasStatus_t carma_gemm<float>(cublasHandle_t cublas_handle, char transa,
 //                                  char transb, int m, int n, int k, float alpha,

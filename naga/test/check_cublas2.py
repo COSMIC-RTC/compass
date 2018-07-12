@@ -31,25 +31,37 @@ def test_gemv():
     # x and y are vector, A a matrix
 
     A = np.random.randn(sizem, sizen)
+    AT = A.T.copy()
     x = np.random.randn(sizen)
+    y = np.random.randn(sizem)
+    y2 = np.random.randn(sizem)
+
+    alpha = 2
+    beta = 1
 
     Mat = ch.naga_obj_float(c, A)
+    MatT = ch.naga_obj_float(c, AT)
     #Mat.random(seed)
 
     Vectx = ch.naga_obj_float(c, x)
+    Vecty = ch.naga_obj_float(c, y)
     #Vectx.random(seed * 3)
 
     #A = np.array(Mat)
     #x = np.array(Vectx)
-    y = A.dot(x)
+    y = alpha * A.dot(x) + beta * y
+    y2 = alpha * A.dot(x)
+    y3 = alpha * AT.T.dot(x)
 
     # Vecty = ch.naga_obj_float(c, np.zeros((sizem), dtype=np.float32))
 
-    # Mat.gemv(Vectx, Vecty)  # , "N", 1, Vecty, sizem, 0)
-    Vecty_2 = Mat.gemv(Vectx)
+    Mat.gemv(Vectx, Vecty, 'N', alpha, beta)
+    Vecty_2 = Mat.gemv(Vectx, 'N', alpha)
+    Vecty_3 = MatT.gemv(Vectx, 'T', alpha)
 
-    # npt.assert_array_almost_equal(y, np.array(Vecty), decimal=dec)
-    npt.assert_array_almost_equal(y, np.array(Vecty_2), decimal=dec)
+    npt.assert_array_almost_equal(y, np.array(Vecty), decimal=dec)
+    npt.assert_array_almost_equal(y2, np.array(Vecty_2), decimal=dec)
+    npt.assert_array_almost_equal(y3, np.array(Vecty_3), decimal=dec)
 
 
 def test_ger():

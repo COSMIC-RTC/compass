@@ -106,7 +106,7 @@ target_include_directories(sutra
 
 target_compile_options(sutra
     PRIVATE
-    $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -fPIC -use_fast_math -std=c++11 -gencode $ENV{GENCODE}>
+    $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -fPIC -use_fast_math -std=c++11 -gencode arch=compute_${CUDA_SM},code=sm_${CUDA_SM}>
 )
 
 target_link_libraries(sutra PRIVATE carma ${CUDA_LIBRARIES} ${CUDA_cufft_LIBRARY} ${CUDA_cublas_LIBRARY} ${CUDA_curand_LIBRARY} ${CUDA_cusparse_LIBRARY} )
