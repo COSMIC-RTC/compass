@@ -1,5 +1,5 @@
 #include <cublas_v2.h>
-#include <sutra_turbu.h>
+#include <sutra_tscreen.h>
 
 extern __shared__ float cache_shm[];
 
@@ -129,33 +129,3 @@ int norm_pscreen(float *d_odata, float *d_idata, int nx, int ny,
   cublasDestroy(cublas_handle);
   return EXIT_SUCCESS;
 }
-
-/*
- __global__ void cgetscreen_krnl(float *odata, cuFloatComplex *idata, int N, int
- nx)
- {
-
- int tid = threadIdx.x + blockIdx.x * blockDim.x;
-
- while (tid < N) {
- odata[tid] = idata[tid].x;
- tid += blockDim.x * gridDim.x;
- }
- }
-
- int cgetscreen(float *d_odata,cuFloatComplex *d_idata,int N,carma_device
- *device)
- {
-
- int nthreads = 0,nblocks = 0;
- getNumBlocksAndThreads(device, N, nblocks, nthreads);
-
- dim3 grid(nblocks), threads(nthreads);
-
- cgetrealp_krnl<<<grid, threads>>>(d_odata, d_idata, N);
-
- return EXIT_SUCCESS;
- }
-
-
- */

@@ -27,7 +27,7 @@ Rtc = smart_import("shesha.sutra_bind.Rtc", "Rtc")
 Rtc_brahma = smart_import("shesha.sutra_bind.Rtc", "Rtc_brahma", silent=True)
 Sensors = smart_import("shesha.sutra_bind.Sensors", "Sensors")
 Atmos = smart_import("shesha_bind", "Atmos")
-Telescope = smart_import("shesha.sutra_bind.Telescope", "Telescope")
+Telescope = smart_import("shesha_bind", "Telescope")
 Target = smart_import("shesha.sutra_bind.Target", "Target")
 Target_brahma = smart_import("shesha.sutra_bind.Target", "Target_brahma", silent=True)
 

@@ -1,8 +1,8 @@
 #ifndef SUTRA_CONTROLLER_UTILS_H_
 #define SUTRA_CONTROLLER_UTILS_H_
 
+#include <sutra_atmos.h>
 #include <sutra_dm.h>
-#include <sutra_turbu.h>
 #include <sutra_wfs.h>
 #include <cstdio>
 

@@ -2,11 +2,11 @@
 #define _SUTRA_TARGET_H_
 
 #include <carma.h>
+#include <sutra_atmos.h>
 #include <sutra_dm.h>
 #include <sutra_lgs.h>
 #include <sutra_telemetry.h>
 #include <sutra_telescope.h>
-#include <sutra_turbu.h>
 #include <map>
 #include <string>
 #include <vector>

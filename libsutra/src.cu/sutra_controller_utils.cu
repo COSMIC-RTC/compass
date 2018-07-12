@@ -1,5 +1,5 @@
+#include <sutra_atmos.h>
 #include <sutra_controller_utils.h>
-#include <sutra_turbu.h>
 
 /*  Tuning parameters of tbulateDPHI kernel*/
 #define tabDPHI_thread_x (256)

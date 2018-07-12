@@ -34,6 +34,7 @@ find_package(CUDA)
 add_library(sutra SHARED
     src.cpp/sutra_acquisim.cpp
     src.cpp/sutra_aotemplate.cpp
+    src.cpp/sutra_atmos.cpp
     src.cpp/sutra_centroider_bpcog.cpp
     src.cpp/sutra_centroider_cog.cpp
     src.cpp/sutra_centroider_corr.cpp
@@ -64,7 +65,7 @@ add_library(sutra SHARED
     src.cpp/sutra_target.cpp
     src.cpp/sutra_telemetry.cpp
     src.cpp/sutra_telescope.cpp
-    src.cpp/sutra_turbu.cpp
+    src.cpp/sutra_tscreen.cpp
     src.cpp/sutra_wfs.cpp
     src.cpp/sutra_wfs_geom.cpp
     src.cpp/sutra_wfs_pyr.cpp
@@ -85,7 +86,7 @@ add_library(sutra SHARED
     src.cu/sutra_lgs.cu
     src.cu/sutra_roket.cu
     src.cu/sutra_target.cu
-    src.cu/sutra_turbu.cu
+    src.cu/sutra_tscreen.cu
     src.cu/sutra_wfs.cu
     aao/cured/cured.cpp
 )

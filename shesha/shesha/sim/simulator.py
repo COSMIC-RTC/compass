@@ -24,7 +24,9 @@ import shesha.util.hdf5_utils as h5u
 import time
 
 from typing import Iterable, Any, Dict
-from shesha.sutra_bind.wrap import naga_context, Sensors, Dms, Rtc, Atmos, Telescope, Target
+from shesha.sutra_bind.wrap import Sensors, Dms, Rtc, Atmos, Telescope, Target
+from shesha_bind import Atmos
+import naga
 
 
 class Simulator:
@@ -141,9 +143,9 @@ class Simulator:
             self.matricesToLoad = h5u.checkMatricesDataBase(
                     os.environ["SHESHA_ROOT"] + "/data/dataBase/", self.config,
                     param_dict)
-        self.c = naga_context(devices=self.config.p_loop.devices)
-
-        self.force_context()
+        # self.c = naga_context(devices=self.config.p_loop.devices)
+        self.c = naga.naga_context.get_instance()
+        # self.force_context()
 
         if self.config.p_tel is None or self.config.p_geom is None:
             raise ValueError("Telescope geometry must be defined (p_geom and p_tel)")

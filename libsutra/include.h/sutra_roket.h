@@ -4,10 +4,10 @@
 #include <carma.h>
 #include <carma_obj.h>
 #include <sutra_ao_utils.h>
+#include <sutra_atmos.h>
 #include <sutra_rtc.h>
 #include <sutra_target.h>
 #include <sutra_telescope.h>
-#include <sutra_turbu.h>
 #include <sutra_wfs.h>
 
 class sutra_roket {

@@ -1,6 +1,6 @@
 #include <wyrm>
 
-#include <sutra_turbu.h>
+#include <sutra_atmos.h>
 
 namespace py = pybind11;
 
@@ -38,20 +38,39 @@ void declare_shesha_atmos(py::module &mod) {
            py::arg("altitude"), py::arg("windspeed"), py::arg("winddir"),
            py::arg("deltax"), py::arg("deltay"), py::arg("device"))
 
+      //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
+      //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
+      //  ██████╔╝██████╔╝██║   ██║██████╔╝█████╗  ██████╔╝   ██║    ╚████╔╝
+      //  ██╔═══╝ ██╔══██╗██║   ██║██╔═══╝ ██╔══╝  ██╔══██╗   ██║     ╚██╔╝
+      //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
+      //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
+      //
+
+      .def_property_readonly("nscreens",
+                             [](sutra_atmos &sa) { return sa.nscreens; },
+                             "Number of turbulent screens")
+
+      .def_property_readonly("r0", [](sutra_atmos &sa) { return sa.r0; },
+                             "Global r0")
+
+      .def_property_readonly(
+          "d_screens",
+          [](sutra_atmos &sa) -> map<float, sutra_tscreen *> & {
+            return sa.d_screens;
+          },
+          "Map of screens")
+
+      //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
+      //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝
+      //  ██╔████╔██║█████╗     ██║   ███████║██║   ██║██║  ██║███████╗
+      //  ██║╚██╔╝██║██╔══╝     ██║   ██╔══██║██║   ██║██║  ██║╚════██║
+      //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
+      //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
+
       .def("move_atmos", &sutra_atmos::move_atmos, R"pbdoc(
         Move the turbulence in the atmos screen following loaded
         parameters such as windspeed and wind direction
         )pbdoc")
-
-      .def("set_global_r0", wy::castParameter(&sutra_atmos::set_global_r0),
-           R"pbdoc(
-        Change the current global r0 of all layers
-
-        Parameters
-        ------------
-        r0: (float): r0 @ 0.5 microns
-        )pbdoc",
-           py::arg("r0"))
 
       .def("init_screen", wy::castParameter(&sutra_atmos::init_screen), R"pbdoc(
         Initialize an newly allocated screen
@@ -104,6 +123,44 @@ void declare_shesha_atmos(py::module &mod) {
         )pbdoc",
            py::arg("alt"))
 
+      .def("__str__",
+           [](sutra_atmos &sa) {
+             std::cout << "Screen # | alt.(m) | speed (m/s) | dir.(deg) | r0 "
+                          "(pix) | deltax | deltay"
+                       << std::endl;
+             map<float, sutra_tscreen *>::iterator it = sa.d_screens.begin();
+             sutra_tscreen *screen;
+             int i = 0;
+             while (it != sa.d_screens.end()) {
+               screen = it->second;
+               std::cout << i << " | " << screen->altitude << " | "
+                         << screen->windspeed << " | " << screen->winddir
+                         << " | " << powf(screen->amplitude, -6 / 5) << " | "
+                         << screen->deltax << " | " << screen->deltay
+                         << std::endl;
+               i++;
+               it++;
+               return "";
+             }
+           })
+
+      //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
+      //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝
+      //  ███████╗█████╗     ██║      ██║   █████╗  ██████╔╝███████╗
+      //  ╚════██║██╔══╝     ██║      ██║   ██╔══╝  ██╔══██╗╚════██║
+      //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
+      //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
+      //
+      .def("set_global_r0", wy::castParameter(&sutra_atmos::set_global_r0),
+           R"pbdoc(
+        Change the current global r0 of all layers
+
+        Parameters
+        ------------
+        r0: (float): r0 @ 0.5 microns
+        )pbdoc",
+           py::arg("r0"))
+
       .def("set_seed", wy::castParameter(&sutra_atmos::set_seed), R"pbdoc(
         Set the seed of the selected screen RNG
 
@@ -112,13 +169,5 @@ void declare_shesha_atmos(py::module &mod) {
         alt: (float) :altitude of the screen to modify
         seed: (int) :new seed
         )pbdoc",
-           py::arg("alt"), py::arg("seed"))
-
-      .def("get_screen",
-           [](sutra_atmos &sa, float alt) {
-             sutra_tscreen *tscreen = sa.d_screens[alt];
-             // py::array<float> screen(tscreen->d_screen->getNbElem());
-             return tscreen->d_tscreen->d_screen;
-           },
-           py::return_value_policy::reference_internal);
+           py::arg("alt"), py::arg("seed"));
 };
