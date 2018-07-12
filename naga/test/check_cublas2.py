@@ -30,19 +30,22 @@ def test_gemv():
     # testing: y=A.x
     # x and y are vector, A a matrix
 
-    Mat = ch.naga_obj_float(c, np.empty((sizem, sizen), dtype=np.float32))
-    Mat.random(seed)
+    A = np.random.randn(sizem, sizen)
+    x = np.random.randn(sizen)
 
-    Vectx = ch.naga_obj_float(c, np.empty((sizen), dtype=np.float32))
-    Vectx.random(seed * 3)
+    Mat = ch.naga_obj_float(c, A)
+    #Mat.random(seed)
 
-    A = np.array(Mat)
-    x = np.array(Vectx)
+    Vectx = ch.naga_obj_float(c, x)
+    #Vectx.random(seed * 3)
+
+    #A = np.array(Mat)
+    #x = np.array(Vectx)
     y = A.dot(x)
 
-    Vecty = ch.naga_obj_float(c, np.zeros((sizem), dtype=np.float32))
+    # Vecty = ch.naga_obj_float(c, np.zeros((sizem), dtype=np.float32))
 
-    Mat.gemv(Vectx, Vecty)  # , "N", 1, Vecty, sizem, 0)
+    # Mat.gemv(Vectx, Vecty)  # , "N", 1, Vecty, sizem, 0)
     Vecty_2 = Mat.gemv(Vectx)
 
     # npt.assert_array_almost_equal(y, np.array(Vecty), decimal=dec)
@@ -57,10 +60,10 @@ def test_ger():
     Mat = ch.naga_obj_float(c, np.zeros((sizem, sizen), dtype=np.float32))
     # Mat.random(seed)
 
-    Vectx = ch.naga_obj_float(c, np.empty((sizen), dtype=np.float32))
+    Vectx = ch.naga_obj_float(c, np.zeros((sizen), dtype=np.float32))
     Vectx.random(seed * 3)
 
-    Vecty = ch.naga_obj_float(c, np.empty((sizem), dtype=np.float32))
+    Vecty = ch.naga_obj_float(c, np.zeros((sizem), dtype=np.float32))
     Vecty.random(seed * 4)
 
     x = np.array(Vectx)
@@ -82,13 +85,13 @@ def test_symv():
     # testing: y=A.x
     # x and y are vector, A a symetric matrix
 
-    MatSym = ch.naga_obj_float(c, np.empty((sizem, sizem), dtype=np.float32))
+    MatSym = ch.naga_obj_float(c, np.zeros((sizem, sizem), dtype=np.float32))
     MatSym.random(seed * 2)
     data_R = np.array(MatSym)
     data_R = data_R + data_R.T
     MatSym = ch.naga_obj_float(c, data_R)
 
-    Vectx = ch.naga_obj_float(c, np.empty((sizem), dtype=np.float32))
+    Vectx = ch.naga_obj_float(c, np.zeros((sizem), dtype=np.float32))
     Vectx.random(seed * 5)
 
     Vecty = ch.naga_obj_float(c, np.zeros((sizem), dtype=np.float32))

@@ -11,7 +11,7 @@ carma_obj<T_data>::carma_obj(carma_context *current_context,
 }
 
 template <class T_data>
-carma_obj<T_data>::carma_obj(carma_obj<T_data> *src) {
+carma_obj<T_data>::carma_obj(const carma_obj<T_data> *src) {
   /** \brief carma_obj creator.
    * \param src : carma_obj to copy
    */
@@ -21,7 +21,7 @@ carma_obj<T_data>::carma_obj(carma_obj<T_data> *src) {
 
 template <class T_data>
 carma_obj<T_data>::carma_obj(carma_context *current_context,
-                             carma_obj<T_data> *src) {
+                             const carma_obj<T_data> *src) {
   /** \brief carma_obj creator.
    * \param src : carma_obj to copy
    */
@@ -30,7 +30,7 @@ carma_obj<T_data>::carma_obj(carma_context *current_context,
 
 template <class T_data>
 carma_obj<T_data>::carma_obj(carma_context *current_context,
-                             const long *dims_data, T_data *data) {
+                             const long *dims_data, const T_data *data) {
   /** \brief carma_obj creator.
    * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
    * \param data : the array
@@ -49,7 +49,7 @@ carma_obj<T_data>::carma_obj(carma_context *current_context,
 
 template <class T_data>
 carma_obj<T_data>::carma_obj(carma_context *current_context,
-                             const long *dims_data, T_data *data,
+                             const long *dims_data, const T_data *data,
                              int nb_streams) {
   /** \brief carma_obj creator.
    * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
@@ -60,7 +60,8 @@ carma_obj<T_data>::carma_obj(carma_context *current_context,
 
 template <class T_data>
 void carma_obj<T_data>::init(carma_context *context, const long *dims_data,
-                             T_data *data, bool fromHost, int nb_streams) {
+                             const T_data *data, bool fromHost,
+                             int nb_streams) {
   this->current_context = context;
   const long size_data = dims_data[0] + 1;
   this->dims_data = new long[size_data];
@@ -148,7 +149,7 @@ carma_obj<T_data>::~carma_obj() {
 }
 
 template <class T_data>
-int carma_obj<T_data>::host2device(T_data *data) {
+int carma_obj<T_data>::host2device(const T_data *data) {
   /** \brief host2device data transfer.
    * \param data : input data
    *
@@ -193,7 +194,8 @@ int carma_obj<T_data>::device2host(T_data *data) {
 }
 
 template <class T_data>
-int carma_obj<T_data>::host2deviceAsync(T_data *data, cudaStream_t stream) {
+int carma_obj<T_data>::host2deviceAsync(const T_data *data,
+                                        cudaStream_t stream) {
   /** \brief host2device data transfer.
    * \param data : input data
    *
@@ -268,7 +270,7 @@ int carma_obj<T_data>::copyInto(T_data *data, int nb_elem) {
 }
 
 template <class T_data>
-int carma_obj<T_data>::copyFrom(T_data *data, int nb_elem) {
+int carma_obj<T_data>::copyFrom(const T_data *data, int nb_elem) {
   /** \brief device2host data transfer.
    * \param data : output data
    *

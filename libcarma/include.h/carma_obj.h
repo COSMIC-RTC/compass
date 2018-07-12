@@ -123,21 +123,21 @@ class carma_obj {
 
   carma_streams *streams;
 
-  void init(carma_context *current_context, const long *dims_data, T_data *data,
-            bool fromHost, int nb_streams);
+  void init(carma_context *current_context, const long *dims_data,
+            const T_data *data, bool fromHost, int nb_streams);
 
  public:
-  carma_obj(carma_obj<T_data> *obj);
+  carma_obj(const carma_obj<T_data> *obj);
   carma_obj(carma_context *current_context, const long *dims_data);
-  carma_obj(carma_context *current_context, carma_obj<T_data> *obj);
+  carma_obj(carma_context *current_context, const carma_obj<T_data> *obj);
   carma_obj(carma_context *current_context, const long *dims_data,
-            T_data *data);
+            const T_data *data);
   carma_obj(carma_context *current_context, const long *dims_data,
             int nb_streams);
-  carma_obj(carma_context *current_context, carma_obj<T_data> *obj,
+  carma_obj(carma_context *current_context, const carma_obj<T_data> *obj,
             int nb_streams);
-  carma_obj(carma_context *current_context, const long *dims_data, T_data *data,
-            int nb_streams);
+  carma_obj(carma_context *current_context, const long *dims_data,
+            const T_data *data, int nb_streams);
   ~carma_obj();
 
   void sync_h_data() {
@@ -147,7 +147,7 @@ class carma_obj {
 
   T_data *get_h_data() { return h_data.data(); }
 
-  int get_nbStreams() {
+  int get_nbStreams() const {
     /** \brief get the number of streams attached to the host object
      */
     return streams->get_nbStreams();
@@ -210,18 +210,18 @@ class carma_obj {
   bool is_rng_init() { return (gen != NULL); }
 
   /**< Memory transfers both ways */
-  int host2device(T_data *data);
+  int host2device(const T_data *data);
   int device2host(T_data *data);
-  int host2deviceAsync(T_data *data, cudaStream_t stream);
+  int host2deviceAsync(const T_data *data, cudaStream_t stream);
   int device2hostAsync(T_data *data, cudaStream_t stream);
   int device2hostOpt(T_data *data);
-  int host2deviceVect(T_data *data, int incx, int incy);
+  int host2deviceVect(const T_data *data, int incx, int incy);
   int device2hostVect(T_data *data, int incx, int incy);
-  int host2deviceMat(T_data *data, int lda, int ldb);
+  int host2deviceMat(const T_data *data, int lda, int ldb);
   int device2hostMat(T_data *data, int lda, int ldb);
 
   int copyInto(T_data *data, int nb_elem);
-  int copyFrom(T_data *data, int nb_elem);
+  int copyFrom(const T_data *data, int nb_elem);
 
   inline int reset() {
     return cudaMemset(this->d_data, 0, this->nb_elem * sizeof(T_data));

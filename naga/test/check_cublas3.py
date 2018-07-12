@@ -3,20 +3,21 @@ import naga as ch
 import numpy.testing as npt
 import time
 
-dec=4
-prec=10**-dec
+dec = 4
+prec = 10**-dec
 
-sizem=64
-sizen=128
-sizek=256
+sizem = 128
+sizen = 256
+sizek = 512
 
+seed = 1234  # int(time.clock()*10**6)
 
 print("")
 print("Test cublas 3")
-print("precision: ",prec)
+print("precision: ", prec)
 
+c = ch.naga_context.get_instance()
 
-c=ch.naga_context.get_instance()
 
 def test_gemm():
 
@@ -25,62 +26,73 @@ def test_gemm():
     #A,B,C matrices
 
     #generating random matrices A,B,C and associated carma_obj
-    matA=ch.naga_obj_Float2D(c,dims=np.array([sizem,sizek],dtype=np.int64))
-    matB=ch.naga_obj_Float2D(c,dims=np.array([sizek,sizen],dtype=np.int64))
-    matC=ch.naga_obj_Float2D(c,dims=np.array([sizem,sizen],dtype=np.int64))
 
-    matA.random(time.clock()*10**6)
-    matB.random(time.clock()*10**6)
-    matC.random(time.clock()*10**6)
+    A = np.random.randn(sizem, sizek)
+    B = np.random.randn(sizek, sizen)
+    C = np.random.randn(sizem, sizen)
 
-    A=matA.device2host()
-    B=matB.device2host() 
-    C=matC.device2host() 
+    # A = A.dot(A.T)
+    # B = B.dot(B.T)
+
+    matA = ch.naga_obj_float(c, A)
+    matB = ch.naga_obj_float(c, B)
+    matC = ch.naga_obj_float(c, C)
+
+    matA.random(seed)
+    matB.random(seed * 2)
+    matC.random(seed * 3)
+
+    A = np.array(matA)
+    B = np.array(matB)
+    C = np.array(matC)
+
+    alpha = 1
+    beta = 0
 
     #matrices product
-    matA.gemm(matB,alpha=1,C=matC,beta=1) 
-    C=A.dot(B)+C
-
-    
+    matA.gemm(matB, 'n', 'n', alpha, matC, beta)
     #test results
-    res=matC.device2host()
-    
-    M=np.argmax(np.abs(res-C))
-    d=5
-    if(0<np.abs(C.item(M))):
-        d=10**np.ceil(np.log10(np.abs(C.item(M))))
-  
+    res = np.array(matC)
+
+    C = alpha * A.dot(B) + beta * C
+
+    M = np.argmax(np.abs(res - C))
+    d = 5
+    if (0 < np.abs(C.item(M))):
+        d = 10**np.ceil(np.log10(np.abs(C.item(M))))
+
     print(res.item(M))
     print(C.item(M))
-  
-    npt.assert_almost_equal(C.item(M)/d,res.item(M)/d,decimal=dec)
+
+    npt.assert_almost_equal(C.item(M) / d, res.item(M) / d, decimal=dec)
 
 
+'''
 def test_symm():
     #function symm
     #testing: C=A.B+C
     #A ssymetric matrix, B,C matrices
 
     #generating random matrices and associated carma_obj
-    matA=ch.naga_obj_Float2D(c,dims=np.array([sizek,sizek],dtype=np.int64))
-    matB=ch.naga_obj_Float2D(c,dims=np.array([sizek,sizen],dtype=np.int64))
-    matC=ch.naga_obj_Float2D(c,dims=np.array([sizek,sizen],dtype=np.int64))
+    matA=ch.naga_obj_float(c,np.zeros((sizek,sizek)))
+    matB=ch.naga_obj_float(c,np.zeros((sizek,sizen)))
+    matC=ch.naga_obj_float(c,np.zeros((sizek,sizen)))
 
-    matA.random(time.clock()*10**6)
-    matB.random(time.clock()*10**6)
-    matC.random(time.clock()*10**6)
+    matA.random(seed)
+    matB.random(seed*2)
+    matC.random(seed*3)
 
     #A symetric
-    A=matA.device2host()
+    A=np.array(matA)
     A=(A+A.T)/2
     matA.host2device(A)
-    B=matB.device2host() 
-    C=matC.device2host() 
+    B=np.array(matB)
+    C=np.array(matC)
 
     #matrices multiplication
     t1=time.clock()
-    matA.symm(matB,alpha=1,C=matC,beta=1)
-    t2=time.clock()    
+    matC.symm(b"l", b"l", 1, matA, sizek, matB, sizek,1, sizek)
+    t2=time.clock()
     C=A.dot(B)+C
     t3=time.clock()
 
@@ -91,9 +103,9 @@ def test_symm():
     print("carma : ",t2-t1)
 
     #test results
-    res=matC.device2host()
+    res=np.array(matC)
 
-    
+
     M=np.argmax(np.abs(res-C))
     d=5
     if(0<np.abs(C.item(M))):
@@ -101,7 +113,7 @@ def test_symm():
 
     print(res.item(M))
     print(C.item(M))
-  
+
     npt.assert_almost_equal(C.item(M)/d,res.item(M)/d,decimal=dec)
 
 
@@ -111,12 +123,12 @@ def test_dgmm():
     # C,A matrices, d vector (diagonal matrix as a vector)
 
      #generating random matrices and associated carma_obj
-    matA=ch.naga_obj_Float2D(c,dims=np.array([sizek,sizek],dtype=np.int64))
-    Vectx=ch.naga_obj_Float1D(c,dims=np.array([sizek],dtype=np.int64))
+    matA=ch.naga_obj_float(c,np.zeros((sizek,sizek)))
+    Vectx=ch.naga_obj_Float1D(c,np.zeros((sizek)))
 
-    matA.random(time.clock()*10**6)
-    A=matA.device2host()
-    d=Vectx.device2host()
+    matA.random(seed)
+    A=np.array(matA)
+    d=np.array(Vectx)
 
     #matrices product
     t1=time.clock()
@@ -132,7 +144,7 @@ def test_dgmm():
     print("carma : ",t2-t1)
 
     #test results
-    res=matC.device2host()
+    res=np.array(matC)
 
     M=np.argmax(np.abs(res-C))
     d=5
@@ -141,7 +153,7 @@ def test_dgmm():
 
     print(res.item(M))
     print(C.item(M))
-  
+
     npt.assert_almost_equal(C.item(M)/d,res.item(M)/d,decimal=dec)
 
 
@@ -151,14 +163,14 @@ def test_syrk():
     #A matrix, C symetric matrix
 
      #generating random matrices and associated carma_obj
-    matA=ch.naga_obj_Float2D(c,dims=np.array([sizen,sizek],dtype=np.int64))
-    matC=ch.naga_obj_Float2D(c,dims=np.array([sizen,sizen],dtype=np.int64))
+    matA=ch.naga_obj_float(c,np.zeros((sizen,sizek)))
+    matC=ch.naga_obj_float(c,np.zeros((sizen,sizen)))
 
-    matA.random(time.clock()*10**6)
-    matC.random(time.clock()*10**6)
+    matA.random(seed)
+    matC.random(seed*2)
 
-    A=matA.device2host()
-    C=matC.device2host()
+    A=np.array(matA)
+    C=np.array(matC)
     #syrk: C matrix is symetric
     C=(C+C.T)/2
 
@@ -179,8 +191,8 @@ def test_syrk():
 
 
     #test results
-    res=matC.device2host()
-    
+    res=np.array(matC)
+
     #only upper triangle is computed
     C=np.triu(C).flatten()
     res=np.triu(res).flatten()
@@ -192,7 +204,7 @@ def test_syrk():
 
     print(res.item(M))
     print(C.item(M))
-  
+
     npt.assert_almost_equal(C.item(M)/d,res.item(M)/d,decimal=dec)
 
 def test_syrkx():
@@ -201,24 +213,24 @@ def test_syrkx():
     #A matrix, C symetric matrix
 
      #generating random matrices and associated carma_obj
-    matA=ch.naga_obj_Float2D(c,dims=np.array([sizen,sizek],dtype=np.int64))
-    matB=ch.naga_obj_Float2D(c,dims=np.array([sizen,sizek],dtype=np.int64))
-    matC=ch.naga_obj_Float2D(c,dims=np.array([sizen,sizen],dtype=np.int64))
+    matA=ch.naga_obj_float(c,np.zeros((sizen,sizek)))
+    matB=ch.naga_obj_float(c,np.zeros((sizen,sizek)))
+    matC=ch.naga_obj_float(c,np.zeros((sizen,sizen)))
 
-    matA.random(time.clock()*10**6)
+    matA.random(seed)
     matB.copyFrom(matA)
-    matC.random(time.clock()*10**6)
+    matC.random(seed*2)
 
-    A=matA.device2host()
-    B=matB.device2host()
-    C=matC.device2host()
+    A=np.array(matA)
+    B=np.array(matB)
+    C=np.array(matC)
 
     #C is symetric
     C=np.dot(C,C.T)
 
     matC.host2device(C)
 
-    #matrices product    
+    #matrices product
     t1=time.clock()
     matA.syrkx(matB,alpha=1,C=matC,beta=1)
     t2=time.clock()
@@ -232,7 +244,7 @@ def test_syrkx():
     print("carma : ",t2-t1)
 
     #test results
-    res=matC.device2host()
+    res=np.array(matC)
 
     #only upper triangle is computed
     res=np.triu(res).flatten()
@@ -245,7 +257,7 @@ def test_syrkx():
 
     print(res.item(M))
     print(C.item(M))
-  
+
     npt.assert_almost_equal(C.item(M)/d,res.item(M)/d,decimal=dec)
 
 def test_geam():
@@ -255,14 +267,14 @@ def test_geam():
     #A,B matrices
 
     #generating random matrices and associated carma_obj
-    matA=ch.naga_obj_Float2D(c,dims=np.array([sizen,sizek],dtype=np.int64))
-    matB=ch.naga_obj_Float2D(c,dims=np.array([sizen,sizek],dtype=np.int64))
+    matA=ch.naga_obj_float(c,np.zeros((sizen,sizek)))
+    matB=ch.naga_obj_float(c,np.zeros((sizen,sizek)))
 
-    matA.random(time.clock()*10**6)
-    matB.random(time.clock()*10**6)
+    matA.random(seed)
+    matB.random(seed*2)
 
-    A=matA.device2host()
-    B=matB.device2host()
+    A=np.array(matA)
+    B=np.array(matB)
 
     #matrices product
     t1=time.clock()
@@ -279,4 +291,5 @@ def test_geam():
 
     #testing result
 
-    npt.assert_array_almost_equal(C,matC.device2host(),dec)
+    npt.assert_array_almost_equal(C,matCnp.array(),dec)
+'''

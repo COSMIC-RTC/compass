@@ -1,13 +1,14 @@
 #include <carma_cublas.h>
 #include <carma_obj.h>
 #include <carma_sparse_obj.h>
-#include <string>
 #include <stdexcept>
+#include <string>
 
-#define CARMA_NIY {                                        \
-  DEBUG_TRACE("Method not implemented yet!");              \
-  throw std::runtime_error("Method not implemented yet!"); \
-}
+#define CARMA_NIY                                            \
+  {                                                          \
+    DEBUG_TRACE("Method not implemented yet!");              \
+    throw std::runtime_error("Method not implemented yet!"); \
+  }
 
 cublasStatus_t __carma_checkCublasStatus(cublasStatus_t status, int line,
                                          std::string file) {
@@ -87,13 +88,13 @@ cublasOperation_t carma_char2cublasOperation(char operation) {
   }
 }
 
-/* 
+/*
  *  _____ _____ __  __ ____  _        _  _____ _____ ____
  * |_   _| ____|  \/  |  _ \| |      / \|_   _| ____/ ___|
  *   | | |  _| | |\/| | |_) | |     / _ \ | | |  _| \___ \
  *   | | | |___| |  | |  __/| |___ / ___ \| | | |___ ___) |
  *   |_| |_____|_|  |_|_|   |_____/_/   \_\_| |_____|____/
- * 
+ *
  */
 
 /** These templates are used to select the proper Iamax and Iamin executable
@@ -108,11 +109,9 @@ int carma_where_gen(cublasHandle_t cublas_handle, int n, const T_data *vect,
   return result;
 }
 
-template<class T>
+template <class T>
 int carma_wheremax(cublasHandle_t cublas_handle, int n, const T *vect,
-                   int incx)
-                   CARMA_NIY
-template<>
+                   int incx) CARMA_NIY template <>
 int carma_wheremax(cublasHandle_t cublas_handle, int n, const float *vect,
                    int incx) {
   return carma_where_gen<float, cublasIsamax>(cublas_handle, n, vect, incx);
@@ -135,10 +134,9 @@ int carma_wheremax(cublasHandle_t cublas_handle, int n,
                                                         incx);
 }
 
-template<class T>
+template <class T>
 int carma_wheremin(cublasHandle_t cublas_handle, int n, const T *vect,
-                   int incx) CARMA_NIY
-template<>
+                   int incx) CARMA_NIY template <>
 int carma_wheremin(cublasHandle_t cublas_handle, int n, const float *vect,
                    int incx) {
   return carma_where_gen<float, cublasIsamin>(cublas_handle, n, vect, incx);
@@ -172,10 +170,9 @@ int carma_sum_gen(cublasHandle_t cublas_handle, int n, const T_data *vect,
   return result;
 }
 
-template<class T>
+template <class T>
 T carma_getasum(cublasHandle_t cublas_handle, int n, const T *vect,
-                    int incx) CARMA_NIY
-template<>
+                int incx) CARMA_NIY template <>
 float carma_getasum(cublasHandle_t cublas_handle, int n, const float *vect,
                     int incx) {
   return carma_sum_gen<float, cublasSasum>(cublas_handle, n, vect, incx);
@@ -187,15 +184,15 @@ double carma_getasum(cublasHandle_t cublas_handle, int n, const double *vect,
 }
 
 /** These templates are used to select the proper axpy executable from T_data*/
-template<class T_data>
-cublasStatus_t
-carma_axpy(cublasHandle_t cublas_handle, int n, const T_data alpha, const T_data *vectx,
-           int incx, T_data *vecty, int incy) CARMA_NIY
-/**< Generic template for axpy executable selection */
-template <>
-cublasStatus_t carma_axpy<float>(cublasHandle_t cublas_handle, int n,
-                                 const float alpha, const float *vectx,
-                                 int incx, float *vecty, int incy) {
+template <class T_data>
+cublasStatus_t carma_axpy(cublasHandle_t cublas_handle, int n,
+                          const T_data alpha, const T_data *vectx, int incx,
+                          T_data *vecty, int incy) CARMA_NIY
+    /**< Generic template for axpy executable selection */
+    template <>
+    cublasStatus_t carma_axpy<float>(cublasHandle_t cublas_handle, int n,
+                                     const float alpha, const float *vectx,
+                                     int incx, float *vecty, int incy) {
   return carma_checkCublasStatus(
       cublasSaxpy(cublas_handle, n, &alpha, vectx, incx, vecty, incy));
 }
@@ -225,22 +222,20 @@ cublasStatus_t carma_axpy<cuDoubleComplex>(cublasHandle_t cublas_handle, int n,
 }
 
 /** These templates are used to select the proper copy executable from T_data*/
-template<class T_data>
-cublasStatus_t
-carma_copy(cublasHandle_t cublas_handle, int n, const T_data *vectx, int incx,
-           T_data *vecty, int incy) CARMA_NIY
-/**< Generic template for copy executable selection */
-template
+template <class T_data>
 cublasStatus_t carma_copy(cublasHandle_t cublas_handle, int n,
-                          const int *vectx, int incx, int *vecty,
-                          int incy);
-template
-cublasStatus_t carma_copy(cublasHandle_t cublas_handle, int n,
-                          const unsigned int *vectx, int incx, unsigned int *vecty,
-                          int incy);
-template<>
+                          const T_data *vectx, int incx, T_data *vecty,
+                          int incy) CARMA_NIY
+    /**< Generic template for copy executable selection */
+    template cublasStatus_t
+    carma_copy(cublasHandle_t cublas_handle, int n, const int *vectx, int incx,
+               int *vecty, int incy);
+template cublasStatus_t carma_copy(cublasHandle_t cublas_handle, int n,
+                                   const unsigned int *vectx, int incx,
+                                   unsigned int *vecty, int incy);
+template <>
 cublasStatus_t carma_copy<float>(cublasHandle_t cublas_handle, int n,
-                                const float *vectx, int incx, float *vecty,
+                                 const float *vectx, int incx, float *vecty,
                                  int incy) {
   return carma_checkCublasStatus(
       cublasScopy(cublas_handle, n, vectx, incx, vecty, incy));
@@ -254,32 +249,31 @@ cublasStatus_t carma_copy<double>(cublasHandle_t cublas_handle, int n,
 }
 template <>
 cublasStatus_t carma_copy<cuFloatComplex>(cublasHandle_t cublas_handle, int n,
-    const cuFloatComplex *vectx, int incx,
-    cuFloatComplex *vecty, int incy) {
+                                          const cuFloatComplex *vectx, int incx,
+                                          cuFloatComplex *vecty, int incy) {
   return carma_checkCublasStatus(
       cublasCcopy(cublas_handle, n, vectx, incx, vecty, incy));
 }
 template <>
 cublasStatus_t carma_copy<cuDoubleComplex>(cublasHandle_t cublas_handle, int n,
-    const cuDoubleComplex *vectx, int incx,
-    cuDoubleComplex *vecty, int incy) {
+                                           const cuDoubleComplex *vectx,
+                                           int incx, cuDoubleComplex *vecty,
+                                           int incy) {
   return carma_checkCublasStatus(
       cublasZcopy(cublas_handle, n, vectx, incx, vecty, incy));
 }
 
 /** These templates are used to select the proper dot executable from T_data*/
-template<class T_data>
-T_data
-carma_dot(cublasHandle_t cublas_handle, int n, T_data *vectx, int incx,
-          T_data *vecty, int incy) CARMA_NIY
-/**< Generic template for dot executable selection */
-template
-int carma_dot(cublasHandle_t cublas_handle, int n, int *vectx,
-                       int incx, int *vecty, int incy);
-template
-unsigned int carma_dot(cublasHandle_t cublas_handle, int n, unsigned int *vectx,
-                       int incx, unsigned int *vecty, int incy);
-template<>
+template <class T_data>
+T_data carma_dot(cublasHandle_t cublas_handle, int n, T_data *vectx, int incx,
+                 T_data *vecty, int incy) CARMA_NIY
+    /**< Generic template for dot executable selection */
+    template int carma_dot(cublasHandle_t cublas_handle, int n, int *vectx,
+                           int incx, int *vecty, int incy);
+template unsigned int carma_dot(cublasHandle_t cublas_handle, int n,
+                                unsigned int *vectx, int incx,
+                                unsigned int *vecty, int incy);
+template <>
 float carma_dot<float>(cublasHandle_t cublas_handle, int n, float *vectx,
                        int incx, float *vecty, int incy) {
   float result = 0;
@@ -319,15 +313,15 @@ cuDoubleComplex carma_dot<cuDoubleComplex>(cublasHandle_t cublas_handle, int n,
 }
 
 /** These templates are used to select the proper nrm2 executable from T_data*/
-template<class T_data>
-T_data
-carma_nrm2(cublasHandle_t cublas_handle, int n, T_data *vect, int incx) CARMA_NIY
-/**< Generic template for nrm2 executable selection */
-template
-int carma_nrm2(cublasHandle_t cublas_handle, int n, int *vect, int incx);
-template
-unsigned int carma_nrm2(cublasHandle_t cublas_handle, int n, unsigned int *vect, int incx);
-template<>
+template <class T_data>
+T_data carma_nrm2(cublasHandle_t cublas_handle, int n, T_data *vect,
+                  int incx) CARMA_NIY
+    /**< Generic template for nrm2 executable selection */
+    template int carma_nrm2(cublasHandle_t cublas_handle, int n, int *vect,
+                            int incx);
+template unsigned int carma_nrm2(cublasHandle_t cublas_handle, int n,
+                                 unsigned int *vect, int incx);
+template <>
 float carma_nrm2<float>(cublasHandle_t cublas_handle, int n, float *vect,
                         int incx) {
   float result = 0;
@@ -350,20 +344,19 @@ double carma_nrm2<double>(cublasHandle_t cublas_handle, int n, double *vect,
  }*/
 
 /** These templates are used to select the proper rot executable from T_data*/
-template<class T_data>
-cublasStatus_t
-carma_rot(cublasHandle_t cublas_handle, int n, T_data *vectx, int incx,
-          T_data *vecty, int incy, T_data sc, T_data ss) CARMA_NIY
-/**< Generic template for rot executable selection */
-template
-cublasStatus_t
-carma_rot(cublasHandle_t cublas_handle, int n, int *vectx, int incx,
-          int *vecty, int incy, int sc, int ss);
-template
-cublasStatus_t
-carma_rot(cublasHandle_t cublas_handle, int n, unsigned int *vectx, int incx,
-          unsigned int *vecty, int incy, unsigned int sc, unsigned int ss);
-template<>
+template <class T_data>
+cublasStatus_t carma_rot(cublasHandle_t cublas_handle, int n, T_data *vectx,
+                         int incx, T_data *vecty, int incy, T_data sc,
+                         T_data ss) CARMA_NIY
+    /**< Generic template for rot executable selection */
+    template cublasStatus_t
+    carma_rot(cublasHandle_t cublas_handle, int n, int *vectx, int incx,
+              int *vecty, int incy, int sc, int ss);
+template cublasStatus_t carma_rot(cublasHandle_t cublas_handle, int n,
+                                  unsigned int *vectx, int incx,
+                                  unsigned int *vecty, int incy,
+                                  unsigned int sc, unsigned int ss);
+template <>
 cublasStatus_t carma_rot<float>(cublasHandle_t cublas_handle, int n,
                                 float *vectx, int incx, float *vecty, int incy,
                                 float sc, float ss) {
@@ -379,20 +372,16 @@ cublasStatus_t carma_rot<double>(cublasHandle_t cublas_handle, int n,
 }
 
 /** These templates are used to select the proper scal executable from T_data*/
-template<class T_data>
-cublasStatus_t
-carma_scal(cublasHandle_t cublas_handle, int n, T_data alpha, T_data *vectx,
-           int incx) CARMA_NIY
-/**< Generic template for scal executable selection */
-template
-cublasStatus_t
-carma_scal(cublasHandle_t cublas_handle, int n, int alpha, int *vectx,
-           int incx);
-template
-cublasStatus_t
-carma_scal(cublasHandle_t cublas_handle, int n, unsigned int alpha, unsigned int *vectx,
-           int incx);
-template<>
+template <class T_data>
+cublasStatus_t carma_scal(cublasHandle_t cublas_handle, int n, T_data alpha,
+                          T_data *vectx, int incx) CARMA_NIY
+    /**< Generic template for scal executable selection */
+    template cublasStatus_t carma_scal(cublasHandle_t cublas_handle, int n,
+                                       int alpha, int *vectx, int incx);
+template cublasStatus_t carma_scal(cublasHandle_t cublas_handle, int n,
+                                   unsigned int alpha, unsigned int *vectx,
+                                   int incx);
+template <>
 cublasStatus_t carma_scal<float>(cublasHandle_t cublas_handle, int n,
                                  float alpha, float *vectx, int incx) {
   return carma_checkCublasStatus(
@@ -420,20 +409,17 @@ cublasStatus_t carma_scal<cuDoubleComplex>(cublasHandle_t cublas_handle, int n,
 }
 
 /** These templates are used to select the proper swap executable from T_data*/
-template<class T_data>
-cublasStatus_t
-carma_swap(cublasHandle_t cublas_handle, int n, T_data *vectx, int incx,
-           T_data *vecty, int incy) CARMA_NIY
-/**< Generic template for swap executable selection */
-template
-cublasStatus_t
-carma_swap(cublasHandle_t cublas_handle, int n, int *vectx, int incx,
-           int *vecty, int incy);
-template
-cublasStatus_t
-carma_swap(cublasHandle_t cublas_handle, int n, unsigned int *vectx, int incx,
-           unsigned int *vecty, int incy);
-template<>
+template <class T_data>
+cublasStatus_t carma_swap(cublasHandle_t cublas_handle, int n, T_data *vectx,
+                          int incx, T_data *vecty, int incy) CARMA_NIY
+    /**< Generic template for swap executable selection */
+    template cublasStatus_t
+    carma_swap(cublasHandle_t cublas_handle, int n, int *vectx, int incx,
+               int *vecty, int incy);
+template cublasStatus_t carma_swap(cublasHandle_t cublas_handle, int n,
+                                   unsigned int *vectx, int incx,
+                                   unsigned int *vecty, int incy);
+template <>
 cublasStatus_t carma_swap<float>(cublasHandle_t cublas_handle, int n,
                                  float *vectx, int incx, float *vecty,
                                  int incy) {
@@ -463,23 +449,23 @@ cublasStatus_t carma_swap<cuDoubleComplex>(cublasHandle_t cublas_handle, int n,
 }
 
 /** These templates are used to select the proper gemv executable from T_data*/
-template<class T_data>
-cublasStatus_t
-carma_gemv(cublasHandle_t cublas_handle, char trans, int m, int n, T_data alpha,
-           T_data *matA, int lda, T_data *vectx, int incx, T_data beta,
-           T_data *vecty, int incy) CARMA_NIY
-/**< Generic template for gemv executable selection */
-template
-cublasStatus_t
-carma_gemv(cublasHandle_t cublas_handle, char trans, int m, int n, int alpha,
-           int *matA, int lda, int *vectx, int incx, int beta,
-           int *vecty, int incy);
-template
-cublasStatus_t
-carma_gemv(cublasHandle_t cublas_handle, char trans, int m, int n, unsigned int alpha,
-           unsigned int *matA, int lda, unsigned int *vectx, int incx, unsigned int beta,
-           unsigned int *vecty, int incy);
-template<>
+template <class T_data>
+cublasStatus_t carma_gemv(cublasHandle_t cublas_handle, char trans, int m,
+                          int n, T_data alpha, T_data *matA, int lda,
+                          T_data *vectx, int incx, T_data beta, T_data *vecty,
+                          int incy) CARMA_NIY
+    /**< Generic template for gemv executable selection */
+    template cublasStatus_t
+    carma_gemv(cublasHandle_t cublas_handle, char trans, int m, int n,
+               int alpha, int *matA, int lda, int *vectx, int incx, int beta,
+               int *vecty, int incy);
+template cublasStatus_t carma_gemv(cublasHandle_t cublas_handle, char trans,
+                                   int m, int n, unsigned int alpha,
+                                   unsigned int *matA, int lda,
+                                   unsigned int *vectx, int incx,
+                                   unsigned int beta, unsigned int *vecty,
+                                   int incy);
+template <>
 cublasStatus_t carma_gemv<float>(cublasHandle_t cublas_handle, char trans,
                                  int m, int n, float alpha, float *matA,
                                  int lda, float *vectx, int incx, float beta,
@@ -524,23 +510,19 @@ cublasStatus_t carma_gemv<cuDoubleComplex>(cublasHandle_t cublas_handle,
 }
 
 /** These templates are used to select the proper ger executable from T_data*/
-template<class T_data>
-cublasStatus_t
-carma_ger(cublasHandle_t cublas_handle, int m, int n, T_data alpha,
-          T_data *vectx, int incx, T_data *vecty, int incy, T_data *matA,
-          int lda) CARMA_NIY
-/**< Generic template for ger executable selection */
-template
-cublasStatus_t
-carma_ger(cublasHandle_t cublas_handle, int m, int n, int alpha,
-          int *vectx, int incx, int *vecty, int incy, int *matA,
-          int lda);
-template
-cublasStatus_t
-carma_ger(cublasHandle_t cublas_handle, int m, int n, unsigned int alpha,
-          unsigned int *vectx, int incx, unsigned int *vecty, int incy, unsigned int *matA,
-          int lda);
-template<>
+template <class T_data>
+cublasStatus_t carma_ger(cublasHandle_t cublas_handle, int m, int n,
+                         T_data alpha, T_data *vectx, int incx, T_data *vecty,
+                         int incy, T_data *matA, int lda) CARMA_NIY
+    /**< Generic template for ger executable selection */
+    template cublasStatus_t
+    carma_ger(cublasHandle_t cublas_handle, int m, int n, int alpha, int *vectx,
+              int incx, int *vecty, int incy, int *matA, int lda);
+template cublasStatus_t carma_ger(cublasHandle_t cublas_handle, int m, int n,
+                                  unsigned int alpha, unsigned int *vectx,
+                                  int incx, unsigned int *vecty, int incy,
+                                  unsigned int *matA, int lda);
+template <>
 cublasStatus_t carma_ger<float>(cublasHandle_t cublas_handle, int m, int n,
                                 float alpha, float *vectx, int incx,
                                 float *vecty, int incy, float *matA, int lda) {
@@ -575,23 +557,23 @@ cublasStatus_t carma_ger<cuDoubleComplex>(cublasHandle_t cublas_handle, int m,
 }
 
 /** These templates are used to select the proper symv executable from T_data*/
-template<class T_data>
-cublasStatus_t
-carma_symv(cublasHandle_t cublas_handle, cublasFillMode_t uplo, int n,
-           T_data alpha, T_data *matA, int lda, T_data *vectx, int incx,
-           T_data beta, T_data *vecty, int incy) CARMA_NIY
-/**< Generic template for symv executable selection */
-template
-cublasStatus_t
-carma_symv(cublasHandle_t cublas_handle, cublasFillMode_t uplo, int n,
-           int alpha, int *matA, int lda, int *vectx, int incx,
-           int beta, int *vecty, int incy);
-template
-cublasStatus_t
-carma_symv(cublasHandle_t cublas_handle, cublasFillMode_t uplo, int n,
-           unsigned int alpha, unsigned int *matA, int lda, unsigned int *vectx, int incx,
-           unsigned int beta, unsigned int *vecty, int incy);
-template<>
+template <class T_data>
+cublasStatus_t carma_symv(cublasHandle_t cublas_handle, cublasFillMode_t uplo,
+                          int n, T_data alpha, T_data *matA, int lda,
+                          T_data *vectx, int incx, T_data beta, T_data *vecty,
+                          int incy) CARMA_NIY
+    /**< Generic template for symv executable selection */
+    template cublasStatus_t
+    carma_symv(cublasHandle_t cublas_handle, cublasFillMode_t uplo, int n,
+               int alpha, int *matA, int lda, int *vectx, int incx, int beta,
+               int *vecty, int incy);
+template cublasStatus_t carma_symv(cublasHandle_t cublas_handle,
+                                   cublasFillMode_t uplo, int n,
+                                   unsigned int alpha, unsigned int *matA,
+                                   int lda, unsigned int *vectx, int incx,
+                                   unsigned int beta, unsigned int *vecty,
+                                   int incy);
+template <>
 cublasStatus_t carma_symv<float>(cublasHandle_t cublas_handle,
                                  cublasFillMode_t uplo, int n, float alpha,
                                  float *matA, int lda, float *vectx, int incx,
@@ -633,23 +615,23 @@ cublasStatus_t carma_symv<cuDoubleComplex>(cublasHandle_t cublas_handle,
 }
 
 /** These templates are used to select the proper gemm executable from T_data*/
-template<class T_data>
-cublasStatus_t
-carma_gemm(cublasHandle_t cublas_handle, char transa, char transb, int m, int n,
-           int k, T_data alpha, T_data *matA, int lda, T_data *matB, int ldb,
-           T_data beta, T_data *matC, int ldc) CARMA_NIY
-/**< Generic template for gemm executable selection */
-template
-cublasStatus_t
-carma_gemm(cublasHandle_t cublas_handle, char transa, char transb, int m, int n,
-           int k, int alpha, int *matA, int lda, int *matB, int ldb,
-           int beta, int *matC, int ldc);
-template
-cublasStatus_t
-carma_gemm(cublasHandle_t cublas_handle, char transa, char transb, int m, int n,
-           int k, unsigned int alpha, unsigned int *matA, int lda, unsigned int *matB, int ldb,
-           unsigned int beta, unsigned int *matC, int ldc);
-template<>
+template <class T_data>
+cublasStatus_t carma_gemm(cublasHandle_t cublas_handle, char transa,
+                          char transb, int m, int n, int k, T_data alpha,
+                          T_data *matA, int lda, T_data *matB, int ldb,
+                          T_data beta, T_data *matC, int ldc) CARMA_NIY
+    /**< Generic template for gemm executable selection */
+    template cublasStatus_t
+    carma_gemm(cublasHandle_t cublas_handle, char transa, char transb, int m,
+               int n, int k, int alpha, int *matA, int lda, int *matB, int ldb,
+               int beta, int *matC, int ldc);
+template cublasStatus_t carma_gemm(cublasHandle_t cublas_handle, char transa,
+                                   char transb, int m, int n, int k,
+                                   unsigned int alpha, unsigned int *matA,
+                                   int lda, unsigned int *matB, int ldb,
+                                   unsigned int beta, unsigned int *matC,
+                                   int ldc);
+template <>
 cublasStatus_t carma_gemm<float>(cublasHandle_t cublas_handle, char transa,
                                  char transb, int m, int n, int k, float alpha,
                                  float *matA, int lda, float *matB, int ldb,
@@ -699,23 +681,24 @@ cublasStatus_t carma_gemm<cuDoubleComplex>(cublasHandle_t cublas_handle,
 }
 
 /** These templates are used to select the proper symm executable from T_data*/
-template<class T_data>
-cublasStatus_t
-carma_symm(cublasHandle_t cublas_handle, cublasSideMode_t side,
-           cublasFillMode_t uplo, int m, int n, T_data alpha, T_data *matA,
-           int lda, T_data *matB, int ldb, T_data beta, T_data *matC, int ldc) CARMA_NIY
-/**< Generic template for symm executable selection */
-template
-cublasStatus_t
-carma_symm(cublasHandle_t cublas_handle, cublasSideMode_t side,
-           cublasFillMode_t uplo, int m, int n, int alpha, int *matA,
-           int lda, int *matB, int ldb, int beta, int *matC, int ldc);
-template
-cublasStatus_t
-carma_symm(cublasHandle_t cublas_handle, cublasSideMode_t side,
-           cublasFillMode_t uplo, int m, int n, unsigned int alpha, unsigned int *matA,
-           int lda, unsigned int *matB, int ldb, unsigned int beta, unsigned int *matC, int ldc);
-template<>
+template <class T_data>
+cublasStatus_t carma_symm(cublasHandle_t cublas_handle, cublasSideMode_t side,
+                          cublasFillMode_t uplo, int m, int n, T_data alpha,
+                          T_data *matA, int lda, T_data *matB, int ldb,
+                          T_data beta, T_data *matC, int ldc) CARMA_NIY
+    /**< Generic template for symm executable selection */
+    template cublasStatus_t
+    carma_symm(cublasHandle_t cublas_handle, cublasSideMode_t side,
+               cublasFillMode_t uplo, int m, int n, int alpha, int *matA,
+               int lda, int *matB, int ldb, int beta, int *matC, int ldc);
+template cublasStatus_t carma_symm(cublasHandle_t cublas_handle,
+                                   cublasSideMode_t side, cublasFillMode_t uplo,
+                                   int m, int n, unsigned int alpha,
+                                   unsigned int *matA, int lda,
+                                   unsigned int *matB, int ldb,
+                                   unsigned int beta, unsigned int *matC,
+                                   int ldc);
+template <>
 cublasStatus_t carma_symm<float>(cublasHandle_t cublas_handle,
                                  cublasSideMode_t side, cublasFillMode_t uplo,
                                  int m, int n, float alpha, float *matA,
@@ -757,23 +740,22 @@ cublasStatus_t carma_symm<cuDoubleComplex>(
 }
 
 /** These templates are used to select the proper syrk executable from T_data*/
-template<class T_data>
-cublasStatus_t
-carma_syrk(cublasHandle_t cublas_handle, cublasFillMode_t uplo, char transa,
-           int n, int k, T_data alpha, T_data *matA, int lda, T_data beta,
-           T_data *matC, int ldc) CARMA_NIY
-/**< Generic template for syrk executable selection */
-template
-cublasStatus_t
-carma_syrk(cublasHandle_t cublas_handle, cublasFillMode_t uplo, char transa,
-           int n, int k, int alpha, int *matA, int lda, int beta,
-           int *matC, int ldc);
-template
-cublasStatus_t
-carma_syrk(cublasHandle_t cublas_handle, cublasFillMode_t uplo, char transa,
-           int n, int k, unsigned int alpha, unsigned int *matA, int lda, unsigned int beta,
-           unsigned int *matC, int ldc);
-template<>
+template <class T_data>
+cublasStatus_t carma_syrk(cublasHandle_t cublas_handle, cublasFillMode_t uplo,
+                          char transa, int n, int k, T_data alpha, T_data *matA,
+                          int lda, T_data beta, T_data *matC, int ldc) CARMA_NIY
+    /**< Generic template for syrk executable selection */
+    template cublasStatus_t
+    carma_syrk(cublasHandle_t cublas_handle, cublasFillMode_t uplo, char transa,
+               int n, int k, int alpha, int *matA, int lda, int beta, int *matC,
+               int ldc);
+template cublasStatus_t carma_syrk(cublasHandle_t cublas_handle,
+                                   cublasFillMode_t uplo, char transa, int n,
+                                   int k, unsigned int alpha,
+                                   unsigned int *matA, int lda,
+                                   unsigned int beta, unsigned int *matC,
+                                   int ldc);
+template <>
 cublasStatus_t carma_syrk<float>(cublasHandle_t cublas_handle,
                                  cublasFillMode_t uplo, char transa, int n,
                                  int k, float alpha, float *matA, int lda,
@@ -815,23 +797,21 @@ cublasStatus_t carma_syrk<cuDoubleComplex>(cublasHandle_t cublas_handle,
 }
 
 /** These templates are used to select the proper syrkx executable from T_data*/
-template<class T_data>
-cublasStatus_t
-carma_syrkx(cublasHandle_t cublas_handle, cublasFillMode_t uplo, char transa,
-            int n, int k, T_data alpha, T_data *matA, int lda, T_data *matB,
-            int ldb, T_data beta, T_data *matC, int ldc) CARMA_NIY
-/**< Generic template for syrkx executable selection */
-template
-cublasStatus_t
-carma_syrkx(cublasHandle_t cublas_handle, cublasFillMode_t uplo, char transa,
-            int n, int k, int alpha, int *matA, int lda, int *matB,
-            int ldb, int beta, int *matC, int ldc);
-template
-cublasStatus_t
-carma_syrkx(cublasHandle_t cublas_handle, cublasFillMode_t uplo, char transa,
-            int n, int k, unsigned int alpha, unsigned int *matA, int lda, unsigned int *matB,
-            int ldb, unsigned int beta, unsigned int *matC, int ldc);
-template<>
+template <class T_data>
+cublasStatus_t carma_syrkx(cublasHandle_t cublas_handle, cublasFillMode_t uplo,
+                           char transa, int n, int k, T_data alpha,
+                           T_data *matA, int lda, T_data *matB, int ldb,
+                           T_data beta, T_data *matC, int ldc) CARMA_NIY
+    /**< Generic template for syrkx executable selection */
+    template cublasStatus_t
+    carma_syrkx(cublasHandle_t cublas_handle, cublasFillMode_t uplo,
+                char transa, int n, int k, int alpha, int *matA, int lda,
+                int *matB, int ldb, int beta, int *matC, int ldc);
+template cublasStatus_t carma_syrkx(
+    cublasHandle_t cublas_handle, cublasFillMode_t uplo, char transa, int n,
+    int k, unsigned int alpha, unsigned int *matA, int lda, unsigned int *matB,
+    int ldb, unsigned int beta, unsigned int *matC, int ldc);
+template <>
 cublasStatus_t carma_syrkx<float>(cublasHandle_t cublas_handle,
                                   cublasFillMode_t uplo, char transa, int n,
                                   int k, float alpha, float *matA, int lda,
@@ -881,23 +861,23 @@ cublasStatus_t carma_syrkx<cuDoubleComplex>(cublasHandle_t cublas_handle,
 }
 
 /** These templates are used to select the proper geam executable from T_data*/
-template<class T_data>
-cublasStatus_t
-carma_geam(cublasHandle_t cublas_handle, char transa, char transb, int m, int n,
-           T_data alpha, T_data *matA, int lda, T_data beta, T_data *matB,
-           int ldb, T_data *matC, int ldc) CARMA_NIY
-/**< Generic template for geam executable selection */
-template
-cublasStatus_t
-carma_geam(cublasHandle_t cublas_handle, char transa, char transb, int m, int n,
-           int alpha, int *matA, int lda, int beta, int *matB,
-           int ldb, int *matC, int ldc);
-template
-cublasStatus_t
-carma_geam(cublasHandle_t cublas_handle, char transa, char transb, int m, int n,
-           unsigned int alpha, unsigned int *matA, int lda, unsigned int beta, unsigned int *matB,
-           int ldb, unsigned int *matC, int ldc);
-template<>
+template <class T_data>
+cublasStatus_t carma_geam(cublasHandle_t cublas_handle, char transa,
+                          char transb, int m, int n, T_data alpha, T_data *matA,
+                          int lda, T_data beta, T_data *matB, int ldb,
+                          T_data *matC, int ldc) CARMA_NIY
+    /**< Generic template for geam executable selection */
+    template cublasStatus_t
+    carma_geam(cublasHandle_t cublas_handle, char transa, char transb, int m,
+               int n, int alpha, int *matA, int lda, int beta, int *matB,
+               int ldb, int *matC, int ldc);
+template cublasStatus_t carma_geam(cublasHandle_t cublas_handle, char transa,
+                                   char transb, int m, int n,
+                                   unsigned int alpha, unsigned int *matA,
+                                   int lda, unsigned int beta,
+                                   unsigned int *matB, int ldb,
+                                   unsigned int *matC, int ldc);
+template <>
 cublasStatus_t carma_geam<float>(cublasHandle_t cublas_handle, char transa,
                                  char transb, int m, int n, float alpha,
                                  float *matA, int lda, float beta, float *matB,
@@ -944,17 +924,18 @@ cublasStatus_t carma_geam<cuDoubleComplex>(
 }
 
 /** These templates are used to select the proper dgmm executable from T_data*/
-template<class T_data>
-cublasStatus_t
-carma_dgmm(cublasHandle_t cublas_handle, cublasSideMode_t side, int m, int n,
-           const T_data *matA, int lda, const T_data *vectx, int incx,
-           T_data *matC, int ldc) CARMA_NIY
-/**< Generic template for geam executable selection */
-template <>
-cublasStatus_t carma_dgmm<float>(cublasHandle_t cublas_handle,
-                                 cublasSideMode_t side, int m, int n,
-                                 const float *matA, int lda, const float *vectx,
-                                 int incx, float *matC, int ldc) {
+template <class T_data>
+cublasStatus_t carma_dgmm(cublasHandle_t cublas_handle, cublasSideMode_t side,
+                          int m, int n, const T_data *matA, int lda,
+                          const T_data *vectx, int incx, T_data *matC,
+                          int ldc) CARMA_NIY
+    /**< Generic template for geam executable selection */
+    template <>
+    cublasStatus_t carma_dgmm<float>(cublasHandle_t cublas_handle,
+                                     cublasSideMode_t side, int m, int n,
+                                     const float *matA, int lda,
+                                     const float *vectx, int incx, float *matC,
+                                     int ldc) {
   return carma_checkCublasStatus(cublasSdgmm(cublas_handle, side, m, n, matA,
                                              lda, vectx, incx, matC, ldc));
 }
@@ -997,7 +978,7 @@ cublasStatus_t carma_dgmm<cuDoubleComplex>(cublasHandle_t cublas_handle,
  */
 
 template <class T_data>
-int carma_obj<T_data>::host2deviceVect(T_data *data, int incx, int incy) {
+int carma_obj<T_data>::host2deviceVect(const T_data *data, int incx, int incy) {
   /** \brief host2device generic data transfer method for a blas object vector.
    * \param data : input data (x)
    * \param incx : increment in x
@@ -1010,18 +991,15 @@ int carma_obj<T_data>::host2deviceVect(T_data *data, int incx, int incy) {
                                           incx, this->d_data, incy));
   return EXIT_SUCCESS;
 }
-template int
-caObjI::host2deviceVect(int *data, int incx, int incy);
-template int
-caObjUI::host2deviceVect(unsigned int *data, int incx, int incy);
-template int
-caObjS::host2deviceVect(float *data, int incx, int incy);
-template int
-caObjD::host2deviceVect(double *data, int incx, int incy);
-template int
-caObjC::host2deviceVect(cuFloatComplex *data, int incx, int incy);
-template int
-caObjZ::host2deviceVect(cuDoubleComplex *data, int incx, int incy);
+template int caObjI::host2deviceVect(const int *data, int incx, int incy);
+template int caObjUI::host2deviceVect(const unsigned int *data, int incx,
+                                      int incy);
+template int caObjS::host2deviceVect(const float *data, int incx, int incy);
+template int caObjD::host2deviceVect(const double *data, int incx, int incy);
+template int caObjC::host2deviceVect(const cuFloatComplex *data, int incx,
+                                     int incy);
+template int caObjZ::host2deviceVect(const cuDoubleComplex *data, int incx,
+                                     int incy);
 
 template <class T_data>
 int carma_obj<T_data>::device2hostVect(T_data *data, int incx, int incy) {
@@ -1037,21 +1015,15 @@ int carma_obj<T_data>::device2hostVect(T_data *data, int incx, int incy) {
                                           this->d_data, incx, data, incy));
   return EXIT_SUCCESS;
 }
-template int
-caObjI::device2hostVect(int *data, int incx, int incy);
-template int
-caObjUI::device2hostVect(unsigned int *data, int incx, int incy);
-template int
-caObjS::device2hostVect(float *data, int incx, int incy);
-template int
-caObjD::device2hostVect(double *data, int incx, int incy);
-template int
-caObjC::device2hostVect(cuFloatComplex *data, int incx, int incy);
-template int
-caObjZ::device2hostVect(cuDoubleComplex *data, int incx, int incy);
+template int caObjI::device2hostVect(int *data, int incx, int incy);
+template int caObjUI::device2hostVect(unsigned int *data, int incx, int incy);
+template int caObjS::device2hostVect(float *data, int incx, int incy);
+template int caObjD::device2hostVect(double *data, int incx, int incy);
+template int caObjC::device2hostVect(cuFloatComplex *data, int incx, int incy);
+template int caObjZ::device2hostVect(cuDoubleComplex *data, int incx, int incy);
 
 template <class T_data>
-int carma_obj<T_data>::host2deviceMat(T_data *data, int lda, int ldb) {
+int carma_obj<T_data>::host2deviceMat(const T_data *data, int lda, int ldb) {
   /** \brief host2device generic data transfer method.
    * \param data : input data  (A)
    * \param mat : matrix to fill(B)
@@ -1066,18 +1038,15 @@ int carma_obj<T_data>::host2deviceMat(T_data *data, int lda, int ldb) {
   return EXIT_SUCCESS;
 }
 
-template int
-caObjI::host2deviceMat(int *data, int lda, int ldb);
-template int
-caObjUI::host2deviceMat(unsigned int *data, int lda, int ldb);
-template int
-caObjS::host2deviceMat(float *data, int lda, int ldb);
-template int
-caObjD::host2deviceMat(double *data, int lda, int ldb);
-template int
-caObjC::host2deviceMat(cuFloatComplex *data, int lda, int ldb);
-template int
-caObjZ::host2deviceMat(cuDoubleComplex *data, int lda, int ldb);
+template int caObjI::host2deviceMat(const int *data, int lda, int ldb);
+template int caObjUI::host2deviceMat(const unsigned int *data, int lda,
+                                     int ldb);
+template int caObjS::host2deviceMat(const float *data, int lda, int ldb);
+template int caObjD::host2deviceMat(const double *data, int lda, int ldb);
+template int caObjC::host2deviceMat(const cuFloatComplex *data, int lda,
+                                    int ldb);
+template int caObjZ::host2deviceMat(const cuDoubleComplex *data, int lda,
+                                    int ldb);
 
 template <class T_data>
 int carma_obj<T_data>::device2hostMat(T_data *data, int lda, int ldb) {
@@ -1095,18 +1064,12 @@ int carma_obj<T_data>::device2hostMat(T_data *data, int lda, int ldb) {
   return EXIT_SUCCESS;
 }
 
-template int
-caObjI::device2hostMat(int *data, int lda, int ldb);
-template int
-caObjUI::device2hostMat(unsigned int *data, int lda, int ldb);
-template int
-caObjS::device2hostMat(float *data, int lda, int ldb);
-template int
-caObjD::device2hostMat(double *data, int lda, int ldb);
-template int
-caObjC::device2hostMat(cuFloatComplex *data, int lda, int ldb);
-template int
-caObjZ::device2hostMat(cuDoubleComplex *data, int lda, int ldb);
+template int caObjI::device2hostMat(int *data, int lda, int ldb);
+template int caObjUI::device2hostMat(unsigned int *data, int lda, int ldb);
+template int caObjS::device2hostMat(float *data, int lda, int ldb);
+template int caObjD::device2hostMat(double *data, int lda, int ldb);
+template int caObjC::device2hostMat(cuFloatComplex *data, int lda, int ldb);
+template int caObjZ::device2hostMat(cuDoubleComplex *data, int lda, int ldb);
 
 /*
  *  ____  _        _    ____  _
@@ -1129,18 +1092,12 @@ int carma_obj<T_data>::imax(int incx) {
                         this->d_data, incx);
   ;
 }
-template int
-carma_obj<int>::imax(int incx);
-template int
-carma_obj<unsigned int>::imax(int incx);
-template int
-carma_obj<float>::imax(int incx);
-template int
-carma_obj<double>::imax(int incx);
-template int
-carma_obj<cuFloatComplex>::imax(int incx);
-template int
-carma_obj<cuDoubleComplex>::imax(int incx);
+template int carma_obj<int>::imax(int incx);
+template int carma_obj<unsigned int>::imax(int incx);
+template int carma_obj<float>::imax(int incx);
+template int carma_obj<double>::imax(int incx);
+template int carma_obj<cuFloatComplex>::imax(int incx);
+template int carma_obj<cuDoubleComplex>::imax(int incx);
 
 template <class T_data>
 int carma_obj<T_data>::imin(int incx) {
@@ -1154,18 +1111,12 @@ int carma_obj<T_data>::imin(int incx) {
                         this->d_data, incx);
   ;
 }
-template int
-carma_obj<int>::imin(int incx);
-template int
-carma_obj<unsigned int>::imin(int incx);
-template int
-carma_obj<float>::imin(int incx);
-template int
-carma_obj<double>::imin(int incx);
-template int
-carma_obj<cuFloatComplex>::imin(int incx);
-template int
-carma_obj<cuDoubleComplex>::imin(int incx);
+template int carma_obj<int>::imin(int incx);
+template int carma_obj<unsigned int>::imin(int incx);
+template int carma_obj<float>::imin(int incx);
+template int carma_obj<double>::imin(int incx);
+template int carma_obj<cuFloatComplex>::imin(int incx);
+template int carma_obj<cuDoubleComplex>::imin(int incx);
 
 template <class T_data>
 T_data carma_obj<T_data>::asum(int incx) {
@@ -1178,18 +1129,12 @@ T_data carma_obj<T_data>::asum(int incx) {
                        this->d_data, incx);
   ;
 }
-template int
-carma_obj<int>::asum(int incx);
-template unsigned int
-carma_obj<unsigned int>::asum(int incx);
-template float
-carma_obj<float>::asum(int incx);
-template double
-carma_obj<double>::asum(int incx);
-template cuFloatComplex
-carma_obj<cuFloatComplex>::asum(int incx);
-template cuDoubleComplex
-carma_obj<cuDoubleComplex>::asum(int incx);
+template int carma_obj<int>::asum(int incx);
+template unsigned int carma_obj<unsigned int>::asum(int incx);
+template float carma_obj<float>::asum(int incx);
+template double carma_obj<double>::asum(int incx);
+template cuFloatComplex carma_obj<cuFloatComplex>::asum(int incx);
+template cuDoubleComplex carma_obj<cuDoubleComplex>::asum(int incx);
 
 template <class T_data>
 T_data carma_obj<T_data>::nrm2(int incx) {
@@ -1203,18 +1148,12 @@ T_data carma_obj<T_data>::nrm2(int incx) {
   return carma_nrm2(current_context->get_cublasHandle(), this->nb_elem,
                     this->d_data, incx);
 }
-template int
-carma_obj<int>::nrm2(int incx);
-template unsigned int
-carma_obj<unsigned int>::nrm2(int incx);
-template float
-carma_obj<float>::nrm2(int incx);
-template double
-carma_obj<double>::nrm2(int incx);
-template cuFloatComplex
-carma_obj<cuFloatComplex>::nrm2(int incx);
-template cuDoubleComplex
-carma_obj<cuDoubleComplex>::nrm2(int incx);
+template int carma_obj<int>::nrm2(int incx);
+template unsigned int carma_obj<unsigned int>::nrm2(int incx);
+template float carma_obj<float>::nrm2(int incx);
+template double carma_obj<double>::nrm2(int incx);
+template cuFloatComplex carma_obj<cuFloatComplex>::nrm2(int incx);
+template cuDoubleComplex carma_obj<cuDoubleComplex>::nrm2(int incx);
 
 template <class T_data>
 void carma_obj<T_data>::scale(T_data alpha, int incx) {
@@ -1230,18 +1169,13 @@ void carma_obj<T_data>::scale(T_data alpha, int incx) {
   carma_scal(current_context->get_cublasHandle(), this->nb_elem, alpha,
              this->d_data, incx);
 }
-template void
-carma_obj<int>::scale(int alpha, int incx);
-template void
-carma_obj<unsigned int>::scale(unsigned int alpha, int incx);
-template void
-carma_obj<float>::scale(float alpha, int incx);
-template void
-carma_obj<double>::scale(double alpha, int incx);
-template void
-carma_obj<cuFloatComplex>::scale(cuFloatComplex alpha, int incx);
-template void
-carma_obj<cuDoubleComplex>::scale(cuDoubleComplex alpha, int incx);
+template void carma_obj<int>::scale(int alpha, int incx);
+template void carma_obj<unsigned int>::scale(unsigned int alpha, int incx);
+template void carma_obj<float>::scale(float alpha, int incx);
+template void carma_obj<double>::scale(double alpha, int incx);
+template void carma_obj<cuFloatComplex>::scale(cuFloatComplex alpha, int incx);
+template void carma_obj<cuDoubleComplex>::scale(cuDoubleComplex alpha,
+                                                int incx);
 
 template <class T_data>
 void carma_obj<T_data>::copy(carma_obj<T_data> *source, int incx, int incy) {
@@ -1258,18 +1192,12 @@ void carma_obj<T_data>::copy(carma_obj<T_data> *source, int incx, int incy) {
   carma_copy(current_context->get_cublasHandle(), this->nb_elem, source->d_data,
              incx, this->d_data, incy);
 }
-template void
-carma_obj<int>::copy(caObjI *, int incx, int incy);
-template void
-carma_obj<unsigned int>::copy(caObjUI *, int incx, int incy);
-template void
-carma_obj<float>::copy(caObjS *, int incx, int incy);
-template void
-carma_obj<double>::copy(caObjD *, int incx, int incy);
-template void
-carma_obj<cuFloatComplex>::copy(caObjC *, int incx, int incy);
-template void
-carma_obj<cuDoubleComplex>::copy(caObjZ *, int incx, int incy);
+template void carma_obj<int>::copy(caObjI *, int incx, int incy);
+template void carma_obj<unsigned int>::copy(caObjUI *, int incx, int incy);
+template void carma_obj<float>::copy(caObjS *, int incx, int incy);
+template void carma_obj<double>::copy(caObjD *, int incx, int incy);
+template void carma_obj<cuFloatComplex>::copy(caObjC *, int incx, int incy);
+template void carma_obj<cuDoubleComplex>::copy(caObjZ *, int incx, int incy);
 
 template <class T_data>
 void carma_obj<T_data>::swap(carma_obj<T_data> *source, int incx, int incy) {
@@ -1286,18 +1214,12 @@ void carma_obj<T_data>::swap(carma_obj<T_data> *source, int incx, int incy) {
   carma_swap(current_context->get_cublasHandle(), this->nb_elem, source->d_data,
              incx, this->d_data, incy);
 }
-template void
-carma_obj<int>::swap(caObjI *, int incx, int incy);
-template void
-carma_obj<unsigned int>::swap(caObjUI *, int incx, int incy);
-template void
-carma_obj<float>::swap(caObjS *, int incx, int incy);
-template void
-carma_obj<double>::swap(caObjD *, int incx, int incy);
-template void
-carma_obj<cuFloatComplex>::swap(caObjC *, int incx, int incy);
-template void
-carma_obj<cuDoubleComplex>::swap(caObjZ *, int incx, int incy);
+template void carma_obj<int>::swap(caObjI *, int incx, int incy);
+template void carma_obj<unsigned int>::swap(caObjUI *, int incx, int incy);
+template void carma_obj<float>::swap(caObjS *, int incx, int incy);
+template void carma_obj<double>::swap(caObjD *, int incx, int incy);
+template void carma_obj<cuFloatComplex>::swap(caObjC *, int incx, int incy);
+template void carma_obj<cuDoubleComplex>::swap(caObjZ *, int incx, int incy);
 
 template <class T_data>
 void carma_obj<T_data>::axpy(T_data alpha, carma_obj<T_data> *source, int incx,
@@ -1315,20 +1237,20 @@ void carma_obj<T_data>::axpy(T_data alpha, carma_obj<T_data> *source, int incx,
   carma_axpy(current_context->get_cublasHandle(), this->nb_elem, alpha,
              source->d_data, incx, this->d_data, incy);
 }
-template void
-carma_obj<int>::axpy(int alpha, caObjI *source, int incx, int incy);
-template void
-carma_obj<unsigned int>::axpy(unsigned int alpha, caObjUI *source, int incx, int incy);
-template void
-carma_obj<float>::axpy(float alpha, caObjS *source, int incx, int incy);
-template void
-carma_obj<double>::axpy(double alpha, caObjD *source, int incx, int incy);
-template void
-carma_obj<cuFloatComplex>::axpy(cuFloatComplex alpha, caObjC *source, int incx,
-                                int incy);
-template void
-carma_obj<cuDoubleComplex>::axpy(cuDoubleComplex alpha, caObjZ *source,
-                                 int incx, int incy);
+template void carma_obj<int>::axpy(int alpha, caObjI *source, int incx,
+                                   int incy);
+template void carma_obj<unsigned int>::axpy(unsigned int alpha, caObjUI *source,
+                                            int incx, int incy);
+template void carma_obj<float>::axpy(float alpha, caObjS *source, int incx,
+                                     int incy);
+template void carma_obj<double>::axpy(double alpha, caObjD *source, int incx,
+                                      int incy);
+template void carma_obj<cuFloatComplex>::axpy(cuFloatComplex alpha,
+                                              caObjC *source, int incx,
+                                              int incy);
+template void carma_obj<cuDoubleComplex>::axpy(cuDoubleComplex alpha,
+                                               caObjZ *source, int incx,
+                                               int incy);
 
 template <class T_data>
 T_data carma_obj<T_data>::dot(carma_obj<T_data> *source, int incx, int incy) {
@@ -1344,18 +1266,15 @@ T_data carma_obj<T_data>::dot(carma_obj<T_data> *source, int incx, int incy) {
   return carma_dot(current_context->get_cublasHandle(), this->nb_elem,
                    source->d_data, incx, this->d_data, incy);
 }
-template int
-carma_obj<int>::dot(caObjI *source, int incx, int incy);
-template unsigned int
-carma_obj<unsigned int>::dot(caObjUI *source, int incx, int incy);
-template float
-carma_obj<float>::dot(caObjS *source, int incx, int incy);
-template double
-carma_obj<double>::dot(caObjD *source, int incx, int incy);
-template cuFloatComplex
-carma_obj<cuFloatComplex>::dot(caObjC *source, int incx, int incy);
-template cuDoubleComplex
-carma_obj<cuDoubleComplex>::dot(caObjZ *source, int incx, int incy);
+template int carma_obj<int>::dot(caObjI *source, int incx, int incy);
+template unsigned int carma_obj<unsigned int>::dot(caObjUI *source, int incx,
+                                                   int incy);
+template float carma_obj<float>::dot(caObjS *source, int incx, int incy);
+template double carma_obj<double>::dot(caObjD *source, int incx, int incy);
+template cuFloatComplex carma_obj<cuFloatComplex>::dot(caObjC *source, int incx,
+                                                       int incy);
+template cuDoubleComplex carma_obj<cuDoubleComplex>::dot(caObjZ *source,
+                                                         int incx, int incy);
 
 template <class T_data>
 void carma_obj<T_data>::rot(carma_obj<T_data> *source, int incx, int incy,
@@ -1374,21 +1293,18 @@ void carma_obj<T_data>::rot(carma_obj<T_data> *source, int incx, int incy,
   carma_rot(current_context->get_cublasHandle(), this->nb_elem, source->d_data,
             incx, this->d_data, incy, sc, ss);
 }
-template void
-carma_obj<int>::rot(caObjI *source, int incx, int incy, int, int);
-template void
-carma_obj<unsigned int>::rot(caObjUI *source, int incx, int incy, unsigned int sc,
-                       unsigned int ss);
-template void
-carma_obj<float>::rot(caObjS *source, int incx, int incy, float, float);
-template void
-carma_obj<double>::rot(caObjD *source, int incx, int incy, double sc,
-                       double ss);
-template void
-carma_obj<cuFloatComplex>::rot(caObjC *source, int incx, int incy, cuFloatComplex, cuFloatComplex);
-template void
-carma_obj<cuDoubleComplex>::rot(caObjZ *source, int incx, int incy, cuDoubleComplex sc,
-                       cuDoubleComplex ss);
+template void carma_obj<int>::rot(caObjI *source, int incx, int incy, int, int);
+template void carma_obj<unsigned int>::rot(caObjUI *source, int incx, int incy,
+                                           unsigned int sc, unsigned int ss);
+template void carma_obj<float>::rot(caObjS *source, int incx, int incy, float,
+                                    float);
+template void carma_obj<double>::rot(caObjD *source, int incx, int incy,
+                                     double sc, double ss);
+template void carma_obj<cuFloatComplex>::rot(caObjC *source, int incx, int incy,
+                                             cuFloatComplex, cuFloatComplex);
+template void carma_obj<cuDoubleComplex>::rot(caObjZ *source, int incx,
+                                              int incy, cuDoubleComplex sc,
+                                              cuDoubleComplex ss);
 
 /*
  *  ____  _        _    ____ ____
@@ -1419,22 +1335,20 @@ void carma_obj<T_data>::gemv(char trans, T_data alpha, carma_obj<T_data> *matA,
              matA->dims_data[2], alpha, matA->d_data, lda, vectx->d_data, incx,
              beta, this->d_data, incy);
 }
-template void
-carma_obj<int>::gemv(char, int, caObjI *, int, caObjI*, int, int, int);
-template void
-carma_obj<unsigned int>::gemv(char, unsigned int, caObjUI *, int, caObjUI *, int, unsigned int,
-                        int);
-template void
-carma_obj<float>::gemv(char, float, caObjS *, int, caObjS*, int, float, int);
-template void
-carma_obj<double>::gemv(char, double, caObjD *, int, caObjD *, int, double,
-                        int);
-template void
-carma_obj<cuFloatComplex>::gemv(char, cuFloatComplex, caObjC *, int, caObjC *,
-                                int, cuFloatComplex, int);
-template void
-carma_obj<cuDoubleComplex>::gemv(char, cuDoubleComplex, caObjZ *, int, caObjZ *,
-                                 int, cuDoubleComplex, int);
+template void carma_obj<int>::gemv(char, int, caObjI *, int, caObjI *, int, int,
+                                   int);
+template void carma_obj<unsigned int>::gemv(char, unsigned int, caObjUI *, int,
+                                            caObjUI *, int, unsigned int, int);
+template void carma_obj<float>::gemv(char, float, caObjS *, int, caObjS *, int,
+                                     float, int);
+template void carma_obj<double>::gemv(char, double, caObjD *, int, caObjD *,
+                                      int, double, int);
+template void carma_obj<cuFloatComplex>::gemv(char, cuFloatComplex, caObjC *,
+                                              int, caObjC *, int,
+                                              cuFloatComplex, int);
+template void carma_obj<cuDoubleComplex>::gemv(char, cuDoubleComplex, caObjZ *,
+                                               int, caObjZ *, int,
+                                               cuDoubleComplex, int);
 
 template <class T_data>
 void carma_obj<T_data>::ger(T_data alpha, carma_obj<T_data> *vectx, int incx,
@@ -1453,20 +1367,15 @@ void carma_obj<T_data>::ger(T_data alpha, carma_obj<T_data> *vectx, int incx,
             this->dims_data[2], alpha, vectx->d_data, incx, vecty->d_data, incy,
             this->d_data, lda);
 }
-template void
-carma_obj<int>::ger(int, caObjI *, int, caObjI*, int, int);
-template void
-carma_obj<unsigned int>::ger(unsigned int, caObjUI *, int, caObjUI *, int, int);
-template void
-carma_obj<float>::ger(float, caObjS *, int, caObjS*, int, int);
-template void
-carma_obj<double>::ger(double, caObjD *, int, caObjD *, int, int);
-template void
-carma_obj<cuFloatComplex>::ger(cuFloatComplex, caObjC *, int, caObjC *, int,
-                               int);
-template void
-carma_obj<cuDoubleComplex>::ger(cuDoubleComplex, caObjZ *, int, caObjZ *, int,
-                                int);
+template void carma_obj<int>::ger(int, caObjI *, int, caObjI *, int, int);
+template void carma_obj<unsigned int>::ger(unsigned int, caObjUI *, int,
+                                           caObjUI *, int, int);
+template void carma_obj<float>::ger(float, caObjS *, int, caObjS *, int, int);
+template void carma_obj<double>::ger(double, caObjD *, int, caObjD *, int, int);
+template void carma_obj<cuFloatComplex>::ger(cuFloatComplex, caObjC *, int,
+                                             caObjC *, int, int);
+template void carma_obj<cuDoubleComplex>::ger(cuDoubleComplex, caObjZ *, int,
+                                              caObjZ *, int, int);
 
 template <class T_data>
 void carma_obj<T_data>::symv(cublasFillMode_t uplo, T_data alpha,
@@ -1489,24 +1398,22 @@ void carma_obj<T_data>::symv(cublasFillMode_t uplo, T_data alpha,
              alpha, matA->d_data, lda, vectx->d_data, incx, beta, this->d_data,
              incy);
 }
-template void
-carma_obj<int>::symv(cublasFillMode_t, int, caObjI *, int, caObjI*, int,
-                       int, int);
-template void
-carma_obj<unsigned int>::symv(cublasFillMode_t, unsigned int, caObjUI *, int, caObjUI *, int,
-                        unsigned int, int);
-template void
-carma_obj<float>::symv(cublasFillMode_t, float, caObjS *, int, caObjS*, int,
-                       float, int);
-template void
-carma_obj<double>::symv(cublasFillMode_t, double, caObjD *, int, caObjD *, int,
-                        double, int);
-template void
-carma_obj<cuFloatComplex>::symv(cublasFillMode_t, cuFloatComplex, caObjC *, int,
-                                caObjC *, int, cuFloatComplex, int);
-template void
-carma_obj<cuDoubleComplex>::symv(cublasFillMode_t, cuDoubleComplex, caObjZ *,
-                                 int, caObjZ *, int, cuDoubleComplex, int);
+template void carma_obj<int>::symv(cublasFillMode_t, int, caObjI *, int,
+                                   caObjI *, int, int, int);
+template void carma_obj<unsigned int>::symv(cublasFillMode_t, unsigned int,
+                                            caObjUI *, int, caObjUI *, int,
+                                            unsigned int, int);
+template void carma_obj<float>::symv(cublasFillMode_t, float, caObjS *, int,
+                                     caObjS *, int, float, int);
+template void carma_obj<double>::symv(cublasFillMode_t, double, caObjD *, int,
+                                      caObjD *, int, double, int);
+template void carma_obj<cuFloatComplex>::symv(cublasFillMode_t, cuFloatComplex,
+                                              caObjC *, int, caObjC *, int,
+                                              cuFloatComplex, int);
+template void carma_obj<cuDoubleComplex>::symv(cublasFillMode_t,
+                                               cuDoubleComplex, caObjZ *, int,
+                                               caObjZ *, int, cuDoubleComplex,
+                                               int);
 
 /*
  *  ____  _        _    ____ _____
@@ -1543,24 +1450,21 @@ void carma_obj<T_data>::gemm(char transa, char transb, T_data alpha,
              this->dims_data[1], this->dims_data[2], k, alpha, matA->d_data,
              lda, matB->d_data, ldb, beta, this->d_data, ldc);
 }
-template void
-carma_obj<int>::gemm(char, char, int, caObjI *, int, caObjI*, int, int,
-                       int);
-template void
-carma_obj<unsigned int>::gemm(char, char, unsigned int, caObjUI *, int, caObjUI *, int,
-                        unsigned int, int);
-template void
-carma_obj<float>::gemm(char, char, float, caObjS *, int, caObjS*, int, float,
-                       int);
-template void
-carma_obj<double>::gemm(char, char, double, caObjD *, int, caObjD *, int,
-                        double, int);
-template void
-carma_obj<cuFloatComplex>::gemm(char, char, cuFloatComplex, caObjC *, int,
-                                caObjC *, int, cuFloatComplex, int);
-template void
-carma_obj<cuDoubleComplex>::gemm(char, char, cuDoubleComplex, caObjZ *, int,
-                                 caObjZ *, int, cuDoubleComplex, int);
+template void carma_obj<int>::gemm(char, char, int, caObjI *, int, caObjI *,
+                                   int, int, int);
+template void carma_obj<unsigned int>::gemm(char, char, unsigned int, caObjUI *,
+                                            int, caObjUI *, int, unsigned int,
+                                            int);
+template void carma_obj<float>::gemm(char, char, float, caObjS *, int, caObjS *,
+                                     int, float, int);
+template void carma_obj<double>::gemm(char, char, double, caObjD *, int,
+                                      caObjD *, int, double, int);
+template void carma_obj<cuFloatComplex>::gemm(char, char, cuFloatComplex,
+                                              caObjC *, int, caObjC *, int,
+                                              cuFloatComplex, int);
+template void carma_obj<cuDoubleComplex>::gemm(char, char, cuDoubleComplex,
+                                               caObjZ *, int, caObjZ *, int,
+                                               cuDoubleComplex, int);
 
 template <class T_data>
 void carma_obj<T_data>::symm(cublasSideMode_t side, cublasFillMode_t uplo,
@@ -1588,26 +1492,25 @@ void carma_obj<T_data>::symm(cublasSideMode_t side, cublasFillMode_t uplo,
              this->dims_data[1], this->dims_data[2], alpha, matA->d_data, lda,
              matB->d_data, ldb, beta, this->d_data, ldc);
 }
-template void
-carma_obj<int>::symm(cublasSideMode_t, cublasFillMode_t, int, caObjI *, int,
-                       caObjI*, int, int, int);
-template void
-carma_obj<unsigned int>::symm(cublasSideMode_t, cublasFillMode_t, unsigned int, caObjUI *,
-                        int, caObjUI *, int, unsigned int, int);
-template void
-carma_obj<float>::symm(cublasSideMode_t, cublasFillMode_t, float, caObjS *, int,
-                       caObjS*, int, float, int);
-template void
-carma_obj<double>::symm(cublasSideMode_t, cublasFillMode_t, double, caObjD *,
-                        int, caObjD *, int, double, int);
-template void
-carma_obj<cuFloatComplex>::symm(cublasSideMode_t, cublasFillMode_t,
-                                cuFloatComplex, caObjC *, int, caObjC *, int,
-                                cuFloatComplex, int);
-template void
-carma_obj<cuDoubleComplex>::symm(cublasSideMode_t, cublasFillMode_t,
-                                 cuDoubleComplex, caObjZ *, int, caObjZ *, int,
-                                 cuDoubleComplex, int);
+template void carma_obj<int>::symm(cublasSideMode_t, cublasFillMode_t, int,
+                                   caObjI *, int, caObjI *, int, int, int);
+template void carma_obj<unsigned int>::symm(cublasSideMode_t, cublasFillMode_t,
+                                            unsigned int, caObjUI *, int,
+                                            caObjUI *, int, unsigned int, int);
+template void carma_obj<float>::symm(cublasSideMode_t, cublasFillMode_t, float,
+                                     caObjS *, int, caObjS *, int, float, int);
+template void carma_obj<double>::symm(cublasSideMode_t, cublasFillMode_t,
+                                      double, caObjD *, int, caObjD *, int,
+                                      double, int);
+template void carma_obj<cuFloatComplex>::symm(cublasSideMode_t,
+                                              cublasFillMode_t, cuFloatComplex,
+                                              caObjC *, int, caObjC *, int,
+                                              cuFloatComplex, int);
+template void carma_obj<cuDoubleComplex>::symm(cublasSideMode_t,
+                                               cublasFillMode_t,
+                                               cuDoubleComplex, caObjZ *, int,
+                                               caObjZ *, int, cuDoubleComplex,
+                                               int);
 
 template <class T_data>
 void carma_obj<T_data>::syrk(cublasFillMode_t uplo, char transa, T_data alpha,
@@ -1635,24 +1538,21 @@ void carma_obj<T_data>::syrk(cublasFillMode_t uplo, char transa, T_data alpha,
              beta, this->d_data, ldc);
   // "this" refer to matrix "C": this->dims_data[1]=this->dims_data[2]=n
 }
-template void
-carma_obj<int>::syrk(cublasFillMode_t, char, int, caObjI *, int, int,
-                       int);
-template void
-carma_obj<unsigned int>::syrk(cublasFillMode_t, char, unsigned int, caObjUI *, int, unsigned int,
-                        int);
-template void
-carma_obj<float>::syrk(cublasFillMode_t, char, float, caObjS *, int, float,
-                       int);
-template void
-carma_obj<double>::syrk(cublasFillMode_t, char, double, caObjD *, int, double,
-                        int);
-template void
-carma_obj<cuFloatComplex>::syrk(cublasFillMode_t, char, cuFloatComplex,
-                                caObjC *, int, cuFloatComplex, int);
-template void
-carma_obj<cuDoubleComplex>::syrk(cublasFillMode_t, char, cuDoubleComplex,
-                                 caObjZ *, int, cuDoubleComplex, int);
+template void carma_obj<int>::syrk(cublasFillMode_t, char, int, caObjI *, int,
+                                   int, int);
+template void carma_obj<unsigned int>::syrk(cublasFillMode_t, char,
+                                            unsigned int, caObjUI *, int,
+                                            unsigned int, int);
+template void carma_obj<float>::syrk(cublasFillMode_t, char, float, caObjS *,
+                                     int, float, int);
+template void carma_obj<double>::syrk(cublasFillMode_t, char, double, caObjD *,
+                                      int, double, int);
+template void carma_obj<cuFloatComplex>::syrk(cublasFillMode_t, char,
+                                              cuFloatComplex, caObjC *, int,
+                                              cuFloatComplex, int);
+template void carma_obj<cuDoubleComplex>::syrk(cublasFillMode_t, char,
+                                               cuDoubleComplex, caObjZ *, int,
+                                               cuDoubleComplex, int);
 
 template <class T_data>
 void carma_obj<T_data>::syrkx(cublasFillMode_t uplo, char transa, T_data alpha,
@@ -1681,26 +1581,23 @@ void carma_obj<T_data>::syrkx(cublasFillMode_t uplo, char transa, T_data alpha,
               matA->dims_data[1], matA->dims_data[2], alpha, matA->d_data, lda,
               matB->d_data, ldb, beta, this->d_data, ldc);
 }
-template void
-carma_obj<int>::syrkx(cublasFillMode_t, char, int, caObjI *, int, caObjI*,
-                        int, int, int);
-template void
-carma_obj<unsigned int>::syrkx(cublasFillMode_t, char, unsigned int, caObjUI *, int,
-                         caObjUI *, int, unsigned int, int);
-template void
-carma_obj<float>::syrkx(cublasFillMode_t, char, float, caObjS *, int, caObjS*,
-                        int, float, int);
-template void
-carma_obj<double>::syrkx(cublasFillMode_t, char, double, caObjD *, int,
-                         caObjD *, int, double, int);
-template void
-carma_obj<cuFloatComplex>::syrkx(cublasFillMode_t, char, cuFloatComplex,
-                                 caObjC *, int, caObjC *, int, cuFloatComplex,
-                                 int);
-template void
-carma_obj<cuDoubleComplex>::syrkx(cublasFillMode_t, char, cuDoubleComplex,
-                                  caObjZ *, int, caObjZ *, int, cuDoubleComplex,
-                                  int);
+template void carma_obj<int>::syrkx(cublasFillMode_t, char, int, caObjI *, int,
+                                    caObjI *, int, int, int);
+template void carma_obj<unsigned int>::syrkx(cublasFillMode_t, char,
+                                             unsigned int, caObjUI *, int,
+                                             caObjUI *, int, unsigned int, int);
+template void carma_obj<float>::syrkx(cublasFillMode_t, char, float, caObjS *,
+                                      int, caObjS *, int, float, int);
+template void carma_obj<double>::syrkx(cublasFillMode_t, char, double, caObjD *,
+                                       int, caObjD *, int, double, int);
+template void carma_obj<cuFloatComplex>::syrkx(cublasFillMode_t, char,
+                                               cuFloatComplex, caObjC *, int,
+                                               caObjC *, int, cuFloatComplex,
+                                               int);
+template void carma_obj<cuDoubleComplex>::syrkx(cublasFillMode_t, char,
+                                                cuDoubleComplex, caObjZ *, int,
+                                                caObjZ *, int, cuDoubleComplex,
+                                                int);
 
 template <class T_data>
 void carma_obj<T_data>::geam(char transa, char transb, T_data alpha,
@@ -1725,24 +1622,21 @@ void carma_obj<T_data>::geam(char transa, char transb, T_data alpha,
              this->dims_data[1], this->dims_data[2], alpha, matA->d_data, lda,
              beta, matB->d_data, ldb, this->d_data, ldc);
 }
-template void
-carma_obj<int>::geam(char, char, int, caObjI *, int, int, caObjI*, int,
-                       int);
-template void
-carma_obj<unsigned int>::geam(char, char, unsigned int, caObjUI *, int, unsigned int, caObjUI *,
-                        int, int);
-template void
-carma_obj<float>::geam(char, char, float, caObjS *, int, float, caObjS*, int,
-                       int);
-template void
-carma_obj<double>::geam(char, char, double, caObjD *, int, double, caObjD *,
-                        int, int);
-template void
-carma_obj<cuFloatComplex>::geam(char, char, cuFloatComplex, caObjC *, int,
-                                cuFloatComplex, caObjC *, int, int);
-template void
-carma_obj<cuDoubleComplex>::geam(char, char, cuDoubleComplex, caObjZ *, int,
-                                 cuDoubleComplex, caObjZ *, int, int);
+template void carma_obj<int>::geam(char, char, int, caObjI *, int, int,
+                                   caObjI *, int, int);
+template void carma_obj<unsigned int>::geam(char, char, unsigned int, caObjUI *,
+                                            int, unsigned int, caObjUI *, int,
+                                            int);
+template void carma_obj<float>::geam(char, char, float, caObjS *, int, float,
+                                     caObjS *, int, int);
+template void carma_obj<double>::geam(char, char, double, caObjD *, int, double,
+                                      caObjD *, int, int);
+template void carma_obj<cuFloatComplex>::geam(char, char, cuFloatComplex,
+                                              caObjC *, int, cuFloatComplex,
+                                              caObjC *, int, int);
+template void carma_obj<cuDoubleComplex>::geam(char, char, cuDoubleComplex,
+                                               caObjZ *, int, cuDoubleComplex,
+                                               caObjZ *, int, int);
 
 template <class T_data>
 void carma_obj<T_data>::dgmm(cublasSideMode_t side, carma_obj<T_data> *matA,
@@ -1763,17 +1657,15 @@ void carma_obj<T_data>::dgmm(cublasSideMode_t side, carma_obj<T_data> *matA,
              this->dims_data[2], matA->d_data, lda, vectx->d_data, incx,
              this->d_data, ldc);
 }
-template void
-carma_obj<int>::dgmm(cublasSideMode_t, caObjI *, int, caObjI*, int, int);
-template void
-carma_obj<unsigned int>::dgmm(cublasSideMode_t, caObjUI *, int, caObjUI *, int, int);
-template void
-carma_obj<float>::dgmm(cublasSideMode_t, caObjS *, int, caObjS*, int, int);
-template void
-carma_obj<double>::dgmm(cublasSideMode_t, caObjD *, int, caObjD *, int, int);
-template void
-carma_obj<cuFloatComplex>::dgmm(cublasSideMode_t, caObjC *, int, caObjC *, int,
-                                int);
-template void
-carma_obj<cuDoubleComplex>::dgmm(cublasSideMode_t, caObjZ *, int, caObjZ *, int,
-                                 int);
+template void carma_obj<int>::dgmm(cublasSideMode_t, caObjI *, int, caObjI *,
+                                   int, int);
+template void carma_obj<unsigned int>::dgmm(cublasSideMode_t, caObjUI *, int,
+                                            caObjUI *, int, int);
+template void carma_obj<float>::dgmm(cublasSideMode_t, caObjS *, int, caObjS *,
+                                     int, int);
+template void carma_obj<double>::dgmm(cublasSideMode_t, caObjD *, int, caObjD *,
+                                      int, int);
+template void carma_obj<cuFloatComplex>::dgmm(cublasSideMode_t, caObjC *, int,
+                                              caObjC *, int, int);
+template void carma_obj<cuDoubleComplex>::dgmm(cublasSideMode_t, caObjZ *, int,
+                                               caObjZ *, int, int);

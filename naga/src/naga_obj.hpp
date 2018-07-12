@@ -7,40 +7,25 @@
 namespace py = pybind11;
 
 template <typename T>
-class naga_obj : public carma_obj<T>
-{
-public:
-  naga_obj(carma_context *current_context, carma_obj<T> *obj) : carma_obj<T>(current_context, obj)
-  {
-    this->h_data = std::vector<T>(this->nb_elem);
-  }
-  naga_obj(carma_context *current_context, const long *dims_data,
-           T *data) : carma_obj<T>(current_context, dims_data, data)
-  {
-    this->h_data = std::vector<T>(this->nb_elem);
-  }
-  std::vector<T> h_data;
-};
-
-template <typename T>
 void declare_naga_obj(py::module &mod, std::string suffix)
 {
 
   using Class = carma_obj<T>;
 
   py::class_<Class>(mod, ("naga_obj_" + suffix).c_str(), py::buffer_protocol())
-      .def(py::init([](carma_context &c, py::array_t<T> data) {
-        py::buffer_info info = data.request();
-        const int ndim = info.ndim + 1;
-        std::vector<long> dims(ndim);
-        dims[0] = info.ndim;
-        copy(begin(info.shape), end(info.shape), begin(dims) + 1);
-        return std::unique_ptr<Class>(new Class(&c, dims.data(), (T *)info.ptr));
-      }))
+      .def(py::init([](carma_context &c, const py::array_t<T> &data) {
+        int ndim = data.ndim() + 1;
+        std::vector<long> data_dims(ndim);
+        data_dims[0] = data.ndim();
+        copy(data.shape(), data.shape()+data.ndim(), begin(data_dims) + 1);
+        return std::unique_ptr<Class>(new Class(&c, data_dims.data(), (const T *)data.data()));
+      }),
+      py::arg("context").none(false),
+      py::arg("data").none(false))
 
-      .def(py::init([](carma_context &c, Class &data) {
-        return std::unique_ptr<Class>(new Class(&c, &data));
-      }))
+      // .def(py::init([](carma_context &c, Class &data) {
+      //   return std::unique_ptr<Class>(new Class(&c, &data));
+      // }))
 
       // .def_buffer([](Class &frame) -> py::array_t<T> {
 
@@ -128,22 +113,12 @@ void declare_naga_obj(py::module &mod, std::string suffix)
       .def("getDevice", &Class::getDevice)
 
       // int host2device(T_data *data);
-      .def("host2device", [](Class &c, py::array_t<T> data) {
-        py::buffer_info info = data.request();
-        // const int ndim = info.ndim+1;
-        // std::vector<long> dims(ndim);
-        // dims[0] = info.ndim;
-        // copy(begin(info.shape), end(info.shape), begin(dims)+1);
-        c.host2device((T *)info.ptr);
+      .def("host2device", [](Class &c, py::array_t<T> &data) {
+        c.host2device((const T*)data.data());
       })
       // int device2host(T_data *data);
-      .def("device2host", [](Class &c, py::array_t<T> data) {
-        py::buffer_info info = data.request();
-        // const int ndim = info.ndim+1;
-        // std::vector<long> dims(ndim);
-        // dims[0] = info.ndim;
-        // copy(begin(info.shape), end(info.shape), begin(dims)+1);
-        c.device2host((T *)info.ptr);
+      .def("device2host", [](Class &c, py::array_t<T> &data) {
+        c.device2host((T*)data.mutable_data());
       })
 
       // int copyInto(T_data *data, int nb_elem);
@@ -190,7 +165,7 @@ void declare_naga_obj(py::module &mod, std::string suffix)
       //           carma_obj<T_data> *vectx, int incx, T_data beta, int incy);
       .def("gemv", [](Class &mat, Class &vectx, Class &vecty, char op, T alpha, T beta) {
         int lda;
-        if (op == 'N' && op == 'n')
+        if (op == 'N' || op == 'n')
         {
           lda = mat.getDims(2);
         }
@@ -202,19 +177,27 @@ void declare_naga_obj(py::module &mod, std::string suffix)
       },
            "this method performs one of the matrix‐vector operations vecty = alpha * op(mat) * vectx + beta * vecty", py::arg("vectx"), py::arg("vecty"), py::arg("op") = 'N', py::arg("alpha") = 1, py::arg("beta") = 0) // &Class::gemv)
       .def("gemv", [](Class &mat, Class &vectx, char op, T alpha) -> std::unique_ptr<Class> {
-        int lda;
-        if (op == 'N' && op == 'n')
+        int lda, m, n;
+        char op_cublas;
+        if (op == 'N' || op == 'n')
         {
-          lda = mat.getDims(2);
+          m = mat.getDims(2);
+          n = mat.getDims(1);
+          lda = m;
+          op_cublas = 't';
         }
         else
         {
-          lda = mat.getDims(1);
+          m = mat.getDims(1);
+          n = mat.getDims(2);
+          lda = m;
+          op_cublas = 'n';
         }
-        long dims[] = {1, lda};
+        long dims[] = {1, n};
         std::unique_ptr<Class> vecty(new Class(mat.getContext(), dims));
         T beta = 0;
-        vecty->gemv(op, alpha, &mat, lda, &vectx, 1, beta, 1);
+        carma_gemv(mat.getContext()->get_cublasHandle(), op_cublas, m, n, alpha, mat.getData(), lda, vectx.getData(), 1, beta, vecty->getData(), 1);
+        // vecty->gemv(op, alpha, &mat, lda, &vectx, 1, beta, 1);
         return vecty;
       },
            "this method performs one of the matrix‐vector operations vecty = alpha * op(mat) * vectx", py::arg("vectx"), py::arg("op") = 'N', py::arg("alpha") = 1) // &Class::gemv)
@@ -254,7 +237,49 @@ void declare_naga_obj(py::module &mod, std::string suffix)
 
       // void gemm(char transa, char transb, T_data alpha, carma_obj<T_data> *matA,
       //           int lda, carma_obj<T_data> *matB, int ldb, T_data beta, int ldc);
-      .def("gemm", &Class::gemm)
+      .def("gemm",  [](Class &matA, Class &matB, char op_a, char op_b, T alpha, Class &matC, T beta
+      // , int m, int n, int k, int lda, int ldb, int ldc
+      ) /*-> std::unique_ptr<Class>*/  {
+        char op_cublas_A='t', op_cublas_B='t';
+
+// 1 2 4 4 2 1  seems GOOD!
+// 128 256 512 512 256 128
+
+        int lda, ldb, ldc, m, n, k;
+        if (op_a == 'N' || op_a == 'n')
+        {
+          m = matA.getDims(1); // 1
+          n = matB.getDims(2); // 2
+          k = matA.getDims(2); // 2
+          lda = k; // m
+          ldb = n; // k
+          ldc = m; // m
+          op_cublas_A = 't';
+          op_cublas_B = 't';
+        }
+        else
+        {
+          m = matA.getDims(1);
+          n = matA.getDims(2);
+          lda = matA.getDims(1);
+          op_cublas_A = 'n';
+        }
+
+        long dims[] = {2, n, m};
+        std::unique_ptr<Class> matTMP(new Class(matA.getContext(),dims));
+        carma_geam<T>(matA.getContext()->get_cublasHandle(), 'n', 't',m, n, 0, matTMP->getData(), m, 1, matC.getData(), n, matTMP->getData(), m);
+        // T beta = 0;
+        carma_gemm<T>(matA.getContext()->get_cublasHandle(), op_cublas_B, op_cublas_A, m, n, k, alpha, matA.getData(), lda, matB.getData(), ldb, beta, matTMP->getData(), ldc);
+        carma_geam<T>(matA.getContext()->get_cublasHandle(), 'n', 't',n,m, 0, matC.getData(), n, 1, matTMP->getData(), m, matC.getData(), n);
+        // return matC;
+      })
+
+// cublasStatus_t carma_gemm<float>(cublasHandle_t cublas_handle, char transa,
+//                                  char transb, int m, int n, int k, float alpha,
+//                                  float *matA, int lda, float *matB, int ldb,
+//                                  float beta, float *matC, int ldc) {
+
+
       // void symm(cublasSideMode_t side, cublasFillMode_t uplo, T_data alpha,
       //           carma_obj<T_data> *matA, int lda, carma_obj<T_data> *matB, int ldb,
       //           T_data beta, int ldc);
