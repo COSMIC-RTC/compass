@@ -244,8 +244,8 @@ class carma_obj {
   // carma_obj<T_data>& operator= (const carma_obj<T_data>& obj);
 
   /**< Cublas V2 */
-  int imax(int incx);
-  int imin(int incx);
+  int aimax(int incx);
+  int aimin(int incx);
   T_data asum(int incx);
   T_data nrm2(int incx);
   T_data dot(carma_obj<T_data> *source, int incx, int incy);
@@ -259,22 +259,20 @@ class carma_obj {
             carma_obj<T_data> *vectx, int incx, T_data beta, int incy);
   void ger(T_data alpha, carma_obj<T_data> *vectx, int incx,
            carma_obj<T_data> *vecty, int incy, int lda);
-  void symv(cublasFillMode_t uplo, T_data alpha, carma_obj<T_data> *matA,
-            int lda, carma_obj<T_data> *vectx, int incx, T_data beta, int incy);
+  void symv(char uplo, T_data alpha, carma_obj<T_data> *matA, int lda,
+            carma_obj<T_data> *vectx, int incx, T_data beta, int incy);
 
   void gemm(char transa, char transb, T_data alpha, carma_obj<T_data> *matA,
             int lda, carma_obj<T_data> *matB, int ldb, T_data beta, int ldc);
-  void symm(cublasSideMode_t side, cublasFillMode_t uplo, T_data alpha,
-            carma_obj<T_data> *matA, int lda, carma_obj<T_data> *matB, int ldb,
-            T_data beta, int ldc);
-  void syrk(cublasFillMode_t uplo, char transa, T_data alpha,
-            carma_obj<T_data> *matA, int lda, T_data beta, int ldc);
-  void syrkx(cublasFillMode_t uplo, char transa, T_data alpha,
-             carma_obj<T_data> *matA, int lda, carma_obj<T_data> *matB, int ldb,
-             T_data beta, int ldc);
+  void symm(char side, char uplo, T_data alpha, carma_obj<T_data> *matA,
+            int lda, carma_obj<T_data> *matB, int ldb, T_data beta, int ldc);
+  void syrk(char uplo, char transa, T_data alpha, carma_obj<T_data> *matA,
+            int lda, T_data beta, int ldc);
+  void syrkx(char uplo, char transa, T_data alpha, carma_obj<T_data> *matA,
+             int lda, carma_obj<T_data> *matB, int ldb, T_data beta, int ldc);
   void geam(char transa, char transb, T_data alpha, carma_obj<T_data> *matA,
             int lda, T_data beta, carma_obj<T_data> *matB, int ldb, int ldc);
-  void dgmm(cublasSideMode_t side, carma_obj<T_data> *matA, int lda,
+  void dgmm(char side, carma_obj<T_data> *matA, int lda,
             carma_obj<T_data> *vectx, int incx, int ldc);
 
   /**< Curand */

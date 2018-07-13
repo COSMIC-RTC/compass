@@ -230,7 +230,7 @@ int sutra_source::init_strehlmeter() {
   this->comp_image(1, false);
 
   cudaMemcpy(&(this->ref_strehl),
-             &(this->d_image->getData()[this->d_image->imax(1) - 1]),
+             &(this->d_image->getData()[this->d_image->aimax(1)]),
              sizeof(float), cudaMemcpyDeviceToHost);
 
   if (this->d_leimage == 0L)
@@ -472,10 +472,10 @@ int sutra_source::comp_strehl() {
 
   current_context->set_activeDevice(device, 1);
   cudaMemcpy(&(this->strehl_se),
-             &(this->d_image->getData()[this->d_image->imax(1) - 1]),
+             &(this->d_image->getData()[this->d_image->aimax(1)]),
              sizeof(float), cudaMemcpyDeviceToHost);
   cudaMemcpy(&(this->strehl_le),
-             &(this->d_leimage->getData()[this->d_leimage->imax(1) - 1]),
+             &(this->d_leimage->getData()[this->d_leimage->aimax(1)]),
              sizeof(float), cudaMemcpyDeviceToHost);
   // this->strehl_se /= (this->d_wherephase->getDims(1) *
   // this->d_wherephase->getDims(1));
@@ -486,10 +486,10 @@ int sutra_source::comp_strehl() {
 
   /*
   cudaMemcpy(&(this->strehl_se),
-      &(this->d_image->getData()[this->d_image->imax(1) - 1]), sizeof(float),
+      &(this->d_image->getData()[this->d_image->aimax(1)]), sizeof(float),
       cudaMemcpyDeviceToHost);
   cudaMemcpy(&(this->strehl_le),
-      &(this->d_leimage->getData()[this->d_leimage->imax(1) - 1]),
+      &(this->d_leimage->getData()[this->d_leimage->aimax(1)]),
       sizeof(float), cudaMemcpyDeviceToHost);
 
   this->strehl_se /= this->ref_strehl;

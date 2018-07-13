@@ -21,81 +21,99 @@ c = ch.naga_context.get_instance()
 # print(np.array(bb))
 
 
-def test_imax():
-    Vect = ch.naga_obj_float(c, np.zeros((size * size), dtype=np.float32))
-    Vect.init_prng(seed)
-    Vect.prng('U')
+def test_aimax():
+    v = np.random.randn(size)
+    Vect = ch.naga_obj_float(c, v)
+    # Vect = ch.naga_obj_float(c, np.empty((size), dtype=np.float32))
+    # Vect.random_host(seed, 'U')
+    v = np.array(Vect)
 
     #imax return the index in column major of the maximum absolute value element
-    imaxC = np.array(Vect).argmax() + 1
-    imaxG = Vect.imax(1)
+    imaxC = np.abs(v).argmax()
+    imaxG = Vect.aimax()
 
+    print(v[imaxC], v[imaxG])
     npt.assert_equal(imaxC, imaxG)
 
 
-def test_imin():
-    Vect = ch.naga_obj_float(c, np.zeros((size * size), dtype=np.float32))
-    Vect.init_prng(seed * 2)
-    Vect.prng('U')
+def test_aimin():
+    v = np.random.randn(size)
+    Vect = ch.naga_obj_float(c, v)
+    # Vect = ch.naga_obj_float(c, np.empty((size), dtype=np.float32))
+    # Vect.random_host(seed*2, 'U')
+    v = np.array(Vect)
 
     #imax return the index in column major of the minimum obsolute value element
-    iminC = np.array(Vect).argmin() + 1
-    iminG = Vect.imin(1)
+    iminC = np.abs(v).argmin()
+    iminG = Vect.aimin()
 
+    print(v[iminC], v[iminG])
     npt.assert_equal(iminC, iminG)
 
 
 def test_asum():
-    Vect = ch.naga_obj_float(c, np.zeros((size * size), dtype=np.float32))
-    Vect.init_prng(seed * 3)
-    Vect.prng('U')
+    v = np.random.randn(size)
+    Vect = ch.naga_obj_float(c, v)
+    # Vect = ch.naga_obj_float(c, np.empty((size), dtype=np.float32))
+    # Vect.random_host(seed*3, 'U')
+    v = np.array(Vect)
 
-    sumC = np.abs(np.array(Vect)).sum()
-    sumG = Vect.asum(1)
+    sumC = np.sum(np.abs(v))
+    sumG = Vect.asum()
+    print(sumC, sumG)
+    npt.assert_almost_equal(sumC, sumG, decimal=dec)
 
-    M = np.max(np.abs(sumC))
-    d = 1
-    if (M > 0):
-        d = 10**np.ceil(np.log10(M))
-    npt.assert_almost_equal(sumC / d, sumG / d, decimal=dec)
+    # M = np.max(np.abs(sumC))
+    # d = 1
+    # if (M > 0):
+    #     d = 10**np.ceil(np.log10(M))
+    # npt.assert_almost_equal(sumC / d, sumG / d, decimal=dec)
 
 
 def test_nrm2():
-    Vect = ch.naga_obj_float(c, np.zeros((size * size), dtype=np.float32))
-    Vect.init_prng(seed * 4)
-    Vect.prng('U')
+    v = np.random.randn(size)
+    Vect = ch.naga_obj_float(c, v)
+    # Vect = ch.naga_obj_float(c, np.empty((size), dtype=np.float32))
+    # Vect.random_host(seed*4, 'U')
+    v = np.array(Vect)
 
-    nC = np.linalg.norm(np.array(Vect))
+    nC = np.linalg.norm(v)
     nG = Vect.nrm2(1)
 
-    M = np.max(np.abs(nC))
-    d = 1
-    if (M > 0):
-        d = 10**np.ceil(np.log10(M))
-    npt.assert_almost_equal(nC / d, nG / d, decimal=dec)
+    npt.assert_almost_equal(nC, nG, decimal=dec)
+
+    # M = np.max(np.abs(nC))
+    # d = 1
+    # if (M > 0):
+    #     d = 10**np.ceil(np.log10(M))
+    # npt.assert_almost_equal(nC / d, nG / d, decimal=dec)
 
 
 def test_scale():
-    Vect = ch.naga_obj_float(c, np.zeros((size * size), dtype=np.float32))
-    Vect.init_prng(seed * 5)
-    Vect.prng('U')
+    v = np.random.randn(size)
+    Vect = ch.naga_obj_float(c, v)
+    # Vect = ch.naga_obj_float(c, np.empty((size), dtype=np.float32))
+    # Vect.random_host(seed*5, 'U')
+    v = np.array(Vect)
 
     scale = 1.67
-    sC = np.array(Vect) * scale
+    sC = v * scale
     Vect.scale(scale, 1)
     sG = np.array(Vect)
-    npt.assert_array_equal(sC, sG)
+    npt.assert_array_almost_equal(sC, sG, decimal=dec)
 
 
 def test_swap():
-    Vect = ch.naga_obj_float(c, np.zeros((size * size), dtype=np.float32))
-    Vect.init_prng(seed * 6)
-    Vect.prng('U')
+    h_Vect = np.random.randn(size)
+    Vect = ch.naga_obj_float(c, h_Vect)
+    # Vect = ch.naga_obj_float(c, np.empty((size), dtype=np.float32))
+    # Vect.random_host(seed*6, 'U')
     h_Vect = np.array(Vect)
 
-    Vect2 = ch.naga_obj_float(c, np.zeros((size * size), dtype=np.float32))
-    Vect2.init_prng(seed * 7)
-    Vect2.prng('U')
+    h_Vect2 = np.random.randn(size)
+    Vect2 = ch.naga_obj_float(c, h_Vect2)
+    # Vect2 = ch.naga_obj_float(c, np.empty((size), dtype=np.float32))
+    # Vect2.random_host(seed*7, 'U')
     h_Vect2 = np.array(Vect2)
 
     Vect.swap(Vect2, 1, 1)
@@ -104,26 +122,27 @@ def test_swap():
 
 
 def test_copy():
-    Vect = ch.naga_obj_float(c, np.zeros((size * size)).astype(np.float32))
-    Vect.init_prng(seed * 8)
-    Vect.prng('U')
+    Vect = ch.naga_obj_float(c, np.random.randn(size))
+    # Vect = ch.naga_obj_float(c, np.empty((size)).astype(np.float32))
+    # Vect.random_host(seed*8, 'U')
 
-    Vect2 = ch.naga_obj_float(c, np.zeros((size * size), dtype=np.float32))
+    Vect2 = ch.naga_obj_float(c, np.random.randn(size))
+    # Vect2 = ch.naga_obj_float(c, np.empty((size), dtype=np.float32))
     Vect2.copy(Vect, 1, 1)
     npt.assert_array_equal(np.array(Vect), np.array(Vect2))
 
 
 def test_axpy():
-    Vect = ch.naga_obj_float(c, np.zeros((size * size), dtype=np.float32))
-    Vect.init_prng(seed * 9)
-    Vect.prng('U')
+    Vect = ch.naga_obj_float(c, np.random.randn(size))
+    # Vect = ch.naga_obj_float(c, np.empty((size), dtype=np.float32))
+    # Vect.random_host(seed*9, 'U')
 
     h_Vect = np.array(Vect)
     alpha = 1.4
 
-    Vect2 = ch.naga_obj_float(c, np.zeros((size * size), dtype=np.float32))
-    Vect2.init_prng(seed * 10)
-    Vect2.prng('U')
+    Vect2 = ch.naga_obj_float(c, np.random.randn(size))
+    # Vect2 = ch.naga_obj_float(c, np.empty((size), dtype=np.float32))
+    # Vect2.random_host(seed*10, 'U')
     h_Vect2 = np.array(Vect2)
 
     Vect.axpy(alpha, Vect2, 1, 1)
@@ -134,9 +153,9 @@ def test_axpy():
 
 
 def test_dot():
-    Vect = ch.naga_obj_float(c, np.zeros((size * size), dtype=np.float32))
-    Vect.init_prng(seed * 11)
-    Vect.prng('U')
+    Vect = ch.naga_obj_float(c, np.random.randn(size))
+    # Vect = ch.naga_obj_float(c, np.empty((size), dtype=np.float32))
+    # Vect.random_host(seed*11, 'U')
 
     h_Vect = np.array(Vect)
     dotC = np.dot(h_Vect, h_Vect)

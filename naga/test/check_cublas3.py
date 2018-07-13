@@ -27,14 +27,14 @@ def test_gemm():
 
     #generating random matrices A,B,C and associated carma_obj
 
-    np.random.seed(seed)
-    A = np.random.randn(sizem, sizek)
-    AT = np.random.randn(sizek, sizem)
-    B = np.random.randn(sizek, sizen)
-    BT = np.random.randn(sizen, sizek)
-    C = np.random.randn(sizem, sizen)
-    C2 = np.random.randn(sizem, sizen)
-    C3 = np.random.randn(sizem, sizen)
+    # np.random.seed(seed)
+    A = np.empty((sizem, sizek), dtype=np.float32)
+    AT = np.empty((sizek, sizem), dtype=np.float32)
+    B = np.empty((sizek, sizen), dtype=np.float32)
+    BT = np.empty((sizen, sizek), dtype=np.float32)
+    C = np.empty((sizem, sizen), dtype=np.float32)
+    C2 = np.empty((sizem, sizen), dtype=np.float32)
+    C3 = np.empty((sizem, sizen), dtype=np.float32)
 
     # A = A.dot(A.T)
     # B = B.dot(B.T)
@@ -47,13 +47,21 @@ def test_gemm():
     matC2 = ch.naga_obj_float(c, C2)
     matC3 = ch.naga_obj_float(c, C3)
 
-    # matA.random(seed)
-    # matB.random(seed * 2)
-    # matC.random(seed * 3)
+    matA.random_host(seed, 'U')
+    matAT.random_host(seed, 'U')
+    matB.random_host(seed * 2, 'U')
+    matBT.random_host(seed * 2, 'U')
+    matC.random_host(seed * 3, 'U')
+    matC2.random_host(seed * 3, 'U')
+    matC3.random_host(seed * 3, 'U')
 
-    # A = np.array(matA)
-    # B = np.array(matB)
-    # C = np.array(matC)
+    A = np.array(matA)
+    AT = np.array(matAT)
+    B = np.array(matB)
+    BT = np.array(matBT)
+    C = np.array(matC)
+    C2 = np.array(matC2)
+    C3 = np.array(matC3)
 
     alpha = 2
     beta = 1
@@ -73,27 +81,30 @@ def test_gemm():
     C5 = alpha * AT.T.dot(B)
     C6 = alpha * AT.T.dot(BT.T)
 
-    npt.assert_array_almost_equal(C, np.array(matC), decimal=dec)
-    npt.assert_array_almost_equal(C2, np.array(matC2), decimal=dec)
-    npt.assert_array_almost_equal(C3, np.array(matC3), decimal=dec)
-    npt.assert_array_almost_equal(C4, np.array(matC4), decimal=dec)
-    npt.assert_array_almost_equal(C5, np.array(matC5), decimal=dec)
-    npt.assert_array_almost_equal(C6, np.array(matC6), decimal=dec)
+    npt.assert_array_almost_equal(C, np.array(matC), decimal=dec - 1)
+    npt.assert_array_almost_equal(C2, np.array(matC2), decimal=dec - 1)
+    npt.assert_array_almost_equal(C3, np.array(matC3), decimal=dec - 1)
+    npt.assert_array_almost_equal(C4, np.array(matC4), decimal=dec - 1)
+    npt.assert_array_almost_equal(C5, np.array(matC5), decimal=dec - 1)
+    npt.assert_array_almost_equal(C6, np.array(matC6), decimal=dec - 1)
 
 
 def test_symm():
     #function symm
     #testing: C=A.B+C
     #A ssymetric matrix, B,C matrices
+    A = np.empty((sizek, sizek), dtype=np.float32)
+    B = np.empty((sizek, sizen), dtype=np.float32)
+    C = np.empty((sizek, sizen), dtype=np.float32)
 
     #generating random matrices and associated carma_obj
-    matA = ch.naga_obj_float(c, np.zeros((sizek, sizek)))
-    matB = ch.naga_obj_float(c, np.zeros((sizek, sizen)))
-    matC = ch.naga_obj_float(c, np.zeros((sizek, sizen)))
+    matA = ch.naga_obj_float(c, A)  #np.zeros((sizek, sizek)))
+    matB = ch.naga_obj_float(c, B)  #np.zeros((sizek, sizen)))
+    matC = ch.naga_obj_float(c, C)  #np.zeros((sizek, sizen)))
 
-    matA.random(seed)
-    matB.random(seed * 2)
-    matC.random(seed * 3)
+    matA.random_host(seed, 'U')
+    matB.random_host(seed * 2, 'U')
+    matC.random_host(seed * 3, 'U')
 
     #A symetric
     A = np.array(matA)
@@ -104,10 +115,13 @@ def test_symm():
 
     #matrices multiplication
     t1 = time.clock()
-    matC.symm(b"l", b"l", 1, matA, sizek, matB, sizek, 1, sizek)
+    matA.symm(matB, 1, matC, 1)
     t2 = time.clock()
     C = A.dot(B) + C
     t3 = time.clock()
+
+    matC2 = matA.symm(matB)
+    C2 = A.dot(B)
 
     print("")
     print("test symm:")
@@ -118,15 +132,20 @@ def test_symm():
     #test results
     res = np.array(matC)
 
-    M = np.argmax(np.abs(res - C))
-    d = 5
-    if (0 < np.abs(C.item(M))):
-        d = 10**np.ceil(np.log10(np.abs(C.item(M))))
+    npt.assert_almost_equal(C, res, decimal=dec - 1)
+    npt.assert_almost_equal(C2, np.array(matC2), decimal=dec - 1)
 
-    print(res.item(M))
-    print(C.item(M))
+    # M = np.argmax(np.abs(res - C))
+    # d = 5
+    # if (0 < np.abs(C.item(M))):
 
-    npt.assert_almost_equal(C.item(M) / d, res.item(M) / d, decimal=dec)
+
+# d = 10**np.ceil(np.log10(np.abs(C.item(M))))
+
+# print(res.item(M))
+# print(C.item(M))
+
+# npt.assert_almost_equal(C.item(M) / d, res.item(M) / d, decimal=dec)
 
 
 def test_dgmm():
@@ -135,18 +154,19 @@ def test_dgmm():
     # C,A matrices, d vector (diagonal matrix as a vector)
 
     #generating random matrices and associated carma_obj
-    matA = ch.naga_obj_float(c, np.zeros((sizek, sizek)))
-    Vectx = ch.naga_obj_float(c, np.zeros((sizek)))
+    matA = ch.naga_obj_float(c, np.zeros((sizek, sizek), dtype=np.float32))
+    Vectx = ch.naga_obj_float(c, np.zeros((sizek), dtype=np.float32))
 
-    matA.random(seed)
+    matA.random_host(seed, 'U')
+    Vectx.random_host(seed * 2, 'U')
     A = np.array(matA)
-    d = np.array(Vectx)
+    x = np.array(Vectx)
 
     #matrices product
     t1 = time.clock()
     matC = matA.dgmm(Vectx)
     t2 = time.clock()
-    C = A * d
+    C = A * x
     t3 = time.clock()
 
     print("")
@@ -158,15 +178,17 @@ def test_dgmm():
     #test results
     res = np.array(matC)
 
-    M = np.argmax(np.abs(res - C))
-    d = 5
-    if (0 < np.abs(C.item(M))):
-        d = 10**np.ceil(np.log10(np.abs(C.item(M))))
+    npt.assert_almost_equal(C, res, decimal=dec)
 
-    print(res.item(M))
-    print(C.item(M))
+    # M = np.argmax(np.abs(res - C))
+    # d = 5
+    # if (0 < np.abs(C.item(M))):
+    #     d = 10**np.ceil(np.log10(np.abs(C.item(M))))
 
-    npt.assert_almost_equal(C.item(M) / d, res.item(M) / d, decimal=dec)
+    # print(res.item(M))
+    # print(C.item(M))
+
+    # npt.assert_almost_equal(C.item(M) / d, res.item(M) / d, decimal=dec)
 
 
 def test_syrk():
@@ -178,8 +200,8 @@ def test_syrk():
     matA = ch.naga_obj_float(c, np.zeros((sizen, sizek)))
     matC = ch.naga_obj_float(c, np.zeros((sizen, sizen)))
 
-    matA.random(seed)
-    matC.random(seed * 2)
+    matA.random_host(seed, 'U')
+    matC.random_host(seed * 2, 'U')
 
     A = np.array(matA)
     C = np.array(matC)
@@ -190,7 +212,7 @@ def test_syrk():
 
     #matrices product
     t1 = time.clock()
-    matA.syrk(C=matC, beta=1)
+    matA.syrk(matC=matC, beta=1)
     t2 = time.clock()
     C = A.dot(A.T) + C
     t3 = time.clock()
@@ -207,16 +229,17 @@ def test_syrk():
     #only upper triangle is computed
     C = np.triu(C).flatten()
     res = np.triu(res).flatten()
+    npt.assert_almost_equal(C, res, decimal=dec - 1)
 
-    M = np.argmax(np.abs(res - C))
-    d = 5
-    if (0 < np.abs(C.item(M))):
-        d = 10**np.ceil(np.log10(np.abs(C.item(M))))
+    # M = np.argmax(np.abs(res - C))
+    # d = 5
+    # if (0 < np.abs(C.item(M))):
+    #     d = 10**np.ceil(np.log10(np.abs(C.item(M))))
 
-    print(res.item(M))
-    print(C.item(M))
+    # print(res.item(M))
+    # print(C.item(M))
 
-    npt.assert_almost_equal(C.item(M) / d, res.item(M) / d, decimal=dec)
+    # npt.assert_almost_equal(C.item(M) / d, res.item(M) / d, decimal=dec)
 
 
 def test_syrkx():
@@ -229,9 +252,9 @@ def test_syrkx():
     matB = ch.naga_obj_float(c, np.zeros((sizen, sizek)))
     matC = ch.naga_obj_float(c, np.zeros((sizen, sizen)))
 
-    matA.random(seed)
-    matB.copyFrom(matA)
-    matC.random(seed * 2)
+    matA.random_host(seed, 'U')
+    matB.random_host(seed * 2, 'U')
+    matC.random_host(seed * 3, 'U')
 
     A = np.array(matA)
     B = np.array(matB)
@@ -244,7 +267,7 @@ def test_syrkx():
 
     #matrices product
     t1 = time.clock()
-    matA.syrkx(matB, alpha=1, C=matC, beta=1)
+    matA.syrkx(matB, alpha=1, matC=matC, beta=1)
     t2 = time.clock()
     C = A.dot(B.T) + C.T
     t3 = time.clock()
@@ -259,18 +282,19 @@ def test_syrkx():
     res = np.array(matC)
 
     #only upper triangle is computed
-    res = np.triu(res).flatten()
-    C = np.triu(C).flatten()
+    res = np.triu(res)
+    C = np.triu(C)
+    npt.assert_almost_equal(C, res, decimal=dec - 1)
 
-    M = np.argmax(np.abs(res - C))
-    d = 5
-    if (0 < np.abs(C.item(M))):
-        d = 10**np.ceil(np.log10(np.abs(C.item(M))))
+    # M = np.argmax(np.abs(res - C))
+    # d = 5
+    # if (0 < np.abs(C.item(M))):
+    #     d = 10**np.ceil(np.log10(np.abs(C.item(M))))
 
-    print(res.item(M))
-    print(C.item(M))
+    # print(res.item(M))
+    # print(C.item(M))
 
-    npt.assert_almost_equal(C.item(M) / d, res.item(M) / d, decimal=dec)
+    # npt.assert_almost_equal(C.item(M) / d, res.item(M) / d, decimal=dec)
 
 
 def test_geam():
@@ -280,11 +304,11 @@ def test_geam():
     #A,B matrices
 
     #generating random matrices and associated carma_obj
-    matA = ch.naga_obj_float(c, np.zeros((sizen, sizek)))
-    matB = ch.naga_obj_float(c, np.zeros((sizen, sizek)))
+    matA = ch.naga_obj_float(c, np.empty((sizem, sizen)))
+    matB = ch.naga_obj_float(c, np.empty((sizem, sizen)))
 
-    matA.random(seed)
-    matB.random(seed * 2)
+    matA.random_host(seed, 'U')
+    matB.random_host(seed * 2, 'U')
 
     A = np.array(matA)
     B = np.array(matB)
@@ -304,4 +328,4 @@ def test_geam():
 
     #testing result
 
-    npt.assert_array_almost_equal(C, matCnp.array(), dec)
+    npt.assert_array_almost_equal(C, np.array(matC), dec)

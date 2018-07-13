@@ -30,38 +30,43 @@ def test_gemv():
     # testing: y=A.x
     # x and y are vector, A a matrix
 
-    A = np.random.randn(sizem, sizen)
-    AT = A.T.copy()
-    x = np.random.randn(sizen)
-    y = np.random.randn(sizem)
-    y2 = np.random.randn(sizem)
+    A = np.empty((sizem, sizen), dtype=np.float32)
+    AT = np.empty((sizen, sizem), dtype=np.float32)
+    x = np.empty((sizen), dtype=np.float32)
+    y = np.empty((sizem), dtype=np.float32)
+    y2 = np.empty((sizem), dtype=np.float32)
 
     alpha = 2
     beta = 1
 
     Mat = ch.naga_obj_float(c, A)
     MatT = ch.naga_obj_float(c, AT)
-    #Mat.random(seed)
+    Mat.random_host(seed, 'U')
+    MatT.random_host(seed * 2, 'U')
 
     Vectx = ch.naga_obj_float(c, x)
     Vecty = ch.naga_obj_float(c, y)
-    #Vectx.random(seed * 3)
+    Vectx.random_host(seed * 3, 'U')
+    Vecty.random_host(seed * 4, 'U')
 
-    #A = np.array(Mat)
-    #x = np.array(Vectx)
+    A = np.array(Mat)
+    AT = np.array(MatT)
+    x = np.array(Vectx)
+    y = np.array(Vecty)
+
     y = alpha * A.dot(x) + beta * y
     y2 = alpha * A.dot(x)
     y3 = alpha * AT.T.dot(x)
 
     # Vecty = ch.naga_obj_float(c, np.zeros((sizem), dtype=np.float32))
 
-    Mat.gemv(Vectx, Vecty, 'N', alpha, beta)
-    Vecty_2 = Mat.gemv(Vectx, 'N', alpha)
-    Vecty_3 = MatT.gemv(Vectx, 'T', alpha)
+    Mat.gemv(Vectx, alpha, 'N', Vecty, beta)
+    Vecty_2 = Mat.gemv(Vectx, alpha, 'N')
+    Vecty_3 = MatT.gemv(Vectx, alpha, 'T')
 
-    npt.assert_array_almost_equal(y, np.array(Vecty), decimal=dec)
-    npt.assert_array_almost_equal(y2, np.array(Vecty_2), decimal=dec)
-    npt.assert_array_almost_equal(y3, np.array(Vecty_3), decimal=dec)
+    npt.assert_array_almost_equal(y, np.array(Vecty), decimal=dec - 1)
+    npt.assert_array_almost_equal(y2, np.array(Vecty_2), decimal=dec - 1)
+    npt.assert_array_almost_equal(y3, np.array(Vecty_3), decimal=dec - 1)
 
 
 def test_ger():
@@ -70,13 +75,13 @@ def test_ger():
     #   and  : A= x.y+ A
     # x and y are vectors, A a matrix
     Mat = ch.naga_obj_float(c, np.zeros((sizem, sizen), dtype=np.float32))
-    # Mat.random(seed)
+    Mat.random_host(seed * 2, 'U')
 
     Vectx = ch.naga_obj_float(c, np.zeros((sizen), dtype=np.float32))
-    Vectx.random(seed * 3)
+    Vectx.random_host(seed * 3, 'U')
 
     Vecty = ch.naga_obj_float(c, np.zeros((sizem), dtype=np.float32))
-    Vecty.random(seed * 4)
+    Vecty.random_host(seed * 4, 'U')
 
     x = np.array(Vectx)
     A = np.array(Mat)
@@ -98,13 +103,13 @@ def test_symv():
     # x and y are vector, A a symetric matrix
 
     MatSym = ch.naga_obj_float(c, np.zeros((sizem, sizem), dtype=np.float32))
-    MatSym.random(seed * 2)
+    MatSym.random_host(seed * 2, 'U')
     data_R = np.array(MatSym)
     data_R = data_R + data_R.T
     MatSym = ch.naga_obj_float(c, data_R)
 
     Vectx = ch.naga_obj_float(c, np.zeros((sizem), dtype=np.float32))
-    Vectx.random(seed * 5)
+    Vectx.random_host(seed * 5, 'U')
 
     Vecty = ch.naga_obj_float(c, np.zeros((sizem), dtype=np.float32))
 
@@ -114,7 +119,7 @@ def test_symv():
 
     y = A.dot(x2)
 
-    MatSym.symv(Vectx, Vecty)
+    MatSym.symv(Vectx, vecty=Vecty)
     Vecty_2 = MatSym.symv(Vectx)
 
     npt.assert_array_almost_equal(y, np.array(Vecty), decimal=dec)

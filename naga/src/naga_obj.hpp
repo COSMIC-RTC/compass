@@ -19,37 +19,15 @@ void declare_naga_obj(py::module &mod, std::string suffix)
         data_dims[0] = data.ndim();
         copy(data.shape(), data.shape()+data.ndim(), begin(data_dims) + 1);
         return std::unique_ptr<Class>(new Class(&c, data_dims.data(), (const T *)data.data()));
-      }),
+      }), "TODO", // TODO do the documentation...
       py::arg("context").none(false),
-      py::arg("data").none(false))
+      py::arg("h_data").none(false))
 
-      // .def(py::init([](carma_context &c, Class &data) {
-      //   return std::unique_ptr<Class>(new Class(&c, &data));
-      // }))
-
-      // .def_buffer([](Class &frame) -> py::array_t<T> {
-
-      //   py::array_t<T> array(frame.getNbElem());
-      //   auto info = array.request();
-
-      //   const long *dims = frame.getDims();
-      //   std::vector<ssize_t> shape(dims[0]);
-      //   std::vector<ssize_t> strides(dims[0]);
-      //   ssize_t stride = sizeof(T);
-      //   for (ssize_t dim(dims[0] - 1); dim >= 0; --dim)
-      //   {
-      //     // cerr << dim <<  endl;
-      //     shape[dim] = dims[dim + 1];
-      //     strides[dim] = stride;
-      //     stride *= shape[dim];
-      //   }
-
-      //   info.ndim = dims[0];
-      //   info.shape = shape;
-      //   info.strides = strides;
-
-      //   return array;
-      // })
+      .def(py::init([](carma_context &c, const Class &data) {
+        return std::unique_ptr<Class>(new Class(&c, &data));
+      }), "TODO", // TODO do the documentation...
+      py::arg("context").none(false),
+      py::arg("d_data").none(false))
 
       .def_buffer([](Class &frame) -> py::buffer_info {
         frame.sync_h_data();
@@ -86,152 +64,146 @@ void declare_naga_obj(py::module &mod, std::string suffix)
       .def("__repr__", &Class::toString)
 
       // int get_nbStreams()
-      .def("get_nbStreams", &Class::get_nbStreams)
+      .def_property_readonly("nbStreams", &Class::get_nbStreams, "TODO") // TODO do the documentation...
       // int add_stream()
-      .def("add_stream", (int (Class::*)()) & Class::add_stream)
+      .def("add_stream", (int (Class::*)()) & Class::add_stream, "TODO") // TODO do the documentation...
       // int add_stream(int nb)
-      .def("add_stream", (int (Class::*)(int)) & Class::add_stream)
+      .def("add_stream", (int (Class::*)(int)) & Class::add_stream, "TODO", py::arg("np")) // TODO do the documentation...
       // int del_stream()
-      .def("del_stream", (int (Class::*)()) & Class::del_stream)
+      .def("del_stream", (int (Class::*)()) & Class::del_stream, "TODO") // TODO do the documentation...
       // int del_stream(int nb)
-      .def("del_stream", (int (Class::*)(int)) & Class::del_stream)
+      .def("del_stream", (int (Class::*)(int)) & Class::del_stream, "TODO", py::arg("np")) // TODO do the documentation...
       // int wait_stream(int stream)
-      .def("wait_stream", &Class::wait_stream)
+      .def("wait_stream", &Class::wait_stream, "TODO", py::arg("steam")) // TODO do the documentation...
       // int wait_all_streams()
-      .def("wait_all_streams", &Class::wait_all_streams)
+      .def("wait_all_streams", &Class::wait_all_streams, "TODO") // TODO do the documentation...
 
       // const long *getDims()
-      // .def("getDims", [](Class &frame) -> py::buffer_info {
-      //   long ndim = frame.getDims(0);
-      //   std::vector<ssize_t> shape(1);
-      //   std::vector<ssize_t> strides(1);
-      //   shape[0] = ndim;
-      //   strides[0] = sizeof(T);
-      //   return py::buffer_info(&frame.getDims(1),
-      //                       sizeof(long),
-      //                       py::format_descriptor<long>::format(),
-      //                       1,
-      //                       shape,
-      //                       strides);
+      .def_property_readonly("shape", [](Class &frame) -> py::array_t<long> {
+        long nb_dim = frame.getDims(0);
+        const long *c_dim = frame.getDims()+1;
+        return py::array_t<long>(nb_dim, c_dim);
 
-      // })
+      }, "TODO") // TODO do the documentation...
+
       // int getNbElem()
-      .def("getNbElem", &Class::getNbElem)
+      .def_property_readonly("nbElem", &Class::getNbElem, "TODO") // TODO do the documentation...
       // carma_context* getContext()
-      .def("getContext", &Class::getContext)
+      .def_property_readonly("context", &Class::getContext, "TODO") // TODO do the documentation...
       // int getDevice()
-      .def("getDevice", &Class::getDevice)
+      .def_property_readonly("device", &Class::getDevice, "TODO") // TODO do the documentation...
 
       // int host2device(T_data *data);
       .def("host2device", [](Class &c, py::array_t<T, py::array::f_style | py::array::forcecast> &data) {
         c.host2device((const T*)data.data());
-      })
+      }, "TODO", py::arg("data").none(false)) // TODO do the documentation...
       // int device2host(T_data *data);
       .def("device2host", [](Class &c, py::array_t<T, py::array::f_style | py::array::forcecast> &data) {
         c.device2host((T*)data.mutable_data());
-      })
+      }, "TODO", py::arg("data").none(false)) // TODO do the documentation...
 
       // int copyInto(T_data *data, int nb_elem);
+      .def("copyInto", [](Class &src, Class &dest, long nb_elem) {
+        if(nb_elem < 0){
+          nb_elem = src.getNbElem();
+        }
+        src.copyInto(dest, nb_elem);
+      }, "TODO", py::arg("dest"), py::arg("nb_elem")=-1) // TODO do the documentation...
       // int copyFrom(T_data *data, int nb_elem);
+      .def("copyFrom", [](Class &dest, Class &src, long nb_elem) {
+        if(nb_elem < 0){
+          nb_elem = dest.getNbElem();
+        }
+        dest.copyFrom(src, nb_elem);
+      }, "TODO", py::arg("data"), py::arg("nb_elem")=-1) // TODO do the documentation...
 
       // inline int reset()
-      .def("reset", &Class::reset)
+      .def("reset", &Class::reset, "TODO") // TODO do the documentation...
 
       /**< sum */
       // T_data sum();
-      .def("sum", &Class::sum)
+      .def("sum", &Class::sum, "TODO") // TODO do the documentation...
       // void clip(T_data min, T_data max);
-      .def("clip", &Class::clip)
+      .def("clip", &Class::clip, "TODO", py::arg("data_min").none(false), py::arg("data_max").none(false)) // TODO do the documentation...
 
       // /**< transpose */
       // int transpose(carma_obj<T_data> *source);
-      .def("transpose", &Class::transpose)
+      .def("transpose", &Class::transpose, "TODO", py::arg("source").none(false)) // TODO do the documentation...
       // //carma_obj<T_data>& operator= (const carma_obj<T_data>& obj);
 
       // /**< Cublas V2 */
       // int imax(int incx);
-      .def("imax", &Class::imax)
+      .def("aimax", &Class::aimax, "TODO", py::arg("incx")=1) // TODO do the documentation...
       // int imin(int incx);
-      .def("imin", &Class::imin)
+      .def("aimin", &Class::aimin, "TODO", py::arg("incx")=1) // TODO do the documentation...
       // T_data asum(int incx);
-      .def("asum", &Class::asum)
+      .def("asum", &Class::asum, "TODO", py::arg("incx")=1) // TODO do the documentation...
       // T_data nrm2(int incx);
-      .def("nrm2", &Class::nrm2)
+      .def("nrm2", &Class::nrm2, "TODO", py::arg("incx")=1) // TODO do the documentation...
       // T_data dot(carma_obj<T_data> *source, int incx, int incy);
-      .def("dot", &Class::dot)
+      .def("dot", &Class::dot, "TODO", py::arg("source").none(false), py::arg("incx")=1, py::arg("incy")=1) // TODO do the documentation...
       // void scale(T_data alpha, int incx);
-      .def("scale", &Class::scale)
+      .def("scale", &Class::scale, "TODO", py::arg("scale").none(false), py::arg("incx")=1) // TODO do the documentation...
       // void swap(carma_obj<T_data> *source, int incx, int incy);
-      .def("swap", &Class::swap)
+      .def("swap", &Class::swap, "TODO", py::arg("source").none(false), py::arg("incx")=1, py::arg("incy")=1) // TODO do the documentation...
       // void copy(carma_obj<T_data> *source, int incx, int incy);
-      .def("copy", &Class::copy)
+      .def("copy", &Class::copy, "TODO", py::arg("source").none(false), py::arg("incx")=1, py::arg("incy")=1) // TODO do the documentation...
       // void axpy(T_data alpha, carma_obj<T_data> *source, int incx, int incy);
-      .def("axpy", &Class::axpy)
+      .def("axpy", &Class::axpy, "TODO", py::arg("alpha"), py::arg("source").none(false), py::arg("incx")=1, py::arg("incy")=1) // TODO do the documentation...
       // void rot(carma_obj<T_data> *source, int incx, int incy, T_data sc,
       //          T_data ss);
-      .def("rot", &Class::rot)
+      .def("rot", &Class::rot, "TODO") // TODO do the documentation...
 
       // void gemv(char trans, T_data alpha, carma_obj<T_data> *matA, int lda,
       //           carma_obj<T_data> *vectx, int incx, T_data beta, int incy);
-      .def("gemv", [](Class &mat, Class &vectx, Class &vecty, char op, T alpha, T beta) {
-        vecty.gemv(op, alpha, &mat, mat.getDims(1), &vectx, 1, beta, 1);
-      },
-           "this method performs one of the matrix‐vector operations vecty = alpha * op(mat) * vectx + beta * vecty",
-           py::arg("vectx"), py::arg("vecty"), py::arg("op") = 'N', py::arg("alpha") = 1, py::arg("beta") = 0) // &Class::gemv)
-      .def("gemv", [](Class &mat, Class &vectx, char op, T alpha) -> std::unique_ptr<Class> {
-        long dims[] = {1, 0};
-        if (op == 'N' || op == 'n')
-        {
-          dims[1] = mat.getDims(1);
+      .def("gemv", [](Class &mat, Class &vectx, T alpha, char op, Class *vecty, T beta) {
+        if(vecty == nullptr){
+          long dims[] = {1, 0};
+          if (op == 'N' || op == 'n')
+          {
+            dims[1] = mat.getDims(1);
+          }
+          else
+          {
+            dims[1] = mat.getDims(2);
+          }
+          vecty = new Class(mat.getContext(), dims);
         }
-        else
-        {
-          dims[1] = mat.getDims(2);
-        }
-        std::unique_ptr<Class> vecty(new Class(mat.getContext(), dims));
-        vecty->gemv(op, alpha, &mat, mat.getDims(1), &vectx, 1, 0, 1);
-
+        vecty->gemv(op, alpha, &mat, mat.getDims(1), &vectx, 1, beta, 1);
         return vecty;
       },
-           "this method performs one of the matrix‐vector operations vecty = alpha * op(mat) * vectx",
-           py::arg("vectx"), py::arg("op") = 'N', py::arg("alpha") = 1) // &Class::gemv)
+           "this method performs one of the matrix‐vector operations vecty = alpha * op(mat) * vectx + beta * vecty",
+           py::arg("vectx"), py::arg("alpha") = 1, py::arg("op") = 'N', py::arg("vecty")=nullptr, py::arg("beta") = 0) // &Class::gemv)
       // void ger(T_data alpha, carma_obj<T_data> *vectx, int incx,
       //          carma_obj<T_data> *vecty, int incy, int lda);
-      .def("ger", [](Class &vectx, Class &vecty, Class *mat, T alpha) -> std::unique_ptr<Class> {
+      .def("ger", [](Class &vectx, Class &vecty, Class *mat, T alpha) {
         std::unique_ptr<Class> ptr_res;
         if (mat == nullptr)
         {
           long dims[] = {2, vectx.getNbElem(), vecty.getNbElem()};
-          ptr_res = std::unique_ptr<Class>(new Class(vectx.getContext(), dims));
+          mat = new Class(vectx.getContext(), dims);
         }
-        else
-        {
-          ptr_res = std::unique_ptr<Class>(new Class(mat));
-        }
-        ptr_res->ger(alpha, &vectx, 1, &vecty, 1, vectx.getNbElem());
-        return ptr_res;
+        mat->ger(alpha, &vectx, 1, &vecty, 1, vectx.getNbElem());
+        return mat;
       },
-           "this method performs the symmetric rank 1 operation A = alpha * x * y T + A", py::arg("vecty"), py::arg("mat") = nullptr, py::arg("alpha") = 1) // &Class::ger)
-      // void symv(cublasFillMode_t uplo, T_data alpha, carma_obj<T_data> *matA,
+           "this method performs the symmetric rank 1 operation A = alpha * x * y T + A",
+           py::arg("vecty"), py::arg("mat") = nullptr, py::arg("alpha") = 1) // &Class::ger)
+      // void symv(char uplo, T_data alpha, carma_obj<T_data> *matA,
       //           int lda, carma_obj<T_data> *vectx, int incx, T_data beta, int incy);
-      .def("symv", [](Class &mat, Class &vectx, Class &vecty, T alpha, T beta) {
+      .def("symv", [](Class &mat, Class &vectx, T alpha, char uplo, Class *vecty, T beta) {
         int lda = mat.getDims(2);
-        vecty.symv(CUBLAS_FILL_MODE_LOWER, alpha, &mat, lda, &vectx, 1, beta, 1);
-      },
-           "this method performs one of the matrix‐vector operations vecty = alpha * mat * vectx + beta * vecty", py::arg("vectx"), py::arg("vecty"), py::arg("alpha") = 1, py::arg("beta") = 0) // &Class::gemv)
-      .def("symv", [](Class &mat, Class &vectx, T alpha) -> std::unique_ptr<Class> {
-        int lda = mat.getDims(2);
-        long dims[] = {1, lda};
-        std::unique_ptr<Class> vecty(new Class(mat.getContext(), dims));
-        T beta = 0;
-        vecty->symv(CUBLAS_FILL_MODE_LOWER, alpha, &mat, lda, &vectx, 1, beta, 1);
+        if(vecty==nullptr) {
+          long dims[] = {1, lda};
+          vecty = new Class(mat.getContext(), dims);
+        }
+        vecty->symv(uplo, alpha, &mat, lda, &vectx, 1, beta, 1);
         return vecty;
       },
-           "this method performs one of the matrix‐vector operations vecty = alpha * mat * vectx", py::arg("vectx"), py::arg("alpha") = 1) // &Class::gemv)
-
+           "this method performs one of the matrix‐vector operations vecty = alpha * mat * vectx + beta * vecty",
+           py::arg("vectx"), py::arg("alpha") = 1, py::arg("uplo") = 'l', py::arg("vecty")=nullptr, py::arg("beta") = 0) // &Class::gemv)
       // void gemm(char transa, char transb, T_data alpha, carma_obj<T_data> *matA,
       //           int lda, carma_obj<T_data> *matB, int ldb, T_data beta, int ldc);
-      .def("gemm",  [](Class &matA, Class &matB, char op_a, char op_b, T alpha, Class &matC, T beta
+      .def("gemm",  [](Class &matA, Class &matB, char op_a, char op_b, T alpha, Class *matC, T beta
       ) /*-> std::unique_ptr<Class>*/  {
 
         int lda, ldb, ldc, m, n, k;
@@ -257,69 +229,122 @@ void declare_naga_obj(py::module &mod, std::string suffix)
           n = matB.getDims(1);
         }
 
-        carma_gemm<T>(matA.getContext()->get_cublasHandle(), op_a, op_b, m, n, k, alpha, matA.getData(), matA.getDims(1), matB.getData(), matB.getDims(1), beta, matC.getData(), matC.getDims(1));
-      },
-           "this method performs one of the matrix‐marix operations matC = alpha * op_a(matA) * op_b(matB) + beta * matC",
-           py::arg("matB"), py::arg("op_a")='N', py::arg("op_b")="N", py::arg("alpha")=1, py::arg("matC"), py::arg("beta") = 0)
-
-      .def("gemm",  [](Class &matA, Class &matB, char op_a, char op_b, T alpha
-      ) /*-> std::unique_ptr<Class>*/  {
-
-        int lda, ldb, ldc, m, n, k;
-        if (op_a == 'N' || op_a == 'n')
+        if (matC == nullptr)
         {
-          m = matA.getDims(1);
-          k = matA.getDims(2);
-        }
-        else
-        {
-          m = matA.getDims(2);
-          k = matA.getDims(1);
+          long dims[] = {2, m, n};
+          matC = new Class(matA.getContext(), dims);
         }
 
-        if (op_b == 'N' || op_b == 'n')
-        {
-          k = matB.getDims(1);
-          n = matB.getDims(2);
-        }
-        else
-        {
-          k = matB.getDims(2);
-          n = matB.getDims(1);
-        }
-
-        long dims[] = {2, m, n};
-        std::unique_ptr<Class> matC(new Class(matA.getContext(), dims));
-        T beta = 0;
-        carma_gemm<T>(matA.getContext()->get_cublasHandle(), op_a, op_b, m, n, k, alpha, matA.getData(), matA.getDims(1), matB.getData(), matB.getDims(1), beta, matC->getData(), matC->getDims(1));
+        carma_gemm<T>(matA.getContext()->get_cublasHandle(), op_a, op_b, m, n, k, alpha, matA, matA.getDims(1), matB, matB.getDims(1), beta, *matC, matC->getDims(1));
         return matC;
       },
-           "this method performs one of the matrix‐marix operations matC = alpha * op_a(matA) * op_b(matB)",
-           py::arg("matB"), py::arg("op_a")='N', py::arg("op_b")="N", py::arg("alpha")=1)
+           "this method performs one of the matrix‐marix operations matC = alpha * op_a(matA) * op_b(matB) + beta * matC",
+           py::arg("matB"), py::arg("op_a")='N', py::arg("op_b")="N", py::arg("alpha")=1, py::arg("matC")=nullptr, py::arg("beta") = 0)
 
-// cublasStatus_t carma_gemm<float>(cublasHandle_t cublas_handle, char transa,
-//                                  char transb, int m, int n, int k, float alpha,
-//                                  float *matA, int lda, float *matB, int ldb,
-//                                  float beta, float *matC, int ldc) {
-
-
-      // void symm(cublasSideMode_t side, cublasFillMode_t uplo, T_data alpha,
+      // void symm(char side, char uplo, T_data alpha,
       //           carma_obj<T_data> *matA, int lda, carma_obj<T_data> *matB, int ldb,
       //           T_data beta, int ldc);
-      .def("symm", &Class::symm)
-      // void syrk(cublasFillMode_t uplo, char transa, T_data alpha,
+      .def("symm", [](Class &matA, Class &matB, T alpha, Class *matC, T beta, char side, char uplo) {
+        if (matC == nullptr)
+        {
+          long dims[] = {2, matB.getDims(1),  matB.getDims(2)};
+          matC = new Class(matA.getContext(), dims);
+        }
+        carma_symm<T>(matA.getContext()->get_cublasHandle(), side, uplo,  matB.getDims(1),  matB.getDims(2), alpha, matA, matA.getDims(1), matB, matB.getDims(1), beta, *matC, matC->getDims(1));
+        return matC;
+        // matA.symm(uplo, alpha, &matB, lda, &vectx, 1, beta, 1);
+      },
+           "this method performs one of the matrix‐marix operations matC = alpha * matA * matB + beta * C",
+           py::arg("matB"), py::arg("alpha")=1, py::arg("matC")=nullptr, py::arg("beta")=0, py::arg("side")="l", py::arg("uplo")="u")
+
+/*
+template <class T_data>
+cublasStatus_t carma_symm(cublasHandle_t cublas_handle, char side,
+                          char uplo, int m, int n, T_data alpha,
+                          T_data *matA, int lda, T_data *matB, int ldb,
+                          T_data beta, T_data *matC, int ldc);
+*/
+
+      // void syrk(char uplo, char transa, T_data alpha,
       //           carma_obj<T_data> *matA, int lda, T_data beta, int ldc);
-      .def("syrk", &Class::syrk)
-      // void syrkx(cublasFillMode_t uplo, char transa, T_data alpha,
+      .def("syrk", [](Class &matA, char fill, char op, T alpha, Class *matC, T beta) {
+        int n,k;
+        if (op == 'N' || op == 'n')
+        {
+          n = matA.getDims(1);
+          k = matA.getDims(2);
+        }
+        else
+        {
+          n = matA.getDims(2);
+          k = matA.getDims(1);
+        }
+        if(matC == nullptr){
+          long dims[] = {2, n, n};
+          matC = new Class(matA.getContext(), dims);
+        }
+        carma_syrk<T>(matA.getContext()->get_cublasHandle(), fill, op,  n,  k, alpha, matA, matA.getDims(1), beta, *matC, matC->getDims(1));
+        return matC;
+      },
+           "this method performs the symmetric rank- k update",
+           py::arg("fill")="U", py::arg("op")='N', py::arg("alpha")=1, py::arg("matC")=nullptr, py::arg("beta")=0)
+      // void syrkx(char uplo, char transa, T_data alpha,
       //            carma_obj<T_data> *matA, int lda, carma_obj<T_data> *matB, int ldb,
       //            T_data beta, int ldc);
-      .def("syrkx", &Class::syrkx)
+      .def("syrkx", [](Class &matA, Class &matB, char fill, char op, T alpha, Class *matC, T beta) {
+        int n,k;
+        if (op == 'N' || op == 'n')
+        {
+          n = matA.getDims(1);
+          k = matA.getDims(2);
+        }
+        else
+        {
+          n = matA.getDims(2);
+          k = matA.getDims(1);
+        }
+        if(matC == nullptr){
+          long dims[] = {2, n, n};
+          matC = new Class(matA.getContext(), dims);
+        }
+        carma_syrkx<T>(matA.getContext()->get_cublasHandle(), fill, op,  n,  k, alpha, matA, matA.getDims(1), matB, matB.getDims(1), beta, *matC, matC->getDims(1));
+        return matC;
+      },
+           "this method performs the symmetric rank- k update",
+           py::arg("matB"), py::arg("fill")="U", py::arg("op")='N', py::arg("alpha")=1, py::arg("matC")=nullptr, py::arg("beta")=0)
       // void geam(char transa, char transb, T_data alpha, carma_obj<T_data> *matA,
       //           int lda, T_data beta, carma_obj<T_data> *matB, int ldb, int ldc);
-      .def("geam", &Class::geam)
-      // void dgmm(cublasSideMode_t side, carma_obj<T_data> *matA, int lda,
-      //           carma_obj<T_data> *vectx, int incx, int ldc);
-      .def("dgmm", &Class::dgmm)
+      .def("geam", [](Class &matA, Class &matB, char opA, char opB, T alpha, Class *matC, T beta) {
+        int m,n;
+        if (opA == 'N' || opA == 'n')
+        {
+          m = matA.getDims(1);
+          n = matA.getDims(2);
+        }
+        else
+        {
+          m = matA.getDims(2);
+          n = matA.getDims(1);
+        }
+        if(matC == nullptr){
+          long dims[] = {2, m, n};
+          matC = new Class(matA.getContext(), dims);
+        }
+        carma_geam<T>(matA.getContext()->get_cublasHandle(), opA, opB,  m,  n, alpha, matA, matA.getDims(1), beta, matB, matB.getDims(1), *matC, matC->getDims(1));
+        return matC;
+      },
+           "this method performs the symmetric rank- k update",
+           py::arg("matB"), py::arg("opA")='N', py::arg("opB")='N', py::arg("alpha")=1, py::arg("matC")=nullptr, py::arg("beta")=0)
+      .def("dgmm", [](Class &matA, Class &vectX, T alpha, char side, Class *matC, int incx) {
+        if(matC == nullptr){
+          long dims[] = {2, matA.getDims(1),  matA.getDims(2)};
+          matC = new Class(matA.getContext(), dims);
+        }
+        carma_dgmm<T>(matA.getContext()->get_cublasHandle(), side,  matA.getDims(1),  matA.getDims(2), matA, matA.getDims(1), vectX, incx, *matC, matC->getDims(1));
+        return matC;
+      },
+           "this method performs one of the matrix‐marix operations matC = diag(vectX)*matA if side='l'",
+           py::arg("vectX"), py::arg("alpha")=1, py::arg("side")="r", py::arg("matC")=nullptr, py::arg("incx")=1)
 
       // /**< Curand */
       .def("is_rng_init", &Class::is_rng_init)
@@ -343,6 +368,12 @@ void declare_naga_obj(py::module &mod, std::string suffix)
       .def("random", [](Class &data, int seed, char gtype) {
         data.init_prng(seed);
         data.prng(gtype);
+      },
+           py::arg("seed") = 1234, py::arg("j") = 'U')
+
+      .def("random_host", [](Class &data, int seed, char gtype) {
+        data.init_prng_host(seed);
+        data.prng_host(gtype);
       },
            py::arg("seed") = 1234, py::arg("j") = 'U')
 
