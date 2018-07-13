@@ -79,8 +79,13 @@ void declare_shesha_telescope(py::module &mod) {
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
       .def("set_pupil",
-           [](sutra_telescope &sp, py::array_t<float> data) {
-             sp.d_pupil->host2device(data.mutable_data());
+           [](sutra_telescope &sp,
+              py::array_t<float, py::array::f_style | py::array::forcecast>
+                  data) {
+             if (sp.d_pupil->getNbElem() == data.size())
+               sp.d_pupil->host2device(data.mutable_data());
+             else
+               DEBUG_TRACE("Wrong dimensions");
            },
            R"pbdoc(
         Set the small pupil
@@ -91,8 +96,13 @@ void declare_shesha_telescope(py::module &mod) {
            py::arg("pup"))
 
       .def("set_pupil_m",
-           [](sutra_telescope &sp, py::array_t<float> data) {
-             sp.d_pupil_m->host2device(data.mutable_data());
+           [](sutra_telescope &sp,
+              py::array_t<float, py::array::f_style | py::array::forcecast>
+                  data) {
+             if (sp.d_pupil_m->getNbElem() == data.size())
+               sp.d_pupil_m->host2device(data.mutable_data());
+             else
+               DEBUG_TRACE("Wrong dimensions");
            },
            R"pbdoc(
         Set the medium pupil
@@ -103,8 +113,13 @@ void declare_shesha_telescope(py::module &mod) {
            py::arg("pup"))
 
       .def("set_phase_ab_M1",
-           [](sutra_telescope &sp, py::array_t<float> data) {
-             sp.d_phase_ab_M1->host2device(data.mutable_data());
+           [](sutra_telescope &sp,
+              py::array_t<float, py::array::f_style | py::array::forcecast>
+                  data) {
+             if (sp.d_phase_ab_M1->getNbElem() == data.size())
+               sp.d_phase_ab_M1->host2device(data.mutable_data());
+             else
+               DEBUG_TRACE("Wrong dimensions");
            },
            R"pbdoc(
         Set the M1 phase aberration in the small pupil
@@ -115,8 +130,13 @@ void declare_shesha_telescope(py::module &mod) {
            py::arg("phase_ab"))
 
       .def("set_phase_ab_M1_m",
-           [](sutra_telescope &sp, py::array_t<float> data) {
-             sp.d_phase_ab_M1_m->host2device(data.mutable_data());
+           [](sutra_telescope &sp,
+              py::array_t<float, py::array::f_style | py::array::forcecast>
+                  data) {
+             if (sp.d_phase_ab_M1_m->getNbElem() == data.size())
+               sp.d_phase_ab_M1_m->host2device(data.mutable_data());
+             else
+               DEBUG_TRACE("Wrong dimensions");
            },
            R"pbdoc(
         Set the M1 phase aberration in the medium pupil
@@ -128,10 +148,3 @@ void declare_shesha_telescope(py::module &mod) {
 
       ;
 };
-//  ██████╗ ██████╗  ██████╗ ██████╗
-//  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗
-//  ██████╔╝██████╔╝██║   ██║██████╔╝
-//  ██╔═══╝ ██╔══██╗██║   ██║██╔═══╝
-//  ██║     ██║  ██║╚██████╔╝██║██╗
-//  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝╚═╝
-//

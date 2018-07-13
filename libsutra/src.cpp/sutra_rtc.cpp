@@ -447,7 +447,7 @@ int sutra_rtc::apply_control(int ncntrl, sutra_dms *ydm) {
         for (int i = 0; i < nstreams; i++) {
           int istart = i * dm->ninflu / nstreams;
           carmaSafeCall(cudaMemcpyAsync(
-              dm->d_comm->getDataAt(istart),
+              dm->d_com->getDataAt(istart),
               this->d_control[ncntrl]->d_voltage->getDataAt(idx + istart),
               sizeof(float) * dm->ninflu / nstreams, cudaMemcpyDeviceToDevice,
               (*this->d_control[ncntrl]->streams)[i]));

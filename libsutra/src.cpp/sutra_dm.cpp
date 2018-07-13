@@ -7,22 +7,15 @@ sutra_dm::sutra_dm(carma_context *context, const char *type, long dim,
                    long ninflu, long influsize, long ninflupos, long n_npoints,
                    float push4imat, long nord, int device) {
   this->d_influ = NULL;
-  this->d_influ2 = NULL;
-  this->d_influ3 = NULL;
   this->d_influpos = NULL;
-  this->d_influpos2 = NULL;
   this->d_npoints = NULL;
   this->d_istart = NULL;
   this->d_xoff = NULL;
   this->d_yoff = NULL;
-  this->d_coeffs = NULL;
-  this->d_mask = NULL;
-  this->d_zr = NULL;
-  this->d_ztheta = NULL;
+
   this->d_KLbasis = NULL;
-  this->d_pos = NULL;
   // this->d_IFsparse = NULL;
-  // this->d_commdouble = NULL;
+  // this->d_comdouble = NULL;
   // this->d_shapedouble = NULL;
 
   this->current_context = context;
@@ -38,7 +31,7 @@ sutra_dm::sutra_dm(carma_context *context, const char *type, long dim,
   long dims_data1[2];
   dims_data1[0] = 1;
   dims_data1[1] = ninflu;
-  this->d_comm = new carma_obj<float>(context, dims_data1);
+  this->d_com = new carma_obj<float>(context, dims_data1);
 
   if (strcmp(type, "kl") != 0) {
     long *dims_data3 = new long[4];
@@ -72,24 +65,14 @@ sutra_dm::sutra_dm(carma_context *context, const char *type, long dim,
      CUFFT_C2R));
          */
     // this->d_IFsparse = 0L;
-    // this->d_commdouble = new carma_obj<float>(context, dims_data1);
+    // this->d_comdouble = new carma_obj<float>(context, dims_data1);
     dims_data1[1] = ninflupos;
     this->d_influpos = new carma_obj<int>(context, dims_data1);
-    this->d_influpos2 = new carma_obj<int>(context, dims_data1);
-    this->d_influ2 = new carma_obj<float>(context, dims_data1);
 
-    int length = 0;
-#if (COMPN == 2)
-    length = ninflupos;
-#elif (COMPN == 3)
-    length = n_npoints * MAXSPOT;
-#endif
-    dims_data1[1] = length;
-    this->d_influ3 = new carma_obj<struct tuple_t<float>>(context, dims_data1);
     // this->d_shapedouble = new
     // carma_obj<double>(context,this->d_shape->d_screen->getDims());
 
-    dims_data1[1] = n_npoints;
+    dims_data1[1] = n_npoints;  // *2;
     this->d_npoints = new carma_obj<int>(context, dims_data1);
     dims_data1[1] = n_npoints + 1;
     this->d_istart = new carma_obj<int>(context, dims_data1);
@@ -98,16 +81,6 @@ sutra_dm::sutra_dm(carma_context *context, const char *type, long dim,
     this->d_kl = new sutra_kl(context, influsize, ninflupos, n_npoints, ninflu,
                               nord, device);
   }
-
-#ifdef TEXTURE
-#ifdef CHEAT_CODE
-  bindTexture(d_comm->getData(), d_influ->getData(), d_influ3->getData(),
-              d_istart->getData(), d_npoints->getData(), d_influpos->getData());
-#else
-  bindTexture(d_comm->getData(), d_influ2->getData(), d_influ3->getData(),
-              d_istart->getData(), d_npoints->getData(), d_influpos->getData());
-#endif
-#endif
 }
 
 sutra_dm::~sutra_dm() {
@@ -115,31 +88,20 @@ sutra_dm::~sutra_dm() {
   current_context->set_activeDevice(device, 1);
 
   delete this->d_shape;
-  delete this->d_comm;
+  delete this->d_com;
 
   if (this->d_influ != NULL) delete this->d_influ;
-  if (this->d_influ2 != NULL) delete this->d_influ2;
-  if (this->d_influ3 != NULL) delete this->d_influ3;
   if (this->d_influpos != NULL) delete this->d_influpos;
-  if (this->d_influpos != NULL) delete this->d_influpos2;
   if (this->d_npoints != NULL) delete this->d_npoints;
   if (this->d_istart != NULL) delete this->d_istart;
   if (this->d_xoff != NULL) delete this->d_xoff;
   if (this->d_yoff != NULL) delete this->d_yoff;
-  if (this->d_coeffs != NULL) delete this->d_coeffs;
-  if (this->d_mask != NULL) delete this->d_mask;
-  if (this->d_zr != NULL) delete this->d_zr;
-  if (this->d_ztheta != NULL) delete this->d_ztheta;
   if (this->d_KLbasis != NULL) delete this->d_KLbasis;
-  if (this->d_pos != NULL) delete this->d_pos;
-#ifdef TEXTURE
-  unbindTexture();
-#endif
   /*
   if (this->d_IFsparse != NULL)
   delete this->d_IFsparse;
-  if (this->d_commdouble != NULL)
-  delete this->d_commdouble;
+  if (this->d_comdouble != NULL)
+  delete this->d_comdouble;
   if (this->d_shapedouble != NULL)
   delete this->d_shapedouble;
    */
@@ -161,21 +123,22 @@ this->d_ftkernconv->getData(), 1, *this->d_ftkernconv->getPlan());
         return EXIT_SUCCESS;
 }
 */
-int sutra_dm::pzt_loadarrays(float *influ, float *influ2,
-                             struct tuple_t<float> *influ3, int *influpos,
-                             int *influpos2, int *npoints, int *istart,
-                             int *xoff, int *yoff) {
+int sutra_dm::tt_loadarrays(float *influ) {
   current_context->set_activeDevice(device, 1);
   this->d_influ->host2device(influ);
-  this->d_influ2->host2device(influ2);
-#if (COMPN != 1)
-  this->d_influ3->host2device(influ3);
-#endif
+}
+
+int sutra_dm::pzt_loadarrays(float *influ, int *influpos, int *npoints,
+                             int *istart, int *xoff, int *yoff) {
+  // current_context->set_activeDevice(device, 1);
+  this->d_influ->host2device(influ);
+  // this->d_influ2->host2device(influ2);
+
   this->d_xoff->host2device(xoff);
   this->d_yoff->host2device(yoff);
   this->d_istart->host2device(istart);
   this->d_influpos->host2device(influpos);
-  this->d_influpos2->host2device(influpos2);
+  // this->d_influpos2->host2device(influpos2);
   this->d_npoints->host2device(npoints);
   // this->d_kernconv->host2device(kernconv);
   // this->prepare_convolve();
@@ -211,7 +174,7 @@ int sutra_dm::reset_shape() {
   return EXIT_SUCCESS;
 }
 
-int sutra_dm::comp_shape() { return this->comp_shape(this->d_comm->getData()); }
+int sutra_dm::comp_shape() { return this->comp_shape(this->d_com->getData()); }
 
 #ifdef CHEAT_CODE
 int sutra_dm::comp_shape(float *comvec) {
@@ -254,15 +217,9 @@ int sutra_dm::comp_shape(float *comvec) {
   current_context->set_activeDevice(device, 1);
   this->reset_shape();
 
-#ifdef REDUCTION
-  dim3 threads(MAXSPOT);
-  dim3 blocks(this->d_shape->screen_size, this->d_shape->screen_size);
-  int shared = MAXSPOT * sizeof(float);
-#else
   dim3 threads(BLOCKSIZE);
   dim3 blocks(CEIL(this->d_shape->d_screen->getNbElem() << 2, threads.x));
   int shared = 0;
-#endif
 
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(current_context->get_device(device),
@@ -271,15 +228,9 @@ int sutra_dm::comp_shape(float *comvec) {
 
   if (this->type == "pzt") {
     comp_dmshape2<float>(
-        this->d_shape->d_screen->getData(), comvec, this->d_influ2->getData(),
-#if (COMPN != 1)
-        this->d_influ3->getData(),
-#else
-        NULL,
-#endif
+        this->d_shape->d_screen->getData(), comvec, this->d_influ->getData(),
         this->d_istart->getData(), this->d_npoints->getData(),
-        this->d_influpos2->getData(), this->d_shape->d_screen->getNbElem(),
-        threads, blocks, shared);
+        this->d_shape->d_screen->getNbElem(), threads, blocks, shared);
   }
 
   if (this->type == "tt")
@@ -549,7 +500,7 @@ int sutra_dm::set_comkl(float *comvec) {
 
     carma_gemv(cublas_handle(), 'n', ninflu, ninflu, 1.0f,
                this->d_KLbasis->getData(), this->d_KLbasis->getDims()[1],
-               d_comkl.getData(), 1, 0.0f, this->d_comm->getData(), 1);
+               d_comkl.getData(), 1, 0.0f, this->d_com->getData(), 1);
 
     return EXIT_SUCCESS;
   }
@@ -637,7 +588,7 @@ int sutra_dm::DDiago(carma_obj<float> *d_statcov, carma_obj<float> *d_geocov) {
 
   return EXIT_SUCCESS;
 }
-sutra_dms::sutra_dms(int ndm) {}
+sutra_dms::sutra_dms() {}
 
 sutra_dms::~sutra_dms() {
   for (std::vector<sutra_dm *>::iterator it = this->d_dms.begin();
@@ -685,18 +636,6 @@ int sutra_dms::remove_dm(int idx) {
 
   else
     DEBUG_TRACE("Index exceed vector size");
-
-  return EXIT_SUCCESS;
-}
-
-// Florian features
-int sutra_dm::kl_floloadarrays(float *covmat, float *filter, float *evals,
-                               float *bas) {
-  current_context->set_activeDevice(device, 1);
-  this->d_kl->d_covmat->host2device(covmat);
-  this->d_kl->d_filter->host2device(filter);
-  this->d_kl->d_bas->host2device(bas);
-  this->d_kl->d_evals->host2device(evals);
 
   return EXIT_SUCCESS;
 }

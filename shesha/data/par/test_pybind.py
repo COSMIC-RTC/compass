@@ -12,7 +12,7 @@ p_loop.set_ittime(0.002)  # =1/500
 p_geom = conf.Param_geom()
 
 p_geom.set_zenithangle(0.)
-p_geom.set_pupdiam(256)
+p_geom.set_pupdiam(1024)
 
 # tel
 p_tel = conf.Param_tel()
@@ -69,22 +69,31 @@ p_atmos.set_L0([1.e5])
 # # p_wfs0.set_beamsize(0.8)
 
 # # dm
-# p_dm0 = conf.Param_dm()
-# p_dm1 = conf.Param_dm()
-# p_dms = [p_dm0, p_dm1]
-# p_dm0.set_type("pzt")
-# nact = p_wfs0.nxsub + 1
-# p_dm0.set_nact(nact)
-# p_dm0.set_alt(0.)
-# p_dm0.set_thresh(0.3)
-# p_dm0.set_coupling(0.2)
-# p_dm0.set_unitpervolt(0.01)
-# p_dm0.set_push4imat(100.)
+p_dm0 = conf.Param_dm()
+p_dm1 = conf.Param_dm()
+p_dm2 = conf.Param_dm()
+p_dms = [p_dm0, p_dm1, p_dm2]
+p_dm0.set_type("pzt")
+nact = 81
+p_dm0.set_nact(nact)
+p_dm0.set_alt(0.)
+p_dm0.set_thresh(0.3)
+p_dm0.set_coupling(0.2)
+p_dm0.set_unitpervolt(0.01)
+p_dm0.set_push4imat(100.)
 
-# p_dm1.set_type("tt")
-# p_dm1.set_alt(0.)
-# p_dm1.set_unitpervolt(0.0005)
-# p_dm1.set_push4imat(10.)
+p_dm1.set_type("tt")
+p_dm1.set_alt(0.)
+p_dm1.set_unitpervolt(0.0005)
+p_dm1.set_push4imat(10.)
+
+p_dm2.set_type("kl")
+p_dm2.set_nkl(100)
+p_dm2.set_alt(0.)
+p_dm2.set_thresh(0.3)
+p_dm2.set_coupling(0.2)
+p_dm2.set_unitpervolt(0.001)
+p_dm2.set_push4imat(1.)
 
 # # centroiders
 # p_centroider0 = conf.Param_centroider()

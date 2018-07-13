@@ -10,9 +10,9 @@
 #include <cuda.h>
 
 #define CHEAT_CODE
-#define COMPN 1  // 1, 2 or 3
-//#define REDUCTION
-//#define TEXTURE
+// #define COMPN 1  // 1, 2 or 3
+// //#define REDUCTION
+// //#define TEXTURE
 #define BLOCKSIZE 512
 #define CEIL(a, b) ((a) + (b)-1) / (b)
 #define MAXSPOT 16
@@ -34,32 +34,22 @@ class sutra_dm {
 
   sutra_phase *d_shape;
 
-  carma_obj<float> *d_comm;
+  carma_obj<float> *d_com;
 
-  carma_obj<float> *d_influ;   // if relevant
-  carma_obj<float> *d_influ2;  // if relevant
-  carma_obj<struct tuple_t<float> > *d_influ3;
+  carma_obj<float> *d_influ;  // if relevant
 
   carma_obj<int> *d_istart;
   carma_obj<int> *d_npoints;
 
   carma_obj<int> *d_influpos;
-  carma_obj<int> *d_influpos2;
 
   // pzt
   carma_obj<int> *d_xoff;
   carma_obj<int> *d_yoff;
-  carma_obj<int> *d_pos;  // Convolution preprocess
   carma_obj<float> *d_KLbasis;
   // carma_sparse_obj<float> *d_IFsparse;
-  // carma_obj<float> *d_commdouble;
+  // carma_obj<float> *d_comdouble;
   // carma_obj<double> *d_shapedouble;
-
-  // zernike
-  carma_obj<float> *d_coeffs;
-  carma_obj<float> *d_mask;
-  carma_obj<float> *d_zr;
-  carma_obj<float> *d_ztheta;
 
   sutra_kl *d_kl;
 
@@ -76,10 +66,10 @@ class sutra_dm {
   ~sutra_dm();
 
   int nact();
-  int pzt_loadarrays(float *influ, float *influ2, struct tuple_t<float> *influ3,
-                     int *influpos, int *influpos2, int *npoints, int *istart,
+  int pzt_loadarrays(float *influ, int *influpos, int *npoints, int *istart,
                      int *xoff, int *yoff);
   int kl_loadarrays(float *rabas, float *azbas, int *ord, float *cr, float *cp);
+  int tt_loadarrays(float *influ);
   int reset_shape();
   int comp_shape();
   int comp_shape(float *comm);
@@ -112,7 +102,7 @@ class sutra_dms {
   vector<type_screen> d_type;
 
  public:
-  sutra_dms(int ndm);
+  sutra_dms();
   ~sutra_dms();
 
   int add_dm(carma_context *context, const char *type, float alt, long dim,
@@ -132,8 +122,7 @@ void comp_dmshape(int threads, int blocks, T *d_idata, T *d_odata, int *pos,
 
 template <class T>
 void comp_dmshape2(T *outData, const T *cmdVector, const T *influData,
-                   const struct tuple_t<T> *inData, const int *iStart_t,
-                   const int *nbInflu_t, const int *iPos, const int roiLength,
+                   const int *iStart_t, const int *iPos, const int roiLength,
                    const dim3 threads, const dim3 blocks, const int shared);
 
 template <class T>

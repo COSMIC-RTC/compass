@@ -36,29 +36,33 @@ def dm_init(context: naga_context, p_dms: List[conf.Param_dm], p_tel: conf.Param
         Dms: (Dms): Dms object
     """
     max_extent = [0]
-    xpos_wfs = []
-    ypos_wfs = []
-    for i in range(len(p_wfss)):
-        xpos_wfs.append(p_wfss[i].xpos)
-        ypos_wfs.append(p_wfss[i].ypos)
-
+    if (p_wfss is not None):
+        xpos_wfs = []
+        ypos_wfs = []
+        for i in range(len(p_wfss)):
+            xpos_wfs.append(p_wfss[i].xpos)
+            ypos_wfs.append(p_wfss[i].ypos)
+    else:
+        xpos_wfs = [0]
+        ypos_wfs = [0]
     if (len(p_dms) != 0):
-        dms = Dms(context, len(p_dms))
+        dms = Dms()
         for i in range(len(p_dms)):
             # max_extent
             #_dm_init(dms, p_dms[i], p_wfss, p_geom, p_tel, & max_extent)
-            _dm_init(dms, p_dms[i], xpos_wfs, ypos_wfs, p_geom, p_tel.diam, p_tel.cobs,
-                     max_extent, keepAllActu=keepAllActu)
+            _dm_init(context, dms, p_dms[i], xpos_wfs, ypos_wfs, p_geom, p_tel.diam,
+                     p_tel.cobs, max_extent, keepAllActu=keepAllActu)
 
     return dms
 
 
-def _dm_init(dms: Dms, p_dm: conf.Param_dm, xpos_wfs: list, ypos_wfs: list,
-             p_geom: conf.Param_geom, diam: float, cobs: float, max_extent: list,
-             keepAllActu: bool=False):
+def _dm_init(context: naga_context, dms: Dms, p_dm: conf.Param_dm, xpos_wfs: list,
+             ypos_wfs: list, p_geom: conf.Param_geom, diam: float, cobs: float,
+             max_extent: list, keepAllActu: bool=False):
     """ inits a Dms object on the gpu
 
     :parameters:
+        context: (naga_context): context
         dms: (Dms) : dm object
 
         p_dm: (Param_dms) : dm settings
@@ -102,13 +106,13 @@ def _dm_init(dms: Dms, p_dm: conf.Param_dm, xpos_wfs: list, ypos_wfs: list,
 
         dim = max(p_dm._n2 - p_dm._n1 + 1, p_geom._mpupil.shape[0])
         ninflupos = p_dm._influpos.size
-        n_npts = p_dm._ninflu.size
-
-        dms.add_dm(p_dm.type, p_dm.alt, dim, p_dm._ntotact, p_dm._influsize, ninflupos,
-                   n_npts, p_dm.push4imat)
-        dms.load_pzt(p_dm.alt, p_dm._influ,
-                     p_dm._influpos.astype(np.int32), p_dm._ninflu, p_dm._influstart,
-                     p_dm._i1, p_dm._j1)
+        n_npts = p_dm._ninflu.size  #// 2
+        dms.add_dm(context, p_dm.type, p_dm.alt, dim, p_dm._ntotact, p_dm._influsize,
+                   ninflupos, n_npts, p_dm.push4imat, 0, context.activeDevice)
+        #infludata = p_dm._influ.flatten()[p_dm._influpos]
+        dms.d_dms[-1].pzt_loadarrays(p_dm._influ,
+                                     p_dm._influpos.astype(np.int32), p_dm._ninflu,
+                                     p_dm._influstart, p_dm._i1, p_dm._j1)
 
     elif (p_dm.type == scons.DmType.TT):
 
@@ -124,8 +128,9 @@ def _dm_init(dms: Dms, p_dm: conf.Param_dm, xpos_wfs: list, ypos_wfs: list,
 
         dim = p_dm._n2 - p_dm._n1 + 1
         make_tiptilt_dm(p_dm, patchDiam, p_geom, diam)
-        dms.add_dm(p_dm.type, p_dm.alt, dim, 2, dim, 1, 1, p_dm.push4imat)
-        dms.load_tt(p_dm.alt, p_dm._influ)
+        dms.add_dm(context, p_dm.type, p_dm.alt, dim, 2, dim, 1, 1, p_dm.push4imat, 0,
+                   context.activeDevice)
+        dms.d_dms[-1].tt_loadarrays(p_dm._influ)
 
     elif (p_dm.type == scons.DmType.KL):
 
@@ -140,10 +145,11 @@ def _dm_init(dms: Dms, p_dm: conf.Param_dm, xpos_wfs: list, ypos_wfs: list,
 
         ninflu = p_dm.nkl
 
-        dms.add_dm(p_dm.type, p_dm.alt, dim, p_dm.nkl, p_dm._ncp, p_dm._nr, p_dm._npp,
-                   p_dm.push4imat, nord=p_dm._ord.max())
+        dms.add_dm(context, p_dm.type, p_dm.alt, dim, p_dm.nkl, p_dm._ncp, p_dm._nr,
+                   p_dm._npp, p_dm.push4imat, p_dm._ord.max(), context.activeDevice)
 
-        dms.load_kl(p_dm.alt, p_dm._rabas, p_dm._azbas, p_dm._ord, p_dm._cr, p_dm._cp)
+        dms.d_dms[-1].kl_loadarrays(p_dm._rabas, p_dm._azbas, p_dm._ord, p_dm._cr,
+                                    p_dm._cp)
 
     else:
 
@@ -173,7 +179,7 @@ def dm_init_standalone(p_dms: list, p_geom: conf.Param_geom, diam=1., cobs=0.,
     """
     max_extent = [0]
     if (len(p_dms) != 0):
-        dms = Dms(len(p_dms))
+        dms = Dms()
         for i in range(len(p_dms)):
             _dm_init(dms, p_dms[i], wfs_xpos, wfs_ypos, p_geom, diam, cobs, max_extent)
     return dms
@@ -565,14 +571,23 @@ def comp_dmgeom(p_dm: conf.Param_dm, p_geom: conf.Param_geom):
     istart[1:] = np.cumsum(npts[:-1])
 
     p_dm._influpos = itmps[:np.sum(npts)].astype(np.int32)
+    # infludata = p_dm._influ.flatten()[p_dm._influpos]
+    # p_dm._influ = infludata[:,None,None]
+    # p_dm._influpos = p_dm._influpos / (smallsize * smallsize)
     p_dm._ninflu = npts.astype(np.int32)
     p_dm._influstart = istart.astype(np.int32)
 
     p_dm._i1 += offs
     p_dm._j1 += offs
 
+    # ninflu = np.zeros((istart.size * 2))
+    # ninflu[::2] = istart.astype(np.int32)
+    # ninflu[1::2] = npts.astype(np.int32)
 
-def correct_dm(dms: Dms, p_dms: list, p_controller: conf.Param_controller,
+    # p_dm._ninflu = ninflu
+
+
+def correct_dm(context, dms: Dms, p_dms: list, p_controller: conf.Param_controller,
                p_geom: conf.Param_geom, imat: np.ndarray=None, dataBase: dict={},
                use_DB: bool=False):
     """Correct the geometry of the DMs using the imat (filter unseen actuators)
@@ -590,7 +605,7 @@ def correct_dm(dms: Dms, p_dms: list, p_controller: conf.Param_controller,
     ndm = p_controller.ndm.size
     for i in range(ndm):
         nm = p_controller.ndm[i]
-        dms.remove_dm(p_dms[nm].type, p_dms[nm].alt)
+        dms.remove_dm(nm)
 
     if imat is not None:
         resp = np.sqrt(np.sum(imat**2, axis=0))
@@ -637,25 +652,28 @@ def correct_dm(dms: Dms, p_dms: list, p_controller: conf.Param_controller,
             ninflupos = p_dms[nm]._influpos.size
             n_npts = p_dms[nm]._ninflu.size
 
-            dms.add_dm(p_dms[nm].type, p_dms[nm].alt, dim, p_dms[nm]._ntotact,
-                       p_dms[nm]._influsize, ninflupos, n_npts, p_dms[nm].push4imat)
-            dms.load_pzt(p_dms[nm].alt, p_dms[nm]._influ,
-                         p_dms[nm]._influpos.astype(np.int32), p_dms[nm]._ninflu,
-                         p_dms[nm]._influstart, p_dms[nm]._i1, p_dms[nm]._j1)
+            dms.add_dm(context, p_dms[nm].type, p_dms[nm].alt, dim, p_dms[nm]._ntotact,
+                       p_dms[nm]._influsize, ninflupos, n_npts, p_dms[nm].push4imat, 0,
+                       context.activeDevice)
+            dms.d_dms[-1].pzt_loadarrays(p_dms[nm]._influ,
+                                         p_dms[nm]._influpos.astype(np.int32),
+                                         p_dms[nm]._ninflu, p_dms[nm]._influstart,
+                                         p_dms[nm]._i1, p_dms[nm]._j1)
 
         elif (p_dms[nm].type == scons.DmType.TT):
             dim = p_dms[nm]._n2 - p_dms[nm]._n1 + 1
-            dms.add_dm(p_dms[nm].type, p_dms[nm].alt, dim, 2, dim, 1, 1,
-                       p_dms[nm].push4imat)
-            dms.load_tt(p_dms[nm].alt, p_dms[nm]._influ)
+            dms.add_dm(context, p_dms[nm].type, p_dms[nm].alt, dim, 2, dim, 1, 1,
+                       p_dms[nm].push4imat, 0, context.activeDevice)
+            dms.d_dms[-1].tt_loadarrays(p_dms[nm]._influ)
 
         elif (p_dms[nm].type == scons.DmType.KL):
             dim = int(p_dms[nm]._n2 - p_dms[nm]._n1 + 1)
 
-            dms.add_dm(p_dms[nm].type, p_dms[nm].alt, dim, p_dms[nm].nkl, p_dms[nm]._ncp,
-                       p_dms[nm]._nr, p_dms[nm]._npp, p_dms[nm].push4imat)
-            dms.load_kl(p_dms[nm].alt, p_dms[nm]._rabas, p_dms[nm]._azbas,
-                        p_dms[nm]._ord, p_dms[nm]._cr, p_dms[nm]._cp)
+            dms.add_dm(cotext, p_dms[nm].type, p_dms[nm].alt, dim, p_dms[nm].nkl,
+                       p_dms[nm]._ncp, p_dms[nm]._nr, p_dms[nm]._npp,
+                       p_dms[nm].push4imat, p_dms[nm]._ord.max(), context.activeDevice)
+            dms.d_dms[-1].kl_loadarrays(p_dms[nm]._rabas, p_dms[nm]._azbas,
+                                        p_dms[nm]._ord, p_dms[nm]._cr, p_dms[nm]._cp)
         else:
             raise ValueError("Screwed up.")
 
