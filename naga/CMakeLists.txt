@@ -22,6 +22,10 @@ add_library(naga MODULE
                     src/naga.cpp
                     src/naga_obj_double.cpp
                     src/naga_obj_float.cpp
+                    src/naga_obj_double2.cpp
+                    src/naga_obj_float2.cpp
+                    src/naga_obj_double_complex.cpp
+                    src/naga_obj_float_complex.cpp
                     src/naga_obj.hpp
                     src/naga_obj_int.cpp
                     src/naga_obj_uint.cpp)

@@ -130,7 +130,8 @@ int carma_where_gen(cublasHandle_t cublas_handle, int n, const T_data *vect,
 
 template <class T>
 int carma_where_amax(cublasHandle_t cublas_handle, int n, const T *vect,
-                     int incx) CARMA_NIY template <>
+                     int incx) CARMA_NIY;
+template <>
 int carma_where_amax(cublasHandle_t cublas_handle, int n, const float *vect,
                      int incx) {
   return carma_where_gen<float, cublasIsamax>(cublas_handle, n, vect, incx);
@@ -155,7 +156,8 @@ int carma_where_amax(cublasHandle_t cublas_handle, int n,
 
 template <class T>
 int carma_where_amin(cublasHandle_t cublas_handle, int n, const T *vect,
-                     int incx) CARMA_NIY template <>
+                     int incx) CARMA_NIY;
+template <>
 int carma_where_amin(cublasHandle_t cublas_handle, int n, const float *vect,
                      int incx) {
   return carma_where_gen<float, cublasIsamin>(cublas_handle, n, vect, incx);
@@ -191,7 +193,8 @@ T_data carma_asum_gen(cublasHandle_t cublas_handle, int n, const T_data *vect,
 
 template <class T>
 T carma_getasum(cublasHandle_t cublas_handle, int n, const T *vect,
-                int incx) CARMA_NIY template <>
+                int incx) CARMA_NIY;
+template <>
 float carma_getasum(cublasHandle_t cublas_handle, int n, const float *vect,
                     int incx) {
   return carma_asum_gen<float, cublasSasum>(cublas_handle, n, vect, incx);
@@ -206,12 +209,12 @@ double carma_getasum(cublasHandle_t cublas_handle, int n, const double *vect,
 template <class T_data>
 cublasStatus_t carma_axpy(cublasHandle_t cublas_handle, int n,
                           const T_data alpha, const T_data *vectx, int incx,
-                          T_data *vecty, int incy) CARMA_NIY
-    /**< Generic template for axpy executable selection */
-    template <>
-    cublasStatus_t carma_axpy<float>(cublasHandle_t cublas_handle, int n,
-                                     const float alpha, const float *vectx,
-                                     int incx, float *vecty, int incy) {
+                          T_data *vecty, int incy) CARMA_NIY;
+/**< Generic template for axpy executable selection */
+template <>
+cublasStatus_t carma_axpy<float>(cublasHandle_t cublas_handle, int n,
+                                 const float alpha, const float *vectx,
+                                 int incx, float *vecty, int incy) {
   return carma_checkCublasStatus(
       cublasSaxpy(cublas_handle, n, &alpha, vectx, incx, vecty, incy));
 }
@@ -244,11 +247,11 @@ cublasStatus_t carma_axpy<cuDoubleComplex>(cublasHandle_t cublas_handle, int n,
 template <class T_data>
 cublasStatus_t carma_copy(cublasHandle_t cublas_handle, int n,
                           const T_data *vectx, int incx, T_data *vecty,
-                          int incy) CARMA_NIY
-    /**< Generic template for copy executable selection */
-    template cublasStatus_t
-    carma_copy(cublasHandle_t cublas_handle, int n, const int *vectx, int incx,
-               int *vecty, int incy);
+                          int incy) CARMA_NIY;
+/**< Generic template for copy executable selection */
+template cublasStatus_t carma_copy(cublasHandle_t cublas_handle, int n,
+                                   const int *vectx, int incx, int *vecty,
+                                   int incy);
 template cublasStatus_t carma_copy(cublasHandle_t cublas_handle, int n,
                                    const unsigned int *vectx, int incx,
                                    unsigned int *vecty, int incy);
@@ -285,10 +288,10 @@ cublasStatus_t carma_copy<cuDoubleComplex>(cublasHandle_t cublas_handle, int n,
 /** These templates are used to select the proper dot executable from T_data*/
 template <class T_data>
 T_data carma_dot(cublasHandle_t cublas_handle, int n, T_data *vectx, int incx,
-                 T_data *vecty, int incy) CARMA_NIY
-    /**< Generic template for dot executable selection */
-    template int carma_dot(cublasHandle_t cublas_handle, int n, int *vectx,
-                           int incx, int *vecty, int incy);
+                 T_data *vecty, int incy) CARMA_NIY;
+/**< Generic template for dot executable selection */
+template int carma_dot(cublasHandle_t cublas_handle, int n, int *vectx,
+                       int incx, int *vecty, int incy);
 template unsigned int carma_dot(cublasHandle_t cublas_handle, int n,
                                 unsigned int *vectx, int incx,
                                 unsigned int *vecty, int incy);
@@ -334,10 +337,10 @@ cuDoubleComplex carma_dot<cuDoubleComplex>(cublasHandle_t cublas_handle, int n,
 /** These templates are used to select the proper nrm2 executable from T_data*/
 template <class T_data>
 T_data carma_nrm2(cublasHandle_t cublas_handle, int n, T_data *vect,
-                  int incx) CARMA_NIY
-    /**< Generic template for nrm2 executable selection */
-    template int carma_nrm2(cublasHandle_t cublas_handle, int n, int *vect,
-                            int incx);
+                  int incx) CARMA_NIY;
+/**< Generic template for nrm2 executable selection */
+template int carma_nrm2(cublasHandle_t cublas_handle, int n, int *vect,
+                        int incx);
 template unsigned int carma_nrm2(cublasHandle_t cublas_handle, int n,
                                  unsigned int *vect, int incx);
 template <>
@@ -366,11 +369,11 @@ double carma_nrm2<double>(cublasHandle_t cublas_handle, int n, double *vect,
 template <class T_data>
 cublasStatus_t carma_rot(cublasHandle_t cublas_handle, int n, T_data *vectx,
                          int incx, T_data *vecty, int incy, T_data sc,
-                         T_data ss) CARMA_NIY
-    /**< Generic template for rot executable selection */
-    template cublasStatus_t
-    carma_rot(cublasHandle_t cublas_handle, int n, int *vectx, int incx,
-              int *vecty, int incy, int sc, int ss);
+                         T_data ss) CARMA_NIY;
+/**< Generic template for rot executable selection */
+template cublasStatus_t carma_rot(cublasHandle_t cublas_handle, int n,
+                                  int *vectx, int incx, int *vecty, int incy,
+                                  int sc, int ss);
 template cublasStatus_t carma_rot(cublasHandle_t cublas_handle, int n,
                                   unsigned int *vectx, int incx,
                                   unsigned int *vecty, int incy,
@@ -393,10 +396,10 @@ cublasStatus_t carma_rot<double>(cublasHandle_t cublas_handle, int n,
 /** These templates are used to select the proper scal executable from T_data*/
 template <class T_data>
 cublasStatus_t carma_scal(cublasHandle_t cublas_handle, int n, T_data alpha,
-                          T_data *vectx, int incx) CARMA_NIY
-    /**< Generic template for scal executable selection */
-    template cublasStatus_t carma_scal(cublasHandle_t cublas_handle, int n,
-                                       int alpha, int *vectx, int incx);
+                          T_data *vectx, int incx) CARMA_NIY;
+/**< Generic template for scal executable selection */
+template cublasStatus_t carma_scal(cublasHandle_t cublas_handle, int n,
+                                   int alpha, int *vectx, int incx);
 template cublasStatus_t carma_scal(cublasHandle_t cublas_handle, int n,
                                    unsigned int alpha, unsigned int *vectx,
                                    int incx);
@@ -430,11 +433,10 @@ cublasStatus_t carma_scal<cuDoubleComplex>(cublasHandle_t cublas_handle, int n,
 /** These templates are used to select the proper swap executable from T_data*/
 template <class T_data>
 cublasStatus_t carma_swap(cublasHandle_t cublas_handle, int n, T_data *vectx,
-                          int incx, T_data *vecty, int incy) CARMA_NIY
-    /**< Generic template for swap executable selection */
-    template cublasStatus_t
-    carma_swap(cublasHandle_t cublas_handle, int n, int *vectx, int incx,
-               int *vecty, int incy);
+                          int incx, T_data *vecty, int incy) CARMA_NIY;
+/**< Generic template for swap executable selection */
+template cublasStatus_t carma_swap(cublasHandle_t cublas_handle, int n,
+                                   int *vectx, int incx, int *vecty, int incy);
 template cublasStatus_t carma_swap(cublasHandle_t cublas_handle, int n,
                                    unsigned int *vectx, int incx,
                                    unsigned int *vecty, int incy);
@@ -472,12 +474,12 @@ template <class T_data>
 cublasStatus_t carma_gemv(cublasHandle_t cublas_handle, char trans, int m,
                           int n, T_data alpha, T_data *matA, int lda,
                           T_data *vectx, int incx, T_data beta, T_data *vecty,
-                          int incy) CARMA_NIY
-    /**< Generic template for gemv executable selection */
-    template cublasStatus_t
-    carma_gemv(cublasHandle_t cublas_handle, char trans, int m, int n,
-               int alpha, int *matA, int lda, int *vectx, int incx, int beta,
-               int *vecty, int incy);
+                          int incy) CARMA_NIY;
+/**< Generic template for gemv executable selection */
+template cublasStatus_t carma_gemv(cublasHandle_t cublas_handle, char trans,
+                                   int m, int n, int alpha, int *matA, int lda,
+                                   int *vectx, int incx, int beta, int *vecty,
+                                   int incy);
 template cublasStatus_t carma_gemv(cublasHandle_t cublas_handle, char trans,
                                    int m, int n, unsigned int alpha,
                                    unsigned int *matA, int lda,
@@ -532,11 +534,11 @@ cublasStatus_t carma_gemv<cuDoubleComplex>(cublasHandle_t cublas_handle,
 template <class T_data>
 cublasStatus_t carma_ger(cublasHandle_t cublas_handle, int m, int n,
                          T_data alpha, T_data *vectx, int incx, T_data *vecty,
-                         int incy, T_data *matA, int lda) CARMA_NIY
-    /**< Generic template for ger executable selection */
-    template cublasStatus_t
-    carma_ger(cublasHandle_t cublas_handle, int m, int n, int alpha, int *vectx,
-              int incx, int *vecty, int incy, int *matA, int lda);
+                         int incy, T_data *matA, int lda) CARMA_NIY;
+/**< Generic template for ger executable selection */
+template cublasStatus_t carma_ger(cublasHandle_t cublas_handle, int m, int n,
+                                  int alpha, int *vectx, int incx, int *vecty,
+                                  int incy, int *matA, int lda);
 template cublasStatus_t carma_ger(cublasHandle_t cublas_handle, int m, int n,
                                   unsigned int alpha, unsigned int *vectx,
                                   int incx, unsigned int *vecty, int incy,
@@ -580,12 +582,12 @@ template <class T_data>
 cublasStatus_t carma_symv(cublasHandle_t cublas_handle, char uplo, int n,
                           T_data alpha, T_data *matA, int lda, T_data *vectx,
                           int incx, T_data beta, T_data *vecty,
-                          int incy) CARMA_NIY
-    /**< Generic template for symv executable selection */
-    template cublasStatus_t
-    carma_symv(cublasHandle_t cublas_handle, char uplo, int n, int alpha,
-               int *matA, int lda, int *vectx, int incx, int beta, int *vecty,
-               int incy);
+                          int incy) CARMA_NIY;
+/**< Generic template for symv executable selection */
+template cublasStatus_t carma_symv(cublasHandle_t cublas_handle, char uplo,
+                                   int n, int alpha, int *matA, int lda,
+                                   int *vectx, int incx, int beta, int *vecty,
+                                   int incy);
 template cublasStatus_t carma_symv(cublasHandle_t cublas_handle, char uplo,
                                    int n, unsigned int alpha,
                                    unsigned int *matA, int lda,
@@ -639,12 +641,12 @@ template <class T_data>
 cublasStatus_t carma_gemm(cublasHandle_t cublas_handle, char transa,
                           char transb, int m, int n, int k, T_data alpha,
                           T_data *matA, int lda, T_data *matB, int ldb,
-                          T_data beta, T_data *matC, int ldc) CARMA_NIY
-    /**< Generic template for gemm executable selection */
-    template cublasStatus_t
-    carma_gemm(cublasHandle_t cublas_handle, char transa, char transb, int m,
-               int n, int k, int alpha, int *matA, int lda, int *matB, int ldb,
-               int beta, int *matC, int ldc);
+                          T_data beta, T_data *matC, int ldc) CARMA_NIY;
+/**< Generic template for gemm executable selection */
+template cublasStatus_t carma_gemm(cublasHandle_t cublas_handle, char transa,
+                                   char transb, int m, int n, int k, int alpha,
+                                   int *matA, int lda, int *matB, int ldb,
+                                   int beta, int *matC, int ldc);
 template cublasStatus_t carma_gemm(cublasHandle_t cublas_handle, char transa,
                                    char transb, int m, int n, int k,
                                    unsigned int alpha, unsigned int *matA,
@@ -705,12 +707,12 @@ template <class T_data>
 cublasStatus_t carma_symm(cublasHandle_t cublas_handle, char side, char uplo,
                           int m, int n, T_data alpha, T_data *matA, int lda,
                           T_data *matB, int ldb, T_data beta, T_data *matC,
-                          int ldc) CARMA_NIY
-    /**< Generic template for symm executable selection */
-    template cublasStatus_t
-    carma_symm(cublasHandle_t cublas_handle, char side, char uplo, int m, int n,
-               int alpha, int *matA, int lda, int *matB, int ldb, int beta,
-               int *matC, int ldc);
+                          int ldc) CARMA_NIY;
+/**< Generic template for symm executable selection */
+template cublasStatus_t carma_symm(cublasHandle_t cublas_handle, char side,
+                                   char uplo, int m, int n, int alpha,
+                                   int *matA, int lda, int *matB, int ldb,
+                                   int beta, int *matC, int ldc);
 template cublasStatus_t carma_symm(cublasHandle_t cublas_handle, char side,
                                    char uplo, int m, int n, unsigned int alpha,
                                    unsigned int *matA, int lda,
@@ -770,12 +772,12 @@ cublasStatus_t carma_symm<cuDoubleComplex>(cublasHandle_t cublas_handle,
 template <class T_data>
 cublasStatus_t carma_syrk(cublasHandle_t cublas_handle, char uplo, char transa,
                           int n, int k, T_data alpha, T_data *matA, int lda,
-                          T_data beta, T_data *matC, int ldc) CARMA_NIY
-    /**< Generic template for syrk executable selection */
-    template cublasStatus_t
-    carma_syrk(cublasHandle_t cublas_handle, char uplo, char transa, int n,
-               int k, int alpha, int *matA, int lda, int beta, int *matC,
-               int ldc);
+                          T_data beta, T_data *matC, int ldc) CARMA_NIY;
+/**< Generic template for syrk executable selection */
+template cublasStatus_t carma_syrk(cublasHandle_t cublas_handle, char uplo,
+                                   char transa, int n, int k, int alpha,
+                                   int *matA, int lda, int beta, int *matC,
+                                   int ldc);
 template cublasStatus_t carma_syrk(cublasHandle_t cublas_handle, char uplo,
                                    char transa, int n, int k,
                                    unsigned int alpha, unsigned int *matA,
@@ -835,12 +837,12 @@ template <class T_data>
 cublasStatus_t carma_syrkx(cublasHandle_t cublas_handle, char uplo, char transa,
                            int n, int k, T_data alpha, T_data *matA, int lda,
                            T_data *matB, int ldb, T_data beta, T_data *matC,
-                           int ldc) CARMA_NIY
-    /**< Generic template for syrkx executable selection */
-    template cublasStatus_t
-    carma_syrkx(cublasHandle_t cublas_handle, char uplo, char transa, int n,
-                int k, int alpha, int *matA, int lda, int *matB, int ldb,
-                int beta, int *matC, int ldc);
+                           int ldc) CARMA_NIY;
+/**< Generic template for syrkx executable selection */
+template cublasStatus_t carma_syrkx(cublasHandle_t cublas_handle, char uplo,
+                                    char transa, int n, int k, int alpha,
+                                    int *matA, int lda, int *matB, int ldb,
+                                    int beta, int *matC, int ldc);
 template cublasStatus_t carma_syrkx(cublasHandle_t cublas_handle, char uplo,
                                     char transa, int n, int k,
                                     unsigned int alpha, unsigned int *matA,
@@ -900,12 +902,12 @@ template <class T_data>
 cublasStatus_t carma_geam(cublasHandle_t cublas_handle, char transa,
                           char transb, int m, int n, T_data alpha, T_data *matA,
                           int lda, T_data beta, T_data *matB, int ldb,
-                          T_data *matC, int ldc) CARMA_NIY
-    /**< Generic template for geam executable selection */
-    template cublasStatus_t
-    carma_geam(cublasHandle_t cublas_handle, char transa, char transb, int m,
-               int n, int alpha, int *matA, int lda, int beta, int *matB,
-               int ldb, int *matC, int ldc);
+                          T_data *matC, int ldc) CARMA_NIY;
+/**< Generic template for geam executable selection */
+template cublasStatus_t carma_geam(cublasHandle_t cublas_handle, char transa,
+                                   char transb, int m, int n, int alpha,
+                                   int *matA, int lda, int beta, int *matB,
+                                   int ldb, int *matC, int ldc);
 template cublasStatus_t carma_geam(cublasHandle_t cublas_handle, char transa,
                                    char transb, int m, int n,
                                    unsigned int alpha, unsigned int *matA,
@@ -962,13 +964,13 @@ cublasStatus_t carma_geam<cuDoubleComplex>(
 template <class T_data>
 cublasStatus_t carma_dgmm(cublasHandle_t cublas_handle, char side, int m, int n,
                           const T_data *matA, int lda, const T_data *vectx,
-                          int incx, T_data *matC, int ldc) CARMA_NIY
-    /**< Generic template for geam executable selection */
-    template <>
-    cublasStatus_t carma_dgmm<float>(cublasHandle_t cublas_handle, char side,
-                                     int m, int n, const float *matA, int lda,
-                                     const float *vectx, int incx, float *matC,
-                                     int ldc) {
+                          int incx, T_data *matC, int ldc) CARMA_NIY;
+/**< Generic template for geam executable selection */
+template <>
+cublasStatus_t carma_dgmm<float>(cublasHandle_t cublas_handle, char side, int m,
+                                 int n, const float *matA, int lda,
+                                 const float *vectx, int incx, float *matC,
+                                 int ldc) {
   cublasSideMode_t side_cublas = carma_char2cublasSide(side);
   return carma_checkCublasStatus(cublasSdgmm(
       cublas_handle, side_cublas, m, n, matA, lda, vectx, incx, matC, ldc));
