@@ -35,10 +35,10 @@ class sutra_rtc {
                      long device, char *typec);
   int rm_centroider();
   int add_controller_geo(int nactu, int Nphi, float delay, long device,
-                         sutra_dms *dms, char **type_dmseen, float *alt,
-                         int ndm, bool wfs_direction);
+                         sutra_dms *dms, int *idx_dms, int ndm,
+                         bool wfs_direction);
   int add_controller(int nactu, float delay, long device, const char *typec,
-                     sutra_dms *dms, char **type_dmseen, float *alt, int ndm);
+                     sutra_dms *dms, int *idx_dms, int ndm);
   int add_controller(int nactu, float delay, long device, const char *typec);
 
   int rm_controller();

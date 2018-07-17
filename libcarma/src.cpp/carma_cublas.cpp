@@ -653,6 +653,7 @@ template cublasStatus_t carma_gemm(cublasHandle_t cublas_handle, char transa,
                                    int lda, unsigned int *matB, int ldb,
                                    unsigned int beta, unsigned int *matC,
                                    int ldc);
+
 template <>
 cublasStatus_t carma_gemm<float>(cublasHandle_t cublas_handle, char transa,
                                  char transb, int m, int n, int k, float alpha,
@@ -966,6 +967,14 @@ cublasStatus_t carma_dgmm(cublasHandle_t cublas_handle, char side, int m, int n,
                           const T_data *matA, int lda, const T_data *vectx,
                           int incx, T_data *matC, int ldc) CARMA_NIY;
 /**< Generic template for geam executable selection */
+template <>
+cublasStatus_t carma_dgmm<int>(cublasHandle_t cublas_handle, char side, int m,
+                               int n, const int *matA, int lda,
+                               const int *vectx, int incx, int *matC, int ldc) {
+  DEBUG_TRACE("Not implemented");
+  return carma_checkCublasStatus(CUBLAS_STATUS_NOT_SUPPORTED);
+}
+
 template <>
 cublasStatus_t carma_dgmm<float>(cublasHandle_t cublas_handle, char side, int m,
                                  int n, const float *matA, int lda,

@@ -5,14 +5,14 @@ simul_name = ""
 # loop
 p_loop = conf.Param_loop()
 
-p_loop.set_niter(0)
+p_loop.set_niter(1000)
 p_loop.set_ittime(0.002)  # =1/500
 
 # geom
 p_geom = conf.Param_geom()
 
 p_geom.set_zenithangle(0.)
-p_geom.set_pupdiam(1024)
+p_geom.set_pupdiam(256)
 
 # tel
 p_tel = conf.Param_tel()
@@ -32,14 +32,13 @@ p_atmos.set_winddir([0.])
 p_atmos.set_L0([1.e5])
 
 # target
-# p_target = conf.Param_target()
-# p_targets = [p_target]
+p_target = conf.Param_target()
+p_targets = [p_target]
 
-# # p_target.set_ntargets(1)
-# p_target.set_xpos(0.)
-# p_target.set_ypos(0.)
-# p_target.set_Lambda(1.65)
-# p_target.set_mag(10.)
+p_target.set_xpos(0.)
+p_target.set_ypos(0.)
+p_target.set_Lambda(1.65)
+p_target.set_mag(10.)
 
 # # wfs
 # p_wfs0 = conf.Param_wfs()
@@ -74,7 +73,7 @@ p_dm1 = conf.Param_dm()
 p_dm2 = conf.Param_dm()
 p_dms = [p_dm0, p_dm1, p_dm2]
 p_dm0.set_type("pzt")
-nact = 81
+nact = 17
 p_dm0.set_nact(nact)
 p_dm0.set_alt(0.)
 p_dm0.set_thresh(0.3)

@@ -2,5 +2,4 @@
 
 namespace py = pybind11;
 
-// template
-// void declare_naga_obj<int>(py::module &mod, std::string suffix);
+template void declare_naga_obj<int>(py::module &mod, std::string suffix);

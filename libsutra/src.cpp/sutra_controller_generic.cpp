@@ -3,9 +3,8 @@
 sutra_controller_generic::sutra_controller_generic(carma_context *context,
                                                    long nvalid, long nactu,
                                                    float delay, sutra_dms *dms,
-                                                   char **type, float *alt,
-                                                   int ndm)
-    : sutra_controller(context, 2 * nvalid, nactu, delay, dms, type, alt, ndm) {
+                                                   int *idx_dms, int ndm)
+    : sutra_controller(context, 2 * nvalid, nactu, delay, dms, idx_dms, ndm) {
   long dims_data1[2] = {1, nactu};
   this->d_gain = new carma_obj<float>(current_context, dims_data1);
   this->d_decayFactor = new carma_obj<float>(current_context, dims_data1);

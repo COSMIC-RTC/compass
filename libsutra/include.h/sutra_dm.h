@@ -21,7 +21,13 @@
 using std::string;
 using std::vector;
 
-typedef std::pair<std::string, float> type_screen;
+//  ██████╗ ███╗   ███╗
+//  ██╔══██╗████╗ ████║
+//  ██║  ██║██╔████╔██║
+//  ██║  ██║██║╚██╔╝██║
+//  ██████╔╝██║ ╚═╝ ██║
+//  ╚═════╝ ╚═╝     ╚═╝
+//
 
 class sutra_dm {
  public:
@@ -92,14 +98,19 @@ class sutra_dm {
   int compute_KLbasis(float *xpos, float *ypos, int *indx, long dim, float norm,
                       float ampli);
   int piston_filt(carma_obj<float> *d_statcov);
-  int set_comkl(float *comvec);
-  int prepare_convolve();
 };
+
+//  ██████╗ ███╗   ███╗███████╗
+//  ██╔══██╗████╗ ████║██╔════╝
+//  ██║  ██║██╔████╔██║███████╗
+//  ██║  ██║██║╚██╔╝██║╚════██║
+//  ██████╔╝██║ ╚═╝ ██║███████║
+//  ╚═════╝ ╚═╝     ╚═╝╚══════╝
+//
 
 class sutra_dms {
  public:
   vector<sutra_dm *> d_dms;
-  vector<type_screen> d_type;
 
  public:
   sutra_dms();
@@ -109,8 +120,6 @@ class sutra_dms {
              long ninflu, long influsize, long ninflupos, long n_npoints,
              float push4imat, long nord, int device);
   int remove_dm(int idx);
-
-  int get_inddm(string type, float alt);
 
   int ndm() { return d_dms.size(); };
   int nact_total();
@@ -142,9 +151,5 @@ int dm_dostatmat(float *d_statcov, long Nkl, float *d_xpos, float *d_ypos,
                  float norm, carma_device *device);
 int fill_filtermat(float *filter, int nactu, int N, carma_device *device);
 int find_nnz(float *d_data, int N, carma_device *device);
-int fillpos(int threads, int blocks, int *o_data, int *xoff, int *yoff,
-            int influsize, int nactu, int dim, int N);
-int fill_mapactu(int threads, int blocks, float *mapactu, int *pos,
-                 float *comvec, int nactu, int N);
 
 #endif  // _SUTRA_DM_H_

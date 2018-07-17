@@ -4,10 +4,8 @@
 
 sutra_controller_mv::sutra_controller_mv(carma_context *context, long nvalid,
                                          long nactu_, float delay,
-                                         sutra_dms *dms, char **type,
-                                         float *alt, int ndm)
-    : sutra_controller(context, nvalid * 2, nactu_, delay, dms, type, alt,
-                       ndm) {
+                                         sutra_dms *dms, int *idx_dms, int ndm)
+    : sutra_controller(context, nvalid * 2, nactu_, delay, dms, idx_dms, ndm) {
   this->gain = 0.0f;
 
   //  this->nstreams = 1; //nvalid/10;

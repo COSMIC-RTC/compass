@@ -115,16 +115,6 @@ int sutra_wfs::wfs_initgs(sutra_sensors *sensors, float xpos, float ypos,
   return EXIT_SUCCESS;
 }
 
-int sutra_wfs::get_ncpa_phase(float *h_src, size_t size) {
-  this->d_gs->get_ncpa_phase(h_src, size);
-  return EXIT_SUCCESS;
-}
-
-int sutra_wfs::set_ncpa_phase(float *h_dest, size_t size) {
-  this->d_gs->set_ncpa_phase(h_dest, size);
-  return EXIT_SUCCESS;
-}
-
 int sutra_wfs::set_noise(float noise, long seed) {
   current_context->set_activeDevice(device, 1);
   this->noise = noise;

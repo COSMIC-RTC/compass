@@ -18,7 +18,7 @@ std::unique_ptr<sutra_dms> dms_init() {
 
 void declare_shesha_dms(py::module &mod) {
   py::class_<sutra_dms>(mod, "Dms")
-      .def(py::init(wy::castParameter(dms_init)), R"pbdoc(
+      .def(py::init(wy::colCast(dms_init)), R"pbdoc(
             Create a void DMS object
         )pbdoc")
 
@@ -49,7 +49,7 @@ void declare_shesha_dms(py::module &mod) {
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
 
-      .def("add_dm", wy::castParameter(&sutra_dms::add_dm),
+      .def("add_dm", wy::colCast(&sutra_dms::add_dm),
            R"pbdoc(
         Add a sutra_dm in the sutra_dms vector
 
@@ -72,7 +72,7 @@ void declare_shesha_dms(py::module &mod) {
            py::arg("n_npoints"), py::arg("push4imat"), py::arg("nord"),
            py::arg("device"))
 
-      .def("remove_dm", wy::castParameter(&sutra_dms::remove_dm),
+      .def("remove_dm", wy::colCast(&sutra_dms::remove_dm),
            R"pbdoc(
         Remove and delete the selected DM from sutra_dms
         Parameters
@@ -199,7 +199,7 @@ void declare_shesha_dm(py::module &mod) {
       //  ██║╚██╔╝██║██╔══╝     ██║   ██╔══██║██║   ██║██║  ██║╚════██║
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
-      .def("pzt_loadarrays", wy::castParameter(&sutra_dm::pzt_loadarrays),
+      .def("pzt_loadarrays", wy::colCast(&sutra_dm::pzt_loadarrays),
            R"pbdoc(
         Load all the arrays computed during the initialization
         for a pzt DM in a sutra_dm object
@@ -221,7 +221,7 @@ void declare_shesha_dm(py::module &mod) {
            /*py::arg("influpos2"),*/ py::arg("npoints"), py::arg("istart"),
            py::arg("xoff"), py::arg("yoff"))
 
-      .def("tt_loadarrays", wy::castParameter(&sutra_dm::tt_loadarrays),
+      .def("tt_loadarrays", wy::colCast(&sutra_dm::tt_loadarrays),
            R"pbdoc(
         Load all the arrays computed during the initialization
         for a tt DM in a sutra_dm object
@@ -235,7 +235,7 @@ void declare_shesha_dm(py::module &mod) {
       // py::array::f_style | py::array::forcecast> data){
       //   sdm.d_influ->host2device(data.mutable_data());
       // })
-      .def("kl_loadarrays", wy::castParameter(&sutra_dm::kl_loadarrays),
+      .def("kl_loadarrays", wy::colCast(&sutra_dm::kl_loadarrays),
            R"pbdoc(
         Load all the arrays computed during the initialization
         for a kl DM in a sutra_dm object
@@ -261,8 +261,7 @@ void declare_shesha_dm(py::module &mod) {
       )pbdoc")
 
       .def("comp_shape",
-           wy::castParameter((int (sutra_dm::*)(float *)) &
-                             sutra_dm::comp_shape),
+           wy::colCast((int (sutra_dm::*)(float *)) & sutra_dm::comp_shape),
            R"pbdoc(
         Compute the DM shape according to given commands
 
@@ -273,7 +272,7 @@ void declare_shesha_dm(py::module &mod) {
       )pbdoc",
            py::arg("com"))
 
-      .def("comp_oneactu", wy::castParameter(&sutra_dm::comp_oneactu), R"pbdoc(
+      .def("comp_oneactu", wy::colCast(&sutra_dm::comp_oneactu), R"pbdoc(
         Push the specified actuator and computes the corresponding DM shape
 
         Parameters
@@ -283,7 +282,7 @@ void declare_shesha_dm(py::module &mod) {
       )pbdoc",
            py::arg("nactu"), py::arg("ampli"))
 
-      .def("compute_KLbasis", wy::castParameter(&sutra_dm::compute_KLbasis),
+      .def("compute_KLbasis", wy::colCast(&sutra_dm::compute_KLbasis),
            R"pbdoc(
         Computes the KL to volt matrix by double diagonalisation (cf. Gendron thesis)
             - compute the phase covariance matrix on the actuators using Kolmogorov

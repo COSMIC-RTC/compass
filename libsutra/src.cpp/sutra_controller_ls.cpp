@@ -3,9 +3,8 @@
 
 sutra_controller_ls::sutra_controller_ls(carma_context *context, long nvalid,
                                          long nactu, float delay,
-                                         sutra_dms *dms, char **type,
-                                         float *alt, int ndm)
-    : sutra_controller(context, nvalid * 2, nactu, delay, dms, type, alt, ndm) {
+                                         sutra_dms *dms, int *idx_dms, int ndm)
+    : sutra_controller(context, nvalid * 2, nactu, delay, dms, idx_dms, ndm) {
   this->d_imat = 0L;
   this->d_cmat = 0L;
   this->d_eigenvals = 0L;
@@ -424,8 +423,8 @@ int sutra_controller_ls::modalControlOptimization() {
                0.0f, d_phaseError.getData(), 1);
 
     // Find and store optimum gain for mode i
-    imin = carma_wheremin(cublas_handle(), this->ngain, d_phaseError.getData(),
-                          1) -
+    imin = carma_where_amin(cublas_handle(), this->ngain,
+                            d_phaseError.getData(), 1) -
            1;
     mgain[i] =
         this->gmin + imin * (this->gmax - this->gmin) / (this->ngain - 1);

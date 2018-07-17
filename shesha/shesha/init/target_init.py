@@ -28,7 +28,7 @@ def target_init(ctxt: naga_context, telescope: Telescope, p_targets: list,
     :return:
         tar: (Target): Target object
     """
-    type_target = b"atmos"
+    type_target = "atmos"
 
     if (p_targets is not None):
         for p_target in p_targets:
@@ -62,7 +62,8 @@ def target_init(ctxt: naga_context, telescope: Telescope, p_targets: list,
                                Npts)
     else:
         target = Target(ctxt, telescope,
-                        len(p_targets), xpos, ypos, Lambda, mag, zerop, sizes, Npts)
+                        len(p_targets), xpos, ypos, Lambda, mag, zerop, sizes, Npts,
+                        ctxt.activeDevice)
 
     # cc=i
     for i in range(len(p_targets)):
@@ -78,7 +79,7 @@ def target_init(ctxt: naga_context, telescope: Telescope, p_targets: list,
                 pupdiff = (p_geom._n - p_geom.pupdiam) / 2
                 xoff += pupdiff
                 yoff += pupdiff
-                target.add_layer(i, type_target, p_atmos.alt[j], xoff, yoff)
+                target.d_targets[i].add_layer(type_target, j, xoff, yoff)
 
         # if (y_dm != []) {
         if (dm is not None):
@@ -106,8 +107,8 @@ def target_init(ctxt: naga_context, telescope: Telescope, p_targets: list,
                 if (dm[k].type == scons.DmType.KL):
                     xoff += 2
                     yoff += 2
-                target.add_layer(i, dm[k].type, dm[k].alt, xoff, yoff)
+                target.d_targets[i].add_layer(dm[k].type, k, xoff, yoff)
 
-        target.init_strehlmeter(i)
+        target.d_targets[i].init_strehlmeter()
 
     return target

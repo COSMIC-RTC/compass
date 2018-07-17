@@ -3,7 +3,7 @@
 
 sutra_controller::sutra_controller(carma_context *context, int nslope,
                                    int nactu, float delay, sutra_dms *dms,
-                                   char **type, float *alt, int ndm) {
+                                   int *idx_dms, int ndm) {
   this->current_context = context;
   this->device = context->get_activeDevice();
 
@@ -70,7 +70,7 @@ sutra_controller::sutra_controller(carma_context *context, int nslope,
   this->d_voltage = new carma_obj<float>(context, dims_data1);
 
   for (int i = 0; i < ndm; i++) {
-    this->d_dmseen.push_back(dms->d_dms[dms->get_inddm(type[i], alt[i])]);
+    this->d_dmseen.push_back(dms->d_dms[idx_dms[i]]);
   }
 }
 

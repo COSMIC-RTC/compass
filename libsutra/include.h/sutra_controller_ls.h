@@ -41,8 +41,7 @@ class sutra_controller_ls : public sutra_controller {
 
  public:
   sutra_controller_ls(carma_context *context, long nvalid, long nactu,
-                      float delay, sutra_dms *dms, char **type, float *alt,
-                      int ndm);
+                      float delay, sutra_dms *dms, int *idx_dms, int ndm);
   sutra_controller_ls(const sutra_controller_ls &controller);
   ~sutra_controller_ls();
 

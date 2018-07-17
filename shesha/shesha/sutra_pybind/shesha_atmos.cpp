@@ -17,7 +17,7 @@ std::unique_ptr<sutra_atmos> atmos_init(carma_context &context, int nscreens,
 
 void declare_shesha_atmos(py::module &mod) {
   py::class_<sutra_atmos>(mod, "Atmos")
-      .def(py::init(wy::castParameter(atmos_init)), R"pbdoc(
+      .def(py::init(wy::colCast(atmos_init)), R"pbdoc(
         Create and initialise an atmos object
         Parameters
         ------------
@@ -72,7 +72,7 @@ void declare_shesha_atmos(py::module &mod) {
         parameters such as windspeed and wind direction
         )pbdoc")
 
-      .def("init_screen", wy::castParameter(&sutra_atmos::init_screen), R"pbdoc(
+      .def("init_screen", wy::colCast(&sutra_atmos::init_screen), R"pbdoc(
         Initialize an newly allocated screen
 
         Parameters
@@ -87,7 +87,7 @@ void declare_shesha_atmos(py::module &mod) {
            py::arg("idx"), py::arg("A"), py::arg("B"), py::arg("istencilx"),
            py::arg("istencily"), py::arg("seed"))
 
-      .def("add_screen", wy::castParameter(&sutra_atmos::add_screen), R"pbdoc(
+      .def("add_screen", wy::colCast(&sutra_atmos::add_screen), R"pbdoc(
         Add a screen to the atmos object.
 
         Parameters
@@ -106,7 +106,7 @@ void declare_shesha_atmos(py::module &mod) {
            py::arg("r0"), py::arg("windspeed"), py::arg("winddir"),
            py::arg("deltax"), py::arg("deltay"), py::arg("device"))
 
-      .def("refresh_screen", wy::castParameter(&sutra_atmos::refresh_screen),
+      .def("refresh_screen", wy::colCast(&sutra_atmos::refresh_screen),
            R"pbdoc(
         Refresh the selected screen by extrusion
         Parameters
@@ -115,7 +115,7 @@ void declare_shesha_atmos(py::module &mod) {
         )pbdoc",
            py::arg("idx"))
 
-      .def("del_screen", wy::castParameter(&sutra_atmos::del_screen), R"pbdoc(
+      .def("del_screen", wy::colCast(&sutra_atmos::del_screen), R"pbdoc(
         Delete the selected screen
         Parameters
         ------------
@@ -149,7 +149,7 @@ void declare_shesha_atmos(py::module &mod) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
-      .def("set_global_r0", wy::castParameter(&sutra_atmos::set_global_r0),
+      .def("set_global_r0", wy::colCast(&sutra_atmos::set_global_r0),
            R"pbdoc(
         Change the current global r0 of all layers
 
@@ -159,7 +159,7 @@ void declare_shesha_atmos(py::module &mod) {
         )pbdoc",
            py::arg("r0"))
 
-      .def("set_seed", wy::castParameter(&sutra_atmos::set_seed), R"pbdoc(
+      .def("set_seed", wy::colCast(&sutra_atmos::set_seed), R"pbdoc(
         Set the seed of the selected screen RNG
 
         Parameters

@@ -41,7 +41,6 @@ class sutra_lgs {
  public:
   sutra_lgs(carma_context *context, sutra_sensors *sensors, long nvalid,
             long npix, long nmaxhr);
-  sutra_lgs(const sutra_lgs &lgs);
   ~sutra_lgs();
 
   int lgs_init(int nprof, float hg, float h0, float deltah, float pixsie,

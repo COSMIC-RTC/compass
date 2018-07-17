@@ -14,7 +14,7 @@ std::unique_ptr<sutra_telescope> telescope_init(
 
 void declare_shesha_telescope(py::module &mod) {
   py::class_<sutra_telescope>(mod, "Telescope")
-      .def(py::init(wy::castParameter(telescope_init)), R"pbdoc(
+      .def(py::init(wy::colCast(telescope_init)), R"pbdoc(
         Create and initialise a Telescope object
         Parameters
         ------------

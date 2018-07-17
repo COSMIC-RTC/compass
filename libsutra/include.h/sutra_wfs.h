@@ -84,8 +84,6 @@ class sutra_wfs {
                  float mag, float zerop, long size, float noise, long seed,
                  float G, float thetaML, float dx, float dy);
   int load_pupil(float *pupil);
-  int get_ncpa_phase(float *h_src, size_t size);
-  int set_ncpa_phase(float *h_dest, size_t size);
   int load_kernels(float *lgskern);
   int sensor_trace(sutra_atmos *yatmos);
   int sensor_trace(sutra_dms *ydm, int rst);

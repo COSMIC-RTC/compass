@@ -62,6 +62,7 @@ add_library(sutra SHARED
     src.cpp/sutra_rtc.cpp
     # src.cpp/sutra_target_brama.cpp
     # src.cpp/sutra_target_bramaListenerImpl.cpp
+    src.cpp/sutra_source.cpp
     src.cpp/sutra_target.cpp
     src.cpp/sutra_telemetry.cpp
     src.cpp/sutra_telescope.cpp

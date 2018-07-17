@@ -13,7 +13,7 @@ PYBIND11_MODULE(naga, mod) {
   mod.doc() = "";
 
   declare_naga_context(mod);
-  // declare_naga_obj<int>(mod, "int");
+  declare_naga_obj<int>(mod, "int");
   // declare_naga_obj<unsigned int>(mod, "uint");
   declare_naga_obj<float>(mod, "float");
   declare_naga_obj<double>(mod, "double");

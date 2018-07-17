@@ -26,8 +26,8 @@ class sutra_controller_geo : public sutra_controller {
 
  public:
   sutra_controller_geo(carma_context *context, long nactu, long Nphi,
-                       float delay, sutra_dms *dms, char **type, float *alt,
-                       int ndm, bool wfs_direction);
+                       float delay, sutra_dms *dms, int *idx_dms, int ndm,
+                       bool wfs_direction);
   sutra_controller_geo(const sutra_controller_geo &controller);
   ~sutra_controller_geo();
 

@@ -25,7 +25,6 @@ import time
 
 from typing import Iterable, Any, Dict
 from shesha.sutra_bind.wrap import Sensors, Dms, Rtc, Atmos, Telescope, Target
-from shesha_bind import Atmos
 import naga
 
 
@@ -272,7 +271,7 @@ class Simulator:
              apply_control: (bool): (optional) if True (default), apply control on DMs
         '''
         if tar_trace is None and self.tar is not None:
-            tar_trace = range(len(self.config.p_targets))
+            tar_trace = self.tar.d_targets
         if wfs_trace is None and self.wfs is not None:
             wfs_trace = range(len(self.config.p_wfss))
 
@@ -282,33 +281,41 @@ class Simulator:
         if (
                 self.config.p_controllers is not None and
                 self.config.p_controllers[nControl].type == scons.ControllerType.GEO):
-            for t in tar_trace:
-                if see_atmos:
-                    self.tar.raytrace(t, b"atmos", atmos=self.atm)
-                else:
-                    self.tar.reset_phase(t)
-                self.tar.raytrace(t, b"telncpa", tel=self.tel, ncpa=1)
-                self.tar.raytrace(t, b"dm", dms=self.dms)
-                self.rtc.do_control_geo(nControl, self.dms, self.tar, t)
-                self.rtc.apply_control(nControl, self.dms)
+            if tar_trace is not None:
+                for t in tar_trace:
+                    if see_atmos:
+                        t.raytrace(self.atm)
+                    else:
+                        t.reset_phase()
+                    t.raytrace(self.tel)
+                    t.raytrace(self.dms)
+                    t.raytrace()
+                    if self.rtc is not None:
+                        self.rtc.do_control_geo(nControl, self.dms, self.tar, t)
+                        self.rtc.apply_control(nControl, self.dms)
         else:
-            for t in tar_trace:
-                if see_atmos:
-                    self.tar.raytrace(t, b"atmos", atmos=self.atm)
-                else:
-                    self.tar.reset_phase(t)
-                self.tar.raytrace(t, b"dm", tel=self.tel, dms=self.dms, ncpa=1)
-            for w in wfs_trace:
+            if tar_trace is not None:
+                for t in tar_trace:
+                    if see_atmos:
+                        t.raytrace(self.atm)
+                    else:
+                        t.reset_phase()
+                    t.raytrace(self.tel)
+                    t.raytrace(self.dms)
+                    t.raytrace()
+            if wfs_trace is not None:
+                for w in wfs_trace:
 
-                if see_atmos:
-                    self.wfs.raytrace(w, b"atmos", tel=self.tel, atmos=self.atm, ncpa=1)
-                else:
-                    self.wfs.raytrace(w, b"telncpa", tel=self.tel, rst=1, ncpa=1)
+                    if see_atmos:
+                        self.wfs.raytrace(w, b"atmos", tel=self.tel, atmos=self.atm,
+                                          ncpa=1)
+                    else:
+                        self.wfs.raytrace(w, b"telncpa", tel=self.tel, rst=1, ncpa=1)
 
-                if not self.config.p_wfss[w].openloop and self.dms is not None:
-                    self.wfs.raytrace(w, b"dm", dms=self.dms)
-                self.wfs.comp_img(w)
-        if do_control:
+                    if not self.config.p_wfss[w].openloop and self.dms is not None:
+                        self.wfs.raytrace(w, b"dm", dms=self.dms)
+                    self.wfs.comp_img(w)
+        if do_control and self.rtc is not None:
             self.rtc.do_centroids(nControl)
             self.rtc.do_control(nControl)
             self.rtc.do_clipping(0, -1e5, 1e5)
@@ -319,11 +326,12 @@ class Simulator:
     def print_strehl(self, monitoring_freq: int, t1: float, nCur: int=0, nTot: int=0,
                      nTar: int=0):
         framerate = monitoring_freq / t1
-        self.tar.comp_image(nTar)
-        strehltmp = self.tar.get_strehl(nTar)
+        self.tar.d_targets[nTar].comp_image()
+        self.tar.d_targets[nTar].comp_strehl()
         etr = (nTot - nCur) / framerate
-        print("%d \t %.3f \t  %.3f\t     %.1f \t %.1f" % (nCur + 1, strehltmp[0],
-                                                          strehltmp[1], etr, framerate))
+        print("%d \t %.3f \t  %.3f\t     %.1f \t %.1f" %
+              (nCur + 1, self.tar.d_targets[nTar].strehl_se,
+               self.tar.d_targets[nTar].strehl_le, etr, framerate))
 
     def loop(self, n: int=1, monitoring_freq: int=100, **kwargs):
         """

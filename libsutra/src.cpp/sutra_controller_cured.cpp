@@ -5,8 +5,8 @@
 sutra_controller_cured::sutra_controller_cured(carma_context *context,
                                                long nvalid, long nactu,
                                                float delay, sutra_dms *dms,
-                                               char **type, float *alt, int ndm)
-    : sutra_controller(context, nvalid * 2, nactu, delay, dms, type, alt, ndm),
+                                               int *idx_dms, int ndm)
+    : sutra_controller(context, nvalid * 2, nactu, delay, dms, idx_dms, ndm),
       gain(0),
       ndivs(0),
       tt_flag(false),

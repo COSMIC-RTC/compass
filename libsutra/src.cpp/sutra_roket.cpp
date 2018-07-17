@@ -102,9 +102,9 @@ sutra_roket::sutra_roket(carma_context *context, int device, sutra_rtc *rtc,
       this->target->d_targets[0]->d_phase->d_screen->getDims());
   // PSF fitting
   this->d_psfortho = new carma_obj<float>(
-      this->current_context, this->target->d_targets[0]->d_image->getDims());
+      this->current_context, this->target->d_targets[0]->d_image_se->getDims());
   // this->d_psfse = new
-  // carma_obj<float>(this->current_context,this->target->d_targets[0]->d_image->getDims());
+  // carma_obj<float>(this->current_context,this->target->d_targets[0]->d_image_se->getDims());
   // carmaSafeCall(cudaMemset(this->d_psfse->getData(), 0, sizeof(float) *
   // this->d_psfse->getNbElem()));
 }
@@ -231,9 +231,9 @@ int sutra_roket::compute_breakdown() {
   this->target->d_targets[0]->raytrace(this->dms, 0, 0);
   this->fitting += this->target->d_targets[0]->phase_var / this->niter;
   this->target->d_targets[0]->comp_image(0, false);
-  // this->d_psfse->copyFrom(this->target->d_targets[0]->d_image->getData(),this->d_psfse->getNbElem());
+  // this->d_psfse->copyFrom(this->target->d_targets[0]->d_image_se->getData(),this->d_psfse->getNbElem());
   this->d_psfortho->axpy(1.0f / this->niter,
-                         this->target->d_targets[0]->d_image, 1, 1);
+                         this->target->d_targets[0]->d_image_se, 1, 1);
   // Filtered modes
   carma_gemv<float>(this->current_context->get_cublasHandle(), 'n',
                     this->nmodes, this->nactus, 1.0f, this->d_P->getData(),

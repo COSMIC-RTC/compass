@@ -34,12 +34,12 @@ cublasOperation_t carma_char2cublasOperation(char operation);
  */
 
 template <class T_data>
-int carma_wheremax(cublasHandle_t cublas_handle, int n, const T_data *vect,
-                   int incx);
+int carma_where_amax(cublasHandle_t cublas_handle, int n, const T_data *vect,
+                     int incx);
 
 template <class T_data>
-int carma_wheremin(cublasHandle_t cublas_handle, int n, const T_data *vect,
-                   int incx);
+int carma_where_amin(cublasHandle_t cublas_handle, int n, const T_data *vect,
+                     int incx);
 
 template <class T_data>
 T_data carma_getasum(cublasHandle_t cublas_handle, int n, const T_data *vect,

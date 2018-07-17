@@ -121,28 +121,6 @@ template void comp_dmshape<double>(int threads, int blocks, double *d_idata,
                                    int N);
 
 template <class T>
-__global__ void oneactu_krnl(T *g_idata, T *g_odata, int nactu, T ampli,
-                             int *xoff, int *yoff, int dim_im, int dim_influ,
-                             int N) {
-  unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
-
-  while (i < N) {
-    int iy = i / dim_im;
-    int ix = i - iy * dim_im;
-    int ixactu = ix - xoff[nactu];
-    int iyactu = iy - yoff[nactu];
-
-    // write result for this block to global mem
-    if ((ixactu > -1) && (ixactu < dim_influ) && (iyactu > -1) &&
-        (iyactu < dim_influ)) {
-      int tid = ixactu + iyactu * dim_influ + nactu * dim_influ * dim_influ;
-      g_odata[i] = ampli * g_idata[tid];
-    }
-    i += blockDim.x * gridDim.x;
-  }
-}
-
-template <class T>
 __global__ void oneactu_krnl_fast(T *g_idata, T *g_odata, int nactu, T ampli,
                                   int *xoff, int *yoff, int dim_im,
                                   int dim_influ, int N) {
@@ -170,10 +148,6 @@ void oneactu(int threads, int blocks, T *d_idata, T *d_odata, int nactu,
   dim3 dimBlock(threads, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
 
-  // when there is only one warp per block, we need to allocate two warps
-  // worth of shared memory so that we don't index shared memory out of bounds
-  // oneactu_krnl<T><<< dimGrid, dimBlock >>>(d_idata,d_odata, nactu, ampli,
-  // xoff, yoff, dim_im, dim_influ, N);
   oneactu_krnl_fast<T><<<dimGrid, dimBlock>>>(d_idata, d_odata, nactu, ampli,
                                               xoff, yoff, dim_im, dim_influ, N);
 
@@ -213,10 +187,6 @@ void oneactu(int threads, int blocks, T *d_idata, T *d_odata, int nactu,
   dim3 dimBlock(threads, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
 
-  // when there is only one warp per block, we need to allocate two warps
-  // worth of shared memory so that we don't index shared memory out of bounds
-  // oneactu_krnl<T><<< dimGrid, dimBlock >>>(d_idata,d_odata, nactu, ampli,
-  // xoff, yoff, dim_im, dim_influ, N);
   oneactu_krnl_fast<T><<<dimGrid, dimBlock>>>(d_idata, d_odata, nactu, ampli,
                                               dim_im, dim_influ, N);
 
@@ -363,82 +333,6 @@ int fill_filtermat(float *filter, int nactu, int N, carma_device *device) {
 
   fill_filtermat_krnl<<<grid, threads>>>(filter, nactu, N);
   carmaCheckMsg("fill_filtmat_krnl<<<>>> execution failed\n");
-
-  return EXIT_SUCCESS;
-}
-
-__global__ void multi_krnl(float *i_data, float gain, int N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
-
-  while (tid < N) {
-    i_data[tid] = i_data[tid] * gain;
-    tid += blockDim.x * gridDim.x;
-  }
-}
-
-int multi_vect(float *d_data, float gain, int N, carma_device *device) {
-  int nBlocks, nThreads;
-  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
-  dim3 grid(nBlocks), threads(nThreads);
-
-  multi_krnl<<<grid, threads>>>(d_data, gain, N);
-
-  carmaCheckMsg("mult_kernel<<<>>> execution failed\n");
-  return EXIT_SUCCESS;
-}
-
-__global__ void fillpos_krnl(int *pos, int *xoff, int *yoff, int size,
-                             int nactu, int dim, int N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
-  while (tid < N) {
-    int pix = tid / nactu;
-    int actu = tid - pix * nactu;
-
-    if (pix == 0)
-      pos[tid] = (xoff[actu] + size / 2) + (yoff[actu] + size / 2) * dim;
-    if (pix == 1)
-      pos[tid] = (xoff[actu] - 1 + size / 2) + (yoff[actu] + size / 2) * dim;
-    if (pix == 2)
-      pos[tid] = (xoff[actu] + size / 2) + (yoff[actu] - 1 + size / 2) * dim;
-    if (pix == 3)
-      pos[tid] =
-          (xoff[actu] - 1 + size / 2) + (yoff[actu] - 1 + size / 2) * dim;
-    tid += blockDim.x * gridDim.x;
-  }
-}
-
-int fillpos(int threads, int blocks, int *pos, int *xoff, int *yoff, int size,
-            int nactu, int dim, int N) {
-  dim3 dimBlock(threads, 1, 1);
-  dim3 dimGrid(blocks, 1, 1);
-
-  fillpos_krnl<<<dimGrid, dimBlock>>>(pos, xoff, yoff, size, nactu, dim, N);
-
-  carmaCheckMsg("fillpos_kernel<<<>>> execution failed\n");
-
-  return EXIT_SUCCESS;
-}
-
-__global__ void fillmapactu_krnl(float *mapactu, float *comvec, int *pos,
-                                 int nactu, int N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
-  while (tid < N) {
-    int pix = tid / nactu;
-    int actu = tid - pix * nactu;
-
-    mapactu[pos[tid]] = comvec[actu] / 4.0f;
-    tid += blockDim.x * gridDim.x;
-  }
-}
-
-int fill_mapactu(int threads, int blocks, float *mapactu, int *pos,
-                 float *comvec, int nactu, int N) {
-  dim3 dimBlock(threads, 1, 1);
-  dim3 dimGrid(blocks, 1, 1);
-
-  fillmapactu_krnl<<<dimGrid, dimBlock>>>(mapactu, comvec, pos, nactu, N);
-
-  carmaCheckMsg("fillmapactu_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }

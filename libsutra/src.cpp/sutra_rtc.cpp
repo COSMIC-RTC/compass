@@ -67,12 +67,11 @@ int sutra_rtc::add_centroider(sutra_sensors *sensors, int nwfs, long nvalid,
 }
 
 int sutra_rtc::add_controller_geo(int nactu, int Nphi, float delay, long device,
-                                  sutra_dms *dms, char **type_dmseen,
-                                  float *alt, int ndm, bool wfs_direction) {
+                                  sutra_dms *dms, int *idx_dms, int ndm,
+                                  bool wfs_direction) {
   current_context->set_activeDevice(device, 1);
-  this->d_control.push_back(
-      new sutra_controller_geo(current_context, nactu, Nphi, delay, dms,
-                               type_dmseen, alt, ndm, wfs_direction));
+  this->d_control.push_back(new sutra_controller_geo(
+      current_context, nactu, Nphi, delay, dms, idx_dms, ndm, wfs_direction));
   return EXIT_SUCCESS;
 }
 
@@ -85,19 +84,18 @@ int sutra_rtc::add_controller(int nactu, float delay, long device,
 
   string type_ctr(typec);
   sutra_dms *dms = nullptr;
-  char **type_dmseen = nullptr;
-  float *alt = nullptr;
+  int *idx_dms = nullptr;
 
   if (type_ctr.compare("generic") == 0) {
     d_control.push_back(new sutra_controller_generic(
-        current_context, ncentroids, nactu, delay, dms, type_dmseen, alt, 0));
+        current_context, ncentroids, nactu, delay, dms, idx_dms, 0));
   }
 
   return EXIT_SUCCESS;
 }
 int sutra_rtc::add_controller(int nactu, float delay, long device,
-                              const char *typec, sutra_dms *dms,
-                              char **type_dmseen, float *alt, int ndm) {
+                              const char *typec, sutra_dms *dms, int *idx_dms,
+                              int ndm) {
   current_context->set_activeDevice(device, 1);
   int ncentroids = 0;
   for (size_t idx = 0; idx < (this->d_centro).size(); idx++)
@@ -107,20 +105,20 @@ int sutra_rtc::add_controller(int nactu, float delay, long device,
   string type_ctr(typec);
   if (type_ctr.compare("ls") == 0) {
     d_control.push_back(new sutra_controller_ls(
-        current_context, ncentroids, nactu, delay, dms, type_dmseen, alt, ndm));
+        current_context, ncentroids, nactu, delay, dms, idx_dms, ndm));
   } else if (type_ctr.compare("cured") == 0) {
     d_control.push_back(new sutra_controller_cured(
-        current_context, ncentroids, nactu, delay, dms, type_dmseen, alt, ndm));
+        current_context, ncentroids, nactu, delay, dms, idx_dms, ndm));
   } else if (type_ctr.compare("mv") == 0) {
     d_control.push_back(new sutra_controller_mv(
-        current_context, ncentroids, nactu, delay, dms, type_dmseen, alt, ndm));
+        current_context, ncentroids, nactu, delay, dms, idx_dms, ndm));
   } else if (type_ctr.compare("generic") == 0) {
     d_control.push_back(new sutra_controller_generic(
-        current_context, ncentroids, nactu, delay, dms, type_dmseen, alt, ndm));
+        current_context, ncentroids, nactu, delay, dms, idx_dms, ndm));
   } else if ((type_ctr.compare("kalman_GPU") == 0) ||
              (type_ctr.compare("kalman_CPU") == 0)) {
-    d_control.push_back(new sutra_controller_kalman(
-        current_context, ncentroids, nactu, dms, type_dmseen, alt, ndm));
+    d_control.push_back(new sutra_controller_kalman(current_context, ncentroids,
+                                                    nactu, dms, idx_dms, ndm));
   } else {
     DEBUG_TRACE("Controller '%s' unknown\n", typec);
     return EXIT_FAILURE;
