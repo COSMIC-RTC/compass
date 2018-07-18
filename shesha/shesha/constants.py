@@ -121,8 +121,8 @@ class WFSType:
     """
         WFS Types
     """
-    SH = b'sh'
-    PYRHR = b'pyrhr'
+    SH = 'sh'
+    PYRHR = 'pyrhr'
 
 
 class TargetImageType:

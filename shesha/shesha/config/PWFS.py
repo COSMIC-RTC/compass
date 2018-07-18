@@ -175,12 +175,12 @@ class Param_wfs:
         self.__pyr_cx = None  # (float*)
         self.__pyr_cy = None  # (float*)
 
-    def set_type(self, type):
+    def set_type(self, typewfs):
         """ Set the type of wfs
 
         :param t: (str) : type of wfs ("sh" or "pyr")
         """
-        self.__type = scons.check_enum(scons.WFSType, type)
+        self.__type = typewfs  #scons.check_enum(scons.WFSType, type)0
 
     type = property(lambda x: x.__type, set_type)
 

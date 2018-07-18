@@ -12,6 +12,7 @@
 #include <vector>
 
 using std::map;
+using std::string;
 using std::vector;
 
 class sutra_sensors {
@@ -32,11 +33,11 @@ class sutra_sensors {
   carma_obj<float> *d_lgskern;
 
  public:
-  sutra_sensors(carma_context *context, sutra_telescope *d_tel, char **type,
-                int nwfs, long *nxsub, long *nvalid, long *npix, long *nphase,
-                long *nrebin, long *nfft, long *ntot, long *npup, float *pdiam,
-                float *nphot, float *nphot4imat, int *lgs, int device,
-                bool roket);
+  sutra_sensors(carma_context *context, sutra_telescope *d_tel,
+                vector<string> type, int nwfs, long *nxsub, long *nvalid,
+                long *npix, long *nphase, long *nrebin, long *nfft, long *ntot,
+                long *npup, float *pdiam, float *nphot, float *nphot4imat,
+                int *lgs, int device, bool roket);
   ~sutra_sensors();
 
   int allocate_buffers();

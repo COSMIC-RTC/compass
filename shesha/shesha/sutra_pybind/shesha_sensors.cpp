@@ -5,8 +5,8 @@
 namespace py = pybind11;
 
 std::unique_ptr<sutra_sensors> sensors_init(
-    carma_context &context, sutra_telescope *d_tel, char **type, int nwfs,
-    long *nxsub, long *nvalid, long *npix, long *nphase, long *nrebin,
+    carma_context &context, sutra_telescope *d_tel, vector<string> type,
+    int nwfs, long *nxsub, long *nvalid, long *npix, long *nphase, long *nrebin,
     long *nfft, long *ntot, long *npup, float *pdiam, float *nphot,
     float *nphot4imat, int *lgs, int device, bool roket) {
   return std::unique_ptr<sutra_sensors>(new sutra_sensors(

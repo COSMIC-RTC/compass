@@ -626,6 +626,25 @@ int carma_svd<double>(caObjD *imat, caObjD *eigenvals, caObjD *mod2act,
 }
 
 template <>
+int carma_svd<cuFloatComplex>(caObjC *imat, caObjC *eigenvals, caObjC *mod2act,
+                              caObjC *mes2mod) {
+  // TODO: carma_svd
+  MAGMA_TRACE("carma_svd not implemented on device object! \n");
+  return EXIT_FAILURE;
+
+  // return carma_gesvd<double>(mat, eigenvals, U, magma_dgesvd);
+}
+
+template <>
+int carma_svd<cuDoubleComplex>(caObjZ *imat, caObjZ *eigenvals, caObjZ *mod2act,
+                               caObjZ *mes2mod) {
+  // TODO: carma_svd
+  MAGMA_TRACE("carma_svd not implemented on device object! \n");
+  return EXIT_FAILURE;
+
+  // return carma_gesvd<double>(mat, eigenvals, U, magma_dgesvd);
+}
+template <>
 int carma_svd_cpu<float>(carma_host_obj<float> *mat,
                          carma_host_obj<float> *eigenvals,
                          carma_host_obj<float> *mod2act,
@@ -646,6 +665,13 @@ int carma_svd_cpu<double>(carma_host_obj<double> *mat,
 template <>
 int carma_potri<int>(carma_obj<int> *d_iA) {
   MAGMA_TRACE("carma_potri : not implemented for int* \n");
+
+  return EXIT_FAILURE;
+}
+
+template <>
+int carma_potri<cuFloatComplex>(carma_obj<cuFloatComplex> *d_iA) {
+  MAGMA_TRACE("carma_potri : not implemented for cuFloatComplex \n");
 
   return EXIT_FAILURE;
 }
@@ -718,6 +744,20 @@ int carma_potri_m<double>(long num_gpus, carma_host_obj<double> *h_A,
 template <>
 int carma_getri<int>(carma_obj<int> *d_iA) {
   std::cerr << "Getri not implemented for int*" << std::endl;
+
+  return EXIT_FAILURE;
+}
+
+template <>
+int carma_getri<cuFloatComplex>(carma_obj<cuFloatComplex> *d_iA) {
+  std::cerr << "Getri not implemented for cuFloatComplex*" << std::endl;
+
+  return EXIT_FAILURE;
+}
+
+template <>
+int carma_getri<cuDoubleComplex>(carma_obj<cuDoubleComplex> *d_iA) {
+  std::cerr << "Getri not implemented for cuDoubleComplex*" << std::endl;
 
   return EXIT_FAILURE;
 }

@@ -1,11 +1,11 @@
 #include <sutra_sensors.h>
 
 sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel,
-                             char **type, int nwfs, long *nxsub, long *nvalid,
-                             long *npix, long *nphase, long *nrebin, long *nfft,
-                             long *ntot, long *npup, float *pdiam, float *nphot,
-                             float *nphot4imat, int *lgs, int device,
-                             bool roket)
+                             vector<string> type, int nwfs, long *nxsub,
+                             long *nvalid, long *npix, long *nphase,
+                             long *nrebin, long *nfft, long *ntot, long *npup,
+                             float *pdiam, float *nphot, float *nphot4imat,
+                             int *lgs, int device, bool roket)
     : device(device),
       current_context(context),
       d_camplipup(nullptr),
@@ -15,7 +15,7 @@ sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel,
       d_lgskern(nullptr) {
   current_context->set_activeDevice(device, 1);
   // DEBUG_TRACE("Before create sensors : ");printMemInfo();
-  if (strcmp(type[0], "sh") == 0) {
+  if (type[0].compare("sh") == 0) {
     int maxnfft = nfft[0];
     int maxntot = ntot[0];
     int maxnvalid = 0;
@@ -67,13 +67,13 @@ sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel,
   // DEBUG_TRACE("After creating sensors arrays : ");printMemInfo();
   for (int i = 0; i < nwfs; i++) {
     sutra_wfs *wfs = NULL;
-    if (strcmp(type[i], "sh") == 0)
+    if (type[i].compare("sh") == 0)
       wfs = new sutra_wfs_sh(
           context, d_tel, this->d_camplipup, this->d_camplifoc, this->d_fttotim,
           nxsub[i], nvalid[i], npix[i], nphase[i], nrebin[i], nfft[i], ntot[i],
           npup[i], pdiam[i], nphot[i], nphot4imat[i], lgs[i], roket, device);
 
-    if (strcmp(type[i], "pyrhr") == 0) {
+    if (type[i].compare("pyrhr") == 0) {
       const int ngpu = context->get_ndevice();
       DEBUG_TRACE("using pyrhr with %d GPUs", ngpu);
       if (ngpu == 1) {

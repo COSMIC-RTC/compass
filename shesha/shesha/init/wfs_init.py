@@ -70,8 +70,8 @@ def wfs_init(context: naga_context, telescope: Telescope, p_wfss: list,
         mag = np.array([o.gsmag for o in p_wfss], dtype=np.float32)
         noise = np.array([o.noise for o in p_wfss], dtype=np.float32)
 
-        g_wfs.init_gs(xpos, ypos, Lambda, mag, zerop, size, noise, seed, G, thetaML, dx,
-                      dy)
+        g_wfs.initgs(xpos, ypos, Lambda, mag, zerop, size, noise, seed, G, thetaML, dx,
+                     dy)
 
     elif (p_wfss[0].type == scons.WFSType.PYRHR):
         npup = np.array([o.pyr_npts for o in p_wfss])
@@ -86,15 +86,27 @@ def wfs_init(context: naga_context, telescope: Telescope, p_wfss: list,
 
         mag = np.array([o.gsmag for o in p_wfss], dtype=np.float32)
         noise = np.array([o.noise for o in p_wfss], dtype=np.float32)
-        g_wfs.init_gs(xpos, ypos, Lambda, mag, zerop, size, noise, seed, G, thetaML, dx,
-                      dy)
+        g_wfs.initgs(xpos, ypos, Lambda, mag, zerop, size, noise, seed, G, thetaML, dx,
+                     dy)
 
     else:
         raise Exception("WFS type unknown")
 
     # fill sensor object with data
+
     for i in range(nsensors):
-        wfs_initarr(g_wfs, i, p_wfss[i])
+        p_wfs = p_wfss[i]
+        wfs = g_wfs.d_wfs[i]
+        fluxPerSub = p_wfs._fluxPerSub.T[np.where(p_wfs._isvalid > 0)].copy()
+        if p_wfs.type == scons.WFSType.PYRHR:
+            halfxy = np.exp(1j * p_wfs._halfxy).astype(np.complex64).T.copy()
+            wfs.loadarrays(halfxy, p_wfs._pyr_cx, p_wfs._pyr_cy, p_wfs._sincar,
+                           p_wfs._submask, p_wfs._validsubsx, p_wfs._validsubsy,
+                           p_wfs._phasemap, fluxPerSub)
+        else:
+            wfs.loadarrays(p_wfs._phasemap, p_wfs._hrmap, p_wfs._binmap, p_wfs._halfxy,
+                           fluxPerSub, p_wfs._validsubsx, p_wfs._validsubsy,
+                           p_wfs._istart + 1, p_wfs._jstart + 1, p_wfs._ftkernel)
 
     # lgs case
     for i in range(nsensors):
@@ -122,7 +134,7 @@ def wfs_init(context: naga_context, telescope: Telescope, p_wfss: list,
                     p_atmos.pupixsize
                 xoff = xoff + (p_atmos.dim_screens[j] - p_geom._n) / 2.
                 yoff = yoff + (p_atmos.dim_screens[j] - p_geom._n) / 2.
-                g_wfs.add_layer(i, type_target, p_atmos.alt[j], xoff, yoff)
+                g_wfs.d_wfs[i].d_gs.add_layer(type_target, j, xoff, yoff)
 
         if (not p_wfs.openloop and p_dms is not None):
             if (p_wfs.dms_seen is None):
@@ -139,25 +151,6 @@ def wfs_init(context: naga_context, telescope: Telescope, p_wfss: list,
                     p_dms[k].alt / p_tel.diam * p_geom.pupdiam
                 xoff = xoff + (dim - p_geom._n) / 2
                 yoff = yoff + (dim - p_geom._n) / 2
-                g_wfs.add_layer(i, p_dms[k].type, p_dms[k].alt, xoff, yoff)
+                g_wfs.d_wfs[i].d_gs.add_layer(p_dms[k].type, k, xoff, yoff)
 
     return g_wfs
-
-
-def wfs_initarr(wfs: Sensors, i: int, p_wfs: conf.Param_wfs):
-    """ Wrapper for the cython function Sensors.sensors_initarrays
-
-    :parameters:
-        wfs: (Sensors) : Sensors object
-        i: (int) : wfs index
-        p_wfs: (Param_wfs): wfs parameters
-    """
-    fluxPerSub = p_wfs._fluxPerSub.T[np.where(p_wfs._isvalid > 0)].copy()
-    if p_wfs.type == scons.WFSType.PYRHR:
-        halfxy = np.exp(1j * p_wfs._halfxy).astype(np.complex64).T.copy()
-    else:
-        halfxy = p_wfs._halfxy
-    wfs.init_arrays(i, p_wfs._phasemap, p_wfs._hrmap, halfxy, fluxPerSub,
-                    p_wfs._validsubsx, p_wfs._validsubsy, p_wfs._istart + 1,
-                    p_wfs._jstart + 1, p_wfs._binmap, p_wfs._ftkernel, p_wfs._pyr_cx,
-                    p_wfs._pyr_cy, p_wfs._sincar, p_wfs._submask)

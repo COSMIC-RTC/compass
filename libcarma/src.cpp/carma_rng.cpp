@@ -106,6 +106,8 @@ template int caObjI::prng_montagn(float init_montagn);
 template int caObjUI::prng_montagn(float init_montagn);
 template int caObjS::prng_montagn(float init_montagn);
 template int caObjD::prng_montagn(float init_montagn);
+template int caObjC::prng_montagn(float init_montagn);
+template int caObjZ::prng_montagn(float init_montagn);
 
 template <class T>
 int carma_obj<T>::prng(T *output, char gtype, float alpha) {
@@ -184,6 +186,8 @@ int carma_obj<T>::prng_host(char gtype) {
 }
 template int caObjI::prng_host(char gtype);
 template int caObjUI::prng_host(char gtype);
+template int caObjC::prng_host(char gtype);
+template int caObjZ::prng_host(char gtype);
 
 template <>
 int caObjS::prng_host(char gtype) {
@@ -211,6 +215,8 @@ int carma_obj<T>::prng_host(char gtype, T stddev) {
 }
 template int caObjI::prng_host(char gtype, int stddev);
 template int caObjUI::prng_host(char gtype, unsigned int stddev);
+template int caObjC::prng_host(char gtype, cuFloatComplex stddev);
+template int caObjZ::prng_host(char gtype, cuDoubleComplex stddev);
 
 template <>
 int caObjS::prng_host(char gtype, float stddev) {
@@ -238,7 +244,10 @@ int carma_obj<T>::prng_host(char gtype, T stddev, T alpha) {
 template int caObjI::prng_host(char gtype, int stddev, int alpha);
 template int caObjUI::prng_host(char gtype, unsigned int stddev,
                                 unsigned int alpha);
-
+template int caObjC::prng_host(char gtype, cuFloatComplex stddev,
+                               cuFloatComplex alpha);
+template int caObjZ::prng_host(char gtype, cuDoubleComplex stddev,
+                               cuDoubleComplex alpha);
 template <>
 int caObjS::prng_host(char gtype, float stddev, float alpha) {
   float *tmp_data;

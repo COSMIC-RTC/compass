@@ -19,6 +19,6 @@ PYBIND11_MODULE(naga, mod) {
   declare_naga_obj<double>(mod, "double");
   // declare_naga_obj<float2>(mod, "float2");
   // declare_naga_obj<double2>(mod, "double2");
-  // declare_naga_obj<cuFloatComplex>(mod, "float_complex");
+  declare_naga_obj<cuFloatComplex>(mod, "float_complex");
   // declare_naga_obj<cuDoubleComplex>(mod, "double_complex");
 }
