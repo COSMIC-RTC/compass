@@ -915,7 +915,7 @@ cdef class Rtc:
             raise TypeError("Controller needs to be geo")
 
     def load_Btt(self, int ncontrol, np.ndarray[ndim=2, dtype=np.float32_t] Btt):
-        """Load the Btt basis for sutra_controller_geo projection in case of error_budget
+        """Load the Btt basis for sutra_controller_geo projection in case of roket
 
         :parameters:
             ncontrol: (int) : controller index
@@ -1678,7 +1678,7 @@ cdef class Rtc:
         return data
 
     def get_geocov(self, int ncontrol):
-        """Return the geocov matrix of the sutra_controller_geo object. In case of error_budget computation, this matrix is Btt basis
+        """Return the geocov matrix of the sutra_controller_geo object. In case of roket computation, this matrix is Btt basis
         :parameters:
             ncontrol: (int) : controller index
         :return:
@@ -1701,7 +1701,7 @@ cdef class Rtc:
         return data_F.T.copy()
 
     def get_IFtt(self, int ncontrol):
-        """Return the TT IF matrix of the sutra_controller_geo object (in case of error_budget computation)
+        """Return the TT IF matrix of the sutra_controller_geo object (in case of roket computation)
         :parameters:
             ncontrol: (int) : controller index
         :return:

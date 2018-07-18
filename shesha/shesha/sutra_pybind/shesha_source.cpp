@@ -262,6 +262,17 @@ void declare_shesha_source(py::module &mod) {
            py::arg("dms"), py::arg("atm"), py::arg("tel"),
            py::arg("do_phase_var") = true, py::arg("async") = false)
 
+      .def("__str__",
+           [](sutra_source &ss) {
+             std::cout << "Type | LGS | position(\") |  Mag | Lambda (mic.)"
+                       << std::endl;
+             std::cout << ss.type << " | " << ss.lgs << " | "
+                       << "(" << ss.posx << "," << ss.posy << ") | " << ss.mag
+                       << " | " << ss.lambda << std::endl;
+
+             return "";
+           })
+
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝
       //  ███████╗█████╗     ██║      ██║   █████╗  ██████╔╝███████╗

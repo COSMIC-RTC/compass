@@ -106,7 +106,7 @@ int sutra_controller_geo::init_proj(sutra_dms *dms, int *indx_dm,
     dm->get_IF<float>(d_IF.getDataAt(indx_start * this->Nphi),
                       d_indx.getDataAt(this->Nphi * ind), this->Nphi,
                       1.0f /*unitpervolt[ind]*/);
-    indx_start += dm->ninflu;
+    indx_start += dm->nactus;
     ind++;
     p++;
   }
@@ -165,9 +165,9 @@ int sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm,
                               this->Nphi, 1.0f, 1);
     dm->reset_shape();
     NNZ[ind] = d_IFi[ind]->nz_elem;
-    Nact[ind] = dm->ninflu;
+    Nact[ind] = dm->nactus;
     nnz += d_IFi[ind]->nz_elem;
-    indx_start += dm->ninflu;
+    indx_start += dm->nactus;
     ind++;
     p++;
   }
@@ -192,14 +192,14 @@ int sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm,
                                   cudaMemcpyDeviceToDevice));
     if (i == 0)
       carmaSafeCall(cudaMemcpyAsync(d_row.getData(), d_IFi[i]->d_rowind,
-                                    sizeof(int) * (dm->ninflu + 1),
+                                    sizeof(int) * (dm->nactus + 1),
                                     cudaMemcpyDeviceToDevice));
     else
       carmaSafeCall(cudaMemcpyAsync(
           d_row.getDataAt(nact + 1), &(d_IFi[i]->d_rowind[1]),
-          sizeof(int) * (dm->ninflu), cudaMemcpyDeviceToDevice));
+          sizeof(int) * (dm->nactus), cudaMemcpyDeviceToDevice));
     cpt[i + 1] = cpt[i] + d_IFi[i]->nz_elem;
-    nact += dm->ninflu;
+    nact += dm->nactus;
     p++;
     delete d_IFi[i];
   }
@@ -259,13 +259,13 @@ int sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm,
       if (dm->type == "tt") {
         // dm->get_IF(this->d_TT->getDataAt(ind*Nphi),
         // d_indx.getDataAt(this->Nphi * ind2), this->Nphi, 1.0f);
-        for (int i = 0; i < dm->ninflu; i++) {
+        for (int i = 0; i < dm->nactus; i++) {
           dm->comp_oneactu(i, 1.0f);
 
           getIF<float>(this->d_TT->getDataAt(ind * this->Nphi),
                        dm->d_shape->d_screen->getData(),
                        d_indx.getDataAt(ind2 * this->Nphi), this->Nphi, 0,
-                       dm->ninflu, 1,
+                       dm->nactus, 1,
                        this->current_context->get_device(device));
           dm->reset_shape();
 

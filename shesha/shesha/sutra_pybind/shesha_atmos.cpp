@@ -138,8 +138,8 @@ void declare_shesha_atmos(py::module &mod) {
                          << std::endl;
                i++;
                it++;
-               return "";
              }
+             return "";
            })
 
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗

@@ -2,13 +2,13 @@
 #define _SUTRA_SOURCE_H_
 
 #include <carma.h>
-#include <sutra_ao_utils.h>
 #include <sutra_atmos.h>
 #include <sutra_dm.h>
 #include <sutra_lgs.h>
 #include <sutra_source.h>
 #include <sutra_telemetry.h>
 #include <sutra_telescope.h>
+#include <sutra_utils.h>
 #include <map>
 #include <string>
 #include <vector>

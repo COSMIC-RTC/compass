@@ -1,5 +1,4 @@
 #include <sutra_rtc.h>
-#include <sutra_wfs_geom.h>
 #include <sutra_wfs_pyr_pyrhr.h>
 #include <sutra_wfs_sh.h>
 
@@ -161,8 +160,8 @@ int sutra_rtc::do_imat(int ncntrl, sutra_dms *ydm) {
   while (p != this->d_control[ncntrl]->d_dmseen.end()) {
     sutra_dm *dm = *p;
     std::string desc = "DM" + carma_utils::to_string(cc2);
-    auto progress = carma_utils::ProgressBar(dm->ninflu, desc);
-    for (int j = 0; j < dm->ninflu; ++j) {
+    auto progress = carma_utils::ProgressBar(dm->nactus, desc);
+    for (int j = 0; j < dm->nactus; ++j) {
       // Push
       dm->comp_oneactu(j, dm->push4imat);
 
@@ -244,7 +243,7 @@ int sutra_rtc::do_imat_geom(int ncntrl, sutra_dms *ydm, int type) {
   inds1 = 0;
   while (p != this->d_control[ncntrl]->d_dmseen.end()) {
     sutra_dm *dm = *p;
-    for (int j = 0; j < dm->ninflu; j++) {
+    for (int j = 0; j < dm->nactus; j++) {
       dm->comp_oneactu(j, dm->push4imat);  //
       inds2 = 0;
       for (size_t idx_cntr = 0; idx_cntr < (this->d_control).size();
@@ -269,9 +268,6 @@ int sutra_rtc::do_imat_geom(int ncntrl, sutra_dms *ydm, int type) {
         // sensors->d_wfs[nwfs]->comp_image();
         if (wfs->type != "sh") {
           sutra_wfs_sh *_wfs = dynamic_cast<sutra_wfs_sh *>(wfs);
-          _wfs->slopes_geom(type, d_imat[inds1 + inds2]);
-        } else if (wfs->type != "geo") {
-          sutra_wfs_geom *_wfs = dynamic_cast<sutra_wfs_geom *>(wfs);
           _wfs->slopes_geom(type, d_imat[inds1 + inds2]);
         } else if (wfs->type != "pyrhr") {
           sutra_wfs_pyr_pyrhr *_wfs = dynamic_cast<sutra_wfs_pyr_pyrhr *>(wfs);
@@ -364,12 +360,6 @@ int sutra_rtc::do_centroids_geom(int ncntrl) {
       sutra_wfs_sh *_wfs = dynamic_cast<sutra_wfs_sh *>(wfs);
       _wfs->slopes_geom(0,
                         this->d_control[ncntrl]->d_centroids->getDataAt(inds2));
-
-    } else if (wfs->type == "geo") {
-      sutra_wfs_geom *_wfs = dynamic_cast<sutra_wfs_geom *>(wfs);
-      _wfs->slopes_geom(0,
-                        this->d_control[ncntrl]->d_centroids->getDataAt(inds2));
-
     } else if (wfs->type == "pyrhr") {
       sutra_wfs_pyr_pyrhr *_wfs = dynamic_cast<sutra_wfs_pyr_pyrhr *>(wfs);
       _wfs->slopes_geom(0,
@@ -441,27 +431,27 @@ int sutra_rtc::apply_control(int ncntrl, sutra_dms *ydm) {
       sutra_dm *dm = *p;
 
       int nstreams = this->d_control[ncntrl]->streams->get_nbStreams();
-      if (nstreams > dm->ninflu) {
+      if (nstreams > dm->nactus) {
         for (int i = 0; i < nstreams; i++) {
-          int istart = i * dm->ninflu / nstreams;
+          int istart = i * dm->nactus / nstreams;
           carmaSafeCall(cudaMemcpyAsync(
               dm->d_com->getDataAt(istart),
               this->d_control[ncntrl]->d_voltage->getDataAt(idx + istart),
-              sizeof(float) * dm->ninflu / nstreams, cudaMemcpyDeviceToDevice,
+              sizeof(float) * dm->nactus / nstreams, cudaMemcpyDeviceToDevice,
               (*this->d_control[ncntrl]->streams)[i]));
           dm->comp_shape();
         }
       } else {
         dm->comp_shape(this->d_control[ncntrl]->d_voltage->getDataAt(idx));
       }
-      idx += dm->ninflu;
+      idx += dm->nactus;
       p++;
     }
   } else {  // "non-streamed" controllers
     while (p != this->d_control[ncntrl]->d_dmseen.end()) {
       sutra_dm *dm = *p;
       dm->comp_shape(this->d_control[ncntrl]->d_voltage->getDataAt(idx));
-      idx += dm->ninflu;
+      idx += dm->nactus;
       p++;
     }
   }

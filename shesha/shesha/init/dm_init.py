@@ -83,7 +83,6 @@ def _dm_init(context: naga_context, dms: Dms, p_dm: conf.Param_dm, xpos_wfs: lis
 
     if (p_dm.pupoffset is not None):
         p_dm._puppixoffset = p_dm.pupoffset / diam * p_geom.pupdiam
-
     # For patchDiam
     patchDiam = dm_util.dim_dm_patch(p_geom.pupdiam, diam, p_dm.type, p_dm.alt, xpos_wfs,
                                      ypos_wfs)

@@ -14,10 +14,10 @@ sutra_dms::~sutra_dms() {
 }
 
 int sutra_dms::add_dm(carma_context *context, const char *type, float alt,
-                      long dim, long ninflu, long influsize, long ninflupos,
+                      long dim, long nactus, long influsize, long ninflupos,
                       long n_npoints, float push4imat, long nord, int device) {
-  d_dms.push_back(new sutra_dm(context, type, dim, ninflu, influsize, ninflupos,
-                               n_npoints, push4imat, nord, device));
+  d_dms.push_back(new sutra_dm(context, type, alt, dim, nactus, influsize,
+                               ninflupos, n_npoints, push4imat, nord, device));
 
   return EXIT_SUCCESS;
 }
@@ -37,14 +37,14 @@ int sutra_dms::remove_dm(int idx) {
 int sutra_dms::nact_total() {
   int nact = 0;
   for (size_t idx = 0; idx < this->d_dms.size(); idx++) {
-    nact += d_dms[idx]->ninflu;
+    nact += d_dms[idx]->nactus;
   }
   return nact;
 }
 
-sutra_dm::sutra_dm(carma_context *context, const char *type, long dim,
-                   long ninflu, long influsize, long ninflupos, long n_npoints,
-                   float push4imat, long nord, int device) {
+sutra_dm::sutra_dm(carma_context *context, const char *type, float alt,
+                   long dim, long nactus, long influsize, long ninflupos,
+                   long n_npoints, float push4imat, long nord, int device) {
   this->d_influ = NULL;
   this->d_influpos = NULL;
   this->d_npoints = NULL;
@@ -60,16 +60,17 @@ sutra_dm::sutra_dm(carma_context *context, const char *type, long dim,
   this->current_context = context;
   this->device = device;
   current_context->set_activeDevice(device, 1);
-  this->ninflu = ninflu;
+  this->nactus = nactus;
   this->dim = dim;
   this->influsize = influsize;
   this->d_shape = new sutra_phase(context, dim);
   this->type = type;
+  this->altitude = alt;
   this->push4imat = push4imat;
 
   long dims_data1[2];
   dims_data1[0] = 1;
-  dims_data1[1] = ninflu;
+  dims_data1[1] = nactus;
   this->d_com = new carma_obj<float>(context, dims_data1);
 
   if (strcmp(type, "kl") != 0) {
@@ -77,11 +78,11 @@ sutra_dm::sutra_dm(carma_context *context, const char *type, long dim,
     dims_data3[0] = 3;
     dims_data3[1] = influsize;
     dims_data3[2] = influsize;
-    dims_data3[3] = ninflu;
+    dims_data3[3] = nactus;
     this->d_influ = new carma_obj<float>(context, dims_data3);
     delete[] dims_data3;
 
-    dims_data1[1] = ninflu;
+    dims_data1[1] = nactus;
     this->d_xoff = new carma_obj<int>(context, dims_data1);
     this->d_yoff = new carma_obj<int>(context, dims_data1);
   }
@@ -96,7 +97,7 @@ sutra_dm::sutra_dm(carma_context *context, const char *type, long dim,
     this->d_istart = new carma_obj<int>(context, dims_data1);
   }
   if (strcmp(type, "kl") == 0) {
-    this->d_kl = new sutra_kl(context, influsize, ninflupos, n_npoints, ninflu,
+    this->d_kl = new sutra_kl(context, influsize, ninflupos, n_npoints, nactus,
                               nord, device);
   }
 }
@@ -116,7 +117,7 @@ sutra_dm::~sutra_dm() {
   if (this->d_KLbasis != NULL) delete this->d_KLbasis;
 }
 
-int sutra_dm::nact() { return this->ninflu; }
+int sutra_dm::nact() { return this->nactus; }
 
 int sutra_dm::tt_loadarrays(float *influ) {
   current_context->set_activeDevice(device, 1);
@@ -183,7 +184,7 @@ int sutra_dm::comp_shape(float *comvec) {
 
   if (this->type == "tt")
     comp_fulldmshape(nthreads, nblocks, this->d_influ->getData(),
-                     this->d_shape->d_screen->getData(), this->ninflu,
+                     this->d_shape->d_screen->getData(), this->nactus,
                      this->influsize * this->influsize, comvec,
                      this->d_shape->d_screen->getNbElem());
 
@@ -221,7 +222,7 @@ int sutra_dm::comp_shape(float *comvec) {
 
   if (this->type == "tt")
     comp_fulldmshape(nthreads, nblocks, this->d_influ->getData(),
-                     this->d_shape->d_screen->getData(), this->ninflu,
+                     this->d_shape->d_screen->getData(), this->nactus,
                      this->influsize * this->influsize, comvec,
                      this->d_shape->d_screen->getNbElem());
 
@@ -267,10 +268,10 @@ int sutra_dm::comp_oneactu(int nactu, float ampli) {
 
 template <class T>
 int sutra_dm::get_IF(T *IF, int *indx_pup, long nb_pts, float ampli) {
-  for (int i = 0; i < this->ninflu; i++) {
+  for (int i = 0; i < this->nactus; i++) {
     this->comp_oneactu(i, ampli);
     getIF<T>(IF, this->d_shape->d_screen->getData(), indx_pup, nb_pts, i,
-             this->ninflu, 1, current_context->get_device(device));
+             this->nactus, 1, current_context->get_device(device));
   }
 
   this->reset_shape();
@@ -287,19 +288,19 @@ int sutra_dm::get_IF_sparse(carma_sparse_obj<T> *&d_IFsparse, int *indx_pup,
                             long nb_pts, float ampli, int puponly) {
   current_context->set_activeDevice(device, 1);
   int nnz_tot = 0;
-  float *values[this->ninflu];
-  int *colind[this->ninflu];
-  int NZ[this->ninflu];
+  float *values[this->nactus];
+  int *colind[this->nactus];
+  int NZ[this->nactus];
   long dims_data2[3] = {2, 1, nb_pts};
   carma_obj<T> d_IF(current_context, dims_data2);
   carma_sparse_obj<T> *d_IFsparse_vec;
 
   std::cout << "Computing IF sparse..." << std::endl;
-  for (int i = 0; i < this->ninflu; i++) {
+  for (int i = 0; i < this->nactus; i++) {
     // Compute and store IF for actu i in d_IF
     this->comp_oneactu(i, ampli);
     getIF<T>(d_IF.getData(), this->d_shape->d_screen->getData(), indx_pup,
-             nb_pts, 0, this->ninflu, puponly,
+             nb_pts, 0, this->nactus, puponly,
              this->current_context->get_device(device));
     // CUsparse d_IF
     d_IFsparse_vec = new carma_sparse_obj<T>(&d_IF);
@@ -323,12 +324,12 @@ int sutra_dm::get_IF_sparse(carma_sparse_obj<T> *&d_IFsparse, int *indx_pup,
   long dims_data[2] = {1, nnz_tot};
   carma_obj<T> d_val(current_context, dims_data);
   carma_obj<int> d_col(current_context, dims_data);
-  dims_data[1] = this->ninflu + 1;
+  dims_data[1] = this->nactus + 1;
   carma_obj<int> d_row(current_context, dims_data);
-  int cpt[this->ninflu + 1];
+  int cpt[this->nactus + 1];
   cpt[0] = 0;
 
-  for (int i = 0; i < this->ninflu; i++) {
+  for (int i = 0; i < this->nactus; i++) {
     carmaSafeCall(cudaMemcpyAsync(d_val.getDataAt(cpt[i]), values[i],
                                   sizeof(T) * NZ[i], cudaMemcpyHostToDevice));
     carmaSafeCall(cudaMemcpyAsync(d_col.getDataAt(cpt[i]), colind[i],
@@ -336,9 +337,9 @@ int sutra_dm::get_IF_sparse(carma_sparse_obj<T> *&d_IFsparse, int *indx_pup,
     cpt[i + 1] = cpt[i] + NZ[i];
   }
   carmaSafeCall(cudaMemcpyAsync(d_row.getData(), cpt,
-                                sizeof(int) * (this->ninflu + 1),
+                                sizeof(int) * (this->nactus + 1),
                                 cudaMemcpyHostToDevice));
-  dims_data2[1] = this->ninflu;
+  dims_data2[1] = this->nactus;
 
   d_IFsparse =
       new carma_sparse_obj<T>(current_context, dims_data2, d_val.getData(),
@@ -358,8 +359,8 @@ int sutra_dm::compute_KLbasis(float *xpos, float *ypos, int *indx, long dim,
   current_context->set_activeDevice(device, 1);
   long dims_data[3];
   dims_data[0] = 2;
-  dims_data[1] = this->ninflu;
-  dims_data[2] = this->ninflu;
+  dims_data[1] = this->nactus;
+  dims_data[2] = this->nactus;
   carma_obj<float> *d_statcov =
       new carma_obj<float>(current_context, dims_data);
   this->d_KLbasis = new carma_obj<float>(current_context, dims_data);
@@ -371,13 +372,13 @@ int sutra_dm::compute_KLbasis(float *xpos, float *ypos, int *indx, long dim,
 
   // Compute the statistic matrix from actuators positions & Kolmogorov
   // statistic
-  dims_data2[1] = this->ninflu;
+  dims_data2[1] = this->nactus;
   carma_obj<float> *d_xpos = new carma_obj<float>(current_context, dims_data2);
   carma_obj<float> *d_ypos = new carma_obj<float>(current_context, dims_data2);
 
   d_xpos->host2device(xpos);
   d_ypos->host2device(ypos);
-  dm_dostatmat(d_statcov->getData(), this->ninflu, d_xpos->getData(),
+  dm_dostatmat(d_statcov->getData(), this->nactus, d_xpos->getData(),
                d_ypos->getData(), norm, current_context->get_device(device));
 
   delete d_xpos;
@@ -386,8 +387,8 @@ int sutra_dm::compute_KLbasis(float *xpos, float *ypos, int *indx, long dim,
   // Compute and apply piston filter
   this->piston_filt(d_statcov);
 
-  dims_data[1] = this->ninflu;
-  dims_data[2] = this->ninflu;
+  dims_data[1] = this->nactus;
+  dims_data[2] = this->nactus;
   carma_obj<float> *d_geocov = new carma_obj<float>(current_context, dims_data);
   d_indx->host2device(indx);
 
@@ -405,7 +406,7 @@ int sutra_dm::compute_KLbasis(float *xpos, float *ypos, int *indx, long dim,
   // Dense version for geomat
   /*
   dims_data[1] = dim;
-  dims_data[2] = this->ninflu;
+  dims_data[2] = this->nactus;
 
   carma_obj<float> *d_IF = new carma_obj<float>(this->current_context,
   dims_data);
@@ -443,8 +444,8 @@ template int sutra_dm::do_geomatFromSparse<double>(
 
 int sutra_dm::do_geomat(float *d_geocov, float *d_IF, long n_pts) {
   current_context->set_activeDevice(device, 1);
-  carma_gemm(cublas_handle(), 't', 'n', this->ninflu, this->ninflu, n_pts, 1.0f,
-             d_IF, n_pts, d_IF, n_pts, 0.0f, d_geocov, this->ninflu);
+  carma_gemm(cublas_handle(), 't', 'n', this->nactus, this->nactus, n_pts, 1.0f,
+             d_IF, n_pts, d_IF, n_pts, 0.0f, d_geocov, this->nactus);
 
   return EXIT_SUCCESS;
 }
@@ -476,12 +477,12 @@ int sutra_dm::piston_filt(carma_obj<float> *d_statcov) {
 
 int sutra_dm::DDiago(carma_obj<float> *d_statcov, carma_obj<float> *d_geocov) {
   current_context->set_activeDevice(device, 1);
-  const long dims_data[3] = {2, this->ninflu, this->ninflu};
+  const long dims_data[3] = {2, this->nactus, this->nactus};
   carma_obj<float> *d_M1 = new carma_obj<float>(current_context, dims_data);
   carma_obj<float> *d_tmp = new carma_obj<float>(current_context, dims_data);
   carma_obj<float> *d_tmp2 = new carma_obj<float>(current_context, dims_data);
 
-  const long dims_data2[2] = {1, this->ninflu};
+  const long dims_data2[2] = {1, this->nactus};
   carma_obj<float> *d_eigenvals =
       new carma_obj<float>(current_context, dims_data2);
   carma_obj<float> *d_eigenvals_sqrt =
@@ -499,7 +500,7 @@ int sutra_dm::DDiago(carma_obj<float> *d_statcov, carma_obj<float> *d_geocov) {
   carma_syevd<float, 1>('V', d_geocov, h_eigenvals);
 
   d_eigenvals->host2device(*h_eigenvals);
-  for (int i = 0; i < this->ninflu; i++) {
+  for (int i = 0; i < this->nactus; i++) {
     h_eigenvals_sqrt->getData()[i] =
         sqrt(h_eigenvals->getData()[i]);  // D = sqrt(D������)
     h_eigenvals_inv->getData()[i] =
@@ -512,37 +513,37 @@ int sutra_dm::DDiago(carma_obj<float> *d_statcov, carma_obj<float> *d_geocov) {
   // 2. M��������������� = sqrt(eigenvals) * Ut : here, we have
   // transpose(M���������������)
   /*
-  carma_dgmm<float>(cublas_handle(),CUBLAS_SIDE_RIGHT,this->ninflu,this->ninflu,
-  d_geocov->getData(), this->ninflu, d_eigenvals_inv->getData(),1,
-  d_M1->getData(), this->ninflu);*/
+  carma_dgmm<float>(cublas_handle(),CUBLAS_SIDE_RIGHT,this->nactus,this->nactus,
+  d_geocov->getData(), this->nactus, d_eigenvals_inv->getData(),1,
+  d_M1->getData(), this->nactus);*/
 
-  carma_dgmm<float>(cublas_handle(), CUBLAS_SIDE_RIGHT, this->ninflu,
-                    this->ninflu, d_geocov->getData(), this->ninflu,
+  carma_dgmm<float>(cublas_handle(), CUBLAS_SIDE_RIGHT, this->nactus,
+                    this->nactus, d_geocov->getData(), this->nactus,
                     d_eigenvals_sqrt->getData(), 1, d_M1->getData(),
-                    this->ninflu);
+                    this->nactus);
 
   // 3. C' = M��������������� * statcov * M���������������t
-  carma_gemm<float>(cublas_handle(), 't', 'n', ninflu, ninflu, ninflu, 1.0f,
-                    d_M1->getData(), ninflu, d_statcov->getData(), ninflu, 0.0f,
-                    d_tmp->getData(), ninflu);
+  carma_gemm<float>(cublas_handle(), 't', 'n', nactus, nactus, nactus, 1.0f,
+                    d_M1->getData(), nactus, d_statcov->getData(), nactus, 0.0f,
+                    d_tmp->getData(), nactus);
 
-  carma_gemm<float>(cublas_handle(), 'n', 'n', ninflu, ninflu, ninflu, 1.0f,
-                    d_tmp->getData(), ninflu, d_M1->getData(), ninflu, 0.0f,
-                    d_tmp2->getData(), ninflu);
+  carma_gemm<float>(cublas_handle(), 'n', 'n', nactus, nactus, nactus, 1.0f,
+                    d_tmp->getData(), nactus, d_M1->getData(), nactus, 0.0f,
+                    d_tmp2->getData(), nactus);
 
   // 4. SVdec(C',A)
   carma_syevd<float, 1>('V', d_tmp2, h_eigenvals);
 
   // 5. M = U * D���������������
-  carma_dgmm<float>(cublas_handle(), CUBLAS_SIDE_RIGHT, this->ninflu,
-                    this->ninflu, d_geocov->getData(), this->ninflu,
+  carma_dgmm<float>(cublas_handle(), CUBLAS_SIDE_RIGHT, this->nactus,
+                    this->nactus, d_geocov->getData(), this->nactus,
                     d_eigenvals_inv->getData(), 1, d_tmp->getData(),
-                    this->ninflu);
+                    this->nactus);
 
   // 6. B = M * A;
-  carma_gemm<float>(cublas_handle(), 'n', 'n', ninflu, ninflu, ninflu, 1.0f,
-                    d_tmp->getData(), ninflu, d_tmp2->getData(), ninflu, 0.0f,
-                    d_KLbasis->getData(), ninflu);
+  carma_gemm<float>(cublas_handle(), 'n', 'n', nactus, nactus, nactus, 1.0f,
+                    d_tmp->getData(), nactus, d_tmp2->getData(), nactus, 0.0f,
+                    d_KLbasis->getData(), nactus);
 
   delete d_M1;
   delete d_tmp;

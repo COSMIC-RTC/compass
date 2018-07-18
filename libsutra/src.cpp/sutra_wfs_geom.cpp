@@ -1,6 +1,6 @@
 #include <carma_utils.h>
-#include <sutra_ao_utils.h>
 #include <sutra_telescope.h>
+#include <sutra_utils.h>
 #include <sutra_wfs_geom.h>
 
 sutra_wfs_geom::sutra_wfs_geom(carma_context *context, sutra_telescope *d_tel,

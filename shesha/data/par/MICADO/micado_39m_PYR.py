@@ -69,7 +69,7 @@ for p_target in p_targets:
 #p_target.set_Lambda([1.2, 1.65, 2.2])
 #p_target.set_mag([4, 4.])
 # wfs
-# p_wfs0 = conf.Param_wfs(error_budget=True)
+# p_wfs0 = conf.Param_wfs(roket=True)
 p_wfs0 = conf.Param_wfs()
 p_wfss = [p_wfs0]
 

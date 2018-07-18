@@ -151,7 +151,7 @@ int sutra_controller_mv::compute_Cphim(
   while (p != dms->d_dms.end()) {
     sutra_dm *dm = *p;
     if (dm->type != "tt") {
-      Nactu += dm->ninflu;
+      Nactu += dm->nactus;
     }
     p++;
   }

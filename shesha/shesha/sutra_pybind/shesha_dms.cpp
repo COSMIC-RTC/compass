@@ -59,7 +59,7 @@ void declare_shesha_dms(py::module &mod) {
         type: (str): DM type ("pzt", "kl", or "tt")
         alt: (float): Conjugaison altitude in meters
         dim: (long): Support dimension
-        ninflu: (long): Number of actuators
+        nactus: (long): Number of actuators
         influsize: (long): Influenction function support size
         ninflupos: (long): Size of _influpos array
         n_npoints: (long): Size of _ninflu array
@@ -68,7 +68,7 @@ void declare_shesha_dms(py::module &mod) {
         device: (int): Device index
         )pbdoc",
            py::arg("context"), py::arg("type"), py::arg("alt"), py::arg("dim"),
-           py::arg("ninflu"), py::arg("influsize"), py::arg("ninflupos"),
+           py::arg("nactus"), py::arg("influsize"), py::arg("ninflupos"),
            py::arg("n_npoints"), py::arg("push4imat"), py::arg("nord"),
            py::arg("device"))
 
@@ -80,6 +80,24 @@ void declare_shesha_dms(py::module &mod) {
         idx: (int): index of DM
         )pbdoc",
            py::arg("idx"))
+
+      .def("__str__",
+           [](sutra_dms &sdms) {
+             std::cout << sdms.d_dms.size() << " DMs created" << std::endl;
+             std::cout << "Total number of actuators : " << sdms.nact_total()
+                       << std::endl;
+             std::cout << "DM # | Type  |   Alt   | Nact | Dim" << std::endl;
+             vector<sutra_dm *>::iterator it = sdms.d_dms.begin();
+             int i = 0;
+             while (it != sdms.d_dms.end()) {
+               std::cout << i << " | " << (*it)->type << " | "
+                         << (*it)->altitude << " | " << (*it)->nactus << " | "
+                         << (*it)->dim << std::endl;
+               i++;
+               it++;
+             }
+             return "";
+           })
 
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝
@@ -102,7 +120,7 @@ void declare_shesha_dms(py::module &mod) {
               for (vector<sutra_dm *>::iterator it = sdms.d_dms.begin();
                    it != sdms.d_dms.end(); it++) {
                 (*it)->d_com->host2device(&com[com_idx]);
-                com_idx += (*it)->ninflu;
+                com_idx += (*it)->nactus;
                 if (shape_dm) (*it)->comp_shape();
               }
             }
@@ -143,7 +161,11 @@ void declare_shesha_dm(py::module &mod) {
       .def_property_readonly("type", [](sutra_dm &sdm) { return sdm.type; },
                              "DM type")
 
-      .def_property_readonly("ninflu", [](sutra_dm &sdm) { return sdm.ninflu; },
+      .def_property_readonly("altitude",
+                             [](sutra_dm &sdm) { return sdm.altitude; },
+                             "DM conjugaison altitude")
+
+      .def_property_readonly("nactus", [](sutra_dm &sdm) { return sdm.nactus; },
                              "Number of actuators")
 
       .def_property_readonly("influsize",
@@ -300,6 +322,14 @@ void declare_shesha_dm(py::module &mod) {
       )pbdoc",
            py::arg("xpos"), py::arg("ypos"), py::arg("indx_pup"),
            py::arg("dim"), py::arg("norm"), py::arg("ampli"))
+
+      .def("__str__",
+           [](sutra_dm &sdm) {
+             std::cout << "Type  |   Alt   | Nact | Dim" << std::endl;
+             std::cout << sdm.type << " | " << sdm.altitude << " | "
+                       << sdm.nactus << " | " << sdm.dim << std::endl;
+             return "";
+           })
 
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝

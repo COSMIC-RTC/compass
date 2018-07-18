@@ -125,7 +125,7 @@ print("----------------------------------------------------")
 print("iter# | SE SR image | LE SR image | Fitting | LE SR phase var")
 print("----------------------------------------------------")
 
-error_flag = True in [w.error_budget for w in config.p_wfss]
+error_flag = True in [w.roket for w in config.p_wfss]
 
 
 ##############################################################################
@@ -379,7 +379,12 @@ def compute_cmatWithBtt2(Btt, nfilt):
 def cov_cor(P, noise, trunc, alias, H, bp, tomo):
     cov = np.zeros((6, 6))
     bufdict = {
-            "0": noise.T, "1": trunc.T, "2": alias.T, "3": H.T, "4": bp.T, "5": tomo.T
+            "0": noise.T,
+            "1": trunc.T,
+            "2": alias.T,
+            "3": H.T,
+            "4": bp.T,
+            "5": tomo.T
     }
     for i in range(cov.shape[0]):
         for j in range(cov.shape[1]):
@@ -433,12 +438,28 @@ def save_it(filename):
 
     fname = "/home/fferreira/Data/" + filename
     pdict = {
-            "noise": noise_com.T, "aliasing": alias_wfs_com.T, "tomography": tomo_com.T,
-            "filtered modes": H_com.T, "non linearity": trunc_com.T,
-            "bandwidth": bp_com.T, "P": P, "Btt": Btt, "IF.data": IF.data,
-            "IF.indices": IF.indices, "IF.indptr": IF.indptr, "TT": TT, "dm_dim": dm_dim,
-            "indx_pup": indx_pup, "fitting": fit, "SR": SR, "SR2": SR2, "cov": cov,
-            "cor": cor, "psfortho": psfortho, "covm": covm, "covv": covv
+            "noise": noise_com.T,
+            "aliasing": alias_wfs_com.T,
+            "tomography": tomo_com.T,
+            "filtered modes": H_com.T,
+            "non linearity": trunc_com.T,
+            "bandwidth": bp_com.T,
+            "P": P,
+            "Btt": Btt,
+            "IF.data": IF.data,
+            "IF.indices": IF.indices,
+            "IF.indptr": IF.indptr,
+            "TT": TT,
+            "dm_dim": dm_dim,
+            "indx_pup": indx_pup,
+            "fitting": fit,
+            "SR": SR,
+            "SR2": SR2,
+            "cov": cov,
+            "cor": cor,
+            "psfortho": psfortho,
+            "covm": covm,
+            "covv": covv
     }
     h5u.save_h5(fname, "psf", config, psf)
     #h5u.writeHdf5SingleDataset(fname,com.T,datasetName="com")

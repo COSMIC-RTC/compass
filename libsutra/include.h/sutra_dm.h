@@ -2,9 +2,9 @@
 #define _SUTRA_DM_H_
 
 #include <carma_utils.h>
-#include <sutra_ao_utils.h>
 #include <sutra_kl.h>
 #include <sutra_phase.h>
+#include <sutra_utils.h>
 #include <map>
 
 #include <cuda.h>
@@ -33,7 +33,8 @@ class sutra_dm {
  public:
   int device;
   string type;
-  long ninflu;
+  float altitude;
+  long nactus;
   long influsize;
   long dim;
   float push4imat;
@@ -66,9 +67,9 @@ class sutra_dm {
   }
 
  public:
-  sutra_dm(carma_context *context, const char *type, long dim, long ninflu,
-           long influsize, long ninflupos, long n_npoints, float push4imat,
-           long nord, int device);
+  sutra_dm(carma_context *context, const char *type, float altitude, long dim,
+           long nactus, long influsize, long ninflupos, long n_npoints,
+           float push4imat, long nord, int device);
   ~sutra_dm();
 
   int nact();
@@ -117,7 +118,7 @@ class sutra_dms {
   ~sutra_dms();
 
   int add_dm(carma_context *context, const char *type, float alt, long dim,
-             long ninflu, long influsize, long ninflupos, long n_npoints,
+             long nactus, long influsize, long ninflupos, long n_npoints,
              float push4imat, long nord, int device);
   int remove_dm(int idx);
 
@@ -142,7 +143,7 @@ void oneactu(int threads, int blocks, T *d_idata, T *d_odata, int nactu,
              T ampli, int dim_im, int dim_influ, int N);
 template <class T>
 void comp_fulldmshape(int threads, int blocks, T *d_idata, T *d_odata,
-                      int ninflu, int diminflu, T *comm, int N);
+                      int nactus, int diminflu, T *comm, int N);
 
 template <class T>
 int getIF(T *IF, float *dmshape, int *indx_pup, long nb_pts, int column,

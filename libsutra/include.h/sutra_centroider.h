@@ -2,7 +2,7 @@
 #define _SUTRA_CENTROIDER_H_
 
 #include <sutra_acquisim.h>
-#include <sutra_wfs.h>
+#include <sutra_sensors.h>
 #include <string>
 
 class sutra_centroider {

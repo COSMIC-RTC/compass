@@ -140,7 +140,7 @@ class Roket(Simulator):
         """
         Compute the error breakdown of the AO simulation. Returns the error commands of
         each contributors. Suppose no delay (for now) and only 2 controllers : the main one, controller #0, (specified on the parameter file)
-        and the geometric one, controller #1 (automatically added if error_budget is asked in the parameter file)
+        and the geometric one, controller #1 (automatically added if roket is asked in the parameter file)
         Commands are computed by applying the loop filter on various kind of commands : (see schema_simulation_budget_erreur_v2)
 
             - Ageom : Aliasing contribution on WFS direction

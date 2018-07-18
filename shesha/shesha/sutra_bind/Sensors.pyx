@@ -41,7 +41,7 @@ cdef class Sensors:
                   np.ndarray[ndim=1, dtype=np.float32_t] nphot4imat=None,
                   np.ndarray[ndim=1, dtype=np.int32_t] lgs=None,
                   int odevice=-1,
-                  bool error_budget=False):
+                  bool roket=False):
         self.context = context
         cdef char ** type = < char ** > malloc(len(type_data) * sizeof(char * ))
         cdef int i
@@ -62,7 +62,7 @@ cdef class Sensors:
                                          < float * > nphot.data,
                                          < float * > nphot4imat.data,
                                          < int * > lgs.data,
-                                         odevice, error_budget)
+                                         odevice, roket)
 
         self.sensors.allocate_buffers()
         self.sensors.device = odevice
@@ -449,7 +449,7 @@ cdef class Sensors:
         data_F[np.where(data_F < 0)] = 0
         return data_F.T.copy()
 
-    def get_binimg_gpu(self, int n, np.ndarray[ndim = 2, dtype = np.float32_t] data, Telescope tel=None, Atmos atmos=None, Dms dms=None):
+    def get_binimg_gpu(self, int n, np.ndarray[ndim=2, dtype=np.float32_t] data, Telescope tel=None, Atmos atmos=None, Dms dms=None):
         """
             Return the 'binimg' array of a given wfs
 
@@ -482,7 +482,7 @@ cdef class Sensors:
         cdef const long * cdims
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
 
-        if(self.sensors.error_budget):
+        if(self.sensors.roket):
             img = self.sensors.d_wfs[n].d_binimg_notnoisy
             cdims = img.getDims()
             data_F = np.empty((cdims[2], cdims[1]), dtype=np.float32)
@@ -754,7 +754,7 @@ cdef class Sensors:
         cdef carma_obj[float] * cube
         cdef const long * cdims
         cdef np.ndarray[ndim = 3, dtype = np.float32_t] data_F
-        if(self.sensors.error_budget):
+        if(self.sensors.roket):
             cube = self.sensors.d_wfs[n].d_bincube_notnoisy
             cdims = cube.getDims()
             data_F = np.empty((cdims[3], cdims[2], cdims[1]), dtype=np.float32)

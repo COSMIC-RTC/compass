@@ -1,16 +1,18 @@
 #include <carma_utils.h>
-#include <sutra_ao_utils.h>
+#include <sutra_utils.h>
 #include <sutra_wfs_pyr.h>
 
 sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel,
-                             sutra_sensors *sensors, long nxsub, long nvalid,
-                             long npix, long nphase, long nrebin, long nfft,
-                             long ntot, long npup, float pdiam, float nphotons,
-                             float nphot4imat, int lgs, int device,
-                             const char *type_pyr)
-    : sutra_wfs(context, d_tel, sensors, type_pyr, nxsub, nvalid, npix, nphase,
-                nrebin, nfft, ntot, npup, pdiam, nphotons, nphot4imat, lgs,
-                device) {
+                             carma_obj<cuFloatComplex> *d_camplipup,
+                             carma_obj<cuFloatComplex> *d_camplifoc,
+                             carma_obj<cuFloatComplex> *d_fttotim, long nxsub,
+                             long nvalid, long npix, long nphase, long nrebin,
+                             long nfft, long ntot, long npup, float pdiam,
+                             float nphotons, float nphot4imat, int lgs,
+                             bool roket, int device, const char *type_pyr)
+    : sutra_wfs(context, d_tel, d_camplipup, d_camplifoc, d_fttotim, type_pyr,
+                nxsub, nvalid, npix, nphase, nrebin, nfft, ntot, npup, pdiam,
+                nphotons, nphot4imat, lgs, roket, device) {
   context->set_activeDevice(device, 1);
 
   long dims_data1[2];
@@ -51,7 +53,7 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel,
     dims_data1[1] = 1;
     this->d_psum = new carma_obj<float>(context, dims_data1);
 
-    if (this->error_budget) {
+    if (this->roket) {
       this->d_binimg_notnoisy = new carma_obj<float>(context, dims_data2);
     }
     // using 1 stream for telemetry
@@ -206,11 +208,10 @@ sutra_wfs_pyr::~sutra_wfs_pyr() {
   // delete this->current_context;
 }
 
-int sutra_wfs_pyr::wfs_initarrays(cuFloatComplex *halfxy,
-                                  cuFloatComplex *offsets, float *focmask,
-                                  float *cx, float *cy, float *sincar,
-                                  int *phasemap, int *validsubsx,
-                                  int *validsubsy) {
+int sutra_wfs_pyr::loadarrays(cuFloatComplex *halfxy, cuFloatComplex *offsets,
+                              float *focmask, float *cx, float *cy,
+                              float *sincar, int *phasemap, int *validsubsx,
+                              int *validsubsy) {
   current_context->set_activeDevice(device, 1);
   this->d_phalfxy->host2device(halfxy);
   this->d_poffsets->host2device(offsets);

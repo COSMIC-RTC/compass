@@ -1,5 +1,29 @@
-#include <sutra_ao_utils.h>
+#include <sutra_utils.h>
 #include "carma_utils.cuh"
+
+int compute_nmaxhr(long nvalid) {
+  // this is the big array => we use nmaxhr and treat it sequentially
+
+  int mnmax = 500;
+  int nmaxhr = mnmax;
+  if (nvalid > 2 * mnmax) {
+    int tmp0 = nvalid % mnmax;
+    int tmp = 0;
+    for (int cc = 1; cc < mnmax / 5; cc++) {
+      tmp = nvalid % (mnmax + cc);
+      if ((tmp > tmp0) || (tmp == 0)) {
+        if (tmp == 0)
+          tmp0 = 2 * mnmax;
+        else
+          tmp = tmp0;
+
+        nmaxhr = mnmax + cc;
+      }
+    }
+    return nmaxhr;
+  }
+  return nvalid;
+}
 
 __global__ void cfillrealp_krnl(cuFloatComplex *odata, float *idata, int N) {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;

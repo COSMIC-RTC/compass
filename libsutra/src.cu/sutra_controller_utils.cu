@@ -2474,7 +2474,7 @@ void init_cphim_struct(struct cphim_struct *cphim_struct, sutra_atmos *atmos,
   while (p != dms->d_dms.end()) {
     sutra_dm *dm = *p;
     if (dm->type != "tt") {
-      Nactu += dm->ninflu;
+      Nactu += dm->nactus;
       Ndm += 1;
     }
     p++;
@@ -2493,7 +2493,7 @@ void init_cphim_struct(struct cphim_struct *cphim_struct, sutra_atmos *atmos,
   while (p != dms->d_dms.end()) {
     sutra_dm *dm = *p;
     if (dm->type != "tt") {
-      cphim_struct->Nactu_tot[indx] = dm->ninflu;
+      cphim_struct->Nactu_tot[indx] = dm->nactus;
       indx += 1;
     }
     p++;

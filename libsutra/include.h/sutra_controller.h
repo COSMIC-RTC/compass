@@ -3,9 +3,9 @@
 
 #include <carma_cublas.h>
 #include <carma_host_obj.h>
-#include <sutra_ao_utils.h>
 #include <sutra_centroider.h>
 #include <sutra_dm.h>
+#include <sutra_utils.h>
 #include <sutra_wfs.h>
 #include <mutex>
 

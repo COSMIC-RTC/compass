@@ -14,7 +14,7 @@ import shesha.constants as scons
 
 class Param_wfs:
 
-    def __init__(self, error_budget=False):
+    def __init__(self, roket=False):
         self.__type = None
         """ type of wfs : "sh" or "pyr"."""
         self.__nxsub = 0
@@ -40,7 +40,7 @@ class Param_wfs:
         """ 1 if the WFS sees the atmosphere layers"""
         self.__dms_seen = None
         """ index of dms seen by the WFS"""
-        self.__error_budget = error_budget
+        self.__roket = roket
         """ If True, enable error budget analysis for the simulation"""
 
         # target kwrd
@@ -519,15 +519,15 @@ class Param_wfs:
 
     _profna = property(lambda x: x.__profna, set_profna)
 
-    def set_error_budget(self, error_budget):
+    def set_roket(self, roket):
         """ Set the error budget flag : if True, enable error budget analysis
         for this simulation
 
-        :param error_budget: (bool) : error budget flag
+        :param roket: (bool) : error budget flag
         """
-        self.__error_budget = csu.enforce_or_cast_bool(error_budget)
+        self.__roket = csu.enforce_or_cast_bool(roket)
 
-    error_budget = property(lambda x: x.__error_budget, set_error_budget)
+    roket = property(lambda x: x.__roket, set_roket)
 
     def set_pyr_pup_sep(self, pyr_pup_sep):
         """ Set the pyramid pupil separation. (default: long(wfs.nxsub))

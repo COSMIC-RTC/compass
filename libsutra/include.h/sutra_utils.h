@@ -1,9 +1,10 @@
-#ifndef _SUTRA_AO_UTILS_H_
-#define _SUTRA_AO_UTILS_H_
+#ifndef _SUTRA_UTILS_H_
+#define _SUTRA_UTILS_H_
 #include <carma.h>
 #include <carma_obj.h>
 #include <carma_sparse_obj.h>
 
+int compute_nmaxhr(long nvalid);
 int cfillrealp(cuFloatComplex *d_odata, float *d_idata, int N,
                carma_device *device);
 int cgetrealp(float *d_odata, cuFloatComplex *d_idata, int N,
@@ -50,4 +51,4 @@ int sutra_invgene(carma_obj<T> *imat, carma_obj<T> *cmat,
 template <class T>
 int remove_avg(T *data, int N, carma_device *device);
 
-#endif  // _SUTRA_AO_UTILS_H_
+#endif  // _SUTRA_UTILS_H_

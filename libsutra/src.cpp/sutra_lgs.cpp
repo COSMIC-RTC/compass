@@ -1,8 +1,10 @@
-#include <sutra_ao_utils.h>
 #include <sutra_lgs.h>
+#include <sutra_utils.h>
 #include <sutra_wfs.h>
 
-sutra_lgs::sutra_lgs(carma_context *context, sutra_sensors *sensors,
+sutra_lgs::sutra_lgs(carma_context *context, carma_obj<float> *d_lgskern,
+                     carma_obj<cuFloatComplex> *d_ftlgskern,
+                     map<vector<int>, cufftHandle *> ftlgskern_plans,
                      long nvalid, long npix, long nmaxhr) {
   this->current_context = context;
   this->device = current_context->get_activeDevice();
@@ -44,15 +46,15 @@ sutra_lgs::sutra_lgs(carma_context *context, sutra_sensors *sensors,
   dims_data3[3] = nmaxhr;
   // this->d_lgskern = new carma_obj<float>(context, dims_data3);
   // this->d_ftlgskern = new carma_obj<cuFloatComplex>(context, dims_data3);
-  this->d_lgskern = sensors->d_lgskern;
-  this->d_ftlgskern = sensors->d_ftlgskern;
+  this->d_lgskern = d_lgskern;
+  this->d_ftlgskern = d_ftlgskern;
 
   mdims[0] = (int)dims_data3[1];
   mdims[1] = (int)dims_data3[2];
 
   vector<int> vdims(dims_data3 + 1, dims_data3 + 4);
 
-  if (sensors->ftlgskern_plans.find(vdims) == sensors->ftlgskern_plans.end()) {
+  if (ftlgskern_plans.find(vdims) == ftlgskern_plans.end()) {
     // DEBUG_TRACE("Creating FFT plan : %d %d
     // %d",mdims[0],mdims[1],dims_data3[3]);printMemInfo();
     cufftHandle *plan = (cufftHandle *)malloc(
@@ -60,13 +62,12 @@ sutra_lgs::sutra_lgs(carma_context *context, sutra_sensors *sensors,
     carmafftSafeCall(cufftPlanMany(plan, 2, mdims, NULL, 1, 0, NULL, 1, 0,
                                    CUFFT_C2C, (int)dims_data3[3]));
 
-    sensors->ftlgskern_plans.insert(
-        pair<vector<int>, cufftHandle *>(vdims, plan));
+    ftlgskern_plans.insert(pair<vector<int>, cufftHandle *>(vdims, plan));
 
     this->ftlgskern_plan = plan;
     // DEBUG_TRACE("FFT plan created");printMemInfo();
   } else {
-    this->ftlgskern_plan = sensors->ftlgskern_plans.at(vdims);
+    this->ftlgskern_plan = ftlgskern_plans.at(vdims);
     // DEBUG_TRACE("FFT plan already exists : %d %d
     // %d",mdims[0],mdims[1],dims_data3[3]);
   }

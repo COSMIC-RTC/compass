@@ -105,7 +105,7 @@ int sutra_centroider_pyr::get_cog(float *subsum, float *slopes, bool noise) {
                            *(wfs->d_validsubsx), *(wfs->d_validsubsy),
                            wfs->nvalid, wfs->nfft / wfs->nrebin, 4);
     else if (this->pyr_type == "pyrhr") {
-      if (noise || wfs->error_budget == false) {
+      if (noise || wfs->roket == false) {
         return this->get_pyr(*(wfs->d_binimg), subsum, slopes,
                              *(wfs->d_validsubsx), *(wfs->d_validsubsy),
                              wfs->nvalid, wfs->nfft / wfs->nrebin, 4);

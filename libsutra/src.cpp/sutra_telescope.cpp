@@ -1,6 +1,6 @@
-#include <sutra_ao_utils.h>
 #include <sutra_phase.h>
 #include <sutra_telescope.h>
+#include <sutra_utils.h>
 
 sutra_telescope::sutra_telescope(carma_context *current_context, long n_pup,
                                  long npos, float *pupil, float *phase_ab_M1,

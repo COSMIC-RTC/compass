@@ -75,7 +75,7 @@ p_target.set_ypos(0)
 p_target.set_Lambda(2.2)
 p_target.set_mag(4)
 # wfs
-p_wfs0 = ao.Param_wfs(error_budget=True)
+p_wfs0 = ao.Param_wfs(roket=True)
 #p_wfs0= ao.Param_wfs()
 p_wfss = [p_wfs0]
 

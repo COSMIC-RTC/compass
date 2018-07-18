@@ -3,7 +3,7 @@
 
 #include <sutra_atmos.h>
 #include <sutra_dm.h>
-#include <sutra_wfs.h>
+#include <sutra_sensors.h>
 #include <cstdio>
 
 struct gtomo_struct {

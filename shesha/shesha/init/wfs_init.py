@@ -46,7 +46,7 @@ def wfs_init(context: naga_context, telescope: Telescope, p_wfss: list,
     nphot4imat = np.array([o.nphotons4imat for o in p_wfss], dtype=np.float32)
     lgs = np.array([o.gsalt > 0 for o in p_wfss], dtype=np.int32)
 
-    # arrays needed to call sensors_initgs
+    # arrays needed to call initgs
     xpos = np.array([o.xpos for o in p_wfss], dtype=np.float32)
     ypos = np.array([o.ypos for o in p_wfss], dtype=np.float32)
     Lambda = np.array([o.Lambda for o in p_wfss], dtype=np.float32)
@@ -60,12 +60,12 @@ def wfs_init(context: naga_context, telescope: Telescope, p_wfss: list,
     dx = np.array([o.dx for o in p_wfss], dtype=np.float32)
     dy = np.array([o.dy for o in p_wfss], dtype=np.float32)
 
-    error_budget_flag = any([w.error_budget for w in p_wfss])
+    roket_flag = any([w.roket for w in p_wfss])
 
     if (p_wfss[0].type == scons.WFSType.SH):
-        g_wfs = Sensors(context, nsensors, telescope, t_wfs, npup, nxsub, nvalid, nphase,
-                        pdiam, npix, nrebin, nfft, ntota, nphot, nphot4imat, lgs,
-                        error_budget=error_budget_flag)
+        g_wfs = Sensors(context, telescope, t_wfs, nsensors, nxsub, nvalid, npix, nphase,
+                        nrebin, nfft, ntota, npup, pdiam, nphot, nphot4imat, lgs,
+                        context.activeDevice, roket_flag)
 
         mag = np.array([o.gsmag for o in p_wfss], dtype=np.float32)
         noise = np.array([o.noise for o in p_wfss], dtype=np.float32)
@@ -80,9 +80,9 @@ def wfs_init(context: naga_context, telescope: Telescope, p_wfss: list,
         dx = np.array([o.dx for o in p_wfss], dtype=np.float32)
         dy = np.array([o.dy for o in p_wfss], dtype=np.float32)
 
-        g_wfs = Sensors(context, nsensors, telescope, t_wfs, npup, nxsub, nvalid, nphase,
-                        pdiam, npix, nrebin, nfft, ntota, nphot, nphot4imat, lgs,
-                        error_budget=error_budget_flag)
+        g_wfs = Sensors(context, telescope, t_wfs, nsensors, nxsub, nvalid, npix, nphase,
+                        nrebin, nfft, ntota, npup, pdiam, nphot, nphot4imat, lgs,
+                        context.activeDevice, roket_flag)
 
         mag = np.array([o.gsmag for o in p_wfss], dtype=np.float32)
         noise = np.array([o.noise for o in p_wfss], dtype=np.float32)

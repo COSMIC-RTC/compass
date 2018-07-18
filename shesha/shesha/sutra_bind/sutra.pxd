@@ -252,7 +252,7 @@ cdef extern from "sutra_wfs.h":
     #################################################
     cdef cppclass sutra_sensors:
         int device
-        bool error_budget
+        bool roket
         carma_context * current_context
         size_t nsensors()
 
@@ -270,7 +270,7 @@ cdef extern from "sutra_wfs.h":
         sutra_sensors(carma_context * context, sutra_telescope * d_tel, const char ** type, int nwfs, long * nxsub,
                       long * nvalid, long * npix, long *
                       nphase, long * nrebin, long * nfft,
-                      long * ntot, long * npup, float * pdiam, float * nphot, float * nphot4imat, int * lgs, int device, bool error_budget)
+                      long * ntot, long * npup, float * pdiam, float * nphot, float * nphot4imat, int * lgs, int device, bool roket)
         sutra_sensors(carma_context * context, sutra_telescope * d_tel, int nwfs, long * nxsub, long * nvalid,
                       long * nphase, long npup, float * pdiam, int device)
 
@@ -308,7 +308,7 @@ cdef extern from "sutra_wfs.h":
         float noise
         bool lgs
         bool kernconv
-        bool error_budget
+        bool roket
 
         # MPI STUFF
         int rank

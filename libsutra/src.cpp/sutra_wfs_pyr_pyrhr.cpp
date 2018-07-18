@@ -1,26 +1,29 @@
 #include <carma_utils.h>
-#include <sutra_ao_utils.h>
+#include <sutra_utils.h>
 #include <sutra_wfs_pyr_pyrhr.h>
 
-sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(carma_context *context,
-                                         sutra_telescope *d_tel,
-                                         sutra_sensors *sensors, long nxsub,
-                                         long nvalid, long npix, long nphase,
-                                         long nrebin, long nfft, long ntot,
-                                         long npup, float pdiam, float nphotons,
-                                         float nphot4imat, int lgs, int device)
-    : sutra_wfs_pyr(context, d_tel, sensors, nxsub, nvalid, npix, nphase,
-                    nrebin, nfft, ntot, npup, pdiam, nphotons, nphot4imat, lgs,
-                    device, "pyrhr") {}
+sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(
+    carma_context *context, sutra_telescope *d_tel,
+    carma_obj<cuFloatComplex> *d_camplipup,
+    carma_obj<cuFloatComplex> *d_camplifoc,
+    carma_obj<cuFloatComplex> *d_fttotim, long nxsub, long nvalid, long npix,
+    long nphase, long nrebin, long nfft, long ntot, long npup, float pdiam,
+    float nphotons, float nphot4imat, int lgs, bool roket, int device)
+    : sutra_wfs_pyr(context, d_tel, d_camplipup, d_camplifoc, d_fttotim, nxsub,
+                    nvalid, npix, nphase, nrebin, nfft, ntot, npup, pdiam,
+                    nphotons, nphot4imat, lgs, roket, device, "pyrhr") {}
 
 sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(
-    carma_context *context, sutra_telescope *d_tel, sutra_sensors *sensors,
-    long nxsub, long nvalid, long npix, long nphase, long nrebin, long nfft,
-    long ntot, long npup, float pdiam, float nphotons, float nphot4imat,
-    int lgs, int nbdevices, int *devices)
-    : sutra_wfs_pyr(context, d_tel, sensors, nxsub, nvalid, npix, nphase,
-                    nrebin, nfft, ntot, npup, pdiam, nphotons, nphot4imat, lgs,
-                    devices[0], "pyrhr") {
+    carma_context *context, sutra_telescope *d_tel,
+    carma_obj<cuFloatComplex> *d_camplipup,
+    carma_obj<cuFloatComplex> *d_camplifoc,
+    carma_obj<cuFloatComplex> *d_fttotim, long nxsub, long nvalid, long npix,
+    long nphase, long nrebin, long nfft, long ntot, long npup, float pdiam,
+    float nphotons, float nphot4imat, int lgs, bool roket, int nbdevices,
+    int *devices)
+    : sutra_wfs_pyr(context, d_tel, d_camplipup, d_camplifoc, d_fttotim, nxsub,
+                    nvalid, npix, nphase, nrebin, nfft, ntot, npup, pdiam,
+                    nphotons, nphot4imat, lgs, roket, devices[0], "pyrhr") {
   long dims_data2[3];
   dims_data2[0] = 2;
 
@@ -143,11 +146,10 @@ sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
   this->d_hrimg_ngpu.clear();
 }
 
-int sutra_wfs_pyr_pyrhr::wfs_initarrays(cuFloatComplex *halfxy, float *cx,
-                                        float *cy, float *sincar,
-                                        float *submask, int *validsubsx,
-                                        int *validsubsy, int *phasemap,
-                                        float *fluxPerSub) {
+int sutra_wfs_pyr_pyrhr::loadarrays(cuFloatComplex *halfxy, float *cx,
+                                    float *cy, float *sincar, float *submask,
+                                    int *validsubsx, int *validsubsy,
+                                    int *phasemap, float *fluxPerSub) {
   for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
            this->d_phalfxy_ngpu.begin();
        this->d_phalfxy_ngpu.end() != it; ++it) {
@@ -397,8 +399,8 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
            this->nfft / this->nrebin, 1,
            this->current_context->get_device(device));
 
-  if (this->error_budget) {  // Get here the binimg before adding noise, usefull
-                             // for error budget
+  if (this->roket) {  // Get here the binimg before adding noise, usefull
+                      // for error budget
     this->d_binimg->copyInto(this->d_binimg_notnoisy->getData(),
                              this->d_binimg->getNbElem());
   }

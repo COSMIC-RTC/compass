@@ -1,8 +1,8 @@
 #ifndef _SUTRA_TSCREEN_H_
 #define _SUTRA_TSCREEN_H_
 
-#include <sutra_ao_utils.h>
 #include <sutra_phase.h>
+#include <sutra_utils.h>
 
 class sutra_tscreen {
  public:

@@ -67,16 +67,17 @@ add_library(sutra SHARED
     src.cpp/sutra_telemetry.cpp
     src.cpp/sutra_telescope.cpp
     src.cpp/sutra_tscreen.cpp
+    src.cpp/sutra_sensors.cpp
     src.cpp/sutra_wfs.cpp
-    src.cpp/sutra_wfs_geom.cpp
+    # src.cpp/sutra_wfs_geom.cpp
     src.cpp/sutra_wfs_pyr.cpp
-    src.cpp/sutra_wfs_pyr_pyr4.cpp
+    # src.cpp/sutra_wfs_pyr_pyr4.cpp
     src.cpp/sutra_wfs_pyr_pyrhr.cpp
-    src.cpp/sutra_wfs_pyr_roof.cpp
+    # src.cpp/sutra_wfs_pyr_roof.cpp
     src.cpp/sutra_wfs_sh.cpp
     src.cu/sutra_acquisim.cu
     src.cu/sutra_aotemplate.cu
-    src.cu/sutra_ao_utils.cu
+    src.cu/sutra_utils.cu
     src.cu/sutra_centroider.cu
     src.cu/sutra_controller.cu
     src.cu/sutra_controller_utils.cu

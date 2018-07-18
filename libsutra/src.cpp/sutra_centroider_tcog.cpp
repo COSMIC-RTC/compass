@@ -48,7 +48,7 @@ int sutra_centroider_tcog::get_cog(carma_streams *streams, float *cube,
 
 int sutra_centroider_tcog::get_cog(float *subsum, float *slopes, bool noise) {
   if (this->wfs != nullptr) {
-    if (noise || wfs->error_budget == false)
+    if (noise || wfs->roket == false)
       return this->get_cog(wfs->streams, *(wfs->d_bincube), subsum, slopes,
                            wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
     else

@@ -88,8 +88,8 @@ def rtc_init(context: naga_context, tel: Telescope, wfs: Sensors, dms: Dms, atmo
                                 dataBase=dataBase, use_DB=use_DB)
 
             # add a geometric controller for processing error breakdown
-            error_budget_flag = True in [w.error_budget for w in p_wfss]
-            if (error_budget_flag):
+            roket_flag = True in [w.roket for w in p_wfss]
+            if (roket_flag):
                 p_controller = p_controllers[0]
                 Nphi = np.where(p_geom._spupil)[0].size
 
