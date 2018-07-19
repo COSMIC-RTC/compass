@@ -9,9 +9,74 @@ sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(
     carma_obj<cuFloatComplex> *d_fttotim, long nxsub, long nvalid, long npix,
     long nphase, long nrebin, long nfft, long ntot, long npup, float pdiam,
     float nphotons, float nphot4imat, int lgs, bool roket, int device)
-    : sutra_wfs_pyr(context, d_tel, d_camplipup, d_camplifoc, d_fttotim, nxsub,
-                    nvalid, npix, nphase, nrebin, nfft, ntot, npup, pdiam,
-                    nphotons, nphot4imat, lgs, roket, device, "pyrhr") {}
+    : sutra_wfs(context, d_tel, d_camplipup, d_camplifoc, d_fttotim, "pyrhr",
+                nxsub, nvalid, npix, nphase, nrebin, nfft, ntot, npup, pdiam,
+                nphotons, nphot4imat, lgs, roket, device) {
+  context->set_activeDevice(device, 1);
+  long dims_data1[2];
+  dims_data1[0] = 1;
+  long dims_data2[3];
+  dims_data2[0] = 2;
+  long dims_data3[4];
+  dims_data3[0] = 3;
+
+  dims_data2[1] = nfft;
+  dims_data2[2] = nfft;
+
+  this->d_hrimg = new carma_obj<float>(context, dims_data2);  // Useless for SH
+  this->d_submask = new carma_obj<float>(context, dims_data2);
+  this->d_camplipup = new carma_obj<cuFloatComplex>(context, dims_data2);
+  this->d_camplifoc = new carma_obj<cuFloatComplex>(context, dims_data2);
+  cufftHandle *plan = this->d_camplipup->getPlan();  ///< FFT plan
+  carmafftSafeCall(cufftPlan2d(plan, dims_data2[1], dims_data2[2], CUFFT_C2C));
+
+  this->d_fttotim = new carma_obj<cuFloatComplex>(context, dims_data2);
+
+  this->d_poffsets = new carma_obj<cuFloatComplex>(context, dims_data2);
+  this->d_phalfxy = new carma_obj<cuFloatComplex>(context, dims_data2);
+  this->d_sincar = new carma_obj<float>(context, dims_data2);
+
+  dims_data2[1] = nphase * nphase;
+  dims_data2[2] = nvalid;
+  this->d_phasemap = new carma_obj<int>(current_context, dims_data2);
+
+  dims_data2[1] = nfft / nrebin;
+  dims_data2[2] = nfft / nrebin;
+
+  this->d_binimg = new carma_obj<float>(context, dims_data2);
+
+  dims_data1[1] = 1;
+  this->d_psum = new carma_obj<float>(context, dims_data1);
+
+  if (this->roket) {
+    this->d_binimg_notnoisy = new carma_obj<float>(context, dims_data2);
+  }
+  // using 1 stream for telemetry
+  this->image_telemetry = new carma_host_obj<float>(dims_data2, MA_PAGELOCK, 1);
+  this->nstreams = 1;
+  while (nvalid % this->nstreams != 0) nstreams--;
+  // err << "wfs uses " << nstreams << " streams" << endl;
+  this->streams = new carma_streams(nstreams);
+
+  dims_data1[1] = 2 * nvalid;
+  this->d_slopes = new carma_obj<float>(context, dims_data1);
+
+  dims_data2[1] = nfft;
+  dims_data2[2] = nfft;
+  dims_data3[3] = 4;
+
+  dims_data1[1] = npup;
+  this->pyr_cx = new carma_host_obj<float>(dims_data1, MA_WRICOMB);
+  this->pyr_cy = new carma_host_obj<float>(dims_data1, MA_WRICOMB);
+
+  dims_data1[1] = nvalid;
+  this->d_subsum = new carma_obj<float>(context, dims_data1);
+
+  this->d_fluxPerSub = new carma_obj<float>(context, dims_data1);
+  dims_data1[1] = nvalid * 4;
+  this->d_validsubsx = new carma_obj<int>(context, dims_data1);
+  this->d_validsubsy = new carma_obj<int>(context, dims_data1);
+}
 
 sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(
     carma_context *context, sutra_telescope *d_tel,
@@ -21,9 +86,9 @@ sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(
     long nphase, long nrebin, long nfft, long ntot, long npup, float pdiam,
     float nphotons, float nphot4imat, int lgs, bool roket, int nbdevices,
     int *devices)
-    : sutra_wfs_pyr(context, d_tel, d_camplipup, d_camplifoc, d_fttotim, nxsub,
-                    nvalid, npix, nphase, nrebin, nfft, ntot, npup, pdiam,
-                    nphotons, nphot4imat, lgs, roket, devices[0], "pyrhr") {
+    : sutra_wfs_pyr_pyrhr(context, d_tel, d_camplipup, d_camplifoc, d_fttotim,
+                          nxsub, nvalid, npix, nphase, nrebin, nfft, ntot, npup,
+                          pdiam, nphotons, nphot4imat, lgs, roket, devices[0]) {
   long dims_data2[3];
   dims_data2[0] = 2;
 
@@ -65,6 +130,44 @@ sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(
 }
 
 sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
+  current_context->set_activeDevice(device, 1);
+  if (this->d_camplipup != 0L) delete this->d_camplipup;
+  if (this->d_camplifoc != 0L) delete this->d_camplifoc;
+
+  if (this->d_fttotim != 0L) delete this->d_fttotim;
+
+  if (this->d_ftkernel != 0L) delete this->d_ftkernel;
+
+  if (this->d_hrimg != 0L) delete this->d_hrimg;
+  if (this->d_bincube != 0L) delete this->d_bincube;
+  if (this->d_binimg != 0L) delete this->d_binimg;
+  if (this->d_subsum != 0L) delete this->d_subsum;
+  if (this->d_offsets != 0L) delete this->d_offsets;
+  if (this->d_fluxPerSub != 0L) delete this->d_fluxPerSub;
+  if (this->d_sincar != 0L) delete this->d_sincar;
+  if (this->d_submask != 0L) delete this->d_submask;
+  if (this->d_hrmap != 0L) delete this->d_hrmap;
+
+  if (this->d_slopes != 0L) delete this->d_slopes;
+
+  if (this->image_telemetry != 0L) delete this->image_telemetry;
+
+  if (this->d_phasemap != 0L) delete this->d_phasemap;
+  if (this->d_validsubsx != 0L) delete this->d_validsubsx;
+  if (this->d_validsubsy != 0L) delete this->d_validsubsy;
+
+  if (this->d_psum != 0L) delete this->d_psum;
+  if (this->d_phalfxy != 0L) delete this->d_phalfxy;
+  if (this->d_poffsets != 0L) delete this->d_poffsets;
+  if (this->pyr_cx != 0L) delete this->pyr_cx;
+  if (this->pyr_cy != 0L) delete this->pyr_cy;
+
+  if (this->lgs) delete this->d_gs->d_lgs;
+
+  if (this->d_gs != 0L) delete this->d_gs;
+
+  delete this->streams;
+
   for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
            this->d_camplipup_ngpu.begin();
        this->d_camplipup_ngpu.end() != it; ++it) {
@@ -226,7 +329,6 @@ void sutra_wfs_pyr_pyrhr::comp_modulation(int cpt) {
 
     pyr_submask(this->d_camplifoc->getData(), this->d_submask->getData(),
                 this->nfft, this->current_context->get_device(device));
-
     pyr_submaskpyr(this->d_camplifoc->getData(), this->d_phalfxy->getData(),
                    this->nfft, this->current_context->get_device(device));
     carma_fft(this->d_camplifoc->getData(), this->d_fttotim->getData(), 1,
@@ -296,7 +398,6 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
    add noise
    */
   current_context->set_activeDevice(device, 1);
-
   carmaSafeCall(cudaMemset(this->d_hrimg->getData(), 0,
                            sizeof(float) * this->d_hrimg->getNbElem()));
   carmaSafeCall(cudaMemset(this->d_binimg->getData(), 0,
@@ -426,51 +527,32 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
 int sutra_wfs_pyr_pyrhr::comp_image() {
   current_context->set_activeDevice(device, 1);
   int result = comp_generic();
+  // result *= this->fill_binimage();
   return result;
 }
 
-int sutra_wfs_pyr_pyrhr::slopes_geom(int type, float *slopes) {
-  current_context->set_activeDevice(device, 1);
-  /*
-   normalization notes :
-   ���� = 0.17 (��/D)^2 (D/r_0)^(5/3) , ���� en radians d'angle
-   �� = sqrt(0.17 (��/D)^2 (D/r_0)^(5/3)) * 206265 , �� en secondes
-
-   // computing subaperture phase difference at edges
-
-   todo : integrale( x * phase ) / integrale (x^2);
-   with x = span(-0.5,0.5,npixels)(,-:1:npixels) * subap_diam * 2 * pi / lambda
-   / 0.206265
-   */
-  if (type == 0) {
-    // this is to convert in arcsec
-    //> 206265* 0.000001/ 2 / 3.14159265 = 0.0328281
-    // it would have been the case if the phase was given in radiants
-    // but it is given in microns so normalization factor is
-    // just 206265* 0.000001 = 0.206265
-
-    // float alpha = 0.0328281 * this->d_gs->lambda / this->subapd;
-    float alpha = 0.206265 / this->subapd;
-    phase_reduce(this->nphase, this->nvalid,
-                 this->d_gs->d_phase->d_screen->getData(), slopes,
-                 this->d_phasemap->getData(), alpha);
+int sutra_wfs_pyr_pyrhr::fill_binimage(int async) {
+  if (this->d_binimg == NULL) {
+    DEBUG_TRACE(
+        "ERROR : d_bincube not initialized, did you do the allocate_buffers?");
+    throw "ERROR : d_bincube not initialized, did you do the allocate_buffers?";
   }
+  if (noise > 0) this->d_binimg->prng('N', this->noise);
 
-  if (type == 1) {
-    // float alpha = 0.0328281 * this->d_gs->lambda / this->subapd;
-    float alpha = 0.206265 / this->subapd;
-    phase_derive(this->nphase * this->nphase * this->nvalid,
-                 this->nphase * this->nphase, this->nvalid, this->nphase,
-                 this->d_gs->d_phase->d_screen->getData(), slopes,
-                 this->d_phasemap->getData(), this->d_pupil->getData(), alpha,
-                 this->d_fluxPerSub->getData());
+  this->current_context->set_activeDevice(device, 1);
+  if (async) {
+    //    fillbinimg_async(this->image_telemetry, this->d_binimg->getData(),
+    //        this->d_bincube->getData(), this->npix, this->nvalid_tot,
+    //        this->npix * this->nxsub, this->d_validsubsx->getData(),
+    //        this->d_validsubsy->getData(), this->d_binimg->getNbElem(), false,
+    //        this->current_context->get_device(device));
+    DEBUG_TRACE("ERROR : async version of fill_binimage not implemented...");
+    throw "ERROR : async version of fill_binimage not implemented...";
+  } else {
+    pyr_fillbinimg(this->d_binimg->getData(), this->d_bincube->getData(),
+                   this->nfft / this->nrebin, false,
+                   this->current_context->get_device(device));
   }
-
-  return EXIT_SUCCESS;
-}
-
-int sutra_wfs_pyr_pyrhr::slopes_geom(int type) {
-  this->slopes_geom(type, this->d_slopes->getData());
 
   return EXIT_SUCCESS;
 }

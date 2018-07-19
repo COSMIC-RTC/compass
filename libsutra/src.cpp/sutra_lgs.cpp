@@ -144,6 +144,8 @@ int sutra_lgs::lgs_init(int nprof, float hg, float h0, float deltah,
   this->d_azimuth->host2device(azimuth);
 
   delete[] dims_data1;
+  this->lgs_update(current_context->get_device(this->device));
+  this->lgs_makespot(current_context->get_device(this->device), 0);
 
   return EXIT_SUCCESS;
 }

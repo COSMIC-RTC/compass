@@ -85,7 +85,7 @@ class sutra_source {
                bool do_phase_var = true, bool async = false);
   int raytrace(bool rst = false);
   int raytrace_shm(sutra_atmos *atmos);
-  int comp_image(int puponly = 1, bool comp_le = true);
+  int comp_image(int puponly = 0, bool comp_le = true);
   int init_strehlmeter();
   int reset_strehlmeter();
   int comp_strehl();

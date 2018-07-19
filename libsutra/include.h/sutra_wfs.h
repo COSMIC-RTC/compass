@@ -94,6 +94,9 @@ class sutra_wfs {
   int sensor_trace(sutra_dms *ydm, int rst);
   int sensor_trace(sutra_atmos *atmos, sutra_dms *ydms);
   int sensor_trace(int rst);
+  int slopes_geom(float *slopes, int type = 0);
+  int slopes_geom(int type = 0);
+
   virtual int fill_binimage(int async) = 0;
   virtual int comp_image() = 0;
 

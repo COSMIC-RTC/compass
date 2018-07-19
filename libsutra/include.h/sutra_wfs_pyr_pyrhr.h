@@ -6,13 +6,22 @@
 #include <sutra_target.h>
 #include <sutra_telemetry.h>
 #include <sutra_telescope.h>
-#include <sutra_wfs_pyr.h>
+#include <sutra_wfs.h>
 #include <map>
 #include <vector>
 
 using std::string;
-class sutra_wfs_pyr_pyrhr : public sutra_wfs_pyr {
+class sutra_wfs_pyr_pyrhr : public sutra_wfs {
  public:
+  carma_obj<float> *d_hrimg;
+  carma_obj<float> *d_submask;
+  carma_obj<float> *d_psum;
+  carma_obj<cuFloatComplex> *d_phalfxy;
+  carma_obj<cuFloatComplex> *d_poffsets;
+
+  carma_host_obj<float> *pyr_cx;
+  carma_host_obj<float> *pyr_cy;
+
  public:
   sutra_wfs_pyr_pyrhr(carma_context *context, sutra_telescope *d_tel,
                       carma_obj<cuFloatComplex> *d_camplipup,
@@ -37,14 +46,18 @@ class sutra_wfs_pyr_pyrhr : public sutra_wfs_pyr {
                  int *phasemap, float *fluxPerSub);
   int set_submask(float *submask);
 
-  int slopes_geom(int type, float *slopes);
-  int slopes_geom(int type);
-
+  int fill_binimage(int async = 0);
   int comp_image();
   void comp_modulation(int cpt);
 
   int copyValidPix(float *img, int *validx, int *validy, int im_dim);
   int set_pyr_modulation(float *cx, float *cy, int npts);
+
+  int define_mpi_rank(int rank, int size) { return EXIT_SUCCESS; }
+  int allocate_buffers(map<vector<int>, cufftHandle *> campli_plans,
+                       map<vector<int>, cufftHandle *> fttotim_plans) {
+    return EXIT_SUCCESS;
+  }
 
  private:
   int comp_generic();

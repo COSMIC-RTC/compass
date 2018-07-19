@@ -268,6 +268,6 @@ def prep_lgs_prof(p_wfs: conf.Param_wfs, nsensors: int, p_tel: conf.Param_tel,
 
     p_wfs._azimuth = azimuth
 
-    sensors.init_lgs(nsensors, p_wfs._prof1d.size, hG, p_wfs._altna[0], dh,
-                     p_wfs._qpixsize, dOffAxis, p_wfs._prof1d, p_wfs._profcum,
-                     p_wfs._beam, p_wfs._ftbeam, p_wfs._azimuth)
+    sensors.d_wfs[nsensors].d_gs.d_lgs.lgs_init(
+            p_wfs._prof1d.size, hG, p_wfs._altna[0], dh, p_wfs._qpixsize, dOffAxis,
+            p_wfs._prof1d, p_wfs._profcum, p_wfs._beam, p_wfs._ftbeam, p_wfs._azimuth)

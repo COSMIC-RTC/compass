@@ -152,6 +152,29 @@ void declare_shesha_wfs(py::module &mod) {
 
       .def("comp_image", wy::colCast(&sutra_wfs::comp_image),
            "Computes the WFS image from the WFS phase")
+      .def("slopes_geom",
+           wy::colCast((int (sutra_wfs::*)(int)) & sutra_wfs::slopes_geom),
+           R"pbdoc(
+          Computes theoretical slopes in wfs.d_slopes
+
+          Parameters
+          ------------
+          type: (int): method to use (0: reduce, 1: derive)
+        )pbdoc",
+           py::arg("type") = 0)
+
+      .def("slopes_geom",
+           wy::colCast((int (sutra_wfs::*)(float *, int)) &
+                       sutra_wfs::slopes_geom),
+           R"pbdoc(
+          Computes theoretical slopes in given array
+
+          Parameters
+          ------------
+          slopes: (np.array(ndim=1, dtype=np.float32)):
+          type: (int): method to use (0: reduce, 1: derive)
+        )pbdoc",
+           py::arg("slopes"), py::arg("type") = 0)
 
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝
@@ -177,5 +200,17 @@ void declare_shesha_wfs(py::module &mod) {
                       ------------
                       pupil: (np.array(ndim=2,dtype=np.float32)): pupil to set
                   )pbdoc",
-           py::arg("pupil"));
+           py::arg("pupil"))
+
+      .def("set_noise", wy::colCast(&sutra_wfs::set_noise), R"pbdoc(
+            Set the noise of the WFS
+
+            Parameters
+            ------------
+            noise: (float): desired noise (< 0 = no noise
+                                           0 = photon only
+                                           > 0 = photon + ron in e-)
+            seed: (int): seed for the RNG
+        )pbdoc",
+           py::arg("noise"), py::arg("seed"));
 };

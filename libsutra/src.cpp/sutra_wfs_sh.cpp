@@ -547,57 +547,7 @@ int sutra_wfs_sh::comp_image() {
   current_context->set_activeDevice(device, 1);
 
   int result = comp_generic();
+  result *= this->fill_binimage();
 
   return result;
-}
-
-int sutra_wfs_sh::slopes_geom(int type, float *slopes) {
-  if (this->d_bincube == NULL) {
-    DEBUG_TRACE(
-        "ERROR : d_bincube not initialized, did you do the allocate_buffers?");
-    throw "ERROR : d_bincube not initialized, did you do the allocate_buffers?";
-  }
-  current_context->set_activeDevice(device, 1);
-  /*
-   normalization notes :
-   ���� = 0.17 (��/D)^2 (D/r_0)^(5/3) , ���� en radians d'angle
-   �� = sqrt(0.17 (��/D)^2 (D/r_0)^(5/3)) * 206265 , �� en secondes
-
-   // computing subaperture phase difference at edges
-
-   todo : integrale( x * phase ) / integrale (x^2);
-   with x = span(-0.5,0.5,npixels)(,-:1:npixels) * subap_diam * 2 * pi / lambda
-   / 0.206265
-   */
-  if (type == 0) {
-    // this is to convert in arcsec
-    //> 206265* 0.000001/ 2 / 3.14159265 = 0.0328281
-    // it would have been the case if the phase was given in radiants
-    // but it is given in microns so normalization factor is
-    // just 206265* 0.000001 = 0.206265
-
-    // float alpha = 0.0328281 * this->d_gs->lambda / this->subapd;
-    float alpha = 0.206265 / this->subapd;
-    phase_reduce(this->nphase, this->nvalid,
-                 this->d_gs->d_phase->d_screen->getData(), slopes,
-                 this->d_phasemap->getData(), alpha);
-  }
-
-  if (type == 1) {
-    // float alpha = 0.0328281 * this->d_gs->lambda / this->subapd;
-    float alpha = 0.206265 / this->subapd;
-    phase_derive(this->nphase * this->nphase * this->nvalid,
-                 this->nphase * this->nphase, this->nvalid, this->nphase,
-                 this->d_gs->d_phase->d_screen->getData(), slopes,
-                 this->d_phasemap->getData(), this->d_pupil->getData(), alpha,
-                 this->d_fluxPerSub->getData());
-  }
-
-  return EXIT_SUCCESS;
-}
-
-int sutra_wfs_sh::slopes_geom(int type) {
-  this->slopes_geom(type, this->d_slopes->getData());
-
-  return EXIT_SUCCESS;
 }

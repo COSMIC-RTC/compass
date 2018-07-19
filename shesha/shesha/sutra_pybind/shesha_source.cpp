@@ -174,10 +174,10 @@ void declare_shesha_source(py::module &mod) {
 
         Parameters
         ------------
-        puponly: (int) : FFT done only in the pupil
+        puponly: (int) : Airy computation
         comp_le: (bool) : Flag for computing LE image
         )pbdoc",
-           py::arg("puponly") = 1, py::arg("comp_le") = true)
+           py::arg("puponly") = 0, py::arg("comp_le") = true)
 
       .def("init_strehlmeter", &sutra_source::init_strehlmeter,
            "Initialize Strehl ratio computation")

@@ -1,4 +1,5 @@
 #include <carma.h>
+#include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 
 namespace py = pybind11;
@@ -11,7 +12,7 @@ void declare_naga_context(py::module &);
 // Expose classes and methods to Python
 PYBIND11_MODULE(naga, mod) {
   mod.doc() = "";
-
+  PYBIND11_NUMPY_DTYPE(float2, x, y);
   declare_naga_context(mod);
   declare_naga_obj<int>(mod, "int");
   // declare_naga_obj<unsigned int>(mod, "uint");

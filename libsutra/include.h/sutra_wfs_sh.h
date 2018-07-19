@@ -36,8 +36,6 @@ class sutra_wfs_sh : public sutra_wfs {
                  float *fluxPerSub, int *validsubsx, int *validsubsy,
                  int *istart, int *jstart, cuFloatComplex *kernel);
 
-  int slopes_geom(int type, float *slopes);
-  int slopes_geom(int type);
   int fill_binimage(int async);
   int comp_image();
 

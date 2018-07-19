@@ -20,11 +20,11 @@ void declare_shesha_wfs_sh(py::module &mod) {
 
       .def_property_readonly("d_istart",
                              [](sutra_wfs_sh &ssh) { return ssh.d_istart; },
-                             "TODO: docstring")
+                             "X position of the bottom left corner of each ssp")
 
       .def_property_readonly("d_jstart",
                              [](sutra_wfs_sh &ssh) { return ssh.d_jstart; },
-                             "TODO: docstring")
+                             "Y position of the bottom left corner of each ssp")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝
@@ -37,13 +37,13 @@ void declare_shesha_wfs_sh(py::module &mod) {
 
       Parameters
       ------------
-      phasemap:
+      phasemap: TODO: docstring
       hrmap:
       binmap:
       offsets:
-      fluxPerSub:
-      validsubsx:
-      validsubsy:
+      fluxPerSub: (np.array[ndim=2,dtype=np.float32]): Normalized flux per ssp
+      validsubsx: (np.array[ndim=1, dtype=np.int64]): X position of each valid ssp
+      validsubsy: (np.array[ndim=1, dtype=np.int64]): Y position of each valid ssp
       istart:
       jstart:
       kernel:

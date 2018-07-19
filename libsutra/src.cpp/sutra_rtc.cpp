@@ -268,10 +268,10 @@ int sutra_rtc::do_imat_geom(int ncntrl, sutra_dms *ydm, int type) {
         // sensors->d_wfs[nwfs]->comp_image();
         if (wfs->type != "sh") {
           sutra_wfs_sh *_wfs = dynamic_cast<sutra_wfs_sh *>(wfs);
-          _wfs->slopes_geom(type, d_imat[inds1 + inds2]);
+          _wfs->slopes_geom(d_imat[inds1 + inds2], type);
         } else if (wfs->type != "pyrhr") {
           sutra_wfs_pyr_pyrhr *_wfs = dynamic_cast<sutra_wfs_pyr_pyrhr *>(wfs);
-          _wfs->slopes_geom(type, d_imat[inds1 + inds2]);
+          _wfs->slopes_geom(d_imat[inds1 + inds2], type);
         } else {
           DEBUG_TRACE("wfs should be a SH, a geo or a pyrhr");
           return EXIT_FAILURE;
@@ -358,12 +358,10 @@ int sutra_rtc::do_centroids_geom(int ncntrl) {
     sutra_wfs *wfs = this->d_centro[idx_cntr]->wfs;
     if (wfs->type == "sh") {
       sutra_wfs_sh *_wfs = dynamic_cast<sutra_wfs_sh *>(wfs);
-      _wfs->slopes_geom(0,
-                        this->d_control[ncntrl]->d_centroids->getDataAt(inds2));
+      _wfs->slopes_geom(this->d_control[ncntrl]->d_centroids->getDataAt(inds2));
     } else if (wfs->type == "pyrhr") {
       sutra_wfs_pyr_pyrhr *_wfs = dynamic_cast<sutra_wfs_pyr_pyrhr *>(wfs);
-      _wfs->slopes_geom(0,
-                        this->d_control[ncntrl]->d_centroids->getDataAt(inds2));
+      _wfs->slopes_geom(this->d_control[ncntrl]->d_centroids->getDataAt(inds2));
     } else {
       DEBUG_TRACE("wfs could be a SH, geo or pyrhr");
       return EXIT_FAILURE;

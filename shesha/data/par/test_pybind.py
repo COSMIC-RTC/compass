@@ -12,7 +12,7 @@ p_loop.set_ittime(0.002)  # =1/500
 p_geom = conf.Param_geom()
 
 p_geom.set_zenithangle(0.)
-p_geom.set_pupdiam(256)
+#p_geom.set_pupdiam(256)
 
 # tel
 p_tel = conf.Param_tel()
@@ -41,8 +41,8 @@ p_target.set_Lambda(1.65)
 p_target.set_mag(10.)
 
 # # wfs
-# p_wfs0 = conf.Param_wfs()
-# p_wfss = [p_wfs0]
+p_wfs0 = conf.Param_wfs()
+p_wfss = [p_wfs0]
 
 # p_wfs0.set_type("sh")
 # p_wfs0.set_nxsub(16)
@@ -58,14 +58,31 @@ p_target.set_mag(10.)
 # p_wfs0.set_noise(-1.)
 # p_wfs0.set_atmos_seen(1)
 
-# # lgs parameters
-# # p_wfs0.set_gsalt(90*1.e3)
-# # p_wfs0.set_lltx(0)
-# # p_wfs0.set_llty(0)
-# # p_wfs0.set_laserpower(10)
-# # p_wfs0.set_lgsreturnperwatt(1.e3)
-# # p_wfs0.set_proftype("Exp")
-# # p_wfs0.set_beamsize(0.8)
+p_wfs0.set_type("pyrhr")
+p_wfs0.set_nxsub(16)
+p_wfs0.set_fssize(1.5)
+p_wfs0.set_fracsub(0.8)
+p_wfs0.set_xpos(0.)
+p_wfs0.set_ypos(0.)
+p_wfs0.set_Lambda(0.5)
+p_wfs0.set_gsmag(5.)
+p_wfs0.set_optthroughput(0.5)
+p_wfs0.set_zerop(1.e11)
+p_wfs0.set_noise(-1)
+p_wfs0.set_fstop("round")
+p_wfs0.set_pyr_npts(16)
+p_wfs0.set_pyr_ampl(3)
+p_wfs0.set_pyr_pup_sep(p_wfs0.nxsub)
+p_wfs0.set_atmos_seen(1)
+
+# lgs parameters
+# p_wfs0.set_gsalt(90*1.e3)
+# p_wfs0.set_lltx(10)
+# p_wfs0.set_llty(0)
+# p_wfs0.set_laserpower(10)
+# p_wfs0.set_lgsreturnperwatt(1.e3)
+# p_wfs0.set_proftype("Exp")
+# p_wfs0.set_beamsize(0.8)
 
 # # dm
 p_dm0 = conf.Param_dm()

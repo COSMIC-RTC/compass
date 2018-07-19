@@ -4,6 +4,16 @@ Basic utilities function
 import numpy as np
 
 
+def complextofloat2(A):
+    B = np.zeros(A.shape, dtype=[('x', '<f4'), ('y', '<f4')])
+    for i in range(A.shape[0]):
+        for j in range(A.shape[1]):
+            B[i, j][0] = A[i, j].real
+            B[i, j][1] = A[i, j].imag
+
+    return B
+
+
 def rebin(a, shape):
     """
     TODO: docstring

@@ -273,7 +273,7 @@ class Simulator:
         if tar_trace is None and self.tar is not None:
             tar_trace = self.tar.d_targets
         if wfs_trace is None and self.wfs is not None:
-            wfs_trace = range(len(self.config.p_wfss))
+            wfs_trace = self.wfs.d_wfs
 
         if move_atmos and self.atm is not None:
             self.atm.move_atmos()
@@ -304,17 +304,21 @@ class Simulator:
                     t.raytrace(self.dms)
                     t.raytrace()
             if wfs_trace is not None:
+                i = 0
                 for w in wfs_trace:
 
                     if see_atmos:
-                        self.wfs.raytrace(w, b"atmos", tel=self.tel, atmos=self.atm,
-                                          ncpa=1)
+                        w.d_gs.raytrace(self.atm)  # atmos
+                        w.d_gs.raytrace(self.tel)  # telescope ab
+                        w.d_gs.raytrace()
                     else:
-                        self.wfs.raytrace(w, b"telncpa", tel=self.tel, rst=1, ncpa=1)
+                        w.d_gs.raytrace(self.tel, rst=1)
+                        w.d_gs.raytrace()
 
-                    if not self.config.p_wfss[w].openloop and self.dms is not None:
-                        self.wfs.raytrace(w, b"dm", dms=self.dms)
-                    self.wfs.comp_img(w)
+                    if not self.config.p_wfss[i].openloop and self.dms is not None:
+                        w.d_gs.raytrace(self.dms)
+                    w.comp_image()
+                    i += 1
         if do_control and self.rtc is not None:
             self.rtc.do_centroids(nControl)
             self.rtc.do_control(nControl)
@@ -344,7 +348,7 @@ class Simulator:
         print("----------------------------------------------------")
         print("iter# | S.E. SR | L.E. SR | ETR (s) | Framerate (Hz)")
         print("----------------------------------------------------")
-        self.next(**kwargs)
+        # self.next(**kwargs)
         t0 = time.time()
         t1 = time.time()
         if n == -1:
