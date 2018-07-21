@@ -3,16 +3,14 @@
 #include <string>
 
 sutra_centroider_pyr::sutra_centroider_pyr(carma_context *context,
-                                           sutra_sensors *sensors, int nwfs,
-                                           long nvalid, float offset,
-                                           float scale, int device)
-    : sutra_centroider(context, sensors, nwfs, nvalid, offset, scale, device) {
+                                           sutra_wfs *wfs, long nvalid,
+                                           float offset, float scale,
+                                           int device)
+    : sutra_centroider(context, wfs, nvalid, offset, scale, device) {
   context->set_activeDevice(device, 1);
-  if (sensors != nullptr) {
-    this->pyr_type = sensors->d_wfs[nwfs]->type;
-  } else {
-    this->pyr_type = "pyrhr";
-  }
+
+  this->pyr_type = "pyrhr";
+
   this->valid_thresh = 1e-4;
 
   // centroider method by default nosin_global

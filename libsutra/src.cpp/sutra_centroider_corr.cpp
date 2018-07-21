@@ -2,10 +2,10 @@
 #include <string>
 
 sutra_centroider_corr::sutra_centroider_corr(carma_context *context,
-                                             sutra_sensors *sensors, int nwfs,
-                                             long nvalid, float offset,
-                                             float scale, int device)
-    : sutra_centroider(context, sensors, nwfs, nvalid, offset, scale, device) {
+                                             sutra_wfs *wfs, long nvalid,
+                                             float offset, float scale,
+                                             int device)
+    : sutra_centroider(context, wfs, nvalid, offset, scale, device) {
   context->set_activeDevice(device, 1);
 
   this->d_corrfnct = 0L;
@@ -99,23 +99,23 @@ int sutra_centroider_corr::load_corr(float *corr, float *corr_norm, int ndim) {
 
   this->d_corrnorm->host2device(corr_norm);
 
-  float *tmp; ///< Input data
+  float *tmp;  ///< Input data
   cudaError err;
 
   if (ndim == 3) {
+    carmaSafeCall(err =
+                      cudaMalloc((void **)&tmp, sizeof(float) * this->npix *
+                                                    this->npix * this->nvalid));
     carmaSafeCall(
-      err = cudaMalloc((void** )&tmp,
-                       sizeof(float) * this->npix * this->npix * this->nvalid));
-    carmaSafeCall(
-      err = cudaMemcpy(tmp, corr,
-                       sizeof(float) * this->npix * this->npix * this->nvalid,
-                       cudaMemcpyHostToDevice));
+        err = cudaMemcpy(tmp, corr,
+                         sizeof(float) * this->npix * this->npix * this->nvalid,
+                         cudaMemcpyHostToDevice));
   } else {
-    carmaSafeCall(
-      err = cudaMalloc((void** )&tmp, sizeof(float) * this->npix * this->npix));
-    carmaSafeCall(
-      err = cudaMemcpy(tmp, corr, sizeof(float) * this->npix * this->npix,
-                       cudaMemcpyHostToDevice));
+    carmaSafeCall(err = cudaMalloc((void **)&tmp,
+                                   sizeof(float) * this->npix * this->npix));
+    carmaSafeCall(err = cudaMemcpy(tmp, corr,
+                                   sizeof(float) * this->npix * this->npix,
+                                   cudaMemcpyHostToDevice));
   }
 
   fillcorr(*(this->d_corrfnct), tmp, this->npix, 2 * this->npix,
@@ -132,14 +132,15 @@ int sutra_centroider_corr::load_corr(float *corr, float *corr_norm, int ndim) {
 }
 
 int sutra_centroider_corr::get_cog(carma_streams *streams, float *cube,
-                                   float *subsum, float *centroids, int nvalid, int npix, int ntot) {
-  current_context->set_activeDevice(device,1);
+                                   float *subsum, float *centroids, int nvalid,
+                                   int npix, int ntot) {
+  current_context->set_activeDevice(device, 1);
   cudaError err;
 
-  //set corrspot to 0
+  // set corrspot to 0
   carmaSafeCall(
-    err = cudaMemset(*(this->d_corrspot), 0,
-                     sizeof(cuFloatComplex) * this->d_corrspot->getNbElem()));
+      err = cudaMemset(*(this->d_corrspot), 0,
+                       sizeof(cuFloatComplex) * this->d_corrspot->getNbElem()));
   // correlation algorithm
 
   fillcorr(*(this->d_corrspot), cube, this->npix, 2 * this->npix,

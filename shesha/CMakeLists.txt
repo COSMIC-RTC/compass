@@ -29,6 +29,10 @@ add_library(shesha_bind MODULE
                     shesha/sutra_pybind/shesha_wfs.cpp
                     shesha/sutra_pybind/shesha_wfs_sh.cpp
                     shesha/sutra_pybind/shesha_wfs_pyrhr.cpp
+                    shesha/sutra_pybind/shesha_centroider.cpp
+                    shesha/sutra_pybind/shesha_controller.cpp
+                    shesha/sutra_pybind/shesha_controller_ls.cpp
+                    shesha/sutra_pybind/shesha_rtc.cpp
                     shesha/sutra_pybind/shesha_bind.cpp)
 #link_directories($ENV{COMPASS_ROOT}/libsutra)
 

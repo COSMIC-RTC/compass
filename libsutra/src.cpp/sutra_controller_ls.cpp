@@ -100,7 +100,8 @@ int sutra_controller_ls::svdec_imat() {
 
   if (!magma_disabled()) {
     // we can skip this step syevd use only the lower part
-    // fill_sym_matrix('U', d_U->getData(), nactu, nactu * nactu);
+    fill_sym_matrix('U', d_U->getData(), nactu(), nactu() * nactu(),
+                    current_context->get_device(device));
 
     // doing evd of U inplace
     if (carma_syevd<float, 1>('V', d_U, h_eigenvals) == EXIT_FAILURE) {
@@ -108,7 +109,7 @@ int sutra_controller_ls::svdec_imat() {
       // Case where MAGMA is not feeling good :-/
       return EXIT_FAILURE;
     }
-    d_eigenvals->host2device(*h_eigenvals);
+    d_eigenvals->host2device(h_eigenvals->getData());
   } else {  // CULA case
     // We fill the upper matrix part of the matrix
     fill_sym_matrix<float>('L', *d_U, nactu(), nactu() * nactu(),

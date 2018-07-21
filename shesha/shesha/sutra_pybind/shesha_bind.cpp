@@ -14,6 +14,10 @@ void declare_shesha_sensors(py::module &);
 void declare_shesha_wfs(py::module &);
 void declare_shesha_wfs_sh(py::module &);
 void declare_shesha_wfs_pyrhr(py::module &);
+void declare_shesha_centroider(py::module &);
+void declare_shesha_controller(py::module &);
+void declare_shesha_controller_ls(py::module &);
+void declare_shesha_rtc(py::module &);
 // Expose classes and methods to Python
 PYBIND11_MODULE(shesha_bind, mod) {
   mod.doc() = "Binding module for libsutra into shesha";
@@ -30,4 +34,8 @@ PYBIND11_MODULE(shesha_bind, mod) {
   declare_shesha_wfs(mod);
   declare_shesha_wfs_sh(mod);
   declare_shesha_wfs_pyrhr(mod);
+  declare_shesha_centroider(mod);
+  declare_shesha_controller(mod);
+  declare_shesha_controller_ls(mod);
+  declare_shesha_rtc(mod);
 }

@@ -44,36 +44,36 @@ p_target.set_mag(10.)
 p_wfs0 = conf.Param_wfs()
 p_wfss = [p_wfs0]
 
-# p_wfs0.set_type("sh")
-# p_wfs0.set_nxsub(16)
-# p_wfs0.set_npix(8)
-# p_wfs0.set_pixsize(0.3)
-# p_wfs0.set_fracsub(0.8)
-# p_wfs0.set_xpos(0.)
-# p_wfs0.set_ypos(0.)
-# p_wfs0.set_Lambda(0.5)
-# p_wfs0.set_gsmag(3.)
-# p_wfs0.set_optthroughput(0.5)
-# p_wfs0.set_zerop(1.e11)
-# p_wfs0.set_noise(-1.)
-# p_wfs0.set_atmos_seen(1)
-
-p_wfs0.set_type("pyrhr")
+p_wfs0.set_type("sh")
 p_wfs0.set_nxsub(16)
-p_wfs0.set_fssize(1.5)
+p_wfs0.set_npix(8)
+p_wfs0.set_pixsize(0.3)
 p_wfs0.set_fracsub(0.8)
 p_wfs0.set_xpos(0.)
 p_wfs0.set_ypos(0.)
 p_wfs0.set_Lambda(0.5)
-p_wfs0.set_gsmag(5.)
+p_wfs0.set_gsmag(3.)
 p_wfs0.set_optthroughput(0.5)
 p_wfs0.set_zerop(1.e11)
-p_wfs0.set_noise(-1)
-p_wfs0.set_fstop("round")
-p_wfs0.set_pyr_npts(16)
-p_wfs0.set_pyr_ampl(3)
-p_wfs0.set_pyr_pup_sep(p_wfs0.nxsub)
+p_wfs0.set_noise(-1.)
 p_wfs0.set_atmos_seen(1)
+
+# p_wfs0.set_type("pyrhr")
+# p_wfs0.set_nxsub(16)
+# p_wfs0.set_fssize(1.5)
+# p_wfs0.set_fracsub(0.8)
+# p_wfs0.set_xpos(0.)
+# p_wfs0.set_ypos(0.)
+# p_wfs0.set_Lambda(0.5)
+# p_wfs0.set_gsmag(5.)
+# p_wfs0.set_optthroughput(0.5)
+# p_wfs0.set_zerop(1.e11)
+# p_wfs0.set_noise(-1)
+# p_wfs0.set_fstop("round")
+# p_wfs0.set_pyr_npts(16)
+# p_wfs0.set_pyr_ampl(3)
+# p_wfs0.set_pyr_pup_sep(p_wfs0.nxsub)
+# p_wfs0.set_atmos_seen(1)
 
 # lgs parameters
 # p_wfs0.set_gsalt(90*1.e3)
@@ -88,7 +88,7 @@ p_wfs0.set_atmos_seen(1)
 p_dm0 = conf.Param_dm()
 p_dm1 = conf.Param_dm()
 p_dm2 = conf.Param_dm()
-p_dms = [p_dm0, p_dm1, p_dm2]
+p_dms = [p_dm0, p_dm1]  #, p_dm2]
 p_dm0.set_type("pzt")
 nact = 17
 p_dm0.set_nact(nact)
@@ -112,24 +112,24 @@ p_dm2.set_unitpervolt(0.001)
 p_dm2.set_push4imat(1.)
 
 # # centroiders
-# p_centroider0 = conf.Param_centroider()
-# p_centroiders = [p_centroider0]
+p_centroider0 = conf.Param_centroider()
+p_centroiders = [p_centroider0]
 
-# p_centroider0.set_nwfs(0)
-# p_centroider0.set_type("cog")
-# # p_centroider0.set_type("corr")
-# # p_centroider0.set_type_fct("model")
+p_centroider0.set_nwfs(0)
+p_centroider0.set_type("cog")
+# p_centroider0.set_type("corr")
+# p_centroider0.set_type_fct("model")
 
-# # controllers
-# p_controller0 = conf.Param_controller()
-# p_controllers = [p_controller0]
+# controllers
+p_controller0 = conf.Param_controller()
+p_controllers = [p_controller0]
 
-# p_controller0.set_type("ls")
-# p_controller0.set_nwfs([0])
-# p_controller0.set_ndm([0, 1])
-# p_controller0.set_maxcond(1500.)
-# p_controller0.set_delay(1.)
-# p_controller0.set_gain(0.4)
+p_controller0.set_type("ls")
+p_controller0.set_nwfs([0])
+p_controller0.set_ndm([0, 1])
+p_controller0.set_maxcond(1500.)
+p_controller0.set_delay(1.)
+p_controller0.set_gain(0.4)
 
 # p_controller0.set_modopti(0)
 # p_controller0.set_nrec(2048)

@@ -52,20 +52,21 @@ def imat_geom(wfs: Sensors, dms: Dms, p_wfss: List[conf.Param_wfs],
     print("Doing imat geom...")
     for nmc in range(ndm):
         nm = p_controller.ndm[nmc]
-        dms.resetdm(p_dms[nm].type, p_dms[nm].alt)
+        dms.d_dms[nm].reset_shape()
         for i in tqdm(range(p_dms[nm]._ntotact), desc="DM%d" % nmc):
-            dms.oneactu(p_dms[nm].type, p_dms[nm].alt, i, p_dms[nm].push4imat)
+            dms.d_dms[nm].comp_oneactu(i, p_dms[nm].push4imat)
             nslps = 0
             for nw in range(nwfs):
                 n = p_controller.nwfs[nw]
-                wfs.raytrace(n, b"dm", tel=None, atmos=None, dms=dms, rst=1)
-                wfs.slopes_geom(n, meth)
-                imat_cpu[nslps:nslps + p_wfss[n]._nvalid * 2, ind] = wfs.get_slopes(n)
+                wfs.d_wfs[n].d_gs.raytrace(dms, rst=1)
+                wfs.d_wfs[n].slopes_geom(meth)
+                imat_cpu[nslps:nslps + p_wfss[n]._nvalid * 2, ind] = np.array(
+                        wfs.d_wfs[n].d_slopes)
                 nslps += p_wfss[n]._nvalid * 2
             imat_cpu[:, ind] = imat_cpu[:, ind] / p_dms[nm].push4imat
             ind = ind + 1
             cc = cc + 1
-            dms.resetdm(p_dms[nm].type, p_dms[nm].alt)
+            dms.d_dms[nm].reset_shape()
 
     return imat_cpu
 
@@ -110,7 +111,7 @@ def imat_init(ncontrol: int, rtc: Rtc, dms: Dms, p_dms: list, wfs: Sensors, p_wf
 
     if "imat" in dataBase:
         imat = h5u.load_imat_from_dataBase(dataBase)
-        rtc.set_imat(ncontrol, imat)
+        rtc.d_control[ncontrol].set_imat(imat)
     else:
         t0 = time.time()
         if kl is not None:
@@ -121,7 +122,7 @@ def imat_init(ncontrol: int, rtc: Rtc, dms: Dms, p_dms: list, wfs: Sensors, p_wf
         print("done in %f s" % (time.time() - t0))
         if use_DB:
             h5u.save_imat_in_dataBase(rtc.get_imat(ncontrol))
-    p_controller.set_imat(rtc.get_imat(ncontrol))
+    p_controller.set_imat(np.array(rtc.d_control[ncontrol].d_imat))
 
     # Restore original profile in lgs spots
     for i in range(len(p_wfss)):

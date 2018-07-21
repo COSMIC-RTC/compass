@@ -44,11 +44,11 @@ def cmat_init(ncontrol: int, rtc: Rtc, p_controller: conf.Param_controller,
     if (p_controller.type == scons.ControllerType.LS):
         print("Doing imat svd...")
         t0 = time.time()
-        rtc.imat_svd(ncontrol)
+        rtc.d_control[ncontrol].svdec_imat()
         print("svd done in %f s" % (time.time() - t0))
-        eigenv = rtc.get_eigenvals(ncontrol)
+        eigenv = np.array(rtc.d_control[ncontrol].d_eigenvals)
 
-        imat = rtc.get_imat(ncontrol)
+        imat = np.array(rtc.d_control[ncontrol].d_imat)
         maxcond = p_controller.maxcond
         if (eigenv[0] < eigenv[eigenv.shape[0] - 1]):
             mfilt = np.where((eigenv / eigenv[eigenv.shape[0] - 3]) < 1. / maxcond)[0]
@@ -60,7 +60,7 @@ def cmat_init(ncontrol: int, rtc: Rtc, p_controller: conf.Param_controller,
         t0 = time.time()
         if KL2V is None:
             print("Filtering ", nfilt, " modes")
-            rtc.build_cmat(ncontrol, nfilt)
+            rtc.d_control[ncontrol].build_cmat(nfilt)
         else:
             ntt = 0
             pii = 0
@@ -85,7 +85,7 @@ def cmat_init(ncontrol: int, rtc: Rtc, p_controller: conf.Param_controller,
                         print(KL2V.shape[1])
                         raise TypeError("incorect size for klgain vector")
                 cmat_filt = KL2V.dot(Dp_filt)
-                rtc.set_cmat(ncontrol, cmat_filt)
+                rtc.d_control[ncontrol].set_cmat(cmat_filt)
 
         print("cmat done in %f s" % (time.time() - t0))
 
@@ -106,4 +106,4 @@ def cmat_init(ncontrol: int, rtc: Rtc, p_controller: conf.Param_controller,
         if ("tt" in [dm.type for dm in p_dms]):
             rtc.filter_cmat(ncontrol, p_controller.TTcond)
         print("Done")
-    p_controller.set_cmat(rtc.get_cmat(ncontrol))
+    p_controller.set_cmat(np.array(rtc.d_control[ncontrol].d_cmat))

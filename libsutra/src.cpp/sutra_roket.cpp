@@ -220,7 +220,7 @@ int sutra_roket::compute_breakdown() {
   this->target->d_targets[0]->raytrace(this->atm);
   this->target->d_targets[0]->d_phase->d_screen->axpy(
       1.0, this->tel->d_phase_ab_M1_m, 1, 1);
-  this->current_context->set_activeDevice(this->rtc->device, 1);
+  this->current_context->set_activeDevice(this->geocontrol->device, 1);
   this->geocontrol->comp_dphi(this->target->d_targets[0], false);
 
   this->rtc->do_control(this->geocontroller);

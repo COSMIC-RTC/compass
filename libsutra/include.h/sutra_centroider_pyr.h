@@ -33,8 +33,8 @@ class sutra_centroider_pyr : public sutra_centroider {
   string pyr_type;
 
  public:
-  sutra_centroider_pyr(carma_context *context, sutra_sensors *sensors, int nwfs,
-                       long nvalid, float offset, float scale, int device);
+  sutra_centroider_pyr(carma_context *context, sutra_wfs *wfs, long nvalid,
+                       float offset, float scale, int device);
   sutra_centroider_pyr(const sutra_centroider_pyr &centroider);
   ~sutra_centroider_pyr();
 

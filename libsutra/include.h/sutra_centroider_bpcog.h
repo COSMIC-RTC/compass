@@ -10,9 +10,8 @@ class sutra_centroider_bpcog : public sutra_centroider {
   carma_obj<uint> *d_bpind;
 
  public:
-  sutra_centroider_bpcog(carma_context *context, sutra_sensors *sensors,
-                         int nwfs, long nvalid, float offset, float scale,
-                         int device, int nmax);
+  sutra_centroider_bpcog(carma_context *context, sutra_wfs *wfs, long nvalid,
+                         float offset, float scale, int device, int nmax);
   sutra_centroider_bpcog(const sutra_centroider_bpcog &centroider);
   ~sutra_centroider_bpcog();
 

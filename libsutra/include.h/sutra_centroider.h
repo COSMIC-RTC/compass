@@ -2,14 +2,13 @@
 #define _SUTRA_CENTROIDER_H_
 
 #include <sutra_acquisim.h>
-#include <sutra_sensors.h>
+#include <sutra_wfs.h>
 #include <string>
 
 class sutra_centroider {
  public:
   int device;
   sutra_wfs *wfs;
-  int nwfs;
   int nvalid;
 
   float offset;
@@ -23,8 +22,8 @@ class sutra_centroider {
   carma_obj<int> *d_validy;
 
  protected:
-  sutra_centroider(carma_context *context, sutra_sensors *sensors, int nwfs,
-                   long nvalid, float offset, float scale, int device);
+  sutra_centroider(carma_context *context, sutra_wfs *wfs, long nvalid,
+                   float offset, float scale, int device);
 
  public:
   virtual ~sutra_centroider();

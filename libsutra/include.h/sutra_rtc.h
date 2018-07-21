@@ -17,29 +17,23 @@
 
 class sutra_rtc {
  public:
-  int device;
-
   vector<sutra_centroider *> d_centro;
   vector<sutra_controller *> d_control;
 
-  carma_context *current_context;
-
  public:
-  sutra_rtc(carma_context *context);
-  sutra_rtc(const sutra_rtc &yrtc);
+  sutra_rtc();
   ~sutra_rtc();
 
-  int add_centroider(sutra_sensors *sensors, int nwfs, long nvalid,
-                     float offset, float scale, long device, char *typec);
-  int add_centroider(int nwfs, long nvalid, float offset, float scale,
-                     long device, char *typec);
+  int add_centroider(carma_context *context, long nvalid, float offset,
+                     float scale, long device, char *typec,
+                     sutra_wfs *wfs = nullptr);
   int rm_centroider();
-  int add_controller_geo(int nactu, int Nphi, float delay, long device,
-                         sutra_dms *dms, int *idx_dms, int ndm,
-                         bool wfs_direction);
-  int add_controller(int nactu, float delay, long device, const char *typec,
-                     sutra_dms *dms, int *idx_dms, int ndm);
-  int add_controller(int nactu, float delay, long device, const char *typec);
+  int add_controller_geo(carma_context *context, int nactu, int Nphi,
+                         float delay, long device, sutra_dms *dms, int *idx_dms,
+                         int ndm, bool wfs_direction);
+  int add_controller(carma_context *context, int nactu, float delay,
+                     long device, const char *typec, sutra_dms *dms = nullptr,
+                     int *idx_dms = nullptr, int ndm = 0);
 
   int rm_controller();
 

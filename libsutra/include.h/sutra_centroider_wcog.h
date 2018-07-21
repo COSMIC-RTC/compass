@@ -9,9 +9,8 @@ class sutra_centroider_wcog : public sutra_centroider {
   carma_obj<float> *d_weights;
 
  public:
-  sutra_centroider_wcog(carma_context *context, sutra_sensors *sensors,
-                        int nwfs, long nvalid, float offset, float scale,
-                        int device);
+  sutra_centroider_wcog(carma_context *context, sutra_wfs *wfs, long nvalid,
+                        float offset, float scale, int device);
   sutra_centroider_wcog(const sutra_centroider &centroider);
   ~sutra_centroider_wcog();
 

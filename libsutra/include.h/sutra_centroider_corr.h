@@ -16,9 +16,8 @@ class sutra_centroider_corr : public sutra_centroider {
   carma_obj<float> *d_interpmat;
 
  public:
-  sutra_centroider_corr(carma_context *context, sutra_sensors *sensors,
-                        int nwfs, long nvalid, float offset, float scale,
-                        int device);
+  sutra_centroider_corr(carma_context *context, sutra_wfs *wfs, long nvalid,
+                        float offset, float scale, int device);
   sutra_centroider_corr(const sutra_centroider_corr &centroider);
   ~sutra_centroider_corr();
 

@@ -6,9 +6,8 @@
 class sutra_centroider_roof : public sutra_centroider {
  public:
  public:
-  sutra_centroider_roof(carma_context *context, sutra_sensors *sensors,
-                        int nwfs, long nvalid, float offset, float scale,
-                        int device);
+  sutra_centroider_roof(carma_context *context, sutra_wfs *wfs, long nvalid,
+                        float offset, float scale, int device);
   sutra_centroider_roof(const sutra_centroider_roof &centroider);
   ~sutra_centroider_roof();
 

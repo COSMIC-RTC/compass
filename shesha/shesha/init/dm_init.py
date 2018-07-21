@@ -592,6 +592,7 @@ def correct_dm(context, dms: Dms, p_dms: list, p_controller: conf.Param_controll
     """Correct the geometry of the DMs using the imat (filter unseen actuators)
 
     :parameters:
+        context: (naga_context): context
         dms: (Dms) : Dms object
         p_dms: (list of Param_dm) : dms settings
         p_controller: (Param_controller) : controller settings
@@ -602,10 +603,9 @@ def correct_dm(context, dms: Dms, p_dms: list, p_controller: conf.Param_controll
     """
     print("Filtering unseen actuators... ")
     ndm = p_controller.ndm.size
-    for i in range(ndm):
+    for i in range(ndm - 1, -1, -1):
         nm = p_controller.ndm[i]
         dms.remove_dm(nm)
-
     if imat is not None:
         resp = np.sqrt(np.sum(imat**2, axis=0))
 
@@ -658,7 +658,6 @@ def correct_dm(context, dms: Dms, p_dms: list, p_controller: conf.Param_controll
                                          p_dms[nm]._influpos.astype(np.int32),
                                          p_dms[nm]._ninflu, p_dms[nm]._influstart,
                                          p_dms[nm]._i1, p_dms[nm]._j1)
-
         elif (p_dms[nm].type == scons.DmType.TT):
             dim = p_dms[nm]._n2 - p_dms[nm]._n1 + 1
             dms.add_dm(context, p_dms[nm].type, p_dms[nm].alt, dim, 2, dim, 1, 1,
@@ -668,7 +667,7 @@ def correct_dm(context, dms: Dms, p_dms: list, p_controller: conf.Param_controll
         elif (p_dms[nm].type == scons.DmType.KL):
             dim = int(p_dms[nm]._n2 - p_dms[nm]._n1 + 1)
 
-            dms.add_dm(cotext, p_dms[nm].type, p_dms[nm].alt, dim, p_dms[nm].nkl,
+            dms.add_dm(context, p_dms[nm].type, p_dms[nm].alt, dim, p_dms[nm].nkl,
                        p_dms[nm]._ncp, p_dms[nm]._nr, p_dms[nm]._npp,
                        p_dms[nm].push4imat, p_dms[nm]._ord.max(), context.activeDevice)
             dms.d_dms[-1].kl_loadarrays(p_dms[nm]._rabas, p_dms[nm]._azbas,

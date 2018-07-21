@@ -49,7 +49,7 @@ def rtc_init(context: naga_context, tel: Telescope, wfs: Sensors, dms: Dms, atmo
     if brahma:
         rtc = Rtc_brahma(context, wfs, tar)
     else:
-        rtc = Rtc(context)
+        rtc = Rtc()
 
     if p_wfss is None:
         return rtc
@@ -67,8 +67,8 @@ def rtc_init(context: naga_context, tel: Telescope, wfs: Sensors, dms: Dms, atmo
     if p_centroiders is not None:
         for i in range(ncentro):
             nwfs = p_centroiders[i].nwfs
-            init_centroider(nwfs, p_wfss[nwfs], p_centroiders[i], p_tel, p_atmos, wfs,
-                            rtc)
+            init_centroider(context, nwfs, p_wfss[nwfs], p_centroiders[i], p_tel,
+                            p_atmos, wfs, rtc)
 
     if p_controllers is not None:
         if (p_wfss is not None and p_dms is not None):
@@ -80,12 +80,12 @@ def rtc_init(context: naga_context, tel: Telescope, wfs: Sensors, dms: Dms, atmo
                     imat = None
 
                 if p_dms[0].type == scons.DmType.PZT:
-                    dm_init.correct_dm(dms, p_dms, p_controllers[i], p_geom, imat,
-                                       dataBase=dataBase, use_DB=use_DB)
+                    dm_init.correct_dm(context, dms, p_dms, p_controllers[i], p_geom,
+                                       imat, dataBase=dataBase, use_DB=use_DB)
 
-                init_controller(i, p_controllers[i], p_wfss, p_geom, p_dms, p_atmos,
-                                ittime, p_tel, rtc, dms, wfs, tel, atmos, do_refslp,
-                                dataBase=dataBase, use_DB=use_DB)
+                init_controller(context, i, p_controllers[i], p_wfss, p_geom, p_dms,
+                                p_atmos, ittime, p_tel, rtc, dms, wfs, tel, atmos,
+                                do_refslp, dataBase=dataBase, use_DB=use_DB)
 
             # add a geometric controller for processing error breakdown
             roket_flag = True in [w.roket for w in p_wfss]
@@ -98,8 +98,9 @@ def rtc_init(context: naga_context, tel: Telescope, wfs: Sensors, dms: Dms, atmo
                 alt = np.array([p_dms[j].alt
                                 for j in p_controller.ndm], dtype=np.float32)
 
-                rtc.add_controller(nactu, p_controller.delay, p_controller.type, dms,
-                                   list_dmseen, alt, p_controller.ndm.size, Nphi, True)
+                rtc.add_controller_geo(context, nactu, Nphi, p_controller.delay,
+                                       context.activeDevice, p_controller.type, dms,
+                                       list_dmseen, p_controller.ndm.size, True)
 
                 # list_dmseen,alt,p_controller.ndm.size
                 init_controller_geo(ncontrol, rtc, dms, p_geom, p_controller, p_dms,
@@ -127,12 +128,13 @@ def rtc_standalone(context: naga_context, nwfs: int, nvalid, nactu: int,
     return rtc
 
 
-def init_centroider(nwfs: int, p_wfs: conf.Param_wfs,
+def init_centroider(context, nwfs: int, p_wfs: conf.Param_wfs,
                     p_centroider: conf.Param_centroider, p_tel: conf.Param_tel,
                     p_atmos: conf.Param_atmos, wfs: Sensors, rtc: Rtc):
     """ Initialize a centroider object in Rtc
 
     :parameters:
+        context: (naga_context): context
         nwfs : (int) : index of wfs
         p_wfs : (Param_wfs): wfs settings
         p_centroider : (Param_centroider) : centroider settings
@@ -157,7 +159,8 @@ def init_centroider(nwfs: int, p_wfs: conf.Param_wfs,
         s_scale = (p_wfs.Lambda * 1e-6 / p_tel.diam) * \
             p_wfs.pyr_ampl * CONST.RAD2ARCSEC
 
-    rtc.add_centroider(wfs, nwfs, p_wfs._nvalid, p_centroider.type, s_offset, s_scale)
+    rtc.add_centroider(context, p_wfs._nvalid, s_offset, s_scale, context.activeDevice,
+                       p_centroider.type, wfs.d_wfs[nwfs])
 
     if (p_wfs.type == scons.WFSType.PYRHR):
         # FIXME SIGNATURE CHANGES
@@ -246,7 +249,7 @@ def comp_weights(p_centroider: conf.Param_centroider, p_wfs: conf.Param_wfs, npi
                     p_wfs.npix // 2 + 0.5).astype(np.float32)
 
 
-def init_controller(i: int, p_controller: conf.Param_controller, p_wfss: list,
+def init_controller(context, i: int, p_controller: conf.Param_controller, p_wfss: list,
                     p_geom: conf.Param_geom, p_dms: list, p_atmos: conf.Param_atmos,
                     ittime: float, p_tel: conf.Param_tel, rtc: Rtc, dms: Dms,
                     wfs: Sensors, tel: Telescope, atmos: Atmos, do_refslp=False,
@@ -255,6 +258,7 @@ def init_controller(i: int, p_controller: conf.Param_controller, p_wfss: list,
         Initialize the controller part of rtc
 
     :parameters:
+        context: (naga_context): context
         i : (int) : controller index
         p_controller: (Param_controller) : controller settings
         p_wfss: (list of Param_wfs) : wfs settings
@@ -288,8 +292,8 @@ def init_controller(i: int, p_controller: conf.Param_controller, p_wfss: list,
     else:
         Nphi = -1
 
-    rtc.add_controller(nactu, p_controller.delay, p_controller.type, dms, list_dmseen,
-                       alt, p_controller.ndm.size, Nphi)
+    rtc.add_controller(context, nactu, p_controller.delay, context.activeDevice,
+                       p_controller.type, dms, p_controller.ndm, p_controller.ndm.size)
 
     if (p_wfss is not None and do_refslp):
         rtc.do_centroids_ref(i)
