@@ -164,8 +164,8 @@ def init_centroider(context, nwfs: int, p_wfs: conf.Param_wfs,
 
     if (p_wfs.type == scons.WFSType.PYRHR):
         # FIXME SIGNATURE CHANGES
-        rtc.set_pyr_method(nwfs, p_centroider.method)
-        rtc.set_pyr_thresh(nwfs, p_centroider.thresh)
+        rtc.d_centro[nwfs].set_pyr_method(p_centroider.method)
+        rtc.d_centro[nwfs].set_pyr_thresh(p_centroider.thresh)
 
     elif (p_wfs.type == scons.WFSType.SH):
         if (p_centroider.type == scons.CentroiderType.TCOG):
