@@ -30,6 +30,11 @@ add_library(shesha_bind MODULE
                     shesha/sutra_pybind/shesha_wfs_sh.cpp
                     shesha/sutra_pybind/shesha_wfs_pyrhr.cpp
                     shesha/sutra_pybind/shesha_centroider.cpp
+                    shesha/sutra_pybind/shesha_centroider_tcog.cpp
+                    shesha/sutra_pybind/shesha_centroider_wcog.cpp
+                    shesha/sutra_pybind/shesha_centroider_bpcog.cpp
+                    shesha/sutra_pybind/shesha_centroider_corr.cpp
+                    shesha/sutra_pybind/shesha_centroider_pyr.cpp
                     shesha/sutra_pybind/shesha_controller.cpp
                     shesha/sutra_pybind/shesha_controller_ls.cpp
                     shesha/sutra_pybind/shesha_rtc.cpp

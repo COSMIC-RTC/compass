@@ -66,8 +66,11 @@ def tel_init(context: naga_context, p_geom: conf.Param_geom, p_tel: conf.Param_t
     telescope = Telescope(context, p_geom._spupil.shape[0],
                           np.where(p_geom._spupil > 0)[0].size,
                           (p_geom._spupil * p_geom._apodizer).astype(np.float32),
-                          p_geom._phase_ab_M1, p_geom._mpupil.shape[0], p_geom._mpupil,
-                          p_geom._phase_ab_M1_m)
+                          p_geom._mpupil.shape[0], p_geom._mpupil)
+
+    if (p_geom._phase_ab_M1 is not None):
+        telescope.set_phase_ab_M1(p_geom._phase_ab_M1)
+        telescope.set_phase_ab_M1_m(p_geom._phase_ab_M1_m)
 
     return telescope
 
@@ -724,16 +727,17 @@ def geom_init(p_geom: conf.Param_geom, p_tel: conf.Param_tel, padding=2):
     # Useful pupil
     p_geom._spupil = mkP.make_pupil(p_geom.pupdiam, p_geom.pupdiam, p_tel, cent,
                                     cent).astype(np.float32)
-    p_geom._phase_ab_M1 = mkP.make_phase_ab(p_geom.pupdiam, p_geom.pupdiam, p_tel,
-                                            p_geom._spupil).astype(np.float32)
+    if (p_tel.std_piston and p_tel.std_tt):
+        p_geom._phase_ab_M1 = mkP.make_phase_ab(p_geom.pupdiam, p_geom.pupdiam, p_tel,
+                                                p_geom._spupil).astype(np.float32)
+        p_geom._phase_ab_M1_m = util.pad_array(p_geom._phase_ab_M1,
+                                               p_geom._n).astype(np.float32)
 
     # large pupil (used for image formation)
     p_geom._ipupil = util.pad_array(p_geom._spupil, p_geom.ssize).astype(np.float32)
 
     # useful pupil + 4 pixels
     p_geom._mpupil = util.pad_array(p_geom._spupil, p_geom._n).astype(np.float32)
-    p_geom._phase_ab_M1_m = util.pad_array(p_geom._phase_ab_M1,
-                                           p_geom._n).astype(np.float32)
 
     #TODO: apodizer
     """

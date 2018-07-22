@@ -150,7 +150,7 @@ void declare_shesha_wfs(py::module &mod) {
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
 
-      .def("comp_image", wy::colCast(&sutra_wfs::comp_image),
+      .def("comp_image", &sutra_wfs::comp_image,
            "Computes the WFS image from the WFS phase")
       .def("slopes_geom",
            wy::colCast((int (sutra_wfs::*)(int)) & sutra_wfs::slopes_geom),
@@ -202,7 +202,7 @@ void declare_shesha_wfs(py::module &mod) {
                   )pbdoc",
            py::arg("pupil"))
 
-      .def("set_noise", wy::colCast(&sutra_wfs::set_noise), R"pbdoc(
+      .def("set_noise", &sutra_wfs::set_noise, R"pbdoc(
             Set the noise of the WFS
 
             Parameters

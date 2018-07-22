@@ -27,9 +27,10 @@ class sutra_telescope {
 
  public:
   sutra_telescope(carma_context *context, long pup_size, long num_eleme_pup,
-                  float *pupil, float *phase_ab_M1, long pup_size_m,
-                  float *pupil_m, float *phase_ab_m1_m);
+                  float *pupil, long pup_size_m, float *pupil_m);
   ~sutra_telescope();
+  int set_phase_ab_M1(float *phase_ab_M1, int size);
+  int set_phase_ab_M1_m(float *phase_ab_M1_m, int size);
 };
 
 #endif  // _SUTRA_TELESCOPE_H_

@@ -77,8 +77,7 @@ void declare_shesha_rtc(py::module &mod) {
            py::arg("device"), py::arg("typec"), py::arg("dms") = nullptr,
            py::arg("idx_dms") = nullptr, py::arg("ndm") = 0)
 
-      .def("do_centroids",
-           wy::colCast((int (sutra_rtc::*)(int)) & sutra_rtc::do_centroids),
+      .def("do_centroids", (int (sutra_rtc::*)(int)) & sutra_rtc::do_centroids,
            R"pbdoc(
         Computes the centroids
 
@@ -88,8 +87,7 @@ void declare_shesha_rtc(py::module &mod) {
     )pbdoc",
            py::arg("ncontrol"))
 
-      .def("do_control",
-           wy::colCast((int (sutra_rtc::*)(int)) & sutra_rtc::do_control),
+      .def("do_control", (int (sutra_rtc::*)(int)) & sutra_rtc::do_control,
            R"pbdoc(
         Computes the commands
 
@@ -99,7 +97,7 @@ void declare_shesha_rtc(py::module &mod) {
     )pbdoc",
            py::arg("ncontrol"))
 
-      .def("apply_control", wy::colCast(&sutra_rtc::apply_control), R"pbdoc(
+      .def("apply_control", &sutra_rtc::apply_control, R"pbdoc(
         Apply the commands on the DM and shape it
 
         Parameters
@@ -151,7 +149,7 @@ void declare_shesha_rtc(py::module &mod) {
     )pbdoc",
            py::arg("ncontrol"), py::arg("nfilt"), py::arg("filt_tt") = false)
 
-      .def("do_clipping", wy::colCast(&sutra_rtc::do_clipping), R"pbdoc(
+      .def("do_clipping", &sutra_rtc::do_clipping, R"pbdoc(
         Clip the command to apply on the DMs on a sutra_controller object
 
         Parameters

@@ -169,9 +169,9 @@ def init_centroider(context, nwfs: int, p_wfs: conf.Param_wfs,
 
     elif (p_wfs.type == scons.WFSType.SH):
         if (p_centroider.type == scons.CentroiderType.TCOG):
-            rtc.set_thresh(nwfs, p_centroider.thresh)
+            rtc.d_centro[nwfs].set_threshold(p_centroider.thresh)
         elif (p_centroider.type == scons.CentroiderType.BPCOG):
-            rtc.set_nmax(nwfs, p_centroider.nmax)
+            rtc.d_centro[nwfs].set_nmax(p_centroider.nmax)
         elif (p_centroider.type == scons.CentroiderType.WCOG or
               p_centroider.type == scons.CentroiderType.CORR):
             r0 = p_atmos.r0 * (p_wfs.Lambda / 0.5)**(6 / 5.)
@@ -179,7 +179,9 @@ def init_centroider(context, nwfs: int, p_wfs: conf.Param_wfs,
             npix = seeing // p_wfs.pixsize
             comp_weights(p_centroider, p_wfs, npix)
             if p_centroider.type == scons.CentroiderType.WCOG:
-                rtc.init_weights(nwfs, p_centroider.weights)
+                rtc.d_centro[nwfs].init_weights()
+                rtc.d_centro[nwfs].load_weights(p_centroider.weights,
+                                                p_centroider.weights.ndim)
             else:
                 corrnorm = np.ones((2 * p_wfs.npix, 2 * p_wfs.npix), dtype=np.float32)
                 p_centroider.sizex = 3
@@ -189,9 +191,11 @@ def init_centroider(context, nwfs: int, p_wfs: conf.Param_wfs,
 
                 if (p_centroider.weights is None):
                     raise ValueError("p_centroider.weights is None")
-                rtc.init_npix(nwfs, p_wfs.npix)
-                rtc.init_corr(nwfs, p_centroider.weights, corrnorm, p_centroider.sizex,
-                              p_centroider.sizey, p_centroider.interpmat)
+                rtc.d_centro[nwfs].init_bincube(p_wfs.npix)
+                rtc.d_centro[nwfs].init_corr(p_centroider.sizex, p_centroider.sizey,
+                                             p_centroider.interpmat)
+                rtc.d_centro[nwfs].load_corr(p_centroider.weights, corrnorm,
+                                             p_centroider.weights.ndim)
 
 
 def comp_weights(p_centroider: conf.Param_centroider, p_wfs: conf.Param_wfs, npix: int):

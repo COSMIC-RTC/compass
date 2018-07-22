@@ -169,7 +169,7 @@ void declare_shesha_source(py::module &mod) {
         )pbdoc",
            py::arg("type"), py::arg("idx"))
 
-      .def("comp_image", wy::colCast(&sutra_source::comp_image), R"pbdoc(
+      .def("comp_image", &sutra_source::comp_image, R"pbdoc(
         Compute short and long exposure images
 
         Parameters
@@ -189,8 +189,7 @@ void declare_shesha_source(py::module &mod) {
 
       .def("comp_strehl", &sutra_source::comp_strehl, "Compute Strehl ratio")
 
-      .def("raytrace",
-           wy::colCast((int (sutra_source::*)(bool)) & sutra_source::raytrace),
+      .def("raytrace", (int (sutra_source::*)(bool)) & sutra_source::raytrace,
            R"pbdoc(
         Raytrace through ncpa layers
 
@@ -201,8 +200,8 @@ void declare_shesha_source(py::module &mod) {
            py::arg("rst") = false)
 
       .def("raytrace",
-           wy::colCast((int (sutra_source::*)(sutra_telescope * tel, bool)) &
-                       sutra_source::raytrace),
+           (int (sutra_source::*)(sutra_telescope * tel, bool)) &
+               sutra_source::raytrace,
            R"pbdoc(
         Raytrace through telescope aberrations
 
@@ -214,8 +213,8 @@ void declare_shesha_source(py::module &mod) {
            py::arg("tel"), py::arg("rst") = false)
 
       .def("raytrace",
-           wy::colCast((int (sutra_source::*)(sutra_atmos * atmos, bool)) &
-                       sutra_source::raytrace),
+           (int (sutra_source::*)(sutra_atmos * atmos, bool)) &
+               sutra_source::raytrace,
            R"pbdoc(
         Raytrace through turbulent layers. Calling this function will automatically reset the screen phase before raytracing.
 
@@ -227,9 +226,9 @@ void declare_shesha_source(py::module &mod) {
            py::arg("atmos"), py::arg("async") = false)
 
       .def("raytrace",
-           wy::colCast(
-               (int (sutra_source::*)(sutra_dms * dms, bool, bool, bool)) &
-               sutra_source::raytrace),
+
+           (int (sutra_source::*)(sutra_dms * dms, bool, bool, bool)) &
+               sutra_source::raytrace,
            R"pbdoc(
         Raytrace through DMs
 
@@ -244,10 +243,10 @@ void declare_shesha_source(py::module &mod) {
            py::arg("do_phase_var") = true, py::arg("async") = false)
 
       .def("raytrace",
-           wy::colCast(
-               (int (sutra_source::*)(sutra_telescope * tel, sutra_atmos * atm,
-                                      sutra_dms * dms, bool, bool)) &
-               sutra_source::raytrace),
+
+           (int (sutra_source::*)(sutra_telescope * tel, sutra_atmos * atm,
+                                  sutra_dms * dms, bool, bool)) &
+               sutra_source::raytrace,
            R"pbdoc(
         Raytrace through all layers (turbu, dms, telescope, ncpa)
 
