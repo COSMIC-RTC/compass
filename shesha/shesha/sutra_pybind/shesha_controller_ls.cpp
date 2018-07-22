@@ -152,6 +152,9 @@ void declare_shesha_controller_ls(py::module &mod) {
     )pbdoc",
            py::arg("slopes"))
 
+      .def("modalControlOptimization",
+           &sutra_controller_ls::modalControlOptimization, "TODO: docstring")
+
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝
       //  ███████╗█████╗     ██║      ██║   █████╗  ██████╔╝███████╗

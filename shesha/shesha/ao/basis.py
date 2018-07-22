@@ -55,12 +55,11 @@ def compute_KL2V(p_controller: conf.Param_controller, dms: Dms, p_dms: list,
             p2m = p_tel.diam / p_geom.pupdiam
             norm = -(p2m * p_tel.diam / (2 * p_atmos.r0))**(5. / 3)
 
-            dms.compute_KLbasis(scons.DmType.PZT, p_dms[ndm].alt, p_dms[ndm]._xpos,
-                                p_dms[ndm]._ypos, indx_valid, indx_valid.size, norm, 1.0)
-            KLbasis = np.fliplr(dms.get_KLbasis(scons.DmType.PZT, p_dms[ndm].alt))
+            dms.d_dms[ndm].compute_KLbasis(p_dms[ndm]._xpos, p_dms[ndm]._ypos,
+                                           indx_valid, indx_valid.size, norm, 1.0)
 
             KL2V[indx_act:indx_act + ntotact[ndm], indx_act:indx_act + ntotact[ndm]] = \
-                np.fliplr(dms.get_KLbasis(scons.DmType.PZT, p_dms[ndm].alt))
+                np.fliplr(dms.d_dms[ndm].d_KLbasis)
             indx_act += ntotact[ndm]
         elif (p_dms[ndm].type == scons.DmType.TT):
             nTT += 1

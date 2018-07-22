@@ -401,25 +401,25 @@ def init_controller_ls(i: int, p_controller: conf.Param_controller, p_wfss: list
 
         KL2V = basis.compute_KL2V(p_controller, dms, p_dms, p_geom, p_atmos, p_tel)
 
-        rtc.init_modalOpti(i, p_controller.nmodes, p_controller.nrec, KL2V,
-                           p_controller.gmin, p_controller.gmax, p_controller.ngain,
-                           1. / ittime)
+        rtc.d_control[i].init_modalOpti(p_controller.nmodes, p_controller.nrec, KL2V,
+                                        p_controller.gmin, p_controller.gmax,
+                                        p_controller.ngain, 1. / ittime)
         ol_slopes = modopti.openLoopSlp(tel, atmos, wfs, rtc, p_controller.nrec, i,
                                         p_wfss)
-        rtc.load_open_loop_slopes(i, ol_slopes)
-        rtc.modal_control_optimization(i)
+        rtc.d_control[i].loadOpenLoopSlp(ol_slopes)
+        rtc.d_control[i].modalControlOptimization()
     else:
         cmats.cmat_init(i, rtc, p_controller, p_wfss, p_atmos, p_tel, p_dms, KL2V=KL2V,
                         nmodes=p_controller.nmodes)
 
-        rtc.set_gain(i, p_controller.gain)
+        rtc.d_control[i].set_gain(p_controller.gain)
         mgain = np.ones(
                 sum([p_dms[j]._ntotact for j in range(len(p_dms))]), dtype=np.float32)
         cc = 0
         for ndm in p_dms:
             mgain[cc:cc + ndm._ntotact] = ndm.gain
             cc += ndm._ntotact
-        rtc.set_mgain(i, mgain)
+        rtc.d_control[i].set_mgain(mgain)
 
 
 def init_controller_cured(i: int, rtc: Rtc, p_controller: conf.Param_controller,
