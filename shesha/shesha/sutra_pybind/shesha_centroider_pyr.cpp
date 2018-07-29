@@ -7,6 +7,12 @@ typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;
 
 void declare_shesha_centroider_pyr(py::module &mod) {
   py::class_<sutra_centroider_pyr, sutra_centroider>(mod, "CentroiderPYR")
+
+      .def_property_readonly(
+          "pyr_method",
+          [](sutra_centroider_pyr &sc) { return sc.get_method_str(); },
+          "Method used for pyramid slopes compuation")
+
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝
       //  ███████╗█████╗     ██║      ██║   █████╗  ██████╔╝███████╗

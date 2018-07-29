@@ -1,12 +1,13 @@
 #include <wyrm>
 
-#include <sutra_controller.h>
+#include <sutra_controller_generic.h>
 
 namespace py = pybind11;
 typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;
 
-void declare_shesha_controller(py::module &mod) {
-  py::class_<sutra_controller>(mod, "Controller")
+void declare_shesha_controller_generic(py::module &mod) {
+  py::class_<sutra_controller_generic, sutra_controller>(mod,
+                                                         "ControllerGENERIC")
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
@@ -15,66 +16,32 @@ void declare_shesha_controller(py::module &mod) {
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
-
-      .def_property_readonly("device",
-                             [](sutra_controller &sc) { return sc.device; },
-                             "GPU device index")
-
-      .def_property_readonly("type",
-                             [](sutra_controller &sc) { return sc.get_type(); },
-                             "Controller type")
-
-      .def_property_readonly("nactu",
-                             [](sutra_controller &sc) { return sc.nactu(); },
-                             "Number of actuators to control")
-
-      .def_property_readonly("nslope",
-                             [](sutra_controller &sc) { return sc.nslope(); },
-                             "Number of slopes")
-
-      .def_property_readonly("open_loop",
-                             [](sutra_controller &sc) { return sc.open_loop; },
-                             "Open loop flag")
+      .def_property_readonly(
+          "d_matE", [](sutra_controller_generic &sc) { return sc.d_matE; },
+          "E matrix (see compass.io details on generic controller)")
 
       .def_property_readonly(
-          "delay", [](sutra_controller &sc) { return sc.delay; }, "Loop delay")
-
-      .def_property_readonly("d_dmseen",
-                             [](sutra_controller &sc) { return sc.d_dmseen; },
-                             "Vector of sutra_dm commanded")
-
-      .def_property_readonly("d_subsum",
-                             [](sutra_controller &sc) { return sc.d_subsum; },
-                             "Array to store ssp intensities sum")
+          "d_decayFactor",
+          [](sutra_controller_generic &sc) { return sc.d_decayFactor; },
+          "decayFactor vector (see compass.io details on generic controller)")
 
       .def_property_readonly(
-          "d_centroids", [](sutra_controller &sc) { return sc.d_centroids; },
-          "Slopes vector")
+          "d_cmat", [](sutra_controller_generic &sc) { return sc.d_cmat; },
+          "Control matrix")
 
       .def_property_readonly(
-          "d_centroids_ref",
-          [](sutra_controller &sc) { return sc.d_centroids_ref; },
-          "Reference slopes vector")
+          "d_gain", [](sutra_controller_generic &sc) { return sc.d_gain; },
+          "vector of modal gains")
 
-      .def_property_readonly("d_com",
-                             [](sutra_controller &sc) { return sc.d_com; },
-                             "Current command vector")
+      .def_property_readonly(
+          "d_compbuff",
+          [](sutra_controller_generic &sc) { return sc.d_compbuff; },
+          "Computation buffer buffer")
 
-      .def_property_readonly("d_com1",
-                             [](sutra_controller &sc) { return sc.d_com1; },
-                             "Command vector at iteration k-1")
-
-      .def_property_readonly("d_com1",
-                             [](sutra_controller &sc) { return sc.d_com1; },
-                             "Command vector at iteration k-2")
-
-      .def_property_readonly("d_perturb",
-                             [](sutra_controller &sc) { return sc.d_perturb; },
-                             "Perturbations voltage")
-
-      .def_property_readonly("d_voltage",
-                             [](sutra_controller &sc) { return sc.d_voltage; },
-                             "Total voltage to apply on the DMs")
+      .def_property_readonly(
+          "command_law",
+          [](sutra_controller_generic &sc) { return sc.command_law; },
+          "Command law currently used")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝
@@ -82,11 +49,6 @@ void declare_shesha_controller(py::module &mod) {
       //  ██║╚██╔╝██║██╔══╝     ██║   ██╔══██║██║   ██║██║  ██║╚════██║
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
-      .def("add_perturb", wy::colCast(&sutra_controller::add_perturb),
-           "Add the perturbation voltage to the command")
-
-      .def("command_delay", &sutra_controller::command_delay,
-           "Delay the command")
 
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝
@@ -95,36 +57,55 @@ void declare_shesha_controller(py::module &mod) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
-      .def("set_centroids_ref",
-           wy::colCast(&sutra_controller::set_centroids_ref), R"pbdoc(
-      Set the references slopes
+      .def("set_decayFactor",
+           wy::colCast(&sutra_controller_generic::set_decayFactor), R"pbdoc(
+      Set the decay factor vector
 
       Parameters
       ------------
-      refslopes: (np.array[ndim1,dtype=np.float32]): reference slopes to set
+      decayFactor: (np.array[ndim1,dtype=np.float32]): decay factor
     )pbdoc",
-           py::arg("refslopes"))
+           py::arg("decayFactor"))
 
-      .def("set_perturbcom", wy::colCast(&sutra_controller::set_perturbcom),
+      .def("set_matE", wy::colCast(&sutra_controller_generic::set_matE),
            R"pbdoc(
-      Set the perturbation voltage
+      Set the E matrix
 
       Parameters
       ------------
-      perturb: (np.array[ndim1,dtype=np.float32]): perturbation voltage to set
-      N: (int): size
+      E: (np.array[ndim=2,dtype=np.float32]): E matrix to set
     )pbdoc",
-           py::arg("perturb"), py::arg("N"))
+           py::arg("E"))
 
-      .def("set_openloop", wy::colCast(&sutra_controller::set_openloop),
+      .def("set_commandlaw",
+           wy::colCast(&sutra_controller_generic::set_commandlaw), R"pbdoc(
+      Set the command law to use
+
+      Parameters
+      ------------
+      commandlaw: (str): command law "integrator" or "2matrices"
+    )pbdoc",
+           py::arg("commandlaw"))
+
+      .def("set_mgain", wy::colCast(&sutra_controller_generic::set_mgain),
            R"pbdoc(
-      Open (1) or close (0) the loop
+      Set the controller modal gains
 
       Parameters
       ------------
-      status: (int): open loop status
+      mgain: (np.array[ndim1,dtype=np.float32]): modal gains to set
     )pbdoc",
-           py::arg("status"))
+           py::arg("mgain"))
+
+      .def("set_cmat", wy::colCast(&sutra_controller_generic::set_cmat),
+           R"pbdoc(
+      Set the command matrix
+
+      Parameters
+      ------------
+      cmat: (np.array[ndim=2,dtype=np.float32]): command matrix to set
+    )pbdoc",
+           py::arg("cmat"))
 
       ;
 };

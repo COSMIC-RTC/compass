@@ -114,6 +114,12 @@ int sutra_controller_mv::set_cmat(float *cmat) {
   return EXIT_SUCCESS;
 }
 
+int sutra_controller_mv::set_imat(float *imat) {
+  current_context->set_activeDevice(device, 1);
+  this->d_imat->host2device(imat);
+  return EXIT_SUCCESS;
+}
+
 int sutra_controller_mv::load_noisemat(float *noise) {
   current_context->set_activeDevice(device, 1);
   this->d_noisemat->host2device(noise);

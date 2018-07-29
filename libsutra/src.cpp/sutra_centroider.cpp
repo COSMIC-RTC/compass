@@ -25,6 +25,11 @@ sutra_centroider::~sutra_centroider() {
   if (this->d_validy != nullptr) delete this->d_validy;
 }
 
+int sutra_centroider::set_scale(float scale) {
+  this->scale = scale;
+  return EXIT_SUCCESS;
+}
+
 int sutra_centroider::load_img(float *img, int n) {
   current_context->set_activeDevice(device, 1);
   if (this->d_img == nullptr) {

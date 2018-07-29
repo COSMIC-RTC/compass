@@ -543,10 +543,17 @@ int sutra_wfs_sh::fill_binimage(int async = 0) {
   return EXIT_SUCCESS;
 }
 
-int sutra_wfs_sh::comp_image() {
+int sutra_wfs_sh::comp_image(bool noise) {
   current_context->set_activeDevice(device, 1);
-
-  int result = comp_generic();
+  int result;
+  if (noise)
+    result = comp_generic();
+  else {
+    float tmp = this->noise;
+    this->noise = -1.0;
+    result = comp_generic();
+    this->noise = tmp;
+  }
   result *= this->fill_binimage();
 
   return result;

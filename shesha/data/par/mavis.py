@@ -41,7 +41,7 @@ k = 0
 for p_target in p_targets:
     p_target.set_xpos(xpos[k])
     p_target.set_ypos(ypos[k])
-    p_target.set_Lambda(0.65)
+    p_target.set_Lambda(1.65)
     p_target.set_mag(10.)
     k += 1
 # wfs

@@ -27,6 +27,7 @@ class sutra_centroider {
 
  public:
   virtual ~sutra_centroider();
+  int set_scale(float scale);
   int load_validpos(int *ivalid, int *jvalid, int N);
   int fill_bincube(int npix);
   int load_img(float *img, int n);

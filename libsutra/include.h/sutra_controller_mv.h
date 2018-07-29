@@ -56,6 +56,7 @@ class sutra_controller_mv : public sutra_controller {
   int set_mgain(float *mgain);
   int set_delay(float delay);
   int set_cmat(float *cmat);
+  int set_imat(float *imat);
   // Florian features
   int load_noisemat(float *noise);
   int do_covmat(sutra_dm *ydm, char *method, int *indx_pup, long dim,

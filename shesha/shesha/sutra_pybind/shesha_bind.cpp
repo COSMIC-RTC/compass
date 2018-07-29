@@ -22,6 +22,10 @@ void declare_shesha_centroider_corr(py::module &);
 void declare_shesha_centroider_pyr(py::module &);
 void declare_shesha_controller(py::module &);
 void declare_shesha_controller_ls(py::module &);
+void declare_shesha_controller_mv(py::module &);
+void declare_shesha_controller_geo(py::module &);
+void declare_shesha_controller_generic(py::module &);
+void declare_shesha_controller_cured(py::module &);
 void declare_shesha_rtc(py::module &);
 // Expose classes and methods to Python
 PYBIND11_MODULE(shesha_bind, mod) {
@@ -47,5 +51,9 @@ PYBIND11_MODULE(shesha_bind, mod) {
   declare_shesha_centroider_pyr(mod);
   declare_shesha_controller(mod);
   declare_shesha_controller_ls(mod);
+  declare_shesha_controller_mv(mod);
+  declare_shesha_controller_geo(mod);
+  declare_shesha_controller_generic(mod);
+  declare_shesha_controller_cured(mod);
   declare_shesha_rtc(mod);
 }

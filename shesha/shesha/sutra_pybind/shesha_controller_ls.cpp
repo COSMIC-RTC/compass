@@ -6,7 +6,7 @@ namespace py = pybind11;
 typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;
 
 void declare_shesha_controller_ls(py::module &mod) {
-  py::class_<sutra_controller_ls>(mod, "ControllerLS")
+  py::class_<sutra_controller_ls, sutra_controller>(mod, "ControllerLS")
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
@@ -55,7 +55,7 @@ void declare_shesha_controller_ls(py::module &mod) {
           "nrec", [](sutra_controller_ls &sc) { return sc.nrec; },
           "Number of open loop slopes to take for modal optimization")
 
-      .def_property_readonly("d_M2V",
+      .def_property_readonly("nmodes",
                              [](sutra_controller_ls &sc) { return sc.nmodes; },
                              "Number of modes for modal optimization")
 

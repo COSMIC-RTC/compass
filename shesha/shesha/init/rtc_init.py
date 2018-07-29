@@ -118,12 +118,13 @@ def rtc_standalone(context: naga_context, nwfs: int, nvalid, nactu: int,
     if brahma:
         rtc = Rtc_brahma(context)
     else:
-        rtc = Rtc(context)
+        rtc = Rtc()
 
     for k in range(nwfs):
-        rtc.add_centroider_standalone(k, nvalid[k], centroider_type, offset, scale)
+        rtc.add_centroider(context, nvalid[k], offset, scale, context.activeDevice,
+                           centroider_type)
 
-    rtc.add_controller_standalone(nactu, delay, b"generic")
+    rtc.add_controller(context, nactu, delay, context.activeDevice, b"generic")
 
     return rtc
 
@@ -297,7 +298,8 @@ def init_controller(context, i: int, p_controller: conf.Param_controller, p_wfss
         Nphi = -1
 
     rtc.add_controller(context, nactu, p_controller.delay, context.activeDevice,
-                       p_controller.type, dms, p_controller.ndm, p_controller.ndm.size)
+                       p_controller.type, dms, p_controller.ndm, p_controller.ndm.size,
+                       Nphi, False)
 
     if (p_wfss is not None and do_refslp):
         rtc.do_centroids_ref(i)
@@ -350,7 +352,8 @@ def init_controller_geo(i: int, rtc: Rtc, dms: Dms, p_geom: conf.Param_geom,
     unitpervolt = np.array([p_dms[j].unitpervolt
                             for j in range(len(p_dms))], dtype=np.float32)
 
-    rtc.init_proj(i, dms, indx_dm, unitpervolt, indx_pup, indx_mpup, roket=roket)
+    rtc.d_control[i].init_proj_sparse(dms, indx_dm, unitpervolt, indx_pup, indx_mpup,
+                                      roket=roket)
 
 
 def init_controller_ls(i: int, p_controller: conf.Param_controller, p_wfss: list,
@@ -439,9 +442,9 @@ def init_controller_cured(i: int, rtc: Rtc, p_controller: conf.Param_controller,
         tt_flag = True
     else:
         tt_flag = False
-    rtc.init_cured(i, p_wfss[0].nxsub, p_wfss[0]._isvalid, p_controller.cured_ndivs,
-                   tt_flag)
-    rtc.set_gain(i, p_controller.gain)
+    rtc.d_control[i].init_cured(p_wfss[0].nxsub, p_wfss[0]._isvalid,
+                                p_controller.cured_ndivs, tt_flag)
+    rtc.d_control[i].set_gain(p_controller.gain)
 
 
 def init_controller_mv(i: int, p_controller: conf.Param_controller, p_wfss: list,
@@ -466,11 +469,11 @@ def init_controller_mv(i: int, p_controller: conf.Param_controller, p_wfss: list
     """
     p_controller._imat = imats.imat_geom(wfs, dms, p_wfss, p_dms, p_controller)
     # imat_init(i,rtc,p_rtc,dms,wfs,p_wfss,p_tel,clean=1,simul_name=simul_name)
-    rtc.set_imat(i, p_controller._imat)
-    rtc.set_gain(i, p_controller.gain)
+    rtc.d_control[i].set_imat(p_controller._imat)
+    rtc.d_control[i].set_gain(p_controller.gain)
     size = sum([p_dms[j]._ntotact for j in range(len(p_dms))])
     mgain = np.ones(size, dtype=np.float32)
-    rtc.set_mgain(i, mgain)
+    rtc.d_control[i].set_mgain(mgain)
     tomo.do_tomo_matrices(i, rtc, p_wfss, dms, atmos, wfs, p_controller, p_geom, p_dms,
                           p_tel, p_atmos)
     cmats.cmat_init(i, rtc, p_controller, p_wfss, p_atmos, p_tel, p_dms)
@@ -488,12 +491,12 @@ def init_controller_generic(i: int, p_controller: conf.Param_controller, p_dms: 
         rtc: (Rtc): Rtc object
     """
     size = sum([p_dms[j]._ntotact for j in range(len(p_dms))])
-    decayFactor = np.zeros(size, dtype=np.float32)
-    mgain = np.zeros(size, dtype=np.float32)
-    matE = np.zeros((size, size), dtype=np.float32)
+    decayFactor = np.ones(size, dtype=np.float32)
+    mgain = np.ones(size, dtype=np.float32) * p_controller.gain
+    matE = np.identity(size, dtype=np.float32)
     cmat = np.zeros((size, np.sum(p_controller.nvalid) * 2), dtype=np.float32)
 
-    rtc.set_decayFactor(i, decayFactor)
-    rtc.set_mgain(i, mgain)
-    rtc.set_cmat(i, cmat)
-    rtc.set_matE(i, matE)
+    rtc.d_control[i].set_decayFactor(decayFactor)
+    rtc.d_control[i].set_mgain(mgain)
+    rtc.d_control[i].set_cmat(cmat)
+    rtc.d_control[i].set_matE(matE)

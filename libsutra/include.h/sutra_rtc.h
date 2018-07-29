@@ -32,8 +32,9 @@ class sutra_rtc {
                          float delay, long device, sutra_dms *dms, int *idx_dms,
                          int ndm, bool wfs_direction);
   int add_controller(carma_context *context, int nactu, float delay,
-                     long device, const char *typec, sutra_dms *dms = nullptr,
-                     int *idx_dms = nullptr, int ndm = 0);
+                     long device, char *typec, sutra_dms *dms = nullptr,
+                     int *idx_dms = nullptr, int ndm = 0, int Nphi = 0,
+                     bool wfs_direction = false);
 
   int rm_controller();
 
@@ -47,6 +48,7 @@ class sutra_rtc {
   int do_centroids(int ncntrl, bool noise);
   int do_centroids(int nctrl, float *bincube, int npix, int ntot);
   int do_centroids_geom(int ncntrl);
+  int do_centroids_ref(int ncntrl);
   int do_control(int ncntrl);
   int do_clipping(int ncntrl, float min, float max);
   int apply_control(int ncntrl, sutra_dms *ydm);

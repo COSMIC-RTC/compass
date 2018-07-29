@@ -47,7 +47,7 @@ class sutra_wfs_pyr_pyrhr : public sutra_wfs {
   int set_submask(float *submask);
 
   int fill_binimage(int async = 0);
-  int comp_image();
+  int comp_image(bool noise = true);
   void comp_modulation(int cpt);
 
   int copyValidPix(float *img, int *validx, int *validy, int im_dim);

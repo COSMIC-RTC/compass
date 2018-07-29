@@ -71,15 +71,37 @@ void declare_shesha_rtc(py::module &mod) {
         dms: (sutra_dms): sutra_dms object
         idx_dms: (np.array[ndim=1,dtype=np.int64]): index of DM in sutra_dms to command
         ndm: (int): Number of DM to command
-
-    )pbdoc",
+        Nphi: (int): Number of pixels in the pupil
+        wfs_direction: (bool): Flag for ROKET
+        )pbdoc",
            py::arg("context"), py::arg("nactu"), py::arg("delay"),
            py::arg("device"), py::arg("typec"), py::arg("dms") = nullptr,
-           py::arg("idx_dms") = nullptr, py::arg("ndm") = 0)
+           py::arg("idx_dms") = nullptr, py::arg("ndm") = 0,
+           py::arg("Nphi") = 0, py::arg("wfs_direction") = false)
 
       .def("do_centroids", (int (sutra_rtc::*)(int)) & sutra_rtc::do_centroids,
            R"pbdoc(
         Computes the centroids
+
+        Parameters
+        ------------
+        ncontrol: (int): Index of the controller
+    )pbdoc",
+           py::arg("ncontrol"))
+
+      .def("do_centroids_geom", &sutra_rtc::do_centroids_geom,
+           R"pbdoc(
+        Computes the centroids geom
+
+        Parameters
+        ------------
+        ncontrol: (int): Index of the controller
+    )pbdoc",
+           py::arg("ncontrol"))
+
+      .def("do_centroids_ref", &sutra_rtc::do_centroids_ref,
+           R"pbdoc(
+        Computes the centroids ref
 
         Parameters
         ------------

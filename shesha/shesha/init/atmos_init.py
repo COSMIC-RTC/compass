@@ -97,6 +97,6 @@ def atmos_init(context: naga_context, p_atmos: conf.Param_atmos, p_tel: conf.Par
             if use_DB:
                 h5u.save_AB_in_database(i, A, B, istx, isty)
 
-        atm.init_screen(p_atmos.alt[i], A, B, istx, isty, p_atmos.seeds[i])
+        atm.init_screen(i, A, B, istx, isty, p_atmos.seeds[i])
 
     return atm

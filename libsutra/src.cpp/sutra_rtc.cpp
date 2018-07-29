@@ -60,8 +60,9 @@ int sutra_rtc::add_controller_geo(carma_context *context, int nactu, int Nphi,
 }
 
 int sutra_rtc::add_controller(carma_context *context, int nactu, float delay,
-                              long device, const char *typec, sutra_dms *dms,
-                              int *idx_dms, int ndm) {
+                              long device, char *typec, sutra_dms *dms,
+                              int *idx_dms, int ndm, int Nphi,
+                              bool wfs_direction) {
   int ncentroids = 0;
   for (size_t idx = 0; idx < (this->d_centro).size(); idx++)
     ncentroids += this->d_centro[idx]->nvalid;
@@ -70,6 +71,10 @@ int sutra_rtc::add_controller(carma_context *context, int nactu, float delay,
   if (type_ctr.compare("ls") == 0) {
     d_control.push_back(new sutra_controller_ls(context, ncentroids, nactu,
                                                 delay, dms, idx_dms, ndm));
+  } else if (type_ctr.compare("geo") == 0) {
+    d_control.push_back(new sutra_controller_geo(
+        context, nactu, Nphi, delay, dms, idx_dms, ndm, wfs_direction));
+
   } else if (type_ctr.compare("cured") == 0) {
     d_control.push_back(new sutra_controller_cured(context, ncentroids, nactu,
                                                    delay, dms, idx_dms, ndm));
@@ -333,6 +338,23 @@ int sutra_rtc::do_centroids_geom(int ncntrl) {
     inds2 += 2 * wfs->nvalid;
   }
 
+  return EXIT_SUCCESS;
+}
+
+int sutra_rtc::do_centroids_ref(int ncntrl) {
+  int inds2 = 0;
+  float tmp;
+  for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
+    sutra_wfs *wfs = this->d_centro[idx_cntr]->wfs;
+    wfs->d_gs->d_phase->d_screen->reset();
+    tmp = wfs->noise;
+    wfs->noise = -1;
+    wfs->comp_image();
+    wfs->noise = tmp;
+  }
+  this->do_centroids(ncntrl);
+  this->d_control[ncntrl]->d_centroids_ref->axpy(
+      1.0f, this->d_control[ncntrl]->d_centroids, 1, 1);
   return EXIT_SUCCESS;
 }
 

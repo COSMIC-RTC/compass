@@ -55,10 +55,10 @@ def comp_new_pyr_ampl(nwfs: int, ampli: float, wfs: Sensors, rtc: Rtc, p_wfss: l
     pwfs.set_pyr_npts(pyr_npts)
     pwfs.set_pyr_cx(cx)
     pwfs.set_pyr_cy(cy)
-    wfs.set_pyr_modulation(nwfs, cx, cy)
+    wfs.d_wfs[nwfs].set_pyr_modulation(cx, cy, pyr_npts)
 
     scale = pwfs.Lambda * 1e-6 / p_tel.diam * ampli * 180. / np.pi * 3600.
-    rtc.set_centroider_scale(nwfs, scale)
+    rtc.d_centro[nwfs].set_scale(nwfs, scale)
 
     return cx, cy, scale, pyr_npts
 
@@ -152,4 +152,4 @@ def comp_new_fstop(wfs: Sensors, n: int, p_wfs: conf.Param_wfs, fssize: float,
     pyr_focmask = focmask * 1.0  # np.fft.fftshift(focmask*1.0)
     p_wfs._submask = np.fft.fftshift(pyr_focmask).astype(np.float32)
     p_wfs_fssize = fssize
-    wfs.set_submask(n, p_wfs._submask)
+    wfs.d_wfs[n].set_submask(p_wfs._submask)

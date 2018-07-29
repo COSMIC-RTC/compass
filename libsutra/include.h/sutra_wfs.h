@@ -98,7 +98,7 @@ class sutra_wfs {
   int slopes_geom(int type = 0);
 
   virtual int fill_binimage(int async) = 0;
-  virtual int comp_image() = 0;
+  virtual int comp_image(bool noise = true) = 0;
 
   virtual int define_mpi_rank(int rank, int size) = 0;
   virtual int allocate_buffers(

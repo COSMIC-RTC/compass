@@ -37,7 +37,7 @@ class sutra_wfs_sh : public sutra_wfs {
                  int *istart, int *jstart, cuFloatComplex *kernel);
 
   int fill_binimage(int async);
-  int comp_image();
+  int comp_image(bool noise = true);
 
  private:
   int comp_generic();

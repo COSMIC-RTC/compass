@@ -96,14 +96,14 @@ def cmat_init(ncontrol: int, rtc: Rtc, p_controller: conf.Param_controller,
             Cn[ind:ind + 2 * p_wfss[k]._nvalid] = noise_cov(k, p_wfss[k], p_atmos, p_tel)
             ind += 2 * p_wfss[k]._nvalid
 
-        rtc.load_Cn(ncontrol, Cn)
+        rtc.d_control[ncontrol].load_noisemat(Cn)
         print("Building cmat...")
-        rtc.build_cmat_mv(ncontrol, p_controller.maxcond)
+        rtc.d_control[ncontrol].build_cmat(p_controller.maxcond)
 
         if (p_controller.TTcond == 0):
             p_controller.set_TTcond(p_controller.maxcond)
 
         if ("tt" in [dm.type for dm in p_dms]):
-            rtc.filter_cmat(ncontrol, p_controller.TTcond)
+            rtc.d_control[ncontrol].filter_cmat(p_controller.TTcond)
         print("Done")
     p_controller.set_cmat(np.array(rtc.d_control[ncontrol].d_cmat))

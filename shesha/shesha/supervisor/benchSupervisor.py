@@ -47,13 +47,13 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         Add this offset value to integrator (will be applied at the end of next iteration)
         '''
-        self.rtc.set_perturbcom(0, command.astype(np.float32).copy())
+        self.rtc.d_control[0].set_perturbcom(command.astype(np.float32).copy())
 
     def getSlope(self) -> np.ndarray:
         '''
         Immediately gets one slope vector for all WFS at the current state of the system
         '''
-        return self.rtc.get_centroids(0)
+        return np.array(self.rtc.d_control[0].d_centroids)
 
     def computeIMatModal(self, M2V: np.ndarray, pushVector: np.ndarray,
                          refOffset: np.ndarray, noise: bool,
@@ -74,49 +74,49 @@ class BenchSupervisor(AbstractSupervisor):
         Move atmos -> getSlope -> applyControl ; One integrator step
         '''
         self.frame = self.cam.getFrame()
-        self.rtc.load_rtc_img(0, self.frame.astype(np.float32))
+        self.rtc.d_centro[0].load_img(self.frame.astype(np.float32))
         if self._sim.config.p_wfss[0].type == WFSType.SH:
             #for SH
-            self.rtc.fill_rtc_bincube(0, self.npix)
+            self.rtc.d_centro[0].fill_bincube(self.npix)
         self.rtc.do_centroids(0)
         self.rtc.do_control(0)
-        self.rtc.save_com(0)
+        self.rtc.d_control[0].command_delay()
 
     def closeLoop(self) -> None:
         '''
         DM receives controller output + pertuVoltage
         '''
-        self.rtc.set_openloop(0, 0)  # closeLoop
+        self.rtc.d_control[0].set_openloop(0)  # closeLoop
 
     def openLoop(self) -> None:
         '''
         Integrator computation goes to /dev/null but pertuVoltage still applied
         '''
-        self.rtc.set_openloop(0, 1)  # openLoop
+        self.rtc.d_control[0].set_openloop(1)  # openLoop
 
     def setRefSlopes(self, refSlopes: np.ndarray) -> None:
         '''
         Set given ref slopes in controller
         '''
-        self.rtc.set_centroids_ref(0, refSlopes)
+        self.rtc.d_control[0].set_centroids_ref(refSlopes)
 
     def getRefSlopes(self) -> np.ndarray:
         '''
         Get the currently used reference slopes
         '''
-        self.rtc.get_centroids_ref(0)
+        return np.array(self.rtc.d_control[0].d_centroids_ref)
 
     def setGain(self, gain: float) -> None:
         '''
         Set the scalar gain of feedback controller loop
         '''
-        self.rtc.set_gain(gain)
+        self.rtc.d_control[0].set_gain(gain)
 
     def setCommandMatrix(self, cMat: np.ndarray) -> None:
         '''
         Set the cmat for the controller to use
         '''
-        self.rtc.set_cmat(cMat)
+        self.rtc.d_control[0].set_cmat(cMat)
 
     def setPyrModulation(self, pyrMod: float) -> None:
         '''
@@ -177,7 +177,7 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         Reset the DM number nDM
         '''
-        self._sim.dms.resetdm(nDM)
+        self._sim.dms.d_dms[nDm].reset_shape()
 
     def loadConfig(self, configFile: str, BRAMA: bool=False) -> None:
         '''
@@ -258,14 +258,15 @@ class BenchSupervisor(AbstractSupervisor):
                                       self._sim.config.p_centroiders[0].type, 1,
                                       offset * 0, scale)
             # put pixels in the SH grid coordonates
-            self.rtc.load_rtc_validpos(0, p_wfs._validsubsx // self.npix,
-                                       p_wfs._validsubsy // self.npix)
+            self.rtc.d_centro[n].load_rtc_validpos(p_wfs._validsubsx // self.npix,
+                                                   p_wfs._validsubsy // self.npix)
 
             cMat = np.zeros((nact, 2 * nvalid[0]), dtype=np.float32)
-            self.rtc.set_cmat(0, cMat)
-            self.rtc.set_decayFactor(0, np.ones(nact, dtype=np.float32) * (gain - 1))
-            self.rtc.set_matE(0, np.identity(nact, dtype=np.float32))
-            self.rtc.set_mgain(0, np.ones(nact, dtype=np.float32) * -gain)
+            self.rtc.d_control[0].set_cmat(cMat)
+            self.rtc.d_control[0].set_decayFactor(
+                    np.ones(nact, dtype=np.float32) * (gain - 1))
+            self.rtc.d_control[0].set_matE(np.identity(nact, dtype=np.float32))
+            self.rtc.d_control[0].set_mgain(np.ones(nact, dtype=np.float32) * -gain)
         elif p_wfs.type == WFSType.PYRHR:
             raise RuntimeError("PYRHR not usable")
         self._sim.is_init = True
@@ -277,11 +278,11 @@ class BenchSupervisor(AbstractSupervisor):
         raise NotImplementedError("Not implemented")
         # return self._sim.atm.get_screen(numWFS)
 
-    def getDmPhase(self, dm_type: str, alt: int) -> np.ndarray:
+    def getDmPhase(self, indDM: int) -> np.ndarray:
         '''
-        return the DM screen of type dm_type conjugatide at the altitude alt
+        return the indDM DM screen
         '''
-        return self._sim.dms.get_dm(dm_type, alt)
+        return np.array(self._sim.dms.d_dms[indDM].d_shape)
 
     def getTarPhase(self, numTar: int) -> np.ndarray:
         '''

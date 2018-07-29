@@ -151,7 +151,14 @@ void declare_shesha_wfs(py::module &mod) {
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
 
       .def("comp_image", &sutra_wfs::comp_image,
-           "Computes the WFS image from the WFS phase")
+           R"pbdoc(
+               Computes the WFS image from the WFS phase
+
+               Parameters
+               ------------
+               noise: (bool): take noise into account or not
+               )pbdoc",
+           py::arg("noise") = true)
       .def("slopes_geom",
            wy::colCast((int (sutra_wfs::*)(int)) & sutra_wfs::slopes_geom),
            R"pbdoc(

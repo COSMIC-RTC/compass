@@ -91,7 +91,7 @@ class Simulator:
         Active all the GPU devices specified in the parameters file
         """
         if self.loaded and self.c is not None:
-            current_Id = self.c.get_activeDevice()
+            current_Id = self.c.activeDevice
             for devIdx in range(len(self.config.p_loop.devices)):
                 self.c.set_activeDeviceForce(devIdx)
             self.c.set_activeDevice(current_Id)
@@ -288,10 +288,12 @@ class Simulator:
                     else:
                         t.reset_phase()
                     t.raytrace(self.tel)
-                    t.raytrace(self.dms)
-                    t.raytrace()
+
                     if self.rtc is not None:
-                        self.rtc.do_control_geo(nControl, self.dms, self.tar, t)
+                        self.rtc.d_control[nControl].comp_dphi(t, False)
+                        self.rtc.do_control(nControl)
+                        t.raytrace(self.dms)
+                        t.raytrace()
                         self.rtc.apply_control(nControl, self.dms)
         else:
             if tar_trace is not None:
@@ -319,10 +321,10 @@ class Simulator:
                         w.d_gs.raytrace(self.dms)
                     w.comp_image()
                     i += 1
-        if do_control and self.rtc is not None:
-            self.rtc.do_centroids(nControl)
-            self.rtc.do_control(nControl)
-            self.rtc.do_clipping(0, -1e5, 1e5)
+            if do_control and self.rtc is not None:
+                self.rtc.do_centroids(nControl)
+                self.rtc.do_control(nControl)
+                self.rtc.do_clipping(0, -1e5, 1e5)
             if apply_control:
                 self.rtc.apply_control(nControl, self.dms)
         self.iter += 1

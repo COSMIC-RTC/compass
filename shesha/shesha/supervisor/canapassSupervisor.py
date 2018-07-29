@@ -102,15 +102,15 @@ class CanapassSupervisor(CompassSupervisor):
             self.modalBasis, self.P = self.getModes2VBasis("Btt")
         nbmode = self.modalBasis.shape[1]
         pup = self._sim.config.p_geom._spupil
-        ph = self._sim.tar.get_phase(0)
+        ph = np.array(self._sim.tar.d_targets[0].d_phase)
         ph2KL = np.zeros((nbmode, ph.shape[0], ph.shape[1]))
         S = np.sum(pup)
         for i in trange(nbmode):
-            self._sim.tar.reset_phase(0)
+            self._sim.tar.d_targets[0].reset_phase()
             self._sim.dms.set_full_comm(
                     (self.modalBasis[:, i]).astype(np.float32).copy())
             self._sim.next(see_atmos=False)
-            ph = self._sim.tar.get_phase(0) * pup
+            ph = np.array(self._sim.tar.d_targets[0].d_phase) * pup
             # Normalisation pour les unites rms en microns !!!
             norm = np.sqrt(np.sum((ph)**2) / S)
             ph2KL[i] = ph / norm
@@ -155,11 +155,12 @@ class CanapassSupervisor(CompassSupervisor):
     def setGain(self, gain: float) -> None:
         CompassSupervisor.setGain(self, gain)
 
+    # TODO : use ao.computeBtt instead, use compute_DMbasis to get IF sparse if pzt or IF dense if TT
     def compute_Btt2(self, inv_method: str="gpu_evd"):
-        IF = self._sim.rtc.get_IFsparse(1)
+        IF = self._sim.rtc.d_control[1].d_IFsparse.get_csr()
         n = IF.shape[0]
         N = IF.shape[1]
-        T = self._sim.rtc.get_IFtt(1)
+        T = np.array(self._sim.rtc.d_control[1].d_TT)
 
         delta = IF.dot(IF.T).toarray() / N
 
@@ -244,18 +245,18 @@ class CanapassSupervisor(CompassSupervisor):
             v = ampliVec[kl] * KL2V[:, kl:kl + 1].T.copy()
             if ((pushPull is True) or
                 (withTurbu is True)):  # with turbulence/aberrations => push/pull
-                self._sim.rtc.set_perturbcom(
-                        0, v)  # Adding Perturbation voltage on current iteration
+                self._sim.rtc.d_control[0].set_perturbcom(
+                        v)  # Adding Perturbation voltage on current iteration
                 devpos = self.applyVoltGetSlopes(turbu=withTurbu, noise=noise)
-                self._sim.rtc.set_perturbcom(0, -v)
+                self._sim.rtc.d_control[0].set_perturbcom(-v)
                 devmin = self.applyVoltGetSlopes(turbu=withTurbu, noise=noise)
                 iMatKL[kl, :] = (devpos - devmin) / (2. * ampliVec[kl])
                 #imat[:-2, :] /= pushDMMic
                 #if(nmodesMax == 0):# i.e we measured all modes including TT
                 #imat[-2:, :] /= pushTTArcsec
             else:  # No turbulence => push only
-                self._sim.rtc.set_openloop(0, 1)  # openLoop
-                self._sim.rtc.set_perturbcom(0, v)
+                self._sim.rtc.d_control[0].set_openloop(1)  # openLoop
+                self._sim.rtc.d_control[0].set_perturbcom(v)
                 iMatKL[kl, :] = self.applyVoltGetSlopes(noise=noise) / ampliVec[kl]
 
         # print("Modal interaction matrix done in %3.0f seconds" % (time.time() - st))
@@ -274,7 +275,7 @@ class CanapassSupervisor(CompassSupervisor):
                 devmin = self.applyVoltGetSlopes(turbu=withTurbu, noise=noise)
                 iMatPhase[nphase, :] = (devpos - devmin) / 2
             else:  # No turbulence => push only
-                self._sim.rtc.set_openloop(0, 1)  # openLoop
+                self._sim.rtc.d_control[0].set_openloop(1)  # openLoop
                 self.setNcpaWfs(cubePhase[nphase, :, :], wfsnum=wfsnum)
                 iMatPhase[nphase, :] = self.applyVoltGetSlopes(noise=noise)
         self.setNcpaWfs(cubePhase[nphase, :, :] * 0.,
@@ -288,20 +289,22 @@ class CanapassSupervisor(CompassSupervisor):
         self._sim.rtc.apply_control(0, self._sim.dms)
         for w in range(len(self._sim.config.p_wfss)):
             if (turbu):
-                self._sim.wfs.raytrace(w, b"all", self._sim.tel, self._sim.atm,
-                                       self._sim.dms, rst=reset, ncpa=1)
+                self._sim.wfs.d_wfs[w].d_gs.raytrace(self._sim.tel, self._sim.atm,
+                                                     self._sim.dms)
             else:
-                self._sim.wfs.raytrace(w, b"dm", self._sim.tel, self._sim.atm,
-                                       self._sim.dms, rst=reset, ncpa=1)
-            self._sim.wfs.comp_img(w, noise=noise)
+                self._sim.wfs.d_wfs[w].d_gs.raytrace(self._sim.tel, rst=reset)
+                self._sim.wfs.d_wfs[w].d_gs.raytrace(self._sim.dms)
+
+            self._sim.wfs.d_wfs[w].comp_image(noise=noise)
         self._sim.rtc.do_centroids(0)
-        c = self._sim.rtc.get_centroids(0)
+        c = np.array(self._sim.rtc.d_control[0].d_centroids)
         return c
 
     def computeModalResiduals(self):
-        self._sim.rtc.do_control_geo(1, self._sim.dms, self._sim.tar, 0)
-        v = self._sim.rtc.get_com(
-                1
+        self._sim.rtc.d_control[1].comp_dphi(self._sim.tar.d_targets[0], False)
+        self._sim.rtc.do_control(1)
+        v = np.array(
+                self._sim.rtc.d_control[1].d_com
         )  # We compute here the residual phase on the DM modes. Gives the Equivalent volts to apply/
         if (self.P is None):
             self.modalBasis, self.P = self.getModes2VBasis("Btt")
@@ -329,7 +332,7 @@ class CanapassSupervisor(CompassSupervisor):
 
         # DMS
         aodict.update({"nbDms": len(self._sim.config.p_dms)})
-        aodict.update({"Nactu": self._sim.rtc.get_voltage(0).size})
+        aodict.update({"Nactu": self._sim.rtc.d_control[0].nactu})
 
         # List of things
         aodict.update({"list_NgsOffAxis": []})
@@ -487,20 +490,21 @@ class CanapassSupervisor(CompassSupervisor):
         #return aodict
 
     def setIntegratorLaw(self):
-        self._sim.rtc.set_commandlaw(0, b"integrator")
+        self._sim.rtc.d_control[0].set_commandlaw("integrator")
 
     def setDecayFactor(self, decay):
-        self._sim.rtc.set_decayFactor(0, decay.astype(np.float32).copy())
+        self._sim.rtc.d_control[0].set_decayFactor(decay.astype(np.float32).copy())
 
     def setEMatrix(self, eMat):
-        self._sim.rtc.set_matE(0, eMat.astype(np.float32).copy())
+        self._sim.rtc.d_control[0].set_matE(eMat.astype(np.float32).copy())
 
     def doRefslopes(self):
+        print("Doing refslopes...")
         self._sim.rtc.do_centroids_ref(0)
         print("refslopes done")
 
     def resetRefslopes(self):
-        self._sim.rtc.set_centroids_ref(0, self.getSlope() * 0.)
+        self._sim.rtc.d_control[0].d_centroids_ref.reset()
 
     def setPyrModulation(self, pyrmod):
         CompassSupervisor.setPyrModulation(self, pyrmod)
@@ -517,11 +521,11 @@ class CanapassSupervisor(CompassSupervisor):
         self._sim.wfs.set_ncpa_phase(wfsnum, ncpa.astype(np.float32).copy())
 
     def setNcpaTar(self, ncpa, tarnum):
-        self._sim.tar.set_ncpa_phase(tarnum, ncpa.astype(np.float32).copy())
+        self._sim.tar.d_targets[tarnum].set_ncpa(tarnum, ncpa.astype(np.float32).copy())
 
     def set_phaseWFS(self, numwfs, phase):
         pph = phase.astype(np.float32)
-        self._sim.wfs.set_phase(0, pph)
+        self._sim.wfs.d_wfs[numwfs].set_phase(pph)
         self.computeSlopes()
 
     def setMpupil(self, mpupil, numwfs=0):
@@ -531,7 +535,7 @@ class CanapassSupervisor(CompassSupervisor):
         if ((mpupil.shape[0] != dimx) or (mpupil.shape[1] != dimy)):
             print("Error mpupil shape on wfs %d must be: (%d,%d)" % (numwfs, dimx, dimy))
         else:
-            self._sim.wfs.set_pupil(numwfs, mpupil.copy())
+            self._sim.wfs.d_wfs[numwfs].set_pupil(mpupil.copy())
 
     def getIpupil(self):
         return self._sim.config.p_geom._ipupil
@@ -546,21 +550,21 @@ class CanapassSupervisor(CompassSupervisor):
         return self._sim.config.tar.get_amplipup(tarnum)
 
     def getPhase(self, tarnum):
-        return self._sim.tar.get_phase(tarnum)
+        return np.array(self._sim.tar.d_targets[tarnum].d_phase)
 
     def getWFSPhase(self, wfsnum):
-        return self._sim.wfs.get_phase(wfsnum)
+        return np.array(self._sim.wfs.d_wfs[wfsnum].d_gs.d_phase)
 
     def getTargetPhase(self, tarnum):
         pup = self.getSpupil()
-        ph = self._sim.tar.get_phase(tarnum) * pup
+        ph = self.getPhase(tarnum) * pup
         return ph
 
     def getNcpaWfs(self, wfsnum):
-        return self._sim.wfs.get_ncpa_phase(wfsnum)
+        return np.array(self._sim.wfs.d_wfs[wfsnum].d_gs.d_ncpa_phase)
 
     def getNcpaTar(self, tarnum):
-        return self._sim.tar.get_ncpa_phase(tarnum)
+        return np.array(self._sim.tar.d_targets[tarum].d_ncpa_phase)
 
     #def getVolts(self):
     #    return self._sim.rtc.get_voltage(0)
@@ -583,13 +587,13 @@ class CanapassSupervisor(CompassSupervisor):
         k = 0
         # Resets the target so that the PSF LE is synchro with the data
         for i in range(len(self._sim.config.p_targets)):
-            self._sim.tar.reset_strehl(i)
+            self._sim.tar.d_targets[i].reset_strehlmeter()
 
         # Starting CB loop...
         for j in trange(CBcount, desc="recording"):
             self._sim.next(see_atmos=seeAtmos)
             for t in range(len(self._sim.config.p_targets)):
-                self._sim.tar.comp_image(t)
+                self._sim.tar.d_targets[t].comp_image()
 
             if (j % subSample == 0):
                 aiVector = self.computeModalResiduals()
@@ -597,19 +601,18 @@ class CanapassSupervisor(CompassSupervisor):
                     aiData = np.zeros((len(aiVector), int(CBcount / subSample)))
                 aiData[:, k] = aiVector
 
-                slopesVector = self._sim.rtc.get_centroids(0)
+                slopesVector = np.array(self._sim.rtc.d_control[0].d_centroids)
                 if (slopesdata is None):
                     slopesdata = np.zeros((len(slopesVector), int(CBcount / subSample)))
                 slopesdata[:, k] = slopesVector
 
-                voltsVector = self._sim.rtc.get_com(0)
+                voltsVector = np.array(self._sim.rtc.d_control[0].d_com)
                 if (voltsdata is None):
                     voltsdata = np.zeros((len(voltsVector), int(CBcount / subSample)))
                 voltsdata[:, k] = voltsVector
 
                 if (tarPhaseFilePath != ""):
-                    tarPhaseArray = self._sim.tar.get_phase(
-                            tarnum) * self._sim.config.p_geom._spupil
+                    tarPhaseArray = self.getTargetPhase(tarnum)
                     if (tarPhaseData is None):
                         tarPhaseData = np.zeros((*tarPhaseArray.shape,
                                                  int(CBcount / subSample)))
