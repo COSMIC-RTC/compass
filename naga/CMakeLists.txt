@@ -37,3 +37,4 @@ target_link_libraries(naga PRIVATE wyrm carma)
 
 set_target_properties(naga PROPERTIES PREFIX "${PYTHON_MODULE_PREFIX}"
                                       SUFFIX "${PYTHON_MODULE_EXTENSION}")
+target_compile_features(naga PUBLIC cxx_std_11)

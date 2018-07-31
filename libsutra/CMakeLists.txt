@@ -99,6 +99,7 @@ set_target_properties(sutra
     SOVERSION 1
     # CUDA_SEPARABLE_COMPILATION ON
 )
+target_compile_features(sutra PUBLIC cxx_std_11)
 
 target_include_directories(sutra
     PUBLIC
@@ -108,7 +109,7 @@ target_include_directories(sutra
 
 target_compile_options(sutra
     PRIVATE
-    $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -fPIC -use_fast_math -std=c++11 -gencode arch=compute_${CUDA_SM},code=sm_${CUDA_SM}>
+    $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -fPIC -use_fast_math -gencode arch=compute_${CUDA_SM},code=sm_${CUDA_SM}>
 )
 
 target_link_libraries(sutra PRIVATE carma ${CUDA_LIBRARIES} ${CUDA_cufft_LIBRARY} ${CUDA_cublas_LIBRARY} ${CUDA_curand_LIBRARY} ${CUDA_cusparse_LIBRARY} )

@@ -49,3 +49,4 @@ target_link_libraries(shesha_bind PRIVATE wyrm carma sutra)
 
 set_target_properties(shesha_bind PROPERTIES PREFIX "${PYTHON_MODULE_PREFIX}"
                                       SUFFIX "${PYTHON_MODULE_EXTENSION}")
+target_compile_features(shesha_bind PUBLIC cxx_std_11)

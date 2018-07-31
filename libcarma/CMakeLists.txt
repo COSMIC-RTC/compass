@@ -70,6 +70,7 @@ set_target_properties(carma
     SOVERSION 1
     # CUDA_SEPARABLE_COMPILATION ON
 )
+target_compile_features(carma PUBLIC cxx_std_11)
 
 target_include_directories(carma
     PUBLIC
@@ -80,7 +81,7 @@ target_include_directories(carma
 target_compile_options(carma
     PRIVATE
     $<$<COMPILE_LANGUAGE:CXX>:-DUSE_MAGMA ${MAGMA_CFLAGS_OTHER}>
-    $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -fPIC -use_fast_math -std=c++11 -gencode arch=compute_${CUDA_SM},code=sm_${CUDA_SM}>
+    $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -fPIC -use_fast_math -gencode arch=compute_${CUDA_SM},code=sm_${CUDA_SM}>
 )
 
 target_link_libraries(carma PRIVATE ${MAGMA_LIBRARIES} ${CUDA_LIBRARIES} ${CUDA_cufft_LIBRARY} ${CUDA_cublas_LIBRARY} ${CUDA_curand_LIBRARY} ${CUDA_cusparse_LIBRARY} )
