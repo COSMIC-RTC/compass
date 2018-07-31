@@ -1,7 +1,4 @@
-
-#include <pybind11/numpy.h>
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
+#include <wyrm>
 
 #include <carma.h>
 
@@ -18,9 +15,14 @@ void declare_naga_context(py::module &mod) {
       .def_property_readonly("freeMem", &carma_device::getFreeMem);
 
   py::class_<carma_context>(mod, "naga_context")
+      .def_property_readonly("ndevices", &carma_context::get_ndevice)
+
       .def_static("get_instance", &carma_context::instance,
                   py::return_value_policy::reference)
       .def_static("get_instance_1gpu", &carma_context::instance_1gpu,
+                  py::return_value_policy::reference)
+      .def_static("get_instance_ngpu",
+                  wy::colCast(carma_context::instance_ngpu),
                   py::return_value_policy::reference)
 
       // .def(py::init([](py::buffer data, ::CORBA::Boolean copy) {

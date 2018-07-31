@@ -143,7 +143,11 @@ class Simulator:
                     os.environ["SHESHA_ROOT"] + "/data/dataBase/", self.config,
                     param_dict)
         # self.c = naga_context(devices=self.config.p_loop.devices)
-        self.c = naga.naga_context.get_instance()
+        if (self.config.p_loop.devices.size > 1):
+            self.c = naga.naga_context.get_instance_ngpu(self.config.p_loop.devices.size,
+                                                         self.config.p_loop.devices)
+        else:
+            self.c = naga.naga_context.get_instance_1gpu(self.config.p_loop.devices[0])
         # self.force_context()
 
         if self.config.p_tel is None or self.config.p_geom is None:
