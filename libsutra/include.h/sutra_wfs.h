@@ -37,6 +37,7 @@ class sutra_wfs {
   bool lgs;
   bool kernconv;
   bool roket;
+  bool is_low_order;
 
   cufftHandle *campli_plan;
   cufftHandle *fttotim_plan;
@@ -114,7 +115,7 @@ class sutra_wfs {
             carma_obj<cuFloatComplex> *d_fttotim, string type, long nxsub,
             long nvalid, long npix, long nphase, long nrebin, long nfft,
             long ntot, long npup, float pdiam, float nphotons, float nphot4imat,
-            int lgs, bool roket, int device);
+            int lgs, bool is_low_order, bool roket, int device);
 };
 
 // General utilities

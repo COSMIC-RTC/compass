@@ -9,10 +9,10 @@ sutra_wfs_sh::sutra_wfs_sh(carma_context *context, sutra_telescope *d_tel,
                            long nvalid, long npix, long nphase, long nrebin,
                            long nfft, long ntot, long npup, float pdiam,
                            float nphotons, float nphot4imat, int lgs,
-                           bool roket, int device)
+                           bool is_low_order, bool roket, int device)
     : sutra_wfs(context, d_tel, d_camplipup, d_camplifoc, d_fttotim, "sh",
                 nxsub, nvalid, npix, nphase, nrebin, nfft, ntot, npup, pdiam,
-                nphotons, nphot4imat, lgs, roket, device),
+                nphotons, nphot4imat, lgs, is_low_order, roket, device),
       d_binmap(nullptr),
       d_istart(nullptr),
       d_jstart(nullptr) {}
@@ -71,15 +71,16 @@ int sutra_wfs_sh::allocate_buffers(
   dims_data3[2] = nfft;
 
   dims_data3[3] = nvalid;
-
   int mdims[2];
 
   // this->d_submask = new carma_obj<float>(current_context, dims_data3); //
   // Useless for SH
-
-  // this->d_camplipup = new carma_obj<cuFloatComplex>(current_context,
-  // dims_data3); this->d_camplifoc = new
-  // carma_obj<cuFloatComplex>(current_context, dims_data3);
+  if (this->d_camplipup == nullptr)
+    this->d_camplipup =
+        new carma_obj<cuFloatComplex>(current_context, dims_data3);
+  if (this->d_camplifoc == nullptr)
+    this->d_camplifoc =
+        new carma_obj<cuFloatComplex>(current_context, dims_data3);
   mdims[0] = (int)dims_data3[1];
   mdims[1] = (int)dims_data3[2];
 
@@ -137,8 +138,9 @@ int sutra_wfs_sh::allocate_buffers(
     dims_data3[2] = ntot;
     dims_data3[3] = nmaxhr;
 
-    // this->d_fttotim = new carma_obj<cuFloatComplex>(current_context,
-    // dims_data3);
+    if (this->d_fttotim == nullptr)
+      this->d_fttotim =
+          new carma_obj<cuFloatComplex>(current_context, dims_data3);
 
     mdims[0] = (int)dims_data3[1];
     mdims[1] = (int)dims_data3[2];

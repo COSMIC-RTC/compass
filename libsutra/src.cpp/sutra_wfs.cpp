@@ -6,8 +6,8 @@ sutra_wfs::sutra_wfs(carma_context *context, sutra_telescope *d_tel,
                      carma_obj<cuFloatComplex> *d_fttotim, string type,
                      long nxsub, long nvalid, long npix, long nphase,
                      long nrebin, long nfft, long ntot, long npup, float pdiam,
-                     float nphotons, float nphot4imat, int lgs, bool roket,
-                     int device)
+                     float nphotons, float nphot4imat, int lgs,
+                     bool is_low_order, bool roket, int device)
     : device(device),
       type(type),
       nxsub(nxsub),
@@ -25,14 +25,15 @@ sutra_wfs::sutra_wfs(carma_context *context, sutra_telescope *d_tel,
       nphot4imat(nphot4imat),
       noise(0),
       lgs(lgs),
+      is_low_order(is_low_order),
       kernconv(false),
       roket(roket),
       campli_plan(nullptr),
       fttotim_plan(nullptr),
       d_ftkernel(nullptr),
-      d_camplipup(d_camplipup),
-      d_camplifoc(d_camplifoc),
-      d_fttotim(d_fttotim),
+      d_camplipup(nullptr),
+      d_camplifoc(nullptr),
+      d_fttotim(nullptr),
       d_pupil(d_tel->d_pupil_m),
       d_bincube(nullptr),
       d_bincube_notnoisy(nullptr),
@@ -56,7 +57,11 @@ sutra_wfs::sutra_wfs(carma_context *context, sutra_telescope *d_tel,
       nvalid_tot(nvalid),
       rank(0),
       displ_bincube(nullptr),
-      count_bincube(nullptr) {}
+      count_bincube(nullptr) {
+  if (d_camplipup != nullptr && !is_low_order) this->d_camplipup = d_camplipup;
+  if (d_camplifoc != nullptr && !is_low_order) this->d_camplifoc = d_camplifoc;
+  if (d_fttotim != nullptr && !is_low_order) this->d_fttotim = d_fttotim;
+}
 
 int sutra_wfs::wfs_initgs(carma_obj<float> *d_lgskern,
                           carma_obj<cuFloatComplex> *d_ftlgskern,

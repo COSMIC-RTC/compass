@@ -20,6 +20,10 @@ void declare_shesha_wfs(py::module &mod) {
       .def_property_readonly("type", [](sutra_wfs &sw) { return sw.type; },
                              "WFS type")
 
+      .def_property_readonly("is_low_order",
+                             [](sutra_wfs &sw) { return sw.is_low_order; },
+                             "WFS for low order")
+
       .def_property_readonly("nxsub", [](sutra_wfs &sw) { return sw.nxsub; },
                              "Number of ssp in the diameter")
 

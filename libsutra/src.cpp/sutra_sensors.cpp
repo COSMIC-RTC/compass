@@ -22,16 +22,18 @@ sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel,
     int maxnvalid_tot = nvalid[0];
     int is_lgs = (lgs[0] > 0 ? 1 : 0);
     for (int i = 1; i < nwfs; i++) {
-      if (nvalid[i] > maxnvalid_tot) maxnvalid_tot = nvalid[i];
-      if (ntot[i] > maxntot) {
-        maxntot = ntot[i];
-      }
-      if (nfft[i] > maxnfft) {
-        maxnfft = nfft[i];
-      }
-      if (ntot[i] == nfft[i]) {
-        if (nvalid[i] > maxnvalid) {
-          maxnvalid = nvalid[i];
+      if (type[i].compare("shlo") != 0) {
+        if (nvalid[i] > maxnvalid_tot) maxnvalid_tot = nvalid[i];
+        if (ntot[i] > maxntot) {
+          maxntot = ntot[i];
+        }
+        if (nfft[i] > maxnfft) {
+          maxnfft = nfft[i];
+        }
+        if (ntot[i] == nfft[i]) {
+          if (nvalid[i] > maxnvalid) {
+            maxnvalid = nvalid[i];
+          }
         }
       }
       if (lgs[i] > 0) is_lgs = 1;
@@ -53,26 +55,29 @@ sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel,
       this->d_ftlgskern = new carma_obj<cuFloatComplex>(context, dims_data3);
       this->d_lgskern = new carma_obj<float>(context, dims_data3);
     } else {
-      this->d_ftlgskern = 0L;
-      this->d_lgskern = 0L;
+      this->d_ftlgskern = nullptr;
+      this->d_lgskern = nullptr;
     }
   } else {  // Pyramid case : shared arrays are not used
-    this->d_camplifoc = 0L;
-    this->d_camplipup = 0L;
-    this->d_fttotim = 0L;
-    this->d_ftlgskern = 0L;
-    this->d_lgskern = 0L;
+    this->d_camplifoc = nullptr;
+    this->d_camplipup = nullptr;
+    this->d_fttotim = nullptr;
+    this->d_ftlgskern = nullptr;
+    this->d_lgskern = nullptr;
   }
 
   // DEBUG_TRACE("After creating sensors arrays : ");printMemInfo();
   for (int i = 0; i < nwfs; i++) {
     sutra_wfs *wfs = NULL;
-    if (type[i].compare("sh") == 0)
+    if (type[i].compare("sh") == 0 || type[i].compare("shlo") == 0) {
+      bool is_low_order = false;
+      if (type[i].compare("shlo") == 0) is_low_order = true;
       wfs = new sutra_wfs_sh(
           context, d_tel, this->d_camplipup, this->d_camplifoc, this->d_fttotim,
           nxsub[i], nvalid[i], npix[i], nphase[i], nrebin[i], nfft[i], ntot[i],
-          npup[i], pdiam[i], nphot[i], nphot4imat[i], lgs[i], roket, device);
-
+          npup[i], pdiam[i], nphot[i], nphot4imat[i], lgs[i], is_low_order,
+          roket, device);
+    }
     if (type[i].compare("pyrhr") == 0) {
       const int ngpu = context->get_ndevice();
       DEBUG_TRACE("using pyrhr with %d GPUs", ngpu);

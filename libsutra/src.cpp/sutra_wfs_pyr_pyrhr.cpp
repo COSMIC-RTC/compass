@@ -11,7 +11,7 @@ sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(
     float nphotons, float nphot4imat, int lgs, bool roket, int device)
     : sutra_wfs(context, d_tel, d_camplipup, d_camplifoc, d_fttotim, "pyrhr",
                 nxsub, nvalid, npix, nphase, nrebin, nfft, ntot, npup, pdiam,
-                nphotons, nphot4imat, lgs, roket, device) {
+                nphotons, nphot4imat, lgs, false, roket, device) {
   context->set_activeDevice(device, 1);
   long dims_data1[2];
   dims_data1[0] = 1;

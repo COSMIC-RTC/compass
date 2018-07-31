@@ -70,7 +70,7 @@ add_library(sutra SHARED
     src.cpp/sutra_sensors.cpp
     src.cpp/sutra_wfs.cpp
     # src.cpp/sutra_wfs_geom.cpp
-    src.cpp/sutra_wfs_pyr.cpp
+    # src.cpp/sutra_wfs_pyr.cpp
     # src.cpp/sutra_wfs_pyr_pyr4.cpp
     src.cpp/sutra_wfs_pyr_pyrhr.cpp
     # src.cpp/sutra_wfs_pyr_roof.cpp

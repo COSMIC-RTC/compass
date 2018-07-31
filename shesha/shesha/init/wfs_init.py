@@ -32,7 +32,11 @@ def wfs_init(context: naga_context, telescope: Telescope, p_wfss: list,
     # and init sensor gs object on gpu
     nsensors = len(p_wfss)
     # arrays needed to call Sensors constructor
-    t_wfs = [o.type for o in p_wfss]
+    t_wfs = [
+            'shlo' if (o.type == scons.WFSType.SH and o.is_low_order) else o.type
+            for o in p_wfss
+    ]
+
     # cdef np.ndarray t_wfs  = np.array([o.type  for o in
     # wfs],dtype=np.str)
     nxsub = np.array([o.nxsub for o in p_wfss], dtype=np.int64)

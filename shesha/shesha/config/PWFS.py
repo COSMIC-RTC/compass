@@ -42,7 +42,8 @@ class Param_wfs:
         """ index of dms seen by the WFS"""
         self.__roket = roket
         """ If True, enable error budget analysis for the simulation"""
-
+        self.__is_low_order = False
+        """If True, WFS is considered as a low order one and so will not profit from array mutualisation"""
         # target kwrd
         self.__xpos = 0
         """ guide star x position on sky (in arcsec)."""
@@ -528,6 +529,15 @@ class Param_wfs:
         self.__roket = csu.enforce_or_cast_bool(roket)
 
     roket = property(lambda x: x.__roket, set_roket)
+
+    def set_is_low_order(self, is_low_order):
+        """ Set the low order flag : if True, WFS arrays will not be mutualised
+
+        :param is_low_order: (bool) : low order flag
+        """
+        self.__is_low_order = csu.enforce_or_cast_bool(is_low_order)
+
+    is_low_order = property(lambda x: x.__is_low_order, set_is_low_order)
 
     def set_pyr_pup_sep(self, pyr_pup_sep):
         """ Set the pyramid pupil separation. (default: long(wfs.nxsub))
