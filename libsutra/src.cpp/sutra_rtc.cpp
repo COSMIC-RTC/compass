@@ -35,9 +35,6 @@ int sutra_rtc::add_centroider(carma_context *context, long nvalid, float offset,
   else if (strcmp(typec, "pyr") == 0)
     d_centro.push_back(
         new sutra_centroider_pyr(context, wfs, nvalid, offset, scale, device));
-  else if (strcmp(typec, "roof") == 0)
-    d_centro.push_back(
-        new sutra_centroider_roof(context, wfs, nvalid, offset, scale, device));
   else if (strcmp(typec, "tcog") == 0)
     d_centro.push_back(
         new sutra_centroider_tcog(context, wfs, nvalid, offset, scale, device));
@@ -151,7 +148,7 @@ int sutra_rtc::do_imat(int ncntrl, sutra_dms *ydm) {
       do_centroids(ncntrl, true);
 
       int device = this->d_control[ncntrl]->d_centroids->getDevice();
-      convert_centro(
+      convert_centro<float>(
           *this->d_control[ncntrl]->d_centroids,
           *this->d_control[ncntrl]->d_centroids, 0, 0.5f / dm->push4imat,
           this->d_control[ncntrl]->d_centroids->getNbElem(),
@@ -177,7 +174,7 @@ int sutra_rtc::do_imat(int ncntrl, sutra_dms *ydm) {
       }
       device = this->d_control[ncntrl]->d_centroids->getDevice();
       do_centroids(ncntrl, true);
-      convert_centro(
+      convert_centro<float>(
           *this->d_control[ncntrl]->d_centroids,
           *this->d_control[ncntrl]->d_centroids, 0, 0.5f / dm->push4imat,
           this->d_control[ncntrl]->d_centroids->getNbElem(),

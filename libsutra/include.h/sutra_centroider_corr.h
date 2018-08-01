@@ -34,4 +34,26 @@ class sutra_centroider_corr : public sutra_centroider {
   int get_cog();
 };
 
+template <class T>
+void subap_sortmaxi(int threads, int blocks, T *d_idata, int *values, int nmax,
+                    int offx, int offy, int npix, int Npix);
+template <class T>
+void subap_pinterp(int threads, int blocks, T *d_idata, int *values,
+                   T *d_centroids, T *d_matinterp, int sizex, int sizey,
+                   int nvalid, int Npix, T scale, T offset);
+
+template <class Tcu, class T>
+int fillcorr(Tcu *d_out, T *d_in, int npix_in, int npix_out, int N, int nvalid,
+             carma_device *device);
+
+template <class T>
+int correl(T *d_odata, T *d_idata, int N, carma_device *device);
+
+template <class Tcu, class T>
+int roll2real(T *d_odata, Tcu *d_idata, int n, int Npix, int N,
+              carma_device *device);
+
+template <class T>
+int corr_norm(T *d_odata, T *d_idata, int Npix, int N, carma_device *device);
+
 #endif  // _SUTRA_CENTROIDER_CORR_H_

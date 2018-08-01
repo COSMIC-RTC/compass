@@ -40,7 +40,7 @@ add_library(sutra SHARED
     src.cpp/sutra_centroider_corr.cpp
     src.cpp/sutra_centroider.cpp
     src.cpp/sutra_centroider_pyr.cpp
-    src.cpp/sutra_centroider_roof.cpp
+    # src.cpp/sutra_centroider_roof.cpp
     src.cpp/sutra_centroider_tcog.cpp
     src.cpp/sutra_centroider_wcog.cpp
     src.cpp/sutra_controller.cpp
@@ -79,6 +79,12 @@ add_library(sutra SHARED
     src.cu/sutra_aotemplate.cu
     src.cu/sutra_utils.cu
     src.cu/sutra_centroider.cu
+    src.cu/sutra_centroider_cog.cu
+    src.cu/sutra_centroider_tcog.cu
+    src.cu/sutra_centroider_wcog.cu
+    src.cu/sutra_centroider_bpcog.cu
+    src.cu/sutra_centroider_corr.cu
+    src.cu/sutra_centroider_pyr.cu
     src.cu/sutra_controller.cu
     src.cu/sutra_controller_utils.cu
     src.cu/sutra_dm.cu

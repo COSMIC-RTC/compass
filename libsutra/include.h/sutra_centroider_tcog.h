@@ -23,4 +23,8 @@ class sutra_centroider_tcog : public sutra_centroider {
   int get_cog();
 };
 
+template <class T>
+void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
+                   T *d_odata, T *alpha, T thresh, T scale, T offset,
+                   carma_device *device);
 #endif  // _SUTRA_CENTROIDER_TCOG_H_

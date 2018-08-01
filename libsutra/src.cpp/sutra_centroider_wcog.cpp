@@ -48,9 +48,9 @@ int sutra_centroider_wcog::load_weights(float *weights, int ndim) {
     carmaSafeCall(cudaMemcpy(tmp, weights,
                              sizeof(float) * this->npix * this->npix,
                              cudaMemcpyHostToDevice));
-    fillweights(*(this->d_weights), tmp, this->npix,
-                this->d_weights->getNbElem(),
-                this->current_context->get_device(device));
+    fillweights<float>(*(this->d_weights), tmp, this->npix,
+                       this->d_weights->getNbElem(),
+                       this->current_context->get_device(device));
     carmaSafeCall(cudaFree(tmp));
   }
 

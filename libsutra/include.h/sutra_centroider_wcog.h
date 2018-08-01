@@ -24,4 +24,12 @@ class sutra_centroider_wcog : public sutra_centroider {
   int get_cog(float *subsum, float *slopes, bool noise);
   int get_cog();
 };
+
+template <class T>
+void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
+                   T *d_odata, T *alpha, T *weights, T scale, T offset,
+                   carma_device *device);
+
+template <class T>
+int fillweights(T *d_out, T *d_in, int npix, int N, carma_device *device);
 #endif  // _SUTRA_CENTROIDER_WCOG_H_

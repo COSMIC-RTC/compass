@@ -19,4 +19,13 @@ class sutra_centroider_cog : public sutra_centroider {
   int get_cog();
 };
 
+template <class T>
+void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
+                   T *d_odata, T *alpha, T scale, T offset,
+                   carma_device *device);
+
+template <class T>
+void get_centroids_async(int threads, int blocks, int n, carma_streams *streams,
+                         T *d_idata, T *d_odata, T *alpha, T scale, T offset);
+
 #endif  // _SUTRA_CENTROIDER_COG_H_

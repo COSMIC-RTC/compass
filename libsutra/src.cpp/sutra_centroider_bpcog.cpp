@@ -45,33 +45,14 @@ int sutra_centroider_bpcog::get_cog(carma_streams *streams, float *cube,
                                     int npix, int ntot) {
   current_context->set_activeDevice(device, 1);
   // brightest pixels cog
-  // TODO: implemente sutra_centroider_bpcog::get_cog_async
   subap_sortmax<float>(npix * npix, nvalid, cube, this->d_bpix->getData(),
                        this->d_bpind->getData(), this->nmax,
                        current_context->get_device(device));
-  // carmaSafeCall(cudaDeviceSynchronize());
-  /*
-        int nb = (int)(this->d_bpix->getNbElem());
-        float *tmpp;
-        tmpp=(float*)malloc((nb)*sizeof(float));
-        this->d_bpix->copyInto(tmpp,nb);
-              for (int ii = 0 ; ii < nb ; ii++){
-                  printf("%5.5f \n",tmpp[ii]);
-              }
-  */
+
   subap_bpcentro<float>(this->nmax, nvalid, npix, this->d_bpix->getData(),
                         this->d_bpind->getData(), centroids, this->scale,
                         this->offset);
-  /*
-  #if 1
-    subap_centromax(npix * npix, nvalid, cube, centroids, npix, this->nmax,
-        this->scale, this->offset);
-  #else
-    float *d_minim;
-    cudaMalloc((void**)&d_minim, nvalid*sizeof(float));
-    subap_centromax2<float>(npix * npix, nvalid, cube, centroids, d_minim, npix,
-  this->nmax, this->scale, this->offset); cudaFree(d_minim); #endif
-  */
+
   return EXIT_SUCCESS;
 }
 

@@ -33,7 +33,7 @@ int sutra_centroider_tcog::get_cog(carma_streams *streams, float *cube,
                    this->current_context->get_device(device));
 
   get_centroids(ntot, npix * npix, nvalid, npix, cube, centroids, subsum,
-                this->scale, this->offset,
+                this->threshold, this->scale, this->offset,
                 this->current_context->get_device(device));
 #else
   subap_reduce(ntot, npix * npix, nvalid, cube, subsum, this->threshold,

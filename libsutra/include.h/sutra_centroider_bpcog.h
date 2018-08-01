@@ -26,4 +26,11 @@ class sutra_centroider_bpcog : public sutra_centroider {
   int get_cog();
 };
 
+template <class T>
+void subap_sortmax(int threads, int blocks, T *d_idata, T *d_odata,
+                   unsigned int *values, int nmax, carma_device *device);
+template <class T>
+void subap_bpcentro(int threads, int blocks, int npix, T *d_idata,
+                    unsigned int *values, T *d_odata, T scale, T offset);
+
 #endif  // _SUTRA_CENTROIDER_H_
