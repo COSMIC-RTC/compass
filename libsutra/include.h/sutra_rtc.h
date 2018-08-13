@@ -30,7 +30,7 @@ class sutra_rtc {
   int add_controller_geo(carma_context *context, int nactu, int Nphi,
                          float delay, long device, sutra_dms *dms, int *idx_dms,
                          int ndm, bool wfs_direction);
-  int add_controller(carma_context *context, int nactu, float delay,
+  int add_controller(carma_context *context, int nslope, int nactu, float delay,
                      long device, char *typec, sutra_dms *dms = nullptr,
                      int *idx_dms = nullptr, int ndm = 0, int Nphi = 0,
                      bool wfs_direction = false);

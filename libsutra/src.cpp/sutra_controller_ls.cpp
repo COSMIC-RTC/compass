@@ -1,10 +1,10 @@
 #include <sutra_controller_ls.h>
 #include <string>
 
-sutra_controller_ls::sutra_controller_ls(carma_context *context, long nvalid,
+sutra_controller_ls::sutra_controller_ls(carma_context *context, long nslope,
                                          long nactu, float delay,
                                          sutra_dms *dms, int *idx_dms, int ndm)
-    : sutra_controller(context, nvalid * 2, nactu, delay, dms, idx_dms, ndm) {
+    : sutra_controller(context, nslope, nactu, delay, dms, idx_dms, ndm) {
   this->d_imat = 0L;
   this->d_cmat = 0L;
   this->d_eigenvals = 0L;
@@ -18,23 +18,23 @@ sutra_controller_ls::sutra_controller_ls(carma_context *context, long nvalid,
   long dims_data1[2] = {1, 0};
   long dims_data2[3] = {2, 0, 0};
 
-  dims_data2[1] = nvalid * 2;
+  dims_data2[1] = nslope;
   dims_data2[2] = nactu;
   this->d_imat = new carma_obj<float>(context, dims_data2);
 
   dims_data2[1] = nactu;
-  dims_data2[2] = nvalid * 2;
+  dims_data2[2] = nslope;
   this->d_cmat = new carma_obj<float>(context, dims_data2);
 
   dims_data2[1] = dims_data2[2] = nactu;
   d_U = new carma_obj<float>(current_context, dims_data2);
 
-  dims_data1[1] = nvalid * 2 < nactu ? nvalid * 2 : nactu;
+  dims_data1[1] = nslope < nactu ? nslope : nactu;
   this->d_eigenvals = new carma_obj<float>(context, dims_data1);
   this->h_eigenvals = new carma_host_obj<float>(dims_data1, MA_PAGELOCK);
 
   if (delay > 0) {
-    dims_data2[1] = nvalid * 2;
+    dims_data2[1] = nslope;
     dims_data2[2] = (int)delay + 1;
     this->d_cenbuff = new carma_obj<float>(context, dims_data2);
   } else

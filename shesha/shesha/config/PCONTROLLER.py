@@ -23,7 +23,7 @@ class Param_controller:
         """ gain for kl mod in imat kl """
         self.__nwfs = None
         """ index of wfss in controller"""
-        self.__nvalid = None
+        self.__nvalid = 0
         """ number of valid subaps per wfs"""
         self.__ndm = None
         """ index of dms in controller"""

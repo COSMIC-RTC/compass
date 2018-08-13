@@ -235,9 +235,8 @@ int sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm,
   doubletofloat(d_tmp2->getData(), this->d_geocov->getData(),
                 this->d_geocov->getNbElem(),
                 current_context->get_device(device));
-  mult_vect(this->d_geocov->getData(), 1.0f / this->Nphi,
-            this->d_geocov->getNbElem(),
-            this->current_context->get_device(device));
+
+  this->d_geocov->scale(1.0f / this->Nphi, 1);
   carma_potri(d_geocov);
   // invgen(d_geocov,2.0f,0);
   delete d_tmp;

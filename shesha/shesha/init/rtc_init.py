@@ -297,9 +297,10 @@ def init_controller(context, i: int, p_controller: conf.Param_controller, p_wfss
     else:
         Nphi = -1
 
-    rtc.add_controller(context, nactu, p_controller.delay, context.activeDevice,
-                       p_controller.type, dms, p_controller.ndm, p_controller.ndm.size,
-                       Nphi, False)
+    #TODO : find a proper way to set the number of slope (other than 2 times nvalid)
+    rtc.add_controller(context, 2 * p_controller.nvalid, nactu, p_controller.delay,
+                       context.activeDevice, p_controller.type, dms, p_controller.ndm,
+                       p_controller.ndm.size, Nphi, False)
 
     if (p_wfss is not None and do_refslp):
         rtc.do_centroids_ref(i)

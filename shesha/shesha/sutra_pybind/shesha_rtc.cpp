@@ -64,6 +64,7 @@ void declare_shesha_rtc(py::module &mod) {
         Parameters
         ------------
         context: (carma_context): carma context
+        nslope: (int): Number of slopes
         nactu:(int): Number of actuators to command
         delay: (float): Loop delay [frames]
         device: (int): GPU device index
@@ -74,10 +75,11 @@ void declare_shesha_rtc(py::module &mod) {
         Nphi: (int): Number of pixels in the pupil
         wfs_direction: (bool): Flag for ROKET
         )pbdoc",
-           py::arg("context"), py::arg("nactu"), py::arg("delay"),
-           py::arg("device"), py::arg("typec"), py::arg("dms") = nullptr,
-           py::arg("idx_dms") = nullptr, py::arg("ndm") = 0,
-           py::arg("Nphi") = 0, py::arg("wfs_direction") = false)
+           py::arg("context"), py::arg("nslope"), py::arg("nactu"),
+           py::arg("delay"), py::arg("device"), py::arg("typec"),
+           py::arg("dms") = nullptr, py::arg("idx_dms") = nullptr,
+           py::arg("ndm") = 0, py::arg("Nphi") = 0,
+           py::arg("wfs_direction") = false)
 
       .def("do_centroids", (int (sutra_rtc::*)(int)) & sutra_rtc::do_centroids,
            R"pbdoc(

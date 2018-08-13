@@ -56,35 +56,31 @@ int sutra_rtc::add_controller_geo(carma_context *context, int nactu, int Nphi,
   return EXIT_SUCCESS;
 }
 
-int sutra_rtc::add_controller(carma_context *context, int nactu, float delay,
-                              long device, char *typec, sutra_dms *dms,
-                              int *idx_dms, int ndm, int Nphi,
+int sutra_rtc::add_controller(carma_context *context, int nslope, int nactu,
+                              float delay, long device, char *typec,
+                              sutra_dms *dms, int *idx_dms, int ndm, int Nphi,
                               bool wfs_direction) {
-  int ncentroids = 0;
-  for (size_t idx = 0; idx < (this->d_centro).size(); idx++)
-    ncentroids += this->d_centro[idx]->nvalid;
-
   string type_ctr(typec);
   if (type_ctr.compare("ls") == 0) {
-    d_control.push_back(new sutra_controller_ls(context, ncentroids, nactu,
-                                                delay, dms, idx_dms, ndm));
+    d_control.push_back(new sutra_controller_ls(context, nslope, nactu, delay,
+                                                dms, idx_dms, ndm));
   } else if (type_ctr.compare("geo") == 0) {
     d_control.push_back(new sutra_controller_geo(
         context, nactu, Nphi, delay, dms, idx_dms, ndm, wfs_direction));
 
   } else if (type_ctr.compare("cured") == 0) {
-    d_control.push_back(new sutra_controller_cured(context, ncentroids, nactu,
+    d_control.push_back(new sutra_controller_cured(context, nslope, nactu,
                                                    delay, dms, idx_dms, ndm));
   } else if (type_ctr.compare("mv") == 0) {
-    d_control.push_back(new sutra_controller_mv(context, ncentroids, nactu,
-                                                delay, dms, idx_dms, ndm));
+    d_control.push_back(new sutra_controller_mv(context, nslope, nactu, delay,
+                                                dms, idx_dms, ndm));
   } else if (type_ctr.compare("generic") == 0) {
-    d_control.push_back(new sutra_controller_generic(context, ncentroids, nactu,
+    d_control.push_back(new sutra_controller_generic(context, nslope, nactu,
                                                      delay, dms, idx_dms, ndm));
   } else if ((type_ctr.compare("kalman_GPU") == 0) ||
              (type_ctr.compare("kalman_CPU") == 0)) {
-    d_control.push_back(new sutra_controller_kalman(context, ncentroids, nactu,
-                                                    dms, idx_dms, ndm));
+    d_control.push_back(
+        new sutra_controller_kalman(context, nslope, nactu, dms, idx_dms, ndm));
   } else {
     DEBUG_TRACE("Controller '%s' unknown\n", typec);
     return EXIT_FAILURE;
