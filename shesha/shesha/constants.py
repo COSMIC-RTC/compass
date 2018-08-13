@@ -95,6 +95,7 @@ class CentroiderType:
     BPCOG = b'bpcog'
     CORR = b'corr'
     PYR = b'pyr'
+    MASKEDPIX = b'maskedpix'
 
 
 class CentroiderFctType:

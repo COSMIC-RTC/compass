@@ -1838,11 +1838,12 @@ __global__ void subsum_krnl(T *g_odata, T *g_idata, int *subindx, int *subindy,
   unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (i < nvalid) {
-    int i2 = subindx[i] + subindy[i] * ns;
+    int i2;
     g_odata[i] = 0;
 
     for (int cpt = 0; cpt < nim; cpt++) {
-      g_odata[i] += g_idata[i2 + cpt * ns * ns];
+      i2 = subindx[i + cpt * nim] + subindy[i + cpt * nim] * ns;
+      g_odata[i] += g_idata[i2];
     }
   }
 }

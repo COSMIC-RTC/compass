@@ -8,6 +8,7 @@ sutra_centroider_wcog::sutra_centroider_wcog(carma_context *context,
     : sutra_centroider(context, wfs, nvalid, offset, scale, device) {
   context->set_activeDevice(device, 1);
 
+  this->nslopes = 2 * nvalid;
   this->npix = 0;
   this->d_weights = 0L;
 }

@@ -8,6 +8,8 @@ sutra_centroider_corr::sutra_centroider_corr(carma_context *context,
     : sutra_centroider(context, wfs, nvalid, offset, scale, device) {
   context->set_activeDevice(device, 1);
 
+  this->nslopes = 2 * nvalid;
+
   this->d_corrfnct = 0L;
   this->d_corrspot = 0L;
   this->d_corrnorm = 0L;

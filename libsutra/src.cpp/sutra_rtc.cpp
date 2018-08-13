@@ -41,7 +41,14 @@ int sutra_rtc::add_centroider(carma_context *context, long nvalid, float offset,
   else if (strcmp(typec, "wcog") == 0)
     d_centro.push_back(
         new sutra_centroider_wcog(context, wfs, nvalid, offset, scale, device));
-  else {
+  else if (strcmp(typec, "maskedpix") == 0) {
+    if (wfs->type == "pyrhr") {
+      sutra_wfs_pyr_pyrhr *pwfs = dynamic_cast<sutra_wfs_pyr_pyrhr *>(wfs);
+      d_centro.push_back(new sutra_centroider_maskedPix(
+          context, pwfs, nvalid, pwfs->npupils, offset, scale, device));
+    } else
+      DEBUG_TRACE("WFS must be pyrhr");
+  } else {
     std::cerr << "centroider unknown" << std::endl;
     return EXIT_FAILURE;
   }
@@ -56,31 +63,32 @@ int sutra_rtc::add_controller_geo(carma_context *context, int nactu, int Nphi,
   return EXIT_SUCCESS;
 }
 
-int sutra_rtc::add_controller(carma_context *context, int nslope, int nactu,
-                              float delay, long device, char *typec,
+int sutra_rtc::add_controller(carma_context *context, int nvalid, int nslope,
+                              int nactu, float delay, long device, char *typec,
                               sutra_dms *dms, int *idx_dms, int ndm, int Nphi,
                               bool wfs_direction) {
   string type_ctr(typec);
   if (type_ctr.compare("ls") == 0) {
-    d_control.push_back(new sutra_controller_ls(context, nslope, nactu, delay,
-                                                dms, idx_dms, ndm));
+    d_control.push_back(new sutra_controller_ls(context, nvalid, nslope, nactu,
+                                                delay, dms, idx_dms, ndm));
   } else if (type_ctr.compare("geo") == 0) {
     d_control.push_back(new sutra_controller_geo(
         context, nactu, Nphi, delay, dms, idx_dms, ndm, wfs_direction));
 
   } else if (type_ctr.compare("cured") == 0) {
-    d_control.push_back(new sutra_controller_cured(context, nslope, nactu,
-                                                   delay, dms, idx_dms, ndm));
+    d_control.push_back(new sutra_controller_cured(
+        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm));
   } else if (type_ctr.compare("mv") == 0) {
-    d_control.push_back(new sutra_controller_mv(context, nslope, nactu, delay,
-                                                dms, idx_dms, ndm));
+    d_control.push_back(new sutra_controller_mv(context, nvalid, nslope, nactu,
+                                                delay, dms, idx_dms, ndm));
   } else if (type_ctr.compare("generic") == 0) {
-    d_control.push_back(new sutra_controller_generic(context, nslope, nactu,
-                                                     delay, dms, idx_dms, ndm));
-  } else if ((type_ctr.compare("kalman_GPU") == 0) ||
-             (type_ctr.compare("kalman_CPU") == 0)) {
-    d_control.push_back(
-        new sutra_controller_kalman(context, nslope, nactu, dms, idx_dms, ndm));
+    d_control.push_back(new sutra_controller_generic(
+        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm));
+    // } else if ((type_ctr.compare("kalman_GPU") == 0) ||
+    //            (type_ctr.compare("kalman_CPU") == 0)) {
+    //   d_control.push_back(
+    //       new sutra_controller_kalman(context, nslope, nactu, dms, idx_dms,
+    //       ndm));
   } else {
     DEBUG_TRACE("Controller '%s' unknown\n", typec);
     return EXIT_FAILURE;
@@ -268,24 +276,27 @@ int sutra_rtc::do_centroids(int ncntrl) { return do_centroids(ncntrl, true); }
 int sutra_rtc::do_centroids(int ncntrl, bool noise) {
   carma_streams *streams = nullptr;
   int indssp = 0;
+  int indslope = 0;
 
   for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
     if (this->d_centro[idx_cntr]->wfs != nullptr) {
       this->d_centro[idx_cntr]->get_cog(
           this->d_control[ncntrl]->d_subsum->getDataAt(indssp),
-          this->d_control[ncntrl]->d_centroids->getDataAt(2 * indssp), noise);
+          this->d_control[ncntrl]->d_centroids->getDataAt(indslope), noise);
 
       indssp += this->d_centro[idx_cntr]->wfs->nvalid_tot;
+      indslope += this->d_centro[idx_cntr]->nslopes;
     } else {
       this->d_centro[idx_cntr]->get_cog(
           streams, this->d_centro[idx_cntr]->d_bincube->getData(),
           this->d_control[ncntrl]->d_subsum->getDataAt(indssp),
-          this->d_control[ncntrl]->d_centroids->getDataAt(2 * indssp),
+          this->d_control[ncntrl]->d_centroids->getDataAt(indslope),
           this->d_centro[idx_cntr]->nvalid,
           this->d_centro[idx_cntr]->d_bincube->getDims(1),
           this->d_centro[idx_cntr]->d_bincube->getNbElem());
 
       indssp += this->d_centro[idx_cntr]->nvalid;
+      indslope += this->d_centro[idx_cntr]->nslopes;
     }
   }
   remove_ref(ncntrl);
@@ -296,14 +307,16 @@ int sutra_rtc::do_centroids(int ncntrl, bool noise) {
 int sutra_rtc::do_centroids(int ncntrl, float *bincube, int npix, int ntot) {
   carma_streams *streams = nullptr;
   int indssp = 0;
+  int indslope = 0;
 
   for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
     this->d_centro[idx_cntr]->get_cog(
         streams, bincube, this->d_control[ncntrl]->d_subsum->getDataAt(indssp),
-        this->d_control[ncntrl]->d_centroids->getDataAt(2 * indssp),
+        this->d_control[ncntrl]->d_centroids->getDataAt(indslope),
         this->d_centro[idx_cntr]->nvalid, npix, ntot);
 
     indssp += this->d_centro[idx_cntr]->nvalid;
+    indslope += this->d_centro[idx_cntr]->nslopes;
   }
   remove_ref(ncntrl);
 

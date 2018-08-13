@@ -1,10 +1,11 @@
 #include <sutra_controller_ls.h>
 #include <string>
 
-sutra_controller_ls::sutra_controller_ls(carma_context *context, long nslope,
-                                         long nactu, float delay,
+sutra_controller_ls::sutra_controller_ls(carma_context *context, long nvalid,
+                                         long nslope, long nactu, float delay,
                                          sutra_dms *dms, int *idx_dms, int ndm)
-    : sutra_controller(context, nslope, nactu, delay, dms, idx_dms, ndm) {
+    : sutra_controller(context, nvalid, nslope, nactu, delay, dms, idx_dms,
+                       ndm) {
   this->d_imat = 0L;
   this->d_cmat = 0L;
   this->d_eigenvals = 0L;

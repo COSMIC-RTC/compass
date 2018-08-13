@@ -32,7 +32,7 @@ if arguments["--devices"]:
     sim.config.p_loop.set_devices(devices)
 
 sim.init_sim()
-nactu = sim.config.p_controller0.nactu.sum()
+nactu = sim.config.p_controller0.nactu
 nvalid = sim.config.p_controller0.nvalid
 rtc_standalone = shesha_init.rtc_standalone(
         sim.c,

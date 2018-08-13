@@ -17,6 +17,10 @@ void declare_shesha_wfs_pyrhr(py::module &mod) {
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
+      .def_property_readonly("npupils",
+                             [](sutra_wfs_pyr_pyrhr &sp) { return sp.npupils; },
+                             "Number of pupil images")
+
       .def_property_readonly("d_hrimg",
                              [](sutra_wfs_pyr_pyrhr &sp) { return sp.d_hrimg; },
                              "TODO: docstring")

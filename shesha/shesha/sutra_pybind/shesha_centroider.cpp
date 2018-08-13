@@ -24,6 +24,9 @@ void declare_shesha_centroider(py::module &mod) {
                              [](sutra_centroider &sc) { return sc.get_type(); },
                              "Centroider type")
 
+      .def_property_readonly("nslopes",
+                             [](sutra_centroider &sc) { return sc.nslopes; },
+                             "Number of slopes")
       .def_property_readonly("wfs", [](sutra_centroider &sc) { return sc.wfs; },
                              "sutra_wfs handled by this centroider")
 
@@ -46,6 +49,10 @@ void declare_shesha_centroider(py::module &mod) {
       .def_property_readonly("d_bincube",
                              [](sutra_centroider &sc) { return sc.d_bincube; },
                              "Bincube of the WFS image")
+
+      .def_property_readonly("d_subsum",
+                             [](sutra_centroider &sc) { return sc.d_subsum; },
+                             "subsum of the WFS image")
 
       .def_property_readonly(
           "d_img", [](sutra_centroider &sc) { return sc.d_img; }, "WFS image")

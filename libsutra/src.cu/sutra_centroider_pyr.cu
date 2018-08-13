@@ -8,15 +8,15 @@ __global__ void pyrslopes_krnl(T *g_odata, T *g_idata, int *subindx,
   unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (i < nvalid) {
-    int i2 = subindx[i] + subindy[i] * ns;
+    int i1 = subindx[i] + subindy[i] * ns;
+    int i2 = subindx[i + nvalid] + subindy[i + nvalid] * ns;
+    int i3 = subindx[i + 2 * nvalid] + subindy[i + 2 * nvalid] * ns;
+    int i4 = subindx[i + 3 * nvalid] + subindy[i + 3 * nvalid] * ns;
 
-    g_odata[i] = ((g_idata[i2 + ns * ns] + g_idata[i2 + 3 * ns * ns]) -
-                  (g_idata[i2] + g_idata[i2 + 2 * ns * ns])) /
-                 subsum[i];
+    g_odata[i] =
+        ((g_idata[i2] + g_idata[i4]) - (g_idata[i1] + g_idata[i3])) / subsum[i];
     g_odata[i + nvalid] =
-        ((g_idata[i2 + 2 * ns * ns] + g_idata[i2 + 3 * ns * ns]) -
-         (g_idata[i2] + g_idata[i2 + ns * ns])) /
-        subsum[i];
+        ((g_idata[i3] + g_idata[i4]) - (g_idata[i1] + g_idata[i2])) / subsum[i];
   }
 }
 

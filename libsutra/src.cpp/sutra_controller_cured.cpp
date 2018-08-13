@@ -3,10 +3,12 @@
 #include <string>
 
 sutra_controller_cured::sutra_controller_cured(carma_context *context,
-                                               long nvalid, long nactu,
-                                               float delay, sutra_dms *dms,
-                                               int *idx_dms, int ndm)
-    : sutra_controller(context, nvalid * 2, nactu, delay, dms, idx_dms, ndm),
+                                               long nvalid, long nslopes,
+                                               long nactu, float delay,
+                                               sutra_dms *dms, int *idx_dms,
+                                               int ndm)
+    : sutra_controller(context, nvalid, nslopes, nactu, delay, dms, idx_dms,
+                       ndm),
       gain(0),
       ndivs(0),
       tt_flag(false),
@@ -15,22 +17,22 @@ sutra_controller_cured::sutra_controller_cured(carma_context *context,
   long dims_data1[2] = {1, 0};
   long dims_data2[3] = {2, 0, 0};
 
-  dims_data1[1] = nvalid * 2;
+  dims_data1[1] = nslopes;
   this->d_centroids = new carma_obj<float>(context, dims_data1);
 
-  dims_data1[1] = nvalid * 2;
+  dims_data1[1] = nslopes;
   this->h_centroids = new carma_host_obj<float>(dims_data1, MA_PAGELOCK);
 
   dims_data1[1] = nactu;
   this->h_err = new carma_host_obj<float>(dims_data1, MA_PAGELOCK);
   this->d_err = new carma_obj<float>(context, dims_data1);
 
-  dims_data2[1] = nvalid * 2;
+  dims_data2[1] = nslopes;
   dims_data2[2] = nactu;
 
   this->d_imat = new carma_obj<float>(context, dims_data2);
   if ((int)delay > 0) {
-    dims_data2[1] = nvalid * 2;
+    dims_data2[1] = nslopes;
     dims_data2[2] = (int)delay + 1;
     this->d_cenbuff = new carma_obj<float>(context, dims_data2);
   } else

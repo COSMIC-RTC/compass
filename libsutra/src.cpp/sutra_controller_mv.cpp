@@ -2,10 +2,11 @@
 #include <sutra_controller_utils.h>
 #include <string>
 
-sutra_controller_mv::sutra_controller_mv(carma_context *context, long nslope_,
-                                         long nactu_, float delay,
+sutra_controller_mv::sutra_controller_mv(carma_context *context, long nvalid_,
+                                         long nslope_, long nactu_, float delay,
                                          sutra_dms *dms, int *idx_dms, int ndm)
-    : sutra_controller(context, nslope_, nactu_, delay, dms, idx_dms, ndm) {
+    : sutra_controller(context, nvalid_, nslope_, nactu_, delay, dms, idx_dms,
+                       ndm) {
   this->gain = 0.0f;
 
   //  this->nstreams = 1; //nvalid/10;

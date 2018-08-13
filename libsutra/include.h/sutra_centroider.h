@@ -10,6 +10,7 @@ class sutra_centroider {
   int device;
   sutra_wfs *wfs;
   int nvalid;
+  int nslopes;
 
   float offset;
   float scale;
@@ -17,6 +18,7 @@ class sutra_centroider {
   carma_context *current_context;
 
   carma_obj<float> *d_bincube;
+  carma_obj<float> *d_subsum;
   carma_obj<float> *d_img;
   carma_obj<int> *d_validx;
   carma_obj<int> *d_validy;

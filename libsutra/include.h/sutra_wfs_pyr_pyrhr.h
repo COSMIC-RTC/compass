@@ -13,6 +13,7 @@
 using std::string;
 class sutra_wfs_pyr_pyrhr : public sutra_wfs {
  public:
+  long npupils;
   carma_obj<float> *d_hrimg;
   carma_obj<float> *d_submask;
   carma_obj<float> *d_psum;
@@ -27,16 +28,16 @@ class sutra_wfs_pyr_pyrhr : public sutra_wfs {
                       carma_obj<cuFloatComplex> *d_camplipup,
                       carma_obj<cuFloatComplex> *d_camplifoc,
                       carma_obj<cuFloatComplex> *d_fttotim, long nxsub,
-                      long nvalid, long npix, long nphase, long nrebin,
-                      long nfft, long ntot, long npup, float pdiam,
+                      long nvalid, long npupils, long npix, long nphase,
+                      long nrebin, long nfft, long ntot, long npup, float pdiam,
                       float nphotons, float nphot4imat, int lgs, bool roket,
                       int device);
   sutra_wfs_pyr_pyrhr(carma_context *context, sutra_telescope *d_tel,
                       carma_obj<cuFloatComplex> *d_camplipup,
                       carma_obj<cuFloatComplex> *d_camplifoc,
                       carma_obj<cuFloatComplex> *d_fttotim, long nxsub,
-                      long nvalid, long npix, long nphase, long nrebin,
-                      long nfft, long ntot, long npup, float pdiam,
+                      long nvalid, long npupils, long npix, long nphase,
+                      long nrebin, long nfft, long ntot, long npup, float pdiam,
                       float nphotons, float nphot4imat, int lgs, bool roket,
                       int nbdevices, int *devices);
   ~sutra_wfs_pyr_pyrhr();

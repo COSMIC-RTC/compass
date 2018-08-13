@@ -19,6 +19,8 @@ class Param_centroider:
         """ index of wfs in y_wfs structure on which we want to do centroiding"""
         self.__type = None
         """ type of centroiding cog, tcog, bpcog, wcog, corr"""
+        self.__nslope = 0
+        """ Number of output slopes"""
         self.__type_fct = scons.CentroiderFctType.GAUSS
         """ type of ref function gauss, file, model"""
         self.__weights = None
@@ -50,6 +52,15 @@ class Param_centroider:
         self.__nwfs = csu.enforce_int(n)
 
     nwfs = property(lambda x: x.__nwfs, set_nwfs)
+
+    def set_nslope(self, n):
+        """ Set the number of slope
+
+        :param n: (long) :number of slope
+        """
+        self.__nslope = csu.enforce_int(n)
+
+    _nslope = property(lambda x: x.__nslope, set_nslope)
 
     def set_type(self, t):
         """ Set the centroider type

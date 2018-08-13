@@ -7,6 +7,8 @@ sutra_centroider_tcog::sutra_centroider_tcog(carma_context *context,
                                              int device)
     : sutra_centroider(context, wfs, nvalid, offset, scale, device) {
   context->set_activeDevice(device, 1);
+
+  this->nslopes = 2 * nvalid;
   this->threshold = 0;
 }
 

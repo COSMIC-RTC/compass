@@ -2,10 +2,11 @@
 
 sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel,
                              vector<string> type, int nwfs, long *nxsub,
-                             long *nvalid, long *npix, long *nphase,
-                             long *nrebin, long *nfft, long *ntot, long *npup,
-                             float *pdiam, float *nphot, float *nphot4imat,
-                             int *lgs, int device, bool roket)
+                             long *nvalid, long *npupils, long *npix,
+                             long *nphase, long *nrebin, long *nfft, long *ntot,
+                             long *npup, float *pdiam, float *nphot,
+                             float *nphot4imat, int *lgs, int device,
+                             bool roket)
     : device(device),
       current_context(context),
       d_camplipup(nullptr),
@@ -84,9 +85,9 @@ sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel,
       if (ngpu == 1) {
         wfs = new sutra_wfs_pyr_pyrhr(
             context, d_tel, this->d_camplipup, this->d_camplifoc,
-            this->d_fttotim, nxsub[i], nvalid[i], npix[i], nphase[i], nrebin[i],
-            nfft[i], ntot[i], npup[i], pdiam[i], nphot[i], nphot4imat[i],
-            lgs[i], roket, device);
+            this->d_fttotim, nxsub[i], nvalid[i], npupils[i], npix[i],
+            nphase[i], nrebin[i], nfft[i], ntot[i], npup[i], pdiam[i], nphot[i],
+            nphot4imat[i], lgs[i], roket, device);
       } else {
         int devices[ngpu];
         for (int i = 0; i < ngpu; i++) {
@@ -94,9 +95,9 @@ sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel,
         }
         wfs = new sutra_wfs_pyr_pyrhr(
             context, d_tel, this->d_camplipup, this->d_camplifoc,
-            this->d_fttotim, nxsub[i], nvalid[i], npix[i], nphase[i], nrebin[i],
-            nfft[i], ntot[i], npup[i], pdiam[i], nphot[i], nphot4imat[i],
-            lgs[i], ngpu, roket, devices);
+            this->d_fttotim, nxsub[i], nvalid[i], npupils[i], npix[i],
+            nphase[i], nrebin[i], nfft[i], ntot[i], npup[i], pdiam[i], nphot[i],
+            nphot4imat[i], lgs[i], ngpu, roket, devices);
       }
     }
 

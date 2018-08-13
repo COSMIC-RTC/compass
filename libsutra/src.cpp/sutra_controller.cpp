@@ -1,9 +1,9 @@
 #include <sutra_controller.h>
 #include <string>
 
-sutra_controller::sutra_controller(carma_context *context, int nslope,
-                                   int nactu, float delay, sutra_dms *dms,
-                                   int *idx_dms, int ndm) {
+sutra_controller::sutra_controller(carma_context *context, int nvalid,
+                                   int nslope, int nactu, float delay,
+                                   sutra_dms *dms, int *idx_dms, int ndm) {
   this->current_context = context;
   this->device = context->get_activeDevice();
 
@@ -48,7 +48,7 @@ sutra_controller::sutra_controller(carma_context *context, int nslope,
 
   long dims_data1[2] = {1, 0};
 
-  dims_data1[1] = nslope / 2;
+  dims_data1[1] = nvalid;
   this->d_subsum = new carma_obj<float>(context, dims_data1);
   this->d_subsum->reset();
 

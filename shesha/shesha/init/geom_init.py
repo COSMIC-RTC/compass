@@ -422,10 +422,11 @@ def init_pyrhr_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
     nvalid = validRow[0].size
     validRow = np.asarray(validRow).flatten()
     validCol = np.asarray(validCol).flatten()
+    stack, index = np.unique(np.c_[validRow, validCol], axis=0, return_index=True)
 
     p_wfs._nvalid = nvalid
-    p_wfs._validsubsx = validCol
-    p_wfs._validsubsy = validRow
+    p_wfs._validsubsx = validCol[np.sort(index)]
+    p_wfs._validsubsy = validRow[np.sort(index)]
     p_wfs._hrmap = mskRebTot.astype(np.int32)
 
     if (p_wfs.pyr_pos == None):

@@ -9,6 +9,8 @@ sutra_centroider_pyr::sutra_centroider_pyr(carma_context *context,
     : sutra_centroider(context, wfs, nvalid, offset, scale, device) {
   context->set_activeDevice(device, 1);
 
+  this->nslopes = 2 * nvalid;
+
   this->pyr_type = "pyrhr";
 
   this->valid_thresh = 1e-4;
@@ -53,7 +55,7 @@ int sutra_centroider_pyr::get_pyr(float *cube, float *subsum, float *centroids,
                                   int ns, int nim) {
   current_context->set_activeDevice(device, 1);
 
-  pyr_subsum(subsum, cube, subindx, subindy, ns, nvalid,
+  pyr_subsum(subsum, cube, subindx, subindy, ns, nvalid, nim,
              this->current_context->get_device(device));
 
   if (!(this->method.isLocal)) {

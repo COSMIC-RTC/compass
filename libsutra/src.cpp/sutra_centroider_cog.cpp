@@ -5,7 +5,9 @@ sutra_centroider_cog::sutra_centroider_cog(carma_context *context,
                                            sutra_wfs *wfs, long nvalid,
                                            float offset, float scale,
                                            int device)
-    : sutra_centroider(context, wfs, nvalid, offset, scale, device) {}
+    : sutra_centroider(context, wfs, nvalid, offset, scale, device) {
+  this->nslopes = 2 * nvalid;
+}
 
 sutra_centroider_cog::~sutra_centroider_cog() {}
 

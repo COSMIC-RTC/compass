@@ -4,13 +4,14 @@
 #include <sutra_centroider_bpcog.h>
 #include <sutra_centroider_cog.h>
 #include <sutra_centroider_corr.h>
+#include <sutra_centroider_maskedPix.h>
 #include <sutra_centroider_pyr.h>
 #include <sutra_centroider_tcog.h>
 #include <sutra_centroider_wcog.h>
 #include <sutra_controller_cured.h>
 #include <sutra_controller_generic.h>
 #include <sutra_controller_geo.h>
-#include <sutra_controller_kalman.h>
+//#include <sutra_controller_kalman.h>
 #include <sutra_controller_ls.h>
 #include <sutra_controller_mv.h>
 
@@ -30,10 +31,10 @@ class sutra_rtc {
   int add_controller_geo(carma_context *context, int nactu, int Nphi,
                          float delay, long device, sutra_dms *dms, int *idx_dms,
                          int ndm, bool wfs_direction);
-  int add_controller(carma_context *context, int nslope, int nactu, float delay,
-                     long device, char *typec, sutra_dms *dms = nullptr,
-                     int *idx_dms = nullptr, int ndm = 0, int Nphi = 0,
-                     bool wfs_direction = false);
+  int add_controller(carma_context *context, int nvalid, int nslope, int nactu,
+                     float delay, long device, char *typec,
+                     sutra_dms *dms = nullptr, int *idx_dms = nullptr,
+                     int ndm = 0, int Nphi = 0, bool wfs_direction = false);
 
   int rm_controller();
 

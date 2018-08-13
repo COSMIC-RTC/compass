@@ -11,8 +11,10 @@ sutra_centroider::sutra_centroider(carma_context *context, sutra_wfs *wfs,
   this->nvalid = nvalid;
   this->offset = offset;
   this->scale = scale;
+  this->nslopes = 0;
 
   this->d_bincube = nullptr;
+  this->d_subsum = nullptr;
   this->d_img = nullptr;
   this->d_validx = nullptr;
   this->d_validy = nullptr;

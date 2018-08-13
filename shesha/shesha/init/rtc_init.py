@@ -10,6 +10,7 @@ from shesha.ao import imats, cmats, tomo, basis, modopti
 
 from shesha.util import utilities, rtc_util
 from shesha.init import dm_init
+from typing import List
 
 import numpy as np
 from shesha.sutra_bind.wrap import naga_context, Sensors, Dms, Target, Rtc, Rtc_brahma, Atmos, Telescope
@@ -85,7 +86,8 @@ def rtc_init(context: naga_context, tel: Telescope, wfs: Sensors, dms: Dms, atmo
 
                 init_controller(context, i, p_controllers[i], p_wfss, p_geom, p_dms,
                                 p_atmos, ittime, p_tel, rtc, dms, wfs, tel, atmos,
-                                do_refslp, dataBase=dataBase, use_DB=use_DB)
+                                p_centroiders, do_refslp, dataBase=dataBase,
+                                use_DB=use_DB)
 
             # add a geometric controller for processing error breakdown
             roket_flag = True in [w.roket for w in p_wfss]
@@ -124,7 +126,8 @@ def rtc_standalone(context: naga_context, nwfs: int, nvalid, nactu: int,
         rtc.add_centroider(context, nvalid[k], offset, scale, context.activeDevice,
                            centroider_type)
 
-    rtc.add_controller(context, nactu, delay, context.activeDevice, b"generic")
+    rtc.add_controller(context,
+                       nvalid.sum(), nactu, delay, context.activeDevice, b"generic")
 
     return rtc
 
@@ -163,7 +166,12 @@ def init_centroider(context, nwfs: int, p_wfs: conf.Param_wfs,
     rtc.add_centroider(context, p_wfs._nvalid, s_offset, s_scale, context.activeDevice,
                        p_centroider.type, wfs.d_wfs[nwfs])
 
-    if (p_wfs.type == scons.WFSType.PYRHR):
+    if (p_centroider.type != scons.CentroiderType.MASKEDPIX):
+        p_centroider._nslope = 2 * p_wfs._nvalid
+    else:
+        p_centroider._nslope = p_wfs._validsubsx.size
+
+    if (p_centroider.type == scons.CentroiderType.PYR):
         # FIXME SIGNATURE CHANGES
         rtc.d_centro[nwfs].set_pyr_method(p_centroider.method)
         rtc.d_centro[nwfs].set_pyr_thresh(p_centroider.thresh)
@@ -257,7 +265,8 @@ def comp_weights(p_centroider: conf.Param_centroider, p_wfs: conf.Param_wfs, npi
 def init_controller(context, i: int, p_controller: conf.Param_controller, p_wfss: list,
                     p_geom: conf.Param_geom, p_dms: list, p_atmos: conf.Param_atmos,
                     ittime: float, p_tel: conf.Param_tel, rtc: Rtc, dms: Dms,
-                    wfs: Sensors, tel: Telescope, atmos: Atmos, do_refslp=False,
+                    wfs: Sensors, tel: Telescope, atmos: Atmos,
+                    p_centroiders: List[conf.Param_centroider], do_refslp=False,
                     dataBase={}, use_DB=False):
     """
         Initialize the controller part of rtc
@@ -277,6 +286,7 @@ def init_controller(context, i: int, p_controller: conf.Param_controller, p_wfss
         wfs: (Sensors) : Sensors object
         tel: (Telescope) : Telescope object
         atmos: (Atmos) : Atmos object
+        p_centroiders: (list of Param_centroider): centroiders settings
     """
     if (p_controller.type != scons.ControllerType.GEO):
         nwfs = p_controller.nwfs
@@ -284,11 +294,12 @@ def init_controller(context, i: int, p_controller: conf.Param_controller, p_wfss
             nwfs = p_controller.nwfs
             # TODO fixing a bug ... still not understood
         nvalid = sum([p_wfss[k]._nvalid for k in nwfs])
-        p_controller.set_nvalid([p_wfss[k]._nvalid for k in nwfs])
+        p_controller.set_nvalid(int(np.sum([p_wfss[k]._nvalid for k in nwfs])))
     # parameter for add_controller(_geo)
     ndms = p_controller.ndm.tolist()
-    p_controller.set_nactu([p_dms[n]._ntotact for n in ndms])
     nactu = np.sum([p_dms[j]._ntotact for j in ndms])
+    p_controller.set_nactu(int(nactu))
+
     alt = np.array([p_dms[j].alt for j in p_controller.ndm], dtype=np.float32)
 
     list_dmseen = [p_dms[j].type for j in p_controller.ndm]
@@ -297,10 +308,14 @@ def init_controller(context, i: int, p_controller: conf.Param_controller, p_wfss
     else:
         Nphi = -1
 
+    nslope = np.sum([c._nslope for c in p_centroiders])
+    p_controller.set_nslope(int(nslope))
+
     #TODO : find a proper way to set the number of slope (other than 2 times nvalid)
-    rtc.add_controller(context, 2 * p_controller.nvalid, nactu, p_controller.delay,
-                       context.activeDevice, p_controller.type, dms, p_controller.ndm,
-                       p_controller.ndm.size, Nphi, False)
+    rtc.add_controller(context, p_controller.nvalid, p_controller.nslope,
+                       p_controller.nactu, p_controller.delay, context.activeDevice,
+                       p_controller.type, dms, p_controller.ndm, p_controller.ndm.size,
+                       Nphi, False)
 
     if (p_wfss is not None and do_refslp):
         rtc.do_centroids_ref(i)
@@ -495,7 +510,7 @@ def init_controller_generic(i: int, p_controller: conf.Param_controller, p_dms: 
     decayFactor = np.ones(size, dtype=np.float32)
     mgain = np.ones(size, dtype=np.float32) * p_controller.gain
     matE = np.identity(size, dtype=np.float32)
-    cmat = np.zeros((size, np.sum(p_controller.nvalid) * 2), dtype=np.float32)
+    cmat = np.zeros((size, p_controller.nvalid * 2), dtype=np.float32)
 
     rtc.d_control[i].set_decayFactor(decayFactor)
     rtc.d_control[i].set_mgain(mgain)

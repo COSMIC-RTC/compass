@@ -6,12 +6,13 @@ namespace py = pybind11;
 
 std::unique_ptr<sutra_sensors> sensors_init(
     carma_context &context, sutra_telescope *d_tel, vector<string> type,
-    int nwfs, long *nxsub, long *nvalid, long *npix, long *nphase, long *nrebin,
-    long *nfft, long *ntot, long *npup, float *pdiam, float *nphot,
-    float *nphot4imat, int *lgs, int device, bool roket) {
+    int nwfs, long *nxsub, long *nvalid, long *npupils, long *npix,
+    long *nphase, long *nrebin, long *nfft, long *ntot, long *npup,
+    float *pdiam, float *nphot, float *nphot4imat, int *lgs, int device,
+    bool roket) {
   return std::unique_ptr<sutra_sensors>(new sutra_sensors(
-      &context, d_tel, type, nwfs, nxsub, nvalid, npix, nphase, nrebin, nfft,
-      ntot, npup, pdiam, nphot, nphot4imat, lgs, device, roket));
+      &context, d_tel, type, nwfs, nxsub, nvalid, npupils, npix, nphase, nrebin,
+      nfft, ntot, npup, pdiam, nphot, nphot4imat, lgs, device, roket));
 }
 
 void declare_shesha_sensors(py::module &mod) {
@@ -26,6 +27,7 @@ void declare_shesha_sensors(py::module &mod) {
         nwfs: (int) : number of WFS
         nxsub: (np.ndarray[ndim=1, dtype=np.int64]) : number of ssp in the diameter for each WFS
         nvalid: (np.ndarray[ndim=1, dtype=np.int64]) : number of valid ssp for each WFS
+        npupils: (np.ndarray[ndim=1, dtype=np.int64]) : number of pupil images for each WFS
         npix: (np.ndarray[ndim=1,dtype=np.int64]) : number of pix per ssp for each WFS
         nphase: (np.ndarray[ndim=1,dtype=np.int64]) : number of phase points per ssp for each WFS
         nrebin: (np.ndarray[ndim=1,dtype=np.int64]) : rebin factor for each WFS
@@ -42,10 +44,10 @@ void declare_shesha_sensors(py::module &mod) {
         )pbdoc",
            py::arg("context"), py::arg("d_tel"), py::arg("type"),
            py::arg("nwfs"), py::arg("nxsub"), py::arg("nvalid"),
-           py::arg("npix"), py::arg("nphase"), py::arg("nrebin"),
-           py::arg("nfft"), py::arg("ntot"), py::arg("npup"), py::arg("pdiam"),
-           py::arg("nphot"), py::arg("nphot4imat"), py::arg("lgs"),
-           py::arg("device"), py::arg("roket"))
+           py::arg("npupils"), py::arg("npix"), py::arg("nphase"),
+           py::arg("nrebin"), py::arg("nfft"), py::arg("ntot"), py::arg("npup"),
+           py::arg("pdiam"), py::arg("nphot"), py::arg("nphot4imat"),
+           py::arg("lgs"), py::arg("device"), py::arg("roket"))
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝

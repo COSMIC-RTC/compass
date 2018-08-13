@@ -17,8 +17,8 @@ class sutra_controller {
   int device;
 
   // allocation of d_centroids and d_com
-  sutra_controller(carma_context *context, int nslope, int nactu, float delay,
-                   sutra_dms *dms, int *idx_dms, int ndm);
+  sutra_controller(carma_context *context, int nvalid, int nslope, int nactu,
+                   float delay, sutra_dms *dms, int *idx_dms, int ndm);
   virtual ~sutra_controller();
 
   virtual string get_type() = 0;

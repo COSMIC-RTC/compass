@@ -5,6 +5,8 @@ sutra_centroider_bpcog::sutra_centroider_bpcog(carma_context *context,
                                                float offset, float scale,
                                                int device, int nmax)
     : sutra_centroider(context, wfs, nvalid, offset, scale, device) {
+  this->nslopes = 2 * nvalid;
+
   this->nmax = nmax;
 
   long dims_data[3];

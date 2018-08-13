@@ -6,9 +6,10 @@ sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(
     carma_context *context, sutra_telescope *d_tel,
     carma_obj<cuFloatComplex> *d_camplipup,
     carma_obj<cuFloatComplex> *d_camplifoc,
-    carma_obj<cuFloatComplex> *d_fttotim, long nxsub, long nvalid, long npix,
-    long nphase, long nrebin, long nfft, long ntot, long npup, float pdiam,
-    float nphotons, float nphot4imat, int lgs, bool roket, int device)
+    carma_obj<cuFloatComplex> *d_fttotim, long nxsub, long nvalid, long npupils,
+    long npix, long nphase, long nrebin, long nfft, long ntot, long npup,
+    float pdiam, float nphotons, float nphot4imat, int lgs, bool roket,
+    int device)
     : sutra_wfs(context, d_tel, d_camplipup, d_camplifoc, d_fttotim, "pyrhr",
                 nxsub, nvalid, npix, nphase, nrebin, nfft, ntot, npup, pdiam,
                 nphotons, nphot4imat, lgs, false, roket, device) {
@@ -17,12 +18,11 @@ sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(
   dims_data1[0] = 1;
   long dims_data2[3];
   dims_data2[0] = 2;
-  long dims_data3[4];
-  dims_data3[0] = 3;
 
   dims_data2[1] = nfft;
   dims_data2[2] = nfft;
 
+  this->npupils = npupils;
   this->d_hrimg = new carma_obj<float>(context, dims_data2);  // Useless for SH
   this->d_submask = new carma_obj<float>(context, dims_data2);
   this->d_camplipup = new carma_obj<cuFloatComplex>(context, dims_data2);
@@ -61,10 +61,6 @@ sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(
   dims_data1[1] = 2 * nvalid;
   this->d_slopes = new carma_obj<float>(context, dims_data1);
 
-  dims_data2[1] = nfft;
-  dims_data2[2] = nfft;
-  dims_data3[3] = 4;
-
   dims_data1[1] = npup;
   this->pyr_cx = new carma_host_obj<float>(dims_data1, MA_WRICOMB);
   this->pyr_cy = new carma_host_obj<float>(dims_data1, MA_WRICOMB);
@@ -73,7 +69,7 @@ sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(
   this->d_subsum = new carma_obj<float>(context, dims_data1);
 
   this->d_fluxPerSub = new carma_obj<float>(context, dims_data1);
-  dims_data1[1] = nvalid * 4;
+  dims_data1[1] = npix;
   this->d_validsubsx = new carma_obj<int>(context, dims_data1);
   this->d_validsubsy = new carma_obj<int>(context, dims_data1);
 }
@@ -82,13 +78,14 @@ sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(
     carma_context *context, sutra_telescope *d_tel,
     carma_obj<cuFloatComplex> *d_camplipup,
     carma_obj<cuFloatComplex> *d_camplifoc,
-    carma_obj<cuFloatComplex> *d_fttotim, long nxsub, long nvalid, long npix,
-    long nphase, long nrebin, long nfft, long ntot, long npup, float pdiam,
-    float nphotons, float nphot4imat, int lgs, bool roket, int nbdevices,
-    int *devices)
+    carma_obj<cuFloatComplex> *d_fttotim, long nxsub, long nvalid, long npupils,
+    long npix, long nphase, long nrebin, long nfft, long ntot, long npup,
+    float pdiam, float nphotons, float nphot4imat, int lgs, bool roket,
+    int nbdevices, int *devices)
     : sutra_wfs_pyr_pyrhr(context, d_tel, d_camplipup, d_camplifoc, d_fttotim,
-                          nxsub, nvalid, npix, nphase, nrebin, nfft, ntot, npup,
-                          pdiam, nphotons, nphot4imat, lgs, roket, devices[0]) {
+                          nxsub, nvalid, npupils, npix, nphase, nrebin, nfft,
+                          ntot, npup, pdiam, nphotons, nphot4imat, lgs, roket,
+                          devices[0]) {
   long dims_data2[3];
   dims_data2[0] = 2;
 
