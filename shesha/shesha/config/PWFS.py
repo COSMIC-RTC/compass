@@ -800,7 +800,9 @@ class Param_wfs:
     _jstart = property(lambda x: x.__jstart, set_jstart)
 
     def set_isvalid(self, data):
-        """ TODO : docstring
+        """ Set the valid subapertures array
+
+        :param data: (int*) array of 0/1 for valid subaps
         """
         self.__isvalid = csu.enforce_arrayMultiDim(data.copy(), data.shape,
                                                    dtype=np.int32)

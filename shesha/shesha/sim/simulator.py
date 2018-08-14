@@ -24,8 +24,7 @@ import shesha.util.hdf5_utils as h5u
 import time
 
 from typing import Iterable, Any, Dict
-from shesha.sutra_bind.wrap import Sensors, Dms, Rtc, Atmos, Telescope, Target
-import naga
+from shesha.sutra_bind.wrap import Sensors, Dms, Rtc, Atmos, Telescope, Target, naga_context
 
 
 class Simulator:
@@ -144,10 +143,10 @@ class Simulator:
                     param_dict)
         # self.c = naga_context(devices=self.config.p_loop.devices)
         if (self.config.p_loop.devices.size > 1):
-            self.c = naga.naga_context.get_instance_ngpu(self.config.p_loop.devices.size,
-                                                         self.config.p_loop.devices)
+            self.c = naga_context.get_instance_ngpu(self.config.p_loop.devices.size,
+                                                    self.config.p_loop.devices)
         else:
-            self.c = naga.naga_context.get_instance_1gpu(self.config.p_loop.devices[0])
+            self.c = naga_context.get_instance_1gpu(self.config.p_loop.devices[0])
         # self.force_context()
 
         if self.config.p_tel is None or self.config.p_geom is None:
@@ -366,7 +365,7 @@ class Simulator:
                     t1 = time.time()
                 i += 1
 
-        for i in range(n - 1):
+        for i in range(n):
             self.next(**kwargs)
             if ((i + 1) % monitoring_freq == 0):
                 self.print_strehl(monitoring_freq, time.time() - t1, i, n)

@@ -64,20 +64,15 @@ class SimulatorRTC(Simulator):
         framesizex = p_wfs._framesizex
         framesizey = p_wfs._framesizey
         nvalid = p_wfs._nvalid
-        if p_wfs.type == WFSType.SH:
-            self.frame = self.wfs.get_binimg(0)
-        elif p_wfs.type == WFSType.PYRHR:
-            self.frame = self.wfs.get_pyrimg(0)
-        else:
-            raise RuntimeError("WFS Type not usable")
+        self.frame = np.array(self.wfs.d_wfs[0].d_binimg)
 
         if self.frame.shape != (framesizex, framesizey):
             raise RuntimeError("framesize not match with the simulation")
 
-        if self.rtc.get_voltage(0).size != nact:
+        if self.rtc.d_control[0].d_voltage.nbElem != nact:
             raise RuntimeError("nact not match with the simulation")
 
-        if self.rtc.get_cmat(0).shape != (nact, nvalid * 2):
+        if np.any(self.rtc.d_control[0].d_cmat.shape != [nact, nvalid * 2]):
             raise RuntimeError("cmat not match with the simulation")
 
         self.fakewfs = Octopus.getInterface(**p_wfs._frameInterface)
@@ -87,7 +82,7 @@ class SimulatorRTC(Simulator):
         self.fakedms = Octopus.getInterface(
                 **self.rtcconf.config.p_dms[0]._actuInterface)
 
-        tmp_cmat = self.rtc.get_cmat(0)
+        tmp_cmat = np.array(self.rtc.d_control[0].d_cmat)
         self.cmat = Octopus.getInterface(
                 **self.rtcconf.config.p_controllers[0]._cmatInterface)
         self.cmat.send(tmp_cmat)
@@ -104,8 +99,8 @@ class SimulatorRTC(Simulator):
 
         if self.fastMode:
             p_wfs = self.rtcconf.config.p_wfss[0]
-            self.frame = np.random.random((p_wfs._framesizex, p_wfs._framesizey)).astype(np.float32)
-
+            self.frame = np.random.random((p_wfs._framesizex,
+                                           p_wfs._framesizey)).astype(np.float32)
 
     def next(self, *, move_atmos: bool=True, see_atmos: bool=True, nControl: int=0,
              tar_trace: Iterable[int]=None, wfs_trace: Iterable[int]=None,
@@ -123,8 +118,8 @@ class SimulatorRTC(Simulator):
             if not self.fastMode:
                 if p_wfs.type == WFSType.SH:
                     Simulator.next(self, move_atmos=move_atmos, see_atmos=see_atmos,
-                                nControl=nControl, tar_trace=[0], wfs_trace=[0],
-                                do_control=False)
+                                   nControl=nControl, tar_trace=[0], wfs_trace=[0],
+                                   do_control=False)
                 else:
                     raise RuntimeError("WFS Type not usable")
             self.wfs.get_binimg_gpu(0, np.array(self.fakewfs.buffer, copy=False))
@@ -133,17 +128,12 @@ class SimulatorRTC(Simulator):
         except:
             if not self.fastMode:
                 Simulator.next(self, move_atmos=move_atmos, see_atmos=see_atmos,
-                            nControl=nControl, tar_trace=[0], wfs_trace=[0],
-                            do_control=False)
-                if p_wfs.type == WFSType.SH:
-                    self.frame = self.wfs.get_binimg(0)
-                elif p_wfs.type == WFSType.PYRHR:
-                    self.frame = self.wfs.get_pyrimg(0)
-                else:
-                    raise RuntimeError("WFS Type not usable")
+                               nControl=nControl, tar_trace=self.tar.d_targets,
+                               wfs_trace=self.wfs.d_wfs, do_control=False)
+                self.frame = np.array(self.wfs.d_wfs[0].d_binimg)
             self.fakewfs.send(self.frame)
 
         if apply_control:
             # print("Wait a command...")
             self.fakedms.recv(self.comp, 0)
-            self.dms.set_full_comm(self.comp)
+            self.dms.set_full_com(self.comp)

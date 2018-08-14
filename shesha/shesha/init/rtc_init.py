@@ -128,7 +128,7 @@ def rtc_standalone(context: naga_context, nwfs: int, nvalid, nactu: int,
 
     nslopes = sum([c.nslopes for c in rtc.d_centro])
     rtc.add_controller(context,
-                       nvalid.sum(), nslopes, nactu, delay, context.activeDevice,
+                       sum(nvalid), nslopes, nactu, delay, context.activeDevice,
                        "generic")
 
     return rtc
