@@ -126,8 +126,10 @@ def rtc_standalone(context: naga_context, nwfs: int, nvalid, nactu: int,
         rtc.add_centroider(context, nvalid[k], offset, scale, context.activeDevice,
                            centroider_type)
 
+    nslopes = sum([c.nslopes for c in rtc.d_centro])
     rtc.add_controller(context,
-                       nvalid.sum(), nactu, delay, context.activeDevice, b"generic")
+                       nvalid.sum(), nslopes, nactu, delay, context.activeDevice,
+                       "generic")
 
     return rtc
 
