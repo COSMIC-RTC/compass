@@ -59,6 +59,8 @@ class sutra_wfs_pyr_pyrhr : public sutra_wfs {
                        map<vector<int>, cufftHandle *> fttotim_plans) {
     return EXIT_SUCCESS;
   }
+  int comp_nphot(float ittime, float optthroughput, float diam, float cobs,
+                 float zerop, float gsmag);
 
  private:
   int comp_generic();

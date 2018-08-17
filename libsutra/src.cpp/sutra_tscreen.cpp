@@ -11,7 +11,7 @@ sutra_tscreen::sutra_tscreen(carma_context *context, long size,
   // ajust amplitude so that phase screens are generated in microns
   // r0 has been given @0.5µm
   this->amplitude *= 0.5;
-  this->amplitude /= (2 * 3.14159265);
+  this->amplitude /= (2 * CARMA_PI);
 
   this->altitude = altitude;
   this->windspeed = windspeed;
@@ -221,7 +221,7 @@ int sutra_tscreen::init_vk(int seed, int pupd) {
     this->d_tscreen_o->init_prng_host(seed);
 
   this->norm_vk = pow(pupd * pow(this->amplitude, 6.0f / 5.0f), 5.0f / 6.0f) *
-                  0.5f / (2.0f * 3.14159);
+                  0.5f / (2.0f * CARMA_PI);
 
   this->vk_on = true;
 

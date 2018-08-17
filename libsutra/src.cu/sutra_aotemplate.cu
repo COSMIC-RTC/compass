@@ -20,7 +20,7 @@ __global__ void comp_aotemplate_krnl(T *g_idata, T *g_odata, int sh_size,
   if (i < N) {
     // write result for this block to global mem
     g_odata[i] =
-        sin((sdata[tid] - sdata[(tid + 1) % sh_size]) * 2.0f * 3.14159);
+        sin((sdata[tid] - sdata[(tid + 1) % sh_size]) * 2.0f * CARMA_PI);
   }
 }
 

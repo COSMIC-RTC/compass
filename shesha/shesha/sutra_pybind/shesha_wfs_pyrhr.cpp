@@ -8,7 +8,7 @@ typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;
 typedef py::array_t<int, py::array::f_style | py::array::forcecast> F_arrayI;
 
 void declare_shesha_wfs_pyrhr(py::module &mod) {
-  py::class_<sutra_wfs_pyr_pyrhr, sutra_wfs>(mod, "PWFS")
+  py::class_<sutra_wfs_pyr_pyrhr, sutra_wfs>(mod, "PYRWFS")
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
@@ -73,6 +73,21 @@ void declare_shesha_wfs_pyrhr(py::module &mod) {
            py::arg("halfxy"), py::arg("cx"), py::arg("cy"), py::arg("sincar"),
            py::arg("submask"), py::arg("validsubsx"), py::arg("validsubsy"),
            py::arg("phasemap"), py::arg("fluxPerSub"))
+
+      .def("comp_nphot", &sutra_wfs_pyr_pyrhr::comp_nphot, R"pbdoc(
+      Compute the currect number of photons for a given system
+
+      Parameters
+      ------------
+      ittime: (float): 1/loop frequency [s].
+      optthroughput: (float): wfs global throughput.
+      diam: (float): telescope diameter.
+      cobs: (float): telescope central obstruction.
+      zerop: (float): (optional for LGS)  detector zero point expressed in ph/m**2/s in the bandwidth of the WFS.
+      gsmag: (float): (optional for LGS)  magnitude of guide star.
+    )pbdoc",
+           py::arg("ittime"), py::arg("optthroughput"), py::arg("diam"),
+           py::arg("cobs"), py::arg("zerop") = 0, py::arg("gsmag") = 0)
 
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝

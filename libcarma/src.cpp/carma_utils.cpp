@@ -183,7 +183,7 @@ void _poidev(float *xmv, long n)
       }
       do {
         do {
-          y = tan(3.1415926535897932384626433832 * ran1());
+          y = tan(CARMA_PI * ran1());
           em = sq * y + xm;
         } while (em < 0.0);
         em = floor(em);

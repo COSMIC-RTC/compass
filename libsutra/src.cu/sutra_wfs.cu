@@ -924,7 +924,6 @@ __global__ void pyrgetpup_krnl(Tout *g_odata, Tin *g_idata, Tout *offsets,
   // roll( pup * exp(i*phase) ) * offsets
 
   Tout *sdata = SharedMemory<Tout>();
-  const float PI = 3.1415926535897932384626433;
 
   // load shared mem
   unsigned int tid = threadIdx.x;
@@ -940,7 +939,7 @@ __global__ void pyrgetpup_krnl(Tout *g_odata, Tin *g_idata, Tout *offsets,
     yy = (y + n / 2) % n;
     i2 = xx + yy * n;
 
-    float mic2rad = (2 * PI / lambda);
+    float mic2rad = (2 * CARMA_PI / lambda);
 
     sdata[2 * tid].x = cosf(g_idata[i] * mic2rad) * pup[i];
     sdata[2 * tid].y = sinf(g_idata[i] * mic2rad) * pup[i];
@@ -1022,8 +1021,6 @@ template <class Tout, class Tin>
 __global__ void pyrgetpup_krnl(Tout *g_odata, Tin *g_idata, Tin *pup,
                                float lambda, float cx, float cy, unsigned int n,
                                unsigned int N) {
-  const float PI = 3.1415926535897932384626433;
-
   // load shared mem
   // const unsigned int tid = threadIdx.x;
   unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -1035,7 +1032,7 @@ __global__ void pyrgetpup_krnl(Tout *g_odata, Tin *g_idata, Tin *pup,
     const float xx = (x - n / 2.0f);
     const float yy = (y - n / 2.0f);
 
-    const float mic2rad = (2 * PI / lambda);
+    const float mic2rad = (2 * CARMA_PI / lambda);
 
     const float phi_modu = cx * xx + cy * yy;
 

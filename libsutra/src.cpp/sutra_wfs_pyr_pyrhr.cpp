@@ -1,6 +1,7 @@
 #include <carma_utils.h>
 #include <sutra_utils.h>
 #include <sutra_wfs_pyr_pyrhr.h>
+#include <cmath>
 
 sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(
     carma_context *context, sutra_telescope *d_tel,
@@ -583,5 +584,14 @@ int sutra_wfs_pyr_pyrhr::set_pyr_modulation(float *cx, float *cy, int npts) {
   this->pyr_cx = new carma_host_obj<float>(dims_data1, cx, MA_WRICOMB);
   this->pyr_cy = new carma_host_obj<float>(dims_data1, cy, MA_WRICOMB);
 
+  return EXIT_SUCCESS;
+}
+
+int sutra_wfs_pyr_pyrhr::comp_nphot(float ittime, float optthroughput,
+                                    float diam, float cobs, float zerop,
+                                    float gsmag) {
+  this->d_gs->mag = gsmag;
+  this->nphot = zerop * pow(10., -0.4 * gsmag) * ittime * optthroughput *
+                CARMA_PI / 4. * (1 - cobs * cobs) * diam * diam;
   return EXIT_SUCCESS;
 }

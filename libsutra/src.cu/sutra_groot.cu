@@ -137,13 +137,12 @@ __device__ T_data rodconan_gpu_gb(Fn const &ptr_pow, T_data r, T_data L0, int k)
  SEE ALSO:
  */
 {
-  const T_data pi = 3.1415926535897932384626433;
   T_data res = 0;
 
   // k1 is the value of :
   // 2*gamma_R(11./6)*2^(-5./6)*pi^(-8./3)*(24*gamma_R(6./5)/5.)^(5./6);
   const T_data k1 = 0.1716613621245709486;
-  const T_data dprf0 = (2 * pi / L0) * r;
+  const T_data dprf0 = (2 * CARMA_PI / L0) * r;
   // k2 is the value for gamma_R(5./6)*2^(-1./6),
   // but is now unused
   // k2 = 1.0056349179985892838;
@@ -335,10 +334,10 @@ __device__ double Ij0t83(double x, double *tab_x, double *tab_y, long npts) {
 template <class T_data, typename Fn>
 __device__ T_data DPHI_highpass_gen(Fn const &ptr_pow, T_data r, T_data fc,
                                     T_data *tab_x, T_data *tab_y, long npts) {
-  const T_data pi = 3.1415926535897932384626433;
   return ptr_pow(r, 5 / 3.) *
-         (1.1183343328701949 - Ij0t83(2 * pi * fc * r, tab_x, tab_y, npts)) *
-         ptr_pow(2 * pi, 8 / 3.) * 2 * 0.0228956;
+         (1.1183343328701949 -
+          Ij0t83(2 * CARMA_PI * fc * r, tab_x, tab_y, npts)) *
+         ptr_pow(2 * CARMA_PI, 8 / 3.) * 2 * 0.0228956;
 }
 
 __device__ float DPHI_highpass(float r, float fc, float *tab_x, float *tab_y,

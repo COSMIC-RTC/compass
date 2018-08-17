@@ -1,6 +1,7 @@
 #include <carma_utils.h>
 #include <sutra_utils.h>
 #include <sutra_wfs_sh.h>
+#include <cmath>
 
 sutra_wfs_sh::sutra_wfs_sh(carma_context *context, sutra_telescope *d_tel,
                            carma_obj<cuFloatComplex> *d_camplipup,
@@ -559,4 +560,24 @@ int sutra_wfs_sh::comp_image(bool noise) {
   result *= this->fill_binimage();
 
   return result;
+}
+
+int sutra_wfs_sh::comp_nphot(float ittime, float optthroughput, float diam,
+                             int nxsub, float zerop, float gsmag,
+                             float lgsreturnperwatt, float laserpower) {
+  this->d_gs->mag = gsmag;
+  if (laserpower == 0) {
+    if (zerop == 0) zerop = 1e11;
+    this->nphot = zerop * pow(10., (-0.4 * gsmag)) * ittime * optthroughput *
+                  (diam / nxsub) * (diam / nxsub);
+    // include throughput to WFS for unobstructed
+    // subaperture per iteration
+  } else {  // we are dealing with a LGS
+    this->nphot = lgsreturnperwatt * laserpower * optthroughput *
+                  (diam / nxsub) * (diam / nxsub) * 1e4 * ittime;
+    // detected by WFS
+    // ... for given power include throughput to WFS
+    // for unobstructed subaperture per iteration
+  }
+  return EXIT_SUCCESS;
 }

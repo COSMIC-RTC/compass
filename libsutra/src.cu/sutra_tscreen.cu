@@ -37,9 +37,9 @@ __global__ void vonkarman_krnl(cuFloatComplex *odata, float *idata, float k0,
     }
 
     odata[x + y * nx].x = cache_shm[threadIdx.x + threadIdx.y * blockSize] *
-                          cosf(2.0f * 3.14159f * idata[x + y * nx]);
+                          cosf(2.0f * CARMA_PI * idata[x + y * nx]);
     odata[x + y * nx].y = cache_shm[threadIdx.x + threadIdx.y * blockSize] *
-                          sinf(2.0f * 3.14159f * idata[x + y * nx]);
+                          sinf(2.0f * CARMA_PI * idata[x + y * nx]);
   }
 
   if ((x == 0) && (y == 0)) {

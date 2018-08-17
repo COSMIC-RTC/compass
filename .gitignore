@@ -60,3 +60,4 @@ doc/compass-doc
 \.vscode/
 setup.cfg
 compass.egg-info
+python

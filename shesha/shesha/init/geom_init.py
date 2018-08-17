@@ -304,8 +304,75 @@ def init_wfs_size(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel, verbo
             print("size of fft support : ", Nfft)
 
 
+def compute_nphotons(wfs_type, ittime, optthroughput, diam, cobs=0, nxsub=0, zerop=0,
+                     gsmag=0, lgsreturnperwatt=0, laserpower=0, verbose=1):
+    ''' Determines the number of photons TBC
+
+    :parameters:
+        wfs_type: (scons.WFSType) : wfs type: SH or PYRHR.
+
+        ittime: (float) : 1/loop frequency [s].
+
+        optthroughput: (float) : wfs global throughput.
+
+        diam: (float) : telescope diameter.
+
+        cobs: (float) : (optional for SH)  telescope central obstruction.
+
+        nxsub: (int) : (optional for PYRHR)  linear number of subaps.
+
+        zerop: (float) : (optional for LGS)  detector zero point expressed in ph/m**2/s in the bandwidth of the WFS.
+
+        gsmag: (float) : (optional for LGS)  magnitude of guide star.
+
+        lgsreturnperwatt: (float) : (optional for NGS) return per watt factor (high season : 10 ph/cm2/s/W).
+
+        laserpower: (float) : (optional for NGS) laser power in W.
+
+        verbose: (bool) : (optional) display informations if True.
+
+    for PYRHR WFS: nphotons = compute_nphotons(scons.WFSType.PYRHR, ittime,
+                                optthroughput, diam, cobs=?, zerop=?, gsmag=?)
+    for NGS SH WFS: nphotons = compute_nphotons(scons.WFSType.SH, ittime,
+                                optthroughput, diam, nxsub=?, zerop=?, gsmag=?)
+    for LGS SH WFS: nphotons = compute_nphotons(scons.WFSType.SH, ittime,
+                                optthroughput, diam, nxsub=?,
+                                lgsreturnperwatt=?, laserpower=?)
+    '''
+    surface = 0
+    nphotons = 0
+    if (wfs_type == scons.WFSType.PYRHR):
+        surface = np.pi / 4. * (1 - cobs**2.) * diam**2.
+    elif (wfs_type == scons.WFSType.SH):
+        # from the guide star
+        if (laserpower == 0):
+            if (zerop == 0):
+                zerop = 1e11
+            surface = (diam / nxsub)**2.
+            # include throughput to WFS for unobstructed
+            # subaperture per iteration
+        else:  # we are dealing with a LGS
+            nphotons = lgsreturnperwatt * laserpower * \
+                optthroughput * (diam / nxsub) ** 2. * 1e4 * ittime
+            # detected by WFS
+            # ... for given power include throughput to WFS
+            # for unobstructed subaperture per iteration
+            if (verbose):
+                print("nphotons : ", nphotons)
+            return nphotons
+    else:
+        raise RuntimeError("WFS unknown")
+
+    nphotons = zerop * 10. ** (-0.4 * gsmag) * ittime * \
+            optthroughput * surface
+
+    if (verbose):
+        print("nphotons : ", nphotons)
+    return nphotons
+
+
 def init_pyrhr_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
-                    p_geom: conf.Param_geom, ittime: float, verbose=1):
+                    p_geom: conf.Param_geom, ittime: float, verbose: bool=True):
     """Compute the geometry of PYRHR WFSs: valid subaps, positions of the subaps,
     flux per subap, etc...
 
@@ -320,7 +387,7 @@ def init_pyrhr_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
 
         ittime: (float) : 1/loop frequency [s]
 
-        verbose: (int) : (optional) display informations if 0
+        verbose: (bool) : (optional) display informations if True
 
     """
 
@@ -450,10 +517,14 @@ def init_pyrhr_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
 
     p_wfs._pyr_cx = cx.copy()
     p_wfs._pyr_cy = cy.copy()
-    telSurf = np.pi / 4. * (1 - p_tel.cobs**2.) * p_tel.diam**2.
-    p_wfs._nphotons = p_wfs.zerop * \
-        10. ** (-0.4 * p_wfs.gsmag) * ittime * \
-        p_wfs.optthroughput * telSurf
+
+    # telSurf = np.pi / 4. * (1 - p_tel.cobs**2.) * p_tel.diam**2.
+    # p_wfs._nphotons = p_wfs.zerop * \
+    #     10. ** (-0.4 * p_wfs.gsmag) * ittime * \
+    #     p_wfs.optthroughput * telSurf
+    p_wfs._nphotons = compute_nphotons(scons.WFSType.PYRHR, ittime, p_wfs.optthroughput,
+                                       p_tel.diam, cobs=p_tel.cobs, zerop=p_wfs.zerop,
+                                       gsmag=p_wfs.gsmag, verbose=verbose)
 
     # spatial filtering by the pixel extent:
     # *2/2 intended. min should be 0.40 = sinc(0.5)^2.
@@ -513,7 +584,7 @@ def init_pyrhr_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
 
 
 def init_sh_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
-                 p_geom: conf.Param_geom, ittime: float, verbose=1):
+                 p_geom: conf.Param_geom, ittime: float, verbose: bool=True):
     """Compute the geometry of SH WFSs: valid subaps, positions of the subaps,
     flux per subap, etc...
 
@@ -528,7 +599,7 @@ def init_sh_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
 
         ittime: (float) : 1/loop frequency [s]
 
-        verbose: (int) : (optional) display informations if 0
+        verbose: (bool) : (optional) display informations if True
 
     """
 
@@ -669,34 +740,38 @@ def init_sh_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
     p_wfs._ftkernel = np.copy(tmp).astype(np.complex64)
 
     # dealing with photometry
-    telSurf = np.pi / 4. * (1 - p_tel.cobs**2.) * p_tel.diam**2.
+    # telSurf = np.pi / 4. * (1 - p_tel.cobs**2.) * p_tel.diam**2.
 
     # from the guide star
     if (p_wfs.gsalt == 0):
         if (p_wfs.zerop == 0):
             p_wfs.zerop = 1e11
-        p_wfs._nphotons = p_wfs.zerop * 10 ** (-0.4 * p_wfs.gsmag) * \
-            p_wfs.optthroughput * \
-            (p_tel.diam / p_wfs.nxsub) ** 2. * ittime
-# include throughput to WFS
-# for unobstructed subaperture
-# per iteration
+        # p_wfs._nphotons = p_wfs.zerop * 10 ** (-0.4 * p_wfs.gsmag) * \
+        #     p_wfs.optthroughput * \
+        #     (p_tel.diam / p_wfs.nxsub) ** 2. * ittime
+        # include throughput to WFS
+        # for unobstructed subaperture
+        # per iteration
+        p_wfs._nphotons = compute_nphotons(scons.WFSType.SH, ittime, p_wfs.optthroughput,
+                                           p_tel.diam, nxsub=p_wfs.nxsub,
+                                           zerop=p_wfs.zerop, gsmag=p_wfs.gsmag,
+                                           verbose=verbose)
 
     else:  # we are dealing with a LGS
-        p_wfs._nphotons = p_wfs.lgsreturnperwatt * \
-            p_wfs.laserpower * \
-            p_wfs.optthroughput * \
-            (p_tel.diam / p_wfs.nxsub) ** 2. * 1e4 * \
-            ittime
-
-# detected by WFS
-# ... for given power
-# include throughput to WFS
-# for unobstructed subaperture
-# per iteration
-
-    if (verbose):
-        print("nphotons : ", p_wfs._nphotons)
+        # p_wfs._nphotons = p_wfs.lgsreturnperwatt * \
+        #     p_wfs.laserpower * \
+        #     p_wfs.optthroughput * \
+        #     (p_tel.diam / p_wfs.nxsub) ** 2. * 1e4 * \
+        #     ittime
+        # detected by WFS
+        # ... for given power
+        # include throughput to WFS
+        # for unobstructed subaperture
+        # per iteration
+        p_wfs._nphotons = compute_nphotons(scons.WFSType.SH, ittime, p_wfs.optthroughput,
+                                           p_tel.diam, nxsub=p_wfs.nxsub,
+                                           lgsreturnperwatt=p_wfs.lgsreturnperwatt,
+                                           laserpower=p_wfs.laserpower, verbose=verbose)
 
 
 def geom_init(p_geom: conf.Param_geom, p_tel: conf.Param_tel, padding=2):

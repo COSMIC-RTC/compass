@@ -180,7 +180,7 @@ int sutra_wfs::slopes_geom(float *slopes, int type) {
    */
   if (type == 0) {
     // this is to convert in arcsec
-    //> 206265* 0.000001/ 2 / 3.14159265 = 0.0328281
+    //> 206265* 0.000001/ 2 / CARMA_PI = 0.0328281
     // it would have been the case if the phase was given in radiants
     // but it is given in microns so normalization factor is
     // just 206265* 0.000001 = 0.206265

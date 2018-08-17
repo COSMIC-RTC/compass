@@ -72,7 +72,7 @@ inline int sutra_source::init_source(carma_context *context, float xpos,
 
   this->type = type;
   this->device = device;
-  this->scale = float(2 * 3.14159265 / lambda);  // phase is expected in microns
+  this->scale = float(2 * CARMA_PI / lambda);  // phase is expected in microns
 
   // cudaDeviceProp deviceProperties =
   // current_context->get_device(device)->get_properties();

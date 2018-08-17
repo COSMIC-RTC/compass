@@ -53,6 +53,24 @@ void declare_shesha_wfs_sh(py::module &mod) {
            py::arg("validsubsy"), py::arg("istart"), py::arg("jstart"),
            py::arg("kernel"))
 
+      .def("comp_nphot", &sutra_wfs_sh::comp_nphot, R"pbdoc(
+      Compute the currect number of photons for a given system
+
+      Parameters
+      ------------
+      ittime: (float): 1/loop frequency [s].
+      optthroughput: (float): wfs global throughput.
+      diam: (float):  telescope diameter.
+      nxsub: (float): linear number of subaps.
+      zerop: (float): (optional for LGS)  detector zero point expressed in ph/m**2/s in the bandwidth of the WFS.
+      gsmag: (float): (optional for LGS)  magnitude of guide star.
+      lgsreturnperwatt: (float): (optional for NGS) return per watt factor (high season : 10 ph/cm2/s/W).
+      laserpower: (float): (optional for NGS) laser power in W.
+    )pbdoc",
+           py::arg("ittime"), py::arg("optthroughput"), py::arg("diam"),
+           py::arg("nxsub"), py::arg("zerop") = 0, py::arg("gsmag") = 0,
+           py::arg("lgsreturnperwatt") = 0, py::arg("laserpower") = 0)
+
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝
       //  ███████╗█████╗     ██║      ██║   █████╗  ██████╔╝███████╗

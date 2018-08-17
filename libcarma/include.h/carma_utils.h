@@ -17,6 +17,8 @@
 #include <cuda_runtime_api.h>
 #include <cufft.h>
 
+#define CARMA_PI 3.1415926535897932384626433832
+
 namespace carma_utils {
 template <typename T>
 inline std::string to_string(const T &n) {
