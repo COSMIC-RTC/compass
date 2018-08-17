@@ -110,12 +110,8 @@ def dist(dim, xc=-1, yc=-1):
 
     if (xc < 0):
         xc = int(dim / 2.)
-    else:
-        xc -= 1.
     if (yc < 0):
         yc = int(dim / 2.)
-    else:
-        yc -= 1.
 
     dx = np.tile(np.arange(dim) - xc, (dim, 1))
     dy = np.tile(np.arange(dim) - yc, (dim, 1)).T

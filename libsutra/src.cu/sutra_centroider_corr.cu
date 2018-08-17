@@ -325,7 +325,7 @@ __global__ void interp_parab(T *g_idata, T *g_centroids, int *g_values,
             (2.0f * scoeff[1] * scoeff[3] - scoeff[4] * scoeff[2]) / denom;
         int xm = (2 * offx + sizex);
         xm = ((xm & 1) == 0) ? xm / 2 : xm / 2 + 1;  //(xm&1)==xm%2
-        g_centroids[blockIdx.x] += (xm + 0.5 - (Npix + 1) / 4);
+        g_centroids[blockIdx.x] += (xm - 0.5 - (Npix + 1) / 4);
         g_centroids[blockIdx.x] = (g_centroids[blockIdx.x] - offset) * scale;
       }
       if (threadIdx.x == 1) {
@@ -333,7 +333,7 @@ __global__ void interp_parab(T *g_idata, T *g_centroids, int *g_values,
             (2.0f * scoeff[0] * scoeff[4] - scoeff[3] * scoeff[2]) / denom;
         int ym = (2 * offy + sizey);
         ym = ((ym & 1) == 0) ? ym / 2 : ym / 2 + 1;  //(ym&1)==ym%2
-        g_centroids[blockIdx.x + nvalid] += (ym + 0.5 - (Npix + 1) / 4);
+        g_centroids[blockIdx.x + nvalid] += (ym - 0.5 - (Npix + 1) / 4);
         g_centroids[blockIdx.x + nvalid] =
             (g_centroids[blockIdx.x + nvalid] - offset) * scale;
       }

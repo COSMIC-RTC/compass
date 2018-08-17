@@ -18,6 +18,7 @@ from shesha.util import utilities as util
 import numpy as np
 
 from shesha.sutra_pybind.wrap import Sensors
+import scipy.ndimage.interpolation as sci
 
 
 def make_lgs_prof1d(p_wfs: conf.Param_wfs, p_tel: conf.Param_tel, prof: np.ndarray,
@@ -124,11 +125,10 @@ def make_lgs_prof1d(p_wfs: conf.Param_wfs, p_tel: conf.Param_tel, prof: np.ndarr
             np.fft.fft(profi, axis=0) * np.fft.fft(g_extended, axis=0),
             axis=0).real.astype(np.float32)
     p1d = p1d * p1d.shape[0]
-    p1d = np.roll(p1d, int(p_wfs._Ntot / 2. + 0.5), axis=0)
+    p1d = np.roll(p1d, int(p_wfs._Ntot / 2. - 0.5), axis=0)
     p1d = np.abs(p1d)
 
     im = np.zeros((p1d.shape[1], p1d.shape[0], p1d.shape[0]), dtype=np.float32)
-
     for i in range(p1d.shape[0]):
         im[:, i, :] = g[i] * p1d.T
 
@@ -141,20 +141,25 @@ def make_lgs_prof1d(p_wfs: conf.Param_wfs, p_tel: conf.Param_tel, prof: np.ndarr
     p_wfs._azimuth = azimuth
 
     if (center == b"image"):
-        xcent = p_wfs._Ntot / 2. + 0.5
+        xcent = p_wfs._Ntot / 2. - 0.5
         ycent = xcent
     else:
-        xcent = p_wfs._Ntot / 2. + 1
+        xcent = p_wfs._Ntot / 2.  #+ 1
         ycent = xcent
 
     if (ysubs.size > 0):
         # TODO rotate
-        im = util.rotate3d(im, azimuth * 180 / np.pi, xcent, ycent)
-        max_im = np.max(im, axis=(1, 2))
-        im = (im.T / max_im).T
+        # im = util.rotate3d(im, azimuth * 180 / np.pi, xcent, ycent) --> ça marche pas !!
+        # max_im = np.max(im, axis=(1, 2))
+        # im = (im.T / max_im).T
+        for k in range(im.shape[0]):
+            img = im[k, :, :] / im[k, :, :].max()
+            im[k, :, :] = sci.rotate(img, azimuth[k] * 180 / np.pi, reshape=False)
+
     else:
-        im = util.rotate(im, azimuth * 180 / np.pi, xcent, ycent)
-        im = im / np.max(im)
+        # im = util.rotate(im, azimuth * 180 / np.pi, xcent, ycent)
+        # im = im / np.max(im)
+        im = sci.rotate(img, azimuth * 180 / np.pi, reshape=False)
 
     p_wfs._lgskern = im.T
 

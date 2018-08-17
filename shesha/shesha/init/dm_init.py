@@ -262,8 +262,8 @@ def make_pzt_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, cobs: float,
     #pfits.writeto("cubeval.fits", cubval)
     xpos = cubval[0, :]
     ypos = cubval[1, :]
-    i1t = (cubval[0, :] - smallsize / 2 + 0.5 - p_dm._n1).astype(np.int32)
-    j1t = (cubval[1, :] - smallsize / 2 + 0.5 - p_dm._n1).astype(np.int32)
+    i1t = (cubval[0, :] - smallsize / 2 - 0.5 - p_dm._n1).astype(np.int32)
+    j1t = (cubval[1, :] - smallsize / 2 - 0.5 - p_dm._n1).astype(np.int32)
 
     p_dm._xpos = xpos
     p_dm._ypos = ypos
@@ -421,8 +421,8 @@ def init_pzt_from_hdf5(p_dm: conf.Param_dm, p_geom: conf.Param_geom, diam: float
 
     # i1, j1 calc :
 
-    p_dm._i1 = (p_dm._xpos - p_dm._influsize / 2. + 0.5 - p_dm._n1).astype(np.int32)
-    p_dm._j1 = (p_dm._ypos - p_dm._influsize / 2. + 0.5 - p_dm._n1).astype(np.int32)
+    p_dm._i1 = (p_dm._xpos - p_dm._influsize / 2. - 0.5 - p_dm._n1).astype(np.int32)
+    p_dm._j1 = (p_dm._ypos - p_dm._influsize / 2. - 0.5 - p_dm._n1).astype(np.int32)
 
     comp_dmgeom(p_dm, p_geom)
 

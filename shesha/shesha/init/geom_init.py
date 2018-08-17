@@ -397,8 +397,8 @@ def init_pyrhr_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
     # Creating field stop mask
     fsradius_pixels = int(p_wfs.fssize / p_wfs._qpixsize / 2.)
     if (p_wfs.fstop == scons.FieldStopType.ROUND):
-        focmask = util.dist(p_wfs._Nfft, xc=p_wfs._Nfft / 2. + 0.5,
-                            yc=p_wfs._Nfft / 2. + 0.5) < (fsradius_pixels)
+        focmask = util.dist(p_wfs._Nfft, xc=p_wfs._Nfft / 2. - 0.5,
+                            yc=p_wfs._Nfft / 2. - 0.5) < (fsradius_pixels)
     elif (p_wfs.fstop == scons.FieldStopType.SQUARE):
         X = np.indices((p_wfs._Nfft, p_wfs._Nfft)) + 1  # TODO: +1 ??
         x = X[1] - (p_wfs._Nfft + 1.) / 2.
@@ -603,10 +603,10 @@ def init_sh_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
 
     """
 
-    # this is the i,j index of lower left pixel of subap
-    istart = ((np.linspace(0.5, p_geom.pupdiam + 0.5, p_wfs.nxsub + 1) +
-               1)[:-1]).astype(np.int64)
-
+    # this is the i,j index of lower left pixel of subap in _spupil
+    istart = ((np.linspace(0, p_geom.pupdiam, p_wfs.nxsub + 1))[:-1]).astype(np.int64)
+    # Translation in _mupil useful for raytracing
+    istart += 2
     jstart = np.copy(istart)
     p_wfs._istart = istart.astype(np.int32)
     p_wfs._jstart = jstart.astype(np.int32)
@@ -615,9 +615,9 @@ def init_sh_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
     fluxPerSub = np.zeros((p_wfs.nxsub, p_wfs.nxsub), dtype=np.float32)
 
     for i in range(p_wfs.nxsub):
-        indi = istart[i] + 1  # +2-1 (yorick->python)
+        indi = istart[i]  # +2-1 (yorick->python)
         for j in range(p_wfs.nxsub):
-            indj = jstart[j] + 1  # +2-1 (yorick->python)
+            indj = jstart[j]  # +2-1 (yorick->python)
             fluxPerSub[i, j] = np.sum(
                     p_geom._mpupil[indi:indi + p_wfs._pdiam, indj:indj + p_wfs._pdiam])
             # fluxPerSub[i,j] = np.where(p_geom._mpupil[indi:indi+pdiam,indj:indj+pdiam] > 0)[0].size
@@ -625,7 +625,6 @@ def init_sh_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
     fluxPerSub = fluxPerSub / p_wfs._pdiam**2.
 
     pupvalid = (fluxPerSub >= p_wfs.fracsub) * 1
-    pupvalid = pupvalid.T
     p_wfs._isvalid = pupvalid.astype(np.int32)
     p_wfs._nvalid = int(np.sum(pupvalid))
     p_wfs._fluxPerSub = fluxPerSub.copy()
@@ -643,8 +642,8 @@ def init_sh_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
     n = p_wfs._nvalid
     # for i in range(p_wfs._nvalid):
     for i in range(n):
-        indi = istart[p_wfs._validsubsy[i]] + 1  # +2-1 (yorick->python)
-        indj = jstart[p_wfs._validsubsx[i]] + 1
+        indi = istart[p_wfs._validsubsy[i]]  # +2-1 (yorick->python)
+        indj = jstart[p_wfs._validsubsx[i]]
         phasemap[:, i] = tmp[indi:indi + p_wfs._pdiam, indj:
                              indj + p_wfs._pdiam].flatten()
     p_wfs._phasemap = phasemap
@@ -696,7 +695,7 @@ def init_sh_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
         indi = int((p_wfs._Ntot - p_wfs._nrebin * p_wfs.npix) / 2.) + 1
     else:
         indi = int((p_wfs._Ntot - p_wfs._nrebin * p_wfs.npix) / 2.) + 0
-    indj = int(indi + p_wfs._nrebin * p_wfs.npix - 1)
+    indj = int(indi + p_wfs._nrebin * p_wfs.npix)
 
     X = np.indices((p_wfs._nrebin * p_wfs.npix, p_wfs._nrebin * p_wfs.npix))
     x = (X[1] / p_wfs._nrebin).astype(np.int64)
@@ -704,7 +703,7 @@ def init_sh_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
 
     # binindices
     binindices = np.zeros((p_wfs._Ntot, p_wfs._Ntot))
-    binindices[indi:indj + 1, indi:indj + 1] = x + y * p_wfs.npix + 1
+    binindices[indi:indj, indi:indj] = x + y * p_wfs.npix + 1
 
     binmap = np.zeros((p_wfs._nrebin * p_wfs._nrebin, p_wfs.npix * p_wfs.npix))
 
@@ -727,9 +726,8 @@ def init_sh_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
         (p_tel.diam / np.sqrt(p_wfs.nxsub ** 2. + (dr0 / 1.5) ** 2.)) / 4.848
     kernelfwhm = np.sqrt(fwhmseeing**2. + p_wfs.kernel**2.)
 
-    tmp = util.makegaussian(p_wfs._Ntot, kernelfwhm / p_wfs._qpixsize,
-                            p_wfs._Ntot // 2 + 1,
-                            p_wfs._Ntot // 2 + 1).astype(np.float32)
+    tmp = util.makegaussian(p_wfs._Ntot, kernelfwhm / p_wfs._qpixsize, p_wfs._Ntot // 2,
+                            p_wfs._Ntot // 2).astype(np.float32)
 
     tmp = np.roll(tmp, tmp.shape[0] // 2, axis=0)
     tmp = np.roll(tmp, tmp.shape[1] // 2, axis=1)
@@ -787,7 +785,7 @@ def geom_init(p_geom: conf.Param_geom, p_tel: conf.Param_tel, padding=2):
     # First power of 2 greater than pupdiam
     p_geom.ssize = int(2**np.ceil(np.log2(p_geom.pupdiam) + 1))
     # Using images centered on 1/2 pixels
-    p_geom.cent = p_geom.ssize / 2 + 0.5
+    p_geom.cent = p_geom.ssize / 2 - 0.5
 
     p_geom._p1 = int(np.ceil(p_geom.cent - p_geom.pupdiam / 2.))
     p_geom._p2 = int(np.floor(p_geom.cent + p_geom.pupdiam / 2.))
@@ -798,7 +796,7 @@ def geom_init(p_geom: conf.Param_geom, p_tel: conf.Param_tel, padding=2):
     p_geom._n1 = p_geom._p1 - padding
     p_geom._n2 = p_geom._p2 + padding
 
-    cent = p_geom.pupdiam / 2. + 0.5
+    cent = p_geom.pupdiam / 2. - 0.5
 
     # Useful pupil
     p_geom._spupil = mkP.make_pupil(p_geom.pupdiam, p_geom.pupdiam, p_tel, cent,

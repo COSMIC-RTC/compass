@@ -15,7 +15,7 @@ __global__ void centroidx(T *g_idata, T *g_odata, T *alpha, unsigned int n,
   int idim;
   sdata[tid] = 0;
   for (int cc = 0; cc < nelem_thread; cc++) {
-    x = ((tid * nelem_thread + cc) % n) + 1;
+    x = ((tid * nelem_thread + cc) % n);
     idim = tid * nelem_thread + cc + (blockDim.x * nelem_thread) * blockIdx.x;
     if (idim < N)
       sdata[tid] += g_idata[idim] * x;
@@ -49,7 +49,7 @@ __global__ void centroidy(T *g_idata, T *g_odata, T *alpha, unsigned int n,
   int idim;
   sdata[tid] = 0;
   for (int cc = 0; cc < nelem_thread; cc++) {
-    y = ((tid * nelem_thread + cc) / n) + 1;
+    y = ((tid * nelem_thread + cc) / n);
     idim = tid * nelem_thread + cc + (blockDim.x * nelem_thread) * blockIdx.x;
     if (idim < N)
       sdata[tid] += g_idata[idim] * y;

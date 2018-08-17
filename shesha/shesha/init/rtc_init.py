@@ -149,15 +149,15 @@ def init_centroider(context, nwfs: int, p_wfs: conf.Param_wfs,
     """
     if (p_wfs.type == scons.WFSType.SH):
         if (p_centroider.type != scons.CentroiderType.CORR):
-            s_offset = p_wfs.npix // 2. + 0.5
+            s_offset = p_wfs.npix // 2. - 0.5
         else:
             if (p_centroider.type_fct == scons.CentroiderFctType.MODEL):
                 if (p_wfs.npix % 2 == 0):
-                    s_offset = p_wfs.npix // 2 + 0.5
+                    s_offset = p_wfs.npix // 2 - 0.5
                 else:
                     s_offset = p_wfs.npix // 2
             else:
-                s_offset = p_wfs.npix // 2 + 0.5
+                s_offset = p_wfs.npix // 2 - 0.5
         s_scale = p_wfs.pixsize
 
     elif (p_wfs.type == scons.WFSType.PYRHR):
@@ -252,16 +252,16 @@ def comp_weights(p_centroider: conf.Param_centroider, p_wfs: conf.Param_wfs, npi
             p_centroider.width = npix
         if (p_wfs.npix % 2 == 1):
             p_centroider.weights = utilities.makegaussian(
-                    p_wfs.npix, p_centroider.width, p_wfs.npix // 2 + 1,
-                    p_wfs.npix // 2 + 1).astype(np.float32)
+                    p_wfs.npix, p_centroider.width, p_wfs.npix // 2,
+                    p_wfs.npix // 2).astype(np.float32)
         elif (p_centroider.type == scons.CentroiderType.CORR):
             p_centroider.weights = utilities.makegaussian(
                     p_wfs.npix, p_centroider.width, p_wfs.npix // 2,
                     p_wfs.npix // 2).astype(np.float32)
         else:
             p_centroider.weights = utilities.makegaussian(
-                    p_wfs.npix, p_centroider.width, p_wfs.npix // 2 + 0.5,
-                    p_wfs.npix // 2 + 0.5).astype(np.float32)
+                    p_wfs.npix, p_centroider.width, p_wfs.npix // 2 - 0.5,
+                    p_wfs.npix // 2 - 0.5).astype(np.float32)
 
 
 def init_controller(context, i: int, p_controller: conf.Param_controller, p_wfss: list,

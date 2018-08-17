@@ -148,7 +148,7 @@ __global__ void centroid_bpix(int nsub, int n, T *g_idata, unsigned int *values,
   __syncthreads();
 
   // compute the centroid on the first part of the array
-  sdata[tid] *= ((svalues[tid] % n) + 1);
+  sdata[tid] *= ((svalues[tid] % n));
   // x centroid
   __syncthreads();
   reduce_krnl(sdata, blockDim.x, tid);
@@ -162,7 +162,7 @@ __global__ void centroid_bpix(int nsub, int n, T *g_idata, unsigned int *values,
   __syncthreads();
 
   // compute the centroid on the first part of the array
-  sdata[tid] *= (svalues[tid] / n + 1);
+  sdata[tid] *= (svalues[tid] / n);
   // y centroid
   __syncthreads();
 

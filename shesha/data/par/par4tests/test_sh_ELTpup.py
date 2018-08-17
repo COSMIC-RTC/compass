@@ -1,6 +1,6 @@
 import shesha.config as conf
 
-simul_name = "test_SH_base"
+simul_name = "bench_scao_sh_16x16_8pix"
 
 # loop
 p_loop = conf.Param_loop()
@@ -18,6 +18,8 @@ p_tel = conf.Param_tel()
 
 p_tel.set_diam(8.0)
 p_tel.set_cobs(0.12)
+p_tel.set_type_ap("EELT")
+p_tel.set_t_spiders(0.1)
 
 # atmos
 p_atmos = conf.Param_atmos()
@@ -90,8 +92,7 @@ p_centroider0 = conf.Param_centroider()
 p_centroiders = [p_centroider0]
 
 p_centroider0.set_nwfs(0)
-p_centroider0.set_type("bpcog")
-p_centroider0.set_nmax(64)
+p_centroider0.set_type("cog")
 # p_centroider0.set_type("corr")
 # p_centroider0.set_type_fct("model")
 
