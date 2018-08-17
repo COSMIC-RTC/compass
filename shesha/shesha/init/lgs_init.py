@@ -17,7 +17,7 @@ import shesha.constants as scons
 from shesha.util import utilities as util
 import numpy as np
 
-from shesha.sutra_bind.wrap import Sensors
+from shesha.sutra_pybind.wrap import Sensors
 
 
 def make_lgs_prof1d(p_wfs: conf.Param_wfs, p_tel: conf.Param_tel, prof: np.ndarray,

@@ -8,7 +8,7 @@ from shesha.constants import CONST
 
 import shesha.util.make_pupil as mkP
 import shesha.util.utilities as util
-from shesha.sutra_bind.wrap import naga_context, Telescope
+from shesha.sutra_pybind.wrap import naga_context, Telescope
 from shesha.constants import ApertureType
 import numpy as np
 

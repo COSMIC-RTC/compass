@@ -8,7 +8,7 @@ from shesha.constants import CONST
 from shesha.util.utilities import complextofloat2
 
 from . import lgs_init as LGS
-from shesha.sutra_bind.wrap import naga_context, Sensors, Telescope
+from shesha.sutra_pybind.wrap import naga_context, Sensors, Telescope
 import numpy as np
 
 

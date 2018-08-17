@@ -5,7 +5,7 @@ from shesha.init.dm_init import dm_init_standalone
 from shesha.init.rtc_init import rtc_standalone
 from shesha.sim.simulator import Simulator
 from shesha.sim.simulatorBrahma import SimulatorBrahma
-from shesha.sutra_bind.wrap import naga_context
+from shesha.sutra_pybind.wrap import naga_context
 
 from .abstractSupervisor import AbstractSupervisor
 

@@ -13,7 +13,7 @@ from shesha.init import dm_init
 from typing import List
 
 import numpy as np
-from shesha.sutra_bind.wrap import naga_context, Sensors, Dms, Target, Rtc, Rtc_brahma, Atmos, Telescope
+from shesha.sutra_pybind.wrap import naga_context, Sensors, Dms, Target, Rtc, Rtc_brahma, Atmos, Telescope
 
 
 def rtc_init(context: naga_context, tel: Telescope, wfs: Sensors, dms: Dms, atmos: Atmos,

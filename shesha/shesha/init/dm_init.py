@@ -14,7 +14,7 @@ import numpy as np
 
 import pandas as pd
 from scipy import interpolate
-from shesha.sutra_bind.wrap import naga_context, Dms
+from shesha.sutra_pybind.wrap import naga_context, Dms
 
 from typing import List
 

@@ -61,3 +61,4 @@ doc/compass-doc
 setup.cfg
 compass.egg-info
 python
+shesha.egg-info

@@ -8,7 +8,7 @@ import shesha.constants as scons
 from shesha.constants import CONST
 
 import numpy as np
-from shesha.sutra_bind.wrap import naga_context, Target, Target_brahma, Telescope
+from shesha.sutra_pybind.wrap import naga_context, Target, Target_brahma, Telescope
 
 
 def target_init(ctxt: naga_context, telescope: Telescope, p_targets: list,

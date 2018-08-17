@@ -91,11 +91,37 @@ ext_modules = [
 setup(
         name='compass',
         version='1.0.0',
-        # author=['Julien Bernard', 'Arnaud Sevin'],
-        # author_email=['julien.bernard@obspm.fr', 'arnaud.sevin@obspm.fr'],
-        # description='A wrap project to use Octopus interfaces with python',
-        # long_description='A wrap project to use Octopus interfaces with python',
-        # ext_package='OctopusWrap',
+        # author=['Arnaud Sevin'],
+        # author_email=['arnaud.sevin@obspm.fr'],
+        # description='',
+        # long_description='',
         ext_modules=ext_modules,
         cmdclass={'build_ext': CMakeBuildExt},
+        zip_safe=False, )
+
+setup(
+        name='shesha',
+        version='1.0.0',
+        # author=['Arnaud Sevin'],
+        # author_email=['arnaud.sevin@obspm.fr'],
+        # description='',
+        # long_description='',
+        packages=[
+                'shesha', 'shesha.ao', 'shesha.config', 'shesha.init', 'shesha.scripts',
+                'shesha.sim', 'shesha.supervisor', 'shesha.sutra_pybind', 'shesha.util',
+                'shesha.widgets'
+        ],
+        package_dir={
+                'shesha': 'shesha/shesha',
+                'shesha.ao': 'shesha/shesha/ao',
+                'shesha.config': 'shesha/shesha/config',
+                'shesha.init': 'shesha/shesha/init',
+                'shesha.scripts': 'shesha/shesha/scripts',
+                'shesha.sim': 'shesha/shesha/sim',
+                'shesha.supervisor': 'shesha/shesha/supervisor',
+                'shesha.sutra_pybind': 'shesha/shesha/sutra_pybind',
+                'shesha.util': 'shesha/shesha/util',
+                'shesha.widgets': 'shesha/shesha/widgets',
+        },
+        install_requires=['compass'],
         zip_safe=False, )

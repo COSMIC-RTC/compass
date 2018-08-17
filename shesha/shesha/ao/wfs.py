@@ -8,7 +8,7 @@ from shesha.constants import CONST
 import shesha.util.utilities as util
 
 import numpy as np
-from shesha.sutra_bind.wrap import Sensors, Rtc
+from shesha.sutra_pybind.wrap import Sensors, Rtc
 
 
 def comp_new_pyr_ampl(nwfs: int, ampli: float, wfs: Sensors, rtc: Rtc, p_wfss: list,
