@@ -37,13 +37,13 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         Immediately sets provided command to DMs - does not affect integrator
         '''
-        self._sim.dms.set_full_comm((command).astype(np.float32).copy())
+        self._sim.dms.set_full_comm((command))
 
-    def setPerturbationVoltage(self, command: np.ndarray) -> None:
+    def setPerturbationVoltage(self, nControl: int, command: np.ndarray) -> None:
         '''
         Add this offset value to integrator (will be applied at the end of next iteration)
         '''
-        self._sim.rtc.d_control[0].set_perturbcom(command.astype(np.float32).copy())
+        self._sim.rtc.d_control[nControl].set_perturbcom(command, command.shape[0])
 
     def getSlope(self) -> np.ndarray:
         '''
@@ -233,6 +233,12 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         self._sim.tar.d_targets[nTar].reset_strehlmeter()
 
+    def resetTarPhase(self, nTar: int) -> None:
+        '''
+        Reset the phase screen of the target nTar
+        '''
+        self._sim.tar.d_targets[nTar].d_phase.reset()
+
     def loadConfig(self, configFile: str, BRAMA: bool=False) -> None:
         '''
         Init the COMPASS wih the configFile
@@ -328,3 +334,89 @@ class CompassSupervisor(AbstractSupervisor):
         return the current frame counter of the loop
         '''
         return self._sim.iter
+
+    def getIFsparse(self, nControl: int):
+        '''
+        Return the IF of DM as a sparse matrix
+        '''
+        return self._sim.rtc.d_control[nControl].d_IFsparse.get_csr()
+
+    def getIFtt(self, nControl: int):
+        '''
+        Return the IF of a TT DM as a sparse matrix
+        '''
+        return np.array(self._sim.rtc.d_control[nControl].d_TT)
+
+    def getCentroids(self, nControl: int):
+        '''
+        Return the centroids of the nControl controller
+        '''
+        return np.array(self._sim.rtc.d_control[nControl].d_centroids)
+
+    def doControlGeo(self, nControl: int, nTar: int):
+        '''
+        Computes command with a geo controller
+        '''
+        self._sim.rtc.d_control[nControl].comp_dphi(self._sim.tar.d_targets[nTar], False)
+        self._sim.rtc.do_control(nControl)
+
+    def getCom(self, nControl: int):
+        '''
+        Get command from nControl controller
+        '''
+        return np.array(self._sim.rtc.d_control[nControl].d_com)
+
+    def getVoltage(self, nControl: int):
+        '''
+        Get voltages from nControl controller
+        '''
+        return np.array(self._sim.rtc.d_control[nControl].d_voltage)
+
+    def setIntegratorLaw(self):
+        self._sim.rtc.d_control[0].set_commandlaw("integrator")
+
+    def setDecayFactor(self, decay):
+        self._sim.rtc.d_control[0].set_decayFactor(decay)
+
+    def setEMatrix(self, eMat):
+        self._sim.rtc.d_control[0].set_matE(eMat)
+
+    def doRefslopes(self):
+        print("Doing refslopes...")
+        self._sim.rtc.do_centroids_ref(0)
+        print("refslopes done")
+
+    def resetRefslopes(self):
+        self._sim.rtc.d_control[0].d_centroids_ref.reset()
+
+    def setNcpaWfs(self, ncpa, wfsnum):
+        self._sim.wfs.set_ncpa_phase(wfsnum, ncpa)
+
+    def setNcpaTar(self, ncpa, tarnum):
+        self._sim.tar.d_targets[tarnum].set_ncpa(tarnum, ncpa)
+
+    def set_phaseWFS(self, numwfs, phase):
+        pph = phase.astype(np.float32)
+        self._sim.wfs.d_wfs[numwfs].set_phase(pph)
+        self.computeSlopes()
+
+    def setMpupil(self, mpupil, numwfs=0):
+        oldmpup = self.getMpupil()
+        dimx = oldmpup.shape[0]
+        dimy = oldmpup.shape[1]
+        if ((mpupil.shape[0] != dimx) or (mpupil.shape[1] != dimy)):
+            print("Error mpupil shape on wfs %d must be: (%d,%d)" % (numwfs, dimx, dimy))
+        else:
+            self._sim.wfs.d_wfs[numwfs].set_pupil(mpupil.copy())
+
+    def getIpupil(self):
+        return self._sim.config.p_geom._ipupil
+
+    def getSpupil(self):
+        return self._sim.config.p_geom._spupil
+
+    def getMpupil(self):
+        return self._sim.config.p_geom._mpupil
+
+    def getTarAmplipup(self, tarnum):
+        return self._sim.config.tar.get_amplipup(tarnum)
