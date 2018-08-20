@@ -48,7 +48,9 @@ def rtc_init(context: naga_context, tel: Telescope, wfs: Sensors, dms: Dms, atmo
     # initialisation var
     # ________________________________________________
     if brahma:
-        rtc = Rtc_brahma(context, wfs, tar)
+        print(wfs)
+        print(tar)
+        rtc = Rtc_brahma(context, wfs, tar, "rtc_brahma")
     else:
         rtc = Rtc()
 
@@ -97,12 +99,15 @@ def rtc_init(context: naga_context, tel: Telescope, wfs: Sensors, dms: Dms, atmo
 
                 list_dmseen = [p_dms[j].type for j in p_controller.ndm]
                 nactu = np.sum([p_dms[j]._ntotact for j in p_controller.ndm])
-                alt = np.array([p_dms[j].alt
-                                for j in p_controller.ndm], dtype=np.float32)
 
-                rtc.add_controller_geo(context, nactu, Nphi, p_controller.delay,
-                                       context.activeDevice, p_controller.type, dms,
-                                       list_dmseen, p_controller.ndm.size, True)
+                rtc.add_controller(context, p_controller.nvalid, p_controller.nslope,
+                                   p_controller.nactu, p_controller.delay,
+                                   context.activeDevice, scons.ControllerType.GEO, dms,
+                                   p_controller.ndm, p_controller.ndm.size, Nphi, True)
+
+                # rtc.add_controller_geo(context, nactu, Nphi, p_controller.delay,
+                #                        context.activeDevice, p_controller.type, dms,
+                #                        list_dmseen, p_controller.ndm.size, True)
 
                 # list_dmseen,alt,p_controller.ndm.size
                 init_controller_geo(ncontrol, rtc, dms, p_geom, p_controller, p_dms,

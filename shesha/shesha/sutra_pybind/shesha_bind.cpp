@@ -27,6 +27,12 @@ void declare_shesha_controller_geo(py::module &);
 void declare_shesha_controller_generic(py::module &);
 void declare_shesha_controller_cured(py::module &);
 void declare_shesha_rtc(py::module &);
+
+#ifdef USE_BRAHMA
+void declare_shesha_target_brahma(py::module &);
+void declare_shesha_rtc_brahma(py::module &);
+#endif  // USE_BRAHMA
+
 // Expose classes and methods to Python
 PYBIND11_MODULE(shesha_bind, mod) {
   mod.doc() = "Binding module for libsutra into shesha";
@@ -56,4 +62,9 @@ PYBIND11_MODULE(shesha_bind, mod) {
   declare_shesha_controller_generic(mod);
   declare_shesha_controller_cured(mod);
   declare_shesha_rtc(mod);
+
+#ifdef USE_BRAHMA
+  declare_shesha_target_brahma(mod);
+  declare_shesha_rtc_brahma(mod);
+#endif  // USE_BRAHMA
 }

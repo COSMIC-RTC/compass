@@ -24,11 +24,11 @@ def smart_import(mod, cls, verbose=False, silent=False):
 
 Dms = smart_import("shesha_bind", "Dms")
 Rtc = smart_import("shesha_bind", "Rtc")
-Rtc_brahma = smart_import("shesha.sutra_bind.Rtc", "Rtc_brahma", silent=True)
+Rtc_brahma = smart_import("shesha_bind", "Rtc_brahma", silent=True)
 Sensors = smart_import("shesha_bind", "Sensors")
 Atmos = smart_import("shesha_bind", "Atmos")
 Telescope = smart_import("shesha_bind", "Telescope")
 Target = smart_import("shesha_bind", "Target")
-Target_brahma = smart_import("shesha.sutra_bind.Target", "Target_brahma", silent=True)
+Target_brahma = smart_import("shesha_bind", "Target_brahma", silent=True)
 
 naga_context = smart_import("naga", "naga_context")

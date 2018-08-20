@@ -5,7 +5,7 @@
 
 sutra_rtc_brahma::sutra_rtc_brahma(carma_context *context, sutra_sensors *wfs_,
                                    sutra_target *target_, ACE_TCHAR *name)
-    : sutra_rtc(context), wfs(wfs_), target(target_) {
+    : sutra_rtc(), wfs(wfs_), target(target_) {
   DEBUG_TRACE("init %s", name);
   BRAHMA::BRAHMA_context brahma = BRAHMA::BRAHMA_context::get_instance(name);
   cmd_listener_servant = NULL;
@@ -141,7 +141,7 @@ void sutra_rtc_brahma::allocateBuffers() {
         wfs_phase_size += wfs->d_wfs[i]->d_gs->d_phase->d_screen->getNbElem();
       }
       for (unsigned int i = 0; i < target->d_targets.size(); i++) {
-        target_size += target->d_targets[i]->d_image->getNbElem();
+        target_size += target->d_targets[i]->d_image_se->getNbElem();
         target_phase_size +=
             target->d_targets[i]->d_phase->d_screen->getNbElem();
       }
@@ -203,7 +203,6 @@ void sutra_rtc_brahma::publish() {
   }
 
   if (buff_intensities == NULL) allocateBuffers();
-  current_context->set_activeDevice(device, 1);
 
   CORBA::Float *buff_wfs_servant = (CORBA::Float *)buff_wfs;
   CORBA::Float *buff_wfs_phase_servant = (CORBA::Float *)buff_wfs_phase;
@@ -242,20 +241,20 @@ void sutra_rtc_brahma::publish() {
     idx = 0;
     idx_phase = 0;
     carma_obj<float> tmp_img(target->d_targets[0]->current_context,
-                             target->d_targets[0]->d_image->getDims());
+                             target->d_targets[0]->d_image_se->getDims());
     for (size_t i = 0; i < target->d_targets.size(); i++) {
       target->d_targets[i]->comp_image(0, true);
       float flux = 1.0f;
       // target->d_targets[i]->zp * powf(10, -0.4 * target->d_targets[i]->mag);
       roll_mult<float>(tmp_img.getData(),
-                       target->d_targets[i]->d_image->getData(),
-                       target->d_targets[i]->d_image->getDims(1),
-                       target->d_targets[i]->d_image->getDims(2), flux,
+                       target->d_targets[i]->d_image_se->getData(),
+                       target->d_targets[i]->d_image_se->getDims(1),
+                       target->d_targets[i]->d_image_se->getDims(2), flux,
                        target->d_targets[i]->current_context->get_device(
                            target->d_targets[i]->device));
       tmp_img.device2host(buff_target_servant + idx);
 
-      idx += target->d_targets[i]->d_image->getNbElem();
+      idx += target->d_targets[i]->d_image_se->getNbElem();
 
       target->d_targets[i]->d_phase->d_screen->device2host(
           buff_target_phase_servant + idx_phase);

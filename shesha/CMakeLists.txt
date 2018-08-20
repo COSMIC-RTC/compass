@@ -2,9 +2,16 @@ cmake_minimum_required (VERSION 3.8)
 
 project(shesha_bind
     VERSION 1.0
-    DESCRIPTION "COMPASS shesha_atmos lirary"
+    DESCRIPTION "COMPASS shesha library"
     LANGUAGES CXX CUDA
 )
+
+if (DEFINED ENV{BRAHMA_ROOT})
+    SET(BRAHMA_DIRS $ENV{ACE_ROOT}/lib $ENV{TAO_ROOT}/tao $ENV{DDS_ROOT}/lib $ENV{BRAHMA_ROOT})
+    link_directories( ${BRAHMA_DIRS} )
+    SET(BRAHMA_CPP shesha/sutra_pybind/shesha_rtc_brahma.cpp
+                shesha/sutra_pybind/shesha_target_brahma.cpp)
+endif()
 
 # set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
@@ -17,6 +24,7 @@ link_directories( ${MAGMA_LIBRARY_DIRS} )
 if(NOT TARGET wyrm)
     add_subdirectory(../wyrm wyrm)
 endif()
+
 add_library(shesha_bind MODULE
                     shesha/sutra_pybind/shesha_telescope.cpp
                     shesha/sutra_pybind/shesha_tscreen.cpp
@@ -42,10 +50,12 @@ add_library(shesha_bind MODULE
                     shesha/sutra_pybind/shesha_controller_generic.cpp
                     shesha/sutra_pybind/shesha_controller_cured.cpp
                     shesha/sutra_pybind/shesha_rtc.cpp
-                    shesha/sutra_pybind/shesha_bind.cpp)
+                    shesha/sutra_pybind/shesha_bind.cpp
+                    ${BRAHMA_CPP}
+                    )
 #link_directories($ENV{COMPASS_ROOT}/libsutra)
 
-target_link_libraries(shesha_bind PRIVATE wyrm carma sutra)
+target_link_libraries(shesha_bind PRIVATE wyrm sutra)
 
 set_target_properties(shesha_bind PROPERTIES PREFIX "${PYTHON_MODULE_PREFIX}"
                                       SUFFIX "${PYTHON_MODULE_EXTENSION}")

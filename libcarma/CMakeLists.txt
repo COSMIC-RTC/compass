@@ -6,8 +6,6 @@ project(carma
     LANGUAGES CXX CUDA
 )
 
-include(GNUInstallDirs)
-
 # EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
 # message( STATUS "Architecture: ${ARCHITECTURE}" )
 # ifeq ($(OS_ARCH),armv7l)
@@ -89,7 +87,7 @@ target_link_libraries(carma PRIVATE ${MAGMA_LIBRARIES} ${CUDA_LIBRARIES} ${CUDA_
 configure_file(carma.pc.in carma.pc @ONLY)
 
 install(TARGETS carma
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 

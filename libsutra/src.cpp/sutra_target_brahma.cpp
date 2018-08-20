@@ -92,11 +92,11 @@ void sutra_target_brahma::allocateBuffers() {
     // TODO : handle targets with different supports...
     dims_pixels = BRAHMA::Dims::allocbuf(3);
     dims_pixels[0] = d_targets.size();
-    dims_pixels[1] = d_targets[0]->d_leimage->getDims(1);
-    dims_pixels[2] = d_targets[0]->d_leimage->getDims(2);
+    dims_pixels[1] = d_targets[0]->d_image_le->getDims(1);
+    dims_pixels[2] = d_targets[0]->d_image_le->getDims(2);
 
     buff_pixels = BRAHMA::Values::allocbuf(
-        d_targets.size() * d_targets[0]->d_leimage->getNbElem() *
+        d_targets.size() * d_targets[0]->d_image_le->getNbElem() *
         sizeof(float));
   } catch (CORBA::Exception &e) {
     cerr << "Exception caught in main.cpp:" << endl << e << endl;
@@ -133,19 +133,20 @@ void sutra_target_brahma::publish() {
 
   long idx = 0;
   carma_obj<float> tmp_img(d_targets[0]->current_context,
-                           d_targets[0]->d_leimage->getDims());
+                           d_targets[0]->d_image_le->getDims());
   for (size_t target = 0; target < d_targets.size(); target++) {
     d_targets[target]->comp_image(0, true);
     float flux = 1.0f;
     // d_targets[target]->zp * powf(10, -0.4 * d_targets[target]->mag);
-    roll_mult<float>(tmp_img.getData(), d_targets[target]->d_leimage->getData(),
-                     d_targets[target]->d_leimage->getDims(1),
-                     d_targets[target]->d_leimage->getDims(2), flux,
+    roll_mult<float>(tmp_img.getData(),
+                     d_targets[target]->d_image_le->getData(),
+                     d_targets[target]->d_image_le->getDims(1),
+                     d_targets[target]->d_image_le->getDims(2), flux,
                      d_targets[target]->current_context->get_device(
                          d_targets[target]->device));
     tmp_img.device2host(buff_pixels_servant + idx);
 
-    idx += d_targets[target]->d_leimage->getNbElem();
+    idx += d_targets[target]->d_image_le->getNbElem();
   }
 
   BRAHMA::Frame zFrame;
