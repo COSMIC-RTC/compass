@@ -12,18 +12,18 @@ struct Method_CoG {
 
   /** Method_CoG(int method)
    * where method is
-   *        0: nosinus global
-   *        1: sinus global
-   *        2: nosinus local
-   *        3: sinus local)
+   *        0: sinus global
+   *        1: nosinus global
+   *        2: sinus local)
+   *        3: nosinus local
    **/
   Method_CoG(uint8_t method) : isLocal(method > 1), isSinus(!(method % 2)) {}
 
   static const char *str(const struct Method_CoG &method) {
-    if (method.isSinus && method.isLocal) return "sinus local";
-    if (!method.isSinus && method.isLocal) return "nosinus local";
-    if (method.isSinus && !method.isLocal) return "sinus global";
-    if (!method.isSinus && !method.isLocal) return "nosinus global";
+    if (method.isSinus && !method.isLocal) return "sinus global";     // 0
+    if (!method.isSinus && !method.isLocal) return "nosinus global";  // 1
+    if (method.isSinus && method.isLocal) return "sinus local";       // 2
+    if (!method.isSinus && method.isLocal) return "nosinus local";    // 3
     throw "method unknown";
   };
 };
