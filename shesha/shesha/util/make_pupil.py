@@ -13,7 +13,7 @@ from shesha.constants import ApertureType, SpiderType
 EELT_data = os.environ.get('SHESHA_ROOT') + "/data/apertures/"
 
 
-def make_pupil(dim, pupd, tel, xc=-1, yc=-1, real=0):
+def make_pupil(dim, pupd, tel, xc=-1, yc=-1, real=0, halfSpider=0):
     """Initialize the system pupil
 
     :parameters:
@@ -40,7 +40,7 @@ def make_pupil(dim, pupd, tel, xc=-1, yc=-1, real=0):
         return make_EELT(dim, pupd, tel, N_seg)
     elif (tel.type_ap == ApertureType.EELT):
         return generateEeltPupilMask(dim, tel.t_spiders, xc, yc, tel.diam / dim,
-                                     tel.pupangle, D=tel.diam)
+                                     tel.pupangle, D=tel.diam, halfSpider=halfSpider)
     elif tel.type_ap == ApertureType.EELT_BP1:
         print("ELT_pup_cobs = %5.3f" % 0.339)
         N_seg = 768
@@ -431,7 +431,8 @@ def make_phase_ab(dim, pupd, tel, pup):
 """
 
 
-def generateEeltPupilMask(npt, dspider, i0, j0, pixscale, rotdegree, D=39.0):
+def generateEeltPupilMask(npt, dspider, i0, j0, pixscale, rotdegree, D=39.0,
+                          halfSpider=0):
     """
     Generates a boolean pupil mask of the binary EELT pupil
     on a map of size (npt, npt).
@@ -468,7 +469,10 @@ def generateEeltPupilMask(npt, dspider, i0, j0, pixscale, rotdegree, D=39.0):
     # SPIDERS ............................................
     nspider = 3  # pour le jour ou on voudra plus de spiders..
     if (dspider > 0 and nspider > 0):
-        pup = pup & fillSpider(npt, nspider, dspider, i0, j0, pixscale, rot)
+        if (halfSpider != 0):
+            pup = pup & fillHalfSpider(npt, nspider, dspider, i0, j0, pixscale, rot)
+        else:
+            pup = pup & fillSpider(npt, nspider, dspider, i0, j0, pixscale, rot)
 
     return pup
 
@@ -580,6 +584,24 @@ def fillSpider(N, nspider, dspider, i0, j0, scale, rot):
         nn = (abs(X * np.cos(i * w - rot) + Y * np.sin(i * w - rot)) < dspider / 2.)
         a[nn] = False
     return a
+
+
+def fillHalfSpider(N, nspider, dspider, i0, j0, scale, rot):
+    a = np.ones((N, N), dtype=np.bool)
+    b = np.ones((N, N), dtype=np.bool)
+    X = (np.arange(N) - i0) * scale
+    Y = (np.arange(N) - j0) * scale
+    X, Y = np.meshgrid(X, Y)
+    w = 2 * np.pi / nspider
+    for i in range(nspider):
+        right = (X * np.cos(i * w - rot) + Y * np.sin(i * w - rot) < dspider / 2) * (
+                X * np.cos(i * w - rot) + Y * np.sin(i * w - rot) > 0.)
+        left = (X * np.cos(i * w - rot) + Y * np.sin(i * w - rot) > -dspider / 2) * (
+                X * np.cos(i * w - rot) + Y * np.sin(i * w - rot) < 0.)
+
+        a[right] = False
+        b[left] = False
+    return a, b
 
 
 def createHexaPattern(pitch, supportSize):

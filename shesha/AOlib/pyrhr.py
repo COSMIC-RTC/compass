@@ -2,7 +2,7 @@
 """
 Created on Fri Apr  8 09:54:08 2016
 
-@author: J.Meslem - E.Gendron - D.Gratadour
+@author: J.Meslem - E.Gendron - D.Gratadour - FV
 """
 
 import numpy as np
@@ -50,7 +50,8 @@ def generate_kolmo(n):
 
 
 def rebin(a, shape):
-    sh = shape[0], a.shape[0] // shape[0], shape[1], a.shape[1] // shape[1]
+    sh = int(shape[0]), int(a.shape[0]) // int(shape[0]), int(shape[1]), int(
+            a.shape[1]) // int(shape[1])
     return a.reshape(sh).mean(-1).mean(1)
 
 
@@ -93,15 +94,15 @@ def pyr_analysis(n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pups
         phaselrCOMPASS = pyfits.getdata("imageCompassPYrLR4.fits")
 
         ncompass = phasehrCOMPASS.shape[0]
-        n = 1024 # wao.wfs.get_pyrimghr(0).shape
-        nrebin = 16 # wao.config.p_wfs0._nrebin
-        pup_sep = 16 # wao.config.p_wfs0.nxsub
-        mod = 3. # wao.config.p_wfs0.pyr_ampl
-        N = 16 # wao.config.p_wfs0.pyr_npts
-        Dtel = 8. # wao.config.p_tel.diam
-        obs = 0.12 # wao.config.p_tel.cobs
-        l = 500e-9  # wao.config.p_wfs0.Lambda*1e-6
-        _pix = 0.003222875064238906 # wao.config.p_wfs0._qpixsize
+        n = 1024 # wao.supervisor.wfs.get_pyrimghr(0).shape
+        nrebin = 16 # wao.supervisor.config.p_wfs0._nrebin
+        pup_sep = 16 # wao.supervisor.config.p_wfs0.nxsub
+        mod = 3. # wao.supervisor.config.p_wfs0.pyr_ampl
+        N = 16 # wao.supervisor.config.p_wfs0.pyr_npts
+        Dtel = 8. # wao.supervisor.config.p_tel.diam
+        obs = 0.12 # wao.supervisor.config.p_tel.cobs
+        l = 500e-9  # wao.supervisor.config.p_wfs0.Lambda*1e-6
+        _pix = 0.003222875064238906 # wao.supervisor.config.p_wfs0._qpixsize
         Amp = 1.
         mv = 10.
         Pangle = pup_sep * nrebin
@@ -244,10 +245,10 @@ def pyr_analysis(n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pups
 
     # Low resolution:
     #ppup_LR = rebin(ppup, (ppup.shape[0]/nrebin, ppup.shape[1]/nrebin))
-    xx1 = int(n / 2 - D / 2 - Pangle) / nrebin
-    yy1 = xx1 + int(D) / nrebin
-    xx2 = n / nrebin - yy1
-    yy2 = n / nrebin - xx1
+    xx1 = int(n / 2 - D / 2 - Pangle) // int(nrebin)
+    yy1 = int(xx1 + int(D) / nrebin)
+    xx2 = int(n / nrebin - yy1)
+    yy2 = int(n / nrebin - xx1)
     IA_LR = PUPIM_LR[xx1:yy1, xx1:yy1]
     IB_LR = PUPIM_LR[xx2:yy2, xx1:yy1]
     IC_LR = PUPIM_LR[xx1:yy1, xx2:yy2]
@@ -318,37 +319,37 @@ def pyr_analysis(n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pups
     grady /= z  # radians d'angle  (note: z=Dtel/D)
     grady /= l/Dtel   #   unites lam/D
     """
-    return PUPIM0, PUPIM, dwx, dwy, IA, IB, IC, ID, slopes
+    return PUPIM0, PUPIM, dwx, dwy, IA, IB, IC, ID, slopes, pyr
 
 
 def compPyrCOMPASS(wao):
-    #imhrCOMPASS = wao.wfs.get_hrimg_pyr(0)
-    phasehrCOMPASS = wao.wfs.get_phase(0)
-    pupCOMPASS = wao.config.p_geom.get_mpupil()
-    #phaselrCOMPASS = wao.wfs.get_pyrimg(0)
+    #imhrCOMPASS = wao.supervisor.wfs.get_hrimg_pyr(0)
+    phasehrCOMPASS = wao.supervisor._sim.wfs.get_phase(0)
+    pupCOMPASS = wao.supervisor.getMpupil()
+    #phaselrCOMPASS = wao.supervisor.wfs.get_pyrimg(0)
     ncompass = phasehrCOMPASS.shape[0]
-    n = wao.wfs.get_pyrimghr(0).shape[0]
-    nrebin = wao.config.p_wfs0._nrebin
-    pup_sep = wao.config.p_wfs0.pyr_pup_sep
-    mod = wao.config.p_wfs0.pyr_ampl
-    N = wao.config.p_wfs0.pyr_npts
-    Dtel = wao.config.p_tel.diam
-    obs = wao.config.p_tel.cobs
-    l = wao.config.p_wfs0.Lambda * 1e-6
-    _pix = wao.config.p_wfs0._qpixsize
+    n = wao.supervisor._sim.wfs.get_pyrimghr(0).shape[0]
+    nrebin = wao.supervisor._sim.config.p_wfs0._nrebin
+    pup_sep = wao.supervisor._sim.config.p_wfs0.pyr_pup_sep
+    mod = wao.supervisor._sim.config.p_wfs0.pyr_ampl
+    N = wao.supervisor._sim.config.p_wfs0.pyr_npts
+    Dtel = wao.supervisor._sim.config.p_tel.diam
+    obs = wao.supervisor._sim.config.p_tel.cobs
+    l = wao.supervisor._sim.config.p_wfs0.Lambda * 1e-6
+    _pix = wao.supervisor._sim.config.p_wfs0._qpixsize
     Amp = 1.
     mv = 10.
     Pangle = pup_sep * nrebin
     p = np.zeros((n, n))
     pup = p.copy()
-    p[(n - ncompass) / 2:(n + ncompass) / 2, (n - ncompass) / 2:(
-            n + ncompass) / 2] = phasehrCOMPASS * 2 * np.pi / l * 1e-6
-    pup[(n - ncompass) / 2:(n + ncompass) / 2, (n - ncompass) / 2:(n + ncompass
-                                                                   ) / 2] = pupCOMPASS
-    pupsub = wao.config.p_wfs0._isvalid[1:-1, 1:-1]
-    PUPIM0, PUPIM, dwx, dwy, IA, IB, IC, ID, slopes = pyr_analysis(
+    p[(n - ncompass) // 2:(n + ncompass) // 2, (n - ncompass) // 2:(
+            n + ncompass) // 2] = phasehrCOMPASS * 2 * np.pi / l * 1e-6
+    pup[(n - ncompass) // 2:(n + ncompass) // 2, (n - ncompass) // 2:(
+            n + ncompass) // 2] = pupCOMPASS
+    pupsub = wao.supervisor._sim.config.p_wfs0._isvalid[1:-1, 1:-1]
+    PUPIM0, PUPIM, dwx, dwy, IA, IB, IC, ID, slopes, pyrmask = pyr_analysis(
             n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pupsub, pup=pup)
-    return PUPIM0, PUPIM, dwx, dwy, IA, IB, IC, ID, slopes
+    return PUPIM0, PUPIM, dwx, dwy, IA, IB, IC, ID, slopes, pyrmask
 
 
 """

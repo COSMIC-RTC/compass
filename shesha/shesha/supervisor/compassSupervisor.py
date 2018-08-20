@@ -139,9 +139,8 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         Set pyramid compute method
         '''
-        self._sim.rtc.set_pyr_method(
-                0, pyrMethod, self._sim.config.p_centroiders)  # Sets the pyr method
-        print("PYR method set to: %d" % self._sim.rtc.get_pyr_method(0))
+        self._sim.rtc.set_pyr_method(0, pyrMethod)  # Sets the pyr method
+        print("PYR method set to: %s" % self._sim.rtc.get_pyr_method(0))
 
     def getRawWFSImage(self, numWFS: int=0) -> np.ndarray:
         '''

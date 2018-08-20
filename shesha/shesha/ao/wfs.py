@@ -21,9 +21,9 @@ def comp_new_pyr_ampl(nwfs: int, ampli: float, wfs: Sensors, rtc: Rtc, p_wfss: l
 
         ampli : (float) : new amplitude in units of lambda/D
 
-        wfs: (Sensors): wfs object
-
         rtc: (Rtc): rtc object
+
+        p_centroider : (Param_centroider) : pyr centroider settings
 
         p_wfss : (list of Param_wfs) : list of wfs parameters
 
