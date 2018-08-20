@@ -119,12 +119,12 @@ nact = p_wfs0.nxsub + 1
 #p_dm0.set_nact(nact)
 p_dm0.set_nact(73)  #73 actuators for a projected M4 pitch of 53cm
 p_dm0.set_alt(0.)
-p_dm0.set_thresh(0.2)  # fraction units
+p_dm0.set_thresh(0.6)  # fraction units 0.1 = keep DM with 10% illumination
 # !!!!!!!!!!!!!!!!!!!!!!!!! attention pas autre chose que 0.2 !!!!!!!!!
 p_dm0.set_coupling(0.2)
 p_dm0.set_unitpervolt(1)
 p_dm0.set_push4imat(0.01)
-p_dm0.set_type_pattern("hexa")
+p_dm0.set_type_pattern("hexaM4")
 #p_dm0.set_influType("gaussian")
 p_dm0.set_influType("radialSchwartz")
 """
