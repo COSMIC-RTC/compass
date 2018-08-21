@@ -97,7 +97,7 @@ sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel,
             context, d_tel, this->d_camplipup, this->d_camplifoc,
             this->d_fttotim, nxsub[i], nvalid[i], npupils[i], npix[i],
             nphase[i], nrebin[i], nfft[i], ntot[i], npup[i], pdiam[i], nphot[i],
-            nphot4imat[i], lgs[i], ngpu, roket, devices);
+            nphot4imat[i], lgs[i], roket, ngpu, devices);
       }
     }
 

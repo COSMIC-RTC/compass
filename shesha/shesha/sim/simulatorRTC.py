@@ -9,7 +9,8 @@ import numpy as np
 import Octopus
 from shesha.constants import CentroiderType, WFSType
 
-from .simulator import Iterable, Simulator, init, load_config_from_file
+from .simulator import Iterable, Simulator, init
+from shesha.util.utilities import load_config_from_file
 
 
 class SimulatorRTC(Simulator):

@@ -2,7 +2,7 @@ import numpy as np
 
 import Octopus
 from shesha.constants import CentroiderType, WFSType
-from shesha.sim.simulator import load_config_from_file
+from shesha.util.utilities import load_config_from_file
 
 from .benchSupervisor import BenchSupervisor, naga_context, rtc_standalone
 
