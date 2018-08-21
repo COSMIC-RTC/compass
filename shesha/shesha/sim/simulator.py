@@ -271,12 +271,12 @@ class Simulator:
              apply_control: (bool): (optional) if True (default), apply control on DMs
         '''
         if tar_trace is None and self.tar is not None:
-            tar_trace = self.tar.d_targets
+            tar_trace = range(len(self.tar.d_targets))
         if wfs_trace is None and self.wfs is not None:
-            wfs_trace = self.wfs.d_wfs
+            wfs_trace = range(len(self.wfs.d_wfs))
 
         if move_atmos and self.atm is not None:
-            self.atm.move_atmos()
+            self.moveAtmos()
 
         if (
                 self.config.p_controllers is not None and
@@ -284,60 +284,49 @@ class Simulator:
             if tar_trace is not None:
                 for t in tar_trace:
                     if see_atmos:
-                        t.raytrace(self.atm)
+                        self.raytraceTar(t, ["atmos", "tel"])
                     else:
-                        t.reset_phase()
-                    t.raytrace(self.tel)
+                        self.raytraceTar(t, "tel")
 
                     if self.rtc is not None:
-                        self.rtc.d_control[nControl].comp_dphi(t, False)
-                        self.rtc.do_control(nControl)
-                        t.raytrace(self.dms)
-                        t.raytrace()
-                        self.rtc.apply_control(nControl, self.dms)
+                        self.doControl(nControl)
+                        self.raytraceTar(t, ["dm", "ncpa"], rst=False)
+                        self.applyControl(nControl)
         else:
             if tar_trace is not None:
                 for t in tar_trace:
                     if see_atmos:
-                        t.raytrace(self.atm)
+                        self.raytraceTar(t, "all")
                     else:
-                        t.reset_phase()
-                    t.raytrace(self.tel)
-                    t.raytrace(self.dms)
-                    t.raytrace()
+                        self.raytraceTar(t, ["tel", "dm", "ncpa"])
             if wfs_trace is not None:
-                i = 0
                 for w in wfs_trace:
-
                     if see_atmos:
-                        w.d_gs.raytrace(self.atm)  # atmos
-                        w.d_gs.raytrace(self.tel)  # telescope ab
-                        w.d_gs.raytrace()
+                        self.raytraceWfs(w, ["atmos", "tel", "ncpa"])
                     else:
-                        w.d_gs.raytrace(self.tel, rst=1)
-                        w.d_gs.raytrace()
+                        self.raytraceWfs(w, ["tel", "ncpa"])
 
-                    if not self.config.p_wfss[i].openloop and self.dms is not None:
-                        w.d_gs.raytrace(self.dms)
-                    w.comp_image()
-                    i += 1
+                    if not self.config.p_wfss[w].openloop and self.dms is not None:
+                        self.raytraceWfs(w, "dm", rst=False)
+                    self.compWfsImage(w)
             if do_control and self.rtc is not None:
-                self.rtc.do_centroids(nControl)
-                self.rtc.do_control(nControl)
-                self.rtc.do_clipping(0, -1e5, 1e5)
+                self.doCentroids(nControl)
+                self.doControl(nControl)
+                self.doClipping(nControl, -1e5, 1e5)
+
             if apply_control:
-                self.rtc.apply_control(nControl, self.dms)
+                self.applyControl(nControl)
         self.iter += 1
 
     def print_strehl(self, monitoring_freq: int, t1: float, nCur: int=0, nTot: int=0,
                      nTar: int=0):
         framerate = monitoring_freq / t1
-        self.tar.d_targets[nTar].comp_image()
-        self.tar.d_targets[nTar].comp_strehl()
+        self.compTarImage(nTar)
+        self.compStrehl(nTar)
+        strehl = self.getStrehl(nTar)
         etr = (nTot - nCur) / framerate
-        print("%d \t %.3f \t  %.3f\t     %.1f \t %.1f" %
-              (nCur + 1, self.tar.d_targets[nTar].strehl_se,
-               self.tar.d_targets[nTar].strehl_le, etr, framerate))
+        print("%d \t %.3f \t  %.3f\t     %.1f \t %.1f" % (nCur + 1, strehl[0], strehl[1],
+                                                          etr, framerate))
 
     def loop(self, n: int=1, monitoring_freq: int=100, **kwargs):
         """
@@ -371,12 +360,183 @@ class Simulator:
         print(" loop execution time:", t1 - t0, "  (", n, "iterations), ", (t1 - t0) / n,
               "(mean)  ", n / (t1 - t0), "Hz")
 
-    def compTarImage(self, tarnum: int=0):
+#  ██╗    ██╗██████╗  █████╗ ██████╗
+#  ██║    ██║██╔══██╗██╔══██╗██╔══██╗
+#  ██║ █╗ ██║██████╔╝███████║██████╔╝
+#  ██║███╗██║██╔══██╗██╔══██║██╔═══╝
+#  ╚███╔███╔╝██║  ██║██║  ██║██║
+#   ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝
+#
+
+    def moveAtmos(self):
+        """
+        Move the turbulent layers according to wind speed and direction for a single iteration
+        """
+        self.atm.move_atmos()
+
+    def raytraceTar(self, tarNum, layers: list, rst: bool=True):
+        """
+        Performs the raytracing operation to obtain the phase seen by the tarNum target
+        The phase screen is reset before the operations if rst is not set to False
+
+        Parameters
+        ------------
+        tarNum: (int): target index
+        layers: (list): list of string containing the layers to raytrace through.
+                        Accepted are : "all" -> raytrace through all layers
+                                       "atmos" -> raytrace through turbulent layers only
+                                       "dm" -> raytrace through DM shape only
+                                       "ncpa" -> raytrace through NCPA only
+                                       "tel" -> raytrace through telescope aberrations only
+        rst: (bool): reset the phase screen before raytracing (default = True)
+        """
+        target = self.tar.d_targets[tarNum]
+        if (isinstance(layers, str)):
+            layers = [layers]
+        self._raytrace(target, layers, rst=rst)
+
+    def raytraceWfs(self, wfsNum, layers: list, rst: bool=True):
+        """
+        Performs the raytracing operation to obtain the phase seen by the wfsNum Wfs
+        The phase screen is reset before the operations if rst is not set to False
+
+        Parameters
+        ------------
+        wfsNum: (int): wfs index
+        layers: (list): list of string containing the layers to raytrace through.
+                        Accepted are : "all" -> raytrace through all layers
+                                       "atmos" -> raytrace through turbulent layers only
+                                       "dm" -> raytrace through DM shape only
+                                       "ncpa" -> raytrace through NCPA only
+                                       "tel" -> raytrace through telescope aberrations only
+        rst: (bool): reset the phase screen before raytracing (default = True)
+        """
+        gs = self.wfs.d_wfs[wfsNum].d_gs
+        if (isinstance(layers, str)):
+            layers = [layers]
+        self._raytrace(gs, layers, rst=rst)
+
+    def _raytrace(self, source, layers: list, rst: bool=True):
+        """
+        Performs the raytracing operation to obtain the phase screen of the given sutra_source
+
+        Parameters
+        ------------
+        source : (sutra_source): Source object
+        layers: (list): list of string containing the layers to raytrace through.
+                Accepted are : "all" -> raytrace through all layers
+                                "atmos" -> raytrace through turbulent layers only
+                                "dm" -> raytrace through DM shape only
+                                "ncpa" -> raytrace through NCPA only
+                                "tel" -> raytrace through telescope aberrations only
+        rst: (bool): reset the phase screen before raytracing (default = True)
+        """
+        if (rst):
+            source.d_phase.reset()
+
+        for s in layers:
+            if (s == "all"):
+                source.raytrace(self.tel, self.atm, self.dms)
+            elif (s == "atmos"):
+                source.raytrace(self.atm)
+            elif (s == "dm"):
+                source.raytrace(self.dms)
+            elif (s == "tel"):
+                source.raytrace(self.tel)
+            elif (s == "ncpa"):
+                source.raytrace()
+            else:
+                raise ValueError("Unknown layer type : " + str(s) +
+                                 ". See help for accepted layers")
+
+    def compWfsImage(self, wfsNum: int=0):
+        """
+        Computes the image produced by the WFS from its phase screen
+
+        Parameters
+        ------------
+        wfsNum: (int): wfs index
+        """
+        self.wfs.d_wfs[wfsNum].comp_image()
+
+    def compTarImage(self, tarNum: int=0):
         """
         Computes the PSF
 
         Parameters
         ------------
-        tarnum: (int): (optionnal) target index (default 0)
+        tarNum: (int): (optionnal) target index (default 0)
         """
-        self.tar.d_targets[tarnum].comp_image()
+        self.tar.d_targets[tarNum].comp_image()
+
+    def compStrehl(self, tarNum: int=0):
+        """
+        Computes the Strehl ratio
+
+        Parameters
+        ------------
+        tarNum: (int): (optionnal) target index (default 0)
+        """
+        self.tar.d_targets[tarNum].comp_strehl()
+
+    def doControl(self, nControl: int, nTar: int=0):
+        '''
+        Computes the command from the Wfs slopes
+
+        Parameters
+        ------------
+        nControl: (int): controller index
+        nTar: (int) : target index (only used with GEO controller)
+        '''
+        if (self.rtc.d_control[nControl].type == scons.ControllerType.GEO):
+            self.rtc.d_control[nControl].comp_dphi(self.tar.d_targets[nTar], False)
+        self.rtc.do_control(nControl)
+
+    def doCentroids(self, nControl: int):
+        '''
+        Computes the centroids from the Wfs image
+
+        Parameters
+        ------------
+        nControl: (int): controller index
+        '''
+        self.rtc.do_centroids(nControl)
+
+    def applyControl(self, nControl: int):
+        """
+        Computes the final voltage vector to apply on the DM by taking into account delay and perturbation voltages, and shape the DMs
+
+        Parameters
+        ------------
+        nControl: (int): controller index
+        """
+        self.rtc.apply_control(nControl, self.dms)
+
+    def doClipping(self, nControl: int, vmin: float, vmax: float):
+        '''
+        Clip the commands between vmin and vmax values
+
+        Parameters
+        ------------
+        nControl: (int): controller index
+        vmin: (float): minimum value
+        vmax: (float): maximum value
+        '''
+        if (vmin > vmax):
+            raise ValueError("vmax must be greater than vmin")
+        self.rtc.do_clipping(nControl, vmin, vmax)
+
+    def getStrehl(self, numTar: int):
+        '''
+        Return the Strehl Ratio of target number numTar as [SR short exp., SR long exp., np.var(phiSE), np.var(phiLE)]
+
+        Parameters
+        ------------
+        numTar: (int): target index
+        '''
+        src = self.tar.d_targets[numTar]
+        src.comp_strehl()
+        avgVar = 0
+        if (src.phase_var_count > 0):
+            avgVar = src.phase_var_avg / src.phase_var_count
+        return [src.strehl_se, src.strehl_le, src.phase_var, avgVar]

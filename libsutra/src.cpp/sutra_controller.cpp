@@ -144,7 +144,11 @@ int sutra_controller::command_delay() {
 
 void sutra_controller::clip_voltage(float min, float max) {
   current_context->set_activeDevice(device, 1);
-  this->d_com->clip(min, max);
+  if (min < max)
+    this->d_com->clip(min, max);
+  else
+    DEBUG_TRACE(
+        "max value must be greater than min value. Nothing has been done.");
 }
 
 int sutra_controller::comp_voltage() {

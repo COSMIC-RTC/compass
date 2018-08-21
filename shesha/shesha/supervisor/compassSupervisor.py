@@ -372,13 +372,6 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         return np.array(self._sim.rtc.d_control[nControl].d_centroids)
 
-    def doControlGeo(self, nControl: int, nTar: int):
-        '''
-        Computes command with a geo controller
-        '''
-        self._sim.rtc.d_control[nControl].comp_dphi(self._sim.tar.d_targets[nTar], False)
-        self._sim.rtc.do_control(nControl)
-
     def getCom(self, nControl: int):
         '''
         Get command from nControl controller

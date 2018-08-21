@@ -518,7 +518,7 @@ class CanapassSupervisor(CompassSupervisor):
         return c
 
     def computeModalResiduals(self):
-        self.doControlGeo(1, 0)
+        self._sim.doControlGeo(1, 0)
         v = self.getCom(
                 1
         )  # We compute here the residual phase on the DM modes. Gives the Equivalent volts to apply/
