@@ -535,6 +535,8 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             try:
                 start = time.time()
                 self.supervisor.singleNext(showAtmos=self.see_atmos)
+                for t in self.supervisor._sim.tar.d_targets:
+                    t.comp_image()
                 loopTime = time.time() - start
 
                 refreshDisplayTime = 1. / self.uiBase.wao_frameRate.value()

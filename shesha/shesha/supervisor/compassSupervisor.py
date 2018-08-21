@@ -142,6 +142,26 @@ class CompassSupervisor(AbstractSupervisor):
         self._sim.rtc.d_centro[0].set_pyr_method(pyrMethod)  # Sets the pyr method
         print("PYR method set to: %d" % self._sim.rtc.d_centro[0].pyr_method)
 
+    def getPyrMethod(self):
+        return self._sim.rtc.d_centro[0].pyr_method
+
+    def setGSmag(self, mag, numwfs=0):
+        numwfs = int(numwfs)
+        sim = self._sim
+        wfs = sim.wfs.d_wfs[numwfs]
+        if (sim.config.p_wfs0.type == "pyrhr"):
+            r = wfs.comp_nphot(sim.config.p_loop.ittime,
+                               sim.config.p_wfss[numwfs].optthroughput,
+                               sim.config.p_tel.diam, sim.config.p_tel.cobs,
+                               sim.config.p_wfss[numwfs].zerop, mag)
+        else:
+            r = wfs.comp_nphot(sim.config.p_loop.ittime,
+                               sim.config.p_wfss[numwfs].optthroughput,
+                               sim.config.p_tel.diam, sim.config.p_wfss[numwfs].nxsub,
+                               sim.config.p_wfss[numwfs].zerop, mag)
+        if (r == 0):
+            print("GS magnitude is now %f on WFS %d" % (mag, numwfs))
+
     def getRawWFSImage(self, numWFS: int=0) -> np.ndarray:
         '''
         Get an image from the WFS
@@ -152,11 +172,11 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         Get an image from a target
         '''
-        self._sim.tar.d_targets[0].comp_image()
         if (expoType == "se"):
-            return np.fft.fftshift(np.array(self._sim.tar.d_targets[0].d_image_se))
+            return np.fft.fftshift(np.array(self._sim.tar.d_targets[tarID].d_image_se))
         elif (expoType == "le"):
-            return np.fft.fftshift(np.array(self._sim.tar.d_targets[0].d_image_le))
+            return np.fft.fftshift(np.array(self._sim.tar.d_targets[
+                    tarID].d_image_le)) / self._sim.tar.d_targets[tarID].strehl_counter
         else:
             raise ValueError("Unknown exposure type")
 
@@ -322,7 +342,6 @@ class CompassSupervisor(AbstractSupervisor):
         return the Strehl Ratio of target number numTar
         '''
         src = self._sim.tar.d_targets[numTar]
-        src.comp_image()
         src.comp_strehl()
         avgVar = 0
         if (src.phase_var_count > 0):

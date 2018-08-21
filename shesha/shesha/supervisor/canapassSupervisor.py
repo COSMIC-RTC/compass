@@ -340,6 +340,7 @@ class CanapassSupervisor(CompassSupervisor):
         return couplesActus, indUnderSpiders
 
     def compute_Btt2(self, inv_method: str="cpu_svd", merged=False, nbpairs=None):
+
         IF = self.getIFsparse(1)
         if (merged):
             couplesActus, indUnderSpiders = self.computeMerged(nbpairs=nbpairs)
@@ -352,9 +353,17 @@ class CanapassSupervisor(CompassSupervisor):
             print("Pairing Done")
             boolarray = np.zeros(IF2.shape[0], dtype=np.bool)
             boolarray[indremoveTmp] = True
+            self.slavedActus = boolarray
+            self.selectedActus = ~boolarray
+            self.couplesActus = couplesActus
+            self.indUnderSpiders = indUnderSpiders
             IF2 = IF2[~boolarray, :]
             IF = IF2
-
+        else:
+            self.slavedActus = None
+            self.selectedActus = None
+            self.couplesActus = None
+            self.indUnderSpiders = None
         n = IF.shape[0]
         N = IF.shape[1]
         T = self.getIFtt(1)
@@ -515,7 +524,13 @@ class CanapassSupervisor(CompassSupervisor):
         )  # We compute here the residual phase on the DM modes. Gives the Equivalent volts to apply/
         if (self.P is None):
             self.modalBasis, self.P = self.getModes2VBasis("Btt")
-        ai = self.P.dot(v) * 1000.  # np rms units
+        if (self.selectedActus is None):
+            ai = self.P.dot(v) * 1000.  # np rms units
+        else:  # Slaving actus case
+            v2 = v[:-2][list(
+                    self.selectedActus)]  # If actus are slaved then we select them.
+            v3 = v[-2:]
+            ai = self.P.dot(np.concatenate((v2, v3))) * 1000.
         return ai
 
     def writeConfigOnFile(self,
@@ -744,8 +759,8 @@ class CanapassSupervisor(CompassSupervisor):
         # Starting CB loop...
         for j in trange(CBcount, desc="recording"):
             self._sim.next(see_atmos=seeAtmos)
-            for t in self._sim.tar.d_targets:
-                t.comp_image()
+            for t in range(len(self._sim.config.p_targets)):
+                self._sim.compTarImage(t)
 
             if (j % subSample == 0):
                 aiVector = self.computeModalResiduals()
@@ -784,6 +799,7 @@ class CanapassSupervisor(CompassSupervisor):
         dmposx = wao.config.p_dm0._xpos
         dmposy = wao.config.p_dm0._ypos
         plt.scatter(dmposy, dmposx, color="blue")
+        plt.scatter(dmposy[list(wao.supervisor.slavedActus)], dmposx[list(wao.supervisor.slavedActus)], color="orange", label="Slaved")
 
         #WFS position in ipupil
         ipup = wao.config.p_geom._ipupil

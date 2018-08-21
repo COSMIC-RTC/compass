@@ -4,7 +4,9 @@ Class SimulatorBrahma: Brahma overloaded simulator
 import sys
 import os
 
-from .simulator import Simulator, init
+from .simulator import Simulator
+from shesha.init.rtc_init import rtc_init
+from shesha.init.target_init import target_init
 
 
 class SimulatorBrahma(Simulator):
@@ -20,10 +22,9 @@ class SimulatorBrahma(Simulator):
         '''
         if self.config.p_targets is not None:
             print("->target")
-            self.tar = init.target_init(self.c, self.tel, self.config.p_targets,
-                                        self.config.p_atmos, self.config.p_tel,
-                                        self.config.p_geom, self.config.p_dms,
-                                        brahma=True)
+            self.tar = target_init(self.c, self.tel, self.config.p_targets,
+                                   self.config.p_atmos, self.config.p_tel,
+                                   self.config.p_geom, self.config.p_dms, brahma=True)
         else:
             self.tar = None
 
@@ -34,11 +35,11 @@ class SimulatorBrahma(Simulator):
         if self.config.p_controllers is not None or self.config.p_centroiders is not None:
             print("->rtc")
             #   rtc
-            self.rtc = init.rtc_init(
-                    self.c, self.tel, self.wfs, self.dms, self.atm, self.config.p_wfss,
-                    self.config.p_tel, self.config.p_geom, self.config.p_atmos, ittime,
-                    self.config.p_centroiders, self.config.p_controllers,
-                    self.config.p_dms, brahma=True, tar=self.tar)
+            self.rtc = rtc_init(self.c, self.tel, self.wfs, self.dms, self.atm,
+                                self.config.p_wfss, self.config.p_tel,
+                                self.config.p_geom, self.config.p_atmos, ittime,
+                                self.config.p_centroiders, self.config.p_controllers,
+                                self.config.p_dms, brahma=True, tar=self.tar)
         else:
             self.rtc = None
 

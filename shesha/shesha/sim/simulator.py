@@ -8,15 +8,13 @@ import os
     Binding struct for all initializers - good for subclassing modules
 '''
 
-
-class init:
-    from shesha.init.geom_init import tel_init
-    from shesha.init.atmos_init import atmos_init
-    from shesha.init.rtc_init import rtc_init
-    from shesha.init.dm_init import dm_init
-    from shesha.init.target_init import target_init
-    from shesha.init.wfs_init import wfs_init
-
+from shesha.init.geom_init import tel_init
+from shesha.init.atmos_init import atmos_init
+from shesha.init.rtc_init import rtc_init
+from shesha.init.dm_init import dm_init
+from shesha.init.target_init import target_init
+from shesha.init.wfs_init import wfs_init
+from shesha.util.utilities import load_config_from_file
 
 import shesha.constants as scons
 import shesha.util.hdf5_utils as h5u
@@ -186,8 +184,8 @@ class Simulator:
         Initializes the Telescope object in the simulator
         """
         print("->tel")
-        self.tel = init.tel_init(self.c, self.config.p_geom, self.config.p_tel, r0,
-                                 ittime, self.config.p_wfss)
+        self.tel = tel_init(self.c, self.config.p_geom, self.config.p_tel, r0, ittime,
+                            self.config.p_wfss)
 
     def _atm_init(self, ittime: float) -> None:
         """
@@ -196,10 +194,10 @@ class Simulator:
         if self.config.p_atmos is not None:
             #   atmos
             print("->atmos")
-            self.atm = init.atmos_init(
-                    self.c, self.config.p_atmos, self.config.p_tel, self.config.p_geom,
-                    ittime, p_wfss=self.config.p_wfss, p_targets=self.config.p_targets,
-                    dataBase=self.matricesToLoad, use_DB=self.use_DB)
+            self.atm = atmos_init(self.c, self.config.p_atmos, self.config.p_tel,
+                                  self.config.p_geom, ittime, p_wfss=self.config.p_wfss,
+                                  p_targets=self.config.p_targets,
+                                  dataBase=self.matricesToLoad, use_DB=self.use_DB)
         else:
             self.atm = None
 
@@ -210,8 +208,8 @@ class Simulator:
         if self.config.p_dms is not None:
             #   dm
             print("->dm")
-            self.dms = init.dm_init(self.c, self.config.p_dms, self.config.p_tel,
-                                    self.config.p_geom, self.config.p_wfss)
+            self.dms = dm_init(self.c, self.config.p_dms, self.config.p_tel,
+                               self.config.p_geom, self.config.p_wfss)
         else:
             self.dms = None
 
@@ -221,10 +219,9 @@ class Simulator:
         """
         if self.config.p_targets is not None:
             print("->target")
-            self.tar = init.target_init(self.c, self.tel, self.config.p_targets,
-                                        self.config.p_atmos, self.config.p_tel,
-                                        self.config.p_geom, self.config.p_dms,
-                                        brahma=False)
+            self.tar = target_init(self.c, self.tel, self.config.p_targets,
+                                   self.config.p_atmos, self.config.p_tel,
+                                   self.config.p_geom, self.config.p_dms, brahma=False)
         else:
             self.tar = None
 
@@ -234,9 +231,9 @@ class Simulator:
         """
         if self.config.p_wfss is not None:
             print("->wfs")
-            self.wfs = init.wfs_init(self.c, self.tel, self.config.p_wfss,
-                                     self.config.p_tel, self.config.p_geom,
-                                     self.config.p_dms, self.config.p_atmos)
+            self.wfs = wfs_init(self.c, self.tel, self.config.p_wfss, self.config.p_tel,
+                                self.config.p_geom, self.config.p_dms,
+                                self.config.p_atmos)
         else:
             self.wfs = None
 
@@ -247,12 +244,12 @@ class Simulator:
         if self.config.p_controllers is not None or self.config.p_centroiders is not None:
             print("->rtc")
             #   rtc
-            self.rtc = init.rtc_init(
-                    self.c, self.tel, self.wfs, self.dms, self.atm, self.config.p_wfss,
-                    self.config.p_tel, self.config.p_geom, self.config.p_atmos, ittime,
-                    self.config.p_centroiders, self.config.p_controllers,
-                    self.config.p_dms, brahma=False, dataBase=self.matricesToLoad,
-                    use_DB=self.use_DB)
+            self.rtc = rtc_init(self.c, self.tel, self.wfs, self.dms, self.atm,
+                                self.config.p_wfss, self.config.p_tel,
+                                self.config.p_geom, self.config.p_atmos, ittime,
+                                self.config.p_centroiders, self.config.p_controllers,
+                                self.config.p_dms, brahma=False,
+                                dataBase=self.matricesToLoad, use_DB=self.use_DB)
         else:
             self.rtc = None
 
@@ -374,54 +371,12 @@ class Simulator:
         print(" loop execution time:", t1 - t0, "  (", n, "iterations), ", (t1 - t0) / n,
               "(mean)  ", n / (t1 - t0), "Hz")
 
+    def compTarImage(self, tarnum: int=0):
+        """
+        Computes the PSF
 
-def load_config_from_file(sim_class, filepath: str) -> None:
-    """
-    Load the parameters from the parameters file
-
-    :parameters:
-        filepath: (str): path to the parameters file
-
-    """
-    sim_class.loaded = False
-    sim_class.is_init = False
-    filename = filepath.split('/')[-1]
-    if (len(filepath.split('.')) > 1 and filepath.split('.')[-1] != "py"):
-        raise ValueError("Config file must be .py")
-
-    pathfile = filepath.split(filename)[0]
-    if (pathfile not in sys.path):
-        sys.path.insert(0, pathfile)
-
-    print("loading: %s" % filename.split(".py")[0])
-    sim_class.config = __import__(filename.split(".py")[0])
-    del sys.modules[sim_class.config.__name__]  # Forced reload
-    sim_class.config = __import__(filename.split(".py")[0])
-
-    # exec("import %s as wao_config" % filename.split(".py")[0])
-    sys.path.remove(pathfile)
-
-    # Set missing config attributes to None
-    if not hasattr(sim_class.config, 'p_loop'):
-        sim_class.config.p_loop = None
-    if not hasattr(sim_class.config, 'p_geom'):
-        sim_class.config.p_geom = None
-    if not hasattr(sim_class.config, 'p_tel'):
-        sim_class.config.p_tel = None
-    if not hasattr(sim_class.config, 'p_atmos'):
-        sim_class.config.p_atmos = None
-    if not hasattr(sim_class.config, 'p_dms'):
-        sim_class.config.p_dms = None
-    if not hasattr(sim_class.config, 'p_targets'):
-        sim_class.config.p_targets = None
-    if not hasattr(sim_class.config, 'p_wfss'):
-        sim_class.config.p_wfss = None
-    if not hasattr(sim_class.config, 'p_centroiders'):
-        sim_class.config.p_centroiders = None
-    if not hasattr(sim_class.config, 'p_controllers'):
-        sim_class.config.p_controllers = None
-
-    if not hasattr(sim_class.config, 'simul_name'):
-        sim_class.config.simul_name = None
-
-    sim_class.loaded = True
+        Parameters
+        ------------
+        tarnum: (int): (optionnal) target index (default 0)
+        """
+        self.tar.d_targets[tarnum].comp_image()
