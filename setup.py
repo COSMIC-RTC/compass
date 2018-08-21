@@ -41,7 +41,7 @@ class CMakeBuildExt(build_ext):
         if ext.name != 'naga':
             return
 
-        extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
+        extdir = os.environ["COMPASS_ROOT"] + "/build/libcompass"
 
         cmake_args = [
                 '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
