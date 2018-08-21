@@ -84,10 +84,11 @@ target_compile_options(carma
 
 target_link_libraries(carma PRIVATE ${MAGMA_LIBRARIES} ${CUDA_LIBRARIES} ${CUDA_cufft_LIBRARY} ${CUDA_cublas_LIBRARY} ${CUDA_curand_LIBRARY} ${CUDA_cusparse_LIBRARY} )
 
+include(GNUInstallDirs)
 configure_file(carma.pc.in carma.pc @ONLY)
 
 install(TARGETS carma
-    LIBRARY DESTINATION ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
