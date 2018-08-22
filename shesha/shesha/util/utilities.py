@@ -1,8 +1,10 @@
 '''
 Basic utilities function
 '''
-import numpy as np
+import importlib
 import sys, os
+
+import numpy as np
 
 
 def complextofloat2(A):
@@ -140,21 +142,43 @@ def load_config_from_file(sim_class, filepath: str) -> None:
     """
     sim_class.loaded = False
     sim_class.is_init = False
-    filename = filepath.split('/')[-1]
-    if (len(filepath.split('.')) > 1 and filepath.split('.')[-1] != "py"):
-        raise ValueError("Config file must be .py")
+    filename = filepath.split('/')[-1].split(".py")[0]
+    if (len(filepath.split('.')) > 1 and filepath.split('.')[-1] == "py"):
 
-    pathfile = filepath.split(filename)[0]
-    if (pathfile not in sys.path):
-        sys.path.insert(0, pathfile)
+        pathfile = filepath.split(filename)[0]
+        if (pathfile not in sys.path):
+            sys.path.insert(0, pathfile)
 
-    print("loading: %s" % filename.split(".py")[0])
-    sim_class.config = __import__(filename.split(".py")[0])
+        load_config_from_module(sim_class, filename)
+
+        # exec("import %s as wao_config" % filename)
+        sys.path.remove(pathfile)
+    elif importlib.util.find_spec(filepath) is not None:
+        load_config_from_module(sim_class, filepath)
+    else:
+        raise ValueError("Config file must be .py or a module")
+
+
+def load_config_from_module(sim_class, filepath: str) -> None:
+    """
+    Load the parameters from the parameters module
+
+    :parameters:
+        filepath: (str): path to the parameters module
+
+    """
+    sim_class.loaded = False
+    sim_class.is_init = False
+
+    filename = filepath.split('.')[-1]
+    print("loading: %s" % filename)
+
+    sim_class.config = importlib.import_module(filepath)
     del sys.modules[sim_class.config.__name__]  # Forced reload
-    sim_class.config = __import__(filename.split(".py")[0])
+    sim_class.config = importlib.import_module(filepath)
 
-    # exec("import %s as wao_config" % filename.split(".py")[0])
-    sys.path.remove(pathfile)
+    if hasattr(sim_class.config, 'par'):
+        sim_class.config = getattr("sim_class.config.par.par4bench", filename)
 
     # Set missing config attributes to None
     if not hasattr(sim_class.config, 'p_loop'):

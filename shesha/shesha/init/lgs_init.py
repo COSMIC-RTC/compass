@@ -17,7 +17,7 @@ import shesha.constants as scons
 from shesha.util import utilities as util
 import numpy as np
 
-from shesha.sutra_pybind.wrap import Sensors
+from shesha.sutra_wrap import Sensors
 import scipy.ndimage.interpolation as sci
 
 

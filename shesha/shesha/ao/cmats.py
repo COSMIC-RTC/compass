@@ -7,7 +7,7 @@ import time
 import shesha.config as conf
 import shesha.constants as scons
 
-from shesha.sutra_pybind.wrap import Rtc
+from shesha.sutra_wrap import Rtc
 
 from shesha.ao.wfs import noise_cov
 

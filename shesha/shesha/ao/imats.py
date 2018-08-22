@@ -11,7 +11,7 @@ import shesha.constants as scons
 import shesha.init.lgs_init as lgs
 import shesha.util.hdf5_utils as h5u
 
-from shesha.sutra_pybind.wrap import Sensors, Dms, Rtc
+from shesha.sutra_wrap import Sensors, Dms, Rtc
 
 
 def imat_geom(wfs: Sensors, dms: Dms, p_wfss: List[conf.Param_wfs],

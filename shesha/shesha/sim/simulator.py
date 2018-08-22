@@ -22,7 +22,7 @@ import shesha.util.hdf5_utils as h5u
 import time
 
 from typing import Iterable, Any, Dict
-from shesha.sutra_pybind.wrap import Sensors, Dms, Rtc, Atmos, Telescope, Target, naga_context
+from shesha.sutra_wrap import Sensors, Dms, Rtc, Atmos, Telescope, Target, naga_context
 
 
 class Simulator:

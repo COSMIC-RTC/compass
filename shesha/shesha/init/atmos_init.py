@@ -6,7 +6,7 @@ import shesha.config as conf
 from shesha.constants import CONST
 import shesha.util.iterkolmo as itK
 import shesha.util.hdf5_utils as h5u
-from shesha.sutra_pybind.wrap import naga_context, Atmos
+from shesha.sutra_wrap import naga_context, Atmos
 from tqdm import tqdm
 import numpy as np
 
