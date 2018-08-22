@@ -147,7 +147,16 @@ def create_file_attributes(filename, param_dict):
     f = h5py.File(filename, "w")
 
     for i in list(param_dict.keys()):
-        f.attrs.create(i, param_dict[i])
+        print(param_dict[i])
+        if (isinstance(param_dict[i], str)):
+            attr = param_dict[i].encode("utf-8")
+        elif (isinstance(param_dict[i], list)):
+            attr = [
+                    s.encode("utf-8") if isinstance(s, str) else s for s in param_dict[i]
+            ]
+        else:
+            attr = param_dict[i]
+        f.attrs.create(i, attr)
     f.attrs.create("validity", False)
     print(filename, "initialized")
     f.close()

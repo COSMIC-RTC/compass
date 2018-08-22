@@ -51,6 +51,7 @@ add_library(shesha_bind MODULE
                     shesha/sutra_pybind/shesha_controller_cured.cpp
                     shesha/sutra_pybind/shesha_rtc.cpp
                     shesha/sutra_pybind/shesha_gamora.cpp
+                    shesha/sutra_pybind/shesha_groot.cpp
                     shesha/sutra_pybind/shesha_bind.cpp
                     ${BRAHMA_CPP}
                     )

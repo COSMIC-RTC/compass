@@ -4,7 +4,7 @@ Python module for modelization of error covariance matrix
 """
 import numpy as np
 import h5py
-from shesha.sutra_bind.Groot import groot_init, groot_init_alias
+from shesha.sutra_wrap import naga_context, Groot
 import time
 import sys
 import os
@@ -15,6 +15,9 @@ from guardian.tools import Dphi
 from guardian.tools import roket_exploitation as rexp
 import matplotlib.pyplot as plt
 plt.ion()
+
+gpudevices = np.array([0, 1, 2, 3], dtype=np.int32)
+cxt = naga_context.get_instance_ngpu(gpudevices.size, gpudevices)
 
 
 def compute_Cerr(filename, modal=True, ctype="float", speed=None, H=None, theta=None,
@@ -80,23 +83,23 @@ def compute_Cerr(filename, modal=True, ctype="float", speed=None, H=None, theta=
     pzt2tt = np.linalg.inv(deltaTT).dot(deltaF.T)
 
     if (ctype == "float"):
-        groot = groot_init(Nact.shape[0],
-                           int(f.attrs["_Param_atmos__nscreens"]), angleht, fc,
-                           vdt.astype(np.float32),
-                           Htheta.astype(np.float32), L0, theta,
-                           scale.astype(np.float32),
-                           xactu.astype(np.float32),
-                           yactu.astype(np.float32),
-                           pzt2tt.astype(np.float32),
-                           Tf.astype(np.float32), Nact.astype(np.float32))
+        groot = Groot(cxt, cxt.activeDevice, Nact.shape[0],
+                      int(f.attrs["_Param_atmos__nscreens"]), angleht,
+                      vdt.astype(np.float32),
+                      Htheta.astype(np.float32), L0, theta,
+                      scale.astype(np.float32),
+                      pzt2tt.astype(np.float32),
+                      Tf.astype(np.float32),
+                      Nact.astype(np.float32),
+                      xactu.astype(np.float32), yactu.astype(np.float32), fc)
     else:
         raise TypeError("Unknown ctype : must be float")
     tic = time.time()
     groot.compute_Cerr()
-    Cerr = groot.get_Cerr()
+    Cerr = np.array(groot.d_Cerr)
     cov_err_groot = np.zeros((Nact.shape[0] + 2, Nact.shape[0] + 2))
     cov_err_groot[:-2, :-2] = Cerr
-    cov_err_groot[-2:, -2:] = groot.get_TTcomp()
+    cov_err_groot[-2:, -2:] = np.array(groot.d_TT)
     tac = time.time()
     print("Cee computed in : %.2f seconds" % (tac - tic))
     if (modal):
@@ -511,9 +514,13 @@ def compute_Calias_gpu(filename, slopes_space=False, modal=True, npts=3):
     weights = np.zeros(npts)
     for k in range(npts):
         weights[k] = (coeff[k:] * coeff[:npts - k]).sum()
-    groot = groot_init_alias(nsub, fc, scale, d, npts, x, y, weights.astype(np.float32))
+    groot = Groot(cxt, cxt.activeDevice, nsub,
+                  weights.astype(np.float32), scale, x, y, fc, d, npts)
     groot.compute_Calias()
-    Ca = groot.get_Calias()
+    CaXX = np.array(groot.d_CaXX)
+    Ca = np.zeros((2 * CaXX.shape[0], 2 * CaXX.shape[0]))
+    Ca[:CaXX.shape[0], :CaXX.shape[0]] = CaXX
+    Ca[CaXX.shape[0]:, CaXX.shape[0]:] = np.array(groot.d_CaYY)
     if not slopes_space:
         R = f["R"][:]
         Ca = R.dot(Ca).dot(R.T)
