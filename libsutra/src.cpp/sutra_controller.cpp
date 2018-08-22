@@ -296,3 +296,13 @@ int sutra_controller::invgen(carma_obj<float> *d_mat, float cond, int job) {
 
   return EXIT_SUCCESS;
 }
+
+int sutra_controller::set_com(float *com, int nElem) {
+  current_context->set_activeDevice(device, 1);
+  if (nElem == this->d_com->getNbElem())
+    this->d_com->host2device(com);
+  else
+    DEBUG_TRACE("Wrong dimension of com");
+
+  return EXIT_SUCCESS;
+}

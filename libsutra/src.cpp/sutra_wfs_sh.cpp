@@ -581,3 +581,12 @@ int sutra_wfs_sh::comp_nphot(float ittime, float optthroughput, float diam,
   }
   return EXIT_SUCCESS;
 }
+
+int sutra_wfs_sh::set_bincube(float *bincube, int nElem) {
+  current_context->set_activeDevice(device, 1);
+  if (nElem == this->d_bincube->getNbElem())
+    this->d_bincube->host2device(bincube);
+  else
+    DEBUG_TRACE("Wrong size of cube");
+  return EXIT_SUCCESS;
+}

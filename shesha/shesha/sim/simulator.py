@@ -459,15 +459,17 @@ class Simulator:
         """
         self.wfs.d_wfs[wfsNum].comp_image()
 
-    def compTarImage(self, tarNum: int=0):
+    def compTarImage(self, tarNum: int=0, puponly: int=0, compLE: bool=True):
         """
         Computes the PSF
 
         Parameters
         ------------
-        tarNum: (int): (optionnal) target index (default 0)
+        tarNum: (int): (optionnal) target index (default=0)
+        puponly: (int): (optionnal) if set to 1, computes Airy (default=0)
+        compLE: (bool): (optionnal) if True, the computed image is taken into account in long exposure image (default=True)
         """
-        self.tar.d_targets[tarNum].comp_image()
+        self.tar.d_targets[tarNum].comp_image(puponly, compLE)
 
     def compStrehl(self, tarNum: int=0):
         """
@@ -479,17 +481,21 @@ class Simulator:
         """
         self.tar.d_targets[tarNum].comp_strehl()
 
-    def doControl(self, nControl: int, nTar: int=0):
+    def doControl(self, nControl: int, n: int=0, wfs_direction: bool=False):
         '''
         Computes the command from the Wfs slopes
 
         Parameters
         ------------
         nControl: (int): controller index
-        nTar: (int) : target index (only used with GEO controller)
+        n: (int) : target or wfs index (only used with GEO controller)
         '''
         if (self.rtc.d_control[nControl].type == scons.ControllerType.GEO):
-            self.rtc.d_control[nControl].comp_dphi(self.tar.d_targets[nTar], False)
+            if (wfs_direction):
+                self.rtc.d_control[nControl].comp_dphi(self.wfs.d_wfs[n].d_gs,
+                                                       wfs_direction)
+            else:
+                self.rtc.d_control[nControl].comp_dphi(self.tar.d_targets[n], False)
         self.rtc.do_control(nControl)
 
     def doCentroids(self, nControl: int):
@@ -501,6 +507,16 @@ class Simulator:
         nControl: (int): controller index
         '''
         self.rtc.do_centroids(nControl)
+
+    def doCentroidsGeom(self, nControl: int):
+        '''
+        Computes the centroids geom from the Wfs image
+
+        Parameters
+        ------------
+        nControl: (int): controller index
+        '''
+        self.rtc.do_centroids_geom(nControl)
 
     def applyControl(self, nControl: int):
         """

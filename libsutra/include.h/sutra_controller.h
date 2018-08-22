@@ -38,6 +38,7 @@ class sutra_controller {
   int set_centroids_ref(float *centroids_ref);
   int get_centroids_ref(float *centroids_ref);
   int set_perturbcom(float *perturb, int N);
+  int set_com(float *com, int nElem);
   int set_openloop(int open_loop_status);
   void clip_voltage(float min, float max);
   int comp_voltage();

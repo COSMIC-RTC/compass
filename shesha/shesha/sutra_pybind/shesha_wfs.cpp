@@ -223,5 +223,15 @@ void declare_shesha_wfs(py::module &mod) {
                                            > 0 = photon + ron in e-)
             seed: (int): seed for the RNG
         )pbdoc",
-           py::arg("noise"), py::arg("seed"));
+           py::arg("noise"), py::arg("seed"))
+
+      .def("set_binimg", wy::colCast(&sutra_wfs::set_binimg), R"pbdoc(
+        Set the binimg of the SH WFS
+
+        Parameters
+        ------------
+        binimg: (np.array[ndim=3, dtype=np.float32]) : cube of subap. images
+        nElem: (int): Number of elements in binimg
+      )pbdoc",
+           py::arg("binimg"), py::arg("nElem"));
 };

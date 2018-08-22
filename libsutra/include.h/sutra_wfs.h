@@ -90,6 +90,7 @@ class sutra_wfs {
                  float noise, long seed, float G, float thetaML, float dx,
                  float dy);
   int set_pupil(float *pupil);
+  int set_binimg(float *binimg, int nElem);
   int load_kernels(float *lgskern);
   int sensor_trace(sutra_atmos *yatmos);
   int sensor_trace(sutra_dms *ydm, int rst);

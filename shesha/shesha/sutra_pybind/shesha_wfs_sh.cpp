@@ -78,6 +78,13 @@ void declare_shesha_wfs_sh(py::module &mod) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
+      .def("set_bincube", wy::colCast(&sutra_wfs_sh::set_bincube), R"pbdoc(
+        Set the bincube of the SH WFS
 
-      ;
+        Parameters
+        ------------
+        bincube: (np.array[ndim=3, dtype=np.float32]) : cube of subap. images
+        nElem: (int): Number of elements in bincube
+      )pbdoc",
+           py::arg("bincube"), py::arg("nElem"));
 };

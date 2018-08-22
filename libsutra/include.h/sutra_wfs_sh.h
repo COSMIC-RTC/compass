@@ -41,6 +41,7 @@ class sutra_wfs_sh : public sutra_wfs {
   int comp_nphot(float ittime, float optthroughput, float diam, int nxsub,
                  float zerop = 0, float gsmag = 0, float lgsreturnperwatt = 0,
                  float laserpower = 0);
+  int set_bincube(float *bincube, int nElem);
 
  private:
   int comp_generic();

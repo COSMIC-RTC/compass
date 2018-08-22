@@ -63,3 +63,5 @@ compass.egg-info
 python
 shesha.egg-info
 compass_sim.egg-info
+
+lib/

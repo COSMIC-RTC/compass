@@ -126,5 +126,14 @@ void declare_shesha_controller(py::module &mod) {
     )pbdoc",
            py::arg("status"))
 
+      .def("set_com", wy::colCast(&sutra_controller::set_com), R"pbdoc(
+        Set the command vector of the controller
+        Parameters
+        ------------
+        com: (np.array[ndim=3, dtype=np.float32]) : command vector
+        nElem: (int): Number of elements in com
+      )pbdoc",
+           py::arg("com"), py::arg("nElem"))
+
       ;
 };

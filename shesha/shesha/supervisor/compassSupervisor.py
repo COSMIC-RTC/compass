@@ -390,6 +390,12 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         return np.array(self._sim.rtc.d_control[nControl].d_com)
 
+    def getErr(self, nControl: int):
+        '''
+        Get command increment from nControl controller
+        '''
+        return np.array(self._sim.rtc.d_control[nControl].d_err)
+
     def getVoltage(self, nControl: int):
         '''
         Get voltages from nControl controller
@@ -414,15 +420,13 @@ class CompassSupervisor(AbstractSupervisor):
         self._sim.rtc.d_control[0].d_centroids_ref.reset()
 
     def setNcpaWfs(self, ncpa, wfsnum):
-        self._sim.wfs.set_ncpa_phase(wfsnum, ncpa)
+        self._sim.wfs.d_wfs[wfsnum].d_gs.set_ncpa(ncpa)
 
     def setNcpaTar(self, ncpa, tarnum):
-        self._sim.tar.d_targets[tarnum].set_ncpa(tarnum, ncpa)
+        self._sim.tar.d_targets[tarnum].set_ncpa(ncpa)
 
-    def set_phaseWFS(self, numwfs, phase):
-        pph = phase.astype(np.float32)
-        self._sim.wfs.d_wfs[numwfs].set_phase(pph)
-        self.computeSlopes()
+    def setWfsPhase(self, numwfs, phase):
+        self._sim.wfs.d_wfs[numwfs].d_gs.set_phase(pph)
 
     def setMpupil(self, mpupil, numwfs=0):
         oldmpup = self.getMpupil()
@@ -444,3 +448,34 @@ class CompassSupervisor(AbstractSupervisor):
 
     def getTarAmplipup(self, tarnum):
         return self._sim.config.tar.get_amplipup(tarnum)
+
+    def getImat(self, nControl: int):
+        """
+        Return the interaction matrix of the controller
+
+        Parameters
+        ------------
+        nControl: (int): controller index
+        """
+        return np.array(self._sim.rtc.d_control[nControl].d_imat)
+
+    def getCmat(self, nControl: int):
+        """
+        Return the command matrix of the controller
+
+        Parameters
+        ------------
+        nControl: (int): controller index
+        """
+        return np.array(self._sim.rtc.d_control[nControl].d_cmat)
+
+    def setCentroThresh(self, nCentro: int, thresh: float):
+        """
+        Set the threshold value of a thresholded COG
+
+        Parameters
+        ------------
+        nCentro: (int): centroider index
+        thresh: (float): new threshold value
+        """
+        self._sim.rtc.d_centro[nCentro].set_threshold(thresh)

@@ -210,3 +210,13 @@ int sutra_wfs::slopes_geom(int type) {
 
   return EXIT_SUCCESS;
 }
+
+int sutra_wfs::set_binimg(float *binimg, int nElem) {
+  current_context->set_activeDevice(device, 1);
+
+  if (nElem == this->d_binimg->getNbElem()) {
+    this->d_binimg->host2device(binimg);
+  } else
+    DEBUG_TRACE("Wrong dimension of binimg");
+  return EXIT_SUCCESS;
+}
