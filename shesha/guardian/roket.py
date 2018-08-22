@@ -315,7 +315,7 @@ class Roket(CompassSupervisor):
         indx_pup = np.where(pup.flatten() > 0)[0].astype(np.int32)
         dm_dim = self.config.p_dms[0]._n2 - self.config.p_dms[0]._n1 + 1
         self.cov_cor()
-        psf = self.tar.get_image(0, b"le")
+        psf = self.getTarImage(0, "le")
 
         fname = os.getenv("DATA_GUARDIAN") + savename
         pdict = {

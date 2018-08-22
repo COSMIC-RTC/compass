@@ -44,5 +44,6 @@ Atmos = smart_import("shesha_bind", "Atmos")
 Telescope = smart_import("shesha_bind", "Telescope")
 Target = smart_import("shesha_bind", "Target")
 Target_brahma = smart_import("shesha_bind", "Target_brahma", silent=True)
+Gamora = smart_import("shesha_bind", "Gamora")
 
 naga_context = smart_import("naga", "naga_context")

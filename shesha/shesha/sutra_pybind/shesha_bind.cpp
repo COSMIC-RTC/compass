@@ -27,6 +27,7 @@ void declare_shesha_controller_geo(py::module &);
 void declare_shesha_controller_generic(py::module &);
 void declare_shesha_controller_cured(py::module &);
 void declare_shesha_rtc(py::module &);
+void declare_shesha_gamora(py::module &);
 
 #ifdef USE_BRAHMA
 void declare_shesha_target_brahma(py::module &);
@@ -62,6 +63,7 @@ PYBIND11_MODULE(shesha_bind, mod) {
   declare_shesha_controller_generic(mod);
   declare_shesha_controller_cured(mod);
   declare_shesha_rtc(mod);
+  declare_shesha_gamora(mod);
 
 #ifdef USE_BRAHMA
   declare_shesha_target_brahma(mod);

@@ -8,8 +8,7 @@ Note: GPU devices used are hardcoded here. Change gpudevices if needed
 import numpy as np
 import matplotlib.pyplot as plt
 import h5py
-from naga.context import context
-from shesha.sutra_bind.Gamora import gamora_init, Gamora
+from shesha.sutra_wrap import naga_context, Gamora
 from scipy.sparse import csr_matrix
 from sys import stdout
 import time
@@ -17,91 +16,8 @@ from guardian.tools import roket_exploitation as rexp
 
 plt.ion()
 
-gpudevices = np.array([0], dtype=np.int32)
-c = context(devices=gpudevices)
-
-
-def psf_rec_roket_file(filename, err=None):
-    """
-    PSF reconstruction using ROKET file. SE PSF is reconstructed
-    for each frame and stacked to obtain the LE PSF.
-    Used for ROKET debug only.
-
-    :parameters:
-        filename: (str): path to the ROKET file
-        err: (np.ndarray[ndim=2, dtype=np.float32]): (optionnal) Buffers of command error
-    :return:
-        psf: (np.ndarray[ndim=2, dtype=np.float32]): LE PSF
-        gpu: (Gamora): Gamora GPU object (for manipulation and debug)
-    """
-    f = h5py.File(filename, 'r')
-    if (err is None):
-        err = rexp.get_err(filename)
-    spup = rexp.get_pup(filename)
-    # Sparse IF matrix
-    IF, T = rexp.get_IF(filename)
-    # Scale factor
-    scale = float(2 * np.pi / f.attrs["_Param_target__Lambda"][0])
-    # Init GPU
-    gpu = gamora_init(b"roket", err.shape[0], err.shape[1],
-                      IF.data.astype(np.float32), IF.indices, IF.indptr, T,
-                      spup.astype(np.float32), scale)
-    # Launch computation
-    gpu.psf_rec_roket(err)
-    # Get psf
-    psf = gpu.get_psf()
-    f.close()
-    return psf, gpu
-
-
-def psf_rec_roket_file_cpu(filename):
-    """
-    PSF reconstruction using ROKET file (CPU version). SE PSF is reconstructed
-    for each frame and stacked to obtain the LE PSF.
-    Used for ROKET debug only.
-
-    :parameters:
-        filename: (str): path to the ROKET file
-    :return:
-        psf: (np.ndarray[ndim=2, dtype=np.float32]): LE PSF
-    """
-
-    f = h5py.File(filename, 'r')
-    # Get the sum of error contributors
-    err = rexp.get_err(filename)
-
-    # Retrieving spupil (for file where spupil was not saved)
-    indx_pup = f["indx_pup"][:]
-    pup = np.zeros((f["dm_dim"].value, f["dm_dim"].value))
-    pup_F = pup.flatten()
-    pup_F[indx_pup] = 1.
-    pup = pup_F.reshape(pup.shape)
-    spup = pup[np.where(pup)[0].min():np.where(pup)[0].max() + 1,
-               np.where(pup)[1].min():np.where(pup)[1].max() + 1]
-    phase = spup.copy()
-    mradix = 2
-    fft_size = mradix**int((np.log(2 * spup.shape[0]) / np.log(mradix)) + 1)
-    amplipup = np.zeros((fft_size, fft_size), dtype=np.complex)
-    psf = amplipup.copy()
-    psf = psf.astype(np.float32)
-
-    # Sparse IF matrix
-    IF, T = rexp.get_IF(filename)
-    # Scale factor
-    scale = float(2 * np.pi / f.attrs["_Param_target__Lambda"][0])
-
-    for k in range(err.shape[1]):
-        amplipup = np.zeros((fft_size, fft_size), dtype=np.complex)
-        phase[np.where(spup)] = IF.T.dot(err[:-2, k])
-        phase[np.where(spup)] += T.dot(err[-2:, k])
-        amplipup[:phase.shape[0], :phase.shape[1]] = np.exp(-1j * phase * scale)
-        amplipup = np.fft.fft2(amplipup)
-        psf += np.fft.fftshift(np.abs(amplipup)**2) / \
-            IF.shape[1] / IF.shape[1] / err.shape[1]
-        print(" Computing and stacking PSF : %d/%d\r" % (k, err.shape[1]), end=' ')
-    print("PSF computed and stacked")
-    f.close()
-    return psf
+gpudevices = np.array([0, 1, 2, 3], dtype=np.int32)
+c = naga_context.get_instance_ngpu(gpudevices.size, gpudevices)
 
 
 def psf_rec_Vii(filename, err=None, fitting=True, covmodes=None, cov=None):
@@ -146,18 +62,17 @@ def psf_rec_Vii(filename, err=None, fitting=True, covmodes=None, cov=None):
     # Scale factor
     scale = float(2 * np.pi / f.attrs["_Param_target__Lambda"][0])
     # Init GPU
-    gpu = gamora_init(b"Vii", Btt.shape[0], f["noise"][:].shape[1],
-                      IF.data.astype(np.float32), IF.indices, IF.indptr, T,
-                      spup.astype(np.float32), scale, covmodes.shape[0], Btt,
-                      covmodes.astype(np.float32))
+    gpu = Gamora(c, c.activeDevice, "Vii", Btt.shape[0], covmodes.shape[0],
+                 f["noise"][:].shape[1], IF.data, IF.indices, IF.indptr, IF.data.size, T,
+                 spup, spup.shape[0], np.where(spup)[0].size, scale, Btt, covmodes)
     # Launch computation
-    # gamora.set_eigenvals(e.astype(np.float32))
-    # gamora.set_covmodes(V.astype(np.float32))
+    # gamora.set_eigenvals(e)
+    # gamora.set_covmodes(V)
     tic = time.time()
     gpu.psf_rec_Vii()
 
-    otftel = gpu.get_otftel()
-    otf2 = gpu.get_otfVii()
+    otftel = np.array(gpu.d_otftel)
+    otf2 = np.array(gpu.d_otfVii)
 
     otftel /= otftel.max()
     if (list(f.keys()).count("psfortho") and fitting):
@@ -405,3 +320,85 @@ def intersample(Cvvmap, pupilImage, IFImage, pixscale, dactu, lambdaIR):
     psf = np.fft.fftshift(np.fft.fft2(np.exp(-0.5 * dphi * mask) * FTOtel).real)
 
     return psf
+
+
+# def psf_rec_roket_file(filename, err=None):
+#     """
+#     PSF reconstruction using ROKET file. SE PSF is reconstructed
+#     for each frame and stacked to obtain the LE PSF.
+#     Used for ROKET debug only.
+
+#     :parameters:
+#         filename: (str): path to the ROKET file
+#         err: (np.ndarray[ndim=2, dtype=np.float32]): (optionnal) Buffers of command error
+#     :return:
+#         psf: (np.ndarray[ndim=2, dtype=np.float32]): LE PSF
+#         gpu: (Gamora): Gamora GPU object (for manipulation and debug)
+#     """
+#     f = h5py.File(filename, 'r')
+#     if (err is None):
+#         err = rexp.get_err(filename)
+#     spup = rexp.get_pup(filename)
+#     # Sparse IF matrix
+#     IF, T = rexp.get_IF(filename)
+#     # Scale factor
+#     scale = float(2 * np.pi / f.attrs["_Param_target__Lambda"][0])
+#     # Init GPU
+#     gpu = gamora_init(b"roket", err.shape[0], err.shape[1],
+#                       IF.data, IF.indices, IF.indptr, T,
+#                       spup, scale)
+#     # Launch computation
+#     gpu.psf_rec_roket(err)
+#     # Get psf
+#     psf = gpu.get_psf()
+#     f.close()
+#     return psf, gpu
+
+# def psf_rec_roket_file_cpu(filename):
+#     """
+#     PSF reconstruction using ROKET file (CPU version). SE PSF is reconstructed
+#     for each frame and stacked to obtain the LE PSF.
+#     Used for ROKET debug only.
+
+#     :parameters:
+#         filename: (str): path to the ROKET file
+#     :return:
+#         psf: (np.ndarray[ndim=2, dtype=np.float32]): LE PSF
+#     """
+
+#     f = h5py.File(filename, 'r')
+#     # Get the sum of error contributors
+#     err = rexp.get_err(filename)
+
+#     # Retrieving spupil (for file where spupil was not saved)
+#     indx_pup = f["indx_pup"][:]
+#     pup = np.zeros((f["dm_dim"].value, f["dm_dim"].value))
+#     pup_F = pup.flatten()
+#     pup_F[indx_pup] = 1.
+#     pup = pup_F.reshape(pup.shape)
+#     spup = pup[np.where(pup)[0].min():np.where(pup)[0].max() + 1,
+#                np.where(pup)[1].min():np.where(pup)[1].max() + 1]
+#     phase = spup.copy()
+#     mradix = 2
+#     fft_size = mradix**int((np.log(2 * spup.shape[0]) / np.log(mradix)) + 1)
+#     amplipup = np.zeros((fft_size, fft_size), dtype=np.complex)
+#     psf = amplipup.copy()
+#     psf = psf
+
+#     # Sparse IF matrix
+#     IF, T = rexp.get_IF(filename)
+#     # Scale factor
+#     scale = float(2 * np.pi / f.attrs["_Param_target__Lambda"][0])
+
+#     for k in range(err.shape[1]):
+#         amplipup = np.zeros((fft_size, fft_size), dtype=np.complex)
+#         phase[np.where(spup)] = IF.T.dot(err[:-2, k])
+#         phase[np.where(spup)] += T.dot(err[-2:, k])
+#         amplipup[:phase.shape[0], :phase.shape[1]] = np.exp(-1j * phase * scale)
+#         amplipup = np.fft.fft2(amplipup)
+#         psf += np.fft.fftshift(np.abs(amplipup)**2) / \
+#             IF.shape[1] / IF.shape[1] / err.shape[1]
+#         print(" Computing and stacking PSF : %d/%d\r" % (k, err.shape[1]), end=' ')
+#     print("PSF computed and stacked")
+#     f.close()
+#     return psf
