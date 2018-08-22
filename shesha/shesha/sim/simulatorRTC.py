@@ -8,9 +8,9 @@ import numpy as np
 
 import Octopus
 from shesha.constants import CentroiderType, WFSType
-
-from .simulator import Iterable, Simulator, init
 from shesha.util.utilities import load_config_from_file
+
+from .simulator import Iterable, Simulator
 
 
 class SimulatorRTC(Simulator):
@@ -129,8 +129,8 @@ class SimulatorRTC(Simulator):
         except:
             if not self.fastMode:
                 Simulator.next(self, move_atmos=move_atmos, see_atmos=see_atmos,
-                               nControl=nControl, tar_trace=self.tar.d_targets,
-                               wfs_trace=self.wfs.d_wfs, do_control=False)
+                               nControl=nControl, tar_trace=[0], wfs_trace=[0],
+                               do_control=False)
                 self.frame = np.array(self.wfs.d_wfs[0].d_binimg)
             self.fakewfs.send(self.frame)
 
