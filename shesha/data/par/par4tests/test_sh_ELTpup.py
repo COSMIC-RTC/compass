@@ -5,7 +5,7 @@ simul_name = "bench_scao_sh_16x16_8pix"
 # loop
 p_loop = conf.Param_loop()
 
-p_loop.set_niter(1000)
+p_loop.set_niter(100)
 p_loop.set_ittime(0.002)  # =1/500
 
 # geom
@@ -16,7 +16,7 @@ p_geom.set_zenithangle(0.)
 # tel
 p_tel = conf.Param_tel()
 
-p_tel.set_diam(8.0)
+p_tel.set_diam(4.0)
 p_tel.set_cobs(0.12)
 p_tel.set_type_ap("EELT")
 p_tel.set_t_spiders(0.1)
@@ -47,7 +47,7 @@ p_wfs0 = conf.Param_wfs()
 p_wfss = [p_wfs0]
 
 p_wfs0.set_type("sh")
-p_wfs0.set_nxsub(16)
+p_wfs0.set_nxsub(8)
 p_wfs0.set_npix(8)
 p_wfs0.set_pixsize(0.3)
 p_wfs0.set_fracsub(0.8)

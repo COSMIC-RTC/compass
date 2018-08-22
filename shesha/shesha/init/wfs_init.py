@@ -58,7 +58,7 @@ def wfs_init(context: naga_context, telescope: Telescope, p_wfss: list,
     Lambda = np.array([o.Lambda for o in p_wfss], dtype=np.float32)
     zerop = p_wfss[0].zerop
     size = np.zeros(nsensors, dtype=np.int64) + p_geom._n
-    seed = np.array([], dtype=np.int64)
+    seed = np.arange(nsensors, dtype=np.int64) + 1234
     npup = (np.zeros((nsensors)) + p_geom._n).astype(np.int64)
 
     G = np.array([o.G for o in p_wfss], dtype=np.float32)
@@ -124,7 +124,7 @@ def wfs_init(context: naga_context, telescope: Telescope, p_wfss: list,
             # init sensor lgs object with necessary data
             LGS.prep_lgs_prof(p_wfss[i], i, p_tel, g_wfs)
 
-    type_target = b"atmos"  # FIXME
+    type_target = "atmos"  # FIXME
 
     for i in range(len(p_wfss)):
         p_wfs = p_wfss[i]

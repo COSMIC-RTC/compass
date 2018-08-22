@@ -614,7 +614,7 @@ class CanapassSupervisor(CompassSupervisor):
             dms_seen.append(list(self._sim.config.p_wfss[i].dms_seen))
             noise.append(self._sim.config.p_wfss[i].noise)
 
-            if (self._sim.config.p_wfss[i].type == b"pyrhr"):
+            if (self._sim.config.p_wfss[i].type == "pyrhr"):
                 pyrModulationList.append(self._sim.config.p_wfss[i].pyr_ampl)
                 pyr_npts.append(self._sim.config.p_wfss[i].pyr_npts)
                 pyr_pupsep.append(self._sim.config.p_wfss[i].pyr_pup_sep)

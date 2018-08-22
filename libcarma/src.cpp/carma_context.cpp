@@ -146,13 +146,13 @@ void carma_context::init_context(const int nb_devices, int32_t *devices_id) {
 
   if (nb_devices > n_cuda_devices) {
     DEBUG_TRACE(
-        "carma_context() CUDA error: not enougth devices supporting CUDA. ask "
+        "carma_context() CUDA error: not enough devices supporting CUDA. ask "
         "%d, available %d",
         nb_devices, n_cuda_devices);
-    throw "carma_context() CUDA error: not enougth devices supporting CUDA.";
-  }
-
-  this->ndevice = nb_devices;
+    DEBUG_TRACE("carma_context() will be initialized on GPU 0 only");
+    this->ndevice = 1;
+  } else
+    this->ndevice = nb_devices;
   int current_device = 0;
 
   while (current_device < this->ndevice) {
@@ -160,10 +160,10 @@ void carma_context::init_context(const int nb_devices, int32_t *devices_id) {
     current_device++;
   }
 
-  can_access_peer = new int *[nb_devices];
+  can_access_peer = new int *[this->ndevice];
 
   for (int i = 0; i < ndevice; i++) {
-    can_access_peer[i] = new int[nb_devices];
+    can_access_peer[i] = new int[this->ndevice];
 
     for (int j = 0; j < ndevice; j++) {
       can_access_peer[i][j] = (i == j);

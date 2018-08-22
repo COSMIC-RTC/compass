@@ -100,7 +100,7 @@ def cmat_init(ncontrol: int, rtc: Rtc, p_controller: conf.Param_controller,
         print("Building cmat...")
         rtc.d_control[ncontrol].build_cmat(p_controller.maxcond)
 
-        if (p_controller.TTcond == 0):
+        if (p_controller.TTcond == None):
             p_controller.set_TTcond(p_controller.maxcond)
 
         if ("tt" in [dm.type for dm in p_dms]):

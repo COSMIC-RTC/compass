@@ -146,7 +146,7 @@ def do_tomo_matrices(ncontrol: int, rtc: Rtc, p_wfss: List[conf.Param_wfs], dms:
     F = np.zeros([nactu, nactu], dtype=np.float32)
     ind = 0
     for k in range(len(p_controller.ndm)):
-        if (p_dms[k].type == b"pzt"):
+        if (p_dms[k].type == "pzt"):
             Nact[ind:ind + p_dms[k]._ntotact, ind:
                  ind + p_dms[k]._ntotact] = create_nact_geom(p_dms[k])
             F[ind:ind + p_dms[k]._ntotact, ind:

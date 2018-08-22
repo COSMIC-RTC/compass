@@ -209,12 +209,23 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         self._sim = None
         self._seeAtmos = False
+        self.config = None
 
         if configFile is not None:
             self.loadConfig(configFile, BRAHMA)
 
     def __repr__(self):
         return str(self._sim)
+
+    def loop(self, n: int=1, monitoring_freq: int=100, **kwargs):
+        """
+        Perform the AO loop for n iterations
+
+        :parameters:
+            n: (int): (optional) Number of iteration that will be done
+            monitoring_freq: (int): (optional) Monitoring frequency [frames]
+        """
+        self._sim.loop(n, monitoring_freq=monitoring_freq)
 
     def computeSlopes(self):
         for w in self._sim.wfs.d_wfs:
@@ -273,6 +284,7 @@ class CompassSupervisor(AbstractSupervisor):
         else:
             self._sim.clear_init()
             self._sim.load_from_file(configFile)
+        self.config = self._sim.config
 
     def isInit(self) -> bool:
         '''

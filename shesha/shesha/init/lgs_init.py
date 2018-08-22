@@ -22,7 +22,7 @@ import scipy.ndimage.interpolation as sci
 
 
 def make_lgs_prof1d(p_wfs: conf.Param_wfs, p_tel: conf.Param_tel, prof: np.ndarray,
-                    h: np.ndarray, beam: float, center=b""):
+                    h: np.ndarray, beam: float, center=""):
     """same as prep_lgs_prof but cpu only. original routine from rico
 
     :parameters:
@@ -99,14 +99,14 @@ def make_lgs_prof1d(p_wfs: conf.Param_wfs, p_tel: conf.Param_tel, prof: np.ndarr
         # TODO what is n
         n = 1
         g = np.zeros(n, dtype=np.float32)
-        if (center == b"image"):
+        if (center == "image"):
             g[n / 2 - 1] = 0.5
             g[n / 2] = 0.5
         else:
             g[n / 2] = 1
 
     else:
-        if (center == b"image"):
+        if (center == "image"):
             if ((p_wfs.npix * p_wfs._nrebin) % 2 != p_wfs._Nfft % 2):
                 g = np.exp(-(x + p_wfs._qpixsize)**2 / (2 * w**2.))
             else:
@@ -140,7 +140,7 @@ def make_lgs_prof1d(p_wfs: conf.Param_wfs, p_tel: conf.Param_tel, prof: np.ndarr
 
     p_wfs._azimuth = azimuth
 
-    if (center == b"image"):
+    if (center == "image"):
         xcent = p_wfs._Ntot / 2. - 0.5
         ycent = xcent
     else:
@@ -165,7 +165,7 @@ def make_lgs_prof1d(p_wfs: conf.Param_wfs, p_tel: conf.Param_tel, prof: np.ndarr
 
 
 def prep_lgs_prof(p_wfs: conf.Param_wfs, nsensors: int, p_tel: conf.Param_tel,
-                  sensors: Sensors, center=b"", imat=0):
+                  sensors: Sensors, center="", imat=0):
     """The function returns an image array(double,n,n) of a laser beacon elongated by perpective
     effect. It is obtaind by convolution of a gaussian of width "lgsWidth" arcseconds, with the
     line of the sodium profile "prof". The altitude of the profile is the array "h".
@@ -200,7 +200,7 @@ def prep_lgs_prof(p_wfs: conf.Param_wfs, nsensors: int, p_tel: conf.Param_tel,
     Now, if the initial profile is a coarse one, and that one has to oversample it, then a
     simple re-sampling of the profile is adequate.
     """
-    if (p_wfs.proftype is None or p_wfs.proftype == b""):
+    if (p_wfs.proftype is None or p_wfs.proftype == ""):
         p_wfs.set_proftype(scons.ProfType.GAUSS1)
 
     profilename = scons.ProfType.FILES[p_wfs.proftype]
@@ -249,14 +249,14 @@ def prep_lgs_prof(p_wfs: conf.Param_wfs, nsensors: int, p_tel: conf.Param_tel,
         # TODO what is n
         n = 1
         g = np.zeros(n, dtype=np.float32)
-        if (center == b"image"):
+        if (center == "image"):
             g[n / 2 - 1] = 0.5
             g[n / 2] = 0.5
         else:
             g[n / 2] = 1
 
     else:
-        if (center == b"image"):
+        if (center == "image"):
             g = np.exp(-(x + p_wfs._qpixsize / 2)**2 / (2 * w**2.))
         else:
             g = np.exp(-x**2 / (2 * w**2.))

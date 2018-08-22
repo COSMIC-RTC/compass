@@ -5,7 +5,7 @@ import shesha.config as conf
 # loop
 p_loop = conf.Param_loop()
 
-p_loop.set_niter(1000)
+p_loop.set_niter(100)
 p_loop.set_ittime(0.002)  # =1/500
 p_loop.set_devices([0])
 # geom
@@ -17,7 +17,7 @@ p_geom.set_zenithangle(0.)
 # tel
 p_tel = conf.Param_tel()
 
-p_tel.set_diam(8.0)
+p_tel.set_diam(4.0)
 p_tel.set_cobs(0.12)
 
 # atmos
@@ -44,7 +44,7 @@ p_wfs0 = conf.Param_wfs()
 p_wfss = [p_wfs0]
 
 p_wfs0.set_type("pyrhr")
-p_wfs0.set_nxsub(16)
+p_wfs0.set_nxsub(8)
 p_wfs0.set_fssize(1.5)
 p_wfs0.set_fracsub(0.8)
 p_wfs0.set_xpos(0.)
