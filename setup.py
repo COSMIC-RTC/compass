@@ -38,10 +38,7 @@ class CMakeBuildExt(build_ext):
             self.build_extension(ext)
 
     def build_extension(self, ext):
-        if ext.name != 'naga':
-            return
 
-        #extdir = os.environ["COMPASS_ROOT"] + "/build/libcompass"
         extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
 
         cmake_args = [
@@ -82,13 +79,6 @@ class CMakeBuildExt(build_ext):
                               cwd=self.build_temp)
 
 
-ext_modules = [
-        CMakeExtension('libcarma'),
-        CMakeExtension('naga'),
-        CMakeExtension('libsutra'),
-        CMakeExtension('shesha'),
-]
-
 setup(
         name='compass-sim',
         version='3.0.0',
@@ -96,7 +86,7 @@ setup(
         # author_email=['arnaud.sevin@obspm.fr'],
         # description='',
         # long_description='',
-        ext_modules=ext_modules,
+        ext_modules=[CMakeExtension('compass-sim')],
         cmdclass={'build_ext': CMakeBuildExt},
         zip_safe=False, )
 
