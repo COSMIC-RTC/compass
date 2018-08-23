@@ -71,8 +71,7 @@ class RTCSupervisor(BenchSupervisor):
             self.fakewfs.recv(self.frame, 0)
             p_wfs = self._sim.config.p_wfss[0]
             if p_wfs.type == WFSType.SH:
-                # TODO: why .T is needed !!!
-                self.rtc.d_centro[0].load_img(self.frame.T.copy(), self.frame.shape[0])
+                self.rtc.d_centro[0].load_img(self.frame, self.frame.shape[0])
                 #for SH
                 self.rtc.d_centro[0].fill_bincube(self.npix)
             elif p_wfs.type == WFSType.PYRHR:
@@ -111,7 +110,8 @@ class RTCSupervisor(BenchSupervisor):
         self.context = naga_context.get_instance_ngpu(1, np.array([0], dtype=np.int32))
 
         print("->cam")
-        self.frame = np.zeros((p_wfs._framesizex, p_wfs._framesizey), dtype=np.float32)
+        self.frame = np.zeros((p_wfs._framesizex, p_wfs._framesizey), dtype=np.float32,
+                              order="F")
         self.fakewfs = Octopus.getInterface(**p_wfs._frameInterface)
 
         print("->dm")
@@ -122,7 +122,7 @@ class RTCSupervisor(BenchSupervisor):
         nvalid = p_wfs._nvalid
         self.cmat = Octopus.getInterface(
                 **self._sim.config.p_controllers[0]._cmatInterface)
-        cMat_data = np.zeros((nact, nvalid * 2), dtype=np.float32)
+        cMat_data = np.zeros((nact, nvalid * 2), dtype=np.float32, order="F")
         self.cmat.recv(cMat_data, 0)
 
         self.valid = Octopus.getInterface(**p_wfs._validsubsInterface)
@@ -172,8 +172,7 @@ class RTCSupervisor(BenchSupervisor):
         self.rtc.d_control[0].set_decayFactor(np.ones(nact, dtype=np.float32))
         self.rtc.d_control[0].set_matE(np.identity(nact, dtype=np.float32))
         self.rtc.d_control[0].set_mgain(np.ones(nact, dtype=np.float32) * gain)
-        # TODO: why .T is needed !!!
-        self.rtc.d_control[0].set_cmat(cMat_data.T)
+        self.rtc.d_control[0].set_cmat(cMat_data)
         self.rtc.d_centro[0].load_validpos(xvalid, yvalid, nvalid)
 
         self._sim.is_init = True

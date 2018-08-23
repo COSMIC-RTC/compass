@@ -78,7 +78,7 @@ class SimulatorRTC(Simulator):
 
         self.fakewfs = Octopus.getInterface(**p_wfs._frameInterface)
 
-        self.frame = np.ones((framesizex, framesizey), dtype=np.float32)
+        self.frame = np.ones((framesizex, framesizey), dtype=np.float32, order="F")
         self.comp = np.zeros(nact, dtype=np.float32)
         self.fakedms = Octopus.getInterface(
                 **self.rtcconf.config.p_dms[0]._actuInterface)
@@ -100,8 +100,9 @@ class SimulatorRTC(Simulator):
 
         if self.fastMode:
             p_wfs = self.rtcconf.config.p_wfss[0]
-            self.frame = np.random.random((p_wfs._framesizex,
-                                           p_wfs._framesizey)).astype(np.float32)
+            self.frame = np.random.random(
+                    (p_wfs._framesizex,
+                     p_wfs._framesizey)).astype(np.float32, order="F")
 
     def next(self, *, move_atmos: bool=True, see_atmos: bool=True, nControl: int=0,
              tar_trace: Iterable[int]=None, wfs_trace: Iterable[int]=None,
