@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.8)
 
 project(naga
-    VERSION 1.0
+    VERSION ${VERSION_INFO}
     DESCRIPTION "COMPASS NAGA lirary"
     LANGUAGES CXX CUDA
 )

@@ -71,4 +71,12 @@ PYBIND11_MODULE(shesha_bind, mod) {
   declare_shesha_target_brahma(mod);
   declare_shesha_rtc_brahma(mod);
 #endif  // USE_BRAHMA
+
+#ifdef VERSION_INFO
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+  mod.attr("__version__") = TOSTRING(VERSION_INFO);
+#else
+  mod.attr("__version__") = "dev";
+#endif
 }

@@ -10,6 +10,8 @@ from setuptools.command.build_ext import build_ext
 
 import multiprocessing
 
+from shesha import __version__ as shesha_version
+
 
 class CMakeExtension(Extension):
 
@@ -74,6 +76,8 @@ class CMakeBuildExt(build_ext):
                                 os.environ["CUDA_ROOT"])
                 ]
 
+        cmake_args += ['-DVERSION_INFO={}'.format(self.distribution.get_version())]
+
         subprocess.check_call(['cmake', ext.sourcedir] + cmake_args, cwd=self.build_temp)
         subprocess.check_call(['cmake', '--build', '.'] + build_args,
                               cwd=self.build_temp)
@@ -81,7 +85,7 @@ class CMakeBuildExt(build_ext):
 
 setup(
         name='compass-sim',
-        version='3.0.0',
+        version=shesha_version,
         # author=['Arnaud Sevin'],
         # author_email=['arnaud.sevin@obspm.fr'],
         # description='',

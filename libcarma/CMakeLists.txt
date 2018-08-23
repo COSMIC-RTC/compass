@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.8)
 
 project(carma
-    VERSION 1.0
+    VERSION ${VERSION_INFO}
     DESCRIPTION "COMPASS CARMA lirary"
     LANGUAGES CXX CUDA
 )
@@ -65,7 +65,7 @@ add_library(carma SHARED
 set_target_properties(carma
     PROPERTIES
     VERSION ${PROJECT_VERSION}
-    SOVERSION 1
+    SOVERSION ${PROJECT_VERSION_MAJOR}
     # CUDA_SEPARABLE_COMPILATION ON
 )
 target_compile_features(carma PUBLIC cxx_std_11)
@@ -77,6 +77,8 @@ target_include_directories(carma
 )
 
 target_compile_options(carma
+    PUBLIC
+    $<$<COMPILE_LANGUAGE:CXX>:-DVERSION_INFO=${VERSION_INFO}>
     PRIVATE
     $<$<COMPILE_LANGUAGE:CXX>:-DUSE_MAGMA ${MAGMA_CFLAGS_OTHER}>
     $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -fPIC -use_fast_math -gencode arch=compute_${CUDA_SM},code=sm_${CUDA_SM}>

@@ -26,4 +26,12 @@ PYBIND11_MODULE(naga, mod) {
   // declare_naga_obj<double2>(mod, "double2");
   declare_naga_obj<cuFloatComplex>(mod, "float_complex");
   // declare_naga_obj<cuDoubleComplex>(mod, "double_complex");
+
+#ifdef VERSION_INFO
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+  mod.attr("__version__") = TOSTRING(VERSION_INFO);
+#else
+  mod.attr("__version__") = "dev";
+#endif
 }

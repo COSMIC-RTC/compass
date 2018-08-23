@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.8)
 
 project(shesha_bind
-    VERSION 1.0
+    VERSION ${VERSION_INFO}
     DESCRIPTION "COMPASS shesha library"
     LANGUAGES CXX CUDA
 )

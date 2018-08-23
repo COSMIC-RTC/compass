@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.8)
 
 project(sutra
-    VERSION 1.0
+    VERSION ${VERSION_INFO}
     DESCRIPTION "COMPASS SUTRA lirary"
     LANGUAGES CXX CUDA
 )
@@ -120,7 +120,7 @@ add_library(sutra SHARED
 set_target_properties(sutra
     PROPERTIES
     VERSION ${PROJECT_VERSION}
-    SOVERSION 1
+    SOVERSION ${PROJECT_VERSION_MAJOR}
     # CUDA_SEPARABLE_COMPILATION ON
 )
 target_compile_features(sutra PUBLIC cxx_std_11)

@@ -1,8 +1,9 @@
 from setuptools import setup
+from shesha import __version__ as shesha_version
 
 setup(
         name='shesha',
-        version='3.0.0',
+        version=shesha_version,
         # author=['Arnaud Sevin'],
         # author_email=['arnaud.sevin@obspm.fr'],
         # description='',
