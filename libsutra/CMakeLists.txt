@@ -60,14 +60,12 @@ add_library(sutra SHARED
     src.cpp/sutra_centroider.cpp
     src.cpp/sutra_centroider_pyr.cpp
     src.cpp/sutra_centroider_maskedPix.cpp
-    # src.cpp/sutra_centroider_roof.cpp
     src.cpp/sutra_centroider_tcog.cpp
     src.cpp/sutra_centroider_wcog.cpp
     src.cpp/sutra_controller.cpp
     src.cpp/sutra_controller_cured.cpp
     src.cpp/sutra_controller_generic.cpp
     src.cpp/sutra_controller_geo.cpp
-    # src.cpp/sutra_controller_kalman.cpp
     src.cpp/sutra_controller_ls.cpp
     src.cpp/sutra_controller_mv.cpp
     src.cpp/sutra_dm.cpp
@@ -86,10 +84,7 @@ add_library(sutra SHARED
     src.cpp/sutra_sensors.cpp
     src.cpp/sutra_wfs.cpp
     # src.cpp/sutra_wfs_geom.cpp
-    # src.cpp/sutra_wfs_pyr.cpp
-    # src.cpp/sutra_wfs_pyr_pyr4.cpp
     src.cpp/sutra_wfs_pyr_pyrhr.cpp
-    # src.cpp/sutra_wfs_pyr_roof.cpp
     src.cpp/sutra_wfs_sh.cpp
     src.cu/sutra_acquisim.cu
     src.cu/sutra_aotemplate.cu

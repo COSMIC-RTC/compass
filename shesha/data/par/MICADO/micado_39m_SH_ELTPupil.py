@@ -4,7 +4,7 @@ simul_name = "micado_39m_SH"
 # loop
 p_loop = conf.Param_loop()
 
-p_loop.set_niter(30000)  #500Hz: 1mn = 30000, 1kH = 60000
+p_loop.set_niter(1)  #500Hz: 1mn = 30000, 1kH = 60000
 p_loop.set_ittime(1 / 500.)  #=1/500
 # p_loop.set_devices([0, 1, 2, 3])
 
@@ -20,7 +20,7 @@ p_tel = conf.Param_tel()
 p_tel.set_type_ap("EELT")
 p_tel.set_diam(39)
 p_tel.set_pupangle(0)  #ELT pup rotation in degrees
-p_tel.set_t_spiders(0.1)  #Spider size in meters
+p_tel.set_t_spiders(0.5)  #Spider size in meters
 """
 #E_ELT PUPIL Alexis like
 p_tel.set_diam(38.542)
@@ -67,7 +67,7 @@ p_wfs0 = conf.Param_wfs()
 p_wfss = [p_wfs0]
 
 p_wfs0.set_type("sh")
-p_wfs0.set_nxsub(78)
+p_wfs0.set_nxsub(92)
 p_wfs0.set_npix(6)
 p_wfs0.set_pixsize(0.3)
 p_wfs0.set_fracsub(0.1)
@@ -97,6 +97,7 @@ p_dm0.set_coupling(
         0.2)  # !!!!!!!!!!!!!!!!!!!!!!!!! attention pas autre chose que 0.2 !!!!!!!!!
 p_dm0.set_unitpervolt(1)
 p_dm0.set_push4imat(1.)
+p_dm0.set_type_pattern("hexaM4")
 
 p_dm1.set_type("tt")
 p_dm1.set_alt(0.)
@@ -121,7 +122,7 @@ p_centroider0.set_nmax(10)
 p_controller0 = conf.Param_controller()
 p_controllers = [p_controller0]
 
-p_controller0.set_type("ls")
+p_controller0.set_type("generic")
 p_controller0.set_nwfs([0])
 p_controller0.set_ndm([0, 1])
 p_controller0.set_maxcond(150.)

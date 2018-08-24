@@ -48,6 +48,16 @@ class RTCSupervisor(BenchSupervisor):
         '''
         ...
 
+    def loop(self, n: int=1, monitoring_freq: int=100, **kwargs):
+        """
+        Perform the AO loop for n iterations
+
+        :parameters:
+            n: (int): (optional) Number of iteration that will be done
+            monitoring_freq: (int): (optional) Monitoring frequency [frames]
+        """
+        self._sim.loop(n, monitoring_freq=monitoring_freq)
+
     def singleNext(self, moveAtmos: bool=True, showAtmos: bool=True, getPSF: bool=False,
                    getResidual: bool=False) -> None:
         '''
