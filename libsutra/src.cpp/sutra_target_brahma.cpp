@@ -111,7 +111,7 @@ void sutra_target_brahma::set_subsample(int ntarget, int subsample_) {
 
   ACE_Guard<ACE_Mutex> guard(this->lock_);
   this->d_targets[ntarget]->reset_strehlmeter();
-  this->samplecounter = 1;
+  this->samplecounter = 0;
   this->subsample = subsample_;
 }
 
@@ -122,7 +122,7 @@ void sutra_target_brahma::publish() {
   }
 
   ACE_Guard<ACE_Mutex> guard(this->lock_);
-  if (samplecounter % subsample != 0 || subsample <= 0) {
+  if (subsample <= 0 || samplecounter % subsample != 0 || samplecounter == 0) {
     samplecounter++;
     return;
   }
@@ -170,7 +170,7 @@ void sutra_target_brahma::publish() {
 
   for (size_t target = 0; target < d_targets.size(); target++) {
     d_targets[target]->reset_strehlmeter();
-    samplecounter = 1;
+    samplecounter = 0;
   }
 
   framecounter++;
