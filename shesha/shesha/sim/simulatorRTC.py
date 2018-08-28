@@ -133,8 +133,9 @@ class SimulatorRTC(Simulator):
                            nControl=nControl, tar_trace=[0], wfs_trace=[0],
                            do_control=False)
             self.frame = np.array(self.wfs.d_wfs[0].d_binimg)
-        self.fakewfs.send(self.frame)
-
+        #self.fakewfs.send(self.frame)
+        self.fakewfs.copyFrom(self.wfs.d_wfs[0].d_binimg)
+        self.fakewfs.notify()
         if apply_control:
             # print("Wait a command...")
             self.fakedms.recv(self.comp, 0)

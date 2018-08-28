@@ -6,6 +6,14 @@ project(carma
     LANGUAGES CXX CUDA
 )
 
+if(DEFINED ENV{CUDA_SM})
+    set(CUDA_SM $ENV{CUDA_SM})
+else()
+    message("Probing the (first) GPU for its compute capability...")
+    execute_process(COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/scripts/get_cuda_sm.sh"  RESULT_VARIABLE CUDA_SM)
+endif()
+message("Building for Compute Capability ${CUDA_SM}")
+
 # EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
 # message( STATUS "Architecture: ${ARCHITECTURE}" )
 # ifeq ($(OS_ARCH),armv7l)
@@ -66,7 +74,7 @@ set_target_properties(carma
     PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
-    # CUDA_SEPARABLE_COMPILATION ON
+    CUDA_SEPARABLE_COMPILATION ON
 )
 target_compile_features(carma PUBLIC cxx_std_11)
 
