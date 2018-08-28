@@ -626,10 +626,10 @@ def init_sh_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
 
     pupvalid = (fluxPerSub >= p_wfs.fracsub) * 1
     p_wfs._isvalid = pupvalid.astype(np.int32)
-    p_wfs._nvalid = int(np.sum(pupvalid))
+    p_wfs._nvalid = int(np.sum(p_wfs._isvalid))
     p_wfs._fluxPerSub = fluxPerSub.copy()
-    validx = np.where(pupvalid)[1].astype(np.int32)
-    validy = np.where(pupvalid)[0].astype(np.int32)
+    validx = np.where(p_wfs._isvalid.T)[1].astype(np.int32)
+    validy = np.where(p_wfs._isvalid.T)[0].astype(np.int32)
     p_wfs._validsubsx = validx
     p_wfs._validsubsy = validy
 

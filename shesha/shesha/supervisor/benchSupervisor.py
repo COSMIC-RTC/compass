@@ -278,7 +278,7 @@ class BenchSupervisor(AbstractSupervisor):
         raise NotImplementedError("Not implemented")
         # return self._sim.atm.get_screen(numWFS)
 
-    def getDmPhase(self, indDM: int) -> np.ndarray:
+    def getDmShape(self, indDM: int) -> np.ndarray:
         '''
         return the indDM DM screen
         '''

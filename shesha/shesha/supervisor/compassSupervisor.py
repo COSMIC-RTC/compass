@@ -322,7 +322,7 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         return np.array(self._sim.wfs.d_wfs[numWFS].d_gs.d_phase)
 
-    def getDmPhase(self, indx: int) -> np.ndarray:
+    def getDmShape(self, indx: int) -> np.ndarray:
         '''
         return the selected DM screen
         '''
@@ -339,6 +339,12 @@ class CompassSupervisor(AbstractSupervisor):
         Get an HR image from the WFS
         '''
         return np.array(self._sim.wfs.d_wfs[numWFS].d_hrimg)
+
+    def getWfsImage(self, numWFS: int=0) -> np.ndarray:
+        '''
+        Get an image from the WFS
+        '''
+        return np.array(self._sim.wfs.d_wfs[numWFS].d_binimg)
 
     def getSlopeGeom(self, numWFS: int) -> np.ndarray:
         '''

@@ -104,7 +104,7 @@ def wfs_init(context: naga_context, telescope: Telescope, p_wfss: list,
     for i in range(nsensors):
         p_wfs = p_wfss[i]
         wfs = g_wfs.d_wfs[i]
-        fluxPerSub = p_wfs._fluxPerSub.T[np.where(p_wfs._isvalid > 0)].copy()
+        fluxPerSub = p_wfs._fluxPerSub.T[np.where(p_wfs._isvalid.T > 0)].copy()
         if p_wfs.type == scons.WFSType.PYRHR:
             halfxy = np.exp(1j * p_wfs._halfxy).astype(np.complex64).T.copy()
             wfs.loadarrays(

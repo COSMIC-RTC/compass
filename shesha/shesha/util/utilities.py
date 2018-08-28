@@ -17,6 +17,15 @@ def complextofloat2(A):
     return B
 
 
+def float2tocomplex(A):
+    B = np.zeros(A.shape, dtype=np.complex64).flatten()
+    A_F = A.flatten()
+    for i in range(A_F.size):
+        B[i] = A_F[i][0] + 1j * A_F[i][1]
+
+    return np.reshape(B, A.shape)
+
+
 def rebin(a, shape):
     """
     TODO: docstring

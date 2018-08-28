@@ -357,7 +357,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             key = "dm_%d" % i
             dm_type = self.config.p_dms[i].type
             alt = self.config.p_dms[i].alt
-            data = self.supervisor.getDmPhase(i)
+            data = self.supervisor.getDmShape(i)
             cx, cy = self.circleCoords(self.config.p_geom.pupdiam / 2, 1000,
                                        data.shape[0], data.shape[1])
             self.SRcircles[key] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
@@ -450,7 +450,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                         if "dm" in key:
                             dm_type = self.config.p_dms[index].type
                             alt = self.config.p_dms[index].alt
-                            data = self.supervisor.getDmPhase(index)
+                            data = self.supervisor.getDmShape(index)
                         if "tar" in key:
                             data = self.supervisor.getTarPhase(index)
                         if "psfLE" in key:

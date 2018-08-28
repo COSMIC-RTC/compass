@@ -233,5 +233,8 @@ void declare_shesha_wfs(py::module &mod) {
         binimg: (np.array[ndim=3, dtype=np.float32]) : cube of subap. images
         nElem: (int): Number of elements in binimg
       )pbdoc",
-           py::arg("binimg"), py::arg("nElem"));
+           py::arg("binimg"), py::arg("nElem"))
+
+      .def("fill_binimage", &sutra_wfs::fill_binimage,
+           "Fill d_binimg from d_bincube");
 };
