@@ -116,7 +116,7 @@ def make_pupil_generic(dim, pupd, t_spiders=0.01, spiders_type=SpiderType.SIX, x
                 t_spiders = 0.01
             t_spiders = t_spiders * pupd / dim
 
-            if (spiders_type == b"four"):
+            if (spiders_type == "four"):
 
                 s4_2 = 2 * np.sin(np.pi / 4)
                 t4 = np.tan(np.pi / 4)
@@ -128,7 +128,7 @@ def make_pupil_generic(dim, pupd, t_spiders=0.01, spiders_type=SpiderType.SIX, x
 
                 pup = pup * spiders_map
 
-            elif (spiders_type == b"six"):
+            elif (spiders_type == "six"):
 
                 #angle = np.pi/(180/15.)
                 angle = 0

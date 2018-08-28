@@ -1,11 +1,14 @@
 #ifndef _SUTRA_WFS_H_
 #define _SUTRA_WFS_H_
 
+#include <carma_utils.h>
 #include <sutra_lgs.h>
 #include <sutra_phase.h>
 #include <sutra_target.h>
 #include <sutra_telemetry.h>
 #include <sutra_telescope.h>
+#include <sutra_utils.h>
+
 #include <map>
 #include <vector>
 //#include <sutra_slopes.h>
@@ -13,7 +16,6 @@
 using std::map;
 using std::string;
 
-class sutra_sensors;
 class sutra_wfs {
  public:
   int device;
@@ -34,7 +36,8 @@ class sutra_wfs {
   float noise;
   bool lgs;
   bool kernconv;
-  bool error_budget;
+  bool roket;
+  bool is_low_order;
 
   cufftHandle *campli_plan;
   cufftHandle *fttotim_plan;
@@ -80,78 +83,43 @@ class sutra_wfs {
  public:
   virtual ~sutra_wfs(){};
 
-  int wfs_initgs(sutra_sensors *sensors, float xpos, float ypos, float lambda,
-                 float mag, float zerop, long size, float noise, long seed,
-                 float G, float thetaML, float dx, float dy);
-  int load_pupil(float *pupil);
-  int get_ncpa_phase(float *h_src, size_t size);
-  int set_ncpa_phase(float *h_dest, size_t size);
+  int wfs_initgs(carma_obj<float> *d_lgskern,
+                 carma_obj<cuFloatComplex> *d_ftlgskern,
+                 map<vector<int>, cufftHandle *> ftlgskern_plans, float xpos,
+                 float ypos, float lambda, float mag, float zerop, long size,
+                 float noise, long seed, float G, float thetaML, float dx,
+                 float dy);
+  int set_pupil(float *pupil);
+  int set_binimg(float *binimg, int nElem);
   int load_kernels(float *lgskern);
   int sensor_trace(sutra_atmos *yatmos);
   int sensor_trace(sutra_dms *ydm, int rst);
   int sensor_trace(sutra_atmos *atmos, sutra_dms *ydms);
   int sensor_trace(int rst);
+  int slopes_geom(float *slopes, int type = 0);
+  int slopes_geom(int type = 0);
+
   virtual int fill_binimage(int async) = 0;
-  virtual int comp_image() = 0;
+  virtual int comp_image(bool noise = true) = 0;
 
   virtual int define_mpi_rank(int rank, int size) = 0;
-  virtual int allocate_buffers(sutra_sensors *sensors) = 0;
+  virtual int allocate_buffers(
+      map<vector<int>, cufftHandle *> campli_plans,
+      map<vector<int>, cufftHandle *> fttotim_plans) = 0;
   int set_noise(float noise, long seed);
 
  protected:
   virtual int comp_generic() = 0;
   sutra_wfs(carma_context *context, sutra_telescope *d_tel,
-            sutra_sensors *sensors, string type, long nxsub, long nvalid,
-            long npix, long nphase, long nrebin, long nfft, long ntot,
-            long npup, float pdiam, float nphotons, float nphot4imat, int lgs,
-            int device);
-};
-
-class sutra_sensors {
- public:
-  int device;
-  bool error_budget;
-  carma_context *current_context;
-  size_t nsensors() { return d_wfs.size(); }
-  vector<sutra_wfs *> d_wfs;
-  map<vector<int>, cufftHandle *> campli_plans;
-  map<vector<int>, cufftHandle *> fttotim_plans;
-  map<vector<int>, cufftHandle *> ftlgskern_plans;
-
-  carma_obj<cuFloatComplex> *d_camplipup;
-  carma_obj<cuFloatComplex> *d_camplifoc;
-  carma_obj<cuFloatComplex> *d_fttotim;
-  carma_obj<cuFloatComplex> *d_ftlgskern;
-  carma_obj<float> *d_lgskern;
-
- public:
-  sutra_sensors(carma_context *context, sutra_telescope *d_tel, char **type,
-                int nwfs, long *nxsub, long *nvalid, long *npix, long *nphase,
-                long *nrebin, long *nfft, long *ntot, long *npup, float *pdiam,
-                float *nphot, float *nphot4imat, int *lgs, int device,
-                bool error_budget);
-  sutra_sensors(carma_context *context, sutra_telescope *d_tel, int nwfs,
-                long *nxsub, long *nvalid, long *nphase, long npup,
-                float *pdiam, int device);
-  ~sutra_sensors();
-
-  int allocate_buffers();
-  int define_mpi_rank(int rank, int size);
-  int set_noise(int nwfs, float noise, long seed);
-
-  int sensors_initgs(float *xpos, float *ypos, float *lambda, float *mag,
-                     float zerop, long *size, float *noise, long *seed,
-                     float *G, float *thetaML, float *dx, float *dy);
-  int sensors_initgs(float *xpos, float *ypos, float *lambda, float *mag,
-                     float zerop, long *size, float *noise, float *G,
-                     float *thetaML, float *dx, float *dy);
-  int sensors_initgs(float *xpos, float *ypos, float *lambda, float *mag,
-                     float zerop, long *size, float *G, float *thetaML,
-                     float *dx, float *dy);
+            carma_obj<cuFloatComplex> *d_camplipup,
+            carma_obj<cuFloatComplex> *d_camplifoc,
+            carma_obj<cuFloatComplex> *d_fttotim, string type, long nxsub,
+            long nvalid, long npix, long nphase, long nrebin, long nfft,
+            long ntot, long npup, float pdiam, float nphotons, float nphot4imat,
+            int lgs, bool is_low_order, bool roket, int device);
 };
 
 // General utilities
-int compute_nmaxhr(long nvalid);
 int fillcamplipup(cuFloatComplex *amplipup, float *phase, float *offset,
                   float *mask, float scale, int *istart, int *jstart,
                   int *ivalid, int *jvalid, int nphase, int npup, int Nfft,

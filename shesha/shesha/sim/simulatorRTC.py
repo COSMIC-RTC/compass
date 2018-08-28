@@ -8,8 +8,9 @@ import numpy as np
 
 import Octopus
 from shesha.constants import CentroiderType, WFSType
+from shesha.util.utilities import load_config_from_file
 
-from .simulator import Iterable, Simulator, init, load_config_from_file
+from .simulator import Iterable, Simulator
 
 
 class SimulatorRTC(Simulator):
@@ -64,30 +65,25 @@ class SimulatorRTC(Simulator):
         framesizex = p_wfs._framesizex
         framesizey = p_wfs._framesizey
         nvalid = p_wfs._nvalid
-        if p_wfs.type == WFSType.SH:
-            self.frame = self.wfs.get_binimg(0)
-        elif p_wfs.type == WFSType.PYRHR:
-            self.frame = self.wfs.get_pyrimg(0)
-        else:
-            raise RuntimeError("WFS Type not usable")
+        self.frame = np.array(self.wfs.d_wfs[0].d_binimg)
 
         if self.frame.shape != (framesizex, framesizey):
             raise RuntimeError("framesize not match with the simulation")
 
-        if self.rtc.get_voltage(0).size != nact:
+        if self.rtc.d_control[0].d_voltage.nbElem != nact:
             raise RuntimeError("nact not match with the simulation")
 
-        if self.rtc.get_cmat(0).shape != (nact, nvalid * 2):
+        if np.any(self.rtc.d_control[0].d_cmat.shape != [nact, nvalid * 2]):
             raise RuntimeError("cmat not match with the simulation")
 
         self.fakewfs = Octopus.getInterface(**p_wfs._frameInterface)
 
-        self.frame = np.ones((framesizex, framesizey), dtype=np.float32)
+        self.frame = np.ones((framesizex, framesizey), dtype=np.float32, order="F")
         self.comp = np.zeros(nact, dtype=np.float32)
         self.fakedms = Octopus.getInterface(
                 **self.rtcconf.config.p_dms[0]._actuInterface)
 
-        tmp_cmat = self.rtc.get_cmat(0)
+        tmp_cmat = np.array(self.rtc.d_control[0].d_cmat)
         self.cmat = Octopus.getInterface(
                 **self.rtcconf.config.p_controllers[0]._cmatInterface)
         self.cmat.send(tmp_cmat)
@@ -104,8 +100,9 @@ class SimulatorRTC(Simulator):
 
         if self.fastMode:
             p_wfs = self.rtcconf.config.p_wfss[0]
-            self.frame = np.random.random((p_wfs._framesizex, p_wfs._framesizey)).astype(np.float32)
-
+            self.frame = np.random.random(
+                    (p_wfs._framesizex,
+                     p_wfs._framesizey)).astype(np.float32, order="F")
 
     def next(self, *, move_atmos: bool=True, see_atmos: bool=True, nControl: int=0,
              tar_trace: Iterable[int]=None, wfs_trace: Iterable[int]=None,
@@ -116,34 +113,29 @@ class SimulatorRTC(Simulator):
         # print("Send a frame")
         p_wfs = self.rtcconf.config.p_wfss[0]
 
-        try:
-            # from GPUIPCInterfaceWrap import GPUIPCInterfaceFloat
-            if type(self.fakewfs) is not GPUIPCInterfaceFloat:
-                raise RuntimeError("Fallback to basic OCtopus API")
-            if not self.fastMode:
-                if p_wfs.type == WFSType.SH:
-                    Simulator.next(self, move_atmos=move_atmos, see_atmos=see_atmos,
-                                nControl=nControl, tar_trace=[0], wfs_trace=[0],
-                                do_control=False)
-                else:
-                    raise RuntimeError("WFS Type not usable")
-            self.wfs.get_binimg_gpu(0, np.array(self.fakewfs.buffer, copy=False))
-            self.fakewfs.notify()
-            # print("Send a frame using GPUIPCInterfaceFloat...")
-        except:
-            if not self.fastMode:
-                Simulator.next(self, move_atmos=move_atmos, see_atmos=see_atmos,
-                            nControl=nControl, tar_trace=[0], wfs_trace=[0],
-                            do_control=False)
-                if p_wfs.type == WFSType.SH:
-                    self.frame = self.wfs.get_binimg(0)
-                elif p_wfs.type == WFSType.PYRHR:
-                    self.frame = self.wfs.get_pyrimg(0)
-                else:
-                    raise RuntimeError("WFS Type not usable")
-            self.fakewfs.send(self.frame)
+        # try:
+        #     # from GPUIPCInterfaceWrap import GPUIPCInterfaceFloat
+        #     if type(self.fakewfs) is not GPUIPCInterfaceFloat:
+        #         raise RuntimeError("Fallback to basic OCtopus API")
+        #     if not self.fastMode:
+        #         if p_wfs.type == WFSType.SH:
+        #             Simulator.next(self, move_atmos=move_atmos, see_atmos=see_atmos,
+        #                            nControl=nControl, tar_trace=[0], wfs_trace=[0],
+        #                            do_control=False)
+        #         else:
+        #             raise RuntimeError("WFS Type not usable")
+        #     self.wfs.get_binimg_gpu(0, np.array(self.fakewfs.buffer, copy=False))
+        #     self.fakewfs.notify()
+        #     # print("Send a frame using GPUIPCInterfaceFloat...")
+        # except:
+        if not self.fastMode:
+            Simulator.next(self, move_atmos=move_atmos, see_atmos=see_atmos,
+                           nControl=nControl, tar_trace=[0], wfs_trace=[0],
+                           do_control=False)
+            self.frame = np.array(self.wfs.d_wfs[0].d_binimg)
+        self.fakewfs.send(self.frame)
 
         if apply_control:
             # print("Wait a command...")
             self.fakedms.recv(self.comp, 0)
-            self.dms.set_full_comm(self.comp)
+            self.dms.set_full_com(self.comp)

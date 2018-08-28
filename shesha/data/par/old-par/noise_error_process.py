@@ -4,24 +4,21 @@ import numpy as np
 p_loop = ao.Param_loop()
 
 p_loop.set_niter(1000)
-p_loop.set_ittime(0.002) #=1/500
-
+p_loop.set_ittime(0.002)  #=1/500
 
 #geom
-p_geom=ao.Param_geom()
+p_geom = ao.Param_geom()
 
 p_geom.set_zenithangle(0.)
 
-
 #tel
-p_tel=ao.Param_tel()
+p_tel = ao.Param_tel()
 
 p_tel.set_diam(8.0)
 p_tel.set_cobs(0.)
 
-
 #atmos
-p_atmos=ao.Param_atmos()
+p_atmos = ao.Param_atmos()
 
 p_atmos.set_r0(0.16)
 p_atmos.set_nscreens(1)
@@ -31,9 +28,8 @@ p_atmos.set_windspeed([20.0])
 p_atmos.set_winddir([45])
 p_atmos.set_L0([1.e5])
 
-
 #target
-p_target=ao.Param_target()
+p_target = ao.Param_target()
 
 p_target.set_nTargets(1)
 p_target.set_xpos([0.])
@@ -41,11 +37,10 @@ p_target.set_ypos([0.])
 p_target.set_Lambda([1.65])
 p_target.set_mag([10])
 
-
 #wfs
 #p_wfs0= ao.Param_wfs()
 #p_wfs1= ao.Param_wfs()
-p_wfss=[ao.Param_wfs(error_budget=True)]
+p_wfss = [ao.Param_wfs(roket=True)]
 
 for i in range(len(p_wfss)):
     p_wfss[i].set_type("sh")
@@ -61,7 +56,7 @@ for i in range(len(p_wfss)):
     p_wfss[i].set_zerop(1.e11)
     p_wfss[i].set_noise(3)
     p_wfss[i].set_atmos_seen(1)
-    
+
 #lgs parameters
 #p_wfss[0].set_gsalt(90*1.e3)
 #p_wfss[0].set_lltx(0)
@@ -74,9 +69,9 @@ for i in range(len(p_wfss)):
 #dm
 #p_dm0=ao.Param_dm()
 #p_dm1=ao.Param_dm()
-p_dms=[ao.Param_dm(),ao.Param_dm()]
+p_dms = [ao.Param_dm(), ao.Param_dm()]
 p_dms[0].set_type("pzt")
-nact=p_wfss[0].nxsub+1
+nact = p_wfss[0].nxsub + 1
 p_dms[0].set_nact(nact)
 p_dms[0].set_alt(0.)
 p_dms[0].set_thresh(0.3)
@@ -91,7 +86,7 @@ p_dms[1].set_push4imat(1.)
 
 #centroiders
 #p_centroider0=ao.Param_centroider()
-p_centroiders=[ao.Param_centroider()]
+p_centroiders = [ao.Param_centroider()]
 
 for i in range(len(p_centroiders)):
 
@@ -104,21 +99,19 @@ for i in range(len(p_centroiders)):
 #p_centroider0.set_type_fct("model")
 
 #controllers
-p_controller1=ao.Param_controller()
-p_controllers=[p_controller1]
+p_controller1 = ao.Param_controller()
+p_controllers = [p_controller1]
 
 p_controller1.set_type("ls")
 p_controller1.set_nwfs([0])
-p_controller1.set_ndm([0,1])
+p_controller1.set_ndm([0, 1])
 p_controller1.set_maxcond(1500)
 p_controller1.set_delay(0)
 p_controller1.set_gain(0.3)
 
 #rtc
-p_rtc=ao.Param_rtc()
+p_rtc = ao.Param_rtc()
 
 p_rtc.set_nwfs(0)
 p_rtc.set_centroiders(p_centroiders)
 p_rtc.set_controllers(p_controllers)
-
-

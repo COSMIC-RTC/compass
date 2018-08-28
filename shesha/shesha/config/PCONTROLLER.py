@@ -23,12 +23,14 @@ class Param_controller:
         """ gain for kl mod in imat kl """
         self.__nwfs = None
         """ index of wfss in controller"""
-        self.__nvalid = None
-        """ number of valid subaps per wfs"""
+        self.__nvalid = 0
+        """ number of valid subaps"""
+        self.__nslope = 0
+        """ number of slope to handle"""
         self.__ndm = None
         """ index of dms in controller"""
-        self.__nactu = None
-        """ number of controled actuator per dm"""
+        self.__nactu = 0
+        """ number of controled actuator"""
         self.__imat = None
         """ full interaction matrix"""
         self.__cmat = None
@@ -112,20 +114,29 @@ class Param_controller:
     ndm = property(lambda x: x.__ndm, set_ndm)
 
     def set_nactu(self, l):
-        """ Set the indices of dms
+        """ Set the number of actuators
 
-        :param l: (np.ndarray[ndim=1, dtype=np.int32]) : indices of dms
+        :param l: (int) : number of actus
         """
-        self.__nactu = csu.enforce_array(l, len(l), dtype=np.int32, scalar_expand=False)
+        self.__nactu = csu.enforce_int(l)
 
     nactu = property(lambda x: x.__nactu, set_nactu)
+
+    def set_nslope(self, l):
+        """ Set the number of slopes
+
+        :param l: (int) : number of slopes
+        """
+        self.__nslope = csu.enforce_int(l)
+
+    nslope = property(lambda x: x.__nslope, set_nslope)
 
     def set_nvalid(self, l):
         """ Set the number of valid subaps
 
         :param l: (list of int) : number of valid subaps
         """
-        self.__nvalid = csu.enforce_array(l, len(l), dtype=np.int32, scalar_expand=False)
+        self.__nvalid = csu.enforce_int(l)
 
     nvalid = property(lambda x: x.__nvalid, set_nvalid)
 
@@ -233,8 +244,7 @@ class Param_controller:
 
         :param imat: (np.ndarray[ndim=2,dtype=np.float32_t]) : full interaction matrix
         """
-        self.__imat = csu.enforce_arrayMultiDim(imat, (2 * self.nvalid.sum(),
-                                                       self.nactu.sum()),
+        self.__imat = csu.enforce_arrayMultiDim(imat, (self.nslope, self.nactu),
                                                 dtype=np.float32)
 
     _imat = property(lambda x: x.__imat, set_imat)
@@ -244,8 +254,7 @@ class Param_controller:
 
         :param cmat: (np.ndarray[ndim=2,dtype=np.float32_t]) : full control matrix
         """
-        self.__cmat = csu.enforce_arrayMultiDim(cmat, (self.nactu.sum(),
-                                                       2 * self.nvalid.sum()),
+        self.__cmat = csu.enforce_arrayMultiDim(cmat, (self.nactu, self.nslope),
                                                 dtype=np.float32)
 
     _cmat = property(lambda x: x.__cmat, set_cmat)

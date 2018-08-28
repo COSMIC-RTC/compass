@@ -1,11 +1,12 @@
 #include <sutra_centroider_bpcog.h>
 
 sutra_centroider_bpcog::sutra_centroider_bpcog(carma_context *context,
-                                               sutra_sensors *sensors, int nwfs,
-                                               long nvalid, float offset,
-                                               float scale, int device,
-                                               int nmax)
-    : sutra_centroider(context, sensors, nwfs, nvalid, offset, scale, device) {
+                                               sutra_wfs *wfs, long nvalid,
+                                               float offset, float scale,
+                                               int device, int nmax)
+    : sutra_centroider(context, wfs, nvalid, offset, scale, device) {
+  this->nslopes = 2 * nvalid;
+
   this->nmax = nmax;
 
   long dims_data[3];
@@ -46,39 +47,20 @@ int sutra_centroider_bpcog::get_cog(carma_streams *streams, float *cube,
                                     int npix, int ntot) {
   current_context->set_activeDevice(device, 1);
   // brightest pixels cog
-  // TODO: implemente sutra_centroider_bpcog::get_cog_async
   subap_sortmax<float>(npix * npix, nvalid, cube, this->d_bpix->getData(),
                        this->d_bpind->getData(), this->nmax,
                        current_context->get_device(device));
-  // carmaSafeCall(cudaDeviceSynchronize());
-  /*
-        int nb = (int)(this->d_bpix->getNbElem());
-        float *tmpp;
-        tmpp=(float*)malloc((nb)*sizeof(float));
-        this->d_bpix->copyInto(tmpp,nb);
-              for (int ii = 0 ; ii < nb ; ii++){
-                  printf("%5.5f \n",tmpp[ii]);
-              }
-  */
+
   subap_bpcentro<float>(this->nmax, nvalid, npix, this->d_bpix->getData(),
                         this->d_bpind->getData(), centroids, this->scale,
                         this->offset);
-  /*
-  #if 1
-    subap_centromax(npix * npix, nvalid, cube, centroids, npix, this->nmax,
-        this->scale, this->offset);
-  #else
-    float *d_minim;
-    cudaMalloc((void**)&d_minim, nvalid*sizeof(float));
-    subap_centromax2<float>(npix * npix, nvalid, cube, centroids, d_minim, npix,
-  this->nmax, this->scale, this->offset); cudaFree(d_minim); #endif
-  */
+
   return EXIT_SUCCESS;
 }
 
 int sutra_centroider_bpcog::get_cog(float *subsum, float *slopes, bool noise) {
   if (this->wfs != nullptr) {
-    if (noise || wfs->error_budget == false) {
+    if (noise || wfs->roket == false) {
       return this->get_cog(wfs->streams, *wfs->d_bincube, subsum, slopes,
                            wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
     } else {

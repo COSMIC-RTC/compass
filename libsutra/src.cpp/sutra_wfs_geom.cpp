@@ -1,6 +1,6 @@
 #include <carma_utils.h>
-#include <sutra_ao_utils.h>
 #include <sutra_telescope.h>
+#include <sutra_utils.h>
 #include <sutra_wfs_geom.h>
 
 sutra_wfs_geom::sutra_wfs_geom(carma_context *context, sutra_telescope *d_tel,
@@ -104,7 +104,7 @@ int sutra_wfs_geom::slopes_geom(int type, float *slopes) {
    */
   if (type == 0) {
     // this is to convert in arcsec
-    //> 206265* 0.000001/ 2 / 3.14159265 = 0.0328281
+    //> 206265* 0.000001/ 2 / CARMA_PI = 0.0328281
     // it would have been the case if the phase was given in radiants
     // but it is given in microns so normalization factor is
     // just 206265* 0.000001 = 0.206265

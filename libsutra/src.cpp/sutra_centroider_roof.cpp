@@ -2,11 +2,11 @@
 #include <string>
 
 sutra_centroider_roof::sutra_centroider_roof(carma_context *context,
-                                             sutra_sensors *sensors, int nwfs,
-                                             long nvalid, float offset,
-                                             float scale, int device)
-    : sutra_centroider(context, sensors, nwfs, nvalid, offset, scale, device) {
-  if (sensors->d_wfs[nwfs]->type != "roof")
+                                             sutra_wfs *wfs, long nvalid,
+                                             float offset, float scale,
+                                             int device)
+    : sutra_centroider(context, wfs, nvalid, offset, scale, device) {
+  if (wfs->type != "roof")
     throw "sutra_centroider_roof expect a sutra_wfs_pyr_roof sensor";
 
   context->set_activeDevice(device, 1);

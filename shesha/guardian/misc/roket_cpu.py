@@ -120,7 +120,7 @@ print("----------------------------------------------------")
 print("iter# | SE SR image | LE SR image | Fitting | LE SR phase var")
 print("----------------------------------------------------")
 
-error_flag = True in [w.error_budget for w in config.p_wfss]
+error_flag = True in [w.roket for w in config.p_wfss]
 
 
 ##############################################################################
@@ -284,7 +284,7 @@ def error_breakdown(com, noise_com, alias_wfs_com, tomo_com, H_com, trunc_com, b
     """
     Compute the error breakdown of the AO simulation. Returns the error commands of
     each contributors. Suppose no delay (for now) and only 2 controllers : the main one, controller #0, (specified on the parameter file)
-    and the geometric one, controller #1 (automatically added if error_budget is asked in the parameter file)
+    and the geometric one, controller #1 (automatically added if roket is asked in the parameter file)
     Commands are computed by applying the loop filter on various kind of commands : (see schema_simulation_budget_erreur_v2)
 
         - Ageom : Aliasing contribution on WFS direction
@@ -573,7 +573,12 @@ def cov_cor(P, noise, trunc, alias, H, bp, tomo):
     cov = np.zeros((6, 6))
     cor = np.zeros((6, 6))
     bufdict = {
-            "0": noise.T, "1": trunc.T, "2": alias.T, "3": H.T, "4": bp.T, "5": tomo.T
+            "0": noise.T,
+            "1": trunc.T,
+            "2": alias.T,
+            "3": H.T,
+            "4": bp.T,
+            "5": tomo.T
     }
     for i in range(cov.shape[0]):
         for j in range(cov.shape[1]):
@@ -618,14 +623,33 @@ def save_it(filename):
 
     fname = "/home/fferreira/Data/" + filename
     pdict = {
-            "noise": noise_com.T, "aliasing": alias_wfs_com.T, "tomography": tomo_com.T,
-            "filtered modes": H_com.T, "non linearity": trunc_com.T, "bandwidth":
-                    bp_com.T, "wf_com": wf_com.T, "P": P, "Btt": Btt, "IF.data": IF.data,
-            "IF.indices": IF.indices, "IF.indptr": IF.indptr, "TT": TT, "dm_dim": dm_dim,
-            "indx_pup": indx_pup, "fitting": fit, "SR": SR, "SR2": SR2, "cov": cov,
-            "cor": cor, "psfortho": np.fft.fftshift(psf_ortho), "E": E, "F": F,
-            "dm.xpos": config.p_dms[0]._xpos, "dm.ypos": config.p_dms[0]
-                                                         ._ypos, "R": cmat, "Nact": Nact
+            "noise": noise_com.T,
+            "aliasing": alias_wfs_com.T,
+            "tomography": tomo_com.T,
+            "filtered modes": H_com.T,
+            "non linearity": trunc_com.T,
+            "bandwidth": bp_com.T,
+            "wf_com": wf_com.T,
+            "P": P,
+            "Btt": Btt,
+            "IF.data": IF.data,
+            "IF.indices": IF.indices,
+            "IF.indptr": IF.indptr,
+            "TT": TT,
+            "dm_dim": dm_dim,
+            "indx_pup": indx_pup,
+            "fitting": fit,
+            "SR": SR,
+            "SR2": SR2,
+            "cov": cov,
+            "cor": cor,
+            "psfortho": np.fft.fftshift(psf_ortho),
+            "E": E,
+            "F": F,
+            "dm.xpos": config.p_dms[0]._xpos,
+            "dm.ypos": config.p_dms[0]._ypos,
+            "R": cmat,
+            "Nact": Nact
     }
     h5u.save_h5(fname, "psf", config, psf)
     #h5u.writeHdf5SingleDataset(fname,com.T,datasetName="com")

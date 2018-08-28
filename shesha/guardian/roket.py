@@ -13,7 +13,7 @@ import pstats as ps
 
 import sys, os
 import numpy as np
-from shesha.sim.simulator import Simulator
+from shesha.supervisor.compassSupervisor import CompassSupervisor
 from shesha.util.rtc_util import centroid_gain
 from shesha.ao.tomo import create_nact_geom
 from shesha.ao.basis import compute_Btt, compute_cmat_with_Btt
@@ -26,10 +26,10 @@ import pandas
 from scipy.sparse import csr_matrix
 
 
-class Roket(Simulator):
+class Roket(CompassSupervisor):
     """
     ROKET class
-    Inherits from Simulator class
+    Inherits from CompassSupervisor
     """
 
     def __init__(self, str=None, N_preloop=1000, gamma=1.):
@@ -45,16 +45,16 @@ class Roket(Simulator):
         self.N_preloop = N_preloop
         self.gamma = gamma
 
-    def init_sim(self):
+    def initConfig(self):
         """
         Initializes the COMPASS simulation and the ROKET buffers
         """
-        super().init_sim()
+        super().initConfig()
         self.iter_number = 0
         self.n = self.config.p_loop.niter + self.N_preloop
         self.nfiltered = int(self.config.p_controllers[0].maxcond)
-        self.nactus = self.rtc.get_com(0).size
-        self.nslopes = self.rtc.get_centroids(0).size
+        self.nactus = self.getCom(0).size
+        self.nslopes = self.getCentroids(0).size
         self.com = np.zeros((self.n, self.nactus), dtype=np.float32)
         self.noise_com = np.zeros((self.n, self.nactus), dtype=np.float32)
         self.alias_wfs_com = np.copy(self.noise_com)
@@ -67,21 +67,21 @@ class Roket(Simulator):
         self.mod_com = np.copy(self.noise_com)
         self.bp_com = np.copy(self.noise_com)
         self.fit = np.zeros(self.n)
-        self.psf_ortho = self.tar.get_image(0, b'se') * 0
+        self.psf_ortho = self.getTarImage(0) * 0
         self.centroid_gain = 0
         self.centroid_gain2 = 0
         self.slopes = np.zeros((self.n, self.nslopes), dtype=np.float32)
         #gamma = 1.0
         self.config.p_loop.set_niter(self.n)
-        self.IFpzt = self.rtc.get_IFsparse(1)
-        self.TT = self.rtc.get_IFtt(1)
+        self.IFpzt = self.getIFsparse(1)
+        self.TT = self.getIFtt(1)
 
         self.Btt, self.P = compute_Btt(self.IFpzt.T, self.TT)
-        self.rtc.load_Btt(1, self.Btt.dot(self.Btt.T))
-        self.D = self.rtc.get_imat(0)
-        compute_cmat_with_Btt(self.rtc, self.Btt, self.nfiltered)
-        self.cmat = self.rtc.get_cmat(0)
-        self.D = self.rtc.get_imat(0)
+        tmp = self.Btt.dot(self.Btt.T)
+        self._sim.rtc.d_control[1].load_Btt(tmp[:-2, :-2], tmp[-2:, -2:])
+        compute_cmat_with_Btt(self._sim.rtc, self.Btt, self.nfiltered)
+        self.cmat = self.getCmat(0)
+        self.D = self.getImat(0)
         self.RD = np.dot(self.cmat, self.D)
         self.gRD = np.identity(
                 self.RD.shape[0]
@@ -100,9 +100,9 @@ class Roket(Simulator):
         :param wfs_trace (None or list[int]): list of WFS to trace. None equivalent to all.
         :param apply_control (bool): (optional) if True (default), apply control on DMs
         """
-        super().next(apply_control=False)
+        self._sim.next(apply_control=False)
         self.error_breakdown()
-        self.rtc.apply_control(0, self.dms)
+        self._sim.applyControl(0)
         self.iter_number += 1
 
     def loop(self, monitoring_freq=100, **kwargs):
@@ -120,8 +120,9 @@ class Roket(Simulator):
             self.next(**kwargs)
             if ((i + 1) % monitoring_freq == 0):
                 framerate = (i + 1) / (time.time() - t0)
-                self.tar.comp_image(0)
-                strehltmp = self.tar.get_strehl(0)
+                self._sim.compTarImage(0)
+                self._sim.compStrehl(0)
+                strehltmp = self.getStrehl(0)
                 etr = (self.n - i) / framerate
                 print("%d \t %.2f \t  %.2f\t %.2f \t %.2f \t    %.1f \t %.1f" %
                       (i + 1, strehltmp[0], strehltmp[1], np.exp(-strehltmp[2]),
@@ -132,7 +133,7 @@ class Roket(Simulator):
               (t1 - t0) / self.n, "(mean)  ", self.n / (t1 - t0), "Hz")
 
         #self.tar.comp_image(0)
-        SRs = self.tar.get_strehl(0)
+        SRs = self.getStrehl(0)
         self.SR2 = np.exp(SRs[3])
         self.SR = SRs[1]
 
@@ -140,7 +141,7 @@ class Roket(Simulator):
         """
         Compute the error breakdown of the AO simulation. Returns the error commands of
         each contributors. Suppose no delay (for now) and only 2 controllers : the main one, controller #0, (specified on the parameter file)
-        and the geometric one, controller #1 (automatically added if error_budget is asked in the parameter file)
+        and the geometric one, controller #1 (automatically added if roket is asked in the parameter file)
         Commands are computed by applying the loop filter on various kind of commands : (see schema_simulation_budget_erreur_v2)
 
             - Ageom : Aliasing contribution on WFS direction
@@ -163,35 +164,35 @@ class Roket(Simulator):
         Note : rtc.get_err returns to -CMAT.slopes
         """
         g = self.config.p_controllers[0].gain
-        Dcom = self.rtc.get_com(0)
-        Derr = self.rtc.get_err(0)
+        Dcom = self.getCom(0)
+        Derr = self.getErr(0)
         self.com[self.iter_number, :] = Dcom
-        tarphase = self.tar.get_phase(0)
-        self.slopes[self.iter_number, :] = self.rtc.get_centroids(0)
+        tarphase = self.getTarPhase(0)
+        self.slopes[self.iter_number, :] = self.getCentroids(0)
 
         ###########################################################################
         ## Noise contribution
         ###########################################################################
         if (self.config.p_wfss[0].type == scons.WFSType.SH):
-            ideal_bincube = self.wfs.get_bincube_not_noisy(0)
-            bincube = self.wfs.get_bincube(0)
+            ideal_bincube = np.array(self._sim.wfs.d_wfs[0].d_bincube_notnoisy)
+            bincube = np.array(self._sim.wfs.d_wfs[0].d_bincube)
             if (self.config.p_centroiders[0].type == scons.CentroiderType.
                         TCOG):  # Select the same pixels with or without noise
                 invalidpix = np.where(bincube <= self.config.p_centroiders[0].thresh)
                 ideal_bincube[invalidpix] = 0
-                self.rtc.set_thresh(0, -1e16)
-            self.wfs.set_bincube(0, ideal_bincube)
+                self.setCentroThresh(0, -1e16)
+            self._sim.wfs.d_wfs[0].set_bincube(ideal_bincube, ideal_bincube.size)
         elif (self.config.p_wfss[0].type == scons.centroiderType.PYRHR):
-            ideal_pyrimg = self.wfs.get_binimg_not_noisy(0)
-            self.wfs.set_pyrimg(0, ideal_pyrimg)
+            ideal_pyrimg = np.array(self._sim.wfs.d_wfs[0].d_binimg_notnoisy)
+            self._sim.wfs.d_wfs[0].set_binimg(ideal_pyrimg, ideal_pyrimg.size)
 
-        self.rtc.do_centroids(0)
+        self._sim.doCentroids(0)
         if (self.config.p_centroiders[0].type == scons.CentroiderType.TCOG):
-            self.rtc.set_thresh(0, config.p_centroiders[0].thresh)
+            self.setCentroThresh(0, config.p_centroiders[0].thresh)
 
-        self.rtc.do_control(0)
-        E = self.rtc.get_err(0)
-        E_meas = self.rtc.get_centroids(0)
+        self._sim.doControl(0)
+        E = self.getErr(0)
+        E_meas = self.getCentroids(0)
         # Apply loop filter to get contribution of noise on commands
         if (self.iter_number + 1 < self.config.p_loop.niter):
             self.noise_com[self.iter_number + 1, :] = self.gRD.dot(
@@ -199,10 +200,10 @@ class Roket(Simulator):
         ###########################################################################
         ## Sampling/truncature contribution
         ###########################################################################
-        self.rtc.do_centroids_geom(0)
-        self.rtc.do_control(0)
-        F = self.rtc.get_err(0)
-        F_meas = self.rtc.get_centroids(0)
+        self._sim.doCentroidsGeom(0)
+        self._sim.doControl(0)
+        F = self.getErr(0)
+        F_meas = self.getCentroids(0)
         self.trunc_meas[self.iter_number, :] = E_meas - F_meas
         # Apply loop filter to get contribution of sampling/truncature on commands
         if (self.iter_number + 1 < self.config.p_loop.niter):
@@ -213,10 +214,10 @@ class Roket(Simulator):
         ###########################################################################
         ## Aliasing contribution on WFS direction
         ###########################################################################
-        self.rtc.do_control_geo_on_wfs(1, self.dms, self.wfs, 0)
-        self.rtc.apply_control(1, self.dms)
+        self._sim.doControl(1, 0, wfs_direction=True)
+        self._sim.applyControl(1)
         for w in range(len(self.config.p_wfss)):
-            self.wfs.raytrace(w, b"dm", self.tel, self.atm, self.dms)
+            self._sim.raytraceWfs(w, "dm", rst=False)
         """
             wfs.sensors_compimg(0)
         if(config.p_wfss[0].type == scons.WFSType.SH):
@@ -231,10 +232,10 @@ class Roket(Simulator):
             ideal_pyrimg = wfs.get_binimg_notnoisy(0)
             wfs.set_pyrimg(0,ideal_pyrimg)
         """
-        self.rtc.do_centroids_geom(0)
-        self.rtc.do_control(0)
-        Ageom = self.rtc.get_err(0)
-        self.alias_meas[self.iter_number, :] = self.rtc.get_centroids(0)
+        self._sim.doCentroidsGeom(0)
+        self._sim.doControl(0)
+        Ageom = self.getErr(0)
+        self.alias_meas[self.iter_number, :] = self.getCentroids(0)
         if (self.iter_number + 1 < self.config.p_loop.niter):
             self.alias_wfs_com[self.iter_number + 1, :] = self.gRD.dot(
                     self.alias_wfs_com[self.iter_number, :]) + self.gamma * g * (
@@ -243,19 +244,21 @@ class Roket(Simulator):
         ###########################################################################
         ## Wavefront + filtered modes reconstruction
         ###########################################################################
-        self.tar.raytrace(0, b"atmos", self.tel, self.atm)
-        self.rtc.do_control_geo(1, self.dms, self.tar, 0)
-        B = self.rtc.get_com(1)
+        self._sim.raytraceTar(0, "atmos")
+        self._sim.doControl(1, 0, wfs_direction=False)
+        B = self.getCom(1)
 
         ###########################################################################
         ## Fitting
         ###########################################################################
-        self.rtc.apply_control(1, self.dms)
-        self.tar.raytrace(0, b"dm", self.tel, dms=self.dms, do_phase_var=0)
-        self.tar.comp_image(0, comp_le=False)
-        self.fit[self.iter_number] = self.tar.get_strehl(0)[2]
+        self._sim.applyControl(1)
+        self._sim.raytraceTar(0, "dm", rst=False)
+
+        self._sim.compTarImage(0, compLE=False)
+        self._sim.compStrehl(0)
+        self.fit[self.iter_number] = self.getStrehl(0)[2]
         if (self.iter_number >= self.N_preloop):
-            self.psf_ortho += self.tar.get_image(0, b'se')
+            self.psf_ortho += self.getTarImage(0, 'se')
 
         ###########################################################################
         ## Filtered modes error & Commanded modes
@@ -280,9 +283,10 @@ class Roket(Simulator):
         ###########################################################################
         #G = F - (mod_com[self.iter_number,:] + Ageom - np.dot(RDgeom,com[self.iter_number-1,:]))
         for w in range(len(self.config.p_wfss)):
-            self.wfs.raytrace(w, b"atmos", self.tel, self.atm, self.dms)
-        self.rtc.do_control_geo_on_wfs(1, self.dms, self.wfs, 0)
-        G = self.rtc.get_com(1)
+            self._sim.raytraceWfs(w, "atmos")
+
+        self._sim.doControl(1, 0, wfs_direction=True)
+        G = self.getCom(1)
         modes = self.P.dot(G)
         modes[-self.nfiltered - 2:-2] = 0
         self.wf_com[self.iter_number, :] = self.Btt.dot(modes)
@@ -293,8 +297,8 @@ class Roket(Simulator):
                     self.tomo_com[self.iter_number, :]) - g * self.gamma * self.RD.dot(G)
 
         # Without anyone noticing...
-        self.tar.set_phase(0, tarphase)
-        self.rtc.set_com(0, Dcom)
+        self._sim.tar.d_targets[0].set_phase(tarphase)
+        self._sim.rtc.d_control[0].set_com(Dcom, Dcom.size)
 
     def save_in_hdf5(self, savename):
         """
@@ -311,7 +315,7 @@ class Roket(Simulator):
         indx_pup = np.where(pup.flatten() > 0)[0].astype(np.int32)
         dm_dim = self.config.p_dms[0]._n2 - self.config.p_dms[0]._n1 + 1
         self.cov_cor()
-        psf = self.tar.get_image(0, b"le")
+        psf = self.getTarImage(0, "le")
 
         fname = os.getenv("DATA_GUARDIAN") + savename
         pdict = {
@@ -368,9 +372,9 @@ class Roket(Simulator):
                 "dm.ypos":
                         self.config.p_dms[0]._ypos,
                 "R":
-                        self.rtc.get_cmat(0),
+                        self.getCmat(0),
                 "D":
-                        self.rtc.get_imat(0),
+                        self.getImat(0),
                 "Nact":
                         self.Nact,
                 "com":
@@ -436,6 +440,6 @@ if __name__ == "__main__":
         savename = "roket_default.h5"
 
     roket = Roket(param_file)
-    roket.init_sim()
+    roket.initConfig()
     roket.loop()
     roket.save_in_hdf5(savename)

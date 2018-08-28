@@ -88,7 +88,7 @@ def returnConfigfromWao(wao,
         lambdaList.append(wao.sim.config.p_wfss[i].Lambda)
         dms_seen.append(list(wao.sim.config.p_wfss[i].dms_seen))
 
-        if (wao.sim.config.p_wfss[i].type == b"pyrhr"):
+        if (wao.sim.config.p_wfss[i].type == "pyrhr"):
             pyrModulationList.append(wao.sim.config.p_wfss[i].pyr_ampl)
             pyr_npts.append(wao.sim.config.p_wfss[i].pyr_npts)
             pyr_pupsep.append(wao.sim.config.p_wfss[i].pyr_pup_sep)

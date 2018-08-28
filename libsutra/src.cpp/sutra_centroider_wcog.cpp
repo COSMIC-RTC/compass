@@ -2,12 +2,13 @@
 #include <string>
 
 sutra_centroider_wcog::sutra_centroider_wcog(carma_context *context,
-                                             sutra_sensors *sensors, int nwfs,
-                                             long nvalid, float offset,
-                                             float scale, int device)
-    : sutra_centroider(context, sensors, nwfs, nvalid, offset, scale, device) {
+                                             sutra_wfs *wfs, long nvalid,
+                                             float offset, float scale,
+                                             int device)
+    : sutra_centroider(context, wfs, nvalid, offset, scale, device) {
   context->set_activeDevice(device, 1);
 
+  this->nslopes = 2 * nvalid;
   this->npix = 0;
   this->d_weights = 0L;
 }
@@ -48,9 +49,9 @@ int sutra_centroider_wcog::load_weights(float *weights, int ndim) {
     carmaSafeCall(cudaMemcpy(tmp, weights,
                              sizeof(float) * this->npix * this->npix,
                              cudaMemcpyHostToDevice));
-    fillweights(*(this->d_weights), tmp, this->npix,
-                this->d_weights->getNbElem(),
-                this->current_context->get_device(device));
+    fillweights<float>(*(this->d_weights), tmp, this->npix,
+                       this->d_weights->getNbElem(),
+                       this->current_context->get_device(device));
     carmaSafeCall(cudaFree(tmp));
   }
 
@@ -75,7 +76,7 @@ int sutra_centroider_wcog::get_cog(carma_streams *streams, float *cube,
 
 int sutra_centroider_wcog::get_cog(float *subsum, float *slopes, bool noise) {
   if (this->wfs != nullptr) {
-    if (noise || wfs->error_budget == false)
+    if (noise || wfs->roket == false)
       return this->get_cog(wfs->streams, *(wfs->d_bincube), subsum, slopes,
                            wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
     else

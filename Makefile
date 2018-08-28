@@ -1,7 +1,11 @@
 
 N_CPU:="$(shell cat /proc/cpuinfo | grep processor | wc -l)"
 
-all: cython_shesha
+all: build
+
+.PHONY: build
+build:
+	python setup.py build_ext
 
 carma: libcarma/libcarma.so
 

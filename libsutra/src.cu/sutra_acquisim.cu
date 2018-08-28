@@ -1,5 +1,5 @@
 #include <sutra_acquisim.h>
-#include <sutra_ao_utils.h>
+#include <sutra_utils.h>
 
 template <class T>
 __global__ void bcube_krnl_2D(T *bimage, T *bcube, int *num_ssp) {

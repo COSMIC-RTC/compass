@@ -2,11 +2,13 @@
 #include <string>
 
 sutra_centroider_tcog::sutra_centroider_tcog(carma_context *context,
-                                             sutra_sensors *sensors, int nwfs,
-                                             long nvalid, float offset,
-                                             float scale, int device)
-    : sutra_centroider(context, sensors, nwfs, nvalid, offset, scale, device) {
+                                             sutra_wfs *wfs, long nvalid,
+                                             float offset, float scale,
+                                             int device)
+    : sutra_centroider(context, wfs, nvalid, offset, scale, device) {
   context->set_activeDevice(device, 1);
+
+  this->nslopes = 2 * nvalid;
   this->threshold = 0;
 }
 
@@ -33,7 +35,7 @@ int sutra_centroider_tcog::get_cog(carma_streams *streams, float *cube,
                    this->current_context->get_device(device));
 
   get_centroids(ntot, npix * npix, nvalid, npix, cube, centroids, subsum,
-                this->scale, this->offset,
+                this->threshold, this->scale, this->offset,
                 this->current_context->get_device(device));
 #else
   subap_reduce(ntot, npix * npix, nvalid, cube, subsum, this->threshold,
@@ -48,7 +50,7 @@ int sutra_centroider_tcog::get_cog(carma_streams *streams, float *cube,
 
 int sutra_centroider_tcog::get_cog(float *subsum, float *slopes, bool noise) {
   if (this->wfs != nullptr) {
-    if (noise || wfs->error_budget == false)
+    if (noise || wfs->roket == false)
       return this->get_cog(wfs->streams, *(wfs->d_bincube), subsum, slopes,
                            wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
     else

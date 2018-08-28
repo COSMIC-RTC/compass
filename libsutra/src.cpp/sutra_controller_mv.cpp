@@ -2,11 +2,10 @@
 #include <sutra_controller_utils.h>
 #include <string>
 
-sutra_controller_mv::sutra_controller_mv(carma_context *context, long nvalid,
-                                         long nactu_, float delay,
-                                         sutra_dms *dms, char **type,
-                                         float *alt, int ndm)
-    : sutra_controller(context, nvalid * 2, nactu_, delay, dms, type, alt,
+sutra_controller_mv::sutra_controller_mv(carma_context *context, long nvalid_,
+                                         long nslope_, long nactu_, float delay,
+                                         sutra_dms *dms, int *idx_dms, int ndm)
+    : sutra_controller(context, nvalid_, nslope_, nactu_, delay, dms, idx_dms,
                        ndm) {
   this->gain = 0.0f;
 
@@ -27,7 +26,7 @@ sutra_controller_mv::sutra_controller_mv(carma_context *context, long nvalid,
   // d_U = new carma_obj<float>(this->current_context, dims_data2);
   this->d_cenbuff = 0L;
   if ((int)delay > 0) {
-    dims_data2[1] = 2 * nvalid;
+    dims_data2[1] = nslope();
     dims_data2[2] = (int)delay + 1;
     this->d_cenbuff = new carma_obj<float>(this->current_context, dims_data2);
   }
@@ -116,6 +115,12 @@ int sutra_controller_mv::set_cmat(float *cmat) {
   return EXIT_SUCCESS;
 }
 
+int sutra_controller_mv::set_imat(float *imat) {
+  current_context->set_activeDevice(device, 1);
+  this->d_imat->host2device(imat);
+  return EXIT_SUCCESS;
+}
+
 int sutra_controller_mv::load_noisemat(float *noise) {
   current_context->set_activeDevice(device, 1);
   this->d_noisemat->host2device(noise);
@@ -153,7 +158,7 @@ int sutra_controller_mv::compute_Cphim(
   while (p != dms->d_dms.end()) {
     sutra_dm *dm = *p;
     if (dm->type != "tt") {
-      Nactu += dm->ninflu;
+      Nactu += dm->nactus;
     }
     p++;
   }
@@ -409,9 +414,7 @@ int sutra_controller_mv::do_geomat(carma_obj<float> *d_geocov,
   carma_gemm(cublas_handle, 't', 'n', nactu(), nactu(), n_pts, 1.0f,
              d_IF->getData(), n_pts, d_IF->getData(), n_pts, 0.0f,
              d_geocov->getData(), nactu());
-  mult_vect(d_geocov->getData(), ampli, this->nactu() * this->nactu(),
-            this->current_context->get_device(device));
-
+  d_geocov->scale(ampli, 1);
   return EXIT_SUCCESS;
 }
 

@@ -1,5 +1,5 @@
+#include <sutra_atmos.h>
 #include <sutra_controller_utils.h>
-#include <sutra_turbu.h>
 
 /*  Tuning parameters of tbulateDPHI kernel*/
 #define tabDPHI_thread_x (256)
@@ -204,13 +204,12 @@ __device__ double rodconan_gpu_gb(double r, double L0, int k)
  SEE ALSO:
  */
 {
-  const double pi = 3.1415926535897932384626433;
   double res = 0;
 
   // k1 is the value of :
   // 2*gamma_R(11./6)*2^(-5./6)*pi^(-8./3)*(24*gamma_R(6./5)/5.)^(5./6);
   const double k1 = 0.1716613621245709486;
-  const double dprf0 = (2 * pi / L0) * r;
+  const double dprf0 = (2 * CARMA_PI / L0) * r;
   // k2 is the value for gamma_R(5./6)*2^(-1./6),
   // but is now unused
   // k2 = 1.0056349179985892838;
@@ -288,7 +287,6 @@ __global__ void tabulateDPHI_lowpass_kernel(double *tabDPHI_d,
                                             double *L0diff_d, long Nl0,
                                             long Ndphi, double convert,
                                             double convert_int, long npts) {
-  const double pi = 3.1415926535897932384626433;
   const int tx = threadIdx.x;
   const int ty = blockIdx.x;
 
@@ -308,8 +306,8 @@ __global__ void tabulateDPHI_lowpass_kernel(double *tabDPHI_d,
 
   tabDPHI_d[tid] =
       pow(r, (double)(5. / 3.)) *
-      Ij0t83_gb((double)(r * (pi / dx[dm])), tab_int_x, tab_int_y, npts) *
-      (double)((2 * pow((2 * pi), (double)(8 / 3.)) * 0.0228956));
+      Ij0t83_gb((double)(r * (CARMA_PI / dx[dm])), tab_int_x, tab_int_y, npts) *
+      (double)((2 * pow((2 * CARMA_PI), (double)(8 / 3.)) * 0.0228956));
 }
 
 //------------------------------------------------------------------------------------
@@ -357,7 +355,7 @@ __global__ void subposition_gpu_gb_kernel(
   long i;      // subaperture i
   long n = 0;  // WFS n
   long l;
-  const double rad = 3.14159265358979323846 / 180.;
+  const double rad = CARMA_PI / 180.;
 
   if (tid >= (Nx * Nlayer)) return;
 
@@ -456,17 +454,16 @@ __device__ double cov_XY_gpu_gb(double du, double dv, double s0,
 //============================================================================================
 __device__ double DPHI_highpass_gb(double r, double fc, double *tab_x,
                                    double *tab_y, long npts) {
-  const double pi = 3.1415926535897932384626433;
   return pow(r, 5 / 3.) *
-         (1.1183343328701949 - Ij0t83_gb(2 * pi * fc * r, tab_x, tab_y, npts)) *
-         pow(2 * pi, 8 / 3.) * 2 * 0.0228956;
+         (1.1183343328701949 -
+          Ij0t83_gb(2 * CARMA_PI * fc * r, tab_x, tab_y, npts)) *
+         pow(2 * CARMA_PI, 8 / 3.) * 2 * 0.0228956;
 }
 __device__ double DPHI_lowpass_gb(double x, double y, double L0, double fc,
                                   double *tab_int_x, double *tab_int_y,
                                   long npts) {
   /*
   double r = sqrt(x * x + y * y);
-  const double pi = 3.1415926535897932384626433;
   int npts = (int)1/pas;
   double du = 2*pi*fc*r/npts;
   double dphi = 0;
@@ -1256,9 +1253,9 @@ void update_tomo_atm_gpu_gb(struct gtomo_struct *tomo_gpu,
 
   double h[atmos->nscreens];
   int ii = 0;
-  for (map<float, sutra_tscreen *>::iterator it = atmos->d_screens.begin();
+  for (vector<sutra_tscreen *>::iterator it = atmos->d_screens.begin();
        it != atmos->d_screens.end(); ++it) {
-    h[ii] = (double)it->second->altitude;
+    h[ii] = (double)(*it)->altitude;
     ii++;
   }
   // DEBUG_TRACE("Here !\n");
@@ -2211,9 +2208,9 @@ void matcov_gpu_4(float *data, int nrows, int ncols, int xoffset, int yoffset,
   // for each DIFFERENT L0
   double h[atmos->nscreens];
   int ii = 0;
-  for (map<float, sutra_tscreen *>::iterator it = atmos->d_screens.begin();
+  for (vector<sutra_tscreen *>::iterator it = atmos->d_screens.begin();
        it != atmos->d_screens.end(); ++it) {
-    h[ii] = (double)it->second->altitude;
+    h[ii] = (double)(*it)->altitude;
     ii++;
   }
 
@@ -2313,9 +2310,9 @@ void CPHIM(float *data, int nrows, int ncols, int xoffset, int yoffset, int lda,
 
   double h[atmos->nscreens];
   int ii = 0;
-  for (map<float, sutra_tscreen *>::iterator it = atmos->d_screens.begin();
+  for (vector<sutra_tscreen *>::iterator it = atmos->d_screens.begin();
        it != atmos->d_screens.end(); ++it) {
-    h[ii] = (double)it->second->altitude;
+    h[ii] = (double)(*it)->altitude;
     ii++;
   }
 
@@ -2474,7 +2471,7 @@ void init_cphim_struct(struct cphim_struct *cphim_struct, sutra_atmos *atmos,
   while (p != dms->d_dms.end()) {
     sutra_dm *dm = *p;
     if (dm->type != "tt") {
-      Nactu += dm->ninflu;
+      Nactu += dm->nactus;
       Ndm += 1;
     }
     p++;
@@ -2493,7 +2490,7 @@ void init_cphim_struct(struct cphim_struct *cphim_struct, sutra_atmos *atmos,
   while (p != dms->d_dms.end()) {
     sutra_dm *dm = *p;
     if (dm->type != "tt") {
-      cphim_struct->Nactu_tot[indx] = dm->ninflu;
+      cphim_struct->Nactu_tot[indx] = dm->nactus;
       indx += 1;
     }
     p++;
@@ -2740,9 +2737,9 @@ void update_cphim_atm(struct cphim_struct *cphim_struct, sutra_sensors *sensors,
 
   double h[atmos->nscreens];
   int ii = 0;
-  for (map<float, sutra_tscreen *>::iterator it = atmos->d_screens.begin();
+  for (vector<sutra_tscreen *>::iterator it = atmos->d_screens.begin();
        it != atmos->d_screens.end(); ++it) {
-    h[ii] = (double)it->second->altitude;
+    h[ii] = (double)(*it)->altitude;
     ii++;
   }
   // DEBUG_TRACE("Here !\n");

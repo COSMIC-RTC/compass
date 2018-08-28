@@ -31,7 +31,6 @@ class sutra_kl {
  public:
   sutra_kl(carma_context *context, long dim, long nr, long np, long nkl,
            long nord, int device);
-  sutra_kl(const sutra_kl &kl);
   ~sutra_kl();
 
   int do_compute(float alpha, float ampli, float *odata, int nkl, int size,

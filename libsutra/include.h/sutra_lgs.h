@@ -3,11 +3,12 @@
 
 #include <carma.h>
 #include <carma_obj.h>
-#include <sutra_ao_utils.h>
+#include <sutra_utils.h>
 
+using std::map;
 using std::pair;
+using std::vector;
 
-class sutra_sensors;
 class sutra_lgs {
  public:
   int device;
@@ -39,9 +40,10 @@ class sutra_lgs {
    */
 
  public:
-  sutra_lgs(carma_context *context, sutra_sensors *sensors, long nvalid,
+  sutra_lgs(carma_context *context, carma_obj<float> *d_lgskern,
+            carma_obj<cuFloatComplex> *d_ftlgskern,
+            map<vector<int>, cufftHandle *> ftlgskern_plans, long nvalid,
             long npix, long nmaxhr);
-  sutra_lgs(const sutra_lgs &lgs);
   ~sutra_lgs();
 
   int lgs_init(int nprof, float hg, float h0, float deltah, float pixsie,

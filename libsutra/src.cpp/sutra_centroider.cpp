@@ -1,22 +1,20 @@
 #include <sutra_centroider.h>
 
-sutra_centroider::sutra_centroider(carma_context *context,
-                                   sutra_sensors *sensors, int nwfs,
+sutra_centroider::sutra_centroider(carma_context *context, sutra_wfs *wfs,
                                    long nvalid, float offset, float scale,
                                    int device) {
   this->current_context = context;
   this->device = device;
   context->set_activeDevice(device, 1);
-  if (sensors != nullptr)
-    this->wfs = sensors->d_wfs[nwfs];
-  else
-    this->wfs = nullptr;
-  this->nwfs = nwfs;
+  this->wfs = wfs;
+
   this->nvalid = nvalid;
   this->offset = offset;
   this->scale = scale;
+  this->nslopes = 0;
 
   this->d_bincube = nullptr;
+  this->d_subsum = nullptr;
   this->d_img = nullptr;
   this->d_validx = nullptr;
   this->d_validy = nullptr;
@@ -27,6 +25,11 @@ sutra_centroider::~sutra_centroider() {
   if (this->d_img != nullptr) delete this->d_img;
   if (this->d_validx != nullptr) delete this->d_validx;
   if (this->d_validy != nullptr) delete this->d_validy;
+}
+
+int sutra_centroider::set_scale(float scale) {
+  this->scale = scale;
+  return EXIT_SUCCESS;
 }
 
 int sutra_centroider::load_img(float *img, int n) {

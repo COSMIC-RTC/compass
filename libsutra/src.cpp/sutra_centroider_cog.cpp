@@ -2,10 +2,12 @@
 #include <string>
 
 sutra_centroider_cog::sutra_centroider_cog(carma_context *context,
-                                           sutra_sensors *sensors, int nwfs,
-                                           long nvalid, float offset,
-                                           float scale, int device)
-    : sutra_centroider(context, sensors, nwfs, nvalid, offset, scale, device) {}
+                                           sutra_wfs *wfs, long nvalid,
+                                           float offset, float scale,
+                                           int device)
+    : sutra_centroider(context, wfs, nvalid, offset, scale, device) {
+  this->nslopes = 2 * nvalid;
+}
 
 sutra_centroider_cog::~sutra_centroider_cog() {}
 
@@ -43,7 +45,7 @@ int sutra_centroider_cog::get_cog(carma_streams *streams, float *cube,
 
 int sutra_centroider_cog::get_cog(float *subsum, float *slopes, bool noise) {
   if (this->wfs != nullptr) {
-    if (noise || wfs->error_budget == false) {
+    if (noise || wfs->roket == false) {
       return this->get_cog(wfs->streams, *(wfs->d_bincube), subsum, slopes,
                            wfs->nvalid_tot, wfs->npix,
                            wfs->d_bincube->getNbElem());

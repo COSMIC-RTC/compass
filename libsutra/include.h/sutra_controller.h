@@ -3,9 +3,9 @@
 
 #include <carma_cublas.h>
 #include <carma_host_obj.h>
-#include <sutra_ao_utils.h>
 #include <sutra_centroider.h>
 #include <sutra_dm.h>
+#include <sutra_utils.h>
 #include <sutra_wfs.h>
 #include <mutex>
 
@@ -13,9 +13,12 @@ using std::mutex;
 
 class sutra_controller {
  public:
+  carma_context *current_context;
+  int device;
+
   // allocation of d_centroids and d_com
-  sutra_controller(carma_context *context, int nslope, int nactu, float delay,
-                   sutra_dms *dms, char **type, float *alt, int ndm);
+  sutra_controller(carma_context *context, int nvalid, int nslope, int nactu,
+                   float delay, sutra_dms *dms, int *idx_dms, int ndm);
   virtual ~sutra_controller();
 
   virtual string get_type() = 0;
@@ -35,6 +38,7 @@ class sutra_controller {
   int set_centroids_ref(float *centroids_ref);
   int get_centroids_ref(float *centroids_ref);
   int set_perturbcom(float *perturb, int N);
+  int set_com(float *com, int nElem);
   int set_openloop(int open_loop_status);
   void clip_voltage(float min, float max);
   int comp_voltage();
@@ -70,8 +74,6 @@ class sutra_controller {
   carma_streams *streams;
 
  protected:
-  int device;
-  carma_context *current_context;
   mutex comp_voltage_mutex;
 };
 

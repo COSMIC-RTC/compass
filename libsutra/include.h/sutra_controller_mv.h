@@ -3,10 +3,10 @@
 
 #include <carma_cublas.h>
 #include <carma_host_obj.h>
-#include <sutra_ao_utils.h>
 #include <sutra_centroider.h>
 #include <sutra_controller.h>
 #include <sutra_dm.h>
+#include <sutra_utils.h>
 #include <sutra_wfs.h>
 
 class sutra_controller_mv : public sutra_controller {
@@ -40,8 +40,8 @@ class sutra_controller_mv : public sutra_controller {
   cublasHandle_t cublas_handle;
 
  public:
-  sutra_controller_mv(carma_context *context, long nvalid, long nactu,
-                      float delay, sutra_dms *dms, char **type, float *alt,
+  sutra_controller_mv(carma_context *context, long nvalid, long nslope,
+                      long nactu, float delay, sutra_dms *dms, int *idx_dms,
                       int ndm);
   sutra_controller_mv(const sutra_controller_mv &controller);
   ~sutra_controller_mv();
@@ -57,6 +57,7 @@ class sutra_controller_mv : public sutra_controller {
   int set_mgain(float *mgain);
   int set_delay(float delay);
   int set_cmat(float *cmat);
+  int set_imat(float *imat);
   // Florian features
   int load_noisemat(float *noise);
   int do_covmat(sutra_dm *ydm, char *method, int *indx_pup, long dim,

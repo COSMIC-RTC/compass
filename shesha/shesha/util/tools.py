@@ -137,7 +137,7 @@ def plg(
                    data.ndim))
     except:
         return
-    if (x == b""):
+    if (x == ""):
         ax.plot(data, color=color)
     else:
         ax.plot(x, data, color=color)

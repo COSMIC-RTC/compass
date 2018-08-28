@@ -1,15 +1,19 @@
 #include <carma_utils.h>
-#include <sutra_ao_utils.h>
+#include <sutra_utils.h>
 #include <sutra_wfs_sh.h>
+#include <cmath>
 
 sutra_wfs_sh::sutra_wfs_sh(carma_context *context, sutra_telescope *d_tel,
-                           sutra_sensors *sensors, long nxsub, long nvalid,
-                           long npix, long nphase, long nrebin, long nfft,
-                           long ntot, long npup, float pdiam, float nphotons,
-                           float nphot4imat, int lgs, int device)
-    : sutra_wfs(context, d_tel, sensors, "sh", nxsub, nvalid, npix, nphase,
-                nrebin, nfft, ntot, npup, pdiam, nphotons, nphot4imat, lgs,
-                device),
+                           carma_obj<cuFloatComplex> *d_camplipup,
+                           carma_obj<cuFloatComplex> *d_camplifoc,
+                           carma_obj<cuFloatComplex> *d_fttotim, long nxsub,
+                           long nvalid, long npix, long nphase, long nrebin,
+                           long nfft, long ntot, long npup, float pdiam,
+                           float nphotons, float nphot4imat, int lgs,
+                           bool is_low_order, bool roket, int device)
+    : sutra_wfs(context, d_tel, d_camplipup, d_camplifoc, d_fttotim, "sh",
+                nxsub, nvalid, npix, nphase, nrebin, nfft, ntot, npup, pdiam,
+                nphotons, nphot4imat, lgs, is_low_order, roket, device),
       d_binmap(nullptr),
       d_istart(nullptr),
       d_jstart(nullptr) {}
@@ -43,7 +47,9 @@ int sutra_wfs_sh::define_mpi_rank(int rank, int size) {
   return EXIT_SUCCESS;
 }
 
-int sutra_wfs_sh::allocate_buffers(sutra_sensors *sensors) {
+int sutra_wfs_sh::allocate_buffers(
+    map<vector<int>, cufftHandle *> campli_plans,
+    map<vector<int>, cufftHandle *> fttotim_plans) {
   current_context->set_activeDevice(device, 1);
   long *dims_data1 = new long[2];
   dims_data1[0] = 1;
@@ -66,15 +72,16 @@ int sutra_wfs_sh::allocate_buffers(sutra_sensors *sensors) {
   dims_data3[2] = nfft;
 
   dims_data3[3] = nvalid;
-
   int mdims[2];
 
   // this->d_submask = new carma_obj<float>(current_context, dims_data3); //
   // Useless for SH
-
-  // this->d_camplipup = new carma_obj<cuFloatComplex>(current_context,
-  // dims_data3); this->d_camplifoc = new
-  // carma_obj<cuFloatComplex>(current_context, dims_data3);
+  if (this->d_camplipup == nullptr)
+    this->d_camplipup =
+        new carma_obj<cuFloatComplex>(current_context, dims_data3);
+  if (this->d_camplifoc == nullptr)
+    this->d_camplifoc =
+        new carma_obj<cuFloatComplex>(current_context, dims_data3);
   mdims[0] = (int)dims_data3[1];
   mdims[1] = (int)dims_data3[2];
 
@@ -83,7 +90,7 @@ int sutra_wfs_sh::allocate_buffers(sutra_sensors *sensors) {
                     vector_dims + sizeof(vector_dims) / sizeof(int));
   // vector<int> vdims(dims_data3 + 1, dims_data3 + 4);
 
-  if (sensors->campli_plans.find(vdims) == sensors->campli_plans.end()) {
+  if (campli_plans.find(vdims) == campli_plans.end()) {
     // DEBUG_TRACE("Creating FFT plan : %d %d
     // %d",mdims[0],mdims[1],dims_data3[3]);printMemInfo();
     cufftHandle *plan = (cufftHandle *)malloc(
@@ -91,14 +98,14 @@ int sutra_wfs_sh::allocate_buffers(sutra_sensors *sensors) {
     carmafftSafeCall(cufftPlanMany(plan, 2, mdims, NULL, 1, 0, NULL, 1, 0,
                                    CUFFT_C2C, (int)dims_data3[3]));
 
-    sensors->campli_plans.insert(pair<vector<int>, cufftHandle *>(vdims, plan));
+    campli_plans.insert(pair<vector<int>, cufftHandle *>(vdims, plan));
 
     this->campli_plan = plan;
     // DEBUG_TRACE("FFT plan created");printMemInfo();
   } else {
     // DEBUG_TRACE("FFT plan already exists : %d %d
     // %d",mdims[0],mdims[1],dims_data3[3]);
-    this->campli_plan = sensors->campli_plans.at(vdims);
+    this->campli_plan = campli_plans.at(vdims);
   }
 
   dims_data3[1] = npix;
@@ -106,7 +113,7 @@ int sutra_wfs_sh::allocate_buffers(sutra_sensors *sensors) {
   if (rank == 0) dims_data3[3] = nvalid_tot;
 
   this->d_bincube = new carma_obj<float>(current_context, dims_data3);
-  if (this->error_budget) {
+  if (this->roket) {
     this->d_bincube_notnoisy =
         new carma_obj<float>(current_context, dims_data3);
   }
@@ -132,8 +139,9 @@ int sutra_wfs_sh::allocate_buffers(sutra_sensors *sensors) {
     dims_data3[2] = ntot;
     dims_data3[3] = nmaxhr;
 
-    // this->d_fttotim = new carma_obj<cuFloatComplex>(current_context,
-    // dims_data3);
+    if (this->d_fttotim == nullptr)
+      this->d_fttotim =
+          new carma_obj<cuFloatComplex>(current_context, dims_data3);
 
     mdims[0] = (int)dims_data3[1];
     mdims[1] = (int)dims_data3[2];
@@ -141,21 +149,20 @@ int sutra_wfs_sh::allocate_buffers(sutra_sensors *sensors) {
     vector<int> vdims(vector_dims,
                       vector_dims + sizeof(vector_dims) / sizeof(int));
 
-    if (sensors->fttotim_plans.find(vdims) == sensors->fttotim_plans.end()) {
+    if (fttotim_plans.find(vdims) == fttotim_plans.end()) {
       cufftHandle *plan = (cufftHandle *)malloc(
           sizeof(cufftHandle));  // = this->d_fttotim->getPlan(); ///< FFT plan
       // DEBUG_TRACE("Creating FFT plan :%d %d
       // %d",mdims[0],mdims[1],dims_data3[3]);printMemInfo();
       carmafftSafeCall(cufftPlanMany(plan, 2, mdims, NULL, 1, 0, NULL, 1, 0,
                                      CUFFT_C2C, (int)dims_data3[3]));
-      sensors->fttotim_plans.insert(
-          pair<vector<int>, cufftHandle *>(vdims, plan));
+      fttotim_plans.insert(pair<vector<int>, cufftHandle *>(vdims, plan));
       this->fttotim_plan = plan;
       // DEBUG_TRACE("FFT plan created : ");printMemInfo();
     } else {
       // DEBUG_TRACE("FFT plan already exists %d %d
       // %d",mdims[0],mdims[1],dims_data3[3]);
-      this->fttotim_plan = sensors->fttotim_plans.at(vdims);
+      this->fttotim_plan = fttotim_plans.at(vdims);
     }
     dims_data1[1] = nfft * nfft;
     this->d_hrmap = new carma_obj<int>(current_context, dims_data1);
@@ -173,21 +180,20 @@ int sutra_wfs_sh::allocate_buffers(sutra_sensors *sensors) {
       vector<int> vdims(vector_dims,
                         vector_dims + sizeof(vector_dims) / sizeof(int));
 
-      if (sensors->fttotim_plans.find(vdims) == sensors->fttotim_plans.end()) {
+      if (fttotim_plans.find(vdims) == fttotim_plans.end()) {
         // DEBUG_TRACE("Creating FFT plan : %d %d
         // %d",mdims[0],mdims[1],dims_data3[3]);printMemInfo();
         cufftHandle *plan = (cufftHandle *)malloc(sizeof(
             cufftHandle));  // = this->d_fttotim->getPlan(); ///< FFT plan
         carmafftSafeCall(cufftPlanMany(plan, 2, mdims, NULL, 1, 0, NULL, 1, 0,
                                        CUFFT_C2C, (int)dims_data3[3]));
-        sensors->fttotim_plans.insert(
-            pair<vector<int>, cufftHandle *>(vdims, plan));
+        fttotim_plans.insert(pair<vector<int>, cufftHandle *>(vdims, plan));
         this->fttotim_plan = plan;
         // DEBUG_TRACE("FFT plan created : ");printMemInfo();
       } else {
         // DEBUG_TRACE("FFT plan already exists : %d %d
         // %d",mdims[0],mdims[1],dims_data3[3]);
-        this->fttotim_plan = sensors->fttotim_plans.at(vdims);
+        this->fttotim_plan = fttotim_plans.at(vdims);
       }
     }
   }
@@ -258,10 +264,10 @@ sutra_wfs_sh::~sutra_wfs_sh() {
   // delete this->current_context;
 }
 
-int sutra_wfs_sh::wfs_initarrays(int *phasemap, int *hrmap, int *binmap,
-                                 float *offsets, float *fluxPerSub,
-                                 int *validsubsx, int *validsubsy, int *istart,
-                                 int *jstart, cuFloatComplex *kernel) {
+int sutra_wfs_sh::loadarrays(int *phasemap, int *hrmap, int *binmap,
+                             float *offsets, float *fluxPerSub, int *validsubsx,
+                             int *validsubsy, int *istart, int *jstart,
+                             cuFloatComplex *kernel) {
   if (this->d_bincube == NULL) {
     DEBUG_TRACE(
         "ERROR : d_bincube not initialized, did you do the allocate_buffers?");
@@ -491,8 +497,8 @@ int sutra_wfs_sh::comp_generic() {
   }
   // fprintf(stderr, "[%s@%d]: I'm here!\n", __FILE__, __LINE__);
 
-  if (this->error_budget) {  // Get here the bincube before adding noise,
-                             // usefull for error budget
+  if (this->roket) {  // Get here the bincube before adding noise,
+                      // usefull for error budget
     this->d_bincube->copyInto(this->d_bincube_notnoisy->getData(),
                               this->d_bincube->getNbElem());
   }
@@ -540,61 +546,47 @@ int sutra_wfs_sh::fill_binimage(int async = 0) {
   return EXIT_SUCCESS;
 }
 
-int sutra_wfs_sh::comp_image() {
+int sutra_wfs_sh::comp_image(bool noise) {
   current_context->set_activeDevice(device, 1);
-
-  int result = comp_generic();
+  int result;
+  if (noise)
+    result = comp_generic();
+  else {
+    float tmp = this->noise;
+    this->noise = -1.0;
+    result = comp_generic();
+    this->noise = tmp;
+  }
+  result *= this->fill_binimage();
 
   return result;
 }
 
-int sutra_wfs_sh::slopes_geom(int type, float *slopes) {
-  if (this->d_bincube == NULL) {
-    DEBUG_TRACE(
-        "ERROR : d_bincube not initialized, did you do the allocate_buffers?");
-    throw "ERROR : d_bincube not initialized, did you do the allocate_buffers?";
+int sutra_wfs_sh::comp_nphot(float ittime, float optthroughput, float diam,
+                             int nxsub, float zerop, float gsmag,
+                             float lgsreturnperwatt, float laserpower) {
+  this->d_gs->mag = gsmag;
+  if (laserpower == 0) {
+    if (zerop == 0) zerop = 1e11;
+    this->nphot = zerop * pow(10., (-0.4 * gsmag)) * ittime * optthroughput *
+                  (diam / nxsub) * (diam / nxsub);
+    // include throughput to WFS for unobstructed
+    // subaperture per iteration
+  } else {  // we are dealing with a LGS
+    this->nphot = lgsreturnperwatt * laserpower * optthroughput *
+                  (diam / nxsub) * (diam / nxsub) * 1e4 * ittime;
+    // detected by WFS
+    // ... for given power include throughput to WFS
+    // for unobstructed subaperture per iteration
   }
-  current_context->set_activeDevice(device, 1);
-  /*
-   normalization notes :
-   ���� = 0.17 (��/D)^2 (D/r_0)^(5/3) , ���� en radians d'angle
-   �� = sqrt(0.17 (��/D)^2 (D/r_0)^(5/3)) * 206265 , �� en secondes
-
-   // computing subaperture phase difference at edges
-
-   todo : integrale( x * phase ) / integrale (x^2);
-   with x = span(-0.5,0.5,npixels)(,-:1:npixels) * subap_diam * 2 * pi / lambda
-   / 0.206265
-   */
-  if (type == 0) {
-    // this is to convert in arcsec
-    //> 206265* 0.000001/ 2 / 3.14159265 = 0.0328281
-    // it would have been the case if the phase was given in radiants
-    // but it is given in microns so normalization factor is
-    // just 206265* 0.000001 = 0.206265
-
-    // float alpha = 0.0328281 * this->d_gs->lambda / this->subapd;
-    float alpha = 0.206265 / this->subapd;
-    phase_reduce(this->nphase, this->nvalid,
-                 this->d_gs->d_phase->d_screen->getData(), slopes,
-                 this->d_phasemap->getData(), alpha);
-  }
-
-  if (type == 1) {
-    // float alpha = 0.0328281 * this->d_gs->lambda / this->subapd;
-    float alpha = 0.206265 / this->subapd;
-    phase_derive(this->nphase * this->nphase * this->nvalid,
-                 this->nphase * this->nphase, this->nvalid, this->nphase,
-                 this->d_gs->d_phase->d_screen->getData(), slopes,
-                 this->d_phasemap->getData(), this->d_pupil->getData(), alpha,
-                 this->d_fluxPerSub->getData());
-  }
-
   return EXIT_SUCCESS;
 }
 
-int sutra_wfs_sh::slopes_geom(int type) {
-  this->slopes_geom(type, this->d_slopes->getData());
-
+int sutra_wfs_sh::set_bincube(float *bincube, int nElem) {
+  current_context->set_activeDevice(device, 1);
+  if (nElem == this->d_bincube->getNbElem())
+    this->d_bincube->host2device(bincube);
+  else
+    DEBUG_TRACE("Wrong size of cube");
   return EXIT_SUCCESS;
 }

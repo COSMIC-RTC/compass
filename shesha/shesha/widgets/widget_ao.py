@@ -330,7 +330,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
 
         for i in range(self.natm):
             key = "atm_%d" % i
-            data = self.supervisor.getAtmScreen(self.config.p_atmos.alt[i])
+            data = self.supervisor.getAtmScreen(i)
             cx, cy = self.circleCoords(self.config.p_geom.pupdiam / 2, 1000,
                                        data.shape[0], data.shape[1])
             self.SRcircles[key] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
@@ -357,7 +357,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             key = "dm_%d" % i
             dm_type = self.config.p_dms[i].type
             alt = self.config.p_dms[i].alt
-            data = self.supervisor.getDmPhase(dm_type, alt)
+            data = self.supervisor.getDmShape(i)
             cx, cy = self.circleCoords(self.config.p_geom.pupdiam / 2, 1000,
                                        data.shape[0], data.shape[1])
             self.SRcircles[key] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
@@ -444,14 +444,13 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                         index = int(key.split("_")[-1])
                         data = None
                         if "atm" in key:
-                            data = self.supervisor.getAtmScreen(
-                                    self.config.p_atmos.alt[index])
+                            data = self.supervisor.getAtmScreen(index)
                         if "wfs" in key:
                             data = self.supervisor.getWfsPhase(index)
                         if "dm" in key:
                             dm_type = self.config.p_dms[index].type
                             alt = self.config.p_dms[index].alt
-                            data = self.supervisor.getDmPhase(dm_type, alt)
+                            data = self.supervisor.getDmShape(index)
                         if "tar" in key:
                             data = self.supervisor.getTarPhase(index)
                         if "psfLE" in key:
@@ -536,6 +535,8 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             try:
                 start = time.time()
                 self.supervisor.singleNext(showAtmos=self.see_atmos)
+                for t in self.supervisor._sim.tar.d_targets:
+                    t.comp_image()
                 loopTime = time.time() - start
 
                 refreshDisplayTime = 1. / self.uiBase.wao_frameRate.value()

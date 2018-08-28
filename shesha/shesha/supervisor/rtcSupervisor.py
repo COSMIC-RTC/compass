@@ -2,7 +2,7 @@ import numpy as np
 
 import Octopus
 from shesha.constants import CentroiderType, WFSType
-from shesha.sim.simulator import load_config_from_file
+from shesha.util.utilities import load_config_from_file
 
 from .benchSupervisor import BenchSupervisor, naga_context, rtc_standalone
 
@@ -48,6 +48,16 @@ class RTCSupervisor(BenchSupervisor):
         '''
         ...
 
+    def loop(self, n: int=1, monitoring_freq: int=100, **kwargs):
+        """
+        Perform the AO loop for n iterations
+
+        :parameters:
+            n: (int): (optional) Number of iteration that will be done
+            monitoring_freq: (int): (optional) Monitoring frequency [frames]
+        """
+        self._sim.loop(n, monitoring_freq=monitoring_freq)
+
     def singleNext(self, moveAtmos: bool=True, showAtmos: bool=True, getPSF: bool=False,
                    getResidual: bool=False) -> None:
         '''
@@ -71,11 +81,11 @@ class RTCSupervisor(BenchSupervisor):
             self.fakewfs.recv(self.frame, 0)
             p_wfs = self._sim.config.p_wfss[0]
             if p_wfs.type == WFSType.SH:
-                self.rtc.load_rtc_img(0, self.frame.copy())
+                self.rtc.d_centro[0].load_img(self.frame, self.frame.shape[0])
                 #for SH
-                self.rtc.fill_rtc_bincube(0, self.npix)
+                self.rtc.d_centro[0].fill_bincube(self.npix)
             elif p_wfs.type == WFSType.PYRHR:
-                self.rtc.load_rtc_pyrimg(0, self.frame)
+                self.rtc.d_centro[0].load_pyrimg(self.frame, self.frame.shape[0])
             else:
                 raise RuntimeError("WFS Type not usable")
         # print("frame")
@@ -84,9 +94,9 @@ class RTCSupervisor(BenchSupervisor):
         # print("slopes")
         # print(self.rtc.get_centroids(0))
         self.rtc.do_control(0)
-        self.rtc.save_com(0)
+        self.rtc.d_control[0].command_delay()
         # print("Send a command")
-        comms = self.rtc.get_com(0)
+        comms = np.array(self.rtc.d_control[0].d_com)
         # print("comms")
         # print(comms)
         self.fakedms.send(comms)
@@ -106,10 +116,12 @@ class RTCSupervisor(BenchSupervisor):
             raise RuntimeError("multi WFS not supported")
         p_wfs = self._sim.config.p_wfss[0]
 
-        self.context = naga_context(devices=np.array([0], dtype=np.int32))
+        # self.context = naga_context.get_instance_1gpu(0)
+        self.context = naga_context.get_instance_ngpu(1, np.array([0], dtype=np.int32))
 
         print("->cam")
-        self.frame = np.zeros((p_wfs._framesizex, p_wfs._framesizey), dtype=np.float32)
+        self.frame = np.zeros((p_wfs._framesizex, p_wfs._framesizey), dtype=np.float32,
+                              order="F")
         self.fakewfs = Octopus.getInterface(**p_wfs._frameInterface)
 
         print("->dm")
@@ -120,7 +132,7 @@ class RTCSupervisor(BenchSupervisor):
         nvalid = p_wfs._nvalid
         self.cmat = Octopus.getInterface(
                 **self._sim.config.p_controllers[0]._cmatInterface)
-        cMat_data = np.zeros((nact, nvalid * 2), dtype=np.float32)
+        cMat_data = np.zeros((nact, nvalid * 2), dtype=np.float32, order="F")
         self.cmat.recv(cMat_data, 0)
 
         self.valid = Octopus.getInterface(**p_wfs._validsubsInterface)
@@ -141,13 +153,13 @@ class RTCSupervisor(BenchSupervisor):
             #     xvalid = dataS.data["roiTab"].data[0, :] / self.npix
             #     yvalid = dataS.data["roiTab"].data[1, :] / self.npix
             # else:
-            
+
             xvalid = tmp_valid[0, :] // self.npix
             yvalid = tmp_valid[1, :] // self.npix
             offset = (self.npix + 1) / 2
             scale = p_wfs.pixsize
         elif p_wfs.type == WFSType.PYRHR:
-            tmp_valid = np.zeros((2, nvalid*4), dtype=np.int32)
+            tmp_valid = np.zeros((2, nvalid * 4), dtype=np.int32)
             self.valid.recv(tmp_valid, 0)
             self._sim.config.p_nvalid = tmp_valid
             xvalid = tmp_valid[0, :]
@@ -167,11 +179,11 @@ class RTCSupervisor(BenchSupervisor):
         self.rtc = rtc_standalone(self.context, wfsNb, [nvalid], nact,
                                   self._sim.config.p_centroiders[0].type, 1, offset,
                                   scale, brahma=self.BRAHMA)
-        self.rtc.set_decayFactor(0, np.ones(nact, dtype=np.float32))
-        self.rtc.set_matE(0, np.identity(nact, dtype=np.float32))
-        self.rtc.set_mgain(0, np.ones(nact, dtype=np.float32) * gain)
-        self.rtc.set_cmat(0, cMat_data)
-        self.rtc.load_rtc_validpos(0, xvalid, yvalid)
+        self.rtc.d_control[0].set_decayFactor(np.ones(nact, dtype=np.float32))
+        self.rtc.d_control[0].set_matE(np.identity(nact, dtype=np.float32))
+        self.rtc.d_control[0].set_mgain(np.ones(nact, dtype=np.float32) * gain)
+        self.rtc.d_control[0].set_cmat(cMat_data)
+        self.rtc.d_centro[0].load_validpos(xvalid, yvalid, nvalid)
 
         self._sim.is_init = True
 

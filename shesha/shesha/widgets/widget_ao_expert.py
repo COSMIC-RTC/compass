@@ -169,8 +169,8 @@ class WidgetAOExpert(ExpertClassTemplate):
         else:
             self.uiExpert.wao_wfsIsLGS.setChecked(False)
 
-        if (self.sim.config.p_wfss[nwfs].type == b"pyrhr" or
-                    self.sim.config.p_wfss[nwfs].type == b"pyr"):
+        if (self.sim.config.p_wfss[nwfs].type == "pyrhr" or
+                    self.sim.config.p_wfss[nwfs].type == "pyr"):
             self.uiExpert.wao_wfs_plotSelector.setCurrentIndex(3)
         self.updatePlotWfs()
 
@@ -446,13 +446,13 @@ class WidgetAOExpert(ExpertClassTemplate):
                 data = self.sim.rtc.get_cmm(0)
                 self.sim.rtc.set_cmm(0, tmp)
             elif (type_matrix == "Cmm inverse" and
-                  self.sim.config.p_controllers[0].type == b"mv"):
+                  self.sim.config.p_controllers[0].type == "mv"):
                 data = self.sim.rtc.get_cmm(0)
             elif (type_matrix == "Cmm eigen" and
-                  self.sim.config.p_controllers[0].type == b"mv"):
+                  self.sim.config.p_controllers[0].type == "mv"):
                 data = self.sim.rtc.getCmmEigenvals(0)
             elif (type_matrix == "Cphim" and
-                  self.sim.config.p_controllers[0].type == b"mv"):
+                  self.sim.config.p_controllers[0].type == "mv"):
                 data = self.sim.rtc.get_cphim(0)
 
             if (data is not None):

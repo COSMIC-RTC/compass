@@ -33,8 +33,8 @@ class sutra_centroider_pyr : public sutra_centroider {
   string pyr_type;
 
  public:
-  sutra_centroider_pyr(carma_context *context, sutra_sensors *sensors, int nwfs,
-                       long nvalid, float offset, float scale, int device);
+  sutra_centroider_pyr(carma_context *context, sutra_wfs *wfs, long nvalid,
+                       float offset, float scale, int device);
   sutra_centroider_pyr(const sutra_centroider_pyr &centroider);
   ~sutra_centroider_pyr();
 
@@ -57,5 +57,14 @@ class sutra_centroider_pyr : public sutra_centroider {
   float valid_thresh;
   Method_CoG method;
 };
+
+template <class T>
+void pyr_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum,
+                int ns, int nvalid, int nim, carma_device *device);
+
+template <class T>
+void pyr2_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum,
+                 int ns, int nvalid, T scale, T valid_thresh, int do_sin,
+                 carma_device *device);
 
 #endif  // _SUTRA_CENTROIDER_PYR_H_

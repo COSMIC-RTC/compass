@@ -109,11 +109,30 @@ void clip_array(T_data *d_data, T_data min, T_data max, int N,
   carmaCheckMsg("krnl_clip<<<>>> execution failed\n");
 }
 
+template void clip_array<int>(int *d_data, int min, int max, int N,
+                              carma_device *device);
+template void clip_array<unsigned int>(unsigned int *d_data, unsigned int min,
+                                       unsigned int max, int N,
+                                       carma_device *device);
 template void clip_array<float>(float *d_data, float min, float max, int N,
                                 carma_device *device);
-
 template void clip_array<double>(double *d_data, double min, double max, int N,
                                  carma_device *device);
+template <>
+void clip_array(cuFloatComplex *d_data, cuFloatComplex min, cuFloatComplex max,
+                int N, carma_device *device) {
+  throw "not implemented";
+}
+template <>
+void clip_array(cuDoubleComplex *d_data, cuDoubleComplex min,
+                cuDoubleComplex max, int N, carma_device *device) {
+  throw "not implemented";
+}
+template <>
+void clip_array(tuple_t<float> *d_data, tuple_t<float> min, tuple_t<float> max,
+                int N, carma_device *device) {
+  throw "not implemented";
+}
 
 template <class T>
 __global__ void krnl_fillindex(T *odata, T *idata, int *indx, int N) {

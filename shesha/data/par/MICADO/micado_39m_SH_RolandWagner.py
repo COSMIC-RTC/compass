@@ -37,7 +37,7 @@ for p_target in p_targets:
     p_target.set_mag(4.)
 
 #wfs
-p_wfs0 = conf.Param_wfs(error_budget=True)
+p_wfs0 = conf.Param_wfs(roket=True)
 p_wfss = [p_wfs0]
 
 p_wfs0.set_type("sh")

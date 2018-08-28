@@ -11,7 +11,6 @@
 #include <vector>
 
 using std::string;
-class sutra_sensors;
 class sutra_wfs_geom : public sutra_wfs {
  public:
  public:
@@ -26,7 +25,10 @@ class sutra_wfs_geom : public sutra_wfs {
   int slopes_geom(int type);
 
   int define_mpi_rank(int rank, int size) { return EXIT_SUCCESS; }
-  int allocate_buffers(sutra_sensors *sensors) { return EXIT_SUCCESS; }
+  int allocate_buffers(map<vector<int>, cufftHandle *> campli_plans,
+                       map<vector<int>, cufftHandle *> fttotim_plans) {
+    return EXIT_SUCCESS;
+  }
 
   int fill_binimage(int async) { return 0; }
   int comp_image() { return 0; }

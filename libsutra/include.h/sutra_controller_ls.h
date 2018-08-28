@@ -40,8 +40,8 @@ class sutra_controller_ls : public sutra_controller {
   carma_obj<float> *d_compbuff2;  // Buffer for POLC computation
 
  public:
-  sutra_controller_ls(carma_context *context, long nvalid, long nactu,
-                      float delay, sutra_dms *dms, char **type, float *alt,
+  sutra_controller_ls(carma_context *context, long nvalid, long nslope,
+                      long nactu, float delay, sutra_dms *dms, int *idx_dms,
                       int ndm);
   sutra_controller_ls(const sutra_controller_ls &controller);
   ~sutra_controller_ls();

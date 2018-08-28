@@ -1,9 +1,9 @@
 #include <sutra_controller.h>
 #include <string>
 
-sutra_controller::sutra_controller(carma_context *context, int nslope,
-                                   int nactu, float delay, sutra_dms *dms,
-                                   char **type, float *alt, int ndm) {
+sutra_controller::sutra_controller(carma_context *context, int nvalid,
+                                   int nslope, int nactu, float delay,
+                                   sutra_dms *dms, int *idx_dms, int ndm) {
   this->current_context = context;
   this->device = context->get_activeDevice();
 
@@ -48,7 +48,7 @@ sutra_controller::sutra_controller(carma_context *context, int nslope,
 
   long dims_data1[2] = {1, 0};
 
-  dims_data1[1] = nslope / 2;
+  dims_data1[1] = nvalid;
   this->d_subsum = new carma_obj<float>(context, dims_data1);
   this->d_subsum->reset();
 
@@ -70,7 +70,7 @@ sutra_controller::sutra_controller(carma_context *context, int nslope,
   this->d_voltage = new carma_obj<float>(context, dims_data1);
 
   for (int i = 0; i < ndm; i++) {
-    this->d_dmseen.push_back(dms->d_dms[dms->get_inddm(type[i], alt[i])]);
+    this->d_dmseen.push_back(dms->d_dms[idx_dms[i]]);
   }
 }
 
@@ -144,7 +144,11 @@ int sutra_controller::command_delay() {
 
 void sutra_controller::clip_voltage(float min, float max) {
   current_context->set_activeDevice(device, 1);
-  this->d_com->clip(min, max);
+  if (min < max)
+    this->d_com->clip(min, max);
+  else
+    DEBUG_TRACE(
+        "max value must be greater than min value. Nothing has been done.");
 }
 
 int sutra_controller::comp_voltage() {
@@ -289,6 +293,16 @@ int sutra_controller::invgen(carma_obj<float> *d_mat, float cond, int job) {
   delete d_eigenvals_inv;
   delete h_eigenvals;
   delete h_eigenvals_inv;
+
+  return EXIT_SUCCESS;
+}
+
+int sutra_controller::set_com(float *com, int nElem) {
+  current_context->set_activeDevice(device, 1);
+  if (nElem == this->d_com->getNbElem())
+    this->d_com->host2device(com);
+  else
+    DEBUG_TRACE("Wrong dimension of com");
 
   return EXIT_SUCCESS;
 }

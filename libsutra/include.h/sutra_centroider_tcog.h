@@ -8,9 +8,8 @@ class sutra_centroider_tcog : public sutra_centroider {
   float threshold;
 
  public:
-  sutra_centroider_tcog(carma_context *context, sutra_sensors *sensors,
-                        int nwfs, long nvalid, float offset, float scale,
-                        int device);
+  sutra_centroider_tcog(carma_context *context, sutra_wfs *wfs, long nvalid,
+                        float offset, float scale, int device);
   sutra_centroider_tcog(const sutra_centroider &centroider);
   ~sutra_centroider_tcog();
 
@@ -24,4 +23,8 @@ class sutra_centroider_tcog : public sutra_centroider {
   int get_cog();
 };
 
+template <class T>
+void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
+                   T *d_odata, T *alpha, T thresh, T scale, T offset,
+                   carma_device *device);
 #endif  // _SUTRA_CENTROIDER_TCOG_H_

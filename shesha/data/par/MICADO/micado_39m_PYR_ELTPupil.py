@@ -75,7 +75,7 @@ p_target.set_ypos(0)
 p_target.set_Lambda(2.2)
 p_target.set_mag(4)
 # wfs
-p_wfs0 = ao.Param_wfs(error_budget=True)
+p_wfs0 = ao.Param_wfs(roket=True)
 #p_wfs0= ao.Param_wfs()
 p_wfss = [p_wfs0]
 
@@ -119,7 +119,7 @@ nact = p_wfs0.nxsub + 1
 #p_dm0.set_nact(nact)
 p_dm0.set_nact(73)  #73 actuators for a projected M4 pitch of 53cm
 p_dm0.set_alt(0.)
-p_dm0.set_thresh(0.6)  # fraction units 0.1 = keep DM with 10% illumination
+p_dm0.set_thresh(0.6)  # fraction units
 # !!!!!!!!!!!!!!!!!!!!!!!!! attention pas autre chose que 0.2 !!!!!!!!!
 p_dm0.set_coupling(0.2)
 p_dm0.set_unitpervolt(1)

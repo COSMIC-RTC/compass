@@ -36,7 +36,7 @@ if arguments["--devices"]:
     sim.config.p_loop.set_devices(devices)
 
 sim.init_sim()
-nactu = sim.config.p_controller0.nactu.sum()
+nactu = sim.config.p_controller0.nactu
 nvalid = sim.config.p_controller0.nvalid
 offset = 0
 p_wfs = sim.config.p_wfs0

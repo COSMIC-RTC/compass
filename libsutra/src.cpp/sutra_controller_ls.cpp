@@ -2,10 +2,10 @@
 #include <string>
 
 sutra_controller_ls::sutra_controller_ls(carma_context *context, long nvalid,
-                                         long nactu, float delay,
-                                         sutra_dms *dms, char **type,
-                                         float *alt, int ndm)
-    : sutra_controller(context, nvalid * 2, nactu, delay, dms, type, alt, ndm) {
+                                         long nslope, long nactu, float delay,
+                                         sutra_dms *dms, int *idx_dms, int ndm)
+    : sutra_controller(context, nvalid, nslope, nactu, delay, dms, idx_dms,
+                       ndm) {
   this->d_imat = 0L;
   this->d_cmat = 0L;
   this->d_eigenvals = 0L;
@@ -19,23 +19,23 @@ sutra_controller_ls::sutra_controller_ls(carma_context *context, long nvalid,
   long dims_data1[2] = {1, 0};
   long dims_data2[3] = {2, 0, 0};
 
-  dims_data2[1] = nvalid * 2;
+  dims_data2[1] = nslope;
   dims_data2[2] = nactu;
   this->d_imat = new carma_obj<float>(context, dims_data2);
 
   dims_data2[1] = nactu;
-  dims_data2[2] = nvalid * 2;
+  dims_data2[2] = nslope;
   this->d_cmat = new carma_obj<float>(context, dims_data2);
 
   dims_data2[1] = dims_data2[2] = nactu;
   d_U = new carma_obj<float>(current_context, dims_data2);
 
-  dims_data1[1] = nvalid * 2 < nactu ? nvalid * 2 : nactu;
+  dims_data1[1] = nslope < nactu ? nslope : nactu;
   this->d_eigenvals = new carma_obj<float>(context, dims_data1);
   this->h_eigenvals = new carma_host_obj<float>(dims_data1, MA_PAGELOCK);
 
   if (delay > 0) {
-    dims_data2[1] = nvalid * 2;
+    dims_data2[1] = nslope;
     dims_data2[2] = (int)delay + 1;
     this->d_cenbuff = new carma_obj<float>(context, dims_data2);
   } else
@@ -101,7 +101,8 @@ int sutra_controller_ls::svdec_imat() {
 
   if (!magma_disabled()) {
     // we can skip this step syevd use only the lower part
-    // fill_sym_matrix('U', d_U->getData(), nactu, nactu * nactu);
+    fill_sym_matrix('U', d_U->getData(), nactu(), nactu() * nactu(),
+                    current_context->get_device(device));
 
     // doing evd of U inplace
     if (carma_syevd<float, 1>('V', d_U, h_eigenvals) == EXIT_FAILURE) {
@@ -109,7 +110,7 @@ int sutra_controller_ls::svdec_imat() {
       // Case where MAGMA is not feeling good :-/
       return EXIT_FAILURE;
     }
-    d_eigenvals->host2device(*h_eigenvals);
+    d_eigenvals->host2device(h_eigenvals->getData());
   } else {  // CULA case
     // We fill the upper matrix part of the matrix
     fill_sym_matrix<float>('L', *d_U, nactu(), nactu() * nactu(),
@@ -424,8 +425,8 @@ int sutra_controller_ls::modalControlOptimization() {
                0.0f, d_phaseError.getData(), 1);
 
     // Find and store optimum gain for mode i
-    imin = carma_wheremin(cublas_handle(), this->ngain, d_phaseError.getData(),
-                          1) -
+    imin = carma_where_amin(cublas_handle(), this->ngain,
+                            d_phaseError.getData(), 1) -
            1;
     mgain[i] =
         this->gmin + imin * (this->gmax - this->gmin) / (this->ngain - 1);

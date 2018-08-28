@@ -8,6 +8,7 @@
 #ifndef SUTRA_ACQUISIM_H_
 #define SUTRA_ACQUISIM_H_
 
+#include <sutra_sensors.h>
 #include <sutra_wfs_sh.h>
 
 class sutra_acquisim {

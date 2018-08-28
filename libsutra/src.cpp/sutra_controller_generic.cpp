@@ -1,16 +1,17 @@
 #include <sutra_controller_generic.h>
 
 sutra_controller_generic::sutra_controller_generic(carma_context *context,
-                                                   long nvalid, long nactu,
-                                                   float delay, sutra_dms *dms,
-                                                   char **type, float *alt,
+                                                   long nvalid, long nslope,
+                                                   long nactu, float delay,
+                                                   sutra_dms *dms, int *idx_dms,
                                                    int ndm)
-    : sutra_controller(context, 2 * nvalid, nactu, delay, dms, type, alt, ndm) {
+    : sutra_controller(context, nvalid, nslope, nactu, delay, dms, idx_dms,
+                       ndm) {
   long dims_data1[2] = {1, nactu};
   this->d_gain = new carma_obj<float>(current_context, dims_data1);
   this->d_decayFactor = new carma_obj<float>(current_context, dims_data1);
   this->d_compbuff = new carma_obj<float>(current_context, dims_data1);
-  long dims_data2[3] = {2, nactu, 2 * nvalid};
+  long dims_data2[3] = {2, nactu, nslope};
   this->d_cmat = new carma_obj<float>(current_context, dims_data2);
 
   dims_data2[2] = nactu;

@@ -7,7 +7,7 @@ import time
 import shesha.config as conf
 import shesha.constants as scons
 
-from shesha.sutra_bind.wrap import Rtc
+from shesha.sutra_wrap import Rtc
 
 from shesha.ao.wfs import noise_cov
 
@@ -44,11 +44,11 @@ def cmat_init(ncontrol: int, rtc: Rtc, p_controller: conf.Param_controller,
     if (p_controller.type == scons.ControllerType.LS):
         print("Doing imat svd...")
         t0 = time.time()
-        rtc.imat_svd(ncontrol)
+        rtc.d_control[ncontrol].svdec_imat()
         print("svd done in %f s" % (time.time() - t0))
-        eigenv = rtc.get_eigenvals(ncontrol)
+        eigenv = np.array(rtc.d_control[ncontrol].d_eigenvals)
 
-        imat = rtc.get_imat(ncontrol)
+        imat = np.array(rtc.d_control[ncontrol].d_imat)
         maxcond = p_controller.maxcond
         if (eigenv[0] < eigenv[eigenv.shape[0] - 1]):
             mfilt = np.where((eigenv / eigenv[eigenv.shape[0] - 3]) < 1. / maxcond)[0]
@@ -60,7 +60,7 @@ def cmat_init(ncontrol: int, rtc: Rtc, p_controller: conf.Param_controller,
         t0 = time.time()
         if KL2V is None:
             print("Filtering ", nfilt, " modes")
-            rtc.build_cmat(ncontrol, nfilt)
+            rtc.d_control[ncontrol].build_cmat(nfilt)
         else:
             ntt = 0
             pii = 0
@@ -85,7 +85,7 @@ def cmat_init(ncontrol: int, rtc: Rtc, p_controller: conf.Param_controller,
                         print(KL2V.shape[1])
                         raise TypeError("incorect size for klgain vector")
                 cmat_filt = KL2V.dot(Dp_filt)
-                rtc.set_cmat(ncontrol, cmat_filt)
+                rtc.d_control[ncontrol].set_cmat(cmat_filt)
 
         print("cmat done in %f s" % (time.time() - t0))
 
@@ -96,14 +96,14 @@ def cmat_init(ncontrol: int, rtc: Rtc, p_controller: conf.Param_controller,
             Cn[ind:ind + 2 * p_wfss[k]._nvalid] = noise_cov(k, p_wfss[k], p_atmos, p_tel)
             ind += 2 * p_wfss[k]._nvalid
 
-        rtc.load_Cn(ncontrol, Cn)
+        rtc.d_control[ncontrol].load_noisemat(Cn)
         print("Building cmat...")
-        rtc.build_cmat_mv(ncontrol, p_controller.maxcond)
+        rtc.d_control[ncontrol].build_cmat(p_controller.maxcond)
 
-        if (p_controller.TTcond == 0):
+        if (p_controller.TTcond == None):
             p_controller.set_TTcond(p_controller.maxcond)
 
         if ("tt" in [dm.type for dm in p_dms]):
-            rtc.filter_cmat(ncontrol, p_controller.TTcond)
+            rtc.d_control[ncontrol].filter_cmat(p_controller.TTcond)
         print("Done")
-    p_controller.set_cmat(rtc.get_cmat(ncontrol))
+    p_controller.set_cmat(np.array(rtc.d_control[ncontrol].d_cmat))

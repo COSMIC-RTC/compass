@@ -2,10 +2,9 @@
 
 sutra_controller_geo::sutra_controller_geo(carma_context *context, long nactu,
                                            long Nphi, float delay,
-                                           sutra_dms *dms, char **type,
-                                           float *alt, int ndm,
-                                           bool wfs_direction)
-    : sutra_controller(context, 0, nactu, 0.0f, dms, type, alt, ndm) {
+                                           sutra_dms *dms, int *idx_dms,
+                                           int ndm, bool wfs_direction)
+    : sutra_controller(context, 0, 0, nactu, 0.0f, dms, idx_dms, ndm) {
   this->gain = 0.0f;
   this->Nphi = Nphi;
 
@@ -107,7 +106,7 @@ int sutra_controller_geo::init_proj(sutra_dms *dms, int *indx_dm,
     dm->get_IF<float>(d_IF.getDataAt(indx_start * this->Nphi),
                       d_indx.getDataAt(this->Nphi * ind), this->Nphi,
                       1.0f /*unitpervolt[ind]*/);
-    indx_start += dm->ninflu;
+    indx_start += dm->nactus;
     ind++;
     p++;
   }
@@ -166,9 +165,9 @@ int sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm,
                               this->Nphi, 1.0f, 1);
     dm->reset_shape();
     NNZ[ind] = d_IFi[ind]->nz_elem;
-    Nact[ind] = dm->ninflu;
+    Nact[ind] = dm->nactus;
     nnz += d_IFi[ind]->nz_elem;
-    indx_start += dm->ninflu;
+    indx_start += dm->nactus;
     ind++;
     p++;
   }
@@ -193,14 +192,14 @@ int sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm,
                                   cudaMemcpyDeviceToDevice));
     if (i == 0)
       carmaSafeCall(cudaMemcpyAsync(d_row.getData(), d_IFi[i]->d_rowind,
-                                    sizeof(int) * (dm->ninflu + 1),
+                                    sizeof(int) * (dm->nactus + 1),
                                     cudaMemcpyDeviceToDevice));
     else
       carmaSafeCall(cudaMemcpyAsync(
           d_row.getDataAt(nact + 1), &(d_IFi[i]->d_rowind[1]),
-          sizeof(int) * (dm->ninflu), cudaMemcpyDeviceToDevice));
+          sizeof(int) * (dm->nactus), cudaMemcpyDeviceToDevice));
     cpt[i + 1] = cpt[i] + d_IFi[i]->nz_elem;
-    nact += dm->ninflu;
+    nact += dm->nactus;
     p++;
     delete d_IFi[i];
   }
@@ -236,9 +235,8 @@ int sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm,
   doubletofloat(d_tmp2->getData(), this->d_geocov->getData(),
                 this->d_geocov->getNbElem(),
                 current_context->get_device(device));
-  mult_vect(this->d_geocov->getData(), 1.0f / this->Nphi,
-            this->d_geocov->getNbElem(),
-            this->current_context->get_device(device));
+
+  this->d_geocov->scale(1.0f / this->Nphi, 1);
   carma_potri(d_geocov);
   // invgen(d_geocov,2.0f,0);
   delete d_tmp;
@@ -260,13 +258,13 @@ int sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm,
       if (dm->type == "tt") {
         // dm->get_IF(this->d_TT->getDataAt(ind*Nphi),
         // d_indx.getDataAt(this->Nphi * ind2), this->Nphi, 1.0f);
-        for (int i = 0; i < dm->ninflu; i++) {
+        for (int i = 0; i < dm->nactus; i++) {
           dm->comp_oneactu(i, 1.0f);
 
           getIF<float>(this->d_TT->getDataAt(ind * this->Nphi),
                        dm->d_shape->d_screen->getData(),
                        d_indx.getDataAt(ind2 * this->Nphi), this->Nphi, 0,
-                       dm->ninflu, 1,
+                       dm->nactus, 1,
                        this->current_context->get_device(device));
           dm->reset_shape();
 
