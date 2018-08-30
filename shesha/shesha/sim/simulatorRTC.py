@@ -18,7 +18,8 @@ class SimulatorRTC(Simulator):
         Class SimulatorRTC: COMPASS simulation linked to real RTC with Octopus
     """
 
-    def __init__(self, filepath: str=None, fastMode: bool=False) -> None:
+    def __init__(self, filepath: str=None, fastMode: bool=False,
+                 location: str="CPUSHM") -> None:
         """
         Initializes a Simulator instance
 
@@ -31,6 +32,7 @@ class SimulatorRTC(Simulator):
         self.rtcconf = lambda x: None
         self.frame = None
         self.fastMode = fastMode
+        self.location = location
 
         if filepath is not None:
             self.load_from_file(filepath)
@@ -132,10 +134,15 @@ class SimulatorRTC(Simulator):
             Simulator.next(self, move_atmos=move_atmos, see_atmos=see_atmos,
                            nControl=nControl, tar_trace=[0], wfs_trace=[0],
                            do_control=False)
-            self.frame = np.array(self.wfs.d_wfs[0].d_binimg)
-        #self.fakewfs.send(self.frame)
-        self.fakewfs.copyFrom(self.wfs.d_wfs[0].d_binimg)
-        self.fakewfs.notify()
+            if (self.location == "CPUSHM"):
+                self.frame = np.array(self.wfs.d_wfs[0].d_binimg)
+        if (self.location == "CPUSHM"):
+            self.fakewfs.send(self.frame)
+        elif (self.location == "GPUSHM"):
+            self.fakewfs.copyFrom(self.wfs.d_wfs[0].d_binimg)
+            self.fakewfs.notify()
+        else:
+            raise ValueError("location not known")
         if apply_control:
             # print("Wait a command...")
             self.fakedms.recv(self.comp, 0)
