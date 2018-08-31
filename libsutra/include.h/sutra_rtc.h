@@ -23,10 +23,10 @@ class sutra_rtc {
  public:
   sutra_rtc();
   ~sutra_rtc();
-
   int add_centroider(carma_context *context, long nvalid, float offset,
-                     float scale, long device, char *typec,
-                     sutra_wfs *wfs = nullptr);
+                     float scale, long device, char *typec);
+  int add_centroider(carma_context *context, long nvalid, float offset,
+                     float scale, long device, char *typec, sutra_wfs *wfs);
   int rm_centroider();
   int add_controller_geo(carma_context *context, int nactu, int Nphi,
                          float delay, long device, sutra_dms *dms, int *idx_dms,

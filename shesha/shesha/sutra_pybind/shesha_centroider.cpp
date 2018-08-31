@@ -134,6 +134,17 @@ void declare_shesha_centroider(py::module &mod) {
     )pbdoc",
            py::arg("img"), py::arg("n"))
 
+      .def("load_pyrimg", wy::colCast(&sutra_centroider::load_pyrimg), R"pbdoc(
+            Load a PYR image in a RTC standalone (host to device) in the d_bincube vector
+            which is represented as a 2D array in the PYR case
+
+        Parameters
+        ------------
+        img: (np.ndarray[ndim=2, dtype=np.float32_t]): PYR image
+        n: (int): Image support size
+    )pbdoc",
+           py::arg("img"), py::arg("n"))
+
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝
       //  ███████╗█████╗     ██║      ██║   █████╗  ██████╔╝███████╗

@@ -68,6 +68,7 @@ class SimulatorRTC(Simulator):
         framesizey = p_wfs._framesizey
         nvalid = p_wfs._nvalid
         self.frame = np.array(self.wfs.d_wfs[0].d_binimg)
+        nslopes = self.rtc.d_centro[0].nslopes
 
         if self.frame.shape != (framesizex, framesizey):
             raise RuntimeError("framesize not match with the simulation")
@@ -75,7 +76,7 @@ class SimulatorRTC(Simulator):
         if self.rtc.d_control[0].d_voltage.nbElem != nact:
             raise RuntimeError("nact not match with the simulation")
 
-        if np.any(self.rtc.d_control[0].d_cmat.shape != [nact, nvalid * 2]):
+        if np.any(self.rtc.d_control[0].d_cmat.shape != [nact, nslopes]):
             raise RuntimeError("cmat not match with the simulation")
 
         self.fakewfs = Octopus.getInterface(**p_wfs._frameInterface)
@@ -144,6 +145,5 @@ class SimulatorRTC(Simulator):
         else:
             raise ValueError("location not known")
         if apply_control:
-            # print("Wait a command...")
             self.fakedms.recv(self.comp, 0)
             self.dms.set_full_com(self.comp)

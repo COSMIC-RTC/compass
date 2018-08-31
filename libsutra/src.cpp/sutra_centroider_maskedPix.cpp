@@ -7,7 +7,10 @@ sutra_centroider_maskedPix::sutra_centroider_maskedPix(
     : sutra_centroider(context, wfs, nvalid, offset, scale, device) {
   context->set_activeDevice(device, 1);
 
-  this->nslopes = wfs->d_validsubsx->getNbElem();
+  if (wfs != nullptr)
+    this->nslopes = wfs->d_validsubsx->getNbElem();
+  else
+    this->nslopes = nvalid * npupils;
   long dims_data[2] = {1, this->nslopes};
   this->d_subsum = new carma_obj<float>(context, dims_data);
 }

@@ -19,6 +19,10 @@ sutra_rtc::~sutra_rtc() {
 
   // delete this->context;
 }
+int sutra_rtc::add_centroider(carma_context *context, long nvalid, float offset,
+                              float scale, long device, char *typec) {
+  return add_centroider(context, nvalid, offset, scale, device, typec, nullptr);
+}
 
 int sutra_rtc::add_centroider(carma_context *context, long nvalid, float offset,
                               float scale, long device, char *typec,
@@ -42,7 +46,10 @@ int sutra_rtc::add_centroider(carma_context *context, long nvalid, float offset,
     d_centro.push_back(
         new sutra_centroider_wcog(context, wfs, nvalid, offset, scale, device));
   else if (strcmp(typec, "maskedpix") == 0) {
-    if (wfs->type == "pyrhr") {
+    if (wfs == nullptr) {
+      d_centro.push_back(new sutra_centroider_maskedPix(context, wfs, nvalid, 4,
+                                                        offset, scale, device));
+    } else if (wfs->type == "pyrhr") {
       sutra_wfs_pyr_pyrhr *pwfs = dynamic_cast<sutra_wfs_pyr_pyrhr *>(wfs);
       d_centro.push_back(new sutra_centroider_maskedPix(
           context, pwfs, nvalid, pwfs->npupils, offset, scale, device));

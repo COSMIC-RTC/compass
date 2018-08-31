@@ -40,7 +40,11 @@ void declare_shesha_rtc(py::module &mod) {
       //  ██║╚██╔╝██║██╔══╝     ██║   ██╔══██║██║   ██║██║  ██║╚════██║
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
-      .def("add_centroider", wy::colCast(&sutra_rtc::add_centroider), R"pbdoc(
+      .def("add_centroider",
+           wy::colCast((int (sutra_rtc::*)(carma_context *, long, float, float,
+                                           long, char *, sutra_wfs *)) &
+                       sutra_rtc::add_centroider),
+           R"pbdoc(
         Add a sutra_centroider object in the RTC
 
         Parameters
@@ -56,7 +60,27 @@ void declare_shesha_rtc(py::module &mod) {
     )pbdoc",
            py::arg("context"), py::arg("nvalid"), py::arg("offset"),
            py::arg("scale"), py::arg("device"), py::arg("typec"),
-           py::arg("wfs") = nullptr)
+           py::arg("wfs"))
+
+      .def("add_centroider",
+           wy::colCast((int (sutra_rtc::*)(carma_context *, long, float, float,
+                                           long, char *)) &
+                       sutra_rtc::add_centroider),
+           R"pbdoc(
+        Add a sutra_centroider object in the RTC
+
+        Parameters
+        ------------
+        context: (carma_context): carma context
+        nvalid:(int): Number of WFS valid ssp
+        offset: (float): offset for centroiding computation
+        scale: (float): scale factor to get the right unit, ie. arcsec
+        device: (int): GPU device index
+        typec: (str): Centroider type
+
+    )pbdoc",
+           py::arg("context"), py::arg("nvalid"), py::arg("offset"),
+           py::arg("scale"), py::arg("device"), py::arg("typec"))
 
       .def("add_controller", wy::colCast(&sutra_rtc::add_controller), R"pbdoc(
         Add a sutra_controller object in the RTC
