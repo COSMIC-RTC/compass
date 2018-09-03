@@ -12,7 +12,7 @@ endif()
 message("Building for Compute Capability ${CUDA_SM}")
 
 if( ${CUDA_SM} STREQUAL "ALL")
-    set(CUDA_SM "30" "35" "37" "52" "60" "61" "70")
+    set(CUDA_SM "30" "35" "37" "50" "52" "60" "61" "70")
 endif()
 
 foreach(SM ${CUDA_SM})
