@@ -129,7 +129,7 @@ target_include_directories(sutra
 target_compile_options(sutra
     PUBLIC
     $<$<COMPILE_LANGUAGE:CXX>: ${BRAHMA_FLAGS}>
-    $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -fPIC -use_fast_math -gencode arch=compute_${CUDA_SM},code=sm_${CUDA_SM}>
+    $<$<COMPILE_LANGUAGE:CUDA>:${CUDA_SM_FLAG} -Xcompiler -fPIC -use_fast_math >
 )
 
 

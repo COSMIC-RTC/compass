@@ -11,6 +11,14 @@ else()
 endif()
 message("Building for Compute Capability ${CUDA_SM}")
 
+if( ${CUDA_SM} STREQUAL "ALL")
+    set(CUDA_SM "30" "35" "37" "52" "60" "61" "70")
+endif()
+
+foreach(SM ${CUDA_SM})
+    list( APPEND CUDA_SM_FLAG "-gencode=arch=compute_${SM},code=sm_${SM}")
+endforeach(SM)
+
 add_subdirectory(libcarma)
 add_subdirectory(naga)
 add_subdirectory(libsutra)

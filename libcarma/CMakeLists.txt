@@ -6,14 +6,6 @@ project(carma
     LANGUAGES CXX CUDA
 )
 
-if(DEFINED ENV{CUDA_SM})
-    set(CUDA_SM $ENV{CUDA_SM})
-else()
-    message("Probing the (first) GPU for its compute capability...")
-    execute_process(COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/scripts/get_cuda_sm.sh"  RESULT_VARIABLE CUDA_SM)
-endif()
-message("Building for Compute Capability ${CUDA_SM}")
-
 # EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
 # message( STATUS "Architecture: ${ARCHITECTURE}" )
 # ifeq ($(OS_ARCH),armv7l)
@@ -84,12 +76,13 @@ target_include_directories(carma
     $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CURRENT_SOURCE_DIR}/include.h ${CMAKE_CURRENT_SOURCE_DIR}/include.cuh>
 )
 
+
 target_compile_options(carma
     PUBLIC
     $<$<COMPILE_LANGUAGE:CXX>:-DVERSION_INFO=${VERSION_INFO}>
     PRIVATE
     $<$<COMPILE_LANGUAGE:CXX>:-DUSE_MAGMA ${MAGMA_CFLAGS_OTHER}>
-    $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -fPIC -use_fast_math -gencode arch=compute_${CUDA_SM},code=sm_${CUDA_SM}>
+    $<$<COMPILE_LANGUAGE:CUDA>:${CUDA_SM_FLAG} -Xcompiler -fPIC -use_fast_math >
 )
 
 target_link_libraries(carma PRIVATE ${MAGMA_LIBRARIES} ${CUDA_LIBRARIES} ${CUDA_cufft_LIBRARY} ${CUDA_cublas_LIBRARY} ${CUDA_curand_LIBRARY} ${CUDA_cusparse_LIBRARY} )
