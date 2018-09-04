@@ -3,16 +3,8 @@ cmake_minimum_required (VERSION 3.8)
 project(carma
     VERSION ${VERSION_INFO}
     DESCRIPTION "COMPASS CARMA lirary"
-    LANGUAGES CXX CUDA
+    LANGUAGES CUDA CXX
 )
-
-if(DEFINED ENV{CUDA_SM})
-    set(CUDA_SM $ENV{CUDA_SM})
-else()
-    message("Probing the (first) GPU for its compute capability...")
-    execute_process(COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/scripts/get_cuda_sm.sh"  RESULT_VARIABLE CUDA_SM)
-endif()
-message("Building for Compute Capability ${CUDA_SM}")
 
 # EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
 # message( STATUS "Architecture: ${ARCHITECTURE}" )
@@ -34,8 +26,6 @@ message("Building for Compute Capability ${CUDA_SM}")
 #     CCFLAGS += -m64
 #   endif
 # endif
-
-find_package(CUDA)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(MAGMA REQUIRED magma)
@@ -74,9 +64,12 @@ set_target_properties(carma
     PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
-    CUDA_SEPARABLE_COMPILATION ON
+    # CUDA_SEPARABLE_COMPILATION OFF
 )
-target_compile_features(carma PUBLIC cxx_std_11)
+
+target_compile_features(carma PUBLIC cxx_std_14)
+
+# string (REPLACE ";" " " CMAKE_CUDA_FLAGS "${CUDA_NVCC_FLAGS};${CUDA_ARCH}")
 
 target_include_directories(carma
     PUBLIC
@@ -87,12 +80,16 @@ target_include_directories(carma
 target_compile_options(carma
     PUBLIC
     $<$<COMPILE_LANGUAGE:CXX>:-DVERSION_INFO=${VERSION_INFO}>
+    $<$<COMPILE_LANGUAGE:CUDA>:-use_fast_math >
     PRIVATE
     $<$<COMPILE_LANGUAGE:CXX>:-DUSE_MAGMA ${MAGMA_CFLAGS_OTHER}>
-    $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -fPIC -use_fast_math -gencode arch=compute_${CUDA_SM},code=sm_${CUDA_SM}>
 )
 
-target_link_libraries(carma PRIVATE ${MAGMA_LIBRARIES} ${CUDA_LIBRARIES} ${CUDA_cufft_LIBRARY} ${CUDA_cublas_LIBRARY} ${CUDA_curand_LIBRARY} ${CUDA_cusparse_LIBRARY} )
+find_package(CUDA REQUIRED)
+target_link_libraries(carma
+    PUBLIC ${CUDA_LIBRARIES} ${CUDA_cufft_LIBRARY} ${CUDA_cublas_LIBRARY} ${CUDA_curand_LIBRARY} ${CUDA_cusparse_LIBRARY}
+    PRIVATE ${MAGMA_LIBRARIES}
+)
 
 include(GNUInstallDirs)
 configure_file(carma.pc.in carma.pc @ONLY)
