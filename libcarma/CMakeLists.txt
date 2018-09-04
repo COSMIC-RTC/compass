@@ -66,9 +66,9 @@ set_target_properties(carma
     PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
-    CUDA_SEPARABLE_COMPILATION ON
+    # CUDA_SEPARABLE_COMPILATION OFF
 )
-target_compile_features(carma PUBLIC cxx_std_11)
+target_compile_features(carma PUBLIC cxx_std_14)
 
 target_include_directories(carma
     PUBLIC
@@ -76,16 +76,18 @@ target_include_directories(carma
     $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CURRENT_SOURCE_DIR}/include.h ${CMAKE_CURRENT_SOURCE_DIR}/include.cuh>
 )
 
-
 target_compile_options(carma
     PUBLIC
     $<$<COMPILE_LANGUAGE:CXX>:-DVERSION_INFO=${VERSION_INFO}>
+    $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -fPIC -use_fast_math >
     PRIVATE
     $<$<COMPILE_LANGUAGE:CXX>:-DUSE_MAGMA ${MAGMA_CFLAGS_OTHER}>
-    $<$<COMPILE_LANGUAGE:CUDA>:${CUDA_SM_FLAG} -Xcompiler -fPIC -use_fast_math >
 )
 
-target_link_libraries(carma PRIVATE ${MAGMA_LIBRARIES} ${CUDA_LIBRARIES} ${CUDA_cufft_LIBRARY} ${CUDA_cublas_LIBRARY} ${CUDA_curand_LIBRARY} ${CUDA_cusparse_LIBRARY} )
+target_link_libraries(carma
+    PUBLIC ${CUDA_LIBRARIES} ${CUDA_cufft_LIBRARY} ${CUDA_cublas_LIBRARY} ${CUDA_curand_LIBRARY} ${CUDA_cusparse_LIBRARY}
+    PRIVATE ${MAGMA_LIBRARIES}
+)
 
 include(GNUInstallDirs)
 configure_file(carma.pc.in carma.pc @ONLY)

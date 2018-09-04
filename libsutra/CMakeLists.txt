@@ -6,27 +6,6 @@ project(sutra
     LANGUAGES CXX CUDA
 )
 
-if (DEFINED ENV{BRAHMA_ROOT})
-    SET(BRAHMA_FLAGS -fvisibility-inlines-hidden
-        -fno-strict-aliasing -pthread -pipe -Wno-deprecated-declarations
-        -D_GNU_SOURCE -D__ACE_INLINE__ -DUSE_BRAHMA
-    )
-
-    SET(BRAHMA_DIRS $ENV{ACE_ROOT}/lib $ENV{TAO_ROOT}/tao $ENV{DDS_ROOT}/lib $ENV{BRAHMA_ROOT})
-    link_directories( ${BRAHMA_DIRS} )
-
-    SET(BRAHMA_INC $ENV{BRAHMA_ROOT} $ENV{ACE_ROOT} $ENV{TAO_ROOT}
-            $ENV{TAO_ROOT}/orbsvcs $ENV{DDS_ROOT})
-
-    SET(BRAHMA_CPP src.cpp/sutra_rtc_brahma.cpp
-                src.cpp/sutra_rtc_brahmaListenerImpl.cpp
-                src.cpp/sutra_target_brahma.cpp
-                src.cpp/sutra_target_brahmaListenerImpl.cpp)
-
-    SET(BRAHMA_LIBS BRAHMACommon OpenDDS_InfoRepoDiscovery OpenDDS_Dcps TAO_PortableServer
-        TAO_AnyTypeCode TAO ACE dl rt)
-endif()
-
 # EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
 # message( STATUS "Architecture: ${ARCHITECTURE}" )
 # ifeq ($(OS_ARCH),armv7l)
@@ -49,6 +28,27 @@ endif()
 # endif
 
 find_package(CUDA)
+
+if (DEFINED ENV{BRAHMA_ROOT})
+    SET(BRAHMA_FLAGS -fvisibility-inlines-hidden
+        -fno-strict-aliasing -pthread -pipe -Wno-deprecated-declarations
+        -D_GNU_SOURCE -D__ACE_INLINE__ -DUSE_BRAHMA
+    )
+
+    SET(BRAHMA_DIRS $ENV{ACE_ROOT}/lib $ENV{TAO_ROOT}/tao $ENV{DDS_ROOT}/lib $ENV{BRAHMA_ROOT})
+    link_directories( ${BRAHMA_DIRS} )
+
+    SET(BRAHMA_INC $ENV{BRAHMA_ROOT} $ENV{ACE_ROOT} $ENV{TAO_ROOT}
+            $ENV{TAO_ROOT}/orbsvcs $ENV{DDS_ROOT})
+
+    SET(BRAHMA_CPP src.cpp/sutra_rtc_brahma.cpp
+                src.cpp/sutra_rtc_brahmaListenerImpl.cpp
+                src.cpp/sutra_target_brahma.cpp
+                src.cpp/sutra_target_brahmaListenerImpl.cpp)
+
+    SET(BRAHMA_LIBS BRAHMACommon OpenDDS_InfoRepoDiscovery OpenDDS_Dcps TAO_PortableServer
+        TAO_AnyTypeCode TAO ACE dl rt)
+endif()
 
 add_library(sutra SHARED
     src.cpp/sutra_acquisim.cpp
@@ -116,9 +116,9 @@ set_target_properties(sutra
     PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
-    # CUDA_SEPARABLE_COMPILATION ON
+    # CUDA_SEPARABLE_COMPILATION OFF
 )
-target_compile_features(sutra PUBLIC cxx_std_11)
+target_compile_features(sutra PUBLIC cxx_std_14)
 
 target_include_directories(sutra
     PUBLIC
@@ -129,15 +129,13 @@ target_include_directories(sutra
 target_compile_options(sutra
     PUBLIC
     $<$<COMPILE_LANGUAGE:CXX>: ${BRAHMA_FLAGS}>
-    $<$<COMPILE_LANGUAGE:CUDA>:${CUDA_SM_FLAG} -Xcompiler -fPIC -use_fast_math >
 )
 
 
-target_link_libraries(sutra PUBLIC carma ${CUDA_LIBRARIES} ${CUDA_cufft_LIBRARY} ${CUDA_cublas_LIBRARY} ${CUDA_curand_LIBRARY} ${CUDA_cusparse_LIBRARY} ${BRAHMA_LIBS} )
+target_link_libraries(sutra PUBLIC carma ${BRAHMA_LIBS} )
 
 include(GNUInstallDirs)
 configure_file(sutra.pc.in sutra.pc @ONLY)
-
 
 install(TARGETS sutra
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
