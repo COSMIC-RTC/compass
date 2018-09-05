@@ -17,8 +17,7 @@ from typing import List
 
 def cmat_init(ncontrol: int, rtc: Rtc, p_controller: conf.Param_controller,
               p_wfss: List[conf.Param_wfs], p_atmos: conf.Param_atmos,
-              p_tel: conf.Param_tel, p_dms: List[conf.Param_dm], KL2V: np.ndarray=None,
-              nmodes: int=0) -> None:
+              p_tel: conf.Param_tel, p_dms: List[conf.Param_dm], nmodes: int=0) -> None:
     """ Compute the command matrix on the GPU
 
     :parameters:
@@ -37,7 +36,7 @@ def cmat_init(ncontrol: int, rtc: Rtc, p_controller: conf.Param_controller,
 
         p_dms: (list of Param_dm) : dms settings
 
-        KL2V : (np.ndarray[ndim=2, dtype=np.float32]): (optional) KL to volts matrix (for KL cmat)
+        M2V : (np.ndarray[ndim=2, dtype=np.float32]): (optional) KL to volts matrix (for KL cmat)
 
         nmodes: (int) : (optional) number of kl modes
     """
@@ -47,7 +46,6 @@ def cmat_init(ncontrol: int, rtc: Rtc, p_controller: conf.Param_controller,
         rtc.d_control[ncontrol].svdec_imat()
         print("svd done in %f s" % (time.time() - t0))
         eigenv = np.array(rtc.d_control[ncontrol].d_eigenvals)
-
         imat = np.array(rtc.d_control[ncontrol].d_imat)
         maxcond = p_controller.maxcond
         if (eigenv[0] < eigenv[eigenv.shape[0] - 1]):
@@ -58,34 +56,18 @@ def cmat_init(ncontrol: int, rtc: Rtc, p_controller: conf.Param_controller,
 
         print("Building cmat...")
         t0 = time.time()
-        if KL2V is None:
+        if not p_controller.do_kl_imat:
             print("Filtering ", nfilt, " modes")
             rtc.d_control[ncontrol].build_cmat(nfilt)
         else:
-            ntt = 0
-            pii = 0
-            for i in range(len(p_dms)):
-                ppz = p_dms[i].push4imat
-                if ((p_dms[i].type == scons.DmType.PZT) & (ppz == 0)):
-                    ppz = 1
-                    pii = i
-            if ((nmodes == 0) & (ppz != 0)):
-                nmodes = p_dms[pii]._ntotact
-            if (ppz == 1):
-                # filter imat
-                D_filt = imat[:, :KL2V.shape[1]]
-                # Direct inversion
-                Dp_filt = np.linalg.inv(D_filt.T.dot(D_filt)).dot(D_filt.T)
-                if (p_controller.klgain is not None):
-                    if (p_controller.klgain.shape[0] == KL2V.shape[1]):
-                        for i in range(KL2V.shape[1]):
-                            Dp_filt[:, i] *= p_controller.klgain[i]
-                    else:
-                        print("Need size :")
-                        print(KL2V.shape[1])
-                        raise TypeError("incorect size for klgain vector")
-                cmat_filt = KL2V.dot(Dp_filt)
-                rtc.d_control[ncontrol].set_cmat(cmat_filt)
+            # filter imat
+            D_filt = imat.copy()
+            # Direct inversion
+            Dp_filt = np.linalg.inv(D_filt.T.dot(D_filt)).dot(D_filt.T)
+            if (p_controller.klgain is not None):
+                Dp_filt *= p_controller.klgain[None, :]
+            cmat_filt = p_controller._M2V.dot(Dp_filt)
+            rtc.d_control[ncontrol].set_cmat(cmat_filt)
 
         print("cmat done in %f s" % (time.time() - t0))
 

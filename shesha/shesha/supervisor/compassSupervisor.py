@@ -37,7 +37,7 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         Immediately sets provided command to DMs - does not affect integrator
         '''
-        self._sim.dms.set_full_comm((command))
+        self._sim.dms.set_full_com(command)
 
     def setPerturbationVoltage(self, nControl: int, command: np.ndarray) -> None:
         '''

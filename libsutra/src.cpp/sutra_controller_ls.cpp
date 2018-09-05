@@ -91,17 +91,30 @@ string sutra_controller_ls::get_type() { return "ls"; }
 int sutra_controller_ls::svdec_imat() {
   // doing U = Dt.D where D is i_mat
   float one = 1., zero = 0.;
+  int nCols = this->d_imat->getDims(2);
 
   current_context->set_activeDevice(device, 1);
-  if (carma_syrk<float>(cublas_handle(), CUBLAS_FILL_MODE_LOWER, 't', nactu(),
-                        nslope(), one, *d_imat, nslope(), zero, *d_U,
-                        nactu())) {
+  if (d_U->getDims(1) !=
+      nCols) {  // d_imat shape was changed during modal basis. Adapt yourself.
+    delete d_U;
+    this->d_U = new carma_obj<float>(current_context,
+                                     std::vector<long>{2, nCols, nCols}.data());
+    delete d_eigenvals;
+    delete h_eigenvals;
+    this->d_eigenvals = new carma_obj<float>(
+        current_context, std::vector<long>{1, nCols}.data());
+    this->h_eigenvals = new carma_host_obj<float>(
+        std::vector<long>{1, nCols}.data(), MA_PAGELOCK);
+  }
+
+  if (carma_syrk<float>(cublas_handle(), CUBLAS_FILL_MODE_LOWER, 't', nCols,
+                        nslope(), one, *d_imat, nslope(), zero, *d_U, nCols)) {
     return EXIT_FAILURE;
   }
 
   if (!magma_disabled()) {
     // we can skip this step syevd use only the lower part
-    fill_sym_matrix('U', d_U->getData(), nactu(), nactu() * nactu(),
+    fill_sym_matrix('U', d_U->getData(), nCols, nCols * nCols,
                     current_context->get_device(device));
 
     // doing evd of U inplace
@@ -113,7 +126,7 @@ int sutra_controller_ls::svdec_imat() {
     d_eigenvals->host2device(h_eigenvals->getData());
   } else {  // CULA case
     // We fill the upper matrix part of the matrix
-    fill_sym_matrix<float>('L', *d_U, nactu(), nactu() * nactu(),
+    fill_sym_matrix<float>('L', *d_U, nCols, nCols * nCols,
                            current_context->get_device(device));
 
     carma_obj<float> d_tmp(d_U);

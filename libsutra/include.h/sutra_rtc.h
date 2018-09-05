@@ -39,9 +39,10 @@ class sutra_rtc {
   int rm_controller();
 
   int do_imat(int ncntrl, sutra_dms *ydms);
-  int do_imatkl(int ncntrl, sutra_dms *ydms);
-  int do_imatkl4pzt(int ncntrl, sutra_dms *ydms);
+  int do_imat_basis(int ncntrl, sutra_dms *ydm, int nModes, float *m2v,
+                    float *pushAmpl);
   int do_imat_geom(int ncntrl, sutra_dms *ydm, int type);
+  int comp_images_imat(sutra_dms *ydm);
 
   int do_centroids();
   int do_centroids(int ncntrl);

@@ -122,14 +122,13 @@ int sutra_rtc::do_imat(int ncntrl, sutra_dms *ydm) {
     SCAST(sutra_controller_mv *, control, this->d_control[ncntrl]);
     d_imat = control->d_imat;
   } else {
-    DEBUG_TRACE("Controller needs to be ls or mv\n");
+    DEBUG_TRACE("Controller needs to be LS or MV\n");
     return EXIT_SUCCESS;
   }
 
   vector<sutra_dm *>::iterator p;
   p = this->d_control[ncntrl]->d_dmseen.begin();
   int inds1 = 0;
-  int cc = 0;
   int cc2 = 0;
 
   std::cout << "Doing imat..." << std::endl;
@@ -141,57 +140,21 @@ int sutra_rtc::do_imat(int ncntrl, sutra_dms *ydm) {
       // Push
       dm->comp_oneactu(j, dm->push4imat);
 
-      for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size();
-           ++idx_cntr) {
-        sutra_wfs *wfs = this->d_centro[idx_cntr]->wfs;
-        float tmp_noise = wfs->noise;
-        float tmp_nphot = wfs->nphot;
-        wfs->nphot = wfs->nphot4imat;
-        wfs->noise = -1;
-        wfs->kernconv = true;
-        wfs->sensor_trace(ydm, 1);
-        wfs->comp_image();
-        wfs->noise = tmp_noise;
-        wfs->nphot = tmp_nphot;
-        wfs->kernconv = false;
-      }
-      // DEBUG_TRACE("actu %d", j);
+      this->comp_images_imat(ydm);
       do_centroids(ncntrl, true);
 
       int device = this->d_control[ncntrl]->d_centroids->getDevice();
-      convert_centro<float>(
-          *this->d_control[ncntrl]->d_centroids,
-          *this->d_control[ncntrl]->d_centroids, 0, 0.5f / dm->push4imat,
-          this->d_control[ncntrl]->d_centroids->getNbElem(),
-          this->d_control[ncntrl]->current_context->get_device(device));
+      this->d_control[ncntrl]->d_centroids->scale(0.5f / dm->push4imat, 1);
       this->d_control[ncntrl]->d_centroids->copyInto(
           d_imat->getDataAt(inds1), this->d_control[ncntrl]->nslope());
       dm->reset_shape();
       // Pull
       dm->comp_oneactu(j, -1.0f * dm->push4imat);
-      for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size();
-           idx_cntr++) {
-        sutra_wfs *wfs = this->d_centro[idx_cntr]->wfs;
-        float tmp_noise = wfs->noise;
-        float tmp_nphot = wfs->nphot;
-        wfs->nphot = wfs->nphot4imat;
-        wfs->noise = -1;
-        wfs->kernconv = true;
-        wfs->sensor_trace(ydm, 1);
-        wfs->comp_image();
-        wfs->noise = tmp_noise;
-        wfs->nphot = tmp_nphot;
-        wfs->kernconv = false;
-      }
+      this->comp_images_imat(ydm);
       device = this->d_control[ncntrl]->d_centroids->getDevice();
       do_centroids(ncntrl, true);
-      convert_centro<float>(
-          *this->d_control[ncntrl]->d_centroids,
-          *this->d_control[ncntrl]->d_centroids, 0, 0.5f / dm->push4imat,
-          this->d_control[ncntrl]->d_centroids->getNbElem(),
-          this->d_control[ncntrl]->current_context->get_device(device));
 
-      float alphai = -1.0f;
+      float alphai = -.5f / dm->push4imat;
       cublasSaxpy(this->d_control[ncntrl]->current_context->get_cublasHandle(),
                   this->d_control[ncntrl]->d_centroids->getNbElem(), &alphai,
                   this->d_control[ncntrl]->d_centroids->getData(), 1,
@@ -199,7 +162,6 @@ int sutra_rtc::do_imat(int ncntrl, sutra_dms *ydm) {
 
       dm->reset_shape();
       inds1 += this->d_control[ncntrl]->nslope();
-      ++cc;
       progress.update();
       // printf("\rDoing imat...%d%%",(cc*100/nactu));
     }
@@ -208,6 +170,106 @@ int sutra_rtc::do_imat(int ncntrl, sutra_dms *ydm) {
     ++cc2;
   }
   printf("\n");
+  return EXIT_SUCCESS;
+}
+
+int sutra_rtc::do_imat_basis(int ncntrl, sutra_dms *ydm, int nModes, float *m2v,
+                             float *pushAmpl) {
+  carma_obj<float> d_m2v(this->d_control[ncntrl]->current_context,
+                         std::vector<long>{2, ydm->nact_total(), nModes}.data(),
+                         m2v);
+  carma_obj<float> d_comm(this->d_control[ncntrl]->current_context,
+                          std::vector<long>{1, ydm->nact_total()}.data());
+
+  carma_obj<float> *d_imat = NULL;
+
+  if (this->d_control[ncntrl]->get_type().compare("ls") == 0) {
+    SCAST(sutra_controller_ls *, control, this->d_control[ncntrl]);
+    long dims[3] = {2, control->d_imat->getDims()[1], nModes};
+    d_imat =
+        new carma_obj<float>(this->d_control[ncntrl]->current_context, dims);
+    delete control->d_imat;
+    control->d_imat = d_imat;
+  } else if (this->d_control[ncntrl]->get_type().compare("mv") == 0) {
+    SCAST(sutra_controller_mv *, control, this->d_control[ncntrl]);
+    long dims[3] = {2, control->d_imat->getDims()[1], nModes};
+    d_imat =
+        new carma_obj<float>(this->d_control[ncntrl]->current_context, dims);
+    delete control->d_imat;
+    control->d_imat = d_imat;
+  } else {
+    DEBUG_TRACE("Controller needs to be LS or MV\n");
+    return EXIT_SUCCESS;
+  }
+  int inds1 = 0;
+
+  std::cout << "Doing imat modal..." << std::endl;
+  std::string desc = "Modal iMat";
+  auto progress = carma_utils::ProgressBar(nModes, desc);
+  for (int j = 0; j < nModes; ++j) {
+    // For each mode
+    d_comm.copyFrom(d_m2v.getDataAt(j * ydm->nact_total()), ydm->nact_total());
+    d_comm.scale(pushAmpl[j], 1);
+    // Push
+    int actuCount = 0;
+    vector<sutra_dm *>::iterator p = this->d_control[ncntrl]->d_dmseen.begin();
+    while (p != this->d_control[ncntrl]->d_dmseen.end()) {
+      // Set each dm
+      sutra_dm *dm = *p;
+      dm->comp_shape(d_comm.getDataAt(actuCount));
+      actuCount += dm->nactus;
+      ++p;
+    }
+    this->comp_images_imat(ydm);  // Raytrace & compute all WFS
+    do_centroids(ncntrl, true);
+    int device = this->d_control[ncntrl]->d_centroids->getDevice();
+    this->d_control[ncntrl]->d_centroids->scale(0.5f / pushAmpl[j], 1);
+    this->d_control[ncntrl]->d_centroids->copyInto(
+        d_imat->getDataAt(inds1), this->d_control[ncntrl]->nslope());
+
+    // Pull
+    actuCount = 0;
+    d_comm.scale(-1.0f, 1);
+    p = this->d_control[ncntrl]->d_dmseen.begin();
+    while (p != this->d_control[ncntrl]->d_dmseen.end()) {
+      // Set each dm
+      sutra_dm *dm = *p;
+      dm->comp_shape(d_comm.getDataAt(actuCount));
+      actuCount += dm->nactus;
+      ++p;
+    }
+    this->comp_images_imat(ydm);  // Raytrace & compute all WFS
+    do_centroids(ncntrl, true);
+
+    device = this->d_control[ncntrl]->d_centroids->getDevice();
+    float alphai = -0.5f / pushAmpl[j];
+    cublasSaxpy(this->d_control[ncntrl]->current_context->get_cublasHandle(),
+                this->d_control[ncntrl]->d_centroids->getNbElem(), &alphai,
+                this->d_control[ncntrl]->d_centroids->getData(), 1,
+                d_imat->getDataAt(inds1), 1);
+
+    inds1 += this->d_control[ncntrl]->nslope();
+    progress.update();
+  }
+  progress.finish();
+  printf("\n");
+  return EXIT_SUCCESS;
+}
+
+int sutra_rtc::comp_images_imat(sutra_dms *ydm) {
+  for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
+    sutra_wfs *wfs = this->d_centro[idx_cntr]->wfs;
+    float tmp_noise = wfs->noise;
+    float tmp_nphot = wfs->nphot;
+    wfs->nphot = wfs->nphot4imat;
+    wfs->noise = -1;
+    wfs->kernconv = true;
+    wfs->sensor_trace(ydm, 1);
+    wfs->comp_image();
+    wfs->noise = tmp_noise;
+    wfs->nphot = tmp_nphot;
+    wfs->kernconv = false;
+  }
   return EXIT_SUCCESS;
 }
 

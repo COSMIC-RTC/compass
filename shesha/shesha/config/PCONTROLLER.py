@@ -17,10 +17,6 @@ class Param_controller:
     def __init__(self):
         self.__type = None
         """ type of controller"""
-        self.__kl_imat = False
-        """ set imat kl on-off"""
-        self.__klgain = None
-        """ gain for kl mod in imat kl """
         self.__nwfs = None
         """ index of wfss in controller"""
         self.__nvalid = 0
@@ -46,6 +42,7 @@ class Param_controller:
         self.__nkl = None
         self.__cured_ndivs = None
         """ subdivision levels in cured"""
+        ''' MODAL OPTIMIZATION (style Gendron Lena 1994)'''
         self.__modopti = False
         """ Flag for modal optimization"""
         self.__nrec = 2048
@@ -58,15 +55,13 @@ class Param_controller:
         """ Maximum gain for modal optimization"""
         self.__ngain = 15
         """ Number of tested gains"""
-
-    def set_kl_imat(self, n):
-        """Set type imat, for imat on kl set at 1
-
-        :param k: (int) : imat kl
-        """
-        self.__kl_imat = csu.enforce_or_cast_bool(n)
-
-    kl_imat = property(lambda x: x.__kl_imat, set_kl_imat)
+        ''' KL (actually BTT) BASIS INITIALIZATION '''
+        self.__do_kl_imat = False
+        """ set imat kl on-off"""
+        self.__klpush = None
+        """ Modal pushes values """
+        self.__klgain = None
+        """ Gain applied to modes at cMat inversion """
 
     def set_type(self, t):
         """ Set the controller type
@@ -76,6 +71,24 @@ class Param_controller:
         self.__type = scons.check_enum(scons.ControllerType, t)
 
     type = property(lambda x: x.__type, set_type)
+
+    def set_do_kl_imat(self, n):
+        """Set type imat, for imat on kl set at 1
+
+        :param k: (int) : imat kl
+        """
+        self.__do_kl_imat = csu.enforce_or_cast_bool(n)
+
+    do_kl_imat = property(lambda x: x.__do_kl_imat, set_do_kl_imat)
+
+    def set_klpush(self, g):
+        """ Set klgain for imatkl size = number of kl mode
+
+        :param g: (np.ndarray[ndim=1, dtype=np.float32]) : g
+        """
+        self.__klpush = csu.enforce_array(g, len(g), dtype=np.float32)
+
+    klpush = property(lambda x: x.__klpush, set_klpush)
 
     def set_klgain(self, g):
         """ Set klgain for imatkl size = number of kl mode
@@ -244,8 +257,10 @@ class Param_controller:
 
         :param imat: (np.ndarray[ndim=2,dtype=np.float32_t]) : full interaction matrix
         """
-        self.__imat = csu.enforce_arrayMultiDim(imat, (self.nslope, self.nactu),
-                                                dtype=np.float32)
+        self.__imat = csu.enforce_arrayMultiDim(
+                imat,
+                (self.nslope, -1),  # Allow nModes or nActu as second dimension
+                dtype=np.float32)
 
     _imat = property(lambda x: x.__imat, set_imat)
 

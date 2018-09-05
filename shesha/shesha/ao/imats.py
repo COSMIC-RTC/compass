@@ -72,7 +72,7 @@ def imat_geom(wfs: Sensors, dms: Dms, p_wfss: List[conf.Param_wfs],
 
 
 def imat_init(ncontrol: int, rtc: Rtc, dms: Dms, p_dms: list, wfs: Sensors, p_wfss: list,
-              p_tel: conf.Param_tel, p_controller: conf.Param_controller, kl=None,
+              p_tel: conf.Param_tel, p_controller: conf.Param_controller, M2V=None,
               dataBase: dict={}, use_DB: bool=False) -> None:
     """ Initialize and compute the interaction matrix on the GPU
 
@@ -94,7 +94,7 @@ def imat_init(ncontrol: int, rtc: Rtc, dms: Dms, p_dms: list, wfs: Sensors, p_wf
 
         p_controller: (Param_controller) : controller settings
 
-        kl:(np.array) :  KL_matrix
+        M2V:(np.array) :  KL_matrix
 
         dataBase:(dict): (optional) dict containing paths to files to load
 
@@ -114,15 +114,16 @@ def imat_init(ncontrol: int, rtc: Rtc, dms: Dms, p_dms: list, wfs: Sensors, p_wf
         rtc.d_control[ncontrol].set_imat(imat)
     else:
         t0 = time.time()
-        if kl is not None:
-            ntt = scons.DmType.TT in [d.type for d in p_dms]
-            rtc.do_imat_kl(ncontrol, p_controller, dms, p_dms, kl, ntt)
+        if M2V is not None:
+            p_controller._M2V = M2V.copy()
+            rtc.do_imat_basis(ncontrol, dms, M2V.shape[1], M2V, p_controller.klpush)
         else:
             rtc.do_imat(ncontrol, dms)
         print("done in %f s" % (time.time() - t0))
+        imat = np.array(rtc.d_control[ncontrol].d_imat)
         if use_DB:
-            h5u.save_imat_in_dataBase(rtc.get_imat(ncontrol))
-    p_controller.set_imat(np.array(rtc.d_control[ncontrol].d_imat))
+            h5u.save_imat_in_dataBase(imat)
+    p_controller.set_imat(imat)
 
     # Restore original profile in lgs spots
     for i in range(len(p_wfss)):
