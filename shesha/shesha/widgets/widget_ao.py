@@ -144,7 +144,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         if configFile is not None:
             self.uiBase.wao_selectConfig.clear()
             self.uiBase.wao_selectConfig.addItem(configFile)
-            self.loadConfig()
+            self.loadConfig(configFile=configFile)
             self.initConfig()
 
     # def on_help_triggered(self, i: Any=None) -> None:
@@ -187,13 +187,14 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         if type == "SR":
             d.addWidget(self.uiAO.wao_Strehl)
 
-    def loadConfig(self, *, ISupervisor=CompassSupervisor) -> None:
+    def loadConfig(self, *, configFile=None, ISupervisor=CompassSupervisor) -> None:
         '''
             Callback when 'LOAD' button is hit
             * required to catch positionals, as by default
             if a positional is allowed the QPushButton will send a boolean value
             and hence overwrite ISupervisor...
         '''
+        print("0", configFile)
         WidgetBase.loadConfig(self)
         for key, pgpl in self.SRcircles.items():
             self.viewboxes[key].removeItem(pgpl)
@@ -203,9 +204,13 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
 
         for key, pgpl in self.SRCrossY.items():
             self.viewboxes[key].removeItem(pgpl)
+        print("1", configFile)
 
-        configFile = str(self.uiBase.wao_selectConfig.currentText())
-        sys.path.insert(0, self.defaultParPath)
+        if configFile is None:
+            configFile = str(self.uiBase.wao_selectConfig.currentText())
+            sys.path.insert(0, self.defaultParPath)
+
+        print("2", configFile)
 
         self.supervisor = ISupervisor(configFile, self.BRAHMA)
         self.config = self.supervisor.getConfig()
