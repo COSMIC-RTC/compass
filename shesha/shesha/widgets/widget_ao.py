@@ -245,7 +245,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             if self.config.p_wfss[wfs].type == scons.WFSType.SH:
                 name = 'SH_%d' % wfs
                 self.add_dispDock(name, self.wao_imagesgroup_cb)
-            elif self.config.p_wfss[wfs].type == scons.WFSType.PYRHR:
+            elif self.config.p_wfss[wfs].type == scons.WFSType.PYRHR or self.config.p_wfss[wfs].type == scons.WFSType.PYRLR:
                 name = 'pyrHR_%d' % wfs
                 self.add_dispDock(name, self.wao_imagesgroup_cb)
                 name = 'pyrLR_%d' % wfs
@@ -503,8 +503,9 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                                         2 * p_wfs._nvalid for p_wfs in self.config.p_wfss
                                 ]
                                 first_ind = np.sum(nmes[:index], dtype=np.int32)
-                                if (self.config.p_wfss[index].type ==
-                                            scons.WFSType.PYRHR):
+                                if (self.config.p_wfss[index].type == scons.WFSType.PYRHR
+                                            or self.config.p_wfss[index].type ==
+                                            scons.WFSType.PYRLR):
                                     #TODO: DEBUG...
                                     plpyr(centroids[first_ind:first_ind + nmes[index]],
                                           np.stack([

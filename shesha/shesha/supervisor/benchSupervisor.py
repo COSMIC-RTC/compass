@@ -268,7 +268,7 @@ class BenchSupervisor(AbstractSupervisor):
                     np.ones(nact, dtype=np.float32) * (gain - 1))
             self.rtc.d_control[0].set_matE(np.identity(nact, dtype=np.float32))
             self.rtc.d_control[0].set_mgain(np.ones(nact, dtype=np.float32) * -gain)
-        elif p_wfs.type == WFSType.PYRHR:
+        elif p_wfs.type == WFSType.PYRHR or p_wfs.type == WFSType.PYRLR:
             raise RuntimeError("PYRHR not usable")
         self._sim.is_init = True
 

@@ -579,7 +579,7 @@ class Param_wfs:
 
         :param vx: (np.array(dim=1, dtype=np.int32)) : validsubsx
         """
-        if self.__type == scons.WFSType.PYRHR:
+        if self.__type == scons.WFSType.PYRHR or self.__type == scons.WFSType.PYRLR:
             self.__validsubsx = csu.enforce_array(vx, vx.size, dtype=np.int32)
         else:
             self.__validsubsx = csu.enforce_array(vx, self.__nvalid, dtype=np.int32)
@@ -591,7 +591,7 @@ class Param_wfs:
 
         :param vy: (np.array(dim=1, dtype=np.int32)) : validsubsy
         """
-        if self.__type == scons.WFSType.PYRHR:
+        if self.__type == scons.WFSType.PYRHR or self.__type == scons.WFSType.PYRLR:
             self.__validsubsy = csu.enforce_array(vy, vy.size, dtype=np.int32)
         else:
             self.__validsubsy = csu.enforce_array(vy, self.__nvalid, dtype=np.int32)
@@ -673,7 +673,7 @@ class Param_wfs:
 
         :param data: (np.array(ndim=2, dtype=np.float32)) : subap diameter (m)
         """
-        if self.__type == scons.WFSType.PYRHR:
+        if self.__type == scons.WFSType.PYRHR or self.__type == scons.WFSType.PYRLR:
             self.__fluxPerSub = csu.enforce_arrayMultiDim(data.copy(),
                                                           (self.__nxsub + 2,
                                                            self.__nxsub + 2),

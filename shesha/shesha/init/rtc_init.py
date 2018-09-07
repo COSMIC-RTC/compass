@@ -165,7 +165,7 @@ def init_centroider(context, nwfs: int, p_wfs: conf.Param_wfs,
                 s_offset = p_wfs.npix // 2 - 0.5
         s_scale = p_wfs.pixsize
 
-    elif (p_wfs.type == scons.WFSType.PYRHR):
+    elif (p_wfs.type == scons.WFSType.PYRHR or p_wfs.type == scons.WFSType.PYRLR):
         s_offset = 0.
         s_scale = (p_wfs.Lambda * 1e-6 / p_tel.diam) * \
             p_wfs.pyr_ampl * CONST.RAD2ARCSEC
