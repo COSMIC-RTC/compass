@@ -312,6 +312,7 @@ class CompassSupervisor(AbstractSupervisor):
         Initialize the simulation
         '''
         self._sim.init_sim()
+        self.enableAtmos(True)
 
     def getAtmScreen(self, indx: int) -> np.ndarray:
         '''

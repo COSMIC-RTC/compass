@@ -79,7 +79,6 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         self.nbiter = self.uiAO.wao_nbiters.value()
         self.refreshTime = 0  # type: float  # System time at last display refresh
         self.assistant = None  # type: Any
-        self.see_atmos = 1
 
         #############################################################
         #                 CONNECTED BUTTONS                         #
@@ -171,7 +170,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         self.uiAO.wao_nbiters.setDisabled(state)
 
     def set_see_atmos(self, atmos):
-        self.see_atmos = atmos
+        self.supervisor.enableAtmos(atmos)
 
     def resetSR(self) -> None:
         if self.uiAO.wao_allTarget.isChecked():
@@ -541,7 +540,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         else:
             try:
                 start = time.time()
-                self.supervisor.singleNext(showAtmos=self.see_atmos)
+                self.supervisor.singleNext(showAtmos=self.supervisor._seeAtmos)
                 for t in self.supervisor._sim.tar.d_targets:
                     t.comp_image()
                 loopTime = time.time() - start
