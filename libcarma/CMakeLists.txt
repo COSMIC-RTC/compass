@@ -113,7 +113,9 @@ target_link_libraries(carma
     PRIVATE ${MAGMA_LIBRARIES}
 )
 
-configure_file(carma.pc.in carma.pc @ONLY)
+set(INSTALL_PKGCONFIG_DIR "${CMAKE_INSTALL_PREFIX}/share/pkgconfig" CACHE PATH "Installation directory for pkgconfig (.pc) files")
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/carma.pc.in ${CMAKE_CURRENT_BINARY_DIR}/carma.pc @ONLY)
 
 install(TARGETS carma
     PUBLIC_HEADER DESTINATION include
@@ -121,4 +123,4 @@ install(TARGETS carma
     ARCHIVE DESTINATION lib}
 )
 
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/carma.pc DESTINATION lib/pkgconfig)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/carma.pc DESTINATION "${INSTALL_PKGCONFIG_DIR}")
