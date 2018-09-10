@@ -113,12 +113,12 @@ target_link_libraries(carma
     PRIVATE ${MAGMA_LIBRARIES}
 )
 
-include(GNUInstallDirs)
 configure_file(carma.pc.in carma.pc @ONLY)
 
 install(TARGETS carma
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    PUBLIC_HEADER DESTINATION include
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib}
 )
 
-install(FILES ${CMAKE_BINARY_DIR}/carma.pc DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/carma.pc DESTINATION lib/pkgconfig)

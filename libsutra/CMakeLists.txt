@@ -131,12 +131,12 @@ target_compile_options(sutra
 
 target_link_libraries(sutra PUBLIC carma ${BRAHMA_LIBS} )
 
-include(GNUInstallDirs)
 configure_file(sutra.pc.in sutra.pc @ONLY)
 
 install(TARGETS sutra
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    PUBLIC_HEADER DESTINATION include
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib}
 )
 
-install(FILES ${CMAKE_BINARY_DIR}/sutra.pc DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/sutra.pc DESTINATION lib/pkgconfig)
