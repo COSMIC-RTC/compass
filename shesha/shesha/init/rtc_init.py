@@ -165,7 +165,7 @@ def init_centroider(context, nwfs: int, p_wfs: conf.Param_wfs,
                 s_offset = p_wfs.npix // 2 - 0.5
         s_scale = p_wfs.pixsize
 
-    elif (p_wfs.type == scons.WFSType.PYRHR):
+    elif (p_wfs.type == scons.WFSType.PYRHR or p_wfs.type == scons.WFSType.PYRLR):
         s_offset = 0.
         s_scale = (p_wfs.Lambda * 1e-6 / p_tel.diam) * \
             p_wfs.pyr_ampl * CONST.RAD2ARCSEC
@@ -401,22 +401,16 @@ def init_controller_ls(i: int, p_controller: conf.Param_controller, p_wfss: list
         tel: (Telescope) : Telescope object
         atmos: (Atmos) : Atmos object
     """
-    KL2V = None
-    if p_controller.kl_imat:
-        KL2V = basis.compute_KL2V(p_controller, dms, p_dms, p_geom, p_atmos, p_tel)
+    M2V = None
+    if p_controller.do_kl_imat:
+        IF = basis.compute_IFsparse(dms, p_dms, p_geom).T
+        M2V, _ = basis.compute_Btt(IF[:, :-2], IF[:, -2:].toarray())
+        print("Filtering ", p_controller.nModesFilt, " modes based on mode ordering")
+        M2V = M2V[:, list(range(M2V.shape[1] - 2 - p_controller.nModesFilt)) + [-2, -1]]
 
-        # TODO: Fab et/ou Vincent: quelle normalisation appliquée ? --> à mettre direct dans compute_KL2V
-        # En attendant, la version de Seb (retravaillée)
-        pushkl = np.ones(KL2V.shape[0])
-        a = 0
-        for p_dm in p_dms:
-            pushkl[a:a + p_dm._ntotact] = p_dm.push4imat
-            a += p_dm._ntotact
-        for k in range(KL2V.shape[1]):
-            klmaxVal = np.abs(KL2V[:, k]).max()
-            KL2V[:, k] = KL2V[:, k] / klmaxVal * pushkl
-
-    imats.imat_init(i, rtc, dms, p_dms, wfs, p_wfss, p_tel, p_controller, KL2V,
+        if len(p_controller.klpush) == 1:  # Scalar allowed, now we expand
+            p_controller.klpush = p_controller.klpush[0] * np.ones(M2V.shape[1])
+    imats.imat_init(i, rtc, dms, p_dms, wfs, p_wfss, p_tel, p_controller, M2V,
                     dataBase=dataBase, use_DB=use_DB)
 
     if p_controller.modopti:
@@ -425,9 +419,10 @@ def init_controller_ls(i: int, p_controller: conf.Param_controller, p_wfss: list
         if p_controller.nmodes is None:
             p_controller.nmodes = sum([p_dms[j]._ntotact for j in range(len(p_dms))])
 
-        KL2V = basis.compute_KL2V(p_controller, dms, p_dms, p_geom, p_atmos, p_tel)
+        IF = basis.compute_IFsparse(dms, p_dms, p_geom).T
+        M2V, _ = basis.compute_Btt(IF[:, :-2], IF[:, -2:].toarray())
 
-        rtc.d_control[i].init_modalOpti(p_controller.nmodes, p_controller.nrec, KL2V,
+        rtc.d_control[i].init_modalOpti(p_controller.nmodes, p_controller.nrec, M2V,
                                         p_controller.gmin, p_controller.gmax,
                                         p_controller.ngain, 1. / ittime)
         ol_slopes = modopti.openLoopSlp(tel, atmos, wfs, rtc, p_controller.nrec, i,
@@ -435,7 +430,7 @@ def init_controller_ls(i: int, p_controller: conf.Param_controller, p_wfss: list
         rtc.d_control[i].loadOpenLoopSlp(ol_slopes)
         rtc.d_control[i].modalControlOptimization()
     else:
-        cmats.cmat_init(i, rtc, p_controller, p_wfss, p_atmos, p_tel, p_dms, KL2V=KL2V,
+        cmats.cmat_init(i, rtc, p_controller, p_wfss, p_atmos, p_tel, p_dms,
                         nmodes=p_controller.nmodes)
 
         rtc.d_control[i].set_gain(p_controller.gain)

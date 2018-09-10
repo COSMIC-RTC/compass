@@ -84,7 +84,7 @@ class RTCSupervisor(BenchSupervisor):
                 self.rtc.d_centro[0].load_img(self.frame, self.frame.shape[0])
                 #for SH
                 self.rtc.d_centro[0].fill_bincube(self.npix)
-            elif p_wfs.type == WFSType.PYRHR:
+            elif p_wfs.type == WFSType.PYRHR or p_wfs.type == WFSType.PYRLR:
                 self.rtc.d_centro[0].load_pyrimg(self.frame, self.frame.shape[0])
             else:
                 raise RuntimeError("WFS Type not usable")
@@ -158,7 +158,7 @@ class RTCSupervisor(BenchSupervisor):
             yvalid = tmp_valid[1, :] // self.npix
             offset = (self.npix + 1) / 2
             scale = p_wfs.pixsize
-        elif p_wfs.type == WFSType.PYRHR:
+        elif p_wfs.type == WFSType.PYRHR or p_wfs.type == WFSType.PYRLR:
             tmp_valid = np.zeros((2, nvalid * 4), dtype=np.int32)
             self.valid.recv(tmp_valid, 0)
             self._sim.config.p_nvalid = tmp_valid

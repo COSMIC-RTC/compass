@@ -166,6 +166,20 @@ void declare_shesha_rtc(py::module &mod) {
     )pbdoc",
            py::arg("ncontrol"), py::arg("dms"))
 
+      .def("do_imat_basis", wy::colCast(&sutra_rtc::do_imat_basis), R"pbdoc(
+		Computes a modal interaction matrix
+
+		Parameters
+		------------
+		ncontrol: (int): Index of the controller
+		dms: (sutra_dms): sutra_dms object
+        nModes: (int): number of modes in the basis
+        m2v: (np.array[ndim=2,dtype=np.float32]): modeToActu matrix
+        pushAmpl: (np.array[ndim=1,dtype=np.float32]): pushpull strength in mode units
+	)pbdoc",
+           py::arg("ncontrol"), py::arg("dms"), py::arg("nModes"),
+           py::arg("m2v"), py::arg("pushAmpl"))
+
       .def("imat_svd",
            [](sutra_rtc &sr, int ncontrol) {
              sutra_controller_ls *control =

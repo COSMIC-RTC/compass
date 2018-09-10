@@ -49,12 +49,12 @@ if __name__ == "__main__":
         try:
             df = pandas.read_hdf("check.h5")
         except FileNotFoundError:
-            columns = ["Test name", "Init", "SR@100"]
+            columns = ["Test name", "Init", "SR@100iter"]
             df = pandas.DataFrame(columns=columns)
 
         idx = len(df.index)
         df.loc[idx, "Test name"] = param_file.split('/')[-1]
         df.loc[idx, "Init"] = isInit
-        df.loc[idx, "SR@100"] = SR
+        df.loc[idx, "SR@100iter"] = SR
 
         df.to_hdf("check.h5", "check")

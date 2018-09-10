@@ -1,9 +1,31 @@
 cmake_minimum_required (VERSION 3.8)
 
+if(DEFINED ENV{CUDA_SM})
+    set(CUDA_SM $ENV{CUDA_SM})
+else()
+    message("Probing the (first) GPU for its compute capability...")
+    execute_process(COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/scripts/get_cuda_sm.sh"  RESULT_VARIABLE CUDA_SM)
+endif()
+message("Building for Compute Capability ${CUDA_SM}")
+
+if( ${CUDA_SM} STREQUAL "ALL")
+    set(CUDA_SM "35" "37" "50" "52" "60" "61" "70")
+endif()
+
+foreach(SM ${CUDA_SM})
+list( APPEND CUDA_ARCH "-gencode" "arch=compute_${SM},code=sm_${SM}")
+endforeach(SM)
+
+string (REPLACE ";" " " CMAKE_CUDA_FLAGS "${CUDA_NVCC_FLAGS};${CUDA_ARCH}")
+# set(CMAKE_CUDA_FLAGS ${CUDA_ARCH} VERBATIM)
+
+# string (REPLACE ";" " " CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS};${CUDA_ARCH}")
+# set(CMAKE_SHARED_LINKER_FLAGS ${CUDA_ARCH} VERBATIM)
+
 project(carma
     VERSION ${VERSION_INFO}
     DESCRIPTION "COMPASS CARMA lirary"
-    LANGUAGES CXX CUDA
+    LANGUAGES CUDA CXX
 )
 
 # EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
@@ -26,8 +48,6 @@ project(carma
 #     CCFLAGS += -m64
 #   endif
 # endif
-
-find_package(CUDA)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(MAGMA REQUIRED magma)
@@ -68,7 +88,10 @@ set_target_properties(carma
     SOVERSION ${PROJECT_VERSION_MAJOR}
     # CUDA_SEPARABLE_COMPILATION OFF
 )
+
 target_compile_features(carma PUBLIC cxx_std_14)
+
+# string (REPLACE ";" " " CMAKE_CUDA_FLAGS "${CUDA_NVCC_FLAGS};${CUDA_ARCH}")
 
 target_include_directories(carma
     PUBLIC
@@ -79,11 +102,12 @@ target_include_directories(carma
 target_compile_options(carma
     PUBLIC
     $<$<COMPILE_LANGUAGE:CXX>:-DVERSION_INFO=${VERSION_INFO}>
-    $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -fPIC -use_fast_math >
+    $<$<COMPILE_LANGUAGE:CUDA>:-use_fast_math >
     PRIVATE
     $<$<COMPILE_LANGUAGE:CXX>:-DUSE_MAGMA ${MAGMA_CFLAGS_OTHER}>
 )
 
+find_package(CUDA REQUIRED)
 target_link_libraries(carma
     PUBLIC ${CUDA_LIBRARIES} ${CUDA_cufft_LIBRARY} ${CUDA_cublas_LIBRARY} ${CUDA_curand_LIBRARY} ${CUDA_cusparse_LIBRARY}
     PRIVATE ${MAGMA_LIBRARIES}

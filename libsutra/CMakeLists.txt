@@ -27,8 +27,6 @@ project(sutra
 #   endif
 # endif
 
-find_package(CUDA)
-
 if (DEFINED ENV{BRAHMA_ROOT})
     SET(BRAHMA_FLAGS -fvisibility-inlines-hidden
         -fno-strict-aliasing -pthread -pipe -Wno-deprecated-declarations
@@ -118,7 +116,6 @@ set_target_properties(sutra
     SOVERSION ${PROJECT_VERSION_MAJOR}
     # CUDA_SEPARABLE_COMPILATION OFF
 )
-target_compile_features(sutra PUBLIC cxx_std_14)
 
 target_include_directories(sutra
     PUBLIC

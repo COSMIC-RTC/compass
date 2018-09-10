@@ -96,8 +96,8 @@ def init_wfs_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
 
     """
 
-    if (p_geom.pupdiam):
-        if (p_wfs.type == scons.WFSType.SH or p_wfs.type == scons.WFSType.PYRHR):
+    if p_geom.pupdiam:
+        if p_wfs.type == scons.WFSType.SH or p_wfs.type == scons.WFSType.PYRHR or p_wfs.type == scons.WFSType.PYRLR:
             pdiam = p_geom.pupdiam // p_wfs.nxsub
             if (p_geom.pupdiam % p_wfs.nxsub > 0):
                 pdiam += 1
@@ -113,18 +113,18 @@ def init_wfs_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
         # this is the wfs with largest # of subaps
         # the overall geometry is deduced from it
         #if not p_geom.pupdiam:
-        if (p_geom.pupdiam != 0 and p_geom.pupdiam != p_wfs._pdiam * p_wfs.nxsub):
+        if p_geom.pupdiam != 0 and p_geom.pupdiam != p_wfs._pdiam * p_wfs.nxsub:
             print("WARNING: pupdiam set value not correct")
         p_geom.pupdiam = p_wfs._pdiam * p_wfs.nxsub
         print("pupdiam used: ", p_geom.pupdiam)
-        if p_wfs.type == scons.WFSType.PYRHR:
+        if p_wfs.type == scons.WFSType.PYRHR or p_wfs.type == scons.WFSType.PYRLR:
             geom_init(p_geom, p_tel, padding=p_wfs._nrebin)
         elif (p_wfs.type == scons.WFSType.SH):
             geom_init(p_geom, p_tel)
         else:
             raise RuntimeError("This WFS can not be used")
 
-    if (p_wfs.type == scons.WFSType.PYRHR):
+    if (p_wfs.type == scons.WFSType.PYRHR or p_wfs.type == scons.WFSType.PYRLR):
         init_pyrhr_geom(p_wfs, r0, p_tel, p_geom, ittime, verbose=1)
     elif (p_wfs.type == scons.WFSType.SH):
         init_sh_geom(p_wfs, r0, p_tel, p_geom, ittime, verbose=1)
@@ -214,9 +214,9 @@ def init_wfs_size(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel, verbo
                     int(pdiam / subapdiam * nrebin / p_wfs.pixsize * CONST.RAD2ARCSEC * (
                             p_wfs.Lambda * 1.e-6)))
 
-        if (p_wfs.type == scons.WFSType.PYRHR):
+        elif (p_wfs.type == scons.WFSType.PYRHR or p_wfs.type == scons.WFSType.PYRLR):
             # while (pdiam % p_wfs.npix != 0) pdiam+=1;
-            k = 3
+            k = 3 if p_wfs.type == scons.WFSType.PYRHR else 2
             pdiam = int(p_tel.diam / r0 * k)
             while (pdiam % p_wfs.nxsub != 0):
                 pdiam += 1  # we choose to have a multiple of p_wfs.nxsub
@@ -258,7 +258,7 @@ def init_wfs_size(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel, verbo
         if (Ntot % 2 != Nfft % 2):
             Ntot += 1
 
-    if (p_wfs.type == scons.WFSType.PYRHR):
+    elif (p_wfs.type == scons.WFSType.PYRHR or p_wfs.type == scons.WFSType.PYRLR):
         pdiam = pdiam * p_wfs.nxsub
         m = 3
         # fft_goodsize( m * pdiam)
@@ -286,17 +286,18 @@ def init_wfs_size(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel, verbo
     p_wfs._subapd = p_tel.diam / p_wfs.nxsub
 
     if (verbose):
-        print("quantum pixsize : ", "%5.4f" % qpixsize, "\"")
-        print("simulated FoV : ", "%3.2f" % (Ntot * qpixsize), "\" x ",
-              "%3.2f" % (Ntot * qpixsize), "\"")
-        print("actual pixsize : ", "%5.4f" % pixsize)
-        print("actual FoV : ", "%3.2f" % (pixsize * p_wfs.npix), "\" x ",
-              "%3.2f" % (pixsize * p_wfs.npix), "\"")
-        print("number of phase points : ", p_wfs._pdiam)
-        print("size of fft support : ", Nfft)
-        print("size of HR spot support : ", Ntot)
+        if (p_wfs.type == scons.WFSType.SH):
+            print("quantum pixsize : ", "%5.4f" % qpixsize, "\"")
+            print("simulated FoV : ", "%3.2f" % (Ntot * qpixsize), "\" x ",
+                  "%3.2f" % (Ntot * qpixsize), "\"")
+            print("actual pixsize : ", "%5.4f" % pixsize)
+            print("actual FoV : ", "%3.2f" % (pixsize * p_wfs.npix), "\" x ",
+                  "%3.2f" % (pixsize * p_wfs.npix), "\"")
+            print("number of phase points : ", p_wfs._pdiam)
+            print("size of fft support : ", Nfft)
+            print("size of HR spot support : ", Ntot)
 
-        if (p_wfs.type == scons.WFSType.PYRHR):
+        elif (p_wfs.type == scons.WFSType.PYRHR or p_wfs.type == scons.WFSType.PYRLR):
             print("quantum pixsize in pyr image : ", "%5.4f" % qpixsize, "\"")
             print("simulated FoV : ", "%3.2f" % (Nfft * qpixsize), "\" x ",
                   "%3.2f" % (Nfft * qpixsize), "\"")
@@ -341,7 +342,7 @@ def compute_nphotons(wfs_type, ittime, optthroughput, diam, cobs=0, nxsub=0, zer
     '''
     surface = 0
     nphotons = 0
-    if (wfs_type == scons.WFSType.PYRHR):
+    if (wfs_type == scons.WFSType.PYRHR or wfs_type == scons.WFSType.PYRLR):
         surface = np.pi / 4. * (1 - cobs**2.) * diam**2.
     elif (wfs_type == scons.WFSType.SH):
         # from the guide star
@@ -492,8 +493,8 @@ def init_pyrhr_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
     stack, index = np.unique(np.c_[validRow, validCol], axis=0, return_index=True)
 
     p_wfs._nvalid = nvalid
-    p_wfs._validsubsx = validCol[np.sort(index)]
-    p_wfs._validsubsy = validRow[np.sort(index)]
+    p_wfs._validsubsx = validRow[np.sort(index)]
+    p_wfs._validsubsy = validCol[np.sort(index)]
     p_wfs._hrmap = mskRebTot.astype(np.int32)
 
     if (p_wfs.pyr_pos == None):

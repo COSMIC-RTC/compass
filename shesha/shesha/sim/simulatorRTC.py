@@ -96,7 +96,7 @@ class SimulatorRTC(Simulator):
                 **self.rtcconf.config.p_wfss[0]._validsubsInterface)
         if self.rtcconf.config.p_wfss[0].type == WFSType.SH:
             self.valid.send(tmp_valid * self.rtcconf.config.p_wfss[0].npix)
-        elif self.rtcconf.config.p_wfss[0].type == WFSType.PYRHR:
+        elif self.rtcconf.config.p_wfss[0].type == WFSType.PYRHR or self.rtcconf.config.p_wfss[0].type == WFSType.PYRLR:
             self.valid.send(tmp_valid)
         else:
             raise RuntimeError("WFS Type not usable")

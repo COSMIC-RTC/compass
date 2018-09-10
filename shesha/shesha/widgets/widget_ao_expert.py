@@ -404,7 +404,8 @@ class WidgetAOExpert(ExpertClassTemplate):
         n = self.uiExpert.wao_selectWfs.currentIndex()
         self.uiExpert.wao_wfsWindow.canvas.axes.clear()
         ax = self.uiExpert.wao_wfsWindow.canvas.axes
-        if (self.sim.config.p_wfss[n].type == scons.WFSType.PYRHR and
+        if ((self.sim.config.p_wfss[n].type == scons.WFSType.PYRHR or
+             self.sim.config.p_wfss[n].type == scons.WFSType.PYRLR) and
                     typeText == "Pyramid mod. pts" and self.sim.is_init):
             scale_fact = 2 * np.pi / self.sim.config.p_wfss[n]._Nfft * \
                 self.sim.config.p_wfss[n].Lambda * \

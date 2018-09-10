@@ -3,8 +3,6 @@ import numpy as np
 from shesha.constants import CentroiderType, WFSType
 from shesha.init.dm_init import dm_init_standalone
 from shesha.init.rtc_init import rtc_standalone
-from shesha.sim.simulator import Simulator
-from shesha.sim.simulatorBrahma import SimulatorBrahma
 from shesha.sutra_wrap import naga_context
 
 from .abstractSupervisor import AbstractSupervisor
@@ -166,9 +164,15 @@ class BenchSupervisor(AbstractSupervisor):
         self.rtc = None
         self.npix = 0
         self.frame = None
+        self.BRAHMA = BRAHMA
 
         if configFile is not None:
-            self.loadConfig(configFile, BRAHMA)
+            if BRAHMA:
+                from shesha.sim.simulatorBrahma import SimulatorBrahma as Simulator
+            else:
+                from shesha.sim.simulator import Simulator
+
+            self.loadConfig(configFile, Simulator)
 
     def __repr__(self):
         return str(self._sim)
@@ -179,16 +183,13 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         self._sim.dms.d_dms[nDm].reset_shape()
 
-    def loadConfig(self, configFile: str, BRAMA: bool=False) -> None:
+    def loadConfig(self, configFile: str, ISimulator=None) -> None:
         '''
         Init the COMPASS wih the configFile
         '''
 
         if self._sim is None:
-            if BRAMA:
-                self._sim = SimulatorBrahma(configFile)
-            else:
-                self._sim = Simulator(configFile)
+            self._sim = ISimulator(configFile)
         else:
             self._sim.clear_init()
             self._sim.load_from_file(configFile)
@@ -267,7 +268,7 @@ class BenchSupervisor(AbstractSupervisor):
                     np.ones(nact, dtype=np.float32) * (gain - 1))
             self.rtc.d_control[0].set_matE(np.identity(nact, dtype=np.float32))
             self.rtc.d_control[0].set_mgain(np.ones(nact, dtype=np.float32) * -gain)
-        elif p_wfs.type == WFSType.PYRHR:
+        elif p_wfs.type == WFSType.PYRHR or p_wfs.type == WFSType.PYRLR:
             raise RuntimeError("PYRHR not usable")
         self._sim.is_init = True
 
