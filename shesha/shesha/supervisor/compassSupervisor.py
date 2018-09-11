@@ -210,13 +210,10 @@ class CompassSupervisor(AbstractSupervisor):
         self._sim = None
         self._seeAtmos = False
         self.config = None
+        self.BRAHMA = BRAHMA
 
         if configFile is not None:
-            if BRAHMA:
-                from shesha.sim.simulatorBrahma import SimulatorBrahma as Simulator
-            else:
-                from shesha.sim.simulator import Simulator
-            self.loadConfig(configFile, Simulator)
+            self.loadConfig(configFile=configFile)
 
     def __repr__(self):
         return str(self._sim)
@@ -274,12 +271,19 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         self._sim.tar.d_targets[nTar].d_phase.reset()
 
-    def loadConfig(self, configFile: str, ISimulator=None) -> None:
+    def loadConfig(self, configFile: str=None, sim=None) -> None:
         '''
         Init the COMPASS wih the configFile
         '''
         if self._sim is None:
-            self._sim = ISimulator(configFile)
+            if sim is None:
+                if self.BRAHMA:
+                    from shesha.sim.simulatorBrahma import SimulatorBrahma as Simulator
+                else:
+                    from shesha.sim.simulator import Simulator
+                self._sim = Simulator(filepath=configFile)
+            else:
+                self._sim = sim
         else:
             self._sim.clear_init()
             self._sim.load_from_file(configFile)

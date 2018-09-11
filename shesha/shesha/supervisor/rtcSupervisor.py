@@ -101,7 +101,7 @@ class RTCSupervisor(BenchSupervisor):
         # print(comms)
         self.fakedms.send(comms)
 
-    def loadConfig(self, configFile: str) -> None:
+    def loadConfig(self, configFile: str=None) -> None:
         '''
         Init the COMPASS wih the configFile
         '''

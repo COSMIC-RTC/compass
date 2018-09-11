@@ -172,7 +172,7 @@ class BenchSupervisor(AbstractSupervisor):
             else:
                 from shesha.sim.simulator import Simulator
 
-            self.loadConfig(configFile, Simulator)
+            self.loadConfig(sim=Simulator(filepath=configFile))
 
     def __repr__(self):
         return str(self._sim)
@@ -183,13 +183,13 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         self._sim.dms.d_dms[nDm].reset_shape()
 
-    def loadConfig(self, configFile: str, ISimulator=None) -> None:
+    def loadConfig(self, configFile: str=None, sim=None) -> None:
         '''
         Init the COMPASS wih the configFile
         '''
 
         if self._sim is None:
-            self._sim = ISimulator(configFile)
+            self._sim = sim
         else:
             self._sim.clear_init()
             self._sim.load_from_file(configFile)

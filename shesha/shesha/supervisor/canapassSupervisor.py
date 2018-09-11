@@ -37,7 +37,7 @@ from .compassSupervisor import CompassSupervisor
 class CanapassSupervisor(CompassSupervisor):
 
     def __init__(self, configFile: str=None, BRAHMA: bool=True) -> None:
-        CompassSupervisor.__init__(self, configFile, BRAHMA)
+        CompassSupervisor.__init__(self, configFile=configFile, BRAHMA=BRAHMA)
 
         #############################################################
         #                 CONNECTED BUTTONS                         #
@@ -77,9 +77,9 @@ class CanapassSupervisor(CompassSupervisor):
             return
         return self._sim.config
 
-    def loadConfig(self, configFile: str, ISimulator=None) -> None:
+    def loadConfig(self, configFile: str=None, sim=None) -> None:
         ''' Load the configuration for the compass supervisor'''
-        CompassSupervisor.loadConfig(self, configFile, ISimulator)
+        CompassSupervisor.loadConfig(self, configFile=configFile, sim=sim)
         print("switching to a generic controller")
         self._sim.config.p_controllers[0].type = scons.ControllerType.GENERIC
 
