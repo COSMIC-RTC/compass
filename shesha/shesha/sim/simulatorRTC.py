@@ -78,7 +78,7 @@ class SimulatorRTC(Simulator):
 
         if np.any(self.rtc.d_control[0].d_cmat.shape != [nact, nslopes]):
             raise RuntimeError("cmat not match with the simulation")
-
+        print(p_wfs._frameInterface)
         self.fakewfs = Octopus.getInterface(**p_wfs._frameInterface)
 
         self.frame = np.ones((framesizex, framesizey), dtype=np.float32, order="F")
@@ -140,10 +140,13 @@ class SimulatorRTC(Simulator):
         if (self.location == "CPUSHM"):
             self.fakewfs.send(self.frame)
         elif (self.location == "GPUSHM"):
+            # self.fakewfs.send(self.frame)
             self.fakewfs.copyFrom(self.wfs.d_wfs[0].d_binimg)
             self.fakewfs.notify()
         else:
             raise ValueError("location not known")
         if apply_control:
             self.fakedms.recv(self.comp, 0)
-            self.dms.set_full_com(self.comp)
+            # self.fakedms.wait()
+            if not self.fastMode:
+                self.dms.set_full_com(self.comp)
