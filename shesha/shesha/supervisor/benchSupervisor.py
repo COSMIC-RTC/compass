@@ -72,10 +72,12 @@ class BenchSupervisor(AbstractSupervisor):
         Move atmos -> getSlope -> applyControl ; One integrator step
         '''
         self.frame = self.cam.getFrame()
-        self.rtc.d_centro[0].load_img(self.frame.astype(np.float32))
         if self._sim.config.p_wfss[0].type == WFSType.SH:
             #for SH
+            self.rtc.d_centro[0].load_img(self.frame.astype(np.float32))
             self.rtc.d_centro[0].fill_bincube(self.npix)
+        elif self._sim.config.p_wfss[0].type == WFSType.PYRHR:
+            self.rtc.d_centro[0].load_pyr_img(self.frame.astype(np.float32))
         self.rtc.do_centroids(0)
         self.rtc.do_control(0)
         self.rtc.d_control[0].command_delay()
