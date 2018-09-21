@@ -9,12 +9,11 @@ import h5py
 import matplotlib.pyplot as plt
 import matplotlib
 plt.ion()
-from guardian import gamora
-from guardian.tools import roket_exploitation as rexp
+from guardians import gamora, drax
 
 datapath = "/home/fferreira/Data/"
 fname_layers = "roket_8m_12layers_gamma1.h5"  # File with  all layers
-buferr_ref = rexp.get_err(datapath + fname_layers)
+buferr_ref = drax.get_err(datapath + fname_layers)
 f_layers = h5py.File(datapath + fname_layers)
 nlayers = f_layers.attrs["_Param_atmos__nscreens"]
 
@@ -47,16 +46,16 @@ for a in alts:
     i += 1
 
 frac = []
-buferr_layers = rexp.get_err(datapath + fname_layer_i[0]) * 0.
+buferr_layers = drax.get_err(datapath + fname_layer_i[0]) * 0.
 for k in range(len(files)):
     frac.append(frac_per_layer[files[k].attrs["_Param_atmos__alt"][0]])
-    buferr_layers += rexp.get_err(datapath + fname_layer_i[k]) * np.sqrt(
+    buferr_layers += drax.get_err(datapath + fname_layer_i[k]) * np.sqrt(
             frac_per_layer[files[k].attrs["_Param_atmos__alt"][0]])
 
 C_layers = np.zeros((buferr_layers.shape[0], buferr_layers.shape[0]))
 for k in range(len(files)):
     C_layers += (
-            frac[k] * rexp.get_covmat_contrib(datapath + fname_layer_i[k], contributors))
+            frac[k] * drax.get_covmat_contrib(datapath + fname_layer_i[k], contributors))
 print("contributors : ", contributors)
 
 # Column 1 : with correlation, column 2 : independence assumption
@@ -64,12 +63,12 @@ err_layers = np.zeros((nmodes, 2))
 
 err_layer_i = np.zeros((nmodes, 2 * nlayers))
 
-err_layers[:, 0] = rexp.variance(f_layers, contributors, method="Default")
-err_layers[:, 1] = rexp.variance(f_layers, contributors, method="Independence")
+err_layers[:, 0] = drax.variance(f_layers, contributors, method="Default")
+err_layers[:, 1] = drax.variance(f_layers, contributors, method="Independence")
 l = 0
 for f in files:
-    err_layer_i[:, l] = rexp.variance(f, contributors, method="Default")
-    err_layer_i[:, l + 1] = rexp.variance(f, contributors, method="Independence")
+    err_layer_i[:, l] = drax.variance(f, contributors, method="Default")
+    err_layer_i[:, l + 1] = drax.variance(f, contributors, method="Independence")
     l += 2
 
 #err_layer1p2 = varianceMultiFiles([f_layer1,f_layer2], frac_per_layer, contributors)
@@ -93,8 +92,8 @@ plt.xlabel("Modes #")
 plt.ylabel("Variance [mic^2]")
 plt.title("Variance with independence assumption")
 plt.subplot(2, 1, 2)
-plt.plot(rexp.cumulativeSR(err_layers[:, 1], Lambda_tar))
-plt.plot(rexp.cumulativeSR(inderr, Lambda_tar))
+plt.plot(drax.cumulativeSR(err_layers[:, 1], Lambda_tar))
+plt.plot(drax.cumulativeSR(inderr, Lambda_tar))
 plt.legend(["%d layers" % nlayers, "Layers sum"])
 plt.xlabel("Modes #")
 plt.ylabel("SR")
@@ -109,8 +108,8 @@ plt.xlabel("Modes #")
 plt.ylabel("Variance [mic^2]")
 plt.title("Variance with correlation")
 plt.subplot(2, 1, 2)
-plt.plot(rexp.cumulativeSR(err_layers[:, 0], Lambda_tar))
-plt.plot(rexp.cumulativeSR(derr, Lambda_tar))
+plt.plot(drax.cumulativeSR(err_layers[:, 0], Lambda_tar))
+plt.plot(drax.cumulativeSR(derr, Lambda_tar))
 plt.legend(["%d layers" % nlayers, "Layers sum"])
 plt.xlabel("Modes #")
 plt.ylabel("SR")

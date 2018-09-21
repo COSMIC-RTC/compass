@@ -10,9 +10,8 @@ import sys
 import os
 from tqdm import tqdm
 
-#from guardian import gamora
-from guardian.tools import Dphi
-from guardian.tools import roket_exploitation as rexp
+#from guardians import gamora
+from guardians import drax, starlord
 import matplotlib.pyplot as plt
 plt.ion()
 
@@ -74,7 +73,7 @@ def compute_Cerr(filename, modal=True, ctype="float", speed=None, H=None, theta=
     P = f["P"][:]
     Btt = f["Btt"][:]
     Tf = Btt[:-2, :-2].dot(P[:-2, :-2])
-    IF, T = rexp.get_IF(filename)
+    IF, T = drax.get_IF(filename)
     IF = IF.T
     T = T.T
     N = IF.shape[0]
@@ -121,7 +120,7 @@ def compute_Cerr_cpu(filename, modal=True):
     """
     f = h5py.File(filename, 'r')
 
-    tabx, taby = Dphi.tabulateIj0()
+    tabx, taby = starlord.tabulateIj0()
     Lambda_tar = f.attrs["_Param_target__Lambda"][0]
     Lambda_wfs = f.attrs["_Param_wfs__Lambda"]
     dt = f.attrs["_Param_loop__ittime"]
@@ -172,15 +171,18 @@ def compute_Cerr_cpu(filename, modal=True):
                 yij - vdt * np.sin(theta) - Htheta * np.sin(angleht)
         ], axis=0)
 
-        Ccov += 0.5 * (Dphi.dphi_lowpass(Mhvdt, fc, L0, tabx, taby) - Dphi.dphi_lowpass(
-                Mht, fc, L0, tabx, taby) - Dphi.dphi_lowpass(Mvdt, fc, L0, tabx, taby) +
-                       Dphi.dphi_lowpass(M, fc, L0, tabx, taby)) * (1. / r0)**(
-                               5. / 3.) * frac
+        Ccov += 0.5 * (
+                starlord.dphi_lowpass(Mhvdt, fc, L0, tabx, taby) -
+                starlord.dphi_lowpass(Mht, fc, L0, tabx, taby) - starlord.dphi_lowpass(
+                        Mvdt, fc, L0, tabx, taby) + starlord.dphi_lowpass(
+                                M, fc, L0, tabx, taby)) * (1. / r0)**(5. / 3.) * frac
 
-        Caniso += 0.5 * (Dphi.dphi_lowpass(Mht, fc, L0, tabx, taby) - Dphi.dphi_lowpass(
-                M, fc, L0, tabx, taby)) * (1. / r0)**(5. / 3.) * frac
-        Cbp += 0.5 * (Dphi.dphi_lowpass(Mvdt, fc, L0, tabx, taby) - Dphi.dphi_lowpass(
-                M, fc, L0, tabx, taby)) * (1. / r0)**(5. / 3.) * frac
+        Caniso += 0.5 * (
+                starlord.dphi_lowpass(Mht, fc, L0, tabx, taby) - starlord.dphi_lowpass(
+                        M, fc, L0, tabx, taby)) * (1. / r0)**(5. / 3.) * frac
+        Cbp += 0.5 * (
+                starlord.dphi_lowpass(Mvdt, fc, L0, tabx, taby) - starlord.dphi_lowpass(
+                        M, fc, L0, tabx, taby)) * (1. / r0)**(5. / 3.) * frac
 
     Sp = (Lambda_tar / (2 * np.pi))**2
     Ctt = (Caniso + Caniso.T) * Sp
@@ -191,7 +193,7 @@ def compute_Cerr_cpu(filename, modal=True):
     Btt = f["Btt"][:]
     Tf = Btt[:-2, :-2].dot(P[:-2, :-2])
 
-    IF, T = rexp.get_IF(filename)
+    IF, T = drax.get_IF(filename)
     IF = IF.T
     T = T.T
     N = IF.shape[0]
@@ -220,17 +222,17 @@ def test_Cerr(filename):
     :parameters:
         filename:(str):path to the ROKET file
     """
-    C = rexp.get_covmat_contrib(filename, ["bandwidth", "tomography"])
+    C = drax.get_covmat_contrib(filename, ["bandwidth", "tomography"])
     Cerr = compute_Cerr(filename)
     _, _, psfr, _ = gamora.psf_rec_Vii(filename, covmodes=C.astype(np.float32),
                                        fitting=False)
     _, _, psf, _ = gamora.psf_rec_Vii(filename, cov=Cerr.astype(np.float32),
                                       fitting=False)
-    rexp.cutsPSF(filename, psfr, psf)
+    drax.cutsPSF(filename, psfr, psf)
     print("PSFR SR: ", psfr.max())
     print("PSF SR: ", psf.max())
-    psf = rexp.ensquare_PSF(filename, psf, 20)
-    psfr = rexp.ensquare_PSF(filename, psfr, 20)
+    psf = drax.ensquare_PSF(filename, psf, 20)
+    psfr = drax.ensquare_PSF(filename, psfr, 20)
     plt.matshow(np.log10(np.abs(psfr)))
     plt.colorbar()
     plt.title("PSF_R")
@@ -431,7 +433,7 @@ def compute_OTF_fitting(filename, otftel):
             6. / 5.)
     ratio_lambda = 2 * np.pi / f.attrs["_Param_target__Lambda"][0]
     # Telescope OTF
-    spup = rexp.get_pup(filename)
+    spup = drax.get_pup(filename)
     mradix = 2
     fft_size = mradix**int((np.log(2 * spup.shape[0]) / np.log(mradix)) + 1)
     mask = np.ones((fft_size, fft_size))
@@ -441,10 +443,10 @@ def compute_OTF_fitting(filename, otftel):
     pixsize = f.attrs["_Param_tel__diam"] / f.attrs["_Param_geom__pupdiam"]
     x = x * pixsize
     r = np.sqrt(x[:, None] * x[:, None] + x[None, :] * x[None, :])
-    tabx, taby = Dphi.tabulateIj0()
+    tabx, taby = starlord.tabulateIj0()
     dphi = np.fft.fftshift(
-            Dphi.dphi_highpass(r, f.attrs["_Param_tel__diam"] /
-                               (f.attrs["_Param_dm__nact"][0] - 1), tabx, taby) *
+            starlord.dphi_highpass(r, f.attrs["_Param_tel__diam"] /
+                                   (f.attrs["_Param_dm__nact"][0] - 1), tabx, taby) *
             (1 / r0)**(5 / 3.))  # * den * ratio_lambda**2 * mask
     otf_fit = np.exp(-0.5 * dphi) * mask
     otf_fit = otf_fit / otf_fit.max()
@@ -467,7 +469,7 @@ def compute_PSF(filename):
         psf: (np.ndarray) : PSF
     """
     tic = time.time()
-    spup = rexp.get_pup(filename)
+    spup = drax.get_pup(filename)
     Cab = compute_Cerr(filename)
     Cn = compute_Cn_cpu(filename)
     Ca = compute_Calias(filename)
@@ -544,7 +546,7 @@ def compute_Calias(filename, slopes_space=False, modal=True, npts=3):
     """
 
     f = h5py.File(filename, 'r')
-    tabx, taby = Dphi.tabulateIj0()
+    tabx, taby = starlord.tabulateIj0()
     nsub = f["R"][:].shape[1] // 2
     nssp = f.attrs["_Param_wfs__nxsub"][0]
     npix = f.attrs["_Param_wfs__npix"][0]
@@ -640,7 +642,7 @@ def compute_Calias_element_XX(xx, yy, fc, d, nsub, tabx, taby, xoff=0, yoff=0):
         Ca: (np.ndarray(ndim=2, dtype=np.float32)): aliasing covariance matrix to fill
         xx: (np.ndarray(ndim=2, dtype=np.float32)): X positions of the WFS subap
         yy: (np.ndarray(ndim=2, dtype=np.float32)): Y positions of the WFS subap
-        fc: (float): cut-off frequency for Dphi
+        fc: (float): cut-off frequency for structure function
         d: (float): subap diameter
         nsub: (int): number of subap
         tabx: (np.ndarray(ndim=1, dtype=np.float32)): X tabulation for dphi
@@ -660,8 +662,9 @@ def compute_Calias_element_XX(xx, yy, fc, d, nsub, tabx, taby, xoff=0, yoff=0):
     aB = np.linalg.norm([xx + d, yy + yoff], axis=0)
     ab = AB
 
-    Ca[:nsub, :nsub] += Dphi.dphi_highpass(Ab, fc, tabx, taby) + Dphi.dphi_highpass(
-            aB, fc, tabx, taby) - 2 * Dphi.dphi_highpass(AB, fc, tabx, taby)
+    Ca[:nsub, :nsub] += starlord.dphi_highpass(
+            Ab, fc, tabx, taby) + starlord.dphi_highpass(
+                    aB, fc, tabx, taby) - 2 * starlord.dphi_highpass(AB, fc, tabx, taby)
 
     return Ca
 
@@ -674,7 +677,7 @@ def compute_Calias_element_YY(xx, yy, fc, d, nsub, tabx, taby, xoff=0, yoff=0):
         Ca: (np.ndarray(ndim=2, dtype=np.float32)): aliasing covariance matrix to fill
         xx: (np.ndarray(ndim=2, dtype=np.float32)): X positions of the WFS subap
         yy: (np.ndarray(ndim=2, dtype=np.float32)): Y positions of the WFS subap
-        fc: (float): cut-off frequency for Dphi
+        fc: (float): cut-off frequency for structure function
         d: (float): subap diameter
         nsub: (int): number of subap
         tabx: (np.ndarray(ndim=1, dtype=np.float32)): X tabulation for dphi
@@ -694,8 +697,9 @@ def compute_Calias_element_YY(xx, yy, fc, d, nsub, tabx, taby, xoff=0, yoff=0):
     cD = np.linalg.norm([xx + xoff, yy + d], axis=0)
     cd = CD
 
-    Ca[nsub:, nsub:] += Dphi.dphi_highpass(Cd, fc, tabx, taby) + Dphi.dphi_highpass(
-            cD, fc, tabx, taby) - 2 * Dphi.dphi_highpass(CD, fc, tabx, taby)
+    Ca[nsub:, nsub:] += starlord.dphi_highpass(
+            Cd, fc, tabx, taby) + starlord.dphi_highpass(
+                    cD, fc, tabx, taby) - 2 * starlord.dphi_highpass(CD, fc, tabx, taby)
 
     return Ca
 
@@ -708,7 +712,7 @@ def compute_Calias_element_XY(xx, yy, fc, d, nsub, tabx, taby, xoff=0, yoff=0):
         Ca: (np.ndarray(ndim=2, dtype=np.float32)): aliasing covariance matrix to fill
         xx: (np.ndarray(ndim=2, dtype=np.float32)): X positions of the WFS subap
         yy: (np.ndarray(ndim=2, dtype=np.float32)): Y positions of the WFS subap
-        fc: (float): cut-off frequency for Dphi
+        fc: (float): cut-off frequency for struture function
         d: (float): subap diameter
         nsub: (int): number of subap
         tabx: (np.ndarray(ndim=1, dtype=np.float32)): X tabulation for dphi
@@ -727,9 +731,9 @@ def compute_Calias_element_XY(xx, yy, fc, d, nsub, tabx, taby, xoff=0, yoff=0):
     AD = np.linalg.norm([xx - d / 2, yy + d / 2], axis=0)
 
     Ca[nsub:, :nsub] = 0.25 * (
-            Dphi.dphi_highpass(Ad, d, tabx, taby) + Dphi.dphi_highpass(
-                    aD, d, tabx, taby) - Dphi.dphi_highpass(
-                            AD, d, tabx, taby) - Dphi.dphi_highpass(ad, d, tabx, taby))
+            starlord.dphi_highpass(Ad, d, tabx, taby) + starlord.dphi_highpass(
+                    aD, d, tabx, taby) - starlord.dphi_highpass(AD, d, tabx, taby) -
+            starlord.dphi_highpass(ad, d, tabx, taby))
     Ca[:nsub, nsub:] = Ca[nsub:, :nsub].copy()
     return Ca
 
@@ -742,7 +746,7 @@ def compute_Calias_element(xx, yy, fc, d, nsub, tabx, taby, xoff=0, yoff=0):
         Ca: (np.ndarray(ndim=2, dtype=np.float32)): aliasing covariance matrix to fill
         xx: (np.ndarray(ndim=2, dtype=np.float32)): X positions of the WFS subap
         yy: (np.ndarray(ndim=2, dtype=np.float32)): Y positions of the WFS subap
-        fc: (float): cut-off frequency for Dphi
+        fc: (float): cut-off frequency for structure function
         d: (float): subap diameter
         nsub: (int): number of subap
         tabx: (np.ndarray(ndim=1, dtype=np.float32)): X tabulation for dphi
@@ -760,8 +764,9 @@ def compute_Calias_element(xx, yy, fc, d, nsub, tabx, taby, xoff=0, yoff=0):
     aB = np.linalg.norm([xx + d, yy], axis=0)
     ab = AB
 
-    Ca[:nsub, :nsub] += Dphi.dphi_highpass(Ab, fc, tabx, taby) + Dphi.dphi_highpass(
-            aB, fc, tabx, taby) - 2 * Dphi.dphi_highpass(AB, fc, tabx, taby)
+    Ca[:nsub, :nsub] += starlord.dphi_highpass(
+            Ab, fc, tabx, taby) + starlord.dphi_highpass(
+                    aB, fc, tabx, taby) - 2 * starlord.dphi_highpass(AB, fc, tabx, taby)
 
     # YY covariance
     CD = AB
@@ -769,8 +774,9 @@ def compute_Calias_element(xx, yy, fc, d, nsub, tabx, taby, xoff=0, yoff=0):
     cD = np.linalg.norm([xx, yy + d], axis=0)
     cd = CD
 
-    Ca[nsub:, nsub:] += Dphi.dphi_highpass(Cd, fc, tabx, taby) + Dphi.dphi_highpass(
-            cD, fc, tabx, taby) - 2 * Dphi.dphi_highpass(CD, fc, tabx, taby)
+    Ca[nsub:, nsub:] += starlord.dphi_highpass(
+            Cd, fc, tabx, taby) + starlord.dphi_highpass(
+                    cD, fc, tabx, taby) - 2 * starlord.dphi_highpass(CD, fc, tabx, taby)
 
     # XY covariance
 
@@ -779,10 +785,10 @@ def compute_Calias_element(xx, yy, fc, d, nsub, tabx, taby, xoff=0, yoff=0):
     # Ad = np.linalg.norm([xx - d/2, yy - d/2], axis=0)
     # AD = np.linalg.norm([xx - d/2, yy + d/2], axis=0)
     #
-    # Ca[nsub:,:nsub] = 0.25 * (Dphi.dphi_highpass(Ad, d, tabx, taby)
-    #                 + Dphi.dphi_highpass(aD, d, tabx, taby)
-    #                 - Dphi.dphi_highpass(AD, d, tabx, taby)
-    #                 - Dphi.dphi_highpass(ad, d, tabx, taby)) * (1 / r0)**(5. / 3.)
+    # Ca[nsub:,:nsub] = 0.25 * (starlord.dphi_highpass(Ad, d, tabx, taby)
+    #                 + starlord.dphi_highpass(aD, d, tabx, taby)
+    #                 - starlord.dphi_highpass(AD, d, tabx, taby)
+    #                 - starlord.dphi_highpass(ad, d, tabx, taby)) * (1 / r0)**(5. / 3.)
     # Ca[:nsub,nsub:] = Ca[nsub:,:nsub].copy()
     return Ca
 
@@ -862,30 +868,30 @@ def compute_dCmm_element(xx, yy, d, nsub, ws, wd, dt, L0):
     Ab = np.linalg.norm([-xij - d + vdt * np.cos(wd), -yij + vdt * np.sin(wd)], axis=0)
     aB = np.linalg.norm([-xij + d + vdt * np.cos(wd), -yij + vdt * np.sin(wd)], axis=0)
 
-    dCmm[:nsub, :nsub] += Dphi.rodconan(Ab, L0) + Dphi.rodconan(
-            aB, L0) - 2 * Dphi.rodconan(AB, L0)
+    dCmm[:nsub, :nsub] += starlord.rodconan(Ab, L0) + starlord.rodconan(
+            aB, L0) - 2 * starlord.rodconan(AB, L0)
 
     AB = np.linalg.norm([xij + vdt * np.cos(wd), yij + vdt * np.sin(wd)], axis=0)
     Ab = np.linalg.norm([xij - d + vdt * np.cos(wd), yij + vdt * np.sin(wd)], axis=0)
     aB = np.linalg.norm([xij + d + vdt * np.cos(wd), yij + vdt * np.sin(wd)], axis=0)
 
-    dCmm[:nsub, :nsub] -= (
-            Dphi.rodconan(Ab, L0) + Dphi.rodconan(aB, L0) - 2 * Dphi.rodconan(AB, L0))
+    dCmm[:nsub, :nsub] -= (starlord.rodconan(Ab, L0) + starlord.rodconan(aB, L0) -
+                           2 * starlord.rodconan(AB, L0))
 
     # YY covariance
     CD = np.linalg.norm([-xij + vdt * np.cos(wd), -yij + vdt * np.sin(wd)], axis=0)
     Cd = np.linalg.norm([-xij + vdt * np.cos(wd), -yij - d + vdt * np.sin(wd)], axis=0)
     cD = np.linalg.norm([-xij + vdt * np.cos(wd), -yij + d + vdt * np.sin(wd)], axis=0)
 
-    dCmm[nsub:, nsub:] += Dphi.rodconan(Cd, L0) + Dphi.rodconan(
-            cD, L0) - 2 * Dphi.rodconan(CD, L0)
+    dCmm[nsub:, nsub:] += starlord.rodconan(Cd, L0) + starlord.rodconan(
+            cD, L0) - 2 * starlord.rodconan(CD, L0)
 
     CD = np.linalg.norm([xij + vdt * np.cos(wd), yij + vdt * np.sin(wd)], axis=0)
     Cd = np.linalg.norm([xij + vdt * np.cos(wd), yij - d + vdt * np.sin(wd)], axis=0)
     cD = np.linalg.norm([xij + vdt * np.cos(wd), yij + d + vdt * np.sin(wd)], axis=0)
 
-    dCmm[nsub:, nsub:] -= (
-            Dphi.rodconan(Cd, L0) + Dphi.rodconan(cD, L0) - 2 * Dphi.rodconan(CD, L0))
+    dCmm[nsub:, nsub:] -= (starlord.rodconan(Cd, L0) + starlord.rodconan(cD, L0) -
+                           2 * starlord.rodconan(CD, L0))
     # XY covariance
 
     # aD = np.linalg.norm([xx + d/2, yy + d/2], axis=0)
@@ -893,9 +899,9 @@ def compute_dCmm_element(xx, yy, d, nsub, ws, wd, dt, L0):
     # Ad = np.linalg.norm([xx - d/2, yy - d/2], axis=0)
     # AD = np.linalg.norm([xx - d/2, yy + d/2], axis=0)
     #
-    # dCmm[nsub:,:nsub] = 0.25 * (Dphi.rodconan(Ad, d, tabx, taby)
-    #                 + Dphi.dphi_highpass(aD, d, tabx, taby)
-    #                 - Dphi.dphi_highpass(AD, d, tabx, taby)
-    #                 - Dphi.dphi_highpass(ad, d, tabx, taby)) * (1 / r0)**(5. / 3.)
+    # dCmm[nsub:,:nsub] = 0.25 * (starlord.rodconan(Ad, d, tabx, taby)
+    #                 + starlord.dphi_highpass(aD, d, tabx, taby)
+    #                 - starlord.dphi_highpass(AD, d, tabx, taby)
+    #                 - starlord.dphi_highpass(ad, d, tabx, taby)) * (1 / r0)**(5. / 3.)
     # dCmm[:nsub,nsub:] = dCmm[nsub:,:nsub].copy()
     return 0.25 * dCmm

@@ -10,7 +10,7 @@ from bokeh.models.widgets import Panel, DataTable, TableColumn, Tabs, Button, Ra
 from bokeh.layouts import layout, widgetbox
 from bokeh.io import curdoc, output_file, show
 
-from guardian.tools import roket_exploitation as rexp
+from guardians import drax
 
 
 class Bokeh_roket:
@@ -44,8 +44,12 @@ class Bokeh_roket:
         self.radioButton_basis = RadioButtonGroup(labels=["Actuators", "Btt"], active=1)
 
         self.colors = {
-                "filtered modes": "green", "bandwidth": "orange", "noise": "red",
-                "tomography": "purple", "non linearity": "cyan", "aliasing": "blue"
+                "filtered modes": "green",
+                "bandwidth": "orange",
+                "noise": "red",
+                "tomography": "purple",
+                "non linearity": "cyan",
+                "aliasing": "blue"
         }
         self.contributors = [c for c in self.colors.keys()]
         self.source_breakdown = ColumnDataSource(data=dict(n=[], a=[], b=[], t=[], nl=[],
@@ -159,7 +163,7 @@ class Bokeh_roket:
         """
         self.pretext.text = """ Updating error breakdown... Please wait"""
 
-        breakdown = rexp.get_breakdown(self.datapath + str(self.select_files.value))
+        breakdown = drax.get_breakdown(self.datapath + str(self.select_files.value))
         self.source_breakdown.data = dict(n=[int(np.round(breakdown["noise"]))], a=[
                 int(np.round(breakdown["aliasing"]))
         ], b=[int(np.round(breakdown["bandwidth"]))

@@ -12,8 +12,7 @@ from bokeh.models.widgets import Panel, Toggle, TextInput, Slider, CheckboxButto
 from bokeh.layouts import layout, widgetbox
 from bokeh.io import curdoc, output_file, show
 
-from guardian.tools import roket_exploitation as rexp
-from guardian import gamora, groot
+from guardians import gamora, groot, drax
 
 
 class Bokeh_groot:
@@ -249,7 +248,7 @@ class Bokeh_groot:
                 self.covmat_groot += groot.compute_Cerr(
                         self.datapath + str(self.select_files.value), modal=modal)
 
-            err = rexp.get_err_contributors(self.datapath + str(self.select_files.value),
+            err = drax.get_err_contributors(self.datapath + str(self.select_files.value),
                                             contrib)
             self.covmat_roket = err.dot(err.T) / err.shape[1]
             if modal:

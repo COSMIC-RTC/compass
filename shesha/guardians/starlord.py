@@ -1,4 +1,5 @@
 """
+STARLORD (SeT of Algorithms foR mOdified stRucture function computation)
 Set of functions for structure function computation
 """
 

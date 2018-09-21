@@ -12,7 +12,7 @@ from shesha.sutra_wrap import naga_context, Gamora
 from scipy.sparse import csr_matrix
 from sys import stdout
 import time
-from guardian.tools import roket_exploitation as rexp
+from guardians import drax
 
 plt.ion()
 
@@ -39,14 +39,14 @@ def psf_rec_Vii(filename, err=None, fitting=True, covmodes=None, cov=None):
     """
 
     f = h5py.File(filename, 'r')
-    spup = rexp.get_pup(filename)
+    spup = drax.get_pup(filename)
     # Sparse IF matrix
-    IF, T = rexp.get_IF(filename)
+    IF, T = drax.get_IF(filename)
     # Covariance matrix
     P = f["P"][:]
     print("Projecting error buffer into modal space...")
     if ((err is None) and (cov is None)):
-        err = rexp.get_err(filename)
+        err = drax.get_err(filename)
         err = P.dot(err)
     print("Computing covariance matrix...")
     if (cov is None):
@@ -107,11 +107,11 @@ def psf_rec_vii_cpu(filename):
     """
 
     f = h5py.File(filename, 'r')
-    IF, T = rexp.get_IF(filename)
+    IF, T = drax.get_IF(filename)
     ratio_lambda = 2 * np.pi / f.attrs["_Param_target__Lambda"][0]
     # Telescope OTF
     print("Computing telescope OTF...")
-    spup = rexp.get_pup(filename)
+    spup = drax.get_pup(filename)
     mradix = 2
     fft_size = mradix**int((np.log(2 * spup.shape[0]) / np.log(mradix)) + 1)
     pup = np.zeros((fft_size, fft_size))
@@ -127,7 +127,7 @@ def psf_rec_vii_cpu(filename):
     print("Done")
     # Covariance matrix
     print("Computing covariance matrix...")
-    err = rexp.get_err(filename)
+    err = drax.get_err(filename)
     P = f["P"][:]
     err = P.dot(err)
     Btt = f["Btt"][:]
@@ -198,7 +198,7 @@ def add_fitting_to_psf(filename, otf, otffit):
 
     """
     print("\nAdding fitting to PSF...")
-    spup = rexp.get_pup(filename)
+    spup = drax.get_pup(filename)
     psf = np.fft.fftshift(np.real(np.fft.ifft2(otffit * otf)))
     psf *= (psf.shape[0] * psf.shape[0] / float(np.where(spup)[0].shape[0]))
 
@@ -337,10 +337,10 @@ def intersample(Cvvmap, pupilImage, IFImage, pixscale, dactu, lambdaIR):
 #     """
 #     f = h5py.File(filename, 'r')
 #     if (err is None):
-#         err = rexp.get_err(filename)
-#     spup = rexp.get_pup(filename)
+#         err = drax.get_err(filename)
+#     spup = drax.get_pup(filename)
 #     # Sparse IF matrix
-#     IF, T = rexp.get_IF(filename)
+#     IF, T = drax.get_IF(filename)
 #     # Scale factor
 #     scale = float(2 * np.pi / f.attrs["_Param_target__Lambda"][0])
 #     # Init GPU
@@ -368,7 +368,7 @@ def intersample(Cvvmap, pupilImage, IFImage, pixscale, dactu, lambdaIR):
 
 #     f = h5py.File(filename, 'r')
 #     # Get the sum of error contributors
-#     err = rexp.get_err(filename)
+#     err = drax.get_err(filename)
 
 #     # Retrieving spupil (for file where spupil was not saved)
 #     indx_pup = f["indx_pup"][:]
@@ -386,7 +386,7 @@ def intersample(Cvvmap, pupilImage, IFImage, pixscale, dactu, lambdaIR):
 #     psf = psf
 
 #     # Sparse IF matrix
-#     IF, T = rexp.get_IF(filename)
+#     IF, T = drax.get_IF(filename)
 #     # Scale factor
 #     scale = float(2 * np.pi / f.attrs["_Param_target__Lambda"][0])
 

@@ -7,11 +7,11 @@ PIXSIZE="0.6"
 WINDSPEED="10 20"
 WINDDIR="0 45 90 135 180 20"
 DATE=`date +%F_%Hh%M`
-OUTPUT="$SHESHA_ROOT/guardian/scripts/outputfile_$DATE"
+OUTPUT="$SHESHA_ROOT/guardians/scripts/outputfile_$DATE"
 
 echo "writing output in "$OUTPUT
 
-script="$SHESHA_ROOT/guardian/scripts/script_roket.py"
+script="$SHESHA_ROOT/guardians/scripts/script_roket.py"
 
 for s in $WINDSPEED
 do

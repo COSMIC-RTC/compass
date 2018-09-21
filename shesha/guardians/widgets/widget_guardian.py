@@ -9,7 +9,7 @@ from bokeh.models.widgets import Tabs
 
 class Bokeh_guardian:
     """
-    Class that defines a bokeh layout for all the guardian package
+    Class that defines a bokeh layout for all the guardians package
     Usage: see bokeh_roket.py which is the executable
     """
 

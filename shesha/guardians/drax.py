@@ -1,4 +1,6 @@
 """
+DRAX (Dedicated functions for Roket file Analysis and eXploitation)
+
 Useful functions for ROKET file exploitation
 """
 

@@ -323,9 +323,10 @@ p.circle(x="x", y="y", source=source_model, size=7, color="red")
 
 xmap = {"Windspeed": speeds, "Winddir": theta, "Gain": gain}
 ymap = {
-        "Covar": np.sum(covar, axis=0), "Var(t+bp)": np.sum(data[:, 0, :], axis=0),
-        "Var(t)": np.sum(data[:, 1, :],
-                         axis=0), "Var(bp)": np.sum(data[:, 2, :], axis=0),
+        "Covar": np.sum(covar, axis=0),
+        "Var(t+bp)": np.sum(data[:, 0, :], axis=0),
+        "Var(t)": np.sum(data[:, 1, :], axis=0),
+        "Var(bp)": np.sum(data[:, 2, :], axis=0),
         "Var(t)+Var(bp)": np.sum(data[:, 3, :], axis=0)
 }
 

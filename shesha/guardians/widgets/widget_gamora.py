@@ -12,8 +12,7 @@ from bokeh.models.widgets import Panel, TextInput, Slider, CheckboxButtonGroup, 
 from bokeh.layouts import layout, widgetbox
 from bokeh.io import curdoc, output_file, show
 
-from guardian.tools import roket_exploitation as rexp
-from guardian import gamora, groot
+from guardians import gamora, groot
 
 
 class Bokeh_gamora:

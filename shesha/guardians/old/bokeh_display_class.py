@@ -52,7 +52,9 @@ class html_display:
         self.fh = h5py.File(self.datapath + "breakdown_imat_hack.h5")
 
         self.files = {
-                "Classical": self.f, "Imat geom 0": self.f0, "Imat geom 1": self.f1,
+                "Classical": self.f,
+                "Imat geom 0": self.f0,
+                "Imat geom 1": self.f1,
                 "Imat hacked": self.fh
         }
         self.niter = self.f["com"][:].shape[1]
@@ -94,9 +96,14 @@ class html_display:
         self.draw = Button(label="Draw !", type="success")
 
         self.colors = {
-                "H_com": "green", "alias_com": "blue", "bp_com": "orange",
-                "com": "black", "noise_com": "red", "tomo_com": "purple",
-                "trunc_com": "cyan", "wf_com": "magenta"
+                "H_com": "green",
+                "alias_com": "blue",
+                "bp_com": "orange",
+                "com": "black",
+                "noise_com": "red",
+                "tomo_com": "purple",
+                "trunc_com": "cyan",
+                "wf_com": "magenta"
         }
 
         self.source1 = ColumnDataSource(data=dict(x=[], y=[], color=[]))
@@ -108,8 +115,10 @@ class html_display:
         #self.sourceC = ColumnDataSource(data=dict(C=[],x=[],y=[],dw=[],dh=[]))
 
         self.sources = {
-                "Classical": self.source1, "Imat geom 0": self.source2,
-                "Imat geom 1": self.source3, "Imat hacked": self.source4
+                "Classical": self.source1,
+                "Imat geom 0": self.source2,
+                "Imat geom 1": self.source3,
+                "Imat hacked": self.source4
         }
 
         self.p = Figure(plot_height=600, plot_width=800)  #,tools=[hover])
