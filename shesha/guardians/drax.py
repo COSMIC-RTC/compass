@@ -124,6 +124,26 @@ def get_cumSR(filename):
     return data, data2, SR, SR2
 
 
+def get_Btt(filename):
+    """
+    Return the Modes to Volt matrix
+    :parameters:
+        filename: (str): path to the ROKET file
+    """
+    f = h5py.File(filename, 'r')
+    return f["Btt"][:]
+
+
+def get_P(filename):
+    """
+    Return the Volt to Modes matrix
+    :parameters:
+        filename: (str): path to the ROKET file
+    """
+    f = h5py.File(filename, 'r')
+    return f["P"][:]
+
+
 def get_contribution(filename, contributor):
     """
     Return the variance of an error contributor
