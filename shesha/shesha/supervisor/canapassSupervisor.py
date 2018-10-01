@@ -226,13 +226,13 @@ class CanapassSupervisor(CompassSupervisor):
             # Rotate the actuators
             rotatedActus = rotation.dot(dmposMat - onePoint[:, None])
             selGoodSide = (rotatedActus[0] > minU) & (rotatedActus[0] < maxU)
-
+            seuil = 0.05
             # Actuators below this piece of spider
-            selDiscard = (np.abs(rotatedActus[1]) < 0.1 * pitch) & selGoodSide
+            selDiscard = (np.abs(rotatedActus[1]) < seuil * pitch) & selGoodSide
             DISCARD |= selDiscard
 
             # Actuator 'near' this piece of spider
-            selPairable = (np.abs(rotatedActus[1]) > 0.1 * pitch) & \
+            selPairable = (np.abs(rotatedActus[1]) > seuil  * pitch) & \
                             (np.abs(rotatedActus[1]) < 1. * pitch) & \
                             selGoodSide
 
@@ -268,6 +268,38 @@ class CanapassSupervisor(CompassSupervisor):
             list(np.where(DISCARD)[0])
         return np.asarray(PAIRS), list(np.where(DISCARD)[0])
 
+    def computeActusPetals(self):
+        import shesha.util.make_pupil as mkP
+        import shesha.util.utilities as util
+        N = self._sim.config.p_geom.pupdiam
+        i0 = j0 = self._sim.config.p_geom.pupdiam / 2. - 0.5
+        pixscale = self._sim.config.p_tel.diam / self._sim.config.p_geom.pupdiam
+        dspider = self._sim.config.p_tel.t_spiders
+        #spup = self.getSpupil()
+        oldspidersize = self._sim.config.p_tel.t_spiders
+        self._sim.config.p_tel.set_t_spiders = 0.
+        spup = mkP.make_pupil(self._sim.config.p_geom.pupdiam,
+                              self._sim.config.p_geom.pupdiam, self._sim.config.p_tel,
+                              i0, j0)
+        self._sim.config.p_tel.set_t_spiders = oldspidersize
+        petalsPups = mkP.compute6Segments(spup, N, pixscale, 0.51 / 2, i0, j0)
+        ipup = util.pad_array(spup, self._sim.config.p_geom.ssize).astype(np.float32)
+        dmpup = np.zeros_like(ipup)
+        dmposx = self._sim.config.p_dm0._xpos
+        dmposy = self._sim.config.p_dm0._ypos
+        dmpup[dmposx.astype(int), dmposy.astype(int)] = 1
+        dmpupPetals = np.zeros((6, dmpup.shape[0], dmpup.shape[1]))
+        indActusPetals = []  # actuators to disable because under spider
+        for i in range(6):
+            dmpupPetals[i, :, :] = dmpup * util.pad_array(petalsPups[i],
+                                                          self._sim.config.p_geom.ssize)
+            ipetal = []
+            for j in range(len(dmposx)):
+                if (dmpupPetals[i, :, :][int(dmposx[j]), int(dmposy[j])] == 1):
+                    ipetal.append(j)
+            indActusPetals.append(ipetal)
+        return indActusPetals, petalsPups
+
     def computeMerged_fab(self):
         print("Computing merged actuators...")
         p_geom = self._sim.config.p_geom
@@ -296,8 +328,8 @@ class CanapassSupervisor(CompassSupervisor):
         spiders = spup2 - spup
         spidersLeft = l - pp
         spidersRight = r - pp
-        dmposx = self._sim.config.p_dm0._xpos - 0.5
-        dmposy = self._sim.config.p_dm0._ypos - 0.5
+        dmposx = self._sim.config.p_dm0._xpos
+        dmposy = self._sim.config.p_dm0._ypos
 
         # ----------------------------------------
         # Under spider actuators
@@ -512,23 +544,26 @@ class CanapassSupervisor(CompassSupervisor):
 
     def applyVoltGetSlopes(self, noise=False, turbu=False, reset=1):
         self._sim.rtc.apply_control(0, self._sim.dms)
-        for w in self._sim.wfs.d_wfs:
+        for w in range(len(self._sim.wfs.d_wfs)):
 
             if (turbu):
-                w.d_gs.raytrace(self._sim.atm, rst=reset)
-                w.d_gs.raytrace(self._sim.tel)
-                w.d_gs.raytrace()
+                self._sim.raytraceWfs(w, "all")
+                # w.d_gs.raytrace(self._sim.atm)
+                # w.d_gs.raytrace(self._sim.tel)
+                # w.d_gs.raytrace(self._sim.dms)
+                # w.d_gs.raytrace()
             else:
-                w.d_gs.raytrace(self._sim.dms, rst=reset)
-                w.d_gs.raytrace()
+                self._sim.raytraceWfs(w, ["dm", "ncpa"], rst=reset)
+                # w.d_gs.raytrace(self._sim.dms, rst=reset)
+                # w.d_gs.raytrace()
 
-            w.comp_image(noise=noise)
+            self._sim.compWfsImage(w, noise=noise)
         self._sim.rtc.do_centroids(0)
         c = self.getCentroids(0)
         return c
 
     def computeModalResiduals(self):
-        self._sim.doControlGeo(1, 0)
+        self._sim.doControl(1, 0)
         v = self.getCom(
                 1
         )  # We compute here the residual phase on the DM modes. Gives the Equivalent volts to apply/
@@ -741,7 +776,7 @@ class CanapassSupervisor(CompassSupervisor):
         return np.array(self._sim.wfs.d_wfs[wfsnum].d_gs.d_ncpa_phase)
 
     def getNcpaTar(self, tarnum):
-        return np.array(self._sim.tar.d_targets[tarum].d_ncpa_phase)
+        return np.array(self._sim.tar.d_targets[tarnum].d_ncpa_phase)
 
     #def getVolts(self):
     #    return self._sim.rtc.get_voltage(0)
@@ -756,22 +791,48 @@ class CanapassSupervisor(CompassSupervisor):
         return self._sim.iter
 
     def recordCB(self, CBcount, subSample=1, tarnum=0, seeAtmos=True,
-                 tarPhaseFilePath=""):
+                 tarPhaseFilePath="", NCPA=False, ncpawfs=None, refSlopes=None):
         slopesdata = None
         voltsdata = None
         tarPhaseData = None
         aiData = None
         k = 0
+        srseList = []
+        srleList = []
+        gNPCAList = []
         # Resets the target so that the PSF LE is synchro with the data
         for i in range(len(self._sim.config.p_targets)):
             self.resetStrehl(i)
 
         # Starting CB loop...
         for j in trange(CBcount, desc="recording"):
+            if (NCPA):
+                if (j % NCPA == 0):
+                    ncpaDiff = refSlopes[None, :]
+                    ncpaturbu = self.doImatPhase(-ncpawfs[None, :, :],
+                                                 refSlopes.shape[0], noise=False,
+                                                 withTurbu=True)
+                    gNCPA = float(
+                            np.sqrt(
+                                    np.dot(ncpaDiff, ncpaDiff.T) / np.dot(
+                                            ncpaturbu, ncpaturbu.T)))
+                    if (gNCPA > 1e18):
+                        gNCPA = 0
+                        print('Warning NCPA ref slopes gain too high!')
+                        gNPCAList.append(gNCPA)
+                        self.setRefSlopes(-refSlopes * gNCPA)
+                    else:
+                        gNPCAList.append(gNCPA)
+                        print('NCPA ref slopes gain: %4.3f' % gNCPA)
+                        self.setRefSlopes(-refSlopes / gNCPA)
+
             self._sim.next(see_atmos=seeAtmos)
             for t in range(len(self._sim.config.p_targets)):
                 self._sim.compTarImage(t)
 
+            srse, srle, _, _ = self.getStrehl(tarnum)
+            srseList.append(srse)
+            srleList.append(srle)
             if (j % subSample == 0):
                 aiVector = self.computeModalResiduals()
                 if (aiData is None):
@@ -799,17 +860,48 @@ class CanapassSupervisor(CompassSupervisor):
             print("Saving tarPhase cube at: ", tarPhaseFilePath)
             pfits.writeto(tarPhaseFilePath, tarPhaseData, overwrite=True)
         psfLE = self.getTarImage(tarnum, "le")
-        return slopesdata, voltsdata, aiData, psfLE
+        return slopesdata, voltsdata, aiData, psfLE, srseList, srleList, gNPCAList
 
         #wao.sim.config.p_geom._ipupil
         """
+        ------------------------------------------------
+        With a SH:
+        ------------------------------------------------
+        plt.clf()
         plt.matshow(wao.config.p_geom._ipupil, fignum=1)
 
         # DM positions in iPupil:
         dmposx = wao.config.p_dm0._xpos
         dmposy = wao.config.p_dm0._ypos
-        plt.scatter(dmposy, dmposx, color="blue")
-        plt.scatter(dmposy[list(wao.supervisor.slavedActus)], dmposx[list(wao.supervisor.slavedActus)], color="orange", label="Slaved")
+        plt.scatter(dmposy, dmposx, color="blue", label="DM actuators")
+        #plt.scatter(dmposy[list(wao.supervisor.slavedActus)], dmposx[list(wao.supervisor.slavedActus)], color="orange", label="Slaved")
+
+        #WFS position in ipupil
+        ipup = wao.config.p_geom._ipupil
+        spup = wao.config.p_geom._spupil
+        s2ipup = (ipup.shape[0] - spup.shape[0]) / 2.
+        posx = wao.config.p_wfss[0]._validsubsx * wao.config.p_wfs0._pdiam + s2ipup
+        posy = wao.config.p_wfss[0]._validsubsy * wao.config.p_wfs0._pdiam + s2ipup
+
+        #center of ssp position in ipupil
+        demissp = wao.config.p_wfs0._pdiam / 2 - 0.5
+        sspx = posx+demissp
+        sspy = posy+demissp
+        plt.scatter(sspy, sspx, color="red", label="WFS SSP")
+
+        ------------------------------------------------
+        With a PYRAMID:
+        ------------------------------------------------
+
+        plt.matshow(wao.config.p_geom._ipupil, fignum=1)
+        size=10
+
+
+        # DM positions in iPupil:
+        dmposx = wao.config.p_dm0._xpos
+        dmposy = wao.config.p_dm0._ypos
+        plt.scatter(dmposy, dmposx,s=size, color="blue", label="DM actuators")
+        #plt.scatter(dmposy[list(wao.supervisor.couplesActus)], dmposx[list(wao.supervisor.couplesActus)], color="orange", label="Slaved")
 
         #WFS position in ipupil
         ipup = wao.config.p_geom._ipupil
@@ -824,17 +916,13 @@ class CanapassSupervisor(CompassSupervisor):
         posy = posy[np.where(posy > 0)] - ipup.shape[0] / 2 -wao.config.p_wfs0.npix
 
         #center of ssp position in ipupil
-        demissp = wao.config.p_wfs0._pdiam / 2
+        demissp = wao.config.p_wfs0._pdiam / 2 -0.5
         sspx = posx+ipup.shape[0]/2+demissp
         sspy = posy+ipup.shape[0]/2+demissp
-        plt.scatter(sspy, sspx, color="red")
+        plt.scatter(sspy, sspx, color="red", s=size, label="WFS SSP")
 
 
 
-        imat = wao.rtc.get_imat(0)
-
-        influDM = wao.dms.get_influ(b"pzt", 0)
-        influTT = wao.dms.get_influ(b"tt", 0)
 
         """
 

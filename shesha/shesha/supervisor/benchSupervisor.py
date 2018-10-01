@@ -39,13 +39,13 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         Immediately sets provided command to DMs - does not affect integrator
         '''
-        self._sim.dms.set_full_comm((command).astype(np.float32).copy())
+        self._sim.dms.set_full_comm(command)
 
     def setPerturbationVoltage(self, nControl: int, command: np.ndarray) -> None:
         '''
         Add this offset value to integrator (will be applied at the end of next iteration)
         '''
-        self.rtc.d_control[nControl].set_perturbcom(command.astype(np.float32).copy())
+        self.rtc.d_control[nControl].set_perturbcom(command)
 
     def getSlope(self) -> np.ndarray:
         '''

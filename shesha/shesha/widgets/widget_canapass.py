@@ -58,15 +58,15 @@ class widgetCanapassWindowPyro(widgetAOWindow):
         global server
         server = self.startPyroServer()
 
-    def loadConfig(self, *, configFile=None, supervisor=None) -> None:
+    def loadConfig(self, *args, configFile=None, supervisor=None) -> None:
         '''
             Callback when 'LOAD' button is hit
         '''
         if supervisor is None:
-            widgetAOWindow.loadConfig(self, configFile=configFile,
-                                      supervisor=CanapassSupervisor())
-        else:
-            widgetAOWindow.loadConfig(self, configFile=configFile, supervisor=supervisor)
+            supervisor = CanapassSupervisor(configFile)
+
+        widgetAOWindow.loadConfig(self, args, configFile=configFile,
+                                  supervisor=supervisor)
 
     def loopOnce(self) -> None:
         widgetAOWindow.loopOnce(self)

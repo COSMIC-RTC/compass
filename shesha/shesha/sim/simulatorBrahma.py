@@ -39,7 +39,7 @@ class SimulatorBrahma(Simulator):
                                 self.config.p_wfss, self.config.p_tel,
                                 self.config.p_geom, self.config.p_atmos, ittime,
                                 self.config.p_centroiders, self.config.p_controllers,
-                                self.config.p_dms, brahma=True, tar=self.tar)
+                                self.config.p_dms, brahma=True, tar=None)
         else:
             self.rtc = None
 

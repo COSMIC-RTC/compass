@@ -43,7 +43,12 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         Add this offset value to integrator (will be applied at the end of next iteration)
         '''
-        self._sim.rtc.d_control[nControl].set_perturbcom(command, command.shape[0])
+        if len(command.shape) == 1:
+            self._sim.rtc.d_control[nControl].set_perturbcom(command, 1)
+        elif len(command.shape) == 2:
+            self._sim.rtc.d_control[nControl].set_perturbcom(command, command.shape[0])
+        else:
+            raise AttributeError("command should be a 1D or 2D array")
 
     def getSlope(self) -> np.ndarray:
         '''
@@ -116,12 +121,12 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         self._sim.rtc.d_control[0].set_cmat(cMat)
 
-    def setNoise(self, noise, numwfs=0):
+    def setNoise(self, noise, numwfs=0, seed=1234):
         '''
         Set noise value of WFS numwfs
         '''
-        self._sim.wfs.d_wfs[numwfs].set_noise(noise)
-        print("Noise set to: %d" % noise)
+        self._sim.wfs.d_wfs[numwfs].set_noise(noise, int(seed + numwfs))
+        print("Noise set to: %f on WFS %d" % (noise, numwfs))
 
     def setPyrModulation(self, pyrMod: float) -> None:
         '''
@@ -140,7 +145,7 @@ class CompassSupervisor(AbstractSupervisor):
         Set pyramid compute method
         '''
         self._sim.rtc.d_centro[0].set_pyr_method(pyrMethod)  # Sets the pyr method
-        print("PYR method set to: %d" % self._sim.rtc.d_centro[0].pyr_method)
+        print("PYR method set to " + self._sim.rtc.d_centro[0].pyr_method)
 
     def getPyrMethod(self):
         return self._sim.rtc.d_centro[0].pyr_method
