@@ -123,8 +123,9 @@ void declare_shesha_controller(py::module &mod) {
       Parameters
       ------------
       status: (int): open loop status
+      rst: (bool): reset integrator if True
     )pbdoc",
-           py::arg("status"))
+           py::arg("status"), py::arg("rst") = true)
 
       .def("set_com", wy::colCast(&sutra_controller::set_com), R"pbdoc(
         Set the command vector of the controller

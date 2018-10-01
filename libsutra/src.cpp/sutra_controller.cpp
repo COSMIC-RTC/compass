@@ -74,11 +74,11 @@ sutra_controller::sutra_controller(carma_context *context, int nvalid,
   }
 }
 
-int sutra_controller::set_openloop(int open_loop_status) {
+int sutra_controller::set_openloop(int open_loop_status, bool rst) {
   current_context->set_activeDevice(device, 1);
   this->open_loop = open_loop_status;
 
-  if (this->open_loop) {
+  if (this->open_loop && rst) {
     carmaSafeCall(cudaMemset(this->d_com->getData(), 0.0f,
                              this->nactu() * sizeof(float)));
     carmaSafeCall(cudaMemset(this->d_com1->getData(), 0.0f,
@@ -172,6 +172,8 @@ int sutra_controller::comp_voltage() {
     } else {
       this->d_com->copyInto(this->d_voltage->getData(), this->nactu());
     }
+  } else {
+    this->d_com->copyInto(this->d_voltage->getData(), this->nactu());
   }
 
   add_perturb();

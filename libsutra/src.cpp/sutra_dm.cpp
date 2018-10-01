@@ -153,11 +153,7 @@ int sutra_dm::kl_loadarrays(float *rabas, float *azbas, int *ord, float *cr,
 
 int sutra_dm::reset_shape() {
   current_context->set_activeDevice(device, 1);
-
-  carmaSafeCall(
-      cudaMemset(this->d_shape->d_screen->getData(), 0,
-                 sizeof(float) * this->d_shape->d_screen->getNbElem()));
-
+  this->d_shape->d_screen->reset();
   return EXIT_SUCCESS;
 }
 
