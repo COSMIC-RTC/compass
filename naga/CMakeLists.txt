@@ -12,7 +12,6 @@ project(naga
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(MAGMA REQUIRED magma)
-include_directories(/home/fferreira/miniconda3/lib/python3.6/site-packages/numpy/core/include/)
 link_directories( ${MAGMA_LIBRARY_DIRS} )
 if(NOT TARGET wyrm)
     add_subdirectory(../wyrm wyrm)
