@@ -134,3 +134,4 @@ template int transposeCU<cuDoubleComplex>(cuDoubleComplex *d_idata,
 template int transposeCU<tuple_t<float>>(tuple_t<float> *d_idata,
                                          tuple_t<float> *d_odata, long N1,
                                          long N2);
+template int transposeCU<half>(half *d_idata, half *d_odata, long N1, long N2);

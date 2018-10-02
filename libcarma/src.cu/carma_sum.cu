@@ -258,6 +258,11 @@ void reduce<cuDoubleComplex>(int size, int threads, int blocks,
                              cuDoubleComplex *d_odata) {
   DEBUG_TRACE("Not implemented");
 }
+template <>
+void reduce<half>(int size, int threads, int blocks, half *d_idata,
+                  half *d_odata) {
+  DEBUG_TRACE("Not implemented");
+}
 
 template <class T>
 T reduce(T *data, int N) {
