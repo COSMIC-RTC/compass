@@ -14,12 +14,12 @@ void declare_half_setter_getter(py::module &mod) {
             data_dims[0] = data.ndim();
             copy(data.shape(), data.shape() + data.ndim(),
                  begin(data_dims) + 1);
-            half tmp[data.size()];
+            std::vector<half> tmp(data.size());
             for (int i = 0; i < data.size(); i++) {
-              tmp[i] = __float2half(data.data()[i]);
+              tmp.at(i) = __float2half(data.data()[i]);
             }
-            return std::unique_ptr<carma_obj<half>>(
-                new carma_obj<half>(&c, data_dims.data(), (const half *)tmp));
+            return std::unique_ptr<carma_obj<half>>(new carma_obj<half>(
+                &c, data_dims.data(), (const half *)tmp.data()));
           },
           "TODO",  // TODO do the documentation...
           py::arg("context").none(false), py::arg("h_data").none(false));
@@ -46,14 +46,14 @@ void declare_half_setter_getter(py::module &mod) {
               stride *= shape[dim];
             }
 
-            half tmp[hobj.getNbElem()];
+            std::vector<half> tmp(hobj.getNbElem());
             // std::vector<float> tmp2(hobj.getNbElem());
-            hobj.device2host(tmp);
+            hobj.device2host(tmp.data());
             py::array_t<float, py::array::f_style | py::array::forcecast> data(
                 shape, strides);
 
             for (int i = 0; i < hobj.getNbElem(); i++) {
-              data.mutable_data()[i] = __half2float(tmp[i]);
+              data.mutable_data()[i] = __half2float(tmp.at(i));
             }
             return data;
           },
