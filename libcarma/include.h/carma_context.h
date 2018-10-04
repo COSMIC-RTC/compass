@@ -43,6 +43,7 @@ class carma_device {
 
  public:
   carma_device(int devid);
+  int set_cublas_math_mode(bool tensor);
   // carma_device(const carma_device& device);
   ~carma_device();
 
