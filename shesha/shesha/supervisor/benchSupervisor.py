@@ -240,12 +240,20 @@ class BenchSupervisor(AbstractSupervisor):
 
             if p_wfs._validsubsx is None or \
                     p_wfs._validsubsy is None:
-                import rtcData.DataInit as di
-                dataS = di.makeSH(wfsNb=wfsNb, frameSize=self.cam.getWidth(),
-                                  roiSize=p_wfs.nxsub, subSize=self.npix)
-                p_wfs._nvalid = dataS.data["roiTab"].data.shape[1]
-                p_wfs._validsubsx = dataS.data["roiTab"].data[0, :]
-                p_wfs._validsubsy = dataS.data["roiTab"].data[1, :]
+                # import rtcData.DataInit as di
+                # dataS = di.makeSH(wfsNb=wfsNb, frameSize=self.cam.getWidth(),
+                #                   roiSize=p_wfs.nxsub, subSize=self.npix)
+                # p_wfs._nvalid = dataS.data["roiTab"].data.shape[1]
+                # p_wfs._validsubsx = dataS.data["roiTab"].data[0, :]
+                # p_wfs._validsubsy = dataS.data["roiTab"].data[1, :]
+
+                from hraa.tools.doit import makessp
+                roiTab = makessp(p_wfs.nxsub, obs=0., rmax=0.98)
+                # for pos in self.roiTab: pos *= self.pitch
+                p_wfs._nvalid = roiTab.shape[1]
+                p_wfs._validsubsx = roiTab[0, :]
+                p_wfs._validsubsy = roiTab[1, :]
+
             else:
                 p_wfs._nvalid = p_wfs._validsubsx.size
 

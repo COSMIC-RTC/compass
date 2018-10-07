@@ -144,16 +144,6 @@ class RTCSupervisor(BenchSupervisor):
 
             self.npix = p_wfs.npix
 
-            # if "p_nvalid" not in self._sim.config.__dict__.keys(
-            # ) or self._sim.config.p_nvalid is None:
-            #     import rtcData.DataInit as di
-            #     dataS = di.makeSH(wfsNb=wfsNb, frameSize=self.fakewfs.data.md.size[0],
-            #                       roiSize=p_wfs.nxsub,
-            #                       subSize=self.npix)
-            #     xvalid = dataS.data["roiTab"].data[0, :] / self.npix
-            #     yvalid = dataS.data["roiTab"].data[1, :] / self.npix
-            # else:
-
             xvalid = tmp_valid[0, :] // self.npix
             yvalid = tmp_valid[1, :] // self.npix
             offset = (self.npix + 1) / 2
