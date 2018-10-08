@@ -32,9 +32,9 @@ server = None
 
 class widgetCanapassWindowPyro(widgetAOWindow):
 
-    def __init__(self, configFile: Any=None, BRAMA: bool=False,
+    def __init__(self, configFile: Any=None, BRAHMA: bool=False,
                  expert: bool=False) -> None:
-        widgetAOWindow.__init__(self, configFile, BRAMA, hideHistograms=True)
+        widgetAOWindow.__init__(self, configFile, BRAHMA, hideHistograms=True)
         #Pyro.core.ObjBase.__init__(self)
 
         self.CB = {}
@@ -58,11 +58,15 @@ class widgetCanapassWindowPyro(widgetAOWindow):
         global server
         server = self.startPyroServer()
 
-    def loadConfig(self) -> None:
+    def loadConfig(self, *args, configFile=None, supervisor=None) -> None:
         '''
             Callback when 'LOAD' button is hit
         '''
-        widgetAOWindow.loadConfig(self, ISupervisor=CanapassSupervisor)
+        if supervisor is None:
+            supervisor = CanapassSupervisor(configFile)
+
+        widgetAOWindow.loadConfig(self, args, configFile=configFile,
+                                  supervisor=supervisor)
 
     def loopOnce(self) -> None:
         widgetAOWindow.loopOnce(self)
@@ -175,7 +179,7 @@ if __name__ == '__main__':
     arguments = docopt(__doc__)
     app = QtWidgets.QApplication(sys.argv)
     app.setStyle('cleanlooks')
-    wao = widgetCanapassWindowPyro(arguments["<parameters_filename>"], BRAMA=True)
+    wao = widgetCanapassWindowPyro(arguments["<parameters_filename>"], BRAHMA=True)
     wao.show()
     # if arguments["--interactive"]:
     #     from shesha.util.ipython_embed import embed

@@ -33,7 +33,7 @@ from typing import Any, Dict, Tuple, Callable, List
 from docopt import docopt
 from collections import deque
 
-from .widget_base import WidgetBase, uiLoader
+from shesha.widgets.widget_base import WidgetBase, uiLoader
 BenchWindowTemplate, BenchClassTemplate = uiLoader('widget_bench')
 
 import matplotlib.pyplot as plt
@@ -239,7 +239,8 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
                                 self.imgs[key].setImage(data, autoLevels=autoscale)
                                 # self.p1.autoRange()
                         elif "slp" in key:  # Slope display
-                            if (self.config.p_wfss[index].type == WFSType.PYRHR):
+                            if (self.config.p_wfss[index].type == WFSType.PYRHR or
+                                        self.config.p_wfss[index].type == WFSType.PYRLR):
                                 raise RuntimeError("PYRHR not usable")
                             self.imgs[key].canvas.axes.clear()
                             x, y = self.supervisor._sim.config.p_wfss[

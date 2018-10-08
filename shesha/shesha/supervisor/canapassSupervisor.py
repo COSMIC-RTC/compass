@@ -15,6 +15,8 @@ import time
 from collections import OrderedDict
 
 from tqdm import trange
+from tqdm import tqdm
+
 import astropy.io.fits as pfits
 from threading import Thread
 from subprocess import Popen, PIPE
@@ -25,17 +27,17 @@ import shesha.constants as scons
 from typing import Any, Dict, Tuple, Callable, List
 from .compassSupervisor import CompassSupervisor
 
-from naga.obj import obj_Double2D
-from naga.magma import syevd_Double, svd_host_Double
-from naga.context import context as naga_context
+# from naga.obj import obj_Double2D
+# from naga.magma import syevd_Double, svd_host_Double
+# from naga.context import context as naga_context
 
-from naga.host_obj import host_obj_Double1D, host_obj_Double2D
+# from naga.host_obj import host_obj_Double1D, host_obj_Double2D
 
 
 class CanapassSupervisor(CompassSupervisor):
 
     def __init__(self, configFile: str=None, BRAHMA: bool=True) -> None:
-        CompassSupervisor.__init__(self, configFile, True)
+        CompassSupervisor.__init__(self, configFile=configFile, BRAHMA=BRAHMA)
 
         #############################################################
         #                 CONNECTED BUTTONS                         #
@@ -75,9 +77,9 @@ class CanapassSupervisor(CompassSupervisor):
             return
         return self._sim.config
 
-    def loadConfig(self, configFile: str, BRAMA: bool=True) -> None:
+    def loadConfig(self, configFile: str=None, sim=None) -> None:
         ''' Load the configuration for the compass supervisor'''
-        CompassSupervisor.loadConfig(self, configFile, BRAMA)
+        CompassSupervisor.loadConfig(self, configFile=configFile, sim=sim)
         print("switching to a generic controller")
         self._sim.config.p_controllers[0].type = scons.ControllerType.GENERIC
 
@@ -106,11 +108,11 @@ class CanapassSupervisor(CompassSupervisor):
         ph2KL = np.zeros((nbmode, ph.shape[0], ph.shape[1]))
         S = np.sum(pup)
         for i in trange(nbmode):
-            self._sim.tar.reset_phase(0)
+            self.resetTarPhase(0)
             self._sim.dms.set_full_comm(
                     (self.modalBasis[:, i]).astype(np.float32).copy())
             self._sim.next(see_atmos=False)
-            ph = self._sim.tar.get_phase(0) * pup
+            ph = self.getTarPhase(0) * pup
             # Normalisation pour les unites rms en microns !!!
             norm = np.sqrt(np.sum((ph)**2) / S)
             ph2KL[i] = ph / norm
@@ -122,18 +124,29 @@ class CanapassSupervisor(CompassSupervisor):
         for i in trange(nbiters):
             self._sim.next(see_atmos=see_atmos)
 
+    def loop(self, n: int=1, monitoring_freq: int=100, **kwargs):
+        """
+        Perform the AO loop for n iterations
+
+        :parameters:
+            n: (int): (optional) Number of iteration that will be done
+            monitoring_freq: (int): (optional) Monitoring frequency [frames]
+        """
+        self._sim.loop(n, monitoring_freq=monitoring_freq)
+
     def computePh2ModesFits(self, fullpath):
         data = self.computePh2Modes()
         self.writeDataInFits(data, fullpath)
 
-    def getModes2VBasis(self, ModalBasisType):
+    def getModes2VBasis(self, ModalBasisType, merged=False, nbpairs=None):
         if (ModalBasisType == "KL2V"):
             print("Computing KL2V basis...")
             self.modalBasis, _ = self.returnkl2V()
             return self.modalBasis, 0
         elif (ModalBasisType == "Btt"):
             print("Computing Btt basis...")
-            self.modalBasis, self.P = self.compute_Btt2(inv_method="cpu_svd")
+            self.modalBasis, self.P = self.compute_Btt2(inv_method="cpu_svd",
+                                                        merged=merged, nbpairs=nbpairs)
             return self.modalBasis, self.P
 
     def returnkl2V(self):
@@ -155,11 +168,247 @@ class CanapassSupervisor(CompassSupervisor):
     def setGain(self, gain: float) -> None:
         CompassSupervisor.setGain(self, gain)
 
-    def compute_Btt2(self, inv_method: str="gpu_evd"):
-        IF = self._sim.rtc.get_IFsparse(1)
+    def computeMerged(self, nbpairs=None):
+        p_geom = self._sim.config.p_geom
+        import shesha.util.make_pupil as mkP
+        import shesha.util.utilities as util
+        import scipy.ndimage
+
+        cent = p_geom.pupdiam / 2. + 0.5
+        p_tel = self._sim.config.p_tel
+        p_tel.t_spiders = 0.51
+        spup = mkP.make_pupil(p_geom.pupdiam, p_geom.pupdiam, p_tel, cent,
+                              cent).astype(np.float32).T
+
+        p_tel.t_spiders = 0.
+        spup2 = mkP.make_pupil(p_geom.pupdiam, p_geom.pupdiam, p_tel, cent,
+                               cent).astype(np.float32).T
+
+        spiders = spup2 - spup
+
+        (spidersID, k) = scipy.ndimage.label(spiders)
+        spidersi = util.pad_array(spidersID, p_geom.ssize).astype(np.float32)
+        pxListSpider = [np.where(spidersi == i) for i in range(1, k + 1)]
+
+        # DM positions in iPupil:
+        dmposx = self._sim.config.p_dm0._xpos - 0.5
+        dmposy = self._sim.config.p_dm0._ypos - 0.5
+        dmposMat = np.c_[dmposx, dmposy].T  # one actu per column
+
+        pitch = self._sim.config.p_dm0._pitch
+        DISCARD = np.zeros(len(dmposx), dtype=np.bool)
+        PAIRS = []
+
+        # For each of the k pieces of the spider
+        for k, pxList in enumerate(pxListSpider):
+            pts = np.c_[pxList[1], pxList[0]]  # x,y coord of pixels of the spider piece
+            # lineEq = [a, b]
+            # Which minimizes leqst squares of aa*x + bb*y = 1
+            lineEq = np.linalg.pinv(pts).dot(np.ones(pts.shape[0]))
+            aa, bb = lineEq[0], lineEq[1]
+
+            # Find any point of the fitted line.
+            # For simplicity, the intercept with one of the axes x = 0 / y = 0
+            if np.abs(bb) < np.abs(aa):  # near vertical
+                onePoint = np.array([1 / aa, 0.])
+            else:  # otherwise
+                onePoint = np.array([0., 1 / bb])
+
+            # Rotation that aligns the spider piece to the horizontal
+            rotation = np.array([[-bb, aa], [-aa, -bb]]) / (aa**2 + bb**2)**.5
+
+            # Rotated the spider mask
+            rotatedPx = rotation.dot(pts.T - onePoint[:, None])
+            # Min and max coordinates along the spider length - to filter actuators that are on
+            # 'This' side of the pupil and not the other side
+            minU, maxU = rotatedPx[0].min() - 5. * pitch, rotatedPx[0].max() + 5. * pitch
+
+            # Rotate the actuators
+            rotatedActus = rotation.dot(dmposMat - onePoint[:, None])
+            selGoodSide = (rotatedActus[0] > minU) & (rotatedActus[0] < maxU)
+            seuil = 0.05
+            # Actuators below this piece of spider
+            selDiscard = (np.abs(rotatedActus[1]) < seuil * pitch) & selGoodSide
+            DISCARD |= selDiscard
+
+            # Actuator 'near' this piece of spider
+            selPairable = (np.abs(rotatedActus[1]) > seuil  * pitch) & \
+                            (np.abs(rotatedActus[1]) < 1. * pitch) & \
+                            selGoodSide
+
+            pairableIdx = np.where(selPairable)[0]  # Indices of these actuators
+            uCoord = rotatedActus[
+                    0, selPairable]  # Their linear coord along the spider major axis
+
+            order = np.sort(uCoord)  # Sort by linear coordinate
+            orderIdx = pairableIdx[np.argsort(
+                    uCoord)]  # And keep track of original indexes
+
+            # i = 0
+            # while i < len(order) - 1:
+            if (nbpairs is None):
+                i = 0
+                ii = len(order) - 1
+            else:
+                i = len(order) // 2 - nbpairs
+                ii = len(order) // 2 + nbpairs
+            while (i < ii):
+                # Check if next actu in sorted order is very close
+                # Some lonely actuators may be hanging in this list
+                if np.abs(order[i] - order[i + 1]) < .2 * pitch:
+                    PAIRS += [(orderIdx[i], orderIdx[i + 1])]
+                    i += 2
+                else:
+                    i += 1
+        print('To discard: %u actu' % np.sum(DISCARD))
+        print('%u pairs to slave' % len(PAIRS))
+        if np.sum(DISCARD) == 0:
+            DISCARD = []
+        else:
+            list(np.where(DISCARD)[0])
+        return np.asarray(PAIRS), list(np.where(DISCARD)[0])
+
+    def computeActusPetals(self):
+        import shesha.util.make_pupil as mkP
+        import shesha.util.utilities as util
+        N = self._sim.config.p_geom.pupdiam
+        i0 = j0 = self._sim.config.p_geom.pupdiam / 2. - 0.5
+        pixscale = self._sim.config.p_tel.diam / self._sim.config.p_geom.pupdiam
+        dspider = self._sim.config.p_tel.t_spiders
+        #spup = self.getSpupil()
+        oldspidersize = self._sim.config.p_tel.t_spiders
+        self._sim.config.p_tel.set_t_spiders = 0.
+        spup = mkP.make_pupil(self._sim.config.p_geom.pupdiam,
+                              self._sim.config.p_geom.pupdiam, self._sim.config.p_tel,
+                              i0, j0)
+        self._sim.config.p_tel.set_t_spiders = oldspidersize
+        petalsPups = mkP.compute6Segments(spup, N, pixscale, 0.51 / 2, i0, j0)
+        ipup = util.pad_array(spup, self._sim.config.p_geom.ssize).astype(np.float32)
+        dmpup = np.zeros_like(ipup)
+        dmposx = self._sim.config.p_dm0._xpos
+        dmposy = self._sim.config.p_dm0._ypos
+        dmpup[dmposx.astype(int), dmposy.astype(int)] = 1
+        dmpupPetals = np.zeros((6, dmpup.shape[0], dmpup.shape[1]))
+        indActusPetals = []  # actuators to disable because under spider
+        for i in range(6):
+            dmpupPetals[i, :, :] = dmpup * util.pad_array(petalsPups[i],
+                                                          self._sim.config.p_geom.ssize)
+            ipetal = []
+            for j in range(len(dmposx)):
+                if (dmpupPetals[i, :, :][int(dmposx[j]), int(dmposy[j])] == 1):
+                    ipetal.append(j)
+            indActusPetals.append(ipetal)
+        return indActusPetals, petalsPups
+
+    def computeMerged_fab(self):
+        print("Computing merged actuators...")
+        p_geom = self._sim.config.p_geom
+        import shesha.util.make_pupil as mkP
+        import shesha.util.utilities as util
+
+        cent = p_geom.pupdiam / 2. + 0.5
+        p_tel = self._sim.config.p_tel
+        # spider + pupil
+        p_tel.t_spiders = 0.51
+        spup = mkP.make_pupil(p_geom.pupdiam, p_geom.pupdiam, p_tel, cent,
+                              cent).astype(np.float32)
+
+        # Without spider pupil
+        p_tel.t_spiders = 0.
+        spup2 = mkP.make_pupil(p_geom.pupdiam, p_geom.pupdiam, p_tel, cent,
+                               cent).astype(np.float32)
+
+        # doubling spider size  + l eft and right spiders only
+        p_tel.t_spiders = 0.51 * 2.5
+        pp = mkP.make_pupil(p_geom.pupdiam, p_geom.pupdiam, p_tel, cent,
+                            cent).astype(np.float32)
+        l, r = mkP.make_pupil(p_geom.pupdiam, p_geom.pupdiam, p_tel, cent, cent,
+                              halfSpider=1).astype(np.float32)
+
+        spiders = spup2 - spup
+        spidersLeft = l - pp
+        spidersRight = r - pp
+        dmposx = self._sim.config.p_dm0._xpos
+        dmposy = self._sim.config.p_dm0._ypos
+
+        # ----------------------------------------
+        # Under spider actuators
+        # ----------------------------------------
+        ipup = util.pad_array(spup, p_geom.ssize).astype(np.float32)
+
+        spidersi = util.pad_array(spiders, p_geom.ssize).astype(np.float32)
+        dmpup = np.zeros_like(spidersi)
+
+        dmpup[dmposy.astype(int), dmposx.astype(int)] = 1
+        dmpupUnderSpiders = dmpup * spidersi
+        indUnderSpiders = []  # actuators to disable because under spider
+        for i in range(len(dmposx)):
+            if (dmpupUnderSpiders[int(dmposy[i]), int(dmposx[i])] == 1):
+                indUnderSpiders.append(i)
+
+        # Left sided spiders actuators
+        spidersiLeft = util.pad_array(spidersLeft, p_geom.ssize).astype(np.float32)
+        spidersiRight = util.pad_array(spidersRight, p_geom.ssize).astype(np.float32)
+
+        dmpupLeft = np.zeros_like(spidersiLeft)
+        dmpupLeft[dmposy.astype(int), dmposx.astype(int)] = 1
+
+        dmpupRight = np.zeros_like(spidersiRight)
+        dmpupRight[dmposy.astype(int), dmposx.astype(int)] = 1
+
+        dmpupLeftSpiders = dmpupLeft * spidersiLeft
+        dmpupRightSpiders = dmpupRight * spidersiRight
+        indLeftSpiders = []  # actuators to disable because under spider
+        indRightSpiders = []  # actuators to disable because under spider
+        for i in range(len(dmposx)):
+            if (i not in indUnderSpiders):
+                if (dmpupLeftSpiders[int(dmposy[i]), int(dmposx[i])] == 1):
+                    indLeftSpiders.append(i)
+                if (dmpupRightSpiders[int(dmposy[i]), int(dmposx[i])] == 1):
+                    indRightSpiders.append(i)
+
+        couplesActus = np.zeros((len(indLeftSpiders), 2)).astype(int)
+        couplesActusSelect = np.zeros((len(indLeftSpiders), 2)).astype(int)
+        for i in range(len(indRightSpiders)):
+            d = np.sqrt((dmposx[indRightSpiders[i]] - dmposx[indLeftSpiders])**2 +
+                        (dmposy[indRightSpiders[i]] - dmposy[indLeftSpiders])**2)
+            indproche = np.where(d == min(d))[0][0]
+            couplesActus[i, 0] = indRightSpiders[i]
+            couplesActus[i, 1] = indLeftSpiders[indproche]
+            couplesActusSelect[i, 0] = i
+            couplesActusSelect[i, 1] = indproche
+        print("Done")
+
+        return couplesActus, indUnderSpiders
+
+    def compute_Btt2(self, inv_method: str="cpu_svd", merged=False, nbpairs=None):
+
+        IF = self.getIFsparse(1)
+        if (merged):
+            couplesActus, indUnderSpiders = self.computeMerged(nbpairs=nbpairs)
+            IF2 = IF.copy()
+            indremoveTmp = indUnderSpiders.copy()
+            indremoveTmp += list(couplesActus[:, 1])
+            print("Pairing Actuators...")
+            for i in tqdm(range(couplesActus.shape[0])):
+                IF2[couplesActus[i, 0], :] += IF2[couplesActus[i, 1], :]
+            print("Pairing Done")
+            boolarray = np.zeros(IF2.shape[0], dtype=np.bool)
+            boolarray[indremoveTmp] = True
+            self.slavedActus = boolarray
+            self.selectedActus = ~boolarray
+            self.couplesActus = couplesActus
+            self.indUnderSpiders = indUnderSpiders
+            IF2 = IF2[~boolarray, :]
+            IF = IF2
+        else:
+            self.slavedActus = None
+            self.selectedActus = None
+            self.couplesActus = None
+            self.indUnderSpiders = None
         n = IF.shape[0]
         N = IF.shape[1]
-        T = self._sim.rtc.get_IFtt(1)
+        T = self.getIFtt(1)
 
         delta = IF.dot(IF.T).toarray() / N
 
@@ -181,31 +430,31 @@ class CanapassSupervisor(CompassSupervisor):
 
         startTimer = time.time()
         if inv_method == "cpu_svd":
-            print("Doing SVD on CPU of a matrix...")
+            print("Doing SVD (CPU)")
             U, s, _ = np.linalg.svd(gdg)
-        elif inv_method == "gpu_svd":
-            print("Doing SVD on CPU of a matrix...")
-            m = gdg.shape[0]
-            h_mat = host_obj_Double2D(data=gdg, mallocType="pagelock")
-            h_eig = host_obj_Double1D(data=np.zeros([m], dtype=np.float64),
-                                      mallocType="pagelock")
-            h_U = host_obj_Double2D(data=np.zeros((m, m), dtype=np.float64),
-                                    mallocType="pagelock")
-            h_VT = host_obj_Double2D(data=np.zeros((m, m), dtype=np.float64),
-                                     mallocType="pagelock")
-            svd_host_Double(h_mat, h_eig, h_U, h_VT)
-            U = h_U.getData().T.copy()
-            s = h_eig.getData()[::-1].copy()
-        elif inv_method == "gpu_evd":
-            print("Doing EVD on GPU of a matrix...")
-            c = naga_context()
-            m = gdg.shape[0]
-            d_mat = obj_Double2D(c, data=gdg)
-            d_U = obj_Double2D(c, data=np.zeros([m, m], dtype=np.float64))
-            h_s = np.zeros(m, dtype=np.float64)
-            syevd_Double(d_mat, h_s, d_U)
-            U = d_U.device2host().T.copy()
-            s = h_s[::-1].copy()
+        # elif inv_method == "gpu_svd":
+        #     print("Doing SVD on CPU of a matrix...")
+        #     m = gdg.shape[0]
+        #     h_mat = host_obj_Double2D(data=gdg, mallocType="pagelock")
+        #     h_eig = host_obj_Double1D(data=np.zeros([m], dtype=np.float64),
+        #                               mallocType="pagelock")
+        #     h_U = host_obj_Double2D(data=np.zeros((m, m), dtype=np.float64),
+        #                             mallocType="pagelock")
+        #     h_VT = host_obj_Double2D(data=np.zeros((m, m), dtype=np.float64),
+        #                              mallocType="pagelock")
+        #     svd_host_Double(h_mat, h_eig, h_U, h_VT)
+        #     U = h_U.getData().T.copy()
+        #     s = h_eig.getData()[::-1].copy()
+        # elif inv_method == "gpu_evd":
+        #     print("Doing EVD on GPU of a matrix...")
+        #     c = naga_context()
+        #     m = gdg.shape[0]
+        #     d_mat = obj_Double2D(c, data=gdg)
+        #     d_U = obj_Double2D(c, data=np.zeros([m, m], dtype=np.float64))
+        #     h_s = np.zeros(m, dtype=np.float64)
+        #     syevd_Double(d_mat, h_s, d_U)
+        #     U = d_U.device2host().T.copy()
+        #     s = h_s[::-1].copy()
         else:
             raise "ERROR cannot recognize inv_method"
         print("Done in %fs" % (time.time() - startTimer))
@@ -228,8 +477,17 @@ class CanapassSupervisor(CompassSupervisor):
         delta[:-2, :-2] = IF.dot(IF.T).toarray() / N
         delta[-2:, -2:] = T.T.dot(T) / N
         P = Btt.T.dot(delta)
+        if (merged):
+            Btt2 = np.zeros((len(boolarray) + 2, Btt.shape[1]))
+            Btt2[np.r_[~boolarray, True, True], :] = Btt
+            Btt2[couplesActus[:, 1], :] = Btt2[couplesActus[:, 0], :]
 
-        return Btt.astype(np.float32), P.astype(np.float32)
+            P2 = np.zeros((Btt.shape[1], len(boolarray) + 2))
+            P2[:, np.r_[~boolarray, True, True]] = P
+            P2[:, couplesActus[:, 1]] = P2[:, couplesActus[:, 0]]
+            return Btt2.astype(np.float32), P.astype(np.float32)
+        else:
+            return Btt.astype(np.float32), P.astype(np.float32)
 
     def doImatModal(self, ampliVec, KL2V, Nslopes, noise=False, nmodesMax=0,
                     withTurbu=False, pushPull=False):
@@ -244,20 +502,20 @@ class CanapassSupervisor(CompassSupervisor):
             v = ampliVec[kl] * KL2V[:, kl:kl + 1].T.copy()
             if ((pushPull is True) or
                 (withTurbu is True)):  # with turbulence/aberrations => push/pull
-                self._sim.rtc.set_perturbcom(
+                self.setPerturbationVoltage(
                         0, v)  # Adding Perturbation voltage on current iteration
                 devpos = self.applyVoltGetSlopes(turbu=withTurbu, noise=noise)
-                self._sim.rtc.set_perturbcom(0, -v)
+                self.setPerturbationVoltage(0, -v)
                 devmin = self.applyVoltGetSlopes(turbu=withTurbu, noise=noise)
                 iMatKL[kl, :] = (devpos - devmin) / (2. * ampliVec[kl])
                 #imat[:-2, :] /= pushDMMic
                 #if(nmodesMax == 0):# i.e we measured all modes including TT
                 #imat[-2:, :] /= pushTTArcsec
             else:  # No turbulence => push only
-                self._sim.rtc.set_openloop(0, 1)  # openLoop
-                self._sim.rtc.set_perturbcom(0, v)
+                self.openLoop()  # openLoop
+                self.setPerturbationVoltage(0, v)
                 iMatKL[kl, :] = self.applyVoltGetSlopes(noise=noise) / ampliVec[kl]
-
+        self.setPerturbationVoltage(0, v * 0.)  # removing perturbvoltage...
         # print("Modal interaction matrix done in %3.0f seconds" % (time.time() - st))
 
         return iMatKL
@@ -265,7 +523,6 @@ class CanapassSupervisor(CompassSupervisor):
     def doImatPhase(self, cubePhase, Nslopes, noise=False, nmodesMax=0, withTurbu=False,
                     pushPull=False, wfsnum=0):
         iMatPhase = np.zeros((cubePhase.shape[0], Nslopes))
-
         for nphase in trange(cubePhase.shape[0], desc="Phase IM"):
             if ((pushPull is True) or
                 (withTurbu is True)):  # with turbulence/aberrations => push/pull
@@ -275,7 +532,7 @@ class CanapassSupervisor(CompassSupervisor):
                 devmin = self.applyVoltGetSlopes(turbu=withTurbu, noise=noise)
                 iMatPhase[nphase, :] = (devpos - devmin) / 2
             else:  # No turbulence => push only
-                self._sim.rtc.set_openloop(0, 1)  # openLoop
+                self.openLoop()  # openLoop
                 self.setNcpaWfs(cubePhase[nphase, :, :], wfsnum=wfsnum)
                 iMatPhase[nphase, :] = self.applyVoltGetSlopes(noise=noise)
         self.setNcpaWfs(cubePhase[nphase, :, :] * 0.,
@@ -287,25 +544,38 @@ class CanapassSupervisor(CompassSupervisor):
 
     def applyVoltGetSlopes(self, noise=False, turbu=False, reset=1):
         self._sim.rtc.apply_control(0, self._sim.dms)
-        for w in range(len(self._sim.config.p_wfss)):
+        for w in range(len(self._sim.wfs.d_wfs)):
+
             if (turbu):
-                self._sim.wfs.raytrace(w, b"all", self._sim.tel, self._sim.atm,
-                                       self._sim.dms, rst=reset, ncpa=1)
+                self._sim.raytraceWfs(w, "all")
+                # w.d_gs.raytrace(self._sim.atm)
+                # w.d_gs.raytrace(self._sim.tel)
+                # w.d_gs.raytrace(self._sim.dms)
+                # w.d_gs.raytrace()
             else:
-                self._sim.wfs.raytrace(w, b"dm", self._sim.tel, self._sim.atm,
-                                       self._sim.dms, rst=reset, ncpa=1)
-            self._sim.wfs.comp_img(w, noise=noise)
+                self._sim.raytraceWfs(w, ["dm", "ncpa"], rst=reset)
+                # w.d_gs.raytrace(self._sim.dms, rst=reset)
+                # w.d_gs.raytrace()
+
+            self._sim.compWfsImage(w, noise=noise)
         self._sim.rtc.do_centroids(0)
-        return self._sim.rtc.get_centroids(0)
+        c = self.getCentroids(0)
+        return c
 
     def computeModalResiduals(self):
-        self._sim.rtc.do_control_geo(1, self._sim.dms, self._sim.tar, 0)
-        v = self._sim.rtc.get_com(
+        self._sim.doControl(1, 0)
+        v = self.getCom(
                 1
         )  # We compute here the residual phase on the DM modes. Gives the Equivalent volts to apply/
         if (self.P is None):
             self.modalBasis, self.P = self.getModes2VBasis("Btt")
-        ai = self.P.dot(v) * 1000.  # np rms units
+        if (self.selectedActus is None):
+            ai = self.P.dot(v) * 1000.  # np rms units
+        else:  # Slaving actus case
+            v2 = v[:-2][list(
+                    self.selectedActus)]  # If actus are slaved then we select them.
+            v3 = v[-2:]
+            ai = self.P.dot(np.concatenate((v2, v3))) * 1000.
         return ai
 
     def writeConfigOnFile(self,
@@ -318,7 +588,7 @@ class CanapassSupervisor(CompassSupervisor):
 
         # WFS
         aodict.update({"nbWfs": len(self._sim.config.p_wfss)})
-        aodict.update({"nbTargets": int(self._sim.config.p_target.ntargets)})
+        aodict.update({"nbTargets": len(self._sim.config.p_targets)})
         aodict.update({"nbCam": aodict["nbWfs"]})
         aodict.update({"nbOffaxis": 0})
         aodict.update({"nbNgsWFS": 1})
@@ -329,7 +599,7 @@ class CanapassSupervisor(CompassSupervisor):
 
         # DMS
         aodict.update({"nbDms": len(self._sim.config.p_dms)})
-        aodict.update({"Nactu": self._sim.rtc.get_voltage(0).size})
+        aodict.update({"Nactu": self._sim.rtc.d_control[0].nactu})
 
         # List of things
         aodict.update({"list_NgsOffAxis": []})
@@ -389,7 +659,7 @@ class CanapassSupervisor(CompassSupervisor):
             dms_seen.append(list(self._sim.config.p_wfss[i].dms_seen))
             noise.append(self._sim.config.p_wfss[i].noise)
 
-            if (self._sim.config.p_wfss[i].type == b"pyrhr"):
+            if (self._sim.config.p_wfss[i].type == "pyrhr"):
                 pyrModulationList.append(self._sim.config.p_wfss[i].pyr_ampl)
                 pyr_npts.append(self._sim.config.p_wfss[i].pyr_npts)
                 pyr_pupsep.append(self._sim.config.p_wfss[i].pyr_pup_sep)
@@ -462,11 +732,11 @@ class CanapassSupervisor(CompassSupervisor):
         listTargetsDmsSeen = []
         listTargetsMag = []
         for k in range(aodict["nbTargets"]):
-            listTargetsLambda.append(self._sim.config.p_target.Lambda[k])
-            listTargetsXpos.append(self._sim.config.p_target.xpos[k])
-            listTargetsYpos.append(self._sim.config.p_target.ypos[k])
-            listTargetsMag.append(self._sim.config.p_target.mag[k])
-            listTargetsDmsSeen.append(self._sim.config.p_target.dms_seen[k])
+            listTargetsLambda.append(self._sim.config.p_targets[k].Lambda)
+            listTargetsXpos.append(self._sim.config.p_targets[k].xpos)
+            listTargetsYpos.append(self._sim.config.p_targets[k].ypos)
+            listTargetsMag.append(self._sim.config.p_targets[k].mag)
+            listTargetsDmsSeen.append(list(self._sim.config.p_targets[k].dms_seen))
 
         aodict.update({"listTARGETS_Lambda": listTargetsLambda})
         aodict.update({"listTARGETS_Xpos": listTargetsXpos})
@@ -486,22 +756,6 @@ class CanapassSupervisor(CompassSupervisor):
         print("OK: Config File wrote in:" + filepath)
         #return aodict
 
-    def setIntegratorLaw(self):
-        self._sim.rtc.set_commandlaw(0, b"integrator")
-
-    def setDecayFactor(self, decay):
-        self._sim.rtc.set_decayFactor(0, decay.astype(np.float32).copy())
-
-    def setEMatrix(self, eMat):
-        self._sim.rtc.set_matE(0, eMat.astype(np.float32).copy())
-
-    def doRefslopes(self):
-        self._sim.rtc.do_centroids_ref(0)
-        print("refslopes done")
-
-    def resetRefslopes(self):
-        self._sim.rtc.set_centroids_ref(0, self.getSlopes() * 0.)
-
     def setPyrModulation(self, pyrmod):
         CompassSupervisor.setPyrModulation(self, pyrmod)
         self._sim.rtc.do_centroids(0)  # To be ready for the next getSlopes
@@ -510,48 +764,19 @@ class CanapassSupervisor(CompassSupervisor):
         CompassSupervisor.setPyrMethod(self, pyrmethod)
         self._sim.rtc.do_centroids(0)  # To be ready for the next getSlopes
 
-    def setNoise(self, noise, numwfs=0):
-        CompassSupervisor.setNoise(self, noise, numwfs)
-
-    def setNcpaWfs(self, ncpa, wfsnum):
-        self._sim.wfs.set_ncpa_phase(wfsnum, ncpa.astype(np.float32).copy())
-
-    def setNcpaTar(self, ncpa, tarnum):
-        self._sim.tar.set_ncpa_phase(tarnum, ncpa.astype(np.float32).copy())
-
-    def set_phaseWFS(self, numwfs, phase):
-        pph = phase.astype(np.float32)
-        self._sim.wfs.set_phase(0, pph)
-        self.computeSlopes()
-
-    def getIpupil(self):
-        return self._sim.config.p_geom._ipupil
-
-    def getSpupil(self):
-        return self._sim.config.p_geom._spupil
-
-    def getMpupil(self):
-        return self._sim.config.p_geom._mpupil
-
-    def getAmplipup(self, tarnum):
-        return self._sim.config.tar.get_amplipup(tarnum)
-
-    def getPhase(self, tarnum):
-        return self._sim.tar.get_phase(tarnum)
-
-    def getWFSPhase(self, wfsnum):
-        return self._sim.wfs.get_phase(wfsnum)
+    # def setNoise(self, noise, numwfs=0):
+    #     CompassSupervisor.setNoise(self, noise, numwfs)
 
     def getTargetPhase(self, tarnum):
         pup = self.getSpupil()
-        ph = self._sim.tar.get_phase(tarnum) * pup
+        ph = self.getTarPhase(tarnum) * pup
         return ph
 
     def getNcpaWfs(self, wfsnum):
-        return self._sim.wfs.get_ncpa_phase(wfsnum)
+        return np.array(self._sim.wfs.d_wfs[wfsnum].d_gs.d_ncpa_phase)
 
     def getNcpaTar(self, tarnum):
-        return self._sim.tar.get_ncpa_phase(tarnum)
+        return np.array(self._sim.tar.d_targets[tarnum].d_ncpa_phase)
 
     #def getVolts(self):
     #    return self._sim.rtc.get_voltage(0)
@@ -566,41 +791,66 @@ class CanapassSupervisor(CompassSupervisor):
         return self._sim.iter
 
     def recordCB(self, CBcount, subSample=1, tarnum=0, seeAtmos=True,
-                 tarPhaseFilePath=""):
+                 tarPhaseFilePath="", NCPA=False, ncpawfs=None, refSlopes=None):
         slopesdata = None
         voltsdata = None
         tarPhaseData = None
         aiData = None
         k = 0
+        srseList = []
+        srleList = []
+        gNPCAList = []
         # Resets the target so that the PSF LE is synchro with the data
-        for i in range(self._sim.config.p_target.ntargets):
-            self._sim.tar.reset_strehl(i)
+        for i in range(len(self._sim.config.p_targets)):
+            self.resetStrehl(i)
 
         # Starting CB loop...
         for j in trange(CBcount, desc="recording"):
-            self._sim.next(see_atmos=seeAtmos)
-            for t in range(self._sim.config.p_target.ntargets):
-                self._sim.tar.comp_image(t)
+            if (NCPA):
+                if (j % NCPA == 0):
+                    ncpaDiff = refSlopes[None, :]
+                    ncpaturbu = self.doImatPhase(-ncpawfs[None, :, :],
+                                                 refSlopes.shape[0], noise=False,
+                                                 withTurbu=True)
+                    gNCPA = float(
+                            np.sqrt(
+                                    np.dot(ncpaDiff, ncpaDiff.T) / np.dot(
+                                            ncpaturbu, ncpaturbu.T)))
+                    if (gNCPA > 1e18):
+                        gNCPA = 0
+                        print('Warning NCPA ref slopes gain too high!')
+                        gNPCAList.append(gNCPA)
+                        self.setRefSlopes(-refSlopes * gNCPA)
+                    else:
+                        gNPCAList.append(gNCPA)
+                        print('NCPA ref slopes gain: %4.3f' % gNCPA)
+                        self.setRefSlopes(-refSlopes / gNCPA)
 
+            self._sim.next(see_atmos=seeAtmos)
+            for t in range(len(self._sim.config.p_targets)):
+                self._sim.compTarImage(t)
+
+            srse, srle, _, _ = self.getStrehl(tarnum)
+            srseList.append(srse)
+            srleList.append(srle)
             if (j % subSample == 0):
                 aiVector = self.computeModalResiduals()
                 if (aiData is None):
                     aiData = np.zeros((len(aiVector), int(CBcount / subSample)))
                 aiData[:, k] = aiVector
 
-                slopesVector = self._sim.rtc.get_centroids(0)
+                slopesVector = self.getCentroids(0)
                 if (slopesdata is None):
                     slopesdata = np.zeros((len(slopesVector), int(CBcount / subSample)))
                 slopesdata[:, k] = slopesVector
 
-                voltsVector = self._sim.rtc.get_com(0)
+                voltsVector = self.getCom(0)
                 if (voltsdata is None):
                     voltsdata = np.zeros((len(voltsVector), int(CBcount / subSample)))
                 voltsdata[:, k] = voltsVector
 
                 if (tarPhaseFilePath != ""):
-                    tarPhaseArray = self._sim.tar.get_phase(
-                            tarnum) * self._sim.config.p_geom._spupil
+                    tarPhaseArray = self.getTargetPhase(tarnum)
                     if (tarPhaseData is None):
                         tarPhaseData = np.zeros((*tarPhaseArray.shape,
                                                  int(CBcount / subSample)))
@@ -609,41 +859,70 @@ class CanapassSupervisor(CompassSupervisor):
         if (tarPhaseFilePath != ""):
             print("Saving tarPhase cube at: ", tarPhaseFilePath)
             pfits.writeto(tarPhaseFilePath, tarPhaseData, overwrite=True)
-        psfLE = self._sim.tar.get_image(tarnum, b"le")
-        return slopesdata, voltsdata, aiData, psfLE
+        psfLE = self.getTarImage(tarnum, "le")
+        return slopesdata, voltsdata, aiData, psfLE, srseList, srleList, gNPCAList
 
         #wao.sim.config.p_geom._ipupil
         """
-        plt.matshow(wao.sim.config.p_geom._ipupil, fignum=1)
+        ------------------------------------------------
+        With a SH:
+        ------------------------------------------------
+        plt.clf()
+        plt.matshow(wao.config.p_geom._ipupil, fignum=1)
 
         # DM positions in iPupil:
-        dmposx = wao.sim.config.p_dm0._xpos
-        dmposy = wao.sim.config.p_dm0._ypos
-        plt.scatter(dmposx, dmposy, color="blue")
-
-
-
+        dmposx = wao.config.p_dm0._xpos
+        dmposy = wao.config.p_dm0._ypos
+        plt.scatter(dmposy, dmposx, color="blue", label="DM actuators")
+        #plt.scatter(dmposy[list(wao.supervisor.slavedActus)], dmposx[list(wao.supervisor.slavedActus)], color="orange", label="Slaved")
 
         #WFS position in ipupil
-        ipup = wao.sim.config.p_geom._ipupil
-        spup = wao.sim.config.p_geom._spupil
+        ipup = wao.config.p_geom._ipupil
+        spup = wao.config.p_geom._spupil
         s2ipup = (ipup.shape[0] - spup.shape[0]) / 2.
-        posx = wao.sim.config.p_wfss[0]._istart + s2ipup
-        posx = posx *  wao.sim.config.p_wfss[0]._isvalid
-        posx = posx[np.where(posx > 0)] - ipup.shape[0] / 2 - 1
-        posy = wao.sim.config.p_wfss[0]._jstart + s2ipup
-        posy = posy * wao.sim.config.p_wfss[0]._isvalid
-        posy = posy.T[np.where(posy > 0)] - ipup.shape[0] / 2 - 1
+        posx = wao.config.p_wfss[0]._validsubsx * wao.config.p_wfs0._pdiam + s2ipup
+        posy = wao.config.p_wfss[0]._validsubsy * wao.config.p_wfs0._pdiam + s2ipup
 
         #center of ssp position in ipupil
-        demissp = (posx[1]-posx[0])/2
+        demissp = wao.config.p_wfs0._pdiam / 2 - 0.5
+        sspx = posx+demissp
+        sspy = posy+demissp
+        plt.scatter(sspy, sspx, color="red", label="WFS SSP")
+
+        ------------------------------------------------
+        With a PYRAMID:
+        ------------------------------------------------
+
+        plt.matshow(wao.config.p_geom._ipupil, fignum=1)
+        size=10
+
+
+        # DM positions in iPupil:
+        dmposx = wao.config.p_dm0._xpos
+        dmposy = wao.config.p_dm0._ypos
+        plt.scatter(dmposy, dmposx,s=size, color="blue", label="DM actuators")
+        #plt.scatter(dmposy[list(wao.supervisor.couplesActus)], dmposx[list(wao.supervisor.couplesActus)], color="orange", label="Slaved")
+
+        #WFS position in ipupil
+        ipup = wao.config.p_geom._ipupil
+        spup = wao.config.p_geom._spupil
+        s2ipup = (ipup.shape[0] - spup.shape[0]) / 2.
+        posx = wao.config.p_wfss[0]._istart + s2ipup
+        posx = np.tile(posx,(posx.size,1))
+        posy = posx.T.copy()
+        posx = posx *  wao.config.p_wfss[0]._isvalid
+        posx = posx[np.where(posx > 0)] - ipup.shape[0] / 2 -wao.config.p_wfs0.npix
+        posy = posy * wao.config.p_wfss[0]._isvalid
+        posy = posy[np.where(posy > 0)] - ipup.shape[0] / 2 -wao.config.p_wfs0.npix
+
+        #center of ssp position in ipupil
+        demissp = wao.config.p_wfs0._pdiam / 2 -0.5
         sspx = posx+ipup.shape[0]/2+demissp
         sspy = posy+ipup.shape[0]/2+demissp
-        plt.scatter(sspx, sspy, color="red")
-        imat = wao.sim.rtc.get_imat(0)
+        plt.scatter(sspy, sspx, color="red", s=size, label="WFS SSP")
 
-        influDM = wao.sim.dms.get_influ(b"pzt", 0)
-        influTT = wao.sim.dms.get_influ(b"tt", 0)
+
+
 
         """
 
@@ -670,4 +949,5 @@ if __name__ == '__main__':
         server.add_device(supervisor, "waoconfig_" + user)
         server.start()
     except:
-        raise EnvironmentError("Missing dependencies (code HRAA, Pyro4)")
+        raise EnvironmentError(
+                "Missing dependencies (code HRAA or Pyro4 or Dill Serializer)")
