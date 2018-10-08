@@ -15,8 +15,8 @@
 #include <string.h>
 //#include <cutil.h>
 #include <carma_obj.h>
-#include "convolutionFFT2D_common.h"
 #include "convolutionFFT2D.cuh"
+#include "convolutionFFT2D_common.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Position convolution kernel center at (0, 0) in the image
@@ -34,12 +34,13 @@ extern "C" void padKernel(float *d_Dst, float *d_Src, int fftH, int fftW,
 }
 
 extern "C" void padKernel3d(float *d_Dst, float *d_Src, int fftH, int fftW,
-                            int kernelH, int kernelW, int kernelY, int kernelX, int nim) {
+                            int kernelH, int kernelW, int kernelY, int kernelX,
+                            int nim) {
   assert(d_Src != d_Dst);
   dim3 threads(16, 8, 8);
   dim3 grid(iDivUp(kernelW, threads.x), iDivUp(kernelH, threads.y),
             iDivUp(nim, threads.z));
-  //dim3 grid(iDivUp(kernelW, threads.x), iDivUp(kernelH, threads.y),nim);
+  // dim3 grid(iDivUp(kernelW, threads.x), iDivUp(kernelH, threads.y),nim);
 
   SET_FLOAT_BASE;
   padKernel3d_kernel<<<grid, threads>>>(d_Dst, d_Src, fftH, fftW, kernelH,
@@ -52,7 +53,8 @@ extern "C" void padKernel3d(float *d_Dst, float *d_Src, int fftH, int fftW,
 // Prepare data for "pad to border" addressing mode
 ////////////////////////////////////////////////////////////////////////////////
 extern "C" void padDataClampToBorder(float *d_Dst, float *d_Src, int fftH,
-                                     int fftW, int dataH, int dataW, int kernelW, int kernelH, int kernelY,
+                                     int fftW, int dataH, int dataW,
+                                     int kernelW, int kernelH, int kernelY,
                                      int kernelX) {
   assert(d_Src != d_Dst);
   dim3 threads(32, 8);
@@ -60,12 +62,14 @@ extern "C" void padDataClampToBorder(float *d_Dst, float *d_Src, int fftH,
 
   SET_FLOAT_BASE;
   padDataClampToBorder_kernel<<<grid, threads>>>(d_Dst, d_Src, fftH, fftW,
-      dataH, dataW, kernelH, kernelW, kernelY, kernelX);
+                                                 dataH, dataW, kernelH, kernelW,
+                                                 kernelY, kernelX);
   carmaCheckMsg("padDataClampToBorder_kernel<<<>>> execution failed\n");
 }
 
 extern "C" void padDataClampToBorder3d(float *d_Dst, float *d_Src, int fftH,
-                                       int fftW, int dataH, int dataW, int kernelW, int kernelH, int kernelY,
+                                       int fftW, int dataH, int dataW,
+                                       int kernelW, int kernelH, int kernelY,
                                        int kernelX, int nim) {
   assert(d_Src != d_Dst);
   dim3 threads(16, 8, 8);
@@ -73,8 +77,9 @@ extern "C" void padDataClampToBorder3d(float *d_Dst, float *d_Src, int fftH,
             iDivUp(nim, threads.z));
 
   SET_FLOAT_BASE;
-  padDataClampToBorder3d_kernel<<<grid, threads>>>(d_Dst, d_Src, fftH, fftW,
-      dataH, dataW, kernelH, kernelW, kernelY, kernelX, nim);
+  padDataClampToBorder3d_kernel<<<grid, threads>>>(
+      d_Dst, d_Src, fftH, fftW, dataH, dataW, kernelH, kernelW, kernelY,
+      kernelX, nim);
   carmaCheckMsg("padDataClampToBorder3d_kernel<<<>>> execution failed\n");
 }
 
@@ -87,8 +92,8 @@ extern "C" void modulateAndNormalize(fComplex *d_Dst, fComplex *d_Src, int fftH,
   assert(fftW % 2 == 0);
   const int dataSize = fftH * (fftW / 2 + padding) * nim;
 
-  modulateAndNormalize_kernel<<<iDivUp(dataSize, 256), 256>>>(d_Dst, d_Src,
-      dataSize, 1.0f / (float) (fftW * fftH));
+  modulateAndNormalize_kernel<<<iDivUp(dataSize, 256), 256>>>(
+      d_Dst, d_Src, dataSize, 1.0f / (float)(fftW * fftH));
   carmaCheckMsg("modulateAndNormalize() execution failed\n");
 }
 
@@ -103,7 +108,7 @@ extern "C" void spPostprocess2D(void *d_Dst, void *d_Src, uint DY, uint DX,
   assert(d_Src != d_Dst);
   assert(DX % 2 == 0);
 
-#if(POWER_OF_TWO)
+#if (POWER_OF_TWO)
   uint log2DX, log2DY;
   uint factorizationRemX = factorRadix2(log2DX, DX);
   uint factorizationRemY = factorRadix2(log2DY, DY);
@@ -111,12 +116,12 @@ extern "C" void spPostprocess2D(void *d_Dst, void *d_Src, uint DY, uint DX,
 #endif
 
   const uint threadCount = DY * (DX / 2);
-  const double phaseBase = dir * PI / (double) DX;
+  const double phaseBase = dir * PI / (double)DX;
 
   SET_FCOMPLEX_BASE;
   spPostprocess2D_kernel<<<iDivUp(threadCount, BLOCKDIM), BLOCKDIM>>>(
-    (fComplex *) d_Dst, (fComplex *) d_Src, DY, DX, threadCount, padding,
-    (float) phaseBase);
+      (fComplex *)d_Dst, (fComplex *)d_Src, DY, DX, threadCount, padding,
+      (float)phaseBase);
   carmaCheckMsg("spPostprocess2D_kernel<<<>>> execution failed\n");
 }
 
@@ -125,7 +130,7 @@ extern "C" void spPreprocess2D(void *d_Dst, void *d_Src, uint DY, uint DX,
   assert(d_Src != d_Dst);
   assert(DX % 2 == 0);
 
-#if(POWER_OF_TWO)
+#if (POWER_OF_TWO)
   uint log2DX, log2DY;
   uint factorizationRemX = factorRadix2(log2DX, DX);
   uint factorizationRemY = factorRadix2(log2DY, DY);
@@ -133,12 +138,12 @@ extern "C" void spPreprocess2D(void *d_Dst, void *d_Src, uint DY, uint DX,
 #endif
 
   const uint threadCount = DY * (DX / 2);
-  const double phaseBase = -dir * PI / (double) DX;
+  const double phaseBase = -dir * PI / (double)DX;
 
   SET_FCOMPLEX_BASE;
   spPreprocess2D_kernel<<<iDivUp(threadCount, BLOCKDIM), BLOCKDIM>>>(
-    (fComplex *) d_Dst, (fComplex *) d_Src, DY, DX, threadCount, padding,
-    (float) phaseBase);
+      (fComplex *)d_Dst, (fComplex *)d_Src, DY, DX, threadCount, padding,
+      (float)phaseBase);
   carmaCheckMsg("spPreprocess2D_kernel<<<>>> execution failed\n");
 }
 
@@ -149,7 +154,7 @@ extern "C" void spProcess2D(void *d_Dst, void *d_SrcA, void *d_SrcB, uint DY,
                             uint DX, int dir) {
   assert(DY % 2 == 0);
 
-#if(POWER_OF_TWO)
+#if (POWER_OF_TWO)
   uint log2DX, log2DY;
   uint factorizationRemX = factorRadix2(log2DX, DX);
   uint factorizationRemY = factorRadix2(log2DY, DY);
@@ -157,12 +162,12 @@ extern "C" void spProcess2D(void *d_Dst, void *d_SrcA, void *d_SrcB, uint DY,
 #endif
 
   const uint threadCount = (DY / 2) * DX;
-  const double phaseBase = dir * PI / (double) DX;
+  const double phaseBase = dir * PI / (double)DX;
 
   SET_FCOMPLEX_BASE_A;
   SET_FCOMPLEX_BASE_B;
   spProcess2D_kernel<<<iDivUp(threadCount, BLOCKDIM), BLOCKDIM>>>(
-    (fComplex *) d_Dst, (fComplex *) d_SrcA, (fComplex *) d_SrcB, DY, DX,
-    threadCount, (float) phaseBase, 0.5f / (float) (DY * DX));
+      (fComplex *)d_Dst, (fComplex *)d_SrcA, (fComplex *)d_SrcB, DY, DX,
+      threadCount, (float)phaseBase, 0.5f / (float)(DY * DX));
   carmaCheckMsg("spProcess2D_kernel<<<>>> execution failed\n");
 }

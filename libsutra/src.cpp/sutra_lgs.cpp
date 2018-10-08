@@ -1,8 +1,10 @@
-#include <sutra_ao_utils.h>
 #include <sutra_lgs.h>
+#include <sutra_utils.h>
 #include <sutra_wfs.h>
 
-sutra_lgs::sutra_lgs(carma_context *context, sutra_sensors *sensors,
+sutra_lgs::sutra_lgs(carma_context *context, carma_obj<float> *d_lgskern,
+                     carma_obj<cuFloatComplex> *d_ftlgskern,
+                     map<vector<int>, cufftHandle *> ftlgskern_plans,
                      long nvalid, long npix, long nmaxhr) {
   this->current_context = context;
   this->device = current_context->get_activeDevice();
@@ -35,7 +37,7 @@ sutra_lgs::sutra_lgs(carma_context *context, sutra_sensors *sensors,
   int mdims[2];
   mdims[0] = (int)dims_data2[1];
 
-  cufftHandle *plan = this->d_prof2d->getPlan(); ///< FFT plan
+  cufftHandle *plan = this->d_prof2d->getPlan();  ///< FFT plan
   carmafftSafeCall(cufftPlanMany(plan, 1, mdims, NULL, 1, 0, NULL, 1, 0,
                                  CUFFT_C2C, (int)dims_data2[2]));
 
@@ -44,29 +46,28 @@ sutra_lgs::sutra_lgs(carma_context *context, sutra_sensors *sensors,
   dims_data3[3] = nmaxhr;
   // this->d_lgskern = new carma_obj<float>(context, dims_data3);
   // this->d_ftlgskern = new carma_obj<cuFloatComplex>(context, dims_data3);
-  this->d_lgskern = sensors->d_lgskern;
-  this->d_ftlgskern = sensors->d_ftlgskern;
+  this->d_lgskern = d_lgskern;
+  this->d_ftlgskern = d_ftlgskern;
 
   mdims[0] = (int)dims_data3[1];
   mdims[1] = (int)dims_data3[2];
 
   vector<int> vdims(dims_data3 + 1, dims_data3 + 4);
 
-  if (sensors->ftlgskern_plans.find(vdims) == sensors->ftlgskern_plans.end()) {
+  if (ftlgskern_plans.find(vdims) == ftlgskern_plans.end()) {
     // DEBUG_TRACE("Creating FFT plan : %d %d
     // %d",mdims[0],mdims[1],dims_data3[3]);printMemInfo();
     cufftHandle *plan = (cufftHandle *)malloc(
-                          sizeof(cufftHandle)); // = this->d_camplipup->getPlan(); ///< FFT plan
+        sizeof(cufftHandle));  // = this->d_camplipup->getPlan(); ///< FFT plan
     carmafftSafeCall(cufftPlanMany(plan, 2, mdims, NULL, 1, 0, NULL, 1, 0,
                                    CUFFT_C2C, (int)dims_data3[3]));
 
-    sensors->ftlgskern_plans.insert(
-      pair<vector<int>, cufftHandle *>(vdims, plan));
+    ftlgskern_plans.insert(pair<vector<int>, cufftHandle *>(vdims, plan));
 
     this->ftlgskern_plan = plan;
     // DEBUG_TRACE("FFT plan created");printMemInfo();
   } else {
-    this->ftlgskern_plan = sensors->ftlgskern_plans.at(vdims);
+    this->ftlgskern_plan = ftlgskern_plans.at(vdims);
     // DEBUG_TRACE("FFT plan already exists : %d %d
     // %d",mdims[0],mdims[1],dims_data3[3]);
   }
@@ -143,6 +144,8 @@ int sutra_lgs::lgs_init(int nprof, float hg, float h0, float deltah,
   this->d_azimuth->host2device(azimuth);
 
   delete[] dims_data1;
+  this->lgs_update(current_context->get_device(this->device));
+  this->lgs_makespot(current_context->get_device(this->device), 0);
 
   return EXIT_SUCCESS;
 }
@@ -187,11 +190,11 @@ int sutra_lgs::lgs_makespot(carma_device *device, int nin) {
   // build final image
   // get abs of real and roll
   cuFloatComplex *data = this->d_prof2d->getData();
-  rollbeamexp(this->d_lgskern->getData(), &(data[nin]), this->d_beam->getData(),
-              this->npix,
-              this->npix * this->npix *
-              this->nmaxhr /*this->d_lgskern->getNbElem()*/,
-              device);
+  rollbeamexp(
+      this->d_lgskern->getData(), &(data[nin]), this->d_beam->getData(),
+      this->npix,
+      this->npix * this->npix * this->nmaxhr /*this->d_lgskern->getNbElem()*/,
+      device);
 
   // rotate image and fill kernels ft
   float *data2 = this->d_azimuth->getData();
@@ -214,10 +217,10 @@ int sutra_lgs::lgs_makespot(carma_device *device, int nin) {
 
 int sutra_lgs::load_kernels(float *h_lgskern, carma_device *device) {
   this->d_lgskern->host2device(h_lgskern);
-  cfillrealp(this->d_ftlgskern->getData(), this->d_lgskern->getData(),
-             /*this->d_ftlgskern->getNbElem()*/ this->npix * this->npix *
-             this->nmaxhr,
-             device);
+  cfillrealp(
+      this->d_ftlgskern->getData(), this->d_lgskern->getData(),
+      /*this->d_ftlgskern->getNbElem()*/ this->npix * this->npix * this->nmaxhr,
+      device);
   carma_fft(this->d_ftlgskern->getData(), this->d_ftlgskern->getData(), 1,
             *this->ftlgskern_plan);
 

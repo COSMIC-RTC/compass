@@ -1,0 +1,3 @@
+[submodule "wyrm"]
+	path = wyrm
+	url = git@gitlab.obspm.fr:greenflash/wyrm.git

@@ -1,39 +1,39 @@
-//sutra_controller_kalman.h
+// sutra_controller_kalman.h
 
 #ifndef __LAM__SUTRA_CONTROLLER_KALMAN_H__
 #define __LAM__SUTRA_CONTROLLER_KALMAN_H__
 
 #include "sutra_controller.h"
 
-//include temporaires pour tests avec lesctures des matrices
-//a partir des fichiers .dat
+// include temporaires pour tests avec lesctures des matrices
+// a partir des fichiers .dat
+#include <fstream>
 #include <iterator>
-#include <fstream>
 
-
-#include <sstream>
 #include <fstream>
-#include <string>
 #include <iomanip>
-#define __SP setprecision(20)<<
+#include <sstream>
+#include <string>
+#define __SP setprecision(20) <<
 
 #ifdef COMPILATION_LAM
-#include "kp_vector.h"
 #include "kp_KFPP.h"
+#include "kp_vector.h"
 #endif
-
 
 class kp_kalman_core_sparse;
 class kp_kalman_core_full;
 
-
-class sutra_controller_kalman: public sutra_controller {
+class sutra_controller_kalman : public sutra_controller {
  public:
-  sutra_controller_kalman(carma_context* context, int nvalid_, int nactu_, sutra_dms *dms, char **type, float *alt, int ndm);
+  sutra_controller_kalman(carma_context* context, int nvalid_, int nactu_,
+                          sutra_dms* dms, int* idx_dms, int ndm);
 
   ~sutra_controller_kalman();
 
-  void init_kalman(carma_host_obj<float>& D_Mo, carma_host_obj<float>& N_Act, carma_host_obj<float>& PROJ, bool is_zonal, bool is_sparse, bool is_GPU);
+  void init_kalman(carma_host_obj<float>& D_Mo, carma_host_obj<float>& N_Act,
+                   carma_host_obj<float>& PROJ, bool is_zonal, bool is_sparse,
+                   bool is_GPU);
 
   double gettime();
   double gettime_op1();
@@ -45,9 +45,12 @@ class sutra_controller_kalman: public sutra_controller {
 
   virtual string get_type() {
     if (isInit) {
-      if(isGPU) return "kalman_GPU";
-      else return "kalman_CPU";
-    } else return "kalman_uninitialized";
+      if (isGPU)
+        return "kalman_GPU";
+      else
+        return "kalman_CPU";
+    } else
+      return "kalman_uninitialized";
   };
 
   virtual int comp_com();
@@ -64,6 +67,5 @@ class sutra_controller_kalman: public sutra_controller {
   bool isInit;
   bool isGainSet;
   float gain;
-
 };
-#endif //__LAM__SUTRA_CONTROLLER_KALMAN_H__
+#endif  //__LAM__SUTRA_CONTROLLER_KALMAN_H__

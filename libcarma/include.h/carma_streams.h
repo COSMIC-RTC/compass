@@ -28,16 +28,12 @@ class carma_streams {
  public:
   carma_streams();
   carma_streams(unsigned int nbStreams);
-  //carma_stream(const carma_stream& src_carma_stream);
+  // carma_stream(const carma_stream& src_carma_stream);
   ~carma_streams();
 
-  cudaStream_t
-  get_stream(int stream);
-  cudaEvent_t
-  get_event(int stream);
-  cudaStream_t operator[](int idx) {
-    return get_stream(idx);
-  }
+  cudaStream_t get_stream(int stream);
+  cudaEvent_t get_event(int stream);
+  cudaStream_t operator[](int idx) { return get_stream(idx); }
 
   int get_nbStreams();
   int add_stream();
@@ -48,7 +44,6 @@ class carma_streams {
   int wait_event(int stream);
   int wait_stream(int stream);
   int wait_all_streams();
-
 };
 
-#endif // _CARMA_STREAM_H_
+#endif  // _CARMA_STREAM_H_

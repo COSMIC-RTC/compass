@@ -37,17 +37,16 @@ p_atmos.set_L0([100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100])
 
 #target
 p_target = conf.Param_target()
-
-p_target.set_ntargets(1)
-p_target.set_xpos([0.])
-p_target.set_ypos([0.])
-p_target.set_Lambda([1.65])
-p_target.set_mag([10])
+p_targets = [p_target]
+p_target.set_xpos(0.)
+p_target.set_ypos(0.)
+p_target.set_Lambda(1.65)
+p_target.set_mag(10.)
 
 #wfs
 #p_wfs0= conf.Param_wfs()
 #p_wfs1= conf.Param_wfs()
-p_wfss = [conf.Param_wfs(error_budget=True)]
+p_wfss = [conf.Param_wfs(roket=True)]
 
 for i in range(len(p_wfss)):
     p_wfss[i].set_type("sh")

@@ -5,7 +5,7 @@
 #include <ksparse.h>
 #define TEST_USE_KSPARSE(...) __VA_ARGS__
 #else
-#define TEST_USE_KSPARSE(...) \
+#define TEST_USE_KSPARSE(...)                          \
   DEBUG_TRACE("!!!!!! KSPARSE not compiled !!!!!!\n"); \
   return EXIT_FAILURE;
 #endif
@@ -19,35 +19,34 @@
  *
  */
 
-template<class T_data, int (*ksparse_bsrmv)(int matrix_dim, int block_dim,
-         T_data alpha, T_data *A,
-         int* bsr_row_ptr, int* bsr_col_ind,
-         const T_data* __restrict x,
-         T_data beta, T_data *y)>
-int carma_kgemv_gen(int matrix_dim, int block_dim, T_data alpha, T_data *A,
+template <class T_data, int (*ksparse_bsrmv)(
+                            int matrix_dim, int block_dim, T_data alpha,
+                            T_data* A, int* bsr_row_ptr, int* bsr_col_ind,
+                            const T_data* __restrict x, T_data beta, T_data* y)>
+int carma_kgemv_gen(int matrix_dim, int block_dim, T_data alpha, T_data* A,
                     int* bsr_row_ptr, int* bsr_col_ind,
-                    const T_data* __restrict x, T_data beta, T_data *y) {
-  TEST_USE_KSPARSE(
-    return ksparse_bsrmv(matrix_dim, block_dim, alpha, A, bsr_row_ptr, bsr_col_ind, x, beta, y));
+                    const T_data* __restrict x, T_data beta, T_data* y) {
+  TEST_USE_KSPARSE(return ksparse_bsrmv(matrix_dim, block_dim, alpha, A,
+                                        bsr_row_ptr, bsr_col_ind, x, beta, y));
 }
 
-template<>
+template <>
 int carma_kgemv<float>(carma_sparse_obj<float>* A, float alpha,
-                       const float* __restrict x, float beta, float *y) {
+                       const float* __restrict x, float beta, float* y) {
   if (A->format != "BSR") {
     DEBUG_TRACE("carma_kgemv needs a BSR matrix as input");
   }
-  TEST_USE_KSPARSE(
-    return carma_kgemv_gen<float,
-    ksparse_sbsrmv>(A->dims_data[1], A->blockDim, alpha, A->d_data, A->d_rowind, A->d_colind, x, beta, y));
+  TEST_USE_KSPARSE(return carma_kgemv_gen<float, ksparse_sbsrmv>(
+      A->dims_data[1], A->blockDim, alpha, A->d_data, A->d_rowind, A->d_colind,
+      x, beta, y));
 }
-template<>
+template <>
 int carma_kgemv<double>(carma_sparse_obj<double>* A, double alpha,
-                        const double* __restrict x, double beta, double *y) {
+                        const double* __restrict x, double beta, double* y) {
   if (A->format != "BSR") {
     DEBUG_TRACE("carma_kgemv needs a BSR matrix as input");
   }
-  TEST_USE_KSPARSE(
-    return carma_kgemv_gen<double,
-    ksparse_dbsrmv>(A->dims_data[1], A->blockDim, alpha, A->d_data, A->d_rowind, A->d_colind, x, beta, y));
+  TEST_USE_KSPARSE(return carma_kgemv_gen<double, ksparse_dbsrmv>(
+      A->dims_data[1], A->blockDim, alpha, A->d_data, A->d_rowind, A->d_colind,
+      x, beta, y));
 }

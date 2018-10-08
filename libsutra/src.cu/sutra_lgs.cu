@@ -1,29 +1,30 @@
 #include <sutra_lgs.h>
 
-texture<float, 3, cudaReadModeElementType> tex3; // 3D texture
+texture<float, 3, cudaReadModeElementType> tex3;  // 3D texture
 
 __device__ float interp_transf(float *idata, float tidim, int npix,
-                               float pixsize, float norm, float shiftx, float deltah, int hmax) {
+                               float pixsize, float norm, float shiftx,
+                               float deltah, int hmax) {
   int xref;
   float weightx;
 
   // determine the interpolated position
   if (npix % 2 == 0)
-    tidim -= (npix / 2.0f + 0.5); // centered pix pos
+    tidim -= (npix / 2.0f + 0.5);  // centered pix pos
   else
-    tidim -= (npix / 2.0f); // centered pix pos
+    tidim -= (npix / 2.0f);  // centered pix pos
 
-  tidim *= pixsize; // centered pix size
-  tidim /= norm; // in meter
-  tidim += shiftx; // in meter on profile centered on cog
-  tidim /= deltah; // in pixels on profile array
+  tidim *= pixsize;  // centered pix size
+  tidim /= norm;     // in meter
+  tidim += shiftx;   // in meter on profile centered on cog
+  tidim /= deltah;   // in pixels on profile array
 
   if (tidim < 0) {
     xref = 0;
     weightx = 0.;
   } else {
     if (tidim < hmax - 2) {
-      xref = (int) tidim;
+      xref = (int)tidim;
       weightx = tidim - xref;
     } else {
       xref = hmax - 2;
@@ -35,8 +36,9 @@ __device__ float interp_transf(float *idata, float tidim, int npix,
 }
 
 __global__ void iprof_krnl(cuFloatComplex *profout, float *profin,
-                           float *profinc, int npix, float *doffaxis, float hg, float pixsize,
-                           float h0, float deltah, int hmax, int Ntot) {
+                           float *profinc, int npix, float *doffaxis, float hg,
+                           float pixsize, float h0, float deltah, int hmax,
+                           int Ntot) {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < Ntot) {
@@ -48,9 +50,9 @@ __global__ void iprof_krnl(cuFloatComplex *profout, float *profin,
 
     if (pixsize > deltah * norm) {
       profout[tid].x = interp_transf(profinc, tidim + 1, npix, pixsize, norm,
-                                     hg - h0, deltah, hmax)
-                       - interp_transf(profinc, tidim, npix, pixsize, norm, hg - h0, deltah,
-                                       hmax);
+                                     hg - h0, deltah, hmax) -
+                       interp_transf(profinc, tidim, npix, pixsize, norm,
+                                     hg - h0, deltah, hmax);
       profout[tid].y = 0.0f;
     } else {
       profout[tid].x = interp_transf(profin, tidim, npix, pixsize, norm,
@@ -63,8 +65,8 @@ __global__ void iprof_krnl(cuFloatComplex *profout, float *profin,
 }
 
 int interp_prof(cuFloatComplex *profout, float *prof1d, float *profcum,
-                int npix, float *doffaxis, float hg, float pixsize, float h0, float deltah,
-                int hmax, int Ntot, carma_device *device) {
+                int npix, float *doffaxis, float hg, float pixsize, float h0,
+                float deltah, int hmax, int Ntot, carma_device *device) {
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, Ntot, nblocks, nthreads);
 
@@ -106,7 +108,6 @@ int times_ftbeam(cuFloatComplex *profout, cuFloatComplex *ftbeam, int N,
 
 __global__ void rollbeamexp_krnl(float *imout, cuFloatComplex *iprof,
                                  float *beam, int N, int Ntot) {
-
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < Ntot) {
@@ -114,7 +115,7 @@ __global__ void rollbeamexp_krnl(float *imout, cuFloatComplex *iprof,
     int tidim = tid % (N * N);
     int tidprof = tidim % N;
     int tidbeam = tidim / N;
-    int x = (tidprof + (N / 2)) % N + nim * N; // for roll
+    int x = (tidprof + (N / 2)) % N + nim * N;  // for roll
     imout[tid] = abs(iprof[x].x) * beam[tidbeam];
     tid += blockDim.x * gridDim.x;
   }
@@ -131,11 +132,11 @@ int rollbeamexp(float *imout, cuFloatComplex *iprof, float *beam, int N,
   carmaCheckMsg("beamexp_krnl<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
-
 }
 
 __global__ void rotate_krnl(cuFloatComplex *odata, float *idata, int width,
-                            int height, float *theta, float center, int N, int Ntot)
+                            int height, float *theta, float center, int N,
+                            int Ntot)
 // rotate a cube manually
 {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
@@ -164,7 +165,7 @@ __global__ void rotate_krnl(cuFloatComplex *odata, float *idata, int width,
       weightu = 0.;
     } else {
       if (tu < width - 2) {
-        uref = (int) tu;
+        uref = (int)tu;
         weightu = tu - uref;
       } else {
         uref = width - 2;
@@ -177,7 +178,7 @@ __global__ void rotate_krnl(cuFloatComplex *odata, float *idata, int width,
       weightv = 0.;
     } else {
       if (tv < height - 2) {
-        vref = (int) tv;
+        vref = (int)tv;
         weightv = tv - vref;
       } else {
         vref = height - 2;
@@ -193,9 +194,9 @@ __global__ void rotate_krnl(cuFloatComplex *odata, float *idata, int width,
     ind3 += uref + (vref + 1) * width;
     ind4 += uref + 1 + (vref + 1) * width;
 
-    odata[tid].x = (idata[ind1] * (1 - weightu) + idata[ind2] * weightu)
-                   * (1 - weightv)
-                   + (idata[ind3] * (1 - weightu) + idata[ind4] * weightu) * weightv;
+    odata[tid].x =
+        (idata[ind1] * (1 - weightu) + idata[ind2] * weightu) * (1 - weightv) +
+        (idata[ind3] * (1 - weightu) + idata[ind4] * weightu) * weightv;
     odata[tid].y = 0.0f;
 
     tid += blockDim.x * gridDim.x;
@@ -247,10 +248,11 @@ __global__ void rotate3d_krnl(cuFloatComplex *g_odata, int width, int height,
 
 int rotate3d(cuFloatComplex *d_odata, cudaMemcpy3DParms copyParams,
              cudaArray *d_array, cudaChannelFormatDesc channelDesc, int width,
-             int height, float *theta, float center, int Ntot, carma_device *device) {
+             int height, float *theta, float center, int Ntot,
+             carma_device *device) {
   tex3.normalized = false;
-  tex3.filterMode = cudaFilterModeLinear; // linear interpolation
-  tex3.addressMode[0] = cudaAddressModeClamp; // wrap texture coordinates
+  tex3.filterMode = cudaFilterModeLinear;      // linear interpolation
+  tex3.addressMode[0] = cudaAddressModeClamp;  // wrap texture coordinates
   tex3.addressMode[1] = cudaAddressModeClamp;
   tex3.addressMode[2] = cudaAddressModeClamp;
 
@@ -261,11 +263,12 @@ int rotate3d(cuFloatComplex *d_odata, cudaMemcpy3DParms copyParams,
 
   int N = width * height;
 
-  int nBlocks,nThreads;
+  int nBlocks, nThreads;
   getNumBlocksAndThreads(device, Ntot, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
-  //cout << nBlocks << " " << nx / nBlocks << " " << ny / nBlocks << " " <<  nz / nBlocks <<endl;
+  // cout << nBlocks << " " << nx / nBlocks << " " << ny / nBlocks << " " <<  nz
+  // / nBlocks <<endl;
   rotate3d_krnl<<<grid, threads, 0>>>(d_odata, width, height, N, theta, center,
                                       Ntot);
 

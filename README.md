@@ -82,7 +82,7 @@ cd magma-2.3.0
 Installation of dependencies using anaconda
 
 ```bash
-conda install -y cython numpy nomkl pyqtgraph ipython pyqt qt matplotlib astropy blaze h5py hdf5 nose pandas scipy docopt tqdm
+conda install -y numpy nomkl pyqtgraph ipython pyqt qt matplotlib astropy blaze h5py hdf5 nose pandas scipy docopt tqdm
 ```
 
 add to you .bashrc:
@@ -393,14 +393,14 @@ export COMPASS_ROOT=$HOME/compass
 export NAGA_ROOT=$COMPASS_ROOT/naga
 export SHESHA_ROOT=$COMPASS_ROOT/shesha
 export LD_LIBRARY_PATH=$COMPASS_ROOT/libcarma:$COMPASS_ROOT/libsutra:$LD_LIBRARY_PATH
-export PYTHONPATH=$NAGA_ROOT/lib:$NAGA_ROOT/src:$SHESHA_ROOT/lib:$SHESHA_ROOT/src:$PYTHONPATH
+export PYTHONPATH=$NAGA_ROOT:$SHESHA_ROOT:$PYTHONPATH
 ```
 
 ### Install dependencies (if not already done)
 
 ```bash
 
-conda install -y cython numpy nomkl pyqtgraph ipython pyqt qt matplotlib astropy blaze h5py hdf5 nose pandas scipy docopt tqdm
+conda install -y numpy pyqtgraph ipython pyqt qt matplotlib astropy blaze h5py hdf5 nose pandas scipy docopt tqdm
 
 ```
 

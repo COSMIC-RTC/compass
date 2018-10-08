@@ -1,7 +1,7 @@
 #include <sutra_kl.h>
 
-sutra_kl::sutra_kl(carma_context *context, long dim, long nr, long np, long nkl, long nord,
-                   int device) {
+sutra_kl::sutra_kl(carma_context *context, long dim, long nr, long np, long nkl,
+                   long nord, int device) {
   // some inits
   this->current_context = context;
   this->dim = dim;
@@ -10,7 +10,7 @@ sutra_kl::sutra_kl(carma_context *context, long dim, long nr, long np, long nkl,
   this->nkl = nkl;
   this->nord = nord;
   this->device = device;
-  current_context->set_activeDevice(device,1);
+  current_context->set_activeDevice(device, 1);
 
   long *dims_data1 = new long[2];
   dims_data1[0] = 1;
@@ -67,8 +67,8 @@ sutra_kl::sutra_kl(carma_context *context, long dim, long nr, long np, long nkl,
 }
 
 sutra_kl::~sutra_kl() {
-  //delete current_context;
-  current_context->set_activeDevice(device,1);
+  // delete current_context;
+  current_context->set_activeDevice(device, 1);
 
   delete this->h_ord;
   delete this->d_ord;
@@ -85,7 +85,7 @@ sutra_kl::~sutra_kl() {
 
 int sutra_kl::do_compute(float alpha, float ampli, float *odata, int nkl,
                          int size, int xoff, int yoff) {
-  current_context->set_activeDevice(device,1);
+  current_context->set_activeDevice(device, 1);
   // do computation on data and store in result
   int nord = this->h_ord->getData()[nkl] - 1;
 
@@ -106,11 +106,12 @@ int sutra_kl::do_compute(float *odata, int nkl, int size, int xoff, int yoff) {
 }
 
 int sutra_kl::do_combi(float *com, float *odata, int size, int xoff, int yoff) {
-  current_context->set_activeDevice(device,1);
+  current_context->set_activeDevice(device, 1);
   // do computation on data and store in result
   combikl(com, this->nkl, odata, this->d_rabas->getData(),
-          this->d_ord->getData(), this->d_azbas->getData(), this->d_cr->getData(),
-          this->d_cp->getData(), this->nr, this->np, this->dim, size, xoff, yoff);
+          this->d_ord->getData(), this->d_azbas->getData(),
+          this->d_cr->getData(), this->d_cp->getData(), this->nr, this->np,
+          this->dim, size, xoff, yoff);
 
   return EXIT_SUCCESS;
 }

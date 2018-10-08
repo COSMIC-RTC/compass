@@ -65,7 +65,7 @@ class sutra_rtc_brahma : public sutra_rtc {
 
  public:
   sutra_rtc_brahma(carma_context *context, sutra_sensors *wfs,
-                  sutra_target *target, ACE_TCHAR *name);
+                   sutra_target *target, ACE_TCHAR *name);
   ~sutra_rtc_brahma();
 
   void publish();

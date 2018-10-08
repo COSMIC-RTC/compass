@@ -7,14 +7,15 @@ carma_streams::carma_streams() {
 }
 
 carma_streams::carma_streams(unsigned int nbStreams) {
-  //this->streams  = new vector<cudaStream_t>();
+  // this->streams  = new vector<cudaStream_t>();
   for (unsigned int i = 0; i < nbStreams; i++) {
     add_stream();
   }
 
-  //carmaSafeCall(cudaEventCreateWithFlags(&(this->start_event), cudaDeviceBlockingSync));
-  //carmaSafeCall( cudaEventCreateWithFlags(&(this->stop_event), cudaDeviceBlockingSync));
-  //cudaEventDefault
+  // carmaSafeCall(cudaEventCreateWithFlags(&(this->start_event),
+  // cudaDeviceBlockingSync));
+  // carmaSafeCall(cudaEventCreateWithFlags(&(this->stop_event),
+  // cudaDeviceBlockingSync)); cudaEventDefault
 }
 
 /*
@@ -29,16 +30,15 @@ carma_streams::~carma_streams() {
   del_all_streams();
   this->streams.clear();
 
-  //cudaEventDestroy(this->start_event);
-  //cudaEventDestroy(this->stop_event);
+  // cudaEventDestroy(this->start_event);
+  // cudaEventDestroy(this->stop_event);
 }
 
-int carma_streams::get_nbStreams() {
-  return this->streams.size();
-}
+int carma_streams::get_nbStreams() { return this->streams.size(); }
 
 int carma_streams::add_stream() {
   cudaStream_t stream_tmp;
+
   carmaSafeCall(cudaStreamCreate(&stream_tmp));
   this->streams.push_back(stream_tmp);
 
@@ -54,14 +54,12 @@ int carma_streams::add_stream() {
 }
 
 int carma_streams::add_stream(int nb) {
-  for (int stream = 0; stream < nb; stream++)
-    add_stream();
+  for (int stream = 0; stream < nb; stream++) add_stream();
   return get_nbStreams();
 }
 
 int carma_streams::del_stream() {
-  if (streams.empty())
-    return 0;
+  if (streams.empty()) return 0;
 
 #if DEBUG
   printf("CARMA Stream deleting @ 0x%p\n", this->streams.back());
@@ -76,14 +74,12 @@ int carma_streams::del_stream() {
 }
 
 int carma_streams::del_stream(int nb) {
-  for (int stream = 0; stream < nb && !streams.empty(); stream++)
-    del_stream();
+  for (int stream = 0; stream < nb && !streams.empty(); stream++) del_stream();
   return get_nbStreams();
 }
 
 int carma_streams::del_all_streams() {
-  while (!streams.empty())
-    del_stream();
+  while (!streams.empty()) del_stream();
   return get_nbStreams();
 }
 

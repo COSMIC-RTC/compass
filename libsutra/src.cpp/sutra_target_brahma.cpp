@@ -3,13 +3,14 @@
 #include <sutra_target_brahma.h>
 #include <sutra_telescope.h>
 
-sutra_target_brahma::sutra_target_brahma(carma_context *context, ACE_TCHAR *name,
-    sutra_telescope *d_tel, int subsample_,
-    int ntargets, float *xpos, float *ypos,
-    float *lambda, float *mag, float zerop,
-    long *sizes, int Npts, int device)
-  : sutra_target(context, d_tel, ntargets, xpos, ypos, lambda, mag, zerop,
-                 sizes, Npts, device) {
+sutra_target_brahma::sutra_target_brahma(carma_context *context,
+                                         ACE_TCHAR *name,
+                                         sutra_telescope *d_tel, int subsample_,
+                                         int ntargets, float *xpos, float *ypos,
+                                         float *lambda, float *mag, float zerop,
+                                         long *sizes, int Npts, int device)
+    : sutra_target(context, d_tel, ntargets, xpos, ypos, lambda, mag, zerop,
+                   sizes, Npts, device) {
   DEBUG_TRACE("init %s", name);
   BRAHMA::BRAHMA_context brahma = BRAHMA::BRAHMA_context::get_instance(name);
   frame_handle = 0;
@@ -39,22 +40,22 @@ sutra_target_brahma::sutra_target_brahma(carma_context *context, ACE_TCHAR *name
     brahma.register_command_type(topics[BRAHMA::CommandType]);
     cmd_listener = (new sutra_target_brahmaListenerImpl);
     cmd_listener_servant =
-      dynamic_cast<sutra_target_brahmaListenerImpl *>(cmd_listener.in());
+        dynamic_cast<sutra_target_brahmaListenerImpl *>(cmd_listener.in());
 
     if (CORBA::is_nil(cmd_listener.in())) {
       throw "BRAHMA Command listener is nil.";
     }
     cmd_listener_servant->attach_target(this);
 
-    cmd_dr =
-      brahma.create_datareader(sub, topics[BRAHMA::CommandType], cmd_listener);
+    cmd_dr = brahma.create_datareader(sub, topics[BRAHMA::CommandType],
+                                      cmd_listener);
 
     // Create an BRAHMA Frame writer
     brahma.register_frame_type(topics[BRAHMA::FrameType]);
     frame_base_dw = brahma.create_datawriter(pub, topics[BRAHMA::FrameType]);
     if (CORBA::is_nil(frame_base_dw.in())) {
-      cerr << "create_datawriter for " << topics[BRAHMA::FrameType] << " failed."
-           << endl;
+      cerr << "create_datawriter for " << topics[BRAHMA::FrameType]
+           << " failed." << endl;
       return;
     }
     frame_dw = BRAHMA::FrameDataWriter::_narrow(frame_base_dw.in());
@@ -78,10 +79,8 @@ sutra_target_brahma::~sutra_target_brahma() {
     return;
   }
 
-  if (buff_pixels)
-    BRAHMA::Values::freebuf(buff_pixels);
-  if (dims_pixels)
-    BRAHMA::Dims::freebuf(dims_pixels);
+  if (buff_pixels) BRAHMA::Values::freebuf(buff_pixels);
+  if (dims_pixels) BRAHMA::Dims::freebuf(dims_pixels);
 }
 
 void sutra_target_brahma::allocateBuffers() {
@@ -93,12 +92,12 @@ void sutra_target_brahma::allocateBuffers() {
     // TODO : handle targets with different supports...
     dims_pixels = BRAHMA::Dims::allocbuf(3);
     dims_pixels[0] = d_targets.size();
-    dims_pixels[1] = d_targets[0]->d_leimage->getDims(1);
-    dims_pixels[2] = d_targets[0]->d_leimage->getDims(2);
+    dims_pixels[1] = d_targets[0]->d_image_le->getDims(1);
+    dims_pixels[2] = d_targets[0]->d_image_le->getDims(2);
 
-    buff_pixels = BRAHMA::Values::allocbuf(d_targets.size() *
-                                           d_targets[0]->d_leimage->getNbElem() *
-                                           sizeof(float));
+    buff_pixels = BRAHMA::Values::allocbuf(
+        d_targets.size() * d_targets[0]->d_image_le->getNbElem() *
+        sizeof(float));
   } catch (CORBA::Exception &e) {
     cerr << "Exception caught in main.cpp:" << endl << e << endl;
     ACE_OS::exit(1);
@@ -112,7 +111,7 @@ void sutra_target_brahma::set_subsample(int ntarget, int subsample_) {
 
   ACE_Guard<ACE_Mutex> guard(this->lock_);
   this->d_targets[ntarget]->reset_strehlmeter();
-  this->samplecounter = 1;
+  this->samplecounter = 0;
   this->subsample = subsample_;
 }
 
@@ -123,31 +122,31 @@ void sutra_target_brahma::publish() {
   }
 
   ACE_Guard<ACE_Mutex> guard(this->lock_);
-  if (samplecounter % subsample != 0 || subsample <= 0) {
+  if (subsample <= 0 || samplecounter % subsample != 0 || samplecounter == 0) {
     samplecounter++;
     return;
   }
 
-  if (buff_pixels == NULL)
-    allocateBuffers();
+  if (buff_pixels == NULL) allocateBuffers();
 
   CORBA::Float *buff_pixels_servant = (CORBA::Float *)buff_pixels;
 
   long idx = 0;
   carma_obj<float> tmp_img(d_targets[0]->current_context,
-                           d_targets[0]->d_leimage->getDims());
+                           d_targets[0]->d_image_le->getDims());
   for (size_t target = 0; target < d_targets.size(); target++) {
     d_targets[target]->comp_image(0, true);
     float flux = 1.0f;
     // d_targets[target]->zp * powf(10, -0.4 * d_targets[target]->mag);
-    roll_mult<float>(tmp_img.getData(), d_targets[target]->d_leimage->getData(),
-                     d_targets[target]->d_leimage->getDims(1),
-                     d_targets[target]->d_leimage->getDims(2), flux,
+    roll_mult<float>(tmp_img.getData(),
+                     d_targets[target]->d_image_le->getData(),
+                     d_targets[target]->d_image_le->getDims(1),
+                     d_targets[target]->d_image_le->getDims(2), flux,
                      d_targets[target]->current_context->get_device(
-                       d_targets[target]->device));
+                         d_targets[target]->device));
     tmp_img.device2host(buff_pixels_servant + idx);
 
-    idx += d_targets[target]->d_leimage->getNbElem();
+    idx += d_targets[target]->d_image_le->getNbElem();
   }
 
   BRAHMA::Frame zFrame;
@@ -156,7 +155,7 @@ void sutra_target_brahma::publish() {
   zFrame.source = CORBA::string_dup("BRAHMA TARGET");
   zFrame.dimensions = BRAHMA::Dims(3, 3, dims_pixels, 0);
   zFrame.data =
-    BRAHMA::Values(idx * sizeof(float), idx * sizeof(float), buff_pixels, 0);
+      BRAHMA::Values(idx * sizeof(float), idx * sizeof(float), buff_pixels, 0);
   zFrame.datatype = BRAHMA::BRAHMA_float32_t;
   zFrame.sizeofelements = sizeof(float);
 
@@ -165,13 +164,13 @@ void sutra_target_brahma::publish() {
 
   if (ret != DDS::RETCODE_OK) {
     ACE_ERROR(
-      (LM_ERROR, ACE_TEXT("(%P|%t)ERROR: frame write returned %d.\n"), ret));
+        (LM_ERROR, ACE_TEXT("(%P|%t)ERROR: frame write returned %d.\n"), ret));
     return;
   }
 
   for (size_t target = 0; target < d_targets.size(); target++) {
     d_targets[target]->reset_strehlmeter();
-    samplecounter = 1;
+    samplecounter = 0;
   }
 
   framecounter++;

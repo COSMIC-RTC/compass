@@ -25,4 +25,4 @@
 #include "carma_timer.h"
 #include "carma_utils.h"
 
-#endif // _CARMA_H_
+#endif  // _CARMA_H_

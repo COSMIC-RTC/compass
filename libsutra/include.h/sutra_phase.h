@@ -14,7 +14,6 @@
 
 class sutra_phase {
  public:
-
   carma_context *current_context;
   int device;
 
@@ -26,9 +25,8 @@ class sutra_phase {
 
  public:
   sutra_phase(carma_context *current_context, long size);
-  sutra_phase(const sutra_phase& phase);
+  sutra_phase(const sutra_phase &phase);
   ~sutra_phase();
-
 };
 
-#endif // _SUTRA_PHASE_H_
+#endif  // _SUTRA_PHASE_H_

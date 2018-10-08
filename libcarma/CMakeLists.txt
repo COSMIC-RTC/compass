@@ -1,11 +1,32 @@
-cmake_minimum_required (VERSION 3.5)
-project(carma 
-    VERSION 1.0 
+cmake_minimum_required (VERSION 3.8)
+
+if(DEFINED ENV{CUDA_SM})
+    set(CUDA_SM $ENV{CUDA_SM})
+else()
+    message("Probing the (first) GPU for its compute capability...")
+    execute_process(COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/scripts/get_cuda_sm.sh"  RESULT_VARIABLE CUDA_SM)
+endif()
+message("Building for Compute Capability ${CUDA_SM}")
+
+if( ${CUDA_SM} STREQUAL "ALL")
+    set(CUDA_SM "35" "37" "50" "52" "60" "61" "70")
+endif()
+
+foreach(SM ${CUDA_SM})
+list( APPEND CUDA_ARCH "-gencode" "arch=compute_${SM},code=sm_${SM}")
+endforeach(SM)
+
+string (REPLACE ";" " " CMAKE_CUDA_FLAGS "${CUDA_NVCC_FLAGS};${CUDA_ARCH}")
+# set(CMAKE_CUDA_FLAGS ${CUDA_ARCH} VERBATIM)
+
+# string (REPLACE ";" " " CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS};${CUDA_ARCH}")
+# set(CMAKE_SHARED_LINKER_FLAGS ${CUDA_ARCH} VERBATIM)
+
+project(carma
+    VERSION ${VERSION_INFO}
     DESCRIPTION "COMPASS CARMA lirary"
-    LANGUAGES CXX CUDA)
-include(GNUInstallDirs)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include.h
-                    ${CMAKE_CURRENT_SOURCE_DIR}/include.cuh)
+    LANGUAGES CUDA CXX
+)
 
 # EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
 # message( STATUS "Architecture: ${ARCHITECTURE}" )
@@ -28,29 +49,10 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include.h
 #   endif
 # endif
 
-# add_compile_options("-fPIC -Wall -fno-common -std=c++11 ")
-
-find_package( CUDA REQUIRED)
-
-# nvcc flags                                                                                                                                                                                               
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -Xcompiler -fPIC -use_fast_math -std=c++11 -gencode $ENV{GENCODE})
-
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(MAGMA REQUIRED magma)
 
-message(STATUS ${MAGMA_LIBRARY_DIRS})
 link_directories( ${MAGMA_LIBRARY_DIRS} )
-
-cuda_compile(CU_O 
-    ./src.cu/carma_fft_conv.cu
-    ./src.cu/carma_rng.cu
-    ./src.cu/carma_svd.cu
-    ./src.cu/carma_utils.cu
-    ./src.cu/convolutionFFT2D.cu
-    ./src.cu/carma_obj.cu
-    ./src.cu/carma_sum.cu
-    ./src.cu/carma_transpose.cu
-)
 
 add_library(carma SHARED
     ./src.cpp/carma_context.cpp
@@ -70,44 +72,55 @@ add_library(carma SHARED
     ./src.cpp/carma_streams.cpp
     ./src.cpp/carma_utils.cpp
     ./src.cpp/carma_obj.cpp
-    ${CU_O}
-    )    
+    ./src.cu/carma_fft_conv.cu
+    ./src.cu/carma_rng.cu
+    ./src.cu/carma_svd.cu
+    ./src.cu/carma_utils.cu
+    ./src.cu/convolutionFFT2D.cu
+    ./src.cu/carma_obj.cu
+    ./src.cu/carma_sum.cu
+    ./src.cu/carma_transpose.cu
+)
 
-set_target_properties(carma PROPERTIES 
+set_target_properties(carma
+    PROPERTIES
     VERSION ${PROJECT_VERSION}
-    SOVERSION 1
-    PUBLIC_HEADER include.h/carma.h
-    PUBLIC_HEADER include.h/carma_context.h
-    PUBLIC_HEADER include.h/carma_cublas.h
-    PUBLIC_HEADER include.h/carma_cusparse.h
-    PUBLIC_HEADER include.h/carma_exception.h
-    PUBLIC_HEADER include.h/carma_fft.h
-    PUBLIC_HEADER include.h/carma_host_obj.h
-    PUBLIC_HEADER include.h/carma_multithread.h
-    PUBLIC_HEADER include.h/carma_sparse_host_obj.h
-    PUBLIC_HEADER include.h/carma_sparse_obj.h
-    PUBLIC_HEADER include.h/carma_streams.h
-    PUBLIC_HEADER include.h/carma_timer.h
-    PUBLIC_HEADER include.h/carma_utils.h
-    PUBLIC_HEADER include.h/convolutionFFT2D_common.h
-    PUBLIC_HEADER include.h/carma_ipcs.h
-    PUBLIC_HEADER include.h/carma_obj.h
-    PUBLIC_HEADER include.cuh/carma_utils.cuh
-    PUBLIC_HEADER include.cuh/convolutionFFT2D.cuh
-    PUBLIC_HEADER include.cuh/carma_utils.cuh
-    PUBLIC_HEADER include.cuh/convolutionFFT2D.cuh 
-)    
+    SOVERSION ${PROJECT_VERSION_MAJOR}
+    # CUDA_SEPARABLE_COMPILATION OFF
+)
 
-target_include_directories(carma PRIVATE .)
-target_link_libraries(carma PRIVATE ${MAGMA_LIBRARIES})
-target_include_directories(carma PUBLIC ${MAGMA_INCLUDE_DIRS})
-target_compile_options(carma PUBLIC -DUSE_MAGMA ${MAGMA_CFLAGS_OTHER})
+target_compile_features(carma PUBLIC cxx_std_14)
 
-configure_file(carma.pc.in carma.pc @ONLY)
+# string (REPLACE ";" " " CMAKE_CUDA_FLAGS "${CUDA_NVCC_FLAGS};${CUDA_ARCH}")
+
+target_include_directories(carma
+    PUBLIC
+    $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/include.h ${MAGMA_INCLUDE_DIRS}>
+    $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CURRENT_SOURCE_DIR}/include.h ${CMAKE_CURRENT_SOURCE_DIR}/include.cuh>
+)
+
+target_compile_options(carma
+    PUBLIC
+    $<$<COMPILE_LANGUAGE:CXX>:-DVERSION_INFO=${VERSION_INFO}>
+    $<$<COMPILE_LANGUAGE:CUDA>:-use_fast_math >
+    PRIVATE
+    $<$<COMPILE_LANGUAGE:CXX>:-DUSE_MAGMA ${MAGMA_CFLAGS_OTHER}>
+)
+
+find_package(CUDA REQUIRED)
+target_link_libraries(carma
+    PUBLIC ${CUDA_LIBRARIES} ${CUDA_cufft_LIBRARY} ${CUDA_cublas_LIBRARY} ${CUDA_curand_LIBRARY} ${CUDA_cusparse_LIBRARY}
+    PRIVATE ${MAGMA_LIBRARIES}
+)
+
+set(INSTALL_PKGCONFIG_DIR "${CMAKE_INSTALL_PREFIX}/share/pkgconfig" CACHE PATH "Installation directory for pkgconfig (.pc) files")
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/carma.pc.in ${CMAKE_CURRENT_BINARY_DIR}/carma.pc @ONLY)
 
 install(TARGETS carma
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-)    
+    PUBLIC_HEADER DESTINATION include
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib}
+)
 
-install(FILES ${CMAKE_BINARY_DIR}/carma.pc DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/carma.pc DESTINATION "${INSTALL_PKGCONFIG_DIR}")

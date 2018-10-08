@@ -1,22 +1,17 @@
 #include <sutra_controller.h>
 #include <string>
 
-sutra_controller::sutra_controller(carma_context *context,
-                                   int            nslope,
-                                   int            nactu,
-                                   float          delay,
-                                   sutra_dms     *dms,
-                                   char         **type,
-                                   float         *alt,
-                                   int            ndm) {
+sutra_controller::sutra_controller(carma_context *context, int nvalid,
+                                   int nslope, int nactu, float delay,
+                                   sutra_dms *dms, int *idx_dms, int ndm) {
   this->current_context = context;
-  this->device          = context->get_activeDevice();
+  this->device = context->get_activeDevice();
 
   // current_context->set_activeDevice(device,1);
   this->d_com1 = NULL;
   this->d_com2 = NULL;
 
-  int nstreams = 1; // nvalid/10;
+  int nstreams = 1;  // nvalid/10;
 
   while (nactu % nstreams != 0) nstreams--;
 
@@ -27,8 +22,10 @@ sutra_controller::sutra_controller(carma_context *context,
   this->d_perturb = nullptr;
   this->cpt_pertu = 0;
 
-  if (delay < 2) this->delay = delay;
-  else this->delay = 2.0f;
+  if (delay < 2)
+    this->delay = delay;
+  else
+    this->delay = 2.0f;
 
   int floor = (int)delay;
 
@@ -40,7 +37,7 @@ sutra_controller::sutra_controller(carma_context *context,
     this->b = delay;
     this->a = 1 - this->b;
     this->c = 0;
-  } else { // Maximum delay is 2
+  } else {  // Maximum delay is 2
     this->a = 0;
     this->c = 1;
     this->b = 0;
@@ -49,22 +46,22 @@ sutra_controller::sutra_controller(carma_context *context,
   // DEBUG_TRACE("delay = %f a = %f b = %f c = %f floor =
   // %f",this->delay,this->a,this->b,this->c,floor);
 
-  long dims_data1[2] = { 1, 0 };
+  long dims_data1[2] = {1, 0};
 
-  dims_data1[1]     = nslope / 2;
-  this->d_subsum    = new carma_obj<float>(context, dims_data1);
+  dims_data1[1] = nvalid;
+  this->d_subsum = new carma_obj<float>(context, dims_data1);
   this->d_subsum->reset();
 
-  dims_data1[1]     = nslope;
+  dims_data1[1] = nslope;
   this->d_centroids = new carma_obj<float>(context, dims_data1);
   this->d_centroids_ref = new carma_obj<float>(context, dims_data1);
   this->d_centroids_ref->reset();
   // cudaMemset(this->d_centroids_ref->getData(), 0.0f,
   //            nslope * sizeof(float));
 
-  dims_data1[1]     = nactu;
-  this->d_com       = new carma_obj<float>(context, dims_data1);
-  this->d_com1      = new carma_obj<float>(context, dims_data1);
+  dims_data1[1] = nactu;
+  this->d_com = new carma_obj<float>(context, dims_data1);
+  this->d_com1 = new carma_obj<float>(context, dims_data1);
 
   if (this->delay > 1) {
     this->d_com2 = new carma_obj<float>(context, dims_data1);
@@ -73,26 +70,23 @@ sutra_controller::sutra_controller(carma_context *context,
   this->d_voltage = new carma_obj<float>(context, dims_data1);
 
   for (int i = 0; i < ndm; i++) {
-    this->d_dmseen.push_back(dms->d_dms[dms->get_inddm(type[i], alt[i])]);
+    this->d_dmseen.push_back(dms->d_dms[idx_dms[i]]);
   }
 }
 
-int sutra_controller::set_openloop(int open_loop_status) {
+int sutra_controller::set_openloop(int open_loop_status, bool rst) {
   current_context->set_activeDevice(device, 1);
   this->open_loop = open_loop_status;
 
-  if (this->open_loop) {
-    carmaSafeCall(
-      cudaMemset(this->d_com->getData(), 0.0f,
-                 this->nactu() * sizeof(float)));
-    carmaSafeCall(
-      cudaMemset(this->d_com1->getData(), 0.0f,
-                 this->nactu() * sizeof(float)));
+  if (this->open_loop && rst) {
+    carmaSafeCall(cudaMemset(this->d_com->getData(), 0.0f,
+                             this->nactu() * sizeof(float)));
+    carmaSafeCall(cudaMemset(this->d_com1->getData(), 0.0f,
+                             this->nactu() * sizeof(float)));
 
     if (this->delay > 1) {
-      carmaSafeCall(
-        cudaMemset(this->d_com2->getData(), 0.0f,
-                   this->nactu() * sizeof(float)));
+      carmaSafeCall(cudaMemset(this->d_com2->getData(), 0.0f,
+                               this->nactu() * sizeof(float)));
     }
   }
   return EXIT_SUCCESS;
@@ -110,7 +104,7 @@ int sutra_controller::get_centroids_ref(float *centroids_ref) {
 
 int sutra_controller::set_perturbcom(float *perturb, int N) {
   std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
-  if(N > 0) {
+  if (N > 0) {
     // float min=perturb[0], max=perturb[0];
     // for (int i=1; i<this->nactu()*N; ++i){
     //   min = perturb[i]<min?perturb[i]:min;
@@ -119,17 +113,18 @@ int sutra_controller::set_perturbcom(float *perturb, int N) {
     // DEBUG_TRACE("perturb min:%f max:%f", min, max);
     if (this->d_perturb == nullptr) {
       current_context->set_activeDevice(device, 1);
-      long dims_data2[3] = {2, this->nactu(), N};
+      long dims_data2[3] = {2, N, this->nactu()};
       this->d_perturb = new carma_obj<float>(current_context, dims_data2);
-    } else if (this->d_perturb->getDims(2)!=N) {
+    } else if (this->d_perturb->getDims(1) != N) {
       current_context->set_activeDevice(device, 1);
       delete this->d_perturb;
-      long dims_data2[3] = {2, this->nactu(), N};
+      long dims_data2[3] = {2, N, this->nactu()};
       this->d_perturb = new carma_obj<float>(current_context, dims_data2);
     }
     this->d_perturb->host2device(perturb);
     this->cpt_pertu = 0;
   } else {
+    if (this->d_perturb != nullptr) delete this->d_perturb;
     this->d_perturb = nullptr;
   }
 
@@ -142,31 +137,34 @@ int sutra_controller::command_delay() {
   if (delay > 1) {
     this->d_com2->copy(this->d_com1, 1, 1);
     this->d_com1->copy(this->d_com, 1, 1);
-  } else if (delay > 0) this->d_com1->copy(this->d_com, 1, 1);
+  } else if (delay > 0)
+    this->d_com1->copy(this->d_com, 1, 1);
 
   return EXIT_SUCCESS;
 }
 
 void sutra_controller::clip_voltage(float min, float max) {
   current_context->set_activeDevice(device, 1);
-  this->d_com->clip(min, max);
+  if (min < max)
+    this->d_com->clip(min, max);
+  else
+    DEBUG_TRACE(
+        "max value must be greater than min value. Nothing has been done.");
 }
 
 int sutra_controller::comp_voltage() {
   std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
   current_context->set_activeDevice(device, 1);
 
-  carmaSafeCall(
-    cudaMemset(this->d_voltage->getData(), 0.0f,
-               this->nactu() * sizeof(float)));
+  carmaSafeCall(cudaMemset(this->d_voltage->getData(), 0.0f,
+                           this->nactu() * sizeof(float)));
 
   if (!this->open_loop) {
     if (this->delay > 0) {
-
-      carma_axpy(cublas_handle(), this->nactu(), this->a, this->d_com->getData(),
-                 1, this->d_voltage->getData(), 1);
-      carma_axpy(cublas_handle(), this->nactu(), this->b, this->d_com1->getData(),
-                 1, this->d_voltage->getData(), 1);
+      carma_axpy(cublas_handle(), this->nactu(), this->a,
+                 this->d_com->getData(), 1, this->d_voltage->getData(), 1);
+      carma_axpy(cublas_handle(), this->nactu(), this->b,
+                 this->d_com1->getData(), 1, this->d_voltage->getData(), 1);
 
       if (delay > 1)
         carma_axpy(cublas_handle(), this->nactu(), this->c,
@@ -174,6 +172,8 @@ int sutra_controller::comp_voltage() {
     } else {
       this->d_com->copyInto(this->d_voltage->getData(), this->nactu());
     }
+  } else {
+    this->d_com->copyInto(this->d_voltage->getData(), this->nactu());
   }
 
   add_perturb();
@@ -181,17 +181,19 @@ int sutra_controller::comp_voltage() {
 }
 
 int sutra_controller::add_perturb() {
-  if (this->d_perturb != nullptr) { // Apply volt perturbations (circular buffer)
+  if (this->d_perturb !=
+      nullptr) {  // Apply volt perturbations (circular buffer)
     carma_axpy(cublas_handle(), this->nactu(), 1.0f,
-               this->d_perturb->getDataAt(this->cpt_pertu * this->nactu()), 1,
-               this->d_voltage->getData(), 1);
+               this->d_perturb->getDataAt(this->cpt_pertu),
+               this->d_perturb->getDims(1), this->d_voltage->getData(), 1);
 
-    if (this->cpt_pertu < this->d_perturb->getDims(2) - 1) this->cpt_pertu += 1;
-    else this->cpt_pertu = 0;
+    if (this->cpt_pertu < this->d_perturb->getDims(1) - 1)
+      this->cpt_pertu += 1;
+    else
+      this->cpt_pertu = 0;
   }
   return EXIT_SUCCESS;
 }
-
 
 sutra_controller::~sutra_controller() {
   delete this->streams;
@@ -210,12 +212,12 @@ int sutra_controller::syevd_f(char meth, carma_obj<float> *d_U,
   current_context->set_activeDevice(device, 1);
 
   // Init double arrays
-  const long dims_data[3]      = { 2, d_U->getDims()[1], d_U->getDims()[2] };
-  carma_obj<double> *d_Udouble = new carma_obj<double>(current_context,
-      dims_data);
-  const long dims_data2[2]               = { 1, h_eigenvals->getDims()[1] };
-  carma_host_obj<double> *h_eigen_double = new carma_host_obj<double>(
-    dims_data2, MA_PAGELOCK);
+  const long dims_data[3] = {2, d_U->getDims()[1], d_U->getDims()[2]};
+  carma_obj<double> *d_Udouble =
+      new carma_obj<double>(current_context, dims_data);
+  const long dims_data2[2] = {1, h_eigenvals->getDims()[1]};
+  carma_host_obj<double> *h_eigen_double =
+      new carma_host_obj<double>(dims_data2, MA_PAGELOCK);
 
   // Copy float array in double array
   floattodouble(d_U->getData(), d_Udouble->getData(), d_U->getNbElem(),
@@ -240,36 +242,40 @@ int sutra_controller::syevd_f(char meth, carma_obj<float> *d_U,
 
 int sutra_controller::invgen(carma_obj<float> *d_mat, float cond, int job) {
   current_context->set_activeDevice(device, 1);
-  const long dims_data[3] = { 2, d_mat->getDims()[1], d_mat->getDims()[2] };
-  carma_obj<float> *d_U   = new carma_obj<float>(current_context, dims_data);
+  const long dims_data[3] = {2, d_mat->getDims()[1], d_mat->getDims()[2]};
+  carma_obj<float> *d_U = new carma_obj<float>(current_context, dims_data);
   carma_obj<float> *d_tmp = new carma_obj<float>(current_context, dims_data);
   int i;
 
-  const long dims_data2[2]          = { 1, d_mat->getDims()[1] };
-  carma_obj<float> *d_eigenvals_inv = new carma_obj<float>(current_context,
-      dims_data2);
-  carma_host_obj<float> *h_eigenvals = new carma_host_obj<float>(dims_data2,
-      MA_PAGELOCK);
-  carma_host_obj<float> *h_eigenvals_inv = new carma_host_obj<float>(
-    dims_data2, MA_PAGELOCK);
+  const long dims_data2[2] = {1, d_mat->getDims()[1]};
+  carma_obj<float> *d_eigenvals_inv =
+      new carma_obj<float>(current_context, dims_data2);
+  carma_host_obj<float> *h_eigenvals =
+      new carma_host_obj<float>(dims_data2, MA_PAGELOCK);
+  carma_host_obj<float> *h_eigenvals_inv =
+      new carma_host_obj<float>(dims_data2, MA_PAGELOCK);
 
   d_U->copy(d_mat, 1, 1);
   carma_syevd<float, 1>('V', d_U, h_eigenvals);
 
   // syevd_f('V',d_U,h_eigenvals);
-  if (job == 1) { // Conditionnement
+  if (job == 1) {  // Conditionnement
     float maxe = h_eigenvals->getData()[d_mat->getDims()[1] - 1];
 
     for (i = 0; i < d_mat->getDims()[1]; i++) {
-      if (h_eigenvals->getData()[i] < maxe / cond) h_eigenvals_inv->getData()[i] = 0.;
-      else h_eigenvals_inv->getData()[i] = 1. / h_eigenvals->getData()[i];
+      if (h_eigenvals->getData()[i] < maxe / cond)
+        h_eigenvals_inv->getData()[i] = 0.;
+      else
+        h_eigenvals_inv->getData()[i] = 1. / h_eigenvals->getData()[i];
     }
   }
 
-  if (job == 0) { // Filtre #cond modes
+  if (job == 0) {  // Filtre #cond modes
     for (i = 0; i < d_mat->getDims()[1]; i++) {
-      if (i < cond) h_eigenvals_inv->getData()[i] = 0.;
-      else h_eigenvals_inv->getData()[i] = 1. / h_eigenvals->getData()[i];
+      if (i < cond)
+        h_eigenvals_inv->getData()[i] = 0.;
+      else
+        h_eigenvals_inv->getData()[i] = 1. / h_eigenvals->getData()[i];
     }
   }
 
@@ -290,6 +296,16 @@ int sutra_controller::invgen(carma_obj<float> *d_mat, float cond, int job) {
   delete d_eigenvals_inv;
   delete h_eigenvals;
   delete h_eigenvals_inv;
+
+  return EXIT_SUCCESS;
+}
+
+int sutra_controller::set_com(float *com, int nElem) {
+  current_context->set_activeDevice(device, 1);
+  if (nElem == this->d_com->getNbElem())
+    this->d_com->host2device(com);
+  else
+    DEBUG_TRACE("Wrong dimension of com");
 
   return EXIT_SUCCESS;
 }
