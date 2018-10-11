@@ -79,7 +79,7 @@ class carma_clock {
   void toc() {
     getClockCount(timeBuffer->getDataAt(cc), clockCounter, GPUfreq);
     cc++;
-    if (cc > timeBuffer->getNbElem()) cc = 0;
+    if (cc >= timeBuffer->getNbElem()) cc = 0;
   }
 };
 #endif  // CARMA_TIMER_H_
