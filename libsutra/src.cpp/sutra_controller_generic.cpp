@@ -7,6 +7,7 @@ sutra_controller_generic::sutra_controller_generic(carma_context *context,
                                                    int ndm)
     : sutra_controller(context, nvalid, nslope, nactu, delay, dms, idx_dms,
                        ndm) {
+  this->command_law = "integrator";
   long dims_data1[2] = {1, nactu};
   this->d_gain = new carma_obj<float>(current_context, dims_data1);
   this->d_decayFactor = new carma_obj<float>(current_context, dims_data1);

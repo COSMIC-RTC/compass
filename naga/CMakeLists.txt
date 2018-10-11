@@ -18,6 +18,7 @@ if(NOT TARGET wyrm)
 endif()
 add_library(naga MODULE
                     src/naga_context.cpp
+                    src/naga_timer.cpp
                     src/naga.cpp
                     src/naga_obj_double.cpp
                     src/naga_obj_float.cpp

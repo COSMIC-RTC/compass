@@ -10,6 +10,7 @@ template <typename T>
 void declare_naga_sparse_obj(py::module &, std::string);
 
 void declare_naga_context(py::module &);
+void declare_naga_timer(py::module &);
 void declare_half_setter_getter(py::module &mod);
 
 // Expose classes and methods to Python
@@ -28,6 +29,7 @@ PYBIND11_MODULE(naga, mod) {
   declare_naga_obj<cuFloatComplex>(mod, "float_complex");
   declare_naga_obj<half>(mod, "half");
   declare_half_setter_getter(mod);
+  declare_naga_timer(mod);
 
   // declare_naga_obj<cuDoubleComplex>(mod, "double_complex");
 

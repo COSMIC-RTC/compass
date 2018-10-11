@@ -13,6 +13,7 @@ Options:
   --bench            For a timed call
   -i, --interactive  keep the script interactive
   -d, --devices devices      Specify the devices
+  --niter niter           Number of iterations
 """
 
 from docopt import docopt
@@ -40,7 +41,10 @@ if __name__ == "__main__":
         ])
 
     supervisor.initConfig()
-    supervisor.loop(supervisor.config.p_loop.niter)
+    if arguments["--niter"]:
+        supervisor.loop(int(arguments["--niter"]))
+    else:
+        supervisor.loop(supervisor.config.p_loop.niter)
 
     if arguments["--interactive"]:
         from shesha.util.ipython_embed import embed
