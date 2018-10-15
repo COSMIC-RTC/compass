@@ -66,3 +66,5 @@ compass_sim.egg-info
 
 lib/
 *.log
+shesha/shesha/widgets/*.log
+shesha/shesha/*.log

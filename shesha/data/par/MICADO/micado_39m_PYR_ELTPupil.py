@@ -79,26 +79,27 @@ p_wfs0 = ao.Param_wfs(roket=True)
 #p_wfs0= ao.Param_wfs()
 p_wfss = [p_wfs0]
 
-p_wfs0.set_type("pyrhr")
+p_wfs0.set_type("pyrhr") # type de WFS: "sh", "pyrhr", "pyr"
 
 p_wfs0.set_nxsub(
         92
 )  # 92 sub aps for hexagonal grid of actuators eq. 78 subaps square grid. (pitch = 0.5m)
-p_wfs0.set_fracsub(0.1)
-p_wfs0.set_xpos(0.)
-p_wfs0.set_ypos(0.)
-p_wfs0.set_Lambda(0.7)
-p_wfs0.set_gsmag(11)
-p_wfs0.set_optthroughput(0.28)
+p_wfs0.set_fracsub(0.1) # Minimal illumination fraction
+p_wfs0.set_xpos(0.)     # direction of guide star in X (arcsec)
+p_wfs0.set_ypos(0.)     # direction of guide star in Y (arcsec)
+p_wfs0.set_Lambda(0.7)  # wavelength (microns)
+p_wfs0.set_gsmag(11)    # magnitude of guide star
+p_wfs0.set_optthroughput(0.28) # optical transmission
 p_wfs0.set_zerop(2.6e10)  # 2.6e10 ph/s/m**2 computed by Rico in R band for MOSAIC
-p_wfs0.set_noise(0.3)  # in electrons units
-p_wfs0.set_atmos_seen(1)
-p_wfs0.set_fstop("square")
-p_wfs0.set_fssize(1.6)
-rMod = 3
-p_wfs0.set_pyr_npts(int(np.ceil(int(rMod * 2 * 3.141592653589793) / 4.) * 4))
+p_wfs0.set_noise(0.3)   # units: electrons/pixel
+p_wfs0.set_atmos_seen(1)   # tell if atmos is seen or not
+p_wfs0.set_fstop("square") # shape of field stop, "round", "square"
+p_wfs0.set_fssize(1.6)     # size of field stop (arcsec)
+rMod = 3  # Modulation radius, in lam/D units
+nbPtMod = int(np.ceil(int(rMod * 2 * 3.141592653589793) / 4.) * 4)
+p_wfs0.set_pyr_npts(nbPtMod) # nb pts modu around circle
 #p_wfs0.set_pyr_npts(31)
-p_wfs0.set_pyr_ampl(rMod)
+p_wfs0.set_pyr_ampl(rMod)  # define modulation amplitude
 #p_wfs0.set_pyr_pup_sep(int(2 / 3. * p_wfs0.nxsub)) # diffraction effect
 #p_wfs0.set_pyr_pup_sep((p_wfs0.nxsub))
 """
@@ -106,7 +107,7 @@ With 52 pixels of margin between 2 edges of pupils on a 240x240 detector and 92 
 in Compass pupsep is separation between 1 pupil center and Half of detector
 pupsep = 52/2+92/2 = 72
 """
-p_wfs0.set_pyr_pup_sep(72)
+p_wfs0.set_pyr_pup_sep(72) # half pupil separation (center-to-center)
 
 # dm
 p_dm0 = ao.Param_dm()
@@ -164,15 +165,15 @@ p_centroider0.set_type("pyr")
 p_controller0 = ao.Param_controller()
 p_controllers = [p_controller0]
 
-#p_controller0.set_type("ls")
-p_controller0.set_type("generic")
-#p_controller0.set_type("geo")
+#p_controller0.set_type("ls")     # V(k) = V(k-1) + g.R.m(k)
+p_controller0.set_type("generic") # V(k) = a.E.V(k-1) + g.R.m(k)
+#p_controller0.set_type("geo")    # bypass the WFS (direct DM proj)
 
 p_controller0.set_nwfs([0])
 p_controller0.set_ndm([0, 1])
 p_controller0.set_maxcond(150.)
-p_controller0.set_delay(1)
-p_controller0.set_gain(1)
+p_controller0.set_delay(1)   # loop delay. "0 = 1 frame delay".
+p_controller0.set_gain(1) 
 
 # p_controller0.set_modopti(0)
 # p_controller0.set_nrec(2048)
