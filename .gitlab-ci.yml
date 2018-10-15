@@ -51,6 +51,8 @@ test_job:
 master_tests:
   stage: test
   extends: test_job
+  dependencies:
+    - master_build
   when: always
   only:
     - master
