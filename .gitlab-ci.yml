@@ -1,47 +1,57 @@
-image: aocompass/compass:cuda-9.1
+image: aocompass/base-devel-16.04
 
 stages:
   - build
-#  - test
+  - test
 #  - deploy
 
-master_build:
+build_job:
   stage: build
   variables:
+    GIT_SUBMODULE_STRATEGY: recursive
     COMPASS_ROOT: /builds/compass/compass
-    NAGA_ROOT: $COMPASS_ROOT/naga
     SHESHA_ROOT: $COMPASS_ROOT/shesha
+    CUDA_SM: ALL
   script:
-    - conda install "cython<0.28"
-    - make
-#   - cd doc
-#   - mkdir -p compass-doc/html
-#   - make html
-#   - mv compass-doc/html/ public/
-# artifacts:
-#   paths:
-#   - public
-  only:
-    - master
-#    - tags
-#    - develop
-
-develop_build:
-  stage: build
-  variables:
-    COMPASS_ROOT: /builds/compass/compass
-    NAGA_ROOT: $COMPASS_ROOT/naga
-    SHESHA_ROOT: $COMPASS_ROOT/shesha
-  script:
-    - conda install "cython<0.28"
-    - make
-#   - cd doc
-#   - mkdir -p compass-doc/html
-#   - make html
-#   - mv compass-doc/html/ public/
-# artifacts:
-#   paths:
-#   - public
+    - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/python:$PYTHONPATH
+    - mkdir python
+    - easy_install -d python .
   when: manual
   only:
     - develop
+  artifacts:
+    paths:
+      - python/
+    expire_in: 1 week
+
+master_build:
+  stage: build
+  extends: build_job
+  when: always
+  only:
+    - master
+    - tags
+
+test_job:
+  stage: test
+  variables:
+    COMPASS_ROOT: /builds/compass/compass
+    SHESHA_ROOT: $COMPASS_ROOT/shesha
+  dependencies:
+    - build_job
+  script:
+    - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/python:$PYTHONPATH
+    - export LD_LIBRARY_PATH=$COMPASS_ROOT/python/compass_sim-3.0.0-py3.7-linux-x86_64.egg:$LD_LIBRARY_PATH
+    - cd shesha && python shesha/scripts/closed_loop.py data/par/par4bench/scao_sh_16x16_8pix.py
+    - cd shesha/tests && . checkCompass.sh
+  when: manual
+  only:
+    - develop
+
+master_tests:
+  stage: test
+  extends: test_job
+  when: always
+  only:
+    - master
+    - tags
