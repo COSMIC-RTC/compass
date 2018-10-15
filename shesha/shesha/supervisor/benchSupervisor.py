@@ -28,18 +28,17 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         return self._sim.config
 
-    def enableAtmos(self, enable=True) -> None:
-        ''' TODO
-        Set or unset whether atmos is enabled when running loop (see singleNext)
-        '''
-        raise NotImplementedError("Not implemented")
-        # self._seeAtmos = enable
-
     def setCommand(self, command: np.ndarray) -> None:
-        '''
+        ''' TODO
         Immediately sets provided command to DMs - does not affect integrator
         '''
-        self._sim.dms.set_full_comm(command)
+        raise NotImplementedError("Not implemented")
+
+    def setOneActu(self, ndm: int, nactu: int, ampli: float=1) -> None:
+        '''
+        Push the selected actuator
+        '''
+        raise NotImplementedError("Not implemented")
 
     def setPerturbationVoltage(self, nControl: int, command: np.ndarray) -> None:
         '''
@@ -47,11 +46,73 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         self.rtc.d_control[nControl].set_perturbcom(command)
 
+    def getWfsImage(self, numWFS: int=0) -> np.ndarray:
+        '''
+        Get an image from the WFS
+        '''
+        return self.cam.getFrame()
+
+    def getCentroids(self, nControl: int=0):
+        '''
+        Return the centroids of the nControl controller
+        '''
+        return np.array(self.rtc.d_control[nControl].d_centroids)
+
     def getSlope(self) -> np.ndarray:
         '''
         Immediately gets one slope vector for all WFS at the current state of the system
         '''
-        return np.array(self.rtc.d_control[0].d_centroids)
+        return self.computeSlopes()
+
+    def getCmat(self, nControl: int=0):
+        """
+        Return the command matrix of the controller
+
+        Parameters
+        ------------
+        nControl: (int): controller index
+        """
+        return np.array(self.rtc.d_control[nControl].d_cmat)
+
+    def getCom(self, nControl: int=0):
+        '''
+        Get command from nControl controller
+        '''
+        return np.array(self.rtc.d_control[nControl].d_com)
+
+    def getErr(self, nControl: int=0):
+        '''
+        Get command increment from nControl controller
+        '''
+        return np.array(self.rtc.d_control[nControl].d_err)
+
+    def getVoltage(self, nControl: int=0):
+        '''
+        Get voltages from nControl controller
+        '''
+        return np.array(self.rtc.d_control[nControl].d_voltage)
+
+    def setIntegratorLaw(self, nControl: int=0):
+        self.rtc.d_control[nControl].set_commandlaw("integrator")
+
+    def setDecayFactor(self, decay, nControl: int=0):
+        self.rtc.d_control[nControl].set_decayFactor(decay)
+
+    def setEMatrix(self, eMat, nControl: int=0):
+        self.rtc.d_control[nControl].set_matE(eMat)
+
+    def doRefslopes(self, nControl: int=0):
+        print("Doing refslopes...")
+        self.rtc.do_centroids_ref(nControl)
+        print("refslopes done")
+
+    def resetRefslopes(self, nControl: int=0):
+        self.rtc.d_control[nControl].d_centroids_ref.reset()
+
+    def computeSlopes(self, do_centroids=False, nControl: int=0):
+        if do_centroids:
+            self.rtc.do_centroids(nControl)
+        return self.getCentroids(nControl)
 
     def computeIMatModal(self, M2V: np.ndarray, pushVector: np.ndarray,
                          refOffset: np.ndarray, noise: bool,
@@ -71,7 +132,7 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         Move atmos -> getSlope -> applyControl ; One integrator step
         '''
-        self.frame = self.cam.getFrame()
+        self.frame = self.getWfsImage()
         if self._sim.config.p_wfss[0].type == WFSType.SH:
             #for SH
             self.rtc.d_centro[0].load_img(self.frame.astype(np.float32))
@@ -183,7 +244,24 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         Reset the DM number nDM
         '''
-        self._sim.dms.d_dms[nDm].reset_shape()
+        raise NotImplementedError("Not implemented")
+
+    def resetCommand(self, nctrl: int=-1) -> None:
+        '''
+        Reset the nctrl Controller command buffer, reset all controllers if nctrl  == -1
+        '''
+        if (nctrl == -1):  # All Dms reset
+            for control in self.rtc.d_control:
+                control.d_com.reset()
+        else:
+            self.rtc.d_control[nctrl].d_com.reset()
+
+    def resetPerturbationVoltage(self, nControl: int=0) -> None:
+        '''
+        Reset the perturbation voltage of the nControl controller
+        '''
+        if self.rtc.d_control[nControl].d_perturb is not None:
+            self.rtc.d_control[nControl].d_perturb.reset()
 
     def loadConfig(self, configFile: str=None, sim=None) -> None:
         '''
@@ -207,12 +285,6 @@ class BenchSupervisor(AbstractSupervisor):
         Clear the initialization of the simulation
         '''
         self._sim.clear_init()
-
-    def forceContext(self) -> None:
-        '''
-        Clear the initialization of the simulation
-        '''
-        self._sim.force_context()
 
     def initConfig(self) -> None:
         '''
@@ -282,20 +354,20 @@ class BenchSupervisor(AbstractSupervisor):
             raise RuntimeError("PYRHR not usable")
         self._sim.is_init = True
 
-    def getWfsPhase(self, numWFS: int) -> np.ndarray:
+    def getWfsPhase(self, numWFS: int=0) -> np.ndarray:
         '''
         return the WFS screen of WFS number numWFS
         '''
         raise NotImplementedError("Not implemented")
         # return self._sim.atm.get_screen(numWFS)
 
-    def getDmShape(self, indDM: int) -> np.ndarray:
+    def getDmShape(self, indDM: int=0) -> np.ndarray:
         '''
         return the indDM DM screen
         '''
         return np.array(self._sim.dms.d_dms[indDM].d_shape)
 
-    def getTarPhase(self, numTar: int) -> np.ndarray:
+    def getTarPhase(self, numTar: int=0) -> np.ndarray:
         '''
         return the target screen of target number numTar
         '''
@@ -307,3 +379,44 @@ class BenchSupervisor(AbstractSupervisor):
         return the current frame counter of the loop
         '''
         return self._sim.iter
+
+    def getImat(self, nControl: int=0):
+        """
+        Return the interaction matrix of the controller
+
+        Parameters
+        ------------
+        nControl: (int): controller index
+        """
+        return np.array(self.rtc.d_control[nControl].d_imat)
+
+    def getCmat(self, nControl: int=0):
+        """
+        Return the command matrix of the controller
+
+        Parameters
+        ------------
+        nControl: (int): controller index
+        """
+        return np.array(self.rtc.d_control[nControl].d_cmat)
+
+    def setCentroThresh(self, nCentro: int=0, thresh: float=0.):
+        """
+        Set the threshold value of a thresholded COG
+
+        Parameters
+        ------------
+        nCentro: (int): centroider index
+        thresh: (float): new threshold value
+        """
+        self.rtc.d_centro[nCentro].set_threshold(thresh)
+
+    def setPyrMethod(self, pyrMethod, nCentro: int=0):
+        '''
+        Set pyramid compute method
+        '''
+        self._sim.rtc.d_centro[nCentro].set_pyr_method(pyrMethod)  # Sets the pyr method
+        print("PYR method set to " + self._sim.rtc.d_centro[nCentro].pyr_method)
+
+    def getPyrMethod(self):
+        return self._sim.rtc.d_centro[nCentro].pyr_method

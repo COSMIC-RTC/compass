@@ -75,7 +75,7 @@ class CanapassSupervisor(CompassSupervisor):
         if path:
             self.writeConfigOnFile(path)
             return
-        return self._sim.config
+        return CompassSupervisor.getConfig(self)
 
     def loadConfig(self, configFile: str=None, sim=None) -> None:
         ''' Load the configuration for the compass supervisor'''
@@ -120,20 +120,6 @@ class CanapassSupervisor(CompassSupervisor):
         self.setNoise(oldnoise)
         return ph2KL
 
-    def next(self, nbiters, see_atmos=True):
-        for i in trange(nbiters):
-            self._sim.next(see_atmos=see_atmos)
-
-    def loop(self, n: int=1, monitoring_freq: int=100, **kwargs):
-        """
-        Perform the AO loop for n iterations
-
-        :parameters:
-            n: (int): (optional) Number of iteration that will be done
-            monitoring_freq: (int): (optional) Monitoring frequency [frames]
-        """
-        self._sim.loop(n, monitoring_freq=monitoring_freq)
-
     def computePh2ModesFits(self, fullpath):
         data = self.computePh2Modes()
         self.writeDataInFits(data, fullpath)
@@ -164,9 +150,6 @@ class CanapassSupervisor(CompassSupervisor):
             return KL2V, 0
         else:
             return self.KL2V, 0
-
-    def setGain(self, gain: float) -> None:
-        CompassSupervisor.setGain(self, gain)
 
     def computeMerged(self, nbpairs=None):
         p_geom = self._sim.config.p_geom
@@ -774,12 +757,6 @@ class CanapassSupervisor(CompassSupervisor):
         ph = self.getTarPhase(tarnum) * pup
         return ph
 
-    def getNcpaWfs(self, wfsnum):
-        return np.array(self._sim.wfs.d_wfs[wfsnum].d_gs.d_ncpa_phase)
-
-    def getNcpaTar(self, tarnum):
-        return np.array(self._sim.tar.d_targets[tarnum].d_ncpa_phase)
-
     #def getVolts(self):
     #    return self._sim.rtc.get_voltage(0)
     #
@@ -788,9 +765,6 @@ class CanapassSupervisor(CompassSupervisor):
 
     def writeDataInFits(self, data, fullpath):
         pfits.writeto(fullpath, data, overwrite=True)
-
-    def getFrameCounter(self):
-        return self._sim.iter
 
     def recordCB(self, CBcount, subSample=1, tarnum=0, seeAtmos=True,
                  tarPhaseFilePath="", NCPA=False, ncpawfs=None, refSlopes=None):
