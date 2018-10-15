@@ -50,7 +50,7 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         Get an image from the WFS
         '''
-        return self.cam.getFrame()
+        return self.cam.getFrame(1)
 
     def getCentroids(self, nControl: int=0):
         '''
@@ -63,16 +63,6 @@ class BenchSupervisor(AbstractSupervisor):
         Immediately gets one slope vector for all WFS at the current state of the system
         '''
         return self.computeSlopes()
-
-    def getCmat(self, nControl: int=0):
-        """
-        Return the command matrix of the controller
-
-        Parameters
-        ------------
-        nControl: (int): controller index
-        """
-        return np.array(self.rtc.d_control[nControl].d_cmat)
 
     def getCom(self, nControl: int=0):
         '''
@@ -135,10 +125,10 @@ class BenchSupervisor(AbstractSupervisor):
         self.frame = self.getWfsImage()
         if self._sim.config.p_wfss[0].type == WFSType.SH:
             #for SH
-            self.rtc.d_centro[0].load_img(self.frame.astype(np.float32))
+            self.rtc.d_centro[0].load_img(self.frame, self.frame.shape[0])
             self.rtc.d_centro[0].fill_bincube(self.npix)
         elif self._sim.config.p_wfss[0].type == WFSType.PYRHR:
-            self.rtc.d_centro[0].load_pyr_img(self.frame.astype(np.float32))
+            self.rtc.d_centro[0].load_pyr_img(self.frame, self.frame.shape[0])
         self.rtc.do_centroids(0)
         self.rtc.do_control(0)
         self.rtc.d_control[0].command_delay()
@@ -322,14 +312,14 @@ class BenchSupervisor(AbstractSupervisor):
                 from hraa.tools.doit import makessp
                 roiTab = makessp(p_wfs.nxsub, obs=0., rmax=0.98)
                 # for pos in self.roiTab: pos *= self.pitch
-                p_wfs._nvalid = roiTab.shape[1]
-                p_wfs._validsubsx = roiTab[0, :]
-                p_wfs._validsubsy = roiTab[1, :]
+                p_wfs._nvalid = roiTab[0].size
+                p_wfs._validsubsx = roiTab[0]
+                p_wfs._validsubsy = roiTab[1]
 
             else:
                 p_wfs._nvalid = p_wfs._validsubsx.size
 
-            self.context = naga_context(devices=np.array([0], dtype=np.int32))
+            self.context = naga_context.get_instance_1gpu(0)
             nvalid = np.array([p_wfs._nvalid], dtype=np.int32)
             print("nvalid : %d" % nvalid)
             offset = (p_wfs.npix - 1) / 2
@@ -341,8 +331,8 @@ class BenchSupervisor(AbstractSupervisor):
                                       self._sim.config.p_centroiders[0].type, 1,
                                       offset * 0, scale)
             # put pixels in the SH grid coordonates
-            self.rtc.d_centro[n].load_rtc_validpos(p_wfs._validsubsx // self.npix,
-                                                   p_wfs._validsubsy // self.npix)
+            self.rtc.d_centro[0].load_validpos(p_wfs._validsubsx // self.npix,
+                                               p_wfs._validsubsy // self.npix, nvalid)
 
             cMat = np.zeros((nact, 2 * nvalid[0]), dtype=np.float32)
             self.rtc.d_control[0].set_cmat(cMat)
