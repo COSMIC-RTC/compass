@@ -491,15 +491,17 @@ class CanapassSupervisor(CompassSupervisor):
 
     def doImatModal(self, ampliVec, KL2V, Nslopes, noise=False, nmodesMax=0,
                     withTurbu=False, pushPull=False):
-        iMatKL = np.zeros((KL2V.shape[1], Nslopes))
-        #currentVolts = self._sim.rtc.get_voltage(0).copy()[None,:]
+        """
+        """
+        iMatKL = np.zeros((Nslopes, KL2V.shape[1]))
 
         if (nmodesMax):
             KLMax = nmodesMax
         else:
             KLMax = KL2V.shape[1]
         for kl in trange(KLMax, desc="Modal IM"):
-            v = ampliVec[kl] * KL2V[:, kl:kl + 1].T.copy()
+            # v = ampliVec[kl] * KL2V[:, kl:kl + 1].T.copy()
+            v = ampliVec[kl] * KL2V[:, kl]
             if ((pushPull is True) or
                 (withTurbu is True)):  # with turbulence/aberrations => push/pull
                 self.setPerturbationVoltage(
@@ -507,14 +509,14 @@ class CanapassSupervisor(CompassSupervisor):
                 devpos = self.applyVoltGetSlopes(turbu=withTurbu, noise=noise)
                 self.setPerturbationVoltage(0, -v)
                 devmin = self.applyVoltGetSlopes(turbu=withTurbu, noise=noise)
-                iMatKL[kl, :] = (devpos - devmin) / (2. * ampliVec[kl])
+                iMatKL[:, kl] = (devpos - devmin) / (2. * ampliVec[kl])
                 #imat[:-2, :] /= pushDMMic
                 #if(nmodesMax == 0):# i.e we measured all modes including TT
                 #imat[-2:, :] /= pushTTArcsec
             else:  # No turbulence => push only
                 self.openLoop()  # openLoop
                 self.setPerturbationVoltage(0, v)
-                iMatKL[kl, :] = self.applyVoltGetSlopes(noise=noise) / ampliVec[kl]
+                iMatKL[:, kl] = self.applyVoltGetSlopes(noise=noise) / ampliVec[kl]
         self.setPerturbationVoltage(0, v * 0.)  # removing perturbvoltage...
         # print("Modal interaction matrix done in %3.0f seconds" % (time.time() - st))
 
