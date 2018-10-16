@@ -18,7 +18,7 @@ import time
 
 import pyqtgraph as pg
 from pyqtgraph.dockarea import Dock, DockArea
-from tools import plsh, plpyr
+from shesha.util.tools import plsh, plpyr
 
 import warnings
 

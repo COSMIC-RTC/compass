@@ -26,7 +26,7 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         Returns the configuration in use, in a supervisor specific format ?
         '''
-        return self._sim.config
+        return self.config
 
     def setCommand(self, command: np.ndarray) -> None:
         ''' TODO
@@ -123,11 +123,11 @@ class BenchSupervisor(AbstractSupervisor):
         Move atmos -> getSlope -> applyControl ; One integrator step
         '''
         self.frame = self.getWfsImage()
-        if self._sim.config.p_wfss[0].type == WFSType.SH:
+        if self.config.p_wfss[0].type == WFSType.SH:
             #for SH
             self.rtc.d_centro[0].load_img(self.frame, self.frame.shape[0])
             self.rtc.d_centro[0].fill_bincube(self.npix)
-        elif self._sim.config.p_wfss[0].type == WFSType.PYRHR:
+        elif self.config.p_wfss[0].type == WFSType.PYRHR:
             self.rtc.d_centro[0].load_pyr_img(self.frame, self.frame.shape[0])
         self.rtc.do_centroids(0)
         self.rtc.do_control(0)
@@ -212,7 +212,6 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         Init the COMPASS wih the configFile
         '''
-        self._sim = None
         self.cam = None
         self.rtc = None
         self.npix = 0
@@ -220,15 +219,10 @@ class BenchSupervisor(AbstractSupervisor):
         self.BRAHMA = BRAHMA
 
         if configFile is not None:
-            if BRAHMA:
-                from shesha.sim.simulatorBrahma import SimulatorBrahma as Simulator
-            else:
-                from shesha.sim.simulator import Simulator
-
-            self.loadConfig(sim=Simulator(filepath=configFile))
+            self.loadConfig(configFile=configFile)
 
     def __repr__(self):
-        return str(self._sim)
+        return str(self.rtc)
 
     def resetDM(self, nDM: int) -> None:
         '''
@@ -257,24 +251,20 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         Init the COMPASS wih the configFile
         '''
-
-        if self._sim is None:
-            self._sim = sim
-        else:
-            self._sim.clear_init()
-            self._sim.load_from_file(configFile)
+        from shesha.util.utilities import load_config_from_file
+        load_config_from_file(self, configFile)
 
     def isInit(self) -> bool:
         '''
         return the status on COMPASS init
         '''
-        return self._sim.is_init
+        return self.is_init
 
     def clearInitSim(self) -> None:
         '''
         Clear the initialization of the simulation
         '''
-        self._sim.clear_init()
+        self.clear_init()
 
     def initConfig(self) -> None:
         '''
@@ -282,18 +272,17 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         import hraa.devices.camera as m_cam
 
-        Camera = m_cam.getCamClass(self._sim.config.p_cams[0].type)
+        Camera = m_cam.getCamClass(self.config.p_cams[0].type)
         print("->cam")
-        self.cam = Camera(
-                self._sim.config.p_cams[0].camAddr, self._sim.config.p_cams[0].width,
-                self._sim.config.p_cams[0].height, self._sim.config.p_cams[0].offset_w,
-                self._sim.config.p_cams[0].offset_h,
-                self._sim.config.p_cams[0].expo_usec,
-                self._sim.config.p_cams[0].framerate)
+        self.cam = Camera(self.config.p_cams[0].camAddr, self.config.p_cams[0].width,
+                          self.config.p_cams[0].height, self.config.p_cams[0].offset_w,
+                          self.config.p_cams[0].offset_h,
+                          self.config.p_cams[0].expo_usec,
+                          self.config.p_cams[0].framerate)
 
         print("->RTC")
-        wfsNb = len(self._sim.config.p_wfss)
-        p_wfs = self._sim.config.p_wfss[0]
+        wfsNb = len(self.config.p_wfss)
+        p_wfs = self.config.p_wfss[0]
         if wfsNb > 1:
             raise RuntimeError("multi WFS not supported")
 
@@ -325,11 +314,11 @@ class BenchSupervisor(AbstractSupervisor):
             offset = (p_wfs.npix - 1) / 2
             scale = 1
             gain = 1
-            nact = self._sim.config.p_dms[0].nact
+            nact = self.config.p_dms[0].nact
 
             self.rtc = rtc_standalone(self.context, wfsNb, nvalid, nact,
-                                      self._sim.config.p_centroiders[0].type, 1,
-                                      offset * 0, scale)
+                                      self.config.p_centroiders[0].type, 1, offset * 0,
+                                      scale)
             # put pixels in the SH grid coordonates
             self.rtc.d_centro[0].load_validpos(p_wfs._validsubsx // self.npix,
                                                p_wfs._validsubsy // self.npix, nvalid)
@@ -342,33 +331,33 @@ class BenchSupervisor(AbstractSupervisor):
             self.rtc.d_control[0].set_mgain(np.ones(nact, dtype=np.float32) * -gain)
         elif p_wfs.type == WFSType.PYRHR or p_wfs.type == WFSType.PYRLR:
             raise RuntimeError("PYRHR not usable")
-        self._sim.is_init = True
+        self.is_init = True
 
     def getWfsPhase(self, numWFS: int=0) -> np.ndarray:
         '''
         return the WFS screen of WFS number numWFS
         '''
         raise NotImplementedError("Not implemented")
-        # return self._sim.atm.get_screen(numWFS)
+        # return self.atm.get_screen(numWFS)
 
     def getDmShape(self, indDM: int=0) -> np.ndarray:
         '''
         return the indDM DM screen
         '''
-        return np.array(self._sim.dms.d_dms[indDM].d_shape)
+        return np.array(self.dms.d_dms[indDM].d_shape)
 
     def getTarPhase(self, numTar: int=0) -> np.ndarray:
         '''
         return the target screen of target number numTar
         '''
         raise NotImplementedError("Not implemented")
-        # return self._sim.tar.get_phase(numTar)
+        # return self.tar.get_phase(numTar)
 
     def getFrameCounter(self) -> int:
         '''
         return the current frame counter of the loop
         '''
-        return self._sim.iter
+        return self.iter
 
     def getImat(self, nControl: int=0):
         """
@@ -405,8 +394,8 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         Set pyramid compute method
         '''
-        self._sim.rtc.d_centro[nCentro].set_pyr_method(pyrMethod)  # Sets the pyr method
-        print("PYR method set to " + self._sim.rtc.d_centro[nCentro].pyr_method)
+        self.rtc.d_centro[nCentro].set_pyr_method(pyrMethod)  # Sets the pyr method
+        print("PYR method set to " + self.rtc.d_centro[nCentro].pyr_method)
 
     def getPyrMethod(self):
-        return self._sim.rtc.d_centro[nCentro].pyr_method
+        return self.rtc.d_centro[nCentro].pyr_method

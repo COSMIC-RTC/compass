@@ -417,16 +417,16 @@ int sutra_rtc::do_centroids_geom(int ncntrl) {
 }
 
 int sutra_rtc::do_centroids_ref(int ncntrl) {
-  int inds2 = 0;
-  float tmp;
-  for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
-    sutra_wfs *wfs = this->d_centro[idx_cntr]->wfs;
-    wfs->d_gs->d_phase->d_screen->reset();
-    tmp = wfs->noise;
-    wfs->noise = -1;
-    wfs->comp_image();
-    wfs->noise = tmp;
-  }
+  // int inds2 = 0;
+  // float tmp;
+  // for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
+  //   sutra_wfs *wfs = this->d_centro[idx_cntr]->wfs;
+  //   wfs->d_gs->d_phase->d_screen->reset();
+  //   tmp = wfs->noise;
+  //   wfs->noise = -1;
+  //   wfs->comp_image();
+  //   wfs->noise = tmp;
+  // }
   this->do_centroids(ncntrl);
   this->d_control[ncntrl]->d_centroids_ref->axpy(
       1.0f, this->d_control[ncntrl]->d_centroids, 1, 1);
