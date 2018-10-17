@@ -157,11 +157,14 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         return np.array(self.rtc.d_control[0].d_centroids_ref)
 
-    def setGain(self, gain: float) -> None:
+    def setGain(self, gainMat) -> None:
         '''
         Set the scalar gain of feedback controller loop
         '''
-        self.rtc.d_control[0].set_gain(gain)
+        if type(gainMat) in [int, float]:
+            gainMat = np.ones(np.sum(self.rtc.d_control[0].nactu),
+                              dtype=np.float32) * gainMat
+        self.rtc.d_control[0].set_mgain(gainMat)
 
     def setCommandMatrix(self, cMat: np.ndarray) -> None:
         '''
