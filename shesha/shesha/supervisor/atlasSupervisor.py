@@ -54,6 +54,12 @@ class AtlasSupervisor(BenchSupervisor):
         #                       METHODS                             #
         #############################################################
 
+    def initConfig(self) -> None:
+        BenchSupervisor.initConfig(self)
+
+        from hraa.devices.dm.kakou import Kakou
+        self.dm = Kakou(reset=True)
+
     def getConfig(self, path=None):
         ''' Returns the configuration in use, in a supervisor specific format '''
         if path:

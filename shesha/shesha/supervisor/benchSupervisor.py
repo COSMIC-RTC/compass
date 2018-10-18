@@ -28,23 +28,33 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         return self.config
 
-    def setCommand(self, command: np.ndarray) -> None:
+    def setCommand(self, nctrl: int, command: np.ndarray) -> None:
         ''' TODO
         Immediately sets provided command to DMs - does not affect integrator
         '''
-        raise NotImplementedError("Not implemented")
+        # self.dm.set_command(command=command)
+        self.rtc.d_control[nctrl].set_com(command, command.size)
 
-    def setOneActu(self, ndm: int, nactu: int, ampli: float=1) -> None:
+    def setOneActu(self, nctrl: int, ndm: int, nactu: int, ampli: float=1, reset: bool=True) -> None:
         '''
         Push the selected actuator
         '''
-        raise NotImplementedError("Not implemented")
+        command = self.dm.get_command()
+        if reset:
+            command *= 0
+        command[nactu] = ampli
+        self.dm.set_command(command)
 
     def setPerturbationVoltage(self, nControl: int, command: np.ndarray) -> None:
         '''
         Add this offset value to integrator (will be applied at the end of next iteration)
         '''
-        self.rtc.d_control[nControl].set_perturbcom(command)
+        if len(command.shape) == 1:
+            self.rtc.d_control[nControl].set_perturbcom(command, 1)
+        elif len(command.shape) == 2:
+            self.rtc.d_control[nControl].set_perturbcom(command, command.shape[0])
+        else:
+            raise AttributeError("command should be a 1D or 2D array")
 
     def getWfsImage(self, numWFS: int=0) -> np.ndarray:
         '''
@@ -131,7 +141,10 @@ class BenchSupervisor(AbstractSupervisor):
             self.rtc.d_centro[0].load_pyr_img(self.frame, self.frame.shape[0])
         self.rtc.do_centroids(0)
         self.rtc.do_control(0)
-        self.rtc.d_control[0].command_delay()
+        self.rtc.do_clipping(0, -1e5, 1e5)
+        self.rtc.comp_voltage(0)
+        self.dm.set_command(np.array(self.rtc.d_control[0].d_voltage))
+        self.rtc.publish()
 
     def closeLoop(self) -> None:
         '''
@@ -139,11 +152,11 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         self.rtc.d_control[0].set_openloop(0)  # closeLoop
 
-    def openLoop(self) -> None:
+    def openLoop(self, rst=True) -> None:
         '''
         Integrator computation goes to /dev/null but pertuVoltage still applied
         '''
-        self.rtc.d_control[0].set_openloop(1)  # openLoop
+        self.rtc.d_control[0].set_openloop(1, rst)  # openLoop
 
     def setRefSlopes(self, refSlopes: np.ndarray) -> None:
         '''
@@ -321,7 +334,7 @@ class BenchSupervisor(AbstractSupervisor):
 
             self.rtc = rtc_standalone(self.context, wfsNb, nvalid, nact,
                                       self.config.p_centroiders[0].type, 1, offset * 0,
-                                      scale)
+                                      scale, brahma=True)
             # put pixels in the SH grid coordonates
             self.rtc.d_centro[0].load_validpos(p_wfs._validsubsx // self.npix,
                                                p_wfs._validsubsy // self.npix, nvalid)

@@ -123,7 +123,7 @@ def rtc_standalone(context: naga_context, nwfs: int, nvalid, nactu: int,
     TODO docstring
     """
     if brahma:
-        rtc = Rtc_brahma(context)
+        rtc = Rtc_brahma(context, None, None, "rtc_brahma")
     else:
         rtc = Rtc()
 
