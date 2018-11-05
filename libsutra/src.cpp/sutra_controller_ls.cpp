@@ -152,6 +152,12 @@ int sutra_controller_ls::set_cmat(float *cmat) {
   return EXIT_SUCCESS;
 }
 
+int sutra_controller_ls::set_imat(float *imat) {
+  current_context->set_activeDevice(device, 1);
+  this->d_imat->host2device(imat);
+  return EXIT_SUCCESS;
+}
+
 int sutra_controller_ls::set_mgain(float *mgain) {
   current_context->set_activeDevice(device, 1);
   this->d_gain->host2device(mgain);
