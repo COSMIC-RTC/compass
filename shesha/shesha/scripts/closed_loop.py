@@ -13,6 +13,8 @@ Options:
   --bench            For a timed call
   -i, --interactive  keep the script interactive
   -d, --devices devices      Specify the devices
+  --niter niter           Number of iterations
+  --DB               Use database to skip init phase
 """
 
 from docopt import docopt
@@ -20,6 +22,7 @@ from docopt import docopt
 if __name__ == "__main__":
     arguments = docopt(__doc__)
     param_file = arguments["<parameters_filename>"]
+    use_DB = False
 
     # Get parameters from file
     if arguments["--bench"]:
@@ -31,8 +34,10 @@ if __name__ == "__main__":
         from shesha.supervisor.rtcSupervisor import RTCSupervisor as Supervisor
     else:
         from shesha.supervisor.compassSupervisor import CompassSupervisor as Supervisor
+    if arguments["--DB"]:
+        use_DB = True
 
-    supervisor = Supervisor(param_file)
+    supervisor = Supervisor(param_file, use_DB=use_DB)
 
     if arguments["--devices"]:
         supervisor.config.p_loop.set_devices([

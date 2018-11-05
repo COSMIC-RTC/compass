@@ -208,5 +208,14 @@ void declare_shesha_controller_ls(py::module &mod) {
     )pbdoc",
            py::arg("cmat"))
 
+      .def("set_imat", wy::colCast(&sutra_controller_ls::set_imat), R"pbdoc(
+      Set the interaction matrix
+
+      Parameters
+      ------------
+      imat: (np.array[ndim=2,dtype=np.float32]): interaction matrix to set
+    )pbdoc",
+           py::arg("imat"))
+
       ;
 };
