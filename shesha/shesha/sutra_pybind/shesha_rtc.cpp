@@ -156,6 +156,15 @@ void declare_shesha_rtc(py::module &mod) {
     )pbdoc",
            py::arg("ncontrol"), py::arg("dms"))
 
+      .def("comp_voltage", &sutra_rtc::comp_voltage, R"pbdoc(
+        Compute the commands on the DM
+
+        Parameters
+        ------------
+        ncontrol: (int): Index of the controller
+    )pbdoc",
+           py::arg("ncontrol"))
+
       .def("do_imat", wy::colCast(&sutra_rtc::do_imat), R"pbdoc(
         Computes interaction matrix
 

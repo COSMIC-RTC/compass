@@ -89,10 +89,6 @@ class CompassSupervisor(AbstractSupervisor):
         raise NotImplementedError("Not implemented")
         # return np.empty(1)
 
-    def next(self, nbiters, see_atmos=True):
-        for _ in trange(nbiters):
-            self._sim.next(see_atmos=see_atmos)
-
     def singleNext(self, moveAtmos: bool=True, showAtmos: bool=True, getPSF: bool=False,
                    getResidual: bool=False) -> None:
         '''
@@ -342,18 +338,18 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         self._sim.clear_init()
 
-    def forceContext(self) -> None:
-        '''
-        Clear the initialization of the simulation
-        '''
-        self._sim.force_context()
-
     def initConfig(self) -> None:
         '''
         Initialize the simulation
         '''
         self._sim.init_sim()
         self.enableAtmos(True)
+
+    def getNcpaWfs(self, wfsnum):
+        return np.array(self._sim.wfs.d_wfs[wfsnum].d_gs.d_ncpa_phase)
+
+    def getNcpaTar(self, tarnum):
+        return np.array(self._sim.tar.d_targets[tarnum].d_ncpa_phase)
 
     def getAtmScreen(self, indx: int) -> np.ndarray:
         '''
