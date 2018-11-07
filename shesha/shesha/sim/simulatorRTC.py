@@ -139,7 +139,7 @@ class SimulatorRTC(Simulator):
             else:
                 raise ValueError("location not known")
             if apply_control:
-                self.fakedms.recv(self.comp, 0)
+                self.fakedms.recv(self.comp, 1)
                 # self.fakedms.wait()
                 if not self.fastMode:
                     self.dms.set_full_com(self.comp)
@@ -164,7 +164,7 @@ class SimulatorRTC(Simulator):
                 raise ValueError("location not known")
             if apply_control:
                 self.timer.tic()
-                self.fakedms.recv(self.comp, 0)
+                self.fakedms.recv(self.comp, 1)
                 self.recvTime += [self.timer.toc()]
                 # self.fakedms.wait()
                 if not self.fastMode:
