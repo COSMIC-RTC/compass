@@ -1,9 +1,10 @@
+repos:
 -   repo: https://github.com/pre-commit/mirrors-yapf.git
-    sha: v0.17.0
+    sha: v0.24.0
     hooks:
     -   id: yapf
 -   repo: https://github.com/pre-commit/mirrors-autopep8
-    sha: v1.3.2
+    sha: v1.4.2
     hooks:
     -   id: autopep8
         files: \.pyx
@@ -13,7 +14,7 @@
         - '80'
         - -a
 -   repo: https://github.com/pre-commit/pre-commit-hooks.git
-    sha: v0.9.2
+    sha: v2.0.0
     hooks:
     -   id: trailing-whitespace
         exclude: \.fits
