@@ -5,7 +5,7 @@ simul_name = "scao_sh_8m_40x40_8pix"
 # loop
 p_loop = conf.Param_loop()
 
-p_loop.set_niter(5000)
+p_loop.set_niter(1000)
 p_loop.set_ittime(0.002)  # =1/500
 
 # geom
@@ -32,20 +32,12 @@ p_atmos.set_L0([1.e5])
 
 # target
 p_target = conf.Param_target()
-p_target1 = conf.Param_target()
-p_targets = [p_target, p_target1]
+p_targets = [p_target]
 
 p_target.set_xpos(0.)
 p_target.set_ypos(0.)
 p_target.set_Lambda(1.65)
 p_target.set_mag(10.)
-p_target.set_dms_seen([0])
-
-p_target1.set_xpos(0.)
-p_target1.set_ypos(0.)
-p_target1.set_Lambda(1.65)
-p_target1.set_mag(10.)
-p_target1.set_dms_seen([1])
 
 # wfs
 p_wfs0 = conf.Param_wfs()

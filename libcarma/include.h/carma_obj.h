@@ -303,6 +303,8 @@ typedef carma_obj<cuFloatComplex> caObjC;
 typedef carma_obj<cuDoubleComplex> caObjZ;
 typedef carma_obj<tuple_t<float> > caObjTF;
 
+typedef carma_obj<half> caObjH;
+
 template <class T_data>
 std::ostream &operator<<(std::ostream &os, carma_obj<T_data> &obj) {
   os << "-----------------------" << std::endl;

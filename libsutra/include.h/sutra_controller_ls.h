@@ -57,6 +57,7 @@ class sutra_controller_ls : public sutra_controller {
   int set_gain(float gain);
   int set_mgain(float *mgain);
   int set_cmat(float *cmat);
+  int set_imat(float *imat);
   int set_delay(float delay);
   int init_modalOpti(int nmodes, int nrec, float *M2V, float gmin, float gmax,
                      int ngain, float Fs);

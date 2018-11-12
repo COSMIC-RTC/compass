@@ -60,7 +60,15 @@ void declare_naga_context(py::module &mod) {
              return cc._set_activeDeviceForce(newDevice, 1, __FILE__, __LINE__);
            })
       // .def("set_activeDeviceForCpy", &carma_context::set_activeDeviceForCpy);
-      ;
+      .def("activate_tensor_cores",
+           [](carma_context &cc, bool flag) {
+             int ndevices = cc.get_ndevice();
+             for (int i = 0; i < ndevices; i++) {
+               cc.get_device(i)->set_cublas_math_mode(flag);
+             }
+           },
+           "Set the cublas math mode using tensor cores or not",
+           py::arg("flag"));
 
   mod.def("deviceSync", &__carmaSafeDeviceSynchronize);
 }

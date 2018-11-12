@@ -12,16 +12,17 @@ project(naga
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(MAGMA REQUIRED magma)
-
 link_directories( ${MAGMA_LIBRARY_DIRS} )
 if(NOT TARGET wyrm)
     add_subdirectory(../wyrm wyrm)
 endif()
 add_library(naga MODULE
                     src/naga_context.cpp
+                    src/naga_timer.cpp
                     src/naga.cpp
                     src/naga_obj_double.cpp
                     src/naga_obj_float.cpp
+                    src/naga_obj_half.cpp
                     src/naga_sparse_obj_float.cpp
                     src/naga_sparse_obj_double.cpp
                     src/naga_obj_double2.cpp

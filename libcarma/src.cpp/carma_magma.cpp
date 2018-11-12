@@ -644,6 +644,17 @@ int carma_svd<cuDoubleComplex>(caObjZ *imat, caObjZ *eigenvals, caObjZ *mod2act,
 
   // return carma_gesvd<double>(mat, eigenvals, U, magma_dgesvd);
 }
+
+template <>
+int carma_svd<half>(caObjH *imat, caObjH *eigenvals, caObjH *mod2act,
+                    caObjH *mes2mod) {
+  // TODO: carma_svd
+  MAGMA_TRACE("carma_svd not implemented on device object! \n");
+  return EXIT_FAILURE;
+
+  // return carma_gesvd<float>(mat, eigenvals, U, magma_sgesvd);
+}
+
 template <>
 int carma_svd_cpu<float>(carma_host_obj<float> *mat,
                          carma_host_obj<float> *eigenvals,
@@ -665,6 +676,13 @@ int carma_svd_cpu<double>(carma_host_obj<double> *mat,
 template <>
 int carma_potri<int>(carma_obj<int> *d_iA) {
   MAGMA_TRACE("carma_potri : not implemented for int* \n");
+
+  return EXIT_FAILURE;
+}
+
+template <>
+int carma_potri<half>(carma_obj<half> *d_iA) {
+  MAGMA_TRACE("carma_potri : not implemented for half* \n");
 
   return EXIT_FAILURE;
 }
@@ -744,6 +762,13 @@ int carma_potri_m<double>(long num_gpus, carma_host_obj<double> *h_A,
 template <>
 int carma_getri<int>(carma_obj<int> *d_iA) {
   std::cerr << "Getri not implemented for int*" << std::endl;
+
+  return EXIT_FAILURE;
+}
+
+template <>
+int carma_getri<half>(carma_obj<half> *d_iA) {
+  std::cerr << "Getri not implemented for half*" << std::endl;
 
   return EXIT_FAILURE;
 }

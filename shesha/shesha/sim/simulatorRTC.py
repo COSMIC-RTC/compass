@@ -3,10 +3,12 @@ Class SimulatorRTC: COMPASS simulation linked to real RTC with Octopus
 """
 import os
 import sys
+import time
 
 import numpy as np
 
 import Octopus
+from KrakenMonitor import KrakenTimer
 from shesha.constants import CentroiderType, WFSType
 from shesha.util.utilities import load_config_from_file
 
@@ -18,21 +20,27 @@ class SimulatorRTC(Simulator):
         Class SimulatorRTC: COMPASS simulation linked to real RTC with Octopus
     """
 
-    def __init__(self, filepath: str=None, fastMode: bool=False,
-                 location: str="CPUSHM") -> None:
+    def __init__(self, filepath: str=None, fastMode: bool=False, location: str="CPUSHM",
+                 benchmark: bool=False) -> None:
         """
         Initializes a Simulator instance
 
         :parameters:
             filepath: (str): (optional) path to the parameters file
-            rtcfilepath: (str): (optional) path to the rtc parameters file
-            use_DB: (bool): (optional) flag to use dataBase system
+            fastMode: (boolean): (optional) Enable fast mode or not
+            location: (str): (optional) SHM location ("CPUSHM" or "GPUSHM")
+            benchmark: (boolean): (optional) benchmark flag
         """
         Simulator.__init__(self)
         self.rtcconf = lambda x: None
         self.frame = None
+        self.benchmark = benchmark
         self.fastMode = fastMode
         self.location = location
+        self.nextTime = []
+        self.recvTime = []
+        self.sendTime = []
+        self.timer = KrakenTimer("cudaEvent")
 
         if filepath is not None:
             self.load_from_file(filepath)
@@ -115,38 +123,49 @@ class SimulatorRTC(Simulator):
         """
         # print("Send a frame")
         p_wfs = self.rtcconf.config.p_wfss[0]
-
-        # try:
-        #     # from GPUIPCInterfaceWrap import GPUIPCInterfaceFloat
-        #     if type(self.fakewfs) is not GPUIPCInterfaceFloat:
-        #         raise RuntimeError("Fallback to basic OCtopus API")
-        #     if not self.fastMode:
-        #         if p_wfs.type == WFSType.SH:
-        #             Simulator.next(self, move_atmos=move_atmos, see_atmos=see_atmos,
-        #                            nControl=nControl, tar_trace=[0], wfs_trace=[0],
-        #                            do_control=False)
-        #         else:
-        #             raise RuntimeError("WFS Type not usable")
-        #     self.wfs.get_binimg_gpu(0, np.array(self.fakewfs.buffer, copy=False))
-        #     self.fakewfs.notify()
-        #     # print("Send a frame using GPUIPCInterfaceFloat...")
-        # except:
-        if not self.fastMode:
+        if not self.benchmark:
+            if not self.fastMode:
+                Simulator.next(self, move_atmos=move_atmos, see_atmos=see_atmos,
+                               nControl=nControl, tar_trace=[0], wfs_trace=[0],
+                               do_control=False)
+                if (self.location == "CPUSHM"):
+                    self.frame = np.array(self.wfs.d_wfs[0].d_binimg)
+            if (self.location == "CPUSHM"):
+                self.fakewfs.send(self.frame)
+            elif (self.location == "GPUSHM"):
+                # self.fakewfs.send(self.frame)
+                self.fakewfs.copyFrom(self.wfs.d_wfs[0].d_binimg)
+                self.fakewfs.notify()
+            else:
+                raise ValueError("location not known")
+            if apply_control:
+                self.fakedms.recv(self.comp, 1)
+                # self.fakedms.wait()
+                if not self.fastMode:
+                    self.dms.set_full_com(self.comp)
+        else:
+            self.timer.tic()
             Simulator.next(self, move_atmos=move_atmos, see_atmos=see_atmos,
                            nControl=nControl, tar_trace=[0], wfs_trace=[0],
                            do_control=False)
+            self.nextTime += [self.timer.toc()]
             if (self.location == "CPUSHM"):
                 self.frame = np.array(self.wfs.d_wfs[0].d_binimg)
-        if (self.location == "CPUSHM"):
-            self.fakewfs.send(self.frame)
-        elif (self.location == "GPUSHM"):
-            # self.fakewfs.send(self.frame)
-            self.fakewfs.copyFrom(self.wfs.d_wfs[0].d_binimg)
-            self.fakewfs.notify()
-        else:
-            raise ValueError("location not known")
-        if apply_control:
-            self.fakedms.recv(self.comp, 0)
-            # self.fakedms.wait()
-            if not self.fastMode:
-                self.dms.set_full_com(self.comp)
+                self.timer.tic()
+                self.fakewfs.send(self.frame)
+                self.sendTime += [self.timer.toc()]
+            elif (self.location == "GPUSHM"):
+                # self.fakewfs.send(self.frame)
+                self.timer.tic()
+                self.fakewfs.copyFrom(self.wfs.d_wfs[0].d_binimg)
+                self.fakewfs.notify()
+                self.sendTime += [self.timer.toc()]
+            else:
+                raise ValueError("location not known")
+            if apply_control:
+                self.timer.tic()
+                self.fakedms.recv(self.comp, 1)
+                self.recvTime += [self.timer.toc()]
+                # self.fakedms.wait()
+                if not self.fastMode:
+                    self.dms.set_full_com(self.comp)

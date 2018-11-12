@@ -10,6 +10,9 @@
 #ifndef CARMA_TIMER_H_
 #define CARMA_TIMER_H_
 
+#include <carma_context.h>
+#include <carma_obj.h>
+
 /**
  * \brief a simple timer for CUDA kernel.
  */
@@ -47,4 +50,36 @@ class carma_timer {
   double elapsed() { return total_time; }
 };
 
+void getClockCount(long long int *clockCounter);
+void getClockCount(double *, long long int *clockCounter, double GPUfreq);
+class carma_clock {
+ public:
+  carma_obj<double> *timeBuffer;
+  double GPUfreq;
+  long cc;
+  long long int *clockCounter;
+
+  carma_clock(carma_context *context, int i) {
+    cudaDeviceProp cdp;
+    cudaGetDeviceProperties(&cdp, context->get_activeDevice());
+    GPUfreq = cdp.clockRate * 1000;
+    long dims[2] = {1, i};
+    timeBuffer = new carma_obj<double>(context, dims);
+    cc = 0;
+    cudaMalloc(&clockCounter, sizeof(long long int));
+  }
+
+  ~carma_clock() {
+    delete timeBuffer;
+    cudaFree(clockCounter);
+  }
+
+  void tic() { getClockCount(clockCounter); }
+
+  void toc() {
+    getClockCount(timeBuffer->getDataAt(cc), clockCounter, GPUfreq);
+    cc++;
+    if (cc >= timeBuffer->getNbElem()) cc = 0;
+  }
+};
 #endif  // CARMA_TIMER_H_
