@@ -518,15 +518,16 @@ class Simulator:
         '''
         self.rtc.do_centroids_geom(nControl)
 
-    def applyControl(self, nControl: int):
+    def applyControl(self, nControl: int, compVoltage: bool=True):
         """
         Computes the final voltage vector to apply on the DM by taking into account delay and perturbation voltages, and shape the DMs
 
         Parameters
         ------------
         nControl: (int): controller index
+        compVoltage: (bool): If True (default), computes the voltage vector from the command one (delay + perturb). Else, directly applies the current voltage vector
         """
-        self.rtc.apply_control(nControl, self.dms)
+        self.rtc.apply_control(nControl, self.dms, compVoltage)
 
     def doClipping(self, nControl: int, vmin: float, vmax: float):
         '''

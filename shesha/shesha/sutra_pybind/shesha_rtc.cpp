@@ -153,8 +153,9 @@ void declare_shesha_rtc(py::module &mod) {
         ------------
         ncontrol: (int): Index of the controller
         dms: (sutra_dms): sutra_dms object
+        compVoltage: (bool): if True (default), computes delay and perturb voltages. Else, applies just the vector command
     )pbdoc",
-           py::arg("ncontrol"), py::arg("dms"))
+           py::arg("ncontrol"), py::arg("dms"), py::arg("compVoltage") = true)
 
       .def("comp_voltage", &sutra_rtc::comp_voltage, R"pbdoc(
         Compute the commands on the DM

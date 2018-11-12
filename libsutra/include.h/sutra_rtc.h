@@ -52,7 +52,7 @@ class sutra_rtc {
   int do_centroids_ref(int ncntrl);
   int do_control(int ncntrl);
   int do_clipping(int ncntrl, float min, float max);
-  int apply_control(int ncntrl, sutra_dms *ydm);
+  int apply_control(int ncntrl, sutra_dms *ydm, bool compVoltage = true);
   int comp_voltage(int ncntrl);
   int remove_ref(int ncntrl);
   int set_centroids_ref(int ncntrl, float *centroids_ref);
