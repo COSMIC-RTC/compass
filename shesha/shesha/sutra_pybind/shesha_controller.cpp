@@ -71,7 +71,7 @@ void declare_shesha_controller(py::module &mod) {
       .def_property_readonly(
           "d_perturb_map",
           [](sutra_controller &sc)
-              -> map<string, tuple<carma_obj<float> *, int>> & {
+              -> map<string, tuple<carma_obj<float> *, int, bool>> & {
             return sc.d_perturb_map;
           },
           "Perturbation voltage buffers")
@@ -91,6 +91,28 @@ void declare_shesha_controller(py::module &mod) {
 
       .def("command_delay", &sutra_controller::command_delay,
            "Delay the command")
+
+      .def("enable_perturb_voltage",
+           wy::colCast(&sutra_controller::enable_perturb_voltage),
+           R"pbdoc(
+      Enable a perturbation voltage buffer
+
+      Parameters
+      ------------
+      name: (str): name of the buffer to enable
+    )pbdoc",
+           py::arg("name"))
+
+      .def("disable_perturb_voltage",
+           wy::colCast(&sutra_controller::disable_perturb_voltage),
+           R"pbdoc(
+      Disable a perturbation voltage buffer
+
+      Parameters
+      ------------
+      name: (str): name of the buffer to enable
+    )pbdoc",
+           py::arg("name"))
 
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝

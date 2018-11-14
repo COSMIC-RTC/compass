@@ -44,6 +44,8 @@ class sutra_controller {
   int add_perturb_voltage(string name, float *perturb, int N);
   int remove_perturb_voltage(string name);
   int reset_perturb_voltage();
+  int enable_perturb_voltage(string name);
+  int disable_perturb_voltage(string name);
   int set_com(float *com, int nElem);
   int set_openloop(int open_loop_status, bool rst = true);
   void clip_voltage(float min, float max);
@@ -75,7 +77,7 @@ class sutra_controller {
   carma_obj<float> *d_com1;           // commands k-1
   carma_obj<float> *d_com2;           // commands k-2
 
-  map<string, tuple<carma_obj<float> *, int>> d_perturb_map;
+  map<string, tuple<carma_obj<float> *, int, bool>> d_perturb_map;
   // perturbation command buffer
 
   carma_streams *streams;

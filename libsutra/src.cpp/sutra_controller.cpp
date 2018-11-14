@@ -108,7 +108,7 @@ int sutra_controller::add_perturb_voltage(string name, float *perturb, int N) {
     long dims_data2[3] = {2, N, this->nactu()};
     int cpt = 0;
     this->d_perturb_map[name] = std::make_tuple(
-        new carma_obj<float>(current_context, dims_data2, perturb), cpt);
+        new carma_obj<float>(current_context, dims_data2, perturb), cpt, true);
   } else
     DEBUG_TRACE("This perturb buffer already exists");
 
@@ -118,7 +118,7 @@ int sutra_controller::add_perturb_voltage(string name, float *perturb, int N) {
 int sutra_controller::remove_perturb_voltage(string name) {
   std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
   current_context->set_activeDevice(device, 1);
-  map<string, tuple<carma_obj<float> *, int>>::iterator it;
+  map<string, tuple<carma_obj<float> *, int, bool>>::iterator it;
 
   if (this->d_perturb_map.count(name)) {
     it = this->d_perturb_map.find(name);
@@ -130,10 +130,38 @@ int sutra_controller::remove_perturb_voltage(string name) {
   return EXIT_SUCCESS;
 }
 
+int sutra_controller::enable_perturb_voltage(string name) {
+  std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
+  current_context->set_activeDevice(device, 1);
+  map<string, tuple<carma_obj<float> *, int, bool>>::iterator it;
+
+  if (this->d_perturb_map.count(name)) {
+    it = this->d_perturb_map.find(name);
+    std::get<2>(this->d_perturb_map[name]) = true;
+  } else
+    DEBUG_TRACE("This perturb buffer do not exist");
+
+  return EXIT_SUCCESS;
+}
+
+int sutra_controller::disable_perturb_voltage(string name) {
+  std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
+  current_context->set_activeDevice(device, 1);
+  map<string, tuple<carma_obj<float> *, int, bool>>::iterator it;
+
+  if (this->d_perturb_map.count(name)) {
+    it = this->d_perturb_map.find(name);
+    std::get<2>(this->d_perturb_map[name]) = false;
+  } else
+    DEBUG_TRACE("This perturb buffer do not exist");
+
+  return EXIT_SUCCESS;
+}
+
 int sutra_controller::reset_perturb_voltage() {
   std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
   current_context->set_activeDevice(device, 1);
-  map<string, tuple<carma_obj<float> *, int>>::iterator it;
+  map<string, tuple<carma_obj<float> *, int, bool>>::iterator it;
   it = this->d_perturb_map.begin();
   while (it != this->d_perturb_map.end()) {
     delete std::get<0>(it->second);
@@ -193,19 +221,22 @@ int sutra_controller::comp_voltage() {
 }
 
 int sutra_controller::add_perturb() {
-  map<string, tuple<carma_obj<float> *, int>>::iterator it;
+  map<string, tuple<carma_obj<float> *, int, bool>>::iterator it;
   int cpt;
   carma_obj<float> *d_perturb;
   for (it = this->d_perturb_map.begin(); it != this->d_perturb_map.end();
        ++it) {
-    cpt = std::get<1>(it->second);
-    d_perturb = std::get<0>(it->second);
-    carma_axpy(cublas_handle(), this->nactu(), 1.0f, d_perturb->getDataAt(cpt),
-               d_perturb->getDims(1), this->d_voltage->getData(), 1);
-    if (cpt < d_perturb->getDims(1) - 1)
-      std::get<1>(it->second) = cpt + 1;
-    else
-      std::get<1>(it->second) = 0;
+    if (std::get<2>(it->second)) {
+      cpt = std::get<1>(it->second);
+      d_perturb = std::get<0>(it->second);
+      carma_axpy(cublas_handle(), this->nactu(), 1.0f,
+                 d_perturb->getDataAt(cpt), d_perturb->getDims(1),
+                 this->d_voltage->getData(), 1);
+      if (cpt < d_perturb->getDims(1) - 1)
+        std::get<1>(it->second) = cpt + 1;
+      else
+        std::get<1>(it->second) = 0;
+    }
   }
 
   return EXIT_SUCCESS;
