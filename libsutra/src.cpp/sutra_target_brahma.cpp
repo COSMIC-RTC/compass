@@ -35,21 +35,21 @@ sutra_target_brahma::sutra_target_brahma(carma_context *context,
     sub = brahma.create_subscriber();
     // Create a publisher for the frame topic
     pub = brahma.create_publisher();
+    /*
+        // Create an BRAHMA Command listener
+        brahma.register_command_type(topics[BRAHMA::CommandType]);
+        cmd_listener = (new sutra_target_brahmaListenerImpl);
+        cmd_listener_servant =
+            dynamic_cast<sutra_target_brahmaListenerImpl *>(cmd_listener.in());
 
-    // Create an BRAHMA Command listener
-    brahma.register_command_type(topics[BRAHMA::CommandType]);
-    cmd_listener = (new sutra_target_brahmaListenerImpl);
-    cmd_listener_servant =
-        dynamic_cast<sutra_target_brahmaListenerImpl *>(cmd_listener.in());
+        if (CORBA::is_nil(cmd_listener.in())) {
+          throw "BRAHMA Command listener is nil.";
+        }
+        cmd_listener_servant->attach_target(this);
 
-    if (CORBA::is_nil(cmd_listener.in())) {
-      throw "BRAHMA Command listener is nil.";
-    }
-    cmd_listener_servant->attach_target(this);
-
-    cmd_dr = brahma.create_datareader(sub, topics[BRAHMA::CommandType],
-                                      cmd_listener);
-
+        cmd_dr = brahma.create_datareader(sub, topics[BRAHMA::CommandType],
+                                          cmd_listener);
+    */
     // Create an BRAHMA Frame writer
     brahma.register_frame_type(topics[BRAHMA::FrameType]);
     frame_base_dw = brahma.create_datawriter(pub, topics[BRAHMA::FrameType]);

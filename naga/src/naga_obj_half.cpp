@@ -1,7 +1,7 @@
 #include "naga_obj.hpp"
 
 namespace py = pybind11;
-
+#ifdef CAN_DO_HALF
 template void declare_naga_obj<half>(py::module &mod, std::string suffix);
 
 void declare_half_setter_getter(py::module &mod) {
@@ -60,3 +60,4 @@ void declare_half_setter_getter(py::module &mod) {
           "TODO",  // TODO do the documentation...
           py::arg("half_obj").none(false));
 }
+#endif

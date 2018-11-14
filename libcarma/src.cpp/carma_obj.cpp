@@ -338,5 +338,6 @@ template class carma_obj<double>;
 template class carma_obj<cuFloatComplex>;
 template class carma_obj<cuDoubleComplex>;
 template class carma_obj<struct tuple_t<float>>;
-
+#ifdef CAN_DO_HALF
 template class carma_obj<half>;
+#endif

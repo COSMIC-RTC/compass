@@ -40,9 +40,10 @@ if (DEFINED ENV{BRAHMA_ROOT})
             $ENV{TAO_ROOT}/orbsvcs $ENV{DDS_ROOT})
 
     SET(BRAHMA_CPP src.cpp/sutra_rtc_brahma.cpp
-                src.cpp/sutra_rtc_brahmaListenerImpl.cpp
+                # src.cpp/sutra_rtc_brahmaListenerImpl.cpp
                 src.cpp/sutra_target_brahma.cpp
-                src.cpp/sutra_target_brahmaListenerImpl.cpp)
+                # src.cpp/sutra_target_brahmaListenerImpl.cpp
+               )
 
     SET(BRAHMA_LIBS BRAHMACommon OpenDDS_InfoRepoDiscovery OpenDDS_Dcps TAO_PortableServer
         TAO_AnyTypeCode TAO ACE dl rt)

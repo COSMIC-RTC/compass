@@ -176,6 +176,7 @@ void declare_naga_obj(py::module &mod, std::string suffix)
            py::arg("vectx"), py::arg("alpha") = 1, py::arg("op") = 'N', py::arg("vecty")=nullptr, py::arg("beta") = 0) // &Class::gemv)
       // void ger(T_data alpha, carma_obj<T_data> *vectx, int incx,
       //          carma_obj<T_data> *vecty, int incy, int lda);
+#ifdef CAN_DO_HALF
       .def("gemv", [](carma_obj<half> &mat, carma_obj<half> &vectx, float alpha, char op, carma_obj<half> *vecty, float beta) {
         if(vecty == nullptr){
           long dims[] = {1, 0, 1};
@@ -194,6 +195,7 @@ void declare_naga_obj(py::module &mod, std::string suffix)
       },
            "this method performs one of the matrix‐vector operations vecty = alpha * op(mat) * vectx + beta * vecty",
            py::arg("vectx"), py::arg("alpha") = 1, py::arg("op") = 'N', py::arg("vecty")=nullptr, py::arg("beta") = 0) // &Class::gemv)
+#endif
       // void ger(T_data alpha, carma_obj<T_data> *vectx, int incx,
       //          carma_obj<T_data> *vecty, int incy, int lda);
       .def("ger", [](Class &vectx, Class &vecty, Class *mat, T alpha) {

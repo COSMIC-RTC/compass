@@ -303,7 +303,9 @@ typedef carma_obj<cuFloatComplex> caObjC;
 typedef carma_obj<cuDoubleComplex> caObjZ;
 typedef carma_obj<tuple_t<float> > caObjTF;
 
+#ifdef CAN_DO_HALF
 typedef carma_obj<half> caObjH;
+#endif
 
 template <class T_data>
 std::ostream &operator<<(std::ostream &os, carma_obj<T_data> &obj) {

@@ -5,7 +5,7 @@ import shesha.config as conf
 # loop
 p_loop = conf.Param_loop()
 
-p_loop.set_niter(1000)
+p_loop.set_niter(100)
 p_loop.set_ittime(0.002)  # =1/500
 p_loop.set_devices([0, 1, 2, 3])
 # geom
@@ -44,7 +44,7 @@ p_wfs0 = conf.Param_wfs()
 p_wfss = [p_wfs0]
 
 p_wfs0.set_type("pyrhr")
-p_wfs0.set_nxsub(16)
+p_wfs0.set_nxsub(24)
 p_wfs0.set_fssize(1.5)
 p_wfs0.set_fracsub(0.8)
 p_wfs0.set_xpos(0.)
@@ -57,6 +57,7 @@ p_wfs0.set_noise(-1)
 p_wfs0.set_fstop("round")
 p_wfs0.set_pyr_npts(16)
 p_wfs0.set_pyr_ampl(3)
+p_wfs0.set_nPupils(4)
 p_wfs0.set_pyr_pup_sep(p_wfs0.nxsub)
 p_wfs0.set_atmos_seen(1)
 
@@ -65,18 +66,18 @@ p_dm0 = conf.Param_dm()
 p_dm1 = conf.Param_dm()
 p_dms = [p_dm0, p_dm1]
 p_dm0.set_type("pzt")
-nact = p_wfs0.nxsub + 1
+nact = 17
 p_dm0.set_nact(nact)
 p_dm0.set_alt(0.)
 p_dm0.set_thresh(0.3)
 p_dm0.set_coupling(0.2)
 p_dm0.set_unitpervolt(0.01)
-p_dm0.set_push4imat(100.)
+p_dm0.set_push4imat(1e-2)
 
 p_dm1.set_type("tt")
 p_dm1.set_alt(0.)
 p_dm1.set_unitpervolt(0.0005)
-p_dm1.set_push4imat(100)
+p_dm1.set_push4imat(1e-2)
 
 # centroiders
 p_centroider0 = conf.Param_centroider()
@@ -84,6 +85,7 @@ p_centroiders = [p_centroider0]
 
 p_centroider0.set_nwfs(0)
 p_centroider0.set_type("pyr")
+
 # p_centroider0.set_type("corr")
 # p_centroider0.set_type_fct("model")
 
@@ -91,9 +93,13 @@ p_centroider0.set_type("pyr")
 p_controller0 = conf.Param_controller()
 p_controllers = [p_controller0]
 
+p_controller0.do_kl_imat = True
+p_controller0.klpush = [.040]  # TBD: Would those be um RMS ?
+p_controller0.nModesFilt = 0
+
 p_controller0.set_type("ls")
 p_controller0.set_nwfs([0])
 p_controller0.set_ndm([0, 1])
 p_controller0.set_maxcond(100.)
 p_controller0.set_delay(1)
-p_controller0.set_gain(0.4)
+p_controller0.set_gain(1.2)
