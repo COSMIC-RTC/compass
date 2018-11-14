@@ -25,8 +25,4 @@
 #include "carma_timer.h"
 #include "carma_utils.h"
 
-#if __CUDA_ARCH__ >= 600
-#define CAN_DO_HALF 1
-#endif
-
 #endif  // _CARMA_H_

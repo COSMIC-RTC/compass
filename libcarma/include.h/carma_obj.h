@@ -23,6 +23,10 @@
 #include <iostream>
 #include <typeinfo>  // operator typeid
 
+#if CUDA_HIGHEST_SM >= 60
+#define CAN_DO_HALF 1
+#endif
+
 /*
  create a memory object
  void *memory

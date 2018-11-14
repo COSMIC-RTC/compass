@@ -9,7 +9,8 @@ endif()
 message("Building for Compute Capability ${CUDA_SM}")
 
 if( ${CUDA_SM} STREQUAL "ALL")
-    set(CUDA_SM "35" "37" "50" "52" "60" "61" "70")
+unset(CUDA_SM)
+list(APPEND CUDA_SM "35" "37" "50" "52" "60" "61" "70")
 endif()
 
 foreach(SM ${CUDA_SM})
@@ -85,7 +86,10 @@ set_target_properties(carma
     SOVERSION ${PROJECT_VERSION_MAJOR}
     # CUDA_SEPARABLE_COMPILATION OFF
 )
-
+list(LENGTH CUDA_SM CUDA_SM_LEN)
+math(EXPR CUDA_SM_LEN ${CUDA_SM_LEN}-1)
+list(GET CUDA_SM ${CUDA_SM_LEN} CUDA_SM_LAST)
+target_compile_definitions(carma PUBLIC CUDA_HIGHEST_SM=${CUDA_SM_LAST})
 target_compile_features(carma PUBLIC cxx_std_14)
 
 # string (REPLACE ";" " " CMAKE_CUDA_FLAGS "${CUDA_NVCC_FLAGS};${CUDA_ARCH}")
