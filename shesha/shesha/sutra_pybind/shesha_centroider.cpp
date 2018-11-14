@@ -54,8 +54,13 @@ void declare_shesha_centroider(py::module &mod) {
                              [](sutra_centroider &sc) { return sc.d_subsum; },
                              "subsum of the WFS image")
 
-      .def_property_readonly(
-          "d_img", [](sutra_centroider &sc) { return sc.d_img; }, "WFS image")
+      .def_property_readonly("d_img",
+                             [](sutra_centroider &sc) { return sc.d_img; },
+                             "Calibrated WFS image")
+
+      .def_property_readonly("d_img_raw",
+                             [](sutra_centroider &sc) { return sc.d_img_raw; },
+                             "Raw WFS image")
 
       .def_property_readonly("d_validx",
                              [](sutra_centroider &sc) { return sc.d_validx; },
@@ -153,8 +158,14 @@ void declare_shesha_centroider(py::module &mod) {
     )pbdoc",
            py::arg("img"), py::arg("n"))
 
-      .def("calibrate_img", &sutra_centroider::calibrate_img,
-           "Performs the raw WFS frame calibration")
+      .def("calibrate_img", &sutra_centroider::calibrate_img, R"pbdoc(
+           Performs the raw WFS frame calibration
+
+           Parameters
+           ------------
+           save_raw: (bool): (default=false) If True, saves the raw WFS image in d_img_raw before calibration
+           )pbdoc",
+           py::arg("save_raw"))
 
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝

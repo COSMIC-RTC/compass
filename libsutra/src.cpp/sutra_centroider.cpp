@@ -16,6 +16,7 @@ sutra_centroider::sutra_centroider(carma_context *context, sutra_wfs *wfs,
   this->d_bincube = nullptr;
   this->d_subsum = nullptr;
   this->d_img = nullptr;
+  this->d_img_raw = nullptr;
   this->d_validx = nullptr;
   this->d_validy = nullptr;
   this->d_dark = nullptr;
@@ -25,6 +26,7 @@ sutra_centroider::sutra_centroider(carma_context *context, sutra_wfs *wfs,
 sutra_centroider::~sutra_centroider() {
   if (this->d_bincube != nullptr) delete this->d_bincube;
   if (this->d_img != nullptr) delete this->d_img;
+  if (this->d_img_raw != nullptr) delete this->d_img_raw;
   if (this->d_validx != nullptr) delete this->d_validx;
   if (this->d_validy != nullptr) delete this->d_validy;
   if (this->d_dark != nullptr) delete this->d_dark;
@@ -56,13 +58,20 @@ int sutra_centroider::set_flat(float *flat, int n) {
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider::calibrate_img() {
+int sutra_centroider::calibrate_img(bool save_raw) {
   carma_obj<float> *img;
 
   if (this->d_img != nullptr)
     img = this->d_img;
   else
     img = this->d_bincube;
+
+  if (save_raw) {
+    if (this->d_img_raw != nullptr)
+      this->d_img_raw = new carma_obj<float>(current_context, img);
+    else
+      this->d_img_raw->copy(img, 1, 1);
+  }
 
   if (this->d_dark != nullptr) img->axpy(-1.f, this->d_dark, 1, 1);
 
