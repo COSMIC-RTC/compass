@@ -18,6 +18,8 @@ sutra_centroider::sutra_centroider(carma_context *context, sutra_wfs *wfs,
   this->d_img = nullptr;
   this->d_validx = nullptr;
   this->d_validy = nullptr;
+  this->d_dark = nullptr;
+  this->d_flat = nullptr;
 }
 
 sutra_centroider::~sutra_centroider() {
@@ -25,6 +27,8 @@ sutra_centroider::~sutra_centroider() {
   if (this->d_img != nullptr) delete this->d_img;
   if (this->d_validx != nullptr) delete this->d_validx;
   if (this->d_validy != nullptr) delete this->d_validy;
+  if (this->d_dark != nullptr) delete this->d_dark;
+  if (this->d_flat != nullptr) delete this->d_flat;
 }
 
 int sutra_centroider::set_scale(float scale) {
@@ -32,6 +36,42 @@ int sutra_centroider::set_scale(float scale) {
   return EXIT_SUCCESS;
 }
 
+int sutra_centroider::set_dark(float *dark, int n) {
+  current_context->set_activeDevice(device, 1);
+  if (this->d_dark == nullptr) {
+    long dims_data2[3] = {2, n, n};
+    this->d_dark = new carma_obj<float>(current_context, dims_data2);
+  }
+  this->d_dark->host2device(dark);
+  return EXIT_SUCCESS;
+}
+
+int sutra_centroider::set_flat(float *flat, int n) {
+  current_context->set_activeDevice(device, 1);
+  if (this->d_flat == nullptr) {
+    long dims_data2[3] = {2, n, n};
+    this->d_flat = new carma_obj<float>(current_context, dims_data2);
+  }
+  this->d_flat->host2device(flat);
+  return EXIT_SUCCESS;
+}
+
+int sutra_centroider::calibrate_img() {
+  carma_obj<float> *img;
+
+  if (this->d_img != nullptr)
+    img = this->d_img;
+  else
+    img = this->d_bincube;
+
+  if (this->d_dark != nullptr) img->axpy(-1.f, this->d_dark, 1, 1);
+
+  if (this->d_flat != nullptr)
+    mult_vect(img->getData(), this->d_flat->getData(), img->getNbElem(),
+              current_context->get_device(device));
+
+  return EXIT_SUCCESS;
+}
 int sutra_centroider::load_img(float *img, int n) {
   current_context->set_activeDevice(device, 1);
   if (this->d_img == nullptr) {

@@ -8,8 +8,12 @@
 #include <sutra_utils.h>
 #include <sutra_wfs.h>
 #include <mutex>
+#include <tuple>
 
+using std::map;
 using std::mutex;
+using std::string;
+using std::tuple;
 
 class sutra_controller {
  public:
@@ -37,7 +41,9 @@ class sutra_controller {
 
   int set_centroids_ref(float *centroids_ref);
   int get_centroids_ref(float *centroids_ref);
-  int set_perturbcom(float *perturb, int N);
+  int add_perturb_voltage(string name, float *perturb, int N);
+  int remove_perturb_voltage(string name);
+  int reset_perturb_voltage();
   int set_com(float *com, int nElem);
   int set_openloop(int open_loop_status, bool rst = true);
   void clip_voltage(float min, float max);
@@ -52,7 +58,6 @@ class sutra_controller {
   // I would propose to make them protected (+ proper
   // set of fuctions). It could make life easier!
   // But we should discuss it
-  int cpt_pertu;
   int open_loop;
   float delay;
   float a;  // Coefficient for linear interpolation on command buffer to allow
@@ -66,10 +71,12 @@ class sutra_controller {
   carma_obj<float> *d_centroids;      // current centroids
   carma_obj<float> *d_centroids_ref;  // ref centroids
   carma_obj<float> *d_com;            // current command
-  carma_obj<float> *d_perturb;        // perturbation command buffer
   carma_obj<float> *d_voltage;        // commands sent to mirror
   carma_obj<float> *d_com1;           // commands k-1
   carma_obj<float> *d_com2;           // commands k-2
+
+  map<string, tuple<carma_obj<float> *, int>> d_perturb_map;
+  // perturbation command buffer
 
   carma_streams *streams;
 
@@ -78,24 +85,12 @@ class sutra_controller {
 };
 
 int shift_buf(float *d_data, int offset, int N, carma_device *device);
-int mult_vect(float *d_data, float *scale, int N, carma_device *device);
-int mult_vect(float *d_data, float *scale, float gain, int N,
-              carma_device *device);
-int mult_vect(float *d_data, float gain, int N, carma_device *device);
-int mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
-             carma_device *device);
-int mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
-             carma_device *device, carma_streams *streams);
-int mult_int(float *o_data, float *i_data, float gain, int N,
-             carma_device *device);
 int fill_filtmat(float *filter, int nactu, int N, carma_device *device);
 int TT_filt(float *mat, int n, carma_device *device);
 int fill_cmat(float *cmat, float *wtt, float *Mtt, int nactu, int nslopes,
               carma_device *device);
 int do_statmat(float *statcov, long dim, float *xpos, float *ypos, float norm,
                carma_device *device);
-int add_md(float *o_matrix, float *i_matrix, float *i_vector, int N,
-           carma_device *device);
 
 template <class T>
 int get_pupphase(T *odata, float *idata, int *indx_pup, int Nphi,

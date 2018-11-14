@@ -566,3 +566,162 @@ int convolve_modulate(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int mod,
   carmaCheckMsg("conv_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
+
+__global__ void mult_krnl(float *i_data, float *scale, int N) {
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+
+  while (tid < N) {
+    i_data[tid] = i_data[tid] * scale[tid];
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+__global__ void mult_krnl(float *i_data, float *scale, float gain, int N) {
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+
+  while (tid < N) {
+    i_data[tid] = i_data[tid] * scale[tid] * gain;
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+__global__ void mult_krnl(float *i_data, float gain, int N) {
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+
+  while (tid < N) {
+    i_data[tid] = i_data[tid] * gain;
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+__global__ void mult_int_krnl(float *o_data, float *i_data, float gain, int N) {
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+
+  while (tid < N) {
+    o_data[tid] = gain * i_data[tid] + o_data[tid];
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+__global__ void mult_int_krnl(float *o_data, float *i_data, float *scale,
+                              float gain, int N) {
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+
+  while (tid < N) {
+    o_data[tid] = gain * (i_data[tid] * scale[tid]) + o_data[tid];
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+__global__ void mult_int_krnl(float *o_data, float *i_data, float *scale,
+                              float gain, int N, int istart) {
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  tid += istart;
+
+  while (tid < N) {
+    o_data[tid] = gain * (i_data[tid] * scale[tid]) + o_data[tid];
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+__global__ void add_md_krnl(float *o_matrix, float *i_matrix, float *i_vector,
+                            int N) {
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+
+  while (tid < N) {
+    o_matrix[tid * (N + 1)] = i_matrix[tid * (N + 1)] + i_vector[tid];
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+int mult_vect(float *d_data, float *scale, int N, carma_device *device) {
+  int nBlocks, nThreads;
+  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
+  dim3 grid(nBlocks), threads(nThreads);
+
+  mult_krnl<<<grid, threads>>>(d_data, scale, N);
+
+  carmaCheckMsg("mult_kernel<<<>>> execution failed\n");
+  return EXIT_SUCCESS;
+}
+
+int mult_vect(float *d_data, float *scale, float gain, int N,
+              carma_device *device) {
+  int nBlocks, nThreads;
+  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
+  dim3 grid(nBlocks), threads(nThreads);
+
+  mult_krnl<<<grid, threads>>>(d_data, scale, gain, N);
+
+  carmaCheckMsg("mult_kernel<<<>>> execution failed\n");
+  return EXIT_SUCCESS;
+}
+
+int mult_vect(float *d_data, float gain, int N, carma_device *device) {
+  int nBlocks, nThreads;
+  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
+  dim3 grid(nBlocks), threads(nThreads);
+
+  mult_krnl<<<grid, threads>>>(d_data, gain, N);
+
+  carmaCheckMsg("mult_kernel<<<>>> execution failed\n");
+  return EXIT_SUCCESS;
+}
+
+int mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
+             carma_device *device, carma_streams *streams) {
+  int nthreads = 0, nblocks = 0;
+
+  int nstreams = streams->get_nbStreams();
+  getNumBlocksAndThreads(device, N / nstreams, nblocks, nthreads);
+
+  dim3 grid(nblocks), threads(nthreads);
+
+  for (int i = 0; i < nstreams; i++) {
+    mult_int_krnl<<<grid, threads, 0, streams->get_stream(i)>>>(
+        o_data, i_data, scale, gain, N, i * nblocks * nthreads);
+    carmaCheckMsg("multint_kernel<<<>>> execution failed\n");
+  }
+
+  return EXIT_SUCCESS;
+}
+
+int mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
+             carma_device *device) {
+  int nthreads = 0, nblocks = 0;
+
+  getNumBlocksAndThreads(device, N, nblocks, nthreads);
+
+  dim3 grid(nblocks), threads(nthreads);
+
+  mult_int_krnl<<<grid, threads>>>(o_data, i_data, scale, gain, N);
+  carmaCheckMsg("multint_kernel<<<>>> execution failed\n");
+
+  return EXIT_SUCCESS;
+}
+
+int mult_int(float *o_data, float *i_data, float gain, int N,
+             carma_device *device) {
+  int nthreads = 0, nblocks = 0;
+
+  getNumBlocksAndThreads(device, N, nblocks, nthreads);
+
+  dim3 grid(nblocks), threads(nthreads);
+
+  mult_int_krnl<<<grid, threads>>>(o_data, i_data, gain, N);
+  carmaCheckMsg("multint_kernel<<<>>> execution failed\n");
+
+  return EXIT_SUCCESS;
+}
+
+int add_md(float *o_matrix, float *i_matrix, float *i_vector, int N,
+           carma_device *device) {
+  int nthreads = 0, nblocks = 0;
+  getNumBlocksAndThreads(device, N, nblocks, nthreads);
+  dim3 grid(nblocks), threads(nthreads);
+
+  add_md_krnl<<<grid, threads>>>(o_matrix, i_matrix, i_vector, N);
+  carmaCheckMsg("add_md_kernel<<<>>> execution failed\n");
+
+  return EXIT_SUCCESS;
+}

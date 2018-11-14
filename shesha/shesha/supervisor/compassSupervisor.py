@@ -33,7 +33,7 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         self._seeAtmos = enable
 
-    def setOneActu(self, ndm: int, nactu: int, ampli: float=1) -> None:
+    def setOneActu(self, ndm: int, nactu: int, ampli: float = 1) -> None:
         '''
         Push the selected actuator
         '''
@@ -51,14 +51,16 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         self._sim.rtc.d_control[nctrl].set_com(command, command.size)
 
-    def setPerturbationVoltage(self, nControl: int, command: np.ndarray) -> None:
+    def setPerturbationVoltage(self, nControl: int, name: str,
+                               command: np.ndarray) -> None:
         '''
         Add this offset value to integrator (will be applied at the end of next iteration)
         '''
         if len(command.shape) == 1:
-            self._sim.rtc.d_control[nControl].set_perturbcom(command, 1)
+            self._sim.rtc.d_control[nControl].add_perturb_voltage(name, command, 1)
         elif len(command.shape) == 2:
-            self._sim.rtc.d_control[nControl].set_perturbcom(command, command.shape[0])
+            self._sim.rtc.d_control[nControl].add_perturb_voltage(
+                    name, command, command.shape[0])
         else:
             raise AttributeError("command should be a 1D or 2D array")
 
@@ -89,8 +91,8 @@ class CompassSupervisor(AbstractSupervisor):
         raise NotImplementedError("Not implemented")
         # return np.empty(1)
 
-    def singleNext(self, moveAtmos: bool=True, showAtmos: bool=True, getPSF: bool=False,
-                   getResidual: bool=False) -> None:
+    def singleNext(self, moveAtmos: bool = True, showAtmos: bool = True,
+                   getPSF: bool = False, getResidual: bool = False) -> None:
         '''
         Move atmos -> getSlope -> applyControl ; One integrator step
         '''
@@ -182,21 +184,21 @@ class CompassSupervisor(AbstractSupervisor):
         if (r == 0):
             print("GS magnitude is now %f on WFS %d" % (mag, numwfs))
 
-    def getRawWFSImage(self, numWFS: int=0) -> np.ndarray:
+    def getRawWFSImage(self, numWFS: int = 0) -> np.ndarray:
         '''
         Get an image from the WFS
         '''
         return np.array(self._sim.wfs.d_wfs[numWFS].d_binimg)
 
-    def getTarImage(self, tarID, expoType: str="se") -> np.ndarray:
+    def getTarImage(self, tarID, expoType: str = "se") -> np.ndarray:
         '''
         Get an image from a target
         '''
         if (expoType == "se"):
             return np.fft.fftshift(np.array(self._sim.tar.d_targets[tarID].d_image_se))
         elif (expoType == "le"):
-            return np.fft.fftshift(np.array(self._sim.tar.d_targets[
-                    tarID].d_image_le)) / self._sim.tar.d_targets[tarID].strehl_counter
+            return np.fft.fftshift(np.array(self._sim.tar.d_targets[tarID].d_image_le)
+                                   ) / self._sim.tar.d_targets[tarID].strehl_counter
         else:
             raise ValueError("Unknown exposure type")
 
@@ -223,7 +225,8 @@ class CompassSupervisor(AbstractSupervisor):
     # |____/| .__/ \___|\___|_|\__|_|\___| |_|  |_|\___|\__|_| |_|\___/ \__,_|___/
     #       |_|
 
-    def __init__(self, configFile: str=None, BRAHMA: bool=False, use_DB: bool=False):
+    def __init__(self, configFile: str = None, BRAHMA: bool = False,
+                 use_DB: bool = False):
         '''
         Init the COMPASS supervisor
 
@@ -245,7 +248,7 @@ class CompassSupervisor(AbstractSupervisor):
     def __repr__(self):
         return str(self._sim)
 
-    def loop(self, n: int=1, monitoring_freq: int=100, **kwargs):
+    def loop(self, n: int = 1, monitoring_freq: int = 100, **kwargs):
         """
         Perform the AO loop for n iterations
 
@@ -261,7 +264,7 @@ class CompassSupervisor(AbstractSupervisor):
         self._sim.rtc.do_centroids(0)
         return np.array(self._sim.rtc.d_control[0].d_centroids)
 
-    def resetDM(self, numdm: int=-1) -> None:
+    def resetDM(self, numdm: int = -1) -> None:
         '''
         Reset the DM number nDM or all DMs if  == -1
         '''
@@ -271,7 +274,7 @@ class CompassSupervisor(AbstractSupervisor):
         else:
             self._sim.dms.d_dms[numdm].reset_shape()
 
-    def resetCommand(self, nctrl: int=-1) -> None:
+    def resetCommand(self, nctrl: int = -1) -> None:
         '''
         Reset the nctrl Controller command buffer, reset all controllers if nctrl  == -1
         '''
@@ -308,7 +311,7 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         self._sim.tar.d_targets[nTar].d_phase.reset()
 
-    def loadConfig(self, configFile: str=None, sim=None) -> None:
+    def loadConfig(self, configFile: str = None, sim=None) -> None:
         '''
         Init the COMPASS simulator wih the configFile
         '''
@@ -375,13 +378,13 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         return np.array(self._sim.tar.d_targets[numTar].d_phase)
 
-    def getPyrHRImage(self, numWFS: int=0) -> np.ndarray:
+    def getPyrHRImage(self, numWFS: int = 0) -> np.ndarray:
         '''
         Get an HR image from the WFS
         '''
         return np.array(self._sim.wfs.d_wfs[numWFS].d_hrimg)
 
-    def getWfsImage(self, numWFS: int=0) -> np.ndarray:
+    def getWfsImage(self, numWFS: int = 0) -> np.ndarray:
         '''
         Get an image from the WFS
         '''

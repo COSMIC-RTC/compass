@@ -68,9 +68,13 @@ void declare_shesha_controller(py::module &mod) {
                              [](sutra_controller &sc) { return sc.d_com1; },
                              "Command vector at iteration k-2")
 
-      .def_property_readonly("d_perturb",
-                             [](sutra_controller &sc) { return sc.d_perturb; },
-                             "Perturbations voltage")
+      .def_property_readonly(
+          "d_perturb_map",
+          [](sutra_controller &sc)
+              -> map<string, tuple<carma_obj<float> *, int>> & {
+            return sc.d_perturb_map;
+          },
+          "Perturbation voltage buffers")
 
       .def_property_readonly("d_voltage",
                              [](sutra_controller &sc) { return sc.d_voltage; },
@@ -82,7 +86,7 @@ void declare_shesha_controller(py::module &mod) {
       //  ██║╚██╔╝██║██╔══╝     ██║   ██╔══██║██║   ██║██║  ██║╚════██║
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
-      .def("add_perturb", wy::colCast(&sutra_controller::add_perturb),
+      .def("add_perturb", &sutra_controller::add_perturb,
            "Add the perturbation voltage to the command")
 
       .def("command_delay", &sutra_controller::command_delay,
@@ -105,16 +109,34 @@ void declare_shesha_controller(py::module &mod) {
     )pbdoc",
            py::arg("refslopes"))
 
-      .def("set_perturbcom", wy::colCast(&sutra_controller::set_perturbcom),
+      .def("add_perturb_voltage",
+           wy::colCast(&sutra_controller::add_perturb_voltage),
            R"pbdoc(
-      Set the perturbation voltage
+      Add a new perturbation voltage buffer
 
       Parameters
       ------------
-      perturb: (np.array[ndim1,dtype=np.float32]): perturbation voltage to set
-      N: (int): size
+      name: (str): name of the new buffer
+      perturb: (np.array[ndim=2,dtype=np.float32]): perturbation voltage to set
+      N: (int): Number of perturb voltage vectors in the buffer
     )pbdoc",
-           py::arg("perturb"), py::arg("N"))
+           py::arg("name"), py::arg("perturb"), py::arg("N"))
+
+      .def("remove_perturb_voltage",
+           wy::colCast(&sutra_controller::remove_perturb_voltage),
+           R"pbdoc(
+      Remove a perturbation voltage buffer
+
+      Parameters
+      ------------
+      name: (str): name of the buffer to remove
+    )pbdoc",
+           py::arg("name"))
+
+      .def("reset_perturb_voltage", &sutra_controller::reset_perturb_voltage,
+           R"pbdoc(
+      Remove all perturbation voltage buffers
+    )pbdoc")
 
       .def("set_openloop", wy::colCast(&sutra_controller::set_openloop),
            R"pbdoc(

@@ -65,6 +65,14 @@ void declare_shesha_centroider(py::module &mod) {
                              [](sutra_centroider &sc) { return sc.d_validy; },
                              "Y positions of the valid ssp")
 
+      .def_property_readonly("d_dark",
+                             [](sutra_centroider &sc) { return sc.d_dark; },
+                             "Dark frame for calibration")
+
+      .def_property_readonly("d_flat",
+                             [](sutra_centroider &sc) { return sc.d_flat; },
+                             "Flat frame for calibration")
+
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝
       //  ██╔████╔██║█████╗     ██║   ███████║██║   ██║██║  ██║███████╗
@@ -145,6 +153,9 @@ void declare_shesha_centroider(py::module &mod) {
     )pbdoc",
            py::arg("img"), py::arg("n"))
 
+      .def("calibrate_img", &sutra_centroider::calibrate_img,
+           "Performs the raw WFS frame calibration")
+
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝
       //  ███████╗█████╗     ██║      ██║   █████╗  ██████╔╝███████╗
@@ -159,5 +170,25 @@ void declare_shesha_centroider(py::module &mod) {
         ------------
         scale: (float): new scale factor
     )pbdoc",
-           py::arg("scale"));
+           py::arg("scale"))
+
+      .def("set_dark", wy::colCast(&sutra_centroider::set_dark), R"pbdoc(
+        Set the dark frame for calibration
+
+        Parameters
+        ------------
+        dark: (np.ndarray[ndim=2, dtype=np.float32_t): dark frame
+        n: (int): image support size
+    )pbdoc",
+           py::arg("dark"), py::arg("n"))
+
+      .def("set_flat", wy::colCast(&sutra_centroider::set_flat), R"pbdoc(
+        Set the flat frame for calibration
+
+        Parameters
+        ------------
+        flat: (np.ndarray[ndim=2, dtype=np.float32_t): flat frame
+        n: (int): image support size
+    )pbdoc",
+           py::arg("flat"), py::arg("n"));
 };

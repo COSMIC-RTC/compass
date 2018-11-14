@@ -35,7 +35,8 @@ class BenchSupervisor(AbstractSupervisor):
         # self.dm.set_command(command=command)
         self.rtc.d_control[nctrl].set_com(command, command.size)
 
-    def setOneActu(self, nctrl: int, ndm: int, nactu: int, ampli: float=1, reset: bool=True) -> None:
+    def setOneActu(self, nctrl: int, ndm: int, nactu: int, ampli: float = 1,
+                   reset: bool = True) -> None:
         '''
         Push the selected actuator
         '''
@@ -45,24 +46,26 @@ class BenchSupervisor(AbstractSupervisor):
         command[nactu] = ampli
         self.dm.set_command(command)
 
-    def setPerturbationVoltage(self, nControl: int, command: np.ndarray) -> None:
+    def setPerturbationVoltage(self, nControl: int, name: str,
+                               command: np.ndarray) -> None:
         '''
         Add this offset value to integrator (will be applied at the end of next iteration)
         '''
         if len(command.shape) == 1:
-            self.rtc.d_control[nControl].set_perturbcom(command, 1)
+            self.rtc.d_control[nControl].add_perturb_voltage(name, command, 1)
         elif len(command.shape) == 2:
-            self.rtc.d_control[nControl].set_perturbcom(command, command.shape[0])
+            self.rtc.d_control[nControl].add_perturb_voltage(name, command,
+                                                             command.shape[0])
         else:
             raise AttributeError("command should be a 1D or 2D array")
 
-    def getWfsImage(self, numWFS: int=0) -> np.ndarray:
+    def getWfsImage(self, numWFS: int = 0) -> np.ndarray:
         '''
         Get an image from the WFS
         '''
         return self.cam.getFrame(1)
 
-    def getCentroids(self, nControl: int=0):
+    def getCentroids(self, nControl: int = 0):
         '''
         Return the centroids of the nControl controller
         '''
@@ -74,42 +77,42 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         return self.computeSlopes()
 
-    def getCom(self, nControl: int=0):
+    def getCom(self, nControl: int = 0):
         '''
         Get command from nControl controller
         '''
         return np.array(self.rtc.d_control[nControl].d_com)
 
-    def getErr(self, nControl: int=0):
+    def getErr(self, nControl: int = 0):
         '''
         Get command increment from nControl controller
         '''
         return np.array(self.rtc.d_control[nControl].d_err)
 
-    def getVoltage(self, nControl: int=0):
+    def getVoltage(self, nControl: int = 0):
         '''
         Get voltages from nControl controller
         '''
         return np.array(self.rtc.d_control[nControl].d_voltage)
 
-    def setIntegratorLaw(self, nControl: int=0):
+    def setIntegratorLaw(self, nControl: int = 0):
         self.rtc.d_control[nControl].set_commandlaw("integrator")
 
-    def setDecayFactor(self, decay, nControl: int=0):
+    def setDecayFactor(self, decay, nControl: int = 0):
         self.rtc.d_control[nControl].set_decayFactor(decay)
 
-    def setEMatrix(self, eMat, nControl: int=0):
+    def setEMatrix(self, eMat, nControl: int = 0):
         self.rtc.d_control[nControl].set_matE(eMat)
 
-    def doRefslopes(self, nControl: int=0):
+    def doRefslopes(self, nControl: int = 0):
         print("Doing refslopes...")
         self.rtc.do_centroids_ref(nControl)
         print("refslopes done")
 
-    def resetRefslopes(self, nControl: int=0):
+    def resetRefslopes(self, nControl: int = 0):
         self.rtc.d_control[nControl].d_centroids_ref.reset()
 
-    def computeSlopes(self, do_centroids=False, nControl: int=0):
+    def computeSlopes(self, do_centroids=False, nControl: int = 0):
         if do_centroids:
             self.rtc.do_centroids(nControl)
         return self.getCentroids(nControl)
@@ -127,8 +130,8 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         raise NotImplementedError("Not implemented")
 
-    def singleNext(self, moveAtmos: bool=True, showAtmos: bool=True, getPSF: bool=False,
-                   getResidual: bool=False) -> None:
+    def singleNext(self, moveAtmos: bool = True, showAtmos: bool = True,
+                   getPSF: bool = False, getResidual: bool = False) -> None:
         '''
         Move atmos -> getSlope -> applyControl ; One integrator step
         '''
@@ -191,13 +194,13 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         raise NotImplementedError("Not implemented")
 
-    def getRawWFSImage(self, numWFS: int=0) -> np.ndarray:
+    def getRawWFSImage(self, numWFS: int = 0) -> np.ndarray:
         '''
         Get an image from the WFS
         '''
         return self.frame
 
-    def getTarImage(self, tarID, expoType: str="se") -> np.ndarray:
+    def getTarImage(self, tarID, expoType: str = "se") -> np.ndarray:
         '''
         Get an image from a target
         '''
@@ -224,7 +227,7 @@ class BenchSupervisor(AbstractSupervisor):
     # |____/| .__/ \___|\___|_|\__|_|\___| |_|  |_|\___|\__|_| |_|\___/ \__,_|___/
     #       |_|
 
-    def __init__(self, configFile: str=None, BRAHMA: bool=False):
+    def __init__(self, configFile: str = None, BRAHMA: bool = False):
         '''
         Init the COMPASS wih the configFile
         '''
@@ -246,7 +249,7 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         raise NotImplementedError("Not implemented")
 
-    def resetCommand(self, nctrl: int=-1) -> None:
+    def resetCommand(self, nctrl: int = -1) -> None:
         '''
         Reset the nctrl Controller command buffer, reset all controllers if nctrl  == -1
         '''
@@ -256,14 +259,14 @@ class BenchSupervisor(AbstractSupervisor):
         else:
             self.rtc.d_control[nctrl].d_com.reset()
 
-    def resetPerturbationVoltage(self, nControl: int=0) -> None:
+    def resetPerturbationVoltage(self, nControl: int = 0) -> None:
         '''
         Reset the perturbation voltage of the nControl controller
         '''
         if self.rtc.d_control[nControl].d_perturb is not None:
             self.rtc.d_control[nControl].d_perturb.reset()
 
-    def loadConfig(self, configFile: str=None, sim=None) -> None:
+    def loadConfig(self, configFile: str = None, sim=None) -> None:
         '''
         Init the COMPASS wih the configFile
         '''
@@ -349,20 +352,20 @@ class BenchSupervisor(AbstractSupervisor):
             raise RuntimeError("PYRHR not usable")
         self.is_init = True
 
-    def getWfsPhase(self, numWFS: int=0) -> np.ndarray:
+    def getWfsPhase(self, numWFS: int = 0) -> np.ndarray:
         '''
         return the WFS screen of WFS number numWFS
         '''
         raise NotImplementedError("Not implemented")
         # return self.atm.get_screen(numWFS)
 
-    def getDmShape(self, indDM: int=0) -> np.ndarray:
+    def getDmShape(self, indDM: int = 0) -> np.ndarray:
         '''
         return the indDM DM screen
         '''
         return np.array(self.dms.d_dms[indDM].d_shape)
 
-    def getTarPhase(self, numTar: int=0) -> np.ndarray:
+    def getTarPhase(self, numTar: int = 0) -> np.ndarray:
         '''
         return the target screen of target number numTar
         '''
@@ -375,7 +378,7 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         return self.iter
 
-    def getImat(self, nControl: int=0):
+    def getImat(self, nControl: int = 0):
         """
         Return the interaction matrix of the controller
 
@@ -385,7 +388,7 @@ class BenchSupervisor(AbstractSupervisor):
         """
         return np.array(self.rtc.d_control[nControl].d_imat)
 
-    def getCmat(self, nControl: int=0):
+    def getCmat(self, nControl: int = 0):
         """
         Return the command matrix of the controller
 
@@ -395,7 +398,7 @@ class BenchSupervisor(AbstractSupervisor):
         """
         return np.array(self.rtc.d_control[nControl].d_cmat)
 
-    def setCentroThresh(self, nCentro: int=0, thresh: float=0.):
+    def setCentroThresh(self, nCentro: int = 0, thresh: float = 0.):
         """
         Set the threshold value of a thresholded COG
 
@@ -406,7 +409,7 @@ class BenchSupervisor(AbstractSupervisor):
         """
         self.rtc.d_centro[nCentro].set_threshold(thresh)
 
-    def setPyrMethod(self, pyrMethod, nCentro: int=0):
+    def setPyrMethod(self, pyrMethod, nCentro: int = 0):
         '''
         Set pyramid compute method
         '''
