@@ -13,10 +13,10 @@ if( ${CUDA_SM} STREQUAL "ALL")
 endif()
 
 foreach(SM ${CUDA_SM})
-string( APPEND CUDA_ARCH "-gencode arch=compute_${SM},code=sm_${SM} ")
+list( APPEND CUDA_ARCH -gencode arch=compute_${SM},code=sm_${SM})
 endforeach(SM)
 
-string(APPEND CMAKE_CUDA_FLAGS ${CUDA_ARCH})
+#string(APPEND CMAKE_CUDA_FLAGS ${CUDA_ARCH})
 
 project(carma
     VERSION ${VERSION_INFO}
@@ -99,7 +99,7 @@ target_include_directories(carma
 target_compile_options(carma
     PUBLIC
     $<$<COMPILE_LANGUAGE:CXX>:-DVERSION_INFO=${VERSION_INFO}>
-    $<$<COMPILE_LANGUAGE:CUDA>:-use_fast_math >
+    $<$<COMPILE_LANGUAGE:CUDA>:${CUDA_ARCH} -use_fast_math >
     PRIVATE
     $<$<COMPILE_LANGUAGE:CXX>:-DUSE_MAGMA ${MAGMA_CFLAGS_OTHER}>
 )
