@@ -10,7 +10,7 @@ import pstats as ps
 
 import sys, os
 import numpy as np
-import naga as ch
+import carmaWrap as ch
 import shesha as ao
 import time
 import matplotlib.pyplot as pl
@@ -41,7 +41,7 @@ else:
 
 #initialisation:
 #   context
-c = ch.naga_context()
+c = ch.carmaWrap_context()
 c.set_activeDevice(0)
 
 #    wfs

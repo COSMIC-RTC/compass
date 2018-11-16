@@ -27,16 +27,16 @@ import shesha.constants as scons
 from typing import Any, Dict, Tuple, Callable, List
 from .compassSupervisor import CompassSupervisor
 
-# from naga.obj import obj_Double2D
-# from naga.magma import syevd_Double, svd_host_Double
-# from naga.context import context as naga_context
+# from carmaWrap.obj import obj_Double2D
+# from carmaWrap.magma import syevd_Double, svd_host_Double
+# from carmaWrap.context import context as carmaWrap_context
 
-# from naga.host_obj import host_obj_Double1D, host_obj_Double2D
+# from carmaWrap.host_obj import host_obj_Double1D, host_obj_Double2D
 
 
 class CanapassSupervisor(CompassSupervisor):
 
-    def __init__(self, configFile: str=None, BRAHMA: bool=True) -> None:
+    def __init__(self, configFile: str = None, BRAHMA: bool = True) -> None:
         CompassSupervisor.__init__(self, configFile=configFile, BRAHMA=BRAHMA)
 
         #############################################################
@@ -77,7 +77,7 @@ class CanapassSupervisor(CompassSupervisor):
             return
         return CompassSupervisor.getConfig(self)
 
-    def loadConfig(self, configFile: str=None, sim=None) -> None:
+    def loadConfig(self, configFile: str = None, sim=None) -> None:
         ''' Load the configuration for the compass supervisor'''
         CompassSupervisor.loadConfig(self, configFile=configFile, sim=sim)
         print("switching to a generic controller")
@@ -364,7 +364,7 @@ class CanapassSupervisor(CompassSupervisor):
 
         return couplesActus, indUnderSpiders
 
-    def compute_Btt2(self, inv_method: str="cpu_svd", merged=False, nbpairs=None):
+    def compute_Btt2(self, inv_method: str = "cpu_svd", merged=False, nbpairs=None):
 
         IF = self.getIFsparse(1)
         if (merged):
@@ -430,7 +430,7 @@ class CanapassSupervisor(CompassSupervisor):
         #     s = h_eig.getData()[::-1].copy()
         # elif inv_method == "gpu_evd":
         #     print("Doing EVD on GPU of a matrix...")
-        #     c = naga_context()
+        #     c = carmaWrap_context()
         #     m = gdg.shape[0]
         #     d_mat = obj_Double2D(c, data=gdg)
         #     d_U = obj_Double2D(c, data=np.zeros([m, m], dtype=np.float64))

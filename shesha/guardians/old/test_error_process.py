@@ -10,7 +10,7 @@ import pstats as ps
 
 import sys, os
 import numpy as np
-import naga as ch
+import carmaWrap as ch
 import shesha as ao
 import time
 import matplotlib.pyplot as pl
@@ -45,7 +45,7 @@ else:
 #clean = 1
 
 #   context
-c = ch.naga_context()
+c = ch.carmaWrap_context()
 
 
 def Init(config, device=0):
@@ -118,10 +118,11 @@ def check_param(config, niter, save=False, device=5):
     f_Kmed = []
     if (save):
         store = pandas.HDFStore("/home/fferreira/Data/resErrorProcessMicado2.h5")
-        df = pandas.DataFrame(columns=[
-                "bisimus", "monosimu", "dspm", "fm", "dspKmed", "fKmed", "config_mono",
-                "config_bi", "nm_rms_noise", "SRnoise", "SR"
-        ], dtype=object)
+        df = pandas.DataFrame(
+                columns=[
+                        "bisimus", "monosimu", "dspm", "fm", "dspKmed", "fKmed",
+                        "config_mono", "config_bi", "nm_rms_noise", "SRnoise", "SR"
+                ], dtype=object)
         store.put("results", df)
         store.close()
     for i in range(len(param)):
@@ -162,8 +163,7 @@ def process_err(config, niter, param, save=False, linear=False, device=0):
         FoV = 2.
         RASC = 180 / np.pi * 3600.
         d = config.p_tel.diam / config.p_wfss[0].nxsub
-        pixsize = config.p_wfss[
-                0].Lambda * 1e-6 / d * RASC / 2.5  #bit better than Shannon
+        pixsize = config.p_wfss[0].Lambda * 1e-6 / d * RASC / 2.5  #bit better than Shannon
         config.p_wfss[0].set_pixsize(pixsize)
         config.p_wfss[0].set_npix(int(FoV / pixsize))
     if (save):
@@ -195,16 +195,16 @@ def process_err(config, niter, param, save=False, linear=False, device=0):
     config.p_dms[0].set_nact(param + 1)
     S = np.pi / 4. * (1 - config.p_tel.cobs**2) * config.p_tel.diam**2
     Nph = 300. * (40. / param)
-    m = Nph / (config.p_wfss[0].zerop * config.p_wfss[0].optthroughput * config.p_loop.
-               ittime * (config.p_tel.diam / config.p_wfss[0].nxsub)**2) * S
+    m = Nph / (config.p_wfss[0].zerop * config.p_wfss[0].optthroughput *
+               config.p_loop.ittime *
+               (config.p_tel.diam / config.p_wfss[0].nxsub)**2) * S
     m = np.log10(m) / 0.4 * (-1)
     #config.p_wfss[0].set_gsmag(m)
     if (linear):
         FoV = 2.
         RASC = 180 / np.pi * 3600.
         d = config.p_tel.diam / config.p_wfss[0].nxsub
-        pixsize = config.p_wfss[
-                0].Lambda * 1e-6 / d * RASC / 2.5  #bit better than Shannon
+        pixsize = config.p_wfss[0].Lambda * 1e-6 / d * RASC / 2.5  #bit better than Shannon
         config.p_wfss[0].set_pixsize(pixsize)
         config.p_wfss[0].set_npix(int(FoV / pixsize))
 

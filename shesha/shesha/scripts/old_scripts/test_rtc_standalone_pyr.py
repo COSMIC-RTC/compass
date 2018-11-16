@@ -13,7 +13,7 @@ Options:
 from docopt import docopt
 from tqdm import tqdm
 
-from naga import threadSync
+from carmaWrap import threadSync
 import numpy as np
 import shesha.sim
 import shesha.init
@@ -44,8 +44,7 @@ p_centroider = sim.config.p_centroider0
 scale = (p_wfs.Lambda * 1e-6 / sim.config.p_tel.diam) * \
             p_wfs.pyr_ampl * CONST.RAD2ARCSEC
 
-rtc_standalone = shesha_init.rtc_standalone(sim.c,
-                                            len(sim.config.p_wfss), nvalid, nactu,
+rtc_standalone = shesha_init.rtc_standalone(sim.c, len(sim.config.p_wfss), nvalid, nactu,
                                             sim.config.p_centroider0.type,
                                             sim.config.p_controller0.delay, offset,
                                             scale)
@@ -53,7 +52,8 @@ rtc_standalone.set_cmat(0, sim.rtc.get_cmat(0))
 rtc_standalone.set_decayFactor(0, np.ones(nactu, dtype=np.float32))
 rtc_standalone.set_matE(0, np.identity(nactu, dtype=np.float32))
 rtc_standalone.set_mgain(
-        0, np.ones(nactu, dtype=np.float32) * sim.config.p_controller0.gain)
+        0,
+        np.ones(nactu, dtype=np.float32) * sim.config.p_controller0.gain)
 
 s_ref = np.zeros((sim.config.p_loop.niter, 2 * nvalid.sum()), dtype=np.float32)
 s = s_ref.copy()

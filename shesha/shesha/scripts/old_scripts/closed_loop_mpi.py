@@ -5,12 +5,12 @@ import pstats as ps
 
 import sys
 import numpy as np
-import naga as ch
+import carmaWrap as ch
 import shesha as ao
 import time
 
 rank = int(os.environ['OMPI_COMM_WORLD_RANK'])
-c = ch.naga_context()
+c = ch.carmaWrap_context()
 c.set_activeDevice(rank % c.get_ndevice())
 
 # Delay import because of cuda_aware

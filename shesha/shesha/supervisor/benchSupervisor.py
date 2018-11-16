@@ -3,7 +3,7 @@ import numpy as np
 from shesha.constants import CentroiderType, WFSType
 from shesha.init.dm_init import dm_init_standalone
 from shesha.init.rtc_init import rtc_standalone
-from shesha.sutra_wrap import naga_context
+from shesha.sutra_wrap import carmaWrap_context
 
 from .abstractSupervisor import AbstractSupervisor
 

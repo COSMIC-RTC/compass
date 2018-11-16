@@ -29,7 +29,7 @@ sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/src/shesha_util/")
 #from adoptLib import computeKLModesImat, computeCmatModal
 from shesha.util import tools
 import numpy as np
-import naga as ch
+import carmaWrap as ch
 import shesha.config as ao
 import shesha.sim
 import shesha.constants as scons
@@ -187,7 +187,7 @@ else:
     param_dict = h5u.params_dictionary(config)
     matricesToLoad = h5u.checkMatricesDataBase(os.environ["SHESHA_ROOT"] + "/data/",
                                                config, param_dict)
-c = ch.naga_context(devices=GPUs)
+c = ch.carmaWrap_context(devices=GPUs)
 
 
 class wao_class():
@@ -416,8 +416,8 @@ simunames = {
 resAll = db.readDataBase(fullpath=dBResult)  # Reads all the database if exists
 if (not (type(resAll) == pd.core.frame.DataFrame)):
     print("Creating compass database")
-    resAll = db.createDf(list(colnames.keys()) +
-                         list(simunames.keys()))  # Creates the global compass Db
+    resAll = db.createDf(list(colnames.keys()) + list(
+            simunames.keys()))  # Creates the global compass Db
 
 # -----------------------------------------------------------------------------
 # ----------- Replacing values from user defined variables-------------------
@@ -653,8 +653,8 @@ for t in range(config.p_target.ntargets):
     lam2 = "%3.2f" % tar.Lambda.tolist()[t]
     res.loc[0, "SR_%s" % lam2] = SR[t]
     PSFPixsize = (tar.Lambda.tolist()[t] * 1e-6) / (
-            wao.config.p_tel.diam / wao.config.p_geom.get_spupil(
-            ).shape[0] * wao.config.p_geom.get_ipupil().shape[0]) * 206265.
+            wao.config.p_tel.diam / wao.config.p_geom.get_spupil().shape[0] *
+            wao.config.p_geom.get_ipupil().shape[0]) * 206265.
     res.loc[0, "pixsizeArcSec_%s" % lam2] = PSFPixsize
     filepath = pathResults + "/PSFs/" + PSFName
     if (savePSFs):

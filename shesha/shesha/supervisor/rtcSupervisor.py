@@ -4,12 +4,12 @@ import Octopus
 from shesha.constants import CentroiderType, WFSType
 from shesha.util.utilities import load_config_from_file
 
-from .benchSupervisor import BenchSupervisor, naga_context, rtc_standalone
+from .benchSupervisor import BenchSupervisor, carmaWrap_context, rtc_standalone
 
 
 class RTCSupervisor(BenchSupervisor):
 
-    def __init__(self, configFile: str=None, BRAHMA: bool=False):
+    def __init__(self, configFile: str = None, BRAHMA: bool = False):
         '''
         Init the COMPASS wih the configFile
         '''
@@ -46,7 +46,7 @@ class RTCSupervisor(BenchSupervisor):
         '''
         ...
 
-    def loop(self, n: int=1, monitoring_freq: int=100, **kwargs):
+    def loop(self, n: int = 1, monitoring_freq: int = 100, **kwargs):
         """
         Perform the AO loop for n iterations
 
@@ -56,8 +56,8 @@ class RTCSupervisor(BenchSupervisor):
         """
         self.loop(n, monitoring_freq=monitoring_freq)
 
-    def singleNext(self, moveAtmos: bool=True, showAtmos: bool=True, getPSF: bool=False,
-                   getResidual: bool=False) -> None:
+    def singleNext(self, moveAtmos: bool = True, showAtmos: bool = True,
+                   getPSF: bool = False, getResidual: bool = False) -> None:
         '''
         Move atmos -> getSlope -> applyControl ; One integrator step
         '''
@@ -99,7 +99,7 @@ class RTCSupervisor(BenchSupervisor):
         # print(comms)
         self.fakedms.send(comms)
 
-    def loadConfig(self, configFile: str=None) -> None:
+    def loadConfig(self, configFile: str = None) -> None:
         '''
         Init the COMPASS wih the configFile
         '''
@@ -114,8 +114,9 @@ class RTCSupervisor(BenchSupervisor):
             raise RuntimeError("multi WFS not supported")
         p_wfs = self.config.p_wfss[0]
 
-        # self.context = naga_context.get_instance_1gpu(0)
-        self.context = naga_context.get_instance_ngpu(1, np.array([0], dtype=np.int32))
+        # self.context = carmaWrap_context.get_instance_1gpu(0)
+        self.context = carmaWrap_context.get_instance_ngpu(1,
+                                                           np.array([0], dtype=np.int32))
 
         print("->cam")
         self.frame = np.zeros((p_wfs._framesizex, p_wfs._framesizey), dtype=np.float32,
@@ -174,7 +175,7 @@ class RTCSupervisor(BenchSupervisor):
 
         self.is_init = True
 
-    def getRawWFSImage(self, numWFS: int=0) -> np.ndarray:
+    def getRawWFSImage(self, numWFS: int = 0) -> np.ndarray:
         '''
         Get an image from the WFS
         '''

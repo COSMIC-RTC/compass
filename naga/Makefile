@@ -14,7 +14,7 @@ LIB_DEPLIBS   := -Wl,-rpath=$(COMPASS_ROOT)/libcarma -L$(COMPASS_ROOT)/libcarma
 LIB_DEPLIBS   += -L$(CONDA_ROOT)/lib
 LIB_DEPLIBS   += -ldl -lrt -lpython3.6m -lcarma
 OBJ_CPP := $(patsubst $(CPP_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_CPP))
-LIB = naga.cpython-36m-x86_64-linux-gnu.so
+LIB = carmaWrap.cpython-36m-x86_64-linux-gnu.so
 
 all: $(LIB)
 

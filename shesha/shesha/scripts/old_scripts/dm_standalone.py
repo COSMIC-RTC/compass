@@ -4,7 +4,7 @@
 import sys
 import os
 # import numpy as np
-import naga as ch
+import carmaWrap as ch
 import shesha.config as conf
 import time
 import numpy as np
@@ -46,10 +46,10 @@ else:
 
 
 #   context
-c = ch.naga_context(0)
-# c = ch.naga_context(devices=np.array([0,1], dtype=np.int32))
-# c.set_activeDevice(0) #useful only if you use ch.naga_context()
-# c = ch.naga_context(devices=config.p_loop.devices)
+c = ch.carmaWrap_context(0)
+# c = ch.carmaWrap_context(devices=np.array([0,1], dtype=np.int32))
+# c.set_activeDevice(0) #useful only if you use ch.carmaWrap_context()
+# c = ch.carmaWrap_context(devices=config.p_loop.devices)
 
 config.p_dm0.set_pzt_extent(0)
 #   dm

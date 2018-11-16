@@ -21,11 +21,11 @@ import shesha.constants as scons
 
 from .benchSupervisor import BenchSupervisor
 
-# from naga.obj import obj_Double2D
-# from naga.magma import syevd_Double, svd_host_Double
-# from naga.context import context as naga_context
+# from carmaWrap.obj import obj_Double2D
+# from carmaWrap.magma import syevd_Double, svd_host_Double
+# from carmaWrap.context import context as carmaWrap_context
 
-# from naga.host_obj import host_obj_Double1D, host_obj_Double2D
+# from carmaWrap.host_obj import host_obj_Double1D, host_obj_Double2D
 
 
 class AtlasSupervisor(BenchSupervisor):

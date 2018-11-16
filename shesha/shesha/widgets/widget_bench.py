@@ -48,8 +48,8 @@ from shesha.supervisor.benchSupervisor import WFSType, BenchSupervisor as Superv
 
 class widgetBenchWindow(BenchClassTemplate, WidgetBase):
 
-    def __init__(self, configFile: Any=None, BRAHMA: bool=False,
-                 devices: str=None) -> None:
+    def __init__(self, configFile: Any = None, BRAHMA: bool = False,
+                 devices: str = None) -> None:
         WidgetBase.__init__(self)
         BenchClassTemplate.__init__(self)
 
@@ -118,7 +118,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
     def updateForever(self, state):
         self.uiBench.wao_nbiters.setDisabled(state)
 
-    def add_dispDock(self, name: str, parent, type: str="pg_image") -> None:
+    def add_dispDock(self, name: str, parent, type: str = "pg_image") -> None:
         d = WidgetBase.add_dispDock(self, name, parent, type)
         if type == "SR":
             d.addWidget(self.uiBench.wao_Strehl)
@@ -200,7 +200,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
         self.supervisor.initConfig()
 
     def initConfigFinished(self) -> None:
-        # Thread naga context reload:
+        # Thread carmaWrap context reload:
         self.supervisor.forceContext()
 
         print(self.supervisor)
@@ -251,8 +251,8 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
                             vx = centroids[:nssp]
                             vy = centroids[nssp:]
 
-                            offset = (self.supervisor._sim.config.p_wfss[index].npix - 1
-                                      ) / 2
+                            offset = (self.supervisor._sim.config.p_wfss[index].npix -
+                                      1) / 2
                             self.imgs[key].canvas.axes.quiver(
                                     x + offset, y + offset, vy, vx, angles='xy',
                                     scale_units='xy', scale=1

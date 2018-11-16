@@ -12,9 +12,9 @@ from pandas import DataFrame, HDFStore
 
 import shesha.constants as scons
 import shesha.init as init
-from naga.context import context as naga_context
-from naga.timer import timer as naga_timer
-from naga.timer import threadSync
+from carmaWrap.context import context as carmaWrap_context
+from carmaWrap.timer import timer as carmaWrap_timer
+from carmaWrap.timer import threadSync
 
 
 def get_processor_name():
@@ -40,10 +40,10 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
         controller: (str) : controller type
     """
 
-    c = naga_context(devices=np.array(devices, dtype=np.int32))
+    c = carmaWrap_context(devices=np.array(devices, dtype=np.int32))
     #     c.set_activeDevice(device)
 
-    timer = naga_timer()
+    timer = carmaWrap_timer()
 
     # times measured
     synctime = 0.

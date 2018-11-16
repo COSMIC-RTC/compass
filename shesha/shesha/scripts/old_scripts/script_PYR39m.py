@@ -7,7 +7,7 @@ sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/lib/")
 #from adoptLib import computeKLModesImat, computeCmatModal
 from shesha.util import tools
 import numpy as np
-import naga as ch
+import carmaWrap as ch
 import shesha as ao
 import time
 import matplotlib.pyplot as plt
@@ -99,7 +99,7 @@ else:
                                                config, param_dict)
 #initialisation:
 #   context
-c = ch.naga_context(devices=np.array([0, 1, 2, 3], dtype=np.int32))
+c = ch.carmaWrap_context(devices=np.array([0, 1, 2, 3], dtype=np.int32))
 
 #c.set_activeDevice(6)
 
@@ -213,6 +213,7 @@ def loop(n, wfs, tel, atm, dms, tar, rtc):
             sr_se.append(SR[0])
             numiter.append(i + 1)
 
+
 #
 #        plt.pause(0.01)
 #        plt.scatter(numiter, sr_le, color="green", label="Long Exposure")
@@ -263,8 +264,8 @@ simunames = {
 resAll = db.readDataBase(fullpath=dBResult)  # Reads all the database if exists
 if (not (type(resAll) == pd.core.frame.DataFrame)):
     print("Creating compass database")
-    resAll = db.createDf(list(colnames.keys()) +
-                         list(simunames.keys()))  # Creates the global compass Db
+    resAll = db.createDf(list(colnames.keys()) + list(
+            simunames.keys()))  # Creates the global compass Db
 
 #res = db.addcolumn(res,simunames)
 
@@ -296,8 +297,8 @@ for freq in freqs:
                     NCurrSim += 1
                     config.p_wfs0.set_gsmag(magnitude)
                     res = pd.DataFrame(
-                            columns=list(colnames.keys()) +
-                            list(simunames.keys()))  # Create Db for last result
+                            columns=list(colnames.keys()) + list(
+                                    simunames.keys()))  # Create Db for last result
                     print("Freq = %3.2f Hz" % (1. / config.p_loop.ittime))
                     print("Magnitude = %3.2f" % config.p_wfs0.gsmag)
                     print("Gain = %3.2f" % config.p_controller0.gain)
@@ -347,8 +348,8 @@ for freq in freqs:
                         PSFName = "PYR_" + lam + "_" + date + ".fits"
                         PSFNameList.append(PSFName)
                         #PSFNameList.append("NOT SAVED")
-                        pf.writeto(pathResults + "PSFs/" + PSFName,
-                                   PSFtarget.copy(), clobber=True)
+                        pf.writeto(pathResults + "PSFs/" + PSFName, PSFtarget.copy(),
+                                   clobber=True)
                         lam2 = "%3.2f" % tar.Lambda.tolist()[t]
                         res.loc[0, "SR_%s" % lam2] = SR[t]
                         filepath = pathResults + "PSFs/" + PSFName

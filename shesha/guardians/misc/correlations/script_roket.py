@@ -9,7 +9,7 @@ import pstats as ps
 
 import sys, os
 import numpy as np
-import naga as ch
+import carmaWrap as ch
 import shesha as ao
 import time
 import matplotlib.pyplot as plt
@@ -25,7 +25,7 @@ from scipy.sparse import csr_matrix
 # | | | | | | |_\__ \
 # |_|_| |_|_|\__|___/
 ############################################################################
-c = ch.naga_context(devices=np.array([6, 7], dtype=np.int32))
+c = ch.carmaWrap_context(devices=np.array([6, 7], dtype=np.int32))
 
 
 def InitConfig(config):
@@ -48,8 +48,8 @@ def InitConfig(config):
                                                    config, param_dict)
     #initialisation:
     #   context
-    #c=ch.naga_context(device)
-    c = ch.naga_context(devices=np.array([6, 7], dtype=np.int32))
+    #c=ch.carmaWrap_context(device)
+    c = ch.carmaWrap_context(devices=np.array([6, 7], dtype=np.int32))
     #c.set_activeDevice(device)
 
     #    wfs

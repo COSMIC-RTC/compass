@@ -13,7 +13,7 @@ Options:
 from docopt import docopt
 from tqdm import tqdm
 
-from naga import threadSync
+from carmaWrap import threadSync
 import numpy as np
 import shesha.sim
 import shesha.init
@@ -35,15 +35,15 @@ sim.init_sim()
 nactu = sim.config.p_controller0.nactu
 nvalid = sim.config.p_controller0.nvalid
 rtc_standalone = shesha_init.rtc_standalone(
-        sim.c,
-        len(sim.config.p_wfss), nvalid, nactu, sim.config.p_centroider0.type,
+        sim.c, len(sim.config.p_wfss), nvalid, nactu, sim.config.p_centroider0.type,
         sim.config.p_controller0.delay, sim.config.p_wfs0.npix // 2 - 0.5,
         sim.config.p_wfs0.pixsize)
 rtc_standalone.set_cmat(0, sim.rtc.get_cmat(0))
 rtc_standalone.set_decayFactor(0, np.ones(nactu, dtype=np.float32))
 rtc_standalone.set_matE(0, np.identity(nactu, dtype=np.float32))
 rtc_standalone.set_mgain(
-        0, np.ones(nactu, dtype=np.float32) * sim.config.p_controller0.gain)
+        0,
+        np.ones(nactu, dtype=np.float32) * sim.config.p_controller0.gain)
 
 s_ref = np.zeros((sim.config.p_loop.niter, 2 * nvalid.sum()), dtype=np.float32)
 s = s_ref.copy()

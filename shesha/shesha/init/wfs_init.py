@@ -8,17 +8,17 @@ from shesha.constants import CONST
 from shesha.util.utilities import complextofloat2
 
 from . import lgs_init as LGS
-from shesha.sutra_wrap import naga_context, Sensors, Telescope
+from shesha.sutra_wrap import carmaWrap_context, Sensors, Telescope
 import numpy as np
 
 
-def wfs_init(context: naga_context, telescope: Telescope, p_wfss: list,
+def wfs_init(context: carmaWrap_context, telescope: Telescope, p_wfss: list,
              p_tel: conf.Param_tel, p_geom: conf.Param_geom, p_dms=None, p_atmos=None):
     """
     Create and initialise  a Sensors object
 
     :parameters:
-        context : (naga_context)
+        context : (carmaWrap_context)
         telescope: (Telescope) : Telescope object
         p_wfss: (list of Param_wfs) : wfs settings
         p_tel: (Param_tel) : telescope settings

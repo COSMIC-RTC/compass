@@ -10,7 +10,7 @@ Created on Wed Oct 9 14:03:29 2017
 import sys
 import os
 # import numpy as np
-import naga as ch
+import carmaWrap as ch
 import shesha as ao
 import time
 import matplotlib.pyplot as plt
@@ -67,10 +67,10 @@ if (simul_name != ""):
 # initialisation:
 
 #   context
-# c = ch.naga_context(0)
-# c = ch.naga_context(devices=np.array([0,1], dtype=np.int32))
-# c.set_activeDevice(0) #useful only if you use ch.naga_context()
-c = ch.naga_context(devices=config.p_loop.devices)
+# c = ch.carmaWrap_context(0)
+# c = ch.carmaWrap_context(devices=np.array([0,1], dtype=np.int32))
+# c.set_activeDevice(0) #useful only if you use ch.carmaWrap_context()
+c = ch.carmaWrap_context(devices=config.p_loop.devices)
 #    wfs
 print("->wfs")
 wfs, tel = ao.wfs_init(config.p_wfss, config.p_atmos, config.p_tel, config.p_geom,
@@ -186,8 +186,8 @@ def get_slope_pyrhr(npup, valid_pixel):
     #gz = (pup[:,0] - pup[:,1] - pup[:,2] + pup[:,3]) / t
 
     slope = np.append(gx, gy) * (
-            (config.p_wfss[0].pyr_ampl * config.p_wfss[0].Lambda * 1e-6
-             ) / config.p_tel.diam) * (180 / np.pi) * 3600
+            (config.p_wfss[0].pyr_ampl * config.p_wfss[0].Lambda * 1e-6) /
+            config.p_tel.diam) * (180 / np.pi) * 3600
 
     return slope
 
@@ -275,20 +275,20 @@ def loop(n, d_valid_pix=[], d_P=[], offset=[],
                                                       cube_im[i].shape[0] - 2).astype(
                                                               np.float32)  # crop image
 
-                            d_imhr = ch.naga_obj_Float2D(
-                                    ch.naga_context(), data=pyr_im_crop /
+                            d_imhr = ch.carmaWrap_obj_Float2D(
+                                    ch.carmaWrap_context(), data=pyr_im_crop /
                                     (bin_factor[fake_it]**2))  # inject pyr_image in GPU
                             d_imlr = d_P[fake_it].gemm(d_imhr, 't', 'n').gemm(
                                     d_P[fake_it])  # bining GPU
                         else:
                             if (cube_im == []):
                                 pyr_im = pyr_aquisition(i)  # aquistion image
-                                d_imlr = ch.naga_obj_Float2D(
-                                        ch.naga_context(),
+                                d_imlr = ch.carmaWrap_obj_Float2D(
+                                        ch.carmaWrap_context(),
                                         data=pyr_im)  # inject pyr_image in GPU
                             else:
-                                d_imlr = ch.naga_obj_Float2D(
-                                        ch.naga_context(),
+                                d_imlr = ch.carmaWrap_obj_Float2D(
+                                        ch.carmaWrap_context(),
                                         data=cube_im[i])  # inject pyr_image in GPU
                         # valable seulmement pour wf0 :
                         wfs.copy_pyrimg(
@@ -366,9 +366,8 @@ for f in range(sum(bool_fake_wfs)):
                                     bin_factor=bin_factor[f],
                                     crop_factor=crop_factor[f])  # calcul offset for wfs
         d_P.append(
-                ch.naga_obj_Float2D(ch.naga_context(),
-                                    data=create_P(bin_factor[f],
-                                                  size_c[f])))  # add wfs offset on GPU
+                ch.carmaWrap_obj_Float2D(ch.carmaWrap_context(), data=create_P(
+                        bin_factor[f], size_c[f])))  # add wfs offset on GPU
     else:
         d_P.append([])
 
@@ -381,17 +380,17 @@ if (bool_fake_wfs[w] == 1):  # verif fake_wfs
         npup = config.p_wfss[w]._validsubsx.shape[0]
         valid_pix = np.zeros((2, npup), dtype=np.int32)
         d_P.append(
-                ch.naga_obj_Float2D(ch.naga_context(), data=create_P(
-                        bin_factor[w], size_c[w])))
+                ch.carmaWrap_obj_Float2D(ch.carmaWrap_context(),
+                                         data=create_P(bin_factor[w], size_c[w])))
         valid_pix[0, :] = np.int32(config.p_wfss[w]._validsubsx + offset[0, :, w].repeat(
                 config.p_wfss[w]._nvalid))  # cacul new X  new validsubx
         valid_pix[1, :] = np.int32(config.p_wfss[w]._validsubsy + offset[1, :, w].repeat(
                 config.p_wfss[w]._nvalid))  # cacul new Y  new validsuby
 
-        #d_valid_pix =  ch.naga_obj_Float2D(ch.naga_context(), data=valid_pix)
+        #d_valid_pix =  ch.carmaWrap_obj_Float2D(ch.carmaWrap_context(), data=valid_pix)
         d_valid_pix.append([
-                ch.naga_obj_Int1D(ch.naga_context(), data=valid_pix[0, :]),
-                ch.naga_obj_Int1D(ch.naga_context(), data=valid_pix[1, :])
+                ch.carmaWrap_obj_Int1D(ch.carmaWrap_context(), data=valid_pix[0, :]),
+                ch.carmaWrap_obj_Int1D(ch.carmaWrap_context(), data=valid_pix[1, :])
         ])  # add valid subpix coord in GPU
         loop(100, d_valid_pix, d_P, offset=offset, bool_fake_wfs=bool_fake_wfs,
              cube_im=pyr_im_cube, bin_factor=bin_factor,

@@ -4,7 +4,7 @@
 import sys
 import os
 # import numpy as np
-import naga as ch
+import carmaWrap as ch
 import shesha as ao
 import time
 import hdf5_utils as h5u
@@ -51,10 +51,10 @@ config.p_geom.set_pupdiam(500)
 # initialisation:
 
 #   context
-# c = ch.naga_context(0)
-# c = ch.naga_context(devices=np.array([0,1], dtype=np.int32))
-# c.set_activeDevice(0) #useful only if you use ch.naga_context()
-c = ch.naga_context(devices=config.p_loop.devices)
+# c = ch.carmaWrap_context(0)
+# c = ch.carmaWrap_context(devices=np.array([0,1], dtype=np.int32))
+# c.set_activeDevice(0) #useful only if you use ch.carmaWrap_context()
+c = ch.carmaWrap_context(devices=config.p_loop.devices)
 
 #    wfs
 print("->wfs")

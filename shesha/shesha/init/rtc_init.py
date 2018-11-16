@@ -13,18 +13,18 @@ from shesha.init import dm_init
 from typing import List
 
 import numpy as np
-from shesha.sutra_wrap import naga_context, Sensors, Dms, Target, Rtc, Rtc_brahma, Atmos, Telescope
+from shesha.sutra_wrap import carmaWrap_context, Sensors, Dms, Target, Rtc, Rtc_brahma, Atmos, Telescope
 
 
-def rtc_init(context: naga_context, tel: Telescope, wfs: Sensors, dms: Dms, atmos: Atmos,
-             p_wfss: list, p_tel: conf.Param_tel, p_geom: conf.Param_geom,
+def rtc_init(context: carmaWrap_context, tel: Telescope, wfs: Sensors, dms: Dms,
+             atmos: Atmos, p_wfss: list, p_tel: conf.Param_tel, p_geom: conf.Param_geom,
              p_atmos: conf.Param_atmos, ittime: float, p_centroiders=None,
              p_controllers=None, p_dms=None, do_refslp=False, brahma=False, tar=None,
              dataBase={}, use_DB=False):
     """Initialize all the sutra_rtc objects : centroiders and controllers
 
     :parameters:
-        context: (naga_context): context
+        context: (carmaWrap_context): context
         tel: (Telescope) : Telescope object
         wfs: (Sensors) : Sensors object
         dms: (Dms) : Dms object
@@ -116,7 +116,7 @@ def rtc_init(context: naga_context, tel: Telescope, wfs: Sensors, dms: Dms, atmo
     return rtc
 
 
-def rtc_standalone(context: naga_context, nwfs: int, nvalid, nactu: int,
+def rtc_standalone(context: carmaWrap_context, nwfs: int, nvalid, nactu: int,
                    centroider_type: bytes, delay: float, offset: float, scale: float,
                    brahma: bool = False):
     """
@@ -144,7 +144,7 @@ def init_centroider(context, nwfs: int, p_wfs: conf.Param_wfs,
     """ Initialize a centroider object in Rtc
 
     :parameters:
-        context: (naga_context): context
+        context: (carmaWrap_context): context
         nwfs : (int) : index of wfs
         p_wfs : (Param_wfs): wfs settings
         p_centroider : (Param_centroider) : centroider settings
@@ -277,7 +277,7 @@ def init_controller(context, i: int, p_controller: conf.Param_controller, p_wfss
         Initialize the controller part of rtc
 
     :parameters:
-        context: (naga_context): context
+        context: (carmaWrap_context): context
         i : (int) : controller index
         p_controller: (Param_controller) : controller settings
         p_wfss: (list of Param_wfs) : wfs settings

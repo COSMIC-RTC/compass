@@ -9,7 +9,7 @@ import pstats as ps
 
 import sys, os
 import numpy as np
-import naga as ch
+import carmaWrap as ch
 import shesha as ao
 import time
 import matplotlib.pyplot as pl
@@ -72,8 +72,8 @@ else:
                                                config, param_dict)
 #initialisation:
 #   context
-#c=ch.naga_context(7)
-c = ch.naga_context(devices=np.array([6], dtype=np.int32))
+#c=ch.carmaWrap_context(7)
+c = ch.carmaWrap_context(devices=np.array([6], dtype=np.int32))
 #c.set_activeDevice(device)
 
 #    wfs
@@ -344,8 +344,8 @@ def error_breakdown(com, noise_com, alias_wfs_com, tomo_com, H_com, trunc_com, b
     if (config.p_wfss[0].type == b"sh"):
         ideal_bincube = wfs.get_bincubeNotNoisy(0)
         bincube = wfs.get_bincube(0)
-        if (config.p_centroiders[0].type ==
-                    b"tcog"):  # Select the same pixels with or without noise
+        if (config.p_centroiders[0].type == b"tcog"
+            ):  # Select the same pixels with or without noise
             invalidpix = np.where(bincube <= config.p_centroiders[0].thresh)
             ideal_bincube[invalidpix] = 0
             rtc.setthresh(0, -1e16)
@@ -401,8 +401,8 @@ def error_breakdown(com, noise_com, alias_wfs_com, tomo_com, H_com, trunc_com, b
     rtc.docontrol(0)
     Ageom = rtc.getErr(0)
     if (i + 1 < config.p_loop.niter):
-        alias_wfs_com[i + 1, :] = gRD.dot(alias_wfs_com[i, :]) + gamma * g * (
-                Ageom)  # - (E-F))
+        alias_wfs_com[i + 1, :] = gRD.dot(
+                alias_wfs_com[i, :]) + gamma * g * (Ageom)  # - (E-F))
 
     ###########################################################################
     ## Wavefront + filtered modes reconstruction

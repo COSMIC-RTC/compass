@@ -5,7 +5,7 @@ sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/widgets/")
 
 from shesha.util import tools
 import numpy as np
-import naga as ch
+import carmaWrap as ch
 import shesha as ao
 import time
 import matplotlib.pyplot as plt
@@ -99,7 +99,7 @@ else:
                                                config, param_dict)
 #initialisation:
 #   context
-c = ch.naga_context(devices=np.array([0, 1, 2, 3], dtype=np.int32))
+c = ch.carmaWrap_context(devices=np.array([0, 1, 2, 3], dtype=np.int32))
 
 #c.set_activeDevice(6)
 
@@ -213,6 +213,7 @@ def loop(n, wfs, tel, atm, dms, tar, rtc):
             sr_se.append(SR[0])
             numiter.append(i + 1)
 
+
 #
 #        plt.pause(0.01)
 #        plt.scatter(numiter, sr_le, color="green", label="Long Exposure")
@@ -263,8 +264,8 @@ resAll = db.readDataBase(
         fullpath=pathResults + dBResult)  # Reads all the database if exists
 if (not (type(resAll) == pd.core.frame.DataFrame)):
     print("Creating compass database")
-    resAll = db.createDf(list(colnames.keys()) +
-                         list(simunames.keys()))  # Creates the global compass Db
+    resAll = db.createDf(list(colnames.keys()) + list(
+            simunames.keys()))  # Creates the global compass Db
 
 #res = db.addcolumn(res,simunames)
 

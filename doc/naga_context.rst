@@ -1,15 +1,15 @@
 *******************
-:mod:`naga_context`
+:mod:`carmaWrap_context`
 *******************
 
-.. _naga_context module:
+.. _carmaWrap_context module:
 
-.. currentmodule:: naga_context
+.. currentmodule:: carmaWrap_context
 
-:class:`naga_context`
+:class:`carmaWrap_context`
 =====================
 
-.. autoclass:: naga_context
+.. autoclass:: carmaWrap_context
     :members:
     :inherited-members:
     :undoc-members:

@@ -1,15 +1,15 @@
 *****************
-:mod:`naga_timer`
+:mod:`carmaWrap_timer`
 *****************
 
-.. _naga_timer module:
+.. _carmaWrap_timer module:
 
-.. currentmodule:: naga_timer
+.. currentmodule:: carmaWrap_timer
 
-:class:`naga_timer`
+:class:`carmaWrap_timer`
 ===================
 
-.. autoclass:: naga_timer
+.. autoclass:: carmaWrap_timer
     :members:
     :inherited-members:
     :undoc-members:

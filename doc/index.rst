@@ -14,7 +14,7 @@ Contents:
 .. toctree::
    :maxdepth: 3
 
-   naga.rst
+   carmaWrap.rst
    shesha.rst
 
 Indices and tables

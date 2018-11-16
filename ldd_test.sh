@@ -17,13 +17,13 @@ echo "################################################"
 #echo "################################################"
 #(cd libsutra && ldd -u libsutra.so)
 #echo "################################################"
-echo "ldd -d naga"
+echo "ldd -d carmaWrap"
 echo "################################################"
-(cd naga/build/lib.linux-x86_64-2.7 && ldd -d naga.so)
+(cd carmaWrap/build/lib.linux-x86_64-2.7 && ldd -d carmaWrap.so)
 echo "################################################"
-#echo "ldd -u naga"
+#echo "ldd -u carmaWrap"
 #echo "################################################"
-#(cd naga/build/lib.linux-x86_64-2.7 && ldd -u naga.so)
+#(cd carmaWrap/build/lib.linux-x86_64-2.7 && ldd -u carmaWrap.so)
 #echo "################################################"
 echo "ldd -d shesha"
 echo "################################################"

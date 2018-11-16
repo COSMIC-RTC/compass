@@ -9,7 +9,7 @@ Created on Wed Nov  9 14:03:29 2016
 import sys
 import os
 sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/widgets/")
-import naga as ch
+import carmaWrap as ch
 import shesha as ao
 
 print("TEST SHESHA_dm\n")
@@ -29,7 +29,7 @@ print("param_file is", param_file)
 #initialisation:
 #   context : gpu 0
 gpudevice = 0
-c = ch.naga_context(gpudevice)
+c = ch.carmaWrap_context(gpudevice)
 
 
 # fonction for init dm and geometry
