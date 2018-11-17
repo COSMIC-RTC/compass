@@ -286,17 +286,19 @@ int carma_obj<T_data>::copyFrom(const T_data *data, int nb_elem) {
 
 template <class T_data>
 T_data carma_obj<T_data>::sum() {
-  int nBlocks;
-  int nThreads;
+  return reduce<T_data>(this->d_data, this->nb_elem);
+  // int nBlocks;
+  // int nThreads;
 
-  this->current_context->set_activeDevice(device, 1);
-  sumGetNumBlocksAndThreads(this->nb_elem,
-                            this->current_context->get_device(device), nBlocks,
-                            nThreads);
+  // this->current_context->set_activeDevice(device, 1);
+  // sumGetNumBlocksAndThreads(this->nb_elem,
+  //                           this->current_context->get_device(device),
+  //                           nBlocks, nThreads);
 
-  reduce<T_data>(this->nb_elem, nThreads, nBlocks, this->d_data, this->d_data);
+  // reduce<T_data>(this->nb_elem, nThreads, nBlocks, this->d_data,
+  // this->d_data);
 
-  carmaCheckMsg("Kernel execution failed");
+  // carmaCheckMsg("Kernel execution failed");
 
   // sum partial block sums on GPU
   /*
@@ -313,9 +315,9 @@ T_data carma_obj<T_data>::sum() {
 
   }
   */
-  T_data *h_odata = new T_data[nBlocks];
-  cudaMemcpy(h_odata, this->d_data, sizeof(T_data), cudaMemcpyDeviceToHost);
-  return h_odata[0];
+  // T_data *h_odata = new T_data[nBlocks];
+  // cudaMemcpy(h_odata, this->d_data, sizeof(T_data), cudaMemcpyDeviceToHost);
+  // return h_odata[0];
 }
 
 template <class T_data>
