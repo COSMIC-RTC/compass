@@ -1,4 +1,4 @@
-from naga.naga.array import zeros
+from naga.array import zeros
 
 
 def random(shape, seed=1234):

@@ -1,5 +1,5 @@
 import numpy as np
-from naga.naga.context import Context
+from naga.context import Context
 
 from carmaWrap import obj_float, obj_double, obj_int, obj_float_complex, obj_half
 
@@ -97,7 +97,7 @@ class Array():
         if isinstance(idata, float) or isinstance(idata, int):
             tmp = self.copy()
             tmp.data.scale(idata)
-            return idata
+            return tmp
         else:
             raise NotImplementedError("Operator not implemented yet")
 
