@@ -188,12 +188,6 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         self.rtc.d_control[0].set_cmat(cMat)
 
-    def setPyrModulation(self, pyrMod: float) -> None:
-        '''
-        Set pyramid modulation value - in l/D units
-        '''
-        raise NotImplementedError("Not implemented")
-
     def getRawWFSImage(self, numWFS: int = 0) -> np.ndarray:
         '''
         Get an image from the WFS
@@ -305,9 +299,14 @@ class BenchSupervisor(AbstractSupervisor):
         if wfsNb > 1:
             raise RuntimeError("multi WFS not supported")
 
+        if (hasattr(self.config, 'p_loop') and self.config.p_loop.devices.size > 1):
+            self.c = naga_context.get_instance_ngpu(self.config.p_loop.devices.size,
+                                                    self.config.p_loop.devices)
+        else:
+            self.c = naga_context.get_instance_1gpu(self.config.p_loop.devices[0])
+
         if p_wfs.type == WFSType.SH:
             self.npix = p_wfs.npix
-
             if p_wfs._validsubsx is None or \
                     p_wfs._validsubsy is None:
                 # import rtcData.DataInit as di
@@ -323,11 +322,9 @@ class BenchSupervisor(AbstractSupervisor):
                 p_wfs._nvalid = roiTab[0].size
                 p_wfs._validsubsx = roiTab[0]
                 p_wfs._validsubsy = roiTab[1]
-
             else:
                 p_wfs._nvalid = p_wfs._validsubsx.size
 
-            self.context = naga_context.get_instance_1gpu(0)
             nvalid = np.array([p_wfs._nvalid], dtype=np.int32)
             print("nvalid : %d" % nvalid)
             offset = (p_wfs.npix - 1) / 2
@@ -348,29 +345,11 @@ class BenchSupervisor(AbstractSupervisor):
                     np.ones(nact, dtype=np.float32) * (gain - 1))
             self.rtc.d_control[0].set_matE(np.identity(nact, dtype=np.float32))
             self.rtc.d_control[0].set_mgain(np.ones(nact, dtype=np.float32) * -gain)
+
         elif p_wfs.type == WFSType.PYRHR or p_wfs.type == WFSType.PYRLR:
             raise RuntimeError("PYRHR not usable")
+
         self.is_init = True
-
-    def getWfsPhase(self, numWFS: int = 0) -> np.ndarray:
-        '''
-        return the WFS screen of WFS number numWFS
-        '''
-        raise NotImplementedError("Not implemented")
-        # return self.atm.get_screen(numWFS)
-
-    def getDmShape(self, indDM: int = 0) -> np.ndarray:
-        '''
-        return the indDM DM screen
-        '''
-        return np.array(self.dms.d_dms[indDM].d_shape)
-
-    def getTarPhase(self, numTar: int = 0) -> np.ndarray:
-        '''
-        return the target screen of target number numTar
-        '''
-        raise NotImplementedError("Not implemented")
-        # return self.tar.get_phase(numTar)
 
     def getFrameCounter(self) -> int:
         '''
@@ -409,12 +388,19 @@ class BenchSupervisor(AbstractSupervisor):
         """
         self.rtc.d_centro[nCentro].set_threshold(thresh)
 
+    def setPyrModulation(self, pyrMod: float) -> None:
+        '''
+        Set pyramid modulation value - in l/D units
+        '''
+        raise NotImplementedError("Not implemented")
+
     def setPyrMethod(self, pyrMethod, nCentro: int = 0):
         '''
         Set pyramid compute method
         '''
         self.rtc.d_centro[nCentro].set_pyr_method(pyrMethod)  # Sets the pyr method
+        self.rtc.do_centroids(0)  # To be ready for the next getSlopes
         print("PYR method set to " + self.rtc.d_centro[nCentro].pyr_method)
 
-    def getPyrMethod(self):
+    def getPyrMethod(self, nCentro):
         return self.rtc.d_centro[nCentro].pyr_method
