@@ -3,18 +3,18 @@
 
 template <class T>
 __global__ void get_maskedPix_krnl(T *g_odata, T *g_idata, int *subindx,
-                                   int *subindy, T subsum, int ns,
+                                   int *subindy, T *subsum, int ns,
                                    int nslopes) {
   unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (i < nslopes) {
     int i2 = subindx[i] + subindy[i] * ns;
-    g_odata[i] = g_idata[i2] / subsum;
+    g_odata[i] = g_idata[i2] / subsum[0];
   }
 }
 
 template <class T>
-void getMaskedPix(T *d_odata, T *d_idata, int *subindx, int *subindy, T subsum,
+void getMaskedPix(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum,
                   int ns, int nslopes, carma_device *device) {
   // cout << "hello cu" << endl;
 
@@ -29,10 +29,10 @@ void getMaskedPix(T *d_odata, T *d_idata, int *subindx, int *subindy, T subsum,
 }
 
 template void getMaskedPix<float>(float *d_odata, float *d_idata, int *subindx,
-                                  int *subindy, float subsum, int ns,
+                                  int *subindy, float *subsum, int ns,
                                   int nslopes, carma_device *device);
 template void getMaskedPix<double>(double *d_odata, double *d_idata,
-                                   int *subindx, int *subindy, double subsum,
+                                   int *subindx, int *subindy, double *subsum,
                                    int ns, int nslopes, carma_device *device);
 
 template <class T>

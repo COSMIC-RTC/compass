@@ -27,7 +27,7 @@ template <class T>
 void fill_subsum(T *subsum, T *cube, int *subindx, int *subindy, int ns,
                  int nslopes, carma_device *device);
 template <class T>
-void getMaskedPix(T *centroids, T *img, int *subindx, int *subindy, T psum,
+void getMaskedPix(T *centroids, T *img, int *subindx, int *subindy, T *psum,
                   int ns, int nslopes, carma_device *device);
 
 #endif  // _SUTRA_CENTROIDER_MASKEDPIX_H_
