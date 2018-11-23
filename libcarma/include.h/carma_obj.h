@@ -22,8 +22,6 @@
 #include <curand_kernel.h>
 #include <iostream>
 #include <typeinfo>  // operator typeid
-#include <cub/cub/cub.cuh>
-
 
 #if CUDA_HIGHEST_SM >= 60
 #define CAN_DO_HALF 1
@@ -107,9 +105,9 @@ class carma_obj {
  protected:
   T_data *d_data;  ///< Input data  => change to vector
   std::vector<T_data> h_data;
-  T_data *o_data;  ///< optional data (used for scan / reduction)
-  T_data *cub_data;  ///< optional data (used for scan / reduction)
-  size_t cub_data_size; // optionnal for reduction
+  T_data *o_data;        ///< optional data (used for scan / reduction)
+  T_data *cub_data;      ///< optional data (used for scan / reduction)
+  size_t cub_data_size;  // optionnal for reduction
   int ndim;
   long *dims_data;  ///< dimensions of the array
   int nb_elem;      ///< number of elements in the array
@@ -208,6 +206,12 @@ class carma_obj {
   T_data *getData() { return d_data; }
   T_data *getDataAt(int index) { return &d_data[index]; }
   T_data *getOData() { return o_data; }
+  const T_data getODataValue() const {
+    T_data tmp_float;
+    carmaSafeCall(
+        cudaMemcpy(&tmp_float, o_data, sizeof(T_data), cudaMemcpyDeviceToHost));
+    return tmp_float;
+  }
   const long *getDims() { return dims_data; }
   long getDims(int i) { return dims_data[i]; }
   int getNbElem() { return nb_elem; }
@@ -245,14 +249,10 @@ class carma_obj {
 
   /**< sum */
   T_data sum();
-  void clip(T_data min, T_data max);
-  void init_reduceCub() {
-    init_reduceCub(&this->cub_data, this->cub_data_size, this->d_data, &this->o_data, this->nb_elem);
-  }
+  void init_reduceCub();
+  void reduceCub();
 
-  void reduceCub() {
-    reduceCub(this->cub_data, this->cub_data_size, this->d_data, this->o_data, this->nb_elem);
-  }
+  void clip(T_data min, T_data max);
 
   /**< transpose */
   int transpose(carma_obj<T_data> *source);
@@ -351,21 +351,12 @@ void reduce(int size, int threads, int blocks, T_data *d_idata,
 template <class T_data>
 T_data reduce(T_data *data, int N);
 
-template <class T>
-void init_reduceCub(T **cub_data, size_t &cub_data_size, T *data, T** o_data, int N) {
-  // Determine temporary device storage requirements
-  cudaMalloc(o_data, sizeof(T));
-  cub_data = NULL;
-  cub_data_size = 0;
-  cub::DeviceReduce::Sum(*cub_data, cub_data_size, data, *o_data, N);
-  // Allocate temporary storage
-  cudaMalloc(cub_data, cub_data_size);
-}
-
-template <class T>
-void reduceCub(T *cub_data, size_t &cub_data_size, T *data, T* o_data, int N) {
-  cub::DeviceReduce::Sum(cub_data, cub_data_size, data, o_data, N);
-}
+template <class T_data>
+void init_reduceCubCU(T_data *&cub_data, size_t &cub_data_size, T_data *data,
+                      T_data *&o_data, int N);
+template <class T_data>
+void reduceCubCU(T_data *cub_data, size_t cub_data_size, T_data *data,
+                 T_data *o_data, int N);
 
 // CU functions transpose
 template <class T_data>

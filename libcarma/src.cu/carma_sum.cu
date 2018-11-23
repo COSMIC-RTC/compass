@@ -1,6 +1,7 @@
 #include <carma_obj.h>
 #include <thrust/device_ptr.h>
 #include <thrust/reduce.h>
+#include <cub/cub/cub.cuh>
 #include "carma_utils.cuh"
 
 /*
@@ -277,3 +278,89 @@ template float reduce<float>(float *data, int N);
 template double reduce<double>(double *data, int N);
 
 template int reduce<int>(int *data, int N);
+
+template <class T>
+void init_reduceCubCU(T *&cub_data, size_t &cub_data_size, T *data, T *&o_data,
+                      int N) {
+  // Determine temporary device storage requirements
+  cudaMalloc(&o_data, sizeof(T));
+  cub_data = NULL;
+  cub_data_size = 0;
+  cub::DeviceReduce::Sum(cub_data, cub_data_size, data, o_data, N);
+  // Allocate temporary storage
+  cudaMalloc(&cub_data, cub_data_size);
+}
+
+template void init_reduceCubCU<int>(int *&cub_data, size_t &cub_data_size,
+                                    int *data, int *&o_data, int N);
+template void init_reduceCubCU<unsigned int>(unsigned int *&cub_data,
+                                             size_t &cub_data_size,
+                                             unsigned int *data,
+                                             unsigned int *&o_data, int N);
+template void init_reduceCubCU<float>(float *&cub_data, size_t &cub_data_size,
+                                      float *data, float *&o_data, int N);
+template void init_reduceCubCU<double>(double *&cub_data, size_t &cub_data_size,
+                                       double *data, double *&o_data, int N);
+template <>
+void init_reduceCubCU<cuFloatComplex>(cuFloatComplex *&cub_data,
+                                      size_t &cub_data_size,
+                                      cuFloatComplex *data,
+                                      cuFloatComplex *&o_data, int N) {
+  DEBUG_TRACE("Not implemented");
+}
+template <>
+void init_reduceCubCU<tuple_t<float>>(tuple_t<float> *&cub_data,
+                                      size_t &cub_data_size,
+                                      tuple_t<float> *data,
+                                      tuple_t<float> *&o_data, int N) {
+  DEBUG_TRACE("Not implemented");
+}
+template <>
+void init_reduceCubCU<cuDoubleComplex>(cuDoubleComplex *&cub_data,
+                                       size_t &cub_data_size,
+                                       cuDoubleComplex *data,
+                                       cuDoubleComplex *&o_data, int N) {
+  DEBUG_TRACE("Not implemented");
+}
+#ifdef CAN_DO_HALF
+template void init_reduceCubCU<half>(half *&cub_data, size_t &cub_data_size,
+                                     half *data, half *&o_data, int N);
+#endif
+
+template <class T>
+void reduceCubCU(T *cub_data, size_t cub_data_size, T *data, T *o_data, int N) {
+  cub::DeviceReduce::Sum(cub_data, cub_data_size, data, o_data, N);
+}
+
+template void reduceCubCU<int>(int *cub_data, size_t cub_data_size, int *data,
+                               int *o_data, int N);
+template void reduceCubCU<unsigned int>(unsigned int *cub_data,
+                                        size_t cub_data_size,
+                                        unsigned int *data,
+                                        unsigned int *o_data, int N);
+template void reduceCubCU<float>(float *cub_data, size_t cub_data_size,
+                                 float *data, float *o_data, int N);
+template void reduceCubCU<double>(double *cub_data, size_t cub_data_size,
+                                  double *data, double *o_data, int N);
+template <>
+void reduceCubCU<cuFloatComplex>(cuFloatComplex *cub_data, size_t cub_data_size,
+                                 cuFloatComplex *data, cuFloatComplex *o_data,
+                                 int N) {
+  DEBUG_TRACE("Not implemented");
+}
+template <>
+void reduceCubCU<tuple_t<float>>(tuple_t<float> *cub_data, size_t cub_data_size,
+                                 tuple_t<float> *data, tuple_t<float> *o_data,
+                                 int N) {
+  DEBUG_TRACE("Not implemented");
+}
+template <>
+void reduceCubCU<cuDoubleComplex>(cuDoubleComplex *cub_data,
+                                  size_t cub_data_size, cuDoubleComplex *data,
+                                  cuDoubleComplex *o_data, int N) {
+  DEBUG_TRACE("Not implemented");
+}
+#ifdef CAN_DO_HALF
+template void reduceCubCU<half>(half *cub_data, size_t cub_data_size,
+                                half *data, half *o_data, int N);
+#endif

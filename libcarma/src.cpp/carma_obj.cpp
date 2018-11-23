@@ -319,6 +319,18 @@ T_data carma_obj<T_data>::sum() {
 }
 
 template <class T_data>
+void carma_obj<T_data>::init_reduceCub() {
+  init_reduceCubCU(this->cub_data, this->cub_data_size, this->d_data,
+                   this->o_data, this->nb_elem);
+}
+
+template <class T_data>
+void carma_obj<T_data>::reduceCub() {
+  reduceCubCU(this->cub_data, this->cub_data_size, this->d_data, this->o_data,
+              this->nb_elem);
+}
+
+template <class T_data>
 void carma_obj<T_data>::clip(T_data min, T_data max) {
   clip_array<T_data>(this->d_data, min, max, this->nb_elem,
                      this->current_context->get_device(device));
