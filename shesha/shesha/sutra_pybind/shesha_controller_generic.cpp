@@ -34,6 +34,10 @@ void declare_shesha_controller_generic(py::module &mod) {
           "vector of modal gains")
 
       .def_property_readonly(
+          "gain", [](sutra_controller_generic &sc) { return sc.gain; },
+          "Integrator loop gain")
+
+      .def_property_readonly(
           "d_compbuff",
           [](sutra_controller_generic &sc) { return sc.d_compbuff; },
           "Computation buffer buffer")
@@ -96,6 +100,16 @@ void declare_shesha_controller_generic(py::module &mod) {
       mgain: (np.array[ndim1,dtype=np.float32]): modal gains to set
     )pbdoc",
            py::arg("mgain"))
+
+      .def("set_gain", &sutra_controller_generic::set_gain,
+           R"pbdoc(
+      Set the controller loop gain
+
+      Parameters
+      ------------
+      gain: (float): loop gain to set
+    )pbdoc",
+           py::arg("gain"))
 
       .def("set_cmat", wy::colCast(&sutra_controller_generic::set_cmat),
            R"pbdoc(

@@ -44,6 +44,12 @@ int sutra_controller_generic::set_mgain(float *gain) {
   return EXIT_SUCCESS;
 }
 
+int sutra_controller_generic::set_gain(float gain) {
+  current_context->set_activeDevice(device, 1);
+  this->gain = gain;
+  return EXIT_SUCCESS;
+}
+
 int sutra_controller_generic::set_decayFactor(float *decayFactor) {
   current_context->set_activeDevice(device, 1);
   this->d_decayFactor->host2device(decayFactor);
@@ -72,7 +78,7 @@ int sutra_controller_generic::comp_com() {
   current_context->set_activeDevice(device, 1);
 
   if (this->command_law == "integrator") {
-    carma_gemv(cublas_handle(), 'n', nactu(), nslope(), -0.3f,
+    carma_gemv(cublas_handle(), 'n', nactu(), nslope(), -1.f * this->gain,
                this->d_cmat->getData(), nactu(), this->d_centroids->getData(),
                1, 1.0f, this->d_com->getData(), 1);
 
