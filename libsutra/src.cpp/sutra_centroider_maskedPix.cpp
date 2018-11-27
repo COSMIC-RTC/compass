@@ -13,6 +13,7 @@ sutra_centroider_maskedPix::sutra_centroider_maskedPix(
     this->nslopes = nvalid * npupils;
   long dims_data[2] = {1, this->nslopes};
   this->d_subsum = new carma_obj<float>(context, dims_data);
+  this->d_subsum->init_reduceCub();
 }
 
 sutra_centroider_maskedPix::~sutra_centroider_maskedPix() {}
@@ -38,10 +39,12 @@ int sutra_centroider_maskedPix::get_maskedPix(float *cube, float *subsum,
   fill_subsum(this->d_subsum->getData(), cube, subindx, subindy, ns,
               this->nslopes, this->current_context->get_device(device));
 
-  float p_sum = reduce<float>(this->d_subsum->getData(), this->nslopes);
+  // float p_sum = reduce<float>(this->d_subsum->getData(), this->nslopes);
+  this->d_subsum->reduceCub();
 
-  getMaskedPix<float>(centroids, cube, subindx, subindy, p_sum, ns,
-                      this->nslopes, this->current_context->get_device(device));
+  getMaskedPix<float>(centroids, cube, subindx, subindy,
+                      this->d_subsum->getOData(), ns, this->nslopes,
+                      this->current_context->get_device(device));
 
   return EXIT_SUCCESS;
 }

@@ -9,7 +9,10 @@ sutra_centroider_wcog::sutra_centroider_wcog(carma_context *context,
   context->set_activeDevice(device, 1);
 
   this->nslopes = 2 * nvalid;
-  this->npix = 0;
+  if (wfs != nullptr)
+    this->npix = wfs->npix;
+  else
+    this->npix = 0;
   this->d_weights = 0L;
 }
 
@@ -20,8 +23,6 @@ string sutra_centroider_wcog::get_type() { return "wcog"; }
 int sutra_centroider_wcog::init_weights() {
   current_context->set_activeDevice(device, 1);
   if (this->d_weights != 0L) delete this->d_weights;
-
-  this->npix = wfs->npix;
 
   long *dims_data3 = new long[4];
   dims_data3[0] = 3;
@@ -58,6 +59,10 @@ int sutra_centroider_wcog::load_weights(float *weights, int ndim) {
   return EXIT_SUCCESS;
 }
 
+int sutra_centroider_wcog::set_npix(int npix) {
+  this->npix = npix;
+  return EXIT_SUCCESS;
+}
 int sutra_centroider_wcog::get_cog(carma_streams *streams, float *cube,
                                    float *subsum, float *centroids, int nvalid,
                                    int npix, int ntot) {

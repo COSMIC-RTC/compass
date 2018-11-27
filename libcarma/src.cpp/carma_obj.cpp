@@ -117,7 +117,7 @@ carma_obj<T_data>::~carma_obj() {
   int old_device = current_context->get_activeDevice();
   current_context->set_activeDevice(this->device, 1);
 
-  carmaSafeCall(cudaFree(this->d_data));
+  dealloc();
   this->d_data = 0;
 
   delete[](this->dims_data);
@@ -316,6 +316,18 @@ T_data carma_obj<T_data>::sum() {
   T_data *h_odata = new T_data[nBlocks];
   cudaMemcpy(h_odata, this->d_data, sizeof(T_data), cudaMemcpyDeviceToHost);
   return h_odata[0];
+}
+
+template <class T_data>
+void carma_obj<T_data>::init_reduceCub() {
+  init_reduceCubCU(this->cub_data, this->cub_data_size, this->d_data,
+                   this->o_data, this->nb_elem);
+}
+
+template <class T_data>
+void carma_obj<T_data>::reduceCub() {
+  reduceCubCU(this->cub_data, this->cub_data_size, this->d_data, this->o_data,
+              this->nb_elem);
 }
 
 template <class T_data>

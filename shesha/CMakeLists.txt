@@ -22,7 +22,7 @@ pkg_check_modules(MAGMA REQUIRED magma)
 
 link_directories( ${MAGMA_LIBRARY_DIRS} )
 if(NOT TARGET wyrm)
-    add_subdirectory(../wyrm wyrm)
+    add_subdirectory(../tplib/wyrm wyrm)
 endif()
 
 add_library(shesha_bind MODULE

@@ -17,7 +17,10 @@ sutra_centroider_corr::sutra_centroider_corr(carma_context *context,
   this->d_corr = 0L;
   this->d_interpmat = 0L;
 
-  this->npix = 0;
+  if (wfs != nullptr)
+    this->npix = wfs->npix;
+  else
+    this->npix = 0;
   this->interp_sizex = 0;
   this->interp_sizey = 0;
 }
@@ -33,7 +36,7 @@ sutra_centroider_corr::~sutra_centroider_corr() {
 
 string sutra_centroider_corr::get_type() { return "corr"; }
 
-int sutra_centroider_corr::init_bincube(int npix) {
+int sutra_centroider_corr::set_npix(int npix) {
   this->npix = npix;
 
   return EXIT_SUCCESS;
@@ -47,8 +50,6 @@ int sutra_centroider_corr::init_corr(int isizex, int isizey, float *interpmat) {
   if (this->d_corrmax != 0L) delete this->d_corrmax;
   if (this->d_corr != 0L) delete this->d_corr;
   if (this->d_interpmat != 0L) delete this->d_interpmat;
-
-  this->npix = wfs->npix;
 
   long *dims_data3 = new long[4];
   dims_data3[0] = 3;

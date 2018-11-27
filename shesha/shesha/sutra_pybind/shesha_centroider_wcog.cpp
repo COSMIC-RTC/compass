@@ -32,6 +32,14 @@ void declare_shesha_centroider_wcog(py::module &mod) {
       .def("init_weights", &sutra_centroider_wcog::init_weights,
            "Initializes WCOG computation")
 
+      .def("set_npix", &sutra_centroider_wcog::set_npix, R"pbdoc(
+            Set the number of pixels per subap.
+            Parameters
+            ------------
+            npix: (int): number of pixels per subap
+            )pbdoc",
+           py::arg("npix"))
+
       .def("load_weights", wy::colCast(&sutra_centroider_wcog::load_weights),
            R"pbdoc(
             Load weights on WCOG
