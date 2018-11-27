@@ -344,9 +344,10 @@ void declare_dm(py::module &mod) {
           [](sutra_dm &sdm,
              py::array_t<float, py::array::f_style | py::array::forcecast> data,
              bool shape_dm = true) {
-            if (sdm.d_com->getNbElem() == data.size())
+            if (sdm.d_com->getNbElem() == data.size()) {
               sdm.d_com->host2device(data.mutable_data());
-            else
+              if (shape_dm) sdm.comp_shape();
+            } else
               DEBUG_TRACE("Wrong dimension");
           },
           R"pbdoc(

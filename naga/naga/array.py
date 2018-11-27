@@ -6,6 +6,25 @@ from carmaWrap import obj_float, obj_double, obj_int, obj_float_complex, obj_hal
 context = Context()
 
 
+def complextofloat2(A):
+    B = np.zeros(A.shape, dtype=[('x', '<f4'), ('y', '<f4')]).flatten()
+    A_F = A.flatten()
+    for i in range(A_F.size):
+        B[i][0] = A[i].real
+        B[i][1] = A[i].imag
+
+    return np.reshape(B, A.shape)
+
+
+def float2tocomplex(A):
+    B = np.zeros(A.shape, dtype=np.complex64).flatten()
+    A_F = A.flatten()
+    for i in range(A_F.size):
+        B[i] = A_F[i][0] + 1j * A_F[i][1]
+
+    return np.reshape(B, A.shape)
+
+
 class DimensionsError(Exception):
 
     def __init__(self, value):
@@ -32,7 +51,7 @@ class Array():
             if isinstance(data, np.ndarray):
                 if dtype is not None:
                     data = data.astype(dtype)
-                if data.dtype == np.int:
+                if data.dtype == np.int64 or data.dtype == np.int32:
                     self.__data = obj_int(context.context, data)
                 elif data.dtype == np.float32:
                     self.__data = obj_float(context.context, data)
@@ -40,9 +59,14 @@ class Array():
                     self.__data = obj_double(context.context, data)
                 elif data.dtype == np.float16:
                     self.__data = obj_half(context.context, data)
+                elif data.dtype == np.complex64 or data.dtype == np.complex128:
+                    self.__data = obj_float_complex(context.context,
+                                                    complextofloat2(data))
+                    self.__dtype = np.complex64
                 else:
                     raise TypeError("Data type not implemented")
-                self.__dtype = data.dtype
+                if self.__dtype is None:
+                    self.__dtype = data.dtype
                 self.__shape = data.shape
             elif isinstance(data, obj_int):
                 self.__data = data
@@ -60,6 +84,10 @@ class Array():
                 self.__data = data
                 self.__dtype = np.float16
                 self.__shape = tuple(data.shape[k] for k in range(len(data.shape)))
+            elif isinstance(data, obj_float_complex):
+                self.__data = data
+                self.__dtype = np.complex64
+                self.__shape = tuple(data.shape[k] for k in range(len(data.shape)))
             else:
                 raise TypeError("Data must be a list, a numpy array or a carmaWrap.obj")
             self.__size = self.__data.nbElem
@@ -71,7 +99,7 @@ class Array():
     data = property(lambda x: x.__data)
 
     def __repr__(self):
-        return "GPU" + np.array(self.data).__repr__()
+        return "GPU" + self.toarray().__repr__()
 
     def __add__(self, idata):
         tmp = self.copy()
@@ -102,7 +130,7 @@ class Array():
             raise NotImplementedError("Operator not implemented yet")
 
     def __getitem__(self, indices):
-        return np.array(self.data).__getitem__(indices)
+        return self.toarray().__getitem__(indices)
 
     def copy(self):
         tmp = Array(shape=self.shape, dtype=self.dtype)
@@ -149,16 +177,23 @@ class Array():
         return self.data.aimax()
 
     def max(self):
-        return np.array(self.data)[self.argmax()]
+        return self.toarray()[self.argmax()]
 
     def argmin(self):
         return self.data.aimin()
 
     def min(self):
-        return np.array(self.data)[self.argmin()]
+        return self.toarray()[self.argmin()]
 
     def sum(self):
         return self.data.sum()
+
+    def toarray(self):
+        if (self.dtype == np.complex64):
+            tmp = float2tocomplex(np.array(self.data))
+        else:
+            tmp = np.array(self.data)
+        return tmp
 
 
 def ones(shape, dtype=np.float32):

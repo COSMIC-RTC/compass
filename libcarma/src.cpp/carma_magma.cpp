@@ -459,6 +459,24 @@ int carma_syevd<double>(char jobz, long N, double *mat, double *eigenvals) {
 }
 
 template <>
+int carma_syevd<int>(char jobz, long N, int *mat, int *eigenvals) {
+  DEBUG_TRACE("Not implemented for this data type");
+}
+
+template <>
+int carma_syevd<cuFloatComplex>(char jobz, long N, cuFloatComplex *mat,
+                                cuFloatComplex *eigenvals) {
+  DEBUG_TRACE("Not implemented for this data type");
+}
+
+#ifdef CAN_DO_HALF
+template <>
+int carma_syevd<half>(char jobz, long N, half *mat, half *eigenvals) {
+  DEBUG_TRACE("Not implemented for this data type");
+}
+#endif
+
+template <>
 int carma_syevd<float, 1>(char jobz, caObjS *mat,
                           carma_host_obj<float> *eigenvals) {
   long N = mat->getDims(1);
