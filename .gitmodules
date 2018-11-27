@@ -1,3 +1,6 @@
 [submodule "wyrm"]
-	path = wyrm
+	path = tplib/wyrm
 	url = https://gitlab.obspm.fr/greenflash/wyrm.git
+[submodule "tplib/cub"]
+	path = tplib/cub
+	url = https://github.com/NVlabs/cub.git
