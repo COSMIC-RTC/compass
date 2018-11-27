@@ -117,7 +117,7 @@ carma_obj<T_data>::~carma_obj() {
   int old_device = current_context->get_activeDevice();
   current_context->set_activeDevice(this->device, 1);
 
-  carmaSafeCall(cudaFree(this->d_data));
+  dealloc();
   this->d_data = 0;
 
   delete[](this->dims_data);

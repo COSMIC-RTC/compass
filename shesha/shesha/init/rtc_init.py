@@ -118,7 +118,7 @@ def rtc_init(context: naga_context, tel: Telescope, wfs: Sensors, dms: Dms, atmo
 
 def rtc_standalone(context: naga_context, nwfs: int, nvalid, nactu: int,
                    centroider_type: bytes, delay: float, offset: float, scale: float,
-                   brahma: bool=False):
+                   brahma: bool = False):
     """
     TODO docstring
     """
@@ -132,8 +132,7 @@ def rtc_standalone(context: naga_context, nwfs: int, nvalid, nactu: int,
                            centroider_type)
 
     nslopes = sum([c.nslopes for c in rtc.d_centro])
-    rtc.add_controller(context,
-                       sum(nvalid), nslopes, nactu, delay, context.activeDevice,
+    rtc.add_controller(context, sum(nvalid), nslopes, nactu, delay, context.activeDevice,
                        "generic")
 
     return rtc
@@ -207,7 +206,6 @@ def init_centroider(context, nwfs: int, p_wfs: conf.Param_wfs,
 
                 if (p_centroider.weights is None):
                     raise ValueError("p_centroider.weights is None")
-                rtc.d_centro[nwfs].init_bincube(p_wfs.npix)
                 rtc.d_centro[nwfs].init_corr(p_centroider.sizex, p_centroider.sizey,
                                              p_centroider.interpmat)
                 rtc.d_centro[nwfs].load_corr(p_centroider.weights, corrnorm,
@@ -382,8 +380,8 @@ def init_controller_geo(i: int, rtc: Rtc, dms: Dms, p_geom: conf.Param_geom,
 def init_controller_ls(i: int, p_controller: conf.Param_controller, p_wfss: list,
                        p_geom: conf.Param_geom, p_dms: list, p_atmos: conf.Param_atmos,
                        ittime: float, p_tel: conf.Param_tel, rtc: Rtc, dms: Dms,
-                       wfs: Sensors, tel: Telescope, atmos: Atmos, dataBase: dict={},
-                       use_DB: bool=False):
+                       wfs: Sensors, tel: Telescope, atmos: Atmos, dataBase: dict = {},
+                       use_DB: bool = False):
     """
         Initialize the least square controller
     :parameters:

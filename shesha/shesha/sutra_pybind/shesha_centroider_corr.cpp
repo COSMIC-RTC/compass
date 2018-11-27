@@ -81,13 +81,12 @@ void declare_shesha_centroider_corr(py::module &mod) {
             )pbdoc",
            py::arg("corr"), py::arg("corr_norm"), py::arg("ndim"))
 
-      .def("init_bincube", wy::colCast(&sutra_centroider_corr::init_bincube),
+      .def("set_npix", wy::colCast(&sutra_centroider_corr::set_npix),
            R"pbdoc(
-            TODO: docstring
-
+               Set the number of pixels per subap.
             Parameters
             ------------
-            npix: (int): TODO: docstring
+            npix: (int): number of pixels per subap
             )pbdoc",
            py::arg("npix"))
 

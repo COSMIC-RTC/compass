@@ -120,7 +120,9 @@ class carma_obj {
   int nThreads;
   int nBlocks;
 
-  bool keysOnly;         //< optional flag (used for sort)
+  bool keysOnly;      //< optional flag (used for sort)
+  bool owner = true;  // Flag if d_data is created inside the carma_obj
+
   unsigned int *values;  ///< optional data (used for sort)
   size_t *d_numValid;    ///< used for compact
 
@@ -184,6 +186,15 @@ class carma_obj {
   int wait_all_streams() {
     this->streams->wait_all_streams();
     return EXIT_SUCCESS;
+  }
+  void swapPtr(T_data *ptr) {
+    dealloc();
+    d_data = ptr;
+    owner = false;
+  }
+
+  void dealloc() {
+    if (owner) cudaFree(d_data);
   }
 
   /**< General Utilities */
