@@ -300,10 +300,10 @@ class BenchSupervisor(AbstractSupervisor):
             raise RuntimeError("multi WFS not supported")
 
         if (hasattr(self.config, 'p_loop') and self.config.p_loop.devices.size > 1):
-            self.c = naga_context.get_instance_ngpu(self.config.p_loop.devices.size,
-                                                    self.config.p_loop.devices)
+            self.c = carmaWrap_context.get_instance_ngpu(self.config.p_loop.devices.size,
+                                                         self.config.p_loop.devices)
         else:
-            self.c = naga_context.get_instance_1gpu(self.config.p_loop.devices[0])
+            self.c = carmaWrap_context.get_instance_1gpu(self.config.p_loop.devices[0])
 
         if p_wfs.type == WFSType.SH:
             self.npix = p_wfs.npix
