@@ -279,6 +279,38 @@ template double reduce<double>(double *data, int N);
 
 template int reduce<int>(int *data, int N);
 
+template <>
+unsigned int reduce<unsigned int>(unsigned int *data, int N) {
+  DEBUG_TRACE("Not implemented for this data type");
+  return 0;
+}
+
+template <>
+cuFloatComplex reduce<cuFloatComplex>(cuFloatComplex *data, int N) {
+  DEBUG_TRACE("Not implemented for this data type");
+  return make_cuComplex(0, 0);
+}
+
+template <>
+cuDoubleComplex reduce<cuDoubleComplex>(cuDoubleComplex *data, int N) {
+  DEBUG_TRACE("Not implemented for this data type");
+  return make_cuDoubleComplex(0, 0);
+}
+
+#ifdef CAN_DO_HALF
+template <>
+half reduce<half>(half *data, int N) {
+  DEBUG_TRACE("Not implemented for thhis data type");
+  return 0;
+}
+#endif
+
+template <>
+tuple_t<float> reduce<tuple_t<float>>(tuple_t<float> *data, int N) {
+  DEBUG_TRACE("Not implemented for this data type");
+  return {0, 0.f};
+}
+
 template <class T>
 void init_reduceCubCU(T *&cub_data, size_t &cub_data_size, T *data, T *&o_data,
                       int N) {
@@ -364,30 +396,3 @@ void reduceCubCU<cuDoubleComplex>(cuDoubleComplex *cub_data,
 template void reduceCubCU<half>(half *cub_data, size_t cub_data_size,
                                 half *data, half *o_data, int N);
 #endif
-
-template <>
-unsigned int reduce<unsigned int>(unsigned int *data, int N) {
-  DEBUG_TRACE("Not implemented for this data type");
-}
-
-template <>
-cuFloatComplex reduce<cuFloatComplex>(cuFloatComplex *data, int N) {
-  DEBUG_TRACE("Not implemented for this data type");
-}
-
-template <>
-cuDoubleComplex reduce<cuDoubleComplex>(cuDoubleComplex *data, int N) {
-  DEBUG_TRACE("Not implemented for this data type");
-}
-
-#ifdef CAN_DO_HALF
-template <>
-half reduce<half>(half *data, int N) {
-  DEBUG_TRACE("Not implemented for thhis data type");
-}
-#endif
-
-template <>
-tuple_t<float> reduce<tuple_t<float>>(tuple_t<float> *data, int N) {
-  DEBUG_TRACE("Not implemented for this data type");
-}
