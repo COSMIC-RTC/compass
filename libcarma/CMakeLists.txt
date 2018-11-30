@@ -97,7 +97,7 @@ target_compile_features(carma PUBLIC cxx_std_14)
 target_include_directories(carma
     PUBLIC
     $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/include.h ${MAGMA_INCLUDE_DIRS}>
-    $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CURRENT_SOURCE_DIR}/include.h ${CMAKE_CURRENT_SOURCE_DIR}/include.cuh $ENV{COMPASS_ROOT}/tplib/cub/cub>
+    $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CURRENT_SOURCE_DIR}/include.h ${CMAKE_CURRENT_SOURCE_DIR}/include.cuh $ENV{COMPASS_ROOT}/tplib/cub>
 )
 
 target_compile_options(carma

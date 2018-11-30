@@ -1,6 +1,59 @@
 #include <sutra_centroider_cog.h>
 #include <carma_utils.cuh>
 
+template <class T, int Nthreads>
+__global__ void centroids(T *g_idata, T *g_odata, T *alpha, unsigned int n,
+                          unsigned int size, T scale, T offset,
+                          unsigned int nelem_thread) {
+  if (blockDim.x > Nthreads) {
+    if (threadIdx.x == 0) printf("Wrong size argument\n");
+    return;
+  }
+  // Specialize BlockReduce for a 1D block of 128 threads on type int
+  typedef cub::BlockReduce<T, Nthreads> BlockReduce;
+  // Allocate shared memory for BlockReduce
+  __shared__ typename BlockReduce::TempStorage temp_storage;
+
+  T idata = 0;
+  T xdata = 0;
+  T ydata = 0;
+  // load shared mem
+  unsigned int tid = threadIdx.x;
+  unsigned int tmpid = threadIdx.x;
+  // unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+  // unsigned int x = (tid % n) + 1;
+  unsigned int x, y;
+  int idim;
+
+  __syncthreads();
+
+  for (int cc = 0; cc < nelem_thread; cc++) {
+    x = ((tid * nelem_thread + cc) % n);
+    y = ((tid * nelem_thread + cc) / n);
+    idim = tid * nelem_thread + cc + (blockDim.x * nelem_thread) * blockIdx.x;
+    if (idim < size) {
+      idata += g_idata[idim];
+      xdata += g_idata[idim] * x;
+      ydata += g_idata[idim] * y;
+    }
+  }
+
+  // sdata[tid] = (i < N) ? g_idata[i] * x : 0;
+  __syncthreads();
+
+  T intensity = BlockReduce(temp_storage).Sum(idata, blockDim.x);
+  T slopex = BlockReduce(temp_storage).Sum(xdata, blockDim.x);
+  T slopey = BlockReduce(temp_storage).Sum(ydata, blockDim.x);
+  // write result for this block to global mem
+  if (tid == 0) {
+    g_odata[blockIdx.x] =
+        ((slopex * 1.0 / (intensity + 1.e-6)) - offset) * scale;
+    g_odata[blockIdx.x + gridDim.x] =
+        ((slopey * 1.0 / (intensity + 1.e-6)) - offset) * scale;
+    alpha[blockIdx.x] = intensity;
+  }
+}
+
 template <class T>
 __global__ void centroidx(T *g_idata, T *g_odata, T *alpha, unsigned int n,
                           unsigned int N, T scale, T offset,
@@ -86,17 +139,28 @@ void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
 
   // when there is only one warp per block, we need to allocate two warps
   // worth of shared memory so that we don't index shared memory out of bounds
-  int smemSize =
-      (threads <= 32) ? 2 * threads * sizeof(T) : threads * sizeof(T);
-  centroidx<T><<<dimGrid, dimBlock, smemSize>>>(
-      d_idata, d_odata, alpha, n, size, scale, offset, nelem_thread);
+  if (threads <= 64)
+    centroids<T, 64><<<dimGrid, dimBlock>>>(d_idata, d_odata, alpha, n, size,
+                                            scale, offset, nelem_thread);
+  else if (threads <= 128)
+    centroids<T, 128><<<dimGrid, dimBlock>>>(d_idata, d_odata, alpha, n, size,
+                                             scale, offset, nelem_thread);
+  else if (threads <= 256)
+    centroids<T, 256><<<dimGrid, dimBlock>>>(d_idata, d_odata, alpha, n, size,
+                                             scale, offset, nelem_thread);
+  else if (threads <= 512)
+    centroids<T, 512><<<dimGrid, dimBlock>>>(d_idata, d_odata, alpha, n, size,
+                                             scale, offset, nelem_thread);
+  else
+    printf("SH way too big !!!\n");
 
-  carmaCheckMsg("centroidx_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("centroids_kernel<<<>>> execution failed\n");
 
-  centroidy<T><<<dimGrid, dimBlock, smemSize>>>(
-      d_idata, &(d_odata[blocks]), alpha, n, size, scale, offset, nelem_thread);
+  //   centroidy<T><<<dimGrid, dimBlock, smemSize>>>(
+  //       d_idata, &(d_odata[blocks]), alpha, n, size, scale, offset,
+  //       nelem_thread);
 
-  carmaCheckMsg("centroidy_kernel<<<>>> execution failed\n");
+  //   carmaCheckMsg("centroidy_kernel<<<>>> execution failed\n");
 }
 
 template void get_centroids<float>(int size, int threads, int blocks, int n,
