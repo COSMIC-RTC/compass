@@ -172,6 +172,9 @@ def init_centroider(context, nwfs: int, p_wfs: conf.Param_wfs,
     rtc.add_centroider(context, p_wfs._nvalid, s_offset, s_scale, context.activeDevice,
                        p_centroider.type, wfs.d_wfs[nwfs])
 
+    rtc.d_centro[-1].load_validpos(p_wfs._validsubsx, p_wfs._validsubsy, p_wfs._nvalid)
+    rtc.d_centro[-1].fill_bincube(p_wfs.npix)
+
     if (p_centroider.type != scons.CentroiderType.MASKEDPIX):
         p_centroider._nslope = 2 * p_wfs._nvalid
     else:

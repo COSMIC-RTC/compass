@@ -14,7 +14,7 @@ sutra_centroider_cog::~sutra_centroider_cog() {}
 string sutra_centroider_cog::get_type() { return "cog"; }
 
 int sutra_centroider_cog::get_cog(carma_streams *streams, float *cube,
-                                  float *subsum, float *centroids, int nvalid,
+                                  float *ref, float *centroids, int nvalid,
                                   int npix, int ntot) {
   current_context->set_activeDevice(device, 1);
   // simple cog
@@ -27,32 +27,33 @@ int sutra_centroider_cog::get_cog(carma_streams *streams, float *cube,
   if (nstreams > 1) {
     // fprintf(stderr, "\n[%s@%d]: i=%d istart=%d npix=%d nvalid=%d\n",
     // __FILE__, __LINE__, i, istart, npix, nvalid);
-    subap_reduce_async(npix * npix, nvalid, streams, cube, subsum);
+    subap_reduce_async(npix * npix, nvalid, streams, cube, ref);
     // fprintf(stderr, "\n[%s@%d] I'm here\n", __FILE__, __LINE__);
     get_centroids_async(npix * npix, nvalid, npix, streams, cube, centroids,
-                        subsum, this->scale, this->offset);
+                        ref, this->scale, this->offset);
     // fprintf(stderr, "\n[%s@%d] I'm here\n", __FILE__, __LINE__);
     // streams->wait_all_streams();
   } else {
-    // subap_reduce(ntot, (npix * npix), nvalid, cube, subsum,
+    // subap_reduce(ntot, (npix * npix), nvalid, cube, ref,
     //              current_context->get_device(device));
-    get_centroids(ntot, (npix * npix), nvalid, npix, cube, centroids, subsum,
+    get_centroids(ntot, (npix * npix), nvalid, npix, cube, centroids, ref,
+                  this->d_validx->getData(), this->d_validy->getData(),
                   this->scale, this->offset,
                   current_context->get_device(device));
   }
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider_cog::get_cog(float *subsum, float *slopes, bool noise) {
+int sutra_centroider_cog::get_cog(float *ref, float *slopes, bool noise) {
   if (this->wfs != nullptr) {
     if (noise || wfs->roket == false) {
-      return this->get_cog(wfs->streams, *(wfs->d_bincube), subsum, slopes,
+      return this->get_cog(wfs->streams, *(wfs->d_binimg), ref, slopes,
                            wfs->nvalid_tot, wfs->npix,
-                           wfs->d_bincube->getNbElem());
+                           wfs->d_binimg->getDims()[1]);
     } else {
-      return this->get_cog(wfs->streams, *(wfs->d_bincube_notnoisy), subsum,
+      return this->get_cog(wfs->streams, *(wfs->d_bincube_notnoisy), ref,
                            slopes, wfs->nvalid_tot, wfs->npix,
-                           wfs->d_bincube->getNbElem());
+                           wfs->d_binimg->getDims()[1]);
     }
   }
   DEBUG_TRACE("this->wfs was not initialized");

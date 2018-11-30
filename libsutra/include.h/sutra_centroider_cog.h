@@ -21,8 +21,8 @@ class sutra_centroider_cog : public sutra_centroider {
 
 template <class T>
 void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
-                   T *d_odata, T *alpha, T scale, T offset,
-                   carma_device *device);
+                   T *d_odata, T *alpha, int *validx, int *validy, T scale,
+                   T offset, carma_device *device);
 
 template <class T>
 void get_centroids_async(int threads, int blocks, int n, carma_streams *streams,

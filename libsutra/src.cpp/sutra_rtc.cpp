@@ -350,25 +350,25 @@ int sutra_rtc::do_centroids(int ncntrl, bool noise) {
   for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
     if (this->d_centro[idx_cntr]->wfs != nullptr) {
       this->d_centro[idx_cntr]->get_cog(
-          this->d_control[ncntrl]->d_subsum->getDataAt(indssp),
+          this->d_control[ncntrl]->d_centroids_ref->getDataAt(indssp),
           this->d_control[ncntrl]->d_centroids->getDataAt(indslope), noise);
 
       indssp += this->d_centro[idx_cntr]->wfs->nvalid_tot;
       indslope += this->d_centro[idx_cntr]->nslopes;
     } else {
       this->d_centro[idx_cntr]->get_cog(
-          streams, this->d_centro[idx_cntr]->d_bincube->getData(),
-          this->d_control[ncntrl]->d_subsum->getDataAt(indssp),
+          streams, this->d_centro[idx_cntr]->d_img->getData(),
+          this->d_control[ncntrl]->d_centroids_ref->getDataAt(indssp),
           this->d_control[ncntrl]->d_centroids->getDataAt(indslope),
           this->d_centro[idx_cntr]->nvalid,
           this->d_centro[idx_cntr]->d_bincube->getDims(1),
-          this->d_centro[idx_cntr]->d_bincube->getNbElem());
+          this->d_centro[idx_cntr]->d_img->getDims(1));
 
       indssp += this->d_centro[idx_cntr]->nvalid;
       indslope += this->d_centro[idx_cntr]->nslopes;
     }
   }
-  remove_ref(ncntrl);
+  // remove_ref(ncntrl);
 
   return EXIT_SUCCESS;
 }
@@ -380,14 +380,15 @@ int sutra_rtc::do_centroids(int ncntrl, float *bincube, int npix, int ntot) {
 
   for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
     this->d_centro[idx_cntr]->get_cog(
-        streams, bincube, this->d_control[ncntrl]->d_subsum->getDataAt(indssp),
+        streams, bincube,
+        this->d_control[ncntrl]->d_centroids_ref->getDataAt(indssp),
         this->d_control[ncntrl]->d_centroids->getDataAt(indslope),
         this->d_centro[idx_cntr]->nvalid, npix, ntot);
 
     indssp += this->d_centro[idx_cntr]->nvalid;
     indslope += this->d_centro[idx_cntr]->nslopes;
   }
-  remove_ref(ncntrl);
+  // remove_ref(ncntrl);
 
   return EXIT_SUCCESS;
 }
