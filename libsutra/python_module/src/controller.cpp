@@ -15,6 +15,9 @@ void declare_controller(py::module &mod) {
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
+      .def_property_readonly(
+          "context", [](sutra_controller &sc) { return sc.current_context; },
+          "GPU context")
 
       .def_property_readonly("device",
                              [](sutra_controller &sc) { return sc.device; },

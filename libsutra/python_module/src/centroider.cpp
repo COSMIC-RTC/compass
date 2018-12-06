@@ -15,6 +15,9 @@ void declare_centroider(py::module &mod) {
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
+      .def_property_readonly(
+          "context", [](sutra_centroider &sc) { return sc.current_context; },
+          "GPU context")
 
       .def_property_readonly("device",
                              [](sutra_centroider &sc) { return sc.device; },

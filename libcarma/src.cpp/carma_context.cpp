@@ -40,6 +40,7 @@ carma_device::carma_device(int devid) {
   carma_initCublas(&cublasHandle);
   carma_initCusparse(&cusparseHandle);
 
+  cudaStreamCreate(&mainStream);
   //  cusparsePointerMode_t mode;
   //  cusparseGetPointerMode(cusparseHandle, &mode);
   //  DEBUG_TRACE("%d\n", mode);
@@ -60,6 +61,7 @@ int carma_device::set_cublas_math_mode(bool tensor) {
 carma_device::~carma_device() {
   carma_shutdownCublas(cublasHandle);
   carma_shutdownCusparse(cusparseHandle);
+  cudaStreamDestroy(mainStream);
 
   this->id = -1;
 }
