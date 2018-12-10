@@ -19,6 +19,7 @@
 class carma_timer {
  protected:
   cudaEvent_t startEv, stopEv;
+  cudaStream_t stream = 0 ;
   double total_time;
 
  public:
@@ -33,14 +34,14 @@ class carma_timer {
     cudaEventDestroy(stopEv);
   }
 
-  void start(cudaStream_t stream = 0) {
+  void start() {
     carmaSafeCall(cudaEventRecord(startEv, stream));
   }
 
   void reset() { total_time = 0.0; }
 
   /** stop timer and accumulate time in seconds */
-  void stop(cudaStream_t stream = 0) {
+  void stop() {
     float gpuTime;
     carmaSafeCall(cudaEventRecord(stopEv, stream));
     carmaSafeCall(cudaEventSynchronize(stopEv));
@@ -48,6 +49,9 @@ class carma_timer {
     total_time += (double)1e-3 * gpuTime;
   }
 
+  void setStream(cudaStream_t newStream) {
+    stream = newStream;
+  }
   /** return elapsed time in seconds (as record in total_time) */
   double elapsed() { return total_time; }
 };

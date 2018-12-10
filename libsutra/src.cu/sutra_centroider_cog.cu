@@ -142,28 +142,28 @@ void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
   // when there is only one warp per block, we need to allocate two warps
   // worth of shared memory so that we don't index shared memory out of bounds
   if (threads <= 16)
-    centroids<T, 16><<<dimGrid, dimBlock, 0, device->get_stream()>>>(
+    centroids<T, 16><<<dimGrid, dimBlock>>>(
         d_idata, d_odata, ref, validx, validy, n, size, scale, offset,
         nelem_thread);
   else if (threads <= 32)
-    centroids<T, 32><<<dimGrid, dimBlock, 0, device->get_stream()>>>(
+    centroids<T, 32><<<dimGrid, dimBlock>>>(
         d_idata, d_odata, ref, validx, validy, n, size, scale, offset,
         nelem_thread);
 
   else if (threads <= 64)
-    centroids<T, 64><<<dimGrid, dimBlock, 0, device->get_stream()>>>(
+    centroids<T, 64><<<dimGrid, dimBlock>>>(
         d_idata, d_odata, ref, validx, validy, n, size, scale, offset,
         nelem_thread);
   else if (threads <= 128)
-    centroids<T, 128><<<dimGrid, dimBlock, 0, device->get_stream()>>>(
+    centroids<T, 128><<<dimGrid, dimBlock>>>(
         d_idata, d_odata, ref, validx, validy, n, size, scale, offset,
         nelem_thread);
   else if (threads <= 256)
-    centroids<T, 256><<<dimGrid, dimBlock, 0, device->get_stream()>>>(
+    centroids<T, 256><<<dimGrid, dimBlock>>>(
         d_idata, d_odata, ref, validx, validy, n, size, scale, offset,
         nelem_thread);
   else if (threads <= 512)
-    centroids<T, 512><<<dimGrid, dimBlock, 0, device->get_stream()>>>(
+    centroids<T, 512><<<dimGrid, dimBlock>>>(
         d_idata, d_odata, ref, validx, validy, n, size, scale, offset,
         nelem_thread);
   else
