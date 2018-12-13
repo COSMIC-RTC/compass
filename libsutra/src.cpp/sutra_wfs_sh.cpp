@@ -63,6 +63,10 @@ int sutra_wfs_sh::allocate_buffers(
 
   if (rank == 0) {
     this->d_binimg = new carma_obj<float>(current_context, dims_data2);
+    if (this->roket) {
+      this->d_binimg_notnoisy =
+          new carma_obj<float>(current_context, dims_data2);
+    }
     // using 1 stream for telemetry
     this->image_telemetry =
         new carma_host_obj<float>(dims_data2, MA_PAGELOCK, 1);
@@ -113,10 +117,6 @@ int sutra_wfs_sh::allocate_buffers(
   if (rank == 0) dims_data3[3] = nvalid_tot;
 
   this->d_bincube = new carma_obj<float>(current_context, dims_data3);
-  if (this->roket) {
-    this->d_bincube_notnoisy =
-        new carma_obj<float>(current_context, dims_data3);
-  }
 
   this->nstreams = 1;
   while (nvalid % this->nstreams != 0) nstreams--;
@@ -215,7 +215,7 @@ int sutra_wfs_sh::allocate_buffers(
   this->d_binmap = new carma_obj<int>(current_context, dims_data2);
 
   dims_data1[1] = nvalid_tot;
-  this->d_subsum = new carma_obj<float>(current_context, dims_data1);
+  this->d_intensities = new carma_obj<float>(current_context, dims_data1);
 
   this->d_fluxPerSub = new carma_obj<float>(current_context, dims_data1);
   this->d_validsubsx = new carma_obj<int>(current_context, dims_data1);
@@ -238,7 +238,7 @@ sutra_wfs_sh::~sutra_wfs_sh() {
 
   if (this->d_bincube != 0L) delete this->d_bincube;
   if (this->d_binimg != 0L) delete this->d_binimg;
-  if (this->d_subsum != 0L) delete this->d_subsum;
+  if (this->d_intensities != 0L) delete this->d_intensities;
   if (this->d_offsets != 0L) delete this->d_offsets;
   if (this->d_fluxPerSub != 0L) delete this->d_fluxPerSub;
   if (this->d_sincar != 0L) delete this->d_sincar;
@@ -473,24 +473,25 @@ int sutra_wfs_sh::comp_generic() {
 
   if (this->nstreams > 1) {
     subap_reduce_async(this->npix * this->npix, this->nvalid, this->streams,
-                       this->d_bincube->getData(), this->d_subsum->getData());
+                       this->d_bincube->getData(),
+                       this->d_intensities->getData());
   } else {
     subap_reduce(this->d_bincube->getNbElem(), this->npix * this->npix,
                  this->nvalid, this->d_bincube->getData(),
-                 this->d_subsum->getData(),
+                 this->d_intensities->getData(),
                  this->current_context->get_device(device));
   }
 
   if (this->nstreams > 1) {
     subap_norm_async(this->d_bincube->getData(), this->d_bincube->getData(),
-                     this->d_fluxPerSub->getData(), this->d_subsum->getData(),
-                     this->nphot, this->npix * this->npix,
-                     this->d_bincube->getNbElem(), this->streams,
-                     current_context->get_device(device));
+                     this->d_fluxPerSub->getData(),
+                     this->d_intensities->getData(), this->nphot,
+                     this->npix * this->npix, this->d_bincube->getNbElem(),
+                     this->streams, current_context->get_device(device));
   } else {
     // multiply each subap by nphot*fluxPersub/sumPerSub
     subap_norm(this->d_bincube->getData(), this->d_bincube->getData(),
-               this->d_fluxPerSub->getData(), this->d_subsum->getData(),
+               this->d_fluxPerSub->getData(), this->d_intensities->getData(),
                this->nphot, this->npix * this->npix,
                this->d_bincube->getNbElem(),
                current_context->get_device(device));
@@ -499,8 +500,10 @@ int sutra_wfs_sh::comp_generic() {
 
   if (this->roket) {  // Get here the bincube before adding noise,
                       // usefull for error budget
-    this->d_bincube->copyInto(this->d_bincube_notnoisy->getData(),
-                              this->d_bincube->getNbElem());
+    fillbinimg(this->d_binimg_notnoisy->getData(), this->d_bincube->getData(),
+               this->npix, this->nvalid_tot, this->npix * this->nxsub,
+               this->d_validsubsx->getData(), this->d_validsubsy->getData(),
+               false, this->current_context->get_device(device));
   }
   // add noise
   if (this->noise > -1) {

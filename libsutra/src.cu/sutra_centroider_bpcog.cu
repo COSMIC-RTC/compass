@@ -122,7 +122,7 @@ __global__ void centroid_bpix(int nsub, int n, T *g_idata, unsigned int *values,
                               T *g_odata, T scale, T offset) {
   extern __shared__ uint svalues[];
   T *sdata = (T *)&svalues[blockDim.x];
-  T subsum;
+  T intensities;
   // T minimum;
 
   // load shared mem
@@ -138,7 +138,7 @@ __global__ void centroid_bpix(int nsub, int n, T *g_idata, unsigned int *values,
 
   __syncthreads();
   // get the sum per subap
-  if (tid == 0) subsum = (abs(sdata[tid]) > 1.e-6 ? sdata[tid] : 0.0f);
+  if (tid == 0) intensities = (abs(sdata[tid]) > 1.e-6 ? sdata[tid] : 0.0f);
 
   __syncthreads();
 
@@ -155,7 +155,8 @@ __global__ void centroid_bpix(int nsub, int n, T *g_idata, unsigned int *values,
   //__syncthreads();
   if (tid == 0)
     g_odata[blockIdx.x] =
-        (subsum != 0.0f ? ((sdata[tid] / subsum) - offset) * scale : 0.0f);
+        (intensities != 0.0f ? ((sdata[tid] / intensities) - offset) * scale
+                             : 0.0f);
   __syncthreads();
   sdata[tid] = g_idata[i] - g_idata[blockIdx.x * blockDim.x + blockDim.x - 1];
 
@@ -170,7 +171,8 @@ __global__ void centroid_bpix(int nsub, int n, T *g_idata, unsigned int *values,
   //__syncthreads();
   if (tid == 0)
     g_odata[blockIdx.x + nsub] =
-        (subsum != 0.0f ? ((sdata[tid] / subsum) - offset) * scale : 0.0f);
+        (intensities != 0.0f ? ((sdata[tid] / intensities) - offset) * scale
+                             : 0.0f);
 }
 
 template <class T>

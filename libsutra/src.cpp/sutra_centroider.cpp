@@ -12,9 +12,13 @@ sutra_centroider::sutra_centroider(carma_context *context, sutra_wfs *wfs,
   this->offset = offset;
   this->scale = scale;
   this->nslopes = 0;
+  this->npix = 0;
 
-  this->d_bincube = nullptr;
-  this->d_subsum = nullptr;
+  long dims_data[2] = {1, this->nvalid};
+  this->d_intensities = new carma_obj<float>(current_context, dims_data);
+  this->d_intensities->reset();
+
+  this->d_centroids_ref = nullptr;
   this->d_img = nullptr;
   this->d_img_raw = nullptr;
   this->d_validx = nullptr;
@@ -24,7 +28,8 @@ sutra_centroider::sutra_centroider(carma_context *context, sutra_wfs *wfs,
 }
 
 sutra_centroider::~sutra_centroider() {
-  if (this->d_bincube != nullptr) delete this->d_bincube;
+  if (this->d_intensities != nullptr) delete this->d_intensities;
+  if (this->d_centroids_ref != nullptr) delete this->d_centroids_ref;
   if (this->d_img != nullptr) delete this->d_img;
   if (this->d_img_raw != nullptr) delete this->d_img_raw;
   if (this->d_validx != nullptr) delete this->d_validx;
@@ -59,28 +64,29 @@ int sutra_centroider::set_flat(float *flat, int n) {
 }
 
 int sutra_centroider::calibrate_img(bool save_raw) {
-  carma_obj<float> *img;
+  current_context->set_activeDevice(device, 1);
 
-  if (this->d_img != nullptr)
-    img = this->d_img;
-  else
-    img = this->d_bincube;
+  if (this->d_img == nullptr) {
+    std::cout << "Image not initialized\n" << std::endl;
+    return EXIT_FAILURE;
+  }
 
   if (save_raw) {
     if (this->d_img_raw != nullptr)
-      this->d_img_raw = new carma_obj<float>(current_context, img);
+      this->d_img_raw = new carma_obj<float>(current_context, d_img);
     else
-      this->d_img_raw->copy(img, 1, 1);
+      this->d_img_raw->copy(d_img, 1, 1);
   }
 
-  if (this->d_dark != nullptr) img->axpy(-1.f, this->d_dark, 1, 1);
+  if (this->d_dark != nullptr) d_img->axpy(-1.f, this->d_dark, 1, 1);
 
   if (this->d_flat != nullptr)
-    mult_vect(img->getData(), this->d_flat->getData(), img->getNbElem(),
+    mult_vect(d_img->getData(), this->d_flat->getData(), d_img->getNbElem(),
               current_context->get_device(device));
 
   return EXIT_SUCCESS;
 }
+
 int sutra_centroider::load_img(float *img, int n) {
   current_context->set_activeDevice(device, 1);
   if (this->d_img == nullptr) {
@@ -91,37 +97,8 @@ int sutra_centroider::load_img(float *img, int n) {
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider::load_img_gpu(float *img, int n) {
-  current_context->set_activeDevice(device, 1);
-  if (this->d_img == nullptr) {
-    long dims_data2[3] = {2, n, n};
-    this->d_img = new carma_obj<float>(current_context, dims_data2);
-  }
-  this->d_img->copyFrom(img, n * n);
-  return EXIT_SUCCESS;
-}
-
-int sutra_centroider::load_pyrimg(float *img, int n) {
-  current_context->set_activeDevice(device, 1);
-  if (this->d_bincube == nullptr) {
-    long dims_data2[3] = {2, n, n};
-    this->d_bincube = new carma_obj<float>(current_context, dims_data2);
-  }
-  this->d_bincube->host2device(img);
-  return EXIT_SUCCESS;
-}
-
-int sutra_centroider::fill_bincube(int npix) {
-  current_context->set_activeDevice(device, 1);
-  if (this->d_bincube == nullptr) {
-    long dims_data3[4] = {3, npix, npix, this->nvalid};
-    this->d_bincube = new carma_obj<float>(current_context, dims_data3);
-  }
-  // int nxsub = this->d_img->getDims(1) / npix;
-  // fillbincube(this->d_img->getData(), this->d_bincube->getData(), npix,
-  //             this->nvalid, nxsub, this->d_validx->getData(),
-  //             this->d_validy->getData(),
-  //             this->current_context->get_device(this->device));
+int sutra_centroider::set_npix(int npix) {
+  this->npix = npix;
 
   return EXIT_SUCCESS;
 }
@@ -137,5 +114,10 @@ int sutra_centroider::load_validpos(int *ivalid, int *jvalid, int N) {
   this->d_validx->host2device(ivalid);
   this->d_validy->host2device(jvalid);
 
+  return EXIT_SUCCESS;
+}
+
+int sutra_centroider::set_centroids_ref(float *centroids_ref) {
+  this->d_centroids_ref->host2device(centroids_ref);
   return EXIT_SUCCESS;
 }

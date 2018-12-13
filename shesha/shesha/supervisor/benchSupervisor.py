@@ -110,7 +110,8 @@ class BenchSupervisor(AbstractSupervisor):
         print("refslopes done")
 
     def resetRefslopes(self, nControl: int = 0):
-        self.rtc.d_control[nControl].d_centroids_ref.reset()
+        for centro in self.rtc.d_centro:
+            centro.d_centroids_ref.reset()
 
     def computeSlopes(self, do_centroids=False, nControl: int = 0):
         if do_centroids:
@@ -165,13 +166,16 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         Set given ref slopes in controller
         '''
-        self.rtc.d_control[0].set_centroids_ref(refSlopes)
+        self.rtc.set_centroids_ref(refSlopes)
 
     def getRefSlopes(self) -> np.ndarray:
         '''
         Get the currently used reference slopes
         '''
-        return np.array(self.rtc.d_control[0].d_centroids_ref)
+        refSlopes = np.empty(0)
+        for centro in self.rtc.d_centro:
+            refSlopes = np.append(refSlopes, np.array(centro.d_centroids_ref))
+        return refSlopes
 
     def setGain(self, gainMat) -> None:
         '''

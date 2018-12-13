@@ -46,16 +46,8 @@ sutra_controller::sutra_controller(carma_context *context, int nvalid,
 
   long dims_data1[2] = {1, 0};
 
-  dims_data1[1] = nvalid;
-  this->d_subsum = new carma_obj<float>(context, dims_data1);
-  this->d_subsum->reset();
-
   dims_data1[1] = nslope;
   this->d_centroids = new carma_obj<float>(context, dims_data1);
-  this->d_centroids_ref = new carma_obj<float>(context, dims_data1);
-  this->d_centroids_ref->reset();
-  // cudaMemset(this->d_centroids_ref->getData(), 0.0f,
-  //            nslope * sizeof(float));
 
   dims_data1[1] = nactu;
   this->d_com = new carma_obj<float>(context, dims_data1);
@@ -87,16 +79,6 @@ int sutra_controller::set_openloop(int open_loop_status, bool rst) {
                                this->nactu() * sizeof(float)));
     }
   }
-  return EXIT_SUCCESS;
-}
-
-int sutra_controller::set_centroids_ref(float *centroids_ref) {
-  this->d_centroids_ref->host2device(centroids_ref);
-  return EXIT_SUCCESS;
-}
-
-int sutra_controller::get_centroids_ref(float *centroids_ref) {
-  this->d_centroids_ref->device2host(centroids_ref);
   return EXIT_SUCCESS;
 }
 
@@ -245,7 +227,6 @@ int sutra_controller::add_perturb() {
 sutra_controller::~sutra_controller() {
   delete this->streams;
 
-  delete this->d_subsum;
   delete this->d_centroids;
   delete this->d_com;
   delete this->d_com1;

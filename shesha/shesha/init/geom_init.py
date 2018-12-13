@@ -430,7 +430,7 @@ def init_pyrhr_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
     x = y.T
 
     Pangle = pup_sep * nrebin  # Pyramid angle in HR pixels
-    if not hasattr(p_wfs, 'nPupils'):
+    if p_wfs.nPupils == 0:
         p_wfs.nPupils = 4
     # Centers is a nPupils x 2 array describing the position of the quadrant centers
     centers = Pangle / np.sin(
@@ -604,7 +604,7 @@ def init_sh_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
         verbose: (bool) : (optional) display informations if True
 
     """
-
+    p_wfs.nPupils = 1
     # this is the i,j index of lower left pixel of subap in _spupil
     istart = ((np.linspace(0, p_geom.pupdiam, p_wfs.nxsub + 1))[:-1]).astype(np.int64)
     # Translation in _mupil useful for raytracing

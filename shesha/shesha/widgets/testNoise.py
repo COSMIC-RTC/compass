@@ -32,7 +32,7 @@ def testNoise(noise=0.9, niter=100, closeLoop=True):
     for k in trange(niter):
         wao.sim.next()
         s1[k, :] = wao.sim.rtc.get_centroids(0)
-        sub1[k, :] = wao.sim.rtc.get_subsum(0)
+        sub1[k, :] = wao.sim.rtc.get_intensities(0)
 
         im1[k, :, :] = wao.sim.wfs.get_pyrimg(0)
         # im1HR[k,:,:] = wao.sim.wfs.get_pyrimghr(0)
@@ -50,7 +50,7 @@ def testNoise(noise=0.9, niter=100, closeLoop=True):
     for k in trange(niter):
         wao.sim.next()
         s2[k, :] = wao.sim.rtc.get_centroids(0)
-        sub2[k, :] = wao.sim.rtc.get_subsum(0)
+        sub2[k, :] = wao.sim.rtc.get_intensities(0)
         im2[k, :, :] = wao.sim.wfs.get_pyrimg(0)
         screen2[k, :, :] = wao.sim.atm.get_screen(0)
         # im2HR[k,:,:] = wao.sim.wfs.get_pyrimghr(0)
@@ -75,8 +75,8 @@ def testNoise(noise=0.9, niter=100, closeLoop=True):
     #plt.clf()
     #plt.matshow(s2-s1, aspect="auto", fignum=1)
 
-#plt.matshow(im2[-1,:,:]-im1[-1,:,:], aspect="auto", fignum=2)
 
+#plt.matshow(im2[-1,:,:]-im1[-1,:,:], aspect="auto", fignum=2)
 
 errscreenList = []
 imagesErrList = []

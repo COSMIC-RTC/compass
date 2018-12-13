@@ -114,13 +114,16 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         Set given ref slopes in controller
         '''
-        self._sim.rtc.d_control[0].set_centroids_ref(refSlopes)
+        self._sim.rtc.set_centroids_ref(refSlopes)
 
     def getRefSlopes(self) -> np.ndarray:
         '''
         Get the currently used reference slopes
         '''
-        return np.array(self._sim.rtc.d_control[0].d_centroids_ref)
+        refSlopes = np.empty(0)
+        for centro in self._sim.rtc.d_centro:
+            refSlopes = np.append(refSlopes, np.array(centro.d_centroids_ref))
+        return refSlopes
 
     def setGain(self, gainMat) -> None:
         '''
@@ -467,7 +470,8 @@ class CompassSupervisor(AbstractSupervisor):
         print("refslopes done")
 
     def resetRefslopes(self):
-        self._sim.rtc.d_control[0].d_centroids_ref.reset()
+        for centro in self.rtc.d_centro:
+            centro.d_centroids_ref.reset()
 
     def setNcpaWfs(self, ncpa, wfsnum):
         self._sim.wfs.d_wfs[wfsnum].d_gs.set_ncpa(ncpa)

@@ -6,8 +6,10 @@ sutra_centroider_bpcog::sutra_centroider_bpcog(carma_context *context,
                                                int device, int nmax)
     : sutra_centroider(context, wfs, nvalid, offset, scale, device) {
   this->nslopes = 2 * nvalid;
-
   this->nmax = nmax;
+  long dims_data2[2] = {1, nslopes};
+  this->d_centroids_ref =
+      new carma_obj<float>(this->current_context, dims_data2);
 
   long dims_data[3];
   dims_data[0] = 2;
@@ -42,9 +44,9 @@ int sutra_centroider_bpcog::set_nmax(int nmax) {
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider_bpcog::get_cog(carma_streams *streams, float *cube,
-                                    float *subsum, float *centroids, int nvalid,
-                                    int npix, int ntot) {
+int sutra_centroider_bpcog::get_cog(float *cube, float *intensities,
+                                    float *centroids, int nvalid, int npix,
+                                    int ntot) {
   current_context->set_activeDevice(device, 1);
   // brightest pixels cog
   subap_sortmax<float>(npix * npix, nvalid, cube, this->d_bpix->getData(),
@@ -58,15 +60,15 @@ int sutra_centroider_bpcog::get_cog(carma_streams *streams, float *cube,
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider_bpcog::get_cog(float *subsum, float *slopes, bool noise) {
+int sutra_centroider_bpcog::get_cog(float *intensities, float *slopes,
+                                    bool noise) {
   if (this->wfs != nullptr) {
     if (noise || wfs->roket == false) {
-      return this->get_cog(wfs->streams, *wfs->d_bincube, subsum, slopes,
-                           wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
+      return this->get_cog(*wfs->d_bincube, intensities, slopes, wfs->nvalid,
+                           wfs->npix, wfs->d_bincube->getNbElem());
     } else {
-      return this->get_cog(wfs->streams, *wfs->d_bincube_notnoisy, subsum,
-                           slopes, wfs->nvalid, wfs->npix,
-                           wfs->d_bincube->getNbElem());
+      return this->get_cog(*wfs->d_binimg_notnoisy, intensities, slopes,
+                           wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
     }
   }
 
@@ -76,7 +78,7 @@ int sutra_centroider_bpcog::get_cog(float *subsum, float *slopes, bool noise) {
 
 int sutra_centroider_bpcog::get_cog() {
   if (this->wfs != nullptr)
-    return this->get_cog(*(wfs->d_subsum), *(wfs->d_slopes), true);
+    return this->get_cog(*(wfs->d_intensities), *(wfs->d_slopes), true);
 
   DEBUG_TRACE("this->wfs was not initialized");
   return EXIT_FAILURE;

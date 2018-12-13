@@ -2,9 +2,10 @@
 #include <carma_utils.cuh>
 
 template <class T, int Nthreads>
-__global__ void centroids(T *g_idata, T *g_odata, T *ref, int *validx,
-                          int *validy, unsigned int n, unsigned int size,
-                          T scale, T offset, unsigned int nelem_thread) {
+__global__ void centroids(T *d_img, T *d_centroids, T *ref, int *validx,
+                          int *validy, T *d_intensities, unsigned int npix,
+                          unsigned int size, T scale, T offset,
+                          unsigned int nelem_thread) {
   if (blockDim.x > Nthreads) {
     if (threadIdx.x == 0) printf("Wrong size argument\n");
     return;
@@ -19,23 +20,21 @@ __global__ void centroids(T *g_idata, T *g_odata, T *ref, int *validx,
   T ydata = 0;
   // load shared mem
   unsigned int tid = threadIdx.x;
-  unsigned int xvalid = validx[blockIdx.x] * n;
-  unsigned int yvalid = validy[blockIdx.x] * n;
+  unsigned int xvalid = validx[blockIdx.x] * npix;
+  unsigned int yvalid = validy[blockIdx.x] * npix;
   unsigned int x, y;
   int idim;
 
-  __syncthreads();
-
   for (int cc = 0; cc < nelem_thread; cc++) {
-    x = ((tid * nelem_thread + cc) % n);
-    y = ((tid * nelem_thread + cc) / n);
+    x = ((tid * nelem_thread + cc) % npix);
+    y = ((tid * nelem_thread + cc) / npix);
     // idim = tid * nelem_thread + cc + (blockDim.x * nelem_thread) *
     // blockIdx.x;
     idim = (x + xvalid) + (y + yvalid) * size;
     if (idim < size * size) {
-      idata += g_idata[idim];
-      xdata += g_idata[idim] * x;
-      ydata += g_idata[idim] * y;
+      idata += d_img[idim];
+      xdata += d_img[idim] * x;
+      ydata += d_img[idim] * y;
     }
   }
 
@@ -47,12 +46,13 @@ __global__ void centroids(T *g_idata, T *g_odata, T *ref, int *validx,
   T slopey = BlockReduce(temp_storage).Sum(ydata, blockDim.x);
   // write result for this block to global mem
   if (tid == 0) {
-    g_odata[blockIdx.x] =
+    d_centroids[blockIdx.x] =
         ((slopex * 1.0 / (intensity + 1.e-6)) - offset) * scale -
         ref[blockIdx.x];
-    g_odata[blockIdx.x + gridDim.x] =
+    d_centroids[blockIdx.x + gridDim.x] =
         ((slopey * 1.0 / (intensity + 1.e-6)) - offset) * scale -
         ref[blockIdx.x];
+    d_intensities[blockIdx.x] = intensity;
   }
 }
 
@@ -125,9 +125,9 @@ __global__ void centroidy(T *g_idata, T *g_odata, T *alpha, unsigned int n,
 }
 
 template <class T>
-void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
-                   T *d_odata, T *ref, int *validx, int *validy, T scale,
-                   T offset, carma_device *device) {
+void get_centroids(int size, int threads, int blocks, int npix, T *d_img,
+                   T *d_centroids, T *ref, int *validx, int *validy,
+                   T *intensities, T scale, T offset, carma_device *device) {
   int maxThreads = device->get_properties().maxThreadsPerBlock;
   unsigned int nelem_thread = 1;
   while ((threads / nelem_thread > maxThreads) ||
@@ -142,30 +142,30 @@ void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
   // when there is only one warp per block, we need to allocate two warps
   // worth of shared memory so that we don't index shared memory out of bounds
   if (threads <= 16)
-    centroids<T, 16><<<dimGrid, dimBlock>>>(
-        d_idata, d_odata, ref, validx, validy, n, size, scale, offset,
-        nelem_thread);
+    centroids<T, 16><<<dimGrid, dimBlock>>>(d_img, d_centroids, ref, validx,
+                                            validy, intensities, npix, size,
+                                            scale, offset, nelem_thread);
   else if (threads <= 32)
-    centroids<T, 32><<<dimGrid, dimBlock>>>(
-        d_idata, d_odata, ref, validx, validy, n, size, scale, offset,
-        nelem_thread);
+    centroids<T, 32><<<dimGrid, dimBlock>>>(d_img, d_centroids, ref, validx,
+                                            validy, intensities, npix, size,
+                                            scale, offset, nelem_thread);
 
   else if (threads <= 64)
-    centroids<T, 64><<<dimGrid, dimBlock>>>(
-        d_idata, d_odata, ref, validx, validy, n, size, scale, offset,
-        nelem_thread);
+    centroids<T, 64><<<dimGrid, dimBlock>>>(d_img, d_centroids, ref, validx,
+                                            validy, intensities, npix, size,
+                                            scale, offset, nelem_thread);
   else if (threads <= 128)
-    centroids<T, 128><<<dimGrid, dimBlock>>>(
-        d_idata, d_odata, ref, validx, validy, n, size, scale, offset,
-        nelem_thread);
+    centroids<T, 128><<<dimGrid, dimBlock>>>(d_img, d_centroids, ref, validx,
+                                             validy, intensities, npix, size,
+                                             scale, offset, nelem_thread);
   else if (threads <= 256)
-    centroids<T, 256><<<dimGrid, dimBlock>>>(
-        d_idata, d_odata, ref, validx, validy, n, size, scale, offset,
-        nelem_thread);
+    centroids<T, 256><<<dimGrid, dimBlock>>>(d_img, d_centroids, ref, validx,
+                                             validy, intensities, npix, size,
+                                             scale, offset, nelem_thread);
   else if (threads <= 512)
-    centroids<T, 512><<<dimGrid, dimBlock>>>(
-        d_idata, d_odata, ref, validx, validy, n, size, scale, offset,
-        nelem_thread);
+    centroids<T, 512><<<dimGrid, dimBlock>>>(d_img, d_centroids, ref, validx,
+                                             validy, intensities, npix, size,
+                                             scale, offset, nelem_thread);
   else
     printf("SH way too big !!!\n");
 
@@ -178,16 +178,17 @@ void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
   //   carmaCheckMsg("centroidy_kernel<<<>>> execution failed\n");
 }
 
-template void get_centroids<float>(int size, int threads, int blocks, int n,
-                                   float *d_idata, float *d_odata, float *alpha,
-                                   int *validx, int *validy, float scale,
-                                   float offset, carma_device *device);
+template void get_centroids<float>(int size, int threads, int blocks, int npix,
+                                   float *d_img, float *d_centroids, float *ref,
+                                   int *validx, int *validy, float *intensities,
+                                   float scale, float offset,
+                                   carma_device *device);
 
-template void get_centroids<double>(int size, int threads, int blocks, int n,
-                                    double *d_idata, double *d_odata,
-                                    double *alpha, int *validx, int *validy,
-                                    double scale, double offset,
-                                    carma_device *device);
+template void get_centroids<double>(int size, int threads, int blocks, int npix,
+                                    double *d_img, double *d_centroids,
+                                    double *ref, int *validx, int *validy,
+                                    double *intensities, double scale,
+                                    double offset, carma_device *device);
 
 template <class T>
 __global__ void centroidx_async(T *g_idata, T *g_odata, T *alpha,

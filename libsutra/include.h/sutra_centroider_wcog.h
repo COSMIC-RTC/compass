@@ -20,9 +20,9 @@ class sutra_centroider_wcog : public sutra_centroider {
   int init_weights();
   int load_weights(float *weights, int ndim);
 
-  int get_cog(carma_streams *streams, float *cube, float *subsum,
-              float *centroids, int nvalid, int npix, int ntot);
-  int get_cog(float *subsum, float *slopes, bool noise);
+  int get_cog(float *cube, float *intensities, float *centroids, int nvalid,
+              int npix, int ntot);
+  int get_cog(float *intensities, float *slopes, bool noise);
   int get_cog();
 };
 

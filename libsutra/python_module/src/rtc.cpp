@@ -136,6 +136,16 @@ void declare_rtc(py::module &mod) {
     )pbdoc",
            py::arg("ncontrol"))
 
+      .def("set_centroids_ref", wy::colCast(&sutra_rtc::set_centroids_ref),
+           R"pbdoc(
+          Set the reference centroids
+
+          Parameters
+          ------------
+          centroids_ref : (np.array(ndim=1, dtype=np.float32)): ref centroids
+     )pbdoc",
+           py::arg("centroidsRef"))
+
       .def("do_control", (int (sutra_rtc::*)(int)) & sutra_rtc::do_control,
            R"pbdoc(
         Computes the commands

@@ -323,14 +323,14 @@ int sutra_rtc::do_imat_geom(int ncntrl, sutra_dms *ydm, int type) {
   return EXIT_SUCCESS;
 }
 
-int sutra_rtc::remove_ref(int ncntrl) {
-  carma_axpy<float>(
-      this->d_control[ncntrl]->current_context->get_cublasHandle(),
-      this->d_control[ncntrl]->d_centroids->getNbElem(), -1.0f,
-      this->d_control[ncntrl]->d_centroids_ref->getData(), 1,
-      this->d_control[ncntrl]->d_centroids->getData(), 1);
-  return EXIT_SUCCESS;
-}
+// int sutra_rtc::remove_ref(int ncntrl) {
+//   carma_axpy<float>(
+//       this->d_control[ncntrl]->current_context->get_cublasHandle(),
+//       this->d_control[ncntrl]->d_centroids->getNbElem(), -1.0f,
+//       this->d_control[ncntrl]->d_centroids_ref->getData(), 1,
+//       this->d_control[ncntrl]->d_centroids->getData(), 1);
+//   return EXIT_SUCCESS;
+// }
 
 int sutra_rtc::do_centroids() {
   for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
@@ -343,28 +343,23 @@ int sutra_rtc::do_centroids() {
 int sutra_rtc::do_centroids(int ncntrl) { return do_centroids(ncntrl, true); }
 
 int sutra_rtc::do_centroids(int ncntrl, bool noise) {
-  carma_streams *streams = nullptr;
-  int indssp = 0;
   int indslope = 0;
 
   for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
     if (this->d_centro[idx_cntr]->wfs != nullptr) {
       this->d_centro[idx_cntr]->get_cog(
-          this->d_control[ncntrl]->d_centroids_ref->getDataAt(indssp),
+          this->d_centro[idx_cntr]->d_intensities->getData(),
           this->d_control[ncntrl]->d_centroids->getDataAt(indslope), noise);
 
-      indssp += this->d_centro[idx_cntr]->wfs->nvalid_tot;
       indslope += this->d_centro[idx_cntr]->nslopes;
     } else {
       this->d_centro[idx_cntr]->get_cog(
-          streams, this->d_centro[idx_cntr]->d_img->getData(),
-          this->d_control[ncntrl]->d_centroids_ref->getDataAt(indssp),
+          this->d_centro[idx_cntr]->d_img->getData(),
+          this->d_centro[idx_cntr]->d_intensities->getData(),
           this->d_control[ncntrl]->d_centroids->getDataAt(indslope),
-          this->d_centro[idx_cntr]->nvalid,
-          this->d_centro[idx_cntr]->d_bincube->getDims(1),
+          this->d_centro[idx_cntr]->nvalid, this->d_centro[idx_cntr]->npix,
           this->d_centro[idx_cntr]->d_img->getDims(1));
 
-      indssp += this->d_centro[idx_cntr]->nvalid;
       indslope += this->d_centro[idx_cntr]->nslopes;
     }
   }
@@ -373,25 +368,6 @@ int sutra_rtc::do_centroids(int ncntrl, bool noise) {
   return EXIT_SUCCESS;
 }
 
-int sutra_rtc::do_centroids(int ncntrl, float *bincube, int npix, int ntot) {
-  carma_streams *streams = nullptr;
-  int indssp = 0;
-  int indslope = 0;
-
-  for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
-    this->d_centro[idx_cntr]->get_cog(
-        streams, bincube,
-        this->d_control[ncntrl]->d_centroids_ref->getDataAt(indssp),
-        this->d_control[ncntrl]->d_centroids->getDataAt(indslope),
-        this->d_centro[idx_cntr]->nvalid, npix, ntot);
-
-    indssp += this->d_centro[idx_cntr]->nvalid;
-    indslope += this->d_centro[idx_cntr]->nslopes;
-  }
-  // remove_ref(ncntrl);
-
-  return EXIT_SUCCESS;
-}
 int sutra_rtc::do_centroids_geom(int ncntrl) {
   int inds2 = 0;
 
@@ -418,29 +394,32 @@ int sutra_rtc::do_centroids_geom(int ncntrl) {
 }
 
 int sutra_rtc::do_centroids_ref(int ncntrl) {
-  // int inds2 = 0;
-  // float tmp;
-  // for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
-  //   sutra_wfs *wfs = this->d_centro[idx_cntr]->wfs;
-  //   wfs->d_gs->d_phase->d_screen->reset();
-  //   tmp = wfs->noise;
-  //   wfs->noise = -1;
-  //   wfs->comp_image();
-  //   wfs->noise = tmp;
-  // }
   this->do_centroids(ncntrl);
-  this->d_control[ncntrl]->d_centroids_ref->axpy(
-      1.0f, this->d_control[ncntrl]->d_centroids, 1, 1);
+  vector<sutra_centroider *>::iterator sc;
+  sc = this->d_centro.begin();
+  int inds;
+  inds = 0;
+  while (sc != this->d_centro.end()) {
+    (*sc)->d_centroids_ref->reset();
+    carma_axpy(this->d_control[ncntrl]->cublas_handle(), (*sc)->nslopes, 1.0f,
+               this->d_control[ncntrl]->d_centroids->getDataAt(inds), 1,
+               (*sc)->d_centroids_ref->getData(), 1);
+    inds += (*sc)->nslopes;
+  }
+
   return EXIT_SUCCESS;
 }
 
-int sutra_rtc::set_centroids_ref(int ncntrl, float *centroids_ref) {
-  this->d_control[ncntrl]->set_centroids_ref(centroids_ref);
-  return EXIT_SUCCESS;
-}
+int sutra_rtc::set_centroids_ref(float *centroids_ref) {
+  vector<sutra_centroider *>::iterator sc;
+  sc = this->d_centro.begin();
+  int inds;
+  inds = 0;
+  while (sc != this->d_centro.end()) {
+    (*sc)->set_centroids_ref(&centroids_ref[inds]);
+    inds += (*sc)->nslopes;
+  }
 
-int sutra_rtc::get_centroids_ref(int ncntrl, float *centroids_ref) {
-  this->d_control[ncntrl]->get_centroids_ref(centroids_ref);
   return EXIT_SUCCESS;
 }
 

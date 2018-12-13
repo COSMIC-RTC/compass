@@ -217,8 +217,8 @@ void sutra_rtc_brahma::publish() {
   int nvalid_current = 0;
 
   for (unsigned int i = 0; i < d_control.size(); i++) {
-    d_control[i]->d_subsum->device2host(buff_intensities_servant +
-                                        nvalid_current);
+    d_control[i]->d_intensities->device2host(buff_intensities_servant +
+                                             nvalid_current);
     d_control[i]->d_centroids->device2host(buff_slopes_servant + nslp_current);
     d_control[i]->d_voltage->device2host(buff_commands_servant + ncmd_current);
     nvalid_current += d_control[i]->nslope() / 2;

@@ -162,16 +162,6 @@ void declare_controller_ls(py::module &mod) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
-      .def("set_centroids_ref",
-           wy::colCast(&sutra_controller_ls::set_centroids_ref), R"pbdoc(
-      Set the references slopes
-
-      Parameters
-      ------------
-      refslopes: (np.array[ndim1,dtype=np.float32]): reference slopes to set
-    )pbdoc",
-           py::arg("refslopes"))
-
       .def("set_gain", wy::colCast(&sutra_controller_ls::set_gain), R"pbdoc(
       Set the controller gain
 

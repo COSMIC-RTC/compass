@@ -22,7 +22,7 @@ __global__ void find_nnz_krnl(T_data *d_data, int *colind, int *d_nnz, int N) {
   __syncthreads();
 
   if (threadIdx.x == 0)
-    //		subsum[blockIdx.x] = sdata[0];
+    //		intensities[blockIdx.x] = sdata[0];
     atomicAdd(d_nnz, sdata[0]);
 }
 template <class T_data>

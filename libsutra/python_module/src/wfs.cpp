@@ -97,19 +97,14 @@ void declare_wfs(py::module &mod) {
                              "WFS spots as a 3D array")
 
       .def_property_readonly(
-          "d_bincube_notnoisy",
-          [](sutra_wfs &sw) { return sw.d_bincube_notnoisy; },
-          "WFS spots as a 3D array without noise (ROKET only)")
-
-      .def_property_readonly(
           "d_binimg", [](sutra_wfs &sw) { return sw.d_binimg; }, "WFS image")
 
       .def_property_readonly("d_binimg_notnoisy",
                              [](sutra_wfs &sw) { return sw.d_binimg_notnoisy; },
                              "WFS image without noise (ROKET only)")
 
-      .def_property_readonly("d_subsum",
-                             [](sutra_wfs &sw) { return sw.d_subsum; },
+      .def_property_readonly("d_intensities",
+                             [](sutra_wfs &sw) { return sw.d_intensities; },
                              "Sum of intensities in each ssp")
 
       .def_property_readonly("d_offsets",

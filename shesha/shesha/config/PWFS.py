@@ -165,7 +165,7 @@ class Param_wfs:
         """ Type of pyramid, either 0 for "Pyramid" or 1 for "RoofPrism"."""
         self.__pyr_pup_sep = -1
         """ Number of Pyramid facets """
-        self.__nPupils = 4
+        self.__nPupils = 0
         """ Pyramid pupil separation. (default: long(wfs.nxsub))"""
         self.__pyr_misalignments = None
         """ Pyramid quadrant misalignments: by how much pupil subimages
