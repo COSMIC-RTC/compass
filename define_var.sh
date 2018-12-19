@@ -34,7 +34,7 @@ export SHESHA_ROOT=$COMPASS_ROOT/shesha
 
 export LD_LIBRARY_PATH=$COMPASS_ROOT/libcarma:$COMPASS_ROOT/libsutra:$CUDA_LIB_PATH_64:$CUDA_LIB_PATH:$CULA_LIB_PATH_64:$CULA_LIB_PATH:$LD_LIBRARY_PATH
 
-export PYTHONPATH=$SHESHA/src:$NAGA/src:$SHESHA/lib:$NAGA/lib:$PYTHONPATH
+export PYTHONPATH=$SHESHA/:$NAGA/:$PYTHONPATH
 
 echo "COMPASS will use this configuration, please add those lines into the .bashrc"
 

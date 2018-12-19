@@ -288,14 +288,16 @@ class BenchSupervisor(AbstractSupervisor):
         Initialize the simulation
         '''
         import hraa.devices.camera as m_cam
-
+        from hraa.lib.camSDK import cam_attributes
         Camera = m_cam.getCamClass(self.config.p_cams[0].type)
         print("->cam")
-        self.cam = Camera(self.config.p_cams[0].camAddr, self.config.p_cams[0].width,
-                          self.config.p_cams[0].height, self.config.p_cams[0].offset_w,
-                          self.config.p_cams[0].offset_h,
-                          self.config.p_cams[0].expo_usec,
-                          self.config.p_cams[0].framerate)
+        self.cam = Camera(
+                self.config.p_cams[0].camAddr,
+                cam_attributes(self.config.p_cams[0].width, self.config.p_cams[0].height,
+                               self.config.p_cams[0].offset_w,
+                               self.config.p_cams[0].offset_h,
+                               self.config.p_cams[0].expo_usec,
+                               self.config.p_cams[0].framerate))
 
         print("->RTC")
         wfsNb = len(self.config.p_wfss)

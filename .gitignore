@@ -53,10 +53,7 @@ doc/compass-doc
 
 \.vscode/
 setup.cfg
-compass.egg-info
-python
-shesha.egg-info
-compass_sim.egg-info
+*.egg-info
 
 lib/
 *.log
