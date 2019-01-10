@@ -258,6 +258,12 @@ class CompassSupervisor(AbstractSupervisor):
         """
         self._sim.loop(n, monitoring_freq=monitoring_freq)
 
+    def forceContext(self) -> None:
+        '''
+        Clear the initialization of the simulation
+        '''
+        self._sim.force_context()
+
     def computeSlopes(self):
         for w in self._sim.wfs.d_wfs:
             w.d_gs.comp_image()
