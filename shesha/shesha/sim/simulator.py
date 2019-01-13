@@ -14,7 +14,7 @@ from shesha.init.rtc_init import rtc_init
 from shesha.init.dm_init import dm_init
 from shesha.init.target_init import target_init
 from shesha.init.wfs_init import wfs_init
-from shesha.util.utilities import load_config_from_file
+from shesha.util.utilities import load_config_from_file, load_config_from_module
 
 import shesha.constants as scons
 import shesha.util.hdf5_utils as h5u
@@ -102,6 +102,16 @@ class Simulator:
 
         """
         load_config_from_file(self, filepath)
+
+    def load_from_module(self, filepath: str) -> None:
+        """
+        Load the parameters from the parameters file
+
+        :parameters:
+            filepath: (str): path to the parameters file
+
+        """
+        load_config_from_module(self, filepath)
 
     def clear_init(self) -> None:
         """

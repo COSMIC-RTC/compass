@@ -142,8 +142,8 @@ class RTCSupervisor(BenchSupervisor):
 
             self.npix = p_wfs.npix
 
-            xvalid = tmp_valid[0, :] // self.npix
-            yvalid = tmp_valid[1, :] // self.npix
+            xvalid = tmp_valid[0, :]
+            yvalid = tmp_valid[1, :]
             offset = (self.npix + 1) / 2
             scale = p_wfs.pixsize
         elif p_wfs.type == WFSType.PYRHR or p_wfs.type == WFSType.PYRLR:

@@ -338,8 +338,8 @@ class BenchSupervisor(AbstractSupervisor):
                                       self.config.p_centroiders[0].type, 1, offset * 0,
                                       scale, brahma=True)
             # put pixels in the SH grid coordonates
-            self.rtc.d_centro[0].load_validpos(p_wfs._validsubsx // self.npix,
-                                               p_wfs._validsubsy // self.npix, nvalid)
+            self.rtc.d_centro[0].load_validpos(p_wfs._validsubsx, p_wfs._validsubsy,
+                                               nvalid)
 
             cMat = np.zeros((nact, 2 * nvalid[0]), dtype=np.float32)
             self.rtc.d_control[0].set_cmat(cMat)

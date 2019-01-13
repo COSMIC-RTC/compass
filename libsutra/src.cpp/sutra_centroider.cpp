@@ -119,7 +119,7 @@ int sutra_centroider::fill_bincube(int npix) {
   }
   int nxsub = this->d_img->getDims(1) / npix;
   fillbincube(this->d_img->getData(), this->d_bincube->getData(), npix,
-              this->nvalid, nxsub, this->d_validx->getData(),
+              this->nvalid, 1, this->d_validx->getData(),
               this->d_validy->getData(),
               this->current_context->get_device(this->device));
 
