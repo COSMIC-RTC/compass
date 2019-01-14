@@ -57,8 +57,8 @@ add_library(sutraWrap MODULE
                     )
 #link_directories($ENV{COMPASS_ROOT}/libsutra)
 
+target_compile_features(sutraWrap PUBLIC cxx_std_14)
 target_link_libraries(sutraWrap PRIVATE wyrm sutra)
 
 set_target_properties(sutraWrap PROPERTIES PREFIX "${PYTHON_MODULE_PREFIX}"
                                       SUFFIX "${PYTHON_MODULE_EXTENSION}")
-target_compile_features(sutraWrap PUBLIC cxx_std_11)
