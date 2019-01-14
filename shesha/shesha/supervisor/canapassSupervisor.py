@@ -482,15 +482,17 @@ class CanapassSupervisor(CompassSupervisor):
             KLMax = nmodesMax
         else:
             KLMax = KL2V.shape[1]
+        vold = self.getCom(0)
+        self.openLoop(rst=False)  # This is to avoid delay during slopes measurement
         for kl in trange(KLMax, desc="Modal IM"):
             # v = ampliVec[kl] * KL2V[:, kl:kl + 1].T.copy()
             v = ampliVec[kl] * KL2V[:, kl]
             if ((pushPull is True) or
                 (withTurbu is True)):  # with turbulence/aberrations => push/pull
-                self.setPerturbationVoltage(
-                        0, v)  # Adding Perturbation voltage on current iteration
+                self.setCommand(
+                        0, vold + v)  # Adding Perturbation voltage on current iteration
                 devpos = self.applyVoltGetSlopes(turbu=withTurbu, noise=noise)
-                self.setPerturbationVoltage(0, -v)
+                self.setCommand(0, vold - v)
                 devmin = self.applyVoltGetSlopes(turbu=withTurbu, noise=noise)
                 iMatKL[:, kl] = (devpos - devmin) / (2. * ampliVec[kl])
                 #imat[:-2, :] /= pushDMMic
@@ -498,11 +500,11 @@ class CanapassSupervisor(CompassSupervisor):
                 #imat[-2:, :] /= pushTTArcsec
             else:  # No turbulence => push only
                 self.openLoop()  # openLoop
-                self.setPerturbationVoltage(0, v)
+                self.setCommand(0, v)
                 iMatKL[:, kl] = self.applyVoltGetSlopes(noise=noise) / ampliVec[kl]
-        self.setPerturbationVoltage(0, v * 0.)  # removing perturbvoltage...
-        # print("Modal interaction matrix done in %3.0f seconds" % (time.time() - st))
-
+        self.setCommand(0, vold)
+        if ((pushPull is True) or (withTurbu is True)):
+            self.closeLoop()  # We are supposed to be in close loop now
         return iMatKL
 
     def doImatPhase(self, cubePhase, Nslopes, noise=False, nmodesMax=0, withTurbu=False,

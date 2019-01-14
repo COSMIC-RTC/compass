@@ -58,8 +58,7 @@ __global__ void bcube_krnl(T *bimage, T *bcube, int npix, int npix2, int nsub,
 
     // int idbin = xim + yim * nsub + ivalid[nim] * npix
     //           + jvalid[nim] * npix * nsub;
-    int idbin =
-        xim + ivalid[nim] * npix + (yim + jvalid[nim] * npix) * npix * nsub;
+    int idbin = xim + ivalid[nim] + (yim + jvalid[nim]) * npix * nsub;
     bcube[tid] = bimage[idbin];
     tid += blockDim.x * gridDim.x;
   }

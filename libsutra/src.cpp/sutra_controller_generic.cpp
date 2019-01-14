@@ -14,6 +14,7 @@ sutra_controller_generic::sutra_controller_generic(carma_context *context,
   this->d_compbuff = new carma_obj<float>(current_context, dims_data1);
   long dims_data2[3] = {2, nactu, nslope};
   this->d_cmat = new carma_obj<float>(current_context, dims_data2);
+  this->gain = 0.3f;
 
   dims_data2[2] = nactu;
   this->d_matE = new carma_obj<float>(current_context, dims_data2);
