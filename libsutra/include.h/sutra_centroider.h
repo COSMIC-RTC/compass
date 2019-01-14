@@ -20,6 +20,9 @@ class sutra_centroider {
   carma_obj<float> *d_bincube;
   carma_obj<float> *d_subsum;
   carma_obj<float> *d_img;
+  carma_obj<float> *d_img_raw;
+  carma_obj<float> *d_dark;
+  carma_obj<float> *d_flat;
   carma_obj<int> *d_validx;
   carma_obj<int> *d_validy;
 
@@ -30,6 +33,9 @@ class sutra_centroider {
  public:
   virtual ~sutra_centroider();
   int set_scale(float scale);
+  int set_dark(float *dark, int n);
+  int set_flat(float *flat, int n);
+  int calibrate_img(bool save_raw = false);
   int load_validpos(int *ivalid, int *jvalid, int N);
   int fill_bincube(int npix);
   int load_img(float *img, int n);

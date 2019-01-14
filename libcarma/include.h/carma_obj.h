@@ -23,6 +23,10 @@
 #include <iostream>
 #include <typeinfo>  // operator typeid
 
+#if CUDA_HIGHEST_SM >= 60
+#define CAN_DO_HALF 1
+#endif
+
 /*
  create a memory object
  void *memory
@@ -101,7 +105,9 @@ class carma_obj {
  protected:
   T_data *d_data;  ///< Input data  => change to vector
   std::vector<T_data> h_data;
-  T_data *o_data;  ///< optional data (used for scan / reduction)
+  T_data *o_data;        ///< optional data (used for scan / reduction)
+  T_data *cub_data;      ///< optional data (used for scan / reduction)
+  size_t cub_data_size;  // optionnal for reduction
   int ndim;
   long *dims_data;  ///< dimensions of the array
   int nb_elem;      ///< number of elements in the array
@@ -114,7 +120,9 @@ class carma_obj {
   int nThreads;
   int nBlocks;
 
-  bool keysOnly;         //< optional flag (used for sort)
+  bool keysOnly;      //< optional flag (used for sort)
+  bool owner = true;  // Flag if d_data is created inside the carma_obj
+
   unsigned int *values;  ///< optional data (used for sort)
   size_t *d_numValid;    ///< used for compact
 
@@ -179,6 +187,15 @@ class carma_obj {
     this->streams->wait_all_streams();
     return EXIT_SUCCESS;
   }
+  void swapPtr(T_data *ptr) {
+    dealloc();
+    d_data = ptr;
+    owner = false;
+  }
+
+  void dealloc() {
+    if (owner) cudaFree(d_data);
+  }
 
   /**< General Utilities */
   operator T_data *() { return d_data; }
@@ -200,6 +217,12 @@ class carma_obj {
   T_data *getData() { return d_data; }
   T_data *getDataAt(int index) { return &d_data[index]; }
   T_data *getOData() { return o_data; }
+  const T_data getODataValue() const {
+    T_data tmp_float;
+    carmaSafeCall(
+        cudaMemcpy(&tmp_float, o_data, sizeof(T_data), cudaMemcpyDeviceToHost));
+    return tmp_float;
+  }
   const long *getDims() { return dims_data; }
   long getDims(int i) { return dims_data[i]; }
   int getNbElem() { return nb_elem; }
@@ -237,6 +260,9 @@ class carma_obj {
 
   /**< sum */
   T_data sum();
+  void init_reduceCub();
+  void reduceCub();
+
   void clip(T_data min, T_data max);
 
   /**< transpose */
@@ -303,6 +329,10 @@ typedef carma_obj<cuFloatComplex> caObjC;
 typedef carma_obj<cuDoubleComplex> caObjZ;
 typedef carma_obj<tuple_t<float> > caObjTF;
 
+#ifdef CAN_DO_HALF
+typedef carma_obj<half> caObjH;
+#endif
+
 template <class T_data>
 std::ostream &operator<<(std::ostream &os, carma_obj<T_data> &obj) {
   os << "-----------------------" << std::endl;
@@ -331,6 +361,14 @@ void reduce(int size, int threads, int blocks, T_data *d_idata,
             T_data *d_odata);
 template <class T_data>
 T_data reduce(T_data *data, int N);
+
+template <class T_data>
+void init_reduceCubCU(T_data *&cub_data, size_t &cub_data_size, T_data *data,
+                      T_data *&o_data, int N);
+template <class T_data>
+void reduceCubCU(T_data *cub_data, size_t cub_data_size, T_data *data,
+                 T_data *o_data, int N);
+
 // CU functions transpose
 template <class T_data>
 int transposeCU(T_data *d_idata, T_data *d_odata, long N1, long N2);

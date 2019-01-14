@@ -14,7 +14,7 @@ Develop status: [![Develop status](https://gitlab.obspm.fr/compass/compass/badge
     - [Install MAGMA](#install-magma)
         - [Why MAGMA?](#why-magma)
         - [Extraction](#extraction)
-        - [Configure MAGMA with openBLAS & installation (fast way)](#configure-magma-with-openblas-installation-fast-way)
+        - [Configure MAGMA with MKL & installation (fast way)](#configure-magma-with-mkl-installation-fast-way)
         - [Configure MAGMA & installation (expert way)](#configure-magma-installation-expert-way)
             - [Using OpenBlas](#using-openblas)
             - [Using MKL](#using-mkl)
@@ -77,24 +77,25 @@ tar xf magma-2.3.0.tar.gz
 cd magma-2.3.0
 ```
 
-### Configure MAGMA with openBLAS & installation (fast way)
+### Configure MAGMA with MKL & installation (fast way)
 
 Installation of dependencies using anaconda
 
 ```bash
-conda install -y numpy nomkl pyqtgraph ipython pyqt qt matplotlib astropy blaze h5py hdf5 nose pandas scipy docopt tqdm
+conda install -y numpy mkl-include pyqtgraph ipython pyqt qt matplotlib astropy blaze h5py hdf5 nose pandas scipy docopt tqdm
 ```
 
 add to you .bashrc:
 
 ```bash
-export OPENBLAS_ROOT=$CONDA_ROOT
+export MKLROOT=$CONDA_ROOT
 ```
 
 You have to create your own make.inc based on make.inc.openblas:
 
 ```bash
-cp make.inc-examples/make.inc.openblas make.inc
+cp make.inc-examples/make.inc.mkl-gcc make.inc
+sed -i 's/\/intel64//' make.inc
 ```
 
 just compile the shared target (and test if you want)
@@ -102,7 +103,7 @@ just compile the shared target (and test if you want)
 ```bash
 export CUDA_ROOT=/usr/local/cuda
 export NCPUS=8
-GPU_TARGET=sm_XX OPENBLASDIR=$OPENBLAS_ROOT CUDADIR=$CUDA_ROOT make -j $NCPUS shared sparse-shared
+GPU_TARGET=sm_XX MKLROOT=$MKLROOT CUDADIR=$CUDA_ROOT make -j $NCPUS shared sparse-shared
 ```
 
 Where:
@@ -113,7 +114,7 @@ Where:
 To install libraries and include files in a given prefix, run:
 
 ```bash
-GPU_TARGET=sm_XX OPENBLASDIR=$OPENBLAS_ROOT CUDADIR=$CUDA_ROOT make install prefix=$HOME/local/magma
+GPU_TARGET=sm_XX MKLROOT=$MKLROOT CUDADIR=$CUDA_ROOT make install prefix=$HOME/local/magma
 ```
 
 ### Configure MAGMA & installation (expert way)
@@ -390,7 +391,7 @@ export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$MAGMA_ROOT/lib/pkgconfig
 
 #COMPASS default definitions
 export COMPASS_ROOT=$HOME/compass
-export NAGA_ROOT=$COMPASS_ROOT/naga
+export NAGA_ROOT=$COMPASS_ROOT/carmaWrap
 export SHESHA_ROOT=$COMPASS_ROOT/shesha
 export LD_LIBRARY_PATH=$COMPASS_ROOT/libcarma:$COMPASS_ROOT/libsutra:$LD_LIBRARY_PATH
 export PYTHONPATH=$NAGA_ROOT:$SHESHA_ROOT:$PYTHONPATH

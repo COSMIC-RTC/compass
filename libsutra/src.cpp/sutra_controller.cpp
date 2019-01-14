@@ -19,8 +19,6 @@ sutra_controller::sutra_controller(carma_context *context, int nvalid,
   streams = new carma_streams(nstreams);
 
   this->open_loop = 0;
-  this->d_perturb = nullptr;
-  this->cpt_pertu = 0;
 
   if (delay < 2)
     this->delay = delay;
@@ -102,35 +100,77 @@ int sutra_controller::get_centroids_ref(float *centroids_ref) {
   return EXIT_SUCCESS;
 }
 
-int sutra_controller::set_perturbcom(float *perturb, int N) {
+int sutra_controller::add_perturb_voltage(string name, float *perturb, int N) {
   std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
-  if (N > 0) {
-    // float min=perturb[0], max=perturb[0];
-    // for (int i=1; i<this->nactu()*N; ++i){
-    //   min = perturb[i]<min?perturb[i]:min;
-    //   max = perturb[i]>max?perturb[i]:max;
-    // }
-    // DEBUG_TRACE("perturb min:%f max:%f", min, max);
-    if (this->d_perturb == nullptr) {
-      current_context->set_activeDevice(device, 1);
-      long dims_data2[3] = {2, N, this->nactu()};
-      this->d_perturb = new carma_obj<float>(current_context, dims_data2);
-    } else if (this->d_perturb->getDims(1) != N) {
-      current_context->set_activeDevice(device, 1);
-      delete this->d_perturb;
-      long dims_data2[3] = {2, N, this->nactu()};
-      this->d_perturb = new carma_obj<float>(current_context, dims_data2);
-    }
-    this->d_perturb->host2device(perturb);
-    this->cpt_pertu = 0;
-  } else {
-    if (this->d_perturb != nullptr) delete this->d_perturb;
-    this->d_perturb = nullptr;
-  }
+  current_context->set_activeDevice(device, 1);
+
+  if (this->d_perturb_map.count(name) < 1) {
+    long dims_data2[3] = {2, N, this->nactu()};
+    int cpt = 0;
+    this->d_perturb_map[name] = std::make_tuple(
+        new carma_obj<float>(current_context, dims_data2, perturb), cpt, true);
+  } else
+    DEBUG_TRACE("This perturb buffer already exists");
 
   return EXIT_SUCCESS;
 }
 
+int sutra_controller::remove_perturb_voltage(string name) {
+  std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
+  current_context->set_activeDevice(device, 1);
+  map<string, tuple<carma_obj<float> *, int, bool>>::iterator it;
+
+  if (this->d_perturb_map.count(name)) {
+    it = this->d_perturb_map.find(name);
+    delete std::get<0>(this->d_perturb_map[name]);
+    this->d_perturb_map.erase(name);
+  } else
+    DEBUG_TRACE("This perturb buffer do not exist");
+
+  return EXIT_SUCCESS;
+}
+
+int sutra_controller::enable_perturb_voltage(string name) {
+  std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
+  current_context->set_activeDevice(device, 1);
+  map<string, tuple<carma_obj<float> *, int, bool>>::iterator it;
+
+  if (this->d_perturb_map.count(name)) {
+    it = this->d_perturb_map.find(name);
+    std::get<2>(this->d_perturb_map[name]) = true;
+  } else
+    DEBUG_TRACE("This perturb buffer do not exist");
+
+  return EXIT_SUCCESS;
+}
+
+int sutra_controller::disable_perturb_voltage(string name) {
+  std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
+  current_context->set_activeDevice(device, 1);
+  map<string, tuple<carma_obj<float> *, int, bool>>::iterator it;
+
+  if (this->d_perturb_map.count(name)) {
+    it = this->d_perturb_map.find(name);
+    std::get<2>(this->d_perturb_map[name]) = false;
+  } else
+    DEBUG_TRACE("This perturb buffer do not exist");
+
+  return EXIT_SUCCESS;
+}
+
+int sutra_controller::reset_perturb_voltage() {
+  std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
+  current_context->set_activeDevice(device, 1);
+  map<string, tuple<carma_obj<float> *, int, bool>>::iterator it;
+  it = this->d_perturb_map.begin();
+  while (it != this->d_perturb_map.end()) {
+    delete std::get<0>(it->second);
+    it++;
+  }
+  this->d_perturb_map.clear();
+
+  return EXIT_SUCCESS;
+}
 int sutra_controller::command_delay() {
   current_context->set_activeDevice(device, 1);
 
@@ -181,17 +221,24 @@ int sutra_controller::comp_voltage() {
 }
 
 int sutra_controller::add_perturb() {
-  if (this->d_perturb !=
-      nullptr) {  // Apply volt perturbations (circular buffer)
-    carma_axpy(cublas_handle(), this->nactu(), 1.0f,
-               this->d_perturb->getDataAt(this->cpt_pertu),
-               this->d_perturb->getDims(1), this->d_voltage->getData(), 1);
-
-    if (this->cpt_pertu < this->d_perturb->getDims(1) - 1)
-      this->cpt_pertu += 1;
-    else
-      this->cpt_pertu = 0;
+  map<string, tuple<carma_obj<float> *, int, bool>>::iterator it;
+  int cpt;
+  carma_obj<float> *d_perturb;
+  for (it = this->d_perturb_map.begin(); it != this->d_perturb_map.end();
+       ++it) {
+    if (std::get<2>(it->second)) {
+      cpt = std::get<1>(it->second);
+      d_perturb = std::get<0>(it->second);
+      carma_axpy(cublas_handle(), this->nactu(), 1.0f,
+                 d_perturb->getDataAt(cpt), d_perturb->getDims(1),
+                 this->d_voltage->getData(), 1);
+      if (cpt < d_perturb->getDims(1) - 1)
+        std::get<1>(it->second) = cpt + 1;
+      else
+        std::get<1>(it->second) = 0;
+    }
   }
+
   return EXIT_SUCCESS;
 }
 
@@ -203,8 +250,7 @@ sutra_controller::~sutra_controller() {
   delete this->d_com;
   delete this->d_com1;
   delete this->d_voltage;
-
-  if (this->d_perturb != nullptr) delete this->d_perturb;
+  this->reset_perturb_voltage();
 }
 
 int sutra_controller::syevd_f(char meth, carma_obj<float> *d_U,

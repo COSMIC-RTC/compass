@@ -49,6 +49,13 @@ template int caObjS::init_prng(long seed);
 template int caObjD::init_prng(long seed);
 template int caObjC::init_prng(long seed);
 template int caObjZ::init_prng(long seed);
+#ifdef CAN_DO_HALF
+template <>
+int caObjH::init_prng(long seed) {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_SUCCESS;
+}
+#endif
 
 template <class T>
 int carma_obj<T>::init_prng() {
@@ -61,6 +68,13 @@ template int caObjS::init_prng();
 template int caObjD::init_prng();
 template int caObjC::init_prng();
 template int caObjZ::init_prng();
+#ifdef CAN_DO_HALF
+template <>
+int caObjH::init_prng() {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_SUCCESS;
+}
+#endif
 
 template <class T>
 int carma_obj<T>::destroy_prng() {
@@ -75,6 +89,13 @@ template int caObjD::destroy_prng();
 template int caObjC::destroy_prng();
 template int caObjZ::destroy_prng();
 template int carma_obj<tuple_t<float> >::destroy_prng();
+#ifdef CAN_DO_HALF
+template <>
+int caObjH::destroy_prng() {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_SUCCESS;
+}
+#endif
 
 template <class T>
 int carma_obj<T>::prng(T *output, char gtype, float alpha, float beta) {
@@ -93,6 +114,13 @@ template int caObjC::prng(cuFloatComplex *output, char gtype, float alpha,
                           float beta);
 template int caObjZ::prng(cuDoubleComplex *output, char gtype, float alpha,
                           float beta);
+#ifdef CAN_DO_HALF
+template <>
+int caObjH::prng(half *output, char gtype, float alpha, float beta) {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_SUCCESS;
+}
+#endif
 
 template <class T>
 int carma_obj<T>::prng_montagn(float init_montagn) {
@@ -108,6 +136,13 @@ template int caObjS::prng_montagn(float init_montagn);
 template int caObjD::prng_montagn(float init_montagn);
 template int caObjC::prng_montagn(float init_montagn);
 template int caObjZ::prng_montagn(float init_montagn);
+#ifdef CAN_DO_HALF
+template <>
+int caObjH::prng_montagn(float init_montagn) {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_SUCCESS;
+}
+#endif
 
 template <class T>
 int carma_obj<T>::prng(T *output, char gtype, float alpha) {
@@ -123,6 +158,13 @@ template int caObjS::prng(float *output, char gtype, float alpha);
 template int caObjD::prng(double *output, char gtype, float alpha);
 template int caObjC::prng(cuFloatComplex *output, char gtype, float alpha);
 template int caObjZ::prng(cuDoubleComplex *output, char gtype, float alpha);
+#ifdef CAN_DO_HALF
+template <>
+int caObjH::prng(half *output, char gtype, float alpha) {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_SUCCESS;
+}
+#endif
 
 template <class T>
 int carma_obj<T>::prng(char gtype) {
@@ -135,6 +177,13 @@ template int caObjS::prng(char gtype);
 template int caObjD::prng(char gtype);
 template int caObjC::prng(char gtype);
 template int caObjZ::prng(char gtype);
+#ifdef CAN_DO_HALF
+template <>
+int caObjH::prng(char gtype) {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_SUCCESS;
+}
+#endif
 
 template <class T>
 int carma_obj<T>::prng(char gtype, float alpha) {
@@ -147,6 +196,13 @@ template int caObjS::prng(char gtype, float alpha);
 template int caObjD::prng(char gtype, float alpha);
 template int caObjC::prng(char gtype, float alpha);
 template int caObjZ::prng(char gtype, float alpha);
+#ifdef CAN_DO_HALF
+template <>
+int caObjH::prng(char gtype, float alpha) {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_SUCCESS;
+}
+#endif
 
 template <class T>
 int carma_obj<T>::prng(char gtype, float alpha, float beta) {
@@ -159,6 +215,13 @@ template int caObjS::prng(char gtype, float alpha, float beta);
 template int caObjD::prng(char gtype, float alpha, float beta);
 template int caObjC::prng(char gtype, float alpha, float beta);
 template int caObjZ::prng(char gtype, float alpha, float beta);
+#ifdef CAN_DO_HALF
+template <>
+int caObjH::prng(char gtype, float alpha, float beta) {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_SUCCESS;
+}
+#endif
 
 template <class T>
 int carma_obj<T>::init_prng_host(int seed) {
@@ -178,6 +241,13 @@ template int caObjS::init_prng_host(int seed);
 template int caObjD::init_prng_host(int seed);
 template int caObjC::init_prng_host(int seed);
 template int caObjZ::init_prng_host(int seed);
+#ifdef CAN_DO_HALF
+template <>
+int caObjH::init_prng_host(int seed) {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_SUCCESS;
+}
+#endif
 
 template <class T>
 int carma_obj<T>::prng_host(char gtype) {
@@ -188,6 +258,13 @@ template int caObjI::prng_host(char gtype);
 template int caObjUI::prng_host(char gtype);
 template int caObjC::prng_host(char gtype);
 template int caObjZ::prng_host(char gtype);
+#ifdef CAN_DO_HALF
+template <>
+int caObjH::prng_host(char gtype) {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_SUCCESS;
+}
+#endif
 
 template <>
 int caObjS::prng_host(char gtype) {
@@ -217,6 +294,9 @@ template int caObjI::prng_host(char gtype, int stddev);
 template int caObjUI::prng_host(char gtype, unsigned int stddev);
 template int caObjC::prng_host(char gtype, cuFloatComplex stddev);
 template int caObjZ::prng_host(char gtype, cuDoubleComplex stddev);
+#ifdef CAN_DO_HALF
+template int caObjH::prng_host(char gtype, half stddev);
+#endif
 
 template <>
 int caObjS::prng_host(char gtype, float stddev) {
@@ -248,6 +328,9 @@ template int caObjC::prng_host(char gtype, cuFloatComplex stddev,
                                cuFloatComplex alpha);
 template int caObjZ::prng_host(char gtype, cuDoubleComplex stddev,
                                cuDoubleComplex alpha);
+#ifdef CAN_DO_HALF
+template int caObjH::prng_host(char gtype, half stddev, half alpha);
+#endif
 template <>
 int caObjS::prng_host(char gtype, float stddev, float alpha) {
   float *tmp_data;
@@ -299,3 +382,10 @@ template int caObjZ::destroy_prng_host();
 template int caObjI::destroy_prng_host();
 template int caObjUI::destroy_prng_host();
 template int carma_obj<tuple_t<float> >::destroy_prng_host();
+#ifdef CAN_DO_HALF
+template <>
+int caObjH::destroy_prng_host() {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_SUCCESS;
+}
+#endif

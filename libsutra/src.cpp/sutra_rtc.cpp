@@ -464,8 +464,8 @@ int sutra_rtc::comp_voltage(int ncntrl) {
 
   return EXIT_SUCCESS;
 }
-int sutra_rtc::apply_control(int ncntrl, sutra_dms *ydm) {
-  comp_voltage(ncntrl);
+int sutra_rtc::apply_control(int ncntrl, sutra_dms *ydm, bool compVoltage) {
+  if (compVoltage) comp_voltage(ncntrl);
 
   vector<sutra_dm *>::iterator p;
   p = this->d_control[ncntrl]->d_dmseen.begin();

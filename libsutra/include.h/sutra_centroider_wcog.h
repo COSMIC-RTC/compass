@@ -16,6 +16,7 @@ class sutra_centroider_wcog : public sutra_centroider {
 
   string get_type();
 
+  int set_npix(int npix);
   int init_weights();
   int load_weights(float *weights, int ndim);
 

@@ -11,10 +11,10 @@ carma: libcarma/libcarma.so
 
 sutra: libsutra/libsutra.so
 
-cython_naga: carma
-	@(cd naga && make)
+cython_carmaWrap: carma
+	@(cd carmaWrap && make)
 
-cython_shesha: cython_naga sutra
+cython_shesha: cython_carmaWrap sutra
 	@(cd shesha && make)
 
 libcarma/libcarma.so:
@@ -28,16 +28,16 @@ lib: sutra
 cython: cython_shesha
 
 install: all
-#	@(cd naga && make install)
+#	@(cd carmaWrap && make install)
 #	@(cd shesha && make install)
 
-clean: clean_carma clean_sutra clean_naga clean_shesha
+clean: clean_carma clean_sutra clean_carmaWrap clean_shesha
 
 clean_carma:
 	@(cd libcarma && make clean)
 
-clean_naga:
-	@(cd naga && make clean)
+clean_carmaWrap:
+	@(cd carmaWrap && make clean)
 
 clean_sutra:
 	@(cd libsutra && make clean)
@@ -49,8 +49,8 @@ clean_ao: clean_sutra clean_shesha
 
 clean_lib: clean_carma clean_sutra
 
-clean_cython: clean_naga clean_shesha
+clean_cython: clean_carmaWrap clean_shesha
 
 uninstall: clean
-	@(cd naga && make uninstall)
+	@(cd carmaWrap && make uninstall)
 	@(cd shesha && make uninstall)

@@ -1,23 +1,23 @@
 **********************
-:mod:`naga_sparse_obj`
+:mod:`carmaWrap_sparse_obj`
 **********************
 
-.. _naga_sparse_obj module:
+.. _carmaWrap_sparse_obj module:
 
-.. currentmodule:: naga_sparse_obj
+.. currentmodule:: carmaWrap_sparse_obj
 
-:class:`naga_sparse_obj_Double`
+:class:`carmaWrap_sparse_obj_Double`
 ===============================
 
-.. autoclass:: naga_sparse_obj_Double
+.. autoclass:: carmaWrap_sparse_obj_Double
     :members:
     :inherited-members:
     :undoc-members:
 
-:class:`naga_sparse_obj_Float`
+:class:`carmaWrap_sparse_obj_Float`
 ==============================
 
-.. autoclass:: naga_sparse_obj_Float
+.. autoclass:: carmaWrap_sparse_obj_Float
     :members:
     :inherited-members:
     :undoc-members:

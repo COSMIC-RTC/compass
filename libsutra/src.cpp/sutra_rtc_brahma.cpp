@@ -43,21 +43,21 @@ sutra_rtc_brahma::sutra_rtc_brahma(carma_context *context, sutra_sensors *wfs_,
     sub = brahma.create_subscriber();
     // Create a publisher for the megaframe topic
     pub = brahma.create_publisher();
+    /*
+        // Create an BRAHMA Command listener
+        brahma.register_command_type(topics[BRAHMA::CommandType]);
+        cmd_listener = (new sutra_rtc_brahmaListenerImpl);
+        cmd_listener_servant =
+            dynamic_cast<sutra_rtc_brahmaListenerImpl *>(cmd_listener.in());
 
-    // Create an BRAHMA Command listener
-    brahma.register_command_type(topics[BRAHMA::CommandType]);
-    cmd_listener = (new sutra_rtc_brahmaListenerImpl);
-    cmd_listener_servant =
-        dynamic_cast<sutra_rtc_brahmaListenerImpl *>(cmd_listener.in());
+        if (CORBA::is_nil(cmd_listener.in())) {
+          throw "BRAHMA Command listener is nil.";
+        }
+        cmd_listener_servant->attach_rtc(this);
 
-    if (CORBA::is_nil(cmd_listener.in())) {
-      throw "BRAHMA Command listener is nil.";
-    }
-    cmd_listener_servant->attach_rtc(this);
-
-    cmd_dr = brahma.create_datareader(sub, topics[BRAHMA::CommandType],
-                                      cmd_listener);
-
+        cmd_dr = brahma.create_datareader(sub, topics[BRAHMA::CommandType],
+                                          cmd_listener);
+    */
     // Create an BRAHMA SuperFrame writer
     brahma.register_superframe_type(topics[BRAHMA::SuperFrameType]);
     superframe_base_dw =

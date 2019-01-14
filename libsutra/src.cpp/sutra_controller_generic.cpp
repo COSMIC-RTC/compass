@@ -7,12 +7,14 @@ sutra_controller_generic::sutra_controller_generic(carma_context *context,
                                                    int ndm)
     : sutra_controller(context, nvalid, nslope, nactu, delay, dms, idx_dms,
                        ndm) {
+  this->command_law = "integrator";
   long dims_data1[2] = {1, nactu};
   this->d_gain = new carma_obj<float>(current_context, dims_data1);
   this->d_decayFactor = new carma_obj<float>(current_context, dims_data1);
   this->d_compbuff = new carma_obj<float>(current_context, dims_data1);
   long dims_data2[3] = {2, nactu, nslope};
   this->d_cmat = new carma_obj<float>(current_context, dims_data2);
+  this->gain = 0.3f;
 
   dims_data2[2] = nactu;
   this->d_matE = new carma_obj<float>(current_context, dims_data2);
@@ -43,6 +45,12 @@ int sutra_controller_generic::set_mgain(float *gain) {
   return EXIT_SUCCESS;
 }
 
+int sutra_controller_generic::set_gain(float gain) {
+  current_context->set_activeDevice(device, 1);
+  this->gain = gain;
+  return EXIT_SUCCESS;
+}
+
 int sutra_controller_generic::set_decayFactor(float *decayFactor) {
   current_context->set_activeDevice(device, 1);
   this->d_decayFactor->host2device(decayFactor);
@@ -70,26 +78,29 @@ int sutra_controller_generic::set_commandlaw(string law) {
 int sutra_controller_generic::comp_com() {
   current_context->set_activeDevice(device, 1);
 
-  // CMAT*s(k)
-  carma_gemv(cublas_handle(), 'n', nactu(), nslope(), 1.0f,
-             this->d_cmat->getData(), nactu(), this->d_centroids->getData(), 1,
-             0.0f, this->d_compbuff->getData(), 1);
-  // g*CMAT*s(k)
-  mult_vect(this->d_compbuff->getData(), this->d_gain->getData(), -1.0f,
-            this->nactu(), this->current_context->get_device(device));
+  if (this->command_law == "integrator") {
+    carma_gemv(cublas_handle(), 'n', nactu(), nslope(), -1.f * this->gain,
+               this->d_cmat->getData(), nactu(), this->d_centroids->getData(),
+               1, 1.0f, this->d_com->getData(), 1);
 
-  if (this->command_law == "2matrices")  // v(k) = E.v(k-1)
+  } else {
+    // CMAT*s(k)
+    carma_gemv(cublas_handle(), 'n', nactu(), nslope(), 1.0f,
+               this->d_cmat->getData(), nactu(), this->d_centroids->getData(),
+               1, 0.0f, this->d_compbuff->getData(), 1);
+    // g*CMAT*s(k)
+    mult_vect(this->d_compbuff->getData(), this->d_gain->getData(), -1.0f,
+              this->nactu(), this->current_context->get_device(device));
+
     carma_gemv(cublas_handle(), 'n', nactu(), nactu(), 1.0f,
                this->d_matE->getData(), nactu(), this->d_com1->getData(), 1,
                0.0f, this->d_com->getData(), 1);
-  else  // v(k) = v(k-1)
-    this->d_com->copyFrom(this->d_com1->getData(), 1);
-  // v(k) = alpha*E*v(k-1)
-  mult_vect(this->d_com->getData(), this->d_decayFactor->getData(), 1.0f,
-            this->nactu(), this->current_context->get_device(device));
-  // v(k) = alpha*E*v(k-1) + g*CMAT*s(k)
-  carma_axpy(cublas_handle(), nactu(), 1.0f, this->d_compbuff->getData(), 1,
-             this->d_com->getData(), 1);
-
+    // v(k) = alpha*E*v(k-1)
+    mult_vect(this->d_com->getData(), this->d_decayFactor->getData(), 1.0f,
+              this->nactu(), this->current_context->get_device(device));
+    // v(k) = alpha*E*v(k-1) + g*CMAT*s(k)
+    carma_axpy(cublas_handle(), nactu(), 1.0f, this->d_compbuff->getData(), 1,
+               this->d_com->getData(), 1);
+  }
   return EXIT_SUCCESS;
 }

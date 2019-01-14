@@ -51,4 +51,17 @@ int sutra_invgene(carma_obj<T> *imat, carma_obj<T> *cmat,
 template <class T>
 int remove_avg(T *data, int N, carma_device *device);
 
+int mult_vect(float *d_data, float *scale, int N, carma_device *device);
+int mult_vect(float *d_data, float *scale, float gain, int N,
+              carma_device *device);
+int mult_vect(float *d_data, float gain, int N, carma_device *device);
+int mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
+             carma_device *device);
+int mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
+             carma_device *device, carma_streams *streams);
+int mult_int(float *o_data, float *i_data, float gain, int N,
+             carma_device *device);
+int add_md(float *o_matrix, float *i_matrix, float *i_vector, int N,
+           carma_device *device);
+
 #endif  // _SUTRA_UTILS_H_

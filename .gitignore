@@ -10,12 +10,6 @@ obj
 # cython generated files
 build
 cython_debug
-naga/naga/*.cpp
-naga/naga/host_obj.pyx
-naga/naga/magma.pyx
-naga/naga/obj.pyx
-naga/naga/sparse_obj.pyx
-shesha/shesha/sutra_bind/*.cpp
 
 # python bytecodes
 *.pyc
@@ -59,10 +53,7 @@ doc/compass-doc
 
 \.vscode/
 setup.cfg
-compass.egg-info
-python
-shesha.egg-info
-compass_sim.egg-info
+*.egg-info
 
 lib/
 *.log

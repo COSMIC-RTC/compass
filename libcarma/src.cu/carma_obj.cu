@@ -118,6 +118,10 @@ template void clip_array<float>(float *d_data, float min, float max, int N,
                                 carma_device *device);
 template void clip_array<double>(double *d_data, double min, double max, int N,
                                  carma_device *device);
+#ifdef CAN_DO_HALF
+template void clip_array<half>(half *d_data, half min, half max, int N,
+                               carma_device *device);
+#endif
 template <>
 void clip_array(cuFloatComplex *d_data, cuFloatComplex min, cuFloatComplex max,
                 int N, carma_device *device) {

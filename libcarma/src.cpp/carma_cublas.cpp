@@ -703,6 +703,20 @@ cublasStatus_t carma_gemm<cuDoubleComplex>(cublasHandle_t cublas_handle,
                                              &beta, matC, ldc));
 }
 
+#ifdef CAN_DO_HALF
+template <>
+cublasStatus_t carma_gemm<half>(cublasHandle_t cublas_handle, char transa,
+                                char transb, int m, int n, int k, half alpha,
+                                half *matA, int lda, half *matB, int ldb,
+                                half beta, half *matC, int ldc) {
+  cublasOperation_t transa2 = carma_char2cublasOperation(transa);
+  cublasOperation_t transb2 = carma_char2cublasOperation(transb);
+  return carma_checkCublasStatus(cublasHgemm(cublas_handle, transa2, transb2, m,
+                                             n, k, &alpha, matA, lda, matB, ldb,
+                                             &beta, matC, ldc));
+}
+#endif
+
 /** These templates are used to select the proper symm executable from T_data*/
 template <class T_data>
 cublasStatus_t carma_symm(cublasHandle_t cublas_handle, char side, char uplo,
@@ -720,6 +734,12 @@ template cublasStatus_t carma_symm(cublasHandle_t cublas_handle, char side,
                                    unsigned int *matB, int ldb,
                                    unsigned int beta, unsigned int *matC,
                                    int ldc);
+#ifdef CAN_DO_HALF
+template cublasStatus_t carma_symm(cublasHandle_t cublas_handle, char side,
+                                   char uplo, int m, int n, half alpha,
+                                   half *matA, int lda, half *matB, int ldb,
+                                   half beta, half *matC, int ldc);
+#endif
 template <>
 cublasStatus_t carma_symm<float>(cublasHandle_t cublas_handle, char side,
                                  char uplo, int m, int n, float alpha,
@@ -784,6 +804,12 @@ template cublasStatus_t carma_syrk(cublasHandle_t cublas_handle, char uplo,
                                    unsigned int alpha, unsigned int *matA,
                                    int lda, unsigned int beta,
                                    unsigned int *matC, int ldc);
+#ifdef CAN_DO_HALF
+template cublasStatus_t carma_syrk(cublasHandle_t cublas_handle, char uplo,
+                                   char transa, int n, int k, half alpha,
+                                   half *matA, int lda, half beta, half *matC,
+                                   int ldc);
+#endif
 template <>
 cublasStatus_t carma_syrk<float>(cublasHandle_t cublas_handle, char uplo,
                                  char transa, int n, int k, float alpha,
@@ -850,6 +876,12 @@ template cublasStatus_t carma_syrkx(cublasHandle_t cublas_handle, char uplo,
                                     int lda, unsigned int *matB, int ldb,
                                     unsigned int beta, unsigned int *matC,
                                     int ldc);
+#ifdef CAN_DO_HALF
+template cublasStatus_t carma_syrkx(cublasHandle_t cublas_handle, char uplo,
+                                    char transa, int n, int k, half alpha,
+                                    half *matA, int lda, half *matB, int ldb,
+                                    half beta, half *matC, int ldc);
+#endif
 template <>
 cublasStatus_t carma_syrkx<float>(cublasHandle_t cublas_handle, char uplo,
                                   char transa, int n, int k, float alpha,
@@ -915,6 +947,12 @@ template cublasStatus_t carma_geam(cublasHandle_t cublas_handle, char transa,
                                    int lda, unsigned int beta,
                                    unsigned int *matB, int ldb,
                                    unsigned int *matC, int ldc);
+#ifdef CAN_DO_HALF
+template cublasStatus_t carma_geam(cublasHandle_t cublas_handle, char transa,
+                                   char transb, int m, int n, half alpha,
+                                   half *matA, int lda, half beta, half *matB,
+                                   int ldb, half *matC, int ldc);
+#endif
 template <>
 cublasStatus_t carma_geam<float>(cublasHandle_t cublas_handle, char transa,
                                  char transb, int m, int n, float alpha,
@@ -974,6 +1012,17 @@ cublasStatus_t carma_dgmm<int>(cublasHandle_t cublas_handle, char side, int m,
   DEBUG_TRACE("Not implemented");
   return carma_checkCublasStatus(CUBLAS_STATUS_NOT_SUPPORTED);
 }
+
+#ifdef CAN_DO_HALF
+template <>
+cublasStatus_t carma_dgmm<half>(cublasHandle_t cublas_handle, char side, int m,
+                                int n, const half *matA, int lda,
+                                const half *vectx, int incx, half *matC,
+                                int ldc) {
+  DEBUG_TRACE("Not implemented");
+  return carma_checkCublasStatus(CUBLAS_STATUS_NOT_SUPPORTED);
+}
+#endif
 
 template <>
 cublasStatus_t carma_dgmm<float>(cublasHandle_t cublas_handle, char side, int m,
@@ -1145,7 +1194,13 @@ template int carma_obj<float>::aimax(int incx);
 template int carma_obj<double>::aimax(int incx);
 template int carma_obj<cuFloatComplex>::aimax(int incx);
 template int carma_obj<cuDoubleComplex>::aimax(int incx);
-
+#ifdef CAN_DO_HALF
+template <>
+int carma_obj<half>::aimax(int incx) {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_FAILURE;
+}
+#endif
 template <class T_data>
 int carma_obj<T_data>::aimin(int incx) {
   /** \brief aimin method
@@ -1164,6 +1219,13 @@ template int carma_obj<float>::aimin(int incx);
 template int carma_obj<double>::aimin(int incx);
 template int carma_obj<cuFloatComplex>::aimin(int incx);
 template int carma_obj<cuDoubleComplex>::aimin(int incx);
+#ifdef CAN_DO_HALF
+template <>
+int carma_obj<half>::aimin(int incx) {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_FAILURE;
+}
+#endif
 
 template <class T_data>
 T_data carma_obj<T_data>::asum(int incx) {
@@ -1182,6 +1244,13 @@ template float carma_obj<float>::asum(int incx);
 template double carma_obj<double>::asum(int incx);
 template cuFloatComplex carma_obj<cuFloatComplex>::asum(int incx);
 template cuDoubleComplex carma_obj<cuDoubleComplex>::asum(int incx);
+#ifdef CAN_DO_HALF
+template <>
+half carma_obj<half>::asum(int incx) {
+  DEBUG_TRACE("Not implemented for half precision");
+  return __float2half(0.f);
+}
+#endif
 
 template <class T_data>
 T_data carma_obj<T_data>::nrm2(int incx) {
@@ -1201,6 +1270,13 @@ template float carma_obj<float>::nrm2(int incx);
 template double carma_obj<double>::nrm2(int incx);
 template cuFloatComplex carma_obj<cuFloatComplex>::nrm2(int incx);
 template cuDoubleComplex carma_obj<cuDoubleComplex>::nrm2(int incx);
+#ifdef CAN_DO_HALF
+template <>
+half carma_obj<half>::nrm2(int incx) {
+  DEBUG_TRACE("Not implemented for half precision");
+  return __float2half(0.f);
+}
+#endif
 
 template <class T_data>
 void carma_obj<T_data>::scale(T_data alpha, int incx) {
@@ -1223,6 +1299,12 @@ template void carma_obj<double>::scale(double alpha, int incx);
 template void carma_obj<cuFloatComplex>::scale(cuFloatComplex alpha, int incx);
 template void carma_obj<cuDoubleComplex>::scale(cuDoubleComplex alpha,
                                                 int incx);
+#ifdef CAN_DO_HALF
+template <>
+void carma_obj<half>::scale(half alpha, int incx) {
+  DEBUG_TRACE("Not implemented for half precision");
+}
+#endif
 
 template <class T_data>
 void carma_obj<T_data>::copy(carma_obj<T_data> *source, int incx, int incy) {
@@ -1245,6 +1327,12 @@ template void carma_obj<float>::copy(caObjS *, int incx, int incy);
 template void carma_obj<double>::copy(caObjD *, int incx, int incy);
 template void carma_obj<cuFloatComplex>::copy(caObjC *, int incx, int incy);
 template void carma_obj<cuDoubleComplex>::copy(caObjZ *, int incx, int incy);
+#ifdef CAN_DO_HALF
+template <>
+void carma_obj<half>::copy(caObjH *, int incx, int incy) {
+  DEBUG_TRACE("Not implemented for half precision");
+}
+#endif
 
 template <class T_data>
 void carma_obj<T_data>::swap(carma_obj<T_data> *source, int incx, int incy) {
@@ -1267,6 +1355,12 @@ template void carma_obj<float>::swap(caObjS *, int incx, int incy);
 template void carma_obj<double>::swap(caObjD *, int incx, int incy);
 template void carma_obj<cuFloatComplex>::swap(caObjC *, int incx, int incy);
 template void carma_obj<cuDoubleComplex>::swap(caObjZ *, int incx, int incy);
+#ifdef CAN_DO_HALF
+template <>
+void carma_obj<half>::swap(caObjH *, int incx, int incy) {
+  DEBUG_TRACE("Not implemented for half precision");
+}
+#endif
 
 template <class T_data>
 void carma_obj<T_data>::axpy(T_data alpha, carma_obj<T_data> *source, int incx,
@@ -1298,6 +1392,12 @@ template void carma_obj<cuFloatComplex>::axpy(cuFloatComplex alpha,
 template void carma_obj<cuDoubleComplex>::axpy(cuDoubleComplex alpha,
                                                caObjZ *source, int incx,
                                                int incy);
+#ifdef CAN_DO_HALF
+template <>
+void carma_obj<half>::axpy(half alpha, caObjH *source, int incx, int incy) {
+  DEBUG_TRACE("Not implemented for half precision");
+}
+#endif
 
 template <class T_data>
 T_data carma_obj<T_data>::dot(carma_obj<T_data> *source, int incx, int incy) {
@@ -1322,6 +1422,13 @@ template cuFloatComplex carma_obj<cuFloatComplex>::dot(caObjC *source, int incx,
                                                        int incy);
 template cuDoubleComplex carma_obj<cuDoubleComplex>::dot(caObjZ *source,
                                                          int incx, int incy);
+#ifdef CAN_DO_HALF
+template <>
+half carma_obj<half>::dot(caObjH *source, int incx, int incy) {
+  DEBUG_TRACE("Not implemented for half precision");
+  return __float2half(0.f);
+}
+#endif
 
 template <class T_data>
 void carma_obj<T_data>::rot(carma_obj<T_data> *source, int incx, int incy,
@@ -1352,7 +1459,12 @@ template void carma_obj<cuFloatComplex>::rot(caObjC *source, int incx, int incy,
 template void carma_obj<cuDoubleComplex>::rot(caObjZ *source, int incx,
                                               int incy, cuDoubleComplex sc,
                                               cuDoubleComplex ss);
-
+#ifdef CAN_DO_HALF
+template <>
+void carma_obj<half>::rot(caObjH *source, int incx, int incy, half, half) {
+  DEBUG_TRACE("Not implemented for half precision");
+}
+#endif
 /*
  *  ____  _        _    ____ ____
  * | __ )| |      / \  / ___|___ \
@@ -1396,6 +1508,18 @@ template void carma_obj<cuFloatComplex>::gemv(char, cuFloatComplex, caObjC *,
 template void carma_obj<cuDoubleComplex>::gemv(char, cuDoubleComplex, caObjZ *,
                                                int, caObjZ *, int,
                                                cuDoubleComplex, int);
+#ifdef CAN_DO_HALF
+template <>
+void carma_obj<half>::gemv(char trans, half alpha, caObjH *matA, int lda,
+                           caObjH *vectx, int incx, half beta, int incy) {
+  int k = (((trans == 'N') || (trans == 'n')) ? matA->dims_data[2]
+                                              : matA->dims_data[1]);
+
+  carma_gemm(current_context->get_cublasHandle(), trans, 'N',
+             this->dims_data[1], 1, k, alpha, matA->d_data, lda, vectx->d_data,
+             vectx->dims_data[1], beta, this->d_data, this->dims_data[1]);
+}
+#endif
 
 template <class T_data>
 void carma_obj<T_data>::ger(T_data alpha, carma_obj<T_data> *vectx, int incx,
@@ -1423,7 +1547,12 @@ template void carma_obj<cuFloatComplex>::ger(cuFloatComplex, caObjC *, int,
                                              caObjC *, int, int);
 template void carma_obj<cuDoubleComplex>::ger(cuDoubleComplex, caObjZ *, int,
                                               caObjZ *, int, int);
-
+#ifdef CAN_DO_HALF
+template <>
+void carma_obj<half>::ger(half, caObjH *, int, caObjH *, int, int) {
+  DEBUG_TRACE("Not implemented for half precision");
+}
+#endif
 template <class T_data>
 void carma_obj<T_data>::symv(char uplo, T_data alpha, carma_obj<T_data> *matA,
                              int lda, carma_obj<T_data> *vectx, int incx,
@@ -1458,6 +1587,13 @@ template void carma_obj<cuFloatComplex>::symv(char, cuFloatComplex, caObjC *,
 template void carma_obj<cuDoubleComplex>::symv(char, cuDoubleComplex, caObjZ *,
                                                int, caObjZ *, int,
                                                cuDoubleComplex, int);
+#ifdef CAN_DO_HALF
+template <>
+void carma_obj<half>::symv(char, half, caObjH *, int, caObjH *, int, half,
+                           int) {
+  DEBUG_TRACE("Not implemented for half precision");
+}
+#endif
 
 /*
  *  ____  _        _    ____ _____
@@ -1509,6 +1645,10 @@ template void carma_obj<cuFloatComplex>::gemm(char, char, cuFloatComplex,
 template void carma_obj<cuDoubleComplex>::gemm(char, char, cuDoubleComplex,
                                                caObjZ *, int, caObjZ *, int,
                                                cuDoubleComplex, int);
+#ifdef CAN_DO_HALF
+template void carma_obj<half>::gemm(char, char, half, caObjH *, int, caObjH *,
+                                    int, half, int);
+#endif
 
 template <class T_data>
 void carma_obj<T_data>::symm(char side, char uplo, T_data alpha,
@@ -1551,6 +1691,13 @@ template void carma_obj<cuFloatComplex>::symm(char, char, cuFloatComplex,
 template void carma_obj<cuDoubleComplex>::symm(char, char, cuDoubleComplex,
                                                caObjZ *, int, caObjZ *, int,
                                                cuDoubleComplex, int);
+#ifdef CAN_DO_HALF
+template <>
+void carma_obj<half>::symm(char, char, half, caObjH *, int, caObjH *, int, half,
+                           int) {
+  DEBUG_TRACE("Not implemented for half precision");
+}
+#endif
 
 template <class T_data>
 void carma_obj<T_data>::syrk(char uplo, char transa, T_data alpha,
@@ -1591,6 +1738,12 @@ template void carma_obj<cuFloatComplex>::syrk(char, char, cuFloatComplex,
 template void carma_obj<cuDoubleComplex>::syrk(char, char, cuDoubleComplex,
                                                caObjZ *, int, cuDoubleComplex,
                                                int);
+#ifdef CAN_DO_HALF
+template <>
+void carma_obj<half>::syrk(char, char, half, caObjH *, int, half, int) {
+  DEBUG_TRACE("Not implemented for half precision");
+}
+#endif
 
 template <class T_data>
 void carma_obj<T_data>::syrkx(char uplo, char transa, T_data alpha,
@@ -1634,6 +1787,13 @@ template void carma_obj<cuFloatComplex>::syrkx(char, char, cuFloatComplex,
 template void carma_obj<cuDoubleComplex>::syrkx(char, char, cuDoubleComplex,
                                                 caObjZ *, int, caObjZ *, int,
                                                 cuDoubleComplex, int);
+#ifdef CAN_DO_HALF
+template <>
+void carma_obj<half>::syrkx(char, char, half, caObjH *, int, caObjH *, int,
+                            half, int) {
+  DEBUG_TRACE("Not implemented for half precision");
+}
+#endif
 
 template <class T_data>
 void carma_obj<T_data>::geam(char transa, char transb, T_data alpha,
@@ -1673,6 +1833,10 @@ template void carma_obj<cuFloatComplex>::geam(char, char, cuFloatComplex,
 template void carma_obj<cuDoubleComplex>::geam(char, char, cuDoubleComplex,
                                                caObjZ *, int, cuDoubleComplex,
                                                caObjZ *, int, int);
+#ifdef CAN_DO_HALF
+template void carma_obj<half>::geam(char, char, half, caObjH *, int, half,
+                                    caObjH *, int, int);
+#endif
 
 template <class T_data>
 void carma_obj<T_data>::dgmm(char side, carma_obj<T_data> *matA, int lda,
@@ -1701,3 +1865,6 @@ template void carma_obj<cuFloatComplex>::dgmm(char, caObjC *, int, caObjC *,
                                               int, int);
 template void carma_obj<cuDoubleComplex>::dgmm(char, caObjZ *, int, caObjZ *,
                                                int, int);
+#ifdef CAN_DO_HALF
+template void carma_obj<half>::dgmm(char, caObjH *, int, caObjH *, int, int);
+#endif

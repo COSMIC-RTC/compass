@@ -1,9 +1,9 @@
 .. toctree::
    :maxdepth: 3
 
-   naga_context.rst
-   naga_obj.rst
-   naga_host_obj.rst
-   naga_sparse_obj.rst
-   naga_magma.rst
-   naga_timer.rst
+   carmaWrap_context.rst
+   carmaWrap_obj.rst
+   carmaWrap_host_obj.rst
+   carmaWrap_sparse_obj.rst
+   carmaWrap_magma.rst
+   carmaWrap_timer.rst

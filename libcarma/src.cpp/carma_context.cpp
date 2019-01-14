@@ -46,6 +46,16 @@ carma_device::carma_device(int devid) {
 
   // DEBUG_TRACE("done\n");
 }
+int carma_device::set_cublas_math_mode(bool tensor) {
+  if (tensor)
+    carma_checkCublasStatus(
+        cublasSetMathMode(cublasHandle, CUBLAS_TENSOR_OP_MATH));
+  else
+    carma_checkCublasStatus(
+        cublasSetMathMode(cublasHandle, CUBLAS_DEFAULT_MATH));
+
+  return EXIT_SUCCESS;
+}
 
 carma_device::~carma_device() {
   carma_shutdownCublas(cublasHandle);
@@ -234,7 +244,7 @@ void carma_context::init_context(const int nb_devices, int32_t *devices_id) {
 
 #ifdef USE_MAGMA
 
-  // MAGMA init
+// MAGMA init
 #ifdef USE_MAGMA_PATCHED
   magma_init(nb_devices, devices_id);
 #else   // ifdef USE_MAGMA_PATCHED
@@ -243,7 +253,7 @@ void carma_context::init_context(const int nb_devices, int32_t *devices_id) {
 
 #if DEBUG
 
-  //  magma_print_environment();
+//  magma_print_environment();
 #endif  // DEBUG
 #endif  // USE_MAGMA
 

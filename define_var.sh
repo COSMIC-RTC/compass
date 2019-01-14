@@ -29,12 +29,12 @@ export PKG_CONFIG_PATH=$MAGMA_ROOT/lib/pkgconfig
 
 # COMPASS default definitions
 export COMPASS_ROOT= #$HOME/compass
-export NAGA_ROOT=$COMPASS_ROOT/naga
+export NAGA_ROOT=$COMPASS_ROOT/carmaWrap
 export SHESHA_ROOT=$COMPASS_ROOT/shesha
 
 export LD_LIBRARY_PATH=$COMPASS_ROOT/libcarma:$COMPASS_ROOT/libsutra:$CUDA_LIB_PATH_64:$CUDA_LIB_PATH:$CULA_LIB_PATH_64:$CULA_LIB_PATH:$LD_LIBRARY_PATH
 
-export PYTHONPATH=$SHESHA/src:$NAGA/src:$SHESHA/lib:$NAGA/lib:$PYTHONPATH
+export PYTHONPATH=$SHESHA/:$NAGA/:$PYTHONPATH
 
 echo "COMPASS will use this configuration, please add those lines into the .bashrc"
 
@@ -62,7 +62,7 @@ echo "export PKG_CONFIG_PATH=\$PKG_CONFIG_PATH:\$MAGMA_ROOT/lib/pkgconfig"
 echo
 echo "# COMPASS default definitions"
 echo "export COMPASS_ROOT=$COMPASS_ROOT"
-echo "export NAGA_ROOT=\$COMPASS_ROOT/naga"
+echo "export NAGA_ROOT=\$COMPASS_ROOT/carmaWrap"
 echo "export SHESHA_ROOT=\$COMPASS_ROOT/shesha"
 echo
 echo "export LD_LIBRARY_PATH=\$COMPASS_ROOT/libcarma:\$COMPASS_ROOT/libsutra:\$CUDA_LIB_PATH_64:\$CUDA_LIB_PATH:\$LD_LIBRARY_PATH"

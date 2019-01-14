@@ -1,10 +1,10 @@
 *****************
-:mod:`naga_magma`
+:mod:`carmaWrap_magma`
 *****************
 
-.. _naga_magma module:
+.. _carmaWrap_magma module:
 
-.. currentmodule:: naga_magma
+.. currentmodule:: carmaWrap_magma
 
 :func:`getri_Double`
 ====================

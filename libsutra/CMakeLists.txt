@@ -40,9 +40,10 @@ if (DEFINED ENV{BRAHMA_ROOT})
             $ENV{TAO_ROOT}/orbsvcs $ENV{DDS_ROOT})
 
     SET(BRAHMA_CPP src.cpp/sutra_rtc_brahma.cpp
-                src.cpp/sutra_rtc_brahmaListenerImpl.cpp
+                # src.cpp/sutra_rtc_brahmaListenerImpl.cpp
                 src.cpp/sutra_target_brahma.cpp
-                src.cpp/sutra_target_brahmaListenerImpl.cpp)
+                # src.cpp/sutra_target_brahmaListenerImpl.cpp
+               )
 
     SET(BRAHMA_LIBS BRAHMACommon OpenDDS_InfoRepoDiscovery OpenDDS_Dcps TAO_PortableServer
         TAO_AnyTypeCode TAO ACE dl rt)
@@ -130,6 +131,8 @@ target_compile_options(sutra
 
 
 target_link_libraries(sutra PUBLIC carma ${BRAHMA_LIBS} )
+
+add_subdirectory(python_module)
 
 set(INSTALL_PKGCONFIG_DIR "${CMAKE_INSTALL_PREFIX}/share/pkgconfig" CACHE PATH "Installation directory for pkgconfig (.pc) files")
 

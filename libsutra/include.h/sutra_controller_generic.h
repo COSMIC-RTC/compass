@@ -6,6 +6,7 @@
 
 class sutra_controller_generic : public sutra_controller {
  public:
+  float gain;
   carma_obj<float> *d_matE;
   carma_obj<float> *d_cmat;
   carma_obj<float> *d_gain;
@@ -25,6 +26,7 @@ class sutra_controller_generic : public sutra_controller {
   string get_commandlaw();
   int set_decayFactor(float *decayFactor);
   int set_mgain(float *gain);
+  int set_gain(float gain);
   int set_cmat(float *cmat);
   int set_matE(float *matE);
   int set_commandlaw(string law);

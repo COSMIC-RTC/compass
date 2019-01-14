@@ -459,6 +459,24 @@ int carma_syevd<double>(char jobz, long N, double *mat, double *eigenvals) {
 }
 
 template <>
+int carma_syevd<int>(char jobz, long N, int *mat, int *eigenvals) {
+  DEBUG_TRACE("Not implemented for this data type");
+}
+
+template <>
+int carma_syevd<cuFloatComplex>(char jobz, long N, cuFloatComplex *mat,
+                                cuFloatComplex *eigenvals) {
+  DEBUG_TRACE("Not implemented for this data type");
+}
+
+#ifdef CAN_DO_HALF
+template <>
+int carma_syevd<half>(char jobz, long N, half *mat, half *eigenvals) {
+  DEBUG_TRACE("Not implemented for this data type");
+}
+#endif
+
+template <>
 int carma_syevd<float, 1>(char jobz, caObjS *mat,
                           carma_host_obj<float> *eigenvals) {
   long N = mat->getDims(1);
@@ -644,6 +662,17 @@ int carma_svd<cuDoubleComplex>(caObjZ *imat, caObjZ *eigenvals, caObjZ *mod2act,
 
   // return carma_gesvd<double>(mat, eigenvals, U, magma_dgesvd);
 }
+#ifdef CAN_DO_HALF
+template <>
+int carma_svd<half>(caObjH *imat, caObjH *eigenvals, caObjH *mod2act,
+                    caObjH *mes2mod) {
+  // TODO: carma_svd
+  MAGMA_TRACE("carma_svd not implemented on device object! \n");
+  return EXIT_FAILURE;
+
+  // return carma_gesvd<float>(mat, eigenvals, U, magma_sgesvd);
+}
+#endif
 template <>
 int carma_svd_cpu<float>(carma_host_obj<float> *mat,
                          carma_host_obj<float> *eigenvals,
@@ -668,6 +697,14 @@ int carma_potri<int>(carma_obj<int> *d_iA) {
 
   return EXIT_FAILURE;
 }
+#ifdef CAN_DO_HALF
+template <>
+int carma_potri<half>(carma_obj<half> *d_iA) {
+  MAGMA_TRACE("carma_potri : not implemented for half* \n");
+
+  return EXIT_FAILURE;
+}
+#endif
 
 template <>
 int carma_potri<cuFloatComplex>(carma_obj<cuFloatComplex> *d_iA) {
@@ -747,6 +784,14 @@ int carma_getri<int>(carma_obj<int> *d_iA) {
 
   return EXIT_FAILURE;
 }
+#ifdef CAN_DO_HALF
+template <>
+int carma_getri<half>(carma_obj<half> *d_iA) {
+  std::cerr << "Getri not implemented for half*" << std::endl;
+
+  return EXIT_FAILURE;
+}
+#endif
 
 template <>
 int carma_getri<cuFloatComplex>(carma_obj<cuFloatComplex> *d_iA) {
