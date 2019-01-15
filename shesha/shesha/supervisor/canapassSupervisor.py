@@ -885,7 +885,7 @@ class CanapassSupervisor(CompassSupervisor):
         ipup = wao.config.p_geom._ipupil
         spup = wao.config.p_geom._spupil
         s2ipup = (ipup.shape[0] - spup.shape[0]) / 2.
-        posx = wao.config.p_wfss[0]._istart + s2ipup
+        posx = wao.config.p_wfss[0]._validpuppixx + s2ipup
         posx = np.tile(posx,(posx.size,1))
         posy = posx.T.copy()
         posx = posx *  wao.config.p_wfss[0]._isvalid

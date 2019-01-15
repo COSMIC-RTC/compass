@@ -13,6 +13,7 @@ sutra_centroider::sutra_centroider(carma_context *context, sutra_wfs *wfs,
   this->scale = scale;
   this->nslopes = 0;
   this->npix = 0;
+  this->nxsub = 0;
 
   long dims_data[2] = {1, this->nvalid};
   this->d_intensities = new carma_obj<float>(current_context, dims_data);
@@ -25,6 +26,7 @@ sutra_centroider::sutra_centroider(carma_context *context, sutra_wfs *wfs,
   this->d_validy = nullptr;
   this->d_dark = nullptr;
   this->d_flat = nullptr;
+  this->d_bincube = nullptr;
 }
 
 sutra_centroider::~sutra_centroider() {
@@ -36,10 +38,16 @@ sutra_centroider::~sutra_centroider() {
   if (this->d_validy != nullptr) delete this->d_validy;
   if (this->d_dark != nullptr) delete this->d_dark;
   if (this->d_flat != nullptr) delete this->d_flat;
+  if (this->d_bincube != nullptr) delete this->d_bincube;
 }
 
 int sutra_centroider::set_scale(float scale) {
   this->scale = scale;
+  return EXIT_SUCCESS;
+}
+
+int sutra_centroider::set_nxsub(int nxsub) {
+  this->nxsub = nxsub;
   return EXIT_SUCCESS;
 }
 

@@ -115,8 +115,8 @@ def wfs_init(context: carmaWrap_context, telescope: Telescope, p_wfss: list,
                     p_wfs._phasemap, fluxPerSub)
         else:
             wfs.loadarrays(p_wfs._phasemap, p_wfs._hrmap, p_wfs._binmap, p_wfs._halfxy,
-                           fluxPerSub, p_wfs._validsubsx,
-                           p_wfs._validsubsy, p_wfs._istart, p_wfs._jstart,
+                           fluxPerSub, p_wfs._validsubsx, p_wfs._validsubsy,
+                           p_wfs._validpuppixx, p_wfs._validpuppixy,
                            complextofloat2(p_wfs._ftkernel))
 
     # lgs case

@@ -18,13 +18,15 @@ void declare_wfs_sh(py::module &mod) {
                              [](sutra_wfs_sh &ssh) { return ssh.d_binmap; },
                              "TODO: docstring")
 
-      .def_property_readonly("d_istart",
-                             [](sutra_wfs_sh &ssh) { return ssh.d_istart; },
-                             "X position of the bottom left corner of each ssp")
+      .def_property_readonly(
+          "d_validpuppixx",
+          [](sutra_wfs_sh &ssh) { return ssh.d_validpuppixx; },
+          "X position of the bottom left corner of each ssp")
 
-      .def_property_readonly("d_jstart",
-                             [](sutra_wfs_sh &ssh) { return ssh.d_jstart; },
-                             "Y position of the bottom left corner of each ssp")
+      .def_property_readonly(
+          "d_validpuppixy",
+          [](sutra_wfs_sh &ssh) { return ssh.d_validpuppixy; },
+          "Y position of the bottom left corner of each ssp")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝

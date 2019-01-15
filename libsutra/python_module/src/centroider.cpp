@@ -38,6 +38,10 @@ void declare_centroider(py::module &mod) {
                              [](sutra_centroider &sc) { return sc.nvalid; },
                              "Number of valid ssp of the WFS")
 
+      .def_property_readonly("nxsub",
+                             [](sutra_centroider &sc) { return sc.nxsub; },
+                             "Number of ssp across the pupil diameter")
+
       .def_property_readonly("npix",
                              [](sutra_centroider &sc) { return sc.npix; },
                              "Number of pixels along a side of WFS subap.")
@@ -138,6 +142,16 @@ void declare_centroider(py::module &mod) {
         npix: (int): number of pixel along a subap. side
     )pbdoc",
            py::arg("npix"))
+
+      .def("set_nxsub", wy::colCast(&sutra_centroider::set_nxsub),
+           R"pbdoc(
+            Set the number of ssp across the pupil diameter for a RTC standalone
+
+        Parameters
+        ------------
+        nxsub: (int): number of ssp across the pupil diameter
+    )pbdoc",
+           py::arg("nxsub"))
 
       .def("load_img", wy::colCast(&sutra_centroider::load_img), R"pbdoc(
             Load a SH image in a RTC standalone (host to device)

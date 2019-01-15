@@ -20,8 +20,8 @@ __global__ void centroids(T *d_img, T *d_centroids, T *ref, int *validx,
   T ydata = 0;
   // load shared mem
   unsigned int tid = threadIdx.x;
-  unsigned int xvalid = validx[blockIdx.x] * npix;
-  unsigned int yvalid = validy[blockIdx.x] * npix;
+  unsigned int xvalid = validx[blockIdx.x];
+  unsigned int yvalid = validy[blockIdx.x];
   unsigned int x, y;
   int idim;
 

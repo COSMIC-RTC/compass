@@ -22,6 +22,7 @@ class sutra_centroider_corr : public sutra_centroider {
   ~sutra_centroider_corr();
 
   string get_type();
+  int fill_bincube(float *img);
 
   int init_corr(int isizex, int isizey, float *interpmat);
   int load_corr(float *corr, float *corr_norm, int ndim);

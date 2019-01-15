@@ -12,6 +12,7 @@ class sutra_centroider {
   int nvalid;
   int nslopes;
   int npix;
+  int nxsub;
 
   float offset;
   float scale;
@@ -41,6 +42,7 @@ class sutra_centroider {
   int calibrate_img(bool save_raw = false);
   int load_validpos(int *ivalid, int *jvalid, int N);
   int set_npix(int npix);
+  int set_nxsub(int nxsub);
   int load_img(float *img, int n);
   bool is_type(string typec) { return (typec.compare(get_type()) == 0); }
 

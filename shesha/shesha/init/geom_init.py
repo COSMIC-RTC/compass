@@ -551,8 +551,6 @@ def init_pyrhr_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
 
     istart = np.arange(p_wfs.nxsub + 2) * p_wfs.npix
     jstart = np.copy(istart)
-    p_wfs._istart = istart.astype(np.int32)
-    p_wfs._jstart = jstart.astype(np.int32)
 
     # sorting out valid subaps
     fluxPerSub = np.zeros((p_wfs.nxsub + 2, p_wfs.nxsub + 2), dtype=np.float32)
@@ -610,8 +608,6 @@ def init_sh_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
     # Translation in _mupil useful for raytracing
     istart += 2
     jstart = np.copy(istart)
-    p_wfs._istart = istart.astype(np.int32)
-    p_wfs._jstart = jstart.astype(np.int32)
 
     # sorting out valid subaps
     fluxPerSub = np.zeros((p_wfs.nxsub, p_wfs.nxsub), dtype=np.float32)
@@ -634,6 +630,8 @@ def init_sh_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
     validy = np.where(p_wfs._isvalid.T)[0].astype(np.int32)
     p_wfs._validsubsx = validx
     p_wfs._validsubsy = validy
+    p_wfs._validpuppixx = validx * p_wfs._pdiam + 2
+    p_wfs._validpuppixy = validy * p_wfs._pdiam + 2
 
     # this defines how we cut the phase into subaps
     phasemap = np.zeros((p_wfs._pdiam * p_wfs._pdiam, p_wfs._nvalid), dtype=np.int32)
@@ -649,6 +647,8 @@ def init_sh_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
         phasemap[:, i] = tmp[indi:indi + p_wfs._pdiam, indj:indj +
                              p_wfs._pdiam].flatten()
     p_wfs._phasemap = phasemap
+    p_wfs._validsubsx *= p_wfs.npix
+    p_wfs._validsubsy *= p_wfs.npix
 
     # this is a phase shift of 1/2 pix in x and y
     halfxy = np.linspace(0, 2 * np.pi, p_wfs._Nfft + 1)[0:p_wfs._pdiam] / 2.

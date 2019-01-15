@@ -16,8 +16,7 @@ __global__ void camplipup_krnl(cuFloatComplex *amplipup, float *phase,
     int idimx = idim % nphase;  // nphase : size of the phase support in subaps
     int idimy = idim / nphase;
 
-    int idphase =
-        idimx + idimy * npup + istart[ivalid[nim]] + jstart[jvalid[nim]] * npup;
+    int idphase = idimx + idimy * npup + istart[nim] + jstart[nim] * npup;
 
     // npup : size of the input phase screen
 
@@ -79,8 +78,7 @@ __global__ void bimg_krnl(float *bimage, float *bcube, int npix, int npix2,
     int xim = tidim % npix;
     int yim = tidim / npix;
 
-    int idbin =
-        xim + yim * nsub + ivalid[nim] * npix + jvalid[nim] * npix * nsub;
+    int idbin = xim + yim * nsub + ivalid[nim] + jvalid[nim] * nsub;
     bimage[idbin] = alpha * bimage[idbin] + bcube[tid];
 
     tid += blockDim.x * gridDim.x;
@@ -158,8 +156,7 @@ __global__ void bimg_krnl_async(float *bimage, float *bcube, int npix,
     int xim = tidim % npix;
     int yim = tidim / npix;
 
-    int idbin =
-        xim + yim * nsub + ivalid[nim] * npix + jvalid[nim] * npix * nsub;
+    int idbin = xim + yim * nsub + ivalid[nim] + jvalid[nim] * nsub;
     bimage[idbin] = alpha * bimage[idbin] + bcube[tid];
     tid += blockDim.x * gridDim.x;
   }
