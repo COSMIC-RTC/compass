@@ -694,9 +694,12 @@ class CanapassSupervisor(CompassSupervisor):
             coupling.append(self._sim.config.p_dms[j].coupling)
             tmp = []
             if (self._sim.config.p_dms[j].type != 'tt'):
-                tmpdata = np.zeros((2, len(self._sim.config.p_dm0._i1)))
+                tmpdata = np.zeros((4, len(self._sim.config.p_dm0._i1)))
                 tmpdata[0, :] = self._sim.config.p_dm0._j1
                 tmpdata[1, :] = self._sim.config.p_dm0._i1
+                tmpdata[2, :] = self._sim.config.p_dm0._xpos
+                tmpdata[3, :] = self._sim.config.p_dm0._ypos
+
                 new_hdudmsl.append(pfits.ImageHDU(tmpdata))  # Valid subap array
                 new_hdudmsl[j].header["DATATYPE"] = "valid_dm%d" % j
             #for k in range(aodict["nbWfs"]):
@@ -754,10 +757,39 @@ class CanapassSupervisor(CompassSupervisor):
     # def setNoise(self, noise, numwfs=0):
     #     CompassSupervisor.setNoise(self, noise, numwfs)
 
+    def setGain(self, gain) -> None:
+        '''
+        Set the scalar gain of feedback controller loop
+        '''
+        print("canapass")
+        if type(gain) in [int, float]:
+            self._sim.rtc.d_control[0].set_gain(gain)
+        else:
+            raise ValueError(
+                    "ERROR CANNOT set array gain in canapass (generic + integrator law")
+
     def getTargetPhase(self, tarnum):
         pup = self.getSpupil()
         ph = self.getTarPhase(tarnum) * pup
         return ph
+
+    def getInfluFunction(self, ndm):
+        """
+        returns the influence function cube for the given dm
+
+        """
+        return self._sim.config.p_dms[ndm]._influ
+
+    def getInfluFunctionIpupilCoords(self, ndm):
+        """
+        returns the lower left coordinates of the influ function support in the ipupil coord system
+
+        """
+        i1 = self._sim.config.p_dm0._i1  # i1 is in the dmshape support coords
+        j1 = self._sim.config.p_dm0._j1  # j1 is in the dmshape support coords
+        ii1 = i1 + self._sim.config.p_dm0._n1  # in  ipupil coords
+        jj1 = j1 + self._sim.config.p_dm0._n1  # in  ipupil coords
+        return ii1, jj1
 
     #def getVolts(self):
     #    return self._sim.rtc.get_voltage(0)
