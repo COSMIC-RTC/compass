@@ -28,8 +28,8 @@ class sutra_centroider_wcog : public sutra_centroider {
 
 template <class T>
 void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
-                   T *d_odata, T *alpha, T *weights, T scale, T offset,
-                   carma_device *device);
+                   T *d_odata, T *ref, int *validx, int *validy, T *intensities,
+                   T *d_weights, T scale, T offset, carma_device *device);
 
 template <class T>
 int fillweights(T *d_out, T *d_in, int npix, int N, carma_device *device);

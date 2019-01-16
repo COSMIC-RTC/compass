@@ -66,18 +66,25 @@ int sutra_centroider_wcog::set_npix(int npix) {
   this->npix = npix;
   return EXIT_SUCCESS;
 }
-int sutra_centroider_wcog::get_cog(float *cube, float *intensities,
+int sutra_centroider_wcog::get_cog(float *img, float *intensities,
                                    float *centroids, int nvalid, int npix,
                                    int ntot) {
   // wcog
   // TODO: Implement sutra_centroider_wcog::get_cog_async
-  subap_reduce<float>(ntot, npix * npix, nvalid, cube, intensities,
-                      *(this->d_weights),
-                      this->current_context->get_device(device));
+  // subap_reduce<float>(ntot, npix * npix, nvalid, cube, intensities,
+  //                     *(this->d_weights),
+  //                     this->current_context->get_device(device));
 
-  get_centroids<float>(ntot, npix * npix, nvalid, npix, cube, centroids,
-                       intensities, *(this->d_weights), this->scale,
-                       this->offset, this->current_context->get_device(device));
+  // get_centroids<float>(ntot, npix * npix, nvalid, npix, cube, centroids,
+  //                      intensities, *(this->d_weights), this->scale,
+  //                      this->offset,
+  //                      this->current_context->get_device(device));
+
+  get_centroids(ntot, (npix * npix), nvalid, npix, img, centroids,
+                this->d_centroids_ref->getData(), this->d_validx->getData(),
+                this->d_validy->getData(), intensities,
+                this->d_weights->getData(), this->scale, this->offset,
+                current_context->get_device(device));
 
   return EXIT_SUCCESS;
 }
@@ -86,11 +93,11 @@ int sutra_centroider_wcog::get_cog(float *intensities, float *slopes,
                                    bool noise) {
   if (this->wfs != nullptr) {
     if (noise || wfs->roket == false)
-      return this->get_cog(*(wfs->d_bincube), intensities, slopes, wfs->nvalid,
-                           wfs->npix, wfs->d_bincube->getNbElem());
+      return this->get_cog(*(wfs->d_binimg), intensities, slopes, wfs->nvalid,
+                           wfs->npix, wfs->d_binimg->getDims()[1]);
     else
       return this->get_cog(*(wfs->d_binimg_notnoisy), intensities, slopes,
-                           wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
+                           wfs->nvalid, wfs->npix, wfs->d_binimg->getDims()[1]);
   }
   DEBUG_TRACE("this->wfs was not initialized");
   return EXIT_FAILURE;
