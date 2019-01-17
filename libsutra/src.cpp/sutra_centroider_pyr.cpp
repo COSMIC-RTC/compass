@@ -17,6 +17,11 @@ sutra_centroider_pyr::sutra_centroider_pyr(carma_context *context,
 
   // centroider method by default nosin_global
   this->method = Method_CoG(false, false);
+
+  long dims_data2[2] = {1, nslopes};
+  this->d_centroids_ref =
+      new carma_obj<float>(this->current_context, dims_data2);
+  this->d_centroids_ref->reset();
 }
 
 sutra_centroider_pyr::~sutra_centroider_pyr() {}
@@ -64,8 +69,8 @@ int sutra_centroider_pyr::get_pyr(float *cube, float *intensities,
                this->current_context->get_device(device));
   }
 
-  pyr2_slopes(centroids, cube, subindx, subindy, intensities, ns, nvalid,
-              this->scale, this->valid_thresh,
+  pyr2_slopes(centroids, this->d_centroids_ref->getData(), cube, subindx,
+              subindy, intensities, ns, nvalid, this->scale, this->valid_thresh,
               this->method.isSinus,  // if we are using a sin method
               this->current_context->get_device(device));
 

@@ -54,7 +54,7 @@ __launch_bounds__(BLOCK_THREADS) __global__
         ref[blockIdx.x];
     d_centroids[blockIdx.x + gridDim.x] =
         ((slopey * 1.0 / (intensity + 1.e-6)) - offset) * scale -
-        ref[blockIdx.x];
+        ref[blockIdx.x + gridDim.x];
     d_intensities[blockIdx.x] = intensity;
   }
 }

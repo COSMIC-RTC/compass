@@ -17,36 +17,37 @@ sutra_centroider_maskedPix::sutra_centroider_maskedPix(
   long dims_data2[2] = {1, nslopes};
   this->d_centroids_ref =
       new carma_obj<float>(this->current_context, dims_data2);
+  this->d_centroids_ref->reset();
 }
 
 sutra_centroider_maskedPix::~sutra_centroider_maskedPix() {}
 
 string sutra_centroider_maskedPix::get_type() { return "maskedPix"; }
 
-int sutra_centroider_maskedPix::get_cog(float *cube, float *intensities,
+int sutra_centroider_maskedPix::get_cog(float *img, float *intensities,
                                         float *centroids, int nvalid, int npix,
                                         int ntot) {
   // TODO(Implement sutra_centroider_maskedPix::get_cog)
 
-  return get_maskedPix(cube, intensities, centroids, this->d_validx->getData(),
-                       this->d_validy->getData(), this->nvalid, ntot, 4);
+  return get_maskedPix(img, intensities, centroids, this->d_validx->getData(),
+                       this->d_validy->getData(), this->nvalid, ntot);
 }
 
-int sutra_centroider_maskedPix::get_maskedPix(float *cube, float *intensities,
+int sutra_centroider_maskedPix::get_maskedPix(float *img, float *intensities,
                                               float *centroids, int *subindx,
-                                              int *subindy, int nvalid, int ns,
-                                              int nim) {
+                                              int *subindy, int nvalid,
+                                              int ns) {
   current_context->set_activeDevice(device, 1);
 
-  fill_intensities(this->d_intensities->getData(), cube, subindx, subindy, ns,
+  fill_intensities(this->d_intensities->getData(), img, subindx, subindy, ns,
                    this->nslopes, this->current_context->get_device(device));
 
   // float p_sum = reduce<float>(this->d_intensities->getData(), this->nslopes);
   this->d_intensities->reduceCub();
 
-  getMaskedPix<float>(centroids, cube, subindx, subindy,
-                      this->d_intensities->getOData(), ns, this->nslopes,
-                      this->current_context->get_device(device));
+  getMaskedPix<float>(centroids, this->d_centroids_ref->getData(), img, subindx,
+                      subindy, this->d_intensities->getOData(), ns,
+                      this->nslopes, this->current_context->get_device(device));
 
   return EXIT_SUCCESS;
 }
@@ -58,12 +59,12 @@ int sutra_centroider_maskedPix::get_cog(float *intensities, float *slopes,
       if (noise || wfs->roket == false) {
         return this->get_maskedPix(*(wfs->d_binimg), intensities, slopes,
                                    *(wfs->d_validsubsx), *(wfs->d_validsubsy),
-                                   wfs->nvalid, wfs->nfft / wfs->nrebin, 4);
+                                   wfs->nvalid, wfs->nfft / wfs->nrebin);
       } else
         return this->get_maskedPix(*(wfs->d_binimg_notnoisy), intensities,
                                    slopes, *(wfs->d_validsubsx),
                                    *(wfs->d_validsubsy), wfs->nvalid,
-                                   wfs->nfft / wfs->nrebin, 4);
+                                   wfs->nfft / wfs->nrebin);
     } else
       DEBUG_TRACE("WFS must be pyrhr");
   }

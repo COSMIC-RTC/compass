@@ -10,6 +10,7 @@ sutra_centroider_cog::sutra_centroider_cog(carma_context *context,
   long dims_data2[2] = {1, nslopes};
   this->d_centroids_ref =
       new carma_obj<float>(this->current_context, dims_data2);
+  this->d_centroids_ref->reset();
 }
 
 sutra_centroider_cog::~sutra_centroider_cog() {}

@@ -64,7 +64,7 @@ void pyr_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy,
                 carma_device *device);
 
 template <class T>
-void pyr2_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy,
+void pyr2_slopes(T *d_odata, T *ref, T *d_idata, int *subindx, int *subindy,
                  T *intensities, int ns, int nvalid, T scale, T valid_thresh,
                  int do_sin, carma_device *device);
 

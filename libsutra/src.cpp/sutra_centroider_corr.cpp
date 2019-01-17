@@ -12,6 +12,7 @@ sutra_centroider_corr::sutra_centroider_corr(carma_context *context,
   long dims_data2[2] = {1, nslopes};
   this->d_centroids_ref =
       new carma_obj<float>(this->current_context, dims_data2);
+  this->d_centroids_ref->reset();
 
   this->d_corrfnct = 0L;
   this->d_corrspot = 0L;
@@ -216,6 +217,10 @@ int sutra_centroider_corr::get_cog(float *img, float *intensities,
                        *(this->d_interpmat), this->interp_sizex,
                        this->interp_sizey, this->nvalid, 2 * this->npix - 1,
                        this->scale, this->offset);
+
+  carma_axpy<float>(this->current_context->get_cublasHandle(), nslopes, -1.0f,
+                    this->d_centroids_ref->getData(), 1, centroids, 1);
+
   return EXIT_SUCCESS;
 }
 
