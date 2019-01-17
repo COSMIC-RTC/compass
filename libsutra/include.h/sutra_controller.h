@@ -40,7 +40,6 @@ class sutra_controller {
   cublasHandle_t cublas_handle() { return current_context->get_cublasHandle(); }
 
   int set_centroids_ref(float *centroids_ref);
-  int get_centroids_ref(float *centroids_ref);
   int add_perturb_voltage(string name, float *perturb, int N);
   int remove_perturb_voltage(string name);
   int reset_perturb_voltage();
@@ -69,13 +68,11 @@ class sutra_controller {
   float c;  // Coefficient for linear interpolation on command buffer to allow
             // non-integer delay
   vector<sutra_dm *> d_dmseen;
-  carma_obj<float> *d_subsum;         // current flux
-  carma_obj<float> *d_centroids;      // current centroids
-  carma_obj<float> *d_centroids_ref;  // ref centroids
-  carma_obj<float> *d_com;            // current command
-  carma_obj<float> *d_voltage;        // commands sent to mirror
-  carma_obj<float> *d_com1;           // commands k-1
-  carma_obj<float> *d_com2;           // commands k-2
+  carma_obj<float> *d_centroids;  // current centroids
+  carma_obj<float> *d_com;        // current command
+  carma_obj<float> *d_voltage;    // commands sent to mirror
+  carma_obj<float> *d_com1;       // commands k-1
+  carma_obj<float> *d_com2;       // commands k-2
 
   map<string, tuple<carma_obj<float> *, int, bool>> d_perturb_map;
   // perturbation command buffer

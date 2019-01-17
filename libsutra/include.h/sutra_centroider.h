@@ -11,6 +11,8 @@ class sutra_centroider {
   sutra_wfs *wfs;
   int nvalid;
   int nslopes;
+  int npix;
+  int nxsub;
 
   float offset;
   float scale;
@@ -18,7 +20,8 @@ class sutra_centroider {
   carma_context *current_context;
 
   carma_obj<float> *d_bincube;
-  carma_obj<float> *d_subsum;
+  carma_obj<float> *d_intensities;
+  carma_obj<float> *d_centroids_ref;  // ref centroids
   carma_obj<float> *d_img;
   carma_obj<float> *d_img_raw;
   carma_obj<float> *d_dark;
@@ -35,19 +38,19 @@ class sutra_centroider {
   int set_scale(float scale);
   int set_dark(float *dark, int n);
   int set_flat(float *flat, int n);
+  int set_centroids_ref(float *centroids_ref);
   int calibrate_img(bool save_raw = false);
   int load_validpos(int *ivalid, int *jvalid, int N);
-  int fill_bincube(int npix);
+  int set_npix(int npix);
+  int set_nxsub(int nxsub);
   int load_img(float *img, int n);
-  int load_pyrimg(float *img, int n);
   bool is_type(string typec) { return (typec.compare(get_type()) == 0); }
-  int load_img_gpu(float *img, int n);
 
   virtual string get_type() = 0;
 
-  virtual int get_cog(carma_streams *streams, float *cube, float *subsum,
-                      float *centroids, int nvalid, int npix, int ntot) = 0;
-  virtual int get_cog(float *subsum, float *slopes, bool noise) = 0;
+  virtual int get_cog(float *cube, float *intensities, float *centroids,
+                      int nvalid, int npix, int ntot) = 0;
+  virtual int get_cog(float *intensities, float *slopes, bool noise) = 0;
   virtual int get_cog() = 0;
 };
 

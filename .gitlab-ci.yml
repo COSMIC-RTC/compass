@@ -41,7 +41,7 @@ test_job:
     - build_job
   script:
     - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/python:$PYTHONPATH
-    - export LD_LIBRARY_PATH=$COMPASS_ROOT/python/compass_sim-3.4.0-py3.7-linux-x86_64.egg:$LD_LIBRARY_PATH
+    - export LD_LIBRARY_PATH=$COMPASS_ROOT/python/compass_sim-4.0.0-py3.7-linux-x86_64.egg:$LD_LIBRARY_PATH
     - cd shesha && python shesha/scripts/closed_loop.py data/par/par4bench/scao_sh_16x16_8pix.py
     - cd shesha/tests && . checkCompass.sh
   when: manual

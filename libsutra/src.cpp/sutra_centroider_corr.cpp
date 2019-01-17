@@ -9,6 +9,10 @@ sutra_centroider_corr::sutra_centroider_corr(carma_context *context,
   context->set_activeDevice(device, 1);
 
   this->nslopes = 2 * nvalid;
+  long dims_data2[2] = {1, nslopes};
+  this->d_centroids_ref =
+      new carma_obj<float>(this->current_context, dims_data2);
+  this->d_centroids_ref->reset();
 
   this->d_corrfnct = 0L;
   this->d_corrspot = 0L;
@@ -17,10 +21,16 @@ sutra_centroider_corr::sutra_centroider_corr(carma_context *context,
   this->d_corr = 0L;
   this->d_interpmat = 0L;
 
-  if (wfs != nullptr)
+  if (wfs != nullptr) {
     this->npix = wfs->npix;
-  else
+    this->nxsub = wfs->nxsub;
+  } else {
     this->npix = 0;
+    this->nxsub = 0;
+  }
+  long dims_data3[4] = {3, npix, npix, this->nvalid};
+  this->d_bincube = new carma_obj<float>(current_context, dims_data3);
+
   this->interp_sizex = 0;
   this->interp_sizey = 0;
 }
@@ -39,6 +49,15 @@ string sutra_centroider_corr::get_type() { return "corr"; }
 int sutra_centroider_corr::set_npix(int npix) {
   this->npix = npix;
 
+  return EXIT_SUCCESS;
+}
+
+int sutra_centroider_corr::fill_bincube(float *img) {
+  current_context->set_activeDevice(device, 1);
+
+  fillbincube(img, this->d_bincube->getData(), npix, this->nvalid, nxsub,
+              this->d_validx->getData(), this->d_validy->getData(),
+              this->current_context->get_device(this->device));
   return EXIT_SUCCESS;
 }
 
@@ -135,9 +154,9 @@ int sutra_centroider_corr::load_corr(float *corr, float *corr_norm, int ndim) {
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider_corr::get_cog(carma_streams *streams, float *cube,
-                                   float *subsum, float *centroids, int nvalid,
-                                   int npix, int ntot) {
+int sutra_centroider_corr::get_cog(float *img, float *intensities,
+                                   float *centroids, int nvalid, int npix,
+                                   int ntot) {
   current_context->set_activeDevice(device, 1);
   cudaError err;
 
@@ -145,12 +164,16 @@ int sutra_centroider_corr::get_cog(carma_streams *streams, float *cube,
   carmaSafeCall(
       err = cudaMemset(*(this->d_corrspot), 0,
                        sizeof(cuFloatComplex) * this->d_corrspot->getNbElem()));
-  // correlation algorithm
 
-  fillcorr<cuFloatComplex, float>(*(this->d_corrspot), cube, this->npix,
-                                  2 * this->npix,
-                                  this->npix * this->npix * this->nvalid, 1,
-                                  this->current_context->get_device(device));
+  if (nxsub != 0)
+    fill_bincube(img);
+  else
+    std::cerr << "nxsub not set for this centroider" << std::endl;
+  // correlation algorithm
+  fillcorr<cuFloatComplex, float>(
+      *(this->d_corrspot), this->d_bincube->getData(), this->npix,
+      2 * this->npix, this->npix * this->npix * this->nvalid, 1,
+      this->current_context->get_device(device));
 
   carma_fft<cuFloatComplex, cuFloatComplex>(*(this->d_corrspot),
                                             *(this->d_corrspot), 1,
@@ -194,13 +217,18 @@ int sutra_centroider_corr::get_cog(carma_streams *streams, float *cube,
                        *(this->d_interpmat), this->interp_sizex,
                        this->interp_sizey, this->nvalid, 2 * this->npix - 1,
                        this->scale, this->offset);
+
+  carma_axpy<float>(this->current_context->get_cublasHandle(), nslopes, -1.0f,
+                    this->d_centroids_ref->getData(), 1, centroids, 1);
+
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider_corr::get_cog(float *subsum, float *slopes, bool noise) {
+int sutra_centroider_corr::get_cog(float *intensities, float *slopes,
+                                   bool noise) {
   if (this->wfs != nullptr) {
-    return this->get_cog(wfs->streams, *wfs->d_bincube, subsum, slopes,
-                         wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
+    return this->get_cog(*wfs->d_binimg, intensities, slopes, wfs->nvalid,
+                         wfs->npix, wfs->d_bincube->getNbElem());
   }
 
   DEBUG_TRACE("this->wfs was not initialized");
@@ -209,7 +237,7 @@ int sutra_centroider_corr::get_cog(float *subsum, float *slopes, bool noise) {
 
 int sutra_centroider_corr::get_cog() {
   if (this->wfs != nullptr)
-    return this->get_cog(*(wfs->d_subsum), *(wfs->d_slopes), true);
+    return this->get_cog(*(wfs->d_intensities), *(wfs->d_slopes), true);
 
   DEBUG_TRACE("this->wfs was not initialized");
   return EXIT_FAILURE;

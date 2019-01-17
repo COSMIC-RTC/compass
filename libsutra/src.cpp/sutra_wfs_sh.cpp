@@ -15,8 +15,8 @@ sutra_wfs_sh::sutra_wfs_sh(carma_context *context, sutra_telescope *d_tel,
                 nxsub, nvalid, npix, nphase, nrebin, nfft, ntot, npup, pdiam,
                 nphotons, nphot4imat, lgs, is_low_order, roket, device),
       d_binmap(nullptr),
-      d_istart(nullptr),
-      d_jstart(nullptr) {}
+      d_validpuppixx(nullptr),
+      d_validpuppixy(nullptr) {}
 
 int sutra_wfs_sh::define_mpi_rank(int rank, int size) {
   if (this->device == 0) this->device = rank % current_context->get_ndevice();
@@ -63,6 +63,10 @@ int sutra_wfs_sh::allocate_buffers(
 
   if (rank == 0) {
     this->d_binimg = new carma_obj<float>(current_context, dims_data2);
+    if (this->roket) {
+      this->d_binimg_notnoisy =
+          new carma_obj<float>(current_context, dims_data2);
+    }
     // using 1 stream for telemetry
     this->image_telemetry =
         new carma_host_obj<float>(dims_data2, MA_PAGELOCK, 1);
@@ -113,10 +117,6 @@ int sutra_wfs_sh::allocate_buffers(
   if (rank == 0) dims_data3[3] = nvalid_tot;
 
   this->d_bincube = new carma_obj<float>(current_context, dims_data3);
-  if (this->roket) {
-    this->d_bincube_notnoisy =
-        new carma_obj<float>(current_context, dims_data3);
-  }
 
   this->nstreams = 1;
   while (nvalid % this->nstreams != 0) nstreams--;
@@ -206,20 +206,18 @@ int sutra_wfs_sh::allocate_buffers(
   dims_data2[2] = nphase;
   this->d_offsets = new carma_obj<float>(current_context, dims_data2);
 
-  dims_data1[1] = nxsub;
-  this->d_istart = new carma_obj<int>(current_context, dims_data1);
-  this->d_jstart = new carma_obj<int>(current_context, dims_data1);
-
   dims_data2[1] = nrebin * nrebin;
   dims_data2[2] = npix * npix;
   this->d_binmap = new carma_obj<int>(current_context, dims_data2);
 
   dims_data1[1] = nvalid_tot;
-  this->d_subsum = new carma_obj<float>(current_context, dims_data1);
+  this->d_intensities = new carma_obj<float>(current_context, dims_data1);
 
   this->d_fluxPerSub = new carma_obj<float>(current_context, dims_data1);
   this->d_validsubsx = new carma_obj<int>(current_context, dims_data1);
   this->d_validsubsy = new carma_obj<int>(current_context, dims_data1);
+  this->d_validpuppixx = new carma_obj<int>(current_context, dims_data1);
+  this->d_validpuppixy = new carma_obj<int>(current_context, dims_data1);
 
   dims_data2[1] = nphase * nphase;
   dims_data2[2] = nvalid;
@@ -238,7 +236,7 @@ sutra_wfs_sh::~sutra_wfs_sh() {
 
   if (this->d_bincube != 0L) delete this->d_bincube;
   if (this->d_binimg != 0L) delete this->d_binimg;
-  if (this->d_subsum != 0L) delete this->d_subsum;
+  if (this->d_intensities != 0L) delete this->d_intensities;
   if (this->d_offsets != 0L) delete this->d_offsets;
   if (this->d_fluxPerSub != 0L) delete this->d_fluxPerSub;
   if (this->d_sincar != 0L) delete this->d_sincar;
@@ -252,8 +250,8 @@ sutra_wfs_sh::~sutra_wfs_sh() {
   if (this->d_binmap != 0L) delete this->d_binmap;
   if (this->d_validsubsx != 0L) delete this->d_validsubsx;
   if (this->d_validsubsy != 0L) delete this->d_validsubsy;
-  if (this->d_istart != 0L) delete this->d_istart;
-  if (this->d_jstart != 0L) delete this->d_jstart;
+  if (this->d_validpuppixx != 0L) delete this->d_validpuppixx;
+  if (this->d_validpuppixy != 0L) delete this->d_validpuppixy;
 
   if (this->lgs) delete this->d_gs->d_lgs;
 
@@ -281,8 +279,8 @@ int sutra_wfs_sh::loadarrays(int *phasemap, int *hrmap, int *binmap,
   if (this->ntot != this->nfft) this->d_hrmap->host2device(hrmap);
   this->d_validsubsx->host2device(&validsubsx[offset]);
   this->d_validsubsy->host2device(&validsubsy[offset]);
-  this->d_istart->host2device(istart);
-  this->d_jstart->host2device(jstart);
+  this->d_validpuppixx->host2device(istart);
+  this->d_validpuppixy->host2device(jstart);
   this->d_ftkernel->host2device(kernel);
 
   return EXIT_SUCCESS;
@@ -313,7 +311,7 @@ int sutra_wfs_sh::comp_generic() {
   fillcamplipup(
       this->d_camplipup->getData(), this->d_gs->d_phase->d_screen->getData(),
       this->d_offsets->getData(), this->d_pupil->getData(), this->d_gs->scale,
-      this->d_istart->getData(), this->d_jstart->getData(),
+      this->d_validpuppixx->getData(), this->d_validpuppixy->getData(),
       this->d_validsubsx->getData(), this->d_validsubsy->getData(),
       this->nphase, this->d_gs->d_phase->d_screen->getDims(1), this->nfft,
       this->nphase * this->nphase * this->nvalid,
@@ -473,24 +471,25 @@ int sutra_wfs_sh::comp_generic() {
 
   if (this->nstreams > 1) {
     subap_reduce_async(this->npix * this->npix, this->nvalid, this->streams,
-                       this->d_bincube->getData(), this->d_subsum->getData());
+                       this->d_bincube->getData(),
+                       this->d_intensities->getData());
   } else {
     subap_reduce(this->d_bincube->getNbElem(), this->npix * this->npix,
                  this->nvalid, this->d_bincube->getData(),
-                 this->d_subsum->getData(),
+                 this->d_intensities->getData(),
                  this->current_context->get_device(device));
   }
 
   if (this->nstreams > 1) {
     subap_norm_async(this->d_bincube->getData(), this->d_bincube->getData(),
-                     this->d_fluxPerSub->getData(), this->d_subsum->getData(),
-                     this->nphot, this->npix * this->npix,
-                     this->d_bincube->getNbElem(), this->streams,
-                     current_context->get_device(device));
+                     this->d_fluxPerSub->getData(),
+                     this->d_intensities->getData(), this->nphot,
+                     this->npix * this->npix, this->d_bincube->getNbElem(),
+                     this->streams, current_context->get_device(device));
   } else {
     // multiply each subap by nphot*fluxPersub/sumPerSub
     subap_norm(this->d_bincube->getData(), this->d_bincube->getData(),
-               this->d_fluxPerSub->getData(), this->d_subsum->getData(),
+               this->d_fluxPerSub->getData(), this->d_intensities->getData(),
                this->nphot, this->npix * this->npix,
                this->d_bincube->getNbElem(),
                current_context->get_device(device));
@@ -499,8 +498,10 @@ int sutra_wfs_sh::comp_generic() {
 
   if (this->roket) {  // Get here the bincube before adding noise,
                       // usefull for error budget
-    this->d_bincube->copyInto(this->d_bincube_notnoisy->getData(),
-                              this->d_bincube->getNbElem());
+    fillbinimg(this->d_binimg_notnoisy->getData(), this->d_bincube->getData(),
+               this->npix, this->nvalid_tot, this->npix * this->nxsub,
+               this->d_validsubsx->getData(), this->d_validsubsy->getData(),
+               false, this->current_context->get_device(device));
   }
   // add noise
   if (this->noise > -1) {

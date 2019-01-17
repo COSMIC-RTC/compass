@@ -50,7 +50,8 @@ void declare_carmaWrap_context(py::module &mod) {
                              &carma_context::get_cudaRuntimeGetVersion)
       .def_property_readonly("driverVersion",
                              &carma_context::get_cudaDriverGetVersion)
-      .def("get_device", &carma_context::get_device)
+      .def("get_device", &carma_context::get_device,
+           py::return_value_policy::reference)
       .def("set_activeDevice",
            [](carma_context &cc, int newDevice) {
              return cc._set_activeDevice(newDevice, 1, __FILE__, __LINE__);

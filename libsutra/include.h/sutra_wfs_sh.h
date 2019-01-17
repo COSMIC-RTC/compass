@@ -14,8 +14,8 @@ class sutra_wfs_sh : public sutra_wfs {
  public:
   // sh only
   carma_obj<int> *d_binmap;
-  carma_obj<int> *d_istart;  // nxsub
-  carma_obj<int> *d_jstart;  // nxsub
+  carma_obj<int> *d_validpuppixx;  // nxsub
+  carma_obj<int> *d_validpuppixy;  // nxsub
 
  public:
   sutra_wfs_sh(carma_context *context, sutra_telescope *d_tel,

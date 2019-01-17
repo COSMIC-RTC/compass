@@ -40,13 +40,14 @@ class carma_device {
 
   cublasHandle_t cublasHandle;
   cusparseHandle_t cusparseHandle;
+  cudaStream_t mainStream;
 
  public:
   carma_device(int devid);
   int set_cublas_math_mode(bool tensor);
   // carma_device(const carma_device& device);
   ~carma_device();
-
+  cudaStream_t get_stream() { return mainStream; }
   int get_id() { return id; }
   cudaDeviceProp get_properties() { return properties; }
   float get_compute_perf() { return compute_perf; }

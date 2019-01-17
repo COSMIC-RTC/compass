@@ -11,7 +11,7 @@
 
 #include <cuda.h>
 #include <cuda_runtime_api.h>
-#include <cufft.h>
+#include <cub/cub.cuh>
 
 template <class T>
 struct SharedMemory {

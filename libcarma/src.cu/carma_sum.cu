@@ -1,7 +1,6 @@
 #include <carma_obj.h>
 #include <thrust/device_ptr.h>
 #include <thrust/reduce.h>
-#include <cub.cuh>
 #include "carma_utils.cuh"
 
 /*

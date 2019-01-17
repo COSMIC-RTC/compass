@@ -28,7 +28,7 @@ sutra_wfs_geom::sutra_wfs_geom(carma_context *context, sutra_telescope *d_tel,
   this->d_offsets = new carma_obj<float>(context, dims_data2);
 
   dims_data1[1] = nvalid;
-  this->d_subsum = new carma_obj<float>(context, dims_data1);
+  this->d_intensities = new carma_obj<float>(context, dims_data1);
 
   this->d_fluxPerSub = new carma_obj<float>(context, dims_data1);
   this->d_validsubsx = new carma_obj<int>(context, dims_data1);
@@ -53,7 +53,7 @@ sutra_wfs_geom::~sutra_wfs_geom() {
 
   if (this->d_bincube != 0L) delete this->d_bincube;
   if (this->d_binimg != 0L) delete this->d_binimg;
-  if (this->d_subsum != 0L) delete this->d_subsum;
+  if (this->d_intensities != 0L) delete this->d_intensities;
   if (this->d_offsets != 0L) delete this->d_offsets;
   if (this->d_fluxPerSub != 0L) delete this->d_fluxPerSub;
   if (this->d_sincar != 0L) delete this->d_sincar;

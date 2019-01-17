@@ -20,11 +20,15 @@ class sutra_centroider_bpcog : public sutra_centroider {
   int init_nmax(int nmax);
   int set_nmax(int nmax);
 
-  int get_cog(carma_streams *streams, float *cube, float *subsum,
-              float *centroids, int nvalid, int npix, int ntot);
-  int get_cog(float *subsum, float *slopes, bool noise);
+  int get_cog(float *cube, float *intensities, float *centroids, int nvalid,
+              int npix, int ntot);
+  int get_cog(float *intensities, float *slopes, bool noise);
   int get_cog();
 };
+template <class T>
+void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
+                   T *d_odata, T *ref, int *validx, int *validy, T *intensities,
+                   int nbpix, T scale, T offset, carma_device *device);
 
 template <class T>
 void subap_sortmax(int threads, int blocks, T *d_idata, T *d_odata,

@@ -16,8 +16,7 @@ __global__ void camplipup_krnl(cuFloatComplex *amplipup, float *phase,
     int idimx = idim % nphase;  // nphase : size of the phase support in subaps
     int idimy = idim / nphase;
 
-    int idphase =
-        idimx + idimy * npup + istart[ivalid[nim]] + jstart[jvalid[nim]] * npup;
+    int idphase = idimx + idimy * npup + istart[nim] + jstart[nim] * npup;
 
     // npup : size of the input phase screen
 
@@ -79,8 +78,7 @@ __global__ void bimg_krnl(float *bimage, float *bcube, int npix, int npix2,
     int xim = tidim % npix;
     int yim = tidim / npix;
 
-    int idbin =
-        xim + yim * nsub + ivalid[nim] * npix + jvalid[nim] * npix * nsub;
+    int idbin = xim + yim * nsub + ivalid[nim] + jvalid[nim] * nsub;
     bimage[idbin] = alpha * bimage[idbin] + bcube[tid];
 
     tid += blockDim.x * gridDim.x;
@@ -158,8 +156,7 @@ __global__ void bimg_krnl_async(float *bimage, float *bcube, int npix,
     int xim = tidim % npix;
     int yim = tidim / npix;
 
-    int idbin =
-        xim + yim * nsub + ivalid[nim] * npix + jvalid[nim] * npix * nsub;
+    int idbin = xim + yim * nsub + ivalid[nim] + jvalid[nim] * nsub;
     bimage[idbin] = alpha * bimage[idbin] + bcube[tid];
     tid += blockDim.x * gridDim.x;
   }
@@ -1829,9 +1826,9 @@ template void pyr_submask3d<cuDoubleComplex, double>(cuDoubleComplex *d_odata,
                                                      carma_device *device);
 
 template <class T>
-__global__ void subsum_krnl(T *g_odata, T *g_idata, int *subindx, int *subindy,
-                            unsigned int ns, unsigned int nvalid,
-                            unsigned int nim) {
+__global__ void intensities_krnl(T *g_odata, T *g_idata, int *subindx,
+                                 int *subindy, unsigned int ns,
+                                 unsigned int nvalid, unsigned int nim) {
   unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (i < nvalid) {
@@ -1846,29 +1843,31 @@ __global__ void subsum_krnl(T *g_odata, T *g_idata, int *subindx, int *subindy,
 }
 
 template <class T>
-void pyr_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
-                int nvalid, int nim, carma_device *device) {
+void pyr_intensities(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
+                     int nvalid, int nim, carma_device *device) {
   int nBlocks, nThreads;
 
   getNumBlocksAndThreads(device, nvalid, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
-  subsum_krnl<T>
+  intensities_krnl<T>
       <<<grid, threads>>>(d_odata, d_idata, subindx, subindy, ns, nvalid, nim);
 
-  carmaCheckMsg("subsum_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("intensities_kernel<<<>>> execution failed\n");
 }
 
-template void pyr_subsum<float>(float *d_odata, float *d_idata, int *subindx,
-                                int *subindy, int ns, int nvalid, int nim,
-                                carma_device *device);
-template void pyr_subsum<double>(double *d_odata, double *d_idata, int *subindx,
-                                 int *subindy, int ns, int nvalid, int nim,
-                                 carma_device *device);
+template void pyr_intensities<float>(float *d_odata, float *d_idata,
+                                     int *subindx, int *subindy, int ns,
+                                     int nvalid, int nim, carma_device *device);
+template void pyr_intensities<double>(double *d_odata, double *d_idata,
+                                      int *subindx, int *subindy, int ns,
+                                      int nvalid, int nim,
+                                      carma_device *device);
 
 template <class T>
-__global__ void subsum_krnl(T *g_odata, T *g_idata, int *subindx, int *subindy,
-                            unsigned int ns, unsigned int nvalid) {
+__global__ void intensities_krnl(T *g_odata, T *g_idata, int *subindx,
+                                 int *subindy, unsigned int ns,
+                                 unsigned int nvalid) {
   unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (i < nvalid) {
@@ -1881,33 +1880,34 @@ __global__ void subsum_krnl(T *g_odata, T *g_idata, int *subindx, int *subindy,
 }
 
 template <class T>
-void pyr_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
-                int nvalid, carma_device *device) {
+void pyr_intensities(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
+                     int nvalid, carma_device *device) {
   int nBlocks, nThreads;
 
   getNumBlocksAndThreads(device, nvalid, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
-  subsum_krnl<T>
+  intensities_krnl<T>
       <<<grid, threads>>>(d_odata, d_idata, subindx, subindy, ns, nvalid);
 
-  carmaCheckMsg("subsum_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("intensities_kernel<<<>>> execution failed\n");
 }
 
-template void pyr_subsum<float>(float *d_odata, float *d_idata, int *subindx,
-                                int *subindy, int ns, int nvalid,
-                                carma_device *device);
-template void pyr_subsum<double>(double *d_odata, double *d_idata, int *subindx,
-                                 int *subindy, int ns, int nvalid,
-                                 carma_device *device);
+template void pyr_intensities<float>(float *d_odata, float *d_idata,
+                                     int *subindx, int *subindy, int ns,
+                                     int nvalid, carma_device *device);
+template void pyr_intensities<double>(double *d_odata, double *d_idata,
+                                      int *subindx, int *subindy, int ns,
+                                      int nvalid, carma_device *device);
 
 // //////////////////////////////////////////////////////////
 // ADDING PYR_SUBSUM MODIFIED FOR HR pyramid              //
 // //////////////////////////////////////////////////////////
 
 template <class T>
-__global__ void subsum2_krnl(T *g_odata, T *g_idata, int *subindx, int *subindy,
-                             unsigned int ns, unsigned int nvalid) {
+__global__ void intensities2_krnl(T *g_odata, T *g_idata, int *subindx,
+                                  int *subindy, unsigned int ns,
+                                  unsigned int nvalid) {
   unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (i < nvalid) {
@@ -1920,34 +1920,34 @@ __global__ void subsum2_krnl(T *g_odata, T *g_idata, int *subindx, int *subindy,
 }
 
 template <class T>
-void pyr_subsum2(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
-                 int nvalid, carma_device *device) {
+void pyr_intensities2(T *d_odata, T *d_idata, int *subindx, int *subindy,
+                      int ns, int nvalid, carma_device *device) {
   int nBlocks, nThreads;
 
   getNumBlocksAndThreads(device, nvalid, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
-  subsum2_krnl<T>
+  intensities2_krnl<T>
       <<<grid, threads>>>(d_odata, d_idata, subindx, subindy, ns, nvalid);
 
-  carmaCheckMsg("subsum_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("intensities_kernel<<<>>> execution failed\n");
 }
 
-template void pyr_subsum2<float>(float *d_odata, float *d_idata, int *subindx,
-                                 int *subindy, int ns, int nvalid,
-                                 carma_device *device);
-template void pyr_subsum2<double>(double *d_odata, double *d_idata,
-                                  int *subindx, int *subindy, int ns,
-                                  int nvalid, carma_device *device);
+template void pyr_intensities2<float>(float *d_odata, float *d_idata,
+                                      int *subindx, int *subindy, int ns,
+                                      int nvalid, carma_device *device);
+template void pyr_intensities2<double>(double *d_odata, double *d_idata,
+                                       int *subindx, int *subindy, int ns,
+                                       int nvalid, carma_device *device);
 
 // //////////////////////////////////////////////////////////
 // ADDING PYR_SUBSUM MODIFIED FOR ROOF-PRISM: ROOF_SUBSUM //
 // //////////////////////////////////////////////////////////
 
 template <class T>
-__global__ void roof_subsum_krnl(T *g_odata, T *g_idata, int *subindx,
-                                 int *subindy, unsigned int ns,
-                                 unsigned int nvalid, unsigned int nim) {
+__global__ void roof_intensities_krnl(T *g_odata, T *g_idata, int *subindx,
+                                      int *subindy, unsigned int ns,
+                                      unsigned int nvalid, unsigned int nim) {
   unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (i < nvalid) {
@@ -1961,25 +1961,27 @@ __global__ void roof_subsum_krnl(T *g_odata, T *g_idata, int *subindx,
 }
 
 template <class T>
-void roof_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
-                 int nvalid, int nim, carma_device *device) {
+void roof_intensities(T *d_odata, T *d_idata, int *subindx, int *subindy,
+                      int ns, int nvalid, int nim, carma_device *device) {
   int nBlocks, nThreads;
 
   getNumBlocksAndThreads(device, nvalid, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
-  roof_subsum_krnl<T>
+  roof_intensities_krnl<T>
       <<<grid, threads>>>(d_odata, d_idata, subindx, subindy, ns, nvalid, nim);
 
-  carmaCheckMsg("subsum_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("intensities_kernel<<<>>> execution failed\n");
 }
 
-template void roof_subsum<float>(float *d_odata, float *d_idata, int *subindx,
-                                 int *subindy, int ns, int nvalid, int nim,
-                                 carma_device *device);
-template void roof_subsum<double>(double *d_odata, double *d_idata,
-                                  int *subindx, int *subindy, int ns,
-                                  int nvalid, int nim, carma_device *device);
+template void roof_intensities<float>(float *d_odata, float *d_idata,
+                                      int *subindx, int *subindy, int ns,
+                                      int nvalid, int nim,
+                                      carma_device *device);
+template void roof_intensities<double>(double *d_odata, double *d_idata,
+                                       int *subindx, int *subindy, int ns,
+                                       int nvalid, int nim,
+                                       carma_device *device);
 
 // //////////////////////////////////////////////////////////
 // //////////////////////////////////////////////////////////

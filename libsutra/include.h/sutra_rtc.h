@@ -47,7 +47,6 @@ class sutra_rtc {
   int do_centroids();
   int do_centroids(int ncntrl);
   int do_centroids(int ncntrl, bool noise);
-  int do_centroids(int nctrl, float *bincube, int npix, int ntot);
   int do_centroids_geom(int ncntrl);
   int do_centroids_ref(int ncntrl);
   int do_control(int ncntrl);
@@ -55,8 +54,7 @@ class sutra_rtc {
   int apply_control(int ncntrl, sutra_dms *ydm, bool compVoltage = true);
   int comp_voltage(int ncntrl);
   int remove_ref(int ncntrl);
-  int set_centroids_ref(int ncntrl, float *centroids_ref);
-  int get_centroids_ref(int ncntrl, float *centroids_ref);
+  int set_centroids_ref(float *centroids_ref);
 };
 
 #endif  // _SUTRA_RTC_H_

@@ -79,6 +79,8 @@ int sutra_controller_generic::comp_com() {
   current_context->set_activeDevice(device, 1);
 
   if (this->command_law == "integrator") {
+    // cublasSetStream(cublas_handle(),
+    //                 current_context->get_device(device)->get_stream());
     carma_gemv(cublas_handle(), 'n', nactu(), nslope(), -1.f * this->gain,
                this->d_cmat->getData(), nactu(), this->d_centroids->getData(),
                1, 1.0f, this->d_com->getData(), 1);

@@ -15,6 +15,9 @@ void declare_centroider(py::module &mod) {
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
+      .def_property_readonly(
+          "context", [](sutra_centroider &sc) { return sc.current_context; },
+          "GPU context")
 
       .def_property_readonly("device",
                              [](sutra_centroider &sc) { return sc.device; },
@@ -27,12 +30,21 @@ void declare_centroider(py::module &mod) {
       .def_property_readonly("nslopes",
                              [](sutra_centroider &sc) { return sc.nslopes; },
                              "Number of slopes")
+
       .def_property_readonly("wfs", [](sutra_centroider &sc) { return sc.wfs; },
                              "sutra_wfs handled by this centroider")
 
       .def_property_readonly("nvalid",
                              [](sutra_centroider &sc) { return sc.nvalid; },
                              "Number of valid ssp of the WFS")
+
+      .def_property_readonly("nxsub",
+                             [](sutra_centroider &sc) { return sc.nxsub; },
+                             "Number of ssp across the pupil diameter")
+
+      .def_property_readonly("npix",
+                             [](sutra_centroider &sc) { return sc.npix; },
+                             "Number of pixels along a side of WFS subap.")
 
       .def_property_readonly("offset",
                              [](sutra_centroider &sc) { return sc.offset; },
@@ -50,9 +62,15 @@ void declare_centroider(py::module &mod) {
                              [](sutra_centroider &sc) { return sc.d_bincube; },
                              "Bincube of the WFS image")
 
-      .def_property_readonly("d_subsum",
-                             [](sutra_centroider &sc) { return sc.d_subsum; },
-                             "subsum of the WFS image")
+      .def_property_readonly(
+          "d_intensities",
+          [](sutra_centroider &sc) { return sc.d_intensities; },
+          "intensities of the WFS image")
+
+      .def_property_readonly(
+          "d_centroids_ref",
+          [](sutra_centroider &sc) { return sc.d_centroids_ref; },
+          "Reference slopes vector")
 
       .def_property_readonly("d_img",
                              [](sutra_centroider &sc) { return sc.d_img; },
@@ -97,11 +115,11 @@ void declare_centroider(py::module &mod) {
 
         Parameters
         ------------
-        subsum: (np.array[ndim=1,dtype=np.float32]): array where to compute the sum of each ssp
+        intensities: (np.array[ndim=1,dtype=np.float32]): array where to compute the sum of each ssp
         slopes: (np.array[ndim=1,dtype=np.float32]): array where to store centroids
         noise: (bool): Computing the centroids of the image with or without noise
         )pbdoc",
-           py::arg("subsum"), py::arg("slopes"), py::arg("noise"))
+           py::arg("intensities"), py::arg("slopes"), py::arg("noise"))
 
       .def("load_validpos", wy::colCast(&sutra_centroider::load_validpos),
            R"pbdoc(
@@ -115,10 +133,9 @@ void declare_centroider(py::module &mod) {
     )pbdoc",
            py::arg("validx"), py::arg("validy"), py::arg("N"))
 
-      .def("fill_bincube", wy::colCast(&sutra_centroider::fill_bincube),
+      .def("set_npix", wy::colCast(&sutra_centroider::set_npix),
            R"pbdoc(
-            Fill the bincube from the previously loaded image.
-            Only use it with a SH RTC standalone, after using load_img
+            Set the number of pixels per subap for a RTC standalone
 
         Parameters
         ------------
@@ -126,34 +143,22 @@ void declare_centroider(py::module &mod) {
     )pbdoc",
            py::arg("npix"))
 
+      .def("set_nxsub", wy::colCast(&sutra_centroider::set_nxsub),
+           R"pbdoc(
+            Set the number of ssp across the pupil diameter for a RTC standalone
+
+        Parameters
+        ------------
+        nxsub: (int): number of ssp across the pupil diameter
+    )pbdoc",
+           py::arg("nxsub"))
+
       .def("load_img", wy::colCast(&sutra_centroider::load_img), R"pbdoc(
             Load a SH image in a RTC standalone (host to device)
 
         Parameters
         ------------
         img: (np.ndarray[ndim=2, dtype=np.float32_t]): SH image
-        n: (int): Image support size
-    )pbdoc",
-           py::arg("img"), py::arg("n"))
-
-      .def("load_img_gpu", wy::colCast(&sutra_centroider::load_img_gpu),
-           R"pbdoc(
-            Load a SH image in a RTC standalone (device to device)
-
-        Parameters
-        ------------
-        img: (np.ndarray[ndim=2, dtype=np.float32_t]): SH image
-        n: (int): Image support size
-    )pbdoc",
-           py::arg("img"), py::arg("n"))
-
-      .def("load_pyrimg", wy::colCast(&sutra_centroider::load_pyrimg), R"pbdoc(
-            Load a PYR image in a RTC standalone (host to device) in the d_bincube vector
-            which is represented as a 2D array in the PYR case
-
-        Parameters
-        ------------
-        img: (np.ndarray[ndim=2, dtype=np.float32_t]): PYR image
         n: (int): Image support size
     )pbdoc",
            py::arg("img"), py::arg("n"))
@@ -174,6 +179,16 @@ void declare_centroider(py::module &mod) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
+      .def("set_centroids_ref",
+           wy::colCast(&sutra_centroider::set_centroids_ref), R"pbdoc(
+      Set the references slopes
+
+      Parameters
+      ------------
+      refslopes: (np.array[ndim1,dtype=np.float32]): reference slopes to set
+    )pbdoc",
+           py::arg("refslopes"))
+
       .def("set_scale", &sutra_centroider::set_scale, R"pbdoc(
         Set the controider scale factor
 

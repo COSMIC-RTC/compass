@@ -15,6 +15,9 @@ void declare_controller(py::module &mod) {
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
+      .def_property_readonly(
+          "context", [](sutra_controller &sc) { return sc.current_context; },
+          "GPU context")
 
       .def_property_readonly("device",
                              [](sutra_controller &sc) { return sc.device; },
@@ -43,18 +46,9 @@ void declare_controller(py::module &mod) {
                              [](sutra_controller &sc) { return sc.d_dmseen; },
                              "Vector of sutra_dm commanded")
 
-      .def_property_readonly("d_subsum",
-                             [](sutra_controller &sc) { return sc.d_subsum; },
-                             "Array to store ssp intensities sum")
-
       .def_property_readonly(
           "d_centroids", [](sutra_controller &sc) { return sc.d_centroids; },
           "Slopes vector")
-
-      .def_property_readonly(
-          "d_centroids_ref",
-          [](sutra_controller &sc) { return sc.d_centroids_ref; },
-          "Reference slopes vector")
 
       .def_property_readonly("d_com",
                              [](sutra_controller &sc) { return sc.d_com; },
@@ -121,16 +115,6 @@ void declare_controller(py::module &mod) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
-      .def("set_centroids_ref",
-           wy::colCast(&sutra_controller::set_centroids_ref), R"pbdoc(
-      Set the references slopes
-
-      Parameters
-      ------------
-      refslopes: (np.array[ndim1,dtype=np.float32]): reference slopes to set
-    )pbdoc",
-           py::arg("refslopes"))
-
       .def("add_perturb_voltage",
            wy::colCast(&sutra_controller::add_perturb_voltage),
            R"pbdoc(

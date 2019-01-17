@@ -48,10 +48,9 @@ class sutra_wfs {
 
   carma_obj<float> *d_pupil;
   carma_obj<float> *d_bincube;
-  carma_obj<float> *d_bincube_notnoisy;
   carma_obj<float> *d_binimg;
   carma_obj<float> *d_binimg_notnoisy;
-  carma_obj<float> *d_subsum;
+  carma_obj<float> *d_intensities;
   carma_obj<float> *d_offsets;
   carma_obj<float> *d_fluxPerSub;
   carma_obj<float> *d_sincar;
@@ -218,12 +217,12 @@ void pyr_submask3d(Tout *d_odata, Tin *d_mask, int n, int nim,
                    carma_device *device);
 
 template <class T>
-void pyr_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
-                int nvalid, int nim, carma_device *device);
+void pyr_intensities(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
+                     int nvalid, int nim, carma_device *device);
 
 template <class T>
-void pyr_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
-                int nvalid, carma_device *device);
+void pyr_intensities(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
+                     int nvalid, carma_device *device);
 
 template <class T>
 void pyr_fact(T *d_data, T fact, int n, int nim, carma_device *device);
@@ -238,8 +237,8 @@ void roof_abs2(Tout *d_odata, Tin *d_idata, Tout fact, int ns, int nim,
                carma_device *device);
 
 template <class T>
-void roof_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
-                 int nvalid, int nim, carma_device *device);
+void roof_intensities(T *d_odata, T *d_idata, int *subindx, int *subindy,
+                      int ns, int nvalid, int nim, carma_device *device);
 
 template <class T>
 void roof_rollmod(T *d_odata, T *d_idata, T *d_mask, float cx, float cy, int np,

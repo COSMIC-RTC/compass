@@ -10,7 +10,11 @@ void declare_carmaWrap_timer(py::module &mod) {
                              [](carma_timer &ct) { return ct.elapsed(); })
       .def("reset", &carma_timer::reset)
       .def("start", &carma_timer::start)
-      .def("stop", &carma_timer::stop);
+      .def("stop", &carma_timer::stop)
+      .def("setStream",
+           [](carma_timer &ct, carma_device &cd) { ct.setStream(cd.get_stream()); });
+     //  .def("stop",
+     //       [](carma_timer &ct, carma_device &cd) { ct.stop(cd.get_stream()); });
 
   py::class_<carma_clock>(mod, "clock")
       .def(py::init([](carma_context &context, int i) {

@@ -3,7 +3,7 @@
 
 template <class T>
 __global__ void pyrslopes_krnl(T *g_odata, T *g_idata, int *subindx,
-                               int *subindy, T *subsum, unsigned int ns,
+                               int *subindy, T *intensities, unsigned int ns,
                                unsigned int nvalid, unsigned int nim) {
   unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -13,16 +13,18 @@ __global__ void pyrslopes_krnl(T *g_odata, T *g_idata, int *subindx,
     int i3 = subindx[i + 2 * nvalid] + subindy[i + 2 * nvalid] * ns;
     int i4 = subindx[i + 3 * nvalid] + subindy[i + 3 * nvalid] * ns;
 
-    g_odata[i] =
-        ((g_idata[i2] + g_idata[i4]) - (g_idata[i1] + g_idata[i3])) / subsum[i];
+    g_odata[i] = ((g_idata[i2] + g_idata[i4]) - (g_idata[i1] + g_idata[i3])) /
+                 intensities[i];
     g_odata[i + nvalid] =
-        ((g_idata[i3] + g_idata[i4]) - (g_idata[i1] + g_idata[i2])) / subsum[i];
+        ((g_idata[i3] + g_idata[i4]) - (g_idata[i1] + g_idata[i2])) /
+        intensities[i];
   }
 }
 
 template <class T>
-void pyr_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum,
-                int ns, int nvalid, int nim, carma_device *device) {
+void pyr_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy,
+                T *intensities, int ns, int nvalid, int nim,
+                carma_device *device) {
   // cout << "hello cu" << endl;
 
   int nBlocks, nThreads;
@@ -30,21 +32,21 @@ void pyr_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum,
   dim3 grid(nBlocks), threads(nThreads);
 
   pyrslopes_krnl<T><<<grid, threads>>>(d_odata, d_idata, subindx, subindy,
-                                       subsum, ns, nvalid, nim);
+                                       intensities, ns, nvalid, nim);
 
   carmaCheckMsg("pyrslopes_kernel<<<>>> execution failed\n");
 }
 
 template void pyr_slopes<float>(float *d_odata, float *d_idata, int *subindx,
-                                int *subindy, float *subsum, int ns, int nvalid,
-                                int nim, carma_device *device);
+                                int *subindy, float *intensities, int ns,
+                                int nvalid, int nim, carma_device *device);
 template void pyr_slopes<double>(double *d_odata, double *d_idata, int *subindx,
-                                 int *subindy, double *subsum, int ns,
+                                 int *subindy, double *intensities, int ns,
                                  int nvalid, int nim, carma_device *device);
 
 template <class T, T fct_sin(T)>
-__global__ void pyr2slopes_krnl(T *g_odata, T *g_idata, int *subindx,
-                                int *subindy, T *subsum, unsigned int ns,
+__global__ void pyr2slopes_krnl(T *g_odata, T *ref, T *g_idata, int *subindx,
+                                int *subindy, T *intensities, unsigned int ns,
                                 unsigned int nvalid, T scale, T valid_thresh,
                                 int do_sin) {
   unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -57,12 +59,12 @@ __global__ void pyr2slopes_krnl(T *g_odata, T *g_idata, int *subindx,
     const int iq3 = subindx[i + 2 * nvalid] + subindy[i + 2 * nvalid] * ns;
     const int iq4 = subindx[i + 3 * nvalid] + subindy[i + 3 * nvalid] * ns;
 
-    if (subsum[i] < valid_thresh) {  // flux too low -> set slopes to 9
+    if (intensities[i] < valid_thresh) {  // flux too low -> set slopes to 9
       g_odata[i] = 0;
       g_odata[i + nvalid] = 0;
     } else {
       tmp = ((g_idata[iq1] + g_idata[iq4]) - (g_idata[iq2] + g_idata[iq3])) /
-            subsum[i];
+            intensities[i];
       tmp = carma_clip(tmp, cmin, cmax);  // clip unexpected values
       if (do_sin) {
         g_odata[i] =
@@ -74,7 +76,7 @@ __global__ void pyr2slopes_krnl(T *g_odata, T *g_idata, int *subindx,
         g_odata[i] = scale * tmp;
       }
       tmp = ((g_idata[iq1] + g_idata[iq3]) - (g_idata[iq2] + g_idata[iq4])) /
-            subsum[i];
+            intensities[i];
       tmp = carma_clip(tmp, cmin, cmax);  // clip unexpected values
       if (do_sin) {
         g_odata[i + nvalid] =
@@ -86,42 +88,44 @@ __global__ void pyr2slopes_krnl(T *g_odata, T *g_idata, int *subindx,
         g_odata[i + nvalid] = scale * tmp;
       }
     }
+    g_odata[i] -= ref[i];
+    g_odata[i + nvalid] -= ref[i];
     i += blockDim.x * gridDim.x;
   }
 }
 
 template <class T, T fct_sin(T)>
-void pyr2_slopes_full(T *d_odata, T *d_idata, int *subindx, int *subindy,
-                      T *subsum, int ns, int nvalid, T scale, T valid_thresh,
-                      int do_sin, carma_device *device) {
+void pyr2_slopes_full(T *d_odata, T *ref, T *d_idata, int *subindx,
+                      int *subindy, T *intensities, int ns, int nvalid, T scale,
+                      T valid_thresh, int do_sin, carma_device *device) {
   // cout << "hello cu" << endl;
 
   int nBlocks, nThreads;
   getNumBlocksAndThreads(device, nvalid, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
-  pyr2slopes_krnl<T, fct_sin><<<grid, threads>>>(d_odata, d_idata, subindx,
-                                                 subindy, subsum, ns, nvalid,
-                                                 scale, valid_thresh, do_sin);
+  pyr2slopes_krnl<T, fct_sin>
+      <<<grid, threads>>>(d_odata, ref, d_idata, subindx, subindy, intensities,
+                          ns, nvalid, scale, valid_thresh, do_sin);
 
   carmaCheckMsg("pyrslopes_kernel<<<>>> execution failed\n");
 }
 
 template <>
-void pyr2_slopes<float>(float *d_odata, float *d_idata, int *subindx,
-                        int *subindy, float *subsum, int ns, int nvalid,
-                        float scale, float valid_thresh, int do_sin,
+void pyr2_slopes<float>(float *d_odata, float *ref, float *d_idata,
+                        int *subindx, int *subindy, float *intensities, int ns,
+                        int nvalid, float scale, float valid_thresh, int do_sin,
                         carma_device *device) {
-  pyr2_slopes_full<float, sinpif>(d_odata, d_idata, subindx, subindy, subsum,
-                                  ns, nvalid, scale, valid_thresh, do_sin,
-                                  device);
+  pyr2_slopes_full<float, sinpif>(d_odata, ref, d_idata, subindx, subindy,
+                                  intensities, ns, nvalid, scale, valid_thresh,
+                                  do_sin, device);
 }
 template <>
-void pyr2_slopes<double>(double *d_odata, double *d_idata, int *subindx,
-                         int *subindy, double *subsum, int ns, int nvalid,
-                         double scale, double valid_thresh, int do_sin,
-                         carma_device *device) {
-  pyr2_slopes_full<double, sinpi>(d_odata, d_idata, subindx, subindy, subsum,
-                                  ns, nvalid, scale, valid_thresh, do_sin,
-                                  device);
+void pyr2_slopes<double>(double *d_odata, double *ref, double *d_idata,
+                         int *subindx, int *subindy, double *intensities,
+                         int ns, int nvalid, double scale, double valid_thresh,
+                         int do_sin, carma_device *device) {
+  pyr2_slopes_full<double, sinpi>(d_odata, ref, d_idata, subindx, subindy,
+                                  intensities, ns, nvalid, scale, valid_thresh,
+                                  do_sin, device);
 }

@@ -17,14 +17,15 @@ class sutra_centroider_tcog : public sutra_centroider {
 
   int set_threshold(float threshold);
 
-  int get_cog(carma_streams *streams, float *cube, float *subsum,
-              float *centroids, int nvalid, int npix, int ntot);
-  int get_cog(float *subsum, float *slopes, bool noise);
+  int get_cog(float *cube, float *intensities, float *centroids, int nvalid,
+              int npix, int ntot);
+  int get_cog(float *intensities, float *slopes, bool noise);
   int get_cog();
 };
 
 template <class T>
 void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
-                   T *d_odata, T *alpha, T thresh, T scale, T offset,
-                   carma_device *device);
+                   T *d_odata, T *ref, int *validx, int *validy, T *intensities,
+                   T threshold, T scale, T offset, carma_device *device);
+
 #endif  // _SUTRA_CENTROIDER_TCOG_H_

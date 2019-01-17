@@ -108,15 +108,15 @@ class Param_wfs:
         self.__qpixsize = 0
         """ quantum pixel size for the simulation"""
 
-        self.__istart = None
+        self.__validpuppixx = None
         """ (int*) x start indexes for cutting phase screens"""
-        self.__jstart = None
+        self.__validpuppixy = None
         """ (int*) y start indexes for cutting phase screens"""
         # cdef np.ndarray _validsubs    # (i,j) indices of valid subaps
         self.__validsubsx = None
-        """ (int*) indices of valid subaps along axis x"""
+        """ (int*) X-indices of bottom left pixel of each valid subaps [pixels]"""
         self.__validsubsy = None
-        """ (int*) indices of valid subaps along axis y"""
+        """ (int*) Y-indices of bottom left pixel of each valid subaps [pixels]"""
         self.__isvalid = None
         """ (int*) array of 0/1 for valid subaps"""
         self.__phasemap = None
@@ -165,7 +165,7 @@ class Param_wfs:
         """ Type of pyramid, either 0 for "Pyramid" or 1 for "RoofPrism"."""
         self.__pyr_pup_sep = -1
         """ Number of Pyramid facets """
-        self.__nPupils = 4
+        self.__nPupils = 0
         """ Pyramid pupil separation. (default: long(wfs.nxsub))"""
         self.__pyr_misalignments = None
         """ Pyramid quadrant misalignments: by how much pupil subimages
@@ -1225,29 +1225,29 @@ class Param_wfs:
 
     _phasemap = property(get_phasemap, set_phasemap)
 
-    def get_istart(self):
+    def get_validpuppixx(self):
         """ TODO : docstring
         """
-        return self.__istart
+        return self.__validpuppixx
 
-    def set_istart(self, data):
+    def set_validpuppixx(self, data):
         """ TODO : docstring
         """
-        self.__istart = csu.enforce_array(data.copy(), data.size, dtype=np.int32)
+        self.__validpuppixx = csu.enforce_array(data.copy(), data.size, dtype=np.int32)
 
-    _istart = property(get_istart, set_istart)
+    _validpuppixx = property(get_validpuppixx, set_validpuppixx)
 
-    def get_jstart(self):
+    def get_validpuppixy(self):
         """ TODO : docstring
         """
-        return self.__jstart
+        return self.__validpuppixy
 
-    def set_jstart(self, data):
+    def set_validpuppixy(self, data):
         """ TODO : docstring
         """
-        self.__jstart = csu.enforce_array(data.copy(), data.size, dtype=np.int32)
+        self.__validpuppixy = csu.enforce_array(data.copy(), data.size, dtype=np.int32)
 
-    _jstart = property(get_jstart, set_jstart)
+    _validpuppixy = property(get_validpuppixy, set_validpuppixy)
 
     def get_isvalid(self):
         """ Get the valid subapertures array

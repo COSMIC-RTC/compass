@@ -67,7 +67,7 @@ sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(
   this->pyr_cy = new carma_host_obj<float>(dims_data1, MA_WRICOMB);
 
   dims_data1[1] = nvalid;
-  this->d_subsum = new carma_obj<float>(context, dims_data1);
+  this->d_intensities = new carma_obj<float>(context, dims_data1);
 
   this->d_fluxPerSub = new carma_obj<float>(context, dims_data1);
   dims_data1[1] = npix;
@@ -139,7 +139,7 @@ sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
   if (this->d_hrimg != 0L) delete this->d_hrimg;
   if (this->d_bincube != 0L) delete this->d_bincube;
   if (this->d_binimg != 0L) delete this->d_binimg;
-  if (this->d_subsum != 0L) delete this->d_subsum;
+  if (this->d_intensities != 0L) delete this->d_intensities;
   if (this->d_offsets != 0L) delete this->d_offsets;
   if (this->d_fluxPerSub != 0L) delete this->d_fluxPerSub;
   if (this->d_sincar != 0L) delete this->d_sincar;
@@ -471,8 +471,8 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
                  this->nfft / this->nrebin, this->nfft, this->nrebin, false,
                  this->current_context->get_device(device));
   /*
-        pyr_subsum(this->d_subsum->getData(), this->d_binimg->getData(),
-                        this->d_validsubsx->getData(),
+        pyr_intensities(this->d_intensities->getData(),
+     this->d_binimg->getData(), this->d_validsubsx->getData(),
      this->d_validsubsy->getData(), this->nfft / this->nrebin, this->nvalid,
                         this->current_context->get_device(device));
   */
@@ -514,7 +514,7 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
   }
 
   // Done in getpyr
-  //  pyr_subsum(this->d_subsum->getData(), this->d_binimg->getData(),
+  //  pyr_intensities(this->d_intensities->getData(), this->d_binimg->getData(),
   //             this->d_validsubsx->getData(), this->d_validsubsy->getData(),
   //             this->nfft / this->nrebin, this->nvalid,
   //             this->current_context->get_device(device));
