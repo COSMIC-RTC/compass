@@ -175,7 +175,7 @@ class RTCSupervisor(BenchSupervisor):
 
         self.is_init = True
 
-    def getRawWFSImage(self, numWFS: int = 0) -> np.ndarray:
+    def getWfsImage(self, numWFS: int = 0) -> np.ndarray:
         '''
         Get an image from the WFS
         '''

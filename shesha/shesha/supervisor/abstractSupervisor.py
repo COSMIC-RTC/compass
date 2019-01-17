@@ -41,11 +41,12 @@ class AbstractSupervisor(ABC):
     ''' Immediately gets one slope vector for all WFS at the current state of the system '''
 
     @abstractmethod
-    def singleNext(self, moveAtmos: bool=True, showAtmos: bool=True, getPSF: bool=False,
-                   getResidual: bool=False) -> None:
+    def singleNext(self, moveAtmos: bool = True, showAtmos: bool = True,
+                   getPSF: bool = False, getResidual: bool = False) -> None:
         ...
 
     def next(self, nbiters, see_atmos=True):
+        from tqdm import trange
         for _ in trange(nbiters):
             self.singleNext(showAtmos=see_atmos)
 
@@ -94,7 +95,7 @@ class AbstractSupervisor(ABC):
     ''' Get an image from a target '''
 
     @abstractmethod
-    def getRawWFSImage(self, numWFS: int=0) -> np.ndarray:
+    def getWfsImage(self, numWFS: int = 0) -> np.ndarray:
         ...
 
     ''' Get an image from the WFS '''

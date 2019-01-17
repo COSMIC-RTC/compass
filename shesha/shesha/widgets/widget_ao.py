@@ -481,9 +481,9 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                                 )
 
                         if "SH" in key:
-                            data = self.supervisor.getRawWFSImage(index)
+                            data = self.supervisor.getWfsImage(index)
                         if "pyrLR" in key:
-                            data = self.supervisor.getRawWFSImage(index)
+                            data = self.supervisor.getWfsImage(index)
                         if "pyrHR" in key:
                             data = self.supervisor.getPyrHRImage(index)
 

@@ -38,7 +38,9 @@ BenchWindowTemplate, BenchClassTemplate = uiLoader('widget_bench')
 
 import matplotlib.pyplot as plt
 
-from shesha.supervisor.benchSupervisor import WFSType, BenchSupervisor as Supervisor
+# DO NOT COMMIT ME
+from shesha.supervisor.benchSupervisor import WFSType
+from projects.pyrcado.supervision.pyrCompassSupervisor import PyrCompassSupervisor as Supervisor
 
 # For debug
 # from IPython.core.debugger import Pdb
@@ -145,7 +147,10 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
         except:
             pass
 
-        self.nwfs = len(self.config.p_wfss)
+        try:
+            self.nwfs = len(self.config.p_wfss)
+        except:
+            self.nwfs = 1  # Default. config may very well not define p_wfss
         for wfs in range(self.nwfs):
             name = 'slpComp_%d' % wfs
             self.add_dispDock(name, self.wao_graphgroup_cb, "MPL")
@@ -201,7 +206,10 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
 
     def initConfigFinished(self) -> None:
         # Thread carmaWrap context reload:
-        self.supervisor.forceContext()
+        try:
+            self.supervisor.forceContext()
+        except:
+            pass
 
         print(self.supervisor)
 
@@ -230,7 +238,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
                         index = int(key.split("_")[-1])
                         data = None
                         if "wfs" in key:
-                            data = self.supervisor.getRawWFSImage(index)
+                            data = self.supervisor.getWfsImage(index)
                             if (data is not None):
                                 autoscale = True  # self.uiBench.actionAuto_Scale.isChecked()
                                 # if (autoscale):

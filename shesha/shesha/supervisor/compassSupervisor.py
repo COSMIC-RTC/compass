@@ -187,12 +187,6 @@ class CompassSupervisor(AbstractSupervisor):
         if (r == 0):
             print("GS magnitude is now %f on WFS %d" % (mag, numwfs))
 
-    def getRawWFSImage(self, numWFS: int = 0) -> np.ndarray:
-        '''
-        Get an image from the WFS
-        '''
-        return np.array(self._sim.wfs.d_wfs[numWFS].d_binimg)
-
     def getTarImage(self, tarID, expoType: str = "se") -> np.ndarray:
         '''
         Get an image from a target
