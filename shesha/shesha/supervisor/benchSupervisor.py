@@ -145,12 +145,7 @@ class BenchSupervisor(AbstractSupervisor):
         Move atmos -> getSlope -> applyControl ; One integrator step
         '''
         self.frame = self.getWfsImage()
-        if self.config.p_wfss[0].type == WFSType.SH:
-            #for SH
-            self.rtc.d_centro[0].load_img(self.frame, self.frame.shape[0])
-            self.rtc.d_centro[0].fill_bincube(self.npix)
-        elif self.config.p_wfss[0].type == WFSType.PYRHR:
-            self.rtc.d_centro[0].load_pyrimg(self.frame, self.frame.shape[0])
+        self.rtc.d_centro[0].load_img(self.frame, self.frame.shape[0])
         self.rtc.do_centroids(0)
         self.rtc.do_control(0)
         self.rtc.do_clipping(0, -1e5, 1e5)
@@ -233,8 +228,11 @@ class BenchSupervisor(AbstractSupervisor):
         Init the COMPASS wih the configFile
         '''
         self.camCallback = None
-        self.dmSetCallback = None
-        self.dmGetCallback = None
+
+        # By default, do nothing...
+        # TODO: remove it !
+        self.dmSetCallback = lambda x: None
+        self.dmGetCallback = lambda: 0
 
         self.rtc = None
         self.frame = None
@@ -317,7 +315,8 @@ class BenchSupervisor(AbstractSupervisor):
                                    self.config.p_cams[0].offset_w,
                                    self.config.p_cams[0].offset_h,
                                    self.config.p_cams[0].expo_usec,
-                                   self.config.p_cams[0].framerate))
+                                   self.config.p_cams[0].framerate,
+                                   self.config.p_cams[0].symcode))
             self.camCallback = lambda: self._cam.getFrame(1)
         print("->DM")
         if self.dmSetCallback is None:
@@ -354,8 +353,8 @@ class BenchSupervisor(AbstractSupervisor):
                 roiTab = makessp(p_wfs.nxsub, obs=0., rmax=0.98)
                 # for pos in self.roiTab: pos *= self.pitch
                 p_wfs._nvalid = roiTab[0].size
-                p_wfs._validsubsx = roiTab[0]
-                p_wfs._validsubsy = roiTab[1]
+                p_wfs._validsubsx = roiTab[0] * p_wfs.npix
+                p_wfs._validsubsy = roiTab[1] * p_wfs.npix
             else:
                 p_wfs._nvalid = p_wfs._validsubsx.size
 
@@ -365,6 +364,9 @@ class BenchSupervisor(AbstractSupervisor):
             scale = 1
             gain = 1
             nact = self.config.p_dms[0].nact
+
+            if self.config.p_controllers[0].delay != 1:
+                raise RuntimeError("delay is not set 1, call Flo if it makes sense!")
 
             self.rtc = rtc_standalone(self.c, wfsNb, nvalid, nact,
                                       self.config.p_centroiders[0].type,

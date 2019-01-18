@@ -25,6 +25,23 @@ def uiLoader(moduleName):
 
 BaseWidgetTemplate, BaseClassTemplate = uiLoader('widget_base')
 
+class PupilBoxes(pg.QtGui.QGraphicsPathItem):
+
+    def __init__(self, x, y):
+        """x and y are 2D arrays of shape (Nplots, Nsamples)"""
+        connect = np.ones(x.shape, dtype=bool)
+        connect[:, -1] = 0  # don't draw the segment between each trace
+        self.path = pg.arrayToQPath(x.flatten(), y.flatten(),
+                                    connect.flatten())
+        pg.QtGui.QGraphicsPathItem.__init__(self, self.path)
+        self.setPen(pg.mkPen('r'))
+
+    def shape(self
+              ):  # override because QGraphicsPathItem.shape is too expensive.
+        return pg.QtGui.QGraphicsItem.shape(self)
+
+    def boundingRect(self):
+        return self.path.boundingRect()
 
 class WidgetBase(BaseClassTemplate):
 
@@ -77,6 +94,7 @@ class WidgetBase(BaseClassTemplate):
         self.imgs = {}  # type: Dict[str, pg.ImageItem]
         self.hists = {}  # type: Dict[str, pg.HistogramLUTItem]
 
+        self.PupilLines = None
         self.adjustSize()
 
     def gui_timer_config(self, state) -> None:
@@ -322,15 +340,24 @@ class WidgetBase(BaseClassTemplate):
 
     def addSHGrid(self, pg_image, valid_sub, sspsize, pitch):
         # First remove the old grid, if any
-        while self.gridSH != []:
-            pg_image.removeItem(self.gridSH.pop())
+        if self.PupilLines is not None:
+            pg_image.removeItem(self.PupilLines)
 
-        # Drawing the new grid
-        for (x, y) in zip(*valid_sub):
-            self.gridSH.append(
-                    pg.ROI([x * pitch, y * pitch], [sspsize, sspsize], pen='r',
-                           movable=False))
-            pg_image.addItem(self.gridSH[-1])
+        nssp_tot = valid_sub[0].size
+        connect = np.ones((nssp_tot, 5), dtype=bool)
+        connect[:, -1] = 0  # don't draw the segment between each trace
+        roi_x = np.ones((nssp_tot, 5), dtype=int)
+        roi_y = np.ones((nssp_tot, 5), dtype=int)
+        for idx_ssp in range(nssp_tot):
+            (x, y) = (valid_sub[0][idx_ssp], valid_sub[1][idx_ssp])
+            roi_x[idx_ssp, :] = [
+                    x, x, x + sspsize, x + sspsize, x
+            ]
+            roi_y[idx_ssp, :] = [
+                    y, y + sspsize, y + sspsize, y, y
+            ]
+        self.PupilLines = PupilBoxes(roi_x, roi_y)
+        pg_image.addItem(self.PupilLines)
 
     def printInPlace(self, text: str) -> None:
         # This seems to trigger the GUI and keep it responsive
