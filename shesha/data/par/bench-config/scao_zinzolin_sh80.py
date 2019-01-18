@@ -28,7 +28,7 @@ p_cams[0].offset_w = 0
 p_cams[0].offset_h = 0
 p_cams[0].expo_usec = 8000
 p_cams[0].framerate = 100
-p_cams[0].symcode = 0
+p_cams[0].symcode = 5
 
 # WFS params
 p_wfss = [conf.Param_wfs()]

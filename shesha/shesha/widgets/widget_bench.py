@@ -39,8 +39,7 @@ BenchWindowTemplate, BenchClassTemplate = uiLoader('widget_bench')
 import matplotlib.pyplot as plt
 
 # DO NOT COMMIT ME
-from shesha.supervisor.benchSupervisor import WFSType
-from projects.pyrcado.supervision.pyrCompassSupervisor import PyrCompassSupervisor as Supervisor
+from shesha.supervisor.benchSupervisor import WFSType, BenchSupervisor as Supervisor
 
 # For debug
 # from IPython.core.debugger import Pdb
@@ -192,7 +191,6 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
             self.uiAO.wao_openLoop.setText("Open Loop")
 
     def initConfig(self) -> None:
-        self.supervisor.clearInitSim()
         WidgetBase.initConfig(self)
 
     def initConfigThread(self) -> None:

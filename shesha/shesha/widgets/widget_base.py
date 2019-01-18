@@ -229,7 +229,6 @@ class WidgetBase(BaseClassTemplate):
         self.docks[name] = d
         if type == "pg_image":
             img = pg.ImageItem(border='w')
-            img.setTransform(QtGui.QTransform(0, 1, 1, 0, 0, 0))  # flip X and Y
             self.imgs[name] = img
 
             viewbox = pg.ViewBox()
@@ -238,6 +237,7 @@ class WidgetBase(BaseClassTemplate):
             viewbox.addItem(img)  # Put image in plot area
             self.viewboxes[name] = viewbox
             iv = pg.ImageView(view=viewbox, imageItem=img)
+            viewbox.invertY(False)
 
             if (self.hideHistograms):
                 iv.ui.histogram.hide()
