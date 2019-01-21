@@ -119,8 +119,8 @@ class BenchSupervisor(AbstractSupervisor):
         print("refslopes done")
 
     def resetRefslopes(self, nControl: int = 0):
-        for centro in self.rtc.d_centro:
-            centro.d_centroids_ref.reset()
+        for control in self.rtc.d_control:
+            control.d_centroids_ref.reset()
 
     def computeSlopes(self, do_centroids=False, nControl: int = 0):
         if do_centroids:
@@ -177,8 +177,8 @@ class BenchSupervisor(AbstractSupervisor):
         Get the currently used reference slopes
         '''
         refSlopes = np.empty(0)
-        for centro in self.rtc.d_centro:
-            refSlopes = np.append(refSlopes, np.array(centro.d_centroids_ref))
+        for controller in self.rtc.d_control:
+            refSlopes = np.append(refSlopes, np.array(controller.d_centroids_ref))
         return refSlopes
 
     def setGain(self, gainMat) -> None:
@@ -242,11 +242,12 @@ class BenchSupervisor(AbstractSupervisor):
             self.loadConfig(configFile=configFile)
 
     def __repr__(self):
-        s = str(self.rtc)
+
+        s = '--- BenchSupervisor ---\nRTC: ' + repr(self.rtc)
         if hasattr(self, '_cam'):
-            s += '\n' + str(self._cam)
+            s += '\nCAM: ' + repr(self._cam)
         if hasattr(self, '_dm'):
-            s += '\n' + str(self._dm)
+            s += '\nDM: ' + repr(self._dm)
         return s
 
     def resetDM(self, nDM: int) -> None:
