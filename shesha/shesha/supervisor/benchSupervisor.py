@@ -119,8 +119,8 @@ class BenchSupervisor(AbstractSupervisor):
         print("refslopes done")
 
     def resetRefslopes(self, nControl: int = 0):
-        for control in self.rtc.d_control:
-            control.d_centroids_ref.reset()
+        for centro in self.rtc.d_centro:
+            centro.d_centroids_ref.reset()
 
     def computeSlopes(self, do_centroids=False, nControl: int = 0):
         if do_centroids:
@@ -177,18 +177,21 @@ class BenchSupervisor(AbstractSupervisor):
         Get the currently used reference slopes
         '''
         refSlopes = np.empty(0)
-        for controller in self.rtc.d_control:
-            refSlopes = np.append(refSlopes, np.array(controller.d_centroids_ref))
+        for centro in self.rtc.d_centro:
+            refSlopes = np.append(refSlopes, np.array(centro.d_centroids_ref))
         return refSlopes
 
-    def setGain(self, gainMat) -> None:
+    def setGain(self, gain) -> None:
         '''
-        Set the scalar gain of feedback controller loop
+        Set the gain/mgain of feedback controller loop
         '''
-        if type(gainMat) in [int, float]:
-            gainMat = np.ones(np.sum(self.rtc.d_control[0].nactu),
-                              dtype=np.float32) * gainMat
-        # Whoopdie-doop, fix needed
+        if self.rtc.d_control[0].command_law == 'integrator':  # scalar
+            self.rtc.d_control[0].set_gain(gain)
+        else:  # mgain mode
+            if type(gain) in [int, float]:
+                gain = np.ones(np.sum(self.rtc.d_control[0].nactu),
+                               dtype=np.float32) * gain
+            self.rtc.d_control[0].set_mgain(gain)
 
     def setCommandMatrix(self, cMat: np.ndarray) -> None:
         '''
