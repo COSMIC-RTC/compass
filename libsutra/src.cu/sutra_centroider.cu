@@ -69,9 +69,8 @@ template int convert_centro<double>(double *d_odata, double *d_idata,
                                     double offset, double scale, int N,
                                     carma_device *device);
 
-template <class T>
-int fill_validMask(int size, int npix, int blocks, T *d_validMask, int *validx,
-                   int *validy, carma_device *device) {
+int fill_validMask(int size, int npix, int blocks, int *d_validMask,
+                   int *validx, int *validy, carma_device *device) {
   int maxThreads = device->get_properties().maxThreadsPerBlock;
   int threads = npix * npix;
   unsigned int nelem_thread = 1;
@@ -90,12 +89,3 @@ int fill_validMask(int size, int npix, int blocks, T *d_validMask, int *validx,
   carmaCheckMsg("fillvalidMask_krnl<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
-template int fill_validMask<int>(int size, int blocks, int npix,
-                                 int *d_validMask, int *validx, int *validy,
-                                 carma_device *device);
-template int fill_validMask<float>(int size, int blocks, int npix,
-                                   float *d_validMask, int *validx, int *validy,
-                                   carma_device *device);
-template int fill_validMask<double>(int size, int blocks, int npix,
-                                    double *d_validMask, int *validx,
-                                    int *validy, carma_device *device);

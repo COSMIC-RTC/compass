@@ -59,8 +59,7 @@ class sutra_centroider {
 template <class T>
 int convert_centro(T *d_odata, T *d_idata, T offset, T scale, int N,
                    carma_device *device);
-template <class T>
-int fill_validMask(int size, int npix, int blocks, T *d_validMask, int *validx,
-                   int *validy, carma_device *device);
+int fill_validMask(int size, int npix, int blocks, int *d_validMask,
+                   int *validx, int *validy, carma_device *device);
 
 #endif  // _SUTRA_CENTROIDER_H_
