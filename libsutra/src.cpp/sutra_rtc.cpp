@@ -405,6 +405,7 @@ int sutra_rtc::do_centroids_ref(int ncntrl) {
                this->d_control[ncntrl]->d_centroids->getDataAt(inds), 1,
                (*sc)->d_centroids_ref->getData(), 1);
     inds += (*sc)->nslopes;
+    sc++;
   }
 
   return EXIT_SUCCESS;

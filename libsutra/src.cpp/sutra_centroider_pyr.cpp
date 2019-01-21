@@ -74,6 +74,9 @@ int sutra_centroider_pyr::get_pyr(float *cube, float *intensities,
               this->method.isSinus,  // if we are using a sin method
               this->current_context->get_device(device));
 
+  carma_axpy<float>(this->current_context->get_cublasHandle(), nslopes, -1.0f,
+                    this->d_centroids_ref->getData(), 1, centroids, 1);
+
   return EXIT_SUCCESS;
 }
 
