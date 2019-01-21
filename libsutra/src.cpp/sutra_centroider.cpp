@@ -27,6 +27,7 @@ sutra_centroider::sutra_centroider(carma_context *context, sutra_wfs *wfs,
   this->d_dark = nullptr;
   this->d_flat = nullptr;
   this->d_bincube = nullptr;
+  this->d_validMask = nullptr;
 }
 
 sutra_centroider::~sutra_centroider() {
@@ -39,6 +40,7 @@ sutra_centroider::~sutra_centroider() {
   if (this->d_dark != nullptr) delete this->d_dark;
   if (this->d_flat != nullptr) delete this->d_flat;
   if (this->d_bincube != nullptr) delete this->d_bincube;
+  if (this->d_validMask != nullptr) delete this->d_validMask;
 }
 
 int sutra_centroider::set_scale(float scale) {
@@ -71,6 +73,25 @@ int sutra_centroider::set_flat(float *flat, int n) {
   return EXIT_SUCCESS;
 }
 
+int sutra_centroider::get_validMask() {
+  current_context->set_activeDevice(device, 1);
+  if (this->d_validMask == nullptr) {
+    if (this->d_img == nullptr) {
+      std::cout << "RTC image has not been initialized" << std::endl;
+      return EXIT_FAILURE;
+    }
+    this->d_validMask = new carma_obj<int>(current_context, d_img->getDims());
+    this->d_validMask->reset();
+  }
+
+  fill_validMask(this->d_validMask->getDims(1), this->npix, this->nvalid,
+                 this->d_validMask->getData(), this->d_validx->getData(),
+                 this->d_validy->getData(),
+                 current_context->get_device(device));
+
+  return EXIT_SUCCESS;
+}
+
 int sutra_centroider::calibrate_img(bool save_raw) {
   current_context->set_activeDevice(device, 1);
 
@@ -80,7 +101,7 @@ int sutra_centroider::calibrate_img(bool save_raw) {
   }
 
   if (save_raw) {
-    if (this->d_img_raw != nullptr)
+    if (this->d_img_raw == nullptr)
       this->d_img_raw = new carma_obj<float>(current_context, d_img);
     else
       this->d_img_raw->copy(d_img, 1, 1);

@@ -28,6 +28,7 @@ class sutra_centroider {
   carma_obj<float> *d_flat;
   carma_obj<int> *d_validx;
   carma_obj<int> *d_validy;
+  carma_obj<int> *d_validMask;
 
  protected:
   sutra_centroider(carma_context *context, sutra_wfs *wfs, long nvalid,
@@ -44,6 +45,7 @@ class sutra_centroider {
   int set_npix(int npix);
   int set_nxsub(int nxsub);
   int load_img(float *img, int n);
+  int get_validMask();
   bool is_type(string typec) { return (typec.compare(get_type()) == 0); }
 
   virtual string get_type() = 0;
@@ -57,5 +59,8 @@ class sutra_centroider {
 template <class T>
 int convert_centro(T *d_odata, T *d_idata, T offset, T scale, int N,
                    carma_device *device);
+template <class T>
+int fill_validMask(int size, int npix, int blocks, T *d_validMask, int *validx,
+                   int *validy, carma_device *device);
 
 #endif  // _SUTRA_CENTROIDER_H_
