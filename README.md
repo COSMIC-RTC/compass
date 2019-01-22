@@ -72,10 +72,12 @@ MAGMA is available here : <http://icl.cs.utk.edu/magma/software/index.html>
 extract the tgz file and go into the new directory
 
 ```bash
-wget http://icl.cs.utk.edu/projectsfiles/magma/downloads/magma-2.5.0.tar.gz
-tar xf magma-2.5.0.tar.gz
-cd magma-2.5.0
+wget http://icl.cs.utk.edu/projectsfiles/magma/downloads/magma-2.4.0.tar.gz
+tar xf magma-2.4.0.tar.gz
+cd magma-2.4.0
 ```
+
+NOTE: COMPASS seems not working with 2.5.0
 
 ### Configure MAGMA with MKL & installation (fast way)
 
