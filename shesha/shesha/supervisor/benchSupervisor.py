@@ -219,6 +219,18 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         raise NotImplementedError("Not implemented")
 
+    def forceContext(self) -> None:
+        """
+        Active all the GPU devices specified in the parameters file
+        Required for using with widgets, due to multithreaded init
+        and in case GPU 0 is not used by the simu
+        """
+        if self.isInit() and self.c is not None:
+            current_Id = self.c.activeDevice
+            for devIdx in range(len(self.config.p_loop.devices)):
+                self.c.set_activeDeviceForce(devIdx)
+            self.c.set_activeDevice(current_Id)
+
     #  ____                  _ _   _        __  __      _   _               _
     # / ___| _ __   ___  ___(_) |_(_) ___  |  \/  | ___| |_| |__   ___   __| |___
     # \___ \| '_ \ / _ \/ __| | __| |/ __| | |\/| |/ _ \ __| '_ \ / _ \ / _` / __|

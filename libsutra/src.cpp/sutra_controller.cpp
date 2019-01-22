@@ -182,6 +182,7 @@ int sutra_controller::comp_voltage() {
                            this->nactu() * sizeof(float)));
 
   if (!this->open_loop) {
+    // Command increment = a * d[k] + b*d[k-1] + c*d[k-2] + perturb
     if (this->delay > 0) {
       carma_axpy(cublas_handle(), this->nactu(), this->a,
                  this->d_com->getData(), 1, this->d_voltage->getData(), 1);
