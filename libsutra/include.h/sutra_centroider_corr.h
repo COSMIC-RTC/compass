@@ -3,7 +3,7 @@
 
 #include <sutra_centroider.h>
 
-class sutra_centroider_corr : public sutra_centroider {
+class sutra_centroider_corr : public sutra_centroider<float> {
  public:
   int npix;
   int interp_sizex;

@@ -6,7 +6,8 @@ namespace py = pybind11;
 typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;
 
 void declare_centroider_tcog(py::module &mod) {
-  py::class_<sutra_centroider_tcog, sutra_centroider>(mod, "CentroiderTCOG")
+  py::class_<sutra_centroider_tcog, sutra_centroider<float>>(mod,
+                                                             "CentroiderTCOG")
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
       //  ██████╔╝██████╔╝██║   ██║██████╔╝█████╗  ██████╔╝   ██║    ╚████╔╝

@@ -4,7 +4,7 @@
 #include <sutra_acquisim.h>
 #include <sutra_controller.h>
 
-class sutra_controller_generic : public sutra_controller {
+class sutra_controller_generic : public sutra_controller<float> {
  public:
   float gain;
   carma_obj<float> *d_matE;

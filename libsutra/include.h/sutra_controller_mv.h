@@ -9,7 +9,7 @@
 #include <sutra_utils.h>
 #include <sutra_wfs.h>
 
-class sutra_controller_mv : public sutra_controller {
+class sutra_controller_mv : public sutra_controller<float> {
  public:
   float gain;
 

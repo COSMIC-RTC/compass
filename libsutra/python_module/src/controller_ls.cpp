@@ -6,7 +6,7 @@ namespace py = pybind11;
 typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;
 
 void declare_controller_ls(py::module &mod) {
-  py::class_<sutra_controller_ls, sutra_controller>(mod, "ControllerLS")
+  py::class_<sutra_controller_ls, sutra_controller<float>>(mod, "ControllerLS")
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝

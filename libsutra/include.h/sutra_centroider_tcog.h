@@ -3,7 +3,7 @@
 
 #include <sutra_centroider.h>
 
-class sutra_centroider_tcog : public sutra_centroider {
+class sutra_centroider_tcog : public sutra_centroider<float> {
  public:
   float threshold;
 

@@ -5,7 +5,7 @@
 #include <sutra_wfs_pyr_pyrhr.h>
 #include <string>
 
-class sutra_centroider_maskedPix : public sutra_centroider {
+class sutra_centroider_maskedPix : public sutra_centroider<float> {
  public:
   sutra_centroider_maskedPix(carma_context *context, sutra_wfs *wfs,
                              long nvalid, long npupils, float offset,

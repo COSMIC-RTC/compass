@@ -3,7 +3,7 @@
 
 #include <sutra_centroider.h>
 
-class sutra_centroider_wcog : public sutra_centroider {
+class sutra_centroider_wcog : public sutra_centroider<float> {
  public:
   int npix;
   carma_obj<float> *d_weights;

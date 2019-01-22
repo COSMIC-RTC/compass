@@ -6,7 +6,8 @@ namespace py = pybind11;
 typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;
 
 void declare_controller_geo(py::module &mod) {
-  py::class_<sutra_controller_geo, sutra_controller>(mod, "ControllerGEO")
+  py::class_<sutra_controller_geo, sutra_controller<float>>(mod,
+                                                            "ControllerGEO")
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝

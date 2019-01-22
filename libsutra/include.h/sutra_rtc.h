@@ -17,8 +17,8 @@
 
 class sutra_rtc {
  public:
-  vector<sutra_centroider *> d_centro;
-  vector<sutra_controller *> d_control;
+  vector<sutra_centroider<float> *> d_centro;
+  vector<sutra_controller<float> *> d_control;
 
  public:
   sutra_rtc();

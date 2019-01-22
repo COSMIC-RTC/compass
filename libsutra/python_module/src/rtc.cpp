@@ -22,17 +22,19 @@ void declare_rtc(py::module &mod) {
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
 
-      .def_property_readonly("d_centro",
-                             [](sutra_rtc &sr) -> vector<sutra_centroider *> & {
-                               return sr.d_centro;
-                             },
-                             "Vector of centroiders")
+      .def_property_readonly(
+          "d_centro",
+          [](sutra_rtc &sr) -> vector<sutra_centroider<float> *> & {
+            return sr.d_centro;
+          },
+          "Vector of centroiders")
 
-      .def_property_readonly("d_control",
-                             [](sutra_rtc &sr) -> vector<sutra_controller *> & {
-                               return sr.d_control;
-                             },
-                             "Vector of controllers")
+      .def_property_readonly(
+          "d_control",
+          [](sutra_rtc &sr) -> vector<sutra_controller<float> *> & {
+            return sr.d_control;
+          },
+          "Vector of controllers")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝

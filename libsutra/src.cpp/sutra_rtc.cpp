@@ -395,7 +395,7 @@ int sutra_rtc::do_centroids_geom(int ncntrl) {
 
 int sutra_rtc::do_centroids_ref(int ncntrl) {
   this->do_centroids(ncntrl);
-  vector<sutra_centroider *>::iterator sc;
+  vector<sutra_centroider<float> *>::iterator sc;
   sc = this->d_centro.begin();
   int inds;
   inds = 0;
@@ -411,7 +411,7 @@ int sutra_rtc::do_centroids_ref(int ncntrl) {
 }
 
 int sutra_rtc::set_centroids_ref(float *centroids_ref) {
-  vector<sutra_centroider *>::iterator sc;
+  vector<sutra_centroider<float> *>::iterator sc;
   sc = this->d_centro.begin();
   int inds;
   inds = 0;

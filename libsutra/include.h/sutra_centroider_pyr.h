@@ -28,7 +28,7 @@ struct Method_CoG {
   };
 };
 
-class sutra_centroider_pyr : public sutra_centroider {
+class sutra_centroider_pyr : public sutra_centroider<float> {
  private:
   string pyr_type;
 

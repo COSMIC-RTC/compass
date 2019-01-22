@@ -6,7 +6,8 @@ namespace py = pybind11;
 typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;
 
 void declare_centroider_pyr(py::module &mod) {
-  py::class_<sutra_centroider_pyr, sutra_centroider>(mod, "CentroiderPYR")
+  py::class_<sutra_centroider_pyr, sutra_centroider<float>>(mod,
+                                                            "CentroiderPYR")
 
       .def_property_readonly(
           "pyr_method",

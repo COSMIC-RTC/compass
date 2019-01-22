@@ -3,7 +3,7 @@
 
 #include <sutra_centroider.h>
 
-class sutra_centroider_cog : public sutra_centroider {
+class sutra_centroider_cog : public sutra_centroider<float> {
  public:
  public:
   sutra_centroider_cog(carma_context *context, sutra_wfs *wfs, long nvalid,

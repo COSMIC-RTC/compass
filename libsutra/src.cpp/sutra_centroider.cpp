@@ -1,8 +1,9 @@
 #include <sutra_centroider.h>
 
-sutra_centroider::sutra_centroider(carma_context *context, sutra_wfs *wfs,
-                                   long nvalid, float offset, float scale,
-                                   int device) {
+template <class T>
+sutra_centroider<T>::sutra_centroider(carma_context *context, sutra_wfs *wfs,
+                                      long nvalid, T offset, T scale,
+                                      int device) {
   this->current_context = context;
   this->device = device;
   context->set_activeDevice(device, 1);
@@ -16,7 +17,7 @@ sutra_centroider::sutra_centroider(carma_context *context, sutra_wfs *wfs,
   this->nxsub = 0;
 
   long dims_data[2] = {1, this->nvalid};
-  this->d_intensities = new carma_obj<float>(current_context, dims_data);
+  this->d_intensities = new carma_obj<T>(current_context, dims_data);
   this->d_intensities->reset();
 
   this->d_centroids_ref = nullptr;
@@ -29,7 +30,8 @@ sutra_centroider::sutra_centroider(carma_context *context, sutra_wfs *wfs,
   this->d_bincube = nullptr;
 }
 
-sutra_centroider::~sutra_centroider() {
+template <class T>
+sutra_centroider<T>::~sutra_centroider() {
   if (this->d_intensities != nullptr) delete this->d_intensities;
   if (this->d_centroids_ref != nullptr) delete this->d_centroids_ref;
   if (this->d_img != nullptr) delete this->d_img;
@@ -41,37 +43,42 @@ sutra_centroider::~sutra_centroider() {
   if (this->d_bincube != nullptr) delete this->d_bincube;
 }
 
-int sutra_centroider::set_scale(float scale) {
+template <class T>
+int sutra_centroider<T>::set_scale(T scale) {
   this->scale = scale;
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider::set_nxsub(int nxsub) {
+template <class T>
+int sutra_centroider<T>::set_nxsub(int nxsub) {
   this->nxsub = nxsub;
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider::set_dark(float *dark, int n) {
+template <class T>
+int sutra_centroider<T>::set_dark(T *dark, int n) {
   current_context->set_activeDevice(device, 1);
   if (this->d_dark == nullptr) {
     long dims_data2[3] = {2, n, n};
-    this->d_dark = new carma_obj<float>(current_context, dims_data2);
+    this->d_dark = new carma_obj<T>(current_context, dims_data2);
   }
   this->d_dark->host2device(dark);
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider::set_flat(float *flat, int n) {
+template <class T>
+int sutra_centroider<T>::set_flat(T *flat, int n) {
   current_context->set_activeDevice(device, 1);
   if (this->d_flat == nullptr) {
     long dims_data2[3] = {2, n, n};
-    this->d_flat = new carma_obj<float>(current_context, dims_data2);
+    this->d_flat = new carma_obj<T>(current_context, dims_data2);
   }
   this->d_flat->host2device(flat);
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider::calibrate_img(bool save_raw) {
+template <class T>
+int sutra_centroider<T>::calibrate_img(bool save_raw) {
   current_context->set_activeDevice(device, 1);
 
   if (this->d_img == nullptr) {
@@ -81,7 +88,7 @@ int sutra_centroider::calibrate_img(bool save_raw) {
 
   if (save_raw) {
     if (this->d_img_raw != nullptr)
-      this->d_img_raw = new carma_obj<float>(current_context, d_img);
+      this->d_img_raw = new carma_obj<T>(current_context, d_img);
     else
       this->d_img_raw->copy(d_img, 1, 1);
   }
@@ -95,23 +102,26 @@ int sutra_centroider::calibrate_img(bool save_raw) {
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider::load_img(float *img, int n) {
+template <class T>
+int sutra_centroider<T>::load_img(T *img, int n) {
   current_context->set_activeDevice(device, 1);
   if (this->d_img == nullptr) {
     long dims_data2[3] = {2, n, n};
-    this->d_img = new carma_obj<float>(current_context, dims_data2);
+    this->d_img = new carma_obj<T>(current_context, dims_data2);
   }
   this->d_img->host2device(img);
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider::set_npix(int npix) {
+template <class T>
+int sutra_centroider<T>::set_npix(int npix) {
   this->npix = npix;
 
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider::load_validpos(int *ivalid, int *jvalid, int N) {
+template <class T>
+int sutra_centroider<T>::load_validpos(int *ivalid, int *jvalid, int N) {
   current_context->set_activeDevice(device, 1);
   if (this->d_validx == nullptr) {
     long dims_data[2] = {1, N};
@@ -125,7 +135,10 @@ int sutra_centroider::load_validpos(int *ivalid, int *jvalid, int N) {
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider::set_centroids_ref(float *centroids_ref) {
+template <class T>
+int sutra_centroider<T>::set_centroids_ref(T *centroids_ref) {
   this->d_centroids_ref->host2device(centroids_ref);
   return EXIT_SUCCESS;
 }
+
+template class sutra_centroider<float>;
