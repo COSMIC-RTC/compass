@@ -3,35 +3,36 @@
 
 #include <sutra_centroider.h>
 
-class sutra_centroider_corr : public sutra_centroider<float> {
+template <typename T>
+class sutra_centroider_corr : public sutra_centroider<T> {
  public:
   int npix;
   int interp_sizex;
   int interp_sizey;
   carma_obj<cuFloatComplex> *d_corrfnct;
   carma_obj<cuFloatComplex> *d_corrspot;
-  carma_obj<float> *d_corrnorm;
+  carma_obj<T> *d_corrnorm;
   carma_obj<int> *d_corrmax;
-  carma_obj<float> *d_corr;
-  carma_obj<float> *d_interpmat;
+  carma_obj<T> *d_corr;
+  carma_obj<T> *d_interpmat;
 
  public:
   sutra_centroider_corr(carma_context *context, sutra_wfs *wfs, long nvalid,
-                        float offset, float scale, int device);
+                        T offset, T scale, int device);
   sutra_centroider_corr(const sutra_centroider_corr &centroider);
   ~sutra_centroider_corr();
 
   string get_type();
-  int fill_bincube(float *img);
+  int fill_bincube(T *img);
 
-  int init_corr(int isizex, int isizey, float *interpmat);
-  int load_corr(float *corr, float *corr_norm, int ndim);
+  int init_corr(int isizex, int isizey, T *interpmat);
+  int load_corr(T *corr, T *corr_norm, int ndim);
 
   int set_npix(int npix);
 
-  int get_cog(float *cube, float *intensities, float *centroids, int nvalid,
-              int npix, int ntot);
-  int get_cog(float *intensities, float *slopes, bool noise);
+  int get_cog(T *cube, T *intensities, T *centroids, int nvalid, int npix,
+              int ntot);
+  int get_cog(T *intensities, T *slopes, bool noise);
   int get_cog();
 };
 

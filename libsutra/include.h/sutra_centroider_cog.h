@@ -3,19 +3,20 @@
 
 #include <sutra_centroider.h>
 
-class sutra_centroider_cog : public sutra_centroider<float> {
+template <typename T>
+class sutra_centroider_cog : public sutra_centroider<T> {
  public:
  public:
   sutra_centroider_cog(carma_context *context, sutra_wfs *wfs, long nvalid,
-                       float offset, float scale, int device);
+                       T offset, T scale, int device);
   sutra_centroider_cog(const sutra_centroider_cog &centroider);
   ~sutra_centroider_cog();
 
   string get_type();
 
-  int get_cog(float *cube, float *intensities, float *centroids, int nvalid,
-              int npix, int ntot);
-  int get_cog(float *intensities, float *slopes, bool noise);
+  int get_cog(T *cube, T *intensities, T *centroids, int nvalid, int npix,
+              int ntot);
+  int get_cog(T *intensities, T *slopes, bool noise);
   int get_cog();
 };
 

@@ -3,45 +3,46 @@
 
 #include <sutra_controller.h>
 
-class sutra_controller_ls : public sutra_controller<float> {
+template <typename T>
+class sutra_controller_ls : public sutra_controller<T> {
  public:
-  float gain;
+  T gain;
 
-  carma_obj<float> *d_imat;
-  carma_obj<float> *d_cmat;
-  carma_obj<float> *d_gain;
+  carma_obj<T> *d_imat;
+  carma_obj<T> *d_cmat;
+  carma_obj<T> *d_gain;
 
   // svd computations
-  carma_obj<float> *d_eigenvals;
-  carma_host_obj<float> *h_eigenvals;
-  carma_obj<float> *d_U;
+  carma_obj<T> *d_eigenvals;
+  carma_host_obj<T> *h_eigenvals;
+  carma_obj<T> *d_U;
 
   // loop components
-  carma_obj<float> *d_cenbuff;  // centroids circular buffer
-  carma_obj<float> *d_err;      // current error
+  carma_obj<T> *d_cenbuff;  // centroids circular buffer
+  carma_obj<T> *d_err;      // current error
 
   // Modal optimization components
-  int is_modopti;                // Flag for using modal optimization
-  int nrec;                      // Number of recorded open slopes measurements
-  int nmodes;                    // Number of modes
-  float gmin;                    // Gain min
-  float gmax;                    // Gain max
-  int ngain;                     // Number of tested gains between gmin and gmax
-  float Fs;                      // Sampling frequency
-  int cpt_rec;                   // Counter for modal gains refresh
-  carma_obj<float> *d_M2V;       // Modes to Volts matrix
-  carma_obj<float> *d_S2M;       // Slopes to Modes matrix
-  carma_obj<float> *d_slpol;     // Open-loop measurements buffer, recorded and
-                                 // loaded from Yorick
-  carma_obj<float> *d_Hcor;      // Transfer function
-  carma_obj<float> *d_com1;      // Command k-1 for POLC
-  carma_obj<float> *d_com2;      // Command k-2 for POLC
-  carma_obj<float> *d_compbuff;  // Buffer for POLC computation
-  carma_obj<float> *d_compbuff2;  // Buffer for POLC computation
+  int is_modopti;             // Flag for using modal optimization
+  int nrec;                   // Number of recorded open slopes measurements
+  int nmodes;                 // Number of modes
+  T gmin;                     // Gain min
+  T gmax;                     // Gain max
+  int ngain;                  // Number of tested gains between gmin and gmax
+  T Fs;                       // Sampling frequency
+  int cpt_rec;                // Counter for modal gains refresh
+  carma_obj<T> *d_M2V;        // Modes to Volts matrix
+  carma_obj<T> *d_S2M;        // Slopes to Modes matrix
+  carma_obj<T> *d_slpol;      // Open-loop measurements buffer, recorded and
+                              // loaded from Yorick
+  carma_obj<T> *d_Hcor;       // Transfer function
+  carma_obj<T> *d_com1;       // Command k-1 for POLC
+  carma_obj<T> *d_com2;       // Command k-2 for POLC
+  carma_obj<T> *d_compbuff;   // Buffer for POLC computation
+  carma_obj<T> *d_compbuff2;  // Buffer for POLC computation
 
  public:
   sutra_controller_ls(carma_context *context, long nvalid, long nslope,
-                      long nactu, float delay, sutra_dms *dms, int *idx_dms,
+                      long nactu, T delay, sutra_dms *dms, int *idx_dms,
                       int ndm);
   sutra_controller_ls(const sutra_controller_ls &controller);
   ~sutra_controller_ls();
@@ -54,14 +55,14 @@ class sutra_controller_ls : public sutra_controller<float> {
   int build_cmat_modopti();
   int frame_delay();
   int comp_com();
-  int set_gain(float gain);
-  int set_mgain(float *mgain);
-  int set_cmat(float *cmat);
-  int set_imat(float *imat);
-  int set_delay(float delay);
-  int init_modalOpti(int nmodes, int nrec, float *M2V, float gmin, float gmax,
-                     int ngain, float Fs);
-  int loadOpenLoopSlp(float *ol_slopes);
+  int set_gain(T gain);
+  int set_mgain(T *mgain);
+  int set_cmat(T *cmat);
+  int set_imat(T *imat);
+  int set_delay(T delay);
+  int init_modalOpti(int nmodes, int nrec, T *M2V, T gmin, T gmax, int ngain,
+                     T Fs);
+  int loadOpenLoopSlp(T *ol_slopes);
   int modalControlOptimization();
   int compute_Hcor();
 };

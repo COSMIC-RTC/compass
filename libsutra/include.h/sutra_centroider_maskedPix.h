@@ -5,21 +5,22 @@
 #include <sutra_wfs_pyr_pyrhr.h>
 #include <string>
 
-class sutra_centroider_maskedPix : public sutra_centroider<float> {
+template <typename T>
+class sutra_centroider_maskedPix : public sutra_centroider<T> {
  public:
   sutra_centroider_maskedPix(carma_context *context, sutra_wfs *wfs,
-                             long nvalid, long npupils, float offset,
-                             float scale, int device);
+                             long nvalid, long npupils, T offset, T scale,
+                             int device);
 
   ~sutra_centroider_maskedPix();
 
   string get_type();
 
-  int get_maskedPix(float *img, float *intensities, float *centroids,
-                    int *subindx, int *subindy, int nvalid, int ns);
-  int get_cog(float *img, float *intensities, float *centroids, int nvalid,
-              int npix, int ntot);
-  int get_cog(float *intensities, float *slopes, bool noise);
+  int get_maskedPix(T *img, T *intensities, T *centroids, int *subindx,
+                    int *subindy, int nvalid, int ns);
+  int get_cog(T *img, T *intensities, T *centroids, int nvalid, int npix,
+              int ntot);
+  int get_cog(T *intensities, T *slopes, bool noise);
   int get_cog();
 };
 

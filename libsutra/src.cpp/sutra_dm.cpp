@@ -440,8 +440,8 @@ template int sutra_dm::do_geomatFromSparse<double>(
 
 int sutra_dm::do_geomat(float *d_geocov, float *d_IF, long n_pts) {
   current_context->set_activeDevice(device, 1);
-  carma_gemm(cublas_handle(), 't', 'n', this->nactus, this->nactus, n_pts, 1.0f,
-             d_IF, n_pts, d_IF, n_pts, 0.0f, d_geocov, this->nactus);
+  carma_gemm(this->cublas_handle(), 't', 'n', this->nactus, this->nactus, n_pts,
+             1.0f, d_IF, n_pts, d_IF, n_pts, 0.0f, d_geocov, this->nactus);
 
   return EXIT_SUCCESS;
 }
@@ -459,9 +459,10 @@ int sutra_dm::piston_filt(carma_obj<float> *d_statcov) {
   int N = d_statcov->getDims()[1] * d_statcov->getDims()[1];
   fill_filtermat(d_F->getData(), Nmod, N, current_context->get_device(device));
 
-  carma_gemm(cublas_handle(), 'n', 'n', Nmod, Nmod, Nmod, 1.0f, d_F->getData(),
-             Nmod, d_statcov->getData(), Nmod, 0.0f, d_tmp->getData(), Nmod);
-  carma_gemm(cublas_handle(), 'n', 'n', Nmod, Nmod, Nmod, 1.0f,
+  carma_gemm(this->cublas_handle(), 'n', 'n', Nmod, Nmod, Nmod, 1.0f,
+             d_F->getData(), Nmod, d_statcov->getData(), Nmod, 0.0f,
+             d_tmp->getData(), Nmod);
+  carma_gemm(this->cublas_handle(), 'n', 'n', Nmod, Nmod, Nmod, 1.0f,
              d_tmp->getData(), Nmod, d_F->getData(), Nmod, 0.0f,
              d_statcov->getData(), Nmod);
 
@@ -509,37 +510,37 @@ int sutra_dm::DDiago(carma_obj<float> *d_statcov, carma_obj<float> *d_geocov) {
   // 2. M��������������� = sqrt(eigenvals) * Ut : here, we have
   // transpose(M���������������)
   /*
-  carma_dgmm<float>(cublas_handle(),CUBLAS_SIDE_RIGHT,this->nactus,this->nactus,
+  carma_dgmm<float>(this->cublas_handle(),CUBLAS_SIDE_RIGHT,this->nactus,this->nactus,
   d_geocov->getData(), this->nactus, d_eigenvals_inv->getData(),1,
   d_M1->getData(), this->nactus);*/
 
-  carma_dgmm<float>(cublas_handle(), CUBLAS_SIDE_RIGHT, this->nactus,
+  carma_dgmm<float>(this->cublas_handle(), CUBLAS_SIDE_RIGHT, this->nactus,
                     this->nactus, d_geocov->getData(), this->nactus,
                     d_eigenvals_sqrt->getData(), 1, d_M1->getData(),
                     this->nactus);
 
   // 3. C' = M��������������� * statcov * M���������������t
-  carma_gemm<float>(cublas_handle(), 't', 'n', nactus, nactus, nactus, 1.0f,
-                    d_M1->getData(), nactus, d_statcov->getData(), nactus, 0.0f,
-                    d_tmp->getData(), nactus);
+  carma_gemm<float>(this->cublas_handle(), 't', 'n', nactus, nactus, nactus,
+                    1.0f, d_M1->getData(), nactus, d_statcov->getData(), nactus,
+                    0.0f, d_tmp->getData(), nactus);
 
-  carma_gemm<float>(cublas_handle(), 'n', 'n', nactus, nactus, nactus, 1.0f,
-                    d_tmp->getData(), nactus, d_M1->getData(), nactus, 0.0f,
-                    d_tmp2->getData(), nactus);
+  carma_gemm<float>(this->cublas_handle(), 'n', 'n', nactus, nactus, nactus,
+                    1.0f, d_tmp->getData(), nactus, d_M1->getData(), nactus,
+                    0.0f, d_tmp2->getData(), nactus);
 
   // 4. SVdec(C',A)
   carma_syevd<float, 1>('V', d_tmp2, h_eigenvals);
 
   // 5. M = U * D���������������
-  carma_dgmm<float>(cublas_handle(), CUBLAS_SIDE_RIGHT, this->nactus,
+  carma_dgmm<float>(this->cublas_handle(), CUBLAS_SIDE_RIGHT, this->nactus,
                     this->nactus, d_geocov->getData(), this->nactus,
                     d_eigenvals_inv->getData(), 1, d_tmp->getData(),
                     this->nactus);
 
   // 6. B = M * A;
-  carma_gemm<float>(cublas_handle(), 'n', 'n', nactus, nactus, nactus, 1.0f,
-                    d_tmp->getData(), nactus, d_tmp2->getData(), nactus, 0.0f,
-                    d_KLbasis->getData(), nactus);
+  carma_gemm<float>(this->cublas_handle(), 'n', 'n', nactus, nactus, nactus,
+                    1.0f, d_tmp->getData(), nactus, d_tmp2->getData(), nactus,
+                    0.0f, d_KLbasis->getData(), nactus);
 
   delete d_M1;
   delete d_tmp;

@@ -73,7 +73,7 @@ add_library(sutra SHARED
     src.cpp/sutra_kl.cpp
     src.cpp/sutra_lgs.cpp
     src.cpp/sutra_phase.cpp
-    src.cpp/sutra_roket.cpp
+    # src.cpp/sutra_roket.cpp
     src.cpp/sutra_rtc.cpp
     src.cpp/sutra_source.cpp
     src.cpp/sutra_target.cpp
@@ -103,7 +103,7 @@ add_library(sutra SHARED
     src.cu/sutra_groot.cu
     src.cu/sutra_kl.cu
     src.cu/sutra_lgs.cu
-    src.cu/sutra_roket.cu
+    # src.cu/sutra_roket.cu
     src.cu/sutra_target.cu
     src.cu/sutra_tscreen.cu
     src.cu/sutra_wfs.cu

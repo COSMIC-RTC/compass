@@ -69,11 +69,11 @@ class sutra_controller {
   T c;  // Coefficient for linear interpolation on command buffer to allow
         // non-integer delay
   vector<sutra_dm *> d_dmseen;
-  carma_obj<T> *d_centroids;  // current centroids
-  carma_obj<T> *d_com;        // current command
-  carma_obj<T> *d_voltage;    // commands sent to mirror
-  carma_obj<T> *d_com1;       // commands k-1
-  carma_obj<T> *d_com2;       // commands k-2
+  carma_obj<T> *d_centroids;    // current centroids
+  carma_obj<T> *d_com;          // current command
+  carma_obj<float> *d_voltage;  // commands sent to mirror
+  carma_obj<T> *d_com1;         // commands k-1
+  carma_obj<T> *d_com2;         // commands k-2
 
   map<string, tuple<carma_obj<T> *, int, bool>> d_perturb_map;
   // perturbation command buffer

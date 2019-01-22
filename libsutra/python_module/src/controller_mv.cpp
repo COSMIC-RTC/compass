@@ -4,9 +4,10 @@
 
 namespace py = pybind11;
 typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;
+using controller_mv = sutra_controller_mv<float>;
 
 void declare_controller_mv(py::module &mod) {
-  py::class_<sutra_controller_mv, sutra_controller<float>>(mod, "ControllerMV")
+  py::class_<controller_mv, sutra_controller<float>>(mod, "ControllerMV")
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
@@ -15,69 +16,67 @@ void declare_controller_mv(py::module &mod) {
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
-      .def_property_readonly("gain",
-                             [](sutra_controller_mv &sc) { return sc.gain; },
+      .def_property_readonly("gain", [](controller_mv &sc) { return sc.gain; },
                              "Controller gain")
 
       .def_property_readonly("d_imat",
-                             [](sutra_controller_mv &sc) { return sc.d_imat; },
+                             [](controller_mv &sc) { return sc.d_imat; },
                              "Interaction matrix")
 
       .def_property_readonly("d_cmat",
-                             [](sutra_controller_mv &sc) { return sc.d_cmat; },
+                             [](controller_mv &sc) { return sc.d_cmat; },
                              "Control matrix")
 
       .def_property_readonly("d_gain",
-                             [](sutra_controller_mv &sc) { return sc.d_gain; },
+                             [](controller_mv &sc) { return sc.d_gain; },
                              "vector of modal gains")
 
-      .def_property_readonly(
-          "d_covmat", [](sutra_controller_mv &sc) { return sc.d_covmat; },
-          "TODO: docstring")
+      .def_property_readonly("d_covmat",
+                             [](controller_mv &sc) { return sc.d_covmat; },
+                             "TODO: docstring")
 
-      .def_property_readonly(
-          "d_KLbasis", [](sutra_controller_mv &sc) { return sc.d_KLbasis; },
-          "KL basis")
+      .def_property_readonly("d_KLbasis",
+                             [](controller_mv &sc) { return sc.d_KLbasis; },
+                             "KL basis")
 
-      .def_property_readonly(
-          "d_noisemat", [](sutra_controller_mv &sc) { return sc.d_noisemat; },
-          "Noise on WFS measurements matrix")
+      .def_property_readonly("d_noisemat",
+                             [](controller_mv &sc) { return sc.d_noisemat; },
+                             "Noise on WFS measurements matrix")
 
       .def_property_readonly("d_Cmm",
-                             [](sutra_controller_mv &sc) { return sc.d_Cmm; },
+                             [](controller_mv &sc) { return sc.d_Cmm; },
                              "Slope covariance matrix")
 
       .def_property_readonly("d_Cphim",
-                             [](sutra_controller_mv &sc) { return sc.d_Cphim; },
+                             [](controller_mv &sc) { return sc.d_Cphim; },
                              "Actuators-Slopes covariance marix")
 
       .def_property_readonly(
-          "h_Cmmeigenvals",
-          [](sutra_controller_mv &sc) { return sc.h_Cmmeigenvals; },
+          "h_Cmmeigenvals", [](controller_mv &sc) { return sc.h_Cmmeigenvals; },
           "Cmm eigenvalues")
 
-      .def_property_readonly(
-          "h_eigenvals", [](sutra_controller_mv &sc) { return sc.h_eigenvals; },
-          "Eigen values")
+      .def_property_readonly("h_eigenvals",
+                             [](controller_mv &sc) { return sc.h_eigenvals; },
+                             "Eigen values")
 
-      .def_property_readonly(
-          "d_cenbuff", [](sutra_controller_mv &sc) { return sc.d_cenbuff; },
-          "Centroids circular buffer")
+      .def_property_readonly("d_cenbuff",
+                             [](controller_mv &sc) { return sc.d_cenbuff; },
+                             "Centroids circular buffer")
 
       .def_property_readonly("d_com1",
-                             [](sutra_controller_mv &sc) { return sc.d_com1; },
+                             [](controller_mv &sc) { return sc.d_com1; },
                              "Commands at iteration k-1 (for POLC)")
 
       .def_property_readonly("d_com2",
-                             [](sutra_controller_mv &sc) { return sc.d_com2; },
+                             [](controller_mv &sc) { return sc.d_com2; },
                              "Commands at iteration k-2 (for POLC)")
 
-      .def_property_readonly(
-          "d_olmeas", [](sutra_controller_mv &sc) { return sc.d_olmeas; },
-          "Reconstructed open loop measurement")
+      .def_property_readonly("d_olmeas",
+                             [](controller_mv &sc) { return sc.d_olmeas; },
+                             "Reconstructed open loop measurement")
 
       .def_property_readonly("d_err",
-                             [](sutra_controller_mv &sc) { return sc.d_err; },
+                             [](controller_mv &sc) { return sc.d_err; },
                              "Increment error")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
@@ -88,8 +87,7 @@ void declare_controller_mv(py::module &mod) {
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
 
       .def("build_cmat",
-           (int (sutra_controller_mv::*)(float)) &
-               sutra_controller_mv::build_cmat,
+           (int (controller_mv::*)(float)) & controller_mv::build_cmat,
            R"pbdoc(
         Computes the command matrix
 
@@ -99,7 +97,7 @@ void declare_controller_mv(py::module &mod) {
     )pbdoc",
            py::arg("cond"))
 
-      .def("load_noisemat", wy::colCast(&sutra_controller_mv::load_noisemat),
+      .def("load_noisemat", wy::colCast(&controller_mv::load_noisemat),
            R"pbdoc(
         Load the noise covariance matrix
 
@@ -109,7 +107,7 @@ void declare_controller_mv(py::module &mod) {
     )pbdoc",
            py::arg("noisemat"))
 
-      .def("filter_cmat", &sutra_controller_mv::filter_cmat, R"pbdoc(
+      .def("filter_cmat", &controller_mv::filter_cmat, R"pbdoc(
         Filter command matrix from TT
 
         Parameters
@@ -118,7 +116,7 @@ void declare_controller_mv(py::module &mod) {
     )pbdoc",
            py::arg("cond"))
 
-      .def("filter_cphim", wy::colCast(&sutra_controller_mv::filter_cphim),
+      .def("filter_cphim", wy::colCast(&controller_mv::filter_cphim),
            R"pbdoc(
         Filter Cphim from piston and apply coupling
 
@@ -130,7 +128,7 @@ void declare_controller_mv(py::module &mod) {
     )pbdoc",
            py::arg("F"), py::arg("Nact"))
 
-      .def("compute_Cmm", wy::colCast(&sutra_controller_mv::compute_Cmm),
+      .def("compute_Cmm", wy::colCast(&controller_mv::compute_Cmm),
            R"pbdoc(
         Compute the Cmm matrix
 
@@ -150,7 +148,7 @@ void declare_controller_mv(py::module &mod) {
            py::arg("alphaX"), py::arg("alphaY"), py::arg("diamTel"),
            py::arg("cobs"))
 
-      .def("compute_Cphim", wy::colCast(&sutra_controller_mv::compute_Cphim),
+      .def("compute_Cphim", wy::colCast(&controller_mv::compute_Cphim),
            R"pbdoc(
         Compute the Cphim matrix
 
@@ -188,7 +186,7 @@ void declare_controller_mv(py::module &mod) {
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
 
-      .def("set_gain", &sutra_controller_mv::set_gain, R"pbdoc(
+      .def("set_gain", &controller_mv::set_gain, R"pbdoc(
       Set the controller gain
 
       Parameters
@@ -197,7 +195,7 @@ void declare_controller_mv(py::module &mod) {
     )pbdoc",
            py::arg("gain"))
 
-      .def("set_delay", &sutra_controller_mv::set_delay, R"pbdoc(
+      .def("set_delay", &controller_mv::set_delay, R"pbdoc(
       Set the loop delay
 
       Parameters
@@ -206,7 +204,7 @@ void declare_controller_mv(py::module &mod) {
     )pbdoc",
            py::arg("delay"))
 
-      .def("set_mgain", wy::colCast(&sutra_controller_mv::set_mgain), R"pbdoc(
+      .def("set_mgain", wy::colCast(&controller_mv::set_mgain), R"pbdoc(
       Set the controller modal gains
 
       Parameters
@@ -215,7 +213,7 @@ void declare_controller_mv(py::module &mod) {
     )pbdoc",
            py::arg("mgain"))
 
-      .def("set_cmat", wy::colCast(&sutra_controller_mv::set_cmat), R"pbdoc(
+      .def("set_cmat", wy::colCast(&controller_mv::set_cmat), R"pbdoc(
       Set the command matrix
 
       Parameters
@@ -224,7 +222,7 @@ void declare_controller_mv(py::module &mod) {
     )pbdoc",
            py::arg("cmat"))
 
-      .def("set_imat", wy::colCast(&sutra_controller_mv::set_imat), R"pbdoc(
+      .def("set_imat", wy::colCast(&controller_mv::set_imat), R"pbdoc(
       Set the interaction matrix
 
       Parameters

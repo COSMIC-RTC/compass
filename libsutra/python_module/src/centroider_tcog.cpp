@@ -4,10 +4,10 @@
 
 namespace py = pybind11;
 typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;
+using centroider_tcog = sutra_centroider_tcog<float>;
 
 void declare_centroider_tcog(py::module &mod) {
-  py::class_<sutra_centroider_tcog, sutra_centroider<float>>(mod,
-                                                             "CentroiderTCOG")
+  py::class_<centroider_tcog, sutra_centroider<float>>(mod, "CentroiderTCOG")
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
       //  ██████╔╝██████╔╝██║   ██║██████╔╝█████╗  ██████╔╝   ██║    ╚████╔╝
@@ -15,9 +15,9 @@ void declare_centroider_tcog(py::module &mod) {
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
 
-      .def_property_readonly(
-          "threshold", [](sutra_centroider_tcog &sc) { return sc.threshold; },
-          "Threshold value")
+      .def_property_readonly("threshold",
+                             [](centroider_tcog &sc) { return sc.threshold; },
+                             "Threshold value")
 
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝
@@ -26,7 +26,7 @@ void declare_centroider_tcog(py::module &mod) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
-      .def("set_threshold", &sutra_centroider_tcog::set_threshold,
+      .def("set_threshold", &centroider_tcog::set_threshold,
            R"pbdoc(
             Set the threshold value of a TCOG centroider
 

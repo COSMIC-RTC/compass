@@ -4,14 +4,13 @@
 
 namespace py = pybind11;
 typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;
+using centroider_pyr = sutra_centroider_pyr<float>;
 
 void declare_centroider_pyr(py::module &mod) {
-  py::class_<sutra_centroider_pyr, sutra_centroider<float>>(mod,
-                                                            "CentroiderPYR")
+  py::class_<centroider_pyr, sutra_centroider<float>>(mod, "CentroiderPYR")
 
       .def_property_readonly(
-          "pyr_method",
-          [](sutra_centroider_pyr &sc) { return sc.get_method_str(); },
+          "pyr_method", [](centroider_pyr &sc) { return sc.get_method_str(); },
           "Method used for pyramid slopes compuation")
 
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
@@ -22,7 +21,7 @@ void declare_centroider_pyr(py::module &mod) {
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
       .def("set_pyr_method",
-           [](sutra_centroider_pyr &sc, uint8_t method) {
+           [](centroider_pyr &sc, uint8_t method) {
              return sc.set_method(method);
            },
            R"pbdoc(
@@ -40,7 +39,7 @@ void declare_centroider_pyr(py::module &mod) {
            py::arg("method"))
 
       .def("set_pyr_thresh",
-           [](sutra_centroider_pyr &sc, float thresh) {
+           [](centroider_pyr &sc, float thresh) {
              return sc.set_valid_thresh(thresh);
            },
            R"pbdoc(

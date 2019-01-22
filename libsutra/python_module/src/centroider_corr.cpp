@@ -4,10 +4,10 @@
 
 namespace py = pybind11;
 typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;
+using centroider_corr = sutra_centroider_corr<float>;
 
 void declare_centroider_corr(py::module &mod) {
-  py::class_<sutra_centroider_corr, sutra_centroider<float>>(mod,
-                                                             "CentroiderCORR")
+  py::class_<centroider_corr, sutra_centroider<float>>(mod, "CentroiderCORR")
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
       //  ██████╔╝██████╔╝██║   ██║██████╔╝█████╗  ██████╔╝   ██║    ╚████╔╝
@@ -16,43 +16,40 @@ void declare_centroider_corr(py::module &mod) {
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
 
       .def_property_readonly("npix",
-                             [](sutra_centroider_corr &sc) { return sc.npix; },
+                             [](centroider_corr &sc) { return sc.npix; },
                              "TODO: docstring")
 
       .def_property_readonly(
-          "interp_sizex",
-          [](sutra_centroider_corr &sc) { return sc.interp_sizex; },
+          "interp_sizex", [](centroider_corr &sc) { return sc.interp_sizex; },
           "TODO: docstring")
 
       .def_property_readonly(
-          "interp_sizey",
-          [](sutra_centroider_corr &sc) { return sc.interp_sizey; },
+          "interp_sizey", [](centroider_corr &sc) { return sc.interp_sizey; },
           "TODO: docstring")
 
-      .def_property_readonly(
-          "d_corrfnct", [](sutra_centroider_corr &sc) { return sc.d_corrfnct; },
-          "TODO: docstring")
+      .def_property_readonly("d_corrfnct",
+                             [](centroider_corr &sc) { return sc.d_corrfnct; },
+                             "TODO: docstring")
 
-      .def_property_readonly(
-          "d_corrspot", [](sutra_centroider_corr &sc) { return sc.d_corrspot; },
-          "TODO: docstring")
+      .def_property_readonly("d_corrspot",
+                             [](centroider_corr &sc) { return sc.d_corrspot; },
+                             "TODO: docstring")
 
-      .def_property_readonly(
-          "d_corrnorm", [](sutra_centroider_corr &sc) { return sc.d_corrnorm; },
-          "TODO: docstring")
+      .def_property_readonly("d_corrnorm",
+                             [](centroider_corr &sc) { return sc.d_corrnorm; },
+                             "TODO: docstring")
 
-      .def_property_readonly(
-          "d_corrmax", [](sutra_centroider_corr &sc) { return sc.d_corrmax; },
-          "TODO: docstring")
+      .def_property_readonly("d_corrmax",
+                             [](centroider_corr &sc) { return sc.d_corrmax; },
+                             "TODO: docstring")
 
-      .def_property_readonly(
-          "d_corr", [](sutra_centroider_corr &sc) { return sc.d_corr; },
-          "TODO: docstring")
+      .def_property_readonly("d_corr",
+                             [](centroider_corr &sc) { return sc.d_corr; },
+                             "TODO: docstring")
 
-      .def_property_readonly(
-          "d_interpmat",
-          [](sutra_centroider_corr &sc) { return sc.d_interpmat; },
-          "TODO: docstring")
+      .def_property_readonly("d_interpmat",
+                             [](centroider_corr &sc) { return sc.d_interpmat; },
+                             "TODO: docstring")
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝
       //  ███████╗█████╗     ██║      ██║   █████╗  ██████╔╝███████╗
@@ -60,7 +57,7 @@ void declare_centroider_corr(py::module &mod) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
-      .def("init_corr", wy::colCast(&sutra_centroider_corr::init_corr), R"pbdoc(
+      .def("init_corr", wy::colCast(&centroider_corr::init_corr), R"pbdoc(
             Initializes corr computation
 
             Parameters
@@ -71,7 +68,7 @@ void declare_centroider_corr(py::module &mod) {
             )pbdoc",
            py::arg("isizex"), py::arg("isizey"), py::arg("interpmat"))
 
-      .def("load_corr", wy::colCast(&sutra_centroider_corr::load_corr), R"pbdoc(
+      .def("load_corr", wy::colCast(&centroider_corr::load_corr), R"pbdoc(
             Load arrays for correlation computation
 
             Parameters
@@ -82,7 +79,7 @@ void declare_centroider_corr(py::module &mod) {
             )pbdoc",
            py::arg("corr"), py::arg("corr_norm"), py::arg("ndim"))
 
-      .def("set_npix", wy::colCast(&sutra_centroider_corr::set_npix),
+      .def("set_npix", wy::colCast(&centroider_corr::set_npix),
            R"pbdoc(
                Set the number of pixels per subap.
             Parameters

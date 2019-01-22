@@ -4,15 +4,13 @@
 
 namespace py = pybind11;
 typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;
+using rtc = sutra_rtc<float>;
 
-std::unique_ptr<sutra_rtc> rtc_init() {
-  return std::unique_ptr<sutra_rtc>(new sutra_rtc());
-};
+std::unique_ptr<rtc> rtc_init() { return std::unique_ptr<rtc>(new rtc()); };
 
 void declare_rtc(py::module &mod) {
-  py::class_<sutra_rtc>(mod, "Rtc")
-      .def(py::init(wy::colCast(rtc_init)),
-           " Initialize a void sutra_rtc object")
+  py::class_<rtc>(mod, "Rtc")
+      .def(py::init(wy::colCast(rtc_init)), " Initialize a void rtc object")
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
@@ -24,14 +22,14 @@ void declare_rtc(py::module &mod) {
 
       .def_property_readonly(
           "d_centro",
-          [](sutra_rtc &sr) -> vector<sutra_centroider<float> *> & {
+          [](rtc &sr) -> vector<sutra_centroider<float> *> & {
             return sr.d_centro;
           },
           "Vector of centroiders")
 
       .def_property_readonly(
           "d_control",
-          [](sutra_rtc &sr) -> vector<sutra_controller<float> *> & {
+          [](rtc &sr) -> vector<sutra_controller<float> *> & {
             return sr.d_control;
           },
           "Vector of controllers")
@@ -43,9 +41,9 @@ void declare_rtc(py::module &mod) {
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
       .def("add_centroider",
-           wy::colCast((int (sutra_rtc::*)(carma_context *, long, float, float,
-                                           long, char *, sutra_wfs *)) &
-                       sutra_rtc::add_centroider),
+           wy::colCast((int (rtc::*)(carma_context *, long, float, float, long,
+                                     char *, sutra_wfs *)) &
+                       rtc::add_centroider),
            R"pbdoc(
         Add a sutra_centroider object in the RTC
 
@@ -65,9 +63,9 @@ void declare_rtc(py::module &mod) {
            py::arg("wfs"))
 
       .def("add_centroider",
-           wy::colCast((int (sutra_rtc::*)(carma_context *, long, float, float,
-                                           long, char *)) &
-                       sutra_rtc::add_centroider),
+           wy::colCast((int (rtc::*)(carma_context *, long, float, float, long,
+                                     char *)) &
+                       rtc::add_centroider),
            R"pbdoc(
         Add a sutra_centroider object in the RTC
 
@@ -84,7 +82,7 @@ void declare_rtc(py::module &mod) {
            py::arg("context"), py::arg("nvalid"), py::arg("offset"),
            py::arg("scale"), py::arg("device"), py::arg("typec"))
 
-      .def("add_controller", wy::colCast(&sutra_rtc::add_controller), R"pbdoc(
+      .def("add_controller", wy::colCast(&rtc::add_controller), R"pbdoc(
         Add a sutra_controller object in the RTC
 
         Parameters
@@ -108,7 +106,7 @@ void declare_rtc(py::module &mod) {
            py::arg("idx_dms") = std::vector<int64_t>(), py::arg("ndm") = 0,
            py::arg("Nphi") = 0, py::arg("wfs_direction") = false)
 
-      .def("do_centroids", (int (sutra_rtc::*)(int)) & sutra_rtc::do_centroids,
+      .def("do_centroids", (int (rtc::*)(int)) & rtc::do_centroids,
            R"pbdoc(
         Computes the centroids
 
@@ -118,7 +116,7 @@ void declare_rtc(py::module &mod) {
     )pbdoc",
            py::arg("ncontrol"))
 
-      .def("do_centroids_geom", &sutra_rtc::do_centroids_geom,
+      .def("do_centroids_geom", &rtc::do_centroids_geom,
            R"pbdoc(
         Computes the centroids geom
 
@@ -128,7 +126,7 @@ void declare_rtc(py::module &mod) {
     )pbdoc",
            py::arg("ncontrol"))
 
-      .def("do_centroids_ref", &sutra_rtc::do_centroids_ref,
+      .def("do_centroids_ref", &rtc::do_centroids_ref,
            R"pbdoc(
         Computes the centroids ref
 
@@ -138,7 +136,7 @@ void declare_rtc(py::module &mod) {
     )pbdoc",
            py::arg("ncontrol"))
 
-      .def("set_centroids_ref", wy::colCast(&sutra_rtc::set_centroids_ref),
+      .def("set_centroids_ref", wy::colCast(&rtc::set_centroids_ref),
            R"pbdoc(
           Set the reference centroids
 
@@ -148,7 +146,7 @@ void declare_rtc(py::module &mod) {
      )pbdoc",
            py::arg("centroidsRef"))
 
-      .def("do_control", (int (sutra_rtc::*)(int)) & sutra_rtc::do_control,
+      .def("do_control", (int (rtc::*)(int)) & rtc::do_control,
            R"pbdoc(
         Computes the commands
 
@@ -158,7 +156,7 @@ void declare_rtc(py::module &mod) {
     )pbdoc",
            py::arg("ncontrol"))
 
-      .def("apply_control", &sutra_rtc::apply_control, R"pbdoc(
+      .def("apply_control", &rtc::apply_control, R"pbdoc(
         Apply the commands on the DM and shape it
 
         Parameters
@@ -169,7 +167,7 @@ void declare_rtc(py::module &mod) {
     )pbdoc",
            py::arg("ncontrol"), py::arg("dms"), py::arg("compVoltage") = true)
 
-      .def("comp_voltage", &sutra_rtc::comp_voltage, R"pbdoc(
+      .def("comp_voltage", &rtc::comp_voltage, R"pbdoc(
         Compute the commands on the DM
 
         Parameters
@@ -178,7 +176,7 @@ void declare_rtc(py::module &mod) {
     )pbdoc",
            py::arg("ncontrol"))
 
-      .def("do_imat", wy::colCast(&sutra_rtc::do_imat), R"pbdoc(
+      .def("do_imat", wy::colCast(&rtc::do_imat), R"pbdoc(
         Computes interaction matrix
 
         Parameters
@@ -188,7 +186,7 @@ void declare_rtc(py::module &mod) {
     )pbdoc",
            py::arg("ncontrol"), py::arg("dms"))
 
-      .def("do_imat_basis", wy::colCast(&sutra_rtc::do_imat_basis), R"pbdoc(
+      .def("do_imat_basis", wy::colCast(&rtc::do_imat_basis), R"pbdoc(
 		Computes a modal interaction matrix
 
 		Parameters
@@ -203,9 +201,10 @@ void declare_rtc(py::module &mod) {
            py::arg("m2v"), py::arg("pushAmpl"))
 
       .def("imat_svd",
-           [](sutra_rtc &sr, int ncontrol) {
-             sutra_controller_ls *control =
-                 dynamic_cast<sutra_controller_ls *>(sr.d_control[ncontrol]);
+           [](rtc &sr, int ncontrol) {
+             sutra_controller_ls<float> *control =
+                 dynamic_cast<sutra_controller_ls<float> *>(
+                     sr.d_control[ncontrol]);
              control->svdec_imat();
            },
            R"pbdoc(
@@ -218,9 +217,10 @@ void declare_rtc(py::module &mod) {
            py::arg("ncontrol"))
 
       .def("build_cmat",
-           [](sutra_rtc &sr, int ncontrol, int nfilt, bool filt_tt = false) {
-             sutra_controller_ls *control =
-                 dynamic_cast<sutra_controller_ls *>(sr.d_control[ncontrol]);
+           [](rtc &sr, int ncontrol, int nfilt, bool filt_tt = false) {
+             sutra_controller_ls<float> *control =
+                 dynamic_cast<sutra_controller_ls<float> *>(
+                     sr.d_control[ncontrol]);
              control->build_cmat(nfilt, filt_tt);
            },
            R"pbdoc(
@@ -234,7 +234,7 @@ void declare_rtc(py::module &mod) {
     )pbdoc",
            py::arg("ncontrol"), py::arg("nfilt"), py::arg("filt_tt") = false)
 
-      .def("do_clipping", &sutra_rtc::do_clipping, R"pbdoc(
+      .def("do_clipping", &rtc::do_clipping, R"pbdoc(
         Clip the command to apply on the DMs on a sutra_controller object
 
         Parameters
@@ -253,9 +253,10 @@ void declare_rtc(py::module &mod) {
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
       .def("set_gain",
-           [](sutra_rtc &sr, int ncontrol, float gain) {
-             sutra_controller_ls *control =
-                 dynamic_cast<sutra_controller_ls *>(sr.d_control[ncontrol]);
+           [](rtc &sr, int ncontrol, float gain) {
+             sutra_controller_ls<float> *control =
+                 dynamic_cast<sutra_controller_ls<float> *>(
+                     sr.d_control[ncontrol]);
              control->set_gain(gain);
            },
            R"pbdoc(
@@ -269,9 +270,10 @@ void declare_rtc(py::module &mod) {
            py::arg("ncontrol"), py::arg("gain"))
 
       .def("set_mgain",
-           [](sutra_rtc &sr, int ncontrol, F_arrayS data) {
-             sutra_controller_ls *control =
-                 dynamic_cast<sutra_controller_ls *>(sr.d_control[ncontrol]);
+           [](rtc &sr, int ncontrol, F_arrayS data) {
+             sutra_controller_ls<float> *control =
+                 dynamic_cast<sutra_controller_ls<float> *>(
+                     sr.d_control[ncontrol]);
              control->set_mgain(data.mutable_data());
            },
            R"pbdoc(

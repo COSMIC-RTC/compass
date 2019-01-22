@@ -58,7 +58,7 @@ sutra_controller<T>::sutra_controller(carma_context *context, int nvalid,
     this->d_com2 = new carma_obj<T>(context, dims_data1);
   }
 
-  this->d_voltage = new carma_obj<T>(context, dims_data1);
+  this->d_voltage = new carma_obj<float>(context, dims_data1);
 
   for (int i = 0; i < ndm; i++) {
     this->d_dmseen.push_back(dms->d_dms[idx_dms[i]]);
@@ -189,18 +189,18 @@ int sutra_controller<T>::comp_voltage() {
   std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
   current_context->set_activeDevice(device, 1);
 
-  carmaSafeCall(
-      cudaMemset(this->d_voltage->getData(), 0.0f, this->nactu() * sizeof(T)));
+  carmaSafeCall(cudaMemset(this->d_voltage->getData(), 0.0f,
+                           this->nactu() * sizeof(float)));
 
   if (!this->open_loop) {
     if (this->delay > 0) {
-      carma_axpy(cublas_handle(), this->nactu(), this->a,
+      carma_axpy(this->cublas_handle(), this->nactu(), this->a,
                  this->d_com->getData(), 1, this->d_voltage->getData(), 1);
-      carma_axpy(cublas_handle(), this->nactu(), this->b,
+      carma_axpy(this->cublas_handle(), this->nactu(), this->b,
                  this->d_com1->getData(), 1, this->d_voltage->getData(), 1);
 
       if (delay > 1)
-        carma_axpy(cublas_handle(), this->nactu(), this->c,
+        carma_axpy(this->cublas_handle(), this->nactu(), this->c,
                    this->d_com2->getData(), 1, this->d_voltage->getData(), 1);
     } else {
       this->d_com->copyInto(this->d_voltage->getData(), this->nactu());
@@ -223,7 +223,7 @@ int sutra_controller<T>::add_perturb() {
     if (std::get<2>(it->second)) {
       cpt = std::get<1>(it->second);
       d_perturb = std::get<0>(it->second);
-      carma_axpy(cublas_handle(), this->nactu(), 1.0f,
+      carma_axpy(this->cublas_handle(), this->nactu(), 1.0f,
                  d_perturb->getDataAt(cpt), d_perturb->getDims(1),
                  this->d_voltage->getData(), 1);
       if (cpt < d_perturb->getDims(1) - 1)
@@ -336,11 +336,11 @@ template class sutra_controller<float>;
 
 //   d_eigenvals_inv->host2device(*h_eigenvals_inv);
 
-//   carma_dgmm(cublas_handle(), CUBLAS_SIDE_RIGHT, d_mat->getDims()[1],
+//   carma_dgmm(this->cublas_handle(), CUBLAS_SIDE_RIGHT, d_mat->getDims()[1],
 //              d_mat->getDims()[2], d_U->getData(), d_mat->getDims()[1],
 //              d_eigenvals_inv->getData(), 1, d_tmp->getData(),
 //              d_mat->getDims()[1]);
-//   carma_gemm<float>(cublas_handle(), 'n', 't', d_mat->getDims()[1],
+//   carma_gemm<float>(this->cublas_handle(), 'n', 't', d_mat->getDims()[1],
 //                     d_mat->getDims()[1], d_mat->getDims()[2], 1.0f,
 //                     d_tmp->getData(), d_mat->getDims()[1], d_U->getData(),
 //                     d_mat->getDims()[1], 0.0f, d_mat->getData(),

@@ -4,10 +4,11 @@
 
 namespace py = pybind11;
 typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;
+using controller_generic = sutra_controller_generic<float>;
 
 void declare_controller_generic(py::module &mod) {
-  py::class_<sutra_controller_generic, sutra_controller<float>>(
-      mod, "ControllerGENERIC")
+  py::class_<controller_generic, sutra_controller<float>>(mod,
+                                                          "ControllerGENERIC")
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
@@ -17,34 +18,32 @@ void declare_controller_generic(py::module &mod) {
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
       .def_property_readonly(
-          "d_matE", [](sutra_controller_generic &sc) { return sc.d_matE; },
+          "d_matE", [](controller_generic &sc) { return sc.d_matE; },
           "E matrix (see compass.io details on generic controller)")
 
       .def_property_readonly(
           "d_decayFactor",
-          [](sutra_controller_generic &sc) { return sc.d_decayFactor; },
+          [](controller_generic &sc) { return sc.d_decayFactor; },
           "decayFactor vector (see compass.io details on generic controller)")
 
-      .def_property_readonly(
-          "d_cmat", [](sutra_controller_generic &sc) { return sc.d_cmat; },
-          "Control matrix")
+      .def_property_readonly("d_cmat",
+                             [](controller_generic &sc) { return sc.d_cmat; },
+                             "Control matrix")
+
+      .def_property_readonly("d_gain",
+                             [](controller_generic &sc) { return sc.d_gain; },
+                             "vector of modal gains")
+
+      .def_property_readonly("gain",
+                             [](controller_generic &sc) { return sc.gain; },
+                             "Integrator loop gain")
 
       .def_property_readonly(
-          "d_gain", [](sutra_controller_generic &sc) { return sc.d_gain; },
-          "vector of modal gains")
-
-      .def_property_readonly(
-          "gain", [](sutra_controller_generic &sc) { return sc.gain; },
-          "Integrator loop gain")
-
-      .def_property_readonly(
-          "d_compbuff",
-          [](sutra_controller_generic &sc) { return sc.d_compbuff; },
+          "d_compbuff", [](controller_generic &sc) { return sc.d_compbuff; },
           "Computation buffer buffer")
 
       .def_property_readonly(
-          "command_law",
-          [](sutra_controller_generic &sc) { return sc.command_law; },
+          "command_law", [](controller_generic &sc) { return sc.command_law; },
           "Command law currently used")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
@@ -61,8 +60,8 @@ void declare_controller_generic(py::module &mod) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
-      .def("set_decayFactor",
-           wy::colCast(&sutra_controller_generic::set_decayFactor), R"pbdoc(
+      .def("set_decayFactor", wy::colCast(&controller_generic::set_decayFactor),
+           R"pbdoc(
       Set the decay factor vector
 
       Parameters
@@ -71,7 +70,7 @@ void declare_controller_generic(py::module &mod) {
     )pbdoc",
            py::arg("decayFactor"))
 
-      .def("set_matE", wy::colCast(&sutra_controller_generic::set_matE),
+      .def("set_matE", wy::colCast(&controller_generic::set_matE),
            R"pbdoc(
       Set the E matrix
 
@@ -81,8 +80,8 @@ void declare_controller_generic(py::module &mod) {
     )pbdoc",
            py::arg("E"))
 
-      .def("set_commandlaw",
-           wy::colCast(&sutra_controller_generic::set_commandlaw), R"pbdoc(
+      .def("set_commandlaw", wy::colCast(&controller_generic::set_commandlaw),
+           R"pbdoc(
       Set the command law to use
 
       Parameters
@@ -91,7 +90,7 @@ void declare_controller_generic(py::module &mod) {
     )pbdoc",
            py::arg("commandlaw"))
 
-      .def("set_mgain", wy::colCast(&sutra_controller_generic::set_mgain),
+      .def("set_mgain", wy::colCast(&controller_generic::set_mgain),
            R"pbdoc(
       Set the controller modal gains
 
@@ -101,7 +100,7 @@ void declare_controller_generic(py::module &mod) {
     )pbdoc",
            py::arg("mgain"))
 
-      .def("set_gain", &sutra_controller_generic::set_gain,
+      .def("set_gain", &controller_generic::set_gain,
            R"pbdoc(
       Set the controller loop gain
 
@@ -111,7 +110,7 @@ void declare_controller_generic(py::module &mod) {
     )pbdoc",
            py::arg("gain"))
 
-      .def("set_cmat", wy::colCast(&sutra_controller_generic::set_cmat),
+      .def("set_cmat", wy::colCast(&controller_generic::set_cmat),
            R"pbdoc(
       Set the command matrix
 

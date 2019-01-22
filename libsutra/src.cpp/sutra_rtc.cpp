@@ -2,9 +2,11 @@
 #include <sutra_wfs_pyr_pyrhr.h>
 #include <sutra_wfs_sh.h>
 
-sutra_rtc::sutra_rtc() {}
+template <typename T>
+sutra_rtc<T>::sutra_rtc() {}
 
-sutra_rtc::~sutra_rtc() {
+template <typename T>
+sutra_rtc<T>::~sutra_rtc() {
   //  for (size_t idx = 0; idx < (this->d_centro).size(); idx++) {
   while ((this->d_centro).size() > 0) {
     delete this->d_centro.back();
@@ -19,39 +21,42 @@ sutra_rtc::~sutra_rtc() {
 
   // delete this->context;
 }
-int sutra_rtc::add_centroider(carma_context *context, long nvalid, float offset,
-                              float scale, long device, char *typec) {
+
+template <typename T>
+int sutra_rtc<T>::add_centroider(carma_context *context, long nvalid, T offset,
+                                 T scale, long device, char *typec) {
   return add_centroider(context, nvalid, offset, scale, device, typec, nullptr);
 }
 
-int sutra_rtc::add_centroider(carma_context *context, long nvalid, float offset,
-                              float scale, long device, char *typec,
-                              sutra_wfs *wfs) {
+template <typename T>
+int sutra_rtc<T>::add_centroider(carma_context *context, long nvalid, T offset,
+                                 T scale, long device, char *typec,
+                                 sutra_wfs *wfs) {
   if (strcmp(typec, "bpcog") == 0)
-    d_centro.push_back(new sutra_centroider_bpcog(context, wfs, nvalid, offset,
-                                                  scale, device, 10));
+    d_centro.push_back(new sutra_centroider_bpcog<T>(
+        context, wfs, nvalid, offset, scale, device, 10));
   else if (strcmp(typec, "cog") == 0)
-    d_centro.push_back(
-        new sutra_centroider_cog(context, wfs, nvalid, offset, scale, device));
+    d_centro.push_back(new sutra_centroider_cog<T>(context, wfs, nvalid, offset,
+                                                   scale, device));
   else if (strcmp(typec, "corr") == 0)
-    d_centro.push_back(
-        new sutra_centroider_corr(context, wfs, nvalid, offset, scale, device));
+    d_centro.push_back(new sutra_centroider_corr<T>(context, wfs, nvalid,
+                                                    offset, scale, device));
   else if (strcmp(typec, "pyr") == 0)
-    d_centro.push_back(
-        new sutra_centroider_pyr(context, wfs, nvalid, offset, scale, device));
+    d_centro.push_back(new sutra_centroider_pyr<T>(context, wfs, nvalid, offset,
+                                                   scale, device));
   else if (strcmp(typec, "tcog") == 0)
-    d_centro.push_back(
-        new sutra_centroider_tcog(context, wfs, nvalid, offset, scale, device));
+    d_centro.push_back(new sutra_centroider_tcog<T>(context, wfs, nvalid,
+                                                    offset, scale, device));
   else if (strcmp(typec, "wcog") == 0)
-    d_centro.push_back(
-        new sutra_centroider_wcog(context, wfs, nvalid, offset, scale, device));
+    d_centro.push_back(new sutra_centroider_wcog<T>(context, wfs, nvalid,
+                                                    offset, scale, device));
   else if (strcmp(typec, "maskedpix") == 0) {
     if (wfs == nullptr) {
-      d_centro.push_back(new sutra_centroider_maskedPix(context, wfs, nvalid, 4,
-                                                        offset, scale, device));
+      d_centro.push_back(new sutra_centroider_maskedPix<T>(
+          context, wfs, nvalid, 4, offset, scale, device));
     } else if (wfs->type == "pyrhr") {
       sutra_wfs_pyr_pyrhr *pwfs = dynamic_cast<sutra_wfs_pyr_pyrhr *>(wfs);
-      d_centro.push_back(new sutra_centroider_maskedPix(
+      d_centro.push_back(new sutra_centroider_maskedPix<T>(
           context, pwfs, nvalid, pwfs->npupils, offset, scale, device));
     } else
       DEBUG_TRACE("WFS must be pyrhr");
@@ -62,34 +67,37 @@ int sutra_rtc::add_centroider(carma_context *context, long nvalid, float offset,
   return EXIT_SUCCESS;
 }
 
-int sutra_rtc::add_controller_geo(carma_context *context, int nactu, int Nphi,
-                                  float delay, long device, sutra_dms *dms,
-                                  int *idx_dms, int ndm, bool wfs_direction) {
-  this->d_control.push_back(new sutra_controller_geo(
+template <typename T>
+int sutra_rtc<T>::add_controller_geo(carma_context *context, int nactu,
+                                     int Nphi, T delay, long device,
+                                     sutra_dms *dms, int *idx_dms, int ndm,
+                                     bool wfs_direction) {
+  this->d_control.push_back(new sutra_controller_geo<T>(
       context, nactu, Nphi, delay, dms, idx_dms, ndm, wfs_direction));
   return EXIT_SUCCESS;
 }
 
-int sutra_rtc::add_controller(carma_context *context, int nvalid, int nslope,
-                              int nactu, float delay, long device, char *typec,
-                              sutra_dms *dms, int *idx_dms, int ndm, int Nphi,
-                              bool wfs_direction) {
+template <typename T>
+int sutra_rtc<T>::add_controller(carma_context *context, int nvalid, int nslope,
+                                 int nactu, T delay, long device, char *typec,
+                                 sutra_dms *dms, int *idx_dms, int ndm,
+                                 int Nphi, bool wfs_direction) {
   string type_ctr(typec);
   if (type_ctr.compare("ls") == 0) {
-    d_control.push_back(new sutra_controller_ls(context, nvalid, nslope, nactu,
-                                                delay, dms, idx_dms, ndm));
+    d_control.push_back(new sutra_controller_ls<T>(
+        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm));
   } else if (type_ctr.compare("geo") == 0) {
-    d_control.push_back(new sutra_controller_geo(
+    d_control.push_back(new sutra_controller_geo<T>(
         context, nactu, Nphi, delay, dms, idx_dms, ndm, wfs_direction));
 
   } else if (type_ctr.compare("cured") == 0) {
-    d_control.push_back(new sutra_controller_cured(
+    d_control.push_back(new sutra_controller_cured<T>(
         context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm));
   } else if (type_ctr.compare("mv") == 0) {
-    d_control.push_back(new sutra_controller_mv(context, nvalid, nslope, nactu,
-                                                delay, dms, idx_dms, ndm));
+    d_control.push_back(new sutra_controller_mv<T>(
+        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm));
   } else if (type_ctr.compare("generic") == 0) {
-    d_control.push_back(new sutra_controller_generic(
+    d_control.push_back(new sutra_controller_generic<T>(
         context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm));
     // } else if ((type_ctr.compare("kalman_GPU") == 0) ||
     //            (type_ctr.compare("kalman_CPU") == 0)) {
@@ -103,7 +111,8 @@ int sutra_rtc::add_controller(carma_context *context, int nvalid, int nslope,
   return EXIT_SUCCESS;
 }
 
-int sutra_rtc::rm_controller() {
+template <typename T>
+int sutra_rtc<T>::rm_controller() {
   // for (size_t idx = 0; idx < (this->d_control).size(); idx++) {
   while ((this->d_control).size() > 0) {
     delete this->d_control.back();
@@ -113,13 +122,14 @@ int sutra_rtc::rm_controller() {
   return EXIT_SUCCESS;
 }
 
-int sutra_rtc::do_imat(int ncntrl, sutra_dms *ydm) {
+template <typename T>
+int sutra_rtc<T>::do_imat(int ncntrl, sutra_dms *ydm) {
   carma_obj<float> *d_imat = NULL;
   if (this->d_control[ncntrl]->get_type().compare("ls") == 0) {
-    SCAST(sutra_controller_ls *, control, this->d_control[ncntrl]);
+    SCAST(sutra_controller_ls<T> *, control, this->d_control[ncntrl]);
     d_imat = control->d_imat;
   } else if (this->d_control[ncntrl]->get_type().compare("mv") == 0) {
-    SCAST(sutra_controller_mv *, control, this->d_control[ncntrl]);
+    SCAST(sutra_controller_mv<T> *, control, this->d_control[ncntrl]);
     d_imat = control->d_imat;
   } else {
     DEBUG_TRACE("Controller needs to be LS or MV\n");
@@ -173,28 +183,27 @@ int sutra_rtc::do_imat(int ncntrl, sutra_dms *ydm) {
   return EXIT_SUCCESS;
 }
 
-int sutra_rtc::do_imat_basis(int ncntrl, sutra_dms *ydm, int nModes, float *m2v,
-                             float *pushAmpl) {
-  carma_obj<float> d_m2v(this->d_control[ncntrl]->current_context,
-                         std::vector<long>{2, ydm->nact_total(), nModes}.data(),
-                         m2v);
-  carma_obj<float> d_comm(this->d_control[ncntrl]->current_context,
-                          std::vector<long>{1, ydm->nact_total()}.data());
+template <typename T>
+int sutra_rtc<T>::do_imat_basis(int ncntrl, sutra_dms *ydm, int nModes, T *m2v,
+                                T *pushAmpl) {
+  carma_obj<T> d_m2v(this->d_control[ncntrl]->current_context,
+                     std::vector<long>{2, ydm->nact_total(), nModes}.data(),
+                     m2v);
+  carma_obj<T> d_comm(this->d_control[ncntrl]->current_context,
+                      std::vector<long>{1, ydm->nact_total()}.data());
 
-  carma_obj<float> *d_imat = NULL;
+  carma_obj<T> *d_imat = NULL;
 
   if (this->d_control[ncntrl]->get_type().compare("ls") == 0) {
-    SCAST(sutra_controller_ls *, control, this->d_control[ncntrl]);
+    SCAST(sutra_controller_ls<T> *, control, this->d_control[ncntrl]);
     long dims[3] = {2, control->d_imat->getDims()[1], nModes};
-    d_imat =
-        new carma_obj<float>(this->d_control[ncntrl]->current_context, dims);
+    d_imat = new carma_obj<T>(this->d_control[ncntrl]->current_context, dims);
     delete control->d_imat;
     control->d_imat = d_imat;
   } else if (this->d_control[ncntrl]->get_type().compare("mv") == 0) {
-    SCAST(sutra_controller_mv *, control, this->d_control[ncntrl]);
+    SCAST(sutra_controller_mv<T> *, control, this->d_control[ncntrl]);
     long dims[3] = {2, control->d_imat->getDims()[1], nModes};
-    d_imat =
-        new carma_obj<float>(this->d_control[ncntrl]->current_context, dims);
+    d_imat = new carma_obj<T>(this->d_control[ncntrl]->current_context, dims);
     delete control->d_imat;
     control->d_imat = d_imat;
   } else {
@@ -256,7 +265,8 @@ int sutra_rtc::do_imat_basis(int ncntrl, sutra_dms *ydm, int nModes, float *m2v,
   return EXIT_SUCCESS;
 }
 
-int sutra_rtc::comp_images_imat(sutra_dms *ydm) {
+template <typename T>
+int sutra_rtc<T>::comp_images_imat(sutra_dms *ydm) {
   for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
     sutra_wfs *wfs = this->d_centro[idx_cntr]->wfs;
     float tmp_noise = wfs->noise;
@@ -273,7 +283,8 @@ int sutra_rtc::comp_images_imat(sutra_dms *ydm) {
   return EXIT_SUCCESS;
 }
 
-int sutra_rtc::do_imat_geom(int ncntrl, sutra_dms *ydm, int type) {
+template <typename T>
+int sutra_rtc<T>::do_imat_geom(int ncntrl, sutra_dms *ydm, int type) {
   vector<sutra_dm *>::iterator p;
   p = this->d_control[ncntrl]->d_dmseen.begin();
   int inds1, inds2;
@@ -287,12 +298,12 @@ int sutra_rtc::do_imat_geom(int ncntrl, sutra_dms *ydm, int type) {
            idx_cntr++) {
         carma_obj<float> *d_imat;
         if (this->d_control[ncntrl]->get_type().compare("ls") == 0) {
-          sutra_controller_ls *control =
-              dynamic_cast<sutra_controller_ls *>(this->d_control[ncntrl]);
+          sutra_controller_ls<T> *control =
+              dynamic_cast<sutra_controller_ls<T> *>(this->d_control[ncntrl]);
           d_imat = control->d_imat;
         } else if (this->d_control[ncntrl]->get_type().compare("mv") == 0) {
-          sutra_controller_mv *control =
-              dynamic_cast<sutra_controller_mv *>(this->d_control[ncntrl]);
+          sutra_controller_mv<T> *control =
+              dynamic_cast<sutra_controller_mv<T> *>(this->d_control[ncntrl]);
           d_imat = control->d_imat;
         } else {
           DEBUG_TRACE("controller should be ls or mv");
@@ -323,7 +334,7 @@ int sutra_rtc::do_imat_geom(int ncntrl, sutra_dms *ydm, int type) {
   return EXIT_SUCCESS;
 }
 
-// int sutra_rtc::remove_ref(int ncntrl) {
+// int sutra_rtc<T>::remove_ref(int ncntrl) {
 //   carma_axpy<float>(
 //       this->d_control[ncntrl]->current_context->get_cublasHandle(),
 //       this->d_control[ncntrl]->d_centroids->getNbElem(), -1.0f,
@@ -332,7 +343,8 @@ int sutra_rtc::do_imat_geom(int ncntrl, sutra_dms *ydm, int type) {
 //   return EXIT_SUCCESS;
 // }
 
-int sutra_rtc::do_centroids() {
+template <typename T>
+int sutra_rtc<T>::do_centroids() {
   for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
     this->d_centro[idx_cntr]->get_cog();
   }
@@ -340,9 +352,13 @@ int sutra_rtc::do_centroids() {
   return EXIT_SUCCESS;
 }
 
-int sutra_rtc::do_centroids(int ncntrl) { return do_centroids(ncntrl, true); }
+template <typename T>
+int sutra_rtc<T>::do_centroids(int ncntrl) {
+  return do_centroids(ncntrl, true);
+}
 
-int sutra_rtc::do_centroids(int ncntrl, bool noise) {
+template <typename T>
+int sutra_rtc<T>::do_centroids(int ncntrl, bool noise) {
   int indslope = 0;
 
   for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
@@ -368,7 +384,8 @@ int sutra_rtc::do_centroids(int ncntrl, bool noise) {
   return EXIT_SUCCESS;
 }
 
-int sutra_rtc::do_centroids_geom(int ncntrl) {
+template <typename T>
+int sutra_rtc<T>::do_centroids_geom(int ncntrl) {
   int inds2 = 0;
 
   for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
@@ -393,9 +410,10 @@ int sutra_rtc::do_centroids_geom(int ncntrl) {
   return EXIT_SUCCESS;
 }
 
-int sutra_rtc::do_centroids_ref(int ncntrl) {
+template <typename T>
+int sutra_rtc<T>::do_centroids_ref(int ncntrl) {
   this->do_centroids(ncntrl);
-  vector<sutra_centroider<float> *>::iterator sc;
+  typename vector<sutra_centroider<T> *>::iterator sc;
   sc = this->d_centro.begin();
   int inds;
   inds = 0;
@@ -410,8 +428,9 @@ int sutra_rtc::do_centroids_ref(int ncntrl) {
   return EXIT_SUCCESS;
 }
 
-int sutra_rtc::set_centroids_ref(float *centroids_ref) {
-  vector<sutra_centroider<float> *>::iterator sc;
+template <typename T>
+int sutra_rtc<T>::set_centroids_ref(T *centroids_ref) {
+  typename vector<sutra_centroider<T> *>::iterator sc;
   sc = this->d_centro.begin();
   int inds;
   inds = 0;
@@ -423,7 +442,8 @@ int sutra_rtc::set_centroids_ref(float *centroids_ref) {
   return EXIT_SUCCESS;
 }
 
-int sutra_rtc::do_control(int ncntrl) {
+template <typename T>
+int sutra_rtc<T>::do_control(int ncntrl) {
   if (this->d_control[ncntrl]->open_loop) {
     return EXIT_SUCCESS;
   } else
@@ -432,19 +452,23 @@ int sutra_rtc::do_control(int ncntrl) {
   return EXIT_SUCCESS;
 }
 
-int sutra_rtc::do_clipping(int ncntrl, float min, float max) {
+template <typename T>
+int sutra_rtc<T>::do_clipping(int ncntrl, T min, T max) {
   this->d_control[ncntrl]->clip_voltage(min, max);
 
   return EXIT_SUCCESS;
 }
 
-int sutra_rtc::comp_voltage(int ncntrl) {
+template <typename T>
+int sutra_rtc<T>::comp_voltage(int ncntrl) {
   this->d_control[ncntrl]->comp_voltage();
   this->d_control[ncntrl]->command_delay();
 
   return EXIT_SUCCESS;
 }
-int sutra_rtc::apply_control(int ncntrl, sutra_dms *ydm, bool compVoltage) {
+
+template <typename T>
+int sutra_rtc<T>::apply_control(int ncntrl, sutra_dms *ydm, bool compVoltage) {
   if (compVoltage) comp_voltage(ncntrl);
 
   vector<sutra_dm *>::iterator p;
@@ -485,3 +509,5 @@ int sutra_rtc::apply_control(int ncntrl, sutra_dms *ydm, bool compVoltage) {
   }
   return EXIT_SUCCESS;
 }
+
+template class sutra_rtc<float>;

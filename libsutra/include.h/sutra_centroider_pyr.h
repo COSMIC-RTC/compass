@@ -28,33 +28,34 @@ struct Method_CoG {
   };
 };
 
-class sutra_centroider_pyr : public sutra_centroider<float> {
+template <typename T>
+class sutra_centroider_pyr : public sutra_centroider<T> {
  private:
   string pyr_type;
 
  public:
   sutra_centroider_pyr(carma_context *context, sutra_wfs *wfs, long nvalid,
-                       float offset, float scale, int device);
+                       T offset, T scale, int device);
   sutra_centroider_pyr(const sutra_centroider_pyr &centroider);
   ~sutra_centroider_pyr();
 
   string get_type();
-  int set_valid_thresh(float valid_thresh);
-  float get_valid_thresh();
+  int set_valid_thresh(T valid_thresh);
+  T get_valid_thresh();
 
   int set_method(Method_CoG method);
   Method_CoG get_method();
   string get_method_str();
 
-  int get_pyr(float *cube, float *intensities, float *centroids, int *subindx,
-              int *subindy, int nvalid, int ns, int nim);
-  int get_cog(float *cube, float *intensities, float *centroids, int nvalid,
-              int npix, int ntot);
-  int get_cog(float *intensities, float *slopes, bool noise);
+  int get_pyr(T *cube, T *intensities, T *centroids, int *subindx, int *subindy,
+              int nvalid, int ns, int nim);
+  int get_cog(T *cube, T *intensities, T *centroids, int nvalid, int npix,
+              int ntot);
+  int get_cog(T *intensities, T *slopes, bool noise);
   int get_cog();
 
  private:
-  float valid_thresh;
+  T valid_thresh;
   Method_CoG method;
 };
 
