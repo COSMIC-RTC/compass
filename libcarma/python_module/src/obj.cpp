@@ -1,9 +1,19 @@
+#include <pybind11/numpy.h>
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+
+#include "type_list.hpp"
+#include <carma.h>
 #include "obj.hpp"
 
-namespace py = pybind11;
-#ifdef CAN_DO_HALF
-template void declare_carmaWrap_obj<half>(py::module &mod, std::string suffix);
+using TypeListObj =
+    GenericTypeList<int, float, double, half, cuFloatComplex>;
 
+void declare_carmaWrap_obj(py::module &mod) {
+    apply<CarmaObjInterfacer, TypeListObj>(mod);
+}
+
+#ifdef CAN_DO_HALF
 void declare_half_setter_getter(py::module &mod) {
   mod.def("make_carmaWrap_obj_half",
           [](carma_context &c,

@@ -12,6 +12,9 @@ import multiprocessing
 
 from shesha import __version__ as shesha_version
 
+# import shesha
+# shesha_version = shesha.shesha.__version__
+
 
 class CMakeExtension(Extension):
 
@@ -42,10 +45,10 @@ class CMakeBuildExt(build_ext):
     def build_extension(self, ext):
 
         extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
-
         cmake_args = [
                 '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
-                '-DPYTHON_EXECUTABLE=' + sys.executable
+                '-DPYTHON_EXECUTABLE=' + sys.executable,
+                # '-DCMAKE_INSTALL_PREFIX:PATH=.'
         ]
 
         cfg = 'Debug' if self.debug else 'Release'
@@ -72,8 +75,7 @@ class CMakeBuildExt(build_ext):
                 ]
             if os.path.isfile('{}/bin/g++'.format(os.environ["CUDA_ROOT"])):
                 cmake_args += [
-                        '-DCMAKE_CXX_COMPILER={}/bin/g++'.format(
-                                os.environ["CUDA_ROOT"])
+                        '-DCMAKE_CXX_COMPILER={}/bin/g++'.format(os.environ["CUDA_ROOT"])
                 ]
 
         cmake_args += ['-DVERSION_INFO={}'.format(self.distribution.get_version())]
@@ -81,6 +83,8 @@ class CMakeBuildExt(build_ext):
         subprocess.check_call(['cmake', ext.sourcedir] + cmake_args, cwd=self.build_temp)
         subprocess.check_call(['cmake', '--build', '.'] + build_args,
                               cwd=self.build_temp)
+        # subprocess.check_call(['cmake', '--build', '.', "--target", "install"] + build_args,
+        #                       cwd=self.build_temp)
 
 
 setup(
@@ -90,9 +94,11 @@ setup(
         # author_email=['arnaud.sevin@obspm.fr'],
         # description='',
         # long_description='',
+        # package_data={'compass-sim': ['lib/pkgconfig/carma.pc', 'lib/pkgconfig/sutra.pc']},
         ext_modules=[CMakeExtension('compass-sim')],
         cmdclass={'build_ext': CMakeBuildExt},
-        zip_safe=False, )
+        zip_safe=False,
+)
 
 # setup(
 #         name='shesha',

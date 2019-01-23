@@ -24,6 +24,7 @@ __global__ void centroids(T *d_img, T *d_centroids, T *ref, int *validx,
   unsigned int yvalid = validy[blockIdx.x];
   unsigned int x, y;
   int idim;
+  T data_thresh;
 
   for (int cc = 0; cc < nelem_thread; cc++) {
     x = ((tid * nelem_thread + cc) % npix);
@@ -32,9 +33,10 @@ __global__ void centroids(T *d_img, T *d_centroids, T *ref, int *validx,
     // blockIdx.x;
     idim = (x + xvalid) + (y + yvalid) * size;
     if (idim < size * size) {
-      idata += (d_img[idim] > threshold) ? d_img[idim] : 0;
-      xdata += (d_img[idim] > threshold) ? d_img[idim] * x : 0;
-      ydata += (d_img[idim] > threshold) ? d_img[idim] * y : 0;
+      data_thresh = d_img[idim] - threshold;
+      idata += (data_thresh > 0) ? data_thresh : 0;
+      xdata += (data_thresh > 0) ? data_thresh * x : 0;
+      ydata += (data_thresh > 0) ? data_thresh * y : 0;
     }
   }
 

@@ -7,6 +7,8 @@ from shesha.sutra_wrap import carmaWrap_context
 
 from .abstractSupervisor import AbstractSupervisor
 
+from typing import Callable
+
 
 class BenchSupervisor(AbstractSupervisor):
 
@@ -28,23 +30,16 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         return self.config
 
-    def setCommand(self, nctrl: int, command: np.ndarray) -> None:
-        ''' TODO
-        Immediately sets provided command to DMs - does not affect integrator
-        '''
-        # self.dm.set_command(command=command)
-        self.rtc.d_control[nctrl].set_com(command, command.size)
-
     def setOneActu(self, nctrl: int, ndm: int, nactu: int, ampli: float = 1,
                    reset: bool = True) -> None:
         '''
         Push the selected actuator
         '''
-        command = self.dm.get_command()
+        command = self.getCommand()
         if reset:
             command *= 0
         command[nactu] = ampli
-        self.dm.set_command(command)
+        self.setCommand(nctrl, command)
 
     def setPerturbationVoltage(self, nControl: int, name: str,
                                command: np.ndarray) -> None:
@@ -63,7 +58,16 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         Get an image from the WFS
         '''
-        return self.cam.getFrame(1)
+        return self.camCallback()
+
+    def setCommand(self, nctrl: int, command: np.ndarray) -> None:
+        ''' TODO
+        Immediately sets provided command to DMs - does not affect integrator
+        '''
+        # Do stuff
+        self.dmSetCallback(command)
+        # Btw, update the RTC state with the information
+        self.rtc.d_control[nctrl].set_com(command, command.size)
 
     def getCentroids(self, nControl: int = 0):
         '''
@@ -77,19 +81,24 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         return self.computeSlopes()
 
-    def getCom(self, nControl: int = 0):
+    def getCom(self, nControl: int = 0) -> np.ndarray:
         '''
-        Get command from nControl controller
+        Get command from DM, and set it back to nCtrl controller.
+        These should be equivalent, unless an external source controls the DM as well
         '''
-        return np.array(self.rtc.d_control[nControl].d_com)
+        # Do something
+        command = self.dmGetCallback()
+        # Btw, update the RTC state with the information
+        self.rtc.d_control[nControl].set_com(command, command.size)
+        return command
 
-    def getErr(self, nControl: int = 0):
+    def getErr(self, nControl: int = 0) -> np.ndarray:
         '''
         Get command increment from nControl controller
         '''
         return np.array(self.rtc.d_control[nControl].d_err)
 
-    def getVoltage(self, nControl: int = 0):
+    def getVoltage(self, nControl: int = 0) -> np.ndarray:
         '''
         Get voltages from nControl controller
         '''
@@ -131,24 +140,19 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         raise NotImplementedError("Not implemented")
 
-    def singleNext(self, moveAtmos: bool = True, showAtmos: bool = True,
-                   getPSF: bool = False, getResidual: bool = False) -> None:
+    def singleNext(self) -> None:
         '''
         Move atmos -> getSlope -> applyControl ; One integrator step
         '''
         self.frame = self.getWfsImage()
-        if self.config.p_wfss[0].type == WFSType.SH:
-            #for SH
-            self.rtc.d_centro[0].load_img(self.frame, self.frame.shape[0])
-            self.rtc.d_centro[0].fill_bincube(self.npix)
-        elif self.config.p_wfss[0].type == WFSType.PYRHR:
-            self.rtc.d_centro[0].load_pyr_img(self.frame, self.frame.shape[0])
+        self.rtc.d_centro[0].load_img(self.frame, self.frame.shape[0])
         self.rtc.do_centroids(0)
         self.rtc.do_control(0)
         self.rtc.do_clipping(0, -1e5, 1e5)
         self.rtc.comp_voltage(0)
-        self.dm.set_command(np.array(self.rtc.d_control[0].d_voltage))
-        self.rtc.publish()
+        self.setCommand(0, np.array(self.rtc.d_control[0].d_voltage))
+        if self.BRAHMA:
+            self.rtc.publish()
 
     def closeLoop(self) -> None:
         '''
@@ -184,19 +188,13 @@ class BenchSupervisor(AbstractSupervisor):
         if type(gainMat) in [int, float]:
             gainMat = np.ones(np.sum(self.rtc.d_control[0].nactu),
                               dtype=np.float32) * gainMat
-        self.rtc.d_control[0].set_mgain(gainMat)
+        # Whoopdie-doop, fix needed
 
     def setCommandMatrix(self, cMat: np.ndarray) -> None:
         '''
         Set the cmat for the controller to use
         '''
         self.rtc.d_control[0].set_cmat(cMat)
-
-    def getRawWFSImage(self, numWFS: int = 0) -> np.ndarray:
-        '''
-        Get an image from the WFS
-        '''
-        return self.frame
 
     def getTarImage(self, tarID, expoType: str = "se") -> np.ndarray:
         '''
@@ -229,9 +227,14 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         Init the COMPASS wih the configFile
         '''
-        self.cam = None
+        self.camCallback = None
+
+        # By default, do nothing...
+        # TODO: remove it !
+        self.dmSetCallback = lambda x: None
+        self.dmGetCallback = lambda: 0
+
         self.rtc = None
-        self.npix = 0
         self.frame = None
         self.BRAHMA = BRAHMA
 
@@ -239,7 +242,12 @@ class BenchSupervisor(AbstractSupervisor):
             self.loadConfig(configFile=configFile)
 
     def __repr__(self):
-        return str(self.rtc)
+        s = str(self.rtc)
+        if hasattr(self, '_cam'):
+            s += '\n' + str(self._cam)
+        if hasattr(self, '_dm'):
+            s += '\n' + str(self._dm)
+        return s
 
     def resetDM(self, nDM: int) -> None:
         '''
@@ -271,33 +279,52 @@ class BenchSupervisor(AbstractSupervisor):
         from shesha.util.utilities import load_config_from_file
         load_config_from_file(self, configFile)
 
+    def setCamCallback(self, camCallback: Callable):
+        '''
+        Set the externally defined function that allows to grab frames
+        '''
+        self.camCallback = camCallback
+
+    def setDmCallback(self, dmGetCallback: Callable, dmSetCallback: Callable):
+        '''
+        Set the externally defined function that allows to grab frames
+        '''
+        self.dmGetCallback = dmGetCallback
+        self.dmSetCallback = dmSetCallback
+
     def isInit(self) -> bool:
         '''
         return the status on COMPASS init
         '''
         return self.is_init
 
-    def clearInitSim(self) -> None:
-        '''
-        Clear the initialization of the simulation
-        '''
-        self.clear_init()
-
     def initConfig(self) -> None:
         '''
-        Initialize the simulation
+        Initialize the bench
         '''
-        import hraa.devices.camera as m_cam
-        from hraa.lib.camSDK import cam_attributes
-        Camera = m_cam.getCamClass(self.config.p_cams[0].type)
-        print("->cam")
-        self.cam = Camera(
-                self.config.p_cams[0].camAddr,
-                cam_attributes(self.config.p_cams[0].width, self.config.p_cams[0].height,
-                               self.config.p_cams[0].offset_w,
-                               self.config.p_cams[0].offset_h,
-                               self.config.p_cams[0].expo_usec,
-                               self.config.p_cams[0].framerate))
+        print("->CAM")
+        if self.camCallback is None:
+            print('No user provided camera getFrame handle. Creating from config file.')
+            from hraa.devices.camera.cam_attributes import cam_attributes
+            import hraa.devices.camera as m_cam
+            Camera = m_cam.getCamClass(self.config.p_cams[0].type)
+            self._cam = Camera(
+                    self.config.p_cams[0].camAddr,
+                    cam_attributes(self.config.p_cams[0].width,
+                                   self.config.p_cams[0].height,
+                                   self.config.p_cams[0].offset_w,
+                                   self.config.p_cams[0].offset_h,
+                                   self.config.p_cams[0].expo_usec,
+                                   self.config.p_cams[0].framerate,
+                                   self.config.p_cams[0].symcode))
+            self.camCallback = lambda: self._cam.getFrame(1)
+        print("->DM")
+        if self.dmSetCallback is None:
+            print('No user provided DM setCommand handle. Creating from config file.')
+            raise NotImplementedError()
+            self._dm = None  # Make some DM access interface from the p_dms available
+            self.dmGetCallback = None  # Provide the appropriate lambdas
+            self.dmSetCallback = None
 
         print("->RTC")
         wfsNb = len(self.config.p_wfss)
@@ -326,8 +353,8 @@ class BenchSupervisor(AbstractSupervisor):
                 roiTab = makessp(p_wfs.nxsub, obs=0., rmax=0.98)
                 # for pos in self.roiTab: pos *= self.pitch
                 p_wfs._nvalid = roiTab[0].size
-                p_wfs._validsubsx = roiTab[0]
-                p_wfs._validsubsy = roiTab[1]
+                p_wfs._validsubsx = roiTab[0] * p_wfs.npix
+                p_wfs._validsubsy = roiTab[1] * p_wfs.npix
             else:
                 p_wfs._nvalid = p_wfs._validsubsx.size
 
@@ -338,22 +365,42 @@ class BenchSupervisor(AbstractSupervisor):
             gain = 1
             nact = self.config.p_dms[0].nact
 
-            self.rtc = rtc_standalone(self.context, wfsNb, nvalid, nact,
-                                      self.config.p_centroiders[0].type, 1, offset * 0,
-                                      scale, brahma=True)
+            if self.config.p_controllers[0].delay != 1:
+                raise RuntimeError("delay is not set 1, call Flo if it makes sense!")
+
+            self.rtc = rtc_standalone(self.c, wfsNb, nvalid, nact,
+                                      self.config.p_centroiders[0].type,
+                                      self.config.p_controllers[0].delay, offset * 0,
+                                      scale, brahma=self.BRAHMA)
             # put pixels in the SH grid coordonates
             self.rtc.d_centro[0].load_validpos(p_wfs._validsubsx, p_wfs._validsubsy,
                                                nvalid)
 
             cMat = np.zeros((nact, 2 * nvalid[0]), dtype=np.float32)
-            self.rtc.d_control[0].set_cmat(cMat)
-            self.rtc.d_control[0].set_decayFactor(
-                    np.ones(nact, dtype=np.float32) * (gain - 1))
-            self.rtc.d_control[0].set_matE(np.identity(nact, dtype=np.float32))
-            self.rtc.d_control[0].set_mgain(np.ones(nact, dtype=np.float32) * -gain)
 
         elif p_wfs.type == WFSType.PYRHR or p_wfs.type == WFSType.PYRLR:
-            raise RuntimeError("PYRHR not usable")
+            nvalid = np.array([p_wfs._nvalid],
+                              dtype=np.int32)  # Number of valid SUBAPERTURES
+            nact = sum([p_dm.get_ntotact()
+                        for p_dm in self.config.p_dms])  # Number of actu over all DMs
+            gain = 1.
+            self.rtc = rtc_standalone(self.c, wfsNb, nvalid, nact,
+                                      self.config.p_centroiders[0].type,
+                                      self.config.p_controllers[0].delay, 0, 1,
+                                      brahma=self.BRAHMA)
+
+            self.rtc.d_centro[0].load_validpos(p_wfs._validsubsx, p_wfs._validsubsy,
+                                               len(p_wfs._validsubsx))
+
+            cMat = np.zeros((nact, p_wfs.nPupils * nvalid[0]), dtype=np.float32)
+        else:
+            raise ValueError('WFS type not supported')
+
+        self.rtc.d_control[0].set_cmat(cMat)
+        self.rtc.d_control[0].set_decayFactor(
+                np.ones(nact, dtype=np.float32) * (gain - 1))
+        self.rtc.d_control[0].set_matE(np.identity(nact, dtype=np.float32))
+        self.rtc.d_control[0].set_mgain(np.ones(nact, dtype=np.float32) * -gain)
 
         self.is_init = True
 
@@ -361,6 +408,8 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         return the current frame counter of the loop
         '''
+        if not self.is_init:
+            print('Warning - requesting frame counter of uninitialized BenchSupervisor.')
         return self.iter
 
     def getImat(self, nControl: int = 0):
@@ -383,6 +432,7 @@ class BenchSupervisor(AbstractSupervisor):
         """
         return np.array(self.rtc.d_control[nControl].d_cmat)
 
+    # Warning: SH specific
     def setCentroThresh(self, nCentro: int = 0, thresh: float = 0.):
         """
         Set the threshold value of a thresholded COG
@@ -394,12 +444,14 @@ class BenchSupervisor(AbstractSupervisor):
         """
         self.rtc.d_centro[nCentro].set_threshold(thresh)
 
+    # Warning: PWFS specific
     def setPyrModulation(self, pyrMod: float) -> None:
         '''
         Set pyramid modulation value - in l/D units
         '''
         raise NotImplementedError("Not implemented")
 
+    # Warning: PWFS specific
     def setPyrMethod(self, pyrMethod, nCentro: int = 0):
         '''
         Set pyramid compute method
@@ -408,5 +460,9 @@ class BenchSupervisor(AbstractSupervisor):
         self.rtc.do_centroids(0)  # To be ready for the next getSlopes
         print("PYR method set to " + self.rtc.d_centro[nCentro].pyr_method)
 
+    # Warning: PWFS specific
     def getPyrMethod(self, nCentro):
+        '''
+        Get pyramid compute method
+        '''
         return self.rtc.d_centro[nCentro].pyr_method

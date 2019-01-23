@@ -13,7 +13,8 @@ from shesha.init import dm_init
 from typing import List
 
 import numpy as np
-from shesha.sutra_wrap import carmaWrap_context, Sensors, Dms, Target, Rtc, Rtc_brahma, Atmos, Telescope
+from shesha.sutra_wrap import (carmaWrap_context, Sensors, Dms, Target, Rtc, Rtc_brahma,
+                               Atmos, Telescope)
 
 
 def rtc_init(context: carmaWrap_context, tel: Telescope, wfs: Sensors, dms: Dms,
@@ -116,9 +117,9 @@ def rtc_init(context: carmaWrap_context, tel: Telescope, wfs: Sensors, dms: Dms,
     return rtc
 
 
-def rtc_standalone(context: carmaWrap_context, nwfs: int, nvalid, nactu: int,
-                   centroider_type: bytes, delay: float, offset: float, scale: float,
-                   brahma: bool = False):
+def rtc_standalone(context: carmaWrap_context, nwfs: int, nvalid: int, nactu: int,
+                   centroider_type: str, delay: float, offset: float, scale: float,
+                   brahma: bool = False) -> Rtc:
     """
     TODO docstring
     """

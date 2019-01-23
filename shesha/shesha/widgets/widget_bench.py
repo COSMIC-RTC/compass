@@ -38,6 +38,7 @@ BenchWindowTemplate, BenchClassTemplate = uiLoader('widget_bench')
 
 import matplotlib.pyplot as plt
 
+# DO NOT COMMIT ME
 from shesha.supervisor.benchSupervisor import WFSType, BenchSupervisor as Supervisor
 
 # For debug
@@ -145,7 +146,10 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
         except:
             pass
 
-        self.nwfs = len(self.config.p_wfss)
+        try:
+            self.nwfs = len(self.config.p_wfss)
+        except:
+            self.nwfs = 1  # Default. config may very well not define p_wfss
         for wfs in range(self.nwfs):
             name = 'slpComp_%d' % wfs
             self.add_dispDock(name, self.wao_graphgroup_cb, "MPL")
@@ -187,7 +191,6 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
             self.uiAO.wao_openLoop.setText("Open Loop")
 
     def initConfig(self) -> None:
-        self.supervisor.clearInitSim()
         WidgetBase.initConfig(self)
 
     def initConfigThread(self) -> None:
@@ -201,9 +204,16 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
 
     def initConfigFinished(self) -> None:
         # Thread carmaWrap context reload:
-        self.supervisor.forceContext()
+        try:
+            self.supervisor.forceContext()
+        except:
+            pass
 
-        print(self.supervisor)
+        for i in range(self.nwfs):
+            if self.config.p_wfss[i].type == WFSType.SH:
+                key = "wfs_%d" % i
+                self.addSHGrid(self.docks[key].widgets[0],
+                               self.config.p_wfss[i].get_validsub(), self.config.p_wfss[i].npix, self.config.p_wfss[i].npix)
 
         self.updateDisplay()
 
@@ -230,7 +240,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
                         index = int(key.split("_")[-1])
                         data = None
                         if "wfs" in key:
-                            data = self.supervisor.getRawWFSImage(index)
+                            data = self.supervisor.getWfsImage(index)
                             if (data is not None):
                                 autoscale = True  # self.uiBench.actionAuto_Scale.isChecked()
                                 # if (autoscale):
@@ -238,12 +248,14 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
                                 #     self.hist.setLevels(data.min(), data.max())
                                 self.imgs[key].setImage(data, autoLevels=autoscale)
                                 # self.p1.autoRange()
+
+
                         elif "slp" in key:  # Slope display
                             if (self.config.p_wfss[index].type == WFSType.PYRHR or
                                         self.config.p_wfss[index].type == WFSType.PYRLR):
                                 raise RuntimeError("PYRHR not usable")
                             self.imgs[key].canvas.axes.clear()
-                            x, y = self.supervisor._sim.config.p_wfss[
+                            x, y = self.supervisor.config.p_wfss[
                                     index].get_validsub()
 
                             nssp = x.size
@@ -251,12 +263,12 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
                             vx = centroids[:nssp]
                             vy = centroids[nssp:]
 
-                            offset = (self.supervisor._sim.config.p_wfss[index].npix -
+                            offset = (self.supervisor.config.p_wfss[index].npix -
                                       1) / 2
                             self.imgs[key].canvas.axes.quiver(
                                     x + offset, y + offset, vy, vx, angles='xy',
                                     scale_units='xy', scale=1
-                            )  # wao.supervisor._sim.config.p_wfss[0].pixsize)
+                            )  # wao.supervisor.config.p_wfss[0].pixsize)
                             self.imgs[key].canvas.draw()
 
             finally:
@@ -271,7 +283,6 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
                 start = time.time()
                 self.supervisor.singleNext()
                 loopTime = time.time() - start
-
                 refreshDisplayTime = 1. / self.uiBase.wao_frameRate.value()
 
                 if (time.time() - self.refreshTime > refreshDisplayTime):
