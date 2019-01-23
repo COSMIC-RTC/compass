@@ -93,31 +93,33 @@ int sutra_controller_generic<T>::comp_com() {
     // cublasSetStream(this->cublas_handle(),
     //                 current_context->get_device(device)->get_stream());
     carma_gemv(this->cublas_handle(), 'n', this->nactu(), this->nslope(),
-               -1.f * this->gain, this->d_cmat->getData(), this->nactu(),
-               this->d_centroids->getData(), 1, 1.0f, this->d_com->getData(),
+               (T)(-1 * this->gain), this->d_cmat->getData(), this->nactu(),
+               this->d_centroids->getData(), 1, (T)1.0f, this->d_com->getData(),
                1);
 
   } else {
     // CMAT*s(k)
-    carma_gemv(this->cublas_handle(), 'n', this->nactu(), this->nslope(), 1.0f,
-               this->d_cmat->getData(), this->nactu(),
-               this->d_centroids->getData(), 1, 0.0f,
+    carma_gemv(this->cublas_handle(), 'n', this->nactu(), this->nslope(),
+               (T)1.0f, this->d_cmat->getData(), this->nactu(),
+               this->d_centroids->getData(), 1, (T)0.0f,
                this->d_compbuff->getData(), 1);
     // g*CMAT*s(k)
-    mult_vect(this->d_compbuff->getData(), this->d_gain->getData(), -1.0f,
+    mult_vect(this->d_compbuff->getData(), this->d_gain->getData(), (T)(-1.0f),
               this->nactu(), this->current_context->get_device(this->device));
 
-    carma_gemv(this->cublas_handle(), 'n', this->nactu(), this->nactu(), 1.0f,
-               this->d_matE->getData(), this->nactu(), this->d_com1->getData(),
-               1, 0.0f, this->d_com->getData(), 1);
+    carma_gemv(this->cublas_handle(), 'n', this->nactu(), this->nactu(),
+               (T)1.0f, this->d_matE->getData(), this->nactu(),
+               this->d_com1->getData(), 1, (T)0.0f, this->d_com->getData(), 1);
     // v(k) = alpha*E*v(k-1)
-    mult_vect(this->d_com->getData(), this->d_decayFactor->getData(), 1.0f,
+    mult_vect(this->d_com->getData(), this->d_decayFactor->getData(), (T)1.0f,
               this->nactu(), this->current_context->get_device(this->device));
     // v(k) = alpha*E*v(k-1) + g*CMAT*s(k)
-    carma_axpy(this->cublas_handle(), this->nactu(), 1.0f,
-               this->d_compbuff->getData(), 1, this->d_com->getData(), 1);
+    this->d_com->axpy((T)1.0f, this->d_compbuff, 1, 1);
   }
   return EXIT_SUCCESS;
 }
 
 template class sutra_controller_generic<float>;
+#ifdef CAN_DO_HALF
+template class sutra_controller_generic<half>;
+#endif

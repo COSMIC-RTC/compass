@@ -52,10 +52,11 @@ template <class T>
 int remove_avg(T *data, int N, carma_device *device);
 template <class T>
 int mult_vect(T *d_data, T *scale, int N, carma_device *device);
+template <class T>
+int mult_vect(T *d_data, T *scale, T gain, int N, carma_device *device);
+template <class T>
+int mult_vect(T *d_data, T gain, int N, carma_device *device);
 
-int mult_vect(float *d_data, float *scale, float gain, int N,
-              carma_device *device);
-int mult_vect(float *d_data, float gain, int N, carma_device *device);
 int mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
              carma_device *device);
 int mult_int(float *o_data, float *i_data, float *scale, float gain, int N,

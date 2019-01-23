@@ -29,17 +29,17 @@ sutra_controller<T>::sutra_controller(carma_context *context, int nvalid,
   int floor = (int)delay;
 
   if ((floor > 0) && (floor < 2)) {
-    this->a = 0;
+    this->a = 0.f;
     this->c = delay - floor;
     this->b = 1 - this->c;
   } else if (floor == 0) {
     this->b = delay;
     this->a = 1 - this->b;
-    this->c = 0;
+    this->c = 0.f;
   } else {  // Maximum delay is 2
-    this->a = 0;
-    this->c = 1;
-    this->b = 0;
+    this->a = 0.f;
+    this->c = 1.f;
+    this->b = 0.f;
   }
 
   // DEBUG_TRACE("delay = %f a = %f b = %f c = %f floor =
@@ -58,7 +58,7 @@ sutra_controller<T>::sutra_controller(carma_context *context, int nvalid,
     this->d_com2 = new carma_obj<T>(context, dims_data1);
   }
 
-  this->d_voltage = new carma_obj<float>(context, dims_data1);
+  this->d_voltage = new carma_obj<T>(context, dims_data1);
 
   for (int i = 0; i < ndm; i++) {
     this->d_dmseen.push_back(dms->d_dms[idx_dms[i]]);
@@ -71,14 +71,11 @@ int sutra_controller<T>::set_openloop(int open_loop_status, bool rst) {
   this->open_loop = open_loop_status;
 
   if (this->open_loop && rst) {
-    carmaSafeCall(
-        cudaMemset(this->d_com->getData(), 0.0f, this->nactu() * sizeof(T)));
-    carmaSafeCall(
-        cudaMemset(this->d_com1->getData(), 0.0f, this->nactu() * sizeof(T)));
+    this->d_com->reset();
+    this->d_com1->reset();
 
     if (this->delay > 1) {
-      carmaSafeCall(
-          cudaMemset(this->d_com2->getData(), 0.0f, this->nactu() * sizeof(T)));
+      this->d_com2->reset();
     }
   }
   return EXIT_SUCCESS;
@@ -189,19 +186,15 @@ int sutra_controller<T>::comp_voltage() {
   std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
   current_context->set_activeDevice(device, 1);
 
-  carmaSafeCall(cudaMemset(this->d_voltage->getData(), 0.0f,
-                           this->nactu() * sizeof(float)));
+  this->d_voltage->reset();
 
   if (!this->open_loop) {
     if (this->delay > 0) {
-      carma_axpy(this->cublas_handle(), this->nactu(), this->a,
-                 this->d_com->getData(), 1, this->d_voltage->getData(), 1);
-      carma_axpy(this->cublas_handle(), this->nactu(), this->b,
-                 this->d_com1->getData(), 1, this->d_voltage->getData(), 1);
+      this->d_voltage->axpy(this->a, this->d_com, 1, 1);
+      this->d_voltage->axpy(this->b, this->d_com1, 1, 1);
 
-      if (delay > 1)
-        carma_axpy(this->cublas_handle(), this->nactu(), this->c,
-                   this->d_com2->getData(), 1, this->d_voltage->getData(), 1);
+      if (delay > 1) this->d_voltage->axpy(this->b, this->d_com2, 1, 1);
+
     } else {
       this->d_com->copyInto(this->d_voltage->getData(), this->nactu());
     }
@@ -223,9 +216,7 @@ int sutra_controller<T>::add_perturb() {
     if (std::get<2>(it->second)) {
       cpt = std::get<1>(it->second);
       d_perturb = std::get<0>(it->second);
-      carma_axpy(this->cublas_handle(), this->nactu(), 1.0f,
-                 d_perturb->getDataAt(cpt), d_perturb->getDims(1),
-                 this->d_voltage->getData(), 1);
+      this->d_voltage->axpy(1.0f, d_perturb, 1, 1, cpt);
       if (cpt < d_perturb->getDims(1) - 1)
         std::get<1>(it->second) = cpt + 1;
       else
@@ -259,6 +250,10 @@ int sutra_controller<T>::set_com(T *com, int nElem) {
 }
 
 template class sutra_controller<float>;
+
+#ifdef CAN_DO_HALF
+template class sutra_controller<half>;
+#endif
 // template<class T>
 // int sutra_controller<T>::syevd_f(char meth, carma_obj<float> *d_U,
 //                               carma_host_obj<float> *h_eigenvals) {

@@ -529,7 +529,20 @@ cublasStatus_t carma_gemv<cuDoubleComplex>(cublasHandle_t cublas_handle,
                                              &alpha, matA, lda, vectx, incx,
                                              &beta, vecty, incy));
 }
-
+#ifdef CAN_DO_HALF
+template <>
+cublasStatus_t carma_gemv<half>(cublasHandle_t cublas_handle, char trans, int m,
+                                int n, half alpha, half *matA, int lda,
+                                half *vectx, int incx, half beta, half *vecty,
+                                int incy) {
+  int k = (((trans == 'N') || (trans == 'n')) ? n : m);
+  cublasOperation_t transa2 = carma_char2cublasOperation(trans);
+  cublasOperation_t transb2 = carma_char2cublasOperation('N');
+  return carma_checkCublasStatus(cublasHgemm(cublas_handle, transa2, transb2, m,
+                                             1, k, &alpha, matA, lda, vectx, n,
+                                             &beta, vecty, n));
+}
+#endif
 /** These templates are used to select the proper ger executable from T_data*/
 template <class T_data>
 cublasStatus_t carma_ger(cublasHandle_t cublas_handle, int m, int n,
@@ -1364,7 +1377,7 @@ void carma_obj<half>::swap(caObjH *, int incx, int incy) {
 
 template <class T_data>
 void carma_obj<T_data>::axpy(T_data alpha, carma_obj<T_data> *source, int incx,
-                             int incy) {
+                             int incy, int offset) {
   /** \brief computeAXPY method
    * \param alpha : scale factor
    * \param vectx : first vector (x)
@@ -1376,27 +1389,29 @@ void carma_obj<T_data>::axpy(T_data alpha, carma_obj<T_data> *source, int incx,
    * vector y
    */
   carma_axpy(current_context->get_cublasHandle(), this->nb_elem, alpha,
-             source->d_data, incx, this->d_data, incy);
+             source->getDataAt(offset), incx, this->d_data, incy);
 }
 template void carma_obj<int>::axpy(int alpha, caObjI *source, int incx,
-                                   int incy);
+                                   int incy, int offset);
 template void carma_obj<unsigned int>::axpy(unsigned int alpha, caObjUI *source,
-                                            int incx, int incy);
+                                            int incx, int incy, int offset);
 template void carma_obj<float>::axpy(float alpha, caObjS *source, int incx,
-                                     int incy);
+                                     int incy, int offset);
 template void carma_obj<double>::axpy(double alpha, caObjD *source, int incx,
-                                      int incy);
+                                      int incy, int offset);
 template void carma_obj<cuFloatComplex>::axpy(cuFloatComplex alpha,
                                               caObjC *source, int incx,
-                                              int incy);
+                                              int incy, int offset);
 template void carma_obj<cuDoubleComplex>::axpy(cuDoubleComplex alpha,
                                                caObjZ *source, int incx,
-                                               int incy);
+                                               int incy, int offset);
 #ifdef CAN_DO_HALF
 template <>
-void carma_obj<half>::axpy(half alpha, caObjH *source, int incx, int incy) {
-  custom_half_axpy(alpha, source->getData(), incx, incy, this->getNbElem(),
-                   this->d_data, current_context->get_device(this->device));
+void carma_obj<half>::axpy(half alpha, caObjH *source, int incx, int incy,
+                           int offset) {
+  custom_half_axpy(alpha, source->getDataAt(offset), incx, incy,
+                   this->getNbElem(), this->d_data,
+                   current_context->get_device(this->device));
 }
 #endif
 

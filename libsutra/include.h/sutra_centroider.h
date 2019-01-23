@@ -45,7 +45,7 @@ class sutra_centroider {
   int load_validpos(int *ivalid, int *jvalid, int N);
   int set_npix(int npix);
   int set_nxsub(int nxsub);
-  int load_img(float *img, int n);
+  int load_img(T *img, int n);
   int get_validMask();
   bool is_type(string typec) { return (typec.compare(get_type()) == 0); }
 

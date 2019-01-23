@@ -2,7 +2,8 @@ import numpy as np
 from naga.context import Context
 
 from carmaWrap import obj_float, obj_double, obj_int, obj_float_complex, obj_half
-
+from carmaWrap import make_carmaWrap_obj_half
+from carmaWrap import get_carmaWrap_obj_half
 context = Context()
 
 
@@ -58,15 +59,15 @@ class Array():
                 elif data.dtype == np.float64:
                     self.__data = obj_double(context.context, data)
                 elif data.dtype == np.float16:
-                    self.__data = obj_half(context.context, data)
+                    self.__data = make_carmaWrap_obj_half(context.context,
+                                                          data.astype(np.float32))
                 elif data.dtype == np.complex64 or data.dtype == np.complex128:
                     self.__data = obj_float_complex(context.context,
                                                     complextofloat2(data))
                     self.__dtype = np.complex64
                 else:
                     raise TypeError("Data type not implemented")
-                if self.__dtype is None:
-                    self.__dtype = data.dtype
+                self.__dtype = data.dtype
                 self.__shape = data.shape
             elif isinstance(data, obj_int):
                 self.__data = data
@@ -191,6 +192,8 @@ class Array():
     def toarray(self):
         if (self.dtype == np.complex64):
             tmp = float2tocomplex(np.array(self.data))
+        elif (self.dtype == np.float16):
+            tmp = get_carmaWrap_obj_half(self.data).astype(np.float16)
         else:
             tmp = np.array(self.data)
         return tmp

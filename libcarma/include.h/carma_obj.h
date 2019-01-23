@@ -278,7 +278,8 @@ class carma_obj {
   void scale(T_data alpha, int incx);
   void swap(carma_obj<T_data> *source, int incx, int incy);
   void copy(carma_obj<T_data> *source, int incx, int incy);
-  void axpy(T_data alpha, carma_obj<T_data> *source, int incx, int incy);
+  void axpy(T_data alpha, carma_obj<T_data> *source, int incx, int incy,
+            int offset = 0);
   void rot(carma_obj<T_data> *source, int incx, int incy, T_data sc, T_data ss);
 
   void gemv(char trans, T_data alpha, carma_obj<T_data> *matA, int lda,

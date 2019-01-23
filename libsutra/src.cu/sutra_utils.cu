@@ -577,7 +577,8 @@ __global__ void mult_krnl(T *i_data, T *scale, int N) {
   }
 }
 
-__global__ void mult_krnl(float *i_data, float *scale, float gain, int N) {
+template <class T>
+__global__ void mult_krnl(T *i_data, T *scale, T gain, int N) {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
@@ -586,7 +587,8 @@ __global__ void mult_krnl(float *i_data, float *scale, float gain, int N) {
   }
 }
 
-__global__ void mult_krnl(float *i_data, float gain, int N) {
+template <class T>
+__global__ void mult_krnl(T *i_data, T gain, int N) {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
@@ -655,8 +657,8 @@ template int mult_vect<half>(half *d_data, half *scale, int N,
                              carma_device *device);
 #endif
 
-int mult_vect(float *d_data, float *scale, float gain, int N,
-              carma_device *device) {
+template <class T>
+int mult_vect(T *d_data, T *scale, T gain, int N, carma_device *device) {
   int nBlocks, nThreads;
   getNumBlocksAndThreads(device, N, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
@@ -667,7 +669,17 @@ int mult_vect(float *d_data, float *scale, float gain, int N,
   return EXIT_SUCCESS;
 }
 
-int mult_vect(float *d_data, float gain, int N, carma_device *device) {
+template int mult_vect<float>(float *d_data, float *scale, float gain, int N,
+                              carma_device *device);
+template int mult_vect<double>(double *d_data, double *scale, double gain,
+                               int N, carma_device *device);
+#ifdef CAN_DO_HALF
+template int mult_vect<half>(half *d_data, half *scale, half gain, int N,
+                             carma_device *device);
+#endif
+
+template <class T>
+int mult_vect(T *d_data, T gain, int N, carma_device *device) {
   int nBlocks, nThreads;
   getNumBlocksAndThreads(device, N, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
@@ -677,6 +689,15 @@ int mult_vect(float *d_data, float gain, int N, carma_device *device) {
   carmaCheckMsg("mult_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
+
+template int mult_vect<float>(float *d_data, float gain, int N,
+                              carma_device *device);
+template int mult_vect<double>(double *d_data, double gain, int N,
+                               carma_device *device);
+#ifdef CAN_DO_HALF
+template int mult_vect<half>(half *d_data, half gain, int N,
+                             carma_device *device);
+#endif
 
 int mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
              carma_device *device, carma_streams *streams) {

@@ -79,8 +79,9 @@ int sutra_centroider<T>::set_flat(T *flat, int n) {
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider::get_validMask() {
-  current_context->set_activeDevice(device, 1);
+template <class T>
+int sutra_centroider<T>::get_validMask() {
+  this->current_context->set_activeDevice(this->device, 1);
   if (this->d_validMask == nullptr) {
     if (this->d_img == nullptr) {
       std::cout << "RTC image has not been initialized" << std::endl;
@@ -98,7 +99,8 @@ int sutra_centroider::get_validMask() {
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider::calibrate_img(bool save_raw) {
+template <class T>
+int sutra_centroider<T>::calibrate_img(bool save_raw) {
   current_context->set_activeDevice(device, 1);
 
   if (this->d_img == nullptr) {
@@ -108,7 +110,7 @@ int sutra_centroider::calibrate_img(bool save_raw) {
 
   if (save_raw) {
     if (this->d_img_raw == nullptr)
-      this->d_img_raw = new carma_obj<float>(current_context, d_img);
+      this->d_img_raw = new carma_obj<T>(current_context, d_img);
     else
       this->d_img_raw->copy(d_img, 1, 1);
   }

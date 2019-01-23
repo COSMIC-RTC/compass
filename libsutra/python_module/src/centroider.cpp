@@ -99,7 +99,7 @@ void declare_centroider(py::module &mod) {
           "Flat frame for calibration")
 
       .def_property_readonly("d_validMask",
-                             [](sutra_centroider &sc) {
+                             [](sutra_centroider<float> &sc) {
                                sc.get_validMask();
                                return sc.d_validMask;
                              },
