@@ -243,7 +243,7 @@ class CompassSupervisor(AbstractSupervisor):
             self.loadConfig(configFile=configFile)
 
     def __repr__(self):
-        return str(self._sim)
+        return object.__repr__(self) + str(self._sim)
 
     def loop(self, n: int = 1, monitoring_freq: int = 100, **kwargs):
         """

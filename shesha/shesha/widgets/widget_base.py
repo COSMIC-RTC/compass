@@ -25,23 +25,23 @@ def uiLoader(moduleName):
 
 BaseWidgetTemplate, BaseClassTemplate = uiLoader('widget_base')
 
+
 class PupilBoxes(pg.QtGui.QGraphicsPathItem):
 
     def __init__(self, x, y):
         """x and y are 2D arrays of shape (Nplots, Nsamples)"""
         connect = np.ones(x.shape, dtype=bool)
         connect[:, -1] = 0  # don't draw the segment between each trace
-        self.path = pg.arrayToQPath(x.flatten(), y.flatten(),
-                                    connect.flatten())
+        self.path = pg.arrayToQPath(x.flatten(), y.flatten(), connect.flatten())
         pg.QtGui.QGraphicsPathItem.__init__(self, self.path)
         self.setPen(pg.mkPen('r'))
 
-    def shape(self
-              ):  # override because QGraphicsPathItem.shape is too expensive.
+    def shape(self):  # override because QGraphicsPathItem.shape is too expensive.
         return pg.QtGui.QGraphicsItem.shape(self)
 
     def boundingRect(self):
         return self.path.boundingRect()
+
 
 class WidgetBase(BaseClassTemplate):
 
@@ -107,11 +107,10 @@ class WidgetBase(BaseClassTemplate):
     def closeEvent(self, event: Any) -> None:
         self.quitGUI(event)
 
-    def quitGUI(self, event: Any=None) -> None:
-        reply = QtWidgets.QMessageBox.question(self, 'Message', "Are you sure to quit?",
-                                               QtWidgets.QMessageBox.Yes |
-                                               QtWidgets.QMessageBox.No,
-                                               QtWidgets.QMessageBox.No)
+    def quitGUI(self, event: Any = None) -> None:
+        reply = QtWidgets.QMessageBox.question(
+                self, 'Message', "Are you sure to quit?", QtWidgets.QMessageBox.Yes |
+                QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
 
         if reply == QtWidgets.QMessageBox.Yes:
             if event:
@@ -207,7 +206,7 @@ class WidgetBase(BaseClassTemplate):
         self.uiBase.wao_selectConfig.clear()
         self.uiBase.wao_selectConfig.addItem(str(filepath[0]))
 
-        self.loadConfig()
+        self.loadConfig(configFile=self.uiBase.wao_selectConfig.currentText())
 
     def update_displayDock(self):
         guilty_guy = self.sender().text()
@@ -217,7 +216,7 @@ class WidgetBase(BaseClassTemplate):
         elif self.docks[guilty_guy].isVisible():
             self.docks[guilty_guy].close()
 
-    def add_dispDock(self, name: str, parent, type: str="pg_image") -> Dock:
+    def add_dispDock(self, name: str, parent, type: str = "pg_image") -> Dock:
         checkBox = QtGui.QCheckBox(name, parent)
         checkBox.clicked.connect(self.update_displayDock)
         checkableAction = QtGui.QWidgetAction(parent)
@@ -350,12 +349,8 @@ class WidgetBase(BaseClassTemplate):
         roi_y = np.ones((nssp_tot, 5), dtype=int)
         for idx_ssp in range(nssp_tot):
             (x, y) = (valid_sub[0][idx_ssp], valid_sub[1][idx_ssp])
-            roi_x[idx_ssp, :] = [
-                    x, x, x + sspsize, x + sspsize, x
-            ]
-            roi_y[idx_ssp, :] = [
-                    y, y + sspsize, y + sspsize, y, y
-            ]
+            roi_x[idx_ssp, :] = [x, x, x + sspsize, x + sspsize, x]
+            roi_y[idx_ssp, :] = [y, y + sspsize, y + sspsize, y, y]
         self.PupilLines = PupilBoxes(roi_x, roi_y)
         pg_image.addItem(self.PupilLines)
 
