@@ -105,7 +105,14 @@ target_compile_options(carma
     $<$<COMPILE_LANGUAGE:CXX>:-DVERSION_INFO=${VERSION_INFO}>
     $<$<COMPILE_LANGUAGE:CUDA>:${CUDA_ARCH} -use_fast_math >
     PRIVATE
-    $<$<COMPILE_LANGUAGE:CXX>:-DUSE_MAGMA ${MAGMA_CFLAGS_OTHER}>
+    $<$<COMPILE_LANGUAGE:CXX>:${MAGMA_CFLAGS_OTHER}>
+)
+
+target_compile_definitions(carma
+    PUBLIC
+    $<$<COMPILE_LANGUAGE:CXX>:VERSION_INFO=${VERSION_INFO}> #USE_UVA>
+    PRIVATE
+    $<$<COMPILE_LANGUAGE:CXX>:USE_MAGMA>
 )
 
 find_package(CUDA REQUIRED)
