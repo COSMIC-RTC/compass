@@ -471,6 +471,11 @@ template <class T>
 int carma_cula_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals,
                    carma_obj<T> *mod2act, carma_obj<T> *mes2mod);
 
+#ifdef CAN_DO_HALF
+int custom_half_axpy(half alpha, half *source, int incx, int incy, int N,
+                     half *dest, carma_device *device);
+#endif
+
 extern "C" {
 //  void sumGetNumBlocksAndThreads(int n, int device, int &blocks, int
 //  &threads); int snapTransformSize(int dataSize);

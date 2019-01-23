@@ -1395,7 +1395,8 @@ template void carma_obj<cuDoubleComplex>::axpy(cuDoubleComplex alpha,
 #ifdef CAN_DO_HALF
 template <>
 void carma_obj<half>::axpy(half alpha, caObjH *source, int incx, int incy) {
-  DEBUG_TRACE("Not implemented for half precision");
+  custom_half_axpy(alpha, source->getData(), incx, incy, this->getNbElem(),
+                   this->d_data, current_context->get_device(this->device));
 }
 #endif
 

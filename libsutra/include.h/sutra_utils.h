@@ -50,8 +50,9 @@ int sutra_invgene(carma_obj<T> *imat, carma_obj<T> *cmat,
                   carma_obj<T> *mes2mod, int nfilt);
 template <class T>
 int remove_avg(T *data, int N, carma_device *device);
+template <class T>
+int mult_vect(T *d_data, T *scale, int N, carma_device *device);
 
-int mult_vect(float *d_data, float *scale, int N, carma_device *device);
 int mult_vect(float *d_data, float *scale, float gain, int N,
               carma_device *device);
 int mult_vect(float *d_data, float gain, int N, carma_device *device);

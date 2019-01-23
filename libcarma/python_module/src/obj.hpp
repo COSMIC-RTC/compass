@@ -201,6 +201,9 @@ void declare_carmaWrap_obj(py::module &mod, std::string suffix)
       },
            "this method performs one of the matrix‐vector operations vecty = alpha * op(mat) * vectx + beta * vecty",
            py::arg("vectx"), py::arg("alpha") = 1, py::arg("op") = 'N', py::arg("vecty")=nullptr, py::arg("beta") = 0) // &Class::gemv)
+      .def("axpy", [](carma_obj<half> &mat, float alpha, carma_obj<half> *source, int incx=1, int incy=1) {
+          mat.axpy(__float2half(alpha), source, incx, incy);
+      }, "TODO", py::arg("alpha"), py::arg("source").none(false), py::arg("incx")=1, py::arg("incy")=1)
 #endif
       // void ger(T_data alpha, carma_obj<T_data> *vectx, int incx,
       //          carma_obj<T_data> *vecty, int incy, int lda);

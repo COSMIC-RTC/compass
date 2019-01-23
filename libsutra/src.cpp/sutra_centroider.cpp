@@ -142,3 +142,6 @@ int sutra_centroider<T>::set_centroids_ref(T *centroids_ref) {
 }
 
 template class sutra_centroider<float>;
+#ifdef CAN_DO_HALF
+template class sutra_centroider<half>;
+#endif

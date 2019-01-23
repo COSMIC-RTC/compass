@@ -49,7 +49,7 @@ int sutra_centroider_cog<T>::get_cog(T *intensities, T *slopes, bool noise) {
     }
   }
   DEBUG_TRACE("this->wfs was not initialized");
-  return EXIT_FAILURE;
+  return EXIT_SUCCESS;
 }
 
 template <typename T>
@@ -59,7 +59,24 @@ int sutra_centroider_cog<T>::get_cog() {
                          true);
 
   DEBUG_TRACE("this->wfs was not initialized");
-  return EXIT_FAILURE;
+  return EXIT_SUCCESS;
 }
 
 template class sutra_centroider_cog<float>;
+
+#ifdef CAN_DO_HALF
+template <>
+int sutra_centroider_cog<half>::get_cog(half *intensities, half *slopes,
+                                        bool noise) {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_FAILURE;
+}
+
+template <>
+int sutra_centroider_cog<half>::get_cog() {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_FAILURE;
+}
+
+template class sutra_centroider_cog<half>;
+#endif
