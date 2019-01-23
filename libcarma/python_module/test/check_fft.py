@@ -4,7 +4,7 @@ import numpy.testing as npt
 import carmaWrap as ch
 import time
 
-c = ch.carmaWrap_context.get_instance()
+c = ch.context.get_instance()
 
 sizex = 256
 sizey = 512
@@ -24,9 +24,9 @@ def test_fft_C2C():
     nElem = m * n
 
     #generating random carma_obj
-    C1 = ch.carmaWrap_obj_ComplexD2D(c, dims=np.array((m, n), dtype=np.int64))
+    C1 = ch.obj_ComplexD2D(c, dims=np.array((m, n), dtype=np.int64))
     C1.random(time.clock() * 10**6)
-    C2 = ch.carmaWrap_obj_ComplexD2D(c, dims=np.array((m, n), dtype=np.int64))
+    C2 = ch.obj_ComplexD2D(c, dims=np.array((m, n), dtype=np.int64))
 
     #matrix associated to carma_obj
     C1_data = C1.device2host()
@@ -125,7 +125,7 @@ def test_fft_R2C_C2R():
     ncElem = (n + 1) / 2 * m
 
     #generating random carma_obj
-    R1 = ch.carmaWrap_obj_Double2D(c, dims=np.array((m, n), dtype=np.int64))
+    R1 = ch.obj_Double2D(c, dims=np.array((m, n), dtype=np.int64))
     R1.random(time.clock() * 10**6)
 
     #matrix associated to carma_obj
@@ -218,9 +218,9 @@ def Ntest_fft_multi():
 
     nElem = m * n
 
-    C1 = ch.carmaWrap_obj_ComplexD3D(c, dims=np.array((m, n, l), dtype=np.int64))
-    C2 = ch.carmaWrap_obj_ComplexD3D(c, dims=np.array((m, n, l), dtype=np.int64))
-    C3 = ch.carmaWrap_obj_ComplexD3D(c, dims=np.array((m, n, l), dtype=np.int64))
+    C1 = ch.obj_ComplexD3D(c, dims=np.array((m, n, l), dtype=np.int64))
+    C2 = ch.obj_ComplexD3D(c, dims=np.array((m, n, l), dtype=np.int64))
+    C3 = ch.obj_ComplexD3D(c, dims=np.array((m, n, l), dtype=np.int64))
 
     cpu_F = np.ones((m, n, l), dtype=np.complex128)
     cpu_B = np.ones((m, n, l), dtype=np.complex128)

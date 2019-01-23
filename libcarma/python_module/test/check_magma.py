@@ -10,7 +10,7 @@ min_mn = min(m, n)
 dec = 4
 prec = 10**(-dec)
 
-c = ch.carmaWrap_context.get_instance()
+c = ch.context.get_instance()
 
 print("precision: ", prec)
 
@@ -19,12 +19,12 @@ def test_svd():
 
     a = np.random.rand(m, n).astype(np.float32)
 
-    h_mat = ch.carmaWrap_host_obj_Float2D(data=a, mallocType="pagelock")
-    h_eig = ch.carmaWrap_host_obj_Float1D(
+    h_mat = ch.context.host_obj_Float2D(data=a, mallocType="pagelock")
+    h_eig = ch.context.host_obj_Float1D(
             data=np.zeros([min_mn], dtype=np.float32), mallocType="pagelock")
-    h_U = ch.carmaWrap_host_obj_Float2D(
+    h_U = ch.context.host_obj_Float2D(
             data=np.zeros((m, m), dtype=np.float32), mallocType="pagelock")
-    h_VT = ch.carmaWrap_host_obj_Float2D(
+    h_VT = ch.context.host_obj_Float2D(
             data=np.zeros((n, n), dtype=np.float32), mallocType="pagelock")
 
     Mat = a
@@ -62,8 +62,8 @@ def test_getri_cpu():
 
     a = +np.identity(m, dtype=np.float32)
 
-    h_mat = ch.carmaWrap_host_obj_Float2D(data=a, mallocType="pagelock")
-    h_mat2 = ch.carmaWrap_host_obj_Float2D(obj=h_mat, mallocType="pagelock")
+    h_mat = ch.context.host_obj_Float2D(data=a, mallocType="pagelock")
+    h_mat2 = ch.context.host_obj_Float2D(obj=h_mat, mallocType="pagelock")
 
     ch.getri_host_Float(h_mat2)
 
@@ -84,8 +84,8 @@ def test_potri_cpu():
     a = np.dot(a, a.T)
     a = +np.identity(m, dtype=np.float32)
 
-    h_mat = ch.carmaWrap_host_obj_Float2D(data=a, mallocType="pagelock")
-    h_mat2 = ch.carmaWrap_host_obj_Float2D(obj=h_mat, mallocType="pagelock")
+    h_mat = ch.context.host_obj_Float2D(data=a, mallocType="pagelock")
+    h_mat2 = ch.context.host_obj_Float2D(obj=h_mat, mallocType="pagelock")
 
     ch.potri_host_Float(h_mat2)
 
@@ -102,20 +102,20 @@ def test_potri_cpu():
 
 def test_getri_gpu():
 
-    d_mat = ch.carmaWrap_obj_Float2D(c, dims=np.array([m, m], dtype=np.int64))
+    d_mat = ch.obj_Float2D(c, dims=np.array([m, m], dtype=np.int64))
     d_mat.random(time.clock() * 10**6)
     a = d_mat.device2host()
     a = a.T
     a.reshape(a.T.shape)
 
-    identity = ch.carmaWrap_obj_Float2D(c, data=np.identity(m, dtype=np.float32))
+    identity = ch.obj_Float2D(c, data=np.identity(m, dtype=np.float32))
 
     d_res = d_mat.gemm(d_mat, opA='n', opB='t', beta=1, C=identity)
 
     b = np.dot(a, a.T)
     mat = d_res.device2host()
 
-    d_mat = ch.carmaWrap_obj_Float2D(obj=d_res)
+    d_mat = ch.obj_Float2D(obj=d_res)
     ch.getri_Float(d_res)
 
     d_id = d_mat.gemm(d_res)
@@ -130,20 +130,20 @@ def test_getri_gpu():
 
 def test_potri_gpu():
 
-    d_mat = ch.carmaWrap_obj_Float2D(c, dims=np.array([m, m], dtype=np.int64))
+    d_mat = ch.obj_Float2D(c, dims=np.array([m, m], dtype=np.int64))
     d_mat.random(time.clock() * 10**6)
     a = d_mat.device2host()
     a = a.T
     a.reshape(a.T.shape)
 
-    identity = ch.carmaWrap_obj_Float2D(c, data=np.identity(m, dtype=np.float32))
+    identity = ch.obj_Float2D(c, data=np.identity(m, dtype=np.float32))
 
     d_res = d_mat.gemm(d_mat, opA='n', opB='t', beta=1, C=identity)
 
     b = np.dot(a, a.T)
     mat = d_res.device2host()
 
-    d_mat = ch.carmaWrap_obj_Float2D(obj=d_res)
+    d_mat = ch.obj_Float2D(obj=d_res)
     ch.potri_Float(d_res)
 
     d_id = d_mat.gemm(d_res)
@@ -158,8 +158,8 @@ def test_potri_gpu():
 
 def test_syevd():
 
-    d_mat = ch.carmaWrap_obj_Float2D(c, dims=np.array([m, m], dtype=np.int64))
-    d_U = ch.carmaWrap_obj_Float2D(c, dims=np.array([m, m], dtype=np.int64))
+    d_mat = ch.obj_Float2D(c, dims=np.array([m, m], dtype=np.int64))
+    d_U = ch.obj_Float2D(c, dims=np.array([m, m], dtype=np.int64))
     h_EV = np.zeros(m, dtype=np.float32)
     h_EV2 = np.zeros(m, dtype=np.float32)
 

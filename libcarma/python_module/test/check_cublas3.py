@@ -16,7 +16,7 @@ print("")
 print("Test cublas 3")
 print("precision: ", prec)
 
-c = ch.carmaWrap_context.get_instance()
+c = ch.context.get_instance()
 
 
 def test_gemm():
@@ -39,13 +39,13 @@ def test_gemm():
     # A = A.dot(A.T)
     # B = B.dot(B.T)
 
-    matA = ch.carmaWrap_obj_float(c, A)
-    matAT = ch.carmaWrap_obj_float(c, AT)
-    matB = ch.carmaWrap_obj_float(c, B)
-    matBT = ch.carmaWrap_obj_float(c, BT)
-    matC = ch.carmaWrap_obj_float(c, C)
-    matC2 = ch.carmaWrap_obj_float(c, C2)
-    matC3 = ch.carmaWrap_obj_float(c, C3)
+    matA = ch.obj_float(c, A)
+    matAT = ch.obj_float(c, AT)
+    matB = ch.obj_float(c, B)
+    matBT = ch.obj_float(c, BT)
+    matC = ch.obj_float(c, C)
+    matC2 = ch.obj_float(c, C2)
+    matC3 = ch.obj_float(c, C3)
 
     matA.random_host(seed, 'U')
     matAT.random_host(seed, 'U')
@@ -98,9 +98,9 @@ def test_symm():
     C = np.empty((sizek, sizen), dtype=np.float32)
 
     #generating random matrices and associated carma_obj
-    matA = ch.carmaWrap_obj_float(c, A)  #np.zeros((sizek, sizek)))
-    matB = ch.carmaWrap_obj_float(c, B)  #np.zeros((sizek, sizen)))
-    matC = ch.carmaWrap_obj_float(c, C)  #np.zeros((sizek, sizen)))
+    matA = ch.obj_float(c, A)  #np.zeros((sizek, sizek)))
+    matB = ch.obj_float(c, B)  #np.zeros((sizek, sizen)))
+    matC = ch.obj_float(c, C)  #np.zeros((sizek, sizen)))
 
     matA.random_host(seed, 'U')
     matB.random_host(seed * 2, 'U')
@@ -154,8 +154,8 @@ def test_dgmm():
     # C,A matrices, d vector (diagonal matrix as a vector)
 
     #generating random matrices and associated carma_obj
-    matA = ch.carmaWrap_obj_float(c, np.zeros((sizek, sizek), dtype=np.float32))
-    Vectx = ch.carmaWrap_obj_float(c, np.zeros((sizek), dtype=np.float32))
+    matA = ch.obj_float(c, np.zeros((sizek, sizek), dtype=np.float32))
+    Vectx = ch.obj_float(c, np.zeros((sizek), dtype=np.float32))
 
     matA.random_host(seed, 'U')
     Vectx.random_host(seed * 2, 'U')
@@ -197,8 +197,8 @@ def test_syrk():
     #A matrix, C symetric matrix
 
     #generating random matrices and associated carma_obj
-    matA = ch.carmaWrap_obj_float(c, np.zeros((sizen, sizek)))
-    matC = ch.carmaWrap_obj_float(c, np.zeros((sizen, sizen)))
+    matA = ch.obj_float(c, np.zeros((sizen, sizek)))
+    matC = ch.obj_float(c, np.zeros((sizen, sizen)))
 
     matA.random_host(seed, 'U')
     matC.random_host(seed * 2, 'U')
@@ -248,9 +248,9 @@ def test_syrkx():
     #A matrix, C symetric matrix
 
     #generating random matrices and associated carma_obj
-    matA = ch.carmaWrap_obj_float(c, np.zeros((sizen, sizek)))
-    matB = ch.carmaWrap_obj_float(c, np.zeros((sizen, sizek)))
-    matC = ch.carmaWrap_obj_float(c, np.zeros((sizen, sizen)))
+    matA = ch.obj_float(c, np.zeros((sizen, sizek)))
+    matB = ch.obj_float(c, np.zeros((sizen, sizek)))
+    matC = ch.obj_float(c, np.zeros((sizen, sizen)))
 
     matA.random_host(seed, 'U')
     matB.random_host(seed * 2, 'U')
@@ -304,8 +304,8 @@ def test_geam():
     #A,B matrices
 
     #generating random matrices and associated carma_obj
-    matA = ch.carmaWrap_obj_float(c, np.empty((sizem, sizen)))
-    matB = ch.carmaWrap_obj_float(c, np.empty((sizem, sizen)))
+    matA = ch.obj_float(c, np.empty((sizem, sizen)))
+    matB = ch.obj_float(c, np.empty((sizem, sizen)))
 
     matA.random_host(seed, 'U')
     matB.random_host(seed * 2, 'U')

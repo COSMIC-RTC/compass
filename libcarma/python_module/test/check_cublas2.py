@@ -15,13 +15,13 @@ print("")
 print("Test cublas 2")
 print("Precision: ", prec)
 
-c = ch.carmaWrap_context.get_instance()
+c = ch.context.get_instance()
 
-#generatig random carmaWrap_obj 2d
+#generatig random context.obj 2d
 
-#generating random symetric carmaWrap_obj 2d
+#generating random symetric context.obj 2d
 
-#generating 3 random carmaWrap_obj 1d
+#generating 3 random context.obj 1d
 
 
 def test_gemv():
@@ -39,13 +39,13 @@ def test_gemv():
     alpha = 2
     beta = 1
 
-    Mat = ch.carmaWrap_obj_float(c, A)
-    MatT = ch.carmaWrap_obj_float(c, AT)
+    Mat = ch.obj_float(c, A)
+    MatT = ch.obj_float(c, AT)
     Mat.random_host(seed, 'U')
     MatT.random_host(seed * 2, 'U')
 
-    Vectx = ch.carmaWrap_obj_float(c, x)
-    Vecty = ch.carmaWrap_obj_float(c, y)
+    Vectx = ch.obj_float(c, x)
+    Vecty = ch.obj_float(c, y)
     Vectx.random_host(seed * 3, 'U')
     Vecty.random_host(seed * 4, 'U')
 
@@ -58,7 +58,7 @@ def test_gemv():
     y2 = alpha * A.dot(x)
     y3 = alpha * AT.T.dot(x)
 
-    # Vecty = ch.carmaWrap_obj_float(c, np.zeros((sizem), dtype=np.float32))
+    # Vecty = ch.obj_float(c, np.zeros((sizem), dtype=np.float32))
 
     Mat.gemv(Vectx, alpha, 'N', Vecty, beta)
     Vecty_2 = Mat.gemv(Vectx, alpha, 'N')
@@ -74,13 +74,13 @@ def test_ger():
     # testing: A= x.y
     #   and  : A= x.y+ A
     # x and y are vectors, A a matrix
-    Mat = ch.carmaWrap_obj_float(c, np.zeros((sizem, sizen), dtype=np.float32))
+    Mat = ch.obj_float(c, np.zeros((sizem, sizen), dtype=np.float32))
     Mat.random_host(seed * 2, 'U')
 
-    Vectx = ch.carmaWrap_obj_float(c, np.zeros((sizen), dtype=np.float32))
+    Vectx = ch.obj_float(c, np.zeros((sizen), dtype=np.float32))
     Vectx.random_host(seed * 3, 'U')
 
-    Vecty = ch.carmaWrap_obj_float(c, np.zeros((sizem), dtype=np.float32))
+    Vecty = ch.obj_float(c, np.zeros((sizem), dtype=np.float32))
     Vecty.random_host(seed * 4, 'U')
 
     x = np.array(Vectx)
@@ -102,16 +102,16 @@ def test_symv():
     # testing: y=A.x
     # x and y are vector, A a symetric matrix
 
-    MatSym = ch.carmaWrap_obj_float(c, np.zeros((sizem, sizem), dtype=np.float32))
+    MatSym = ch.obj_float(c, np.zeros((sizem, sizem), dtype=np.float32))
     MatSym.random_host(seed * 2, 'U')
     data_R = np.array(MatSym)
     data_R = data_R + data_R.T
-    MatSym = ch.carmaWrap_obj_float(c, data_R)
+    MatSym = ch.obj_float(c, data_R)
 
-    Vectx = ch.carmaWrap_obj_float(c, np.zeros((sizem), dtype=np.float32))
+    Vectx = ch.obj_float(c, np.zeros((sizem), dtype=np.float32))
     Vectx.random_host(seed * 5, 'U')
 
-    Vecty = ch.carmaWrap_obj_float(c, np.zeros((sizem), dtype=np.float32))
+    Vecty = ch.obj_float(c, np.zeros((sizem), dtype=np.float32))
 
     A = np.array(MatSym)
 

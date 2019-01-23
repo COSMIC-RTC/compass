@@ -134,7 +134,7 @@ target_link_libraries(sutra PUBLIC carma ${BRAHMA_LIBS} )
 
 add_subdirectory(python_module)
 
-set(INSTALL_PKGCONFIG_DIR "${CMAKE_INSTALL_PREFIX}/share/pkgconfig" CACHE PATH "Installation directory for pkgconfig (.pc) files")
+set(INSTALL_PKGCONFIG_DIR "lib/pkgconfig" CACHE PATH "Installation directory for pkgconfig (.pc) files")
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/sutra.pc.in ${CMAKE_CURRENT_BINARY_DIR}/sutra.pc @ONLY)
 
