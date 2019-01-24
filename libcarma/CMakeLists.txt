@@ -63,7 +63,6 @@ add_library(carma SHARED
     ./src.cpp/carma_ksparse.cpp
     ./src.cpp/carma_magma.cpp
     ./src.cpp/carma_multithread.cpp
-    ./src.cpp/carma_rng.cpp
     ./src.cpp/carma_sparse_host_obj.cpp
     ./src.cpp/carma_sparse_obj.cpp
     ./src.cpp/carma_streams.cpp
@@ -102,7 +101,6 @@ target_include_directories(carma
 
 target_compile_options(carma
     PUBLIC
-    $<$<COMPILE_LANGUAGE:CXX>:-DVERSION_INFO=${VERSION_INFO}>
     $<$<COMPILE_LANGUAGE:CUDA>:${CUDA_ARCH} -use_fast_math >
     PRIVATE
     $<$<COMPILE_LANGUAGE:CXX>:${MAGMA_CFLAGS_OTHER}>

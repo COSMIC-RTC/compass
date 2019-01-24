@@ -23,10 +23,6 @@
 #include <iostream>
 #include <typeinfo>  // operator typeid
 
-#if CUDA_HIGHEST_SM >= 60
-#define CAN_DO_HALF 1
-#endif
-
 /*
  create a memory object
  void *memory
@@ -64,17 +60,6 @@ enum MemType {
   MT_GENEPIN
 };
 // should add texture ?
-
-struct doubleint {
-  int start;
-  int nbInflu;
-};
-
-template <class T>
-struct tuple_t {
-  int pos;
-  T data;
-};
 
 template <class T_data>
 class carma_data {
@@ -269,7 +254,15 @@ class carma_obj {
   int transpose(carma_obj<T_data> *source);
   // carma_obj<T_data>& operator= (const carma_obj<T_data>& obj);
 
-  /**< Cublas V2 */
+  /*
+   *  ____  _        _    ____  _
+   * | __ )| |      / \  / ___|/ |
+   * |  _ \| |     / _ \ \___ \| |
+   * | |_) | |___ / ___ \ ___) | |
+   * |____/|_____/_/   \_\____/|_|
+   *
+   */
+
   int aimax(int incx);
   int aimin(int incx);
   T_data asum(int incx);
@@ -281,12 +274,30 @@ class carma_obj {
   void axpy(T_data alpha, carma_obj<T_data> *source, int incx, int incy);
   void rot(carma_obj<T_data> *source, int incx, int incy, T_data sc, T_data ss);
 
+  /*
+   *  ____  _        _    ____ ____
+   * | __ )| |      / \  / ___|___ \
+   * |  _ \| |     / _ \ \___ \ __) |
+   * | |_) | |___ / ___ \ ___) / __/
+   * |____/|_____/_/   \_\____/_____|
+   *
+   */
+
   void gemv(char trans, T_data alpha, carma_obj<T_data> *matA, int lda,
             carma_obj<T_data> *vectx, int incx, T_data beta, int incy);
   void ger(T_data alpha, carma_obj<T_data> *vectx, int incx,
            carma_obj<T_data> *vecty, int incy, int lda);
   void symv(char uplo, T_data alpha, carma_obj<T_data> *matA, int lda,
             carma_obj<T_data> *vectx, int incx, T_data beta, int incy);
+
+  /*
+   *  ____  _        _    ____ _____
+   * | __ )| |      / \  / ___|___ /
+   * |  _ \| |     / _ \ \___ \ |_ \
+   * | |_) | |___ / ___ \ ___) |__) |
+   * |____/|_____/_/   \_\____/____/
+   *
+   */
 
   void gemm(char transa, char transb, T_data alpha, carma_obj<T_data> *matA,
             int lda, carma_obj<T_data> *matB, int ldb, T_data beta, int ldc);
@@ -327,7 +338,7 @@ typedef carma_obj<float2> caObjS2;
 typedef carma_obj<double2> caObjD2;
 typedef carma_obj<cuFloatComplex> caObjC;
 typedef carma_obj<cuDoubleComplex> caObjZ;
-typedef carma_obj<tuple_t<float> > caObjTF;
+// typedef carma_obj<tuple_t<float>> caObjTF;
 
 #ifdef CAN_DO_HALF
 typedef carma_obj<half> caObjH;

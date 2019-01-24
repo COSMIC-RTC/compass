@@ -132,11 +132,12 @@ void clip_array(cuDoubleComplex *d_data, cuDoubleComplex min,
                 cuDoubleComplex max, int N, carma_device *device) {
   throw "not implemented";
 }
-template <>
-void clip_array(tuple_t<float> *d_data, tuple_t<float> min, tuple_t<float> max,
-                int N, carma_device *device) {
-  throw "not implemented";
-}
+// template <>
+// void clip_array(tuple_t<float> *d_data, tuple_t<float> min, tuple_t<float>
+// max,
+//                 int N, carma_device *device) {
+//   throw "not implemented";
+// }
 
 template <class T>
 __global__ void krnl_fillindex(T *odata, T *idata, int *indx, int N) {

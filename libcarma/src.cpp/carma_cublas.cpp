@@ -1,8 +1,20 @@
 #include <carma_cublas.h>
-#include <carma_obj.h>
-#include <carma_sparse_obj.h>
+#include <carma_utils.h>
+#include <iostream>
 #include <stdexcept>
 #include <string>
+
+#include <type_list.hpp>
+
+#ifdef CAN_DO_HALF
+using TypeListObj =
+    GenericTypeList<int, unsigned int, float, double, half, cuFloatComplex,
+                    cuDoubleComplex>;  // , tuple_t<float>>;
+#else
+using TypeListObj =
+    GenericTypeList<int, unsigned int, float, double, cuFloatComplex,
+                    cuDoubleComplex>;  // , tuple_t<float>>;
+#endif
 
 #define CARMA_NIY                                            \
   {                                                          \
@@ -131,6 +143,7 @@ int carma_where_gen(cublasHandle_t cublas_handle, int n, const T_data *vect,
 template <class T>
 int carma_where_amax(cublasHandle_t cublas_handle, int n, const T *vect,
                      int incx) CARMA_NIY;
+/**< Specialized template for carma_amax executable selection */
 template <>
 int carma_where_amax(cublasHandle_t cublas_handle, int n, const float *vect,
                      int incx) {
@@ -157,6 +170,7 @@ int carma_where_amax(cublasHandle_t cublas_handle, int n,
 template <class T>
 int carma_where_amin(cublasHandle_t cublas_handle, int n, const T *vect,
                      int incx) CARMA_NIY;
+/**< Specialized template for carma_amin executable selection */
 template <>
 int carma_where_amin(cublasHandle_t cublas_handle, int n, const float *vect,
                      int incx) {
@@ -194,6 +208,7 @@ T_data carma_asum_gen(cublasHandle_t cublas_handle, int n, const T_data *vect,
 template <class T>
 T carma_getasum(cublasHandle_t cublas_handle, int n, const T *vect,
                 int incx) CARMA_NIY;
+/**< Specialized template for carma_getasum executable selection */
 template <>
 float carma_getasum(cublasHandle_t cublas_handle, int n, const float *vect,
                     int incx) {
@@ -210,7 +225,7 @@ template <class T_data>
 cublasStatus_t carma_axpy(cublasHandle_t cublas_handle, int n,
                           const T_data alpha, const T_data *vectx, int incx,
                           T_data *vecty, int incy) CARMA_NIY;
-/**< Generic template for axpy executable selection */
+/**< Specialized template for carma_axpy executable selection */
 template <>
 cublasStatus_t carma_axpy<float>(cublasHandle_t cublas_handle, int n,
                                  const float alpha, const float *vectx,
@@ -243,18 +258,13 @@ cublasStatus_t carma_axpy<cuDoubleComplex>(cublasHandle_t cublas_handle, int n,
       cublasZaxpy(cublas_handle, n, &alpha, vectx, incx, vecty, incy));
 }
 
-/** These templates are used to select the proper copy executable from T_data*/
+/** These templates are used to select the proper copy
+ * executable from T_data*/
 template <class T_data>
 cublasStatus_t carma_copy(cublasHandle_t cublas_handle, int n,
                           const T_data *vectx, int incx, T_data *vecty,
                           int incy) CARMA_NIY;
-/**< Generic template for copy executable selection */
-template cublasStatus_t carma_copy(cublasHandle_t cublas_handle, int n,
-                                   const int *vectx, int incx, int *vecty,
-                                   int incy);
-template cublasStatus_t carma_copy(cublasHandle_t cublas_handle, int n,
-                                   const unsigned int *vectx, int incx,
-                                   unsigned int *vecty, int incy);
+/**< Specialized template for carma_copy executable selection */
 template <>
 cublasStatus_t carma_copy<float>(cublasHandle_t cublas_handle, int n,
                                  const float *vectx, int incx, float *vecty,
@@ -285,16 +295,12 @@ cublasStatus_t carma_copy<cuDoubleComplex>(cublasHandle_t cublas_handle, int n,
       cublasZcopy(cublas_handle, n, vectx, incx, vecty, incy));
 }
 
-/** These templates are used to select the proper dot executable from T_data*/
+/** These templates are used to select the proper dot
+ * executable from T_data*/
 template <class T_data>
 T_data carma_dot(cublasHandle_t cublas_handle, int n, T_data *vectx, int incx,
                  T_data *vecty, int incy) CARMA_NIY;
-/**< Generic template for dot executable selection */
-template int carma_dot(cublasHandle_t cublas_handle, int n, int *vectx,
-                       int incx, int *vecty, int incy);
-template unsigned int carma_dot(cublasHandle_t cublas_handle, int n,
-                                unsigned int *vectx, int incx,
-                                unsigned int *vecty, int incy);
+/**< Specialized template for carma_dot executable selection */
 template <>
 float carma_dot<float>(cublasHandle_t cublas_handle, int n, float *vectx,
                        int incx, float *vecty, int incy) {
@@ -334,15 +340,12 @@ cuDoubleComplex carma_dot<cuDoubleComplex>(cublasHandle_t cublas_handle, int n,
   return result;
 }
 
-/** These templates are used to select the proper nrm2 executable from T_data*/
+/** These templates are used to select the proper nrm2
+ * executable from T_data*/
 template <class T_data>
 T_data carma_nrm2(cublasHandle_t cublas_handle, int n, T_data *vect,
                   int incx) CARMA_NIY;
-/**< Generic template for nrm2 executable selection */
-template int carma_nrm2(cublasHandle_t cublas_handle, int n, int *vect,
-                        int incx);
-template unsigned int carma_nrm2(cublasHandle_t cublas_handle, int n,
-                                 unsigned int *vect, int incx);
+/**< Specialized template for carma_nrm2 executable selection */
 template <>
 float carma_nrm2<float>(cublasHandle_t cublas_handle, int n, float *vect,
                         int incx) {
@@ -359,25 +362,20 @@ double carma_nrm2<double>(cublasHandle_t cublas_handle, int n, double *vect,
 }
 /*add
  template<>
- float carma_nrm2<cuFloatComplex>(cublasHandle_t cublas_handle, int n,
- cuFloatComplex *vect, int incx) { float result = 0;
- carma_checkCublasStatus(cublasScnrm2(cublas_handle,n, vect,incx,&result));
- return result;
+ float carma_nrm2<cuFloatComplex>(cublasHandle_t
+ cublas_handle, int n, cuFloatComplex *vect, int incx)
+ { float result = 0;
+ carma_checkCublasStatus(cublasScnrm2(cublas_handle,n,
+ vect,incx,&result)); return result;
  }*/
 
-/** These templates are used to select the proper rot executable from T_data*/
+/** These templates are used to select the proper rot
+ * executable from T_data*/
 template <class T_data>
 cublasStatus_t carma_rot(cublasHandle_t cublas_handle, int n, T_data *vectx,
                          int incx, T_data *vecty, int incy, T_data sc,
                          T_data ss) CARMA_NIY;
-/**< Generic template for rot executable selection */
-template cublasStatus_t carma_rot(cublasHandle_t cublas_handle, int n,
-                                  int *vectx, int incx, int *vecty, int incy,
-                                  int sc, int ss);
-template cublasStatus_t carma_rot(cublasHandle_t cublas_handle, int n,
-                                  unsigned int *vectx, int incx,
-                                  unsigned int *vecty, int incy,
-                                  unsigned int sc, unsigned int ss);
+/**< Specialized template for carma_rot executable selection */
 template <>
 cublasStatus_t carma_rot<float>(cublasHandle_t cublas_handle, int n,
                                 float *vectx, int incx, float *vecty, int incy,
@@ -393,16 +391,12 @@ cublasStatus_t carma_rot<double>(cublasHandle_t cublas_handle, int n,
       cublasDrot(cublas_handle, n, vectx, incx, vecty, incy, &sc, &ss));
 }
 
-/** These templates are used to select the proper scal executable from T_data*/
+/** These templates are used to select the proper scal
+ * executable from T_data*/
 template <class T_data>
 cublasStatus_t carma_scal(cublasHandle_t cublas_handle, int n, T_data alpha,
                           T_data *vectx, int incx) CARMA_NIY;
-/**< Generic template for scal executable selection */
-template cublasStatus_t carma_scal(cublasHandle_t cublas_handle, int n,
-                                   int alpha, int *vectx, int incx);
-template cublasStatus_t carma_scal(cublasHandle_t cublas_handle, int n,
-                                   unsigned int alpha, unsigned int *vectx,
-                                   int incx);
+/**< Specialized template for carma_scal executable selection */
 template <>
 cublasStatus_t carma_scal<float>(cublasHandle_t cublas_handle, int n,
                                  float alpha, float *vectx, int incx) {
@@ -430,16 +424,12 @@ cublasStatus_t carma_scal<cuDoubleComplex>(cublasHandle_t cublas_handle, int n,
       cublasZscal(cublas_handle, n, &alpha, vectx, incx));
 }
 
-/** These templates are used to select the proper swap executable from T_data*/
+/** These templates are used to select the proper swap
+ * executable from T_data*/
 template <class T_data>
 cublasStatus_t carma_swap(cublasHandle_t cublas_handle, int n, T_data *vectx,
                           int incx, T_data *vecty, int incy) CARMA_NIY;
-/**< Generic template for swap executable selection */
-template cublasStatus_t carma_swap(cublasHandle_t cublas_handle, int n,
-                                   int *vectx, int incx, int *vecty, int incy);
-template cublasStatus_t carma_swap(cublasHandle_t cublas_handle, int n,
-                                   unsigned int *vectx, int incx,
-                                   unsigned int *vecty, int incy);
+/**< Specialized template for carma_swap executable selection */
 template <>
 cublasStatus_t carma_swap<float>(cublasHandle_t cublas_handle, int n,
                                  float *vectx, int incx, float *vecty,
@@ -469,23 +459,14 @@ cublasStatus_t carma_swap<cuDoubleComplex>(cublasHandle_t cublas_handle, int n,
       cublasZswap(cublas_handle, n, vectx, incx, vecty, incy));
 }
 
-/** These templates are used to select the proper gemv executable from T_data*/
+/** These templates are used to select the proper gemv
+ * executable from T_data*/
 template <class T_data>
 cublasStatus_t carma_gemv(cublasHandle_t cublas_handle, char trans, int m,
                           int n, T_data alpha, T_data *matA, int lda,
                           T_data *vectx, int incx, T_data beta, T_data *vecty,
                           int incy) CARMA_NIY;
-/**< Generic template for gemv executable selection */
-template cublasStatus_t carma_gemv(cublasHandle_t cublas_handle, char trans,
-                                   int m, int n, int alpha, int *matA, int lda,
-                                   int *vectx, int incx, int beta, int *vecty,
-                                   int incy);
-template cublasStatus_t carma_gemv(cublasHandle_t cublas_handle, char trans,
-                                   int m, int n, unsigned int alpha,
-                                   unsigned int *matA, int lda,
-                                   unsigned int *vectx, int incx,
-                                   unsigned int beta, unsigned int *vecty,
-                                   int incy);
+/**< Specialized template for carma_gemv executable selection */
 template <>
 cublasStatus_t carma_gemv<float>(cublasHandle_t cublas_handle, char trans,
                                  int m, int n, float alpha, float *matA,
@@ -530,19 +511,13 @@ cublasStatus_t carma_gemv<cuDoubleComplex>(cublasHandle_t cublas_handle,
                                              &beta, vecty, incy));
 }
 
-/** These templates are used to select the proper ger executable from T_data*/
+/** These templates are used to select the proper ger
+ * executable from T_data*/
 template <class T_data>
 cublasStatus_t carma_ger(cublasHandle_t cublas_handle, int m, int n,
                          T_data alpha, T_data *vectx, int incx, T_data *vecty,
                          int incy, T_data *matA, int lda) CARMA_NIY;
-/**< Generic template for ger executable selection */
-template cublasStatus_t carma_ger(cublasHandle_t cublas_handle, int m, int n,
-                                  int alpha, int *vectx, int incx, int *vecty,
-                                  int incy, int *matA, int lda);
-template cublasStatus_t carma_ger(cublasHandle_t cublas_handle, int m, int n,
-                                  unsigned int alpha, unsigned int *vectx,
-                                  int incx, unsigned int *vecty, int incy,
-                                  unsigned int *matA, int lda);
+/**< Specialized template for carma_ger executable selection */
 template <>
 cublasStatus_t carma_ger<float>(cublasHandle_t cublas_handle, int m, int n,
                                 float alpha, float *vectx, int incx,
@@ -577,23 +552,14 @@ cublasStatus_t carma_ger<cuDoubleComplex>(cublasHandle_t cublas_handle, int m,
                                              incx, vecty, incy, matA, lda));
 }
 
-/** These templates are used to select the proper symv executable from T_data*/
+/** These templates are used to select the proper symv
+ * executable from T_data*/
 template <class T_data>
 cublasStatus_t carma_symv(cublasHandle_t cublas_handle, char uplo, int n,
                           T_data alpha, T_data *matA, int lda, T_data *vectx,
                           int incx, T_data beta, T_data *vecty,
                           int incy) CARMA_NIY;
-/**< Generic template for symv executable selection */
-template cublasStatus_t carma_symv(cublasHandle_t cublas_handle, char uplo,
-                                   int n, int alpha, int *matA, int lda,
-                                   int *vectx, int incx, int beta, int *vecty,
-                                   int incy);
-template cublasStatus_t carma_symv(cublasHandle_t cublas_handle, char uplo,
-                                   int n, unsigned int alpha,
-                                   unsigned int *matA, int lda,
-                                   unsigned int *vectx, int incx,
-                                   unsigned int beta, unsigned int *vecty,
-                                   int incy);
+/**< Specialized template for carma_symv executable selection */
 template <>
 cublasStatus_t carma_symv<float>(cublasHandle_t cublas_handle, char uplo, int n,
                                  float alpha, float *matA, int lda,
@@ -636,24 +602,14 @@ cublasStatus_t carma_symv<cuDoubleComplex>(
                                              vecty, incy));
 }
 
-/** These templates are used to select the proper gemm executable from T_data*/
+/** These templates are used to select the proper gemm
+ * executable from T_data*/
 template <class T_data>
 cublasStatus_t carma_gemm(cublasHandle_t cublas_handle, char transa,
                           char transb, int m, int n, int k, T_data alpha,
                           T_data *matA, int lda, T_data *matB, int ldb,
                           T_data beta, T_data *matC, int ldc) CARMA_NIY;
-/**< Generic template for gemm executable selection */
-template cublasStatus_t carma_gemm(cublasHandle_t cublas_handle, char transa,
-                                   char transb, int m, int n, int k, int alpha,
-                                   int *matA, int lda, int *matB, int ldb,
-                                   int beta, int *matC, int ldc);
-template cublasStatus_t carma_gemm(cublasHandle_t cublas_handle, char transa,
-                                   char transb, int m, int n, int k,
-                                   unsigned int alpha, unsigned int *matA,
-                                   int lda, unsigned int *matB, int ldb,
-                                   unsigned int beta, unsigned int *matC,
-                                   int ldc);
-
+/**< Specialized template for carma_gemm executable selection */
 template <>
 cublasStatus_t carma_gemm<float>(cublasHandle_t cublas_handle, char transa,
                                  char transb, int m, int n, int k, float alpha,
@@ -717,29 +673,14 @@ cublasStatus_t carma_gemm<half>(cublasHandle_t cublas_handle, char transa,
 }
 #endif
 
-/** These templates are used to select the proper symm executable from T_data*/
+/** These templates are used to select the proper symm
+ * executable from T_data*/
 template <class T_data>
 cublasStatus_t carma_symm(cublasHandle_t cublas_handle, char side, char uplo,
                           int m, int n, T_data alpha, T_data *matA, int lda,
                           T_data *matB, int ldb, T_data beta, T_data *matC,
                           int ldc) CARMA_NIY;
-/**< Generic template for symm executable selection */
-template cublasStatus_t carma_symm(cublasHandle_t cublas_handle, char side,
-                                   char uplo, int m, int n, int alpha,
-                                   int *matA, int lda, int *matB, int ldb,
-                                   int beta, int *matC, int ldc);
-template cublasStatus_t carma_symm(cublasHandle_t cublas_handle, char side,
-                                   char uplo, int m, int n, unsigned int alpha,
-                                   unsigned int *matA, int lda,
-                                   unsigned int *matB, int ldb,
-                                   unsigned int beta, unsigned int *matC,
-                                   int ldc);
-#ifdef CAN_DO_HALF
-template cublasStatus_t carma_symm(cublasHandle_t cublas_handle, char side,
-                                   char uplo, int m, int n, half alpha,
-                                   half *matA, int lda, half *matB, int ldb,
-                                   half beta, half *matC, int ldc);
-#endif
+/**< Specialized template for carma_symm executable selection */
 template <>
 cublasStatus_t carma_symm<float>(cublasHandle_t cublas_handle, char side,
                                  char uplo, int m, int n, float alpha,
@@ -789,27 +730,13 @@ cublasStatus_t carma_symm<cuDoubleComplex>(cublasHandle_t cublas_handle,
                                              lda, matB, ldb, &beta, matC, ldc));
 }
 
-/** These templates are used to select the proper syrk executable from T_data*/
+/** These templates are used to select the proper syrk
+ * executable from T_data*/
 template <class T_data>
 cublasStatus_t carma_syrk(cublasHandle_t cublas_handle, char uplo, char transa,
                           int n, int k, T_data alpha, T_data *matA, int lda,
                           T_data beta, T_data *matC, int ldc) CARMA_NIY;
-/**< Generic template for syrk executable selection */
-template cublasStatus_t carma_syrk(cublasHandle_t cublas_handle, char uplo,
-                                   char transa, int n, int k, int alpha,
-                                   int *matA, int lda, int beta, int *matC,
-                                   int ldc);
-template cublasStatus_t carma_syrk(cublasHandle_t cublas_handle, char uplo,
-                                   char transa, int n, int k,
-                                   unsigned int alpha, unsigned int *matA,
-                                   int lda, unsigned int beta,
-                                   unsigned int *matC, int ldc);
-#ifdef CAN_DO_HALF
-template cublasStatus_t carma_syrk(cublasHandle_t cublas_handle, char uplo,
-                                   char transa, int n, int k, half alpha,
-                                   half *matA, int lda, half beta, half *matC,
-                                   int ldc);
-#endif
+/**< Specialized template for carma_syrk executable selection */
 template <>
 cublasStatus_t carma_syrk<float>(cublasHandle_t cublas_handle, char uplo,
                                  char transa, int n, int k, float alpha,
@@ -859,29 +786,14 @@ cublasStatus_t carma_syrk<cuDoubleComplex>(cublasHandle_t cublas_handle,
                                              &beta, matC, ldc));
 }
 
-/** These templates are used to select the proper syrkx executable from T_data*/
+/** These templates are used to select the proper
+ * syrkx executable from T_data*/
 template <class T_data>
 cublasStatus_t carma_syrkx(cublasHandle_t cublas_handle, char uplo, char transa,
                            int n, int k, T_data alpha, T_data *matA, int lda,
                            T_data *matB, int ldb, T_data beta, T_data *matC,
                            int ldc) CARMA_NIY;
-/**< Generic template for syrkx executable selection */
-template cublasStatus_t carma_syrkx(cublasHandle_t cublas_handle, char uplo,
-                                    char transa, int n, int k, int alpha,
-                                    int *matA, int lda, int *matB, int ldb,
-                                    int beta, int *matC, int ldc);
-template cublasStatus_t carma_syrkx(cublasHandle_t cublas_handle, char uplo,
-                                    char transa, int n, int k,
-                                    unsigned int alpha, unsigned int *matA,
-                                    int lda, unsigned int *matB, int ldb,
-                                    unsigned int beta, unsigned int *matC,
-                                    int ldc);
-#ifdef CAN_DO_HALF
-template cublasStatus_t carma_syrkx(cublasHandle_t cublas_handle, char uplo,
-                                    char transa, int n, int k, half alpha,
-                                    half *matA, int lda, half *matB, int ldb,
-                                    half beta, half *matC, int ldc);
-#endif
+/**< Specialized template for carma_syrkx executable selection */
 template <>
 cublasStatus_t carma_syrkx<float>(cublasHandle_t cublas_handle, char uplo,
                                   char transa, int n, int k, float alpha,
@@ -930,29 +842,14 @@ cublasStatus_t carma_syrkx<cuDoubleComplex>(cublasHandle_t cublas_handle,
                                               matB, ldb, &beta, matC, ldc));
 }
 
-/** These templates are used to select the proper geam executable from T_data*/
+/** These templates are used to select the proper geam
+ * executable from T_data*/
 template <class T_data>
 cublasStatus_t carma_geam(cublasHandle_t cublas_handle, char transa,
                           char transb, int m, int n, T_data alpha, T_data *matA,
                           int lda, T_data beta, T_data *matB, int ldb,
                           T_data *matC, int ldc) CARMA_NIY;
-/**< Generic template for geam executable selection */
-template cublasStatus_t carma_geam(cublasHandle_t cublas_handle, char transa,
-                                   char transb, int m, int n, int alpha,
-                                   int *matA, int lda, int beta, int *matB,
-                                   int ldb, int *matC, int ldc);
-template cublasStatus_t carma_geam(cublasHandle_t cublas_handle, char transa,
-                                   char transb, int m, int n,
-                                   unsigned int alpha, unsigned int *matA,
-                                   int lda, unsigned int beta,
-                                   unsigned int *matB, int ldb,
-                                   unsigned int *matC, int ldc);
-#ifdef CAN_DO_HALF
-template cublasStatus_t carma_geam(cublasHandle_t cublas_handle, char transa,
-                                   char transb, int m, int n, half alpha,
-                                   half *matA, int lda, half beta, half *matB,
-                                   int ldb, half *matC, int ldc);
-#endif
+/**< Specialized template for carma_geam executable selection */
 template <>
 cublasStatus_t carma_geam<float>(cublasHandle_t cublas_handle, char transa,
                                  char transb, int m, int n, float alpha,
@@ -999,12 +896,13 @@ cublasStatus_t carma_geam<cuDoubleComplex>(
                                              ldb, matC, ldc));
 }
 
-/** These templates are used to select the proper dgmm executable from T_data*/
+/** These templates are used to select the proper dgmm
+ * executable from T_data*/
 template <class T_data>
 cublasStatus_t carma_dgmm(cublasHandle_t cublas_handle, char side, int m, int n,
                           const T_data *matA, int lda, const T_data *vectx,
                           int incx, T_data *matC, int ldc) CARMA_NIY;
-/**< Generic template for geam executable selection */
+/**< Specialized template for carma_dgmm executable selection */
 template <>
 cublasStatus_t carma_dgmm<int>(cublasHandle_t cublas_handle, char side, int m,
                                int n, const int *matA, int lda,
@@ -1064,807 +962,29 @@ cublasStatus_t carma_dgmm<cuDoubleComplex>(cublasHandle_t cublas_handle,
       cublas_handle, side_cublas, m, n, matA, lda, vectx, incx, matC, ldc));
 }
 
-/*
- *   ____ _        _    ____ ____        _       __ _       _ _   _
- *  / ___| |      / \  / ___/ ___|    __| | ___ / _(_)_ __ (_) |_(_) ___  _ __
- * | |   | |     / _ \ \___ \___ \   / _` |/ _ \ |_| | '_ \| | __| |/ _ \| '_ \
- * | |___| |___ / ___ \ ___) |__) | | (_| |  __/  _| | | | | | |_| | (_) | | | |
- *  \____|_____/_/   \_\____/____/   \__,_|\___|_| |_|_| |_|_|\__|_|\___/|_| |_|
- *
- */
+struct CarmaCublasInterfacer {
+  template <typename T_data>
+  static void call() {
+    force_keep(&carma_where_amax<T_data>);
+    force_keep(&carma_where_amin<T_data>);
+    force_keep(&carma_getasum<T_data>);
+    force_keep(&carma_axpy<T_data>);
+    force_keep(&carma_copy<T_data>);
+    force_keep(&carma_dot<T_data>);
+    force_keep(&carma_nrm2<T_data>);
+    force_keep(&carma_rot<T_data>);
+    force_keep(&carma_scal<T_data>);
+    force_keep(&carma_swap<T_data>);
+    force_keep(&carma_gemv<T_data>);
+    force_keep(&carma_ger<T_data>);
+    force_keep(&carma_symv<T_data>);
+    force_keep(&carma_gemm<T_data>);
+    force_keep(&carma_symm<T_data>);
+    force_keep(&carma_syrk<T_data>);
+    force_keep(&carma_syrkx<T_data>);
+    force_keep(&carma_geam<T_data>);
+    force_keep(&carma_dgmm<T_data>);
+  }
+};
 
-template <class T_data>
-int carma_obj<T_data>::host2deviceVect(const T_data *data, int incx, int incy) {
-  /** \brief host2device generic data transfer method for a blas object vector.
-   * \param data : input data (x)
-   * \param incx : increment in x
-   * \param incy : increment in y
-   *
-   * this method fills a vector with the input data
-   */
-
-  carma_checkCublasStatus(cublasSetVector(this->nb_elem, sizeof(T_data), data,
-                                          incx, this->d_data, incy));
-  return EXIT_SUCCESS;
-}
-template int caObjI::host2deviceVect(const int *data, int incx, int incy);
-template int caObjUI::host2deviceVect(const unsigned int *data, int incx,
-                                      int incy);
-template int caObjS::host2deviceVect(const float *data, int incx, int incy);
-template int caObjD::host2deviceVect(const double *data, int incx, int incy);
-template int caObjC::host2deviceVect(const cuFloatComplex *data, int incx,
-                                     int incy);
-template int caObjZ::host2deviceVect(const cuDoubleComplex *data, int incx,
-                                     int incy);
-
-template <class T_data>
-int carma_obj<T_data>::device2hostVect(T_data *data, int incx, int incy) {
-  /** \brief device2host generic data transfer method for a blas object vector.
-   * \param data : output data (y)
-   * \param incx : increment in x
-   * \param incy : increment in y
-   *
-   * this method fills output with the vector data
-   */
-
-  carma_checkCublasStatus(cublasGetVector(this->nb_elem, sizeof(T_data),
-                                          this->d_data, incx, data, incy));
-  return EXIT_SUCCESS;
-}
-template int caObjI::device2hostVect(int *data, int incx, int incy);
-template int caObjUI::device2hostVect(unsigned int *data, int incx, int incy);
-template int caObjS::device2hostVect(float *data, int incx, int incy);
-template int caObjD::device2hostVect(double *data, int incx, int incy);
-template int caObjC::device2hostVect(cuFloatComplex *data, int incx, int incy);
-template int caObjZ::device2hostVect(cuDoubleComplex *data, int incx, int incy);
-
-template <class T_data>
-int carma_obj<T_data>::host2deviceMat(const T_data *data, int lda, int ldb) {
-  /** \brief host2device generic data transfer method.
-   * \param data : input data  (A)
-   * \param mat : matrix to fill(B)
-   * \param lda : leading dim of A (# of rows)
-   * \param ldb : leading dim of B (# of rows)
-   *
-   * this method fills mat with the input data
-   */
-  carma_checkCublasStatus(cublasSetMatrix(this->dims_data[1],
-                                          this->dims_data[2], sizeof(T_data),
-                                          data, lda, this->d_data, ldb));
-  return EXIT_SUCCESS;
-}
-
-template int caObjI::host2deviceMat(const int *data, int lda, int ldb);
-template int caObjUI::host2deviceMat(const unsigned int *data, int lda,
-                                     int ldb);
-template int caObjS::host2deviceMat(const float *data, int lda, int ldb);
-template int caObjD::host2deviceMat(const double *data, int lda, int ldb);
-template int caObjC::host2deviceMat(const cuFloatComplex *data, int lda,
-                                    int ldb);
-template int caObjZ::host2deviceMat(const cuDoubleComplex *data, int lda,
-                                    int ldb);
-
-template <class T_data>
-int carma_obj<T_data>::device2hostMat(T_data *data, int lda, int ldb) {
-  /** \brief device2host generic data transfer.
-   * \param data : output data  (A)
-   * \param mat : matrix to copy(B)
-   * \param lda : leading dim of A (# of rows)
-   * \param ldb : leading dim of B (# of rows)
-   *
-   * this method fills output with the mat data
-   */
-  carma_checkCublasStatus(cublasGetMatrix(this->dims_data[1],
-                                          this->dims_data[2], sizeof(T_data),
-                                          this->d_data, lda, data, ldb));
-  return EXIT_SUCCESS;
-}
-
-template int caObjI::device2hostMat(int *data, int lda, int ldb);
-template int caObjUI::device2hostMat(unsigned int *data, int lda, int ldb);
-template int caObjS::device2hostMat(float *data, int lda, int ldb);
-template int caObjD::device2hostMat(double *data, int lda, int ldb);
-template int caObjC::device2hostMat(cuFloatComplex *data, int lda, int ldb);
-template int caObjZ::device2hostMat(cuDoubleComplex *data, int lda, int ldb);
-
-/*
- *  ____  _        _    ____  _
- * | __ )| |      / \  / ___|/ |
- * |  _ \| |     / _ \ \___ \| |
- * | |_) | |___ / ___ \ ___) | |
- * |____/|_____/_/   \_\____/|_|
- *
- */
-
-template <class T_data>
-int carma_obj<T_data>::aimax(int incx) {
-  /** \brief aimax method
-   * \param incx : increment in x
-   *
-   * this method finds the smallest index of the maximum magnitude element in
-   * vect
-   */
-  return carma_where_amax(current_context->get_cublasHandle(), this->nb_elem,
-                          this->d_data, incx);
-  ;
-}
-template int carma_obj<int>::aimax(int incx);
-template int carma_obj<unsigned int>::aimax(int incx);
-template int carma_obj<float>::aimax(int incx);
-template int carma_obj<double>::aimax(int incx);
-template int carma_obj<cuFloatComplex>::aimax(int incx);
-template int carma_obj<cuDoubleComplex>::aimax(int incx);
-#ifdef CAN_DO_HALF
-template <>
-int carma_obj<half>::aimax(int incx) {
-  DEBUG_TRACE("Not implemented for half precision");
-  return EXIT_FAILURE;
-}
-#endif
-template <class T_data>
-int carma_obj<T_data>::aimin(int incx) {
-  /** \brief aimin method
-   * \param incx : increment in x
-   *
-   * this method finds the smallest index of the minimum magnitude element in
-   * vect
-   */
-  return carma_where_amin(current_context->get_cublasHandle(), this->nb_elem,
-                          this->d_data, incx);
-  ;
-}
-template int carma_obj<int>::aimin(int incx);
-template int carma_obj<unsigned int>::aimin(int incx);
-template int carma_obj<float>::aimin(int incx);
-template int carma_obj<double>::aimin(int incx);
-template int carma_obj<cuFloatComplex>::aimin(int incx);
-template int carma_obj<cuDoubleComplex>::aimin(int incx);
-#ifdef CAN_DO_HALF
-template <>
-int carma_obj<half>::aimin(int incx) {
-  DEBUG_TRACE("Not implemented for half precision");
-  return EXIT_FAILURE;
-}
-#endif
-
-template <class T_data>
-T_data carma_obj<T_data>::asum(int incx) {
-  /** \brief asum method
-   * \param incx : increment in x
-   *
-   * this method computes the sum of the absolute values of the elements
-   */
-  return carma_getasum(current_context->get_cublasHandle(), this->nb_elem,
-                       this->d_data, incx);
-  ;
-}
-template int carma_obj<int>::asum(int incx);
-template unsigned int carma_obj<unsigned int>::asum(int incx);
-template float carma_obj<float>::asum(int incx);
-template double carma_obj<double>::asum(int incx);
-template cuFloatComplex carma_obj<cuFloatComplex>::asum(int incx);
-template cuDoubleComplex carma_obj<cuDoubleComplex>::asum(int incx);
-#ifdef CAN_DO_HALF
-template <>
-half carma_obj<half>::asum(int incx) {
-  DEBUG_TRACE("Not implemented for half precision");
-  return __float2half(0.f);
-}
-#endif
-
-template <class T_data>
-T_data carma_obj<T_data>::nrm2(int incx) {
-  /** \brief getNrm2 method
-   * \param n    : vect size
-   * \param vect : vector to sum (x)
-   * \param incx : increment in x
-   *
-   * this method computes the Euclidean norm of vect
-   */
-  return carma_nrm2(current_context->get_cublasHandle(), this->nb_elem,
-                    this->d_data, incx);
-}
-template int carma_obj<int>::nrm2(int incx);
-template unsigned int carma_obj<unsigned int>::nrm2(int incx);
-template float carma_obj<float>::nrm2(int incx);
-template double carma_obj<double>::nrm2(int incx);
-template cuFloatComplex carma_obj<cuFloatComplex>::nrm2(int incx);
-template cuDoubleComplex carma_obj<cuDoubleComplex>::nrm2(int incx);
-#ifdef CAN_DO_HALF
-template <>
-half carma_obj<half>::nrm2(int incx) {
-  DEBUG_TRACE("Not implemented for half precision");
-  return __float2half(0.f);
-}
-#endif
-
-template <class T_data>
-void carma_obj<T_data>::scale(T_data alpha, int incx) {
-  /** \brief vectScale method
-   * \param n    : vect size
-   * \param alpha : scale factor
-   * \param vect : vector to scale (x)
-   * \param incx : increment in x
-   *
-   * this method replaces vector x with alpha * x
-
-   */
-  carma_scal(current_context->get_cublasHandle(), this->nb_elem, alpha,
-             this->d_data, incx);
-}
-template void carma_obj<int>::scale(int alpha, int incx);
-template void carma_obj<unsigned int>::scale(unsigned int alpha, int incx);
-template void carma_obj<float>::scale(float alpha, int incx);
-template void carma_obj<double>::scale(double alpha, int incx);
-template void carma_obj<cuFloatComplex>::scale(cuFloatComplex alpha, int incx);
-template void carma_obj<cuDoubleComplex>::scale(cuDoubleComplex alpha,
-                                                int incx);
-#ifdef CAN_DO_HALF
-template <>
-void carma_obj<half>::scale(half alpha, int incx) {
-  DEBUG_TRACE("Not implemented for half precision");
-}
-#endif
-
-template <class T_data>
-void carma_obj<T_data>::copy(carma_obj<T_data> *source, int incx, int incy) {
-  /** \brief vectCopy method
-   * \param n    : vect size
-   * \param vectx : vector to copy (x)
-   * \param incx : increment in x
-   * \param vecty : vector to fill (y)
-   * \param incy : increment in y
-   *
-   * this method interchanges vector x with vector y
-   */
-
-  carma_copy(current_context->get_cublasHandle(), this->nb_elem, source->d_data,
-             incx, this->d_data, incy);
-}
-template void carma_obj<int>::copy(caObjI *, int incx, int incy);
-template void carma_obj<unsigned int>::copy(caObjUI *, int incx, int incy);
-template void carma_obj<float>::copy(caObjS *, int incx, int incy);
-template void carma_obj<double>::copy(caObjD *, int incx, int incy);
-template void carma_obj<cuFloatComplex>::copy(caObjC *, int incx, int incy);
-template void carma_obj<cuDoubleComplex>::copy(caObjZ *, int incx, int incy);
-#ifdef CAN_DO_HALF
-template <>
-void carma_obj<half>::copy(caObjH *, int incx, int incy) {
-  DEBUG_TRACE("Not implemented for half precision");
-}
-#endif
-
-template <class T_data>
-void carma_obj<T_data>::swap(carma_obj<T_data> *source, int incx, int incy) {
-  /** \brief vectSwap method
-   * \param n    : vect size
-   * \param vectx : first vector to swap (x)
-   * \param incx : increment in x
-   * \param vecty : second vector to swap (y)
-   * \param incy : increment in y
-   *
-   * this method interchanges vector x with vector y
-   */
-
-  carma_swap(current_context->get_cublasHandle(), this->nb_elem, source->d_data,
-             incx, this->d_data, incy);
-}
-template void carma_obj<int>::swap(caObjI *, int incx, int incy);
-template void carma_obj<unsigned int>::swap(caObjUI *, int incx, int incy);
-template void carma_obj<float>::swap(caObjS *, int incx, int incy);
-template void carma_obj<double>::swap(caObjD *, int incx, int incy);
-template void carma_obj<cuFloatComplex>::swap(caObjC *, int incx, int incy);
-template void carma_obj<cuDoubleComplex>::swap(caObjZ *, int incx, int incy);
-#ifdef CAN_DO_HALF
-template <>
-void carma_obj<half>::swap(caObjH *, int incx, int incy) {
-  DEBUG_TRACE("Not implemented for half precision");
-}
-#endif
-
-template <class T_data>
-void carma_obj<T_data>::axpy(T_data alpha, carma_obj<T_data> *source, int incx,
-                             int incy) {
-  /** \brief computeAXPY method
-   * \param alpha : scale factor
-   * \param vectx : first vector (x)
-   * \param incx : increment in x
-   * \param vecty : second vector (y)
-   * \param incy : increment in y
-   *
-   * this method multiplies vector x by scalar alpha and adds the result to
-   * vector y
-   */
-  carma_axpy(current_context->get_cublasHandle(), this->nb_elem, alpha,
-             source->d_data, incx, this->d_data, incy);
-}
-template void carma_obj<int>::axpy(int alpha, caObjI *source, int incx,
-                                   int incy);
-template void carma_obj<unsigned int>::axpy(unsigned int alpha, caObjUI *source,
-                                            int incx, int incy);
-template void carma_obj<float>::axpy(float alpha, caObjS *source, int incx,
-                                     int incy);
-template void carma_obj<double>::axpy(double alpha, caObjD *source, int incx,
-                                      int incy);
-template void carma_obj<cuFloatComplex>::axpy(cuFloatComplex alpha,
-                                              caObjC *source, int incx,
-                                              int incy);
-template void carma_obj<cuDoubleComplex>::axpy(cuDoubleComplex alpha,
-                                               caObjZ *source, int incx,
-                                               int incy);
-#ifdef CAN_DO_HALF
-template <>
-void carma_obj<half>::axpy(half alpha, caObjH *source, int incx, int incy) {
-  DEBUG_TRACE("Not implemented for half precision");
-}
-#endif
-
-template <class T_data>
-T_data carma_obj<T_data>::dot(carma_obj<T_data> *source, int incx, int incy) {
-  /** \brief ccomputeDot method
-   * \param n    : vect size
-   * \param vectx : first vector (x)
-   * \param incx : increment in x
-   * \param vecty : second vector (y)
-   * \param incy : increment in y
-   *
-   * this method computes the dot product of two vectors
-   */
-  return carma_dot(current_context->get_cublasHandle(), this->nb_elem,
-                   source->d_data, incx, this->d_data, incy);
-}
-template int carma_obj<int>::dot(caObjI *source, int incx, int incy);
-template unsigned int carma_obj<unsigned int>::dot(caObjUI *source, int incx,
-                                                   int incy);
-template float carma_obj<float>::dot(caObjS *source, int incx, int incy);
-template double carma_obj<double>::dot(caObjD *source, int incx, int incy);
-template cuFloatComplex carma_obj<cuFloatComplex>::dot(caObjC *source, int incx,
-                                                       int incy);
-template cuDoubleComplex carma_obj<cuDoubleComplex>::dot(caObjZ *source,
-                                                         int incx, int incy);
-#ifdef CAN_DO_HALF
-template <>
-half carma_obj<half>::dot(caObjH *source, int incx, int incy) {
-  DEBUG_TRACE("Not implemented for half precision");
-  return __float2half(0.f);
-}
-#endif
-
-template <class T_data>
-void carma_obj<T_data>::rot(carma_obj<T_data> *source, int incx, int incy,
-                            T_data sc, T_data ss) {
-  /** \brief ccomputeRot method
-   * \param n    : vect size
-   * \param vectx : first vector (x)
-   * \param incx : increment in x
-   * \param vecty : second vector (y)
-   * \param incx : increment in y
-   * \param sc : cosinus of rotation angle
-   * \param ss : sinus of rotation angle
-   *
-   * this method computes the dot product of two vectors
-   */
-  carma_rot(current_context->get_cublasHandle(), this->nb_elem, source->d_data,
-            incx, this->d_data, incy, sc, ss);
-}
-template void carma_obj<int>::rot(caObjI *source, int incx, int incy, int, int);
-template void carma_obj<unsigned int>::rot(caObjUI *source, int incx, int incy,
-                                           unsigned int sc, unsigned int ss);
-template void carma_obj<float>::rot(caObjS *source, int incx, int incy, float,
-                                    float);
-template void carma_obj<double>::rot(caObjD *source, int incx, int incy,
-                                     double sc, double ss);
-template void carma_obj<cuFloatComplex>::rot(caObjC *source, int incx, int incy,
-                                             cuFloatComplex, cuFloatComplex);
-template void carma_obj<cuDoubleComplex>::rot(caObjZ *source, int incx,
-                                              int incy, cuDoubleComplex sc,
-                                              cuDoubleComplex ss);
-#ifdef CAN_DO_HALF
-template <>
-void carma_obj<half>::rot(caObjH *source, int incx, int incy, half, half) {
-  DEBUG_TRACE("Not implemented for half precision");
-}
-#endif
-/*
- *  ____  _        _    ____ ____
- * | __ )| |      / \  / ___|___ \
- * |  _ \| |     / _ \ \___ \ __) |
- * | |_) | |___ / ___ \ ___) / __/
- * |____/|_____/_/   \_\____/_____|
- *
- */
-
-template <class T_data>
-void carma_obj<T_data>::gemv(char trans, T_data alpha, carma_obj<T_data> *matA,
-                             int lda, carma_obj<T_data> *vectx, int incx,
-                             T_data beta, int incy) {
-  /** \brief gemv method.
-   * \param trans : type of op 'n' : nothing  / 't' or 'c' : transpose
-   * \param alpha : alpha
-   * \param matA : matrix A
-   * \param lda : leading dim of A (# of rows)
-   * \param vectx : vector x
-   * \param incx : increment for x
-   * \param incy : increment for y
-   *
-   * this method performs one of the matrix‐vector operations y = alpha * op(A)
-   * * x + beta * y
-   */
-  carma_gemv(current_context->get_cublasHandle(), trans, matA->dims_data[1],
-             matA->dims_data[2], alpha, matA->d_data, lda, vectx->d_data, incx,
-             beta, this->d_data, incy);
-}
-template void carma_obj<int>::gemv(char, int, caObjI *, int, caObjI *, int, int,
-                                   int);
-template void carma_obj<unsigned int>::gemv(char, unsigned int, caObjUI *, int,
-                                            caObjUI *, int, unsigned int, int);
-template void carma_obj<float>::gemv(char, float, caObjS *, int, caObjS *, int,
-                                     float, int);
-template void carma_obj<double>::gemv(char, double, caObjD *, int, caObjD *,
-                                      int, double, int);
-template void carma_obj<cuFloatComplex>::gemv(char, cuFloatComplex, caObjC *,
-                                              int, caObjC *, int,
-                                              cuFloatComplex, int);
-template void carma_obj<cuDoubleComplex>::gemv(char, cuDoubleComplex, caObjZ *,
-                                               int, caObjZ *, int,
-                                               cuDoubleComplex, int);
-#ifdef CAN_DO_HALF
-template <>
-void carma_obj<half>::gemv(char trans, half alpha, caObjH *matA, int lda,
-                           caObjH *vectx, int incx, half beta, int incy) {
-  int k = (((trans == 'N') || (trans == 'n')) ? matA->dims_data[2]
-                                              : matA->dims_data[1]);
-
-  carma_gemm(current_context->get_cublasHandle(), trans, 'N',
-             this->dims_data[1], 1, k, alpha, matA->d_data, lda, vectx->d_data,
-             vectx->dims_data[1], beta, this->d_data, this->dims_data[1]);
-}
-#endif
-
-template <class T_data>
-void carma_obj<T_data>::ger(T_data alpha, carma_obj<T_data> *vectx, int incx,
-                            carma_obj<T_data> *vecty, int incy, int lda) {
-  /** \brief ger method.
-   * \param alpha : alpha
-   * \param vectx : m-element vector
-   * \param incx : increment for x
-   * \param vecty : vector y
-   * \param incy : increment for y
-   * \param lda : leading dim of A (# of rows)
-   *
-   * this method performs the symmetric rank 1 operation A = alpha * x * y T + A
-   */
-  carma_ger(current_context->get_cublasHandle(), this->dims_data[1],
-            this->dims_data[2], alpha, vectx->d_data, incx, vecty->d_data, incy,
-            this->d_data, lda);
-}
-template void carma_obj<int>::ger(int, caObjI *, int, caObjI *, int, int);
-template void carma_obj<unsigned int>::ger(unsigned int, caObjUI *, int,
-                                           caObjUI *, int, int);
-template void carma_obj<float>::ger(float, caObjS *, int, caObjS *, int, int);
-template void carma_obj<double>::ger(double, caObjD *, int, caObjD *, int, int);
-template void carma_obj<cuFloatComplex>::ger(cuFloatComplex, caObjC *, int,
-                                             caObjC *, int, int);
-template void carma_obj<cuDoubleComplex>::ger(cuDoubleComplex, caObjZ *, int,
-                                              caObjZ *, int, int);
-#ifdef CAN_DO_HALF
-template <>
-void carma_obj<half>::ger(half, caObjH *, int, caObjH *, int, int) {
-  DEBUG_TRACE("Not implemented for half precision");
-}
-#endif
-template <class T_data>
-void carma_obj<T_data>::symv(char uplo, T_data alpha, carma_obj<T_data> *matA,
-                             int lda, carma_obj<T_data> *vectx, int incx,
-                             T_data beta, int incy) {
-  /** \brief symv method.
-   * \param uplo : upper or lower fill mode
-   * \param alpha : alpha
-   * \param matA : matrix A
-   * \param lda : leading dim of A (# of rows)
-   * \param vectx : vector x
-   * \param incx : increment for x
-   * \param incy : increment for y
-   *
-   * this method performs one of the matrix‐vector operations y = alpha * op(A)
-   * * x + beta * y
-   */
-  carma_symv(current_context->get_cublasHandle(), uplo, matA->dims_data[1],
-             alpha, matA->d_data, lda, vectx->d_data, incx, beta, this->d_data,
-             incy);
-}
-template void carma_obj<int>::symv(char, int, caObjI *, int, caObjI *, int, int,
-                                   int);
-template void carma_obj<unsigned int>::symv(char, unsigned int, caObjUI *, int,
-                                            caObjUI *, int, unsigned int, int);
-template void carma_obj<float>::symv(char, float, caObjS *, int, caObjS *, int,
-                                     float, int);
-template void carma_obj<double>::symv(char, double, caObjD *, int, caObjD *,
-                                      int, double, int);
-template void carma_obj<cuFloatComplex>::symv(char, cuFloatComplex, caObjC *,
-                                              int, caObjC *, int,
-                                              cuFloatComplex, int);
-template void carma_obj<cuDoubleComplex>::symv(char, cuDoubleComplex, caObjZ *,
-                                               int, caObjZ *, int,
-                                               cuDoubleComplex, int);
-#ifdef CAN_DO_HALF
-template <>
-void carma_obj<half>::symv(char, half, caObjH *, int, caObjH *, int, half,
-                           int) {
-  DEBUG_TRACE("Not implemented for half precision");
-}
-#endif
-
-/*
- *  ____  _        _    ____ _____
- * | __ )| |      / \  / ___|___ /
- * |  _ \| |     / _ \ \___ \ |_ \
- * | |_) | |___ / ___ \ ___) |__) |
- * |____/|_____/_/   \_\____/____/
- *
- */
-
-template <class T_data>
-void carma_obj<T_data>::gemm(char transa, char transb, T_data alpha,
-                             carma_obj<T_data> *matA, int lda,
-                             carma_obj<T_data> *matB, int ldb, T_data beta,
-                             int ldc) {
-  /** \brief generic gemm method.
-   * \param transa : type of op 'n' : nothing  / 't' or 'c' : transpose
-   * \param transb : type of op 'n' : nothing  / 't' or 'c' : transpose
-   * \param alpha : alpha
-   * \param matA : matrix A
-   * \param lda : leading dim of A (# of rows)
-   * \param matB : matrix B
-   * \param ldb : leading dim of B (# of rows)
-   * \param beta : beta
-   * \param ldc : leading dim of C (# of rows)
-   *
-   * this method performs one of the matrix‐matrix operations:
-   * C = alpha * op(A) * op(B) + beta * C ,
-   * where  op(X) = X  or  op(X) = X^T
-   */
-  int k = (((transa == 'N') || (transa == 'n')) ? matA->dims_data[2]
-                                                : matA->dims_data[1]);
-  carma_gemm(current_context->get_cublasHandle(), transa, transb,
-             this->dims_data[1], this->dims_data[2], k, alpha, matA->d_data,
-             lda, matB->d_data, ldb, beta, this->d_data, ldc);
-}
-template void carma_obj<int>::gemm(char, char, int, caObjI *, int, caObjI *,
-                                   int, int, int);
-template void carma_obj<unsigned int>::gemm(char, char, unsigned int, caObjUI *,
-                                            int, caObjUI *, int, unsigned int,
-                                            int);
-template void carma_obj<float>::gemm(char, char, float, caObjS *, int, caObjS *,
-                                     int, float, int);
-template void carma_obj<double>::gemm(char, char, double, caObjD *, int,
-                                      caObjD *, int, double, int);
-template void carma_obj<cuFloatComplex>::gemm(char, char, cuFloatComplex,
-                                              caObjC *, int, caObjC *, int,
-                                              cuFloatComplex, int);
-template void carma_obj<cuDoubleComplex>::gemm(char, char, cuDoubleComplex,
-                                               caObjZ *, int, caObjZ *, int,
-                                               cuDoubleComplex, int);
-#ifdef CAN_DO_HALF
-template void carma_obj<half>::gemm(char, char, half, caObjH *, int, caObjH *,
-                                    int, half, int);
-#endif
-
-template <class T_data>
-void carma_obj<T_data>::symm(char side, char uplo, T_data alpha,
-                             carma_obj<T_data> *matA, int lda,
-                             carma_obj<T_data> *matB, int ldb, T_data beta,
-                             int ldc) {
-  /** \brief generic symm method.
-   * \param side : which side of the equation is symmetric matrix A
-   * \param uplo : fill mode of matrix A
-   * \param alpha : alpha
-   * \param matA : matrix A
-   * \param lda : leading dim of A (# of rows)
-   * \param matB : matrix B
-   * \param ldb : leading dim of B (# of rows)
-   * \param beta : beta
-   * \param ldc : leading dim of C (# of rows)
-   *
-   * this method performs one of the symmetric matrix‐matrix operations:
-   * C = alpha * A * B + beta * C ,
-   * or
-   * C = alpha * B * A + beta * C ,
-   * where A is a symmetric matrix
-   */
-  carma_symm(current_context->get_cublasHandle(), side, uplo,
-             this->dims_data[1], this->dims_data[2], alpha, matA->d_data, lda,
-             matB->d_data, ldb, beta, this->d_data, ldc);
-}
-template void carma_obj<int>::symm(char, char, int, caObjI *, int, caObjI *,
-                                   int, int, int);
-template void carma_obj<unsigned int>::symm(char, char, unsigned int, caObjUI *,
-                                            int, caObjUI *, int, unsigned int,
-                                            int);
-template void carma_obj<float>::symm(char, char, float, caObjS *, int, caObjS *,
-                                     int, float, int);
-template void carma_obj<double>::symm(char, char, double, caObjD *, int,
-                                      caObjD *, int, double, int);
-template void carma_obj<cuFloatComplex>::symm(char, char, cuFloatComplex,
-                                              caObjC *, int, caObjC *, int,
-                                              cuFloatComplex, int);
-template void carma_obj<cuDoubleComplex>::symm(char, char, cuDoubleComplex,
-                                               caObjZ *, int, caObjZ *, int,
-                                               cuDoubleComplex, int);
-#ifdef CAN_DO_HALF
-template <>
-void carma_obj<half>::symm(char, char, half, caObjH *, int, caObjH *, int, half,
-                           int) {
-  DEBUG_TRACE("Not implemented for half precision");
-}
-#endif
-
-template <class T_data>
-void carma_obj<T_data>::syrk(char uplo, char transa, T_data alpha,
-                             carma_obj<T_data> *matA, int lda, T_data beta,
-                             int ldc) {
-  /** \brief generic syrk method.
-   * \param uplo : fill mode of matrix A
-   * \param alpha : alpha
-   * \param matA : matrix A
-   * \param lda : leading dim of A (# of rows)
-   * \param beta : beta
-   * \param ldc : leading dim of C (# of rows)
-   *
-   * this method performs one of the symmetric matrix‐matrix operations:
-   * C = alpha * op(A) * transpose(op(A)) + beta * C ,
-   * where  op(X) = X  or  op(X) = X^T
-   */
-  /*
-   carma_syrk(current_context->get_cublasHandle(), uplo, transa,
-   this->dims_data[1], this->dims_data[2], alpha, matA->d_data, lda, beta,
-   this->d_data, ldc);
-   */
-  carma_syrk(current_context->get_cublasHandle(), uplo, transa,
-             matA->dims_data[1], matA->dims_data[2], alpha, matA->d_data, lda,
-             beta, this->d_data, ldc);
-  // "this" refer to matrix "C": this->dims_data[1]=this->dims_data[2]=n
-}
-template void carma_obj<int>::syrk(char, char, int, caObjI *, int, int, int);
-template void carma_obj<unsigned int>::syrk(char, char, unsigned int, caObjUI *,
-                                            int, unsigned int, int);
-template void carma_obj<float>::syrk(char, char, float, caObjS *, int, float,
-                                     int);
-template void carma_obj<double>::syrk(char, char, double, caObjD *, int, double,
-                                      int);
-template void carma_obj<cuFloatComplex>::syrk(char, char, cuFloatComplex,
-                                              caObjC *, int, cuFloatComplex,
-                                              int);
-template void carma_obj<cuDoubleComplex>::syrk(char, char, cuDoubleComplex,
-                                               caObjZ *, int, cuDoubleComplex,
-                                               int);
-#ifdef CAN_DO_HALF
-template <>
-void carma_obj<half>::syrk(char, char, half, caObjH *, int, half, int) {
-  DEBUG_TRACE("Not implemented for half precision");
-}
-#endif
-
-template <class T_data>
-void carma_obj<T_data>::syrkx(char uplo, char transa, T_data alpha,
-                              carma_obj<T_data> *matA, int lda,
-                              carma_obj<T_data> *matB, int ldb, T_data beta,
-                              int ldc) {
-  /** \brief generic syrkx method.
-   * \param uplo : fill mode of matrix A
-   * \param transa : type of op 'n' : nothing  / 't' or 'c' : transpose
-   * \param alpha : alpha
-   * \param matA : matrix A
-   * \param lda : leading dim of A (# of rows)
-   * \param matB : matrix B
-   * \param ldb : leading dim of B (# of rows)
-   * \param beta : beta
-   * \param ldc : leading dim of C (# of rows)
-   *
-   * this method performs one of the symmetric matrix‐matrix operations:
-   * C = alpha * op(A) * transpose(op(B)) + beta * C ,
-   * where  op(X) = X  or  op(X) = X^T
-   */
-  /*carma_syrkx(current_context->get_cublasHandle(), uplo, transa,
-   this->dims_data[1], this->dims_data[2], alpha, matA->d_data, lda,
-   matB->d_data, ldb, beta, this->d_data, ldc);*/
-  carma_syrkx(current_context->get_cublasHandle(), uplo, transa,
-              matA->dims_data[1], matA->dims_data[2], alpha, matA->d_data, lda,
-              matB->d_data, ldb, beta, this->d_data, ldc);
-}
-template void carma_obj<int>::syrkx(char, char, int, caObjI *, int, caObjI *,
-                                    int, int, int);
-template void carma_obj<unsigned int>::syrkx(char, char, unsigned int,
-                                             caObjUI *, int, caObjUI *, int,
-                                             unsigned int, int);
-template void carma_obj<float>::syrkx(char, char, float, caObjS *, int,
-                                      caObjS *, int, float, int);
-template void carma_obj<double>::syrkx(char, char, double, caObjD *, int,
-                                       caObjD *, int, double, int);
-template void carma_obj<cuFloatComplex>::syrkx(char, char, cuFloatComplex,
-                                               caObjC *, int, caObjC *, int,
-                                               cuFloatComplex, int);
-template void carma_obj<cuDoubleComplex>::syrkx(char, char, cuDoubleComplex,
-                                                caObjZ *, int, caObjZ *, int,
-                                                cuDoubleComplex, int);
-#ifdef CAN_DO_HALF
-template <>
-void carma_obj<half>::syrkx(char, char, half, caObjH *, int, caObjH *, int,
-                            half, int) {
-  DEBUG_TRACE("Not implemented for half precision");
-}
-#endif
-
-template <class T_data>
-void carma_obj<T_data>::geam(char transa, char transb, T_data alpha,
-                             carma_obj<T_data> *matA, int lda, T_data beta,
-                             carma_obj<T_data> *matB, int ldb, int ldc) {
-  /** \brief generic geam method.
-   * \param transa : type of op 'n' : nothing  / 't' or 'c' : transpose
-   * \param transb : type of op 'n' : nothing  / 't' or 'c' : transpose
-   * \param alpha : alpha
-   * \param matA : matrix A
-   * \param lda : leading dim of A (# of rows)
-   * \param beta : beta
-   * \param matB : matrix B
-   * \param ldb : leading dim of B (# of rows)
-   * \param ldc : leading dim of C (# of rows)
-   *
-   * C = alpha * op(A) + beta * op(B),
-   * where  op(X) = X  or  op(X) = X^T
-   */
-
-  carma_geam(current_context->get_cublasHandle(), transa, transb,
-             this->dims_data[1], this->dims_data[2], alpha, matA->d_data, lda,
-             beta, matB->d_data, ldb, this->d_data, ldc);
-}
-template void carma_obj<int>::geam(char, char, int, caObjI *, int, int,
-                                   caObjI *, int, int);
-template void carma_obj<unsigned int>::geam(char, char, unsigned int, caObjUI *,
-                                            int, unsigned int, caObjUI *, int,
-                                            int);
-template void carma_obj<float>::geam(char, char, float, caObjS *, int, float,
-                                     caObjS *, int, int);
-template void carma_obj<double>::geam(char, char, double, caObjD *, int, double,
-                                      caObjD *, int, int);
-template void carma_obj<cuFloatComplex>::geam(char, char, cuFloatComplex,
-                                              caObjC *, int, cuFloatComplex,
-                                              caObjC *, int, int);
-template void carma_obj<cuDoubleComplex>::geam(char, char, cuDoubleComplex,
-                                               caObjZ *, int, cuDoubleComplex,
-                                               caObjZ *, int, int);
-#ifdef CAN_DO_HALF
-template void carma_obj<half>::geam(char, char, half, caObjH *, int, half,
-                                    caObjH *, int, int);
-#endif
-
-template <class T_data>
-void carma_obj<T_data>::dgmm(char side, carma_obj<T_data> *matA, int lda,
-                             carma_obj<T_data> *vectx, int incx, int ldc) {
-  /** \brief generic dgmm method.
-   * \param side : side of equation for matrix A
-   * \param matA : matrix A
-   * \param lda : leading dim of A (# of rows)
-   * \param vectx : vector x
-   * \param incx : increment on x
-   * \param ldc : leading dim of C (# of rows)
-   *
-   * C = A * diag(X) or C = diag(X) * A
-   */
-
-  carma_dgmm(current_context->get_cublasHandle(), side, this->dims_data[1],
-             this->dims_data[2], matA->d_data, lda, vectx->d_data, incx,
-             this->d_data, ldc);
-}
-template void carma_obj<int>::dgmm(char, caObjI *, int, caObjI *, int, int);
-template void carma_obj<unsigned int>::dgmm(char, caObjUI *, int, caObjUI *,
-                                            int, int);
-template void carma_obj<float>::dgmm(char, caObjS *, int, caObjS *, int, int);
-template void carma_obj<double>::dgmm(char, caObjD *, int, caObjD *, int, int);
-template void carma_obj<cuFloatComplex>::dgmm(char, caObjC *, int, caObjC *,
-                                              int, int);
-template void carma_obj<cuDoubleComplex>::dgmm(char, caObjZ *, int, caObjZ *,
-                                               int, int);
-#ifdef CAN_DO_HALF
-template void carma_obj<half>::dgmm(char, caObjH *, int, caObjH *, int, int);
-#endif
+void declare_carma_cublas() { apply<CarmaCublasInterfacer, TypeListObj>(); }
