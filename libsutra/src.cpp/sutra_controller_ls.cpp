@@ -143,7 +143,7 @@ int sutra_controller_ls<T>::svdec_imat() {
     if (carma_cula_svd<T>(&d_tmp, d_eigenvals, d_U, &d_tmp2) == EXIT_FAILURE) {
       return EXIT_FAILURE;
     }
-    d_eigenvals->device2host(*h_eigenvals);
+    d_eigenvals->device2host(h_eigenvals->getData());
   }
   return EXIT_SUCCESS;
 }

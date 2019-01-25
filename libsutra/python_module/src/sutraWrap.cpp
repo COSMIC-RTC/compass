@@ -15,6 +15,7 @@ void declare_wfs(py::module &);
 void declare_wfs_sh(py::module &);
 void declare_wfs_pyrhr(py::module &);
 void declare_centroider(py::module &);
+void declare_centroiderH(py::module &);
 void declare_centroider_tcog(py::module &);
 void declare_centroider_wcog(py::module &);
 void declare_centroider_bpcog(py::module &);
@@ -27,6 +28,7 @@ void declare_controller_geo(py::module &);
 void declare_controller_generic(py::module &);
 void declare_controller_cured(py::module &);
 void declare_rtc(py::module &);
+void declare_rtcH(py::module &);
 void declare_gamora(py::module &);
 void declare_groot(py::module &);
 
@@ -52,6 +54,7 @@ PYBIND11_MODULE(sutraWrap, mod) {
   declare_wfs_sh(mod);
   declare_wfs_pyrhr(mod);
   declare_centroider(mod);
+  declare_centroiderH(mod);
   declare_centroider_tcog(mod);
   declare_centroider_wcog(mod);
   declare_centroider_bpcog(mod);
@@ -64,6 +67,7 @@ PYBIND11_MODULE(sutraWrap, mod) {
   declare_controller_generic(mod);
   declare_controller_cured(mod);
   declare_rtc(mod);
+  declare_rtcH(mod);
   declare_gamora(mod);
   declare_groot(mod);
 

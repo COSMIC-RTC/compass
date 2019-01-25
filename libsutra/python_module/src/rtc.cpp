@@ -5,8 +5,10 @@
 namespace py = pybind11;
 typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;
 using rtc = sutra_rtc<float>;
+using rtcH = sutra_rtc<half>;
 
 std::unique_ptr<rtc> rtc_init() { return std::unique_ptr<rtc>(new rtc()); };
+std::unique_ptr<rtcH> rtcH_init() { return std::unique_ptr<rtcH>(new rtcH()); };
 
 void declare_rtc(py::module &mod) {
   py::class_<rtc>(mod, "Rtc")
@@ -285,4 +287,192 @@ void declare_rtc(py::module &mod) {
         ngain: (np.array[ndim=1,dtype=np.float32]): modal gains to set
     )pbdoc",
            py::arg("ncontrol"), py::arg("mgain"));
+};
+
+void declare_rtcH(py::module &mod) {
+  py::class_<rtcH>(mod, "RtcH")
+      .def(py::init(wy::colCast(rtcH_init)), " Initialize a void rtcH object")
+
+      //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
+      //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
+      //  ██████╔╝██████╔╝██║   ██║██████╔╝█████╗  ██████╔╝   ██║    ╚████╔╝
+      //  ██╔═══╝ ██╔══██╗██║   ██║██╔═══╝ ██╔══╝  ██╔══██╗   ██║     ╚██╔╝
+      //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
+      //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
+      //
+
+      .def_property_readonly(
+          "d_centro",
+          [](rtcH &sr) -> vector<sutra_centroider<half> *> & {
+            return sr.d_centro;
+          },
+          "Vector of centroiders")
+
+      .def_property_readonly(
+          "d_control",
+          [](rtcH &sr) -> vector<sutra_controller<half> *> & {
+            return sr.d_control;
+          },
+          "Vector of controllers")
+
+      //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
+      //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝
+      //  ██╔████╔██║█████╗     ██║   ███████║██║   ██║██║  ██║███████╗
+      //  ██║╚██╔╝██║██╔══╝     ██║   ██╔══██║██║   ██║██║  ██║╚════██║
+      //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
+      //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
+
+      .def("add_centroider",
+           [](rtcH &sr, carma_context *ctxt, long nvalid, float offset,
+              float scale, long device, char *typec) {
+             sr.add_centroider(ctxt, nvalid, __float2half(offset),
+                               __float2half(scale), device, typec);
+           },
+           R"pbdoc(
+        Add a sutra_centroider object in the RTC
+
+        Parameters
+        ------------
+        context: (carma_context): carma context
+        nvalid:(int): Number of WFS valid ssp
+        offset: (float): offset for centroiding computation
+        scale: (float): scale factor to get the right unit, ie. arcsec
+        device: (int): GPU device index
+        typec: (str): Centroider type
+
+    )pbdoc",
+           py::arg("context"), py::arg("nvalid"), py::arg("offset"),
+           py::arg("scale"), py::arg("device"), py::arg("typec"))
+
+      .def("add_controller",
+           [](rtcH &sr, carma_context *ctxt, int nvalid, int nslope, int nactu,
+              float delay, long device, char *typec) {
+             sr.add_controller(ctxt, nvalid, nslope, nactu, __float2half(delay),
+                               device, typec, nullptr, nullptr, 0, 0, false);
+           },
+           R"pbdoc(
+        Add a sutra_controller object in the RTC
+
+        Parameters
+        ------------
+        context: (carma_context): carma context
+        nvalid: (int): Number of valid subap.
+        nslope: (int): Number of slopes
+        nactu:(int): Number of actuators to command
+        delay: (float): Loop delay [frames]
+        device: (int): GPU device index
+        typec: (str): Controller type
+        )pbdoc",
+           py::arg("context"), py::arg("nvalid"), py::arg("nslope"),
+           py::arg("nactu"), py::arg("delay"), py::arg("device"),
+           py::arg("typec"))
+
+      .def("do_centroids", (int (rtcH::*)(int)) & rtcH::do_centroids,
+           R"pbdoc(
+        Computes the centroids
+
+        Parameters
+        ------------
+        ncontrol: (int): Index of the controller
+    )pbdoc",
+           py::arg("ncontrol"))
+
+      .def("do_centroids_geom", &rtcH::do_centroids_geom,
+           R"pbdoc(
+        Computes the centroids geom
+
+        Parameters
+        ------------
+        ncontrol: (int): Index of the controller
+    )pbdoc",
+           py::arg("ncontrol"))
+
+      .def("do_centroids_ref", &rtcH::do_centroids_ref,
+           R"pbdoc(
+        Computes the centroids ref
+
+        Parameters
+        ------------
+        ncontrol: (int): Index of the controller
+    )pbdoc",
+           py::arg("ncontrol"))
+
+      .def("set_centroids_ref", wy::colCast(&rtcH::set_centroids_ref),
+           R"pbdoc(
+          Set the reference centroids
+
+          Parameters
+          ------------
+          centroids_ref : (np.array(ndim=1, dtype=np.float16)): ref centroids
+     )pbdoc",
+           py::arg("centroidsRef"))
+
+      .def("do_control", (int (rtcH::*)(int)) & rtcH::do_control,
+           R"pbdoc(
+        Computes the commands
+
+        Parameters
+        ------------
+        ncontrol: (int): Index of the controller
+    )pbdoc",
+           py::arg("ncontrol"))
+
+      .def("apply_control", &rtcH::apply_control, R"pbdoc(
+        Apply the commands on the DM and shape it
+
+        Parameters
+        ------------
+        ncontrol: (int): Index of the controller
+        dms: (sutra_dms): sutra_dms object
+        compVoltage: (bool): if True (default), computes delay and perturb voltages. Else, applies just the vector command
+    )pbdoc",
+           py::arg("ncontrol"), py::arg("dms"), py::arg("compVoltage") = true)
+
+      .def("comp_voltage", &rtcH::comp_voltage, R"pbdoc(
+        Compute the commands on the DM
+
+        Parameters
+        ------------
+        ncontrol: (int): Index of the controller
+    )pbdoc",
+           py::arg("ncontrol"))
+
+      .def("do_imat", wy::colCast(&rtcH::do_imat), R"pbdoc(
+        Computes interaction matrix
+
+        Parameters
+        ------------
+        ncontrol: (int): Index of the controller
+        dms: (sutra_dms): sutra_dms object
+    )pbdoc",
+           py::arg("ncontrol"), py::arg("dms"))
+
+      .def("do_imat_basis", wy::colCast(&rtcH::do_imat_basis), R"pbdoc(
+		Computes a modal interaction matrix
+
+		Parameters
+		------------
+		ncontrol: (int): Index of the controller
+		dms: (sutra_dms): sutra_dms object
+        nModes: (int): number of modes in the basis
+        m2v: (np.array[ndim=2,dtype=np.float16]): modeToActu matrix
+        pushAmpl: (np.array[ndim=1,dtype=np.float16]): pushpull strength in mode units
+	)pbdoc",
+           py::arg("ncontrol"), py::arg("dms"), py::arg("nModes"),
+           py::arg("m2v"), py::arg("pushAmpl"))
+
+      .def("do_clipping",
+           [](rtcH &sr, int ncontrol, float min, float max) {
+             sr.do_clipping(ncontrol, __float2half(min), __float2half(max));
+           },
+           R"pbdoc(
+        Clip the command to apply on the DMs on a sutra_controller object
+
+        Parameters
+        ------------
+        ncontrol: (int) : controller index
+        min: (float) : minimum value for the command
+        max: (float) : maximum value for the command
+    )pbdoc",
+           py::arg("ncontrol"), py::arg("min"), py::arg("max"));
 };

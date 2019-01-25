@@ -119,14 +119,18 @@ def rtc_init(context: carmaWrap_context, tel: Telescope, wfs: Sensors, dms: Dms,
 
 def rtc_standalone(context: carmaWrap_context, nwfs: int, nvalid: int, nactu: int,
                    centroider_type: str, delay: float, offset: float, scale: float,
-                   brahma: bool = False) -> Rtc:
+                   brahma: bool = False, fp16: bool = False) -> Rtc:
     """
     TODO docstring
     """
     if brahma:
         rtc = Rtc_brahma(context, None, None, "rtc_brahma")
     else:
-        rtc = Rtc()
+        if fp16:
+            from sutraWrap import RtcH
+            rtc = RtcH()
+        else:
+            rtc = Rtc()
 
     for k in range(nwfs):
         rtc.add_centroider(context, nvalid[k], offset, scale, context.activeDevice,

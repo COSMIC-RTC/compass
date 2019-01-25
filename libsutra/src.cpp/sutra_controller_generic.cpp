@@ -44,7 +44,7 @@ string sutra_controller_generic<T>::get_commandlaw() {
 }
 
 template <typename T>
-int sutra_controller_generic<T>::set_mgain(T *gain) {
+int sutra_controller_generic<T>::set_mgain(float *gain) {
   this->current_context->set_activeDevice(this->device, 1);
   this->d_gain->host2device(gain);
   return EXIT_SUCCESS;
@@ -58,21 +58,21 @@ int sutra_controller_generic<T>::set_gain(T gain) {
 }
 
 template <typename T>
-int sutra_controller_generic<T>::set_decayFactor(T *decayFactor) {
+int sutra_controller_generic<T>::set_decayFactor(float *decayFactor) {
   this->current_context->set_activeDevice(this->device, 1);
   this->d_decayFactor->host2device(decayFactor);
   return EXIT_SUCCESS;
 }
 
 template <typename T>
-int sutra_controller_generic<T>::set_matE(T *matE) {
+int sutra_controller_generic<T>::set_matE(float *matE) {
   this->current_context->set_activeDevice(this->device, 1);
   this->d_matE->host2device(matE);
   return EXIT_SUCCESS;
 }
 
 template <typename T>
-int sutra_controller_generic<T>::set_cmat(T *cmat) {
+int sutra_controller_generic<T>::set_cmat(float *cmat) {
   this->current_context->set_activeDevice(this->device, 1);
   this->d_cmat->host2device(cmat);
   return EXIT_SUCCESS;

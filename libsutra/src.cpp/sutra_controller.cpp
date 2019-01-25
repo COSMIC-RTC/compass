@@ -82,15 +82,17 @@ int sutra_controller<T>::set_openloop(int open_loop_status, bool rst) {
 }
 
 template <class T>
-int sutra_controller<T>::add_perturb_voltage(string name, T *perturb, int N) {
+int sutra_controller<T>::add_perturb_voltage(string name, float *perturb,
+                                             int N) {
   std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
   current_context->set_activeDevice(device, 1);
 
   if (this->d_perturb_map.count(name) < 1) {
     long dims_data2[3] = {2, N, this->nactu()};
     int cpt = 0;
-    this->d_perturb_map[name] = std::make_tuple(
-        new carma_obj<T>(current_context, dims_data2, perturb), cpt, true);
+    carma_obj<T> *d_perturb = new carma_obj<T>(current_context, dims_data2);
+    d_perturb->host2device(perturb);
+    this->d_perturb_map[name] = std::make_tuple(d_perturb, cpt, true);
   } else
     DEBUG_TRACE("This perturb buffer already exists");
 
@@ -239,7 +241,7 @@ sutra_controller<T>::~sutra_controller() {
 }
 
 template <class T>
-int sutra_controller<T>::set_com(T *com, int nElem) {
+int sutra_controller<T>::set_com(float *com, int nElem) {
   current_context->set_activeDevice(device, 1);
   if (nElem == this->d_com->getNbElem())
     this->d_com->host2device(com);

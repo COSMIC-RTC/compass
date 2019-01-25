@@ -38,14 +38,14 @@ class sutra_centroider {
  public:
   virtual ~sutra_centroider();
   int set_scale(T scale);
-  int set_dark(T *dark, int n);
-  int set_flat(T *flat, int n);
-  int set_centroids_ref(T *centroids_ref);
+  int set_dark(float *dark, int n);
+  int set_flat(float *flat, int n);
+  int set_centroids_ref(float *centroids_ref);
   int calibrate_img(bool save_raw = false);
   int load_validpos(int *ivalid, int *jvalid, int N);
   int set_npix(int npix);
   int set_nxsub(int nxsub);
-  int load_img(T *img, int n);
+  int load_img(float *img, int n);
   int get_validMask();
   bool is_type(string typec) { return (typec.compare(get_type()) == 0); }
 

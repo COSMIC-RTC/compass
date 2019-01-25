@@ -297,21 +297,21 @@ int sutra_controller_mv<T>::do_covmat(sutra_dm *ydm, char *method,
     carma_host_obj<T> h_KLcov(dims_data2, MA_PAGELOCK);
     if (strcmp(method, "inv") == 0) {
       for (int i = 0; i < this->nactu(); i++) {
-        h_KLcov[i] = -1. / (*h_eigenvals)[i];
+        h_KLcov[i] = -1. / (h_eigenvals->getData())[i];
       }
       if (Nkl == this->nactu()) {
         h_KLcov[this->nactu() - 1] = 0.;
       }
-      d_KLcov->host2device(h_KLcov);
+      d_KLcov->host2device(h_KLcov.getData());
       add_md(this->d_covmat->getData(), this->d_covmat->getData(),
              d_KLcov->getData(), this->nactu(),
              this->current_context->get_device(this->device));
     }
     if (strcmp(method, "n") == 0) {
       for (int i = 0; i < this->nactu(); i++) {
-        h_KLcov[i] = -(*h_eigenvals)[i];
+        h_KLcov[i] = -(h_eigenvals->getData())[i];
       }
-      d_KLcov->host2device(h_KLcov);
+      d_KLcov->host2device(h_KLcov.getData());
       add_md(this->d_covmat->getData(), this->d_covmat->getData(),
              d_KLcov->getData(), this->nactu(),
              this->current_context->get_device(this->device));
@@ -330,7 +330,7 @@ int sutra_controller_mv<T>::do_covmat(sutra_dm *ydm, char *method,
       }
 
       h_eigenvals_inv->getData()[this->nactu() - 1] = 0.;
-      d_KLcov->host2device(*h_eigenvals_inv);
+      d_KLcov->host2device(h_eigenvals_inv->getData());
 
       // 2. Inversion of the KL basis
       dims_data2[0] = 1;
@@ -350,14 +350,14 @@ int sutra_controller_mv<T>::do_covmat(sutra_dm *ydm, char *method,
 
       carma_svd_cpu<T>(h_KL, h_eigenvals, h_U, h_Vt);
 
-      d_Ukl->host2device(*h_Vt);
-      d_Vkl->host2device(*h_U);
+      d_Ukl->host2device(h_Vt->getData());
+      d_Vkl->host2device(h_U->getData());
 
       for (int i = 0; i < this->nactu(); i++) {
         h_eigenvals_inv->getData()[i] = 1. / h_eigenvals->getData()[i];
       }
 
-      d_eigen->host2device(*h_eigenvals_inv);
+      d_eigen->host2device(h_eigenvals_inv->getData());
 
       carma_dgmm(cublas_handle, CUBLAS_SIDE_LEFT, this->nactu(), this->nactu(),
                  d_Vkl->getData(), this->nactu(), d_eigen->getData(), 1,
@@ -396,7 +396,7 @@ int sutra_controller_mv<T>::do_covmat(sutra_dm *ydm, char *method,
         std::cout << h_eigenvals->getData()[i] << std::endl;
       }
       h_eigenvals->getData()[this->nactu() - 1] = 0.;
-      d_KLcov->host2device(*h_eigenvals);
+      d_KLcov->host2device(h_eigenvals->getData());
 
       carma_dgmm(cublas_handle, CUBLAS_SIDE_RIGHT, this->nactu(), this->nactu(),
                  d_KLbasis->getData(), this->nactu(), d_KLcov->getData(), 1,
@@ -521,7 +521,7 @@ int sutra_controller_mv<T>::invgen(carma_obj<T> *d_mat, T cond, int job) {
     }
   }
 
-  d_eigenvals_inv->host2device(*h_eigenvals_inv);
+  d_eigenvals_inv->host2device(h_eigenvals_inv->getData());
 
   carma_dgmm(cublas_handle, CUBLAS_SIDE_RIGHT, d_mat->getDims()[1],
              d_mat->getDims()[2], d_U->getData(), d_mat->getDims()[1],
@@ -571,7 +571,7 @@ int sutra_controller_mv<T>::invgen(carma_obj<T> *d_mat,
       h_eigenvals_inv->getData()[i] = 1. / h_eigen->getData()[i];
   }
 
-  d_eigenvals_inv->host2device(*h_eigenvals_inv);
+  d_eigenvals_inv->host2device(h_eigenvals_inv->getData());
 
   carma_dgmm(cublas_handle, CUBLAS_SIDE_RIGHT, d_mat->getDims()[1],
              d_mat->getDims()[2], d_U->getData(), d_mat->getDims()[1],
@@ -625,7 +625,7 @@ int sutra_controller_mv<T>::invgen_cpu(carma_obj<T> *d_mat,
       h_eigenvals_inv->getData()[i] = 1. / h_eigen->getData()[i];
   }
 
-  d_eigenvals_inv->host2device(*h_eigenvals_inv);
+  d_eigenvals_inv->host2device(h_eigenvals_inv->getData());
 
   carma_dgmm(cublas_handle, CUBLAS_SIDE_RIGHT, d_mat->getDims()[1],
              d_mat->getDims()[2], d_U->getData(), d_mat->getDims()[1],
@@ -691,15 +691,15 @@ int sutra_controller_mv<T>::DDiago(carma_obj<T> *d_statcov,
   // 1. SVdec(geocov,U) --> Ut * geocov * U = D²
   carma_syevd<T, 1>('V', d_geocov, h_eigenvals);
 
-  d_eigenvals->host2device(*h_eigenvals);
+  d_eigenvals->host2device(h_eigenvals->getData());
   for (int i = 0; i < this->nactu(); i++) {
     h_eigenvals_sqrt->getData()[i] =
         sqrt(h_eigenvals->getData()[i]);  // D = sqrt(D²)
     h_eigenvals_inv->getData()[i] =
         1. / sqrt(h_eigenvals->getData()[i]);  // D⁻¹ = 1/sqrt(D²)
   }
-  d_eigenvals_sqrt->host2device(*h_eigenvals_sqrt);
-  d_eigenvals_inv->host2device(*h_eigenvals_inv);
+  d_eigenvals_sqrt->host2device(h_eigenvals_sqrt->getData());
+  d_eigenvals_inv->host2device(h_eigenvals_inv->getData());
 
   // 2. M⁻¹ = sqrt(eigenvals) * Ut : here, we have transpose(M⁻¹)
 

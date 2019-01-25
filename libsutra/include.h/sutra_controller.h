@@ -41,12 +41,12 @@ class sutra_controller {
   cublasHandle_t cublas_handle() { return current_context->get_cublasHandle(); }
 
   int set_centroids_ref(T *centroids_ref);
-  int add_perturb_voltage(string name, T *perturb, int N);
+  int add_perturb_voltage(string name, float *perturb, int N);
   int remove_perturb_voltage(string name);
   int reset_perturb_voltage();
   int enable_perturb_voltage(string name);
   int disable_perturb_voltage(string name);
-  int set_com(T *com, int nElem);
+  int set_com(float *com, int nElem);
   int set_openloop(int open_loop_status, bool rst = true);
   void clip_voltage(T min, T max);
   int comp_voltage();

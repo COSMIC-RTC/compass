@@ -25,11 +25,11 @@ class sutra_controller_generic : public sutra_controller<T> {
 
   string get_type();
   string get_commandlaw();
-  int set_decayFactor(T *decayFactor);
-  int set_mgain(T *gain);
+  int set_decayFactor(float *decayFactor);
+  int set_mgain(float *gain);
   int set_gain(T gain);
-  int set_cmat(T *cmat);
-  int set_matE(T *matE);
+  int set_cmat(float *cmat);
+  int set_matE(float *matE);
   int set_commandlaw(string law);
   int comp_com();
 };

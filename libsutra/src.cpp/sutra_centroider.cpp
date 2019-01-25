@@ -58,7 +58,7 @@ int sutra_centroider<T>::set_nxsub(int nxsub) {
 }
 
 template <class T>
-int sutra_centroider<T>::set_dark(T *dark, int n) {
+int sutra_centroider<T>::set_dark(float *dark, int n) {
   current_context->set_activeDevice(device, 1);
   if (this->d_dark == nullptr) {
     long dims_data2[3] = {2, n, n};
@@ -69,7 +69,7 @@ int sutra_centroider<T>::set_dark(T *dark, int n) {
 }
 
 template <class T>
-int sutra_centroider<T>::set_flat(T *flat, int n) {
+int sutra_centroider<T>::set_flat(float *flat, int n) {
   current_context->set_activeDevice(device, 1);
   if (this->d_flat == nullptr) {
     long dims_data2[3] = {2, n, n};
@@ -125,7 +125,7 @@ int sutra_centroider<T>::calibrate_img(bool save_raw) {
 }
 
 template <class T>
-int sutra_centroider<T>::load_img(T *img, int n) {
+int sutra_centroider<T>::load_img(float *img, int n) {
   current_context->set_activeDevice(device, 1);
   if (this->d_img == nullptr) {
     long dims_data2[3] = {2, n, n};
@@ -158,7 +158,7 @@ int sutra_centroider<T>::load_validpos(int *ivalid, int *jvalid, int N) {
 }
 
 template <class T>
-int sutra_centroider<T>::set_centroids_ref(T *centroids_ref) {
+int sutra_centroider<T>::set_centroids_ref(float *centroids_ref) {
   this->d_centroids_ref->host2device(centroids_ref);
   return EXIT_SUCCESS;
 }

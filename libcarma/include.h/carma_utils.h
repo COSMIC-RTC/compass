@@ -14,10 +14,15 @@
 #include <vector>
 
 #include <cuda.h>
+#include <cuda_fp16.h>
 #include <cuda_runtime_api.h>
 #include <cufft.h>
 
 #define CARMA_PI 3.1415926535897932384626433832
+
+#if CUDA_HIGHEST_SM >= 60
+#define CAN_DO_HALF 1
+#endif
 
 namespace carma_utils {
 template <typename T>
@@ -131,6 +136,14 @@ int fill_sparse_vect(T_data *dense_data, int *colind_sorted, T_data *values,
 int floattodouble(float *idata, double *odata, int N, carma_device *device);
 int doubletofloat(double *idata, float *odata, int N, carma_device *device);
 int printMemInfo();
+#ifdef CAN_DO_HALF
+int copyFromFloatToHalf(const float *data, half *dest, int N,
+                        carma_device *device);
+int copyFromHalfToFloat(const half *d_data, float *h_dest, int N,
+                        carma_device *device);
+half *float2halfArray(float *source, int N, carma_device *device);
+float *half2floatArray(half *source, int N, carma_device *device);
+#endif
 
 void carma_start_profile();
 void carma_stop_profile();

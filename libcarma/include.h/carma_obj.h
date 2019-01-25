@@ -21,11 +21,8 @@
 #include <curand.h>
 #include <curand_kernel.h>
 #include <iostream>
+#include <type_traits>
 #include <typeinfo>  // operator typeid
-
-#if CUDA_HIGHEST_SM >= 60
-#define CAN_DO_HALF 1
-#endif
 
 /*
  create a memory object
@@ -233,8 +230,11 @@ class carma_obj {
   bool is_rng_init() { return (gen != NULL); }
 
   /**< Memory transfers both ways */
-  int host2device(const T_data *data);
-  int device2host(T_data *data);
+  template <typename T_dest>
+  int host2device(const T_dest *data);
+  template <typename T_dest>
+  int device2host(T_dest *data);
+
   int host2deviceAsync(const T_data *data, cudaStream_t stream);
   int device2hostAsync(T_data *data, cudaStream_t stream);
   int device2hostOpt(T_data *data);

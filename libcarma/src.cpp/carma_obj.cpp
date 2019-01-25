@@ -149,18 +149,29 @@ carma_obj<T_data>::~carma_obj() {
 }
 
 template <class T_data>
-int carma_obj<T_data>::host2device(const T_data *data) {
+template <typename T_dest>
+int carma_obj<T_data>::host2device(const T_dest *data) {
   /** \brief host2device data transfer.
    * \param data : input data
    *
    * this method fills d_input with the imput data
    */
 
-  carmaSafeCall(cudaMemcpy(this->d_data, data, sizeof(T_data) * this->nb_elem,
+  carmaSafeCall(cudaMemcpy(this->d_data, data, sizeof(T_dest) * this->nb_elem,
                            cudaMemcpyHostToDevice));
 
   return EXIT_SUCCESS;
 }
+template int carma_obj<unsigned int>::template host2device<unsigned int>(
+    const unsigned int *data);
+template int carma_obj<int>::template host2device<int>(const int *data);
+template int carma_obj<float>::template host2device<float>(const float *data);
+template int carma_obj<double>::template host2device<double>(
+    const double *data);
+template int carma_obj<cuFloatComplex>::template host2device<cuFloatComplex>(
+    const cuFloatComplex *data);
+template int carma_obj<cuDoubleComplex>::template host2device<cuDoubleComplex>(
+    const cuDoubleComplex *data);
 
 /*
  template<class T_data>
@@ -180,18 +191,48 @@ int carma_obj<T_data>::host2device(const T_data *data) {
  */
 
 template <class T_data>
-int carma_obj<T_data>::device2host(T_data *data) {
+template <typename T_dest>
+int carma_obj<T_data>::device2host(T_dest *data) {
   /** \brief device2host data transfer.
    * \param data : output data
    *
    * this method copies the values in d_output to the output array
    */
 
-  carmaSafeCall(cudaMemcpy(data, this->d_data, sizeof(T_data) * this->nb_elem,
+  carmaSafeCall(cudaMemcpy(data, this->d_data, sizeof(T_dest) * this->nb_elem,
                            cudaMemcpyDeviceToHost));
 
   return EXIT_SUCCESS;
 }
+
+template int carma_obj<unsigned int>::template device2host<unsigned int>(
+    unsigned int *data);
+template int carma_obj<int>::template device2host<int>(int *data);
+template int carma_obj<float>::template device2host<float>(float *data);
+template int carma_obj<double>::template device2host<double>(double *data);
+template int carma_obj<cuFloatComplex>::template device2host<cuFloatComplex>(
+    cuFloatComplex *data);
+template int carma_obj<cuDoubleComplex>::template device2host<cuDoubleComplex>(
+    cuDoubleComplex *data);
+
+#ifdef CAN_DO_HALF
+template int carma_obj<half>::template host2device<half>(const half *data);
+template int carma_obj<half>::template device2host<half>(half *data);
+template <>
+template <>
+// std::enable_if_t<std::is_same<T_data, half>::value>
+int carma_obj<half>::host2device<float>(const float *data) {
+  copyFromFloatToHalf(data, this->d_data, this->nb_elem,
+                      this->current_context->get_device(this->device));
+}
+template <>
+template <>
+// std::enable_if_t<std::is_same<T_data, half>::value>
+int carma_obj<half>::device2host<float>(float *data) {
+  copyFromHalfToFloat(this->d_data, data, this->nb_elem,
+                      this->current_context->get_device(this->device));
+}
+#endif
 
 template <class T_data>
 int carma_obj<T_data>::host2deviceAsync(const T_data *data,

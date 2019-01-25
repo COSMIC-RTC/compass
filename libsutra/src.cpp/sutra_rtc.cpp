@@ -67,6 +67,21 @@ int sutra_rtc<T>::add_centroider(carma_context *context, long nvalid, T offset,
   return EXIT_SUCCESS;
 }
 
+template <>
+int sutra_rtc<half>::add_centroider(carma_context *context, long nvalid,
+                                    half offset, half scale, long device,
+                                    char *typec, sutra_wfs *wfs) {
+  if (strcmp(typec, "cog") == 0)
+    d_centro.push_back(new sutra_centroider_cog<half>(context, wfs, nvalid,
+                                                      offset, scale, device));
+  else {
+    std::cerr << "centroider unknown or not implemented in half precision"
+              << std::endl;
+    return EXIT_FAILURE;
+  }
+  return EXIT_SUCCESS;
+}
+
 template <typename T>
 int sutra_rtc<T>::add_controller_geo(carma_context *context, int nactu,
                                      int Nphi, T delay, long device,
@@ -74,6 +89,15 @@ int sutra_rtc<T>::add_controller_geo(carma_context *context, int nactu,
                                      bool wfs_direction) {
   this->d_control.push_back(new sutra_controller_geo<T>(
       context, nactu, Nphi, delay, dms, idx_dms, ndm, wfs_direction));
+  return EXIT_SUCCESS;
+}
+
+template <>
+int sutra_rtc<half>::add_controller_geo(carma_context *context, int nactu,
+                                        int Nphi, half delay, long device,
+                                        sutra_dms *dms, int *idx_dms, int ndm,
+                                        bool wfs_direction) {
+  DEBUG_TRACE("Not implemented in half precision");
   return EXIT_SUCCESS;
 }
 
@@ -111,6 +135,27 @@ int sutra_rtc<T>::add_controller(carma_context *context, int nvalid, int nslope,
   return EXIT_SUCCESS;
 }
 
+template <>
+int sutra_rtc<half>::add_controller(carma_context *context, int nvalid,
+                                    int nslope, int nactu, half delay,
+                                    long device, char *typec, sutra_dms *dms,
+                                    int *idx_dms, int ndm, int Nphi,
+                                    bool wfs_direction) {
+  string type_ctr(typec);
+
+  if (type_ctr.compare("generic") == 0) {
+    d_control.push_back(new sutra_controller_generic<half>(
+        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm));
+
+  } else {
+    DEBUG_TRACE(
+        "Controller '%s' unknown\n or not implemented in half precision",
+        typec);
+    return EXIT_FAILURE;
+  }
+  return EXIT_SUCCESS;
+}
+
 template <typename T>
 int sutra_rtc<T>::rm_controller() {
   // for (size_t idx = 0; idx < (this->d_control).size(); idx++) {
@@ -124,7 +169,7 @@ int sutra_rtc<T>::rm_controller() {
 
 template <typename T>
 int sutra_rtc<T>::do_imat(int ncntrl, sutra_dms *ydm) {
-  carma_obj<float> *d_imat = NULL;
+  carma_obj<T> *d_imat = NULL;
   if (this->d_control[ncntrl]->get_type().compare("ls") == 0) {
     SCAST(sutra_controller_ls<T> *, control, this->d_control[ncntrl]);
     d_imat = control->d_imat;
@@ -181,6 +226,12 @@ int sutra_rtc<T>::do_imat(int ncntrl, sutra_dms *ydm) {
   }
   printf("\n");
   return EXIT_SUCCESS;
+}
+
+template <>
+int sutra_rtc<half>::do_imat(int ncntrl, sutra_dms *ydm) {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_FAILURE;
 }
 
 template <typename T>
@@ -265,6 +316,13 @@ int sutra_rtc<T>::do_imat_basis(int ncntrl, sutra_dms *ydm, int nModes, T *m2v,
   return EXIT_SUCCESS;
 }
 
+template <>
+int sutra_rtc<half>::do_imat_basis(int ncntrl, sutra_dms *ydm, int nModes,
+                                   half *m2v, half *pushAmpl) {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_FAILURE;
+}
+
 template <typename T>
 int sutra_rtc<T>::comp_images_imat(sutra_dms *ydm) {
   for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
@@ -334,6 +392,11 @@ int sutra_rtc<T>::do_imat_geom(int ncntrl, sutra_dms *ydm, int type) {
   return EXIT_SUCCESS;
 }
 
+template <>
+int sutra_rtc<half>::do_imat_geom(int ncntrl, sutra_dms *ydm, int type) {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_FAILURE;
+}
 // int sutra_rtc<T>::remove_ref(int ncntrl) {
 //   carma_axpy<float>(
 //       this->d_control[ncntrl]->current_context->get_cublasHandle(),
@@ -410,6 +473,12 @@ int sutra_rtc<T>::do_centroids_geom(int ncntrl) {
   return EXIT_SUCCESS;
 }
 
+template <>
+int sutra_rtc<half>::do_centroids_geom(int ncntrl) {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_FAILURE;
+}
+
 template <typename T>
 int sutra_rtc<T>::do_centroids_ref(int ncntrl) {
   this->do_centroids(ncntrl);
@@ -419,9 +488,8 @@ int sutra_rtc<T>::do_centroids_ref(int ncntrl) {
   inds = 0;
   while (sc != this->d_centro.end()) {
     (*sc)->d_centroids_ref->reset();
-    carma_axpy(this->d_control[ncntrl]->cublas_handle(), (*sc)->nslopes, 1.0f,
-               this->d_control[ncntrl]->d_centroids->getDataAt(inds), 1,
-               (*sc)->d_centroids_ref->getData(), 1);
+    (*sc)->d_centroids_ref->axpy(1.0f, this->d_control[ncntrl]->d_centroids, 1,
+                                 1, inds);
     inds += (*sc)->nslopes;
     sc++;
   }
@@ -430,7 +498,7 @@ int sutra_rtc<T>::do_centroids_ref(int ncntrl) {
 }
 
 template <typename T>
-int sutra_rtc<T>::set_centroids_ref(T *centroids_ref) {
+int sutra_rtc<T>::set_centroids_ref(float *centroids_ref) {
   typename vector<sutra_centroider<T> *>::iterator sc;
   sc = this->d_centro.begin();
   int inds;
@@ -438,6 +506,7 @@ int sutra_rtc<T>::set_centroids_ref(T *centroids_ref) {
   while (sc != this->d_centro.end()) {
     (*sc)->set_centroids_ref(&centroids_ref[inds]);
     inds += (*sc)->nslopes;
+    sc++;
   }
 
   return EXIT_SUCCESS;
@@ -511,4 +580,14 @@ int sutra_rtc<T>::apply_control(int ncntrl, sutra_dms *ydm, bool compVoltage) {
   return EXIT_SUCCESS;
 }
 
+template <>
+int sutra_rtc<half>::apply_control(int ncntrl, sutra_dms *ydm,
+                                   bool compVoltage) {
+  DEBUG_TRACE("Not implemented yet for half precision");
+  return EXIT_FAILURE;
+}
+
 template class sutra_rtc<float>;
+#ifdef CAN_DO_HALF
+template class sutra_rtc<half>;
+#endif

@@ -496,7 +496,7 @@ int sutra_dm::DDiago(carma_obj<float> *d_statcov, carma_obj<float> *d_geocov) {
   // 1. SVdec(geocov,U) --> Ut * geocov * U = D������
   carma_syevd<float, 1>('V', d_geocov, h_eigenvals);
 
-  d_eigenvals->host2device(*h_eigenvals);
+  d_eigenvals->host2device(h_eigenvals->getData());
   for (int i = 0; i < this->nactus; i++) {
     h_eigenvals_sqrt->getData()[i] =
         sqrt(h_eigenvals->getData()[i]);  // D = sqrt(D������)
@@ -504,8 +504,8 @@ int sutra_dm::DDiago(carma_obj<float> *d_statcov, carma_obj<float> *d_geocov) {
         1. /
         sqrt(h_eigenvals->getData()[i]);  // D��������������� = 1/sqrt(D������)
   }
-  d_eigenvals_sqrt->host2device(*h_eigenvals_sqrt);
-  d_eigenvals_inv->host2device(*h_eigenvals_inv);
+  d_eigenvals_sqrt->host2device(h_eigenvals_sqrt->getData());
+  d_eigenvals_inv->host2device(h_eigenvals_inv->getData());
 
   // 2. M��������������� = sqrt(eigenvals) * Ut : here, we have
   // transpose(M���������������)

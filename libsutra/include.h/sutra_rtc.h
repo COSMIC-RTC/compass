@@ -55,7 +55,7 @@ class sutra_rtc {
   int apply_control(int ncntrl, sutra_dms *ydm, bool compVoltage = true);
   int comp_voltage(int ncntrl);
   int remove_ref(int ncntrl);
-  int set_centroids_ref(T *centroids_ref);
+  int set_centroids_ref(float *centroids_ref);
 };
 
 #endif  // _SUTRA_RTC_H_
