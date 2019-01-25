@@ -284,9 +284,9 @@ class BenchSupervisor(AbstractSupervisor):
     def resetPerturbationVoltage(self, nControl: int = 0) -> None:
         '''
         Reset the perturbation voltage of the nControl controller
+        Removes all the perturbation voltage buffers currently existing in this controller
         '''
-        if self.rtc.d_control[nControl].d_perturb is not None:
-            self.rtc.d_control[nControl].d_perturb.reset()
+        self.rtc.d_control[nControl].reset_perturb_voltage()
 
     def loadConfig(self, configFile: str = None, sim=None) -> None:
         '''
