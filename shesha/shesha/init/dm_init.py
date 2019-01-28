@@ -235,7 +235,14 @@ def make_pzt_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, cobs: float,
     elif p_dm.type_pattern == scons.PatternType.HEXAM4:
         print("Pattern type : hexaM4")
         keepAllActu = True
-        cub = dm_util.createDoubleHexaPattern(pitch, p_geom.pupdiam * 1.1)
+        if p_dm.margin_out is not None:
+            cub = dm_util.createDoubleHexaPattern(pitch, p_geom.pupdiam * 1.1)
+            pup_side = p_geom._ipupil.shape[0]
+            cub_off = dm_util.filterActuWithPupil(cub + pup_side // 2 - 0.5,
+                                                  p_geom._ipupil,
+                                                  p_dm.margin_out * p_dm.get_pitch())
+            cub = cub_off - pup_side // 2 + 0.5
+            p_dm.set_ntotact(cub.shape[1])
     elif p_dm.type_pattern == scons.PatternType.SQUARE:
         print("Pattern type : square")
         cub = dm_util.createSquarePattern(pitch, nxact + 4)

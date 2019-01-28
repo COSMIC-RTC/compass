@@ -419,6 +419,7 @@ int sutra_rtc::set_centroids_ref(float *centroids_ref) {
   while (sc != this->d_centro.end()) {
     (*sc)->set_centroids_ref(&centroids_ref[inds]);
     inds += (*sc)->nslopes;
+    sc++;
   }
 
   return EXIT_SUCCESS;

@@ -38,7 +38,6 @@ BenchWindowTemplate, BenchClassTemplate = uiLoader('widget_bench')
 
 import matplotlib.pyplot as plt
 
-# DO NOT COMMIT ME
 from shesha.supervisor.benchSupervisor import WFSType, BenchSupervisor as Supervisor
 
 # For debug
@@ -207,13 +206,14 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
         try:
             self.supervisor.forceContext()
         except:
-            pass
+            print('Warning: could not call supervisor.forceContext().')
 
         for i in range(self.nwfs):
             if self.config.p_wfss[i].type == WFSType.SH:
                 key = "wfs_%d" % i
                 self.addSHGrid(self.docks[key].widgets[0],
-                               self.config.p_wfss[i].get_validsub(), self.config.p_wfss[i].npix, self.config.p_wfss[i].npix)
+                               self.config.p_wfss[i].get_validsub(),
+                               self.config.p_wfss[i].npix, self.config.p_wfss[i].npix)
 
         self.updateDisplay()
 
@@ -249,26 +249,23 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
                                 self.imgs[key].setImage(data, autoLevels=autoscale)
                                 # self.p1.autoRange()
 
-
                         elif "slp" in key:  # Slope display
                             if (self.config.p_wfss[index].type == WFSType.PYRHR or
                                         self.config.p_wfss[index].type == WFSType.PYRLR):
                                 raise RuntimeError("PYRHR not usable")
                             self.imgs[key].canvas.axes.clear()
-                            x, y = self.supervisor.config.p_wfss[
-                                    index].get_validsub()
+                            x, y = self.supervisor.config.p_wfss[index].get_validsub()
 
                             nssp = x.size
                             centroids = self.supervisor.getSlope()
                             vx = centroids[:nssp]
                             vy = centroids[nssp:]
 
-                            offset = (self.supervisor.config.p_wfss[index].npix -
-                                      1) / 2
+                            offset = (self.supervisor.config.p_wfss[index].npix - 1) / 2
                             self.imgs[key].canvas.axes.quiver(
                                     x + offset, y + offset, vy, vx, angles='xy',
-                                    scale_units='xy', scale=1
-                            )  # wao.supervisor.config.p_wfss[0].pixsize)
+                                    scale_units='xy',
+                                    scale=1)  # wao.supervisor.config.p_wfss[0].pixsize)
                             self.imgs[key].canvas.draw()
 
             finally:
