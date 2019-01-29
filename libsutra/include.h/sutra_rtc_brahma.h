@@ -14,13 +14,14 @@
 #include <sutra_target.h>
 #include <sutra_wfs.h>
 
-class sutra_rtc_brahma : public sutra_rtc {
+template <typename T>
+class sutra_rtc_brahma : public sutra_rtc<T> {
  private:
   DDS::Subscriber_var sub;
   DDS::Publisher_var pub;
 
   DDS::DataReaderListener_var cmd_listener;
-  sutra_rtc_brahmaListenerImpl *cmd_listener_servant;
+  sutra_rtc_brahmaListenerImpl<T> *cmd_listener_servant;
   DDS::DataReader_var cmd_dr;
 
   DDS::DataWriter_var superframe_base_dw;

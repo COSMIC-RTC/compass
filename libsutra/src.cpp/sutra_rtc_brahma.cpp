@@ -3,9 +3,26 @@
 #include <sutra_rtc_brahma.h>
 #include <sutra_rtc_brahmaListenerImpl.h>
 
-sutra_rtc_brahma::sutra_rtc_brahma(carma_context *context, sutra_sensors *wfs_,
-                                   sutra_target *target_, ACE_TCHAR *name)
-    : sutra_rtc(), wfs(wfs_), target(target_) {
+template <typename T>
+BRAHMA::BRAHMADataType get_brahma_datatype() {
+  throw std::runtime_error("Type not handled");
+}
+
+template <>
+BRAHMA::BRAHMADataType get_brahma_datatype<float>() {
+  return BRAHMA::BRAHMA_float32_t;
+}
+
+template <>
+BRAHMA::BRAHMADataType get_brahma_datatype<half>() {
+  return BRAHMA::BRAHMA_float16_t;
+}
+
+template <typename T>
+sutra_rtc_brahma<T>::sutra_rtc_brahma(carma_context *context,
+                                      sutra_sensors *wfs_,
+                                      sutra_target *target_, ACE_TCHAR *name)
+    : sutra_rtc<T>(), wfs(wfs_), target(target_) {
   DEBUG_TRACE("init %s", name);
   BRAHMA::BRAHMA_context brahma = BRAHMA::BRAHMA_context::get_instance(name);
   cmd_listener_servant = NULL;
@@ -103,7 +120,8 @@ sutra_rtc_brahma::sutra_rtc_brahma(carma_context *context, sutra_sensors *wfs_,
   }
 }
 
-sutra_rtc_brahma::~sutra_rtc_brahma() {
+template <typename T>
+sutra_rtc_brahma<T>::~sutra_rtc_brahma() {
   if (!is_initialised) {
     return;
   }
@@ -125,7 +143,8 @@ sutra_rtc_brahma::~sutra_rtc_brahma() {
   if (dims_target_phase) BRAHMA::Dims::freebuf(dims_target_phase);
 }
 
-void sutra_rtc_brahma::allocateBuffers() {
+template <typename T>
+void sutra_rtc_brahma<T>::allocateBuffers() {
   if (!is_initialised) {
     return;
   }
@@ -149,15 +168,15 @@ void sutra_rtc_brahma::allocateBuffers() {
 
     nslp = 0;
     ncmd = 0;
-    for (unsigned int i = 0; i < d_control.size(); i++) {
-      nslp += d_control[i]->nslope();
-      ncmd += d_control[i]->nactu();
+    for (unsigned int i = 0; i < this->d_control.size(); i++) {
+      nslp += this->d_control[i]->nslope();
+      ncmd += this->d_control[i]->nactu();
     }
     nvalid = nslp / 2;
 
-    buff_intensities = BRAHMA::Values::allocbuf(nvalid * sizeof(float));
-    buff_slopes = BRAHMA::Values::allocbuf(nslp * sizeof(float));
-    buff_commands = BRAHMA::Values::allocbuf(ncmd * sizeof(float));
+    buff_intensities = BRAHMA::Values::allocbuf(nvalid * sizeof(T));
+    buff_slopes = BRAHMA::Values::allocbuf(nslp * sizeof(T));
+    buff_commands = BRAHMA::Values::allocbuf(ncmd * sizeof(T));
     if (target != NULL) {
       buff_wfs = BRAHMA::Values::allocbuf(wfs_size * sizeof(float));
       buff_wfs_phase = BRAHMA::Values::allocbuf(wfs_phase_size * sizeof(float));
@@ -196,7 +215,8 @@ void sutra_rtc_brahma::allocateBuffers() {
   }
 }
 
-void sutra_rtc_brahma::publish() {
+template <typename T>
+void sutra_rtc_brahma<T>::publish() {
   if (!is_initialised) {
     cerr << "brahma not initialised!" << endl;
     return;
@@ -206,9 +226,9 @@ void sutra_rtc_brahma::publish() {
 
   CORBA::Float *buff_wfs_servant = (CORBA::Float *)buff_wfs;
   CORBA::Float *buff_wfs_phase_servant = (CORBA::Float *)buff_wfs_phase;
-  CORBA::Float *buff_intensities_servant = (CORBA::Float *)buff_intensities;
-  CORBA::Float *buff_slopes_servant = (CORBA::Float *)buff_slopes;
-  CORBA::Float *buff_commands_servant = (CORBA::Float *)buff_commands;
+  T *buff_intensities_servant = (T *)buff_intensities;
+  T *buff_slopes_servant = (T *)buff_slopes;
+  T *buff_commands_servant = (T *)buff_commands;
   CORBA::Float *buff_target_servant = (CORBA::Float *)buff_target;
   CORBA::Float *buff_target_phase_servant = (CORBA::Float *)buff_target_phase;
 
@@ -216,19 +236,21 @@ void sutra_rtc_brahma::publish() {
   int ncmd_current = 0;
   int nvalid_current = 0;
 
-  for (unsigned int i = 0; i < d_centro.size(); i++) {
-    d_centro[i]->d_intensities->device2host(buff_intensities_servant +
-                                            nvalid_current);
-    nvalid_current += d_centro[i]->nvalid;
+  for (unsigned int i = 0; i < this->d_centro.size(); i++) {
+    this->d_centro[i]->d_intensities->device2host(buff_intensities_servant +
+                                                  nvalid_current);
+    nvalid_current += this->d_centro[i]->nvalid;
   }
 
   nvalid_current = 0;
-  for (unsigned int i = 0; i < d_control.size(); i++) {
-    d_control[i]->d_centroids->device2host(buff_slopes_servant + nslp_current);
-    d_control[i]->d_voltage->device2host(buff_commands_servant + ncmd_current);
-    nvalid_current += d_control[i]->nslope() / 2;
-    nslp_current += d_control[i]->nslope();
-    ncmd_current += d_control[i]->nactu();
+  for (unsigned int i = 0; i < this->d_control.size(); i++) {
+    this->d_control[i]->d_centroids->device2host(buff_slopes_servant +
+                                                 nslp_current);
+    this->d_control[i]->d_voltage->device2host(buff_commands_servant +
+                                               ncmd_current);
+    nvalid_current += this->d_control[i]->nslope() / 2;
+    nslp_current += this->d_control[i]->nslope();
+    ncmd_current += this->d_control[i]->nactu();
   }
 
   if (target != NULL) {
@@ -277,32 +299,32 @@ void sutra_rtc_brahma::publish() {
 
   zFrame.loopData.slps.source = CORBA::string_dup("COMPASS slopes");
   zFrame.loopData.slps.typeofelements = CORBA::string_dup("slopes");
-  zFrame.loopData.slps.datatype = BRAHMA::BRAHMA_float32_t;
-  zFrame.loopData.slps.sizeofelements = sizeof(float);
+  zFrame.loopData.slps.datatype = get_brahma_datatype<T>();
+  zFrame.loopData.slps.sizeofelements = sizeof(T);
   zFrame.loopData.slps.dimensions = BRAHMA::Dims(1, 1, dims_slopes, 0);
   zFrame.loopData.slps.framecounter = framecounter;
-  zFrame.loopData.slps.data = BRAHMA::Values(
-      nslp * sizeof(float), nslp * sizeof(float), buff_slopes, 0);
+  zFrame.loopData.slps.data =
+      BRAHMA::Values(nslp * sizeof(T), nslp * sizeof(T), buff_slopes, 0);
   zFrame.loopData.slps.timestamp = BRAHMA::get_timestamp();
 
   zFrame.loopData.ints.source = CORBA::string_dup("COMPASS intensities");
   zFrame.loopData.ints.typeofelements = CORBA::string_dup("intensities");
-  zFrame.loopData.ints.datatype = BRAHMA::BRAHMA_float32_t;
-  zFrame.loopData.ints.sizeofelements = sizeof(float);
+  zFrame.loopData.ints.datatype = get_brahma_datatype<T>();
+  zFrame.loopData.ints.sizeofelements = sizeof(T);
   zFrame.loopData.ints.dimensions = BRAHMA::Dims(1, 1, dims_intensities, 0);
   zFrame.loopData.ints.framecounter = framecounter;
   zFrame.loopData.ints.data = BRAHMA::Values(
-      nvalid * sizeof(float), nvalid * sizeof(float), buff_intensities, 0);
+      nvalid * sizeof(T), nvalid * sizeof(T), buff_intensities, 0);
   zFrame.loopData.ints.timestamp = BRAHMA::get_timestamp();
 
   zFrame.loopData.cmds.source = CORBA::string_dup("COMPASS commands");
   zFrame.loopData.cmds.typeofelements = CORBA::string_dup("commands");
-  zFrame.loopData.cmds.datatype = BRAHMA::BRAHMA_float32_t;
-  zFrame.loopData.cmds.sizeofelements = sizeof(float);
+  zFrame.loopData.cmds.datatype = get_brahma_datatype<T>();
+  zFrame.loopData.cmds.sizeofelements = sizeof(T);
   zFrame.loopData.cmds.dimensions = BRAHMA::Dims(1, 1, dims_commands, 0);
   zFrame.loopData.cmds.framecounter = framecounter;
-  zFrame.loopData.cmds.data = BRAHMA::Values(
-      ncmd * sizeof(float), ncmd * sizeof(float), buff_commands, 0);
+  zFrame.loopData.cmds.data =
+      BRAHMA::Values(ncmd * sizeof(T), ncmd * sizeof(T), buff_commands, 0);
   zFrame.loopData.cmds.timestamp = BRAHMA::get_timestamp();
 
   zFrame.loopData.framecounter = framecounter;

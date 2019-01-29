@@ -8,17 +8,21 @@
 #include "sutra_rtc_brahma.h"
 
 // Constructor
-sutra_rtc_brahmaListenerImpl::sutra_rtc_brahmaListenerImpl() : rtc(0L) {}
+template <typename T>
+sutra_rtc_brahmaListenerImpl<T>::sutra_rtc_brahmaListenerImpl() : rtc(0L) {}
 
 // Destructor
-sutra_rtc_brahmaListenerImpl::~sutra_rtc_brahmaListenerImpl(void) {}
+template <typename T>
+sutra_rtc_brahmaListenerImpl<T>::~sutra_rtc_brahmaListenerImpl(void) {}
 
 // app-specific
-void sutra_rtc_brahmaListenerImpl::attach_rtc(sutra_rtc_brahma *rtc_) {
+template <typename T>
+void sutra_rtc_brahmaListenerImpl<T>::attach_rtc(sutra_rtc_brahma<T> *rtc_) {
   rtc = rtc_;
 }
 
-void sutra_rtc_brahmaListenerImpl::on_data_available(
+template <typename T>
+void sutra_rtc_brahmaListenerImpl<T>::on_data_available(
     DDS::DataReader_ptr reader) throw(CORBA::SystemException) {
   //  DEBUG_TRACE("Entering in
   //  sutra_rtc_brahmaListenerImpl::on_data_available");
@@ -50,7 +54,7 @@ void sutra_rtc_brahmaListenerImpl::on_data_available(
             DEBUG_TRACE("Updating mgain on controller %d", ncontrol);
 
             unsigned int ncmd = rtc->d_control[ncontrol]->nactu();
-            CORBA::Float *data = (CORBA::Float *)cmd.data.get_buffer();
+            T *data = (T *)cmd.data.get_buffer();
 
             if ((cmd.dimensions.length() != 1) && (cmd.dimensions[0] == ncmd)) {
               BRAHMA_DEBUG_TRACE("wrong dimensions : %d %d",
@@ -122,7 +126,7 @@ void sutra_rtc_brahmaListenerImpl::on_data_available(
               throw CORBA::BAD_PARAM();
             }
 
-            CORBA::Float *data = (CORBA::Float *)cmd.data.get_buffer();
+            T *data = (T *)cmd.data.get_buffer();
             if (rtc->d_control[ncontrol]->get_type() == "ls") {
               sutra_controller_ls *control =
                   dynamic_cast<sutra_controller_ls *>(rtc->d_control[ncontrol]);
@@ -161,7 +165,7 @@ void sutra_rtc_brahmaListenerImpl::on_data_available(
               throw CORBA::BAD_PARAM();
             }
 
-            CORBA::Float *data = (CORBA::Float *)cmd.data.get_buffer();
+            T *data = (T *)cmd.data.get_buffer();
             if (rtc->d_control[ncontrol]->get_type() == "generic") {
               sutra_controller_generic *control =
                   dynamic_cast<sutra_controller_generic *>(
@@ -187,7 +191,7 @@ void sutra_rtc_brahmaListenerImpl::on_data_available(
               throw CORBA::BAD_PARAM();
             }
 
-            CORBA::Float *data = (CORBA::Float *)cmd.data.get_buffer();
+            T *data = (T *)cmd.data.get_buffer();
             if (rtc->d_control[ncontrol]->get_type() == "generic") {
               sutra_controller_generic *control =
                   dynamic_cast<sutra_controller_generic *>(
@@ -223,7 +227,7 @@ void sutra_rtc_brahmaListenerImpl::on_data_available(
                         ncontrol);
 
             unsigned int ncmd = rtc->d_control[ncontrol]->nactu();
-            CORBA::Float *data = (CORBA::Float *)cmd.data.get_buffer();
+            T *data = (T *)cmd.data.get_buffer();
 
             if (cmd.dimensions.length() == 1) {
               if (cmd.dimensions[0] == ncmd) {
@@ -281,7 +285,8 @@ void sutra_rtc_brahmaListenerImpl::on_data_available(
 }
 
 // must also override:
-void sutra_rtc_brahmaListenerImpl::on_requested_deadline_missed(
+template <typename T>
+void sutra_rtc_brahmaListenerImpl<T>::on_requested_deadline_missed(
     DDS::DataReader_ptr reader, const DDS::RequestedDeadlineMissedStatus
                                     &status) throw(CORBA::SystemException) {
   //   BRAHMA_DEBUG_TRACE(
@@ -289,7 +294,8 @@ void sutra_rtc_brahmaListenerImpl::on_requested_deadline_missed(
   //  cerr << "CommandDataReaderListenerImpl::on_requested_deadline_missed" <<
   //  endl;
 }
-void sutra_rtc_brahmaListenerImpl::on_requested_incompatible_qos(
+template <typename T>
+void sutra_rtc_brahmaListenerImpl<T>::on_requested_incompatible_qos(
     DDS::DataReader_ptr reader, const DDS::RequestedIncompatibleQosStatus
                                     &status) throw(CORBA::SystemException) {
   //   BRAHMA_DEBUG_TRACE(
@@ -297,28 +303,32 @@ void sutra_rtc_brahmaListenerImpl::on_requested_incompatible_qos(
   //  cerr << "CommandDataReaderListenerImpl::on_requested_incompatible_qos" <<
   //  endl;
 }
-void sutra_rtc_brahmaListenerImpl::on_liveliness_changed(
+template <typename T>
+void sutra_rtc_brahmaListenerImpl<T>::on_liveliness_changed(
     DDS::DataReader_ptr reader,
     const DDS::LivelinessChangedStatus &status) throw(CORBA::SystemException) {
   //   BRAHMA_DEBUG_TRACE(
   //       "CommandDataReaderListenerImpl::on_liveliness_changed");
   //  cerr << "CommandDataReaderListenerImpl::on_liveliness_changed" << endl;
 }
-void sutra_rtc_brahmaListenerImpl::on_subscription_matched(
+template <typename T>
+void sutra_rtc_brahmaListenerImpl<T>::on_subscription_matched(
     DDS::DataReader_ptr reader, const DDS::SubscriptionMatchedStatus
                                     &status) throw(CORBA::SystemException) {
   //   BRAHMA_DEBUG_TRACE(
   //       "CommandDataReaderListenerImpl::on_subscription_matched");
   //  cerr << "CommandDataReaderListenerImpl::on_subscription_matched" << endl;
 }
-void sutra_rtc_brahmaListenerImpl::on_sample_rejected(
+template <typename T>
+void sutra_rtc_brahmaListenerImpl<T>::on_sample_rejected(
     DDS::DataReader_ptr reader,
     const DDS::SampleRejectedStatus &status) throw(CORBA::SystemException) {
   //   BRAHMA_DEBUG_TRACE(
   //       "CommandDataReaderListenerImpl::on_sample_rejected");
   //  cerr << "CommandDataReaderListenerImpl::on_sample_rejected" << endl;
 }
-void sutra_rtc_brahmaListenerImpl::on_sample_lost(
+template <typename T>
+void sutra_rtc_brahmaListenerImpl<T>::on_sample_lost(
     DDS::DataReader_ptr reader,
     const DDS::SampleLostStatus &status) throw(CORBA::SystemException) {
   //   BRAHMA_DEBUG_TRACE(

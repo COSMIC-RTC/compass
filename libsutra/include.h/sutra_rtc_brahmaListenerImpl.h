@@ -9,11 +9,14 @@
 #pragma once
 #endif /* ACE_LACKS_PRAGMA_ONCE */
 
+template <typename T>
 class sutra_rtc_brahma;
+
+template <typename T>
 class libBRAHMACommon_Export sutra_rtc_brahmaListenerImpl
     : public virtual OpenDDS::DCPS::LocalObject<DDS::DataReaderListener> {
  private:
-  sutra_rtc_brahma* rtc;
+  sutra_rtc_brahma<T>* rtc;
   ACE_Mutex lock_;
 
  public:
@@ -24,7 +27,7 @@ class libBRAHMACommon_Export sutra_rtc_brahmaListenerImpl
   virtual ~sutra_rtc_brahmaListenerImpl(void);
 
   // app-specific
-  void attach_rtc(sutra_rtc_brahma* rtc);
+  void attach_rtc(sutra_rtc_brahma<T>* rtc);
 
   // must also override:
   virtual void on_data_available(DDS::DataReader_ptr reader) throw(
