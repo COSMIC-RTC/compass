@@ -191,6 +191,7 @@ int sutra_controller<T>::comp_voltage() {
   this->d_voltage->reset();
 
   if (!this->open_loop) {
+    // Command increment = a * d[k] + b*d[k-1] + c*d[k-2] + perturb
     if (this->delay > 0) {
       this->d_voltage->axpy(this->a, this->d_com, 1, 1);
       this->d_voltage->axpy(this->b, this->d_com1, 1, 1);

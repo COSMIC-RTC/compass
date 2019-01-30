@@ -1,9 +1,13 @@
+#ifndef _WRAP_OBJ_H_
+#define _WRAP_OBJ_H_
+
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
 
-#include "type_list.hpp"
+#include "declare_name.hpp"
+#include <type_list.hpp>
 #include <carma.h>
 
 namespace py = pybind11;
@@ -624,3 +628,4 @@ struct CarmaObjInterfacer {
     // int snapTransformSize(unsigned int dataSize);
   }
 };
+#endif

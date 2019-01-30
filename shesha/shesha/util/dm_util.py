@@ -171,6 +171,29 @@ def createDoubleHexaPattern(pitch: float, supportSize: int):
     return np.float32(np.array([X, Y]))
 
 
+def filterActuWithPupil(actuPos: np.ndarray, pupil: np.ndarray,
+                        threshold: float) -> np.ndarray:
+    '''
+        Select actuators based on their distance to the nearest pupil pixel
+        The implementation proposed here is easy but limits it precision to
+        an integer roundoff of the threshold
+
+        actuPos: 2 x nActu np.array[float]: actuator position list - pupil pixel units
+        pupil: nPup x nPup np.ndarray[bool]: pupil mask
+        threshold: float: max allowed distance - pupil pixel units
+    '''
+
+    # Gen a dilation mask of expected size
+    from scipy.ndimage.morphology import binary_dilation
+    k = np.ceil(threshold)
+    i, j = np.meshgrid(np.arange(2 * k + 1), np.arange(2 * k + 1), indexing='ij')
+    disk = ((i - k)**2 + (j - k)**2)**.5 <= k
+    dilatedPupil = binary_dilation(pupil, disk)
+    actuIsIn = dilatedPupil[(np.round(actuPos[0]).astype(np.int32),
+                             np.round(actuPos[1]).astype(np.int32))]
+    return actuPos[:, actuIsIn]
+
+
 def select_actuators(xc: np.ndarray, yc: np.ndarray, nxact: int, pitch: int, cobs: float,
                      margin_in: float, margin_out: float, N=None):
     """

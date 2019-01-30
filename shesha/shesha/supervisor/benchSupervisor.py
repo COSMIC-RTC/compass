@@ -181,14 +181,17 @@ class BenchSupervisor(AbstractSupervisor):
             refSlopes = np.append(refSlopes, np.array(centro.d_centroids_ref))
         return refSlopes
 
-    def setGain(self, gainMat) -> None:
+    def setGain(self, gain) -> None:
         '''
-        Set the scalar gain of feedback controller loop
+        Set the gain/mgain of feedback controller loop
         '''
-        if type(gainMat) in [int, float]:
-            gainMat = np.ones(np.sum(self.rtc.d_control[0].nactu),
-                              dtype=np.float32) * gainMat
-        # Whoopdie-doop, fix needed
+        if self.rtc.d_control[0].command_law == 'integrator':  # scalar
+            self.rtc.d_control[0].set_gain(gain)
+        else:  # mgain mode
+            if type(gain) in [int, float]:
+                gain = np.ones(np.sum(self.rtc.d_control[0].nactu),
+                               dtype=np.float32) * gain
+            self.rtc.d_control[0].set_mgain(gain)
 
     def setCommandMatrix(self, cMat: np.ndarray) -> None:
         '''
@@ -216,6 +219,18 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         raise NotImplementedError("Not implemented")
 
+    def forceContext(self) -> None:
+        """
+        Active all the GPU devices specified in the parameters file
+        Required for using with widgets, due to multithreaded init
+        and in case GPU 0 is not used by the simu
+        """
+        if self.isInit() and self.c is not None:
+            current_Id = self.c.activeDevice
+            for devIdx in range(len(self.config.p_loop.devices)):
+                self.c.set_activeDeviceForce(devIdx)
+            self.c.set_activeDevice(current_Id)
+
     #  ____                  _ _   _        __  __      _   _               _
     # / ___| _ __   ___  ___(_) |_(_) ___  |  \/  | ___| |_| |__   ___   __| |___
     # \___ \| '_ \ / _ \/ __| | __| |/ __| | |\/| |/ _ \ __| '_ \ / _ \ / _` / __|
@@ -242,11 +257,12 @@ class BenchSupervisor(AbstractSupervisor):
             self.loadConfig(configFile=configFile)
 
     def __repr__(self):
-        s = str(self.rtc)
+
+        s = '--- BenchSupervisor ---\nRTC: ' + repr(self.rtc)
         if hasattr(self, '_cam'):
-            s += '\n' + str(self._cam)
+            s += '\nCAM: ' + repr(self._cam)
         if hasattr(self, '_dm'):
-            s += '\n' + str(self._dm)
+            s += '\nDM: ' + repr(self._dm)
         return s
 
     def resetDM(self, nDM: int) -> None:
@@ -268,9 +284,9 @@ class BenchSupervisor(AbstractSupervisor):
     def resetPerturbationVoltage(self, nControl: int = 0) -> None:
         '''
         Reset the perturbation voltage of the nControl controller
+        Removes all the perturbation voltage buffers currently existing in this controller
         '''
-        if self.rtc.d_control[nControl].d_perturb is not None:
-            self.rtc.d_control[nControl].d_perturb.reset()
+        self.rtc.d_control[nControl].reset_perturb_voltage()
 
     def loadConfig(self, configFile: str = None, sim=None) -> None:
         '''

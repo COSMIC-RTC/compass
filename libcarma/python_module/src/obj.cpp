@@ -2,15 +2,18 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include "type_list.hpp"
 #include <carma.h>
 #include "obj.hpp"
+#include "type_list.hpp"
 
-using TypeListObj =
-    GenericTypeList<int, float, double, half, cuFloatComplex>;
+#ifdef CAN_DO_HALF
+using TypeListObj = GenericTypeList<int, float, double, half, cuFloatComplex>;
+#else
+using TypeListObj = GenericTypeList<int, float, double, cuFloatComplex>;
+#endif
 
 void declare_carmaWrap_obj(py::module &mod) {
-    apply<CarmaObjInterfacer, TypeListObj>(mod);
+  apply<CarmaObjInterfacer, TypeListObj>(mod);
 }
 
 #ifdef CAN_DO_HALF

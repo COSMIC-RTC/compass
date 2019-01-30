@@ -24,6 +24,17 @@
 #define CAN_DO_HALF 1
 #endif
 
+struct doubleint {
+  int start;
+  int nbInflu;
+};
+
+template <class T>
+struct tuple_t {
+  int pos;
+  T data;
+};
+
 namespace carma_utils {
 template <typename T>
 inline std::string to_string(const T &n) {

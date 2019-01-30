@@ -52,10 +52,10 @@ p_wfs0.set_fracsub(0.0001)
 p_wfs0.set_xpos(0.)
 p_wfs0.set_ypos(0.)
 p_wfs0.set_Lambda(0.658)
-p_wfs0.set_gsmag(13)
+p_wfs0.set_gsmag(16)
 p_wfs0.set_optthroughput(0.5)
 p_wfs0.set_zerop(2.6e10)  # 2.6e10 ph/s/m**2 computed by Rico in R band for MOSAIC
-p_wfs0.set_noise(-1)  # in electrons units
+p_wfs0.set_noise(0.3)  # in electrons units
 p_wfs0.set_atmos_seen(1)
 p_wfs0.set_fstop(scons.FieldStopType.SQUARE)
 p_wfs0.set_fssize(1.6)
@@ -110,8 +110,8 @@ p_controller0.set_gain(1)
 # PyrCentro adhoc
 class p_pyrCentro:
     rebin = 5  # Rebin factor of HR pixels
-    radiusForce = -1.  # Force fitted HR pupil radius to given value; -1 bypasses
-    radiusGuard = 0.  # Add this number of HR pixels to value fitted
+    radiusForce = -1  # Force fitted HR pupil radius to given value; -1 bypasses
+    radiusGuard = 0  # Add this number of HR pixels to value fitted
     controlMethod = 'ABCD'
     latency = 2
     rMod = 2.

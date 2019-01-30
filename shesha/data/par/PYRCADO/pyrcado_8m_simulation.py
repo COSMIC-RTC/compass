@@ -8,13 +8,12 @@ simul_name = "PYRCADO_8m_20190115"
 p_loop = conf.Param_loop()
 p_loop.set_niter(1000)
 p_loop.set_ittime(1 / 500.)  # =1/500
-p_loop.set_devices([0, 1])
+p_loop.set_devices([4, 5, 6, 7])
 
 # FOR THE SIMULATION ONLY
 # geom
 p_geom = conf.Param_geom()
 p_geom.set_zenithangle(0.)
-#p_geom.set_pupdiam(304)
 
 # tel
 p_tel = conf.Param_tel()
@@ -29,18 +28,16 @@ p_atmos.set_frac([1.0])
 p_atmos.set_alt([0.0])
 p_atmos.set_windspeed([10.])
 p_atmos.set_winddir([45.])
-p_atmos.set_L0([25.])  # Not simulated in Yorick?
+p_atmos.set_L0([25.])
 
 # Lambda target(s)
 p_targets = [conf.Param_target() for _ in range(2)]
 Lambda = [0.658, 1.65]
-k = 0
-for p_target in p_targets:
+for k, p_target in enumerate(p_targets):
     p_target.set_xpos(0.)
     p_target.set_ypos(0.)
     p_target.set_Lambda(Lambda[k])
     p_target.set_mag(4.)
-    k += 1
 
 # wfs
 p_wfs0 = conf.Param_wfs()
@@ -84,16 +81,5 @@ p_dm0.set_push4imat(1.)
 p_dm1.set_type(scons.DmType.TT)
 p_dm1.set_alt(0.)
 p_dm1.set_unitpervolt(p_wfs0.Lambda * 1e-6 / p_tel.diam * scons.CONST.RAD2ARCSEC)
+# -> Such that we talk to TT mirror in l/D units
 p_dm1.set_push4imat(0.1)
-'''
-# PyrCentro adhoc
-# We need to get rid of this.
-class p_pyrCentro:
-    rebin = 1  # Rebin factor of pixels
-    # no more binning as we switched to getting the LR image in PyrCompassSupervisor
-    radiusForce = -1.  # Force fitted LR pupil radius to given value; -1 bypasses
-    radiusGuard = 2.  # Add this number of pixels to value fitted
-    controlMethod = 'ABCD'
-    latency = 2  # Compass + 1 - real value
-    rMod = 4.
-'''
