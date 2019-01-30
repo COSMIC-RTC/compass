@@ -23,7 +23,7 @@ void sutra_rtc_brahmaListenerImpl<T>::attach_rtc(sutra_rtc_brahma<T> *rtc_) {
 
 template <typename T>
 void sutra_rtc_brahmaListenerImpl<T>::on_data_available(
-    DDS::DataReader_ptr reader) throw(CORBA::SystemException) {
+    DDS::DataReader_ptr reader) noexcept(false) {
   //  DEBUG_TRACE("Entering in
   //  sutra_rtc_brahmaListenerImpl::on_data_available");
 
@@ -287,8 +287,8 @@ void sutra_rtc_brahmaListenerImpl<T>::on_data_available(
 // must also override:
 template <typename T>
 void sutra_rtc_brahmaListenerImpl<T>::on_requested_deadline_missed(
-    DDS::DataReader_ptr reader, const DDS::RequestedDeadlineMissedStatus
-                                    &status) throw(CORBA::SystemException) {
+    DDS::DataReader_ptr reader,
+    const DDS::RequestedDeadlineMissedStatus &status) noexcept(false) {
   //   BRAHMA_DEBUG_TRACE(
   //       "CommandDataReaderListenerImpl::on_requested_deadline_missed");
   //  cerr << "CommandDataReaderListenerImpl::on_requested_deadline_missed" <<
@@ -296,8 +296,8 @@ void sutra_rtc_brahmaListenerImpl<T>::on_requested_deadline_missed(
 }
 template <typename T>
 void sutra_rtc_brahmaListenerImpl<T>::on_requested_incompatible_qos(
-    DDS::DataReader_ptr reader, const DDS::RequestedIncompatibleQosStatus
-                                    &status) throw(CORBA::SystemException) {
+    DDS::DataReader_ptr reader,
+    const DDS::RequestedIncompatibleQosStatus &status) noexcept(false) {
   //   BRAHMA_DEBUG_TRACE(
   //       "CommandDataReaderListenerImpl::on_requested_incompatible_qos");
   //  cerr << "CommandDataReaderListenerImpl::on_requested_incompatible_qos" <<
@@ -306,15 +306,15 @@ void sutra_rtc_brahmaListenerImpl<T>::on_requested_incompatible_qos(
 template <typename T>
 void sutra_rtc_brahmaListenerImpl<T>::on_liveliness_changed(
     DDS::DataReader_ptr reader,
-    const DDS::LivelinessChangedStatus &status) throw(CORBA::SystemException) {
+    const DDS::LivelinessChangedStatus &status) noexcept(false) {
   //   BRAHMA_DEBUG_TRACE(
   //       "CommandDataReaderListenerImpl::on_liveliness_changed");
   //  cerr << "CommandDataReaderListenerImpl::on_liveliness_changed" << endl;
 }
 template <typename T>
 void sutra_rtc_brahmaListenerImpl<T>::on_subscription_matched(
-    DDS::DataReader_ptr reader, const DDS::SubscriptionMatchedStatus
-                                    &status) throw(CORBA::SystemException) {
+    DDS::DataReader_ptr reader,
+    const DDS::SubscriptionMatchedStatus &status) noexcept(false) {
   //   BRAHMA_DEBUG_TRACE(
   //       "CommandDataReaderListenerImpl::on_subscription_matched");
   //  cerr << "CommandDataReaderListenerImpl::on_subscription_matched" << endl;
@@ -322,7 +322,7 @@ void sutra_rtc_brahmaListenerImpl<T>::on_subscription_matched(
 template <typename T>
 void sutra_rtc_brahmaListenerImpl<T>::on_sample_rejected(
     DDS::DataReader_ptr reader,
-    const DDS::SampleRejectedStatus &status) throw(CORBA::SystemException) {
+    const DDS::SampleRejectedStatus &status) noexcept(false) {
   //   BRAHMA_DEBUG_TRACE(
   //       "CommandDataReaderListenerImpl::on_sample_rejected");
   //  cerr << "CommandDataReaderListenerImpl::on_sample_rejected" << endl;
@@ -330,7 +330,7 @@ void sutra_rtc_brahmaListenerImpl<T>::on_sample_rejected(
 template <typename T>
 void sutra_rtc_brahmaListenerImpl<T>::on_sample_lost(
     DDS::DataReader_ptr reader,
-    const DDS::SampleLostStatus &status) throw(CORBA::SystemException) {
+    const DDS::SampleLostStatus &status) noexcept(false) {
   //   BRAHMA_DEBUG_TRACE(
   //       "CommandDataReaderListenerImpl::on_sample_lost");
   //  cerr << "CommandDataReaderListenerImpl::on_sample_lost" << endl;
