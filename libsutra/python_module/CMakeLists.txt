@@ -13,10 +13,6 @@ if (DEFINED ENV{BRAHMA_ROOT})
                 src/target_brahma.cpp)
 endif()
 
-if(NOT TARGET wyrm)
-    add_subdirectory($ENV{COMPASS_ROOT}/tplib/wyrm wyrm)
-endif()
-
 add_library(sutraWrap MODULE
                     src/telescope.cpp
                     src/tscreen.cpp

@@ -94,6 +94,7 @@ target_compile_features(carma PUBLIC cxx_std_14)
 
 target_compile_options(carma
     PUBLIC
+    -Wno-deprecated-declarations
     $<$<COMPILE_LANGUAGE:CUDA>:${CUDA_ARCH} -use_fast_math >
     PRIVATE
     $<$<COMPILE_LANGUAGE:CXX>:${MAGMA_CFLAGS_OTHER}>
@@ -121,7 +122,9 @@ target_include_directories(carma
     $<$<COMPILE_LANGUAGE:CXX>:${MAGMA_INCLUDE_DIRS}>
 )
 
+if(${COMPILE_PYTHON})
 add_subdirectory(python_module)
+endif()
 
 set(INSTALL_PKGCONFIG_DIR "lib/pkgconfig" CACHE PATH "Installation directory for pkgconfig (.pc) files")
 

@@ -6,8 +6,22 @@ project(carmaWrap
     LANGUAGES CXX CUDA
 )
 
+# WYRM IMPORT #
+################
+
 if(NOT TARGET wyrm)
-    add_subdirectory($ENV{COMPASS_ROOT}/tplib/wyrm wyrm)
+	if(NOT DEFINED WYRM_ROOT)
+		set(WYRM_ROOT $ENV{WYRM_ROOT})
+	endif()
+	if(NOT DEFINED WYRM_ROOT)
+        message(WARNING "set WYRM_ROOT to the default path : $COMPASS_ROOT/tplib/wyrm" )
+        set(WYRM_ROOT $ENV{COMPASS_ROOT}/tplib/wyrm)
+    endif()
+	if(IS_DIRECTORY ${WYRM_ROOT})
+		add_subdirectory(${WYRM_ROOT} wyrm_dir)
+    else()
+        message(FATAL_ERROR "wyrm path not found, specify it by setting WYRM_ROOT to the right path" )
+    endif()
 endif()
 
 add_library(carmaWrap MODULE

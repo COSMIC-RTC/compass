@@ -134,7 +134,9 @@ target_compile_options(sutra
 
 target_link_libraries(sutra PUBLIC carma ${BRAHMA_LIBS} )
 
+if(${COMPILE_PYTHON})
 add_subdirectory(python_module)
+endif()
 
 set(INSTALL_PKGCONFIG_DIR "lib/pkgconfig" CACHE PATH "Installation directory for pkgconfig (.pc) files")
 
