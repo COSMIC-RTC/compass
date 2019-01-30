@@ -28,7 +28,6 @@ void declare_controller_geo(py::module &);
 void declare_controller_generic(py::module &);
 void declare_controller_cured(py::module &);
 void declare_rtc(py::module &);
-void declare_rtcH(py::module &);
 void declare_gamora(py::module &);
 void declare_groot(py::module &);
 
@@ -67,7 +66,6 @@ PYBIND11_MODULE(sutraWrap, mod) {
   declare_controller_generic(mod);
   declare_controller_cured(mod);
   declare_rtc(mod);
-  declare_rtcH(mod);
   declare_gamora(mod);
   declare_groot(mod);
 

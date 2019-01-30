@@ -418,5 +418,9 @@ void sutra_rtc_brahma<T>::publish() {
   // ACE_Time_Value ace_wait(0, 25);
   // ACE_OS::sleep(ace_wait);
 }
+template class sutra_rtc_brahma<float>;
+#ifdef CAN_DO_HALF
+template class sutra_rtc_brahma<half>;
+#endif
 
 #endif /* USE_BRAHMA */

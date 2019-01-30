@@ -336,4 +336,9 @@ void sutra_rtc_brahmaListenerImpl<T>::on_sample_lost(
   //  cerr << "CommandDataReaderListenerImpl::on_sample_lost" << endl;
 }
 
+template class sutra_rtc_brahmaListenerImpl<float>;
+#ifdef CAN_DO_HALF
+template class sutra_rtc_brahmaListenerImpl<half>;
+#endif
+
 #endif /* USE_BRAHMA */
