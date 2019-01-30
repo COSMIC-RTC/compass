@@ -12,14 +12,57 @@ using F_arrayS = py::array_t<T, py::array::f_style | py::array::forcecast>;
 template <typename T>
 std::unique_ptr<sutra_rtc<T>> rtc_init() {
   return std::unique_ptr<sutra_rtc<T>>(new sutra_rtc<T>());
-};
+}
+
+template <typename T>
+void add_centroider_impl(sutra_rtc<T> &sr, carma_context *context, long nvalid,
+                         float offset, float scale, long device, char *typec) {
+  sr.add_centroider(context, nvalid, offset, scale, device, typec);
+}
+#ifdef CAN_DO_HALF
+template <>
+void add_centroider_impl(sutra_rtc<half> &sr, carma_context *context,
+                         long nvalid, float offset, float scale, long device,
+                         char *typec) {
+  sr.add_centroider(context, nvalid, __float2half(offset), __float2half(scale),
+                    device, typec);
+}
+#endif
+
+template <typename T>
+void add_controller_impl(sutra_rtc<T> &sr, carma_context *ctxt, int nvalid,
+                         int nslope, int nactu, float delay, long device,
+                         char *typec) {
+  sr.add_controller(ctxt, nvalid, nslope, nactu, delay, device, typec, nullptr,
+                    nullptr, 0, 0, false);
+}
+#ifdef CAN_DO_HALF
+template <>
+void add_controller_impl(sutra_rtc<half> &sr, carma_context *ctxt, int nvalid,
+                         int nslope, int nactu, float delay, long device,
+                         char *typec) {
+  sr.add_controller(ctxt, nvalid, nslope, nactu, __float2half(delay), device,
+                    typec, nullptr, nullptr, 0, 0, false);
+}
+#endif
+
+template <typename T>
+void do_clipping_impl(sutra_rtc<T> &sr, int ncontrol, float min, float max) {
+  sr.do_clipping(ncontrol, min, max);
+}
+#ifdef CAN_DO_HALF
+template <>
+void do_clipping_impl(sutra_rtc<half> &sr, int ncontrol, float min, float max) {
+  sr.do_clipping(ncontrol, __float2half(min), __float2half(max));
+}
+#endif
 
 template <typename T>
 void build_cmat_impl(sutra_rtc<T> &sr, int ncontrol, int nfilt, bool filt_tt) {
   sutra_controller_ls<T> *control =
       dynamic_cast<sutra_controller_ls<T> *>(sr.d_control[ncontrol]);
   control->build_cmat(nfilt, filt_tt);
-};
+}
 #ifdef CAN_DO_HALF
 template <>
 void build_cmat_impl(sutra_rtc<half> &sr, int ncontrol, int nfilt,
@@ -33,12 +76,12 @@ void set_gain_impl(sutra_rtc<T> &sr, int ncontrol, T gain) {
   sutra_controller_ls<T> *control =
       dynamic_cast<sutra_controller_ls<T> *>(sr.d_control[ncontrol]);
   control->set_gain(gain);
-};
+}
 template <>
 #ifdef CAN_DO_HALF
 void set_gain_impl(sutra_rtc<half> &sr, int ncontrol, half gain) {
   throw std::runtime_error("Not implemeted");
-};
+}
 #endif
 
 template <typename T>
@@ -46,12 +89,12 @@ void set_mgain_impl(sutra_rtc<T> &sr, int ncontrol, F_arrayS<T> data) {
   sutra_controller_ls<T> *control =
       dynamic_cast<sutra_controller_ls<T> *>(sr.d_control[ncontrol]);
   control->set_mgain(data.mutable_data());
-};
+}
 #ifdef CAN_DO_HALF
 template <>
 void set_mgain_impl(sutra_rtc<half> &sr, int ncontrol, F_arrayS<half> data) {
   throw std::runtime_error("Not implemeted");
-};
+}
 #endif
 
 template <typename T>
@@ -59,12 +102,12 @@ void svdec_imat_impl(sutra_rtc<T> &sr, int ncontrol) {
   sutra_controller_ls<T> *control =
       dynamic_cast<sutra_controller_ls<T> *>(sr.d_control[ncontrol]);
   control->svdec_imat();
-};
+}
 #ifdef CAN_DO_HALF
 template <>
 void svdec_imat_impl(sutra_rtc<half> &sr, int ncontrol) {
   throw std::runtime_error("Not implemeted");
-};
+}
 #endif
 
 template <typename T>
@@ -104,6 +147,7 @@ void rtc_impl(py::module &mod, const char *name) {
            wy::colCast((int (rtc::*)(carma_context *, long, T, T, long, char *,
                                      sutra_wfs *)) &
                        rtc::add_centroider),
+
            R"pbdoc(
         Add a sutra_centroider object in the RTC
 
@@ -122,10 +166,7 @@ void rtc_impl(py::module &mod, const char *name) {
            py::arg("scale"), py::arg("device"), py::arg("typec"),
            py::arg("wfs"))
 
-      .def("add_centroider",
-           wy::colCast(
-               (int (rtc::*)(carma_context *, long, T, T, long, char *)) &
-               rtc::add_centroider),
+      .def("add_centroider", wy::colCast(add_centroider_impl<T>),
            R"pbdoc(
         Add a sutra_centroider object in the RTC
 
@@ -165,6 +206,23 @@ void rtc_impl(py::module &mod, const char *name) {
            py::arg("typec"), py::arg("dms") = nullptr,
            py::arg("idx_dms") = std::vector<int64_t>(), py::arg("ndm") = 0,
            py::arg("Nphi") = 0, py::arg("wfs_direction") = false)
+
+      .def("add_controller", wy::colCast(add_controller_impl<T>), R"pbdoc(
+        Add a sutra_controller object in the RTC
+
+        Parameters
+        ------------
+        context: (carma_context): carma context
+        nvalid: (int): Number of valid subap.
+        nslope: (int): Number of slopes
+        nactu:(int): Number of actuators to command
+        delay: (float): Loop delay [frames]
+        device: (int): GPU device index
+        typec: (str): Controller type
+        )pbdoc",
+           py::arg("context"), py::arg("nvalid"), py::arg("nslope"),
+           py::arg("nactu"), py::arg("delay"), py::arg("device"),
+           py::arg("typec"))
 
       .def("do_centroids", (int (rtc::*)(int)) & rtc::do_centroids,
            R"pbdoc(
@@ -282,7 +340,7 @@ void rtc_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("ncontrol"), py::arg("nfilt"), py::arg("filt_tt") = false)
 
-      .def("do_clipping", &rtc::do_clipping, R"pbdoc(
+      .def("do_clipping", do_clipping_impl<T>, R"pbdoc(
         Clip the command to apply on the DMs on a sutra_controller object
 
         Parameters
