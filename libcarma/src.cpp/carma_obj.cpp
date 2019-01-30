@@ -165,6 +165,8 @@ int carma_obj<T_data>::host2device(const T_dest *data) {
 }
 template int carma_obj<unsigned int>::template host2device<unsigned int>(
     const unsigned int *data);
+template int carma_obj<uint16_t>::template host2device<uint16_t>(
+    const uint16_t *data);
 template int carma_obj<int>::template host2device<int>(const int *data);
 template int carma_obj<float>::template host2device<float>(const float *data);
 template int carma_obj<double>::template host2device<double>(
@@ -209,6 +211,8 @@ int carma_obj<T_data>::device2host(T_dest *data) {
 template int carma_obj<unsigned int>::template device2host<unsigned int>(
     unsigned int *data);
 template int carma_obj<int>::template device2host<int>(int *data);
+template int carma_obj<uint16_t>::template device2host<uint16_t>(
+    uint16_t *data);
 template int carma_obj<float>::template device2host<float>(float *data);
 template int carma_obj<double>::template device2host<double>(double *data);
 template int carma_obj<cuFloatComplex>::template device2host<cuFloatComplex>(
@@ -853,7 +857,7 @@ void carma_obj<T_data>::copy(carma_obj<T_data> *source, int incx, int incy) {
 };
 template <class T_data>
 void carma_obj<T_data>::axpy(T_data alpha, carma_obj<T_data> *source, int incx,
-                             int incy) {
+                             int incy, int offset) {
   /** \brief computeAXPY method
    * \param alpha : scale factor
    * \param vectx : first vector (x)
@@ -865,7 +869,7 @@ void carma_obj<T_data>::axpy(T_data alpha, carma_obj<T_data> *source, int incx,
    * vector y
    */
   carma_axpy(current_context->get_cublasHandle(), this->nb_elem, alpha,
-             source->d_data, incx, this->d_data, incy);
+             source->getDataAt(offset), incx, this->d_data, incy);
 }
 template <class T_data>
 void carma_obj<T_data>::rot(carma_obj<T_data> *source, int incx, int incy,
@@ -1114,6 +1118,7 @@ void carma_obj<T_data>::dgmm(char side, carma_obj<T_data> *matA, int lda,
 
 template class carma_obj<int>;
 template class carma_obj<unsigned int>;
+template class carma_obj<uint16_t>;
 template class carma_obj<float>;
 template class carma_obj<double>;
 template class carma_obj<cuFloatComplex>;
@@ -1154,8 +1159,10 @@ void caObjH::swap(caObjH *, int incx, int incy) {
   DEBUG_TRACE("Not implemented for half precision");
 }
 template <>
-void caObjH::axpy(half alpha, caObjH *source, int incx, int incy) {
-  DEBUG_TRACE("Not implemented for half precision");
+void caObjH::axpy(half alpha, caObjH *source, int incx, int incy, int offset) {
+  custom_half_axpy(alpha, source->getDataAt(offset), incx, incy,
+                   this->getNbElem(), this->d_data,
+                   current_context->get_device(this->device));
 }
 template <>
 half caObjH::dot(caObjH *source, int incx, int incy) {

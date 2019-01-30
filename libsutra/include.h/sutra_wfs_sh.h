@@ -24,7 +24,8 @@ class sutra_wfs_sh : public sutra_wfs {
                carma_obj<cuFloatComplex> *d_fttotim, long nxsub, long nvalid,
                long npix, long nphase, long nrebin, long nfft, long ntot,
                long npup, float pdiam, float nphotons, float nphot4imat,
-               int lgs, bool is_low_order, bool roket, int device);
+               int lgs, bool fakecam, int maxFluxPerPix, int maxPixValue,
+               bool is_low_order, bool roket, int device);
   sutra_wfs_sh(const sutra_wfs_sh &wfs);
   ~sutra_wfs_sh();
 

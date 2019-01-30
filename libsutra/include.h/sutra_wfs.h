@@ -39,6 +39,10 @@ class sutra_wfs {
   bool roket;
   bool is_low_order;
 
+  bool fakecam;
+  int maxFluxPerPix;
+  int maxPixValue;
+
   cufftHandle *campli_plan;
   cufftHandle *fttotim_plan;
   carma_obj<cuFloatComplex> *d_ftkernel;
@@ -55,6 +59,9 @@ class sutra_wfs {
   carma_obj<float> *d_fluxPerSub;
   carma_obj<float> *d_sincar;
   carma_obj<int> *d_hrmap;
+  carma_obj<uint16_t> *d_camimg;
+  carma_obj<float> *d_dark;
+  carma_obj<float> *d_flat;
 
   carma_obj<float> *d_slopes;
 
@@ -90,6 +97,12 @@ class sutra_wfs {
                  float dy);
   int set_pupil(float *pupil);
   int set_binimg(float *binimg, int nElem);
+  int set_dark(float *dark, int nElem);
+  int set_flat(float *flat, int nElem);
+  int set_fakecam(bool fakecam);
+  int set_maxFluxPerPix(int maxFluxPerPix);
+  int set_maxPixValue(int maxPixValue);
+
   int load_kernels(float *lgskern);
   int sensor_trace(sutra_atmos *yatmos);
   int sensor_trace(sutra_dms *ydm, int rst);
@@ -115,7 +128,8 @@ class sutra_wfs {
             carma_obj<cuFloatComplex> *d_fttotim, string type, long nxsub,
             long nvalid, long npix, long nphase, long nrebin, long nfft,
             long ntot, long npup, float pdiam, float nphotons, float nphot4imat,
-            int lgs, bool is_low_order, bool roket, int device);
+            int lgs, bool fakecam, int maxFluxPerPix, int maxPixValue,
+            bool is_low_order, bool roket, int device);
 };
 
 // General utilities
@@ -140,7 +154,9 @@ int fillbinimg_async(carma_host_obj<float> *image_telemetry, float *bimage,
                      int *jvalid, int nim, bool add, carma_device *device);
 int convolve_cube(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N,
                   int n, carma_device *device);
-
+template <class T>
+int digitalize(T *camimg, float *binimg, float *dark, float *flat,
+               int maxFluxPerPix, int maxPixValue, int N, carma_device *device);
 // CUDA templates
 // this is for cog
 template <class T>

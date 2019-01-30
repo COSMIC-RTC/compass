@@ -74,6 +74,22 @@ void declare_wfs(py::module &mod) {
                              [](sutra_wfs &sw) { return sw.kernconv; },
                              "Convolution kernel for spot computation")
 
+      .def_property_readonly("is_low_order",
+                             [](sutra_wfs &sw) { return sw.is_low_order; },
+                             "Flag for low order WFS")
+
+      .def_property_readonly("fakecam",
+                             [](sutra_wfs &sw) { return sw.fakecam; },
+                             "Flag for uint16 image")
+
+      .def_property_readonly(
+          "maxFluxPerPix", [](sutra_wfs &sw) { return sw.maxFluxPerPix; },
+          "Maximum number of photons allowed before pixel saturation")
+
+      .def_property_readonly(
+          "maxPixValue", [](sutra_wfs &sw) { return sw.maxPixValue; },
+          "Maximum number of ADU allowed in the uint16 image")
+
       .def_property_readonly("roket", [](sutra_wfs &sw) { return sw.roket; },
                              "Is the WFS a LGS one ?")
 
@@ -122,6 +138,16 @@ void declare_wfs(py::module &mod) {
       .def_property_readonly("d_hrmap",
                              [](sutra_wfs &sw) { return sw.d_hrmap; },
                              "TODO: docstring")
+
+      .def_property_readonly("d_camimg",
+                             [](sutra_wfs &sw) { return sw.d_camimg; },
+                             "uint16 WFS image")
+
+      .def_property_readonly("d_dark", [](sutra_wfs &sw) { return sw.d_dark; },
+                             "Dark WFS frame")
+
+      .def_property_readonly("d_flat", [](sutra_wfs &sw) { return sw.d_flat; },
+                             "Flat WFS frame")
 
       .def_property_readonly("d_slopes",
                              [](sutra_wfs &sw) { return sw.d_slopes; },
@@ -182,6 +208,8 @@ void declare_wfs(py::module &mod) {
         )pbdoc",
            py::arg("slopes"), py::arg("type") = 0)
 
+      .def("fill_binimage", &sutra_wfs::fill_binimage,
+           "Fill d_binimg from d_bincube")
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝
       //  ███████╗█████╗     ██║      ██║   █████╗  ██████╔╝███████╗
@@ -220,6 +248,33 @@ void declare_wfs(py::module &mod) {
         )pbdoc",
            py::arg("noise"), py::arg("seed"))
 
+      .def("set_fakecam", &sutra_wfs::set_fakecam, R"pbdoc(
+            Enable or disable uint16 computation for the WFS
+
+            Parameters
+            ------------
+            fakecam: (bool): fakecam flag
+        )pbdoc",
+           py::arg("fakecam"))
+
+      .def("set_maxFluxPerPix", &sutra_wfs::set_maxFluxPerPix, R"pbdoc(
+            Set the maximum number of photons allowed before pixel saturation
+
+            Parameters
+            ------------
+            maxFluxPerPix: (int): maximum number of photons allowed before pixel saturation
+        )pbdoc",
+           py::arg("maxFluxPerPix"))
+
+      .def("set_maxPixValue", &sutra_wfs::set_maxPixValue, R"pbdoc(
+            Set the maximum number of ADU allowed in the uint16 image
+
+            Parameters
+            ------------
+            maxPixValue: (int): maximum number of ADU allowed in the uint16 image
+        )pbdoc",
+           py::arg("maxPixValue"))
+
       .def("set_binimg", wy::colCast(&sutra_wfs::set_binimg), R"pbdoc(
         Set the binimg of the SH WFS
 
@@ -230,6 +285,23 @@ void declare_wfs(py::module &mod) {
       )pbdoc",
            py::arg("binimg"), py::arg("nElem"))
 
-      .def("fill_binimage", &sutra_wfs::fill_binimage,
-           "Fill d_binimg from d_bincube");
+      .def("set_dark", wy::colCast(&sutra_wfs::set_dark), R"pbdoc(
+        Set the dark of the SH WFS
+
+        Parameters
+        ------------
+        dark: (np.array[ndim=2, dtype=np.float32]) : dark image
+        nElem: (int): Number of elements in dark
+      )pbdoc",
+           py::arg("dark"), py::arg("nElem"))
+
+      .def("set_flat", wy::colCast(&sutra_wfs::set_flat), R"pbdoc(
+        Set the flat of the SH WFS
+
+        Parameters
+        ------------
+        flat: (np.array[ndim=2, dtype=np.float32]) : flat image
+        nElem: (int): Number of elements in flat
+      )pbdoc",
+           py::arg("flat"), py::arg("nElem"));
 };

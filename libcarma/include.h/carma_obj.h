@@ -238,7 +238,10 @@ class carma_obj {
   inline int reset() {
     return cudaMemset(this->d_data, 0, this->nb_elem * sizeof(T_data));
   }
-
+  inline int memSet(T_data value) {
+    fill_array_with_value(this->d_data, value, this->nb_elem,
+                          this->current_context->get_device(this->device));
+  }
   cufftHandle *getPlan() { return &plan; }
   ///< FFT plan
   cufftType getTPlan() { return tPlan; }
@@ -337,6 +340,7 @@ class carma_obj {
 };
 typedef carma_obj<int> caObjI;
 typedef carma_obj<unsigned int> caObjUI;
+typedef carma_obj<uint16_t> caObjUSI;
 typedef carma_obj<float> caObjS;
 typedef carma_obj<double> caObjD;
 typedef carma_obj<float2> caObjS2;

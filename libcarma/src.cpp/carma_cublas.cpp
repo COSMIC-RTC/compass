@@ -7,12 +7,12 @@
 #include <type_list.hpp>
 
 #ifdef CAN_DO_HALF
-using TypeListObj =
-    GenericTypeList<int, unsigned int, float, double, half, cuFloatComplex,
-                    cuDoubleComplex>;  // , tuple_t<float>>;
+using TypeListObj = GenericTypeList<int, unsigned int, uint16_t, float, double,
+                                    half, cuFloatComplex,
+                                    cuDoubleComplex>;  // , tuple_t<float>>;
 #else
 using TypeListObj =
-    GenericTypeList<int, unsigned int, float, double, cuFloatComplex,
+    GenericTypeList<int, unsigned int, uint16_t, float, double, cuFloatComplex,
                     cuDoubleComplex>;  // , tuple_t<float>>;
 #endif
 

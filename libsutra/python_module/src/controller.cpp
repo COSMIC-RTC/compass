@@ -56,7 +56,7 @@ void declare_controller(py::module &mod) {
       .def_property_readonly("d_com1", [](controller &sc) { return sc.d_com1; },
                              "Command vector at iteration k-1")
 
-      .def_property_readonly("d_com1", [](controller &sc) { return sc.d_com1; },
+      .def_property_readonly("d_com2", [](controller &sc) { return sc.d_com2; },
                              "Command vector at iteration k-2")
 
       .def_property_readonly(
@@ -213,7 +213,7 @@ void declare_controller(py::module &mod) {
                              "Command vector at iteration k-1")
 
       .def_property_readonly("d_com2",
-                             [](sutra_controller &sc) { return sc.d_com2; },
+                             [](controllerH &sc) { return sc.d_com2; },
                              "Command vector at iteration k-2")
 
       .def_property_readonly(

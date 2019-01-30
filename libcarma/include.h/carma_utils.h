@@ -1,6 +1,7 @@
 #ifndef _CARMA_UTILS_H_
 #define _CARMA_UTILS_H_
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -147,6 +148,10 @@ int fill_sparse_vect(T_data *dense_data, int *colind_sorted, T_data *values,
 int floattodouble(float *idata, double *odata, int N, carma_device *device);
 int doubletofloat(double *idata, float *odata, int N, carma_device *device);
 int printMemInfo();
+template <typename T_data>
+int fill_array_with_value(T_data *d_data, T_data value, int N,
+                          carma_device *device);
+
 #ifdef CAN_DO_HALF
 int copyFromFloatToHalf(const float *data, half *dest, int N,
                         carma_device *device);

@@ -459,8 +459,16 @@ int carma_syevd<double>(char jobz, long N, double *mat, double *eigenvals) {
 }
 
 template <>
+int carma_syevd<uint16_t>(char jobz, long N, uint16_t *mat,
+                          uint16_t *eigenvals) {
+  DEBUG_TRACE("Not implemented for this data type");
+  return EXIT_FAILURE;
+}
+
+template <>
 int carma_syevd<int>(char jobz, long N, int *mat, int *eigenvals) {
   DEBUG_TRACE("Not implemented for this data type");
+  return EXIT_FAILURE;
 }
 
 template <>
@@ -644,6 +652,15 @@ int carma_svd<double>(caObjD *imat, caObjD *eigenvals, caObjD *mod2act,
 }
 
 template <>
+int carma_svd<uint16_t>(caObjUSI *imat, caObjUSI *eigenvals, caObjUSI *mod2act,
+                        caObjUSI *mes2mod) {
+  // TODO: carma_svd
+  MAGMA_TRACE("carma_svd not implemented on device object! \n");
+  return EXIT_FAILURE;
+
+  // return carma_gesvd<double>(mat, eigenvals, U, magma_dgesvd);
+}
+template <>
 int carma_svd<cuFloatComplex>(caObjC *imat, caObjC *eigenvals, caObjC *mod2act,
                               caObjC *mes2mod) {
   // TODO: carma_svd
@@ -713,6 +730,12 @@ int carma_potri<cuFloatComplex>(carma_obj<cuFloatComplex> *d_iA) {
   return EXIT_FAILURE;
 }
 
+template <>
+int carma_potri<uint16_t>(carma_obj<uint16_t> *d_iA) {
+  MAGMA_TRACE("carma_potri : not implemented for uint16 \n");
+
+  return EXIT_FAILURE;
+}
 template <>
 int carma_potri<float>(carma_obj<float> *d_iA) {
   const long *dims = d_iA->getDims();
@@ -784,6 +807,13 @@ int carma_getri<int>(carma_obj<int> *d_iA) {
 
   return EXIT_FAILURE;
 }
+
+template <>
+int carma_getri<uint16_t>(carma_obj<uint16_t> *d_iA) {
+  std::cerr << "Getri not implemented for uint16*" << std::endl;
+  return EXIT_FAILURE;
+}
+
 #ifdef CAN_DO_HALF
 template <>
 int carma_getri<half>(carma_obj<half> *d_iA) {

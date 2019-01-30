@@ -52,6 +52,9 @@ def wfs_init(context: carmaWrap_context, telescope: Telescope, p_wfss: list,
     nphot = np.array([o._nphotons for o in p_wfss], dtype=np.float32)
     nphot4imat = np.array([o.nphotons4imat for o in p_wfss], dtype=np.float32)
     lgs = np.array([o.gsalt > 0 for o in p_wfss], dtype=np.int32)
+    fakecam = np.array([o.fakecam for o in p_wfss], dtype=np.bool)
+    maxFlux = np.array([o.maxFluxPerPix for o in p_wfss], dtype=np.int32)
+    maxPixValue = np.array([o.maxPixValue for o in p_wfss], dtype=np.int32)
 
     # arrays needed to call initgs
     xpos = np.array([o.xpos for o in p_wfss], dtype=np.float32)
@@ -72,7 +75,8 @@ def wfs_init(context: carmaWrap_context, telescope: Telescope, p_wfss: list,
     if (p_wfss[0].type == scons.WFSType.SH):
         g_wfs = Sensors(context, telescope, t_wfs, nsensors, nxsub, nvalid, nPupils,
                         npix, nphase, nrebin, nfft, ntota, npup, pdiam, nphot,
-                        nphot4imat, lgs, context.activeDevice, roket_flag)
+                        nphot4imat, lgs, fakecam, maxFlux, maxPixValue,
+                        context.activeDevice, roket_flag)
 
         mag = np.array([o.gsmag for o in p_wfss], dtype=np.float32)
         noise = np.array([o.noise for o in p_wfss], dtype=np.float32)
@@ -91,7 +95,8 @@ def wfs_init(context: carmaWrap_context, telescope: Telescope, p_wfss: list,
 
         g_wfs = Sensors(context, telescope, t_wfs, nsensors, nxsub, nvalid, nPupils,
                         npix, nphase, nrebin, nfft, ntota, npup, pdiam, nphot,
-                        nphot4imat, lgs, context.activeDevice, roket_flag)
+                        nphot4imat, lgs, fakecam, maxFlux, maxPixValue,
+                        context.activeDevice, roket_flag)
 
         mag = np.array([o.gsmag for o in p_wfss], dtype=np.float32)
         noise = np.array([o.noise for o in p_wfss], dtype=np.float32)

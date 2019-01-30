@@ -27,6 +27,7 @@ constexpr static char const* explicit_name();
 
 DECLARE_NAME(int, int);
 DECLARE_NAME(unsigned int, uint);
+DECLARE_NAME(uint16_t, uint16);
 
 #ifdef CAN_DO_HALF
 DECLARE_NAME(half, half);

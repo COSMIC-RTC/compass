@@ -286,6 +286,11 @@ unsigned int reduce<unsigned int>(unsigned int *data, int N) {
 }
 
 template <>
+uint16_t reduce<uint16_t>(uint16_t *data, int N) {
+  DEBUG_TRACE("Not implemented for this data type");
+  return 0;
+}
+template <>
 cuFloatComplex reduce<cuFloatComplex>(cuFloatComplex *data, int N) {
   DEBUG_TRACE("Not implemented for this data type");
   return make_cuComplex(0, 0);
@@ -325,6 +330,9 @@ void init_reduceCubCU(T *&cub_data, size_t &cub_data_size, T *data, T *&o_data,
 
 template void init_reduceCubCU<int>(int *&cub_data, size_t &cub_data_size,
                                     int *data, int *&o_data, int N);
+template void init_reduceCubCU<uint16_t>(uint16_t *&cub_data,
+                                         size_t &cub_data_size, uint16_t *data,
+                                         uint16_t *&o_data, int N);
 template void init_reduceCubCU<unsigned int>(unsigned int *&cub_data,
                                              size_t &cub_data_size,
                                              unsigned int *data,
@@ -370,6 +378,8 @@ template void reduceCubCU<unsigned int>(unsigned int *cub_data,
                                         size_t cub_data_size,
                                         unsigned int *data,
                                         unsigned int *o_data, int N);
+template void reduceCubCU<uint16_t>(uint16_t *cub_data, size_t cub_data_size,
+                                    uint16_t *data, uint16_t *o_data, int N);
 template void reduceCubCU<float>(float *cub_data, size_t cub_data_size,
                                  float *data, float *o_data, int N);
 template void reduceCubCU<double>(double *cub_data, size_t cub_data_size,

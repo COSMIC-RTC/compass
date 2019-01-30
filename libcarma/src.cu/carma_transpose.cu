@@ -118,6 +118,8 @@ template int transposeCU<int>(int *d_idata, int *d_odata, long N1, long N2);
 template int transposeCU<unsigned int>(unsigned int *d_idata,
                                        unsigned int *d_odata, long N1, long N2);
 
+template int transposeCU<uint16_t>(uint16_t *d_idata, uint16_t *d_odata,
+                                   long N1, long N2);
 template int transposeCU<float>(float *d_idata, float *d_odata, long N1,
                                 long N2);
 

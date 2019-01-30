@@ -8,11 +8,12 @@ std::unique_ptr<sutra_sensors> sensors_init(
     carma_context &context, sutra_telescope *d_tel, vector<string> type,
     int nwfs, long *nxsub, long *nvalid, long *npupils, long *npix,
     long *nphase, long *nrebin, long *nfft, long *ntot, long *npup,
-    float *pdiam, float *nphot, float *nphot4imat, int *lgs, int device,
-    bool roket) {
+    float *pdiam, float *nphot, float *nphot4imat, int *lgs, bool *fakecam,
+    int *maxFluxPerPix, int *maxPixValue, int device, bool roket) {
   return std::unique_ptr<sutra_sensors>(new sutra_sensors(
       &context, d_tel, type, nwfs, nxsub, nvalid, npupils, npix, nphase, nrebin,
-      nfft, ntot, npup, pdiam, nphot, nphot4imat, lgs, device, roket));
+      nfft, ntot, npup, pdiam, nphot, nphot4imat, lgs, fakecam, maxFluxPerPix,
+      maxPixValue, device, roket));
 }
 
 void declare_sensors(py::module &mod) {
@@ -38,6 +39,9 @@ void declare_sensors(py::module &mod) {
         nphot: (np.ndarray[ndim=1,dtype=np.float32]) : photons per subap per iter for each WFS
         nphot4imat: (np.ndarray[ndim=1,dtype=np.float32]) : photons per subap per iter for each WFS (for imat computation only)
         lgs: (np.ndarray[ndim=1,dtype=np.int64]) : LGS flag for each WFS
+        fakecam: (bool): if True, image is computed in uint16
+        maxFluxPerPix: (np.ndarray[ndim=1, dtype=np.int32]): maximum number of photons a pixel can handle before saturation
+        maxPixValue: (np.ndarray[ndim=1, dtype=np.int32]): maximum number of ADU possible in the uint16 image
         device: (int): GPU device index
         roket : (bool): flag for enabling ROKET
 
@@ -47,7 +51,8 @@ void declare_sensors(py::module &mod) {
            py::arg("npupils"), py::arg("npix"), py::arg("nphase"),
            py::arg("nrebin"), py::arg("nfft"), py::arg("ntot"), py::arg("npup"),
            py::arg("pdiam"), py::arg("nphot"), py::arg("nphot4imat"),
-           py::arg("lgs"), py::arg("device"), py::arg("roket"))
+           py::arg("lgs"), py::arg("fakecam"), py::arg("maxFluxPerPix"),
+           py::arg("maxPixValue"), py::arg("device"), py::arg("roket"))
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝

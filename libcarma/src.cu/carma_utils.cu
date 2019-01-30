@@ -209,3 +209,48 @@ int copyFromHalfToFloat(const half *d_data, float *h_dest, int N,
 
   return EXIT_SUCCESS;
 }
+
+template <typename T>
+__global__ void fill_array_krnl(T *d_data, T value, int N) {
+  int tid = threadIdx.x + blockDim.x * blockIdx.x;
+  while (tid < N) {
+    d_data[tid] = value;
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+template <typename T_data>
+int fill_array_with_value(T_data *d_data, T_data value, int N,
+                          carma_device *device) {
+  int nthreads = 0, nblocks = 0;
+  getNumBlocksAndThreads(device, N, nblocks, nthreads);
+  dim3 grid(nblocks), threads(nthreads);
+  fill_array_krnl<<<grid, threads>>>(d_data, value, N);
+  carmaCheckMsg("fill_array_with_value\n");
+
+  return EXIT_SUCCESS;
+}
+
+template int fill_array_with_value<float>(float *d_data, float value, int N,
+                                          carma_device *device);
+template int fill_array_with_value<double>(double *d_data, double value, int N,
+                                           carma_device *device);
+template int fill_array_with_value<int>(int *d_data, int value, int N,
+                                        carma_device *device);
+template int fill_array_with_value<unsigned int>(unsigned int *d_data,
+                                                 unsigned int value, int N,
+                                                 carma_device *device);
+template int fill_array_with_value<uint16_t>(uint16_t *d_data, uint16_t value,
+                                             int N, carma_device *device);
+template int fill_array_with_value<cuFloatComplex>(cuFloatComplex *d_data,
+                                                   cuFloatComplex value, int N,
+                                                   carma_device *device);
+template int fill_array_with_value<cuDoubleComplex>(cuDoubleComplex *d_data,
+                                                    cuDoubleComplex value,
+                                                    int N,
+                                                    carma_device *device);
+
+#ifdef CAN_DO_HALF
+template int fill_array_with_value<half>(half *d_data, half value, int N,
+                                         carma_device *device);
+#endif

@@ -116,6 +116,9 @@ template void clip_array<unsigned int>(unsigned int *d_data, unsigned int min,
                                        carma_device *device);
 template void clip_array<float>(float *d_data, float min, float max, int N,
                                 carma_device *device);
+template void clip_array<uint16_t>(uint16_t *d_data, uint16_t min, uint16_t max,
+                                   int N, carma_device *device);
+
 template void clip_array<double>(double *d_data, double min, double max, int N,
                                  carma_device *device);
 #ifdef CAN_DO_HALF
