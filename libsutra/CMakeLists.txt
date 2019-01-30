@@ -120,7 +120,9 @@ set_target_properties(sutra
 
 target_include_directories(sutra
     PUBLIC
-    $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/include.h ${CMAKE_CURRENT_SOURCE_DIR}/aao/cured ${BRAHMA_INC}>
+    ${CMAKE_CURRENT_SOURCE_DIR}/include.h ${BRAHMA_INC}
+    PRIVATE
+    $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/aao/cured>
     $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CURRENT_SOURCE_DIR}/include.h ${CMAKE_CURRENT_SOURCE_DIR}/include.cuh>
 )
 

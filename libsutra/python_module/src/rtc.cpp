@@ -77,8 +77,8 @@ void set_gain_impl(sutra_rtc<T> &sr, int ncontrol, T gain) {
       dynamic_cast<sutra_controller_ls<T> *>(sr.d_control[ncontrol]);
   control->set_gain(gain);
 }
-template <>
 #ifdef CAN_DO_HALF
+template <>
 void set_gain_impl(sutra_rtc<half> &sr, int ncontrol, half gain) {
   throw std::runtime_error("Not implemeted");
 }
@@ -376,7 +376,7 @@ void rtc_impl(py::module &mod, const char *name) {
         Parameters
         ------------
         ncontrol: (int): controller index
-        ngain: (np.array[ndim=1,dtype=np.float32]): modal gains to set
+        mgain: (np.array[ndim=1,dtype=np.float32]): modal gains to set
     )pbdoc",
            py::arg("ncontrol"), py::arg("mgain"));
 }

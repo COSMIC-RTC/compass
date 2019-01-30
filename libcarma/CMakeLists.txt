@@ -88,16 +88,9 @@ set_target_properties(carma
 list(LENGTH CUDA_SM CUDA_SM_LEN)
 math(EXPR CUDA_SM_LEN ${CUDA_SM_LEN}-1)
 list(GET CUDA_SM ${CUDA_SM_LEN} CUDA_SM_LAST)
-target_compile_definitions(carma PUBLIC CUDA_HIGHEST_SM=${CUDA_SM_LAST})
 target_compile_features(carma PUBLIC cxx_std_14)
 
 # string (REPLACE ";" " " CMAKE_CUDA_FLAGS "${CUDA_NVCC_FLAGS};${CUDA_ARCH}")
-
-target_include_directories(carma
-    PUBLIC
-    $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/include.h ${MAGMA_INCLUDE_DIRS}>
-    $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CURRENT_SOURCE_DIR}/include.h ${CMAKE_CURRENT_SOURCE_DIR}/include.cuh $ENV{COMPASS_ROOT}/tplib/cub>
-)
 
 target_compile_options(carma
     PUBLIC
@@ -108,7 +101,8 @@ target_compile_options(carma
 
 target_compile_definitions(carma
     PUBLIC
-    $<$<COMPILE_LANGUAGE:CXX>:VERSION_INFO=${VERSION_INFO}> #USE_UVA>
+    CUDA_HIGHEST_SM=${CUDA_SM_LAST}
+    $<$<COMPILE_LANGUAGE:CXX>:VERSION_INFO=${VERSION_INFO}> # USE_UVA>
     PRIVATE
     $<$<COMPILE_LANGUAGE:CXX>:USE_MAGMA>
 )
@@ -117,6 +111,14 @@ find_package(CUDA REQUIRED)
 target_link_libraries(carma
     PUBLIC ${CUDA_LIBRARIES} ${CUDA_cufft_LIBRARY} ${CUDA_cublas_LIBRARY} ${CUDA_curand_LIBRARY} ${CUDA_cusparse_LIBRARY}
     PRIVATE ${MAGMA_LIBRARIES}
+)
+
+target_include_directories(carma
+    PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include.h ${CUDA_INCLUDE_DIRS}
+    $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CURRENT_SOURCE_DIR}/include.cuh $ENV{COMPASS_ROOT}/tplib/cub>
+    PRIVATE
+    $<$<COMPILE_LANGUAGE:CXX>:${MAGMA_INCLUDE_DIRS}>
 )
 
 add_subdirectory(python_module)
