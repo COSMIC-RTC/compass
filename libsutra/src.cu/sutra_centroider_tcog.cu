@@ -37,6 +37,7 @@ __global__ void centroids(T *d_img, T *d_centroids, T *ref, int *validx,
       idata += (data_thresh > 0) ? data_thresh : 0;
       xdata += (data_thresh > 0) ? data_thresh * x : 0;
       ydata += (data_thresh > 0) ? data_thresh * y : 0;
+      d_img[idim] = data_thresh;
     }
   }
 

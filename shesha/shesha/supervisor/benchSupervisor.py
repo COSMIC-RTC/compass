@@ -146,6 +146,7 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         self.frame = self.getWfsImage()
         self.rtc.d_centro[0].load_img(self.frame, self.frame.shape[0])
+        self.rtc.d_centro[0].calibrate_img(True)
         self.rtc.do_centroids(0)
         self.rtc.do_control(0)
         self.rtc.do_clipping(0, -1e5, 1e5)
@@ -183,15 +184,13 @@ class BenchSupervisor(AbstractSupervisor):
 
     def setGain(self, gain) -> None:
         '''
-        Set the gain/mgain of feedback controller loop
+        Set the scalar gain of feedback controller loop
         '''
-        if self.rtc.d_control[0].command_law == 'integrator':  # scalar
+        if type(gain) in [int, float]:
             self.rtc.d_control[0].set_gain(gain)
-        else:  # mgain mode
-            if type(gain) in [int, float]:
-                gain = np.ones(np.sum(self.rtc.d_control[0].nactu),
-                               dtype=np.float32) * gain
-            self.rtc.d_control[0].set_mgain(gain)
+        else:
+            raise ValueError(
+                    "ERROR CANNOT set array gain in canapass (generic + integrator law")
 
     def setCommandMatrix(self, cMat: np.ndarray) -> None:
         '''
@@ -386,11 +385,12 @@ class BenchSupervisor(AbstractSupervisor):
 
             self.rtc = rtc_standalone(self.c, wfsNb, nvalid, nact,
                                       self.config.p_centroiders[0].type,
-                                      self.config.p_controllers[0].delay, offset * 0,
-                                      scale, brahma=self.BRAHMA)
+                                      self.config.p_controllers[0].delay, offset, scale,
+                                      brahma=self.BRAHMA)
             # put pixels in the SH grid coordonates
             self.rtc.d_centro[0].load_validpos(p_wfs._validsubsx, p_wfs._validsubsy,
                                                nvalid)
+            self.rtc.d_centro[0].set_npix(self.npix)
 
             cMat = np.zeros((nact, 2 * nvalid[0]), dtype=np.float32)
 

@@ -42,6 +42,7 @@ __launch_bounds__(BLOCK_THREADS) __global__
     idata += (d_img[idim] > threshold) ? d_img[idim] : 0;
     xdata += (d_img[idim] > threshold) ? d_img[idim] * x : 0;
     ydata += (d_img[idim] > threshold) ? d_img[idim] * y : 0;
+    d_img[idim] = data_thresh;
   }
 
   __syncthreads();
