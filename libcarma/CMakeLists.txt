@@ -122,7 +122,7 @@ target_include_directories(carma
     $<$<COMPILE_LANGUAGE:CXX>:${MAGMA_INCLUDE_DIRS}>
 )
 
-if(${COMPILE_PYTHON})
+if(python_build)
 add_subdirectory(python_module)
 endif()
 

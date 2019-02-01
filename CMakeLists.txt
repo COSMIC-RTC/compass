@@ -6,7 +6,7 @@ project(compass
     LANGUAGES CUDA CXX
 )
 
-option(COMPILE_PYTHON "Compile Python module" ON)
+option(python_build "Compile Python Wrappers" ON)
 
 add_subdirectory(libcarma)
 add_subdirectory(libsutra)

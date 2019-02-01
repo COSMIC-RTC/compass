@@ -134,7 +134,7 @@ target_compile_options(sutra
 
 target_link_libraries(sutra PUBLIC carma ${BRAHMA_LIBS} )
 
-if(${COMPILE_PYTHON})
+if(python_build)
 add_subdirectory(python_module)
 endif()
 
