@@ -14,10 +14,11 @@ list(APPEND CUDA_SM "35" "37" "50" "52" "60" "61" "70")
 endif()
 
 foreach(SM ${CUDA_SM})
-list( APPEND CUDA_ARCH -gencode arch=compute_${SM},code=sm_${SM})
+# list( APPEND CUDA_ARCH -gencode arch=compute_${SM},code=sm_${SM})
+string(APPEND CMAKE_CUDA_FLAGS " -gencode arch=compute_${SM},code=sm_${SM}")
 endforeach(SM)
-
-#string(APPEND CMAKE_CUDA_FLAGS ${CUDA_ARCH})
+# message(${CUDA_ARCH})
+# string(APPEND CMAKE_CUDA_FLAGS ${CUDA_ARCH})
 
 project(carma
     VERSION ${VERSION_INFO}
@@ -96,6 +97,7 @@ target_compile_features(carma PUBLIC cxx_std_14)
 
 target_compile_options(carma
 PUBLIC
+-Wno-deprecated-declarations
 $<$<COMPILE_LANGUAGE:CXX>:-DVERSION_INFO=${VERSION_INFO}>
 $<$<COMPILE_LANGUAGE:CUDA>:${CUDA_ARCH} -use_fast_math >
 PRIVATE

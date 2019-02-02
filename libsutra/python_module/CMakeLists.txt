@@ -6,23 +6,15 @@ project(sutraWrap
     LANGUAGES CXX CUDA
 )
 
+# set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+# add_definitions(${sloth_DEFINITIONS})
+
 if (DEFINED ENV{BRAHMA_ROOT})
     SET(BRAHMA_DIRS $ENV{ACE_ROOT}/lib $ENV{TAO_ROOT}/tao $ENV{DDS_ROOT}/lib $ENV{BRAHMA_ROOT})
     link_directories( ${BRAHMA_DIRS} )
     SET(BRAHMA_CPP src/rtc_brahma.cpp
                 src/target_brahma.cpp)
-endif()
-
-# set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
-
-# add_definitions(${sloth_DEFINITIONS})
-
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(MAGMA REQUIRED magma)
-
-link_directories( ${MAGMA_LIBRARY_DIRS} )
-if(NOT TARGET wyrm)
-    add_subdirectory($ENV{COMPASS_ROOT}/tplib/wyrm wyrm)
 endif()
 
 add_library(sutraWrap MODULE

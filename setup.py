@@ -61,6 +61,7 @@ class CMakeBuildExt(build_ext):
         else:
             cmake_args += ['-DCMAKE_BUILD_TYPE=' + cfg]
             build_args += ['--', '-j%d' % multiprocessing.cpu_count()]
+            # build_args += ['--', 'VERBOSE=1']
 
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
@@ -72,8 +73,7 @@ class CMakeBuildExt(build_ext):
                 ]
             if os.path.isfile('{}/bin/g++'.format(os.environ["CUDA_ROOT"])):
                 cmake_args += [
-                        '-DCMAKE_CXX_COMPILER={}/bin/g++'.format(
-                                os.environ["CUDA_ROOT"])
+                        '-DCMAKE_CXX_COMPILER={}/bin/g++'.format(os.environ["CUDA_ROOT"])
                 ]
 
         cmake_args += ['-DVERSION_INFO={}'.format(self.distribution.get_version())]
@@ -92,7 +92,8 @@ setup(
         # long_description='',
         ext_modules=[CMakeExtension('compass-sim')],
         cmdclass={'build_ext': CMakeBuildExt},
-        zip_safe=False, )
+        zip_safe=False,
+)
 
 # setup(
 #         name='shesha',

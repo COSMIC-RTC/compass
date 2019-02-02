@@ -6,27 +6,6 @@ project(sutra
     LANGUAGES CXX CUDA
 )
 
-# EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
-# message( STATUS "Architecture: ${ARCHITECTURE}" )
-# ifeq ($(OS_ARCH),armv7l)
-#   ifeq ($(abi),gnueabi)
-#     CCFLAGS += -mfloat-abi=softfp
-#   else
-#     # default to gnueabihf
-#     override abi := gnueabihf
-#     #      LDFLAGSS += --dynamic-linker=/lib/ld-linux-armhf.so.3
-#     CCFLAGS   += -marm -mfpu=vfpv3  -mfloat-abi=hard -march=armv7-a
-#     NVCCFLAGS := -target-cpu-arch ARM -Xlinker --dynamic-linker=/lib/ld-linux-armhf.so.3 -Xcompiler "$(CCFLAGS)"
-#   endif
-# else
-#   ifeq ($(OS_ARCH),aarch64)
-#     # CCFLAGS += -march=armv8-a+crc -mtune=cortex-a50  # Armageddon
-#     CCFLAGS += -march=armv8-a+crc+crypto+fp+simd -mtune=cortex-a57  # TX2
-#   else
-#     CCFLAGS += -m64
-#   endif
-# endif
-
 if (DEFINED ENV{BRAHMA_ROOT})
     SET(BRAHMA_FLAGS -fvisibility-inlines-hidden
         -fno-strict-aliasing -pthread -pipe -Wno-deprecated-declarations
@@ -120,8 +99,9 @@ set_target_properties(sutra
 
 target_include_directories(sutra
     PUBLIC
-    $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/include.h ${CMAKE_CURRENT_SOURCE_DIR}/aao/cured ${BRAHMA_INC}>
-    $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CURRENT_SOURCE_DIR}/include.h ${CMAKE_CURRENT_SOURCE_DIR}/include.cuh>
+    ${CMAKE_CURRENT_SOURCE_DIR}/include.h
+    $<$<COMPILE_LANGUAGE:CXX>: ${CMAKE_CURRENT_SOURCE_DIR}/aao/cured ${BRAHMA_INC}>
+    $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CURRENT_SOURCE_DIR}/include.cuh>
 )
 
 target_compile_options(sutra
