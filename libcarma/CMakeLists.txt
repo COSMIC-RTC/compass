@@ -94,21 +94,23 @@ target_compile_features(carma PUBLIC cxx_std_14)
 
 # string (REPLACE ";" " " CMAKE_CUDA_FLAGS "${CUDA_NVCC_FLAGS};${CUDA_ARCH}")
 
-target_include_directories(carma
-    PUBLIC
-    $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/include.h ${MAGMA_INCLUDE_DIRS}>
-    $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CURRENT_SOURCE_DIR}/include.h ${CMAKE_CURRENT_SOURCE_DIR}/include.cuh $ENV{COMPASS_ROOT}/tplib/cub>
-)
-
 target_compile_options(carma
-    PUBLIC
-    $<$<COMPILE_LANGUAGE:CXX>:-DVERSION_INFO=${VERSION_INFO}>
-    $<$<COMPILE_LANGUAGE:CUDA>:${CUDA_ARCH} -use_fast_math >
-    PRIVATE
-    $<$<COMPILE_LANGUAGE:CXX>:-DUSE_MAGMA ${MAGMA_CFLAGS_OTHER}>
+PUBLIC
+$<$<COMPILE_LANGUAGE:CXX>:-DVERSION_INFO=${VERSION_INFO}>
+$<$<COMPILE_LANGUAGE:CUDA>:${CUDA_ARCH} -use_fast_math >
+PRIVATE
+$<$<COMPILE_LANGUAGE:CXX>:-DUSE_MAGMA ${MAGMA_CFLAGS_OTHER}>
 )
 
 find_package(CUDA REQUIRED)
+target_include_directories(carma
+    PUBLIC
+    ${CUDA_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include.h
+    $<$<COMPILE_LANGUAGE:CXX>:${MAGMA_INCLUDE_DIRS}>
+    $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CURRENT_SOURCE_DIR}/include.cuh $ENV{COMPASS_ROOT}/tplib/cub>
+)
+
 target_link_libraries(carma
     PUBLIC ${CUDA_LIBRARIES} ${CUDA_cufft_LIBRARY} ${CUDA_cublas_LIBRARY} ${CUDA_curand_LIBRARY} ${CUDA_cusparse_LIBRARY}
     PRIVATE ${MAGMA_LIBRARIES}
