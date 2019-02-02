@@ -13,16 +13,8 @@ if (DEFINED ENV{BRAHMA_ROOT})
                 src/target_brahma.cpp)
 endif()
 
-# set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
-
-# add_definitions(${sloth_DEFINITIONS})
-
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(MAGMA REQUIRED magma)
-
-link_directories( ${MAGMA_LIBRARY_DIRS} )
-if(NOT TARGET wyrm)
-    add_subdirectory($ENV{COMPASS_ROOT}/tplib/wyrm wyrm)
+if (DEFINED ENV{OCTOPUS_ROOT})
+    SET(OCTOPUS_CPP src/rtc_cacao.cpp)
 endif()
 
 add_library(sutraWrap MODULE
@@ -54,6 +46,7 @@ add_library(sutraWrap MODULE
                     src/groot.cpp
                     src/sutraWrap.cpp
                     ${BRAHMA_CPP}
+                    ${OCTOPUS_CPP}
                     )
 #link_directories($ENV{COMPASS_ROOT}/libsutra)
 

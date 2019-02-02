@@ -33,6 +33,7 @@ void declare_groot(py::module &);
 #ifdef USE_BRAHMA
 void declare_target_brahma(py::module &);
 void declare_rtc_brahma(py::module &);
+void declare_rtc_cacao(py::module &);
 #endif  // USE_BRAHMA
 
 // Expose classes and methods to Python
@@ -70,6 +71,7 @@ PYBIND11_MODULE(sutraWrap, mod) {
 #ifdef USE_BRAHMA
   declare_target_brahma(mod);
   declare_rtc_brahma(mod);
+  declare_rtc_cacao(mod);
 #endif  // USE_BRAHMA
 
 #ifdef VERSION_INFO
