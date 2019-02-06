@@ -31,6 +31,10 @@ void declare_controller_generic(py::module &mod) {
                              [](controller_generic &sc) { return sc.d_cmat; },
                              "Control matrix")
 
+      .def_property_readonly("d_imat",
+                             [](controller_generic &sc) { return sc.d_imat; },
+                             "Control matrix")
+
       .def_property_readonly("d_gain",
                              [](controller_generic &sc) { return sc.d_gain; },
                              "vector of modal gains")
@@ -38,6 +42,10 @@ void declare_controller_generic(py::module &mod) {
       .def_property_readonly("gain",
                              [](controller_generic &sc) { return sc.gain; },
                              "Integrator loop gain")
+
+      .def_property_readonly("polc",
+                             [](controller_generic &sc) { return sc.polc; },
+                             "POLC flag")
 
       .def_property_readonly(
           "d_compbuff", [](controller_generic &sc) { return sc.d_compbuff; },
@@ -70,6 +78,16 @@ void declare_controller_generic(py::module &mod) {
       decayFactor: (np.array[ndim1,dtype=np.float32]): decay factor
     )pbdoc",
            py::arg("decayFactor"))
+
+      .def("set_polc", wy::colCast(&controller_generic::set_polc),
+           R"pbdoc(
+      Set the polc flag
+
+      Parameters
+      ------------
+      polc: (bool): polc flag
+    )pbdoc",
+           py::arg("polc"))
 
       .def("set_matE", wy::colCast(&controller_generic::set_matE),
            R"pbdoc(
@@ -111,6 +129,15 @@ void declare_controller_generic(py::module &mod) {
     )pbdoc",
            py::arg("gain"))
 
+      .def("set_imat", wy::colCast(&controller_generic::set_imat), R"pbdoc(
+      Set the interaction matrix
+
+      Parameters
+      ------------
+      imat: (np.array[ndim=2,dtype=np.float32]): interaction matrix to set
+    )pbdoc",
+           py::arg("imat"))
+
       .def("set_cmat", wy::colCast(&controller_generic::set_cmat),
            R"pbdoc(
       Set the command matrix
@@ -146,6 +173,10 @@ void declare_controller_generic(py::module &mod) {
                              [](controller_genericH &sc) { return sc.d_cmat; },
                              "Control matrix")
 
+      .def_property_readonly("d_imat",
+                             [](controller_genericH &sc) { return sc.d_imat; },
+                             "Control matrix")
+
       .def_property_readonly("d_gain",
                              [](controller_genericH &sc) { return sc.d_gain; },
                              "vector of modal gains")
@@ -153,6 +184,10 @@ void declare_controller_generic(py::module &mod) {
       .def_property_readonly("gain",
                              [](controller_genericH &sc) { return sc.gain; },
                              "Integrator loop gain")
+
+      .def_property_readonly("polc",
+                             [](controller_genericH &sc) { return sc.polc; },
+                             "POLC flag")
 
       .def_property_readonly(
           "d_compbuff", [](controller_genericH &sc) { return sc.d_compbuff; },
@@ -186,6 +221,16 @@ void declare_controller_generic(py::module &mod) {
       decayFactor: (np.array[ndim1,dtype=np.float32]): decay factor
     )pbdoc",
            py::arg("decayFactor"))
+
+      .def("set_polc", wy::colCast(&controller_genericH::set_polc),
+           R"pbdoc(
+      Set the polc flag
+
+      Parameters
+      ------------
+      polc: (bool): polc flag
+    )pbdoc",
+           py::arg("polc"))
 
       .def("set_matE", wy::colCast(&controller_genericH::set_matE),
            R"pbdoc(
@@ -229,6 +274,15 @@ void declare_controller_generic(py::module &mod) {
       gain: (float): loop gain to set
     )pbdoc",
            py::arg("gain"))
+
+      .def("set_imat", wy::colCast(&controller_genericH::set_imat), R"pbdoc(
+      Set the interaction matrix
+
+      Parameters
+      ------------
+      imat: (np.array[ndim=2,dtype=np.float32]): interaction matrix to set
+    )pbdoc",
+           py::arg("imat"))
 
       .def("set_cmat", wy::colCast(&controller_genericH::set_cmat),
            R"pbdoc(

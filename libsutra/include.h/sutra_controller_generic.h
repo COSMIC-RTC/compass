@@ -12,7 +12,14 @@ class sutra_controller_generic : public sutra_controller<T> {
   carma_obj<T> *d_cmat;
   carma_obj<T> *d_gain;
   carma_obj<T> *d_decayFactor;
-  carma_obj<T> *d_compbuff;
+  carma_obj<T> *d_com1;      // commands k-1 (for POLC)
+  carma_obj<T> *d_com2;      // commands k-2 (for POLC)
+  carma_obj<T> *d_compbuff;  // Buffer for computations
+  carma_obj<T> *d_compbuff2;
+  carma_obj<T> *d_olmeas;  // Open-loop measurements for POLC
+  carma_obj<T> *d_imat;
+
+  bool polc;
 
   string command_law;
 
@@ -31,6 +38,9 @@ class sutra_controller_generic : public sutra_controller<T> {
   int set_cmat(float *cmat);
   int set_matE(float *matE);
   int set_commandlaw(string law);
+  int set_polc(bool p);
+  int set_imat(float *imat);
+  int comp_polc();
   int comp_com();
 };
 

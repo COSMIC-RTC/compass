@@ -9,8 +9,8 @@ sutra_controller<T>::sutra_controller(carma_context *context, int nvalid,
   this->device = context->get_activeDevice();
 
   // current_context->set_activeDevice(device,1);
-  this->d_com1 = NULL;
-  this->d_com2 = NULL;
+  this->d_com1 = nullptr;
+  this->d_com2 = nullptr;
 
   int nstreams = 1;  // nvalid/10;
 

@@ -31,20 +31,17 @@ p_atmos.set_winddir([0., 10., 20., 25.])
 p_atmos.set_L0([25., 25., 25., 25.])
 
 # target
-ntargets = 1
-p_targets = [conf.Param_target() for _ in range(ntargets)]
+ntargets = 49
+p_targets = [conf.Param_target() for _ in range(49)]
 
 xpos, ypos = np.meshgrid(np.linspace(-15, 15, 7), np.linspace(-15, 15, 7))
 xpos = xpos.flatten()
 ypos = ypos.flatten()
-
-xpos = [0]
-ypos = [0]
 k = 0
 for p_target in p_targets:
     p_target.set_xpos(xpos[k])
     p_target.set_ypos(ypos[k])
-    p_target.set_Lambda(1.65)
+    p_target.set_Lambda(0.65)
     p_target.set_mag(10.)
     k += 1
 # wfs
@@ -53,7 +50,7 @@ n_ngs = 3
 
 p_wfs_lgs = [conf.Param_wfs() for _ in range(n_lgs)]
 p_wfs_ngs = [conf.Param_wfs() for _ in range(n_ngs)]
-p_wfss = p_wfs_lgs + p_wfs_ngs
+p_wfss = p_wfs_lgs  #+ p_wfs_ngs
 
 for p_wfs in p_wfs_lgs:
     p_wfs.set_type("sh")
@@ -93,7 +90,7 @@ for p_wfs in p_wfs_ngs:
     p_wfs.set_nxsub(2)
     p_wfs.set_npix(20)
     p_wfs.set_pixsize(0.030)
-    p_wfs.set_fracsub(0.)
+    p_wfs.set_fracsub(0.8)
     p_wfs.set_xpos(xpos_ngs[k])
     p_wfs.set_ypos(ypos_ngs[k])
 
@@ -103,7 +100,6 @@ for p_wfs in p_wfs_ngs:
     p_wfs.set_zerop(1.e11)
     p_wfs.set_noise(0.3)
     p_wfs.set_atmos_seen(1)
-    p_wfs.set_is_low_order(True)
     k += 1
 
 # dm
