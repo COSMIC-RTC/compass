@@ -28,6 +28,8 @@ project(sutra
 # endif
 if (DEFINED ENV{OCTOPUS_ROOT})
     add_subdirectory($ENV{OCTOPUS_ROOT} octopus)
+    SET(CACAO_FLAGS -DUSE_CACAO)
+
     SET(OCTOPUS_CPP src.cpp/sutra_rtc_cacao.cpp)
 
     SET(OCTOPUS_LIBS CacaoInterface)
@@ -137,7 +139,7 @@ target_include_directories(sutra
 
 target_compile_options(sutra
     PUBLIC
-    $<$<COMPILE_LANGUAGE:CXX>: ${BRAHMA_FLAGS}>
+    $<$<COMPILE_LANGUAGE:CXX>: ${CACAO_FLAGS} ${BRAHMA_FLAGS}>
 )
 
 

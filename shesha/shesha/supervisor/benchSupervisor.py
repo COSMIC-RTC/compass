@@ -152,7 +152,7 @@ class BenchSupervisor(AbstractSupervisor):
         self.rtc.do_clipping(0, -1e5, 1e5)
         self.rtc.comp_voltage(0)
         self.setCommand(0, np.array(self.rtc.d_control[0].d_voltage))
-        if self.BRAHMA:
+        if self.BRAHMA or self.CACAO:
             self.rtc.publish()
 
     def closeLoop(self) -> None:
@@ -210,13 +210,33 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         raise NotImplementedError("Not implemented")
 
-    def getAllDataLoop(self, nIter: int, slope: bool, command: bool, target: bool,
-                       intensity: bool, targetPhase: bool) -> np.ndarray:
+    def getAllDataLoop(self, nIter: int = 1, slope: bool = True, command: bool = True,
+                       target: bool = True, intensity: bool = True,
+                       targetPhase: bool = True) -> np.ndarray:
         '''
         Returns a sequence of data at continuous loop steps.
         Requires loop to be asynchronously running
         '''
-        raise NotImplementedError("Not implemented")
+        if not self.CACAO:
+            raise NotImplementedError("Not implemented")
+
+        from Octopus import CacaoInterface
+
+        it = CacaoInterface.getInterface("compass_loopData")
+        data = [np.array(it)]
+        for _ in range(nIter):
+            self.singleNext()
+            data += [np.array(it)]
+        data = np.stack(data)
+
+        p_wfs = self.config.p_wfss[0]
+        intensity_tab = np.stack([loopdata[0, :p_wfs._nvalid] for loopdata in data])
+        slope_tab = np.stack([
+                loopdata[0, p_wfs._nvalid:(p_wfs._nvalid * 3)] for loopdata in data
+        ])
+        command_tab = np.stack([loopdata[0, (p_wfs._nvalid * 3):] for loopdata in data])
+
+        return (intensity_tab, slope_tab, command_tab)
 
     def forceContext(self) -> None:
         """
@@ -237,7 +257,8 @@ class BenchSupervisor(AbstractSupervisor):
     # |____/| .__/ \___|\___|_|\__|_|\___| |_|  |_|\___|\__|_| |_|\___/ \__,_|___/
     #       |_|
 
-    def __init__(self, configFile: str = None, BRAHMA: bool = False):
+    def __init__(self, configFile: str = None, BRAHMA: bool = False,
+                 CACAO: bool = False):
         '''
         Init the COMPASS wih the configFile
         '''
@@ -251,6 +272,7 @@ class BenchSupervisor(AbstractSupervisor):
         self.rtc = None
         self.frame = None
         self.BRAHMA = BRAHMA
+        self.CACAO = CACAO
 
         if configFile is not None:
             self.loadConfig(configFile=configFile)
@@ -386,7 +408,7 @@ class BenchSupervisor(AbstractSupervisor):
             self.rtc = rtc_standalone(self.c, wfsNb, nvalid, nact,
                                       self.config.p_centroiders[0].type,
                                       self.config.p_controllers[0].delay, offset, scale,
-                                      brahma=self.BRAHMA)
+                                      brahma=self.BRAHMA, cacao=self.CACAO)
             # put pixels in the SH grid coordonates
             self.rtc.d_centro[0].load_validpos(p_wfs._validsubsx, p_wfs._validsubsy,
                                                nvalid)
@@ -403,7 +425,7 @@ class BenchSupervisor(AbstractSupervisor):
             self.rtc = rtc_standalone(self.c, wfsNb, nvalid, nact,
                                       self.config.p_centroiders[0].type,
                                       self.config.p_controllers[0].delay, 0, 1,
-                                      brahma=self.BRAHMA)
+                                      brahma=self.BRAHMA, cacao=self.CACAO)
 
             self.rtc.d_centro[0].load_validpos(p_wfs._validsubsx, p_wfs._validsubsy,
                                                len(p_wfs._validsubsx))
