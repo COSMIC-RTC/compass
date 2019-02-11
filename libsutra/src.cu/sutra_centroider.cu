@@ -10,7 +10,8 @@
                                   *
  **********************************/
 template <class T>
-__global__ void convert_krnl(T *odata, T *idata, T offset, T scale, int N) {
+__global__ void convert_krnl(T *odata, T *idata, float offset, float scale,
+                             int N) {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
@@ -51,7 +52,7 @@ __global__ void fillvalidMask_krnl(T *d_validMask, int *validx, int *validy,
 
  */
 template <class T>
-int convert_centro(T *d_odata, T *d_idata, T offset, T scale, int N,
+int convert_centro(T *d_odata, T *d_idata, float offset, float scale, int N,
                    carma_device *device) {
   int nBlocks, nThreads;
   getNumBlocksAndThreads(device, N, nBlocks, nThreads);
@@ -66,7 +67,7 @@ int convert_centro(T *d_odata, T *d_idata, T offset, T scale, int N,
 template int convert_centro<float>(float *d_odata, float *d_idata, float offset,
                                    float scale, int N, carma_device *device);
 template int convert_centro<double>(double *d_odata, double *d_idata,
-                                    double offset, double scale, int N,
+                                    float offset, float scale, int N,
                                     carma_device *device);
 
 int fill_validMask(int size, int npix, int blocks, int *d_validMask,
@@ -89,3 +90,40 @@ int fill_validMask(int size, int npix, int blocks, int *d_validMask,
   carmaCheckMsg("fillvalidMask_krnl<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
+
+template <class Tin, class Tout>
+__global__ void calib_krnl(Tin *img_raw, Tout *img_cal, Tout *dark, Tout *flat,
+                           int N) {
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  while (tid < N) {
+    img_cal[tid] = ((Tout)img_raw[tid] - dark[tid]) * flat[tid];
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+template <class Tin, class Tout>
+int calibration(Tin *img_raw, Tout *img_cal, Tout *dark, Tout *flat, int N,
+                carma_device *device) {
+  int nBlocks, nThreads;
+  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
+  dim3 grid(nBlocks), threads(nThreads);
+
+  calib_krnl<<<grid, threads>>>(img_raw, img_cal, dark, flat, N);
+
+  carmaCheckMsg("calib_krnl<<<>>> execution failed\n");
+  return EXIT_SUCCESS;
+}
+
+template int calibration<float, float>(float *img_raw, float *img_cal,
+                                       float *dark, float *flat, int N,
+                                       carma_device *device);
+template int calibration<uint16_t, float>(uint16_t *img_raw, float *img_cal,
+                                          float *dark, float *flat, int N,
+                                          carma_device *device);
+#ifdef CAN_DO_HALF
+template int calibration<uint16_t, half>(uint16_t *img_raw, half *img_cal,
+                                         half *dark, half *flat, int N,
+                                         carma_device *device);
+template int calibration<float, half>(float *img_raw, half *img_cal, half *dark,
+                                      half *flat, int N, carma_device *device);
+#endif

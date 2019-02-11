@@ -3,21 +3,21 @@
 
 #include <sutra_controller.h>
 
-template <typename T>
-class sutra_controller_cured : public sutra_controller<T> {
+template <typename Tcomp, typename Tout>
+class sutra_controller_cured : public sutra_controller<Tcomp, Tout> {
  public:
-  T gain;
+  Tcomp gain;
   int ndivs;     // number of subdivision levels for cured
   bool tt_flag;  // flag for separate tt
 
   // data for CuReD */
-  carma_host_obj<T> *h_centroids;
-  carma_host_obj<T> *h_err;
-  carma_obj<T> *d_err;      // current error
-  carma_obj<T> *d_cenbuff;  // centroids circular buffer
+  carma_host_obj<Tcomp> *h_centroids;
+  carma_host_obj<Tcomp> *h_err;
+  carma_obj<Tcomp> *d_err;      // current error
+  carma_obj<Tcomp> *d_cenbuff;  // centroids circular buffer
 
   // data for CuReD */
-  carma_obj<T> *d_imat;
+  carma_obj<Tcomp> *d_imat;
 
   // structures needed to run CuReD */
   // sysCure* h_syscure;
@@ -27,19 +27,18 @@ class sutra_controller_cured : public sutra_controller<T> {
 
  public:
   sutra_controller_cured(carma_context *context, long nvalid, long nslope,
-                         long nactu, T delay, sutra_dms *dms, int *idx_dms,
+                         long nactu, float delay, sutra_dms *dms, int *idx_dms,
                          int ndm);
   sutra_controller_cured(const sutra_controller_cured &controller);
   ~sutra_controller_cured();
 
   string get_type() { return "cured"; }
-  int set_gain(T gain);
+  int set_gain(Tcomp gain);
 
   int comp_com();
 
   int init_cured(int nxsubs, int *isvalid, int ndivs, int tt);
   int frame_delay();
-  int set_delay(T delay);
 };
 
 #endif  // _sutra_controller_cured_H_

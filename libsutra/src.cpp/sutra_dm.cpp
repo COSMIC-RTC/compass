@@ -67,6 +67,9 @@ sutra_dm::sutra_dm(carma_context *context, const char *type, float alt,
   this->type = type;
   this->altitude = alt;
   this->push4imat = push4imat;
+  this->Vmin = -1.0f;
+  this->Vmax = 1.0f;
+  this->valMax = u_int16_t(65535);
 
   long dims_data1[2];
   dims_data1[0] = 1;
@@ -157,6 +160,13 @@ int sutra_dm::reset_shape() {
   return EXIT_SUCCESS;
 }
 
+int sutra_dm::comp_shape(uint16_t *comvec) {
+  current_context->set_activeDevice(device, 1);
+  convertToCom(comvec, this->d_com->getData(), this->d_com->getNbElem(),
+               this->Vmin, this->Vmax, this->valMax,
+               this->current_context->get_device(this->device));
+  return this->comp_shape();
+}
 int sutra_dm::comp_shape() { return this->comp_shape(this->d_com->getData()); }
 
 #ifdef CHEAT_CODE

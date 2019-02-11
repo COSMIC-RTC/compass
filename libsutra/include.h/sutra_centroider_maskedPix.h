@@ -5,12 +5,12 @@
 #include <sutra_wfs_pyr_pyrhr.h>
 #include <string>
 
-template <typename T>
-class sutra_centroider_maskedPix : public sutra_centroider<T> {
+template <class Tin, class T>
+class sutra_centroider_maskedPix : public sutra_centroider<Tin, T> {
  public:
   sutra_centroider_maskedPix(carma_context *context, sutra_wfs *wfs,
-                             long nvalid, long npupils, T offset, T scale,
-                             int device);
+                             long nvalid, long npupils, float offset,
+                             float scale, int device);
 
   ~sutra_centroider_maskedPix();
 

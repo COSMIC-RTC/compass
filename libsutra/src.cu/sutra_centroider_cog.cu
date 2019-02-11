@@ -4,7 +4,7 @@
 template <class T, int Nthreads>
 __global__ void centroids(T *d_img, T *d_centroids, T *ref, int *validx,
                           int *validy, T *d_intensities, unsigned int npix,
-                          unsigned int size, T scale, T offset,
+                          unsigned int size, float scale, float offset,
                           unsigned int nelem_thread) {
   if (blockDim.x > Nthreads) {
     if (threadIdx.x == 0) printf("Wrong size argument\n");
@@ -42,15 +42,18 @@ __global__ void centroids(T *d_img, T *d_centroids, T *ref, int *validx,
   __syncthreads();
 
   T intensity = BlockReduce(temp_storage).Sum(idata, blockDim.x);
+  __syncthreads();
   T slopex = BlockReduce(temp_storage).Sum(xdata, blockDim.x);
+  __syncthreads();
   T slopey = BlockReduce(temp_storage).Sum(ydata, blockDim.x);
+  __syncthreads();
   // write result for this block to global mem
   if (tid == 0) {
     d_centroids[blockIdx.x] =
-        ((slopex * (T)1.0 / (intensity + (T)1.e-6)) - offset) * scale -
+        ((slopex * (T)1.0 / (intensity + (T)1.e-6)) - (T)offset) * (T)scale -
         ref[blockIdx.x];
     d_centroids[blockIdx.x + gridDim.x] =
-        ((slopey * (T)1.0 / (intensity + (T)1.e-6)) - offset) * scale -
+        ((slopey * (T)1.0 / (intensity + (T)1.e-6)) - (T)offset) * (T)scale -
         ref[blockIdx.x + gridDim.x];
     d_intensities[blockIdx.x] = intensity;
   }
@@ -59,7 +62,8 @@ __global__ void centroids(T *d_img, T *d_centroids, T *ref, int *validx,
 template <class T>
 void get_centroids(int size, int threads, int blocks, int npix, T *d_img,
                    T *d_centroids, T *ref, int *validx, int *validy,
-                   T *intensities, T scale, T offset, carma_device *device) {
+                   T *intensities, float scale, float offset,
+                   carma_device *device) {
   int maxThreads = device->get_properties().maxThreadsPerBlock;
   unsigned int nelem_thread = 1;
   while ((threads / nelem_thread > maxThreads) ||
@@ -119,20 +123,20 @@ template void get_centroids<float>(int size, int threads, int blocks, int npix,
 template void get_centroids<double>(int size, int threads, int blocks, int npix,
                                     double *d_img, double *d_centroids,
                                     double *ref, int *validx, int *validy,
-                                    double *intensities, double scale,
-                                    double offset, carma_device *device);
+                                    double *intensities, float scale,
+                                    float offset, carma_device *device);
 
 #ifdef CAN_DO_HALF
 template void get_centroids<half>(int size, int threads, int blocks, int npix,
                                   half *d_img, half *d_centroids, half *ref,
                                   int *validx, int *validy, half *intensities,
-                                  half scale, half offset,
+                                  float scale, float offset,
                                   carma_device *device);
 #endif
 
 // template <class T>
 // __global__ void centroidx(T *g_idata, T *g_odata, T *alpha, unsigned int n,
-//                           unsigned int N, T scale, T offset,
+//                           unsigned int N, float scale, float offset,
 //                           unsigned int nelem_thread) {
 //   T *sdata = SharedMemory<T>();
 
@@ -166,7 +170,7 @@ template void get_centroids<half>(int size, int threads, int blocks, int npix,
 
 // template <class T>
 // __global__ void centroidy(T *g_idata, T *g_odata, T *alpha, unsigned int n,
-//                           unsigned int N, T scale, T offset,
+//                           unsigned int N, float scale, float offset,
 //                           unsigned int nelem_thread) {
 //   T *sdata = SharedMemory<T>();
 
@@ -200,8 +204,8 @@ template void get_centroids<half>(int size, int threads, int blocks, int npix,
 
 // template <class T>
 // __global__ void centroidx_async(T *g_idata, T *g_odata, T *alpha,
-//                                 unsigned int n, unsigned int N, T scale,
-//                                 T offset, int stream_offset) {
+//                                 unsigned int n, unsigned int N, float scale,
+//                                 float offset, int stream_offset) {
 //   T *sdata = SharedMemory<T>();
 
 //   // load shared mem
@@ -226,8 +230,8 @@ template void get_centroids<half>(int size, int threads, int blocks, int npix,
 
 // template <class T>
 // __global__ void centroidy_async(T *g_idata, T *g_odata, T *alpha,
-//                                 unsigned int n, unsigned int N, T scale,
-//                                 T offset, int stream_offset) {
+//                                 unsigned int n, unsigned int N, float scale,
+//                                 float offset, int stream_offset) {
 //   T *sdata = SharedMemory<T>();
 
 //   // load shared mem
@@ -253,7 +257,8 @@ template void get_centroids<half>(int size, int threads, int blocks, int npix,
 // template <class T>
 // void get_centroids_async(int threads, int blocks, int n, carma_streams
 // *streams,
-//                          T *d_idata, T *d_odata, T *alpha, T scale, T offset)
+//                          T *d_idata, T *d_odata, T *alpha, float scale, float
+//                          offset)
 //                          {
 //   int nstreams = streams->get_nbStreams();
 //   int nbelem = threads * blocks;

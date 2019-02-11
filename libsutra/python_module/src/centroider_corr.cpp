@@ -3,11 +3,12 @@
 #include <sutra_centroider_corr.h>
 
 namespace py = pybind11;
-typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;
-using centroider_corr = sutra_centroider_corr<float>;
 
-void declare_centroider_corr(py::module &mod) {
-  py::class_<centroider_corr, sutra_centroider<float>>(mod, "CentroiderCORR")
+template <typename Tin, typename Tcomp>
+void centroider_corr_impl(py::module &mod, const char *name) {
+  using centroider_corr = sutra_centroider_corr<Tin, Tcomp>;
+
+  py::class_<centroider_corr, sutra_centroider<Tin, Tcomp>>(mod, name)
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
       //  ██████╔╝██████╔╝██║   ██║██████╔╝█████╗  ██████╔╝   ██║    ╚████╔╝
@@ -90,3 +91,8 @@ void declare_centroider_corr(py::module &mod) {
 
       ;
 };
+
+void declare_centroider_corr(py::module &mod) {
+  centroider_corr_impl<float, float>(mod, "CentroiderCORR_FF");
+  centroider_corr_impl<uint16_t, float>(mod, "CentroiderCORR_UF");
+}

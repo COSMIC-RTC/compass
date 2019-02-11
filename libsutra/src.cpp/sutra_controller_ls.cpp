@@ -1,13 +1,14 @@
 #include <sutra_controller_ls.h>
 #include <string>
 
-template <typename T>
-sutra_controller_ls<T>::sutra_controller_ls(carma_context *context, long nvalid,
-                                            long nslope, long nactu, T delay,
-                                            sutra_dms *dms, int *idx_dms,
-                                            int ndm)
-    : sutra_controller<T>(context, nvalid, nslope, nactu, delay, dms, idx_dms,
-                          ndm) {
+template <typename T, typename Tout>
+sutra_controller_ls<T, Tout>::sutra_controller_ls(carma_context *context,
+                                                  long nvalid, long nslope,
+                                                  long nactu, float delay,
+                                                  sutra_dms *dms, int *idx_dms,
+                                                  int ndm)
+    : sutra_controller<T, Tout>(context, nvalid, nslope, nactu, delay, dms,
+                                idx_dms, ndm) {
   this->d_imat = 0L;
   this->d_cmat = 0L;
   this->d_eigenvals = 0L;
@@ -46,8 +47,6 @@ sutra_controller_ls<T>::sutra_controller_ls(carma_context *context, long nvalid,
   this->d_S2M = 0L;
   this->d_slpol = 0L;
   this->d_Hcor = 0L;
-  this->d_com1 = 0L;
-  this->d_com2 = 0L;
   this->d_compbuff = 0L;
   this->d_compbuff2 = 0L;
   this->cpt_rec = 0;
@@ -63,8 +62,8 @@ sutra_controller_ls<T>::sutra_controller_ls(carma_context *context, long nvalid,
   this->d_gain = new carma_obj<T>(context, dims_data1);
 }
 
-template <typename T>
-sutra_controller_ls<T>::~sutra_controller_ls() {
+template <typename T, typename Tout>
+sutra_controller_ls<T, Tout>::~sutra_controller_ls() {
   this->current_context->set_activeDevice(this->device, 1);
 
   delete this->d_imat;
@@ -82,20 +81,18 @@ sutra_controller_ls<T>::~sutra_controller_ls() {
     delete this->d_S2M;
     delete this->d_slpol;
     delete this->d_Hcor;
-    delete this->d_com1;
-    delete this->d_com2;
     delete this->d_compbuff;
     delete this->d_compbuff2;
   }
 }
 
-template <typename T>
-string sutra_controller_ls<T>::get_type() {
+template <typename T, typename Tout>
+string sutra_controller_ls<T, Tout>::get_type() {
   return "ls";
 }
 
-template <typename T>
-int sutra_controller_ls<T>::svdec_imat() {
+template <typename T, typename Tout>
+int sutra_controller_ls<T, Tout>::svdec_imat() {
   // doing U = Dt.D where D is i_mat
   T one = 1., zero = 0.;
   int nCols = this->d_imat->getDims(2);
@@ -148,41 +145,35 @@ int sutra_controller_ls<T>::svdec_imat() {
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_ls<T>::set_gain(T gain) {
+template <typename T, typename Tout>
+int sutra_controller_ls<T, Tout>::set_gain(T gain) {
   this->gain = gain;
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_ls<T>::set_cmat(T *cmat) {
+template <typename T, typename Tout>
+int sutra_controller_ls<T, Tout>::set_cmat(T *cmat) {
   this->current_context->set_activeDevice(this->device, 1);
   this->d_cmat->host2device(cmat);
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_ls<T>::set_imat(T *imat) {
+template <typename T, typename Tout>
+int sutra_controller_ls<T, Tout>::set_imat(T *imat) {
   this->current_context->set_activeDevice(this->device, 1);
   this->d_imat->host2device(imat);
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_ls<T>::set_mgain(T *mgain) {
+template <typename T, typename Tout>
+int sutra_controller_ls<T, Tout>::set_mgain(T *mgain) {
   this->current_context->set_activeDevice(this->device, 1);
   this->d_gain->host2device(mgain);
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_ls<T>::set_delay(T delay) {
-  this->delay = delay;
-  return EXIT_SUCCESS;
-}
-
-template <typename T>
-int sutra_controller_ls<T>::build_cmat(int nfilt, bool filt_tt) {
+template <typename T, typename Tout>
+int sutra_controller_ls<T, Tout>::build_cmat(int nfilt, bool filt_tt) {
   this->current_context->set_activeDevice(this->device, 1);
 
   long dims_data1[2] = {1, 0};
@@ -234,14 +225,14 @@ int sutra_controller_ls<T>::build_cmat(int nfilt, bool filt_tt) {
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_ls<T>::build_cmat(int nfilt) {
+template <typename T, typename Tout>
+int sutra_controller_ls<T, Tout>::build_cmat(int nfilt) {
   this->current_context->set_activeDevice(this->device, 1);
   return this->build_cmat(nfilt, false);
 }
 
-template <typename T>
-int sutra_controller_ls<T>::frame_delay() {
+template <typename T, typename Tout>
+int sutra_controller_ls<T, Tout>::frame_delay() {
   // here we place the content of d_centroids into cenbuf and get
   // the actual centroid frame for error computation depending on delay value
 
@@ -265,8 +256,8 @@ int sutra_controller_ls<T>::frame_delay() {
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_ls<T>::comp_com() {
+template <typename T, typename Tout>
+int sutra_controller_ls<T, Tout>::comp_com() {
   this->current_context->set_activeDevice(this->device, 1);
 
   // this->frame_delay();
@@ -280,28 +271,6 @@ int sutra_controller_ls<T>::comp_com() {
       modalControlOptimization();
       this->cpt_rec = 0;
     }
-    if (cpt_rec >= this->delay) {
-      // POLC to retrieve open-loop measurements for further refreshing modal
-      // gains
-      this->d_com2->copy(this->d_com1, 1, 1);
-      this->d_com1->copy(this->d_com, 1, 1);
-      // POLC equations
-      carma_geam<T>(this->cublas_handle(), 'n', 'n', this->nactu(), 1,
-                    (T)(this->delay - 1), this->d_com2->getData(),
-                    this->nactu(), 1.0f - (this->delay - 1),
-                    this->d_com1->getData(), this->nactu(),
-                    this->d_compbuff->getData(), this->nactu());
-      carma_gemv<T>(this->cublas_handle(), 'n', this->nslope(), this->nactu(),
-                    1.0f, *d_imat, this->nslope(), *d_compbuff, 1, 0.0f,
-                    *d_compbuff2, 1);
-      carma_geam<T>(this->cublas_handle(), 'n', 'n', this->nslope(), 1, 1.0f,
-                    *this->d_centroids, this->nslope(), -1.0f, *d_compbuff2,
-                    this->nslope(),
-                    this->d_slpol->getDataAt(
-                        (this->cpt_rec - (int)this->delay) * this->nslope()),
-                    this->nslope());
-    }
-    this->cpt_rec++;
   }
 
   // INTEGRATOR
@@ -355,8 +324,8 @@ int sutra_controller_ls<T>::comp_com() {
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_ls<T>::build_cmat_modopti() {
+template <typename T, typename Tout>
+int sutra_controller_ls<T, Tout>::build_cmat_modopti() {
   this->current_context->set_activeDevice(this->device, 1);
   long dims_data2[3] = {2, this->nactu(), this->nmodes};
   carma_obj<T> d_tmp(this->current_context, dims_data2);
@@ -373,9 +342,10 @@ int sutra_controller_ls<T>::build_cmat_modopti() {
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_ls<T>::init_modalOpti(int nmodes, int nrec, T *M2V, T gmin,
-                                           T gmax, int ngain, T Fs) {
+template <typename T, typename Tout>
+int sutra_controller_ls<T, Tout>::init_modalOpti(int nmodes, int nrec, T *M2V,
+                                                 T gmin, T gmax, int ngain,
+                                                 T Fs) {
   this->current_context->set_activeDevice(this->device, 1);
   this->is_modopti = 1;
   this->cpt_rec = 0;
@@ -389,8 +359,6 @@ int sutra_controller_ls<T>::init_modalOpti(int nmodes, int nrec, T *M2V, T gmin,
   long dims_data1[2] = {1, nmodes};
   this->d_gain = new carma_obj<T>(this->current_context, dims_data1);
   dims_data1[1] = this->nactu();
-  this->d_com1 = new carma_obj<T>(this->current_context, dims_data1);
-  this->d_com2 = new carma_obj<T>(this->current_context, dims_data1);
   this->d_compbuff = new carma_obj<T>(this->current_context, dims_data1);
   dims_data1[1] = this->nslope();
   this->d_compbuff2 = new carma_obj<T>(this->current_context, dims_data1);
@@ -435,9 +403,28 @@ int sutra_controller_ls<T>::init_modalOpti(int nmodes, int nrec, T *M2V, T gmin,
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_ls<T>::modalControlOptimization() {
+template <typename T, typename Tout>
+int sutra_controller_ls<T, Tout>::modalControlOptimization() {
   this->current_context->set_activeDevice(this->device, 1);
+  if (this->cpt_rec >= this->delay) {
+    // POLC to retrieve open-loop measurements for further refreshing modal
+    // gains
+    carma_geam<T>(this->cublas_handle(), 'n', 'n', this->nactu(), 1,
+                  (T)(this->delay - 1), this->d_com1->getData(), this->nactu(),
+                  1.0f - (this->delay - 1), this->d_com->getData(),
+                  this->nactu(), this->d_compbuff->getData(), this->nactu());
+    carma_gemv<T>(this->cublas_handle(), 'n', this->nslope(), this->nactu(),
+                  1.0f, *d_imat, this->nslope(), *d_compbuff, 1, 0.0f,
+                  *d_compbuff2, 1);
+    carma_geam<T>(this->cublas_handle(), 'n', 'n', this->nslope(), 1, 1.0f,
+                  *this->d_centroids, this->nslope(), -1.0f, *d_compbuff2,
+                  this->nslope(),
+                  this->d_slpol->getDataAt((this->cpt_rec - (int)this->delay) *
+                                           this->nslope()),
+                  this->nslope());
+  }
+  this->cpt_rec++;
+
   long dims_data[2] = {1, this->nrec / 2 + 1};
   carma_obj<cuFloatComplex> d_FFT(this->current_context, dims_data);
   dims_data[1] = this->nrec / 2;
@@ -484,16 +471,16 @@ int sutra_controller_ls<T>::modalControlOptimization() {
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_ls<T>::loadOpenLoopSlp(T *ol_slopes) {
+template <typename T, typename Tout>
+int sutra_controller_ls<T, Tout>::loadOpenLoopSlp(T *ol_slopes) {
   this->current_context->set_activeDevice(this->device, 1);
   this->d_slpol->host2device(ol_slopes);
 
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_ls<T>::compute_Hcor() {
+template <typename T, typename Tout>
+int sutra_controller_ls<T, Tout>::compute_Hcor() {
   this->current_context->set_activeDevice(this->device, 1);
   long dims_data[3] = {2, this->ngain, this->nrec / 2};
   this->d_Hcor = new carma_obj<T>(this->current_context, dims_data);
@@ -505,4 +492,5 @@ int sutra_controller_ls<T>::compute_Hcor() {
   return EXIT_SUCCESS;
 }
 
-template class sutra_controller_ls<float>;
+template class sutra_controller_ls<float, float>;
+template class sutra_controller_ls<float, uint16_t>;

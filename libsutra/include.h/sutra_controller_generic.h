@@ -4,20 +4,18 @@
 #include <sutra_acquisim.h>
 #include <sutra_controller.h>
 
-template <typename T>
-class sutra_controller_generic : public sutra_controller<T> {
+template <typename Tcomp, typename Tout>
+class sutra_controller_generic : public sutra_controller<Tcomp, Tout> {
  public:
-  T gain;
-  carma_obj<T> *d_matE;
-  carma_obj<T> *d_cmat;
-  carma_obj<T> *d_gain;
-  carma_obj<T> *d_decayFactor;
-  carma_obj<T> *d_com1;      // commands k-1 (for POLC)
-  carma_obj<T> *d_com2;      // commands k-2 (for POLC)
-  carma_obj<T> *d_compbuff;  // Buffer for computations
-  carma_obj<T> *d_compbuff2;
-  carma_obj<T> *d_olmeas;  // Open-loop measurements for POLC
-  carma_obj<T> *d_imat;
+  Tcomp gain;
+  carma_obj<Tcomp> *d_matE;
+  carma_obj<Tcomp> *d_cmat;
+  carma_obj<Tcomp> *d_gain;
+  carma_obj<Tcomp> *d_decayFactor;
+  carma_obj<Tcomp> *d_compbuff;  // Buffer for computations
+  carma_obj<Tcomp> *d_compbuff2;
+  carma_obj<Tcomp> *d_olmeas;  // Open-loop measurements for POLC
+  carma_obj<Tcomp> *d_imat;
 
   bool polc;
 
@@ -25,8 +23,8 @@ class sutra_controller_generic : public sutra_controller<T> {
 
  public:
   sutra_controller_generic(carma_context *context, long nvalid, long nslope,
-                           long nactu, T delay, sutra_dms *dms, int *idx_dms,
-                           int ndm);
+                           long nactu, float delay, sutra_dms *dms,
+                           int *idx_dms, int ndm);
   sutra_controller_generic(const sutra_controller_generic &controller);
   ~sutra_controller_generic();
 
@@ -34,7 +32,7 @@ class sutra_controller_generic : public sutra_controller<T> {
   string get_commandlaw();
   int set_decayFactor(float *decayFactor);
   int set_mgain(float *gain);
-  int set_gain(T gain);
+  int set_gain(float gain);
   int set_cmat(float *cmat);
   int set_matE(float *matE);
   int set_commandlaw(string law);

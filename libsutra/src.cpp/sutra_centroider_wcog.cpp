@@ -1,11 +1,12 @@
 #include <sutra_centroider_wcog.h>
 #include <string>
 
-template <typename T>
-sutra_centroider_wcog<T>::sutra_centroider_wcog(carma_context *context,
-                                                sutra_wfs *wfs, long nvalid,
-                                                T offset, T scale, int device)
-    : sutra_centroider<T>(context, wfs, nvalid, offset, scale, device) {
+template <class Tin, class T>
+sutra_centroider_wcog<Tin, T>::sutra_centroider_wcog(carma_context *context,
+                                                     sutra_wfs *wfs,
+                                                     long nvalid, float offset,
+                                                     float scale, int device)
+    : sutra_centroider<Tin, T>(context, wfs, nvalid, offset, scale, device) {
   context->set_activeDevice(device, 1);
 
   this->nslopes = 2 * nvalid;
@@ -19,16 +20,16 @@ sutra_centroider_wcog<T>::sutra_centroider_wcog(carma_context *context,
   this->d_centroids_ref->reset();
 }
 
-template <typename T>
-sutra_centroider_wcog<T>::~sutra_centroider_wcog() {}
+template <class Tin, class T>
+sutra_centroider_wcog<Tin, T>::~sutra_centroider_wcog() {}
 
-template <typename T>
-string sutra_centroider_wcog<T>::get_type() {
+template <class Tin, class T>
+string sutra_centroider_wcog<Tin, T>::get_type() {
   return "wcog";
 }
 
-template <typename T>
-int sutra_centroider_wcog<T>::init_weights() {
+template <class Tin, class T>
+int sutra_centroider_wcog<Tin, T>::init_weights() {
   this->current_context->set_activeDevice(this->device, 1);
   if (this->d_weights != 0L) delete this->d_weights;
 
@@ -46,8 +47,8 @@ int sutra_centroider_wcog<T>::init_weights() {
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_centroider_wcog<T>::load_weights(T *weights, int ndim) {
+template <class Tin, class T>
+int sutra_centroider_wcog<Tin, T>::load_weights(T *weights, int ndim) {
   if (ndim == 3)
     this->d_weights->host2device(weights);
   else {
@@ -67,16 +68,16 @@ int sutra_centroider_wcog<T>::load_weights(T *weights, int ndim) {
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_centroider_wcog<T>::set_npix(int npix) {
+template <class Tin, class T>
+int sutra_centroider_wcog<Tin, T>::set_npix(int npix) {
   this->npix = npix;
   return EXIT_SUCCESS;
 }
-template <typename T>
-int sutra_centroider_wcog<T>::get_cog(T *img, T *intensities, T *centroids,
-                                      int nvalid, int npix, int ntot) {
+template <class Tin, class T>
+int sutra_centroider_wcog<Tin, T>::get_cog(T *img, T *intensities, T *centroids,
+                                           int nvalid, int npix, int ntot) {
   // wcog
-  // TODO: Implement sutra_centroider_wcog<T>::get_cog_async
+  // TODO: Implement sutra_centroider_wcog<Tin, T>::get_cog_async
   // subap_reduce<T>(ntot, npix * npix, nvalid, cube, intensities,
   //                     *(this->d_weights),
   //                     this->current_context->get_device(device));
@@ -95,8 +96,9 @@ int sutra_centroider_wcog<T>::get_cog(T *img, T *intensities, T *centroids,
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_centroider_wcog<T>::get_cog(T *intensities, T *slopes, bool noise) {
+template <class Tin, class T>
+int sutra_centroider_wcog<Tin, T>::get_cog(T *intensities, T *slopes,
+                                           bool noise) {
   if (this->wfs != nullptr) {
     if (noise || this->wfs->roket == false)
       return this->get_cog(*(this->wfs->d_binimg), intensities, slopes,
@@ -111,8 +113,8 @@ int sutra_centroider_wcog<T>::get_cog(T *intensities, T *slopes, bool noise) {
   return EXIT_FAILURE;
 }
 
-template <typename T>
-int sutra_centroider_wcog<T>::get_cog() {
+template <class Tin, class T>
+int sutra_centroider_wcog<Tin, T>::get_cog() {
   if (this->wfs != nullptr)
     return this->get_cog(*(this->wfs->d_intensities), *(this->wfs->d_slopes),
                          true);
@@ -120,4 +122,5 @@ int sutra_centroider_wcog<T>::get_cog() {
   return EXIT_FAILURE;
 }
 
-template class sutra_centroider_wcog<float>;
+template class sutra_centroider_wcog<float, float>;
+template class sutra_centroider_wcog<uint16_t, float>;

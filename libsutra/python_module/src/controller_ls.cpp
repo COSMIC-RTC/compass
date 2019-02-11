@@ -3,11 +3,12 @@
 #include <sutra_controller_ls.h>
 
 namespace py = pybind11;
-typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;
-using controller_ls = sutra_controller_ls<float>;
 
-void declare_controller_ls(py::module &mod) {
-  py::class_<controller_ls, sutra_controller<float>>(mod, "ControllerLS")
+template <typename Tcomp, typename Tout>
+void controller_ls_impl(py::module &mod, const char *name) {
+  using controller_ls = sutra_controller_ls<Tcomp, Tout>;
+
+  py::class_<controller_ls, sutra_controller<Tcomp, Tout>>(mod, name)
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
@@ -167,15 +168,6 @@ void declare_controller_ls(py::module &mod) {
     )pbdoc",
            py::arg("gain"))
 
-      .def("set_delay", wy::colCast(&controller_ls::set_delay), R"pbdoc(
-      Set the loop delay
-
-      Parameters
-      ------------
-      delay: (float): delay to set
-    )pbdoc",
-           py::arg("delay"))
-
       .def("set_mgain", wy::colCast(&controller_ls::set_mgain), R"pbdoc(
       Set the controller modal gains
 
@@ -205,3 +197,8 @@ void declare_controller_ls(py::module &mod) {
 
       ;
 };
+
+void declare_controller_ls(py::module &mod) {
+  controller_ls_impl<float, float>(mod, "ControllerLS_FF");
+  controller_ls_impl<float, uint16_t>(mod, "ControllerLS_FU");
+}

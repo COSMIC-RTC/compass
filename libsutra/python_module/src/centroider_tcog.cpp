@@ -3,11 +3,12 @@
 #include <sutra_centroider_tcog.h>
 
 namespace py = pybind11;
-typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;
-using centroider_tcog = sutra_centroider_tcog<float>;
 
-void declare_centroider_tcog(py::module &mod) {
-  py::class_<centroider_tcog, sutra_centroider<float>>(mod, "CentroiderTCOG")
+template <typename Tin, typename Tcomp>
+void centroider_tcog_impl(py::module &mod, const char *name) {
+  using centroider_tcog = sutra_centroider_tcog<Tin, Tcomp>;
+
+  py::class_<centroider_tcog, sutra_centroider<Tin, Tcomp>>(mod, name)
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
       //  ██████╔╝██████╔╝██║   ██║██████╔╝█████╗  ██████╔╝   ██║    ╚████╔╝
@@ -39,3 +40,7 @@ void declare_centroider_tcog(py::module &mod) {
 
       ;
 };
+void declare_centroider_tcog(py::module &mod) {
+  centroider_tcog_impl<float, float>(mod, "CentroiderTCOG_FF");
+  centroider_tcog_impl<uint16_t, float>(mod, "CentroiderTCOG_UF");
+}

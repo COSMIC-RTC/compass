@@ -2,14 +2,12 @@
 #include <sutra_controller_cured.h>
 #include <string>
 
-template <typename T>
-sutra_controller_cured<T>::sutra_controller_cured(carma_context *context,
-                                                  long nvalid, long nslopes,
-                                                  long nactu, T delay,
-                                                  sutra_dms *dms, int *idx_dms,
-                                                  int ndm)
-    : sutra_controller<T>(context, nvalid, nslopes, nactu, delay, dms, idx_dms,
-                          ndm),
+template <typename T, typename Tout>
+sutra_controller_cured<T, Tout>::sutra_controller_cured(
+    carma_context *context, long nvalid, long nslopes, long nactu, float delay,
+    sutra_dms *dms, int *idx_dms, int ndm)
+    : sutra_controller<T, Tout>(context, nvalid, nslopes, nactu, delay, dms,
+                                idx_dms, ndm),
       gain(0),
       ndivs(0),
       tt_flag(false),
@@ -40,8 +38,8 @@ sutra_controller_cured<T>::sutra_controller_cured(carma_context *context,
     this->d_cenbuff = 0L;
 }
 
-template <typename T>
-sutra_controller_cured<T>::~sutra_controller_cured() {
+template <typename T, typename Tout>
+sutra_controller_cured<T, Tout>::~sutra_controller_cured() {
   this->current_context->set_activeDevice(this->device, 1);
 
   if (this->h_centroids != nullptr) delete this->h_centroids;
@@ -52,14 +50,14 @@ sutra_controller_cured<T>::~sutra_controller_cured() {
   curefree((sysCure *)this->h_syscure, (parCure *)this->h_parcure);
 }
 
-template <typename T>
-int sutra_controller_cured<T>::set_gain(T gain) {
+template <typename T, typename Tout>
+int sutra_controller_cured<T, Tout>::set_gain(T gain) {
   this->gain = gain;
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_cured<T>::comp_com() {
+template <typename T, typename Tout>
+int sutra_controller_cured<T, Tout>::comp_com() {
   this->current_context->set_activeDevice(this->device, 1);
 
   // this->frame_delay();
@@ -86,9 +84,9 @@ int sutra_controller_cured<T>::comp_com() {
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_cured<T>::init_cured(int nxsubs, int *isvalid, int ndivs,
-                                          int tt) {
+template <typename T, typename Tout>
+int sutra_controller_cured<T, Tout>::init_cured(int nxsubs, int *isvalid,
+                                                int ndivs, int tt) {
   if (tt > 0)
     this->tt_flag = true;
   else
@@ -101,8 +99,8 @@ int sutra_controller_cured<T>::init_cured(int nxsubs, int *isvalid, int ndivs,
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_cured<T>::frame_delay() {
+template <typename T, typename Tout>
+int sutra_controller_cured<T, Tout>::frame_delay() {
   // here we place the content of d_centroids into cenbuf and get
   // the actual centroid frame for error computation depending on delay value
 
@@ -125,10 +123,5 @@ int sutra_controller_cured<T>::frame_delay() {
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_cured<T>::set_delay(T delay) {
-  this->delay = delay;
-  return EXIT_SUCCESS;
-}
-
-template class sutra_controller_cured<float>;
+template class sutra_controller_cured<float, float>;
+template class sutra_controller_cured<float, uint16_t>;

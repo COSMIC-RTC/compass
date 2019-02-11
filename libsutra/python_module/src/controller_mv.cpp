@@ -3,11 +3,12 @@
 #include <sutra_controller_mv.h>
 
 namespace py = pybind11;
-typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;
-using controller_mv = sutra_controller_mv<float>;
 
-void declare_controller_mv(py::module &mod) {
-  py::class_<controller_mv, sutra_controller<float>>(mod, "ControllerMV")
+template <typename Tcomp, typename Tout>
+void controller_mv_impl(py::module &mod, const char *name) {
+  using controller_mv = sutra_controller_mv<Tcomp, Tout>;
+
+  py::class_<controller_mv, sutra_controller<Tcomp, Tout>>(mod, name)
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
@@ -195,15 +196,6 @@ void declare_controller_mv(py::module &mod) {
     )pbdoc",
            py::arg("gain"))
 
-      .def("set_delay", &controller_mv::set_delay, R"pbdoc(
-      Set the loop delay
-
-      Parameters
-      ------------
-      delay: (float): delay to set
-    )pbdoc",
-           py::arg("delay"))
-
       .def("set_mgain", wy::colCast(&controller_mv::set_mgain), R"pbdoc(
       Set the controller modal gains
 
@@ -233,3 +225,8 @@ void declare_controller_mv(py::module &mod) {
 
       ;
 };
+
+void declare_controller_mv(py::module &mod) {
+  controller_mv_impl<float, float>(mod, "ControllerMV_FF");
+  controller_mv_impl<float, uint16_t>(mod, "ControllerMV_FU");
+}

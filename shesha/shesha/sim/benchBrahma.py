@@ -12,7 +12,7 @@ class BenchBrahma(SimulatorBrahma):
         Class BenchBrahma
     '''
 
-    def next(self, *, nControl: int=0) -> None:
+    def next(self, *, nControl: int = 0) -> None:
         '''
             function next
             Iterates on centroiding and control, with optional parameters
@@ -22,7 +22,7 @@ class BenchBrahma(SimulatorBrahma):
 
         # self.rtc.do_centroids(nControl)
         # self.rtc.do_control(nControl)
-        # self.rtc.do_clipping(0, -1e5, 1e5)
+        # self.rtc.do_clipping(0)
 
         if self.rtc is not None:
             self.rtc.publish()

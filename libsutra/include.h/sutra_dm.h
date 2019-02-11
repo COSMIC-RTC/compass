@@ -38,6 +38,9 @@ class sutra_dm {
   long influsize;
   long dim;
   float push4imat;
+  float Vmin;
+  float Vmax;
+  uint16_t valMax;
 
   sutra_phase *d_shape;
 
@@ -79,6 +82,8 @@ class sutra_dm {
   int tt_loadarrays(float *influ);
   int reset_shape();
   int comp_shape();
+
+  int comp_shape(uint16_t *comm);
   int comp_shape(float *comm);
   int comp_oneactu(int nactu, float ampli);
   // Florian features
@@ -152,5 +157,7 @@ int dm_dostatmat(float *d_statcov, long Nkl, float *d_xpos, float *d_ypos,
                  float norm, carma_device *device);
 int fill_filtermat(float *filter, int nactu, int N, carma_device *device);
 int find_nnz(float *d_data, int N, carma_device *device);
+int convertToCom(uint16_t *volts, float *com, int N, float Vmin, float Vmax,
+                 uint16_t valMax, carma_device *device);
 
 #endif  // _SUTRA_DM_H_

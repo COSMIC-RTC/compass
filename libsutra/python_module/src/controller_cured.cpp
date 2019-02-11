@@ -3,11 +3,12 @@
 #include <sutra_controller_cured.h>
 
 namespace py = pybind11;
-typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;
-using controller_cured = sutra_controller_cured<float>;
 
-void declare_controller_cured(py::module &mod) {
-  py::class_<controller_cured, sutra_controller<float>>(mod, "ControllerCURED")
+template <typename Tcomp, typename Tout>
+void controller_cured_impl(py::module &mod, const char *name) {
+  using controller_cured = sutra_controller_cured<Tcomp, Tout>;
+
+  py::class_<controller_cured, sutra_controller<Tcomp, Tout>>(mod, name)
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
@@ -83,3 +84,8 @@ void declare_controller_cured(py::module &mod) {
     )pbdoc",
            py::arg("gain"));
 };
+
+void declare_controller_cured(py::module &mod) {
+  controller_cured_impl<float, float>(mod, "ControllerCURED_FF");
+  controller_cured_impl<float, uint16_t>(mod, "ControllerCURED_FU");
+}

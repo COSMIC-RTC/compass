@@ -336,3 +336,23 @@ int fill_filtermat(float *filter, int nactu, int N, carma_device *device) {
 
   return EXIT_SUCCESS;
 }
+
+__global__ void convertToCom_krnl(uint16_t *volts, float *com, int N,
+                                  float Vmin, float Vmax, uint16_t valMax) {
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  while (tid < N) {
+    com[tid] = float(volts[tid]) / float(valMax) * (Vmax - Vmin) + Vmin;
+    tid += blockDim.x * gridDim.x;
+  }
+}
+int convertToCom(uint16_t *volts, float *com, int N, float Vmin, float Vmax,
+                 uint16_t valMax, carma_device *device) {
+  int nthreads = 0, nblocks = 0;
+  getNumBlocksAndThreads(device, N, nblocks, nthreads);
+  dim3 grid(nblocks), threads(nthreads);
+
+  convertToCom_krnl<<<grid, threads>>>(volts, com, N, Vmin, Vmax, valMax);
+  carmaCheckMsg("convertToCom_krnl<<<>>> execution failed\n");
+
+  return EXIT_SUCCESS;
+}

@@ -3,11 +3,12 @@
 #include <sutra_centroider_wcog.h>
 
 namespace py = pybind11;
-typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;
-using centroider_wcog = sutra_centroider_wcog<float>;
 
-void declare_centroider_wcog(py::module &mod) {
-  py::class_<centroider_wcog, sutra_centroider<float>>(mod, "CentroiderWCOG")
+template <typename Tin, typename Tcomp>
+void centroider_wcog_impl(py::module &mod, const char *name) {
+  using centroider_wcog = sutra_centroider_wcog<Tin, Tcomp>;
+
+  py::class_<centroider_wcog, sutra_centroider<Tin, Tcomp>>(mod, name)
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
       //  ██████╔╝██████╔╝██║   ██║██████╔╝█████╗  ██████╔╝   ██║    ╚████╔╝
@@ -54,3 +55,7 @@ void declare_centroider_wcog(py::module &mod) {
 
       ;
 };
+void declare_centroider_wcog(py::module &mod) {
+  centroider_wcog_impl<float, float>(mod, "CentroiderWCOG_FF");
+  centroider_wcog_impl<uint16_t, float>(mod, "CentroiderWCOG_UF");
+}

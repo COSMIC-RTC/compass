@@ -80,7 +80,8 @@ p_centroider0 = conf.Param_centroider()
 p_centroiders = [p_centroider0]
 
 p_centroider0.set_nwfs(0)
-p_centroider0.set_type("cog")
+p_centroider0.set_type("bpcog")
+p_centroider0.set_nmax(6)
 # p_centroider0.set_type("corr")
 # p_centroider0.set_type_fct("model")
 

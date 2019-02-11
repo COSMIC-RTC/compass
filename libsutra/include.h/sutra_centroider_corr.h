@@ -3,8 +3,8 @@
 
 #include <sutra_centroider.h>
 
-template <typename T>
-class sutra_centroider_corr : public sutra_centroider<T> {
+template <class Tin, class T>
+class sutra_centroider_corr : public sutra_centroider<Tin, T> {
  public:
   int npix;
   int interp_sizex;
@@ -18,7 +18,7 @@ class sutra_centroider_corr : public sutra_centroider<T> {
 
  public:
   sutra_centroider_corr(carma_context *context, sutra_wfs *wfs, long nvalid,
-                        T offset, T scale, int device);
+                        float offset, float scale, int device);
   sutra_centroider_corr(const sutra_centroider_corr &centroider);
   ~sutra_centroider_corr();
 
@@ -42,7 +42,7 @@ void subap_sortmaxi(int threads, int blocks, T *d_idata, int *values, int nmax,
 template <class T>
 void subap_pinterp(int threads, int blocks, T *d_idata, int *values,
                    T *d_centroids, T *d_matinterp, int sizex, int sizey,
-                   int nvalid, int Npix, T scale, T offset);
+                   int nvalid, int Npix, float scale, float offset);
 
 template <class Tcu, class T>
 int fillcorr(Tcu *d_out, T *d_in, int npix_in, int npix_out, int N, int nvalid,

@@ -119,13 +119,13 @@ carma_obj<T_data>::~carma_obj() {
   current_context->set_activeDevice(this->device, 1);
 
   dealloc();
-  this->d_data = 0;
+  this->d_data = nullptr;
 
   delete[](this->dims_data);
   this->dims_data = 0;
 
   cudaFree(this->d_numValid);
-  this->d_numValid = 0;
+  this->d_numValid = nullptr;
 
   delete this->streams;
 

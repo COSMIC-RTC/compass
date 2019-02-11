@@ -15,15 +15,51 @@ using std::mutex;
 using std::string;
 using std::tuple;
 
-template <class T>
+template <typename Tcomp, typename Tout>
+typename std::enable_if<std::is_same<Tcomp, Tout>::value, void>::type
+init_voltage_impl(carma_obj<Tout> *&volts, carma_obj<Tcomp> *comDelayed) {
+  volts = comDelayed;
+};
+
+template <typename Tcomp, typename Tout>
+typename std::enable_if<!std::is_same<Tcomp, Tout>::value, void>::type
+init_voltage_impl(carma_obj<Tout> *&volts, carma_obj<Tcomp> *comDelayed) {
+  volts = new carma_obj<Tout>(comDelayed->getContext(), comDelayed->getDims());
+};
+
+template <typename Tcomp, typename Tout>
 class sutra_controller {
  public:
   carma_context *current_context;
   int device;
 
+  int open_loop;
+  Tcomp delay;
+  Tcomp Vmin;
+  Tcomp Vmax;
+  Tout valMax;
+  Tcomp a;  // Coefficient for linear interpolation on command buffer to allow
+            // non-integer delay
+  Tcomp b;  // Coefficient for linear interpolation on command buffer to allow
+            // non-integer delay
+  Tcomp c;  // Coefficient for linear interpolation on command buffer to allow
+            // non-integer delay
+  vector<sutra_dm *> d_dmseen;
+  carma_obj<Tcomp> *d_centroids;   // current centroids
+  carma_obj<Tcomp> *d_com;         // current command
+  carma_obj<Tcomp> *d_comDelayed;  // current command
+  carma_obj<Tout> *d_voltage;      // commands after perturbation and clipping
+  carma_obj<Tcomp> *d_com1;        // commands k-1
+  carma_obj<Tcomp> *d_com2;        // commands k-2
+
+  map<string, tuple<carma_obj<Tcomp> *, int, bool>> d_perturb_map;
+  // perturbation command buffer
+
+  carma_streams *streams;
+
   // allocation of d_centroids and d_com
   sutra_controller(carma_context *context, int nvalid, int nslope, int nactu,
-                   T delay, sutra_dms *dms, int *idx_dms, int ndm);
+                   float delay, sutra_dms *dms, int *idx_dms, int ndm);
   virtual ~sutra_controller();
 
   virtual string get_type() = 0;
@@ -40,7 +76,11 @@ class sutra_controller {
 
   cublasHandle_t cublas_handle() { return current_context->get_cublasHandle(); }
 
-  int set_centroids_ref(T *centroids_ref);
+  void init_voltage() {
+    init_voltage_impl<Tcomp, Tout>(this->d_voltage, this->d_comDelayed);
+  };
+
+  int set_centroids_ref(Tcomp *centroids_ref);
   int add_perturb_voltage(string name, float *perturb, int N);
   int remove_perturb_voltage(string name);
   int reset_perturb_voltage();
@@ -48,41 +88,33 @@ class sutra_controller {
   int disable_perturb_voltage(string name);
   int set_com(float *com, int nElem);
   int set_openloop(int open_loop_status, bool rst = true);
-  void clip_voltage(T min, T max);
+  int clip_commands();
   int comp_voltage();
+  int comp_latency();
+  int set_delay(float delay);
+  int set_Vmin(float Vmin);
+  int set_Vmax(float Vmax);
+  int set_valMax(float valMax);
+
   // int syevd_f(char meth, carma_obj<T> *d_U,
   //             carma_host_obj<T> *h_eingenvals);
   // int invgen(carma_obj<T> *d_mat, T cond, int job);
   int command_delay();
   int add_perturb();
 
- public:
-  // I would propose to make them protected (+ proper
-  // set of fuctions). It could make life easier!
-  // But we should discuss it
-  int open_loop;
-  T delay;
-  T a;  // Coefficient for linear interpolation on command buffer to allow
-        // non-integer delay
-  T b;  // Coefficient for linear interpolation on command buffer to allow
-        // non-integer delay
-  T c;  // Coefficient for linear interpolation on command buffer to allow
-        // non-integer delay
-  vector<sutra_dm *> d_dmseen;
-  carma_obj<T> *d_centroids;  // current centroids
-  carma_obj<T> *d_com;        // current command
-  carma_obj<T> *d_voltage;    // commands sent to mirror
-  carma_obj<T> *d_com1;       // commands k-1
-  carma_obj<T> *d_com2;       // commands k-2
-
-  map<string, tuple<carma_obj<T> *, int, bool>> d_perturb_map;
-  // perturbation command buffer
-
-  carma_streams *streams;
-
  protected:
   mutex comp_voltage_mutex;
 };
+
+template <typename Tin, typename Tout>
+typename std::enable_if<std::is_same<Tin, Tout>::value, void>::type
+convertToVoltage(Tin *d_idata, Tout *d_odata, int N, Tin Vmin, Tin Vmax,
+                 uint16_t valMax, carma_device *device){};
+
+template <typename Tin, typename Tout>
+typename std::enable_if<!std::is_same<Tin, Tout>::value, void>::type
+convertToVoltage(Tin *d_idata, Tout *d_odata, int N, Tin Vmin, Tin Vmax,
+                 uint16_t valMax, carma_device *device);
 
 int shift_buf(float *d_data, int offset, int N, carma_device *device);
 int fill_filtmat(float *filter, int nactu, int N, carma_device *device);

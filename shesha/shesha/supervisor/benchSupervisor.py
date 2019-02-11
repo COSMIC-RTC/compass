@@ -149,7 +149,7 @@ class BenchSupervisor(AbstractSupervisor):
         self.rtc.d_centro[0].calibrate_img(True)
         self.rtc.do_centroids(0)
         self.rtc.do_control(0)
-        self.rtc.do_clipping(0, -1e5, 1e5)
+        self.rtc.do_clipping(0)
         self.rtc.comp_voltage(0)
         self.setCommand(0, np.array(self.rtc.d_control[0].d_voltage))
         if self.BRAHMA:

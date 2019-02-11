@@ -28,14 +28,14 @@ struct Method_CoG {
   };
 };
 
-template <typename T>
-class sutra_centroider_pyr : public sutra_centroider<T> {
+template <class Tin, class T>
+class sutra_centroider_pyr : public sutra_centroider<Tin, T> {
  private:
   string pyr_type;
 
  public:
   sutra_centroider_pyr(carma_context *context, sutra_wfs *wfs, long nvalid,
-                       T offset, T scale, int device);
+                       float offset, float scale, int device);
   sutra_centroider_pyr(const sutra_centroider_pyr &centroider);
   ~sutra_centroider_pyr();
 
@@ -66,7 +66,7 @@ void pyr_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy,
 
 template <class T>
 void pyr2_slopes(T *d_odata, T *ref, T *d_idata, int *subindx, int *subindy,
-                 T *intensities, int ns, int nvalid, T scale, T valid_thresh,
-                 int do_sin, carma_device *device);
+                 T *intensities, int ns, int nvalid, float scale,
+                 T valid_thresh, int do_sin, carma_device *device);
 
 #endif  // _SUTRA_CENTROIDER_PYR_H_

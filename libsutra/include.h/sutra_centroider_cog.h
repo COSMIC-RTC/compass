@@ -3,12 +3,11 @@
 
 #include <sutra_centroider.h>
 
-template <typename T>
-class sutra_centroider_cog : public sutra_centroider<T> {
- public:
+template <class Tin, class T>
+class sutra_centroider_cog : public sutra_centroider<Tin, T> {
  public:
   sutra_centroider_cog(carma_context *context, sutra_wfs *wfs, long nvalid,
-                       T offset, T scale, int device);
+                       float offset, float scale, int device);
   sutra_centroider_cog(const sutra_centroider_cog &centroider);
   ~sutra_centroider_cog();
 
@@ -23,10 +22,11 @@ class sutra_centroider_cog : public sutra_centroider<T> {
 template <class T>
 void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
                    T *d_odata, T *ref, int *validx, int *validy, T *intensities,
-                   T scale, T offset, carma_device *device);
+                   float scale, float offset, carma_device *device);
 
 template <class T>
 void get_centroids_async(int threads, int blocks, int n, carma_streams *streams,
-                         T *d_idata, T *d_odata, T *alpha, T scale, T offset);
+                         T *d_idata, T *d_odata, T *alpha, float scale,
+                         float offset);
 
 #endif  // _SUTRA_CENTROIDER_COG_H_

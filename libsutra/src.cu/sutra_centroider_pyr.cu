@@ -47,8 +47,8 @@ template void pyr_slopes<double>(double *d_odata, double *d_idata, int *subindx,
 template <class T, T fct_sin(T)>
 __global__ void pyr2slopes_krnl(T *g_odata, T *ref, T *g_idata, int *subindx,
                                 int *subindy, T *intensities, unsigned int ns,
-                                unsigned int nvalid, T scale, T valid_thresh,
-                                int do_sin) {
+                                unsigned int nvalid, float scale,
+                                T valid_thresh, int do_sin) {
   unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
   T tmp;
   const T cmin(-1);
@@ -96,8 +96,9 @@ __global__ void pyr2slopes_krnl(T *g_odata, T *ref, T *g_idata, int *subindx,
 
 template <class T, T fct_sin(T)>
 void pyr2_slopes_full(T *d_odata, T *ref, T *d_idata, int *subindx,
-                      int *subindy, T *intensities, int ns, int nvalid, T scale,
-                      T valid_thresh, int do_sin, carma_device *device) {
+                      int *subindy, T *intensities, int ns, int nvalid,
+                      float scale, T valid_thresh, int do_sin,
+                      carma_device *device) {
   // cout << "hello cu" << endl;
 
   int nBlocks, nThreads;
@@ -123,7 +124,7 @@ void pyr2_slopes<float>(float *d_odata, float *ref, float *d_idata,
 template <>
 void pyr2_slopes<double>(double *d_odata, double *ref, double *d_idata,
                          int *subindx, int *subindy, double *intensities,
-                         int ns, int nvalid, double scale, double valid_thresh,
+                         int ns, int nvalid, float scale, double valid_thresh,
                          int do_sin, carma_device *device) {
   pyr2_slopes_full<double, sinpi>(d_odata, ref, d_idata, subindx, subindy,
                                   intensities, ns, nvalid, scale, valid_thresh,

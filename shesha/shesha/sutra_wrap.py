@@ -39,7 +39,10 @@ def smart_import(mod, cls, verbose=False, silent=False):
 
 
 Dms = smart_import("sutraWrap", "Dms")
-Rtc = smart_import("sutraWrap", "Rtc")
+Rtc_FFF = smart_import("sutraWrap", "Rtc_FFF")
+Rtc_FHF = smart_import("sutraWrap", "Rtc_FHF")
+Rtc_UFF = smart_import("sutraWrap", "Rtc_UFF")
+Rtc_UHF = smart_import("sutraWrap", "Rtc_UHF")
 Rtc_brahma = smart_import("sutraWrap", "Rtc_brahma", silent=True)
 Sensors = smart_import("sutraWrap", "Sensors")
 Atmos = smart_import("sutraWrap", "Atmos")

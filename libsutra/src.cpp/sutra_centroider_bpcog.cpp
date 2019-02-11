@@ -1,11 +1,10 @@
 #include <sutra_centroider_bpcog.h>
 
-template <typename T>
-sutra_centroider_bpcog<T>::sutra_centroider_bpcog(carma_context *context,
-                                                  sutra_wfs *wfs, long nvalid,
-                                                  T offset, T scale, int device,
-                                                  int nmax)
-    : sutra_centroider<T>(context, wfs, nvalid, offset, scale, device) {
+template <class Tin, class T>
+sutra_centroider_bpcog<Tin, T>::sutra_centroider_bpcog(
+    carma_context *context, sutra_wfs *wfs, long nvalid, float offset,
+    float scale, int device, int nmax)
+    : sutra_centroider<Tin, T>(context, wfs, nvalid, offset, scale, device) {
   this->nslopes = 2 * nvalid;
   this->nmax = nmax;
   long dims_data2[2] = {1, this->nslopes};
@@ -21,19 +20,19 @@ sutra_centroider_bpcog<T>::sutra_centroider_bpcog(carma_context *context,
   this->d_bpind = new carma_obj<uint>(this->current_context, dims_data);
 }
 
-template <typename T>
-sutra_centroider_bpcog<T>::~sutra_centroider_bpcog() {
+template <class Tin, class T>
+sutra_centroider_bpcog<Tin, T>::~sutra_centroider_bpcog() {
   delete this->d_bpix;
   delete this->d_bpind;
 }
 
-template <typename T>
-string sutra_centroider_bpcog<T>::get_type() {
+template <class Tin, class T>
+string sutra_centroider_bpcog<Tin, T>::get_type() {
   return "bpcog";
 }
 
-template <typename T>
-int sutra_centroider_bpcog<T>::set_nmax(int nmax) {
+template <class Tin, class T>
+int sutra_centroider_bpcog<Tin, T>::set_nmax(int nmax) {
   this->current_context->set_activeDevice(this->device, 1);
   this->nmax = nmax;
   delete this->d_bpix;
@@ -50,9 +49,10 @@ int sutra_centroider_bpcog<T>::set_nmax(int nmax) {
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_centroider_bpcog<T>::get_cog(T *img, T *intensities, T *centroids,
-                                       int nvalid, int npix, int ntot) {
+template <class Tin, class T>
+int sutra_centroider_bpcog<Tin, T>::get_cog(T *img, T *intensities,
+                                            T *centroids, int nvalid, int npix,
+                                            int ntot) {
   this->current_context->set_activeDevice(this->device, 1);
 
   get_centroids(ntot, (npix * npix), nvalid, npix, img, centroids,
@@ -72,8 +72,9 @@ int sutra_centroider_bpcog<T>::get_cog(T *img, T *intensities, T *centroids,
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_centroider_bpcog<T>::get_cog(T *intensities, T *slopes, bool noise) {
+template <class Tin, class T>
+int sutra_centroider_bpcog<Tin, T>::get_cog(T *intensities, T *slopes,
+                                            bool noise) {
   if (this->wfs != nullptr) {
     if (noise || this->wfs->roket == false)
       return this->get_cog(*(this->wfs->d_binimg), intensities, slopes,
@@ -88,8 +89,8 @@ int sutra_centroider_bpcog<T>::get_cog(T *intensities, T *slopes, bool noise) {
   return EXIT_FAILURE;
 }
 
-template <typename T>
-int sutra_centroider_bpcog<T>::get_cog() {
+template <class Tin, class T>
+int sutra_centroider_bpcog<Tin, T>::get_cog() {
   if (this->wfs != nullptr)
     return this->get_cog(*(this->wfs->d_intensities), *(this->wfs->d_slopes),
                          true);
@@ -98,4 +99,5 @@ int sutra_centroider_bpcog<T>::get_cog() {
   return EXIT_FAILURE;
 }
 
-template class sutra_centroider_bpcog<float>;
+template class sutra_centroider_bpcog<float, float>;
+template class sutra_centroider_bpcog<uint16_t, float>;

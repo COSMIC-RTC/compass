@@ -512,7 +512,7 @@ def init_pyrhr_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
         # mod_npts = p_wfs.pyr_npts #UNUSED
     else:
         if (verbose):
-            print("Using user-defined positions for the pyramid modulation")
+            print("Using user-defined positions [arcsec] for the pyramid modulation")
         cx = p_wfs.pyr_pos[:, 0] / p_wfs._qpixsize
         cy = p_wfs.pyr_pos[:, 1] / p_wfs._qpixsize
         # mod_npts=cx.shape[0] #UNUSED

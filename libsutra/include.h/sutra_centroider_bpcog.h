@@ -3,8 +3,8 @@
 
 #include <sutra_centroider.h>
 
-template <typename T>
-class sutra_centroider_bpcog : public sutra_centroider<T> {
+template <class Tin, class T>
+class sutra_centroider_bpcog : public sutra_centroider<Tin, T> {
  public:
   int nmax;
   carma_obj<T> *d_bpix;
@@ -12,7 +12,7 @@ class sutra_centroider_bpcog : public sutra_centroider<T> {
 
  public:
   sutra_centroider_bpcog(carma_context *context, sutra_wfs *wfs, long nvalid,
-                         T offset, T scale, int device, int nmax);
+                         float offset, float scale, int device, int nmax);
   sutra_centroider_bpcog(const sutra_centroider_bpcog &centroider);
   ~sutra_centroider_bpcog();
 
@@ -29,13 +29,14 @@ class sutra_centroider_bpcog : public sutra_centroider<T> {
 template <class T>
 void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
                    T *d_odata, T *ref, int *validx, int *validy, T *intensities,
-                   int nbpix, T scale, T offset, carma_device *device);
+                   int nbpix, float scale, float offset, carma_device *device);
 
 template <class T>
 void subap_sortmax(int threads, int blocks, T *d_idata, T *d_odata,
                    unsigned int *values, int nmax, carma_device *device);
 template <class T>
 void subap_bpcentro(int threads, int blocks, int npix, T *d_idata,
-                    unsigned int *values, T *d_odata, T scale, T offset);
+                    unsigned int *values, T *d_odata, float scale,
+                    float offset);
 
 #endif  // _SUTRA_CENTROIDER_H_

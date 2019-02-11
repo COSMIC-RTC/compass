@@ -9,113 +9,93 @@ using F_arrayS = py::array_t<T, py::array::f_style | py::array::forcecast>;
 // typedef py::array_t<float, py::array::f_style | py::array::forcecast>
 // F_arrayS;
 
-template <typename T>
-std::unique_ptr<sutra_rtc<T>> rtc_init() {
-  return std::unique_ptr<sutra_rtc<T>>(new sutra_rtc<T>());
+template <typename Tin, typename Tcomp, typename Tout>
+std::unique_ptr<sutra_rtc<Tin, Tcomp, Tout>> rtc_init() {
+  return std::unique_ptr<sutra_rtc<Tin, Tcomp, Tout>>(
+      new sutra_rtc<Tin, Tcomp, Tout>());
 }
 
-template <typename T>
-void add_centroider_impl(sutra_rtc<T> &sr, carma_context *context, long nvalid,
-                         float offset, float scale, long device, char *typec) {
-  sr.add_centroider(context, nvalid, offset, scale, device, typec);
-}
-#ifdef CAN_DO_HALF
-template <>
-void add_centroider_impl(sutra_rtc<half> &sr, carma_context *context,
-                         long nvalid, float offset, float scale, long device,
-                         char *typec) {
-  sr.add_centroider(context, nvalid, __float2half(offset), __float2half(scale),
-                    device, typec);
-}
-#endif
-
-template <typename T>
-void add_controller_impl(sutra_rtc<T> &sr, carma_context *ctxt, int nvalid,
-                         int nslope, int nactu, float delay, long device,
-                         char *typec) {
+template <typename Tin, typename Tcomp, typename Tout>
+void add_controller_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, carma_context *ctxt,
+                         int nvalid, int nslope, int nactu, float delay,
+                         long device, char *typec) {
   sr.add_controller(ctxt, nvalid, nslope, nactu, delay, device, typec, nullptr,
                     nullptr, 0, 0, false);
 }
-#ifdef CAN_DO_HALF
-template <>
-void add_controller_impl(sutra_rtc<half> &sr, carma_context *ctxt, int nvalid,
-                         int nslope, int nactu, float delay, long device,
-                         char *typec) {
-  sr.add_controller(ctxt, nvalid, nslope, nactu, __float2half(delay), device,
-                    typec, nullptr, nullptr, 0, 0, false);
-}
-#endif
 
-template <typename T>
-void do_clipping_impl(sutra_rtc<T> &sr, int ncontrol, float min, float max) {
-  sr.do_clipping(ncontrol, min, max);
-}
-#ifdef CAN_DO_HALF
-template <>
-void do_clipping_impl(sutra_rtc<half> &sr, int ncontrol, float min, float max) {
-  sr.do_clipping(ncontrol, __float2half(min), __float2half(max));
-}
-#endif
-
-template <typename T>
-void build_cmat_impl(sutra_rtc<T> &sr, int ncontrol, int nfilt, bool filt_tt) {
-  sutra_controller_ls<T> *control =
-      dynamic_cast<sutra_controller_ls<T> *>(sr.d_control[ncontrol]);
+template <typename Tin, typename Tcomp, typename Tout>
+typename std::enable_if<!std::is_same<Tcomp, half>::value, void>::type
+build_cmat_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, int ncontrol, int nfilt,
+                bool filt_tt) {
+  sutra_controller_ls<Tcomp, Tout> *control =
+      dynamic_cast<sutra_controller_ls<Tcomp, Tout> *>(sr.d_control[ncontrol]);
   control->build_cmat(nfilt, filt_tt);
 }
 #ifdef CAN_DO_HALF
-template <>
-void build_cmat_impl(sutra_rtc<half> &sr, int ncontrol, int nfilt,
-                     bool filt_tt) {
-  throw std::runtime_error("Not implemeted");
+template <typename Tin, typename Tcomp, typename Tout>
+typename std::enable_if<std::is_same<Tcomp, half>::value, void>::type
+build_cmat_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, int ncontrol, int nfilt,
+                bool filt_tt) {
+  throw std::runtime_error("Not implemented");
 };
 #endif
 
-template <typename T>
-void set_gain_impl(sutra_rtc<T> &sr, int ncontrol, T gain) {
-  sutra_controller_ls<T> *control =
-      dynamic_cast<sutra_controller_ls<T> *>(sr.d_control[ncontrol]);
+template <typename Tin, typename Tcomp, typename Tout>
+typename std::enable_if<!std::is_same<Tcomp, half>::value, void>::type
+set_gain_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, int ncontrol, Tcomp gain) {
+  sutra_controller_ls<Tcomp, Tout> *control =
+      dynamic_cast<sutra_controller_ls<Tcomp, Tout> *>(sr.d_control[ncontrol]);
   control->set_gain(gain);
 }
+
 #ifdef CAN_DO_HALF
-template <>
-void set_gain_impl(sutra_rtc<half> &sr, int ncontrol, half gain) {
-  throw std::runtime_error("Not implemeted");
+template <typename Tin, typename Tcomp, typename Tout>
+typename std::enable_if<std::is_same<Tcomp, half>::value, void>::type
+set_gain_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, int ncontrol, half gain) {
+  throw std::runtime_error("Not implemented");
 }
 #endif
 
-template <typename T>
-void set_mgain_impl(sutra_rtc<T> &sr, int ncontrol, F_arrayS<T> data) {
-  sutra_controller_ls<T> *control =
-      dynamic_cast<sutra_controller_ls<T> *>(sr.d_control[ncontrol]);
+template <typename Tin, typename Tcomp, typename Tout>
+typename std::enable_if<!std::is_same<Tcomp, half>::value, void>::type
+set_mgain_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, int ncontrol,
+               F_arrayS<Tcomp> data) {
+  sutra_controller_ls<Tcomp, Tout> *control =
+      dynamic_cast<sutra_controller_ls<Tcomp, Tout> *>(sr.d_control[ncontrol]);
   control->set_mgain(data.mutable_data());
 }
 #ifdef CAN_DO_HALF
-template <>
-void set_mgain_impl(sutra_rtc<half> &sr, int ncontrol, F_arrayS<half> data) {
-  throw std::runtime_error("Not implemeted");
+template <typename Tin, typename Tcomp, typename Tout>
+typename std::enable_if<std::is_same<Tcomp, half>::value, void>::type
+set_mgain_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, int ncontrol,
+               F_arrayS<Tcomp> data) {
+  throw std::runtime_error("Not implemented");
 }
 #endif
 
-template <typename T>
-void svdec_imat_impl(sutra_rtc<T> &sr, int ncontrol) {
-  sutra_controller_ls<T> *control =
-      dynamic_cast<sutra_controller_ls<T> *>(sr.d_control[ncontrol]);
+template <typename Tin, typename Tcomp, typename Tout>
+typename std::enable_if<!std::is_same<Tcomp, half>::value, void>::type
+svdec_imat_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, int ncontrol) {
+  sutra_controller_ls<Tcomp, Tout> *control =
+      dynamic_cast<sutra_controller_ls<Tcomp, Tout> *>(sr.d_control[ncontrol]);
   control->svdec_imat();
 }
+
 #ifdef CAN_DO_HALF
-template <>
-void svdec_imat_impl(sutra_rtc<half> &sr, int ncontrol) {
-  throw std::runtime_error("Not implemeted");
+template <typename Tin, typename Tcomp, typename Tout>
+typename std::enable_if<std::is_same<Tcomp, half>::value, void>::type
+svdec_imat_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, int ncontrol) {
+  throw std::runtime_error("Not implemented");
 }
 #endif
 
-template <typename T>
+template <typename Tin, typename Tcomp, typename Tout>
 void rtc_impl(py::module &mod, const char *name) {
-  using rtc = sutra_rtc<T>;
+  using rtc = sutra_rtc<Tin, Tcomp, Tout>;
 
   py::class_<rtc>(mod, name)
-      .def(py::init(wy::colCast(rtc_init<T>)), " Initialize a void rtc object")
+      .def(py::init(wy::colCast(rtc_init<Tin, Tcomp, Tout>)),
+           " Initialize a void rtc object")
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
@@ -125,17 +105,19 @@ void rtc_impl(py::module &mod, const char *name) {
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
 
-      .def_property_readonly("d_centro",
-                             [](rtc &sr) -> vector<sutra_centroider<T> *> & {
-                               return sr.d_centro;
-                             },
-                             "Vector of centroiders")
+      .def_property_readonly(
+          "d_centro",
+          [](rtc &sr) -> vector<sutra_centroider<Tin, Tcomp> *> & {
+            return sr.d_centro;
+          },
+          "Vector of centroiders")
 
-      .def_property_readonly("d_control",
-                             [](rtc &sr) -> vector<sutra_controller<T> *> & {
-                               return sr.d_control;
-                             },
-                             "Vector of controllers")
+      .def_property_readonly(
+          "d_control",
+          [](rtc &sr) -> vector<sutra_controller<Tcomp, Tout> *> & {
+            return sr.d_control;
+          },
+          "Vector of controllers")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝
@@ -144,8 +126,8 @@ void rtc_impl(py::module &mod, const char *name) {
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
       .def("add_centroider",
-           wy::colCast((int (rtc::*)(carma_context *, long, T, T, long, char *,
-                                     sutra_wfs *)) &
+           wy::colCast((int (rtc::*)(carma_context *, long, float, float, long,
+                                     char *, sutra_wfs *)) &
                        rtc::add_centroider),
 
            R"pbdoc(
@@ -166,7 +148,10 @@ void rtc_impl(py::module &mod, const char *name) {
            py::arg("scale"), py::arg("device"), py::arg("typec"),
            py::arg("wfs"))
 
-      .def("add_centroider", wy::colCast(add_centroider_impl<T>),
+      .def("add_centroider",
+           wy::colCast((int (rtc::*)(carma_context *, long, float, float, long,
+                                     char *)) &
+                       rtc::add_centroider),
            R"pbdoc(
         Add a sutra_centroider object in the RTC
 
@@ -207,7 +192,8 @@ void rtc_impl(py::module &mod, const char *name) {
            py::arg("idx_dms") = std::vector<int64_t>(), py::arg("ndm") = 0,
            py::arg("Nphi") = 0, py::arg("wfs_direction") = false)
 
-      .def("add_controller", wy::colCast(add_controller_impl<T>), R"pbdoc(
+      .def("add_controller", wy::colCast(add_controller_impl<Tin, Tcomp, Tout>),
+           R"pbdoc(
         Add a sutra_controller object in the RTC
 
         Parameters
@@ -318,7 +304,7 @@ void rtc_impl(py::module &mod, const char *name) {
            py::arg("ncontrol"), py::arg("dms"), py::arg("nModes"),
            py::arg("m2v"), py::arg("pushAmpl"))
 
-      .def("imat_svd", svdec_imat_impl<T>,
+      .def("imat_svd", svdec_imat_impl<Tin, Tcomp, Tout>,
            R"pbdoc(
         Computes imat svd
 
@@ -328,7 +314,7 @@ void rtc_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("ncontrol"))
 
-      .def("build_cmat", build_cmat_impl<T>,
+      .def("build_cmat", build_cmat_impl<Tin, Tcomp, Tout>,
            R"pbdoc(
         Computes cmat
 
@@ -340,16 +326,14 @@ void rtc_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("ncontrol"), py::arg("nfilt"), py::arg("filt_tt") = false)
 
-      .def("do_clipping", do_clipping_impl<T>, R"pbdoc(
+      .def("do_clipping", wy::colCast(&rtc::do_clipping), R"pbdoc(
         Clip the command to apply on the DMs on a sutra_controller object
 
         Parameters
         ------------
         ncontrol: (int) : controller index
-        min: (float) : minimum value for the command
-        max: (float) : maximum value for the command
     )pbdoc",
-           py::arg("ncontrol"), py::arg("min"), py::arg("max"))
+           py::arg("ncontrol"))
 
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝
@@ -358,7 +342,7 @@ void rtc_impl(py::module &mod, const char *name) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
-      .def("set_gain", set_gain_impl<T>,
+      .def("set_gain", set_gain_impl<Tin, Tcomp, Tout>,
            R"pbdoc(
         Set the loop gain in the controller
 
@@ -369,7 +353,7 @@ void rtc_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("ncontrol"), py::arg("gain"))
 
-      .def("set_mgain", set_mgain_impl<T>,
+      .def("set_mgain", set_mgain_impl<Tin, Tcomp, Tout>,
            R"pbdoc(
         Set the modal gain in the controller
 
@@ -382,8 +366,14 @@ void rtc_impl(py::module &mod, const char *name) {
 }
 
 void declare_rtc(py::module &mod) {
+  rtc_impl<float, float, float>(mod, "Rtc_FFF");
+  rtc_impl<float, float, uint16_t>(mod, "Rtc_FFU");
+  rtc_impl<uint16_t, float, float>(mod, "Rtc_UFF");
+  rtc_impl<uint16_t, float, uint16_t>(mod, "Rtc_UFU");
 #ifdef CAN_DO_HALF
-  rtc_impl<half>(mod, "RtcH");
+  rtc_impl<float, half, float>(mod, "Rtc_FHF");
+  rtc_impl<float, half, uint16_t>(mod, "Rtc_FHU");
+  rtc_impl<uint16_t, half, float>(mod, "Rtc_UHF");
+  rtc_impl<uint16_t, half, uint16_t>(mod, "Rtc_UHU");
 #endif
-  rtc_impl<float>(mod, "Rtc");
 }

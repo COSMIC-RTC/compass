@@ -1,11 +1,12 @@
 #include <sutra_centroider_corr.h>
 #include <string>
 
-template <typename T>
-sutra_centroider_corr<T>::sutra_centroider_corr(carma_context *context,
-                                                sutra_wfs *wfs, long nvalid,
-                                                T offset, T scale, int device)
-    : sutra_centroider<T>(context, wfs, nvalid, offset, scale, device) {
+template <class Tin, class T>
+sutra_centroider_corr<Tin, T>::sutra_centroider_corr(carma_context *context,
+                                                     sutra_wfs *wfs,
+                                                     long nvalid, float offset,
+                                                     float scale, int device)
+    : sutra_centroider<Tin, T>(context, wfs, nvalid, offset, scale, device) {
   context->set_activeDevice(device, 1);
 
   this->nslopes = 2 * nvalid;
@@ -34,8 +35,8 @@ sutra_centroider_corr<T>::sutra_centroider_corr(carma_context *context,
   this->interp_sizey = 0;
 }
 
-template <typename T>
-sutra_centroider_corr<T>::~sutra_centroider_corr() {
+template <class Tin, class T>
+sutra_centroider_corr<Tin, T>::~sutra_centroider_corr() {
   if (this->d_corrfnct != 0L) delete this->d_corrfnct;
   if (this->d_corrspot != 0L) delete this->d_corrspot;
   if (this->d_corrnorm != 0L) delete this->d_corrnorm;
@@ -44,20 +45,20 @@ sutra_centroider_corr<T>::~sutra_centroider_corr() {
   if (this->d_interpmat != 0L) delete this->d_interpmat;
 }
 
-template <typename T>
-string sutra_centroider_corr<T>::get_type() {
+template <class Tin, class T>
+string sutra_centroider_corr<Tin, T>::get_type() {
   return "corr";
 }
 
-template <typename T>
-int sutra_centroider_corr<T>::set_npix(int npix) {
+template <class Tin, class T>
+int sutra_centroider_corr<Tin, T>::set_npix(int npix) {
   this->npix = npix;
 
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_centroider_corr<T>::fill_bincube(T *img) {
+template <class Tin, class T>
+int sutra_centroider_corr<Tin, T>::fill_bincube(T *img) {
   this->current_context->set_activeDevice(this->device, 1);
 
   fillbincube(img, this->d_bincube->getData(), this->npix, this->nvalid,
@@ -66,8 +67,9 @@ int sutra_centroider_corr<T>::fill_bincube(T *img) {
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_centroider_corr<T>::init_corr(int isizex, int isizey, T *interpmat) {
+template <class Tin, class T>
+int sutra_centroider_corr<Tin, T>::init_corr(int isizex, int isizey,
+                                             T *interpmat) {
   this->current_context->set_activeDevice(this->device, 1);
   if (this->d_corrfnct != 0L) delete this->d_corrfnct;
   if (this->d_corrspot != 0L) delete this->d_corrspot;
@@ -123,8 +125,8 @@ int sutra_centroider_corr<T>::init_corr(int isizex, int isizey, T *interpmat) {
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_centroider_corr<T>::load_corr(T *corr, T *corr_norm, int ndim) {
+template <class Tin, class T>
+int sutra_centroider_corr<Tin, T>::load_corr(T *corr, T *corr_norm, int ndim) {
   this->current_context->set_activeDevice(this->device, 1);
   int nval = (ndim == 3) ? 1 : this->nvalid;
 
@@ -163,9 +165,9 @@ int sutra_centroider_corr<T>::load_corr(T *corr, T *corr_norm, int ndim) {
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_centroider_corr<T>::get_cog(T *img, T *intensities, T *centroids,
-                                      int nvalid, int npix, int ntot) {
+template <class Tin, class T>
+int sutra_centroider_corr<Tin, T>::get_cog(T *img, T *intensities, T *centroids,
+                                           int nvalid, int npix, int ntot) {
   this->current_context->set_activeDevice(this->device, 1);
   cudaError err;
 
@@ -232,8 +234,9 @@ int sutra_centroider_corr<T>::get_cog(T *img, T *intensities, T *centroids,
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_centroider_corr<T>::get_cog(T *intensities, T *slopes, bool noise) {
+template <class Tin, class T>
+int sutra_centroider_corr<Tin, T>::get_cog(T *intensities, T *slopes,
+                                           bool noise) {
   if (this->wfs != nullptr) {
     return this->get_cog(*this->wfs->d_binimg, intensities, slopes,
                          this->wfs->nvalid, this->wfs->npix,
@@ -244,8 +247,8 @@ int sutra_centroider_corr<T>::get_cog(T *intensities, T *slopes, bool noise) {
   return EXIT_FAILURE;
 }
 
-template <typename T>
-int sutra_centroider_corr<T>::get_cog() {
+template <class Tin, class T>
+int sutra_centroider_corr<Tin, T>::get_cog() {
   if (this->wfs != nullptr)
     return this->get_cog(*(this->wfs->d_intensities), *(this->wfs->d_slopes),
                          true);
@@ -254,4 +257,5 @@ int sutra_centroider_corr<T>::get_cog() {
   return EXIT_FAILURE;
 }
 
-template class sutra_centroider_corr<float>;
+template class sutra_centroider_corr<float, float>;
+template class sutra_centroider_corr<uint16_t, float>;

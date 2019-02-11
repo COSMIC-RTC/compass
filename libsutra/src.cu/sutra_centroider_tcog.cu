@@ -4,8 +4,8 @@
 template <class T, int Nthreads>
 __global__ void centroids(T *d_img, T *d_centroids, T *ref, int *validx,
                           int *validy, T *d_intensities, T threshold,
-                          unsigned int npix, unsigned int size, T scale,
-                          T offset, unsigned int nelem_thread) {
+                          unsigned int npix, unsigned int size, float scale,
+                          float offset, unsigned int nelem_thread) {
   if (blockDim.x > Nthreads) {
     if (threadIdx.x == 0) printf("Wrong size argument\n");
     return;
@@ -32,10 +32,10 @@ __global__ void centroids(T *d_img, T *d_centroids, T *ref, int *validx,
     // blockIdx.x;
     idim = (x + xvalid) + (y + yvalid) * size;
     if (idim < size * size) {
-      const T data_thresh = d_img[idim] - threshold;
-      idata += (data_thresh > 0) ? data_thresh : 0;
-      xdata += (data_thresh > 0) ? data_thresh * x : 0;
-      ydata += (data_thresh > 0) ? data_thresh * y : 0;
+      T data_thresh = (d_img[idim] > threshold) ? d_img[idim] - threshold : 0;
+      idata += data_thresh;
+      xdata += data_thresh * x;
+      ydata += data_thresh * y;
       d_img[idim] = data_thresh;
     }
   }
@@ -44,8 +44,11 @@ __global__ void centroids(T *d_img, T *d_centroids, T *ref, int *validx,
   __syncthreads();
 
   T intensity = BlockReduce(temp_storage).Sum(idata, blockDim.x);
+  __syncthreads();
   T slopex = BlockReduce(temp_storage).Sum(xdata, blockDim.x);
+  __syncthreads();
   T slopey = BlockReduce(temp_storage).Sum(ydata, blockDim.x);
+  __syncthreads();
   // write result for this block to global mem
   if (tid == 0) {
     d_centroids[blockIdx.x] =
@@ -61,7 +64,7 @@ __global__ void centroids(T *d_img, T *d_centroids, T *ref, int *validx,
 template <class T>
 void get_centroids(int size, int threads, int blocks, int npix, T *d_img,
                    T *d_centroids, T *ref, int *validx, int *validy,
-                   T *intensities, T threshold, T scale, T offset,
+                   T *intensities, T threshold, float scale, float offset,
                    carma_device *device) {
   int maxThreads = device->get_properties().maxThreadsPerBlock;
   unsigned int nelem_thread = 1;
@@ -117,11 +120,11 @@ template void get_centroids<double>(int size, int threads, int blocks, int npix,
                                     double *d_img, double *d_centroids,
                                     double *ref, int *validx, int *validy,
                                     double *intensities, double threshold,
-                                    double scale, double offset,
+                                    float scale, float offset,
                                     carma_device *device);
 // template <class T>
 // void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
-//                    T *d_odata, T *alpha, T thresh, T scale, T offset,
+//                    T *d_odata, T *alpha, T thresh, float scale, float offset,
 //                    carma_device *device) {
 //   int maxThreads = device->get_properties().maxThreadsPerBlock;
 //   unsigned int nelem_thread = 1;
@@ -162,8 +165,8 @@ template void get_centroids<double>(int size, int threads, int blocks, int npix,
 //                                     double offset, carma_device *device);
 // template <class T>
 // __global__ void centroidx(T *g_idata, T *g_odata, T *alpha, T thresh,
-//                           unsigned int n, unsigned int N, T scale, T offset,
-//                           unsigned int nelem_thread) {
+//                           unsigned int n, unsigned int N, float scale, float
+//                           offset, unsigned int nelem_thread) {
 //   T *sdata = SharedMemory<T>();
 
 //   // load shared mem
@@ -197,8 +200,8 @@ template void get_centroids<double>(int size, int threads, int blocks, int npix,
 
 // template <class T>
 // __global__ void centroidy(T *g_idata, T *g_odata, T *alpha, T thresh,
-//                           unsigned int n, unsigned int N, T scale, T offset,
-//                           unsigned int nelem_thread) {
+//                           unsigned int n, unsigned int N, float scale, float
+//                           offset, unsigned int nelem_thread) {
 //   T *sdata = SharedMemory<T>();
 
 //   // load shared mem

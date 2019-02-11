@@ -3,11 +3,12 @@
 #include <sutra_controller_geo.h>
 
 namespace py = pybind11;
-typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;
-using controller_geo = sutra_controller_geo<float>;
 
-void declare_controller_geo(py::module &mod) {
-  py::class_<controller_geo, sutra_controller<float>>(mod, "ControllerGEO")
+template <typename Tcomp, typename Tout>
+void controller_geo_impl(py::module &mod, const char *name) {
+  using controller_geo = sutra_controller_geo<Tcomp, Tout>;
+
+  py::class_<controller_geo, sutra_controller<Tcomp, Tout>>(mod, name)
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
@@ -141,3 +142,8 @@ void declare_controller_geo(py::module &mod) {
 
       ;
 };
+
+void declare_controller_geo(py::module &mod) {
+  controller_geo_impl<float, float>(mod, "ControllerGEO_FF");
+  controller_geo_impl<float, uint16_t>(mod, "ControllerGEO_FU");
+}

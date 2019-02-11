@@ -64,7 +64,7 @@ for p_target in p_targets:
 
 #wfs
 
-p_wfs0 = conf.Param_wfs(roket=True)
+p_wfs0 = conf.Param_wfs()
 p_wfss = [p_wfs0]
 
 p_wfs0.set_type("sh")
@@ -113,7 +113,7 @@ p_centroider0.set_nwfs(0)
 #sp_centroider0.set_thresh(0.)
 
 p_centroider0.set_type("bpcog")
-p_centroider0.set_nmax(10)
+p_centroider0.set_nmax(6)
 
 #p_centroider0.set_type("corr")
 #p_centroider0.set_type_fct("model")

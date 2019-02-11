@@ -2,14 +2,12 @@
 #include <sutra_controller_utils.h>
 #include <string>
 
-template <typename T>
-sutra_controller_mv<T>::sutra_controller_mv(carma_context *context,
-                                            long nvalid_, long nslope_,
-                                            long nactu_, T delay,
-                                            sutra_dms *dms, int *idx_dms,
-                                            int ndm)
-    : sutra_controller<T>(context, nvalid_, nslope_, nactu_, delay, dms,
-                          idx_dms, ndm) {
+template <typename Tcomp, typename Tout>
+sutra_controller_mv<Tcomp, Tout>::sutra_controller_mv(
+    carma_context *context, long nvalid_, long nslope_, long nactu_,
+    float delay, sutra_dms *dms, int *idx_dms, int ndm)
+    : sutra_controller<Tcomp, Tout>(context, nvalid_, nslope_, nactu_, delay,
+                                    dms, idx_dms, ndm) {
   this->gain = 0.0f;
 
   //  this->nstreams = 1; //nvalid/10;
@@ -21,21 +19,21 @@ sutra_controller_mv<T>::sutra_controller_mv(carma_context *context,
   dims_data2[0] = 2;
   dims_data2[1] = this->nslope();
   dims_data2[2] = this->nactu();
-  this->d_imat = new carma_obj<T>(this->current_context, dims_data2);
+  this->d_imat = new carma_obj<Tcomp>(this->current_context, dims_data2);
   dims_data2[1] = this->nactu();
   dims_data2[2] = this->nslope();
-  this->d_cmat = new carma_obj<T>(this->current_context, dims_data2);
+  this->d_cmat = new carma_obj<Tcomp>(this->current_context, dims_data2);
   // dims_data2[1] = dims_data2[2] = this->nactu();
-  // d_U = new carma_obj<T>(this->current_context, dims_data2);
+  // d_U = new carma_obj<Tcomp>(this->current_context, dims_data2);
   this->d_cenbuff = 0L;
   if ((int)delay > 0) {
     dims_data2[1] = this->nslope();
     dims_data2[2] = (int)delay + 1;
-    this->d_cenbuff = new carma_obj<T>(this->current_context, dims_data2);
+    this->d_cenbuff = new carma_obj<Tcomp>(this->current_context, dims_data2);
   }
   dims_data2[1] = this->nslope();
   dims_data2[2] = this->nslope();
-  this->d_Cmm = new carma_obj<T>(this->current_context, dims_data2);
+  this->d_Cmm = new carma_obj<Tcomp>(this->current_context, dims_data2);
 
   long dims_data1[2];
   dims_data1[0] = 1;
@@ -46,32 +44,30 @@ sutra_controller_mv<T>::sutra_controller_mv(carma_context *context,
   this->h_Cmmeigenvals = 0L;
 
   dims_data1[1] = this->nslope();
-  this->d_noisemat = new carma_obj<T>(this->current_context, dims_data1);
-  this->d_olmeas = new carma_obj<T>(this->current_context, dims_data1);
-  // this->d_compbuff = new carma_obj<T>(this->current_context, dims_data1);
-  this->d_compbuff2 = new carma_obj<T>(this->current_context, dims_data1);
+  this->d_noisemat = new carma_obj<Tcomp>(this->current_context, dims_data1);
+  this->d_olmeas = new carma_obj<Tcomp>(this->current_context, dims_data1);
+  // this->d_compbuff = new carma_obj<Tcomp>(this->current_context, dims_data1);
+  this->d_compbuff2 = new carma_obj<Tcomp>(this->current_context, dims_data1);
   dims_data1[1] = this->nactu();
-  this->d_com1 = new carma_obj<T>(this->current_context, dims_data1);
-  this->d_com2 = new carma_obj<T>(this->current_context, dims_data1);
-  this->d_compbuff = new carma_obj<T>(this->current_context, dims_data1);
-  this->d_err = new carma_obj<T>(this->current_context, dims_data1);
-  this->d_gain = new carma_obj<T>(this->current_context, dims_data1);
+  this->d_compbuff = new carma_obj<Tcomp>(this->current_context, dims_data1);
+  this->d_err = new carma_obj<Tcomp>(this->current_context, dims_data1);
+  this->d_gain = new carma_obj<Tcomp>(this->current_context, dims_data1);
 
   // Florian features
   dims_data2[1] = this->nactu();  // 64564;
   dims_data2[2] = this->nactu();
-  this->d_covmat = new carma_obj<T>(this->current_context, dims_data2);
+  this->d_covmat = new carma_obj<Tcomp>(this->current_context, dims_data2);
   dims_data2[1] = this->nactu();
   dims_data2[2] = this->nactu();
-  this->d_KLbasis = new carma_obj<T>(this->current_context, dims_data2);
+  this->d_KLbasis = new carma_obj<Tcomp>(this->current_context, dims_data2);
   this->d_Cphim = 0L;
 
   cublas_handle = this->current_context->get_cublasHandle();
   // carma_checkCublasStatus(cublasCreate(&(this->cublas_handle)));
 }
 
-template <typename T>
-sutra_controller_mv<T>::~sutra_controller_mv() {
+template <typename Tcomp, typename Tout>
+sutra_controller_mv<Tcomp, Tout>::~sutra_controller_mv() {
   this->current_context->set_activeDevice(this->device, 1);
   // delete this->d_U;
 
@@ -89,8 +85,6 @@ sutra_controller_mv<T>::~sutra_controller_mv() {
   delete this->h_Cmmeigenvals;
 
   if (this->delay > 0) delete this->d_cenbuff;
-  delete this->d_com1;
-  delete this->d_com2;
   delete this->d_err;
   // Florian features
   delete this->d_covmat;
@@ -101,51 +95,49 @@ sutra_controller_mv<T>::~sutra_controller_mv() {
   // delete this->current_context;
 }
 
-template <typename T>
-string sutra_controller_mv<T>::get_type() {
+template <typename Tcomp, typename Tout>
+string sutra_controller_mv<Tcomp, Tout>::get_type() {
   return "mv";
 }
 
-template <typename T>
-int sutra_controller_mv<T>::set_gain(T gain) {
+template <typename Tcomp, typename Tout>
+int sutra_controller_mv<Tcomp, Tout>::set_gain(Tcomp gain) {
   this->gain = gain;
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_mv<T>::set_mgain(T *mgain) {
+template <typename Tcomp, typename Tout>
+int sutra_controller_mv<Tcomp, Tout>::set_mgain(Tcomp *mgain) {
   this->current_context->set_activeDevice(this->device, 1);
   this->d_gain->host2device(mgain);
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_mv<T>::set_cmat(T *cmat) {
+template <typename Tcomp, typename Tout>
+int sutra_controller_mv<Tcomp, Tout>::set_cmat(Tcomp *cmat) {
   this->current_context->set_activeDevice(this->device, 1);
   this->d_cmat->host2device(cmat);
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_mv<T>::set_imat(T *imat) {
+template <typename Tcomp, typename Tout>
+int sutra_controller_mv<Tcomp, Tout>::set_imat(Tcomp *imat) {
   this->current_context->set_activeDevice(this->device, 1);
   this->d_imat->host2device(imat);
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_mv<T>::load_noisemat(T *noise) {
+template <typename Tcomp, typename Tout>
+int sutra_controller_mv<Tcomp, Tout>::load_noisemat(Tcomp *noise) {
   this->current_context->set_activeDevice(this->device, 1);
   this->d_noisemat->host2device(noise);
   return EXIT_SUCCESS;
 }
 // Florian features
-template <typename T>
-int sutra_controller_mv<T>::compute_Cmm(sutra_atmos *atmos,
-                                        sutra_sensors *sensors, double *L0,
-                                        double *cn2, double *alphaX,
-                                        double *alphaY, double diamTel,
-                                        double cobs) {
+template <typename Tcomp, typename Tout>
+int sutra_controller_mv<Tcomp, Tout>::compute_Cmm(
+    sutra_atmos *atmos, sutra_sensors *sensors, double *L0, double *cn2,
+    double *alphaX, double *alphaY, double diamTel, double cobs) {
   this->current_context->set_activeDevice(this->device, 1);
 
   struct gtomo_struct g_tomo;
@@ -159,15 +151,15 @@ int sutra_controller_mv<T>::compute_Cmm(sutra_atmos *atmos,
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_mv<T>::compute_Cphim(
+template <typename Tcomp, typename Tout>
+int sutra_controller_mv<Tcomp, Tout>::compute_Cphim(
     sutra_atmos *atmos, sutra_sensors *sensors, sutra_dms *dms, double *L0,
     double *cn2, double *alphaX, double *alphaY, double *X, double *Y,
     double *xactu, double *yactu, double diamTel, double *k2, long *NlayerDm,
     long *indLayerDm, double FoV, double *pitch, double *alt_dm) {
   this->current_context->set_activeDevice(this->device, 1);
 
-  // Find number of actuators without TT DM
+  // Find number of actuators without TTcomp DM
   int Nactu = 0;
   vector<sutra_dm *>::iterator p;
   p = dms->d_dms.begin();
@@ -181,7 +173,7 @@ int sutra_controller_mv<T>::compute_Cphim(
 
   long dims_data2[3] = {2, Nactu, this->nslope()};
   if (this->d_Cphim != 0L) delete this->d_Cphim;
-  this->d_Cphim = new carma_obj<T>(this->current_context, dims_data2);
+  this->d_Cphim = new carma_obj<Tcomp>(this->current_context, dims_data2);
 
   struct cphim_struct cphim_struct;
 
@@ -198,16 +190,18 @@ int sutra_controller_mv<T>::compute_Cphim(
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_mv<T>::filter_cphim(T *F, T *Nact) {
+template <typename Tcomp, typename Tout>
+int sutra_controller_mv<Tcomp, Tout>::filter_cphim(Tcomp *F, Tcomp *Nact) {
   // Piston filter
   piston_filt_cphim(this->d_Cphim, F);
   // Init and inverse the coupling matrix
   long dims_data2[3] = {2, this->d_Cphim->getDims()[1],
                         this->d_Cphim->getDims()[1]};
-  carma_obj<T> *d_Nact = new carma_obj<T>(this->current_context, dims_data2);
+  carma_obj<Tcomp> *d_Nact =
+      new carma_obj<Tcomp>(this->current_context, dims_data2);
   dims_data2[2] = this->nslope();
-  carma_obj<T> *d_tmp = new carma_obj<T>(this->current_context, dims_data2);
+  carma_obj<Tcomp> *d_tmp =
+      new carma_obj<Tcomp>(this->current_context, dims_data2);
   d_Nact->host2device(Nact);
   carma_potri(d_Nact);
   carma_gemm(cublas_handle, 'n', 'n', this->d_Cphim->getDims()[1],
@@ -223,20 +217,24 @@ int sutra_controller_mv<T>::filter_cphim(T *F, T *Nact) {
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_mv<T>::do_covmat(sutra_dm *ydm, char *method,
-                                      int *indx_pup, long dim, T *xpos, T *ypos,
-                                      long Nkl, T norm, T ampli) {
+template <typename Tcomp, typename Tout>
+int sutra_controller_mv<Tcomp, Tout>::do_covmat(sutra_dm *ydm, char *method,
+                                                int *indx_pup, long dim,
+                                                Tcomp *xpos, Tcomp *ypos,
+                                                long Nkl, Tcomp norm,
+                                                Tcomp ampli) {
   this->current_context->set_activeDevice(this->device, 1);
   long dims_data[3];
   dims_data[0] = 2;
   dims_data[1] = Nkl;
   dims_data[2] = Nkl;
-  carma_obj<T> *d_statcov = new carma_obj<T>(this->current_context, dims_data);
+  carma_obj<Tcomp> *d_statcov =
+      new carma_obj<Tcomp>(this->current_context, dims_data);
   long dims_data2[2];
   dims_data2[0] = 1;
   dims_data2[1] = this->nactu();
-  carma_obj<T> *d_KLcov = new carma_obj<T>(this->current_context, dims_data2);
+  carma_obj<Tcomp> *d_KLcov =
+      new carma_obj<Tcomp>(this->current_context, dims_data2);
 
   dims_data2[1] = dim;
   carma_obj<int> *d_indx =
@@ -244,8 +242,10 @@ int sutra_controller_mv<T>::do_covmat(sutra_dm *ydm, char *method,
 
   // Compute the statistic matrix from actuators positions & Kolmogorov
   // statistic
-  carma_obj<T> *d_xpos = new carma_obj<T>(this->current_context, dims_data);
-  carma_obj<T> *d_ypos = new carma_obj<T>(this->current_context, dims_data);
+  carma_obj<Tcomp> *d_xpos =
+      new carma_obj<Tcomp>(this->current_context, dims_data);
+  carma_obj<Tcomp> *d_ypos =
+      new carma_obj<Tcomp>(this->current_context, dims_data);
   d_xpos->host2device(xpos);
   d_ypos->host2device(ypos);
   do_statmat(d_statcov->getData(), Nkl, d_xpos->getData(), d_ypos->getData(),
@@ -265,9 +265,9 @@ int sutra_controller_mv<T>::do_covmat(sutra_dm *ydm, char *method,
     /*
      dims_data[1] = dim;
      dims_data[2] = this->nactu();
-     carma_obj<T> *d_IF = new carma_obj<T>(this->current_context,
+     carma_obj<Tcomp> *d_IF = new carma_obj<Tcomp>(this->current_context,
      dims_data); dims_data[1] = this->nactu(); dims_data[2] = this->nactu();
-     carma_obj<T> *d_geocov = new carma_obj<T>(current_context,
+     carma_obj<Tcomp> *d_geocov = new carma_obj<Tcomp>(current_context,
      dims_data);
 
      // Get influence functions of the DM (to be CUsparsed)
@@ -287,14 +287,14 @@ int sutra_controller_mv<T>::do_covmat(sutra_dm *ydm, char *method,
   }
   // Computation of covariance matrix
   // 1. Computation of covariance matrix in KL basis
-  carma_host_obj<T> *h_eigenvals =
-      new carma_host_obj<T>(dims_data2, MA_PAGELOCK);
+  carma_host_obj<Tcomp> *h_eigenvals =
+      new carma_host_obj<Tcomp>(dims_data2, MA_PAGELOCK);
 
-  carma_syevd<T, 1>('N', d_statcov, h_eigenvals);
+  carma_syevd<Tcomp, 1>('N', d_statcov, h_eigenvals);
 
   if (ydm->type == "kl") {
     dims_data2[1] = this->nactu();
-    carma_host_obj<T> h_KLcov(dims_data2, MA_PAGELOCK);
+    carma_host_obj<Tcomp> h_KLcov(dims_data2, MA_PAGELOCK);
     if (strcmp(method, "inv") == 0) {
       for (int i = 0; i < this->nactu(); i++) {
         h_KLcov[i] = -1. / (h_eigenvals->getData())[i];
@@ -321,8 +321,8 @@ int sutra_controller_mv<T>::do_covmat(sutra_dm *ydm, char *method,
   if (ydm->type == "pzt") {
     if (strcmp(method, "inv") == 0) {
       // Inversion of the KL covariance matrix
-      carma_host_obj<T> *h_eigenvals_inv =
-          new carma_host_obj<T>(dims_data2, MA_PAGELOCK);
+      carma_host_obj<Tcomp> *h_eigenvals_inv =
+          new carma_host_obj<Tcomp>(dims_data2, MA_PAGELOCK);
       for (int i = 0; i < this->nactu(); i++) {
         // Valeurs propres négatives.... A voir et inverser ordre si valeurs
         // propres positives
@@ -335,20 +335,26 @@ int sutra_controller_mv<T>::do_covmat(sutra_dm *ydm, char *method,
       // 2. Inversion of the KL basis
       dims_data2[0] = 1;
       dims_data2[1] = this->nactu();
-      carma_obj<T> *d_eigen =
-          new carma_obj<T>(this->current_context, dims_data2);
+      carma_obj<Tcomp> *d_eigen =
+          new carma_obj<Tcomp>(this->current_context, dims_data2);
       dims_data[1] = this->nactu();
       dims_data[2] = this->nactu();
-      carma_obj<T> *d_tmp = new carma_obj<T>(this->current_context, dims_data);
-      carma_obj<T> *d_Ukl = new carma_obj<T>(this->current_context, dims_data);
-      carma_obj<T> *d_Vkl = new carma_obj<T>(this->current_context, dims_data);
-      carma_host_obj<T> *h_KL = new carma_host_obj<T>(dims_data, MA_PAGELOCK);
-      carma_host_obj<T> *h_U = new carma_host_obj<T>(dims_data, MA_PAGELOCK);
-      carma_host_obj<T> *h_Vt = new carma_host_obj<T>(dims_data, MA_PAGELOCK);
+      carma_obj<Tcomp> *d_tmp =
+          new carma_obj<Tcomp>(this->current_context, dims_data);
+      carma_obj<Tcomp> *d_Ukl =
+          new carma_obj<Tcomp>(this->current_context, dims_data);
+      carma_obj<Tcomp> *d_Vkl =
+          new carma_obj<Tcomp>(this->current_context, dims_data);
+      carma_host_obj<Tcomp> *h_KL =
+          new carma_host_obj<Tcomp>(dims_data, MA_PAGELOCK);
+      carma_host_obj<Tcomp> *h_U =
+          new carma_host_obj<Tcomp>(dims_data, MA_PAGELOCK);
+      carma_host_obj<Tcomp> *h_Vt =
+          new carma_host_obj<Tcomp>(dims_data, MA_PAGELOCK);
 
       h_KL->cpy_obj(this->d_KLbasis, cudaMemcpyDeviceToHost);
 
-      carma_svd_cpu<T>(h_KL, h_eigenvals, h_U, h_Vt);
+      carma_svd_cpu<Tcomp>(h_KL, h_eigenvals, h_U, h_Vt);
 
       d_Ukl->host2device(h_Vt->getData());
       d_Vkl->host2device(h_U->getData());
@@ -388,7 +394,8 @@ int sutra_controller_mv<T>::do_covmat(sutra_dm *ydm, char *method,
     } else if (strcmp(method, "n") == 0) {
       dims_data[1] = this->nactu();
       dims_data[2] = this->nactu();
-      carma_obj<T> *d_tmp = new carma_obj<T>(this->current_context, dims_data);
+      carma_obj<Tcomp> *d_tmp =
+          new carma_obj<Tcomp>(this->current_context, dims_data);
       for (int i = 0; i < this->nactu(); i++) {
         // Valeurs propres négatives.... A voir et inverser ordre si valeurs
         // propres positives
@@ -420,9 +427,10 @@ int sutra_controller_mv<T>::do_covmat(sutra_dm *ydm, char *method,
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_mv<T>::do_geomat(carma_obj<T> *d_geocov,
-                                      carma_obj<T> *d_IF, long n_pts, T ampli) {
+template <typename Tcomp, typename Tout>
+int sutra_controller_mv<Tcomp, Tout>::do_geomat(carma_obj<Tcomp> *d_geocov,
+                                                carma_obj<Tcomp> *d_IF,
+                                                long n_pts, Tcomp ampli) {
   this->current_context->set_activeDevice(this->device, 1);
   carma_gemm(cublas_handle, 't', 'n', this->nactu(), this->nactu(), n_pts, 1.0f,
              d_IF->getData(), n_pts, d_IF->getData(), n_pts, 0.0f,
@@ -431,16 +439,18 @@ int sutra_controller_mv<T>::do_geomat(carma_obj<T> *d_geocov,
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_mv<T>::piston_filt(carma_obj<T> *d_statcov) {
+template <typename Tcomp, typename Tout>
+int sutra_controller_mv<Tcomp, Tout>::piston_filt(carma_obj<Tcomp> *d_statcov) {
   this->current_context->set_activeDevice(this->device, 1);
   long Nmod = d_statcov->getDims()[1];
   long dims_data[3];
   dims_data[0] = 2;
   dims_data[1] = Nmod;
   dims_data[2] = Nmod;
-  carma_obj<T> *d_F = new carma_obj<T>(this->current_context, dims_data);
-  carma_obj<T> *d_tmp = new carma_obj<T>(this->current_context, dims_data);
+  carma_obj<Tcomp> *d_F =
+      new carma_obj<Tcomp>(this->current_context, dims_data);
+  carma_obj<Tcomp> *d_tmp =
+      new carma_obj<Tcomp>(this->current_context, dims_data);
 
   int N = d_statcov->getDims()[1] * d_statcov->getDims()[1];
   fill_filtmat(d_F->getData(), Nmod, N,
@@ -457,8 +467,9 @@ int sutra_controller_mv<T>::piston_filt(carma_obj<T> *d_statcov) {
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_mv<T>::piston_filt_cphim(carma_obj<T> *d_cphim, T *F) {
+template <typename Tcomp, typename Tout>
+int sutra_controller_mv<Tcomp, Tout>::piston_filt_cphim(
+    carma_obj<Tcomp> *d_cphim, Tcomp *F) {
   this->current_context->set_activeDevice(this->device, 1);
 
   long Nmod = d_cphim->getDims()[1];
@@ -466,9 +477,11 @@ int sutra_controller_mv<T>::piston_filt_cphim(carma_obj<T> *d_cphim, T *F) {
   dims_data[0] = 2;
   dims_data[1] = Nmod;
   dims_data[2] = Nmod;
-  carma_obj<T> *d_F = new carma_obj<T>(this->current_context, dims_data);
+  carma_obj<Tcomp> *d_F =
+      new carma_obj<Tcomp>(this->current_context, dims_data);
   dims_data[2] = this->nslope();
-  carma_obj<T> *d_tmp = new carma_obj<T>(this->current_context, dims_data);
+  carma_obj<Tcomp> *d_tmp =
+      new carma_obj<Tcomp>(this->current_context, dims_data);
 
   d_F->host2device(F);
 
@@ -483,27 +496,30 @@ int sutra_controller_mv<T>::piston_filt_cphim(carma_obj<T> *d_cphim, T *F) {
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_mv<T>::invgen(carma_obj<T> *d_mat, T cond, int job) {
+template <typename Tcomp, typename Tout>
+int sutra_controller_mv<Tcomp, Tout>::invgen(carma_obj<Tcomp> *d_mat,
+                                             Tcomp cond, int job) {
   this->current_context->set_activeDevice(this->device, 1);
   const long dims_data[3] = {2, d_mat->getDims()[1], d_mat->getDims()[2]};
-  carma_obj<T> *d_U = new carma_obj<T>(this->current_context, dims_data);
-  carma_obj<T> *d_tmp = new carma_obj<T>(this->current_context, dims_data);
+  carma_obj<Tcomp> *d_U =
+      new carma_obj<Tcomp>(this->current_context, dims_data);
+  carma_obj<Tcomp> *d_tmp =
+      new carma_obj<Tcomp>(this->current_context, dims_data);
   int i;
 
   const long dims_data2[2] = {1, d_mat->getDims()[1]};
-  carma_obj<T> *d_eigenvals_inv =
-      new carma_obj<T>(this->current_context, dims_data2);
-  carma_host_obj<T> *h_eigenvals =
-      new carma_host_obj<T>(dims_data2, MA_PAGELOCK);
-  carma_host_obj<T> *h_eigenvals_inv =
-      new carma_host_obj<T>(dims_data2, MA_PAGELOCK);
+  carma_obj<Tcomp> *d_eigenvals_inv =
+      new carma_obj<Tcomp>(this->current_context, dims_data2);
+  carma_host_obj<Tcomp> *h_eigenvals =
+      new carma_host_obj<Tcomp>(dims_data2, MA_PAGELOCK);
+  carma_host_obj<Tcomp> *h_eigenvals_inv =
+      new carma_host_obj<Tcomp>(dims_data2, MA_PAGELOCK);
 
   d_U->copy(d_mat, 1, 1);
-  carma_syevd<T, 1>('V', d_U, h_eigenvals);
+  carma_syevd<Tcomp, 1>('V', d_U, h_eigenvals);
   // syevd_f('V',d_U,h_eigenvals);
   if (job == 1) {  // Conditionnement
-    T maxe = h_eigenvals->getData()[d_mat->getDims()[1] - 1];
+    Tcomp maxe = h_eigenvals->getData()[d_mat->getDims()[1] - 1];
 
     for (i = 0; i < d_mat->getDims()[1]; i++) {
       if (h_eigenvals->getData()[i] < maxe / cond)
@@ -527,11 +543,11 @@ int sutra_controller_mv<T>::invgen(carma_obj<T> *d_mat, T cond, int job) {
              d_mat->getDims()[2], d_U->getData(), d_mat->getDims()[1],
              d_eigenvals_inv->getData(), 1, d_tmp->getData(),
              d_mat->getDims()[1]);
-  carma_gemm<T>(cublas_handle, 'n', 't', d_mat->getDims()[1],
-                d_mat->getDims()[1], d_mat->getDims()[2], 1.0f,
-                d_tmp->getData(), d_mat->getDims()[1], d_U->getData(),
-                d_mat->getDims()[1], 0.0f, d_mat->getData(),
-                d_mat->getDims()[1]);
+  carma_gemm<Tcomp>(cublas_handle, 'n', 't', d_mat->getDims()[1],
+                    d_mat->getDims()[1], d_mat->getDims()[2], 1.0f,
+                    d_tmp->getData(), d_mat->getDims()[1], d_U->getData(),
+                    d_mat->getDims()[1], 0.0f, d_mat->getData(),
+                    d_mat->getDims()[1]);
 
   delete d_U;
   delete d_tmp;
@@ -541,27 +557,30 @@ int sutra_controller_mv<T>::invgen(carma_obj<T> *d_mat, T cond, int job) {
 
   return EXIT_SUCCESS;
 }
-template <typename T>
-int sutra_controller_mv<T>::invgen(carma_obj<T> *d_mat,
-                                   carma_host_obj<T> *h_eigen, T cond) {
+template <typename Tcomp, typename Tout>
+int sutra_controller_mv<Tcomp, Tout>::invgen(carma_obj<Tcomp> *d_mat,
+                                             carma_host_obj<Tcomp> *h_eigen,
+                                             Tcomp cond) {
   this->current_context->set_activeDevice(this->device, 1);
   const long dims_data[3] = {2, d_mat->getDims()[1], d_mat->getDims()[2]};
-  carma_obj<T> *d_U = new carma_obj<T>(this->current_context, dims_data);
-  carma_obj<T> *d_tmp = new carma_obj<T>(this->current_context, dims_data);
+  carma_obj<Tcomp> *d_U =
+      new carma_obj<Tcomp>(this->current_context, dims_data);
+  carma_obj<Tcomp> *d_tmp =
+      new carma_obj<Tcomp>(this->current_context, dims_data);
 
   const long dims_data2[2] = {1, d_mat->getDims()[1]};
-  carma_obj<T> *d_eigenvals_inv =
-      new carma_obj<T>(this->current_context, dims_data2);
-  carma_host_obj<T> *h_eigenvals_inv =
-      new carma_host_obj<T>(dims_data2, MA_PAGELOCK);
+  carma_obj<Tcomp> *d_eigenvals_inv =
+      new carma_obj<Tcomp>(this->current_context, dims_data2);
+  carma_host_obj<Tcomp> *h_eigenvals_inv =
+      new carma_host_obj<Tcomp>(dims_data2, MA_PAGELOCK);
 
   d_U->copy(d_mat, 1, 1);
 
-  carma_syevd<T, 1>('V', d_U, h_eigen);
+  carma_syevd<Tcomp, 1>('V', d_U, h_eigen);
 
   // syevd_f('V',d_U,h_eigen);
   // Conditionnement
-  T maxe = h_eigen->getData()[d_mat->getDims()[1] - 3];
+  Tcomp maxe = h_eigen->getData()[d_mat->getDims()[1] - 3];
   int cpt = 0;
   for (int i = 0; i < d_mat->getDims()[1]; i++) {
     if (h_eigen->getData()[i] < maxe / cond) {
@@ -577,11 +596,11 @@ int sutra_controller_mv<T>::invgen(carma_obj<T> *d_mat,
              d_mat->getDims()[2], d_U->getData(), d_mat->getDims()[1],
              d_eigenvals_inv->getData(), 1, d_tmp->getData(),
              d_mat->getDims()[1]);
-  carma_gemm<T>(cublas_handle, 'n', 't', d_mat->getDims()[1],
-                d_mat->getDims()[1], d_mat->getDims()[2], 1.0f,
-                d_tmp->getData(), d_mat->getDims()[1], d_U->getData(),
-                d_mat->getDims()[1], 0.0f, d_mat->getData(),
-                d_mat->getDims()[1]);
+  carma_gemm<Tcomp>(cublas_handle, 'n', 't', d_mat->getDims()[1],
+                    d_mat->getDims()[1], d_mat->getDims()[2], 1.0f,
+                    d_tmp->getData(), d_mat->getDims()[1], d_U->getData(),
+                    d_mat->getDims()[1], 0.0f, d_mat->getData(),
+                    d_mat->getDims()[1]);
 
   std::cout << "Inversion done with " << cpt << " modes filtered" << std::endl;
 
@@ -592,30 +611,36 @@ int sutra_controller_mv<T>::invgen(carma_obj<T> *d_mat,
 
   return EXIT_SUCCESS;
 }
-template <typename T>
-int sutra_controller_mv<T>::invgen_cpu(carma_obj<T> *d_mat,
-                                       carma_host_obj<T> *h_eigen, T cond) {
+template <typename Tcomp, typename Tout>
+int sutra_controller_mv<Tcomp, Tout>::invgen_cpu(carma_obj<Tcomp> *d_mat,
+                                                 carma_host_obj<Tcomp> *h_eigen,
+                                                 Tcomp cond) {
   this->current_context->set_activeDevice(this->device, 1);
   const long dims_data[3] = {2, d_mat->getDims()[1], d_mat->getDims()[2]};
-  carma_obj<T> *d_U = new carma_obj<T>(this->current_context, dims_data);
-  carma_host_obj<T> *h_U = new carma_host_obj<T>(dims_data, MA_PAGELOCK);
-  carma_host_obj<T> *h_V = new carma_host_obj<T>(dims_data, MA_PAGELOCK);
-  carma_host_obj<T> *h_mat = new carma_host_obj<T>(dims_data, MA_PAGELOCK);
-  carma_obj<T> *d_tmp = new carma_obj<T>(this->current_context, dims_data);
+  carma_obj<Tcomp> *d_U =
+      new carma_obj<Tcomp>(this->current_context, dims_data);
+  carma_host_obj<Tcomp> *h_U =
+      new carma_host_obj<Tcomp>(dims_data, MA_PAGELOCK);
+  carma_host_obj<Tcomp> *h_V =
+      new carma_host_obj<Tcomp>(dims_data, MA_PAGELOCK);
+  carma_host_obj<Tcomp> *h_mat =
+      new carma_host_obj<Tcomp>(dims_data, MA_PAGELOCK);
+  carma_obj<Tcomp> *d_tmp =
+      new carma_obj<Tcomp>(this->current_context, dims_data);
 
   const long dims_data2[2] = {1, d_mat->getDims()[1]};
-  carma_obj<T> *d_eigenvals_inv =
-      new carma_obj<T>(this->current_context, dims_data2);
-  carma_host_obj<T> *h_eigenvals_inv =
-      new carma_host_obj<T>(dims_data2, MA_PAGELOCK);
+  carma_obj<Tcomp> *d_eigenvals_inv =
+      new carma_obj<Tcomp>(this->current_context, dims_data2);
+  carma_host_obj<Tcomp> *h_eigenvals_inv =
+      new carma_host_obj<Tcomp>(dims_data2, MA_PAGELOCK);
 
   d_mat->device2host(h_mat->getData());
 
-  carma_svd_cpu<T>(h_mat, h_eigen, h_U, h_V);
+  carma_svd_cpu<Tcomp>(h_mat, h_eigen, h_U, h_V);
   d_U->host2device(h_V->getData());
   // syevd_f('V',d_U,h_eigen);
   // Conditionnement
-  T maxe = h_eigen->getData()[2];
+  Tcomp maxe = h_eigen->getData()[2];
   int cpt = 0;
   for (int i = 0; i < d_mat->getDims()[1]; i++) {
     if (h_eigen->getData()[i] < maxe / cond) {
@@ -631,11 +656,11 @@ int sutra_controller_mv<T>::invgen_cpu(carma_obj<T> *d_mat,
              d_mat->getDims()[2], d_U->getData(), d_mat->getDims()[1],
              d_eigenvals_inv->getData(), 1, d_tmp->getData(),
              d_mat->getDims()[1]);
-  carma_gemm<T>(cublas_handle, 'n', 't', d_mat->getDims()[1],
-                d_mat->getDims()[1], d_mat->getDims()[2], 1.0f,
-                d_tmp->getData(), d_mat->getDims()[1], d_U->getData(),
-                d_mat->getDims()[1], 0.0f, d_mat->getData(),
-                d_mat->getDims()[1]);
+  carma_gemm<Tcomp>(cublas_handle, 'n', 't', d_mat->getDims()[1],
+                    d_mat->getDims()[1], d_mat->getDims()[2], 1.0f,
+                    d_tmp->getData(), d_mat->getDims()[1], d_U->getData(),
+                    d_mat->getDims()[1], 0.0f, d_mat->getData(),
+                    d_mat->getDims()[1]);
 
   std::cout << "Inversion done with " << cpt << " modes filtered" << std::endl;
 
@@ -652,44 +677,44 @@ int sutra_controller_mv<T>::invgen_cpu(carma_obj<T> *d_mat,
 
 /*
 template<typename T>
- int sutra_controller_mv<T>::do_statmat(T *statcov, T *xpos, T *ypos){
- int dim_x = sizeof(xpos)/sizeof(xpos[0]);
- int ind;
- for (i=0 ; i<dim_x ; i++){
- for(j=0 ; j<dim_x ; j++){
- ind = i*dim_x + j;
- statcov[ind] = 6.88 * pow(sqrt(pow(x[i]-x[j],2) + pow(y[i]-y[j],2)),5./3);
+ int sutra_controller_mv<Tcomp, Tout>::do_statmat(Tcomp *statcov, Tcomp *xpos,
+Tcomp *ypos){ int dim_x = sizeof(xpos)/sizeof(xpos[0]); int ind; for (i=0 ;
+i<dim_x ; i++){ for(j=0 ; j<dim_x ; j++){ ind = i*dim_x + j; statcov[ind] = 6.88
+* pow(sqrt(pow(x[i]-x[j],2) + pow(y[i]-y[j],2)),5./3);
  }
  }
 
  return EXIT_SUCCESS;
  }
  */
-template <typename T>
-int sutra_controller_mv<T>::DDiago(carma_obj<T> *d_statcov,
-                                   carma_obj<T> *d_geocov) {
+template <typename Tcomp, typename Tout>
+int sutra_controller_mv<Tcomp, Tout>::DDiago(carma_obj<Tcomp> *d_statcov,
+                                             carma_obj<Tcomp> *d_geocov) {
   this->current_context->set_activeDevice(this->device, 1);
   const long dims_data[3] = {2, this->nactu(), this->nactu()};
-  carma_obj<T> *d_M1 = new carma_obj<T>(this->current_context, dims_data);
-  carma_obj<T> *d_tmp = new carma_obj<T>(this->current_context, dims_data);
-  carma_obj<T> *d_tmp2 = new carma_obj<T>(this->current_context, dims_data);
+  carma_obj<Tcomp> *d_M1 =
+      new carma_obj<Tcomp>(this->current_context, dims_data);
+  carma_obj<Tcomp> *d_tmp =
+      new carma_obj<Tcomp>(this->current_context, dims_data);
+  carma_obj<Tcomp> *d_tmp2 =
+      new carma_obj<Tcomp>(this->current_context, dims_data);
 
   const long dims_data2[2] = {1, this->nactu()};
-  carma_obj<T> *d_eigenvals =
-      new carma_obj<T>(this->current_context, dims_data2);
-  carma_obj<T> *d_eigenvals_sqrt =
-      new carma_obj<T>(this->current_context, dims_data2);
-  carma_obj<T> *d_eigenvals_inv =
-      new carma_obj<T>(this->current_context, dims_data2);
-  carma_host_obj<T> *h_eigenvals =
-      new carma_host_obj<T>(dims_data2, MA_PAGELOCK);
-  carma_host_obj<T> *h_eigenvals_inv =
-      new carma_host_obj<T>(dims_data2, MA_PAGELOCK);
-  carma_host_obj<T> *h_eigenvals_sqrt =
-      new carma_host_obj<T>(dims_data2, MA_PAGELOCK);
+  carma_obj<Tcomp> *d_eigenvals =
+      new carma_obj<Tcomp>(this->current_context, dims_data2);
+  carma_obj<Tcomp> *d_eigenvals_sqrt =
+      new carma_obj<Tcomp>(this->current_context, dims_data2);
+  carma_obj<Tcomp> *d_eigenvals_inv =
+      new carma_obj<Tcomp>(this->current_context, dims_data2);
+  carma_host_obj<Tcomp> *h_eigenvals =
+      new carma_host_obj<Tcomp>(dims_data2, MA_PAGELOCK);
+  carma_host_obj<Tcomp> *h_eigenvals_inv =
+      new carma_host_obj<Tcomp>(dims_data2, MA_PAGELOCK);
+  carma_host_obj<Tcomp> *h_eigenvals_sqrt =
+      new carma_host_obj<Tcomp>(dims_data2, MA_PAGELOCK);
 
   // 1. SVdec(geocov,U) --> Ut * geocov * U = D²
-  carma_syevd<T, 1>('V', d_geocov, h_eigenvals);
+  carma_syevd<Tcomp, 1>('V', d_geocov, h_eigenvals);
 
   d_eigenvals->host2device(h_eigenvals->getData());
   for (int i = 0; i < this->nactu(); i++) {
@@ -703,34 +728,36 @@ int sutra_controller_mv<T>::DDiago(carma_obj<T> *d_statcov,
 
   // 2. M⁻¹ = sqrt(eigenvals) * Ut : here, we have transpose(M⁻¹)
 
-  carma_dgmm<T>(cublas_handle, CUBLAS_SIDE_RIGHT, this->nactu(), this->nactu(),
-                d_geocov->getData(), this->nactu(), d_eigenvals_sqrt->getData(),
-                1, d_M1->getData(), this->nactu());
+  carma_dgmm<Tcomp>(cublas_handle, CUBLAS_SIDE_RIGHT, this->nactu(),
+                    this->nactu(), d_geocov->getData(), this->nactu(),
+                    d_eigenvals_sqrt->getData(), 1, d_M1->getData(),
+                    this->nactu());
 
   // 3. C' = M⁻¹ * statcov * M⁻¹t
-  carma_gemm<T>(cublas_handle, 't', 'n', this->nactu(), this->nactu(),
-                this->nactu(), 1.0f, d_M1->getData(), this->nactu(),
-                d_statcov->getData(), this->nactu(), 0.0f, d_tmp->getData(),
-                this->nactu());
+  carma_gemm<Tcomp>(cublas_handle, 't', 'n', this->nactu(), this->nactu(),
+                    this->nactu(), 1.0f, d_M1->getData(), this->nactu(),
+                    d_statcov->getData(), this->nactu(), 0.0f, d_tmp->getData(),
+                    this->nactu());
 
-  carma_gemm<T>(cublas_handle, 'n', 'n', this->nactu(), this->nactu(),
-                this->nactu(), 1.0f, d_tmp->getData(), this->nactu(),
-                d_M1->getData(), this->nactu(), 0.0f, d_tmp2->getData(),
-                this->nactu());
+  carma_gemm<Tcomp>(cublas_handle, 'n', 'n', this->nactu(), this->nactu(),
+                    this->nactu(), 1.0f, d_tmp->getData(), this->nactu(),
+                    d_M1->getData(), this->nactu(), 0.0f, d_tmp2->getData(),
+                    this->nactu());
 
   // 4. SVdec(C',A)
-  carma_syevd<T, 1>('V', d_tmp2, h_eigenvals);
+  carma_syevd<Tcomp, 1>('V', d_tmp2, h_eigenvals);
 
   // 5. M = U * D⁻¹
-  carma_dgmm<T>(cublas_handle, CUBLAS_SIDE_RIGHT, this->nactu(), this->nactu(),
-                d_geocov->getData(), this->nactu(), d_eigenvals_inv->getData(),
-                1, d_tmp->getData(), this->nactu());
+  carma_dgmm<Tcomp>(cublas_handle, CUBLAS_SIDE_RIGHT, this->nactu(),
+                    this->nactu(), d_geocov->getData(), this->nactu(),
+                    d_eigenvals_inv->getData(), 1, d_tmp->getData(),
+                    this->nactu());
 
   // 6. B = M * A;
-  carma_gemm<T>(cublas_handle, 'n', 'n', this->nactu(), this->nactu(),
-                this->nactu(), 1.0f, d_tmp->getData(), this->nactu(),
-                d_tmp2->getData(), this->nactu(), 0.0f, d_KLbasis->getData(),
-                this->nactu());
+  carma_gemm<Tcomp>(cublas_handle, 'n', 'n', this->nactu(), this->nactu(),
+                    this->nactu(), 1.0f, d_tmp->getData(), this->nactu(),
+                    d_tmp2->getData(), this->nactu(), 0.0f,
+                    d_KLbasis->getData(), this->nactu());
 
   delete d_M1;
   delete d_tmp;
@@ -745,27 +772,22 @@ int sutra_controller_mv<T>::DDiago(carma_obj<T> *d_statcov,
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_mv<T>::load_covmat(T *covmat) {
+template <typename Tcomp, typename Tout>
+int sutra_controller_mv<Tcomp, Tout>::load_covmat(Tcomp *covmat) {
   this->current_context->set_activeDevice(this->device, 1);
   this->d_covmat->host2device(covmat);
   return EXIT_SUCCESS;
 }
-template <typename T>
-int sutra_controller_mv<T>::load_klbasis(T *klbasis) {
+template <typename Tcomp, typename Tout>
+int sutra_controller_mv<Tcomp, Tout>::load_klbasis(Tcomp *klbasis) {
   this->current_context->set_activeDevice(this->device, 1);
   this->d_KLbasis->host2device(klbasis);
   return EXIT_SUCCESS;
 }
-template <typename T>
-int sutra_controller_mv<T>::set_delay(T delay) {
-  this->delay = delay;
-  return EXIT_SUCCESS;
-}
 
 // Florian features
-template <typename T>
-int sutra_controller_mv<T>::build_cmat(T cond) {
+template <typename Tcomp, typename Tout>
+int sutra_controller_mv<Tcomp, Tout>::build_cmat(Tcomp cond) {
   this->current_context->set_activeDevice(this->device, 1);
   if (this->h_Cmmeigenvals != 0L) delete this->h_Cmmeigenvals;
 
@@ -775,9 +797,9 @@ int sutra_controller_mv<T>::build_cmat(T cond) {
   add_md(this->d_Cmm->getData(), this->d_Cmm->getData(),
          this->d_noisemat->getData(), this->nslope(),
          this->current_context->get_device(this->device));
-  // invgen(this->d_Cmm,/*(T)(this->nslope()-this->nactu())*/200.0f,0);
+  // invgen(this->d_Cmm,/*(Tcomp)(this->nslope()-this->nactu())*/200.0f,0);
   long dims_data1[2] = {1, this->nslope()};
-  this->h_Cmmeigenvals = new carma_host_obj<T>(dims_data1, MA_PAGELOCK);
+  this->h_Cmmeigenvals = new carma_host_obj<Tcomp>(dims_data1, MA_PAGELOCK);
 
   invgen(this->d_Cmm, this->h_Cmmeigenvals, cond);
 
@@ -788,8 +810,8 @@ int sutra_controller_mv<T>::build_cmat(T cond) {
 
   return EXIT_SUCCESS;
 }
-template <typename T>
-int sutra_controller_mv<T>::filter_cmat(T cond) {
+template <typename Tcomp, typename Tout>
+int sutra_controller_mv<Tcomp, Tout>::filter_cmat(Tcomp cond) {
   this->current_context->set_activeDevice(this->device, 1);
 
   if (this->h_eigenvals != 0L) delete this->h_eigenvals;
@@ -800,20 +822,25 @@ int sutra_controller_mv<T>::filter_cmat(T cond) {
 
     dims_data[1] = this->nslope();
     dims_data[2] = 2;
-    carma_obj<T> *d_M = new carma_obj<T>(this->current_context, dims_data);
+    carma_obj<Tcomp> *d_M =
+        new carma_obj<Tcomp>(this->current_context, dims_data);
     dims_data[1] = Nactu;
     dims_data[2] = 2;
-    carma_obj<T> *d_TT2ho = new carma_obj<T>(this->current_context, dims_data);
+    carma_obj<Tcomp> *d_TT2ho =
+        new carma_obj<Tcomp>(this->current_context, dims_data);
     dims_data[1] = 2;
     dims_data[2] = this->nslope();
-    carma_obj<T> *d_M1 = new carma_obj<T>(this->current_context, dims_data);
+    carma_obj<Tcomp> *d_M1 =
+        new carma_obj<Tcomp>(this->current_context, dims_data);
     dims_data[2] = 2;
-    carma_obj<T> *d_tmp3 = new carma_obj<T>(this->current_context, dims_data);
+    carma_obj<Tcomp> *d_tmp3 =
+        new carma_obj<Tcomp>(this->current_context, dims_data);
 
     // Imat decomposition TT
     dims_data[1] = Nactu;
     dims_data[2] = Nactu;
-    carma_obj<T> *d_tmp2 = new carma_obj<T>(this->current_context, dims_data);
+    carma_obj<Tcomp> *d_tmp2 =
+        new carma_obj<Tcomp>(this->current_context, dims_data);
 
     // Dm⁻¹
     carma_gemm(cublas_handle, 't', 'n', Nactu, Nactu, this->nslope(), 1.0f,
@@ -821,12 +848,13 @@ int sutra_controller_mv<T>::filter_cmat(T cond) {
                this->nslope(), 0.0f, d_tmp2->getData(), Nactu);
 
     long dims_data1[2] = {1, Nactu};
-    this->h_eigenvals = new carma_host_obj<T>(dims_data1, MA_PAGELOCK);
+    this->h_eigenvals = new carma_host_obj<Tcomp>(dims_data1, MA_PAGELOCK);
     invgen(d_tmp2, this->h_eigenvals, cond);
 
     dims_data[1] = Nactu;
     dims_data[2] = this->nslope();
-    carma_obj<T> *d_Dm1 = new carma_obj<T>(this->current_context, dims_data);
+    carma_obj<Tcomp> *d_Dm1 =
+        new carma_obj<Tcomp>(this->current_context, dims_data);
     carma_gemm(cublas_handle, 'n', 't', Nactu, this->nslope(), Nactu, 1.0f,
                d_tmp2->getData(), Nactu, d_imat->getData(), this->nslope(),
                0.0f, d_Dm1->getData(), Nactu);
@@ -859,20 +887,21 @@ int sutra_controller_mv<T>::filter_cmat(T cond) {
     // M*M⁻¹
     dims_data[1] = this->nslope();
     dims_data[2] = this->nslope();
-    carma_obj<T> *d_Ftt = new carma_obj<T>(this->current_context, dims_data);
+    carma_obj<Tcomp> *d_Ftt =
+        new carma_obj<Tcomp>(this->current_context, dims_data);
     carma_gemm(cublas_handle, 'n', 'n', this->nslope(), this->nslope(), 2, 1.0f,
                d_M->getData(), this->nslope(), d_M1->getData(), 2, 0.0f,
                d_Ftt->getData(), this->nslope());
 
-    // TT filter
+    // TTcomp filter
     TT_filt(d_Ftt->getData(), this->nslope(),
             this->current_context->get_device(this->device));
 
     // cmat without TT
     dims_data[1] = Nactu;
     dims_data[2] = this->nslope();
-    carma_obj<T> *d_cmat_tt =
-        new carma_obj<T>(this->current_context, dims_data);
+    carma_obj<Tcomp> *d_cmat_tt =
+        new carma_obj<Tcomp>(this->current_context, dims_data);
 
     carma_gemm(cublas_handle, 'n', 'n', Nactu, this->nslope(), this->nslope(),
                1.0f, d_cmat->getData(), this->nactu(), d_Ftt->getData(),
@@ -894,27 +923,28 @@ int sutra_controller_mv<T>::filter_cmat(T cond) {
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_mv<T>::build_cmat(const char *dmtype, char *method) {
-  T one = 1.;
-  T zero = 0.;
+template <typename Tcomp, typename Tout>
+int sutra_controller_mv<Tcomp, Tout>::build_cmat(const char *dmtype,
+                                                 char *method) {
+  Tcomp one = 1.;
+  Tcomp zero = 0.;
 
   this->current_context->set_activeDevice(this->device, 1);
   if (strcmp(method, "inv") == 0) {
     //  R = (Dt*Cn⁻¹*D + Cphi⁻¹)⁻¹*Dt*Cn⁻¹
 
-    carma_obj<T> *d_tmp;
-    carma_obj<T> *d_tmp2;
-    carma_obj<T> *d_tmp3;
+    carma_obj<Tcomp> *d_tmp;
+    carma_obj<Tcomp> *d_tmp2;
+    carma_obj<Tcomp> *d_tmp3;
     long *dims_data2 = new long[3];
     dims_data2[0] = 2;
     dims_data2[1] = this->nactu();
     dims_data2[2] = this->nactu();
-    d_tmp = new carma_obj<T>(this->current_context, dims_data2);
-    d_tmp2 = new carma_obj<T>(this->current_context, dims_data2);
+    d_tmp = new carma_obj<Tcomp>(this->current_context, dims_data2);
+    d_tmp2 = new carma_obj<Tcomp>(this->current_context, dims_data2);
     dims_data2[1] = this->nslope();
     dims_data2[2] = this->nactu();
-    d_tmp3 = new carma_obj<T>(this->current_context, dims_data2);
+    d_tmp3 = new carma_obj<Tcomp>(this->current_context, dims_data2);
 
     carma_dgmm(cublas_handle, CUBLAS_SIDE_LEFT, this->nslope(), this->nactu(),
                d_imat->getData(), this->nslope(), d_noisemat->getData(), 1,
@@ -930,11 +960,11 @@ int sutra_controller_mv<T>::build_cmat(const char *dmtype, char *method) {
                this->nactu(), d_tmp->getData(), this->nactu());
     delete d_tmp2;
 
-    carma_potri<T>(d_tmp);
+    carma_potri<Tcomp>(d_tmp);
 
     dims_data2[1] = this->nactu();
     dims_data2[2] = this->nslope();
-    d_tmp2 = new carma_obj<T>(this->current_context, dims_data2);
+    d_tmp2 = new carma_obj<Tcomp>(this->current_context, dims_data2);
     carma_gemm(cublas_handle, 'n', 't', this->nactu(), this->nslope(),
                this->nactu(), one, d_tmp->getData(), this->nactu(),
                d_imat->getData(), this->nslope(), zero, d_tmp2->getData(),
@@ -951,28 +981,28 @@ int sutra_controller_mv<T>::build_cmat(const char *dmtype, char *method) {
   else if (strcmp(method, "n") == 0) {
     //  R = Cphi*Dt*(D*Cphi*Dt + Cn)⁻¹
 
-    carma_obj<T> *d_tmp;
-    carma_obj<T> *d_tmp2;
-    carma_obj<T> *d_tmp3;
-    carma_obj<T> *d_tmp4;
+    carma_obj<Tcomp> *d_tmp;
+    carma_obj<Tcomp> *d_tmp2;
+    carma_obj<Tcomp> *d_tmp3;
+    carma_obj<Tcomp> *d_tmp4;
     long *dims_data2 = new long[3];
     dims_data2[0] = 2;
     dims_data2[1] = this->nslope();
     dims_data2[2] = this->nslope();
-    d_tmp = new carma_obj<T>(this->current_context, dims_data2);
-    d_tmp2 = new carma_obj<T>(this->current_context, dims_data2);
-    d_tmp4 = new carma_obj<T>(this->current_context, dims_data2);
-    //    carma_obj<T> *d_U;
-    //    d_U = new carma_obj<T>(this->current_context, dims_data2);
+    d_tmp = new carma_obj<Tcomp>(this->current_context, dims_data2);
+    d_tmp2 = new carma_obj<Tcomp>(this->current_context, dims_data2);
+    d_tmp4 = new carma_obj<Tcomp>(this->current_context, dims_data2);
+    //    carma_obj<Tcomp> *d_U;
+    //    d_U = new carma_obj<Tcomp>(this->current_context, dims_data2);
     dims_data2[1] = this->nslope();
     dims_data2[2] = this->nactu();
-    d_tmp3 = new carma_obj<T>(this->current_context, dims_data2);
+    d_tmp3 = new carma_obj<Tcomp>(this->current_context, dims_data2);
     long *dims_data = new long[2];
     dims_data[0] = 1;
     dims_data[1] = this->nactu();
-    // carma_host_obj<T> *h_eigenvals = new carma_host_obj<T>(dims_data,
-    // MA_PAGELOCK); carma_obj<T> *d_eigenvals = new
-    // carma_obj<T>(this->current_context, dims_data);
+    // carma_host_obj<Tcomp> *h_eigenvals = new carma_host_obj<Tcomp>(dims_data,
+    // MA_PAGELOCK); carma_obj<Tcomp> *d_eigenvals = new
+    // carma_obj<Tcomp>(this->current_context, dims_data);
 
     carma_gemm(cublas_handle, 'n', 'n', this->nslope(), this->nactu(),
                this->nactu(), one, d_imat->getData(), this->nslope(),
@@ -991,11 +1021,11 @@ int sutra_controller_mv<T>::build_cmat(const char *dmtype, char *method) {
     delete d_tmp2;
     delete d_tmp4;
 
-    carma_potri<T>(d_tmp);
+    carma_potri<Tcomp>(d_tmp);
 
     dims_data2[1] = this->nactu();
     dims_data2[2] = this->nslope();
-    d_tmp2 = new carma_obj<T>(this->current_context, dims_data2);
+    d_tmp2 = new carma_obj<Tcomp>(this->current_context, dims_data2);
     carma_gemm(cublas_handle, 't', 'n', this->nactu(), this->nslope(),
                this->nslope(), one, d_imat->getData(), this->nslope(),
                d_tmp->getData(), this->nslope(), zero, d_tmp2->getData(),
@@ -1015,8 +1045,8 @@ int sutra_controller_mv<T>::build_cmat(const char *dmtype, char *method) {
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_mv<T>::frame_delay() {
+template <typename Tcomp, typename Tout>
+int sutra_controller_mv<Tcomp, Tout>::frame_delay() {
   // here we place the content of d_centroids into cenbuf and get
   // the actual centroid frame for error computation depending on delay value
 
@@ -1029,39 +1059,40 @@ int sutra_controller_mv<T>::frame_delay() {
 
     carmaSafeCall(cudaMemcpy(
         &(this->d_cenbuff->getData()[(int)this->delay * this->nslope()]),
-        this->d_centroids->getData(), sizeof(T) * this->nslope(),
+        this->d_centroids->getData(), sizeof(Tcomp) * this->nslope(),
         cudaMemcpyDeviceToDevice));
 
     carmaSafeCall(
         cudaMemcpy(this->d_centroids->getData(), this->d_cenbuff->getData(),
-                   sizeof(T) * this->nslope(), cudaMemcpyDeviceToDevice));
+                   sizeof(Tcomp) * this->nslope(), cudaMemcpyDeviceToDevice));
   }
 
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_mv<T>::comp_com() {
+template <typename Tcomp, typename Tout>
+int sutra_controller_mv<Tcomp, Tout>::comp_com() {
   this->current_context->set_activeDevice(this->device, 1);
 
   // this->frame_delay();
-  this->d_com2->copy(this->d_com1, 1, 1);
-  this->d_com1->copy(this->d_com, 1, 1);
+
   // POLC equations
 
-  carma_geam<T>(cublas_handle, 'n', 'n', this->nactu(), 1, (T)(this->delay - 1),
-                *d_com2, this->nactu(), 1.0f - (this->delay - 1), *d_com1,
-                this->nactu(), *d_compbuff, this->nactu());
-  carma_gemv<T>(cublas_handle, 'n', this->nslope(), this->nactu(), 1.0f,
-                *d_imat, this->nslope(), *d_compbuff, 1, 0.0f, *d_compbuff2, 1);
-  carma_geam<T>(cublas_handle, 'n', 'n', this->nslope(), 1, 1.0f,
-                *this->d_centroids, this->nslope(), -1.0f, *d_compbuff2,
-                this->nslope(), *d_olmeas, this->nslope());
+  carma_geam<Tcomp>(
+      cublas_handle, 'n', 'n', this->nactu(), 1, (Tcomp)(this->delay - 1),
+      this->d_com1->getData(), this->nactu(), 1.0f - (this->delay - 1),
+      this->d_com->getData(), this->nactu(), *d_compbuff, this->nactu());
+  carma_gemv<Tcomp>(cublas_handle, 'n', this->nslope(), this->nactu(), 1.0f,
+                    *d_imat, this->nslope(), *d_compbuff, 1, 0.0f, *d_compbuff2,
+                    1);
+  carma_geam<Tcomp>(cublas_handle, 'n', 'n', this->nslope(), 1, 1.0f,
+                    *this->d_centroids, this->nslope(), -1.0f, *d_compbuff2,
+                    this->nslope(), *d_olmeas, this->nslope());
 
   int nstreams = this->streams->get_nbStreams();
   if (nstreams > 1) {
-    T alpha = -1.0f;
-    T beta = 0.0f;
+    Tcomp alpha = -1.0f;
+    Tcomp beta = 0.0f;
 
     for (int i = 0; i < nstreams; i++) {
       int istart1 =
@@ -1092,11 +1123,12 @@ int sutra_controller_mv<T>::comp_com() {
    this->d_gain->getData(), this->gain, this->nactu(),
    this->current_context->get_device(device));*/
 
-  carma_geam<T>(cublas_handle, 'n', 'n', this->nactu(), 1, this->gain, *d_err,
-                this->nactu(), 1.0f - this->gain, *d_com1, this->nactu(),
-                *this->d_com, this->nactu());
+  carma_geam<Tcomp>(cublas_handle, 'n', 'n', this->nactu(), 1, this->gain,
+                    *d_err, this->nactu(), 1.0f - this->gain, *this->d_com1,
+                    this->nactu(), *this->d_com, this->nactu());
 
   return EXIT_SUCCESS;
 }
 
-template class sutra_controller_mv<float>;
+template class sutra_controller_mv<float, float>;
+template class sutra_controller_mv<float, uint16_t>;

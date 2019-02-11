@@ -15,7 +15,6 @@ void declare_wfs(py::module &);
 void declare_wfs_sh(py::module &);
 void declare_wfs_pyrhr(py::module &);
 void declare_centroider(py::module &);
-void declare_centroiderH(py::module &);
 void declare_centroider_tcog(py::module &);
 void declare_centroider_wcog(py::module &);
 void declare_centroider_bpcog(py::module &);
@@ -53,7 +52,6 @@ PYBIND11_MODULE(sutraWrap, mod) {
   declare_wfs_sh(mod);
   declare_wfs_pyrhr(mod);
   declare_centroider(mod);
-  declare_centroiderH(mod);
   declare_centroider_tcog(mod);
   declare_centroider_wcog(mod);
   declare_centroider_bpcog(mod);

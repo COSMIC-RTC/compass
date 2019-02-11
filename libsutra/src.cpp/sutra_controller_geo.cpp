@@ -1,11 +1,12 @@
 #include <sutra_controller_geo.h>
 
-template <typename T>
-sutra_controller_geo<T>::sutra_controller_geo(carma_context *context,
-                                              long nactu, long Nphi, T delay,
-                                              sutra_dms *dms, int *idx_dms,
-                                              int ndm, bool wfs_direction)
-    : sutra_controller<T>(context, 0, 0, nactu, 0.0f, dms, idx_dms, ndm) {
+template <typename T, typename Tout>
+sutra_controller_geo<T, Tout>::sutra_controller_geo(carma_context *context,
+                                                    long nactu, long Nphi,
+                                                    float delay, sutra_dms *dms,
+                                                    int *idx_dms, int ndm,
+                                                    bool wfs_direction)
+    : sutra_controller<T, Tout>(context, 0, 0, nactu, 0.0f, dms, idx_dms, ndm) {
   this->gain = 0.0f;
   this->Nphi = Nphi;
 
@@ -45,8 +46,8 @@ sutra_controller_geo<T>::sutra_controller_geo(carma_context *context,
     this->d_indx_mpup = 0L;
 }
 
-template <typename T>
-sutra_controller_geo<T>::~sutra_controller_geo() {
+template <typename T, typename Tout>
+sutra_controller_geo<T, Tout>::~sutra_controller_geo() {
   this->current_context->set_activeDevice(this->device, 1);
   delete this->d_proj;
   delete this->d_gain;
@@ -61,25 +62,25 @@ sutra_controller_geo<T>::~sutra_controller_geo() {
   }
 }
 
-template <typename T>
-string sutra_controller_geo<T>::get_type() {
+template <typename T, typename Tout>
+string sutra_controller_geo<T, Tout>::get_type() {
   return "geo";
 }
 
-template <typename T>
-int sutra_controller_geo<T>::set_gain(T gain) {
+template <typename T, typename Tout>
+int sutra_controller_geo<T, Tout>::set_gain(T gain) {
   this->gain = gain;
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_geo<T>::load_mgain(T *mgain) {
+template <typename T, typename Tout>
+int sutra_controller_geo<T, Tout>::load_mgain(T *mgain) {
   this->d_gain->host2device(mgain);
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_geo<T>::load_Btt(T *Btt_pzt, T *Btt_TT) {
+template <typename T, typename Tout>
+int sutra_controller_geo<T, Tout>::load_Btt(T *Btt_pzt, T *Btt_TT) {
   // the Btt given is Btt*Btt.transpose because of computation needs
   /*
   long dims_data[3] = {2,n,m};
@@ -92,9 +93,9 @@ int sutra_controller_geo<T>::load_Btt(T *Btt_pzt, T *Btt_TT) {
 
   return EXIT_SUCCESS;
 }
-template <typename T>
-int sutra_controller_geo<T>::init_proj(sutra_dms *dms, int *indx_dm,
-                                       T *unitpervolt, int *indx_pup) {
+template <typename T, typename Tout>
+int sutra_controller_geo<T, Tout>::init_proj(sutra_dms *dms, int *indx_dm,
+                                             T *unitpervolt, int *indx_pup) {
   this->current_context->set_activeDevice(this->device, 1);
   long dims_data[3] = {2, this->Nphi, this->nactu()};
   carma_obj<T> d_IF(this->current_context, dims_data);
@@ -137,10 +138,10 @@ int sutra_controller_geo<T>::init_proj(sutra_dms *dms, int *indx_dm,
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_geo<T>::init_proj_sparse(sutra_dms *dms, int *indx_dm,
-                                              T *unitpervolt, int *indx_pup,
-                                              int *indx_mpup, bool roket) {
+template <typename T, typename Tout>
+int sutra_controller_geo<T, Tout>::init_proj_sparse(
+    sutra_dms *dms, int *indx_dm, T *unitpervolt, int *indx_pup, int *indx_mpup,
+    bool roket) {
   this->current_context->set_activeDevice(this->device, 1);
   vector<sutra_dm *>::iterator p;
   if (roket) {
@@ -304,9 +305,9 @@ int sutra_controller_geo<T>::init_proj_sparse(sutra_dms *dms, int *indx_dm,
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_geo<T>::comp_dphi(sutra_source *target,
-                                       bool wfs_direction) {
+template <typename T, typename Tout>
+int sutra_controller_geo<T, Tout>::comp_dphi(sutra_source *target,
+                                             bool wfs_direction) {
   this->current_context->set_activeDevice(this->device, 1);
   // Get the target phase in the pupil
   if (wfs_direction && this->d_indx_mpup == 0L) {
@@ -328,8 +329,8 @@ int sutra_controller_geo<T>::comp_dphi(sutra_source *target,
   return EXIT_SUCCESS;
 }
 
-template <typename T>
-int sutra_controller_geo<T>::comp_com() {
+template <typename T, typename Tout>
+int sutra_controller_geo<T, Tout>::comp_com() {
   // Project the phase on the actuators
   /*
   //Dense version
@@ -365,4 +366,5 @@ int sutra_controller_geo<T>::comp_com() {
   return EXIT_SUCCESS;
 }
 
-template class sutra_controller_geo<float>;
+template class sutra_controller_geo<float, float>;
+template class sutra_controller_geo<float, uint16_t>;

@@ -5,7 +5,7 @@ template <typename T, int BLOCK_THREADS>
 __launch_bounds__(BLOCK_THREADS) __global__
     void centroids(T *d_img, T *d_centroids, T *ref, int *validx, int *validy,
                    T *d_intensities, int nbpix, unsigned int npix,
-                   unsigned int size, T scale, T offset,
+                   unsigned int size, float scale, float offset,
                    unsigned int nelem_thread) {
   // Specialize BlockRadixSort for a 1D block of BLOCK_THREADS threads owning 1
   // item each
@@ -29,7 +29,7 @@ __launch_bounds__(BLOCK_THREADS) __global__
   int idim = (x + xvalid) + (y + yvalid) * size;
 
   T items[1];
-  items[0] = d_img[idim];
+  items[0] = (idim < size * size) ? d_img[idim] : 0;
 
   __syncthreads();
   BlockRadixSortT(temp_storageSort).SortDescending(items);
@@ -39,17 +39,20 @@ __launch_bounds__(BLOCK_THREADS) __global__
   __syncthreads();
 
   if (idim < size * size) {
-    const T data_thresh = d_img[idim] - threshold;
-    idata += (data_thresh > 0) ? data_thresh : 0;
-    xdata += (data_thresh > 0) ? data_thresh * x : 0;
-    ydata += (data_thresh > 0) ? data_thresh * y : 0;
+    T data_thresh = (d_img[idim] > threshold) ? d_img[idim] - threshold : 0;
+    idata += data_thresh;
+    xdata += data_thresh * x;
+    ydata += data_thresh * y;
     d_img[idim] = data_thresh;
   }
 
   __syncthreads();
   T intensity = BlockReduce(temp_storageSum).Sum(idata, blockDim.x);
+  __syncthreads();
   T slopex = BlockReduce(temp_storageSum).Sum(xdata, blockDim.x);
+  __syncthreads();
   T slopey = BlockReduce(temp_storageSum).Sum(ydata, blockDim.x);
+  __syncthreads();
   if (tid == 0) {
     d_centroids[blockIdx.x] =
         ((slopex * 1.0 / (intensity + 1.e-6)) - offset) * scale -
@@ -64,7 +67,7 @@ __launch_bounds__(BLOCK_THREADS) __global__
 template <class T>
 void get_centroids(int size, int threads, int blocks, int npix, T *d_img,
                    T *d_centroids, T *ref, int *validx, int *validy,
-                   T *intensities, int nbpix, T scale, T offset,
+                   T *intensities, int nbpix, float scale, float offset,
                    carma_device *device) {
   int maxThreads = device->get_properties().maxThreadsPerBlock;
   unsigned int nelem_thread = 1;
@@ -119,9 +122,8 @@ template void get_centroids<float>(int size, int threads, int blocks, int npix,
 template void get_centroids<double>(int size, int threads, int blocks, int npix,
                                     double *d_img, double *d_centroids,
                                     double *ref, int *validx, int *validy,
-                                    double *intensities, int nbpix,
-                                    double scale, double offset,
-                                    carma_device *device);
+                                    double *intensities, int nbpix, float scale,
+                                    float offset, carma_device *device);
 
 template <class T>
 __device__ inline void sortmax_krnl(T *sdata, unsigned int *values, int size,
@@ -241,7 +243,7 @@ template void subap_sortmax<double>(int threads, int blocks, double *d_idata,
 
 template <class T>
 __global__ void centroid_bpix(int nsub, int n, T *g_idata, unsigned int *values,
-                              T *g_odata, T scale, T offset) {
+                              T *g_odata, float scale, float offset) {
   extern __shared__ uint svalues[];
   T *sdata = (T *)&svalues[blockDim.x];
   T intensities;
@@ -299,7 +301,8 @@ __global__ void centroid_bpix(int nsub, int n, T *g_idata, unsigned int *values,
 
 template <class T>
 void subap_bpcentro(int threads, int blocks, int npix, T *d_idata,
-                    unsigned int *values, T *d_odata, T scale, T offset) {
+                    unsigned int *values, T *d_odata, float scale,
+                    float offset) {
   dim3 dimBlock(threads, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
 
@@ -317,5 +320,5 @@ template void subap_bpcentro<float>(int threads, int blocks, int npix,
                                     float *d_odata, float scale, float offset);
 template void subap_bpcentro<double>(int threads, int blocks, int npix,
                                      double *d_idata, unsigned int *values,
-                                     double *d_odata, double scale,
-                                     double offset);
+                                     double *d_odata, float scale,
+                                     float offset);
