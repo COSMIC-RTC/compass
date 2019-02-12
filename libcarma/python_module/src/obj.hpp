@@ -498,6 +498,18 @@ struct CarmaObjInterfacer {
         // int destroy_prng_host();
         .def("destroy_prng_host", &Class::destroy_prng_host)
 
+        .def("fft",
+             [](Class &data, Class &dest, int direction) {
+               throw std::runtime_error("not implemented");
+              //  const long *dims = data.getDims();
+              //  cufftHandle *handle = data.getPlan();
+              //  if(dest == nullptr) {
+              //    dest = Class(data.getContext(), dims);
+              //  }
+              //  carma_initfft(dims, handle, carma_select_plan<T,T>());
+              //  carma_fft(data.getData(), dest.getData(), direction, handle);
+             },
+             py::arg("dest") = nullptr, py::arg("direction") = 1)
         ;
     // CU functions clip
     // template<class T_data>

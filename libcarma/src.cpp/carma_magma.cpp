@@ -714,6 +714,13 @@ int carma_potri<cuFloatComplex>(carma_obj<cuFloatComplex> *d_iA) {
 }
 
 template <>
+int carma_potri<cuDoubleComplex>(carma_obj<cuDoubleComplex> *d_iA) {
+  MAGMA_TRACE("carma_potri : not implemented for cuDoubleComplex \n");
+
+  return EXIT_FAILURE;
+}
+
+template <>
 int carma_potri<float>(carma_obj<float> *d_iA) {
   const long *dims = d_iA->getDims();
   long N = dims[1];

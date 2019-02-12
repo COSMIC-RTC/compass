@@ -55,24 +55,30 @@ __global__ void carma_curand_uniform(curandState *s, T *d, int n, float beta) {
 
 template <>
 __global__ void carma_curand_uniform(curandState *s, int *d, int n,
-                                     float beta) CARMA_NYI_DEV
+                                     float beta) CARMA_NYI_DEV;
 
-    template <>
-    __global__ void carma_curand_uniform(curandState *s, unsigned *d, int n,
-                                         float beta) CARMA_NYI_DEV
+template <>
+__global__ void carma_curand_uniform(curandState *s, unsigned *d, int n,
+                                     float beta) CARMA_NYI_DEV;
 
-    template <>
-    __global__ void carma_curand_uniform(curandState *s, cuFloatComplex *d,
-                                         int n, float beta) CARMA_NYI_DEV
+template <>
+__global__ void carma_curand_uniform(curandState *s, cuFloatComplex *d, int n,
+                                     float beta) {
+  carma_curand_uniform_gen(s, curand_uniform, (float *)d, n * 2, beta);
+}
 
-    template <>
-    __global__ void carma_curand_uniform(curandState *s, cuDoubleComplex *d,
-                                         int n, float beta) CARMA_NYI_DEV
+template <>
+__global__ void carma_curand_uniform(curandState *s, cuDoubleComplex *d, int n,
+                                     float beta) {
+  carma_curand_uniform_gen(s, curand_uniform_double, (double *)d, n * 2, beta);
+}
 
-    template <class T>
-    __forceinline__ __device__
-    void carma_curand_normal_gen(curandState *state, T (*fct)(curandState *),
-                                 T *res, int n, float alpha, float beta) {
+template <class T>
+__forceinline__ __device__ void carma_curand_normal_gen(curandState *state,
+                                                        T (*fct)(curandState *),
+                                                        T *res, int n,
+                                                        float alpha,
+                                                        float beta) {
   const int tidx = blockIdx.x * blockDim.x + threadIdx.x;
   const int delta = blockDim.x * gridDim.x;
   for (int idx = tidx; idx < n; idx += delta)

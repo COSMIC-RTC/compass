@@ -6,9 +6,24 @@ project(carmaWrap
     LANGUAGES CXX CUDA
 )
 
-# set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+# WYRM IMPORT #
+################
 
-# add_definitions(${sloth_DEFINITIONS})
+if(NOT TARGET wyrm)
+    if(NOT DEFINED WYRM_ROOT)
+        set(WYRM_ROOT $ENV{WYRM_ROOT})
+    endif()
+    if(NOT DEFINED WYRM_ROOT)
+        message(WARNING "wyrm path set WYRM_ROOT to $COMPASS_ROOT/tplib/wyrm" )
+        set(WYRM_ROOT $ENV{COMPASS_ROOT}/tplib/wyrm)
+    endif()
+    if(IS_DIRECTORY ${WYRM_ROOT})
+		add_subdirectory(${WYRM_ROOT} wyrm_dir)
+    else()
+        message(ERROR "wyrm path not found, specify it by set WYRM_ROOT to the right path" )
+    endif()
+endif()
+
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(MAGMA REQUIRED magma)

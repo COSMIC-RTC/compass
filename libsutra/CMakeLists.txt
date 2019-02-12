@@ -34,7 +34,7 @@ if (DEFINED ENV{OCTOPUS_ROOT})
 
     SET(OCTOPUS_LIBS CacaoInterface)
 else()
-    message(WARNING "BRAHMA_ROOT not find, it will not be available")
+    message(WARNING "OCTOPUS_ROOT not find, CACAO RTC will not be available")
 endif()
 
 if (DEFINED ENV{BRAHMA_ROOT})
@@ -58,7 +58,7 @@ if (DEFINED ENV{BRAHMA_ROOT})
     SET(BRAHMA_LIBS BRAHMACommon OpenDDS_InfoRepoDiscovery OpenDDS_Dcps TAO_PortableServer
         TAO_AnyTypeCode TAO ACE dl rt)
 else()
-    message(WARNING "BRAHMA_ROOT not find, it will not be available")
+    message(WARNING "BRAHMA_ROOT not find, BRAHMA RTC will not be available")
 endif()
 
 add_library(sutra SHARED
