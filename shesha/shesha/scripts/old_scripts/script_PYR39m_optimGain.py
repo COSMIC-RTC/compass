@@ -335,7 +335,7 @@ def loop(n, wfs, tel, atm, dms, tar, rtc, moveAtmos=True, noise=True, loopData=0
                 ii += 1
         rtc.docontrol(0)
         rtc.doclipping(0, -1e5, 1e5)
-        rtc.apply_control(0, dms)
+        rtc.apply_control(0)
 
         signal_le = ""
         signal_se = ""

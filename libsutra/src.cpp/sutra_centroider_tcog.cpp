@@ -10,7 +10,7 @@ sutra_centroider_tcog<Tin, T>::sutra_centroider_tcog(carma_context *context,
   context->set_activeDevice(device, 1);
 
   this->nslopes = 2 * nvalid;
-  this->threshold = 0;
+  this->threshold = 0.f;
   long dims_data2[2] = {1, this->nslopes};
   this->d_centroids_ref = new carma_obj<T>(this->current_context, dims_data2);
   this->d_centroids_ref->reset();
@@ -25,15 +25,16 @@ string sutra_centroider_tcog<Tin, T>::get_type() {
 }
 
 template <class Tin, class T>
-int sutra_centroider_tcog<Tin, T>::set_threshold(T threshold) {
+int sutra_centroider_tcog<Tin, T>::set_threshold(float threshold) {
   this->threshold = threshold;
 
   return EXIT_SUCCESS;
 }
 
 template <class Tin, class T>
-int sutra_centroider_tcog<Tin, T>::get_cog(T *img, T *intensities, T *centroids,
-                                           int nvalid, int npix, int ntot) {
+int sutra_centroider_tcog<Tin, T>::get_cog(float *img, T *intensities,
+                                           T *centroids, int nvalid, int npix,
+                                           int ntot) {
   this->current_context->set_activeDevice(this->device, 1);
 
   get_centroids(ntot, (npix * npix), nvalid, npix, img, centroids,
@@ -96,3 +97,34 @@ int sutra_centroider_tcog<Tin, T>::get_cog() {
 
 template class sutra_centroider_tcog<float, float>;
 template class sutra_centroider_tcog<uint16_t, float>;
+
+#ifdef CAN_DO_HALF
+template <>
+int sutra_centroider_tcog<float, half>::get_cog(half *intensities, half *slopes,
+                                                bool noise) {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_FAILURE;
+}
+
+template <>
+int sutra_centroider_tcog<uint16_t, half>::get_cog(half *intensities,
+                                                   half *slopes, bool noise) {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_FAILURE;
+}
+
+template <>
+int sutra_centroider_tcog<float, half>::get_cog() {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_FAILURE;
+}
+
+template <>
+int sutra_centroider_tcog<uint16_t, half>::get_cog() {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_FAILURE;
+}
+
+template class sutra_centroider_tcog<float, half>;
+template class sutra_centroider_tcog<uint16_t, half>;
+#endif

@@ -345,6 +345,7 @@ __global__ void convertToCom_krnl(uint16_t *volts, float *com, int N,
     tid += blockDim.x * gridDim.x;
   }
 }
+
 int convertToCom(uint16_t *volts, float *com, int N, float Vmin, float Vmax,
                  uint16_t valMax, carma_device *device) {
   int nthreads = 0, nblocks = 0;

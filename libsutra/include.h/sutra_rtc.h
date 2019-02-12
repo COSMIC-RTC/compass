@@ -35,8 +35,8 @@ class sutra_rtc {
                      sutra_dms *dms = nullptr, int *idx_dms = nullptr,
                      int ndm = 0, int Nphi = 0, bool wfs_direction = false);
 
-  int rm_centroider();
-  int rm_controller();
+  int remove_centroider(int ncentro);
+  int remove_controller(int ncontrol);
 
   int do_imat(int ncntrl, sutra_dms *ydms);
 
@@ -54,7 +54,7 @@ class sutra_rtc {
   int do_centroids_ref(int ncntrl);
   int do_control(int ncntrl);
   int do_clipping(int ncntrl);
-  int apply_control(int ncntrl, sutra_dms *ydm, bool compVoltage = true);
+  int apply_control(int ncntrl, bool compVoltage = true);
   int comp_voltage(int ncntrl);
   int remove_ref(int ncntrl);
   int set_centroids_ref(float *centroids_ref);

@@ -294,6 +294,18 @@ void declare_dm(py::module &mod) {
       )pbdoc",
            py::arg("com"))
 
+      .def("comp_shape",
+           wy::colCast((int (sutra_dm::*)(uint16_t *)) & sutra_dm::comp_shape),
+           R"pbdoc(
+        Compute the DM shape according to given commands
+
+        Parameters
+        ------------
+        com: (np.ndarray[ndim=1,dtype=np.uint16_t]): commands to apply
+
+      )pbdoc",
+           py::arg("com"))
+
       .def("comp_oneactu", wy::colCast(&sutra_dm::comp_oneactu), R"pbdoc(
         Push the specified actuator and computes the corresponding DM shape
 

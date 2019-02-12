@@ -210,6 +210,24 @@ void rtc_impl(py::module &mod, const char *name) {
            py::arg("nactu"), py::arg("delay"), py::arg("device"),
            py::arg("typec"))
 
+      .def("remove_controller", &rtc::remove_controller, R"pbdoc(
+          Remove the specified controller from the RTC
+
+          Parameters
+          ------------
+          ncontrol : (int): index of the controller to remove
+     )pbdoc",
+           py::arg("ncontrol"))
+
+      .def("remove_centroider", &rtc::remove_centroider, R"pbdoc(
+          Remove the specified centroider from the RTC
+
+          Parameters
+          ------------
+          ncentro : (int): index of the centroider to remove
+     )pbdoc",
+           py::arg("ncentro"))
+
       .def("do_centroids", (int (rtc::*)(int)) & rtc::do_centroids,
            R"pbdoc(
         Computes the centroids
@@ -266,10 +284,9 @@ void rtc_impl(py::module &mod, const char *name) {
         Parameters
         ------------
         ncontrol: (int): Index of the controller
-        dms: (sutra_dms): sutra_dms object
         compVoltage: (bool): if True (default), computes delay and perturb voltages. Else, applies just the vector command
     )pbdoc",
-           py::arg("ncontrol"), py::arg("dms"), py::arg("compVoltage") = true)
+           py::arg("ncontrol"), py::arg("compVoltage") = true)
 
       .def("comp_voltage", &rtc::comp_voltage, R"pbdoc(
         Compute the commands on the DM

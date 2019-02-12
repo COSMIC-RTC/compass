@@ -33,8 +33,8 @@ template int fillweights<double>(double *d_out, double *d_in, int npix, int N,
                                  carma_device *device);
 
 template <class T, int Nthreads>
-__global__ void centroids(T *d_img, T *d_centroids, T *ref, int *validx,
-                          int *validy, T *d_intensities, T *weights,
+__global__ void centroids(float *d_img, T *d_centroids, T *ref, int *validx,
+                          int *validy, T *d_intensities, float *weights,
                           unsigned int npix, unsigned int size, float scale,
                           float offset, unsigned int nelem_thread) {
   if (blockDim.x > Nthreads) {
@@ -42,13 +42,13 @@ __global__ void centroids(T *d_img, T *d_centroids, T *ref, int *validx,
     return;
   }
   // Specialize BlockReduce for a 1D block of 128 threads on type int
-  typedef cub::BlockReduce<T, Nthreads> BlockReduce;
+  typedef cub::BlockReduce<float, Nthreads> BlockReduce;
   // Allocate shared memory for BlockReduce
   __shared__ typename BlockReduce::TempStorage temp_storage;
 
-  T idata = 0;
-  T xdata = 0;
-  T ydata = 0;
+  float idata = 0;
+  float xdata = 0;
+  float ydata = 0;
   // load shared mem
   unsigned int tid = threadIdx.x;
   unsigned int xvalid = validx[blockIdx.x];
@@ -73,28 +73,28 @@ __global__ void centroids(T *d_img, T *d_centroids, T *ref, int *validx,
   // sdata[tid] = (i < N) ? g_idata[i] * x : 0;
   __syncthreads();
 
-  T intensity = BlockReduce(temp_storage).Sum(idata, blockDim.x);
+  float intensity = BlockReduce(temp_storage).Sum(idata, blockDim.x);
   __syncthreads();
-  T slopex = BlockReduce(temp_storage).Sum(xdata, blockDim.x);
+  float slopex = BlockReduce(temp_storage).Sum(xdata, blockDim.x);
   __syncthreads();
-  T slopey = BlockReduce(temp_storage).Sum(ydata, blockDim.x);
+  float slopey = BlockReduce(temp_storage).Sum(ydata, blockDim.x);
   __syncthreads();
   // write result for this block to global mem
   if (tid == 0) {
     d_centroids[blockIdx.x] =
-        ((slopex * 1.0 / (intensity + 1.e-6)) - offset) * scale -
+        (T(slopex * 1.0 / (intensity + 1.e-6)) - offset) * scale -
         ref[blockIdx.x];
     d_centroids[blockIdx.x + gridDim.x] =
-        ((slopey * 1.0 / (intensity + 1.e-6)) - offset) * scale -
+        (T(slopey * 1.0 / (intensity + 1.e-6)) - offset) * scale -
         ref[blockIdx.x + gridDim.x];
     d_intensities[blockIdx.x] = intensity;
   }
 }
 
 template <class T>
-void get_centroids(int size, int threads, int blocks, int npix, T *d_img,
+void get_centroids(int size, int threads, int blocks, int npix, float *d_img,
                    T *d_centroids, T *ref, int *validx, int *validy,
-                   T *intensities, T *weights, float scale, float offset,
+                   T *intensities, float *weights, float scale, float offset,
                    carma_device *device) {
   int maxThreads = device->get_properties().maxThreadsPerBlock;
   unsigned int nelem_thread = 1;
@@ -147,9 +147,9 @@ template void get_centroids<float>(int size, int threads, int blocks, int npix,
                                    carma_device *device);
 
 template void get_centroids<double>(int size, int threads, int blocks, int npix,
-                                    double *d_img, double *d_centroids,
+                                    float *d_img, double *d_centroids,
                                     double *ref, int *validx, int *validy,
-                                    double *intensities, double *weights,
+                                    double *intensities, float *weights,
                                     float scale, float offset,
                                     carma_device *device);
 

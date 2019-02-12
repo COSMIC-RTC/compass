@@ -69,7 +69,7 @@ sutra_dm::sutra_dm(carma_context *context, const char *type, float alt,
   this->push4imat = push4imat;
   this->Vmin = -1.0f;
   this->Vmax = 1.0f;
-  this->valMax = u_int16_t(65535);
+  this->valMax = uint16_t(65535);
 
   long dims_data1[2];
   dims_data1[0] = 1;

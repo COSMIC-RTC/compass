@@ -91,18 +91,18 @@ int fill_validMask(int size, int npix, int blocks, int *d_validMask,
   return EXIT_SUCCESS;
 }
 
-template <class Tin, class Tout>
-__global__ void calib_krnl(Tin *img_raw, Tout *img_cal, Tout *dark, Tout *flat,
-                           int N) {
+template <class Tin>
+__global__ void calib_krnl(Tin *img_raw, float *img_cal, float *dark,
+                           float *flat, int N) {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
   while (tid < N) {
-    img_cal[tid] = ((Tout)img_raw[tid] - dark[tid]) * flat[tid];
+    img_cal[tid] = (float(img_raw[tid]) - dark[tid]) * flat[tid];
     tid += blockDim.x * gridDim.x;
   }
 }
 
-template <class Tin, class Tout>
-int calibration(Tin *img_raw, Tout *img_cal, Tout *dark, Tout *flat, int N,
+template <class Tin>
+int calibration(Tin *img_raw, float *img_cal, float *dark, float *flat, int N,
                 carma_device *device) {
   int nBlocks, nThreads;
   getNumBlocksAndThreads(device, N, nBlocks, nThreads);
@@ -114,16 +114,8 @@ int calibration(Tin *img_raw, Tout *img_cal, Tout *dark, Tout *flat, int N,
   return EXIT_SUCCESS;
 }
 
-template int calibration<float, float>(float *img_raw, float *img_cal,
-                                       float *dark, float *flat, int N,
-                                       carma_device *device);
-template int calibration<uint16_t, float>(uint16_t *img_raw, float *img_cal,
-                                          float *dark, float *flat, int N,
-                                          carma_device *device);
-#ifdef CAN_DO_HALF
-template int calibration<uint16_t, half>(uint16_t *img_raw, half *img_cal,
-                                         half *dark, half *flat, int N,
-                                         carma_device *device);
-template int calibration<float, half>(float *img_raw, half *img_cal, half *dark,
-                                      half *flat, int N, carma_device *device);
-#endif
+template int calibration<float>(float *img_raw, float *img_cal, float *dark,
+                                float *flat, int N, carma_device *device);
+template int calibration<uint16_t>(uint16_t *img_raw, float *img_cal,
+                                   float *dark, float *flat, int N,
+                                   carma_device *device);

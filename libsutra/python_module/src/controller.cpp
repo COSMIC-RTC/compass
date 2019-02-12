@@ -5,6 +5,18 @@
 namespace py = pybind11;
 
 template <typename Tcomp, typename Tout>
+typename std::enable_if<!std::is_same<Tcomp, half>::value, float>::type
+get_delay(sutra_controller<Tcomp, Tout> &sc) {
+  return float(sc.delay);
+}
+
+template <typename Tcomp, typename Tout>
+typename std::enable_if<std::is_same<Tcomp, half>::value, float>::type
+get_delay(sutra_controller<Tcomp, Tout> &sc) {
+  return __half2float(sc.delay);
+}
+
+template <typename Tcomp, typename Tout>
 void controller_impl(py::module &mod, const char *name) {
   using controller = sutra_controller<Tcomp, Tout>;
 
@@ -39,8 +51,8 @@ void controller_impl(py::module &mod, const char *name) {
                              [](controller &sc) { return sc.open_loop; },
                              "Open loop flag")
 
-      .def_property_readonly("delay", [](controller &sc) { return sc.delay; },
-                             "Loop delay")
+      .def_property_readonly(
+          "delay", [](controller &sc) { return get_delay(sc); }, "Loop delay")
 
       .def_property_readonly("d_dmseen",
                              [](controller &sc) { return sc.d_dmseen; },
@@ -58,6 +70,13 @@ void controller_impl(py::module &mod, const char *name) {
 
       .def_property_readonly("d_com2", [](controller &sc) { return sc.d_com2; },
                              "Command vector at iteration k-2")
+      .def_property_readonly(
+          "comRange",
+          [](controller &sc) { return std::make_tuple(sc.Vmin, sc.Vmax); },
+          "Tuple (Vmin, Vmax) used for command clipping")
+      .def_property_readonly("valMax", [](controller &sc) { return sc.valMax; },
+                             "Maximum value for d_voltage (ADU). Only used if "
+                             "output is expected in uint16")
 
       .def_property_readonly(
           "d_perturb_map",
@@ -70,6 +89,10 @@ void controller_impl(py::module &mod, const char *name) {
       .def_property_readonly("d_voltage",
                              [](controller &sc) { return sc.d_voltage; },
                              "Total voltage to apply on the DMs")
+
+      .def_property_readonly("d_comDelayed",
+                             [](controller &sc) { return sc.d_comDelayed; },
+                             "Delayed commands")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝
@@ -103,6 +126,13 @@ void controller_impl(py::module &mod, const char *name) {
           name: (str): name of the buffer to enable
      )pbdoc",
            py::arg("name"))
+
+      .def("comp_voltage", wy::colCast(&controller::comp_voltage),
+           "Computes the final voltage to send to the DM")
+
+      .def("clip_commands", wy::colCast(&controller::clip_commands),
+           "Clip the commands between Vmin and Vmax (values set in the "
+           "controller)")
 
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝
@@ -160,15 +190,20 @@ void controller_impl(py::module &mod, const char *name) {
      )pbdoc",
            py::arg("delay"))
 
-      .def("set_Vmin", wy::colCast(&controller::set_Vmin),
+      .def("set_comRange",
+           [](controller &sc, float Vmin, float Vmax) {
+             sc.set_Vmax(Vmax);
+             sc.set_Vmin(Vmin);
+           },
            R"pbdoc(
-          Set the Vmin value for command clipping
+          Set the Vmin and Vmax value for command clipping
 
           Parameters
           ------------
           Vmin: (float): Vmin value for clipping
+          Vmax: (float): Vmax value for clipping
      )pbdoc",
-           py::arg("Vmin"))
+           py::arg("Vmin"), py::arg("Vmax"))
 
       .def("set_Vmax", wy::colCast(&controller::set_Vmax),
            R"pbdoc(

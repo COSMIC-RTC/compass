@@ -35,8 +35,8 @@ class sutra_controller {
 
   int open_loop;
   Tcomp delay;
-  Tcomp Vmin;
-  Tcomp Vmax;
+  float Vmin;
+  float Vmax;
   Tout valMax;
   Tcomp a;  // Coefficient for linear interpolation on command buffer to allow
             // non-integer delay
@@ -108,12 +108,12 @@ class sutra_controller {
 
 template <typename Tin, typename Tout>
 typename std::enable_if<std::is_same<Tin, Tout>::value, void>::type
-convertToVoltage(Tin *d_idata, Tout *d_odata, int N, Tin Vmin, Tin Vmax,
+convertToVoltage(Tin *d_idata, Tout *d_odata, int N, float Vmin, float Vmax,
                  uint16_t valMax, carma_device *device){};
 
 template <typename Tin, typename Tout>
 typename std::enable_if<!std::is_same<Tin, Tout>::value, void>::type
-convertToVoltage(Tin *d_idata, Tout *d_odata, int N, Tin Vmin, Tin Vmax,
+convertToVoltage(Tin *d_idata, Tout *d_odata, int N, float Vmin, float Vmax,
                  uint16_t valMax, carma_device *device);
 
 int shift_buf(float *d_data, int offset, int N, carma_device *device);

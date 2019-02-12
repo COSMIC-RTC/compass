@@ -23,6 +23,20 @@ sutra_rtc<Tin, T, Tout>::~sutra_rtc() {
 }
 
 template <typename Tin, typename T, typename Tout>
+int sutra_rtc<Tin, T, Tout>::remove_centroider(int ncentro) {
+  delete this->d_centro[ncentro];
+  this->d_centro.erase(this->d_centro.begin() + ncentro);
+  return EXIT_SUCCESS;
+}
+
+template <typename Tin, typename T, typename Tout>
+int sutra_rtc<Tin, T, Tout>::remove_controller(int ncontrol) {
+  delete this->d_control[ncontrol];
+  this->d_control.erase(this->d_control.begin() + ncontrol);
+  return EXIT_SUCCESS;
+}
+
+template <typename Tin, typename T, typename Tout>
 int sutra_rtc<Tin, T, Tout>::add_centroider(carma_context *context, long nvalid,
                                             float offset, float scale,
                                             long device, char *typec) {
@@ -89,6 +103,13 @@ int sutra_rtc<Tin, T, Tout>::add_centroider_impl(
   if (strcmp(typec, "cog") == 0)
     d_centro.push_back(new sutra_centroider_cog<Tin, T>(context, wfs, nvalid,
                                                         offset, scale, device));
+  else if (strcmp(typec, "bpcog") == 0)
+    d_centro.push_back(new sutra_centroider_bpcog<Tin, T>(
+        context, wfs, nvalid, offset, scale, device, 10));
+  else if (strcmp(typec, "tcog") == 0)
+    d_centro.push_back(new sutra_centroider_tcog<Tin, T>(
+        context, wfs, nvalid, offset, scale, device));
+
   else
     DEBUG_TRACE("Not implemented for half precision yet");
 
@@ -160,17 +181,6 @@ int sutra_rtc<Tin, T, Tout>::add_controller_impl(
     DEBUG_TRACE("Not implemented in half precision yet");
     return EXIT_FAILURE;
   }
-  return EXIT_SUCCESS;
-}
-
-template <typename Tin, typename T, typename Tout>
-int sutra_rtc<Tin, T, Tout>::rm_controller() {
-  // for (size_t idx = 0; idx < (this->d_control).size(); idx++) {
-  while ((this->d_control).size() > 0) {
-    delete this->d_control.back();
-    d_control.pop_back();
-  }
-
   return EXIT_SUCCESS;
 }
 
@@ -580,8 +590,7 @@ int sutra_rtc<Tin, T, Tout>::comp_voltage(int ncntrl) {
 }
 
 template <typename Tin, typename T, typename Tout>
-int sutra_rtc<Tin, T, Tout>::apply_control(int ncntrl, sutra_dms *ydm,
-                                           bool compVoltage) {
+int sutra_rtc<Tin, T, Tout>::apply_control(int ncntrl, bool compVoltage) {
   if (compVoltage) comp_voltage(ncntrl);
 
   vector<sutra_dm *>::iterator p;

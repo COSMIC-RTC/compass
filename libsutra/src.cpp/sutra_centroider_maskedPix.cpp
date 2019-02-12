@@ -29,7 +29,7 @@ string sutra_centroider_maskedPix<Tin, T>::get_type() {
 }
 
 template <class Tin, class T>
-int sutra_centroider_maskedPix<Tin, T>::get_cog(T *img, T *intensities,
+int sutra_centroider_maskedPix<Tin, T>::get_cog(float *img, T *intensities,
                                                 T *centroids, int nvalid,
                                                 int npix, int ntot) {
   // TODO(Implement sutra_centroider_maskedPix<Tin, T>::get_cog)

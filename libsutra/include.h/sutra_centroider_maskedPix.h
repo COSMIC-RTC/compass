@@ -18,7 +18,7 @@ class sutra_centroider_maskedPix : public sutra_centroider<Tin, T> {
 
   int get_maskedPix(T *img, T *intensities, T *centroids, int *subindx,
                     int *subindy, int nvalid, int ns);
-  int get_cog(T *img, T *intensities, T *centroids, int nvalid, int npix,
+  int get_cog(float *img, T *intensities, T *centroids, int nvalid, int npix,
               int ntot);
   int get_cog(T *intensities, T *slopes, bool noise);
   int get_cog();

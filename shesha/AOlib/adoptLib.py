@@ -4,7 +4,7 @@ from shesha.util import tools
 
 
 def applyVoltGetSlopes(wao, noise=False):
-    wao.rtc.apply_control(0, wao.dms)
+    wao.rtc.apply_control(0)
     for w in range(len(wao.config.p_wfss)):
         wao.wfs.raytrace(w, "dm", wao.tel, wao.atm, wao.dms, rst=1)
         wao.wfs.sensors_compimg(w, noise=noise)

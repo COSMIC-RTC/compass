@@ -22,8 +22,9 @@ string sutra_centroider_cog<Tin, T>::get_type() {
 }
 
 template <class Tin, class T>
-int sutra_centroider_cog<Tin, T>::get_cog(T *img, T *intensities, T *centroids,
-                                          int nvalid, int npix, int ntot) {
+int sutra_centroider_cog<Tin, T>::get_cog(float *img, T *intensities,
+                                          T *centroids, int nvalid, int npix,
+                                          int ntot) {
   this->current_context->set_activeDevice(this->device, 1);
 
   // subap_reduce(ntot, (npix * npix), nvalid, img, ref,

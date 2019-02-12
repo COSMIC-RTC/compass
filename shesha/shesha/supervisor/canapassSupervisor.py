@@ -530,7 +530,7 @@ class CanapassSupervisor(CompassSupervisor):
         return iMatPhase
 
     def applyVoltGetSlopes(self, noise=False, turbu=False, reset=1):
-        self._sim.rtc.apply_control(0, self._sim.dms)
+        self._sim.rtc.apply_control(0)
         for w in range(len(self._sim.wfs.d_wfs)):
 
             if (turbu):

@@ -277,7 +277,7 @@ int adjust_csr_index(int *rowind, int *NNZ, int *nact, int nact_tot,
 
 #ifdef CAN_DO_HALF
 __global__ void convertVoltage_krnl(half *d_idata, float *d_odata, int N,
-                                    half Vmin, half Vmax, uint16_t valMax) {
+                                    float Vmin, float Vmax, uint16_t valMax) {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
   while (tid < N) {
     d_odata[tid] = __half2float(d_idata[tid]);
@@ -288,17 +288,18 @@ __global__ void convertVoltage_krnl(half *d_idata, float *d_odata, int N,
 
 template <typename T>
 __global__ void convertVoltage_krnl(T *d_idata, uint16_t *d_odata, int N,
-                                    T Vmin, T Vmax, uint16_t valMax) {
+                                    float Vmin, float Vmax, uint16_t valMax) {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
   while (tid < N) {
-    d_odata[tid] = uint16_t((d_idata[tid] - Vmin) / (Vmax - Vmin)) * valMax;
+    d_odata[tid] =
+        uint16_t((float(d_idata[tid]) - Vmin) / (Vmax - Vmin) * float(valMax));
     tid += blockDim.x * gridDim.x;
   }
 }
 
 template <typename Tin, typename Tout>
 typename std::enable_if<!std::is_same<Tin, Tout>::value, void>::type
-convertToVoltage(Tin *d_idata, Tout *d_odata, int N, Tin Vmin, Tin Vmax,
+convertToVoltage(Tin *d_idata, Tout *d_odata, int N, float Vmin, float Vmax,
                  uint16_t valMax, carma_device *device) {
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, N, nblocks, nthreads);
@@ -317,11 +318,12 @@ template
 
 #ifdef CAN_DO_HALF
 template typename std::enable_if<!std::is_same<half, float>::value, void>::type
-convertToVoltage<half, float>(half *d_idata, float *d_odata, int N, half Vmin,
-                              half Vmax, uint16_t valMax, carma_device *device);
+convertToVoltage<half, float>(half *d_idata, float *d_odata, int N, float Vmin,
+                              float Vmax, uint16_t valMax,
+                              carma_device *device);
 template
     typename std::enable_if<!std::is_same<half, uint16_t>::value, void>::type
     convertToVoltage<half, uint16_t>(half *d_idata, uint16_t *d_odata, int N,
-                                     half Vmin, half Vmax, uint16_t valMax,
+                                     float Vmin, float Vmax, uint16_t valMax,
                                      carma_device *device);
 #endif

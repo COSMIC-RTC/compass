@@ -59,8 +59,9 @@ string sutra_centroider_pyr<Tin, T>::get_method_str() {
 }
 
 template <class Tin, class T>
-int sutra_centroider_pyr<Tin, T>::get_cog(T *cube, T *intensities, T *centroids,
-                                          int nvalid, int npix, int ntot) {
+int sutra_centroider_pyr<Tin, T>::get_cog(float *cube, T *intensities,
+                                          T *centroids, int nvalid, int npix,
+                                          int ntot) {
   // TODO(Implement sutra_centroider_pyr<Tin, T>::get_cog)
 
   return get_pyr(cube, intensities, centroids, this->d_validx->getData(),
@@ -69,9 +70,10 @@ int sutra_centroider_pyr<Tin, T>::get_cog(T *cube, T *intensities, T *centroids,
 }
 
 template <class Tin, class T>
-int sutra_centroider_pyr<Tin, T>::get_pyr(T *cube, T *intensities, T *centroids,
-                                          int *subindx, int *subindy,
-                                          int nvalid, int ns, int nim) {
+int sutra_centroider_pyr<Tin, T>::get_pyr(float *cube, T *intensities,
+                                          T *centroids, int *subindx,
+                                          int *subindy, int nvalid, int ns,
+                                          int nim) {
   this->current_context->set_activeDevice(this->device, 1);
 
   pyr_intensities(intensities, cube, subindx, subindy, ns, nvalid, nim,

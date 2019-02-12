@@ -538,7 +538,7 @@ class Simulator:
         nControl: (int): controller index
         compVoltage: (bool): If True (default), computes the voltage vector from the command one (delay + perturb). Else, directly applies the current voltage vector
         """
-        self.rtc.apply_control(nControl, self.dms, compVoltage)
+        self.rtc.apply_control(nControl, compVoltage)
 
     def doClipping(self, nControl: int):
         '''

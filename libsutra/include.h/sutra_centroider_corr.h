@@ -30,7 +30,7 @@ class sutra_centroider_corr : public sutra_centroider<Tin, T> {
 
   int set_npix(int npix);
 
-  int get_cog(T *cube, T *intensities, T *centroids, int nvalid, int npix,
+  int get_cog(float *cube, T *intensities, T *centroids, int nvalid, int npix,
               int ntot);
   int get_cog(T *intensities, T *slopes, bool noise);
   int get_cog();

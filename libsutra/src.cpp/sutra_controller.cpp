@@ -23,11 +23,11 @@ sutra_controller<Tcomp, Tout>::sutra_controller(carma_context *context,
 
   this->open_loop = 0;
   if (std::is_same<Tout, uint16_t>::value) {
-    this->Vmin = Tcomp(-1.0f);
-    this->Vmax = Tcomp(1.0f);
+    this->Vmin = -1.0f;
+    this->Vmax = 1.0f;
   } else {
-    this->Vmin = Tcomp(-1.e6);
-    this->Vmax = Tcomp(1.e6);
+    this->Vmin = -1.e6;
+    this->Vmax = 1.e6;
   }
   this->valMax = Tout(65535);
   if (delay < 2)
@@ -181,10 +181,10 @@ int sutra_controller<Tcomp, Tout>::command_delay() {
   current_context->set_activeDevice(device, 1);
 
   if (delay > 1) {
-    this->d_com2->copy(this->d_com1, 1, 1);
-    this->d_com1->copy(this->d_com, 1, 1);
+    this->d_com2->copyFrom(this->d_com1->getData(), this->d_com2->getNbElem());
+    this->d_com1->copyFrom(this->d_com->getData(), this->d_com1->getNbElem());
   } else if (delay > 0)
-    this->d_com1->copy(this->d_com, 1, 1);
+    this->d_com1->copyFrom(this->d_com->getData(), this->d_com1->getNbElem());
 
   return EXIT_SUCCESS;
 }
@@ -290,13 +290,13 @@ int sutra_controller<Tcomp, Tout>::set_delay(float delay) {
 
 template <typename Tcomp, typename Tout>
 int sutra_controller<Tcomp, Tout>::set_Vmin(float Vmin) {
-  this->Vmin = Tcomp(Vmin);
+  this->Vmin = Vmin;
   return EXIT_SUCCESS;
 }
 
 template <typename Tcomp, typename Tout>
 int sutra_controller<Tcomp, Tout>::set_Vmax(float Vmax) {
-  this->Vmax = Tcomp(Vmax);
+  this->Vmax = Vmax;
   return EXIT_SUCCESS;
 }
 

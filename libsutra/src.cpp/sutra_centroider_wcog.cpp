@@ -40,7 +40,7 @@ int sutra_centroider_wcog<Tin, T>::init_weights() {
   dims_data3[3] = this->nvalid;
 
   this->current_context->set_activeDevice(this->device, 1);
-  this->d_weights = new carma_obj<T>(this->current_context, dims_data3);
+  this->d_weights = new carma_obj<float>(this->current_context, dims_data3);
 
   delete[] dims_data3;
 
@@ -48,20 +48,21 @@ int sutra_centroider_wcog<Tin, T>::init_weights() {
 }
 
 template <class Tin, class T>
-int sutra_centroider_wcog<Tin, T>::load_weights(T *weights, int ndim) {
+int sutra_centroider_wcog<Tin, T>::load_weights(float *weights, int ndim) {
   if (ndim == 3)
     this->d_weights->host2device(weights);
   else {
     // weights is a 2d array
     // same weight for each subap
-    T *tmp;  ///< Input data
+    float *tmp;  ///< Input data
     carmaSafeCall(
-        cudaMalloc((void **)&tmp, sizeof(T) * this->npix * this->npix));
-    carmaSafeCall(cudaMemcpy(tmp, weights, sizeof(T) * this->npix * this->npix,
+        cudaMalloc((void **)&tmp, sizeof(float) * this->npix * this->npix));
+    carmaSafeCall(cudaMemcpy(tmp, weights,
+                             sizeof(float) * this->npix * this->npix,
                              cudaMemcpyHostToDevice));
-    fillweights<T>(*(this->d_weights), tmp, this->npix,
-                   this->d_weights->getNbElem(),
-                   this->current_context->get_device(this->device));
+    fillweights<float>(*(this->d_weights), tmp, this->npix,
+                       this->d_weights->getNbElem(),
+                       this->current_context->get_device(this->device));
     carmaSafeCall(cudaFree(tmp));
   }
 
@@ -74,8 +75,9 @@ int sutra_centroider_wcog<Tin, T>::set_npix(int npix) {
   return EXIT_SUCCESS;
 }
 template <class Tin, class T>
-int sutra_centroider_wcog<Tin, T>::get_cog(T *img, T *intensities, T *centroids,
-                                           int nvalid, int npix, int ntot) {
+int sutra_centroider_wcog<Tin, T>::get_cog(float *img, T *intensities,
+                                           T *centroids, int nvalid, int npix,
+                                           int ntot) {
   // wcog
   // TODO: Implement sutra_centroider_wcog<Tin, T>::get_cog_async
   // subap_reduce<T>(ntot, npix * npix, nvalid, cube, intensities,

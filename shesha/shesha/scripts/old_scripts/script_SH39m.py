@@ -184,7 +184,7 @@ def loop(n, wfs, tel, atm, dms, tar, rtc):
             for t in range(config.p_target.ntargets):
                 tar.atmos_trace(t, atm, tel)
                 rtc.do_control_geo(0, dms, tar, 0)
-                rtc.apply_control(0, dms)
+                rtc.apply_control(0)
                 tar.dmtrace(0, dms)
         else:
             for t in range(config.p_target.ntargets):
@@ -196,7 +196,7 @@ def loop(n, wfs, tel, atm, dms, tar, rtc):
 
             rtc.do_centroids(0)
             rtc.docontrol(0)
-            rtc.apply_control(0, dms)
+            rtc.apply_control(0)
 
         if ((i + 1) % 100 == 0):
             print("Iter#:", i + 1)

@@ -47,9 +47,9 @@ class sutra_centroider_pyr : public sutra_centroider<Tin, T> {
   Method_CoG get_method();
   string get_method_str();
 
-  int get_pyr(T *cube, T *intensities, T *centroids, int *subindx, int *subindy,
-              int nvalid, int ns, int nim);
-  int get_cog(T *cube, T *intensities, T *centroids, int nvalid, int npix,
+  int get_pyr(float *cube, T *intensities, T *centroids, int *subindx,
+              int *subindy, int nvalid, int ns, int nim);
+  int get_cog(float *cube, T *intensities, T *centroids, int nvalid, int npix,
               int ntot);
   int get_cog(T *intensities, T *slopes, bool noise);
   int get_cog();

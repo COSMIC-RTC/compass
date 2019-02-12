@@ -23,10 +23,10 @@ class sutra_centroider {
   carma_obj<Tout> *d_bincube;
   carma_obj<Tout> *d_intensities;
   carma_obj<Tout> *d_centroids_ref;  // ref centroids
-  carma_obj<Tout> *d_img;
+  carma_obj<float> *d_img;
   carma_obj<Tin> *d_img_raw;
-  carma_obj<Tout> *d_dark;
-  carma_obj<Tout> *d_flat;
+  carma_obj<float> *d_dark;
+  carma_obj<float> *d_flat;
   carma_obj<int> *d_validx;
   carma_obj<int> *d_validy;
   carma_obj<int> *d_validMask;
@@ -51,13 +51,13 @@ class sutra_centroider {
 
   virtual string get_type() = 0;
 
-  virtual int get_cog(Tout *img, Tout *intensities, Tout *centroids, int nvalid,
-                      int npix, int ntot) = 0;
+  virtual int get_cog(float *img, Tout *intensities, Tout *centroids,
+                      int nvalid, int npix, int ntot) = 0;
   virtual int get_cog(Tout *intensities, Tout *slopes, bool noise) = 0;
   virtual int get_cog() = 0;
 };
-template <class Tin, class Tout>
-int calibration(Tin *img_raw, Tout *img_cal, Tout *dark, Tout *flat, int N,
+template <class Tin>
+int calibration(Tin *img_raw, float *img_cal, float *dark, float *flat, int N,
                 carma_device *device);
 
 template <typename T>

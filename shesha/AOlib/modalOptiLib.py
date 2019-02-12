@@ -336,8 +336,8 @@ class ModalGainOptimizer:
         iMatKL = computeImatModal(self.wao, self.pushPzt, self.pushTT, self.KL2V,
                                   self.nSlopes, withAtm=True, extPyrc=self.pyrc)
         ksiVal = np.sqrt(
-                np.diag(np.dot(self.iMatKLRef.T, self.iMatKLRef)) /
-                np.diag(np.dot(iMatKL.T, iMatKL)))
+                np.diag(np.dot(self.iMatKLRef.T, self.iMatKLRef)) / np.diag(
+                        np.dot(iMatKL.T, iMatKL)))
 
         ksiFilter = ksiVal[list(range(iMatKL.shape[1] - self.nFilter - 2)) + [-2, -1]]
         #         ksiFilter = ksiFilter * np.sqrt(np.shape(ksiFilter)[0] / np.sum(ksiFilter ** 2))
@@ -367,7 +367,7 @@ def loopStaticAtmos(wao, nIter):
 
         wao.rtc.do_centroids(0)
         wao.rtc.docontrol(0)
-        wao.rtc.apply_control(0, wao.dms)
+        wao.rtc.apply_control(0)
 
     for t in range(len(wao.config.p_targets)):
         wao.tar.atmos_trace(t, wao.atm, wao.tel)
@@ -445,7 +445,7 @@ def AOLoop(nIter, wao, cmat=None, pyrc=None, reset=None, gain=0.7, clip=-1,
             wao.atm.move_atmos()
 
         if cmat is None:  # Internal WFS/RTC
-            wao.rtc.apply_control(0, wao.dms)
+            wao.rtc.apply_control(0)
             trace_wfs(showAtmos)
             wao.rtc.do_centroids(0)
             wao.rtc.docontrol(0)
@@ -538,7 +538,7 @@ def doubleWFSLoop(wao):
     slopes = wao.rtc.get_centroids(0)
 
     wao.rtc.docontrol(0)
-    wao.rtc.apply_control(0, wao.dms)
+    wao.rtc.apply_control(0)
     #     wao.tar.get_strehl(0)[0]
 
     return slopes

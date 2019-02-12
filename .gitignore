@@ -60,3 +60,4 @@ python/
 *.log
 shesha/shesha/widgets/*.log
 shesha/shesha/*.log
+.pytest*

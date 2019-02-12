@@ -166,8 +166,9 @@ int sutra_centroider_corr<Tin, T>::load_corr(T *corr, T *corr_norm, int ndim) {
 }
 
 template <class Tin, class T>
-int sutra_centroider_corr<Tin, T>::get_cog(T *img, T *intensities, T *centroids,
-                                           int nvalid, int npix, int ntot) {
+int sutra_centroider_corr<Tin, T>::get_cog(float *img, T *intensities,
+                                           T *centroids, int nvalid, int npix,
+                                           int ntot) {
   this->current_context->set_activeDevice(this->device, 1);
   cudaError err;
 

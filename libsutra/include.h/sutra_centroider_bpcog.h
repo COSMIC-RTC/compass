@@ -21,13 +21,13 @@ class sutra_centroider_bpcog : public sutra_centroider<Tin, T> {
   int init_nmax(int nmax);
   int set_nmax(int nmax);
 
-  int get_cog(T *cube, T *intensities, T *centroids, int nvalid, int npix,
+  int get_cog(float *cube, T *intensities, T *centroids, int nvalid, int npix,
               int ntot);
   int get_cog(T *intensities, T *slopes, bool noise);
   int get_cog();
 };
 template <class T>
-void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
+void get_centroids(int size, int threads, int blocks, int n, float *d_idata,
                    T *d_odata, T *ref, int *validx, int *validy, T *intensities,
                    int nbpix, float scale, float offset, carma_device *device);
 

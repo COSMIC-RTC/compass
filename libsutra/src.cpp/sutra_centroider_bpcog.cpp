@@ -50,7 +50,7 @@ int sutra_centroider_bpcog<Tin, T>::set_nmax(int nmax) {
 }
 
 template <class Tin, class T>
-int sutra_centroider_bpcog<Tin, T>::get_cog(T *img, T *intensities,
+int sutra_centroider_bpcog<Tin, T>::get_cog(float *img, T *intensities,
                                             T *centroids, int nvalid, int npix,
                                             int ntot) {
   this->current_context->set_activeDevice(this->device, 1);
@@ -101,3 +101,34 @@ int sutra_centroider_bpcog<Tin, T>::get_cog() {
 
 template class sutra_centroider_bpcog<float, float>;
 template class sutra_centroider_bpcog<uint16_t, float>;
+
+#ifdef CAN_DO_HALF
+template <>
+int sutra_centroider_bpcog<float, half>::get_cog(half *intensities,
+                                                 half *slopes, bool noise) {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_FAILURE;
+}
+
+template <>
+int sutra_centroider_bpcog<uint16_t, half>::get_cog(half *intensities,
+                                                    half *slopes, bool noise) {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_FAILURE;
+}
+
+template <>
+int sutra_centroider_bpcog<float, half>::get_cog() {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_FAILURE;
+}
+
+template <>
+int sutra_centroider_bpcog<uint16_t, half>::get_cog() {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_FAILURE;
+}
+
+template class sutra_centroider_bpcog<float, half>;
+template class sutra_centroider_bpcog<uint16_t, half>;
+#endif

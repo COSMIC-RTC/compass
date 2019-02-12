@@ -63,7 +63,7 @@ int sutra_centroider<Tin, Tout>::set_dark(float *dark, int n) {
   current_context->set_activeDevice(device, 1);
   if (this->d_dark == nullptr) {
     long dims_data2[3] = {2, n, n};
-    this->d_dark = new carma_obj<Tout>(current_context, dims_data2);
+    this->d_dark = new carma_obj<float>(current_context, dims_data2);
   }
   this->d_dark->host2device(dark);
   return EXIT_SUCCESS;
@@ -74,7 +74,7 @@ int sutra_centroider<Tin, Tout>::set_flat(float *flat, int n) {
   current_context->set_activeDevice(device, 1);
   if (this->d_flat == nullptr) {
     long dims_data2[3] = {2, n, n};
-    this->d_flat = new carma_obj<Tout>(current_context, dims_data2);
+    this->d_flat = new carma_obj<float>(current_context, dims_data2);
   }
   this->d_flat->host2device(flat);
   return EXIT_SUCCESS;
@@ -109,18 +109,20 @@ int sutra_centroider<Tin, Tout>::calibrate_img() {
     return EXIT_FAILURE;
   }
   if (this->d_dark == nullptr) {
-    this->d_dark = new carma_obj<Tout>(current_context, this->d_img->getDims());
+    this->d_dark =
+        new carma_obj<float>(current_context, this->d_img->getDims());
     this->d_dark->reset();
   }
   if (this->d_flat == nullptr) {
-    this->d_flat = new carma_obj<Tout>(current_context, this->d_img->getDims());
-    this->d_flat->memSet(Tout(1.f));
+    this->d_flat =
+        new carma_obj<float>(current_context, this->d_img->getDims());
+    this->d_flat->memSet(1.f);
   }
 
-  calibration<Tin, Tout>(this->d_img_raw->getData(), this->d_img->getData(),
-                         this->d_dark->getData(), this->d_flat->getData(),
-                         this->d_img->getNbElem(),
-                         this->current_context->get_device(this->device));
+  calibration<Tin>(this->d_img_raw->getData(), this->d_img->getData(),
+                   this->d_dark->getData(), this->d_flat->getData(),
+                   this->d_img->getNbElem(),
+                   this->current_context->get_device(this->device));
 
   return EXIT_SUCCESS;
 }
@@ -131,7 +133,7 @@ int sutra_centroider<Tin, Tout>::load_img(Tin *img, int n) {
   if (this->d_img_raw == nullptr) {
     long dims_data2[3] = {2, n, n};
     this->d_img_raw = new carma_obj<Tin>(current_context, dims_data2);
-    this->d_img = new carma_obj<Tout>(current_context, dims_data2);
+    this->d_img = new carma_obj<float>(current_context, dims_data2);
   }
   this->d_img_raw->host2device(img);
   return EXIT_SUCCESS;

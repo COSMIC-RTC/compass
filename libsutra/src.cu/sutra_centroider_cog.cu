@@ -2,22 +2,22 @@
 #include <carma_utils.cuh>
 
 template <class T, int Nthreads>
-__global__ void centroids(T *d_img, T *d_centroids, T *ref, int *validx,
+__global__ void centroids(float *d_img, T *d_centroids, T *ref, int *validx,
                           int *validy, T *d_intensities, unsigned int npix,
-                          unsigned int size, float scale, float offset,
+                          unsigned int size, T scale, T offset,
                           unsigned int nelem_thread) {
   if (blockDim.x > Nthreads) {
     if (threadIdx.x == 0) printf("Wrong size argument\n");
     return;
   }
   // Specialize BlockReduce for a 1D block of 128 threads on type int
-  typedef cub::BlockReduce<T, Nthreads> BlockReduce;
+  typedef cub::BlockReduce<float, Nthreads> BlockReduce;
   // Allocate shared memory for BlockReduce
   __shared__ typename BlockReduce::TempStorage temp_storage;
 
-  T idata = 0;
-  T xdata = 0;
-  T ydata = 0;
+  float idata = 0;
+  float xdata = 0;
+  float ydata = 0;
   // load shared mem
   unsigned int tid = threadIdx.x;
   unsigned int xvalid = validx[blockIdx.x];
@@ -33,34 +33,33 @@ __global__ void centroids(T *d_img, T *d_centroids, T *ref, int *validx,
     idim = (x + xvalid) + (y + yvalid) * size;
     if (idim < size * size) {
       idata += d_img[idim];
-      xdata += d_img[idim] * (T)x;
-      ydata += d_img[idim] * (T)y;
+      xdata += d_img[idim] * x;
+      ydata += d_img[idim] * y;
     }
   }
 
   // sdata[tid] = (i < N) ? g_idata[i] * x : 0;
   __syncthreads();
 
-  T intensity = BlockReduce(temp_storage).Sum(idata, blockDim.x);
+  float intensity = BlockReduce(temp_storage).Sum(idata, blockDim.x);
   __syncthreads();
-  T slopex = BlockReduce(temp_storage).Sum(xdata, blockDim.x);
+  float slopex = BlockReduce(temp_storage).Sum(xdata, blockDim.x);
   __syncthreads();
-  T slopey = BlockReduce(temp_storage).Sum(ydata, blockDim.x);
+  float slopey = BlockReduce(temp_storage).Sum(ydata, blockDim.x);
   __syncthreads();
   // write result for this block to global mem
   if (tid == 0) {
     d_centroids[blockIdx.x] =
-        ((slopex * (T)1.0 / (intensity + (T)1.e-6)) - (T)offset) * (T)scale -
-        ref[blockIdx.x];
+        (T(slopex / (intensity + 1.e-6)) - offset) * scale - ref[blockIdx.x];
     d_centroids[blockIdx.x + gridDim.x] =
-        ((slopey * (T)1.0 / (intensity + (T)1.e-6)) - (T)offset) * (T)scale -
+        (T(slopey / (intensity + 1.e-6)) - offset) * scale -
         ref[blockIdx.x + gridDim.x];
-    d_intensities[blockIdx.x] = intensity;
+    d_intensities[blockIdx.x] = T(intensity);
   }
 }
 
 template <class T>
-void get_centroids(int size, int threads, int blocks, int npix, T *d_img,
+void get_centroids(int size, int threads, int blocks, int npix, float *d_img,
                    T *d_centroids, T *ref, int *validx, int *validy,
                    T *intensities, float scale, float offset,
                    carma_device *device) {
@@ -80,28 +79,28 @@ void get_centroids(int size, int threads, int blocks, int npix, T *d_img,
   if (threads <= 16)
     centroids<T, 16><<<dimGrid, dimBlock>>>(d_img, d_centroids, ref, validx,
                                             validy, intensities, npix, size,
-                                            scale, offset, nelem_thread);
+                                            T(scale), T(offset), nelem_thread);
   else if (threads <= 32)
     centroids<T, 32><<<dimGrid, dimBlock>>>(d_img, d_centroids, ref, validx,
                                             validy, intensities, npix, size,
-                                            scale, offset, nelem_thread);
+                                            T(scale), T(offset), nelem_thread);
 
   else if (threads <= 64)
     centroids<T, 64><<<dimGrid, dimBlock>>>(d_img, d_centroids, ref, validx,
                                             validy, intensities, npix, size,
-                                            scale, offset, nelem_thread);
+                                            T(scale), T(offset), nelem_thread);
   else if (threads <= 128)
     centroids<T, 128><<<dimGrid, dimBlock>>>(d_img, d_centroids, ref, validx,
                                              validy, intensities, npix, size,
-                                             scale, offset, nelem_thread);
+                                             T(scale), T(offset), nelem_thread);
   else if (threads <= 256)
     centroids<T, 256><<<dimGrid, dimBlock>>>(d_img, d_centroids, ref, validx,
                                              validy, intensities, npix, size,
-                                             scale, offset, nelem_thread);
+                                             T(scale), T(offset), nelem_thread);
   else if (threads <= 512)
     centroids<T, 512><<<dimGrid, dimBlock>>>(d_img, d_centroids, ref, validx,
                                              validy, intensities, npix, size,
-                                             scale, offset, nelem_thread);
+                                             T(scale), T(offset), nelem_thread);
   else
     printf("SH way too big !!!\n");
 
@@ -121,14 +120,14 @@ template void get_centroids<float>(int size, int threads, int blocks, int npix,
                                    carma_device *device);
 
 template void get_centroids<double>(int size, int threads, int blocks, int npix,
-                                    double *d_img, double *d_centroids,
+                                    float *d_img, double *d_centroids,
                                     double *ref, int *validx, int *validy,
                                     double *intensities, float scale,
                                     float offset, carma_device *device);
 
 #ifdef CAN_DO_HALF
 template void get_centroids<half>(int size, int threads, int blocks, int npix,
-                                  half *d_img, half *d_centroids, half *ref,
+                                  float *d_img, half *d_centroids, half *ref,
                                   int *validx, int *validy, half *intensities,
                                   float scale, float offset,
                                   carma_device *device);

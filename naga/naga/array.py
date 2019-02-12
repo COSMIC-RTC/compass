@@ -1,7 +1,7 @@
 import numpy as np
 from naga.context import Context
 
-from carmaWrap import obj_float, obj_double, obj_int, obj_float_complex, obj_half
+from carmaWrap import obj_float, obj_double, obj_int, obj_float_complex, obj_half, obj_uint16
 from carmaWrap import make_carmaWrap_obj_half
 from carmaWrap import get_carmaWrap_obj_half
 context = Context()
@@ -88,6 +88,10 @@ class Array():
             elif isinstance(data, obj_float_complex):
                 self.__data = data
                 self.__dtype = np.complex64
+                self.__shape = tuple(data.shape[k] for k in range(len(data.shape)))
+            elif isinstance(data, obj_uint16):
+                self.__data = data
+                self.__dtype = np.uint16
                 self.__shape = tuple(data.shape[k] for k in range(len(data.shape)))
             else:
                 raise TypeError("Data must be a list, a numpy array or a carmaWrap.obj")

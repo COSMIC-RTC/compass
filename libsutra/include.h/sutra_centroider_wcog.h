@@ -7,7 +7,7 @@ template <class Tin, class T>
 class sutra_centroider_wcog : public sutra_centroider<Tin, T> {
  public:
   int npix;
-  carma_obj<T> *d_weights;
+  carma_obj<float> *d_weights;
 
  public:
   sutra_centroider_wcog(carma_context *context, sutra_wfs *wfs, long nvalid,
@@ -19,18 +19,18 @@ class sutra_centroider_wcog : public sutra_centroider<Tin, T> {
 
   int set_npix(int npix);
   int init_weights();
-  int load_weights(T *weights, int ndim);
+  int load_weights(float *weights, int ndim);
 
-  int get_cog(T *cube, T *intensities, T *centroids, int nvalid, int npix,
+  int get_cog(float *cube, T *intensities, T *centroids, int nvalid, int npix,
               int ntot);
   int get_cog(T *intensities, T *slopes, bool noise);
   int get_cog();
 };
 
 template <class T>
-void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
+void get_centroids(int size, int threads, int blocks, int n, float *d_idata,
                    T *d_odata, T *ref, int *validx, int *validy, T *intensities,
-                   T *d_weights, float scale, float offset,
+                   float *d_weights, float scale, float offset,
                    carma_device *device);
 
 template <class T>

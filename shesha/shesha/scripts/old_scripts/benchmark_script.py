@@ -223,7 +223,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
                 timer.reset()
 
                 timer.start()
-                rtc.apply_control(0, dms)
+                rtc.apply_control(0)
                 threadSync()
                 applycontrol_time += timer.stop() - synctime
                 timer.reset()
@@ -245,7 +245,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
                         timer.reset()
 
                         timer.start()
-                        rtc.apply_control(0, dms)
+                        rtc.apply_control(0)
                         threadSync()
                         applycontrol_time += timer.stop() - synctime
                         timer.reset()
