@@ -85,6 +85,9 @@ void sutra_rtc_cacao<Tin, Tcomp, Tout>::publish() {
   framecounter_++;
 }
 template class sutra_rtc_cacao<float, float, float>;
+template class sutra_rtc_cacao<uint16_t, float, float>;
+template class sutra_rtc_cacao<float, float, uint16_t>;
+template class sutra_rtc_cacao<uint16_t, float, uint16_t>;
 #ifdef CAN_DO_HALF
 // template class sutra_rtc_cacao<half>;
 #endif

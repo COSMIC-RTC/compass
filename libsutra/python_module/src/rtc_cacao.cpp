@@ -118,4 +118,7 @@ void declare_rtc_cacao(py::module &mod) {
   // rtc_cacao_impl<half>(mod, "Rtc_cacaoH");
 #endif
   rtc_cacao_impl<float, float, float>(mod, "Rtc_cacao_FFF");
+  rtc_cacao_impl<uint16_t, float, float>(mod, "Rtc_cacao_UFF");
+  rtc_cacao_impl<float, float, uint16_t>(mod, "Rtc_cacao_FFU");
+  rtc_cacao_impl<uint16_t, float, uint16_t>(mod, "Rtc_cacao_UFU");
 };
