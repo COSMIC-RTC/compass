@@ -10,7 +10,7 @@ message("Building for Compute Capability ${CUDA_SM}")
 
 if( ${CUDA_SM} STREQUAL "ALL")
 unset(CUDA_SM)
-list(APPEND CUDA_SM "35" "37" "50" "52" "60" "61" "70")
+list(APPEND CUDA_SM "30" "35" "37" "50" "52" "60" "61" "70")
 endif()
 
 foreach(SM ${CUDA_SM})

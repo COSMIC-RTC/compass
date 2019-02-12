@@ -13,6 +13,10 @@ if (DEFINED ENV{BRAHMA_ROOT})
                 src/target_brahma.cpp)
 endif()
 
+if (DEFINED ENV{OCTOPUS_ROOT})
+    SET(OCTOPUS_CPP src/rtc_cacao.cpp)
+endif()
+
 add_library(sutraWrap MODULE
                     src/telescope.cpp
                     src/tscreen.cpp
@@ -42,6 +46,7 @@ add_library(sutraWrap MODULE
                     src/groot.cpp
                     src/sutraWrap.cpp
                     ${BRAHMA_CPP}
+                    ${OCTOPUS_CPP}
                     )
 #link_directories($ENV{COMPASS_ROOT}/libsutra)
 

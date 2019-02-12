@@ -26,6 +26,16 @@ project(sutra
 #     CCFLAGS += -m64
 #   endif
 # endif
+if (DEFINED ENV{OCTOPUS_ROOT})
+    add_subdirectory($ENV{OCTOPUS_ROOT} octopus)
+    SET(CACAO_FLAGS -DUSE_CACAO)
+
+    SET(OCTOPUS_CPP src.cpp/sutra_rtc_cacao.cpp)
+
+    SET(OCTOPUS_LIBS CacaoInterface)
+else()
+    message(WARNING "OCTOPUS_ROOT not find, CACAO RTC will not be available")
+endif()
 
 if (DEFINED ENV{BRAHMA_ROOT})
     SET(BRAHMA_FLAGS -fvisibility-inlines-hidden
@@ -47,6 +57,8 @@ if (DEFINED ENV{BRAHMA_ROOT})
 
     SET(BRAHMA_LIBS BRAHMACommon OpenDDS_InfoRepoDiscovery OpenDDS_Dcps TAO_PortableServer
         TAO_AnyTypeCode TAO ACE dl rt)
+else()
+    message(WARNING "BRAHMA_ROOT not find, BRAHMA RTC will not be available")
 endif()
 
 add_library(sutra SHARED
@@ -109,6 +121,7 @@ add_library(sutra SHARED
     src.cu/sutra_wfs.cu
     aao/cured/cured.cpp
     ${BRAHMA_CPP}
+    ${OCTOPUS_CPP}
 )
 
 set_target_properties(sutra
@@ -128,11 +141,11 @@ target_include_directories(sutra
 
 target_compile_options(sutra
     PUBLIC
-    $<$<COMPILE_LANGUAGE:CXX>: ${BRAHMA_FLAGS}>
+    $<$<COMPILE_LANGUAGE:CXX>: ${CACAO_FLAGS} ${BRAHMA_FLAGS}>
 )
 
 
-target_link_libraries(sutra PUBLIC carma ${BRAHMA_LIBS} )
+target_link_libraries(sutra PUBLIC carma ${BRAHMA_LIBS} ${OCTOPUS_LIBS} )
 
 if(python_build)
 add_subdirectory(python_module)

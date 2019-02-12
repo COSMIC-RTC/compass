@@ -17,6 +17,7 @@ void declare_half_setter_getter(py::module &mod);
 PYBIND11_MODULE(carmaWrap, mod) {
   mod.doc() = "";
   PYBIND11_NUMPY_DTYPE(float2, x, y);
+  PYBIND11_NUMPY_DTYPE(double2, x, y);
   declare_carmaWrap_context(mod);
   declare_carmaWrap_obj(mod);
   declare_carmaWrap_sparse_obj(mod);

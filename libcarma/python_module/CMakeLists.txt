@@ -10,19 +10,24 @@ project(carmaWrap
 ################
 
 if(NOT TARGET wyrm)
-	if(NOT DEFINED WYRM_ROOT)
-		set(WYRM_ROOT $ENV{WYRM_ROOT})
-	endif()
-	if(NOT DEFINED WYRM_ROOT)
-        message(WARNING "set WYRM_ROOT to the default path : $COMPASS_ROOT/tplib/wyrm" )
+    if(NOT DEFINED WYRM_ROOT)
+        set(WYRM_ROOT $ENV{WYRM_ROOT})
+    endif()
+    if(NOT DEFINED WYRM_ROOT)
+        message(WARNING "wyrm path set WYRM_ROOT to $COMPASS_ROOT/tplib/wyrm" )
         set(WYRM_ROOT $ENV{COMPASS_ROOT}/tplib/wyrm)
     endif()
-	if(IS_DIRECTORY ${WYRM_ROOT})
+    if(IS_DIRECTORY ${WYRM_ROOT})
 		add_subdirectory(${WYRM_ROOT} wyrm_dir)
     else()
-        message(FATAL_ERROR "wyrm path not found, specify it by setting WYRM_ROOT to the right path" )
+        message(ERROR "wyrm path not found, specify it by set WYRM_ROOT to the right path" )
     endif()
 endif()
+
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(MAGMA REQUIRED magma)
+link_directories( ${MAGMA_LIBRARY_DIRS} )
 
 add_library(carmaWrap MODULE
 src/context.cpp

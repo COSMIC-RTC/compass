@@ -7,11 +7,11 @@
 #include "type_list.hpp"
 
 #ifdef CAN_DO_HALF
-using TypeListObj =
-    GenericTypeList<int, uint16_t, float, double, half, cuFloatComplex>;
+using TypeListObj = GenericTypeList<int, uint16_t, float, double, half,
+                                    cuFloatComplex, cuDoubleComplex>;
 #else
-using TypeListObj =
-    GenericTypeList<int, uint16_t, float, double, cuFloatComplex>;
+using TypeListObj = GenericTypeList<int, uint16_t, float, double,
+                                    cuFloatComplex, cuDoubleComplex>;
 #endif
 
 void declare_carmaWrap_obj(py::module &mod) {

@@ -23,13 +23,15 @@ def test_fft_C2C():
     n = sizey
     nElem = m * n
 
+    C1_data = np.empty((n, m), dtype=np.complex64)
+    C2_data = np.empty((n, m), dtype=np.complex64)
     #generating random carma_obj
-    C1 = ch.obj_ComplexD2D(c, dims=np.array((m, n), dtype=np.int64))
-    C1.random(time.clock() * 10**6)
-    C2 = ch.obj_ComplexD2D(c, dims=np.array((m, n), dtype=np.int64))
+    C1 = ch.obj_double_complex(c, C1_data)
+    C1.random(int(time.clock() * 10**6))
+    C2 = ch.obj_double_complex(c, C2_data)
 
     #matrix associated to carma_obj
-    C1_data = C1.device2host()
+    C1.device2host(C1_data)
     #switch from data layout
     C1_data = np.reshape(C1_data.flatten("F"), (m, n), order="C")
 

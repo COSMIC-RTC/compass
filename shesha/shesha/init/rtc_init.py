@@ -14,7 +14,7 @@ from typing import List
 
 import numpy as np
 from shesha.sutra_wrap import (carmaWrap_context, Sensors, Dms, Target, Rtc_brahma,
-                               Atmos, Telescope)
+                               Rtc_cacao, Atmos, Telescope)
 from shesha.sutra_wrap import Rtc_FFF as Rtc
 
 
@@ -120,12 +120,14 @@ def rtc_init(context: carmaWrap_context, tel: Telescope, wfs: Sensors, dms: Dms,
 
 def rtc_standalone(context: carmaWrap_context, nwfs: int, nvalid: int, nactu: int,
                    centroider_type: str, delay: float, offset: float, scale: float,
-                   brahma: bool = False, fp16: bool = False) -> Rtc:
+                   brahma: bool = False, fp16: bool = False, cacao: bool = False) -> Rtc:
     """
     TODO docstring
     """
     if brahma:
         rtc = Rtc_brahma(context, None, None, "rtc_brahma")
+    elif cacao:
+        rtc = Rtc_cacao(context, "compass_calPix", "compass_loopData")
     else:
         if fp16:
             from shesha.sutra_wrap import RtcFH
