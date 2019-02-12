@@ -2,11 +2,11 @@
 
 #include <sutra_rtc_cacao.h>
 
-template <typename T>
-sutra_rtc_cacao<T>::sutra_rtc_cacao(carma_context* context,
-                                    std::string iCalFrame_name,
-                                    std::string iLoopFrame_name)
-    : sutra_rtc(),
+template <typename Tin, typename Tcomp, typename Tout>
+sutra_rtc_cacao<Tin, Tcomp, Tout>::sutra_rtc_cacao(carma_context* context,
+                                                   std::string iCalFrame_name,
+                                                   std::string iLoopFrame_name)
+    : sutra_rtc<Tin, Tcomp, Tout>(),
       iCalFrame_name_(iCalFrame_name),
       iLoopFrame_name_(iLoopFrame_name),
       framecounter_(0),
@@ -18,8 +18,8 @@ sutra_rtc_cacao<T>::sutra_rtc_cacao(carma_context* context,
   iLoopFrame_.reset();
 }
 
-template <typename T>
-sutra_rtc_cacao<T>::~sutra_rtc_cacao() {
+template <typename Tin, typename Tcomp, typename Tout>
+sutra_rtc_cacao<Tin, Tcomp, Tout>::~sutra_rtc_cacao() {
   if (!is_initialised_) {
     return;
   }
@@ -27,15 +27,15 @@ sutra_rtc_cacao<T>::~sutra_rtc_cacao() {
   iLoopFrame_.reset();
 }
 
-template <typename T>
-void sutra_rtc_cacao<T>::allocateBuffers() {
+template <typename Tin, typename Tcomp, typename Tout>
+void sutra_rtc_cacao<Tin, Tcomp, Tout>::allocateBuffers() {
   if (is_initialised_) {
     return;
   }
 
   uint32_t size = this->d_centro[0]->d_img->getDims(1);
-  iCalFrame_ = std::make_shared<ipc::Cacao<T>>(
-      ipc::Cacao<T>(iCalFrame_name_, std::vector<uint32_t>{10, size, size}));
+  iCalFrame_ = std::make_shared<ipc::Cacao<float>>(ipc::Cacao<float>(
+      iCalFrame_name_, std::vector<uint32_t>{10, size, size}));
 
   nslp_ = 0;
   ncmd_ = 0;
@@ -46,24 +46,24 @@ void sutra_rtc_cacao<T>::allocateBuffers() {
   nvalid_ = nslp_ / 2;
 
   uint32_t size_tot = nvalid_ + nslp_ + ncmd_;
-  iLoopFrame_ = std::make_shared<ipc::Cacao<T>>(
-      ipc::Cacao<T>(iLoopFrame_name_, std::vector<uint32_t>{10, 1, size_tot}));
+  iLoopFrame_ = std::make_shared<ipc::Cacao<Tcomp>>(ipc::Cacao<Tcomp>(
+      iLoopFrame_name_, std::vector<uint32_t>{10, 1, size_tot}));
 
   is_initialised_ = true;
 }
 
-template <typename T>
-void sutra_rtc_cacao<T>::publish() {
+template <typename Tin, typename Tcomp, typename Tout>
+void sutra_rtc_cacao<Tin, Tcomp, Tout>::publish() {
   if (!is_initialised_) {
     allocateBuffers();
   }
 
-  T* zFrame = iCalFrame_->outputPtr();
+  float* iFrame = iCalFrame_->outputPtr();
 
-  this->d_centro[0]->d_img->device2host(zFrame);
+  this->d_centro[0]->d_img->device2host(iFrame);
   iCalFrame_->notify();
 
-  zFrame = iLoopFrame_->outputPtr();
+  Tcomp* zFrame = iLoopFrame_->outputPtr();
 
   for (unsigned int i = 0; i < this->d_centro.size(); i++) {
     this->d_centro[i]->d_intensities->device2host(zFrame);
@@ -76,7 +76,7 @@ void sutra_rtc_cacao<T>::publish() {
   }
 
   for (unsigned int i = 0; i < this->d_control.size(); i++) {
-    this->d_control[i]->d_voltage->device2host(zFrame);
+    this->d_control[i]->d_com->device2host(zFrame);
     zFrame += this->d_control[i]->nactu();
   }
 
@@ -84,7 +84,7 @@ void sutra_rtc_cacao<T>::publish() {
 
   framecounter_++;
 }
-template class sutra_rtc_cacao<float>;
+template class sutra_rtc_cacao<float, float, float>;
 #ifdef CAN_DO_HALF
 // template class sutra_rtc_cacao<half>;
 #endif

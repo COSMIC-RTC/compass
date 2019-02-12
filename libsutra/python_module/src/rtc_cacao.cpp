@@ -4,21 +4,22 @@
 
 namespace py = pybind11;
 
-template <typename T>
-std::unique_ptr<sutra_rtc_cacao<T>> rtc_cacao_init(
+template <typename Tin, typename Tcomp, typename Tout>
+std::unique_ptr<sutra_rtc_cacao<Tin, Tcomp, Tout>> rtc_cacao_init(
     carma_context *context, std::string iCalFrame_name,
     std::string iLoopFrame_name) {
-  return std::unique_ptr<sutra_rtc_cacao<T>>(
-      new sutra_rtc_cacao<T>(context, iCalFrame_name, iLoopFrame_name));
+  return std::unique_ptr<sutra_rtc_cacao<Tin, Tcomp, Tout>>(
+      new sutra_rtc_cacao<Tin, Tcomp, Tout>(context, iCalFrame_name,
+                                            iLoopFrame_name));
 }
 
-template <typename T>
+template <typename Tin, typename Tcomp, typename Tout>
 void rtc_cacao_impl(py::module &mod, const char *name) {
-  using rtc = sutra_rtc;
-  using rtc_cacao = sutra_rtc_cacao<T>;
+  using rtc = sutra_rtc<Tin, Tcomp, Tout>;
+  using rtc_cacao = sutra_rtc_cacao<Tin, Tcomp, Tout>;
 
   py::class_<rtc_cacao, rtc>(mod, name)
-      .def(py::init(wy::colCast(rtc_cacao_init<T>)), R"pbdoc(
+      .def(py::init(wy::colCast(rtc_cacao_init<Tin, Tcomp, Tout>)), R"pbdoc(
             Create and initialise a cacao rtc object
 
             Parameters
@@ -116,5 +117,5 @@ void declare_rtc_cacao(py::module &mod) {
 #ifdef CAN_DO_HALF
   // rtc_cacao_impl<half>(mod, "Rtc_cacaoH");
 #endif
-  rtc_cacao_impl<float>(mod, "Rtc_cacao");
+  rtc_cacao_impl<float, float, float>(mod, "Rtc_cacao_FFF");
 };

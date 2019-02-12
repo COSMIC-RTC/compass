@@ -14,11 +14,11 @@
 #include <sutra_target.h>
 #include <sutra_wfs.h>
 
-template <typename T>
-class sutra_rtc_cacao : public sutra_rtc {
+template <typename Tin, typename Tcomp, typename Tout>
+class sutra_rtc_cacao : public sutra_rtc<Tin, Tcomp, Tout> {
  private:
-  std::shared_ptr<ipc::Cacao<T>> iCalFrame_;
-  std::shared_ptr<ipc::Cacao<T>> iLoopFrame_;
+  std::shared_ptr<ipc::Cacao<float>> iCalFrame_;
+  std::shared_ptr<ipc::Cacao<Tcomp>> iLoopFrame_;
 
   std::string iCalFrame_name_;
   std::string iLoopFrame_name_;
