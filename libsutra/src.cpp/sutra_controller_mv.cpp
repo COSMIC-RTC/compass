@@ -290,7 +290,7 @@ int sutra_controller_mv<Tcomp, Tout>::do_covmat(sutra_dm *ydm, char *method,
   carma_host_obj<Tcomp> *h_eigenvals =
       new carma_host_obj<Tcomp>(dims_data2, MA_PAGELOCK);
 
-  carma_syevd<Tcomp, 1>('N', d_statcov, h_eigenvals);
+  carma_syevd<Tcomp>('N', d_statcov, h_eigenvals);
 
   if (ydm->type == "kl") {
     dims_data2[1] = this->nactu();
@@ -516,7 +516,7 @@ int sutra_controller_mv<Tcomp, Tout>::invgen(carma_obj<Tcomp> *d_mat,
       new carma_host_obj<Tcomp>(dims_data2, MA_PAGELOCK);
 
   d_U->copy(d_mat, 1, 1);
-  carma_syevd<Tcomp, 1>('V', d_U, h_eigenvals);
+  carma_syevd<Tcomp>('V', d_U, h_eigenvals);
   // syevd_f('V',d_U,h_eigenvals);
   if (job == 1) {  // Conditionnement
     Tcomp maxe = h_eigenvals->getData()[d_mat->getDims()[1] - 1];
@@ -576,7 +576,7 @@ int sutra_controller_mv<Tcomp, Tout>::invgen(carma_obj<Tcomp> *d_mat,
 
   d_U->copy(d_mat, 1, 1);
 
-  carma_syevd<Tcomp, 1>('V', d_U, h_eigen);
+  carma_syevd<Tcomp>('V', d_U, h_eigen);
 
   // syevd_f('V',d_U,h_eigen);
   // Conditionnement
@@ -714,7 +714,7 @@ int sutra_controller_mv<Tcomp, Tout>::DDiago(carma_obj<Tcomp> *d_statcov,
       new carma_host_obj<Tcomp>(dims_data2, MA_PAGELOCK);
 
   // 1. SVdec(geocov,U) --> Ut * geocov * U = D²
-  carma_syevd<Tcomp, 1>('V', d_geocov, h_eigenvals);
+  carma_syevd<Tcomp>('V', d_geocov, h_eigenvals);
 
   d_eigenvals->host2device(h_eigenvals->getData());
   for (int i = 0; i < this->nactu(); i++) {
@@ -745,7 +745,7 @@ int sutra_controller_mv<Tcomp, Tout>::DDiago(carma_obj<Tcomp> *d_statcov,
                     this->nactu());
 
   // 4. SVdec(C',A)
-  carma_syevd<Tcomp, 1>('V', d_tmp2, h_eigenvals);
+  carma_syevd<Tcomp>('V', d_tmp2, h_eigenvals);
 
   // 5. M = U * D⁻¹
   carma_dgmm<Tcomp>(cublas_handle, CUBLAS_SIDE_RIGHT, this->nactu(),

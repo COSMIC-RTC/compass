@@ -32,6 +32,7 @@ link_directories( ${MAGMA_LIBRARY_DIRS} )
 add_library(carmaWrap MODULE
 src/context.cpp
 src/timer.cpp
+src/host_obj.cpp
 src/obj.cpp
 src/sparse_obj.cpp
 src/carmaWrap.cpp
