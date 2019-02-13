@@ -9,6 +9,8 @@ from .abstractSupervisor import AbstractSupervisor
 
 from typing import Callable
 
+from Octopus import CacaoInterface
+
 
 class BenchSupervisor(AbstractSupervisor):
 
@@ -217,16 +219,11 @@ class BenchSupervisor(AbstractSupervisor):
         Returns a sequence of data at continuous loop steps.
         Requires loop to be asynchronously running
         '''
-        if not self.CACAO:
-            raise NotImplementedError("Not implemented")
 
-        from Octopus import CacaoInterface
-
-        it = CacaoInterface.getInterface("compass_loopData")
-        data = [np.array(it)]
+        data = [np.array(self.it_loopData)]
         for _ in range(nIter):
             self.singleNext()
-            data += [np.array(it)]
+            data += [np.array(self.it_loopData)]
         data = np.stack(data)
 
         p_wfs = self.config.p_wfss[0]
@@ -273,6 +270,7 @@ class BenchSupervisor(AbstractSupervisor):
         self.frame = None
         self.BRAHMA = BRAHMA
         self.CACAO = CACAO
+        self.it_loopData = None
 
         if configFile is not None:
             self.loadConfig(configFile=configFile)
@@ -440,6 +438,7 @@ class BenchSupervisor(AbstractSupervisor):
         self.rtc.d_control[0].set_matE(np.identity(nact, dtype=np.float32))
         self.rtc.d_control[0].set_mgain(np.ones(nact, dtype=np.float32) * -gain)
 
+        self.it_loopData = CacaoInterface.getInterface("compass_loopData")
         self.is_init = True
 
     def getFrameCounter(self) -> int:
