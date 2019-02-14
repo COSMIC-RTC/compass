@@ -5,7 +5,7 @@ from shesha.sutra_wrap import Rtc_UFU as Rtc
 from shesha.supervisor.compassSupervisor import CompassSupervisor as Supervisor
 from scipy.ndimage.measurements import center_of_mass
 
-precision = 5e-3
+precision = 1e-2
 sup = Supervisor(
         os.getenv("COMPASS_ROOT") + "/shesha/data/par/par4bench/scao_sh_16x16_8pix.py")
 sup.config.p_dms[0].unitpervolt = 500
