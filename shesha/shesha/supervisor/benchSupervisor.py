@@ -9,8 +9,6 @@ from .abstractSupervisor import AbstractSupervisor
 
 from typing import Callable
 
-from Octopus import CacaoInterface
-
 
 class BenchSupervisor(AbstractSupervisor):
 
@@ -218,29 +216,6 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         raise NotImplementedError("Not implemented")
 
-    def getAllDataLoop(self, nIter: int = 1, slope: bool = True, command: bool = True,
-                       target: bool = True, intensity: bool = True,
-                       targetPhase: bool = True) -> np.ndarray:
-        '''
-        Returns a sequence of data at continuous loop steps.
-        Requires loop to be asynchronously running
-        '''
-
-        data = [np.array(self.it_loopData)]
-        for _ in range(nIter):
-            self.singleNext()
-            data += [np.array(self.it_loopData)]
-        data = np.stack(data)
-
-        p_wfs = self.config.p_wfss[0]
-        intensity_tab = np.stack([loopdata[0, :p_wfs._nvalid] for loopdata in data])
-        slope_tab = np.stack([
-                loopdata[0, p_wfs._nvalid:(p_wfs._nvalid * 3)] for loopdata in data
-        ])
-        command_tab = np.stack([loopdata[0, (p_wfs._nvalid * 3):] for loopdata in data])
-
-        return (intensity_tab, slope_tab, command_tab)
-
     def forceContext(self) -> None:
         """
         Active all the GPU devices specified in the parameters file
@@ -276,7 +251,6 @@ class BenchSupervisor(AbstractSupervisor):
         self.frame = None
         self.BRAHMA = BRAHMA
         self.CACAO = CACAO
-        self.it_loopData = None
 
         if configFile is not None:
             self.loadConfig(configFile=configFile)
@@ -444,7 +418,6 @@ class BenchSupervisor(AbstractSupervisor):
         self.rtc.d_control[0].set_matE(np.identity(nact, dtype=np.float32))
         self.rtc.d_control[0].set_mgain(np.ones(nact, dtype=np.float32) * -gain)
 
-        self.it_loopData = CacaoInterface.getInterface("compass_loopData")
         self.is_init = True
 
     def getFrameCounter(self) -> int:
