@@ -186,13 +186,19 @@ class BenchSupervisor(AbstractSupervisor):
 
     def setGain(self, gain) -> None:
         '''
-        Set the scalar gain of feedback controller loop
+        Set the scalar gain or mgain of feedback controller loop
         '''
-        if type(gain) in [int, float]:
-            self.rtc.d_control[0].set_gain(gain)
-        else:
-            raise ValueError(
-                    "ERROR CANNOT set array gain in canapass (generic + integrator law")
+        if self.rtc.d_control[0].command_law == 'integrator':  # Integrator law
+            if np.isscalar(gain):
+                self.rtc.d_control[0].set_gain(gain)
+            else:
+                raise ValueError("Cannot set array gain w/ generic + integrator law")
+        else:  # E matrix mode
+            if np.isscalar(gain):  # Automatic scalar expansion
+                gain = np.ones(np.sum(self.rtc.d_control[0].nactu),
+                               dtype=np.float32) * gain
+            # Set array
+            self.rtc.d_control[0].set_mgain(gain)
 
     def setCommandMatrix(self, cMat: np.ndarray) -> None:
         '''

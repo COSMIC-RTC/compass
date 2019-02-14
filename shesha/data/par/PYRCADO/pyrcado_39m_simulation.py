@@ -83,9 +83,9 @@ p_dms = [p_dm0, p_dm1]
 p_dm0.set_type(scons.DmType.PZT)
 p_dm0.set_nact(73)  #73 actuators for a projected M4 pitch of 53cm
 p_dm0.set_alt(0.)
+p_dm0.set_margin_out(0.6)
 p_dm0.set_thresh(0.6)  # fraction units
-# !!!!!!!!!!!!!!!!!!!!!!!!! attention pas autre chose que 0.2 !!!!!!!!!
-p_dm0.set_coupling(0.2)
+p_dm0.set_coupling(0.2)  # 0.2 only
 p_dm0.set_unitpervolt(1)
 p_dm0.set_push4imat(0.01)
 p_dm0.set_type_pattern(scons.PatternType.HEXAM4)
@@ -96,16 +96,3 @@ p_dm1.set_alt(0.)
 p_dm1.set_unitpervolt(p_wfs0.Lambda * 1e-6 / p_tel.diam * scons.CONST.RAD2ARCSEC)
 # -> Such that we talk to TT mirror in l/D units
 p_dm1.set_push4imat(0.005)
-
-# For the sake of needing the imat_geom -> correct_dm for the M4 to be adequately filtered
-p_centroider0 = conf.Param_centroider()
-p_centroiders = [p_centroider0]
-p_centroider0.set_nwfs(0)
-p_centroider0.set_type(scons.CentroiderType.MASKEDPIX)
-p_controller0 = conf.Param_controller()
-p_controllers = [p_controller0]
-p_controller0.set_type(scons.ControllerType.GENERIC)
-p_controller0.set_nwfs([0])
-p_controller0.set_ndm([0, 1])
-p_controller0.set_delay(0.)
-p_controller0.set_gain(0.)
