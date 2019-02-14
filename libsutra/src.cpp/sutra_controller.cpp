@@ -209,7 +209,7 @@ int sutra_controller<Tcomp, Tout>::comp_latency() {
     this->d_comDelayed->axpy(this->a, this->d_com, 1, 1);
     this->d_comDelayed->axpy(this->b, this->d_com1, 1, 1);
 
-    if (delay > 1) this->d_comDelayed->axpy(this->b, this->d_com2, 1, 1);
+    if (delay > 1) this->d_comDelayed->axpy(this->c, this->d_com2, 1, 1);
   }
 
   return EXIT_SUCCESS;

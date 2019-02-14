@@ -146,7 +146,7 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         self.frame = self.getWfsImage()
         self.rtc.d_centro[0].load_img(self.frame, self.frame.shape[0])
-        self.rtc.d_centro[0].calibrate_img(True)
+        self.rtc.d_centro[0].calibrate_img()
         self.rtc.do_centroids(0)
         self.rtc.do_control(0)
         self.rtc.do_clipping(0)
