@@ -10,9 +10,13 @@ sutra_controller<Tcomp, Tout>::sutra_controller(carma_context *context,
   this->current_context = context;
   this->device = context->get_activeDevice();
 
+  this->nactus = nactu;
+  this->nslopes = nslope;
   // current_context->set_activeDevice(device,1);
   this->d_com1 = nullptr;
   this->d_com2 = nullptr;
+  this->d_comPadded = nullptr;
+  this->d_centroidsPadded = nullptr;
 
   int nstreams = 1;  // nvalid/10;
 
@@ -76,6 +80,17 @@ sutra_controller<Tcomp, Tout>::sutra_controller(carma_context *context,
 
   for (int i = 0; i < ndm; i++) {
     this->d_dmseen.push_back(dms->d_dms[idx_dms[i]]);
+  }
+
+  if(std::is_same<Tcomp, half>::value){
+    while(nslope%8 != 0) nslope++; //Watching for multiple of 8 to get max perf with tensor cores
+    while(nactu%8 != 0) nactu++;
+    dims_data1[1] = nslope;
+    this->d_centroidsPadded = new carma_obj<Tcomp>(context, dims_data1);
+    this->d_centroids->swapPtr(this->d_centroidsPadded->getData());
+    dims_data1[1] = nactu;
+    this->d_comPadded = new carma_obj<Tcomp>(context, dims_data1);
+    this->d_com->swapPtr(this->d_comPadded->getData());
   }
 }
 
@@ -259,6 +274,8 @@ sutra_controller<Tcomp, Tout>::~sutra_controller() {
   delete this->streams;
 
   if (this->d_centroids != nullptr) delete this->d_centroids;
+  if (this->d_centroidsPadded != nullptr) delete this->d_centroidsPadded;
+  if (this->d_comPadded != nullptr) delete this->d_comPadded;
   if (this->d_com != nullptr) delete this->d_com;
   if (this->d_com1 != nullptr) delete this->d_com1;
   if (this->d_com2 != nullptr) delete this->d_com2;

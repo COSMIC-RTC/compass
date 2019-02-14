@@ -10,6 +10,7 @@ class sutra_controller_generic : public sutra_controller<Tcomp, Tout> {
   Tcomp gain;
   carma_obj<Tcomp> *d_matE;
   carma_obj<Tcomp> *d_cmat;
+  carma_obj<Tcomp> *d_cmatPadded;
   carma_obj<Tcomp> *d_gain;
   carma_obj<Tcomp> *d_decayFactor;
   carma_obj<Tcomp> *d_compbuff;  // Buffer for computations
@@ -40,6 +41,18 @@ class sutra_controller_generic : public sutra_controller<Tcomp, Tout> {
   int set_imat(float *imat);
   int comp_polc();
   int comp_com();
+  int fill_cmatPadded();
+
+  private:
+  template<typename Q = Tcomp>
+  typename std::enable_if<!std::is_same<Q, half>::value, int>::type
+  fill_cmatPadded_impl() {};
+  template<typename Q = Tcomp>
+  typename std::enable_if<std::is_same<Q, half>::value, int>::type
+  fill_cmatPadded_impl();
+
 };
 
+template<typename T>
+void pad_cmat(T *idata, int m, int n, T *odata, int m2, int n2, carma_device *device);
 #endif  // _sutra_controller_generic_H_

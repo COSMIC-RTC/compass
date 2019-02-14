@@ -37,6 +37,8 @@ class sutra_controller {
   Tcomp delay;
   float Vmin;
   float Vmax;
+  int nactus;
+  int nslopes;
   Tout valMax;
   Tcomp a;  // Coefficient for linear interpolation on command buffer to allow
             // non-integer delay
@@ -46,7 +48,9 @@ class sutra_controller {
             // non-integer delay
   vector<sutra_dm *> d_dmseen;
   carma_obj<Tcomp> *d_centroids;   // current centroids
+  carma_obj<Tcomp> *d_centroidsPadded;   // current centroids
   carma_obj<Tcomp> *d_com;         // current command
+  carma_obj<Tcomp> *d_comPadded;         // current command
   carma_obj<Tcomp> *d_comDelayed;  // current command
   carma_obj<Tout> *d_voltage;      // commands after perturbation and clipping
   carma_obj<Tcomp> *d_com1;        // commands k-1
@@ -71,8 +75,8 @@ class sutra_controller {
   // virtual int comp_com (carma_obj<T> *new_centroids)=0;
   // it would imply copy, but would be much safer
 
-  inline int nactu() { return d_com->getDims(1); }
-  inline int nslope() { return d_centroids->getDims(1); }
+  inline int nactu() { return this->nactus; }
+  inline int nslope() { return this->nslopes; }
 
   cublasHandle_t cublas_handle() { return current_context->get_cublasHandle(); }
 

@@ -327,3 +327,29 @@ template
                                      float Vmin, float Vmax, uint16_t valMax,
                                      carma_device *device);
 #endif
+
+template <typename T>
+__global__ void padCmat_krnl(T *idata, int m, int n, T *odata, int m2, int n2) {
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  while(tid < m*n){
+    int j = tid / m;
+    int i = tid - j * m;
+    int tid2 = i + j * m2;
+    odata[tid2] = idata[tid];
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+template<typename T>
+void pad_cmat(T *idata, int m, int n, T *odata, int m2, int n2, carma_device *device) {
+  int nthreads = 0, nblocks = 0;
+  getNumBlocksAndThreads(device, m * n, nblocks, nthreads);
+  dim3 grid(nblocks), threads(nthreads);
+
+  padCmat_krnl<<<grid, threads>>>(idata, m, n, odata, m2, n2);
+  carmaCheckMsg("padCmat_krnl<<<>>> execution failed\n");
+}
+
+#ifdef CAN_DO_HALF
+template void pad_cmat<half>(half *idata, int m, int n, half *odata, int m2, int n2, carma_device *device);
+#endif
