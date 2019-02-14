@@ -157,8 +157,8 @@ def _dm_init(context: carmaWrap_context, dms: Dms, p_dm: conf.Param_dm, xpos_wfs
         # res2 = yoga_getkl(g_dm,0.,1);
 
 
-def dm_init_standalone(p_dms: list, p_geom: conf.Param_geom, diam=1., cobs=0.,
-                       wfs_xpos=[0], wfs_ypos=[0]):
+def dm_init_standalone(context: carmaWrap_context, p_dms: list, p_geom: conf.Param_geom,
+                       diam=1., cobs=0., wfs_xpos=[0], wfs_ypos=[0]):
     """Create and initialize a Dms object on the gpu
 
     :parameters:
@@ -179,7 +179,8 @@ def dm_init_standalone(p_dms: list, p_geom: conf.Param_geom, diam=1., cobs=0.,
     if (len(p_dms) != 0):
         dms = Dms()
         for i in range(len(p_dms)):
-            _dm_init(dms, p_dms[i], wfs_xpos, wfs_ypos, p_geom, diam, cobs, max_extent)
+            _dm_init(context, dms, p_dms[i], wfs_xpos, wfs_ypos, p_geom, diam, cobs,
+                     max_extent)
     return dms
 
 

@@ -64,6 +64,7 @@ class sutra_rtc {
   typename std::enable_if<std::is_same<Q, float>::value, int>::type
   do_imat_impl(int ncntrl, sutra_dms *ydm, std::true_type);
   int do_imat_impl(int ncntrl, sutra_dms *ydm, std::false_type);
+
   template <typename Q = T>
   typename std::enable_if<std::is_same<Q, float>::value, int>::type
   do_imat_basis_impl(int ncntrl, sutra_dms *ydm, int nModes, T *m2v,
@@ -74,6 +75,7 @@ class sutra_rtc {
   typename std::enable_if<std::is_same<Q, float>::value, int>::type
   do_imat_geom_impl(int ncntrl, sutra_dms *ydm, int type, std::true_type);
   int do_imat_geom_impl(int ncntrl, sutra_dms *ydm, int type, std::false_type);
+
   template <typename Q = T>
   typename std::enable_if<std::is_same<Q, float>::value, int>::type
   do_centroids_geom_impl(int ncntrl, std::true_type);
@@ -85,7 +87,6 @@ class sutra_rtc {
                       vector<sutra_centroider<Tin, T> *> &d_centro, long nvalid,
                       float offset, float scale, long device, char *typec,
                       sutra_wfs *wfs, std::false_type);
-
   int add_centroider_impl(carma_context *context,
                           vector<sutra_centroider<Tin, T> *> &d_centro,
                           long nvalid, float offset, float scale, long device,

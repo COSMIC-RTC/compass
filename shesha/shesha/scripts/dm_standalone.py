@@ -11,6 +11,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 plt.ion()
 
+from shesha.init.geom_init import geom_init_generic
+from shesha.init.dm_init import dm_init_standalone
+
 if (len(sys.argv) == 2):
     # get parameters from file
     param_file = sys.argv[1]
@@ -31,7 +34,7 @@ else:
     class config:
         #geom
         p_geom = conf.Param_geom()
-        p_geom.geom_init_generic(500)
+        geom_init_generic(p_geom, 500)
 
         #dm
         p_dm0 = conf.Param_dm()
@@ -46,7 +49,7 @@ else:
 
 
 #   context
-c = ch.carmaWrap_context(0)
+c = ch.context.get_instance_ngpu(1, [0])
 # c = ch.carmaWrap_context(devices=np.array([0,1], dtype=np.int32))
 # c.set_activeDevice(0) #useful only if you use ch.carmaWrap_context()
 # c = ch.carmaWrap_context(devices=config.p_loop.devices)
@@ -54,11 +57,11 @@ c = ch.carmaWrap_context(0)
 config.p_dm0.set_pzt_extent(0)
 #   dm
 print("->dm")
-if config.p_tel:
-    dms = conf.dm_init_standalone(config.p_dms, config.p_geom, config.p_tel.diam,
-                                  config.p_tel.cobs)
+if hasattr(config, "p_tel") and config.p_tel is not None:
+    dms = dm_init_standalone(c, config.p_dms, config.p_geom, config.p_tel.diam,
+                             config.p_tel.cobs)
 else:
-    dms = conf.dm_init_standalone(config.p_dms, config.p_geom)
+    dms = dm_init_standalone(c, config.p_dms, config.p_geom)
 
 print("====================")
 print("init done")
@@ -66,3 +69,8 @@ print("====================")
 print("objects initialzed on GPU:")
 print("--------------------------------------------------------")
 print(dms)
+
+cmd = np.zeros(5268)
+cmd[1111] = 1
+dms.set_full_com(cmd)
+plt.matshow(dms.d_dms[0].d_shape)
