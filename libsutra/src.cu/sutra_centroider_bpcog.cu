@@ -29,7 +29,7 @@ __launch_bounds__(BLOCK_THREADS) __global__
   int idim = (x + xvalid) + (y + yvalid) * size;
 
   float items[1];
-  items[0] = (idim < size * size) ? d_img[idim] : 0.f;
+  items[0] = ((idim < size * size) && (tid < npix * npix)) ? d_img[idim] : 0.f;
 
   __syncthreads();
   BlockRadixSortT(temp_storageSort).SortDescending(items);
@@ -37,8 +37,7 @@ __launch_bounds__(BLOCK_THREADS) __global__
   if (tid == nbpix) threshold = items[0];
 
   __syncthreads();
-
-  if (idim < size * size) {
+  if ((idim < size * size) && (tid < npix * npix)) {
     float data_thresh =
         (d_img[idim] > threshold) ? d_img[idim] - threshold : 0.f;
     idata += data_thresh;
@@ -53,7 +52,7 @@ __launch_bounds__(BLOCK_THREADS) __global__
   float slopex = BlockReduce(temp_storageSum).Sum(xdata, blockDim.x);
   __syncthreads();
   float slopey = BlockReduce(temp_storageSum).Sum(ydata, blockDim.x);
-  __syncthreads();
+
   if (tid == 0) {
     d_centroids[blockIdx.x] =
         (T(slopex / (intensity + 1.e-6)) - offset) * scale - ref[blockIdx.x];
@@ -77,36 +76,39 @@ void get_centroids(int size, int threads, int blocks, int npix, float *d_img,
   }
 
   threads /= nelem_thread;
-  dim3 dimBlock(threads, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
 
   // when there is only one warp per block, we need to allocate two warps
   // worth of shared memory so that we don't index shared memory out of bounds
   if (threads <= 16)
-    centroids<T, 16><<<dimGrid, dimBlock>>>(
-        d_img, d_centroids, ref, validx, validy, intensities, nbpix, npix, size,
-        T(scale), T(offset), nelem_thread);
-  else if (threads <= 32)
-    centroids<T, 32><<<dimGrid, dimBlock>>>(
-        d_img, d_centroids, ref, validx, validy, intensities, nbpix, npix, size,
-        T(scale), T(offset), nelem_thread);
+    centroids<T, 16><<<dimGrid, 16>>>(d_img, d_centroids, ref, validx, validy,
+                                      intensities, nbpix, npix, size, T(scale),
+                                      T(offset), nelem_thread);
+  else if (threads <= 36)
+    centroids<T, 36><<<dimGrid, 36>>>(d_img, d_centroids, ref, validx, validy,
+                                      intensities, nbpix, npix, size, T(scale),
+                                      T(offset), nelem_thread);
 
   else if (threads <= 64)
-    centroids<T, 64><<<dimGrid, dimBlock>>>(
-        d_img, d_centroids, ref, validx, validy, intensities, nbpix, npix, size,
-        T(scale), T(offset), nelem_thread);
-  else if (threads <= 128)
-    centroids<T, 128><<<dimGrid, dimBlock>>>(
-        d_img, d_centroids, ref, validx, validy, intensities, nbpix, npix, size,
-        T(scale), T(offset), nelem_thread);
+    centroids<T, 64><<<dimGrid, 64>>>(d_img, d_centroids, ref, validx, validy,
+                                      intensities, nbpix, npix, size, T(scale),
+                                      T(offset), nelem_thread);
+  else if (threads <= 100)
+    centroids<T, 100><<<dimGrid, 100>>>(d_img, d_centroids, ref, validx, validy,
+                                        intensities, nbpix, npix, size,
+                                        T(scale), T(offset), nelem_thread);
+  else if (threads <= 144)
+    centroids<T, 144><<<dimGrid, 144>>>(d_img, d_centroids, ref, validx, validy,
+                                        intensities, nbpix, npix, size,
+                                        T(scale), T(offset), nelem_thread);
   else if (threads <= 256)
-    centroids<T, 256><<<dimGrid, dimBlock>>>(
-        d_img, d_centroids, ref, validx, validy, intensities, nbpix, npix, size,
-        T(scale), T(offset), nelem_thread);
+    centroids<T, 256><<<dimGrid, 256>>>(d_img, d_centroids, ref, validx, validy,
+                                        intensities, nbpix, npix, size,
+                                        T(scale), T(offset), nelem_thread);
   else if (threads <= 512)
-    centroids<T, 512><<<dimGrid, dimBlock>>>(
-        d_img, d_centroids, ref, validx, validy, intensities, nbpix, npix, size,
-        T(scale), T(offset), nelem_thread);
+    centroids<T, 512><<<dimGrid, 512>>>(d_img, d_centroids, ref, validx, validy,
+                                        intensities, nbpix, npix, size,
+                                        T(scale), T(offset), nelem_thread);
   else
     printf("SH way too big !!!\n");
 
