@@ -90,8 +90,8 @@ void controller_impl(py::module &mod, const char *name) {
                              [](controller &sc) { return sc.d_voltage; },
                              "Total voltage to apply on the DMs")
 
-      .def_property_readonly("d_comDelayed",
-                             [](controller &sc) { return sc.d_comDelayed; },
+      .def_property_readonly("d_comClipped",
+                             [](controller &sc) { return sc.d_comClipped; },
                              "Delayed commands")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗

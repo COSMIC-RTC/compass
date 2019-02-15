@@ -17,14 +17,14 @@ using std::tuple;
 
 template <typename Tcomp, typename Tout>
 typename std::enable_if<std::is_same<Tcomp, Tout>::value, void>::type
-init_voltage_impl(carma_obj<Tout> *&volts, carma_obj<Tcomp> *comDelayed) {
-  volts = comDelayed;
+init_voltage_impl(carma_obj<Tout> *&volts, carma_obj<Tcomp> *comClipped) {
+  volts = comClipped;
 };
 
 template <typename Tcomp, typename Tout>
 typename std::enable_if<!std::is_same<Tcomp, Tout>::value, void>::type
-init_voltage_impl(carma_obj<Tout> *&volts, carma_obj<Tcomp> *comDelayed) {
-  volts = new carma_obj<Tout>(comDelayed->getContext(), comDelayed->getDims());
+init_voltage_impl(carma_obj<Tout> *&volts, carma_obj<Tcomp> *comClipped) {
+  volts = new carma_obj<Tout>(comClipped->getContext(), comClipped->getDims());
 };
 
 template <typename Tcomp, typename Tout>
@@ -47,14 +47,14 @@ class sutra_controller {
   Tcomp c;  // Coefficient for linear interpolation on command buffer to allow
             // non-integer delay
   vector<sutra_dm *> d_dmseen;
-  carma_obj<Tcomp> *d_centroids;   // current centroids
-  carma_obj<Tcomp> *d_centroidsPadded;   // current centroids
-  carma_obj<Tcomp> *d_com;         // current command
-  carma_obj<Tcomp> *d_comPadded;         // current command
-  carma_obj<Tcomp> *d_comDelayed;  // current command
-  carma_obj<Tout> *d_voltage;      // commands after perturbation and clipping
-  carma_obj<Tcomp> *d_com1;        // commands k-1
-  carma_obj<Tcomp> *d_com2;        // commands k-2
+  carma_obj<Tcomp> *d_centroids;        // current centroids
+  carma_obj<Tcomp> *d_centroidsPadded;  // current centroids
+  carma_obj<Tcomp> *d_com;              // current command
+  carma_obj<Tcomp> *d_comPadded;        // current command
+  carma_obj<Tcomp> *d_comClipped;       // current command
+  carma_obj<Tout> *d_voltage;  // commands after perturbation and clipping
+  carma_obj<Tcomp> *d_com1;    // commands k-1
+  carma_obj<Tcomp> *d_com2;    // commands k-2
 
   map<string, tuple<carma_obj<Tcomp> *, int, bool>> d_perturb_map;
   // perturbation command buffer
@@ -81,7 +81,7 @@ class sutra_controller {
   cublasHandle_t cublas_handle() { return current_context->get_cublasHandle(); }
 
   void init_voltage() {
-    init_voltage_impl<Tcomp, Tout>(this->d_voltage, this->d_comDelayed);
+    init_voltage_impl<Tcomp, Tout>(this->d_voltage, this->d_comClipped);
   };
 
   int set_centroids_ref(Tcomp *centroids_ref);

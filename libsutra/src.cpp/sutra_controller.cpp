@@ -66,11 +66,7 @@ sutra_controller<Tcomp, Tout>::sutra_controller(carma_context *context,
   dims_data1[1] = nactu;
   this->d_com = new carma_obj<Tcomp>(context, dims_data1);
   this->d_com1 = new carma_obj<Tcomp>(context, dims_data1);
-  if (this->delay > 0) {
-    this->d_comDelayed = new carma_obj<Tcomp>(context, dims_data1);
-  } else {
-    this->d_comDelayed = this->d_com;
-  }
+  this->d_comClipped = new carma_obj<Tcomp>(context, dims_data1);
 
   if (this->delay > 1) {
     this->d_com2 = new carma_obj<Tcomp>(context, dims_data1);
@@ -82,9 +78,10 @@ sutra_controller<Tcomp, Tout>::sutra_controller(carma_context *context,
     this->d_dmseen.push_back(dms->d_dms[idx_dms[i]]);
   }
 
-  if(std::is_same<Tcomp, half>::value){
-    while(nslope%8 != 0) nslope++; //Watching for multiple of 8 to get max perf with tensor cores
-    while(nactu%8 != 0) nactu++;
+  if (std::is_same<Tcomp, half>::value) {
+    while (nslope % 8 != 0)
+      nslope++;  // Watching for multiple of 8 to get max perf with tensor cores
+    while (nactu % 8 != 0) nactu++;
     dims_data1[1] = nslope;
     this->d_centroidsPadded = new carma_obj<Tcomp>(context, dims_data1);
     this->d_centroids->swapPtr(this->d_centroidsPadded->getData());
@@ -208,7 +205,7 @@ template <typename Tcomp, typename Tout>
 int sutra_controller<Tcomp, Tout>::clip_commands() {
   current_context->set_activeDevice(device, 1);
   if (this->Vmin < this->Vmax)
-    this->d_com->clip(this->Vmin, this->Vmax);
+    this->d_comClipped->clip(this->Vmin, this->Vmax);
   else
     DEBUG_TRACE(
         "Vmax value must be greater than Vmin value. Nothing has been done.");
@@ -220,11 +217,11 @@ int sutra_controller<Tcomp, Tout>::comp_latency() {
   // Command increment = a * d[k] + b*d[k-1] + c*d[k-2] + perturb
   this->current_context->set_activeDevice(this->device, 1);
   if (this->delay > 0) {
-    this->d_comDelayed->reset();
-    this->d_comDelayed->axpy(this->a, this->d_com, 1, 1);
-    this->d_comDelayed->axpy(this->b, this->d_com1, 1, 1);
+    this->d_comClipped->reset();
+    this->d_comClipped->axpy(this->a, this->d_com, 1, 1);
+    this->d_comClipped->axpy(this->b, this->d_com1, 1, 1);
 
-    if (delay > 1) this->d_comDelayed->axpy(this->b, this->d_com2, 1, 1);
+    if (delay > 1) this->d_comClipped->axpy(this->b, this->d_com2, 1, 1);
   }
 
   return EXIT_SUCCESS;
@@ -234,14 +231,17 @@ template <typename Tcomp, typename Tout>
 int sutra_controller<Tcomp, Tout>::comp_voltage() {
   std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
   current_context->set_activeDevice(device, 1);
-  this->add_perturb();
-  this->clip_commands();
   if (this->delay > 0) {
     this->comp_latency();
     this->command_delay();
+  } else {
+    this->d_comClipped->copyFrom(this->d_com->getData(),
+                                 this->d_com->getNbElem());
   }
+  this->add_perturb();
+  this->clip_commands();
   convertToVoltage<Tcomp, Tout>(
-      this->d_comDelayed->getData(), this->d_voltage->getData(), this->nactu(),
+      this->d_comClipped->getData(), this->d_voltage->getData(), this->nactu(),
       this->Vmin, this->Vmax, this->valMax,
       this->current_context->get_device(this->device));
 
@@ -253,12 +253,13 @@ int sutra_controller<Tcomp, Tout>::add_perturb() {
   typename map<string, tuple<carma_obj<Tcomp> *, int, bool>>::iterator it;
   int cpt;
   carma_obj<Tcomp> *d_perturb;
+  int any_perturb = 0;
   for (it = this->d_perturb_map.begin(); it != this->d_perturb_map.end();
        ++it) {
     if (std::get<2>(it->second)) {
       cpt = std::get<1>(it->second);
       d_perturb = std::get<0>(it->second);
-      this->d_com->axpy(1.0f, d_perturb, 1, 1, cpt);
+      this->d_comClipped->axpy(1.0f, d_perturb, 1, 1, cpt);
       if (cpt < d_perturb->getDims(1) - 1)
         std::get<1>(it->second) = cpt + 1;
       else
@@ -279,11 +280,11 @@ sutra_controller<Tcomp, Tout>::~sutra_controller() {
   if (this->d_com != nullptr) delete this->d_com;
   if (this->d_com1 != nullptr) delete this->d_com1;
   if (this->d_com2 != nullptr) delete this->d_com2;
-  if (this->d_comDelayed != nullptr &&
-      (void *)this->d_comDelayed != (void *)this->d_com)
-    delete this->d_comDelayed;
+  if (this->d_comClipped != nullptr &&
+      (void *)this->d_comClipped != (void *)this->d_com)
+    delete this->d_comClipped;
   if (this->d_voltage != nullptr &&
-      (void *)this->d_voltage != (void *)this->d_comDelayed)
+      (void *)this->d_voltage != (void *)this->d_comClipped)
     delete this->d_voltage;
   this->reset_perturb_voltage();
 }
@@ -291,9 +292,11 @@ sutra_controller<Tcomp, Tout>::~sutra_controller() {
 template <typename Tcomp, typename Tout>
 int sutra_controller<Tcomp, Tout>::set_com(float *com, int nElem) {
   current_context->set_activeDevice(device, 1);
-  if (nElem == this->d_com->getNbElem())
+  if (nElem == this->d_com->getNbElem()) {
     this->d_com->host2device(com);
-  else
+    this->d_comClipped->copyFrom(this->d_com->getData(),
+                                 this->d_com->getNbElem());
+  } else
     DEBUG_TRACE("Wrong dimension of com");
 
   return EXIT_SUCCESS;
