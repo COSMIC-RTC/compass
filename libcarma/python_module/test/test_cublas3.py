@@ -10,7 +10,7 @@ sizem = 128
 sizen = 256
 sizek = 512
 
-seed = 1234  # int(time.clock()*10**6)
+seed = int(time.perf_counter() * 1e3)
 
 print("")
 print("Test cublas 3")
@@ -114,11 +114,11 @@ def test_symm():
     C = np.array(matC)
 
     #matrices multiplication
-    t1 = time.clock()
+    t1 = time.perf_counter()
     matA.symm(matB, 1, matC, 1)
-    t2 = time.clock()
+    t2 = time.perf_counter()
     C = A.dot(B) + C
-    t3 = time.clock()
+    t3 = time.perf_counter()
 
     matC2 = matA.symm(matB)
     C2 = A.dot(B)
@@ -163,11 +163,11 @@ def test_dgmm():
     x = np.array(Vectx)
 
     #matrices product
-    t1 = time.clock()
+    t1 = time.perf_counter()
     matC = matA.dgmm(Vectx)
-    t2 = time.clock()
+    t2 = time.perf_counter()
     C = A * x
-    t3 = time.clock()
+    t3 = time.perf_counter()
 
     print("")
     print("test dgmm:")
@@ -211,11 +211,11 @@ def test_syrk():
     matC.host2device(C)
 
     #matrices product
-    t1 = time.clock()
+    t1 = time.perf_counter()
     matA.syrk(matC=matC, beta=1)
-    t2 = time.clock()
+    t2 = time.perf_counter()
     C = A.dot(A.T) + C
-    t3 = time.clock()
+    t3 = time.perf_counter()
 
     print("")
     print("test syrk:")
@@ -266,11 +266,11 @@ def test_syrkx():
     matC.host2device(C)
 
     #matrices product
-    t1 = time.clock()
+    t1 = time.perf_counter()
     matA.syrkx(matB, alpha=1, matC=matC, beta=1)
-    t2 = time.clock()
+    t2 = time.perf_counter()
     C = A.dot(B.T) + C.T
-    t3 = time.clock()
+    t3 = time.perf_counter()
 
     print("")
     print("test syrkx:")
@@ -314,11 +314,11 @@ def test_geam():
     B = np.array(matB)
 
     #matrices product
-    t1 = time.clock()
+    t1 = time.perf_counter()
     C = A + B
-    t2 = time.clock()
+    t2 = time.perf_counter()
     matC = matA.geam(matB, beta=1)
-    t3 = time.clock()
+    t3 = time.perf_counter()
 
     print("")
     print("test geam:")

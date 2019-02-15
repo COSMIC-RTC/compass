@@ -10,7 +10,7 @@ prec = 10**-dec
 print("Test cublas 1")
 print("precision: ", prec)
 
-seed = 1234  # int(time.clock()*10**6)
+seed = int(time.perf_counter() * 1e3)
 c = ch.context.get_instance()
 
 # aa = np.random.random((size * size)).astype(np.float32)

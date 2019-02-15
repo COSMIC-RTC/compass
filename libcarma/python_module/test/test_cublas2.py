@@ -9,7 +9,7 @@ prec = 10**-dec
 sizem = 512
 sizen = 1024
 
-seed = 1234  # int(time.clock()*10**6)
+seed = int(time.perf_counter() * 1e3)
 
 print("")
 print("Test cublas 2")

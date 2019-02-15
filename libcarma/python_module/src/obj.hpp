@@ -5,17 +5,18 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-
-#include "declare_name.hpp"
-#include <type_list.hpp>
 #include <carma.h>
+#include <type_list.hpp>
+#include "declare_name.hpp"
 
 namespace py = pybind11;
 
 struct CarmaObjInterfacer {
-  template <typename T> static void call(py::module &mod) {
+  template <typename T>
+  static void call(py::module &mod) {
     auto name = appendName<T>("obj_");
     using Class = carma_obj<T>;
+    using ClassHost = carma_host_obj<T>;
 
     py::class_<Class>(mod, name.data(), py::buffer_protocol())
         .def(py::init([](carma_context &c,
@@ -29,13 +30,13 @@ struct CarmaObjInterfacer {
                return std::unique_ptr<Class>(
                    new Class(&c, data_dims.data(), (const T *)data.data()));
              }),
-             "TODO", // TODO do the documentation...
+             "TODO",  // TODO do the documentation...
              py::arg("context").none(false), py::arg("h_data").none(false))
 
         .def(py::init([](carma_context &c, const Class &data) {
                return std::unique_ptr<Class>(new Class(&c, &data));
              }),
-             "TODO", // TODO do the documentation...
+             "TODO",  // TODO do the documentation...
              py::arg("context").none(false), py::arg("d_data").none(false))
 
         .def_buffer([](Class &frame) -> py::buffer_info {
@@ -70,19 +71,19 @@ struct CarmaObjInterfacer {
 
         // int get_nbStreams()
         .def_property_readonly("nbStreams", &Class::get_nbStreams,
-                               "TODO") // TODO do the documentation...
+                               "TODO")  // TODO do the documentation...
         // int add_stream()
         .def("add_stream", (int (Class::*)()) & Class::add_stream,
-             "TODO") // TODO do the documentation...
+             "TODO")  // TODO do the documentation...
         // int add_stream(int nb)
         .def("add_stream", (int (Class::*)(int)) & Class::add_stream, "TODO",
-             py::arg("np")) // TODO do the documentation...
+             py::arg("np"))  // TODO do the documentation...
         // int del_stream()
         .def("del_stream", (int (Class::*)()) & Class::del_stream,
-             "TODO") // TODO do the documentation...
+             "TODO")  // TODO do the documentation...
         // int del_stream(int nb)
         .def("del_stream", (int (Class::*)(int)) & Class::del_stream, "TODO",
-             py::arg("np")) // TODO do the documentation...
+             py::arg("np"))  // TODO do the documentation...
         // int wait_stream(int stream)
         .def("wait_stream", &Class::wait_stream, "TODO",
              py::arg("steam"))  // TODO do the documentation...
@@ -92,7 +93,7 @@ struct CarmaObjInterfacer {
              py::arg("ptr"))  // TODO do the documentation...
         // int wait_all_streams()
         .def("wait_all_streams", &Class::wait_all_streams,
-             "TODO") // TODO do the documentation...
+             "TODO")  // TODO do the documentation...
 
         // const long *getDims()
         .def_property_readonly("shape",
@@ -101,20 +102,20 @@ struct CarmaObjInterfacer {
                                  const long *c_dim = frame.getDims() + 1;
                                  return py::array_t<long>(nb_dim, c_dim);
                                },
-                               "TODO") // TODO do the documentation...
+                               "TODO")  // TODO do the documentation...
 
         // int getNbElem()
         .def_property_readonly("nbElem", &Class::getNbElem,
-                               "TODO") // TODO do the documentation...
+                               "TODO")  // TODO do the documentation...
         // carma_context* getContext()
         .def_property_readonly("context", &Class::getContext,
-                               "TODO") // TODO do the documentation...
+                               "TODO")  // TODO do the documentation...
         // int getDevice()
         .def_property_readonly("device", &Class::getDevice,
-                               "TODO") // TODO do the documentation...
+                               "TODO")  // TODO do the documentation...
         // int getOData()
         .def_property_readonly("o_data", &Class::getODataValue,
-                               "TODO") // TODO do the documentation...
+                               "TODO")  // TODO do the documentation...
 
         // int host2device(T_data *data);
         .def("host2device",
@@ -122,14 +123,14 @@ struct CarmaObjInterfacer {
                 py::array_t<T, py::array::f_style | py::array::forcecast>
                     &data) { c.host2device((const T *)data.data()); },
              "TODO",
-             py::arg("data").none(false)) // TODO do the documentation...
+             py::arg("data").none(false))  // TODO do the documentation...
         // int device2host(T_data *data);
         .def("device2host",
              [](Class &c,
                 py::array_t<T, py::array::f_style | py::array::forcecast>
                     &data) { c.device2host((T *)data.mutable_data()); },
              "TODO",
-             py::arg("data").none(false)) // TODO do the documentation...
+             py::arg("data").none(false))  // TODO do the documentation...
 
         // int copyInto(T_data *data, int nb_elem);
         .def("copyInto",
@@ -140,7 +141,7 @@ struct CarmaObjInterfacer {
                src.copyInto(dest, nb_elem);
              },
              "TODO", py::arg("dest"),
-             py::arg("nb_elem") = -1) // TODO do the documentation...
+             py::arg("nb_elem") = -1)  // TODO do the documentation...
         // int copyFrom(T_data *data, int nb_elem);
         .def("copyFrom",
              [](Class &dest, Class &src, long nb_elem) {
@@ -150,56 +151,56 @@ struct CarmaObjInterfacer {
                dest.copyFrom(src, nb_elem);
              },
              "TODO", py::arg("data"),
-             py::arg("nb_elem") = -1) // TODO do the documentation...
+             py::arg("nb_elem") = -1)  // TODO do the documentation...
 
         // inline int reset()
-        .def("reset", &Class::reset, "TODO") // TODO do the documentation...
+        .def("reset", &Class::reset, "TODO")  // TODO do the documentation...
 
         /**< sum */
         // T_data sum();
-        .def("sum", &Class::sum, "TODO") // TODO do the documentation...
+        .def("sum", &Class::sum, "TODO")  // TODO do the documentation...
         // void init_reduceCub();
         .def("init_reduceCub", &Class::init_reduceCub,
-             "TODO") // TODO do the documentation...
+             "TODO")  // TODO do the documentation...
         // void reduceCub();
         .def("reduceCub", &Class::reduceCub,
-             "TODO") // TODO do the documentation...
+             "TODO")  // TODO do the documentation...
         // void clip(T_data min, T_data max);
         .def("clip", &Class::clip, "TODO", py::arg("data_min").none(false),
-             py::arg("data_max").none(false)) // TODO do the documentation...
+             py::arg("data_max").none(false))  // TODO do the documentation...
 
         // /**< transpose */
         // int transpose(carma_obj<T_data> *source);
         .def("transpose", &Class::transpose, "TODO",
-             py::arg("source").none(false)) // TODO do the documentation...
+             py::arg("source").none(false))  // TODO do the documentation...
         // //carma_obj<T_data>& operator= (const carma_obj<T_data>& obj);
 
         // /**< Cublas V2 */
         // int imax(int incx);
         .def("aimax", &Class::aimax, "TODO",
-             py::arg("incx") = 1) // TODO do the documentation...
+             py::arg("incx") = 1)  // TODO do the documentation...
         // int imin(int incx);
         .def("aimin", &Class::aimin, "TODO",
-             py::arg("incx") = 1) // TODO do the documentation...
+             py::arg("incx") = 1)  // TODO do the documentation...
         // T_data asum(int incx);
         .def("asum", &Class::asum, "TODO",
-             py::arg("incx") = 1) // TODO do the documentation...
+             py::arg("incx") = 1)  // TODO do the documentation...
         // T_data nrm2(int incx);
         .def("nrm2", &Class::nrm2, "TODO",
-             py::arg("incx") = 1) // TODO do the documentation...
+             py::arg("incx") = 1)  // TODO do the documentation...
         // T_data dot(carma_obj<T_data> *source, int incx, int incy);
         .def("dot", &Class::dot, "TODO", py::arg("source").none(false),
              py::arg("incx") = 1,
-             py::arg("incy") = 1) // TODO do the documentation...
+             py::arg("incy") = 1)  // TODO do the documentation...
         // void scale(T_data alpha, int incx);
         .def("scale", &Class::scale, "TODO", py::arg("scale").none(false),
-             py::arg("incx") = 1) // TODO do the documentation...
+             py::arg("incx") = 1)  // TODO do the documentation...
         // void swap(carma_obj<T_data> *source, int incx, int incy);
         .def("swap", &Class::swap, "TODO", py::arg("source").none(false),
              py::arg("incx") = 1,
-             py::arg("incy") = 1) // TODO do the documentation...
+             py::arg("incy") = 1)  // TODO do the documentation...
         // void copy(carma_obj<T_data> *source, int incx, int incy);
-        .def("copy", &Class::copy, "TODO") // TODO do the documentation...
+        .def("copy", &Class::copy, "TODO")  // TODO do the documentation...
         // void axpy(T_data alpha, carma_obj<T_data> *source, int incx, int
         // incy);
         .def("axpy", &Class::axpy, "TODO", py::arg("alpha"),
@@ -207,7 +208,7 @@ struct CarmaObjInterfacer {
              py::arg("incy") = 1, py::arg("offset") = 0) // TODO do the documentation...
         // void rot(carma_obj<T_data> *source, int incx, int incy, T_data sc,
         //          T_data ss);
-        .def("rot", &Class::rot, "TODO") // TODO do the documentation...
+        .def("rot", &Class::rot, "TODO")  // TODO do the documentation...
 
         // void gemv(char trans, T_data alpha, carma_obj<T_data> *matA, int lda,
         //           carma_obj<T_data> *vectx, int incx, T_data beta, int incy);
@@ -229,7 +230,7 @@ struct CarmaObjInterfacer {
              "this method performs one of the matrix‐vector operations vecty = "
              "alpha * op(mat) * vectx + beta * vecty",
              py::arg("vectx"), py::arg("alpha") = 1, py::arg("op") = 'N',
-             py::arg("vecty") = nullptr, py::arg("beta") = 0) // &Class::gemv)
+             py::arg("vecty") = nullptr, py::arg("beta") = 0)  // &Class::gemv)
     // void ger(T_data alpha, carma_obj<T_data> *vectx, int incx,
     //          carma_obj<T_data> *vecty, int incy, int lda);
 #ifdef CAN_DO_HALF
@@ -252,7 +253,7 @@ struct CarmaObjInterfacer {
              "this method performs one of the matrix‐vector operations vecty = "
              "alpha * op(mat) * vectx + beta * vecty",
              py::arg("vectx"), py::arg("alpha") = 1, py::arg("op") = 'N',
-             py::arg("vecty") = nullptr, py::arg("beta") = 0) // &Class::gemv)
+             py::arg("vecty") = nullptr, py::arg("beta") = 0)  // &Class::gemv)
 #endif
         // void ger(T_data alpha, carma_obj<T_data> *vectx, int incx,
         //          carma_obj<T_data> *vecty, int incy, int lda);
@@ -269,7 +270,7 @@ struct CarmaObjInterfacer {
              "this method performs the symmetric rank 1 operation A = alpha * "
              "x * y T + A",
              py::arg("vecty"), py::arg("mat") = nullptr,
-             py::arg("alpha") = 1) // &Class::ger)
+             py::arg("alpha") = 1)  // &Class::ger)
         // void symv(char uplo, T_data alpha, carma_obj<T_data> *matA,
         //           int lda, carma_obj<T_data> *vectx, int incx, T_data beta,
         //           int incy);
@@ -287,7 +288,7 @@ struct CarmaObjInterfacer {
              "this method performs one of the matrix‐vector operations vecty = "
              "alpha * mat * vectx + beta * vecty",
              py::arg("vectx"), py::arg("alpha") = 1, py::arg("uplo") = 'l',
-             py::arg("vecty") = nullptr, py::arg("beta") = 0) // &Class::gemv)
+             py::arg("vecty") = nullptr, py::arg("beta") = 0)  // &Class::gemv)
         // void gemm(char transa, char transb, T_data alpha, carma_obj<T_data>
         // *matA,
         //           int lda, carma_obj<T_data> *matB, int ldb, T_data beta, int
@@ -505,16 +506,15 @@ struct CarmaObjInterfacer {
         .def("fft",
              [](Class &data, Class &dest, int direction) {
                throw std::runtime_error("not implemented");
-              //  const long *dims = data.getDims();
-              //  cufftHandle *handle = data.getPlan();
-              //  if(dest == nullptr) {
-              //    dest = Class(data.getContext(), dims);
-              //  }
-              //  carma_initfft(dims, handle, carma_select_plan<T,T>());
-              //  carma_fft(data.getData(), dest.getData(), direction, handle);
+               //  const long *dims = data.getDims();
+               //  cufftHandle *handle = data.getPlan();
+               //  if(dest == nullptr) {
+               //    dest = Class(data.getContext(), dims);
+               //  }
+               //  carma_initfft(dims, handle, carma_select_plan<T,T>());
+               //  carma_fft(data.getData(), dest.getData(), direction, handle);
              },
-             py::arg("dest") = nullptr, py::arg("direction") = 1)
-        ;
+             py::arg("dest") = nullptr, py::arg("direction") = 1);
     // CU functions clip
     // template<class T_data>
     // void clip_array(T_data *d_data, T_data min, T_data max, int N,
@@ -597,12 +597,34 @@ struct CarmaObjInterfacer {
     // template<class T>
     // int carma_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals,
     //               carma_obj<T> *mod2act, carma_obj<T> *mes2mod);
-    mod.def(appendName<T>("svd_").data(), &carma_svd<T>);
+    // mod.def(appendName<T>("svd_").data(), &carma_svd<T>);
 
     // TODO after carma_host_obj
     // template<class T>
     // int carma_syevd(char jobz, carma_obj<T> *mat, carma_host_obj<T>
-    // *eigenvals); mod.def( ("syevd_" + suffix).c_str(), &carma_syevd<T>);
+    // *eigenvals);
+    // mod.def( appendName<T>("syevd_").data(), py::overload_cast<char, Class *,
+    // ClassHost *>(&carma_syevd<T>)); mod.def( appendName<T>("syevd_").data(),
+    // py::overload_cast<char, long, T *, T *>(&carma_syevd<T>));
+    mod.def(appendName<T>("syevd_").data(),
+            [](Class &d_A, ClassHost &eigenvals, Class *d_U, bool computeU) {
+              if (d_U == nullptr) {
+                  if(computeU) {
+                      carma_syevd('V',&d_A, &eigenvals);
+                  } else {
+                      carma_syevd('N',&d_A, &eigenvals);
+                  }
+              } else {
+                  d_U->copyFrom(d_A, d_A.getNbElem());
+                  if(computeU) {
+                      carma_syevd('V',d_U, &eigenvals);
+                  } else {
+                      carma_syevd('N',d_U, &eigenvals);
+                  }
+              }
+            },
+            py::arg("d_A"), py::arg("eigenvals"), py::arg("d_U") = nullptr,
+            py::arg("computeU") = true);
 
     // template<class T, int method>
     // int carma_syevd(char jobz, carma_obj<T> *mat, carma_host_obj<T>

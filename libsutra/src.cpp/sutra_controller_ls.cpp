@@ -123,7 +123,7 @@ int sutra_controller_ls<T, Tout>::svdec_imat() {
                     this->current_context->get_device(this->device));
 
     // doing evd of U inplace
-    if (carma_syevd<T, 1>('V', d_U, h_eigenvals) == EXIT_FAILURE) {
+    if (carma_syevd<T>('V', d_U, h_eigenvals) == EXIT_FAILURE) {
       // if (syevd_f('V', d_U, h_eigenvals) == EXIT_FAILURE) {
       // Case where MAGMA is not feeling good :-/
       return EXIT_FAILURE;

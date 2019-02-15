@@ -454,13 +454,13 @@ int carma_fftconv(caObjS *data_out, caObjS *padded_data,
 
 // MAGMA functions
 int magma_disabled();
-template <class T>
-int carma_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals,
-              carma_obj<T> *mod2act, carma_obj<T> *mes2mod);
+// template <class T>
+// int carma_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals,
+//               carma_obj<T> *mod2act, carma_obj<T> *mes2mod);
 template <class T>
 int carma_syevd(char jobz, carma_obj<T> *mat, carma_host_obj<T> *eigenvals);
-template <class T, int method>
-int carma_syevd(char jobz, carma_obj<T> *mat, carma_host_obj<T> *eigenvals);
+// template <class T, int method>
+// int carma_syevd(char jobz, carma_obj<T> *mat, carma_host_obj<T> *eigenvals);
 template <class T>
 int carma_syevd_m(long ngpu, char jobz, long N, T *mat, T *eigenvals);
 template <class T>
@@ -479,12 +479,12 @@ int carma_potri_m(long num_gpus, carma_host_obj<T> *h_A, carma_obj<T> *d_iA);
 // MAGMA functions (direct access)
 template <class T>
 int carma_syevd(char jobz, long N, T *mat, T *eigenvals);
-template <class T, int method>
-int carma_syevd(char jobz, long N, T *mat, T *eigenvals);
+// template <class T, int method>
+// int carma_syevd(char jobz, long N, T *mat, T *eigenvals);
 template <class T>
 int carma_syevd_m(long ngpu, char jobz, long N, T *mat, T *eigenvals);
-template <class T>
-int carma_potri_m(long num_gpus, long N, T *h_A, T *d_iA);
+// template <class T>
+// int carma_potri_m(long num_gpus, long N, T *h_A, T *d_iA);
 
 // CULA functions
 template <class T>

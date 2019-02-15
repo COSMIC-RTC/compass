@@ -54,11 +54,28 @@ class BenchSupervisor(AbstractSupervisor):
         else:
             raise AttributeError("command should be a 1D or 2D array")
 
-    def getWfsImage(self, numWFS: int = 0) -> np.ndarray:
+    def getWfsImage(self, numWFS: int = 0, calPix=False) -> np.ndarray:
         '''
         Get an image from the WFS
         '''
-        return self.camCallback()
+        if (calPix):
+            return np.array(self.rtc.d_centro[0].d_img)
+        else:
+            return np.array(self.rtc.d_centro[0].d_img_raw)
+
+    def loadFlat(self, flat: np.ndarray, nctrl: int = 0):
+        """
+        Load flat field for the given controller
+
+        """
+        self.rtc.d_centro[nctrl].set_flat(flat, flat.shape[0])
+
+    def loadBackground(self, background: np.ndarray, nctrl: int = 0):
+        """
+        Load background for the given controller
+
+        """
+        self.rtc.d_centro[nctrl].set_dark(background, background.shape[0])
 
     def setCommand(self, nctrl: int, command: np.ndarray) -> None:
         ''' TODO
@@ -144,9 +161,9 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         Move atmos -> getSlope -> applyControl ; One integrator step
         '''
-        self.frame = self.getWfsImage()
+        self.frame = self.camCallback()
         self.rtc.d_centro[0].load_img(self.frame, self.frame.shape[0])
-        self.rtc.d_centro[0].calibrate_img(True)
+        self.rtc.d_centro[0].calibrate_img()
         self.rtc.do_centroids(0)
         self.rtc.do_control(0)
         self.rtc.do_clipping(0)
@@ -154,6 +171,9 @@ class BenchSupervisor(AbstractSupervisor):
         self.setCommand(0, np.array(self.rtc.d_control[0].d_voltage))
         if self.BRAHMA or self.CACAO:
             self.rtc.publish()
+
+    def getAllDataLoop(self, nb):
+        ...
 
     def closeLoop(self) -> None:
         '''
@@ -184,13 +204,19 @@ class BenchSupervisor(AbstractSupervisor):
 
     def setGain(self, gain) -> None:
         '''
-        Set the scalar gain of feedback controller loop
+        Set the scalar gain or mgain of feedback controller loop
         '''
-        if type(gain) in [int, float]:
-            self.rtc.d_control[0].set_gain(gain)
-        else:
-            raise ValueError(
-                    "ERROR CANNOT set array gain in canapass (generic + integrator law")
+        if self.rtc.d_control[0].command_law == 'integrator':  # Integrator law
+            if np.isscalar(gain):
+                self.rtc.d_control[0].set_gain(gain)
+            else:
+                raise ValueError("Cannot set array gain w/ generic + integrator law")
+        else:  # E matrix mode
+            if np.isscalar(gain):  # Automatic scalar expansion
+                gain = np.ones(np.sum(self.rtc.d_control[0].nactu),
+                               dtype=np.float32) * gain
+            # Set array
+            self.rtc.d_control[0].set_mgain(gain)
 
     def setCommandMatrix(self, cMat: np.ndarray) -> None:
         '''
@@ -209,34 +235,6 @@ class BenchSupervisor(AbstractSupervisor):
         Return sum of intensities in subaps. Size nSubaps, same order as slopes
         '''
         raise NotImplementedError("Not implemented")
-
-    def getAllDataLoop(self, nIter: int = 1, slope: bool = True, command: bool = True,
-                       target: bool = True, intensity: bool = True,
-                       targetPhase: bool = True) -> np.ndarray:
-        '''
-        Returns a sequence of data at continuous loop steps.
-        Requires loop to be asynchronously running
-        '''
-        if not self.CACAO:
-            raise NotImplementedError("Not implemented")
-
-        from Octopus import CacaoInterface
-
-        it = CacaoInterface.getInterface("compass_loopData")
-        data = [np.array(it)]
-        for _ in range(nIter):
-            self.singleNext()
-            data += [np.array(it)]
-        data = np.stack(data)
-
-        p_wfs = self.config.p_wfss[0]
-        intensity_tab = np.stack([loopdata[0, :p_wfs._nvalid] for loopdata in data])
-        slope_tab = np.stack([
-                loopdata[0, p_wfs._nvalid:(p_wfs._nvalid * 3)] for loopdata in data
-        ])
-        command_tab = np.stack([loopdata[0, (p_wfs._nvalid * 3):] for loopdata in data])
-
-        return (intensity_tab, slope_tab, command_tab)
 
     def forceContext(self) -> None:
         """
@@ -354,6 +352,7 @@ class BenchSupervisor(AbstractSupervisor):
                                    self.config.p_cams[0].expo_usec,
                                    self.config.p_cams[0].framerate,
                                    self.config.p_cams[0].symcode))
+            self._cam.acquisitionStart()
             self.camCallback = lambda: self._cam.getFrame(1)
         print("->DM")
         if self.dmSetCallback is None:
@@ -402,9 +401,6 @@ class BenchSupervisor(AbstractSupervisor):
             gain = 1
             nact = self.config.p_dms[0].nact
 
-            if self.config.p_controllers[0].delay != 1:
-                raise RuntimeError("delay is not set 1, call Flo if it makes sense!")
-
             self.rtc = rtc_standalone(self.c, wfsNb, nvalid, nact,
                                       self.config.p_centroiders[0].type,
                                       self.config.p_controllers[0].delay, offset, scale,
@@ -412,6 +408,9 @@ class BenchSupervisor(AbstractSupervisor):
             # put pixels in the SH grid coordonates
             self.rtc.d_centro[0].load_validpos(p_wfs._validsubsx, p_wfs._validsubsy,
                                                nvalid)
+            if self.config.p_centroiders[0].type is CentroiderType.BPCOG:
+                self.rtc.d_centro[0].set_nmax(self.config.p_centroiders[0].nmax)
+
             self.rtc.d_centro[0].set_npix(self.npix)
 
             cMat = np.zeros((nact, 2 * nvalid[0]), dtype=np.float32)
