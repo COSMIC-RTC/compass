@@ -17,11 +17,15 @@
 template <typename Tin, typename Tcomp, typename Tout>
 class sutra_rtc_cacao : public sutra_rtc<Tin, Tcomp, Tout> {
  private:
+  std::shared_ptr<ipc::Cacao<Tin>> iRawFrame_;
   std::shared_ptr<ipc::Cacao<float>> iCalFrame_;
   std::shared_ptr<ipc::Cacao<Tcomp>> iLoopFrame_;
+  std::shared_ptr<ipc::Cacao<Tout>> iCommands_;
 
+  std::string iRawFrame_name_;
   std::string iCalFrame_name_;
   std::string iLoopFrame_name_;
+  std::string iCommands_name_;
 
   long framecounter_;
 
