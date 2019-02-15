@@ -3,15 +3,19 @@ cmake_minimum_required (VERSION 3.8)
 if(DEFINED ENV{CUDA_SM})
     set(CUDA_SM $ENV{CUDA_SM})
 else()
-    message("Probing GPUs for their compute capabilities...")
+    message(STATUS "Probing GPUs for their compute capabilities...")
     execute_process(COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/scripts/get_cuda_sm.sh"  OUTPUT_VARIABLE CUDA_SM)
 endif()
-message("Building for Compute Capability ${CUDA_SM}")
+message(STATUS "Building for Compute Capability ${CUDA_SM}")
 
 if( ${CUDA_SM} STREQUAL "ALL")
 unset(CUDA_SM)
 list(APPEND CUDA_SM "30" "35" "37" "50" "52" "60" "61" "70")
 endif()
+
+list(LENGTH CUDA_SM CUDA_SM_LEN)
+math(EXPR CUDA_SM_LEN ${CUDA_SM_LEN}-1)
+list(GET CUDA_SM ${CUDA_SM_LEN} CUDA_SM_LAST)
 
 foreach(SM ${CUDA_SM})
 list( APPEND CUDA_ARCH -gencode arch=compute_${SM},code=sm_${SM})
@@ -85,9 +89,6 @@ set_target_properties(carma
     SOVERSION ${PROJECT_VERSION_MAJOR}
     # CUDA_SEPARABLE_COMPILATION OFF
 )
-list(LENGTH CUDA_SM CUDA_SM_LEN)
-math(EXPR CUDA_SM_LEN ${CUDA_SM_LEN}-1)
-list(GET CUDA_SM ${CUDA_SM_LEN} CUDA_SM_LAST)
 target_compile_features(carma PUBLIC cxx_std_14)
 
 # string (REPLACE ";" " " CMAKE_CUDA_FLAGS "${CUDA_NVCC_FLAGS};${CUDA_ARCH}")
@@ -130,10 +131,26 @@ set(INSTALL_PKGCONFIG_DIR "lib/pkgconfig" CACHE PATH "Installation directory for
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/carma.pc.in ${CMAKE_CURRENT_BINARY_DIR}/carma.pc @ONLY)
 
-install(TARGETS carma
-    PUBLIC_HEADER DESTINATION include
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib}
-)
+install(TARGETS carma EXPORT CarmaConfig
+    ARCHIVE  DESTINATION lib
+    LIBRARY  DESTINATION lib)
+install(FILES
+include.h/carma_context.h
+include.h/carma_cublas.h
+include.h/carma_cusparse.h
+include.h/carma_exception.h
+include.h/carma_fft.h
+include.h/carma.h
+include.h/carma_host_obj.h
+include.h/carma_ipcs.h
+include.h/carma_multithread.h
+include.h/carma_obj.h
+include.h/carma_sparse_host_obj.h
+include.h/carma_sparse_obj.h
+include.h/carma_streams.h
+include.h/carma_timer.h
+include.h/carma_utils.h
+include.h/type_list.hpp
+  DESTINATION include)
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/carma.pc DESTINATION "${INSTALL_PKGCONFIG_DIR}")

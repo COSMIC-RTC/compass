@@ -1,15 +1,18 @@
 
 if [ -z $1 ]
 then
-    PYTHON_INSTALL_PATH=python
+    PYTHON_INSTALL_PATH=$COMPASS_ROOT/local
 else
     PYTHON_INSTALL_PATH=$1
 fi
 
-if [ ! -d $PYTHON_INSTALL_PATH ]
+if [ ! -d build ]
 then
-        echo "Create $PYTHON_INSTALL_PATH directory"
-        mkdir -p $PYTHON_INSTALL_PATH
+        echo "Create build directory"
+        mkdir -p build
 fi
 
-easy_install -d $PYTHON_INSTALL_PATH . $OCTOPUS_ROOT
+cd build
+cmake .. -DCMAKE_INSTALL_PREFIX=$PYTHON_INSTALL_PATH
+make -j8
+make install

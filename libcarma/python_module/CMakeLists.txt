@@ -14,7 +14,7 @@ if(NOT TARGET wyrm)
         set(WYRM_ROOT $ENV{WYRM_ROOT})
     endif()
     if(NOT DEFINED WYRM_ROOT)
-        message(WARNING "wyrm path set WYRM_ROOT to $COMPASS_ROOT/tplib/wyrm" )
+        message(STATUS "wyrm path set WYRM_ROOT to $COMPASS_ROOT/tplib/wyrm" )
         set(WYRM_ROOT $ENV{COMPASS_ROOT}/tplib/wyrm)
     endif()
     if(IS_DIRECTORY ${WYRM_ROOT})
@@ -43,8 +43,6 @@ target_link_libraries(carmaWrap PRIVATE wyrm PUBLIC carma)
 set_target_properties(carmaWrap PROPERTIES PREFIX "${PYTHON_MODULE_PREFIX}"
                                       SUFFIX "${PYTHON_MODULE_EXTENSION}")
 
-install(TARGETS carmaWrap
-    PUBLIC_HEADER DESTINATION include
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib}
-)
+install(TARGETS carmaWrap EXPORT CarmaWrapConfig
+    ARCHIVE  DESTINATION python
+    LIBRARY  DESTINATION python)

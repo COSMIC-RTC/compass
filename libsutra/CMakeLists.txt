@@ -34,7 +34,7 @@ if (DEFINED ENV{OCTOPUS_ROOT})
 
     SET(OCTOPUS_LIBS CacaoInterface)
 else()
-    message(WARNING "OCTOPUS_ROOT not find, CACAO RTC will not be available")
+    message(STATUS "OCTOPUS_ROOT not find, CACAO RTC will not be available")
 endif()
 
 if (DEFINED ENV{BRAHMA_ROOT})
@@ -58,7 +58,7 @@ if (DEFINED ENV{BRAHMA_ROOT})
     SET(BRAHMA_LIBS BRAHMACommon OpenDDS_InfoRepoDiscovery OpenDDS_Dcps TAO_PortableServer
         TAO_AnyTypeCode TAO ACE dl rt)
 else()
-    message(WARNING "BRAHMA_ROOT not find, BRAHMA RTC will not be available")
+    message(STATUS "BRAHMA_ROOT not find, BRAHMA RTC will not be available")
 endif()
 
 add_library(sutra SHARED
@@ -155,10 +155,54 @@ set(INSTALL_PKGCONFIG_DIR "lib/pkgconfig" CACHE PATH "Installation directory for
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/sutra.pc.in ${CMAKE_CURRENT_BINARY_DIR}/sutra.pc @ONLY)
 
-install(TARGETS sutra
-    PUBLIC_HEADER DESTINATION include
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib}
-)
+install(TARGETS sutra EXPORT SutraConfig
+    ARCHIVE  DESTINATION lib
+    LIBRARY  DESTINATION lib)
+
+install(FILES
+    include.h/sutra_acquisim.h
+    include.h/sutra_aotemplate.h
+    include.h/sutra_atmos.h
+    include.h/sutra_centroider_bpcog.h
+    include.h/sutra_centroider_cog.h
+    include.h/sutra_centroider_corr.h
+    include.h/sutra_centroider.h
+    include.h/sutra_centroider_maskedPix.h
+    include.h/sutra_centroider_pyr.h
+    include.h/sutra_centroider_tcog.h
+    include.h/sutra_centroider_wcog.h
+    include.h/sutra_controller_cured.h
+    include.h/sutra_controller_generic.h
+    include.h/sutra_controller_geo.h
+    include.h/sutra_controller.h
+    include.h/sutra_controller_kalman.h
+    include.h/sutra_controller_ls.h
+    include.h/sutra_controller_mv.h
+    include.h/sutra_controller_utils.h
+    include.h/sutra_dm.h
+    include.h/sutra_gamora.h
+    include.h/sutra_groot.h
+    include.h/sutra_kl.h
+    include.h/sutra_lgs.h
+    include.h/sutra_phase.h
+    include.h/sutra_roket.h
+    include.h/sutra_rtc_brahma.h
+    include.h/sutra_rtc_brahmaListenerImpl.h
+    include.h/sutra_rtc_cacao.h
+    include.h/sutra_rtc.h
+    include.h/sutra_sensors.h
+    include.h/sutra_source.h
+    include.h/sutra_target_brahma.h
+    include.h/sutra_target_brahmaListenerImpl.h
+    include.h/sutra_target.h
+    include.h/sutra_telemetry.h
+    include.h/sutra_telescope.h
+    include.h/sutra_tscreen.h
+    include.h/sutra_utils.h
+    include.h/sutra_wfs_geom.h
+    include.h/sutra_wfs.h
+    include.h/sutra_wfs_pyr_pyrhr.h
+    include.h/sutra_wfs_sh.h
+  DESTINATION include)
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/sutra.pc DESTINATION "${INSTALL_PKGCONFIG_DIR}")
