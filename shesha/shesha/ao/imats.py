@@ -42,6 +42,9 @@ def imat_geom(wfs: Sensors, dms: Dms, p_wfss: List[conf.Param_wfs],
     imat_size1 = 0
     imat_size2 = 0
 
+    for dm in dms:
+        dm.reset_shape()
+
     for nw in range(nwfs):
         nm = p_controller.nwfs[nw]
         imat_size1 += p_wfss[nm]._nvalid * 2
@@ -228,6 +231,9 @@ def imat_geom_ts(wfs: Sensors, dms: Dms, p_wfss: conf.Param_wfs, ind_TS: int,
     # for nw in range(nwfs):
     #     nm = p_controller.nwfs[nw]
     #     imat_size1 += p_wfss[nm]._nvalid * 2
+
+    for dm in dms:
+        dm.reset_shape()
 
     imat_size2 = 0
     for nm in ind_DMs:
