@@ -5,7 +5,7 @@ from shesha.sutra_wrap import Rtc_UFF as Rtc
 from shesha.supervisor.compassSupervisor import CompassSupervisor as Supervisor
 from scipy.ndimage.measurements import center_of_mass
 
-precision = 5e-3
+precision = 1e-2
 sup = Supervisor(
         os.getenv("COMPASS_ROOT") + "/shesha/data/par/par4bench/scao_sh_16x16_8pix.py")
 sup.initConfig()
@@ -155,7 +155,7 @@ def test_clipping():
     C_clipped = C.copy()
     C_clipped[np.where(C > 1)] = 1
     C_clipped[np.where(C < -1)] = -1
-    assert (relative_array_error(ng.array(control.d_com).toarray(), C_clipped) <
+    assert (relative_array_error(ng.array(control.d_comClipped).toarray(), C_clipped) <
             precision)
 
 
@@ -174,9 +174,10 @@ def test_remove_perturb_voltage():
 def test_add_perturb():
     C = np.random.random(sup.config.p_controller0.nactu)
     control.add_perturb_voltage("test", C, 1)
-    com = ng.array(control.d_com).toarray()
+    com = ng.array(control.d_comClipped).toarray()
     control.add_perturb()
-    assert (relative_array_error(ng.array(control.d_com).toarray(), com + C) < precision)
+    assert (relative_array_error(ng.array(control.d_comClipped).toarray(), com + C) <
+            precision)
 
 
 def test_disable_perturb_voltage():
@@ -188,10 +189,11 @@ def test_disable_perturb_voltage():
 
 def test_enable_perturb_voltage():
     control.enable_perturb_voltage("test")
-    com = ng.array(control.d_com).toarray()
+    com = ng.array(control.d_comClipped).toarray()
     C = ng.array(control.d_perturb_map["test"][0]).toarray()
     control.add_perturb()
-    assert (relative_array_error(ng.array(control.d_com).toarray(), com + C) < precision)
+    assert (relative_array_error(ng.array(control.d_comClipped).toarray(), com + C) <
+            precision)
 
 
 def test_reset_perturb_voltage():
@@ -200,16 +202,15 @@ def test_reset_perturb_voltage():
 
 
 def test_comp_voltage():
-    control.set_comRange(-1, 1)
+    Vmin = -1
+    Vmax = 1
+    control.set_comRange(Vmin, Vmax)
     control.comp_voltage()
     C = np.random.random(sup.config.p_controller0.nactu)
     control.add_perturb_voltage("test", C, 1)
     control.set_com(C, C.size)
     com1 = ng.array(control.d_com1).toarray()
     control.comp_voltage()
-    comPertu = C + C
-    comPertu[np.where(comPertu > 1)] = 1
-    comPertu[np.where(comPertu < -1)] = -1
     delay = sup.config.p_controller0.delay
     if control.d_com2 is not None:
         com2 = ng.array(control.d_com2).toarray()
@@ -224,13 +225,15 @@ def test_comp_voltage():
         a = 0
         c = delay - floor
         b = 1 - c
-
     else:
         a = 0
         c = 1
         b = 0
-    commands = a * comPertu + b * com1 + c * com2
-    assert (relative_array_error(ng.array(control.d_voltage).toarray(), commands) <
+    commands = a * C + b * com1 + c * com2
+    comPertu = commands + C
+    comPertu[np.where(comPertu > Vmax)] = Vmax
+    comPertu[np.where(comPertu < Vmin)] = Vmin
+    assert (relative_array_error(ng.array(control.d_voltage).toarray(), comPertu) <
             precision)
 
 

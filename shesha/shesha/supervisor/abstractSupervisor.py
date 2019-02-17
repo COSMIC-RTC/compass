@@ -96,10 +96,10 @@ class AbstractSupervisor(ABC):
     ''' Get an image from a target '''
 
     @abstractmethod
-    def getWfsImage(self, numWFS: int = 0) -> np.ndarray:
+    def getWfsImage(self, numWFS: int = 0, calPix: bool = False) -> np.ndarray:
         ...
 
-    ''' Get an image from the WFS '''
+    ''' Get an image from the WFS. If calpix = True returns the calibrated image (background + flat + pixels selection )'''
 
     @abstractmethod
     def getIntensities(self):

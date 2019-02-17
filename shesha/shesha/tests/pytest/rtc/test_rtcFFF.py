@@ -151,14 +151,15 @@ def test_clipping():
     C_clipped = C.copy()
     C_clipped[np.where(C > 1)] = 1
     C_clipped[np.where(C < -1)] = -1
-    assert (relative_array_error(np.array(control.d_com), C_clipped) < precision)
+    assert (relative_array_error(ng.array(control.d_comClipped).toarray(), C_clipped) <
+            precision)
 
 
 def test_add_perturb_voltage():
     C = np.random.random(sup.config.p_controller0.nactu)
     control.add_perturb_voltage("test", C, 1)
-    assert (relative_array_error(np.array(control.d_perturb_map["test"][0]), C) <
-            precision)
+    assert (relative_array_error(
+            ng.array(control.d_perturb_map["test"][0]).toarray(), C) < precision)
 
 
 def test_remove_perturb_voltage():
@@ -169,9 +170,10 @@ def test_remove_perturb_voltage():
 def test_add_perturb():
     C = np.random.random(sup.config.p_controller0.nactu)
     control.add_perturb_voltage("test", C, 1)
-    com = np.array(control.d_com)
+    com = ng.array(control.d_comClipped).toarray()
     control.add_perturb()
-    assert (relative_array_error(np.array(control.d_com), com + C) < precision)
+    assert (relative_array_error(ng.array(control.d_comClipped).toarray(), com + C) <
+            precision)
 
 
 def test_disable_perturb_voltage():
@@ -183,10 +185,11 @@ def test_disable_perturb_voltage():
 
 def test_enable_perturb_voltage():
     control.enable_perturb_voltage("test")
-    com = np.array(control.d_com)
-    C = np.array(control.d_perturb_map["test"][0])
+    com = ng.array(control.d_comClipped).toarray()
+    C = ng.array(control.d_perturb_map["test"][0]).toarray()
     control.add_perturb()
-    assert (relative_array_error(np.array(control.d_com), com + C) < precision)
+    assert (relative_array_error(ng.array(control.d_comClipped).toarray(), com + C) <
+            precision)
 
 
 def test_reset_perturb_voltage():
@@ -202,9 +205,6 @@ def test_comp_voltage():
     control.set_com(C, C.size)
     com1 = np.array(control.d_com1)
     control.comp_voltage()
-    comPertu = C + C
-    comPertu[np.where(comPertu > 1)] = 1
-    comPertu[np.where(comPertu < -1)] = -1
     delay = sup.config.p_controller0.delay
     if control.d_com2 is not None:
         com2 = np.array(control.d_com2)
@@ -224,8 +224,11 @@ def test_comp_voltage():
         a = 0
         c = 1
         b = 0
-    commands = a * comPertu + b * com1 + c * com2
-    assert (relative_array_error(np.array(control.d_voltage), commands) < precision)
+    commands = a * C + b * com1 + c * com2
+    comPertu = commands + C
+    comPertu[np.where(comPertu > 1)] = 1
+    comPertu[np.where(comPertu < -1)] = -1
+    assert (relative_array_error(np.array(control.d_voltage), comPertu) < precision)
 
 
 def test_remove_centroider():

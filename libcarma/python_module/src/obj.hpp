@@ -87,6 +87,10 @@ struct CarmaObjInterfacer {
         // int wait_stream(int stream)
         .def("wait_stream", &Class::wait_stream, "TODO",
              py::arg("steam"))  // TODO do the documentation...
+        .def("swapPtr", [](Class &obj, Class &obj2){
+          obj.swapPtr(obj2.getData());
+        }, "TODO",
+             py::arg("ptr"))  // TODO do the documentation...
         // int wait_all_streams()
         .def("wait_all_streams", &Class::wait_all_streams,
              "TODO")  // TODO do the documentation...

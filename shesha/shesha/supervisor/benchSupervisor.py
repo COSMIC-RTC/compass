@@ -54,11 +54,28 @@ class BenchSupervisor(AbstractSupervisor):
         else:
             raise AttributeError("command should be a 1D or 2D array")
 
-    def getWfsImage(self, numWFS: int = 0) -> np.ndarray:
+    def getWfsImage(self, numWFS: int = 0, calPix=False) -> np.ndarray:
         '''
         Get an image from the WFS
         '''
-        return self.camCallback()
+        if (calPix):
+            return np.array(self.rtc.d_centro[0].d_img)
+        else:
+            return np.array(self.rtc.d_centro[0].d_img_raw)
+
+    def loadFlat(self, flat: np.ndarray, nctrl: int = 0):
+        """
+        Load flat field for the given controller
+
+        """
+        self.rtc.d_centro[nctrl].set_flat(flat, flat.shape[0])
+
+    def loadBackground(self, background: np.ndarray, nctrl: int = 0):
+        """
+        Load background for the given controller
+
+        """
+        self.rtc.d_centro[nctrl].set_dark(background, background.shape[0])
 
     def setCommand(self, nctrl: int, command: np.ndarray) -> None:
         ''' TODO
@@ -144,7 +161,7 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         Move atmos -> getSlope -> applyControl ; One integrator step
         '''
-        self.frame = self.getWfsImage()
+        self.frame = self.camCallback()
         self.rtc.d_centro[0].load_img(self.frame, self.frame.shape[0])
         self.rtc.d_centro[0].calibrate_img()
         self.rtc.do_centroids(0)
@@ -154,6 +171,9 @@ class BenchSupervisor(AbstractSupervisor):
         self.setCommand(0, np.array(self.rtc.d_control[0].d_voltage))
         if self.BRAHMA or self.CACAO:
             self.rtc.publish()
+
+    def getAllDataLoop(self, nb):
+        ...
 
     def closeLoop(self) -> None:
         '''
@@ -332,6 +352,7 @@ class BenchSupervisor(AbstractSupervisor):
                                    self.config.p_cams[0].expo_usec,
                                    self.config.p_cams[0].framerate,
                                    self.config.p_cams[0].symcode))
+            self._cam.acquisitionStart()
             self.camCallback = lambda: self._cam.getFrame(1)
         print("->DM")
         if self.dmSetCallback is None:
@@ -380,9 +401,6 @@ class BenchSupervisor(AbstractSupervisor):
             gain = 1
             nact = self.config.p_dms[0].nact
 
-            if self.config.p_controllers[0].delay != 1:
-                raise RuntimeError("delay is not set 1, call Flo if it makes sense!")
-
             self.rtc = rtc_standalone(self.c, wfsNb, nvalid, nact,
                                       self.config.p_centroiders[0].type,
                                       self.config.p_controllers[0].delay, offset, scale,
@@ -390,6 +408,9 @@ class BenchSupervisor(AbstractSupervisor):
             # put pixels in the SH grid coordonates
             self.rtc.d_centro[0].load_validpos(p_wfs._validsubsx, p_wfs._validsubsy,
                                                nvalid)
+            if self.config.p_centroiders[0].type is CentroiderType.BPCOG:
+                self.rtc.d_centro[0].set_nmax(self.config.p_centroiders[0].nmax)
+
             self.rtc.d_centro[0].set_npix(self.npix)
 
             cMat = np.zeros((nact, 2 * nvalid[0]), dtype=np.float32)
