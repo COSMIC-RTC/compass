@@ -12,7 +12,17 @@ then
         mkdir -p build
 fi
 
+if [ -z $COMPASS_DO_HALF ]
+then
+    COMPASS_DO_HALF="OFF"
+fi
+
 cd build
-cmake .. -DCMAKE_INSTALL_PREFIX=$PYTHON_INSTALL_PATH
+cmake .. -DCMAKE_INSTALL_PREFIX=$PYTHON_INSTALL_PATH -Ddo_half=$COMPASS_DO_HALF
 make -j8
 make install
+
+if [ ! -z $OCTOPUS_ROOT ]
+then
+    cp -r $OCTOPUS_ROOT/Octopus $PYTHON_INSTALL_PATH/python
+fi

@@ -21,10 +21,6 @@
 
 #define CARMA_PI 3.1415926535897932384626433832
 
-#if CUDA_HIGHEST_SM >= 60
-#define CAN_DO_HALF 1
-#endif
-
 struct doubleint {
   int start;
   int nbInflu;

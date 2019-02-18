@@ -5,25 +5,21 @@ Master status: [![Master status](https://gitlab.obspm.fr/compass/compass/badges/
 Develop status: [![Develop status](https://gitlab.obspm.fr/compass/compass/badges/develop/pipeline.svg)](https://gitlab.obspm.fr/compass/compass/commits/develop)
 
 - [COMPASS](#compass)
-    - [Overview](#overview)
-        - [Hardware requirements](#hardware-requirements)
-        - [Environment requirements](#environment-requirements)
-    - [Install Anaconda with python3](#install-anaconda-with-python3)
-        - [setup .bashrc](#setup-bashrc)
-        - [Download and installation](#download-and-installation)
-    - [Install MAGMA](#install-magma)
-        - [Why MAGMA?](#why-magma)
-        - [Extraction](#extraction)
-        - [Configure MAGMA with MKL & installation (fast way)](#configure-magma-with-mkl-installation-fast-way)
-        - [Configure MAGMA & installation (expert way)](#configure-magma-installation-expert-way)
-            - [Using OpenBlas](#using-openblas)
-            - [Using MKL](#using-mkl)
-            - [Compilation and installation](#compilation-and-installation)
-        - [Tuning (not tested)](#tuning-not-tested)
-    - [Install the platform](#install-the-platform)
-        - [Download sources](#download-sources)
-        - [Install dependencies (if not already done)](#install-dependencies-if-not-already-done)
-        - [Install COMPASS](#install-compass)
+  - [Overview](#overview)
+    - [Hardware requirements](#hardware-requirements)
+    - [Environment requirements](#environment-requirements)
+  - [Install Anaconda with python3](#install-anaconda-with-python3)
+    - [setup .bashrc](#setup-bashrc)
+    - [Download and installation](#download-and-installation)
+  - [Install MAGMA](#install-magma)
+    - [Why MAGMA?](#why-magma)
+    - [Extraction](#extraction)
+    - [Configure MAGMA with MKL & installation](#configure-magma-with-mkl--installation)
+    - [Tuning (not tested)](#tuning-not-tested)
+  - [Install the platform](#install-the-platform)
+    - [Download sources](#download-sources)
+    - [Install dependencies (if not already done)](#install-dependencies-if-not-already-done)
+    - [Install COMPASS](#install-compass)
 
 ## Overview
 
@@ -79,7 +75,7 @@ cd magma-2.4.0
 
 NOTE: COMPASS seems not working with 2.5.0
 
-### Configure MAGMA with MKL & installation (fast way)
+### Configure MAGMA with MKL & installation
 
 Installation of dependencies using anaconda
 
@@ -119,245 +115,6 @@ To install libraries and include files in a given prefix, run:
 GPU_TARGET=sm_XX MKLROOT=$MKLROOT CUDADIR=$CUDA_ROOT make install prefix=$HOME/local/magma
 ```
 
-### Configure MAGMA & installation (expert way)
-
-#### Using OpenBlas
-
-##### Dependencies : openblas (<http://www.openblas.net>)
-
-First, clone the GIT repository:
-
-```bash
-git clone https://github.com/xianyi/OpenBLAS.git
-```
-
-compile it:
-
-```bash
-cd OpenBLAS/
-make USE_OPENMP=1
-```
-
-install it:
-
-```bash
-make install PREFIX=$HOME/local/openblas
-```
-
-add to you .bashrc:
-
-```bash
-export OPENBLAS_ROOT=$HOME/local/openblas
-```
-
-##### Configure MAGMA using the local build of OpenBLAS
-
-You have to create your own make.inc based on make.inc.openblas:
-
-```bash
-cp make.inc-examples/make.inc.openblas make.inc
-```
-
-example : please verify GPU_TARGET, OPENBLASDIR, CUDADIR
-
-when using anaconda openBLAS: OPENBLASDIR=$(HOME)/miniconda3
-
-```Makefile
-#//////////////////////////////////////////////////////////////////////////////
-##   -- MAGMA (version 2.2.0) --
-##      Univ. of Tennessee, Knoxville
-##      Univ. of California, Berkeley
-##      Univ. of Colorado, Denver
-##      @date November 2016
-#//////////////////////////////////////////////////////////////////////////////
-
-## GPU_TARGET contains one or more of Fermi, Kepler, or Maxwell,
-## to specify for which GPUs you want to compile MAGMA:
-##     Fermi   - NVIDIA compute capability 2.x cards
-##     Kepler  - NVIDIA compute capability 3.x cards
-##     Maxwell - NVIDIA compute capability 5.x cards
-##     Pascal  - NVIDIA compute capability 6.x cards
-## The default is "Fermi Kepler".
-## Note that NVIDIA no longer supports 1.x cards, as of CUDA 6.5.
-## See http://developer.nvidia.com/cuda-gpus
-#
-GPU_TARGET ?= Pascal
-
-## --------------------
-## programs
-
-CC        = gcc
-CXX       = g++
-NVCC      = nvcc
-FORT      = gfortran
-
-ARCH      = ar
-ARCHFLAGS = cr
-RANLIB    = ranlib
-
-## --------------------
-## flags
-
-## Use -fPIC to make shared (.so) and static (.a) library;
-## can be commented out if making only static library.
-FPIC      = -fPIC
-
-CFLAGS    = -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -fopenmp
-FFLAGS    = -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument
-F90FLAGS  = -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument -x f95-cpp-input
-NVCCFLAGS = -O3         -DNDEBUG -DADD_       -Xcompiler "$(FPIC)"
-LDFLAGS   =     $(FPIC)                       -fopenmp
-
-## C++11 (gcc >= 4.7) is not required, but has benefits like atomic operations
-CXXFLAGS := $(CFLAGS) -std=c++11
-CFLAGS   += -std=c99
-
-## --------------------
-## libraries
-
-## gcc with OpenBLAS (includes LAPACK)
-LIB       = -lopenblas
-
-LIB      += -lcublas -lcusparse -lcudart -lcudadevrt
-
-## --------------------
-## directories
-
-## define library directories preferably in your environment, or here.
-OPENBLASDIR ?= $(HOME)/local/openblas
-CUDADIR ?= /usr/local/cuda
--include make.check-openblas
--include make.check-cuda
-
-LIBDIR    = -L$(CUDADIR)/lib64 \
-            -L$(OPENBLASDIR)/lib
-
-INC       = -I$(CUDADIR)/include \
-            -I$(OPENBLASDIR)/include
-```
-
-#### Using MKL
-
-##### Configure MAGMA with MKL
-
-You have to create your own make.inc based on make.inc.mkl-gcc-ilp64:
-
-example: please verify GPU_TARGET, MKLROOT, CUDADIR
-
-```Makefile
-#//////////////////////////////////////////////////////////////////////////////
-##   -- MAGMA (version 2.1.0) --
-##      Univ. of Tennessee, Knoxville
-##      Univ. of California, Berkeley
-##      Univ. of Colorado, Denver
-##      @date August 2016
-#//////////////////////////////////////////////////////////////////////////////
-
-## GPU_TARGET contains one or more of Fermi, Kepler, or Maxwell,
-## to specify for which GPUs you want to compile MAGMA:
-##     Fermi   - NVIDIA compute capability 2.x cards
-##     Kepler  - NVIDIA compute capability 3.x cards
-##     Maxwell - NVIDIA compute capability 5.x cards
-##     Pascal  - NVIDIA compute capability 6.x cards
-## The default is "Fermi Kepler".
-## Note that NVIDIA no longer supports 1.x cards, as of CUDA 6.5.
-## See http://developer.nvidia.com/cuda-gpus
-#
-#GPU_TARGET ?= Fermi Kepler
-
-## --------------------
-## programs
-
-CC        = icc
-CXX       = icpc
-NVCC      = nvcc
-FORT      = ifort
-
-ARCH      = ar
-ARCHFLAGS = cr
-RANLIB    = ranlib
-
-## --------------------
-## flags
-
-## Use -fPIC to make shared (.so) and static (.a) library;
-## can be commented out if making only static library.
-FPIC      = -fPIC
-
-CFLAGS    = -O3 $(FPIC) -openmp -DADD_ -Wall -Wshadow -DMAGMA_WITH_MKL
-FFLAGS    = -O3 $(FPIC)         -DADD_ -warn all -warn nounused -nogen-interfaces
-F90FLAGS  = -O3 $(FPIC)         -DADD_ -warn all -warn nounused
-NVCCFLAGS = -O3                 -DADD_ -Xcompiler "$(FPIC) -Wall -Wno-unused-function"
-LDFLAGS   =     $(FPIC) -openmp
-
-## Defining MAGMA_ILP64 or MKL_ILP64 changes magma_int_t to int64_t in include/magma_types.h
-CFLAGS    += -DMKL_ILP64
-FFLAGS    += -integer-size 64
-F90FLAGS  += -integer-size 64
-NVCCFLAGS += -DMKL_ILP64
-
-## Options to do extra checks for non-standard things like variable length arrays;
-## it is safe to disable all these
-CFLAGS   += -pedantic -Wno-long-long
-#CFLAGS   += -Werror  ## uncomment to ensure all warnings are dealt with
-
-## C++11 (icc >= 13) is not required, but has benefits like atomic operations
-CXXFLAGS := $(CFLAGS) -std=c++11
-CFLAGS   += -std=c99
-
-## --------------------
-## libraries
-
-## IMPORTANT: these link lines are for 64-bit int !!!!
-## For regular 64-bit builds using 64-bit pointers and 32-bit int,
-## use the lp64 library, not the ilp64 library. See make.inc.mkl-gcc or make.inc.mkl-icc.
-
-## see MKL Link Advisor at http://software.intel.com/sites/products/mkl/
-## icc with MKL 10.3, Intel OpenMP threads, 64-bit int
-## note -DMAGMA_ILP64 or -DMKL_ILP64, and -integer-size 64 in FLAGS above
-LIB       = -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core -lpthread -lstdc++ -lm
-
-LIB      += -lcublas -lcusparse -lcudart
-
-## --------------------
-## directories
-
-## define library directories preferably in your environment, or here.
-## for MKL run, e.g.: source /opt/intel/composerxe/mkl/bin/mklvars.sh intel64
-#MKLROOT ?= /opt/intel/composerxe/mkl
-#CUDADIR ?= /usr/local/cuda
--include make.check-mkl
--include make.check-cuda
-
-LIBDIR    = -L$(CUDADIR)/lib64 \
-            -L$(MKLROOT)/lib/intel64
-
-INC       = -I$(CUDADIR)/include \
-            -I$(MKLROOT)/include
-```
-
-In this example, I use gcc but with MKL, you can use icc instead of gcc. In this case, you have to compile yorick with icc. For this, you have to change the CC flag in Make.cfg
-
-#### Compilation and installation
-
-##### Compilation
-
-just compile the shared target (and test if you want)
-
-```bash
-make -j $NCPUS shared sparse-shared
-```
-
-##### Installation
-
-To install libraries and include files in a given prefix, run:
-
-```bash
-make install prefix=$HOME/local/magma
-```
-
-The default prefix is /usr/local/magma. You can also set prefix in make.inc.
-
 ### Tuning (not tested)
 
 For multi-GPU functions, set $MAGMA_NUM_GPUS to set the number of GPUs to use.
@@ -393,10 +150,13 @@ export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$MAGMA_ROOT/lib/pkgconfig
 
 #COMPASS default definitions
 export COMPASS_ROOT=$HOME/compass
-export NAGA_ROOT=$COMPASS_ROOT/carmaWrap
+export COMPASS_INSTALL_ROOT=$COMPASS_ROOT/local
+export COMPASS_DO_HALF="OFF"  # set to ON if you want to use half precision RTC (needs SM>=60)
+export NAGA_ROOT=$COMPASS_ROOT/naga
 export SHESHA_ROOT=$COMPASS_ROOT/shesha
-export LD_LIBRARY_PATH=$COMPASS_ROOT/libcarma:$COMPASS_ROOT/libsutra:$LD_LIBRARY_PATH
-export PYTHONPATH=$NAGA_ROOT:$SHESHA_ROOT:$PYTHONPATH
+export LD_LIBRARY_PATH=$COMPASS_INSTALL_ROOT/lib:$LD_LIBRARY_PATH
+export PYTHONPATH=$NAGA_ROOT:$SHESHA_ROOT:$COMPASS_INSTALL_ROOT/python:$PYTHONPATH
+export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$COMPASS_INSTALL_ROOT/lib/pkgconfig
 ```
 
 ### Install dependencies (if not already done)
@@ -410,8 +170,6 @@ conda install -y numpy pyqtgraph ipython pyqt qt matplotlib astropy blaze h5py h
 ### Install COMPASS
 
 ```bash
-
 cd $COMPASS_ROOT
-make install
-
+./compile.sh
 ```

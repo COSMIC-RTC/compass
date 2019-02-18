@@ -120,6 +120,7 @@ int doubletofloat(double *i_data, float *o_data, int N, carma_device *device) {
   return EXIT_SUCCESS;
 }
 
+#ifdef CAN_DO_HALF
 __global__ void float2halfArray_krnl(float *source, half *dest, int N) {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
   while (tid < N) {
@@ -209,6 +210,7 @@ int copyFromHalfToFloat(const half *d_data, float *h_dest, int N,
 
   return EXIT_SUCCESS;
 }
+#endif
 
 template <typename T>
 __global__ void fill_array_krnl(T *d_data, T value, int N) {

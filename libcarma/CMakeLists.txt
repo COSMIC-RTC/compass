@@ -1,32 +1,44 @@
 cmake_minimum_required (VERSION 3.8)
 
+option(do_half "Compile half codes")
+
 if(DEFINED ENV{CUDA_SM})
     set(CUDA_SM $ENV{CUDA_SM})
 else()
     message(STATUS "Probing GPUs for their compute capabilities...")
     execute_process(COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/scripts/get_cuda_sm.sh"  OUTPUT_VARIABLE CUDA_SM)
 endif()
-message(STATUS "Building for Compute Capability ${CUDA_SM}")
+
+set(CUDA_ALL_SM "30" "35" "37" "50" "52" "60" "61" "70")
 
 if( ${CUDA_SM} STREQUAL "ALL")
-unset(CUDA_SM)
-list(APPEND CUDA_SM "30" "35" "37" "50" "52" "60" "61" "70")
+    unset(CUDA_SM)
+    set(CUDA_SM ${CUDA_ALL_SM})
 endif()
+message(STATUS "Building for Compute Capability ${CUDA_SM}")
 
-list(LENGTH CUDA_SM CUDA_SM_LEN)
-math(EXPR CUDA_SM_LEN ${CUDA_SM_LEN}-1)
-list(GET CUDA_SM ${CUDA_SM_LEN} CUDA_SM_LAST)
+set(CUDA_LOWEREST_SM 999)
+set(CUDA_HIGHEST_SM 0)
+foreach(SM ${CUDA_SM})
+    if(${SM} GREATER_EQUAL ${CUDA_HIGHEST_SM})
+        set(CUDA_HIGHEST_SM ${SM})
+    endif()
+    if(${SM} LESS_EQUAL ${CUDA_LOWEREST_SM})
+        set(CUDA_LOWEREST_SM ${SM})
+    endif()
+endforeach(SM)
+message(STATUS "Building for Compute Capability min: ${CUDA_LOWEREST_SM}, max: ${CUDA_HIGHEST_SM}")
+message(STATUS "Building for half precision RTC module: ${do_half}")
+
 
 foreach(SM ${CUDA_SM})
-list( APPEND CUDA_ARCH -gencode arch=compute_${SM},code=sm_${SM})
+list( APPEND CUDA_ARCH -gencode=arch=compute_${SM},code=sm_${SM})
 endforeach(SM)
 
-#string(APPEND CMAKE_CUDA_FLAGS ${CUDA_ARCH})
-
 project(carma
-    VERSION ${VERSION_INFO}
-    DESCRIPTION "COMPASS CARMA lirary"
-    LANGUAGES CUDA CXX
+VERSION ${VERSION_INFO}
+DESCRIPTION "COMPASS CARMA lirary"
+LANGUAGES CUDA CXX
 )
 
 # EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
@@ -83,6 +95,14 @@ add_library(carma SHARED
     ./src.cu/carma_transpose.cu
 )
 
+if(do_half)
+ if(${CUDA_LOWEREST_SM} GREATER_EQUAL 60)
+   target_compile_definitions(carma PUBLIC CAN_DO_HALF=1 )
+ else()
+   message(FATAL_ERROR "(at least one of) Your NVIDIA card can not support half precision (SM should be >=60)")
+ endif()
+endif()
+
 set_target_properties(carma
     PROPERTIES
     VERSION ${PROJECT_VERSION}
@@ -96,14 +116,15 @@ target_compile_features(carma PUBLIC cxx_std_14)
 target_compile_options(carma
     PUBLIC
     -Wno-deprecated-declarations
-    $<$<COMPILE_LANGUAGE:CUDA>:${CUDA_ARCH} -use_fast_math >
+    $<$<COMPILE_LANGUAGE:CUDA>: ${CUDA_ARCH} -use_fast_math >
     PRIVATE
     $<$<COMPILE_LANGUAGE:CXX>:${MAGMA_CFLAGS_OTHER}>
 )
 
 target_compile_definitions(carma
     PUBLIC
-    CUDA_HIGHEST_SM=${CUDA_SM_LAST}
+    CUDA_HIGHEST_SM=${CUDA_HIGHEST_SM}
+    CUDA_LOWEREST_SM=${CUDA_LOWEREST_SM}
     $<$<COMPILE_LANGUAGE:CXX>:VERSION_INFO=${VERSION_INFO}> # USE_UVA>
     PRIVATE
     $<$<COMPILE_LANGUAGE:CXX>:USE_MAGMA>
