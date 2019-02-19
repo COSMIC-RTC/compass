@@ -96,7 +96,7 @@ def test_potri_cpu():
 def test_getri_gpu():
 
     d_mat = ch.obj_float(c, np.zeros([m, m], dtype=np.float32))
-    d_mat.random(int(time.perf_counter() * 1e3))
+    d_mat.random(np.int32(time.perf_counter() * 1e3))
     a = np.array(d_mat)
     a = a.T
     a.reshape(a.T.shape)
@@ -122,7 +122,7 @@ def test_getri_gpu():
 def test_potri_gpu():
 
     d_mat = ch.obj_float(c, np.zeros([m, m], dtype=np.int64))
-    d_mat.random(int(time.perf_counter() * 1e3))
+    d_mat.random(np.int32(time.perf_counter() * 1e3))
     a = np.array(d_mat)
     a = a.T
     a.reshape(a.T.shape)

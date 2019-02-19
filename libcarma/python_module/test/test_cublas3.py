@@ -10,7 +10,7 @@ sizem = 128
 sizen = 256
 sizek = 512
 
-seed = int(time.perf_counter() * 1e3)
+seed = np.int32(time.perf_counter() * 1e3)
 
 print("")
 print("Test cublas 3")
@@ -49,11 +49,11 @@ def test_gemm():
 
     matA.random_host(seed, 'U')
     matAT.random_host(seed, 'U')
-    matB.random_host(seed * 2, 'U')
-    matBT.random_host(seed * 2, 'U')
-    matC.random_host(seed * 3, 'U')
-    matC2.random_host(seed * 3, 'U')
-    matC3.random_host(seed * 3, 'U')
+    matB.random_host(seed + 2, 'U')
+    matBT.random_host(seed + 2, 'U')
+    matC.random_host(seed + 3, 'U')
+    matC2.random_host(seed + 3, 'U')
+    matC3.random_host(seed + 3, 'U')
 
     A = np.array(matA)
     AT = np.array(matAT)
@@ -103,8 +103,8 @@ def test_symm():
     matC = ch.obj_float(c, C)  #np.zeros((sizek, sizen)))
 
     matA.random_host(seed, 'U')
-    matB.random_host(seed * 2, 'U')
-    matC.random_host(seed * 3, 'U')
+    matB.random_host(seed + 2, 'U')
+    matC.random_host(seed + 3, 'U')
 
     #A symetric
     A = np.array(matA)
@@ -158,7 +158,7 @@ def test_dgmm():
     Vectx = ch.obj_float(c, np.zeros((sizek), dtype=np.float32))
 
     matA.random_host(seed, 'U')
-    Vectx.random_host(seed * 2, 'U')
+    Vectx.random_host(seed + 2, 'U')
     A = np.array(matA)
     x = np.array(Vectx)
 
@@ -201,7 +201,7 @@ def test_syrk():
     matC = ch.obj_float(c, np.zeros((sizen, sizen)))
 
     matA.random_host(seed, 'U')
-    matC.random_host(seed * 2, 'U')
+    matC.random_host(seed + 2, 'U')
 
     A = np.array(matA)
     C = np.array(matC)
@@ -253,8 +253,8 @@ def test_syrkx():
     matC = ch.obj_float(c, np.zeros((sizen, sizen)))
 
     matA.random_host(seed, 'U')
-    matB.random_host(seed * 2, 'U')
-    matC.random_host(seed * 3, 'U')
+    matB.random_host(seed + 2, 'U')
+    matC.random_host(seed + 3, 'U')
 
     A = np.array(matA)
     B = np.array(matB)
@@ -308,7 +308,7 @@ def test_geam():
     matB = ch.obj_float(c, np.empty((sizem, sizen)))
 
     matA.random_host(seed, 'U')
-    matB.random_host(seed * 2, 'U')
+    matB.random_host(seed + 2, 'U')
 
     A = np.array(matA)
     B = np.array(matB)

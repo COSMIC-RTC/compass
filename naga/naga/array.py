@@ -1,9 +1,12 @@
 import numpy as np
 from naga.context import Context
 
-from carmaWrap import obj_float, obj_double, obj_int, obj_float_complex, obj_half, obj_uint16
-from carmaWrap import make_carmaWrap_obj_half
-from carmaWrap import get_carmaWrap_obj_half
+from carmaWrap import obj_float, obj_double, obj_int, obj_float_complex, obj_uint16
+try:
+    from carmaWrap import obj_half, make_carmaWrap_obj_half, get_carmaWrap_obj_half
+    USE_HALF=1
+except:
+    USE_HALF=0
 context = Context()
 
 
@@ -58,7 +61,7 @@ class Array():
                     self.__data = obj_float(context.context, data)
                 elif data.dtype == np.float64:
                     self.__data = obj_double(context.context, data)
-                elif data.dtype == np.float16:
+                elif USE_HALF and data.dtype == np.float16:
                     self.__data = make_carmaWrap_obj_half(context.context,
                                                           data.astype(np.float32))
                 elif data.dtype == np.complex64 or data.dtype == np.complex128:
@@ -81,7 +84,7 @@ class Array():
                 self.__data = data
                 self.__dtype = np.float64
                 self.__shape = tuple(data.shape[k] for k in range(len(data.shape)))
-            elif isinstance(data, obj_half):
+            elif USE_HALF and isinstance(data, obj_half):
                 self.__data = data
                 self.__dtype = np.float16
                 self.__shape = tuple(data.shape[k] for k in range(len(data.shape)))
@@ -196,7 +199,7 @@ class Array():
     def toarray(self):
         if (self.dtype == np.complex64):
             tmp = float2tocomplex(np.array(self.data))
-        elif (self.dtype == np.float16):
+        elif USE_HALF and (self.dtype == np.float16):
             tmp = get_carmaWrap_obj_half(self.data).astype(np.float16)
         else:
             tmp = np.array(self.data)

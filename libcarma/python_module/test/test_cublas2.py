@@ -9,7 +9,7 @@ prec = 10**-dec
 sizem = 512
 sizen = 1024
 
-seed = int(time.perf_counter() * 1e3)
+seed = np.int32(time.perf_counter() * 1e3)
 
 print("")
 print("Test cublas 2")
@@ -42,12 +42,12 @@ def test_gemv():
     Mat = ch.obj_float(c, A)
     MatT = ch.obj_float(c, AT)
     Mat.random_host(seed, 'U')
-    MatT.random_host(seed * 2, 'U')
+    MatT.random_host(seed + 2, 'U')
 
     Vectx = ch.obj_float(c, x)
     Vecty = ch.obj_float(c, y)
-    Vectx.random_host(seed * 3, 'U')
-    Vecty.random_host(seed * 4, 'U')
+    Vectx.random_host(seed + 3, 'U')
+    Vecty.random_host(seed + 4, 'U')
 
     A = np.array(Mat)
     AT = np.array(MatT)
@@ -75,13 +75,13 @@ def test_ger():
     #   and  : A= x.y+ A
     # x and y are vectors, A a matrix
     Mat = ch.obj_float(c, np.zeros((sizem, sizen), dtype=np.float32))
-    Mat.random_host(seed * 2, 'U')
+    Mat.random_host(seed + 2, 'U')
 
     Vectx = ch.obj_float(c, np.zeros((sizen), dtype=np.float32))
-    Vectx.random_host(seed * 3, 'U')
+    Vectx.random_host(seed + 3, 'U')
 
     Vecty = ch.obj_float(c, np.zeros((sizem), dtype=np.float32))
-    Vecty.random_host(seed * 4, 'U')
+    Vecty.random_host(seed + 4, 'U')
 
     x = np.array(Vectx)
     A = np.array(Mat)
@@ -103,13 +103,13 @@ def test_symv():
     # x and y are vector, A a symetric matrix
 
     MatSym = ch.obj_float(c, np.zeros((sizem, sizem), dtype=np.float32))
-    MatSym.random_host(seed * 2, 'U')
+    MatSym.random_host(seed + 2, 'U')
     data_R = np.array(MatSym)
     data_R = data_R + data_R.T
     MatSym = ch.obj_float(c, data_R)
 
     Vectx = ch.obj_float(c, np.zeros((sizem), dtype=np.float32))
-    Vectx.random_host(seed * 5, 'U')
+    Vectx.random_host(seed + 5, 'U')
 
     Vecty = ch.obj_float(c, np.zeros((sizem), dtype=np.float32))
 
