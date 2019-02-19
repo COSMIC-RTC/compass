@@ -14,7 +14,7 @@ build_job:
     CUDA_SM: ALL
   script:
     - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/python:$PYTHONPATH
-    - mkdir python
+    - mkdir -p python
     - easy_install -d python .
   when: manual
   only:
