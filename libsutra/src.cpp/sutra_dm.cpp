@@ -16,9 +16,19 @@ sutra_dms::~sutra_dms() {
 int sutra_dms::add_dm(carma_context *context, const char *type, float alt,
                       long dim, long nactus, long influsize, long ninflupos,
                       long n_npoints, float push4imat, long nord, int device) {
-  d_dms.push_back(new sutra_dm(context, type, alt, dim, nactus, influsize,
-                               ninflupos, n_npoints, push4imat, nord, device));
+  this->insert_dm(context, type, alt, dim, nactus, influsize, ninflupos,
+                  n_npoints, push4imat, nord, device, this->d_dms.size());
 
+  return EXIT_SUCCESS;
+}
+
+int sutra_dms::insert_dm(carma_context *context, const char *type, float alt,
+                         long dim, long nactus, long influsize, long ninflupos,
+                         long n_npoints, float push4imat, long nord, int device,
+                         int idx) {
+  d_dms.insert(d_dms.begin() + idx,
+               new sutra_dm(context, type, alt, dim, nactus, influsize,
+                            ninflupos, n_npoints, push4imat, nord, device));
   return EXIT_SUCCESS;
 }
 

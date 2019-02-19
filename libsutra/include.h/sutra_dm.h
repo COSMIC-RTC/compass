@@ -125,6 +125,9 @@ class sutra_dms {
   int add_dm(carma_context *context, const char *type, float alt, long dim,
              long nactus, long influsize, long ninflupos, long n_npoints,
              float push4imat, long nord, int device);
+  int insert_dm(carma_context *context, const char *type, float alt, long dim,
+                long nactus, long influsize, long ninflupos, long n_npoints,
+                float push4imat, long nord, int device, int idx);
   int remove_dm(int idx);
 
   int ndm() { return d_dms.size(); };

@@ -72,6 +72,30 @@ void declare_dms(py::module &mod) {
            py::arg("n_npoints"), py::arg("push4imat"), py::arg("nord"),
            py::arg("device"))
 
+      .def("insert_dm", wy::colCast(&sutra_dms::insert_dm),
+           R"pbdoc(
+        Add a sutra_dm in the sutra_dms vector at the specified index
+
+        Parameters
+        ------------
+        context: (carma_context) : current carma context
+        type: (str): DM type ("pzt", "kl", or "tt")
+        alt: (float): Conjugaison altitude in meters
+        dim: (long): Support dimension
+        nactus: (long): Number of actuators
+        influsize: (long): Influenction function support size
+        ninflupos: (long): Size of _influpos array
+        n_npoints: (long): Size of _ninflu array
+        push4imat: (float): Voltage to apply for imat computation
+        nord: (long): Number of radial order for kl dm (0 if not kl)
+        device: (int): Device index
+        idx: (int) : DM index in the vector dms
+        )pbdoc",
+           py::arg("context"), py::arg("type"), py::arg("alt"), py::arg("dim"),
+           py::arg("nactus"), py::arg("influsize"), py::arg("ninflupos"),
+           py::arg("n_npoints"), py::arg("push4imat"), py::arg("nord"),
+           py::arg("device"), py::arg("idx"))
+
       .def("remove_dm", wy::colCast(&sutra_dms::remove_dm),
            R"pbdoc(
         Remove and delete the selected DM from sutra_dms

@@ -609,13 +609,10 @@ def correct_dm(context, dms: Dms, p_dms: list, p_controller: conf.Param_controll
         use_DB: (bool): dataBase use flag
     """
     print("Filtering unseen actuators... ")
-    ndm = p_controller.ndm.size
-    for i in range(ndm - 1, -1, -1):
-        nm = p_controller.ndm[i]
-        dms.remove_dm(nm)
     if imat is not None:
         resp = np.sqrt(np.sum(imat**2, axis=0))
 
+    ndm = p_controller.ndm.size
     inds = 0
 
     for nmc in range(ndm):
@@ -657,29 +654,13 @@ def correct_dm(context, dms: Dms, p_dms: list, p_controller: conf.Param_controll
             dim = max(p_dms[nm]._n2 - p_dms[nm]._n1 + 1, p_geom._mpupil.shape[0])
             ninflupos = p_dms[nm]._influpos.size
             n_npts = p_dms[nm]._ninflu.size
-
-            dms.add_dm(context, p_dms[nm].type, p_dms[nm].alt, dim, p_dms[nm]._ntotact,
-                       p_dms[nm]._influsize, ninflupos, n_npts, p_dms[nm].push4imat, 0,
-                       context.activeDevice)
-            dms.d_dms[-1].pzt_loadarrays(p_dms[nm]._influ, p_dms[nm]._influpos.astype(
+            dms.remove_dm(nm)
+            dms.insert_dm(context, p_dms[nm].type, p_dms[nm].alt, dim,
+                          p_dms[nm]._ntotact, p_dms[nm]._influsize, ninflupos, n_npts,
+                          p_dms[nm].push4imat, 0, context.activeDevice, nm)
+            dms.d_dms[nm].pzt_loadarrays(p_dms[nm]._influ, p_dms[nm]._influpos.astype(
                     np.int32), p_dms[nm]._ninflu, p_dms[nm]._influstart, p_dms[nm]._i1,
                                          p_dms[nm]._j1)
-        elif (p_dms[nm].type == scons.DmType.TT):
-            dim = p_dms[nm]._n2 - p_dms[nm]._n1 + 1
-            dms.add_dm(context, p_dms[nm].type, p_dms[nm].alt, dim, 2, dim, 1, 1,
-                       p_dms[nm].push4imat, 0, context.activeDevice)
-            dms.d_dms[-1].tt_loadarrays(p_dms[nm]._influ)
-
-        elif (p_dms[nm].type == scons.DmType.KL):
-            dim = int(p_dms[nm]._n2 - p_dms[nm]._n1 + 1)
-
-            dms.add_dm(context, p_dms[nm].type, p_dms[nm].alt, dim, p_dms[nm].nkl,
-                       p_dms[nm]._ncp, p_dms[nm]._nr, p_dms[nm]._npp,
-                       p_dms[nm].push4imat, p_dms[nm]._ord.max(), context.activeDevice)
-            dms.d_dms[-1].kl_loadarrays(p_dms[nm]._rabas, p_dms[nm]._azbas,
-                                        p_dms[nm]._ord, p_dms[nm]._cr, p_dms[nm]._cp)
-        else:
-            raise ValueError("Screwed up.")
 
         inds += nactu_nm
     print("Done")
