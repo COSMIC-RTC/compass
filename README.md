@@ -128,7 +128,7 @@ For multi-core BLAS libraries, set $OMP_NUM_THREADS or $MKL_NUM_THREADS or $VECL
 First check out the latest version from the svn repository :
 
 ```bash
-git clone https://gitlab.obspm.fr/compass/compass
+git clone https://gitlab.obspm.fr/compass/compass --recurse-submodules
 ```
 
 once there, you need to modify system variables in our .bashrc :
