@@ -14,11 +14,8 @@ list(APPEND CUDA_SM "30" "35" "37" "50" "52" "60" "61" "70")
 endif()
 
 foreach(SM ${CUDA_SM})
-# list( APPEND CUDA_ARCH -gencode arch=compute_${SM},code=sm_${SM})
-string(APPEND CMAKE_CUDA_FLAGS " -gencode arch=compute_${SM},code=sm_${SM}")
+list( APPEND CUDA_ARCH -gencode=arch=compute_${SM},code=sm_${SM})
 endforeach(SM)
-# message(${CUDA_ARCH})
-# string(APPEND CMAKE_CUDA_FLAGS ${CUDA_ARCH})
 
 project(carma
     VERSION ${VERSION_INFO}
@@ -92,8 +89,6 @@ math(EXPR CUDA_SM_LEN ${CUDA_SM_LEN}-1)
 list(GET CUDA_SM ${CUDA_SM_LEN} CUDA_SM_LAST)
 target_compile_definitions(carma PUBLIC CUDA_HIGHEST_SM=${CUDA_SM_LAST})
 target_compile_features(carma PUBLIC cxx_std_14)
-
-# string (REPLACE ";" " " CMAKE_CUDA_FLAGS "${CUDA_NVCC_FLAGS};${CUDA_ARCH}")
 
 target_compile_options(carma
 PUBLIC
