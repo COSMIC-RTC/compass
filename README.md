@@ -80,7 +80,7 @@ NOTE: COMPASS seems not working with 2.5.0
 Installation of dependencies using anaconda
 
 ```bash
-conda install -y numpy mkl-include pyqtgraph ipython pyqt qt matplotlib astropy blaze h5py hdf5 nose pandas scipy docopt tqdm
+conda install -y numpy mkl-include pyqtgraph ipython pyqt qt matplotlib astropy blaze h5py hdf5 pytest pandas scipy docopt tqdm
 ```
 
 add to you .bashrc:
@@ -163,7 +163,7 @@ export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$COMPASS_INSTALL_ROOT/lib/pkgconfig
 
 ```bash
 
-conda install -y numpy pyqtgraph ipython pyqt qt matplotlib astropy blaze h5py hdf5 nose pandas scipy docopt tqdm
+conda install -y numpy pyqtgraph ipython pyqt qt matplotlib astropy blaze h5py hdf5 pytest pandas scipy docopt tqdm
 
 ```
 
