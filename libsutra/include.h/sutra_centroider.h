@@ -21,7 +21,7 @@ class sutra_centroider {
   carma_context *current_context;
 
   carma_obj<Tout> *d_bincube;
-  carma_obj<Tout> *d_intensities;
+  carma_obj<float> *d_intensities;
   carma_obj<Tout> *d_centroids_ref;  // ref centroids
   carma_obj<float> *d_img;
   carma_obj<Tin> *d_img_raw;
@@ -51,9 +51,9 @@ class sutra_centroider {
 
   virtual string get_type() = 0;
 
-  virtual int get_cog(float *img, Tout *intensities, Tout *centroids,
+  virtual int get_cog(float *img, float *intensities, Tout *centroids,
                       int nvalid, int npix, int ntot) = 0;
-  virtual int get_cog(Tout *intensities, Tout *slopes, bool noise) = 0;
+  virtual int get_cog(float *intensities, Tout *slopes, bool noise) = 0;
   virtual int get_cog() = 0;
 };
 template <class Tin>

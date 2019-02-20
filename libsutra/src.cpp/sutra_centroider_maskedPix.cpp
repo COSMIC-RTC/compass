@@ -13,7 +13,8 @@ sutra_centroider_maskedPix<Tin, T>::sutra_centroider_maskedPix(
   else
     this->nslopes = nvalid * npupils;
   long dims_data[2] = {1, this->nslopes};
-  this->d_intensities = new carma_obj<T>(context, dims_data);
+  if(this->d_intensities != nullptr) delete this->d_intensities;
+  this->d_intensities = new carma_obj<float>(context, dims_data);
   this->d_intensities->init_reduceCub();
   long dims_data2[2] = {1, this->nslopes};
   this->d_centroids_ref = new carma_obj<T>(this->current_context, dims_data2);
@@ -29,7 +30,7 @@ string sutra_centroider_maskedPix<Tin, T>::get_type() {
 }
 
 template <class Tin, class T>
-int sutra_centroider_maskedPix<Tin, T>::get_cog(float *img, T *intensities,
+int sutra_centroider_maskedPix<Tin, T>::get_cog(float *img, float *intensities,
                                                 T *centroids, int nvalid,
                                                 int npix, int ntot) {
   // TODO(Implement sutra_centroider_maskedPix<Tin, T>::get_cog)
@@ -39,7 +40,7 @@ int sutra_centroider_maskedPix<Tin, T>::get_cog(float *img, T *intensities,
 }
 
 template <class Tin, class T>
-int sutra_centroider_maskedPix<Tin, T>::get_maskedPix(T *img, T *intensities,
+int sutra_centroider_maskedPix<Tin, T>::get_maskedPix(float *img, float *intensities,
                                                       T *centroids,
                                                       int *subindx,
                                                       int *subindy, int nvalid,
@@ -61,7 +62,7 @@ int sutra_centroider_maskedPix<Tin, T>::get_maskedPix(T *img, T *intensities,
 }
 
 template <class Tin, class T>
-int sutra_centroider_maskedPix<Tin, T>::get_cog(T *intensities, T *slopes,
+int sutra_centroider_maskedPix<Tin, T>::get_cog(float *intensities, T *slopes,
                                                 bool noise) {
   if (this->wfs != nullptr) {
     if (this->wfs->type == "pyrhr") {
@@ -94,3 +95,32 @@ int sutra_centroider_maskedPix<Tin, T>::get_cog() {
 
 template class sutra_centroider_maskedPix<float, float>;
 template class sutra_centroider_maskedPix<uint16_t, float>;
+#ifdef CAN_DO_HALF
+template <>
+int sutra_centroider_maskedPix<float, half>::get_cog(float *intensities, half *slopes,
+                                               bool noise) {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_FAILURE;
+}
+
+template <>
+int sutra_centroider_maskedPix<uint16_t, half>::get_cog(float *intensities,
+                                                  half *slopes, bool noise) {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_FAILURE;
+}
+
+template <>
+int sutra_centroider_maskedPix<float, half>::get_cog() {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_FAILURE;
+}
+
+template <>
+int sutra_centroider_maskedPix<uint16_t, half>::get_cog() {
+  DEBUG_TRACE("Not implemented for half precision");
+  return EXIT_FAILURE;
+}
+template class sutra_centroider_maskedPix<float, half>;
+template class sutra_centroider_maskedPix<uint16_t, half>;
+#endif

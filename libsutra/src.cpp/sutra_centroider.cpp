@@ -18,7 +18,7 @@ sutra_centroider<Tin, Tout>::sutra_centroider(carma_context *context,
   this->nxsub = 0;
 
   long dims_data[2] = {1, this->nvalid};
-  this->d_intensities = new carma_obj<Tout>(current_context, dims_data);
+  this->d_intensities = new carma_obj<float>(current_context, dims_data);
   this->d_intensities->reset();
 
   this->d_centroids_ref = nullptr;

@@ -75,7 +75,7 @@ int sutra_centroider_wcog<Tin, T>::set_npix(int npix) {
   return EXIT_SUCCESS;
 }
 template <class Tin, class T>
-int sutra_centroider_wcog<Tin, T>::get_cog(float *img, T *intensities,
+int sutra_centroider_wcog<Tin, T>::get_cog(float *img, float *intensities,
                                            T *centroids, int nvalid, int npix,
                                            int ntot) {
   // wcog
@@ -99,7 +99,7 @@ int sutra_centroider_wcog<Tin, T>::get_cog(float *img, T *intensities,
 }
 
 template <class Tin, class T>
-int sutra_centroider_wcog<Tin, T>::get_cog(T *intensities, T *slopes,
+int sutra_centroider_wcog<Tin, T>::get_cog(float *intensities, T *slopes,
                                            bool noise) {
   if (this->wfs != nullptr) {
     if (noise || this->wfs->roket == false)

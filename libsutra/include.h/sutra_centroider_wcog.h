@@ -21,15 +21,15 @@ class sutra_centroider_wcog : public sutra_centroider<Tin, T> {
   int init_weights();
   int load_weights(float *weights, int ndim);
 
-  int get_cog(float *cube, T *intensities, T *centroids, int nvalid, int npix,
+  int get_cog(float *cube, float *intensities, T *centroids, int nvalid, int npix,
               int ntot);
-  int get_cog(T *intensities, T *slopes, bool noise);
+  int get_cog(float *intensities, T *slopes, bool noise);
   int get_cog();
 };
 
 template <class T>
 void get_centroids(int size, int threads, int blocks, int n, float *d_idata,
-                   T *d_odata, T *ref, int *validx, int *validy, T *intensities,
+                   T *d_odata, T *ref, int *validx, int *validy, float *intensities,
                    float *d_weights, float scale, float offset,
                    carma_device *device);
 

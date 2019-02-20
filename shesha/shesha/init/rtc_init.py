@@ -354,8 +354,11 @@ def init_controller(context, i: int, p_controller: conf.Param_controller, p_wfss
 
     elif (p_controller.type == scons.ControllerType.GENERIC):
         init_controller_generic(i, p_controller, p_dms, rtc)
-        p_controller._imat = imats.imat_geom(wfs, dms, p_wfss, p_dms, p_controller,
-                                             meth=0)
+        try:
+            p_controller._imat = imats.imat_geom(wfs, dms, p_wfss, p_dms, p_controller,
+                                                 meth=0)
+        except:
+            print("p_controller._imat not set")
 
 
 def init_controller_geo(i: int, rtc: Rtc, dms: Dms, p_geom: conf.Param_geom,

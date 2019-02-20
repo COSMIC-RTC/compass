@@ -16,19 +16,18 @@ class sutra_centroider_maskedPix : public sutra_centroider<Tin, T> {
 
   string get_type();
 
-  int get_maskedPix(T *img, T *intensities, T *centroids, int *subindx,
+  int get_maskedPix(float *img, float *intensities, T *centroids, int *subindx,
                     int *subindy, int nvalid, int ns);
-  int get_cog(float *img, T *intensities, T *centroids, int nvalid, int npix,
-              int ntot);
-  int get_cog(T *intensities, T *slopes, bool noise);
+  int get_cog(float *img, float *intensities, T *centroids, int nvalid,
+              int npix, int ntot);
+  int get_cog(float *intensities, T *slopes, bool noise);
   int get_cog();
 };
 
+void fill_intensities(float *intensities, float *img, int *subindx,
+                      int *subindy, int ns, int nslopes, carma_device *device);
 template <class T>
-void fill_intensities(T *intensities, T *img, int *subindx, int *subindy,
-                      int ns, int nslopes, carma_device *device);
-template <class T>
-void getMaskedPix(T *centroids, T *ref, T *img, int *subindx, int *subindy,
-                  T *psum, int ns, int nslopes, carma_device *device);
+void getMaskedPix(T *centroids, T *ref, float *img, int *subindx, int *subindy,
+                  float *psum, int ns, int nslopes, carma_device *device);
 
 #endif  // _SUTRA_CENTROIDER_MASKEDPIX_H_

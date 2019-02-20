@@ -59,7 +59,7 @@ string sutra_centroider_pyr<Tin, T>::get_method_str() {
 }
 
 template <class Tin, class T>
-int sutra_centroider_pyr<Tin, T>::get_cog(float *cube, T *intensities,
+int sutra_centroider_pyr<Tin, T>::get_cog(float *cube, float *intensities,
                                           T *centroids, int nvalid, int npix,
                                           int ntot) {
   // TODO(Implement sutra_centroider_pyr<Tin, T>::get_cog)
@@ -70,7 +70,7 @@ int sutra_centroider_pyr<Tin, T>::get_cog(float *cube, T *intensities,
 }
 
 template <class Tin, class T>
-int sutra_centroider_pyr<Tin, T>::get_pyr(float *cube, T *intensities,
+int sutra_centroider_pyr<Tin, T>::get_pyr(float *cube, float *intensities,
                                           T *centroids, int *subindx,
                                           int *subindy, int nvalid, int ns,
                                           int nim) {
@@ -80,8 +80,8 @@ int sutra_centroider_pyr<Tin, T>::get_pyr(float *cube, T *intensities,
                   this->current_context->get_device(this->device));
 
   if (!(this->method.isLocal)) {
-    T p_sum = reduce<T>(intensities, nvalid);
-    fillvalues(intensities, p_sum, nvalid,
+    float p_sum = reduce<float>(intensities, nvalid);
+    fillvalues<float>(intensities, p_sum, nvalid,
                this->current_context->get_device(this->device));
   }
 
@@ -97,7 +97,7 @@ int sutra_centroider_pyr<Tin, T>::get_pyr(float *cube, T *intensities,
 }
 
 template <class Tin, class T>
-int sutra_centroider_pyr<Tin, T>::get_cog(T *intensities, T *slopes,
+int sutra_centroider_pyr<Tin, T>::get_cog(float *intensities, T *slopes,
                                           bool noise) {
   if (this->wfs != nullptr) {
     if (this->pyr_type == "pyr" || this->pyr_type == "roof")

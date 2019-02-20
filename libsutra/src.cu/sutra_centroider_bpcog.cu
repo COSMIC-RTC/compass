@@ -4,7 +4,7 @@
 template <typename T, int BLOCK_THREADS>
 __launch_bounds__(BLOCK_THREADS) __global__
     void centroids(float *d_img, T *d_centroids, T *ref, int *validx,
-                   int *validy, T *d_intensities, int nbpix, unsigned int npix,
+                   int *validy, float *d_intensities, int nbpix, unsigned int npix,
                    unsigned int size, T scale, T offset,
                    unsigned int nelem_thread) {
   // Specialize BlockRadixSort for a 1D block of BLOCK_THREADS threads owning 1
@@ -59,14 +59,14 @@ __launch_bounds__(BLOCK_THREADS) __global__
     d_centroids[blockIdx.x + gridDim.x] =
         (T(slopey / (intensity + 1.e-6)) - offset) * scale -
         ref[blockIdx.x + gridDim.x];
-    d_intensities[blockIdx.x] = T(intensity);
+    d_intensities[blockIdx.x] = intensity;
   }
 }
 
 template <class T>
 void get_centroids(int size, int threads, int blocks, int npix, float *d_img,
                    T *d_centroids, T *ref, int *validx, int *validy,
-                   T *intensities, int nbpix, float scale, float offset,
+                   float *intensities, int nbpix, float scale, float offset,
                    carma_device *device) {
   int maxThreads = device->get_properties().maxThreadsPerBlock;
   unsigned int nelem_thread = 1;
@@ -124,12 +124,12 @@ template void get_centroids<float>(int size, int threads, int blocks, int npix,
 template void get_centroids<double>(int size, int threads, int blocks, int npix,
                                     float *d_img, double *d_centroids,
                                     double *ref, int *validx, int *validy,
-                                    double *intensities, int nbpix, float scale,
+                                    float *intensities, int nbpix, float scale,
                                     float offset, carma_device *device);
 #ifdef CAN_DO_HALF
 template void get_centroids<half>(int size, int threads, int blocks, int npix,
                                   float *d_img, half *d_centroids, half *ref,
-                                  int *validx, int *validy, half *intensities,
+                                  int *validx, int *validy, float *intensities,
                                   int nbpix, float scale, float offset,
                                   carma_device *device);
 #endif

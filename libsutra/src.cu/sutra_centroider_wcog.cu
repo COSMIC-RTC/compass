@@ -34,7 +34,7 @@ template int fillweights<double>(double *d_out, double *d_in, int npix, int N,
 
 template <class T, int Nthreads>
 __global__ void centroids(float *d_img, T *d_centroids, T *ref, int *validx,
-                          int *validy, T *d_intensities, float *weights,
+                          int *validy, float *d_intensities, float *weights,
                           unsigned int npix, unsigned int size, float scale,
                           float offset, unsigned int nelem_thread) {
   if (blockDim.x > Nthreads) {
@@ -94,8 +94,8 @@ __global__ void centroids(float *d_img, T *d_centroids, T *ref, int *validx,
 template <class T>
 void get_centroids(int size, int threads, int blocks, int npix, float *d_img,
                    T *d_centroids, T *ref, int *validx, int *validy,
-                   T *intensities, float *weights, float scale, float offset,
-                   carma_device *device) {
+                   float *intensities, float *weights, float scale,
+                   float offset, carma_device *device) {
   int maxThreads = device->get_properties().maxThreadsPerBlock;
   unsigned int nelem_thread = 1;
   while ((threads / nelem_thread > maxThreads) ||
@@ -152,7 +152,7 @@ template void get_centroids<float>(int size, int threads, int blocks, int npix,
 template void get_centroids<double>(int size, int threads, int blocks, int npix,
                                     float *d_img, double *d_centroids,
                                     double *ref, int *validx, int *validy,
-                                    double *intensities, float *weights,
+                                    float *intensities, float *weights,
                                     float scale, float offset,
                                     carma_device *device);
 

@@ -109,8 +109,17 @@ int sutra_rtc<Tin, T, Tout>::add_centroider_impl(
   else if (strcmp(typec, "tcog") == 0)
     d_centro.push_back(new sutra_centroider_tcog<Tin, T>(
         context, wfs, nvalid, offset, scale, device));
-
-  else
+  else if (strcmp(typec, "maskedpix") == 0) {
+    if (wfs == nullptr) {
+      d_centro.push_back(new sutra_centroider_maskedPix<Tin, T>(
+          context, wfs, nvalid, 4, offset, scale, device));
+    } else if (wfs->type == "pyrhr") {
+      sutra_wfs_pyr_pyrhr *pwfs = dynamic_cast<sutra_wfs_pyr_pyrhr *>(wfs);
+      d_centro.push_back(new sutra_centroider_maskedPix<Tin, T>(
+          context, pwfs, nvalid, pwfs->npupils, offset, scale, device));
+    } else
+      DEBUG_TRACE("WFS must be pyrhr");
+  } else
     DEBUG_TRACE("Not implemented for half precision yet");
 
   return EXIT_SUCCESS;

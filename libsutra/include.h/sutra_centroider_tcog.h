@@ -18,16 +18,16 @@ class sutra_centroider_tcog : public sutra_centroider<Tin, T> {
 
   int set_threshold(float threshold);
 
-  int get_cog(float *cube, T *intensities, T *centroids, int nvalid, int npix,
-              int ntot);
-  int get_cog(T *intensities, T *slopes, bool noise);
+  int get_cog(float *cube, float *intensities, T *centroids, int nvalid,
+              int npix, int ntot);
+  int get_cog(float *intensities, T *slopes, bool noise);
   int get_cog();
 };
 
 template <class T>
 void get_centroids(int size, int threads, int blocks, int n, float *d_idata,
-                   T *d_odata, T *ref, int *validx, int *validy, T *intensities,
-                   float threshold, float scale, float offset,
-                   carma_device *device);
+                   T *d_odata, T *ref, int *validx, int *validy,
+                   float *intensities, float threshold, float scale,
+                   float offset, carma_device *device);
 
 #endif  // _SUTRA_CENTROIDER_TCOG_H_

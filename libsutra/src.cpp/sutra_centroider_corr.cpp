@@ -166,7 +166,7 @@ int sutra_centroider_corr<Tin, T>::load_corr(T *corr, T *corr_norm, int ndim) {
 }
 
 template <class Tin, class T>
-int sutra_centroider_corr<Tin, T>::get_cog(float *img, T *intensities,
+int sutra_centroider_corr<Tin, T>::get_cog(float *img, float *intensities,
                                            T *centroids, int nvalid, int npix,
                                            int ntot) {
   this->current_context->set_activeDevice(this->device, 1);
@@ -236,7 +236,7 @@ int sutra_centroider_corr<Tin, T>::get_cog(float *img, T *intensities,
 }
 
 template <class Tin, class T>
-int sutra_centroider_corr<Tin, T>::get_cog(T *intensities, T *slopes,
+int sutra_centroider_corr<Tin, T>::get_cog(float *intensities, T *slopes,
                                            bool noise) {
   if (this->wfs != nullptr) {
     return this->get_cog(*this->wfs->d_binimg, intensities, slopes,
