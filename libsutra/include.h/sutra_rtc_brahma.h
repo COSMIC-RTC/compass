@@ -15,7 +15,7 @@
 #include <sutra_wfs.h>
 
 template <typename T>
-class sutra_rtc_brahma : public sutra_rtc<T> {
+class sutra_rtc_brahma : public sutra_rtc<float, T, float> {
  private:
   DDS::Subscriber_var sub;
   DDS::Publisher_var pub;

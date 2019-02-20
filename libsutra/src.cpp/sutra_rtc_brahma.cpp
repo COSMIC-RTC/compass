@@ -22,7 +22,7 @@ template <typename T>
 sutra_rtc_brahma<T>::sutra_rtc_brahma(carma_context *context,
                                       sutra_sensors *wfs_,
                                       sutra_target *target_, ACE_TCHAR *name)
-    : sutra_rtc<T>(), wfs(wfs_), target(target_) {
+    : sutra_rtc<float, T, float>(), wfs(wfs_), target(target_) {
   DEBUG_TRACE("init %s", name);
   BRAHMA::BRAHMA_context brahma = BRAHMA::BRAHMA_context::get_instance(name);
   cmd_listener_servant = NULL;

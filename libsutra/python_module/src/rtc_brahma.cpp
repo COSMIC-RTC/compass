@@ -15,7 +15,7 @@ std::unique_ptr<sutra_rtc_brahma<T>> rtc_brahma_init(carma_context *context,
 
 template <typename T>
 void rtc_brahma_impl(py::module &mod, const char *name) {
-  using rtc = sutra_rtc<T>;
+  using rtc = sutra_rtc<float, T, float>;
   using rtc_brahma = sutra_rtc_brahma<T>;
 
   py::class_<rtc_brahma, rtc>(mod, name)
