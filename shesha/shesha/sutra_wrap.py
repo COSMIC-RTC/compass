@@ -38,6 +38,13 @@ def smart_import(mod, cls, verbose=False, silent=False):
         return tmp_cls
 
 
+# The import of carmaWrap MUST be done first
+# since MAGMA >= 2.5.0
+# Otherwise, it causes huge memory leak
+# plus not working code
+# Why ? We don't know... TB check with further version of MAGMA
+carmaWrap_context = smart_import("carmaWrap", "context")
+
 Dms = smart_import("sutraWrap", "Dms")
 Rtc_FFF = smart_import("sutraWrap", "Rtc_FFF")
 Rtc_FHF = smart_import("sutraWrap", "Rtc_FHF")
@@ -59,5 +66,3 @@ Target = smart_import("sutraWrap", "Target")
 Target_brahma = smart_import("sutraWrap", "Target_brahma", silent=True)
 Gamora = smart_import("sutraWrap", "Gamora")
 Groot = smart_import("sutraWrap", "Groot")
-
-carmaWrap_context = smart_import("carmaWrap", "context")

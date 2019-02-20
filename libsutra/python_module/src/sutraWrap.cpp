@@ -41,8 +41,8 @@ void declare_rtc_cacao(py::module &);
 
 // Expose classes and methods to Python
 PYBIND11_MODULE(sutraWrap, mod) {
+  py::module::import("carmaWrap");
   mod.doc() = "Binding module for libsutra";
-
   declare_tscreen(mod);
   declare_atmos(mod);
   declare_telescope(mod);
