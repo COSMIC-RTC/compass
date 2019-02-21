@@ -101,7 +101,7 @@ int sutra_controller_geo<T, Tout>::init_proj(sutra_dms *dms, int *indx_dm,
   carma_obj<T> d_IF(this->current_context, dims_data);
   dims_data[1] = this->nactu();
   carma_obj<T> d_tmp(this->current_context, dims_data);
-  long dims_data1[2] = {1, this->Nphi * dms->ndm()};
+  long dims_data1[2] = {1, this->Nphi * this->d_dmseen.size()};
   carma_obj<int> d_indx(this->current_context, dims_data1, indx_dm);
 
   this->d_indx_pup->host2device(indx_pup);
@@ -110,8 +110,8 @@ int sutra_controller_geo<T, Tout>::init_proj(sutra_dms *dms, int *indx_dm,
   int indx_start = 0;
   int ind = 0;
   vector<sutra_dm *>::iterator p;
-  p = dms->d_dms.begin();
-  while (p != dms->d_dms.end()) {
+  p = this->d_dmseen.begin();
+  while (p != this->d_dmseen.end()) {
     sutra_dm *dm = *p;
     dm->get_IF<T>(d_IF.getDataAt(indx_start * this->Nphi),
                   d_indx.getDataAt(this->Nphi * ind), this->Nphi,
@@ -146,17 +146,17 @@ int sutra_controller_geo<T, Tout>::init_proj_sparse(
   vector<sutra_dm *>::iterator p;
   if (roket) {
     this->Ntt = 0;
-    p = dms->d_dms.begin();
-    while (p != dms->d_dms.end()) {
+    p = this->d_dmseen.begin();
+    while (p != this->d_dmseen.end()) {
       sutra_dm *dm = *p;
       if (dm->type == "tt") this->Ntt += 1;
       p++;
     }
   }
 
-  int Npzt = dms->ndm() - this->Ntt;
+  int Npzt = this->d_dmseen.size() - this->Ntt;
   carma_sparse_obj<double> *d_IFi[Npzt];
-  long dims_data1[2] = {1, dms->ndm() * this->Nphi};
+  long dims_data1[2] = {1, this->d_dmseen.size() * this->Nphi};
   carma_obj<int> d_indx(this->current_context, dims_data1, indx_dm);
 
   this->d_indx_pup->host2device(indx_pup);
@@ -169,8 +169,8 @@ int sutra_controller_geo<T, Tout>::init_proj_sparse(
   int NNZ[Npzt];
   int Nact[Npzt];
 
-  p = dms->d_dms.begin();
-  while (p != dms->d_dms.end() - this->Ntt) {
+  p = this->d_dmseen.begin();
+  while (p != this->d_dmseen.end() - this->Ntt) {
     sutra_dm *dm = *p;
     dm->get_IF_sparse<double>(d_IFi[ind], d_indx.getDataAt(this->Nphi * ind),
                               this->Nphi, 1.0f, 1);
@@ -191,7 +191,7 @@ int sutra_controller_geo<T, Tout>::init_proj_sparse(
   int cpt[Npzt];
   int nact = 0;
   cpt[0] = 0;
-  p = dms->d_dms.begin();
+  p = this->d_dmseen.begin();
 
   for (int i = 0; i < Npzt; i++) {
     sutra_dm *dm = *p;
@@ -227,7 +227,7 @@ int sutra_controller_geo<T, Tout>::init_proj_sparse(
                      this->current_context->get_device(this->device));
   }
 
-  long dims_data2[3] = {2, (dms->nact_total() - 2 * this->Ntt), this->Nphi};
+  long dims_data2[3] = {2, (this->nactu() - 2 * this->Ntt), this->Nphi};
   this->d_IFsparse = new carma_sparse_obj<double>(
       this->current_context, dims_data2, d_val.getData(), d_col.getData(),
       d_row.getData(), nnz, false);
@@ -235,7 +235,7 @@ int sutra_controller_geo<T, Tout>::init_proj_sparse(
   // d_geocov = (transpose(d_IF) * d_IF)⁻¹
   carma_sparse_obj<double> *d_tmp =
       new carma_sparse_obj<double>(this->current_context);
-  dims_data2[2] = (dms->nact_total() - 2 * this->Ntt);
+  dims_data2[2] = (this->nactu() - 2 * this->Ntt);
   this->d_geocov = new carma_obj<T>(this->current_context, dims_data2);
   carma_obj<double> *d_tmp2 =
       new carma_obj<double>(this->current_context, this->d_geocov->getDims());
@@ -261,10 +261,10 @@ int sutra_controller_geo<T, Tout>::init_proj_sparse(
     dims_data1[1] = this->Nphi;
     this->d_phif = new carma_obj<T>(this->current_context, dims_data1);
 
-    p = dms->d_dms.begin();
+    p = this->d_dmseen.begin();
     ind = 0;
     int ind2 = 0;
-    while (p != dms->d_dms.end()) {
+    while (p != this->d_dmseen.end()) {
       sutra_dm *dm = *p;
       if (dm->type == "tt") {
         // dm->get_IF(this->d_TT->getDataAt(ind*Nphi),
