@@ -259,7 +259,7 @@ int sutra_controller<Tcomp, Tout>::add_perturb() {
     if (std::get<2>(it->second)) {
       cpt = std::get<1>(it->second);
       d_perturb = std::get<0>(it->second);
-      this->d_comClipped->axpy(1.0f, d_perturb, 1, 1, cpt);
+      this->d_comClipped->axpy(1.0f, d_perturb, d_perturb->getDims(1), 1, cpt);
       if (cpt < d_perturb->getDims(1) - 1)
         std::get<1>(it->second) = cpt + 1;
       else

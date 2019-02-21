@@ -157,14 +157,21 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         raise NotImplementedError("Not implemented")
 
-    def singleNext(self) -> None:
+    def loadNewWfsFrame(self, numWFS: int = 0) -> None:
         '''
-        Move atmos -> getSlope -> applyControl ; One integrator step
+            Acquire a new WFS frame, load, calibrate, centroid.
         '''
+
         self.frame = self.camCallback()
         self.rtc.d_centro[0].load_img(self.frame, self.frame.shape[0])
         self.rtc.d_centro[0].calibrate_img()
         self.rtc.do_centroids(0)
+
+    def singleNext(self) -> None:
+        '''
+        Move atmos -> getSlope -> applyControl ; One integrator step
+        '''
+        self.loadNewWfsFrame()
         self.rtc.do_control(0)
         self.rtc.do_clipping(0)
         self.rtc.comp_voltage(0)
@@ -260,8 +267,6 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         Init the COMPASS wih the configFile
         '''
-        self.camCallback = None
-
         # By default, do nothing...
         # TODO: remove it !
         self.dmSetCallback = lambda x: None
@@ -338,7 +343,7 @@ class BenchSupervisor(AbstractSupervisor):
         Initialize the bench
         '''
         print("->CAM")
-        if self.camCallback is None:
+        if not hasattr(self, 'camCallback') or self.camCallback is None:
             print('No user provided camera getFrame handle. Creating from config file.')
             from hraa.devices.camera.cam_attributes import cam_attributes
             import hraa.devices.camera as m_cam
@@ -355,7 +360,7 @@ class BenchSupervisor(AbstractSupervisor):
             self._cam.acquisitionStart()
             self.camCallback = lambda: self._cam.getFrame(1)
         print("->DM")
-        if self.dmSetCallback is None:
+        if not hasattr(self, 'dmSetCallback') or self.dmSetCallback is None:
             print('No user provided DM setCommand handle. Creating from config file.')
             raise NotImplementedError()
             self._dm = None  # Make some DM access interface from the p_dms available
