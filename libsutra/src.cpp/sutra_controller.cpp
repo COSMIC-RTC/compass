@@ -109,7 +109,6 @@ int sutra_controller<Tcomp, Tout>::add_perturb_voltage(string name,
 template <typename Tcomp, typename Tout>
 int sutra_controller<Tcomp, Tout>::set_perturb_voltage(string name,
                                                        float *perturb, int N) {
-  std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
   current_context->set_activeDevice(device, 1);
 
   if (this->d_perturb_map.count(name)) {

@@ -1,0 +1,1 @@
+{'main': None, 'float': [({'main': ('vertical', [('horizontal', [('vertical', [('dock', 'dm_0', {}), ('dock', 'wfs_0', {})], {'sizes': [341, 341]}), ('vertical', [('dock', 'dm_2', {}), ('dock', 'pyrLR_0', {})], {'sizes': [341, 341]})], {'sizes': [454, 453]}), ('dock', 'psfSE_0', {}), ('dock', 'Strehl', {})], {'sizes': [686, 465, 281]}), 'float': []}, (1669, 433, 911, 1440))]}
