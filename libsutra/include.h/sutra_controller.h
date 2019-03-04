@@ -86,6 +86,7 @@ class sutra_controller {
 
   int set_centroids_ref(Tcomp *centroids_ref);
   int add_perturb_voltage(string name, float *perturb, int N);
+  int set_perturb_voltage(string name, float *perturb, int N);
   int remove_perturb_voltage(string name);
   int reset_perturb_voltage();
   int enable_perturb_voltage(string name);

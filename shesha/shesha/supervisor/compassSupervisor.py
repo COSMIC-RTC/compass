@@ -57,9 +57,9 @@ class CompassSupervisor(AbstractSupervisor):
         Add this offset value to integrator (will be applied at the end of next iteration)
         '''
         if len(command.shape) == 1:
-            self._sim.rtc.d_control[nControl].add_perturb_voltage(name, command, 1)
+            self._sim.rtc.d_control[nControl].set_perturb_voltage(name, command, 1)
         elif len(command.shape) == 2:
-            self._sim.rtc.d_control[nControl].add_perturb_voltage(
+            self._sim.rtc.d_control[nControl].set_perturb_voltage(
                     name, command, command.shape[0])
         else:
             raise AttributeError("command should be a 1D or 2D array")
@@ -70,6 +70,13 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         if self._sim.rtc.d_control[nControl].d_perturb is not None:
             self._sim.rtc.d_control[nControl].d_perturb.reset()
+
+    def removePerturbationVoltage(self, nControl: int, name: str) -> None:
+        '''
+        Remove the perturbation voltage of the nControl controller
+        '''
+        if self._sim.rtc.d_control[nControl].d_perturb is not None:
+            self._sim.rtc.d_control[nControl].remove_perturb_voltage(name)
 
     def getSlope(self) -> np.ndarray:
         '''

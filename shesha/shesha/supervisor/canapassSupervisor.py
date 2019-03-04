@@ -483,16 +483,17 @@ class CanapassSupervisor(CompassSupervisor):
         else:
             KLMax = KL2V.shape[1]
         vold = self.getCom(0)
-        self.openLoop(rst=False)  # This is to avoid delay during slopes measurement
+        self.openLoop(rst=False)
         for kl in trange(KLMax, desc="Modal IM"):
             # v = ampliVec[kl] * KL2V[:, kl:kl + 1].T.copy()
             v = ampliVec[kl] * KL2V[:, kl]
             if ((pushPull is True) or
                 (withTurbu is True)):  # with turbulence/aberrations => push/pull
-                self.setCommand(
-                        0, vold + v)  # Adding Perturbation voltage on current iteration
+                self.setPerturbationVoltage(
+                        0, "imatModal",
+                        vold + v)  # Adding Perturbation voltage on current iteration
                 devpos = self.applyVoltGetSlopes(turbu=withTurbu, noise=noise)
-                self.setCommand(0, vold - v)
+                self.setPerturbationVoltage(0, "imatModal", vold - v)
                 devmin = self.applyVoltGetSlopes(turbu=withTurbu, noise=noise)
                 iMatKL[:, kl] = (devpos - devmin) / (2. * ampliVec[kl])
                 #imat[:-2, :] /= pushDMMic
@@ -500,9 +501,9 @@ class CanapassSupervisor(CompassSupervisor):
                 #imat[-2:, :] /= pushTTArcsec
             else:  # No turbulence => push only
                 self.openLoop()  # openLoop
-                self.setCommand(0, v)
+                self.setPerturbationVoltage(0, "imatModal", v)
                 iMatKL[:, kl] = self.applyVoltGetSlopes(noise=noise) / ampliVec[kl]
-        self.setCommand(0, vold)
+        self.removePerturbationVoltage(0, "imatModal")
         if ((pushPull is True) or (withTurbu is True)):
             self.closeLoop()  # We are supposed to be in close loop now
         return iMatKL
@@ -530,7 +531,7 @@ class CanapassSupervisor(CompassSupervisor):
         return iMatPhase
 
     def applyVoltGetSlopes(self, noise=False, turbu=False, reset=1):
-        self._sim.rtc.apply_control(0)
+        self._sim.rtc.apply_control(0, False)
         for w in range(len(self._sim.wfs.d_wfs)):
 
             if (turbu):

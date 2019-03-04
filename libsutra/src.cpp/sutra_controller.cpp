@@ -34,29 +34,8 @@ sutra_controller<Tcomp, Tout>::sutra_controller(carma_context *context,
     this->Vmax = 1.e6;
   }
   this->valMax = Tout(65535);
-  if (delay < 2)
-    this->delay = Tcomp(delay);
-  else
-    this->delay = Tcomp(2.0f);
 
-  int floor = (int)delay;
-
-  if ((floor > 0) && (floor < 2)) {
-    this->a = Tcomp(0.f);
-    this->c = Tcomp(delay - floor);
-    this->b = Tcomp(1.f) - this->c;
-  } else if (floor == 0) {
-    this->b = this->delay;
-    this->a = Tcomp(1.f) - this->b;
-    this->c = Tcomp(0.f);
-  } else {  // Maximum delay is 2
-    this->a = Tcomp(0.f);
-    this->c = Tcomp(1.f);
-    this->b = Tcomp(0.f);
-  }
-
-  // DEBUG_TRACE("delay = %f a = %f b = %f c = %f floor =
-  // %f",this->delay,this->a,this->b,this->c,floor);
+  this->set_delay(delay);
 
   long dims_data1[2] = {1, 0};
 
@@ -123,6 +102,20 @@ int sutra_controller<Tcomp, Tout>::add_perturb_voltage(string name,
     this->d_perturb_map[name] = std::make_tuple(d_perturb, cpt, true);
   } else
     DEBUG_TRACE("This perturb buffer already exists");
+
+  return EXIT_SUCCESS;
+}
+
+template <typename Tcomp, typename Tout>
+int sutra_controller<Tcomp, Tout>::set_perturb_voltage(string name,
+                                                       float *perturb, int N) {
+  std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
+  current_context->set_activeDevice(device, 1);
+
+  if (this->d_perturb_map.count(name)) {
+    remove_perturb_voltage(name);
+  }
+  add_perturb_voltage(name, perturb, N);
 
   return EXIT_SUCCESS;
 }
@@ -304,7 +297,27 @@ int sutra_controller<Tcomp, Tout>::set_com(float *com, int nElem) {
 
 template <typename Tcomp, typename Tout>
 int sutra_controller<Tcomp, Tout>::set_delay(float delay) {
-  this->delay = Tcomp(delay);
+  if (delay < 2)
+    this->delay = Tcomp(delay);
+  else
+    this->delay = Tcomp(2.0f);
+
+  int floor = (int)delay;
+
+  if ((floor > 0) && (floor < 2)) {
+    this->a = Tcomp(0.f);
+    this->c = Tcomp(delay - floor);
+    this->b = Tcomp(1.f) - this->c;
+  } else if (floor == 0) {
+    this->b = this->delay;
+    this->a = Tcomp(1.f) - this->b;
+    this->c = Tcomp(0.f);
+  } else {  // Maximum delay is 2
+    this->a = Tcomp(0.f);
+    this->c = Tcomp(1.f);
+    this->b = Tcomp(0.f);
+  }
+
   return EXIT_SUCCESS;
 }
 

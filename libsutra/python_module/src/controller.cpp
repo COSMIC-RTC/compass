@@ -153,6 +153,18 @@ void controller_impl(py::module &mod, const char *name) {
      )pbdoc",
            py::arg("name"), py::arg("perturb"), py::arg("N"))
 
+      .def("set_perturb_voltage", wy::colCast(&controller::set_perturb_voltage),
+           R"pbdoc(
+          Set an existing perturbation voltage buffer
+
+          Parameters
+          ------------
+          name: (str): name of the buffer
+          perturb: (np.array[ndim=2,dtype=np.float32]): perturbation voltage to set
+          N: (int): Number of perturb voltage vectors in the buffer
+     )pbdoc",
+           py::arg("name"), py::arg("perturb"), py::arg("N"))
+
       .def("remove_perturb_voltage",
            wy::colCast(&controller::remove_perturb_voltage),
            R"pbdoc(
