@@ -33,10 +33,9 @@ def wfs_init(context: carmaWrap_context, telescope: Telescope, p_wfss: list,
     nsensors = len(p_wfss)
     # arrays needed to call Sensors constructor
     t_wfs = [
-            'shlo' if (o.type == scons.WFSType.SH and o.is_low_order) else o.type
-            for o in p_wfss
+            'shlo' if (o.type == scons.WFSType.SH and o.is_low_order) else
+            'pyrhr' if o.type == scons.WFSType.PYRLR else o.type for o in p_wfss
     ]
-    t_wfs = ['pyrhr' if o.type == scons.WFSType.PYRLR else o.type for o in p_wfss]
 
     # cdef np.ndarray t_wfs  = np.array([o.type  for o in
     # wfs],dtype=np.str)
