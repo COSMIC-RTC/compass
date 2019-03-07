@@ -27,13 +27,11 @@ project(sutra
 # endif
 # cmake-format: on
 
-if(DEFINED ENV{OCTOPUS_ROOT})
-  add_subdirectory($ENV{OCTOPUS_ROOT} octopus)
-  set(CACAO_FLAGS -DUSE_CACAO)
-
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(OCTOPUS octopus)
+if(${OCTOPUS_FOUND})
   set(OCTOPUS_CPP src.cpp/sutra_rtc_cacao.cpp)
-
-  set(OCTOPUS_LIBS CacaoInterface)
+  link_directories(${OCTOPUS_LIBRARY_DIRS})
 else()
   message(STATUS "OCTOPUS_ROOT not find, CACAO RTC will not be available")
 endif()
@@ -146,6 +144,16 @@ add_library(sutra
             ${BRAHMA_CPP}
             ${OCTOPUS_CPP})
 
+if(${OCTOPUS_FOUND})
+  target_compile_options(sutra PUBLIC -DUSE_CACAO ${OCTOPUS_CFLAGS})
+  target_include_directories(
+    sutra
+    PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${OCTOPUS_INCLUDE_DIRS}>)
+  target_link_libraries(sutra PUBLIC ${OCTOPUS_LIBRARIES})
+else()
+  message(STATUS "OCTOPUS_ROOT not find, CACAO RTC will not be available")
+endif()
+
 set_target_properties(sutra
                       PROPERTIES VERSION
                                  ${PROJECT_VERSION}
@@ -165,7 +173,7 @@ target_compile_options(sutra
                        PUBLIC $<$<COMPILE_LANGUAGE:CXX>: ${CACAO_FLAGS}
                               ${BRAHMA_FLAGS}>)
 
-target_link_libraries(sutra PUBLIC carma ${BRAHMA_LIBS} ${OCTOPUS_LIBS})
+target_link_libraries(sutra PUBLIC carma ${BRAHMA_LIBS})
 
 if(python_build)
   add_subdirectory(python_module)
