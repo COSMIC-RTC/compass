@@ -86,8 +86,7 @@ You have to create your own make.inc based on make.inc.openblas:
 
 ```bash
 cp make.inc-examples/make.inc.mkl-gcc make.inc
-sed -i 's/\/intel64/\ -Wl,-rpath=\$\(CUDADIR\)\/lib64\ -Wl,-rpath=\$\(MKLROOT\)\/lib/' make.inc
-
+sed -i -e 's:/intel64: -Wl,-rpath=$(CUDADIR)/lib64 -Wl,-rpath=$(MKLROOT)/lib:' make.inc
 ```
 
 just compile the shared target (and test if you want)
