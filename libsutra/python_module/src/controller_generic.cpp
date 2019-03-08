@@ -5,18 +5,6 @@
 namespace py = pybind11;
 
 template <typename Tcomp, typename Tout>
-typename std::enable_if<!std::is_same<Tcomp, half>::value, float>::type
-get_gain(sutra_controller_generic<Tcomp, Tout> &sc) {
-  return float(sc.gain);
-}
-
-template <typename Tcomp, typename Tout>
-typename std::enable_if<std::is_same<Tcomp, half>::value, float>::type get_gain(
-    sutra_controller_generic<Tcomp, Tout> &sc) {
-  return __half2float(sc.gain);
-}
-
-template <typename Tcomp, typename Tout>
 void controller_generic_impl(py::module &mod, const char *name) {
   using controller_generic = sutra_controller_generic<Tcomp, Tout>;
 
@@ -49,10 +37,6 @@ void controller_generic_impl(py::module &mod, const char *name) {
       .def_property_readonly("d_gain",
                              [](controller_generic &sc) { return sc.d_gain; },
                              "vector of modal gains")
-
-      .def_property_readonly(
-          "gain", [](controller_generic &sc) { return get_gain(sc); },
-          "Integrator loop gain")
 
       .def_property_readonly(
           "polc", [](controller_generic &sc) { return sc.polc; }, "POLC flag")
@@ -128,16 +112,6 @@ void controller_generic_impl(py::module &mod, const char *name) {
       mgain: (np.array[ndim1,dtype=np.float32]): modal gains to set
     )pbdoc",
            py::arg("mgain"))
-
-      .def("set_gain", &controller_generic::set_gain,
-           R"pbdoc(
-      Set the controller loop gain
-
-      Parameters
-      ------------
-      gain: (float): loop gain to set
-    )pbdoc",
-           py::arg("gain"))
 
       .def("set_imat", wy::colCast(&controller_generic::set_imat), R"pbdoc(
       Set the interaction matrix

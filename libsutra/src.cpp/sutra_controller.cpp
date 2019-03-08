@@ -71,6 +71,12 @@ sutra_controller<Tcomp, Tout>::sutra_controller(carma_context *context,
 }
 
 template <typename Tcomp, typename Tout>
+int sutra_controller<Tcomp, Tout>::set_gain(float gain) {
+  this->gain = Tcomp(gain);
+  return EXIT_SUCCESS;
+}
+
+template <typename Tcomp, typename Tout>
 int sutra_controller<Tcomp, Tout>::set_openloop(int open_loop_status,
                                                 bool rst) {
   current_context->set_activeDevice(device, 1);

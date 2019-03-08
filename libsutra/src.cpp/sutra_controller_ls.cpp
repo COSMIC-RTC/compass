@@ -146,12 +146,6 @@ int sutra_controller_ls<T, Tout>::svdec_imat() {
 }
 
 template <typename T, typename Tout>
-int sutra_controller_ls<T, Tout>::set_gain(T gain) {
-  this->gain = gain;
-  return EXIT_SUCCESS;
-}
-
-template <typename T, typename Tout>
 int sutra_controller_ls<T, Tout>::set_cmat(T *cmat) {
   this->current_context->set_activeDevice(this->device, 1);
   this->d_cmat->host2device(cmat);

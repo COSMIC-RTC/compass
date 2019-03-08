@@ -8,7 +8,6 @@ sutra_controller_cured<T, Tout>::sutra_controller_cured(
     sutra_dms *dms, int *idx_dms, int ndm)
     : sutra_controller<T, Tout>(context, nvalid, nslopes, nactu, delay, dms,
                                 idx_dms, ndm),
-      gain(0),
       ndivs(0),
       tt_flag(false),
       h_syscure(nullptr),
@@ -48,12 +47,6 @@ sutra_controller_cured<T, Tout>::~sutra_controller_cured() {
   if (this->d_err != nullptr) delete this->d_err;
   if (this->d_cenbuff) delete this->d_cenbuff;
   curefree((sysCure *)this->h_syscure, (parCure *)this->h_parcure);
-}
-
-template <typename T, typename Tout>
-int sutra_controller_cured<T, Tout>::set_gain(T gain) {
-  this->gain = gain;
-  return EXIT_SUCCESS;
 }
 
 template <typename T, typename Tout>

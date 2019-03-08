@@ -3,8 +3,7 @@
 #include <sutra_rtc_cacao.h>
 
 template <typename Tin, typename Tcomp, typename Tout>
-sutra_rtc_cacao<Tin, Tcomp, Tout>::sutra_rtc_cacao(carma_context* context,
-                                                   std::string iCalFrame_name,
+sutra_rtc_cacao<Tin, Tcomp, Tout>::sutra_rtc_cacao(std::string iCalFrame_name,
                                                    std::string iLoopFrame_name)
     : sutra_rtc<Tin, Tcomp, Tout>(),
       iCalFrame_name_(iCalFrame_name),

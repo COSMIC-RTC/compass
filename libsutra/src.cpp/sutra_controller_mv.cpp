@@ -101,12 +101,6 @@ string sutra_controller_mv<Tcomp, Tout>::get_type() {
 }
 
 template <typename Tcomp, typename Tout>
-int sutra_controller_mv<Tcomp, Tout>::set_gain(Tcomp gain) {
-  this->gain = gain;
-  return EXIT_SUCCESS;
-}
-
-template <typename Tcomp, typename Tout>
 int sutra_controller_mv<Tcomp, Tout>::set_mgain(Tcomp *mgain) {
   this->current_context->set_activeDevice(this->device, 1);
   this->d_gain->host2device(mgain);

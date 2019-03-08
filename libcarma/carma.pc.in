@@ -7,6 +7,6 @@ Name: @PROJECT_NAME@
 Description: @PROJECT_DESCRIPTION@
 Version: @PROJECT_VERSION@
 
-Requires:
+Requires: magma
 Libs: -L${libdir} -lcarma
 Cflags: -I${includedir}

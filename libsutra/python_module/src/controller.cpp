@@ -6,6 +6,18 @@ namespace py = pybind11;
 
 template <typename Tcomp, typename Tout>
 typename std::enable_if<!std::is_same<Tcomp, half>::value, float>::type
+get_gain(sutra_controller<Tcomp, Tout> &sc) {
+  return float(sc.gain);
+}
+
+template <typename Tcomp, typename Tout>
+typename std::enable_if<std::is_same<Tcomp, half>::value, float>::type get_gain(
+    sutra_controller<Tcomp, Tout> &sc) {
+  return __half2float(sc.gain);
+}
+
+template <typename Tcomp, typename Tout>
+typename std::enable_if<!std::is_same<Tcomp, half>::value, float>::type
 get_delay(sutra_controller<Tcomp, Tout> &sc) {
   return float(sc.delay);
 }
@@ -47,6 +59,9 @@ void controller_impl(py::module &mod, const char *name) {
                              [](controller &sc) { return sc.nslope(); },
                              "Number of slopes")
 
+      .def_property_readonly("gain",
+                             [](controller &sc) { return get_gain(sc); },
+                             "Controller gain")
       .def_property_readonly("open_loop",
                              [](controller &sc) { return sc.open_loop; },
                              "Open loop flag")
@@ -201,6 +216,16 @@ void controller_impl(py::module &mod, const char *name) {
           delay: (float): loop delay in frames
      )pbdoc",
            py::arg("delay"))
+
+      .def("set_gain", wy::colCast(&controller::set_gain),
+           R"pbdoc(
+          Set the gain
+
+          Parameters
+          ------------
+          gain: (float): loop gain
+     )pbdoc",
+           py::arg("gain"))
 
       .def("set_comRange",
            [](controller &sc, float Vmin, float Vmax) {

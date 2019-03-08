@@ -7,7 +7,6 @@
 template <typename Tcomp, typename Tout>
 class sutra_controller_generic : public sutra_controller<Tcomp, Tout> {
  public:
-  Tcomp gain;
   carma_obj<Tcomp> *d_matE;
   carma_obj<Tcomp> *d_cmat;
   carma_obj<Tcomp> *d_cmatPadded;
@@ -33,7 +32,6 @@ class sutra_controller_generic : public sutra_controller<Tcomp, Tout> {
   string get_commandlaw();
   int set_decayFactor(float *decayFactor);
   int set_mgain(float *gain);
-  int set_gain(float gain);
   int set_cmat(float *cmat);
   int set_matE(float *matE);
   int set_commandlaw(string law);

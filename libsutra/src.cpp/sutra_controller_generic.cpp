@@ -81,13 +81,6 @@ int sutra_controller_generic<T, Tout>::set_mgain(float *gain) {
 }
 
 template <typename T, typename Tout>
-int sutra_controller_generic<T, Tout>::set_gain(float gain) {
-  this->current_context->set_activeDevice(this->device, 1);
-  this->gain = T(gain);
-  return EXIT_SUCCESS;
-}
-
-template <typename T, typename Tout>
 int sutra_controller_generic<T, Tout>::set_decayFactor(float *decayFactor) {
   this->current_context->set_activeDevice(this->device, 1);
   this->d_decayFactor->host2device(decayFactor);
