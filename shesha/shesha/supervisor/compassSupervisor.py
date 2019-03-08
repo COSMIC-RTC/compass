@@ -67,16 +67,19 @@ class CompassSupervisor(AbstractSupervisor):
     def resetPerturbationVoltage(self, nControl: int) -> None:
         '''
         Reset the perturbation voltage of the nControl controller
+        (i.e. will remove ALL perturbation voltages.)
+	If you want to reset just one, see the function removePerturbationVoltage().
         '''
-        if self._sim.rtc.d_control[nControl].d_perturb is not None:
-            self._sim.rtc.d_control[nControl].d_perturb.reset()
+        self._sim.rtc.d_control[nControl].reset_perturb_voltage()
 
     def removePerturbationVoltage(self, nControl: int, name: str) -> None:
         '''
-        Remove the perturbation voltage of the nControl controller
+        Remove the perturbation voltage called <name>, from the
+ 	controller number <nControl>.
+	If you want to remove all of them, see function resetPerturbationVoltage().
+
         '''
-        if self._sim.rtc.d_control[nControl].d_perturb is not None:
-            self._sim.rtc.d_control[nControl].remove_perturb_voltage(name)
+        self._sim.rtc.d_control[nControl].remove_perturb_voltage(name)
 
     def getSlope(self) -> np.ndarray:
         '''

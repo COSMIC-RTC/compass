@@ -20,8 +20,8 @@ p_tel = ao.Param_tel()
 
 #E_ELT PUPIL Rico like
 p_tel.set_type_ap("EELT")
-p_tel.set_diam(39)
-p_tel.set_pupangle(0)  #ELT pup rotation in degrees
+p_tel.set_diam(40.0)
+p_tel.set_pupangle(0.)  #ELT pup rotation in degrees
 p_tel.set_t_spiders(0.51)  #Spider size in meters
 """
 #E_ELT PUPIL Alexis like
@@ -112,13 +112,15 @@ p_wfs0.set_pyr_pup_sep(72) # half pupil separation (center-to-center)
 # dm
 p_dm0 = ao.Param_dm()
 p_dm1 = ao.Param_dm()
+# p_dm2 = ao.Param_dm()
+# p_dms = [p_dm0, p_dm1, p_dm2]
 p_dms = [p_dm0, p_dm1]
 p_dm0.set_type(scons.DmType.PZT)
 nact = p_wfs0.nxsub + 1
 #nact = 9
 
 #p_dm0.set_nact(nact)
-p_dm0.set_nact(73)  #73 actuators for a projected M4 pitch of 53cm
+p_dm0.set_nact(75)  # 75 actuators on 40m for a projected M4 pitch of 54.05 cm
 p_dm0.set_alt(0.)
 p_dm0.set_thresh(0.6)  # fraction units
 # !!!!!!!!!!!!!!!!!!!!!!!!! attention pas autre chose que 0.2 !!!!!!!!!
@@ -147,6 +149,14 @@ p_dm1.set_unitpervolt(1)
 p_dm1.set_push4imat(0.005)
 #p_dm1.set_gain(0.2)
 
+# p_dm2.set_type('pzt')
+# p_dm2.set_alt(0.)
+# p_dm2.set_unitpervolt(1)
+# p_dm2.set_push4imat(0.01)
+# p_dm2.set_influType("petal")
+
+
+
 # centroiders
 p_centroider0 = ao.Param_centroider()
 p_centroiders = [p_centroider0]
@@ -172,8 +182,8 @@ p_controller0.set_type("generic") # V(k) = a.E.V(k-1) + g.R.m(k)
 p_controller0.set_nwfs([0])
 p_controller0.set_ndm([0, 1])
 p_controller0.set_maxcond(150.)
-p_controller0.set_delay(1)   # loop delay. "0 = 1 frame delay".
-p_controller0.set_gain(1) 
+p_controller0.set_delay(0)   # loop delay. "0 = 1 frame delay".
+p_controller0.set_gain(1)
 
 # p_controller0.set_modopti(0)
 # p_controller0.set_nrec(2048)

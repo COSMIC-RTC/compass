@@ -70,6 +70,23 @@ class CanapassSupervisor(CompassSupervisor):
         |_|  |_|_____| |_| |_| |_|\___/|____/|____/
     """
 
+    def setDmCommand(self, numdm, volts):
+        """
+        Allows to by-pass the RTC for sending a command to the
+        specified DM <numdm>.
+        This command comes in addition to the RTC computation.
+        It allows a direct access the DM without using the RTC.
+
+        <numdm> : number of the DM
+        <volts> : voltage vector to be applied on the DM.
+        """
+        ntotDm = len(self._sim.config.p_dms)
+        if(numdm<ntotDm):
+            self._sim.dms.d_dms[numdm].set_com(volts)
+        else:
+            print("ERROR !!!!\nRequested DM (", numdm, ") conflicts with number of available DMs (", ntotDm, ").")
+
+
     def getConfig(self, path=None):
         ''' Returns the configuration in use, in a supervisor specific format '''
         if path:
@@ -531,7 +548,7 @@ class CanapassSupervisor(CompassSupervisor):
         return iMatPhase
 
     def applyVoltGetSlopes(self, noise=False, turbu=False, reset=1):
-        self._sim.rtc.apply_control(0, False)
+        self._sim.rtc.apply_control(0)
         for w in range(len(self._sim.wfs.d_wfs)):
 
             if (turbu):
@@ -681,6 +698,7 @@ class CanapassSupervisor(CompassSupervisor):
 
         listDmsType = []
         NactuX = []
+        Nactu = []
         unitPerVolt = []
         push4imat = []
         coupling = []
@@ -690,19 +708,22 @@ class CanapassSupervisor(CompassSupervisor):
         for j in range(aodict["nbDms"]):
             listDmsType.append(self._sim.config.p_dms[j].type)
             NactuX.append(self._sim.config.p_dms[j].nact)
+            Nactu.append(self._sim.config.p_dms[j]._ntotact)
             unitPerVolt.append(self._sim.config.p_dms[j].unitpervolt)
             push4imat.append(self._sim.config.p_dms[j].push4imat)
             coupling.append(self._sim.config.p_dms[j].coupling)
             tmp = []
             if (self._sim.config.p_dms[j].type != 'tt'):
-                tmpdata = np.zeros((4, len(self._sim.config.p_dm0._i1)))
-                tmpdata[0, :] = self._sim.config.p_dm0._j1
-                tmpdata[1, :] = self._sim.config.p_dm0._i1
-                tmpdata[2, :] = self._sim.config.p_dm0._xpos
-                tmpdata[3, :] = self._sim.config.p_dm0._ypos
+                tmpdata = np.zeros((4, len(self._sim.config.p_dms[j]._i1)))
+                tmpdata[0, :] = self._sim.config.p_dms[j]._j1
+                tmpdata[1, :] = self._sim.config.p_dms[j]._i1
+                tmpdata[2, :] = self._sim.config.p_dms[j]._xpos
+                tmpdata[3, :] = self._sim.config.p_dms[j]._ypos
+            else:
+                tmpdata = np.zeros((4,2))
 
-                new_hdudmsl.append(pfits.ImageHDU(tmpdata))  # Valid subap array
-                new_hdudmsl[j].header["DATATYPE"] = "valid_dm%d" % j
+            new_hdudmsl.append(pfits.ImageHDU(tmpdata))  # Valid subap array
+            new_hdudmsl[j].header["DATATYPE"] = "valid_dm%d" % j
             #for k in range(aodict["nbWfs"]):
             #    tmp.append(self._sim.computeDMrange(j, k))
 
@@ -714,6 +735,8 @@ class CanapassSupervisor(CompassSupervisor):
         aodict.update({"listDMS_unitPerVolt": unitPerVolt})
         aodict.update({"listDMS_Nxactu": NactuX})
         aodict.update({"listDMS_Nyactu": NactuX})
+        aodict.update({"listDMS_Nactu": Nactu})
+
         aodict.update({"listDMS_type": listDmsType})
         aodict.update({"listDMS_coupling": coupling})
 
