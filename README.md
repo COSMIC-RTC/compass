@@ -68,12 +68,9 @@ MAGMA is available here : <http://icl.cs.utk.edu/magma/software/index.html>
 extract the tgz file and go into the new directory
 
 ```bash
-wget http://icl.cs.utk.edu/projectsfiles/magma/downloads/magma-2.4.0.tar.gz
-tar xf magma-2.4.0.tar.gz
-cd magma-2.4.0
+wget http://icl.cs.utk.edu/projectsfiles/magma/downloads/magma-2.5.0.tar.gz -O - | tar xz
+cd magma-2.5.0
 ```
-
-NOTE: COMPASS seems not working with 2.5.0
 
 ### Configure MAGMA with MKL & installation
 
@@ -83,22 +80,20 @@ Installation of dependencies using anaconda
 conda install -y numpy mkl-include pyqtgraph ipython pyqt qt matplotlib astropy blaze h5py hdf5 pytest pandas scipy docopt tqdm
 ```
 
-add to you .bashrc:
-
-```bash
-export MKLROOT=$CONDA_ROOT
-```
+### Configure with Makefile
 
 You have to create your own make.inc based on make.inc.openblas:
 
 ```bash
 cp make.inc-examples/make.inc.mkl-gcc make.inc
-sed -i 's/\/intel64//' make.inc
+sed -i 's/\/intel64/\ -Wl,-rpath=\$\(CUDADIR\)\/lib64\ -Wl,-rpath=\$\(MKLROOT\)\/lib/' make.inc
+
 ```
 
 just compile the shared target (and test if you want)
 
 ```bash
+export MKLROOT=$CONDA_ROOT
 export CUDA_ROOT=/usr/local/cuda
 export NCPUS=8
 GPU_TARGET=sm_XX MKLROOT=$MKLROOT CUDADIR=$CUDA_ROOT make -j $NCPUS shared sparse-shared
@@ -113,6 +108,31 @@ To install libraries and include files in a given prefix, run:
 
 ```bash
 GPU_TARGET=sm_XX MKLROOT=$MKLROOT CUDADIR=$CUDA_ROOT make install prefix=$HOME/local/magma
+```
+
+### Configure with CMake (not working fine...)
+
+```bash
+wget https://gitlab.obspm.fr/snippets/30/raw -O CMakeLists.txt
+wget https://gitlab.obspm.fr/snippets/31/raw -O magma.pc.in
+mkdir build
+cd build
+export CUDA_ROOT=/usr/local/cuda
+export NCPUS=8
+cmake .. -DGPU_TARGET=sm_XX -DLAPACK_LIBRARIES=$CONDA_ROOT/lib/libmkl_core.so -DMKLROOT=$CONDA_ROOT -DCMAKE_INSTALL_PREFIX=$HOME/local/magma
+make -j $NCPUS
+make install
+```
+
+Where:
+
+- sm_XX is compatible with the [compute capability](http://www.nvidia.com/object/cuda_gpus.html). For example, sm_60 for Tesla Tesla P100
+- NCPUS is the number of CPUs in your system
+
+Note: If your gcc/g++ is too recent, please specify 
+
+```
+-DCMAKE_CXX_COMPILER=$CUDA_ROOT/bin/g++ -DCMAKE_C_COMPILER=$CUDA_ROOT/bin/gcc 
 ```
 
 ### Tuning (not tested)
