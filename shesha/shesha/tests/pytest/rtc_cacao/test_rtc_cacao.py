@@ -14,7 +14,7 @@ sup.singleNext()
 sup.openLoop()
 sup.closeLoop()
 sup._sim.doControl(0)
-rtc = Rtc(sup._sim.c, "compass_calPix", "compass_loopData")
+rtc = Rtc("compass_calPix", "compass_loopData")
 rtc.add_centroider(sup._sim.c, sup.config.p_wfs0._nvalid,
                    sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize, 0, "cog")
 rtc.add_controller(sup._sim.c, sup.config.p_wfs0._nvalid, sup.config.p_wfs0._nvalid * 2,

@@ -39,14 +39,14 @@ int sutra_rtc<Tin, T, Tout>::remove_controller(int ncontrol) {
 template <typename Tin, typename T, typename Tout>
 int sutra_rtc<Tin, T, Tout>::add_centroider(carma_context *context, long nvalid,
                                             float offset, float scale,
-                                            long device, char *typec) {
+                                            long device, std::string typec) {
   return add_centroider(context, nvalid, offset, scale, device, typec, nullptr);
 }
 
 template <typename Tin, typename T, typename Tout>
 int sutra_rtc<Tin, T, Tout>::add_centroider(carma_context *context, long nvalid,
                                             float offset, float scale,
-                                            long device, char *typec,
+                                            long device, std::string typec,
                                             sutra_wfs *wfs) {
   return add_centroider_impl(context, this->d_centro, nvalid, offset, scale,
                              device, typec, wfs, std::is_same<T, half>());
@@ -57,27 +57,27 @@ template <typename Q>
 typename std::enable_if<!std::is_same<Q, half>::value, int>::type
 sutra_rtc<Tin, T, Tout>::add_centroider_impl(
     carma_context *context, vector<sutra_centroider<Tin, T> *> &d_centro,
-    long nvalid, float offset, float scale, long device, char *typec,
+    long nvalid, float offset, float scale, long device, std::string typec,
     sutra_wfs *wfs, std::false_type) {
-  if (strcmp(typec, "bpcog") == 0)
+  if (typec.compare("bpcog") == 0)
     d_centro.push_back(new sutra_centroider_bpcog<Tin, T>(
         context, wfs, nvalid, offset, scale, device, 10));
-  else if (strcmp(typec, "cog") == 0)
+  else if (typec.compare("cog") == 0)
     d_centro.push_back(new sutra_centroider_cog<Tin, T>(context, wfs, nvalid,
                                                         offset, scale, device));
-  else if (strcmp(typec, "corr") == 0)
+  else if (typec.compare("corr") == 0)
     d_centro.push_back(new sutra_centroider_corr<Tin, T>(
         context, wfs, nvalid, offset, scale, device));
-  else if (strcmp(typec, "pyr") == 0)
+  else if (typec.compare("pyr") == 0)
     d_centro.push_back(new sutra_centroider_pyr<Tin, T>(context, wfs, nvalid,
                                                         offset, scale, device));
-  else if (strcmp(typec, "tcog") == 0)
+  else if (typec.compare("tcog") == 0)
     d_centro.push_back(new sutra_centroider_tcog<Tin, T>(
         context, wfs, nvalid, offset, scale, device));
-  else if (strcmp(typec, "wcog") == 0)
+  else if (typec.compare("wcog") == 0)
     d_centro.push_back(new sutra_centroider_wcog<Tin, T>(
         context, wfs, nvalid, offset, scale, device));
-  else if (strcmp(typec, "maskedpix") == 0) {
+  else if (typec.compare("maskedpix") == 0) {
     if (wfs == nullptr) {
       d_centro.push_back(new sutra_centroider_maskedPix<Tin, T>(
           context, wfs, nvalid, 4, offset, scale, device));
@@ -98,18 +98,18 @@ sutra_rtc<Tin, T, Tout>::add_centroider_impl(
 template <typename Tin, typename T, typename Tout>
 int sutra_rtc<Tin, T, Tout>::add_centroider_impl(
     carma_context *context, vector<sutra_centroider<Tin, T> *> &d_centro,
-    long nvalid, float offset, float scale, long device, char *typec,
+    long nvalid, float offset, float scale, long device, std::string typec,
     sutra_wfs *wfs, std::true_type) {
-  if (strcmp(typec, "cog") == 0)
+  if (typec.compare("cog") == 0)
     d_centro.push_back(new sutra_centroider_cog<Tin, T>(context, wfs, nvalid,
                                                         offset, scale, device));
-  else if (strcmp(typec, "bpcog") == 0)
+  else if (typec.compare("bpcog") == 0)
     d_centro.push_back(new sutra_centroider_bpcog<Tin, T>(
         context, wfs, nvalid, offset, scale, device, 10));
-  else if (strcmp(typec, "tcog") == 0)
+  else if (typec.compare("tcog") == 0)
     d_centro.push_back(new sutra_centroider_tcog<Tin, T>(
         context, wfs, nvalid, offset, scale, device));
-  else if (strcmp(typec, "maskedpix") == 0) {
+  else if (typec.compare("maskedpix") == 0) {
     if (wfs == nullptr) {
       d_centro.push_back(new sutra_centroider_maskedPix<Tin, T>(
           context, wfs, nvalid, 4, offset, scale, device));
@@ -129,7 +129,7 @@ int sutra_rtc<Tin, T, Tout>::add_centroider_impl(
 template <typename Tin, typename T, typename Tout>
 int sutra_rtc<Tin, T, Tout>::add_controller(carma_context *context, int nvalid,
                                             int nslope, int nactu, float delay,
-                                            long device, char *typec,
+                                            long device, std::string typec,
                                             sutra_dms *dms, int *idx_dms,
                                             int ndm, int Nphi,
                                             bool wfs_direction) {
@@ -143,28 +143,27 @@ template <typename Q>
 typename std::enable_if<!std::is_same<Q, half>::value, int>::type
 sutra_rtc<Tin, T, Tout>::add_controller_impl(
     carma_context *context, vector<sutra_controller<T, Tout> *> &d_control,
-    int nvalid, int nslope, int nactu, float delay, long device, char *typec,
-    sutra_dms *dms, int *idx_dms, int ndm, int Nphi, bool wfs_direction,
-    std::false_type) {
-  string type_ctr(typec);
-  if (type_ctr.compare("ls") == 0) {
+    int nvalid, int nslope, int nactu, float delay, long device,
+    std::string typec, sutra_dms *dms, int *idx_dms, int ndm, int Nphi,
+    bool wfs_direction, std::false_type) {
+  if (typec.compare("ls") == 0) {
     d_control.push_back(new sutra_controller_ls<T, Tout>(
         context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm));
-  } else if (type_ctr.compare("geo") == 0) {
+  } else if (typec.compare("geo") == 0) {
     d_control.push_back(new sutra_controller_geo<T, Tout>(
         context, nactu, Nphi, delay, dms, idx_dms, ndm, wfs_direction));
 
-  } else if (type_ctr.compare("cured") == 0) {
+  } else if (typec.compare("cured") == 0) {
     d_control.push_back(new sutra_controller_cured<T, Tout>(
         context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm));
-  } else if (type_ctr.compare("mv") == 0) {
+  } else if (typec.compare("mv") == 0) {
     d_control.push_back(new sutra_controller_mv<T, Tout>(
         context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm));
-  } else if (type_ctr.compare("generic") == 0) {
+  } else if (typec.compare("generic") == 0) {
     d_control.push_back(new sutra_controller_generic<T, Tout>(
         context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm));
-    // } else if ((type_ctr.compare("kalman_GPU") == 0) ||
-    //            (type_ctr.compare("kalman_CPU") == 0)) {
+    // } else if ((typec.compare("kalman_GPU") == 0) ||
+    //            (typec.compare("kalman_CPU") == 0)) {
     //   d_control.push_back(
     //       new sutra_controller_kalman(context, nslope, nactu, dms, idx_dms,
     //       ndm));
@@ -178,11 +177,10 @@ sutra_rtc<Tin, T, Tout>::add_controller_impl(
 template <typename Tin, typename T, typename Tout>
 int sutra_rtc<Tin, T, Tout>::add_controller_impl(
     carma_context *context, vector<sutra_controller<T, Tout> *> &d_control,
-    int nvalid, int nslope, int nactu, float delay, long device, char *typec,
-    sutra_dms *dms, int *idx_dms, int ndm, int Nphi, bool wfs_direction,
-    std::true_type) {
-  string type_ctr(typec);
-  if (type_ctr.compare("generic") == 0) {
+    int nvalid, int nslope, int nactu, float delay, long device,
+    std::string typec, sutra_dms *dms, int *idx_dms, int ndm, int Nphi,
+    bool wfs_direction, std::true_type) {
+  if (typec.compare("generic") == 0) {
     d_control.push_back(new sutra_controller_generic<T, Tout>(
         context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm));
 

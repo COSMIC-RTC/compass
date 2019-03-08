@@ -18,7 +18,7 @@ std::unique_ptr<sutra_rtc<Tin, Tcomp, Tout>> rtc_init() {
 template <typename Tin, typename Tcomp, typename Tout>
 void add_controller_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, carma_context *ctxt,
                          int nvalid, int nslope, int nactu, float delay,
-                         long device, char *typec) {
+                         long device, std::string typec) {
   sr.add_controller(ctxt, nvalid, nslope, nactu, delay, device, typec, nullptr,
                     nullptr, 0, 0, false);
 }
@@ -38,22 +38,6 @@ build_cmat_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, int ncontrol, int nfilt,
                 bool filt_tt) {
   throw std::runtime_error("Not implemented");
 };
-#endif
-
-template <typename Tin, typename Tcomp, typename Tout>
-typename std::enable_if<!std::is_same<Tcomp, half>::value, void>::type
-set_gain_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, int ncontrol, Tcomp gain) {
-  sutra_controller_ls<Tcomp, Tout> *control =
-      dynamic_cast<sutra_controller_ls<Tcomp, Tout> *>(sr.d_control[ncontrol]);
-  control->set_gain(gain);
-}
-
-#ifdef CAN_DO_HALF
-template <typename Tin, typename Tcomp, typename Tout>
-typename std::enable_if<std::is_same<Tcomp, half>::value, void>::type
-set_gain_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, int ncontrol, half gain) {
-  throw std::runtime_error("Not implemented");
-}
 #endif
 
 template <typename Tin, typename Tcomp, typename Tout>
@@ -127,7 +111,7 @@ void rtc_impl(py::module &mod, const char *name) {
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
       .def("add_centroider",
            wy::colCast((int (rtc::*)(carma_context *, long, float, float, long,
-                                     char *, sutra_wfs *)) &
+                                     std::string, sutra_wfs *)) &
                        rtc::add_centroider),
 
            R"pbdoc(
@@ -150,7 +134,7 @@ void rtc_impl(py::module &mod, const char *name) {
 
       .def("add_centroider",
            wy::colCast((int (rtc::*)(carma_context *, long, float, float, long,
-                                     char *)) &
+                                     std::string)) &
                        rtc::add_centroider),
            R"pbdoc(
         Add a sutra_centroider object in the RTC
@@ -359,7 +343,10 @@ void rtc_impl(py::module &mod, const char *name) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
-      .def("set_gain", set_gain_impl<Tin, Tcomp, Tout>,
+      .def("set_gain",
+           [](rtc &sr, int ncontrol, float gain) {
+             sr.d_control[ncontrol]->set_gain(gain);
+           },
            R"pbdoc(
         Set the loop gain in the controller
 

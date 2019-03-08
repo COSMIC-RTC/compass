@@ -6,7 +6,6 @@
 template <typename Tcomp, typename Tout>
 class sutra_controller_geo : public sutra_controller<Tcomp, Tout> {
  public:
-  Tcomp gain;
   long Nphi;
   int Ntt;
 
@@ -38,7 +37,6 @@ class sutra_controller_geo : public sutra_controller<Tcomp, Tout> {
     return this->current_context->get_cusparseHandle();
   }
   int load_Btt(Tcomp *Btt_pzt, Tcomp *Btt_TT);
-  int set_gain(Tcomp gain);
   int load_mgain(Tcomp *mgain);
   int comp_dphi(sutra_source *target, bool wfs_direction);
   int comp_com();

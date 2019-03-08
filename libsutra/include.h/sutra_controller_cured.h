@@ -6,7 +6,6 @@
 template <typename Tcomp, typename Tout>
 class sutra_controller_cured : public sutra_controller<Tcomp, Tout> {
  public:
-  Tcomp gain;
   int ndivs;     // number of subdivision levels for cured
   bool tt_flag;  // flag for separate tt
 
@@ -33,7 +32,6 @@ class sutra_controller_cured : public sutra_controller<Tcomp, Tout> {
   ~sutra_controller_cured();
 
   string get_type() { return "cured"; }
-  int set_gain(Tcomp gain);
 
   int comp_com();
 

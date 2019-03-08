@@ -6,10 +6,10 @@ namespace py = pybind11;
 
 template <typename Tin, typename Tcomp, typename Tout>
 std::unique_ptr<sutra_rtc_cacao<Tin, Tcomp, Tout>> rtc_cacao_init(
-    carma_context *context, std::string iCalFrame_name,
+    std::string iCalFrame_name,
     std::string iLoopFrame_name) {
   return std::unique_ptr<sutra_rtc_cacao<Tin, Tcomp, Tout>>(
-      new sutra_rtc_cacao<Tin, Tcomp, Tout>(context, iCalFrame_name,
+      new sutra_rtc_cacao<Tin, Tcomp, Tout>(iCalFrame_name,
                                             iLoopFrame_name));
 }
 
@@ -24,12 +24,10 @@ void rtc_cacao_impl(py::module &mod, const char *name) {
 
             Parameters
             ------------
-            context: (carma_context) : current carma context
             iCalFrame_name:
             iLoopFrame_name:
             )pbdoc",
-           py::arg("iCalFrame_name"), py::arg("iLoopFrame_name"),
-           py::arg("name"))
+           py::arg("iCalFrame_name"), py::arg("iLoopFrame_name"))
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝

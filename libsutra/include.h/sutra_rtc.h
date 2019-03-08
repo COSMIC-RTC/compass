@@ -25,13 +25,13 @@ class sutra_rtc {
   sutra_rtc();
   ~sutra_rtc();
   int add_centroider(carma_context *context, long nvalid, float offset,
-                     float scale, long device, char *typec);
+                     float scale, long device, std::string typec);
 
   int add_centroider(carma_context *context, long nvalid, float offset,
-                     float scale, long device, char *typec, sutra_wfs *wfs);
+                     float scale, long device, std::string typec, sutra_wfs *wfs);
 
   int add_controller(carma_context *context, int nvalid, int nslope, int nactu,
-                     float delay, long device, char *typec,
+                     float delay, long device, std::string typec,
                      sutra_dms *dms = nullptr, int *idx_dms = nullptr,
                      int ndm = 0, int Nphi = 0, bool wfs_direction = false);
 
@@ -85,24 +85,24 @@ class sutra_rtc {
   typename std::enable_if<!std::is_same<Q, half>::value, int>::type
   add_centroider_impl(carma_context *context,
                       vector<sutra_centroider<Tin, T> *> &d_centro, long nvalid,
-                      float offset, float scale, long device, char *typec,
+                      float offset, float scale, long device, std::string typec,
                       sutra_wfs *wfs, std::false_type);
   int add_centroider_impl(carma_context *context,
                           vector<sutra_centroider<Tin, T> *> &d_centro,
                           long nvalid, float offset, float scale, long device,
-                          char *typec, sutra_wfs *wfs, std::true_type);
+                          std::string typec, sutra_wfs *wfs, std::true_type);
 
   template <typename Q = T>
   typename std::enable_if<!std::is_same<Q, half>::value, int>::type
   add_controller_impl(carma_context *context,
                       vector<sutra_controller<T, Tout> *> &d_control,
                       int nvalid, int nslope, int nactu, float delay,
-                      long device, char *typec, sutra_dms *dms, int *idx_dms,
+                      long device, std::string typec, sutra_dms *dms, int *idx_dms,
                       int ndm, int Nphi, bool wfs_direction, std::false_type);
   int add_controller_impl(carma_context *context,
                           vector<sutra_controller<T, Tout> *> &d_control,
                           int nvalid, int nslope, int nactu, float delay,
-                          long device, char *typec, sutra_dms *dms,
+                          long device, std::string typec, sutra_dms *dms,
                           int *idx_dms, int ndm, int Nphi, bool wfs_direction,
                           std::true_type);
 };

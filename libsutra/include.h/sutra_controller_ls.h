@@ -6,8 +6,6 @@
 template <typename Tcomp, typename Tout>
 class sutra_controller_ls : public sutra_controller<Tcomp, Tout> {
  public:
-  Tcomp gain;
-
   carma_obj<Tcomp> *d_imat;
   carma_obj<Tcomp> *d_cmat;
   carma_obj<Tcomp> *d_gain;
@@ -53,7 +51,6 @@ class sutra_controller_ls : public sutra_controller<Tcomp, Tout> {
   int build_cmat_modopti();
   int frame_delay();
   int comp_com();
-  int set_gain(Tcomp gain);
   int set_mgain(Tcomp *mgain);
   int set_cmat(Tcomp *cmat);
   int set_imat(Tcomp *imat);

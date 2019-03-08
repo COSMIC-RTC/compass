@@ -17,9 +17,6 @@ void controller_mv_impl(py::module &mod, const char *name) {
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
-      .def_property_readonly("gain", [](controller_mv &sc) { return sc.gain; },
-                             "Controller gain")
-
       .def_property_readonly("d_imat",
                              [](controller_mv &sc) { return sc.d_imat; },
                              "Interaction matrix")
@@ -186,15 +183,6 @@ void controller_mv_impl(py::module &mod, const char *name) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
-
-      .def("set_gain", &controller_mv::set_gain, R"pbdoc(
-      Set the controller gain
-
-      Parameters
-      ------------
-      gain: (float): gain to set
-    )pbdoc",
-           py::arg("gain"))
 
       .def("set_mgain", wy::colCast(&controller_mv::set_mgain), R"pbdoc(
       Set the controller modal gains

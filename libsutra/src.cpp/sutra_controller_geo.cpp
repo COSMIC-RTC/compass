@@ -68,12 +68,6 @@ string sutra_controller_geo<T, Tout>::get_type() {
 }
 
 template <typename T, typename Tout>
-int sutra_controller_geo<T, Tout>::set_gain(T gain) {
-  this->gain = gain;
-  return EXIT_SUCCESS;
-}
-
-template <typename T, typename Tout>
 int sutra_controller_geo<T, Tout>::load_mgain(T *mgain) {
   this->d_gain->host2device(mgain);
   return EXIT_SUCCESS;

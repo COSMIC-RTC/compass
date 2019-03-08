@@ -36,7 +36,7 @@ class sutra_rtc_cacao : public sutra_rtc<Tin, Tcomp, Tout> {
   bool is_initialised_;
 
  public:
-  sutra_rtc_cacao(carma_context *context, std::string iCalFrame_name,
+  sutra_rtc_cacao(std::string iCalFrame_name,
                   std::string iLoopFrame_name);
   ~sutra_rtc_cacao();
 

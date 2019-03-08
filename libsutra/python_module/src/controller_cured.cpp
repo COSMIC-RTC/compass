@@ -17,10 +17,6 @@ void controller_cured_impl(py::module &mod, const char *name) {
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
-      .def_property_readonly("gain",
-                             [](controller_cured &sc) { return sc.gain; },
-                             "Controller gain")
-
       .def_property_readonly("ndivs",
                              [](controller_cured &sc) { return sc.ndivs; },
                              "Number of subdivision levels")
@@ -67,22 +63,7 @@ void controller_cured_impl(py::module &mod, const char *name) {
         tt: (int):
     )pbdoc",
            py::arg("nxsub"), py::arg("isvalid"), py::arg("ndivs"),
-           py::arg("tt"))
-
-      //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
-      //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝
-      //  ███████╗█████╗     ██║      ██║   █████╗  ██████╔╝███████╗
-      //  ╚════██║██╔══╝     ██║      ██║   ██╔══╝  ██╔══██╗╚════██║
-      //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
-      //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
-      //
-      .def("set_gain", &controller_cured::set_gain, R"pbdoc(
-      Set the gain
-      Parameters
-      ------------
-      gain: (float): gain
-    )pbdoc",
-           py::arg("gain"));
+           py::arg("tt"));
 };
 
 void declare_controller_cured(py::module &mod) {

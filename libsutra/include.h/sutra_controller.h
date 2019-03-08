@@ -35,6 +35,7 @@ class sutra_controller {
 
   int open_loop;
   Tcomp delay;
+  Tcomp gain;
   float Vmin;
   float Vmax;
   int nactus;
@@ -100,6 +101,7 @@ class sutra_controller {
   int set_Vmin(float Vmin);
   int set_Vmax(float Vmax);
   int set_valMax(float valMax);
+  int set_gain(float gain);
 
   // int syevd_f(char meth, carma_obj<T> *d_U,
   //             carma_host_obj<T> *h_eingenvals);

@@ -17,8 +17,6 @@ void controller_geo_impl(py::module &mod, const char *name) {
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
-      .def_property_readonly("gain", [](controller_geo &sc) { return sc.gain; },
-                             "Controller gain")
 
       .def_property_readonly("Nphi", [](controller_geo &sc) { return sc.Nphi; },
                              "Number of points in the pupil")
@@ -120,15 +118,6 @@ void controller_geo_impl(py::module &mod, const char *name) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
-
-      .def("set_gain", wy::colCast(&controller_geo::set_gain), R"pbdoc(
-      Set the controller gain
-
-      Parameters
-      ------------
-      gain: (float): gain to set
-    )pbdoc",
-           py::arg("gain"))
 
       .def("load_mgain", wy::colCast(&controller_geo::load_mgain),
            R"pbdoc(
