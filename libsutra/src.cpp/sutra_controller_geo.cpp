@@ -95,7 +95,8 @@ int sutra_controller_geo<T, Tout>::init_proj(sutra_dms *dms, int *indx_dm,
   carma_obj<T> d_IF(this->current_context, dims_data);
   dims_data[1] = this->nactu();
   carma_obj<T> d_tmp(this->current_context, dims_data);
-  long dims_data1[2] = {1, this->Nphi * this->d_dmseen.size()};
+  long tmp_dim = this->Nphi * this->d_dmseen.size();
+  long dims_data1[2] = {1, tmp_dim};
   carma_obj<int> d_indx(this->current_context, dims_data1, indx_dm);
 
   this->d_indx_pup->host2device(indx_pup);
@@ -150,7 +151,8 @@ int sutra_controller_geo<T, Tout>::init_proj_sparse(
 
   int Npzt = this->d_dmseen.size() - this->Ntt;
   carma_sparse_obj<double> *d_IFi[Npzt];
-  long dims_data1[2] = {1, this->d_dmseen.size() * this->Nphi};
+  long tmp_dim = this->Nphi * this->d_dmseen.size();
+  long dims_data1[2] = {1, tmp_dim};
   carma_obj<int> d_indx(this->current_context, dims_data1, indx_dm);
 
   this->d_indx_pup->host2device(indx_pup);

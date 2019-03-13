@@ -34,7 +34,7 @@ void sutra_rtc_cacao<Tin, Tcomp, Tout>::allocateBuffers() {
 
   uint32_t size = this->d_centro[0]->d_img->getDims(1);
   iCalFrame_ = std::make_shared<ipc::Cacao<float>>(ipc::Cacao<float>(
-      iCalFrame_name_, std::vector<uint32_t>{10, size, size}));
+      iCalFrame_name_, std::vector<uint32_t>{10, size, size}, -1, 1, 8, 0));
 
   nslp_ = 0;
   ncmd_ = 0;
@@ -46,7 +46,7 @@ void sutra_rtc_cacao<Tin, Tcomp, Tout>::allocateBuffers() {
 
   uint32_t size_tot = nvalid_ + nslp_ + ncmd_;
   iLoopFrame_ = std::make_shared<ipc::Cacao<Tcomp>>(ipc::Cacao<Tcomp>(
-      iLoopFrame_name_, std::vector<uint32_t>{10, 1, size_tot}));
+      iLoopFrame_name_, std::vector<uint32_t>{10, 1, size_tot}, -1, 1, 8, 0));
 
   is_initialised_ = true;
 }
