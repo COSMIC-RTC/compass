@@ -145,7 +145,7 @@ target_link_libraries(carma
                              ${CUDA_cublas_LIBRARY}
                              ${CUDA_curand_LIBRARY}
                              ${CUDA_cusparse_LIBRARY}
-                      PRIVATE ${MAGMA_LIBRARIES})
+                      PRIVATE magma) # ${MAGMA_LIBRARIES})
 
 target_include_directories(
   carma

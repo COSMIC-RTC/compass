@@ -18,9 +18,17 @@ then
 fi
 
 cd build
-cmake .. -DCMAKE_INSTALL_PREFIX=$PYTHON_INSTALL_PATH -Ddo_half=$COMPASS_DO_HALF
-make -j8
-make install
+
+# BUILD_TOOL="ninja" # make or ninja
+if [ "$BUILD_TOOL" = "ninja" ]
+then
+    cmake .. -DCMAKE_INSTALL_PREFIX=$PYTHON_INSTALL_PATH -Ddo_half=$COMPASS_DO_HALF -GNinja
+    ninja install
+else
+    cmake .. -DCMAKE_INSTALL_PREFIX=$PYTHON_INSTALL_PATH -Ddo_half=$COMPASS_DO_HALF
+    make -j8
+    make install
+fi
 
 if [ ! -z $OCTOPUS_ROOT ]
 then

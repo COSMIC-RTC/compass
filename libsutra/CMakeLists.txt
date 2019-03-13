@@ -28,6 +28,10 @@ project(sutra
 # cmake-format: on
 
 find_package(PkgConfig REQUIRED)
+
+pkg_check_modules(MAGMA REQUIRED magma)
+link_directories(${MAGMA_LIBRARY_DIRS})
+
 pkg_check_modules(OCTOPUS octopus)
 if(${OCTOPUS_FOUND})
   set(OCTOPUS_CPP src.cpp/sutra_rtc_cacao.cpp)

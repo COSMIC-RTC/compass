@@ -7,6 +7,6 @@ Name: @PROJECT_NAME@
 Description: @PROJECT_DESCRIPTION@
 Version: @PROJECT_VERSION@
 
-Requires: carma
+Requires.private: carma
 Libs: -L${libdir} -lsutra
 Cflags: -I${includedir}
