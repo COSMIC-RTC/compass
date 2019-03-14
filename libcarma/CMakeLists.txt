@@ -70,6 +70,14 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(MAGMA REQUIRED magma)
 
 link_directories(${MAGMA_LIBRARY_DIRS})
+if(DEFINED ENV{OCTOPUS_ROOT})
+  pkg_check_modules(OCTOPUS octopus)
+  if(${OCTOPUS_FOUND})
+    link_directories(${OCTOPUS_LIBRARY_DIRS})
+  else()
+    message(STATUS "OCTOPUS_ROOT not find")
+  endif()
+endif()
 
 add_library(carma
             SHARED
@@ -98,6 +106,15 @@ add_library(carma
             ./src.cu/carma_obj.cu
             ./src.cu/carma_sum.cu
             ./src.cu/carma_transpose.cu)
+
+if(DEFINED ENV{OCTOPUS_ROOT})
+  target_compile_definitions(carma PUBLIC USE_OCTOPUS=1)
+  target_compile_options(carma PUBLIC -DUSE_CACAO ${OCTOPUS_CFLAGS})
+  target_include_directories(
+    carma
+    PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${OCTOPUS_INCLUDE_DIRS}>)
+  target_link_libraries(carma PUBLIC ${OCTOPUS_LIBRARIES})
+endif()
 
 if(do_half)
   if(${CUDA_LOWEREST_SM} GREATER_EQUAL 60)

@@ -1,5 +1,3 @@
-#ifndef USE_OCTOPUS
-
 #include <sutra_rtc_cacao.h>
 
 template <typename Tin, typename Tcomp, typename Tout>
@@ -90,5 +88,3 @@ template class sutra_rtc_cacao<uint16_t, float, uint16_t>;
 #ifdef CAN_DO_HALF
 // template class sutra_rtc_cacao<half>;
 #endif
-
-#endif /* USE_BRAHMA */

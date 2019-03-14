@@ -152,7 +152,10 @@ struct CarmaObjInterfacer {
              },
              "TODO", py::arg("data"),
              py::arg("nb_elem") = -1)  // TODO do the documentation...
-
+        #ifdef USE_OCTOPUS
+        .def("copyInto",(int (Class::*)(ipc::Cacao<T>*))&Class::copyInto)
+        .def("copyFrom",(int (Class::*)(ipc::Cacao<T>*))&Class::copyFrom)
+        #endif
         // inline int reset()
         .def("reset", &Class::reset, "TODO")  // TODO do the documentation...
 

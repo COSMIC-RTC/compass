@@ -38,6 +38,10 @@ src/sparse_obj.cpp
 src/carmaWrap.cpp
 )
 
+if(DEFINED ENV{OCTOPUS_ROOT})
+  target_compile_definitions(carmaWrap PUBLIC USE_OCTOPUS=1)
+endif()
+
 target_link_libraries(carmaWrap PRIVATE wyrm PUBLIC carma)
 
 set_target_properties(carmaWrap PROPERTIES PREFIX "${PYTHON_MODULE_PREFIX}"

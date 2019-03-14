@@ -235,6 +235,11 @@ class carma_obj {
   int copyInto(T_data *data, int nb_elem);
   int copyFrom(const T_data *data, int nb_elem);
 
+  #ifdef USE_OCTOPUS
+  int copyInto(ipc::Cacao<T_data> *cacaoInterface);
+  int copyFrom(ipc::Cacao<T_data> *cacaoInterface);
+  #endif  
+
   inline int reset() {
     return cudaMemset(this->d_data, 0, this->nb_elem * sizeof(T_data));
   }
