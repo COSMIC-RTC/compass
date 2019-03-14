@@ -35,10 +35,14 @@ void declare_target_brahma(py::module &);
 void declare_rtc_brahma(py::module &);
 #endif  // USE_BRAHMA
 
+#ifdef USE_CACAO
+void declare_rtc_cacao(py::module &);
+#endif  // USE_CACAO
+
 // Expose classes and methods to Python
 PYBIND11_MODULE(sutraWrap, mod) {
+  py::module::import("carmaWrap");
   mod.doc() = "Binding module for libsutra";
-
   declare_tscreen(mod);
   declare_atmos(mod);
   declare_telescope(mod);
@@ -71,6 +75,10 @@ PYBIND11_MODULE(sutraWrap, mod) {
   declare_target_brahma(mod);
   declare_rtc_brahma(mod);
 #endif  // USE_BRAHMA
+
+#ifdef USE_CACAO
+  declare_rtc_cacao(mod);
+#endif  // USE_CACAO
 
 #ifdef VERSION_INFO
 #define STRINGIFY(x) #x

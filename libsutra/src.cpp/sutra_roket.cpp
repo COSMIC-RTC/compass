@@ -205,7 +205,7 @@ int sutra_roket::compute_breakdown() {
   // Aliasing on GS direction
   this->geocontrol->comp_dphi(this->sensors->d_wfs[0]->d_gs, true);
   this->rtc->do_control(this->geocontroller);
-  this->rtc->apply_control(this->geocontroller, this->dms);
+  this->rtc->apply_control(this->geocontroller);
   this->sensors->d_wfs[0]->sensor_trace(this->dms, 0);
   this->sensors->d_wfs[0]->d_gs->d_phase->d_screen->axpy(
       1.0, this->tel->d_phase_ab_M1_m, 1, 1);
@@ -226,7 +226,7 @@ int sutra_roket::compute_breakdown() {
   this->rtc->do_control(this->geocontroller);
   this->d_err1->copyFrom(this->geocontrol->d_com->getData(), this->nactus);
   // Fitting
-  this->rtc->apply_control(this->geocontroller, this->dms);
+  this->rtc->apply_control(this->geocontroller);
 
   this->target->d_targets[0]->raytrace(this->dms, 0, 0);
   this->fitting += this->target->d_targets[0]->phase_var / this->niter;

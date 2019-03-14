@@ -21,11 +21,8 @@
 #include <curand.h>
 #include <curand_kernel.h>
 #include <iostream>
+#include <type_traits>
 #include <typeinfo>  // operator typeid
-
-#if CUDA_HIGHEST_SM >= 60
-// #define CAN_DO_HALF 1
-#endif
 
 /*
  create a memory object
@@ -64,17 +61,6 @@ enum MemType {
   MT_GENEPIN
 };
 // should add texture ?
-
-struct doubleint {
-  int start;
-  int nbInflu;
-};
-
-template <class T>
-struct tuple_t {
-  int pos;
-  T data;
-};
 
 template <class T_data>
 class carma_data {
@@ -233,8 +219,11 @@ class carma_obj {
   bool is_rng_init() { return (gen != NULL); }
 
   /**< Memory transfers both ways */
-  int host2device(const T_data *data);
-  int device2host(T_data *data);
+  template <typename T_dest>
+  int host2device(const T_dest *data);
+  template <typename T_dest>
+  int device2host(T_dest *data);
+
   int host2deviceAsync(const T_data *data, cudaStream_t stream);
   int device2hostAsync(T_data *data, cudaStream_t stream);
   int device2hostOpt(T_data *data);
@@ -249,7 +238,10 @@ class carma_obj {
   inline int reset() {
     return cudaMemset(this->d_data, 0, this->nb_elem * sizeof(T_data));
   }
-
+  inline int memSet(T_data value) {
+    fill_array_with_value(this->d_data, value, this->nb_elem,
+                          this->current_context->get_device(this->device));
+  }
   cufftHandle *getPlan() { return &plan; }
   ///< FFT plan
   cufftType getTPlan() { return tPlan; }
@@ -269,7 +261,15 @@ class carma_obj {
   int transpose(carma_obj<T_data> *source);
   // carma_obj<T_data>& operator= (const carma_obj<T_data>& obj);
 
-  /**< Cublas V2 */
+  /*
+   *  ____  _        _    ____  _
+   * | __ )| |      / \  / ___|/ |
+   * |  _ \| |     / _ \ \___ \| |
+   * | |_) | |___ / ___ \ ___) | |
+   * |____/|_____/_/   \_\____/|_|
+   *
+   */
+
   int aimax(int incx);
   int aimin(int incx);
   T_data asum(int incx);
@@ -278,8 +278,18 @@ class carma_obj {
   void scale(T_data alpha, int incx);
   void swap(carma_obj<T_data> *source, int incx, int incy);
   void copy(carma_obj<T_data> *source, int incx, int incy);
-  void axpy(T_data alpha, carma_obj<T_data> *source, int incx, int incy);
+  void axpy(T_data alpha, carma_obj<T_data> *source, int incx, int incy,
+            int offset = 0);
   void rot(carma_obj<T_data> *source, int incx, int incy, T_data sc, T_data ss);
+
+  /*
+   *  ____  _        _    ____ ____
+   * | __ )| |      / \  / ___|___ \
+   * |  _ \| |     / _ \ \___ \ __) |
+   * | |_) | |___ / ___ \ ___) / __/
+   * |____/|_____/_/   \_\____/_____|
+   *
+   */
 
   void gemv(char trans, T_data alpha, carma_obj<T_data> *matA, int lda,
             carma_obj<T_data> *vectx, int incx, T_data beta, int incy);
@@ -287,6 +297,15 @@ class carma_obj {
            carma_obj<T_data> *vecty, int incy, int lda);
   void symv(char uplo, T_data alpha, carma_obj<T_data> *matA, int lda,
             carma_obj<T_data> *vectx, int incx, T_data beta, int incy);
+
+  /*
+   *  ____  _        _    ____ _____
+   * | __ )| |      / \  / ___|___ /
+   * |  _ \| |     / _ \ \___ \ |_ \
+   * | |_) | |___ / ___ \ ___) |__) |
+   * |____/|_____/_/   \_\____/____/
+   *
+   */
 
   void gemm(char transa, char transb, T_data alpha, carma_obj<T_data> *matA,
             int lda, carma_obj<T_data> *matB, int ldb, T_data beta, int ldc);
@@ -321,13 +340,14 @@ class carma_obj {
 };
 typedef carma_obj<int> caObjI;
 typedef carma_obj<unsigned int> caObjUI;
+typedef carma_obj<uint16_t> caObjUSI;
 typedef carma_obj<float> caObjS;
 typedef carma_obj<double> caObjD;
 typedef carma_obj<float2> caObjS2;
 typedef carma_obj<double2> caObjD2;
 typedef carma_obj<cuFloatComplex> caObjC;
 typedef carma_obj<cuDoubleComplex> caObjZ;
-typedef carma_obj<tuple_t<float> > caObjTF;
+// typedef carma_obj<tuple_t<float>> caObjTF;
 
 #ifdef CAN_DO_HALF
 typedef carma_obj<half> caObjH;
@@ -434,13 +454,13 @@ int carma_fftconv(caObjS *data_out, caObjS *padded_data,
 
 // MAGMA functions
 int magma_disabled();
-template <class T>
-int carma_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals,
-              carma_obj<T> *mod2act, carma_obj<T> *mes2mod);
+// template <class T>
+// int carma_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals,
+//               carma_obj<T> *mod2act, carma_obj<T> *mes2mod);
 template <class T>
 int carma_syevd(char jobz, carma_obj<T> *mat, carma_host_obj<T> *eigenvals);
-template <class T, int method>
-int carma_syevd(char jobz, carma_obj<T> *mat, carma_host_obj<T> *eigenvals);
+// template <class T, int method>
+// int carma_syevd(char jobz, carma_obj<T> *mat, carma_host_obj<T> *eigenvals);
 template <class T>
 int carma_syevd_m(long ngpu, char jobz, long N, T *mat, T *eigenvals);
 template <class T>
@@ -459,17 +479,22 @@ int carma_potri_m(long num_gpus, carma_host_obj<T> *h_A, carma_obj<T> *d_iA);
 // MAGMA functions (direct access)
 template <class T>
 int carma_syevd(char jobz, long N, T *mat, T *eigenvals);
-template <class T, int method>
-int carma_syevd(char jobz, long N, T *mat, T *eigenvals);
+// template <class T, int method>
+// int carma_syevd(char jobz, long N, T *mat, T *eigenvals);
 template <class T>
 int carma_syevd_m(long ngpu, char jobz, long N, T *mat, T *eigenvals);
-template <class T>
-int carma_potri_m(long num_gpus, long N, T *h_A, T *d_iA);
+// template <class T>
+// int carma_potri_m(long num_gpus, long N, T *h_A, T *d_iA);
 
 // CULA functions
 template <class T>
 int carma_cula_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals,
                    carma_obj<T> *mod2act, carma_obj<T> *mes2mod);
+
+#ifdef CAN_DO_HALF
+int custom_half_axpy(half alpha, half *source, int incx, int incy, int N,
+                     half *dest, carma_device *device);
+#endif
 
 extern "C" {
 //  void sumGetNumBlocksAndThreads(int n, int device, int &blocks, int

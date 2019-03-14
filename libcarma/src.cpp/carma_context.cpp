@@ -100,11 +100,7 @@ carma_context::carma_context(int num_device) {
 
   int devices[1];
   devices[0] = num_device;
-  try {
-    init_context(1, devices);
-  } catch (const std::exception &e) {
-    std::cout << "Runtime error: " << e.what();
-  }
+  init_context(1, devices);
 }
 
 carma_context::carma_context() {
@@ -112,21 +108,17 @@ carma_context::carma_context() {
   can_access_peer = nullptr;
   this->activeDevice = -1;
 
-  try {
-    if (this->ndevice == 0) {
-      DEBUG_TRACE("carma_context() CUDA error: no devices supporting CUDA.");
-      throw std::runtime_error(
-          "carma_context() CUDA error: no devices supporting CUDA.");
-    }
-
-    int const size = this->ndevice;
-    int32_t devices_id[size];
-
-    for (int i = 0; i < size; ++i) devices_id[i] = i;
-    init_context(this->ndevice, devices_id);
-  } catch (const std::exception &e) {
-    std::cout << "Runtime error: " << e.what();
+  if (this->ndevice == 0) {
+    DEBUG_TRACE("carma_context() CUDA error: no devices supporting CUDA.");
+    throw std::runtime_error(
+        "carma_context() CUDA error: no devices supporting CUDA.");
   }
+
+  int const size = this->ndevice;
+  int32_t devices_id[size];
+
+  for (int i = 0; i < size; ++i) devices_id[i] = i;
+  init_context(this->ndevice, devices_id);
 }
 
 carma_context::carma_context(int nb_devices, int32_t *devices_id) {
@@ -134,11 +126,7 @@ carma_context::carma_context(int nb_devices, int32_t *devices_id) {
   this->activeDevice = -1;
   this->ndevice = -1;
 
-  try {
-    init_context(nb_devices, devices_id);
-  } catch (const std::exception &e) {
-    std::cout << "Runtime error: " << e.what();
-  }
+  init_context(nb_devices, devices_id);
 }
 
 void carma_context::init_context(const int nb_devices, int32_t *devices_id) {

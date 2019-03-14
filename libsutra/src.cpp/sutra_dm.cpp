@@ -16,9 +16,19 @@ sutra_dms::~sutra_dms() {
 int sutra_dms::add_dm(carma_context *context, const char *type, float alt,
                       long dim, long nactus, long influsize, long ninflupos,
                       long n_npoints, float push4imat, long nord, int device) {
-  d_dms.push_back(new sutra_dm(context, type, alt, dim, nactus, influsize,
-                               ninflupos, n_npoints, push4imat, nord, device));
+  this->insert_dm(context, type, alt, dim, nactus, influsize, ninflupos,
+                  n_npoints, push4imat, nord, device, this->d_dms.size());
 
+  return EXIT_SUCCESS;
+}
+
+int sutra_dms::insert_dm(carma_context *context, const char *type, float alt,
+                         long dim, long nactus, long influsize, long ninflupos,
+                         long n_npoints, float push4imat, long nord, int device,
+                         int idx) {
+  d_dms.insert(d_dms.begin() + idx,
+               new sutra_dm(context, type, alt, dim, nactus, influsize,
+                            ninflupos, n_npoints, push4imat, nord, device));
   return EXIT_SUCCESS;
 }
 
@@ -67,6 +77,9 @@ sutra_dm::sutra_dm(carma_context *context, const char *type, float alt,
   this->type = type;
   this->altitude = alt;
   this->push4imat = push4imat;
+  this->Vmin = -1.0f;
+  this->Vmax = 1.0f;
+  this->valMax = uint16_t(65535);
 
   long dims_data1[2];
   dims_data1[0] = 1;
@@ -157,6 +170,13 @@ int sutra_dm::reset_shape() {
   return EXIT_SUCCESS;
 }
 
+int sutra_dm::comp_shape(uint16_t *comvec) {
+  current_context->set_activeDevice(device, 1);
+  convertToCom(comvec, this->d_com->getData(), this->d_com->getNbElem(),
+               this->Vmin, this->Vmax, this->valMax,
+               this->current_context->get_device(this->device));
+  return this->comp_shape();
+}
 int sutra_dm::comp_shape() { return this->comp_shape(this->d_com->getData()); }
 
 #ifdef CHEAT_CODE
@@ -440,8 +460,8 @@ template int sutra_dm::do_geomatFromSparse<double>(
 
 int sutra_dm::do_geomat(float *d_geocov, float *d_IF, long n_pts) {
   current_context->set_activeDevice(device, 1);
-  carma_gemm(cublas_handle(), 't', 'n', this->nactus, this->nactus, n_pts, 1.0f,
-             d_IF, n_pts, d_IF, n_pts, 0.0f, d_geocov, this->nactus);
+  carma_gemm(this->cublas_handle(), 't', 'n', this->nactus, this->nactus, n_pts,
+             1.0f, d_IF, n_pts, d_IF, n_pts, 0.0f, d_geocov, this->nactus);
 
   return EXIT_SUCCESS;
 }
@@ -459,9 +479,10 @@ int sutra_dm::piston_filt(carma_obj<float> *d_statcov) {
   int N = d_statcov->getDims()[1] * d_statcov->getDims()[1];
   fill_filtermat(d_F->getData(), Nmod, N, current_context->get_device(device));
 
-  carma_gemm(cublas_handle(), 'n', 'n', Nmod, Nmod, Nmod, 1.0f, d_F->getData(),
-             Nmod, d_statcov->getData(), Nmod, 0.0f, d_tmp->getData(), Nmod);
-  carma_gemm(cublas_handle(), 'n', 'n', Nmod, Nmod, Nmod, 1.0f,
+  carma_gemm(this->cublas_handle(), 'n', 'n', Nmod, Nmod, Nmod, 1.0f,
+             d_F->getData(), Nmod, d_statcov->getData(), Nmod, 0.0f,
+             d_tmp->getData(), Nmod);
+  carma_gemm(this->cublas_handle(), 'n', 'n', Nmod, Nmod, Nmod, 1.0f,
              d_tmp->getData(), Nmod, d_F->getData(), Nmod, 0.0f,
              d_statcov->getData(), Nmod);
 
@@ -493,9 +514,9 @@ int sutra_dm::DDiago(carma_obj<float> *d_statcov, carma_obj<float> *d_geocov) {
       new carma_host_obj<float>(dims_data2, MA_PAGELOCK);
 
   // 1. SVdec(geocov,U) --> Ut * geocov * U = D������
-  carma_syevd<float, 1>('V', d_geocov, h_eigenvals);
+  carma_syevd<float>('V', d_geocov, h_eigenvals);
 
-  d_eigenvals->host2device(*h_eigenvals);
+  d_eigenvals->host2device(h_eigenvals->getData());
   for (int i = 0; i < this->nactus; i++) {
     h_eigenvals_sqrt->getData()[i] =
         sqrt(h_eigenvals->getData()[i]);  // D = sqrt(D������)
@@ -503,43 +524,43 @@ int sutra_dm::DDiago(carma_obj<float> *d_statcov, carma_obj<float> *d_geocov) {
         1. /
         sqrt(h_eigenvals->getData()[i]);  // D��������������� = 1/sqrt(D������)
   }
-  d_eigenvals_sqrt->host2device(*h_eigenvals_sqrt);
-  d_eigenvals_inv->host2device(*h_eigenvals_inv);
+  d_eigenvals_sqrt->host2device(h_eigenvals_sqrt->getData());
+  d_eigenvals_inv->host2device(h_eigenvals_inv->getData());
 
   // 2. M��������������� = sqrt(eigenvals) * Ut : here, we have
   // transpose(M���������������)
   /*
-  carma_dgmm<float>(cublas_handle(),CUBLAS_SIDE_RIGHT,this->nactus,this->nactus,
+  carma_dgmm<float>(this->cublas_handle(),CUBLAS_SIDE_RIGHT,this->nactus,this->nactus,
   d_geocov->getData(), this->nactus, d_eigenvals_inv->getData(),1,
   d_M1->getData(), this->nactus);*/
 
-  carma_dgmm<float>(cublas_handle(), CUBLAS_SIDE_RIGHT, this->nactus,
+  carma_dgmm<float>(this->cublas_handle(), CUBLAS_SIDE_RIGHT, this->nactus,
                     this->nactus, d_geocov->getData(), this->nactus,
                     d_eigenvals_sqrt->getData(), 1, d_M1->getData(),
                     this->nactus);
 
   // 3. C' = M��������������� * statcov * M���������������t
-  carma_gemm<float>(cublas_handle(), 't', 'n', nactus, nactus, nactus, 1.0f,
-                    d_M1->getData(), nactus, d_statcov->getData(), nactus, 0.0f,
-                    d_tmp->getData(), nactus);
+  carma_gemm<float>(this->cublas_handle(), 't', 'n', nactus, nactus, nactus,
+                    1.0f, d_M1->getData(), nactus, d_statcov->getData(), nactus,
+                    0.0f, d_tmp->getData(), nactus);
 
-  carma_gemm<float>(cublas_handle(), 'n', 'n', nactus, nactus, nactus, 1.0f,
-                    d_tmp->getData(), nactus, d_M1->getData(), nactus, 0.0f,
-                    d_tmp2->getData(), nactus);
+  carma_gemm<float>(this->cublas_handle(), 'n', 'n', nactus, nactus, nactus,
+                    1.0f, d_tmp->getData(), nactus, d_M1->getData(), nactus,
+                    0.0f, d_tmp2->getData(), nactus);
 
   // 4. SVdec(C',A)
-  carma_syevd<float, 1>('V', d_tmp2, h_eigenvals);
+  carma_syevd<float>('V', d_tmp2, h_eigenvals);
 
   // 5. M = U * D���������������
-  carma_dgmm<float>(cublas_handle(), CUBLAS_SIDE_RIGHT, this->nactus,
+  carma_dgmm<float>(this->cublas_handle(), CUBLAS_SIDE_RIGHT, this->nactus,
                     this->nactus, d_geocov->getData(), this->nactus,
                     d_eigenvals_inv->getData(), 1, d_tmp->getData(),
                     this->nactus);
 
   // 6. B = M * A;
-  carma_gemm<float>(cublas_handle(), 'n', 'n', nactus, nactus, nactus, 1.0f,
-                    d_tmp->getData(), nactus, d_tmp2->getData(), nactus, 0.0f,
-                    d_KLbasis->getData(), nactus);
+  carma_gemm<float>(this->cublas_handle(), 'n', 'n', nactus, nactus, nactus,
+                    1.0f, d_tmp->getData(), nactus, d_tmp2->getData(), nactus,
+                    0.0f, d_KLbasis->getData(), nactus);
 
   delete d_M1;
   delete d_tmp;

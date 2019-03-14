@@ -3,41 +3,38 @@
 
 #include <sutra_controller.h>
 
-class sutra_controller_ls : public sutra_controller {
+template <typename Tcomp, typename Tout>
+class sutra_controller_ls : public sutra_controller<Tcomp, Tout> {
  public:
-  float gain;
-
-  carma_obj<float> *d_imat;
-  carma_obj<float> *d_cmat;
-  carma_obj<float> *d_gain;
+  carma_obj<Tcomp> *d_imat;
+  carma_obj<Tcomp> *d_cmat;
+  carma_obj<Tcomp> *d_gain;
 
   // svd computations
-  carma_obj<float> *d_eigenvals;
-  carma_host_obj<float> *h_eigenvals;
-  carma_obj<float> *d_U;
+  carma_obj<Tcomp> *d_eigenvals;
+  carma_host_obj<Tcomp> *h_eigenvals;
+  carma_obj<Tcomp> *d_U;
 
   // loop components
-  carma_obj<float> *d_cenbuff;  // centroids circular buffer
-  carma_obj<float> *d_err;      // current error
+  carma_obj<Tcomp> *d_cenbuff;  // centroids circular buffer
+  carma_obj<Tcomp> *d_err;      // current error
 
   // Modal optimization components
   int is_modopti;                // Flag for using modal optimization
   int nrec;                      // Number of recorded open slopes measurements
   int nmodes;                    // Number of modes
-  float gmin;                    // Gain min
-  float gmax;                    // Gain max
+  Tcomp gmin;                    // Gain min
+  Tcomp gmax;                    // Gain max
   int ngain;                     // Number of tested gains between gmin and gmax
-  float Fs;                      // Sampling frequency
+  Tcomp Fs;                      // Sampling frequency
   int cpt_rec;                   // Counter for modal gains refresh
-  carma_obj<float> *d_M2V;       // Modes to Volts matrix
-  carma_obj<float> *d_S2M;       // Slopes to Modes matrix
-  carma_obj<float> *d_slpol;     // Open-loop measurements buffer, recorded and
+  carma_obj<Tcomp> *d_M2V;       // Modes to Volts matrix
+  carma_obj<Tcomp> *d_S2M;       // Slopes to Modes matrix
+  carma_obj<Tcomp> *d_slpol;     // Open-loop measurements buffer, recorded and
                                  // loaded from Yorick
-  carma_obj<float> *d_Hcor;      // Transfer function
-  carma_obj<float> *d_com1;      // Command k-1 for POLC
-  carma_obj<float> *d_com2;      // Command k-2 for POLC
-  carma_obj<float> *d_compbuff;  // Buffer for POLC computation
-  carma_obj<float> *d_compbuff2;  // Buffer for POLC computation
+  carma_obj<Tcomp> *d_Hcor;      // Transfer function
+  carma_obj<Tcomp> *d_compbuff;  // Buffer for POLC computation
+  carma_obj<Tcomp> *d_compbuff2;  // Buffer for POLC computation
 
  public:
   sutra_controller_ls(carma_context *context, long nvalid, long nslope,
@@ -54,14 +51,12 @@ class sutra_controller_ls : public sutra_controller {
   int build_cmat_modopti();
   int frame_delay();
   int comp_com();
-  int set_gain(float gain);
-  int set_mgain(float *mgain);
-  int set_cmat(float *cmat);
-  int set_imat(float *imat);
-  int set_delay(float delay);
-  int init_modalOpti(int nmodes, int nrec, float *M2V, float gmin, float gmax,
-                     int ngain, float Fs);
-  int loadOpenLoopSlp(float *ol_slopes);
+  int set_mgain(Tcomp *mgain);
+  int set_cmat(Tcomp *cmat);
+  int set_imat(Tcomp *imat);
+  int init_modalOpti(int nmodes, int nrec, Tcomp *M2V, Tcomp gmin, Tcomp gmax,
+                     int ngain, Tcomp Fs);
+  int loadOpenLoopSlp(Tcomp *ol_slopes);
   int modalControlOptimization();
   int compute_Hcor();
 };

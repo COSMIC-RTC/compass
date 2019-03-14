@@ -17,6 +17,10 @@ if (DEFINED ENV{BRAHMA_ROOT})
                 src/target_brahma.cpp)
 endif()
 
+if (DEFINED ENV{OCTOPUS_ROOT})
+    SET(OCTOPUS_CPP src/rtc_cacao.cpp)
+endif()
+
 add_library(sutraWrap MODULE
                     src/telescope.cpp
                     src/tscreen.cpp
@@ -46,11 +50,14 @@ add_library(sutraWrap MODULE
                     src/groot.cpp
                     src/sutraWrap.cpp
                     ${BRAHMA_CPP}
+                    ${OCTOPUS_CPP}
                     )
 #link_directories($ENV{COMPASS_ROOT}/libsutra)
 
-target_compile_features(sutraWrap PUBLIC cxx_std_14)
-target_link_libraries(sutraWrap PRIVATE wyrm sutra)
-
+target_link_libraries(sutraWrap PRIVATE wyrm carma sutra)
 set_target_properties(sutraWrap PROPERTIES PREFIX "${PYTHON_MODULE_PREFIX}"
                                       SUFFIX "${PYTHON_MODULE_EXTENSION}")
+
+install(TARGETS sutraWrap EXPORT SutraWrapConfig
+    ARCHIVE  DESTINATION python
+    LIBRARY  DESTINATION python)

@@ -9,11 +9,12 @@ sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(
     carma_obj<cuFloatComplex> *d_camplifoc,
     carma_obj<cuFloatComplex> *d_fttotim, long nxsub, long nvalid, long npupils,
     long npix, long nphase, long nrebin, long nfft, long ntot, long npup,
-    float pdiam, float nphotons, float nphot4imat, int lgs, bool roket,
-    int device)
+    float pdiam, float nphotons, float nphot4imat, int lgs, bool fakecam,
+    int maxFluxPerPix, int maxPixValue, bool roket, int device)
     : sutra_wfs(context, d_tel, d_camplipup, d_camplifoc, d_fttotim, "pyrhr",
                 nxsub, nvalid, npix, nphase, nrebin, nfft, ntot, npup, pdiam,
-                nphotons, nphot4imat, lgs, false, roket, device) {
+                nphotons, nphot4imat, lgs, fakecam, maxFluxPerPix, maxPixValue,
+                false, roket, device) {
   context->set_activeDevice(device, 1);
   long dims_data1[2];
   dims_data1[0] = 1;
@@ -45,6 +46,13 @@ sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(
   dims_data2[2] = nfft / nrebin;
 
   this->d_binimg = new carma_obj<float>(context, dims_data2);
+  if (this->fakecam) {
+    this->d_camimg = new carma_obj<uint16_t>(current_context, dims_data2);
+    this->d_dark = new carma_obj<float>(current_context, dims_data2);
+    this->d_dark->reset();
+    this->d_flat = new carma_obj<float>(current_context, dims_data2);
+    this->d_flat->memSet(1);
+  }
 
   dims_data1[1] = 1;
   this->d_psum = new carma_obj<float>(context, dims_data1);
@@ -81,12 +89,12 @@ sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(
     carma_obj<cuFloatComplex> *d_camplifoc,
     carma_obj<cuFloatComplex> *d_fttotim, long nxsub, long nvalid, long npupils,
     long npix, long nphase, long nrebin, long nfft, long ntot, long npup,
-    float pdiam, float nphotons, float nphot4imat, int lgs, bool roket,
-    int nbdevices, int *devices)
+    float pdiam, float nphotons, float nphot4imat, int lgs, bool fakecam,
+    int maxFluxPerPix, int maxPixValue, bool roket, int nbdevices, int *devices)
     : sutra_wfs_pyr_pyrhr(context, d_tel, d_camplipup, d_camplifoc, d_fttotim,
                           nxsub, nvalid, npupils, npix, nphase, nrebin, nfft,
-                          ntot, npup, pdiam, nphotons, nphot4imat, lgs, roket,
-                          devices[0]) {
+                          ntot, npup, pdiam, nphotons, nphot4imat, lgs, fakecam,
+                          maxFluxPerPix, maxPixValue, roket, devices[0]) {
   long dims_data2[3];
   dims_data2[0] = 2;
 
@@ -533,6 +541,12 @@ int sutra_wfs_pyr_pyrhr::comp_image(bool noise) {
     result = comp_generic();
     this->noise = tmp;
   }
+  if (this->fakecam)
+    result *= digitalize(this->d_camimg->getData(), this->d_binimg->getData(),
+                         this->d_dark->getData(), this->d_flat->getData(),
+                         this->maxFluxPerPix, this->maxPixValue,
+                         this->d_binimg->getNbElem(),
+                         this->current_context->get_device(this->device));
   // result *= this->fill_binimage();
   return result;
 }

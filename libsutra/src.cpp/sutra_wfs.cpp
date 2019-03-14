@@ -6,8 +6,9 @@ sutra_wfs::sutra_wfs(carma_context *context, sutra_telescope *d_tel,
                      carma_obj<cuFloatComplex> *d_fttotim, string type,
                      long nxsub, long nvalid, long npix, long nphase,
                      long nrebin, long nfft, long ntot, long npup, float pdiam,
-                     float nphotons, float nphot4imat, int lgs,
-                     bool is_low_order, bool roket, int device)
+                     float nphotons, float nphot4imat, int lgs, bool fakecam,
+                     int maxFluxPerPix, int maxPixValue, bool is_low_order,
+                     bool roket, int device)
     : device(device),
       type(type),
       nxsub(nxsub),
@@ -25,9 +26,15 @@ sutra_wfs::sutra_wfs(carma_context *context, sutra_telescope *d_tel,
       nphot4imat(nphot4imat),
       noise(0),
       lgs(lgs),
+      fakecam(fakecam),
+      maxFluxPerPix(maxFluxPerPix),
+      maxPixValue(maxPixValue),
       is_low_order(is_low_order),
       kernconv(false),
       roket(roket),
+      d_dark(nullptr),
+      d_flat(nullptr),
+      d_camimg(nullptr),
       campli_plan(nullptr),
       fttotim_plan(nullptr),
       d_ftkernel(nullptr),
@@ -217,5 +224,63 @@ int sutra_wfs::set_binimg(float *binimg, int nElem) {
     this->d_binimg->host2device(binimg);
   } else
     DEBUG_TRACE("Wrong dimension of binimg");
+  return EXIT_SUCCESS;
+}
+
+int sutra_wfs::set_dark(float *dark, int nElem) {
+  current_context->set_activeDevice(device, 1);
+
+  if (this->d_dark == nullptr) {
+    std::cout << "WFS d_dark array has not been initialized yet" << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  if (nElem == this->d_dark->getNbElem()) {
+    this->d_dark->host2device(dark);
+  } else
+    DEBUG_TRACE("Wrong dimension of dark");
+  return EXIT_SUCCESS;
+}
+
+int sutra_wfs::set_flat(float *flat, int nElem) {
+  current_context->set_activeDevice(device, 1);
+
+  if (this->d_flat == nullptr) {
+    std::cout << "WFS d_flat array has not been initialized yet" << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  if (nElem == this->d_flat->getNbElem()) {
+    this->d_flat->host2device(flat);
+  } else
+    DEBUG_TRACE("Wrong dimension of flat");
+  return EXIT_SUCCESS;
+}
+
+int sutra_wfs::set_fakecam(bool fakecam) {
+  current_context->set_activeDevice(device, 1);
+
+  this->fakecam = fakecam;
+  if (this->d_camimg == nullptr) {
+    this->d_camimg =
+        new carma_obj<uint16_t>(current_context, this->d_binimg->getDims());
+    this->d_dark =
+        new carma_obj<float>(current_context, this->d_binimg->getDims());
+    this->d_dark->reset();
+    this->d_flat =
+        new carma_obj<float>(current_context, this->d_binimg->getDims());
+    this->d_flat->memSet(1);
+  }
+
+  return EXIT_SUCCESS;
+}
+
+int sutra_wfs::set_maxFluxPerPix(int maxFluxPerPix) {
+  this->maxFluxPerPix = maxFluxPerPix;
+  return EXIT_SUCCESS;
+}
+
+int sutra_wfs::set_maxPixValue(int maxPixValue) {
+  this->maxPixValue = maxPixValue;
   return EXIT_SUCCESS;
 }

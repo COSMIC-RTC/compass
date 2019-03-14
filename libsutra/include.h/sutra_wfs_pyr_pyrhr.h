@@ -30,7 +30,8 @@ class sutra_wfs_pyr_pyrhr : public sutra_wfs {
                       carma_obj<cuFloatComplex> *d_fttotim, long nxsub,
                       long nvalid, long npupils, long npix, long nphase,
                       long nrebin, long nfft, long ntot, long npup, float pdiam,
-                      float nphotons, float nphot4imat, int lgs, bool roket,
+                      float nphotons, float nphot4imat, int lgs, bool fakecam,
+                      int maxFluxPerPix, int maxPixValue, bool roket,
                       int device);
   sutra_wfs_pyr_pyrhr(carma_context *context, sutra_telescope *d_tel,
                       carma_obj<cuFloatComplex> *d_camplipup,
@@ -38,7 +39,8 @@ class sutra_wfs_pyr_pyrhr : public sutra_wfs {
                       carma_obj<cuFloatComplex> *d_fttotim, long nxsub,
                       long nvalid, long npupils, long npix, long nphase,
                       long nrebin, long nfft, long ntot, long npup, float pdiam,
-                      float nphotons, float nphot4imat, int lgs, bool roket,
+                      float nphotons, float nphot4imat, int lgs, bool fakecam,
+                      int maxFluxPerPix, int maxPixValue, bool roket,
                       int nbdevices, int *devices);
   ~sutra_wfs_pyr_pyrhr();
 

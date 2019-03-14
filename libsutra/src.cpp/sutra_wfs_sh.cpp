@@ -10,10 +10,12 @@ sutra_wfs_sh::sutra_wfs_sh(carma_context *context, sutra_telescope *d_tel,
                            long nvalid, long npix, long nphase, long nrebin,
                            long nfft, long ntot, long npup, float pdiam,
                            float nphotons, float nphot4imat, int lgs,
+                           bool fakecam, int maxFluxPerPix, int maxPixValue,
                            bool is_low_order, bool roket, int device)
     : sutra_wfs(context, d_tel, d_camplipup, d_camplifoc, d_fttotim, "sh",
                 nxsub, nvalid, npix, nphase, nrebin, nfft, ntot, npup, pdiam,
-                nphotons, nphot4imat, lgs, is_low_order, roket, device),
+                nphotons, nphot4imat, lgs, fakecam, maxFluxPerPix, maxPixValue,
+                is_low_order, roket, device),
       d_binmap(nullptr),
       d_validpuppixx(nullptr),
       d_validpuppixy(nullptr) {}
@@ -66,6 +68,13 @@ int sutra_wfs_sh::allocate_buffers(
     if (this->roket) {
       this->d_binimg_notnoisy =
           new carma_obj<float>(current_context, dims_data2);
+    }
+    if (this->fakecam) {
+      this->d_camimg = new carma_obj<uint16_t>(current_context, dims_data2);
+      this->d_dark = new carma_obj<float>(current_context, dims_data2);
+      this->d_dark->reset();
+      this->d_flat = new carma_obj<float>(current_context, dims_data2);
+      this->d_flat->memSet(1);
     }
     // using 1 stream for telemetry
     this->image_telemetry =
@@ -559,6 +568,12 @@ int sutra_wfs_sh::comp_image(bool noise) {
     this->noise = tmp;
   }
   result *= this->fill_binimage();
+  if (this->fakecam)
+    result *= digitalize(this->d_camimg->getData(), this->d_binimg->getData(),
+                         this->d_dark->getData(), this->d_flat->getData(),
+                         this->maxFluxPerPix, this->maxPixValue,
+                         this->d_binimg->getNbElem(),
+                         this->current_context->get_device(this->device));
 
   return result;
 }

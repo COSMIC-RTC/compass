@@ -5,7 +5,8 @@ sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel,
                              long *nvalid, long *npupils, long *npix,
                              long *nphase, long *nrebin, long *nfft, long *ntot,
                              long *npup, float *pdiam, float *nphot,
-                             float *nphot4imat, int *lgs, int device,
+                             float *nphot4imat, int *lgs, bool *fakecam,
+                             int *maxFluxPerPix, int *maxPixValue, int device,
                              bool roket)
     : device(device),
       current_context(context),
@@ -76,8 +77,8 @@ sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel,
       wfs = new sutra_wfs_sh(
           context, d_tel, this->d_camplipup, this->d_camplifoc, this->d_fttotim,
           nxsub[i], nvalid[i], npix[i], nphase[i], nrebin[i], nfft[i], ntot[i],
-          npup[i], pdiam[i], nphot[i], nphot4imat[i], lgs[i], is_low_order,
-          roket, device);
+          npup[i], pdiam[i], nphot[i], nphot4imat[i], lgs[i], fakecam[i],
+          maxFluxPerPix[i], maxPixValue[i], is_low_order, roket, device);
     }
     if (type[i].compare("pyrhr") == 0) {
       const int ngpu = context->get_ndevice();
@@ -87,7 +88,8 @@ sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel,
             context, d_tel, this->d_camplipup, this->d_camplifoc,
             this->d_fttotim, nxsub[i], nvalid[i], npupils[i], npix[i],
             nphase[i], nrebin[i], nfft[i], ntot[i], npup[i], pdiam[i], nphot[i],
-            nphot4imat[i], lgs[i], roket, device);
+            nphot4imat[i], lgs[i], fakecam[i], maxFluxPerPix[i], maxPixValue[i],
+            roket, device);
       } else {
         int devices[ngpu];
         for (int i = 0; i < ngpu; i++) {
@@ -97,7 +99,8 @@ sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel,
             context, d_tel, this->d_camplipup, this->d_camplifoc,
             this->d_fttotim, nxsub[i], nvalid[i], npupils[i], npix[i],
             nphase[i], nrebin[i], nfft[i], ntot[i], npup[i], pdiam[i], nphot[i],
-            nphot4imat[i], lgs[i], roket, ngpu, devices);
+            nphot4imat[i], lgs[i], fakecam[i], maxFluxPerPix[i], maxPixValue[i],
+            roket, ngpu, devices);
       }
     }
 

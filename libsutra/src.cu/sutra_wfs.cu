@@ -2066,6 +2066,39 @@ void pyr_fact(float *d_data, float fact1, float *fact2, int n, int nim,
   carmaCheckMsg("pyrfact_kernel<<<>>> execution failed\n");
 }
 
+template <class T>
+__global__ void digitalize_krnl(T *camimg, float *binimg, float *dark,
+                                float *flat, int maxFluxPerPix, int maxPixValue,
+                                int N) {
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  float tmp;
+  while (tid < N) {
+    tmp = (binimg[tid] * flat[tid] + dark[tid]) / (float)maxFluxPerPix;
+    tmp = (tmp < 1) ? tmp : 1.f;
+    camimg[tid] = (T)(tmp * maxPixValue);
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+template <class T>
+int digitalize(T *camimg, float *binimg, float *dark, float *flat,
+               int maxFluxPerPix, int maxPixValue, int N,
+               carma_device *device) {
+  int nBlocks, nThreads;
+
+  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
+  dim3 grid(nBlocks), threads(nThreads);
+  digitalize_krnl<<<grid, threads>>>(camimg, binimg, dark, flat, maxFluxPerPix,
+                                     maxPixValue, N);
+
+  carmaCheckMsg("digitalize_krnl<<<>>> execution failed\n");
+
+  return EXIT_SUCCESS;
+}
+
+template int digitalize<uint16_t>(uint16_t *camimg, float *binimg, float *dark,
+                                  float *flat, int maxFluxPerPix,
+                                  int maxPixValue, int N, carma_device *device);
 /*
    __global__ void fillcamplipup_krnl(cuFloatComplex *amplipup, float
    *phase,float *offset, float *mask, int *indx, int Nfft, int Npup, int npup,

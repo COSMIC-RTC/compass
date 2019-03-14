@@ -13,15 +13,15 @@ build_job:
     SHESHA_ROOT: $COMPASS_ROOT/shesha
     CUDA_SM: ALL
   script:
-    - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/python:$PYTHONPATH
-    - mkdir -p python
-    - easy_install -d python .
+    - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
+    - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
+    - ./compile.sh
   when: manual
   only:
     - develop
   artifacts:
     paths:
-      - python/
+      - local/
     expire_in: 1 week
 
 master_build:
@@ -40,8 +40,8 @@ test_job:
   dependencies:
     - build_job
   script:
-    - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/python:$PYTHONPATH
-    - export LD_LIBRARY_PATH=$COMPASS_ROOT/python/compass_sim-4.0.0-py3.7-linux-x86_64.egg:$LD_LIBRARY_PATH
+    - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
+    - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
     - cd shesha && python shesha/scripts/closed_loop.py data/par/par4bench/scao_sh_16x16_8pix.py
     - cd shesha/tests && . checkCompass.sh
   when: manual

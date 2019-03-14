@@ -70,6 +70,23 @@ class CanapassSupervisor(CompassSupervisor):
         |_|  |_|_____| |_| |_| |_|\___/|____/|____/
     """
 
+    def setDmCommand(self, numdm, volts):
+        """
+        Allows to by-pass the RTC for sending a command to the
+        specified DM <numdm>.
+        This command comes in addition to the RTC computation.
+        It allows a direct access the DM without using the RTC.
+
+        <numdm> : number of the DM
+        <volts> : voltage vector to be applied on the DM.
+        """
+        ntotDm = len(self._sim.config.p_dms)
+        if(numdm<ntotDm):
+            self._sim.dms.d_dms[numdm].set_com(volts)
+        else:
+            print("ERROR !!!!\nRequested DM (", numdm, ") conflicts with number of available DMs (", ntotDm, ").")
+
+
     def getConfig(self, path=None):
         ''' Returns the configuration in use, in a supervisor specific format '''
         if path:
@@ -483,16 +500,17 @@ class CanapassSupervisor(CompassSupervisor):
         else:
             KLMax = KL2V.shape[1]
         vold = self.getCom(0)
-        self.openLoop(rst=False)  # This is to avoid delay during slopes measurement
+        self.openLoop(rst=False)
         for kl in trange(KLMax, desc="Modal IM"):
             # v = ampliVec[kl] * KL2V[:, kl:kl + 1].T.copy()
             v = ampliVec[kl] * KL2V[:, kl]
             if ((pushPull is True) or
                 (withTurbu is True)):  # with turbulence/aberrations => push/pull
-                self.setCommand(
-                        0, vold + v)  # Adding Perturbation voltage on current iteration
+                self.setPerturbationVoltage(
+                        0, "imatModal",
+                        vold + v)  # Adding Perturbation voltage on current iteration
                 devpos = self.applyVoltGetSlopes(turbu=withTurbu, noise=noise)
-                self.setCommand(0, vold - v)
+                self.setPerturbationVoltage(0, "imatModal", vold - v)
                 devmin = self.applyVoltGetSlopes(turbu=withTurbu, noise=noise)
                 iMatKL[:, kl] = (devpos - devmin) / (2. * ampliVec[kl])
                 #imat[:-2, :] /= pushDMMic
@@ -500,9 +518,9 @@ class CanapassSupervisor(CompassSupervisor):
                 #imat[-2:, :] /= pushTTArcsec
             else:  # No turbulence => push only
                 self.openLoop()  # openLoop
-                self.setCommand(0, v)
+                self.setPerturbationVoltage(0, "imatModal", v)
                 iMatKL[:, kl] = self.applyVoltGetSlopes(noise=noise) / ampliVec[kl]
-        self.setCommand(0, vold)
+        self.removePerturbationVoltage(0, "imatModal")
         if ((pushPull is True) or (withTurbu is True)):
             self.closeLoop()  # We are supposed to be in close loop now
         return iMatKL
@@ -530,7 +548,7 @@ class CanapassSupervisor(CompassSupervisor):
         return iMatPhase
 
     def applyVoltGetSlopes(self, noise=False, turbu=False, reset=1):
-        self._sim.rtc.apply_control(0, self._sim.dms)
+        self._sim.rtc.apply_control(0)
         for w in range(len(self._sim.wfs.d_wfs)):
 
             if (turbu):
@@ -680,6 +698,7 @@ class CanapassSupervisor(CompassSupervisor):
 
         listDmsType = []
         NactuX = []
+        Nactu = []
         unitPerVolt = []
         push4imat = []
         coupling = []
@@ -689,16 +708,22 @@ class CanapassSupervisor(CompassSupervisor):
         for j in range(aodict["nbDms"]):
             listDmsType.append(self._sim.config.p_dms[j].type)
             NactuX.append(self._sim.config.p_dms[j].nact)
+            Nactu.append(self._sim.config.p_dms[j]._ntotact)
             unitPerVolt.append(self._sim.config.p_dms[j].unitpervolt)
             push4imat.append(self._sim.config.p_dms[j].push4imat)
             coupling.append(self._sim.config.p_dms[j].coupling)
             tmp = []
             if (self._sim.config.p_dms[j].type != 'tt'):
-                tmpdata = np.zeros((2, len(self._sim.config.p_dm0._i1)))
-                tmpdata[0, :] = self._sim.config.p_dm0._j1
-                tmpdata[1, :] = self._sim.config.p_dm0._i1
-                new_hdudmsl.append(pfits.ImageHDU(tmpdata))  # Valid subap array
-                new_hdudmsl[j].header["DATATYPE"] = "valid_dm%d" % j
+                tmpdata = np.zeros((4, len(self._sim.config.p_dms[j]._i1)))
+                tmpdata[0, :] = self._sim.config.p_dms[j]._j1
+                tmpdata[1, :] = self._sim.config.p_dms[j]._i1
+                tmpdata[2, :] = self._sim.config.p_dms[j]._xpos
+                tmpdata[3, :] = self._sim.config.p_dms[j]._ypos
+            else:
+                tmpdata = np.zeros((4,2))
+
+            new_hdudmsl.append(pfits.ImageHDU(tmpdata))  # Valid subap array
+            new_hdudmsl[j].header["DATATYPE"] = "valid_dm%d" % j
             #for k in range(aodict["nbWfs"]):
             #    tmp.append(self._sim.computeDMrange(j, k))
 
@@ -710,6 +735,8 @@ class CanapassSupervisor(CompassSupervisor):
         aodict.update({"listDMS_unitPerVolt": unitPerVolt})
         aodict.update({"listDMS_Nxactu": NactuX})
         aodict.update({"listDMS_Nyactu": NactuX})
+        aodict.update({"listDMS_Nactu": Nactu})
+
         aodict.update({"listDMS_type": listDmsType})
         aodict.update({"listDMS_coupling": coupling})
 
@@ -754,10 +781,39 @@ class CanapassSupervisor(CompassSupervisor):
     # def setNoise(self, noise, numwfs=0):
     #     CompassSupervisor.setNoise(self, noise, numwfs)
 
+    def setGain(self, gain) -> None:
+        '''
+        Set the scalar gain of feedback controller loop
+        '''
+        print("canapass")
+        if type(gain) in [int, float]:
+            self._sim.rtc.d_control[0].set_gain(gain)
+        else:
+            raise ValueError(
+                    "ERROR CANNOT set array gain in canapass (generic + integrator law")
+
     def getTargetPhase(self, tarnum):
         pup = self.getSpupil()
         ph = self.getTarPhase(tarnum) * pup
         return ph
+
+    def getInfluFunction(self, ndm):
+        """
+        returns the influence function cube for the given dm
+
+        """
+        return self._sim.config.p_dms[ndm]._influ
+
+    def getInfluFunctionIpupilCoords(self, ndm):
+        """
+        returns the lower left coordinates of the influ function support in the ipupil coord system
+
+        """
+        i1 = self._sim.config.p_dm0._i1  # i1 is in the dmshape support coords
+        j1 = self._sim.config.p_dm0._j1  # j1 is in the dmshape support coords
+        ii1 = i1 + self._sim.config.p_dm0._n1  # in  ipupil coords
+        jj1 = j1 + self._sim.config.p_dm0._n1  # in  ipupil coords
+        return ii1, jj1
 
     #def getVolts(self):
     #    return self._sim.rtc.get_voltage(0)

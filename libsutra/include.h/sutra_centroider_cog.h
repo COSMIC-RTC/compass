@@ -3,8 +3,8 @@
 
 #include <sutra_centroider.h>
 
-class sutra_centroider_cog : public sutra_centroider {
- public:
+template <class Tin, class T>
+class sutra_centroider_cog : public sutra_centroider<Tin, T> {
  public:
   sutra_centroider_cog(carma_context *context, sutra_wfs *wfs, long nvalid,
                        float offset, float scale, int device);
@@ -13,19 +13,21 @@ class sutra_centroider_cog : public sutra_centroider {
 
   string get_type();
 
-  int get_cog(float *cube, float *intensities, float *centroids, int nvalid,
+  int get_cog(float *cube, float *intensities, T *centroids, int nvalid,
               int npix, int ntot);
-  int get_cog(float *intensities, float *slopes, bool noise);
+  int get_cog(float *intensities, T *slopes, bool noise);
   int get_cog();
 };
 
 template <class T>
-void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
-                   T *d_odata, T *ref, int *validx, int *validy, T *intensities,
-                   T scale, T offset, carma_device *device);
+void get_centroids(int size, int threads, int blocks, int n, float *d_idata,
+                   T *d_odata, T *ref, int *validx, int *validy,
+                   float *intensities, float scale, float offset,
+                   carma_device *device);
 
 template <class T>
 void get_centroids_async(int threads, int blocks, int n, carma_streams *streams,
-                         T *d_idata, T *d_odata, T *alpha, T scale, T offset);
+                         T *d_idata, T *d_odata, T *alpha, float scale,
+                         float offset);
 
 #endif  // _SUTRA_CENTROIDER_COG_H_

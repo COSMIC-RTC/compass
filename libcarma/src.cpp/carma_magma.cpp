@@ -2,6 +2,18 @@
 #include <carma_obj.h>
 #include <carma_sparse_obj.h>
 
+#include <type_list.hpp>
+
+#ifdef CAN_DO_HALF
+using TypeListObj = GenericTypeList<uint16_t, int, unsigned int, float, double,
+                                    half, cuFloatComplex,
+                                    cuDoubleComplex>;  // , tuple_t<float>>;
+#else
+using TypeListObj =
+    GenericTypeList<uint16_t, int, unsigned int, float, double, cuFloatComplex,
+                    cuDoubleComplex>;  // , tuple_t<float>>;
+#endif
+
 #define MAGMA_TRACE(fmt, args...) \
   fprintf(stderr, "%s:%d Warning: " fmt, __FILE__, __LINE__, ##args)
 
@@ -446,6 +458,12 @@ int carma_spmv_gen(Fn spmv, T alpha, varM dA, carma_obj<T> *dx, T beta,
  */
 int magma_disabled() { TEST_USE_MAGMA(return EXIT_SUCCESS); }
 
+template <class T>
+int carma_syevd(char jobz, long N, T *mat, T *eigenvals) {
+  DEBUG_TRACE("Not implemented for this data type");
+  return EXIT_FAILURE;
+}
+
 template <>
 int carma_syevd<float>(char jobz, long N, float *mat, float *eigenvals) {
   TEST_USE_MAGMA(return carma_syevd_gen(magma_ssyevd_gpu, magma_vec_const(jobz),
@@ -458,27 +476,15 @@ int carma_syevd<double>(char jobz, long N, double *mat, double *eigenvals) {
                                         N, N, mat, eigenvals));
 }
 
-template <>
-int carma_syevd<int>(char jobz, long N, int *mat, int *eigenvals) {
+template <class T>
+int carma_syevd(char jobz, carma_obj<T> *mat, carma_host_obj<T> *eigenvals) {
   DEBUG_TRACE("Not implemented for this data type");
+  return EXIT_FAILURE;
 }
 
 template <>
-int carma_syevd<cuFloatComplex>(char jobz, long N, cuFloatComplex *mat,
-                                cuFloatComplex *eigenvals) {
-  DEBUG_TRACE("Not implemented for this data type");
-}
-
-#ifdef CAN_DO_HALF
-template <>
-int carma_syevd<half>(char jobz, long N, half *mat, half *eigenvals) {
-  DEBUG_TRACE("Not implemented for this data type");
-}
-#endif
-
-template <>
-int carma_syevd<float, 1>(char jobz, caObjS *mat,
-                          carma_host_obj<float> *eigenvals) {
+int carma_syevd<float>(char jobz, caObjS *mat,
+                       carma_host_obj<float> *eigenvals) {
   long N = mat->getDims(1);
 
   if (N != mat->getDims(2)) {
@@ -492,8 +498,8 @@ int carma_syevd<float, 1>(char jobz, caObjS *mat,
 }
 
 template <>
-int carma_syevd<double, 1>(char jobz, caObjD *mat,
-                           carma_host_obj<double> *eigenvals) {
+int carma_syevd<double>(char jobz, caObjD *mat,
+                        carma_host_obj<double> *eigenvals) {
   long N = mat->getDims(1);
 
   if (N != mat->getDims(2)) {
@@ -529,6 +535,12 @@ int carma_syevd<double, 1>(char jobz, caObjD *mat,
  }
  */
 
+template <class T>
+int carma_syevd_m(long ngpu, char jobz, long N, T *mat, T *eigenvals) {
+  DEBUG_TRACE("Not implemented for this data type");
+  return EXIT_FAILURE;
+}
+
 template <>
 int carma_syevd_m<float>(long ngpu, char jobz, long N, float *mat,
                          float *eigenvals) {
@@ -543,6 +555,13 @@ int carma_syevd_m<double>(long ngpu, char jobz, long N, double *mat,
   TEST_USE_MAGMA(
       magma_int_t N_ = N; return carma_syevd_m_gen(
           magma_dsyevd_m, ngpu, magma_vec_const(jobz), N_, mat, eigenvals));
+}
+
+template <class T>
+int carma_syevd_m(long ngpu, char jobz, long N, carma_host_obj<T> *mat,
+                  carma_host_obj<T> *eigenvals) {
+  DEBUG_TRACE("Not implemented for this data type");
+  return EXIT_FAILURE;
 }
 
 template <>
@@ -573,6 +592,13 @@ int carma_syevd_m<double>(long ngpu, char jobz, carma_host_obj<double> *mat,
   TEST_USE_MAGMA(return carma_syevd_m_gen(
       magma_dsyevd_m, magma_int_t(ngpu), magma_vec_const(jobz), N,
       mat->getData(), eigenvals->getData()));
+}
+
+template <class T>
+int carma_syevd_m(long ngpu, char jobz, carma_host_obj<T> *mat,
+                  carma_host_obj<T> *eigenvals, carma_host_obj<T> *U) {
+  DEBUG_TRACE("Not implemented for this data type");
+  return EXIT_FAILURE;
 }
 
 template <>
@@ -613,66 +639,13 @@ int carma_syevd_m<double>(long ngpu, char jobz, carma_host_obj<double> *mat,
                                U->getData(), eigenvals->getData()));
 }
 
-template <>
-int carma_svd<int>(caObjI *imat, caObjI *eigenvals, caObjI *mod2act,
-                   caObjI *mes2mod) {
-  // TODO: carma_svd
-  MAGMA_TRACE("carma_svd not implemented on device object! \n");
+template <class T>
+int carma_svd_cpu(carma_host_obj<T> *mat, carma_host_obj<T> *eigenvals,
+                  carma_host_obj<T> *mod2act, carma_host_obj<T> *mes2mod) {
+  DEBUG_TRACE("Not implemented for this data type");
   return EXIT_FAILURE;
-
-  // return carma_gesvd<float>(mat, eigenvals, U, magma_sgesvd);
 }
 
-template <>
-int carma_svd<float>(caObjS *imat, caObjS *eigenvals, caObjS *mod2act,
-                     caObjS *mes2mod) {
-  // TODO: carma_svd
-  MAGMA_TRACE("carma_svd not implemented on device object! \n");
-  return EXIT_FAILURE;
-
-  // return carma_gesvd<float>(mat, eigenvals, U, magma_sgesvd);
-}
-
-template <>
-int carma_svd<double>(caObjD *imat, caObjD *eigenvals, caObjD *mod2act,
-                      caObjD *mes2mod) {
-  // TODO: carma_svd
-  MAGMA_TRACE("carma_svd not implemented on device object! \n");
-  return EXIT_FAILURE;
-
-  // return carma_gesvd<double>(mat, eigenvals, U, magma_dgesvd);
-}
-
-template <>
-int carma_svd<cuFloatComplex>(caObjC *imat, caObjC *eigenvals, caObjC *mod2act,
-                              caObjC *mes2mod) {
-  // TODO: carma_svd
-  MAGMA_TRACE("carma_svd not implemented on device object! \n");
-  return EXIT_FAILURE;
-
-  // return carma_gesvd<double>(mat, eigenvals, U, magma_dgesvd);
-}
-
-template <>
-int carma_svd<cuDoubleComplex>(caObjZ *imat, caObjZ *eigenvals, caObjZ *mod2act,
-                               caObjZ *mes2mod) {
-  // TODO: carma_svd
-  MAGMA_TRACE("carma_svd not implemented on device object! \n");
-  return EXIT_FAILURE;
-
-  // return carma_gesvd<double>(mat, eigenvals, U, magma_dgesvd);
-}
-#ifdef CAN_DO_HALF
-template <>
-int carma_svd<half>(caObjH *imat, caObjH *eigenvals, caObjH *mod2act,
-                    caObjH *mes2mod) {
-  // TODO: carma_svd
-  MAGMA_TRACE("carma_svd not implemented on device object! \n");
-  return EXIT_FAILURE;
-
-  // return carma_gesvd<float>(mat, eigenvals, U, magma_sgesvd);
-}
-#endif
 template <>
 int carma_svd_cpu<float>(carma_host_obj<float> *mat,
                          carma_host_obj<float> *eigenvals,
@@ -691,25 +664,9 @@ int carma_svd_cpu<double>(carma_host_obj<double> *mat,
                                                   mod2act, mes2mod));
 }
 
-template <>
-int carma_potri<int>(carma_obj<int> *d_iA) {
-  MAGMA_TRACE("carma_potri : not implemented for int* \n");
-
-  return EXIT_FAILURE;
-}
-#ifdef CAN_DO_HALF
-template <>
-int carma_potri<half>(carma_obj<half> *d_iA) {
-  MAGMA_TRACE("carma_potri : not implemented for half* \n");
-
-  return EXIT_FAILURE;
-}
-#endif
-
-template <>
-int carma_potri<cuFloatComplex>(carma_obj<cuFloatComplex> *d_iA) {
-  MAGMA_TRACE("carma_potri : not implemented for cuFloatComplex \n");
-
+template <class T>
+int carma_potri(carma_obj<T> *d_iA) {
+  DEBUG_TRACE("Not implemented for this data type");
   return EXIT_FAILURE;
 }
 
@@ -741,6 +698,12 @@ int carma_potri<double>(carma_obj<double> *d_iA) {
   TEST_USE_MAGMA(return carma_potri_gen<double>(
       magma_dpotrf_gpu, magma_dpotri_gpu, N, N, *d_iA,
       d_iA->getContext()->get_device(d_iA->getDevice())));
+}
+
+template <class T>
+int carma_potri_m(long num_gpus, carma_host_obj<T> *h_A, carma_obj<T> *d_iA) {
+  DEBUG_TRACE("Not implemented for this data type");
+  return EXIT_FAILURE;
 }
 
 template <>
@@ -778,32 +741,9 @@ int carma_potri_m<double>(long num_gpus, carma_host_obj<double> *h_A,
       d_iA->getContext()->get_device(d_iA->getDevice())));
 }
 
-template <>
-int carma_getri<int>(carma_obj<int> *d_iA) {
-  std::cerr << "Getri not implemented for int*" << std::endl;
-
-  return EXIT_FAILURE;
-}
-#ifdef CAN_DO_HALF
-template <>
-int carma_getri<half>(carma_obj<half> *d_iA) {
-  std::cerr << "Getri not implemented for half*" << std::endl;
-
-  return EXIT_FAILURE;
-}
-#endif
-
-template <>
-int carma_getri<cuFloatComplex>(carma_obj<cuFloatComplex> *d_iA) {
-  std::cerr << "Getri not implemented for cuFloatComplex*" << std::endl;
-
-  return EXIT_FAILURE;
-}
-
-template <>
-int carma_getri<cuDoubleComplex>(carma_obj<cuDoubleComplex> *d_iA) {
-  std::cerr << "Getri not implemented for cuDoubleComplex*" << std::endl;
-
+template <class T>
+int carma_getri(carma_obj<T> *d_iA) {
+  DEBUG_TRACE("Not implemented for this data type");
   return EXIT_FAILURE;
 }
 
@@ -834,6 +774,12 @@ int carma_getri<double>(carma_obj<double> *d_iA) {
       magma_dgetrf_gpu, magma_dgetri_gpu, magma_get_dgetri_nb, N, *d_iA));
 }
 
+template <class T>
+int carma_potri_cpu(carma_host_obj<T> *h_A) {
+  DEBUG_TRACE("Not implemented for this data type");
+  return EXIT_FAILURE;
+}
+
 template <>
 int carma_potri_cpu<float>(carma_host_obj<float> *h_A) {
   long N = h_A->getDims(1);
@@ -860,6 +806,12 @@ int carma_potri_cpu<double>(carma_host_obj<double> *h_A) {
       lapackf77_dpotrf, lapackf77_dpotri, blasf77_dcopy, N, *h_A));
 }
 
+template <class T>
+int carma_potri_cpu(long N, T *h_A) {
+  DEBUG_TRACE("Not implemented for this data type");
+  return EXIT_FAILURE;
+}
+
 template <>
 int carma_potri_cpu<float>(long N, float *h_A) {
   TEST_USE_MAGMA(return carma_potri_cpu_gen<float>(
@@ -870,6 +822,12 @@ template <>
 int carma_potri_cpu<double>(long N, double *h_A) {
   TEST_USE_MAGMA(return carma_potri_cpu_gen<double>(
       lapackf77_dpotrf, lapackf77_dpotri, blasf77_dcopy, N, h_A));
+}
+
+template <class T>
+int carma_getri_cpu(carma_host_obj<T> *h_A) {
+  DEBUG_TRACE("Not implemented for this data type");
+  return EXIT_FAILURE;
 }
 
 template <>
@@ -899,6 +857,12 @@ int carma_getri_cpu<double>(carma_host_obj<double> *h_A) {
       lapackf77_dgetrf, lapackf77_dgetri, magma_get_sgetri_nb, N, *h_A));
 }
 
+template <class T>
+int carma_getri_cpu(long N, T *h_A) {
+  DEBUG_TRACE("Not implemented for this data type");
+  return EXIT_FAILURE;
+}
+
 template <>
 int carma_getri_cpu<float>(long N, float *h_A) {
   TEST_USE_MAGMA(return carma_getri_cpu_gen<float>(
@@ -909,6 +873,13 @@ template <>
 int carma_getri_cpu<double>(long N, double *h_A) {
   TEST_USE_MAGMA(return carma_getri_cpu_gen<double>(
       lapackf77_dgetrf, lapackf77_dgetri, magma_get_sgetri_nb, N, h_A));
+}
+
+template <class T>
+int carma_syevd_cpu(char jobz, carma_host_obj<T> *h_A,
+                    carma_host_obj<T> *eigenvals) {
+  DEBUG_TRACE("Not implemented for this data type");
+  return EXIT_FAILURE;
 }
 
 template <>
@@ -939,6 +910,12 @@ int carma_syevd_cpu<double>(char jobz, carma_host_obj<double> *h_A,
       lapackf77_dsyevd, magma_vec_const(jobz), N, N, *h_A, *eigenvals));
 }
 
+template <class T>
+int carma_syevd_cpu(char jobz, long N, T *h_A, T *eigenvals) {
+  DEBUG_TRACE("Not implemented for this data type");
+  return EXIT_FAILURE;
+}
+
 template <>
 int carma_syevd_cpu<float>(char jobz, long N, float *h_A, float *eigenvals) {
   TEST_USE_MAGMA(
@@ -951,6 +928,12 @@ int carma_syevd_cpu<double>(char jobz, long N, double *h_A, double *eigenvals) {
   TEST_USE_MAGMA(
       magma_int_t N_ = N; return carma_syevd_cpu_gen<double>(
           lapackf77_dsyevd, magma_vec_const(jobz), N_, N_, h_A, eigenvals));
+}
+
+template <class T>
+int carma_axpy_cpu(long N, T alpha, T *h_X, long incX, T *h_Y, long incY) {
+  DEBUG_TRACE("Not implemented for this data type");
+  return EXIT_FAILURE;
 }
 
 template <>
@@ -970,6 +953,13 @@ int carma_axpy_cpu<double>(long N, double alpha, double *h_X, long incX,
                  blasf77_daxpy(&tmp_N, &alpha, h_X, &tmp_incX, h_Y, &tmp_incY));
 
   return EXIT_SUCCESS;
+}
+
+template <class T>
+int carma_gemm_cpu(char transa, char transb, long m, long n, long k, T alpha,
+                   T *A, long lda, T *B, long ldb, T beta, T *C, long ldc) {
+  DEBUG_TRACE("Not implemented for this data type");
+  return EXIT_FAILURE;
 }
 
 template <>
@@ -996,6 +986,12 @@ int carma_gemm_cpu<double>(char transa, char transb, long m, long n, long k,
   return EXIT_SUCCESS;
 }
 
+template <class T>
+int carma_magma_csr2ell(carma_sparse_obj<T> *dA) {
+  DEBUG_TRACE("Not implemented for this data type");
+  return EXIT_FAILURE;
+}
+
 template <>
 int carma_magma_csr2ell<float>(carma_sparse_obj<float> *dA) {
   TEST_USE_SMAGMA(dA->s_spMat = carma_csr2ell_gen<float, magma_s_sparse_matrix>(
@@ -1014,6 +1010,13 @@ int carma_magma_csr2ell<double>(carma_sparse_obj<double> *dA) {
       return EXIT_SUCCESS;
 
   );
+}
+
+template <class T>
+int carma_magma_spmv(T alpha, carma_sparse_obj<T> *dA, carma_obj<T> *dx, T beta,
+                     carma_obj<T> *dy) {
+  DEBUG_TRACE("Not implemented for this data type");
+  return EXIT_FAILURE;
 }
 
 template <>
@@ -1044,6 +1047,12 @@ int carma_magma_spmv<double>(double alpha, carma_sparse_obj<double> *dA,
                  magma_d_spmv, alpha, dA->d_spMat, dx, beta, dy);
 
   );
+}
+
+template <class T>
+int carma_sparse_magma_free(carma_sparse_obj<T> *dA) {
+  DEBUG_TRACE("Not implemented for this data type");
+  return EXIT_FAILURE;
 }
 
 template <>
@@ -1081,3 +1090,38 @@ int carma_sparse_magma_free<double>(carma_sparse_obj<double> *dA) {
 
   );
 }
+
+struct CarmaMagmaInterfacer {
+  template <typename T_data>
+  static void call() {
+    force_keep((int (*)(char, long, T_data *, T_data *)) & carma_syevd<T_data>);
+    force_keep((int (*)(char, carma_obj<T_data> *, carma_host_obj<T_data> *)) &
+               carma_syevd<T_data>);
+    force_keep((int (*)(long, char, long, T_data *, T_data *)) &
+               carma_syevd_m<T_data>);
+    force_keep((int (*)(long, char, long, carma_host_obj<T_data> *,
+                        carma_host_obj<T_data> *)) &
+               carma_syevd_m<T_data>);
+    force_keep((int (*)(long, char, carma_host_obj<T_data> *,
+                        carma_host_obj<T_data> *, carma_host_obj<T_data> *)) &
+               carma_syevd_m<T_data>);
+    force_keep(&carma_svd_cpu<T_data>);
+    force_keep(&carma_getri<T_data>);
+    force_keep(&carma_potri<T_data>);
+    force_keep(&carma_potri_m<T_data>);
+    force_keep((int (*)(carma_host_obj<T_data> *)) & carma_potri_cpu<T_data>);
+    force_keep((int (*)(long, T_data *)) & carma_potri_cpu<T_data>);
+    force_keep((int (*)(carma_host_obj<T_data> *)) & carma_getri_cpu<T_data>);
+    force_keep((int (*)(long, T_data *)) & carma_getri_cpu<T_data>);
+    force_keep(
+        (int (*)(char, carma_host_obj<T_data> *, carma_host_obj<T_data> *)) &
+        carma_syevd_cpu<T_data>);
+    force_keep((int (*)(char, long, T_data *, T_data *)) &
+               carma_syevd_cpu<T_data>);
+    force_keep(&carma_magma_csr2ell<T_data>);
+    force_keep(&carma_magma_spmv<T_data>);
+    force_keep(&carma_sparse_magma_free<T_data>);
+  }
+};
+
+void declare_carma_magma() { apply<CarmaMagmaInterfacer, TypeListObj>(); }

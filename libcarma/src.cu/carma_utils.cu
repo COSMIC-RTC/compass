@@ -119,3 +119,140 @@ int doubletofloat(double *i_data, float *o_data, int N, carma_device *device) {
 
   return EXIT_SUCCESS;
 }
+
+#ifdef CAN_DO_HALF
+__global__ void float2halfArray_krnl(float *source, half *dest, int N) {
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  while (tid < N) {
+    dest[tid] = __float2half(source[tid]);
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+half *float2halfArray(float *source, int N, carma_device *device) {
+  int nthreads = 0, nblocks = 0;
+  half *dest;
+  carmaSafeCall(cudaMalloc((void **)&(dest), sizeof(half) * N));
+  getNumBlocksAndThreads(device, N, nblocks, nthreads);
+  dim3 grid(nblocks), threads(nthreads);
+  float2halfArray_krnl<<<grid, threads>>>(source, dest, N);
+  carmaCheckMsg("float2halfArray_krnl\n");
+
+  return dest;
+}
+
+__global__ void half2floatArray_krnl(half *source, float *dest, int N) {
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  while (tid < N) {
+    dest[tid] = __half2float(source[tid]);
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+float *half2floatArray(half *source, int N, carma_device *device) {
+  int nthreads = 0, nblocks = 0;
+  float *dest;
+  carmaSafeCall(cudaMalloc((void **)&(dest), sizeof(float) * N));
+  getNumBlocksAndThreads(device, N, nblocks, nthreads);
+  dim3 grid(nblocks), threads(nthreads);
+  half2floatArray_krnl<<<grid, threads>>>(source, dest, N);
+  carmaCheckMsg("half2floatArray_krnl\n");
+
+  return dest;
+}
+
+__global__ void copyFromFloatToHalf_krnl(const float *data, half *dest, int N) {
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  while (tid < N) {
+    dest[tid] = __float2half(data[tid]);
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+int copyFromFloatToHalf(const float *h_data, half *d_dest, int N,
+                        carma_device *device) {
+  int nthreads = 0, nblocks = 0;
+  float *d_data;
+  carmaSafeCall(cudaMalloc((void **)&d_data, sizeof(float) * N));
+  carmaSafeCall(
+      cudaMemcpy(d_data, h_data, sizeof(float) * N, cudaMemcpyHostToDevice));
+
+  getNumBlocksAndThreads(device, N, nblocks, nthreads);
+  dim3 grid(nblocks), threads(nthreads);
+  copyFromFloatToHalf_krnl<<<grid, threads>>>(d_data, d_dest, N);
+  carmaCheckMsg("copyFromFloatToHalf_krnl\n");
+  cudaFree(d_data);
+
+  return EXIT_SUCCESS;
+}
+
+__global__ void copyFromHalfToFloat_krnl(const half *data, float *dest, int N) {
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  while (tid < N) {
+    dest[tid] = __half2float(data[tid]);
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+int copyFromHalfToFloat(const half *d_data, float *h_dest, int N,
+                        carma_device *device) {
+  int nthreads = 0, nblocks = 0;
+  float *d_dest;
+  carmaSafeCall(cudaMalloc((void **)&d_dest, sizeof(float) * N));
+  getNumBlocksAndThreads(device, N, nblocks, nthreads);
+  dim3 grid(nblocks), threads(nthreads);
+  copyFromHalfToFloat_krnl<<<grid, threads>>>(d_data, d_dest, N);
+  carmaCheckMsg("copyFromHalfToFloat_krnl\n");
+  carmaSafeCall(
+      cudaMemcpy(h_dest, d_dest, sizeof(float) * N, cudaMemcpyDeviceToHost));
+
+  cudaFree(d_dest);
+
+  return EXIT_SUCCESS;
+}
+#endif
+
+template <typename T>
+__global__ void fill_array_krnl(T *d_data, T value, int N) {
+  int tid = threadIdx.x + blockDim.x * blockIdx.x;
+  while (tid < N) {
+    d_data[tid] = value;
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+template <typename T_data>
+int fill_array_with_value(T_data *d_data, T_data value, int N,
+                          carma_device *device) {
+  int nthreads = 0, nblocks = 0;
+  getNumBlocksAndThreads(device, N, nblocks, nthreads);
+  dim3 grid(nblocks), threads(nthreads);
+  fill_array_krnl<<<grid, threads>>>(d_data, value, N);
+  carmaCheckMsg("fill_array_with_value\n");
+
+  return EXIT_SUCCESS;
+}
+
+template int fill_array_with_value<float>(float *d_data, float value, int N,
+                                          carma_device *device);
+template int fill_array_with_value<double>(double *d_data, double value, int N,
+                                           carma_device *device);
+template int fill_array_with_value<int>(int *d_data, int value, int N,
+                                        carma_device *device);
+template int fill_array_with_value<unsigned int>(unsigned int *d_data,
+                                                 unsigned int value, int N,
+                                                 carma_device *device);
+template int fill_array_with_value<uint16_t>(uint16_t *d_data, uint16_t value,
+                                             int N, carma_device *device);
+template int fill_array_with_value<cuFloatComplex>(cuFloatComplex *d_data,
+                                                   cuFloatComplex value, int N,
+                                                   carma_device *device);
+template int fill_array_with_value<cuDoubleComplex>(cuDoubleComplex *d_data,
+                                                    cuDoubleComplex value,
+                                                    int N,
+                                                    carma_device *device);
+
+#ifdef CAN_DO_HALF
+template int fill_array_with_value<half>(half *d_data, half value, int N,
+                                         carma_device *device);
+#endif

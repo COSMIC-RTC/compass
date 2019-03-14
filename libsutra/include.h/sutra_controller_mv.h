@@ -9,33 +9,30 @@
 #include <sutra_utils.h>
 #include <sutra_wfs.h>
 
-class sutra_controller_mv : public sutra_controller {
+template <typename Tcomp, typename Tout>
+class sutra_controller_mv : public sutra_controller<Tcomp, Tout> {
  public:
-  float gain;
-
-  carma_obj<float> *d_imat;
-  carma_obj<float> *d_cmat;
-  carma_obj<float> *d_gain;
+  carma_obj<Tcomp> *d_imat;
+  carma_obj<Tcomp> *d_cmat;
+  carma_obj<Tcomp> *d_gain;
 
   // Cphim & Cmm features
-  carma_obj<float> *d_covmat;
-  carma_obj<float> *d_KLbasis;
-  carma_obj<float> *d_noisemat;
-  carma_obj<float> *d_Cmm;
-  carma_obj<float> *d_Cphim;
+  carma_obj<Tcomp> *d_covmat;
+  carma_obj<Tcomp> *d_KLbasis;
+  carma_obj<Tcomp> *d_noisemat;
+  carma_obj<Tcomp> *d_Cmm;
+  carma_obj<Tcomp> *d_Cphim;
   // svd computations
-  carma_host_obj<float> *h_Cmmeigenvals;
-  carma_host_obj<float> *h_eigenvals;
-  // carma_obj<float> *d_U;
+  carma_host_obj<Tcomp> *h_Cmmeigenvals;
+  carma_host_obj<Tcomp> *h_eigenvals;
+  // carma_obj<Tcomp> *d_U;
 
   // loop components
-  carma_obj<float> *d_cenbuff;   // centroids circular buffer
-  carma_obj<float> *d_com1;      // commands k-1 (for POLC)
-  carma_obj<float> *d_com2;      // commands k-2 (for POLC)
-  carma_obj<float> *d_compbuff;  // Buffer for computations
-  carma_obj<float> *d_compbuff2;
-  carma_obj<float> *d_olmeas;  // Open-loop measurements for POLC
-  carma_obj<float> *d_err;     // current error
+  carma_obj<Tcomp> *d_cenbuff;   // centroids circular buffer
+  carma_obj<Tcomp> *d_compbuff;  // Buffer for computations
+  carma_obj<Tcomp> *d_compbuff2;
+  carma_obj<Tcomp> *d_olmeas;  // Open-loop measurements for POLC
+  carma_obj<Tcomp> *d_err;     // current error
 
   cublasHandle_t cublas_handle;
 
@@ -50,35 +47,33 @@ class sutra_controller_mv : public sutra_controller {
 
   int svdec_imat();
   int build_cmat(const char *dmtype, char *method);
-  int build_cmat(float cond);
+  int build_cmat(Tcomp cond);
   int frame_delay();
   int comp_com();
-  int set_gain(float gain);
-  int set_mgain(float *mgain);
-  int set_delay(float delay);
-  int set_cmat(float *cmat);
-  int set_imat(float *imat);
+  int set_mgain(Tcomp *mgain);
+  int set_cmat(Tcomp *cmat);
+  int set_imat(Tcomp *imat);
   // Florian features
-  int load_noisemat(float *noise);
+  int load_noisemat(Tcomp *noise);
   int do_covmat(sutra_dm *ydm, char *method, int *indx_pup, long dim,
-                float *xpos, float *ypos, long Nkl, float norm, float ampli);
-  int do_geomat(carma_obj<float> *d_geocov, carma_obj<float> *d_IF, long n_pts,
-                float ampli);
-  int piston_filt(carma_obj<float> *d_statcov);
-  int piston_filt_cphim(carma_obj<float> *d_cphim, float *F);
-  int filter_cphim(float *F, float *Nact);
-  int filter_cmat(float cond);
-  int invgen(carma_obj<float> *d_mat, float cond, int job);
-  int invgen(carma_obj<float> *d_mat, carma_host_obj<float> *h_eigen,
-             float cond);
-  int invgen_cpu(carma_obj<float> *d_mat, carma_host_obj<float> *h_eigen,
-                 float cond);
+                Tcomp *xpos, Tcomp *ypos, long Nkl, Tcomp norm, Tcomp ampli);
+  int do_geomat(carma_obj<Tcomp> *d_geocov, carma_obj<Tcomp> *d_IF, long n_pts,
+                Tcomp ampli);
+  int piston_filt(carma_obj<Tcomp> *d_statcov);
+  int piston_filt_cphim(carma_obj<Tcomp> *d_cphim, Tcomp *F);
+  int filter_cphim(Tcomp *F, Tcomp *Nact);
+  int filter_cmat(Tcomp cond);
+  int invgen(carma_obj<Tcomp> *d_mat, Tcomp cond, int job);
+  int invgen(carma_obj<Tcomp> *d_mat, carma_host_obj<Tcomp> *h_eigen,
+             Tcomp cond);
+  int invgen_cpu(carma_obj<Tcomp> *d_mat, carma_host_obj<Tcomp> *h_eigen,
+                 Tcomp cond);
   // int
-  // do_statmat(float *statcov,long dim, float *xpos, float *ypos, float norm,
+  // do_statmat(T *statcov,long dim, T *xpos, T *ypos, T norm,
   // carma_device *device);
-  int DDiago(carma_obj<float> *d_statcov, carma_obj<float> *d_geocov);
-  int load_covmat(float *covmat);
-  int load_klbasis(float *klbasis);
+  int DDiago(carma_obj<Tcomp> *d_statcov, carma_obj<Tcomp> *d_geocov);
+  int load_covmat(Tcomp *covmat);
+  int load_klbasis(Tcomp *klbasis);
   int compute_Cmm(sutra_atmos *atmos, sutra_sensors *sensors, double *L0,
                   double *cn2, double *alphaX, double *alphaY, double diamTel,
                   double cobs);

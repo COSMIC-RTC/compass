@@ -1,6 +1,7 @@
 #ifndef _CARMA_UTILS_H_
 #define _CARMA_UTILS_H_
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,10 +15,22 @@
 #include <vector>
 
 #include <cuda.h>
+#include <cuda_fp16.h>
 #include <cuda_runtime_api.h>
 #include <cufft.h>
 
 #define CARMA_PI 3.1415926535897932384626433832
+
+struct doubleint {
+  int start;
+  int nbInflu;
+};
+
+template <class T>
+struct tuple_t {
+  int pos;
+  T data;
+};
 
 namespace carma_utils {
 template <typename T>
@@ -131,6 +144,18 @@ int fill_sparse_vect(T_data *dense_data, int *colind_sorted, T_data *values,
 int floattodouble(float *idata, double *odata, int N, carma_device *device);
 int doubletofloat(double *idata, float *odata, int N, carma_device *device);
 int printMemInfo();
+template <typename T_data>
+int fill_array_with_value(T_data *d_data, T_data value, int N,
+                          carma_device *device);
+
+#ifdef CAN_DO_HALF
+int copyFromFloatToHalf(const float *data, half *dest, int N,
+                        carma_device *device);
+int copyFromHalfToFloat(const half *d_data, float *h_dest, int N,
+                        carma_device *device);
+half *float2halfArray(float *source, int N, carma_device *device);
+float *half2floatArray(half *source, int N, carma_device *device);
+#endif
 
 void carma_start_profile();
 void carma_stop_profile();

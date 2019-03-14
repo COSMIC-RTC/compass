@@ -55,24 +55,30 @@ __global__ void carma_curand_uniform(curandState *s, T *d, int n, float beta) {
 
 template <>
 __global__ void carma_curand_uniform(curandState *s, int *d, int n,
-                                     float beta) CARMA_NYI_DEV
+                                     float beta) CARMA_NYI_DEV;
 
-    template <>
-    __global__ void carma_curand_uniform(curandState *s, unsigned *d, int n,
-                                         float beta) CARMA_NYI_DEV
+template <>
+__global__ void carma_curand_uniform(curandState *s, unsigned *d, int n,
+                                     float beta) CARMA_NYI_DEV;
 
-    template <>
-    __global__ void carma_curand_uniform(curandState *s, cuFloatComplex *d,
-                                         int n, float beta) CARMA_NYI_DEV
+template <>
+__global__ void carma_curand_uniform(curandState *s, cuFloatComplex *d, int n,
+                                     float beta) {
+  carma_curand_uniform_gen(s, curand_uniform, (float *)d, n * 2, beta);
+}
 
-    template <>
-    __global__ void carma_curand_uniform(curandState *s, cuDoubleComplex *d,
-                                         int n, float beta) CARMA_NYI_DEV
+template <>
+__global__ void carma_curand_uniform(curandState *s, cuDoubleComplex *d, int n,
+                                     float beta) {
+  carma_curand_uniform_gen(s, curand_uniform_double, (double *)d, n * 2, beta);
+}
 
-    template <class T>
-    __forceinline__ __device__
-    void carma_curand_normal_gen(curandState *state, T (*fct)(curandState *),
-                                 T *res, int n, float alpha, float beta) {
+template <class T>
+__forceinline__ __device__ void carma_curand_normal_gen(curandState *state,
+                                                        T (*fct)(curandState *),
+                                                        T *res, int n,
+                                                        float alpha,
+                                                        float beta) {
   const int tidx = blockIdx.x * blockDim.x + threadIdx.x;
   const int delta = blockDim.x * gridDim.x;
   for (int idx = tidx; idx < n; idx += delta)
@@ -249,6 +255,13 @@ template int carma_curand_montagn<unsigned int>(curandState *state,
                                                 unsigned int *d_odata, int N,
                                                 carma_device *device);
 
+template <>
+int carma_curand_montagn<uint16_t>(curandState *state, uint16_t *d_odata, int N,
+                                   carma_device *device) {
+  CARMA_NYI_DEV;
+  return EXIT_FAILURE;
+}
+
 template <class T>
 int carma_prng_cu(T *results, const int nThreads, const int nBlocks,
                   curandState *state, char gtype, int n, float alpha,
@@ -273,6 +286,7 @@ template int carma_prng_cu(int *results, const int nThreads, const int nBlocks,
 template int carma_prng_cu(unsigned int *results, const int nThreads,
                            const int nBlocks, curandState *state, char gtype,
                            int n, float alpha, float beta);
+
 template int carma_prng_cu(float *results, const int nThreads,
                            const int nBlocks, curandState *state, char gtype,
                            int n, float alpha, float beta);
@@ -285,3 +299,11 @@ template int carma_prng_cu(cuFloatComplex *results, const int nThreads,
 template int carma_prng_cu(cuDoubleComplex *results, const int nThreads,
                            const int nBlocks, curandState *state, char gtype,
                            int n, float alpha, float beta);
+
+template <>
+int carma_prng_cu(uint16_t *results, const int nThreads, const int nBlocks,
+                  curandState *state, char gtype, int n, float alpha,
+                  float beta) {
+  CARMA_NYI_DEV;
+  return EXIT_FAILURE;
+}

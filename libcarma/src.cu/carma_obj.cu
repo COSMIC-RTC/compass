@@ -116,6 +116,9 @@ template void clip_array<unsigned int>(unsigned int *d_data, unsigned int min,
                                        carma_device *device);
 template void clip_array<float>(float *d_data, float min, float max, int N,
                                 carma_device *device);
+template void clip_array<uint16_t>(uint16_t *d_data, uint16_t min, uint16_t max,
+                                   int N, carma_device *device);
+
 template void clip_array<double>(double *d_data, double min, double max, int N,
                                  carma_device *device);
 #ifdef CAN_DO_HALF
@@ -132,11 +135,12 @@ void clip_array(cuDoubleComplex *d_data, cuDoubleComplex min,
                 cuDoubleComplex max, int N, carma_device *device) {
   throw "not implemented";
 }
-template <>
-void clip_array(tuple_t<float> *d_data, tuple_t<float> min, tuple_t<float> max,
-                int N, carma_device *device) {
-  throw "not implemented";
-}
+// template <>
+// void clip_array(tuple_t<float> *d_data, tuple_t<float> min, tuple_t<float>
+// max,
+//                 int N, carma_device *device) {
+//   throw "not implemented";
+// }
 
 template <class T>
 __global__ void krnl_fillindex(T *odata, T *idata, int *indx, int N) {
@@ -416,3 +420,25 @@ template int fill_sym_matrix<float>(char uplo, float *d_data, int Ncol, int N,
 
 template int fill_sym_matrix<double>(char uplo, double *d_data, int Ncol, int N,
                                      carma_device *device);
+
+#ifdef CAN_DO_HALF
+__global__ void half_axpy_krnl(half *source, half *dest, half alpha, int incx,
+                               int incy, int N) {
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  while (tid < N) {
+    dest[tid] += alpha * source[tid];
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+int custom_half_axpy(half alpha, half *source, int incx, int incy, int N,
+                     half *dest, carma_device *device) {
+  int nBlocks, nThreads;
+  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
+  dim3 grid(nBlocks), threads(nThreads);
+
+  half_axpy_krnl<<<grid, threads>>>(source, dest, alpha, incx, incy, N);
+  carmaCheckMsg("half_axpy_krnl<<<>>> execution failed");
+  return EXIT_SUCCESS;
+}
+#endif

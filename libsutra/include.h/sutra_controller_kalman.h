@@ -24,7 +24,7 @@
 class kp_kalman_core_sparse;
 class kp_kalman_core_full;
 
-class sutra_controller_kalman : public sutra_controller {
+class sutra_controller_kalman : public sutra_controller<float> {
  public:
   sutra_controller_kalman(carma_context* context, int nvalid_, int nactu_,
                           sutra_dms* dms, int* idx_dms, int ndm);

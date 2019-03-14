@@ -1,3 +1,6 @@
+#ifndef _WRAP_SPARSE_OBJ_H_
+#define _WRAP_SPARSE_OBJ_H_
+
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
@@ -5,15 +8,17 @@
 #include <carma.h>
 #include <carma_sparse_obj.h>
 
+#include "declare_name.hpp"
+#include <type_list.hpp>
+
 namespace py = pybind11;
 
-template <typename T>
-void declare_carmaWrap_sparse_obj(py::module &mod, std::string suffix)
-{
+struct CarmaSparseObjInterfacer {
+  template <typename T> static void call(py::module &mod) {
+    auto name = appendName<T>("sparse_obj_");
+    using Class = carma_sparse_obj<T>;
 
-  using Class = carma_sparse_obj<T>;
-
-  py::class_<Class>(mod, ("sparse_obj_" + suffix).c_str())
+    py::class_<Class>(mod, name.data(), py::buffer_protocol())
     .def("get_csr",[](Class &frame){
         py::object CSR = py::module::import("scipy.sparse").attr("csr_matrix");
         int dim1 = frame.getDims(1);
@@ -30,6 +35,7 @@ void declare_carmaWrap_sparse_obj(py::module &mod, std::string suffix)
 
 
         return CSR(csrMat,py::arg("shape")=shape);
-        })
-;
+        });
+}
 };
+#endif

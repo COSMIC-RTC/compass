@@ -55,15 +55,16 @@ class carma_host_obj {
   carma_host_obj(const long *dims_data, MemAlloc mallocType);
   carma_host_obj(const carma_host_obj<T_data> *obj);
   carma_host_obj(const carma_host_obj<T_data> *obj, MemAlloc mallocType);
-  carma_host_obj(const long *dims_data, T_data *data);
-  carma_host_obj(const long *dims_data, T_data *data, MemAlloc mallocType);
+  carma_host_obj(const long *dims_data, const T_data *data);
+  carma_host_obj(const long *dims_data, const T_data *data,
+                 MemAlloc mallocType);
   carma_host_obj(const long *dims_data, int nb_streams);
   carma_host_obj(const long *dims_data, MemAlloc mallocType, int nb_streams);
   carma_host_obj(const carma_host_obj<T_data> *obj, int nb_streams);
   carma_host_obj(const carma_host_obj<T_data> *obj, MemAlloc mallocType,
                  int nb_streams);
-  carma_host_obj(const long *dims_data, T_data *data, int nb_streams);
-  carma_host_obj(const long *dims_data, T_data *data, MemAlloc mallocType,
+  carma_host_obj(const long *dims_data, const T_data *data, int nb_streams);
+  carma_host_obj(const long *dims_data, const T_data *data, MemAlloc mallocType,
                  int nb_streams);
   ~carma_host_obj();
 
@@ -152,9 +153,9 @@ int carma_syevd_cpu(char jobz, carma_host_obj<T> *h_A,
                     carma_host_obj<T> *eigenvals);
 
 // MAGMA functions (direct access)
-template <class T>
-int carma_svd_cpu(long N, long M, T *imat, T *eigenvals, T *mod2act,
-                  T *mes2mod);
+// template <class T>
+// int carma_svd_cpu(long N, long M, T *imat, T *eigenvals, T *mod2act,
+//                   T *mes2mod);
 template <class T>
 int carma_getri_cpu(long N, T *h_A);
 template <class T>

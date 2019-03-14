@@ -56,6 +56,10 @@ setup.cfg
 *.egg-info
 
 lib/
+python/
 *.log
 shesha/shesha/widgets/*.log
 shesha/shesha/*.log
+.pytest*
+local/
+*lastfailed

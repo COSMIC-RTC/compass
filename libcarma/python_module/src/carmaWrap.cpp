@@ -4,13 +4,12 @@
 
 namespace py = pybind11;
 
-template <typename T>
-void declare_carmaWrap_obj(py::module &, std::string);
-template <typename T>
-void declare_carmaWrap_sparse_obj(py::module &, std::string);
-
+void declare_carmaWrap_host_obj(py::module &);
+void declare_carmaWrap_obj(py::module &);
+void declare_carmaWrap_sparse_obj(py::module &);
 void declare_carmaWrap_context(py::module &);
 void declare_carmaWrap_timer(py::module &);
+
 #ifdef CAN_DO_HALF
 void declare_half_setter_getter(py::module &mod);
 #endif
@@ -19,18 +18,12 @@ void declare_half_setter_getter(py::module &mod);
 PYBIND11_MODULE(carmaWrap, mod) {
   mod.doc() = "";
   PYBIND11_NUMPY_DTYPE(float2, x, y);
+  PYBIND11_NUMPY_DTYPE(double2, x, y);
   declare_carmaWrap_context(mod);
-  declare_carmaWrap_obj<int>(mod, "int");
-  // declare_carmaWrap_obj<unsigned int>(mod, "uint");
-  declare_carmaWrap_obj<float>(mod, "float");
-  declare_carmaWrap_obj<double>(mod, "double");
-  declare_carmaWrap_sparse_obj<float>(mod, "float");
-  declare_carmaWrap_sparse_obj<double>(mod, "double");
-  // declare_carmaWrap_obj<float2>(mod, "float2");
-  // declare_carmaWrap_obj<double2>(mod, "double2");
-  declare_carmaWrap_obj<cuFloatComplex>(mod, "float_complex");
+  declare_carmaWrap_obj(mod);
+  declare_carmaWrap_host_obj(mod);
+  declare_carmaWrap_sparse_obj(mod);
 #ifdef CAN_DO_HALF
-  declare_carmaWrap_obj<half>(mod, "half");
   declare_half_setter_getter(mod);
 #endif
   declare_carmaWrap_timer(mod);

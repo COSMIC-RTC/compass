@@ -15,33 +15,37 @@
 #include <sutra_controller_ls.h>
 #include <sutra_controller_mv.h>
 
+template <typename Tin, typename T, typename Tout>
 class sutra_rtc {
  public:
-  vector<sutra_centroider *> d_centro;
-  vector<sutra_controller *> d_control;
+  vector<sutra_centroider<Tin, T> *> d_centro;
+  vector<sutra_controller<T, Tout> *> d_control;
 
  public:
   sutra_rtc();
   ~sutra_rtc();
   int add_centroider(carma_context *context, long nvalid, float offset,
-                     float scale, long device, char *typec);
+                     float scale, long device, std::string typec);
+
   int add_centroider(carma_context *context, long nvalid, float offset,
-                     float scale, long device, char *typec, sutra_wfs *wfs);
-  int rm_centroider();
-  int add_controller_geo(carma_context *context, int nactu, int Nphi,
-                         float delay, long device, sutra_dms *dms, int *idx_dms,
-                         int ndm, bool wfs_direction);
+                     float scale, long device, std::string typec,
+                     sutra_wfs *wfs);
+
   int add_controller(carma_context *context, int nvalid, int nslope, int nactu,
-                     float delay, long device, char *typec,
+                     float delay, long device, std::string typec,
                      sutra_dms *dms = nullptr, int *idx_dms = nullptr,
                      int ndm = 0, int Nphi = 0, bool wfs_direction = false);
 
-  int rm_controller();
+  int remove_centroider(int ncentro);
+  int remove_controller(int ncontrol);
 
   int do_imat(int ncntrl, sutra_dms *ydms);
-  int do_imat_basis(int ncntrl, sutra_dms *ydm, int nModes, float *m2v,
-                    float *pushAmpl);
+
+  int do_imat_basis(int ncntrl, sutra_dms *ydm, int nModes, T *m2v,
+                    T *pushAmpl);
+
   int do_imat_geom(int ncntrl, sutra_dms *ydm, int type);
+
   int comp_images_imat(sutra_dms *ydm);
 
   int do_centroids();
@@ -50,11 +54,59 @@ class sutra_rtc {
   int do_centroids_geom(int ncntrl);
   int do_centroids_ref(int ncntrl);
   int do_control(int ncntrl);
-  int do_clipping(int ncntrl, float min, float max);
-  int apply_control(int ncntrl, sutra_dms *ydm, bool compVoltage = true);
+  int do_clipping(int ncntrl);
+  int apply_control(int ncntrl, bool compVoltage = true);
   int comp_voltage(int ncntrl);
   int remove_ref(int ncntrl);
   int set_centroids_ref(float *centroids_ref);
+
+ private:
+  template <typename Q = T>
+  typename std::enable_if<std::is_same<Q, float>::value, int>::type
+  do_imat_impl(int ncntrl, sutra_dms *ydm, std::true_type);
+  int do_imat_impl(int ncntrl, sutra_dms *ydm, std::false_type);
+
+  template <typename Q = T>
+  typename std::enable_if<std::is_same<Q, float>::value, int>::type
+  do_imat_basis_impl(int ncntrl, sutra_dms *ydm, int nModes, T *m2v,
+                     T *pushAmpl, std::true_type);
+  int do_imat_basis_impl(int ncntrl, sutra_dms *ydm, int nModes, T *m2v,
+                         T *pushAmpl, std::false_type);
+  template <typename Q = T>
+  typename std::enable_if<std::is_same<Q, float>::value, int>::type
+  do_imat_geom_impl(int ncntrl, sutra_dms *ydm, int type, std::true_type);
+  int do_imat_geom_impl(int ncntrl, sutra_dms *ydm, int type, std::false_type);
+
+  template <typename Q = T>
+  typename std::enable_if<std::is_same<Q, float>::value, int>::type
+  do_centroids_geom_impl(int ncntrl, std::true_type);
+  int do_centroids_geom_impl(int ncntrl, std::false_type);
+
+  template <typename Q = T>
+  typename std::enable_if<!std::is_same<Q, half>::value, int>::type
+  add_centroider_impl(carma_context *context,
+                      vector<sutra_centroider<Tin, T> *> &d_centro, long nvalid,
+                      float offset, float scale, long device, std::string typec,
+                      sutra_wfs *wfs, std::false_type);
+  int add_centroider_impl(carma_context *context,
+                          vector<sutra_centroider<Tin, T> *> &d_centro,
+                          long nvalid, float offset, float scale, long device,
+                          std::string typec, sutra_wfs *wfs, std::true_type);
+
+  template <typename Q = T>
+  typename std::enable_if<!std::is_same<Q, half>::value, int>::type
+  add_controller_impl(carma_context *context,
+                      vector<sutra_controller<T, Tout> *> &d_control,
+                      int nvalid, int nslope, int nactu, float delay,
+                      long device, std::string typec, sutra_dms *dms,
+                      int *idx_dms, int ndm, int Nphi, bool wfs_direction,
+                      std::false_type);
+  int add_controller_impl(carma_context *context,
+                          vector<sutra_controller<T, Tout> *> &d_control,
+                          int nvalid, int nslope, int nactu, float delay,
+                          long device, std::string typec, sutra_dms *dms,
+                          int *idx_dms, int ndm, int Nphi, bool wfs_direction,
+                          std::true_type);
 };
 
 #endif  // _SUTRA_RTC_H_

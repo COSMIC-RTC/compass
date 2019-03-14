@@ -3,10 +3,12 @@
 #include <sutra_centroider_tcog.h>
 
 namespace py = pybind11;
-typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;
 
-void declare_centroider_tcog(py::module &mod) {
-  py::class_<sutra_centroider_tcog, sutra_centroider>(mod, "CentroiderTCOG")
+template <typename Tin, typename Tcomp>
+void centroider_tcog_impl(py::module &mod, const char *name) {
+  using centroider_tcog = sutra_centroider_tcog<Tin, Tcomp>;
+
+  py::class_<centroider_tcog, sutra_centroider<Tin, Tcomp>>(mod, name)
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
       //  ██████╔╝██████╔╝██║   ██║██████╔╝█████╗  ██████╔╝   ██║    ╚████╔╝
@@ -14,9 +16,9 @@ void declare_centroider_tcog(py::module &mod) {
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
 
-      .def_property_readonly(
-          "threshold", [](sutra_centroider_tcog &sc) { return sc.threshold; },
-          "Threshold value")
+      .def_property_readonly("threshold",
+                             [](centroider_tcog &sc) { return sc.threshold; },
+                             "Threshold value")
 
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝
@@ -25,7 +27,7 @@ void declare_centroider_tcog(py::module &mod) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
-      .def("set_threshold", &sutra_centroider_tcog::set_threshold,
+      .def("set_threshold", &centroider_tcog::set_threshold,
            R"pbdoc(
             Set the threshold value of a TCOG centroider
 
@@ -38,3 +40,12 @@ void declare_centroider_tcog(py::module &mod) {
 
       ;
 };
+void declare_centroider_tcog(py::module &mod) {
+  centroider_tcog_impl<float, float>(mod, "CentroiderTCOG_FF");
+  centroider_tcog_impl<uint16_t, float>(mod, "CentroiderTCOG_UF");
+#ifdef CAN_DO_HALF
+  centroider_tcog_impl<float, half>(mod, "CentroiderTCOG_FH");
+  centroider_tcog_impl<uint16_t, half>(mod, "CentroiderTCOG_UH");
+
+#endif
+}

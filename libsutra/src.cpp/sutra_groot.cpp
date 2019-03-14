@@ -128,11 +128,11 @@ int sutra_groot::compute_Cerr() {
   // Coupling matrix filter
   // carma_potri(this->d_Nact);
   carma_obj<float> d_tmp(this->d_Cerr);
-  carma_gemm(cublas_handle(), 'n', 'n', this->nactus, this->nactus,
+  carma_gemm(this->cublas_handle(), 'n', 'n', this->nactus, this->nactus,
              this->nactus, (float)1., this->d_Nact->getData(), this->nactus,
              this->d_Cerr->getData(), this->nactus, (float)0.0, d_tmp.getData(),
              this->nactus);
-  carma_gemm(cublas_handle(), 'n', 'n', this->nactus, this->nactus,
+  carma_gemm(this->cublas_handle(), 'n', 'n', this->nactus, this->nactus,
              this->nactus, (float)1.0, d_tmp.getData(), this->nactus,
              this->d_Nact->getData(), this->nactus, (float)0.0,
              this->d_Cerr->getData(), this->nactus);
@@ -141,21 +141,21 @@ int sutra_groot::compute_Cerr() {
   // Tip-tilt component
   printf("Computing TT component...\n");
   carma_obj<float> d_tmp2(this->d_pzt2tt);
-  carma_gemm(cublas_handle(), 'n', 'n', 2, this->nactus, this->nactus,
+  carma_gemm(this->cublas_handle(), 'n', 'n', 2, this->nactus, this->nactus,
              (float)1.0, this->d_pzt2tt->getData(), 2, this->d_Cerr->getData(),
              this->nactus, (float)0.0, d_tmp2.getData(), 2);
-  carma_gemm(cublas_handle(), 'n', 't', 2, 2, this->nactus, (float)1.0,
+  carma_gemm(this->cublas_handle(), 'n', 't', 2, 2, this->nactus, (float)1.0,
              d_tmp2.getData(), 2, this->d_pzt2tt->getData(), 2, (float)0.0,
              this->d_TT->getData(), 2);
   printf("Done\n");
 
   // Filtering TT + piston from Cerr
   printf("Filtering TT + piston from Cerr...\n");
-  carma_gemm(cublas_handle(), 'n', 'n', this->nactus, this->nactus,
+  carma_gemm(this->cublas_handle(), 'n', 'n', this->nactus, this->nactus,
              this->nactus, (float)1.0, this->d_TTPfilter->getData(),
              this->nactus, this->d_Cerr->getData(), this->nactus, (float)0.0,
              d_tmp.getData(), this->nactus);
-  carma_gemm(cublas_handle(), 'n', 't', this->nactus, this->nactus,
+  carma_gemm(this->cublas_handle(), 'n', 't', this->nactus, this->nactus,
              this->nactus, (float)1.0, d_tmp.getData(), this->nactus,
              this->d_TTPfilter->getData(), this->nactus, (float)0.0,
              this->d_Cerr->getData(), this->nactus);

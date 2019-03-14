@@ -2,8 +2,8 @@
 #include <carma_utils.cuh>
 
 template <class T, int Nthreads>
-__global__ void centroids(T *d_img, T *d_centroids, T *ref, int *validx,
-                          int *validy, T *d_intensities, T threshold,
+__global__ void centroids(float *d_img, T *d_centroids, T *ref, int *validx,
+                          int *validy, float *d_intensities, float threshold,
                           unsigned int npix, unsigned int size, T scale,
                           T offset, unsigned int nelem_thread) {
   if (blockDim.x > Nthreads) {
@@ -11,13 +11,13 @@ __global__ void centroids(T *d_img, T *d_centroids, T *ref, int *validx,
     return;
   }
   // Specialize BlockReduce for a 1D block of 128 threads on type int
-  typedef cub::BlockReduce<T, Nthreads> BlockReduce;
+  typedef cub::BlockReduce<float, Nthreads> BlockReduce;
   // Allocate shared memory for BlockReduce
   __shared__ typename BlockReduce::TempStorage temp_storage;
 
-  T idata = 0;
-  T xdata = 0;
-  T ydata = 0;
+  float idata = 0;
+  float xdata = 0;
+  float ydata = 0;
   // load shared mem
   unsigned int tid = threadIdx.x;
   unsigned int xvalid = validx[blockIdx.x];
@@ -32,35 +32,40 @@ __global__ void centroids(T *d_img, T *d_centroids, T *ref, int *validx,
     // blockIdx.x;
     idim = (x + xvalid) + (y + yvalid) * size;
     if (idim < size * size) {
-      idata += (d_img[idim] > threshold) ? d_img[idim] : 0;
-      xdata += (d_img[idim] > threshold) ? d_img[idim] * x : 0;
-      ydata += (d_img[idim] > threshold) ? d_img[idim] * y : 0;
+      float data_thresh =
+          (d_img[idim] > threshold) ? d_img[idim] - threshold : 0.f;
+      idata += data_thresh;
+      xdata += data_thresh * x;
+      ydata += data_thresh * y;
+      d_img[idim] = data_thresh;
     }
   }
 
   // sdata[tid] = (i < N) ? g_idata[i] * x : 0;
   __syncthreads();
 
-  T intensity = BlockReduce(temp_storage).Sum(idata, blockDim.x);
-  T slopex = BlockReduce(temp_storage).Sum(xdata, blockDim.x);
-  T slopey = BlockReduce(temp_storage).Sum(ydata, blockDim.x);
+  float intensity = BlockReduce(temp_storage).Sum(idata, blockDim.x);
+  __syncthreads();
+  float slopex = BlockReduce(temp_storage).Sum(xdata, blockDim.x);
+  __syncthreads();
+  float slopey = BlockReduce(temp_storage).Sum(ydata, blockDim.x);
+
   // write result for this block to global mem
   if (tid == 0) {
     d_centroids[blockIdx.x] =
-        ((slopex * 1.0 / (intensity + 1.e-6)) - offset) * scale -
-        ref[blockIdx.x];
+        (T(slopex / (intensity + 1.e-6)) - offset) * scale - ref[blockIdx.x];
     d_centroids[blockIdx.x + gridDim.x] =
-        ((slopey * 1.0 / (intensity + 1.e-6)) - offset) * scale -
+        (T(slopey / (intensity + 1.e-6)) - offset) * scale -
         ref[blockIdx.x + gridDim.x];
     d_intensities[blockIdx.x] = intensity;
   }
 }
 
 template <class T>
-void get_centroids(int size, int threads, int blocks, int npix, T *d_img,
+void get_centroids(int size, int threads, int blocks, int npix, float *d_img,
                    T *d_centroids, T *ref, int *validx, int *validy,
-                   T *intensities, T threshold, T scale, T offset,
-                   carma_device *device) {
+                   float *intensities, float threshold, float scale,
+                   float offset, carma_device *device) {
   int maxThreads = device->get_properties().maxThreadsPerBlock;
   unsigned int nelem_thread = 1;
   while ((threads / nelem_thread > maxThreads) ||
@@ -69,36 +74,39 @@ void get_centroids(int size, int threads, int blocks, int npix, T *d_img,
   }
 
   threads /= nelem_thread;
-  dim3 dimBlock(threads, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
 
   // when there is only one warp per block, we need to allocate two warps
   // worth of shared memory so that we don't index shared memory out of bounds
   if (threads <= 16)
-    centroids<T, 16><<<dimGrid, dimBlock>>>(
-        d_img, d_centroids, ref, validx, validy, intensities, threshold, npix,
-        size, scale, offset, nelem_thread);
-  else if (threads <= 32)
-    centroids<T, 32><<<dimGrid, dimBlock>>>(
-        d_img, d_centroids, ref, validx, validy, intensities, threshold, npix,
-        size, scale, offset, nelem_thread);
+    centroids<T, 16><<<dimGrid, 16>>>(d_img, d_centroids, ref, validx, validy,
+                                      intensities, threshold, npix, size,
+                                      T(scale), T(offset), nelem_thread);
+  else if (threads <= 36)
+    centroids<T, 36><<<dimGrid, 36>>>(d_img, d_centroids, ref, validx, validy,
+                                      intensities, threshold, npix, size,
+                                      T(scale), T(offset), nelem_thread);
 
   else if (threads <= 64)
-    centroids<T, 64><<<dimGrid, dimBlock>>>(
-        d_img, d_centroids, ref, validx, validy, intensities, threshold, npix,
-        size, scale, offset, nelem_thread);
-  else if (threads <= 128)
-    centroids<T, 128><<<dimGrid, dimBlock>>>(
-        d_img, d_centroids, ref, validx, validy, intensities, threshold, npix,
-        size, scale, offset, nelem_thread);
+    centroids<T, 64><<<dimGrid, 64>>>(d_img, d_centroids, ref, validx, validy,
+                                      intensities, threshold, npix, size,
+                                      T(scale), T(offset), nelem_thread);
+  else if (threads <= 100)
+    centroids<T, 100><<<dimGrid, 100>>>(d_img, d_centroids, ref, validx, validy,
+                                        intensities, threshold, npix, size,
+                                        T(scale), T(offset), nelem_thread);
+  else if (threads <= 144)
+    centroids<T, 144><<<dimGrid, 144>>>(d_img, d_centroids, ref, validx, validy,
+                                        intensities, threshold, npix, size,
+                                        T(scale), T(offset), nelem_thread);
   else if (threads <= 256)
-    centroids<T, 256><<<dimGrid, dimBlock>>>(
-        d_img, d_centroids, ref, validx, validy, intensities, threshold, npix,
-        size, scale, offset, nelem_thread);
+    centroids<T, 256><<<dimGrid, 256>>>(d_img, d_centroids, ref, validx, validy,
+                                        intensities, threshold, npix, size,
+                                        T(scale), T(offset), nelem_thread);
   else if (threads <= 512)
-    centroids<T, 512><<<dimGrid, dimBlock>>>(
-        d_img, d_centroids, ref, validx, validy, intensities, threshold, npix,
-        size, scale, offset, nelem_thread);
+    centroids<T, 512><<<dimGrid, 512>>>(d_img, d_centroids, ref, validx, validy,
+                                        intensities, threshold, npix, size,
+                                        T(scale), T(offset), nelem_thread);
   else
     printf("SH way too big !!!\n");
 
@@ -112,14 +120,21 @@ template void get_centroids<float>(int size, int threads, int blocks, int npix,
                                    carma_device *device);
 
 template void get_centroids<double>(int size, int threads, int blocks, int npix,
-                                    double *d_img, double *d_centroids,
+                                    float *d_img, double *d_centroids,
                                     double *ref, int *validx, int *validy,
-                                    double *intensities, double threshold,
-                                    double scale, double offset,
+                                    float *intensities, float threshold,
+                                    float scale, float offset,
                                     carma_device *device);
+#ifdef CAN_DO_HALF
+template void get_centroids<half>(int size, int threads, int blocks, int npix,
+                                  float *d_img, half *d_centroids, half *ref,
+                                  int *validx, int *validy, float *intensities,
+                                  float threshold, float scale, float offset,
+                                  carma_device *device);
+#endif
 // template <class T>
 // void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
-//                    T *d_odata, T *alpha, T thresh, T scale, T offset,
+//                    T *d_odata, T *alpha, T thresh, float scale, float offset,
 //                    carma_device *device) {
 //   int maxThreads = device->get_properties().maxThreadsPerBlock;
 //   unsigned int nelem_thread = 1;
@@ -160,8 +175,8 @@ template void get_centroids<double>(int size, int threads, int blocks, int npix,
 //                                     double offset, carma_device *device);
 // template <class T>
 // __global__ void centroidx(T *g_idata, T *g_odata, T *alpha, T thresh,
-//                           unsigned int n, unsigned int N, T scale, T offset,
-//                           unsigned int nelem_thread) {
+//                           unsigned int n, unsigned int N, float scale, float
+//                           offset, unsigned int nelem_thread) {
 //   T *sdata = SharedMemory<T>();
 
 //   // load shared mem
@@ -195,8 +210,8 @@ template void get_centroids<double>(int size, int threads, int blocks, int npix,
 
 // template <class T>
 // __global__ void centroidy(T *g_idata, T *g_odata, T *alpha, T thresh,
-//                           unsigned int n, unsigned int N, T scale, T offset,
-//                           unsigned int nelem_thread) {
+//                           unsigned int n, unsigned int N, float scale, float
+//                           offset, unsigned int nelem_thread) {
 //   T *sdata = SharedMemory<T>();
 
 //   // load shared mem

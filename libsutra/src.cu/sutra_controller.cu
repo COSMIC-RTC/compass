@@ -274,3 +274,84 @@ int adjust_csr_index(int *rowind, int *NNZ, int *nact, int nact_tot,
 
   return EXIT_SUCCESS;
 }
+
+#ifdef CAN_DO_HALF
+__global__ void convertVoltage_krnl(half *d_idata, float *d_odata, int N,
+                                    float Vmin, float Vmax, uint16_t valMax) {
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  while (tid < N) {
+    d_odata[tid] = __half2float(d_idata[tid]);
+    tid += blockDim.x * gridDim.x;
+  }
+}
+#endif
+
+template <typename T>
+__global__ void convertVoltage_krnl(T *d_idata, uint16_t *d_odata, int N,
+                                    float Vmin, float Vmax, uint16_t valMax) {
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  while (tid < N) {
+    d_odata[tid] =
+        uint16_t((float(d_idata[tid]) - Vmin) / (Vmax - Vmin) * float(valMax));
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+template <typename Tin, typename Tout>
+typename std::enable_if<!std::is_same<Tin, Tout>::value, void>::type
+convertToVoltage(Tin *d_idata, Tout *d_odata, int N, float Vmin, float Vmax,
+                 uint16_t valMax, carma_device *device) {
+  int nthreads = 0, nblocks = 0;
+  getNumBlocksAndThreads(device, N, nblocks, nthreads);
+  dim3 grid(nblocks), threads(nthreads);
+
+  convertVoltage_krnl<<<grid, threads>>>(d_idata, d_odata, N, Vmin, Vmax,
+                                         valMax);
+  carmaCheckMsg("convertVoltage_krnl<<<>>> execution failed\n");
+}
+
+template
+    typename std::enable_if<!std::is_same<float, uint16_t>::value, void>::type
+    convertToVoltage<float, uint16_t>(float *d_idata, uint16_t *d_odata, int N,
+                                      float Vmin, float Vmax, uint16_t valMax,
+                                      carma_device *device);
+
+#ifdef CAN_DO_HALF
+template typename std::enable_if<!std::is_same<half, float>::value, void>::type
+convertToVoltage<half, float>(half *d_idata, float *d_odata, int N, float Vmin,
+                              float Vmax, uint16_t valMax,
+                              carma_device *device);
+template
+    typename std::enable_if<!std::is_same<half, uint16_t>::value, void>::type
+    convertToVoltage<half, uint16_t>(half *d_idata, uint16_t *d_odata, int N,
+                                     float Vmin, float Vmax, uint16_t valMax,
+                                     carma_device *device);
+#endif
+
+template <typename T>
+__global__ void padCmat_krnl(T *idata, int m, int n, T *odata, int m2, int n2) {
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  while (tid < m * n) {
+    int j = tid / m;
+    int i = tid - j * m;
+    int tid2 = i + j * m2;
+    odata[tid2] = idata[tid];
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+template <typename T>
+void pad_cmat(T *idata, int m, int n, T *odata, int m2, int n2,
+              carma_device *device) {
+  int nthreads = 0, nblocks = 0;
+  getNumBlocksAndThreads(device, m * n, nblocks, nthreads);
+  dim3 grid(nblocks), threads(nthreads);
+
+  padCmat_krnl<<<grid, threads>>>(idata, m, n, odata, m2, n2);
+  carmaCheckMsg("padCmat_krnl<<<>>> execution failed\n");
+}
+
+#ifdef CAN_DO_HALF
+template void pad_cmat<half>(half *idata, int m, int n, half *odata, int m2,
+                             int n2, carma_device *device);
+#endif

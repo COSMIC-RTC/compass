@@ -280,7 +280,7 @@ template void subap_sortmaxi<double>(int threads, int blocks, double *d_idata,
 template <class T>
 __global__ void interp_parab(T *g_idata, T *g_centroids, int *g_values,
                              T *g_matinterp, int sizex, int sizey, int nvalid,
-                             int Npix, int Npix2, T scale, T offset) {
+                             int Npix, int Npix2, float scale, float offset) {
   T *pidata = SharedMemory<T>();
   T *scoeff = (T *)&pidata[blockDim.x];
   T *m_interp = (T *)&scoeff[6];
@@ -359,7 +359,7 @@ __global__ void interp_parab(T *g_idata, T *g_centroids, int *g_values,
 template <class T>
 void subap_pinterp(int threads, int blocks, T *d_idata, int *values,
                    T *d_centroids, T *d_matinterp, int sizex, int sizey,
-                   int nvalid, int Npix, T scale, T offset)
+                   int nvalid, int Npix, float scale, float offset)
 // here idata is a [Npix,Npix,nvalid] array
 // we want to get the [nvalid] (x0,y0) into subregions of [sizex,sizey] around
 // gvalue number of threads is sizex * sizey  and number of blocks : nvalid
@@ -388,5 +388,5 @@ template void subap_pinterp<float>(int threads, int blocks, float *d_idata,
 template void subap_pinterp<double>(int threads, int blocks, double *d_idata,
                                     int *values, double *d_centroids,
                                     double *d_matinterp, int sizex, int sizey,
-                                    int nvalid, int Npix, double scale,
-                                    double offset);
+                                    int nvalid, int Npix, float scale,
+                                    float offset);
