@@ -11,7 +11,7 @@ else()
                   OUTPUT_VARIABLE CUDA_SM)
 endif()
 
-set(CUDA_ALL_SM "35" "37" "50" "52" "60" "61" "70")
+set(CUDA_ALL_SM "35" "50" "52" "60" "61" "70" "75")
 
 if(${CUDA_SM} STREQUAL "ALL")
   unset(CUDA_SM)
@@ -138,6 +138,7 @@ target_compile_definitions(
   PRIVATE
   $<$<COMPILE_LANGUAGE:CXX>:USE_MAGMA>)
 
+find_package(CUDA REQUIRED)
 target_link_libraries(carma
                       PUBLIC ${CUDA_LIBRARIES}
                              ${CUDA_cufft_LIBRARY}

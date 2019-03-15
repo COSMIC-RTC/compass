@@ -168,7 +168,7 @@ sutra_rtc<Tin, T, Tout>::add_controller_impl(
     //       new sutra_controller_kalman(context, nslope, nactu, dms, idx_dms,
     //       ndm));
   } else {
-    DEBUG_TRACE("Controller '%s' unknown\n", typec);
+    DEBUG_TRACE("Controller '%s' unknown\n", typec.c_str());
     return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;
