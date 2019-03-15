@@ -331,7 +331,7 @@ template
 template <typename T>
 __global__ void padCmat_krnl(T *idata, int m, int n, T *odata, int m2, int n2) {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
-  while(tid < m*n){
+  while (tid < m * n) {
     int j = tid / m;
     int i = tid - j * m;
     int tid2 = i + j * m2;
@@ -340,8 +340,9 @@ __global__ void padCmat_krnl(T *idata, int m, int n, T *odata, int m2, int n2) {
   }
 }
 
-template<typename T>
-void pad_cmat(T *idata, int m, int n, T *odata, int m2, int n2, carma_device *device) {
+template <typename T>
+void pad_cmat(T *idata, int m, int n, T *odata, int m2, int n2,
+              carma_device *device) {
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, m * n, nblocks, nthreads);
   dim3 grid(nblocks), threads(nthreads);
@@ -351,5 +352,6 @@ void pad_cmat(T *idata, int m, int n, T *odata, int m2, int n2, carma_device *de
 }
 
 #ifdef CAN_DO_HALF
-template void pad_cmat<half>(half *idata, int m, int n, half *odata, int m2, int n2, carma_device *device);
+template void pad_cmat<half>(half *idata, int m, int n, half *odata, int m2,
+                             int n2, carma_device *device);
 #endif

@@ -43,7 +43,6 @@ test_job:
     - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
     - cd shesha && python shesha/scripts/closed_loop.py data/par/par4bench/scao_sh_16x16_8pix.py
-    - cd shesha/tests && . checkCompass.sh
   when: manual
   only:
     - develop

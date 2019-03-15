@@ -11,7 +11,7 @@ else()
                   OUTPUT_VARIABLE CUDA_SM)
 endif()
 
-set(CUDA_ALL_SM "30" "35" "37" "50" "52" "60" "61" "70")
+set(CUDA_ALL_SM "35" "50" "52" "60" "61" "70" "75")
 
 if(${CUDA_SM} STREQUAL "ALL")
   unset(CUDA_SM)
