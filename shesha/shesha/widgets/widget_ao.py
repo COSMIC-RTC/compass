@@ -8,7 +8,7 @@ with 'parameters_filename' the path to the parameters file
 
 Options:
   -h --help          Show this help message and exit
-  --brahma            Distribute data with BRAHMA
+  --cacao            Distribute data with cacao
   --expert           Display expert panel
   -d, --devices devices      Specify the devices
   -i, --interactive  keep the script interactive
@@ -51,13 +51,12 @@ from shesha.supervisor.compassSupervisor import CompassSupervisor, scons
 
 class widgetAOWindow(AOClassTemplate, WidgetBase):
 
-    def __init__(self, configFile: Any = None, BRAHMA: bool = False,
-                 expert: bool = False, devices: str = None,
-                 hideHistograms: bool = False) -> None:
+    def __init__(self, configFile: Any = None, cacao: bool = False, expert: bool = False,
+                 devices: str = None, hideHistograms: bool = False) -> None:
         WidgetBase.__init__(self, hideHistograms=hideHistograms)
         AOClassTemplate.__init__(self)
 
-        self.BRAHMA = BRAHMA
+        self.cacao = cacao
         self.rollingWindow = 100
         self.SRLE = deque(maxlen=self.rollingWindow)
         self.SRSE = deque(maxlen=self.rollingWindow)
@@ -599,9 +598,8 @@ if __name__ == '__main__':
     arguments = docopt(__doc__)
     app = QtWidgets.QApplication(sys.argv)
     app.setStyle('cleanlooks')
-    wao = widgetAOWindow(arguments["<parameters_filename>"],
-                         BRAHMA=arguments["--brahma"], expert=arguments["--expert"],
-                         devices=arguments["--devices"])
+    wao = widgetAOWindow(arguments["<parameters_filename>"], cacao=arguments["--cacao"],
+                         expert=arguments["--expert"], devices=arguments["--devices"])
     wao.show()
     if arguments["--interactive"]:
         from shesha.util.ipython_embed import embed

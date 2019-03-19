@@ -212,6 +212,16 @@ void rtc_impl(py::module &mod, const char *name) {
      )pbdoc",
            py::arg("ncentro"))
 
+      .def("do_calibrate_img", (int (rtc::*)(int)) & rtc::do_calibrate_img,
+           R"pbdoc(
+        Computes the calibrated image
+
+        Parameters
+        ------------
+        ncontrol: (int): Index of the controller
+    )pbdoc",
+           py::arg("ncontrol"))
+
       .def("do_centroids", (int (rtc::*)(int)) & rtc::do_centroids,
            R"pbdoc(
         Computes the centroids

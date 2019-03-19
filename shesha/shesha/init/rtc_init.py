@@ -21,8 +21,8 @@ from shesha.sutra_wrap import Rtc_FFF as Rtc
 def rtc_init(context: carmaWrap_context, tel: Telescope, wfs: Sensors, dms: Dms,
              atmos: Atmos, p_wfss: list, p_tel: conf.Param_tel, p_geom: conf.Param_geom,
              p_atmos: conf.Param_atmos, ittime: float, p_centroiders=None,
-             p_controllers=None, p_dms=None, do_refslp=False, brahma=False, tar=None,
-             dataBase={}, use_DB=False):
+             p_controllers=None, p_dms=None, do_refslp=False, brahma=False, cacao=False,
+             tar=None, dataBase={}, use_DB=False):
     """Initialize all the sutra_rtc objects : centroiders and controllers
 
     :parameters:
@@ -41,6 +41,7 @@ def rtc_init(context: carmaWrap_context, tel: Telescope, wfs: Sensors, dms: Dms,
         p_dms: (list of Param_dms) : (optional) dms settings
         do_refslp : (bool): (optional) do ref slopes flag, default=False
         brahma: (bool) : (optional) BRAHMA flag
+        cacao: (bool) : (optional) cacao flag
         tar: (Target) : (optional)
         dataBase: (dict): (optional) dict containig paths to files to load
         use_DB: (bool): use dataBase flag
@@ -50,9 +51,9 @@ def rtc_init(context: carmaWrap_context, tel: Telescope, wfs: Sensors, dms: Dms,
     # initialisation var
     # ________________________________________________
     if brahma:
-        print(wfs)
-        print(tar)
         rtc = Rtc_brahma(context, wfs, tar, "rtc_brahma")
+    elif cacao:
+        rtc = Rtc_cacao_FFF("compass_calPix", "compass_loopData")
     else:
         rtc = Rtc()
 

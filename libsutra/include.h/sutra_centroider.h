@@ -46,6 +46,7 @@ class sutra_centroider {
   int set_npix(int npix);
   int set_nxsub(int nxsub);
   int load_img(Tin *img, int n);
+  int load_img_gpu(carma_obj<Tin> *d_img_raw);
   int get_validMask();
   bool is_type(string typec) { return (typec.compare(get_type()) == 0); }
 

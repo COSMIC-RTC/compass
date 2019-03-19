@@ -320,6 +320,7 @@ class Simulator:
                         self.raytraceWfs(w, "dm", rst=False)
                     self.compWfsImage(w)
             if do_control and self.rtc is not None:
+                self.doCalibate_img(nControl)
                 self.doCentroids(nControl)
                 self.doControl(nControl)
                 self.doClipping(nControl)
@@ -508,6 +509,16 @@ class Simulator:
             else:
                 self.rtc.d_control[nControl].comp_dphi(self.tar.d_targets[n], False)
         self.rtc.do_control(nControl)
+
+    def doCalibate_img(self, nControl: int):
+        '''
+        Computes the calibrated image from the Wfs image
+
+        Parameters
+        ------------
+        nControl: (int): controller index
+        '''
+        self.rtc.do_calibrate_img(nControl)
 
     def doCentroids(self, nControl: int):
         '''

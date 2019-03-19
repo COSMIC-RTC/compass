@@ -36,11 +36,14 @@ void sutra_rtc_cacao<Tin, Tcomp, Tout>::allocateBuffers() {
 
   nslp_ = 0;
   ncmd_ = 0;
+  nvalid_ = 0;
+  for (unsigned int i = 0; i < this->d_centro.size(); i++) {
+    nvalid_ += this->d_centro[i]->d_intensities->getNbElem();
+  }
   for (unsigned int i = 0; i < this->d_control.size(); i++) {
     nslp_ += this->d_control[i]->nslope();
     ncmd_ += this->d_control[i]->nactu();
   }
-  nvalid_ = nslp_ / 2;
 
   uint32_t size_tot = nvalid_ + nslp_ + ncmd_;
   iLoopFrame_ = std::make_shared<ipc::Cacao<Tcomp>>(ipc::Cacao<Tcomp>(
@@ -86,5 +89,8 @@ template class sutra_rtc_cacao<uint16_t, float, float>;
 template class sutra_rtc_cacao<float, float, uint16_t>;
 template class sutra_rtc_cacao<uint16_t, float, uint16_t>;
 #ifdef CAN_DO_HALF
-// template class sutra_rtc_cacao<half>;
+// template class sutra_rtc_cacao<float, half, float>;
+// template class sutra_rtc_cacao<float, half, uint16_t>;
+// template class sutra_rtc_cacao<uint16_t, half, float>;
+// template class sutra_rtc_cacao<uint16_t, half, uint16_t>;
 #endif

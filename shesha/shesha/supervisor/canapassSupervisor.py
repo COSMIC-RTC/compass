@@ -36,8 +36,8 @@ from .compassSupervisor import CompassSupervisor
 
 class CanapassSupervisor(CompassSupervisor):
 
-    def __init__(self, configFile: str = None, BRAHMA: bool = True) -> None:
-        CompassSupervisor.__init__(self, configFile=configFile, BRAHMA=BRAHMA)
+    def __init__(self, configFile: str = None, cacao: bool = True) -> None:
+        CompassSupervisor.__init__(self, configFile=configFile, cacao=cacao)
 
         #############################################################
         #                 CONNECTED BUTTONS                         #
@@ -81,11 +81,11 @@ class CanapassSupervisor(CompassSupervisor):
         <volts> : voltage vector to be applied on the DM.
         """
         ntotDm = len(self._sim.config.p_dms)
-        if(numdm<ntotDm):
+        if (numdm < ntotDm):
             self._sim.dms.d_dms[numdm].set_com(volts)
         else:
-            print("ERROR !!!!\nRequested DM (", numdm, ") conflicts with number of available DMs (", ntotDm, ").")
-
+            print("ERROR !!!!\nRequested DM (", numdm,
+                  ") conflicts with number of available DMs (", ntotDm, ").")
 
     def getConfig(self, path=None):
         ''' Returns the configuration in use, in a supervisor specific format '''
@@ -720,7 +720,7 @@ class CanapassSupervisor(CompassSupervisor):
                 tmpdata[2, :] = self._sim.config.p_dms[j]._xpos
                 tmpdata[3, :] = self._sim.config.p_dms[j]._ypos
             else:
-                tmpdata = np.zeros((4,2))
+                tmpdata = np.zeros((4, 2))
 
             new_hdudmsl.append(pfits.ImageHDU(tmpdata))  # Valid subap array
             new_hdudmsl[j].header["DATATYPE"] = "valid_dm%d" % j
@@ -964,7 +964,7 @@ class CanapassSupervisor(CompassSupervisor):
 if __name__ == '__main__':
     from docopt import docopt
     arguments = docopt(__doc__)
-    supervisor = CanapassSupervisor(arguments["<parameters_filename>"], True)
+    supervisor = CanapassSupervisor(arguments["<parameters_filename>"], cacao=True)
     supervisor.initConfig()
 
     try:

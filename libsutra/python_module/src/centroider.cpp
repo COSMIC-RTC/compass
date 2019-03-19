@@ -145,6 +145,16 @@ void centroider_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("img"), py::arg("n"))
 
+      .def("load_img_gpu", &centroider::load_img_gpu, R"pbdoc(
+            Load a SH image in a RTC standalone (device to device)
+
+        Parameters
+        ------------
+        img: (np.ndarray[ndim=2, dtype=np.float32_t]): SH image
+        n: (int): Image support size
+    )pbdoc",
+           py::arg("img"))
+
       .def("calibrate_img", &centroider::calibrate_img, R"pbdoc(
            Performs the raw WFS frame calibration
            )pbdoc")

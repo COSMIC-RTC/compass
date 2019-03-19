@@ -232,7 +232,7 @@ class CompassSupervisor(AbstractSupervisor):
     # |____/| .__/ \___|\___|_|\__|_|\___| |_|  |_|\___|\__|_| |_|\___/ \__,_|___/
     #       |_|
 
-    def __init__(self, configFile: str = None, BRAHMA: bool = False,
+    def __init__(self, configFile: str = None, cacao: bool = False,
                  use_DB: bool = False):
         '''
         Init the COMPASS supervisor
@@ -240,13 +240,13 @@ class CompassSupervisor(AbstractSupervisor):
         Parameters
         ------------
         configFile: (str): (optionnal) Path to the parameter file
-        BRAHMA: (bool): (optionnal) Flag to enable BRAHMA
+        cacao: (bool): (optionnal) Flag to enable cacao
         use_DB: (bool): (optionnal) Flag to enable database
         '''
         self._sim = None
         self._seeAtmos = False
         self.config = None
-        self.BRAHMA = BRAHMA
+        self.cacao = cacao
         self.use_DB = use_DB
 
         if configFile is not None:
@@ -330,8 +330,8 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         if self._sim is None:
             if sim is None:
-                if self.BRAHMA:
-                    from shesha.sim.simulatorBrahma import SimulatorBrahma as Simulator
+                if self.cacao:
+                    from shesha.sim.simulatorCacao import SimulatorCacao as Simulator
                 else:
                     from shesha.sim.simulator import Simulator
                 self._sim = Simulator(filepath=configFile, use_DB=self.use_DB)

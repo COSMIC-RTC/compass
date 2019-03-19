@@ -48,42 +48,43 @@ int sutra_rtc<Tin, T, Tout>::add_centroider(carma_context *context, long nvalid,
                                             float offset, float scale,
                                             long device, std::string typec,
                                             sutra_wfs *wfs) {
-  return add_centroider_impl(context, this->d_centro, nvalid, offset, scale,
-                             device, typec, wfs, std::is_same<T, half>());
+  return add_centroider_impl(context, nvalid, offset, scale, device, typec, wfs,
+                             std::is_same<T, half>());
 }
 
 template <typename Tin, typename T, typename Tout>
 template <typename Q>
 typename std::enable_if<!std::is_same<Q, half>::value, int>::type
-sutra_rtc<Tin, T, Tout>::add_centroider_impl(
-    carma_context *context, vector<sutra_centroider<Tin, T> *> &d_centro,
-    long nvalid, float offset, float scale, long device, std::string typec,
-    sutra_wfs *wfs, std::false_type) {
+sutra_rtc<Tin, T, Tout>::add_centroider_impl(carma_context *context,
+                                             long nvalid, float offset,
+                                             float scale, long device,
+                                             std::string typec, sutra_wfs *wfs,
+                                             std::false_type) {
   if (typec.compare("bpcog") == 0)
-    d_centro.push_back(new sutra_centroider_bpcog<Tin, T>(
+    this->d_centro.push_back(new sutra_centroider_bpcog<Tin, T>(
         context, wfs, nvalid, offset, scale, device, 10));
   else if (typec.compare("cog") == 0)
-    d_centro.push_back(new sutra_centroider_cog<Tin, T>(context, wfs, nvalid,
-                                                        offset, scale, device));
+    this->d_centro.push_back(new sutra_centroider_cog<Tin, T>(
+        context, wfs, nvalid, offset, scale, device));
   else if (typec.compare("corr") == 0)
-    d_centro.push_back(new sutra_centroider_corr<Tin, T>(
+    this->d_centro.push_back(new sutra_centroider_corr<Tin, T>(
         context, wfs, nvalid, offset, scale, device));
   else if (typec.compare("pyr") == 0)
-    d_centro.push_back(new sutra_centroider_pyr<Tin, T>(context, wfs, nvalid,
-                                                        offset, scale, device));
+    this->d_centro.push_back(new sutra_centroider_pyr<Tin, T>(
+        context, wfs, nvalid, offset, scale, device));
   else if (typec.compare("tcog") == 0)
-    d_centro.push_back(new sutra_centroider_tcog<Tin, T>(
+    this->d_centro.push_back(new sutra_centroider_tcog<Tin, T>(
         context, wfs, nvalid, offset, scale, device));
   else if (typec.compare("wcog") == 0)
-    d_centro.push_back(new sutra_centroider_wcog<Tin, T>(
+    this->d_centro.push_back(new sutra_centroider_wcog<Tin, T>(
         context, wfs, nvalid, offset, scale, device));
   else if (typec.compare("maskedpix") == 0) {
     if (wfs == nullptr) {
-      d_centro.push_back(new sutra_centroider_maskedPix<Tin, T>(
+      this->d_centro.push_back(new sutra_centroider_maskedPix<Tin, T>(
           context, wfs, nvalid, 4, offset, scale, device));
     } else if (wfs->type == "pyrhr") {
       sutra_wfs_pyr_pyrhr *pwfs = dynamic_cast<sutra_wfs_pyr_pyrhr *>(wfs);
-      d_centro.push_back(new sutra_centroider_maskedPix<Tin, T>(
+      this->d_centro.push_back(new sutra_centroider_maskedPix<Tin, T>(
           context, pwfs, nvalid, pwfs->npupils, offset, scale, device));
     } else
       DEBUG_TRACE("WFS must be pyrhr");
@@ -97,25 +98,24 @@ sutra_rtc<Tin, T, Tout>::add_centroider_impl(
 #ifdef CAN_DO_HALF
 template <typename Tin, typename T, typename Tout>
 int sutra_rtc<Tin, T, Tout>::add_centroider_impl(
-    carma_context *context, vector<sutra_centroider<Tin, T> *> &d_centro,
-    long nvalid, float offset, float scale, long device, std::string typec,
-    sutra_wfs *wfs, std::true_type) {
+    carma_context *context, long nvalid, float offset, float scale, long device,
+    std::string typec, sutra_wfs *wfs, std::true_type) {
   if (typec.compare("cog") == 0)
-    d_centro.push_back(new sutra_centroider_cog<Tin, T>(context, wfs, nvalid,
-                                                        offset, scale, device));
+    this->d_centro.push_back(new sutra_centroider_cog<Tin, T>(
+        context, wfs, nvalid, offset, scale, device));
   else if (typec.compare("bpcog") == 0)
-    d_centro.push_back(new sutra_centroider_bpcog<Tin, T>(
+    this->d_centro.push_back(new sutra_centroider_bpcog<Tin, T>(
         context, wfs, nvalid, offset, scale, device, 10));
   else if (typec.compare("tcog") == 0)
-    d_centro.push_back(new sutra_centroider_tcog<Tin, T>(
+    this->d_centro.push_back(new sutra_centroider_tcog<Tin, T>(
         context, wfs, nvalid, offset, scale, device));
   else if (typec.compare("maskedpix") == 0) {
     if (wfs == nullptr) {
-      d_centro.push_back(new sutra_centroider_maskedPix<Tin, T>(
+      this->d_centro.push_back(new sutra_centroider_maskedPix<Tin, T>(
           context, wfs, nvalid, 4, offset, scale, device));
     } else if (wfs->type == "pyrhr") {
       sutra_wfs_pyr_pyrhr *pwfs = dynamic_cast<sutra_wfs_pyr_pyrhr *>(wfs);
-      d_centro.push_back(new sutra_centroider_maskedPix<Tin, T>(
+      this->d_centro.push_back(new sutra_centroider_maskedPix<Tin, T>(
           context, pwfs, nvalid, pwfs->npupils, offset, scale, device));
     } else
       DEBUG_TRACE("WFS must be pyrhr");
@@ -455,6 +455,22 @@ sutra_rtc<Tin, T, Tout>::do_imat_geom_impl(int ncntrl, sutra_dms *ydm, int type,
     }
     ++p;
   }
+  return EXIT_SUCCESS;
+}
+
+template <typename Tin, typename T, typename Tout>
+int sutra_rtc<Tin, T, Tout>::do_calibrate_img() {
+  for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
+    this->do_calibrate_img(idx_cntr);
+  }
+
+  return EXIT_SUCCESS;
+}
+
+template <typename Tin, typename T, typename Tout>
+int sutra_rtc<Tin, T, Tout>::do_calibrate_img(int ncntrl) {
+  this->d_centro[ncntrl]->calibrate_img();
+
   return EXIT_SUCCESS;
 }
 

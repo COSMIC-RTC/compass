@@ -140,6 +140,17 @@ int sutra_centroider<Tin, Tout>::load_img(Tin *img, int n) {
 }
 
 template <class Tin, class Tout>
+int sutra_centroider<Tin, Tout>::load_img_gpu(carma_obj<Tin> *d_img_raw) {
+  current_context->set_activeDevice(device, 1);
+  if (this->d_img_raw == nullptr) {
+    this->d_img_raw = new carma_obj<Tin>(current_context, d_img_raw->getDims());
+    this->d_img = new carma_obj<float>(current_context, d_img_raw->getDims());
+  }
+  this->d_img_raw->copyFrom(d_img_raw->getData(), this->d_img_raw->getNbElem());
+  return EXIT_SUCCESS;
+}
+
+template <class Tin, class Tout>
 int sutra_centroider<Tin, Tout>::set_npix(int npix) {
   this->npix = npix;
 
