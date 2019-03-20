@@ -128,25 +128,30 @@ int sutra_centroider<Tin, Tout>::calibrate_img() {
 }
 
 template <class Tin, class Tout>
+int sutra_centroider<Tin, Tout>::load_img(carma_obj<Tin> *img) {
+  return this->load_img(img->getData(), img->getDims(1), img->getDevice());
+}
+
+template <class Tin, class Tout>
 int sutra_centroider<Tin, Tout>::load_img(Tin *img, int n) {
+  return this->load_img(img, n, -1);
+}
+
+template <class Tin, class Tout>
+int sutra_centroider<Tin, Tout>::load_img(Tin *img, int n, int location) {
   current_context->set_activeDevice(device, 1);
   if (this->d_img_raw == nullptr) {
     long dims_data2[3] = {2, n, n};
     this->d_img_raw = new carma_obj<Tin>(current_context, dims_data2);
     this->d_img = new carma_obj<float>(current_context, dims_data2);
   }
-  this->d_img_raw->host2device(img);
-  return EXIT_SUCCESS;
-}
 
-template <class Tin, class Tout>
-int sutra_centroider<Tin, Tout>::load_img_gpu(carma_obj<Tin> *d_img_raw) {
-  current_context->set_activeDevice(device, 1);
-  if (this->d_img_raw == nullptr) {
-    this->d_img_raw = new carma_obj<Tin>(current_context, d_img_raw->getDims());
-    this->d_img = new carma_obj<float>(current_context, d_img_raw->getDims());
+  if (location < 0){ // img data on host
+    this->d_img_raw->host2device(img);
   }
-  this->d_img_raw->copyFrom(d_img_raw->getData(), this->d_img_raw->getNbElem());
+  else{ //img data on device
+    this->d_img_raw->copyFrom(img, this->d_img_raw->getNbElem());  
+  }
   return EXIT_SUCCESS;
 }
 

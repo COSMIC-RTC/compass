@@ -34,7 +34,7 @@ class SimulatorCacao(Simulator):
         """
         Overload of the Simulator.next() function with cacao publications
         """
-        self.rtc.d_centro[0].load_img_gpu(self.wfs.d_wfs[0].d_binimg)
+        self.rtc.d_centro[0].load_img(self.wfs.d_wfs[0].d_binimg)
         Simulator.next(self, **kwargs)
         if self.rtc is not None:
             self.rtc.publish()

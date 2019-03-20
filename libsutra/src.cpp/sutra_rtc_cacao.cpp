@@ -90,7 +90,7 @@ template class sutra_rtc_cacao<float, float, uint16_t>;
 template class sutra_rtc_cacao<uint16_t, float, uint16_t>;
 #ifdef CAN_DO_HALF
 // template class sutra_rtc_cacao<float, half, float>;
-// template class sutra_rtc_cacao<float, half, uint16_t>;
 // template class sutra_rtc_cacao<uint16_t, half, float>;
+// template class sutra_rtc_cacao<float, half, uint16_t>;
 // template class sutra_rtc_cacao<uint16_t, half, uint16_t>;
 #endif
