@@ -6,6 +6,20 @@ project(sutraWrap
     LANGUAGES CXX CUDA
 )
 
+if(NOT TARGET wyrm::wyrm)
+    if(hunter_build)
+        hunter_add_package(wyrm)
+        find_package(wyrm CONFIG REQUIRED)
+    else()
+        if(IS_DIRECTORY $ENV{WYRM_ROOT})
+            add_subdirectory($ENV{WYRM_ROOT} wyrm_dir)
+            add_library(wyrm::wyrm ALIAS wyrm) # to match exported target
+        else()
+            message(FATAL_ERROR "Wyrm not found please define WYRM_ROOT or use hunter")
+        endif()
+    endif()
+endif()
+
 if (DEFINED ENV{BRAHMA_ROOT})
     SET(BRAHMA_DIRS $ENV{ACE_ROOT}/lib $ENV{TAO_ROOT}/tao $ENV{DDS_ROOT}/lib $ENV{BRAHMA_ROOT})
     link_directories( ${BRAHMA_DIRS} )
@@ -13,7 +27,7 @@ if (DEFINED ENV{BRAHMA_ROOT})
                 src/target_brahma.cpp)
 endif()
 
-if (DEFINED ENV{OCTOPUS_ROOT})
+if (${OCTOPUS_FOUND})
     SET(OCTOPUS_CPP src/rtc_cacao.cpp)
 endif()
 
@@ -50,7 +64,7 @@ add_library(sutraWrap MODULE
                     )
 #link_directories($ENV{COMPASS_ROOT}/libsutra)
 
-target_link_libraries(sutraWrap PRIVATE wyrm carma sutra)
+target_link_libraries(sutraWrap PRIVATE wyrm::wyrm carma sutra)
 set_target_properties(sutraWrap PROPERTIES PREFIX "${PYTHON_MODULE_PREFIX}"
                                       SUFFIX "${PYTHON_MODULE_EXTENSION}")
 

@@ -7,6 +7,16 @@ endif()
 message(STATUS "COMPASS will be installed in: ${CMAKE_INSTALL_PREFIX}")
 
 option(python_build "Compile Python Wrappers" ON)
+option(hunter_build "Compile using hunter" ON)
+
+if(hunter_build)
+    include("cmake/HunterGate.cmake")
+
+    HunterGate(
+      URL "https://github.com/ruslo/hunter/archive/v0.23.141.tar.gz"
+      SHA1 "d81118e8ceb47b829dfb4bd63f5048cacb315780"
+      )
+endif()
 
 project(compass
         VERSION ${VERSION_INFO} DESCRIPTION "COMPASS library"

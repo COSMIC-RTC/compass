@@ -67,16 +67,30 @@ project(carma
 # cmake-format: on
 
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(MAGMA REQUIRED magma)
+find_package(CUDA REQUIRED)
 
+if(NOT TARGET cub::cub)
+    if(hunter_build)
+        hunter_add_package(cub)
+        find_package(cub CONFIG REQUIRED)
+    else()
+        if(IS_DIRECTORY $ENV{CUB_ROOT})
+            add_subdirectory($ENV{CUB_ROOT} cub_dir)
+            add_library(cub::cub ALIAS cub) # to match exported target
+        else()
+            message(FATAL_ERROR "cub not found please define CUB_ROOT or use hunter")
+        endif()
+    endif()
+endif()
+
+pkg_check_modules(MAGMA REQUIRED magma)
 link_directories(${MAGMA_LIBRARY_DIRS})
-if(DEFINED ENV{OCTOPUS_ROOT})
-  pkg_check_modules(OCTOPUS octopus)
-  if(${OCTOPUS_FOUND})
-    link_directories(${OCTOPUS_LIBRARY_DIRS})
-  else()
-    message(STATUS "OCTOPUS_ROOT not find")
-  endif()
+
+pkg_check_modules(OCTOPUS octopus)
+if(${OCTOPUS_FOUND})
+  link_directories(${OCTOPUS_LIBRARY_DIRS})
+else()
+  message(STATUS "OCTOPUS_ROOT not find, CACAO features disabled")
 endif()
 
 add_library(carma
@@ -107,7 +121,7 @@ add_library(carma
             ./src.cu/carma_sum.cu
             ./src.cu/carma_transpose.cu)
 
-if(DEFINED ENV{OCTOPUS_ROOT})
+if(${OCTOPUS_FOUND})
   target_compile_definitions(carma PUBLIC USE_OCTOPUS=1)
   target_compile_options(carma PUBLIC -DUSE_CACAO ${OCTOPUS_CFLAGS})
   target_include_directories(
@@ -155,21 +169,20 @@ target_compile_definitions(
   PRIVATE
   $<$<COMPILE_LANGUAGE:CXX>:USE_MAGMA>)
 
-find_package(CUDA REQUIRED)
 target_link_libraries(carma
                       PUBLIC ${CUDA_LIBRARIES}
                              ${CUDA_cufft_LIBRARY}
                              ${CUDA_cublas_LIBRARY}
                              ${CUDA_curand_LIBRARY}
                              ${CUDA_cusparse_LIBRARY}
+                             cub::cub
                       PRIVATE magma) # ${MAGMA_LIBRARIES})
 
 target_include_directories(
   carma
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include.h
          ${CUDA_INCLUDE_DIRS}
-         $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CURRENT_SOURCE_DIR}/include.cuh
-         $ENV{COMPASS_ROOT}/tplib/cub>
+         $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CURRENT_SOURCE_DIR}/include.cuh>
   PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${MAGMA_INCLUDE_DIRS}>)
 
 if(python_build)
