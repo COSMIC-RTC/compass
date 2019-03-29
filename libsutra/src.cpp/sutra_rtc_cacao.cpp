@@ -76,7 +76,7 @@ void sutra_rtc_cacao<Tin, Tcomp, Tout>::publish() {
   }
 
   for (unsigned int i = 0; i < this->d_control.size(); i++) {
-    this->d_control[i]->d_com->device2host(zFrame);
+    this->d_control[i]->d_comClipped->device2host(zFrame);
     zFrame += this->d_control[i]->nactu();
   }
 
