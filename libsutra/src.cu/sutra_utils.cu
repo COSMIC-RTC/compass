@@ -101,7 +101,7 @@ __global__ void abs2_krnl(float *odata, cuFloatComplex *idata, int N,
 
   while (tid < N) {
     cache = idata[tid];
-    odata[tid] = fact * odata[tid] + cache.x * cache.x + cache.y * cache.y;
+    odata[tid] += (fact * (cache.x * cache.x + cache.y * cache.y));
     tid += blockDim.x * gridDim.x;
   }
 }

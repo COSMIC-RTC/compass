@@ -493,6 +493,20 @@ template int carma_host_obj<float>::wait_all_streams();
  return h_data;
  }
  */
+template <class T_data>
+int carma_host_obj<T_data>::fill(T_data value) {
+  std::fill(this->h_data, this->h_data + this->getNbElem(), value);
+
+  return EXIT_SUCCESS;
+}
+
+template int carma_host_obj<float>::fill(float value);
+template int carma_host_obj<double>::fill(double value);
+template int carma_host_obj<int>::fill(int value);
+template int carma_host_obj<unsigned int>::fill(unsigned int value);
+template int carma_host_obj<cuFloatComplex>::fill(cuFloatComplex value);
+template int carma_host_obj<cuDoubleComplex>::fill(cuDoubleComplex value);
+
 
 template <class T_data>
 int carma_host_obj<T_data>::fill_from(const T_data *data) {

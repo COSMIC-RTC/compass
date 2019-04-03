@@ -73,6 +73,7 @@ sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(
   dims_data1[1] = npup;
   this->pyr_cx = new carma_host_obj<float>(dims_data1, MA_WRICOMB);
   this->pyr_cy = new carma_host_obj<float>(dims_data1, MA_WRICOMB);
+  this->pyr_mod_weights = new carma_host_obj<float>(dims_data1, MA_WRICOMB);
 
   dims_data1[1] = nvalid;
   this->d_intensities = new carma_obj<float>(context, dims_data1);
@@ -167,6 +168,7 @@ sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
   if (this->d_poffsets != 0L) delete this->d_poffsets;
   if (this->pyr_cx != 0L) delete this->pyr_cx;
   if (this->pyr_cy != 0L) delete this->pyr_cy;
+  if (this->pyr_mod_weights != 0L) delete this->pyr_mod_weights;
 
   if (this->lgs) delete this->d_gs->d_lgs;
 
@@ -256,7 +258,7 @@ sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
 }
 
 int sutra_wfs_pyr_pyrhr::loadarrays(cuFloatComplex *halfxy, float *cx,
-                                    float *cy, float *sincar, float *submask,
+                                    float *cy, float *weights, float *sincar, float *submask,
                                     int *validsubsx, int *validsubsy,
                                     int *phasemap, float *fluxPerSub) {
   for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
@@ -291,6 +293,7 @@ int sutra_wfs_pyr_pyrhr::loadarrays(cuFloatComplex *halfxy, float *cx,
   this->d_submask->host2device(submask);
   this->pyr_cx->fill_from(cx);
   this->pyr_cy->fill_from(cy);
+  this->pyr_mod_weights->fill_from(weights);
   this->d_sincar->host2device(sincar);
   this->d_validsubsx->host2device(validsubsx);
   this->d_validsubsy->host2device(validsubsy);
@@ -341,7 +344,7 @@ void sutra_wfs_pyr_pyrhr::comp_modulation(int cpt) {
               *this->d_camplipup->getPlan());
 
     // float fact = 1.0f / this->nfft / this->nfft / this->nfft / 2.0;
-    float fact = 1.0f;
+    float fact = 1.0f * (this->pyr_mod_weights->getData())[cpt];
     abs2(this->d_hrimg->getData(), this->d_fttotim->getData(),
          this->nfft * this->nfft, fact,
          this->current_context->get_device(device));
@@ -373,7 +376,7 @@ void sutra_wfs_pyr_pyrhr::comp_modulation(int cpt) {
               this->d_fttotim_ngpu[cur_device]->getData(), 1,
               *this->d_camplipup_ngpu[cur_device]->getPlan());
     // float fact = 1.0f / this->nfft / this->nfft / this->nfft / 2.0;
-    float fact = 1.0f;
+    float fact = 1.0f * (this->pyr_mod_weights->getData())[cpt];
     abs2(this->d_hrimg_ngpu[cur_device]->getData(),
          this->d_fttotim_ngpu[cur_device]->getData(), this->nfft * this->nfft,
          fact, this->current_context->get_device(cur_device));
@@ -587,6 +590,22 @@ int sutra_wfs_pyr_pyrhr::copyValidPix(float *img, int *validx, int *validy,
   return EXIT_SUCCESS;
 }
 
+int sutra_wfs_pyr_pyrhr::set_pyr_mod_weights(float *weights, int npts) {
+  if(this->npup != npts) {
+    DEBUG_TRACE("Number of elements mismatch the modulation points one");
+    return EXIT_FAILURE;
+  }
+  this->pyr_mod_weights->fill_from(weights);
+  return EXIT_SUCCESS;
+}
+
+int sutra_wfs_pyr_pyrhr::set_pyr_modulation(float *cx, float *cy, float *weights, int npts) {
+  int status;
+  status = this->set_pyr_modulation(cx, cy, npts);
+  status *= this->set_pyr_mod_weights(weights, npts);
+  return status;
+}
+
 int sutra_wfs_pyr_pyrhr::set_pyr_modulation(float *cx, float *cy, int npts) {
   current_context->set_activeDevice(device, 1);
   this->npup = npts;
@@ -594,9 +613,14 @@ int sutra_wfs_pyr_pyrhr::set_pyr_modulation(float *cx, float *cy, int npts) {
     delete this->pyr_cx;
     delete this->pyr_cy;
   }
+  if (this->pyr_mod_weights != 0L) {
+    delete this->pyr_mod_weights;
+  }
   long dims_data1[2] = {1, npts};
   this->pyr_cx = new carma_host_obj<float>(dims_data1, cx, MA_WRICOMB);
   this->pyr_cy = new carma_host_obj<float>(dims_data1, cy, MA_WRICOMB);
+  this->pyr_mod_weights = new carma_host_obj<float>(dims_data1, MA_WRICOMB);
+  this->pyr_mod_weights->fill(1.f);
 
   return EXIT_SUCCESS;
 }

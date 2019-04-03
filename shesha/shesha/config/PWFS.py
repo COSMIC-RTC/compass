@@ -183,6 +183,8 @@ class Param_wfs:
         self._pyr_offsets = None  # (float*)
         self.__pyr_cx = None  # (float*)
         self.__pyr_cy = None  # (float*)
+        self.__pyr_weights = None
+        """ Modulation points ponderation weights"""
 
     def get_type(self):
         """ Get the type of wfs
@@ -1330,6 +1332,18 @@ class Param_wfs:
     def set_pyr_pos(self, data):
         """ TODO : docstring
         """
-        self.__pyr_pos = csu.enforce_array(data.copy(), data.size, dtype=np.complex64)
+        self.__pyr_pos = csu.enforce_array(data.copy(), data.size, dtype=np.float32)
 
     pyr_pos = property(get_pyr_pos, set_pyr_pos)
+
+    def get_pyr_weights(self):
+        """ TODO : docstring
+        """
+        return self.__pyr_weights
+
+    def set_pyr_weights(self, data):
+        """ TODO : docstring
+        """
+        self.__pyr_weights = csu.enforce_array(data.copy(), data.size, dtype=np.float32)
+
+    _pyr_weights = property(get_pyr_weights, set_pyr_weights)

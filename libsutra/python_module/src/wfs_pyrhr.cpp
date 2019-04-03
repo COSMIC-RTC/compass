@@ -45,9 +45,13 @@ void declare_wfs_pyrhr(py::module &mod) {
                              [](sutra_wfs_pyr_pyrhr &sp) { return sp.pyr_cx; },
                              "TODO: docstring")
 
-      .def_property_readonly("pyr_cx",
+      .def_property_readonly("pyr_cy",
                              [](sutra_wfs_pyr_pyrhr &sp) { return sp.pyr_cy; },
-                             "TODO: docstring")
+                             "Modulation points X-positions")
+
+      .def_property_readonly("pyr_mod_weights",
+                             [](sutra_wfs_pyr_pyrhr &sp) { return sp.pyr_mod_weights; },
+                             "Ponderation weights for each modulation points")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝
@@ -63,6 +67,7 @@ void declare_wfs_pyrhr(py::module &mod) {
       halfxy:
       cx:
       cy:
+      weights:
       sincar:
       submask:
       validsubsx:
@@ -70,7 +75,7 @@ void declare_wfs_pyrhr(py::module &mod) {
       phasemap:
       fluxPerSub:
     )pbdoc",
-           py::arg("halfxy"), py::arg("cx"), py::arg("cy"), py::arg("sincar"),
+           py::arg("halfxy"), py::arg("cx"), py::arg("cy"), py::arg("weights"), py::arg("sincar"),
            py::arg("submask"), py::arg("validsubsx"), py::arg("validsubsy"),
            py::arg("phasemap"), py::arg("fluxPerSub"))
 
@@ -113,7 +118,7 @@ void declare_wfs_pyrhr(py::module &mod) {
            py::arg("img"))
 
       .def("set_pyr_modulation",
-           wy::colCast(&sutra_wfs_pyr_pyrhr::set_pyr_modulation), R"pbdoc(
+           wy::colCast((int (sutra_wfs_pyr_pyrhr::*)(float*, float*, int)) &sutra_wfs_pyr_pyrhr::set_pyr_modulation), R"pbdoc(
         Set the modulation points of a PWFS
 
         Parameters
@@ -123,6 +128,30 @@ void declare_wfs_pyrhr(py::module &mod) {
         npts: (int): number of modulation points
       )pbdoc",
            py::arg("cx"), py::arg("cy"), py::arg("npts"))
+
+      .def("set_pyr_modulation",
+           wy::colCast((int (sutra_wfs_pyr_pyrhr::*)(float*, float*, float*, int)) &sutra_wfs_pyr_pyrhr::set_pyr_modulation), R"pbdoc(
+        Set the modulation points and weights of a PWFS
+
+        Parameters
+        ------------
+        cx: (np.ndarray[ndim=1, dtype=np.float32_t]): X position of modulation points
+        cy: (np.ndarray[ndim=1, dtype=np.float32_t]): Y position of modulation points
+        weights: (np.ndarray[ndim=1, dtype=np.float32_t]): modulation points weights ponderation
+        npts: (int): number of modulation points
+      )pbdoc",
+           py::arg("cx"), py::arg("cy"), py::arg("weights"), py::arg("npts"))
+
+      .def("set_pyr_mod_weights",
+           wy::colCast(&sutra_wfs_pyr_pyrhr::set_pyr_mod_weights), R"pbdoc(
+        Set the modulation points weights of a PWFS
+
+        Parameters
+        ------------
+        weights: (np.ndarray[ndim=1, dtype=np.float32_t]): modulation points weights ponderation
+        npts: (int): number of modulation points
+      )pbdoc",
+           py::arg("weights"), py::arg("npts"))
 
       .def("set_submask",
            [](sutra_wfs_pyr_pyrhr &sp, F_arrayS data) {

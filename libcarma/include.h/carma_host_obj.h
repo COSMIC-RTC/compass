@@ -101,6 +101,7 @@ class carma_host_obj {
   /**< Memory transfer */
   int fill_from(const T_data *data);
   int fill_into(T_data *data);
+  int fill(T_data value);
 
   std::string getMetAlloc() {
     switch (mallocType) {

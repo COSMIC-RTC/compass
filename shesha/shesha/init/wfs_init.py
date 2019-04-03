@@ -113,8 +113,10 @@ def wfs_init(context: carmaWrap_context, telescope: Telescope, p_wfss: list,
         fluxPerSub = p_wfs._fluxPerSub.T[np.where(p_wfs._isvalid.T > 0)].copy()
         if p_wfs.type == scons.WFSType.PYRHR or p_wfs.type == scons.WFSType.PYRLR:
             halfxy = np.exp(1j * p_wfs._halfxy).astype(np.complex64).T.copy()
+            if(p_wfs._pyr_weights is None):
+                p_wfs.set_pyr_weights(np.ones(p_wfs._pyr_cx.size))
             wfs.loadarrays(
-                    complextofloat2(halfxy), p_wfs._pyr_cx, p_wfs._pyr_cy, p_wfs._sincar,
+                    complextofloat2(halfxy), p_wfs._pyr_cx, p_wfs._pyr_cy, p_wfs._pyr_weights, p_wfs._sincar,
                     p_wfs._submask, p_wfs._validsubsx, p_wfs._validsubsy,
                     p_wfs._phasemap, fluxPerSub)
         else:
