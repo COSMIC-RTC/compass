@@ -244,7 +244,7 @@ class carma_obj {
     return cudaMemset(this->d_data, 0, this->nb_elem * sizeof(T_data));
   }
   inline int memSet(T_data value) {
-    fill_array_with_value(this->d_data, value, this->nb_elem,
+    return fill_array_with_value(this->d_data, value, this->nb_elem,
                           this->current_context->get_device(this->device));
   }
   cufftHandle *getPlan() { return &plan; }

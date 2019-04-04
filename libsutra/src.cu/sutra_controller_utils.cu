@@ -1144,10 +1144,10 @@ void tab_dphi_lowpass(double *tab_dphi, struct cphim_struct *cphim_struct,
  */
 {
   // Assume one thread per element
-  int nblocks = (Ndphi * Nl0) / tabDPHI_thread_x +
-                (((Ndphi * Nl0) % tabDPHI_thread_x) != 0);
-  dim3 dimBlock(tabDPHI_thread_x, 1);
-  dim3 dimGrid(nblocks, 1);
+  // int nblocks = (Ndphi * Nl0) / tabDPHI_thread_x +
+  //               (((Ndphi * Nl0) % tabDPHI_thread_x) != 0);
+  // dim3 dimBlock(tabDPHI_thread_x, 1);
+  // dim3 dimGrid(nblocks, 1);
 
   // tabulateDPHI_lowpass_kernel<<<dimGrid, dimBlock, 0,
   // cphim_struct->cphim_stream>>>(tab_dphi,cphim_struct->tab_int_x,

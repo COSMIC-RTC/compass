@@ -227,7 +227,7 @@ template <>
 template <>
 // std::enable_if_t<std::is_same<T_data, half>::value>
 int carma_obj<half>::host2device<float>(const float *data) {
-  copyFromFloatToHalf(data, this->d_data, this->nb_elem,
+  return copyFromFloatToHalf(data, this->d_data, this->nb_elem,
                       this->current_context->get_device(this->device));
 }
 template <>
