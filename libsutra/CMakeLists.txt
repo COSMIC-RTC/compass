@@ -209,7 +209,6 @@ install(FILES include.h/sutra_acquisim.h
               include.h/sutra_controller_generic.h
               include.h/sutra_controller_geo.h
               include.h/sutra_controller.h
-              include.h/sutra_controller_kalman.h
               include.h/sutra_controller_ls.h
               include.h/sutra_controller_mv.h
               include.h/sutra_controller_utils.h
