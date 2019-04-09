@@ -490,7 +490,7 @@ class CompassSupervisor(AbstractSupervisor):
         self._sim.tar.d_targets[tarnum].set_ncpa(ncpa)
 
     def setWfsPhase(self, numwfs, phase):
-        self._sim.wfs.d_wfs[numwfs].d_gs.set_phase(pph)
+        self._sim.wfs.d_wfs[numwfs].d_gs.set_phase(phase)
 
     def setMpupil(self, mpupil, numwfs=0):
         oldmpup = self.getMpupil()

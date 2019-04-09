@@ -678,16 +678,16 @@ def correct_dm(context, dms: Dms, p_dms: list, p_controller: conf.Param_controll
 def makePetalDm(p_dm, p_geom, pupAngleDegree):
     '''
     makePetalDm(p_dm, p_geom, pupAngleDegree)
-     
+
     The function builds a DM, segmented in petals according to the pupil
     shape. The petals will be adapted to the EELT case only.
-    
+
     <p_geom> : compass object p_geom. The function requires the object p_geom
                in order to know what is the pupil mask, and what is the mpupil.
     <p_dm>   : compass petal dm object p_dm to be created. The function will
                transform/modify in place the attributes of the object p_dm.
-    
-    
+
+
     '''
     p_dm._n1 = p_geom._n1
     p_dm._n2 = p_geom._n2
@@ -718,8 +718,12 @@ def make_petal_dm_core(pupImage, pupAngleDegree):
     """
     # Splits the pupil into connex areas.
     # <segments> is the map of the segments, <nbSeg> in their number.
+    # binary_opening() allows us to suppress individual pixels that could
+    # be identified as relevant connex areas
     from scipy.ndimage.measurements import label
-    segments, nbSeg = label(pupImage)
+    from scipy.ndimage.morphology import binary_opening
+    s = np.ones((2,2), dtype=np.bool)
+    segments, nbSeg = label(binary_opening(pupImage,s))
 
     # Faut trouver le plus petit support commun a tous les
     # petales : on determine <smallsize>
@@ -743,6 +747,9 @@ def make_petal_dm_core(pupImage, pupAngleDegree):
         j2t.append(np.max(np.where(profil)[0]))
         if extent>smallsize:
             smallsize = extent
+
+    # extension de la zone minimale pour avoir un peu de marge
+    smallsize += 2
 
     # Allocate array of influence functions
     influ = np.zeros((smallsize, smallsize, nbSeg), dtype=np.float32)
@@ -779,12 +786,12 @@ def build_petals(nbSeg, pupAngleDegree, i0, j0, npt):
     Makes an image npt x npt of <nbSeg> regularly spaced angular segments
     centred on (i0, j0).
     Origin of angles is set by <pupAngleDegree>.
-    
+
     The segments are oriented as defined in document "Standard Coordinates
-    and Basic Conventions", ESO-193058. 
+    and Basic Conventions", ESO-193058.
     This document states that the X axis lies in the middle of a petal, i.e.
     that the axis Y is along the spider.
-    The separation angle between segments are [-30, 30, 90, 150, -150, -90]. 
+    The separation angle between segments are [-30, 30, 90, 150, -150, -90].
     For this reason, an <esoOffsetAngle> = -pi/6 is introduced in the code.
 
     nbSeg = 6
@@ -813,6 +820,3 @@ def build_petals(nbSeg, pupAngleDegree, i0, j0, npt):
         nn = np.where( np.logical_and(theta>=startAngle[i], theta<endAngle[i]) )
         petalMap[nn] = i
     return petalMap
-
-
-
