@@ -354,6 +354,10 @@ class Simulator:
             n: (int): (optional) Number of iteration that will be done
             monitoring_freq: (int): (optional) Monitoring frequency [frames]
         """
+        if not compute_tar_psf:
+            print("WARNING: Target PSF will be computed (& accumulated) only during monitoring"
+                  )
+
         print("----------------------------------------------------")
         print("iter# | S.E. SR | L.E. SR | ETR (s) | Framerate (Hz)")
         print("----------------------------------------------------")
