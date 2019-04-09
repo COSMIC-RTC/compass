@@ -27,11 +27,11 @@ if __name__ == "__main__":
     # Get parameters from file
     if arguments["--bench"]:
         from shesha.supervisor.benchSupervisor import BenchSupervisor as Supervisor
-
     elif arguments["--brahma"]:
         from shesha.supervisor.canapassSupervisor import CanapassSupervisor as Supervisor
     else:
         from shesha.supervisor.compassSupervisor import CompassSupervisor as Supervisor
+
     if arguments["--DB"]:
         use_DB = True
 

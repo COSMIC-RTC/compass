@@ -17,6 +17,7 @@ class sutra_wfs_pyr_pyrhr : public sutra_wfs {
   carma_obj<float> *d_hrimg;
   carma_obj<float> *d_submask;
   carma_obj<float> *d_psum;
+  carma_obj<float> *d_pyrfocalplane;
   carma_obj<cuFloatComplex> *d_phalfxy;
   carma_obj<cuFloatComplex> *d_poffsets;
 
@@ -45,9 +46,9 @@ class sutra_wfs_pyr_pyrhr : public sutra_wfs {
                       int nbdevices, int *devices);
   ~sutra_wfs_pyr_pyrhr();
 
-  int loadarrays(cuFloatComplex *halfxy, float *cx, float *cy, float *weights, float *sincar,
-                 float *submask, int *validsubsx, int *validsubsy,
-                 int *phasemap, float *fluxPerSub);
+  int loadarrays(cuFloatComplex *halfxy, float *cx, float *cy, float *weights,
+                 float *sincar, float *submask, int *validsubsx,
+                 int *validsubsy, int *phasemap, float *fluxPerSub);
   int set_submask(float *submask);
 
   int fill_binimage(int async = 0);
@@ -73,6 +74,7 @@ class sutra_wfs_pyr_pyrhr : public sutra_wfs {
   std::vector<carma_obj<cuFloatComplex> *> d_camplifoc_ngpu;
   std::vector<carma_obj<cuFloatComplex> *> d_phalfxy_ngpu;
   std::vector<carma_obj<cuFloatComplex> *> d_fttotim_ngpu;
+  std::vector<carma_obj<float> *> d_pyrfocalplane_ngpu;
   std::vector<carma_obj<float> *> d_screen_ngpu;
   std::vector<carma_obj<float> *> d_hrimg_ngpu;
   std::vector<carma_obj<float> *> d_submask_ngpu;

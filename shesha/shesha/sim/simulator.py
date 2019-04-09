@@ -265,7 +265,8 @@ class Simulator:
 
     def next(self, *, move_atmos: bool = True, see_atmos: bool = True, nControl: int = 0,
              tar_trace: Iterable[int] = None, wfs_trace: Iterable[int] = None,
-             do_control: bool = True, apply_control: bool = True) -> None:
+             do_control: bool = True, apply_control: bool = True,
+             compute_psf: bool = True) -> None:
         '''
         Iterates the AO loop, with optional parameters
 
@@ -327,13 +328,17 @@ class Simulator:
 
             if apply_control:
                 self.applyControl(nControl)
+
+        if compute_psf:
+            for nTar in tar_trace:
+                self.compTarImage(nTar)
+                self.compStrehl(nTar)
+
         self.iter += 1
 
     def print_strehl(self, monitoring_freq: int, t1: float, nCur: int = 0, nTot: int = 0,
                      nTar: int = 0):
         framerate = monitoring_freq / t1
-        self.compTarImage(nTar)
-        self.compStrehl(nTar)
         strehl = self.getStrehl(nTar)
         etr = (nTot - nCur) / framerate
         print("%d \t %.3f \t  %.3f\t     %.1f \t %.1f" % (nCur + 1, strehl[0], strehl[1],

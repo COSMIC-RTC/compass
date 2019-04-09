@@ -29,6 +29,7 @@ sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(
   this->d_submask = new carma_obj<float>(context, dims_data2);
   this->d_camplipup = new carma_obj<cuFloatComplex>(context, dims_data2);
   this->d_camplifoc = new carma_obj<cuFloatComplex>(context, dims_data2);
+  this->d_pyrfocalplane = new carma_obj<float>(context, dims_data2);
   cufftHandle *plan = this->d_camplipup->getPlan();  ///< FFT plan
   carmafftSafeCall(cufftPlan2d(plan, dims_data2[1], dims_data2[2], CUFFT_C2C));
 
@@ -102,6 +103,7 @@ sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(
   d_hrimg_ngpu.push_back(this->d_hrimg);
   d_camplipup_ngpu.push_back(this->d_camplipup);
   d_camplifoc_ngpu.push_back(this->d_camplifoc);
+  d_pyrfocalplane_ngpu.push_back(this->d_pyrfocalplane);
   d_phalfxy_ngpu.push_back(this->d_phalfxy);
   d_fttotim_ngpu.push_back(this->d_fttotim);
   d_screen_ngpu.push_back(
@@ -119,6 +121,7 @@ sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(
         new carma_obj<cuFloatComplex>(context, dims_data2));
     d_camplifoc_ngpu.push_back(
         new carma_obj<cuFloatComplex>(context, dims_data2));
+    d_pyrfocalplane_ngpu.push_back(new carma_obj<float>(context, dims_data2));
     cufftHandle *plan =
         this->d_camplipup_ngpu[device]->getPlan();  ///< FFT plan
     carmafftSafeCall(
@@ -140,6 +143,7 @@ sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
   current_context->set_activeDevice(device, 1);
   if (this->d_camplipup != 0L) delete this->d_camplipup;
   if (this->d_camplifoc != 0L) delete this->d_camplifoc;
+  if (this->d_pyrfocalplane != 0L) delete this->d_pyrfocalplane;
 
   if (this->d_fttotim != 0L) delete this->d_fttotim;
 
@@ -195,6 +199,16 @@ sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
     }
   }
   this->d_camplifoc_ngpu.clear();
+
+  for (std::vector<carma_obj<float> *>::iterator it =
+           this->d_pyrfocalplane_ngpu.begin();
+       this->d_pyrfocalplane_ngpu.end() != it; ++it) {
+    if (*it != this->d_pyrfocalplane) {
+      current_context->set_activeDevice((*it)->getDevice(), 1);
+      delete *it;
+    }
+  }
+  this->d_pyrfocalplane_ngpu.clear();
 
   for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
            this->d_phalfxy_ngpu.begin();
@@ -258,9 +272,10 @@ sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
 }
 
 int sutra_wfs_pyr_pyrhr::loadarrays(cuFloatComplex *halfxy, float *cx,
-                                    float *cy, float *weights, float *sincar, float *submask,
-                                    int *validsubsx, int *validsubsy,
-                                    int *phasemap, float *fluxPerSub) {
+                                    float *cy, float *weights, float *sincar,
+                                    float *submask, int *validsubsx,
+                                    int *validsubsy, int *phasemap,
+                                    float *fluxPerSub) {
   for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
            this->d_phalfxy_ngpu.begin();
        this->d_phalfxy_ngpu.end() != it; ++it) {
@@ -327,7 +342,7 @@ void sutra_wfs_pyr_pyrhr::comp_modulation(int cpt) {
   if (ngpu < 2) {
     carmaSafeCall(
         cudaMemset(this->d_camplipup->getData(), 0,
-                   2 * sizeof(float) * this->d_camplipup->getNbElem()));
+                   sizeof(cuFloatComplex) * this->d_camplipup->getNbElem()));
     pyr_getpup(
         this->d_camplipup->getData(), this->d_gs->d_phase->d_screen->getData(),
         this->d_pupil->getData(), this->ntot, this->nfft, this->d_gs->lambda,
@@ -338,13 +353,16 @@ void sutra_wfs_pyr_pyrhr::comp_modulation(int cpt) {
 
     pyr_submask(this->d_camplifoc->getData(), this->d_submask->getData(),
                 this->nfft, this->current_context->get_device(device));
+    // float fact = 1.0f / this->nfft / this->nfft / this->nfft / 2.0;
+    float fact = 1.0f * (this->pyr_mod_weights->getData())[cpt];
+    abs2(this->d_pyrfocalplane->getData(), this->d_camplifoc->getData(),
+         this->nfft * this->nfft, fact,
+         this->current_context->get_device(device));
     pyr_submaskpyr(this->d_camplifoc->getData(), this->d_phalfxy->getData(),
                    this->nfft, this->current_context->get_device(device));
     carma_fft(this->d_camplifoc->getData(), this->d_fttotim->getData(), 1,
               *this->d_camplipup->getPlan());
 
-    // float fact = 1.0f / this->nfft / this->nfft / this->nfft / 2.0;
-    float fact = 1.0f * (this->pyr_mod_weights->getData())[cpt];
     abs2(this->d_hrimg->getData(), this->d_fttotim->getData(),
          this->nfft * this->nfft, fact,
          this->current_context->get_device(device));
@@ -368,6 +386,11 @@ void sutra_wfs_pyr_pyrhr::comp_modulation(int cpt) {
     pyr_submask(this->d_camplifoc_ngpu[cur_device]->getData(),
                 this->d_submask_ngpu[cur_device]->getData(), this->nfft,
                 this->current_context->get_device(cur_device));
+    // float fact = 1.0f / this->nfft / this->nfft / this->nfft / 2.0;
+    float fact = 1.0f * (this->pyr_mod_weights->getData())[cpt];
+    abs2(this->d_pyrfocalplane_ngpu[cur_device]->getData(),
+         this->d_camplifoc_ngpu[cur_device]->getData(), this->nfft * this->nfft,
+         fact, this->current_context->get_device(cur_device));
 
     pyr_submaskpyr(this->d_camplifoc_ngpu[cur_device]->getData(),
                    this->d_phalfxy_ngpu[cur_device]->getData(), this->nfft,
@@ -375,8 +398,6 @@ void sutra_wfs_pyr_pyrhr::comp_modulation(int cpt) {
     carma_fft(this->d_camplifoc_ngpu[cur_device]->getData(),
               this->d_fttotim_ngpu[cur_device]->getData(), 1,
               *this->d_camplipup_ngpu[cur_device]->getPlan());
-    // float fact = 1.0f / this->nfft / this->nfft / this->nfft / 2.0;
-    float fact = 1.0f * (this->pyr_mod_weights->getData())[cpt];
     abs2(this->d_hrimg_ngpu[cur_device]->getData(),
          this->d_fttotim_ngpu[cur_device]->getData(), this->nfft * this->nfft,
          fact, this->current_context->get_device(cur_device));
@@ -409,6 +430,8 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
   current_context->set_activeDevice(device, 1);
   carmaSafeCall(cudaMemset(this->d_hrimg->getData(), 0,
                            sizeof(float) * this->d_hrimg->getNbElem()));
+  carmaSafeCall(cudaMemset(this->d_pyrfocalplane->getData(), 0,
+                           sizeof(float) * this->d_pyrfocalplane->getNbElem()));
   carmaSafeCall(cudaMemset(this->d_binimg->getData(), 0,
                            sizeof(float) * this->d_binimg->getNbElem()));
 
@@ -434,18 +457,24 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
     }
   }
 
+  for (std::vector<carma_obj<float> *>::iterator it =
+           this->d_pyrfocalplane_ngpu.begin();
+       this->d_pyrfocalplane_ngpu.end() != it; ++it) {
+    if (*it != d_pyrfocalplane) {
+      current_context->set_activeDevice((*it)->getDevice(), 1);
+      carmaSafeCall(
+          cudaMemset((*it)->getData(), 0, sizeof(float) * (*it)->getNbElem()));
+    }
+  }
+
   for (int cpt = 0; cpt < this->npup; cpt++) {
     comp_modulation(cpt);
   }
 
   current_context->set_activeDevice(device, 1);
 
-  long dims_data2[3];
-  dims_data2[0] = 2;
-  dims_data2[1] = nfft;
-  dims_data2[2] = nfft;
-  carma_obj<float> *tmp_vector =
-      new carma_obj<float>(current_context, dims_data2);
+  long dims_data2[3] = {2, nfft, nfft};
+  carma_obj<float> tmp_vector(current_context, dims_data2);
 
   for (std::vector<carma_obj<float> *>::iterator it =
            this->d_hrimg_ngpu.begin();
@@ -454,12 +483,25 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
       if (current_context->canP2P(d_hrimg->getDevice(), (*it)->getDevice())) {
         d_hrimg->axpy(1.0f, (*it), 1, 1);
       } else {
-        tmp_vector->copyFrom((*it)->getData(), (*it)->getNbElem());
-        d_hrimg->axpy(1.0f, tmp_vector, 1, 1);
+        tmp_vector.copyFrom((*it)->getData(), (*it)->getNbElem());
+        d_hrimg->axpy(1.0f, &tmp_vector, 1, 1);
       }
     }
   }
-  delete tmp_vector;
+
+  for (std::vector<carma_obj<float> *>::iterator it =
+           this->d_pyrfocalplane_ngpu.begin();
+       this->d_pyrfocalplane_ngpu.end() != it; ++it) {
+    if (*it != d_pyrfocalplane) {
+      if (current_context->canP2P(d_pyrfocalplane->getDevice(),
+                                  (*it)->getDevice())) {
+        d_pyrfocalplane->axpy(1.0f, (*it), 1, 1);
+      } else {
+        tmp_vector.copyFrom((*it)->getData(), (*it)->getNbElem());
+        d_pyrfocalplane->axpy(1.0f, &tmp_vector, 1, 1);
+      }
+    }
+  }
 
   cfillrealp(this->d_fttotim->getData(), this->d_hrimg->getData(),
              this->d_hrimg->getNbElem(),
@@ -591,7 +633,7 @@ int sutra_wfs_pyr_pyrhr::copyValidPix(float *img, int *validx, int *validy,
 }
 
 int sutra_wfs_pyr_pyrhr::set_pyr_mod_weights(float *weights, int npts) {
-  if(this->npup != npts) {
+  if (this->npup != npts) {
     DEBUG_TRACE("Number of elements mismatch the modulation points one");
     return EXIT_FAILURE;
   }
@@ -599,7 +641,8 @@ int sutra_wfs_pyr_pyrhr::set_pyr_mod_weights(float *weights, int npts) {
   return EXIT_SUCCESS;
 }
 
-int sutra_wfs_pyr_pyrhr::set_pyr_modulation(float *cx, float *cy, float *weights, int npts) {
+int sutra_wfs_pyr_pyrhr::set_pyr_modulation(float *cx, float *cy,
+                                            float *weights, int npts) {
   int status;
   status = this->set_pyr_modulation(cx, cy, npts);
   status *= this->set_pyr_mod_weights(weights, npts);

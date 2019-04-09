@@ -17,21 +17,26 @@ void declare_wfs_pyrhr(py::module &mod) {
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
-      .def_property_readonly("npupils",
-                             [](sutra_wfs_pyr_pyrhr &sp) { return sp.npupils; },
-                             "Number of pupil images")
+      .def_property_readonly(
+          "npupils", [](sutra_wfs_pyr_pyrhr &sp) { return sp.npupils; },
+          "Number of pupil images")
 
-      .def_property_readonly("d_hrimg",
-                             [](sutra_wfs_pyr_pyrhr &sp) { return sp.d_hrimg; },
-                             "TODO: docstring")
+      .def_property_readonly(
+          "d_hrimg", [](sutra_wfs_pyr_pyrhr &sp) { return sp.d_hrimg; },
+          "TODO: docstring")
 
       .def_property_readonly(
           "d_submask", [](sutra_wfs_pyr_pyrhr &sp) { return sp.d_submask; },
           "TODO: docstring")
 
-      .def_property_readonly("d_psum",
-                             [](sutra_wfs_pyr_pyrhr &sp) { return sp.d_psum; },
-                             "TODO: docstring")
+      .def_property_readonly(
+          "d_pyrfocalplane",
+          [](sutra_wfs_pyr_pyrhr &sp) { return sp.d_pyrfocalplane; },
+          "TODO: docstring")
+
+      .def_property_readonly(
+          "d_psum", [](sutra_wfs_pyr_pyrhr &sp) { return sp.d_psum; },
+          "TODO: docstring")
 
       .def_property_readonly(
           "d_phalfxy", [](sutra_wfs_pyr_pyrhr &sp) { return sp.d_phalfxy; },
@@ -41,17 +46,18 @@ void declare_wfs_pyrhr(py::module &mod) {
           "d_poffsets", [](sutra_wfs_pyr_pyrhr &sp) { return sp.d_poffsets; },
           "TODO: docstring")
 
-      .def_property_readonly("pyr_cx",
-                             [](sutra_wfs_pyr_pyrhr &sp) { return sp.pyr_cx; },
-                             "TODO: docstring")
+      .def_property_readonly(
+          "pyr_cx", [](sutra_wfs_pyr_pyrhr &sp) { return sp.pyr_cx; },
+          "TODO: docstring")
 
-      .def_property_readonly("pyr_cy",
-                             [](sutra_wfs_pyr_pyrhr &sp) { return sp.pyr_cy; },
-                             "Modulation points X-positions")
+      .def_property_readonly(
+          "pyr_cy", [](sutra_wfs_pyr_pyrhr &sp) { return sp.pyr_cy; },
+          "Modulation points X-positions")
 
-      .def_property_readonly("pyr_mod_weights",
-                             [](sutra_wfs_pyr_pyrhr &sp) { return sp.pyr_mod_weights; },
-                             "Ponderation weights for each modulation points")
+      .def_property_readonly(
+          "pyr_mod_weights",
+          [](sutra_wfs_pyr_pyrhr &sp) { return sp.pyr_mod_weights; },
+          "Ponderation weights for each modulation points")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝
@@ -75,9 +81,9 @@ void declare_wfs_pyrhr(py::module &mod) {
       phasemap:
       fluxPerSub:
     )pbdoc",
-           py::arg("halfxy"), py::arg("cx"), py::arg("cy"), py::arg("weights"), py::arg("sincar"),
-           py::arg("submask"), py::arg("validsubsx"), py::arg("validsubsy"),
-           py::arg("phasemap"), py::arg("fluxPerSub"))
+           py::arg("halfxy"), py::arg("cx"), py::arg("cy"), py::arg("weights"),
+           py::arg("sincar"), py::arg("submask"), py::arg("validsubsx"),
+           py::arg("validsubsy"), py::arg("phasemap"), py::arg("fluxPerSub"))
 
       .def("comp_nphot", &sutra_wfs_pyr_pyrhr::comp_nphot, R"pbdoc(
       Compute the currect number of photons for a given system
@@ -101,24 +107,27 @@ void declare_wfs_pyrhr(py::module &mod) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
-      .def("set_pyrimg",
-           [](sutra_wfs_pyr_pyrhr &sp, F_arrayS data) {
-             if (data.size() == sp.d_binimg->getNbElem())
-               sp.d_binimg->host2device(data.mutable_data());
-             else
-               DEBUG_TRACE("Wrong dimensions");
-           },
-           R"pbdoc(
+      .def(
+          "set_pyrimg",
+          [](sutra_wfs_pyr_pyrhr &sp, F_arrayS data) {
+            if (data.size() == sp.d_binimg->getNbElem())
+              sp.d_binimg->host2device(data.mutable_data());
+            else
+              DEBUG_TRACE("Wrong dimensions");
+          },
+          R"pbdoc(
         Set the image of the PWFS
 
         Parameters
         ------------
         img: (np.array[ndim=2,dtype=np.float32]): new image to set
       )pbdoc",
-           py::arg("img"))
+          py::arg("img"))
 
       .def("set_pyr_modulation",
-           wy::colCast((int (sutra_wfs_pyr_pyrhr::*)(float*, float*, int)) &sutra_wfs_pyr_pyrhr::set_pyr_modulation), R"pbdoc(
+           wy::colCast((int (sutra_wfs_pyr_pyrhr::*)(float *, float *, int)) &
+                       sutra_wfs_pyr_pyrhr::set_pyr_modulation),
+           R"pbdoc(
         Set the modulation points of a PWFS
 
         Parameters
@@ -130,7 +139,10 @@ void declare_wfs_pyrhr(py::module &mod) {
            py::arg("cx"), py::arg("cy"), py::arg("npts"))
 
       .def("set_pyr_modulation",
-           wy::colCast((int (sutra_wfs_pyr_pyrhr::*)(float*, float*, float*, int)) &sutra_wfs_pyr_pyrhr::set_pyr_modulation), R"pbdoc(
+           wy::colCast(
+               (int (sutra_wfs_pyr_pyrhr::*)(float *, float *, float *, int)) &
+               sutra_wfs_pyr_pyrhr::set_pyr_modulation),
+           R"pbdoc(
         Set the modulation points and weights of a PWFS
 
         Parameters
@@ -153,32 +165,34 @@ void declare_wfs_pyrhr(py::module &mod) {
       )pbdoc",
            py::arg("weights"), py::arg("npts"))
 
-      .def("set_submask",
-           [](sutra_wfs_pyr_pyrhr &sp, F_arrayS data) {
-             if (data.size() == sp.d_submask->getNbElem())
-               sp.d_submask->host2device(data.mutable_data());
-             else
-               DEBUG_TRACE("Wrong dimensions");
-           },
-           R"pbdoc(
+      .def(
+          "set_submask",
+          [](sutra_wfs_pyr_pyrhr &sp, F_arrayS data) {
+            if (data.size() == sp.d_submask->getNbElem())
+              sp.d_submask->host2device(data.mutable_data());
+            else
+              DEBUG_TRACE("Wrong dimensions");
+          },
+          R"pbdoc(
         Set the field stop of the PWFS
 
         Parameters
         ------------
         mask: (np.array[ndim=2,dtype=np.float32]): new field stop to set
       )pbdoc",
-           py::arg("mask"))
+          py::arg("mask"))
 
-      .def("set_validpix",
-           [](sutra_wfs_pyr_pyrhr &sp, F_arrayI datax, F_arrayI datay) {
-             if (datax.size() == sp.d_validsubsx->getNbElem() &&
-                 datay.size() == sp.d_validsubsy->getNbElem()) {
-               sp.d_validsubsx->host2device(datax.mutable_data());
-               sp.d_validsubsy->host2device(datay.mutable_data());
-             } else
-               DEBUG_TRACE("Wrong dimensions");
-           },
-           R"pbdoc(
+      .def(
+          "set_validpix",
+          [](sutra_wfs_pyr_pyrhr &sp, F_arrayI datax, F_arrayI datay) {
+            if (datax.size() == sp.d_validsubsx->getNbElem() &&
+                datay.size() == sp.d_validsubsy->getNbElem()) {
+              sp.d_validsubsx->host2device(datax.mutable_data());
+              sp.d_validsubsy->host2device(datay.mutable_data());
+            } else
+              DEBUG_TRACE("Wrong dimensions");
+          },
+          R"pbdoc(
         Set the valid pixels of the PWFS
 
         Parameters
@@ -186,7 +200,7 @@ void declare_wfs_pyrhr(py::module &mod) {
         datax: (np.array[ndim=2,dtype=np.float32]): new X positions of valid pixels
         datay: (np.array[ndim=2,dtype=np.float32]): new Y positions of valid pixels
       )pbdoc",
-           py::arg("datax"), py::arg("datay"))
+          py::arg("datax"), py::arg("datay"))
 
       .def("copyValidPix", wy::colCast(&sutra_wfs_pyr_pyrhr::copyValidPix),
            R"pbdoc(
