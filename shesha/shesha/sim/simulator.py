@@ -321,7 +321,8 @@ class Simulator:
                         self.raytraceWfs(w, "dm", rst=False)
                     self.compWfsImage(w)
             if do_control and self.rtc is not None:
-                self.doCalibate_img(nControl)
+                if self.rtc.d_centro[0].wfs is None:  # in RTC standalone mode
+                    self.doCalibate_img(nControl)
                 self.doCentroids(nControl)
                 self.doControl(nControl)
                 self.doClipping(nControl)
@@ -337,11 +338,8 @@ class Simulator:
         self.iter += 1
 
     def print_strehl(self, monitoring_freq: int, t1: float, nCur: int = 0, nTot: int = 0,
-                     nTar: int = 0, compute_tar_psf: bool = True):
+                     nTar: int = 0):
         framerate = monitoring_freq / t1
-        if compute_tar_psf:
-            self.compTarImage(nTar)
-            self.compStrehl(nTar)
         strehl = self.getStrehl(nTar)
         etr = (nTot - nCur) / framerate
         print("%d \t %.3f \t  %.3f\t     %.1f \t %.1f" % (nCur + 1, strehl[0], strehl[1],
@@ -367,18 +365,20 @@ class Simulator:
             while (True):
                 self.next(compute_tar_psf=compute_tar_psf, **kwargs)
                 if ((i + 1) % monitoring_freq == 0):
-                    self.print_strehl(monitoring_freq,
-                                      time.time() - t1, i, i,
-                                      compute_tar_psf=not compute_tar_psf)
+                    if not compute_tar_psf:
+                        self.compTarImage()
+                        self.compStrehl()
+                    self.print_strehl(monitoring_freq, time.time() - t1, i, i)
                     t1 = time.time()
                 i += 1
 
         for i in range(n):
             self.next(compute_tar_psf=compute_tar_psf, **kwargs)
             if ((i + 1) % monitoring_freq == 0):
-                self.print_strehl(monitoring_freq,
-                                  time.time() - t1, i, n,
-                                  compute_tar_psf=not compute_tar_psf)
+                if not compute_tar_psf:
+                    self.compTarImage()
+                    self.compStrehl()
+                self.print_strehl(monitoring_freq, time.time() - t1, i, n)
                 t1 = time.time()
         t1 = time.time()
         print(" loop execution time:", t1 - t0, "  (", n, "iterations), ", (t1 - t0) / n,
