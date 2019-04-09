@@ -342,7 +342,7 @@ def make_phase_ab(dim, pupd, tel, pup=None, xc=-1, yc=-1, real=0, halfSpider=Fal
 
     elif tel.type_ap == ApertureType.EELT:
 
-        return generateEeltPupilMask(dim, tel.t_spiders, xc, yc, tel.diam / dim,
+        return generateEeltPupilMask(dim, 0, xc, yc, tel.diam / dim,
                                      tel.gap, tel.pupangle, D=tel.diam, halfSpider=halfSpider, pitch=1.244683637214, nseg=33, inner_rad=4.1, outer_rad=15.4, R=95.7853, nominalD=40, half_seg=0.75, refl=[tel.std_piston, tel.std_tt, tel.std_tt])
     elif (tel.type_ap == ApertureType.KECK):
         seg_corner = 1.8
@@ -353,7 +353,7 @@ def make_phase_ab(dim, pupd, tel, pup=None, xc=-1, yc=-1, real=0, halfSpider=Fal
         kR = 85
         knominalD = 10.96
         khalf_seg = 0.9
-        return generateEeltPupilMask(dim, tel.t_spiders, xc, yc, tel.diam / dim,
+        return generateEeltPupilMask(dim, 0, xc, yc, tel.diam / dim,
                                      tel.gap, tel.pupangle, D=tel.diam, halfSpider=halfSpider, pitch=kpitch, nseg=knseg, inner_rad=0.9, outer_rad=3.4, R=kR, nominalD=knominalD, half_seg=0.9, refl=[tel.std_piston, tel.std_tt, tel.std_tt])
     else:
         ab_file = EELT_data + "aberration_" + tel.type_ap.decode('UTF-8') + \
