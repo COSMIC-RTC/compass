@@ -266,7 +266,7 @@ class Simulator:
     def next(self, *, move_atmos: bool = True, see_atmos: bool = True, nControl: int = 0,
              tar_trace: Iterable[int] = None, wfs_trace: Iterable[int] = None,
              do_control: bool = True, apply_control: bool = True,
-             compute_psf: bool = True) -> None:
+             compute_tar_psf: bool = True) -> None:
         '''
         Iterates the AO loop, with optional parameters
 
@@ -329,7 +329,7 @@ class Simulator:
             if apply_control:
                 self.applyControl(nControl)
 
-        if compute_psf:
+        if compute_tar_psf:
             for nTar in tar_trace:
                 self.compTarImage(nTar)
                 self.compStrehl(nTar)
@@ -337,14 +337,18 @@ class Simulator:
         self.iter += 1
 
     def print_strehl(self, monitoring_freq: int, t1: float, nCur: int = 0, nTot: int = 0,
-                     nTar: int = 0):
+                     nTar: int = 0, compute_tar_psf: bool = True):
         framerate = monitoring_freq / t1
+        if compute_tar_psf:
+            self.compTarImage(nTar)
+            self.compStrehl(nTar)
         strehl = self.getStrehl(nTar)
         etr = (nTot - nCur) / framerate
         print("%d \t %.3f \t  %.3f\t     %.1f \t %.1f" % (nCur + 1, strehl[0], strehl[1],
                                                           etr, framerate))
 
-    def loop(self, n: int = 1, monitoring_freq: int = 100, **kwargs):
+    def loop(self, n: int = 1, monitoring_freq: int = 100, compute_tar_psf: bool = True,
+             **kwargs):
         """
         Perform the AO loop for n iterations
 
@@ -361,16 +365,20 @@ class Simulator:
         if n == -1:
             i = 0
             while (True):
-                self.next(**kwargs)
+                self.next(compute_tar_psf=compute_tar_psf, **kwargs)
                 if ((i + 1) % monitoring_freq == 0):
-                    self.print_strehl(monitoring_freq, time.time() - t1, i, i)
+                    self.print_strehl(monitoring_freq,
+                                      time.time() - t1, i, i,
+                                      compute_tar_psf=not compute_tar_psf)
                     t1 = time.time()
                 i += 1
 
         for i in range(n):
-            self.next(**kwargs)
+            self.next(compute_tar_psf=compute_tar_psf, **kwargs)
             if ((i + 1) % monitoring_freq == 0):
-                self.print_strehl(monitoring_freq, time.time() - t1, i, n)
+                self.print_strehl(monitoring_freq,
+                                  time.time() - t1, i, n,
+                                  compute_tar_psf=not compute_tar_psf)
                 t1 = time.time()
         t1 = time.time()
         print(" loop execution time:", t1 - t0, "  (", n, "iterations), ", (t1 - t0) / n,

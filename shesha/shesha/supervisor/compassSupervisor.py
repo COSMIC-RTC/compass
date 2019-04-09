@@ -263,7 +263,7 @@ class CompassSupervisor(AbstractSupervisor):
             n: (int): (optional) Number of iteration that will be done
             monitoring_freq: (int): (optional) Monitoring frequency [frames]
         """
-        self._sim.loop(n, monitoring_freq=monitoring_freq)
+        self._sim.loop(n, monitoring_freq=monitoring_freq, **kwargs)
 
     def forceContext(self) -> None:
         '''
