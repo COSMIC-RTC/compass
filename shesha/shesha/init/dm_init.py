@@ -35,7 +35,7 @@ def dm_init(context: carmaWrap_context, p_dms: List[conf.Param_dm],
     :return:
         Dms: (Dms): Dms object
     """
-    max_extent = [0]
+    max_extent = 0
     if (p_wfss is not None):
         xpos_wfs = []
         ypos_wfs = []
@@ -47,18 +47,22 @@ def dm_init(context: carmaWrap_context, p_dms: List[conf.Param_dm],
         ypos_wfs = [0]
     if (len(p_dms) != 0):
         dms = Dms()
+        types_dm = [p_dm.type for p_dm in p_dms]
+        first_TT = types_dm.index(scons.DmType.TT)
+        if np.any(np.array(types_dm[first_TT:]) != scons.DmType.TT):
+            raise RuntimeError("TT must be defined at the end of the dms parameters")
+
         for i in range(len(p_dms)):
-            # max_extent
-            #_dm_init(dms, p_dms[i], p_wfss, p_geom, p_tel, & max_extent)
-            _dm_init(context, dms, p_dms[i], xpos_wfs, ypos_wfs, p_geom, p_tel.diam,
-                     p_tel.cobs, p_tel.pupangle, max_extent, keepAllActu=keepAllActu)
+            max_extent = _dm_init(context, dms, p_dms[i], xpos_wfs, ypos_wfs, p_geom,
+                                  p_tel.diam, p_tel.cobs, p_tel.pupangle, max_extent,
+                                  keepAllActu=keepAllActu)
 
     return dms
 
 
 def _dm_init(context: carmaWrap_context, dms: Dms, p_dm: conf.Param_dm, xpos_wfs: list,
              ypos_wfs: list, p_geom: conf.Param_geom, diam: float, cobs: float,
-             pupAngle: float, max_extent: list, keepAllActu: bool = False):
+             pupAngle: float, max_extent: int, keepAllActu: bool = False):
     """ inits a Dms object on the gpu
 
     :parameters:
@@ -77,7 +81,10 @@ def _dm_init(context: carmaWrap_context, dms: Dms, p_dm: conf.Param_dm, xpos_wfs
 
         cobs: (float) : cobs of telescope
 
-        max_extent: (list) : maximum dimension of all dms
+        max_extent: (int) : maximum dimension of all dms
+
+    :return:
+        max_extent: (int) : new maximum dimension of all dms
 
     """
 
@@ -101,7 +108,7 @@ def _dm_init(context: carmaWrap_context, dms: Dms, p_dm: conf.Param_dm, xpos_wfs
             init_pzt_from_hdf5(p_dm, p_geom, diam)
 
         # max_extent
-        max_extent[0] = max(max_extent[0], p_dm._n2 - p_dm._n1 + 1)
+        max_extent = max(max_extent, p_dm._n2 - p_dm._n1 + 1)
 
         dim = max(p_dm._n2 - p_dm._n1 + 1, p_geom._mpupil.shape[0])
         ninflupos = p_dm._influpos.size
@@ -114,15 +121,15 @@ def _dm_init(context: carmaWrap_context, dms: Dms, p_dm: conf.Param_dm, xpos_wfs
 
     elif (p_dm.type == scons.DmType.TT):
 
-        if (p_dm.alt == 0):
-            extent = int(max_extent[0] * 1.05)
+        if (p_dm.alt == 0) and (max_extent != 0):
+            extent = int(max_extent * 1.05)
             if (extent % 2 != 0):
                 extent += 1
         else:
             extent = p_geom.pupdiam + 16
         p_dm._n1, p_dm._n2 = dm_util.dim_dm_support(p_geom.cent, extent, p_geom.ssize)
         # max_extent
-        max_extent[0] = max(max_extent[0], p_dm._n2 - p_dm._n1 + 1)
+        max_extent = max(max_extent, p_dm._n2 - p_dm._n1 + 1)
 
         dim = p_dm._n2 - p_dm._n1 + 1
         make_tiptilt_dm(p_dm, patchDiam, p_geom, diam)
@@ -135,7 +142,7 @@ def _dm_init(context: carmaWrap_context, dms: Dms, p_dm: conf.Param_dm, xpos_wfs
         extent = p_geom.pupdiam + 16
         p_dm._n1, p_dm._n2 = dm_util.dim_dm_support(p_geom.cent, extent, p_geom.ssize)
         # max_extent
-        max_extent[0] = max(max_extent[0], p_dm._n2 - p_dm._n1 + 1)
+        max_extent = max(max_extent, p_dm._n2 - p_dm._n1 + 1)
 
         dim = p_dm._n2 - p_dm._n1 + 1
 
@@ -155,6 +162,8 @@ def _dm_init(context: carmaWrap_context, dms: Dms, p_dm: conf.Param_dm, xpos_wfs
         # Verif
         # res1 = pol2car(*y_dm(n)._klbas,gkl_sfi(*y_dm(n)._klbas, 1));
         # res2 = yoga_getkl(g_dm,0.,1);
+
+    return max_extent
 
 
 def dm_init_standalone(context: carmaWrap_context, p_dms: list, p_geom: conf.Param_geom,
