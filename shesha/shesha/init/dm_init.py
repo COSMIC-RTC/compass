@@ -157,8 +157,8 @@ def _dm_init(context: carmaWrap_context, dms: Dms, p_dm: conf.Param_dm, xpos_wfs
         # res2 = yoga_getkl(g_dm,0.,1);
 
 
-def dm_init_standalone(context: carmaWrap_context, p_dms: list, p_geom: conf.Param_geom, diam=1., cobs=0.,
-                       pupAngle=0., wfs_xpos=[0], wfs_ypos=[0]):
+def dm_init_standalone(context: carmaWrap_context, p_dms: list, p_geom: conf.Param_geom,
+                       diam=1., cobs=0., pupAngle=0., wfs_xpos=[0], wfs_ypos=[0]):
     """Create and initialize a Dms object on the gpu
 
     :parameters:
@@ -181,23 +181,25 @@ def dm_init_standalone(context: carmaWrap_context, p_dms: list, p_geom: conf.Par
     if (len(p_dms) != 0):
         dms = Dms()
         for i in range(len(p_dms)):
-            _dm_init(context, dms, p_dms[i], wfs_xpos, wfs_ypos, p_geom, diam, cobs, pupAngle, max_extent)
+            _dm_init(context, dms, p_dms[i], wfs_xpos, wfs_ypos, p_geom, diam, cobs,
+                     pupAngle, max_extent)
     return dms
 
 
 def make_pzt_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, cobs: float,
                 pupAngle: float, keepAllActu: bool = False):
-    """Compute the actuators positions and the influence functions for a pzt DM
+    """Compute the actuators positions and the influence functions for a pzt DM.
+    NOTE: if the DM is in altitude, central obstruction is forced to 0
 
     :parameters:
-        p_dm: (Param_dm) : dm settings
+        p_dm: (Param_dm) : dm parameters
 
-        p_geom: (Param_geom) : geom settings
+        p_geom: (Param_geom) : geometry parameters
 
-        cobs: (float) : tel cobs
+        cobs: (float) : telescope central obstruction
 
     :return:
-        influ: (np.ndarray(dims=3,dtype=np.float64)) : cube of the IF for each actuator
+        influ: (np.ndarray(dims=3, dtype=np.float64)) : cube of the IF for each actuator
 
     """
     # best parameters, as determined by a multi-dimensional fit
@@ -259,6 +261,8 @@ def make_pzt_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, cobs: float,
     if keepAllActu:
         inbigcirc = np.arange(cub.shape[1])
     else:
+        if (p_dm.alt > 0):
+            cobs = 0
         inbigcirc = dm_util.select_actuators(cub[0, :], cub[1, :], p_dm.nact,
                                              p_dm._pitch, cobs, p_dm.margin_in,
                                              p_dm.margin_out, p_dm._ntotact)
@@ -672,9 +676,6 @@ def correct_dm(context, dms: Dms, p_dms: list, p_controller: conf.Param_controll
     print("Done")
 
 
-
-
-
 def makePetalDm(p_dm, p_geom, pupAngleDegree):
     '''
     makePetalDm(p_dm, p_geom, pupAngleDegree)
@@ -696,14 +697,12 @@ def makePetalDm(p_dm, p_geom, pupAngleDegree):
     p_dm.set_ntotact(nbSeg)
     p_dm._i1 = i1
     p_dm._j1 = j1
-    p_dm._xpos = i1 + smallsize/2 + p_dm._n1
-    p_dm._ypos = j1 + smallsize/2 + p_dm._n1
+    p_dm._xpos = i1 + smallsize / 2 + p_dm._n1
+    p_dm._ypos = j1 + smallsize / 2 + p_dm._n1
     p_dm._influ = influ
 
     # generates the arrays of indexes for the GPUs
     comp_dmgeom(p_dm, p_geom)
-
-
 
 
 def make_petal_dm_core(pupImage, pupAngleDegree):
@@ -722,30 +721,30 @@ def make_petal_dm_core(pupImage, pupAngleDegree):
     # be identified as relevant connex areas
     from scipy.ndimage.measurements import label
     from scipy.ndimage.morphology import binary_opening
-    s = np.ones((2,2), dtype=np.bool)
-    segments, nbSeg = label(binary_opening(pupImage,s))
+    s = np.ones((2, 2), dtype=np.bool)
+    segments, nbSeg = label(binary_opening(pupImage, s))
 
     # Faut trouver le plus petit support commun a tous les
     # petales : on determine <smallsize>
     smallsize = 0
-    i1t = []   # list of starting indexes of influ functions
+    i1t = []  # list of starting indexes of influ functions
     j1t = []
-    i2t = []   # list of ending indexes of influ functions
+    i2t = []  # list of ending indexes of influ functions
     j2t = []
     for i in range(nbSeg):
-        petal = segments==(i+1)   # identification (boolean) of a given segment
-        profil = np.sum(petal, axis=1)!=0
+        petal = segments == (i + 1)  # identification (boolean) of a given segment
+        profil = np.sum(petal, axis=1) != 0
         extent = np.sum(profil).astype(np.int32)
         i1t.append(np.min(np.where(profil)[0]))
         i2t.append(np.max(np.where(profil)[0]))
-        if extent>smallsize:
+        if extent > smallsize:
             smallsize = extent
 
-        profil = np.sum(petal, axis=0)!=0
+        profil = np.sum(petal, axis=0) != 0
         extent = np.sum(profil).astype(np.int32)
         j1t.append(np.min(np.where(profil)[0]))
         j2t.append(np.max(np.where(profil)[0]))
-        if extent>smallsize:
+        if extent > smallsize:
             smallsize = extent
 
     # extension de la zone minimale pour avoir un peu de marge
@@ -755,7 +754,7 @@ def make_petal_dm_core(pupImage, pupAngleDegree):
     influ = np.zeros((smallsize, smallsize, nbSeg), dtype=np.float32)
 
     npt = pupImage.shape[0]
-    i0 = j0 = npt/2 - 0.5
+    i0 = j0 = npt / 2 - 0.5
     print('CORRIGER CETTE MERDE !!!!!')
     petalMap = build_petals(nbSeg, pupAngleDegree, i0, j0, npt)
     ii1 = np.zeros(nbSeg)
@@ -765,20 +764,18 @@ def make_petal_dm_core(pupImage, pupAngleDegree):
         jp = (smallsize - j2t[i] + j1t[i] - 1) // 2
         i1 = np.maximum(i1t[i] - ip, 0)
         j1 = np.maximum(j1t[i] - jp, 0)
-        if (j1+smallsize)>npt:
+        if (j1 + smallsize) > npt:
             j1 = npt - smallsize
-        if (i1+smallsize)>npt:
+        if (i1 + smallsize) > npt:
             i1 = npt - smallsize
         #petal = segments==(i+1) # determine le segment pupille veritable
-        k = petalMap[i1+smallsize//2, j1+smallsize//2]
-        petal = (petalMap==k)
-        influ[:, :, k] = petal[i1:i1+smallsize, j1:j1+smallsize]
+        k = petalMap[i1 + smallsize // 2, j1 + smallsize // 2]
+        petal = (petalMap == k)
+        influ[:, :, k] = petal[i1:i1 + smallsize, j1:j1 + smallsize]
         ii1[k] = i1
         jj1[k] = j1
 
     return influ, ii1, jj1, int(smallsize), nbSeg
-
-
 
 
 def build_petals(nbSeg, pupAngleDegree, i0, j0, npt):
@@ -804,19 +801,19 @@ def build_petals(nbSeg, pupAngleDegree, i0, j0, npt):
     rot = pupAngleDegree * np.pi / 180.0
 
     # building coordinate maps
-    esoOffsetAngle = -np.pi/6  # -30°, ESO definition.
-    x = np.arange(npt)-i0
-    y = np.arange(npt)-j0
+    esoOffsetAngle = -np.pi / 6  # -30°, ESO definition.
+    x = np.arange(npt) - i0
+    y = np.arange(npt) - j0
     X, Y = np.meshgrid(x, y, indexing='ij')
-    theta = (np.arctan2(Y, X) - rot + 2*np.pi - esoOffsetAngle) % (2*np.pi)
+    theta = (np.arctan2(Y, X) - rot + 2 * np.pi - esoOffsetAngle) % (2 * np.pi)
 
     # Compute separation angle between segments: start and end.
-    angleStep = 2*np.pi/nbSeg
+    angleStep = 2 * np.pi / nbSeg
     startAngle = np.arange(nbSeg) * angleStep
     endAngle = np.roll(startAngle, -1)
-    endAngle[-1] = 2*np.pi  # last angle is 0.00 and must be replaced by 2.pi
+    endAngle[-1] = 2 * np.pi  # last angle is 0.00 and must be replaced by 2.pi
     petalMap = np.zeros((npt, npt), dtype=int)
     for i in range(nbSeg):
-        nn = np.where( np.logical_and(theta>=startAngle[i], theta<endAngle[i]) )
+        nn = np.where(np.logical_and(theta >= startAngle[i], theta < endAngle[i]))
         petalMap[nn] = i
     return petalMap
