@@ -190,15 +190,23 @@ int sutra_controller_generic<T, Tout>::comp_com() {
     // g*CMAT*s(k)
     mult_vect(this->d_compbuff->getData(), this->d_gain->getData(), (T)(-1.0f),
               this->nactu(), this->current_context->get_device(this->device));
-
-    carma_gemv(this->cublas_handle(), 'n', this->nactu(), this->nactu(),
-               (T)1.0f, this->d_matE->getData(), this->nactu(),
-               this->d_com1->getData(), 1, (T)0.0f, this->d_com->getData(), 1);
-    // v(k) = alpha*E*v(k-1)
-    mult_vect(this->d_com->getData(), this->d_decayFactor->getData(), (T)1.0f,
-              this->nactu(), this->current_context->get_device(this->device));
-    // v(k) = alpha*E*v(k-1) + g*CMAT*s(k)
-    this->d_com->axpy((T)1.0f, this->d_compbuff, 1, 1);
+    if (this->command_law == "modal_integrator") {
+      // M2V * g * CMAT * s(k)
+      carma_gemv(this->cublas_handle(), 'n', this->nactu(), this->nactu(),
+                 (T)1.0f, this->d_matE->getData(), this->nactu(),
+                 this->d_compbuff->getData(), 1, berta, this->d_com->getData(),
+                 1);
+    } else {  // 2matrices
+      carma_gemv(this->cublas_handle(), 'n', this->nactu(), this->nactu(),
+                 (T)1.0f, this->d_matE->getData(), this->nactu(),
+                 this->d_com1->getData(), 1, (T)0.0f, this->d_com->getData(),
+                 1);
+      // v(k) = alpha*E*v(k-1)
+      mult_vect(this->d_com->getData(), this->d_decayFactor->getData(), (T)1.0f,
+                this->nactu(), this->current_context->get_device(this->device));
+      // v(k) = alpha*E*v(k-1) + g*CMAT*s(k)
+      this->d_com->axpy((T)1.0f, this->d_compbuff, 1, 1);
+    }
   }
   //   cudaEventDestroy(startEv);
   // cudaEventDestroy(stopEv);
