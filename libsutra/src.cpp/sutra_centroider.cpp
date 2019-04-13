@@ -4,7 +4,7 @@ template <class Tin, class Tout>
 sutra_centroider<Tin, Tout>::sutra_centroider(carma_context *context,
                                               sutra_wfs *wfs, long nvalid,
                                               float offset, float scale,
-                                              int device) {
+                                              bool filter_TT, int device) {
   this->current_context = context;
   this->device = device;
   context->set_activeDevice(device, 1);
@@ -16,6 +16,7 @@ sutra_centroider<Tin, Tout>::sutra_centroider(carma_context *context,
   this->nslopes = 0;
   this->npix = 0;
   this->nxsub = 0;
+  this->filter_TT = filter_TT;
 
   long dims_data[2] = {1, this->nvalid};
   this->d_intensities = new carma_obj<float>(current_context, dims_data);
@@ -44,6 +45,9 @@ sutra_centroider<Tin, Tout>::~sutra_centroider() {
   if (this->d_flat != nullptr) delete this->d_flat;
   if (this->d_bincube != nullptr) delete this->d_bincube;
   if (this->d_validMask != nullptr) delete this->d_validMask;
+  if (this->d_TT_slopes != nullptr) delete this->d_TT_slopes;
+  if (this->d_ref_Tip != nullptr) delete this->d_ref_Tip;
+  if (this->d_ref_Tilt != nullptr) delete this->d_ref_Tilt;
 }
 
 template <class Tin, class Tout>

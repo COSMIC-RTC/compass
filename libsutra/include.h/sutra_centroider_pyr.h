@@ -35,7 +35,7 @@ class sutra_centroider_pyr : public sutra_centroider<Tin, T> {
 
  public:
   sutra_centroider_pyr(carma_context *context, sutra_wfs *wfs, long nvalid,
-                       float offset, float scale, int device);
+                       float offset, float scale, bool filter_TT, int device);
   sutra_centroider_pyr(const sutra_centroider_pyr &centroider);
   ~sutra_centroider_pyr();
 

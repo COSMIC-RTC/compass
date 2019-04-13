@@ -25,10 +25,10 @@ class sutra_rtc {
   sutra_rtc();
   ~sutra_rtc();
   int add_centroider(carma_context *context, long nvalid, float offset,
-                     float scale, long device, std::string typec);
+                     float scale, bool filter_TT, long device, std::string typec);
 
   int add_centroider(carma_context *context, long nvalid, float offset,
-                     float scale, long device, std::string typec,
+                     float scale, bool filter_TT, long device, std::string typec,
                      sutra_wfs *wfs);
 
   int add_controller(carma_context *context, int nvalid, int nslope, int nactu,
@@ -87,10 +87,10 @@ class sutra_rtc {
   template <typename Q = T>
   typename std::enable_if<!std::is_same<Q, half>::value, int>::type
   add_centroider_impl(carma_context *context, long nvalid, float offset,
-                      float scale, long device, std::string typec,
+                      float scale, bool filter_TT, long device, std::string typec,
                       sutra_wfs *wfs, std::false_type);
   int add_centroider_impl(carma_context *context, long nvalid, float offset,
-                          float scale, long device, std::string typec,
+                          float scale, bool filter_TT, long device, std::string typec,
                           sutra_wfs *wfs, std::true_type);
 
   template <typename Q = T>

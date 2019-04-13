@@ -14,6 +14,7 @@ class sutra_centroider {
   int nslopes;
   int npix;
   int nxsub;
+  bool filter_TT;
 
   float offset;
   float scale;
@@ -31,9 +32,13 @@ class sutra_centroider {
   carma_obj<int> *d_validy;
   carma_obj<int> *d_validMask;
 
+  carma_obj<float> *d_ref_Tip;
+  carma_obj<float> *d_ref_Tilt;
+  carma_obj<float> *d_TT_slopes;
+  
  protected:
   sutra_centroider(carma_context *context, sutra_wfs *wfs, long nvalid,
-                   float offset, float scale, int device);
+                   float offset, float scale, bool filter_TT, int device);
 
  public:
   virtual ~sutra_centroider();

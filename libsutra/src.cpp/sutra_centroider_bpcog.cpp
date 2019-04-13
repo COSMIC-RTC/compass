@@ -3,13 +3,22 @@
 template <class Tin, class T>
 sutra_centroider_bpcog<Tin, T>::sutra_centroider_bpcog(
     carma_context *context, sutra_wfs *wfs, long nvalid, float offset,
-    float scale, int device, int nmax)
-    : sutra_centroider<Tin, T>(context, wfs, nvalid, offset, scale, device) {
+    float scale, bool filter_TT, int device, int nmax)
+  : sutra_centroider<Tin, T>(context, wfs, nvalid, offset, scale, filter_TT, device) {
   this->nslopes = 2 * nvalid;
   this->nmax = nmax;
   long dims_data2[2] = {1, this->nslopes};
   this->d_centroids_ref = new carma_obj<T>(this->current_context, dims_data2);
   this->d_centroids_ref->reset();
+
+  long dims_data1[2] = {1, this->nvalid};
+  if (this->filter_TT == true) {
+    dims_data1[1] = 2;
+    this->d_TT_slopes = new carma_obj<T>(this->current_context, dims_data1);
+    dims_data1[1] = this->nslopes;
+    this->d_ref_Tip = new carma_obj<T>(this->current_context, dims_data1);
+    this->d_ref_Tilt = new carma_obj<T>(this->current_context, dims_data1);
+  }
 
   long dims_data[3];
   dims_data[0] = 2;

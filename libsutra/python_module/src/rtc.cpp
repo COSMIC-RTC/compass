@@ -110,7 +110,7 @@ void rtc_impl(py::module &mod, const char *name) {
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
       .def("add_centroider",
-           wy::colCast((int (rtc::*)(carma_context *, long, float, float, long,
+           wy::colCast((int (rtc::*)(carma_context *, long, float, float, bool, long,
                                      std::string, sutra_wfs *)) &
                        rtc::add_centroider),
 
@@ -123,17 +123,18 @@ void rtc_impl(py::module &mod, const char *name) {
         nvalid:(int): Number of WFS valid ssp
         offset: (float): offset for centroiding computation
         scale: (float): scale factor to get the right unit, ie. arcsec
+        filt_TT: (bool): flag to control TT filtering
         device: (int): GPU device index
         typec: (str): Centroider type
         wfs: (sutra_wfs): sutra_wfs handled by the centroider
 
     )pbdoc",
            py::arg("context"), py::arg("nvalid"), py::arg("offset"),
-           py::arg("scale"), py::arg("device"), py::arg("typec"),
+           py::arg("scale"), py::arg("filter_TT"), py::arg("device"), py::arg("typec"),
            py::arg("wfs"))
 
       .def("add_centroider",
-           wy::colCast((int (rtc::*)(carma_context *, long, float, float, long,
+           wy::colCast((int (rtc::*)(carma_context *, long, float, float, bool, long,
                                      std::string)) &
                        rtc::add_centroider),
            R"pbdoc(
@@ -145,12 +146,13 @@ void rtc_impl(py::module &mod, const char *name) {
         nvalid:(int): Number of WFS valid ssp
         offset: (float): offset for centroiding computation
         scale: (float): scale factor to get the right unit, ie. arcsec
+        filt_TT: (bool): flag to control TT filtering
         device: (int): GPU device index
         typec: (str): Centroider type
 
     )pbdoc",
            py::arg("context"), py::arg("nvalid"), py::arg("offset"),
-           py::arg("scale"), py::arg("device"), py::arg("typec"))
+           py::arg("scale"), py::arg("filter_TT"), py::arg("device"), py::arg("typec"))
 
       .def("add_controller", wy::colCast(&rtc::add_controller), R"pbdoc(
         Add a sutra_controller object in the RTC

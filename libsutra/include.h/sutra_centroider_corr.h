@@ -18,7 +18,7 @@ class sutra_centroider_corr : public sutra_centroider<Tin, T> {
 
  public:
   sutra_centroider_corr(carma_context *context, sutra_wfs *wfs, long nvalid,
-                        float offset, float scale, int device);
+                        float offset, float scale, bool filter_TT, int device);
   sutra_centroider_corr(const sutra_centroider_corr &centroider);
   ~sutra_centroider_corr();
 

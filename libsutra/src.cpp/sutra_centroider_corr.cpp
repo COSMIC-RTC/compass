@@ -5,8 +5,9 @@ template <class Tin, class T>
 sutra_centroider_corr<Tin, T>::sutra_centroider_corr(carma_context *context,
                                                      sutra_wfs *wfs,
                                                      long nvalid, float offset,
-                                                     float scale, int device)
-    : sutra_centroider<Tin, T>(context, wfs, nvalid, offset, scale, device) {
+                                                     float scale, bool filter_TT,
+						     int device)
+  : sutra_centroider<Tin, T>(context, wfs, nvalid, offset, scale, filter_TT, device) {
   context->set_activeDevice(device, 1);
 
   this->nslopes = 2 * nvalid;
@@ -14,6 +15,15 @@ sutra_centroider_corr<Tin, T>::sutra_centroider_corr(carma_context *context,
   this->d_centroids_ref = new carma_obj<T>(this->current_context, dims_data2);
   this->d_centroids_ref->reset();
 
+  long dims_data[2] = {1, this->nvalid};
+  if (this->filter_TT == true) {
+    dims_data[1] = 2;
+    this->d_TT_slopes = new carma_obj<T>(this->current_context, dims_data);
+    dims_data[1] = this->nslopes;
+    this->d_ref_Tip = new carma_obj<T>(this->current_context, dims_data);
+    this->d_ref_Tilt = new carma_obj<T>(this->current_context, dims_data);
+  }
+  
   this->d_corrfnct = 0L;
   this->d_corrspot = 0L;
   this->d_corrnorm = 0L;

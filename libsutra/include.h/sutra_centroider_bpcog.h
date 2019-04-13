@@ -12,7 +12,7 @@ class sutra_centroider_bpcog : public sutra_centroider<Tin, T> {
 
  public:
   sutra_centroider_bpcog(carma_context *context, sutra_wfs *wfs, long nvalid,
-                         float offset, float scale, int device, int nmax);
+                         float offset, float scale, bool filter_TT, int device, int nmax);
   sutra_centroider_bpcog(const sutra_centroider_bpcog &centroider);
   ~sutra_centroider_bpcog();
 

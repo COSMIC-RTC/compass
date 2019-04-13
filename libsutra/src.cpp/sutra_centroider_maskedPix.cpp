@@ -4,8 +4,8 @@
 template <class Tin, class T>
 sutra_centroider_maskedPix<Tin, T>::sutra_centroider_maskedPix(
     carma_context *context, sutra_wfs *wfs, long nvalid, long npupils,
-    float offset, float scale, int device)
-    : sutra_centroider<Tin, T>(context, wfs, nvalid, offset, scale, device) {
+    float offset, float scale, bool filter_TT, int device)
+  : sutra_centroider<Tin, T>(context, wfs, nvalid, offset, scale, filter_TT, device) {
   context->set_activeDevice(device, 1);
 
   if (wfs != nullptr)
@@ -19,6 +19,14 @@ sutra_centroider_maskedPix<Tin, T>::sutra_centroider_maskedPix(
   long dims_data2[2] = {1, this->nslopes};
   this->d_centroids_ref = new carma_obj<T>(this->current_context, dims_data2);
   this->d_centroids_ref->reset();
+
+  if (this->filter_TT == true) {
+    dims_data[1] = 2;
+    this->d_TT_slopes = new carma_obj<T>(this->current_context, dims_data);
+    dims_data[1] = this->nslopes;
+    this->d_ref_Tip = new carma_obj<T>(this->current_context, dims_data);
+    this->d_ref_Tilt = new carma_obj<T>(this->current_context, dims_data);
+  }  
 }
 
 template <class Tin, class T>

@@ -10,7 +10,7 @@ class sutra_centroider_maskedPix : public sutra_centroider<Tin, T> {
  public:
   sutra_centroider_maskedPix(carma_context *context, sutra_wfs *wfs,
                              long nvalid, long npupils, float offset,
-                             float scale, int device);
+                             float scale, bool filter_TT, int device);
 
   ~sutra_centroider_maskedPix();
 

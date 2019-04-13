@@ -7,7 +7,7 @@ template <class Tin, class T>
 class sutra_centroider_cog : public sutra_centroider<Tin, T> {
  public:
   sutra_centroider_cog(carma_context *context, sutra_wfs *wfs, long nvalid,
-                       float offset, float scale, int device);
+                       float offset, float scale, bool filter_TT, int device);
   sutra_centroider_cog(const sutra_centroider_cog &centroider);
   ~sutra_centroider_cog();
 
