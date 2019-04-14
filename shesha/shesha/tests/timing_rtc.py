@@ -22,7 +22,7 @@ frame /= frame.max()
 
 rtc = Rtc()
 rtc.add_centroider(sup._sim.c, sup.config.p_wfs0._nvalid,
-                   sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize, 0, "cog")
+                   sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize, False, 0, "cog")
 rtc.add_controller(sup._sim.c, sup.config.p_wfs0._nvalid, sup.config.p_wfs0._nvalid * 2,
                    sup.config.p_controller0.nactu, sup.config.p_controller0.delay, 0,
                    "generic")
@@ -34,7 +34,7 @@ rtc.d_centro[0].load_img(frame, frame.shape[0])
 
 rtcH = RtcH()
 rtcH.add_centroider(sup._sim.c, sup.config.p_wfs0._nvalid,
-                    sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize, 0,
+                    sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize, False, 0,
                     "cog")
 rtcH.add_controller(sup._sim.c, sup.config.p_wfs0._nvalid, sup.config.p_wfs0._nvalid * 2,
                     sup.config.p_controller0.nactu, sup.config.p_controller0.delay, 0,
