@@ -281,8 +281,8 @@ sutra_rtc<Tin, T, Tout>::do_imat_impl(int ncntrl, sutra_dms *ydm,
 	  float nrmTip = this->d_centro[idx_cntr]->d_ref_Tip->nrm2(1);
 	  float nrmTilt = this->d_centro[idx_cntr]->d_ref_Tilt->nrm2(1);
 
-	  this->d_centro[idx_cntr]->d_ref_Tip->scale(1.0f/nrmTip,1);
-	  this->d_centro[idx_cntr]->d_ref_Tilt->scale(1.0f/nrmTilt,1);
+	  this->d_centro[idx_cntr]->d_ref_Tip->scale(T(1.0f/nrmTip),1);
+	  this->d_centro[idx_cntr]->d_ref_Tilt->scale(T(1.0f/nrmTilt),1);
 	  
  	  
 	}      

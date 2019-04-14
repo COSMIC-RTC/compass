@@ -54,6 +54,9 @@ int sutra_centroider_cog<Tin, T>::get_cog(float *img, float *intensities,
     
     this->wfs->d_slopes->copyInto(centroids, this->nslopes);
 
+    T TT_data[2] = {tip,tilt};
+    this->d_TT_slopes->host2device(TT_data);
+
  }
   
   

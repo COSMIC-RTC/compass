@@ -69,6 +69,21 @@ int sutra_centroider_bpcog<Tin, T>::get_cog(float *img, float *intensities,
                 this->d_validy->getData(), intensities, this->nmax, this->scale,
                 this->offset, this->current_context->get_device(this->device));
 
+  if (this->filter_TT == true) {
+    this->wfs->d_slopes->copyFrom(centroids, this->nslopes);
+    
+    T tip = this->wfs->d_slopes->dot(this->d_ref_Tip,1,1);
+    T tilt = this->wfs->d_slopes->dot(this->d_ref_Tilt,1,1);
+
+    this->wfs->d_slopes->axpy(T(-1 * tip), this->d_ref_Tip, 1, 1);
+    this->wfs->d_slopes->axpy(T(-1 * tilt), this->d_ref_Tilt, 1, 1);
+    
+    this->wfs->d_slopes->copyInto(centroids, this->nslopes);
+
+    T TT_data[2] = {tip,tilt};
+    this->d_TT_slopes->host2device(TT_data);
+
+ }
   // brightest pixels cog
   // subap_sortmax<T>(npix * npix, nvalid, cube, this->d_bpix->getData(),
   //                      this->d_bpind->getData(), this->nmax,

@@ -106,7 +106,23 @@ int sutra_centroider_wcog<Tin, T>::get_cog(float *img, float *intensities,
                 this->d_weights->getData(), this->scale, this->offset,
                 this->current_context->get_device(this->device));
 
-  return EXIT_SUCCESS;
+  if (this->filter_TT == true) {
+    this->wfs->d_slopes->copyFrom(centroids, this->nslopes);
+    
+    T tip = this->wfs->d_slopes->dot(this->d_ref_Tip,1,1);
+    T tilt = this->wfs->d_slopes->dot(this->d_ref_Tilt,1,1);
+
+    this->wfs->d_slopes->axpy(T(-1 * tip), this->d_ref_Tip, 1, 1);
+    this->wfs->d_slopes->axpy(T(-1 * tilt), this->d_ref_Tilt, 1, 1);
+    
+    this->wfs->d_slopes->copyInto(centroids, this->nslopes);
+
+    T TT_data[2] = {tip,tilt};
+    this->d_TT_slopes->host2device(TT_data);
+
+ }
+
+ return EXIT_SUCCESS;
 }
 
 template <class Tin, class T>
