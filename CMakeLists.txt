@@ -7,7 +7,7 @@ endif()
 message(STATUS "COMPASS will be installed in: ${CMAKE_INSTALL_PREFIX}")
 
 option(python_build "Compile Python Wrappers" ON)
-option(hunter_build "Compile using hunter" ON)
+option(hunter_build "Compile using hunter" OFF)
 
 if(hunter_build)
     include("cmake/HunterGate.cmake")
