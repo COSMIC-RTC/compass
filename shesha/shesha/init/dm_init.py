@@ -166,6 +166,102 @@ def _dm_init(context: carmaWrap_context, dms: Dms, p_dm: conf.Param_dm, xpos_wfs
     return max_extent
 
 
+def _dm_init_factorized(context: carmaWrap_context, dms: Dms, p_dm: conf.Param_dm,
+                        xpos_wfs: list, ypos_wfs: list, p_geom: conf.Param_geom,
+                        diam: float, cobs: float, pupAngle: float, max_extent: int,
+                        keepAllActu: bool = False):
+    """ inits a Dms object on the gpu
+    NOTE: This is the
+
+    :parameters:
+        context: (carmaWrap_context): context
+        dms: (Dms) : dm object
+
+        p_dm: (Param_dms) : dm settings
+
+        xpos_wfs: (list) : list of wfs xpos
+
+        ypos_wfs: (list) : list of wfs ypos
+
+        p_geom: (Param_geom) : geom settings
+
+        diam: (float) : diameter of telescope
+
+        cobs: (float) : cobs of telescope
+
+        max_extent: (int) : maximum dimension of all dms
+
+    :return:
+        max_extent: (int) : new maximum dimension of all dms
+
+    """
+
+    if (p_dm.pupoffset is not None):
+        p_dm._puppixoffset = p_dm.pupoffset / diam * p_geom.pupdiam
+    # For patchDiam
+    patchDiam = dm_util.dim_dm_patch(p_geom.pupdiam, diam, p_dm.type, p_dm.alt, xpos_wfs,
+                                     ypos_wfs)
+
+    if (p_dm.type == scons.DmType.PZT) and p_dm.file_influ_hdf5 is not None:
+        init_pzt_from_hdf5(p_dm, p_geom, diam)
+    else:
+        if (p_dm.type == scons.DmType.PZT):
+            p_dm._pitch = patchDiam / float(p_dm.nact - 1)
+            # + 2.5 pitch each side
+            extent = p_dm._pitch * (p_dm.nact + p_dm.pzt_extent)
+
+            # calcul defaut influsize
+            make_pzt_dm(p_dm, p_geom, cobs, pupAngle, keepAllActu=keepAllActu)
+
+        elif (p_dm.type == scons.DmType.TT):
+            if (p_dm.alt == 0) and (max_extent != 0):
+                extent = int(max_extent * 1.05)
+                if (extent % 2 != 0):
+                    extent += 1
+            else:
+                extent = p_geom.pupdiam + 16
+
+        elif (p_dm.type == scons.DmType.KL):
+            extent = p_geom.pupdiam + 16
+        else:
+            raise TypeError("This type of DM doesn't exist ")
+
+        # Verif
+        # res1 = pol2car(*y_dm(n)._klbas,gkl_sfi(*y_dm(n)._klbas, 1));
+        # res2 = yoga_getkl(g_dm,0.,1);
+
+        p_dm._n1, p_dm._n2 = dm_util.dim_dm_support(p_geom.cent, extent, p_geom.ssize)
+
+    # max_extent
+    max_extent = max(max_extent, p_dm._n2 - p_dm._n1 + 1)
+
+    dim = max(p_dm._n2 - p_dm._n1 + 1, p_geom._mpupil.shape[0])
+
+    if (p_dm.type == scons.DmType.PZT):
+        ninflupos = p_dm._influpos.size
+        n_npts = p_dm._ninflu.size  #// 2
+        dms.add_dm(context, p_dm.type, p_dm.alt, dim, p_dm._ntotact, p_dm._influsize,
+                   ninflupos, n_npts, p_dm.push4imat, 0, context.activeDevice)
+        #infludata = p_dm._influ.flatten()[p_dm._influpos]
+        dms.d_dms[-1].pzt_loadarrays(p_dm._influ, p_dm._influpos.astype(np.int32),
+                                     p_dm._ninflu, p_dm._influstart, p_dm._i1, p_dm._j1)
+    elif (p_dm.type == scons.DmType.TT):
+        make_tiptilt_dm(p_dm, patchDiam, p_geom, diam)
+        dms.add_dm(context, p_dm.type, p_dm.alt, dim, 2, dim, 1, 1, p_dm.push4imat, 0,
+                   context.activeDevice)
+        dms.d_dms[-1].tt_loadarrays(p_dm._influ)
+    elif (p_dm.type == scons.DmType.KL):
+        make_kl_dm(p_dm, patchDiam, p_geom, cobs)
+        ninflu = p_dm.nkl
+
+        dms.add_dm(context, p_dm.type, p_dm.alt, dim, p_dm.nkl, p_dm._ncp, p_dm._nr,
+                   p_dm._npp, p_dm.push4imat, p_dm._ord.max(), context.activeDevice)
+        dms.d_dms[-1].kl_loadarrays(p_dm._rabas, p_dm._azbas, p_dm._ord, p_dm._cr,
+                                    p_dm._cp)
+
+    return max_extent
+
+
 def dm_init_standalone(context: carmaWrap_context, p_dms: list, p_geom: conf.Param_geom,
                        diam=1., cobs=0., pupAngle=0., wfs_xpos=[0], wfs_ypos=[0]):
     """Create and initialize a Dms object on the gpu
