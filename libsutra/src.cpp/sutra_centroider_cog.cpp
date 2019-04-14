@@ -11,16 +11,11 @@ sutra_centroider_cog<Tin, T>::sutra_centroider_cog(carma_context *context,
   long dims_data2[2] = {1, this->nslopes};
   this->d_centroids_ref = new carma_obj<T>(this->current_context, dims_data2);
   this->d_centroids_ref->reset();
-  
-  long dims_data[2] = {1, this->nvalid};
-  if (this->filter_TT == true) {
-    dims_data[1] = 2;
-    this->d_TT_slopes = new carma_obj<T>(this->current_context, dims_data);
-    dims_data[1] = this->nslopes;
-    this->d_ref_Tip = new carma_obj<T>(this->current_context, dims_data);
-    this->d_ref_Tilt = new carma_obj<T>(this->current_context, dims_data);
+  if(filter_TT){
+    this->init_TT_filter();
   }
 }
+
 
 template <class Tin, class T>
 sutra_centroider_cog<Tin, T>::~sutra_centroider_cog() {}
@@ -43,22 +38,9 @@ int sutra_centroider_cog<Tin, T>::get_cog(float *img, float *intensities,
                 this->d_validy->getData(), intensities, this->scale,
                 this->offset, this->current_context->get_device(this->device));
   
-  if (this->filter_TT == true) {
-    this->wfs->d_slopes->copyFrom(centroids, this->nslopes);
-    
-    T tip = this->wfs->d_slopes->dot(this->d_ref_Tip,1,1);
-    T tilt = this->wfs->d_slopes->dot(this->d_ref_Tilt,1,1);
-
-    this->wfs->d_slopes->axpy(T(-1 * tip), this->d_ref_Tip, 1, 1);
-    this->wfs->d_slopes->axpy(T(-1 * tilt), this->d_ref_Tilt, 1, 1);
-    
-    this->wfs->d_slopes->copyInto(centroids, this->nslopes);
-
-    T TT_data[2] = {tip,tilt};
-    this->d_TT_slopes->host2device(TT_data);
-
+  if (this->filter_TT) {
+    this->apply_TT_filter(centroids);
  }
-  
   
   return EXIT_SUCCESS;
 }

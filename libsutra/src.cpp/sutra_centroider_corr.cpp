@@ -15,13 +15,8 @@ sutra_centroider_corr<Tin, T>::sutra_centroider_corr(carma_context *context,
   this->d_centroids_ref = new carma_obj<T>(this->current_context, dims_data2);
   this->d_centroids_ref->reset();
 
-  long dims_data[2] = {1, this->nvalid};
-  if (this->filter_TT == true) {
-    dims_data[1] = 2;
-    this->d_TT_slopes = new carma_obj<T>(this->current_context, dims_data);
-    dims_data[1] = this->nslopes;
-    this->d_ref_Tip = new carma_obj<T>(this->current_context, dims_data);
-    this->d_ref_Tilt = new carma_obj<T>(this->current_context, dims_data);
+  if(filter_TT){
+    this->init_TT_filter();
   }
   
   this->d_corrfnct = 0L;
@@ -241,6 +236,10 @@ int sutra_centroider_corr<Tin, T>::get_cog(float *img, float *intensities,
 
   carma_axpy<T>(this->current_context->get_cublasHandle(), this->nslopes, -1.0f,
                 this->d_centroids_ref->getData(), 1, centroids, 1);
+
+  if (this->filter_TT) {
+    this->apply_TT_filter(centroids);
+ }
 
   return EXIT_SUCCESS;
 }

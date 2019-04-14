@@ -20,13 +20,9 @@ sutra_centroider_maskedPix<Tin, T>::sutra_centroider_maskedPix(
   this->d_centroids_ref = new carma_obj<T>(this->current_context, dims_data2);
   this->d_centroids_ref->reset();
 
-  if (this->filter_TT == true) {
-    dims_data[1] = 2;
-    this->d_TT_slopes = new carma_obj<T>(this->current_context, dims_data);
-    dims_data[1] = this->nslopes;
-    this->d_ref_Tip = new carma_obj<T>(this->current_context, dims_data);
-    this->d_ref_Tilt = new carma_obj<T>(this->current_context, dims_data);
-  }  
+  if(filter_TT){
+    this->init_TT_filter();
+  } 
 }
 
 template <class Tin, class T>
@@ -65,6 +61,10 @@ int sutra_centroider_maskedPix<Tin, T>::get_maskedPix(float *img, float *intensi
   getMaskedPix<T>(centroids, this->d_centroids_ref->getData(), img, subindx,
                   subindy, this->d_intensities->getOData(), ns, this->nslopes,
                   this->current_context->get_device(this->device));
+
+  if (this->filter_TT) {
+    this->apply_TT_filter(centroids);
+ }
 
   return EXIT_SUCCESS;
 }

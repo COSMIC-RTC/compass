@@ -93,6 +93,15 @@ void centroider_impl(py::module &mod, const char *name) {
                              },
                              "Flat frame for calibration")
 
+      .def_property_readonly("filter_TT", [](centroider &sc) { return sc.filter_TT; },
+                             "Tip/tilt filtering flag")
+
+      .def_property_readonly("d_ref_Tip", [](centroider &sc) { return sc.d_ref_Tip; },
+                             "Tip mode reference for filtering")
+
+      .def_property_readonly("d_ref_Tilt", [](centroider &sc) { return sc.d_ref_Tilt; },
+                             "Tilt mode reference for filtering")
+
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝
       //  ██╔████╔██║█████╗     ██║   ███████║██║   ██║██║  ██║███████╗

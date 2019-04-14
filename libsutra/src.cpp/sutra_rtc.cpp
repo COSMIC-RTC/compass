@@ -239,9 +239,9 @@ sutra_rtc<Tin, T, Tout>::do_imat_impl(int ncntrl, sutra_dms *ydm,
 	  dm->comp_oneactu(0, dm->push4imat);
 
 	  this->comp_images_imat(ydm);
-	  this->d_centro[idx_cntr]->get_cog();
-	  this->d_centro[idx_cntr]->wfs->d_slopes->scale(0.5f / dm->push4imat, 1);
-	  this->d_centro[idx_cntr]->wfs->d_slopes->copyInto(
+	  this->d_centro[idx_cntr]->get_cog(this->d_centro[idx_cntr]->d_intensities->getData(), this->d_centro[idx_cntr]->d_centro_filtered->getData(), true);
+	  this->d_centro[idx_cntr]->d_centro_filtered->scale(0.5f / dm->push4imat, 1);
+	  this->d_centro[idx_cntr]->d_centro_filtered->copyInto(
 		this->d_centro[idx_cntr]->d_ref_Tip->getData(), this->d_centro[idx_cntr]->nslopes);
 
 	  dm->reset_shape();
@@ -249,10 +249,10 @@ sutra_rtc<Tin, T, Tout>::do_imat_impl(int ncntrl, sutra_dms *ydm,
 	  // Tip Pull
 	  dm->comp_oneactu(0, -1.0f * dm->push4imat);
 	  this->comp_images_imat(ydm);
-	  this->d_centro[idx_cntr]->get_cog();
+	  this->d_centro[idx_cntr]->get_cog(this->d_centro[idx_cntr]->d_intensities->getData(), this->d_centro[idx_cntr]->d_centro_filtered->getData(), true);
 	  float alphai = -.5f / dm->push4imat;
 
-	  this->d_centro[idx_cntr]->d_ref_Tip->axpy(T(alphai), this->d_centro[idx_cntr]->wfs->d_slopes, 1, 1);
+	  this->d_centro[idx_cntr]->d_ref_Tip->axpy(T(alphai), this->d_centro[idx_cntr]->d_centro_filtered, 1, 1);
 
 	  dm->reset_shape();
 
@@ -260,9 +260,9 @@ sutra_rtc<Tin, T, Tout>::do_imat_impl(int ncntrl, sutra_dms *ydm,
 	  dm->comp_oneactu(1, dm->push4imat);
 
 	  this->comp_images_imat(ydm);
-	  this->d_centro[idx_cntr]->get_cog();
-	  this->d_centro[idx_cntr]->wfs->d_slopes->scale(0.5f / dm->push4imat, 1);
-	  this->d_centro[idx_cntr]->wfs->d_slopes->copyInto(
+	  this->d_centro[idx_cntr]->get_cog(this->d_centro[idx_cntr]->d_intensities->getData(), this->d_centro[idx_cntr]->d_centro_filtered->getData(), true);
+	  this->d_centro[idx_cntr]->d_centro_filtered->scale(0.5f / dm->push4imat, 1);
+	  this->d_centro[idx_cntr]->d_centro_filtered->copyInto(
 		this->d_centro[idx_cntr]->d_ref_Tilt->getData(), this->d_centro[idx_cntr]->nslopes);
 
 	  dm->reset_shape();
@@ -270,9 +270,9 @@ sutra_rtc<Tin, T, Tout>::do_imat_impl(int ncntrl, sutra_dms *ydm,
 	  // Tilt Pull
 	  dm->comp_oneactu(1, -1.0f * dm->push4imat);
 	  this->comp_images_imat(ydm);
-	  this->d_centro[idx_cntr]->get_cog();
+	  this->d_centro[idx_cntr]->get_cog(this->d_centro[idx_cntr]->d_intensities->getData(), this->d_centro[idx_cntr]->d_centro_filtered->getData(), true);
 
-	  this->d_centro[idx_cntr]->d_ref_Tilt->axpy(T(alphai), this->d_centro[idx_cntr]->wfs->d_slopes, 1, 1);
+	  this->d_centro[idx_cntr]->d_ref_Tilt->axpy(T(alphai), this->d_centro[idx_cntr]->d_centro_filtered, 1, 1);
 	  
 	  dm->reset_shape();
 	  
