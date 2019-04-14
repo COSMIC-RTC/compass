@@ -228,14 +228,14 @@ template <>
 // std::enable_if_t<std::is_same<T_data, half>::value>
 int carma_obj<half>::host2device<float>(const float *data) {
   return copyFromFloatToHalf(data, this->d_data, this->nb_elem,
-                      this->current_context->get_device(this->device));
+                             this->current_context->get_device(this->device));
 }
 template <>
 template <>
 // std::enable_if_t<std::is_same<T_data, half>::value>
 int carma_obj<half>::device2host<float>(float *data) {
-  copyFromHalfToFloat(this->d_data, data, this->nb_elem,
-                      this->current_context->get_device(this->device));
+  return copyFromHalfToFloat(this->d_data, data, this->nb_elem,
+                             this->current_context->get_device(this->device));
 }
 #endif
 
@@ -338,7 +338,7 @@ int carma_obj<T_data>::copyInto(ipc::Cacao<T_data> *cacaoInterface) {
    *
    * this method copies the values in d_output to the output array
    */
-  this->copyInto((T_data *) cacaoInterface->outputPtr(), this->nb_elem);
+  this->copyInto((T_data *)cacaoInterface->outputPtr(), this->nb_elem);
 
   return EXIT_SUCCESS;
 }
@@ -350,7 +350,7 @@ int carma_obj<T_data>::copyFrom(ipc::Cacao<T_data> *cacaoInterface) {
    *
    * this method copies the values in d_output to the output array
    */
-  this->copyFrom((T_data *) cacaoInterface->outputPtr(), this->nb_elem);
+  this->copyFrom((T_data *)cacaoInterface->outputPtr(), this->nb_elem);
 
   return EXIT_SUCCESS;
 }

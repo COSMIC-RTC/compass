@@ -32,17 +32,16 @@ sutra_controller_generic<T, Tout>::sutra_controller_generic(
 
   this->polc = false;
 
-  if(std::is_same<T, half>::value) {
+  if (std::is_same<T, half>::value) {
     int m = nactu;
     int n = nslope;
-    while(m % 8 != 0) m++;
-    while(n % 8 != 0) n++;
+    while (m % 8 != 0) m++;
+    while (n % 8 != 0) n++;
     dims_data2[1] = m;
     dims_data2[2] = n;
     this->d_cmatPadded = new carma_obj<T>(this->current_context, dims_data2);
     this->d_cmatPadded->reset();
   }
-
 }
 
 template <typename T, typename Tout>
@@ -137,6 +136,7 @@ int sutra_controller_generic<T, Tout>::comp_polc() {
              this->d_compbuff2->getData(), 1);
 
   this->d_olmeas->axpy(T(-1.0f), this->d_compbuff2, 1, 1);
+  return EXIT_SUCCESS;
 }
 
 template <typename T, typename Tout>
@@ -147,8 +147,8 @@ int sutra_controller_generic<T, Tout>::comp_com() {
   // cudaEvent_t startEv, stopEv;
   // carmaSafeCall(cudaEventCreate(&startEv));
   // carmaSafeCall(cudaEventCreate(&stopEv));
-    // float gpuTime;
-    int m, n;
+  // float gpuTime;
+  int m, n;
 
   if (this->polc) {
     this->comp_polc();
@@ -159,25 +159,23 @@ int sutra_controller_generic<T, Tout>::comp_com() {
   }
 
   carma_obj<T> *cmat;
-  if(std::is_same<T, half>::value){
+  if (std::is_same<T, half>::value) {
     cmat = this->d_cmatPadded;
     m = this->d_cmatPadded->getDims(1);
     n = this->d_cmatPadded->getDims(2);
-  }
-  else
-  {
+  } else {
     cmat = this->d_cmat;
     m = this->d_cmat->getDims(1);
     n = this->d_cmat->getDims(2);
   }
-  
+
   if (this->command_law == "integrator") {
     // cublasSetStream(this->cublas_handle(),
     //                 current_context->get_device(device)->get_stream());
     // carmaSafeCall(cudaEventRecord(startEv));
-    carma_gemv(this->cublas_handle(), 'n', m, n,
-               (T)(-1 * this->gain), cmat->getData(), m,
-               centroids->getData(), 1, berta, this->d_com->getData(), 1);
+    carma_gemv(this->cublas_handle(), 'n', m, n, (T)(-1 * this->gain),
+               cmat->getData(), m, centroids->getData(), 1, berta,
+               this->d_com->getData(), 1);
     // carmaSafeCall(cudaEventRecord(stopEv));
     // carmaSafeCall(cudaEventSynchronize(stopEv));
     // carmaSafeCall(cudaEventElapsedTime(&gpuTime, startEv, stopEv));
@@ -202,16 +200,19 @@ int sutra_controller_generic<T, Tout>::comp_com() {
     // v(k) = alpha*E*v(k-1) + g*CMAT*s(k)
     this->d_com->axpy((T)1.0f, this->d_compbuff, 1, 1);
   }
-    //   cudaEventDestroy(startEv);
-    // cudaEventDestroy(stopEv);
+  //   cudaEventDestroy(startEv);
+  // cudaEventDestroy(stopEv);
   return EXIT_SUCCESS;
 }
 
 template <typename T, typename Tout>
-template<typename Q>
+template <typename Q>
 typename std::enable_if<std::is_same<Q, half>::value, int>::type
-sutra_controller_generic<T, Tout>::fill_cmatPadded_impl(){
-  pad_cmat(this->d_cmat->getData(), this->d_cmat->getDims(1), this->d_cmat->getDims(2), this->d_cmatPadded->getData(), this->d_cmatPadded->getDims(1), this->d_cmatPadded->getDims(2), this->current_context->get_device(this->device));
+sutra_controller_generic<T, Tout>::fill_cmatPadded_impl() {
+  pad_cmat(this->d_cmat->getData(), this->d_cmat->getDims(1),
+           this->d_cmat->getDims(2), this->d_cmatPadded->getData(),
+           this->d_cmatPadded->getDims(1), this->d_cmatPadded->getDims(2),
+           this->current_context->get_device(this->device));
 
   return EXIT_SUCCESS;
 }

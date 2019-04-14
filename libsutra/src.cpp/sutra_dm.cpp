@@ -135,6 +135,7 @@ int sutra_dm::nact() { return this->nactus; }
 int sutra_dm::tt_loadarrays(float *influ) {
   current_context->set_activeDevice(device, 1);
   this->d_influ->host2device(influ);
+  return EXIT_SUCCESS;
 }
 
 int sutra_dm::pzt_loadarrays(float *influ, int *influpos, int *npoints,
