@@ -29,6 +29,10 @@ void declare_wfs_pyrhr(py::module &mod) {
           "d_submask", [](sutra_wfs_pyr_pyrhr &sp) { return sp.d_submask; },
           "TODO: docstring")
 
+      .def_readwrite("compute_pyrfocalplane",
+                     &sutra_wfs_pyr_pyrhr::compute_pyrfocalplane,
+                     "TODO: docstring")
+
       .def_property_readonly(
           "d_pyrfocalplane",
           [](sutra_wfs_pyr_pyrhr &sp) { return sp.d_pyrfocalplane; },

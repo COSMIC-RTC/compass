@@ -178,6 +178,8 @@ class Param_wfs:
         self.__pyr_misalignments = None
         """ Pyramid quadrant misalignments: by how much pupil subimages
         are off from their expected positions (in rebinned pixels)"""
+        self.__pyr_compute_focalplane = False
+        """ Compute the pyramid focalplane image """
 
         # pyramid internal kwrds
         self._pyr_offsets = None  # (float*)
@@ -922,6 +924,19 @@ class Param_wfs:
                                                              dtype=np.float32)
 
     pyr_misalignments = property(get_pyr_misalignments, set_pyr_misalignments)
+
+    def get_pyr_compute_focalplane(self):
+        """ Get the status of the pyramid wfs focal plane computation
+        """
+        return self.__pyr_compute_focalplane
+
+    def set_pyr_compute_focalplane(self, compute_focalplane):
+        """ Set the status of the pyramid wfs focal plane computation
+        """
+        self.__pyr_compute_focalplane = compute_focalplane
+
+    pyr_compute_focalplane = property(get_pyr_compute_focalplane,
+                                      set_pyr_compute_focalplane)
 
     def get_nvalid(self):
         """ Get the number of valid subapertures

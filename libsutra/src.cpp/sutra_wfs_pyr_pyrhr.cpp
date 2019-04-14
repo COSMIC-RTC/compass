@@ -25,6 +25,7 @@ sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(
   dims_data2[2] = nfft;
 
   this->npupils = npupils;
+  this->compute_pyrfocalplane = false;
   this->d_hrimg = new carma_obj<float>(context, dims_data2);  // Useless for SH
   this->d_submask = new carma_obj<float>(context, dims_data2);
   this->d_camplipup = new carma_obj<cuFloatComplex>(context, dims_data2);
@@ -355,9 +356,11 @@ void sutra_wfs_pyr_pyrhr::comp_modulation(int cpt) {
                 this->nfft, this->current_context->get_device(device));
     // float fact = 1.0f / this->nfft / this->nfft / this->nfft / 2.0;
     float fact = 1.0f * (this->pyr_mod_weights->getData())[cpt];
-    abs2(this->d_pyrfocalplane->getData(), this->d_camplifoc->getData(),
-         this->nfft * this->nfft, fact,
-         this->current_context->get_device(device));
+    if (compute_pyrfocalplane) {
+      abs2(this->d_pyrfocalplane->getData(), this->d_camplifoc->getData(),
+           this->nfft * this->nfft, fact,
+           this->current_context->get_device(device));
+    }
     pyr_submaskpyr(this->d_camplifoc->getData(), this->d_phalfxy->getData(),
                    this->nfft, this->current_context->get_device(device));
     carma_fft(this->d_camplifoc->getData(), this->d_fttotim->getData(), 1,
@@ -388,9 +391,12 @@ void sutra_wfs_pyr_pyrhr::comp_modulation(int cpt) {
                 this->current_context->get_device(cur_device));
     // float fact = 1.0f / this->nfft / this->nfft / this->nfft / 2.0;
     float fact = 1.0f * (this->pyr_mod_weights->getData())[cpt];
-    abs2(this->d_pyrfocalplane_ngpu[cur_device]->getData(),
-         this->d_camplifoc_ngpu[cur_device]->getData(), this->nfft * this->nfft,
-         fact, this->current_context->get_device(cur_device));
+    if (compute_pyrfocalplane) {
+      abs2(this->d_pyrfocalplane_ngpu[cur_device]->getData(),
+           this->d_camplifoc_ngpu[cur_device]->getData(),
+           this->nfft * this->nfft, fact,
+           this->current_context->get_device(cur_device));
+    }
 
     pyr_submaskpyr(this->d_camplifoc_ngpu[cur_device]->getData(),
                    this->d_phalfxy_ngpu[cur_device]->getData(), this->nfft,
@@ -428,15 +434,8 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
    add noise
    */
   current_context->set_activeDevice(device, 1);
-  carmaSafeCall(cudaMemset(this->d_hrimg->getData(), 0,
-                           sizeof(float) * this->d_hrimg->getNbElem()));
-  carmaSafeCall(cudaMemset(this->d_pyrfocalplane->getData(), 0,
-                           sizeof(float) * this->d_pyrfocalplane->getNbElem()));
   carmaSafeCall(cudaMemset(this->d_binimg->getData(), 0,
                            sizeof(float) * this->d_binimg->getNbElem()));
-
-  // this->npup = 1;
-
   for (std::vector<carma_obj<float> *>::iterator it =
            this->d_screen_ngpu.begin();
        this->d_screen_ngpu.end() != it; ++it) {
@@ -447,6 +446,8 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
     }
   }
 
+  carmaSafeCall(cudaMemset(this->d_hrimg->getData(), 0,
+                           sizeof(float) * this->d_hrimg->getNbElem()));
   for (std::vector<carma_obj<float> *>::iterator it =
            this->d_hrimg_ngpu.begin();
        this->d_hrimg_ngpu.end() != it; ++it) {
@@ -457,13 +458,18 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
     }
   }
 
-  for (std::vector<carma_obj<float> *>::iterator it =
-           this->d_pyrfocalplane_ngpu.begin();
-       this->d_pyrfocalplane_ngpu.end() != it; ++it) {
-    if (*it != d_pyrfocalplane) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
-      carmaSafeCall(
-          cudaMemset((*it)->getData(), 0, sizeof(float) * (*it)->getNbElem()));
+  if (compute_pyrfocalplane) {
+    carmaSafeCall(
+        cudaMemset(this->d_pyrfocalplane->getData(), 0,
+                   sizeof(float) * this->d_pyrfocalplane->getNbElem()));
+    for (std::vector<carma_obj<float> *>::iterator it =
+             this->d_pyrfocalplane_ngpu.begin();
+         this->d_pyrfocalplane_ngpu.end() != it; ++it) {
+      if (*it != d_pyrfocalplane) {
+        current_context->set_activeDevice((*it)->getDevice(), 1);
+        carmaSafeCall(cudaMemset((*it)->getData(), 0,
+                                 sizeof(float) * (*it)->getNbElem()));
+      }
     }
   }
 
@@ -489,16 +495,18 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
     }
   }
 
-  for (std::vector<carma_obj<float> *>::iterator it =
-           this->d_pyrfocalplane_ngpu.begin();
-       this->d_pyrfocalplane_ngpu.end() != it; ++it) {
-    if (*it != d_pyrfocalplane) {
-      if (current_context->canP2P(d_pyrfocalplane->getDevice(),
-                                  (*it)->getDevice())) {
-        d_pyrfocalplane->axpy(1.0f, (*it), 1, 1);
-      } else {
-        tmp_vector.copyFrom((*it)->getData(), (*it)->getNbElem());
-        d_pyrfocalplane->axpy(1.0f, &tmp_vector, 1, 1);
+  if (compute_pyrfocalplane) {
+    for (std::vector<carma_obj<float> *>::iterator it =
+             this->d_pyrfocalplane_ngpu.begin();
+         this->d_pyrfocalplane_ngpu.end() != it; ++it) {
+      if (*it != d_pyrfocalplane) {
+        if (current_context->canP2P(d_pyrfocalplane->getDevice(),
+                                    (*it)->getDevice())) {
+          d_pyrfocalplane->axpy(1.0f, (*it), 1, 1);
+        } else {
+          tmp_vector.copyFrom((*it)->getData(), (*it)->getNbElem());
+          d_pyrfocalplane->axpy(1.0f, &tmp_vector, 1, 1);
+        }
       }
     }
   }
