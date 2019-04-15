@@ -1,5 +1,5 @@
 # script="$SHESHA_ROOT/shesha/tests/check.py"
-script="shesha.tests.check"
+script="tests.check"
 conf_path="$SHESHA_ROOT/data/par/par4tests"
 nb_test=$(ls -1 $conf_path/*.py | wc -l)
 current_test=1

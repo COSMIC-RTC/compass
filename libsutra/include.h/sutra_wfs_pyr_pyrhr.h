@@ -14,6 +14,7 @@ using std::string;
 class sutra_wfs_pyr_pyrhr : public sutra_wfs {
  public:
   long npupils;
+  bool compute_pyrfocalplane;
   carma_obj<float> *d_hrimg;
   carma_obj<float> *d_submask;
   carma_obj<float> *d_psum;
