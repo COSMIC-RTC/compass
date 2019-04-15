@@ -161,16 +161,15 @@ sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
   }
   this->d_camplifoc_ngpu.clear();
 
-  // TODO(sevin) Fix segfault...
-  // for (std::vector<carma_obj<float> *>::iterator it =
-  //          this->d_pyrfocalplane_ngpu.begin();
-  //      this->d_pyrfocalplane_ngpu.end() != it; ++it) {
-  //   if (*it != this->d_pyrfocalplane) {
-  //     current_context->set_activeDevice((*it)->getDevice(), 1);
-  //     delete *it;
-  //   }
-  // }
-  // this->d_pyrfocalplane_ngpu.clear();
+  for (std::vector<carma_obj<float> *>::iterator it =
+           this->d_pyrfocalplane_ngpu.begin();
+       this->d_pyrfocalplane_ngpu.end() != it; ++it) {
+    if (*it != this->d_pyrfocalplane) {
+      current_context->set_activeDevice((*it)->getDevice(), 1);
+      delete *it;
+    }
+  }
+  this->d_pyrfocalplane_ngpu.clear();
 
   for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
            this->d_phalfxy_ngpu.begin();
