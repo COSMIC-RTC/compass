@@ -31,6 +31,9 @@ sutra_centroider<Tin, Tout>::sutra_centroider(carma_context *context,
   this->d_flat = nullptr;
   this->d_bincube = nullptr;
   this->d_validMask = nullptr;
+  this->d_centro_filtered = nullptr;
+  this->d_ref_Tip = nullptr;
+  this->d_ref_Tilt = nullptr;
 }
 
 template <class Tin, class Tout>
