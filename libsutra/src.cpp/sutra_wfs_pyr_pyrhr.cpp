@@ -141,46 +141,6 @@ sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(
 }
 
 sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
-  current_context->set_activeDevice(device, 1);
-  if (this->d_camplipup != 0L) delete this->d_camplipup;
-  if (this->d_camplifoc != 0L) delete this->d_camplifoc;
-  if (this->d_pyrfocalplane != 0L) delete this->d_pyrfocalplane;
-
-  if (this->d_fttotim != 0L) delete this->d_fttotim;
-
-  if (this->d_ftkernel != 0L) delete this->d_ftkernel;
-
-  if (this->d_hrimg != 0L) delete this->d_hrimg;
-  if (this->d_bincube != 0L) delete this->d_bincube;
-  if (this->d_binimg != 0L) delete this->d_binimg;
-  if (this->d_intensities != 0L) delete this->d_intensities;
-  if (this->d_offsets != 0L) delete this->d_offsets;
-  if (this->d_fluxPerSub != 0L) delete this->d_fluxPerSub;
-  if (this->d_sincar != 0L) delete this->d_sincar;
-  if (this->d_submask != 0L) delete this->d_submask;
-  if (this->d_hrmap != 0L) delete this->d_hrmap;
-
-  if (this->d_slopes != 0L) delete this->d_slopes;
-
-  if (this->image_telemetry != 0L) delete this->image_telemetry;
-
-  if (this->d_phasemap != 0L) delete this->d_phasemap;
-  if (this->d_validsubsx != 0L) delete this->d_validsubsx;
-  if (this->d_validsubsy != 0L) delete this->d_validsubsy;
-
-  if (this->d_psum != 0L) delete this->d_psum;
-  if (this->d_phalfxy != 0L) delete this->d_phalfxy;
-  if (this->d_poffsets != 0L) delete this->d_poffsets;
-  if (this->pyr_cx != 0L) delete this->pyr_cx;
-  if (this->pyr_cy != 0L) delete this->pyr_cy;
-  if (this->pyr_mod_weights != 0L) delete this->pyr_mod_weights;
-
-  if (this->lgs) delete this->d_gs->d_lgs;
-
-  if (this->d_gs != 0L) delete this->d_gs;
-
-  delete this->streams;
-
   for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
            this->d_camplipup_ngpu.begin();
        this->d_camplipup_ngpu.end() != it; ++it) {
@@ -201,15 +161,16 @@ sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
   }
   this->d_camplifoc_ngpu.clear();
 
-  for (std::vector<carma_obj<float> *>::iterator it =
-           this->d_pyrfocalplane_ngpu.begin();
-       this->d_pyrfocalplane_ngpu.end() != it; ++it) {
-    if (*it != this->d_pyrfocalplane) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
-      delete *it;
-    }
-  }
-  this->d_pyrfocalplane_ngpu.clear();
+  // TODO(sevin) Fix segfault...
+  // for (std::vector<carma_obj<float> *>::iterator it =
+  //          this->d_pyrfocalplane_ngpu.begin();
+  //      this->d_pyrfocalplane_ngpu.end() != it; ++it) {
+  //   if (*it != this->d_pyrfocalplane) {
+  //     current_context->set_activeDevice((*it)->getDevice(), 1);
+  //     delete *it;
+  //   }
+  // }
+  // this->d_pyrfocalplane_ngpu.clear();
 
   for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
            this->d_phalfxy_ngpu.begin();
@@ -270,6 +231,46 @@ sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
     }
   }
   this->d_hrimg_ngpu.clear();
+
+  current_context->set_activeDevice(device, 1);
+  if (this->d_camplipup != 0L) delete this->d_camplipup;
+  if (this->d_camplifoc != 0L) delete this->d_camplifoc;
+  if (this->d_pyrfocalplane != 0L) delete this->d_pyrfocalplane;
+
+  if (this->d_fttotim != 0L) delete this->d_fttotim;
+
+  if (this->d_ftkernel != 0L) delete this->d_ftkernel;
+
+  if (this->d_hrimg != 0L) delete this->d_hrimg;
+  if (this->d_bincube != 0L) delete this->d_bincube;
+  if (this->d_binimg != 0L) delete this->d_binimg;
+  if (this->d_intensities != 0L) delete this->d_intensities;
+  if (this->d_offsets != 0L) delete this->d_offsets;
+  if (this->d_fluxPerSub != 0L) delete this->d_fluxPerSub;
+  if (this->d_sincar != 0L) delete this->d_sincar;
+  if (this->d_submask != 0L) delete this->d_submask;
+  if (this->d_hrmap != 0L) delete this->d_hrmap;
+
+  if (this->d_slopes != 0L) delete this->d_slopes;
+
+  if (this->image_telemetry != 0L) delete this->image_telemetry;
+
+  if (this->d_phasemap != 0L) delete this->d_phasemap;
+  if (this->d_validsubsx != 0L) delete this->d_validsubsx;
+  if (this->d_validsubsy != 0L) delete this->d_validsubsy;
+
+  if (this->d_psum != 0L) delete this->d_psum;
+  if (this->d_phalfxy != 0L) delete this->d_phalfxy;
+  if (this->d_poffsets != 0L) delete this->d_poffsets;
+  if (this->pyr_cx != 0L) delete this->pyr_cx;
+  if (this->pyr_cy != 0L) delete this->pyr_cy;
+  if (this->pyr_mod_weights != 0L) delete this->pyr_mod_weights;
+
+  if (this->lgs) delete this->d_gs->d_lgs;
+
+  if (this->d_gs != 0L) delete this->d_gs;
+
+  delete this->streams;
 }
 
 int sutra_wfs_pyr_pyrhr::loadarrays(cuFloatComplex *halfxy, float *cx,
