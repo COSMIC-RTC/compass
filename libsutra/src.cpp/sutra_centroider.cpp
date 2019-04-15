@@ -34,6 +34,7 @@ sutra_centroider<Tin, Tout>::sutra_centroider(carma_context *context,
   this->d_centro_filtered = nullptr;
   this->d_ref_Tip = nullptr;
   this->d_ref_Tilt = nullptr;
+  this->d_TT_slopes = nullptr;
 }
 
 template <class Tin, class Tout>
@@ -48,7 +49,7 @@ sutra_centroider<Tin, Tout>::~sutra_centroider() {
   if (this->d_flat != nullptr) delete this->d_flat;
   if (this->d_bincube != nullptr) delete this->d_bincube;
   if (this->d_validMask != nullptr) delete this->d_validMask;
-  // if (this->d_TT_slopes != nullptr) delete this->d_TT_slopes;
+  if (this->d_TT_slopes != nullptr) delete this->d_TT_slopes;
   if (this->d_centro_filtered != nullptr) delete this->d_centro_filtered;
   if (this->d_ref_Tip != nullptr) delete this->d_ref_Tip;
   if (this->d_ref_Tilt != nullptr) delete this->d_ref_Tilt;
@@ -195,10 +196,9 @@ int sutra_centroider<Tin, Tout>::set_centroids_ref(float *centroids_ref) {
 template <class Tin, class Tout>
 int sutra_centroider<Tin, Tout>::init_TT_filter(){
     this->current_context->set_activeDevice(device, 1);
-    long dims_data[2] = {1, this->nslopes};
-    // dims_data[1] = 2;
-    // this->d_TT_slopes = new carma_obj<T>(this->current_context, dims_data);
-    // dims_data[1] = this->nslopes;
+    long dims_data[2] = {1, 2};
+    this->d_TT_slopes = new carma_obj<float>(this->current_context, dims_data);
+    dims_data[1] = this->nslopes;
     this->d_centro_filtered = new carma_obj<float>(this->current_context, dims_data);
     this->d_ref_Tip = new carma_obj<float>(this->current_context, dims_data);
     this->d_ref_Tilt = new carma_obj<float>(this->current_context, dims_data);
@@ -226,8 +226,8 @@ sutra_centroider<Tin, Tout>::apply_TT_filter_impl(Tout *centroids, std::true_typ
     
     this->d_centro_filtered->copyInto(centroids, this->nslopes);
 
-    // T TT_data[2] = {tip,tilt};
-    // this->d_TT_slopes->host2device(TT_data);
+    float TT_data[2] = {tip,tilt};
+    this->d_TT_slopes->host2device(TT_data);
 
     return EXIT_SUCCESS;
 }

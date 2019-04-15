@@ -35,7 +35,7 @@ class sutra_centroider {
   carma_obj<float> *d_centro_filtered;
   carma_obj<float> *d_ref_Tip;
   carma_obj<float> *d_ref_Tilt;
-  // carma_obj<float> *d_TT_slopes;
+  carma_obj<float> *d_TT_slopes;
   
  protected:
   sutra_centroider(carma_context *context, sutra_wfs *wfs, long nvalid,
