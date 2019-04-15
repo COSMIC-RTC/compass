@@ -48,9 +48,10 @@ def dm_init(context: carmaWrap_context, p_dms: List[conf.Param_dm],
     if (len(p_dms) != 0):
         dms = Dms()
         types_dm = [p_dm.type for p_dm in p_dms]
-        first_TT = types_dm.index(scons.DmType.TT)
-        if np.any(np.array(types_dm[first_TT:]) != scons.DmType.TT):
-            raise RuntimeError("TT must be defined at the end of the dms parameters")
+        if scons.DmType.TT in types_dm:
+            first_TT = types_dm.index(scons.DmType.TT)
+            if np.any(np.array(types_dm[first_TT:]) != scons.DmType.TT):
+                raise RuntimeError("TT must be defined at the end of the dms parameters")
 
         for i in range(len(p_dms)):
             max_extent = _dm_init(context, dms, p_dms[i], xpos_wfs, ypos_wfs, p_geom,
