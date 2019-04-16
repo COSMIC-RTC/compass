@@ -103,8 +103,8 @@ void centroider_impl(py::module &mod, const char *name) {
                              "Tilt mode reference for filtering")
                              
       .def_property_readonly("d_TT_slopes", [](centroider &sc) { return sc.d_TT_slopes; },
-                             "Tip/tilt slopes removed after filtering
-                             ")
+                             "Tip/tilt slopes removed after filtering")
+                             
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝
       //  ██╔████╔██║█████╗     ██║   ███████║██║   ██║██║  ██║███████╗
