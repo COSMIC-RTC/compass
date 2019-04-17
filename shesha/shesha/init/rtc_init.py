@@ -128,11 +128,15 @@ def rtc_standalone(context: carmaWrap_context, nwfs: int, nvalid: int, nactu: in
     if brahma:
         rtc = Rtc_brahma(context, None, None, "rtc_brahma")
     elif cacao:
-        rtc = Rtc_cacao_FFF("compass_calPix", "compass_loopData")
+        if fp16:
+            from shesha.sutra_wrap import Rtc_cacao_FHF
+            rtc = Rtc_cacao_FHF("compass_calPix", "compass_loopData")
+        else:
+            rtc = Rtc_cacao_FFF("compass_calPix", "compass_loopData")
     else:
         if fp16:
-            from shesha.sutra_wrap import RtcFH
-            rtc = RtcFH()
+            from shesha.sutra_wrap import Rtc_FHF
+            rtc = Rtc_FHF()
         else:
             rtc = Rtc()
 
