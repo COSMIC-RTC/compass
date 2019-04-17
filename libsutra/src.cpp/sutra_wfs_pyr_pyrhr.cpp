@@ -446,6 +446,7 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
     }
   }
 
+  current_context->set_activeDevice(device, 1);
   carmaSafeCall(cudaMemset(this->d_hrimg->getData(), 0,
                            sizeof(float) * this->d_hrimg->getNbElem()));
   for (std::vector<carma_obj<float> *>::iterator it =
@@ -459,6 +460,7 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
   }
 
   if (compute_pyrfocalplane) {
+  current_context->set_activeDevice(device, 1);
     carmaSafeCall(
         cudaMemset(this->d_pyrfocalplane->getData(), 0,
                    sizeof(float) * this->d_pyrfocalplane->getNbElem()));
@@ -472,6 +474,8 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
       }
     }
   }
+
+  current_context->set_activeDevice(device, 1);
 
   for (int cpt = 0; cpt < this->npup; cpt++) {
     comp_modulation(cpt);
