@@ -167,6 +167,10 @@ export MAGMA_ROOT=$HOME/local/magma
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MAGMA_ROOT/lib
 export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$MAGMA_ROOT/lib/pkgconfig
 
+#third party lib path
+export CUB_ROOT=$COMPASS_ROOT/tplib/cub
+export WYRM_ROOT=$COMPASS_ROOT/tplib/wyrm
+
 #COMPASS default definitions
 export COMPASS_ROOT=$HOME/compass
 export COMPASS_INSTALL_ROOT=$COMPASS_ROOT/local

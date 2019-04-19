@@ -480,7 +480,7 @@ class CompassSupervisor(AbstractSupervisor):
         print("refslopes done")
 
     def resetRefslopes(self):
-        for centro in self.rtc.d_centro:
+        for centro in self._sim.rtc.d_centro:
             centro.d_centroids_ref.reset()
 
     def setNcpaWfs(self, ncpa, wfsnum):

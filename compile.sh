@@ -24,4 +24,5 @@ cd build
 NCPUS=`fgrep processor /proc/cpuinfo | wc -l`
 
 cmake .. -DCMAKE_INSTALL_PREFIX=$PYTHON_INSTALL_PATH -Ddo_half=$COMPASS_DO_HALF $BUILD_TOOL
-cmake --build . -j $NCPUS --target install $DEBUG
+cmake --build . --target install $DEBUG -- -j $NCPUS 
+
