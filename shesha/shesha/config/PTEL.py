@@ -1,6 +1,9 @@
-'''
+''' @package shesha.config.PTEL
+
 Param_tel class definition
+
 Parameters for telescope definition
+
 '''
 
 import numpy as np

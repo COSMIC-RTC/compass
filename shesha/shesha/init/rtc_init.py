@@ -1,5 +1,7 @@
-"""
+""" @package shesha.init.rtc_init
+
 Initialization of a Rtc object
+
 """
 
 import shesha.config as conf
@@ -141,8 +143,8 @@ def rtc_standalone(context: carmaWrap_context, nwfs: int, nvalid: int, nactu: in
             rtc = Rtc()
 
     for k in range(nwfs):
-        rtc.add_centroider(context, nvalid[k], offset, scale, False, context.activeDevice,
-                           centroider_type)
+        rtc.add_centroider(context, nvalid[k], offset, scale, False,
+                           context.activeDevice, centroider_type)
 
     nslopes = sum([c.nslopes for c in rtc.d_centro])
     rtc.add_controller(context, sum(nvalid), nslopes, nactu, delay, context.activeDevice,
@@ -182,9 +184,8 @@ def init_centroider(context, nwfs: int, p_wfs: conf.Param_wfs,
         s_scale = (p_wfs.Lambda * 1e-6 / p_tel.diam) * \
             p_wfs.pyr_ampl * CONST.RAD2ARCSEC
 
-    rtc.add_centroider(context, p_wfs._nvalid, s_offset, s_scale,
-                       p_centroider.filter_TT, context.activeDevice,
-                       p_centroider.type, wfs.d_wfs[nwfs])
+    rtc.add_centroider(context, p_wfs._nvalid, s_offset, s_scale, p_centroider.filter_TT,
+                       context.activeDevice, p_centroider.type, wfs.d_wfs[nwfs])
     rtc.d_centro[-1].load_validpos(p_wfs._validsubsx, p_wfs._validsubsy,
                                    p_wfs._nvalid * p_wfs.nPupils)
 

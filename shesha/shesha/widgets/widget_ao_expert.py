@@ -1,4 +1,5 @@
-"""Widget expert
+"""
+Widget expert
 """
 
 import os, sys
@@ -82,8 +83,7 @@ class WidgetAOExpert(ExpertClassTemplate):
 
     def updatePyrAmpl(self) -> None:
         if (self.sim.rtc):
-            comp_new_pyr_ampl(0,
-                              self.uiExpert.wao_pyr_ampl.value(), self.sim.wfs,
+            comp_new_pyr_ampl(0, self.uiExpert.wao_pyr_ampl.value(), self.sim.wfs,
                               self.sim.rtc, self.sim.config.p_wfss,
                               self.sim.config.p_tel)
             print("Pyramid modulation updated on GPU")
@@ -94,7 +94,7 @@ class WidgetAOExpert(ExpertClassTemplate):
         unitpervolt = self.uiExpert.wao_dmUnitPerVolt.value()
         self.updateDMrange(push4imat=push4imat, unitpervolt=unitpervolt)
 
-    def updateDMrange(self, push4imat: float=None, unitpervolt: float=None) -> None:
+    def updateDMrange(self, push4imat: float = None, unitpervolt: float = None) -> None:
         numdm = str(self.uiExpert.wao_selectDM.currentText())
         numwfs = str(self.uiExpert.wao_dmActuPushArcSecNumWFS.currentText())
         if ((numdm is not "") and (numwfs is not "") and (push4imat != 0) and
@@ -277,8 +277,8 @@ class WidgetAOExpert(ExpertClassTemplate):
         self.sim.config.p_atmos.frac[nscreen] = self.uiExpert.wao_atmosFrac.value()
         self.sim.config.p_atmos.L0[nscreen] = self.uiExpert.wao_atmosL0.value()
         self.sim.config.p_atmos.windspeed[nscreen] = self.uiExpert.wao_windSpeed.value()
-        self.sim.config.p_atmos.winddir[
-                nscreen] = self.uiExpert.wao_windDirection.value()
+        self.sim.config.p_atmos.winddir[nscreen] = self.uiExpert.wao_windDirection.value(
+        )
         print("New atmos parameters set")
 
     def setRtcParams(self) -> None:
@@ -433,8 +433,8 @@ class WidgetAOExpert(ExpertClassTemplate):
                 data = self.sim.rtc.get_cmat(0)
             elif (type_matrix == "Eigenvalues"):
                 if (self.sim.config.p_controllers[0].type == scons.ControllerType.LS or
-                            self.sim.config.p_controllers[0].type ==
-                            scons.ControllerType.MV):
+                            self.sim.config.p_controllers[0].type == scons.
+                            ControllerType.MV):
                     data = self.sim.rtc.getEigenvals(0)
             elif (type_matrix == "Cmm" and
                   self.sim.config.p_controllers[0].type == scons.ControllerType.MV):
@@ -504,8 +504,8 @@ class WidgetAOExpert(ExpertClassTemplate):
 
                 self.uiExpert.wao_rtcWindow.canvas.draw()
 
-    def computeDMrange(self, numdm: int, numwfs: int, push4imat: float=None,
-                       unitpervolt: float=None) -> float:
+    def computeDMrange(self, numdm: int, numwfs: int, push4imat: float = None,
+                       unitpervolt: float = None) -> float:
         i = numdm
         if (push4imat is None or push4imat == 0):
             push4imat = self.sim.config.p_dms[i].push4imat

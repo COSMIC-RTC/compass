@@ -1,15 +1,17 @@
 /**
+ * \file carma_obj.h
+ *
  * \class carma_obj
  *
  * \ingroup libcarma
  *
  * \brief this class provides wrappers to the generic carma object
  *
- * \author $Author: dg, as $
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
  *
- * \version $Revision: 1.0 $
+ * \version 1.0
  *
- * \date $Date: 2011/01/28$
+ * \date 2011/01/28
  *
  */
 #ifndef _CARMA_OBJ_H_
@@ -235,17 +237,18 @@ class carma_obj {
   int copyInto(T_data *data, int nb_elem);
   int copyFrom(const T_data *data, int nb_elem);
 
-  #ifdef USE_OCTOPUS
+#ifdef USE_OCTOPUS
   int copyInto(ipc::Cacao<T_data> *cacaoInterface);
   int copyFrom(ipc::Cacao<T_data> *cacaoInterface);
-  #endif  
+#endif
 
   inline int reset() {
     return cudaMemset(this->d_data, 0, this->nb_elem * sizeof(T_data));
   }
   inline int memSet(T_data value) {
-    return fill_array_with_value(this->d_data, value, this->nb_elem,
-                          this->current_context->get_device(this->device));
+    return fill_array_with_value(
+        this->d_data, value, this->nb_elem,
+        this->current_context->get_device(this->device));
   }
   cufftHandle *getPlan() { return &plan; }
   ///< FFT plan

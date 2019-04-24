@@ -37,7 +37,14 @@ sys.path.insert(0, os.environ["SHESHA_ROOT"])
 # ones.
 extensions = [
         'sphinx.ext.autodoc',
+        'breathe',
+        'sphinx.ext.intersphinx',
+        'sphinx.ext.autosummary',
+        'sphinx.ext.napoleon',
 ]
+
+breathe_projects = {"Compass": "doxygen-doc/doxyxml/"}
+breathe_default_project = "Compass"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -118,7 +125,7 @@ todo_include_todos = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 html_theme = "classic"
-html_theme_options = {"rightsidebar": "False", "stickysidebar": "True"}
+# html_theme_options = {"rightsidebar": "False", "stickysidebar": "True"}
 # html_theme = 'bootstrap'
 
 # Theme options are theme-specific and customize the look and feel of a theme

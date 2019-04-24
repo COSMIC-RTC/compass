@@ -50,6 +50,7 @@ shesha/shesha_test/scripts/resultatsScripts/
 *.gch
 
 doc/compass-doc
+doc/doxygen-doc
 
 \.vscode/
 setup.cfg

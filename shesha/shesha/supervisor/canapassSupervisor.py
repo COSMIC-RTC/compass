@@ -1,4 +1,5 @@
-"""Widget to simulate a closed loop
+""" @package shesha.supervisor.canapassSupervisor
+Widget to simulate a closed loop
 
 Usage:
   canapassSupervisor.py [<parameters_filename>]
@@ -781,7 +782,7 @@ class CanapassSupervisor(CompassSupervisor):
 
         """
         pyr_npts = len(cx)
-        wfs = self._sim.wfs     
+        wfs = self._sim.wfs
         pwfs = self._sim.config.p_wfss[nwfs]
         pwfs.set_pyr_npts(pyr_npts)
         pwfs.set_pyr_cx(cx)
@@ -802,7 +803,7 @@ class CanapassSupervisor(CompassSupervisor):
         """
         nstars = len(coords)
         pyr_npts = niters * nstars
-        wfs = self._sim.wfs 
+        wfs = self._sim.wfs
         pwfs = self._sim.config.p_wfss[nwfs]
         ptel = self._sim.config.p_tel
         #Computes the positions of the stars during the modulation
@@ -833,7 +834,7 @@ class CanapassSupervisor(CompassSupervisor):
         #scale = pwfs.Lambda * 1e-6 / p_tel.diam * ampli * 180. / np.pi * 3600.
         #rtc.d_centro[nwfs].set_scale(scale)
 
-    def setPyrDiskSource(self, radius, density = 1., nwfs=0):
+    def setPyrDiskSource(self, radius, density=1., nwfs=0):
         """
         radius is the radius of the disk object in lambda/D
         density is the spacing between the packed PSF in the disk object, in lambda/D
@@ -841,7 +842,7 @@ class CanapassSupervisor(CompassSupervisor):
         create disk object by packing PSF in a given radius, using hexagonal packing
         /!\ There is no modulation
         """
-        wfs = self._sim.wfs 
+        wfs = self._sim.wfs
         pwfs = self._sim.config.p_wfss[nwfs]
         ptel = self._sim.config.p_tel
         pyrsize = pwfs._Nfft
@@ -849,23 +850,25 @@ class CanapassSupervisor(CompassSupervisor):
         scale_pos = 2 * np.pi / pyrsize * \
             (pwfs.Lambda * 1e-6 / ptel.diam) / pixsize
         #Vectors used to generate the hexagonal paving
-        gen_xp, gen_yp = np.array([1,0.]),np.array([np.cos(np.pi/3),np.sin(np.pi/3)])
-        n = 1+int(1.2*radius)
+        gen_xp, gen_yp = np.array([1,
+                                   0.]), np.array([np.cos(np.pi / 3),
+                                                   np.sin(np.pi / 3)])
+        n = 1 + int(1.2 * radius)
         mat_circ = []
-        for k in range(-n,n):
-            for l in range(-n,n):
-                coord = k*gen_xp + l*gen_yp
-                if np.sqrt(coord[0]**2+coord[1]**2) <= radius:
+        for k in range(-n, n):
+            for l in range(-n, n):
+                coord = k * gen_xp + l * gen_yp
+                if np.sqrt(coord[0]**2 + coord[1]**2) <= radius:
                     mat_circ.append(coord)
         mat_circ = np.array(mat_circ)
-        cx, cy = mat_circ[:,0], mat_circ[:,1]
+        cx, cy = mat_circ[:, 0], mat_circ[:, 1]
         pyr_npts = len(cx)
         pwfs.set_pyr_npts(pyr_npts)
         pwfs.set_pyr_cx(cx)
         pwfs.set_pyr_cy(cy)
         wfs.d_wfs[nwfs].set_pyr_modulation(cx, cy, pyr_npts)
 
-    def setPyrSquareSource(self, radius, density = 1., nwfs=0):
+    def setPyrSquareSource(self, radius, density=1., nwfs=0):
         """
         radius is half of the side of the object in lambda/D
         density is the spacing between the packed PSF in the square object, in lambda/D
@@ -873,15 +876,15 @@ class CanapassSupervisor(CompassSupervisor):
         create square object by packing PSF in a given radius, using square packing
         /!\ There is no modulation
         """
-        wfs = self._sim.wfs 
+        wfs = self._sim.wfs
         pwfs = self._sim.config.p_wfss[nwfs]
         ptel = self._sim.config.p_tel
         pyrsize = pwfs._Nfft
         pixsize = (np.pi * pwfs._qpixsize) / (3600 * 180)
         scale_pos = 2 * np.pi / pyrsize * \
             (pwfs.Lambda * 1e-6 / ptel.diam) / pixsize
-        x = np.linspace(-radius, radius, 1 + 2*int(radius/density)) * scale_pos
-        cx, cy = np.meshgrid(x,x,indexing='ij')
+        x = np.linspace(-radius, radius, 1 + 2 * int(radius / density)) * scale_pos
+        cx, cy = np.meshgrid(x, x, indexing='ij')
         cx = cx.flatten()
         cy = cy.flatten()
         pyr_npts = len(cx)
@@ -889,7 +892,6 @@ class CanapassSupervisor(CompassSupervisor):
         pwfs.set_pyr_cx(cx)
         pwfs.set_pyr_cy(cy)
         wfs.d_wfs[nwfs].set_pyr_modulation(cx, cy, pyr_npts)
-
 
     def setPyrMethod(self, pyrmethod):
         CompassSupervisor.setPyrMethod(self, pyrmethod)
@@ -951,7 +953,7 @@ class CanapassSupervisor(CompassSupervisor):
         srseList = []
         srleList = []
         gNPCAList = []
-        
+
         # Resets the target so that the PSF LE is synchro with the data
         for i in range(len(self._sim.config.p_targets)):
             self.resetStrehl(i)

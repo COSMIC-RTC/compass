@@ -1,3 +1,19 @@
+/**
+ * \file sutra_telescope.h
+ *
+ * \class sutra_telescope
+ *
+ * \ingroup libsutra
+ *
+ * \brief this class provides the telescope features to COMPASS
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
+ */
 #ifndef _SUTRA_TELESCOPE_H_
 #define _SUTRA_TELESCOPE_H_
 

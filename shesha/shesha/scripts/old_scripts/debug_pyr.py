@@ -8,7 +8,7 @@ import carmaWrap as ch
 import shesha as ao
 import time
 import matplotlib.pyplot as pl
-import hdf5_utils as h5u
+import hdf5_util as h5u
 
 print("TEST SHESHA\n closed loop: call loop(int niter)")
 

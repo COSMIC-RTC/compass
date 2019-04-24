@@ -1,3 +1,19 @@
+/**
+ * \file sutra_wfs_pyr_pyrhr.h
+ *
+ * \class sutra_wfs_pyr_pyrhr
+ *
+ * \ingroup libsutra
+ *
+ * \brief this class provides the wfs_pyr_pyrhr features to COMPASS
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
+ */
 #ifndef _SUTRA_WFS_PYR_PYRHR_H_
 #define _SUTRA_WFS_PYR_PYRHR_H_
 

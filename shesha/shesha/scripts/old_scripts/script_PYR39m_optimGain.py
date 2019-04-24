@@ -37,7 +37,7 @@ from shesha.constants import CONST
 
 import time
 import matplotlib.pyplot as plt
-import hdf5_utils as h5u
+import hdf5_util as h5u
 import resDataBase as db
 import astropy.io.fits as pf
 import glob

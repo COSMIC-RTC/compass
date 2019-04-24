@@ -1,3 +1,19 @@
+/**
+ * \file sutra_centroider.h
+ *
+ * \class sutra_centroider
+ *
+ * \ingroup libsutra
+ *
+ * \brief this class provides the centroider features to COMPASS
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
+ */
 #ifndef _SUTRA_CENTROIDER_H_
 #define _SUTRA_CENTROIDER_H_
 
@@ -36,11 +52,11 @@ class sutra_centroider {
   carma_obj<float> *d_ref_Tip;
   carma_obj<float> *d_ref_Tilt;
   carma_obj<float> *d_TT_slopes;
-  
+
  protected:
   sutra_centroider(carma_context *context, sutra_wfs *wfs, long nvalid,
                    float offset, float scale, bool filter_TT, int device);
-  
+
  private:
   template <typename Q = Tout>
   typename std::enable_if<std::is_same<Q, float>::value, int>::type
@@ -64,7 +80,6 @@ class sutra_centroider {
   bool is_type(string typec) { return (typec.compare(get_type()) == 0); }
   int init_TT_filter();
   int apply_TT_filter(Tout *centroids);
-
 
   virtual string get_type() = 0;
 

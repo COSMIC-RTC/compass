@@ -14,7 +14,7 @@ import carmaWrap as ch
 import shesha as ao
 import time
 import matplotlib.pyplot as plt
-import hdf5_utils as h5u
+import hdf5_util as h5u
 import numpy as np
 plt.ion()
 sys.path.append('/home/sdurand/hracode/codes/PYRCADO/Python')

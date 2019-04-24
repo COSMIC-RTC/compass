@@ -1,3 +1,11 @@
+""" @package shesha.supervisor.benchSupervisor
+
+COMPASS simulation package
+
+Initialization and execution of a Bench supervisor
+
+"""
+
 import numpy as np
 
 from shesha.constants import CentroiderType, WFSType

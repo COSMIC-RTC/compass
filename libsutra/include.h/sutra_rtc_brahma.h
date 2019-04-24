@@ -1,10 +1,3 @@
-/*
- * sutra_rtc_brahma.h
- *
- *  Created on: Feb 17, 2015
- *      Author: sevin
- */
-
 #ifndef SUTRA_RTC_BRAHMA_H_
 #define SUTRA_RTC_BRAHMA_H_
 

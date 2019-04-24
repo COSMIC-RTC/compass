@@ -1,5 +1,7 @@
-'''
+''' @package shesha.init.geom_init
+
 Initialization of the system geometry and of the Telescope object
+
 '''
 
 import shesha.config as conf
@@ -812,7 +814,8 @@ def geom_init(p_geom: conf.Param_geom, p_tel: conf.Param_tel, padding=2):
 
     if (p_tel.std_piston and p_tel.std_tt):
         p_geom._phase_ab_M1 = mkP.make_phase_ab(p_geom.pupdiam, p_geom.pupdiam, p_tel,
-                                                p_geom._spupil, cent, cent).astype(np.float32)
+                                                p_geom._spupil, cent,
+                                                cent).astype(np.float32)
         p_geom._phase_ab_M1_m = util.pad_array(p_geom._phase_ab_M1,
                                                p_geom._n).astype(np.float32)
     #TODO: apodizer

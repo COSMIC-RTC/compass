@@ -1,6 +1,9 @@
-'''
+''' @package shesha.config.PWFS
+
 Param_wfs class definition
+
 Parameters for WFS
+
 '''
 
 import numpy as np

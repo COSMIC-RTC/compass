@@ -1,3 +1,19 @@
+/**
+ * \file sutra_controller_geo.h
+ *
+ * \class sutra_controller_geo
+ *
+ * \ingroup libsutra
+ *
+ * \brief this class provides the controller_geo features to COMPASS
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
+ */
 #ifndef SUTRA_CONTROLLER_GEO_H_
 #define SUTRA_CONTROLLER_GEO_H_
 

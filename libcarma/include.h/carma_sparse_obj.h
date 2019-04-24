@@ -1,8 +1,18 @@
-/*
- * carma_sparse_obj.h
+/**
+ * \file carma_sparse_obj.h
  *
- *  Created on: Apr 8, 2014
- *      Author: ???
+ * \class carma_sparse_obj
+ *
+ * \ingroup libcarma
+ *
+ * \brief this class provides wrappers to the generic carma sparse object
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
  */
 
 #ifndef CARMA_SPARSE_OBJ_H_

@@ -1,4 +1,5 @@
-"""Widget to simulate a closed loop
+""" @package shesha.widgets.widget_canapass
+Widget to simulate a closed loop
 
 Usage:
   widget_canapass.py [<parameters_filename>]

@@ -15,6 +15,8 @@ Develop status: [![Develop status](https://gitlab.obspm.fr/compass/compass/badge
     - [Why MAGMA?](#why-magma)
     - [Extraction](#extraction)
     - [Configure MAGMA with MKL & installation](#configure-magma-with-mkl--installation)
+    - [Configure with Makefile](#configure-with-makefile)
+    - [Configure with CMake (not working fine...)](#configure-with-cmake-not-working-fine)
     - [Tuning (not tested)](#tuning-not-tested)
   - [Install the platform](#install-the-platform)
     - [Download sources](#download-sources)
@@ -128,10 +130,10 @@ Where:
 - sm_XX is compatible with the [compute capability](http://www.nvidia.com/object/cuda_gpus.html). For example, sm_60 for Tesla Tesla P100
 - NCPUS is the number of CPUs in your system
 
-Note: If your gcc/g++ is too recent, please specify 
+Note: If your gcc/g++ is too recent, please specify
 
 ```
--DCMAKE_CXX_COMPILER=$CUDA_ROOT/bin/g++ -DCMAKE_C_COMPILER=$CUDA_ROOT/bin/gcc 
+-DCMAKE_CXX_COMPILER=$CUDA_ROOT/bin/g++ -DCMAKE_C_COMPILER=$CUDA_ROOT/bin/gcc
 ```
 
 ### Tuning (not tested)

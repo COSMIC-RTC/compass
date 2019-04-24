@@ -1,3 +1,19 @@
+/**
+ * \file sutra_atmos.h
+ *
+ * \class sutra_atmos
+ *
+ * \ingroup libsutra
+ *
+ * \brief this class provides the atmos features to COMPASS
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
+ */
 #ifndef _SUTRA_ATMOS_H_
 #define _SUTRA_ATMOS_H_
 

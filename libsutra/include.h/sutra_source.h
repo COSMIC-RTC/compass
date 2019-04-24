@@ -1,3 +1,19 @@
+/**
+ * \file sutra_source.h
+ *
+ * \class sutra_source
+ *
+ * \ingroup libsutra
+ *
+ * \brief this class provides the source features to COMPASS
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
+ */
 #ifndef _SUTRA_SOURCE_H_
 #define _SUTRA_SOURCE_H_
 

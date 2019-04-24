@@ -1,15 +1,17 @@
 /**
+ * \file carma_stream.h
+ *
  * \class carma_stream
  *
  * \ingroup libcarma
  *
- * \brief this class
+ * \brief this class provides the stream features to carma_obj
  *
- * \author $Author: dg, as $
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
  *
- * \version $Revision: 1.0 $
+ * \version 1.0
  *
- * \date $Date: 2011/01/28$
+ * \date 2011/01/28
  *
  */
 #ifndef _CARMA_STREAM_H_

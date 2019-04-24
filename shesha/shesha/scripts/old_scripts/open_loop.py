@@ -7,7 +7,7 @@ import os
 import carmaWrap as ch
 import shesha as ao
 import time
-import hdf5_utils as h5u
+import hdf5_util as h5u
 import numpy as np
 
 print("TEST SHESHA\n closed loop: call loop(int niter)")

@@ -1,3 +1,19 @@
+/**
+ * \file carma_multithread.h
+ *
+ * \class carma_multithread
+ *
+ * \ingroup libcarma
+ *
+ * \brief this class provides the multithread features to carma_obj
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
+ */
 #ifndef CARMA_MULTITHREAD_H
 #define CARMA_MULTITHREAD_H
 

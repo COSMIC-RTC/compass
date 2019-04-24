@@ -1,5 +1,7 @@
-'''
+''' @package shesha.init.dm_init
+
 Initialization of a Dms object
+
 '''
 
 import shesha.config as conf
@@ -8,7 +10,7 @@ import shesha.constants as scons
 from shesha.constants import CONST
 
 from shesha.util import dm_util, influ_util, kl_util
-from shesha.util import hdf5_utils as h5u
+from shesha.util import hdf5_util as h5u
 
 import numpy as np
 

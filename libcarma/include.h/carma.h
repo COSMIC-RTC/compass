@@ -1,9 +1,9 @@
 /**
  * \defgroup libcarma Carma
  *
- * \brief Carma is a library that provides GPU acceleration to Yorick
+ * \brief Carma is a library that provides GPU acceleration
  *
- * \author $Author: Damien Gratadour & Arnaud Sevin $
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
  *
  */
 

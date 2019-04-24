@@ -1,8 +1,18 @@
 /*
- * carma_exception.h
+ * \file carma_exception.h
  *
- *  Created on: Mar 18, 2013
- *      Author: sevin
+ * \class carma_exception
+ *
+ * \ingroup libcarma
+ *
+ * \brief this class provides the exception to carma_obj
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
  */
 
 #ifndef CARMA_EXCEPTION_H_

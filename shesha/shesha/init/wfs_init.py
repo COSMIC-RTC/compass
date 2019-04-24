@@ -1,5 +1,7 @@
-'''
+''' @package shesha.init.wfs_init
+
 Initialization of a Sensors object
+
 '''
 
 import shesha.config as conf

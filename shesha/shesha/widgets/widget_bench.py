@@ -1,4 +1,5 @@
-"""Widget to simulate a closed loop
+""" @package shesha.widgets.widget_bench
+Widget to simulate a closed loop
 
 Usage:
   widget_bench.py [<parameters_filename>] [options]

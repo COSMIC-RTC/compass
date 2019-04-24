@@ -1,3 +1,19 @@
+/**
+ * \file sutra_centroider_pbcog.h
+ *
+ * \class sutra_centroider_pbcog
+ *
+ * \ingroup libsutra
+ *
+ * \brief this class provides the centroider_pbcog features to COMPASS
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
+ */
 #ifndef _SUTRA_CENTROIDER_BPCOG_H_
 #define _SUTRA_CENTROIDER_BPCOG_H_
 
@@ -12,7 +28,8 @@ class sutra_centroider_bpcog : public sutra_centroider<Tin, T> {
 
  public:
   sutra_centroider_bpcog(carma_context *context, sutra_wfs *wfs, long nvalid,
-                         float offset, float scale, bool filter_TT, int device, int nmax);
+                         float offset, float scale, bool filter_TT, int device,
+                         int nmax);
   sutra_centroider_bpcog(const sutra_centroider_bpcog &centroider);
   ~sutra_centroider_bpcog();
 

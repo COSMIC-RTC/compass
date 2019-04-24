@@ -1,6 +1,9 @@
 """
+
 Class SimulatorRTC: COMPASS simulation linked to real RTC with Octopus
+
 """
+
 import os
 import sys
 import time
@@ -20,8 +23,8 @@ class SimulatorRTC(Simulator):
         Class SimulatorRTC: COMPASS simulation linked to real RTC with Octopus
     """
 
-    def __init__(self, filepath: str=None, fastMode: bool=False, location: str="CPUSHM",
-                 benchmark: bool=False) -> None:
+    def __init__(self, filepath: str = None, fastMode: bool = False,
+                 location: str = "CPUSHM", benchmark: bool = False) -> None:
         """
         Initializes a Simulator instance
 
@@ -104,7 +107,9 @@ class SimulatorRTC(Simulator):
                 **self.rtcconf.config.p_wfss[0]._validsubsInterface)
         if self.rtcconf.config.p_wfss[0].type == WFSType.SH:
             self.valid.send(tmp_valid * self.rtcconf.config.p_wfss[0].npix)
-        elif self.rtcconf.config.p_wfss[0].type == WFSType.PYRHR or self.rtcconf.config.p_wfss[0].type == WFSType.PYRLR:
+        elif self.rtcconf.config.p_wfss[
+                0].type == WFSType.PYRHR or self.rtcconf.config.p_wfss[
+                        0].type == WFSType.PYRLR:
             self.valid.send(tmp_valid)
         else:
             raise RuntimeError("WFS Type not usable")
@@ -115,9 +120,9 @@ class SimulatorRTC(Simulator):
                     (p_wfs._framesizex,
                      p_wfs._framesizey)).astype(np.float32, order="F")
 
-    def next(self, *, move_atmos: bool=True, see_atmos: bool=True, nControl: int=0,
-             tar_trace: Iterable[int]=None, wfs_trace: Iterable[int]=None,
-             do_control: bool=True, apply_control: bool=True) -> None:
+    def next(self, *, move_atmos: bool = True, see_atmos: bool = True, nControl: int = 0,
+             tar_trace: Iterable[int] = None, wfs_trace: Iterable[int] = None,
+             do_control: bool = True, apply_control: bool = True) -> None:
         """
         Overload of the Simulator.next() function
         """

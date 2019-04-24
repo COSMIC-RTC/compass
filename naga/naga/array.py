@@ -1,12 +1,17 @@
+''' @package naga.array
+
+More details.
+'''
+
 import numpy as np
 from naga.context import Context
 
 from carmaWrap import obj_float, obj_double, obj_int, obj_float_complex, obj_uint16
 try:
     from carmaWrap import obj_half, make_carmaWrap_obj_half, get_carmaWrap_obj_half
-    USE_HALF=1
+    USE_HALF = 1
 except:
-    USE_HALF=0
+    USE_HALF = 0
 context = Context()
 
 

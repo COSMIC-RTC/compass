@@ -1,4 +1,4 @@
-"""
+""" @package shesha.constants
 Numerical constants for shesha
 Config enumerations for safe-typing
 """

@@ -1,3 +1,19 @@
+/**
+ * \file sutra_cetroider_pyr.h
+ *
+ * \class sutra_cetroider_pyr
+ *
+ * \ingroup libsutra
+ *
+ * \brief this class provides the cetroider_pyr features to COMPASS
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
+ */
 #ifndef _SUTRA_CENTROIDER_PYR_H_
 #define _SUTRA_CENTROIDER_PYR_H_
 

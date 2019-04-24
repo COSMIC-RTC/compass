@@ -16,7 +16,7 @@ import time
 import matplotlib.pyplot as pl
 
 import tools2 as tools
-import hdf5_utils as h5u
+import hdf5_util as h5u
 import pandas
 import imp
 

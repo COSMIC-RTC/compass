@@ -1,3 +1,19 @@
+/**
+ * \file sutra_target.h
+ *
+ * \class sutra_target
+ *
+ * \ingroup libsutra
+ *
+ * \brief this class provides the target features to COMPASS
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
+ */
 #ifndef _SUTRA_TARGET_H_
 #define _SUTRA_TARGET_H_
 

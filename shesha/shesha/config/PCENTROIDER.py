@@ -1,6 +1,9 @@
-'''
+''' @package shesha.config.PCENTROIDER
+
 Param_centroider class definition
+
 Parameters for centroider
+
 '''
 
 import numpy as np
@@ -281,4 +284,3 @@ class Param_centroider:
         self.__filter_TT = csu.enforce_or_cast_bool(t)
 
     filter_TT = property(get_filter_TT, set_filter_TT)
-    

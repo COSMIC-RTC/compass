@@ -1,3 +1,19 @@
+/**
+ * \file sutra_centroider_tcog.h
+ *
+ * \class sutra_centroider_tcog
+ *
+ * \ingroup libsutra
+ *
+ * \brief this class provides the centroider_tcog features to COMPASS
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
+ */
 #ifndef _SUTRA_CENTROIDER_TCOG_H_
 #define _SUTRA_CENTROIDER_TCOG_H_
 

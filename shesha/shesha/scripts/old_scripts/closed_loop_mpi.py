@@ -17,7 +17,7 @@ c.set_activeDevice(rank % c.get_ndevice())
 # mpi_init called during the import
 import mpi4py
 from mpi4py import MPI
-import hdf5_utils as h5u
+import hdf5_util as h5u
 
 comm = MPI.COMM_WORLD
 comm_size = comm.Get_size()

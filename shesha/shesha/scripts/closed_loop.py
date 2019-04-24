@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-"""script test to simulate a closed loop
+""" @package shesha.script.closed_loop
+script test to simulate a closed loop
 
 Usage:
   closed_loop.py <parameters_filename> [options]

@@ -1,7 +1,11 @@
 """
+
 Benchmark class for COMPASS with BRAHMA simulation timing
+
 (Not used, incomplete)
+
 """
+
 from time import time, sleep
 
 from .simulatorBrahma import SimulatorBrahma

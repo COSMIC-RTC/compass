@@ -1,3 +1,19 @@
+/**
+ * \file sutra_tscreen.h
+ *
+ * \class sutra_tscreen
+ *
+ * \ingroup libsutra
+ *
+ * \brief this class provides the tscreen features to COMPASS
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
+ */
 #ifndef _SUTRA_TSCREEN_H_
 #define _SUTRA_TSCREEN_H_
 

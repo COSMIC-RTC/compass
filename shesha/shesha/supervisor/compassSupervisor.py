@@ -1,3 +1,14 @@
+""" @package shesha.supervisor.compassSupervisor
+Widget to simulate a closed loop
+
+Usage:
+  compassSupervisor.py [<parameters_filename>]
+
+with 'parameters_filename' the path to the parameters file
+
+Options:
+  -h --help          Show this help message and exit
+"""
 from .abstractSupervisor import AbstractSupervisor
 import numpy as np
 

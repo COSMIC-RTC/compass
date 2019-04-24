@@ -1,4 +1,4 @@
-'''
+''' @package shesha.util.utilities
 Basic utilities function
 '''
 import importlib

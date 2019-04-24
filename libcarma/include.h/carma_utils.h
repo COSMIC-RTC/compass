@@ -1,3 +1,17 @@
+/**
+ * \file carma_utils.h
+ *
+ * \ingroup libcarma
+ *
+ * \brief this file provides tools to carma_obj
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
+ */
 #ifndef _CARMA_UTILS_H_
 #define _CARMA_UTILS_H_
 

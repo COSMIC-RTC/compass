@@ -1,15 +1,17 @@
 /**
+ * \file carma_host_obj.h
+ *
  * \class carma_host_obj
  *
  * \ingroup libcarma
  *
  * \brief this class provides wrappers to the generic carma host object
  *
- * \author $Author: dg, as $
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
  *
- * \version $Revision: 1.0 $
+ * \version 1.0
  *
- * \date $Date: 2011/01/28$
+ * \date 2011/01/28
  *
  */
 #ifndef _CARMA_HOST_OBJ_H_

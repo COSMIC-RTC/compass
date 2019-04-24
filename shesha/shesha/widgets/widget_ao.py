@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-"""Widget to simulate a closed loop
+""" @package shesha.widgets.widget_ao
+Widget to simulate a closed loop
 
 Usage:
   widget_ao.py [<parameters_filename>] [options]

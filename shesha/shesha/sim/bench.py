@@ -1,7 +1,11 @@
-"""
+""" @package shesha.sim.bench
+
 Benchmark class for COMPASS simulation timing
+
 (Not used, incomplete)
+
 """
+
 import time
 
 from typing import Callable, TypeVar
@@ -35,7 +39,7 @@ class Bench(Simulator):
     '''
 
     @timeit
-    def __init__(self, filepath: str=None) -> None:
+    def __init__(self, filepath: str = None) -> None:
         Simulator.__init__(self, filepath)
 
     @timeit
@@ -51,5 +55,5 @@ class Bench(Simulator):
         Simulator.next(self)
 
     @timeit
-    def loop(self, n: int=1, monitoring_freq: int=100, **kwargs) -> None:
+    def loop(self, n: int = 1, monitoring_freq: int = 100, **kwargs) -> None:
         Simulator.loop(self, n=n, monitoring_freq=monitoring_freq, **kwargs)

@@ -1,8 +1,18 @@
-/*
- * carma_sparse.h
+/**
+ * \file carma_cusparse.h
  *
- *  Created on: Apr 23, 2012
- *      Author: sevin
+ * \class carma_cusparse
+ *
+ * \ingroup libcarma
+ *
+ * \brief this class provides the cusparse features to carma_obj
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
  */
 
 #ifndef CARMA_SPARSE_H_

@@ -1,13 +1,14 @@
-"""
+""" @package shesha.sim.simulator
+
 Simulator class definition
+
 Must be instantiated for running a COMPASS simulation script easily
+
 """
 import sys
 import os
-'''
-    Binding struct for all initializers - good for subclassing modules
-'''
 
+# Binding struct for all initializers - good for subclassing modules
 from shesha.init.geom_init import tel_init
 from shesha.init.atmos_init import atmos_init
 from shesha.init.rtc_init import rtc_init
@@ -17,7 +18,7 @@ from shesha.init.wfs_init import wfs_init
 from shesha.util.utilities import load_config_from_file, load_config_from_module
 
 import shesha.constants as scons
-import shesha.util.hdf5_utils as h5u
+import shesha.util.hdf5_util as h5u
 
 import time
 

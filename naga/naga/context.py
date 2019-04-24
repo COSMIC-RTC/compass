@@ -1,3 +1,8 @@
+''' @package naga.context
+
+More details.
+'''
+
 from carmaWrap import context
 import numpy as np
 

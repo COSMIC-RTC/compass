@@ -1,15 +1,17 @@
 /**
+ * \file sutra_telemetry.h
+ *
  * \class sutra_telemetry
  *
  * \ingroup libsutra
  *
- * \brief this class
+ * \brief this class provides the telemetry features to COMPASS
  *
- * \author $Author: dg, as $
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
  *
- * \version $Revision: 1.0 $
+ * \version 1.0
  *
- * \date $Date: 2011/01/28$
+ * \date 2011/01/28
  *
  */
 #ifndef _SUTRA_TELEMETRY_H_
