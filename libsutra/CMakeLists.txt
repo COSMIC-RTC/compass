@@ -35,6 +35,7 @@ link_directories(${MAGMA_LIBRARY_DIRS})
 pkg_check_modules(OCTOPUS octopus)
 if(${OCTOPUS_FOUND})
   set(OCTOPUS_CPP src.cpp/sutra_rtc_cacao.cpp)
+  set(OCTOPUS_H include.h/sutra_rtc_cacao.h)
   link_directories(${OCTOPUS_LIBRARY_DIRS})
 else()
   message(STATUS "OCTOPUS_ROOT not find, CACAO RTC will not be available")
@@ -69,6 +70,12 @@ if(DEFINED ENV{BRAHMA_ROOT})
       # src.cpp/sutra_rtc_brahmaListenerImpl.cpp
       src.cpp/sutra_target_brahma.cpp
       # src.cpp/sutra_target_brahmaListenerImpl.cpp
+      )
+
+  set(BRAHMA_H include.h/sutra_rtc_brahma.h
+      # include.h/sutra_rtc_brahmaListenerImpl.h
+      include.h/sutra_target_brahma.h
+      # include.h/sutra_target_brahmaListenerImpl.h
       )
 
   set(BRAHMA_LIBS
@@ -219,14 +226,9 @@ install(FILES include.h/sutra_acquisim.h
               include.h/sutra_lgs.h
               include.h/sutra_phase.h
               include.h/sutra_roket.h
-              include.h/sutra_rtc_brahma.h
-              include.h/sutra_rtc_brahmaListenerImpl.h
-              include.h/sutra_rtc_cacao.h
               include.h/sutra_rtc.h
               include.h/sutra_sensors.h
               include.h/sutra_source.h
-              include.h/sutra_target_brahma.h
-              include.h/sutra_target_brahmaListenerImpl.h
               include.h/sutra_target.h
               include.h/sutra_telemetry.h
               include.h/sutra_telescope.h
@@ -236,6 +238,8 @@ install(FILES include.h/sutra_acquisim.h
               include.h/sutra_wfs.h
               include.h/sutra_wfs_pyr_pyrhr.h
               include.h/sutra_wfs_sh.h
+              ${BRAHMA_H}
+              ${OCTOPUS_H}
         DESTINATION include)
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/sutra.pc
