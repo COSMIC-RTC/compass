@@ -1,6 +1,4 @@
-#include <carma_host_obj.h>
-#include <carma_obj.h>
-#include <carma_sparse_obj.h>
+#include <carma_magma.h>
 
 #include <type_list.hpp>
 
@@ -311,13 +309,13 @@ int carma_potri_m_gen(Fnf const &ptr_potrf, Fni const &ptr_potri,
   ptr_setmatrix_1D_col_bcyclic(N, N, h_A, lda, d_lA, ldda, num_gpus, nb);
 
   magma_int_t info = 0;
-  CHECK_MAGMA(ptr_potrf(num_gpus, magma_uplo_const('L'), N, d_lA, N, &info),
-              info,
+  CHECK_MAGMA(
+      ptr_potrf(num_gpus, magma_uplo_const('L'), N, d_lA, N, &info), info,
 
-              for (long dev = 0; dev < num_gpus; dev++) {
-                magma_setdevice(dev);
-                cudaFree(d_lA[dev]);
-              });
+      for (long dev = 0; dev < num_gpus; dev++) {
+        magma_setdevice(dev);
+        cudaFree(d_lA[dev]);
+      });
   CHECK_MAGMA(
       ptr_getmatrix_1D_col_bcyclic(N, N, d_lA, ldda, h_A, lda, num_gpus, nb),
       info,
@@ -330,12 +328,13 @@ int carma_potri_m_gen(Fnf const &ptr_potrf, Fni const &ptr_potri,
   cudaMemcpy(h_A, d_iA, N * N * sizeof(T), cudaMemcpyHostToDevice);
 
   // d_iA->host2device(h_A);
-  CHECK_MAGMA(ptr_potri(magma_uplo_const('L'), N, d_iA, N, &info), info,
+  CHECK_MAGMA(
+      ptr_potri(magma_uplo_const('L'), N, d_iA, N, &info), info,
 
-              for (long dev = 0; dev < num_gpus; dev++) {
-                magma_setdevice(dev);
-                cudaFree(d_lA[dev]);
-              });
+      for (long dev = 0; dev < num_gpus; dev++) {
+        magma_setdevice(dev);
+        cudaFree(d_lA[dev]);
+      });
 
   for (long dev = 0; dev < num_gpus; dev++) {
     magma_setdevice(dev);

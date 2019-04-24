@@ -460,50 +460,6 @@ int carma_initfftconv(caObjS *data_in, caObjS *kernel_in, caObjS *padded_data,
 int carma_fftconv(caObjS *data_out, caObjS *padded_data,
                   caObjC *padded_spectrum, int kernelY, int kernelX);
 
-// MAGMA functions
-int magma_disabled();
-// template <class T>
-// int carma_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals,
-//               carma_obj<T> *mod2act, carma_obj<T> *mes2mod);
-template <class T>
-int carma_syevd(char jobz, carma_obj<T> *mat, carma_host_obj<T> *eigenvals);
-// template <class T, int method>
-// int carma_syevd(char jobz, carma_obj<T> *mat, carma_host_obj<T> *eigenvals);
-template <class T>
-int carma_syevd_m(long ngpu, char jobz, long N, T *mat, T *eigenvals);
-template <class T>
-int carma_syevd_m(long ngpu, char jobz, carma_host_obj<T> *mat,
-                  carma_host_obj<T> *eigenvals);
-template <class T>
-int carma_syevd_m(long ngpu, char jobz, carma_host_obj<T> *mat,
-                  carma_host_obj<T> *eigenvals, carma_host_obj<T> *U);
-template <class T>
-int carma_getri(carma_obj<T> *d_iA);
-template <class T>
-int carma_potri(carma_obj<T> *d_iA);
-template <class T>
-int carma_potri_m(long num_gpus, carma_host_obj<T> *h_A, carma_obj<T> *d_iA);
-
-// MAGMA functions (direct access)
-template <class T>
-int carma_syevd(char jobz, long N, T *mat, T *eigenvals);
-// template <class T, int method>
-// int carma_syevd(char jobz, long N, T *mat, T *eigenvals);
-template <class T>
-int carma_syevd_m(long ngpu, char jobz, long N, T *mat, T *eigenvals);
-// template <class T>
-// int carma_potri_m(long num_gpus, long N, T *h_A, T *d_iA);
-
-// CULA functions
-template <class T>
-int carma_cula_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals,
-                   carma_obj<T> *mod2act, carma_obj<T> *mes2mod);
-
-#ifdef CAN_DO_HALF
-int custom_half_axpy(half alpha, half *source, int incx, int incy, int N,
-                     half *dest, carma_device *device);
-#endif
-
 extern "C" {
 //  void sumGetNumBlocksAndThreads(int n, int device, int &blocks, int
 //  &threads); int snapTransformSize(int dataSize);

@@ -1,3 +1,4 @@
+#include <carma_magma.h>
 #include <sutra_controller_geo.h>
 
 template <typename T, typename Tout>

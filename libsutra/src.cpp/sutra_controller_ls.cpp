@@ -1,3 +1,4 @@
+#include <carma_magma.h>
 #include <sutra_controller_ls.h>
 #include <string>
 

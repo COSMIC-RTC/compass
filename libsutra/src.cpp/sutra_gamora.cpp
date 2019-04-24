@@ -1,3 +1,4 @@
+#include <carma_magma.h>
 #include <sutra_gamora.h>
 
 sutra_gamora::sutra_gamora(carma_context *context, int device, char *type,

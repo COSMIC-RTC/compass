@@ -1,3 +1,4 @@
+#include <carma_magma.h>
 #include <carma_obj.h>
 #include <cstdlib> /* required for randomize() and random() */
 

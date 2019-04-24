@@ -1,3 +1,4 @@
+#include <carma_magma.h>
 #include <stdio.h>
 #include <sutra_dm.h>
 

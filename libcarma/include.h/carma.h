@@ -17,6 +17,7 @@
 // #include "carma_fft.h"
 #include "carma_host_obj.h"
 #include "carma_ipcs.h"
+#include "carma_magma.h"
 #include "carma_multithread.h"
 #include "carma_obj.h"
 // #include "carma_sparse_host_obj.h"
