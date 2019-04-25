@@ -118,6 +118,8 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         self.SRCrossX = {}  # type: Dict[str, pg.ScatterPlotItem]
         self.SRCrossY = {}  # type: Dict[str, pg.ScatterPlotItem]
         self.SRcircles = {}  # type: Dict[str, pg.ScatterPlotItem]
+        self.PyrEdgeX = {}  # type: Dict[str, pg.ScatterPlotItem]
+        self.PyrEdgeY = {}  # type: Dict[str, pg.ScatterPlotItem]
 
         self.natm = 0
         self.nwfs = 0
@@ -206,6 +208,12 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         for key, pgpl in self.SRCrossY.items():
             self.viewboxes[key].removeItem(pgpl)
 
+        for key, pgpl in self.PyrEdgeX.items():
+            self.viewboxes[key].removeItem(pgpl)
+
+        for key, pgpl in self.PyrEdgeY.items():
+            self.viewboxes[key].removeItem(pgpl)
+
         if configFile is None:
             configFile = str(self.uiBase.wao_selectConfig.currentText())
             sys.path.insert(0, self.defaultParPath)
@@ -230,6 +238,8 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         self.SRcircles.clear()
         self.SRCrossX.clear()
         self.SRCrossY.clear()
+        self.PyrEdgeX.clear()
+        self.PyrEdgeY.clear()
 
         self.natm = len(self.config.p_atmos.alt)
         for atm in range(self.natm):
@@ -250,6 +260,8 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             elif self.config.p_wfss[
                     wfs].type == scons.WFSType.PYRHR or self.config.p_wfss[
                             wfs].type == scons.WFSType.PYRLR:
+                name = 'pyrFocalPlane_%d' % wfs
+                self.add_dispDock(name, self.wao_imagesgroup_cb)
                 name = 'pyrHR_%d' % wfs
                 self.add_dispDock(name, self.wao_imagesgroup_cb)
                 name = 'pyrLR_%d' % wfs
@@ -403,6 +415,27 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                 # Put image in plot area
                 self.viewboxes[key].addItem(self.SRCrossY[key])
 
+        for i in range(len(self.config.p_wfss)):
+            key = "pyrFocalPlane_%d" % i
+            data = self.supervisor.getPyrFocalPlane(i)
+            Delta = len(data)/2
+            self.PyrEdgeX[key] = pg.PlotCurveItem(
+                    np.array([
+                            data.shape[0] / 2 + 0.5 - Delta,
+                            data.shape[0] / 2 + 0.5 + Delta
+                    ]), np.array([data.shape[1] / 2 + 0.5, data.shape[1] / 2 + 0.5]),
+                    pen='b')
+            self.PyrEdgeY[key] = pg.PlotCurveItem(
+                    np.array([data.shape[0] / 2 + 0.5, data.shape[0] / 2 + 0.5]),
+                    np.array([
+                            data.shape[1] / 2 + 0.5 - Delta,
+                            data.shape[1] / 2 + 0.5 + Delta
+                    ]), pen='b')
+            # Put image in plot area
+            self.viewboxes[key].addItem(self.PyrEdgeX[key])
+            # Put image in plot area
+            self.viewboxes[key].addItem(self.PyrEdgeY[key])
+
         print(self.supervisor)
 
         if self.expert:
@@ -486,6 +519,8 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                             data = self.supervisor.getWfsImage(index)
                         if "pyrHR" in key:
                             data = self.supervisor.getPyrHRImage(index)
+                        if "pyrFocalPlane" in key:
+                            data = self.supervisor.getPyrFocalPlane(index)
 
                         if (data is not None):
                             autoscale = True  # self.uiAO.actionAuto_Scale.isChecked()
