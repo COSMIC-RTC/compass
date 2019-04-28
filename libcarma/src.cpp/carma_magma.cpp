@@ -22,7 +22,7 @@ using TypeListObj =
 #include "magmasparse.h"
 #define TEST_USE_SMAGMA(...) __VA_ARGS__
 #else  // ifdef USE_MAGMA_SPARSE
-#warning "SPARSE MAGMA will not be used"
+// #warning "SPARSE MAGMA will not be used"
 #define TEST_USE_SMAGMA(...)                                \
   MAGMA_TRACE("!!!!!! SPARSE MAGMA not compiled !!!!!!\n"); \
   return EXIT_FAILURE;

@@ -12,6 +12,7 @@
 
 #include "carma_context.h"
 #include "carma_cublas.h"
+#include "carma_cula.h"
 #include "carma_cusparse.h"
 #include "carma_exception.h"
 // #include "carma_fft.h"

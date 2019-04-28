@@ -460,6 +460,11 @@ int carma_initfftconv(caObjS *data_in, caObjS *kernel_in, caObjS *padded_data,
 int carma_fftconv(caObjS *data_out, caObjS *padded_data,
                   caObjC *padded_spectrum, int kernelY, int kernelX);
 
+#ifdef CAN_DO_HALF
+int custom_half_axpy(half alpha, half *source, int incx, int incy, int N,
+                     half *dest, carma_device *device);
+#endif
+
 extern "C" {
 //  void sumGetNumBlocksAndThreads(int n, int device, int &blocks, int
 //  &threads); int snapTransformSize(int dataSize);

@@ -129,11 +129,6 @@ struct CarmaHostObjInterfacer {
     // template<class T>
     // int carma_potri_m(long num_gpus, long N, T *h_A, T *d_iA);
 
-    // CULA functions
-    // template<class T>
-    // int carma_cula_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals,
-    //                   carma_obj<T> *mod2act, carma_obj<T> *mes2mod);
-
     // int snapTransformSize(unsigned int dataSize);
   }
 };

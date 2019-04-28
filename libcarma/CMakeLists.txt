@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.8)
 
 option(do_half "Compile half codes")
+option(use_cula "Compile using cula library")
 
 if(DEFINED ENV{CUDA_SM})
   set(CUDA_SM $ENV{CUDA_SM})
@@ -70,28 +71,36 @@ find_package(PkgConfig REQUIRED)
 find_package(CUDA REQUIRED)
 
 if(NOT TARGET cub::cub)
-    if(hunter_build)
-        hunter_add_package(cub)
-        find_package(cub CONFIG REQUIRED)
+  if(hunter_build)
+    hunter_add_package(cub)
+    find_package(cub CONFIG REQUIRED)
+  else()
+    if(IS_DIRECTORY $ENV{CUB_ROOT})
+      add_library(cub INTERFACE)
+      target_include_directories(cub INTERFACE $ENV{CUB_ROOT})
+      add_library(cub::cub ALIAS cub) # to match exported target
     else()
-        if(IS_DIRECTORY $ENV{CUB_ROOT})
-            add_library(cub INTERFACE)
-            target_include_directories(cub INTERFACE $ENV{CUB_ROOT})
-            add_library(cub::cub ALIAS cub) # to match exported target
-        else()
-            message(FATAL_ERROR "cub not found please define CUB_ROOT or use hunter")
-        endif()
+      message(FATAL_ERROR "cub not found please define CUB_ROOT or use hunter")
     endif()
+  endif()
 endif()
 
-pkg_check_modules(MAGMA REQUIRED magma)
-link_directories(${MAGMA_LIBRARY_DIRS})
+if(NOT use_cula)
+  message(STATUS "CULA features disabled")
+endif()
+
+pkg_check_modules(MAGMA magma)
+if(${MAGMA_FOUND})
+  link_directories(${MAGMA_LIBRARY_DIRS})
+else()
+  message(STATUS "MAGMA not found, MAGMA features disabled")
+endif()
 
 pkg_check_modules(OCTOPUS octopus)
 if(${OCTOPUS_FOUND})
   link_directories(${OCTOPUS_LIBRARY_DIRS})
 else()
-  message(STATUS "OCTOPUS_ROOT not find, CACAO features disabled")
+  message(STATUS "OCTOPUS_ROOT not found, CACAO features disabled")
 endif()
 
 add_library(carma
@@ -122,6 +131,62 @@ add_library(carma
             ./src.cu/carma_sum.cu
             ./src.cu/carma_transpose.cu)
 
+set_target_properties(carma
+                      PROPERTIES VERSION
+                                 ${PROJECT_VERSION}
+                                 SOVERSION
+                                 ${PROJECT_VERSION_MAJOR}
+                                 # CUDA_SEPARABLE_COMPILATION OFF
+                      )
+target_compile_features(carma PUBLIC cxx_std_14)
+
+target_compile_options(carma
+                       PUBLIC -Wno-deprecated-declarations
+                              $<$<COMPILE_LANGUAGE:CUDA>:
+                              ${CUDA_ARCH}
+                              -use_fast_math
+                              >)
+
+target_compile_definitions(
+  carma
+  PUBLIC
+  CUDA_HIGHEST_SM=${CUDA_HIGHEST_SM}
+  CUDA_LOWEREST_SM=${CUDA_LOWEREST_SM}
+  $<$<COMPILE_LANGUAGE:CXX>:VERSION_INFO=${VERSION_INFO}> # USE_UVA>
+  )
+
+target_link_libraries(carma
+                      PUBLIC ${CUDA_LIBRARIES}
+                             ${CUDA_cufft_LIBRARY}
+                             ${CUDA_cublas_LIBRARY}
+                             ${CUDA_curand_LIBRARY}
+                             ${CUDA_cusparse_LIBRARY}
+                             cub::cub)
+
+target_include_directories(
+  carma
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include.h ${CUDA_INCLUDE_DIRS}
+         $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CURRENT_SOURCE_DIR}/include.cuh>)
+
+target_include_directories(
+  carma
+  PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${MAGMA_INCLUDE_DIRS}>)
+
+if(use_cula)
+  target_compile_definitions(carma PRIVATE $<$<COMPILE_LANGUAGE:CXX>:USE_CULA>)
+endif()
+
+if(${MAGMA_FOUND})
+  target_compile_options(
+    carma
+    PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${MAGMA_CFLAGS_OTHER}>)
+
+  target_compile_definitions(carma PRIVATE $<$<COMPILE_LANGUAGE:CXX>:USE_MAGMA>)
+
+  target_link_libraries(carma PRIVATE magma) # ${MAGMA_LIBRARIES})
+
+endif()
+
 if(${OCTOPUS_FOUND})
   target_compile_definitions(carma PUBLIC USE_OCTOPUS=1)
   target_compile_options(carma PUBLIC -DUSE_CACAO ${OCTOPUS_CFLAGS})
@@ -142,50 +207,6 @@ if(do_half)
   endif()
 endif()
 
-set_target_properties(carma
-                      PROPERTIES VERSION
-                                 ${PROJECT_VERSION}
-                                 SOVERSION
-                                 ${PROJECT_VERSION_MAJOR}
-                                 # CUDA_SEPARABLE_COMPILATION OFF
-                      )
-target_compile_features(carma PUBLIC cxx_std_14)
-
-# string (REPLACE ";" " " CMAKE_CUDA_FLAGS "${CUDA_NVCC_FLAGS};${CUDA_ARCH}")
-
-target_compile_options(carma
-                       PUBLIC -Wno-deprecated-declarations
-                              $<$<COMPILE_LANGUAGE:CUDA>:
-                              ${CUDA_ARCH}
-                              -use_fast_math
-                              >
-                       PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${MAGMA_CFLAGS_OTHER}>)
-
-target_compile_definitions(
-  carma
-  PUBLIC
-  CUDA_HIGHEST_SM=${CUDA_HIGHEST_SM}
-  CUDA_LOWEREST_SM=${CUDA_LOWEREST_SM}
-  $<$<COMPILE_LANGUAGE:CXX>:VERSION_INFO=${VERSION_INFO}> # USE_UVA>
-  PRIVATE
-  $<$<COMPILE_LANGUAGE:CXX>:USE_MAGMA>)
-
-target_link_libraries(carma
-                      PUBLIC ${CUDA_LIBRARIES}
-                             ${CUDA_cufft_LIBRARY}
-                             ${CUDA_cublas_LIBRARY}
-                             ${CUDA_curand_LIBRARY}
-                             ${CUDA_cusparse_LIBRARY}
-                             cub::cub
-                      PRIVATE magma) # ${MAGMA_LIBRARIES})
-
-target_include_directories(
-  carma
-  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include.h
-         ${CUDA_INCLUDE_DIRS}
-         $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CURRENT_SOURCE_DIR}/include.cuh>
-  PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${MAGMA_INCLUDE_DIRS}>)
-
 if(python_build)
   add_subdirectory(python_module)
 endif()
@@ -202,12 +223,14 @@ install(TARGETS carma
         LIBRARY DESTINATION lib)
 install(FILES include.h/carma_context.h
               include.h/carma_cublas.h
+              include.h/carma_cula.h
               include.h/carma_cusparse.h
               include.h/carma_exception.h
               include.h/carma_fft.h
               include.h/carma.h
               include.h/carma_host_obj.h
               include.h/carma_ipcs.h
+              include.h/carma_magma.h
               include.h/carma_multithread.h
               include.h/carma_obj.h
               include.h/carma_sparse_host_obj.h

@@ -5,8 +5,7 @@
  *      Author: sevin
  */
 
-#include <carma_host_obj.h>
-#include <carma_obj.h>
+#include <carma_cula.h>
 
 #ifdef DEBUG
 #define CULA_TRACE(fmt, args...) fprintf(stderr, fmt, ##args)
@@ -119,7 +118,7 @@ template int carma_cula_svd<double>(carma_host_obj<double> *imat,
                                     carma_host_obj<double> *mod2act,
                                     carma_host_obj<double> *mes2mod);
 #else
-#warning "CULA will not be used"
+// #warning "CULA will not be used"
 template <class T>
 int carma_cula_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals,
                    carma_obj<T> *mod2act, carma_obj<T> *mes2mod) {

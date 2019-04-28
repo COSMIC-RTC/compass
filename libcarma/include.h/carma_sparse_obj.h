@@ -136,16 +136,6 @@ cusparseStatus_t carma_bsr2csr(carma_sparse_obj<T_data> *src,
                                carma_sparse_obj<T_data> *dest);
 
 template <class T_data>
-int carma_magma_csr2ell(carma_sparse_obj<T_data> *dA);
-
-template <class T_data>
-int carma_magma_spmv(T_data alpha, carma_sparse_obj<T_data> *dA,
-                     carma_obj<T_data> *dx, T_data beta, carma_obj<T_data> *dy);
-
-template <class T_data>
-int carma_sparse_magma_free(carma_sparse_obj<T_data> *dA);
-
-template <class T_data>
 int carma_kgemv(carma_sparse_obj<T_data> *A, T_data alpha,
                 const T_data *__restrict x, T_data beta, T_data *y);
 #endif /* CARMA_SPARSE_OBJ_H_ */
