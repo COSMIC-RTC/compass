@@ -2,10 +2,11 @@
 """script test to simulate a closed loop
 
 Usage:
-  closed_loop.py [options]
+  check.py <parameters_filename> [options]
+
+where parameters_filename is the path to the parameters file
 
 Options:
-  <parameters_filename>        The path to the parameters file
   -h --help                    Show this help message and exit
   -d, --devices devices        Specify the devices
   --displayResult              Just print the results of the check process
@@ -30,7 +31,8 @@ if __name__ == "__main__":
             with open(arguments["--repportResult"], 'w') as the_file:
                 the_file.write('# E2E Test Report\n')
                 the_file.write('\n')
-                the_file.write('*Report generated on %s*\n' % datetime.now())
+                the_file.write(datetime.now().strftime(
+                        '*Report generated on %d-%b-%Y %H:%M:%S by checkCompass.sh*\n'))
                 the_file.write('\n')
                 the_file.write('## Summary\n')
                 the_file.write('\n')

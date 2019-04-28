@@ -1,6 +1,6 @@
 # E2E Test Report
 
-*Report generated on 2019-04-28 18:43:21.582181*
+*Report generated on 28-Apr-2019 20:10:29 by checkCompass.sh*
 
 ## Summary
 

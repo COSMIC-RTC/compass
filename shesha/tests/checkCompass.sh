@@ -1,4 +1,5 @@
 # script="$SHESHA_ROOT/shesha/tests/check.py"
+rm -f check.h5
 script="tests.check"
 conf_path="$SHESHA_ROOT/data/par/par4tests"
 nb_test=$(ls -1 $conf_path/*.py | wc -l)
