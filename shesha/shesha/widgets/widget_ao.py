@@ -416,25 +416,28 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                 self.viewboxes[key].addItem(self.SRCrossY[key])
 
         for i in range(len(self.config.p_wfss)):
-            key = "pyrFocalPlane_%d" % i
-            data = self.supervisor.getPyrFocalPlane(i)
-            Delta = len(data)/2
-            self.PyrEdgeX[key] = pg.PlotCurveItem(
+            if (self.config.p_wfss[i].type == scons.WFSType.PYRHR
+                or self.config.p_wfss[i].type == scons.
+                WFSType.PYRLR):
+                key = "pyrFocalPlane_%d" % i
+                data = self.supervisor.getPyrFocalPlane(i)
+                Delta = len(data)/2
+                self.PyrEdgeX[key] = pg.PlotCurveItem(
                     np.array([
-                            data.shape[0] / 2 + 0.5 - Delta,
-                            data.shape[0] / 2 + 0.5 + Delta
+                        data.shape[0] / 2 + 0.5 - Delta,
+                        data.shape[0] / 2 + 0.5 + Delta
                     ]), np.array([data.shape[1] / 2 + 0.5, data.shape[1] / 2 + 0.5]),
                     pen='b')
-            self.PyrEdgeY[key] = pg.PlotCurveItem(
+                self.PyrEdgeY[key] = pg.PlotCurveItem(
                     np.array([data.shape[0] / 2 + 0.5, data.shape[0] / 2 + 0.5]),
                     np.array([
-                            data.shape[1] / 2 + 0.5 - Delta,
-                            data.shape[1] / 2 + 0.5 + Delta
+                        data.shape[1] / 2 + 0.5 - Delta,
+                        data.shape[1] / 2 + 0.5 + Delta
                     ]), pen='b')
-            # Put image in plot area
-            self.viewboxes[key].addItem(self.PyrEdgeX[key])
-            # Put image in plot area
-            self.viewboxes[key].addItem(self.PyrEdgeY[key])
+                # Put image in plot area
+                self.viewboxes[key].addItem(self.PyrEdgeX[key])
+                # Put image in plot area
+                self.viewboxes[key].addItem(self.PyrEdgeY[key])
 
         print(self.supervisor)
 
