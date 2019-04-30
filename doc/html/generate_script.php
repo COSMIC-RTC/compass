@@ -172,20 +172,18 @@ if($_POST['acces'] == "conda") {
   ';
 } else {
   echo '
-  <div class="line">conda install -y numpy mkl-include pyqtgraph ipython pyqt qt matplotlib astropy blaze h5py</div>
-  <div class="line">hdf5 pytest pandas scipy docopt tqdm</div>
+  <div class="line">export MKLROOT=$CONDA_ROOT</div>
+  <div class="line">export CUDADIR=$CUDA_ROOT </div>
+  <div class="line">export NCPUS=8</div>
+  <div class="line">export GPU_TARGET=sm_$CUDA_SM </div>
+  <div class="line"></div>
+  <div class="line">conda install -y numpy mkl-include pyqtgraph ipython pyqt qt matplotlib astropy blaze h5py hdf5 pytest pandas scipy docopt tqdm</div>
   <div class="line"></div>
   <div class="line">wget http://icl.cs.utk.edu/projectsfiles/magma/downloads/magma-2.5.0.tar.gz -O - | tar xz</div>
   <div class="line">cd magma-2.5.0</div>
   <div class="line"></div>
   <div class="line">cp make.inc-examples/make.inc.mkl-gcc make.inc</div>
-  <div class="line">sed -i -e "s:/intel64: -Wl,-rpath=$(CUDADIR)/lib64 -Wl,-rpath=$(MKLROOT)/lib:"</div>
-  <div class="line">make.inc</div>
-  <div class="line"></div>
-  <div class="line">export MKLROOT=$CONDA_ROOT</div>
-  <div class="line">export CUDADIR=$CUDA_ROOT </div>
-  <div class="line">export NCPUS=8</div>
-  <div class="line">export GPU_TARGET=sm_$CUDA_SM </div>
+  <div class="line">sed -i -e "s:/intel64: -Wl,-rpath=$CUDADIR/lib64 -Wl,-rpath=$MKLROOT/lib:" make.inc</div>
   <div class="line"></div>
   <div class="line">make -j $NCPUS shared sparse-shared</div>
   <div class="line">make install prefix=$MAGMA_ROOT</div>

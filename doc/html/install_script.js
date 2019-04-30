@@ -25,7 +25,7 @@ document.write('        <input type="text" name="cuda_path" id="cuda_path" value
 document.write('        <label for="magma_install">Magma installation path:</label>');
 document.write('        <input type="text" name="magma_install" id="magma_install" value="$HOME/local/magma" /><br>');
 document.write('        <label for="cuda_sm">CUDA Compute capability:</label>');
-document.write('        <input type="text" name="cuda_sm" id="cuda_sm" value="sm70" /><br>');
+document.write('        <input type="text" name="cuda_sm" id="cuda_sm" value="70" /><br>');
 document.write('        <input type="checkbox" name="half16" id="half16" /> <label for="half16">half16</label><br>');
 document.write('      </div>');
 document.write('    </fieldset>');
