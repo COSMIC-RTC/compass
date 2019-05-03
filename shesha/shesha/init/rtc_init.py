@@ -340,7 +340,7 @@ def init_controller(context, i: int, p_controller: conf.Param_controller, p_wfss
                        p_controller.nactu, p_controller.delay, context.activeDevice,
                        p_controller.type, dms, p_controller.ndm, p_controller.ndm.size,
                        Nphi, False)
-
+    print("CONTROLLER ADDED")
     if (p_wfss is not None and do_refslp):
         rtc.do_centroids_ref(i)
 
@@ -534,7 +534,7 @@ def init_controller_generic(i: int, p_controller: conf.Param_controller, p_dms: 
     decayFactor = np.ones(size, dtype=np.float32)
     mgain = np.ones(size, dtype=np.float32) * p_controller.gain
     matE = np.identity(size, dtype=np.float32)
-    cmat = np.zeros((size, p_controller.nvalid * 2), dtype=np.float32)
+    cmat = np.zeros((size, p_controller.nslope), dtype=np.float32)
 
     rtc.d_control[i].set_decayFactor(decayFactor)
     rtc.d_control[i].set_mgain(mgain)
