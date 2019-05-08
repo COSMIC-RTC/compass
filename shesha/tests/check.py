@@ -34,6 +34,8 @@ if __name__ == "__main__":
                 the_file.write(datetime.now().strftime(
                         '*Report generated on %d-%b-%Y %H:%M:%S by checkCompass.sh*\n'))
                 the_file.write('\n')
+                the_file.write('[Unit Tests report](report_unit_test.html)\n')
+                the_file.write('\n')
                 the_file.write('## Summary\n')
                 the_file.write('\n')
                 the_file.write(str(tabulate(df, tablefmt="pipe", headers="keys")))

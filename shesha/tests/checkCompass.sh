@@ -12,5 +12,5 @@ do
     $CMD &> /dev/null
     let "current_test++"
 done
-CMD="python -m $script osef --displayResult --repportResult=repport_E2E.md"
+CMD="python -m $script osef --displayResult --repportResult=report_E2E.md"
 $CMD

@@ -1,6 +1,8 @@
 import numpy as np
 import naga as ng
 import os, time
+import pytest
+
 from shesha.sutra_wrap import Rtc_cacao_FFF as Rtc
 from shesha.supervisor.compassSupervisor import CompassSupervisor as Supervisor
 from scipy.ndimage.measurements import center_of_mass
@@ -16,7 +18,8 @@ sup.closeLoop()
 sup._sim.doControl(0)
 rtc = Rtc("compass_calPix", "compass_loopData")
 rtc.add_centroider(sup._sim.c, sup.config.p_wfs0._nvalid,
-                   sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize, False, 0, "cog")
+                   sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize, False, 0,
+                   "cog")
 rtc.add_controller(sup._sim.c, sup.config.p_wfs0._nvalid, sup.config.p_wfs0._nvalid * 2,
                    sup.config.p_controller0.nactu, sup.config.p_controller0.delay, 0,
                    "generic")
@@ -243,8 +246,8 @@ def test_remove_centroider():
 
 def test_doCentroids_tcog():
     rtc.add_centroider(sup._sim.c, sup.config.p_wfs0._nvalid,
-                       sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize, False, 0,
-                       "tcog")
+                       sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize,
+                       False, 0, "tcog")
 
     centro = rtc.d_centro[-1]
     threshold = 0.1
@@ -272,8 +275,8 @@ def test_doCentroids_tcog():
 def test_doCentroids_bpcog():
     rtc.remove_centroider(0)
     rtc.add_centroider(sup._sim.c, sup.config.p_wfs0._nvalid,
-                       sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize, False, 0,
-                       "bpcog")
+                       sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize,
+                       False, 0, "bpcog")
 
     centro = rtc.d_centro[-1]
     bpix = 8
@@ -308,6 +311,7 @@ def test_publish_calPix():
     assert (relative_array_error(np.array(centro.d_img), tmp.T) < precision)
 
 
+@pytest.mark.skip(reason="intensities disabled")
 def test_publish_loopData():
     centro = rtc.d_centro[-1]
     rtc.publish()
