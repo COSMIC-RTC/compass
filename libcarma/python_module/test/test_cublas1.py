@@ -21,7 +21,7 @@ c = ch.context.get_instance()
 # print(np.array(bb))
 
 
-def test_aimax():
+def test_float_aimax():
     Vect = ch.obj_float(c, np.random.randn(size))
     # Vect = ch.obj_float(c, np.empty((size), dtype=np.float32))
     # Vect.random_host(seed, 'U')
@@ -35,7 +35,7 @@ def test_aimax():
     npt.assert_equal(imaxC, imaxG)
 
 
-def test_aimin():
+def test_float_aimin():
     Vect = ch.obj_float(c, np.random.randn(size))
     # Vect = ch.obj_float(c, np.empty((size), dtype=np.float32))
     # Vect.random_host(seed*2, 'U')
@@ -49,7 +49,7 @@ def test_aimin():
     npt.assert_equal(iminC, iminG)
 
 
-def test_asum():
+def test_float_asum():
     Vect = ch.obj_float(c, np.random.randn(size))
     # Vect = ch.obj_float(c, np.empty((size), dtype=np.float32))
     # Vect.random_host(seed*3, 'U')
@@ -67,7 +67,7 @@ def test_asum():
     # npt.assert_almost_equal(sumC / d, sumG / d, decimal=dec)
 
 
-def test_nrm2():
+def test_float_nrm2():
     Vect = ch.obj_float(c, np.random.randn(size))
     # Vect = ch.obj_float(c, np.empty((size), dtype=np.float32))
     # Vect.random_host(seed*4, 'U')
@@ -85,7 +85,7 @@ def test_nrm2():
     # npt.assert_almost_equal(nC / d, nG / d, decimal=dec)
 
 
-def test_scale():
+def test_float_scale():
     Vect = ch.obj_float(c, np.random.randn(size))
     # Vect = ch.obj_float(c, np.empty((size), dtype=np.float32))
     # Vect.random_host(seed*5, 'U')
@@ -98,7 +98,7 @@ def test_scale():
     npt.assert_array_almost_equal(sC, sG, decimal=dec)
 
 
-def test_swap():
+def test_float_swap():
     Vect = ch.obj_float(c, np.random.randn(size))
     # Vect = ch.obj_float(c, np.empty((size), dtype=np.float32))
     # Vect.random_host(seed*6, 'U')
@@ -114,7 +114,7 @@ def test_swap():
     npt.assert_equal(h_Vect, np.array(Vect2))
 
 
-def test_copy():
+def test_float_copy():
     Vect = ch.obj_float(c, np.random.randn(size))
     # Vect = ch.obj_float(c, np.empty((size)))
     # Vect.random_host(seed*8, 'U')
@@ -125,7 +125,7 @@ def test_copy():
     npt.assert_array_equal(np.array(Vect), np.array(Vect2))
 
 
-def test_axpy():
+def test_float_axpy():
     Vect = ch.obj_float(c, np.random.randn(size))
     # Vect = ch.obj_float(c, np.empty((size), dtype=np.float32))
     # Vect.random_host(seed*9, 'U')
@@ -145,7 +145,7 @@ def test_axpy():
     npt.assert_almost_equal(h_Vect, np.array(Vect), decimal=dec)
 
 
-def test_dot():
+def test_float_dot():
     Vect = ch.obj_float(c, np.random.randn(size))
     # Vect = ch.obj_float(c, np.empty((size), dtype=np.float32))
     # Vect.random_host(seed*11, 'U')
@@ -159,3 +159,143 @@ def test_dot():
     if (M > 0):
         d = 10**np.ceil(np.log10(M))
     npt.assert_almost_equal(dotC / d, dotG / d, decimal=dec)
+
+
+def test_double_aimax():
+    Vect = ch.obj_double(c, np.random.randn(size))
+    # Vect = ch.obj_double(c, np.empty((size), dtype=np.float32))
+    # Vect.random_host(seed, 'U')
+    v = np.array(Vect)
+
+    #imax return the index in column major of the maximum absolute value element
+    imaxC = np.abs(v).argmax()
+    imaxG = Vect.aimax()
+
+    print(v[imaxC], v[imaxG])
+    npt.assert_equal(imaxC, imaxG)
+
+
+def test_double_aimin():
+    Vect = ch.obj_double(c, np.random.randn(size))
+    # Vect = ch.obj_double(c, np.empty((size), dtype=np.float32))
+    # Vect.random_host(seed*2, 'U')
+    v = np.array(Vect)
+
+    #imax return the index in column major of the minimum obsolute value element
+    iminC = np.abs(v).argmin()
+    iminG = Vect.aimin()
+
+    print(v[iminC], v[iminG])
+    npt.assert_equal(iminC, iminG)
+
+
+def test_double_asum():
+    Vect = ch.obj_double(c, np.random.randn(size))
+    # Vect = ch.obj_double(c, np.empty((size), dtype=np.float32))
+    # Vect.random_host(seed*3, 'U')
+    v = np.array(Vect)
+
+    sumC = np.sum(np.abs(v))
+    sumG = Vect.asum()
+    print(sumC, sumG)
+    npt.assert_almost_equal(sumC, sumG, decimal=2 * dec)
+
+    # M = np.max(np.abs(sumC))
+    # d = 1
+    # if (M > 0):
+    #     d = 10**np.ceil(np.log10(M))
+    # npt.assert_almost_equal(sumC / d, sumG / d, decimal=2*dec)
+
+
+def test_double_nrm2():
+    Vect = ch.obj_double(c, np.random.randn(size))
+    # Vect = ch.obj_double(c, np.empty((size), dtype=np.float32))
+    # Vect.random_host(seed*4, 'U')
+    v = np.array(Vect)
+
+    nC = np.linalg.norm(v)
+    nG = Vect.nrm2(1)
+
+    npt.assert_almost_equal(nC, nG, decimal=2 * dec)
+
+    # M = np.max(np.abs(nC))
+    # d = 1
+    # if (M > 0):
+    #     d = 10**np.ceil(np.log10(M))
+    # npt.assert_almost_equal(nC / d, nG / d, decimal=2*dec)
+
+
+def test_double_scale():
+    Vect = ch.obj_double(c, np.random.randn(size))
+    # Vect = ch.obj_double(c, np.empty((size), dtype=np.float32))
+    # Vect.random_host(seed*5, 'U')
+    v = np.array(Vect)
+
+    scale = 1.67
+    sC = v * scale
+    Vect.scale(scale, 1)
+    sG = np.array(Vect)
+    npt.assert_array_almost_equal(sC, sG, decimal=2 * dec)
+
+
+def test_double_swap():
+    Vect = ch.obj_double(c, np.random.randn(size))
+    # Vect = ch.obj_double(c, np.empty((size), dtype=np.float32))
+    # Vect.random_host(seed*6, 'U')
+    h_Vect = np.array(Vect)
+
+    Vect2 = ch.obj_double(c, np.random.randn(size))
+    # Vect2 = ch.obj_double(c, np.empty((size), dtype=np.float32))
+    # Vect2.random_host(seed*7, 'U')
+    h_Vect2 = np.array(Vect2)
+
+    Vect.swap(Vect2, 1, 1)
+    npt.assert_equal(h_Vect2, np.array(Vect))
+    npt.assert_equal(h_Vect, np.array(Vect2))
+
+
+def test_double_copy():
+    Vect = ch.obj_double(c, np.random.randn(size))
+    # Vect = ch.obj_double(c, np.empty((size)))
+    # Vect.random_host(seed*8, 'U')
+
+    Vect2 = ch.obj_double(c, np.random.randn(size))
+    # Vect2 = ch.obj_double(c, np.empty((size), dtype=np.float32))
+    Vect2.copy(Vect, 1, 1)
+    npt.assert_array_equal(np.array(Vect), np.array(Vect2))
+
+
+def test_double_axpy():
+    Vect = ch.obj_double(c, np.random.randn(size))
+    # Vect = ch.obj_double(c, np.empty((size), dtype=np.float32))
+    # Vect.random_host(seed*9, 'U')
+    h_Vect = np.array(Vect)
+
+    alpha = 1.4
+
+    Vect2 = ch.obj_double(c, np.random.randn(size))
+    # Vect2 = ch.obj_double(c, np.empty((size), dtype=np.float32))
+    # Vect2.random_host(seed*10, 'U')
+    h_Vect2 = np.array(Vect2)
+
+    Vect.axpy(alpha, Vect2, 1, 1)
+
+    h_Vect = h_Vect + alpha * h_Vect2
+
+    npt.assert_almost_equal(h_Vect, np.array(Vect), decimal=2 * dec)
+
+
+def test_double_dot():
+    Vect = ch.obj_double(c, np.random.randn(size))
+    # Vect = ch.obj_double(c, np.empty((size), dtype=np.float32))
+    # Vect.random_host(seed*11, 'U')
+    h_Vect = np.array(Vect)
+
+    dotC = np.dot(h_Vect, h_Vect)
+    dotG = Vect.dot(Vect, 1, 1)
+
+    M = np.max(np.abs(dotC))
+    d = 1
+    if (M > 0):
+        d = 10**np.ceil(np.log10(M))
+    npt.assert_almost_equal(dotC / d, dotG / d, decimal=2 * dec)

@@ -14,7 +14,7 @@ c = ch.context.get_instance()
 
 print("precision: ", prec)
 
-# def test_svd():
+# def test_float_svd():
 
 #     mat = np.random.rand(m, n).astype(np.float32)
 
@@ -48,7 +48,7 @@ print("precision: ", prec)
 #     p_U, p_S, p_V = np.linalg.svd(mat)
 #     npt.assert_array_almost_equal(np.array(h_eig), p_S, decimal=dec)
 
-# def test_getri_cpu():
+# def test_float_getri_cpu():
 
 #     a = np.random.rand(m, m).astype(np.float32)
 #     a = np.dot(a, a.T)
@@ -68,7 +68,7 @@ print("precision: ", prec)
 
 #     npt.assert_almost_equal(err, 0., decimal=dec)
 
-# def test_potri_cpu():
+# def test_float_potri_cpu():
 
 #     a = np.random.rand(m, m).astype(np.float32)
 #     a = np.dot(a, a.T)
@@ -89,7 +89,7 @@ print("precision: ", prec)
 
 #     npt.assert_almost_equal(err, 0., decimal=dec)
 
-# def test_getri_gpu():
+# def test_float_getri_gpu():
 
 #     d_mat = ch.obj_float(c, np.random.randn([m, m]))
 #     d_mat.random(np.int32(time.perf_counter() * 1e3))
@@ -114,7 +114,7 @@ print("precision: ", prec)
 
 #     npt.assert_almost_equal(err, 0., decimal=dec)
 
-# def test_potri_gpu():
+# def test_float_potri_gpu():
 
 #     d_mat = ch.obj_float(c, np.random.randn([m, m))
 #     d_mat.random(np.int32(time.perf_counter() * 1e3))
@@ -142,7 +142,7 @@ print("precision: ", prec)
 #     npt.assert_almost_equal(err, 0, decimal=dec)
 
 
-def test_syevd():
+def test_float_syevd():
 
     d_mat = ch.obj_float(c, np.random.randn(m, m))
     d_U = ch.obj_float(c, np.random.randn(m, m))
@@ -176,3 +176,39 @@ def test_syevd():
     print("in place, U not computed")
     print(err)
     npt.assert_almost_equal(np.array(d_EV), np.array(d_EV2), decimal=dec - 2)
+
+
+def test_double_syevd():
+
+    d_mat = ch.obj_double(c, np.random.randn(m, m))
+    d_U = ch.obj_double(c, np.random.randn(m, m))
+    d_EV = ch.obj_double(c, np.random.randn(m))
+    d_EV2 = ch.obj_double(c, np.random.randn(m))
+
+    d_res = d_mat.gemm(d_mat, op_a='n', op_b='t')
+
+    ch.syevd_double(d_res, d_EV, d_U)
+
+    U = np.array(d_U)
+    Mat = np.array(d_res)
+    EV = np.diag(d_EV)
+
+    npt.assert_almost_equal(np.dot(np.dot(U, EV), U.T), Mat, decimal=2 * dec - 1)
+
+    err = np.amax(np.abs(Mat - np.dot(np.dot(U, EV), U.T)))
+
+    print("")
+
+    print("out of place, compute U")
+    print(err)
+
+    npt.assert_almost_equal(err, 0., decimal=dec)
+
+    d_res = d_mat.gemm(d_mat, op_a='n', op_b='t')
+    ch.syevd_double(d_res, d_EV2, computeU=False)
+
+    err = np.amax(np.abs(np.array(d_EV) - np.array(d_EV2)))
+
+    print("in place, U not computed")
+    print(err)
+    npt.assert_almost_equal(np.array(d_EV), np.array(d_EV2), decimal=2 * dec - 2)
