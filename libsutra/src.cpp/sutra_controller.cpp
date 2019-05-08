@@ -369,7 +369,7 @@ template class sutra_controller<half, uint16_t>;
 //                 this->current_context->get_device(device));
 
 //   // Doing syevd<double>
-//   carma_syevd<double, 1>(meth, d_Udouble, h_eigen_double);
+//   carma_magma_syevd<double, 1>(meth, d_Udouble, h_eigen_double);
 
 //   // Reverse copy
 //   doubletofloat(d_Udouble->getData(), d_U->getData(), d_U->getNbElem(),
@@ -404,7 +404,7 @@ template class sutra_controller<half, uint16_t>;
 //       new carma_host_obj<float>(dims_data2, MA_PAGELOCK);
 
 //   d_U->copy(d_mat, 1, 1);
-//   carma_syevd<float, 1>('V', d_U, h_eigenvals);
+//   carma_magma_syevd<float, 1>('V', d_U, h_eigenvals);
 
 //   // syevd_f('V',d_U,h_eigenvals);
 //   if (job == 1) {  // Conditionnement

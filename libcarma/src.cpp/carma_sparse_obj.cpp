@@ -394,7 +394,7 @@ bool carma_sparse_obj<T_data>::isColumnMajor() {
 template <class T_data>
 carma_sparse_obj<T_data>::~carma_sparse_obj<T_data>() {
 #ifdef USE_MAGMA_SPARSE
-  carma_sparse_magma_free<T_data>(this);
+  carma_magma_sparse_free<T_data>(this);
 #endif
 
   _clear();

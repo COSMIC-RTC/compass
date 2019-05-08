@@ -118,13 +118,13 @@ int sutra_controller_ls<T, Tout>::svdec_imat() {
     return EXIT_FAILURE;
   }
 
-  if (!magma_disabled()) {
+  if (!carma_magma_disabled()) {
     // we can skip this step syevd use only the lower part
     fill_sym_matrix('U', d_U->getData(), nCols, nCols * nCols,
                     this->current_context->get_device(this->device));
 
     // doing evd of U inplace
-    if (carma_syevd<T>('V', d_U, h_eigenvals) == EXIT_FAILURE) {
+    if (carma_magma_syevd<T>('V', d_U, h_eigenvals) == EXIT_FAILURE) {
       // if (syevd_f('V', d_U, h_eigenvals) == EXIT_FAILURE) {
       // Case where MAGMA is not feeling good :-/
       return EXIT_FAILURE;
@@ -192,7 +192,7 @@ int sutra_controller_ls<T, Tout>::build_cmat(int nfilt, bool filt_tt) {
   if (filt_tt)
     nb_elem -= 2;
   */
-  if (!magma_disabled()) {
+  if (!carma_magma_disabled()) {
     for (int cc = nfilt; cc < nb_elem; cc++) {
       T eigenval = (*this->h_eigenvals)[cc];
       h_eigenvals_inv[cc] =  // 1.0f / eigenval;
@@ -383,7 +383,7 @@ int sutra_controller_ls<T, Tout>::init_modalOpti(int nmodes, int nrec, T *M2V,
              this->nslope(), 0.0f, d_tmp2->getData(), nmodes);
 
   // 3. tmp2 = (tmp2)⁻¹
-  carma_potri(d_tmp2);
+  carma_magma_potri(d_tmp2);
   // 4. S2M = (D*M2V)⁻¹
   carma_gemm(this->cublas_handle(), 'n', 't', nmodes, this->nslope(), nmodes,
              1.0f, d_tmp2->getData(), nmodes, d_tmp->getData(), this->nslope(),

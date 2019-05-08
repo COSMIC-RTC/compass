@@ -122,7 +122,7 @@ int sutra_controller_geo<T, Tout>::init_proj(sutra_dms *dms, int *indx_dm,
                 this->Nphi, 1.0f, d_IF.getData(), d_IF.getDims()[1],
                 d_IF.getData(), d_IF.getDims()[1], 0.0f, d_tmp.getData(),
                 d_tmp.getDims()[1]);
-  carma_potri(&d_tmp);
+  carma_magma_potri(&d_tmp);
   // invgen(d_tmp,1000.0f,1);
 
   // d_proj = d_tmp * transpose(d_IF)
@@ -245,7 +245,7 @@ int sutra_controller_geo<T, Tout>::init_proj_sparse(
                 this->current_context->get_device(this->device));
 
   this->d_geocov->scale(1.0f / this->Nphi, 1);
-  carma_potri(d_geocov);
+  carma_magma_potri(d_geocov);
   // invgen(d_geocov,2.0f,0);
   delete d_tmp;
   delete d_tmp2;

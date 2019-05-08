@@ -404,7 +404,7 @@ int sutra_gamora::psf_rec_Vii() {
                            sizeof(float) * this->d_otfVii->getNbElem()));
 
   // Diagonalisation of covmodes
-  carma_syevd<float>('V', this->d_covmodes, this->h_eigenvals);
+  carma_magma_syevd<float>('V', this->d_covmodes, this->h_eigenvals);
 
   for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
            this->d_pupfft_ngpu.begin();
