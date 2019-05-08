@@ -28,32 +28,24 @@ def test_gemm():
     #generating random matrices A,B,C and associated carma_obj
 
     # np.random.seed(seed)
-    A = np.empty((sizem, sizek), dtype=np.float32)
-    AT = np.empty((sizek, sizem), dtype=np.float32)
-    B = np.empty((sizek, sizen), dtype=np.float32)
-    BT = np.empty((sizen, sizek), dtype=np.float32)
-    C = np.empty((sizem, sizen), dtype=np.float32)
-    C2 = np.empty((sizem, sizen), dtype=np.float32)
-    C3 = np.empty((sizem, sizen), dtype=np.float32)
-
     # A = A.dot(A.T)
     # B = B.dot(B.T)
 
-    matA = ch.obj_float(c, A)
-    matAT = ch.obj_float(c, AT)
-    matB = ch.obj_float(c, B)
-    matBT = ch.obj_float(c, BT)
-    matC = ch.obj_float(c, C)
-    matC2 = ch.obj_float(c, C2)
-    matC3 = ch.obj_float(c, C3)
+    matA = ch.obj_float(c, np.random.randn(sizem, sizek))
+    matAT = ch.obj_float(c, np.random.randn(sizek, sizem))
+    matB = ch.obj_float(c, np.random.randn(sizek, sizen))
+    matBT = ch.obj_float(c, np.random.randn(sizen, sizek))
+    matC = ch.obj_float(c, np.random.randn(sizem, sizen))
+    matC2 = ch.obj_float(c, np.random.randn(sizem, sizen))
+    matC3 = ch.obj_float(c, np.random.randn(sizem, sizen))
 
-    matA.random_host(seed, 'U')
-    matAT.random_host(seed, 'U')
-    matB.random_host(seed + 2, 'U')
-    matBT.random_host(seed + 2, 'U')
-    matC.random_host(seed + 3, 'U')
-    matC2.random_host(seed + 3, 'U')
-    matC3.random_host(seed + 3, 'U')
+    # matA.random_host(seed, 'U')
+    # matAT.random_host(seed, 'U')
+    # matB.random_host(seed + 2, 'U')
+    # matBT.random_host(seed + 2, 'U')
+    # matC.random_host(seed + 3, 'U')
+    # matC2.random_host(seed + 3, 'U')
+    # matC3.random_host(seed + 3, 'U')
 
     A = np.array(matA)
     AT = np.array(matAT)
@@ -93,18 +85,18 @@ def test_symm():
     #function symm
     #testing: C=A.B+C
     #A ssymetric matrix, B,C matrices
-    A = np.empty((sizek, sizek), dtype=np.float32)
-    B = np.empty((sizek, sizen), dtype=np.float32)
-    C = np.empty((sizek, sizen), dtype=np.float32)
+    A = np.random.randn(sizek, sizek)
+    B = np.random.randn(sizek, sizen)
+    C = np.random.randn(sizek, sizen)
 
     #generating random matrices and associated carma_obj
-    matA = ch.obj_float(c, A)  #np.zeros((sizek, sizek)))
-    matB = ch.obj_float(c, B)  #np.zeros((sizek, sizen)))
-    matC = ch.obj_float(c, C)  #np.zeros((sizek, sizen)))
+    matA = ch.obj_float(c, A)  #np.random.randn(sizek, sizek)))
+    matB = ch.obj_float(c, B)  #np.random.randn(sizek, sizen)))
+    matC = ch.obj_float(c, C)  #np.random.randn(sizek, sizen)))
 
-    matA.random_host(seed, 'U')
-    matB.random_host(seed + 2, 'U')
-    matC.random_host(seed + 3, 'U')
+    # matA.random_host(seed, 'U')
+    # matB.random_host(seed + 2, 'U')
+    # matC.random_host(seed + 3, 'U')
 
     #A symetric
     A = np.array(matA)
@@ -154,11 +146,11 @@ def test_dgmm():
     # C,A matrices, d vector (diagonal matrix as a vector)
 
     #generating random matrices and associated carma_obj
-    matA = ch.obj_float(c, np.zeros((sizek, sizek), dtype=np.float32))
-    Vectx = ch.obj_float(c, np.zeros((sizek), dtype=np.float32))
+    matA = ch.obj_float(c, np.random.randn(sizek, sizek))
+    Vectx = ch.obj_float(c, np.random.randn(sizek))
 
-    matA.random_host(seed, 'U')
-    Vectx.random_host(seed + 2, 'U')
+    # matA.random_host(seed, 'U')
+    # Vectx.random_host(seed + 2, 'U')
     A = np.array(matA)
     x = np.array(Vectx)
 
@@ -197,11 +189,11 @@ def test_syrk():
     #A matrix, C symetric matrix
 
     #generating random matrices and associated carma_obj
-    matA = ch.obj_float(c, np.zeros((sizen, sizek)))
-    matC = ch.obj_float(c, np.zeros((sizen, sizen)))
+    matA = ch.obj_float(c, np.random.randn(sizen, sizek))
+    matC = ch.obj_float(c, np.random.randn(sizen, sizen))
 
-    matA.random_host(seed, 'U')
-    matC.random_host(seed + 2, 'U')
+    # matA.random_host(seed, 'U')
+    # matC.random_host(seed + 2, 'U')
 
     A = np.array(matA)
     C = np.array(matC)
@@ -248,13 +240,13 @@ def test_syrkx():
     #A matrix, C symetric matrix
 
     #generating random matrices and associated carma_obj
-    matA = ch.obj_float(c, np.zeros((sizen, sizek)))
-    matB = ch.obj_float(c, np.zeros((sizen, sizek)))
-    matC = ch.obj_float(c, np.zeros((sizen, sizen)))
+    matA = ch.obj_float(c, np.random.randn(sizen, sizek))
+    matB = ch.obj_float(c, np.random.randn(sizen, sizek))
+    matC = ch.obj_float(c, np.random.randn(sizen, sizen))
 
-    matA.random_host(seed, 'U')
-    matB.random_host(seed + 2, 'U')
-    matC.random_host(seed + 3, 'U')
+    # matA.random_host(seed, 'U')
+    # matB.random_host(seed + 2, 'U')
+    # matC.random_host(seed + 3, 'U')
 
     A = np.array(matA)
     B = np.array(matB)
@@ -304,11 +296,11 @@ def test_geam():
     #A,B matrices
 
     #generating random matrices and associated carma_obj
-    matA = ch.obj_float(c, np.empty((sizem, sizen)))
-    matB = ch.obj_float(c, np.empty((sizem, sizen)))
+    matA = ch.obj_float(c, np.random.randn(sizem, sizen))
+    matB = ch.obj_float(c, np.random.randn(sizem, sizen))
 
-    matA.random_host(seed, 'U')
-    matB.random_host(seed + 2, 'U')
+    # matA.random_host(seed, 'U')
+    # matB.random_host(seed + 2, 'U')
 
     A = np.array(matA)
     B = np.array(matB)

@@ -7,7 +7,7 @@ m = 1024
 n = 1024
 min_mn = min(m, n)
 
-dec = 4
+dec = 3
 prec = 10**(-dec)
 
 c = ch.context.get_instance()
@@ -19,9 +19,9 @@ print("precision: ", prec)
 #     mat = np.random.rand(m, n).astype(np.float32)
 
 #     h_mat = ch.host_obj_float(mat, ch.MA_PAGELOCK)
-#     h_eig = ch.host_obj_float(np.zeros([min_mn], dtype=np.float32), ch.MA_PAGELOCK)
-#     h_U = ch.host_obj_float(np.zeros((m, m), dtype=np.float32), ch.MA_PAGELOCK)
-#     h_VT = ch.host_obj_float(np.zeros((n, n), dtype=np.float32), ch.MA_PAGELOCK)
+#     h_eig = ch.host_obj_float(np.random.randn([min_mn]), ch.MA_PAGELOCK)
+#     h_U = ch.host_obj_float(np.random.randn((m, m)), ch.MA_PAGELOCK)
+#     h_VT = ch.host_obj_float(np.random.randn((n, n)), ch.MA_PAGELOCK)
 
 #     npt.assert_array_equal(mat, np.array(h_mat))
 
@@ -29,7 +29,7 @@ print("precision: ", prec)
 
 #     # expected: U.S.V=mat
 #     #     U = np.array(h_U)
-#     #     S = np.zeros((m, n), dtype=np.float32)
+#     #     S = np.random.randn((m, n))
 #     #     S = np.diag(h_eig)
 #     #     VT = np.array(h_VT)
 
@@ -53,7 +53,7 @@ print("precision: ", prec)
 #     a = np.random.rand(m, m).astype(np.float32)
 #     a = np.dot(a, a.T)
 
-#     a += np.identity(m, dtype=np.float32)
+#     a += np.identity(m)
 
 #     h_mat = ch.host_obj_float(a, ch.MA_PAGELOCK)
 #     h_mat2 = ch.host_obj_float(a, ch.MA_PAGELOCK)
@@ -72,7 +72,7 @@ print("precision: ", prec)
 
 #     a = np.random.rand(m, m).astype(np.float32)
 #     a = np.dot(a, a.T)
-#     a += np.identity(m, dtype=np.float32)
+#     a += np.identity(m)
 
 #     h_mat = ch.host_obj_float(a, ch.MA_PAGELOCK)
 #     h_mat2 = ch.host_obj_float(a, ch.MA_PAGELOCK)
@@ -91,13 +91,13 @@ print("precision: ", prec)
 
 # def test_getri_gpu():
 
-#     d_mat = ch.obj_float(c, np.zeros([m, m], dtype=np.float32))
+#     d_mat = ch.obj_float(c, np.random.randn([m, m]))
 #     d_mat.random(np.int32(time.perf_counter() * 1e3))
 #     a = np.array(d_mat)
 #     a = a.T
 #     a.reshape(a.T.shape)
 
-#     identity = ch.obj_float(c, np.identity(m, dtype=np.float32))
+#     identity = ch.obj_float(c, np.identity(m))
 
 #     d_res = d_mat.gemm(d_mat, 'n', 't', 1, identity, 1)
 
@@ -116,13 +116,13 @@ print("precision: ", prec)
 
 # def test_potri_gpu():
 
-#     d_mat = ch.obj_float(c, np.zeros([m, m], dtype=np.int64))
+#     d_mat = ch.obj_float(c, np.random.randn([m, m))
 #     d_mat.random(np.int32(time.perf_counter() * 1e3))
 #     a = np.array(d_mat)
 #     a = a.T
 #     a.reshape(a.T.shape)
 
-#     identity = ch.obj_float(c, np.identity(m, dtype=np.float32))
+#     identity = ch.obj_float(c, np.identity(m))
 
 #     d_res = d_mat.gemm(d_mat, op_a='n', op_b='t', beta=1, matC=identity)
 
@@ -144,18 +144,20 @@ print("precision: ", prec)
 
 def test_syevd():
 
-    d_mat = ch.obj_float(c, np.zeros([m, m], dtype=np.int64))
-    d_U = ch.obj_float(c, np.zeros([m, m], dtype=np.int64))
-    d_EV = ch.obj_float(c, np.zeros(m, dtype=np.float32))
-    d_EV2 = ch.obj_float(c, np.zeros(m, dtype=np.float32))
+    d_mat = ch.obj_float(c, np.random.randn(m, m))
+    d_U = ch.obj_float(c, np.random.randn(m, m))
+    d_EV = ch.obj_float(c, np.random.randn(m))
+    d_EV2 = ch.obj_float(c, np.random.randn(m))
 
     d_res = d_mat.gemm(d_mat, op_a='n', op_b='t')
 
     ch.syevd_float(d_res, d_EV, d_U)
 
-    U = np.array(d_U).T
-    Mat = np.array(d_mat).T
+    U = np.array(d_U)
+    Mat = np.array(d_res)
     EV = np.diag(d_EV)
+
+    npt.assert_almost_equal(np.dot(np.dot(U, EV), U.T), Mat, decimal=dec - 1)
 
     err = np.amax(np.abs(Mat - np.dot(np.dot(U, EV), U.T)))
 
@@ -173,4 +175,4 @@ def test_syevd():
 
     print("in place, U not computed")
     print(err)
-    npt.assert_array_equal(d_EV, d_EV2)
+    npt.assert_almost_equal(np.array(d_EV), np.array(d_EV2), decimal=dec - 2)

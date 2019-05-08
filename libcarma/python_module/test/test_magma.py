@@ -7,7 +7,7 @@ m = 1024
 n = 1024
 min_mn = min(m, n)
 
-dec = 4
+dec = 3
 prec = 10**(-dec)
 
 c = ch.context.get_instance()
@@ -20,9 +20,9 @@ def test_magma_svd():
     mat = np.random.rand(m, n).astype(np.float32)
 
     h_mat = ch.host_obj_float(mat, ch.MA_PAGELOCK)
-    h_eig = ch.host_obj_float(np.zeros([min_mn], dtype=np.float32), ch.MA_PAGELOCK)
-    h_U = ch.host_obj_float(np.zeros((m, m), dtype=np.float32), ch.MA_PAGELOCK)
-    h_VT = ch.host_obj_float(np.zeros((n, n), dtype=np.float32), ch.MA_PAGELOCK)
+    h_eig = ch.host_obj_float(np.random.randn(min_mn), ch.MA_PAGELOCK)
+    h_U = ch.host_obj_float(np.random.randn(m, m), ch.MA_PAGELOCK)
+    h_VT = ch.host_obj_float(np.random.randn(n, n), ch.MA_PAGELOCK)
 
     npt.assert_array_equal(mat, np.array(h_mat))
 
@@ -30,7 +30,7 @@ def test_magma_svd():
 
     # expected: U.S.V=mat
     #     U = np.array(h_U)
-    #     S = np.zeros((m, n), dtype=np.float32)
+    #     S = np.random.randn((m, n), dtype=np.float32)
     #     S = np.diag(h_eig)
     #     VT = np.array(h_VT)
 
@@ -95,13 +95,13 @@ def test_magma_potri_cpu():
 
 def test_magma_getri_gpu():
 
-    d_mat = ch.obj_float(c, np.zeros([m, m], dtype=np.float32))
+    d_mat = ch.obj_float(c, np.random.randn(m, m))
     d_mat.random(np.int32(time.perf_counter() * 1e3))
     a = np.array(d_mat)
     a = a.T
     a.reshape(a.T.shape)
 
-    identity = ch.obj_float(c, np.identity(m, dtype=np.float32))
+    identity = ch.obj_float(c, np.identity(m))
 
     d_res = d_mat.gemm(d_mat, 'n', 't', 1, identity, 1)
 
@@ -121,13 +121,13 @@ def test_magma_getri_gpu():
 
 def test_magma_potri_gpu():
 
-    d_mat = ch.obj_float(c, np.zeros([m, m], dtype=np.int64))
+    d_mat = ch.obj_float(c, np.random.randn(m, m))
     d_mat.random(np.int32(time.perf_counter() * 1e3))
     a = np.array(d_mat)
     a = a.T
     a.reshape(a.T.shape)
 
-    identity = ch.obj_float(c, np.identity(m, dtype=np.float32))
+    identity = ch.obj_float(c, np.identity(m))
 
     d_res = d_mat.gemm(d_mat, op_a='n', op_b='t', beta=1, matC=identity)
 
@@ -149,18 +149,21 @@ def test_magma_potri_gpu():
 
 def test_magma_syevd():
 
-    d_mat = ch.obj_float(c, np.zeros([m, m], dtype=np.int64))
-    d_U = ch.obj_float(c, np.zeros([m, m], dtype=np.int64))
-    h_EV = ch.host_obj_float(np.zeros(m, dtype=np.float32))
-    h_EV2 = ch.host_obj_float(np.zeros(m, dtype=np.float32))
+    d_mat = ch.obj_float(c, np.random.randn(m, m))
+    d_U = ch.obj_float(c, np.random.randn(m, m))
+    h_EV = ch.host_obj_float(np.random.randn(m))
+    h_EV2 = ch.host_obj_float(np.random.randn(m))
 
     d_res = d_mat.gemm(d_mat, op_a='n', op_b='t')
 
     ch.magma_syevd_float(d_res, h_EV, d_U)
 
-    U = np.array(d_U).T
-    Mat = np.array(d_mat).T
+    U = np.array(d_U)
+    Mat = np.array(d_res)
     EV = np.diag(h_EV)
+
+    npt.assert_almost_equal(
+            np.dot(np.dot(U, EV), U.T).astype(np.float32), Mat, decimal=dec - 1)
 
     err = np.amax(np.abs(Mat - np.dot(np.dot(U, EV), U.T)))
 
@@ -169,13 +172,13 @@ def test_magma_syevd():
     print("out of place, compute U")
     print(err)
 
-    npt.assert_almost_equal(err, 0., decimal=dec)
+    npt.assert_almost_equal(err, 0., decimal=dec - 1)
 
     d_res = d_mat.gemm(d_mat, op_a='n', op_b='t')
     ch.magma_syevd_float(d_res, h_EV2, computeU=False)
 
-    err = np.amax(np.abs(h_EV - np.array(h_EV2)))
+    err = np.amax(np.abs(np.array(h_EV) - np.array(h_EV2)))
 
     print("in place, U not computed")
     print(err)
-    npt.assert_array_equal(h_EV, h_EV2)
+    npt.assert_almost_equal(np.array(h_EV), np.array(h_EV2), decimal=dec - 2)

@@ -22,8 +22,7 @@ c = ch.context.get_instance()
 
 
 def test_aimax():
-    v = np.random.randn(size)
-    Vect = ch.obj_float(c, v)
+    Vect = ch.obj_float(c, np.random.randn(size))
     # Vect = ch.obj_float(c, np.empty((size), dtype=np.float32))
     # Vect.random_host(seed, 'U')
     v = np.array(Vect)
@@ -37,8 +36,7 @@ def test_aimax():
 
 
 def test_aimin():
-    v = np.random.randn(size)
-    Vect = ch.obj_float(c, v)
+    Vect = ch.obj_float(c, np.random.randn(size))
     # Vect = ch.obj_float(c, np.empty((size), dtype=np.float32))
     # Vect.random_host(seed*2, 'U')
     v = np.array(Vect)
@@ -52,8 +50,7 @@ def test_aimin():
 
 
 def test_asum():
-    v = np.random.randn(size)
-    Vect = ch.obj_float(c, v)
+    Vect = ch.obj_float(c, np.random.randn(size))
     # Vect = ch.obj_float(c, np.empty((size), dtype=np.float32))
     # Vect.random_host(seed*3, 'U')
     v = np.array(Vect)
@@ -71,8 +68,7 @@ def test_asum():
 
 
 def test_nrm2():
-    v = np.random.randn(size)
-    Vect = ch.obj_float(c, v)
+    Vect = ch.obj_float(c, np.random.randn(size))
     # Vect = ch.obj_float(c, np.empty((size), dtype=np.float32))
     # Vect.random_host(seed*4, 'U')
     v = np.array(Vect)
@@ -90,8 +86,7 @@ def test_nrm2():
 
 
 def test_scale():
-    v = np.random.randn(size)
-    Vect = ch.obj_float(c, v)
+    Vect = ch.obj_float(c, np.random.randn(size))
     # Vect = ch.obj_float(c, np.empty((size), dtype=np.float32))
     # Vect.random_host(seed*5, 'U')
     v = np.array(Vect)
@@ -104,26 +99,24 @@ def test_scale():
 
 
 def test_swap():
-    h_Vect = np.random.randn(size)
-    Vect = ch.obj_float(c, h_Vect)
+    Vect = ch.obj_float(c, np.random.randn(size))
     # Vect = ch.obj_float(c, np.empty((size), dtype=np.float32))
     # Vect.random_host(seed*6, 'U')
     h_Vect = np.array(Vect)
 
-    h_Vect2 = np.random.randn(size)
-    Vect2 = ch.obj_float(c, h_Vect2)
+    Vect2 = ch.obj_float(c, np.random.randn(size))
     # Vect2 = ch.obj_float(c, np.empty((size), dtype=np.float32))
     # Vect2.random_host(seed*7, 'U')
     h_Vect2 = np.array(Vect2)
 
     Vect.swap(Vect2, 1, 1)
-    npt.assert_array_equal(h_Vect2, np.array(Vect))
-    npt.assert_array_equal(h_Vect, np.array(Vect2))
+    npt.assert_equal(h_Vect2, np.array(Vect))
+    npt.assert_equal(h_Vect, np.array(Vect2))
 
 
 def test_copy():
     Vect = ch.obj_float(c, np.random.randn(size))
-    # Vect = ch.obj_float(c, np.empty((size)).astype(np.float32))
+    # Vect = ch.obj_float(c, np.empty((size)))
     # Vect.random_host(seed*8, 'U')
 
     Vect2 = ch.obj_float(c, np.random.randn(size))
@@ -136,8 +129,8 @@ def test_axpy():
     Vect = ch.obj_float(c, np.random.randn(size))
     # Vect = ch.obj_float(c, np.empty((size), dtype=np.float32))
     # Vect.random_host(seed*9, 'U')
-
     h_Vect = np.array(Vect)
+
     alpha = 1.4
 
     Vect2 = ch.obj_float(c, np.random.randn(size))
@@ -156,8 +149,8 @@ def test_dot():
     Vect = ch.obj_float(c, np.random.randn(size))
     # Vect = ch.obj_float(c, np.empty((size), dtype=np.float32))
     # Vect.random_host(seed*11, 'U')
-
     h_Vect = np.array(Vect)
+
     dotC = np.dot(h_Vect, h_Vect)
     dotG = Vect.dot(Vect, 1, 1)
 
