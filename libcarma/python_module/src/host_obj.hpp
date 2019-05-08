@@ -87,7 +87,7 @@ struct CarmaHostObjInterfacer {
     // template<class T>
     // int carma_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals,
     //               carma_obj<T> *mod2act, carma_obj<T> *mes2mod);
-    mod.def(appendName<T>("svd_cpu_").data(), py::overload_cast<Class *,
+    mod.def(appendName<T>("magma_svd_cpu_").data(), py::overload_cast<Class *,
                   Class *, Class *, Class *>(&carma_magma_svd_cpu<T>));
 
     // TODO after carma_host_obj
@@ -95,7 +95,7 @@ struct CarmaHostObjInterfacer {
     // int carma_magma_syevd(char jobz, carma_obj<T> *mat, carma_host_obj<T>
     // *eigenvals);
     // mod.def(appendName<T>("syevd_").data(), &carma_magma_syevd<T>);
-    mod.def(appendName<T>("syevd_cpu_").data(), py::overload_cast<char, Class *, Class *>(&carma_magma_syevd_cpu<T>));
+    mod.def(appendName<T>("magma_syevd_cpu_").data(), py::overload_cast<char, Class *, Class *>(&carma_magma_syevd_cpu<T>));
 
     // template<class T, int method>
     // int carma_magma_syevd(char jobz, carma_obj<T> *mat, carma_host_obj<T>
@@ -108,11 +108,11 @@ struct CarmaHostObjInterfacer {
     //                   carma_host_obj<T> *eigenvals, carma_host_obj<T> *U);
     // template<class T>
     // int carma_magma_getri(carma_obj<T> *d_iA);
-    mod.def(appendName<T>("getri_cpu_").data(), py::overload_cast<Class *>(&carma_magma_getri_cpu<T>));
+    mod.def(appendName<T>("magma_getri_cpu_").data(), py::overload_cast<Class *>(&carma_magma_getri_cpu<T>));
 
     // template<class T>
     // int carma_magma_potri(carma_obj<T> *d_iA);
-    mod.def(appendName<T>("potri_cpu_").data(), py::overload_cast<Class *>(&carma_magma_potri_cpu<T>));
+    mod.def(appendName<T>("magma_potri_cpu_").data(), py::overload_cast<Class *>(&carma_magma_potri_cpu<T>));
 
     // TODO after carma_host_obj
     // template<class T>

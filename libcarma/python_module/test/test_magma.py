@@ -3,8 +3,8 @@ import carmaWrap as ch
 import numpy.testing as npt
 import time
 
-m = 256
-n = 256
+m = 1024
+n = 1024
 min_mn = min(m, n)
 
 dec = 4
@@ -15,7 +15,7 @@ c = ch.context.get_instance()
 print("precision: ", prec)
 
 
-def test_svd():
+def test_magma_svd():
 
     mat = np.random.rand(m, n).astype(np.float32)
 
@@ -26,7 +26,7 @@ def test_svd():
 
     npt.assert_array_equal(mat, np.array(h_mat))
 
-    ch.svd_cpu_float(h_mat, h_eig, h_U, h_VT)
+    ch.magma_svd_cpu_float(h_mat, h_eig, h_U, h_VT)
 
     # expected: U.S.V=mat
     #     U = np.array(h_U)
@@ -50,7 +50,7 @@ def test_svd():
     npt.assert_array_almost_equal(np.array(h_eig), p_S, decimal=dec)
 
 
-def test_getri_cpu():
+def test_magma_getri_cpu():
 
     a = np.random.rand(m, m).astype(np.float32)
     a = np.dot(a, a.T)
@@ -60,7 +60,7 @@ def test_getri_cpu():
     h_mat = ch.host_obj_float(a, ch.MA_PAGELOCK)
     h_mat2 = ch.host_obj_float(a, ch.MA_PAGELOCK)
 
-    ch.getri_cpu_float(h_mat2)
+    ch.magma_getri_cpu_float(h_mat2)
 
     a_1 = np.array(h_mat2)
     #expected: a.a_1=Id
@@ -71,7 +71,7 @@ def test_getri_cpu():
     npt.assert_almost_equal(err, 0., decimal=dec)
 
 
-def test_potri_cpu():
+def test_magma_potri_cpu():
 
     a = np.random.rand(m, m).astype(np.float32)
     a = np.dot(a, a.T)
@@ -80,7 +80,7 @@ def test_potri_cpu():
     h_mat = ch.host_obj_float(a, ch.MA_PAGELOCK)
     h_mat2 = ch.host_obj_float(a, ch.MA_PAGELOCK)
 
-    ch.potri_cpu_float(h_mat2)
+    ch.magma_potri_cpu_float(h_mat2)
 
     a_1 = np.array(h_mat2)
     #expected: a.a_1=Id
@@ -93,7 +93,7 @@ def test_potri_cpu():
     npt.assert_almost_equal(err, 0., decimal=dec)
 
 
-def test_getri_gpu():
+def test_magma_getri_gpu():
 
     d_mat = ch.obj_float(c, np.zeros([m, m], dtype=np.float32))
     d_mat.random(np.int32(time.perf_counter() * 1e3))
@@ -109,7 +109,7 @@ def test_getri_gpu():
     mat = np.array(d_res)
 
     d_mat = ch.obj_float(c, d_res)
-    ch.getri_float(d_res)
+    ch.magma_getri_float(d_res)
 
     d_id = d_mat.gemm(d_res)
     res_id = np.array(d_id)
@@ -119,7 +119,7 @@ def test_getri_gpu():
     npt.assert_almost_equal(err, 0., decimal=dec)
 
 
-def test_potri_gpu():
+def test_magma_potri_gpu():
 
     d_mat = ch.obj_float(c, np.zeros([m, m], dtype=np.int64))
     d_mat.random(np.int32(time.perf_counter() * 1e3))
@@ -135,7 +135,7 @@ def test_potri_gpu():
     mat = np.array(d_res)
 
     d_mat = ch.obj_float(c, d_res)
-    ch.potri_float(d_res)
+    ch.magma_potri_float(d_res)
 
     d_id = d_mat.gemm(d_res)
     res_id = np.array(d_id)
@@ -147,7 +147,7 @@ def test_potri_gpu():
     npt.assert_almost_equal(err, 0, decimal=dec)
 
 
-def test_syevd():
+def test_magma_syevd():
 
     d_mat = ch.obj_float(c, np.zeros([m, m], dtype=np.int64))
     d_U = ch.obj_float(c, np.zeros([m, m], dtype=np.int64))
@@ -156,7 +156,7 @@ def test_syevd():
 
     d_res = d_mat.gemm(d_mat, op_a='n', op_b='t')
 
-    ch.syevd_float(d_res, h_EV, d_U)
+    ch.magma_syevd_float(d_res, h_EV, d_U)
 
     U = np.array(d_U).T
     Mat = np.array(d_mat).T
@@ -172,7 +172,7 @@ def test_syevd():
     npt.assert_almost_equal(err, 0., decimal=dec)
 
     d_res = d_mat.gemm(d_mat, op_a='n', op_b='t')
-    ch.syevd_float(d_res, h_EV2, computeU=False)
+    ch.magma_syevd_float(d_res, h_EV2, computeU=False)
 
     err = np.amax(np.abs(h_EV - np.array(h_EV2)))
 

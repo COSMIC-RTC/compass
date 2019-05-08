@@ -16,6 +16,7 @@
 #include "carma_cusparse.h"
 #include "carma_exception.h"
 // #include "carma_fft.h"
+#include "carma_cusolver.h"
 #include "carma_host_obj.h"
 #include "carma_ipcs.h"
 #include "carma_magma.h"

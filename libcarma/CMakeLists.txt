@@ -108,6 +108,7 @@ add_library(carma
             ./src.cpp/carma_context.cpp
             ./src.cpp/carma_cublas.cpp
             ./src.cpp/carma_cula.cpp
+            ./src.cpp/carma_cusolver.cpp
             ./src.cpp/carma_cusparse.cpp
             ./src.cpp/carma_fft.cpp
             ./src.cpp/carma_fft_conv.cpp
@@ -161,6 +162,7 @@ target_link_libraries(carma
                              ${CUDA_cublas_LIBRARY}
                              ${CUDA_curand_LIBRARY}
                              ${CUDA_cusparse_LIBRARY}
+                             ${CUDA_cusolver_LIBRARY}
                              cub::cub)
 
 target_include_directories(
@@ -224,6 +226,7 @@ install(TARGETS carma
 install(FILES include.h/carma_context.h
               include.h/carma_cublas.h
               include.h/carma_cula.h
+              include.h/carma_cusolver.h
               include.h/carma_cusparse.h
               include.h/carma_exception.h
               include.h/carma_fft.h

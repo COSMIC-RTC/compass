@@ -152,10 +152,10 @@ struct CarmaObjInterfacer {
              },
              "TODO", py::arg("data"),
              py::arg("nb_elem") = -1)  // TODO do the documentation...
-        #ifdef USE_OCTOPUS
+#ifdef USE_OCTOPUS
         .def("copyInto",(int (Class::*)(ipc::Cacao<T>*))&Class::copyInto)
         .def("copyFrom",(int (Class::*)(ipc::Cacao<T>*))&Class::copyFrom)
-        #endif
+#endif
         // inline int reset()
         .def("reset", &Class::reset, "TODO")  // TODO do the documentation...
 
@@ -607,49 +607,71 @@ struct CarmaObjInterfacer {
     // int carma_magma_syevd(char jobz, carma_obj<T> *mat, carma_host_obj<T>
     // *eigenvals);
     // mod.def( appendName<T>("syevd_").data(), py::overload_cast<char, Class *,
-    // ClassHost *>(&carma_magma_syevd<T>)); mod.def( appendName<T>("syevd_").data(),
-    // py::overload_cast<char, long, T *, T *>(&carma_magma_syevd<T>));
-    mod.def(appendName<T>("syevd_").data(),
-            [](Class &d_A, ClassHost &eigenvals, Class *d_U, bool computeU) {
-              if (d_U == nullptr) {
-                  if(computeU) {
-                      carma_magma_syevd('V',&d_A, &eigenvals);
-                  } else {
-                      carma_magma_syevd('N',&d_A, &eigenvals);
-                  }
-              } else {
-                  d_U->copyFrom(d_A, d_A.getNbElem());
-                  if(computeU) {
-                      carma_magma_syevd('V',d_U, &eigenvals);
-                  } else {
-                      carma_magma_syevd('N',d_U, &eigenvals);
-                  }
-              }
-            },
-            py::arg("d_A"), py::arg("eigenvals"), py::arg("d_U") = nullptr,
-            py::arg("computeU") = true);
+    // ClassHost *>(&carma_magma_syevd<T>)); mod.def(
+    // appendName<T>("syevd_").data(), py::overload_cast<char, long, T *, T
+    // *>(&carma_magma_syevd<T>));
+    mod.def(
+        appendName<T>("magma_syevd_").data(),
+        [](Class &d_A, ClassHost &eigenvals, Class *d_U, bool computeU) {
+          if (d_U == nullptr) {
+            if (computeU) {
+              carma_magma_syevd('V', &d_A, &eigenvals);
+            } else {
+              carma_magma_syevd('N', &d_A, &eigenvals);
+            }
+          } else {
+            d_U->copyFrom(d_A, d_A.getNbElem());
+            if (computeU) {
+              carma_magma_syevd('V', d_U, &eigenvals);
+            } else {
+              carma_magma_syevd('N', d_U, &eigenvals);
+            }
+          }
+        },
+        py::arg("d_A"), py::arg("eigenvals"), py::arg("d_U") = nullptr,
+        py::arg("computeU") = true);
 
+    mod.def(
+        appendName<T>("syevd_").data(),
+        [](Class &d_A, Class &eigenvals, Class *d_U, bool computeU) {
+          if (d_U == nullptr) {
+            if (computeU) {
+              carma_syevd(CUSOLVER_EIG_MODE_VECTOR, &d_A, &eigenvals);
+            } else {
+              carma_syevd(CUSOLVER_EIG_MODE_NOVECTOR, &d_A, &eigenvals);
+            }
+          } else {
+            d_U->copyFrom(d_A, d_A.getNbElem());
+            if (computeU) {
+              carma_syevd(CUSOLVER_EIG_MODE_VECTOR, d_U, &eigenvals);
+            } else {
+              carma_syevd(CUSOLVER_EIG_MODE_NOVECTOR, d_U, &eigenvals);
+            }
+          }
+        },
+        py::arg("d_A"), py::arg("eigenvals"), py::arg("d_U") = nullptr,
+        py::arg("computeU") = true);
     // template<class T, int method>
     // int carma_magma_syevd(char jobz, carma_obj<T> *mat, carma_host_obj<T>
-    // *eigenvals); template<class T> int carma_magma_syevd_m(long ngpu, char jobz,
-    // long N, T *mat, T *eigenvals); template<class T> int carma_magma_syevd_m(long
-    // ngpu, char jobz, carma_host_obj<T> *mat,
+    // *eigenvals); template<class T> int carma_magma_syevd_m(long ngpu, char
+    // jobz, long N, T *mat, T *eigenvals); template<class T> int
+    // carma_magma_syevd_m(long ngpu, char jobz, carma_host_obj<T> *mat,
     //                   carma_host_obj<T> *eigenvals);
     // template<class T>
     // int carma_magma_syevd_m(long ngpu, char jobz, carma_host_obj<T> *mat,
     //                   carma_host_obj<T> *eigenvals, carma_host_obj<T> *U);
     // template<class T>
     // int carma_magma_getri(carma_obj<T> *d_iA);
-    mod.def(appendName<T>("getri_").data(), &carma_magma_getri<T>);
+    mod.def(appendName<T>("magma_getri_").data(), &carma_magma_getri<T>);
 
     // template<class T>
     // int carma_magma_potri(carma_obj<T> *d_iA);
-    mod.def(appendName<T>("potri_").data(), &carma_magma_potri<T>);
+    mod.def(appendName<T>("magma_potri_").data(), &carma_magma_potri<T>);
 
     // TODO after carma_host_obj
     // template<class T>
-    // int carma_magma_potri_m(long num_gpus, carma_host_obj<T> *h_A, carma_obj<T>
-    // *d_iA);
+    // int carma_magma_potri_m(long num_gpus, carma_host_obj<T> *h_A,
+    // carma_obj<T> *d_iA);
 
     // MAGMA functions (direct access)
     // template<class T>
@@ -657,9 +679,9 @@ struct CarmaObjInterfacer {
     // template<class T, int method>
     // int carma_magma_syevd(char jobz, long N, T *mat, T *eigenvals);
     // template<class T>
-    // int carma_magma_syevd_m(long ngpu, char jobz, long N, T *mat, T *eigenvals);
-    // template<class T>
-    // int carma_magma_potri_m(long num_gpus, long N, T *h_A, T *d_iA);
+    // int carma_magma_syevd_m(long ngpu, char jobz, long N, T *mat, T
+    // *eigenvals); template<class T> int carma_magma_potri_m(long num_gpus,
+    // long N, T *h_A, T *d_iA);
 
     // CULA functions
     // template<class T>
