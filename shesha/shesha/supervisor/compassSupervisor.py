@@ -554,3 +554,10 @@ class CompassSupervisor(AbstractSupervisor):
         thresh: (float): new threshold value
         """
         self._sim.rtc.d_centro[nCentro].set_threshold(thresh)
+
+    def getPyrFocalPlane(self, nwfs: int=0):
+        """
+        No arguments
+        Returns the psf in the focal plane of the pyramid.
+        """
+        return np.fft.fftshift(np.array(self._sim.wfs.d_wfs[nwfs].d_pyrfocalplane))

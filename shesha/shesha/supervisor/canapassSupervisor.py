@@ -1103,13 +1103,6 @@ class CanapassSupervisor(CompassSupervisor):
 
 
 
-    def getPyrFocalPlane(self, nwfs: int=0):
-        """
-        No arguments
-        Returns the psf in the focal plane of the pyramid.
-        """
-        return np.fft.fftshift(np.array(self._sim.wfs.d_wfs[nwfs].d_pyrfocalplane))
-
     def getTargetPhase(self, tarnum):
         pup = self.getSpupil()
         ph = self.getTarPhase(tarnum) * pup
