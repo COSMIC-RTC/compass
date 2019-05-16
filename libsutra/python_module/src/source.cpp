@@ -1,6 +1,7 @@
 #include <wyrm>
 
 #include <sutra_source.h>
+#include "declare_name.hpp"
 
 namespace py = pybind11;
 
@@ -13,78 +14,87 @@ void declare_source(py::module &mod) {
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
-      .def_property_readonly("device",
-                             [](sutra_source &ss) { return ss.device; },
-                             "GPU device index")
+      .def_property_readonly(
+          "device", [](sutra_source &ss) { return ss.device; },
+          "GPU device index")
 
-      .def_property_readonly("posx", [](sutra_source &ss) { return ss.posx; },
-                             "X position of the source")
+      .def_property_readonly(
+          "posx", [](sutra_source &ss) { return ss.posx; },
+          "X position of the source")
 
-      .def_property_readonly("posy", [](sutra_source &ss) { return ss.posy; },
-                             "Y position of the source")
+      .def_property_readonly(
+          "posy", [](sutra_source &ss) { return ss.posy; },
+          "Y position of the source")
 
-      .def_property_readonly("npts", [](sutra_source &ss) { return ss.npts; },
-                             "Number of points in the pupil")
+      .def_property_readonly(
+          "npts", [](sutra_source &ss) { return ss.npts; },
+          "Number of points in the pupil")
 
-      .def_property_readonly("mag", [](sutra_source &ss) { return ss.mag; },
-                             "Magnitude of the source")
+      .def_property_readonly(
+          "mag", [](sutra_source &ss) { return ss.mag; },
+          "Magnitude of the source")
 
-      .def_property_readonly("lambda",
-                             [](sutra_source &ss) { return ss.lambda; },
-                             "Wavelength of the source")
+      .def_property_readonly(
+          "lambda", [](sutra_source &ss) { return ss.lambda; },
+          "Wavelength of the source")
 
-      .def_property_readonly("zp", [](sutra_source &ss) { return ss.zp; },
-                             "Flux at magnitude 0")
+      .def_property_readonly(
+          "zp", [](sutra_source &ss) { return ss.zp; }, "Flux at magnitude 0")
 
-      .def_property_readonly("scale", [](sutra_source &ss) { return ss.scale; },
-                             "Phase scale factor (2*pi/lambda)")
+      .def_property_readonly(
+          "scale", [](sutra_source &ss) { return ss.scale; },
+          "Phase scale factor (2*pi/lambda)")
 
-      .def_property_readonly("lgs", [](sutra_source &ss) { return ss.lgs; },
-                             "Boolean for LGS")
+      .def_property_readonly(
+          "lgs", [](sutra_source &ss) { return ss.lgs; }, "Boolean for LGS")
 
-      .def_property_readonly("G", [](sutra_source &ss) { return ss.G; },
-                             "Magnifying factor for WFS misalignment")
+      .def_property_readonly(
+          "G", [](sutra_source &ss) { return ss.G; },
+          "Magnifying factor for WFS misalignment")
 
-      .def_property_readonly("thetaML",
-                             [](sutra_source &ss) { return ss.thetaML; },
-                             "Pupil rotation angle for WFS misalignment")
+      .def_property_readonly(
+          "thetaML", [](sutra_source &ss) { return ss.thetaML; },
+          "Pupil rotation angle for WFS misalignment")
 
-      .def_property_readonly("dx", [](sutra_source &ss) { return ss.dx; },
-                             "X axis WFS misalignment [pixels]")
+      .def_property_readonly(
+          "dx", [](sutra_source &ss) { return ss.dx; },
+          "X axis WFS misalignment [pixels]")
 
-      .def_property_readonly("dy", [](sutra_source &ss) { return ss.dy; },
-                             "Y axis WFS misalignment [pixels]")
+      .def_property_readonly(
+          "dy", [](sutra_source &ss) { return ss.dy; },
+          "Y axis WFS misalignment [pixels]")
 
-      .def_property_readonly("type", [](sutra_source &ss) { return ss.type; },
-                             "Type of source (Target or WFS GS)")
+      .def_property_readonly(
+          "type", [](sutra_source &ss) { return ss.type; },
+          "Type of source (Target or WFS GS)")
 
-      .def_property_readonly("block_size",
-                             [](sutra_source &ss) { return ss.block_size; },
-                             "Optimum block size of device")
+      .def_property_readonly(
+          "block_size", [](sutra_source &ss) { return ss.block_size; },
+          "Optimum block size of device")
 
-      .def_property_readonly("strehl_se",
-                             [](sutra_source &ss) { return ss.strehl_se; },
-                             "Short exposure Strehl ratio")
+      .def_property_readonly(
+          "strehl_se", [](sutra_source &ss) { return ss.strehl_se; },
+          "Short exposure Strehl ratio")
 
-      .def_property_readonly("strehl_le",
-                             [](sutra_source &ss) { return ss.strehl_le; },
-                             "Long exposure Strehl ratio")
+      .def_property_readonly(
+          "strehl_le", [](sutra_source &ss) { return ss.strehl_le; },
+          "Long exposure Strehl ratio")
 
-      .def_property_readonly("ref_strehl",
-                             [](sutra_source &ss) { return ss.ref_strehl; },
-                             "reference for Strehl computation (Airy)")
+      .def_property_readonly(
+          "ref_strehl", [](sutra_source &ss) { return ss.ref_strehl; },
+          "reference for Strehl computation (Airy)")
 
-      .def_property_readonly("strehl_counter",
-                             [](sutra_source &ss) { return ss.strehl_counter; },
-                             "Counter for LE Strehl computation")
+      .def_property_readonly(
+          "strehl_counter", [](sutra_source &ss) { return ss.strehl_counter; },
+          "Counter for LE Strehl computation")
 
-      .def_property_readonly("phase_var",
-                             [](sutra_source &ss) { return ss.phase_var; },
-                             "Short exposure variance in the pupil [µm²]")
+      .def_property_readonly(
+          "phase_var", [](sutra_source &ss) { return ss.phase_var; },
+          "Short exposure variance in the pupil [µm²]")
 
-      .def_property_readonly("phase_var_avg",
-                             [](sutra_source &ss) { return ss.phase_var_avg; },
-                             "Long exposure variance in the pupil [µm²]")
+      .def_property_readonly(
+          "phase_var_avg", [](sutra_source &ss) { return ss.phase_var_avg; },
+          "Long exposure variance in the pupil [µm²]")
 
       .def_property_readonly(
           "phase_var_count",
@@ -100,35 +110,36 @@ void declare_source(py::module &mod) {
           [](sutra_source &ss) { return ss.phase_telemetry; },
           "TODO: docstring")
 
-      .def_property_readonly("d_lgs", [](sutra_source &ss) { return ss.d_lgs; },
-                             "LGS structure of WFS")
+      .def_property_readonly(
+          "d_lgs", [](sutra_source &ss) { return ss.d_lgs; },
+          "LGS structure of WFS")
 
       .def_property_readonly(
           "d_pupil", [](sutra_source &ss) { return ss.d_pupil; }, "Pupil mask")
 
-      .def_property_readonly("d_image_se",
-                             [](sutra_source &ss) { return ss.d_image_se; },
-                             "Short exposure image of the source")
+      .def_property_readonly(
+          "d_image_se", [](sutra_source &ss) { return ss.d_image_se; },
+          "Short exposure image of the source")
 
-      .def_property_readonly("d_image_le",
-                             [](sutra_source &ss) { return ss.d_image_le; },
-                             "Long exposure image of the source")
+      .def_property_readonly(
+          "d_image_le", [](sutra_source &ss) { return ss.d_image_le; },
+          "Long exposure image of the source")
 
-      .def_property_readonly("d_amplipup",
-                             [](sutra_source &ss) { return ss.d_amplipup; },
-                             "Complex amplitude in the pupil plane")
+      .def_property_readonly(
+          "d_amplipup", [](sutra_source &ss) { return ss.d_amplipup; },
+          "Complex amplitude in the pupil plane")
 
-      .def_property_readonly("d_phasepts",
-                             [](sutra_source &ss) { return ss.d_phasepts; },
-                             "Phase on the valid pixels of the pupil plane")
+      .def_property_readonly(
+          "d_phasepts", [](sutra_source &ss) { return ss.d_phasepts; },
+          "Phase on the valid pixels of the pupil plane")
 
-      .def_property_readonly("d_wherephase",
-                             [](sutra_source &ss) { return ss.d_wherephase; },
-                             "Indices of the valid pixels of the pupil")
+      .def_property_readonly(
+          "d_wherephase", [](sutra_source &ss) { return ss.d_wherephase; },
+          "Indices of the valid pixels of the pupil")
 
-      .def_property_readonly("d_ncpa_phase",
-                             [](sutra_source &ss) { return ss.d_ncpa_phase; },
-                             "NCPA phase")
+      .def_property_readonly(
+          "d_ncpa_phase", [](sutra_source &ss) { return ss.d_ncpa_phase; },
+          "NCPA phase")
 
       .def_property_readonly(
           "xoff",
@@ -280,43 +291,45 @@ void declare_source(py::module &mod) {
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
 
-      .def("set_ncpa",
-           [](sutra_source &ss,
-              py::array_t<float, py::array::f_style | py::array::forcecast>
-                  data) {
-             if (data.size() == ss.d_phase->d_screen->getNbElem()) {
-               if (ss.d_ncpa_phase == nullptr)
-                 ss.d_ncpa_phase = new carma_obj<float>(ss.d_phase->d_screen);
-               ss.d_ncpa_phase->host2device(data.mutable_data());
-             } else
-               DEBUG_TRACE("Wrong dimensions");
-           },
-           R"pbdoc(
+      .def(
+          "set_ncpa",
+          [](sutra_source &ss,
+             py::array_t<float, py::array::f_style | py::array::forcecast>
+                 data) {
+            if (data.size() == ss.d_phase->d_screen->getNbElem()) {
+              if (ss.d_ncpa_phase == nullptr)
+                ss.d_ncpa_phase = new carma_obj<float>(ss.d_phase->d_screen);
+              ss.d_ncpa_phase->host2device(data.mutable_data());
+            } else
+              DEBUG_TRACE("Wrong dimensions");
+          },
+          R"pbdoc(
                       Set the NCPA phase
 
                       Parameters
                       ------------
                       data: (np.array(ndim=2,dtype=np.float32)): NCPA phase to set
                   )pbdoc",
-           py::arg("data"))
+          py::arg("data"))
 
-      .def("set_phase",
-           [](sutra_source &ss,
-              py::array_t<float, py::array::f_style | py::array::forcecast>
-                  data) {
-             if (data.size() == ss.d_phase->d_screen->getNbElem()) {
-               ss.d_phase->d_screen->host2device(data.mutable_data());
-             } else
-               DEBUG_TRACE("Wrong dimensions");
-           },
-           R"pbdoc(
+      .def(
+          "set_phase",
+          [](sutra_source &ss,
+             py::array_t<float, py::array::f_style | py::array::forcecast>
+                 data) {
+            if (data.size() == ss.d_phase->d_screen->getNbElem()) {
+              ss.d_phase->d_screen->host2device(data.mutable_data());
+            } else
+              DEBUG_TRACE("Wrong dimensions");
+          },
+          R"pbdoc(
                       Set the target screen phase
 
                       Parameters
                       ------------
                       data: (np.array(ndim=2,dtype=np.float32)): target phase to set
                   )pbdoc",
-           py::arg("data"))
+          py::arg("data"))
 
       ;
 };

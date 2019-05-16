@@ -1,6 +1,7 @@
 #include <wyrm>
 
 #include <sutra_gamora.h>
+#include "declare_name.hpp"
 
 namespace py = pybind11;
 typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;
@@ -60,91 +61,96 @@ void declare_gamora(py::module &mod) {
       .def_property_readonly(
           "device", [](sutra_gamora &sg) { return sg.device; }, "GPU device")
 
-      .def_property_readonly("nactus",
-                             [](sutra_gamora &sg) { return sg.nactus; },
-                             "Number of actuators")
+      .def_property_readonly(
+          "nactus", [](sutra_gamora &sg) { return sg.nactus; },
+          "Number of actuators")
 
-      .def_property_readonly("niter", [](sutra_gamora &sg) { return sg.niter; },
-                             "number of iterations")
+      .def_property_readonly(
+          "niter", [](sutra_gamora &sg) { return sg.niter; },
+          "number of iterations")
 
-      .def_property_readonly("nmodes",
-                             [](sutra_gamora &sg) { return sg.nmodes; },
-                             "number of modes")
+      .def_property_readonly(
+          "nmodes", [](sutra_gamora &sg) { return sg.nmodes; },
+          "number of modes")
 
-      .def_property_readonly("d_err", [](sutra_gamora &sg) { return sg.d_err; },
-                             "Error buffer")
+      .def_property_readonly(
+          "d_err", [](sutra_gamora &sg) { return sg.d_err; }, "Error buffer")
 
-      .def_property_readonly("d_amplipup",
-                             [](sutra_gamora &sg) { return sg.d_amplipup; },
-                             "Complex amplitude in the pupil")
+      .def_property_readonly(
+          "d_amplipup", [](sutra_gamora &sg) { return sg.d_amplipup; },
+          "Complex amplitude in the pupil")
 
-      .def_property_readonly("d_psf", [](sutra_gamora &sg) { return sg.d_psf; },
-                             "Reconstructed PSF")
+      .def_property_readonly(
+          "d_psf", [](sutra_gamora &sg) { return sg.d_psf; },
+          "Reconstructed PSF")
 
-      .def_property_readonly("d_phase",
-                             [](sutra_gamora &sg) { return sg.d_phase; },
-                             "Residual phase")
+      .def_property_readonly(
+          "d_phase", [](sutra_gamora &sg) { return sg.d_phase; },
+          "Residual phase")
 
-      .def_property_readonly("d_wherephase",
-                             [](sutra_gamora &sg) { return sg.d_wherephase; },
-                             "index of valid point")
+      .def_property_readonly(
+          "d_wherephase", [](sutra_gamora &sg) { return sg.d_wherephase; },
+          "index of valid point")
 
-      .def_property_readonly("d_IF", [](sutra_gamora &sg) { return sg.d_IF; },
-                             "sparse IF matrix")
+      .def_property_readonly(
+          "d_IF", [](sutra_gamora &sg) { return sg.d_IF; }, "sparse IF matrix")
 
-      .def_property_readonly("d_TT", [](sutra_gamora &sg) { return sg.d_TT; },
-                             "tip-tilt IF matrix")
+      .def_property_readonly(
+          "d_TT", [](sutra_gamora &sg) { return sg.d_TT; },
+          "tip-tilt IF matrix")
 
-      .def_property_readonly("scale", [](sutra_gamora &sg) { return sg.scale; },
-                             "Scale factor")
+      .def_property_readonly(
+          "scale", [](sutra_gamora &sg) { return sg.scale; }, "Scale factor")
 
-      .def_property_readonly("size", [](sutra_gamora &sg) { return sg.size; },
-                             "Pupil support size")
+      .def_property_readonly(
+          "size", [](sutra_gamora &sg) { return sg.size; },
+          "Pupil support size")
 
-      .def_property_readonly("Npts", [](sutra_gamora &sg) { return sg.Npts; },
-                             "number of points in the pupil")
+      .def_property_readonly(
+          "Npts", [](sutra_gamora &sg) { return sg.Npts; },
+          "number of points in the pupil")
 
-      .def_property_readonly("d_term1",
-                             [](sutra_gamora &sg) { return sg.d_term1; },
-                             "Buffer for Vii computation")
+      .def_property_readonly(
+          "d_term1", [](sutra_gamora &sg) { return sg.d_term1; },
+          "Buffer for Vii computation")
 
-      .def_property_readonly("d_term2",
-                             [](sutra_gamora &sg) { return sg.d_term2; },
-                             "Buffer for Vii computation")
+      .def_property_readonly(
+          "d_term2", [](sutra_gamora &sg) { return sg.d_term2; },
+          "Buffer for Vii computation")
 
-      .def_property_readonly("d_otftel",
-                             [](sutra_gamora &sg) { return sg.d_otftel; },
-                             "OTF of the telescope")
+      .def_property_readonly(
+          "d_otftel", [](sutra_gamora &sg) { return sg.d_otftel; },
+          "OTF of the telescope")
 
-      .def_property_readonly("d_otfVii",
-                             [](sutra_gamora &sg) { return sg.d_otfVii; },
-                             "OTF reconstructed from Vii")
+      .def_property_readonly(
+          "d_otfVii", [](sutra_gamora &sg) { return sg.d_otfVii; },
+          "OTF reconstructed from Vii")
 
-      .def_property_readonly("d_mask",
-                             [](sutra_gamora &sg) { return sg.d_mask; }, "Mask")
+      .def_property_readonly(
+          "d_mask", [](sutra_gamora &sg) { return sg.d_mask; }, "Mask")
 
-      .def_property_readonly("d_eigenvals",
-                             [](sutra_gamora &sg) { return sg.d_eigenvals; },
-                             "Eigenvalues of Vii diago")
+      .def_property_readonly(
+          "d_eigenvals", [](sutra_gamora &sg) { return sg.d_eigenvals; },
+          "Eigenvalues of Vii diago")
 
-      .def_property_readonly("d_Btt", [](sutra_gamora &sg) { return sg.d_Btt; },
-                             "Btt modal basis")
+      .def_property_readonly(
+          "d_Btt", [](sutra_gamora &sg) { return sg.d_Btt; }, "Btt modal basis")
 
-      .def_property_readonly("d_covmodes",
-                             [](sutra_gamora &sg) { return sg.d_covmodes; },
-                             "error covariance marix on the modes")
+      .def_property_readonly(
+          "d_covmodes", [](sutra_gamora &sg) { return sg.d_covmodes; },
+          "error covariance marix on the modes")
 
-      .def_property_readonly("d_newmodek",
-                             [](sutra_gamora &sg) { return sg.d_newmodek; },
-                             "Mode k from Vii")
+      .def_property_readonly(
+          "d_newmodek", [](sutra_gamora &sg) { return sg.d_newmodek; },
+          "Mode k from Vii")
 
-      .def_property_readonly("d_Dphi",
-                             [](sutra_gamora &sg) { return sg.d_Dphi; },
-                             "Structure function")
+      .def_property_readonly(
+          "d_Dphi", [](sutra_gamora &sg) { return sg.d_Dphi; },
+          "Structure function")
 
-      .def_property_readonly("d_pupfft",
-                             [](sutra_gamora &sg) { return sg.d_pupfft; },
-                             "FFT of the pupil")
+      .def_property_readonly(
+          "d_pupfft", [](sutra_gamora &sg) { return sg.d_pupfft; },
+          "FFT of the pupil")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝

@@ -1,6 +1,7 @@
 #include <wyrm>
 
 #include <sutra_centroider_pyr.h>
+#include "declare_name.hpp"
 
 namespace py = pybind11;
 
@@ -21,11 +22,12 @@ void centroider_pyr_impl(py::module &mod, const char *name) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
-      .def("set_pyr_method",
-           [](centroider_pyr &sc, uint8_t method) {
-             return sc.set_method(method);
-           },
-           R"pbdoc(
+      .def(
+          "set_pyr_method",
+          [](centroider_pyr &sc, uint8_t method) {
+            return sc.set_method(method);
+          },
+          R"pbdoc(
             Set the pyramid method for slopes computation
 
             Parameters
@@ -37,20 +39,21 @@ void centroider_pyr_impl(py::module &mod, const char *name) {
                             favor use of shesha_constant.PyrCentroiderMethod
 
         )pbdoc",
-           py::arg("method"))
+          py::arg("method"))
 
-      .def("set_pyr_thresh",
-           [](centroider_pyr &sc, float thresh) {
-             return sc.set_valid_thresh(thresh);
-           },
-           R"pbdoc(
+      .def(
+          "set_pyr_thresh",
+          [](centroider_pyr &sc, float thresh) {
+            return sc.set_valid_thresh(thresh);
+          },
+          R"pbdoc(
             Set the pyramid threshold value
 
             Parameters
             ------------
             thresh : (float) : threshold value
         )pbdoc",
-           py::arg("thresh"));
+          py::arg("thresh"));
 };
 void declare_centroider_pyr(py::module &mod) {
   centroider_pyr_impl<float, float>(mod, "CentroiderPYR_FF");

@@ -1,6 +1,7 @@
 #include <wyrm>
 
 #include <sutra_controller_geo.h>
+#include "declare_name.hpp"
 
 namespace py = pybind11;
 
@@ -18,54 +19,57 @@ void controller_geo_impl(py::module &mod, const char *name) {
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
 
-      .def_property_readonly("Nphi", [](controller_geo &sc) { return sc.Nphi; },
-                             "Number of points in the pupil")
+      .def_property_readonly(
+          "Nphi", [](controller_geo &sc) { return sc.Nphi; },
+          "Number of points in the pupil")
 
-      .def_property_readonly("Ntt", [](controller_geo &sc) { return sc.Ntt; },
-                             "Number of tip-tilt mirror")
+      .def_property_readonly(
+          "Ntt", [](controller_geo &sc) { return sc.Ntt; },
+          "Number of tip-tilt mirror")
 
-      .def_property_readonly("d_gain",
-                             [](controller_geo &sc) { return sc.d_gain; },
-                             "vector of modal gains")
+      .def_property_readonly(
+          "d_gain", [](controller_geo &sc) { return sc.d_gain; },
+          "vector of modal gains")
 
-      .def_property_readonly("d_phi",
-                             [](controller_geo &sc) { return sc.d_phi; },
-                             "Phase in the pupil without piston (double)")
+      .def_property_readonly(
+          "d_phi", [](controller_geo &sc) { return sc.d_phi; },
+          "Phase in the pupil without piston (double)")
 
-      .def_property_readonly("d_phif",
-                             [](controller_geo &sc) { return sc.d_phif; },
-                             "Phase in the pupil without piston (float)")
+      .def_property_readonly(
+          "d_phif", [](controller_geo &sc) { return sc.d_phif; },
+          "Phase in the pupil without piston (float)")
 
-      .def_property_readonly("d_indx_pup",
-                             [](controller_geo &sc) { return sc.d_indx_pup; },
-                             "Indices of the valid pixels in spupil")
+      .def_property_readonly(
+          "d_indx_pup", [](controller_geo &sc) { return sc.d_indx_pup; },
+          "Indices of the valid pixels in spupil")
 
-      .def_property_readonly("d_indx_mpup",
-                             [](controller_geo &sc) { return sc.d_indx_mpup; },
-                             "Indices of the valid pixels in mpupil")
+      .def_property_readonly(
+          "d_indx_mpup", [](controller_geo &sc) { return sc.d_indx_mpup; },
+          "Indices of the valid pixels in mpupil")
 
       .def_property_readonly(
           "d_IFsparse", [](controller_geo &sc) { return sc.d_IFsparse; },
           "Influence functions in the pupil (sparse representation")
 
-      .def_property_readonly("d_geocov",
-                             [](controller_geo &sc) { return sc.d_geocov; },
-                             "Geometric covariance matrix")
+      .def_property_readonly(
+          "d_geocov", [](controller_geo &sc) { return sc.d_geocov; },
+          "Geometric covariance matrix")
 
-      .def_property_readonly("d_compdouble",
-                             [](controller_geo &sc) { return sc.d_compdouble; },
-                             "Buffer for computation (double precision)")
+      .def_property_readonly(
+          "d_compdouble", [](controller_geo &sc) { return sc.d_compdouble; },
+          "Buffer for computation (double precision)")
 
-      .def_property_readonly("d_compfloat",
-                             [](controller_geo &sc) { return sc.d_compfloat; },
-                             "Buffer for computation (simple precision)")
+      .def_property_readonly(
+          "d_compfloat", [](controller_geo &sc) { return sc.d_compfloat; },
+          "Buffer for computation (simple precision)")
 
-      .def_property_readonly("d_TT", [](controller_geo &sc) { return sc.d_TT; },
-                             "Tip-tilt influence functions")
+      .def_property_readonly(
+          "d_TT", [](controller_geo &sc) { return sc.d_TT; },
+          "Tip-tilt influence functions")
 
-      .def_property_readonly("d_geocovTT",
-                             [](controller_geo &sc) { return sc.d_geocovTT; },
-                             "Geometric covariance matrix for TT mirror")
+      .def_property_readonly(
+          "d_geocovTT", [](controller_geo &sc) { return sc.d_geocovTT; },
+          "Geometric covariance matrix for TT mirror")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝

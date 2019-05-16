@@ -1,6 +1,7 @@
 #include <wyrm>
 
 #include <sutra_centroider_tcog.h>
+#include "declare_name.hpp"
 
 namespace py = pybind11;
 
@@ -16,9 +17,9 @@ void centroider_tcog_impl(py::module &mod, const char *name) {
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
 
-      .def_property_readonly("threshold",
-                             [](centroider_tcog &sc) { return sc.threshold; },
-                             "Threshold value")
+      .def_property_readonly(
+          "threshold", [](centroider_tcog &sc) { return sc.threshold; },
+          "Threshold value")
 
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝

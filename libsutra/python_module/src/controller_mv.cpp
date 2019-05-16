@@ -1,6 +1,7 @@
 #include <wyrm>
 
 #include <sutra_controller_mv.h>
+#include "declare_name.hpp"
 
 namespace py = pybind11;
 
@@ -17,65 +18,65 @@ void controller_mv_impl(py::module &mod, const char *name) {
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
-      .def_property_readonly("d_imat",
-                             [](controller_mv &sc) { return sc.d_imat; },
-                             "Interaction matrix")
+      .def_property_readonly(
+          "d_imat", [](controller_mv &sc) { return sc.d_imat; },
+          "Interaction matrix")
 
-      .def_property_readonly("d_cmat",
-                             [](controller_mv &sc) { return sc.d_cmat; },
-                             "Control matrix")
+      .def_property_readonly(
+          "d_cmat", [](controller_mv &sc) { return sc.d_cmat; },
+          "Control matrix")
 
-      .def_property_readonly("d_gain",
-                             [](controller_mv &sc) { return sc.d_gain; },
-                             "vector of modal gains")
+      .def_property_readonly(
+          "d_gain", [](controller_mv &sc) { return sc.d_gain; },
+          "vector of modal gains")
 
-      .def_property_readonly("d_covmat",
-                             [](controller_mv &sc) { return sc.d_covmat; },
-                             "TODO: docstring")
+      .def_property_readonly(
+          "d_covmat", [](controller_mv &sc) { return sc.d_covmat; },
+          "TODO: docstring")
 
-      .def_property_readonly("d_KLbasis",
-                             [](controller_mv &sc) { return sc.d_KLbasis; },
-                             "KL basis")
+      .def_property_readonly(
+          "d_KLbasis", [](controller_mv &sc) { return sc.d_KLbasis; },
+          "KL basis")
 
-      .def_property_readonly("d_noisemat",
-                             [](controller_mv &sc) { return sc.d_noisemat; },
-                             "Noise on WFS measurements matrix")
+      .def_property_readonly(
+          "d_noisemat", [](controller_mv &sc) { return sc.d_noisemat; },
+          "Noise on WFS measurements matrix")
 
-      .def_property_readonly("d_Cmm",
-                             [](controller_mv &sc) { return sc.d_Cmm; },
-                             "Slope covariance matrix")
+      .def_property_readonly(
+          "d_Cmm", [](controller_mv &sc) { return sc.d_Cmm; },
+          "Slope covariance matrix")
 
-      .def_property_readonly("d_Cphim",
-                             [](controller_mv &sc) { return sc.d_Cphim; },
-                             "Actuators-Slopes covariance marix")
+      .def_property_readonly(
+          "d_Cphim", [](controller_mv &sc) { return sc.d_Cphim; },
+          "Actuators-Slopes covariance marix")
 
       .def_property_readonly(
           "h_Cmmeigenvals", [](controller_mv &sc) { return sc.h_Cmmeigenvals; },
           "Cmm eigenvalues")
 
-      .def_property_readonly("h_eigenvals",
-                             [](controller_mv &sc) { return sc.h_eigenvals; },
-                             "Eigen values")
+      .def_property_readonly(
+          "h_eigenvals", [](controller_mv &sc) { return sc.h_eigenvals; },
+          "Eigen values")
 
-      .def_property_readonly("d_cenbuff",
-                             [](controller_mv &sc) { return sc.d_cenbuff; },
-                             "Centroids circular buffer")
+      .def_property_readonly(
+          "d_cenbuff", [](controller_mv &sc) { return sc.d_cenbuff; },
+          "Centroids circular buffer")
 
-      .def_property_readonly("d_com1",
-                             [](controller_mv &sc) { return sc.d_com1; },
-                             "Commands at iteration k-1 (for POLC)")
+      .def_property_readonly(
+          "d_com1", [](controller_mv &sc) { return sc.d_com1; },
+          "Commands at iteration k-1 (for POLC)")
 
-      .def_property_readonly("d_com2",
-                             [](controller_mv &sc) { return sc.d_com2; },
-                             "Commands at iteration k-2 (for POLC)")
+      .def_property_readonly(
+          "d_com2", [](controller_mv &sc) { return sc.d_com2; },
+          "Commands at iteration k-2 (for POLC)")
 
-      .def_property_readonly("d_olmeas",
-                             [](controller_mv &sc) { return sc.d_olmeas; },
-                             "Reconstructed open loop measurement")
+      .def_property_readonly(
+          "d_olmeas", [](controller_mv &sc) { return sc.d_olmeas; },
+          "Reconstructed open loop measurement")
 
-      .def_property_readonly("d_err",
-                             [](controller_mv &sc) { return sc.d_err; },
-                             "Increment error")
+      .def_property_readonly(
+          "d_err", [](controller_mv &sc) { return sc.d_err; },
+          "Increment error")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝
