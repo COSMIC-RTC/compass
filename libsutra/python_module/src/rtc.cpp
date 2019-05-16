@@ -1,6 +1,7 @@
 #include <wyrm>
 
 #include <sutra_rtc.h>
+#include "declare_name.hpp"
 
 namespace py = pybind11;
 
@@ -110,8 +111,8 @@ void rtc_impl(py::module &mod, const char *name) {
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
       .def("add_centroider",
-           wy::colCast((int (rtc::*)(carma_context *, long, float, float, bool, long,
-                                     std::string, sutra_wfs *)) &
+           wy::colCast((int (rtc::*)(carma_context *, long, float, float, bool,
+                                     long, std::string, sutra_wfs *)) &
                        rtc::add_centroider),
 
            R"pbdoc(
@@ -130,12 +131,12 @@ void rtc_impl(py::module &mod, const char *name) {
 
     )pbdoc",
            py::arg("context"), py::arg("nvalid"), py::arg("offset"),
-           py::arg("scale"), py::arg("filter_TT"), py::arg("device"), py::arg("typec"),
-           py::arg("wfs"))
+           py::arg("scale"), py::arg("filter_TT"), py::arg("device"),
+           py::arg("typec"), py::arg("wfs"))
 
       .def("add_centroider",
-           wy::colCast((int (rtc::*)(carma_context *, long, float, float, bool, long,
-                                     std::string)) &
+           wy::colCast((int (rtc::*)(carma_context *, long, float, float, bool,
+                                     long, std::string)) &
                        rtc::add_centroider),
            R"pbdoc(
         Add a sutra_centroider object in the RTC
@@ -152,7 +153,8 @@ void rtc_impl(py::module &mod, const char *name) {
 
     )pbdoc",
            py::arg("context"), py::arg("nvalid"), py::arg("offset"),
-           py::arg("scale"), py::arg("filter_TT"), py::arg("device"), py::arg("typec"))
+           py::arg("scale"), py::arg("filter_TT"), py::arg("device"),
+           py::arg("typec"))
 
       .def("add_controller", wy::colCast(&rtc::add_controller), R"pbdoc(
         Add a sutra_controller object in the RTC
@@ -355,11 +357,11 @@ void rtc_impl(py::module &mod, const char *name) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
-      .def("set_gain",
-           [](rtc &sr, int ncontrol, float gain) {
-             sr.d_control[ncontrol]->set_gain(gain);
-           },
-           R"pbdoc(
+      .def(
+          "set_gain",
+          [](rtc &sr, int ncontrol,
+             float gain) { sr.d_control[ncontrol]->set_gain(gain); },
+          R"pbdoc(
         Set the loop gain in the controller
 
         Parameters
@@ -367,7 +369,7 @@ void rtc_impl(py::module &mod, const char *name) {
         ncontrol: (int): controller index
         gain: (float): gain to set
     )pbdoc",
-           py::arg("ncontrol"), py::arg("gain"))
+          py::arg("ncontrol"), py::arg("gain"))
 
       .def("set_mgain", set_mgain_impl<Tin, Tcomp, Tout>,
            R"pbdoc(

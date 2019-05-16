@@ -1,6 +1,7 @@
 #include <wyrm>
 
 #include <sutra_rtc_brahma.h>
+#include "declare_name.hpp"
 
 namespace py = pybind11;
 

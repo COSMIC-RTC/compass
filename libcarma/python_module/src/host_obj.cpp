@@ -1,9 +1,5 @@
-#include <pybind11/numpy.h>
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
-
-#include <carma.h>
 #include "host_obj.hpp"
+#include <carma.h>
 #include "type_list.hpp"
 
 // #ifdef CAN_DO_HALF

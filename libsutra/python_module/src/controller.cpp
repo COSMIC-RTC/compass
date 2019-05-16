@@ -1,6 +1,7 @@
 #include <wyrm>
 
 #include <sutra_controller.h>
+#include "declare_name.hpp"
 
 namespace py = pybind11;
 
@@ -41,57 +42,63 @@ void controller_impl(py::module &mod, const char *name) {
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
-      .def_property_readonly("context",
-                             [](controller &sc) { return sc.current_context; },
-                             "GPU context")
+      .def_property_readonly(
+          "context", [](controller &sc) { return sc.current_context; },
+          "GPU context")
 
-      .def_property_readonly("device", [](controller &sc) { return sc.device; },
-                             "GPU device index")
+      .def_property_readonly(
+          "device", [](controller &sc) { return sc.device; },
+          "GPU device index")
 
-      .def_property_readonly("type",
-                             [](controller &sc) { return sc.get_type(); },
-                             "Controller type")
+      .def_property_readonly(
+          "type", [](controller &sc) { return sc.get_type(); },
+          "Controller type")
 
-      .def_property_readonly("nactu", [](controller &sc) { return sc.nactu(); },
-                             "Number of actuators to control")
+      .def_property_readonly(
+          "nactu", [](controller &sc) { return sc.nactu(); },
+          "Number of actuators to control")
 
-      .def_property_readonly("nslope",
-                             [](controller &sc) { return sc.nslope(); },
-                             "Number of slopes")
+      .def_property_readonly(
+          "nslope", [](controller &sc) { return sc.nslope(); },
+          "Number of slopes")
 
-      .def_property_readonly("gain",
-                             [](controller &sc) { return get_gain(sc); },
-                             "Controller gain")
-      .def_property_readonly("open_loop",
-                             [](controller &sc) { return sc.open_loop; },
-                             "Open loop flag")
+      .def_property_readonly(
+          "gain", [](controller &sc) { return get_gain(sc); },
+          "Controller gain")
+      .def_property_readonly(
+          "open_loop", [](controller &sc) { return sc.open_loop; },
+          "Open loop flag")
 
       .def_property_readonly(
           "delay", [](controller &sc) { return get_delay(sc); }, "Loop delay")
 
-      .def_property_readonly("d_dmseen",
-                             [](controller &sc) { return sc.d_dmseen; },
-                             "Vector of sutra_dm commanded")
+      .def_property_readonly(
+          "d_dmseen", [](controller &sc) { return sc.d_dmseen; },
+          "Vector of sutra_dm commanded")
 
-      .def_property_readonly("d_centroids",
-                             [](controller &sc) { return sc.d_centroids; },
-                             "Slopes vector")
+      .def_property_readonly(
+          "d_centroids", [](controller &sc) { return sc.d_centroids; },
+          "Slopes vector")
 
-      .def_property_readonly("d_com", [](controller &sc) { return sc.d_com; },
-                             "Current command vector")
+      .def_property_readonly(
+          "d_com", [](controller &sc) { return sc.d_com; },
+          "Current command vector")
 
-      .def_property_readonly("d_com1", [](controller &sc) { return sc.d_com1; },
-                             "Command vector at iteration k-1")
+      .def_property_readonly(
+          "d_com1", [](controller &sc) { return sc.d_com1; },
+          "Command vector at iteration k-1")
 
-      .def_property_readonly("d_com2", [](controller &sc) { return sc.d_com2; },
-                             "Command vector at iteration k-2")
+      .def_property_readonly(
+          "d_com2", [](controller &sc) { return sc.d_com2; },
+          "Command vector at iteration k-2")
       .def_property_readonly(
           "comRange",
           [](controller &sc) { return std::make_tuple(sc.Vmin, sc.Vmax); },
           "Tuple (Vmin, Vmax) used for command clipping")
-      .def_property_readonly("valMax", [](controller &sc) { return sc.valMax; },
-                             "Maximum value for d_voltage (ADU). Only used if "
-                             "output is expected in uint16")
+      .def_property_readonly(
+          "valMax", [](controller &sc) { return sc.valMax; },
+          "Maximum value for d_voltage (ADU). Only used if "
+          "output is expected in uint16")
 
       .def_property_readonly(
           "d_perturb_map",
@@ -101,13 +108,13 @@ void controller_impl(py::module &mod, const char *name) {
           },
           "Perturbation voltage buffers")
 
-      .def_property_readonly("d_voltage",
-                             [](controller &sc) { return sc.d_voltage; },
-                             "Total voltage to apply on the DMs")
+      .def_property_readonly(
+          "d_voltage", [](controller &sc) { return sc.d_voltage; },
+          "Total voltage to apply on the DMs")
 
-      .def_property_readonly("d_comClipped",
-                             [](controller &sc) { return sc.d_comClipped; },
-                             "Delayed commands")
+      .def_property_readonly(
+          "d_comClipped", [](controller &sc) { return sc.d_comClipped; },
+          "Delayed commands")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝
@@ -227,12 +234,13 @@ void controller_impl(py::module &mod, const char *name) {
      )pbdoc",
            py::arg("gain"))
 
-      .def("set_comRange",
-           [](controller &sc, float Vmin, float Vmax) {
-             sc.set_Vmax(Vmax);
-             sc.set_Vmin(Vmin);
-           },
-           R"pbdoc(
+      .def(
+          "set_comRange",
+          [](controller &sc, float Vmin, float Vmax) {
+            sc.set_Vmax(Vmax);
+            sc.set_Vmin(Vmin);
+          },
+          R"pbdoc(
           Set the Vmin and Vmax value for command clipping
 
           Parameters
@@ -240,7 +248,7 @@ void controller_impl(py::module &mod, const char *name) {
           Vmin: (float): Vmin value for clipping
           Vmax: (float): Vmax value for clipping
      )pbdoc",
-           py::arg("Vmin"), py::arg("Vmax"))
+          py::arg("Vmin"), py::arg("Vmax"))
 
       .def("set_Vmax", wy::colCast(&controller::set_Vmax),
            R"pbdoc(

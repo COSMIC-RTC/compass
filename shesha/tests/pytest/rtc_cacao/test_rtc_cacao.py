@@ -308,7 +308,7 @@ def test_publish_calPix():
     rtc.publish()
     interface = CacaoInterface.getInterface("compass_calPix")
     tmp = np.array(interface)
-    assert (relative_array_error(np.array(centro.d_img), tmp.T) < precision)
+    assert (relative_array_error(np.array(centro.d_img), tmp) < precision)
 
 
 @pytest.mark.skip(reason="intensities disabled")

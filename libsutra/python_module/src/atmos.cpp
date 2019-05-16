@@ -1,6 +1,7 @@
 #include <wyrm>
 
 #include <sutra_atmos.h>
+#include "declare_name.hpp"
 
 namespace py = pybind11;
 
@@ -47,18 +48,19 @@ void declare_atmos(py::module &mod) {
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
 
-      .def_property_readonly("nscreens",
-                             [](sutra_atmos &sa) { return sa.nscreens; },
-                             "Number of turbulent screens")
+      .def_property_readonly(
+          "nscreens", [](sutra_atmos &sa) { return sa.nscreens; },
+          "Number of turbulent screens")
 
-      .def_property_readonly("r0", [](sutra_atmos &sa) { return sa.r0; },
-                             "Global r0")
+      .def_property_readonly(
+          "r0", [](sutra_atmos &sa) { return sa.r0; }, "Global r0")
 
-      .def_property_readonly("d_screens",
-                             [](sutra_atmos &sa) -> vector<sutra_tscreen *> & {
-                               return sa.d_screens;
-                             },
-                             "Vector of tscreens")
+      .def_property_readonly(
+          "d_screens",
+          [](sutra_atmos &sa) -> vector<sutra_tscreen *> & {
+            return sa.d_screens;
+          },
+          "Vector of tscreens")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝

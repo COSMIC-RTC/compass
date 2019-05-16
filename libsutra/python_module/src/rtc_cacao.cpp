@@ -1,16 +1,15 @@
 #include <wyrm>
 
 #include <sutra_rtc_cacao.h>
+#include "declare_name.hpp"
 
 namespace py = pybind11;
 
 template <typename Tin, typename Tcomp, typename Tout>
 std::unique_ptr<sutra_rtc_cacao<Tin, Tcomp, Tout>> rtc_cacao_init(
-    std::string iCalFrame_name,
-    std::string iLoopFrame_name) {
+    std::string iCalFrame_name, std::string iLoopFrame_name) {
   return std::unique_ptr<sutra_rtc_cacao<Tin, Tcomp, Tout>>(
-      new sutra_rtc_cacao<Tin, Tcomp, Tout>(iCalFrame_name,
-                                            iLoopFrame_name));
+      new sutra_rtc_cacao<Tin, Tcomp, Tout>(iCalFrame_name, iLoopFrame_name));
 }
 
 template <typename Tin, typename Tcomp, typename Tout>

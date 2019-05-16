@@ -1,6 +1,7 @@
 #include <wyrm>
 
 #include <sutra_controller_generic.h>
+#include "declare_name.hpp"
 
 namespace py = pybind11;
 
@@ -26,17 +27,17 @@ void controller_generic_impl(py::module &mod, const char *name) {
           [](controller_generic &sc) { return sc.d_decayFactor; },
           "decayFactor vector (see compass.io details on generic controller)")
 
-      .def_property_readonly("d_cmat",
-                             [](controller_generic &sc) { return sc.d_cmat; },
-                             "Control matrix")
+      .def_property_readonly(
+          "d_cmat", [](controller_generic &sc) { return sc.d_cmat; },
+          "Control matrix")
 
-      .def_property_readonly("d_imat",
-                             [](controller_generic &sc) { return sc.d_imat; },
-                             "Control matrix")
+      .def_property_readonly(
+          "d_imat", [](controller_generic &sc) { return sc.d_imat; },
+          "Control matrix")
 
-      .def_property_readonly("d_gain",
-                             [](controller_generic &sc) { return sc.d_gain; },
-                             "vector of modal gains")
+      .def_property_readonly(
+          "d_gain", [](controller_generic &sc) { return sc.d_gain; },
+          "vector of modal gains")
 
       .def_property_readonly(
           "polc", [](controller_generic &sc) { return sc.polc; }, "POLC flag")

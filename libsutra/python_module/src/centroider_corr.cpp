@@ -1,6 +1,7 @@
 #include <wyrm>
 
 #include <sutra_centroider_corr.h>
+#include "declare_name.hpp"
 
 namespace py = pybind11;
 
@@ -16,9 +17,9 @@ void centroider_corr_impl(py::module &mod, const char *name) {
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
 
-      .def_property_readonly("npix",
-                             [](centroider_corr &sc) { return sc.npix; },
-                             "TODO: docstring")
+      .def_property_readonly(
+          "npix", [](centroider_corr &sc) { return sc.npix; },
+          "TODO: docstring")
 
       .def_property_readonly(
           "interp_sizex", [](centroider_corr &sc) { return sc.interp_sizex; },
@@ -28,29 +29,29 @@ void centroider_corr_impl(py::module &mod, const char *name) {
           "interp_sizey", [](centroider_corr &sc) { return sc.interp_sizey; },
           "TODO: docstring")
 
-      .def_property_readonly("d_corrfnct",
-                             [](centroider_corr &sc) { return sc.d_corrfnct; },
-                             "TODO: docstring")
+      .def_property_readonly(
+          "d_corrfnct", [](centroider_corr &sc) { return sc.d_corrfnct; },
+          "TODO: docstring")
 
-      .def_property_readonly("d_corrspot",
-                             [](centroider_corr &sc) { return sc.d_corrspot; },
-                             "TODO: docstring")
+      .def_property_readonly(
+          "d_corrspot", [](centroider_corr &sc) { return sc.d_corrspot; },
+          "TODO: docstring")
 
-      .def_property_readonly("d_corrnorm",
-                             [](centroider_corr &sc) { return sc.d_corrnorm; },
-                             "TODO: docstring")
+      .def_property_readonly(
+          "d_corrnorm", [](centroider_corr &sc) { return sc.d_corrnorm; },
+          "TODO: docstring")
 
-      .def_property_readonly("d_corrmax",
-                             [](centroider_corr &sc) { return sc.d_corrmax; },
-                             "TODO: docstring")
+      .def_property_readonly(
+          "d_corrmax", [](centroider_corr &sc) { return sc.d_corrmax; },
+          "TODO: docstring")
 
-      .def_property_readonly("d_corr",
-                             [](centroider_corr &sc) { return sc.d_corr; },
-                             "TODO: docstring")
+      .def_property_readonly(
+          "d_corr", [](centroider_corr &sc) { return sc.d_corr; },
+          "TODO: docstring")
 
-      .def_property_readonly("d_interpmat",
-                             [](centroider_corr &sc) { return sc.d_interpmat; },
-                             "TODO: docstring")
+      .def_property_readonly(
+          "d_interpmat", [](centroider_corr &sc) { return sc.d_interpmat; },
+          "TODO: docstring")
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝
       //  ███████╗█████╗     ██║      ██║   █████╗  ██████╔╝███████╗

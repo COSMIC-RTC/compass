@@ -1,6 +1,6 @@
 # E2E Test Report
 
-*Report generated on 07-May-2019 11:33:09 by checkCompass.sh*
+*Report generated on 16-May-2019 07:54:24 by checkCompass.sh*
 
 [Unit Tests report](report_unit_test.html)
 
@@ -24,8 +24,8 @@
 | 13 | test_sh_influRadialSchwartz.py | True   |     0.717212 |
 | 14 | test_sh_influSquareSchwartz.py | True   |     0.708451 |
 | 15 | test_sh_kl.py                  | True   |     0.690005 |
-| 16 | test_sh_lgs_corr.py            | True   |     0.40514  |
-| 17 | test_sh_lgs_wcog.py            | True   |     0.688258 |
+| 16 | test_sh_lgs_corr.py            | True   |     0.405176 |
+| 17 | test_sh_lgs_wcog.py            | True   |     0.688256 |
 | 18 | test_sh_modopti.py             | True   |     0.109928 |
 | 19 | test_sh_mv.py                  | True   |     0.757161 |
 | 20 | test_sh_tcog.py                | True   |     0.709287 |

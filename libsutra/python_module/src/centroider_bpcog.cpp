@@ -1,6 +1,7 @@
 #include <wyrm>
 
 #include <sutra_centroider_bpcog.h>
+#include "declare_name.hpp"
 
 namespace py = pybind11;
 
@@ -16,17 +17,17 @@ void centroider_bpcog_impl(py::module &mod, const char *name) {
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
 
-      .def_property_readonly("nmax",
-                             [](centroider_bpcog &sc) { return sc.nmax; },
-                             "Number of brightest pixels")
+      .def_property_readonly(
+          "nmax", [](centroider_bpcog &sc) { return sc.nmax; },
+          "Number of brightest pixels")
 
-      .def_property_readonly("d_bpix",
-                             [](centroider_bpcog &sc) { return sc.d_bpix; },
-                             "Brightest pixels")
+      .def_property_readonly(
+          "d_bpix", [](centroider_bpcog &sc) { return sc.d_bpix; },
+          "Brightest pixels")
 
-      .def_property_readonly("d_bpind",
-                             [](centroider_bpcog &sc) { return sc.d_bpind; },
-                             "Brightest pixels indices")
+      .def_property_readonly(
+          "d_bpind", [](centroider_bpcog &sc) { return sc.d_bpind; },
+          "Brightest pixels indices")
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝
       //  ███████╗█████╗     ██║      ██║   █████╗  ██████╔╝███████╗

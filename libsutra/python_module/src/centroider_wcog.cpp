@@ -1,6 +1,7 @@
 #include <wyrm>
 
 #include <sutra_centroider_wcog.h>
+#include "declare_name.hpp"
 
 namespace py = pybind11;
 
@@ -16,13 +17,13 @@ void centroider_wcog_impl(py::module &mod, const char *name) {
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
 
-      .def_property_readonly("npix",
-                             [](centroider_wcog &sc) { return sc.npix; },
-                             "TODO: docstring")
+      .def_property_readonly(
+          "npix", [](centroider_wcog &sc) { return sc.npix; },
+          "TODO: docstring")
 
-      .def_property_readonly("d_weights",
-                             [](centroider_wcog &sc) { return sc.d_weights; },
-                             "Weights applied")
+      .def_property_readonly(
+          "d_weights", [](centroider_wcog &sc) { return sc.d_weights; },
+          "Weights applied")
 
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝

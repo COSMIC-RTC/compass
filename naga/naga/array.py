@@ -6,32 +6,13 @@ More details.
 import numpy as np
 from naga.context import Context
 
-from carmaWrap import obj_float, obj_double, obj_int, obj_float_complex, obj_uint16
+from carmaWrap import obj_float, obj_double, obj_int, obj_float_complex, obj_double_complex, obj_uint16
 try:
-    from carmaWrap import obj_half, make_carmaWrap_obj_half, get_carmaWrap_obj_half
+    from carmaWrap import obj_half
     USE_HALF = 1
 except:
     USE_HALF = 0
 context = Context()
-
-
-def complextofloat2(A):
-    B = np.zeros(A.shape, dtype=[('x', '<f4'), ('y', '<f4')]).flatten()
-    A_F = A.flatten()
-    for i in range(A_F.size):
-        B[i][0] = A[i].real
-        B[i][1] = A[i].imag
-
-    return np.reshape(B, A.shape)
-
-
-def float2tocomplex(A):
-    B = np.zeros(A.shape, dtype=np.complex64).flatten()
-    A_F = A.flatten()
-    for i in range(A_F.size):
-        B[i] = A_F[i][0] + 1j * A_F[i][1]
-
-    return np.reshape(B, A.shape)
 
 
 class DimensionsError(Exception):
@@ -67,12 +48,11 @@ class Array():
                 elif data.dtype == np.float64:
                     self.__data = obj_double(context.context, data)
                 elif USE_HALF and data.dtype == np.float16:
-                    self.__data = make_carmaWrap_obj_half(context.context,
-                                                          data.astype(np.float32))
-                elif data.dtype == np.complex64 or data.dtype == np.complex128:
-                    self.__data = obj_float_complex(context.context,
-                                                    complextofloat2(data))
-                    self.__dtype = np.complex64
+                    self.__data = obj_half(context.context, data)
+                elif data.dtype == np.complex64:
+                    self.__data = obj_float_complex(context.context, data)
+                elif data.dtype == np.complex128:
+                    self.__data = obj_double_complex(context.context, data)
                 else:
                     raise TypeError("Data type not implemented")
                 self.__dtype = data.dtype
@@ -88,7 +68,7 @@ class Array():
             elif isinstance(data, obj_double):
                 self.__data = data
                 self.__dtype = np.float64
-                self.__shape = tuple(data.shape[k] for k in range(len(data.shape)))
+                self._shape = tuple(data.shape[k] for k in range(len(data.shape)))
             elif USE_HALF and isinstance(data, obj_half):
                 self.__data = data
                 self.__dtype = np.float16
@@ -96,6 +76,10 @@ class Array():
             elif isinstance(data, obj_float_complex):
                 self.__data = data
                 self.__dtype = np.complex64
+                self.__shape = tuple(data.shape[k] for k in range(len(data.shape)))
+            elif isinstance(data, obj_double_complex):
+                self.__data = data
+                self.__dtype = np.complex128
                 self.__shape = tuple(data.shape[k] for k in range(len(data.shape)))
             elif isinstance(data, obj_uint16):
                 self.__data = data
@@ -202,12 +186,7 @@ class Array():
         return self.data.sum()
 
     def toarray(self):
-        if (self.dtype == np.complex64):
-            tmp = float2tocomplex(np.array(self.data))
-        elif USE_HALF and (self.dtype == np.float16):
-            tmp = get_carmaWrap_obj_half(self.data).astype(np.float16)
-        else:
-            tmp = np.array(self.data)
+        tmp = np.array(self.data)
         return tmp
 
 
