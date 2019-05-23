@@ -15,9 +15,8 @@ import numpy as np
 import time
 from collections import OrderedDict
 
-from tqdm import trange
+#from tqdm import trange
 from tqdm import tqdm
-
 import astropy.io.fits as pfits
 from threading import Thread
 from subprocess import Popen, PIPE
@@ -125,7 +124,7 @@ class CanapassSupervisor(CompassSupervisor):
         ph = self._sim.tar.get_phase(0)
         ph2KL = np.zeros((nbmode, ph.shape[0], ph.shape[1]))
         S = np.sum(pup)
-        for i in trange(nbmode):
+        for i in range(nbmode):
             self.resetTarPhase(0)
             self._sim.dms.set_full_comm(
                     (self.modalBasis[:, i]).astype(np.float32).copy())
@@ -142,15 +141,48 @@ class CanapassSupervisor(CompassSupervisor):
         data = self.computePh2Modes()
         self.writeDataInFits(data, fullpath)
 
+    """
     def getModes2VBasis(self, ModalBasisType, merged=False, nbpairs=None):
         if (ModalBasisType == "KL2V"):
             print("Computing KL2V basis...")
             self.modalBasis, _ = self.returnkl2V()
+            self.modalBasis *= np.sign(self.modalBasis[0,:])[None,:]
             return self.modalBasis, 0
         elif (ModalBasisType == "Btt"):
             print("Computing Btt basis...")
             self.modalBasis, self.P = self.compute_Btt2(inv_method="cpu_svd",
                                                         merged=merged, nbpairs=nbpairs)
+            self.modalBasis *= np.sign(self.modalBasis[0,:])[None,:]
+            return self.modalBasis, self.P
+    """
+
+
+    def getModes2VBasis(self, ModalBasisType, merged=False, nbpairs=None):
+        """
+        Pos signifies the sign of the first non zero element of the eigen vector is forced to be +
+        """
+        def first_nonzero(arr, axis, invalid_val=-1):
+            """
+            finding the first non zero element in an array.
+            """
+            mask = arr!=0
+            return np.where(mask.any(axis=axis), mask.argmax(axis=axis), invalid_val)
+        if (ModalBasisType == "KL2V"):
+            print("Computing KL2V basis...")
+            self.modalBasis, _ = self.returnkl2V()
+            fnz = first_nonzero(self.modalBasis,axis=0)
+            # Computing the sign of the first non zero element
+            sig = np.sign(self.modalBasis[[fnz, np.arange(self.modalBasis.shape[1])]])
+            self.modalBasis *= sig[None,:]
+            return self.modalBasis, 0
+        elif (ModalBasisType == "Btt"):
+            print("Computing Btt basis...")
+            self.modalBasis, self.P = self.compute_Btt2(inv_method="cpu_svd",
+                                                        merged=merged, nbpairs=nbpairs)
+            fnz = first_nonzero(self.modalBasis,axis=0)
+            # Computing the sign of the first non zero element
+            sig = np.sign(self.modalBasis[[fnz, np.arange(self.modalBasis.shape[1])]])
+            self.modalBasis *= sig[None,:]
             return self.modalBasis, self.P
 
     def returnkl2V(self):
@@ -493,6 +525,7 @@ class CanapassSupervisor(CompassSupervisor):
     def doImatModal(self, ampliVec, KL2V, Nslopes, noise=False, nmodesMax=0,
                     withTurbu=False, pushPull=False):
         """
+        KL2V is the btt2V matrix
         """
         iMatKL = np.zeros((Nslopes, KL2V.shape[1]))
 
@@ -502,7 +535,8 @@ class CanapassSupervisor(CompassSupervisor):
             KLMax = KL2V.shape[1]
         vold = self.getCom(0)
         self.openLoop(rst=False)
-        for kl in trange(KLMax, desc="Modal IM"):
+        for kl in range(KLMax):
+            print(kl, end="\r")
             # v = ampliVec[kl] * KL2V[:, kl:kl + 1].T.copy()
             v = ampliVec[kl] * KL2V[:, kl]
             if ((pushPull is True) or
@@ -529,7 +563,7 @@ class CanapassSupervisor(CompassSupervisor):
     def doImatPhase(self, cubePhase, Nslopes, noise=False, nmodesMax=0, withTurbu=False,
                     pushPull=False, wfsnum=0):
         iMatPhase = np.zeros((cubePhase.shape[0], Nslopes))
-        for nphase in trange(cubePhase.shape[0], desc="Phase IM"):
+        for nphase in range(cubePhase.shape[0]):
             if ((pushPull is True) or
                 (withTurbu is True)):  # with turbulence/aberrations => push/pull
                 self.setNcpaWfs(cubePhase[nphase, :, :], wfsnum=wfsnum)
@@ -1048,36 +1082,40 @@ class CanapassSupervisor(CompassSupervisor):
                     "ERROR CANNOT set array gain in canapass (generic + integrator law")
 
 
-
-
 ########################## PROTO #############################
 
 
 
-    def initModalGain(self, gain, cmatKL, modalBasis, control=0):
+    def initModalGain(self, gain, cmatKL, modalBasis, control=0, ditchGain = True):
         """
         Given a gain, cmat and btt2v initialise the modal gain mode
         """
-        nfilt = modalBasis.shape[0] - cmatKL.shape[0] - 3
+        nmode_total = modalBasis.shape[1]
+        nactu_total = modalBasis.shape[0]
+        nfilt = nmode_total - cmatKL.shape[0]
         ctrl = self._sim.rtc.d_control[control]
         ctrl.set_commandlaw('modal_integrator')
-        cmat = np.zeros((cmatKL.shape[0]+nfilt+3,cmatKL.shape[1]))
-        cmat[:-3-nfilt,:] += cmatKL
-        btt2v = np.zeros((modalBasis.shape[0],modalBasis.shape[1]+nfilt+3))
-        btt2v[:,:-nfilt-3] += modalBasis
-        mgain = np.zeros(len(btt2v))
-        mgain[:-nfilt-3] += gain
+        cmat = np.zeros((nactu_total,cmatKL.shape[1]))
+        cmat[:-3-nfilt,:] += cmatKL # All non-filtered modes
+        btt2v = np.zeros((nactu_total,nactu_total))
+        btt2v[:,:-nfilt-5] += modalBasis[:,:-nfilt-2]
+        btt2v[:,-nfilt-5:-nfilt-3] += modalBasis[:,-2:]
+        mgain = np.ones(len(btt2v))*gain
         ctrl.set_matE(btt2v)
         ctrl.set_cmat(cmat)
-        ctrl.set_mgain(mgain)
+        if ditchGain:
+            ctrl.set_mgain(mgain)
     
+    def leaveModalGain(self, control = 0):
+        ctrl = self._sim.rtc.d_control[control]
+        ctrl.set_commandlaw('integrator')
+        
     def set_mgain(self,mgain,control=0):
         """
         Wrapper function to let adopt set the modal gain.
         """
         ctrl = self._sim.rtc.d_control[control]
         ctrl.set_mgain(mgain)
-
 
     def get_mgain(self,control=0):
         """
@@ -1086,18 +1124,11 @@ class CanapassSupervisor(CompassSupervisor):
         ctrl = self._sim.rtc.d_control[control]
         return(np.array(ctrl.d_gain))
 
-############################ PROTO END  ################################
-
-
-
-
-
-
-
-
-
-
-
+    def setModalBasis(self,modalBasis):
+        """
+        Function used to set the modal basis in canapass
+        """
+        self.modalBasis = modalBasis
 
 
 
@@ -1153,7 +1184,8 @@ class CanapassSupervisor(CompassSupervisor):
                 self.resetStrehl(i)
 
         # Starting CB loop...
-        for j in trange(CBcount, desc="recording"):
+        for j in range(CBcount):
+            print(j, end="\r")
             if (NCPA):
                 if (j % NCPA == 0):
                     ncpaDiff = refSlopes[None, :]
@@ -1209,6 +1241,95 @@ class CanapassSupervisor(CompassSupervisor):
             pfits.writeto(tarPhaseFilePath, tarPhaseData, overwrite=True)
         psfLE = self.getTarImage(tarnum, "le")
         return slopesdata, voltsdata, aiData, psfLE, srseList, srleList, gNPCAList
+
+
+    def recordCB_PyrFocPla_PSFSE(self, CBcount, starting_index, save_path, image_subSample = 20,
+                subSample=1, tarnum=0, seeAtmos=True,
+                tarPhaseFilePath="", NCPA=False, ncpawfs=None, refSlopes=None, ditchStrehl = True):
+        slopesdata = None
+        voltsdata = None
+        tarPhaseData = None
+        aiData = None
+        k = 0
+        index_counter = starting_index
+        srseList = []
+        srleList = []
+        gNPCAList = []
+
+        # Resets the target so that the PSF LE is synchro with the data
+        # Doesn't reset it if DitchStrehl == False (used for real time gain computation)
+        if ditchStrehl:
+            for i in range(len(self._sim.config.p_targets)):
+                self.resetStrehl(i)
+
+        # Starting CB loop...
+        for j in range(CBcount):
+            print(j, end="\r")
+            if (NCPA):
+                if (j % NCPA == 0):
+                    ncpaDiff = refSlopes[None, :]
+                    ncpaturbu = self.doImatPhase(-ncpawfs[None, :, :],
+                                                 refSlopes.shape[0], noise=False,
+                                                 withTurbu=True)
+                    gNCPA = float(
+                            np.sqrt(
+                                    np.dot(ncpaDiff, ncpaDiff.T) / np.dot(
+                                            ncpaturbu, ncpaturbu.T)))
+                    if (gNCPA > 1e18):
+                        gNCPA = 0
+                        print('Warning NCPA ref slopes gain too high!')
+                        gNPCAList.append(gNCPA)
+                        self.setRefSlopes(-refSlopes * gNCPA)
+                    else:
+                        gNPCAList.append(gNCPA)
+                        print('NCPA ref slopes gain: %4.3f' % gNCPA)
+                        self.setRefSlopes(-refSlopes / gNCPA)
+
+            self._sim.next(see_atmos=seeAtmos)
+            for t in range(len(self._sim.config.p_targets)):
+                self._sim.compTarImage(t)
+
+            srse, srle, _, _ = self.getStrehl(tarnum)
+            srseList.append(srse)
+            srleList.append(srle)
+            if (index_counter % image_subSample == 0):
+                psfSE = self.getTarImage(0, "se")
+                pyrFP = self.getPyrFocalPlane()
+                pyrHR = self.getWfsImage()
+                wfs   = self.getWfsPhase(0)
+                pfits.writeto(save_path+'psfSE_'+str(index_counter).zfill(5), psfSE, overwrite=True)
+                pfits.writeto(save_path+'pyrFP_'+str(index_counter).zfill(5), pyrFP, overwrite=True)
+                pfits.writeto(save_path+'pyrHR_'+str(index_counter).zfill(5), pyrHR, overwrite=True)
+                pfits.writeto(save_path+'wfs_'  +str(index_counter).zfill(5), wfs  , overwrite=True)
+            if (j % subSample == 0):
+                aiVector = self.computeModalResiduals()
+                if (aiData is None):
+                    aiData = np.zeros((len(aiVector), int(CBcount / subSample)))
+                aiData[:, k] = aiVector
+
+                slopesVector = self.getCentroids(0)
+                if (slopesdata is None):
+                    slopesdata = np.zeros((len(slopesVector), int(CBcount / subSample)))
+                slopesdata[:, k] = slopesVector
+
+                voltsVector = self.getCom(0)
+                if (voltsdata is None):
+                    voltsdata = np.zeros((len(voltsVector), int(CBcount / subSample)))
+                voltsdata[:, k] = voltsVector
+
+                if (tarPhaseFilePath != ""):
+                    tarPhaseArray = self.getTargetPhase(tarnum)
+                    if (tarPhaseData is None):
+                        tarPhaseData = np.zeros((*tarPhaseArray.shape,
+                                                 int(CBcount / subSample)))
+                    tarPhaseData[:, :, k] = tarPhaseArray
+                k += 1
+            index_counter += 1
+        if (tarPhaseFilePath != ""):
+            print("Saving tarPhase cube at: ", tarPhaseFilePath)
+            pfits.writeto(tarPhaseFilePath, tarPhaseData, overwrite=True)
+        psfLE = self.getTarImage(tarnum, "le")
+        return slopesdata, voltsdata, aiData, psfLE, srseList, srleList, gNPCAList, index_counter
 
         #wao.sim.config.p_geom._ipupil
         """

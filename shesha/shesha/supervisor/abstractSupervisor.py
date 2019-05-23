@@ -55,8 +55,8 @@ class AbstractSupervisor(ABC):
         ...
 
     def next(self, nbiters, see_atmos=True):
-        from tqdm import trange
-        for _ in trange(nbiters):
+        for i in range(nbiters):
+            print(i, end="\r")
             self.singleNext(showAtmos=see_atmos)
 
     ''' Move atmos -> getSlope -> applyControl ; One integrator step '''
