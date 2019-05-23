@@ -1,4 +1,4 @@
-image: aocompass/base-devel-16.04
+image: aocompass/base-devel-16.04:10.0
 
 stages:
   - build
