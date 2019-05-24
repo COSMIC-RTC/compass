@@ -1,4 +1,4 @@
-image: aocompass/base-devel-16.04
+image: aocompass/base-devel-16.04:10.0
 
 stages:
   - build
@@ -14,6 +14,7 @@ build_job:
     CUB_ROOT: $COMPASS_ROOT/tplib/cub
     WYRM_ROOT: $COMPASS_ROOT/tplib/wyrm
     CUDA_SM: ALL
+    # COMPASS_DO_HALF: "ON"
   script:
     - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
@@ -44,7 +45,10 @@ test_job:
   script:
     - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
-    - cd shesha && python shesha/scripts/closed_loop.py data/par/par4bench/scao_sh_16x16_8pix.py
+    - pytest libcarma/python_module/test
+    - pip install tabulate
+    - ./shesha/tests/checkCompass.sh
+
   when: manual
   only:
     - develop

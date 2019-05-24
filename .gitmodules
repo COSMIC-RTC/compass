@@ -2,3 +2,7 @@
 	path = tplib/cub
 	url = https://github.com/NVlabs/cub.git
 	branch = master
+[submodule "tplib/wyrm"]
+	path = tplib/wyrm
+	url = https://gitlab.obspm.fr/greenflash/wyrm.git
+	branch = master

@@ -9,7 +9,7 @@
  *
  * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
  *
- * \version 1.0
+ * \version 4.2.0
  *
  * \date 2011/01/28
  *
