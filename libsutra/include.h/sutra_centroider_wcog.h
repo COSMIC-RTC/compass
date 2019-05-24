@@ -1,3 +1,19 @@
+/**
+ * \file sutra_centroider_wcog.h
+ *
+ * \class sutra_centroider_wcog
+ *
+ * \ingroup libsutra
+ *
+ * \brief this class provides the centroider_wcog features to COMPASS
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
+ */
 #ifndef _SUTRA_CENTROIDER_WCOG_H_
 #define _SUTRA_CENTROIDER_WCOG_H_
 
@@ -11,7 +27,7 @@ class sutra_centroider_wcog : public sutra_centroider<Tin, T> {
 
  public:
   sutra_centroider_wcog(carma_context *context, sutra_wfs *wfs, long nvalid,
-                        float offset, float scale, int device);
+                        float offset, float scale, bool filter_TT, int device);
   sutra_centroider_wcog(const sutra_centroider_wcog &centroider);
   ~sutra_centroider_wcog();
 

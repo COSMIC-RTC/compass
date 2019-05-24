@@ -1,8 +1,16 @@
-/*
- * carma_cublas.h
+/**
+ * \file carma_cublas.h
  *
- *  Created on: Apr 23, 2012
- *      Author: sevin
+ * \ingroup libcarma
+ *
+ * \brief this class provides the cublas features to carma_obj
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
  */
 
 #ifndef CARMA_CUBLAS_H_

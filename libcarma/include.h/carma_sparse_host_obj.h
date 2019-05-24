@@ -1,8 +1,18 @@
-/*
- * carmasparsehostobj.h
+/**
+ * \file carma_sparse_host_obj.h
  *
- *  Created on: Apr 10, 2014
- *      Author: ???
+ * \class carma_sparse_host_obj
+ *
+ * \ingroup libcarma
+ *
+ * \brief this class provides wrappers to the generic carma sparse host object
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
  */
 
 #ifndef CARMASPARSEHOSTOBJ_H_

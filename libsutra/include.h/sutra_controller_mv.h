@@ -1,3 +1,19 @@
+/**
+ * \file sutra_controller_mv.h
+ *
+ * \class sutra_controller_mv
+ *
+ * \ingroup libsutra
+ *
+ * \brief this class provides the controller_mv features to COMPASS
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
+ */
 #ifndef _sutra_controller_mv_H_
 #define _sutra_controller_mv_H_
 

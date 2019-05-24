@@ -1,3 +1,19 @@
+/**
+ * \file sutra_source.h
+ *
+ * \class sutra_source
+ *
+ * \ingroup libsutra
+ *
+ * \brief this class provides the source features to COMPASS
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
+ */
 #ifndef _SUTRA_SOURCE_H_
 #define _SUTRA_SOURCE_H_
 
@@ -21,48 +37,77 @@ typedef std::pair<std::string, int> type_screen;
 class sutra_source {
  public:
   carma_context *current_context;
-  int device;      // device #
-  float posx;      // x position of target on the sky
-  float posy;      // y position of target on the sky
-  long npts;       // number of points in the pupil
-  float mag;       // brightness of target
-  float lambda;    // imaging lambda
-  float zp;        // imaging zero point
-  float scale;     // phase scale
-  bool lgs;        // flag for lgs
-  float G;         // Magnifying factor for WFS misalignment
-  float thetaML;   // Pupil rotation angle
-  float dx;        // WFS misalignment
-  float dy;        // WFS misalignment
-  string type;     // type of source : target / wfs
-  int block_size;  // optimum block size of device
+  /// device #
+  int device;
+  /// x position of target on the sky
+  float posx;
+  /// y position of target on the sky
+  float posy;
+  /// number of points in the pupil
+  long npts;
+  /// brightness of target
+  float mag;
+  /// imaging lambda
+  float lambda;
+  /// imaging zero point
+  float zp;
+  /// phase scale
+  float scale;
+  /// flag for lgs
+  bool lgs;
+  /// Magnifying factor for WFS misalignment
+  float G;
+  /// Pupil rotation angle
+  float thetaML;
+  /// WFS misalignment
+  float dx;
+  /// WFS misalignment
+  float dy;
+  /// type of source : target / wfs
+  string type;
+  /// optimum block size of device
+  int block_size;
 
-  float strehl_se;      // short exposure strehl
-  float strehl_le;      // long exposure strehl
-  float ref_strehl;     // reference for strehl computation
-  int strehl_counter;   // counter for le strehl computation
-  float phase_var;      // current phase variance in the pupil
-  float phase_var_avg;  // average phase variance in the pupil
-  int phase_var_count;  // counter for average phase variance in the pupil
+  /// short exposure strehl
+  float strehl_se;
+  /// long exposure strehl
+  float strehl_le;
+  /// reference for strehl computation
+  float ref_strehl;
+  /// counter for le strehl computation
+  int strehl_counter;
+  /// current phase variance in the pupil
+  float phase_var;
+  /// average phase variance in the pupil
+  float phase_var_avg;
+  /// counter for average phase variance in the pupil
+  int phase_var_count;
 
-  sutra_phase *d_phase;  // phase for this target
+  /// phase for this target
+  sutra_phase *d_phase;
   // INTRO PHASE INSTRU
   // sutra_phase *d_phase_instru;
-  //
-  carma_host_obj<float> *phase_telemetry;  //
-  sutra_lgs *d_lgs;                        // the lgs object
-  carma_obj<float> *d_pupil;               // the pupil mask
-  carma_obj<float> *d_image_se;  // the resulting image for this target
-  carma_obj<float> *d_image_le;  // the long exposure image for this target
-  carma_obj<cuFloatComplex>
-      *d_amplipup;  // the complex amplitude in the pupil plane
-  carma_obj<float>
-      *d_phasepts;  // the valid phase points in the pupil (target only)
-  carma_obj<int> *d_wherephase;  // positions of valid phase points in the pupil
-  // (target only)
-  map<type_screen, float> xoff;    // x reference for raytracing
-  map<type_screen, float> yoff;    // y reference for raytracing
-  carma_obj<float> *d_ncpa_phase;  // ncpa phase
+  carma_host_obj<float> *phase_telemetry;
+  /// the lgs object
+  sutra_lgs *d_lgs;
+  /// the pupil mask
+  carma_obj<float> *d_pupil;
+  /// the resulting image for this target
+  carma_obj<float> *d_image_se;
+  /// the long exposure image for this target
+  carma_obj<float> *d_image_le;
+  /// the complex amplitude in the pupil plane
+  carma_obj<cuFloatComplex> *d_amplipup;
+  /// the valid phase points in the pupil (target only)
+  carma_obj<float> *d_phasepts;
+  /// positions of valid phase points in the pupil (target only)
+  carma_obj<int> *d_wherephase;
+  /// x reference for raytracing
+  map<type_screen, float> xoff;
+  /// y reference for raytracing
+  map<type_screen, float> yoff;
+  /// ncpa phase
+  carma_obj<float> *d_ncpa_phase;
 
  public:
   sutra_source(carma_context *context, float xpos, float ypos, float lambda,

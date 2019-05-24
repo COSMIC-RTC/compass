@@ -1,3 +1,19 @@
+/**
+ * \file sutra_controller_generic.h
+ *
+ * \class sutra_controller_generic
+ *
+ * \ingroup libsutra
+ *
+ * \brief this class provides the controller_generic features to COMPASS
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
+ */
 #ifndef _sutra_controller_generic_H_
 #define _sutra_controller_generic_H_
 
@@ -44,7 +60,9 @@ class sutra_controller_generic : public sutra_controller<Tcomp, Tout> {
  private:
   template <typename Q = Tcomp>
   typename std::enable_if<!std::is_same<Q, half>::value, int>::type
-  fill_cmatPadded_impl(){};
+  fill_cmatPadded_impl() {
+    return EXIT_SUCCESS;
+  };
   template <typename Q = Tcomp>
   typename std::enable_if<std::is_same<Q, half>::value, int>::type
   fill_cmatPadded_impl();

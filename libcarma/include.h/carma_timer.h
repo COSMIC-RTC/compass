@@ -1,11 +1,18 @@
 /**
  * \file carma_timer.h
- * \brief A simple timer class for CUDA based on events.
  *
- * \author Pierre Kestener
- * \date 30 Oct 2010
+ * \class carma_timer
  *
- * $Id: carma_timer.h 1783 2012-02-21 10:20:07Z pkestene $
+ * \ingroup libcarma
+ *
+ * \brief this class provides the timer features to carma_obj
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
  */
 #ifndef CARMA_TIMER_H_
 #define CARMA_TIMER_H_
@@ -19,7 +26,7 @@
 class carma_timer {
  protected:
   cudaEvent_t startEv, stopEv;
-  cudaStream_t stream = 0 ;
+  cudaStream_t stream = 0;
   double total_time;
 
  public:
@@ -34,9 +41,7 @@ class carma_timer {
     cudaEventDestroy(stopEv);
   }
 
-  void start() {
-    carmaSafeCall(cudaEventRecord(startEv, stream));
-  }
+  void start() { carmaSafeCall(cudaEventRecord(startEv, stream)); }
 
   void reset() { total_time = 0.0; }
 
@@ -49,9 +54,7 @@ class carma_timer {
     total_time += (double)1e-3 * gpuTime;
   }
 
-  void setStream(cudaStream_t newStream) {
-    stream = newStream;
-  }
+  void setStream(cudaStream_t newStream) { stream = newStream; }
   /** return elapsed time in seconds (as record in total_time) */
   double elapsed() { return total_time; }
 };

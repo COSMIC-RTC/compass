@@ -1,5 +1,3 @@
-#ifndef USE_OCTOPUS
-
 #include <sutra_rtc_cacao.h>
 
 template <typename Tin, typename Tcomp, typename Tout>
@@ -34,19 +32,22 @@ void sutra_rtc_cacao<Tin, Tcomp, Tout>::allocateBuffers() {
 
   uint32_t size = this->d_centro[0]->d_img->getDims(1);
   iCalFrame_ = std::make_shared<ipc::Cacao<float>>(ipc::Cacao<float>(
-      iCalFrame_name_, std::vector<uint32_t>{10, size, size}, -1, 1, 8, 0));
+      iCalFrame_name_, std::vector<uint32_t>{size, size, 10}, -1, 1, 8, 0));
 
   nslp_ = 0;
   ncmd_ = 0;
+  nvalid_ = 0;
+  for (unsigned int i = 0; i < this->d_centro.size(); i++) {
+    nvalid_ += this->d_centro[i]->d_intensities->getNbElem();
+  }
   for (unsigned int i = 0; i < this->d_control.size(); i++) {
     nslp_ += this->d_control[i]->nslope();
     ncmd_ += this->d_control[i]->nactu();
   }
-  nvalid_ = nslp_ / 2;
 
   uint32_t size_tot = nvalid_ + nslp_ + ncmd_;
   iLoopFrame_ = std::make_shared<ipc::Cacao<Tcomp>>(ipc::Cacao<Tcomp>(
-      iLoopFrame_name_, std::vector<uint32_t>{10, 1, size_tot}, -1, 1, 8, 0));
+      iLoopFrame_name_, std::vector<uint32_t>{size_tot, 1, 10}, -1, 1, 8, 0));
 
   is_initialised_ = true;
 }
@@ -65,7 +66,7 @@ void sutra_rtc_cacao<Tin, Tcomp, Tout>::publish() {
   Tcomp* zFrame = iLoopFrame_->outputPtr();
 
   for (unsigned int i = 0; i < this->d_centro.size(); i++) {
-    this->d_centro[i]->d_intensities->device2host(zFrame);
+    // this->d_centro[i]->d_intensities->device2host(zFrame);
     zFrame += this->d_centro[i]->nvalid;
   }
 
@@ -75,7 +76,7 @@ void sutra_rtc_cacao<Tin, Tcomp, Tout>::publish() {
   }
 
   for (unsigned int i = 0; i < this->d_control.size(); i++) {
-    this->d_control[i]->d_com->device2host(zFrame);
+    this->d_control[i]->d_comClipped->device2host(zFrame);
     zFrame += this->d_control[i]->nactu();
   }
 
@@ -88,7 +89,8 @@ template class sutra_rtc_cacao<uint16_t, float, float>;
 template class sutra_rtc_cacao<float, float, uint16_t>;
 template class sutra_rtc_cacao<uint16_t, float, uint16_t>;
 #ifdef CAN_DO_HALF
-// template class sutra_rtc_cacao<half>;
+template class sutra_rtc_cacao<float, half, float>;
+template class sutra_rtc_cacao<uint16_t, half, float>;
+template class sutra_rtc_cacao<float, half, uint16_t>;
+template class sutra_rtc_cacao<uint16_t, half, uint16_t>;
 #endif
-
-#endif /* USE_BRAHMA */

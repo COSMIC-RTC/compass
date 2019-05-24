@@ -1,3 +1,19 @@
+/**
+ * \file sutra_centroider.h
+ *
+ * \class sutra_centroider
+ *
+ * \ingroup libsutra
+ *
+ * \brief this class provides the centroider features to COMPASS
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
+ */
 #ifndef _SUTRA_CENTROIDER_H_
 #define _SUTRA_CENTROIDER_H_
 
@@ -14,6 +30,7 @@ class sutra_centroider {
   int nslopes;
   int npix;
   int nxsub;
+  bool filter_TT;
 
   float offset;
   float scale;
@@ -31,9 +48,20 @@ class sutra_centroider {
   carma_obj<int> *d_validy;
   carma_obj<int> *d_validMask;
 
+  carma_obj<float> *d_centro_filtered;
+  carma_obj<float> *d_ref_Tip;
+  carma_obj<float> *d_ref_Tilt;
+  carma_obj<float> *d_TT_slopes;
+
  protected:
   sutra_centroider(carma_context *context, sutra_wfs *wfs, long nvalid,
-                   float offset, float scale, int device);
+                   float offset, float scale, bool filter_TT, int device);
+
+ private:
+  template <typename Q = Tout>
+  typename std::enable_if<std::is_same<Q, float>::value, int>::type
+  apply_TT_filter_impl(Tout *centroids, std::true_type);
+  int apply_TT_filter_impl(Tout *centroids, std::false_type);
 
  public:
   virtual ~sutra_centroider();
@@ -46,8 +74,12 @@ class sutra_centroider {
   int set_npix(int npix);
   int set_nxsub(int nxsub);
   int load_img(Tin *img, int n);
+  int load_img(Tin *img, int n, int location);
+  int load_img(carma_obj<Tin> *img);
   int get_validMask();
   bool is_type(string typec) { return (typec.compare(get_type()) == 0); }
+  int init_TT_filter();
+  int apply_TT_filter(Tout *centroids);
 
   virtual string get_type() = 0;
 

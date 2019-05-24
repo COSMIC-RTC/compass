@@ -6,8 +6,9 @@ template <class Tin, class T>
 sutra_centroider_pyr<Tin, T>::sutra_centroider_pyr(carma_context *context,
                                                    sutra_wfs *wfs, long nvalid,
                                                    float offset, float scale,
-                                                   int device)
-    : sutra_centroider<Tin, T>(context, wfs, nvalid, offset, scale, device) {
+                                                   bool filter_TT, int device)
+    : sutra_centroider<Tin, T>(context, wfs, nvalid, offset, scale, filter_TT,
+                               device) {
   context->set_activeDevice(device, 1);
 
   this->nslopes = 2 * nvalid;
@@ -22,6 +23,10 @@ sutra_centroider_pyr<Tin, T>::sutra_centroider_pyr(carma_context *context,
   long dims_data2[2] = {1, this->nslopes};
   this->d_centroids_ref = new carma_obj<T>(this->current_context, dims_data2);
   this->d_centroids_ref->reset();
+
+  if (filter_TT) {
+    this->init_TT_filter();
+  }
 }
 
 template <class Tin, class T>
@@ -92,6 +97,10 @@ int sutra_centroider_pyr<Tin, T>::get_pyr(float *cube, float *intensities,
 
   carma_axpy<float>(this->current_context->get_cublasHandle(), this->nslopes,
                     -1.0f, this->d_centroids_ref->getData(), 1, centroids, 1);
+
+  if (this->filter_TT) {
+    this->apply_TT_filter(centroids);
+  }
 
   return EXIT_SUCCESS;
 }

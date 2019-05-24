@@ -1,3 +1,19 @@
+/**
+ * \file sutra_controller.h
+ *
+ * \class sutra_controller
+ *
+ * \ingroup libsutra
+ *
+ * \brief this class provides the controller features to COMPASS
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
+ */
 #ifndef _sutra_controller_H_
 #define _sutra_controller_H_
 

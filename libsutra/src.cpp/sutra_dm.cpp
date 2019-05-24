@@ -1,3 +1,4 @@
+#include <carma_magma.h>
 #include <stdio.h>
 #include <sutra_dm.h>
 
@@ -135,6 +136,7 @@ int sutra_dm::nact() { return this->nactus; }
 int sutra_dm::tt_loadarrays(float *influ) {
   current_context->set_activeDevice(device, 1);
   this->d_influ->host2device(influ);
+  return EXIT_SUCCESS;
 }
 
 int sutra_dm::pzt_loadarrays(float *influ, int *influpos, int *npoints,
@@ -514,7 +516,7 @@ int sutra_dm::DDiago(carma_obj<float> *d_statcov, carma_obj<float> *d_geocov) {
       new carma_host_obj<float>(dims_data2, MA_PAGELOCK);
 
   // 1. SVdec(geocov,U) --> Ut * geocov * U = D������
-  carma_syevd<float>('V', d_geocov, h_eigenvals);
+  carma_magma_syevd<float>('V', d_geocov, h_eigenvals);
 
   d_eigenvals->host2device(h_eigenvals->getData());
   for (int i = 0; i < this->nactus; i++) {
@@ -549,7 +551,7 @@ int sutra_dm::DDiago(carma_obj<float> *d_statcov, carma_obj<float> *d_geocov) {
                     0.0f, d_tmp2->getData(), nactus);
 
   // 4. SVdec(C',A)
-  carma_syevd<float>('V', d_tmp2, h_eigenvals);
+  carma_magma_syevd<float>('V', d_tmp2, h_eigenvals);
 
   // 5. M = U * D���������������
   carma_dgmm<float>(this->cublas_handle(), CUBLAS_SIDE_RIGHT, this->nactus,

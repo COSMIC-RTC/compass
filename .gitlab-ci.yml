@@ -11,6 +11,8 @@ build_job:
     GIT_SUBMODULE_STRATEGY: recursive
     COMPASS_ROOT: /builds/compass/compass
     SHESHA_ROOT: $COMPASS_ROOT/shesha
+    CUB_ROOT: $COMPASS_ROOT/tplib/cub
+    WYRM_ROOT: $COMPASS_ROOT/tplib/wyrm
     CUDA_SM: ALL
   script:
     - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH

@@ -1,15 +1,17 @@
 /**
+ * \file carma_obj.h
+ *
  * \class carma_obj
  *
  * \ingroup libcarma
  *
  * \brief this class provides wrappers to the generic carma object
  *
- * \author $Author: dg, as $
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
  *
- * \version $Revision: 1.0 $
+ * \version 1.0
  *
- * \date $Date: 2011/01/28$
+ * \date 2011/01/28
  *
  */
 #ifndef _CARMA_OBJ_H_
@@ -235,12 +237,18 @@ class carma_obj {
   int copyInto(T_data *data, int nb_elem);
   int copyFrom(const T_data *data, int nb_elem);
 
+#ifdef USE_OCTOPUS
+  int copyInto(ipc::Cacao<T_data> *cacaoInterface);
+  int copyFrom(ipc::Cacao<T_data> *cacaoInterface);
+#endif
+
   inline int reset() {
     return cudaMemset(this->d_data, 0, this->nb_elem * sizeof(T_data));
   }
   inline int memSet(T_data value) {
-    fill_array_with_value(this->d_data, value, this->nb_elem,
-                          this->current_context->get_device(this->device));
+    return fill_array_with_value(
+        this->d_data, value, this->nb_elem,
+        this->current_context->get_device(this->device));
   }
   cufftHandle *getPlan() { return &plan; }
   ///< FFT plan
@@ -451,45 +459,6 @@ int carma_initfftconv(caObjS *data_in, caObjS *kernel_in, caObjS *padded_data,
 // CPP functions fftconv
 int carma_fftconv(caObjS *data_out, caObjS *padded_data,
                   caObjC *padded_spectrum, int kernelY, int kernelX);
-
-// MAGMA functions
-int magma_disabled();
-// template <class T>
-// int carma_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals,
-//               carma_obj<T> *mod2act, carma_obj<T> *mes2mod);
-template <class T>
-int carma_syevd(char jobz, carma_obj<T> *mat, carma_host_obj<T> *eigenvals);
-// template <class T, int method>
-// int carma_syevd(char jobz, carma_obj<T> *mat, carma_host_obj<T> *eigenvals);
-template <class T>
-int carma_syevd_m(long ngpu, char jobz, long N, T *mat, T *eigenvals);
-template <class T>
-int carma_syevd_m(long ngpu, char jobz, carma_host_obj<T> *mat,
-                  carma_host_obj<T> *eigenvals);
-template <class T>
-int carma_syevd_m(long ngpu, char jobz, carma_host_obj<T> *mat,
-                  carma_host_obj<T> *eigenvals, carma_host_obj<T> *U);
-template <class T>
-int carma_getri(carma_obj<T> *d_iA);
-template <class T>
-int carma_potri(carma_obj<T> *d_iA);
-template <class T>
-int carma_potri_m(long num_gpus, carma_host_obj<T> *h_A, carma_obj<T> *d_iA);
-
-// MAGMA functions (direct access)
-template <class T>
-int carma_syevd(char jobz, long N, T *mat, T *eigenvals);
-// template <class T, int method>
-// int carma_syevd(char jobz, long N, T *mat, T *eigenvals);
-template <class T>
-int carma_syevd_m(long ngpu, char jobz, long N, T *mat, T *eigenvals);
-// template <class T>
-// int carma_potri_m(long num_gpus, long N, T *h_A, T *d_iA);
-
-// CULA functions
-template <class T>
-int carma_cula_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals,
-                   carma_obj<T> *mod2act, carma_obj<T> *mes2mod);
 
 #ifdef CAN_DO_HALF
 int custom_half_axpy(half alpha, half *source, int incx, int incy, int N,

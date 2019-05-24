@@ -1,3 +1,19 @@
+/**
+ * \file sutra_aotemplate.h
+ *
+ * \class sutra_aotemplate
+ *
+ * \ingroup libsutra
+ *
+ * \brief this class provides a class template to COMPASS
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
+ */
 #ifndef _SUTRA_AOTEMPLATE_H_
 #define _SUTRA_AOTEMPLATE_H_
 

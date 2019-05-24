@@ -1,15 +1,17 @@
 /**
+ * \file carma_host_obj.h
+ *
  * \class carma_host_obj
  *
  * \ingroup libcarma
  *
  * \brief this class provides wrappers to the generic carma host object
  *
- * \author $Author: dg, as $
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
  *
- * \version $Revision: 1.0 $
+ * \version 1.0
  *
- * \date $Date: 2011/01/28$
+ * \date 2011/01/28
  *
  */
 #ifndef _CARMA_HOST_OBJ_H_
@@ -101,6 +103,7 @@ class carma_host_obj {
   /**< Memory transfer */
   int fill_from(const T_data *data);
   int fill_into(T_data *data);
+  int fill(T_data value);
 
   std::string getMetAlloc() {
     switch (mallocType) {
@@ -138,42 +141,6 @@ std::ostream &operator<<(std::ostream &os, carma_host_obj<T_data> &obj) {
   return os;
 }
 
-// MAGMA functions
-template <class T_data>
-int carma_svd_cpu(carma_host_obj<T_data> *imat,
-                  carma_host_obj<T_data> *eigenvals,
-                  carma_host_obj<T_data> *mod2act,
-                  carma_host_obj<T_data> *mes2mod);
-template <class T>
-int carma_getri_cpu(carma_host_obj<T> *h_A);
-template <class T>
-int carma_potri_cpu(carma_host_obj<T> *h_A);
-template <class T>
-int carma_syevd_cpu(char jobz, carma_host_obj<T> *h_A,
-                    carma_host_obj<T> *eigenvals);
-
-// MAGMA functions (direct access)
-// template <class T>
-// int carma_svd_cpu(long N, long M, T *imat, T *eigenvals, T *mod2act,
-//                   T *mes2mod);
-template <class T>
-int carma_getri_cpu(long N, T *h_A);
-template <class T>
-int carma_potri_cpu(long N, T *h_A);
-template <class T>
-int carma_syevd_cpu(char jobz, long N, T *h_A, T *eigenvals);
-template <class T>
-int carma_axpy_cpu(long N, T alpha, T *h_X, long incX, T *h_Y, long incY);
-template <class T>
-int carma_gemm_cpu(char transa, char transb, long m, long n, long k, T alpha,
-                   T *A, long lda, T *B, long ldb, T beta, T *C, long ldc);
-
-// CULA functions
-template <class T_data>
-int carma_cula_svd(carma_host_obj<T_data> *imat,
-                   carma_host_obj<T_data> *eigenvals,
-                   carma_host_obj<T_data> *mod2act,
-                   carma_host_obj<T_data> *mes2mod);
 /*
  extern "C" {
 

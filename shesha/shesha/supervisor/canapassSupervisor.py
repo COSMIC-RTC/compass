@@ -1,4 +1,5 @@
-"""Widget to simulate a closed loop
+""" @package shesha.supervisor.canapassSupervisor
+Widget to simulate a closed loop
 
 Usage:
   canapassSupervisor.py [<parameters_filename>]
@@ -36,8 +37,8 @@ from .compassSupervisor import CompassSupervisor
 
 class CanapassSupervisor(CompassSupervisor):
 
-    def __init__(self, configFile: str = None, BRAHMA: bool = True) -> None:
-        CompassSupervisor.__init__(self, configFile=configFile, BRAHMA=BRAHMA)
+    def __init__(self, configFile: str = None, cacao: bool = True) -> None:
+        CompassSupervisor.__init__(self, configFile=configFile, cacao=cacao)
 
         #############################################################
         #                 CONNECTED BUTTONS                         #
@@ -81,11 +82,11 @@ class CanapassSupervisor(CompassSupervisor):
         <volts> : voltage vector to be applied on the DM.
         """
         ntotDm = len(self._sim.config.p_dms)
-        if(numdm<ntotDm):
+        if (numdm < ntotDm):
             self._sim.dms.d_dms[numdm].set_com(volts)
         else:
-            print("ERROR !!!!\nRequested DM (", numdm, ") conflicts with number of available DMs (", ntotDm, ").")
-
+            print("ERROR !!!!\nRequested DM (", numdm,
+                  ") conflicts with number of available DMs (", ntotDm, ").")
 
     def getConfig(self, path=None):
         ''' Returns the configuration in use, in a supervisor specific format '''
@@ -720,7 +721,7 @@ class CanapassSupervisor(CompassSupervisor):
                 tmpdata[2, :] = self._sim.config.p_dms[j]._xpos
                 tmpdata[3, :] = self._sim.config.p_dms[j]._ypos
             else:
-                tmpdata = np.zeros((4,2))
+                tmpdata = np.zeros((4, 2))
 
             new_hdudmsl.append(pfits.ImageHDU(tmpdata))  # Valid subap array
             new_hdudmsl[j].header["DATATYPE"] = "valid_dm%d" % j
@@ -774,12 +775,266 @@ class CanapassSupervisor(CompassSupervisor):
         CompassSupervisor.setPyrModulation(self, pyrmod)
         self._sim.rtc.do_centroids(0)  # To be ready for the next getSlopes
 
+    def setPyrSourceArray(self, cx, cy, nwfs=0):
+        """
+        Sets the Pyramid source Array
+        cx, cy must be in arcseconds units
+
+        """
+        pyr_npts = len(cx)
+        wfs = self._sim.wfs
+        pwfs = self._sim.config.p_wfss[nwfs]
+        pwfs.set_pyr_npts(pyr_npts)
+        pwfs.set_pyr_cx(cx)
+        pwfs.set_pyr_cy(cy)
+        wfs.d_wfs[nwfs].set_pyr_modulation(cx, cy, pyr_npts)
+
+        # RTC scale units to be updated ????
+        #scale = pwfs.Lambda * 1e-6 / p_tel.diam * ampli * 180. / np.pi * 3600.
+        #rtc.d_centro[nwfs].set_scale(scale)
+
+    def setPyrMultipleStarsSource(self, coords, weights = None, pyrmod=3., niters=None, nwfs=0):
+        """
+        Sets the Pyramid source Array with a multiple star system
+        coords is a list of couples of length n, coordinates of the n stars in lambda/D
+        pyrmod is the modulation of the pyramid in lambda/D
+        niters is the number of iteration
+
+        """
+        if niters == None:
+            perim = pyrmod * 2 * np.pi
+            niters = int((perim//4+1)*4)
+            print(niters)
+        nstars = len(coords)
+        pyr_npts = niters * nstars
+        wfs = self._sim.wfs
+        pwfs = self._sim.config.p_wfss[nwfs]
+        ptel = self._sim.config.p_tel
+        #Computes the positions of the stars during the modulation
+        pyrsize = pwfs._Nfft
+        pixsize = (np.pi * pwfs._qpixsize) / (3600 * 180)
+        scale_circ = 2 * np.pi / pyrsize * \
+            (pwfs.Lambda * 1e-6 / ptel.diam) / pixsize * pyrmod
+        scale_pos = 2 * np.pi / pyrsize * \
+            (pwfs.Lambda * 1e-6 / ptel.diam) / pixsize
+        temp_cx = []
+        temp_cy = []
+        for k in coords:
+            temp_cx.append(scale_circ * \
+                np.sin((np.arange(niters)) * 2. * np.pi / niters) + \
+                k[0] * scale_pos)
+            temp_cy.append(scale_circ * \
+                np.cos((np.arange(niters)) * 2. * np.pi / niters) + \
+                k[1] * scale_pos)
+        cx = np.concatenate(np.array(temp_cx))
+        cy = np.concatenate(np.array(temp_cy))
+        #Gives the arguments to the simulation
+        pwfs.set_pyr_npts(pyr_npts)
+        pwfs.set_pyr_cx(cx)
+        pwfs.set_pyr_cy(cy)
+        if weights == None:
+            wfs.d_wfs[nwfs].set_pyr_modulation(cx, cy, pyr_npts)
+        else:
+            w = []
+            for k in weights:
+                w += niters*[k]
+            wfs.d_wfs[nwfs].set_pyr_modulation(cx, cy, w, pyr_npts)
+
+        # RTC scale units to be updated ????
+        #scale = pwfs.Lambda * 1e-6 / p_tel.diam * ampli * 180. / np.pi * 3600.
+        #rtc.d_centro[nwfs].set_scale(scale)
+
+    def setPyrDiskSourceHP(self, radius, density = 1., nwfs=0):
+        """
+        radius is the radius of the disk object in lambda/D
+        density is the spacing between the packed PSF in the disk object, in lambda/D
+
+        create disk object by packing PSF in a given radius, using hexagonal packing
+        /!\ There is no modulation
+        """
+        wfs = self._sim.wfs
+        pwfs = self._sim.config.p_wfss[nwfs]
+        ptel = self._sim.config.p_tel
+        pyrsize = pwfs._Nfft
+        pixsize = (np.pi * pwfs._qpixsize) / (3600 * 180)
+        scale_pos = 2 * np.pi / pyrsize * \
+            (pwfs.Lambda * 1e-6 / ptel.diam) / pixsize
+        #Vectors used to generate the hexagonal paving
+        gen_xp, gen_yp = np.array([1,
+                                   0.]), np.array([np.cos(np.pi / 3),
+                                                   np.sin(np.pi / 3)])
+        n = 1 + int(1.2 * radius)
+        mat_circ = []
+        for k in range(-n, n):
+            for l in range(-n, n):
+                coord = k * gen_xp + l * gen_yp
+                if np.sqrt(coord[0]**2 + coord[1]**2) <= radius:
+                    mat_circ.append(coord)
+        mat_circ = np.array(mat_circ)
+        cx, cy = mat_circ[:, 0], mat_circ[:, 1]
+        pyr_npts = len(cx)
+        pwfs.set_pyr_npts(pyr_npts)
+        pwfs.set_pyr_cx(cx)
+        pwfs.set_pyr_cy(cy)
+        wfs.d_wfs[nwfs].set_pyr_modulation(cx, cy, pyr_npts)
+
+    def setPyrDiskSourceSP(self, radius, density = 1., nwfs=0):
+        """
+        radius is the radius of the disk object in lambda/D
+        density is the spacing between the packed PSF in the disk object, in lambda/D
+
+        create disk object by packing PSF in a given radius, using square packing
+        /!\ There is no modulation
+        """
+
+        def generate_square_circ(radius, density = 1.):
+            x = np.linspace(-radius, radius, 1 + 2*int(radius/density))
+            cx, cy = np.meshgrid(x, x, indexing='ij')
+            cx = cx.flatten()
+            cy = cy.flatten()
+            r = cx*cx + cy*cy <= radius**2
+            return(cx[r],cy[r])
+        wfs = self._sim.wfs 
+        pwfs = self._sim.config.p_wfss[nwfs]
+        ptel = self._sim.config.p_tel
+        pyrsize = pwfs._Nfft
+        pixsize = (np.pi * pwfs._qpixsize) / (3600 * 180)
+        scale_pos = 2 * np.pi / pyrsize * \
+            (pwfs.Lambda * 1e-6 / ptel.diam) / pixsize
+        
+        cx, cy =generate_square_circ(radius, density)
+        cx = cx.flatten() * scale_pos
+        cy = cy.flatten() * scale_pos
+        pyr_npts = len(cx)
+        pwfs.set_pyr_npts(pyr_npts)
+        pwfs.set_pyr_cx(cx)
+        pwfs.set_pyr_cy(cy)
+        wfs.d_wfs[nwfs].set_pyr_modulation(cx, cy, pyr_npts)
+
+    def setPyrSquareSource(self, radius, density = 1., nwfs=0):
+        """
+        radius is half of the side of the object in lambda/D
+        density is the spacing between the packed PSF in the square object, in lambda/D
+
+        create square object by packing PSF in a given radius, using square packing
+        /!\ There is no modulation
+        """
+        wfs = self._sim.wfs
+        pwfs = self._sim.config.p_wfss[nwfs]
+        ptel = self._sim.config.p_tel
+        pyrsize = pwfs._Nfft
+        pixsize = (np.pi * pwfs._qpixsize) / (3600 * 180)
+        scale_pos = 2 * np.pi / pyrsize * \
+            (pwfs.Lambda * 1e-6 / ptel.diam) / pixsize
+        x = np.linspace(-radius, radius, 1 + 2 * int(radius / density)) * scale_pos
+        cx, cy = np.meshgrid(x, x, indexing='ij')
+        cx = cx.flatten()
+        cy = cy.flatten()
+        pyr_npts = len(cx)
+        pwfs.set_pyr_npts(pyr_npts)
+        pwfs.set_pyr_cx(cx)
+        pwfs.set_pyr_cy(cy)
+        wfs.d_wfs[nwfs].set_pyr_modulation(cx, cy, pyr_npts)
+
+    def setPyrPseudoSource(self, radius, additional_psf = 0, density=1., nwfs=0):
+        def generate_square(radius, density = 1.):
+            """
+            radius is half the length of a side in lambda/D
+            density is the number of psf per lambda/D
+            """
+            x = np.linspace(-radius, radius, 1 + 2*int(radius/density))
+            cx, cy = np.meshgrid(x, x, indexing='ij')
+            cx = cx.flatten()
+            cy = cy.flatten()
+            return(cx,cy)
+        def generate_square_circ(radius, density = 1.):
+            x = np.linspace(-radius, radius, 1 + 2*int(radius/density))
+            cx, cy = np.meshgrid(x, x, indexing='ij')
+            cx = cx.flatten()
+            cy = cy.flatten()
+            r = cx*cx + cy*cy <= radius**2
+            return(cx[r],cy[r])    
+        def generate_pseudo_source(radius,additional_psf = 0, density=1.):    
+            struct_size = (1+2*additional_psf)**2        
+            center_x, center_y = generate_square(additional_psf,density)
+            center_weight = (1 + 2*int(additional_psf/density))**2 * [1]
+            center_size = 1 + 2*int(additional_psf/density)
+            
+            weight_edge = [(1 + 2*int(radius/density) - center_size)// 2]
+            xc, yc = generate_square_circ(radius, density)
+            for k in range(additional_psf):
+                line_length = np.sum(yc == (k + 1))
+                print(line_length)
+                weight_edge.append((line_length - center_size)//2)
+            
+            edge_dist = (radius+additional_psf)//2
+            V_edge_x = []
+            V_edge_y = []
+            V_edge_weight = []
+            for m in [-1,1]:
+                V_edge_x.append(0)
+                V_edge_y.append(m * edge_dist)
+                V_edge_weight.append(weight_edge[0])
+            for k,val in enumerate(weight_edge[1:]):
+                for l in [-1,1]:
+                    for m in [-1,1]:
+                        V_edge_x.append(l*(k+1)*density)
+                        V_edge_y.append(m*edge_dist)
+                        V_edge_weight.append(val)            
+            H_edge_x = []
+            H_edge_y = []
+            H_edge_weight = []
+            for m in [-1,1]:
+                H_edge_x.append(m * edge_dist)
+                H_edge_y.append(0)
+                H_edge_weight.append(weight_edge[0])
+            for k,val in enumerate(weight_edge[1:]):
+                for l in [-1,1]:
+                    for m in [-1,1]:
+                        H_edge_x.append(m*edge_dist)
+                        H_edge_y.append(l*(k+1)*density)
+                        H_edge_weight.append(val)
+            pup_cent_x = []
+            pup_cent_y = []
+            pup_cent_weight = 4*[(len(xc)-2*np.sum(H_edge_weight)-struct_size)/4]
+            pup_cent_dist = int(edge_dist//np.sqrt(2))
+            for l in [-1,1]:
+                for m in [-1,1]:
+                    pup_cent_x.append(l*pup_cent_dist)
+                    pup_cent_y.append(m*pup_cent_dist)
+            ox = np.concatenate((center_x,V_edge_x,H_edge_x,pup_cent_x))
+            oy = np.concatenate((center_y,V_edge_y,H_edge_y,pup_cent_y))
+            w = np.concatenate((center_weight,V_edge_weight,H_edge_weight,pup_cent_weight))
+            return(ox, oy ,w, xc, yc)
+
+        cx, cy, w, _, _ = generate_pseudo_source(radius, additional_psf, density)
+
+        wfs = self._sim.wfs 
+        pwfs = self._sim.config.p_wfss[nwfs]
+        ptel = self._sim.config.p_tel
+        pyrsize = pwfs._Nfft
+        pixsize = (np.pi * pwfs._qpixsize) / (3600 * 180)
+        scale_pos = 2 * np.pi / pyrsize * \
+            (pwfs.Lambda * 1e-6 / ptel.diam) / pixsize
+        
+        cx = cx.flatten() * scale_pos
+        cy = cy.flatten() * scale_pos
+        pyr_npts = len(cx)
+        pwfs.set_pyr_npts(pyr_npts)
+        pwfs.set_pyr_cx(cx)
+        pwfs.set_pyr_cy(cy)
+        wfs.d_wfs[nwfs].set_pyr_modulation(cx, cy, w, pyr_npts)
+
+
+
     def setPyrMethod(self, pyrmethod):
         CompassSupervisor.setPyrMethod(self, pyrmethod)
         self._sim.rtc.do_centroids(0)  # To be ready for the next getSlopes
 
     # def setNoise(self, noise, numwfs=0):
     #     CompassSupervisor.setNoise(self, noise, numwfs)
+
+
 
     def setGain(self, gain) -> None:
         '''
@@ -791,6 +1046,62 @@ class CanapassSupervisor(CompassSupervisor):
         else:
             raise ValueError(
                     "ERROR CANNOT set array gain in canapass (generic + integrator law")
+
+
+
+
+########################## PROTO #############################
+
+
+
+    def initModalGain(self, gain, cmatKL, modalBasis, control=0):
+        """
+        Given a gain, cmat and btt2v initialise the modal gain mode
+        """
+        nfilt = modalBasis.shape[0] - cmatKL.shape[0] - 3
+        ctrl = self._sim.rtc.d_control[control]
+        ctrl.set_commandlaw('modal_integrator')
+        cmat = np.zeros((cmatKL.shape[0]+nfilt+3,cmatKL.shape[1]))
+        cmat[:-3-nfilt,:] += cmatKL
+        btt2v = np.zeros((modalBasis.shape[0],modalBasis.shape[1]+nfilt+3))
+        btt2v[:,:-nfilt-3] += modalBasis
+        mgain = np.zeros(len(btt2v))
+        mgain[:-nfilt-3] += gain
+        ctrl.set_matE(btt2v)
+        ctrl.set_cmat(cmat)
+        ctrl.set_mgain(mgain)
+    
+    def set_mgain(self,mgain,control=0):
+        """
+        Wrapper function to let adopt set the modal gain.
+        """
+        ctrl = self._sim.rtc.d_control[control]
+        ctrl.set_mgain(mgain)
+
+
+    def get_mgain(self,control=0):
+        """
+        Wrapper function to let adopt get the modal gain.
+        """
+        ctrl = self._sim.rtc.d_control[control]
+        return(np.array(ctrl.d_gain))
+
+############################ PROTO END  ################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def getTargetPhase(self, tarnum):
         pup = self.getSpupil()
@@ -825,7 +1136,7 @@ class CanapassSupervisor(CompassSupervisor):
         pfits.writeto(fullpath, data, overwrite=True)
 
     def recordCB(self, CBcount, subSample=1, tarnum=0, seeAtmos=True,
-                 tarPhaseFilePath="", NCPA=False, ncpawfs=None, refSlopes=None):
+                 tarPhaseFilePath="", NCPA=False, ncpawfs=None, refSlopes=None, ditchStrehl = True):
         slopesdata = None
         voltsdata = None
         tarPhaseData = None
@@ -834,9 +1145,12 @@ class CanapassSupervisor(CompassSupervisor):
         srseList = []
         srleList = []
         gNPCAList = []
+
         # Resets the target so that the PSF LE is synchro with the data
-        for i in range(len(self._sim.config.p_targets)):
-            self.resetStrehl(i)
+        # Doesn't reset it if DitchStrehl == False (used for real time gain computation)
+        if ditchStrehl:
+            for i in range(len(self._sim.config.p_targets)):
+                self.resetStrehl(i)
 
         # Starting CB loop...
         for j in trange(CBcount, desc="recording"):
@@ -964,7 +1278,7 @@ class CanapassSupervisor(CompassSupervisor):
 if __name__ == '__main__':
     from docopt import docopt
     arguments = docopt(__doc__)
-    supervisor = CanapassSupervisor(arguments["<parameters_filename>"], True)
+    supervisor = CanapassSupervisor(arguments["<parameters_filename>"], cacao=True)
     supervisor.initConfig()
 
     try:
@@ -985,3 +1299,6 @@ if __name__ == '__main__':
     except:
         raise EnvironmentError(
                 "Missing dependencies (code HRAA or Pyro4 or Dill Serializer)")
+
+
+

@@ -1,3 +1,19 @@
+/**
+ * \file carma_ipc.h
+ *
+ * \class carma_ipc
+ *
+ * \ingroup libcarma
+ *
+ * \brief this class provides the ipc features to carma_obj
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
+ */
 #ifndef CARMA_IPCS_H
 #define CARMA_IPCS_H
 // cuda

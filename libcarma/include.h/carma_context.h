@@ -1,15 +1,17 @@
 /**
+ * \file carma_context.h
+ *
  * \class carma_context
  *
  * \ingroup libcarma
  *
  * \brief this class provides the context in which carma_obj are created
  *
- * \author $Author: dg, as $
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
  *
- * \version $Revision: 1.0 $
+ * \version 1.0
  *
- * \date $Date: 2011/01/28$
+ * \date 2011/01/28
  *
  */
 

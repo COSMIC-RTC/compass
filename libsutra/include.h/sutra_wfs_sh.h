@@ -1,3 +1,19 @@
+/**
+ * \file sutra_wfs_sh.h
+ *
+ * \class sutra_wfs_sh
+ *
+ * \ingroup libsutra
+ *
+ * \brief this class provides the wfs_sh features to COMPASS
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
+ */
 #ifndef _SUTRA_WFS_SH_H_
 #define _SUTRA_WFS_SH_H_
 

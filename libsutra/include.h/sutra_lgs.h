@@ -1,3 +1,19 @@
+/**
+ * \file sutra_lgs.h
+ *
+ * \class sutra_lgs
+ *
+ * \ingroup libsutra
+ *
+ * \brief this class provides the lgs features to COMPASS
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
+ */
 #ifndef _SUTRA_LGS_H_
 #define _SUTRA_LGS_H_
 

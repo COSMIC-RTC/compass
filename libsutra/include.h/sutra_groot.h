@@ -1,3 +1,19 @@
+/**
+ * \file sutra_groot.h
+ *
+ * \class sutra_groot
+ *
+ * \ingroup libsutra
+ *
+ * \brief this class provides the groot features to COMPASS
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
+ */
 #ifndef _SUTRA_GROOT_H_
 #define _SUTRA_GROOT_H_
 

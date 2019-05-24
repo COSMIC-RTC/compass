@@ -1,8 +1,18 @@
-/*
- * sutra_acquisim.h
+/**
+ * \file sutra_acquisim.h
  *
- *  Created on: Oct 28, 2013
- *      Author: sevin
+ * \class sutra_acquisim
+ *
+ * \ingroup libsutra
+ *
+ * \brief this class provides the acquisition simulator to COMPASS
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
  */
 
 #ifndef SUTRA_ACQUISIM_H_

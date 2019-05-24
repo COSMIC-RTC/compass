@@ -1,3 +1,4 @@
+#include <carma_magma.h>
 #include <sutra_controller_mv.h>
 #include <sutra_controller_utils.h>
 #include <string>
@@ -197,7 +198,7 @@ int sutra_controller_mv<Tcomp, Tout>::filter_cphim(Tcomp *F, Tcomp *Nact) {
   carma_obj<Tcomp> *d_tmp =
       new carma_obj<Tcomp>(this->current_context, dims_data2);
   d_Nact->host2device(Nact);
-  carma_potri(d_Nact);
+  carma_magma_potri(d_Nact);
   carma_gemm(cublas_handle, 'n', 'n', this->d_Cphim->getDims()[1],
              this->nslope(), this->d_Cphim->getDims()[1], 1.0f,
              d_Nact->getData(), this->d_Cphim->getDims()[1],
@@ -284,7 +285,7 @@ int sutra_controller_mv<Tcomp, Tout>::do_covmat(sutra_dm *ydm, char *method,
   carma_host_obj<Tcomp> *h_eigenvals =
       new carma_host_obj<Tcomp>(dims_data2, MA_PAGELOCK);
 
-  carma_syevd<Tcomp>('N', d_statcov, h_eigenvals);
+  carma_magma_syevd<Tcomp>('N', d_statcov, h_eigenvals);
 
   if (ydm->type == "kl") {
     dims_data2[1] = this->nactu();
@@ -348,7 +349,7 @@ int sutra_controller_mv<Tcomp, Tout>::do_covmat(sutra_dm *ydm, char *method,
 
       h_KL->cpy_obj(this->d_KLbasis, cudaMemcpyDeviceToHost);
 
-      carma_svd_cpu<Tcomp>(h_KL, h_eigenvals, h_U, h_Vt);
+      carma_magma_svd_cpu<Tcomp>(h_KL, h_eigenvals, h_U, h_Vt);
 
       d_Ukl->host2device(h_Vt->getData());
       d_Vkl->host2device(h_U->getData());
@@ -510,7 +511,7 @@ int sutra_controller_mv<Tcomp, Tout>::invgen(carma_obj<Tcomp> *d_mat,
       new carma_host_obj<Tcomp>(dims_data2, MA_PAGELOCK);
 
   d_U->copy(d_mat, 1, 1);
-  carma_syevd<Tcomp>('V', d_U, h_eigenvals);
+  carma_magma_syevd<Tcomp>('V', d_U, h_eigenvals);
   // syevd_f('V',d_U,h_eigenvals);
   if (job == 1) {  // Conditionnement
     Tcomp maxe = h_eigenvals->getData()[d_mat->getDims()[1] - 1];
@@ -570,7 +571,7 @@ int sutra_controller_mv<Tcomp, Tout>::invgen(carma_obj<Tcomp> *d_mat,
 
   d_U->copy(d_mat, 1, 1);
 
-  carma_syevd<Tcomp>('V', d_U, h_eigen);
+  carma_magma_syevd<Tcomp>('V', d_U, h_eigen);
 
   // syevd_f('V',d_U,h_eigen);
   // Conditionnement
@@ -630,7 +631,7 @@ int sutra_controller_mv<Tcomp, Tout>::invgen_cpu(carma_obj<Tcomp> *d_mat,
 
   d_mat->device2host(h_mat->getData());
 
-  carma_svd_cpu<Tcomp>(h_mat, h_eigen, h_U, h_V);
+  carma_magma_svd_cpu<Tcomp>(h_mat, h_eigen, h_U, h_V);
   d_U->host2device(h_V->getData());
   // syevd_f('V',d_U,h_eigen);
   // Conditionnement
@@ -708,7 +709,7 @@ int sutra_controller_mv<Tcomp, Tout>::DDiago(carma_obj<Tcomp> *d_statcov,
       new carma_host_obj<Tcomp>(dims_data2, MA_PAGELOCK);
 
   // 1. SVdec(geocov,U) --> Ut * geocov * U = D²
-  carma_syevd<Tcomp>('V', d_geocov, h_eigenvals);
+  carma_magma_syevd<Tcomp>('V', d_geocov, h_eigenvals);
 
   d_eigenvals->host2device(h_eigenvals->getData());
   for (int i = 0; i < this->nactu(); i++) {
@@ -739,7 +740,7 @@ int sutra_controller_mv<Tcomp, Tout>::DDiago(carma_obj<Tcomp> *d_statcov,
                     this->nactu());
 
   // 4. SVdec(C',A)
-  carma_syevd<Tcomp>('V', d_tmp2, h_eigenvals);
+  carma_magma_syevd<Tcomp>('V', d_tmp2, h_eigenvals);
 
   // 5. M = U * D⁻¹
   carma_dgmm<Tcomp>(cublas_handle, CUBLAS_SIDE_RIGHT, this->nactu(),
@@ -954,7 +955,7 @@ int sutra_controller_mv<Tcomp, Tout>::build_cmat(const char *dmtype,
                this->nactu(), d_tmp->getData(), this->nactu());
     delete d_tmp2;
 
-    carma_potri<Tcomp>(d_tmp);
+    carma_magma_potri<Tcomp>(d_tmp);
 
     dims_data2[1] = this->nactu();
     dims_data2[2] = this->nslope();
@@ -1015,7 +1016,7 @@ int sutra_controller_mv<Tcomp, Tout>::build_cmat(const char *dmtype,
     delete d_tmp2;
     delete d_tmp4;
 
-    carma_potri<Tcomp>(d_tmp);
+    carma_magma_potri<Tcomp>(d_tmp);
 
     dims_data2[1] = this->nactu();
     dims_data2[2] = this->nslope();

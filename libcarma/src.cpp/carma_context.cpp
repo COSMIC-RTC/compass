@@ -253,8 +253,9 @@ void carma_context::init_context(const int nb_devices, int32_t *devices_id) {
 }
 
 carma_context::~carma_context() {
-#ifdef USE_CULA
+  carmaSafeCall(cudaDeviceSynchronize());
 
+#ifdef USE_CULA
   // CULA finalize
   culaShutdown();
 #endif  // USE_CULA

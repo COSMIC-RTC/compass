@@ -1,3 +1,4 @@
+#include <carma_magma.h>
 #include <carma_obj.h>
 #include <cstdlib> /* required for randomize() and random() */
 
@@ -227,15 +228,15 @@ template <>
 template <>
 // std::enable_if_t<std::is_same<T_data, half>::value>
 int carma_obj<half>::host2device<float>(const float *data) {
-  copyFromFloatToHalf(data, this->d_data, this->nb_elem,
-                      this->current_context->get_device(this->device));
+  return copyFromFloatToHalf(data, this->d_data, this->nb_elem,
+                             this->current_context->get_device(this->device));
 }
 template <>
 template <>
 // std::enable_if_t<std::is_same<T_data, half>::value>
 int carma_obj<half>::device2host<float>(float *data) {
-  copyFromHalfToFloat(this->d_data, data, this->nb_elem,
-                      this->current_context->get_device(this->device));
+  return copyFromHalfToFloat(this->d_data, data, this->nb_elem,
+                             this->current_context->get_device(this->device));
 }
 #endif
 
@@ -330,6 +331,32 @@ int carma_obj<T_data>::copyFrom(const T_data *data, int nb_elem) {
   return EXIT_SUCCESS;
 }
 
+#ifdef USE_OCTOPUS
+template <class T_data>
+int carma_obj<T_data>::copyInto(ipc::Cacao<T_data> *cacaoInterface) {
+  /** \brief device2host data transfer.
+   * \param data : output data
+   *
+   * this method copies the values in d_output to the output array
+   */
+  this->copyInto((T_data *)cacaoInterface->outputPtr(), this->nb_elem);
+
+  return EXIT_SUCCESS;
+}
+
+template <class T_data>
+int carma_obj<T_data>::copyFrom(ipc::Cacao<T_data> *cacaoInterface) {
+  /** \brief device2host data transfer.
+   * \param data : output data
+   *
+   * this method copies the values in d_output to the output array
+   */
+  this->copyFrom((T_data *)cacaoInterface->outputPtr(), this->nb_elem);
+
+  return EXIT_SUCCESS;
+}
+
+#endif
 template <class T_data>
 T_data carma_obj<T_data>::sum() {
   return reduce<T_data>(this->d_data, this->nb_elem);

@@ -266,7 +266,7 @@ template <class T>
 int carma_prng_cu(T *results, const int nThreads, const int nBlocks,
                   curandState *state, char gtype, int n, float alpha,
                   float beta) {
-  dim3 grid(1);
+  // dim3 grid(1);
   dim3 threads(2 * nThreads);
 
   if (gtype == 'U')

@@ -1,8 +1,18 @@
-/*
- * carma_sparse_obj.h
+/**
+ * \file carma_sparse_obj.h
  *
- *  Created on: Apr 8, 2014
- *      Author: ???
+ * \class carma_sparse_obj
+ *
+ * \ingroup libcarma
+ *
+ * \brief this class provides wrappers to the generic carma sparse object
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
  */
 
 #ifndef CARMA_SPARSE_OBJ_H_
@@ -124,16 +134,6 @@ cusparseStatus_t carma_csr2bsr(carma_sparse_obj<T_data> *src, int blockDim,
 template <class T_data>
 cusparseStatus_t carma_bsr2csr(carma_sparse_obj<T_data> *src,
                                carma_sparse_obj<T_data> *dest);
-
-template <class T_data>
-int carma_magma_csr2ell(carma_sparse_obj<T_data> *dA);
-
-template <class T_data>
-int carma_magma_spmv(T_data alpha, carma_sparse_obj<T_data> *dA,
-                     carma_obj<T_data> *dx, T_data beta, carma_obj<T_data> *dy);
-
-template <class T_data>
-int carma_sparse_magma_free(carma_sparse_obj<T_data> *dA);
 
 template <class T_data>
 int carma_kgemv(carma_sparse_obj<T_data> *A, T_data alpha,

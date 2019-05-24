@@ -1,3 +1,19 @@
+/**
+ * \file sutra_cetroider_pyr.h
+ *
+ * \class sutra_cetroider_pyr
+ *
+ * \ingroup libsutra
+ *
+ * \brief this class provides the cetroider_pyr features to COMPASS
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
+ */
 #ifndef _SUTRA_CENTROIDER_PYR_H_
 #define _SUTRA_CENTROIDER_PYR_H_
 
@@ -35,7 +51,7 @@ class sutra_centroider_pyr : public sutra_centroider<Tin, T> {
 
  public:
   sutra_centroider_pyr(carma_context *context, sutra_wfs *wfs, long nvalid,
-                       float offset, float scale, int device);
+                       float offset, float scale, bool filter_TT, int device);
   sutra_centroider_pyr(const sutra_centroider_pyr &centroider);
   ~sutra_centroider_pyr();
 

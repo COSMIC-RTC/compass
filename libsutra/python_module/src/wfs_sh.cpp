@@ -1,6 +1,7 @@
 #include <wyrm>
 
 #include <sutra_wfs_sh.h>
+#include "declare_name.hpp"
 
 namespace py = pybind11;
 
@@ -14,9 +15,9 @@ void declare_wfs_sh(py::module &mod) {
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
-      .def_property_readonly("d_binmap",
-                             [](sutra_wfs_sh &ssh) { return ssh.d_binmap; },
-                             "TODO: docstring")
+      .def_property_readonly(
+          "d_binmap", [](sutra_wfs_sh &ssh) { return ssh.d_binmap; },
+          "TODO: docstring")
 
       .def_property_readonly(
           "d_validpuppixx",

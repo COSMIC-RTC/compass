@@ -1,6 +1,7 @@
 #include <wyrm>
 
 #include <sutra_target.h>
+#include "declare_name.hpp"
 
 namespace py = pybind11;
 
@@ -45,15 +46,16 @@ void declare_target(py::module &mod) {
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
-      .def_property_readonly("ntargets",
-                             [](sutra_target &st) { return st.ntargets; },
-                             "Number of targets")
+      .def_property_readonly(
+          "ntargets", [](sutra_target &st) { return st.ntargets; },
+          "Number of targets")
 
-      .def_property_readonly("d_targets",
-                             [](sutra_target &st) -> vector<sutra_source *> & {
-                               return st.d_targets;
-                             },
-                             "Vector of targets")
+      .def_property_readonly(
+          "d_targets",
+          [](sutra_target &st) -> vector<sutra_source *> & {
+            return st.d_targets;
+          },
+          "Vector of targets")
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝
       //  ██╔████╔██║█████╗     ██║   ███████║██║   ██║██║  ██║███████╗

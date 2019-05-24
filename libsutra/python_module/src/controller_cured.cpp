@@ -1,6 +1,7 @@
 #include <wyrm>
 
 #include <sutra_controller_cured.h>
+#include "declare_name.hpp"
 
 namespace py = pybind11;
 
@@ -17,33 +18,33 @@ void controller_cured_impl(py::module &mod, const char *name) {
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
-      .def_property_readonly("ndivs",
-                             [](controller_cured &sc) { return sc.ndivs; },
-                             "Number of subdivision levels")
+      .def_property_readonly(
+          "ndivs", [](controller_cured &sc) { return sc.ndivs; },
+          "Number of subdivision levels")
 
-      .def_property_readonly("tt_flag",
-                             [](controller_cured &sc) { return sc.tt_flag; },
-                             "Flag to separate TT")
+      .def_property_readonly(
+          "tt_flag", [](controller_cured &sc) { return sc.tt_flag; },
+          "Flag to separate TT")
 
       .def_property_readonly(
           "h_centroids", [](controller_cured &sc) { return sc.h_centroids; },
           "Centroids")
 
-      .def_property_readonly("h_err",
-                             [](controller_cured &sc) { return sc.h_err; },
-                             "Increment error")
+      .def_property_readonly(
+          "h_err", [](controller_cured &sc) { return sc.h_err; },
+          "Increment error")
 
-      .def_property_readonly("d_err",
-                             [](controller_cured &sc) { return sc.d_err; },
-                             "Increment error")
+      .def_property_readonly(
+          "d_err", [](controller_cured &sc) { return sc.d_err; },
+          "Increment error")
 
-      .def_property_readonly("d_cenbuff",
-                             [](controller_cured &sc) { return sc.d_cenbuff; },
-                             "Centroids circular buffer")
+      .def_property_readonly(
+          "d_cenbuff", [](controller_cured &sc) { return sc.d_cenbuff; },
+          "Centroids circular buffer")
 
-      .def_property_readonly("d_imat",
-                             [](controller_cured &sc) { return sc.d_imat; },
-                             "Interaction matrix")
+      .def_property_readonly(
+          "d_imat", [](controller_cured &sc) { return sc.d_imat; },
+          "Interaction matrix")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝

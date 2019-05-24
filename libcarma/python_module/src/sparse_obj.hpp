@@ -1,14 +1,12 @@
 #ifndef _WRAP_SPARSE_OBJ_H_
 #define _WRAP_SPARSE_OBJ_H_
 
-#include <pybind11/pybind11.h>
-#include <pybind11/numpy.h>
-#include <pybind11/stl.h>
+#include <wyrm>
 
+#include "declare_name.hpp"
 #include <carma.h>
 #include <carma_sparse_obj.h>
 
-#include "declare_name.hpp"
 #include <type_list.hpp>
 
 namespace py = pybind11;

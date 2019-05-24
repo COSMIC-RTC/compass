@@ -1,15 +1,17 @@
 /**
+ * \file carma_fft.h
+ *
  * \class carma_fft
  *
  * \ingroup libcarma
  *
- * \brief this class provides wrappers to the cufft library
+ * \brief this class provides the fft features to carma_obj
  *
- * \author $Author: dg, as $
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
  *
- * \version $Revision: 1.0 $
+ * \version 1.0
  *
- * \date $Date: 2011/01/28$
+ * \date 2011/01/28
  *
  */
 #ifndef _CARMA_FFT_H_

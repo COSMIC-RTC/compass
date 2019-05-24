@@ -1,3 +1,17 @@
+/**
+ * \file carma_utils.h
+ *
+ * \ingroup libcarma
+ *
+ * \brief this file provides tools to carma_obj
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
+ */
 #ifndef _CARMA_UTILS_H_
 #define _CARMA_UTILS_H_
 
@@ -18,6 +32,10 @@
 #include <cuda_fp16.h>
 #include <cuda_runtime_api.h>
 #include <cufft.h>
+
+#ifdef USE_OCTOPUS
+#include <Cacao.h>
+#endif
 
 #define CARMA_PI 3.1415926535897932384626433832
 
@@ -83,11 +101,6 @@ class ProgressBar {
 #define CAST(type, new_var, var) type new_var = dynamic_cast<type>(var)
 #define SCAST(type, new_var, var) type new_var = static_cast<type>(var)
 
-////////////////////////////////////////////////////////////////////////////
-//! CUT bool type
-////////////////////////////////////////////////////////////////////////////
-enum CUTBoolean { CUTFalse = 0, CUTTrue = 1 };
-
 // We define these calls here, so the user doesn't need to include __FILE__ and
 // __LINE__ The advantage is the developers gets to use the inline function so
 // they can debug
@@ -97,7 +110,6 @@ enum CUTBoolean { CUTFalse = 0, CUTTrue = 1 };
 #define carmaSafeDeviceSynchronize() \
   __carmaSafeDeviceSynchronize(__FILE__, __LINE__)
 #define carmafftSafeCall(err) __carmafftSafeCall(err, __FILE__, __LINE__)
-#define carmaCheckError(err) __carmaCheckError(err, __FILE__, __LINE__)
 #define carmaCheckMsg(msg) __carmaCheckMsg(msg, __FILE__, __LINE__)
 #define carmaSafeMalloc(mallocCall) \
   __carmaSafeMalloc((mallocCall), __FILE__, __LINE__)
@@ -201,14 +213,6 @@ inline void __carmafftSafeCall(cufftResult err, const char *file,
     fprintf(stderr, "(%s:%i) : carmafftSafeCall() CUFFT error.\n", file, line);
     // exit(EXIT_FAILURE);
     throw "carmafftSafeCall() CUFFT error";
-  }
-}
-
-inline void __carmaCheckError(CUTBoolean err, const char *file,
-                              const int line) {
-  if (CUTTrue != err) {
-    fprintf(stderr, "(%s:%i) : CUTIL CUDA error.\n", file, line);
-    throw "carmafftSafeCall() CUTIL CUDA error";
   }
 }
 

@@ -1,6 +1,7 @@
 #include <wyrm>
 
 #include <sutra_rtc.h>
+#include "declare_name.hpp"
 
 namespace py = pybind11;
 
@@ -110,8 +111,8 @@ void rtc_impl(py::module &mod, const char *name) {
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
       .def("add_centroider",
-           wy::colCast((int (rtc::*)(carma_context *, long, float, float, long,
-                                     std::string, sutra_wfs *)) &
+           wy::colCast((int (rtc::*)(carma_context *, long, float, float, bool,
+                                     long, std::string, sutra_wfs *)) &
                        rtc::add_centroider),
 
            R"pbdoc(
@@ -123,18 +124,19 @@ void rtc_impl(py::module &mod, const char *name) {
         nvalid:(int): Number of WFS valid ssp
         offset: (float): offset for centroiding computation
         scale: (float): scale factor to get the right unit, ie. arcsec
+        filt_TT: (bool): flag to control TT filtering
         device: (int): GPU device index
         typec: (str): Centroider type
         wfs: (sutra_wfs): sutra_wfs handled by the centroider
 
     )pbdoc",
            py::arg("context"), py::arg("nvalid"), py::arg("offset"),
-           py::arg("scale"), py::arg("device"), py::arg("typec"),
-           py::arg("wfs"))
+           py::arg("scale"), py::arg("filter_TT"), py::arg("device"),
+           py::arg("typec"), py::arg("wfs"))
 
       .def("add_centroider",
-           wy::colCast((int (rtc::*)(carma_context *, long, float, float, long,
-                                     std::string)) &
+           wy::colCast((int (rtc::*)(carma_context *, long, float, float, bool,
+                                     long, std::string)) &
                        rtc::add_centroider),
            R"pbdoc(
         Add a sutra_centroider object in the RTC
@@ -145,12 +147,14 @@ void rtc_impl(py::module &mod, const char *name) {
         nvalid:(int): Number of WFS valid ssp
         offset: (float): offset for centroiding computation
         scale: (float): scale factor to get the right unit, ie. arcsec
+        filt_TT: (bool): flag to control TT filtering
         device: (int): GPU device index
         typec: (str): Centroider type
 
     )pbdoc",
            py::arg("context"), py::arg("nvalid"), py::arg("offset"),
-           py::arg("scale"), py::arg("device"), py::arg("typec"))
+           py::arg("scale"), py::arg("filter_TT"), py::arg("device"),
+           py::arg("typec"))
 
       .def("add_controller", wy::colCast(&rtc::add_controller), R"pbdoc(
         Add a sutra_controller object in the RTC
@@ -211,6 +215,16 @@ void rtc_impl(py::module &mod, const char *name) {
           ncentro : (int): index of the centroider to remove
      )pbdoc",
            py::arg("ncentro"))
+
+      .def("do_calibrate_img", (int (rtc::*)(int)) & rtc::do_calibrate_img,
+           R"pbdoc(
+        Computes the calibrated image
+
+        Parameters
+        ------------
+        ncontrol: (int): Index of the controller
+    )pbdoc",
+           py::arg("ncontrol"))
 
       .def("do_centroids", (int (rtc::*)(int)) & rtc::do_centroids,
            R"pbdoc(
@@ -343,11 +357,11 @@ void rtc_impl(py::module &mod, const char *name) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
-      .def("set_gain",
-           [](rtc &sr, int ncontrol, float gain) {
-             sr.d_control[ncontrol]->set_gain(gain);
-           },
-           R"pbdoc(
+      .def(
+          "set_gain",
+          [](rtc &sr, int ncontrol,
+             float gain) { sr.d_control[ncontrol]->set_gain(gain); },
+          R"pbdoc(
         Set the loop gain in the controller
 
         Parameters
@@ -355,7 +369,7 @@ void rtc_impl(py::module &mod, const char *name) {
         ncontrol: (int): controller index
         gain: (float): gain to set
     )pbdoc",
-           py::arg("ncontrol"), py::arg("gain"))
+          py::arg("ncontrol"), py::arg("gain"))
 
       .def("set_mgain", set_mgain_impl<Tin, Tcomp, Tout>,
            R"pbdoc(

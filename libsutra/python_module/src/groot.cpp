@@ -1,6 +1,7 @@
 #include <wyrm>
 
 #include <sutra_groot.h>
+#include "declare_name.hpp"
 
 namespace py = pybind11;
 typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;
@@ -86,75 +87,77 @@ void declare_groot(py::module &mod) {
       .def_property_readonly(
           "device", [](sutra_groot &sg) { return sg.device; }, "GPU device")
 
-      .def_property_readonly("nactus",
-                             [](sutra_groot &sg) { return sg.nactus; },
-                             "Number of actuators")
+      .def_property_readonly(
+          "nactus", [](sutra_groot &sg) { return sg.nactus; },
+          "Number of actuators")
 
-      .def_property_readonly("nssp", [](sutra_groot &sg) { return sg.nssp; },
-                             "number of subap")
+      .def_property_readonly(
+          "nssp", [](sutra_groot &sg) { return sg.nssp; }, "number of subap")
 
-      .def_property_readonly("nlayers",
-                             [](sutra_groot &sg) { return sg.nlayers; },
-                             "number of turbulent layers")
+      .def_property_readonly(
+          "nlayers", [](sutra_groot &sg) { return sg.nlayers; },
+          "number of turbulent layers")
 
-      .def_property_readonly("npts", [](sutra_groot &sg) { return sg.npts; },
-                             "number of samples for aliasig computation")
+      .def_property_readonly(
+          "npts", [](sutra_groot &sg) { return sg.npts; },
+          "number of samples for aliasig computation")
 
-      .def_property_readonly("gsangle",
-                             [](sutra_groot &sg) { return sg.gsangle; },
-                             "Guide star angle [rad]")
+      .def_property_readonly(
+          "gsangle", [](sutra_groot &sg) { return sg.gsangle; },
+          "Guide star angle [rad]")
 
-      .def_property_readonly("fc", [](sutra_groot &sg) { return sg.fc; },
-                             "DM cut-off frequency [m]")
+      .def_property_readonly(
+          "fc", [](sutra_groot &sg) { return sg.fc; },
+          "DM cut-off frequency [m]")
 
-      .def_property_readonly("d", [](sutra_groot &sg) { return sg.d; },
-                             "DM pitch")
+      .def_property_readonly(
+          "d", [](sutra_groot &sg) { return sg.d; }, "DM pitch")
 
       .def_property_readonly(
           "d_Cerr", [](sutra_groot &sg) { return sg.d_Cerr; },
           "Model of aniso and bandwidth covariance error matrix")
 
-      .def_property_readonly("d_CaXX",
-                             [](sutra_groot &sg) { return sg.d_CaXX; },
-                             "XX component of the aliasing model")
+      .def_property_readonly(
+          "d_CaXX", [](sutra_groot &sg) { return sg.d_CaXX; },
+          "XX component of the aliasing model")
 
-      .def_property_readonly("d_CaYY",
-                             [](sutra_groot &sg) { return sg.d_CaYY; },
-                             "YY component of the aliasing model")
+      .def_property_readonly(
+          "d_CaYY", [](sutra_groot &sg) { return sg.d_CaYY; },
+          "YY component of the aliasing model")
 
-      .def_property_readonly("d_TT", [](sutra_groot &sg) { return sg.d_TT; },
-                             "tip-tilt IF matrix")
+      .def_property_readonly(
+          "d_TT", [](sutra_groot &sg) { return sg.d_TT; }, "tip-tilt IF matrix")
 
-      .def_property_readonly("scale", [](sutra_groot &sg) { return sg.scale; },
-                             "Scale factor")
+      .def_property_readonly(
+          "scale", [](sutra_groot &sg) { return sg.scale; }, "Scale factor")
 
-      .def_property_readonly("d_TTPfilter",
-                             [](sutra_groot &sg) { return sg.d_TTPfilter; },
-                             "Tip-tilt and piston filter matrix (= Btt.dot(P))")
+      .def_property_readonly(
+          "d_TTPfilter", [](sutra_groot &sg) { return sg.d_TTPfilter; },
+          "Tip-tilt and piston filter matrix (= Btt.dot(P))")
 
-      .def_property_readonly("d_pzt2tt",
-                             [](sutra_groot &sg) { return sg.d_pzt2tt; },
-                             "pzt to TT matrix")
+      .def_property_readonly(
+          "d_pzt2tt", [](sutra_groot &sg) { return sg.d_pzt2tt; },
+          "pzt to TT matrix")
 
-      .def_property_readonly("d_Nact",
-                             [](sutra_groot &sg) { return sg.d_Nact; },
-                             "Coupling matrix")
+      .def_property_readonly(
+          "d_Nact", [](sutra_groot &sg) { return sg.d_Nact; },
+          "Coupling matrix")
 
-      .def_property_readonly("d_xpos",
-                             [](sutra_groot &sg) { return sg.d_xpos; },
-                             "X-positions of DM actuators or ssp [m]")
+      .def_property_readonly(
+          "d_xpos", [](sutra_groot &sg) { return sg.d_xpos; },
+          "X-positions of DM actuators or ssp [m]")
 
-      .def_property_readonly("d_ypos",
-                             [](sutra_groot &sg) { return sg.d_ypos; },
-                             "Y-positions of DM actuators or ssp [m]")
+      .def_property_readonly(
+          "d_ypos", [](sutra_groot &sg) { return sg.d_ypos; },
+          "Y-positions of DM actuators or ssp [m]")
 
-      .def_property_readonly("d_tab_int_x",
-                             [](sutra_groot &sg) { return sg.d_tab_int_x; },
-                             "Tabulated integral")
+      .def_property_readonly(
+          "d_tab_int_x", [](sutra_groot &sg) { return sg.d_tab_int_x; },
+          "Tabulated integral")
 
-      .def_property_readonly("d_tab_int_y",
-                             [](sutra_groot &sg) { return sg.d_tab_int_y; },
-                             "Tabulated integral")
+      .def_property_readonly(
+          "d_tab_int_y", [](sutra_groot &sg) { return sg.d_tab_int_y; },
+          "Tabulated integral")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝

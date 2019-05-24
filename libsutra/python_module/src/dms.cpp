@@ -1,6 +1,7 @@
 #include <wyrm>
 
 #include <sutra_dm.h>
+#include "declare_name.hpp"
 
 namespace py = pybind11;
 
@@ -35,12 +36,12 @@ void declare_dms(py::module &mod) {
           [](sutra_dms &sdms) -> vector<sutra_dm *> & { return sdms.d_dms; },
           "Vector of sutra_dm")
 
-      .def_property_readonly("ndm",
-                             [](sutra_dms &sdms) { return sdms.d_dms.size(); },
-                             "Number of sutra_dm in sutra_dms")
-      .def_property_readonly("nact_total",
-                             [](sutra_dms &sdms) { return sdms.nact_total(); },
-                             "Total number of actuators in sutra_dms")
+      .def_property_readonly(
+          "ndm", [](sutra_dms &sdms) { return sdms.d_dms.size(); },
+          "Number of sutra_dm in sutra_dms")
+      .def_property_readonly(
+          "nact_total", [](sutra_dms &sdms) { return sdms.nact_total(); },
+          "Total number of actuators in sutra_dms")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝
@@ -179,65 +180,67 @@ void declare_dm(py::module &mod) {
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
-      .def_property_readonly("device", [](sutra_dm &sdm) { return sdm.device; },
-                             "Device index")
+      .def_property_readonly(
+          "device", [](sutra_dm &sdm) { return sdm.device; }, "Device index")
 
-      .def_property_readonly("type", [](sutra_dm &sdm) { return sdm.type; },
-                             "DM type")
+      .def_property_readonly(
+          "type", [](sutra_dm &sdm) { return sdm.type; }, "DM type")
 
-      .def_property_readonly("altitude",
-                             [](sutra_dm &sdm) { return sdm.altitude; },
-                             "DM conjugaison altitude")
+      .def_property_readonly(
+          "altitude", [](sutra_dm &sdm) { return sdm.altitude; },
+          "DM conjugaison altitude")
 
-      .def_property_readonly("nactus", [](sutra_dm &sdm) { return sdm.nactus; },
-                             "Number of actuators")
+      .def_property_readonly(
+          "nactus", [](sutra_dm &sdm) { return sdm.nactus; },
+          "Number of actuators")
 
-      .def_property_readonly("influsize",
-                             [](sutra_dm &sdm) { return sdm.influsize; },
-                             "Influence function support size")
+      .def_property_readonly(
+          "influsize", [](sutra_dm &sdm) { return sdm.influsize; },
+          "Influence function support size")
 
-      .def_property_readonly("dim", [](sutra_dm &sdm) { return sdm.dim; },
-                             "DM support size")
+      .def_property_readonly(
+          "dim", [](sutra_dm &sdm) { return sdm.dim; }, "DM support size")
 
-      .def_property_readonly("push4imat",
-                             [](sutra_dm &sdm) { return sdm.push4imat; },
-                             "Voltage to apply for imat computation")
+      .def_property_readonly(
+          "push4imat", [](sutra_dm &sdm) { return sdm.push4imat; },
+          "Voltage to apply for imat computation")
 
       .def_property_readonly(
           "d_shape", [](sutra_dm &sdm) { return sdm.d_shape->d_screen; },
           "DM shape")
 
-      .def_property_readonly("d_com", [](sutra_dm &sdm) { return sdm.d_com; },
-                             "Current commands of the DM")
+      .def_property_readonly(
+          "d_com", [](sutra_dm &sdm) { return sdm.d_com; },
+          "Current commands of the DM")
 
-      .def_property_readonly("d_influ",
-                             [](sutra_dm &sdm) { return sdm.d_influ; },
-                             "Cube of influence functions")
+      .def_property_readonly(
+          "d_influ", [](sutra_dm &sdm) { return sdm.d_influ; },
+          "Cube of influence functions")
 
-      .def_property_readonly("d_istart",
-                             [](sutra_dm &sdm) { return sdm.d_istart; },
-                             "TODO: docstring")
+      .def_property_readonly(
+          "d_istart", [](sutra_dm &sdm) { return sdm.d_istart; },
+          "TODO: docstring")
 
-      .def_property_readonly("d_npoints",
-                             [](sutra_dm &sdm) { return sdm.d_npoints; },
-                             "Number of IF that impact each pixel of the pupil")
+      .def_property_readonly(
+          "d_npoints", [](sutra_dm &sdm) { return sdm.d_npoints; },
+          "Number of IF that impact each pixel of the pupil")
 
-      .def_property_readonly("d_influpos",
-                             [](sutra_dm &sdm) { return sdm.d_influpos; },
-                             "Influence functions positions in the pupil")
+      .def_property_readonly(
+          "d_influpos", [](sutra_dm &sdm) { return sdm.d_influpos; },
+          "Influence functions positions in the pupil")
 
-      .def_property_readonly("d_xoff", [](sutra_dm &sdm) { return sdm.d_xoff; },
-                             "TODO: docstring")
+      .def_property_readonly(
+          "d_xoff", [](sutra_dm &sdm) { return sdm.d_xoff; }, "TODO: docstring")
 
-      .def_property_readonly("d_yoff", [](sutra_dm &sdm) { return sdm.d_yoff; },
-                             "TODO: docstring")
+      .def_property_readonly(
+          "d_yoff", [](sutra_dm &sdm) { return sdm.d_yoff; }, "TODO: docstring")
 
-      .def_property_readonly("d_KLbasis",
-                             [](sutra_dm &sdm) { return sdm.d_KLbasis; },
-                             "KL to volts matrix")
+      .def_property_readonly(
+          "d_KLbasis", [](sutra_dm &sdm) { return sdm.d_KLbasis; },
+          "KL to volts matrix")
 
-      .def_property_readonly("d_kl", [](sutra_dm &sdm) { return sdm.d_kl; },
-                             "sutra_kl DM")
+      .def_property_readonly(
+          "d_kl", [](sutra_dm &sdm) { return sdm.d_kl; }, "sutra_kl DM")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝

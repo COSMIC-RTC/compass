@@ -1,3 +1,8 @@
+''' @package naga.random
+
+More details.
+'''
+
 from naga.array import zeros
 
 

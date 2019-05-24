@@ -1,3 +1,19 @@
+/**
+ * \file sutra_centroider_maskedPix.h
+ *
+ * \class sutra_centroider_maskedPix
+ *
+ * \ingroup libsutra
+ *
+ * \brief this class provides the centroider_maskedPix features to COMPASS
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
+ */
 #ifndef _SUTRA_CENTROIDER_MASKEDPIX_H_
 #define _SUTRA_CENTROIDER_MASKEDPIX_H_
 
@@ -10,7 +26,7 @@ class sutra_centroider_maskedPix : public sutra_centroider<Tin, T> {
  public:
   sutra_centroider_maskedPix(carma_context *context, sutra_wfs *wfs,
                              long nvalid, long npupils, float offset,
-                             float scale, int device);
+                             float scale, bool filter_TT, int device);
 
   ~sutra_centroider_maskedPix();
 

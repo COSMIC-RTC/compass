@@ -15,6 +15,7 @@ Contents:
    :maxdepth: 3
 
    carmaWrap.rst
+   sutraWrap.rst
    shesha.rst
 
 Indices and tables

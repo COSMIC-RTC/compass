@@ -1,3 +1,19 @@
+/**
+ * \file sutra_centroider_cog.h
+ *
+ * \class sutra_centroider_cog
+ *
+ * \ingroup libsutra
+ *
+ * \brief this class provides the centroider_cog features to COMPASS
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
+ */
 #ifndef _SUTRA_CENTROIDER_COG_H_
 #define _SUTRA_CENTROIDER_COG_H_
 
@@ -7,7 +23,7 @@ template <class Tin, class T>
 class sutra_centroider_cog : public sutra_centroider<Tin, T> {
  public:
   sutra_centroider_cog(carma_context *context, sutra_wfs *wfs, long nvalid,
-                       float offset, float scale, int device);
+                       float offset, float scale, bool filter_TT, int device);
   sutra_centroider_cog(const sutra_centroider_cog &centroider);
   ~sutra_centroider_cog();
 

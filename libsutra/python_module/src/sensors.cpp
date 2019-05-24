@@ -1,6 +1,7 @@
 #include <wyrm>
 
 #include <sutra_sensors.h>
+#include "declare_name.hpp"
 
 namespace py = pybind11;
 
@@ -61,41 +62,41 @@ void declare_sensors(py::module &mod) {
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
-      .def_property_readonly("device",
-                             [](sutra_sensors &ss) { return ss.device; },
-                             "GPU device index")
+      .def_property_readonly(
+          "device", [](sutra_sensors &ss) { return ss.device; },
+          "GPU device index")
 
       .def_property_readonly(
           "roket", [](sutra_sensors &ss) { return ss.roket; }, "ROKET flag")
 
-      .def_property_readonly("nsensors",
-                             [](sutra_sensors &ss) { return ss.nsensors(); },
-                             "Number of WFS")
+      .def_property_readonly(
+          "nsensors", [](sutra_sensors &ss) { return ss.nsensors(); },
+          "Number of WFS")
 
       .def_property_readonly(
           "d_wfs",
           [](sutra_sensors &ss) -> vector<sutra_wfs *> & { return ss.d_wfs; },
           "Vector of WFS")
 
-      .def_property_readonly("d_camplipup",
-                             [](sutra_sensors &ss) { return ss.d_camplipup; },
-                             "Complex amplitude in the pupil")
+      .def_property_readonly(
+          "d_camplipup", [](sutra_sensors &ss) { return ss.d_camplipup; },
+          "Complex amplitude in the pupil")
 
-      .def_property_readonly("d_camplifoc",
-                             [](sutra_sensors &ss) { return ss.d_camplifoc; },
-                             "Complex amplitude in the focal plane")
+      .def_property_readonly(
+          "d_camplifoc", [](sutra_sensors &ss) { return ss.d_camplifoc; },
+          "Complex amplitude in the focal plane")
 
-      .def_property_readonly("d_fttotim",
-                             [](sutra_sensors &ss) { return ss.d_fttotim; },
-                             "Buffer for FFT computation")
+      .def_property_readonly(
+          "d_fttotim", [](sutra_sensors &ss) { return ss.d_fttotim; },
+          "Buffer for FFT computation")
 
-      .def_property_readonly("d_ftlgskern",
-                             [](sutra_sensors &ss) { return ss.d_ftlgskern; },
-                             "Convolution kernel for LGS spot")
+      .def_property_readonly(
+          "d_ftlgskern", [](sutra_sensors &ss) { return ss.d_ftlgskern; },
+          "Convolution kernel for LGS spot")
 
-      .def_property_readonly("d_lgskern",
-                             [](sutra_sensors &ss) { return ss.d_lgskern; },
-                             "LGS spot")
+      .def_property_readonly(
+          "d_lgskern", [](sutra_sensors &ss) { return ss.d_lgskern; },
+          "LGS spot")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝
