@@ -3,29 +3,33 @@
 template <typename T, typename Tout>
 sutra_controller_generic<T, Tout>::sutra_controller_generic(
     carma_context *context, long nvalid, long nslope, long nactu, float delay,
-    sutra_dms *dms, int *idx_dms, int ndm)
+    sutra_dms *dms, int *idx_dms, int ndm, int nstates)
     : sutra_controller<T, Tout>(context, nvalid, nslope, nactu, delay, dms,
                                 idx_dms, ndm) {
   this->command_law = "integrator";
-  long dims_data1[2] = {1, nactu};
+  this->nstates = nstates;
+  long dims_data1[2] = {1, nactu + nstates};
   this->d_gain = new carma_obj<T>(this->current_context, dims_data1);
   this->d_decayFactor = new carma_obj<T>(this->current_context, dims_data1);
   this->d_compbuff = new carma_obj<T>(this->current_context, dims_data1);
-  if (this->d_com1 == nullptr)
-    this->d_com1 = new carma_obj<T>(this->current_context, dims_data1);
-  if (this->d_com2 == nullptr)
-    this->d_com2 = new carma_obj<T>(this->current_context, dims_data1);
+  if (this->d_com != nullptr) delete this->d_com;
+  if (this->d_com1 != nullptr) delete this->d_com1;
+  if (this->d_com2 != nullptr) delete this->d_com2;
+  this->d_com = new carma_obj<T>(this->current_context, dims_data1);
+  this->d_com1 = new carma_obj<T>(this->current_context, dims_data1);
+  this->d_com2 = new carma_obj<T>(this->current_context, dims_data1);
+
   this->d_cmatPadded = nullptr;
   dims_data1[1] = this->nslope();
   this->d_olmeas = new carma_obj<T>(this->current_context, dims_data1);
   this->d_compbuff2 = new carma_obj<T>(this->current_context, dims_data1);
 
-  long dims_data2[3] = {2, nactu, nslope};
+  long dims_data2[3] = {2, nactu + nstates, nslope};
   this->d_cmat = new carma_obj<T>(this->current_context, dims_data2);
 
   this->gain = 0.f;
 
-  dims_data2[2] = nactu;
+  dims_data2[2] = nactu + nstates;
   this->d_matE = new carma_obj<T>(this->current_context, dims_data2);
   dims_data2[1] = this->nslope();
   this->d_imat = new carma_obj<T>(this->current_context, dims_data2);
@@ -33,7 +37,7 @@ sutra_controller_generic<T, Tout>::sutra_controller_generic(
   this->polc = false;
 
   if (std::is_same<T, half>::value) {
-    int m = nactu;
+    int m = nactu + nstates;
     int n = nslope;
     while (m % 8 != 0) m++;
     while (n % 8 != 0) n++;
@@ -184,26 +188,26 @@ int sutra_controller_generic<T, Tout>::comp_com() {
   } else {
     // CMAT*s(k)
     carma_gemv(this->cublas_handle(), 'n', this->nactu(), this->nslope(),
-               (T)1.0f, this->d_cmat->getData(), this->nactu(),
+               (T)1.0f, this->d_cmat->getData(), this->nactu() + this->nstates,
                centroids->getData(), 1, (T)0.0f, this->d_compbuff->getData(),
                1);
     // g*CMAT*s(k)
     mult_vect(this->d_compbuff->getData(), this->d_gain->getData(), (T)(-1.0f),
-              this->nactu(), this->current_context->get_device(this->device));
+              this->nactu() + this->nstates, this->current_context->get_device(this->device));
     if (this->command_law == "modal_integrator") {
       // M2V * g * CMAT * s(k)
-      carma_gemv(this->cublas_handle(), 'n', this->nactu(), this->nactu(),
-                 (T)1.0f, this->d_matE->getData(), this->nactu(),
+      carma_gemv(this->cublas_handle(), 'n', this->nactu() + this->nstates, this->nactu() + this->nstates,
+                 (T)1.0f, this->d_matE->getData(), this->nactu() + this->nstates,
                  this->d_compbuff->getData(), 1, berta, this->d_com->getData(),
                  1);
     } else {  // 2matrices
-      carma_gemv(this->cublas_handle(), 'n', this->nactu(), this->nactu(),
-                 (T)1.0f, this->d_matE->getData(), this->nactu(),
-                 this->d_com1->getData(), 1, (T)0.0f, this->d_com->getData(),
+      carma_gemv(this->cublas_handle(), 'n', this->nactu() + this->nstates, this->nactu() + this->nstates,
+                 (T)1.0f, this->d_matE->getData(), this->nactu() + this->nstates,
+                 this->d_com1->getData() + this->nstates, 1, (T)0.0f, this->d_com->getData(),
                  1);
       // v(k) = alpha*E*v(k-1)
       mult_vect(this->d_com->getData(), this->d_decayFactor->getData(), (T)1.0f,
-                this->nactu(), this->current_context->get_device(this->device));
+                this->nactu() + this->nstates, this->current_context->get_device(this->device));
       // v(k) = alpha*E*v(k-1) + g*CMAT*s(k)
       this->d_com->axpy((T)1.0f, this->d_compbuff, 1, 1);
     }

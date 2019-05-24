@@ -234,7 +234,7 @@ int sutra_controller<Tcomp, Tout>::comp_voltage() {
     this->command_delay();
   } else {
     this->d_comClipped->copyFrom(this->d_com->getData(),
-                                 this->d_com->getNbElem());
+                                 this->d_comClipped->getNbElem());
   }
   this->add_perturb();
   this->clip_commands();
@@ -293,7 +293,7 @@ int sutra_controller<Tcomp, Tout>::set_com(float *com, int nElem) {
   if (nElem == this->d_com->getNbElem()) {
     this->d_com->host2device(com);
     this->d_comClipped->copyFrom(this->d_com->getData(),
-                                 this->d_com->getNbElem());
+                                 this->d_comClipped->getNbElem());
   } else
     DEBUG_TRACE("Wrong dimension of com");
 

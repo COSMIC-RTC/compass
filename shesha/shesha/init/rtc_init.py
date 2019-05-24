@@ -339,7 +339,7 @@ def init_controller(context, i: int, p_controller: conf.Param_controller, p_wfss
     rtc.add_controller(context, p_controller.nvalid, p_controller.nslope,
                        p_controller.nactu, p_controller.delay, context.activeDevice,
                        p_controller.type, dms, p_controller.ndm, p_controller.ndm.size,
-                       Nphi, False)
+                       Nphi, False, p_controller.nstates)
     print("CONTROLLER ADDED")
     if (p_wfss is not None and do_refslp):
         rtc.do_centroids_ref(i)
