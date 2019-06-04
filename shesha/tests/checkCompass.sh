@@ -1,3 +1,5 @@
+#! /bin/bash
+
 # script="$SHESHA_ROOT/shesha/tests/check.py"
 rm -f check.h5
 script="tests.check"
