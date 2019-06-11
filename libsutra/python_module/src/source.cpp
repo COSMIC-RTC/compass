@@ -198,7 +198,8 @@ void declare_source(py::module &mod) {
 
       .def("reset_phase", &sutra_source::reset_phase, "Reset the phase screen")
 
-      .def("comp_strehl", &sutra_source::comp_strehl, "Compute Strehl ratio")
+      .def("comp_strehl", &sutra_source::comp_strehl, "Compute Strehl ratio",
+           py::arg("do_fit") = false)
 
       .def("raytrace", (int (sutra_source::*)(bool)) & sutra_source::raytrace,
            R"pbdoc(

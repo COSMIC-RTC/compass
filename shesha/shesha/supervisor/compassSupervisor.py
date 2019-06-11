@@ -423,12 +423,12 @@ class CompassSupervisor(AbstractSupervisor):
         self._sim.rtc.do_centroids(0)
         return slopesGeom
 
-    def getStrehl(self, numTar: int) -> np.ndarray:
+    def getStrehl(self, numTar: int, do_fit: bool = False) -> np.ndarray:
         '''
         return the Strehl Ratio of target number numTar
         '''
         src = self._sim.tar.d_targets[numTar]
-        src.comp_strehl()
+        src.comp_strehl(do_fit)
         avgVar = 0
         if (src.phase_var_count > 0):
             avgVar = src.phase_var_avg / src.phase_var_count
@@ -555,7 +555,7 @@ class CompassSupervisor(AbstractSupervisor):
         """
         self._sim.rtc.d_centro[nCentro].set_threshold(thresh)
 
-    def getPyrFocalPlane(self, nwfs: int=0):
+    def getPyrFocalPlane(self, nwfs: int = 0):
         """
         No arguments
         Returns the psf in the focal plane of the pyramid.

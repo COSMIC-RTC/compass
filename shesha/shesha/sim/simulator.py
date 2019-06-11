@@ -501,7 +501,7 @@ class Simulator:
         """
         self.tar.d_targets[tarNum].comp_image(puponly, compLE)
 
-    def compStrehl(self, tarNum: int = 0):
+    def compStrehl(self, tarNum: int = 0, do_fit: bool = False):
         """
         Computes the Strehl ratio
 
@@ -509,7 +509,7 @@ class Simulator:
         ------------
         tarNum: (int): (optionnal) target index (default 0)
         """
-        self.tar.d_targets[tarNum].comp_strehl()
+        self.tar.d_targets[tarNum].comp_strehl(do_fit)
 
     def doControl(self, nControl: int, n: int = 0, wfs_direction: bool = False):
         '''
@@ -579,7 +579,7 @@ class Simulator:
         '''
         self.rtc.do_clipping(nControl)
 
-    def getStrehl(self, numTar: int):
+    def getStrehl(self, numTar: int, do_fit: bool = False):
         '''
         Return the Strehl Ratio of target number numTar as [SR short exp., SR long exp., np.var(phiSE), np.var(phiLE)]
 
@@ -588,7 +588,7 @@ class Simulator:
         numTar: (int): target index
         '''
         src = self.tar.d_targets[numTar]
-        src.comp_strehl()
+        src.comp_strehl(do_fit)
         avgVar = 0
         if (src.phase_var_count > 0):
             avgVar = src.phase_var_avg / src.phase_var_count

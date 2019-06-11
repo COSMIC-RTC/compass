@@ -108,6 +108,12 @@ class sutra_source {
   map<type_screen, float> yoff;
   /// ncpa phase
   carma_obj<float> *d_ncpa_phase;
+  /// temporary array for accurate strehl computation
+  carma_obj<float> *d_smallimg;
+  /// temporary array for accurate strehl computation
+  carma_obj<float> *d_fitmat;
+  /// temporary array for accurate strehl computation
+  carma_obj<float> *d_fitpoly;
 
  public:
   sutra_source(carma_context *context, float xpos, float ypos, float lambda,
@@ -133,8 +139,11 @@ class sutra_source {
   int comp_image(int puponly = 0, bool comp_le = true);
   int init_strehlmeter();
   int reset_strehlmeter();
-  int comp_strehl();
+  int comp_strehl(bool do_fit);
   int reset_phase();
+
+ private:
+  float fitmax(float *d_img, int ind_max, int img_size);
 };
 
 int target_texraytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,

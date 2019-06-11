@@ -465,6 +465,21 @@ int custom_half_axpy(half alpha, half *source, int incx, int incy, int N,
                      half *dest, carma_device *device);
 #endif
 
+/**
+ * @brief Kernel to extract a part of the image centred on center_pos
+ *
+ * @tparam T type of the image items
+ * @param d_smallimg extracted small image of size extract_size*extract_size
+ * @param d_fullimg full image of size fullimg_size*fullimg_size
+ * @param fullimg_size size of the d_fullimg leading dimension
+ * @param center_pos position of the center of d_smallimg in d_fullimg
+ * @param extract_size size of the d_smallimg leading dimension
+ * @param roll get pixels as if d_fullimg need to be roll
+ */
+template <class T>
+int extract(T *d_smallimg, const T *d_fullimg, int fullimg_size, int center_pos,
+            int extract_size, bool roll);
+
 extern "C" {
 //  void sumGetNumBlocksAndThreads(int n, int device, int &blocks, int
 //  &threads); int snapTransformSize(int dataSize);

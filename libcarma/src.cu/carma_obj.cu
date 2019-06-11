@@ -442,3 +442,80 @@ int custom_half_axpy(half alpha, half *source, int incx, int incy, int N,
   return EXIT_SUCCESS;
 }
 #endif
+
+/**
+ * @brief Kernel to extract a part of the image centred on center_pos
+ *
+ * @tparam T type of the image items
+ * @param d_smallimg extracted small image of size extract_size*extract_size
+ * @param d_fullimg full image of size fullimg_size*fullimg_size
+ * @param fullimg_size size of the d_fullimg leading dimension
+ * @param center_pos position of the center of d_smallimg in d_fullimg
+ * @param extract_size size of the d_smallimg leading dimension
+ * @param roll get pixels as if d_fullimg need to be roll
+ */
+template <class T>
+__global__ void extract_krnl(T *d_smallimg, const T *d_fullimg,
+                             int fullimg_size, int center_pos, int extract_size,
+                             bool roll) {
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+
+  int max_y = center_pos / fullimg_size;
+  int max_x = center_pos % fullimg_size;
+
+  int j = tid / extract_size - extract_size / 2;
+  int i = tid % extract_size - extract_size / 2;
+
+  int y = max_y + j;
+  int x = max_x + i;
+
+  bool inside = true;
+
+  if (y < 0) {
+    y += fullimg_size;
+    inside = false;
+  }
+  if (y > fullimg_size - 1) {
+    y -= fullimg_size;
+    inside = false;
+  }
+  if (x < 0) {
+    x += fullimg_size;
+    inside = false;
+  }
+  if (x > fullimg_size - 1) {
+    x -= fullimg_size;
+    inside = false;
+  }
+
+  d_smallimg[tid] = (inside || roll) ? d_fullimg[x + y * fullimg_size] : 0;
+}
+
+/**
+ * @brief Extract a part of the image centred on center_pos
+ *
+ * @tparam T type of the image items
+ * @param d_smallimg extracted small image of size extract_size*extract_size
+ * @param d_fullimg full image of size fullimg_size*fullimg_size
+ * @param fullimg_size size of the d_fullimg leading dimension
+ * @param center_pos position of the center of d_smallimg in d_fullimg
+ * @param extract_size size of the d_smallimg leading dimension
+ * @param roll get pixels as if d_fullimg need to be roll
+ */
+template <class T>
+int extract(T *d_smallimg, const T *d_fullimg, int fullimg_size, int center_pos,
+            int extract_size, bool roll) {
+  extract_krnl<<<1, extract_size * extract_size>>>(
+      d_smallimg, d_fullimg, fullimg_size, center_pos, extract_size, roll);
+
+  carmaCheckMsg("extract_krnl<<<>>> execution failed\n");
+
+  return EXIT_SUCCESS;
+}
+
+template int extract(float *d_smallimg, const float *d_fullimg,
+                     int fullimg_size, int center_pos, int extract_size,
+                     bool roll);
+template int extract(double *d_smallimg, const double *d_fullimg,
+                     int fullimg_size, int center_pos, int extract_size,
+                     bool roll);
