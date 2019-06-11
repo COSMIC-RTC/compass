@@ -5,9 +5,10 @@ template <class Tin, class T>
 sutra_centroider_wcog<Tin, T>::sutra_centroider_wcog(carma_context *context,
                                                      sutra_wfs *wfs,
                                                      long nvalid, float offset,
-                                                     float scale, bool filter_TT,
-						     int device)
-  : sutra_centroider<Tin, T>(context, wfs, nvalid, offset, scale, filter_TT, device) {
+                                                     float scale,
+                                                     bool filter_TT, int device)
+    : sutra_centroider<Tin, T>(context, wfs, nvalid, offset, scale, filter_TT,
+                               device) {
   context->set_activeDevice(device, 1);
 
   this->nslopes = 2 * nvalid;
@@ -20,10 +21,9 @@ sutra_centroider_wcog<Tin, T>::sutra_centroider_wcog(carma_context *context,
   this->d_centroids_ref = new carma_obj<T>(this->current_context, dims_data2);
   this->d_centroids_ref->reset();
 
-  if(filter_TT){
+  if (filter_TT) {
     this->init_TT_filter();
   }
-  
 }
 
 template <class Tin, class T>
@@ -103,9 +103,9 @@ int sutra_centroider_wcog<Tin, T>::get_cog(float *img, float *intensities,
 
   if (this->filter_TT) {
     this->apply_TT_filter(centroids);
- }
+  }
 
- return EXIT_SUCCESS;
+  return EXIT_SUCCESS;
 }
 
 template <class Tin, class T>

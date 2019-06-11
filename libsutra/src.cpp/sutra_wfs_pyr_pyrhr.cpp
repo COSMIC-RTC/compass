@@ -460,7 +460,7 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
   }
 
   if (compute_pyrfocalplane) {
-  current_context->set_activeDevice(device, 1);
+    current_context->set_activeDevice(device, 1);
     carmaSafeCall(
         cudaMemset(this->d_pyrfocalplane->getData(), 0,
                    sizeof(float) * this->d_pyrfocalplane->getNbElem()));

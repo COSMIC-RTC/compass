@@ -64,6 +64,7 @@ class CMakeBuildExt(build_ext):
         else:
             cmake_args += ['-DCMAKE_BUILD_TYPE=' + cfg]
             build_args += ['--', '-j%d' % multiprocessing.cpu_count()]
+            # build_args += ['--', 'VERBOSE=1']
 
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)

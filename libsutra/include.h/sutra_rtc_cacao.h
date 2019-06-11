@@ -1,8 +1,18 @@
-/*
- * sutra_rtc_cacao.h
+/**
+ * \file sutra_rtc_cacao.h
  *
- *  Created on: Feb 1, 2019
- *      Author: sevin
+ * \class sutra_rtc_cacao
+ *
+ * \ingroup libsutra
+ *
+ * \brief this class provides the rtc_cacao features to COMPASS
+ *
+ * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
+ *
+ * \version 1.0
+ *
+ * \date 2011/01/28
+ *
  */
 
 #ifndef SUTRA_RTC_CACAO_H_
@@ -36,8 +46,7 @@ class sutra_rtc_cacao : public sutra_rtc<Tin, Tcomp, Tout> {
   bool is_initialised_;
 
  public:
-  sutra_rtc_cacao(std::string iCalFrame_name,
-                  std::string iLoopFrame_name);
+  sutra_rtc_cacao(std::string iCalFrame_name, std::string iLoopFrame_name);
   ~sutra_rtc_cacao();
 
   void publish();

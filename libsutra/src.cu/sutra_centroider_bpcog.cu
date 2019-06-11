@@ -4,8 +4,8 @@
 template <typename T, int BLOCK_THREADS>
 __launch_bounds__(BLOCK_THREADS) __global__
     void centroids(float *d_img, T *d_centroids, T *ref, int *validx,
-                   int *validy, float *d_intensities, int nbpix, unsigned int npix,
-                   unsigned int size, T scale, T offset,
+                   int *validy, float *d_intensities, int nbpix,
+                   unsigned int npix, unsigned int size, T scale, T offset,
                    unsigned int nelem_thread) {
   // Specialize BlockRadixSort for a 1D block of BLOCK_THREADS threads owning 1
   // item each

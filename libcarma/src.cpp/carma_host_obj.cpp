@@ -507,7 +507,6 @@ template int carma_host_obj<unsigned int>::fill(unsigned int value);
 template int carma_host_obj<cuFloatComplex>::fill(cuFloatComplex value);
 template int carma_host_obj<cuDoubleComplex>::fill(cuDoubleComplex value);
 
-
 template <class T_data>
 int carma_host_obj<T_data>::fill_from(const T_data *data) {
   if (get_nbStreams() > 1) {

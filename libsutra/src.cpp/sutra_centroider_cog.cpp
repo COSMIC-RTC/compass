@@ -6,16 +6,16 @@ sutra_centroider_cog<Tin, T>::sutra_centroider_cog(carma_context *context,
                                                    sutra_wfs *wfs, long nvalid,
                                                    float offset, float scale,
                                                    bool filter_TT, int device)
-  : sutra_centroider<Tin, T>(context, wfs, nvalid, offset, scale, filter_TT, device) {
+    : sutra_centroider<Tin, T>(context, wfs, nvalid, offset, scale, filter_TT,
+                               device) {
   this->nslopes = 2 * nvalid;
   long dims_data2[2] = {1, this->nslopes};
   this->d_centroids_ref = new carma_obj<T>(this->current_context, dims_data2);
   this->d_centroids_ref->reset();
-  if(filter_TT){
+  if (filter_TT) {
     this->init_TT_filter();
   }
 }
-
 
 template <class Tin, class T>
 sutra_centroider_cog<Tin, T>::~sutra_centroider_cog() {}
@@ -37,11 +37,11 @@ int sutra_centroider_cog<Tin, T>::get_cog(float *img, float *intensities,
                 this->d_centroids_ref->getData(), this->d_validx->getData(),
                 this->d_validy->getData(), intensities, this->scale,
                 this->offset, this->current_context->get_device(this->device));
-  
+
   if (this->filter_TT) {
     this->apply_TT_filter(centroids);
- }
-  
+  }
+
   return EXIT_SUCCESS;
 }
 

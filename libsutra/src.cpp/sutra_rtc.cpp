@@ -38,19 +38,20 @@ int sutra_rtc<Tin, T, Tout>::remove_controller(int ncontrol) {
 
 template <typename Tin, typename T, typename Tout>
 int sutra_rtc<Tin, T, Tout>::add_centroider(carma_context *context, long nvalid,
-                                            float offset, float scale, bool filter_TT,
-                                            long device, std::string typec) {
-  return add_centroider(context, nvalid, offset, scale, filter_TT, device, typec,
-			nullptr);
+                                            float offset, float scale,
+                                            bool filter_TT, long device,
+                                            std::string typec) {
+  return add_centroider(context, nvalid, offset, scale, filter_TT, device,
+                        typec, nullptr);
 }
 
 template <typename Tin, typename T, typename Tout>
 int sutra_rtc<Tin, T, Tout>::add_centroider(carma_context *context, long nvalid,
-                                            float offset, float scale, bool filter_TT,
-                                            long device, std::string typec,
-                                            sutra_wfs *wfs) {
-  return add_centroider_impl(context, nvalid, offset, scale, filter_TT, device, typec,
-			     wfs, std::is_same<T, half>());
+                                            float offset, float scale,
+                                            bool filter_TT, long device,
+                                            std::string typec, sutra_wfs *wfs) {
+  return add_centroider_impl(context, nvalid, offset, scale, filter_TT, device,
+                             typec, wfs, std::is_same<T, half>());
 }
 
 template <typename Tin, typename T, typename Tout>
@@ -58,15 +59,15 @@ template <typename Q>
 typename std::enable_if<!std::is_same<Q, half>::value, int>::type
 sutra_rtc<Tin, T, Tout>::add_centroider_impl(carma_context *context,
                                              long nvalid, float offset,
-                                             float scale, bool filter_TT, long device,
-                                             std::string typec, sutra_wfs *wfs,
-                                             std::false_type) {
+                                             float scale, bool filter_TT,
+                                             long device, std::string typec,
+                                             sutra_wfs *wfs, std::false_type) {
   if (typec.compare("bpcog") == 0)
     this->d_centro.push_back(new sutra_centroider_bpcog<Tin, T>(
-	 context, wfs, nvalid, offset, scale, filter_TT, device, 10));
+        context, wfs, nvalid, offset, scale, filter_TT, device, 10));
   else if (typec.compare("cog") == 0)
     this->d_centro.push_back(new sutra_centroider_cog<Tin, T>(
-	 context, wfs, nvalid, offset, scale, filter_TT, device));
+        context, wfs, nvalid, offset, scale, filter_TT, device));
   else if (typec.compare("corr") == 0)
     this->d_centro.push_back(new sutra_centroider_corr<Tin, T>(
         context, wfs, nvalid, offset, scale, filter_TT, device));
@@ -86,7 +87,8 @@ sutra_rtc<Tin, T, Tout>::add_centroider_impl(carma_context *context,
     } else if (wfs->type == "pyrhr") {
       sutra_wfs_pyr_pyrhr *pwfs = dynamic_cast<sutra_wfs_pyr_pyrhr *>(wfs);
       this->d_centro.push_back(new sutra_centroider_maskedPix<Tin, T>(
-          context, pwfs, nvalid, pwfs->npupils, offset, scale, filter_TT, device));
+          context, pwfs, nvalid, pwfs->npupils, offset, scale, filter_TT,
+          device));
     } else
       DEBUG_TRACE("WFS must be pyrhr");
   } else {
@@ -98,9 +100,12 @@ sutra_rtc<Tin, T, Tout>::add_centroider_impl(carma_context *context,
 
 #ifdef CAN_DO_HALF
 template <typename Tin, typename T, typename Tout>
-int sutra_rtc<Tin, T, Tout>::add_centroider_impl(
-    carma_context *context, long nvalid, float offset, float scale, bool filter_TT,
-    long device, std::string typec, sutra_wfs *wfs, std::true_type) {
+int sutra_rtc<Tin, T, Tout>::add_centroider_impl(carma_context *context,
+                                                 long nvalid, float offset,
+                                                 float scale, bool filter_TT,
+                                                 long device, std::string typec,
+                                                 sutra_wfs *wfs,
+                                                 std::true_type) {
   if (typec.compare("cog") == 0)
     this->d_centro.push_back(new sutra_centroider_cog<Tin, T>(
         context, wfs, nvalid, offset, scale, filter_TT, device));
@@ -117,7 +122,8 @@ int sutra_rtc<Tin, T, Tout>::add_centroider_impl(
     } else if (wfs->type == "pyrhr") {
       sutra_wfs_pyr_pyrhr *pwfs = dynamic_cast<sutra_wfs_pyr_pyrhr *>(wfs);
       this->d_centro.push_back(new sutra_centroider_maskedPix<Tin, T>(
-          context, pwfs, nvalid, pwfs->npupils, offset, scale, filter_TT, device));
+          context, pwfs, nvalid, pwfs->npupils, offset, scale, filter_TT,
+          device));
     } else
       DEBUG_TRACE("WFS must be pyrhr");
   } else
@@ -224,73 +230,87 @@ sutra_rtc<Tin, T, Tout>::do_imat_impl(int ncntrl, sutra_dms *ydm,
   }
 
   vector<sutra_dm *>::iterator p;
-  
+
   p = this->d_control[ncntrl]->d_dmseen.begin();
-  
+
   while (p != this->d_control[ncntrl]->d_dmseen.end()) {
     sutra_dm *dm = *p;
     if (dm->type == "tt") {
-      for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
-	if (this->d_centro[idx_cntr]->filter_TT) {
-	  std::cout << "Measuring TT reference for centro : " << idx_cntr << std::endl;
-	  this->d_centro[idx_cntr]->filter_TT = false;
+      for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size();
+           idx_cntr++) {
+        if (this->d_centro[idx_cntr]->filter_TT) {
+          std::cout << "Measuring TT reference for centro : " << idx_cntr
+                    << std::endl;
+          this->d_centro[idx_cntr]->filter_TT = false;
 
-	  // Tip Push
-	  dm->comp_oneactu(0, dm->push4imat);
+          // Tip Push
+          dm->comp_oneactu(0, dm->push4imat);
 
-	  this->comp_images_imat(ydm);
-	  this->d_centro[idx_cntr]->get_cog(this->d_centro[idx_cntr]->d_intensities->getData(), this->d_centro[idx_cntr]->d_centro_filtered->getData(), true);
-	  this->d_centro[idx_cntr]->d_centro_filtered->scale(0.5f / dm->push4imat, 1);
-	  this->d_centro[idx_cntr]->d_centro_filtered->copyInto(
-		this->d_centro[idx_cntr]->d_ref_Tip->getData(), this->d_centro[idx_cntr]->nslopes);
+          this->comp_images_imat(ydm);
+          this->d_centro[idx_cntr]->get_cog(
+              this->d_centro[idx_cntr]->d_intensities->getData(),
+              this->d_centro[idx_cntr]->d_centro_filtered->getData(), true);
+          this->d_centro[idx_cntr]->d_centro_filtered->scale(
+              0.5f / dm->push4imat, 1);
+          this->d_centro[idx_cntr]->d_centro_filtered->copyInto(
+              this->d_centro[idx_cntr]->d_ref_Tip->getData(),
+              this->d_centro[idx_cntr]->nslopes);
 
-	  dm->reset_shape();
+          dm->reset_shape();
 
-	  // Tip Pull
-	  dm->comp_oneactu(0, -1.0f * dm->push4imat);
-	  this->comp_images_imat(ydm);
-	  this->d_centro[idx_cntr]->get_cog(this->d_centro[idx_cntr]->d_intensities->getData(), this->d_centro[idx_cntr]->d_centro_filtered->getData(), true);
-	  float alphai = -.5f / dm->push4imat;
+          // Tip Pull
+          dm->comp_oneactu(0, -1.0f * dm->push4imat);
+          this->comp_images_imat(ydm);
+          this->d_centro[idx_cntr]->get_cog(
+              this->d_centro[idx_cntr]->d_intensities->getData(),
+              this->d_centro[idx_cntr]->d_centro_filtered->getData(), true);
+          float alphai = -.5f / dm->push4imat;
 
-	  this->d_centro[idx_cntr]->d_ref_Tip->axpy(T(alphai), this->d_centro[idx_cntr]->d_centro_filtered, 1, 1);
+          this->d_centro[idx_cntr]->d_ref_Tip->axpy(
+              T(alphai), this->d_centro[idx_cntr]->d_centro_filtered, 1, 1);
 
-	  dm->reset_shape();
+          dm->reset_shape();
 
-	  // Tilt Push
-	  dm->comp_oneactu(1, dm->push4imat);
+          // Tilt Push
+          dm->comp_oneactu(1, dm->push4imat);
 
-	  this->comp_images_imat(ydm);
-	  this->d_centro[idx_cntr]->get_cog(this->d_centro[idx_cntr]->d_intensities->getData(), this->d_centro[idx_cntr]->d_centro_filtered->getData(), true);
-	  this->d_centro[idx_cntr]->d_centro_filtered->scale(0.5f / dm->push4imat, 1);
-	  this->d_centro[idx_cntr]->d_centro_filtered->copyInto(
-		this->d_centro[idx_cntr]->d_ref_Tilt->getData(), this->d_centro[idx_cntr]->nslopes);
+          this->comp_images_imat(ydm);
+          this->d_centro[idx_cntr]->get_cog(
+              this->d_centro[idx_cntr]->d_intensities->getData(),
+              this->d_centro[idx_cntr]->d_centro_filtered->getData(), true);
+          this->d_centro[idx_cntr]->d_centro_filtered->scale(
+              0.5f / dm->push4imat, 1);
+          this->d_centro[idx_cntr]->d_centro_filtered->copyInto(
+              this->d_centro[idx_cntr]->d_ref_Tilt->getData(),
+              this->d_centro[idx_cntr]->nslopes);
 
-	  dm->reset_shape();
+          dm->reset_shape();
 
-	  // Tilt Pull
-	  dm->comp_oneactu(1, -1.0f * dm->push4imat);
-	  this->comp_images_imat(ydm);
-	  this->d_centro[idx_cntr]->get_cog(this->d_centro[idx_cntr]->d_intensities->getData(), this->d_centro[idx_cntr]->d_centro_filtered->getData(), true);
+          // Tilt Pull
+          dm->comp_oneactu(1, -1.0f * dm->push4imat);
+          this->comp_images_imat(ydm);
+          this->d_centro[idx_cntr]->get_cog(
+              this->d_centro[idx_cntr]->d_intensities->getData(),
+              this->d_centro[idx_cntr]->d_centro_filtered->getData(), true);
 
-	  this->d_centro[idx_cntr]->d_ref_Tilt->axpy(T(alphai), this->d_centro[idx_cntr]->d_centro_filtered, 1, 1);
-	  
-	  dm->reset_shape();
-	  
-	  this->d_centro[idx_cntr]->filter_TT = true;
+          this->d_centro[idx_cntr]->d_ref_Tilt->axpy(
+              T(alphai), this->d_centro[idx_cntr]->d_centro_filtered, 1, 1);
 
-	  float nrmTip = this->d_centro[idx_cntr]->d_ref_Tip->nrm2(1);
-	  float nrmTilt = this->d_centro[idx_cntr]->d_ref_Tilt->nrm2(1);
+          dm->reset_shape();
 
-	  this->d_centro[idx_cntr]->d_ref_Tip->scale(T(1.0f/nrmTip),1);
-	  this->d_centro[idx_cntr]->d_ref_Tilt->scale(T(1.0f/nrmTilt),1);
-	  
- 	  
-	}      
-      }    
+          this->d_centro[idx_cntr]->filter_TT = true;
+
+          float nrmTip = this->d_centro[idx_cntr]->d_ref_Tip->nrm2(1);
+          float nrmTilt = this->d_centro[idx_cntr]->d_ref_Tilt->nrm2(1);
+
+          this->d_centro[idx_cntr]->d_ref_Tip->scale(T(1.0f / nrmTip), 1);
+          this->d_centro[idx_cntr]->d_ref_Tilt->scale(T(1.0f / nrmTilt), 1);
+        }
+      }
     }
     ++p;
   }
-  
+
   p = this->d_control[ncntrl]->d_dmseen.begin();
   int inds1 = 0;
   int cc2 = 0;

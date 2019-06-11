@@ -4,14 +4,15 @@ template <class Tin, class T>
 sutra_centroider_bpcog<Tin, T>::sutra_centroider_bpcog(
     carma_context *context, sutra_wfs *wfs, long nvalid, float offset,
     float scale, bool filter_TT, int device, int nmax)
-  : sutra_centroider<Tin, T>(context, wfs, nvalid, offset, scale, filter_TT, device) {
+    : sutra_centroider<Tin, T>(context, wfs, nvalid, offset, scale, filter_TT,
+                               device) {
   this->nslopes = 2 * nvalid;
   this->nmax = nmax;
   long dims_data2[2] = {1, this->nslopes};
   this->d_centroids_ref = new carma_obj<T>(this->current_context, dims_data2);
   this->d_centroids_ref->reset();
 
-  if(filter_TT){
+  if (filter_TT) {
     this->init_TT_filter();
   }
 
@@ -66,7 +67,7 @@ int sutra_centroider_bpcog<Tin, T>::get_cog(float *img, float *intensities,
 
   if (this->filter_TT) {
     this->apply_TT_filter(centroids);
- }
+  }
   // brightest pixels cog
   // subap_sortmax<T>(npix * npix, nvalid, cube, this->d_bpix->getData(),
   //                      this->d_bpind->getData(), this->nmax,
