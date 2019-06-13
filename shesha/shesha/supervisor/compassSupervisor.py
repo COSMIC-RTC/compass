@@ -423,7 +423,7 @@ class CompassSupervisor(AbstractSupervisor):
         self._sim.rtc.do_centroids(0)
         return slopesGeom
 
-    def getStrehl(self, numTar: int, do_fit: bool = False) -> np.ndarray:
+    def getStrehl(self, numTar: int, do_fit: bool = True) -> np.ndarray:
         '''
         return the Strehl Ratio of target number numTar
         '''

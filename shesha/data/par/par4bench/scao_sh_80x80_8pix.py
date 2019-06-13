@@ -5,7 +5,7 @@ simul_name = "scao_sh_40m_80_8pix"
 # loop
 p_loop = conf.Param_loop()
 
-p_loop.set_niter(5000)
+p_loop.set_niter(1000)
 p_loop.set_ittime(0.002)  # =1/500
 
 # geom

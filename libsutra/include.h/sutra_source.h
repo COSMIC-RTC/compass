@@ -110,10 +110,7 @@ class sutra_source {
   carma_obj<float> *d_ncpa_phase;
   /// temporary array for accurate strehl computation
   carma_obj<float> *d_smallimg;
-  /// temporary array for accurate strehl computation
-  carma_obj<float> *d_fitmat;
-  /// temporary array for accurate strehl computation
-  carma_obj<float> *d_fitpoly;
+  const int d_smallimg_size = 3;
 
  public:
   sutra_source(carma_context *context, float xpos, float ypos, float lambda,
@@ -143,7 +140,20 @@ class sutra_source {
   int reset_phase();
 
  private:
-  float fitmax(float *d_img, int ind_max, int img_size);
+  /**
+   * @brief fit the strehl with a sinc
+   *
+   * Utilise la “croix” de 3 pixels centraux qui encadrent le max
+   * pour fitter des paraboles qui determinent la position du maximum,
+   * puis calcule l’interpolation exacte en ce point via la formule
+   * des sinus cardinaux qui s’applique a un signal bien echantillonne.
+   *
+   * @param d_img full image of size img_size*img_size
+   * @param ind_max position of the maximum in d_img
+   * @param img_size size of the d_img leading dimension
+   * @return float Strehl fitted
+   */
+  float fitmax2x1dSinc(float *d_img, int ind_max, int img_size);
 };
 
 int target_texraytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,

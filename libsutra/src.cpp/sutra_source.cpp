@@ -118,35 +118,12 @@ inline int sutra_source::init_source(carma_context *context, float xpos,
   this->dx = 0.0f;
   this->dy = 0.0f;
 
-  long *dims_data1 = new long[2];
-  dims_data1[0] = 1;
-
   /// temporary array for accurate strehl computation
-  dims_data1[1] = 9;
-  this->d_smallimg = new carma_obj<float>(context, dims_data1);
-
-  /// temporary array for accurate strehl computation
-  dims_data2[1] = 9;
-  dims_data2[2] = 6;
-  std::vector<float> fitmat = {
-      // v
-      18,  -36, 18,  18,  -36, 18,  18,  -36, 18,  18,  18,  18, -36, -36,
-      -36, 18,  18,  18,  27,  0,   -27, 0,   0,   0,   -27, 0,  27,  -18,
-      0,   18,  -18, 0,   18,  -18, 0,   18,  -18, -18, -18, 0,  0,   0,
-      18,  18,  18,  -12, 24,  -12, 24,  60,  24,  -12, 24,  -12};
-  // std::vector<float> fitmat = { // v.T
-  //     18,  18, 27,  -18, -18, -12, -36, 18,  0,  0,  -18, 24,  18, 18,
-  //     -27, 18, -18, -12, 18,  -36, 0,   -18, 0,  24, -36, -36, 0,  0,
-  //     0,   60, 18,  -36, 0,   18,  0,   24,  18, 18, -27, -18, 18, -12,
-  //     -36, 18, 0,   0,   18,  24,  18,  18,  27, 18, 18,  -12};
-  this->d_fitmat = new carma_obj<float>(context, dims_data2, fitmat.data());
-
-  /// temporary array for accurate strehl computation
-  dims_data1[1] = 6;
-  this->d_fitpoly = new carma_obj<float>(context, dims_data1);
+  dims_data2[1] = 2 * this->d_smallimg_size + 1;
+  dims_data2[2] = 2 * this->d_smallimg_size + 1;
+  this->d_smallimg = new carma_obj<float>(context, dims_data2);
 
   delete[] dims_data2;
-  delete[] dims_data1;
 
   return EXIT_SUCCESS;
 }
@@ -155,8 +132,6 @@ sutra_source::~sutra_source() {
   // delete this->current_context;
   this->current_context->set_activeDevice(this->device, 1);
   delete this->d_smallimg;
-  delete this->d_fitmat;
-  delete this->d_fitpoly;
   delete this->d_phase;
   delete this->phase_telemetry;
 
@@ -424,76 +399,60 @@ int sutra_source::comp_image(int puponly, bool comp_le) {
   return EXIT_SUCCESS;
 }
 
-float sutra_source::fitmax(float *d_img, int ind_max, int img_size) {
-  // int max_y = ind_max / img_size;
-  // int max_x = ind_max % img_size;
-  // DEBUG_TRACE("ind_max %d, max_x %d, max_y %d", ind_max, max_x, max_y);
+float sinc(double x) {
+  if (x == 0) return 1;
+  x *= CARMA_PI;
+  return sin(x) / x;
+}
 
-  extract(this->d_smallimg->getData(), d_img, img_size, ind_max, 3, true);
+/**
+ * @brief fit the strehl with a sinc
+ *
+ * Utilise la “croix” de 3 pixels centraux qui encadrent le max
+ * pour fitter des paraboles qui determinent la position du maximum,
+ * puis calcule l’interpolation exacte en ce point via la formule
+ * des sinus cardinaux qui s’applique a un signal bien echantillonne.
+ *
+ * @param d_img full image of size img_size*img_size
+ * @param ind_max position of the maximum in d_img
+ * @param img_size size of the d_img leading dimension
+ * @return float Strehl fitted
+ */
+float sutra_source::fitmax2x1dSinc(float *d_img, int ind_max, int img_size) {
+  const int small_size = 2 * this->d_smallimg_size + 1;
+  extract(this->d_smallimg->getData(), d_img, img_size, ind_max, small_size,
+          true);
+  std::vector<float> smallimg(small_size * small_size);
+  const int center = ((small_size * small_size) - 1) / 2;
+  const int right_ind = center + 1;
+  const int left_ind = center - 1;
+  const int down_ind = center - small_size;
+  const int up_ind = center + small_size;
 
-  // DEBUG_TRACE("smallimg_krnl");
-  // std::vector<float> smallimg(3 * 3);
-  // this->d_smallimg->device2host(smallimg.data());
-  // for (int i = 0; i < 9; ++i) {
-  //   std::cerr << smallimg[i] << ", ";
-  // }
-  // std::cerr << "\n";
+  this->d_smallimg->device2host(smallimg.data());
 
-  // int index = 0;
-  // for (int j = -1; j < 2; ++j) {
-  //   int y = max_y + j;
-  //   if (y < 0) y += img_size;
-  //   if (y > img_size - 1) y -= img_size;
-  //   for (int i = -1; i < 2; ++i) {
-  //     int x = max_x + i;
-  //     if (x < 0) x += img_size;
-  //     if (x > img_size - 1) x -= img_size;
-  //     cudaMemcpy(this->d_smallimg->getData() + index,
-  //                &(d_img[x + y * img_size]), sizeof(float),
-  //                cudaMemcpyDeviceToDevice);
-  //     ++index;
-  //   }
-  // }
-
-  // DEBUG_TRACE("smallimg_cpy");
-  // std::vector<float> smallimg2(3 * 3);
-  // this->d_smallimg->device2host(smallimg2.data());
-  // for (int i = 0; i < 9; ++i) {
-  //   std::cerr << smallimg2[i] << ", ";
-  // }
-  // std::cerr << "\n";
-
-  // DEBUG_TRACE("fitmat");
-  // std::vector<float> fitmat(6*9);
-  // this->d_fitmat->device2host(fitmat.data());
-  // for(int i=0; i<6*9; ++i){
-  //   std::cerr << fitmat[i] << " ";
-  // }
-  // std::cerr << "\n";
-
-  this->d_fitpoly->gemv('t', 1. / 108., this->d_fitmat, 9, this->d_smallimg, 1,
-                        0., 1);
-  float fitpoly[6];
-  this->d_fitpoly->device2host(fitpoly);
-  const float A = fitpoly[0];
-  const float B = fitpoly[1];
-  const float C = fitpoly[2];
-  const float denom = C * C - 4 * A * B;
-  float x0 = 0.0, y0 = 0.0;
-  if (denom != 0) {
-    y0 = (2. * B * fitpoly[3] - fitpoly[4] * C) / denom;
-    x0 = (2. * A * fitpoly[4] - fitpoly[3] * C) / denom;
+  const float A =
+      0.5 * (smallimg[down_ind] + smallimg[up_ind]) - smallimg[center];
+  const float B =
+      0.5 * (smallimg[left_ind] + smallimg[right_ind]) - smallimg[center];
+  if (A * B == 0) {
+    DEBUG_TRACE("ERROR: can not estimate the SR");
+    return 0;
   }
+  const float x0 = -0.5 * (smallimg[up_ind] - smallimg[down_ind]) / 2. / A;
+  const float y0 = -0.5 * (smallimg[right_ind] - smallimg[left_ind]) / 2. / B;
 
-  // DEBUG_TRACE("fitpoly");
-  // for (int i = 0; i < 6; ++i) {
-  //   std::cerr << fitpoly[i] << ", ";
-  // }
-  // std::cerr << "\n";
-
-  float D = fitpoly[5] - (x0 * y0 * C + A * x0 * x0 + B * y0 * y0);
-  // DEBUG_TRACE("%f %f %f", x0, y0, D);
-  return D;
+  // interpolation exacte par shannon(theoreme des sinus cardinaux)
+  float valmax = 0.0;
+  int ind = 0;
+  for (int i = -this->d_smallimg_size; i < this->d_smallimg_size + 1; ++i) {
+    const float tmpi = sinc(x0 - i);
+    for (int j = -this->d_smallimg_size; j < this->d_smallimg_size + 1; ++j) {
+      const float tmpj = sinc(y0 - j);
+      valmax += tmpi * tmpj * smallimg[ind++];
+    }
+  }
+  return valmax;
 }
 
 int sutra_source::comp_strehl(bool do_fit) {
@@ -503,8 +462,10 @@ int sutra_source::comp_strehl(bool do_fit) {
   const int max_le = this->d_image_le->aimax(1);
   if (do_fit) {
     const int img_size = d_image_se->getDims(1);
-    this->strehl_se = fitmax(this->d_image_se->getData(), max_se, img_size);
-    this->strehl_le = fitmax(this->d_image_le->getData(), max_le, img_size);
+    this->strehl_se =
+        fitmax2x1dSinc(this->d_image_se->getData(), max_se, img_size);
+    this->strehl_le =
+        fitmax2x1dSinc(this->d_image_le->getData(), max_le, img_size);
   } else {
     cudaMemcpy(&(this->strehl_se), &(this->d_image_se->getData()[max_se]),
                sizeof(float), cudaMemcpyDeviceToHost);
@@ -512,21 +473,10 @@ int sutra_source::comp_strehl(bool do_fit) {
                sizeof(float), cudaMemcpyDeviceToHost);
   }
 
-  // DEBUG_TRACE(
-  //     "%f %f %f %f", this->strehl_se, this->strehl_le,
-  //     fitmax(this->d_image_se->getData(), max_se, d_image_se->getDims(1)),
-  //     fitmax(this->d_image_le->getData(), max_le, d_image_le->getDims(1)));
-
-  // this->strehl_se /= (this->d_wherephase->getDims(1) *
-  // this->d_wherephase->getDims(1));
   if (this->strehl_counter > 0)
     this->strehl_le /= this->strehl_counter;
   else
     this->strehl_le = this->strehl_se;
-
-  /*
-  this->strehl_se /= this->ref_strehl;
-  this->strehl_le /= (this->ref_strehl * this->strehl_counter);*/
 
   return EXIT_SUCCESS;
 }

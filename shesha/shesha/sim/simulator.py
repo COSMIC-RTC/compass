@@ -501,7 +501,7 @@ class Simulator:
         """
         self.tar.d_targets[tarNum].comp_image(puponly, compLE)
 
-    def compStrehl(self, tarNum: int = 0, do_fit: bool = False):
+    def compStrehl(self, tarNum: int = 0, do_fit: bool = True):
         """
         Computes the Strehl ratio
 
@@ -579,7 +579,7 @@ class Simulator:
         '''
         self.rtc.do_clipping(nControl)
 
-    def getStrehl(self, numTar: int, do_fit: bool = False):
+    def getStrehl(self, numTar: int, do_fit: bool = True):
         '''
         Return the Strehl Ratio of target number numTar as [SR short exp., SR long exp., np.var(phiSE), np.var(phiLE)]
 

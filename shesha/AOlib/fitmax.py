@@ -100,3 +100,37 @@ def fit3ptsParab(abc):
         xmax = -b / a2
     vtop = ((a2 / 2 * xmax) + b) * xmax + c
     return xmax, vtop
+
+
+def fitmax2x1dSinc(img, xmax, ymax, N=4):
+    '''
+    Utilise la “croix” de 3 pixels centraux qui encadrent le max
+    pour fitter des paraboles qui determinent la position du maximum,
+    puis calcule l’interpolation exacte en ce point via la formule
+    des sinus cardinaux qui s’applique a un signal bien echantillonne.
+
+    KNOWN BUGS:
+      - plante si le max de l’image est a moins de N pixels du bord
+      - fabrique des NaN si A ou B est nul
+      - mais je suis sur que Nono peut arranger ca
+    YABON:
+      - marche aussi pour les minima.
+    '''
+    u = np.array([
+            img[xmax, ymax - 1], img[xmax - 1, ymax], img[xmax, ymax],
+            img[xmax + 1, ymax], img[xmax, ymax + 1]
+    ])
+    A = 0.5 * (u[1] + u[3]) - u[2]
+    B = 0.5 * (u[0] + u[4]) - u[2]
+    x0 = -0.5 * (u[3] - u[1]) / 2. / A
+    y0 = -0.5 * (u[4] - u[0]) / 2. / B
+    # interpolation exacte par shannon (theoreme des sinus cardinaux)
+    valmax = 0.0
+    for i in range(-N, N + 1):
+        tmpi = np.sinc(x0 - i)
+        for j in range(-N, N + 1):
+            valmax += tmpi * np.sinc(y0 - j) * img[xmax + i, ymax + j]
+    # traduction des offsets dans le repere des indices de l'image
+    x0 += xmax
+    y0 += ymax
+    return (x0, y0, valmax)
