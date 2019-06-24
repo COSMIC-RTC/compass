@@ -37,6 +37,7 @@ class Param_dm:
         # inner margin (pitches) from central obstruction
         self.__margin_in = 0.
         self.__pzt_extent = 5.  # Extent of pzt DM (pitches)
+        self.__segmented_mirror = False  # Crop influence functions where spiders are.
 
         # KL DM
         self.__nfunc = 0
@@ -143,6 +144,19 @@ class Param_dm:
         self.__pzt_extent = csu.enforce_int(p)
 
     pzt_extent = property(get_pzt_extent, set_pzt_extent)
+
+    def get_segmented_mirror(self):
+        return self.__segmented_mirror
+
+    def set_segmented_mirror(self, b):
+        """ Define mirror influence functions to be cropped by the spiders
+        (more generally, pupil edges)
+
+        :param p: (bool) : segment the mirror
+        """
+        self.__segmented_mirror = csu.enforce_or_cast_bool(b)
+
+    segmented_mirror = property(get_segmented_mirror, set_segmented_mirror)
 
     def get_influType(self):
         """ Get the influence function type for pzt DM

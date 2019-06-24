@@ -354,6 +354,8 @@ def make_pzt_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, cobs: float,
         keepAllActu = True
         cub = dm_util.createDoubleHexaPattern(pitch, p_geom.pupdiam * 1.1, pupAngle)
         if p_dm.margin_out is not None:
+            print(f'p_dm.margin_out={p_dm.margin_out} is being '
+                  'used for pupil-based actuator filtering')
             pup_side = p_geom._ipupil.shape[0]
             cub_off = dm_util.filterActuWithPupil(cub + pup_side // 2 - 0.5,
                                                   p_geom._ipupil,
@@ -438,6 +440,31 @@ def make_pzt_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, cobs: float,
     if (p_dm._puppixoffset is not None):
         xpos += p_dm._puppixoffset[0]
         ypos += p_dm._puppixoffset[1]
+
+    if p_dm.segmented_mirror:
+        # mpupil to ipupil shift
+        # Good centering assumptions
+        s = (p_geom._ipupil.shape[0] - p_geom._mpupil.shape[0]) // 2
+
+        from skimage.morphology import label
+        k = 0
+        for i in tqdm(range(ntotact)):
+            # Pupil area corresponding to influ data
+            i1, j1 = i1t[i] + s - smallsize // 2, j1t[i] + s - smallsize // 2
+            pupilSnapshot = p_geom._ipupil[i1:i1 + smallsize, j1:j1 + smallsize]
+            if np.all(pupilSnapshot):  # We have at least one non-pupil pixel
+                continue
+            labels, num = label(pupilSnapshot, background=0, return_num=True)
+            if num <= 1:
+                continue
+            k += 1
+            maxPerArea = np.array([
+                    (influ[:, :, i] * (labels == k).astype(np.float32)).max()
+                    for k in range(1, num + 1)
+            ])
+            influ[:, :, i] *= (labels == np.argmax(maxPerArea) + 1).astype(np.float32)
+        print(f'{k} cross-spider influence functions trimmed.')
+
     influ = influ * float(p_dm.unitpervolt / np.max(influ))
 
     p_dm._influ = influ
