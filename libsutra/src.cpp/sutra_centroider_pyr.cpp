@@ -71,7 +71,7 @@ int sutra_centroider_pyr<Tin, T>::get_cog(float *cube, float *intensities,
 
   return get_pyr(cube, intensities, centroids, this->d_validx->getData(),
                  this->d_validy->getData(), this->nvalid,
-                 this->d_bincube->getDims(1), 4);
+                 this->d_img->getDims(1), 4);
 }
 
 template <class Tin, class T>
