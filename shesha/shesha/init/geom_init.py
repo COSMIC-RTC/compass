@@ -502,7 +502,7 @@ def init_pyrhr_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
     p_wfs._validsubsy = validCol[np.sort(index)]
     p_wfs._hrmap = mskRebTot.astype(np.int32)
 
-    if (p_wfs.pyr_pos == None):
+    if (p_wfs.pyr_pos is None):
         pixsize = (np.pi * p_wfs._qpixsize) / (3600 * 180)
         #            scale_fact = 2 * np.pi / npup * \
         #                (p_wfs.Lambda / p_tel.diam / 4.848) / pixsize * p_wfs.pyr_ampl

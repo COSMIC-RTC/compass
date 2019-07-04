@@ -1350,7 +1350,7 @@ class Param_wfs:
     def set_pyr_pos(self, data):
         """ TODO : docstring
         """
-        self.__pyr_pos = csu.enforce_array(data.copy(), data.size, dtype=np.float32)
+        self.__pyr_pos = csu.enforce_arrayMultiDim(data.copy(), data.shape, dtype=np.float32)
 
     pyr_pos = property(get_pyr_pos, set_pyr_pos)
 
