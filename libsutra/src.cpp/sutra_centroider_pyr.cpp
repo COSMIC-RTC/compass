@@ -95,9 +95,6 @@ int sutra_centroider_pyr<Tin, T>::get_pyr(float *cube, float *intensities,
               this->method.isSinus,  // if we are using a sin method
               this->current_context->get_device(this->device));
 
-  carma_axpy<float>(this->current_context->get_cublasHandle(), this->nslopes,
-                    -1.0f, this->d_centroids_ref->getData(), 1, centroids, 1);
-
   if (this->filter_TT) {
     this->apply_TT_filter(centroids);
   }
