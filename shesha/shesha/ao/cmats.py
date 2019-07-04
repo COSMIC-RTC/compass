@@ -123,3 +123,81 @@ def cmat_init(ncontrol: int, rtc: Rtc, p_controller: conf.Param_controller,
             rtc.d_control[ncontrol].filter_cmat(p_controller.TTcond)
         print("Done")
     p_controller.set_cmat(np.array(rtc.d_control[ncontrol].d_cmat))
+
+def svd_for_cmat(D):
+    DtD=D.T.dot(D)
+    return np.linalg.svd(DtD)
+
+def Btt_for_cmat(rtc, dms, p_dms, p_geom):
+    """ Compute a command matrix in Btt modal basis (see error breakdown) and set
+    it on the sutra_rtc. It computes by itself the volts to Btt matrix.
+
+    :parameters:
+
+        rtc: (Rtc) : rtc object
+
+        dms: (Dms): dms object
+
+        p_dms: (list of Param_dm): dms settings
+
+        p_geom: (Param_geom): geometry settings
+
+    """
+
+    IFs = basis.compute_IFsparse(dms, p_dms, p_geom).T
+    n = IFs.shape[1]
+    IFtt = IFs[:, -2:].toarray()
+    IFpzt = IFs[:, :n - 2]
+
+    Btt, P = basis.compute_Btt(IFpzt, IFtt)
+    return Btt,P
+
+def get_cmat(D,nfilt,Btt=None,rtc=None,svd=None):
+    """Compute a command matrix from an interaction matrix 'D'
+
+    usage:
+        get_cmat(D,nfilt)
+        get_cmat(D,nfilt,Btt=BTT,rtc=RTC)
+        get_cmat(D,nfilt,svd=SVD)
+
+    :parameters:
+        D: (np.ndarray[ndim=2, dtype=np.float32]): interaction matrix
+
+        nfilt: (int): number of element to filter
+
+        Btt: (np.ndarray[ndim=2, dtype=np.float32]): Btt modal basis
+
+        rtc: (Rtc) :
+
+        svd: (tuple of np.ndarray[ndim=1, dtype=np.float32): svd of D.T*D (obtained from np.linalg.svd)
+    """
+    nfilt=max(nfilt,0)#nfilt is positive
+    if(Btt is not None):
+        if(svd is not None):
+            raise ValueError("Btt and SVD cannt be used together")
+        if(rtc is None):
+            raise ValueError("Btt cannot be used without rtc")
+        n = Btt.shape[1]
+        index = np.concatenate((np.arange(n-nfilt-2) ,
+                                np.array([n-2,n-1]))).astype(int)
+        Btt_filt = Btt[:, index]
+        # Modal interaction basis
+        Dm = D.dot(Btt_filt)
+        # Direct inversion
+        Dmp = np.linalg.inv(Dm.T.dot(Dm)).dot(Dm.T)
+        # Command matrix
+        cmat = Btt_filt.dot(Dmp)
+    else:
+        if(svd is not None):
+            u = svd[0]
+            s = svd[1]
+            v = svd[2]
+        else:
+            u,s,v = svd_for_cmat(D)
+        s_filt=1/s
+        if(nfilt>0):
+            s_filt[-nfilt:]=0
+        DtDx=v.T.dot(np.diag(s_filt)).dot(u.T)
+        cmat=DtDx.dot(D.T)
+
+    return cmat.astype(np.float32)

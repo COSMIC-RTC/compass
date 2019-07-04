@@ -561,3 +561,14 @@ class CompassSupervisor(AbstractSupervisor):
         Returns the psf in the focal plane of the pyramid.
         """
         return np.fft.fftshift(np.array(self._sim.wfs.d_wfs[nwfs].d_pyrfocalplane))
+
+    def reset(self,tar=-1,rst=True):
+        self.resetTurbu()
+        if(tar<0):
+            for tar in range(self._sim.tar.ntargets):
+                self.resetStrehl(tar)
+        else:
+            self.resetStrehl(tar)
+        self.resetDM()
+        self.openLoop(rst=rst)
+        self.closeLoop()
