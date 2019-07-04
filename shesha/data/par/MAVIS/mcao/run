@@ -1,0 +1,47 @@
+from shesha.ao import imats
+from shesha.ao import cmats
+from astropy.io import fits
+import numpy as np
+from matplotlib import pyplot as plt
+plt.ion()
+from shesha.util import write_sysParam
+
+#easier access to datas
+sup=supervisor
+sim=sup._sim
+conf=sup.config
+sup.reset()
+
+#setting open loop
+sup._sim.rtc.d_control[0].set_polc(True)
+
+#if generic: need to update imat in controller
+sim.rtc.d_control[0].set_imat(conf.p_controllers[0]._imat)
+#update gain
+sim.rtc.d_control[0].set_gain(conf.p_controllers[0].gain)
+
+#compute meta imat
+metaD=imats.get_metaD(sup)
+#get svd of (D.T*D)
+SVD=cmats.svd_for_cmat(metaD)
+plt.plot(SVD[1])
+nfilt=30
+metaDx=cmats.get_cmat(metaD,nfilt=nfilt,svd=SVD)
+
+#write MOAO pipeline inputs
+datapath="/home/dgratadour/compass/shesha/data/par/MAVIS/mcao"
+write_sysParam.generate_files(sup,datapath,singleFile=True,dm_tt=False)
+write_sysParam.write_metaDx(metaDx,nTS=conf.NTS,path=datapath)
+
+#compute reconstructor here
+#STARPU_SILENT=1 ./mcao_reconstructor --sys_path=/home/dgratadour/compass/shesha/data/par/MAVIS/mcao --atm_path=/home/dgratadour/compass/shesha/data/par/MAVIS/mcao --ncores=1  --gpuIds=0,4 --ts=984 --sync=1 --warmup=0
+
+#get reconstructor from file
+sup.reset()
+M=fits.getdata("/home/dgratadour/apply/chameleon/build/M_mcao.fits").T
+#check that reconstructor does not contain any Nan
+if(np.any(M!=M)):
+    raise ValueError("reconstructor ",Mfile," is invalid")
+sup.setCommandMatrix(M)
+sup.loop(1000,monitoring_freq=100)
+
