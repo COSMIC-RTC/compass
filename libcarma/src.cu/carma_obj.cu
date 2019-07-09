@@ -173,17 +173,17 @@ template int fillindex<double>(double *d_odata, double *d_idata, int *indx,
                                int N, carma_device *device);
 
 template <class T>
-__global__ void krnl_fillvalues(T *odata, T val, int N) {
+__global__ void krnl_fillvalues(T *odata, T *val, int N) {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
-    odata[tid] = val / N;
+    odata[tid] = val[0] / N;
     tid += blockDim.x * gridDim.x;
   }
 }
 
 template <class T>
-int fillvalues(T *d_odata, T val, int N, carma_device *device) {
+int fillvalues(T *d_odata, T *val, int N, carma_device *device) {
   int nBlocks, nThreads;
   getNumBlocksAndThreads(device, N, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
@@ -195,13 +195,13 @@ int fillvalues(T *d_odata, T val, int N, carma_device *device) {
   return EXIT_SUCCESS;
 }
 
-template int fillvalues<float>(float *d_odata, float val, int N,
+template int fillvalues<float>(float *d_odata, float *val, int N,
                                carma_device *device);
 
-template int fillvalues<double>(double *d_odata, double val, int N,
+template int fillvalues<double>(double *d_odata, double *val, int N,
                                 carma_device *device);
 
-template int fillvalues<unsigned int>(unsigned int *d_odata, unsigned int val,
+template int fillvalues<unsigned int>(unsigned int *d_odata, unsigned int *val,
                                       int N, carma_device *device);
 
 template <class T>

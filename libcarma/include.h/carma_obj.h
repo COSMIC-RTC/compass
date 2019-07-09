@@ -432,7 +432,7 @@ template <class T_data>
 int fillindex(T_data *d_odata, T_data *d_idata, int *indx, int N,
               carma_device *device);
 template <class T_data>
-int fillvalues(T_data *d_odata, T_data val, int N, carma_device *device);
+int fillvalues(T_data *d_odata, T_data *val, int N, carma_device *device);
 template <class T>
 int getarray2d(T *d_odata, T *d_idata, int x0, int Ncol, int NC, int N,
                carma_device *device);
