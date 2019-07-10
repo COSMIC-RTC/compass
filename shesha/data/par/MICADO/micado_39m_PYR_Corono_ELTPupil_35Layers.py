@@ -1,5 +1,5 @@
-import shesha_config as ao
-import shesha_constants as scons
+import shesha.config as ao
+import shesha.constants as scons
 import numpy as np
 simul_name = ""
 layout = "layoutDeFab"
@@ -16,13 +16,12 @@ p_geom.set_zenithangle(0.)
 
 # tel
 p_tel = ao.Param_tel()
-p_tel.set_diam(38.542)
 p_tel.set_cobs(0.28)
 
 #E_ELT PUPIL
 
-p_tel.set_type_ap("EELT-Nominal")
-p_tel.set_spiders_type("six")
+p_tel.set_type_ap("EELT")
+p_tel.set_diam(40.0)
 p_tel.set_pupangle(0)
 p_tel.set_t_spiders(0)
 """
@@ -100,11 +99,11 @@ frac = frac1L
 wind = wind1L
 """
 
-r0 = r0Q3
+r0 = r0med
 alt = altESO
-frac = fracQ3
+frac = fracmed
 wind = windESO
-
+"""
 nbLayers = len(alt)
 # p_atmos.set_r0(0.129)
 p_atmos.set_r0(r0)
@@ -114,6 +113,18 @@ p_atmos.set_alt(alt)
 p_atmos.set_windspeed(wind)
 p_atmos.set_winddir([45.] * nbLayers)
 p_atmos.set_L0([25.] * nbLayers)  # Not simulated in Yorick?
+"""
+
+
+# p_atmos.set_r0(0.129)
+p_atmos.set_r0(0.129)
+p_atmos.set_nscreens(1)
+p_atmos.set_frac([1.0])
+p_atmos.set_alt([0.0])
+p_atmos.set_windspeed([10.])
+p_atmos.set_winddir([45.])
+p_atmos.set_L0([25.])  # Not simulated in Yorick?
+
 
 # target
 #p_target = ao.Param_target()
@@ -160,18 +171,18 @@ p_wfs0.set_type("pyrhr")
 p_wfs0.set_nxsub(
         92
 )  # 92 sub aps for hexagonal grid of actuators eq. 78 subaps square grid. (pitch = 0.5m)
-p_wfs0.set_fracsub(0.8)
+p_wfs0.set_fracsub(0.1)
 p_wfs0.set_xpos(0.)
 p_wfs0.set_ypos(0.)
 p_wfs0.set_Lambda(0.7)
 p_wfs0.set_gsmag(11)
 p_wfs0.set_optthroughput(0.28)
 p_wfs0.set_zerop(2.6e10)  # 2.6e10 ph/s/m**2 computed by Rico in R band for MOSAIC
-p_wfs0.set_noise(0.32)  # in electrons units
+p_wfs0.set_noise(0.3)  # in electrons units
 p_wfs0.set_atmos_seen(1)
 p_wfs0.set_fstop("square")
 p_wfs0.set_fssize(1.6)
-rMod = 3
+rMod = 5
 p_wfs0.set_pyr_npts(int(np.ceil(int(rMod * 2 * 3.141592653589793) / 4.) * 4))
 #p_wfs0.set_pyr_npts(31)
 p_wfs0.set_pyr_ampl(rMod)
@@ -193,14 +204,14 @@ nact = p_wfs0.nxsub + 1
 #nact = 9
 
 #p_dm0.set_nact(nact)
-p_dm0.set_nact(73)  #73 actuators for a projected M4 pitch of 53cm
+p_dm0.set_nact(75)  # 75 actuators on 40m for a projected M4 pitch of 54.05 cm
 p_dm0.set_alt(0.)
-p_dm0.set_thresh(0.2)  # fraction units
+p_dm0.set_thresh(0.6)  # fraction units
 # !!!!!!!!!!!!!!!!!!!!!!!!! attention pas autre chose que 0.2 !!!!!!!!!
 p_dm0.set_coupling(0.2)
 p_dm0.set_unitpervolt(1)
 p_dm0.set_push4imat(0.01)
-p_dm0.set_type_pattern("hexa")
+p_dm0.set_type_pattern("hexaM4")
 #p_dm0.set_influType("gaussian")
 p_dm0.set_influType("radialSchwartz")
 """
