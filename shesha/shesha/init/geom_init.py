@@ -223,8 +223,8 @@ def init_wfs_size(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel, verbo
             while (pdiam % p_wfs.nxsub != 0):
                 pdiam += 1  # we choose to have a multiple of p_wfs.nxsub
             pdiam = pdiam // p_wfs.nxsub
-            if (pdiam < 16):
-                pdiam = 16
+            if (pdiam < 8):
+                pdiam = 8
 
         # quantum pixel size
     else:
