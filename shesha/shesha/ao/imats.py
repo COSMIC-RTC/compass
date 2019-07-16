@@ -283,11 +283,19 @@ def get_metaD(sup, TS_xpos=None, TS_ypos=None, ind_TS=-1, save_metaD=False):
     """
     if (TS_xpos is None):
         TS_xpos = np.array([t.xpos for t in sup.config.p_wfs_ts])
+    elif(isinstance(TS_xpos,list)):
+        TS_xpos=np.array(TS_xpos)
+    elif(isinstance(TS_xpos,int) or isinstance(TS_xpos,float )):
+        TS_xpos=np.array([TS_xpos]).astype(np.float32)
     if (TS_xpos.size < 1):
         TS_xpos = np.zeros((1))
 
     if (TS_ypos is None):
         TS_ypos = np.array([t.ypos for t in sup.config.p_wfs_ts])
+    elif(isinstance(TS_ypos,list)):
+        TS_ypos=np.array(TS_ypos)
+    elif(isinstance(TS_ypos,int) or isinstance(TS_ypos,float )):
+        TS_ypos=np.array([TS_ypos]).astype(np.float32)
     if (TS_ypos.size < 1):
         TS_ypos = np.zeros((1))
 
