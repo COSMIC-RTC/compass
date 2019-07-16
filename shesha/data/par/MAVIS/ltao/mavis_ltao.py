@@ -35,8 +35,9 @@ p_atmos.set_L0([25., 25., 25., 25.])
 # TARGET
 p_targets=[]
 NTAR= 1
-tar_xpos=np.array([0.])
-tar_ypos=np.array([0.])
+
+tar_xpos=np.array([ 0.])
+tar_ypos=np.array([ 0.])
 #NTAR=49
 #xpos, ypos = np.meshgrid(np.linspace(-15, 15, 7), np.linspace(-15, 15, 7))
 for t in np.arange(NTAR):
@@ -48,7 +49,7 @@ for t in np.arange(NTAR):
     p_targets[t].set_Lambda( 1.6)
     p_targets[t].set_mag(10.)
     #1 DM per target: pzt
-    p_targets[t].set_dms_seen(np.array([t]))
+    p_targets[t].set_dms_seen(np.array([0]))
     #2 DM per target: pzt + tt
     #p_targets[t].set_dms_seen(np.array([t,NTAR]))
 

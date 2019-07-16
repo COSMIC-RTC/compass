@@ -21,24 +21,26 @@ sim.rtc.d_control[0].set_imat(conf.p_controllers[0]._imat)
 sim.rtc.d_control[0].set_gain(conf.p_controllers[0].gain)
 
 #compute meta imat
-metaD=imats.get_metaD(sup)
+#specify only 1 pointing direction +> generate only 1 imat
+#(case ground layer)
+metaD=imats.get_metaD(sup,[0.],[0.])
 #get svd of (D.T*D)
 SVD=cmats.svd_for_cmat(metaD)
 #plt.plot(SVD[1])
-nfilt=10
+nfilt=4
 metaDx=cmats.get_cmat(metaD,nfilt=nfilt,svd=SVD)
 
 #write MOAO pipeline inputs
-datapath="/home/dgratadour/compass/shesha/data/par/MAVIS/mcao"
+datapath="/home/dgratadour/compass/shesha/data/par/MAVIS/glao"
 write_sysParam.generate_files(sup,datapath,singleFile=True,dm_tt=True)
-write_sysParam.write_metaDx(metaDx,nTS=conf.NTS,path=datapath)
+write_sysParam.write_metaDx(metaDx,path=datapath)
 
 #compute reconstructor here
-#STARPU_SILENT=1 ./mcao_reconstructor --sys_path=/home/dgratadour/compass/shesha/data/par/MAVIS/mcao --atm_path=/home/dgratadour/compass/shesha/data/par/MAVIS/mcao --ncores=1  --gpuIds=0,4 --ts=984 --sync=1 --warmup=0
+#STARPU_SILENT=1 ./glao_reconstructor --sys_path=/home/dgratadour/compass/shesha/data/par/MAVIS/glao --atm_path=/home/dgratadour/compass/shesha/data/par/MAVIS/glao --ncores=1  --gpuIds=0,4 --ts=984 --sync=1 --warmup=0
 
 #get reconstructor from file
 sup.reset()
-Mfile="/home/dgratadour/apply/chameleon/build/M_mcao.fits"
+Mfile="/home/dgratadour/apply/chameleon/build/M_glao.fits"
 M=fits.getdata(Mfile).T
 #check dimensions
 CMATSHAPE=sup.getCmat(0).shape

@@ -24,7 +24,7 @@ sim.rtc.d_control[0].set_gain(conf.p_controllers[0].gain)
 metaD=imats.get_metaD(sup)
 #get svd of (D.T*D)
 SVD=cmats.svd_for_cmat(metaD)
-plt.plot(SVD[1])
+#plt.plot(SVD[1])
 nfilt=10
 metaDx=cmats.get_cmat(metaD,nfilt=nfilt,svd=SVD)
 
@@ -38,10 +38,15 @@ write_sysParam.write_metaDx(metaDx,nTS=conf.NTS,path=datapath)
 
 #get reconstructor from file
 sup.reset()
-M=fits.getdata("/home/dgratadour/apply/chameleon/build/M_ltao_0.fits").T
+Mfile="/home/dgratadour/apply/chameleon/build/M_ltao_0.fits"
+M=fits.getdata(Mfile).T
+#check dimensions
+CMATSHAPE=sup.getCmat(0).shape
+if(M.shape[0] !=CMATSHAPE[0] or M.shape[1]!=CMATSHAPE[1]):
+     raise ValueError("reconstructor ",Mfile," does not have the right dimensions")
 #check that reconstructor does not contain any Nan
 if(np.any(M!=M)):
     raise ValueError("reconstructor ",Mfile," is invalid")
 sup.setCommandMatrix(M)
-sup.loop(2000,monitoring_freq=100)
+sup.loop(1000,monitoring_freq=100)
 

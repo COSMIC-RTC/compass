@@ -1,7 +1,7 @@
 import shesha.config as conf
 import numpy as np
 simul_name = "mavis"
-AOtype="mcao" 
+AOtype="glao" 
 
 ###################
 # LOOP
@@ -33,7 +33,7 @@ p_atmos.set_L0([25., 25., 25., 25.])
 
 ###################
 # TARGET
-p_targets=[]
+p_targets  = []
 RADIUS_TAR = 15
 NTAR_side  = 5
 NTAR       = NTAR_side * NTAR_side
@@ -51,10 +51,9 @@ for t in np.arange(NTAR):
     p_targets[t].set_Lambda(1.6)
     p_targets[t].set_mag(10.)
     #1 DM per target: pzt
-    p_targets[t].set_dms_seen([0,1,2,3])
+    p_targets[t].set_dms_seen([0,1])
     #2 DM per target: pzt + tt
     #p_targets[t].set_dms_seen(np.array([t,NTAR]))
-
 
 ###################
 # WFS
@@ -66,6 +65,7 @@ NXSUB_TAR   = max(NXSUB_LGS,NXSUB_NGS)
 NLGS        = 6
 NNGS        = 1
 NTS_side    = 5
+#NTS_side    = 1
 NTS         = NTS_side*NTS_side
 
 p_wfs_lgs = []
@@ -81,8 +81,10 @@ lgs_ypos = RADIUS * np.sin(x)
 # closest star from asterism F2 to axis
 #asterism_x = [ -1.213]
 #asterism_y = [ 24.719 ]
-asterism_x = [ -1.213]
-asterism_y = [ 8 ]
+#asterism_x = [ -1.213]
+#asterism_y = [ 8 ]
+asterism_x = [ 0.]
+asterism_y = [ 0.]
 
 #Truth Sensors position
 radius = 15
@@ -90,6 +92,8 @@ lspace=np.linspace(-radius+1,radius-1,NTS_side)
 mesh=np.meshgrid(lspace,lspace)
 TS_xpos = mesh[0].flatten() #radius * np.cos(x)
 TS_ypos = mesh[1].flatten() #radius * np.sin(x)
+#TS_xpos = [0.]
+#TS_ypos = [0.]
 
 # add 1 position for target
 asterism_x = asterism_x + [0.]
@@ -172,7 +176,7 @@ p_dm0 = conf.Param_dm()
 p_dm1 = conf.Param_dm()
 p_dm2 = conf.Param_dm()
 p_dm3 = conf.Param_dm()
-p_dms = [p_dm0 , p_dm1, p_dm2, p_dm3]
+p_dms = [p_dm0,p_dm3] # ,p_dm1, p_dm2]
 #adding target DMs
 p_dm0.set_type("pzt")
 p_dm0.set_nact(41)
@@ -183,7 +187,7 @@ p_dm0.set_unitpervolt(1)
 p_dm0.set_push4imat(1)
 
 p_dm1.set_type("pzt")
-p_dm1.set_nact(41)
+p_dm1.set_nact(21)
 p_dm1.set_alt(4500.)
 p_dm1.set_thresh(0.3)
 p_dm1.set_coupling(0.3)
@@ -191,7 +195,7 @@ p_dm1.set_unitpervolt(0.1)
 p_dm1.set_push4imat(1)
 
 p_dm2.set_type("pzt")
-p_dm2.set_nact(41)
+p_dm2.set_nact(11)
 p_dm2.set_alt(9000.)
 p_dm2.set_thresh(0.3)
 p_dm2.set_coupling(0.3)
@@ -216,7 +220,7 @@ for p_centroider in p_centroiders:
     p_centroider.set_type("cog")
     if (p_wfss[k].get_gsalt() > 0):
         p_centroider.set_filter_TT(True)
-
+    
 
 ###################
 # CONTROLLERS
