@@ -5,6 +5,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 plt.ion()
 from shesha.util import write_sysParam
+from shesha.util import psfMap
 
 #easier access to datas
 sup=supervisor
@@ -25,7 +26,7 @@ metaD=imats.get_metaD(sup)
 #get svd of (D.T*D)
 SVD=cmats.svd_for_cmat(metaD)
 #plt.plot(SVD[1])
-nfilt=10
+nfilt=22
 metaDx=cmats.get_cmat(metaD,nfilt=nfilt,svd=SVD)
 
 #write MOAO pipeline inputs
@@ -50,9 +51,7 @@ if(np.any(M!=M)):
 sup.setCommandMatrix(M)
 sup.loop(1000,monitoring_freq=100)
 
-NSTAR = 5  
-map1=np.zeros((NSTAR,NSTAR))  
-for i in range(NSTAR*NSTAR):  
-    map1.itemset(i,sim.getStrehl(i)[1])  
-plt.matshow(map1) 
 
+map1=psfMap.PSF_map(sup=sup,AOtype="MCAO")
+map1.plot(title=True,WFS=True)
+#map1.save()
