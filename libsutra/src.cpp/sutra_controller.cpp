@@ -6,7 +6,7 @@ sutra_controller<Tcomp, Tout>::sutra_controller(carma_context *context,
                                                 int nvalid, int nslope,
                                                 int nactu, float delay,
                                                 sutra_dms *dms, int *idx_dms,
-                                                int ndm) {
+                                                int ndm, int *idx_centro, int ncentro) {
   this->current_context = context;
   this->device = context->get_activeDevice();
 
@@ -55,6 +55,10 @@ sutra_controller<Tcomp, Tout>::sutra_controller(carma_context *context,
 
   for (int i = 0; i < ndm; i++) {
     this->d_dmseen.push_back(dms->d_dms[idx_dms[i]]);
+  }
+
+  for (int i = 0; i < ncentro; i++) {
+    this->centro_idx.push_back(idx_centro[i]);
   }
 
   if (std::is_same<Tcomp, half>::value) {

@@ -55,7 +55,7 @@ class sutra_controller_ls : public sutra_controller<Tcomp, Tout> {
  public:
   sutra_controller_ls(carma_context *context, long nvalid, long nslope,
                       long nactu, float delay, sutra_dms *dms, int *idx_dms,
-                      int ndm);
+                      int ndm, int *idx_centro, int ncentro);
   sutra_controller_ls(const sutra_controller_ls &controller);
   ~sutra_controller_ls();
 

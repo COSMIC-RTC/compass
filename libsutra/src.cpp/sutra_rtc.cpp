@@ -138,10 +138,10 @@ int sutra_rtc<Tin, T, Tout>::add_controller(carma_context *context, int nvalid,
                                             int nslope, int nactu, float delay,
                                             long device, std::string typec,
                                             sutra_dms *dms, int *idx_dms,
-                                            int ndm, int Nphi,
+                                            int ndm,  int *idx_centro, int ncentro, int Nphi,
                                             bool wfs_direction) {
   return add_controller_impl(context, this->d_control, nvalid, nslope, nactu,
-                             delay, device, typec, dms, idx_dms, ndm, Nphi,
+                             delay, device, typec, dms, idx_dms, ndm, idx_centro, ncentro, Nphi,
                              wfs_direction, std::is_same<T, half>());
 }
 
@@ -151,24 +151,24 @@ typename std::enable_if<!std::is_same<Q, half>::value, int>::type
 sutra_rtc<Tin, T, Tout>::add_controller_impl(
     carma_context *context, vector<sutra_controller<T, Tout> *> &d_control,
     int nvalid, int nslope, int nactu, float delay, long device,
-    std::string typec, sutra_dms *dms, int *idx_dms, int ndm, int Nphi,
+    std::string typec, sutra_dms *dms, int *idx_dms, int ndm,  int *idx_centro, int ncentro, int Nphi,
     bool wfs_direction, std::false_type) {
   if (typec.compare("ls") == 0) {
     d_control.push_back(new sutra_controller_ls<T, Tout>(
-        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm));
+        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro, ncentro));
   } else if (typec.compare("geo") == 0) {
     d_control.push_back(new sutra_controller_geo<T, Tout>(
-        context, nactu, Nphi, delay, dms, idx_dms, ndm, wfs_direction));
+        context, nactu, Nphi, delay, dms, idx_dms, ndm, idx_centro, ncentro, wfs_direction));
 
   } else if (typec.compare("cured") == 0) {
     d_control.push_back(new sutra_controller_cured<T, Tout>(
-        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm));
+        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro, ncentro));
   } else if (typec.compare("mv") == 0) {
     d_control.push_back(new sutra_controller_mv<T, Tout>(
-        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm));
+        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro, ncentro));
   } else if (typec.compare("generic") == 0) {
     d_control.push_back(new sutra_controller_generic<T, Tout>(
-        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm));
+        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro, ncentro));
     // } else if ((typec.compare("kalman_GPU") == 0) ||
     //            (typec.compare("kalman_CPU") == 0)) {
     //   d_control.push_back(
@@ -185,11 +185,11 @@ template <typename Tin, typename T, typename Tout>
 int sutra_rtc<Tin, T, Tout>::add_controller_impl(
     carma_context *context, vector<sutra_controller<T, Tout> *> &d_control,
     int nvalid, int nslope, int nactu, float delay, long device,
-    std::string typec, sutra_dms *dms, int *idx_dms, int ndm, int Nphi,
+    std::string typec, sutra_dms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro, int Nphi,
     bool wfs_direction, std::true_type) {
   if (typec.compare("generic") == 0) {
     d_control.push_back(new sutra_controller_generic<T, Tout>(
-        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm));
+        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro, ncentro));
 
   } else {
     DEBUG_TRACE("Not implemented in half precision yet");
@@ -216,7 +216,7 @@ typename std::enable_if<std::is_same<Q, float>::value, int>::type
 sutra_rtc<Tin, T, Tout>::do_imat_impl(int ncntrl, sutra_dms *ydm,
                                       std::true_type) {
   carma_obj<T> *d_imat = NULL;
-  if (this->d_control[ncntrl]->get_type().compare("ls") == 0) {
+if (this->d_control[ncntrl]->get_type().compare("ls") == 0) {
     sutra_controller_ls<T, Tout> *control =
         dynamic_cast<sutra_controller_ls<T, Tout> *>(this->d_control[ncntrl]);
     d_imat = control->d_imat;
@@ -236,8 +236,9 @@ sutra_rtc<Tin, T, Tout>::do_imat_impl(int ncntrl, sutra_dms *ydm,
   while (p != this->d_control[ncntrl]->d_dmseen.end()) {
     sutra_dm *dm = *p;
     if (dm->type == "tt") {
-      for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size();
-           idx_cntr++) {
+      for (size_t idxh = 0; idxh < this->d_control[ncntrl]->centro_idx.size();
+           idxh++) {
+        int idx_cntr = this->d_control[ncntrl]->centro_idx[idxh];
         if (this->d_centro[idx_cntr]->filter_TT) {
           std::cout << "Measuring TT reference for centro : " << idx_cntr
                     << std::endl;
@@ -557,7 +558,10 @@ int sutra_rtc<Tin, T, Tout>::do_calibrate_img() {
 
 template <typename Tin, typename T, typename Tout>
 int sutra_rtc<Tin, T, Tout>::do_calibrate_img(int ncntrl) {
-  this->d_centro[ncntrl]->calibrate_img();
+  for (size_t idxh = 0; idxh < this->d_control[ncntrl]->centro_idx.size(); idxh++) {
+    int idx_cntr = this->d_control[ncntrl]->centro_idx[idxh];
+    this->d_centro[idx_cntr]->calibrate_img();
+  }
 
   return EXIT_SUCCESS;
 }
@@ -580,7 +584,8 @@ template <typename Tin, typename T, typename Tout>
 int sutra_rtc<Tin, T, Tout>::do_centroids(int ncntrl, bool noise) {
   int indslope = 0;
 
-  for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
+  for (size_t idxh = 0; idxh < this->d_control[ncntrl]->centro_idx.size(); idxh++) {
+    int idx_cntr = this->d_control[ncntrl]->centro_idx[idxh];
     if (this->d_centro[idx_cntr]->wfs != nullptr) {
       this->d_centro[idx_cntr]->get_cog(
           this->d_centro[idx_cntr]->d_intensities->getData(),
@@ -620,7 +625,8 @@ typename std::enable_if<std::is_same<Q, float>::value, int>::type
 sutra_rtc<Tin, T, Tout>::do_centroids_geom_impl(int ncntrl, std::true_type) {
   int inds2 = 0;
 
-  for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
+  for (size_t idxh = 0; idxh < this->d_control[ncntrl]->centro_idx.size(); idxh++) {
+    int idx_cntr = this->d_control[ncntrl]->centro_idx[idxh];
     sutra_wfs *wfs = this->d_centro[idx_cntr]->wfs;
     if (wfs->type == "sh") {
       sutra_wfs_sh *_wfs = dynamic_cast<sutra_wfs_sh *>(wfs);

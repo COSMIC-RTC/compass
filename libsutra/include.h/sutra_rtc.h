@@ -51,7 +51,8 @@ class sutra_rtc {
   int add_controller(carma_context *context, int nvalid, int nslope, int nactu,
                      float delay, long device, std::string typec,
                      sutra_dms *dms = nullptr, int *idx_dms = nullptr,
-                     int ndm = 0, int Nphi = 0, bool wfs_direction = false);
+                     int ndm = 0, int *idx_centro = nullptr, int ncentro = 0,
+                     int Nphi = 0, bool wfs_direction = false);
 
   int remove_centroider(int ncentro);
   int remove_controller(int ncontrol);
@@ -116,13 +117,15 @@ class sutra_rtc {
                       vector<sutra_controller<T, Tout> *> &d_control,
                       int nvalid, int nslope, int nactu, float delay,
                       long device, std::string typec, sutra_dms *dms,
-                      int *idx_dms, int ndm, int Nphi, bool wfs_direction,
+                      int *idx_dms, int ndm, int *idx_centro, int ncentro, 
+                      int Nphi, bool wfs_direction,
                       std::false_type);
   int add_controller_impl(carma_context *context,
                           vector<sutra_controller<T, Tout> *> &d_control,
                           int nvalid, int nslope, int nactu, float delay,
                           long device, std::string typec, sutra_dms *dms,
-                          int *idx_dms, int ndm, int Nphi, bool wfs_direction,
+                          int *idx_dms, int ndm, int *idx_centro, int ncentro, 
+                          int Nphi, bool wfs_direction,
                           std::true_type);
 };
 

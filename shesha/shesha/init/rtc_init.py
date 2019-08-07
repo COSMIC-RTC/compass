@@ -108,7 +108,7 @@ def rtc_init(context: carmaWrap_context, tel: Telescope, wfs: Sensors, dms: Dms,
                 rtc.add_controller(context, p_controller.nvalid, p_controller.nslope,
                                    p_controller.nactu, p_controller.delay,
                                    context.activeDevice, scons.ControllerType.GEO, dms,
-                                   p_controller.ndm, p_controller.ndm.size, Nphi, True)
+                                   p_controller.ndm, p_controller.ndm.size, p_controller.nwfs, p_controller.nwfs.size, Nphi, True)
 
                 # rtc.add_controller_geo(context, nactu, Nphi, p_controller.delay,
                 #                        context.activeDevice, p_controller.type, dms,
@@ -339,7 +339,7 @@ def init_controller(context, i: int, p_controller: conf.Param_controller, p_wfss
     rtc.add_controller(context, p_controller.nvalid, p_controller.nslope,
                        p_controller.nactu, p_controller.delay, context.activeDevice,
                        p_controller.type, dms, p_controller.ndm, p_controller.ndm.size,
-                       Nphi, False)
+                       p_controller.nwfs, p_controller.nwfs.size, Nphi, False)
     print("CONTROLLER ADDED")
     if (p_wfss is not None and do_refslp):
         rtc.do_centroids_ref(i)

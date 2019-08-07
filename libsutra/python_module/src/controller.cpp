@@ -77,6 +77,10 @@ void controller_impl(py::module &mod, const char *name) {
           "Vector of sutra_dm commanded")
 
       .def_property_readonly(
+          "centro_idx", [](controller &sc) { return sc.centro_idx; },
+          "Indices of the handled centroiders")
+
+      .def_property_readonly(
           "d_centroids", [](controller &sc) { return sc.d_centroids; },
           "Slopes vector")
 
