@@ -34,8 +34,8 @@ p_atmos.set_L0([25., 25., 25., 25.])
 ###################
 # TARGET
 p_targets  = []
-RADIUS_TAR = 15
-NTAR_side  = 5
+RADIUS_TAR = 70
+NTAR_side  = 10
 NTAR       = NTAR_side * NTAR_side
 tar_xpos   =np.array([0.])
 tar_ypos   =np.array([0.])
@@ -57,14 +57,14 @@ for t in np.arange(NTAR):
 
 ###################
 # WFS
-RADIUS      = 15
+RADIUS      = 30
 FRACSUB     = 0.8
 NXSUB_LGS   = 40
 NXSUB_NGS   = 40
 NXSUB_TAR   = max(NXSUB_LGS,NXSUB_NGS)
 NLGS        = 6
-NNGS        = 1
-NTS_side    = 5
+NNGS        = 6
+NTS_side    = 10
 #NTS_side    = 1
 NTS         = NTS_side*NTS_side
 
@@ -81,13 +81,16 @@ lgs_ypos = RADIUS * np.sin(x)
 # closest star from asterism F2 to axis
 #asterism_x = [ -1.213]
 #asterism_y = [ 24.719 ]
+x = np.linspace(np.pi/6.,2 * np.pi+np.pi/6., NNGS+1)[:-1]
+asterism_x = RADIUS * np.cos(x)
+asterism_y = RADIUS * np.sin(x)
 #asterism_x = [ -1.213]
 #asterism_y = [ 8 ]
-asterism_x = [ 0.]
-asterism_y = [ 0.]
+#asterism_x = [ 0.]
+#asterism_y = [ 0.]
 
 #Truth Sensors position
-radius = 15
+radius = 30
 lspace=np.linspace(-radius+1,radius-1,NTS_side)
 mesh=np.meshgrid(lspace,lspace)
 TS_xpos = mesh[0].flatten() #radius * np.cos(x)
@@ -96,8 +99,8 @@ TS_ypos = mesh[1].flatten() #radius * np.sin(x)
 #TS_ypos = [0.]
 
 # add 1 position for target
-asterism_x = asterism_x + [0.]
-asterism_y = asterism_y + [0.]
+asterism_x = np.append(asterism_x, [0.])
+asterism_y = np.append(asterism_y, [0.])
 
 #create wfs lists
 #LGS

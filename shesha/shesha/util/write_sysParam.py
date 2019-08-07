@@ -114,12 +114,18 @@ def OTF_telescope(sup):
     return FTOtel
 
 
-def get_subaps(sup):
+def get_subaps(sup,WFS="all"):
     #X=(sup.config.p_wfss[0]._validpuppixx-mpup.shape[0]/2-1)*(sup.config.p_tel.diam/sup.config.p_wfss[0].nxsub/sup.config.p_wfss[0]._pdiam )
     nsubap=[]
     X=[]
     Y=[]
-    for wfs in sup.config.p_wfss:
+    if(WFS=="ngs"):
+    	p_wfss  = sup.config.p_wfs_ngs
+    elif(WFS=="lgs"):
+        p_wfss  = sup.config.p_wfs_lgs + [ sup.config.p_wfs_ngs[-1] ]
+    else: # case all
+        p_wfss  = sup.config.p_wfs_lgs + sup.config.p_wfs_ngs
+    for wfs in p_wfss:
         validX=wfs._validpuppixx
         validY=wfs._validpuppixy
         toMeter=(sup.config.p_tel.diam/wfs.nxsub/wfs._pdiam )
@@ -170,7 +176,7 @@ def funcInflu(x,y,x0):
     return 1.e-6*np.exp( -(x*x+y*y)/(2*x0*x0) )
 
 
-def generate_files(sup,path=".",singleFile=False,dm_tt=False):
+def generate_files(sup,path=".",singleFile=False,dm_tt=False,WFS="all"):
     """write inputs parameters
     
     sys-params.txt: contains the system parameters
@@ -200,13 +206,13 @@ def generate_files(sup,path=".",singleFile=False,dm_tt=False):
             return
         ntotact+=2
 
-    write_sysParam(sup,path=path)
+    write_sysParam(sup,path=path,WFS=WFS)
     write_atmParam(sup,path=path)
     #os.rename("sys-params.txt", path+"/sys-params.txt")
     idx=get_idx(p_dm,p_dm._xpos,p_dm._ypos)
     otf=OTF_telescope(sup)
     abs2fi=get_abs2fi(sup)
-    nsubaps,X,Y=get_subaps(sup)
+    nsubaps,X,Y=get_subaps(sup,WFS=WFS)
     if(not singleFile):
         hdu_idx  =fits.PrimaryHDU(idx)
         hdu_idx.header["NACT"]=nact
@@ -249,13 +255,18 @@ def toStr(a=""):
     
     return string
 
-def write_sysParam(sim,path="."):
+def write_sysParam(sim,path=".",WFS="all"):
     bdw=3.3e-7
     lgsdepth=5000.
     throughAtm=1.
-    p_wfss      = sim.config.p_wfss
     p_wfs_ngs   = sim.config.p_wfs_ngs
     p_wfs_lgs   = sim.config.p_wfs_lgs
+    if(WFS=="ngs"):
+    	p_wfss  = p_wfs_ngs
+    elif(WFS=="lgs"):
+        p_wfss  = p_wfs_lgs + [ p_wfs_ngs[-1] ]
+    else: # case all
+        p_wfss  = p_wfs_lgs + p_wfs_ngs
     p_wfs_ts    = sim.config.p_wfs_ts
     p_targets   = sim.config.p_targets
     p_tel       = sim.config.p_tel
@@ -327,21 +338,33 @@ def write_sysParam(sim,path="."):
     f.write("\nncpu       :           : Number of CPU used (only with openMP)\n")
     f.write(toStr(1))
     f.write("\nmrNGS      :           : magnitude of NGS\n")
-    f.write(toStr([w.gsmag for w in p_wfs_ngs]))
+    if(len(p_wfs_ngs)>0):
+        f.write(toStr([w.gsmag for w in p_wfs_ngs]))
+    else:
+        f.write(toStr([0.0]))
     f.write("\nlgsFlux    : (ph/m2/s) : LGS photon return at M1\n")
     f.write(toStr(lgsFlux))
     f.write("\nngsPixSize : arcsec    : NGS pixel size\n")
-    f.write(toStr(p_wfs_ngs[0].pixsize))
+    if(len(p_wfs_ngs)>0):
+        f.write(toStr(p_wfs_ngs[0].pixsize))
+    else:
+        f.write(toStr(0.0))
     f.write("\nlgsPixSize : arcsec    : LGS pixel size\n")
     f.write(toStr(lgsPixSize))
     f.write("\nlambdaNGS  : meter     : wave length for NGS\n")
-    f.write(toStr(p_wfs_ngs[0].Lambda*1e-6))
+    if(len(p_wfs_ngs)>0):
+        f.write(toStr(p_wfs_ngs[0].Lambda*1e-6))
+    else:
+        f.write(toStr(0.0))
     f.write("\nlambdaLGS  : meter     : wave length for LGS\n")
     f.write(toStr(lambdaLGS))
     f.write("\nbdw_m      : meter     : bandwidth\n")
     f.write(toStr(bdw))
     f.write("\nthroughNGS : percent   : transmission for NGS\n")
-    f.write(toStr(p_wfs_ngs[0].optthroughput))
+    if(len(p_wfs_ngs)>0):
+        f.write(toStr(p_wfs_ngs[0].optthroughput))
+    else:
+        f.write(toStr(0.0))
     f.write("\nthroughLGS : percent   : transmission for LGS\n")
     f.write(toStr(throughLGS))
     f.write("\nthroughAtm : percent   : atmosphere transmission\n")

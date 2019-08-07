@@ -26,12 +26,12 @@ metaD=imats.get_metaD(sup)
 #get svd of (D.T*D)
 SVD=cmats.svd_for_cmat(metaD)
 #plt.plot(SVD[1])
-nfilt=22
+nfilt=23
 metaDx=cmats.get_cmat(metaD,nfilt=nfilt,svd=SVD)
 
 #write MOAO pipeline inputs
 datapath="/home/dgratadour/compass/shesha/data/par/MAVIS/mcao"
-write_sysParam.generate_files(sup,datapath,singleFile=True,dm_tt=True)
+write_sysParam.generate_files(sup,datapath,singleFile=True,dm_tt=True,WFS="lgs")
 write_sysParam.write_metaDx(metaDx,nTS=conf.NTS,path=datapath)
 
 #compute reconstructor here

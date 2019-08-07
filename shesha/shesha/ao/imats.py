@@ -271,7 +271,7 @@ def imat_geom_ts(wfs: Sensors, dms: Dms, p_wfss: conf.Param_wfs, ind_TS: int,
 
     return imat_cpu
 
-def get_metaD(sup, TS_xpos=None, TS_ypos=None, ind_TS=-1, save_metaD=False):
+def get_metaD(sup, TS_xpos=None, TS_ypos=None, ind_TS=-1, save_metaD=False, nControl=0):
     """Create an interaction matrix for the current simulation given TS position
     :parameters:
         sim : : current COMPASS simulation
@@ -301,5 +301,5 @@ def get_metaD(sup, TS_xpos=None, TS_ypos=None, ind_TS=-1, save_metaD=False):
 
     return imat_geom_ts_multiple_direction(sup._sim.wfs, sup._sim.dms, sup.config.p_wfss,
                                            sup.config.p_dms, sup.config.p_geom, ind_TS,
-                                           sup.config.p_controller0.ndm,
+                                           sup.config.p_controllers[nControl].ndm,
                                            sup.config.p_tel, TS_xpos, TS_ypos)

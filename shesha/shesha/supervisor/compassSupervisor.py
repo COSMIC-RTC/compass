@@ -156,11 +156,11 @@ class CompassSupervisor(AbstractSupervisor):
                     dtype=np.float32) * gainMat
         self._sim.rtc.d_control[0].set_mgain(gainMat)
 
-    def setCommandMatrix(self, cMat: np.ndarray) -> None:
+    def setCommandMatrix(self, cMat: np.ndarray , nControl: int = 0) -> None:
         '''
         Set the cmat for the controller to use
         '''
-        self._sim.rtc.d_control[0].set_cmat(cMat)
+        self._sim.rtc.d_control[nControl].set_cmat(cMat)
 
     def setNoise(self, noise, numwfs=0, seed=1234):
         '''

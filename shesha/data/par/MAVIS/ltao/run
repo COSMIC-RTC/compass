@@ -21,7 +21,7 @@ sim.rtc.d_control[0].set_imat(conf.p_controllers[0]._imat)
 sim.rtc.d_control[0].set_gain(conf.p_controllers[0].gain)
 
 #compute meta imat
-metaD=imats.get_metaD(sup)
+metaD=imats.get_metaD(sup,0,0)
 #get svd of (D.T*D)
 SVD=cmats.svd_for_cmat(metaD)
 #plt.plot(SVD[1])

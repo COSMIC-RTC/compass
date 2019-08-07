@@ -319,6 +319,16 @@ def init_controller(context, i: int, p_controller: conf.Param_controller, p_wfss
             # TODO fixing a bug ... still not understood
         nvalid = sum([p_wfss[k]._nvalid for k in nwfs])
         p_controller.set_nvalid(int(np.sum([p_wfss[k]._nvalid for k in nwfs])))
+        tmp = 0
+        for c in p_centroiders:
+            if (c.nwfs in nwfs):
+                tmp = tmp + c._nslope
+        p_controller.set_nslope(int(tmp))
+    else:
+        nslope = np.sum([c._nslope for c in p_centroiders])
+        p_controller.set_nslope(int(nslope))
+        
+
     # parameter for add_controller(_geo)
     ndms = p_controller.ndm.tolist()
     nactu = np.sum([p_dms[j]._ntotact for j in ndms])
@@ -332,8 +342,8 @@ def init_controller(context, i: int, p_controller: conf.Param_controller, p_wfss
     else:
         Nphi = -1
 
-    nslope = np.sum([c._nslope for c in p_centroiders])
-    p_controller.set_nslope(int(nslope))
+    #nslope = np.sum([c._nslope for c in p_centroiders])
+    #p_controller.set_nslope(int(nslope))
 
     #TODO : find a proper way to set the number of slope (other than 2 times nvalid)
     rtc.add_controller(context, p_controller.nvalid, p_controller.nslope,

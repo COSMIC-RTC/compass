@@ -8,7 +8,7 @@ NFILT=240
 ###################
 # LOOP
 p_loop = conf.Param_loop()
-p_loop.set_niter(1)
+p_loop.set_niter(0)
 p_loop.set_ittime(0.0007)  # =1/1500
 
 ###################
@@ -224,11 +224,19 @@ for p_centroider in p_centroiders:
 ###################
 # CONTROLLERS
 p_controller0 = conf.Param_controller()
-p_controllers = [p_controller0]
+p_controller1 = conf.Param_controller()
+p_controllers = [p_controller0,p_controller1]
 
 p_controller0.set_type("generic")
-p_controller0.set_nwfs(np.arange(NLGS+NNGS))
-p_controller0.set_ndm(list(range(len(p_dms))))
+p_controller0.set_nwfs(np.arange(NLGS))
+p_controller0.set_ndm(list(range(len(p_dms)-1)))
 p_controller0.set_maxcond(150.)
 p_controller0.set_delay(1.)
 p_controller0.set_gain(0.3)
+
+p_controller1.set_type("ls")
+p_controller1.set_nwfs(np.arange(NNGS)+NLGS)
+p_controller1.set_ndm([3])
+p_controller1.set_maxcond(1500.)
+p_controller1.set_delay(1.)
+p_controller1.set_gain(0.3)

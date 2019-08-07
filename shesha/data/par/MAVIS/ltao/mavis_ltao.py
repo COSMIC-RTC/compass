@@ -34,22 +34,24 @@ p_atmos.set_L0([25., 25., 25., 25.])
 ###################
 # TARGET
 p_targets=[]
-NTAR= 1
-
-tar_xpos=np.array([ 0.])
-tar_ypos=np.array([ 0.])
+RADIUS_TAR = 15
+NTAR_side  = 1
+NTAR       = NTAR_side * NTAR_side
+tar_xpos   =np.array([0.])
+tar_ypos   =np.array([0.])
 #NTAR=49
-#xpos, ypos = np.meshgrid(np.linspace(-15, 15, 7), np.linspace(-15, 15, 7))
+if (NTAR > 1):
+    tar_xpos, tar_ypos = np.meshgrid(np.linspace(-RADIUS_TAR, RADIUS_TAR, NTAR_side), np.linspace(-RADIUS_TAR, RADIUS_TAR, NTAR_side))
 for t in np.arange(NTAR):
     p_targets.append(conf.Param_target())
-    p_targets[t].set_xpos(tar_xpos[t])
-    p_targets[t].set_ypos(tar_ypos[t])
+    p_targets[t].set_xpos(tar_xpos.flatten()[t])
+    p_targets[t].set_ypos(tar_ypos.flatten()[t])
     #IR 1.6 / visible 0.65
     #p_targets[t].set_Lambda( 0.65)
     p_targets[t].set_Lambda( 1.6)
     p_targets[t].set_mag(10.)
     #1 DM per target: pzt
-    p_targets[t].set_dms_seen(np.array([0]))
+    p_targets[t].set_dms_seen(np.array([t]))
     #2 DM per target: pzt + tt
     #p_targets[t].set_dms_seen(np.array([t,NTAR]))
 
@@ -164,14 +166,15 @@ for p_wfs in p_wfs_ts:
 # DM
 p_dms = [ ]
 #adding target DMs
-p_dms.append(conf.Param_dm())
-p_dms[-1].set_type("pzt")
-p_dms[-1].set_nact(41)
-p_dms[-1].set_alt(0.)
-p_dms[-1].set_thresh(0.3) # change actuator threshold
-p_dms[-1].set_coupling(0.3)
-p_dms[-1].set_unitpervolt(1)
-p_dms[-1].set_push4imat(1)
+for t in range(NTAR):
+    p_dms.append(conf.Param_dm())
+    p_dms[-1].set_type("pzt")
+    p_dms[-1].set_nact(41)
+    p_dms[-1].set_alt(0.)
+    p_dms[-1].set_thresh(0.3) # change actuator threshold
+    p_dms[-1].set_coupling(0.3)
+    p_dms[-1].set_unitpervolt(1)
+    p_dms[-1].set_push4imat(1)
 
 ##tip-tilt
 #p_dms.append(conf.Param_dm())

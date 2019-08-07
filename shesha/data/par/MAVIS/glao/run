@@ -52,9 +52,26 @@ if(np.any(M!=M)):
 sup.setCommandMatrix(M)
 sup.loop(1000,monitoring_freq=100)
 
-NSTAR = 5  
+NSTAR = 10  
 map1=np.zeros((NSTAR,NSTAR))  
 for i in range(NSTAR*NSTAR):  
     map1.itemset(i,sim.getStrehl(i)[1])  
-plt.matshow(map1) 
+
+RADIUS      = 30
+NLGS        = 6
+NNGS        = 6
+x = np.linspace(0, 2 * np.pi, NLGS+1)[:-1]
+lgs_xpos = RADIUS * np.cos(x)
+lgs_ypos = RADIUS * np.sin(x)
+x = np.linspace(np.pi/6.,2 * np.pi+np.pi/6., NNGS+1)[:-1]
+asterism_x = RADIUS * np.cos(x)
+asterism_y = RADIUS * np.sin(x)
+
+RADIUS      = 70
+plt.matshow(map1,extent=[-RADIUS,RADIUS,-RADIUS,RADIUS])
+plt.colorbar()
+plt.scatter(lgs_ypos,lgs_xpos,color="red")
+plt.scatter(asterism_y,asterism_x,color="blue")
+
+plt.title("GLAO Strehl @ 1650nm 30 arcsec ring optim")
 

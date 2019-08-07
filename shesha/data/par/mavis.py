@@ -6,7 +6,7 @@ simul_name = "mavis"
 p_loop = conf.Param_loop()
 
 p_loop.set_niter(5000)
-p_loop.set_ittime(0.0007)  # =1/500
+p_loop.set_ittime(0.0007)  # =1/1500
 
 # geom
 p_geom = conf.Param_geom()

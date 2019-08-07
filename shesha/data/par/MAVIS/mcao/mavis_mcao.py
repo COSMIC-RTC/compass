@@ -6,8 +6,8 @@ AOtype="mcao"
 ###################
 # LOOP
 p_loop = conf.Param_loop()
-p_loop.set_niter(1)
-p_loop.set_ittime(0.0007)  # =1/500
+p_loop.set_niter(10000)
+p_loop.set_ittime(0.0007)  # =1/1500
 
 ###################
 # GEOM
@@ -26,7 +26,7 @@ p_atmos = conf.Param_atmos()
 p_atmos.set_r0(0.12)
 p_atmos.set_nscreens(4)
 p_atmos.set_frac([0.5, 0.2, 0.2, 0.1])
-p_atmos.set_alt([0., 1000.0, 4500., 9000.])
+p_atmos.set_alt([0., 4490.0, 4500., 9000.])
 p_atmos.set_windspeed([10.0, 10.0, 10.0, 10.0])
 p_atmos.set_winddir([0., 10., 20., 25.])
 p_atmos.set_L0([25., 25., 25., 25.])
@@ -34,8 +34,8 @@ p_atmos.set_L0([25., 25., 25., 25.])
 ###################
 # TARGET
 p_targets=[]
-RADIUS_TAR = 15
-NTAR_side  = 5
+RADIUS_TAR = 20
+NTAR_side  = 10
 NTAR       = NTAR_side * NTAR_side
 tar_xpos   =np.array([0.])
 tar_ypos   =np.array([0.])
@@ -47,8 +47,8 @@ for t in np.arange(NTAR):
     p_targets[t].set_xpos(tar_xpos.flatten()[t])
     p_targets[t].set_ypos(tar_ypos.flatten()[t])
     #IR 1.6 / visible 0.65
-    #p_targets[t].set_Lambda( 0.65)
-    p_targets[t].set_Lambda(1.6)
+    p_targets[t].set_Lambda( 0.65)
+    #p_targets[t].set_Lambda(1.6)
     p_targets[t].set_mag(10.)
     #1 DM per target: pzt
     p_targets[t].set_dms_seen([0,1,2,3])
@@ -58,14 +58,14 @@ for t in np.arange(NTAR):
 
 ###################
 # WFS
-RADIUS      = 15
+RADIUS      = 20
 FRACSUB     = 0.8
 NXSUB_LGS   = 40
 NXSUB_NGS   = 40
 NXSUB_TAR   = max(NXSUB_LGS,NXSUB_NGS)
 NLGS        = 6
-NNGS        = 1
-NTS_side    = 5
+NNGS        = 3
+NTS_side    = 2
 NTS         = NTS_side*NTS_side
 
 p_wfs_lgs = []
@@ -81,19 +81,20 @@ lgs_ypos = RADIUS * np.sin(x)
 # closest star from asterism F2 to axis
 #asterism_x = [ -1.213]
 #asterism_y = [ 24.719 ]
-asterism_x = [ -1.213]
-asterism_y = [ 8 ]
+x = np.linspace(np.pi/6.,2 * np.pi+np.pi/6., NNGS+1)[:-1]
+asterism_x = RADIUS * np.cos(x)
+asterism_y = RADIUS * np.sin(x)
 
 #Truth Sensors position
-radius = 15
+radius = 20
 lspace=np.linspace(-radius+1,radius-1,NTS_side)
 mesh=np.meshgrid(lspace,lspace)
 TS_xpos = mesh[0].flatten() #radius * np.cos(x)
 TS_ypos = mesh[1].flatten() #radius * np.sin(x)
 
 # add 1 position for target
-asterism_x = asterism_x + [0.]
-asterism_y = asterism_y + [0.]
+asterism_x = np.append(asterism_x,[0.])
+asterism_y = np.append(asterism_y,[0.])
 
 #create wfs lists
 #LGS
@@ -191,7 +192,7 @@ p_dm1.set_unitpervolt(0.1)
 p_dm1.set_push4imat(1)
 
 p_dm2.set_type("pzt")
-p_dm2.set_nact(41)
+p_dm2.set_nact(61)
 p_dm2.set_alt(9000.)
 p_dm2.set_thresh(0.3)
 p_dm2.set_coupling(0.3)
@@ -229,3 +230,5 @@ p_controller0.set_ndm(list(range(len(p_dms))))
 p_controller0.set_maxcond(150.)
 p_controller0.set_delay(1.)
 p_controller0.set_gain(0.3)
+
+
