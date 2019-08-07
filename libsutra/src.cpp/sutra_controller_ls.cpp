@@ -7,9 +7,9 @@ sutra_controller_ls<T, Tout>::sutra_controller_ls(carma_context *context,
                                                   long nvalid, long nslope,
                                                   long nactu, float delay,
                                                   sutra_dms *dms, int *idx_dms,
-                                                  int ndm)
+                                                  int ndm, int *idx_centro, int ncentro)
     : sutra_controller<T, Tout>(context, nvalid, nslope, nactu, delay, dms,
-                                idx_dms, ndm) {
+                                idx_dms, ndm, idx_centro, ncentro) {
   this->d_imat = 0L;
   this->d_cmat = 0L;
   this->d_eigenvals = 0L;

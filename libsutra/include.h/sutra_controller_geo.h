@@ -43,7 +43,7 @@ class sutra_controller_geo : public sutra_controller<Tcomp, Tout> {
  public:
   sutra_controller_geo(carma_context *context, long nactu, long Nphi,
                        float delay, sutra_dms *dms, int *idx_dms, int ndm,
-                       bool wfs_direction);
+                       int *idx_centro, int ncentro, bool wfs_direction);
   sutra_controller_geo(const sutra_controller_geo &controller);
   ~sutra_controller_geo();
 

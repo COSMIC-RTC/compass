@@ -6,9 +6,9 @@
 template <typename Tcomp, typename Tout>
 sutra_controller_mv<Tcomp, Tout>::sutra_controller_mv(
     carma_context *context, long nvalid_, long nslope_, long nactu_,
-    float delay, sutra_dms *dms, int *idx_dms, int ndm)
+    float delay, sutra_dms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro)
     : sutra_controller<Tcomp, Tout>(context, nvalid_, nslope_, nactu_, delay,
-                                    dms, idx_dms, ndm) {
+                                    dms, idx_dms, ndm, idx_centro, ncentro) {
   this->gain = 0.0f;
 
   //  this->nstreams = 1; //nvalid/10;

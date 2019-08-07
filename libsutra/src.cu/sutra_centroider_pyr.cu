@@ -90,7 +90,7 @@ __global__ void pyr2slopes_krnl(T *g_odata, T *ref, T *g_idata, int *subindx,
       }
     }
     g_odata[i] -= ref[i];
-    g_odata[i + nvalid] -= ref[i];
+    g_odata[i + nvalid] -= ref[i + nvalid];
     i += blockDim.x * gridDim.x;
   }
 }

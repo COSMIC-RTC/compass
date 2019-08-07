@@ -119,17 +119,19 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         self._sim.next(see_atmos=showAtmos)  # why not self._seeAtmos?
 
-    def closeLoop(self) -> None:
-        '''
+    def closeLoop(self, ncontrol: int = 0) -> None:
+        """
         DM receives controller output + pertuVoltage
-        '''
-        self._sim.rtc.d_control[0].set_openloop(0)  # closeLoop
+        Parameters:
+            ncontrol: (int, optionnal): controller index. Default is 0
+        """
+        self._sim.rtc.d_control[ncontrol].set_openloop(0)  # closeLoop
 
-    def openLoop(self, rst=True) -> None:
+    def openLoop(self, rst=True, ncontrol: int = 0) -> None:
         '''
         Integrator computation goes to /dev/null but pertuVoltage still applied
         '''
-        self._sim.rtc.d_control[0].set_openloop(1, rst)  # openLoop
+        self._sim.rtc.d_control[ncontrol].set_openloop(1, rst)  # openLoop
 
     def setRefSlopes(self, refSlopes: np.ndarray) -> None:
         '''
@@ -146,7 +148,7 @@ class CompassSupervisor(AbstractSupervisor):
             refSlopes = np.append(refSlopes, np.array(centro.d_centroids_ref))
         return refSlopes
 
-    def setGain(self, gainMat) -> None:
+    def setGain(self, gainMat, ncontrol = 0) -> None:
         '''
         Set the scalar gain of feedback controller loop
         '''
@@ -154,7 +156,7 @@ class CompassSupervisor(AbstractSupervisor):
             gainMat = np.ones(
                     np.sum(self._sim.config.p_controller0.nactu),
                     dtype=np.float32) * gainMat
-        self._sim.rtc.d_control[0].set_mgain(gainMat)
+        self._sim.rtc.d_control[ncontrol].set_mgain(gainMat)
 
     def setCommandMatrix(self, cMat: np.ndarray , nControl: int = 0) -> None:
         '''
@@ -282,11 +284,11 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         self._sim.force_context()
 
-    def computeSlopes(self):
+    def computeSlopes(self, ncontrol = 0):
         for w in self._sim.wfs.d_wfs:
             w.d_gs.comp_image()
-        self._sim.rtc.do_centroids(0)
-        return np.array(self._sim.rtc.d_control[0].d_centroids)
+        self._sim.rtc.do_centroids(ncontrol)
+        return np.array(self._sim.rtc.d_control[ncontrol].d_centroids)
 
     def resetDM(self, numdm: int = -1) -> None:
         '''
@@ -414,13 +416,13 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         return np.array(self._sim.wfs.d_wfs[numWFS].d_binimg)
 
-    def getSlopeGeom(self, numWFS: int) -> np.ndarray:
+    def getSlopeGeom(self, numWFS: int, ncontrol: int = 0) -> np.ndarray:
         '''
         return the slopes geom of WFS number numWFS
         '''
-        self._sim.rtc.do_centroids_geom(0)
-        slopesGeom = np.array(self._sim.rtc.d_control[0].d_centroids)
-        self._sim.rtc.do_centroids(0)
+        self._sim.rtc.do_centroids_geom(ncontrol)
+        slopesGeom = np.array(self._sim.rtc.d_control[ncontrol].d_centroids)
+        self._sim.rtc.do_centroids(ncontrol)
         return slopesGeom
 
     def getStrehl(self, numTar: int, do_fit: bool = True) -> np.ndarray:
@@ -476,14 +478,14 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         return np.array(self._sim.rtc.d_control[nControl].d_voltage)
 
-    def setIntegratorLaw(self):
-        self._sim.rtc.d_control[0].set_commandlaw("integrator")
+    def setIntegratorLaw(self, ncontrol = 0):
+        self._sim.rtc.d_control[ncontrol].set_commandlaw("integrator")
 
-    def setDecayFactor(self, decay):
-        self._sim.rtc.d_control[0].set_decayFactor(decay)
+    def setDecayFactor(self, decay, ncontrol = 0):
+        self._sim.rtc.d_control[ncontrol].set_decayFactor(decay)
 
-    def setEMatrix(self, eMat):
-        self._sim.rtc.d_control[0].set_matE(eMat)
+    def setEMatrix(self, eMat, ncontrol = 0):
+        self._sim.rtc.d_control[ncontrol].set_matE(eMat)
 
     def doRefslopes(self):
         print("Doing refslopes...")

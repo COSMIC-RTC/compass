@@ -43,7 +43,7 @@ class sutra_controller_cured : public sutra_controller<Tcomp, Tout> {
  public:
   sutra_controller_cured(carma_context *context, long nvalid, long nslope,
                          long nactu, float delay, sutra_dms *dms, int *idx_dms,
-                         int ndm);
+                         int ndm, int *idx_centro, int ncentro);
   sutra_controller_cured(const sutra_controller_cured &controller);
   ~sutra_controller_cured();
 

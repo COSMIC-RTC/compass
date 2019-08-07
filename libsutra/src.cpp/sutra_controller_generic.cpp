@@ -3,9 +3,9 @@
 template <typename T, typename Tout>
 sutra_controller_generic<T, Tout>::sutra_controller_generic(
     carma_context *context, long nvalid, long nslope, long nactu, float delay,
-    sutra_dms *dms, int *idx_dms, int ndm)
+    sutra_dms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro)
     : sutra_controller<T, Tout>(context, nvalid, nslope, nactu, delay, dms,
-                                idx_dms, ndm) {
+                                idx_dms, ndm, idx_centro, ncentro) {
   this->command_law = "integrator";
   long dims_data1[2] = {1, nactu};
   this->d_gain = new carma_obj<T>(this->current_context, dims_data1);

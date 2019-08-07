@@ -5,9 +5,9 @@
 template <typename T, typename Tout>
 sutra_controller_cured<T, Tout>::sutra_controller_cured(
     carma_context *context, long nvalid, long nslopes, long nactu, float delay,
-    sutra_dms *dms, int *idx_dms, int ndm)
+    sutra_dms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro)
     : sutra_controller<T, Tout>(context, nvalid, nslopes, nactu, delay, dms,
-                                idx_dms, ndm),
+                                idx_dms, ndm, idx_centro, ncentro),
       ndivs(0),
       tt_flag(false),
       h_syscure(nullptr),

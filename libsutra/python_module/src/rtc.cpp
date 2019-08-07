@@ -21,7 +21,7 @@ void add_controller_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, carma_context *ctxt,
                          int nvalid, int nslope, int nactu, float delay,
                          long device, std::string typec) {
   sr.add_controller(ctxt, nvalid, nslope, nactu, delay, device, typec, nullptr,
-                    nullptr, 0, 0, false);
+                    nullptr, 0, nullptr, 0, 0, false);
 }
 
 template <typename Tin, typename Tcomp, typename Tout>
@@ -171,6 +171,8 @@ void rtc_impl(py::module &mod, const char *name) {
         dms: (sutra_dms): sutra_dms object
         idx_dms: (np.array[ndim=1,dtype=np.int64]): index of DM in sutra_dms to command
         ndm: (int): Number of DM to command
+        idx_centro: (np.array[ndim=1,dtype=np.int64]): index of centoiders in sutra_rtc.d_centro to handle
+        ncentro: (int): number of centroiders handled
         Nphi: (int): Number of pixels in the pupil
         wfs_direction: (bool): Flag for ROKET
         )pbdoc",
@@ -178,6 +180,7 @@ void rtc_impl(py::module &mod, const char *name) {
            py::arg("nactu"), py::arg("delay"), py::arg("device"),
            py::arg("typec"), py::arg("dms") = nullptr,
            py::arg("idx_dms") = std::vector<int64_t>(), py::arg("ndm") = 0,
+           py::arg("idx_centro") = std::vector<int64_t>(), py::arg("ncentro") = 0,
            py::arg("Nphi") = 0, py::arg("wfs_direction") = false)
 
       .def("add_controller", wy::colCast(add_controller_impl<Tin, Tcomp, Tout>),

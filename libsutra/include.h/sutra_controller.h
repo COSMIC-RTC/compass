@@ -72,6 +72,7 @@ class sutra_controller {
   carma_obj<Tout> *d_voltage;  // commands after perturbation and clipping
   carma_obj<Tcomp> *d_com1;    // commands k-1
   carma_obj<Tcomp> *d_com2;    // commands k-2
+  vector<int> centro_idx; // Centroider indices to handle
 
   map<string, tuple<carma_obj<Tcomp> *, int, bool>> d_perturb_map;
   // perturbation command buffer
@@ -80,7 +81,7 @@ class sutra_controller {
 
   // allocation of d_centroids and d_com
   sutra_controller(carma_context *context, int nvalid, int nslope, int nactu,
-                   float delay, sutra_dms *dms, int *idx_dms, int ndm);
+                   float delay, sutra_dms *dms, int *idx_dms, int ndm,  int *idx_centro, int ncentro);
   virtual ~sutra_controller();
 
   virtual string get_type() = 0;

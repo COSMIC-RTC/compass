@@ -20,6 +20,8 @@ sutra_centroider_pyr<Tin, T>::sutra_centroider_pyr(carma_context *context,
   // centroider method by default nosin_global
   this->method = Method_CoG(false, false);
 
+  this->d_intensities->init_reduceCub();
+
   long dims_data2[2] = {1, this->nslopes};
   this->d_centroids_ref = new carma_obj<T>(this->current_context, dims_data2);
   this->d_centroids_ref->reset();
@@ -81,22 +83,20 @@ int sutra_centroider_pyr<Tin, T>::get_pyr(float *cube, float *intensities,
                                           int nim) {
   this->current_context->set_activeDevice(this->device, 1);
 
-  pyr_intensities(intensities, cube, subindx, subindy, ns, nvalid, nim,
+  pyr_intensities(this->d_intensities->getData(), cube, subindx, subindy, ns, nvalid, nim,
                   this->current_context->get_device(this->device));
 
   if (!(this->method.isLocal)) {
-    float p_sum = reduce<float>(intensities, nvalid);
-    fillvalues<float>(intensities, p_sum, nvalid,
+    // float p_sum = reduce<float>(this->d_intensities->getData(), nvalid);
+    this->d_intensities->reduceCub();
+    fillvalues<float>(this->d_intensities->getData(), this->d_intensities->getOData(), nvalid,
                       this->current_context->get_device(this->device));
   }
 
   pyr2_slopes(centroids, this->d_centroids_ref->getData(), cube, subindx,
-              subindy, intensities, ns, nvalid, this->scale, this->valid_thresh,
+              subindy, this->d_intensities->getData(), ns, nvalid, this->scale, this->valid_thresh,
               this->method.isSinus,  // if we are using a sin method
               this->current_context->get_device(this->device));
-
-  carma_axpy<float>(this->current_context->get_cublasHandle(), this->nslopes,
-                    -1.0f, this->d_centroids_ref->getData(), 1, centroids, 1);
 
   if (this->filter_TT) {
     this->apply_TT_filter(centroids);

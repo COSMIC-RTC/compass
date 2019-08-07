@@ -157,7 +157,7 @@ class CanapassSupervisor(CompassSupervisor):
     """
 
 
-    def getModes2VBasis(self, ModalBasisType, merged=False, nbpairs=None):
+    def getModes2VBasis(self, ModalBasisType, merged=False, nbpairs=None, returnDelta=False):
         """
         Pos signifies the sign of the first non zero element of the eigen vector is forced to be +
         """
@@ -178,7 +178,7 @@ class CanapassSupervisor(CompassSupervisor):
         elif (ModalBasisType == "Btt"):
             print("Computing Btt basis...")
             self.modalBasis, self.P = self.compute_Btt2(inv_method="cpu_svd",
-                                                        merged=merged, nbpairs=nbpairs)
+                                                        merged=merged, nbpairs=nbpairs, returnDelta=returnDelta)
             fnz = first_nonzero(self.modalBasis,axis=0)
             # Computing the sign of the first non zero element
             sig = np.sign(self.modalBasis[[fnz, np.arange(self.modalBasis.shape[1])]])
@@ -414,7 +414,7 @@ class CanapassSupervisor(CompassSupervisor):
 
         return couplesActus, indUnderSpiders
 
-    def compute_Btt2(self, inv_method: str = "cpu_svd", merged=False, nbpairs=None):
+    def compute_Btt2(self, inv_method: str = "cpu_svd", merged=False, nbpairs=None, returnDelta=False):
 
         IF = self.getIFsparse(1)
         if (merged):
@@ -518,9 +518,11 @@ class CanapassSupervisor(CompassSupervisor):
             P2 = np.zeros((Btt.shape[1], len(boolarray) + 2))
             P2[:, np.r_[~boolarray, True, True]] = P
             P2[:, couplesActus[:, 1]] = P2[:, couplesActus[:, 0]]
-            return Btt2.astype(np.float32), P.astype(np.float32)
-        else:
-            return Btt.astype(np.float32), P.astype(np.float32)
+            Btt = Btt2
+            P = P2
+        if(returnDelta):
+            P = delta
+        return Btt, P
 
     def doImatModal(self, ampliVec, KL2V, Nslopes, noise=False, nmodesMax=0,
                     withTurbu=False, pushPull=False):
@@ -1086,24 +1088,26 @@ class CanapassSupervisor(CompassSupervisor):
 
 
 
-    def initModalGain(self, gain, cmatKL, modalBasis, control=0, ditchGain = True):
+    def initModalGain(self, gain, cmatModal, modalBasis, control=0, resetGain = True):
         """
         Given a gain, cmat and btt2v initialise the modal gain mode
         """
+        print("TODO: A RECODER 111 !!!!")
         nmode_total = modalBasis.shape[1]
         nactu_total = modalBasis.shape[0]
-        nfilt = nmode_total - cmatKL.shape[0]
+        nfilt = nmode_total - cmatModal.shape[0]
         ctrl = self._sim.rtc.d_control[control]
         ctrl.set_commandlaw('modal_integrator')
-        cmat = np.zeros((nactu_total,cmatKL.shape[1]))
-        cmat[:-3-nfilt,:] += cmatKL # All non-filtered modes
-        btt2v = np.zeros((nactu_total,nactu_total))
-        btt2v[:,:-nfilt-5] += modalBasis[:,:-nfilt-2]
-        btt2v[:,-nfilt-5:-nfilt-3] += modalBasis[:,-2:]
-        mgain = np.ones(len(btt2v))*gain
-        ctrl.set_matE(btt2v)
+        cmat = np.zeros((nactu_total,cmatModal.shape[1]))
+        dec = cmat.shape[0] - cmatModal.shape[0]
+        cmat[:-dec,:] += cmatModal # Fill the full Modal with all non-filtered modes
+        modes2V = np.zeros((nactu_total,nactu_total))
+        dec2 = modes2V.shape[1] - modalBasis.shape[1]
+        modes2V[:,:-dec2] += modalBasis
+        mgain = np.ones(len(modes2V))*gain # Initialize the gain
+        ctrl.set_matE(modes2V)
         ctrl.set_cmat(cmat)
-        if ditchGain:
+        if resetGain:
             ctrl.set_mgain(mgain)
     
     def leaveModalGain(self, control = 0):
