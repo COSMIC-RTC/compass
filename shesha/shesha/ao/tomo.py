@@ -152,7 +152,6 @@ def do_tomo_matrices(ncontrol: int, rtc: Rtc, p_wfss: List[conf.Param_wfs], dms:
             F[ind:ind + p_dms[k]._ntotact, ind:ind +
               p_dms[k]._ntotact] = create_piston_filter(p_dms[k])
             ind += p_dms[k]._ntotact
-
     rtc.d_control[ncontrol].filter_cphim(F, Nact)
 
 
@@ -203,7 +202,7 @@ def create_nact_geom(p_dm: conf.Param_dm):
     shape = np.zeros([dim, dim], dtype=np.float32)
 
     for i in range(len(p_dm._i1)):
-        mask[p_dm._i1[i]][p_dm._j1[i]] = 1
+        mask[p_dm._j1[i]][p_dm._i1[i]] = 1
 
     mask_act = np.where(mask)
 
@@ -212,19 +211,19 @@ def create_nact_geom(p_dm: conf.Param_dm):
     for i in range(nactu):
         shape *= 0
         # Diagonal
-        shape[p_dm._i1[i]][p_dm._j1[i]] = 1
+        shape[p_dm._j1[i]][p_dm._i1[i]] = 1
         # Left, right, above and under the current actuator
-        shape[p_dm._i1[i]][p_dm._j1[i] - pitch] = coupling
-        shape[p_dm._i1[i] - pitch][p_dm._j1[i]] = coupling
-        shape[p_dm._i1[i]][p_dm._j1[i] + pitch] = coupling
-        shape[p_dm._i1[i] + pitch][p_dm._j1[i]] = coupling
+        shape[p_dm._j1[i]][p_dm._i1[i] - pitch] = coupling
+        shape[p_dm._j1[i] - pitch][p_dm._i1[i]] = coupling
+        shape[p_dm._j1[i]][p_dm._i1[i] + pitch] = coupling
+        shape[p_dm._j1[i] + pitch][p_dm._i1[i]] = coupling
         # Diagonals of the current actuators
-        shape[p_dm._i1[i] - pitch][p_dm._j1[i] - pitch] = coupling**2
-        shape[p_dm._i1[i] - pitch][p_dm._j1[i] + pitch] = coupling**2
-        shape[p_dm._i1[i] + pitch][p_dm._j1[i] + pitch] = coupling**2
-        shape[p_dm._i1[i] + pitch][p_dm._j1[i] - pitch] = coupling**2
+        shape[p_dm._j1[i] - pitch][p_dm._i1[i] - pitch] = coupling**2
+        shape[p_dm._j1[i] - pitch][p_dm._i1[i] + pitch] = coupling**2
+        shape[p_dm._j1[i] + pitch][p_dm._i1[i] + pitch] = coupling**2
+        shape[p_dm._j1[i] + pitch][p_dm._i1[i] - pitch] = coupling**2
 
-        Nact[:, i] = shape.T[mask_act]
+        Nact[:, i] = shape[mask_act]
 
     return Nact
 
