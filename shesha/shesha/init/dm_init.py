@@ -890,7 +890,6 @@ def make_petal_dm_core(pupImage, pupAngleDegree):
 
     npt = pupImage.shape[0]
     i0 = j0 = npt / 2 - 0.5
-    print('CORRIGER CETTE MERDE !!!!!')
     petalMap = build_petals(nbSeg, pupAngleDegree, i0, j0, npt)
     ii1 = np.zeros(nbSeg)
     jj1 = np.zeros(nbSeg)

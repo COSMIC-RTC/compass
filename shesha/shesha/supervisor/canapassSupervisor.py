@@ -167,6 +167,7 @@ class CanapassSupervisor(CompassSupervisor):
             """
             mask = arr!=0
             return np.where(mask.any(axis=axis), mask.argmax(axis=axis), invalid_val)
+
         if (ModalBasisType == "KL2V"):
             print("Computing KL2V basis...")
             self.modalBasis, _ = self.returnkl2V()
@@ -183,6 +184,10 @@ class CanapassSupervisor(CompassSupervisor):
             # Computing the sign of the first non zero element
             sig = np.sign(self.modalBasis[[fnz, np.arange(self.modalBasis.shape[1])]])
             self.modalBasis *= sig[None,:]
+            return self.modalBasis, self.P
+        elif(ModalBasisType == "Btt_petal"):
+            print("Computing Btt with a Petal basis...")
+            self.modalBasis, self.P = self.compute_btt_petal()
             return self.modalBasis, self.P
 
     def returnkl2V(self):
@@ -524,6 +529,68 @@ class CanapassSupervisor(CompassSupervisor):
             P = delta
         return Btt, P
 
+    def compute_btt_petal(self):
+        """
+        Done
+        """
+
+        # Tip-tilt + piston + petal modes
+        IF = self.getIFsparse(1)
+        IFpetal = self.getIFdm(1)
+        IFtt = self.getIFdm(2)
+
+        n = IF.shape[0]  # number of points (pixels) over the pupil
+        N = IF.shape[1]  # number of influence functions (nb of actuators)
+
+        # Compute matrix delta (geometric covariance of actus)
+        delta = IF.dot(IF.T).toarray() / N
+
+        # Petal basis generation (orthogonal to global piston)
+        nseg = IFpetal.toarray().shape[0]
+
+        petal_modes = -1 / (nseg - 1) * np.ones((nseg, (nseg - 1))) 
+        petal_modes += nseg / (nseg - 1) * np.eye(nseg)[:, 0:(nseg - 1)]  # petal modes within the petal dm space
+        tau_petal = np.dot(IF.toarray(), IFpetal.toarray().T).dot(petal_modes)
+
+        Tp = np.concatenate((IFtt.toarray(), np.ones((1, N))), axis=0)     # Matrice contenant Petal Basis + Tip/Tilt + Piston
+        deltaT = IF.dot(Tp.T) / N
+
+        # Tip tilt + petals projection on the pzt dm
+        tau = np.concatenate((tau_petal, np.linalg.inv(delta).dot(deltaT)), axis=1)
+
+        # Famille generatrice sans tip tilt ni pétales
+        G = np.identity(n)
+        tdt = tau.T.dot(delta).dot(tau)
+        subTT = tau.dot(np.linalg.inv(tdt)).dot(tau.T).dot(delta)
+        G -= subTT
+
+        # Base orthonormee sans Tip, Tilp, Piston, Pétales
+        gdg = G.T.dot(delta).dot(G)
+        U, s, V = np.linalg.svd(gdg)
+        U = U[:, :U.shape[1] - 8]
+        s = s[:s.size - 8]
+        L = np.identity(s.size) / np.sqrt(s)
+        B = G.dot(U).dot(L)
+
+        # Rajout du TT et Pétales
+        TT = IFtt.toarray().dot(IFtt.toarray().T) / N  # .toarray()/N
+        Btt = np.zeros((n + 2, n - 1))
+        Btt[:n, :B.shape[1]] = B
+        mini = 1. / np.sqrt(np.abs(TT))
+        mini[0, 1] = 0
+        mini[1, 0] = 0
+        Btt[n:, -2:] = mini # ajout du tip tilt sur le miroir tip tilt
+        Btt[:n, -7:-2] = tau_petal    # ajout des modes pétales sur le miroir M4 
+
+        # Calcul du projecteur actus-->modes
+        delta = np.zeros((n + IFtt.shape[0], n + IFtt.shape[0]))
+        delta[:-2, :-2] = IF.dot(IF.T).toarray() / N
+        delta[-2:, -2:] = IFtt.toarray().dot(IFtt.toarray().T) / N
+        P = Btt.T.dot(delta)
+
+        return Btt.astype(np.float32), P.astype(np.float32)
+
+
     def doImatModal(self, ampliVec, KL2V, Nslopes, noise=False, nmodesMax=0,
                     withTurbu=False, pushPull=False):
         """
@@ -628,6 +695,9 @@ class CanapassSupervisor(CompassSupervisor):
         aodict.update({"teldiam": self._sim.config.p_tel.diam})
         aodict.update({"telobs": self._sim.config.p_tel.cobs})
 
+        # TURBU 
+        aodict.update({"r0": self._sim.config.p_atmos.r0})
+
         # WFS
         aodict.update({"nbWfs": len(self._sim.config.p_wfss)})
         aodict.update({"nbTargets": len(self._sim.config.p_targets)})
@@ -688,7 +758,11 @@ class CanapassSupervisor(CompassSupervisor):
             new_hduwfsSubapXY[i].header["DATATYPE"] = "validXY_wfs%d" % i
 
             pixsize.append(self._sim.config.p_wfss[i].pixsize)
-            NslopesList.append(self._sim.config.p_wfss[i]._nvalid * 2)  # slopes per wfs
+            if(self._sim.config.p_centroiders[i].type == "maskedpix"):
+                factor = 4
+            else:
+                factor = 2
+            NslopesList.append(self._sim.config.p_wfss[i]._nvalid * factor)  # slopes per wfs
             NsubapList.append(self._sim.config.p_wfss[i]._nvalid)  # subap per wfs
             listWfsType.append(self._sim.config.p_wfss[i].type)
             xPosList.append(self._sim.config.p_wfss[i].xpos)
