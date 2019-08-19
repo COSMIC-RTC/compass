@@ -454,6 +454,16 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         return np.array(self._sim.rtc.d_control[nControl].d_TT)
 
+    def getIFdm(self, nDM: int):
+        '''
+        Return the IF of a Petal DM made with M4
+        '''
+
+        from shesha.ao import basis
+        if_sparse = basis.compute_DMbasis(self._sim.dms.d_dms[nDM], self._sim.config.p_dms[nDM], self._sim.config.p_geom)
+
+        return if_sparse
+
     def getCentroids(self, nControl: int):
         '''
         Return the centroids of the nControl controller
