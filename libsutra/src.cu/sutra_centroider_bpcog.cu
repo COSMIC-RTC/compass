@@ -109,6 +109,10 @@ void get_centroids(int size, int threads, int blocks, int npix, float *d_img,
     centroids<T, 512><<<dimGrid, 512>>>(d_img, d_centroids, ref, validx, validy,
                                         intensities, nbpix, npix, size,
                                         T(scale), T(offset), nelem_thread);
+  else if (threads <= 1024)
+    centroids<T, 1024><<<dimGrid, 1024>>>(
+        d_img, d_centroids, ref, validx, validy, intensities, nbpix, npix, size,
+        T(scale), T(offset), nelem_thread);
   else
     printf("SH way too big !!!\n");
 
