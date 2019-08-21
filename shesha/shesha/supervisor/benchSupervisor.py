@@ -95,7 +95,6 @@ class BenchSupervisor(AoSupervisor):
         self.frame = None
         self.BRAHMA = BRAHMA
         self.CACAO = CACAO
-        self.dm = None
 
         if configFile is not None:
             self.loadConfig(configFile=configFile)
@@ -154,8 +153,8 @@ class BenchSupervisor(AoSupervisor):
         '''
         Reset the DM number nDM
         '''
-        if self.dm is not None:
-            self.dm.reset_dm()
+        if hasattr(self, '_dm'):
+            self._dm.reset_dm()
 
     def resetCommand(self, nctrl: int = -1) -> None:
         '''
@@ -197,34 +196,6 @@ class BenchSupervisor(AoSupervisor):
         '''
         Initialize the bench
         '''
-        print("->CAM")
-        if not hasattr(self, 'camCallback') or self.camCallback is None:
-            print('No user provided camera getFrame handle. Creating from config file.')
-            from hraa.devices.camera.cam_attributes import cam_attributes
-            import hraa.devices.camera as m_cam
-            Camera = m_cam.getCamClass(self.config.p_cams[0].type)
-            self._cam = Camera(
-                    self.config.p_cams[0].camAddr,
-                    cam_attributes(self.config.p_cams[0].width,
-                                   self.config.p_cams[0].height,
-                                   self.config.p_cams[0].offset_w,
-                                   self.config.p_cams[0].offset_h,
-                                   self.config.p_cams[0].expo_usec,
-                                   self.config.p_cams[0].framerate,
-                                   self.config.p_cams[0].symcode))
-            self._cam.acquisitionStart()
-            self.camCallback = lambda: self._cam.getFrame(1)
-        print("->DM")
-        if not hasattr(self, 'dmSetCallback') or self.dmSetCallback is None:
-            print('No user provided get setCommand handle. Creating from config file.')
-            from hraa.devices.dm.kacou import Kacou
-            self.dm = Kacou(
-                    reset=True,
-                    calibFits="/home/micado/codes/hraa/devices/dm/kacouCalib.fits")
-            self.dmSetCallback = lambda cmd_dm: self.dm.set_command(
-                    cmd_dm, useChecksum=True)
-            self.dmGetCallback = lambda: self.dm.get_command()
-
         print("->RTC")
         wfsNb = len(self.config.p_wfss)
         p_wfs = self.config.p_wfss[0]
