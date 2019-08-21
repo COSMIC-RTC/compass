@@ -1,7 +1,6 @@
 #include <wyrm>
 
 #include <sutra_telescope.h>
-#include "declare_name.hpp"
 
 namespace py = pybind11;
 

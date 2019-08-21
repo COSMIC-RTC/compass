@@ -1,7 +1,10 @@
+#include "declare_name.hpp"
+
 #include <carma.h>
+
 #include <wyrm>
 
-#include "declare_name.hpp"
+namespace py = pybind11;
 
 void declare_carmaWrap_host_obj(py::module &);
 void declare_carmaWrap_obj(py::module &);

@@ -1,7 +1,6 @@
 #include <wyrm>
 
 #include <sutra_centroider_pyr.h>
-#include "declare_name.hpp"
 
 namespace py = pybind11;
 

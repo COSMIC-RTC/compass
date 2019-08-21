@@ -1,7 +1,6 @@
 #include <wyrm>
 
 #include <sutra_controller_mv.h>
-#include "declare_name.hpp"
 
 namespace py = pybind11;
 

@@ -1,7 +1,6 @@
 #include <wyrm>
 
 #include <sutra_gamora.h>
-#include "declare_name.hpp"
 
 namespace py = pybind11;
 typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;

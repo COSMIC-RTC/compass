@@ -1,7 +1,6 @@
 #include <wyrm>
 
 #include <sutra_wfs.h>
-#include "declare_name.hpp"
 
 namespace py = pybind11;
 
