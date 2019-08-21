@@ -68,6 +68,22 @@ int sutra_centroider<Tin, Tout>::set_nxsub(int nxsub) {
 }
 
 template <class Tin, class Tout>
+int sutra_centroider<Tin, Tout>::init_calib(int n, int m) {
+  current_context->set_activeDevice(device, 1);
+  if (this->d_dark == nullptr) {
+    long dims_data2[3] = {2, n, m};
+    this->d_dark = new carma_obj<float>(current_context, dims_data2);
+    this->d_dark->reset();
+  }
+  if (this->d_flat == nullptr) {
+    long dims_data2[3] = {2, n, m};
+    this->d_flat = new carma_obj<float>(current_context, dims_data2);
+    this->d_flat->memSet(1.f);
+  }
+  return EXIT_SUCCESS;
+}
+
+template <class Tin, class Tout>
 int sutra_centroider<Tin, Tout>::set_dark(float *dark, int n) {
   current_context->set_activeDevice(device, 1);
   if (this->d_dark == nullptr) {

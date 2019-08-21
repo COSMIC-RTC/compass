@@ -68,6 +68,7 @@ class sutra_centroider {
   int set_scale(float scale);
   int set_dark(float *dark, int n);
   int set_flat(float *flat, int n);
+  int init_calib(int n, int m);
   int set_centroids_ref(float *centroids_ref);
   int calibrate_img();
   int load_validpos(int *ivalid, int *jvalid, int N);
