@@ -84,6 +84,17 @@ int sutra_centroider<Tin, Tout>::init_calib(int n, int m) {
 }
 
 template <class Tin, class Tout>
+int sutra_centroider<Tin, Tout>::init_roi(int N) {
+  current_context->set_activeDevice(device, 1);
+  if (this->d_validx == nullptr) {
+    long dims_data[2] = {1, N};
+    this->d_validx = new carma_obj<int>(current_context, dims_data);
+    this->d_validy = new carma_obj<int>(current_context, dims_data);
+  }
+  return EXIT_SUCCESS;
+}
+
+template <class Tin, class Tout>
 int sutra_centroider<Tin, Tout>::set_dark(float *dark, int n) {
   current_context->set_activeDevice(device, 1);
   if (this->d_dark == nullptr) {
@@ -191,9 +202,7 @@ int sutra_centroider<Tin, Tout>::load_validpos(int *ivalid, int *jvalid,
                                                int N) {
   current_context->set_activeDevice(device, 1);
   if (this->d_validx == nullptr) {
-    long dims_data[2] = {1, N};
-    this->d_validx = new carma_obj<int>(current_context, dims_data);
-    this->d_validy = new carma_obj<int>(current_context, dims_data);
+    this->init_roi(N);
   }
 
   this->d_validx->host2device(ivalid);
