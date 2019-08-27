@@ -223,6 +223,15 @@ void centroider_impl(py::module &mod, const char *name) {
     )pbdoc",
              py::arg("scale"))
 
+        .def("set_offset", &centroider::set_offset, R"pbdoc(
+        Set the controider offset [pixels]
+
+        Parameters
+        ------------
+        offset: (float): new offset [pixels]
+    )pbdoc",
+             py::arg("offset"))
+
         .def("set_dark", wy::colCast(&centroider::set_dark), R"pbdoc(
         Set the dark frame for calibration
 

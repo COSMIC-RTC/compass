@@ -64,6 +64,12 @@ int sutra_centroider<Tin, Tout>::set_scale(float scale) {
 }
 
 template <class Tin, class Tout>
+int sutra_centroider<Tin, Tout>::set_offset(float offset) {
+  this->offset = offset;
+  return EXIT_SUCCESS;
+}
+
+template <class Tin, class Tout>
 int sutra_centroider<Tin, Tout>::set_nxsub(int nxsub) {
   this->nxsub = nxsub;
   return EXIT_SUCCESS;

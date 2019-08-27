@@ -67,6 +67,7 @@ private:
 public:
   virtual ~sutra_centroider();
   int set_scale(float scale);
+  int set_offset(float offset);
   int set_dark(float *dark, int n);
   int set_flat(float *flat, int n);
   int set_lutPix(int *lutPix, int n);
