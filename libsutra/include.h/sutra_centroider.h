@@ -23,7 +23,7 @@
 
 template <class Tin, class Tout>
 class sutra_centroider {
- public:
+public:
   int device;
   sutra_wfs *wfs;
   int nvalid;
@@ -44,6 +44,7 @@ class sutra_centroider {
   carma_obj<Tin> *d_img_raw;
   carma_obj<float> *d_dark;
   carma_obj<float> *d_flat;
+  carma_obj<int> *d_lutPix;
   carma_obj<int> *d_validx;
   carma_obj<int> *d_validy;
   carma_obj<int> *d_validMask;
@@ -53,21 +54,25 @@ class sutra_centroider {
   carma_obj<float> *d_ref_Tilt;
   carma_obj<float> *d_TT_slopes;
 
- protected:
+protected:
   sutra_centroider(carma_context *context, sutra_wfs *wfs, long nvalid,
                    float offset, float scale, bool filter_TT, int device);
 
- private:
+private:
   template <typename Q = Tout>
   typename std::enable_if<std::is_same<Q, float>::value, int>::type
   apply_TT_filter_impl(Tout *centroids, std::true_type);
   int apply_TT_filter_impl(Tout *centroids, std::false_type);
 
- public:
+public:
   virtual ~sutra_centroider();
   int set_scale(float scale);
+  int set_offset(float offset);
   int set_dark(float *dark, int n);
   int set_flat(float *flat, int n);
+  int set_lutPix(int *lutPix, int n);
+  int init_calib(int n, int m);
+  int init_roi(int N);
   int set_centroids_ref(float *centroids_ref);
   int calibrate_img();
   int load_validpos(int *ivalid, int *jvalid, int N);
@@ -89,7 +94,7 @@ class sutra_centroider {
   virtual int get_cog() = 0;
 };
 template <class Tin>
-int calibration(Tin *img_raw, float *img_cal, float *dark, float *flat, int N,
+int calibration(Tin *img_raw, float *img_cal, float *dark, float *flat, int *lutPix, int N,
                 carma_device *device);
 
 template <typename T>

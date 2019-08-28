@@ -1,10 +1,12 @@
 #ifndef _WRAP_OBJ_COMPLEX_H_
 #define _WRAP_OBJ_COMPLEX_H_
 
-#include <wyrm>
 #include "declare_name.hpp"
 
 #include <carma.h>
+
+#include <wyrm>
+
 #include <type_list.hpp>
 
 namespace py = pybind11;

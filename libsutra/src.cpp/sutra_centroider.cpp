@@ -29,6 +29,7 @@ sutra_centroider<Tin, Tout>::sutra_centroider(carma_context *context,
   this->d_validy = nullptr;
   this->d_dark = nullptr;
   this->d_flat = nullptr;
+  this->d_lutPix = nullptr;
   this->d_bincube = nullptr;
   this->d_validMask = nullptr;
   this->d_centro_filtered = nullptr;
@@ -47,6 +48,7 @@ sutra_centroider<Tin, Tout>::~sutra_centroider() {
   if (this->d_validy != nullptr) delete this->d_validy;
   if (this->d_dark != nullptr) delete this->d_dark;
   if (this->d_flat != nullptr) delete this->d_flat;
+  if (this->d_lutPix != nullptr) delete this->d_lutPix;
   if (this->d_bincube != nullptr) delete this->d_bincube;
   if (this->d_validMask != nullptr) delete this->d_validMask;
   if (this->d_TT_slopes != nullptr) delete this->d_TT_slopes;
@@ -62,8 +64,49 @@ int sutra_centroider<Tin, Tout>::set_scale(float scale) {
 }
 
 template <class Tin, class Tout>
+int sutra_centroider<Tin, Tout>::set_offset(float offset) {
+  this->offset = offset;
+  return EXIT_SUCCESS;
+}
+
+template <class Tin, class Tout>
 int sutra_centroider<Tin, Tout>::set_nxsub(int nxsub) {
   this->nxsub = nxsub;
+  return EXIT_SUCCESS;
+}
+
+template <class Tin, class Tout>
+int sutra_centroider<Tin, Tout>::init_calib(int n, int m) {
+  current_context->set_activeDevice(device, 1);
+  if (this->d_dark == nullptr) {
+    long dims_data2[3] = {2, n, m};
+    this->d_dark = new carma_obj<float>(current_context, dims_data2);
+    this->d_dark->reset();
+  }
+  if (this->d_flat == nullptr) {
+    long dims_data2[3] = {2, n, m};
+    this->d_flat = new carma_obj<float>(current_context, dims_data2);
+    this->d_flat->memSet(1.f);
+  }
+  if (this->d_lutPix == nullptr) {
+    long dims_data1[3] = {1, n * m};
+    this->d_lutPix = new carma_obj<int>(current_context, dims_data1);
+    std::vector<int> h_lutPix(n * m);
+    for (int i = 0; i < n * m; ++i)
+      h_lutPix[i] = i;
+    this->d_lutPix->host2device(h_lutPix.data());
+  }
+  return EXIT_SUCCESS;
+}
+
+template <class Tin, class Tout>
+int sutra_centroider<Tin, Tout>::init_roi(int N) {
+  current_context->set_activeDevice(device, 1);
+  if (this->d_validx == nullptr) {
+    long dims_data[2] = {1, N};
+    this->d_validx = new carma_obj<int>(current_context, dims_data);
+    this->d_validy = new carma_obj<int>(current_context, dims_data);
+  }
   return EXIT_SUCCESS;
 }
 
@@ -90,7 +133,20 @@ int sutra_centroider<Tin, Tout>::set_flat(float *flat, int n) {
 }
 
 template <class Tin, class Tout>
-int sutra_centroider<Tin, Tout>::get_validMask() {
+int sutra_centroider<Tin, Tout>::set_lutPix(int *lutPix, int n) {
+  current_context->set_activeDevice(device, 1);
+  if (this->d_lutPix == nullptr)
+  {
+    long dims_data1[2] = {1, n};
+    this->d_lutPix = new carma_obj<int>(current_context, dims_data1);
+  }
+  this->d_lutPix->host2device(lutPix);
+  return EXIT_SUCCESS;
+}
+
+template <class Tin, class Tout>
+int sutra_centroider<Tin, Tout>::get_validMask()
+{
   this->current_context->set_activeDevice(this->device, 1);
   if (this->d_validMask == nullptr) {
     if (this->d_img == nullptr) {
@@ -113,24 +169,19 @@ template <class Tin, class Tout>
 int sutra_centroider<Tin, Tout>::calibrate_img() {
   current_context->set_activeDevice(device, 1);
 
-  if (this->d_img_raw == nullptr) {
-    std::cout << "Image not initialized\n" << std::endl;
+  if (this->d_img_raw == nullptr)
+  {
+    std::cout << "Image not initialized\n"
+              << std::endl;
     return EXIT_FAILURE;
   }
-  if (this->d_dark == nullptr) {
-    this->d_dark =
-        new carma_obj<float>(current_context, this->d_img->getDims());
-    this->d_dark->reset();
-  }
-  if (this->d_flat == nullptr) {
-    this->d_flat =
-        new carma_obj<float>(current_context, this->d_img->getDims());
-    this->d_flat->memSet(1.f);
-  }
+
+  const long *dims = this->d_img->getDims();
+  init_calib(dims[0], dims[1]);
 
   calibration<Tin>(this->d_img_raw->getData(), this->d_img->getData(),
                    this->d_dark->getData(), this->d_flat->getData(),
-                   this->d_img->getNbElem(),
+                   this->d_lutPix->getData(), this->d_img->getNbElem(),
                    this->current_context->get_device(this->device));
 
   return EXIT_SUCCESS;
@@ -175,9 +226,7 @@ int sutra_centroider<Tin, Tout>::load_validpos(int *ivalid, int *jvalid,
                                                int N) {
   current_context->set_activeDevice(device, 1);
   if (this->d_validx == nullptr) {
-    long dims_data[2] = {1, N};
-    this->d_validx = new carma_obj<int>(current_context, dims_data);
-    this->d_validy = new carma_obj<int>(current_context, dims_data);
+    this->init_roi(N);
   }
 
   this->d_validx->host2device(ivalid);

@@ -1,10 +1,12 @@
 #ifndef _WRAP_SPARSE_OBJ_H_
 #define _WRAP_SPARSE_OBJ_H_
 
+#include "declare_name.hpp"
+
+#include <carma.h>
+
 #include <wyrm>
 
-#include "declare_name.hpp"
-#include <carma.h>
 #include <carma_sparse_obj.h>
 
 #include <type_list.hpp>

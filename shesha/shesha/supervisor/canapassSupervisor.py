@@ -156,36 +156,38 @@ class CanapassSupervisor(CompassSupervisor):
             return self.modalBasis, self.P
     """
 
-
-    def getModes2VBasis(self, ModalBasisType, merged=False, nbpairs=None, returnDelta=False):
+    def getModes2VBasis(self, ModalBasisType, merged=False, nbpairs=None,
+                        returnDelta=False):
         """
         Pos signifies the sign of the first non zero element of the eigen vector is forced to be +
         """
+
         def first_nonzero(arr, axis, invalid_val=-1):
             """
             finding the first non zero element in an array.
             """
-            mask = arr!=0
+            mask = arr != 0
             return np.where(mask.any(axis=axis), mask.argmax(axis=axis), invalid_val)
 
         if (ModalBasisType == "KL2V"):
             print("Computing KL2V basis...")
             self.modalBasis, _ = self.returnkl2V()
-            fnz = first_nonzero(self.modalBasis,axis=0)
+            fnz = first_nonzero(self.modalBasis, axis=0)
             # Computing the sign of the first non zero element
             sig = np.sign(self.modalBasis[[fnz, np.arange(self.modalBasis.shape[1])]])
-            self.modalBasis *= sig[None,:]
+            self.modalBasis *= sig[None, :]
             return self.modalBasis, 0
         elif (ModalBasisType == "Btt"):
             print("Computing Btt basis...")
             self.modalBasis, self.P = self.compute_Btt2(inv_method="cpu_svd",
-                                                        merged=merged, nbpairs=nbpairs, returnDelta=returnDelta)
-            fnz = first_nonzero(self.modalBasis,axis=0)
+                                                        merged=merged, nbpairs=nbpairs,
+                                                        returnDelta=returnDelta)
+            fnz = first_nonzero(self.modalBasis, axis=0)
             # Computing the sign of the first non zero element
             sig = np.sign(self.modalBasis[[fnz, np.arange(self.modalBasis.shape[1])]])
-            self.modalBasis *= sig[None,:]
+            self.modalBasis *= sig[None, :]
             return self.modalBasis, self.P
-        elif(ModalBasisType == "Btt_petal"):
+        elif (ModalBasisType == "Btt_petal"):
             print("Computing Btt with a Petal basis...")
             self.modalBasis, self.P = self.compute_btt_petal()
             return self.modalBasis, self.P
@@ -419,7 +421,8 @@ class CanapassSupervisor(CompassSupervisor):
 
         return couplesActus, indUnderSpiders
 
-    def compute_Btt2(self, inv_method: str = "cpu_svd", merged=False, nbpairs=None, returnDelta=False):
+    def compute_Btt2(self, inv_method: str = "cpu_svd", merged=False, nbpairs=None,
+                     returnDelta=False):
 
         IF = self.getIFsparse(1)
         if (merged):
@@ -525,7 +528,7 @@ class CanapassSupervisor(CompassSupervisor):
             P2[:, couplesActus[:, 1]] = P2[:, couplesActus[:, 0]]
             Btt = Btt2
             P = P2
-        if(returnDelta):
+        if (returnDelta):
             P = delta
         return Btt, P
 
@@ -548,11 +551,13 @@ class CanapassSupervisor(CompassSupervisor):
         # Petal basis generation (orthogonal to global piston)
         nseg = IFpetal.toarray().shape[0]
 
-        petal_modes = -1 / (nseg - 1) * np.ones((nseg, (nseg - 1))) 
-        petal_modes += nseg / (nseg - 1) * np.eye(nseg)[:, 0:(nseg - 1)]  # petal modes within the petal dm space
+        petal_modes = -1 / (nseg - 1) * np.ones((nseg, (nseg - 1)))
+        petal_modes += nseg / (nseg - 1) * np.eye(nseg)[:, 0:(
+                nseg - 1)]  # petal modes within the petal dm space
         tau_petal = np.dot(IF.toarray(), IFpetal.toarray().T).dot(petal_modes)
 
-        Tp = np.concatenate((IFtt.toarray(), np.ones((1, N))), axis=0)     # Matrice contenant Petal Basis + Tip/Tilt + Piston
+        Tp = np.concatenate((IFtt.toarray(), np.ones((1, N))),
+                            axis=0)  # Matrice contenant Petal Basis + Tip/Tilt + Piston
         deltaT = IF.dot(Tp.T) / N
 
         # Tip tilt + petals projection on the pzt dm
@@ -579,8 +584,8 @@ class CanapassSupervisor(CompassSupervisor):
         mini = 1. / np.sqrt(np.abs(TT))
         mini[0, 1] = 0
         mini[1, 0] = 0
-        Btt[n:, -2:] = mini # ajout du tip tilt sur le miroir tip tilt
-        Btt[:n, -7:-2] = tau_petal    # ajout des modes pétales sur le miroir M4 
+        Btt[n:, -2:] = mini  # ajout du tip tilt sur le miroir tip tilt
+        Btt[:n, -7:-2] = tau_petal  # ajout des modes pétales sur le miroir M4
 
         # Calcul du projecteur actus-->modes
         delta = np.zeros((n + IFtt.shape[0], n + IFtt.shape[0]))
@@ -589,7 +594,6 @@ class CanapassSupervisor(CompassSupervisor):
         P = Btt.T.dot(delta)
 
         return Btt.astype(np.float32), P.astype(np.float32)
-
 
     def doImatModal(self, ampliVec, KL2V, Nslopes, noise=False, nmodesMax=0,
                     withTurbu=False, pushPull=False):
@@ -695,7 +699,7 @@ class CanapassSupervisor(CompassSupervisor):
         aodict.update({"teldiam": self._sim.config.p_tel.diam})
         aodict.update({"telobs": self._sim.config.p_tel.cobs})
 
-        # TURBU 
+        # TURBU
         aodict.update({"r0": self._sim.config.p_atmos.r0})
 
         # WFS
@@ -758,11 +762,12 @@ class CanapassSupervisor(CompassSupervisor):
             new_hduwfsSubapXY[i].header["DATATYPE"] = "validXY_wfs%d" % i
 
             pixsize.append(self._sim.config.p_wfss[i].pixsize)
-            if(self._sim.config.p_centroiders[i].type == "maskedpix"):
+            if (self._sim.config.p_centroiders[i].type == "maskedpix"):
                 factor = 4
             else:
                 factor = 2
-            NslopesList.append(self._sim.config.p_wfss[i]._nvalid * factor)  # slopes per wfs
+            NslopesList.append(
+                    self._sim.config.p_wfss[i]._nvalid * factor)  # slopes per wfs
             NsubapList.append(self._sim.config.p_wfss[i]._nvalid)  # subap per wfs
             listWfsType.append(self._sim.config.p_wfss[i].type)
             xPosList.append(self._sim.config.p_wfss[i].xpos)
@@ -903,7 +908,8 @@ class CanapassSupervisor(CompassSupervisor):
         #scale = pwfs.Lambda * 1e-6 / p_tel.diam * ampli * 180. / np.pi * 3600.
         #rtc.d_centro[nwfs].set_scale(scale)
 
-    def setPyrMultipleStarsSource(self, coords, weights = None, pyrmod=3., niters=None, nwfs=0):
+    def setPyrMultipleStarsSource(self, coords, weights=None, pyrmod=3., niters=None,
+                                  nwfs=0):
         """
         Sets the Pyramid source Array with a multiple star system
         coords is a list of couples of length n, coordinates of the n stars in lambda/D
@@ -913,7 +919,7 @@ class CanapassSupervisor(CompassSupervisor):
         """
         if niters == None:
             perim = pyrmod * 2 * np.pi
-            niters = int((perim//4+1)*4)
+            niters = int((perim // 4 + 1) * 4)
             print(niters)
         nstars = len(coords)
         pyr_npts = niters * nstars
@@ -947,14 +953,14 @@ class CanapassSupervisor(CompassSupervisor):
         else:
             w = []
             for k in weights:
-                w += niters*[k]
+                w += niters * [k]
             wfs.d_wfs[nwfs].set_pyr_modulation(cx, cy, w, pyr_npts)
 
         # RTC scale units to be updated ????
         #scale = pwfs.Lambda * 1e-6 / p_tel.diam * ampli * 180. / np.pi * 3600.
         #rtc.d_centro[nwfs].set_scale(scale)
 
-    def setPyrDiskSourceHP(self, radius, density = 1., nwfs=0):
+    def setPyrDiskSourceHP(self, radius, density=1., nwfs=0):
         """
         radius is the radius of the disk object in lambda/D
         density is the spacing between the packed PSF in the disk object, in lambda/D
@@ -988,7 +994,7 @@ class CanapassSupervisor(CompassSupervisor):
         pwfs.set_pyr_cy(cy)
         wfs.d_wfs[nwfs].set_pyr_modulation(cx, cy, pyr_npts)
 
-    def setPyrDiskSourceSP(self, radius, density = 1., nwfs=0):
+    def setPyrDiskSourceSP(self, radius, density=1., nwfs=0):
         """
         radius is the radius of the disk object in lambda/D
         density is the spacing between the packed PSF in the disk object, in lambda/D
@@ -997,22 +1003,23 @@ class CanapassSupervisor(CompassSupervisor):
         /!\ There is no modulation
         """
 
-        def generate_square_circ(radius, density = 1.):
-            x = np.linspace(-radius, radius, 1 + 2*int(radius/density))
+        def generate_square_circ(radius, density=1.):
+            x = np.linspace(-radius, radius, 1 + 2 * int(radius / density))
             cx, cy = np.meshgrid(x, x, indexing='ij')
             cx = cx.flatten()
             cy = cy.flatten()
-            r = cx*cx + cy*cy <= radius**2
-            return(cx[r],cy[r])
-        wfs = self._sim.wfs 
+            r = cx * cx + cy * cy <= radius**2
+            return (cx[r], cy[r])
+
+        wfs = self._sim.wfs
         pwfs = self._sim.config.p_wfss[nwfs]
         ptel = self._sim.config.p_tel
         pyrsize = pwfs._Nfft
         pixsize = (np.pi * pwfs._qpixsize) / (3600 * 180)
         scale_pos = 2 * np.pi / pyrsize * \
             (pwfs.Lambda * 1e-6 / ptel.diam) / pixsize
-        
-        cx, cy =generate_square_circ(radius, density)
+
+        cx, cy = generate_square_circ(radius, density)
         cx = cx.flatten() * scale_pos
         cy = cy.flatten() * scale_pos
         pyr_npts = len(cx)
@@ -1021,7 +1028,7 @@ class CanapassSupervisor(CompassSupervisor):
         pwfs.set_pyr_cy(cy)
         wfs.d_wfs[nwfs].set_pyr_modulation(cx, cy, pyr_npts)
 
-    def setPyrSquareSource(self, radius, density = 1., nwfs=0):
+    def setPyrSquareSource(self, radius, density=1., nwfs=0):
         """
         radius is half of the side of the object in lambda/D
         density is the spacing between the packed PSF in the square object, in lambda/D
@@ -1046,87 +1053,93 @@ class CanapassSupervisor(CompassSupervisor):
         pwfs.set_pyr_cy(cy)
         wfs.d_wfs[nwfs].set_pyr_modulation(cx, cy, pyr_npts)
 
-    def setPyrPseudoSource(self, radius, additional_psf = 0, density=1., nwfs=0):
-        def generate_square(radius, density = 1.):
+    def setPyrPseudoSource(self, radius, additional_psf=0, density=1., nwfs=0):
+
+        def generate_square(radius, density=1.):
             """
             radius is half the length of a side in lambda/D
             density is the number of psf per lambda/D
             """
-            x = np.linspace(-radius, radius, 1 + 2*int(radius/density))
+            x = np.linspace(-radius, radius, 1 + 2 * int(radius / density))
             cx, cy = np.meshgrid(x, x, indexing='ij')
             cx = cx.flatten()
             cy = cy.flatten()
-            return(cx,cy)
-        def generate_square_circ(radius, density = 1.):
-            x = np.linspace(-radius, radius, 1 + 2*int(radius/density))
+            return (cx, cy)
+
+        def generate_square_circ(radius, density=1.):
+            x = np.linspace(-radius, radius, 1 + 2 * int(radius / density))
             cx, cy = np.meshgrid(x, x, indexing='ij')
             cx = cx.flatten()
             cy = cy.flatten()
-            r = cx*cx + cy*cy <= radius**2
-            return(cx[r],cy[r])    
-        def generate_pseudo_source(radius,additional_psf = 0, density=1.):    
-            struct_size = (1+2*additional_psf)**2        
-            center_x, center_y = generate_square(additional_psf,density)
-            center_weight = (1 + 2*int(additional_psf/density))**2 * [1]
-            center_size = 1 + 2*int(additional_psf/density)
-            
-            weight_edge = [(1 + 2*int(radius/density) - center_size)// 2]
+            r = cx * cx + cy * cy <= radius**2
+            return (cx[r], cy[r])
+
+        def generate_pseudo_source(radius, additional_psf=0, density=1.):
+            struct_size = (1 + 2 * additional_psf)**2
+            center_x, center_y = generate_square(additional_psf, density)
+            center_weight = (1 + 2 * int(additional_psf / density))**2 * [1]
+            center_size = 1 + 2 * int(additional_psf / density)
+
+            weight_edge = [(1 + 2 * int(radius / density) - center_size) // 2]
             xc, yc = generate_square_circ(radius, density)
             for k in range(additional_psf):
                 line_length = np.sum(yc == (k + 1))
                 print(line_length)
-                weight_edge.append((line_length - center_size)//2)
-            
-            edge_dist = (radius+additional_psf)//2
+                weight_edge.append((line_length - center_size) // 2)
+
+            edge_dist = (radius + additional_psf) // 2
             V_edge_x = []
             V_edge_y = []
             V_edge_weight = []
-            for m in [-1,1]:
+            for m in [-1, 1]:
                 V_edge_x.append(0)
                 V_edge_y.append(m * edge_dist)
                 V_edge_weight.append(weight_edge[0])
-            for k,val in enumerate(weight_edge[1:]):
-                for l in [-1,1]:
-                    for m in [-1,1]:
-                        V_edge_x.append(l*(k+1)*density)
-                        V_edge_y.append(m*edge_dist)
-                        V_edge_weight.append(val)            
+            for k, val in enumerate(weight_edge[1:]):
+                for l in [-1, 1]:
+                    for m in [-1, 1]:
+                        V_edge_x.append(l * (k + 1) * density)
+                        V_edge_y.append(m * edge_dist)
+                        V_edge_weight.append(val)
             H_edge_x = []
             H_edge_y = []
             H_edge_weight = []
-            for m in [-1,1]:
+            for m in [-1, 1]:
                 H_edge_x.append(m * edge_dist)
                 H_edge_y.append(0)
                 H_edge_weight.append(weight_edge[0])
-            for k,val in enumerate(weight_edge[1:]):
-                for l in [-1,1]:
-                    for m in [-1,1]:
-                        H_edge_x.append(m*edge_dist)
-                        H_edge_y.append(l*(k+1)*density)
+            for k, val in enumerate(weight_edge[1:]):
+                for l in [-1, 1]:
+                    for m in [-1, 1]:
+                        H_edge_x.append(m * edge_dist)
+                        H_edge_y.append(l * (k + 1) * density)
                         H_edge_weight.append(val)
             pup_cent_x = []
             pup_cent_y = []
-            pup_cent_weight = 4*[(len(xc)-2*np.sum(H_edge_weight)-struct_size)/4]
-            pup_cent_dist = int(edge_dist//np.sqrt(2))
-            for l in [-1,1]:
-                for m in [-1,1]:
-                    pup_cent_x.append(l*pup_cent_dist)
-                    pup_cent_y.append(m*pup_cent_dist)
-            ox = np.concatenate((center_x,V_edge_x,H_edge_x,pup_cent_x))
-            oy = np.concatenate((center_y,V_edge_y,H_edge_y,pup_cent_y))
-            w = np.concatenate((center_weight,V_edge_weight,H_edge_weight,pup_cent_weight))
-            return(ox, oy ,w, xc, yc)
+            pup_cent_weight = 4 * [
+                    (len(xc) - 2 * np.sum(H_edge_weight) - struct_size) / 4
+            ]
+            pup_cent_dist = int(edge_dist // np.sqrt(2))
+            for l in [-1, 1]:
+                for m in [-1, 1]:
+                    pup_cent_x.append(l * pup_cent_dist)
+                    pup_cent_y.append(m * pup_cent_dist)
+            ox = np.concatenate((center_x, V_edge_x, H_edge_x, pup_cent_x))
+            oy = np.concatenate((center_y, V_edge_y, H_edge_y, pup_cent_y))
+            w = np.concatenate((center_weight, V_edge_weight, H_edge_weight,
+                                pup_cent_weight))
+            return (ox, oy, w, xc, yc)
 
         cx, cy, w, _, _ = generate_pseudo_source(radius, additional_psf, density)
 
-        wfs = self._sim.wfs 
+        wfs = self._sim.wfs
         pwfs = self._sim.config.p_wfss[nwfs]
         ptel = self._sim.config.p_tel
         pyrsize = pwfs._Nfft
         pixsize = (np.pi * pwfs._qpixsize) / (3600 * 180)
         scale_pos = 2 * np.pi / pyrsize * \
             (pwfs.Lambda * 1e-6 / ptel.diam) / pixsize
-        
+
         cx = cx.flatten() * scale_pos
         cy = cy.flatten() * scale_pos
         pyr_npts = len(cx)
@@ -1135,16 +1148,9 @@ class CanapassSupervisor(CompassSupervisor):
         pwfs.set_pyr_cy(cy)
         wfs.d_wfs[nwfs].set_pyr_modulation(cx, cy, w, pyr_npts)
 
-
-
     def setPyrMethod(self, pyrmethod):
         CompassSupervisor.setPyrMethod(self, pyrmethod)
         self._sim.rtc.do_centroids(0)  # To be ready for the next getSlopes
-
-    # def setNoise(self, noise, numwfs=0):
-    #     CompassSupervisor.setNoise(self, noise, numwfs)
-
-
 
     def setGain(self, gain) -> None:
         '''
@@ -1160,9 +1166,7 @@ class CanapassSupervisor(CompassSupervisor):
 
 ########################## PROTO #############################
 
-
-
-    def initModalGain(self, gain, cmatModal, modalBasis, control=0, resetGain = True):
+    def initModalGain(self, gain, cmatModal, modalBasis, control=0, resetGain=True):
         """
         Given a gain, cmat and btt2v initialise the modal gain mode
         """
@@ -1172,45 +1176,41 @@ class CanapassSupervisor(CompassSupervisor):
         nfilt = nmode_total - cmatModal.shape[0]
         ctrl = self._sim.rtc.d_control[control]
         ctrl.set_commandlaw('modal_integrator')
-        cmat = np.zeros((nactu_total,cmatModal.shape[1]))
+        cmat = np.zeros((nactu_total, cmatModal.shape[1]))
         dec = cmat.shape[0] - cmatModal.shape[0]
-        cmat[:-dec,:] += cmatModal # Fill the full Modal with all non-filtered modes
-        modes2V = np.zeros((nactu_total,nactu_total))
+        cmat[:-dec, :] += cmatModal  # Fill the full Modal with all non-filtered modes
+        modes2V = np.zeros((nactu_total, nactu_total))
         dec2 = modes2V.shape[1] - modalBasis.shape[1]
-        modes2V[:,:-dec2] += modalBasis
-        mgain = np.ones(len(modes2V))*gain # Initialize the gain
+        modes2V[:, :-dec2] += modalBasis
+        mgain = np.ones(len(modes2V)) * gain  # Initialize the gain
         ctrl.set_matE(modes2V)
         ctrl.set_cmat(cmat)
         if resetGain:
             ctrl.set_mgain(mgain)
-    
-    def leaveModalGain(self, control = 0):
+
+    def leaveModalGain(self, control=0):
         ctrl = self._sim.rtc.d_control[control]
         ctrl.set_commandlaw('integrator')
-        
-    def set_mgain(self,mgain,control=0):
+
+    def set_mgain(self, mgain, control=0):
         """
         Wrapper function to let adopt set the modal gain.
         """
         ctrl = self._sim.rtc.d_control[control]
         ctrl.set_mgain(mgain)
 
-    def get_mgain(self,control=0):
+    def get_mgain(self, control=0):
         """
         Wrapper function to let adopt get the modal gain.
         """
         ctrl = self._sim.rtc.d_control[control]
-        return(np.array(ctrl.d_gain))
+        return (np.array(ctrl.d_gain))
 
-    def setModalBasis(self,modalBasis):
+    def setModalBasis(self, modalBasis):
         """
         Function used to set the modal basis in canapass
         """
         self.modalBasis = modalBasis
-
-
-
-
 
     def getTargetPhase(self, tarnum):
         pup = self.getSpupil()
@@ -1245,7 +1245,8 @@ class CanapassSupervisor(CompassSupervisor):
         pfits.writeto(fullpath, data, overwrite=True)
 
     def recordCB(self, CBcount, subSample=1, tarnum=0, seeAtmos=True,
-                 tarPhaseFilePath="", NCPA=False, ncpawfs=None, refSlopes=None, ditchStrehl = True):
+                 tarPhaseFilePath="", NCPA=False, ncpawfs=None, refSlopes=None,
+                 ditchStrehl=True):
         slopesdata = None
         voltsdata = None
         tarPhaseData = None
@@ -1320,10 +1321,10 @@ class CanapassSupervisor(CompassSupervisor):
         psfLE = self.getTarImage(tarnum, "le")
         return slopesdata, voltsdata, aiData, psfLE, srseList, srleList, gNPCAList
 
-
-    def recordCB_PyrFocPla_PSFSE(self, CBcount, starting_index, save_path, image_subSample = 20,
-                subSample=1, tarnum=0, seeAtmos=True,
-                tarPhaseFilePath="", NCPA=False, ncpawfs=None, refSlopes=None, ditchStrehl = True):
+    def recordCB_PyrFocPla_PSFSE(self, CBcount, starting_index, save_path,
+                                 image_subSample=20, subSample=1, tarnum=0,
+                                 seeAtmos=True, tarPhaseFilePath="", NCPA=False,
+                                 ncpawfs=None, refSlopes=None, ditchStrehl=True):
         slopesdata = None
         voltsdata = None
         tarPhaseData = None
@@ -1374,11 +1375,15 @@ class CanapassSupervisor(CompassSupervisor):
                 psfSE = self.getTarImage(0, "se")
                 pyrFP = self.getPyrFocalPlane()
                 pyrHR = self.getWfsImage()
-                wfs   = self.getWfsPhase(0)
-                pfits.writeto(save_path+'psfSE_'+str(index_counter).zfill(5), psfSE, overwrite=True)
-                pfits.writeto(save_path+'pyrFP_'+str(index_counter).zfill(5), pyrFP, overwrite=True)
-                pfits.writeto(save_path+'pyrHR_'+str(index_counter).zfill(5), pyrHR, overwrite=True)
-                pfits.writeto(save_path+'wfs_'  +str(index_counter).zfill(5), wfs  , overwrite=True)
+                wfs = self.getWfsPhase(0)
+                pfits.writeto(save_path + 'psfSE_' + str(index_counter).zfill(5), psfSE,
+                              overwrite=True)
+                pfits.writeto(save_path + 'pyrFP_' + str(index_counter).zfill(5), pyrFP,
+                              overwrite=True)
+                pfits.writeto(save_path + 'pyrHR_' + str(index_counter).zfill(5), pyrHR,
+                              overwrite=True)
+                pfits.writeto(save_path + 'wfs_' + str(index_counter).zfill(5), wfs,
+                              overwrite=True)
             if (j % subSample == 0):
                 aiVector = self.computeModalResiduals()
                 if (aiData is None):
@@ -1473,7 +1478,6 @@ class CanapassSupervisor(CompassSupervisor):
 
         """
 
-
 if __name__ == '__main__':
     from docopt import docopt
     arguments = docopt(__doc__)
@@ -1498,6 +1502,3 @@ if __name__ == '__main__':
     except:
         raise EnvironmentError(
                 "Missing dependencies (code HRAA or Pyro4 or Dill Serializer)")
-
-
-

@@ -39,18 +39,19 @@ string sutra_centroider_bpcog<Tin, T>::get_type() {
 template <class Tin, class T>
 int sutra_centroider_bpcog<Tin, T>::set_nmax(int nmax) {
   this->current_context->set_activeDevice(this->device, 1);
-  this->nmax = nmax;
-  delete this->d_bpix;
-  delete this->d_bpind;
+  if(nmax != this->nmax) {
+    this->nmax = nmax;
+    delete this->d_bpix;
+    delete this->d_bpind;
 
-  long dims_data[3];
-  dims_data[0] = 2;
-  dims_data[1] = nmax;
-  dims_data[2] = this->nvalid;
+    long dims_data[3];
+    dims_data[0] = 2;
+    dims_data[1] = nmax;
+    dims_data[2] = this->nvalid;
 
-  this->d_bpix = new carma_obj<T>(this->current_context, dims_data);
-  this->d_bpind = new carma_obj<uint>(this->current_context, dims_data);
-
+    this->d_bpix = new carma_obj<T>(this->current_context, dims_data);
+    this->d_bpind = new carma_obj<uint>(this->current_context, dims_data);
+  }
   return EXIT_SUCCESS;
 }
 

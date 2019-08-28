@@ -1,8 +1,9 @@
-#include <wyrm>
-
 #include "declare_name.hpp"
 
 #include <carma.h>
+
+#include <wyrm>
+
 #include "obj.hpp"
 #include "obj_complex.hpp"
 #include "obj_half.hpp"

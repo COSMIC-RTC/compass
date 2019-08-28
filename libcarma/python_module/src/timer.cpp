@@ -1,7 +1,8 @@
-#include <carma.h>
-#include <wyrm>
-
 #include "declare_name.hpp"
+
+#include <carma.h>
+
+#include <wyrm>
 
 namespace py = pybind11;
 
