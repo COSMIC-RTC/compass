@@ -258,6 +258,7 @@ class CompassSupervisor(AoSupervisor):
         self.rtc = self._sim.rtc
         self.iter = self._sim.iter
         self.enableAtmos(True)
+        self.is_init = True
 
     def getNcpaWfs(self, wfsnum):
         return np.array(self._sim.wfs.d_wfs[wfsnum].d_gs.d_ncpa_phase)
