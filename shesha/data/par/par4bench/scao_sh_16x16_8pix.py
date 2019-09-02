@@ -48,7 +48,7 @@ p_target.set_Lambda(1.65)
 p_target.set_mag(10.)
 
 # wfs
-p_wfs0 = conf.Param_wfs()
+p_wfs0 = conf.Param_wfs(roket=True)
 p_wfss = [p_wfs0]
 
 p_wfs0.set_type("sh")
@@ -103,22 +103,14 @@ p_centroider0.set_type("cog")
 
 # controllers
 p_controller0 = conf.Param_controller()
-p_controller1 = conf.Param_controller()
-p_controllers = [p_controller0, p_controller1]
+p_controllers = [p_controller0]
 
 p_controller0.set_type("ls")
 p_controller0.set_nwfs([0])
-p_controller0.set_ndm([0])
+p_controller0.set_ndm([0, 1])
 p_controller0.set_maxcond(1500.)
 p_controller0.set_delay(1.)
 p_controller0.set_gain(0.4)
-
-p_controller1.set_type("ls")
-p_controller1.set_nwfs([0])
-p_controller1.set_ndm([1])
-p_controller1.set_maxcond(1500.)
-p_controller1.set_delay(1.)
-p_controller1.set_gain(0.4)
 
 p_controller0.set_modopti(0)
 p_controller0.set_nrec(2048)

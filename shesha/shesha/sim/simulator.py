@@ -323,6 +323,7 @@ class Simulator:
                     self.compWfsImage(w)
             if do_control and self.rtc is not None:
                 for ncontrol in range(len(self.rtc.d_control)):
+                    #if self.rtc.d_control[ncontrol].type != scons.ControllerType.GEO:
                     if self.rtc.d_control[ncontrol].centro_idx is None: # RTC standalone case
                         self.doCalibrate_img(ncontrol)
                     self.doCentroids(ncontrol)
