@@ -199,9 +199,15 @@ int sutra_centroider<Tin, Tout>::load_img(Tin *img, int n) {
 
 template <class Tin, class Tout>
 int sutra_centroider<Tin, Tout>::load_img(Tin *img, int n, int location) {
+  return this->load_img(img, n, n, location);
+}
+
+template <class Tin, class Tout>
+int sutra_centroider<Tin, Tout>::load_img(Tin *img, int m, int n,
+                                          int location) {
   current_context->set_activeDevice(device, 1);
   if (this->d_img_raw == nullptr) {
-    long dims_data2[3] = {2, n, n};
+    long dims_data2[3] = {2, m, n};
     this->d_img_raw = new carma_obj<Tin>(current_context, dims_data2);
     this->d_img = new carma_obj<float>(current_context, dims_data2);
   }

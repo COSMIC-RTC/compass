@@ -112,9 +112,9 @@ class BenchSupervisor(AoSupervisor):
         '''
             Acquire a new WFS frame and load it.
         '''
-
         self.frame = self.camCallback()
-        self.rtc.d_centro[0].load_img(self.frame, self.frame.shape[0])
+        self.rtc.d_centro[0].load_img(self.frame, self.frame.shape[0],
+                                      self.frame.shape[1])
 
     def computeWfsFrame(self):
         '''
