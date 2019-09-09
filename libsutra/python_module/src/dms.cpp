@@ -89,7 +89,38 @@ void declare_dms(py::module &mod) {
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
 
-      .def("add_dm", wy::colCast(&sutra_dms::add_dm),
+      .def("add_dm", (int (sutra_dms::*)(carma_context *, const char *, float, long,
+             long, long, long, long,
+             float, long, float, float, float, float,  int))&sutra_dms::add_dm,
+           R"pbdoc(
+        Add a sutra_dm in the sutra_dms vector
+
+        Parameters
+        ------------
+        context: (carma_context) : current carma context
+        type: (str): DM type ("pzt", "kl", or "tt")
+        alt: (float): Conjugaison altitude in meters
+        dim: (long): Support dimension
+        nactus: (long): Number of actuators
+        influsize: (long): Influenction function support size
+        ninflupos: (long): Size of _influpos array
+        n_npoints: (long): Size of _ninflu array
+        push4imat: (float): Voltage to apply for imat computation
+        nord: (long): Number of radial order for kl dm (0 if not kl)
+        dx: (float): X axis misregistration [pixels]
+        dy: (float): Y axis misregistration [pixels]
+        theta: (float): Rotation angle misregistration [radians]
+        G: (float): Magnification factor
+        device: (int): Device index
+        )pbdoc",
+           py::arg("context"), py::arg("type"), py::arg("alt"), py::arg("dim"),
+           py::arg("nactus"), py::arg("influsize"), py::arg("ninflupos"),
+           py::arg("n_npoints"), py::arg("push4imat"), py::arg("nord"), py::arg("dx"), py::arg("dy"), py::arg("thetaML"), py::arg("G"),
+           py::arg("device"))
+
+      .def("add_dm", (int (sutra_dms::*)(carma_context *, const char *, float, long,
+             long, long, long, long,
+             float, long, int))&sutra_dms::add_dm,
            R"pbdoc(
         Add a sutra_dm in the sutra_dms vector
 
@@ -128,12 +159,16 @@ void declare_dms(py::module &mod) {
         n_npoints: (long): Size of _ninflu array
         push4imat: (float): Voltage to apply for imat computation
         nord: (long): Number of radial order for kl dm (0 if not kl)
+        dx: (float): X axis misregistration [pixels]
+        dy: (float): Y axis misregistration [pixels]
+        theta: (float): Rotation angle misregistration [radians]
+        G: (float): Magnification factor
         device: (int): Device index
         idx: (int) : DM index in the vector dms
         )pbdoc",
            py::arg("context"), py::arg("type"), py::arg("alt"), py::arg("dim"),
            py::arg("nactus"), py::arg("influsize"), py::arg("ninflupos"),
-           py::arg("n_npoints"), py::arg("push4imat"), py::arg("nord"),
+           py::arg("n_npoints"), py::arg("push4imat"), py::arg("nord"), py::arg("dx"), py::arg("dy"), py::arg("theta"), py::arg("G"),
            py::arg("device"), py::arg("idx"))
 
       .def("remove_dm", wy::colCast(&sutra_dms::remove_dm),
@@ -272,6 +307,18 @@ void declare_dm(py::module &mod) {
           "d_xoff", [](sutra_dm &sdm) { return sdm.d_xoff; }, "TODO: docstring")
 
       .def_property_readonly(
+          "dx", [](sutra_dm &sdm) { return sdm.dx; }, "X registration in pixels")
+
+      .def_property_readonly(
+          "dy", [](sutra_dm &sdm) { return sdm.dy; }, "Y registration in pixels")
+
+      .def_property_readonly(
+          "thetaML", [](sutra_dm &sdm) { return sdm.thetaML; }, "thetaML registration in radians")
+
+      .def_property_readonly(
+          "G", [](sutra_dm &sdm) { return sdm.G; }, "Magnification factor registration in pixels")
+
+      .def_property_readonly(
           "d_yoff", [](sutra_dm &sdm) { return sdm.d_yoff; }, "TODO: docstring")
 
       .def_property_readonly(
@@ -381,6 +428,18 @@ void declare_dm(py::module &mod) {
         ampli: (float): Volt to apply to this actuator
       )pbdoc",
            py::arg("nactu"), py::arg("ampli"))
+
+      .def("set_registration", wy::colCast(&sutra_dm::set_registration), R"pbdoc(
+        Set the registration parameters : dx, dy, theta and G
+
+        Parameters
+        ------------
+        dx: (float): X axis misregistration [pixels]
+        dy: (float): Y axis misregistration [pixels]
+        theta: (float): Rotation angle misregistration [radians]
+        G: (float): Magnification factor
+      )pbdoc",
+           py::arg("dx"), py::arg("dy"), py::arg("theta"), py::arg("G"))
 
       .def("compute_KLbasis", wy::colCast(&sutra_dm::compute_KLbasis),
            R"pbdoc(

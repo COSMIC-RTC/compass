@@ -81,6 +81,11 @@ class sutra_dm {
   float push4imat;
   float Vmin;
   float Vmax;
+  float dx;
+  float dy; 
+  float thetaML; 
+  float G;
+
   uint16_t valMax;
 
   sutra_phase *d_shape;
@@ -113,7 +118,7 @@ class sutra_dm {
  public:
   sutra_dm(carma_context *context, const char *type, float altitude, long dim,
            long nactus, long influsize, long ninflupos, long n_npoints,
-           float push4imat, long nord, int device);
+           float push4imat, long nord, float dx, float dy, float thetaML, float G, int device);
   ~sutra_dm();
 
   int nact();
@@ -145,6 +150,7 @@ class sutra_dm {
   int compute_KLbasis(float *xpos, float *ypos, int *indx, long dim, float norm,
                       float ampli);
   int piston_filt(carma_obj<float> *d_statcov);
+  int set_registration(float dx, float dy, float thetaML, float G);
 };
 
 //  ██████╗ ███╗   ███╗███████╗
@@ -165,10 +171,13 @@ class sutra_dms {
 
   int add_dm(carma_context *context, const char *type, float alt, long dim,
              long nactus, long influsize, long ninflupos, long n_npoints,
+             float push4imat, long nord, float dx, float dy, float thetaML, float G,  int device);
+  int add_dm(carma_context *context, const char *type, float alt, long dim,
+             long nactus, long influsize, long ninflupos, long n_npoints,
              float push4imat, long nord, int device);
   int insert_dm(carma_context *context, const char *type, float alt, long dim,
                 long nactus, long influsize, long ninflupos, long n_npoints,
-                float push4imat, long nord, int device, int idx);
+                float push4imat, long nord, float dx, float dy, float thetaML, float G, int device, int idx);
   int remove_dm(int idx);
 
   int ndm() { return d_dms.size(); };

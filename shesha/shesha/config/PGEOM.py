@@ -60,6 +60,8 @@ class Param_geom:
         self.__pupdiam = 0
         """ central point of the simulation."""
         self.__cent = 0.
+        """ Pixel size of the simulation [meters]."""
+        self.__pixsize = 0.
 
         # Internals
         self.__ipupil = None  # total pupil (include full guard band)
@@ -367,3 +369,19 @@ class Param_geom:
         self.__apod_file = f
 
     apod_file = property(get_apod_file, set_apod_file)
+
+    def get_pixsize(self):
+        """ Get the pixsizeral point of the simulation
+
+        :return: (float) : pixsizeral point of the simulation.
+        """
+        return self.__pixsize
+
+    def set_pixsize(self, c):
+        """ Set the pixel size of the simulation
+
+        :param c: (float) : pixel size of the simulation.
+        """
+        self.__pixsize = csu.enforce_float(c)
+
+    _pixsize = property(get_pixsize, set_pixsize)
