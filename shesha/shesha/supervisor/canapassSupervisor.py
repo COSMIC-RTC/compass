@@ -645,8 +645,8 @@ class CanapassSupervisor(CompassSupervisor):
             KLMax = KL2V.shape[1]
         vold = self.getCom(0)
         self.openLoop(rst=False)
-        for kl in range(KLMax):
-            print(kl, end="\r")
+        for kl in trange(KLMax):
+            #print(kl, end="\r")
             # v = ampliVec[kl] * KL2V[:, kl:kl + 1].T.copy()
             v = ampliVec[kl] * KL2V[:, kl]
             if ((pushPull is True) or
@@ -1207,7 +1207,7 @@ class CanapassSupervisor(CompassSupervisor):
         """
         Given a gain, cmat and btt2v initialise the modal gain mode
         """
-        print("TODO: A RECODER 111 !!!!")
+        print("TODO: A RECODER !!!!")
         nmode_total = modalBasis.shape[1]
         nactu_total = modalBasis.shape[0]
         nfilt = nmode_total - cmatModal.shape[0]

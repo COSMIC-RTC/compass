@@ -71,6 +71,7 @@ class BenchSupervisor(AoSupervisor):
         self.setCommand(0, np.array(self.rtc.d_control[0].d_voltage))
         if self.BRAHMA or self.CACAO:
             self.rtc.publish()
+        self.iter+=1
 
     def getTarImage(self, tarID, expoType: str = "se") -> np.ndarray:
         '''

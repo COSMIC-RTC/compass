@@ -75,6 +75,7 @@ class CompassSupervisor(AoSupervisor):
         Move atmos -> getSlope -> applyControl ; One integrator step
         '''
         self._sim.next(see_atmos=showAtmos)  # why not self._seeAtmos?
+        self.iter+=1
 
     def getTarImage(self, tarID, expoType: str = "se") -> np.ndarray:
         '''
