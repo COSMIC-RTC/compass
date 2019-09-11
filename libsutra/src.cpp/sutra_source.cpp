@@ -326,8 +326,8 @@ int sutra_source::raytrace(sutra_dms *ydms, bool rst, bool do_phase_var,
                         (int)d_phase->d_screen->getDims(2),
                         (int)ps->d_shape->d_screen->getDims(1),
                         xoff[std::make_pair(types, inddm)],
-                        yoff[std::make_pair(types, inddm)], this->G,
-                        this->thetaML, this->dx, this->dy, this->block_size);
+                        yoff[std::make_pair(types, inddm)], this->G * ps->G,
+                        this->thetaML + ps->thetaML, this->dx + ps->dx, this->dy + ps->dy, this->block_size);
       }
     } else
       p++;

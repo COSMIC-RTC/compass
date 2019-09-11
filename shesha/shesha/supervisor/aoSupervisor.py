@@ -267,7 +267,6 @@ class AoSupervisor(AbstractSupervisor):
     def next(self, nbiters, see_atmos=True):
         ''' Move atmos -> getSlope -> applyControl ; One integrator step '''
         for i in range(nbiters):
-            print(i, end="\r")
             self.singleNext(showAtmos=see_atmos)
 
     def setGain(self, gain) -> None:

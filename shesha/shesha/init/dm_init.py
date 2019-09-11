@@ -834,7 +834,7 @@ def correct_dm(context, dms: Dms, p_dms: list, p_controller: conf.Param_controll
             dms.remove_dm(nm)
             dms.insert_dm(context, p_dms[nm].type, p_dms[nm].alt, dim,
                           p_dms[nm]._ntotact, p_dms[nm]._influsize, ninflupos, n_npts,
-                          p_dms[nm].push4imat, 0, context.activeDevice, nm)
+                          p_dms[nm].push4imat, 0, p_dms[nm].dx / p_geom._pixsize, p_dms[nm].dy / p_geom._pixsize, p_dms[nm].theta, p_dms[nm].G, context.activeDevice, nm)
             dms.d_dms[nm].pzt_loadarrays(p_dms[nm]._influ, p_dms[nm]._influpos.astype(
                     np.int32), p_dms[nm]._ninflu, p_dms[nm]._influstart, p_dms[nm]._i1,
                                          p_dms[nm]._j1)

@@ -59,18 +59,27 @@ int sutra_dms::add_dm(carma_context *context, const char *type, float alt,
                       long dim, long nactus, long influsize, long ninflupos,
                       long n_npoints, float push4imat, long nord, int device) {
   this->insert_dm(context, type, alt, dim, nactus, influsize, ninflupos,
-                  n_npoints, push4imat, nord, device, this->d_dms.size());
+                  n_npoints, push4imat, nord, 0.f, 0.f, 0.f, 1.f, device, this->d_dms.size());
+
+  return EXIT_SUCCESS;
+}
+
+int sutra_dms::add_dm(carma_context *context, const char *type, float alt,
+                      long dim, long nactus, long influsize, long ninflupos,
+                      long n_npoints, float push4imat, long nord, float dx, float dy, float thetaML, float G, int device) {
+  this->insert_dm(context, type, alt, dim, nactus, influsize, ninflupos,
+                  n_npoints, push4imat, nord, dx, dy, thetaML, G, device, this->d_dms.size());
 
   return EXIT_SUCCESS;
 }
 
 int sutra_dms::insert_dm(carma_context *context, const char *type, float alt,
                          long dim, long nactus, long influsize, long ninflupos,
-                         long n_npoints, float push4imat, long nord, int device,
+                         long n_npoints, float push4imat, long nord, float dx, float dy, float thetaML, float G, int device,
                          int idx) {
   d_dms.insert(d_dms.begin() + idx,
                new sutra_dm(context, type, alt, dim, nactus, influsize,
-                            ninflupos, n_npoints, push4imat, nord, device));
+                            ninflupos, n_npoints, push4imat, nord, dx, dy, thetaML, G, device));
   return EXIT_SUCCESS;
 }
 
@@ -96,7 +105,7 @@ int sutra_dms::nact_total() {
 
 sutra_dm::sutra_dm(carma_context *context, const char *type, float alt,
                    long dim, long nactus, long influsize, long ninflupos,
-                   long n_npoints, float push4imat, long nord, int device) {
+                   long n_npoints, float push4imat, long nord, float dx, float dy, float thetaML, float G, int device) {
   this->d_influ = NULL;
   this->d_influpos = NULL;
   this->d_npoints = NULL;
@@ -122,6 +131,10 @@ sutra_dm::sutra_dm(carma_context *context, const char *type, float alt,
   this->Vmin = -1.0f;
   this->Vmax = 1.0f;
   this->valMax = uint16_t(65535);
+  this->dx = dx;
+  this->dy = dy;
+  this->thetaML = thetaML;
+  this->G = G;
 
   long dims_data1[2];
   dims_data1[0] = 1;
@@ -173,6 +186,15 @@ sutra_dm::~sutra_dm() {
 }
 
 int sutra_dm::nact() { return this->nactus; }
+
+int sutra_dm::set_registration(float dx, float dy, float thetaML, float G) {
+  this->dx = dx;
+  this->dy = dy;
+  this->thetaML = thetaML;
+  this->G = G;
+
+  return EXIT_SUCCESS;
+}
 
 int sutra_dm::tt_loadarrays(float *influ) {
   current_context->set_activeDevice(device, 1);

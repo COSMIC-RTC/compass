@@ -864,7 +864,7 @@ def geom_init(p_geom: conf.Param_geom, p_tel: conf.Param_tel, padding=2):
     else:
     """
     p_geom._apodizer = np.ones(p_geom._spupil.shape, dtype=np.int32)
-
+    p_geom._pixsize = p_tel.diam / p_geom.pupdiam
     p_geom.is_init = True
 
 

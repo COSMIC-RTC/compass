@@ -75,6 +75,7 @@ class CompassSupervisor(AoSupervisor):
         Move atmos -> getSlope -> applyControl ; One integrator step
         '''
         self._sim.next(see_atmos=showAtmos)  # why not self._seeAtmos?
+        self.iter+=1
 
     def getTarImage(self, tarID, expoType: str = "se") -> np.ndarray:
         '''
@@ -424,3 +425,27 @@ class CompassSupervisor(AoSupervisor):
         self.resetDM()
         self.openLoop(rst=rst)
         self.closeLoop()
+
+    def setDMRegistration(self, indDM, dx=None, dy=None, theta=None, G=None):
+        """Set the registration parameters for DM #indDM
+
+        Parameters:
+            indDM : (int) : DM index
+            dx : (float, optionnal) : X axis registration parameter [meters]. If None, re-use the last one 
+            dy : (float, optionnal) : Y axis registration parameter [meters]. If None, re-use the last one 
+            theta : (float, optionnal) : Rotation angle parameter [rad]. If None, re-use the last one 
+            G : (float, optionnal) : Magnification factor. If None, re-use the last one 
+
+        """
+        if dx is not None:
+            self.config.p_dms[indDM].set_dx(dx)        
+        if dy is not None:
+            self.config.p_dms[indDM].set_dy(dy)
+        if theta is not None:
+            self.config.p_dms[indDM].set_theta(theta)
+        if G is not None:
+            self.config.p_dms[indDM].set_G(G)
+        
+        self._sim.dms.d_dms[indDM].set_registration(self.config.p_dms[indDM].dx / self.config.p_geom._pixsize, self.config.p_dms[indDM].dy / self.config.p_geom._pixsize, self.config.p_dms[indDM].theta, self.config.p_dms[indDM].G)
+        
+        
