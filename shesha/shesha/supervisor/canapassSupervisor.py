@@ -52,7 +52,6 @@ import numpy as np
 import time
 from collections import OrderedDict
 
-#from tqdm import trange
 from tqdm import tqdm
 import astropy.io.fits as pfits
 from threading import Thread
@@ -645,8 +644,7 @@ class CanapassSupervisor(CompassSupervisor):
             KLMax = KL2V.shape[1]
         vold = self.getCom(0)
         self.openLoop(rst=False)
-        for kl in trange(KLMax):
-            #print(kl, end="\r")
+        for kl in range(KLMax):
             # v = ampliVec[kl] * KL2V[:, kl:kl + 1].T.copy()
             v = ampliVec[kl] * KL2V[:, kl]
             if ((pushPull is True) or
