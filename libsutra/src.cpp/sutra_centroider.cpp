@@ -5,29 +5,34 @@
 //  All rights reserved.
 //  Distributed under GNU - LGPL
 //
-//  COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser 
-//  General Public License as published by the Free Software Foundation, either version 3 of the License, 
-//  or any later version.
+//  COMPASS is free software: you can redistribute it and/or modify it under the
+//  terms of the GNU Lesser General Public License as published by the Free
+//  Software Foundation, either version 3 of the License, or any later version.
 //
-//  COMPASS: End-to-end AO simulation tool using GPU acceleration 
-//  The COMPASS platform was designed to meet the need of high-performance for the simulation of AO systems. 
-//  
-//  The final product includes a software package for simulating all the critical subcomponents of AO, 
-//  particularly in the context of the ELT and a real-time core based on several control approaches, 
-//  with performances consistent with its integration into an instrument. Taking advantage of the specific 
-//  hardware architecture of the GPU, the COMPASS tool allows to achieve adequate execution speeds to
-//  conduct large simulation campaigns called to the ELT. 
-//  
-//  The COMPASS platform can be used to carry a wide variety of simulations to both testspecific components 
-//  of AO of the E-ELT (such as wavefront analysis device with a pyramid or elongated Laser star), and 
-//  various systems configurations such as multi-conjugate AO.
+//  COMPASS: End-to-end AO simulation tool using GPU acceleration
+//  The COMPASS platform was designed to meet the need of high-performance for
+//  the simulation of AO systems.
 //
-//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the 
-//  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
-//  See the GNU Lesser General Public License for more details.
+//  The final product includes a software package for simulating all the
+//  critical subcomponents of AO, particularly in the context of the ELT and a
+//  real-time core based on several control approaches, with performances
+//  consistent with its integration into an instrument. Taking advantage of the
+//  specific hardware architecture of the GPU, the COMPASS tool allows to
+//  achieve adequate execution speeds to conduct large simulation campaigns
+//  called to the ELT.
 //
-//  You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-//  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
+//  The COMPASS platform can be used to carry a wide variety of simulations to
+//  both testspecific components of AO of the E-ELT (such as wavefront analysis
+//  device with a pyramid or elongated Laser star), and various systems
+//  configurations such as multi-conjugate AO.
+//
+//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY
+//  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+//  FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+//  details.
+//
+//  You should have received a copy of the GNU Lesser General Public License
+//  along with COMPASS. If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 // -----------------------------------------------------------------------------
 
 //! \file      sutra_centroider.cpp
@@ -133,8 +138,7 @@ int sutra_centroider<Tin, Tout>::init_calib(int n, int m) {
     long dims_data1[3] = {1, n * m};
     this->d_lutPix = new carma_obj<int>(current_context, dims_data1);
     std::vector<int> h_lutPix(n * m);
-    for (int i = 0; i < n * m; ++i)
-      h_lutPix[i] = i;
+    for (int i = 0; i < n * m; ++i) h_lutPix[i] = i;
     this->d_lutPix->host2device(h_lutPix.data());
   }
   return EXIT_SUCCESS;
@@ -176,8 +180,7 @@ int sutra_centroider<Tin, Tout>::set_flat(float *flat, int n) {
 template <class Tin, class Tout>
 int sutra_centroider<Tin, Tout>::set_lutPix(int *lutPix, int n) {
   current_context->set_activeDevice(device, 1);
-  if (this->d_lutPix == nullptr)
-  {
+  if (this->d_lutPix == nullptr) {
     long dims_data1[2] = {1, n};
     this->d_lutPix = new carma_obj<int>(current_context, dims_data1);
   }
@@ -186,8 +189,7 @@ int sutra_centroider<Tin, Tout>::set_lutPix(int *lutPix, int n) {
 }
 
 template <class Tin, class Tout>
-int sutra_centroider<Tin, Tout>::get_validMask()
-{
+int sutra_centroider<Tin, Tout>::get_validMask() {
   this->current_context->set_activeDevice(this->device, 1);
   if (this->d_validMask == nullptr) {
     if (this->d_img == nullptr) {
@@ -210,15 +212,13 @@ template <class Tin, class Tout>
 int sutra_centroider<Tin, Tout>::calibrate_img() {
   current_context->set_activeDevice(device, 1);
 
-  if (this->d_img_raw == nullptr)
-  {
-    std::cout << "Image not initialized\n"
-              << std::endl;
+  if (this->d_img_raw == nullptr) {
+    std::cout << "Image not initialized\n" << std::endl;
     return EXIT_FAILURE;
   }
 
   const long *dims = this->d_img->getDims();
-  init_calib(dims[0], dims[1]);
+  init_calib(dims[1], dims[2]);
 
   calibration<Tin>(this->d_img_raw->getData(), this->d_img->getData(),
                    this->d_dark->getData(), this->d_flat->getData(),
