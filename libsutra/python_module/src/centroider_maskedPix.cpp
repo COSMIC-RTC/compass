@@ -35,9 +35,9 @@
 //  along with COMPASS. If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 // -----------------------------------------------------------------------------
 
-//! \file      centroider_pyr.cpp
+//! \file      centroider_maskedpix.cpp
 //! \ingroup   libsutra
-//! \brief     this file provides pybind wrapper for sutra_centroider_pyr
+//! \brief     this file provides pybind wrapper for sutra_centroider_maskedpix
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
 //! \version   4.3.0
 //! \date      2011/01/28
@@ -45,19 +45,20 @@
 
 #include <wyrm>
 
-#include <sutra_centroider_pyr.h>
+#include <sutra_centroider_maskedPix.h>
 
 namespace py = pybind11;
 
 template <typename Tin, typename Tcomp>
-void centroider_pyr_impl(py::module &mod, const char *name) {
-  using centroider_pyr = sutra_centroider_pyr<Tin, Tcomp>;
+void centroider_maskedPix_impl(py::module &mod, const char *name) {
+  using centroider_maskedPix = sutra_centroider_maskedPix<Tin, Tcomp>;
 
-  py::class_<centroider_pyr, sutra_centroider<Tin, Tcomp>>(mod, name)
+  py::class_<centroider_maskedPix, sutra_centroider<Tin, Tcomp>>(mod, name)
 
       .def_property_readonly(
-          "pyr_method", [](centroider_pyr &sc) { return sc.get_method_str(); },
-          "Method used for pyramid slopes compuation")
+          "d_selected_pix",
+          [](centroider_maskedPix &sc) { return sc.d_selected_pix; },
+          "Selected pixels as an image")
 
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝
@@ -66,40 +67,19 @@ void centroider_pyr_impl(py::module &mod, const char *name) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
-      .def("set_pyr_method",
-           [](centroider_pyr &sc, uint8_t method) {
-             return sc.set_method(method);
-           },
+
+      .def("get_selected_pix",
+           wy::colCast(&centroider_maskedPix::get_selected_pix),
            R"pbdoc(
-            Set the pyramid method for slopes computation
+        Return the given pixels vector in an image format
 
-            Parameters
-            ------------
-            method : (int) : new centroiding method (0: nosinus global
-                                                    1: sinus global
-                                                    2: nosinus local
-                                                    3: sinus local)
-                            favor use of shesha_constant.PyrCentroiderMethod
-
-        )pbdoc",
-           py::arg("method"))
-
-      .def("set_pyr_thresh",
-           [](centroider_pyr &sc, float thresh) {
-             return sc.set_valid_thresh(thresh);
-           },
-           R"pbdoc(
-            Set the pyramid threshold value
-
-            Parameters
-            ------------
-            thresh : (float) : threshold value
-        )pbdoc",
-           py::arg("thresh"))
-
-      ;
+        Parameters
+        ------------
+        pix: (np.array[ndim=1,dtype=np.float32]): Pixels to map on the image
+    )pbdoc",
+           py::arg("pix"));
 };
-void declare_centroider_pyr(py::module &mod) {
-  centroider_pyr_impl<float, float>(mod, "CentroiderPYR_FF");
-  centroider_pyr_impl<uint16_t, float>(mod, "CentroiderPYR_UF");
+void declare_centroider_maskedPix(py::module &mod) {
+  centroider_maskedPix_impl<float, float>(mod, "CentroiderMASKEDPIX_FF");
+  centroider_maskedPix_impl<uint16_t, float>(mod, "CentroiderMASKEDPIX_UF");
 }
