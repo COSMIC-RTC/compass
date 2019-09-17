@@ -448,4 +448,13 @@ class CompassSupervisor(AoSupervisor):
         
         self._sim.dms.d_dms[indDM].set_registration(self.config.p_dms[indDM].dx / self.config.p_geom._pixsize, self.config.p_dms[indDM].dy / self.config.p_geom._pixsize, self.config.p_dms[indDM].theta, self.config.p_dms[indDM].G)
         
+    def getSelectedPix(self):
+        """Return the pyramid image with only the selected pixels used by the full pixels centroider
+        """
+        if(self.config.p_centroiders[0].type != scons.CentroiderType.MASKEDPIX):
+            raise TypeError("Centroider must be maskedPix")
         
+        carma_centroids = self._sim.rtc.d_control[0].d_centroids
+        self._sim.rtc.d_centro[0].fill_selected_pix(carma_centroids)
+
+        return np.array(self._sim.rtc.d_centro[0].d_selected_pix)
