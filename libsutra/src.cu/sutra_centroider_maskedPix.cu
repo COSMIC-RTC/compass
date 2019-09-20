@@ -55,7 +55,7 @@ __global__ void get_maskedPix_krnl(T *g_odata, T *ref, float *g_idata,
 
   if (i < nslopes) {
     int i2 = subindx[i] + subindy[i] * ns;
-    g_odata[i] = T(g_idata[i2] / intensities[0]) - ref[i];
+    g_odata[i] = T(g_idata[i2] / intensities[0] * nslopes) - ref[i];
   }
 }
 
