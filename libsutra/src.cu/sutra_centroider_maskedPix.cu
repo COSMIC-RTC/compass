@@ -112,7 +112,8 @@ void fill_intensities(float *d_odata, float *d_idata, int *subindx,
 
 template <typename T>
 __global__ void pyr_fill_selected_pix_krnl(T *img, int img_sizex, T *pix,
-                                      int *subindx, int *subindy, int nvalid) {
+                                           int *subindx, int *subindy,
+                                           int nvalid) {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
   while (tid < nvalid) {
     int pos = subindx[tid] + subindy[tid] * img_sizex;
@@ -122,25 +123,27 @@ __global__ void pyr_fill_selected_pix_krnl(T *img, int img_sizex, T *pix,
 }
 
 template <typename T>
-void pyr_fill_selected_pix(T *img, int img_sizex, T *pix, int *subindx, int *subindy,
-                      int nvalid, carma_device *device) {
+void pyr_fill_selected_pix(T *img, int img_sizex, T *pix, int *subindx,
+                           int *subindy, int nvalid, carma_device *device) {
   int nBlocks, nThreads;
   getNumBlocksAndThreads(device, nvalid, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
-  
+
   pyr_fill_selected_pix_krnl<T>
       <<<grid, threads>>>(img, img_sizex, pix, subindx, subindy, nvalid);
   carmaCheckMsg("pyr_fill_selected_pix_krnl<<<>>> execution failed\n");
 }
 
-template void pyr_fill_selected_pix<float>(float *img, int img_sizex, float *pix,
-                                      int *subindx, int *subindy, int nvalid,
-                                      carma_device *device);
-template void pyr_fill_selected_pix<double>(double *img, int img_sizex, double *pix,
-                                       int *subindx, int *subindy, int nvalid,
-                                       carma_device *device);
+template void pyr_fill_selected_pix<float>(float *img, int img_sizex,
+                                           float *pix, int *subindx,
+                                           int *subindy, int nvalid,
+                                           carma_device *device);
+template void pyr_fill_selected_pix<double>(double *img, int img_sizex,
+                                            double *pix, int *subindx,
+                                            int *subindy, int nvalid,
+                                            carma_device *device);
 #ifdef CAN_DO_HALF
 template void pyr_fill_selected_pix<half>(half *img, int img_sizex, half *pix,
-  int *subindx, int *subindy, int nvalid,
-  carma_device *device);
+                                          int *subindx, int *subindy,
+                                          int nvalid, carma_device *device);
 #endif
