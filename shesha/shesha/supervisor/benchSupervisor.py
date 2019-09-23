@@ -299,6 +299,8 @@ class BenchSupervisor(AoSupervisor):
         else:
             raise ValueError('WFS type not supported')
 
+        self.config.p_centroiders[0]._nslope = self.rtc.d_centro[0].nslopes
+
         self.rtc.d_control[0].set_cmat(cMat)
         self.rtc.d_control[0].set_decayFactor(
                 np.ones(nact, dtype=np.float32) * (gain - 1))
