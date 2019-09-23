@@ -78,15 +78,6 @@ class BenchSupervisor(AoSupervisor):
         '''
         raise NotImplementedError("Not implemented")
 
-    def getWfsImage(self, numWFS: int = 0, calPix=False) -> np.ndarray:
-        '''
-        Get an image from the WFS
-        '''
-        if (calPix):
-            return np.array(self.rtc.d_centro[0].d_img)
-        else:
-            return np.array(self.rtc.d_centro[0].d_img_raw)
-
     def setCommand(self, nctrl: int, command: np.ndarray) -> None:
         ''' TODO
         Immediately sets provided command to DMs - does not affect integrator
