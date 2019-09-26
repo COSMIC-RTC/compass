@@ -371,4 +371,3 @@ def drawMapLTAO(MAPDIR,FRACS,R0S,WFS,xMax=0,yMax=0,baseName="map_RTAR15.0",saveP
             if(savePath is not None): 
                 fig.savefig(savePath+atmSuffix+".png",bbox_inches='tight')
             print(cc,ccc) 
-                 
