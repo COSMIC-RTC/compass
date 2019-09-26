@@ -71,6 +71,7 @@ class sutra_atmos {
 
   int move_atmos();
   int set_global_r0(float r0);
+  int set_frac(float *frac);
   int set_seed(int idx, float seed);
 };
 
