@@ -176,7 +176,7 @@ def funcInflu(x,y,x0):
     return 1.e-6*np.exp( -(x*x+y*y)/(2*x0*x0) )
 
 
-def generate_files(sup,path=".",singleFile=False,dm_tt=False,WFS="all"):
+def generate_files(sup,path=".",singleFile=False,dm_tt=False,WFS="all",LGSTT=0.1, TAR=-1):
     """write inputs parameters
     
     sys-params.txt: contains the system parameters
@@ -206,7 +206,7 @@ def generate_files(sup,path=".",singleFile=False,dm_tt=False,WFS="all"):
             return
         ntotact+=2
 
-    write_sysParam(sup,path=path,WFS=WFS)
+    write_sysParam(sup,path=path,WFS=WFS,LGSTT=LGSTT,TAR=TAR)
     write_atmParam(sup,path=path)
     #os.rename("sys-params.txt", path+"/sys-params.txt")
     idx=get_idx(p_dm,p_dm._xpos,p_dm._ypos)
@@ -255,7 +255,7 @@ def toStr(a=""):
     
     return string
 
-def write_sysParam(sim,path=".",WFS="all"):
+def write_sysParam(sim,path=".",WFS="all",LGSTT=0.1, TAR=-1):
     bdw=3.3e-7
     lgsdepth=5000.
     throughAtm=1.
@@ -308,7 +308,10 @@ def write_sysParam(sim,path=".",WFS="all"):
     f.write("\nnTS        :           : number of Truth Sensor\n")
     f.write(toStr(len(p_wfs_ts)))
     f.write("\nnTarget    :           : number of Target\n")
-    f.write(toStr(len(p_targets)))
+    if(TAR==-1):
+        f.write(toStr(len(p_targets)))
+    else:
+        f.write("1")
     f.write("\nNssp       :           : number of subaperture per wfs along the diameter\n")
     f.write(toStr([wfs.nxsub for wfs in p_wfss]))
     f.write("\nfracsub    : %         : Minimal illumination fraction for valid subap\n")
@@ -372,7 +375,7 @@ def write_sysParam(sim,path=".",WFS="all"):
     f.write("\nRON        : nb of e-  : Read Out Noise \n")
     f.write(toStr(int(np.ceil(p_wfss[0].noise))))
     f.write("\nlgsCst     :           : constant on lgs (simulate that LGS cannot measure tip-tilt and focus)\n")
-    f.write(toStr(0.1))
+    f.write(toStr(LGSTT))
     f.write("\nspotWidth  : arcsec    : lazer width\n")
     f.write(toStr(spotWidth))
     f.write("\nlgsAlt     : meter     : sodium layer altitude\n")
@@ -380,9 +383,19 @@ def write_sysParam(sim,path=".",WFS="all"):
     f.write("\nlgsDepth   : meter     : depth of the sodium layer\n")
     f.write(toStr(lgsdepth))
     f.write("\ntargetX_as : arcsec    :  taget direction on x axis\n")
-    f.write(toStr(ts_xpos + [t.xpos for t in p_targets]))
+    if(TAR==-1):
+        f.write(toStr(ts_xpos + [t.xpos for t in p_targets]))
+    elif(isinstance(TAR,(list,np.ndarray))):
+        f.write(toStr(ts_xpos + [TAR[0]]))
+    else:
+        f.write(toStr(ts_xpos + [p_targets[TAR].xpos]))
     f.write("\ntargetY_as : arcsec    :  taget direction on y axis\n")
-    f.write(toStr(ts_ypos + [t.ypos for t in p_targets]))
+    if(TAR==-1):
+        f.write(toStr(ts_ypos + [t.ypos for t in p_targets]))
+    elif(isinstance(TAR,(list,np.ndarray))):
+        f.write(toStr(ts_ypos + [TAR[1]]))
+    else:
+        f.write(toStr(ts_ypos + [p_targets[TAR].ypos]))
 
 def write_atmParam(sim,path="."):
     f=open(path+"/prof-1-atmos-night0.txt","w")
