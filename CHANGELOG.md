@@ -1,4 +1,5 @@
 - [COMPASS Change logs](#compass-change-logs)
+  - [Release v4.3.1](#release-v431)
   - [Release v4.3.0](#release-v430)
   - [Release v4.2.0](#release-v420)
   - [Release v4.1.0](#release-v410)
@@ -11,6 +12,14 @@
   - [Release v1.1](#release-v11)
 
 # COMPASS Change logs
+
+## Release v4.3.1
+
+* Add spider rotation and circular obstruction for ELT-like pupils
+* New feature : image with the selected pixels of the maskedpix centroider
+* Debug maskedpix to divide the image by the mean value of the pixels instead of the sum
+* Fix maskedpix get_type method
+* Add cone effect for the altitude conjugated DM in case of LGS WFS
 
 ## Release v4.3.0
 
