@@ -348,7 +348,7 @@ class Simulator:
                                                           etr, framerate))
 
     def loop(self, n: int = 1, monitoring_freq: int = 100, compute_tar_psf: bool = True,
-             **kwargs):
+             abortThresh: float = 0. , **kwargs):
         """
         Perform the AO loop for n iterations
 
@@ -376,6 +376,10 @@ class Simulator:
                         self.compStrehl()
                     self.print_strehl(monitoring_freq, time.time() - t1, i, i)
                     t1 = time.time()
+                    SRmax=max([self.getStrehl(tar)[0] for tar in range(self.tar.ntargets) ])
+                    if(SRmax<abortThresh):
+                        print("SR SE too low: stopping the loop")
+                        break
                 i += 1
 
         for i in range(n):
@@ -386,6 +390,10 @@ class Simulator:
                     self.compStrehl()
                 self.print_strehl(monitoring_freq, time.time() - t1, i, n)
                 t1 = time.time()
+                SRmax=max([self.getStrehl(tar)[0] for tar in range(self.tar.ntargets) ])
+                if(SRmax<abortThresh):
+                    print("SR SE too low: stopping the loop")
+                    break
         t1 = time.time()
         print(" loop execution time:", t1 - t0, "  (", n, "iterations), ", (t1 - t0) / n,
               "(mean)  ", n / (t1 - t0), "Hz")
