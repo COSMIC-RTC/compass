@@ -11,30 +11,29 @@
 #  All rights reserved.
 #  Distributed under GNU - LGPL
 #
-#  COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser 
-#  General Public License as published by the Free Software Foundation, either version 3 of the License, 
+#  COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
+#  General Public License as published by the Free Software Foundation, either version 3 of the License,
 #  or any later version.
 #
-#  COMPASS: End-to-end AO simulation tool using GPU acceleration 
-#  The COMPASS platform was designed to meet the need of high-performance for the simulation of AO systems. 
-#  
-#  The final product includes a software package for simulating all the critical subcomponents of AO, 
-#  particularly in the context of the ELT and a real-time core based on several control approaches, 
-#  with performances consistent with its integration into an instrument. Taking advantage of the specific 
+#  COMPASS: End-to-end AO simulation tool using GPU acceleration
+#  The COMPASS platform was designed to meet the need of high-performance for the simulation of AO systems.
+#
+#  The final product includes a software package for simulating all the critical subcomponents of AO,
+#  particularly in the context of the ELT and a real-time core based on several control approaches,
+#  with performances consistent with its integration into an instrument. Taking advantage of the specific
 #  hardware architecture of the GPU, the COMPASS tool allows to achieve adequate execution speeds to
-#  conduct large simulation campaigns called to the ELT. 
-#  
-#  The COMPASS platform can be used to carry a wide variety of simulations to both testspecific components 
-#  of AO of the E-ELT (such as wavefront analysis device with a pyramid or elongated Laser star), and 
+#  conduct large simulation campaigns called to the ELT.
+#
+#  The COMPASS platform can be used to carry a wide variety of simulations to both testspecific components
+#  of AO of the E-ELT (such as wavefront analysis device with a pyramid or elongated Laser star), and
 #  various systems configurations such as multi-conjugate AO.
 #
-#  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the 
-#  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+#  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+#  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #  See the GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
+#  You should have received a copy of the GNU Lesser General Public License along with COMPASS.
 #  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
-
 """
 Initialization and execution of a CANAPASS supervisor
 
@@ -52,7 +51,6 @@ import numpy as np
 import time
 from collections import OrderedDict
 
-#from tqdm import trange
 from tqdm import tqdm
 import astropy.io.fits as pfits
 from threading import Thread
@@ -60,6 +58,7 @@ from subprocess import Popen, PIPE
 
 import shesha.ao as ao
 import shesha.constants as scons
+from shesha.constants import CentroiderType, WFSType
 
 from typing import Any, Dict, Tuple, Callable, List
 from .compassSupervisor import CompassSupervisor
@@ -645,8 +644,7 @@ class CanapassSupervisor(CompassSupervisor):
             KLMax = KL2V.shape[1]
         vold = self.getCom(0)
         self.openLoop(rst=False)
-        for kl in trange(KLMax):
-            #print(kl, end="\r")
+        for kl in range(KLMax):
             # v = ampliVec[kl] * KL2V[:, kl:kl + 1].T.copy()
             v = ampliVec[kl] * KL2V[:, kl]
             if ((pushPull is True) or
@@ -768,6 +766,8 @@ class CanapassSupervisor(CompassSupervisor):
         NslopesList = []
         NsubapList = []
         listWfsType = []
+        listCentroType = []
+
         pyrModulationList = []
         pyr_npts = []
         pyr_pupsep = []
@@ -799,12 +799,17 @@ class CanapassSupervisor(CompassSupervisor):
             new_hduwfsSubapXY[i].header["DATATYPE"] = "validXY_wfs%d" % i
 
             pixsize.append(self._sim.config.p_wfss[i].pixsize)
+            """
             if (self._sim.config.p_centroiders[i].type == "maskedpix"):
                 factor = 4
             else:
                 factor = 2
             NslopesList.append(
                     self._sim.config.p_wfss[i]._nvalid * factor)  # slopes per wfs
+            """
+            listCentroType.append(
+                    self._sim.config.p_centroiders[i].
+                    type)  # assumes that there is the same number of centroiders and wfs
             NsubapList.append(self._sim.config.p_wfss[i]._nvalid)  # subap per wfs
             listWfsType.append(self._sim.config.p_wfss[i].type)
             xPosList.append(self._sim.config.p_wfss[i].xpos)
@@ -816,6 +821,13 @@ class CanapassSupervisor(CompassSupervisor):
             lambdaList.append(self._sim.config.p_wfss[i].Lambda)
             dms_seen.append(list(self._sim.config.p_wfss[i].dms_seen))
             noise.append(self._sim.config.p_wfss[i].noise)
+
+            if (self._sim.config.p_centroiders[i].type == CentroiderType.MASKEDPIX):
+                NslopesList.append(
+                        self._sim.config.p_wfss[i]._nvalid * 4)  # slopes per wfs
+            else:
+                NslopesList.append(
+                        self._sim.config.p_wfss[i]._nvalid * 2)  # slopes per wfs
 
             if (self._sim.config.p_wfss[i].type == "pyrhr"):
                 pyrModulationList.append(self._sim.config.p_wfss[i].pyr_ampl)
@@ -834,6 +846,7 @@ class CanapassSupervisor(CompassSupervisor):
                 filepath.split(".conf")[0] + '_wfsValidXYConfig.fits', overwrite=True)
         aodict.update({"listWFS_NslopesList": NslopesList})
         aodict.update({"listWFS_NsubapList": NsubapList})
+        aodict.update({"listWFS_CentroType": listCentroType})
         aodict.update({"listWFS_WfsType": listWfsType})
         aodict.update({"listWFS_pixarc": pixsize})
         aodict.update({"listWFS_pyrModRadius": pyrModulationList})

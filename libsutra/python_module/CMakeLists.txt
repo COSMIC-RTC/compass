@@ -51,6 +51,7 @@ add_library(sutraWrap MODULE
                     src/centroider_bpcog.cpp
                     src/centroider_corr.cpp
                     src/centroider_pyr.cpp
+                    src/centroider_maskedPix.cpp
                     src/controller.cpp
                     src/controller_ls.cpp
                     src/controller_mv.cpp
