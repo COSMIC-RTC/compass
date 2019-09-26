@@ -109,6 +109,25 @@ int sutra_atmos::set_global_r0(float r0) {
   return EXIT_SUCCESS;
 }
 
+int sutra_atmos::set_frac(float *frac) {
+  float R0 = 0;
+  // screen.r0 = this->r0 / pupixsize * frac^-3/5
+  // r0 / pupixsize = sum( screen.r0 ^-5/3 ) ^-3/5
+  for (vector<sutra_tscreen *>::iterator it = this->d_screens.begin();
+       this->d_screens.end() != it; it++) {
+    R0 +=  powf( (*it)->r0 , -5.f/3.f);
+   }
+   R0 = powf(R0 , -3.f/5.f);
+  for (int i=0;i<this->nscreens;i++) {
+    this->d_screens[i]->r0 = R0* powf(frac[i],-3.f/5.f);
+    this->d_screens[i]->amplitude = powf(this->d_screens[i]->r0, -5.0f / 6.0f);
+    // ajust amplitude so that phase screens are generated in microns
+    // r0 has been given @0.5µm
+    this->d_screens[i]->amplitude /= (4*CARMA_PI);
+  }
+  return EXIT_SUCCESS;
+}
+
 int sutra_atmos::set_seed(int idx, float seed) {
   if (idx < this->d_screens.size())
     this->d_screens[idx]->set_seed(seed);

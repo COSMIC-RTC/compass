@@ -153,7 +153,7 @@ class CompassSupervisor(AoSupervisor):
         if (r == 0):
             print("GS magnitude is now %f on WFS %d" % (mag, numwfs))
 
-    def loop(self, n: int = 1, monitoring_freq: int = 100, **kwargs):
+    def loop(self, n: int = 1, monitoring_freq: int = 100, abortThresh: float = 0., **kwargs):
         """
         Perform the AO loop for n iterations
 
@@ -161,7 +161,8 @@ class CompassSupervisor(AoSupervisor):
             n: (int): (optional) Number of iteration that will be done
             monitoring_freq: (int): (optional) Monitoring frequency [frames]
         """
-        self._sim.loop(n, monitoring_freq=monitoring_freq, **kwargs)
+        print("loop")
+        self._sim.loop(n, monitoring_freq=monitoring_freq, abortThresh=abortThresh, **kwargs)
 
     def forceContext(self) -> None:
         '''
@@ -386,3 +387,13 @@ class CompassSupervisor(AoSupervisor):
         self.resetDM()
         self.openLoop(rst=rst)
         self.closeLoop()
+
+    def set_global_r0(self,r0):
+        self.config.p_atmos.r0=r0
+        self._sim.atm.set_global_r0(r0)
+
+    def set_frac_r0(self,frac):
+        if(frac.size != self._sim.atm.nscreens):
+            raise  ValueError("number of screen does not match")
+        self.config.p_atmos.frac=np.copy(frac.astype(np.float32))
+        self._sim.atm.set_frac(frac)

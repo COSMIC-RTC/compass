@@ -160,6 +160,16 @@ void declare_atmos(py::module &mod) {
         )pbdoc",
            py::arg("r0"))
 
+      .def("set_frac", wy::colCast(&sutra_atmos::set_frac),
+           R"pbdoc(
+        Change the current fraction of r0 for all layers
+
+        Parameters
+        ------------
+        r0: np.ndarray[ndim=1,dtype=np.float32_t]): fraction of r0 for all layers (%)
+        )pbdoc",
+           py::arg("frac"))
+
       .def("set_seed", wy::colCast(&sutra_atmos::set_seed), R"pbdoc(
         Set the seed of the selected screen RNG
 
