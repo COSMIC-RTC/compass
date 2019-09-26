@@ -1,12 +1,42 @@
-""" @package shesha.supervisor.aoSupervisor
-
-COMPASS simulation package
-
-Abstract layer for initialization and execution of a COMPASS supervisor
-
-"""
+## @package   shesha.supervisor.aoSupervisor
+## @brief     Abstract layer for initialization and execution of a AO supervisor
+## @author    COMPASS Team <https://github.com/ANR-COMPASS>
+## @version   4.3.0
+## @date      2011/01/28
+## @copyright GNU Lesser General Public License
+#
+#  This file is part of COMPASS <https://anr-compass.github.io/compass/>
+#
+#  Copyright (C) 2011-2019 COMPASS Team <https://github.com/ANR-COMPASS>
+#  All rights reserved.
+#  Distributed under GNU - LGPL
+#
+#  COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
+#  General Public License as published by the Free Software Foundation, either version 3 of the License,
+#  or any later version.
+#
+#  COMPASS: End-to-end AO simulation tool using GPU acceleration
+#  The COMPASS platform was designed to meet the need of high-performance for the simulation of AO systems.
+#
+#  The final product includes a software package for simulating all the critical subcomponents of AO,
+#  particularly in the context of the ELT and a real-time core based on several control approaches,
+#  with performances consistent with its integration into an instrument. Taking advantage of the specific
+#  hardware architecture of the GPU, the COMPASS tool allows to achieve adequate execution speeds to
+#  conduct large simulation campaigns called to the ELT.
+#
+#  The COMPASS platform can be used to carry a wide variety of simulations to both testspecific components
+#  of AO of the E-ELT (such as wavefront analysis device with a pyramid or elongated Laser star), and
+#  various systems configurations such as multi-conjugate AO.
+#
+#  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+#  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#  See the GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public License along with COMPASS.
+#  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 
 from .abstractSupervisor import AbstractSupervisor
+from shesha.constants import CentroiderType
 import numpy as np
 from tqdm import trange
 
@@ -46,6 +76,23 @@ class AoSupervisor(AbstractSupervisor):
     def computeSlopes(self, nControl: int = 0):
         self.rtc.do_centroids(nControl)
         return self.getCentroids(nControl)
+
+    def getWfsImage(self, numWFS: int = 0, calPix=False) -> np.ndarray:
+        '''
+        Get an image from the WFS
+        '''
+        if (calPix):
+            if self.rtc.d_centro[numWFS].d_img is None:
+                return np.array(self._sim.wfs.d_wfs[numWFS].d_binimg)
+            if self.rtc.d_centro[numWFS].type == CentroiderType.MASKEDPIX:
+                self.rtc.d_centro[numWFS].fill_selected_pix(
+                        self.rtc.d_control[0].d_centroids)
+                return np.array(self.rtc.d_centro[numWFS].d_selected_pix)
+            return np.array(self.rtc.d_centro[numWFS].d_img)
+        else:
+            if self.rtc.d_centro[numWFS].d_img is None:
+                return np.array(self._sim.wfs.d_wfs[numWFS].d_binimg)
+            return np.array(self.rtc.d_centro[numWFS].d_img_raw)
 
     def getAllDataLoop(self, nIter: int, slope: bool, command: bool, target: bool,
                        intensity: bool, targetPhase: bool) -> np.ndarray:
@@ -237,7 +284,6 @@ class AoSupervisor(AbstractSupervisor):
     def next(self, nbiters, see_atmos=True):
         ''' Move atmos -> getSlope -> applyControl ; One integrator step '''
         for i in range(nbiters):
-            print(i, end="\r")
             self.singleNext(showAtmos=see_atmos)
 
     def setGain(self, gain) -> None:

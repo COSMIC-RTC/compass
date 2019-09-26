@@ -2,4 +2,4 @@
 
 AAA
 
-<script src="../../install_script.js"></script>
+<script src="install_script.js"></script>

@@ -1,3 +1,44 @@
+// -----------------------------------------------------------------------------
+//  This file is part of COMPASS <https://anr-compass.github.io/compass/>
+//
+//  Copyright (C) 2011-2019 COMPASS Team <https://github.com/ANR-COMPASS>
+//  All rights reserved.
+//  Distributed under GNU - LGPL
+//
+//  COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser 
+//  General Public License as published by the Free Software Foundation, either version 3 of the License, 
+//  or any later version.
+//
+//  COMPASS: End-to-end AO simulation tool using GPU acceleration 
+//  The COMPASS platform was designed to meet the need of high-performance for the simulation of AO systems. 
+//  
+//  The final product includes a software package for simulating all the critical subcomponents of AO, 
+//  particularly in the context of the ELT and a real-time core based on several control approaches, 
+//  with performances consistent with its integration into an instrument. Taking advantage of the specific 
+//  hardware architecture of the GPU, the COMPASS tool allows to achieve adequate execution speeds to
+//  conduct large simulation campaigns called to the ELT. 
+//  
+//  The COMPASS platform can be used to carry a wide variety of simulations to both testspecific components 
+//  of AO of the E-ELT (such as wavefront analysis device with a pyramid or elongated Laser star), and 
+//  various systems configurations such as multi-conjugate AO.
+//
+//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the 
+//  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+//  See the GNU Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
+//  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
+// -----------------------------------------------------------------------------
+
+//! \file      sutra_target.cu
+//! \ingroup   libsutra
+//! \class     sutra_target
+//! \brief     this class provides the target features to COMPASS
+//! \author    COMPASS Team <https://github.com/ANR-COMPASS>
+//! \version   4.3.0
+//! \date      2011/01/28
+//! \copyright GNU Lesser General Public License
+
 #include <sutra_target.h>
 
 // declare texture reference for 2D float texture
@@ -89,45 +130,6 @@ __device__ void generic_raytrace(float *odata, float *idata, int nx, int ny,
   iref = (int)xref;
   jref = (int)yref;
 
-  /*
-  // Utilisation de la memoire partagee (valable dans le cas ou (Nx >=
-  nx+xoff+1) et (Ny=Nx >= ny+yoff+1) )
-
-  tidi = iref + jref * Nx;
-
-  if (tidi < Nx * Nx) {
-
-    // copie des elements idata vers la memeoire partagee (variable cache) du
-  bloc,
-    // pour cache[0:(blockDim.x+1)-2 ; (blockDim.x+1):2*(blockDim.x+1)-2 ; ... ;
-  ((blockDim.y+1)-1)*(blockDim.x+1):(blockDim.y+1)*(blockDim.x+1)-2]
-    cache[threadIdx.x + threadIdx.y * (blockDim.x+1)] = idata[tidi];
-
-    // si le thread est le dernier element du bloc suivant l'axe x, on copie des
-  elements idata vers la memeoire partagee (variable cache) du bloc,
-    // pour cache[(blockDim.x+1)-1 ; 2*(blockDim.x+1)-1 ; ... ;
-  blockDim.y*(blockDim.x+1)-1] if(threadIdx.x == blockDim.x-1) cache[threadIdx.x
-  + threadIdx.y * (blockDim.x+1) + 1] = idata[tidi+1]; if((threadIdx.y ==
-  blockDim.y-1) )
-    {
-       // si le thread est le dernier element du bloc suivant l'axe y, on copie
-  des elements idata vers la memeoire partagee (variable cache) du bloc,
-       // pour
-  cache[((blockDim.y+1)-1)*(blockDim.x+1):(blockDim.y+1)*(blockDim.x+1)-2]
-       cache[threadIdx.x + threadIdx.y * (blockDim.x+1) + (blockDim.x + 1)] =
-  idata[tidi+Nx];
-
-       // si le thread est le dernier element du bloc suivant l'axe y, on copie
-  de l'element idata vers la memeoire partagee (variable cache) du bloc,
-       // pour cache[(blockDim.y+1)*(blockDim.x+1)-1]
-       if(threadIdx.x == blockDim.x-1)
-          cache[threadIdx.x + threadIdx.y * (blockDim.x+1) + (blockDim.x+1) +
-  1]= idata[tidi+Nx+1];
-    }
-  }
-
-  __syncthreads();*/
-
   if ((x < nx) && (y < ny)) {
     tido = x + y * nx;
 
@@ -138,13 +140,6 @@ __device__ void generic_raytrace(float *odata, float *idata, int nx, int ny,
     wx2 = xshift;
     wy1 = (1.0f - yshift);
     wy2 = yshift;
-
-    /*odata[tido] += (wx1 * wy1 * cache[threadIdx.x + threadIdx.y *
-       (blockDim.x+1)]
-        + wx2 * wy1 * cache[threadIdx.x + 1 + threadIdx.y * (blockDim.x+1)]
-        + wx1 * wy2 * cache[threadIdx.x + (threadIdx.y + 1) * (blockDim.x+1)]
-        + wx2 * wy2 * cache[threadIdx.x + 1 + (threadIdx.y + 1) *
-       (blockDim.x+1)]);*/
 
     if ((iref + 1 < Nx) && (jref + 1 < Nx)) {
       odata[tido] += (wx1 * wy1 * idata[iref + jref * Nx] +
@@ -158,7 +153,8 @@ __device__ void generic_raytrace(float *odata, float *idata, int nx, int ny,
 }
 
 __device__ void lgs_raytrace(float *odata, float *idata, int nx, int ny,
-                             float xoff, float yoff, int Nx, int blockSize,
+                             float xoff, float yoff, float G, float thetaML,
+                             float dx, float dy, int Nx, int blockSize,
                              int istart, float delta) {
   int x = threadIdx.x + blockIdx.x * blockDim.x;
   int y = threadIdx.y + blockIdx.y * blockDim.y;
@@ -167,8 +163,13 @@ __device__ void lgs_raytrace(float *odata, float *idata, int nx, int ny,
   int tido;
 
   int iref, jref;  //, tidi;
-  float xref = x * delta + xoff;
-  float yref = y * delta + yoff;
+  float x1 = ((x - nx / 2.0f) * G);
+  float y1 = ((y - ny / 2.0f) * G);
+
+  float x2 = (cosf(thetaML) * x1 - sinf(thetaML) * y1) + nx / 2.0f;
+  float y2 = (sinf(thetaML) * x1 + cosf(thetaML) * y1) + ny / 2.0f;
+  float xref = x2 * delta + xoff + dx;
+  float yref = y2 * delta + yoff + dy;
 
   float xshift, yshift, wx1, wx2, wy1, wy2;
 
@@ -261,8 +262,15 @@ __global__ void raytrace_krnl(float *odata, float *idata, int nx, int ny,
 __global__ void raytrace_lgs_krnl(float *odata, float *idata, int nx, int ny,
                                   float xoff, float yoff, int Nx, int blocksize,
                                   float delta) {
-  lgs_raytrace(odata, idata, nx, ny, xoff, yoff, Nx, blocksize, 0, delta);
+  lgs_raytrace(odata, idata, nx, ny, xoff, yoff, 1.f, 0.f, 0.f, 0.f, Nx, blocksize, 0, delta);
 }
+
+__global__ void raytrace_lgs_krnl(float *odata, float *idata, int nx, int ny,
+  float xoff, float yoff, float G, float thetaML, float dx, float dy, int Nx, int blocksize,
+  float delta) {
+  lgs_raytrace(odata, idata, nx, ny, xoff, yoff, G, thetaML, dx, dy, Nx, blocksize, 0, delta);
+}
+
 
 __global__ void raytrace_krnl(float *odata, float *idata, int nx, int ny,
                               float xoff, float yoff, int Nx, int blockSize,
@@ -303,6 +311,22 @@ int target_lgs_raytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
 
   carmaCheckMsg("raytrace_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
+}
+
+int target_lgs_raytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
+  float xoff, float yoff, float G, float thetaML, float dx, float dy, float delta, int block_size) {
+int nnx =
+nx + block_size - nx % block_size;  // find next multiple of BLOCK_SZ
+int nny = ny + block_size - ny % block_size;
+dim3 blocks(nnx / block_size, nny / block_size),
+threads(block_size, block_size);
+
+int smemSize = (block_size + 1) * (block_size + 1) * sizeof(float);
+raytrace_lgs_krnl<<<blocks, threads, smemSize>>>(
+d_odata, d_idata, nx, ny, xoff, yoff, G, thetaML, dx, dy, Nx, block_size, delta);
+
+carmaCheckMsg("raytrace_kernel<<<>>> execution failed\n");
+return EXIT_SUCCESS;
 }
 
 int target_raytrace_async(carma_streams *streams, float *d_odata,

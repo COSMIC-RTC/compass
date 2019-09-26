@@ -1,10 +1,39 @@
-""" @package shesha.supervisor.benchSupervisor
-
-COMPASS simulation package
-
-Initialization and execution of a Bench supervisor
-
-"""
+## @package   shesha.supervisor.benchSupervisor
+## @brief     Initialization and execution of a Bench supervisor
+## @author    COMPASS Team <https://github.com/ANR-COMPASS>
+## @version   4.3.0
+## @date      2011/01/28
+## @copyright GNU Lesser General Public License
+#
+#  This file is part of COMPASS <https://anr-compass.github.io/compass/>
+#
+#  Copyright (C) 2011-2019 COMPASS Team <https://github.com/ANR-COMPASS>
+#  All rights reserved.
+#  Distributed under GNU - LGPL
+#
+#  COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
+#  General Public License as published by the Free Software Foundation, either version 3 of the License,
+#  or any later version.
+#
+#  COMPASS: End-to-end AO simulation tool using GPU acceleration
+#  The COMPASS platform was designed to meet the need of high-performance for the simulation of AO systems.
+#
+#  The final product includes a software package for simulating all the critical subcomponents of AO,
+#  particularly in the context of the ELT and a real-time core based on several control approaches,
+#  with performances consistent with its integration into an instrument. Taking advantage of the specific
+#  hardware architecture of the GPU, the COMPASS tool allows to achieve adequate execution speeds to
+#  conduct large simulation campaigns called to the ELT.
+#
+#  The COMPASS platform can be used to carry a wide variety of simulations to both testspecific components
+#  of AO of the E-ELT (such as wavefront analysis device with a pyramid or elongated Laser star), and
+#  various systems configurations such as multi-conjugate AO.
+#
+#  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+#  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#  See the GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public License along with COMPASS.
+#  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 
 import numpy as np
 
@@ -41,21 +70,13 @@ class BenchSupervisor(AoSupervisor):
         self.setCommand(0, np.array(self.rtc.d_control[0].d_voltage))
         if self.BRAHMA or self.CACAO:
             self.rtc.publish()
+        self.iter += 1
 
     def getTarImage(self, tarID, expoType: str = "se") -> np.ndarray:
         '''
         Get an image from a target
         '''
         raise NotImplementedError("Not implemented")
-
-    def getWfsImage(self, numWFS: int = 0, calPix=False) -> np.ndarray:
-        '''
-        Get an image from the WFS
-        '''
-        if (calPix):
-            return np.array(self.rtc.d_centro[0].d_img)
-        else:
-            return np.array(self.rtc.d_centro[0].d_img_raw)
 
     def setCommand(self, nctrl: int, command: np.ndarray) -> None:
         ''' TODO
@@ -95,6 +116,7 @@ class BenchSupervisor(AoSupervisor):
         self.frame = None
         self.BRAHMA = BRAHMA
         self.CACAO = CACAO
+        self.iter = 0
 
         if configFile is not None:
             self.loadConfig(configFile=configFile)
@@ -112,9 +134,9 @@ class BenchSupervisor(AoSupervisor):
         '''
             Acquire a new WFS frame and load it.
         '''
-
         self.frame = self.camCallback()
-        self.rtc.d_centro[0].load_img(self.frame, self.frame.shape[0])
+        self.rtc.d_centro[0].load_img(self.frame, self.frame.shape[0],
+                                      self.frame.shape[1])
 
     def computeWfsFrame(self):
         '''
@@ -252,20 +274,23 @@ class BenchSupervisor(AoSupervisor):
         elif p_wfs.type == WFSType.PYRHR or p_wfs.type == WFSType.PYRLR:
             nvalid = np.array([p_wfs._nvalid],
                               dtype=np.int32)  # Number of valid SUBAPERTURES
-            nact = sum([p_dm.get_ntotact()
+            nact = sum([p_dm.get_nact()
                         for p_dm in self.config.p_dms])  # Number of actu over all DMs
             gain = 1.
             self.rtc = rtc_standalone(self.c, wfsNb, nvalid, nact,
                                       self.config.p_centroiders[0].type,
                                       self.config.p_controllers[0].delay, 0, 1,
                                       brahma=self.BRAHMA, cacao=self.CACAO)
-
+            print("RTC initialized")
             self.rtc.d_centro[0].load_validpos(p_wfs._validsubsx, p_wfs._validsubsy,
                                                len(p_wfs._validsubsx))
+            print("Validpos loaded")
 
             cMat = np.zeros((nact, p_wfs.nPupils * nvalid[0]), dtype=np.float32)
         else:
             raise ValueError('WFS type not supported')
+
+        self.config.p_centroiders[0]._nslope = self.rtc.d_centro[0].nslopes
 
         self.rtc.d_control[0].set_cmat(cMat)
         self.rtc.d_control[0].set_decayFactor(

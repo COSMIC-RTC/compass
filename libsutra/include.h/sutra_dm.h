@@ -1,19 +1,44 @@
-/**
- * \file sutra_dm.h
- *
- * \class sutra_dm
- *
- * \ingroup libsutra
- *
- * \brief this class provides the dm features to COMPASS
- *
- * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
- *
- * \version 4.2.0
- *
- * \date 2011/01/28
- *
- */
+// -----------------------------------------------------------------------------
+//  This file is part of COMPASS <https://anr-compass.github.io/compass/>
+//
+//  Copyright (C) 2011-2019 COMPASS Team <https://github.com/ANR-COMPASS>
+//  All rights reserved.
+//  Distributed under GNU - LGPL
+//
+//  COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser 
+//  General Public License as published by the Free Software Foundation, either version 3 of the License, 
+//  or any later version.
+//
+//  COMPASS: End-to-end AO simulation tool using GPU acceleration 
+//  The COMPASS platform was designed to meet the need of high-performance for the simulation of AO systems. 
+//  
+//  The final product includes a software package for simulating all the critical subcomponents of AO, 
+//  particularly in the context of the ELT and a real-time core based on several control approaches, 
+//  with performances consistent with its integration into an instrument. Taking advantage of the specific 
+//  hardware architecture of the GPU, the COMPASS tool allows to achieve adequate execution speeds to
+//  conduct large simulation campaigns called to the ELT. 
+//  
+//  The COMPASS platform can be used to carry a wide variety of simulations to both testspecific components 
+//  of AO of the E-ELT (such as wavefront analysis device with a pyramid or elongated Laser star), and 
+//  various systems configurations such as multi-conjugate AO.
+//
+//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the 
+//  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+//  See the GNU Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
+//  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
+// -----------------------------------------------------------------------------
+
+//! \file      sutra_dm.h
+//! \ingroup   libsutra
+//! \class     sutra_dm
+//! \brief     this class provides the dm features to COMPASS
+//! \author    COMPASS Team <https://github.com/ANR-COMPASS>
+//! \version   4.3.0
+//! \date      2011/01/28
+//! \copyright GNU Lesser General Public License
+
 #ifndef _SUTRA_DM_H_
 #define _SUTRA_DM_H_
 
@@ -56,6 +81,11 @@ class sutra_dm {
   float push4imat;
   float Vmin;
   float Vmax;
+  float dx;
+  float dy; 
+  float thetaML; 
+  float G;
+
   uint16_t valMax;
 
   sutra_phase *d_shape;
@@ -88,7 +118,7 @@ class sutra_dm {
  public:
   sutra_dm(carma_context *context, const char *type, float altitude, long dim,
            long nactus, long influsize, long ninflupos, long n_npoints,
-           float push4imat, long nord, int device);
+           float push4imat, long nord, float dx, float dy, float thetaML, float G, int device);
   ~sutra_dm();
 
   int nact();
@@ -120,6 +150,7 @@ class sutra_dm {
   int compute_KLbasis(float *xpos, float *ypos, int *indx, long dim, float norm,
                       float ampli);
   int piston_filt(carma_obj<float> *d_statcov);
+  int set_registration(float dx, float dy, float thetaML, float G);
 };
 
 //  ██████╗ ███╗   ███╗███████╗
@@ -140,10 +171,13 @@ class sutra_dms {
 
   int add_dm(carma_context *context, const char *type, float alt, long dim,
              long nactus, long influsize, long ninflupos, long n_npoints,
+             float push4imat, long nord, float dx, float dy, float thetaML, float G,  int device);
+  int add_dm(carma_context *context, const char *type, float alt, long dim,
+             long nactus, long influsize, long ninflupos, long n_npoints,
              float push4imat, long nord, int device);
   int insert_dm(carma_context *context, const char *type, float alt, long dim,
                 long nactus, long influsize, long ninflupos, long n_npoints,
-                float push4imat, long nord, int device, int idx);
+                float push4imat, long nord, float dx, float dy, float thetaML, float G, int device, int idx);
   int remove_dm(int idx);
 
   int ndm() { return d_dms.size(); };

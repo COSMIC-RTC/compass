@@ -110,7 +110,7 @@ echo '
 <div class="line"></div>
 ';
 
-if($_POST['acces'] == "conda") {
+if($_POST['access'] == "conda") {
   echo '
   <div class="line">#COMPASS default definitions</div>
   <div class="line">export SHESHA_ROOT=$HOME/shesha</div>
@@ -164,7 +164,7 @@ echo '
 <div class="line"></div>
 ';
 
-if($_POST['acces'] == "conda") {
+if($_POST['access'] == "conda") {
   echo '
   <div class="line">conda install -y -c compass compass</div>
   <div class="line">cd $HOME</div>

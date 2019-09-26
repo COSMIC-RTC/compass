@@ -1,4 +1,5 @@
 - [COMPASS Change logs](#compass-change-logs)
+  - [Release v4.3.0](#release-v430)
   - [Release v4.2.0](#release-v420)
   - [Release v4.1.0](#release-v410)
   - [Release v4.0.0](#release-v400)
@@ -10,6 +11,16 @@
   - [Release v1.1](#release-v11)
 
 # COMPASS Change logs
+
+## Release v4.3.0
+
+* change license to GNU LGPL-v3
+* add Turing support
+* add AoSupervisor class on top of CompassSupervisor and BenchSupervisor
+* SH WFS can handle big subapertures (before it was limited to 20x20)
+* add LUTpix in calibration process to reorder pixels
+* possibility to compute target SR fitted on a0 sinc function
+* modification of pyramid centroider to use CUB
 
 ## Release v4.2.0
 
