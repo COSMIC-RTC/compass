@@ -256,11 +256,11 @@ class AoSupervisor(AbstractSupervisor):
             # Set array
             self.rtc.d_control[0].set_mgain(gain)
 
-    def setCommandMatrix(self, cMat: np.ndarray) -> None:
+    def setCommandMatrix(self, cMat: np.ndarray, ctrl : int=0) -> None:
         '''
         Set the cmat for the controller to use
         '''
-        self.rtc.d_control[0].set_cmat(cMat)
+        self.rtc.d_control[ctrl].set_cmat(cMat)
 
     def getFrameCounter(self) -> int:
         '''
