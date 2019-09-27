@@ -59,19 +59,19 @@ class AoSupervisor(AbstractSupervisor):
         ''' Returns the configuration in use, in a supervisor specific format ? '''
         return self.config
 
-    def loadFlat(self, flat: np.ndarray, nctrl: int = 0):
+    def loadFlat(self, flat: np.ndarray, numwfs: int = 0):
         """
-        Load flat field for the given controller
+        Load flat field for the given wfs
 
         """
-        self.rtc.d_centro[nctrl].set_flat(flat, flat.shape[0])
+        self.rtc.d_centro[numwfs].set_flat(flat, flat.shape[0])
 
-    def loadBackground(self, background: np.ndarray, nctrl: int = 0):
+    def loadBackground(self, background: np.ndarray, numwfs: int = 0):
         """
-        Load background for the given controller
+        Load background for the given wfs
 
         """
-        self.rtc.d_centro[nctrl].set_dark(background, background.shape[0])
+        self.rtc.d_centro[numwfs].set_dark(background, background.shape[0])
 
     def computeSlopes(self, nControl: int = 0):
         self.rtc.do_centroids(nControl)
@@ -212,20 +212,26 @@ class AoSupervisor(AbstractSupervisor):
         '''
         self.rtc.d_control[0].set_openloop(1, rst)  # openLoop
 
-    def setRefSlopes(self, refSlopes: np.ndarray) -> None:
+    def setRefSlopes(self, refSlopes: np.ndarray, numwfs=None) -> None:
         '''
         Set given ref slopes in controller
         '''
-        self.rtc.set_centroids_ref(refSlopes)
+        if(numwfs is None):
+            self.rtc.set_centroids_ref(refSlopes)
+        else:
+            self.rtc.d_centro[numwfs].set_centroids_ref(refSlopes)
 
-    def getRefSlopes(self) -> np.ndarray:
+    def getRefSlopes(self, numwfs = None) -> np.ndarray:
         '''
         Get the currently used reference slopes
         '''
         refSlopes = np.empty(0)
-        for centro in self.rtc.d_centro:
-            refSlopes = np.append(refSlopes, np.array(centro.d_centroids_ref))
-        return refSlopes
+        if(numwfs is None):
+            for centro in self.rtc.d_centro:
+                refSlopes = np.append(refSlopes, np.array(centro.d_centroids_ref))
+            return refSlopes
+        else:
+            return np.array(self.rtc.d_centro[numwfs].d_centroids_ref)
 
     def getImat(self, nControl: int = 0):
         """
