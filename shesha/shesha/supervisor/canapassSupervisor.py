@@ -873,8 +873,9 @@ class CanapassSupervisor(CompassSupervisor):
 
         for j in range(aodict["nbDms"]):
             listDmsType.append(self._sim.config.p_dms[j].type)
-            NactuX.append(self._sim.config.p_dms[j].nact)
-            Nactu.append(self._sim.config.p_dms[j]._ntotact)
+            NactuX.append(self._sim.config.p_dms[j].
+                          nact)  # nb of actuators across the diameter !!
+            Nactu.append(self._sim.config.p_dms[j]._ntotact)  # nb of actuators in total
             unitPerVolt.append(self._sim.config.p_dms[j].unitpervolt)
             push4imat.append(self._sim.config.p_dms[j].push4imat)
             coupling.append(self._sim.config.p_dms[j].coupling)
