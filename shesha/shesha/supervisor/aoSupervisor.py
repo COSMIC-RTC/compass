@@ -321,3 +321,15 @@ class AoSupervisor(AbstractSupervisor):
         if not self.is_init:
             print('Warning - requesting frame counter of uninitialized BenchSupervisor.')
         return self.iter
+
+    def getMaskedPix(self, nCentro : int=0):
+        """
+        Return the mask of valid pixels used by a maskedpix centroider
+
+        Parameters:
+            nCentro : (int): Centroider index. Must be a maskedpix centroider
+        """
+        if(self.rtc.d_centro[nCentro].type != CentroiderType.MASKEDPIX):
+            raise TypeError("Centroider must be a maskedpix one")
+        self.rtc.d_centro[nCentro].fill_mask()
+        return np.array(self.rtc.d_centro[nCentro].d_mask)

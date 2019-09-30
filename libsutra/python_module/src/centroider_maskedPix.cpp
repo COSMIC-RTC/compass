@@ -60,6 +60,11 @@ void centroider_maskedPix_impl(py::module &mod, const char *name) {
           [](centroider_maskedPix &sc) { return sc.d_selected_pix; },
           "Selected pixels as an image")
 
+      .def_property_readonly(
+          "d_mask",
+          [](centroider_maskedPix &sc) { return sc.d_mask; },
+          "Mask of valid pixels")
+
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝
       //  ███████╗█████╗     ██║      ██║   █████╗  ██████╔╝███████╗
@@ -77,7 +82,12 @@ void centroider_maskedPix_impl(py::module &mod, const char *name) {
         ------------
         pix: (np.array[ndim=1,dtype=np.float32]): Pixels to map on the image
     )pbdoc",
-           py::arg("pix"));
+           py::arg("pix"))
+
+      .def("fill_mask", &centroider_maskedPix::fill_mask,
+        "Fill the mask of valid pixels")
+
+;
 };
 void declare_centroider_maskedPix(py::module &mod) {
   centroider_maskedPix_impl<float, float>(mod, "CentroiderMASKEDPIX_FF");

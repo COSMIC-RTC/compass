@@ -67,6 +67,7 @@ sutra_centroider_maskedPix<Tin, T>::sutra_centroider_maskedPix(
   this->d_centroids_ref = new carma_obj<T>(this->current_context, dims_data2);
   this->d_centroids_ref->reset();
   this->d_selected_pix = nullptr;
+  this->d_mask = nullptr;
 
   if (filter_TT) {
     this->init_TT_filter();
@@ -100,6 +101,30 @@ int sutra_centroider_maskedPix<Tin, T>::fill_selected_pix(carma_obj<T> *pix) {
   this->d_selected_pix->reset();
   pyr_fill_selected_pix(this->d_selected_pix->getData(), dims_data2[1],
                         pix->getData(), this->d_validx->getData(),
+                        this->d_validy->getData(), this->d_validx->getNbElem(),
+                        this->current_context->get_device(this->device));
+  return EXIT_SUCCESS;
+}
+
+template <class Tin, class T>
+int sutra_centroider_maskedPix<Tin, T>::fill_mask() {
+  this->current_context->set_activeDevice(this->device, 1);
+
+  const long *dims_data2;
+  if (this->d_img != nullptr) {
+    dims_data2 = this->d_img->getDims();
+  } else if (this->wfs != nullptr) {
+    dims_data2 = this->wfs->d_binimg->getDims();
+  } else {
+    std::cerr << "Image not initialized" << std::endl;
+    return EXIT_FAILURE;
+  }
+  if (this->d_mask == nullptr) {
+    this->d_mask = new carma_obj<T>(this->current_context, dims_data2);
+  }
+  this->d_mask->reset();
+  pyr_fill_mask(this->d_mask->getData(), dims_data2[1],
+                        this->d_validx->getData(),
                         this->d_validy->getData(), this->d_validx->getNbElem(),
                         this->current_context->get_device(this->device));
   return EXIT_SUCCESS;
