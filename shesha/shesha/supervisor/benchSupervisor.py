@@ -255,7 +255,7 @@ class BenchSupervisor(AoSupervisor):
             offset = (p_wfs.npix - 1) / 2
             scale = 1
             gain = 1
-            nact = self.config.p_dms[0].nact
+            nact = self.config.p_controllers[0].nactu
 
             self.rtc = rtc_standalone(self.c, wfsNb, nvalid, nact,
                                       self.config.p_centroiders[0].type,
@@ -274,8 +274,7 @@ class BenchSupervisor(AoSupervisor):
         elif p_wfs.type == WFSType.PYRHR or p_wfs.type == WFSType.PYRLR:
             nvalid = np.array([p_wfs._nvalid],
                               dtype=np.int32)  # Number of valid SUBAPERTURES
-            nact = sum([p_dm.get_nact()
-                        for p_dm in self.config.p_dms])  # Number of actu over all DMs
+            nact = self.config.p_controllers[0].nactu  # Number of actu over all DMs
             gain = 1.
             self.rtc = rtc_standalone(self.c, wfsNb, nvalid, nact,
                                       self.config.p_centroiders[0].type,
