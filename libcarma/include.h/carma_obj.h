@@ -1,19 +1,44 @@
-/**
- * \file carma_obj.h
- *
- * \class carma_obj
- *
- * \ingroup libcarma
- *
- * \brief this class provides wrappers to the generic carma object
- *
- * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
- *
- * \version 1.0
- *
- * \date 2011/01/28
- *
- */
+// -----------------------------------------------------------------------------
+//  This file is part of COMPASS <https://anr-compass.github.io/compass/>
+//
+//  Copyright (C) 2011-2019 COMPASS Team <https://github.com/ANR-COMPASS>
+//  All rights reserved.
+//  Distributed under GNU - LGPL
+//
+//  COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser 
+//  General Public License as published by the Free Software Foundation, either version 3 of the License, 
+//  or any later version.
+//
+//  COMPASS: End-to-end AO simulation tool using GPU acceleration 
+//  The COMPASS platform was designed to meet the need of high-performance for the simulation of AO systems. 
+//  
+//  The final product includes a software package for simulating all the critical subcomponents of AO, 
+//  particularly in the context of the ELT and a real-time core based on several control approaches, 
+//  with performances consistent with its integration into an instrument. Taking advantage of the specific 
+//  hardware architecture of the GPU, the COMPASS tool allows to achieve adequate execution speeds to
+//  conduct large simulation campaigns called to the ELT. 
+//  
+//  The COMPASS platform can be used to carry a wide variety of simulations to both testspecific components 
+//  of AO of the E-ELT (such as wavefront analysis device with a pyramid or elongated Laser star), and 
+//  various systems configurations such as multi-conjugate AO.
+//
+//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the 
+//  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+//  See the GNU Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
+//  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
+// -----------------------------------------------------------------------------
+
+//! \file      carma_obj.h
+//! \ingroup   libcarma
+//! \class     carma_obj
+//! \brief     this class provides wrappers to the generic carma object
+//! \author    COMPASS Team <https://github.com/ANR-COMPASS>
+//! \version   4.3.0
+//! \date      2011/01/28
+//! \copyright GNU Lesser General Public License
+
 #ifndef _CARMA_OBJ_H_
 #define _CARMA_OBJ_H_
 
@@ -432,7 +457,7 @@ template <class T_data>
 int fillindex(T_data *d_odata, T_data *d_idata, int *indx, int N,
               carma_device *device);
 template <class T_data>
-int fillvalues(T_data *d_odata, T_data val, int N, carma_device *device);
+int fillvalues(T_data *d_odata, T_data *val, int N, carma_device *device);
 template <class T>
 int getarray2d(T *d_odata, T *d_idata, int x0, int Ncol, int NC, int N,
                carma_device *device);
@@ -464,6 +489,21 @@ int carma_fftconv(caObjS *data_out, caObjS *padded_data,
 int custom_half_axpy(half alpha, half *source, int incx, int incy, int N,
                      half *dest, carma_device *device);
 #endif
+
+/**
+ * @brief Kernel to extract a part of the image centred on center_pos
+ *
+ * @tparam T type of the image items
+ * @param d_smallimg extracted small image of size extract_size*extract_size
+ * @param d_fullimg full image of size fullimg_size*fullimg_size
+ * @param fullimg_size size of the d_fullimg leading dimension
+ * @param center_pos position of the center of d_smallimg in d_fullimg
+ * @param extract_size size of the d_smallimg leading dimension
+ * @param roll get pixels as if d_fullimg need to be roll
+ */
+template <class T>
+int extract(T *d_smallimg, const T *d_fullimg, int fullimg_size, int center_pos,
+            int extract_size, bool roll);
 
 extern "C" {
 //  void sumGetNumBlocksAndThreads(int n, int device, int &blocks, int

@@ -41,56 +41,58 @@ else()
   message(STATUS "OCTOPUS_ROOT not find, CACAO RTC will not be available")
 endif()
 
-if(DEFINED ENV{BRAHMA_ROOT})
-  set(BRAHMA_FLAGS
-      -fvisibility-inlines-hidden
-      -fno-strict-aliasing
-      -pthread
-      -pipe
-      -Wno-deprecated-declarations
-      -D_GNU_SOURCE
-      -D__ACE_INLINE__
-      -DUSE_BRAHMA)
+# cmake-format: off
+# if(DEFINED ENV{BRAHMA_ROOT})
+#   set(BRAHMA_FLAGS
+#       -fvisibility-inlines-hidden
+#       -fno-strict-aliasing
+#       -pthread
+#       -pipe
+#       -Wno-deprecated-declarations
+#       -D_GNU_SOURCE
+#       -D__ACE_INLINE__
+#       -DUSE_BRAHMA)
 
-  set(BRAHMA_DIRS
-      $ENV{ACE_ROOT}/lib
-      $ENV{TAO_ROOT}/tao
-      $ENV{DDS_ROOT}/lib
-      $ENV{BRAHMA_ROOT})
-  link_directories(${BRAHMA_DIRS})
+#   set(BRAHMA_DIRS
+#       $ENV{ACE_ROOT}/lib
+#       $ENV{TAO_ROOT}/tao
+#       $ENV{DDS_ROOT}/lib
+#       $ENV{BRAHMA_ROOT})
+#   link_directories(${BRAHMA_DIRS})
 
-  set(BRAHMA_INC
-      $ENV{BRAHMA_ROOT}
-      $ENV{ACE_ROOT}
-      $ENV{TAO_ROOT}
-      $ENV{TAO_ROOT}/orbsvcs
-      $ENV{DDS_ROOT})
+#   set(BRAHMA_INC
+#       $ENV{BRAHMA_ROOT}
+#       $ENV{ACE_ROOT}
+#       $ENV{TAO_ROOT}
+#       $ENV{TAO_ROOT}/orbsvcs
+#       $ENV{DDS_ROOT})
 
-  set(BRAHMA_CPP src.cpp/sutra_rtc_brahma.cpp
-      # src.cpp/sutra_rtc_brahmaListenerImpl.cpp
-      src.cpp/sutra_target_brahma.cpp
-      # src.cpp/sutra_target_brahmaListenerImpl.cpp
-      )
+#   set(BRAHMA_CPP src.cpp/sutra_rtc_brahma.cpp
+#       # src.cpp/sutra_rtc_brahmaListenerImpl.cpp
+#       src.cpp/sutra_target_brahma.cpp
+#       # src.cpp/sutra_target_brahmaListenerImpl.cpp
+#       )
 
-  set(BRAHMA_H include.h/sutra_rtc_brahma.h
-      # include.h/sutra_rtc_brahmaListenerImpl.h
-      include.h/sutra_target_brahma.h
-      # include.h/sutra_target_brahmaListenerImpl.h
-      )
+#   set(BRAHMA_H include.h/sutra_rtc_brahma.h
+#       # include.h/sutra_rtc_brahmaListenerImpl.h
+#       include.h/sutra_target_brahma.h
+#       # include.h/sutra_target_brahmaListenerImpl.h
+#       )
 
-  set(BRAHMA_LIBS
-      BRAHMACommon
-      OpenDDS_InfoRepoDiscovery
-      OpenDDS_Dcps
-      TAO_PortableServer
-      TAO_AnyTypeCode
-      TAO
-      ACE
-      dl
-      rt)
-else()
-  message(STATUS "BRAHMA_ROOT not find, BRAHMA RTC will not be available")
-endif()
+#   set(BRAHMA_LIBS
+#       BRAHMACommon
+#       OpenDDS_InfoRepoDiscovery
+#       OpenDDS_Dcps
+#       TAO_PortableServer
+#       TAO_AnyTypeCode
+#       TAO
+#       ACE
+#       dl
+#       rt)
+# else()
+#   message(STATUS "BRAHMA_ROOT not find, BRAHMA RTC will not be available")
+# endif()
+# cmake-format: on
 
 add_library(sutra
             SHARED

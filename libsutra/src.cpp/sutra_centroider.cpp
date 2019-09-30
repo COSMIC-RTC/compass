@@ -1,3 +1,49 @@
+// -----------------------------------------------------------------------------
+//  This file is part of COMPASS <https://anr-compass.github.io/compass/>
+//
+//  Copyright (C) 2011-2019 COMPASS Team <https://github.com/ANR-COMPASS>
+//  All rights reserved.
+//  Distributed under GNU - LGPL
+//
+//  COMPASS is free software: you can redistribute it and/or modify it under the
+//  terms of the GNU Lesser General Public License as published by the Free
+//  Software Foundation, either version 3 of the License, or any later version.
+//
+//  COMPASS: End-to-end AO simulation tool using GPU acceleration
+//  The COMPASS platform was designed to meet the need of high-performance for
+//  the simulation of AO systems.
+//
+//  The final product includes a software package for simulating all the
+//  critical subcomponents of AO, particularly in the context of the ELT and a
+//  real-time core based on several control approaches, with performances
+//  consistent with its integration into an instrument. Taking advantage of the
+//  specific hardware architecture of the GPU, the COMPASS tool allows to
+//  achieve adequate execution speeds to conduct large simulation campaigns
+//  called to the ELT.
+//
+//  The COMPASS platform can be used to carry a wide variety of simulations to
+//  both testspecific components of AO of the E-ELT (such as wavefront analysis
+//  device with a pyramid or elongated Laser star), and various systems
+//  configurations such as multi-conjugate AO.
+//
+//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY
+//  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+//  FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+//  details.
+//
+//  You should have received a copy of the GNU Lesser General Public License
+//  along with COMPASS. If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
+// -----------------------------------------------------------------------------
+
+//! \file      sutra_centroider.cpp
+//! \ingroup   libsutra
+//! \class     sutra_centroider
+//! \brief     this class provides the centroider features to COMPASS
+//! \author    COMPASS Team <https://github.com/ANR-COMPASS>
+//! \version   4.3.0
+//! \date      2011/01/28
+//! \copyright GNU Lesser General Public License
+
 #include <sutra_centroider.h>
 
 template <class Tin, class Tout>
@@ -29,6 +75,7 @@ sutra_centroider<Tin, Tout>::sutra_centroider(carma_context *context,
   this->d_validy = nullptr;
   this->d_dark = nullptr;
   this->d_flat = nullptr;
+  this->d_lutPix = nullptr;
   this->d_bincube = nullptr;
   this->d_validMask = nullptr;
   this->d_centro_filtered = nullptr;
@@ -47,6 +94,7 @@ sutra_centroider<Tin, Tout>::~sutra_centroider() {
   if (this->d_validy != nullptr) delete this->d_validy;
   if (this->d_dark != nullptr) delete this->d_dark;
   if (this->d_flat != nullptr) delete this->d_flat;
+  if (this->d_lutPix != nullptr) delete this->d_lutPix;
   if (this->d_bincube != nullptr) delete this->d_bincube;
   if (this->d_validMask != nullptr) delete this->d_validMask;
   if (this->d_TT_slopes != nullptr) delete this->d_TT_slopes;
@@ -62,8 +110,48 @@ int sutra_centroider<Tin, Tout>::set_scale(float scale) {
 }
 
 template <class Tin, class Tout>
+int sutra_centroider<Tin, Tout>::set_offset(float offset) {
+  this->offset = offset;
+  return EXIT_SUCCESS;
+}
+
+template <class Tin, class Tout>
 int sutra_centroider<Tin, Tout>::set_nxsub(int nxsub) {
   this->nxsub = nxsub;
+  return EXIT_SUCCESS;
+}
+
+template <class Tin, class Tout>
+int sutra_centroider<Tin, Tout>::init_calib(int n, int m) {
+  current_context->set_activeDevice(device, 1);
+  if (this->d_dark == nullptr) {
+    long dims_data2[3] = {2, n, m};
+    this->d_dark = new carma_obj<float>(current_context, dims_data2);
+    this->d_dark->reset();
+  }
+  if (this->d_flat == nullptr) {
+    long dims_data2[3] = {2, n, m};
+    this->d_flat = new carma_obj<float>(current_context, dims_data2);
+    this->d_flat->memSet(1.f);
+  }
+  if (this->d_lutPix == nullptr) {
+    long dims_data1[3] = {1, n * m};
+    this->d_lutPix = new carma_obj<int>(current_context, dims_data1);
+    std::vector<int> h_lutPix(n * m);
+    for (int i = 0; i < n * m; ++i) h_lutPix[i] = i;
+    this->d_lutPix->host2device(h_lutPix.data());
+  }
+  return EXIT_SUCCESS;
+}
+
+template <class Tin, class Tout>
+int sutra_centroider<Tin, Tout>::init_roi(int N) {
+  current_context->set_activeDevice(device, 1);
+  if (this->d_validx == nullptr) {
+    long dims_data[2] = {1, N};
+    this->d_validx = new carma_obj<int>(current_context, dims_data);
+    this->d_validy = new carma_obj<int>(current_context, dims_data);
+  }
   return EXIT_SUCCESS;
 }
 
@@ -86,6 +174,17 @@ int sutra_centroider<Tin, Tout>::set_flat(float *flat, int n) {
     this->d_flat = new carma_obj<float>(current_context, dims_data2);
   }
   this->d_flat->host2device(flat);
+  return EXIT_SUCCESS;
+}
+
+template <class Tin, class Tout>
+int sutra_centroider<Tin, Tout>::set_lutPix(int *lutPix, int n) {
+  current_context->set_activeDevice(device, 1);
+  if (this->d_lutPix == nullptr) {
+    long dims_data1[2] = {1, n};
+    this->d_lutPix = new carma_obj<int>(current_context, dims_data1);
+  }
+  this->d_lutPix->host2device(lutPix);
   return EXIT_SUCCESS;
 }
 
@@ -117,20 +216,13 @@ int sutra_centroider<Tin, Tout>::calibrate_img() {
     std::cout << "Image not initialized\n" << std::endl;
     return EXIT_FAILURE;
   }
-  if (this->d_dark == nullptr) {
-    this->d_dark =
-        new carma_obj<float>(current_context, this->d_img->getDims());
-    this->d_dark->reset();
-  }
-  if (this->d_flat == nullptr) {
-    this->d_flat =
-        new carma_obj<float>(current_context, this->d_img->getDims());
-    this->d_flat->memSet(1.f);
-  }
+
+  const long *dims = this->d_img->getDims();
+  init_calib(dims[1], dims[2]);
 
   calibration<Tin>(this->d_img_raw->getData(), this->d_img->getData(),
                    this->d_dark->getData(), this->d_flat->getData(),
-                   this->d_img->getNbElem(),
+                   this->d_lutPix->getData(), this->d_img->getNbElem(),
                    this->current_context->get_device(this->device));
 
   return EXIT_SUCCESS;
@@ -148,18 +240,23 @@ int sutra_centroider<Tin, Tout>::load_img(Tin *img, int n) {
 
 template <class Tin, class Tout>
 int sutra_centroider<Tin, Tout>::load_img(Tin *img, int n, int location) {
+  return this->load_img(img, n, n, location);
+}
+
+template <class Tin, class Tout>
+int sutra_centroider<Tin, Tout>::load_img(Tin *img, int m, int n,
+                                          int location) {
   current_context->set_activeDevice(device, 1);
   if (this->d_img_raw == nullptr) {
-    long dims_data2[3] = {2, n, n};
+    long dims_data2[3] = {2, m, n};
     this->d_img_raw = new carma_obj<Tin>(current_context, dims_data2);
     this->d_img = new carma_obj<float>(current_context, dims_data2);
   }
 
-  if (location < 0){ // img data on host
+  if (location < 0) {  // img data on host
     this->d_img_raw->host2device(img);
-  }
-  else{ //img data on device
-    this->d_img_raw->copyFrom(img, this->d_img_raw->getNbElem());  
+  } else {  // img data on device
+    this->d_img_raw->copyFrom(img, this->d_img_raw->getNbElem());
   }
   return EXIT_SUCCESS;
 }
@@ -176,9 +273,7 @@ int sutra_centroider<Tin, Tout>::load_validpos(int *ivalid, int *jvalid,
                                                int N) {
   current_context->set_activeDevice(device, 1);
   if (this->d_validx == nullptr) {
-    long dims_data[2] = {1, N};
-    this->d_validx = new carma_obj<int>(current_context, dims_data);
-    this->d_validy = new carma_obj<int>(current_context, dims_data);
+    this->init_roi(N);
   }
 
   this->d_validx->host2device(ivalid);
@@ -194,46 +289,48 @@ int sutra_centroider<Tin, Tout>::set_centroids_ref(float *centroids_ref) {
 }
 
 template <class Tin, class Tout>
-int sutra_centroider<Tin, Tout>::init_TT_filter(){
-    this->current_context->set_activeDevice(device, 1);
-    long dims_data[2] = {1, 2};
-    this->d_TT_slopes = new carma_obj<float>(this->current_context, dims_data);
-    dims_data[1] = this->nslopes;
-    this->d_centro_filtered = new carma_obj<float>(this->current_context, dims_data);
-    this->d_ref_Tip = new carma_obj<float>(this->current_context, dims_data);
-    this->d_ref_Tilt = new carma_obj<float>(this->current_context, dims_data);
+int sutra_centroider<Tin, Tout>::init_TT_filter() {
+  this->current_context->set_activeDevice(device, 1);
+  long dims_data[2] = {1, 2};
+  this->d_TT_slopes = new carma_obj<float>(this->current_context, dims_data);
+  dims_data[1] = this->nslopes;
+  this->d_centro_filtered =
+      new carma_obj<float>(this->current_context, dims_data);
+  this->d_ref_Tip = new carma_obj<float>(this->current_context, dims_data);
+  this->d_ref_Tilt = new carma_obj<float>(this->current_context, dims_data);
 
-    return EXIT_SUCCESS;
+  return EXIT_SUCCESS;
 }
 
 template <class Tin, class Tout>
-int sutra_centroider<Tin, Tout>::apply_TT_filter(Tout *centroids){
+int sutra_centroider<Tin, Tout>::apply_TT_filter(Tout *centroids) {
   return this->apply_TT_filter_impl(centroids, std::is_same<Tout, float>());
 }
-
 
 template <class Tin, class Tout>
 template <typename Q>
 typename std::enable_if<std::is_same<Q, float>::value, int>::type
-sutra_centroider<Tin, Tout>::apply_TT_filter_impl(Tout *centroids, std::true_type){
-    this->d_centro_filtered->copyFrom(centroids, this->nslopes);
-    
-    float tip = this->d_centro_filtered->dot(this->d_ref_Tip,1,1);
-    float tilt = this->d_centro_filtered->dot(this->d_ref_Tilt,1,1);
+sutra_centroider<Tin, Tout>::apply_TT_filter_impl(Tout *centroids,
+                                                  std::true_type) {
+  this->d_centro_filtered->copyFrom(centroids, this->nslopes);
 
-    this->d_centro_filtered->axpy(-1.f * tip, this->d_ref_Tip, 1, 1);
-    this->d_centro_filtered->axpy(-1.f * tilt, this->d_ref_Tilt, 1, 1);
-    
-    this->d_centro_filtered->copyInto(centroids, this->nslopes);
+  float tip = this->d_centro_filtered->dot(this->d_ref_Tip, 1, 1);
+  float tilt = this->d_centro_filtered->dot(this->d_ref_Tilt, 1, 1);
 
-    float TT_data[2] = {tip,tilt};
-    this->d_TT_slopes->host2device(TT_data);
+  this->d_centro_filtered->axpy(-1.f * tip, this->d_ref_Tip, 1, 1);
+  this->d_centro_filtered->axpy(-1.f * tilt, this->d_ref_Tilt, 1, 1);
 
-    return EXIT_SUCCESS;
+  this->d_centro_filtered->copyInto(centroids, this->nslopes);
+
+  float TT_data[2] = {tip, tilt};
+  this->d_TT_slopes->host2device(TT_data);
+
+  return EXIT_SUCCESS;
 }
 
 template <class Tin, class Tout>
-int sutra_centroider<Tin, Tout>::apply_TT_filter_impl(Tout *centroids, std::false_type) {
+int sutra_centroider<Tin, Tout>::apply_TT_filter_impl(Tout *centroids,
+                                                      std::false_type) {
   DEBUG_TRACE("Tip/tilt filtering is only implemented in single precision");
   return EXIT_SUCCESS;
 }

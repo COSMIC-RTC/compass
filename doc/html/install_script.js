@@ -1,5 +1,5 @@
 function select_fct() {
-    var val = document.getElementById('acces').selectedIndex;
+    var val = document.getElementById('access').selectedIndex;
     var x = document.getElementById('devBlock');
     if (val == 1) {
       x.style.display = 'block';
@@ -9,11 +9,11 @@ function select_fct() {
   }
 
 document.write('<div class="textblock">');
-document.write('  <form method="post" action="../../generate_script.php">');
+document.write('  <form method="post" action="generate_script.php">');
 document.write('    <fieldset>');
 document.write('      <legend>Option script</legend>');
-document.write('      <label for="acces">Accès : </label>');
-document.write('      <select name="acces" id="acces" onchange="select_fct()">');
+document.write('      <label for="access">Access : </label>');
+document.write('      <select name="access" id="access" onchange="select_fct()">');
 document.write('        <option value="conda" selected="selected">Conda</option>');
 document.write('        <option value="git">Gitlab Obspm</option>');
 document.write('      </select><br>');

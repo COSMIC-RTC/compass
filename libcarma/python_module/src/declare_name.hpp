@@ -1,130 +1,52 @@
+// -----------------------------------------------------------------------------
+//  This file is part of COMPASS <https://anr-compass.github.io/compass/>
+//
+//  Copyright (C) 2011-2019 COMPASS Team <https://github.com/ANR-COMPASS>
+//  All rights reserved.
+//  Distributed under GNU - LGPL
+//
+//  COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser 
+//  General Public License as published by the Free Software Foundation, either version 3 of the License, 
+//  or any later version.
+//
+//  COMPASS: End-to-end AO simulation tool using GPU acceleration 
+//  The COMPASS platform was designed to meet the need of high-performance for the simulation of AO systems. 
+//  
+//  The final product includes a software package for simulating all the critical subcomponents of AO, 
+//  particularly in the context of the ELT and a real-time core based on several control approaches, 
+//  with performances consistent with its integration into an instrument. Taking advantage of the specific 
+//  hardware architecture of the GPU, the COMPASS tool allows to achieve adequate execution speeds to
+//  conduct large simulation campaigns called to the ELT. 
+//  
+//  The COMPASS platform can be used to carry a wide variety of simulations to both testspecific components 
+//  of AO of the E-ELT (such as wavefront analysis device with a pyramid or elongated Laser star), and 
+//  various systems configurations such as multi-conjugate AO.
+//
+//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the 
+//  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+//  See the GNU Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
+//  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
+// -----------------------------------------------------------------------------
+
+//! \file      declare_name.hpp
+//! \ingroup   libcarma
+//! \brief     this file provides pybind wrapper for libcarma
+//! \author    COMPASS Team <https://github.com/ANR-COMPASS>
+//! \version   4.3.0
+//! \date      2011/01/28
+//! \copyright GNU Lesser General Public License
+
 #ifndef _DECLARE_NAME_H_
 #define _DECLARE_NAME_H_
 
-#include <carma.h>
-#include <wyrm>
-
-namespace py = pybind11;
-
-using complex64 = cuFloatComplex;
-static_assert(sizeof(complex64) == 8, "Bad size");
-
-using complex128 = cuDoubleComplex;
-static_assert(sizeof(complex128) == 16, "Bad size");
-
-namespace pybind11 { namespace detail {
-
-// Similar to enums in `pybind11/numpy.h`. Determined by doing:
-// python3 -c 'import numpy as np; print(np.dtype(np.float16).num)'
-constexpr int NPY_COMPLEX64 = 14;
-constexpr int NPY_COMPLEX128 = 15;
-
-// Kinda following: https://github.com/pybind/pybind11/blob/9bb3313162c0b856125e481ceece9d8faa567716/include/pybind11/numpy.h#L1000
-template <>
-struct npy_format_descriptor<complex64> {
-  static pybind11::dtype dtype() {
-    handle ptr = npy_api::get().PyArray_DescrFromType_(NPY_COMPLEX64);
-    return reinterpret_borrow<pybind11::dtype>(ptr);
-  }
-  static std::string format() {
-    // following: https://docs.python.org/3/library/struct.html#format-characters
-    return "Zf";
-  }
-  static constexpr auto name() {
-    return _("complex64");
-  }
-};
-
-// Kinda following: https://github.com/pybind/pybind11/blob/9bb3313162c0b856125e481ceece9d8faa567716/include/pybind11/numpy.h#L1000
-template <>
-struct npy_format_descriptor<complex128> {
-  static pybind11::dtype dtype() {
-    handle ptr = npy_api::get().PyArray_DescrFromType_(NPY_COMPLEX128);
-    return reinterpret_borrow<pybind11::dtype>(ptr);
-  }
-  static std::string format() {
-    // following: https://docs.python.org/3/library/struct.html#format-characters
-    return "Zd";
-  }
-  static constexpr auto name() {
-    return _("complex128");
-  }
-};
-
-template <typename T>
-struct npy_scalar_caster {
-  PYBIND11_TYPE_CASTER(T, _("PleaseOverride"));
-  using Array = wy::array_f<T>;
-
-  bool load(handle src, bool convert) {
-    // Taken from Eigen casters. Permits either scalar dtype or scalar array.
-    handle type = dtype::of<T>().attr("type");  // Could make more efficient.
-    if (!convert && !isinstance<Array>(src) && !isinstance(src, type))
-      return false;
-    Array tmp = Array::ensure(src);
-    if (tmp && tmp.size() == 1 && tmp.ndim() == 0) {
-      this->value = *tmp.data();
-      return true;
-    }
-    return false;
-  }
-
-  static handle cast(T src, return_value_policy, handle) {
-    Array tmp({1});
-    tmp.mutable_at(0) = src;
-    tmp.resize({});
-    // You could also just return the array if you want a scalar array.
-    object scalar = tmp[tuple()];
-    return scalar.release();
-  }
-};
-
-template <>
-struct type_caster<complex64> : npy_scalar_caster<complex64> {
-  static constexpr auto name = _("complex64");
-};
-
-template <>
-struct type_caster<complex128> : npy_scalar_caster<complex128> {
-  static constexpr auto name = _("complex128");
-};
-
-}}  // namespace pybind11::detail
+#include <string>
+#include <cstdint>
+#include <cuComplex.h>
 
 #ifdef CAN_DO_HALF
-
-using float16 = __half;
-static_assert(sizeof(float16) == 2, "Bad size");
-
-namespace pybind11 { namespace detail {
-
-// Similar to enums in `pybind11/numpy.h`. Determined by doing:
-// python3 -c 'import numpy as np; print(np.dtype(np.float16).num)'
-constexpr int NPY_FLOAT16 = 23;
-
-// Kinda following: https://github.com/pybind/pybind11/blob/9bb3313162c0b856125e481ceece9d8faa567716/include/pybind11/numpy.h#L1000
-template <>
-struct npy_format_descriptor<float16> {
-  static pybind11::dtype dtype() {
-    handle ptr = npy_api::get().PyArray_DescrFromType_(NPY_FLOAT16);
-    return reinterpret_borrow<pybind11::dtype>(ptr);
-  }
-  static std::string format() {
-    // following: https://docs.python.org/3/library/struct.html#format-characters
-    return "e";
-  }
-  static constexpr auto name() {
-    return _("float16");
-  }
-};
-
-template <>
-struct type_caster<float16> : npy_scalar_caster<float16> {
-  static constexpr auto name = _("float16");
-};
-
-}}  // namespace pybind11::detail
-
+#include <cuda_fp16.h>
 #endif
 
 template <typename T>

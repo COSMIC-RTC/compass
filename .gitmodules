@@ -1,7 +1,7 @@
 [submodule "wyrm"]
 	path = tplib/wyrm
-	url = https://gitlab.obspm.fr/greenflash/wyrm.git
-	branch = dev
+	url = https://gitlab.obspm.fr/cosmic/ocean/wyrm.git
+	branch = master
 [submodule "tplib/cub"]
 	path = tplib/cub
 	url = https://github.com/NVlabs/cub.git

@@ -1,19 +1,44 @@
-/**
- * \file sutra_source.h
- *
- * \class sutra_source
- *
- * \ingroup libsutra
- *
- * \brief this class provides the source features to COMPASS
- *
- * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
- *
- * \version 1.0
- *
- * \date 2011/01/28
- *
- */
+// -----------------------------------------------------------------------------
+//  This file is part of COMPASS <https://anr-compass.github.io/compass/>
+//
+//  Copyright (C) 2011-2019 COMPASS Team <https://github.com/ANR-COMPASS>
+//  All rights reserved.
+//  Distributed under GNU - LGPL
+//
+//  COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser 
+//  General Public License as published by the Free Software Foundation, either version 3 of the License, 
+//  or any later version.
+//
+//  COMPASS: End-to-end AO simulation tool using GPU acceleration 
+//  The COMPASS platform was designed to meet the need of high-performance for the simulation of AO systems. 
+//  
+//  The final product includes a software package for simulating all the critical subcomponents of AO, 
+//  particularly in the context of the ELT and a real-time core based on several control approaches, 
+//  with performances consistent with its integration into an instrument. Taking advantage of the specific 
+//  hardware architecture of the GPU, the COMPASS tool allows to achieve adequate execution speeds to
+//  conduct large simulation campaigns called to the ELT. 
+//  
+//  The COMPASS platform can be used to carry a wide variety of simulations to both testspecific components 
+//  of AO of the E-ELT (such as wavefront analysis device with a pyramid or elongated Laser star), and 
+//  various systems configurations such as multi-conjugate AO.
+//
+//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the 
+//  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+//  See the GNU Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
+//  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
+// -----------------------------------------------------------------------------
+
+//! \file      sutra_source.h
+//! \ingroup   libsutra
+//! \class     sutra_source
+//! \brief     this class provides the source features to COMPASS
+//! \author    COMPASS Team <https://github.com/ANR-COMPASS>
+//! \version   4.3.0
+//! \date      2011/01/28
+//! \copyright GNU Lesser General Public License
+
 #ifndef _SUTRA_SOURCE_H_
 #define _SUTRA_SOURCE_H_
 
@@ -108,6 +133,9 @@ class sutra_source {
   map<type_screen, float> yoff;
   /// ncpa phase
   carma_obj<float> *d_ncpa_phase;
+  /// temporary array for accurate strehl computation
+  carma_obj<float> *d_smallimg;
+  const int d_smallimg_size = 3;
 
  public:
   sutra_source(carma_context *context, float xpos, float ypos, float lambda,
@@ -133,8 +161,24 @@ class sutra_source {
   int comp_image(int puponly = 0, bool comp_le = true);
   int init_strehlmeter();
   int reset_strehlmeter();
-  int comp_strehl();
+  int comp_strehl(bool do_fit);
   int reset_phase();
+
+ private:
+  /**
+   * @brief fit the strehl with a sinc
+   *
+   * Utilise la “croix” de 3 pixels centraux qui encadrent le max
+   * pour fitter des paraboles qui determinent la position du maximum,
+   * puis calcule l’interpolation exacte en ce point via la formule
+   * des sinus cardinaux qui s’applique a un signal bien echantillonne.
+   *
+   * @param d_img full image of size img_size*img_size
+   * @param ind_max position of the maximum in d_img
+   * @param img_size size of the d_img leading dimension
+   * @return float Strehl fitted
+   */
+  float fitmax2x1dSinc(float *d_img, int ind_max, int img_size);
 };
 
 int target_texraytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
@@ -145,6 +189,8 @@ int target_raytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
                     float dy, int block_size);
 int target_lgs_raytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
                         float xoff, float yoff, float delta, int block_size);
+int target_lgs_raytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
+  float xoff, float yoff, float G, float thetaML, float dx, float dy, float delta, int block_size);
 int target_raytrace_async(carma_streams streams, float *d_odata, float *d_idata,
                           int nx, int ny, int Nx, float xoff, float yoff,
                           int block_size);

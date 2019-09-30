@@ -11,6 +11,7 @@ p_loop = ao.Param_loop()
 p_loop.set_niter(1000)
 p_loop.set_ittime(1 / 500.)  # =1/500
 p_loop.set_devices([0, 1, 2, 3])
+#p_loop.set_devices([4, 5, 6, 7])
 # geom
 p_geom = ao.Param_geom()
 p_geom.set_zenithangle(0.)
@@ -182,7 +183,7 @@ p_controller0.set_type("generic") # V(k) = a.E.V(k-1) + g.R.m(k)
 p_controller0.set_nwfs([0])
 p_controller0.set_ndm([0, 1])
 p_controller0.set_maxcond(150.)
-p_controller0.set_delay(0)   # loop delay. "0 = 1 frame delay".
+p_controller0.set_delay(1)   # loop delay. "0 = 1 frame delay".
 p_controller0.set_gain(1)
 
 # p_controller0.set_modopti(0)

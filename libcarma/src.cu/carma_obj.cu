@@ -1,3 +1,43 @@
+// -----------------------------------------------------------------------------
+//  This file is part of COMPASS <https://anr-compass.github.io/compass/>
+//
+//  Copyright (C) 2011-2019 COMPASS Team <https://github.com/ANR-COMPASS>
+//  All rights reserved.
+//  Distributed under GNU - LGPL
+//
+//  COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser 
+//  General Public License as published by the Free Software Foundation, either version 3 of the License, 
+//  or any later version.
+//
+//  COMPASS: End-to-end AO simulation tool using GPU acceleration 
+//  The COMPASS platform was designed to meet the need of high-performance for the simulation of AO systems. 
+//  
+//  The final product includes a software package for simulating all the critical subcomponents of AO, 
+//  particularly in the context of the ELT and a real-time core based on several control approaches, 
+//  with performances consistent with its integration into an instrument. Taking advantage of the specific 
+//  hardware architecture of the GPU, the COMPASS tool allows to achieve adequate execution speeds to
+//  conduct large simulation campaigns called to the ELT. 
+//  
+//  The COMPASS platform can be used to carry a wide variety of simulations to both testspecific components 
+//  of AO of the E-ELT (such as wavefront analysis device with a pyramid or elongated Laser star), and 
+//  various systems configurations such as multi-conjugate AO.
+//
+//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the 
+//  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+//  See the GNU Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
+//  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
+// -----------------------------------------------------------------------------
+
+//! \file      carma_obj.cu
+//! \ingroup   libcarma
+//! \brief     this file provides carma_obj CUDA kernels
+//! \author    COMPASS Team <https://github.com/ANR-COMPASS>
+//! \version   4.3.0
+//! \date      2011/01/28
+//! \copyright GNU Lesser General Public License
+
 #include <carma_obj.h>
 #include <carma_utils.cuh>
 
@@ -173,17 +213,17 @@ template int fillindex<double>(double *d_odata, double *d_idata, int *indx,
                                int N, carma_device *device);
 
 template <class T>
-__global__ void krnl_fillvalues(T *odata, T val, int N) {
+__global__ void krnl_fillvalues(T *odata, T *val, int N) {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
-    odata[tid] = val / N;
+    odata[tid] = val[0] / N;
     tid += blockDim.x * gridDim.x;
   }
 }
 
 template <class T>
-int fillvalues(T *d_odata, T val, int N, carma_device *device) {
+int fillvalues(T *d_odata, T *val, int N, carma_device *device) {
   int nBlocks, nThreads;
   getNumBlocksAndThreads(device, N, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
@@ -195,13 +235,13 @@ int fillvalues(T *d_odata, T val, int N, carma_device *device) {
   return EXIT_SUCCESS;
 }
 
-template int fillvalues<float>(float *d_odata, float val, int N,
+template int fillvalues<float>(float *d_odata, float *val, int N,
                                carma_device *device);
 
-template int fillvalues<double>(double *d_odata, double val, int N,
+template int fillvalues<double>(double *d_odata, double *val, int N,
                                 carma_device *device);
 
-template int fillvalues<unsigned int>(unsigned int *d_odata, unsigned int val,
+template int fillvalues<unsigned int>(unsigned int *d_odata, unsigned int *val,
                                       int N, carma_device *device);
 
 template <class T>
@@ -442,3 +482,80 @@ int custom_half_axpy(half alpha, half *source, int incx, int incy, int N,
   return EXIT_SUCCESS;
 }
 #endif
+
+/**
+ * @brief Kernel to extract a part of the image centred on center_pos
+ *
+ * @tparam T type of the image items
+ * @param d_smallimg extracted small image of size extract_size*extract_size
+ * @param d_fullimg full image of size fullimg_size*fullimg_size
+ * @param fullimg_size size of the d_fullimg leading dimension
+ * @param center_pos position of the center of d_smallimg in d_fullimg
+ * @param extract_size size of the d_smallimg leading dimension
+ * @param roll get pixels as if d_fullimg need to be roll
+ */
+template <class T>
+__global__ void extract_krnl(T *d_smallimg, const T *d_fullimg,
+                             int fullimg_size, int center_pos, int extract_size,
+                             bool roll) {
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+
+  int max_y = center_pos / fullimg_size;
+  int max_x = center_pos % fullimg_size;
+
+  int j = tid / extract_size - extract_size / 2;
+  int i = tid % extract_size - extract_size / 2;
+
+  int y = max_y + j;
+  int x = max_x + i;
+
+  bool inside = true;
+
+  if (y < 0) {
+    y += fullimg_size;
+    inside = false;
+  }
+  if (y > fullimg_size - 1) {
+    y -= fullimg_size;
+    inside = false;
+  }
+  if (x < 0) {
+    x += fullimg_size;
+    inside = false;
+  }
+  if (x > fullimg_size - 1) {
+    x -= fullimg_size;
+    inside = false;
+  }
+
+  d_smallimg[tid] = (inside || roll) ? d_fullimg[x + y * fullimg_size] : 0;
+}
+
+/**
+ * @brief Extract a part of the image centred on center_pos
+ *
+ * @tparam T type of the image items
+ * @param d_smallimg extracted small image of size extract_size*extract_size
+ * @param d_fullimg full image of size fullimg_size*fullimg_size
+ * @param fullimg_size size of the d_fullimg leading dimension
+ * @param center_pos position of the center of d_smallimg in d_fullimg
+ * @param extract_size size of the d_smallimg leading dimension
+ * @param roll get pixels as if d_fullimg need to be roll
+ */
+template <class T>
+int extract(T *d_smallimg, const T *d_fullimg, int fullimg_size, int center_pos,
+            int extract_size, bool roll) {
+  extract_krnl<<<1, extract_size * extract_size>>>(
+      d_smallimg, d_fullimg, fullimg_size, center_pos, extract_size, roll);
+
+  carmaCheckMsg("extract_krnl<<<>>> execution failed\n");
+
+  return EXIT_SUCCESS;
+}
+
+template int extract(float *d_smallimg, const float *d_fullimg,
+                     int fullimg_size, int center_pos, int extract_size,
+                     bool roll);
+template int extract(double *d_smallimg, const double *d_fullimg,
+                     int fullimg_size, int center_pos, int extract_size,
+                     bool roll);

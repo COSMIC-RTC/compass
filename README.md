@@ -79,7 +79,7 @@ cd magma-2.5.0
 Installation of dependencies using anaconda
 
 ```bash
-conda install -y numpy mkl-include pyqtgraph ipython pyqt qt matplotlib astropy blaze h5py hdf5 pytest pandas scipy docopt tqdm
+conda install -y numpy mkl-include pyqtgraph ipython pyqt qt matplotlib astropy blaze h5py hdf5 pytest-html pandas scipy docopt tqdm tabulate
 ```
 
 ### Configure with Makefile
@@ -162,7 +162,6 @@ export CUDA_LIB_PATH=$CUDA_ROOT/lib
 export CUDA_LIB_PATH_64=$CUDA_ROOT/lib64
 export PATH=$CUDA_ROOT/bin:$PATH
 export LD_LIBRARY_PATH=$CUDA_LIB_PATH_64:$CUDA_LIB_PATH:$LD_LIBRARY_PATH
-export CUDA_SM="52"
 
 #MAGMA definitions
 export MAGMA_ROOT=$HOME/local/magma
@@ -188,7 +187,7 @@ export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$COMPASS_INSTALL_ROOT/lib/pkgconfig
 
 ```bash
 
-conda install -y numpy pyqtgraph ipython pyqt qt matplotlib astropy blaze h5py hdf5 pytest pandas scipy docopt tqdm
+conda install -y numpy pyqtgraph ipython pyqt qt matplotlib astropy blaze h5py hdf5 pytest-html pandas scipy docopt tqdm tabulate
 
 ```
 

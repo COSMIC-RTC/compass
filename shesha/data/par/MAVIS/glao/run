@@ -1,0 +1,77 @@
+from shesha.ao import imats
+from shesha.ao import cmats
+from astropy.io import fits
+import numpy as np
+from matplotlib import pyplot as plt
+plt.ion()
+from shesha.util import write_sysParam
+
+#easier access to datas
+sup=supervisor
+sim=sup._sim
+conf=sup.config
+sup.reset()
+
+#setting open loop
+sup._sim.rtc.d_control[0].set_polc(True)
+
+#if generic: need to update imat in controller
+sim.rtc.d_control[0].set_imat(conf.p_controllers[0]._imat)
+#update gain
+sim.rtc.d_control[0].set_gain(conf.p_controllers[0].gain)
+
+#compute meta imat
+#specify only 1 pointing direction +> generate only 1 imat
+#(case ground layer)
+metaD=imats.get_metaD(sup,[0.],[0.])
+#get svd of (D.T*D)
+SVD=cmats.svd_for_cmat(metaD)
+#plt.plot(SVD[1])
+nfilt=4
+metaDx=cmats.get_cmat(metaD,nfilt=nfilt,svd=SVD)
+
+#write MOAO pipeline inputs
+datapath="/home/dgratadour/compass/shesha/data/par/MAVIS/glao"
+write_sysParam.generate_files(sup,datapath,singleFile=True,dm_tt=True)
+write_sysParam.write_metaDx(metaDx,path=datapath)
+
+#compute reconstructor here
+#STARPU_SILENT=1 ./glao_reconstructor --sys_path=/home/dgratadour/compass/shesha/data/par/MAVIS/glao --atm_path=/home/dgratadour/compass/shesha/data/par/MAVIS/glao --ncores=1  --gpuIds=0,4 --ts=984 --sync=1 --warmup=0
+
+#get reconstructor from file
+sup.reset()
+Mfile="/home/dgratadour/apply/chameleon/build/M_glao.fits"
+M=fits.getdata(Mfile).T
+#check dimensions
+CMATSHAPE=sup.getCmat(0).shape
+if(M.shape[0] !=CMATSHAPE[0] or M.shape[1]!=CMATSHAPE[1]):
+     raise ValueError("reconstructor ",Mfile," does not have the right dimensions")
+#check that reconstructor does not contain any Nan
+if(np.any(M!=M)):
+    raise ValueError("reconstructor ",Mfile," is invalid")
+sup.setCommandMatrix(M)
+sup.loop(1000,monitoring_freq=100)
+
+NSTAR = 10  
+map1=np.zeros((NSTAR,NSTAR))  
+for i in range(NSTAR*NSTAR):  
+    map1.itemset(i,sim.getStrehl(i)[1])  
+
+RADIUS      = 30
+NLGS        = 6
+NNGS        = 6
+x = np.linspace(0, 2 * np.pi, NLGS+1)[:-1]
+lgs_xpos = RADIUS * np.cos(x)
+lgs_ypos = RADIUS * np.sin(x)
+x = np.linspace(np.pi/6.,2 * np.pi+np.pi/6., NNGS+1)[:-1]
+asterism_x = RADIUS * np.cos(x)
+asterism_y = RADIUS * np.sin(x)
+
+RADIUS      = 70
+plt.matshow(map1,extent=[-RADIUS,RADIUS,-RADIUS,RADIUS])
+plt.colorbar()
+plt.scatter(lgs_ypos,lgs_xpos,color="red")
+plt.scatter(asterism_y,asterism_x,color="blue")
+
+plt.title("GLAO Strehl @ 1650nm 30 arcsec ring optim")
+

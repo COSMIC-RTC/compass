@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.8)
 
 if(NOT DEFINED VERSION_INFO)
-  set(VERSION_INFO "4.0")
+  set(VERSION_INFO 4.3.0)
 endif()
 
 message(STATUS "COMPASS will be installed in: ${CMAKE_INSTALL_PREFIX}")

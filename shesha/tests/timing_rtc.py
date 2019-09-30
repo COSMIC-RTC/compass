@@ -25,7 +25,7 @@ rtc.add_centroider(sup._sim.c, sup.config.p_wfs0._nvalid,
                    sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize, False, 0, "cog")
 rtc.add_controller(sup._sim.c, sup.config.p_wfs0._nvalid, sup.config.p_wfs0._nvalid * 2,
                    sup.config.p_controller0.nactu, sup.config.p_controller0.delay, 0,
-                   "generic")
+                   "generic", idx_centro=np.zeros(1), ncentro=1)
 rtc.d_centro[0].set_npix(sup.config.p_wfs0.npix)
 rtc.d_centro[0].load_validpos(xvalid, yvalid, xvalid.size)
 rtc.d_control[0].set_cmat(cmat)
@@ -38,7 +38,7 @@ rtcH.add_centroider(sup._sim.c, sup.config.p_wfs0._nvalid,
                     "cog")
 rtcH.add_controller(sup._sim.c, sup.config.p_wfs0._nvalid, sup.config.p_wfs0._nvalid * 2,
                     sup.config.p_controller0.nactu, sup.config.p_controller0.delay, 0,
-                    "generic")
+                    "generic", idx_centro=np.zeros(1), ncentro=1)
 rtcH.d_centro[0].set_npix(sup.config.p_wfs0.npix)
 rtcH.d_centro[0].load_validpos(xvalid, yvalid, xvalid.size)
 rtcH.d_control[0].set_cmat(cmat)

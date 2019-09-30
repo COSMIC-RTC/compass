@@ -1,7 +1,7 @@
 import shesha.config as ao
 import shesha.constants as scons
 import numpy as np
-simul_name = ""
+#simul_name = ""
 layout = "layoutDeFab"
 
 # loop
@@ -21,10 +21,12 @@ p_tel.set_cobs(0.28)
 
 #E_ELT PUPIL
 
-p_tel.set_type_ap("EELT-Nominal")
-p_tel.set_spiders_type("six")
-p_tel.set_pupangle(0)
-p_tel.set_t_spiders(0)
+
+#E_ELT PUPIL Rico like
+p_tel.set_type_ap("EELT")
+p_tel.set_diam(40.0)
+p_tel.set_pupangle(0.)  #ELT pup rotation in degrees
+p_tel.set_t_spiders(0.51)  #Spider size in meters
 """
 p_tel.set_nbrmissing(7)
 p_tel.set_referr(0.01)
@@ -167,7 +169,7 @@ p_wfs0.set_noise(0.2)  # in electrons units
 p_wfs0.set_atmos_seen(1)
 p_wfs0.set_fstop("square")
 p_wfs0.set_fssize(1.6)
-rMod = 3
+rMod = 5
 p_wfs0.set_pyr_npts(int(np.ceil(int(rMod * 2 * 3.141592653589793) / 4.) * 4))
 #p_wfs0.set_pyr_npts(31)
 p_wfs0.set_pyr_ampl(rMod)
@@ -189,14 +191,14 @@ nact = p_wfs0.nxsub + 1
 #nact = 9
 
 #p_dm0.set_nact(nact)
-p_dm0.set_nact(73)  #73 actuators for a projected M4 pitch of 53cm
+p_dm0.set_nact(75)  # 75 actuators on 40m for a projected M4 pitch of 54.05 cm
 p_dm0.set_alt(0.)
-p_dm0.set_thresh(0.1)  # fraction units
+p_dm0.set_thresh(0.6)  # fraction units
 # !!!!!!!!!!!!!!!!!!!!!!!!! attention pas autre chose que 0.2 !!!!!!!!!
 p_dm0.set_coupling(0.2)
 p_dm0.set_unitpervolt(1)
 p_dm0.set_push4imat(0.01)
-p_dm0.set_type_pattern("hexa")
+p_dm0.set_type_pattern("hexaM4")
 #p_dm0.set_influType("gaussian")
 p_dm0.set_influType("radialSchwartz")
 """
@@ -236,8 +238,9 @@ p_centroider0.set_type("pyr")
 p_controller0 = ao.Param_controller()
 p_controllers = [p_controller0]
 
-#p_controller0.set_type("ls")
-p_controller0.set_type("generic")
+#p_controller0.set_type("ls")     # V(k) = V(k-1) + g.R.m(k)
+p_controller0.set_type("generic") # V(k) = a.E.V(k-1) + g.R.m(k)
+#p_controller0.set_type("geo")    # bypass the WFS (direct DM proj)
 
 p_controller0.set_nwfs([0])
 p_controller0.set_ndm([0, 1])

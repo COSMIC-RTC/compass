@@ -1,6 +1,40 @@
-""" @package shesha.util.make_pupil
-Pupil creation functions
-"""
+## @package   shesha.util.make_pupil
+## @brief     Pupil creation functions
+## @author    COMPASS Team <https://github.com/ANR-COMPASS>
+## @version   4.3.0
+## @date      2011/01/28
+## @copyright GNU Lesser General Public License
+#
+#  This file is part of COMPASS <https://anr-compass.github.io/compass/>
+#
+#  Copyright (C) 2011-2019 COMPASS Team <https://github.com/ANR-COMPASS>
+#  All rights reserved.
+#  Distributed under GNU - LGPL
+#
+#  COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser 
+#  General Public License as published by the Free Software Foundation, either version 3 of the License, 
+#  or any later version.
+#
+#  COMPASS: End-to-end AO simulation tool using GPU acceleration 
+#  The COMPASS platform was designed to meet the need of high-performance for the simulation of AO systems. 
+#  
+#  The final product includes a software package for simulating all the critical subcomponents of AO, 
+#  particularly in the context of the ELT and a real-time core based on several control approaches, 
+#  with performances consistent with its integration into an instrument. Taking advantage of the specific 
+#  hardware architecture of the GPU, the COMPASS tool allows to achieve adequate execution speeds to
+#  conduct large simulation campaigns called to the ELT. 
+#  
+#  The COMPASS platform can be used to carry a wide variety of simulations to both testspecific components 
+#  of AO of the E-ELT (such as wavefront analysis device with a pyramid or elongated Laser star), and 
+#  various systems configurations such as multi-conjugate AO.
+#
+#  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the 
+#  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+#  See the GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
+#  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
+
 import numpy as np
 import os
 import scipy.ndimage.interpolation as interp
@@ -52,10 +86,10 @@ def make_pupil(dim, pupd, tel, xc=-1, yc=-1, real=0, halfSpider=False):
         knominalD = 10.96
         khalf_seg = 0.9
         return generateEeltPupilMask(dim, tel.t_spiders, xc, yc, tel.diam / dim, tel.gap,
-                                     tel.pupangle, D=tel.diam, halfSpider=halfSpider,
+                                     tel.pupangle, D=tel.diam, cobs=tel.cobs,halfSpider=halfSpider,
                                      pitch=kpitch, nseg=knseg, inner_rad=0.9,
                                      outer_rad=3.4, R=kR, nominalD=knominalD,
-                                     half_seg=0.9, refl=tel.referr)
+                                     half_seg=0.9, refl=tel.referr, rotSpiderDegree=-30)
     elif tel.type_ap == ApertureType.EELT_BP1:
         print("ELT_pup_cobs = %5.3f" % 0.339)
         N_seg = 768
@@ -367,7 +401,7 @@ def make_phase_ab(dim, pupd, tel, pup=None, xc=-1, yc=-1, real=0, halfSpider=Fal
         knominalD = 10.96
         khalf_seg = 0.9
         return generateEeltPupilMask(
-                dim, 0, xc, yc, tel.diam / dim, tel.gap, tel.pupangle, D=tel.diam,
+                dim, 0, xc, yc, tel.diam / dim, tel.gap, tel.pupangle, D=tel.diam,cobs=tel.cobs,
                 halfSpider=halfSpider, pitch=kpitch, nseg=knseg, inner_rad=0.9,
                 outer_rad=3.4, R=kR, nominalD=knominalD, half_seg=0.9,
                 refl=[tel.std_piston, tel.std_tt, tel.std_tt])
@@ -471,10 +505,10 @@ def make_phase_ab(dim, pupd, tel, pup=None, xc=-1, yc=-1, real=0, halfSpider=Fal
 """
 
 
-def generateEeltPupilMask(npt, dspider, i0, j0, pixscale, gap, rotdegree, D=40.0,
+def generateEeltPupilMask(npt, dspider, i0, j0, pixscale, gap, rotdegree, D=40.0,                                        cobs=0,
                           centerMark=0, halfSpider=False, pitch=1.244683637214, nseg=33,
                           inner_rad=4.1, outer_rad=15.4, R=95.7853, nominalD=40,
-                          half_seg=0.75, refl=None):
+                          half_seg=0.75, refl=None, rotSpiderDegree=None):
     """
     Generates a boolean pupil mask of the binary EELT pupil
     on a map of size (npt, npt).
@@ -518,6 +552,11 @@ def generateEeltPupilMask(npt, dspider, i0, j0, pixscale, gap, rotdegree, D=40.0
     """
     rot = rotdegree * np.pi / 180
 
+    if rotSpiderDegree is None:
+        rotSpider = rot
+    else:
+        rotSpider = rotSpiderDegree * np.pi / 180
+
     # Generation of segments coordinates.
     # hx and hy have a shape [6,798] describing the 6 vertex of the 798
     # hexagonal mirrors
@@ -553,15 +592,18 @@ def generateEeltPupilMask(npt, dspider, i0, j0, pixscale, gap, rotdegree, D=40.0
     nspider = 3  # for the day where we have more/less spiders ;-)
     if (dspider > 0 and nspider > 0):
         if (halfSpider is True):
-            pup = pup * fillHalfSpider(npt, nspider, dspider, i0, j0, pixscale, rot)
+            pup = pup * fillHalfSpider(npt, nspider, dspider, i0, j0, pixscale, rotSpider)
         else:
-            pup = pup * fillSpider(npt, nspider, dspider, i0, j0, pixscale, rot)
+            pup = pup * fillSpider(npt, nspider, dspider, i0, j0, pixscale, rotSpider)
 
     # Rajout d'un pixel au centre (pour marquer le centre) ou d'une croix,
     # selon la valeur de centerMark
     if centerMark:
         pup = np.logical_xor(pup, centrePourVidal(npt, i0, j0, centerMark))
 
+    if cobs > 0:
+        obstru = (util.dist(pup.shape[0], pup.shape[0] // 2 + 0.5, pup.shape[0] // 2 + 0.5) >= (pup.shape[0] * cobs + 1.) * 0.5).astype(np.float32)
+        pup *= obstru
     return pup
 
 

@@ -1,7 +1,46 @@
+// -----------------------------------------------------------------------------
+//  This file is part of COMPASS <https://anr-compass.github.io/compass/>
+//
+//  Copyright (C) 2011-2019 COMPASS Team <https://github.com/ANR-COMPASS>
+//  All rights reserved.
+//  Distributed under GNU - LGPL
+//
+//  COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser 
+//  General Public License as published by the Free Software Foundation, either version 3 of the License, 
+//  or any later version.
+//
+//  COMPASS: End-to-end AO simulation tool using GPU acceleration 
+//  The COMPASS platform was designed to meet the need of high-performance for the simulation of AO systems. 
+//  
+//  The final product includes a software package for simulating all the critical subcomponents of AO, 
+//  particularly in the context of the ELT and a real-time core based on several control approaches, 
+//  with performances consistent with its integration into an instrument. Taking advantage of the specific 
+//  hardware architecture of the GPU, the COMPASS tool allows to achieve adequate execution speeds to
+//  conduct large simulation campaigns called to the ELT. 
+//  
+//  The COMPASS platform can be used to carry a wide variety of simulations to both testspecific components 
+//  of AO of the E-ELT (such as wavefront analysis device with a pyramid or elongated Laser star), and 
+//  various systems configurations such as multi-conjugate AO.
+//
+//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the 
+//  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+//  See the GNU Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
+//  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
+// -----------------------------------------------------------------------------
+
+//! \file      dms.cpp
+//! \ingroup   libsutra
+//! \brief     this file provides pybind wrapper for sutra_dms
+//! \author    COMPASS Team <https://github.com/ANR-COMPASS>
+//! \version   4.3.0
+//! \date      2011/01/28
+//! \copyright GNU Lesser General Public License
+
 #include <wyrm>
 
 #include <sutra_dm.h>
-#include "declare_name.hpp"
 
 namespace py = pybind11;
 
@@ -50,7 +89,38 @@ void declare_dms(py::module &mod) {
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
 
-      .def("add_dm", wy::colCast(&sutra_dms::add_dm),
+      .def("add_dm", (int (sutra_dms::*)(carma_context *, const char *, float, long,
+             long, long, long, long,
+             float, long, float, float, float, float,  int))&sutra_dms::add_dm,
+           R"pbdoc(
+        Add a sutra_dm in the sutra_dms vector
+
+        Parameters
+        ------------
+        context: (carma_context) : current carma context
+        type: (str): DM type ("pzt", "kl", or "tt")
+        alt: (float): Conjugaison altitude in meters
+        dim: (long): Support dimension
+        nactus: (long): Number of actuators
+        influsize: (long): Influenction function support size
+        ninflupos: (long): Size of _influpos array
+        n_npoints: (long): Size of _ninflu array
+        push4imat: (float): Voltage to apply for imat computation
+        nord: (long): Number of radial order for kl dm (0 if not kl)
+        dx: (float): X axis misregistration [pixels]
+        dy: (float): Y axis misregistration [pixels]
+        theta: (float): Rotation angle misregistration [radians]
+        G: (float): Magnification factor
+        device: (int): Device index
+        )pbdoc",
+           py::arg("context"), py::arg("type"), py::arg("alt"), py::arg("dim"),
+           py::arg("nactus"), py::arg("influsize"), py::arg("ninflupos"),
+           py::arg("n_npoints"), py::arg("push4imat"), py::arg("nord"), py::arg("dx"), py::arg("dy"), py::arg("thetaML"), py::arg("G"),
+           py::arg("device"))
+
+      .def("add_dm", (int (sutra_dms::*)(carma_context *, const char *, float, long,
+             long, long, long, long,
+             float, long, int))&sutra_dms::add_dm,
            R"pbdoc(
         Add a sutra_dm in the sutra_dms vector
 
@@ -89,12 +159,16 @@ void declare_dms(py::module &mod) {
         n_npoints: (long): Size of _ninflu array
         push4imat: (float): Voltage to apply for imat computation
         nord: (long): Number of radial order for kl dm (0 if not kl)
+        dx: (float): X axis misregistration [pixels]
+        dy: (float): Y axis misregistration [pixels]
+        theta: (float): Rotation angle misregistration [radians]
+        G: (float): Magnification factor
         device: (int): Device index
         idx: (int) : DM index in the vector dms
         )pbdoc",
            py::arg("context"), py::arg("type"), py::arg("alt"), py::arg("dim"),
            py::arg("nactus"), py::arg("influsize"), py::arg("ninflupos"),
-           py::arg("n_npoints"), py::arg("push4imat"), py::arg("nord"),
+           py::arg("n_npoints"), py::arg("push4imat"), py::arg("nord"), py::arg("dx"), py::arg("dy"), py::arg("theta"), py::arg("G"),
            py::arg("device"), py::arg("idx"))
 
       .def("remove_dm", wy::colCast(&sutra_dms::remove_dm),
@@ -233,6 +307,18 @@ void declare_dm(py::module &mod) {
           "d_xoff", [](sutra_dm &sdm) { return sdm.d_xoff; }, "TODO: docstring")
 
       .def_property_readonly(
+          "dx", [](sutra_dm &sdm) { return sdm.dx; }, "X registration in pixels")
+
+      .def_property_readonly(
+          "dy", [](sutra_dm &sdm) { return sdm.dy; }, "Y registration in pixels")
+
+      .def_property_readonly(
+          "thetaML", [](sutra_dm &sdm) { return sdm.thetaML; }, "thetaML registration in radians")
+
+      .def_property_readonly(
+          "G", [](sutra_dm &sdm) { return sdm.G; }, "Magnification factor registration in pixels")
+
+      .def_property_readonly(
           "d_yoff", [](sutra_dm &sdm) { return sdm.d_yoff; }, "TODO: docstring")
 
       .def_property_readonly(
@@ -342,6 +428,18 @@ void declare_dm(py::module &mod) {
         ampli: (float): Volt to apply to this actuator
       )pbdoc",
            py::arg("nactu"), py::arg("ampli"))
+
+      .def("set_registration", wy::colCast(&sutra_dm::set_registration), R"pbdoc(
+        Set the registration parameters : dx, dy, theta and G
+
+        Parameters
+        ------------
+        dx: (float): X axis misregistration [pixels]
+        dy: (float): Y axis misregistration [pixels]
+        theta: (float): Rotation angle misregistration [radians]
+        G: (float): Magnification factor
+      )pbdoc",
+           py::arg("dx"), py::arg("dy"), py::arg("theta"), py::arg("G"))
 
       .def("compute_KLbasis", wy::colCast(&sutra_dm::compute_KLbasis),
            R"pbdoc(

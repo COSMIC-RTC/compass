@@ -1,3 +1,44 @@
+// -----------------------------------------------------------------------------
+//  This file is part of COMPASS <https://anr-compass.github.io/compass/>
+//
+//  Copyright (C) 2011-2019 COMPASS Team <https://github.com/ANR-COMPASS>
+//  All rights reserved.
+//  Distributed under GNU - LGPL
+//
+//  COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser 
+//  General Public License as published by the Free Software Foundation, either version 3 of the License, 
+//  or any later version.
+//
+//  COMPASS: End-to-end AO simulation tool using GPU acceleration 
+//  The COMPASS platform was designed to meet the need of high-performance for the simulation of AO systems. 
+//  
+//  The final product includes a software package for simulating all the critical subcomponents of AO, 
+//  particularly in the context of the ELT and a real-time core based on several control approaches, 
+//  with performances consistent with its integration into an instrument. Taking advantage of the specific 
+//  hardware architecture of the GPU, the COMPASS tool allows to achieve adequate execution speeds to
+//  conduct large simulation campaigns called to the ELT. 
+//  
+//  The COMPASS platform can be used to carry a wide variety of simulations to both testspecific components 
+//  of AO of the E-ELT (such as wavefront analysis device with a pyramid or elongated Laser star), and 
+//  various systems configurations such as multi-conjugate AO.
+//
+//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the 
+//  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+//  See the GNU Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
+//  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
+// -----------------------------------------------------------------------------
+
+//! \file      sutra_source.cpp
+//! \ingroup   libsutra
+//! \class     sutra_source
+//! \brief     this class provides the source features to COMPASS
+//! \author    COMPASS Team <https://github.com/ANR-COMPASS>
+//! \version   4.3.0
+//! \date      2011/01/28
+//! \copyright GNU Lesser General Public License
+
 #include <sutra_source.h>
 
 sutra_source::sutra_source(carma_context *context, float xpos, float ypos,
@@ -118,6 +159,11 @@ inline int sutra_source::init_source(carma_context *context, float xpos,
   this->dx = 0.0f;
   this->dy = 0.0f;
 
+  /// temporary array for accurate strehl computation
+  dims_data2[1] = 2 * this->d_smallimg_size + 1;
+  dims_data2[2] = 2 * this->d_smallimg_size + 1;
+  this->d_smallimg = new carma_obj<float>(context, dims_data2);
+
   delete[] dims_data2;
 
   return EXIT_SUCCESS;
@@ -126,7 +172,7 @@ inline int sutra_source::init_source(carma_context *context, float xpos,
 sutra_source::~sutra_source() {
   // delete this->current_context;
   this->current_context->set_activeDevice(this->device, 1);
-
+  delete this->d_smallimg;
   delete this->d_phase;
   delete this->phase_telemetry;
 
@@ -244,7 +290,7 @@ int sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
                           this->thetaML, this->dx, this->dy, this->block_size);
       }
     } else
-      p++;
+        p++;
   }
 
   return EXIT_SUCCESS;
@@ -274,14 +320,28 @@ int sutra_source::raytrace(sutra_dms *ydms, bool rst, bool do_phase_var,
                               xoff[make_pair(types, inddm)],
                               yoff[make_pair(types, inddm)], this->block_size);
       } else {
-        target_raytrace(this->d_phase->d_screen->getData(),
-                        ps->d_shape->d_screen->getData(),
-                        (int)d_phase->d_screen->getDims(1),
-                        (int)d_phase->d_screen->getDims(2),
-                        (int)ps->d_shape->d_screen->getDims(1),
-                        xoff[std::make_pair(types, inddm)],
-                        yoff[std::make_pair(types, inddm)], this->G,
-                        this->thetaML, this->dx, this->dy, this->block_size);
+        if (this->lgs) {
+          float delta = 1.0f - ps->altitude / this->d_lgs->hg;
+          if (delta > 0)
+            target_lgs_raytrace(this->d_phase->d_screen->getData(),
+                                ps->d_shape->d_screen->getData(),
+                                (int)d_phase->d_screen->getDims(1),
+                                (int)d_phase->d_screen->getDims(2),
+                                (int)ps->d_shape->d_screen->getDims(1),
+                                xoff[make_pair(types, inddm)],
+                                yoff[make_pair(types, inddm)], this->G,
+                                this->thetaML, this->dx, this->dy, delta,
+                                this->block_size);
+        } else {
+          target_raytrace(this->d_phase->d_screen->getData(),
+                          ps->d_shape->d_screen->getData(),
+                          (int)d_phase->d_screen->getDims(1),
+                          (int)d_phase->d_screen->getDims(2),
+                          (int)ps->d_shape->d_screen->getDims(1),
+                          xoff[std::make_pair(types, inddm)],
+                          yoff[std::make_pair(types, inddm)], this->G * ps->G,
+                          this->thetaML + ps->thetaML, this->dx + ps->dx, this->dy + ps->dy, this->block_size);
+        }
       }
     } else
       p++;
@@ -394,24 +454,84 @@ int sutra_source::comp_image(int puponly, bool comp_le) {
   return EXIT_SUCCESS;
 }
 
-int sutra_source::comp_strehl() {
+float sinc(double x) {
+  if (x == 0) return 1;
+  x *= CARMA_PI;
+  return sin(x) / x;
+}
+
+/**
+ * @brief fit the strehl with a sinc
+ *
+ * Utilise la “croix” de 3 pixels centraux qui encadrent le max
+ * pour fitter des paraboles qui determinent la position du maximum,
+ * puis calcule l’interpolation exacte en ce point via la formule
+ * des sinus cardinaux qui s’applique a un signal bien echantillonne.
+ *
+ * @param d_img full image of size img_size*img_size
+ * @param ind_max position of the maximum in d_img
+ * @param img_size size of the d_img leading dimension
+ * @return float Strehl fitted
+ */
+float sutra_source::fitmax2x1dSinc(float *d_img, int ind_max, int img_size) {
+  const int small_size = 2 * this->d_smallimg_size + 1;
+  extract(this->d_smallimg->getData(), d_img, img_size, ind_max, small_size,
+          true);
+  std::vector<float> smallimg(small_size * small_size);
+  const int center = ((small_size * small_size) - 1) / 2;
+  const int right_ind = center + 1;
+  const int left_ind = center - 1;
+  const int down_ind = center - small_size;
+  const int up_ind = center + small_size;
+
+  this->d_smallimg->device2host(smallimg.data());
+
+  const float A =
+      0.5 * (smallimg[down_ind] + smallimg[up_ind]) - smallimg[center];
+  const float B =
+      0.5 * (smallimg[left_ind] + smallimg[right_ind]) - smallimg[center];
+  if (A * B == 0) {
+    DEBUG_TRACE("ERROR: can not estimate the SR");
+    return 0;
+  }
+  const float x0 = -0.5 * (smallimg[up_ind] - smallimg[down_ind]) / 2. / A;
+  const float y0 = -0.5 * (smallimg[right_ind] - smallimg[left_ind]) / 2. / B;
+
+  // interpolation exacte par shannon(theoreme des sinus cardinaux)
+  float valmax = 0.0;
+  int ind = 0;
+  for (int i = -this->d_smallimg_size; i < this->d_smallimg_size + 1; ++i) {
+    const float tmpi = sinc(x0 - i);
+    for (int j = -this->d_smallimg_size; j < this->d_smallimg_size + 1; ++j) {
+      const float tmpj = sinc(y0 - j);
+      valmax += tmpi * tmpj * smallimg[ind++];
+    }
+  }
+  return valmax;
+}
+
+int sutra_source::comp_strehl(bool do_fit) {
   current_context->set_activeDevice(device, 1);
-  cudaMemcpy(&(this->strehl_se),
-             &(this->d_image_se->getData()[this->d_image_se->aimax(1)]),
-             sizeof(float), cudaMemcpyDeviceToHost);
-  cudaMemcpy(&(this->strehl_le),
-             &(this->d_image_le->getData()[this->d_image_le->aimax(1)]),
-             sizeof(float), cudaMemcpyDeviceToHost);
-  // this->strehl_se /= (this->d_wherephase->getDims(1) *
-  // this->d_wherephase->getDims(1));
+
+  const int max_se = this->d_image_se->aimax(1);
+  const int max_le = this->d_image_le->aimax(1);
+  if (do_fit) {
+    const int img_size = d_image_se->getDims(1);
+    this->strehl_se =
+        fitmax2x1dSinc(this->d_image_se->getData(), max_se, img_size);
+    this->strehl_le =
+        fitmax2x1dSinc(this->d_image_le->getData(), max_le, img_size);
+  } else {
+    cudaMemcpy(&(this->strehl_se), &(this->d_image_se->getData()[max_se]),
+               sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(&(this->strehl_le), &(this->d_image_le->getData()[max_le]),
+               sizeof(float), cudaMemcpyDeviceToHost);
+  }
+
   if (this->strehl_counter > 0)
     this->strehl_le /= this->strehl_counter;
   else
     this->strehl_le = this->strehl_se;
-
-  /*
-  this->strehl_se /= this->ref_strehl;
-  this->strehl_le /= (this->ref_strehl * this->strehl_counter);*/
 
   return EXIT_SUCCESS;
 }

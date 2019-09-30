@@ -1,3 +1,44 @@
+// -----------------------------------------------------------------------------
+//  This file is part of COMPASS <https://anr-compass.github.io/compass/>
+//
+//  Copyright (C) 2011-2019 COMPASS Team <https://github.com/ANR-COMPASS>
+//  All rights reserved.
+//  Distributed under GNU - LGPL
+//
+//  COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser 
+//  General Public License as published by the Free Software Foundation, either version 3 of the License, 
+//  or any later version.
+//
+//  COMPASS: End-to-end AO simulation tool using GPU acceleration 
+//  The COMPASS platform was designed to meet the need of high-performance for the simulation of AO systems. 
+//  
+//  The final product includes a software package for simulating all the critical subcomponents of AO, 
+//  particularly in the context of the ELT and a real-time core based on several control approaches, 
+//  with performances consistent with its integration into an instrument. Taking advantage of the specific 
+//  hardware architecture of the GPU, the COMPASS tool allows to achieve adequate execution speeds to
+//  conduct large simulation campaigns called to the ELT. 
+//  
+//  The COMPASS platform can be used to carry a wide variety of simulations to both testspecific components 
+//  of AO of the E-ELT (such as wavefront analysis device with a pyramid or elongated Laser star), and 
+//  various systems configurations such as multi-conjugate AO.
+//
+//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the 
+//  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+//  See the GNU Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
+//  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
+// -----------------------------------------------------------------------------
+
+//! \file      sutra_centroider.cu
+//! \ingroup   libsutra
+//! \class     sutra_centroider
+//! \brief     this class provides the centroider features to COMPASS
+//! \author    COMPASS Team <https://github.com/ANR-COMPASS>
+//! \version   4.3.0
+//! \date      2011/01/28
+//! \copyright GNU Lesser General Public License
+
 #include <sutra_centroider.h>
 #include "carma_utils.cuh"
 
@@ -93,29 +134,30 @@ int fill_validMask(int size, int npix, int blocks, int *d_validMask,
 
 template <class Tin>
 __global__ void calib_krnl(Tin *img_raw, float *img_cal, float *dark,
-                           float *flat, int N) {
+                           float *flat, int *lutPix, int N) {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
   while (tid < N) {
-    img_cal[tid] = (float(img_raw[tid]) - dark[tid]) * flat[tid];
+    img_cal[tid] = (float(img_raw[lutPix[tid]]) - dark[tid]) * flat[tid];
     tid += blockDim.x * gridDim.x;
   }
 }
 
 template <class Tin>
-int calibration(Tin *img_raw, float *img_cal, float *dark, float *flat, int N,
-                carma_device *device) {
+int calibration(Tin *img_raw, float *img_cal, float *dark, float *flat,
+                int *lutPix, int N, carma_device *device) {
   int nBlocks, nThreads;
   getNumBlocksAndThreads(device, N, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
-  calib_krnl<<<grid, threads>>>(img_raw, img_cal, dark, flat, N);
+  calib_krnl<<<grid, threads>>>(img_raw, img_cal, dark, flat, lutPix, N);
 
   carmaCheckMsg("calib_krnl<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
 template int calibration<float>(float *img_raw, float *img_cal, float *dark,
-                                float *flat, int N, carma_device *device);
+                                float *flat, int *lutPix, int N,
+                                carma_device *device);
 template int calibration<uint16_t>(uint16_t *img_raw, float *img_cal,
-                                   float *dark, float *flat, int N,
+                                   float *dark, float *flat, int *lutPix, int N,
                                    carma_device *device);

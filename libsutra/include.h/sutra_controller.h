@@ -1,21 +1,46 @@
-/**
- * \file sutra_controller.h
- *
- * \class sutra_controller
- *
- * \ingroup libsutra
- *
- * \brief this class provides the controller features to COMPASS
- *
- * \authors Damien Gratadour & Arnaud Sevin & Florian Ferreira
- *
- * \version 1.0
- *
- * \date 2011/01/28
- *
- */
-#ifndef _sutra_controller_H_
-#define _sutra_controller_H_
+// -----------------------------------------------------------------------------
+//  This file is part of COMPASS <https://anr-compass.github.io/compass/>
+//
+//  Copyright (C) 2011-2019 COMPASS Team <https://github.com/ANR-COMPASS>
+//  All rights reserved.
+//  Distributed under GNU - LGPL
+//
+//  COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser 
+//  General Public License as published by the Free Software Foundation, either version 3 of the License, 
+//  or any later version.
+//
+//  COMPASS: End-to-end AO simulation tool using GPU acceleration 
+//  The COMPASS platform was designed to meet the need of high-performance for the simulation of AO systems. 
+//  
+//  The final product includes a software package for simulating all the critical subcomponents of AO, 
+//  particularly in the context of the ELT and a real-time core based on several control approaches, 
+//  with performances consistent with its integration into an instrument. Taking advantage of the specific 
+//  hardware architecture of the GPU, the COMPASS tool allows to achieve adequate execution speeds to
+//  conduct large simulation campaigns called to the ELT. 
+//  
+//  The COMPASS platform can be used to carry a wide variety of simulations to both testspecific components 
+//  of AO of the E-ELT (such as wavefront analysis device with a pyramid or elongated Laser star), and 
+//  various systems configurations such as multi-conjugate AO.
+//
+//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the 
+//  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+//  See the GNU Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
+//  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
+// -----------------------------------------------------------------------------
+
+//! \file      sutra_controller.h
+//! \ingroup   libsutra
+//! \class     sutra_controller
+//! \brief     this class provides the controller features to COMPASS
+//! \author    COMPASS Team <https://github.com/ANR-COMPASS>
+//! \version   4.3.0
+//! \date      2011/01/28
+//! \copyright GNU Lesser General Public License
+
+#ifndef _SUTRA_CONTROLLER_H_
+#define _SUTRA_CONTROLLER_H_
 
 #include <carma_cublas.h>
 #include <carma_host_obj.h>
@@ -72,6 +97,7 @@ class sutra_controller {
   carma_obj<Tout> *d_voltage;  // commands after perturbation and clipping
   carma_obj<Tcomp> *d_com1;    // commands k-1
   carma_obj<Tcomp> *d_com2;    // commands k-2
+  vector<int> centro_idx; // Centroider indices to handle
 
   map<string, tuple<carma_obj<Tcomp> *, int, bool>> d_perturb_map;
   // perturbation command buffer
@@ -80,7 +106,7 @@ class sutra_controller {
 
   // allocation of d_centroids and d_com
   sutra_controller(carma_context *context, int nvalid, int nslope, int nactu,
-                   float delay, sutra_dms *dms, int *idx_dms, int ndm);
+                   float delay, sutra_dms *dms, int *idx_dms, int ndm,  int *idx_centro, int ncentro);
   virtual ~sutra_controller();
 
   virtual string get_type() = 0;
@@ -157,4 +183,4 @@ int absnormfft(cuFloatComplex *idata, float *odata, int N, float norm,
                carma_device *device);
 int adjust_csr_index(int *rowind, int *NNZ, int *nact, int nact_tot,
                      int row_off, carma_device *device);
-#endif  // _sutra_controller_H_
+#endif  // _SUTRA_CONTROLLER_H_

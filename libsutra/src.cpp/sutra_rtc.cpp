@@ -1,3 +1,44 @@
+// -----------------------------------------------------------------------------
+//  This file is part of COMPASS <https://anr-compass.github.io/compass/>
+//
+//  Copyright (C) 2011-2019 COMPASS Team <https://github.com/ANR-COMPASS>
+//  All rights reserved.
+//  Distributed under GNU - LGPL
+//
+//  COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser 
+//  General Public License as published by the Free Software Foundation, either version 3 of the License, 
+//  or any later version.
+//
+//  COMPASS: End-to-end AO simulation tool using GPU acceleration 
+//  The COMPASS platform was designed to meet the need of high-performance for the simulation of AO systems. 
+//  
+//  The final product includes a software package for simulating all the critical subcomponents of AO, 
+//  particularly in the context of the ELT and a real-time core based on several control approaches, 
+//  with performances consistent with its integration into an instrument. Taking advantage of the specific 
+//  hardware architecture of the GPU, the COMPASS tool allows to achieve adequate execution speeds to
+//  conduct large simulation campaigns called to the ELT. 
+//  
+//  The COMPASS platform can be used to carry a wide variety of simulations to both testspecific components 
+//  of AO of the E-ELT (such as wavefront analysis device with a pyramid or elongated Laser star), and 
+//  various systems configurations such as multi-conjugate AO.
+//
+//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the 
+//  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+//  See the GNU Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
+//  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
+// -----------------------------------------------------------------------------
+
+//! \file      sutra_rtc.cpp
+//! \ingroup   libsutra
+//! \class     sutra_rtc
+//! \brief     this class provides the rtc features to COMPASS
+//! \author    COMPASS Team <https://github.com/ANR-COMPASS>
+//! \version   4.3.0
+//! \date      2011/01/28
+//! \copyright GNU Lesser General Public License
+
 #include <sutra_rtc.h>
 #include <sutra_wfs_pyr_pyrhr.h>
 #include <sutra_wfs_sh.h>
@@ -38,19 +79,20 @@ int sutra_rtc<Tin, T, Tout>::remove_controller(int ncontrol) {
 
 template <typename Tin, typename T, typename Tout>
 int sutra_rtc<Tin, T, Tout>::add_centroider(carma_context *context, long nvalid,
-                                            float offset, float scale, bool filter_TT,
-                                            long device, std::string typec) {
-  return add_centroider(context, nvalid, offset, scale, filter_TT, device, typec,
-			nullptr);
+                                            float offset, float scale,
+                                            bool filter_TT, long device,
+                                            std::string typec) {
+  return add_centroider(context, nvalid, offset, scale, filter_TT, device,
+                        typec, nullptr);
 }
 
 template <typename Tin, typename T, typename Tout>
 int sutra_rtc<Tin, T, Tout>::add_centroider(carma_context *context, long nvalid,
-                                            float offset, float scale, bool filter_TT,
-                                            long device, std::string typec,
-                                            sutra_wfs *wfs) {
-  return add_centroider_impl(context, nvalid, offset, scale, filter_TT, device, typec,
-			     wfs, std::is_same<T, half>());
+                                            float offset, float scale,
+                                            bool filter_TT, long device,
+                                            std::string typec, sutra_wfs *wfs) {
+  return add_centroider_impl(context, nvalid, offset, scale, filter_TT, device,
+                             typec, wfs, std::is_same<T, half>());
 }
 
 template <typename Tin, typename T, typename Tout>
@@ -58,15 +100,15 @@ template <typename Q>
 typename std::enable_if<!std::is_same<Q, half>::value, int>::type
 sutra_rtc<Tin, T, Tout>::add_centroider_impl(carma_context *context,
                                              long nvalid, float offset,
-                                             float scale, bool filter_TT, long device,
-                                             std::string typec, sutra_wfs *wfs,
-                                             std::false_type) {
+                                             float scale, bool filter_TT,
+                                             long device, std::string typec,
+                                             sutra_wfs *wfs, std::false_type) {
   if (typec.compare("bpcog") == 0)
     this->d_centro.push_back(new sutra_centroider_bpcog<Tin, T>(
-	 context, wfs, nvalid, offset, scale, filter_TT, device, 10));
+        context, wfs, nvalid, offset, scale, filter_TT, device, 10));
   else if (typec.compare("cog") == 0)
     this->d_centro.push_back(new sutra_centroider_cog<Tin, T>(
-	 context, wfs, nvalid, offset, scale, filter_TT, device));
+        context, wfs, nvalid, offset, scale, filter_TT, device));
   else if (typec.compare("corr") == 0)
     this->d_centro.push_back(new sutra_centroider_corr<Tin, T>(
         context, wfs, nvalid, offset, scale, filter_TT, device));
@@ -86,7 +128,8 @@ sutra_rtc<Tin, T, Tout>::add_centroider_impl(carma_context *context,
     } else if (wfs->type == "pyrhr") {
       sutra_wfs_pyr_pyrhr *pwfs = dynamic_cast<sutra_wfs_pyr_pyrhr *>(wfs);
       this->d_centro.push_back(new sutra_centroider_maskedPix<Tin, T>(
-          context, pwfs, nvalid, pwfs->npupils, offset, scale, filter_TT, device));
+          context, pwfs, nvalid, pwfs->npupils, offset, scale, filter_TT,
+          device));
     } else
       DEBUG_TRACE("WFS must be pyrhr");
   } else {
@@ -98,9 +141,12 @@ sutra_rtc<Tin, T, Tout>::add_centroider_impl(carma_context *context,
 
 #ifdef CAN_DO_HALF
 template <typename Tin, typename T, typename Tout>
-int sutra_rtc<Tin, T, Tout>::add_centroider_impl(
-    carma_context *context, long nvalid, float offset, float scale, bool filter_TT,
-    long device, std::string typec, sutra_wfs *wfs, std::true_type) {
+int sutra_rtc<Tin, T, Tout>::add_centroider_impl(carma_context *context,
+                                                 long nvalid, float offset,
+                                                 float scale, bool filter_TT,
+                                                 long device, std::string typec,
+                                                 sutra_wfs *wfs,
+                                                 std::true_type) {
   if (typec.compare("cog") == 0)
     this->d_centro.push_back(new sutra_centroider_cog<Tin, T>(
         context, wfs, nvalid, offset, scale, filter_TT, device));
@@ -117,7 +163,8 @@ int sutra_rtc<Tin, T, Tout>::add_centroider_impl(
     } else if (wfs->type == "pyrhr") {
       sutra_wfs_pyr_pyrhr *pwfs = dynamic_cast<sutra_wfs_pyr_pyrhr *>(wfs);
       this->d_centro.push_back(new sutra_centroider_maskedPix<Tin, T>(
-          context, pwfs, nvalid, pwfs->npupils, offset, scale, filter_TT, device));
+          context, pwfs, nvalid, pwfs->npupils, offset, scale, filter_TT,
+          device));
     } else
       DEBUG_TRACE("WFS must be pyrhr");
   } else
@@ -132,10 +179,10 @@ int sutra_rtc<Tin, T, Tout>::add_controller(carma_context *context, int nvalid,
                                             int nslope, int nactu, float delay,
                                             long device, std::string typec,
                                             sutra_dms *dms, int *idx_dms,
-                                            int ndm, int Nphi,
-                                            bool wfs_direction, int nstates) {
+                                            int ndm,  int *idx_centro, int ncentro, int Nphi,
+                                            bool wfs_direction) {
   return add_controller_impl(context, this->d_control, nvalid, nslope, nactu,
-                             delay, device, typec, dms, idx_dms, ndm, Nphi,
+                             delay, device, typec, dms, idx_dms, ndm, idx_centro, ncentro, Nphi,
                              wfs_direction, nstates, std::is_same<T, half>());
 }
 
@@ -145,24 +192,24 @@ typename std::enable_if<!std::is_same<Q, half>::value, int>::type
 sutra_rtc<Tin, T, Tout>::add_controller_impl(
     carma_context *context, vector<sutra_controller<T, Tout> *> &d_control,
     int nvalid, int nslope, int nactu, float delay, long device,
-    std::string typec, sutra_dms *dms, int *idx_dms, int ndm, int Nphi,
+    std::string typec, sutra_dms *dms, int *idx_dms, int ndm,  int *idx_centro, int ncentro, int Nphi,
     bool wfs_direction, int nstates, std::false_type) {
   if (typec.compare("ls") == 0) {
     d_control.push_back(new sutra_controller_ls<T, Tout>(
-        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm));
+        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro, ncentro));
   } else if (typec.compare("geo") == 0) {
     d_control.push_back(new sutra_controller_geo<T, Tout>(
-        context, nactu, Nphi, delay, dms, idx_dms, ndm, wfs_direction));
+        context, nactu, Nphi, delay, dms, idx_dms, ndm, idx_centro, ncentro, wfs_direction));
 
   } else if (typec.compare("cured") == 0) {
     d_control.push_back(new sutra_controller_cured<T, Tout>(
-        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm));
+        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro, ncentro));
   } else if (typec.compare("mv") == 0) {
     d_control.push_back(new sutra_controller_mv<T, Tout>(
-        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm));
+        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro, ncentro));
   } else if (typec.compare("generic") == 0) {
     d_control.push_back(new sutra_controller_generic<T, Tout>(
-        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm, nstates));
+        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro, ncentro, nstates));
     // } else if ((typec.compare("kalman_GPU") == 0) ||
     //            (typec.compare("kalman_CPU") == 0)) {
     //   d_control.push_back(
@@ -179,11 +226,11 @@ template <typename Tin, typename T, typename Tout>
 int sutra_rtc<Tin, T, Tout>::add_controller_impl(
     carma_context *context, vector<sutra_controller<T, Tout> *> &d_control,
     int nvalid, int nslope, int nactu, float delay, long device,
-    std::string typec, sutra_dms *dms, int *idx_dms, int ndm, int Nphi,
-    bool wfs_direction, int nstates, std::true_type) {
+    std::string typec, sutra_dms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro, int Nphi,
+    bool wfs_direction, std::true_type) {
   if (typec.compare("generic") == 0) {
     d_control.push_back(new sutra_controller_generic<T, Tout>(
-        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm, nstates));
+        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro, ncentro, nstates));
 
   } else {
     DEBUG_TRACE("Not implemented in half precision yet");
@@ -210,7 +257,7 @@ typename std::enable_if<std::is_same<Q, float>::value, int>::type
 sutra_rtc<Tin, T, Tout>::do_imat_impl(int ncntrl, sutra_dms *ydm,
                                       std::true_type) {
   carma_obj<T> *d_imat = NULL;
-  if (this->d_control[ncntrl]->get_type().compare("ls") == 0) {
+if (this->d_control[ncntrl]->get_type().compare("ls") == 0) {
     sutra_controller_ls<T, Tout> *control =
         dynamic_cast<sutra_controller_ls<T, Tout> *>(this->d_control[ncntrl]);
     d_imat = control->d_imat;
@@ -224,73 +271,88 @@ sutra_rtc<Tin, T, Tout>::do_imat_impl(int ncntrl, sutra_dms *ydm,
   }
 
   vector<sutra_dm *>::iterator p;
-  
+
   p = this->d_control[ncntrl]->d_dmseen.begin();
-  
+
   while (p != this->d_control[ncntrl]->d_dmseen.end()) {
     sutra_dm *dm = *p;
     if (dm->type == "tt") {
-      for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
-	if (this->d_centro[idx_cntr]->filter_TT) {
-	  std::cout << "Measuring TT reference for centro : " << idx_cntr << std::endl;
-	  this->d_centro[idx_cntr]->filter_TT = false;
+      for (size_t idxh = 0; idxh < this->d_control[ncntrl]->centro_idx.size();
+           idxh++) {
+        int idx_cntr = this->d_control[ncntrl]->centro_idx[idxh];
+        if (this->d_centro[idx_cntr]->filter_TT) {
+          std::cout << "Measuring TT reference for centro : " << idx_cntr
+                    << std::endl;
+          this->d_centro[idx_cntr]->filter_TT = false;
 
-	  // Tip Push
-	  dm->comp_oneactu(0, dm->push4imat);
+          // Tip Push
+          dm->comp_oneactu(0, dm->push4imat);
 
-	  this->comp_images_imat(ydm);
-	  this->d_centro[idx_cntr]->get_cog(this->d_centro[idx_cntr]->d_intensities->getData(), this->d_centro[idx_cntr]->d_centro_filtered->getData(), true);
-	  this->d_centro[idx_cntr]->d_centro_filtered->scale(0.5f / dm->push4imat, 1);
-	  this->d_centro[idx_cntr]->d_centro_filtered->copyInto(
-		this->d_centro[idx_cntr]->d_ref_Tip->getData(), this->d_centro[idx_cntr]->nslopes);
+          this->comp_images_imat(ydm);
+          this->d_centro[idx_cntr]->get_cog(
+              this->d_centro[idx_cntr]->d_intensities->getData(),
+              this->d_centro[idx_cntr]->d_centro_filtered->getData(), true);
+          this->d_centro[idx_cntr]->d_centro_filtered->scale(
+              0.5f / dm->push4imat, 1);
+          this->d_centro[idx_cntr]->d_centro_filtered->copyInto(
+              this->d_centro[idx_cntr]->d_ref_Tip->getData(),
+              this->d_centro[idx_cntr]->nslopes);
 
-	  dm->reset_shape();
+          dm->reset_shape();
 
-	  // Tip Pull
-	  dm->comp_oneactu(0, -1.0f * dm->push4imat);
-	  this->comp_images_imat(ydm);
-	  this->d_centro[idx_cntr]->get_cog(this->d_centro[idx_cntr]->d_intensities->getData(), this->d_centro[idx_cntr]->d_centro_filtered->getData(), true);
-	  float alphai = -.5f / dm->push4imat;
+          // Tip Pull
+          dm->comp_oneactu(0, -1.0f * dm->push4imat);
+          this->comp_images_imat(ydm);
+          this->d_centro[idx_cntr]->get_cog(
+              this->d_centro[idx_cntr]->d_intensities->getData(),
+              this->d_centro[idx_cntr]->d_centro_filtered->getData(), true);
+          float alphai = -.5f / dm->push4imat;
 
-	  this->d_centro[idx_cntr]->d_ref_Tip->axpy(T(alphai), this->d_centro[idx_cntr]->d_centro_filtered, 1, 1);
+          this->d_centro[idx_cntr]->d_ref_Tip->axpy(
+              T(alphai), this->d_centro[idx_cntr]->d_centro_filtered, 1, 1);
 
-	  dm->reset_shape();
+          dm->reset_shape();
 
-	  // Tilt Push
-	  dm->comp_oneactu(1, dm->push4imat);
+          // Tilt Push
+          dm->comp_oneactu(1, dm->push4imat);
 
-	  this->comp_images_imat(ydm);
-	  this->d_centro[idx_cntr]->get_cog(this->d_centro[idx_cntr]->d_intensities->getData(), this->d_centro[idx_cntr]->d_centro_filtered->getData(), true);
-	  this->d_centro[idx_cntr]->d_centro_filtered->scale(0.5f / dm->push4imat, 1);
-	  this->d_centro[idx_cntr]->d_centro_filtered->copyInto(
-		this->d_centro[idx_cntr]->d_ref_Tilt->getData(), this->d_centro[idx_cntr]->nslopes);
+          this->comp_images_imat(ydm);
+          this->d_centro[idx_cntr]->get_cog(
+              this->d_centro[idx_cntr]->d_intensities->getData(),
+              this->d_centro[idx_cntr]->d_centro_filtered->getData(), true);
+          this->d_centro[idx_cntr]->d_centro_filtered->scale(
+              0.5f / dm->push4imat, 1);
+          this->d_centro[idx_cntr]->d_centro_filtered->copyInto(
+              this->d_centro[idx_cntr]->d_ref_Tilt->getData(),
+              this->d_centro[idx_cntr]->nslopes);
 
-	  dm->reset_shape();
+          dm->reset_shape();
 
-	  // Tilt Pull
-	  dm->comp_oneactu(1, -1.0f * dm->push4imat);
-	  this->comp_images_imat(ydm);
-	  this->d_centro[idx_cntr]->get_cog(this->d_centro[idx_cntr]->d_intensities->getData(), this->d_centro[idx_cntr]->d_centro_filtered->getData(), true);
+          // Tilt Pull
+          dm->comp_oneactu(1, -1.0f * dm->push4imat);
+          this->comp_images_imat(ydm);
+          this->d_centro[idx_cntr]->get_cog(
+              this->d_centro[idx_cntr]->d_intensities->getData(),
+              this->d_centro[idx_cntr]->d_centro_filtered->getData(), true);
 
-	  this->d_centro[idx_cntr]->d_ref_Tilt->axpy(T(alphai), this->d_centro[idx_cntr]->d_centro_filtered, 1, 1);
-	  
-	  dm->reset_shape();
-	  
-	  this->d_centro[idx_cntr]->filter_TT = true;
+          this->d_centro[idx_cntr]->d_ref_Tilt->axpy(
+              T(alphai), this->d_centro[idx_cntr]->d_centro_filtered, 1, 1);
 
-	  float nrmTip = this->d_centro[idx_cntr]->d_ref_Tip->nrm2(1);
-	  float nrmTilt = this->d_centro[idx_cntr]->d_ref_Tilt->nrm2(1);
+          dm->reset_shape();
 
-	  this->d_centro[idx_cntr]->d_ref_Tip->scale(T(1.0f/nrmTip),1);
-	  this->d_centro[idx_cntr]->d_ref_Tilt->scale(T(1.0f/nrmTilt),1);
-	  
- 	  
-	}      
-      }    
+          this->d_centro[idx_cntr]->filter_TT = true;
+
+          float nrmTip = this->d_centro[idx_cntr]->d_ref_Tip->nrm2(1);
+          float nrmTilt = this->d_centro[idx_cntr]->d_ref_Tilt->nrm2(1);
+
+          this->d_centro[idx_cntr]->d_ref_Tip->scale(T(1.0f / nrmTip), 1);
+          this->d_centro[idx_cntr]->d_ref_Tilt->scale(T(1.0f / nrmTilt), 1);
+        }
+      }
     }
     ++p;
   }
-  
+
   p = this->d_control[ncntrl]->d_dmseen.begin();
   int inds1 = 0;
   int cc2 = 0;
@@ -537,7 +599,10 @@ int sutra_rtc<Tin, T, Tout>::do_calibrate_img() {
 
 template <typename Tin, typename T, typename Tout>
 int sutra_rtc<Tin, T, Tout>::do_calibrate_img(int ncntrl) {
-  this->d_centro[ncntrl]->calibrate_img();
+  for (size_t idxh = 0; idxh < this->d_control[ncntrl]->centro_idx.size(); idxh++) {
+    int idx_cntr = this->d_control[ncntrl]->centro_idx[idxh];
+    this->d_centro[idx_cntr]->calibrate_img();
+  }
 
   return EXIT_SUCCESS;
 }
@@ -560,7 +625,8 @@ template <typename Tin, typename T, typename Tout>
 int sutra_rtc<Tin, T, Tout>::do_centroids(int ncntrl, bool noise) {
   int indslope = 0;
 
-  for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
+  for (size_t idxh = 0; idxh < this->d_control[ncntrl]->centro_idx.size(); idxh++) {
+    int idx_cntr = this->d_control[ncntrl]->centro_idx[idxh];
     if (this->d_centro[idx_cntr]->wfs != nullptr) {
       this->d_centro[idx_cntr]->get_cog(
           this->d_centro[idx_cntr]->d_intensities->getData(),
@@ -600,7 +666,8 @@ typename std::enable_if<std::is_same<Q, float>::value, int>::type
 sutra_rtc<Tin, T, Tout>::do_centroids_geom_impl(int ncntrl, std::true_type) {
   int inds2 = 0;
 
-  for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
+  for (size_t idxh = 0; idxh < this->d_control[ncntrl]->centro_idx.size(); idxh++) {
+    int idx_cntr = this->d_control[ncntrl]->centro_idx[idxh];
     sutra_wfs *wfs = this->d_centro[idx_cntr]->wfs;
     if (wfs->type == "sh") {
       sutra_wfs_sh *_wfs = dynamic_cast<sutra_wfs_sh *>(wfs);

@@ -3,21 +3,26 @@ cmake_minimum_required(VERSION 3.8)
 option(do_half "Compile half codes")
 option(use_cula "Compile using cula library")
 
+
+find_package(CUDA QUIET REQUIRED)
+
 if(DEFINED ENV{CUDA_SM})
   set(CUDA_SM $ENV{CUDA_SM})
+  if("${CUDA_SM}" STREQUAL "ALL")
+    CUDA_SELECT_NVCC_ARCH_FLAGS(CUDA_ARCH "Common")  # Auto/All/Common/Volta/7.0
+  else()
+    CUDA_SELECT_NVCC_ARCH_FLAGS(CUDA_ARCH ${CUDA_SM})  # Auto/All/Common/Volta/7.0
+  endif()
 else()
-  message(STATUS "Probing GPUs for their compute capabilities...")
-  execute_process(COMMAND bash
-                          "${CMAKE_CURRENT_SOURCE_DIR}/scripts/get_cuda_sm.sh"
-                  OUTPUT_VARIABLE CUDA_SM)
+  CUDA_SELECT_NVCC_ARCH_FLAGS(CUDA_ARCH "Auto")  # Auto/All/Common/Volta/7.0
 endif()
 
-set(CUDA_ALL_SM "35" "50" "52" "60" "61" "70" "75")
+# message(STATUS "CUDA_ARCH : ${CUDA_ARCH}")
 
-if(${CUDA_SM} STREQUAL "ALL")
-  unset(CUDA_SM)
-  set(CUDA_SM ${CUDA_ALL_SM})
-endif()
+# message(STATUS "CUDA_ARCH_readable : ${CUDA_ARCH_readable}")
+
+string(REGEX REPLACE "([a-z]*)_" "" CUDA_SM "${CUDA_ARCH_readable}")
+string(REGEX REPLACE "\ " ";" CUDA_SM "${CUDA_SM}")
 message(STATUS "Building for Compute Capability ${CUDA_SM}")
 
 set(CUDA_LOWEREST_SM 999)
@@ -37,7 +42,7 @@ message(
 message(STATUS "Building for half precision RTC module: ${do_half}")
 
 foreach(SM ${CUDA_SM})
-  list(APPEND CUDA_ARCH -gencode=arch=compute_${SM},code=sm_${SM})
+  list(APPEND CUDA_GENCODE -gencode=arch=compute_${SM},code=sm_${SM})
 endforeach(SM)
 
 project(carma
@@ -144,7 +149,7 @@ target_compile_features(carma PUBLIC cxx_std_14)
 target_compile_options(carma
                        PUBLIC -Wno-deprecated-declarations
                               $<$<COMPILE_LANGUAGE:CUDA>:
-                              ${CUDA_ARCH}
+                              ${CUDA_GENCODE}
                               -use_fast_math
                               >)
 

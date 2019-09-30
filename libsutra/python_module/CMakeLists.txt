@@ -20,12 +20,14 @@ if(NOT TARGET wyrm::wyrm)
     endif()
 endif()
 
-if (DEFINED ENV{BRAHMA_ROOT})
-    SET(BRAHMA_DIRS $ENV{ACE_ROOT}/lib $ENV{TAO_ROOT}/tao $ENV{DDS_ROOT}/lib $ENV{BRAHMA_ROOT})
-    link_directories( ${BRAHMA_DIRS} )
-    SET(BRAHMA_CPP src/rtc_brahma.cpp
-                src/target_brahma.cpp)
-endif()
+# cmake-format: off
+# if (DEFINED ENV{BRAHMA_ROOT})
+#     SET(BRAHMA_DIRS $ENV{ACE_ROOT}/lib $ENV{TAO_ROOT}/tao $ENV{DDS_ROOT}/lib $ENV{BRAHMA_ROOT})
+#     link_directories( ${BRAHMA_DIRS} )
+#     SET(BRAHMA_CPP src/rtc_brahma.cpp
+#                 src/target_brahma.cpp)
+# endif()
+# cmake-format: on
 
 if (${OCTOPUS_FOUND})
     SET(OCTOPUS_CPP src/rtc_cacao.cpp)
@@ -49,6 +51,7 @@ add_library(sutraWrap MODULE
                     src/centroider_bpcog.cpp
                     src/centroider_corr.cpp
                     src/centroider_pyr.cpp
+                    src/centroider_maskedPix.cpp
                     src/controller.cpp
                     src/controller_ls.cpp
                     src/controller_mv.cpp
