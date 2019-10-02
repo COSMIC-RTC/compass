@@ -751,7 +751,6 @@ class CanapassSupervisor(CompassSupervisor):
         # DMS
         aodict.update({"nbDms": len(self._sim.config.p_dms)})
         aodict.update({"Nactu": self._sim.rtc.d_control[0].nactu})
-
         # List of things
         aodict.update({"list_NgsOffAxis": []})
         aodict.update({"list_Fig": []})
@@ -761,6 +760,14 @@ class CanapassSupervisor(CompassSupervisor):
         aodict.update({"list_Woofer": []})
         aodict.update({"list_Tweeter": []})
         aodict.update({"list_Steering": []})
+
+        listOfNstatesPerController = []
+        listOfcontrolLawTypePerController = []
+        for control in self.config.p_controllers:
+            listOfNstatesPerController.append(control.nstates)
+            listOfcontrolLawTypePerController.append(control.type)
+        aodict.update({"list_nstatesPerController": listOfNstatesPerController})
+        aodict.update({"list_controllerType": listOfcontrolLawTypePerController})
 
         # fct of Nb of wfss
         NslopesList = []

@@ -185,6 +185,13 @@ class AoSupervisor(AbstractSupervisor):
         """
         self.rtc.d_control[nControl].set_commandlaw("integrator")
 
+    def set2MatricesLaw(self, nControl: int = 0):
+        self.rtc.d_control[nControl].set_commandlaw("2matrices")
+
+    def setModalIntegratorLaw(self, nControl: int = 0):
+        self.rtc.d_control[nControl].set_commandlaw("modal_integrator")
+
+
     def setDecayFactor(self, decay, nControl: int = 0):
         """
         Set the decay factor
