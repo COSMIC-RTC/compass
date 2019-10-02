@@ -59,13 +59,14 @@ class sutra_controller_generic : public sutra_controller<Tcomp, Tout> {
   carma_obj<Tcomp> *d_imat;
 
   bool polc;
+  int nstates;
 
   string command_law;
 
  public:
   sutra_controller_generic(carma_context *context, long nvalid, long nslope,
                            long nactu, float delay, sutra_dms *dms,
-                           int *idx_dms, int ndm, int *idx_centro, int ncentro);
+                           int *idx_dms, int ndm, int *idx_centro, int ncentro, int nstates);
   sutra_controller_generic(const sutra_controller_generic &controller);
   ~sutra_controller_generic();
 
