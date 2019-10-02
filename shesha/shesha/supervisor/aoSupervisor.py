@@ -85,9 +85,16 @@ class AoSupervisor(AbstractSupervisor):
             if self.rtc.d_centro[numWFS].d_img is None:
                 return np.array(self._sim.wfs.d_wfs[numWFS].d_binimg)
             if self.rtc.d_centro[numWFS].type == CentroiderType.MASKEDPIX:
+                #     self.rtc.d_centro[numWFS].fill_selected_pix(
+                #             self.rtc.d_control[0].d_centroids)
+                #     return np.array(self.rtc.d_centro[numWFS].d_selected_pix)
+                # else:
                 self.rtc.d_centro[numWFS].fill_selected_pix(
                         self.rtc.d_control[0].d_centroids)
-                return np.array(self.rtc.d_centro[numWFS].d_selected_pix)
+                mask = np.array(self.rtc.d_centro[numWFS].d_selected_pix)
+                mask[np.where(mask)] = np.array(
+                        self.rtc.d_centro[numWFS].d_img)[np.where(mask)]
+                return mask
             return np.array(self.rtc.d_centro[numWFS].d_img)
         else:
             if self.rtc.d_centro[numWFS].d_img is None:
@@ -216,17 +223,17 @@ class AoSupervisor(AbstractSupervisor):
         '''
         Set given ref slopes in controller
         '''
-        if(numwfs is None):
+        if (numwfs is None):
             self.rtc.set_centroids_ref(refSlopes)
         else:
             self.rtc.d_centro[numwfs].set_centroids_ref(refSlopes)
 
-    def getRefSlopes(self, numwfs = None) -> np.ndarray:
+    def getRefSlopes(self, numwfs=None) -> np.ndarray:
         '''
         Get the currently used reference slopes
         '''
         refSlopes = np.empty(0)
-        if(numwfs is None):
+        if (numwfs is None):
             for centro in self.rtc.d_centro:
                 refSlopes = np.append(refSlopes, np.array(centro.d_centroids_ref))
             return refSlopes
@@ -322,14 +329,14 @@ class AoSupervisor(AbstractSupervisor):
             print('Warning - requesting frame counter of uninitialized BenchSupervisor.')
         return self.iter
 
-    def getMaskedPix(self, nCentro : int=0):
+    def getMaskedPix(self, nCentro: int = 0):
         """
         Return the mask of valid pixels used by a maskedpix centroider
 
         Parameters:
             nCentro : (int): Centroider index. Must be a maskedpix centroider
         """
-        if(self.rtc.d_centro[nCentro].type != CentroiderType.MASKEDPIX):
+        if (self.rtc.d_centro[nCentro].type != CentroiderType.MASKEDPIX):
             raise TypeError("Centroider must be a maskedpix one")
         self.rtc.d_centro[nCentro].fill_mask()
         return np.array(self.rtc.d_centro[nCentro].d_mask)
