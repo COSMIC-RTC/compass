@@ -228,7 +228,7 @@ int sutra_controller_generic<T, Tout>::comp_com() {
 
   } else {
     // CMAT*s(k)
-    carma_gemv(this->cublas_handle(), 'n', this->nactu(), this->nslope(),
+    carma_gemv(this->cublas_handle(), 'n', this->nactu() + this->nstates, this->nslope(),
                (T)1.0f, this->d_cmat->getData(), this->nactu() + this->nstates,
                centroids->getData(), 1, (T)0.0f, this->d_compbuff->getData(),
                1);
@@ -242,9 +242,11 @@ int sutra_controller_generic<T, Tout>::comp_com() {
                  this->d_compbuff->getData(), 1, berta, this->d_com->getData(),
                  1);
     } else {  // 2matrices
+      if(!this->delay)
+        this->d_com1->copyFrom(this->d_com->getData(), this->d_com->getNbElem());
       carma_gemv(this->cublas_handle(), 'n', this->nactu() + this->nstates, this->nactu() + this->nstates,
                  (T)1.0f, this->d_matE->getData(), this->nactu() + this->nstates,
-                 this->d_com1->getData() + this->nstates, 1, (T)0.0f, this->d_com->getData(),
+                 this->d_com1->getData(), 1, (T)0.0f, this->d_com->getData(),
                  1);
       // v(k) = alpha*E*v(k-1)
       mult_vect(this->d_com->getData(), this->d_decayFactor->getData(), (T)1.0f,
