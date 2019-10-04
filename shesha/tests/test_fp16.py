@@ -54,7 +54,7 @@ def goAhead():
     sup._sim.compTarImage(0,compLE=False)
     sup._sim.compStrehl(0)
     SR32.append(sup.getStrehl(0)[0])
-    frame = sup.getWfsImage()
+    frame = sup2.getWfsImage()
     frame /= frame.max()
     rtc.d_centro[0].load_img(frame, frame.shape[0])
     rtc.d_centro[0].calibrate_img()
