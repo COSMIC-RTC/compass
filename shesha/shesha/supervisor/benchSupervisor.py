@@ -214,87 +214,101 @@ class BenchSupervisor(AoSupervisor):
         '''
         return self.is_init
 
+    # TEST J
     def initConfig(self) -> None:
         '''
         Initialize the bench
         '''
         print("->RTC")
-        wfsNb = len(self.config.p_wfss)
-        p_wfs = self.config.p_wfss[0]
-        if wfsNb > 1:
-            raise RuntimeError("multi WFS not supported")
+        self.wfsNb = len(self.config.p_wfss)
+        print("Configuration of", self.wfsNb, "wfs ...")
 
         if (hasattr(self.config, 'p_loop') and self.config.p_loop.devices.size > 1):
             self.c = carmaWrap_context.get_instance_ngpu(self.config.p_loop.devices.size,
                                                          self.config.p_loop.devices)
         else:
             self.c = carmaWrap_context.get_instance_1gpu(self.config.p_loop.devices[0])
+        nact = self.config.p_controllers[0].nactu
+        self._nvalid = []
+        self._centroiderType = []
+        self._delay = []
+        self._offset = []
+        self._scale = []
+        self._gain = []
+        self._cMatSize = []
+        self._npix = []
 
-        if p_wfs.type == WFSType.SH:
-            self.npix = p_wfs.npix
-            if p_wfs._validsubsx is None or \
-                    p_wfs._validsubsy is None:
-                # import rtcData.DataInit as di
-                # dataS = di.makeSH(wfsNb=wfsNb, frameSize=self.cam.getWidth(),
-                #                   roiSize=p_wfs.nxsub, subSize=self.npix)
-                # p_wfs._nvalid = dataS.data["roiTab"].data.shape[1]
-                # p_wfs._validsubsx = dataS.data["roiTab"].data[0, :]
-                # p_wfs._validsubsy = dataS.data["roiTab"].data[1, :]
+        # Get parameters
+        for wfs in range(self.wfsNb):
 
-                from hraa.tools.doit import makessp
-                roiTab = makessp(p_wfs.nxsub, obs=0., rmax=0.98)
-                # for pos in self.roiTab: pos *= self.pitch
-                p_wfs._nvalid = roiTab[0].size
-                p_wfs._validsubsx = roiTab[0] * p_wfs.npix
-                p_wfs._validsubsy = roiTab[1] * p_wfs.npix
+            if self.config.p_wfss[wfs].type == WFSType.SH:
+                self._npix.append(self.config.p_wfss[wfs].npix)
+                if self.config.p_wfss[wfs]._validsubsx is None or \
+                        self.config.p_wfss[wfs]._validsubsy is None:
+
+                    from hraa.tools.doit import makessp
+                    roiTab = makessp(self.config.p_wfss[wfs].nxsub, obs=0., rmax=0.98)
+                    self.config.p_wfss[wfs]._nvalid = roiTab[0].size
+                    self.config.p_wfss[
+                            wfs]._validsubsx = roiTab[0] * self.config.p_wfss[wfs].npix
+                    self.config.p_wfss[
+                            wfs]._validsubsy = roiTab[1] * self.config.p_wfss[wfs].npix
+                else:
+                    self.config.p_wfss[wfs]._nvalid = self.config.p_wfss[
+                            wfs]._validsubsx.size
+
+                self._nvalid.append(
+                        np.array([self.config.p_wfss[wfs]._nvalid], dtype=np.int32))
+                # print("nvalid : %d" % self._nvalid[wfs])
+                self._centroiderType.append(self.config.p_centroiders[wfs].type)
+                self._delay.append(self.config.p_controllers[0].delay)  # ???
+                self._offset.append((self.config.p_wfss[wfs].npix - 1) / 2)
+                self._scale.append(1)
+                self._gain.append(1)
+                self._cMatSize.append(2 * self._nvalid[wfs][0])
+
+            elif self.config.p_wfss[wfs].type == WFSType.PYRHR or self.config.p_wfss[
+                    wfs].type == WFSType.PYRLR:
+                self._nvalid.append(
+                        np.array([self.config.p_wfss[wfs]._nvalid],
+                                 dtype=np.int32))  # Number of valid SUBAPERTURES
+                self._centroiderType.append(self.config.p_centroiders[wfs].type)
+                self._delay.append(self.config.p_controllers[0].delay)  # ???
+                self._offset.append(0)
+                self._scale.append(1)
+                self._gain.append(1)
+                self._cMatSize.append(
+                        self.config.p_wfss[wfs].nPupils * self._nvalid[wfs][0])
+                self._npix.append(0)
             else:
-                p_wfs._nvalid = p_wfs._validsubsx.size
+                raise ValueError('WFS type not supported')
 
-            nvalid = np.array([p_wfs._nvalid], dtype=np.int32)
-            print("nvalid : %d" % nvalid)
-            offset = (p_wfs.npix - 1) / 2
-            scale = 1
-            gain = 1
-            nact = self.config.p_controllers[0].nactu
+        # Create RTC
+        self.rtc = rtc_standalone(self.c, self.wfsNb, self._nvalid, nact,
+                                  self._centroiderType, self._delay, self._offset,
+                                  self._scale, brahma=self.BRAHMA, cacao=self.CACAO)
 
-            self.rtc = rtc_standalone(self.c, wfsNb, nvalid, nact,
-                                      self.config.p_centroiders[0].type,
-                                      self.config.p_controllers[0].delay, offset, scale,
-                                      brahma=self.BRAHMA, cacao=self.CACAO)
-            # put pixels in the SH grid coordonates
-            self.rtc.d_centro[0].load_validpos(p_wfs._validsubsx, p_wfs._validsubsy,
-                                               nvalid)
-            if self.config.p_centroiders[0].type is CentroiderType.BPCOG:
-                self.rtc.d_centro[0].set_nmax(self.config.p_centroiders[0].nmax)
+        # Create centroiders
+        for wfs in range(self.wfsNb):
+            self.rtc.d_centro[wfs].load_validpos(
+                    self.config.p_wfss[wfs]._validsubsx,
+                    self.config.p_wfss[wfs]._validsubsy,
+                    self.config.p_wfss[wfs]._validsubsx.size)
+            if self.config.p_centroiders[wfs].type is CentroiderType.BPCOG:
+                self.rtc.d_centro[wfs].set_nmax(self.config.p_centroiders[wfs].nmax)
+            self.rtc.d_centro[wfs].set_npix(self._npix[wfs])
+            # finally
+            self.config.p_centroiders[wfs]._nslope = self.rtc.d_centro[wfs].nslopes
+            print("wfs ", wfs, " set as ", self._centroiderType[wfs])
+        size = sum(self._cMatSize)
+        cMat = np.zeros((nact, size), dtype=np.float32)
+        print("Size of cMat:", cMat.shape)
 
-            self.rtc.d_centro[0].set_npix(self.npix)
-
-            cMat = np.zeros((nact, 2 * nvalid[0]), dtype=np.float32)
-
-        elif p_wfs.type == WFSType.PYRHR or p_wfs.type == WFSType.PYRLR:
-            nvalid = np.array([p_wfs._nvalid],
-                              dtype=np.int32)  # Number of valid SUBAPERTURES
-            nact = self.config.p_controllers[0].nactu  # Number of actu over all DMs
-            gain = 1.
-            self.rtc = rtc_standalone(self.c, wfsNb, nvalid, nact,
-                                      self.config.p_centroiders[0].type,
-                                      self.config.p_controllers[0].delay, 0, 1,
-                                      brahma=self.BRAHMA, cacao=self.CACAO)
-            print("RTC initialized")
-            self.rtc.d_centro[0].load_validpos(p_wfs._validsubsx, p_wfs._validsubsy,
-                                               len(p_wfs._validsubsx))
-            print("Validpos loaded")
-
-            cMat = np.zeros((nact, p_wfs.nPupils * nvalid[0]), dtype=np.float32)
-        else:
-            raise ValueError('WFS type not supported')
-
-        self.config.p_centroiders[0]._nslope = self.rtc.d_centro[0].nslopes
-
+        # Initiate RTC
         self.rtc.d_control[0].set_cmat(cMat)
         self.rtc.d_control[0].set_decayFactor(
-                np.ones(nact, dtype=np.float32) * (gain - 1))
+                np.ones(nact, dtype=np.float32) * (self._gain[0] - 1))
         self.rtc.d_control[0].set_matE(np.identity(nact, dtype=np.float32))
-        self.rtc.d_control[0].set_mgain(np.ones(nact, dtype=np.float32) * -gain)
-
+        self.rtc.d_control[0].set_mgain(np.ones(nact, dtype=np.float32) * -self._gain[0])
         self.is_init = True
+        print("RTC initialized")

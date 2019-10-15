@@ -79,7 +79,7 @@ class AoSupervisor(AbstractSupervisor):
 
     def getWfsImage(self, numWFS: int = 0, calPix=False) -> np.ndarray:
         '''
-        Get an image from the WFS
+        Get an image from the WFS (wfs[0] by default)
         '''
         if (calPix):
             if self.rtc.d_centro[numWFS].d_img is None:
@@ -190,7 +190,6 @@ class AoSupervisor(AbstractSupervisor):
 
     def setModalIntegratorLaw(self, nControl: int = 0):
         self.rtc.d_control[nControl].set_commandlaw("modal_integrator")
-
 
     def setDecayFactor(self, decay, nControl: int = 0):
         """
