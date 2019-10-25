@@ -49,6 +49,7 @@ sutra_controller_generic<T, Tout>::sutra_controller_generic(
                                 idx_dms, ndm, idx_centro, ncentro) {
   this->command_law = "integrator";
   this->nstates = nstates;
+  
   long dims_data1[2] = {1, nactu + nstates};
   this->d_gain = new carma_obj<T>(this->current_context, dims_data1);
   this->d_decayFactor = new carma_obj<T>(this->current_context, dims_data1);
@@ -59,7 +60,13 @@ sutra_controller_generic<T, Tout>::sutra_controller_generic(
   this->d_com = new carma_obj<T>(this->current_context, dims_data1);
   this->d_com1 = new carma_obj<T>(this->current_context, dims_data1);
   this->d_com2 = new carma_obj<T>(this->current_context, dims_data1);
+  this->d_err_ngpu.push_back(new carma_obj<T>(this->current_context, dims_data1));
 
+  for (int cpt = 1; cpt < this->current_context->get_ndevice(); cpt++) {
+    this->current_context->set_activeDevice(cpt, 1);
+    this->d_err_ngpu.push_back(new carma_obj<T>(this->current_context, dims_data1));
+  }
+  this->current_context->set_activeDevice(this->device, 1);
   this->d_cmatPadded = nullptr;
   dims_data1[1] = this->nslope();
   this->d_olmeas = new carma_obj<T>(this->current_context, dims_data1);
@@ -218,9 +225,20 @@ int sutra_controller_generic<T, Tout>::comp_com() {
     // cublasSetStream(this->cublas_handle(),
     //                 current_context->get_device(device)->get_stream());
     // carmaSafeCall(cudaEventRecord(startEv));
-    carma_gemv(this->cublas_handle(), 'n', m, n, (T)(-1 * this->gain),
-               cmat->getData(), m, centroids->getData(), 1, berta,
-               this->d_com->getData(), 1);
+    // carma_gemv(this->cublas_handle(), 'n', m, n, (T)(-1 * this->gain),
+    //            cmat->getData(), m, centroids->getData(), 1, berta,
+    //            this->d_com->getData(), 1);
+
+    for (int cpt = 0; cpt < current_context->get_ndevice(); cpt++) {
+      this->current_context->set_activeDevice(cpt, 1);
+      carma_gemv(this->cublas_handle(), 'n', m, n / current_context->get_ndevice(), (T)(-1 * this->gain),
+            cmat->getData() + cpt * m * n / current_context->get_ndevice(), m, centroids->getData() + n / current_context->get_ndevice(), 1, 0,
+            this->d_err_ngpu[cpt]->getData(), 1);
+    }
+    this->current_context->set_activeDevice(this->device, 1);
+    for (int cpt = 0; cpt < current_context->get_ndevice(); cpt++) {
+      this->d_com->axpy(1.0f, this->d_err_ngpu[cpt], 1,1);
+    }
     // carmaSafeCall(cudaEventRecord(stopEv));
     // carmaSafeCall(cudaEventSynchronize(stopEv));
     // carmaSafeCall(cudaEventElapsedTime(&gpuTime, startEv, stopEv));
