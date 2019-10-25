@@ -181,16 +181,9 @@ class sutra_source {
   float fitmax2x1dSinc(float *d_img, int ind_max, int img_size);
 };
 
-int target_texraytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
-                       int Ny, float xoff, float yoff, int Ntot,
-                       cudaChannelFormatDesc channelDesc, carma_device *device);
 int target_raytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
                     float xoff, float yoff, float G, float thetaML, float dx,
-                    float dy, int block_size);
-int target_lgs_raytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
-                        float xoff, float yoff, float delta, int block_size);
-int target_lgs_raytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
-  float xoff, float yoff, float G, float thetaML, float dx, float dy, float delta, int block_size);
+                    float dy, int block_size, float delta);
 int target_raytrace_async(carma_streams streams, float *d_odata, float *d_idata,
                           int nx, int ny, int Nx, float xoff, float yoff,
                           int block_size);
