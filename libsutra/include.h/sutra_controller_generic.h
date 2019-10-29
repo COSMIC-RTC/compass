@@ -62,6 +62,7 @@ class sutra_controller_generic : public sutra_controller<Tcomp, Tout> {
 
   bool polc;
   int nstates;
+  bool P2P;
 
   string command_law;
 
