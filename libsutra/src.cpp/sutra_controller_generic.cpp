@@ -231,15 +231,15 @@ int sutra_controller_generic<T, Tout>::comp_com() {
   }
 
   carma_obj<T> *cmat;
-  if (std::is_same<T, half>::value) {
-    cmat = this->d_cmatPadded;
-    m = this->d_cmatPadded->getDims(1);
-    n = this->d_cmatPadded->getDims(2);
-  } else {
+  // if (std::is_same<T, half>::value) {
+  //   cmat = this->d_cmatPadded;
+  //   m = this->d_cmatPadded->getDims(1);
+  //   n = this->d_cmatPadded->getDims(2);
+  // } else {
     cmat = this->d_cmat;
     m = this->d_cmat->getDims(1);
     n = this->d_cmat->getDims(2);
-  }
+  //}
 
   if (this->command_law == "integrator") {
     // cublasSetStream(this->cublas_handle(),
