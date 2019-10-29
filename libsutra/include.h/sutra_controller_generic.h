@@ -57,6 +57,8 @@ class sutra_controller_generic : public sutra_controller<Tcomp, Tout> {
   carma_obj<Tcomp> *d_compbuff2;
   carma_obj<Tcomp> *d_olmeas;  // Open-loop measurements for POLC
   carma_obj<Tcomp> *d_imat;
+  std::vector<carma_obj<Tcomp> *> d_err_ngpu;
+  std::vector<carma_obj<Tcomp> *> d_cmat_ngpu;
 
   bool polc;
   int nstates;

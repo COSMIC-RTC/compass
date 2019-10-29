@@ -49,6 +49,7 @@ sutra_controller_generic<T, Tout>::sutra_controller_generic(
                                 idx_dms, ndm, idx_centro, ncentro) {
   this->command_law = "integrator";
   this->nstates = nstates;
+  
   long dims_data1[2] = {1, nactu + nstates};
   this->d_gain = new carma_obj<T>(this->current_context, dims_data1);
   this->d_decayFactor = new carma_obj<T>(this->current_context, dims_data1);
@@ -59,7 +60,13 @@ sutra_controller_generic<T, Tout>::sutra_controller_generic(
   this->d_com = new carma_obj<T>(this->current_context, dims_data1);
   this->d_com1 = new carma_obj<T>(this->current_context, dims_data1);
   this->d_com2 = new carma_obj<T>(this->current_context, dims_data1);
+  this->d_err_ngpu.push_back(new carma_obj<T>(this->current_context, dims_data1));
 
+  for (int cpt = 1; cpt < this->current_context->get_ndevice(); cpt++) {
+    this->current_context->set_activeDevice(cpt, 1);
+    this->d_err_ngpu.push_back(new carma_obj<T>(this->current_context, dims_data1));
+  }
+  this->current_context->set_activeDevice(this->device, 1);
   this->d_cmatPadded = nullptr;
   dims_data1[1] = this->nslope();
   this->d_olmeas = new carma_obj<T>(this->current_context, dims_data1);
@@ -67,6 +74,18 @@ sutra_controller_generic<T, Tout>::sutra_controller_generic(
 
   long dims_data2[3] = {2, nactu + nstates, nslope};
   this->d_cmat = new carma_obj<T>(this->current_context, dims_data2);
+  this->d_cmat_ngpu.push_back(this->d_cmat);
+  dims_data2[2] = this->nslope() / this->current_context->get_ndevice();
+  for (int cpt = 1; cpt < this->current_context->get_ndevice() - 1; cpt++) {
+    this->current_context->set_activeDevice(cpt, 1);
+    this->d_cmat_ngpu.push_back(new carma_obj<T>(this->current_context, dims_data2));
+  }
+  int cpt = this->current_context->get_ndevice() - 1;
+  dims_data2[2] = this->nslope() - cpt * (this->nslope() / this->current_context->get_ndevice());
+  this->current_context->set_activeDevice(cpt, 1);
+  this->d_cmat_ngpu.push_back(new carma_obj<T>(this->current_context, dims_data2));
+
+  this->current_context->set_activeDevice(this->device, 1);
 
   this->gain = 0.f;
 
@@ -148,8 +167,16 @@ int sutra_controller_generic<T, Tout>::set_imat(float *imat) {
 template <typename T, typename Tout>
 int sutra_controller_generic<T, Tout>::set_cmat(float *cmat) {
   this->current_context->set_activeDevice(this->device, 1);
+  // Copy the cmat on the master GPU and zero-fill it if needed
   this->d_cmat->host2device(cmat);
   this->fill_cmatPadded();
+  // Distribute it on the available GPUs
+  int N = this->nactu() * (this->nslope() / this->current_context->get_ndevice());
+  for (int cpt = 1; cpt < this->current_context->get_ndevice(); cpt++) {
+    this->current_context->set_activeDevice(cpt, 1);
+    this->d_cmat_ngpu[cpt]->copyFrom(this->d_cmat->getDataAt(cpt * N), this->d_cmat_ngpu[cpt]->getNbElem());
+  }
+  this->current_context->set_activeDevice(this->device, 1);
   return EXIT_SUCCESS;
 }
 
@@ -204,23 +231,45 @@ int sutra_controller_generic<T, Tout>::comp_com() {
   }
 
   carma_obj<T> *cmat;
-  if (std::is_same<T, half>::value) {
-    cmat = this->d_cmatPadded;
-    m = this->d_cmatPadded->getDims(1);
-    n = this->d_cmatPadded->getDims(2);
-  } else {
+  // if (std::is_same<T, half>::value) {
+  //   cmat = this->d_cmatPadded;
+  //   m = this->d_cmatPadded->getDims(1);
+  //   n = this->d_cmatPadded->getDims(2);
+  // } else {
     cmat = this->d_cmat;
     m = this->d_cmat->getDims(1);
     n = this->d_cmat->getDims(2);
-  }
+  //}
 
   if (this->command_law == "integrator") {
     // cublasSetStream(this->cublas_handle(),
     //                 current_context->get_device(device)->get_stream());
     // carmaSafeCall(cudaEventRecord(startEv));
+    // carma_gemv(this->cublas_handle(), 'n', m, n, (T)(-1 * this->gain),
+    //            cmat->getData(), m, centroids->getData(), 1, berta,
+    //            this->d_com->getData(), 1);
+
+    // First, we do the MVM for the first GPU where cmat_ngpu[0] is containing the full cmat
+    n = this->nslope() / this->current_context->get_ndevice();
     carma_gemv(this->cublas_handle(), 'n', m, n, (T)(-1 * this->gain),
-               cmat->getData(), m, centroids->getData(), 1, berta,
-               this->d_com->getData(), 1);
+          this->d_cmat_ngpu[0]->getData(), m, centroids->getData(), 1, T(0.f),
+          this->d_err_ngpu[0]->getData(), 1);
+    // Now, the rest of the GPUs where we can use cmat_gpu dimension as n
+    int cc = n;
+    for (int cpt = 1; cpt < this->current_context->get_ndevice(); cpt++) {
+      this->current_context->set_activeDevice(cpt, 1);
+      n = this->d_cmat_ngpu[cpt]->getDims()[2];
+
+      carma_gemv(this->cublas_handle(), 'n', m, n, (T)(-1 * this->gain),
+            this->d_cmat_ngpu[cpt]->getData(), m, centroids->getData() + cc, 1, T(0.f),
+            this->d_err_ngpu[cpt]->getData(), 1);
+      cc += n;
+    }
+    // Finally, we reduce all the results
+    this->current_context->set_activeDevice(this->device, 1);
+    for (int cpt = 0; cpt < this->current_context->get_ndevice(); cpt++) {
+      this->d_com->axpy(1.0f, this->d_err_ngpu[cpt], 1,1);
+    }
     // carmaSafeCall(cudaEventRecord(stopEv));
     // carmaSafeCall(cudaEventSynchronize(stopEv));
     // carmaSafeCall(cudaEventElapsedTime(&gpuTime, startEv, stopEv));
