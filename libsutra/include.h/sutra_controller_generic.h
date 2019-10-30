@@ -59,10 +59,9 @@ class sutra_controller_generic : public sutra_controller<Tcomp, Tout> {
   carma_obj<Tcomp> *d_imat;
   std::vector<carma_obj<Tcomp> *> d_err_ngpu;
   std::vector<carma_obj<Tcomp> *> d_cmat_ngpu;
-
+  std::vector<int> P2Pdevices;
   bool polc;
   int nstates;
-  bool P2P;
 
   string command_law;
 
@@ -85,6 +84,7 @@ class sutra_controller_generic : public sutra_controller<Tcomp, Tout> {
   int comp_polc();
   int comp_com();
   int fill_cmatPadded();
+  int distribute_cmat();
 
  private:
   template <typename Q = Tcomp>
