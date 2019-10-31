@@ -132,11 +132,13 @@ struct CarmaObjInterfacer {
         }, "TODO",
              py::arg("ptr"))  // TODO do the documentation...
         // int wait_all_streams()
+#ifdef USE_OCTOPUS
         .def("swapPtr", [](Class &obj, ipc::Cacao<T> &obj2){
           obj.swapPtr(obj2.inputPtr());
         }, "TODO",
              py::arg("ptr"))  // TODO do the documentation...
         // int wait_all_streams()
+#endif
         .def("wait_all_streams", &Class::wait_all_streams,
              "TODO")  // TODO do the documentation...
 
