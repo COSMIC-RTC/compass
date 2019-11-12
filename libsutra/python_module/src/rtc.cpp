@@ -58,9 +58,9 @@ std::unique_ptr<sutra_rtc<Tin, Tcomp, Tout>> rtc_init() {
 template <typename Tin, typename Tcomp, typename Tout>
 void add_controller_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, carma_context *ctxt,
                          int nvalid, int nslope, int nactu, float delay,
-                         long device, std::string typec) {
+                         long device, std::string typec, int nstates) {
   sr.add_controller(ctxt, nvalid, nslope, nactu, delay, device, typec, nullptr,
-                    nullptr, 0, nullptr, 0, 0, false);
+                    nullptr, 0, nullptr, 0, 0, false, nstates);
 }
 
 template <typename Tin, typename Tcomp, typename Tout>
@@ -214,13 +214,14 @@ void rtc_impl(py::module &mod, const char *name) {
         ncentro: (int): number of centroiders handled
         Nphi: (int): Number of pixels in the pupil
         wfs_direction: (bool): Flag for ROKET
+        nstates: (int): (optionnal) number of states
         )pbdoc",
            py::arg("context"), py::arg("nvalid"), py::arg("nslope"),
            py::arg("nactu"), py::arg("delay"), py::arg("device"),
            py::arg("typec"), py::arg("dms") = nullptr,
            py::arg("idx_dms") = std::vector<int64_t>(), py::arg("ndm") = 0,
            py::arg("idx_centro") = std::vector<int64_t>(), py::arg("ncentro") = 0,
-           py::arg("Nphi") = 0, py::arg("wfs_direction") = false)
+           py::arg("Nphi") = 0, py::arg("wfs_direction") = false, py::arg("nstates") = 0)
 
       .def("add_controller", wy::colCast(add_controller_impl<Tin, Tcomp, Tout>),
            R"pbdoc(
@@ -235,10 +236,11 @@ void rtc_impl(py::module &mod, const char *name) {
         delay: (float): Loop delay [frames]
         device: (int): GPU device index
         typec: (str): Controller type
+        nstates: (int): (optionnal) Number of states
         )pbdoc",
            py::arg("context"), py::arg("nvalid"), py::arg("nslope"),
            py::arg("nactu"), py::arg("delay"), py::arg("device"),
-           py::arg("typec"))
+           py::arg("typec"), py::arg("nstates") = 0)
 
       .def("remove_controller", &rtc::remove_controller, R"pbdoc(
           Remove the specified controller from the RTC

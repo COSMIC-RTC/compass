@@ -245,7 +245,7 @@ int sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
       cudaMemset(this->d_phase->d_screen->getData(), 0,
                  sizeof(float) * this->d_phase->d_screen->getNbElem()));
 
-  float delta;
+  float delta = 1.0f;;
   map<type_screen, float>::iterator p;
   p = xoff.begin();
 
@@ -256,7 +256,6 @@ int sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
       int idx = p->first.second;
       sutra_tscreen *ps;
       ps = yatmos->d_screens[idx];
-      p++;
       if ((p == xoff.end()) && async) {
         target_raytrace_async(
             this->phase_telemetry, this->d_phase->d_screen->getData(),
@@ -269,28 +268,18 @@ int sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
       } else {
         if (this->lgs) {
           delta = 1.0f - ps->altitude / this->d_lgs->hg;
-          if (delta > 0)
-            target_lgs_raytrace(this->d_phase->d_screen->getData(),
-                                ps->d_tscreen->d_screen->getData(),
-                                (int)d_phase->d_screen->getDims(1),
-                                (int)d_phase->d_screen->getDims(2),
-                                (int)ps->d_tscreen->d_screen->getDims(1),
-                                xoff[make_pair(types, idx)],
-                                yoff[make_pair(types, idx)], delta,
-                                this->block_size);
-        } else
-
-          target_raytrace(this->d_phase->d_screen->getData(),
+        }
+        target_raytrace(this->d_phase->d_screen->getData(),
                           ps->d_tscreen->d_screen->getData(),
                           (int)d_phase->d_screen->getDims(1),
                           (int)d_phase->d_screen->getDims(2),
                           (int)ps->d_tscreen->d_screen->getDims(1),
                           xoff[std::make_pair("atmos", idx)],
                           yoff[std::make_pair("atmos", idx)], this->G,
-                          this->thetaML, this->dx, this->dy, this->block_size);
+                          this->thetaML, this->dx, this->dy, this->block_size, delta);
       }
-    } else
-        p++;
+    } 
+    p++;
   }
 
   return EXIT_SUCCESS;
@@ -302,6 +291,7 @@ int sutra_source::raytrace(sutra_dms *ydms, bool rst, bool do_phase_var,
   if (rst) this->d_phase->d_screen->reset();
   map<type_screen, float>::iterator p;
   p = xoff.begin();
+  float delta = 1.0f;
   while (p != xoff.end()) {
     string types = p->first.first;
     if ((types.find("pzt") == 0) || (types.find("tt") == 0) ||
@@ -309,7 +299,6 @@ int sutra_source::raytrace(sutra_dms *ydms, bool rst, bool do_phase_var,
       int inddm = p->first.second;
       if (inddm < 0) throw "error in sutra_source::raytrace, dm not find";
       sutra_dm *ps = ydms->d_dms[inddm];
-      p++;
       if ((p == xoff.end()) && async) {
         target_raytrace_async(this->phase_telemetry,
                               this->d_phase->d_screen->getData(),
@@ -322,29 +311,18 @@ int sutra_source::raytrace(sutra_dms *ydms, bool rst, bool do_phase_var,
       } else {
         if (this->lgs) {
           float delta = 1.0f - ps->altitude / this->d_lgs->hg;
-          if (delta > 0)
-            target_lgs_raytrace(this->d_phase->d_screen->getData(),
-                                ps->d_shape->d_screen->getData(),
-                                (int)d_phase->d_screen->getDims(1),
-                                (int)d_phase->d_screen->getDims(2),
-                                (int)ps->d_shape->d_screen->getDims(1),
-                                xoff[make_pair(types, inddm)],
-                                yoff[make_pair(types, inddm)], this->G,
-                                this->thetaML, this->dx, this->dy, delta,
-                                this->block_size);
-        } else {
-          target_raytrace(this->d_phase->d_screen->getData(),
+        }
+        target_raytrace(this->d_phase->d_screen->getData(),
                           ps->d_shape->d_screen->getData(),
                           (int)d_phase->d_screen->getDims(1),
                           (int)d_phase->d_screen->getDims(2),
                           (int)ps->d_shape->d_screen->getDims(1),
                           xoff[std::make_pair(types, inddm)],
                           yoff[std::make_pair(types, inddm)], this->G * ps->G,
-                          this->thetaML + ps->thetaML, this->dx + ps->dx, this->dy + ps->dy, this->block_size);
+                          this->thetaML + ps->thetaML, this->dx + ps->dx, this->dy + ps->dy, this->block_size, delta);
         }
       }
-    } else
-      p++;
+    p++;
   }
 
   if (type != "wfs") {

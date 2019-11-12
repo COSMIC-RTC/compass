@@ -55,6 +55,7 @@ template <class Tin, class T>
 class sutra_centroider_maskedPix : public sutra_centroider<Tin, T> {
  public:
   carma_obj<T> *d_selected_pix;
+  carma_obj<T> *d_mask;
 
  public:
   sutra_centroider_maskedPix(carma_context *context, sutra_wfs *wfs,
@@ -72,6 +73,7 @@ class sutra_centroider_maskedPix : public sutra_centroider<Tin, T> {
   int get_cog(float *intensities, T *slopes, bool noise);
   int get_cog();
   int fill_selected_pix(carma_obj<T> *pix);
+  int fill_mask();
 };
 
 void fill_intensities(float *intensities, float *img, int *subindx,
@@ -81,6 +83,9 @@ void getMaskedPix(T *centroids, T *ref, float *img, int *subindx, int *subindy,
                   float *psum, int ns, int nslopes, carma_device *device);
 template <class T>
 void pyr_fill_selected_pix(T *img, int img_sizex, T *pix, int *subindx, int *subindy,
+                      int nvalid, carma_device *device);
+template <class T>
+void pyr_fill_mask(T *mask, int img_sizex, int *subindx, int *subindy,
                       int nvalid, carma_device *device);
 
 #endif  // _SUTRA_CENTROIDER_MASKEDPIX_H_

@@ -147,3 +147,41 @@ template void pyr_fill_selected_pix<half>(half *img, int img_sizex, half *pix,
                                           int *subindx, int *subindy,
                                           int nvalid, carma_device *device);
 #endif
+
+template <typename T>
+__global__ void pyr_fill_mask_krnl(T *img, int img_sizex,
+                                           int *subindx, int *subindy,
+                                           int nvalid) {
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  while (tid < nvalid) {
+    int pos = subindx[tid] + subindy[tid] * img_sizex;
+    img[pos] = T(1);
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+template <typename T>
+void pyr_fill_mask(T *img, int img_sizex, int *subindx,
+                           int *subindy, int nvalid, carma_device *device) {
+  int nBlocks, nThreads;
+  getNumBlocksAndThreads(device, nvalid, nBlocks, nThreads);
+  dim3 grid(nBlocks), threads(nThreads);
+
+  pyr_fill_mask_krnl<T>
+      <<<grid, threads>>>(img, img_sizex, subindx, subindy, nvalid);
+  carmaCheckMsg("pyr_fill_mask_krnl<<<>>> execution failed\n");
+}
+
+template void pyr_fill_mask<float>(float *img, int img_sizex,
+                                           int *subindx,
+                                           int *subindy, int nvalid,
+                                           carma_device *device);
+template void pyr_fill_mask<double>(double *img, int img_sizex,
+                                            int *subindx,
+                                            int *subindy, int nvalid,
+                                            carma_device *device);
+#ifdef CAN_DO_HALF
+template void pyr_fill_mask<half>(half *img, int img_sizex,
+                                          int *subindx, int *subindy,
+                                          int nvalid, carma_device *device);
+#endif

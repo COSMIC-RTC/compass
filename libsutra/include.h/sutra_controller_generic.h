@@ -57,15 +57,18 @@ class sutra_controller_generic : public sutra_controller<Tcomp, Tout> {
   carma_obj<Tcomp> *d_compbuff2;
   carma_obj<Tcomp> *d_olmeas;  // Open-loop measurements for POLC
   carma_obj<Tcomp> *d_imat;
-
+  std::vector<carma_obj<Tcomp> *> d_err_ngpu;
+  std::vector<carma_obj<Tcomp> *> d_cmat_ngpu;
+  std::vector<int> P2Pdevices;
   bool polc;
+  int nstates;
 
   string command_law;
 
  public:
   sutra_controller_generic(carma_context *context, long nvalid, long nslope,
                            long nactu, float delay, sutra_dms *dms,
-                           int *idx_dms, int ndm, int *idx_centro, int ncentro);
+                           int *idx_dms, int ndm, int *idx_centro, int ncentro, int nstates);
   sutra_controller_generic(const sutra_controller_generic &controller);
   ~sutra_controller_generic();
 
@@ -81,6 +84,7 @@ class sutra_controller_generic : public sutra_controller<Tcomp, Tout> {
   int comp_polc();
   int comp_com();
   int fill_cmatPadded();
+  int distribute_cmat();
 
  private:
   template <typename Q = Tcomp>
