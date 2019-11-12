@@ -34,7 +34,7 @@
 //! \ingroup   libcarma
 //! \brief     this file provides wrappers to the cuSolver functions
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.3.1
+//! \version   4.3.2
 //! \date      2019/03/28
 //! \copyright GNU Lesser General Public License
 
