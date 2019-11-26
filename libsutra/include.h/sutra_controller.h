@@ -50,6 +50,7 @@
 #include <sutra_wfs.h>
 #include <mutex>
 #include <tuple>
+#include <deque>
 
 using std::map;
 using std::mutex;
@@ -96,8 +97,9 @@ class sutra_controller {
   carma_obj<Tcomp> *d_comClipped;       // current command
   carma_obj<Tout> *d_voltage;  // commands after perturbation and clipping
   carma_obj<Tcomp> *d_com1;    // commands k-1
-  carma_obj<Tcomp> *d_com2;    // commands k-2
   vector<int> centro_idx; // Centroider indices to handle
+  std::deque<carma_obj<Tcomp> *> d_circularComs; //Circular buffer of commands for latency
+
 
   map<string, tuple<carma_obj<Tcomp> *, int, bool>> d_perturb_map;
   // perturbation command buffer

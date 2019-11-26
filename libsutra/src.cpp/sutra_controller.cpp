@@ -55,7 +55,6 @@ sutra_controller<Tcomp, Tout>::sutra_controller(carma_context *context,
   this->nslopes = nslope;
   // current_context->set_activeDevice(device,1);
   this->d_com1 = nullptr;
-  this->d_com2 = nullptr;
   this->d_comPadded = nullptr;
   this->d_centroidsPadded = nullptr;
 
@@ -85,12 +84,15 @@ sutra_controller<Tcomp, Tout>::sutra_controller(carma_context *context,
 
   dims_data1[1] = nactu;
   this->d_com = new carma_obj<Tcomp>(context, dims_data1);
+  this->d_circularComs.push_front(d_com);
   this->d_com1 = new carma_obj<Tcomp>(context, dims_data1);
+  if (this->delay > 0) {
+    this->d_circularComs.push_front(d_com1);
+    while (this->d_circularComs.size() <= int(this->delay) + 1) {
+      this->d_circularComs.push_front(new carma_obj<Tcomp>(context, dims_data1));
+    }
+  } 
   this->d_comClipped = new carma_obj<Tcomp>(context, dims_data1);
-
-  if (this->delay > 1) {
-    this->d_com2 = new carma_obj<Tcomp>(context, dims_data1);
-  }
 
   this->init_voltage();
 
@@ -102,17 +104,6 @@ sutra_controller<Tcomp, Tout>::sutra_controller(carma_context *context,
     this->centro_idx.push_back(idx_centro[i]);
   }
 
-  if (std::is_same<Tcomp, half>::value) {
-    while (nslope % 8 != 0)
-      nslope++;  // Watching for multiple of 8 to get max perf with tensor cores
-    while (nactu % 8 != 0) nactu++;
-    dims_data1[1] = nslope;
-    this->d_centroidsPadded = new carma_obj<Tcomp>(context, dims_data1);
-    this->d_centroids->swapPtr(this->d_centroidsPadded->getData());
-    dims_data1[1] = nactu;
-    this->d_comPadded = new carma_obj<Tcomp>(context, dims_data1);
-    this->d_com->swapPtr(this->d_comPadded->getData());
-  }
 }
 
 template <typename Tcomp, typename Tout>
@@ -128,11 +119,8 @@ int sutra_controller<Tcomp, Tout>::set_openloop(int open_loop_status,
   this->open_loop = open_loop_status;
 
   if (this->open_loop && rst) {
-    this->d_com->reset();
-    this->d_com1->reset();
-
-    if (this->delay > 1) {
-      this->d_com2->reset();
+    for (auto cobj : this->d_circularComs) {
+      cobj->reset();
     }
   }
   return EXIT_SUCCESS;
@@ -235,11 +223,14 @@ template <typename Tcomp, typename Tout>
 int sutra_controller<Tcomp, Tout>::command_delay() {
   current_context->set_activeDevice(device, 1);
 
-  if (delay > 1) {
-    this->d_com2->copyFrom(this->d_com1->getData(), this->d_com2->getNbElem());
-    this->d_com1->copyFrom(this->d_com->getData(), this->d_com1->getNbElem());
-  } else if (delay > 0)
-    this->d_com1->copyFrom(this->d_com->getData(), this->d_com1->getNbElem());
+  if (delay > 0) {
+    carma_obj<Tcomp> *tmp = std::move(this->d_circularComs.front());
+    tmp->copy(this->d_com, 1, 1);
+    this->d_circularComs.pop_front();
+    this->d_circularComs.push_back(tmp);
+    this->d_com = this->d_circularComs.back();
+    this->d_com1 = this->d_circularComs[this->d_circularComs.size() - 2];
+  }
 
   return EXIT_SUCCESS;
 }
@@ -261,10 +252,8 @@ int sutra_controller<Tcomp, Tout>::comp_latency() {
   this->current_context->set_activeDevice(this->device, 1);
   if (this->delay > 0) {
     this->d_comClipped->reset();
-    this->d_comClipped->axpy(this->a, this->d_com, 1, 1);
-    this->d_comClipped->axpy(this->b, this->d_com1, 1, 1);
-
-    if (delay > 1) this->d_comClipped->axpy(this->c, this->d_com2, 1, 1);
+    this->d_comClipped->axpy(this->a, this->d_circularComs[0], 1, 1);
+    this->d_comClipped->axpy(this->b, this->d_circularComs[1], 1, 1);
   }
 
   return EXIT_SUCCESS;
@@ -320,9 +309,10 @@ sutra_controller<Tcomp, Tout>::~sutra_controller() {
   if (this->d_centroids != nullptr) delete this->d_centroids;
   if (this->d_centroidsPadded != nullptr) delete this->d_centroidsPadded;
   if (this->d_comPadded != nullptr) delete this->d_comPadded;
-  if (this->d_com != nullptr) delete this->d_com;
-  if (this->d_com1 != nullptr) delete this->d_com1;
-  if (this->d_com2 != nullptr) delete this->d_com2;
+  for (int k=0; k < this->d_circularComs.size() ; k++) {
+    delete this->d_circularComs[k];
+  }
+  this->d_circularComs.clear();
   if (this->d_comClipped != nullptr &&
       (void *)this->d_comClipped != (void *)this->d_com)
     delete this->d_comClipped;
@@ -330,6 +320,7 @@ sutra_controller<Tcomp, Tout>::~sutra_controller() {
       (void *)this->d_voltage != (void *)this->d_comClipped)
     delete this->d_voltage;
   this->reset_perturb_voltage();
+
 }
 
 template <typename Tcomp, typename Tout>
@@ -347,26 +338,12 @@ int sutra_controller<Tcomp, Tout>::set_com(float *com, int nElem) {
 
 template <typename Tcomp, typename Tout>
 int sutra_controller<Tcomp, Tout>::set_delay(float delay) {
-  if (delay < 2)
-    this->delay = Tcomp(delay);
-  else
-    this->delay = Tcomp(2.0f);
 
+  this->delay = delay;
   int floor = (int)delay;
-
-  if ((floor > 0) && (floor < 2)) {
-    this->a = Tcomp(0.f);
-    this->c = Tcomp(delay - floor);
-    this->b = Tcomp(1.f) - this->c;
-  } else if (floor == 0) {
-    this->b = this->delay;
-    this->a = Tcomp(1.f) - this->b;
-    this->c = Tcomp(0.f);
-  } else {  // Maximum delay is 2
-    this->a = Tcomp(0.f);
-    this->c = Tcomp(1.f);
-    this->b = Tcomp(0.f);
-  }
+  this->a = Tcomp(delay - floor);
+  this->b = Tcomp(1 - a);
+  
 
   return EXIT_SUCCESS;
 }
