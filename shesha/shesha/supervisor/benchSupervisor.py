@@ -49,6 +49,22 @@ from typing import Callable
 
 class BenchSupervisor(AoSupervisor):
 
+    def __init__(self, configFile: str = None, BRAHMA: bool = False,
+                 CACAO: bool = False):
+        '''
+        Init the COMPASS wih the configFile
+        '''
+        self.pauseLoop = None
+        self.rtc = None
+        self.frame = None
+        self.BRAHMA = BRAHMA
+        self.CACAO = CACAO
+        self.iter = 0
+        self.slopesIdx = None
+
+        if configFile is not None:
+            self.loadConfig(configFile=configFile)
+
     #     _    _         _                  _
     #    / \  | |__  ___| |_ _ __ __ _  ___| |_
     #   / _ \ | '_ \/ __| __| '__/ _` |/ __| __|
@@ -66,8 +82,9 @@ class BenchSupervisor(AoSupervisor):
         Move atmos -> getSlope -> applyControl ; One integrator step
         '''
         self.loadNewWfsFrame()
-        self.computeWfsFrame()
-        self.setCommand(0, np.array(self.rtc.d_control[0].d_voltage))
+        if (self.pauseLoop is not True):
+            self.computeWfsFrame()
+            self.setCommand(0, np.array(self.rtc.d_control[0].d_voltage))
         if self.BRAHMA or self.CACAO:
             self.rtc.publish()
         self.iter += 1
@@ -106,21 +123,6 @@ class BenchSupervisor(AoSupervisor):
     # |____/| .__/ \___|\___|_|\__|_|\___| |_|  |_|\___|\__|_| |_|\___/ \__,_|___/
     #       |_|
 
-    def __init__(self, configFile: str = None, BRAHMA: bool = False,
-                 CACAO: bool = False):
-        '''
-        Init the COMPASS wih the configFile
-        '''
-
-        self.rtc = None
-        self.frame = None
-        self.BRAHMA = BRAHMA
-        self.CACAO = CACAO
-        self.iter = 0
-
-        if configFile is not None:
-            self.loadConfig(configFile=configFile)
-
     def __repr__(self):
 
         s = '--- BenchSupervisor ---\nRTC: ' + repr(self.rtc)
@@ -135,17 +137,25 @@ class BenchSupervisor(AoSupervisor):
             Acquire a new WFS frame and load it.
         '''
         self.frame = self.camCallback()
-        self.rtc.d_centro[0].load_img(self.frame, self.frame.shape[0],
-                                      self.frame.shape[1])
+        if (type(self.frame) is tuple):
+            numWFS = len(self.frame)
+            for i in range(numWFS):
+                self.rtc.d_centro[i].load_img(self.frame[i], self.frame[i].shape[0],
+                                              self.frame[i].shape[1])
+        else:
+            self.rtc.d_centro[numWFS].load_img(self.frame, self.frame.shape[0],
+                                               self.frame.shape[1])
 
     def computeWfsFrame(self):
         '''
             Compute the WFS frame: calibrate, centroid, commands.
         '''
-        self.rtc.d_centro[0].calibrate_img()
+        # for index, centro in enumerate(self.rtc.d_centro):
+        for centro in self.rtc.d_centro:
+            centro.calibrate_img()
         self.rtc.do_centroids(0)
-        # self.rtc.do_control(0)
-        # self.rtc.do_clipping(0)
+        self.rtc.do_control(0)
+        self.rtc.do_clipping(0)
         self.rtc.comp_voltage(0)
 
     def setOneActu(self, nctrl: int, ndm: int, nactu: int, ampli: float = 1,
@@ -288,6 +298,8 @@ class BenchSupervisor(AoSupervisor):
                                   self._centroiderType, self._delay, self._offset,
                                   self._scale, brahma=self.BRAHMA, cacao=self.CACAO)
 
+        self.slopesIdx = np.cumsum([0] + [wfs.nslopes for wfs in self.rtc.d_centro])
+
         # Create centroiders
         for wfs in range(self.wfsNb):
             self.rtc.d_centro[wfs].load_validpos(
@@ -312,3 +324,55 @@ class BenchSupervisor(AoSupervisor):
         self.rtc.d_control[0].set_mgain(np.ones(nact, dtype=np.float32) * -self._gain[0])
         self.is_init = True
         print("RTC initialized")
+
+    def adaptiveWindows(self, initConfig=False, numwfs=0):
+        '''
+        Re-centre the centroiding boxes around the spots, and loads
+        the new box coordinates in the slopes computation supervisor
+        pipeline.
+
+        Input arguments:
+            <initConfig> : True/False(default).
+            True resets to the default positions of boxes.
+            False does the centring job normally.
+        '''
+        if initConfig:
+            # reset de la configuration initiale
+            ijSubap = self.config.p_wfss[numwfs].get_validsub()
+            nsubap = ijSubap.shape[1]
+            self.rtc.d_centro[numwfs].load_validpos(ijSubap[0], ijSubap[1], nsubap)
+        else:
+            # acquire slopes first
+            nslopes = 10
+            s = 0.
+            for i in range(nslopes):
+                self.loadNewWfsFrame()  # sinon toutes les slopes sont les memes
+                self.computeWfsFrame()
+                s = s + self.getSlope()[self.slopesIdx[numwfs]:self.slopesIdx[numwfs +
+                                                                              1]]
+            s /= nslopes
+            # get coordinates of valid sub-apertures
+            #ijSubap = self.config.p_wfss[numwfs].get_validsub()
+            iSubap = np.array(self.rtc.d_centro[numwfs].d_validx)
+            jSubap = np.array(self.rtc.d_centro[numwfs].d_validy)
+            # get number of subaps
+            nsubap = iSubap.shape[0]
+            # reshape the array <s> to be conformable with <ijSubap>
+            s = np.resize(s, (2, nsubap))
+            # re-centre the boxes around the spots
+            new_iSubap = (iSubap + s[0, :].round()).astype(int)
+            new_jSubap = (jSubap + s[1, :].round()).astype(int)
+            # load the new positions of boxes
+            self.rtc.d_centro[numwfs].load_validpos(new_iSubap, new_jSubap, nsubap)
+
+    def getCurrentWindowsPos(self, numwfs=0):
+        """
+        Returns the currently used subapertures positions.
+
+        """
+        iSubap = np.array(self.rtc.d_centro[numwfs].d_validx)
+        jSubap = np.array(self.rtc.d_centro[numwfs].d_validy)
+        return iSubap, jSubap
+
+    def getSlopesIndex(self):
+        return self.slopesIdx
