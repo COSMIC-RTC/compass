@@ -42,6 +42,7 @@ pipeline {
     post {
         always {
             echo 'This will always run'
+            emailextrecipients([culprits(), developers()])
         }
         success {
             echo 'This will run only if successful'
