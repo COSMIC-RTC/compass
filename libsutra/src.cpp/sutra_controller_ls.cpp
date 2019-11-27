@@ -446,8 +446,8 @@ int sutra_controller_ls<T, Tout>::modalControlOptimization() {
     // POLC to retrieve open-loop measurements for further refreshing modal
     // gains
     carma_geam<T>(this->cublas_handle(), 'n', 'n', this->nactu(), 1,
-                  (T)(this->delay - 1), this->d_com1->getData(), this->nactu(),
-                  1.0f - (this->delay - 1), this->d_com->getData(),
+                  (T)(this->a), this->d_com1->getData(), this->nactu(),
+                  this->b, this->d_com->getData(),
                   this->nactu(), this->d_compbuff->getData(), this->nactu());
     carma_gemv<T>(this->cublas_handle(), 'n', this->nslope(), this->nactu(),
                   1.0f, *d_imat, this->nslope(), *d_compbuff, 1, 0.0f,

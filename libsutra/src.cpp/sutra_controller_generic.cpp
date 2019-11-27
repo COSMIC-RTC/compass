@@ -54,12 +54,19 @@ sutra_controller_generic<T, Tout>::sutra_controller_generic(
   this->d_gain = new carma_obj<T>(this->current_context, dims_data1);
   this->d_decayFactor = new carma_obj<T>(this->current_context, dims_data1);
   this->d_compbuff = new carma_obj<T>(this->current_context, dims_data1);
-  if (this->d_com != nullptr) delete this->d_com;
-  if (this->d_com1 != nullptr) delete this->d_com1;
-  if (this->d_com2 != nullptr) delete this->d_com2;
+  for (int k=0; k < this->d_circularComs.size() ; k++) {
+    delete this->d_circularComs[k];
+  }
+  this->d_circularComs.clear();
   this->d_com = new carma_obj<T>(this->current_context, dims_data1);
+  this->d_circularComs.push_front(this->d_com);
   this->d_com1 = new carma_obj<T>(this->current_context, dims_data1);
-  this->d_com2 = new carma_obj<T>(this->current_context, dims_data1);
+  if (this->delay > 0) {
+      this->d_circularComs.push_front(this->d_com1);
+      while (this->d_circularComs.size() <= int(this->delay) + 1) {
+        this->d_circularComs.push_front(new carma_obj<T>(context, dims_data1));
+      }
+    } 
   
   for (int cpt = 0; cpt < this->current_context->get_ndevice(); cpt++) {
     if(this->current_context->canP2P(this->device, cpt)) {
@@ -114,6 +121,12 @@ sutra_controller_generic<T, Tout>::sutra_controller_generic(
     dims_data2[2] = n;
     this->d_cmatPadded = new carma_obj<T>(this->current_context, dims_data2);
     this->d_cmatPadded->reset();
+    dims_data1[1] = n;
+    this->d_centroidsPadded = new carma_obj<T>(context, dims_data1);
+    this->d_centroids->swapPtr(this->d_centroidsPadded->getData());
+    dims_data1[1] = m;
+    this->d_comPadded = new carma_obj<T>(context, dims_data1);
+    this->d_com->swapPtr(this->d_comPadded->getData());
   }
 }
 
@@ -212,15 +225,14 @@ int sutra_controller_generic<T, Tout>::set_commandlaw(string law) {
   this->command_law = law;
   return EXIT_SUCCESS;
 }
+
 template <typename T, typename Tout>
 int sutra_controller_generic<T, Tout>::comp_polc() {
   this->current_context->set_activeDevice(this->device, 1);
-  this->d_com2->copy(this->d_com1, 1, 1);
-  this->d_com1->copy(this->d_com, 1, 1);
   // POLC equations
   this->d_compbuff->reset();
-  this->d_compbuff->axpy(T(this->delay - 1), this->d_com2, 1, 1);
-  this->d_compbuff->axpy(T(1 - (this->delay - 1)), this->d_com1, 1, 1);
+  this->d_compbuff->axpy(T(this->a), this->d_com1, 1, 1);
+  this->d_compbuff->axpy(T(this->b), this->d_com, 1, 1);
   this->d_olmeas->copy(this->d_centroids, 1, 1);
 
   carma_gemv(this->cublas_handle(), 'n', this->nslope(), this->nactu(), T(1.0f),

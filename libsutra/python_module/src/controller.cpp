@@ -132,8 +132,13 @@ void controller_impl(py::module &mod, const char *name) {
           "Command vector at iteration k-1")
 
       .def_property_readonly(
-          "d_com2", [](controller &sc) { return sc.d_com2; },
-          "Command vector at iteration k-2")
+          "d_circularComs0", [](controller &sc) { return sc.d_circularComs[0]; },
+          "Oldest command vector in the circular buffer")
+
+      .def_property_readonly(
+          "d_circularComs1", [](controller &sc) { return sc.d_circularComs[1]; },
+          "Second oldest Command vector in the circular buffer")
+
       .def_property_readonly(
           "comRange",
           [](controller &sc) { return std::make_tuple(sc.Vmin, sc.Vmax); },

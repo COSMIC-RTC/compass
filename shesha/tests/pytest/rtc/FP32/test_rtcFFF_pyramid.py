@@ -8,7 +8,7 @@ from scipy.ndimage.measurements import center_of_mass
 precision = 1e-5
 sup = Supervisor(
         os.getenv("COMPASS_ROOT") +
-        "/shesha/data/par/par4bench/scao_pyrhr_maskedPix_16x16.py")
+        "/shesha/tests/pytest/par/test_pyrhr.py")
 sup.initConfig()
 sup.singleNext()
 sup.openLoop()

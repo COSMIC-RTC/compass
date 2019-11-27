@@ -106,10 +106,6 @@ void controller_mv_impl(py::module &mod, const char *name) {
           "Commands at iteration k-1 (for POLC)")
 
       .def_property_readonly(
-          "d_com2", [](controller_mv &sc) { return sc.d_com2; },
-          "Commands at iteration k-2 (for POLC)")
-
-      .def_property_readonly(
           "d_olmeas", [](controller_mv &sc) { return sc.d_olmeas; },
           "Reconstructed open loop measurement")
 
