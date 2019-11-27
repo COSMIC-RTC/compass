@@ -45,18 +45,35 @@ pipeline {
         }
         success {
             echo 'This will run only if successful'
-            script{
-                def recipients = emailextrecipients([ [$class: 'DevelopersRecipientProvider'],[$class: 'CulpritsRecipientProvider']])
-                mail to: recipients, subject: "Success", body: "success"
-            }
+            emailext (
+                subject: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+                body: """
+
+                SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]':
+
+
+                Check console output at "${env.JOB_NAME} [${env.BUILD_NUMBER}]"
+                ${env.BUILD_URL}
+
+                """,
+                recipientProviders: [[$class: 'DevelopersRecipientProvider'],[$class: 'CulpritsRecipientProvider']]
+            )
         }
         failure {
             echo 'This will run only if failed'
-            script{
-                def recipients = emailextrecipients([ [$class: 'DevelopersRecipientProvider'],[$class: 'CulpritsRecipientProvider']])
-                mail to: recipients, subject: "Failure", body: "failure"
-            }
-        }
+            emailext (
+                subject: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+                body: """
+
+                FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]':
+
+
+                Check console output at "${env.JOB_NAME} [${env.BUILD_NUMBER}]"
+                ${env.BUILD_URL}
+
+                """,
+                recipientProviders: [[$class: 'DevelopersRecipientProvider']]
+            )        }
         unstable {
             echo 'This will run only if the run was marked as unstable'
             script{
