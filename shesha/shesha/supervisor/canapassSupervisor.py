@@ -123,12 +123,9 @@ class CanapassSupervisor(CompassSupervisor):
             print("ERROR !!!!\nRequested DM (", numdm,
                   ") conflicts with number of available DMs (", ntotDm, ").")
 
-    def getConfig(self, path=None):
+    def getConfig(self):
         ''' Returns the configuration in use, in a supervisor specific format '''
-        if path:
-            return self.writeConfigOnFile(path)
-        else:
-            return CompassSupervisor.getConfig(self)
+        return self.writeConfigOnFile()
 
     def loadConfig(self, configFile: str = None, sim=None) -> None:
         ''' Load the configuration for the compass supervisor'''
@@ -731,7 +728,6 @@ class CanapassSupervisor(CompassSupervisor):
             v3 = v[-2:]
             ai = self.P.dot(np.concatenate((v2, v3))) * 1000.
         return ai
-
 
     def setPyrModulation(self, pyrmod):
         CompassSupervisor.setPyrModulation(self, pyrmod)

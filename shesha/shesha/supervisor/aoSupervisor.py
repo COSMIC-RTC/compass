@@ -353,9 +353,7 @@ class AoSupervisor(AbstractSupervisor):
         self.rtc.d_centro[nCentro].fill_mask()
         return np.array(self.rtc.d_centro[nCentro].d_mask)
 
-    def writeConfigOnFile(self,
-                          filepath=os.environ["SHESHA_ROOT"] + "/widgets/canapass.conf",
-                          root=None):
+    def writeConfigOnFile(self, root=None):
         aodict = OrderedDict()
         dataDict = {}
         if (root is None):
@@ -423,12 +421,11 @@ class AoSupervisor(AbstractSupervisor):
         dms_seen = []
         colTmpList = []
         noise = []
-        new_hduwfsl = pfits.HDUList()
-        new_hduwfsSubapXY = pfits.HDUList()
+        #new_hduwfsl = pfits.HDUList()
+        #new_hduwfsSubapXY = pfits.HDUList()
         for i in range(aodict["nbWfs"]):
-            new_hduwfsl.append(pfits.ImageHDU(
-                    root.config.p_wfss[i]._isvalid))  # Valid subap array
-            new_hduwfsl[i].header["DATATYPE"] = "valid_wfs%d" % i
+            #new_hduwfsl.append(pfits.ImageHDU(root.config.p_wfss[i]._isvalid))  # Valid subap array
+            #new_hduwfsl[i].header["DATATYPE"] = "valid_wfs%d" % i
             dataDict["wfsValid_" + str(i)] = root.config.p_wfss[i]._isvalid
 
             xytab = np.zeros((2, root.config.p_wfss[i]._validsubsx.shape[0]))
@@ -436,9 +433,8 @@ class AoSupervisor(AbstractSupervisor):
             xytab[1, :] = root.config.p_wfss[i]._validsubsy
             dataDict["wfsValidXY_" + str(i)] = xytab
 
-            new_hduwfsSubapXY.append(
-                    pfits.ImageHDU(xytab))  # Valid subap array inXx Y on the detector
-            new_hduwfsSubapXY[i].header["DATATYPE"] = "validXY_wfs%d" % i
+            #new_hduwfsSubapXY.append(pfits.ImageHDU(xytab))  # Valid subap array inXx Y on the detector
+            #new_hduwfsSubapXY[i].header["DATATYPE"] = "validXY_wfs%d" % i
             pixsize.append(root.config.p_wfss[i].pixsize)
             """
             if (root.config.p_centroiders[i].type == "maskedpix"):
@@ -479,13 +475,14 @@ class AoSupervisor(AbstractSupervisor):
                 pyr_npts.append(0)
                 pyr_pupsep.append(0)
                 npixPerSub.append(root.config.p_wfss[i].npix)
+        """
         confname = filepath.split("/")[-1].split('.conf')[0]
         print(filepath.split(".conf")[0] + '_wfsConfig.fits')
         new_hduwfsl.writeto(
                 filepath.split(".conf")[0] + '_wfsConfig.fits', overwrite=True)
         new_hduwfsSubapXY.writeto(
                 filepath.split(".conf")[0] + '_wfsValidXYConfig.fits', overwrite=True)
-
+        """
         if (len(dms_seen) != 0):
             aodict.update({"listWFS_dms_seen": dms_seen})
 
@@ -514,7 +511,7 @@ class AoSupervisor(AbstractSupervisor):
         push4imat = []
         coupling = []
         push4iMatArcSec = []
-        new_hdudmsl = pfits.HDUList()
+        #new_hdudmsl = pfits.HDUList()
 
         for j in range(aodict["nbDms"]):
             listDmsType.append(root.config.p_dms[j].type)
@@ -537,14 +534,16 @@ class AoSupervisor(AbstractSupervisor):
                     tmpdata = np.zeros((4, 2))
 
                 dataDict["dmData" + str(j)] = tmpdata
+                """
                 new_hdudmsl.append(pfits.ImageHDU(tmpdata))  # Valid subap array
                 new_hdudmsl[j].header["DATATYPE"] = "valid_dm%d" % j
+                """
                 #for k in range(aodict["nbWfs"]):
                 #    tmp.append(root.computeDMrange(j, k))
 
                 push4iMatArcSec.append(tmp)
-        new_hdudmsl.writeto(
-                filepath.split(".conf")[0] + '_dmsConfig.fits', overwrite=True)
+
+        # new_hdudmsl.writeto(filepath.split(".conf")[0] + '_dmsConfig.fits', overwrite=True)
         if (len(push4iMatArcSec) != 0):
             aodict.update({"listDMS_push4iMat": push4imat})
             aodict.update({"listDMS_unitPerVolt": unitPerVolt})
@@ -579,9 +578,4 @@ class AoSupervisor(AbstractSupervisor):
         Nsubap = sum(NsubapList)
         aodict.update({"Nslopes": Nslopes})
         aodict.update({"Nsubap": Nsubap})
-        f = open(filepath, 'w+')
-        for dictval in aodict:
-            f.write(dictval + ":" + str(aodict[dictval]) + "\n")
-        f.close()
-        print("OK: Config File wrote in:" + filepath)
         return aodict, dataDict
