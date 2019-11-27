@@ -125,6 +125,9 @@ class CanapassSupervisor(CompassSupervisor):
 
     def getConfig(self):
         ''' Returns the configuration in use, in a supervisor specific format '''
+        return CompassSupervisor.getConfig(self)
+
+    def getConfigFab(self):
         return self.writeConfigOnFile()
 
     def loadConfig(self, configFile: str = None, sim=None) -> None:
