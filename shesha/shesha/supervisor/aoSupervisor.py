@@ -58,6 +58,9 @@ class AoSupervisor(AbstractSupervisor):
     # | |  | |  __/ |_| | | | (_) | (_| \__ \
     # |_|  |_|\___|\__|_| |_|\___/ \__,_|___/
 
+    def __init__(self):
+        self.CLOSE = False
+
     def getConfig(self):
         ''' Returns the configuration in use, in a supervisor specific format ? '''
         return self.config
@@ -543,7 +546,6 @@ class AoSupervisor(AbstractSupervisor):
         new_hdudmsl.writeto(
                 filepath.split(".conf")[0] + '_dmsConfig.fits', overwrite=True)
         if (len(push4iMatArcSec) != 0):
-            aodict.update({"listDMS_push4iMatArcSec": push4iMatArcSec})
             aodict.update({"listDMS_push4iMat": push4imat})
             aodict.update({"listDMS_unitPerVolt": unitPerVolt})
         aodict.update({"listDMS_Nxactu": NactuX})
