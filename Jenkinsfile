@@ -42,16 +42,27 @@ pipeline {
     post {
         always {
             echo 'This will always run'
-            emailextrecipients([culprits(), developers()])
         }
         success {
             echo 'This will run only if successful'
+            script{
+                def recipients = emailextrecipients([ [$class: 'DevelopersRecipientProvider'],[$class: 'CulpritsRecipientProvider']])
+                mail to: recipients, subject: "Success", body: "success"
+            }
         }
         failure {
             echo 'This will run only if failed'
+            script{
+                def recipients = emailextrecipients([ [$class: 'DevelopersRecipientProvider'],[$class: 'CulpritsRecipientProvider']])
+                mail to: recipients, subject: "Failure", body: "failure"
+            }
         }
         unstable {
             echo 'This will run only if the run was marked as unstable'
+            script{
+                def recipients = emailextrecipients([ [$class: 'DevelopersRecipientProvider'],[$class: 'CulpritsRecipientProvider']])
+                mail to: recipients, subject: "Unstable", body: "unstable"
+            }
         }
         changed {
             echo 'This will run only if the state of the Pipeline has changed'
