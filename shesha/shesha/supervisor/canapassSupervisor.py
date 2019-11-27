@@ -126,9 +126,9 @@ class CanapassSupervisor(CompassSupervisor):
     def getConfig(self, path=None):
         ''' Returns the configuration in use, in a supervisor specific format '''
         if path:
-            self.writeConfigOnFile(path)
-            return
-        return CompassSupervisor.getConfig(self)
+            return self.writeConfigOnFile(path)
+        else:
+            return CompassSupervisor.getConfig(self)
 
     def loadConfig(self, configFile: str = None, sim=None) -> None:
         ''' Load the configuration for the compass supervisor'''
@@ -192,25 +192,28 @@ class CanapassSupervisor(CompassSupervisor):
             return self.modalBasis, self.P
     """
 
+    def first_nonzero(self, arr, axis, invalid_val=-1):
+        """
+        find the first non zero element of an array.
+        """
+        mask = arr != 0
+        return np.where(mask.any(axis=axis), mask.argmax(axis=axis), invalid_val)
+
+
     def getModes2VBasis(self, ModalBasisType, merged=False, nbpairs=None,
                         returnDelta=False):
         """
         Pos signifies the sign of the first non zero element of the eigen vector is forced to be +
         """
 
-        def first_nonzero(arr, axis, invalid_val=-1):
-            """
-            finding the first non zero element in an array.
-            """
-            mask = arr != 0
-            return np.where(mask.any(axis=axis), mask.argmax(axis=axis), invalid_val)
 
         if (ModalBasisType == "KL2V"):
             print("Computing KL2V basis...")
             self.modalBasis, _ = self.returnkl2V()
-            fnz = first_nonzero(self.modalBasis, axis=0)
+            fnz = self.first_nonzero(self.modalBasis, axis=0)
             # Computing the sign of the first non zero element
-            sig = np.sign(self.modalBasis[[fnz, np.arange(self.modalBasis.shape[1])]])
+            #sig = np.sign(self.modalBasis[[fnz, np.arange(self.modalBasis.shape[1])]])
+            sig = np.sign(self.modalBasis[tuple([fnz, np.arange(self.modalBasis.shape[1])])]) # pour remove le future warning!
             self.modalBasis *= sig[None, :]
             return self.modalBasis, 0
         elif (ModalBasisType == "Btt"):
@@ -218,9 +221,10 @@ class CanapassSupervisor(CompassSupervisor):
             self.modalBasis, self.P = self.compute_Btt2(inv_method="cpu_svd",
                                                         merged=merged, nbpairs=nbpairs,
                                                         returnDelta=returnDelta)
-            fnz = first_nonzero(self.modalBasis, axis=0)
+            fnz = self.first_nonzero(self.modalBasis, axis=0)
             # Computing the sign of the first non zero element
-            sig = np.sign(self.modalBasis[[fnz, np.arange(self.modalBasis.shape[1])]])
+            #sig = np.sign(self.modalBasis[[fnz, np.arange(self.modalBasis.shape[1])]])
+            sig = np.sign(self.modalBasis[tuple([fnz, np.arange(self.modalBasis.shape[1])])]) # pour remove le future warning!
             self.modalBasis *= sig[None, :]
             return self.modalBasis, self.P
         elif (ModalBasisType == "Btt_petal"):
@@ -729,6 +733,7 @@ class CanapassSupervisor(CompassSupervisor):
     def writeConfigOnFile(self,
                           filepath=os.environ["SHESHA_ROOT"] + "/widgets/canapass.conf"):
         aodict = OrderedDict()
+        dataDict={}
 
         aodict.update({"Fe": 1 / self._sim.config.p_loop.ittime})
         aodict.update({"teldiam": self._sim.config.p_tel.diam})
@@ -796,15 +801,16 @@ class CanapassSupervisor(CompassSupervisor):
             new_hduwfsl.append(pfits.ImageHDU(
                     self._sim.config.p_wfss[i]._isvalid))  # Valid subap array
             new_hduwfsl[i].header["DATATYPE"] = "valid_wfs%d" % i
+            dataDict["wfsValid_"+str(i)] = self._sim.config.p_wfss[i]._isvalid
 
             xytab = np.zeros((2, self._sim.config.p_wfss[i]._validsubsx.shape[0]))
             xytab[0, :] = self._sim.config.p_wfss[i]._validsubsx
             xytab[1, :] = self._sim.config.p_wfss[i]._validsubsy
+            dataDict["wfsValidXY_"+str(i)] = xytab
 
             new_hduwfsSubapXY.append(
                     pfits.ImageHDU(xytab))  # Valid subap array inXx Y on the detector
             new_hduwfsSubapXY[i].header["DATATYPE"] = "validXY_wfs%d" % i
-
             pixsize.append(self._sim.config.p_wfss[i].pixsize)
             """
             if (self._sim.config.p_centroiders[i].type == "maskedpix"):
@@ -851,6 +857,7 @@ class CanapassSupervisor(CompassSupervisor):
                 filepath.split(".conf")[0] + '_wfsConfig.fits', overwrite=True)
         new_hduwfsSubapXY.writeto(
                 filepath.split(".conf")[0] + '_wfsValidXYConfig.fits', overwrite=True)
+        
         aodict.update({"listWFS_NslopesList": NslopesList})
         aodict.update({"listWFS_NsubapList": NsubapList})
         aodict.update({"listWFS_CentroType": listCentroType})
@@ -896,6 +903,7 @@ class CanapassSupervisor(CompassSupervisor):
             else:
                 tmpdata = np.zeros((4, 2))
 
+            dataDict["dmData"+str(j)] = tmpdata
             new_hdudmsl.append(pfits.ImageHDU(tmpdata))  # Valid subap array
             new_hdudmsl[j].header["DATATYPE"] = "valid_dm%d" % j
             #for k in range(aodict["nbWfs"]):
@@ -942,7 +950,7 @@ class CanapassSupervisor(CompassSupervisor):
             f.write(dictval + ":" + str(aodict[dictval]) + "\n")
         f.close()
         print("OK: Config File wrote in:" + filepath)
-        #return aodict
+        return aodict, dataDict
 
     def setPyrModulation(self, pyrmod):
         CompassSupervisor.setPyrModulation(self, pyrmod)
@@ -1264,13 +1272,17 @@ class CanapassSupervisor(CompassSupervisor):
         ctrl = self._sim.rtc.d_control[control]
         return (np.array(ctrl.d_gain))
 
-    def setModalBasis(self, modalBasis):
+    def setModalBasis(self, modalBasis, P):
         """
-        Function used to set the modal basis in canapass
+        Function used to set the modal basis and projector in canapass
         """
         self.modalBasis = modalBasis
+        self.P = P
 
     def getTargetPhase(self, tarnum):
+        """
+        Returns the target phase 
+        """
         pup = self.getSpupil()
         ph = self.getTarPhase(tarnum) * pup
         return ph
