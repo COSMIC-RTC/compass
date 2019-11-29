@@ -119,10 +119,18 @@ int sutra_controller<Tcomp, Tout>::set_openloop(int open_loop_status,
   this->open_loop = open_loop_status;
 
   if (this->open_loop && rst) {
-    for (auto cobj : this->d_circularComs) {
-      cobj->reset();
-    }
+    this->reset_coms();
   }
+  return EXIT_SUCCESS;
+}
+
+template <typename Tcomp, typename Tout>
+int sutra_controller<Tcomp, Tout>::reset_coms() {
+  current_context->set_activeDevice(device, 1);
+  for (auto cobj : this->d_circularComs) {
+    cobj->reset();
+  }
+
   return EXIT_SUCCESS;
 }
 

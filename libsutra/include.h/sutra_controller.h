@@ -146,6 +146,7 @@ class sutra_controller {
   int set_Vmax(float Vmax);
   int set_valMax(float valMax);
   int set_gain(float gain);
+  int reset_coms();
 
   // int syevd_f(char meth, carma_obj<T> *d_U,
   //             carma_host_obj<T> *h_eingenvals);

@@ -175,6 +175,8 @@ void controller_impl(py::module &mod, const char *name) {
 
       .def("command_delay", &controller::command_delay, "Delay the command")
 
+      .def("reset_coms", &controller::reset_coms, "Reset the commands circular buffer")
+
       .def("enable_perturb_voltage",
            wy::colCast(&controller::enable_perturb_voltage),
            R"pbdoc(
