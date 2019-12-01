@@ -23,10 +23,10 @@ repos:
     -   id: check-yaml
     -   id: debug-statements
     -   id: requirements-txt-fixer
--   repo: local
-    hooks:
-    -   id: cpp-cuda-linter
-        name: cpp-pre-commit
-        entry: ./apply-format
-        language: system
-        files: \.(cu|hpp|cuh|h|cpp|c)
+#-   repo: local
+#    hooks:
+#    -   id: cpp-cuda-linter
+#        name: cpp-pre-commit
+#        entry: ./apply-format -i
+#        language: system
+#        files: \.(cu|hpp|cuh|h|cpp|c)
