@@ -27,6 +27,6 @@ repos:
     hooks:
     -   id: cpp-cuda-linter
         name: cpp-pre-commit
-        entry: ./git-pre-commit-format
+        entry: ./apply-format
         language: system
         files: \.(cu|hpp|cuh|h|cpp|c)
