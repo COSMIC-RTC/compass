@@ -92,7 +92,8 @@ class sutra_wfs_pyr_pyrhr : public sutra_wfs {
                  float *sincar, float *submask, int *validsubsx,
                  int *validsubsy, int *phasemap, float *fluxPerSub);
   int set_submask(float *submask);
-
+  int set_phalfxy(cuFloatComplex *phalfxy);
+  
   int fill_binimage(int async = 0);
   int comp_image(bool noise = true);
   void comp_modulation(int cpt);

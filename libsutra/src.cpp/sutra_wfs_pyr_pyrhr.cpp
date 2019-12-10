@@ -729,3 +729,13 @@ int sutra_wfs_pyr_pyrhr::comp_nphot(float ittime, float optthroughput,
                 CARMA_PI / 4. * (1 - cobs * cobs) * diam * diam;
   return EXIT_SUCCESS;
 }
+
+int sutra_wfs_pyr_pyrhr::set_phalfxy(cuFloatComplex *phalfxy) {
+  int ngpus = this->d_screen_ngpu.size();
+  for (int dev = 0; dev < ngpus; dev++) {
+      current_context->set_activeDevice(dev, 1);
+      this->d_phalfxy_ngpu[dev]->host2device(phalfxy);
+  }
+  current_context->set_activeDevice(this->device, 1);
+  return EXIT_SUCCESS;
+}

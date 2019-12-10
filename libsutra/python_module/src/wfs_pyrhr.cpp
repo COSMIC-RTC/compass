@@ -198,6 +198,16 @@ void declare_wfs_pyrhr(py::module &mod) {
       )pbdoc",
            py::arg("cx"), py::arg("cy"), py::arg("weights"), py::arg("npts"))
 
+      .def("set_phalfxy",
+           wy::colCast(&sutra_wfs_pyr_pyrhr::set_phalfxy), R"pbdoc(
+        Set the pyramid mask for each modulation point
+
+        Parameters
+        ------------
+        phalfxy: (np.ndarray[ndim=2, dtype=np.complex64]): pyramid mask for each modulation point
+      )pbdoc",
+           py::arg("phalfxy"))
+
       .def("set_pyr_mod_weights",
            wy::colCast(&sutra_wfs_pyr_pyrhr::set_pyr_mod_weights), R"pbdoc(
         Set the modulation points weights of a PWFS
