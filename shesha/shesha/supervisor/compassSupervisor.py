@@ -152,6 +152,15 @@ class CompassSupervisor(AoSupervisor):
         else:
             raise ValueError("Error unknown p_wfs._halfxy shape")
 
+    def setFourierMask(self, newmask, wfsnum=0):
+        """
+        Set a mask in the Fourier Plane of the given WFS
+        """
+        if newmask.shape != self.config.p_wfss[wfsnum].get_halfxy().shape:
+            print('Error : mask shape should be {}'.format(self.config.p_wfss[wfsnum].get_halfxy().shape))
+        else:
+            self._sim.wfs.d_wfs[1].set_phalfxy(np.exp(1j * np.fft.fftshift(newmask)).astype(np.complex64).T)
+
     def setNoise(self, noise, numwfs=0, seed=1234):
         '''
         Set noise value of WFS numwfs
