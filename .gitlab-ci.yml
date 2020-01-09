@@ -62,13 +62,3 @@ master_tests:
   only:
     - master
     - tags
-
-pages:
-  stage: deploy
-  script:
-  - sphinx-build -b html doc public
-  artifacts:
-    paths:
-    - public
-  only:
-  - master
