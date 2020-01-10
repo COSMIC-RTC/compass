@@ -74,9 +74,11 @@ sutra_controller_generic<T, Tout>::sutra_controller_generic(
     }
   }
 
-  for (auto cpt : this->P2Pdevices) {
-    this->current_context->set_activeDevice(cpt, 1);
-    this->d_err_ngpu.push_back(new carma_obj<T>(this->current_context, dims_data1));
+  for (auto dev_id : this->P2Pdevices) {
+    if(dev_id != this->device) {
+      this->current_context->set_activeDevice(dev_id, 1);
+      this->d_err_ngpu.push_back(new carma_obj<T>(this->current_context, dims_data1));
+    }
   }
   this->current_context->set_activeDevice(this->device, 1);
 
@@ -90,15 +92,16 @@ sutra_controller_generic<T, Tout>::sutra_controller_generic(
   this->d_cmat_ngpu.push_back(this->d_cmat);
   if(this->P2Pdevices.size() > 1) {
     dims_data2[2] = this->nslope() / this->P2Pdevices.size();
-    for (auto cpt : this->P2Pdevices) {
-      if(cpt != this->P2Pdevices.back() && cpt != this->device) {
-        this->current_context->set_activeDevice(cpt, 1);
+    for (auto dev_id : this->P2Pdevices) {
+      if(dev_id != this->P2Pdevices.back() && dev_id != this->device) {
+        this->current_context->set_activeDevice(dev_id, 1);
         this->d_cmat_ngpu.push_back(new carma_obj<T>(this->current_context, dims_data2));
       }
     }
-    int cpt = this->P2Pdevices.back();
+    int dev_id = this->P2Pdevices.back();
+    int cpt = this->P2Pdevices.size() - 1;
     dims_data2[2] = this->nslope() - cpt * (this->nslope() / this->P2Pdevices.size());
-    this->current_context->set_activeDevice(cpt, 1);
+    this->current_context->set_activeDevice(dev_id, 1);
     this->d_cmat_ngpu.push_back(new carma_obj<T>(this->current_context, dims_data2));
 
     this->current_context->set_activeDevice(this->device, 1);
@@ -203,10 +206,12 @@ int sutra_controller_generic<T, Tout>::set_cmat(float *cmat) {
 template <typename T, typename Tout>
 int sutra_controller_generic<T, Tout>::distribute_cmat() {
     int N = this->nactu() * (this->nslope() / this->P2Pdevices.size());
-    for (auto cpt : this->P2Pdevices) {
-      if(cpt != this->device) {
-        this->current_context->set_activeDevice(cpt, 1);
+    int cpt = 1;
+    for (auto dev_id : this->P2Pdevices) {
+      if(dev_id != this->device) {
+        this->current_context->set_activeDevice(dev_id, 1);
         this->d_cmat_ngpu[cpt]->copyFrom(this->d_cmat->getDataAt(cpt * N), this->d_cmat_ngpu[cpt]->getNbElem());
+        cpt++;
       }
     }
     this->current_context->set_activeDevice(this->device, 1);
@@ -282,25 +287,27 @@ int sutra_controller_generic<T, Tout>::comp_com() {
       // First, we do the MVM for the first GPU where cmat_ngpu[0] is containing the full cmat
       n = this->nslope() / this->P2Pdevices.size();
       carma_gemv(this->cublas_handle(), 'n', m, n, (T)(-1 * this->gain),
-            this->d_cmat_ngpu[0]->getData(), m, centroids->getData(), 1, T(0.f),
-            this->d_err_ngpu[0]->getData(), 1);
+            this->d_cmat_ngpu[0]->getData(), m, centroids->getData(), 1, T(1.f),
+            this->d_com->getData(), 1);
       // Now, the rest of the GPUs where we can use cmat_gpu dimension as n
       int cc = n;
-      for (auto cpt : this->P2Pdevices) {
-          if(cpt != 0) {
-          this->current_context->set_activeDevice(cpt, 1);
+      int cpt = 1;
+      for (auto dev_id : this->P2Pdevices) {
+          if(dev_id != this->device) {
+          this->current_context->set_activeDevice(dev_id, 1);
           n = this->d_cmat_ngpu[cpt]->getDims()[2];
 
           carma_gemv(this->cublas_handle(), 'n', m, n, (T)(-1 * this->gain),
                 this->d_cmat_ngpu[cpt]->getData(), m, centroids->getData() + cc, 1, T(0.f),
-                this->d_err_ngpu[cpt]->getData(), 1);
+                this->d_err_ngpu[cpt - 1]->getData(), 1);
           cc += n;
+          cpt ++;
           }
       }
       // Finally, we reduce all the results
       this->current_context->set_activeDevice(this->device, 1);
-      for (auto cpt : this->P2Pdevices) {
-        this->d_com->axpy(1.0f, this->d_err_ngpu[cpt], 1,1);
+      for (int cpt = 1 ; cpt < this->P2Pdevices.size() ; cpt++) {
+        this->d_com->axpy(1.0f, this->d_err_ngpu[cpt - 1], 1,1);
       }
     // carmaSafeCall(cudaEventRecord(stopEv));
     // carmaSafeCall(cudaEventSynchronize(stopEv));
