@@ -16,18 +16,3 @@
 
 .. autoclass:: shesha.sim.simulator.Simulator
    :members:
-
-.. _shesha.sim.simulatorRTC.SimulatorRTC class:
-
-.. autoclass:: shesha.sim.simulatorRTC.SimulatorRTC
-   :members:
-
-.. _shesha.sim.benchBrahma.BenchBrahma class:
-
-.. autoclass:: shesha.sim.benchBrahma.BenchBrahma
-   :members:
-
-.. _shesha.sim.simulatorBrahma.SimulatorBrahma class:
-
-.. autoclass:: shesha.sim.simulatorBrahma.SimulatorBrahma
-   :members:

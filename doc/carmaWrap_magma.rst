@@ -1,37 +1,29 @@
-****************
-:mod:`carmaWrap`
-****************
-
-.. _carmaWrap module:
-
-.. currentmodule:: carmaWrap
-
 :func:`getri_double`
 ====================
 
-.. autofunction:: getri_double
+.. autofunction:: magma_getri_double
 
 :func:`getri_float`
 ===================
 
-.. autofunction:: getri_float
+.. autofunction:: magma_getri_float
 
 :func:`potri_double`
 ====================
 
-.. autofunction:: potri_double
+.. autofunction:: magma_potri_double
 
 :func:`potri_float`
 ===================
 
-.. autofunction:: potri_float
+.. autofunction:: magma_potri_float
 
 :func:`syevd_double`
 ====================
 
-.. autofunction:: syevd_double
+.. autofunction:: magma_syevd_double
 
 :func:`syevd_float`
 ===================
 
-.. autofunction:: syevd_float
+.. autofunction:: magma_syevd_float

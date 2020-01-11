@@ -2,4 +2,7 @@
 :mod:`sutraWrap`
 ****************
 
-.. doxygenindex::
+.. _sutraWrap module:
+
+.. currentmodule:: sutraWrap
+
