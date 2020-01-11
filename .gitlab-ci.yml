@@ -1,9 +1,9 @@
-image: aocompass/base-devel-16.04:10.0
+image: aocompass/base-devel-16.04:10.2
 
 stages:
   - build
   - test
-#  - deploy
+  - deploy
 
 build_job:
   stage: build
@@ -17,11 +17,11 @@ build_job:
     # COMPASS_DO_HALF: "ON"
   script:
     - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
-    - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
+    - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
     - ./compile.sh
   when: manual
-  only:
-    - develop
+#  only:
+#    - develop
   artifacts:
     paths:
       - local/
@@ -40,18 +40,19 @@ test_job:
   variables:
     COMPASS_ROOT: /builds/compass/compass
     SHESHA_ROOT: $COMPASS_ROOT/shesha
+    NAGA_ROOT: $COMPASS_ROOT/naga
   dependencies:
     - build_job
   script:
     - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
-    - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
+    - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
     - pytest libcarma/python_module/test
     - pip install tabulate
     - ./shesha/tests/checkCompass.sh
 
   when: manual
-  only:
-    - develop
+#  only:
+#    - develop
 
 master_tests:
   stage: test
@@ -62,3 +63,25 @@ master_tests:
   only:
     - master
     - tags
+
+pages:
+  stage: deploy
+  extends: build_job
+  variables:
+    COMPASS_ROOT: /builds/compass/compass
+    SHESHA_ROOT: $COMPASS_ROOT/shesha
+    NAGA_ROOT: $COMPASS_ROOT/naga
+  dependencies:
+    - build_job
+  script:
+  - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
+  - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
+  - pip install -r requirements.txt
+  - pip install -r requirements-doc.txt
+  - doxygen doc/Doxyfile
+  - sphinx-build -b html doc public
+  artifacts:
+    paths:
+    - public
+  when: manual
+#  only: master

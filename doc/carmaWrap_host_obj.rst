@@ -1,11 +1,3 @@
-****************
-:mod:`carmaWrap`
-****************
-
-.. _carmaWrap module:
-
-.. currentmodule:: carmaWrap
-
 :class:`carmaWrap.host_obj_int`
 ===============================
 

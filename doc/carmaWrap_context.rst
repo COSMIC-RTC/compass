@@ -1,11 +1,3 @@
-****************
-:mod:`carmaWrap`
-****************
-
-.. _carmaWrap module:
-
-.. currentmodule:: carmaWrap
-
 :class:`carmaWrap.context`
 ==========================
 
