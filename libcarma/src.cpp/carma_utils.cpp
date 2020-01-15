@@ -139,12 +139,10 @@ void getNumBlocksAndThreads(carma_device *device, int n, int &blocks,
   //                (n + threads - 1) / threads);
   // }
   
-  threads = device->get_cores_per_sm() * 8;
-  //threads = device->get_properties().maxThreadsPerBlock;
+  threads = device->get_properties().maxThreadsPerBlock;
   blocks = (n + threads - 1) / threads;
   if (blocks > device->get_properties().maxGridSize[0]) {
-    blocks=device->get_properties().maxGridSize[0];
-    threads = (n + blocks - 1) / blocks;
+    throw std::runtime_error("problem is too big!");
   }
  
 }
