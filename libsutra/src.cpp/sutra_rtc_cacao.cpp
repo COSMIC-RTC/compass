@@ -40,7 +40,7 @@
 //! \class     sutra_rtc_cacao
 //! \brief     this class provides the rtc_cacao features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.3.2
+//! \version   4.4.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -93,7 +93,22 @@ void sutra_rtc_cacao<Tin, Tcomp, Tout>::allocateBuffers() {
 
   uint32_t size_tot = nvalid_ + nslp_ + ncmd_;
   iLoopFrame_ = std::make_shared<ipc::Cacao<Tcomp>>(ipc::Cacao<Tcomp>(
-      iLoopFrame_name_, std::vector<uint32_t>{size_tot, 1, 10}, -1, 1, 8, 0));
+      iLoopFrame_name_, std::vector<uint32_t>{size_tot, 1, 10}, -1, 1, 8, 3));
+
+  strcpy(iLoopFrame_->image()->kw[0].name, "nvalid");
+  iLoopFrame_->image()->kw[0].type = 'L';
+  iLoopFrame_->image()->kw[0].value.numl = nvalid_;
+  strcpy(iLoopFrame_->image()->kw[0].comment, "number of measurements");
+
+  strcpy(iLoopFrame_->image()->kw[1].name, "nslp");
+  iLoopFrame_->image()->kw[1].type = 'L';
+  iLoopFrame_->image()->kw[1].value.numl = nslp_;
+  strcpy(iLoopFrame_->image()->kw[1].comment, "number of slopes");
+
+  strcpy(iLoopFrame_->image()->kw[2].name, "ncmd");
+  iLoopFrame_->image()->kw[2].type = 'L';
+  iLoopFrame_->image()->kw[2].value.numl = ncmd_;
+  strcpy(iLoopFrame_->image()->kw[2].comment, "number of commands");
 
   is_initialised_ = true;
 }

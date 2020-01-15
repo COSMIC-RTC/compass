@@ -125,7 +125,6 @@ if($_POST['access'] == "conda") {
   <div class="line">export CUDA_LIB_PATH_64=$CUDA_ROOT/lib64</div>
   <div class="line">export PATH=$CUDA_ROOT/bin:$PATH</div>
   <div class="line">export LD_LIBRARY_PATH=$CUDA_LIB_PATH_64:$CUDA_LIB_PATH:$LD_LIBRARY_PATH</div>
-  <div class="line">export CUDA_SM="'.$_POST['cuda_sm'].'"</div>
   <div class="line"></div>
   <div class="line">#MAGMA definitions</div>
   <div class="line">export MAGMA_ROOT="'.$_POST['magma_install'].'"</div>
@@ -173,14 +172,14 @@ if($_POST['access'] == "conda") {
 } else {
   echo '
   <div class="line">export MKLROOT=$CONDA_ROOT</div>
-  <div class="line">export CUDADIR=$CUDA_ROOT </div>
+  <div class="line">export CUDADIR=$CUDA_ROOT</div>
   <div class="line">export NCPUS=8</div>
-  <div class="line">export GPU_TARGET=sm_$CUDA_SM </div>
+  <div class="line">export GPU_TARGET=sm_'.$_POST['cuda_sm'].'</div>
   <div class="line"></div>
-  <div class="line">conda install -y numpy mkl-include pyqtgraph ipython pyqt qt matplotlib astropy blaze h5py hdf5 pytest pandas scipy docopt tqdm</div>
+  <div class="line">conda install -y numpy mkl-devel pyqtgraph ipython pyqt qt matplotlib astropy blaze h5py hdf5 pytest pandas scipy docopt tqdm tabulate</div>
   <div class="line"></div>
-  <div class="line">wget http://icl.cs.utk.edu/projectsfiles/magma/downloads/magma-2.5.0.tar.gz -O - | tar xz</div>
-  <div class="line">cd magma-2.5.0</div>
+  <div class="line">wget http://icl.cs.utk.edu/projectsfiles/magma/downloads/magma-2.5.2.tar.gz -O - | tar xz</div>
+  <div class="line">cd magma-2.5.2</div>
   <div class="line"></div>
   <div class="line">cp make.inc-examples/make.inc.mkl-gcc make.inc</div>
   <div class="line">sed -i -e "s:/intel64: -Wl,-rpath=$CUDADIR/lib64 -Wl,-rpath=$MKLROOT/lib:" make.inc</div>

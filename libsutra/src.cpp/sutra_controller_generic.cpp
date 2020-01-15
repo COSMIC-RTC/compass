@@ -5,28 +5,28 @@
 //  All rights reserved.
 //  Distributed under GNU - LGPL
 //
-//  COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser 
-//  General Public License as published by the Free Software Foundation, either version 3 of the License, 
+//  COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
+//  General Public License as published by the Free Software Foundation, either version 3 of the License,
 //  or any later version.
 //
-//  COMPASS: End-to-end AO simulation tool using GPU acceleration 
-//  The COMPASS platform was designed to meet the need of high-performance for the simulation of AO systems. 
-//  
-//  The final product includes a software package for simulating all the critical subcomponents of AO, 
-//  particularly in the context of the ELT and a real-time core based on several control approaches, 
-//  with performances consistent with its integration into an instrument. Taking advantage of the specific 
+//  COMPASS: End-to-end AO simulation tool using GPU acceleration
+//  The COMPASS platform was designed to meet the need of high-performance for the simulation of AO systems.
+//
+//  The final product includes a software package for simulating all the critical subcomponents of AO,
+//  particularly in the context of the ELT and a real-time core based on several control approaches,
+//  with performances consistent with its integration into an instrument. Taking advantage of the specific
 //  hardware architecture of the GPU, the COMPASS tool allows to achieve adequate execution speeds to
-//  conduct large simulation campaigns called to the ELT. 
-//  
-//  The COMPASS platform can be used to carry a wide variety of simulations to both testspecific components 
-//  of AO of the E-ELT (such as wavefront analysis device with a pyramid or elongated Laser star), and 
+//  conduct large simulation campaigns called to the ELT.
+//
+//  The COMPASS platform can be used to carry a wide variety of simulations to both testspecific components
+//  of AO of the E-ELT (such as wavefront analysis device with a pyramid or elongated Laser star), and
 //  various systems configurations such as multi-conjugate AO.
 //
-//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the 
-//  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+//  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 //  See the GNU Lesser General Public License for more details.
 //
-//  You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
+//  You should have received a copy of the GNU Lesser General Public License along with COMPASS.
 //  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 // -----------------------------------------------------------------------------
 
@@ -35,7 +35,7 @@
 //! \class     sutra_controller_generic
 //! \brief     this class provides the controller_generic features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.3.2
+//! \version   4.4.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -49,7 +49,7 @@ sutra_controller_generic<T, Tout>::sutra_controller_generic(
                                 idx_dms, ndm, idx_centro, ncentro) {
   this->command_law = "integrator";
   this->nstates = nstates;
-  
+
   long dims_data1[2] = {1, nactu + nstates};
   this->d_gain = new carma_obj<T>(this->current_context, dims_data1);
   this->d_decayFactor = new carma_obj<T>(this->current_context, dims_data1);
@@ -66,17 +66,19 @@ sutra_controller_generic<T, Tout>::sutra_controller_generic(
       while (this->d_circularComs.size() <= int(this->delay) + 1) {
         this->d_circularComs.push_front(new carma_obj<T>(context, dims_data1));
       }
-    } 
-  
+    }
+
   for (int cpt = 0; cpt < this->current_context->get_ndevice(); cpt++) {
     if(this->current_context->canP2P(this->device, cpt)) {
       this->P2Pdevices.push_back(cpt);
     }
   }
 
-  for (auto cpt : this->P2Pdevices) {
-    this->current_context->set_activeDevice(cpt, 1);
-    this->d_err_ngpu.push_back(new carma_obj<T>(this->current_context, dims_data1));
+  for (auto dev_id : this->P2Pdevices) {
+    if(dev_id != this->device) {
+      this->current_context->set_activeDevice(dev_id, 1);
+      this->d_err_ngpu.push_back(new carma_obj<T>(this->current_context, dims_data1));
+    }
   }
   this->current_context->set_activeDevice(this->device, 1);
 
@@ -90,15 +92,16 @@ sutra_controller_generic<T, Tout>::sutra_controller_generic(
   this->d_cmat_ngpu.push_back(this->d_cmat);
   if(this->P2Pdevices.size() > 1) {
     dims_data2[2] = this->nslope() / this->P2Pdevices.size();
-    for (auto cpt : this->P2Pdevices) {
-      if(cpt != this->P2Pdevices.back() && cpt != this->device) {
-        this->current_context->set_activeDevice(cpt, 1);
+    for (auto dev_id : this->P2Pdevices) {
+      if(dev_id != this->P2Pdevices.back() && dev_id != this->device) {
+        this->current_context->set_activeDevice(dev_id, 1);
         this->d_cmat_ngpu.push_back(new carma_obj<T>(this->current_context, dims_data2));
       }
     }
-    int cpt = this->P2Pdevices.back();
+    int dev_id = this->P2Pdevices.back();
+    int cpt = this->P2Pdevices.size() - 1;
     dims_data2[2] = this->nslope() - cpt * (this->nslope() / this->P2Pdevices.size());
-    this->current_context->set_activeDevice(cpt, 1);
+    this->current_context->set_activeDevice(dev_id, 1);
     this->d_cmat_ngpu.push_back(new carma_obj<T>(this->current_context, dims_data2));
 
     this->current_context->set_activeDevice(this->device, 1);
@@ -203,14 +206,16 @@ int sutra_controller_generic<T, Tout>::set_cmat(float *cmat) {
 template <typename T, typename Tout>
 int sutra_controller_generic<T, Tout>::distribute_cmat() {
     int N = this->nactu() * (this->nslope() / this->P2Pdevices.size());
-    for (auto cpt : this->P2Pdevices) {
-      if(cpt != this->device) {
-        this->current_context->set_activeDevice(cpt, 1);
+    int cpt = 1;
+    for (auto dev_id : this->P2Pdevices) {
+      if(dev_id != this->device) {
+        this->current_context->set_activeDevice(dev_id, 1);
         this->d_cmat_ngpu[cpt]->copyFrom(this->d_cmat->getDataAt(cpt * N), this->d_cmat_ngpu[cpt]->getNbElem());
+        cpt++;
       }
     }
     this->current_context->set_activeDevice(this->device, 1);
-  
+
   return EXIT_SUCCESS;
 }
 
@@ -282,25 +287,27 @@ int sutra_controller_generic<T, Tout>::comp_com() {
       // First, we do the MVM for the first GPU where cmat_ngpu[0] is containing the full cmat
       n = this->nslope() / this->P2Pdevices.size();
       carma_gemv(this->cublas_handle(), 'n', m, n, (T)(-1 * this->gain),
-            this->d_cmat_ngpu[0]->getData(), m, centroids->getData(), 1, T(0.f),
-            this->d_err_ngpu[0]->getData(), 1);
+            this->d_cmat_ngpu[0]->getData(), m, centroids->getData(), 1, T(1.f),
+            this->d_com->getData(), 1);
       // Now, the rest of the GPUs where we can use cmat_gpu dimension as n
       int cc = n;
-      for (auto cpt : this->P2Pdevices) {
-          if(cpt != 0) {
-          this->current_context->set_activeDevice(cpt, 1);
+      int cpt = 1;
+      for (auto dev_id : this->P2Pdevices) {
+          if(dev_id != this->device) {
+          this->current_context->set_activeDevice(dev_id, 1);
           n = this->d_cmat_ngpu[cpt]->getDims()[2];
 
           carma_gemv(this->cublas_handle(), 'n', m, n, (T)(-1 * this->gain),
                 this->d_cmat_ngpu[cpt]->getData(), m, centroids->getData() + cc, 1, T(0.f),
-                this->d_err_ngpu[cpt]->getData(), 1);
+                this->d_err_ngpu[cpt - 1]->getData(), 1);
           cc += n;
+          cpt ++;
           }
       }
       // Finally, we reduce all the results
       this->current_context->set_activeDevice(this->device, 1);
-      for (auto cpt : this->P2Pdevices) {
-        this->d_com->axpy(1.0f, this->d_err_ngpu[cpt], 1,1);
+      for (int cpt = 1 ; cpt < this->P2Pdevices.size() ; cpt++) {
+        this->d_com->axpy(1.0f, this->d_err_ngpu[cpt - 1], 1,1);
       }
     // carmaSafeCall(cudaEventRecord(stopEv));
     // carmaSafeCall(cudaEventSynchronize(stopEv));

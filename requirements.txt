@@ -1,0 +1,14 @@
+numpy 
+mkl-include 
+pyqtgraph 
+ipython 
+matplotlib 
+astropy 
+blaze 
+h5py 
+pytest-html 
+pandas 
+scipy 
+docopt 
+tqdm 
+tabulate

@@ -1,7 +1,7 @@
 ## @package   shesha.supervisor.canapassSupervisor
 ## @brief     Initialization and execution of a CANAPASS supervisor
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   4.3.2
+## @version   4.4.0
 ## @date      2011/01/28
 ## @copyright GNU Lesser General Public License
 #
@@ -123,12 +123,12 @@ class CanapassSupervisor(CompassSupervisor):
             print("ERROR !!!!\nRequested DM (", numdm,
                   ") conflicts with number of available DMs (", ntotDm, ").")
 
-    def getConfig(self, path=None):
+    def getConfig(self):
         ''' Returns the configuration in use, in a supervisor specific format '''
-        if path:
-            self.writeConfigOnFile(path)
-            return
         return CompassSupervisor.getConfig(self)
+
+    def getConfigFab(self):
+        return self.writeConfigOnFile()
 
     def loadConfig(self, configFile: str = None, sim=None) -> None:
         ''' Load the configuration for the compass supervisor'''
@@ -192,25 +192,28 @@ class CanapassSupervisor(CompassSupervisor):
             return self.modalBasis, self.P
     """
 
+    def first_nonzero(self, arr, axis, invalid_val=-1):
+        """
+        find the first non zero element of an array.
+        """
+        mask = arr != 0
+        return np.where(mask.any(axis=axis), mask.argmax(axis=axis), invalid_val)
+
     def getModes2VBasis(self, ModalBasisType, merged=False, nbpairs=None,
                         returnDelta=False):
         """
         Pos signifies the sign of the first non zero element of the eigen vector is forced to be +
         """
 
-        def first_nonzero(arr, axis, invalid_val=-1):
-            """
-            finding the first non zero element in an array.
-            """
-            mask = arr != 0
-            return np.where(mask.any(axis=axis), mask.argmax(axis=axis), invalid_val)
-
         if (ModalBasisType == "KL2V"):
             print("Computing KL2V basis...")
             self.modalBasis, _ = self.returnkl2V()
-            fnz = first_nonzero(self.modalBasis, axis=0)
+            fnz = self.first_nonzero(self.modalBasis, axis=0)
             # Computing the sign of the first non zero element
-            sig = np.sign(self.modalBasis[[fnz, np.arange(self.modalBasis.shape[1])]])
+            #sig = np.sign(self.modalBasis[[fnz, np.arange(self.modalBasis.shape[1])]])
+            sig = np.sign(self.modalBasis[tuple([
+                    fnz, np.arange(self.modalBasis.shape[1])
+            ])])  # pour remove le future warning!
             self.modalBasis *= sig[None, :]
             return self.modalBasis, 0
         elif (ModalBasisType == "Btt"):
@@ -218,9 +221,12 @@ class CanapassSupervisor(CompassSupervisor):
             self.modalBasis, self.P = self.compute_Btt2(inv_method="cpu_svd",
                                                         merged=merged, nbpairs=nbpairs,
                                                         returnDelta=returnDelta)
-            fnz = first_nonzero(self.modalBasis, axis=0)
+            fnz = self.first_nonzero(self.modalBasis, axis=0)
             # Computing the sign of the first non zero element
-            sig = np.sign(self.modalBasis[[fnz, np.arange(self.modalBasis.shape[1])]])
+            #sig = np.sign(self.modalBasis[[fnz, np.arange(self.modalBasis.shape[1])]])
+            sig = np.sign(self.modalBasis[tuple([
+                    fnz, np.arange(self.modalBasis.shape[1])
+            ])])  # pour remove le future warning!
             self.modalBasis *= sig[None, :]
             return self.modalBasis, self.P
         elif (ModalBasisType == "Btt_petal"):
@@ -726,224 +732,6 @@ class CanapassSupervisor(CompassSupervisor):
             ai = self.P.dot(np.concatenate((v2, v3))) * 1000.
         return ai
 
-    def writeConfigOnFile(self,
-                          filepath=os.environ["SHESHA_ROOT"] + "/widgets/canapass.conf"):
-        aodict = OrderedDict()
-
-        aodict.update({"Fe": 1 / self._sim.config.p_loop.ittime})
-        aodict.update({"teldiam": self._sim.config.p_tel.diam})
-        aodict.update({"telobs": self._sim.config.p_tel.cobs})
-
-        # TURBU
-        aodict.update({"r0": self._sim.config.p_atmos.r0})
-
-        # WFS
-        aodict.update({"nbWfs": len(self._sim.config.p_wfss)})
-        aodict.update({"nbTargets": len(self._sim.config.p_targets)})
-        aodict.update({"nbCam": aodict["nbWfs"]})
-        aodict.update({"nbOffaxis": 0})
-        aodict.update({"nbNgsWFS": 1})
-        aodict.update({"nbLgsWFS": 0})
-        aodict.update({"nbFigSensor": 0})
-        aodict.update({"nbSkyWfs": aodict["nbWfs"]})
-        aodict.update({"nbOffNgs": 0})
-
-        # DMS
-        aodict.update({"nbDms": len(self._sim.config.p_dms)})
-        aodict.update({"Nactu": self._sim.rtc.d_control[0].nactu})
-        # List of things
-        aodict.update({"list_NgsOffAxis": []})
-        aodict.update({"list_Fig": []})
-        aodict.update({"list_Cam": [0]})
-        aodict.update({"list_SkyWfs": [0]})
-        aodict.update({"list_ITS": []})
-        aodict.update({"list_Woofer": []})
-        aodict.update({"list_Tweeter": []})
-        aodict.update({"list_Steering": []})
-
-        listOfNstatesPerController = []
-        listOfcontrolLawTypePerController = []
-        for control in self.config.p_controllers:
-            listOfNstatesPerController.append(control.nstates)
-            listOfcontrolLawTypePerController.append(control.type)
-        aodict.update({"list_nstatesPerController": listOfNstatesPerController})
-        aodict.update({"list_controllerType": listOfcontrolLawTypePerController})
-
-        # fct of Nb of wfss
-        NslopesList = []
-        NsubapList = []
-        listWfsType = []
-        listCentroType = []
-
-        pyrModulationList = []
-        pyr_npts = []
-        pyr_pupsep = []
-        pixsize = []
-        xPosList = []
-        yPosList = []
-        fstopsize = []
-        fstoptype = []
-        npixPerSub = []
-        nxsubList = []
-        nysubList = []
-        lambdaList = []
-        dms_seen = []
-        colTmpList = []
-        noise = []
-        new_hduwfsl = pfits.HDUList()
-        new_hduwfsSubapXY = pfits.HDUList()
-        for i in range(aodict["nbWfs"]):
-            new_hduwfsl.append(pfits.ImageHDU(
-                    self._sim.config.p_wfss[i]._isvalid))  # Valid subap array
-            new_hduwfsl[i].header["DATATYPE"] = "valid_wfs%d" % i
-
-            xytab = np.zeros((2, self._sim.config.p_wfss[i]._validsubsx.shape[0]))
-            xytab[0, :] = self._sim.config.p_wfss[i]._validsubsx
-            xytab[1, :] = self._sim.config.p_wfss[i]._validsubsy
-
-            new_hduwfsSubapXY.append(
-                    pfits.ImageHDU(xytab))  # Valid subap array inXx Y on the detector
-            new_hduwfsSubapXY[i].header["DATATYPE"] = "validXY_wfs%d" % i
-
-            pixsize.append(self._sim.config.p_wfss[i].pixsize)
-            """
-            if (self._sim.config.p_centroiders[i].type == "maskedpix"):
-                factor = 4
-            else:
-                factor = 2
-            NslopesList.append(
-                    self._sim.config.p_wfss[i]._nvalid * factor)  # slopes per wfs
-            """
-            listCentroType.append(
-                    self._sim.config.p_centroiders[i].
-                    type)  # assumes that there is the same number of centroiders and wfs
-            NsubapList.append(self._sim.config.p_wfss[i]._nvalid)  # subap per wfs
-            listWfsType.append(self._sim.config.p_wfss[i].type)
-            xPosList.append(self._sim.config.p_wfss[i].xpos)
-            yPosList.append(self._sim.config.p_wfss[i].ypos)
-            fstopsize.append(self._sim.config.p_wfss[i].fssize)
-            fstoptype.append(self._sim.config.p_wfss[i].fstop)
-            nxsubList.append(self._sim.config.p_wfss[i].nxsub)
-            nysubList.append(self._sim.config.p_wfss[i].nxsub)
-            lambdaList.append(self._sim.config.p_wfss[i].Lambda)
-            dms_seen.append(list(self._sim.config.p_wfss[i].dms_seen))
-            noise.append(self._sim.config.p_wfss[i].noise)
-
-            if (self._sim.config.p_centroiders[i].type == CentroiderType.MASKEDPIX):
-                NslopesList.append(
-                        self._sim.config.p_wfss[i]._nvalid * 4)  # slopes per wfs
-            else:
-                NslopesList.append(
-                        self._sim.config.p_wfss[i]._nvalid * 2)  # slopes per wfs
-
-            if (self._sim.config.p_wfss[i].type == "pyrhr"):
-                pyrModulationList.append(self._sim.config.p_wfss[i].pyr_ampl)
-                pyr_npts.append(self._sim.config.p_wfss[i].pyr_npts)
-                pyr_pupsep.append(self._sim.config.p_wfss[i].pyr_pup_sep)
-                npixPerSub.append(1)
-            else:
-                pyrModulationList.append(0)
-                pyr_npts.append(0)
-                pyr_pupsep.append(0)
-                npixPerSub.append(self._sim.config.p_wfss[i].npix)
-        confname = filepath.split("/")[-1].split('.conf')[0]
-        new_hduwfsl.writeto(
-                filepath.split(".conf")[0] + '_wfsConfig.fits', overwrite=True)
-        new_hduwfsSubapXY.writeto(
-                filepath.split(".conf")[0] + '_wfsValidXYConfig.fits', overwrite=True)
-        aodict.update({"listWFS_NslopesList": NslopesList})
-        aodict.update({"listWFS_NsubapList": NsubapList})
-        aodict.update({"listWFS_CentroType": listCentroType})
-        aodict.update({"listWFS_WfsType": listWfsType})
-        aodict.update({"listWFS_pixarc": pixsize})
-        aodict.update({"listWFS_pyrModRadius": pyrModulationList})
-        aodict.update({"listWFS_pyrModNPts": pyr_npts})
-        aodict.update({"listWFS_pyrPupSep": pyr_pupsep})
-        aodict.update({"listWFS_fstopsize": fstopsize})
-        aodict.update({"listWFS_fstoptype": fstoptype})
-        aodict.update({"listWFS_dms_seen": dms_seen})
-        aodict.update({"listWFS_NsubX": nxsubList})
-        aodict.update({"listWFS_NsubY": nysubList})
-        aodict.update({"listWFS_Nsub": nysubList})
-        aodict.update({"listWFS_NpixPerSub": npixPerSub})
-        aodict.update({"listWFS_Lambda": lambdaList})
-        aodict.update({"listWFS_noise": noise})
-
-        listDmsType = []
-        NactuX = []
-        Nactu = []
-        unitPerVolt = []
-        push4imat = []
-        coupling = []
-        push4iMatArcSec = []
-        new_hdudmsl = pfits.HDUList()
-
-        for j in range(aodict["nbDms"]):
-            listDmsType.append(self._sim.config.p_dms[j].type)
-            NactuX.append(self._sim.config.p_dms[j].
-                          nact)  # nb of actuators across the diameter !!
-            Nactu.append(self._sim.config.p_dms[j]._ntotact)  # nb of actuators in total
-            unitPerVolt.append(self._sim.config.p_dms[j].unitpervolt)
-            push4imat.append(self._sim.config.p_dms[j].push4imat)
-            coupling.append(self._sim.config.p_dms[j].coupling)
-            tmp = []
-            if (self._sim.config.p_dms[j].type != 'tt'):
-                tmpdata = np.zeros((4, len(self._sim.config.p_dms[j]._i1)))
-                tmpdata[0, :] = self._sim.config.p_dms[j]._j1
-                tmpdata[1, :] = self._sim.config.p_dms[j]._i1
-                tmpdata[2, :] = self._sim.config.p_dms[j]._xpos
-                tmpdata[3, :] = self._sim.config.p_dms[j]._ypos
-            else:
-                tmpdata = np.zeros((4, 2))
-
-            new_hdudmsl.append(pfits.ImageHDU(tmpdata))  # Valid subap array
-            new_hdudmsl[j].header["DATATYPE"] = "valid_dm%d" % j
-            #for k in range(aodict["nbWfs"]):
-            #    tmp.append(self._sim.computeDMrange(j, k))
-
-            push4iMatArcSec.append(tmp)
-        new_hdudmsl.writeto(
-                filepath.split(".conf")[0] + '_dmsConfig.fits', overwrite=True)
-        aodict.update({"listDMS_push4iMatArcSec": push4iMatArcSec})
-        aodict.update({"listDMS_push4iMat": push4imat})
-        aodict.update({"listDMS_unitPerVolt": unitPerVolt})
-        aodict.update({"listDMS_Nxactu": NactuX})
-        aodict.update({"listDMS_Nyactu": NactuX})
-        aodict.update({"listDMS_Nactu": Nactu})
-
-        aodict.update({"listDMS_type": listDmsType})
-        aodict.update({"listDMS_coupling": coupling})
-
-        listTargetsLambda = []
-        listTargetsXpos = []
-        listTargetsYpos = []
-        listTargetsDmsSeen = []
-        listTargetsMag = []
-        for k in range(aodict["nbTargets"]):
-            listTargetsLambda.append(self._sim.config.p_targets[k].Lambda)
-            listTargetsXpos.append(self._sim.config.p_targets[k].xpos)
-            listTargetsYpos.append(self._sim.config.p_targets[k].ypos)
-            listTargetsMag.append(self._sim.config.p_targets[k].mag)
-            listTargetsDmsSeen.append(list(self._sim.config.p_targets[k].dms_seen))
-
-        aodict.update({"listTARGETS_Lambda": listTargetsLambda})
-        aodict.update({"listTARGETS_Xpos": listTargetsXpos})
-        aodict.update({"listTARGETS_Ypos": listTargetsYpos})
-        aodict.update({"listTARGETS_Mag": listTargetsMag})
-        aodict.update({"listTARGETS_DmsSeen": listTargetsDmsSeen})
-
-        listDmsType = []
-        Nslopes = sum(NslopesList)
-        Nsubap = sum(NsubapList)
-        aodict.update({"Nslopes": Nslopes})
-        aodict.update({"Nsubap": Nsubap})
-        f = open(filepath, 'w+')
-        for dictval in aodict:
-            f.write(dictval + ":" + str(aodict[dictval]) + "\n")
-        f.close()
-        print("OK: Config File wrote in:" + filepath)
-        #return aodict
-
     def setPyrModulation(self, pyrmod):
         CompassSupervisor.setPyrModulation(self, pyrmod)
         self._sim.rtc.do_centroids(0)  # To be ready for the next getSlopes
@@ -1264,13 +1052,17 @@ class CanapassSupervisor(CompassSupervisor):
         ctrl = self._sim.rtc.d_control[control]
         return (np.array(ctrl.d_gain))
 
-    def setModalBasis(self, modalBasis):
+    def setModalBasis(self, modalBasis, P):
         """
-        Function used to set the modal basis in canapass
+        Function used to set the modal basis and projector in canapass
         """
         self.modalBasis = modalBasis
+        self.P = P
 
     def getTargetPhase(self, tarnum):
+        """
+        Returns the target phase
+        """
         pup = self.getSpupil()
         ph = self.getTarPhase(tarnum) * pup
         return ph
