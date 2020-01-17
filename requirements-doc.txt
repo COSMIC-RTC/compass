@@ -1,3 +1,4 @@
+breathe
+doxypypy
 sphinx-rtd-theme~=0.4.3
 sphinx~=2.3.1
-breathe

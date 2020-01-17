@@ -20,8 +20,8 @@ build_job:
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
     - ./compile.sh
   when: manual
-#  only:
-#    - develop
+  # only:
+  #  - develop
   artifacts:
     paths:
       - local/
@@ -79,9 +79,9 @@ pages:
   - pip install -r requirements.txt
   - pip install -r requirements-doc.txt
   - doxygen doc/Doxyfile
-  - sphinx-build -b html doc public
+  - doc/correctDoxygen.sh
   artifacts:
     paths:
     - public
-  when: manual
-#  only: master
+  when: manual #always
+  # only: master

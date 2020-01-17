@@ -331,10 +331,10 @@ void controller_impl(py::module &mod, const char *name) {
 };
 
 void declare_controller(py::module &mod) {
-  controller_impl<float, float>(mod, "ControllerFF");
-  controller_impl<float, uint16_t>(mod, "ControllerFU");
+  controller_impl<float, float>(mod, "Controller_FF");
+  controller_impl<float, uint16_t>(mod, "Controller_FU");
 #ifdef CAN_DO_HALF
-  controller_impl<half, float>(mod, "ControllerHF");
-  controller_impl<half, uint16_t>(mod, "ControllerHU");
+  controller_impl<half, float>(mod, "Controller_HF");
+  controller_impl<half, uint16_t>(mod, "Controller_HU");
 #endif
 }

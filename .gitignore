@@ -64,3 +64,5 @@ shesha/shesha/*.log
 .pytest*
 local/
 *lastfailed
+doc/_build
+public

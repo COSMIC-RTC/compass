@@ -1,0 +1,3 @@
+sed -i -e 's:123ACHANGER123:<script src="install_script.js"></script>:' public/md_doc_html_install_script.html
+sed -i -e 's@<object type="image/svg+xml" data="https://gitlab.obspm.fr/compass/compass/badges/master/pipeline.svg" style="pointer-events: none;">Master status</object>@<img src="https://gitlab.obspm.fr/compass/compass/badges/master/pipeline.svg"/>@' public/index.html
+sed -i -e 's@<object type="image/svg+xml" data="https://gitlab.obspm.fr/compass/compass/badges/develop/pipeline.svg" style="pointer-events: none;">Develop status</object>@<img src="https://gitlab.obspm.fr/compass/compass/badges/develop/pipeline.svg"/>@' public/index.html

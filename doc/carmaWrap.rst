@@ -7,7 +7,7 @@
 .. currentmodule:: carmaWrap
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
     carmaWrap_context.rst
     carmaWrap_obj.rst

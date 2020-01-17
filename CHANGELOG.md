@@ -1,6 +1,7 @@
 # COMPASS Change logs
 
 - [COMPASS Change logs](#compass-change-logs)
+  - [Release v4.4.0](#release-v440)
   - [Release v4.3.2](#release-v432)
   - [Release v4.3.1](#release-v431)
   - [Release v4.3.0](#release-v430)
@@ -13,6 +14,17 @@
   - [Release v3.0](#release-v30)
   - [Release v2.0](#release-v20)
   - [Release v1.1](#release-v11)
+
+## Release v4.4.0
+
+Release v4.4.0:
+
+- Debug issue with Kepler architecture
+- Multi GPU controller reworked
+- Update pages-doc
+- Add useful keyworks in ```rtc_cacao``` loopframe
+- Add ```reset_coms``` function in ```sutra_controller```
+- Update Jenkinsfile
 
 ## Release v4.3.2
 
