@@ -691,13 +691,17 @@ sutra_rtc<Tin, T, Tout>::do_centroids_geom_impl(int ncntrl, std::true_type) {
 
 template <typename Tin, typename T, typename Tout>
 int sutra_rtc<Tin, T, Tout>::do_centroids_ref(int ncntrl) {
-  this->do_centroids(ncntrl);
   typename vector<sutra_centroider<Tin, T> *>::iterator sc;
+  sc = this->d_centro.begin();
+  while (sc != this->d_centro.end()) {
+    (*sc)->d_centroids_ref->reset();
+    sc++;
+  }
+  this->do_centroids(ncntrl);
   sc = this->d_centro.begin();
   int inds;
   inds = 0;
   while (sc != this->d_centro.end()) {
-    (*sc)->d_centroids_ref->reset();
     (*sc)->d_centroids_ref->axpy(1.0f, this->d_control[ncntrl]->d_centroids, 1,
                                  1, inds);
     inds += (*sc)->nslopes;
