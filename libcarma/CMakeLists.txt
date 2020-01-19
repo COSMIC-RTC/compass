@@ -108,6 +108,11 @@ else()
   message(STATUS "OCTOPUS_ROOT not found, CACAO features disabled")
 endif()
 
+IF(CMAKE_BUILD_TYPE MATCHES "Debug")
+  message(STATUS "DEBUG Compilation")
+  set(GCOV gcov)
+ENDIF(CMAKE_BUILD_TYPE MATCHES "Debug")
+
 add_library(carma
             SHARED
             ./src.cpp/carma_context.cpp
@@ -168,7 +173,8 @@ target_link_libraries(carma
                              ${CUDA_curand_LIBRARY}
                              ${CUDA_cusparse_LIBRARY}
                              ${CUDA_cusolver_LIBRARY}
-                             cub::cub)
+                             cub::cub
+                             ${GCOV})
 
 target_include_directories(
   carma

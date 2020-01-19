@@ -314,12 +314,18 @@ function sort(items, key_func, reversed) {
     var sort_array = items.map(function(item, i) {
         return [key_func(item), i];
     });
-    var multiplier = reversed ? -1 : 1;
 
     sort_array.sort(function(a, b) {
         var key_a = a[0];
         var key_b = b[0];
-        return multiplier * (key_a >= key_b ? 1 : -1);
+
+        if (key_a == key_b) return 0;
+
+        if (reversed) {
+            return (key_a < key_b ? 1 : -1);
+        } else {
+            return (key_a > key_b ? 1 : -1);
+        }
     });
 
     return sort_array.map(function(item) {
@@ -398,27 +404,27 @@ function filter_table(elem) {
 }
 </script>
     <h1>report_unit_test.html</h1>
-    <p>Report generated on 16-May-2019 at 07:53:22 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a> v1.20.0</p>
+    <p>Report generated on 18-Jan-2020 at 11:27:52 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a> v2.0.0</p>
     <h2>Environment</h2>
     <table id="environment">
       <tr>
         <td>GIT_BRANCH</td>
-        <td>develop</td></tr>
+        <td>coverage</td></tr>
       <tr>
         <td>Packages</td>
-        <td>{&apos;pytest&apos;: &apos;4.4.1&apos;, &apos;py&apos;: &apos;1.7.0&apos;, &apos;pluggy&apos;: &apos;0.9.0&apos;}</td></tr>
+        <td>{&apos;pytest&apos;: &apos;5.2.4&apos;, &apos;py&apos;: &apos;1.8.0&apos;, &apos;pluggy&apos;: &apos;0.13.0&apos;}</td></tr>
       <tr>
         <td>Platform</td>
-        <td>Linux-4.19.36-1-MANJARO-x86_64-with-arch-Manjaro-Linux</td></tr>
+        <td>Linux-5.4.12-1-MANJARO-x86_64-with-arch-Manjaro-Linux</td></tr>
       <tr>
         <td>Plugins</td>
-        <td>{&apos;remotedata&apos;: &apos;0.3.1&apos;, &apos;openfiles&apos;: &apos;0.3.2&apos;, &apos;metadata&apos;: &apos;1.8.0&apos;, &apos;md&apos;: &apos;0.1.1&apos;, &apos;html&apos;: &apos;1.20.0&apos;, &apos;doctestplus&apos;: &apos;0.2.0&apos;, &apos;arraydiff&apos;: &apos;0.3&apos;}</td></tr>
+        <td>{&apos;remotedata&apos;: &apos;0.3.2&apos;, &apos;doctestplus&apos;: &apos;0.4.0&apos;, &apos;html&apos;: &apos;2.0.0&apos;, &apos;openfiles&apos;: &apos;0.4.0&apos;, &apos;metadata&apos;: &apos;1.8.0&apos;, &apos;arraydiff&apos;: &apos;0.3&apos;, &apos;cov&apos;: &apos;2.8.1&apos;}</td></tr>
       <tr>
         <td>Python</td>
-        <td>3.7.2</td></tr></table>
+        <td>3.7.4</td></tr></table>
     <h2>Summary</h2>
-    <p>332 tests ran in 39.53 seconds. </p>
-    <p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter" data-test-result="passed" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="passed">332 passed</span>, <input checked="true" class="filter" data-test-result="skipped" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="skipped">1 skipped</span>, <input checked="true" class="filter" data-test-result="failed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="failed">0 failed</span>, <input checked="true" class="filter" data-test-result="error" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="error">0 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="xfailed">0 expected failures</span>, <input checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>
+    <p>332 tests ran in 31.49 seconds. </p>
+    <p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter" data-test-result="passed" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="passed">330 passed</span>, <input checked="true" class="filter" data-test-result="skipped" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="skipped">1 skipped</span>, <input checked="true" class="filter" data-test-result="failed" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="failed">2 failed</span>, <input checked="true" class="filter" data-test-result="error" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="error">0 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="xfailed">0 expected failures</span>, <input checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>
     <h2>Results</h2>
     <table id="results-table">
       <thead id="results-table-head">
@@ -429,6 +435,24 @@ function filter_table(elem) {
           <th>Links</th></tr>
         <tr hidden="true" id="not-found-message">
           <th colspan="4">No results found. Try to check the filters</th></tr></thead>
+      <tbody class="failed results-table-row">
+        <tr>
+          <td class="col-result">Failed</td>
+          <td class="col-name">libcarma/python_module/test/test_magma.py::test_magma_double_svd</td>
+          <td class="col-duration">0.91</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">def test_magma_double_svd():<br/>    <br/>        mat = np.random.rand(m, n).astype(np.float32)<br/>    <br/>        h_mat = ch.host_obj_double(mat, ch.MA_PAGELOCK)<br/>        h_eig = ch.host_obj_double(np.random.randn(min_mn), ch.MA_PAGELOCK)<br/>        h_U = ch.host_obj_double(np.random.randn(m, m), ch.MA_PAGELOCK)<br/>        h_VT = ch.host_obj_double(np.random.randn(n, n), ch.MA_PAGELOCK)<br/>    <br/>        npt.assert_array_equal(mat, np.array(h_mat))<br/>    <br/>        ch.magma_svd_cpu_double(h_mat, h_eig, h_U, h_VT)<br/>    <br/>        # expected: U.S.V=mat<br/>        #     U = np.array(h_U)<br/>        #     S = np.random.randn((m, n), dtype=np.float32)<br/>        #     S = np.diag(h_eig)<br/>        #     VT = np.array(h_VT)<br/>    <br/>        #     res = np.dot(U, S)<br/>        #     res = np.dot(res, VT.T)<br/>    <br/>        #     iErr = np.argmax(np.abs(res - mat))<br/>        #     err = np.abs(np.abs(res.item(iErr) - mat.item(iErr)))<br/>        #     if (mat.item(iErr) != 0):<br/>        #         err = err / mat.item(iErr)<br/>    <br/>        #     npt.assert_almost_equal(err, 0., decimal=dec)<br/>        #     print(&quot;&quot;)<br/>        #     print(err)<br/>    <br/>        p_U, p_S, p_V = np.linalg.svd(mat)<br/>&gt;       npt.assert_array_almost_equal(np.array(h_eig), p_S, decimal=2 * dec - 1)<br/><span class="error">E       AssertionError: </span><br/><span class="error">E       Arrays are not almost equal to 5 decimals</span><br/><span class="error">E       </span><br/><span class="error">E       Mismatch: 0.0977%</span><br/><span class="error">E       Max absolute difference: 1.59893201e-05</span><br/><span class="error">E       Max relative difference: 5.84733383e-08</span><br/><span class="error">E        x: array([5.12317e+02, 1.83961e+01, 1.83020e+01, ..., 3.05000e-02,</span><br/><span class="error">E              1.70057e-02, 3.81869e-03])</span><br/><span class="error">E        y: array([5.12317e+02, 1.83961e+01, 1.83020e+01, ..., 3.05000e-02,</span><br/><span class="error">E              1.70057e-02, 3.81869e-03], dtype=float32)</span><br/><br/>libcarma/python_module/test/test_magma.py:219: AssertionError<br/></div></td></tr></tbody>
+      <tbody class="failed results-table-row">
+        <tr>
+          <td class="col-result">Failed</td>
+          <td class="col-name">shesha/tests/pytest/rtc/FP16/test_rtcUHU.py::test_comp_voltage</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">def test_comp_voltage():<br/>        Vmin = -1<br/>        Vmax = 1<br/>        control.set_comRange(Vmin, Vmax)<br/>        control.comp_voltage()<br/>        C = np.random.random(sup.config.p_controller0.nactu)<br/>        control.add_perturb_voltage(&quot;test&quot;, C, 1)<br/>        control.set_com(C, C.size)<br/>        com0 = ng.array(control.d_circularComs0).toarray()<br/>&gt;       com1 = ng.array(control.d_circularComs1).toarray()<br/><br/>shesha/tests/pytest/rtc/FP16/test_rtcUHU.py:219: <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/><br/>self = &lt;[ValueError(&quot;array is too big; `arr.size * arr.dtype.itemsize` is larger than the maximum possible size.&quot;) raised in repr()] Array object at 0x7fc8dc156ed0&gt;<br/><br/>    def toarray(self):<br/>&gt;       tmp = np.array(self.data)<br/><span class="error">E       ValueError: array is too big; `arr.size * arr.dtype.itemsize` is larger than the maximum possible size.</span><br/><br/>naga/naga/array.py:221: ValueError<br/></div></td></tr></tbody>
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
@@ -437,7 +461,7 @@ function filter_table(elem) {
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log">(&#x27;shesha/tests/pytest/rtc_cacao/test_rtc_cacao.py&#x27;, 313, &#x27;Skipped: intensities disabled&#x27;)<br/></div></td></tr></tbody>
+            <div class="log">(&#x27;shesha/tests/pytest/rtc_cacao/test_rtc_cacao.py&#x27;, 300, &#x27;Skipped: intensities disabled&#x27;)<br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
@@ -446,8 +470,8 @@ function filter_table(elem) {
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log">----------------------------- Captured stdout call -----------------------------<br/>3.1928062 3.1928062
-</div></td></tr></tbody>
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>3.3183014 3.3183014
+<br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
@@ -456,8 +480,8 @@ function filter_table(elem) {
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log">----------------------------- Captured stdout call -----------------------------<br/>-0.0008347999 -0.0008347999
-</div></td></tr></tbody>
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>-0.0014895712 -0.0014895712
+<br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
@@ -466,8 +490,8 @@ function filter_table(elem) {
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log">----------------------------- Captured stdout call -----------------------------<br/>821.39886 821.39892578125
-</div></td></tr></tbody>
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>821.1713 821.1713256835938
+<br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
@@ -530,8 +554,8 @@ function filter_table(elem) {
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log">----------------------------- Captured stdout call -----------------------------<br/>3.938386822738738 3.938386822738738
-</div></td></tr></tbody>
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>3.156260100309218 3.156260100309218
+<br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
@@ -540,8 +564,8 @@ function filter_table(elem) {
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log">----------------------------- Captured stdout call -----------------------------<br/>0.0014585239639294154 0.0014585239639294154
-</div></td></tr></tbody>
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>9.123361407220811e-05 9.123361407220811e-05
+<br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
@@ -550,8 +574,8 @@ function filter_table(elem) {
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log">----------------------------- Captured stdout call -----------------------------<br/>815.4671092873718 815.467109287372
-</div></td></tr></tbody>
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>829.4287064240702 829.4287064240702
+<br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
@@ -619,7 +643,7 @@ function filter_table(elem) {
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">libcarma/python_module/test/test_cublas2.py::test_float_ger</td>
-          <td class="col-duration">0.05</td>
+          <td class="col-duration">0.06</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
@@ -628,7 +652,7 @@ function filter_table(elem) {
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">libcarma/python_module/test/test_cublas2.py::test_float_symv</td>
-          <td class="col-duration">0.01</td>
+          <td class="col-duration">0.02</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
@@ -637,7 +661,7 @@ function filter_table(elem) {
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">libcarma/python_module/test/test_cublas2.py::test_double_gemv</td>
-          <td class="col-duration">0.04</td>
+          <td class="col-duration">0.05</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
@@ -646,7 +670,7 @@ function filter_table(elem) {
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">libcarma/python_module/test/test_cublas2.py::test_double_ger</td>
-          <td class="col-duration">0.05</td>
+          <td class="col-duration">0.06</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
@@ -673,16 +697,16 @@ function filter_table(elem) {
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">libcarma/python_module/test/test_cublas3.py::test_float_symm</td>
-          <td class="col-duration">0.03</td>
+          <td class="col-duration">0.04</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log">----------------------------- Captured stdout call -----------------------------<br/>
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
 test symm:
 execution time (s)
-python:  0.0008842849638313055
-carma :  5.692499689757824e-05
-</div></td></tr></tbody>
+python:  0.0008512570000220876
+carma :  5.825500011269469e-05
+<br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
@@ -691,12 +715,12 @@ carma :  5.692499689757824e-05
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log">----------------------------- Captured stdout call -----------------------------<br/>
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
 test dgmm:
 execution time (s)
-python:  0.00019690010230988264
-carma :  0.00010709790512919426
-</div></td></tr></tbody>
+python:  0.0001939139999649342
+carma :  0.0003525629999785451
+<br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
@@ -705,12 +729,12 @@ carma :  0.00010709790512919426
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log">----------------------------- Captured stdout call -----------------------------<br/>
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
 test syrk:
 execution time (s)
-python:  0.0004750309744849801
-carma :  5.4183066822588444e-05
-</div></td></tr></tbody>
+python:  0.0003818850000243401
+carma :  5.151000004843809e-05
+<br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
@@ -719,12 +743,12 @@ carma :  5.4183066822588444e-05
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log">----------------------------- Captured stdout call -----------------------------<br/>
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
 test syrkx:
 execution time (s)
-python:  0.0005327670369297266
-carma :  0.00011367397382855415
-</div></td></tr></tbody>
+python:  0.00033833399993454805
+carma :  5.311300014909648e-05
+<br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
@@ -733,12 +757,12 @@ carma :  0.00011367397382855415
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log">----------------------------- Captured stdout call -----------------------------<br/>
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
 test geam:
 execution time (s)
-python:  0.0004287608899176121
-carma :  8.274009451270103e-05
-</div></td></tr></tbody>
+python:  0.00014818099998592515
+carma :  2.7290999923934578e-05
+<br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
@@ -752,30 +776,30 @@ carma :  8.274009451270103e-05
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">libcarma/python_module/test/test_cublas3.py::test_double_symm</td>
-          <td class="col-duration">0.04</td>
+          <td class="col-duration">0.05</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log">----------------------------- Captured stdout call -----------------------------<br/>
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
 test symm:
 execution time (s)
-python:  0.0019159559160470963
-carma :  7.330207154154778e-05
-</div></td></tr></tbody>
+python:  0.001318450000098892
+carma :  5.5847999874458765e-05
+<br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">libcarma/python_module/test/test_cublas3.py::test_double_dgmm</td>
-          <td class="col-duration">0.02</td>
+          <td class="col-duration">0.03</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log">----------------------------- Captured stdout call -----------------------------<br/>
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
 test dgmm:
 execution time (s)
-python:  0.0003412209916859865
-carma :  0.00019353500101715326
-</div></td></tr></tbody>
+python:  0.00039930200000526384
+carma :  0.0002451949999340286
+<br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
@@ -784,12 +808,12 @@ carma :  0.00019353500101715326
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log">----------------------------- Captured stdout call -----------------------------<br/>
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
 test syrk:
 execution time (s)
-python:  0.001255064969882369
-carma :  0.00011823303066194057
-</div></td></tr></tbody>
+python:  0.001650542000106725
+carma :  0.00031209999997372506
+<br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
@@ -798,59 +822,59 @@ carma :  0.00011823303066194057
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log">----------------------------- Captured stdout call -----------------------------<br/>
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
 test syrkx:
 execution time (s)
-python:  0.0006926180794835091
-carma :  6.446195766329765e-05
-</div></td></tr></tbody>
+python:  0.0006516770001780969
+carma :  6.224099979590392e-05
+<br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">libcarma/python_module/test/test_cublas3.py::test_double_geam</td>
-          <td class="col-duration">0.00</td>
+          <td class="col-duration">0.01</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log">----------------------------- Captured stdout call -----------------------------<br/>
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
 test geam:
 execution time (s)
-python:  0.00011067697778344154
-carma :  4.1380058974027634e-05
-</div></td></tr></tbody>
+python:  0.00014883500011819706
+carma :  7.382800004052115e-05
+<br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">libcarma/python_module/test/test_cusolver.py::test_float_syevd</td>
-          <td class="col-duration">0.48</td>
+          <td class="col-duration">0.60</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log">----------------------------- Captured stdout call -----------------------------<br/>
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
 out of place, compute U
 0.0009765625
 in place, U not computed
-0.02319336
-</div></td></tr></tbody>
+0.018798828
+<br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">libcarma/python_module/test/test_cusolver.py::test_double_syevd</td>
-          <td class="col-duration">0.46</td>
+          <td class="col-duration">0.45</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log">----------------------------- Captured stdout call -----------------------------<br/>
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
 out of place, compute U
 1.5916157281026244e-12
 in place, U not computed
-3.319655661471188e-11
-</div></td></tr></tbody>
+2.1827872842550278e-11
+<br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">libcarma/python_module/test/test_magma.py::test_magma_float_svd</td>
-          <td class="col-duration">1.27</td>
+          <td class="col-duration">1.17</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
@@ -859,7 +883,7 @@ in place, U not computed
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">libcarma/python_module/test/test_magma.py::test_magma_float_getri_cpu</td>
-          <td class="col-duration">0.06</td>
+          <td class="col-duration">0.05</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
@@ -868,18 +892,18 @@ in place, U not computed
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">libcarma/python_module/test/test_magma.py::test_magma_float_potri_cpu</td>
-          <td class="col-duration">0.06</td>
+          <td class="col-duration">0.05</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log">----------------------------- Captured stdout call -----------------------------<br/>
-0.00015401840209960938
-</div></td></tr></tbody>
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
+0.00016021728515625
+<br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">libcarma/python_module/test/test_magma.py::test_magma_float_getri_gpu</td>
-          <td class="col-duration">0.15</td>
+          <td class="col-duration">0.14</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
@@ -892,37 +916,28 @@ in place, U not computed
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log">----------------------------- Captured stdout call -----------------------------<br/>
-0.00021843546710442752
-</div></td></tr></tbody>
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
+0.00021975724666845053
+<br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">libcarma/python_module/test/test_magma.py::test_magma_float_syevd</td>
-          <td class="col-duration">0.27</td>
+          <td class="col-duration">0.25</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log">----------------------------- Captured stdout call -----------------------------<br/>
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
 out of place, compute U
-0.0031738281
+0.0024414062
 in place, U not computed
-0.01928711
-</div></td></tr></tbody>
-      <tbody class="passed results-table-row">
-        <tr>
-          <td class="col-result">Passed</td>
-          <td class="col-name">libcarma/python_module/test/test_magma.py::test_magma_double_svd</td>
-          <td class="col-duration">0.96</td>
-          <td class="col-links"></td></tr>
-        <tr>
-          <td class="extra" colspan="4">
-            <div class="empty log">No log output captured.</div></td></tr></tbody>
+0.018554688
+<br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">libcarma/python_module/test/test_magma.py::test_magma_double_getri_cpu</td>
-          <td class="col-duration">0.09</td>
+          <td class="col-duration">0.10</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
@@ -931,18 +946,18 @@ in place, U not computed
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">libcarma/python_module/test/test_magma.py::test_magma_double_potri_cpu</td>
-          <td class="col-duration">0.10</td>
+          <td class="col-duration">0.14</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log">----------------------------- Captured stdout call -----------------------------<br/>
-2.8377300509419e-13
-</div></td></tr></tbody>
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
+2.9309887850104133e-13
+<br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">libcarma/python_module/test/test_magma.py::test_magma_double_getri_gpu</td>
-          <td class="col-duration">0.18</td>
+          <td class="col-duration">0.20</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
@@ -955,23 +970,23 @@ in place, U not computed
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log">----------------------------- Captured stdout call -----------------------------<br/>
-3.849003943989254e-13
-</div></td></tr></tbody>
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
+4.414760553581635e-13
+<br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">libcarma/python_module/test/test_magma.py::test_magma_double_syevd</td>
-          <td class="col-duration">0.43</td>
+          <td class="col-duration">0.45</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log">----------------------------- Captured stdout call -----------------------------<br/>
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
 out of place, compute U
-2.0463630789890885e-12
+2.2737367544323206e-12
 in place, U not computed
-2.319211489520967e-11
-</div></td></tr></tbody>
+4.501998773775995e-11
+<br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
@@ -1246,7 +1261,7 @@ in place, U not computed
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">shesha/tests/pytest/rtc/FP16/test_rtcFHF.py::test_doCentroids_bpcog</td>
-          <td class="col-duration">0.02</td>
+          <td class="col-duration">0.01</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
@@ -1525,7 +1540,7 @@ in place, U not computed
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">shesha/tests/pytest/rtc/FP16/test_rtcFHU.py::test_doCentroids_tcog</td>
-          <td class="col-duration">0.02</td>
+          <td class="col-duration">0.01</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
@@ -1534,7 +1549,7 @@ in place, U not computed
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">shesha/tests/pytest/rtc/FP16/test_rtcFHU.py::test_doCentroids_bpcog</td>
-          <td class="col-duration">0.02</td>
+          <td class="col-duration">0.01</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
@@ -1804,7 +1819,7 @@ in place, U not computed
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">shesha/tests/pytest/rtc/FP16/test_rtcUHF.py::test_doCentroids_tcog</td>
-          <td class="col-duration">0.02</td>
+          <td class="col-duration">0.01</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
@@ -1813,7 +1828,7 @@ in place, U not computed
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">shesha/tests/pytest/rtc/FP16/test_rtcUHF.py::test_doCentroids_bpcog</td>
-          <td class="col-duration">0.03</td>
+          <td class="col-duration">0.02</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
@@ -2064,15 +2079,6 @@ in place, U not computed
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
-          <td class="col-name">shesha/tests/pytest/rtc/FP16/test_rtcUHU.py::test_comp_voltage</td>
-          <td class="col-duration">0.00</td>
-          <td class="col-links"></td></tr>
-        <tr>
-          <td class="extra" colspan="4">
-            <div class="empty log">No log output captured.</div></td></tr></tbody>
-      <tbody class="passed results-table-row">
-        <tr>
-          <td class="col-result">Passed</td>
           <td class="col-name">shesha/tests/pytest/rtc/FP16/test_rtcUHU.py::test_remove_centroider</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
@@ -2083,7 +2089,7 @@ in place, U not computed
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">shesha/tests/pytest/rtc/FP16/test_rtcUHU.py::test_doCentroids_tcog</td>
-          <td class="col-duration">0.02</td>
+          <td class="col-duration">0.01</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
@@ -2362,7 +2368,7 @@ in place, U not computed
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">shesha/tests/pytest/rtc/FP32/test_rtcFFF.py::test_doCentroids_tcog</td>
-          <td class="col-duration">0.02</td>
+          <td class="col-duration">0.01</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
@@ -2650,7 +2656,7 @@ in place, U not computed
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">shesha/tests/pytest/rtc/FP32/test_rtcFFU.py::test_doCentroids_tcog</td>
-          <td class="col-duration">0.02</td>
+          <td class="col-duration">0.01</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
@@ -2929,7 +2935,7 @@ in place, U not computed
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">shesha/tests/pytest/rtc/FP32/test_rtcUFF.py::test_doCentroids_tcog</td>
-          <td class="col-duration">0.02</td>
+          <td class="col-duration">0.01</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
@@ -3208,7 +3214,7 @@ in place, U not computed
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">shesha/tests/pytest/rtc/FP32/test_rtcUFU.py::test_doCentroids_tcog</td>
-          <td class="col-duration">0.02</td>
+          <td class="col-duration">0.01</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
@@ -3509,8 +3515,8 @@ in place, U not computed
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log">----------------------------- Captured stdout call -----------------------------<br/> [ MILK_SHM_DIR ] &#x27;/milk/shm&#x27;
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/> [ MILK_SHM_DIR ] &#x27;/milk/shm&#x27;
+SHM Buffer already exists: try to link...
  [ MILK_SHM_DIR ] &#x27;/milk/shm&#x27;
- [ MILK_SHM_DIR ] &#x27;/milk/shm&#x27;
- [ MILK_SHM_DIR ] &#x27;/milk/shm&#x27;
-</div></td></tr></tbody></table></body></html>
+SHM Buffer already exists: try to link...
+<br/></div></td></tr></tbody></table></body></html>

@@ -66,3 +66,8 @@ local/
 *lastfailed
 doc/_build
 public
+*,cover
+*_cov_html
+.coverage
+doc/html/coverage
+compass_cov.xml

@@ -20,9 +20,8 @@ fi
 cd build
 
 # BUILD_TOOL="-GNinja" # build with ninja instead of make
-# DEBUG="--config Debug"
+# COMPASS_DEBUG="-DCMAKE_BUILD_TYPE=Debug"
 NCPUS=`fgrep processor /proc/cpuinfo | wc -l`
 
-cmake .. -DCMAKE_INSTALL_PREFIX=$PYTHON_INSTALL_PATH -Ddo_half=$COMPASS_DO_HALF $BUILD_TOOL
-cmake --build . --target install $DEBUG -- -j $NCPUS 
-
+cmake .. -DCMAKE_INSTALL_PREFIX=$PYTHON_INSTALL_PATH -Ddo_half=$COMPASS_DO_HALF $COMPASS_DEBUG $BUILD_TOOL
+cmake --build . --target install -- -j $NCPUS

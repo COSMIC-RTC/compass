@@ -5,7 +5,7 @@ stages:
   - test
   - deploy
 
-build_job:
+build_release:
   stage: build
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
@@ -13,8 +13,7 @@ build_job:
     SHESHA_ROOT: $COMPASS_ROOT/shesha
     CUB_ROOT: $COMPASS_ROOT/tplib/cub
     WYRM_ROOT: $COMPASS_ROOT/tplib/wyrm
-    CUDA_SM: ALL
-    # COMPASS_DO_HALF: "ON"
+    COMPASS_DO_HALF: "ON"
   script:
     - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
@@ -27,52 +26,91 @@ build_job:
       - local/
     expire_in: 1 week
 
-master_build:
+build_release_master:
   stage: build
-  extends: build_job
+  extends: build_release
   when: always
   only:
     - master
     - tags
 
-test_job:
+build_debug:
+  stage: build
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+    COMPASS_ROOT: /builds/compass/compass
+    SHESHA_ROOT: $COMPASS_ROOT/shesha
+    CUB_ROOT: $COMPASS_ROOT/tplib/cub
+    WYRM_ROOT: $COMPASS_ROOT/tplib/wyrm
+    COMPASS_DEBUG: "-DCMAKE_BUILD_TYPE=Debug"
+    COMPASS_DO_HALF: "ON"
+  script:
+    - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
+    - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
+    - ./compile.sh
+  when: manual
+  # only:
+  #  - develop
+  artifacts:
+    paths:
+      - local/
+    expire_in: 1 week
+
+pytests:
   stage: test
   variables:
     COMPASS_ROOT: /builds/compass/compass
     SHESHA_ROOT: $COMPASS_ROOT/shesha
     NAGA_ROOT: $COMPASS_ROOT/naga
   dependencies:
-    - build_job
+    - build_release
   script:
-    - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
+    - export PYTHONPATH=$NAGA_ROOT:$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
+    - pip install -r requirements-test.txt
     - pytest libcarma/python_module/test
-    - pip install tabulate
     - ./shesha/tests/checkCompass.sh
 
   when: manual
 #  only:
 #    - develop
 
-master_tests:
+master_pytests:
   stage: test
-  extends: test_job
+  extends: pytests
   dependencies:
-    - master_build
+    - build_release_master
   when: always
   only:
     - master
     - tags
 
-pages:
-  stage: deploy
-  extends: build_job
+coverage:
+  stage: test
   variables:
     COMPASS_ROOT: /builds/compass/compass
     SHESHA_ROOT: $COMPASS_ROOT/shesha
     NAGA_ROOT: $COMPASS_ROOT/naga
   dependencies:
-    - build_job
+    - build_debug
+  script:
+    - export PYTHONPATH=$NAGA_ROOT:$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
+    - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
+    - pip install -r requirements-test.txt
+    - pytest --cov=shesha/shesha -v --cache-clear --maxfail=10 -rf shesha/tests/pytest/rtc
+  coverage: '/^TOTAL.*\s+(\d+\%)$/'
+  when: always
+  only:
+    - develop
+
+pages:
+  stage: deploy
+  variables:
+    COMPASS_ROOT: /builds/compass/compass
+    SHESHA_ROOT: $COMPASS_ROOT/shesha
+    NAGA_ROOT: $COMPASS_ROOT/naga
+  dependencies:
+    - build_release
   script:
   - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
   - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH

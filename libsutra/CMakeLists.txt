@@ -41,6 +41,10 @@ else()
   message(STATUS "OCTOPUS_ROOT not find, CACAO RTC will not be available")
 endif()
 
+IF(CMAKE_BUILD_TYPE MATCHES "Debug")
+  set(GCOV gcov)
+ENDIF(CMAKE_BUILD_TYPE MATCHES "Debug")
+
 # cmake-format: off
 # if(DEFINED ENV{BRAHMA_ROOT})
 #   set(BRAHMA_FLAGS
@@ -186,7 +190,7 @@ target_compile_options(sutra
                        PUBLIC $<$<COMPILE_LANGUAGE:CXX>: ${CACAO_FLAGS}
                               ${BRAHMA_FLAGS}>)
 
-target_link_libraries(sutra PUBLIC carma ${BRAHMA_LIBS})
+target_link_libraries(sutra PUBLIC carma ${BRAHMA_LIBS} ${GCOV})
 
 if(python_build)
   add_subdirectory(python_module)
