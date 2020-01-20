@@ -4,6 +4,8 @@ Master status: [![Master status](https://gitlab.obspm.fr/compass/compass/badges/
 
 Develop status: [![Develop status](https://gitlab.obspm.fr/compass/compass/badges/develop/pipeline.svg)](https://gitlab.obspm.fr/compass/compass/commits/develop)
 
+Coverage report: [![coverage report](https://gitlab.obspm.fr/compass/compass/badges/develop/coverage.svg)](https://gitlab.obspm.fr/compass/compass/commits/develop)
+
 - [COMPASS](#compass)
   - [Overview](#overview)
     - [Hardware requirements](#hardware-requirements)
