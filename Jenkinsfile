@@ -13,6 +13,7 @@ pipeline {
         COMPASS_ROOT="$WORKSPACE"
         COMPASS_INSTALL_ROOT="$COMPASS_ROOT/local"
         COMPASS_DO_HALF="ON"
+        COMPASS_DEBUG: "-DCMAKE_BUILD_TYPE=Debug"
         NAGA_ROOT="$COMPASS_ROOT/naga"
         SHESHA_ROOT="$COMPASS_ROOT/shesha"
 
@@ -35,7 +36,12 @@ pipeline {
         }
         stage('Unit tests') {
             steps {
-                sh  'python -m pytest --verbose --junit-xml test-reports/results.xml $SHESHA_ROOT/tests/pytest/rtc'
+                sh  'python -m pytest --verbose --junit-xml compass_tests.xml  $SHESHA_ROOT/tests/pytest/rtc'
+            }
+        }
+        stage('Coverage') {
+            steps {
+                sh  'pytest --cov-report xml:compass_cov.xml --cov=shesha/shesha shesha/tests/pytest/rtc'
             }
         }
     }
