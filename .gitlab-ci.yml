@@ -104,6 +104,27 @@ coverage:
   only:
     - develop
 
+# pages-doc:
+#   stage: deploy
+#   variables:
+#     COMPASS_ROOT: /builds/compass/compass
+#     SHESHA_ROOT: $COMPASS_ROOT/shesha
+#     NAGA_ROOT: $COMPASS_ROOT/naga
+#   dependencies:
+#     - build_release
+#   script:
+#   - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
+#   - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
+#   - pip install -r requirements.txt
+#   - pip install -r requirements-doc.txt
+#   - doxygen doc/Doxyfile
+#   - doc/correctDoxygen.sh
+#   artifacts:
+#     paths:
+#     - public
+#   when: manual #always
+#   # only: master
+
 pages:
   stage: deploy
   variables:
@@ -116,9 +137,8 @@ pages:
   - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
   - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
   - pip install -r requirements.txt
-  - pip install -r requirements-doc.txt
-  - doxygen doc/Doxyfile
-  - doc/correctDoxygen.sh
+  - pip install -r requirements-test.txt
+  - ./generate_reports.sh -o public
   artifacts:
     paths:
     - public

@@ -34,4 +34,4 @@ done
 rm -f check.h5
 
 coverage xml -o compass_cov.xml
-coverage report
+coverage html
