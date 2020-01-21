@@ -68,12 +68,16 @@ pytests:
     - export PYTHONPATH=$NAGA_ROOT:$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
     - pip install -r requirements-test.txt
-    - pytest libcarma/python_module/test
-    - ./shesha/tests/checkCompass.sh
-
-  when: manual
-#  only:
-#    - develop
+    - ./generate_reports.sh
+    - coverage report
+  coverage: '/^TOTAL.*\s+(\d+\%)$/'
+  artifacts:
+    paths:
+      - public
+    expire_in: 1 week
+  when: always
+  only:
+    - develop
 
 master_pytests:
   stage: test
@@ -94,11 +98,6 @@ master_pytests:
 #   dependencies:
 #     - build_debug
 #   script:
-#     - export PYTHONPATH=$NAGA_ROOT:$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
-#     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
-#     - pip install -r requirements-test.txt
-#     - coverage run -m pytest --verbose --junit-xml compass_tests.xml $COMPASS_ROOT/libcarma/python_module/test $SHESHA_ROOT/tests/pytest/rtc || echo "It's just a scratch"
-#     - coverage report
 #   coverage: '/^TOTAL.*\s+(\d+\%)$/'
 #   when: always
 #   only:
@@ -132,18 +131,10 @@ pages:
     SHESHA_ROOT: $COMPASS_ROOT/shesha
     NAGA_ROOT: $COMPASS_ROOT/naga
   dependencies:
-    - build_debug
-  script:
-  - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
-  - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
-  - pip install -r requirements.txt
-  - pip install -r requirements-test.txt
-  - ./generate_reports.sh
-  - coverage report
+    - pytests
   artifacts:
     paths:
     - public
-  coverage: '/^TOTAL.*\s+(\d+\%)$/'
   when: always
   only:
     - develop
