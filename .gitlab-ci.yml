@@ -68,12 +68,12 @@ pytests:
     - export PYTHONPATH=$NAGA_ROOT:$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
     - pip install -r requirements-test.txt
-    - ./generate_reports.sh
+    - ./generate_coverage.sh
     - coverage report
   coverage: '/^TOTAL.*\s+(\d+\%)$/'
   artifacts:
     paths:
-      - public
+      - .coverage
     expire_in: 1 week
   when: always
   only:
@@ -132,6 +132,8 @@ pages:
     NAGA_ROOT: $COMPASS_ROOT/naga
   dependencies:
     - pytests
+  script:
+    - coverage html -d public
   artifacts:
     paths:
     - public
