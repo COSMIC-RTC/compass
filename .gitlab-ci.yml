@@ -85,24 +85,24 @@ master_pytests:
     - master
     - tags
 
-coverage:
-  stage: test
-  variables:
-    COMPASS_ROOT: /builds/compass/compass
-    SHESHA_ROOT: $COMPASS_ROOT/shesha
-    NAGA_ROOT: $COMPASS_ROOT/naga
-  dependencies:
-    - build_debug
-  script:
-    - export PYTHONPATH=$NAGA_ROOT:$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
-    - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
-    - pip install -r requirements-test.txt
-    - coverage run -m pytest --verbose --junit-xml compass_tests.xml $COMPASS_ROOT/libcarma/python_module/test $SHESHA_ROOT/tests/pytest/rtc || echo "It's just a scratch"
-    - coverage report
-  coverage: '/^TOTAL.*\s+(\d+\%)$/'
-  when: always
-  only:
-    - develop
+# coverage:
+#   stage: test
+#   variables:
+#     COMPASS_ROOT: /builds/compass/compass
+#     SHESHA_ROOT: $COMPASS_ROOT/shesha
+#     NAGA_ROOT: $COMPASS_ROOT/naga
+#   dependencies:
+#     - build_debug
+#   script:
+#     - export PYTHONPATH=$NAGA_ROOT:$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
+#     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
+#     - pip install -r requirements-test.txt
+#     - coverage run -m pytest --verbose --junit-xml compass_tests.xml $COMPASS_ROOT/libcarma/python_module/test $SHESHA_ROOT/tests/pytest/rtc || echo "It's just a scratch"
+#     - coverage report
+#   coverage: '/^TOTAL.*\s+(\d+\%)$/'
+#   when: always
+#   only:
+#     - develop
 
 # pages-doc:
 #   stage: deploy
@@ -139,9 +139,11 @@ pages:
   - pip install -r requirements.txt
   - pip install -r requirements-test.txt
   - ./generate_reports.sh
+  - coverage report
   artifacts:
     paths:
     - public
+  coverage: '/^TOTAL.*\s+(\d+\%)$/'
   when: always
   only:
     - develop
