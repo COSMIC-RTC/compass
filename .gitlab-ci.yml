@@ -63,7 +63,7 @@ pytests:
     SHESHA_ROOT: $COMPASS_ROOT/shesha
     NAGA_ROOT: $COMPASS_ROOT/naga
   dependencies:
-    - build_release
+    - build_debug
   script:
     - export PYTHONPATH=$NAGA_ROOT:$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
@@ -88,20 +88,6 @@ master_pytests:
   only:
     - master
     - tags
-
-# coverage:
-#   stage: test
-#   variables:
-#     COMPASS_ROOT: /builds/compass/compass
-#     SHESHA_ROOT: $COMPASS_ROOT/shesha
-#     NAGA_ROOT: $COMPASS_ROOT/naga
-#   dependencies:
-#     - build_debug
-#   script:
-#   coverage: '/^TOTAL.*\s+(\d+\%)$/'
-#   when: always
-#   only:
-#     - develop
 
 # pages-doc:
 #   stage: deploy
@@ -133,6 +119,7 @@ pages:
   dependencies:
     - pytests
   script:
+    - pip install -r requirements-test.txt
     - coverage html -d public
   artifacts:
     paths:
