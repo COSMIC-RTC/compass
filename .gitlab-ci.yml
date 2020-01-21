@@ -132,7 +132,7 @@ pages:
     SHESHA_ROOT: $COMPASS_ROOT/shesha
     NAGA_ROOT: $COMPASS_ROOT/naga
   dependencies:
-    - build_release
+    - build_debug
   script:
   - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
   - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
@@ -142,5 +142,6 @@ pages:
   artifacts:
     paths:
     - public
-  when: manual #always
-  # only: master
+  when: always
+  only:
+    - develop
