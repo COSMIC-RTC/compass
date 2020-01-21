@@ -71,3 +71,4 @@ public
 .coverage
 doc/html/coverage
 compass_cov.xml
+compass_tests.xml
