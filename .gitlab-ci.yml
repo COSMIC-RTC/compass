@@ -97,7 +97,8 @@ coverage:
     - export PYTHONPATH=$NAGA_ROOT:$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
     - pip install -r requirements-test.txt
-    - pytest --cov=shesha/shesha -v --cache-clear --maxfail=10 -rf shesha/tests/pytest/rtc
+    - coverage run -m pytest libcarma/python_module/test shesha/tests/pytest/rtc
+    - coverage report
   coverage: '/^TOTAL.*\s+(\d+\%)$/'
   when: always
   only:
