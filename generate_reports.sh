@@ -14,7 +14,7 @@
 
 # ./shesha/tests/checkCompass.sh
 
-coverage run -m pytest libcarma/python_module/test shesha/tests/pytest/rtc
+coverage run -m pytest --verbose --junit-xml compass_tests.xml $COMPASS_ROOT/libcarma/python_module/test $SHESHA_ROOT/tests/pytest/rtc || echo "It's just a scratch"
 
 # script="$SHESHA_ROOT/shesha/tests/check.py"
 rm -f check.h5
