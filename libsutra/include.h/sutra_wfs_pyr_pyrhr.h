@@ -62,10 +62,11 @@ class sutra_wfs_pyr_pyrhr : public sutra_wfs {
   carma_obj<float> *d_pyrfocalplane;
   carma_obj<cuFloatComplex> *d_phalfxy;
   carma_obj<cuFloatComplex> *d_poffsets;
-
+  carma_obj<float> *d_modu_gather;
   carma_host_obj<float> *pyr_cx;
   carma_host_obj<float> *pyr_cy;
   carma_host_obj<float> *pyr_mod_weights;
+
 
  public:
   sutra_wfs_pyr_pyrhr(carma_context *context, sutra_telescope *d_tel,

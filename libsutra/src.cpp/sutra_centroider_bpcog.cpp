@@ -99,7 +99,7 @@ int sutra_centroider_bpcog<Tin, T>::set_nmax(int nmax) {
 template <class Tin, class T>
 int sutra_centroider_bpcog<Tin, T>::get_cog(float *img, float *intensities,
                                             T *centroids, int nvalid, int npix,
-                                            int ntot) {
+                                            int ntot, cudaStream_t stream) {
   this->current_context->set_activeDevice(this->device, 1);
 
   get_centroids(ntot, (npix * npix), nvalid, npix, img, centroids,

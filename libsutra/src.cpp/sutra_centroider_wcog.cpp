@@ -124,7 +124,7 @@ int sutra_centroider_wcog<Tin, T>::set_npix(int npix) {
 template <class Tin, class T>
 int sutra_centroider_wcog<Tin, T>::get_cog(float *img, float *intensities,
                                            T *centroids, int nvalid, int npix,
-                                           int ntot) {
+                                           int ntot, cudaStream_t stream) {
   // wcog
   // TODO: Implement sutra_centroider_wcog<Tin, T>::get_cog_async
   // subap_reduce<T>(ntot, npix * npix, nvalid, cube, intensities,

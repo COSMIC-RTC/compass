@@ -144,12 +144,12 @@ __global__ void calib_krnl(Tin *img_raw, float *img_cal, float *dark,
 
 template <class Tin>
 int calibration(Tin *img_raw, float *img_cal, float *dark, float *flat,
-                int *lutPix, int N, carma_device *device) {
+                int *lutPix, int N, carma_device *device, cudaStream_t stream) {
   int nBlocks, nThreads;
   getNumBlocksAndThreads(device, N, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
-  calib_krnl<<<grid, threads>>>(img_raw, img_cal, dark, flat, lutPix, N);
+  calib_krnl<<<grid, threads, 0, stream>>>(img_raw, img_cal, dark, flat, lutPix, N);
 
   carmaCheckMsg("calib_krnl<<<>>> execution failed\n");
   return EXIT_SUCCESS;
@@ -157,7 +157,7 @@ int calibration(Tin *img_raw, float *img_cal, float *dark, float *flat,
 
 template int calibration<float>(float *img_raw, float *img_cal, float *dark,
                                 float *flat, int *lutPix, int N,
-                                carma_device *device);
+                                carma_device *device, cudaStream_t stream);
 template int calibration<uint16_t>(uint16_t *img_raw, float *img_cal,
                                    float *dark, float *flat, int *lutPix, int N,
-                                   carma_device *device);
+                                   carma_device *device, cudaStream_t stream);

@@ -113,7 +113,7 @@ string sutra_centroider_pyr<Tin, T>::get_method_str() {
 template <class Tin, class T>
 int sutra_centroider_pyr<Tin, T>::get_cog(float *cube, float *intensities,
                                           T *centroids, int nvalid, int npix,
-                                          int ntot) {
+                                          int ntot, cudaStream_t stream) {
   // TODO(Implement sutra_centroider_pyr<Tin, T>::get_cog)
 
   return get_pyr(cube, intensities, centroids, this->d_validx->getData(),

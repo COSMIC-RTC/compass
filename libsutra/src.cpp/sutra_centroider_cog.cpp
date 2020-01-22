@@ -70,7 +70,7 @@ string sutra_centroider_cog<Tin, T>::get_type() {
 template <class Tin, class T>
 int sutra_centroider_cog<Tin, T>::get_cog(float *img, float *intensities,
                                           T *centroids, int nvalid, int npix,
-                                          int ntot) {
+                                          int ntot, cudaStream_t stream) {
   this->current_context->set_activeDevice(this->device, 1);
 
   // subap_reduce(ntot, (npix * npix), nvalid, img, ref,
@@ -78,7 +78,7 @@ int sutra_centroider_cog<Tin, T>::get_cog(float *img, float *intensities,
   get_centroids(ntot, (npix * npix), nvalid, npix, img, centroids,
                 this->d_centroids_ref->getData(), this->d_validx->getData(),
                 this->d_validy->getData(), intensities, this->scale,
-                this->offset, this->current_context->get_device(this->device));
+                this->offset, this->current_context->get_device(this->device), stream);
 
   if (this->filter_TT) {
     this->apply_TT_filter(centroids);

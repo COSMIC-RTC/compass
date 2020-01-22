@@ -209,7 +209,7 @@ int sutra_centroider<Tin, Tout>::get_validMask() {
 }
 
 template <class Tin, class Tout>
-int sutra_centroider<Tin, Tout>::calibrate_img() {
+int sutra_centroider<Tin, Tout>::calibrate_img(cudaStream_t stream) {
   current_context->set_activeDevice(device, 1);
 
   if (this->d_img_raw == nullptr) {
@@ -223,7 +223,7 @@ int sutra_centroider<Tin, Tout>::calibrate_img() {
   calibration<Tin>(this->d_img_raw->getData(), this->d_img->getData(),
                    this->d_dark->getData(), this->d_flat->getData(),
                    this->d_lutPix->getData(), this->d_img->getNbElem(),
-                   this->current_context->get_device(this->device));
+                   this->current_context->get_device(this->device), stream);
 
   return EXIT_SUCCESS;
 }

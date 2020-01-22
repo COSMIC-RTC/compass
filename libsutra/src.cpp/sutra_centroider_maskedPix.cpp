@@ -133,7 +133,7 @@ int sutra_centroider_maskedPix<Tin, T>::fill_mask() {
 template <class Tin, class T>
 int sutra_centroider_maskedPix<Tin, T>::get_cog(float *img, float *intensities,
                                                 T *centroids, int nvalid,
-                                                int npix, int ntot) {
+                                                int npix, int ntot, cudaStream_t stream) {
   // TODO(Implement sutra_centroider_maskedPix<Tin, T>::get_cog)
 
   return get_maskedPix(img, intensities, centroids, this->d_validx->getData(),

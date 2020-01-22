@@ -56,7 +56,7 @@ class sutra_centroider_cog : public sutra_centroider<Tin, T> {
   string get_type();
 
   int get_cog(float *cube, float *intensities, T *centroids, int nvalid,
-              int npix, int ntot);
+              int npix, int ntot, cudaStream_t stream=0);
   int get_cog(float *intensities, T *slopes, bool noise);
   int get_cog();
 };
@@ -65,7 +65,7 @@ template <class T>
 void get_centroids(int size, int threads, int blocks, int n, float *d_idata,
                    T *d_odata, T *ref, int *validx, int *validy,
                    float *intensities, float scale, float offset,
-                   carma_device *device);
+                   carma_device *device, cudaStream_t stream=0);
 
 template <class T>
 void get_centroids_async(int threads, int blocks, int n, carma_streams *streams,

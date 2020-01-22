@@ -64,7 +64,7 @@ class sutra_centroider_wcog : public sutra_centroider<Tin, T> {
   int load_weights(float *weights, int ndim);
 
   int get_cog(float *cube, float *intensities, T *centroids, int nvalid,
-              int npix, int ntot);
+              int npix, int ntot, cudaStream_t stream=0);
   int get_cog(float *intensities, T *slopes, bool noise);
   int get_cog();
 };

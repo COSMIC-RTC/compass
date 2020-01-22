@@ -96,7 +96,7 @@ class sutra_centroider_pyr : public sutra_centroider<Tin, T> {
   int get_pyr(float *cube, float *intensities, T *centroids, int *subindx,
               int *subindy, int nvalid, int ns, int nim);
   int get_cog(float *cube, float *intensities, T *centroids, int nvalid,
-              int npix, int ntot);
+              int npix, int ntot, cudaStream_t stream=0);
   int get_cog(float *intensities, T *slopes, bool noise);
   int get_cog();
 

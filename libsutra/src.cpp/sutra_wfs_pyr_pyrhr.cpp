@@ -125,6 +125,10 @@ sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(
   dims_data1[1] = npix;
   this->d_validsubsx = new carma_obj<int>(context, dims_data1);
   this->d_validsubsy = new carma_obj<int>(context, dims_data1);
+  dims_data2[1] = nfft;
+  dims_data2[2] = nfft;
+  this->d_modu_gather = new carma_obj<float>(current_context, dims_data2);
+
 }
 
 sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(
@@ -152,7 +156,9 @@ sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(
       nullptr);  // init in the sutra_wfs_pyr_pyrhr::wfs_initarrays
   d_pupil_ngpu.push_back(this->d_pupil);
   d_submask_ngpu.push_back(this->d_submask);
-
+  dims_data2[1] = nfft;
+  dims_data2[2] = nfft;
+  this->d_modu_gather = new carma_obj<float>(current_context, dims_data2);
   for (int device = 1; device < nbdevices; device++) {
     current_context->set_activeDevice(device, 1);
     dims_data2[1] = nfft;
@@ -178,6 +184,7 @@ sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(
     dims_data2[2] = ntot;
     d_pupil_ngpu.push_back(new carma_obj<float>(context, dims_data2));
     d_screen_ngpu.push_back(new carma_obj<float>(context, dims_data2));
+
   }
 }
 
@@ -524,18 +531,18 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
 
   current_context->set_activeDevice(device, 1);
 
-  long dims_data2[3] = {2, nfft, nfft};
-  carma_obj<float> tmp_vector(current_context, dims_data2);
-
   for (std::vector<carma_obj<float> *>::iterator it =
            this->d_hrimg_ngpu.begin();
        this->d_hrimg_ngpu.end() != it; ++it) {
     if (*it != d_hrimg) {
+      current_context->set_activeDevice((*it)->getDevice(), 1);
+      cudaStreamSynchronize(0);
+      current_context->set_activeDevice(device, 1);
       if (current_context->canP2P(d_hrimg->getDevice(), (*it)->getDevice())) {
         d_hrimg->axpy(1.0f, (*it), 1, 1);
       } else {
-        tmp_vector.copyFrom((*it)->getData(), (*it)->getNbElem());
-        d_hrimg->axpy(1.0f, &tmp_vector, 1, 1);
+        d_modu_gather->copyFrom((*it)->getData(), (*it)->getNbElem());
+        d_hrimg->axpy(1.0f, d_modu_gather, 1, 1);
       }
     }
   }
@@ -549,8 +556,8 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
                                     (*it)->getDevice())) {
           d_pyrfocalplane->axpy(1.0f, (*it), 1, 1);
         } else {
-          tmp_vector.copyFrom((*it)->getData(), (*it)->getNbElem());
-          d_pyrfocalplane->axpy(1.0f, &tmp_vector, 1, 1);
+          d_modu_gather->copyFrom((*it)->getData(), (*it)->getNbElem());
+          d_pyrfocalplane->axpy(1.0f, d_modu_gather, 1, 1);
         }
       }
     }

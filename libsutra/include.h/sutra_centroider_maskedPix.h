@@ -69,7 +69,7 @@ class sutra_centroider_maskedPix : public sutra_centroider<Tin, T> {
   int get_maskedPix(float *img, float *intensities, T *centroids, int *subindx,
                     int *subindy, int nvalid, int ns);
   int get_cog(float *img, float *intensities, T *centroids, int nvalid,
-              int npix, int ntot);
+              int npix, int ntot, cudaStream_t stream=0);
   int get_cog(float *intensities, T *slopes, bool noise);
   int get_cog();
   int fill_selected_pix(carma_obj<T> *pix);

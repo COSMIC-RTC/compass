@@ -284,12 +284,7 @@ int sutra_controller_generic<T, Tout>::comp_com() {
     //                 current_context->get_device(device)->get_stream());
     // carmaSafeCall(cudaEventRecord(startEv));
     if(this->P2Pdevices.size() > 1) {
-      // First, we do the MVM for the first GPU where cmat_ngpu[0] is containing the full cmat
       n = this->nslope() / this->P2Pdevices.size();
-      carma_gemv(this->cublas_handle(), 'n', m, n, (T)(-1 * this->gain),
-            this->d_cmat_ngpu[0]->getData(), m, centroids->getData(), 1, T(1.f),
-            this->d_com->getData(), 1);
-      // Now, the rest of the GPUs where we can use cmat_gpu dimension as n
       int cc = n;
       int cpt = 1;
       for (auto dev_id : this->P2Pdevices) {
@@ -304,10 +299,22 @@ int sutra_controller_generic<T, Tout>::comp_com() {
           cpt ++;
           }
       }
-      // Finally, we reduce all the results
       this->current_context->set_activeDevice(this->device, 1);
-      for (int cpt = 1 ; cpt < this->P2Pdevices.size() ; cpt++) {
-        this->d_com->axpy(1.0f, this->d_err_ngpu[cpt - 1], 1,1);
+      n = this->nslope() / this->P2Pdevices.size();
+      carma_gemv(this->cublas_handle(), 'n', m, n, (T)(-1 * this->gain),
+            this->d_cmat_ngpu[0]->getData(), m, centroids->getData(), 1, T(1.f),
+            this->d_com->getData(), 1);
+      // Now, the rest of the GPUs where we can use cmat_gpu dimension as n
+      // Finally, we reduce all the results
+      cpt = 0;
+      for (auto dev_id : this->P2Pdevices) {
+        if(dev_id != this->device) {
+          this->current_context->set_activeDevice(dev_id, 1);
+          cudaStreamSynchronize(0);
+          this->current_context->set_activeDevice(this->device, 1);
+          this->d_com->axpy(1.0f, this->d_err_ngpu[cpt], 1,1);
+          cpt ++;
+        }
       }
     // carmaSafeCall(cudaEventRecord(stopEv));
     // carmaSafeCall(cudaEventSynchronize(stopEv));

@@ -104,7 +104,7 @@ template <class T>
 void get_centroids(int size, int threads, int blocks, int npix, float *d_img,
                    T *d_centroids, T *ref, int *validx, int *validy,
                    float *intensities, float scale, float offset,
-                   carma_device *device) {
+                   carma_device *device, cudaStream_t stream) {
   int maxThreads = device->get_properties().maxThreadsPerBlock;
   unsigned int nelem_thread = 1;
   while ((threads / nelem_thread > maxThreads) ||
@@ -119,36 +119,36 @@ void get_centroids(int size, int threads, int blocks, int npix, float *d_img,
   // when there is only one warp per block, we need to allocate two warps
   // worth of shared memory so that we don't index shared memory out of bounds
   if (threads <= 16)
-    centroids<T, 16><<<dimGrid, 16>>>(d_img, d_centroids, ref, validx, validy,
+    centroids<T, 16><<<dimGrid, 16, 0, stream>>>(d_img, d_centroids, ref, validx, validy,
                                       intensities, npix, size, T(scale),
                                       T(offset), nelem_thread);
   else if (threads <= 36)
-    centroids<T, 36><<<dimGrid, 36>>>(d_img, d_centroids, ref, validx, validy,
+    centroids<T, 36><<<dimGrid, 36, 0, stream>>>(d_img, d_centroids, ref, validx, validy,
                                       intensities, npix, size, T(scale),
                                       T(offset), nelem_thread);
 
   else if (threads <= 64)
-    centroids<T, 64><<<dimGrid, 64>>>(d_img, d_centroids, ref, validx, validy,
+    centroids<T, 64><<<dimGrid, 64, 0, stream>>>(d_img, d_centroids, ref, validx, validy,
                                       intensities, npix, size, T(scale),
                                       T(offset), nelem_thread);
   else if (threads <= 100)
-    centroids<T, 100><<<dimGrid, 100>>>(d_img, d_centroids, ref, validx, validy,
+    centroids<T, 100><<<dimGrid, 100, 0, stream>>>(d_img, d_centroids, ref, validx, validy,
                                         intensities, npix, size, T(scale),
                                         T(offset), nelem_thread);
   else if (threads <= 144)
-    centroids<T, 144><<<dimGrid, 144>>>(d_img, d_centroids, ref, validx, validy,
+    centroids<T, 144><<<dimGrid, 144, 0, stream>>>(d_img, d_centroids, ref, validx, validy,
                                         intensities, npix, size, T(scale),
                                         T(offset), nelem_thread);
   else if (threads <= 256)
-    centroids<T, 256><<<dimGrid, 256>>>(d_img, d_centroids, ref, validx, validy,
+    centroids<T, 256><<<dimGrid, 256, 0, stream>>>(d_img, d_centroids, ref, validx, validy,
                                         intensities, npix, size, T(scale),
                                         T(offset), nelem_thread);
   else if (threads <= 512)
-    centroids<T, 512><<<dimGrid, 512>>>(d_img, d_centroids, ref, validx, validy,
+    centroids<T, 512><<<dimGrid, 512, 0, stream>>>(d_img, d_centroids, ref, validx, validy,
                                         intensities, npix, size, T(scale),
                                         T(offset), nelem_thread);
   else if (threads <= 1024)
-    centroids<T, 1024><<<dimGrid, 1024>>>(d_img, d_centroids, ref, validx,
+    centroids<T, 1024><<<dimGrid, 1024, 0, stream>>>(d_img, d_centroids, ref, validx,
                                           validy, intensities, npix, size,
                                           T(scale), T(offset), nelem_thread);
   else
@@ -167,20 +167,20 @@ template void get_centroids<float>(int size, int threads, int blocks, int npix,
                                    float *d_img, float *d_centroids, float *ref,
                                    int *validx, int *validy, float *intensities,
                                    float scale, float offset,
-                                   carma_device *device);
+                                   carma_device *device, cudaStream_t stream);
 
 template void get_centroids<double>(int size, int threads, int blocks, int npix,
                                     float *d_img, double *d_centroids,
                                     double *ref, int *validx, int *validy,
                                     float *intensities, float scale,
-                                    float offset, carma_device *device);
+                                    float offset, carma_device *device, cudaStream_t stream);
 
 #ifdef CAN_DO_HALF
 template void get_centroids<half>(int size, int threads, int blocks, int npix,
                                   float *d_img, half *d_centroids, half *ref,
                                   int *validx, int *validy, float *intensities,
                                   float scale, float offset,
-                                  carma_device *device);
+                                  carma_device *device, cudaStream_t stream);
 #endif
 
 // template <class T>
