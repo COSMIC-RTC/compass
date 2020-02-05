@@ -159,7 +159,7 @@ class CompassSupervisor(AoSupervisor):
         if newmask.shape != self.config.p_wfss[wfsnum].get_halfxy().shape:
             print('Error : mask shape should be {}'.format(self.config.p_wfss[wfsnum].get_halfxy().shape))
         else:
-            self._sim.wfs.d_wfs[1].set_phalfxy(np.exp(1j * np.fft.fftshift(newmask)).astype(np.complex64).T)
+            self._sim.wfs.d_wfs[wfsnum].set_phalfxy(np.exp(1j * np.fft.fftshift(newmask)).astype(np.complex64).T)
 
     def setNoise(self, noise, numwfs=0, seed=1234):
         '''
@@ -185,6 +185,26 @@ class CompassSupervisor(AoSupervisor):
         Set or unset whether atmos is enabled when running loop (see singleNext)
         '''
         self._seeAtmos = enable
+
+    def setGlobalR0(self, r0, reset_seed=-1):
+        """
+        Change the current global r0 of all layers
+        :param r0 (float): r0 @ 0.5 µm
+        :param reset_seed (int): if -1 keep same seed and same screen
+                                if 0 random seed is applied and refresh screens
+                                if (value) set the given seed and refresh screens
+        """
+
+        self._sim.atm.set_global_r0(r0)
+        if reset_seed != -1:
+            if reset_seed == 0:
+                ilayer = np.random.randint(1e4)
+            else:
+                ilayer = reset_seed
+            for k in range(self._sim.atm.nscreens):
+                self._sim.atm.set_seed(k, 1234 + ilayer)
+                self._sim.atm.refresh_screen(k)
+                ilayer += 1
 
     def setGSmag(self, mag, numwfs=0):
         numwfs = int(numwfs)
