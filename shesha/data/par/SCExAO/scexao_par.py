@@ -58,7 +58,7 @@ p_wfs0.set_fracsub(0.0001) # was 0.8 before Vincent
 p_wfs0.set_xpos(0.)
 p_wfs0.set_ypos(0.)
 p_wfs0.set_Lambda(0.75) # pyramid wavelength on SCExAO - NB. on Sphere+ is about 0.5
-p_wfs0.set_gsmag(5.) # Guide star magnitude
+p_wfs0.set_gsmag(7.) # Guide star magnitude ! at =12 we have lots of photon noise
 p_wfs0.set_optthroughput(0.5) # Optiical throughput coefficient
 p_wfs0.set_zerop(1.e11)
 p_wfs0.set_noise(-1) # when =-1 there NO NOISE AT ALLLLLL
@@ -80,10 +80,11 @@ nact = 60
 p_dm0.set_nact(nact)
 p_dm0.set_alt(0.) # Layers altitudes
 p_dm0.set_thresh(0.3) # Threshold on response for selection of valid actuators. Expressed in fraction of the maximal response
-p_dm0.set_coupling(0.2)
+p_dm0.set_coupling(0.2) #valeur que prend la fonctiond'influence a l'endroit de l'actionneur voisin
 p_dm0.set_unitpervolt(1) # 
 p_dm0.set_push4imat(0.01) # Nominal voltage for imat, 
 p_dm0.set_margin_out(0.3) # pour adapter la taille de la pupille du DM a celle du WFS
+p_dm0.set_influType("radialSchwartz")
 
 p_dm1.set_type("tt")
 p_dm1.set_alt(0.)
@@ -107,4 +108,4 @@ p_controller0.set_nwfs([0])
 p_controller0.set_ndm([0, 1])
 p_controller0.set_maxcond(5.) # what determines the number of modes to be filtered
 p_controller0.set_delay(1)
-p_controller0.set_gain(0.4) 
+p_controller0.set_gain(0.5) 
