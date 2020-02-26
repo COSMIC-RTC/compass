@@ -324,7 +324,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
                     self.uiBench.wao_currentFreq.setValue(currentFreq)
                     self.refreshTime = start
             except:
-                print("error!!")
+                pass
             finally:
                 self.loopLock.release()
 
