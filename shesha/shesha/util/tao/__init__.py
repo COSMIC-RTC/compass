@@ -11,7 +11,7 @@ from shesha.util import fits_io
 from . import ltao
 from . import mcao
 from importlib import reload
-#reload(ltao)
+reload(ltao)
 reload(mcao)
 
 TILESIZE="1000"
