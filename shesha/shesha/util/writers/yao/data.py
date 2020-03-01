@@ -121,7 +121,6 @@ def write_data(fileName,sup,nwfs=-1,controllerId=0,composeType="controller"):
     hdul.writeto(fileName,overwrite=1)
 
 
-
 def composeImat(sup,composeType="controller",controllerId=0):
     if(composeType=="controller"):
         return sup.getImat(controllerId)

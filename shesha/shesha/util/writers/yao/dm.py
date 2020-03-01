@@ -57,4 +57,3 @@ def finish_dm(filename,ndm):
     f=open(filename,"a+")
     f.write("\n\nndm = "+str(ndm)+";")
     f.close()
-    
