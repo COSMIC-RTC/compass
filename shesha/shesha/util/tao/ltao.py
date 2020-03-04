@@ -11,7 +11,9 @@ def init(VARS,sup,nfilt=10):
 
     compute meta matrix of interaction / command and write parameter files
 
-    VARS
+    VARS    : dict              : tao settings variables
+    sup     : CompassSupervisor : compass supervisor
+    nfilt   : int               : number of Imat eigenvalues to filter out 
     """
  
     #compute meta imat 
@@ -19,7 +21,6 @@ def init(VARS,sup,nfilt=10):
     #get svd of (D.T*D) 
     SVD=cmats.svd_for_cmat(metaD) 
     #plt.plot(SVD[1]) 
-    nfilt=10 
     metaDx=cmats.get_cmat(metaD,nfilt=nfilt,svd=SVD) 
 
     #write MOAO pipeline inputs 
@@ -29,6 +30,14 @@ def init(VARS,sup,nfilt=10):
 
 
 def reconstructor(VARS,applyLog="./log"):
+    """Initialize the LTAO mode
+
+    compute meta matrix of interaction / command and write parameter files
+
+    VARS        : dict  : tao settings variables
+    applyLog    : str   : tao log file name
+    """
+    
     flags=VARS["STARPU_FLAGS"]
     taoPath=VARS["TAOPATH"]
     dataPath=VARS["INPUTPATH"]
