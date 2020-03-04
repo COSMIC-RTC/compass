@@ -9,8 +9,10 @@ from shesha.util import fits_io
 
 
 from . import ltao
+from . import mcao
 from importlib import reload
 #reload(ltao)
+reload(mcao)
 
 TILESIZE="1000"
 
@@ -93,7 +95,7 @@ def reconstructor(mod):
 
     mod : module    : AO mode requested (among: ltao , mcao)
     """
-    return mod.reconstructor(VARS,filename)
+    return mod.reconstructor(VARS)
 
 def updateCmat(sup, cmatFile):
     """ Update the compass command matrix from an input fits file
@@ -113,5 +115,9 @@ def run(sup,mod,nIter=1000,initialisation=0,reset=1):
     M=reconstructor(mod)
     if(reset):
         sup.reset()
-    sup.setCommandMatrix(M)
-    sup.loop(nIter)
+    cmatShape=sup.getCmat().shape
+    if(M.shape[0] != cmatShape[0] or M.shape[1] != cmatShape[1]):
+        print("ToR shape is not valid:\n\twaiting for:",cmatShape,"\n\tgot        :",M.shape)
+    else:
+        sup.setCommandMatrix(M)
+        sup.loop(nIter)
