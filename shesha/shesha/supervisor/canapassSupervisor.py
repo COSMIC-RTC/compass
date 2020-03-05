@@ -1095,11 +1095,11 @@ class CanapassSupervisor(CompassSupervisor):
         pfits.writeto(fullpath, data, overwrite=True)
 
     def recordCB(self, CBcount, subSample=1, tarnum=0, seeAtmos=True,
-                 tarPhaseFilePath="", NCPA=False, ncpawfs=None, refSlopes=None,
-                 ditchStrehl=True):
+                 cubeDataFilePath="", NCPA=False, ncpawfs=None, refSlopes=None,
+                 ditchStrehl=True, cubeDataType=None):
         slopesdata = None
         voltsdata = None
-        tarPhaseData = None
+        cubeData = None
         aiData = None
         k = 0
         srseList = []
@@ -1158,18 +1158,23 @@ class CanapassSupervisor(CompassSupervisor):
                     voltsdata = np.zeros((len(voltsVector), int(CBcount / subSample)))
                 voltsdata[:, k] = voltsVector
 
-                if (tarPhaseFilePath != ""):
-                    tarPhaseArray = self.getTargetPhase(tarnum)
-                    if (tarPhaseData is None):
-                        tarPhaseData = np.zeros((*tarPhaseArray.shape,
-                                                 int(CBcount / subSample)))
-                    tarPhaseData[:, :, k] = tarPhaseArray
+                if (cubeDataType):
+                    if(cubeDataType == "tarPhase"):
+                        dataArray = self.getTargetPhase(tarnum)
+                    elif(cubeDataType == "psfse"):
+                        dataArray = self.getTarImage(tarnum, "se")
+                    else:
+                        raise ValueError("unknown dataData" % cubeDataType)
+                    if (cubeData is None):
+                        cubeData = np.zeros((*dataArray.shape, int(CBcount / subSample)))
+                    cubeData[:, :, k] = dataArray
                 k += 1
-        if (tarPhaseFilePath != ""):
-            print("Saving tarPhase cube at: ", tarPhaseFilePath)
-            pfits.writeto(tarPhaseFilePath, tarPhaseData, overwrite=True)
+        if (cubeDataFilePath != ""):
+            print("Saving tarPhase cube at: ", cubeDataFilePath)
+            pfits.writeto(cubeDataFilePath, cubeData, overwrite=True)
+
         psfLE = self.getTarImage(tarnum, "le")
-        return slopesdata, voltsdata, aiData, psfLE, srseList, srleList, gNPCAList
+        return slopesdata, voltsdata, aiData, psfLE, srseList, srleList, gNPCAList, cubeData
 
     def recordCB_PyrFocPla_PSFSE(self, CBcount, starting_index, save_path,
                                  image_subSample=20, subSample=1, tarnum=0,

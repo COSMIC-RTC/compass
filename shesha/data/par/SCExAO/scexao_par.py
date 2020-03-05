@@ -76,7 +76,7 @@ p_dm1 = conf.Param_dm()
 p_dms = [p_dm0, p_dm1]
 p_dm0.set_type("pzt")
 # nact = p_wfs0.nxsub + 1
-nact = 60
+nact = 48 # was 60 before cf ALPAO 
 p_dm0.set_nact(nact)
 p_dm0.set_alt(0.) # Layers altitudes
 p_dm0.set_thresh(0.3) # Threshold on response for selection of valid actuators. Expressed in fraction of the maximal response

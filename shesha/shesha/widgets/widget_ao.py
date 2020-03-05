@@ -653,8 +653,9 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                                    signal_se, refreshFreq, currentFreq))
 
                     self.refreshTime = start
-            except:
-                pass
+            except Exception as e:
+                print(e)
+                print("error!!")
             finally:
                 self.loopLock.release()
 
