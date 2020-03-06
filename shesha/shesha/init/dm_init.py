@@ -139,7 +139,7 @@ def _dm_init(context: carmaWrap_context, dms: Dms, p_dm: conf.Param_dm, xpos_wfs
             # calcul defaut influsize
             make_pzt_dm(p_dm, p_geom, cobs, pupAngle, keepAllActu=keepAllActu)
         else:
-            init_pzt_from_hdf5(p_dm, p_geom, diam)
+            init_custom_dm(p_dm, p_geom, diam)
 
         # max_extent
         max_extent = max(max_extent, p_dm._n2 - p_dm._n1 + 1)
@@ -237,7 +237,7 @@ def _dm_init_factorized(context: carmaWrap_context, dms: Dms, p_dm: conf.Param_d
                                      ypos_wfs)
 
     if (p_dm.type == scons.DmType.PZT) and p_dm.file_influ_hdf5 is not None:
-        init_pzt_from_hdf5(p_dm, p_geom, diam)
+        init_custom_dm(p_dm, p_geom, diam)
     else:
         if (p_dm.type == scons.DmType.PZT):
             p_dm._pitch = patchDiam / float(p_dm.nact - 1)
@@ -506,8 +506,8 @@ def make_pzt_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, cobs: float,
     off = (dim - p_dm._influsize) // 2
 
 
-def init_pzt_from_hdf5(p_dm: conf.Param_dm, p_geom: conf.Param_geom, diam: float):
-    """Read HDF for influence pzt fonction and form
+def init_custom_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, diam: float):
+    """Read Fits for influence pzt fonction and form
 
     :parameters:
         p_dm: (Param_dm) : dm settings
@@ -517,22 +517,22 @@ def init_pzt_from_hdf5(p_dm: conf.Param_dm, p_geom: conf.Param_geom, diam: float
         diam: (float) : tel diameter
 
     Conversion. There are sereval coordinate systems.
-    Some are coming from the input h5 file, others from compass.
+    Some are coming from the input fits file, others from compass.
     Those systems differ by scales and offsets.
-    Coord systems from the input h5 file:
+    Coord systems from the input fits file:
         - they all have the same scale: the coordinates are expressed in
           pixels
-        - one system is the single common frame where h5 data are described [i]
+        - one system is the single common frame where fits data are described [i]
         - one is local to the minimap [l]
     Coord systems from compass:
-        - they all have the same scale (different from h5 one) expressed in
+        - they all have the same scale (different from fits one) expressed in
           pixels
         - one system is attached to ipupil (i=image, largest support) [i]
         - one system is attached to mpupil (m=medium, medium support) [m]
         - one system is local to minimap [l)]
     
     Variables will be named using
-    h, c: define either h5 or compass
+    f, c: define either fits or compass
     
     """
     from astropy.io import fits as pfits
@@ -546,23 +546,24 @@ def init_pzt_from_hdf5(p_dm: conf.Param_dm, p_geom: conf.Param_geom, diam: float
     pitchPix = hdul[0].header['PITCHPX']
     pitchMeters = hdul[0].header['PITCHM']
     hi_i1, hi_j1 = hdul[1].data
-    influ_h5 = hdul[2].data
-    
-    # facteur de conversion des coordonnees du fichier H5 vers les pixels
+    influ = hdul[2].data
+    xpos, ypos = hdul[3].data
+
+    # facteur de conversion des coordonnees du fichier Fits vers les pixels
     # de compass
     # pitchPixCompass = p_dm._pitch   # valeur du pitch entre actus en pixels de compass
     pitchPixCompass = pitchMeters / p_geom._pixsize
     scaleToCompass = pitchPixCompass / pitchPix
     
-    ##### decalage a rajouter, du h5 vers compass
-    # Compass = H5 * scaleToCompass + offsetToCompass
-    # on sait que (compass - centreCompass) = (H5-xC) * scaleToCompass
-    # et donc  offsetToCompass = centreCompass-xC*scaleToCompass
+    ##### decalage a rajouter, du fits vers compass
+    # Compass = Fits * scaleToCompass + offsetToCompass
+    # on sait que (compass - centreCompass) = (Fits-xC) * scaleToCompass
+    # et donc  offsetToCompass = centreCompass - xC*scaleToCompass
     offsetXToCompass = p_geom.cent - xC * scaleToCompass
     offsetYToCompass = p_geom.cent - yC * scaleToCompass
 
     ##### determination de la taille du support des IF dans compass
-    iSize, jSize, ntotact = influ_h5.shape
+    iSize, jSize, ntotact = influ.shape
     if iSize!=jSize:
         raise('Error')
     
@@ -602,10 +603,10 @@ def init_pzt_from_hdf5(p_dm: conf.Param_dm, p_geom: conf.Param_geom, diam: float
         ci_xpix = ci_i1 + np.arange(smallsize)
         ci_ypix = ci_j1 + np.arange(smallsize)
         # WARNING: les xpos et ypos sont approximatifs !! Bon pour debug only ...
-        p_dm._xpos[i] = ci_i1 + smallsize/2.0 
-        p_dm._ypos[i] = ci_j1 + smallsize/2.0 
+        # p_dm._xpos[i] = ci_i1 + smallsize/2.0 
+        # p_dm._ypos[i] = ci_j1 + smallsize/2.0 
         
-        f = interpolate.interp2d(ci_y, ci_x, influ_h5[:, :, i], kind='cubic')
+        f = interpolate.interp2d(ci_y, ci_x, influ[:, :, i], kind='cubic')
         temp = f(ci_ypix, ci_xpix) * p_dm.unitpervolt
         # temp[np.where(temp<1e-6)] = 0.
         p_dm._influ[:,:,i] = temp
@@ -619,6 +620,9 @@ def init_pzt_from_hdf5(p_dm: conf.Param_dm, p_geom: conf.Param_geom, diam: float
     tmp = p_geom.ssize - (np.max(p_dm._j1 + smallsize))
     margin_j = np.minimum(tmp, np.min(p_dm._j1))
 
+    p_dm._xpos = xpos * scaleToCompass + offsetXToCompass
+    p_dm._ypos = ypos * scaleToCompass + offsetYToCompass 
+
     p_dm._n1 = int(np.minimum(margin_i, margin_j))
     p_dm._n2 = p_geom.ssize - 1 - p_dm._n1
     
@@ -626,168 +630,6 @@ def init_pzt_from_hdf5(p_dm: conf.Param_dm, p_geom: conf.Param_geom, diam: float
     p_dm._j1 -= p_dm._n1
 
     comp_dmgeom(p_dm, p_geom)
-
-    ### On prend seulement les actionneurs dont on connait le réel xpos, ypos
-    # Pour cela on regarder la distance entre les xpos, ypos réels (fournis par le 
-    # fichier fits) et les xpos, ypos calculés avec le max des fonctions d'influences
-    
-    filename = "/home/abertrou/actu_M4_coord.fits"  
-    xactu, yactu = coordActuM4(filename)    # coordonnées réelles des actus
-    xactu = xactu / p_geom._pixsize + p_geom.cent
-    yactu = yactu / p_geom._pixsize + p_geom.cent
-    Nact_posfile = xactu.shape[0]
-    Nact_iffile = ntotact
-    Nact_posfile_seg = int(Nact_posfile / 6)
-    Nact_iffile_seg = int(Nact_iffile / 6)
-    delta_Nact_seg = np.abs(Nact_posfile_seg - Nact_iffile_seg)
-
-    if Nact_posfile > Nact_iffile:
-        # Il va falloir enlever des positions d'actionneurs xpos, ypos réels
-        # Mais on ne touche pas au reste (i1, j1, influ, ntotact, etc) :)
-        idpos = []    # pour stocker les positions d'actionneurs à garder
-        for i in np.arange(6):
-            # diffile = np.sqrt(ao.dm0.CsX[i*Nact_iffile_seg : (i+1) * Nact_iffile_seg]**2 + ao.dm0.CsY[i*Nact_iffile_seg : (i+1) * Nact_iffile_seg]**2)
-            # dposfile = np.sqrt(xactu[i*Nact_posfile_seg : (i+1)*Nact_posfile_seg - delta_Nact_seg]**2 + yactu[i*Nact_posfile_seg : (i+1)*Nact_posfile_seg - delta_Nact_seg]**2)
-            # deltad = np.abs(diffile - dposfile)
-            # idpos.append((-deltad).argsort()[:-delta_Nact_seg])
-            p_dm._xpos[i*Nact_iffile_seg : (i+1) * Nact_iffile_seg] = xactu[i*Nact_posfile_seg : (i+1)*Nact_posfile_seg - delta_Nact_seg]
-            p_dm._ypos[i*Nact_iffile_seg : (i+1) * Nact_iffile_seg] = yactu[i*Nact_posfile_seg : (i+1)*Nact_posfile_seg - delta_Nact_seg]
-    
-
-def coordActuM4(filename):
-    # lecture fichier data ESO pour 1 secteur
-    from astropy.io import fits as pfits
-    a = pfits.getdata( filename )
-
-    # extraction coord x et y pour 1 secteur.
-    # a contient 3 colonnes, faut virer la derniere et transposer
-    xy = a[:, 0:2].T
-    # nombre d'actus sur le secteur
-    nactu = xy.shape[1]
-
-    # creation des 5 autres secteurs et grandissement optique
-    G = 17.148 # c'est comme ca.
-    xyM4 = np.zeros((2,nactu*6))
-
-    for i in range(6):
-        ang = i * np.pi / 3.0
-        mrot = [[np.cos(ang), -np.sin(ang)],[np.sin(ang), np.cos(ang)]]
-        mrot = np.array(mrot) * G
-        xyM4[:,i*nactu:i*nactu+nactu] = mrot.dot(xy)
-
-    xactu = xyM4[0, :]
-    yactu = xyM4[1, :]
-
-    return xactu, yactu
-
-
-def init_pzt_from_hdf5_old(p_dm: conf.Param_dm, p_geom: conf.Param_geom, diam: float):
-    """Read HDF for influence pzt fonction and form
-
-    :parameters:
-        p_dm: (Param_dm) : dm settings
-
-        p_geom: (Param_geom) : geom settings
-
-        diam: (float) : tel diameter
-
-    """
-    # read h5 file for influence fonction
-    h5_tp = pd.read_hdf(p_dm.file_influ_hdf5, 'resAll')
-    print("Read Ifluence fonction in h5 : ", p_dm.file_influ_hdf5)
-
-    # cube_name
-    influ_h5 = h5_tp[p_dm.cube_name][0]
-
-    # x_name
-    xpos_h5 = h5_tp[p_dm.x_name][0]   # positions des actus/centre des fct d'influ en m. dans l'espace du DM   
-
-    # y_name
-    ypos_h5 = h5_tp[p_dm.y_name][0]
-
-    # center_name
-    center_h5 = h5_tp[p_dm.center_name][0]    # centre du dm en m.
-
-    # influ_res
-    res_h5 = h5_tp[p_dm.influ_res][0]   # résolution des fct d'influ du dm en m.
-    res_h5_m = (res_h5[0] + res_h5[1]) / 2.    # résolution des fct d'influ du dm en m.pix-1
-
-    # a introduire dm diameter
-    diam_dm_h5 = h5_tp[p_dm.diam_dm][0]    # diamètre physique du dm en m.
-    # diam_dm_h5 = [2.54,2.54] # metre
-    diam_dm_pup_h5 = h5_tp[p_dm.diam_dm_proj][0]    # diamètre projeté sur la pupille du dm en m.
-    # diam_dm_pup_h5 = [43.73,43.73] #metre
-
-    # soustraction du centre introduit
-    xpos_h5_0 = xpos_h5 - center_h5[0]   # positions des actus dans l'espace du DM, en m., recentrées sur le DM
-    ypos_h5_0 = ypos_h5 - center_h5[1]
-
-    # interpolation du centre (ajout du nouveau centre)
-    center = p_geom.cent   # centre de la pupille en pix [tient compte du "-0.5"] 
-
-    # calcul de la resolution de la pupille
-    res_compass = diam / p_geom.pupdiam    # résolution compass en m.pix-1 
-
-    # interpolation des coordonnées en pixel avec ajout du centre
-    # passage des coordonnées des actus en m dans l'espace du DM, à des pixels dans l'espace de la pupille
-    xpos = (xpos_h5_0 * (diam_dm_pup_h5[0] / diam_dm_h5[0])) / res_compass + center
-    ypos = (ypos_h5_0 * (diam_dm_pup_h5[1] / diam_dm_h5[1])) / res_compass + center
-
-    # interpolation des fonction d'influence
-
-    influ_size_h5 = influ_h5.shape[0]
-    ninflu = influ_h5.shape[2]
-    # number of actuator
-    print("Actuator number in H5 data : ", ninflu)
-    p_dm._ntotact = np.int(ninflu)
-
-    x = np.arange(influ_size_h5) * res_h5_m * (diam / diam_dm_h5[0])    # support des fct d'influ importées, projetés sur la pupille, en m.
-    y = np.arange(influ_size_h5) * res_h5_m * (diam / diam_dm_h5[1])
-    xmax = max(x)   # max de la taille du support des fct d'influ, en m. ou directement: xmax = influ_size_h5 * res_h5_m * (diam / diam_dm_h5[0])
-    ymax = max(y)
-    xnew = np.arange(0, xmax, res_compass)  # nouveau support des fct d'influ, avec la même taille en m. mais une résolution en m.pix-1 compatible avec compass
-    # Attention: le nouveau support physique (c'est à dire en m.) sera plus petit que le support initial !! il faudrait plutôt jouer sur le nombre de pixels
-    xnew = xnew + (xmax - max(xnew)) / 2.   # Attention cette ligne sert à "recentrer" l'erreur faite par la ligne précédente
-    ynew = np.arange(0, ymax, res_compass)
-    ynew = ynew + (ymax - max(ynew)) / 2.
-    influ_size = xnew.shape[0]
-
-    # creation du ouveaux cube d'influance
-    influ_new = np.zeros((influ_size, influ_size, ninflu))
-
-    for i in range(ninflu):
-
-        influ = influ_h5[:, :, i]
-        f = interpolate.interp2d(x, y, influ, kind='cubic')
-        influ_new[:, :, i] = f(xnew, ynew)
-
-    p_dm._xpos = np.float32(xpos)
-    p_dm._ypos = np.float32(ypos)
-
-    # def influence size
-    print("influence size in pupil : ", np.int(influ_size), "pixel")
-    p_dm._influsize = np.int(influ_size)
-
-    # def influente fonction normalize by unitpervolt
-    p_dm._influ = np.float32(influ_new) * p_dm.unitpervolt
-
-    # Def dm limite (n1 and n2)
-    extent = (max(xpos) - min(xpos)) + (influ_size * 2)
-    p_dm._n1, p_dm._n2 = dm_util.dim_dm_support(p_geom.cent, extent, p_geom.ssize)
-    # refaire la definition du pitch pour n_actuator
-    #inbigcirc = n_actuator_select(p_dm,p_tel,xpos-center[0],ypos-center[1])
-    #print('nb = ',np.size(inbigcirc))
-    #p_dm._ntotact = np.size(inbigcirc)
-
-    # i1, j1 calc :
-
-    p_dm._i1 = (p_dm._xpos - p_dm._influsize / 2. - 0.5 - p_dm._n1).astype(np.int32)
-    p_dm._j1 = (p_dm._ypos - p_dm._influsize / 2. - 0.5 - p_dm._n1).astype(np.int32)
-
-    comp_dmgeom(p_dm, p_geom)
-
-    dim = max(p_geom._mpupil.shape[0], p_dm._n2 - p_dm._n1 + 1)
-    off = (dim - p_dm._influsize) // 2
 
 
 def make_tiptilt_dm(p_dm: conf.Param_dm, patchDiam: int, p_geom: conf.Param_geom,
