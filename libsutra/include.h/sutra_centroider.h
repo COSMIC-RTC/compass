@@ -109,6 +109,7 @@ public:
   int load_img(Tin *img, int n, int location);
   int load_img(Tin *img, int m, int n, int location);
   int load_img(carma_obj<Tin> *img);
+  int init_img_raw(int m, int n);
   int get_validMask();
   bool is_type(string typec) { return (typec.compare(get_type()) == 0); }
   int init_TT_filter();

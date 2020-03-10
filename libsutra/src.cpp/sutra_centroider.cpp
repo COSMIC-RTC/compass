@@ -124,13 +124,15 @@ int sutra_centroider<Tin, Tout>::set_nxsub(int nxsub) {
 template <class Tin, class Tout>
 int sutra_centroider<Tin, Tout>::init_calib(int n, int m) {
   current_context->set_activeDevice(device, 1);
+  long dims_data2[3] = {2, n, m};
+  if (this->d_img == nullptr) {
+    this->d_img = new carma_obj<float>(current_context, dims_data2);
+  }
   if (this->d_dark == nullptr) {
-    long dims_data2[3] = {2, n, m};
     this->d_dark = new carma_obj<float>(current_context, dims_data2);
     this->d_dark->reset();
   }
   if (this->d_flat == nullptr) {
-    long dims_data2[3] = {2, n, m};
     this->d_flat = new carma_obj<float>(current_context, dims_data2);
     this->d_flat->memSet(1.f);
   }
@@ -217,7 +219,7 @@ int sutra_centroider<Tin, Tout>::calibrate_img(cudaStream_t stream) {
     return EXIT_FAILURE;
   }
 
-  const long *dims = this->d_img->getDims();
+  const long *dims = this->d_img_raw->getDims();
   init_calib(dims[1], dims[2]);
 
   calibration<Tin>(this->d_img_raw->getData(), this->d_img->getData(),
@@ -246,17 +248,21 @@ int sutra_centroider<Tin, Tout>::load_img(Tin *img, int n, int location) {
 template <class Tin, class Tout>
 int sutra_centroider<Tin, Tout>::load_img(Tin *img, int m, int n,
                                           int location) {
-  current_context->set_activeDevice(device, 1);
-  if (this->d_img_raw == nullptr) {
-    long dims_data2[3] = {2, m, n};
-    this->d_img_raw = new carma_obj<Tin>(current_context, dims_data2);
-    this->d_img = new carma_obj<float>(current_context, dims_data2);
-  }
-
+  init_img_raw(m, n);
   if (location < 0) {  // img data on host
     this->d_img_raw->host2device(img);
   } else {  // img data on device
     this->d_img_raw->copyFrom(img, this->d_img_raw->getNbElem());
+  }
+  return EXIT_SUCCESS;
+}
+
+template <class Tin, class Tout>
+int sutra_centroider<Tin, Tout>::init_img_raw(int m, int n) {
+  current_context->set_activeDevice(device, 1);
+  if (this->d_img_raw == nullptr) {
+    long dims_data2[3] = {2, m, n};
+    this->d_img_raw = new carma_obj<Tin>(current_context, dims_data2);
   }
   return EXIT_SUCCESS;
 }

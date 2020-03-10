@@ -311,6 +311,16 @@ void centroider_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("n"), py::arg("m"))
 
+      .def("init_img_raw", wy::colCast(&centroider::init_img_raw), R"pbdoc(
+        Initialize array to store raw WFS image in RTC standalone mode
+
+        Parameters
+        ------------
+        n: (int): image support height
+        m: (int): image support width
+    )pbdoc",
+           py::arg("n"), py::arg("m"))
+
       .def("set_lutPix", wy::colCast(&centroider::set_lutPix), R"pbdoc(
         Set the lookup Table Pixel vector for calibration
 
