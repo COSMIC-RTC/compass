@@ -13,4 +13,5 @@ def write_targets(filename,tars,subSystem=1):
     f.write("\ntarget.lambda       = &("+ np.array2string(np.array([t.Lambda for t in tars]),separator=',',max_line_width=300)+");") #&([0.55]);
     f.write("\ntarget.xposition    = &("+ np.array2string(np.array([t.xpos for t in tars]),separator=',',max_line_width=300)+");") # &mmsepos_asec1;
     f.write("\ntarget.yposition    = &("+ np.array2string(np.array([t.ypos for t in tars]),separator=',',max_line_width=300)+");") # &mmsepos_asec2;
-    f.write("\ntarget.dispzoom     = &([1]) ; // not set by compass")#+ np.array2string(np.array([t.mag for t in tars]),separator=',',max_line_width=300)+";)") #  &array(5.0,numberof(mmsepos_asec1));
+    dispzoom=np.ones((len(tars)))
+    f.write("\ntarget.dispzoom     = &("+ np.array2string(dispzoom,separator=',',max_line_width=300)+") ; // not set by compass")#+ np.array2string(np.array([t.mag for t in tars]),separator=',',max_line_width=300)+";)") #  &array(5.0,numberof(mmsepos_asec1));

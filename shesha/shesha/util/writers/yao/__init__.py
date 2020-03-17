@@ -28,13 +28,19 @@ def write_parfiles(sup, paramfile="./yao.par",
     write_general(paramfile,conf.p_geom,conf.p_controllers[0],conf.p_tel,conf.simul_name)
     wfs_offset=0
     dm_offset=0
+    ndm=init_dm(paramfile)
     for subSyst, c in enumerate(conf.p_controllers):
         dms =[ conf.p_dms[i]  for i in c.get_ndm() ]
-        wfss=[ conf.p_wfss[i] for i in c.get_nwfs()]
-        write_dms (paramfile,dms ,subSystem=subSyst+1,offset=dm_offset)
-        write_wfss(paramfile,wfss,subSystem=subSyst+1,nwfs=nwfs,offset=wfs_offset)
-        wfs_offset=wfs_offset+len(wfss)
+        ndm+=write_dms (paramfile,dms ,subSystem=subSyst+1,offset=dm_offset)
         dm_offset=dm_offset+len(dms)
+    finish_dm(paramfile,ndm)
+    gs=init_wfs(paramfile)
+    for subSyst, c in enumerate(conf.p_controllers):
+        wfss=[ conf.p_wfss[i] for i in c.get_nwfs()]
+        nngs,nlgs=write_wfss(paramfile,wfss,subSystem=subSyst+1,nwfs=nwfs,offset=wfs_offset)
+        gs=(gs[0]+nngs,gs[1]+nlgs)
+        wfs_offset=wfs_offset+len(wfss)
+    finish_wfs(paramfile,gs[0],gs[1])
     write_targets(paramfile,conf.p_targets)
     write_gs(paramfile,zerop,lgsreturnperwatt,conf.p_geom.zenithangle)
     write_atm(paramfile,conf.p_atmos,screenfile)

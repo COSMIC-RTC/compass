@@ -2,6 +2,14 @@ import numpy as np
 
 YAO_WFSTYPE={"sh":"\"hartmann\"", "pyrhr":"\"pyramid\""}
 
+def init_wfs(filename):
+    f=open(filename,"a+")
+    f.write("\n\n//------------------------------")
+    f.write("\n//WFS parameters")
+    f.write("\n//------------------------------")
+    f.write("\nwfs = [];")
+    return (0,0)
+
 def write_wfs(filename,wfs,index,subSystem=1):
     """Write (append) wfs parameter to file for YAO use for a single wfs
 
@@ -10,6 +18,7 @@ def write_wfs(filename,wfs,index,subSystem=1):
     """
     obj="wfs("+str(index)+")"
     f=open(filename,"a+")
+    f.write("\ngrow,wfss,;")
     f.write("\n"+obj+".type           = "+YAO_WFSTYPE[wfs.type]+";")
     f.write("\n"+obj+".subsystem     = "+ str(subSystem)+";")
     f.write("\n"+obj+".shmethod      = 2" +";")
@@ -57,22 +66,22 @@ def write_wfss(filename,wfss,nwfs=-1,subSystem=1,offset=0):
             nngs+=1
     nwfs=nngs+nlgs
     f=open(filename,"a+")
-    f.write("\n\n//------------------------------")
-    f.write("\n//WFS parameters")
-    f.write("\n//------------------------------")
-    f.write("\nnngs = "+str(nngs)+";")
-    f.write("\nnlgs = "+str(nlgs)+";")
-    f.write("\nnwfs = "+str(nwfs)+";")
-    f.write("\nwfs = array(wfss,nwfs);")
 
     i=1
     for w in wfss[:nwfs] :
-        f.write("\n\n//WFS"+str(i))
+        f.write("\n\n//WFS"+str(i+offset))
         f.flush()
         write_wfs(filename,w,i+offset,subSystem=subSystem)
         i+=1
 
     f.close()
+    return (nngs,nlgs)
 
 ################################
 
+def finish_wfs(filename,nngs,nlgs):
+    f=open(filename,"a+")
+    f.write("\n\nnngs = "+str(nngs)+";")
+    f.write("\nnlgs = "+str(nlgs)+";")
+    f.write("\nnwfs = "+str(nngs+nlgs)+";")
+    f.close()
