@@ -18,7 +18,7 @@ p_geom.set_zenithangle(0.)
 # TEL
 p_tel = conf.Param_tel()
 p_tel.set_diam(8.0)
-p_tel.set_cobs(0.12)
+p_tel.set_cobs(0.)
 
 ###################
 # ATMOS

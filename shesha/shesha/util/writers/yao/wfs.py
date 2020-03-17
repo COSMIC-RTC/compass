@@ -39,7 +39,7 @@ def write_wfs(filename,wfs,index,subSystem=1):
     f.close()
 
 
-def write_wfss(filename,wfss,nwfs=-1,subSystem=1):
+def write_wfss(filename,wfss,nwfs=-1,subSystem=1,offset=0):
     """Write (append) wfs parameter to file for YAO use for a wfs list
 
     filename : str             : name of the file to append the parameter to
@@ -69,7 +69,7 @@ def write_wfss(filename,wfss,nwfs=-1,subSystem=1):
     for w in wfss[:nwfs] :
         f.write("\n\n//WFS"+str(i))
         f.flush()
-        write_wfs(filename,w,i)
+        write_wfs(filename,w,i+offset,subSystem=subSystem)
         i+=1
 
     f.close()

@@ -26,10 +26,17 @@ def write_parfiles(sup, paramfile="./yao.par",
 
     print("writing parameter file to "+paramfile)
     write_general(paramfile,conf.p_geom,conf.p_controllers[0],conf.p_tel,conf.simul_name)
-    write_wfss(paramfile,conf.p_wfss,nwfs=nwfs)
-    write_dms(paramfile,conf.p_dms)
+    wfs_offset=0
+    dm_offset=0
+    for subSyst, c in enumerate(conf.p_controllers):
+        dms =[ conf.p_dms[i]  for i in c.get_ndm() ]
+        wfss=[ conf.p_wfss[i] for i in c.get_nwfs()]
+        write_dms (paramfile,dms ,subSystem=subSyst+1,offset=dm_offset)
+        write_wfss(paramfile,wfss,subSystem=subSyst+1,nwfs=nwfs,offset=wfs_offset)
+        wfs_offset=wfs_offset+len(wfss)
+        dm_offset=dm_offset+len(dms)
     write_targets(paramfile,conf.p_targets)
+    write_gs(paramfile,zerop,lgsreturnperwatt,conf.p_geom.zenithangle)
     write_atm(paramfile,conf.p_atmos,screenfile)
     write_loop(paramfile,conf.p_loop,conf.p_controllers[0])
-    write_gs(paramfile,zerop,lgsreturnperwatt,conf.p_geom.zenithangle)
     write_data(fitsfile,sup,nwfs=nwfs)

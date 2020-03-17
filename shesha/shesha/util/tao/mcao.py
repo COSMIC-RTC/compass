@@ -8,7 +8,7 @@ from shesha.util import write_sysParam
 from shesha.util import fits_io
 
 
-def init(VARS,sup,nfilt=110):
+def init(VARS,sup,nfilt=110,WFS="all",DM_TT=False):
     """Initialize the MOAO mode
 
     compute meta matrix of interaction / command and write parameter files
@@ -29,7 +29,7 @@ def init(VARS,sup,nfilt=110):
     #write MOAO pipeline inputs
     dataPath=VARS["INPUTPATH"]
 
-    write_sysParam.generate_files(sup,dataPath,singleFile=True,dm_tt=False,WFS="all")
+    write_sysParam.generate_files(sup,dataPath,singleFile=True,dm_tt=False,WFS=WFS)
     write_sysParam.write_metaDx(metaDx,nTS=sup.config.NTS,path=dataPath)
 
 
