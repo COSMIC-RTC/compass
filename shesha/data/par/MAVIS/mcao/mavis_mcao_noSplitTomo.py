@@ -50,7 +50,7 @@ for t in np.arange(NTAR):
     p_targets[t].set_Lambda( 0.55)
     p_targets[t].set_mag(10.)
     #1 DM per target: pzt
-    p_targets[t].set_dms_seen([0,1,2,3])
+    p_targets[t].set_dms_seen([0,1,2])#,3])
     #2 DM per target: pzt + tt
     #p_targets[t].set_dms_seen(np.array([t,NTAR]))
 
@@ -60,7 +60,7 @@ for t in np.arange(NTAR):
 RADIUS      = 17.5
 FRACSUB     = 0.8
 NXSUB_LGS   = 40
-NXSUB_NGS   = 1
+NXSUB_NGS   = 40
 NXSUB_TAR   = max(NXSUB_LGS,NXSUB_NGS)
 NLGS        = 8
 NNGS        = 3
@@ -140,16 +140,15 @@ for p_wfs in p_wfs_ngs:
     if( k >= NNGS):
         nxsub=NXSUB_TAR
         p_wfs.set_fracsub(FRACSUB)
-        p_wfs.set_npix(8)
     else:
         nxsub=NXSUB_NGS
-        #p_wfs.set_fracsub(FRACSUB)
-        p_wfs.set_fracsub(0.)
-        p_wfs.set_npix(20)
-        p_wfs.set_is_low_order(True)
+        p_wfs.set_fracsub(FRACSUB)
+        #p_wfs.set_fracsub(0.)
+        #p_wfs.set_is_low_order(True)
 
     p_wfs.set_type("sh")
     p_wfs.set_nxsub(nxsub)
+    p_wfs.set_npix(8)
     p_wfs.set_pixsize(0.5)
 
     p_wfs.set_Lambda(0.589)
@@ -173,7 +172,7 @@ p_dm0 = conf.Param_dm()
 p_dm1 = conf.Param_dm()
 p_dm2 = conf.Param_dm()
 p_dm3 = conf.Param_dm()
-p_dms = [p_dm0 , p_dm1, p_dm2, p_dm3]
+p_dms = [p_dm0 , p_dm1, p_dm2]#, p_dm3]
 #adding target DMs
 p_dm0.set_type("pzt")
 p_dm0.set_nact(41)
@@ -199,10 +198,10 @@ p_dm2.set_coupling(0.3)
 p_dm2.set_unitpervolt(1)
 p_dm2.set_push4imat(1)
 
-p_dm3.set_type("tt")
-p_dm3.set_alt(0.)
-p_dm3.set_unitpervolt(0.0005)
-p_dm3.set_push4imat(10.)
+#p_dm3.set_type("pzt")
+#p_dm3.set_alt(0.)
+#p_dm3.set_unitpervolt(0.0005)
+#p_dm3.set_push4imat(10.)
 
 
 ###################
@@ -222,21 +221,13 @@ for p_centroider in p_centroiders:
 ###################
 # CONTROLLERS
 p_controller0 = conf.Param_controller()
-p_controller1 = conf.Param_controller()
-p_controllers = [p_controller0, p_controller1]
+p_controllers = [p_controller0]
 
 p_controller0.set_type("generic")
-p_controller0.set_nwfs(np.arange(NLGS))
-#p_controller0.set_ndm(list(range(len(p_dms)-1)))
-p_controller0.set_ndm([0,1,2])
+p_controller0.set_nwfs(np.arange(NLGS+NNGS))
+p_controller0.set_ndm(list(range(len(p_dms))))
 p_controller0.set_maxcond(150.)
-p_controller0.set_delay(1.)
-p_controller0.set_gain(0.4)
+p_controller0.set_delay(2.)
+p_controller0.set_gain(0.3)
 
-p_controller1.set_type("ls")
-p_controller1.set_nwfs(np.arange(NNGS)+NLGS)
-#p_controller1.set_ndm([len(p_dms)-1])
-p_controller1.set_ndm([3])
-p_controller1.set_maxcond(15000.)
-p_controller1.set_delay(1.)
-p_controller1.set_gain(0.1)
+

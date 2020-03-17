@@ -64,7 +64,8 @@ def get_yao_actuPos(sup):
     nactuPos=np.zeros((2,np.sum(nactu)))
     ind=0
     for dm in range(len(config.p_dms)):
-        nactuPos[0,ind:ind+nactu[dm]],nactuPos[1,ind:ind+nactu[dm]]=get_yao_actuPos_single(sup,dm)
+        if(sup.config.p_dms[dm].type !="tt"):
+            nactuPos[0,ind:ind+nactu[dm]],nactuPos[1,ind:ind+nactu[dm]]=get_yao_actuPos_single(sup,dm)
         ind+=nactu[dm]
     return nactu.astype(np.int32),nactuPos.astype(np.float64)
 

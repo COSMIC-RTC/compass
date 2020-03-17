@@ -68,7 +68,7 @@ def check():
     return stop
 
 
-def init(sup,mod):
+def init(sup,mod,WFS="all",DM_TT=False):
     """ Set up the compass loop
 
     set the interaction matrix, loop gain and write parameter files for TAO
@@ -88,7 +88,7 @@ def init(sup,mod):
     #update gain
     sim.rtc.d_control[0].set_gain(conf.p_controllers[0].gain)
 
-    mod.init(VARS,sup)
+    mod.init(VARS,sup,DM_TT=DM_TT,WFS=WFS)
 
 def reconstructor(mod):
     """ Compute the TAO reconstructor for a given AO mode
@@ -108,10 +108,10 @@ def updateCmat(sup, cmatFile):
     return M
 
 
-def run(sup,mod,nIter=1000,initialisation=0,reset=1):
+def run(sup,mod,nIter=1000,initialisation=0,reset=1,WFS="all",DM_TT=False):
     check()
     if(initialisation):
-        init(sup,mod)
+        init(sup,mod,WFS=WFS,DM_TT=DM_TT)
     M=reconstructor(mod)
     if(reset):
         sup.reset()
