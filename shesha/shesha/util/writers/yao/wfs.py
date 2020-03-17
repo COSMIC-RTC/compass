@@ -7,7 +7,6 @@ def init_wfs(filename):
     f.write("\n\n//------------------------------")
     f.write("\n//WFS parameters")
     f.write("\n//------------------------------")
-    f.write("\nwfs = [];")
     return (0,0)
 
 def write_wfs(filename,wfs,index,subSystem=1):
@@ -18,7 +17,7 @@ def write_wfs(filename,wfs,index,subSystem=1):
     """
     obj="wfs("+str(index)+")"
     f=open(filename,"a+")
-    f.write("\ngrow,wfss,;")
+    f.write("\ngrow,wfs,wfss;")
     f.write("\n"+obj+".type           = "+YAO_WFSTYPE[wfs.type]+";")
     f.write("\n"+obj+".subsystem     = "+ str(subSystem)+";")
     f.write("\n"+obj+".shmethod      = 2" +";")

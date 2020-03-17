@@ -6,7 +6,6 @@ def init_dm(filename):
     f.write("\n\n//------------------------------")
     f.write("\n//DM  parameters")
     f.write("\n//------------------------------")
-    f.write("\ndm = [];")
     f.close()
     return 0
     
