@@ -25,7 +25,7 @@ def write_parfiles(sup, paramfile="./yao.par",
     lgsreturnperwatt=max([w.lgsreturnperwatt for w in conf.p_wfss])
 
     print("writing parameter file to "+paramfile)
-    write_general(paramfile,conf.p_geom,conf.p_controllers[0],conf.p_tel,conf.simul_name)
+    write_general(paramfile,conf.p_geom,conf.p_controllers,conf.p_tel,conf.simul_name)
     wfs_offset=0
     dm_offset=0
     ndm=init_dm(paramfile)
