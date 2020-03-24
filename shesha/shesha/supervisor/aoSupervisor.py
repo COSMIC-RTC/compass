@@ -35,7 +35,7 @@
 #  You should have received a copy of the GNU Lesser General Public License along with COMPASS.
 #  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 
-from .abstractSupervisor import AbstractSupervisor
+from shesha.supervisor.abstractSupervisor import AbstractSupervisor
 from shesha.constants import CentroiderType
 import numpy as np
 from tqdm import trange

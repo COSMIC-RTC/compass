@@ -45,7 +45,7 @@ with 'parameters_filename' the path to the parameters file
 Options:
   -h --help          Show this help message and exit
 """
-from .aoSupervisor import AoSupervisor
+from shesha.supervisor.aoSupervisor import AoSupervisor
 import numpy as np
 
 import shesha.constants as scons

@@ -42,7 +42,7 @@ from shesha.init.dm_init import dm_init_standalone
 from shesha.init.rtc_init import rtc_standalone
 from shesha.sutra_wrap import carmaWrap_context
 
-from .aoSupervisor import AoSupervisor
+from shesha.supervisor.aoSupervisor import AoSupervisor
 
 from typing import Callable
 

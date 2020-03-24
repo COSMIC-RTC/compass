@@ -61,7 +61,7 @@ import shesha.constants as scons
 from shesha.constants import CentroiderType, WFSType
 
 from typing import Any, Dict, Tuple, Callable, List
-from .compassSupervisor import CompassSupervisor
+from shesha.supervisor.compassSupervisor import CompassSupervisor
 
 # from carmaWrap.obj import obj_Double2D
 # from carmaWrap.magma import syevd_Double, svd_host_Double
