@@ -1,7 +1,7 @@
 ## @package   shesha.supervisor.compassSupervisor
 ## @brief     Initialization and execution of a COMPASS supervisor
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   4.4.0
+## @version   4.4.1
 ## @date      2011/01/28
 ## @copyright GNU Lesser General Public License
 #
@@ -157,9 +157,11 @@ class CompassSupervisor(AoSupervisor):
         Set a mask in the Fourier Plane of the given WFS
         """
         if newmask.shape != self.config.p_wfss[wfsnum].get_halfxy().shape:
-            print('Error : mask shape should be {}'.format(self.config.p_wfss[wfsnum].get_halfxy().shape))
+            print('Error : mask shape should be {}'.format(
+                    self.config.p_wfss[wfsnum].get_halfxy().shape))
         else:
-            self._sim.wfs.d_wfs[wfsnum].set_phalfxy(np.exp(1j * np.fft.fftshift(newmask)).astype(np.complex64).T)
+            self._sim.wfs.d_wfs[wfsnum].set_phalfxy(
+                    np.exp(1j * np.fft.fftshift(newmask)).astype(np.complex64).T)
 
     def setNoise(self, noise, numwfs=0, seed=1234):
         '''

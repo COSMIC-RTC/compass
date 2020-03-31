@@ -1,7 +1,7 @@
 ## @package   shesha.supervisor.canapassSupervisor
 ## @brief     Initialization and execution of a CANAPASS supervisor
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   4.4.0
+## @version   4.4.1
 ## @date      2011/01/28
 ## @copyright GNU Lesser General Public License
 #
@@ -1159,9 +1159,9 @@ class CanapassSupervisor(CompassSupervisor):
                 voltsdata[:, k] = voltsVector
 
                 if (cubeDataType):
-                    if(cubeDataType == "tarPhase"):
+                    if (cubeDataType == "tarPhase"):
                         dataArray = self.getTargetPhase(tarnum)
-                    elif(cubeDataType == "psfse"):
+                    elif (cubeDataType == "psfse"):
                         dataArray = self.getTarImage(tarnum, "se")
                     else:
                         raise ValueError("unknown dataData" % cubeDataType)

@@ -1,7 +1,7 @@
 ## @package   shesha.init.dm_init
 ## @brief     Initialization of a Dms object
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   4.4.0
+## @version   4.4.1
 ## @date      2011/01/28
 ## @copyright GNU Lesser General Public License
 #
@@ -530,15 +530,15 @@ def init_custom_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, diam: float):
         - one system is attached to ipupil (i=image, largest support) [i]
         - one system is attached to mpupil (m=medium, medium support) [m]
         - one system is local to minimap [l)]
-    
+
     Variables will be named using
     f, c: define either fits or compass
-    
+
     """
     from astropy.io import fits as pfits
 
     # read fits file
-    hdul = pfits.open( p_dm.file_influ_hdf5 )
+    hdul = pfits.open(p_dm.file_influ_hdf5)
     print("Read influence function from fits file : ", p_dm.file_influ_hdf5)
 
     xC = hdul[0].header['XCENTER']
@@ -554,7 +554,7 @@ def init_custom_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, diam: float):
     # pitchPixCompass = p_dm._pitch   # valeur du pitch entre actus en pixels de compass
     pitchPixCompass = pitchMeters / p_geom._pixsize
     scaleToCompass = pitchPixCompass / pitchPix
-    
+
     ##### decalage a rajouter, du fits vers compass
     # Compass = Fits * scaleToCompass + offsetToCompass
     # on sait que (compass - centreCompass) = (Fits-xC) * scaleToCompass
@@ -564,18 +564,18 @@ def init_custom_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, diam: float):
 
     ##### determination de la taille du support des IF dans compass
     iSize, jSize, ntotact = influ.shape
-    if iSize!=jSize:
-        raise('Error')
-    
+    if iSize != jSize:
+        raise ('Error')
+
     ess1 = np.ceil((hi_i1+iSize) * scaleToCompass + offsetXToCompass) \
         - np.floor(hi_i1 * scaleToCompass + offsetXToCompass)
     ess1 = np.max(ess1)
-    
+
     ess2 = np.ceil((hi_j1+jSize) * scaleToCompass + offsetYToCompass) \
         - np.floor(hi_j1 * scaleToCompass + offsetYToCompass)
     ess2 = np.max(ess2)
     smallsize = np.maximum(ess1, ess2).astype(int)
-    
+
     # Allocate influence function maps and other arrays
     p_dm._ntotact = ntotact
     p_dm._influsize = np.int(smallsize)
@@ -594,22 +594,23 @@ def init_custom_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, diam: float):
         # transfert des coord d'origine vers systeme compass
         ci_x = hi_x * scaleToCompass + offsetXToCompass
         ci_y = hi_y * scaleToCompass + offsetYToCompass
-    
+
         # Creation des coord de destination dans systeme compass
-        ci_i1 = hi_i1[i] * scaleToCompass + offsetXToCompass  # itruc = truc dans repere ipup
+        ci_i1 = hi_i1[
+                i] * scaleToCompass + offsetXToCompass  # itruc = truc dans repere ipup
         ci_j1 = hi_j1[i] * scaleToCompass + offsetYToCompass
         ci_i1 = np.floor(ci_i1).astype(np.int32)
         ci_j1 = np.floor(ci_j1).astype(np.int32)
         ci_xpix = ci_i1 + np.arange(smallsize)
         ci_ypix = ci_j1 + np.arange(smallsize)
         # WARNING: les xpos et ypos sont approximatifs !! Bon pour debug only ...
-        # p_dm._xpos[i] = ci_i1 + smallsize/2.0 
-        # p_dm._ypos[i] = ci_j1 + smallsize/2.0 
-        
+        # p_dm._xpos[i] = ci_i1 + smallsize/2.0
+        # p_dm._ypos[i] = ci_j1 + smallsize/2.0
+
         f = interpolate.interp2d(ci_y, ci_x, influ[:, :, i], kind='cubic')
         temp = f(ci_ypix, ci_xpix) * p_dm.unitpervolt
         # temp[np.where(temp<1e-6)] = 0.
-        p_dm._influ[:,:,i] = temp
+        p_dm._influ[:, :, i] = temp
 
         # ....
         p_dm._i1[i] = ci_i1
@@ -621,11 +622,11 @@ def init_custom_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, diam: float):
     margin_j = np.minimum(tmp, np.min(p_dm._j1))
 
     p_dm._xpos = xpos * scaleToCompass + offsetXToCompass
-    p_dm._ypos = ypos * scaleToCompass + offsetYToCompass 
+    p_dm._ypos = ypos * scaleToCompass + offsetYToCompass
 
     p_dm._n1 = int(np.minimum(margin_i, margin_j))
     p_dm._n2 = p_geom.ssize - 1 - p_dm._n1
-    
+
     p_dm._i1 -= p_dm._n1
     p_dm._j1 -= p_dm._n1
 

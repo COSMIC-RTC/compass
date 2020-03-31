@@ -1,7 +1,7 @@
 ## @package   shesha.supervisor.aoSupervisor
 ## @brief     Abstract layer for initialization and execution of a AO supervisor
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   4.4.0
+## @version   4.4.1
 ## @date      2011/01/28
 ## @copyright GNU Lesser General Public License
 #
@@ -568,9 +568,10 @@ class AoSupervisor(AbstractSupervisor):
                 listTargetsYpos.append(root.config.p_targets[k].ypos)
                 listTargetsMag.append(root.config.p_targets[k].mag)
                 listTargetsDmsSeen.append(list(root.config.p_targets[k].dms_seen))
-                PSFPixsize = (root.config.p_targets[k].Lambda* 1e-6) / (root.config.p_geom._pixsize*root.config.p_geom.get_ipupil().shape[0]) * 206265.
+                PSFPixsize = (root.config.p_targets[k].Lambda * 1e-6) / (
+                        root.config.p_geom._pixsize *
+                        root.config.p_geom.get_ipupil().shape[0]) * 206265.
                 listTARGETS_pixsize.append(PSFPixsize)
-
 
             aodict.update({"listTARGETS_Lambda": listTargetsLambda})
             aodict.update({"listTARGETS_Xpos": listTargetsXpos})
