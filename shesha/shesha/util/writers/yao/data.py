@@ -70,7 +70,7 @@ def get_yao_actuPos(sup):
     return nactu.astype(np.int32),nactuPos.astype(np.float64)
 
 
-def write_data(fileName,sup,nwfs=-1,controllerId=0):
+def write_data(fileName,sup,nwfs=-1,controllerId=0,composeType="controller"):
     """ Write data for yao compatibility
 
     sup : compass supervisor 
@@ -104,7 +104,8 @@ def write_data(fileName,sup,nwfs=-1,controllerId=0):
     hdu_actuPos=fits.ImageHDU(actuPos,name="ACTUPOS")
 
     #IMAT
-    hdu_imat=fits.ImageHDU(sup.getImat(),name="IMAT")
+    imat=composeImat(sup,composeType,controllerId)
+    hdu_imat=fits.ImageHDU(imat,name="IMAT")
 
     #CMAT
     hdu_cmat=fits.ImageHDU(sup.getCmat(),name="CMAT")
@@ -120,3 +121,26 @@ def write_data(fileName,sup,nwfs=-1,controllerId=0):
     hdul.writeto(fileName,overwrite=1)
 
 
+
+def composeImat(sup,composeType="controller",controllerId=0):
+    if(composeType=="controller"):
+        return sup.getImat(controllerId)
+    elif(composeType=="splitTomo"):
+        nact=0
+        nmeas=0
+        for c in range(len(sup.config.p_controllers)):
+            imShape=sup.getImat(c).shape
+            nmeas+=imShape[0]
+            nact +=imShape[1]
+        imat=np.zeros((nmeas,nact))
+        nmeas=0
+        nact=0
+        for c in range(len(sup.config.p_controllers)):
+            im=sup.getImat(c)
+            imat[nmeas:nmeas+im.shape[0],nact:nact+im.shape[1]]=np.copy(im)
+            nmeas+=im.shape[0]
+            nact+=im.shape[1]
+        return imat
+
+    else:
+        print("Unknown composition type")

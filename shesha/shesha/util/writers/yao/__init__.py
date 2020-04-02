@@ -11,7 +11,8 @@ from .data    import *
 def write_parfiles(sup, paramfile="./yao.par",
                         fitsfile="./yao.fits",
                         screenfile="./yao_screen",
-                        nwfs=-1):
+                        nwfs=-1,
+                        imatType="controller"):
     """Write parameter files for YAO simulations
 
     sup         : CompassSupervisor :
@@ -45,4 +46,4 @@ def write_parfiles(sup, paramfile="./yao.par",
     write_gs(paramfile,zerop,lgsreturnperwatt,conf.p_geom.zenithangle)
     write_atm(paramfile,conf.p_atmos,screenfile)
     write_loop(paramfile,conf.p_loop,conf.p_controllers[0])
-    write_data(fitsfile,sup,nwfs=nwfs)
+    write_data(fitsfile,sup,nwfs=nwfs,composeType=imatType)

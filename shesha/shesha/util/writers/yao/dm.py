@@ -28,7 +28,7 @@ def write_dm(filename,dm,index,subSystem=1,offset=0):
 
     if(dm.type != "tt"):
         f.write("\n"+obj+".nxact         = "+str(dm.nact)+";")
-        f.write("\n"+obj+".pitch         = "+str(int(dm._pitch))+";")#+sim.pupildiam/wfs(n).shnxsub)
+        f.write("\n"+obj+".pitch         = "+str(dm._pitch)+";")
         f.write("\n"+obj+".thresholdresp = "+str(dm.thresh)+";")
         f.write("\n"+obj+".pitchMargin   = "+str(2.2)+"; // not set by compass")
         f.write("\n"+obj+".elt           = "+str(1)+"; // not set by compass")
