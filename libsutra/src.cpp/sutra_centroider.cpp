@@ -69,7 +69,12 @@ sutra_centroider<Tin, Tout>::sutra_centroider(carma_context *context,
   this->d_intensities->reset();
 
   this->d_centroids_ref = nullptr;
-  this->d_img = nullptr;
+  if(this->wfs != nullptr) {
+    this->d_img = this->wfs->d_binimg;
+  }
+  else {
+    this->d_img = nullptr;
+  }
   this->d_img_raw = nullptr;
   this->d_validx = nullptr;
   this->d_validy = nullptr;
@@ -88,7 +93,7 @@ template <class Tin, class Tout>
 sutra_centroider<Tin, Tout>::~sutra_centroider() {
   if (this->d_intensities != nullptr) delete this->d_intensities;
   if (this->d_centroids_ref != nullptr) delete this->d_centroids_ref;
-  if (this->d_img != nullptr) delete this->d_img;
+  if (this->wfs == nullptr && this->d_img != nullptr) delete this->d_img;
   if (this->d_img_raw != nullptr) delete this->d_img_raw;
   if (this->d_validx != nullptr) delete this->d_validx;
   if (this->d_validy != nullptr) delete this->d_validy;

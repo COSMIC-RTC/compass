@@ -88,9 +88,9 @@ class AoSupervisor(AbstractSupervisor):
         Get an image from the WFS (wfs[0] by default)
         '''
         if (calPix):
-            if self.rtc.d_centro[numWFS].d_img is None:
+            if self.rtc.d_centro[numWFS].d_dark is None: # Simulation case
                 return np.array(self._sim.wfs.d_wfs[numWFS].d_binimg)
-            if self.rtc.d_centro[numWFS].type == CentroiderType.MASKEDPIX:
+            if self.rtc.d_centro[numWFS].type == CentroiderType.MASKEDPIX: # Standalone case
                 #     self.rtc.d_centro[numWFS].fill_selected_pix(
                 #             self.rtc.d_control[0].d_centroids)
                 #     return np.array(self.rtc.d_centro[numWFS].d_selected_pix)
@@ -102,10 +102,10 @@ class AoSupervisor(AbstractSupervisor):
                         self.rtc.d_centro[numWFS].d_img)[np.where(mask)]
                 return mask
             return np.array(self.rtc.d_centro[numWFS].d_img)
-        else:
-            if self.rtc.d_centro[numWFS].d_img is None:
+        else: 
+            if self.rtc.d_centro[numWFS].d_dark is None: # Simulation case
                 return np.array(self._sim.wfs.d_wfs[numWFS].d_binimg)
-            return np.array(self.rtc.d_centro[numWFS].d_img_raw)
+            return np.array(self.rtc.d_centro[numWFS].d_img_raw) # Standalone case
 
     def getAllDataLoop(self, nIter: int, slope: bool, command: bool, target: bool,
                        intensity: bool, targetPhase: bool) -> np.ndarray:
