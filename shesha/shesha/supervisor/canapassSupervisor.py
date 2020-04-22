@@ -38,12 +38,14 @@
 Initialization and execution of a CANAPASS supervisor
 
 Usage:
-  canapassSupervisor.py [<parameters_filename>]
+  canapassSupervisor.py <parameters_filename> [options]
 
 with 'parameters_filename' the path to the parameters file
 
 Options:
-  -h --help          Show this help message and exit
+  -h, --help          Show this help message and exit
+  -f, --freq freq       toto
+  -d, --delay delay     tata
 """
 
 import os, sys
@@ -1002,7 +1004,6 @@ class CanapassSupervisor(CompassSupervisor):
         '''
         Set the scalar gain of feedback controller loop
         '''
-        print("canapass")
         if type(gain) in [int, float]:
             self._sim.rtc.d_control[0].set_gain(gain)
         else:
@@ -1337,6 +1338,12 @@ if __name__ == '__main__':
     from docopt import docopt
     arguments = docopt(__doc__)
     supervisor = CanapassSupervisor(arguments["<parameters_filename>"], cacao=True)
+    if (arguments["--freq"]):
+        print("Warning changed frequency loop to: ", arguments["--freq"])
+        supervisor.config.p_loop.set_ittime(1 / float(arguments["--freq"]))
+    if (arguments["--delay"]):
+        print("Warning changed delay loop to: ", arguments["--delay"])
+        supervisor.config.p_controllers[0].set_delay(float(arguments["--delay"]))
     supervisor.initConfig()
 
     try:
