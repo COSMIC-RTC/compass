@@ -490,6 +490,7 @@ def init_controller_ls(i: int, p_controller: conf.Param_controller, p_wfss: list
 
         IF = basis.compute_IFsparse(dms, p_dms, p_geom).T
         M2V, _ = basis.compute_Btt(IF[:, :-2], IF[:, -2:].toarray())
+        M2V = M2V[:, list(range(p_controller.nmodes - 2)) + [-2, -1]]
 
         rtc.d_control[i].init_modalOpti(p_controller.nmodes, p_controller.nrec, M2V,
                                         p_controller.gmin, p_controller.gmax,
