@@ -125,5 +125,57 @@ void declare_tscreen(py::module &mod) {
 
       .def_property_readonly(
           "d_screen", [](sutra_tscreen &st) { return st.d_tscreen->d_screen; },
-          "Turbulent phase screen");
+          "Turbulent phase screen")
+
+      //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
+      //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝
+      //  ███████╗█████╗     ██║      ██║   █████╗  ██████╔╝███████╗
+      //  ╚════██║██╔══╝     ██║      ██║   ██╔══╝  ██╔══██╗╚════██║
+      //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
+      //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
+      //
+      .def(
+          "set_deltax", &sutra_tscreen::set_deltax,
+          R"pbdoc(
+        Set the screen movement along the X-axis at each iteration in pixels
+
+        Parameters:
+
+            deltax: (float) :  Number of columns to add at each iteration
+      )pbdoc",
+          py::arg("deltax"))
+
+      .def(
+          "set_deltay", &sutra_tscreen::set_deltay,
+          R"pbdoc(
+        Set the screen movement along the Y-axis at each iteration in pixels
+
+        Parameters:
+
+            deltay: (float) :  Number of lines to add at each iteration
+      )pbdoc",
+          py::arg("deltay"))
+
+      .def(
+          "set_istencilx", wy::colCast(&sutra_tscreen::set_istencilx),
+          R"pbdoc(
+        Set the stencil along the X-Axis
+
+        Parameters:
+
+            stencil: (np.array) :  Stencil along the X-axis
+      )pbdoc",
+          py::arg("stencil"))
+
+      .def(
+          "set_istencily", wy::colCast(&sutra_tscreen::set_istencily),
+          R"pbdoc(
+        Set the stencil along the Y-Axis
+
+        Parameters:
+
+            stencil: (np.array) :  Stencil along the Y-axis
+      )pbdoc",
+          py::arg("stencil"))
+;
 };

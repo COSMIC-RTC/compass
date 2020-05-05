@@ -92,6 +92,10 @@ class sutra_tscreen {
   int generate_vk(float l0, int nalias);
   int refresh_screen();
   int set_seed(int seed);
+  int set_deltax(float deltax);
+  int set_deltay(float deltay);
+  int set_istencilx(unsigned int* istencil);
+  int set_istencily(unsigned int* istencil);
 };
 
 int gene_vonkarman(cuFloatComplex *d_odata, float *d_idata, float k0,

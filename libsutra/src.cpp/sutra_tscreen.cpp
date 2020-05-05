@@ -238,6 +238,32 @@ int sutra_tscreen::extrude(int dir) {
   return EXIT_SUCCESS;
 }
 
+int sutra_tscreen::set_deltax(float deltax) {
+  this->deltax = deltax;
+  this->accumx = 0;
+
+  return EXIT_SUCCESS;
+} 
+
+int sutra_tscreen::set_deltay(float deltay) {
+  this->deltay = deltay;
+  this->accumy = 0;
+
+  return EXIT_SUCCESS;
+} 
+
+int sutra_tscreen::set_istencilx(unsigned int* istencil) {
+  this->d_istencilx->host2device(istencil);
+
+  return EXIT_SUCCESS;
+} 
+
+int sutra_tscreen::set_istencily(unsigned int* istencil) {
+  this->d_istencily->host2device(istencil);
+
+  return EXIT_SUCCESS;
+} 
+
 //  ██╗   ██╗███╗   ██╗██╗   ██╗███████╗███████╗██████╗
 //  ██║   ██║████╗  ██║██║   ██║██╔════╝██╔════╝██╔══██╗
 //  ██║   ██║██╔██╗ ██║██║   ██║███████╗█████╗  ██║  ██║
