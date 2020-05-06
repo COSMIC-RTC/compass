@@ -5,29 +5,34 @@
 //  All rights reserved.
 //  Distributed under GNU - LGPL
 //
-//  COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-//  General Public License as published by the Free Software Foundation, either version 3 of the License,
-//  or any later version.
+//  COMPASS is free software: you can redistribute it and/or modify it under the
+//  terms of the GNU Lesser General Public License as published by the Free
+//  Software Foundation, either version 3 of the License, or any later version.
 //
 //  COMPASS: End-to-end AO simulation tool using GPU acceleration
-//  The COMPASS platform was designed to meet the need of high-performance for the simulation of AO systems.
+//  The COMPASS platform was designed to meet the need of high-performance for
+//  the simulation of AO systems.
 //
-//  The final product includes a software package for simulating all the critical subcomponents of AO,
-//  particularly in the context of the ELT and a real-time core based on several control approaches,
-//  with performances consistent with its integration into an instrument. Taking advantage of the specific
-//  hardware architecture of the GPU, the COMPASS tool allows to achieve adequate execution speeds to
-//  conduct large simulation campaigns called to the ELT.
+//  The final product includes a software package for simulating all the
+//  critical subcomponents of AO, particularly in the context of the ELT and a
+//  real-time core based on several control approaches, with performances
+//  consistent with its integration into an instrument. Taking advantage of the
+//  specific hardware architecture of the GPU, the COMPASS tool allows to
+//  achieve adequate execution speeds to conduct large simulation campaigns
+//  called to the ELT.
 //
-//  The COMPASS platform can be used to carry a wide variety of simulations to both testspecific components
-//  of AO of the E-ELT (such as wavefront analysis device with a pyramid or elongated Laser star), and
-//  various systems configurations such as multi-conjugate AO.
+//  The COMPASS platform can be used to carry a wide variety of simulations to
+//  both testspecific components of AO of the E-ELT (such as wavefront analysis
+//  device with a pyramid or elongated Laser star), and various systems
+//  configurations such as multi-conjugate AO.
 //
-//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
-//  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-//  See the GNU Lesser General Public License for more details.
+//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY
+//  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+//  FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+//  details.
 //
-//  You should have received a copy of the GNU Lesser General Public License along with COMPASS.
-//  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
+//  You should have received a copy of the GNU Lesser General Public License
+//  along with COMPASS. If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 // -----------------------------------------------------------------------------
 
 //! \file      obj.hpp
@@ -131,13 +136,13 @@ struct CarmaObjInterfacer {
           obj.swapPtr(obj2.getData());
         }, "TODO",
              py::arg("ptr"))  // TODO do the documentation...
-        // int wait_all_streams()
+    // int wait_all_streams()
 #ifdef USE_OCTOPUS
         .def("swapPtr", [](Class &obj, ipc::Cacao<T> &obj2){
           obj.swapPtr(obj2.inputPtr());
         }, "TODO",
              py::arg("ptr"))  // TODO do the documentation...
-        // int wait_all_streams()
+    // int wait_all_streams()
 #endif
         .def("wait_all_streams", &Class::wait_all_streams,
              "TODO")  // TODO do the documentation...
@@ -262,6 +267,26 @@ struct CarmaObjInterfacer {
 
         // void gemv(char trans, T_data alpha, carma_obj<T_data> *matA, int lda,
         //           carma_obj<T_data> *vectx, int incx, T_data beta, int incy);
+        .def("magma_gemv",
+             [](Class &mat, Class &vectx, T alpha, char op, Class *vecty,
+                T beta) {
+               if (vecty == nullptr) {
+                 long dims[] = {1, 0};
+                 if (op == 'N' || op == 'n') {
+                   dims[1] = mat.getDims(1);
+                 } else {
+                   dims[1] = mat.getDims(2);
+                 }
+                 vecty = new Class(mat.getContext(), dims);
+                 vecty->reset();
+               }
+               carma_magma_gemv(op, mat.getDims(1), mat.getDims(2), alpha, mat.getData(), mat.getDims(1), vectx.getData(), 1, beta, vecty->getData(), 1);
+               return vecty;
+             },
+             "this method performs one of the matrix‐vector operations vecty = "
+             "alpha * op(mat) * vectx + beta * vecty",
+             py::arg("vectx"), py::arg("alpha") = 1, py::arg("op") = 'N',
+             py::arg("vecty") = nullptr, py::arg("beta") = 0)  // &Class::gemv)
         .def("gemv",
              [](Class &mat, Class &vectx, T alpha, char op, Class *vecty,
                 T beta) {
@@ -273,6 +298,7 @@ struct CarmaObjInterfacer {
                    dims[1] = mat.getDims(2);
                  }
                  vecty = new Class(mat.getContext(), dims);
+                 vecty->reset();
                }
                vecty->gemv(op, alpha, &mat, mat.getDims(1), &vectx, 1, beta, 1);
                return vecty;
@@ -295,6 +321,7 @@ struct CarmaObjInterfacer {
                    dims[1] = mat.getDims(2);
                  }
                  vecty = new carma_obj<half>(mat.getContext(), dims);
+                 vecty->reset();
                }
                vecty->gemv(op, __float2half(alpha), &mat, mat.getDims(1),
                            &vectx, 1, __float2half(beta), 1);
@@ -313,6 +340,7 @@ struct CarmaObjInterfacer {
                if (mat == nullptr) {
                  long dims[] = {2, vectx.getNbElem(), vecty.getNbElem()};
                  mat = new Class(vectx.getContext(), dims);
+                 mat->reset();
                }
                mat->ger(alpha, &vectx, 1, &vecty, 1, vectx.getNbElem());
                return mat;
@@ -331,6 +359,7 @@ struct CarmaObjInterfacer {
                if (vecty == nullptr) {
                  long dims[] = {1, lda};
                  vecty = new Class(mat.getContext(), dims);
+                 vecty->reset();
                }
                vecty->symv(uplo, alpha, &mat, lda, &vectx, 1, beta, 1);
                return vecty;
@@ -366,6 +395,7 @@ struct CarmaObjInterfacer {
                if (matC == nullptr) {
                  long dims[] = {2, m, n};
                  matC = new Class(matA.getContext(), dims);
+                 matC->reset();
                }
 
                carma_gemm<T>(matA.getContext()->get_cublasHandle(), op_a, op_b,
@@ -424,6 +454,7 @@ struct CarmaObjInterfacer {
                if (matC == nullptr) {
                  long dims[] = {2, n, n};
                  matC = new Class(matA.getContext(), dims);
+                 matC->reset();
                }
                carma_syrk<T>(matA.getContext()->get_cublasHandle(), fill, op, n,
                              k, alpha, matA, matA.getDims(1), beta, *matC,
@@ -450,6 +481,7 @@ struct CarmaObjInterfacer {
                if (matC == nullptr) {
                  long dims[] = {2, n, n};
                  matC = new Class(matA.getContext(), dims);
+                 matC->reset();
                }
                carma_syrkx<T>(matA.getContext()->get_cublasHandle(), fill, op,
                               n, k, alpha, matA, matA.getDims(1), matB,
@@ -478,6 +510,7 @@ struct CarmaObjInterfacer {
                if (matC == nullptr) {
                  long dims[] = {2, m, n};
                  matC = new Class(matA.getContext(), dims);
+                 matC->reset();
                }
                carma_geam<T>(matA.getContext()->get_cublasHandle(), opA, opB, m,
                              n, alpha, matA, matA.getDims(1), beta, matB,
@@ -494,6 +527,7 @@ struct CarmaObjInterfacer {
                if (matC == nullptr) {
                  long dims[] = {2, matA.getDims(1), matA.getDims(2)};
                  matC = new Class(matA.getContext(), dims);
+                 matC->reset();
                }
                carma_dgmm<T>(matA.getContext()->get_cublasHandle(), side,
                              matA.getDims(1), matA.getDims(2), matA,
