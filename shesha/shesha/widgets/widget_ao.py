@@ -171,7 +171,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         self.uiBase.wao_DisplayDock.setFloating(False)
 
         if expert:
-            from .widget_ao_expert import WidgetAOExpert
+            from shesha.widgets.widget_ao_expert import WidgetAOExpert
             self.expertWidget = WidgetAOExpert()
             # self.expertWidget.setupUi(self)
             self.addDockWidget(
