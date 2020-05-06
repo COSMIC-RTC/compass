@@ -44,8 +44,8 @@ with 'parameters_filename' the path to the parameters file
 
 Options:
   -h, --help          Show this help message and exit
-  -f, --freq freq       toto
-  -d, --delay delay     tata
+  -f, --freq freq       change the frequency of the loop
+  -d, --delay delay     change the delay of the loop
 """
 
 import os, sys
@@ -751,7 +751,6 @@ class CanapassSupervisor(CompassSupervisor):
         pwfs.set_pyr_cx(cx)
         pwfs.set_pyr_cy(cy)
         wfs.d_wfs[nwfs].set_pyr_modulation(cx, cy, pyr_npts)
-
         # RTC scale units to be updated ????
         #scale = pwfs.Lambda * 1e-6 / p_tel.diam * ampli * 180. / np.pi * 3600.
         #rtc.d_centro[nwfs].set_scale(scale)
