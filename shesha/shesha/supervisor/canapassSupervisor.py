@@ -77,26 +77,6 @@ class CanapassSupervisor(CompassSupervisor):
     def __init__(self, configFile: str = None, cacao: bool = True) -> None:
         CompassSupervisor.__init__(self, configFile=configFile, cacao=cacao)
 
-
-    """
-          ____ ___  __  __ ____   _    ____ ____
-         / ___/ _ \|  \/  |  _ \ / \  / ___/ ___|
-        | |  | | | | |\/| | |_) / _ \ \___ \___ \
-        | |__| |_| | |  | |  __/ ___ \ ___) |__) |
-         \____\___/|_|  |_|_| /_/   \_\____/____/
-         ____  _   _ ____  _____ ______     _____ ____   ___  ____
-        / ___|| | | |  _ \| ____|  _ \ \   / /_ _/ ___| / _ \|  _ \
-        \___ \| | | | |_) |  _| | |_) \ \ / / | |\___ \| | | | |_) |
-         ___) | |_| |  __/| |___|  _ < \ V /  | | ___) | |_| |  _ <
-        |____/ \___/|_|   |_____|_| \_\ \_/  |___|____/ \___/|_| \_\
-         __  __ _____ _____ _   _  ___  ____  ____
-        |  \/  | ____|_   _| | | |/ _ \|  _ \/ ___|
-        | |\/| |  _|   | | | |_| | | | | | | \___ \
-        | |  | | |___  | | |  _  | |_| | |_| |___) |
-        |_|  |_|_____| |_| |_| |_|\___/|____/|____/
-    """
-
-
     def getConfig(self):
         ''' Returns the configuration in use, in a supervisor specific format '''
         return CompassSupervisor.getConfig(self)

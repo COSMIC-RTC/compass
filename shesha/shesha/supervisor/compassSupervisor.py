@@ -484,12 +484,24 @@ class CompassSupervisor(AoSupervisor):
         return if_sparse
 
     def setNcpaWfs(self, ncpa, wfsnum):
+        """
+        sets the additional fixed phase in the WFS path. 
+
+        ncpa must be of the same size of the Mpupil support (see also getMpupil())
+        """
         self._sim.wfs.d_wfs[wfsnum].d_gs.set_ncpa(ncpa)
 
     def setNcpaTar(self, ncpa, tarnum):
+        """
+        sets the additional fixed phase in the TARGET path. 
+
+        ncpa must be of the same size of the Spupil support (see also getSpupil())
+        """
         self._sim.tar.d_targets[tarnum].set_ncpa(ncpa)
 
     def setWfsPhase(self, numwfs, phase):
+
+
         self._sim.wfs.d_wfs[numwfs].d_gs.set_phase(phase)
 
     def setMpupil(self, mpupil, numwfs=0):
@@ -530,9 +542,6 @@ class CompassSupervisor(AoSupervisor):
         self.resetDM()
         self.openLoop(rst=rst)
         self.closeLoop()
-
-
-
 
 
     def setDmCommand(self, numdm, volts):
@@ -1455,22 +1464,24 @@ class CompassSupervisor(AoSupervisor):
         seeAtmos: used for the next function to enable or not the Atmos
         cubeDataType:  if  specified ("tarPhase" or "psfse") returns the target phase or short exposure PSF data cube in the output variable
         cubeDataFilePath: if specified it will also save the target phase cube data (full path on the server) 
+        
         NCPA: !!experimental!!!: Used only in the context of PYRWFS + NCPA compensation on the fly (with optical gain)
         defines how many iters the NCPA refslopes are updates with the proper optical gain. Ex: if NCPA=10 refslopes will be updates every 10 iters.
-        ncpawfs: the ncpa phase as seen from the wfs array with dims = []
+        ncpawfs: the ncpa phase as seen from the wfs array with dims = size of Mpupil
+        refSlopes: the reference slopes to use. 
 
+        DitchStrehl: resets the long exposure SR computation at the beginning of the Circular buffer (default= True)
 
+        ----- Outputs ----- : 
 
-        Returns: 
-        slopes, 
-        volts, 
-        ai modal coefficient, 
-        psfLE: Long exposure PSF over the <CBcount> iterations (I.e SR is reset at the begining of the CB)
-        
-        
-         srseList, srleList, gNPCAList, cubeData
-
-
+        slopes: the slopes CB
+        volts: the volts applied to the DM(s) CB
+        ai: the modal coefficient of the residual phase projected on the currently used modal Basis
+        psfLE: Long exposure PSF over the <CBcount> iterations (I.e SR is reset at the begining of the CB if ditchStrehl=True)
+        srseList: The SR short exposure evolution during CB recording
+        srleList: The SR long exposure evolution during CB recording
+        gNPCAList: the gain applied to the NCPA (PYRWFS CASE) if NCPA is set to True
+        cubeData: the tarPhase or psfse cube data (see cubeDataType)
         """
         slopesdata = None
         voltsdata = None
