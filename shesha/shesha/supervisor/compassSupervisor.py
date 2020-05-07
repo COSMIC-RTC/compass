@@ -1127,17 +1127,22 @@ class CompassSupervisor(AoSupervisor):
 
 
     def computeModalResiduals(self):
+        """
+        Computes the modal residuals coefficients of the residual phase.
+
+        Uses the P matrix computed from getModes2VBasis
+
+        Requires to use Rocket
+        Author: FV
+        """
         self._sim.doControl(1, 0)
-        v = self.getCom(
-                1
-        )  # We compute here the residual phase on the DM modes. Gives the Equivalent volts to apply/
+        v = self.getCom(1)  # We compute here the residual phase on the DM modes. Gives the Equivalent volts to apply/
         if (self.P is None):
             self.modalBasis, self.P = self.getModes2VBasis("Btt")
         if (self.selectedActus is None):
             ai = self.P.dot(v) * 1000.  # np rms units
         else:  # Slaving actus case
-            v2 = v[:-2][list(
-                    self.selectedActus)]  # If actus are slaved then we select them.
+            v2 = v[:-2][list(self.selectedActus)]  # If actus are slaved then we select them.
             v3 = v[-2:]
             ai = self.P.dot(np.concatenate((v2, v3))) * 1000.
         return ai
@@ -1348,6 +1353,9 @@ class CompassSupervisor(AoSupervisor):
 
     def generate_pseudo_source(self, radius, additional_psf=0, density=1.):
         """
+
+        Used to generate a pseudo source for PYRWFS
+
         Author: MG
         """
 
@@ -1431,8 +1439,39 @@ class CompassSupervisor(AoSupervisor):
 
 
     def recordCB(self, CBcount, subSample=1, tarnum=0, seeAtmos=True,
-                 cubeDataFilePath="", NCPA=False, ncpawfs=None, refSlopes=None,
-                 ditchStrehl=True, cubeDataType=None):
+                 cubeDataType=None, cubeDataFilePath="", NCPA=False, ncpawfs=None, refSlopes=None,
+                 ditchStrehl=True):
+
+        """
+
+        Used to record a synchronized circular buffer AO loop data. 
+
+        ----- Inputs ----- : 
+
+        CBcount: the number of iterations to record. 
+        subSample: sub sampling of the data (default=1, I.e no subsampling)
+        tarnum: target number
+        tarnum: target number
+        seeAtmos: used for the next function to enable or not the Atmos
+        cubeDataType:  if  specified ("tarPhase" or "psfse") returns the target phase or short exposure PSF data cube in the output variable
+        cubeDataFilePath: if specified it will also save the target phase cube data (full path on the server) 
+        NCPA: !!experimental!!!: Used only in the context of PYRWFS + NCPA compensation on the fly (with optical gain)
+        defines how many iters the NCPA refslopes are updates with the proper optical gain. Ex: if NCPA=10 refslopes will be updates every 10 iters.
+        ncpawfs: the ncpa phase as seen from the wfs array with dims = []
+
+
+
+        Returns: 
+        slopes, 
+        volts, 
+        ai modal coefficient, 
+        psfLE: Long exposure PSF over the <CBcount> iterations (I.e SR is reset at the begining of the CB)
+        
+        
+         srseList, srleList, gNPCAList, cubeData
+
+
+        """
         slopesdata = None
         voltsdata = None
         cubeData = None
