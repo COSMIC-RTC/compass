@@ -36,13 +36,13 @@
 #  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 
 from shesha.supervisor.abstractSupervisor import AbstractSupervisor
-from shesha.constants import CentroiderType, CONST
+from shesha.constants import CentroiderType, CONST, WFSType
 import numpy as np
 from tqdm import trange
 import os
 from collections import OrderedDict
 import astropy.io.fits as pfits
-
+import shesha.constants as scons
 
 class AoSupervisor(AbstractSupervisor):
 
@@ -60,6 +60,11 @@ class AoSupervisor(AbstractSupervisor):
 
     def __init__(self):
         self.CLOSE = False
+        self.ph2modes = None
+        self.KL2V = None
+        self.P = None
+        self.currentBuffer = 1
+
 
     def getConfig(self):
         ''' Returns the configuration in use, in a supervisor specific format ? '''
@@ -327,6 +332,18 @@ class AoSupervisor(AbstractSupervisor):
             # Set array
             self.rtc.d_control[0].set_mgain(gain)
 
+    def set_mgain(self, mgain, control=0):
+        """
+        Sets the modal gain (when using modal integrator control law)
+        """
+        self.rtc.d_control[control].set_mgain(mgain)
+
+    def get_mgain(self, control=0):
+        """
+        Returns the modal gain (when using modal integrator control law)        
+        """
+        return np.array(self.rtc.d_control[control].d_gain)
+
     def setCommandMatrix(self, cMat: np.ndarray) -> None:
         '''
         Set the cmat for the controller to use
@@ -352,40 +369,6 @@ class AoSupervisor(AbstractSupervisor):
             raise TypeError("Centroider must be a maskedpix one")
         self.rtc.d_centro[nCentro].fill_mask()
         return np.array(self.rtc.d_centro[nCentro].d_mask)
-
-    def setWind(self, nScreen : int, windspeed : float = None, winddir : float = None):
-        """ Set new wind information for the given screen
-
-        Parameters:
-            nScreen : (int) : Atmos screen to change
-
-            windspeed : (float) [m/s] : new wind speed of the screen. If None, the wind speed is unchanged
-
-            winddir : (float) [deg]: new wind direction of the screen. If None, the wind direction is unchanged
-        """
-        if windspeed is not None:
-            self.config.p_atmos.windspeed[nScreen] = windspeed
-        if winddir is not None:
-            self.config.p_atmos.winddir[nScreen] = winddir
-        
-        lin_delta = self.config.p_geom.pupdiam / self.config.p_tel.diam * self.config.p_atmos.windspeed[nScreen] * \
-                    np.cos(CONST.DEG2RAD * self.config.p_geom.zenithangle) * self.config.p_loop.ittime
-        oldx = self.config.p_atmos._deltax[nScreen]
-        oldy = self.config.p_atmos._deltay[nScreen]
-        self.config.p_atmos._deltax[nScreen] = lin_delta * np.sin(CONST.DEG2RAD * self.config.p_atmos.winddir[nScreen] + np.pi)
-        self.config.p_atmos._deltay[nScreen] = lin_delta * np.cos(CONST.DEG2RAD * self.config.p_atmos.winddir[nScreen] + np.pi)
-        self._sim.atm.d_screens[nScreen].set_deltax(self.config.p_atmos._deltax[nScreen])
-        self._sim.atm.d_screens[nScreen].set_deltay(self.config.p_atmos._deltay[nScreen])
-        if(oldx * self.config.p_atmos._deltax[nScreen] < 0): #Sign has changed, must change the stencil
-            stencilx = np.array(self._sim.atm.d_screens[nScreen].d_istencilx)
-            n = self.config.p_atmos.dim_screens[nScreen]
-            stencilx = (n * n - 1) - stencilx
-            self._sim.atm.d_screens[nScreen].set_istencilx(stencilx)
-        if(oldy * self.config.p_atmos._deltay[nScreen] < 0): #Sign has changed, must change the stencil
-            stencily = np.array(self._sim.atm.d_screens[nScreen].d_istencily)
-            n = self.config.p_atmos.dim_screens[nScreen]
-            stencily = (n * n - 1) - stencily
-            self._sim.atm.d_screens[nScreen].set_istencily(stencily)
         
     def writeConfigOnFile(self, root=None):
         aodict = OrderedDict()
