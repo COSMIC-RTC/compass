@@ -56,6 +56,30 @@ from tqdm import trange, tqdm
 import time
 
 class CompassSupervisor(AoSupervisor):
+    def __init__(self, configFile: str = None, cacao: bool = False,
+                 use_DB: bool = False):
+        '''
+        Init the COMPASS supervisor
+
+        Parameters
+        ------------
+        configFile: (str): (optionnal) Path to the parameter file
+        cacao: (bool): (optionnal) Flag to enable cacao
+        use_DB: (bool): (optionnal) Flag to enable database
+        '''
+        self._sim = None
+        self._seeAtmos = False
+        self.config = None
+        self.cacao = cacao
+        self.use_DB = use_DB
+        self.P = None
+        self.modalBasis = None
+        if configFile is not None:
+            self.loadConfig(configFile=configFile)
+
+    def __repr__(self):
+        return object.__repr__(self) + str(self._sim)
+
 
     #     _    _         _                  _
     #    / \  | |__  ___| |_ _ __ __ _  ___| |_
@@ -108,28 +132,6 @@ class CompassSupervisor(AoSupervisor):
     # |____/| .__/ \___|\___|_|\__|_|\___| |_|  |_|\___|\__|_| |_|\___/ \__,_|___/
     #       |_|
 
-    def __init__(self, configFile: str = None, cacao: bool = False,
-                 use_DB: bool = False):
-        '''
-        Init the COMPASS supervisor
-
-        Parameters
-        ------------
-        configFile: (str): (optionnal) Path to the parameter file
-        cacao: (bool): (optionnal) Flag to enable cacao
-        use_DB: (bool): (optionnal) Flag to enable database
-        '''
-        self._sim = None
-        self._seeAtmos = False
-        self.config = None
-        self.cacao = cacao
-        self.use_DB = use_DB
-
-        if configFile is not None:
-            self.loadConfig(configFile=configFile)
-
-    def __repr__(self):
-        return object.__repr__(self) + str(self._sim)
 
     def setPyrModulation(self, pyrMod: float, numwfs=0) -> None:
         '''
@@ -1144,10 +1146,14 @@ class CompassSupervisor(AoSupervisor):
         Requires to use Rocket
         Author: FV
         """
-        self._sim.doControl(1, 0)
+        try: 
+            self._sim.doControl(1, 0)
+        except:
+            return [0]
         v = self.getCom(1)  # We compute here the residual phase on the DM modes. Gives the Equivalent volts to apply/
         if (self.P is None):
-            self.modalBasis, self.P = self.getModes2VBasis("Btt")
+            return [0]
+            # self.modalBasis, self.P = self.getModes2VBasis("Btt")
         if (self.selectedActus is None):
             ai = self.P.dot(v) * 1000.  # np rms units
         else:  # Slaving actus case
@@ -1459,7 +1465,6 @@ class CompassSupervisor(AoSupervisor):
 
         CBcount: the number of iterations to record. 
         subSample: sub sampling of the data (default=1, I.e no subsampling)
-        tarnum: target number
         tarnum: target number
         seeAtmos: used for the next function to enable or not the Atmos
         cubeDataType:  if  specified ("tarPhase" or "psfse") returns the target phase or short exposure PSF data cube in the output variable
