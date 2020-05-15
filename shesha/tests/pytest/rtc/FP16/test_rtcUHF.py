@@ -10,14 +10,14 @@ sup = Supervisor(
         os.getenv("COMPASS_ROOT") +
         "/shesha/tests/pytest/par/test_sh.py")
 sup.config.p_controller0.set_delay(0.0)
-sup.initConfig()
+sup.init_config()
 sup._sim.wfs.d_wfs[0].set_fakecam(True)
 sup._sim.wfs.d_wfs[0].set_maxFluxPerPix(int(sup.config.p_wfs0._nphotons // 2))
 sup._sim.wfs.d_wfs[0].set_maxPixValue(2**16 - 1)
-sup.singleNext()
-sup.openLoop()
-sup.closeLoop()
-sup._sim.doControl(0)
+sup.single_next()
+sup.open_loop()
+sup.close_loop()
+sup._sim.do_control(0)
 rtc = Rtc()
 rtc.add_centroider(sup._sim.c, sup.config.p_wfs0._nvalid,
                    sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize, False, 0, "cog")
@@ -30,7 +30,7 @@ rtc.d_centro[0].set_npix(sup.config.p_wfs0.npix)
 xvalid = np.array(sup._sim.rtc.d_centro[0].d_validx)
 yvalid = np.array(sup._sim.rtc.d_centro[0].d_validy)
 rtc.d_centro[0].load_validpos(xvalid, yvalid, xvalid.size)
-cmat = sup.getCmat(0)
+cmat = sup.get_command_matrix(0)
 rtc.d_control[0].set_cmat(cmat)
 rtc.d_control[0].set_gain(sup.config.p_controller0.gain)
 frame = np.array(sup._sim.wfs.d_wfs[0].d_camimg)
@@ -135,7 +135,7 @@ def test_doCentroids_cog():
             precision)
 
 
-def test_doControl_generic():
+def test_do_control_generic():
     slopes = ng.array(control.d_centroids).toarray()
     gain = control.gain
     cmat = ng.array(control.d_cmat).toarray()

@@ -50,14 +50,14 @@ if __name__ == "__main__":
                     int(device) for device in arguments["--devices"].split(",")
             ])
         try:
-            supervisor.initConfig()
-            isInit = supervisor.isInit()
+            supervisor.init_config()
+            is_init = supervisor.is_init()
         except:
-            isInit = False
+            is_init = False
             SR = "N/A"
         try:
             supervisor.loop(supervisor.config.p_loop.niter)
-            SR = supervisor.getStrehl(0)[1]
+            SR = supervisor.get_strehl(0)[1]
         except:
             SR = "N/A"
 
@@ -69,7 +69,7 @@ if __name__ == "__main__":
 
         idx = len(df.index)
         df.loc[idx, "Test name"] = param_file.split('/')[-1]
-        df.loc[idx, "Init"] = isInit
+        df.loc[idx, "Init"] = is_init
         df.loc[idx, "SR@100iter"] = SR
 
         df.to_hdf("check.h5", "check")

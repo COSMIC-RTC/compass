@@ -729,7 +729,7 @@ def getCovFromMap(Map, nsub, filename=None, nssp=None, validint=None):
     return covmat
 
 
-def getSlopesMap(covmat, filename=None, nssp=None, validint=None):
+def get_slopessMap(covmat, filename=None, nssp=None, validint=None):
     """
     Return the full spatial representation of a covariance matrix expressed in the slopes space.
 
@@ -889,7 +889,7 @@ def compProfile(filename, nlayers):
     dk = int(2 / 3 * f.attrs["_Param_tel__diam"] / 20 / dt)
     pdiam = f.attrs["_Param_tel__diam"] / f.attrs["_Param_wfs__nxsub"]
 
-    mapC = getSlopesMap(compDerivativeCmm(filename, dt=dk), filename)
+    mapC = get_slopessMap(compDerivativeCmm(filename, dt=dk), filename)
     size = mapC.shape[0] // 2
     minimap = mapC[size:, size:] + mapC[size:, :size] + mapC[:size,
                                                              size:] + mapC[:size, :size]

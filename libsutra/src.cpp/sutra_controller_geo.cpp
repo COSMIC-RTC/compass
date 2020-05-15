@@ -90,7 +90,7 @@ sutra_controller_geo<T, Tout>::sutra_controller_geo(carma_context *context,
 
 template <typename T, typename Tout>
 sutra_controller_geo<T, Tout>::~sutra_controller_geo() {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   delete this->d_proj;
   delete this->d_gain;
   delete this->d_indx_pup;
@@ -132,7 +132,7 @@ int sutra_controller_geo<T, Tout>::load_Btt(T *Btt_pzt, T *Btt_TT) {
 template <typename T, typename Tout>
 int sutra_controller_geo<T, Tout>::init_proj(sutra_dms *dms, int *indx_dm,
                                              T *unitpervolt, int *indx_pup) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   long dims_data[3] = {2, this->Nphi, this->nactu()};
   carma_obj<T> d_IF(this->current_context, dims_data);
   dims_data[1] = this->nactu();
@@ -179,7 +179,7 @@ template <typename T, typename Tout>
 int sutra_controller_geo<T, Tout>::init_proj_sparse(
     sutra_dms *dms, int *indx_dm, T *unitpervolt, int *indx_pup, int *indx_mpup,
     bool roket) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   vector<sutra_dm *>::iterator p;
   if (roket) {
     this->Ntt = 0;
@@ -346,7 +346,7 @@ int sutra_controller_geo<T, Tout>::init_proj_sparse(
 template <typename T, typename Tout>
 int sutra_controller_geo<T, Tout>::comp_dphi(sutra_source *target,
                                              bool wfs_direction) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   // Get the target phase in the pupil
   if (wfs_direction && this->d_indx_mpup == 0L) {
     DEBUG_TRACE("controller geo has not been initialized for wfs direction");
@@ -376,7 +376,7 @@ int sutra_controller_geo<T, Tout>::comp_com() {
   this->d_proj->getData(),this->d_proj->getDims()[1], this->d_phi->getData(),1,
   0.0f, this->d_com->getData(),1);
   */
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
 
   // Sparse version
   carma_gemv(cusparse_handle(), 'n', 1.0 / this->Nphi, this->d_IFsparse,

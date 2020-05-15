@@ -109,16 +109,16 @@ class WidgetBase(BaseClassTemplate):
         # Default path for config files
         self.defaultParPath = "."
         self.defaultAreaPath = "."
-        self.uiBase.wao_loadConfig.clicked.connect(self.loadConfig)
+        self.uiBase.wao_load_config.clicked.connect(self.load_config)
         self.uiBase.wao_loadArea.clicked.connect(self.loadArea)
         self.uiBase.wao_saveArea.clicked.connect(self.saveArea)
-        self.uiBase.wao_init.clicked.connect(self.initConfig)
+        self.uiBase.wao_init.clicked.connect(self.init_config)
         self.uiBase.wao_configFromFile.clicked.connect(self.addConfigFromFile)
 
         self.uiBase.wao_Display.stateChanged.connect(self.gui_timer_config)
         self.uiBase.wao_frameRate.setValue(2)
 
-        self.uiBase.wao_loadConfig.setDisabled(False)
+        self.uiBase.wao_load_config.setDisabled(False)
         self.uiBase.wao_init.setDisabled(True)
 
         self.disp_checkboxes = []
@@ -161,7 +161,7 @@ class WidgetBase(BaseClassTemplate):
         '''
             Callback when a area layout file is double clicked in the file browser
             Place the selected file name in the browsing drop-down menu,
-            the call the self.loadConfig callback of the load button.
+            the call the self.load_config callback of the load button.
         '''
         if filename is None:
             filepath = QtWidgets.QFileDialog(
@@ -230,7 +230,7 @@ class WidgetBase(BaseClassTemplate):
         '''
             Callback when a config file is double clicked in the file browser
             Place the selected file name in the browsing drop-down menu,
-            the call the self.loadConfig callback of the load button.
+            the call the self.load_config callback of the load button.
         '''
         filepath = QtWidgets.QFileDialog(directory=self.defaultParPath).getOpenFileName(
                 self, "Select parameter file", "",
@@ -239,7 +239,7 @@ class WidgetBase(BaseClassTemplate):
         self.uiBase.wao_selectConfig.clear()
         self.uiBase.wao_selectConfig.addItem(str(filepath[0]))
 
-        self.loadConfig(configFile=self.uiBase.wao_selectConfig.currentText())
+        self.load_config(config_file=self.uiBase.wao_selectConfig.currentText())
 
     def update_displayDock(self):
         guilty_guy = self.sender().text()
@@ -290,7 +290,7 @@ class WidgetBase(BaseClassTemplate):
         #     d.addWidget(self.uiBase.wao_Strehl)
         return d
 
-    def loadConfig(self, *args, **kwargs) -> None:
+    def load_config(self, *args, **kwargs) -> None:
         '''
             Callback when 'LOAD' button is hit
         '''
@@ -345,19 +345,19 @@ class WidgetBase(BaseClassTemplate):
                 parlist[i].split('/')[-1] for i in range(len(parlist))
         ])
 
-    def initConfig(self) -> None:
+    def init_config(self) -> None:
         self.loopLock.acquire(True)
-        self.uiBase.wao_loadConfig.setDisabled(True)
+        self.uiBase.wao_load_config.setDisabled(True)
         self.uiBase.wao_init.setDisabled(True)
-        self.thread = WorkerThread(self.initConfigThread)
-        self.thread.finished.connect(self.initConfigFinished)
+        self.thread = WorkerThread(self.init_configThread)
+        self.thread.finished.connect(self.init_configFinished)
         self.thread.start()
 
-    def initConfigThread(self) -> None:
+    def init_configThread(self) -> None:
         pass
 
-    def initConfigFinished(self) -> None:
-        self.uiBase.wao_loadConfig.setDisabled(False)
+    def init_configFinished(self) -> None:
+        self.uiBase.wao_load_config.setDisabled(False)
         self.uiBase.wao_init.setDisabled(False)
         self.loopLock.release()
 

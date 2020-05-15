@@ -53,7 +53,7 @@ sutra_centroider_maskedPix<Tin, T>::sutra_centroider_maskedPix(
     float offset, float scale, bool filter_TT, int device)
     : sutra_centroider<Tin, T>(context, wfs, nvalid, offset, scale, filter_TT,
                                device) {
-  context->set_activeDevice(device, 1);
+  context->set_active_device(device, 1);
 
   if (wfs != nullptr)
     this->nslopes = wfs->d_validsubsx->getNbElem();
@@ -84,7 +84,7 @@ string sutra_centroider_maskedPix<Tin, T>::get_type() {
 
 template <class Tin, class T>
 int sutra_centroider_maskedPix<Tin, T>::fill_selected_pix(carma_obj<T> *pix) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
 
   const long *dims_data2;
   if (this->d_img != nullptr) {
@@ -108,7 +108,7 @@ int sutra_centroider_maskedPix<Tin, T>::fill_selected_pix(carma_obj<T> *pix) {
 
 template <class Tin, class T>
 int sutra_centroider_maskedPix<Tin, T>::fill_mask() {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
 
   const long *dims_data2;
   if (this->d_img != nullptr) {
@@ -144,7 +144,7 @@ template <class Tin, class T>
 int sutra_centroider_maskedPix<Tin, T>::get_maskedPix(
     float *img, float *intensities, T *centroids, int *subindx, int *subindy,
     int nvalid, int ns) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
 
   fill_intensities(this->d_intensities->getData(), img, subindx, subindy, ns,
                    this->nslopes,
@@ -153,7 +153,7 @@ int sutra_centroider_maskedPix<Tin, T>::get_maskedPix(
   // T p_sum = reduce<T>(this->d_intensities->getData(), this->nslopes);
   this->d_intensities->reduceCub();
 
-  getMaskedPix<T>(centroids, this->d_centroids_ref->getData(), img, subindx,
+  get_masked_pix<T>(centroids, this->d_centroids_ref->getData(), img, subindx,
                   subindy, this->d_intensities->getOData(), ns, this->nslopes,
                   this->current_context->get_device(this->device));
 

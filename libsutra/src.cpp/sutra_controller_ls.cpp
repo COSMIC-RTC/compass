@@ -106,7 +106,7 @@ sutra_controller_ls<T, Tout>::sutra_controller_ls(carma_context *context,
 
 template <typename T, typename Tout>
 sutra_controller_ls<T, Tout>::~sutra_controller_ls() {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
 
   delete this->d_imat;
   delete this->d_cmat;
@@ -139,7 +139,7 @@ int sutra_controller_ls<T, Tout>::svdec_imat() {
   T one = 1., zero = 0.;
   int nCols = this->d_imat->getDims(2);
 
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   if (d_U->getDims(1) !=
       nCols) {  // d_imat shape was changed during modal basis. Adapt yourself.
     delete d_U;
@@ -189,28 +189,28 @@ int sutra_controller_ls<T, Tout>::svdec_imat() {
 
 template <typename T, typename Tout>
 int sutra_controller_ls<T, Tout>::set_cmat(T *cmat) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   this->d_cmat->host2device(cmat);
   return EXIT_SUCCESS;
 }
 
 template <typename T, typename Tout>
 int sutra_controller_ls<T, Tout>::set_imat(T *imat) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   this->d_imat->host2device(imat);
   return EXIT_SUCCESS;
 }
 
 template <typename T, typename Tout>
-int sutra_controller_ls<T, Tout>::set_mgain(T *mgain) {
-  this->current_context->set_activeDevice(this->device, 1);
+int sutra_controller_ls<T, Tout>::set_modal_gains(T *mgain) {
+  this->current_context->set_active_device(this->device, 1);
   this->d_gain->host2device(mgain);
   return EXIT_SUCCESS;
 }
 
 template <typename T, typename Tout>
 int sutra_controller_ls<T, Tout>::build_cmat(int nfilt, bool filt_tt) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
 
   long dims_data1[2] = {1, 0};
   long dims_data2[3] = {2, 0, 0};
@@ -263,7 +263,7 @@ int sutra_controller_ls<T, Tout>::build_cmat(int nfilt, bool filt_tt) {
 
 template <typename T, typename Tout>
 int sutra_controller_ls<T, Tout>::build_cmat(int nfilt) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   return this->build_cmat(nfilt, false);
 }
 
@@ -272,7 +272,7 @@ int sutra_controller_ls<T, Tout>::frame_delay() {
   // here we place the content of d_centroids into cenbuf and get
   // the actual centroid frame for error computation depending on delay value
 
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   if (this->delay > 0) {
     for (int cc = 0; cc < this->delay; cc++)
       shift_buf(this->d_cenbuff->getDataAt(cc * this->nslope()), 1,
@@ -294,7 +294,7 @@ int sutra_controller_ls<T, Tout>::frame_delay() {
 
 template <typename T, typename Tout>
 int sutra_controller_ls<T, Tout>::comp_com() {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
 
   // this->frame_delay();
   int nstreams = this->streams->get_nbStreams();
@@ -362,7 +362,7 @@ int sutra_controller_ls<T, Tout>::comp_com() {
 
 template <typename T, typename Tout>
 int sutra_controller_ls<T, Tout>::build_cmat_modopti() {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   long dims_data2[3] = {2, this->nactu(), this->nmodes};
   carma_obj<T> d_tmp(this->current_context, dims_data2);
 
@@ -382,7 +382,7 @@ template <typename T, typename Tout>
 int sutra_controller_ls<T, Tout>::init_modalOpti(int nmodes, int nrec, T *M2V,
                                                  T gmin, T gmax, int ngain,
                                                  T Fs) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   this->is_modopti = 1;
   this->cpt_rec = 0;
   this->nrec = nrec;
@@ -441,7 +441,7 @@ int sutra_controller_ls<T, Tout>::init_modalOpti(int nmodes, int nrec, T *M2V,
 
 template <typename T, typename Tout>
 int sutra_controller_ls<T, Tout>::modalControlOptimization() {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   if (this->cpt_rec >= this->delay) {
     // POLC to retrieve open-loop measurements for further refreshing modal
     // gains
@@ -508,8 +508,8 @@ int sutra_controller_ls<T, Tout>::modalControlOptimization() {
 }
 
 template <typename T, typename Tout>
-int sutra_controller_ls<T, Tout>::loadOpenLoopSlp(T *ol_slopes) {
-  this->current_context->set_activeDevice(this->device, 1);
+int sutra_controller_ls<T, Tout>::loadopen_loopSlp(T *ol_slopes) {
+  this->current_context->set_active_device(this->device, 1);
   this->d_slpol->host2device(ol_slopes);
 
   return EXIT_SUCCESS;
@@ -517,7 +517,7 @@ int sutra_controller_ls<T, Tout>::loadOpenLoopSlp(T *ol_slopes) {
 
 template <typename T, typename Tout>
 int sutra_controller_ls<T, Tout>::compute_Hcor() {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   long dims_data[3] = {2, this->ngain, this->nrec / 2};
   this->d_Hcor = new carma_obj<T>(this->current_context, dims_data);
 

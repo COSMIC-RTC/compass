@@ -117,7 +117,7 @@ def atmos_init(context: carmaWrap_context, p_atmos: conf.Param_atmos,
 
     atm = Atmos(context, p_atmos.nscreens, p_atmos.r0, r0_layers, p_atmos.dim_screens,
                 stencil_size, p_atmos.alt, p_atmos.windspeed, p_atmos.winddir,
-                p_atmos._deltax, p_atmos._deltay, context.activeDevice)
+                p_atmos._deltax, p_atmos._deltay, context.active_device)
 
     print("Creating turbulent layers :")
     for i in tqdm(range(p_atmos.nscreens)):

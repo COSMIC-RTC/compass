@@ -74,7 +74,7 @@ int sutra_acquisim::comp_image(long *dims, float *bimage) {
 
 int sutra_acquisim::comp_image(long *dims, float *bimage,
                                carma_obj<float> *d_bincube) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   carma_obj<float> tmp_yObj(this->current_context, dims, bimage);
   return fillbincube<float>(tmp_yObj, *d_bincube, this->npix, this->nvalid,
                             this->npix * this->nxsub, *(this->d_validsubsx),
@@ -83,7 +83,7 @@ int sutra_acquisim::comp_image(long *dims, float *bimage,
 }
 
 int sutra_acquisim::comp_image_2D(long *dims, float *bimage, int *num_ssp) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   carma_obj<float> tmp_yObj(this->current_context, dims, bimage);
   long dims1[2] = {1, this->nxsub * this->nxsub};
   carma_obj<int> d_num_ssp(this->current_context, dims1, num_ssp);
@@ -92,7 +92,7 @@ int sutra_acquisim::comp_image_2D(long *dims, float *bimage, int *num_ssp) {
 }
 
 int sutra_acquisim::comp_image_tele(long *dims, float *bimage) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   carma_obj<float> tmp_yObj(this->current_context, dims, bimage);
   return fillbincube_async<float>(
       this->wfs->image_telemetry, tmp_yObj, *(this->wfs->d_bincube), this->npix,

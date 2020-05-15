@@ -69,7 +69,7 @@ if (simul_name != ""):
 #   context
 # c = ch.carmaWrap_context(0)
 # c = ch.carmaWrap_context(devices=np.array([0,1], dtype=np.int32))
-# c.set_activeDevice(0) #useful only if you use ch.carmaWrap_context()
+# c.set_active_device(0) #useful only if you use ch.carmaWrap_context()
 c = ch.carmaWrap_context(devices=config.p_loop.devices)
 #    wfs
 print("->wfs")
@@ -304,7 +304,7 @@ def loop(n, d_valid_pix=[], d_P=[], offset=[],
                     wfs.sensors_compimg(w)  # normal wfs
 
             rtc.docentroids(0)
-            #slope_compass_0[:,i] = rtc.getCentroids(0)
+            #slope_compass_0[:,i] = rtc.get_centroids(0)
             rtc.docontrol(0)
 
             rtc.applycontrol(0, dms)

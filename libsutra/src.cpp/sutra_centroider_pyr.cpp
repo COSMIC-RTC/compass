@@ -55,7 +55,7 @@ sutra_centroider_pyr<Tin, T>::sutra_centroider_pyr(carma_context *context,
                                                    bool filter_TT, int device)
     : sutra_centroider<Tin, T>(context, wfs, nvalid, offset, scale, filter_TT,
                                device) {
-  context->set_activeDevice(device, 1);
+  context->set_active_device(device, 1);
 
   this->nslopes = 2 * nvalid;
 
@@ -126,7 +126,7 @@ int sutra_centroider_pyr<Tin, T>::get_pyr(float *cube, float *intensities,
                                           T *centroids, int *subindx,
                                           int *subindy, int nvalid, int ns,
                                           int nim) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
 
   pyr_intensities(this->d_intensities->getData(), cube, subindx, subindy, ns,
                   nvalid, nim, this->current_context->get_device(this->device));

@@ -47,7 +47,7 @@ sutra_phase::sutra_phase(carma_context *current_context, long size) {
   this->mat = 0;
   this->zernikes = 0;
   this->zerCoeff = 0;
-  this->device = current_context->get_activeDevice();
+  this->device = current_context->get_active_device();
 
   long *dims_data2 = new long[3];
   dims_data2[0] = 2;
@@ -59,6 +59,6 @@ sutra_phase::sutra_phase(carma_context *current_context, long size) {
 }
 
 sutra_phase::~sutra_phase() {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   delete this->d_screen;
 }

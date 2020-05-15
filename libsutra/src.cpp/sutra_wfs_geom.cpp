@@ -49,7 +49,7 @@ sutra_wfs_geom::sutra_wfs_geom(carma_context *context, sutra_telescope *d_tel,
                                float pdiam, int device)
     : sutra_wfs(context, d_tel, nullptr, "geo", nxsub, nvalid, 0, nphase, 0, 0,
                 0, npup, pdiam, 0, 0, false, device) {
-  context->set_activeDevice(device, 1);
+  context->set_active_device(device, 1);
 
   this->nstreams = 1;  // nvalid/10;
   this->streams = new carma_streams(nstreams);
@@ -84,7 +84,7 @@ sutra_wfs_geom::sutra_wfs_geom(carma_context *context, sutra_telescope *d_tel,
 }
 
 sutra_wfs_geom::~sutra_wfs_geom() {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   if (this->type != "sh" && this->d_camplipup != 0L) delete this->d_camplipup;
   if (this->type != "sh" && this->d_camplifoc != 0L) delete this->d_camplifoc;
 
@@ -120,7 +120,7 @@ sutra_wfs_geom::~sutra_wfs_geom() {
 int sutra_wfs_geom::wfs_initarrays(int *phasemap, float *offsets,
                                    float *fluxPerSub, int *validsubsx,
                                    int *validsubsy) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   this->d_phasemap->host2device(phasemap);
   this->d_offsets->host2device(offsets);
   this->d_fluxPerSub->host2device(fluxPerSub);
@@ -131,7 +131,7 @@ int sutra_wfs_geom::wfs_initarrays(int *phasemap, float *offsets,
 }
 
 int sutra_wfs_geom::slopes_geom(int type, float *slopes) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   /*
    normalization notes :
    σ² = 0.17 (λ/D)^2 (D/r_0)^(5/3) , σ² en radians d'angle

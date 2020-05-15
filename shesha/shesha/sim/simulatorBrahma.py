@@ -56,7 +56,7 @@ class SimulatorBrahma(Simulator):
         '''
         if self.config.p_targets is not None:
             print("->target")
-            self.tar = target_init(self.c, self.tel, self.config.p_targets,
+            self.tar = target_init(self.context,  self.tel, self.config.p_targets,
                                    self.config.p_atmos, self.config.p_tel,
                                    self.config.p_geom, self.config.p_dms, brahma=True)
         else:
@@ -69,7 +69,7 @@ class SimulatorBrahma(Simulator):
         if self.config.p_controllers is not None or self.config.p_centroiders is not None:
             print("->rtc")
             #   rtc
-            self.rtc = rtc_init(self.c, self.tel, self.wfs, self.dms, self.atm,
+            self.rtc = rtc_init(self.context,  self.tel, self.wfs, self.dms, self.atm,
                                 self.config.p_wfss, self.config.p_tel,
                                 self.config.p_geom, self.config.p_atmos, ittime,
                                 self.config.p_centroiders, self.config.p_controllers,
@@ -79,7 +79,7 @@ class SimulatorBrahma(Simulator):
 
     def next(self, **kwargs) -> None:
         """
-        Overload of the Simulator.next() function with BRAHMA publications
+        Overload of the Simulator.next() function with brahma publications
         """
         Simulator.next(self, **kwargs)
         if self.rtc is not None:

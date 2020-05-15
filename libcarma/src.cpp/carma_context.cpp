@@ -136,7 +136,7 @@ carma_context &carma_context::instance() {
 
 carma_context::carma_context(int num_device) {
   can_access_peer = nullptr;
-  this->activeDevice = -1;
+  this->active_device = -1;
   this->ndevice = -1;
 
   int devices[1];
@@ -147,7 +147,7 @@ carma_context::carma_context(int num_device) {
 carma_context::carma_context() {
   carmaSafeCall(cudaGetDeviceCount(&(this->ndevice)));
   can_access_peer = nullptr;
-  this->activeDevice = -1;
+  this->active_device = -1;
 
   if (this->ndevice == 0) {
     DEBUG_TRACE("carma_context() CUDA error: no devices supporting CUDA.");
@@ -164,7 +164,7 @@ carma_context::carma_context() {
 
 carma_context::carma_context(int nb_devices, int32_t *devices_id) {
   can_access_peer = nullptr;
-  this->activeDevice = -1;
+  this->active_device = -1;
   this->ndevice = -1;
 
   init_context(nb_devices, devices_id);
@@ -173,7 +173,7 @@ carma_context::carma_context(int nb_devices, int32_t *devices_id) {
 void carma_context::init_context(const int nb_devices, int32_t *devices_id) {
   // TODO(all) : why seed is initialized here ?
   srandom(1234);
-  this->activeDevice = -1;
+  this->active_device = -1;
 
   int n_cuda_devices = 0;
 
@@ -258,8 +258,8 @@ void carma_context::init_context(const int nb_devices, int32_t *devices_id) {
   }
 #endif  // USE_UVA
 
-  this->activeDevice =
-      set_activeDeviceForce(0, 1);  // get_maxGflopsDeviceId(), 1);
+  this->active_device =
+      set_active_device_force(0, 1);  // get_maxGflopsDeviceId(), 1);
 
 #ifdef USE_CULA
 
@@ -324,7 +324,7 @@ carma_context::~carma_context() {
 #endif  // DEBUG
 }
 
-int carma_context::_set_activeDeviceForce(int newDevice, int silent,
+int carma_context::_set_active_device_force(int newDevice, int silent,
                                           std::string file, int line) {
   if (newDevice < ndevice) {
     carmaSafeCall(cudaSetDevice(devices[newDevice]->get_id()));
@@ -349,16 +349,16 @@ int carma_context::_set_activeDeviceForce(int newDevice, int silent,
                 << devices[newDevice]->get_properties().minor << " capability"
                 << std::endl;
     }
-    activeDevice = newDevice;
+    active_device = newDevice;
   } else {
     fprintf(stderr,
             "[%s:%d] Invalid Device Id : %d, Your system has only %d CUDA "
             "capable device(s) available ",
             file.c_str(), line, newDevice, ndevice);
-    std::cerr << "Leaving activeDevice to its current value : " << activeDevice
+    std::cerr << "Leaving active_device to its current value : " << active_device
               << std::endl;
   }
-  return activeDevice;
+  return active_device;
 }
 
 std::string carma_context::get_DeviceName(int device) {

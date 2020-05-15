@@ -39,7 +39,7 @@ import numpy as np
 from shesha.sutra_wrap import Sensors, Telescope, Rtc_FFF as Rtc, Atmos
 
 
-def openLoopSlp(tel: Telescope, atmos: Atmos, wfs: Sensors, rtc: Rtc, nrec: int,
+def open_loopSlp(tel: Telescope, atmos: Atmos, wfs: Sensors, rtc: Rtc, nrec: int,
                 ncontrol: int, p_wfss: list):
     """ Return a set of recorded open-loop slopes, usefull for initialize modal control optimization
 

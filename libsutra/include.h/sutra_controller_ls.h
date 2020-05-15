@@ -92,12 +92,12 @@ class sutra_controller_ls : public sutra_controller<Tcomp, Tout> {
   int build_cmat_modopti();
   int frame_delay();
   int comp_com();
-  int set_mgain(Tcomp *mgain);
+  int set_modal_gains(Tcomp *mgain);
   int set_cmat(Tcomp *cmat);
   int set_imat(Tcomp *imat);
   int init_modalOpti(int nmodes, int nrec, Tcomp *M2V, Tcomp gmin, Tcomp gmax,
                      int ngain, Tcomp Fs);
-  int loadOpenLoopSlp(Tcomp *ol_slopes);
+  int loadopen_loopSlp(Tcomp *ol_slopes);
   int modalControlOptimization();
   int compute_Hcor();
 };

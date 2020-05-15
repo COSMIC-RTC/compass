@@ -84,7 +84,7 @@ p_dm0.set_coupling(0.2) #valeur que prend la fonctiond'influence a l'endroit de 
 p_dm0.set_unitpervolt(1) # 
 p_dm0.set_push4imat(0.01) # Nominal voltage for imat, 
 p_dm0.set_margin_out(0.3) # pour adapter la taille de la pupille du DM a celle du WFS
-p_dm0.set_influType("radialSchwartz")
+p_dm0.set_influ_type("radialSchwartz")
 
 p_dm1.set_type("tt")
 p_dm1.set_alt(0.)

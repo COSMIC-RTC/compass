@@ -69,40 +69,40 @@ server = None
 
 class widgetCanapassWindowPyro(widgetAOWindow):
 
-    def __init__(self, configFile: Any = None, cacao: bool = False,
+    def __init__(self, config_file: Any = None, cacao: bool = False,
                  expert: bool = False) -> None:
-        widgetAOWindow.__init__(self, configFile, cacao, hideHistograms=True)
+        widgetAOWindow.__init__(self, config_file, cacao, hideHistograms=True)
         #Pyro.core.ObjBase.__init__(self)
 
         self.CB = {}
         self.wpyr = None
-        self.currentBuffer = 1
+        self.current_buffer = 1
         #############################################################
         #                 CONNECTED BUTTONS                         #
         #############################################################
         # Default path for config files
-        #self.uiAO.wao_openLoop.setChecked(False)
-        #self.uiAO.wao_openLoop.setText("Close Loop")
+        #self.uiAO.wao_open_loop.setChecked(False)
+        #self.uiAO.wao_open_loop.setText("Close Loop")
         self.uiAO.actionShow_Pyramid_Tools.toggled.connect(self.showPyrTools)
         self.wpyrNbBuffer = 1
         #############################################################
         #                       METHODS                             #
         #############################################################
 
-    def initConfig(self) -> None:
-        self.supervisor.clearInitSim()
-        widgetAOWindow.initConfig(self)
+    def init_config(self) -> None:
+        self.supervisor.clear_init_sim()
+        widgetAOWindow.init_config(self)
         global server
         server = self.startPyroServer()
 
-    def loadConfig(self, *args, configFile=None, supervisor=None) -> None:
+    def load_config(self, *args, config_file=None, supervisor=None) -> None:
         '''
             Callback when 'LOAD' button is hit
         '''
         if supervisor is None:
-            supervisor = CanapassSupervisor(configFile)
+            supervisor = CanapassSupervisor(config_file)
 
-        widgetAOWindow.loadConfig(self, args, configFile=configFile,
+        widgetAOWindow.load_config(self, args, config_file=config_file,
                                   supervisor=supervisor)
 
     def loopOnce(self) -> None:
@@ -110,27 +110,27 @@ class widgetCanapassWindowPyro(widgetAOWindow):
         if (self.uiAO.actionShow_Pyramid_Tools.isChecked()):  # PYR only
             self.wpyr.Fe = 1 / self.config.p_loop.ittime  # needs Fe for PSD...
             if (self.wpyr.CBNumber == 1):
-                self.ai = self.computeModalResiduals()
+                self.ai = self.compute_modal_residuals()
                 self.setPyrToolsParams(self.ai)
             else:
-                if (self.currentBuffer == 1):  # First iter of the CB
-                    aiVect = self.computeModalResiduals()
+                if (self.current_buffer == 1):  # First iter of the CB
+                    aiVect = self.compute_modal_residuals()
                     self.ai = aiVect[np.newaxis, :]
-                    self.currentBuffer += 1  # Keep going
+                    self.current_buffer += 1  # Keep going
 
                 else:  # Keep filling the CB
-                    aiVect = self.computeModalResiduals()
+                    aiVect = self.compute_modal_residuals()
                     self.ai = np.concatenate((self.ai, aiVect[np.newaxis, :]))
-                    if (self.currentBuffer < self.wpyr.CBNumber):
-                        self.currentBuffer += 1  # Keep going
+                    if (self.current_buffer < self.wpyr.CBNumber):
+                        self.current_buffer += 1  # Keep going
                     else:
-                        self.currentBuffer = 1  # reset buffer
+                        self.current_buffer = 1  # reset buffer
                         self.setPyrToolsParams(self.ai)  # display
 
     def next(self, nbIters, see_atmos=True):
-        ''' Move atmos -> getSlope -> applyControl ; One integrator step '''
+        ''' Move atmos -> get_slopes -> applyControl ; One integrator step '''
         for i in trange(nbIters):
-            self.supervisor.singleNext(showAtmos=see_atmos)
+            self.supervisor.single_next(show_atmos=see_atmos)
 
     def initPyrTools(self):
         ADOPTPATH = os.getenv("ADOPTPATH")
@@ -142,13 +142,13 @@ class widgetCanapassWindowPyro(widgetAOWindow):
         self.wpyr.show()
 
     def setPyrToolsParams(self, ai):
-        self.wpyr.pup = self.supervisor.getSpupil()
-        self.wpyr.phase = self.supervisor.getTargetPhase(0)
+        self.wpyr.pup = self.supervisor.get_pupil("spupil")
+        self.wpyr.phase = self.supervisor.get_tar_phase(0, pupil=True)
         self.wpyr.updateResiduals(ai)
-        if (self.supervisor.ph2modes is None):
+        if (self.supervisor.phase_to_modes is None):
             print('computing phase 2 Modes basis')
-            self.supervisor.computePh2Modes()
-        self.wpyr.ph2modes = self.supervisor.ph2modes
+            self.supervisor.compute_phase_to_modes()
+        self.wpyr.phase_to_modes = self.supervisor.phase_to_modes
 
     def showPyrTools(self):
         if (self.wpyr is None):

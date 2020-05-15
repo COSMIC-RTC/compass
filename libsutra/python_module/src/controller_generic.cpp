@@ -143,7 +143,7 @@ void controller_generic_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("commandlaw"))
 
-      .def("set_mgain", wy::colCast(&controller_generic::set_mgain),
+      .def("set_modal_gains", wy::colCast(&controller_generic::set_modal_gains),
            R"pbdoc(
       Set the controller modal gains
 

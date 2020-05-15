@@ -223,8 +223,8 @@ p_dm0.set_coupling(0.2)
 p_dm0.set_unitpervolt(1)
 p_dm0.set_push4imat(0.01)
 p_dm0.set_type_pattern("hexaM4")
-#p_dm0.set_influType("gaussian")
-p_dm0.set_influType("radialSchwartz")
+#p_dm0.set_influ_type("gaussian")
+p_dm0.set_influ_type("radialSchwartz")
 p_dm0.set_margin_out(0.6)
 p_dm0.segmented_mirror = True
 
@@ -251,7 +251,7 @@ p_dm2.set_type('pzt')
 p_dm2.set_alt(0.)
 p_dm2.set_unitpervolt(1)
 p_dm2.set_push4imat(0.01)
-p_dm2.set_influType("petal")
+p_dm2.set_influ_type("petal")
 
 # centroiders
 p_centroider0 = ao.Param_centroider()

@@ -56,7 +56,7 @@ class SimulatorCacao(Simulator):
         if self.config.p_controllers is not None or self.config.p_centroiders is not None:
             print("->rtc")
             #   rtc
-            self.rtc = rtc_init(self.c, self.tel, self.wfs, self.dms, self.atm,
+            self.rtc = rtc_init(self.context,  self.tel, self.wfs, self.dms, self.atm,
                                 self.config.p_wfss, self.config.p_tel,
                                 self.config.p_geom, self.config.p_atmos, ittime,
                                 self.config.p_centroiders, self.config.p_controllers,

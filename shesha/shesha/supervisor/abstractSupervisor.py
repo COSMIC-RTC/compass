@@ -43,117 +43,153 @@ from tqdm import trange
 class AbstractSupervisor(ABC):
 
     @abstractmethod
-    def getConfig(self):
+    def get_config(self):
+        """ Returns the configuration in use, in a supervisor specific format ? 
+        """
         ...
 
-    ''' Returns the configuration in use, in a supervisor specific format ? '''
 
     @abstractmethod
-    def loadConfig(self):
+    def load_config(self):
+        """ Load the configuration for the supervisor
+        """
         ...
 
-    ''' Load the configuration for the supervisor'''
 
     @abstractmethod
-    def initConfig(self):
+    def init_config(self):
+        """ Init the configuration for the supervisor
+        """
         ...
 
-    ''' Init the configuration for the supervisor'''
 
     @abstractmethod
-    def setCommand(self, command: np.ndarray) -> None:
+    def set_command(self, command: np.ndarray) -> None:
+        """ Immediately sets provided command to DMs - does not affect integrator 
+
+        Parameters:
+            command : (np.ndarray) : DM Command vector
+        """
         ...
 
-    ''' Immediately sets provided command to DMs - does not affect integrator '''
 
     @abstractmethod
-    def setPerturbationVoltage(self, nControl: int, command: np.ndarray) -> None:
+    def set_perturbation_voltage(self, nControl: int, name : str, command: np.ndarray) -> None:
+        """ Add circular buffer of offset values to integrator (will be applied at the end of next iteration)
+
+        Parameters:
+            nControl : (int) : Controller index
+
+            name : (str) : Buffer name
+
+            command : (np.ndarray) : perturbation voltage circular buffer
+        """
         ...
 
-    ''' Add this offset value to integrator (will be applied at the end of next iteration)'''
 
     @abstractmethod
-    def getSlope(self) -> np.ndarray:
+    def get_slopes(self) -> np.ndarray:
+        """ Immediately gets one slope vector for all WFS at the current state of the system 
+
+        Return:
+            slopes : (np.ndarray) : Current WFS slopes
+        """
         ...
 
-    ''' Immediately gets one slope vector for all WFS at the current state of the system '''
 
     @abstractmethod
-    def singleNext(self, moveAtmos: bool = True, showAtmos: bool = True,
-                   getPSF: bool = False, getResidual: bool = False) -> None:
+    def single_next(self, move_atmos: bool = True, show_atmos: bool = True,
+                   get_psf: bool = False, get_residual: bool = False) -> None:
+        """ Performs a single loop iteration 
+
+        Parameters:
+            move_atmos : (bool, optional) : Move the atmosphere layers. Default is True
+
+            show_atmos : (bool, optional) : WFS and targets see the atmosphere layers. Default is True
+
+            get_psf : (bool, optional) : 
+
+            get_residual : (bool, optional) : 
+        """
         ...
 
     def next(self, nbiters, see_atmos=True):
+        """ Performs nbiters loop iterations 
+        
+        Parameters:
+            nbiters : (int) : Number of iterations to perform
+
+            see_atmos : (bool, optional) : Flag to enable atmosphere. Default is True
+        """
         for i in range(nbiters):
-            print(i, end="\r")
-            self.singleNext(showAtmos=see_atmos)
+            self.single_next(show_atmos=see_atmos)
 
-    ''' Move atmos -> getSlope -> applyControl ; One integrator step '''
 
     @abstractmethod
-    def closeLoop(self) -> None:
+    def close_loop(self) -> None:
+        """ DM receives controller output + pertuVoltage 
+        """
         ...
 
-    ''' DM receives controller output + pertuVoltage '''
 
     @abstractmethod
-    def openLoop(self) -> None:
+    def open_loop(self) -> None:
+        """ Integrator computation goes to /dev/null but pertuVoltage still applied 
+        """
         ...
 
-    ''' Integrator computation goes to /dev/null but pertuVoltage still applied '''
 
     @abstractmethod
-    def setRefSlopes(self, refSlopes: np.ndarray) -> None:
+    def set_ref_slopes(self, ref_slopes: np.ndarray) -> None:
+        """ Set given ref slopes in controller 
+        """
         ...
 
-    ''' Set given ref slopes in controller '''
 
     @abstractmethod
-    def getRefSlopes(self) -> np.ndarray:
+    def get_ref_slopes(self) -> np.ndarray:
+        """ Get the currently used reference slopes 
+        """
         ...
 
-    ''' Get the currently used reference slopes '''
 
     @abstractmethod
-    def setGain(self, gain: float):
+    def set_gain(self, gain: float):
+        """ Set the scalar gain of feedback controller loop 
+        """
         ...
 
-    ''' Set the scalar gain of feedback controller loop '''
 
     @abstractmethod
-    def setCommandMatrix(self, cMat: np.ndarray):
+    def set_command_matrix(self, cMat: np.ndarray):
+        """ Set the cmat for the controller to use 
+        """
         ...
 
-    ''' Set the cmat for the controller to use '''
 
     @abstractmethod
-    def getTarImage(self, tarID):
+    def get_psf(self, tar_index):
+        """ Get an image from a target 
+        """
         ...
 
-    ''' Get an image from a target '''
 
     @abstractmethod
-    def getWfsImage(self, numWFS: int = 0, calPix: bool = False) -> np.ndarray:
+    def get_wfs_image(self, numWFS: int = 0, cal_pix: bool = False) -> np.ndarray:
+        """ Get an image from the WFS. If calpix = True returns the calibrated image (background + flat + pixels selection )
+        """
         ...
 
-    ''' Get an image from the WFS. If calpix = True returns the calibrated image (background + flat + pixels selection )'''
 
     @abstractmethod
-    def getIntensities(self):
+    def get_intensities(self):
+        """ Return sum of intensities in subaps. Size nSubaps, same order as slopes 
+        """
         ...
 
-    ''' Return sum of intensities in subaps. Size nSubaps, same order as slopes '''
 
     @abstractmethod
-    def getAllDataLoop(self, nIter: int, slope: bool, command: bool, target: bool,
-                       intensity: bool, targetPhase: bool) -> np.ndarray:
-        ...
-
-    '''
-    Returns a sequence of data at continuous loop steps.
-    Requires loop to be asynchronously running
-    '''
-
-    @abstractmethod
-    def getFrameCounter(self):
+    def get_frame_counter(self):
+        """ Return the current frame counter
+        """
         ...

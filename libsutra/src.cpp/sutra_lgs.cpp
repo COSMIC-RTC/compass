@@ -48,7 +48,7 @@ sutra_lgs::sutra_lgs(carma_context *context, carma_obj<float> *d_lgskern,
                      map<vector<int>, cufftHandle *> ftlgskern_plans,
                      long nvalid, long npix, long nmaxhr) {
   this->current_context = context;
-  this->device = current_context->get_activeDevice();
+  this->device = current_context->get_active_device();
 
   this->nvalid = nvalid;
   this->npix = npix;
@@ -141,7 +141,7 @@ sutra_lgs::sutra_lgs(carma_context *context, carma_obj<float> *d_lgskern,
 }
 
 sutra_lgs::~sutra_lgs() {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   delete this->d_doffaxis;
   delete this->d_azimuth;
   delete this->d_prof1d;
@@ -161,7 +161,7 @@ int sutra_lgs::lgs_init(int nprof, float hg, float h0, float deltah,
                         float pixsize, float *doffaxis, float *prof1d,
                         float *profcum, float *beam, cuFloatComplex *ftbeam,
                         float *azimuth) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   this->nprof = nprof;
   this->hg = hg;
   this->h0 = h0;
@@ -193,7 +193,7 @@ int sutra_lgs::lgs_init(int nprof, float hg, float h0, float deltah,
 
 int sutra_lgs::load_prof(float *prof1d, float *profcum, float hg, float h0,
                          float deltah) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   this->d_prof1d->host2device(prof1d);
   this->d_profcum->host2device(profcum);
   this->hg = hg;

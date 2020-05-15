@@ -50,7 +50,7 @@ sutra_roket::sutra_roket(carma_context *context, int device, sutra_rtc *rtc,
   // context
   this->current_context = context;
   this->device = device;
-  this->current_context->set_activeDevice(device, 1);
+  this->current_context->set_active_device(device, 1);
   // sutra objects to supervise
   this->rtc = rtc;
   this->sensors = sensors;
@@ -151,7 +151,7 @@ sutra_roket::sutra_roket(carma_context *context, int device, sutra_rtc *rtc,
 }
 
 sutra_roket::~sutra_roket() {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   if (this->d_covv) delete this->d_covv;
   if (this->d_covm) delete this->d_covm;
   if (this->d_P) delete this->d_P;
@@ -179,7 +179,7 @@ sutra_roket::~sutra_roket() {
 }
 
 int sutra_roket::save_loop_state() {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   this->d_fullErr->copyFrom(this->loopcontrol->d_err->getData(), this->nactus);
   this->d_bkup_com->copyFrom(this->loopcontrol->d_com->getData(), this->nactus);
   this->d_bkup_screen->copyFrom(
@@ -201,7 +201,7 @@ int sutra_roket::save_loop_state() {
 }
 
 int sutra_roket::restore_loop_state() {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   this->d_bkup_com->copyInto(this->loopcontrol->d_com->getData(), this->nactus);
   this->d_bkup_screen->copyInto(
       this->target->d_targets[0]->d_phase->d_screen->getData(),
@@ -214,7 +214,7 @@ int sutra_roket::apply_loop_filter(carma_obj<float> *d_odata,
                                    carma_obj<float> *d_idata1,
                                    carma_obj<float> *d_idata2, float gain,
                                    int k) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   this->d_tmpdiff->copyFrom(d_idata1->getData(), this->nactus);
   this->d_tmpdiff->axpy(-1.0f, d_idata2, 1, 1);  // err1-err2
   this->d_tmpdiff->copyInto(d_odata->getDataAt((k + 1) * this->nactus),
@@ -229,7 +229,7 @@ int sutra_roket::apply_loop_filter(carma_obj<float> *d_odata,
 }
 
 int sutra_roket::compute_breakdown() {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   save_loop_state();
   // Noise
   this->rtc->do_centroids(this->loopcontroller, false);
@@ -261,7 +261,7 @@ int sutra_roket::compute_breakdown() {
   this->target->d_targets[0]->raytrace(this->atm);
   this->target->d_targets[0]->d_phase->d_screen->axpy(
       1.0, this->tel->d_phase_ab_M1_m, 1, 1);
-  this->current_context->set_activeDevice(this->geocontrol->device, 1);
+  this->current_context->set_active_device(this->geocontrol->device, 1);
   this->geocontrol->comp_dphi(this->target->d_targets[0], false);
 
   this->rtc->do_control(this->geocontroller);

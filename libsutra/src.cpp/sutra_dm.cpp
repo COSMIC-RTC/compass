@@ -120,7 +120,7 @@ sutra_dm::sutra_dm(carma_context *context, const char *type, float alt,
 
   this->current_context = context;
   this->device = device;
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   this->nactus = nactus;
   this->dim = dim;
   this->influsize = influsize;
@@ -171,7 +171,7 @@ sutra_dm::sutra_dm(carma_context *context, const char *type, float alt,
 }
 
 sutra_dm::~sutra_dm() {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
 
   delete this->d_shape;
   delete this->d_com;
@@ -197,14 +197,14 @@ int sutra_dm::set_registration(float dx, float dy, float thetaML, float G) {
 }
 
 int sutra_dm::tt_loadarrays(float *influ) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   this->d_influ->host2device(influ);
   return EXIT_SUCCESS;
 }
 
 int sutra_dm::pzt_loadarrays(float *influ, int *influpos, int *npoints,
                              int *istart, int *xoff, int *yoff) {
-  // current_context->set_activeDevice(device, 1);
+  // current_context->set_active_device(device, 1);
   this->d_influ->host2device(influ);
 
   this->d_xoff->host2device(xoff);
@@ -218,7 +218,7 @@ int sutra_dm::pzt_loadarrays(float *influ, int *influpos, int *npoints,
 
 int sutra_dm::kl_loadarrays(float *rabas, float *azbas, int *ord, float *cr,
                             float *cp) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   this->d_kl->d_rabas->host2device(rabas);
   this->d_kl->d_azbas->host2device(azbas);
   this->d_kl->h_ord->fill_from(ord);
@@ -230,13 +230,13 @@ int sutra_dm::kl_loadarrays(float *rabas, float *azbas, int *ord, float *cr,
 }
 
 int sutra_dm::reset_shape() {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   this->d_shape->d_screen->reset();
   return EXIT_SUCCESS;
 }
 
 int sutra_dm::comp_shape(uint16_t *comvec) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   convertToCom(comvec, this->d_com->getData(), this->d_com->getNbElem(),
                this->Vmin, this->Vmax, this->valMax,
                this->current_context->get_device(this->device));
@@ -246,7 +246,7 @@ int sutra_dm::comp_shape() { return this->comp_shape(this->d_com->getData()); }
 
 #ifdef CHEAT_CODE
 int sutra_dm::comp_shape(float *comvec) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   this->reset_shape();
 
   int nthreads = 0, nblocks = 0;
@@ -282,7 +282,7 @@ int sutra_dm::comp_shape(float *comvec) {
 #else
 
 int sutra_dm::comp_shape(float *comvec) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   this->reset_shape();
 
   dim3 threads(BLOCKSIZE);
@@ -320,7 +320,7 @@ int sutra_dm::comp_shape(float *comvec) {
 #endif
 
 int sutra_dm::comp_oneactu(int nactu, float ampli) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   this->reset_shape();
   int nthreads = 0, nblocks = 0;
   // getNumBlocksAndThreads(this->device,this->dim * this->dim, nblocks,
@@ -367,7 +367,7 @@ template int sutra_dm::get_IF<double>(double *IF, int *indx_pup, long nb_pts,
 template <class T>
 int sutra_dm::get_IF_sparse(carma_sparse_obj<T> *&d_IFsparse, int *indx_pup,
                             long nb_pts, float ampli, int puponly) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   int nnz_tot = 0;
   float *values[this->nactus];
   int *colind[this->nactus];
@@ -437,7 +437,7 @@ template int sutra_dm::get_IF_sparse<double>(
 
 int sutra_dm::compute_KLbasis(float *xpos, float *ypos, int *indx, long dim,
                               float norm, float ampli) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   long dims_data[3];
   dims_data[0] = 2;
   dims_data[1] = this->nactus;
@@ -509,7 +509,7 @@ int sutra_dm::compute_KLbasis(float *xpos, float *ypos, int *indx, long dim,
 template <class T>
 int sutra_dm::do_geomatFromSparse(T *d_geocov,
                                   carma_sparse_obj<T> *d_IFsparse) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   carma_sparse_obj<T> *d_tmp = new carma_sparse_obj<T>(this->current_context);
 
   carma_gemm<T>(cusparse_handle(), 'n', 't', d_IFsparse, d_IFsparse, d_tmp);
@@ -524,7 +524,7 @@ template int sutra_dm::do_geomatFromSparse<double>(
     double *d_geocov, carma_sparse_obj<double> *d_IFsparse);
 
 int sutra_dm::do_geomat(float *d_geocov, float *d_IF, long n_pts) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   carma_gemm(this->cublas_handle(), 't', 'n', this->nactus, this->nactus, n_pts,
              1.0f, d_IF, n_pts, d_IF, n_pts, 0.0f, d_geocov, this->nactus);
 
@@ -532,7 +532,7 @@ int sutra_dm::do_geomat(float *d_geocov, float *d_IF, long n_pts) {
 }
 
 int sutra_dm::piston_filt(carma_obj<float> *d_statcov) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   long Nmod = d_statcov->getDims()[1];
   long dims_data[3];
   dims_data[0] = 2;
@@ -558,7 +558,7 @@ int sutra_dm::piston_filt(carma_obj<float> *d_statcov) {
 }
 
 int sutra_dm::DDiago(carma_obj<float> *d_statcov, carma_obj<float> *d_geocov) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   const long dims_data[3] = {2, this->nactus, this->nactus};
   carma_obj<float> *d_M1 = new carma_obj<float>(current_context, dims_data);
   carma_obj<float> *d_tmp = new carma_obj<float>(current_context, dims_data);

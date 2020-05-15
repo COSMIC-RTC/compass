@@ -100,8 +100,8 @@ class sutra_wfs_pyr_pyrhr : public sutra_wfs {
   void comp_modulation(int cpt);
 
   int copyValidPix(float *img, int *validx, int *validy, int im_dim);
-  int set_pyr_modulation(float *cx, float *cy, int npts);
-  int set_pyr_modulation(float *cx, float *cy, float *weights, int npts);
+  int set_pyr_modulation_points(float *cx, float *cy, int npts);
+  int set_pyr_modulation_points(float *cx, float *cy, float *weights, int npts);
   int set_pyr_mod_weights(float *weights, int npts);
 
   int define_mpi_rank(int rank, int size) { return EXIT_SUCCESS; }

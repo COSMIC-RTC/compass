@@ -137,7 +137,7 @@ class sutra_controller {
   int enable_perturb_voltage(string name);
   int disable_perturb_voltage(string name);
   int set_com(float *com, int nElem);
-  int set_openloop(int open_loop_status, bool rst = true);
+  int set_open_loop(int open_loop_status, bool rst = true);
   int clip_commands();
   int comp_voltage();
   int comp_latency();

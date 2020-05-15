@@ -1,5 +1,5 @@
 ## @package   shesha.sim.benchBrahma
-## @brief     Benchmark class for COMPASS with BRAHMA simulation timing (Not used, incomplete)
+## @brief     Benchmark class for COMPASS with brahma simulation timing (Not used, incomplete)
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   4.3.0
 ## @date      2011/01/28

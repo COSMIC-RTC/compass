@@ -64,12 +64,12 @@ class Context:
 
     def getActiveDevice(self):
         """ Return the index of the current active device """
-        return self.context.activeDevice
+        return self.context.active_device
 
     def setActiveDevice(self, index: int):
         """ Set the device index as the active device """
         if index in self.devices:
-            self.context.set_activeDevice(index)
+            self.context.set_active_device(index)
         else:
             raise ValueError("Index given is not valid")
 

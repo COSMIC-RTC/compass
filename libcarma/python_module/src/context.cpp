@@ -84,7 +84,7 @@ void declare_carmaWrap_context(py::module &mod) {
       // }))
 
       .def_property_readonly("ndevice", &carma_context::get_ndevice)
-      .def_property_readonly("activeDevice", &carma_context::get_activeDevice)
+      .def_property_readonly("active_device", &carma_context::get_active_device)
       .def_property_readonly("activeRealDevice",
                              &carma_context::get_activeRealDevice)
       .def_property_readonly("cudaRuntimeGetVersion",
@@ -93,15 +93,15 @@ void declare_carmaWrap_context(py::module &mod) {
                              &carma_context::get_cudaDriverGetVersion)
       .def("get_device", &carma_context::get_device,
            py::return_value_policy::reference)
-      .def("set_activeDevice",
+      .def("set_active_device",
            [](carma_context &cc, int newDevice) {
-             return cc._set_activeDevice(newDevice, 1, __FILE__, __LINE__);
+             return cc._set_active_device(newDevice, 1, __FILE__, __LINE__);
            })
-      .def("set_activeDeviceForce",
+      .def("set_active_device_force",
            [](carma_context &cc, int newDevice) {
-             return cc._set_activeDeviceForce(newDevice, 0, __FILE__, __LINE__);
+             return cc._set_active_device_force(newDevice, 0, __FILE__, __LINE__);
            })
-      // .def("set_activeDeviceForCpy", &carma_context::set_activeDeviceForCpy);
+      // .def("set_active_deviceForCpy", &carma_context::set_active_deviceForCpy);
       .def(
           "activate_tensor_cores",
           [](carma_context &cc, bool flag) {

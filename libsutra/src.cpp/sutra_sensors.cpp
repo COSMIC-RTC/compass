@@ -56,7 +56,7 @@ sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel,
       d_fttotim(nullptr),
       d_ftlgskern(nullptr),
       d_lgskern(nullptr) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   // DEBUG_TRACE("Before create sensors : ");printMemInfo();
   if (type[0].compare("sh") == 0) {
     int maxnfft = nfft[0];
@@ -154,7 +154,7 @@ sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel,
 }
 
 sutra_sensors::~sutra_sensors() {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   //  for (size_t idx = 0; idx < (this->d_wfs).size(); idx++) {
   while ((this->d_wfs).size() > 0) {
     delete this->d_wfs.back();
@@ -182,7 +182,7 @@ sutra_sensors::~sutra_sensors() {
 }
 
 int sutra_sensors::allocate_buffers() {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   for (size_t idx = 0; idx < this->d_wfs.size(); idx++) {
     this->d_wfs[idx]->allocate_buffers(this->campli_plans, this->fttotim_plans);
   }
@@ -190,7 +190,7 @@ int sutra_sensors::allocate_buffers() {
 }
 
 int sutra_sensors::define_mpi_rank(int rank, int size) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   for (size_t idx = 0; idx < this->d_wfs.size(); idx++) {
     this->d_wfs[idx]->define_mpi_rank(rank, size);
   }
@@ -200,7 +200,7 @@ int sutra_sensors::define_mpi_rank(int rank, int size) {
 int sutra_sensors::initgs(float *xpos, float *ypos, float *lambda, float *mag,
                           float zerop, long *size, float *noise, long *seed,
                           float *G, float *thetaML, float *dx, float *dy) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   for (size_t idx = 0; idx < this->d_wfs.size(); idx++) {
     this->d_wfs[idx]->wfs_initgs(
         this->d_lgskern, this->d_ftlgskern, this->ftlgskern_plans, xpos[idx],
@@ -212,7 +212,7 @@ int sutra_sensors::initgs(float *xpos, float *ypos, float *lambda, float *mag,
 int sutra_sensors::initgs(float *xpos, float *ypos, float *lambda, float *mag,
                           float zerop, long *size, float *noise, float *G,
                           float *thetaML, float *dx, float *dy) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   for (size_t idx = 0; idx < this->d_wfs.size(); idx++) {
     this->d_wfs[idx]->wfs_initgs(
         this->d_lgskern, this->d_ftlgskern, this->ftlgskern_plans, xpos[idx],
@@ -224,7 +224,7 @@ int sutra_sensors::initgs(float *xpos, float *ypos, float *lambda, float *mag,
 int sutra_sensors::initgs(float *xpos, float *ypos, float *lambda, float *mag,
                           float zerop, long *size, float *G, float *thetaML,
                           float *dx, float *dy) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   for (size_t idx = 0; idx < this->d_wfs.size(); idx++) {
     this->d_wfs[idx]->wfs_initgs(
         this->d_lgskern, this->d_ftlgskern, this->ftlgskern_plans, xpos[idx],

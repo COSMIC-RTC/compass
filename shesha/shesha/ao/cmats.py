@@ -182,7 +182,7 @@ def Btt_for_cmat(rtc, dms, p_dms, p_geom):
     IFtt = IFs[:, -2:].toarray()
     IFpzt = IFs[:, :n - 2]
 
-    Btt, P = basis.compute_Btt(IFpzt, IFtt)
+    Btt, P = basis.compute_btt(IFpzt, IFtt)
     return Btt, P
 
 

@@ -93,7 +93,7 @@ int sutra_wfs_sh::define_mpi_rank(int rank, int size) {
 int sutra_wfs_sh::allocate_buffers(
     map<vector<int>, cufftHandle *> campli_plans,
     map<vector<int>, cufftHandle *> fttotim_plans) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   long *dims_data1 = new long[2];
   dims_data1[0] = 1;
   long *dims_data2 = new long[3];
@@ -280,7 +280,7 @@ int sutra_wfs_sh::allocate_buffers(
 }
 
 sutra_wfs_sh::~sutra_wfs_sh() {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
 
   if (this->d_ftkernel != 0L) delete this->d_ftkernel;
 
@@ -321,7 +321,7 @@ int sutra_wfs_sh::loadarrays(int *phasemap, int *hrmap, int *binmap,
         "ERROR : d_bincube not initialized, did you do the allocate_buffers?");
     throw "ERROR : d_bincube not initialized, did you do the allocate_buffers?";
   }
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   this->d_phasemap->host2device(&phasemap[offset * nphase * nphase]);
   this->d_offsets->host2device(offsets);
   this->d_binmap->host2device(binmap);
@@ -346,7 +346,7 @@ int sutra_wfs_sh::comp_generic() {
         "ERROR : d_bincube not initialized, did you do the allocate_buffers?");
     throw "ERROR : d_bincube not initialized, did you do the allocate_buffers?";
   }
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
 
   carmaSafeCall(
       cudaMemset(this->d_camplipup->getData(), 0,
@@ -581,7 +581,7 @@ int sutra_wfs_sh::fill_binimage(int async = 0) {
   }
   if (noise > 0) this->d_binimg->prng('N', this->noise);
 
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   if (async) {
     fillbinimg_async(this->image_telemetry, this->d_binimg->getData(),
                      this->d_bincube->getData(), this->npix, this->nvalid_tot,
@@ -598,7 +598,7 @@ int sutra_wfs_sh::fill_binimage(int async = 0) {
 }
 
 int sutra_wfs_sh::comp_image(bool noise) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   int result;
   if (noise)
     result = comp_generic();
@@ -640,7 +640,7 @@ int sutra_wfs_sh::comp_nphot(float ittime, float optthroughput, float diam,
 }
 
 int sutra_wfs_sh::set_bincube(float *bincube, int nElem) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   if (nElem == this->d_bincube->getNbElem())
     this->d_bincube->host2device(bincube);
   else

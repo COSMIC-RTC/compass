@@ -14,12 +14,12 @@ sup = Supervisor(
 sup.config.p_controller0.set_type("generic")
 sup.config.p_centroider0.set_type("maskedpix")
 sup.config.p_wfs0.roket = False
-sup.initConfig()
-sup.singleNext()
+sup.init_config()
+sup.single_next()
 xvalid = np.array(sup._sim.rtc.d_centro[0].d_validx)
 yvalid = np.array(sup._sim.rtc.d_centro[0].d_validy)
-cmat = sup.getCmat(0)
-frame = sup.getWfsImage()
+cmat = sup.get_command_matrix(0)
+frame = sup.get_wfs_image()
 frame /= frame.max()
 
 rtc = Rtc()

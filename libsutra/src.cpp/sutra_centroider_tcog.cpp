@@ -50,7 +50,7 @@ sutra_centroider_tcog<Tin, T>::sutra_centroider_tcog(carma_context *context,
                                                      bool filter_TT, int device)
     : sutra_centroider<Tin, T>(context, wfs, nvalid, offset, scale, filter_TT,
                                device) {
-  context->set_activeDevice(device, 1);
+  context->set_active_device(device, 1);
 
   this->nslopes = 2 * nvalid;
   this->threshold = 0.f;
@@ -82,7 +82,7 @@ template <class Tin, class T>
 int sutra_centroider_tcog<Tin, T>::get_cog(float *img, float *intensities,
                                            T *centroids, int nvalid, int npix,
                                            int ntot, cudaStream_t stream) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
 
   get_centroids(ntot, (npix * npix), nvalid, npix, img, centroids,
                 this->d_centroids_ref->getData(), this->d_validx->getData(),

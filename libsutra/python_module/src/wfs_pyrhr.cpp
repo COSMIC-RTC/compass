@@ -168,9 +168,9 @@ void declare_wfs_pyrhr(py::module &mod) {
       )pbdoc",
           py::arg("img"))
 
-      .def("set_pyr_modulation",
+      .def("set_pyr_modulation_points",
            wy::colCast((int (sutra_wfs_pyr_pyrhr::*)(float *, float *, int)) &
-                       sutra_wfs_pyr_pyrhr::set_pyr_modulation),
+                       sutra_wfs_pyr_pyrhr::set_pyr_modulation_points),
            R"pbdoc(
         Set the modulation points of a PWFS
 
@@ -182,10 +182,10 @@ void declare_wfs_pyrhr(py::module &mod) {
       )pbdoc",
            py::arg("cx"), py::arg("cy"), py::arg("npts"))
 
-      .def("set_pyr_modulation",
+      .def("set_pyr_modulation_points",
            wy::colCast(
                (int (sutra_wfs_pyr_pyrhr::*)(float *, float *, float *, int)) &
-               sutra_wfs_pyr_pyrhr::set_pyr_modulation),
+               sutra_wfs_pyr_pyrhr::set_pyr_modulation_points),
            R"pbdoc(
         Set the modulation points and weights of a PWFS
 

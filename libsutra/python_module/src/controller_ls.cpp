@@ -181,7 +181,7 @@ void controller_ls_impl(py::module &mod, const char *name) {
            py::arg("nmodes"), py::arg("nrec"), py::arg("M2V"), py::arg("gmin"),
            py::arg("gmax"), py::arg("ngain"), py::arg("Fs"))
 
-      .def("loadOpenLoopSlp", wy::colCast(&controller_ls::loadOpenLoopSlp),
+      .def("loadopen_loopSlp", wy::colCast(&controller_ls::loadopen_loopSlp),
            R"pbdoc(
       Load recorded open loop slopes for modal optimization initialization
 
@@ -201,7 +201,7 @@ void controller_ls_impl(py::module &mod, const char *name) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
-      .def("set_mgain", wy::colCast(&controller_ls::set_mgain), R"pbdoc(
+      .def("set_modal_gains", wy::colCast(&controller_ls::set_modal_gains), R"pbdoc(
       Set the controller modal gains
 
       Parameters

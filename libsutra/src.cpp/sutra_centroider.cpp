@@ -53,7 +53,7 @@ sutra_centroider<Tin, Tout>::sutra_centroider(carma_context *context,
                                               bool filter_TT, int device) {
   this->current_context = context;
   this->device = device;
-  context->set_activeDevice(device, 1);
+  context->set_active_device(device, 1);
   this->wfs = wfs;
 
   this->nvalid = nvalid;
@@ -128,7 +128,7 @@ int sutra_centroider<Tin, Tout>::set_nxsub(int nxsub) {
 
 template <class Tin, class Tout>
 int sutra_centroider<Tin, Tout>::init_calib(int n, int m) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   long dims_data2[3] = {2, n, m};
   if (this->d_img == nullptr) {
     this->d_img = new carma_obj<float>(current_context, dims_data2);
@@ -153,7 +153,7 @@ int sutra_centroider<Tin, Tout>::init_calib(int n, int m) {
 
 template <class Tin, class Tout>
 int sutra_centroider<Tin, Tout>::init_roi(int N) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   if (this->d_validx == nullptr) {
     long dims_data[2] = {1, N};
     this->d_validx = new carma_obj<int>(current_context, dims_data);
@@ -164,7 +164,7 @@ int sutra_centroider<Tin, Tout>::init_roi(int N) {
 
 template <class Tin, class Tout>
 int sutra_centroider<Tin, Tout>::set_dark(float *dark, int n) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   if (this->d_dark == nullptr) {
     long dims_data2[3] = {2, n, n};
     this->d_dark = new carma_obj<float>(current_context, dims_data2);
@@ -175,7 +175,7 @@ int sutra_centroider<Tin, Tout>::set_dark(float *dark, int n) {
 
 template <class Tin, class Tout>
 int sutra_centroider<Tin, Tout>::set_flat(float *flat, int n) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   if (this->d_flat == nullptr) {
     long dims_data2[3] = {2, n, n};
     this->d_flat = new carma_obj<float>(current_context, dims_data2);
@@ -186,7 +186,7 @@ int sutra_centroider<Tin, Tout>::set_flat(float *flat, int n) {
 
 template <class Tin, class Tout>
 int sutra_centroider<Tin, Tout>::set_lutPix(int *lutPix, int n) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   if (this->d_lutPix == nullptr) {
     long dims_data1[2] = {1, n};
     this->d_lutPix = new carma_obj<int>(current_context, dims_data1);
@@ -197,7 +197,7 @@ int sutra_centroider<Tin, Tout>::set_lutPix(int *lutPix, int n) {
 
 template <class Tin, class Tout>
 int sutra_centroider<Tin, Tout>::get_validMask() {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   if (this->d_validMask == nullptr) {
     if (this->d_img == nullptr) {
       std::cout << "RTC image has not been initialized" << std::endl;
@@ -217,7 +217,7 @@ int sutra_centroider<Tin, Tout>::get_validMask() {
 
 template <class Tin, class Tout>
 int sutra_centroider<Tin, Tout>::calibrate_img(cudaStream_t stream) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
 
   if (this->d_img_raw == nullptr) {
     std::cout << "Image not initialized\n" << std::endl;
@@ -264,7 +264,7 @@ int sutra_centroider<Tin, Tout>::load_img(Tin *img, int m, int n,
 
 template <class Tin, class Tout>
 int sutra_centroider<Tin, Tout>::init_img_raw(int m, int n) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   if (this->d_img_raw == nullptr) {
     long dims_data2[3] = {2, m, n};
     this->d_img_raw = new carma_obj<Tin>(current_context, dims_data2);
@@ -282,7 +282,7 @@ int sutra_centroider<Tin, Tout>::set_npix(int npix) {
 template <class Tin, class Tout>
 int sutra_centroider<Tin, Tout>::load_validpos(int *ivalid, int *jvalid,
                                                int N) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   if (this->d_validx == nullptr) {
     this->init_roi(N);
   }
@@ -301,7 +301,7 @@ int sutra_centroider<Tin, Tout>::set_centroids_ref(float *centroids_ref) {
 
 template <class Tin, class Tout>
 int sutra_centroider<Tin, Tout>::init_TT_filter() {
-  this->current_context->set_activeDevice(device, 1);
+  this->current_context->set_active_device(device, 1);
   long dims_data[2] = {1, 2};
   this->d_TT_slopes = new carma_obj<float>(this->current_context, dims_data);
   dims_data[1] = this->nslopes;

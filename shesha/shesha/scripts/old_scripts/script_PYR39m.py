@@ -101,7 +101,7 @@ else:
 #   context
 c = ch.carmaWrap_context(devices=np.array([0, 1, 2, 3], dtype=np.int32))
 
-#c.set_activeDevice(6)
+#c.set_active_device(6)
 
 
 def makeFITSHeader(filepath, df):

@@ -49,11 +49,11 @@ sutra_controller<Tcomp, Tout>::sutra_controller(carma_context *context,
                                                 sutra_dms *dms, int *idx_dms,
                                                 int ndm, int *idx_centro, int ncentro) {
   this->current_context = context;
-  this->device = context->get_activeDevice();
+  this->device = context->get_active_device();
 
   this->nactus = nactu;
   this->nslopes = nslope;
-  // current_context->set_activeDevice(device,1);
+  // current_context->set_active_device(device,1);
   this->d_com1 = nullptr;
   this->d_comPadded = nullptr;
   this->d_centroidsPadded = nullptr;
@@ -113,9 +113,9 @@ int sutra_controller<Tcomp, Tout>::set_gain(float gain) {
 }
 
 template <typename Tcomp, typename Tout>
-int sutra_controller<Tcomp, Tout>::set_openloop(int open_loop_status,
+int sutra_controller<Tcomp, Tout>::set_open_loop(int open_loop_status,
                                                 bool rst) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   this->open_loop = open_loop_status;
 
   if (this->open_loop && rst) {
@@ -126,7 +126,7 @@ int sutra_controller<Tcomp, Tout>::set_openloop(int open_loop_status,
 
 template <typename Tcomp, typename Tout>
 int sutra_controller<Tcomp, Tout>::reset_coms() {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   for (auto cobj : this->d_circularComs) {
     cobj->reset();
   }
@@ -138,7 +138,7 @@ template <typename Tcomp, typename Tout>
 int sutra_controller<Tcomp, Tout>::add_perturb_voltage(string name,
                                                        float *perturb, int N) {
   std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
 
   if (this->d_perturb_map.count(name) < 1) {
     long dims_data2[3] = {2, N, this->nactu()};
@@ -156,7 +156,7 @@ int sutra_controller<Tcomp, Tout>::add_perturb_voltage(string name,
 template <typename Tcomp, typename Tout>
 int sutra_controller<Tcomp, Tout>::set_perturb_voltage(string name,
                                                        float *perturb, int N) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
 
   if (this->d_perturb_map.count(name)) {
     remove_perturb_voltage(name);
@@ -169,7 +169,7 @@ int sutra_controller<Tcomp, Tout>::set_perturb_voltage(string name,
 template <typename Tcomp, typename Tout>
 int sutra_controller<Tcomp, Tout>::remove_perturb_voltage(string name) {
   std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   typename map<string, tuple<carma_obj<Tcomp> *, int, bool>>::iterator it;
 
   if (this->d_perturb_map.count(name)) {
@@ -185,7 +185,7 @@ int sutra_controller<Tcomp, Tout>::remove_perturb_voltage(string name) {
 template <typename Tcomp, typename Tout>
 int sutra_controller<Tcomp, Tout>::enable_perturb_voltage(string name) {
   std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   typename map<string, tuple<carma_obj<Tcomp> *, int, bool>>::iterator it;
 
   if (this->d_perturb_map.count(name)) {
@@ -200,7 +200,7 @@ int sutra_controller<Tcomp, Tout>::enable_perturb_voltage(string name) {
 template <typename Tcomp, typename Tout>
 int sutra_controller<Tcomp, Tout>::disable_perturb_voltage(string name) {
   std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   typename map<string, tuple<carma_obj<Tcomp> *, int, bool>>::iterator it;
 
   if (this->d_perturb_map.count(name)) {
@@ -215,7 +215,7 @@ int sutra_controller<Tcomp, Tout>::disable_perturb_voltage(string name) {
 template <typename Tcomp, typename Tout>
 int sutra_controller<Tcomp, Tout>::reset_perturb_voltage() {
   std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   typename map<string, tuple<carma_obj<Tcomp> *, int, bool>>::iterator it;
   it = this->d_perturb_map.begin();
   while (it != this->d_perturb_map.end()) {
@@ -229,7 +229,7 @@ int sutra_controller<Tcomp, Tout>::reset_perturb_voltage() {
 
 template <typename Tcomp, typename Tout>
 int sutra_controller<Tcomp, Tout>::command_delay() {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
 
   if (delay > 0) {
     carma_obj<Tcomp> *tmp = std::move(this->d_circularComs.front());
@@ -245,7 +245,7 @@ int sutra_controller<Tcomp, Tout>::command_delay() {
 
 template <typename Tcomp, typename Tout>
 int sutra_controller<Tcomp, Tout>::clip_commands() {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   if (this->Vmin < this->Vmax)
     this->d_comClipped->clip(this->Vmin, this->Vmax);
   else
@@ -257,7 +257,7 @@ int sutra_controller<Tcomp, Tout>::clip_commands() {
 template <typename Tcomp, typename Tout>
 int sutra_controller<Tcomp, Tout>::comp_latency() {
   // Command increment = a * d[k] + b*d[k-1] + c*d[k-2] + perturb
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   if (this->delay > 0) {
     this->d_comClipped->reset();
     this->d_comClipped->axpy(this->a, this->d_circularComs[0], 1, 1);
@@ -270,7 +270,7 @@ int sutra_controller<Tcomp, Tout>::comp_latency() {
 template <typename Tcomp, typename Tout>
 int sutra_controller<Tcomp, Tout>::comp_voltage() {
   std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   if (this->delay > 0) {
     this->comp_latency();
     this->command_delay();
@@ -333,7 +333,7 @@ sutra_controller<Tcomp, Tout>::~sutra_controller() {
 
 template <typename Tcomp, typename Tout>
 int sutra_controller<Tcomp, Tout>::set_com(float *com, int nElem) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   if (nElem == this->d_com->getNbElem()) {
     this->d_com->host2device(com);
     this->d_comClipped->copyFrom(this->d_com->getData(),
@@ -384,7 +384,7 @@ template class sutra_controller<half, uint16_t>;
 // template<class T>
 // int sutra_controller<Tcomp, Tout>::syevd_f(char meth, carma_obj<float> *d_U,
 //                               carma_host_obj<float> *h_eigenvals) {
-//   current_context->set_activeDevice(device, 1);
+//   current_context->set_active_device(device, 1);
 
 //   // Init double arrays
 //   const long dims_data[3] = {2, d_U->getDims()[1], d_U->getDims()[2]};
@@ -419,7 +419,7 @@ template class sutra_controller<half, uint16_t>;
 // int sutra_controller<Tcomp, Tout>::invgen(carma_obj<float> *d_mat, float
 // cond, int job)
 // {
-//   current_context->set_activeDevice(device, 1);
+//   current_context->set_active_device(device, 1);
 //   const long dims_data[3] = {2, d_mat->getDims()[1], d_mat->getDims()[2]};
 //   carma_obj<float> *d_U = new carma_obj<float>(current_context, dims_data);
 //   carma_obj<float> *d_tmp = new carma_obj<float>(current_context, dims_data);

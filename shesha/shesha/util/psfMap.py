@@ -112,8 +112,8 @@ class PSF_map:
                 raise ValueError("not a square nb of targets")
             self.map = np.zeros((NTAR_side, NTAR_side))
             for i in range(NTAR):
-                #self.map.itemset(i,sup._sim.getStrehl(i)[1])
-                self.map.itemset(i, sup._sim.getStrehl(i)[0])
+                #self.map.itemset(i,sup._sim.get_strehl(i)[1])
+                self.map.itemset(i, sup._sim.get_strehl(i)[0])
                 tar = sup._sim.tar.d_targets[i]
                 self._Rtar = max(self._Rtar, tar.posx, tar.posy)
 

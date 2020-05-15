@@ -56,7 +56,7 @@ sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(
                 nxsub, nvalid, npix, nphase, nrebin, nfft, ntot, npup, pdiam,
                 nphotons, nphot4imat, lgs, fakecam, maxFluxPerPix, maxPixValue,
                 false, roket, device) {
-  context->set_activeDevice(device, 1);
+  context->set_active_device(device, 1);
   long dims_data1[2];
   dims_data1[0] = 1;
   long dims_data2[3];
@@ -160,7 +160,7 @@ sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(
   dims_data2[2] = nfft;
   this->d_modu_gather = new carma_obj<float>(current_context, dims_data2);
   for (int device = 1; device < nbdevices; device++) {
-    current_context->set_activeDevice(device, 1);
+    current_context->set_active_device(device, 1);
     dims_data2[1] = nfft;
     dims_data2[2] = nfft;
     d_hrimg_ngpu.push_back(
@@ -193,7 +193,7 @@ sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
            this->d_camplipup_ngpu.begin();
        this->d_camplipup_ngpu.end() != it; ++it) {
     if (*it != this->d_camplipup) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->getDevice(), 1);
       delete *it;
     }
   }
@@ -203,7 +203,7 @@ sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
            this->d_camplifoc_ngpu.begin();
        this->d_camplifoc_ngpu.end() != it; ++it) {
     if (*it != this->d_camplifoc) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->getDevice(), 1);
       delete *it;
     }
   }
@@ -213,7 +213,7 @@ sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
            this->d_pyrfocalplane_ngpu.begin();
        this->d_pyrfocalplane_ngpu.end() != it; ++it) {
     if (*it != this->d_pyrfocalplane) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->getDevice(), 1);
       delete *it;
     }
   }
@@ -223,7 +223,7 @@ sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
            this->d_phalfxy_ngpu.begin();
        this->d_phalfxy_ngpu.end() != it; ++it) {
     if (*it != this->d_phalfxy) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->getDevice(), 1);
       delete *it;
     }
   }
@@ -233,7 +233,7 @@ sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
            this->d_fttotim_ngpu.begin();
        this->d_fttotim_ngpu.end() != it; ++it) {
     if (*it != this->d_fttotim) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->getDevice(), 1);
       delete *it;
     }
   }
@@ -243,7 +243,7 @@ sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
            this->d_pupil_ngpu.begin();
        this->d_pupil_ngpu.end() != it; ++it) {
     if (*it != this->d_pupil) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->getDevice(), 1);
       delete *it;
     }
   }
@@ -253,7 +253,7 @@ sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
            this->d_submask_ngpu.begin();
        this->d_submask_ngpu.end() != it; ++it) {
     if (*it != this->d_submask) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->getDevice(), 1);
       delete *it;
     }
   }
@@ -263,7 +263,7 @@ sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
            this->d_screen_ngpu.begin();
        this->d_screen_ngpu.end() != it; ++it) {
     if (*it != this->d_gs->d_phase->d_screen) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->getDevice(), 1);
       delete *it;
     }
   }
@@ -273,13 +273,13 @@ sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
            this->d_hrimg_ngpu.begin();
        this->d_hrimg_ngpu.end() != it; ++it) {
     if (*it != this->d_hrimg) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->getDevice(), 1);
       delete *it;
     }
   }
   this->d_hrimg_ngpu.clear();
 
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   if (this->d_camplipup != 0L) delete this->d_camplipup;
   if (this->d_camplifoc != 0L) delete this->d_camplifoc;
   if (this->d_pyrfocalplane != 0L) delete this->d_pyrfocalplane;
@@ -329,7 +329,7 @@ int sutra_wfs_pyr_pyrhr::loadarrays(cuFloatComplex *halfxy, float *cx,
            this->d_phalfxy_ngpu.begin();
        this->d_phalfxy_ngpu.end() != it; ++it) {
     if (*it != this->d_phalfxy) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->getDevice(), 1);
       (*it)->host2device(halfxy);
     }
   }
@@ -337,7 +337,7 @@ int sutra_wfs_pyr_pyrhr::loadarrays(cuFloatComplex *halfxy, float *cx,
            this->d_submask_ngpu.begin();
        this->d_submask_ngpu.end() != it; ++it) {
     if (*it != this->d_submask) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->getDevice(), 1);
       (*it)->host2device(submask);
     }
   }
@@ -345,14 +345,14 @@ int sutra_wfs_pyr_pyrhr::loadarrays(cuFloatComplex *halfxy, float *cx,
            this->d_pupil_ngpu.begin();
        this->d_pupil_ngpu.end() != it; ++it) {
     if (*it != this->d_pupil) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->getDevice(), 1);
       (*it)->copyFrom(d_pupil->getData(), d_pupil->getNbElem());
     }
   }
   if (d_screen_ngpu.size() > 0)
     d_screen_ngpu[0] = this->d_gs->d_phase->d_screen;
 
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   this->d_phalfxy->host2device(halfxy);
   this->d_submask->host2device(submask);
   this->pyr_cx->fill_from(cx);
@@ -376,7 +376,7 @@ int sutra_wfs_pyr_pyrhr::set_submask(float *submask) {
              this->d_submask_ngpu.begin();
          this->d_submask_ngpu.end() != it; ++it) {
       if (*it != this->d_submask) {
-        current_context->set_activeDevice((*it)->getDevice(), 1);
+        current_context->set_active_device((*it)->getDevice(), 1);
         (*it)->host2device(submask);
       }
     }
@@ -419,7 +419,7 @@ void sutra_wfs_pyr_pyrhr::comp_modulation(int cpt) {
          this->current_context->get_device(device));
   } else {
     int cur_device = cpt % ngpu;
-    current_context->set_activeDevice(cur_device, 1);
+    current_context->set_active_device(cur_device, 1);
 
     carmaSafeCall(cudaMemset(
         this->d_camplipup_ngpu[cur_device]->getData(), 0,
@@ -481,7 +481,7 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
    normalize
    add noise
    */
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   carmaSafeCall(cudaMemset(this->d_binimg->getData(), 0,
                            sizeof(float) * this->d_binimg->getNbElem()));
   for (std::vector<carma_obj<float> *>::iterator it =
@@ -489,26 +489,26 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
        this->d_screen_ngpu.end() != it; ++it) {
     carma_obj<float> *tmp_screen = this->d_gs->d_phase->d_screen;
     if (*it != tmp_screen) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->getDevice(), 1);
       (*it)->copyFrom(tmp_screen->getData(), tmp_screen->getNbElem());
     }
   }
 
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   carmaSafeCall(cudaMemset(this->d_hrimg->getData(), 0,
                            sizeof(float) * this->d_hrimg->getNbElem()));
   for (std::vector<carma_obj<float> *>::iterator it =
            this->d_hrimg_ngpu.begin();
        this->d_hrimg_ngpu.end() != it; ++it) {
     if (*it != d_hrimg) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->getDevice(), 1);
       carmaSafeCall(
           cudaMemset((*it)->getData(), 0, sizeof(float) * (*it)->getNbElem()));
     }
   }
 
   if (compute_pyrfocalplane) {
-    current_context->set_activeDevice(device, 1);
+    current_context->set_active_device(device, 1);
     carmaSafeCall(
         cudaMemset(this->d_pyrfocalplane->getData(), 0,
                    sizeof(float) * this->d_pyrfocalplane->getNbElem()));
@@ -516,28 +516,28 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
              this->d_pyrfocalplane_ngpu.begin();
          this->d_pyrfocalplane_ngpu.end() != it; ++it) {
       if (*it != d_pyrfocalplane) {
-        current_context->set_activeDevice((*it)->getDevice(), 1);
+        current_context->set_active_device((*it)->getDevice(), 1);
         carmaSafeCall(cudaMemset((*it)->getData(), 0,
                                  sizeof(float) * (*it)->getNbElem()));
       }
     }
   }
 
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
 
   for (int cpt = 0; cpt < this->npup; cpt++) {
     comp_modulation(cpt);
   }
 
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
 
   for (std::vector<carma_obj<float> *>::iterator it =
            this->d_hrimg_ngpu.begin();
        this->d_hrimg_ngpu.end() != it; ++it) {
     if (*it != d_hrimg) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->getDevice(), 1);
       cudaStreamSynchronize(0);
-      current_context->set_activeDevice(device, 1);
+      current_context->set_active_device(device, 1);
       if (current_context->canP2P(d_hrimg->getDevice(), (*it)->getDevice())) {
         d_hrimg->axpy(1.0f, (*it), 1, 1);
       } else {
@@ -593,7 +593,7 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
   //  getNumBlocksAndThreads(current_context->get_device(device),
   //  this->d_binimg->getNbElem(),
   //      blocks, threads);
-  this->current_context->set_activeDevice(device, 1);
+  this->current_context->set_active_device(device, 1);
   sumGetNumBlocksAndThreads(this->d_binimg->getNbElem(),
                             this->current_context->get_device(device), blocks,
                             threads);
@@ -636,7 +636,7 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
 }
 
 int sutra_wfs_pyr_pyrhr::comp_image(bool noise) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   int result;
   if (noise)
     result = comp_generic();
@@ -664,7 +664,7 @@ int sutra_wfs_pyr_pyrhr::fill_binimage(int async) {
   }
   if (noise > 0) this->d_binimg->prng('N', this->noise);
 
-  this->current_context->set_activeDevice(device, 1);
+  this->current_context->set_active_device(device, 1);
   if (async) {
     //    fillbinimg_async(this->image_telemetry, this->d_binimg->getData(),
     //        this->d_bincube->getData(), this->npix, this->nvalid_tot,
@@ -684,7 +684,7 @@ int sutra_wfs_pyr_pyrhr::fill_binimage(int async) {
 
 int sutra_wfs_pyr_pyrhr::copyValidPix(float *img, int *validx, int *validy,
                                       int im_dim) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   copyImginBinimg(this->d_binimg->getData(), this->d_validsubsx->getData(),
                   this->d_validsubsy->getData(), this->d_binimg->getDims(1),
                   img, validx, validy, im_dim, this->d_validsubsx->getDims(1),
@@ -701,16 +701,16 @@ int sutra_wfs_pyr_pyrhr::set_pyr_mod_weights(float *weights, int npts) {
   return EXIT_SUCCESS;
 }
 
-int sutra_wfs_pyr_pyrhr::set_pyr_modulation(float *cx, float *cy,
+int sutra_wfs_pyr_pyrhr::set_pyr_modulation_points(float *cx, float *cy,
                                             float *weights, int npts) {
   int status;
-  status = this->set_pyr_modulation(cx, cy, npts);
+  status = this->set_pyr_modulation_points(cx, cy, npts);
   status *= this->set_pyr_mod_weights(weights, npts);
   return status;
 }
 
-int sutra_wfs_pyr_pyrhr::set_pyr_modulation(float *cx, float *cy, int npts) {
-  current_context->set_activeDevice(device, 1);
+int sutra_wfs_pyr_pyrhr::set_pyr_modulation_points(float *cx, float *cy, int npts) {
+  current_context->set_active_device(device, 1);
   this->npup = npts;
   if (this->pyr_cx != 0L) {
     delete this->pyr_cx;
@@ -740,9 +740,9 @@ int sutra_wfs_pyr_pyrhr::comp_nphot(float ittime, float optthroughput,
 int sutra_wfs_pyr_pyrhr::set_phalfxy(cuFloatComplex *phalfxy) {
   int ngpus = this->d_screen_ngpu.size();
   for (int dev = 0; dev < ngpus; dev++) {
-      current_context->set_activeDevice(dev, 1);
+      current_context->set_active_device(dev, 1);
       this->d_phalfxy_ngpu[dev]->host2device(phalfxy);
   }
-  current_context->set_activeDevice(this->device, 1);
+  current_context->set_active_device(this->device, 1);
   return EXIT_SUCCESS;
 }

@@ -46,7 +46,7 @@ with 'parameters_filename' the path to the parameters file
 
 Options:
   -h --help          Show this help message and exit
-  --brahma           Distribute data with BRAHMA
+  --brahma           Distribute data with brahma
   --bench            For a timed call
   -i, --interactive  keep the script interactive
   -d, --devices devices      Specify the devices
@@ -85,7 +85,7 @@ if __name__ == "__main__":
         supervisor.config.p_controllers[0].set_type("generic")
         print("Using GENERIC controller...")
 
-    supervisor.initConfig()
+    supervisor.init_config()
     if arguments["--niter"]:
         supervisor.loop(int(arguments["--niter"]), compute_tar_psf=compute_tar_psf)
     else:

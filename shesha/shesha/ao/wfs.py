@@ -86,13 +86,7 @@ def comp_new_pyr_ampl(nwfs: int, ampli: float, wfs: Sensors, rtc: Rtc, p_wfss: l
     cy = scale_fact * \
         np.cos((np.arange(pyr_npts, dtype=np.float32)) * 2. * np.pi / pyr_npts)
 
-    pwfs.set_pyr_npts(pyr_npts)
-    pwfs.set_pyr_cx(cx)
-    pwfs.set_pyr_cy(cy)
-    wfs.d_wfs[nwfs].set_pyr_modulation(cx, cy, pyr_npts)
-
     scale = pwfs.Lambda * 1e-6 / p_tel.diam * ampli * 180. / np.pi * 3600.
-    rtc.d_centro[nwfs].set_scale(scale)
 
     return cx, cy, scale, pyr_npts
 

@@ -12,11 +12,11 @@ precision = 1e-5
 sup = Supervisor(
         os.getenv("COMPASS_ROOT") +
         "/shesha/tests/pytest/par/test_sh.py")
-sup.initConfig()
-sup.singleNext()
-sup.openLoop()
-sup.closeLoop()
-sup._sim.doControl(0)
+sup.init_config()
+sup.single_next()
+sup.open_loop()
+sup.close_loop()
+sup._sim.do_control(0)
 rtc = Rtc("compass_calPix", "compass_loopData")
 rtc.add_centroider(sup._sim.c, sup.config.p_wfs0._nvalid,
                    sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize, False, 0,
@@ -30,10 +30,10 @@ rtc.d_centro[0].set_npix(sup.config.p_wfs0.npix)
 xvalid = np.array(sup._sim.rtc.d_centro[0].d_validx)
 yvalid = np.array(sup._sim.rtc.d_centro[0].d_validy)
 rtc.d_centro[0].load_validpos(xvalid, yvalid, xvalid.size)
-cmat = sup.getCmat(0)
+cmat = sup.get_command_matrix(0)
 rtc.d_control[0].set_cmat(cmat)
 rtc.d_control[0].set_gain(sup.config.p_controller0.gain)
-frame = sup.getWfsImage()
+frame = sup.get_wfs_image()
 frame /= frame.max()
 rtc.d_centro[0].load_img(frame, frame.shape[0])
 rtc.d_centro[0].calibrate_img()
@@ -136,7 +136,7 @@ def test_doCentroids_cog():
             precision)
 
 
-def test_doControl_generic():
+def test_do_control_generic():
     slopes = ng.array(control.d_centroids).toarray()
     gain = control.gain
     cmat = ng.array(control.d_cmat).toarray()

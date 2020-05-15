@@ -190,7 +190,7 @@ void declare_atmos(py::module &mod) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
-      .def("set_global_r0", wy::colCast(&sutra_atmos::set_global_r0),
+      .def("set_r0", wy::colCast(&sutra_atmos::set_r0),
            R"pbdoc(
         Change the current global r0 of all layers
 

@@ -94,7 +94,7 @@ void sutra_groot::init_common(carma_context *context, int device, float *xpos,
                               float *ypos, int N, float fc) {
   this->current_context = context;
   this->device = device;
-  this->current_context->set_activeDevice(device, 1);
+  this->current_context->set_active_device(device, 1);
   this->fc = fc;
 
   long dims_data1[2] = {1, N};
@@ -125,7 +125,7 @@ void sutra_groot::init_common(carma_context *context, int device, float *xpos,
 }
 
 sutra_groot::~sutra_groot() {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   if (this->h_vdt != NULL) delete this->h_vdt;
   if (this->h_Htheta != NULL) delete this->h_Htheta;
   if (this->h_L0 != NULL) delete this->h_L0;
@@ -146,7 +146,7 @@ sutra_groot::~sutra_groot() {
 }
 
 int sutra_groot::compute_Cerr() {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
 
   carmaSafeCall(cudaMemset(this->d_Cerr->getData(), 0,
                            sizeof(float) * this->d_Cerr->getNbElem()));
@@ -206,7 +206,7 @@ int sutra_groot::compute_Cerr() {
 }
 
 int sutra_groot::compute_Calias() {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   carmaSafeCall(cudaMemset(this->d_CaXX->getData(), 0,
                            sizeof(float) * this->d_CaXX->getNbElem()));
   carmaSafeCall(cudaMemset(this->d_CaYY->getData(), 0,

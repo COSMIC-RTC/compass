@@ -82,16 +82,16 @@ build_cmat_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, int ncontrol, int nfilt,
 
 template <typename Tin, typename Tcomp, typename Tout>
 typename std::enable_if<!std::is_same<Tcomp, half>::value, void>::type
-set_mgain_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, int ncontrol,
+set_modal_gains_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, int ncontrol,
                F_arrayS<Tcomp> data) {
   sutra_controller_ls<Tcomp, Tout> *control =
       dynamic_cast<sutra_controller_ls<Tcomp, Tout> *>(sr.d_control[ncontrol]);
-  control->set_mgain(data.mutable_data());
+  control->set_modal_gains(data.mutable_data());
 }
 #ifdef CAN_DO_HALF
 template <typename Tin, typename Tcomp, typename Tout>
 typename std::enable_if<std::is_same<Tcomp, half>::value, void>::type
-set_mgain_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, int ncontrol,
+set_modal_gains_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, int ncontrol,
                F_arrayS<Tcomp> data) {
   throw std::runtime_error("Not implemented");
 }
@@ -415,7 +415,7 @@ void rtc_impl(py::module &mod, const char *name) {
     )pbdoc",
           py::arg("ncontrol"), py::arg("gain"))
 
-      .def("set_mgain", set_mgain_impl<Tin, Tcomp, Tout>,
+      .def("set_modal_gains", set_modal_gains_impl<Tin, Tcomp, Tout>,
            R"pbdoc(
         Set the modal gain in the controller
 

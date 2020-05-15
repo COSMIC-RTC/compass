@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 plt.ion()
 
 
-def testNoise(noise=0.9, niter=100, closeLoop=True):
+def testNoise(noise=0.9, niter=100, close_loop=True):
 
     s1 = np.zeros(((niter, int(wao.sim.config.p_controller0.nvalid * 2))))
     s2 = np.zeros(((niter, int(wao.sim.config.p_controller0.nvalid * 2))))
@@ -19,15 +19,15 @@ def testNoise(noise=0.9, niter=100, closeLoop=True):
     screen1 = np.zeros(((niter, dimscreen, dimscreen)))
     screen2 = np.zeros(((niter, dimscreen, dimscreen)))
 
-    wao.sim.rtc.set_openloop(0, 1)
+    wao.sim.rtc.set_open_loop(0, 1)
     wao.sim.atm.set_seed(0, 1234)
     wao.sim.atm.refresh_screen(0)
     wao.sim.wfs.set_noise(0, noise)
     wao.sim.dms.resetdm(b"pzt", 0.)
     wao.sim.dms.resetdm(b"tt", 0.)
-    if closeLoop:
-        wao.sim.rtc.set_openloop(0, 0)
-    #s1, v1, t1, aiData1, psfLE1 = wao.recordCB(niter)
+    if close_loop:
+        wao.sim.rtc.set_open_loop(0, 0)
+    #s1, v1, t1, aiData1, psfLE1 = wao.record_ao_circular_buffer(niter)
 
     for k in trange(niter):
         wao.sim.next()
@@ -37,15 +37,15 @@ def testNoise(noise=0.9, niter=100, closeLoop=True):
         im1[k, :, :] = wao.sim.wfs.get_pyrimg(0)
         # im1HR[k,:,:] = wao.sim.wfs.get_pyrimghr(0)
         screen1[k, :, :] = wao.sim.atm.get_screen(0)
-    wao.sim.rtc.set_openloop(0, 1)
+    wao.sim.rtc.set_open_loop(0, 1)
     wao.sim.atm.set_seed(0, 1234)
     wao.sim.atm.refresh_screen(0)
     wao.sim.wfs.set_noise(0, noise)
     wao.sim.dms.resetdm(b"pzt", 0.)
     wao.sim.dms.resetdm(b"tt", 0.)
-    if closeLoop:
-        wao.sim.rtc.set_openloop(0, 0)
-    #s2, v2, t2, aiData2, psfLE2 = wao.recordCB(niter)
+    if close_loop:
+        wao.sim.rtc.set_open_loop(0, 0)
+    #s2, v2, t2, aiData2, psfLE2 = wao.record_ao_circular_buffer(niter)
 
     for k in trange(niter):
         wao.sim.next()

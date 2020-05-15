@@ -76,7 +76,7 @@ class WidgetAOExpert(ExpertClassTemplate):
         self.uiExpert.wao_setControl.clicked.connect(self.setRtcParams)
         self.uiExpert.wao_setCentro.clicked.connect(self.setRtcParams)
         self.uiExpert.wao_setTelescope.clicked.connect(self.setTelescopeParams)
-        self.uiExpert.wao_resetDM.clicked.connect(self.resetDM)
+        self.uiExpert.wao_reset_dm.clicked.connect(self.reset_dm)
         self.uiExpert.wao_update_gain.clicked.connect(self.updateGain)
         self.uiExpert.wao_update_pyr_ampl.clicked.connect(self.updatePyrAmpl)
         self.uiExpert.wao_selectRtcMatrix.currentIndexChanged.connect(
@@ -401,7 +401,7 @@ class WidgetAOExpert(ExpertClassTemplate):
         self.sim.config.p_dms[ndm].set_thresh(self.uiExpert.wao_dmThresh.value())
         print("New DM parameters set")
 
-    def resetDM(self) -> None:
+    def reset_dm(self) -> None:
         if (self.sim.dms):
             ndm = self.uiExpert.wao_selectDM.currentIndex()
             if (ndm > -1):

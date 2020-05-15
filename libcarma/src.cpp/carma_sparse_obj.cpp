@@ -65,7 +65,7 @@ void carma_sparse_obj<T_data>::init_carma_sparse_obj(
     bool loadFromHost) {
   _create(0, 0, 0);
   this->current_context = current_context;
-  device = current_context->get_activeDevice();
+  device = current_context->get_active_device();
   cusparseHandle_t handle = current_context->get_cusparseHandle();
   T_data *d_M;
   if (loadFromHost) {
@@ -171,7 +171,7 @@ carma_sparse_obj<T_data>::carma_sparse_obj(carma_context *current_context,
                                            bool loadFromHost) {
   _create(nz, dims[1], dims[2]);
   this->current_context = current_context;
-  device = current_context->get_activeDevice();
+  device = current_context->get_active_device();
   this->format = "CSR";
 
   if (loadFromHost) {
@@ -240,7 +240,7 @@ carma_sparse_obj<T_data>::carma_sparse_obj(carma_sparse_obj<T_data> *M) {
 template <class T_data>
 carma_sparse_obj<T_data>::carma_sparse_obj(carma_context *current_context,
                                            carma_sparse_host_obj<T_data> *M) {
-  this->device = current_context->get_activeDevice();
+  this->device = current_context->get_active_device();
   this->current_context = current_context;
 
   _create(M->nz_elem, M->getDims(1), M->getDims(2));

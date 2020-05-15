@@ -110,7 +110,7 @@ sutra_controller_mv<Tcomp, Tout>::sutra_controller_mv(
 
 template <typename Tcomp, typename Tout>
 sutra_controller_mv<Tcomp, Tout>::~sutra_controller_mv() {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   // delete this->d_U;
 
   delete this->d_imat;
@@ -143,29 +143,29 @@ string sutra_controller_mv<Tcomp, Tout>::get_type() {
 }
 
 template <typename Tcomp, typename Tout>
-int sutra_controller_mv<Tcomp, Tout>::set_mgain(Tcomp *mgain) {
-  this->current_context->set_activeDevice(this->device, 1);
+int sutra_controller_mv<Tcomp, Tout>::set_modal_gains(Tcomp *mgain) {
+  this->current_context->set_active_device(this->device, 1);
   this->d_gain->host2device(mgain);
   return EXIT_SUCCESS;
 }
 
 template <typename Tcomp, typename Tout>
 int sutra_controller_mv<Tcomp, Tout>::set_cmat(Tcomp *cmat) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   this->d_cmat->host2device(cmat);
   return EXIT_SUCCESS;
 }
 
 template <typename Tcomp, typename Tout>
 int sutra_controller_mv<Tcomp, Tout>::set_imat(Tcomp *imat) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   this->d_imat->host2device(imat);
   return EXIT_SUCCESS;
 }
 
 template <typename Tcomp, typename Tout>
 int sutra_controller_mv<Tcomp, Tout>::load_noisemat(Tcomp *noise) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   this->d_noisemat->host2device(noise);
   return EXIT_SUCCESS;
 }
@@ -174,7 +174,7 @@ template <typename Tcomp, typename Tout>
 int sutra_controller_mv<Tcomp, Tout>::compute_Cmm(
     sutra_atmos *atmos, sutra_sensors *sensors, double *L0, double *cn2,
     double *alphaX, double *alphaY, double diamTel, double cobs) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
 
   struct gtomo_struct g_tomo;
   init_tomo_gpu_gb(&g_tomo, atmos, sensors, diamTel, cobs);
@@ -193,7 +193,7 @@ int sutra_controller_mv<Tcomp, Tout>::compute_Cphim(
     double *cn2, double *alphaX, double *alphaY, double *X, double *Y,
     double *xactu, double *yactu, double diamTel, double *k2, long *NlayerDm,
     long *indLayerDm, double FoV, double *pitch, double *alt_dm) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
 
   // Find number of actuators without TTcomp DM
   int Nactu = 0;
@@ -259,7 +259,7 @@ int sutra_controller_mv<Tcomp, Tout>::do_covmat(sutra_dm *ydm, char *method,
                                                 Tcomp *xpos, Tcomp *ypos,
                                                 long Nkl, Tcomp norm,
                                                 Tcomp ampli) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   long dims_data[3];
   dims_data[0] = 2;
   dims_data[1] = Nkl;
@@ -467,7 +467,7 @@ template <typename Tcomp, typename Tout>
 int sutra_controller_mv<Tcomp, Tout>::do_geomat(carma_obj<Tcomp> *d_geocov,
                                                 carma_obj<Tcomp> *d_IF,
                                                 long n_pts, Tcomp ampli) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   carma_gemm(cublas_handle, 't', 'n', this->nactu(), this->nactu(), n_pts, 1.0f,
              d_IF->getData(), n_pts, d_IF->getData(), n_pts, 0.0f,
              d_geocov->getData(), this->nactu());
@@ -477,7 +477,7 @@ int sutra_controller_mv<Tcomp, Tout>::do_geomat(carma_obj<Tcomp> *d_geocov,
 
 template <typename Tcomp, typename Tout>
 int sutra_controller_mv<Tcomp, Tout>::piston_filt(carma_obj<Tcomp> *d_statcov) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   long Nmod = d_statcov->getDims()[1];
   long dims_data[3];
   dims_data[0] = 2;
@@ -506,7 +506,7 @@ int sutra_controller_mv<Tcomp, Tout>::piston_filt(carma_obj<Tcomp> *d_statcov) {
 template <typename Tcomp, typename Tout>
 int sutra_controller_mv<Tcomp, Tout>::piston_filt_cphim(
     carma_obj<Tcomp> *d_cphim, Tcomp *F) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
 
   long Nmod = d_cphim->getDims()[1];
   long dims_data[3];
@@ -535,7 +535,7 @@ int sutra_controller_mv<Tcomp, Tout>::piston_filt_cphim(
 template <typename Tcomp, typename Tout>
 int sutra_controller_mv<Tcomp, Tout>::invgen(carma_obj<Tcomp> *d_mat,
                                              Tcomp cond, int job) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   const long dims_data[3] = {2, d_mat->getDims()[1], d_mat->getDims()[2]};
   carma_obj<Tcomp> *d_U =
       new carma_obj<Tcomp>(this->current_context, dims_data);
@@ -597,7 +597,7 @@ template <typename Tcomp, typename Tout>
 int sutra_controller_mv<Tcomp, Tout>::invgen(carma_obj<Tcomp> *d_mat,
                                              carma_host_obj<Tcomp> *h_eigen,
                                              Tcomp cond) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   const long dims_data[3] = {2, d_mat->getDims()[1], d_mat->getDims()[2]};
   carma_obj<Tcomp> *d_U =
       new carma_obj<Tcomp>(this->current_context, dims_data);
@@ -651,7 +651,7 @@ template <typename Tcomp, typename Tout>
 int sutra_controller_mv<Tcomp, Tout>::invgen_cpu(carma_obj<Tcomp> *d_mat,
                                                  carma_host_obj<Tcomp> *h_eigen,
                                                  Tcomp cond) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   const long dims_data[3] = {2, d_mat->getDims()[1], d_mat->getDims()[2]};
   carma_obj<Tcomp> *d_U =
       new carma_obj<Tcomp>(this->current_context, dims_data);
@@ -726,7 +726,7 @@ i<dim_x ; i++){ for(j=0 ; j<dim_x ; j++){ ind = i*dim_x + j; statcov[ind] = 6.88
 template <typename Tcomp, typename Tout>
 int sutra_controller_mv<Tcomp, Tout>::DDiago(carma_obj<Tcomp> *d_statcov,
                                              carma_obj<Tcomp> *d_geocov) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   const long dims_data[3] = {2, this->nactu(), this->nactu()};
   carma_obj<Tcomp> *d_M1 =
       new carma_obj<Tcomp>(this->current_context, dims_data);
@@ -810,13 +810,13 @@ int sutra_controller_mv<Tcomp, Tout>::DDiago(carma_obj<Tcomp> *d_statcov,
 
 template <typename Tcomp, typename Tout>
 int sutra_controller_mv<Tcomp, Tout>::load_covmat(Tcomp *covmat) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   this->d_covmat->host2device(covmat);
   return EXIT_SUCCESS;
 }
 template <typename Tcomp, typename Tout>
 int sutra_controller_mv<Tcomp, Tout>::load_klbasis(Tcomp *klbasis) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   this->d_KLbasis->host2device(klbasis);
   return EXIT_SUCCESS;
 }
@@ -824,7 +824,7 @@ int sutra_controller_mv<Tcomp, Tout>::load_klbasis(Tcomp *klbasis) {
 // Florian features
 template <typename Tcomp, typename Tout>
 int sutra_controller_mv<Tcomp, Tout>::build_cmat(Tcomp cond) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   if (this->h_Cmmeigenvals != 0L) delete this->h_Cmmeigenvals;
 
   long Nactu = this->d_Cphim->getDims()[1];
@@ -848,7 +848,7 @@ int sutra_controller_mv<Tcomp, Tout>::build_cmat(Tcomp cond) {
 }
 template <typename Tcomp, typename Tout>
 int sutra_controller_mv<Tcomp, Tout>::filter_cmat(Tcomp cond) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
 
   if (this->h_eigenvals != 0L) delete this->h_eigenvals;
   long Nactu = this->d_Cphim->getDims()[1];
@@ -965,7 +965,7 @@ int sutra_controller_mv<Tcomp, Tout>::build_cmat(const char *dmtype,
   Tcomp one = 1.;
   Tcomp zero = 0.;
 
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   if (strcmp(method, "inv") == 0) {
     //  R = (Dt*Cn⁻¹*D + Cphi⁻¹)⁻¹*Dt*Cn⁻¹
 
@@ -1086,7 +1086,7 @@ int sutra_controller_mv<Tcomp, Tout>::frame_delay() {
   // here we place the content of d_centroids into cenbuf and get
   // the actual centroid frame for error computation depending on delay value
 
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   if ((int)this->delay > 0) {
     for (int cc = 0; cc < this->delay; cc++)
       shift_buf(&((this->d_cenbuff->getData())[cc * this->nslope()]), 1,
@@ -1108,7 +1108,7 @@ int sutra_controller_mv<Tcomp, Tout>::frame_delay() {
 
 template <typename Tcomp, typename Tout>
 int sutra_controller_mv<Tcomp, Tout>::comp_com() {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
 
   // this->frame_delay();
 

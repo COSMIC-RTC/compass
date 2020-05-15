@@ -47,7 +47,7 @@ sutra_telescope::sutra_telescope(carma_context *current_context, long n_pup,
                                  long npos, float *pupil, long n_pup_m,
                                  float *pupil_m) {
   this->current_context = current_context;
-  this->device = current_context->get_activeDevice();
+  this->device = current_context->get_active_device();
 
   this->pup_size = n_pup;
   this->pup_size_m = n_pup_m;
@@ -78,7 +78,7 @@ sutra_telescope::sutra_telescope(carma_context *current_context, long n_pup,
 
 sutra_telescope::~sutra_telescope() {
   // delete this->current_context;
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   delete this->d_pupil;
   delete this->d_pupil_m;
   if (this->d_phase_ab_M1 != nullptr) delete this->d_phase_ab_M1;
@@ -86,7 +86,7 @@ sutra_telescope::~sutra_telescope() {
 }
 
 int sutra_telescope::set_phase_ab_M1(float *phase_ab_M1, int size) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   if (size == this->pup_size * this->pup_size) {
     long *dims_data2 = new long[3];
     dims_data2[0] = 2;
@@ -104,7 +104,7 @@ int sutra_telescope::set_phase_ab_M1(float *phase_ab_M1, int size) {
 }
 
 int sutra_telescope::set_phase_ab_M1_m(float *phase_ab_M1_m, int size) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   if (size == this->pup_size_m * this->pup_size_m) {
     long *dims_data2 = new long[3];
     dims_data2[0] = 2;

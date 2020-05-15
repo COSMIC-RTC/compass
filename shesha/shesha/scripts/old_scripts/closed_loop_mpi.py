@@ -11,7 +11,7 @@ import time
 
 rank = int(os.environ['OMPI_COMM_WORLD_RANK'])
 c = ch.carmaWrap_context()
-c.set_activeDevice(rank % c.get_ndevice())
+c.set_active_device(rank % c.get_ndevice())
 
 # Delay import because of cuda_aware
 # mpi_init called during the import
@@ -142,7 +142,7 @@ def loop(n):
             rtc.applycontrol(0, dms)
 
         if ((i + 1) % 50 == 0):
-            # s=rtc.getCentroids(0)
+            # s=rtc.get_centroids(0)
             if (rank == 0):
                 """ FOR DEBUG PURPOSE
                 turbu.clear()
@@ -167,8 +167,8 @@ def loop(n):
                 pl.draw()
 
 
-                c=rtc.getCom(0)
-                v=rtc.getVoltage(0)
+                c=rtc.get_command(0)
+                v=rtc.get_voltages(0)
 
                 sh_file="dbg/shak_"+str(i)+"_np_"+str(comm.Get_size())+".npy"
                 im_file="dbg/imag_"+str(i)+"_np_"+str(comm.Get_size())+".npy"

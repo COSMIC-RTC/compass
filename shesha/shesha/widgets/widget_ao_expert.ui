@@ -903,7 +903,7 @@
                 </widget>
                </item>
                <item row="6" column="2">
-                <widget class="QPushButton" name="wao_resetDM">
+                <widget class="QPushButton" name="wao_reset_dm">
                  <property name="text">
                   <string>Reset</string>
                  </property>
@@ -1232,9 +1232,9 @@
                    </widget>
                   </item>
                   <item row="7" column="0">
-                   <widget class="QPushButton" name="wao_openLoop">
+                   <widget class="QPushButton" name="wao_open_loop">
                     <property name="text">
-                     <string>OpenLoop</string>
+                     <string>open_loop</string>
                     </property>
                    </widget>
                   </item>

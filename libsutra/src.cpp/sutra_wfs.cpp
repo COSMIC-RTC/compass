@@ -116,7 +116,7 @@ int sutra_wfs::wfs_initgs(carma_obj<float> *d_lgskern,
                           float xpos, float ypos, float lambda, float mag,
                           float zerop, long size, float noise, long seed,
                           float G, float thetaML, float dx, float dy) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   this->d_gs = new sutra_source(current_context, xpos, ypos, lambda, mag, zerop,
                                 size, "wfs", this->device);
   this->d_gs->G = G;
@@ -137,7 +137,7 @@ int sutra_wfs::wfs_initgs(carma_obj<float> *d_lgskern,
 }
 
 int sutra_wfs::set_noise(float noise, long seed) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   this->noise = noise;
   if (this->type != "pyrhr") {
     if (noise > -1) {
@@ -157,19 +157,19 @@ int sutra_wfs::set_noise(float noise, long seed) {
 }
 
 int sutra_wfs::set_pupil(float *pupil) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   this->d_pupil->host2device(pupil);
   int nbdevices = d_pupil_ngpu.size();
   for (int ndevice = 1; ndevice < nbdevices; ndevice++) {
-    current_context->set_activeDevice(ndevice, 1);
+    current_context->set_active_device(ndevice, 1);
     d_pupil_ngpu[ndevice]->host2device(pupil);
   }
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   return EXIT_SUCCESS;
 }
 
 int sutra_wfs::load_kernels(float *lgskern) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   if (this->lgs)
     this->d_gs->d_lgs->load_kernels(lgskern,
                                     this->current_context->get_device(device));
@@ -178,7 +178,7 @@ int sutra_wfs::load_kernels(float *lgskern) {
 }
 
 int sutra_wfs::sensor_trace(sutra_atmos *yatmos) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   // do raytracing to get the phase
   this->d_gs->raytrace(yatmos);
 
@@ -190,7 +190,7 @@ int sutra_wfs::sensor_trace(sutra_atmos *yatmos) {
 }
 
 int sutra_wfs::sensor_trace(sutra_dms *ydm, int rst) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   // do raytracing to get the phase
   this->d_gs->raytrace(ydm, rst, 0);
 
@@ -198,7 +198,7 @@ int sutra_wfs::sensor_trace(sutra_dms *ydm, int rst) {
 }
 
 int sutra_wfs::sensor_trace(int rst) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   // do raytracing to get the phase
   this->d_gs->raytrace(rst);
 
@@ -213,7 +213,7 @@ int sutra_wfs::sensor_trace(sutra_atmos *yatmos, sutra_dms *ydms) {
 }
 
 int sutra_wfs::slopes_geom(float *slopes, int type) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   /*
    normalization notes :
    ���� = 0.17 (��/D)^2 (D/r_0)^(5/3) , ���� en radians d'angle
@@ -259,7 +259,7 @@ int sutra_wfs::slopes_geom(int type) {
 }
 
 int sutra_wfs::set_binimg(float *binimg, int nElem) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
 
   if (nElem == this->d_binimg->getNbElem()) {
     this->d_binimg->host2device(binimg);
@@ -269,7 +269,7 @@ int sutra_wfs::set_binimg(float *binimg, int nElem) {
 }
 
 int sutra_wfs::set_dark(float *dark, int nElem) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
 
   if (this->d_dark == nullptr) {
     std::cout << "WFS d_dark array has not been initialized yet" << std::endl;
@@ -284,7 +284,7 @@ int sutra_wfs::set_dark(float *dark, int nElem) {
 }
 
 int sutra_wfs::set_flat(float *flat, int nElem) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
 
   if (this->d_flat == nullptr) {
     std::cout << "WFS d_flat array has not been initialized yet" << std::endl;
@@ -299,7 +299,7 @@ int sutra_wfs::set_flat(float *flat, int nElem) {
 }
 
 int sutra_wfs::set_fakecam(bool fakecam) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
 
   this->fakecam = fakecam;
   if (this->d_camimg == nullptr) {

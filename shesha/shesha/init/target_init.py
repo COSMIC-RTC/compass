@@ -57,7 +57,7 @@ def target_init(ctxt: carmaWrap_context, telescope: Telescope, p_targets: list,
         p_tel: (Param_tel) : telescope settings
         p_geom: (Param_geom) : geom settings
         dm: (Param_dm) : (optional) dm settings
-        brahma: (bool): (optional) BRAHMA flag
+        brahma: (bool): (optional) brahma flag
     :return:
         tar: (Target): Target object
     """
@@ -91,10 +91,10 @@ def target_init(ctxt: carmaWrap_context, telescope: Telescope, p_targets: list,
 
     if (brahma):
         target = Target_brahma(ctxt, "target_brahma", telescope, 0, len(p_targets), xpos,
-                               ypos, Lambda, mag, zerop, sizes, Npts, ctxt.activeDevice)
+                               ypos, Lambda, mag, zerop, sizes, Npts, ctxt.active_device)
     else:
         target = Target(ctxt, telescope, len(p_targets), xpos, ypos, Lambda, mag, zerop,
-                        sizes, Npts, ctxt.activeDevice)
+                        sizes, Npts, ctxt.active_device)
 
     # cc=i
     for i in range(len(p_targets)):

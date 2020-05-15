@@ -70,7 +70,7 @@ class sutra_atmos {
   int refresh_screen(int idx);
 
   int move_atmos();
-  int set_global_r0(float r0);
+  int set_r0(float r0);
   int set_seed(int idx, float seed);
 };
 

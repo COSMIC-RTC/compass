@@ -115,7 +115,7 @@ void carma_obj<T_data>::init(carma_context *context, const long *dims_data,
 
   carmaSafeCall(
       cudaMalloc((void **)&(this->d_data), sizeof(T_data) * this->nb_elem));
-  this->device = current_context->get_activeDevice();
+  this->device = current_context->get_active_device();
 
   if (data == NULL)
     carmaSafeCall(cudaMemset(this->d_data, 0, sizeof(T_data) * this->nb_elem));
@@ -157,8 +157,8 @@ carma_obj<T_data>::~carma_obj() {
   /** \brief carma_obj destructor.
    */
 
-  int old_device = current_context->get_activeDevice();
-  current_context->set_activeDevice(this->device, 1);
+  int old_device = current_context->get_active_device();
+  current_context->set_active_device(this->device, 1);
 
   dealloc();
   this->d_data = nullptr;
@@ -188,7 +188,7 @@ carma_obj<T_data>::~carma_obj() {
   printf("CARMA Object deleted @ 0x%p on GPU%d\n", this,
          current_context->get_activeRealDevice());
 #endif
-  current_context->set_activeDevice(old_device, 1);
+  current_context->set_active_device(old_device, 1);
 }
 
 template <class T_data>
@@ -404,7 +404,7 @@ T_data carma_obj<T_data>::sum() {
   // int nBlocks;
   // int nThreads;
 
-  // this->current_context->set_activeDevice(device, 1);
+  // this->current_context->set_active_device(device, 1);
   // sumGetNumBlocksAndThreads(this->nb_elem,
   //                           this->current_context->get_device(device),
   //                           nBlocks, nThreads);
@@ -419,7 +419,7 @@ T_data carma_obj<T_data>::sum() {
   int s = nBlocks;
   while (s > 1) {
     int threads = 0, blocks = 0;
-    this->current_context->set_activeDevice(device,1);
+    this->current_context->set_active_device(device,1);
     sumGetNumBlocksAndThreads(s, this->current_context->get_device(device),
   blocks, threads);
 

@@ -138,7 +138,7 @@ int sutra_atmos::move_atmos() {
   return EXIT_SUCCESS;
 }
 
-int sutra_atmos::set_global_r0(float r0) {
+int sutra_atmos::set_r0(float r0) {
   // this->amplitude = powf(r0, -5.0f / 6.0f)
   float scaling = powf(r0 / this->r0, -5.0f / 6.0f);
   for (vector<sutra_tscreen *>::iterator it = this->d_screens.begin();

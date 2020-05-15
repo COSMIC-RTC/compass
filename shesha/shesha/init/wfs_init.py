@@ -107,7 +107,7 @@ def wfs_init(context: carmaWrap_context, telescope: Telescope, p_wfss: list,
         g_wfs = Sensors(context, telescope, t_wfs, nsensors, nxsub, nvalid, nPupils,
                         npix, nphase, nrebin, nfft, ntota, npup, pdiam, nphot,
                         nphot4imat, lgs, fakecam, maxFlux, maxPixValue,
-                        context.activeDevice, roket_flag)
+                        context.active_device, roket_flag)
 
         mag = np.array([o.gsmag for o in p_wfss], dtype=np.float32)
         noise = np.array([o.noise for o in p_wfss], dtype=np.float32)
@@ -127,7 +127,7 @@ def wfs_init(context: carmaWrap_context, telescope: Telescope, p_wfss: list,
         g_wfs = Sensors(context, telescope, t_wfs, nsensors, nxsub, nvalid, nPupils,
                         npix, nphase, nrebin, nfft, ntota, npup, pdiam, nphot,
                         nphot4imat, lgs, fakecam, maxFlux, maxPixValue,
-                        context.activeDevice, roket_flag)
+                        context.active_device, roket_flag)
 
         mag = np.array([o.gsmag for o in p_wfss], dtype=np.float32)
         noise = np.array([o.noise for o in p_wfss], dtype=np.float32)
@@ -184,7 +184,7 @@ def wfs_init(context: carmaWrap_context, telescope: Telescope, p_wfss: list,
                 yoff = yoff + (p_atmos.dim_screens[j] - p_geom._n) / 2.
                 g_wfs.d_wfs[i].d_gs.add_layer(type_target, j, xoff, yoff)
 
-        if (not p_wfs.openloop and p_dms is not None):
+        if (not p_wfs.open_loop and p_dms is not None):
             if (p_wfs.dms_seen is None):
                 p_wfs.dms_seen = np.arange(len(p_dms)).astype(np.int32)
             for j in range(p_wfs.dms_seen.size):

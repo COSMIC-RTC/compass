@@ -86,7 +86,7 @@ class Param_dm:
         # Hidden variable safe-typed in shesha_constants
         self.__type = None  # Private storage of type
         self.__type_pattern = None  # Private storage of type_pattern
-        self.__influType = scons.InfluType.DEFAULT  # Private storage of influType
+        self.__influ_type = scons.InfluType.DEFAULT  # Private storage of influ_type
         self.__type_kl = scons.KLType.KOLMO  # Private storage for KL type
 
         # HDF5 storage management
@@ -197,21 +197,21 @@ class Param_dm:
 
     segmented_mirror = property(get_segmented_mirror, set_segmented_mirror)
 
-    def get_influType(self):
+    def get_influ_type(self):
         """ Get the influence function type for pzt DM
 
         :return: (str) : centroider type
         """
-        return self.__influType
+        return self.__influ_type
 
-    def set_influType(self, t):
+    def set_influ_type(self, t):
         """ Set the influence function type for pzt DM
 
         :param t: (str) : centroider type
         """
-        self.__influType = scons.check_enum(scons.InfluType, t)
+        self.__influ_type = scons.check_enum(scons.InfluType, t)
 
-    influType = property(get_influType, set_influType)
+    influ_type = property(get_influ_type, set_influ_type)
 
     def get_influpos(self):
         """ Get the influence functions pixels that contributes to each DM pixel

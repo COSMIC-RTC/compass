@@ -94,18 +94,18 @@ class carma_device {
   cusparseHandle_t get_cusparseHandle() { return cusparseHandle; }
 };
 
-#define set_activeDevice(newDevice, silent) \
-  _set_activeDevice(newDevice, silent, __FILE__, __LINE__)
-#define set_activeDeviceForce(newDevice, silent) \
-  _set_activeDeviceForce(newDevice, silent, __FILE__, __LINE__)
-#define set_activeDeviceForCpy(newDevice, silent) \
-  _set_activeDeviceForCpy(newDevice, silent, __FILE__, __LINE__)
+#define set_active_device(newDevice, silent) \
+  _set_active_device(newDevice, silent, __FILE__, __LINE__)
+#define set_active_device_force(newDevice, silent) \
+  _set_active_device_force(newDevice, silent, __FILE__, __LINE__)
+#define set_active_deviceForCpy(newDevice, silent) \
+  _set_active_deviceForCpy(newDevice, silent, __FILE__, __LINE__)
 
 class carma_context {
  private:
   int ndevice;
   std::vector<carma_device*> devices;
-  int activeDevice;
+  int active_device;
   int** can_access_peer;
 
   /// singleton context
@@ -117,7 +117,7 @@ class carma_context {
 
   carma_context& operator=(const carma_context&) { return *s_instance; }
   carma_context(const carma_context&)
-      : ndevice(0), activeDevice(0), can_access_peer(nullptr) {}
+      : ndevice(0), active_device(0), can_access_peer(nullptr) {}
 
   void init_context(const int nb_devices, int32_t* devices_id);
 
@@ -130,8 +130,8 @@ class carma_context {
 
   int get_ndevice() { return ndevice; }
   carma_device* get_device(int dev) { return devices[dev]; }
-  int get_activeDevice() { return activeDevice; }
-  int get_activeRealDevice() { return devices[activeDevice]->get_id(); }
+  int get_active_device() { return active_device; }
+  int get_activeRealDevice() { return devices[active_device]->get_id(); }
 
   int get_cudaRuntimeGetVersion() {
     int runtimeVersion;
@@ -149,25 +149,25 @@ class carma_context {
   std::string get_DeviceInfo(int device);
   std::string get_DeviceMemInfo(int device);
 
-  inline int _set_activeDeviceForCpy(int newDevice, int silent,
+  inline int _set_active_deviceForCpy(int newDevice, int silent,
                                      std::string file, int line) {
     if (newDevice > ndevice) return -1;
-    return (can_access_peer[activeDevice][newDevice] != 1)
-               ? _set_activeDevice(newDevice, silent, file, line)
-               : activeDevice;
+    return (can_access_peer[active_device][newDevice] != 1)
+               ? _set_active_device(newDevice, silent, file, line)
+               : active_device;
   }
-  inline int _set_activeDevice(int newDevice, int silent, std::string file,
+  inline int _set_active_device(int newDevice, int silent, std::string file,
                                int line) {
-    return (this->activeDevice != newDevice)
-               ? _set_activeDeviceForce(newDevice, silent, file, line)
-               : activeDevice;
+    return (this->active_device != newDevice)
+               ? _set_active_device_force(newDevice, silent, file, line)
+               : active_device;
   }
-  int _set_activeDeviceForce(int newDevice, int silent, std::string file,
+  int _set_active_device_force(int newDevice, int silent, std::string file,
                              int line);
   int get_maxGflopsDeviceId();
-  cublasHandle_t get_cublasHandle() { return get_cublasHandle(activeDevice); }
+  cublasHandle_t get_cublasHandle() { return get_cublasHandle(active_device); }
   cusparseHandle_t get_cusparseHandle() {
-    return get_cusparseHandle(activeDevice);
+    return get_cusparseHandle(active_device);
   }
 
   cublasHandle_t get_cublasHandle(int device) {

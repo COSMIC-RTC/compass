@@ -76,11 +76,11 @@ sutra_controller_generic<T, Tout>::sutra_controller_generic(
 
   for (auto dev_id : this->P2Pdevices) {
     if(dev_id != this->device) {
-      this->current_context->set_activeDevice(dev_id, 1);
+      this->current_context->set_active_device(dev_id, 1);
       this->d_err_ngpu.push_back(new carma_obj<T>(this->current_context, dims_data1));
     }
   }
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
 
   this->d_cmatPadded = nullptr;
   dims_data1[1] = this->nslope();
@@ -94,17 +94,17 @@ sutra_controller_generic<T, Tout>::sutra_controller_generic(
     dims_data2[2] = this->nslope() / this->P2Pdevices.size();
     for (auto dev_id : this->P2Pdevices) {
       if(dev_id != this->P2Pdevices.back() && dev_id != this->device) {
-        this->current_context->set_activeDevice(dev_id, 1);
+        this->current_context->set_active_device(dev_id, 1);
         this->d_cmat_ngpu.push_back(new carma_obj<T>(this->current_context, dims_data2));
       }
     }
     int dev_id = this->P2Pdevices.back();
     int cpt = this->P2Pdevices.size() - 1;
     dims_data2[2] = this->nslope() - cpt * (this->nslope() / this->P2Pdevices.size());
-    this->current_context->set_activeDevice(dev_id, 1);
+    this->current_context->set_active_device(dev_id, 1);
     this->d_cmat_ngpu.push_back(new carma_obj<T>(this->current_context, dims_data2));
 
-    this->current_context->set_activeDevice(this->device, 1);
+    this->current_context->set_active_device(this->device, 1);
   }
   this->gain = 0.f;
 
@@ -135,7 +135,7 @@ sutra_controller_generic<T, Tout>::sutra_controller_generic(
 
 template <typename T, typename Tout>
 sutra_controller_generic<T, Tout>::~sutra_controller_generic() {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   delete this->d_gain;
   delete this->d_decayFactor;
   delete this->d_cmat;
@@ -151,47 +151,47 @@ int sutra_controller_generic<T, Tout>::set_polc(bool p) {
 
 template <typename T, typename Tout>
 string sutra_controller_generic<T, Tout>::get_type() {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   return "generic";
 }
 
 template <typename T, typename Tout>
 string sutra_controller_generic<T, Tout>::get_commandlaw() {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   return this->command_law;
 }
 
 template <typename T, typename Tout>
-int sutra_controller_generic<T, Tout>::set_mgain(float *gain) {
-  this->current_context->set_activeDevice(this->device, 1);
+int sutra_controller_generic<T, Tout>::set_modal_gains(float *gain) {
+  this->current_context->set_active_device(this->device, 1);
   this->d_gain->host2device(gain);
   return EXIT_SUCCESS;
 }
 
 template <typename T, typename Tout>
 int sutra_controller_generic<T, Tout>::set_decayFactor(float *decayFactor) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   this->d_decayFactor->host2device(decayFactor);
   return EXIT_SUCCESS;
 }
 
 template <typename T, typename Tout>
 int sutra_controller_generic<T, Tout>::set_matE(float *matE) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   this->d_matE->host2device(matE);
   return EXIT_SUCCESS;
 }
 
 template <typename T, typename Tout>
 int sutra_controller_generic<T, Tout>::set_imat(float *imat) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   this->d_imat->host2device(imat);
   return EXIT_SUCCESS;
 }
 
 template <typename T, typename Tout>
 int sutra_controller_generic<T, Tout>::set_cmat(float *cmat) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   // Copy the cmat on the master GPU and zero-fill it if needed
   this->d_cmat->host2device(cmat);
   this->fill_cmatPadded();
@@ -209,12 +209,12 @@ int sutra_controller_generic<T, Tout>::distribute_cmat() {
     int cpt = 1;
     for (auto dev_id : this->P2Pdevices) {
       if(dev_id != this->device) {
-        this->current_context->set_activeDevice(dev_id, 1);
+        this->current_context->set_active_device(dev_id, 1);
         this->d_cmat_ngpu[cpt]->copyFrom(this->d_cmat->getDataAt(cpt * N), this->d_cmat_ngpu[cpt]->getNbElem());
         cpt++;
       }
     }
-    this->current_context->set_activeDevice(this->device, 1);
+    this->current_context->set_active_device(this->device, 1);
 
   return EXIT_SUCCESS;
 }
@@ -226,14 +226,14 @@ int sutra_controller_generic<T, Tout>::fill_cmatPadded() {
 
 template <typename T, typename Tout>
 int sutra_controller_generic<T, Tout>::set_commandlaw(string law) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   this->command_law = law;
   return EXIT_SUCCESS;
 }
 
 template <typename T, typename Tout>
 int sutra_controller_generic<T, Tout>::comp_polc() {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   // POLC equations
   this->d_compbuff->reset();
   this->d_compbuff->axpy(T(this->a), this->d_com1, 1, 1);
@@ -251,7 +251,7 @@ int sutra_controller_generic<T, Tout>::comp_polc() {
 
 template <typename T, typename Tout>
 int sutra_controller_generic<T, Tout>::comp_com() {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   carma_obj<T> *centroids;
   T berta = T(1.0f);
   // cudaEvent_t startEv, stopEv;
@@ -289,7 +289,7 @@ int sutra_controller_generic<T, Tout>::comp_com() {
       int cpt = 1;
       for (auto dev_id : this->P2Pdevices) {
           if(dev_id != this->device) {
-          this->current_context->set_activeDevice(dev_id, 1);
+          this->current_context->set_active_device(dev_id, 1);
           n = this->d_cmat_ngpu[cpt]->getDims()[2];
 
           carma_gemv(this->cublas_handle(), 'n', m, n, (T)(-1 * this->gain),
@@ -299,7 +299,7 @@ int sutra_controller_generic<T, Tout>::comp_com() {
           cpt ++;
           }
       }
-      this->current_context->set_activeDevice(this->device, 1);
+      this->current_context->set_active_device(this->device, 1);
       n = this->nslope() / this->P2Pdevices.size();
       carma_gemv(this->cublas_handle(), 'n', m, n, (T)(-1 * this->gain),
             this->d_cmat_ngpu[0]->getData(), m, centroids->getData(), 1, T(1.f),
@@ -309,9 +309,9 @@ int sutra_controller_generic<T, Tout>::comp_com() {
       cpt = 0;
       for (auto dev_id : this->P2Pdevices) {
         if(dev_id != this->device) {
-          this->current_context->set_activeDevice(dev_id, 1);
+          this->current_context->set_active_device(dev_id, 1);
           cudaStreamSynchronize(0);
-          this->current_context->set_activeDevice(this->device, 1);
+          this->current_context->set_active_device(this->device, 1);
           this->d_com->axpy(1.0f, this->d_err_ngpu[cpt], 1,1);
           cpt ++;
         }

@@ -106,18 +106,18 @@ void sutra_rtc_brahmaListenerImpl<T>::on_data_available(
             if (rtc->d_control[ncontrol]->get_type() == "ls") {
               sutra_controller_ls *control =
                   dynamic_cast<sutra_controller_ls *>(rtc->d_control[ncontrol]);
-              control->set_mgain(data);
+              control->set_modal_gains(data);
               return;
             } else if (rtc->d_control[ncontrol]->get_type() == "mv") {
               sutra_controller_mv *control =
                   dynamic_cast<sutra_controller_mv *>(rtc->d_control[ncontrol]);
-              control->set_mgain(data);
+              control->set_modal_gains(data);
               return;
             } else if (rtc->d_control[ncontrol]->get_type() == "generic") {
               sutra_controller_generic *control =
                   dynamic_cast<sutra_controller_generic *>(
                       rtc->d_control[ncontrol]);
-              control->set_mgain(data);
+              control->set_modal_gains(data);
               return;
             } else {
               BRAHMA_DEBUG_TRACE("controller %d must be a ls or mv controller",
@@ -143,11 +143,11 @@ void sutra_rtc_brahmaListenerImpl<T>::on_data_available(
                                  ncontrol);
               throw CORBA::BAD_PARAM();
             }
-          } else if (cmd_splited[0] == "openLoop") {
+          } else if (cmd_splited[0] == "open_loop") {
             int ncontrol = carma_utils::from_string<int>(cmd_splited[1]);
-            int openloop = carma_utils::from_string<int>(cmd_splited[2]);
-            DEBUG_TRACE("Updating openloop num %d to %d", ncontrol, openloop);
-            rtc->d_control[ncontrol]->set_openloop(openloop);
+            int open_loop = carma_utils::from_string<int>(cmd_splited[2]);
+            DEBUG_TRACE("Updating open_loop num %d to %d", ncontrol, open_loop);
+            rtc->d_control[ncontrol]->set_open_loop(open_loop);
           } else if (cmd_splited[0] == "CM") {
             int ncontrol = carma_utils::from_string<int>(cmd_splited[1]);
 

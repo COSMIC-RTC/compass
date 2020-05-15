@@ -49,21 +49,27 @@ from typing import Callable
 
 class BenchSupervisor(AoSupervisor):
 
-    def __init__(self, configFile: str = None, BRAHMA: bool = False,
-                 CACAO: bool = False):
-        '''
-        Init the COMPASS wih the configFile
-        '''
-        self.pauseLoop = None
+    def __init__(self, config_file: str = None, brahma: bool = False,
+                 cacao: bool = False):
+        """ Init the COMPASS wih the config_file
+
+        Parameters:
+            config_file : (str, optional) : path to the configuration file
+
+            brahma : (bool, optional) : Flag to use brahma
+
+            cacao : (bool, optional) : Flag to use cacao rtc
+        """
+        self.pause_loop = None
         self.rtc = None
         self.frame = None
-        self.BRAHMA = BRAHMA
-        self.CACAO = CACAO
+        self.brahma = brahma
+        self.cacao = cacao
         self.iter = 0
-        self.slopesIdx = None
+        self.slopes_index = None
 
-        if configFile is not None:
-            self.loadConfig(configFile=configFile)
+        if config_file is not None:
+            self.load_config(config_file=config_file)
 
     #     _    _         _                  _
     #    / \  | |__  ___| |_ _ __ __ _  ___| |_
@@ -77,40 +83,43 @@ class BenchSupervisor(AoSupervisor):
     # | |  | |  __/ |_| | | | (_) | (_| \__ \
     # |_|  |_|\___|\__|_| |_|\___/ \__,_|___/
 
-    def singleNext(self) -> None:
-        '''
-        Move atmos -> getSlope -> applyControl ; One integrator step
-        '''
-        self.loadNewWfsFrame()
-        if (self.pauseLoop is not True):
-            self.computeWfsFrame()
-            self.setCommand(0, np.array(self.rtc.d_control[0].d_voltage))
-        if self.BRAHMA or self.CACAO:
+    def single_next(self) -> None:
+        """ Performs a single loop iteration        
+        """
+        self.load_new_wfs_frame()
+        if (self.pause_loop is not True):
+            self.compute_wfs_frame()
+            self.set_command(0, np.array(self.rtc.d_control[0].d_voltage))
+        if self.brahma or self.cacao:
             self.rtc.publish()
         self.iter += 1
 
-    def getTarImage(self, tarID, expoType: str = "se") -> np.ndarray:
-        '''
-        Get an image from a target
-        '''
+    def get_psf(self, tar_index, expo_type: str = "se") -> np.ndarray:
+        """ NOT IMPLEMENTED
+        """
         raise NotImplementedError("Not implemented")
 
-    def setCommand(self, nctrl: int, command: np.ndarray) -> None:
-        ''' TODO
-        Immediately sets provided command to DMs - does not affect integrator
-        '''
+    def set_command(self, nctrl: int, command: np.ndarray) -> None:
+        """ Immediately sets provided command to DMs - does not affect integrator
+
+        Parameters:
+            nctrl : (int) : Controller index (unused)
+
+            command : (np.ndarray) : Command vector to send
+        """
         # Do stuff
-        self.dmSetCallback(command)
+        self.dm_set_callback(command)
         # Btw, update the RTC state with the information
         # self.rtc.d_control[nctrl].set_com(command, command.size)
 
-    def getCom(self, nControl: int = 0) -> np.ndarray:
-        '''
-        Get command from DM, and set it back to nCtrl controller.
-        These should be equivalent, unless an external source controls the DM as well
-        '''
+    def get_command(self) -> np.ndarray:
+        """ Get command from DM
+
+        Return:
+            command : (np.ndarray) : Command vector
+        """
         # Do something
-        command = self.dmGetCallback()
+        command = self.dm_get_callback()
         # Btw, update the RTC state with the information
         # self.rtc.d_control[nControl].set_com(command, command.size)
 
@@ -132,24 +141,25 @@ class BenchSupervisor(AoSupervisor):
             s += '\nDM: ' + repr(self._dm)
         return s
 
-    def loadNewWfsFrame(self, numWFS: int = 0) -> None:
-        '''
-            Acquire a new WFS frame and load it.
-        '''
-        self.frame = self.camCallback()
+    def load_new_wfs_frame(self, centro_index: int = 0) -> None:
+        """ Acquire a new WFS frame and load it
+
+        Parameters:
+            centro_index : (int) : Index of the centroider where to load the frame
+        """
+        self.frame = self.cam_callback()
         if (type(self.frame) is tuple):
-            numWFS = len(self.frame)
-            for i in range(numWFS):
+            centro_index = len(self.frame)
+            for i in range(centro_index):
                 self.rtc.d_centro[i].load_img(self.frame[i], self.frame[i].shape[0],
                                               self.frame[i].shape[1])
         else:
-            self.rtc.d_centro[numWFS].load_img(self.frame, self.frame.shape[0],
+            self.rtc.d_centro[centro_index].load_img(self.frame, self.frame.shape[0],
                                                self.frame.shape[1])
 
-    def computeWfsFrame(self):
-        '''
-            Compute the WFS frame: calibrate, centroid, commands.
-        '''
+    def compute_wfs_frame(self):
+        """ Compute the WFS frame: calibrate, centroid, commands.
+        """
         # for index, centro in enumerate(self.rtc.d_centro):
         for centro in self.rtc.d_centro:
             centro.calibrate_img()
@@ -158,98 +168,113 @@ class BenchSupervisor(AoSupervisor):
         self.rtc.do_clipping(0)
         self.rtc.comp_voltage(0)
 
-    def setOneActu(self, nctrl: int, ndm: int, nactu: int, ampli: float = 1,
+    def set_one_actu(self, nctrl: int, nactu: int, ampli: float = 1,
                    reset: bool = True) -> None:
-        '''
-        Push the selected actuator
-        '''
-        command = self.getCommand()
+        """ Push the selected actuator
+
+        Parameters:
+            nctrl : (int) : controller index
+
+            nactu : (int) : actuator index to push
+
+            ampli : (float, optional) : amplitude to apply. Default is 1 volt
+
+            reset : (bool) : reset the previous command vector. Default is True
+        """
+        command = self.get_command()
         if reset:
             command *= 0
         command[nactu] = ampli
-        self.setCommand(nctrl, command)
+        self.set_command(nctrl, command)
 
-    def forceContext(self) -> None:
-        """
-        Active all the GPU devices specified in the parameters file
+    def force_context(self) -> None:
+        """ Active all the GPU devices specified in the parameters file
         Required for using with widgets, due to multithreaded init
         and in case GPU 0 is not used by the simu
         """
-        if self.isInit() and self.c is not None:
-            current_Id = self.c.activeDevice
-            for devIdx in range(len(self.config.p_loop.devices)):
-                self.c.set_activeDeviceForce(devIdx)
-            self.c.set_activeDevice(current_Id)
+        if self.is_init() and self.context is not None:
+            current_device = self.context.active_device
+            for device in range(len(self.config.p_loop.devices)):
+                self.context.set_active_device_force(device)
+            self.context.set_active_device(current_device)
 
-    def resetDM(self, nDM: int) -> None:
-        '''
-        Reset the DM number nDM
-        '''
+    def reset_dm(self) -> None:
+        """ Reset the DM
+        """
         if hasattr(self, '_dm'):
             self._dm.reset_dm()
 
-    def resetCommand(self, nctrl: int = -1) -> None:
-        '''
-        Reset the nctrl Controller command buffer, reset all controllers if nctrl  == -1
-        '''
+    def reset_command(self, nctrl: int = -1) -> None:
+        """ Reset the nctrl Controller command buffer, reset all controllers if nctrl  == -1
+
+        Parameters:
+            nctrl : (int, optional) : Controller index. If -1 (default), all controllers commands are reset
+        """
         if (nctrl == -1):  # All Dms reset
             for control in self.rtc.d_control:
                 control.d_com.reset()
         else:
             self.rtc.d_control[nctrl].d_com.reset()
 
-    def loadConfig(self, configFile: str = None, sim=None) -> None:
-        '''
-        Init the COMPASS wih the configFile
-        '''
+    def load_config(self, config_file: str = None) -> None:
+        """ Init the COMPASS with the config_file
+
+        Parameters:
+            config_file : (str) : path to the configuration file
+        """
         from shesha.util.utilities import load_config_from_file
-        load_config_from_file(self, configFile)
+        load_config_from_file(self, config_file)
 
-    def setCamCallback(self, camCallback: Callable):
-        '''
-        Set the externally defined function that allows to grab frames
-        '''
-        self.camCallback = camCallback
+    def set_cam_callback(self, cam_callback: Callable):
+        """ Set the externally defined function that allows to grab frames
 
-    def setDmCallback(self, dmGetCallback: Callable, dmSetCallback: Callable):
-        '''
-        Set the externally defined function that allows to grab frames
-        '''
-        self.dmGetCallback = dmGetCallback
-        self.dmSetCallback = dmSetCallback
+        Parameters:
+            cam_callback : (Callable) : function that allows to grab frames
+        """
+        self.cam_callback = cam_callback
 
-    def isInit(self) -> bool:
-        '''
-        return the status on COMPASS init
-        '''
+    def set_dm_callback(self, dm_get_callback: Callable, dm_set_callback: Callable):
+        """ Set the externally defined function that allows to communicate with the DM
+
+        Parameters:
+            dm_get_callback : (Callable) : function that allows to retrieve commands
+            dm_set_callback : (Callable) : function that allows to set commands
+        """
+        self.dm_get_callback = dm_get_callback
+        self.dm_set_callback = dm_set_callback
+
+    def is_init(self) -> bool:
+        """ Return the status on COMPASS init
+
+        Return:
+            is_init : (bool) : Status of the initialisation
+        """
         return self.is_init
 
-    # TEST J
-    def initConfig(self) -> None:
-        '''
-        Initialize the bench
-        '''
+    def init_config(self) -> None:
+        """ Initialize the bench
+        """
         print("->RTC")
-        self.wfsNb = len(self.config.p_wfss)
-        print("Configuration of", self.wfsNb, "wfs ...")
+        self.number_of_wfs = len(self.config.p_wfss)
+        print("Configuration of", self.number_of_wfs, "wfs ...")
 
         if (hasattr(self.config, 'p_loop') and self.config.p_loop.devices.size > 1):
-            self.c = carmaWrap_context.get_instance_ngpu(self.config.p_loop.devices.size,
+            self.context = carmaWrap_context.get_instance_ngpu(self.config.p_loop.devices.size,
                                                          self.config.p_loop.devices)
         else:
-            self.c = carmaWrap_context.get_instance_1gpu(self.config.p_loop.devices[0])
+            self.context = carmaWrap_context.get_instance_1gpu(self.config.p_loop.devices[0])
         nact = self.config.p_controllers[0].nactu
         self._nvalid = []
-        self._centroiderType = []
+        self._centroider_type = []
         self._delay = []
         self._offset = []
         self._scale = []
         self._gain = []
-        self._cMatSize = []
+        self._cmat_size = []
         self._npix = []
 
         # Get parameters
-        for wfs in range(self.wfsNb):
+        for wfs in range(self.number_of_wfs):
 
             if self.config.p_wfss[wfs].type == WFSType.SH:
                 self._npix.append(self.config.p_wfss[wfs].npix)
@@ -270,38 +295,38 @@ class BenchSupervisor(AoSupervisor):
                 self._nvalid.append(
                         np.array([self.config.p_wfss[wfs]._nvalid], dtype=np.int32))
                 # print("nvalid : %d" % self._nvalid[wfs])
-                self._centroiderType.append(self.config.p_centroiders[wfs].type)
+                self._centroider_type.append(self.config.p_centroiders[wfs].type)
                 self._delay.append(self.config.p_controllers[0].delay)  # ???
                 self._offset.append((self.config.p_wfss[wfs].npix - 1) / 2)
                 self._scale.append(1)
                 self._gain.append(1)
-                self._cMatSize.append(2 * self._nvalid[wfs][0])
+                self._cmat_size.append(2 * self._nvalid[wfs][0])
 
             elif self.config.p_wfss[wfs].type == WFSType.PYRHR or self.config.p_wfss[
                     wfs].type == WFSType.PYRLR:
                 self._nvalid.append(
                         np.array([self.config.p_wfss[wfs]._nvalid],
                                  dtype=np.int32))  # Number of valid SUBAPERTURES
-                self._centroiderType.append(self.config.p_centroiders[wfs].type)
+                self._centroider_type.append(self.config.p_centroiders[wfs].type)
                 self._delay.append(self.config.p_controllers[0].delay)  # ???
                 self._offset.append(0)
                 self._scale.append(1)
                 self._gain.append(1)
-                self._cMatSize.append(
+                self._cmat_size.append(
                         self.config.p_wfss[wfs].nPupils * self._nvalid[wfs][0])
                 self._npix.append(0)
             else:
                 raise ValueError('WFS type not supported')
 
         # Create RTC
-        self.rtc = rtc_standalone(self.c, self.wfsNb, self._nvalid, nact,
-                                  self._centroiderType, self._delay, self._offset,
-                                  self._scale, brahma=self.BRAHMA, cacao=self.CACAO)
+        self.rtc = rtc_standalone(self.context,  self.number_of_wfs, self._nvalid, nact,
+                                  self._centroider_type, self._delay, self._offset,
+                                  self._scale, brahma=self.brahma, cacao=self.cacao)
 
-        self.slopesIdx = np.cumsum([0] + [wfs.nslopes for wfs in self.rtc.d_centro])
+        self.slopes_index = np.cumsum([0] + [wfs.nslopes for wfs in self.rtc.d_centro])
 
         # Create centroiders
-        for wfs in range(self.wfsNb):
+        for wfs in range(self.number_of_wfs):
             self.rtc.d_centro[wfs].load_validpos(
                     self.config.p_wfss[wfs]._validsubsx,
                     self.config.p_wfss[wfs]._validsubsy,
@@ -311,8 +336,8 @@ class BenchSupervisor(AoSupervisor):
             self.rtc.d_centro[wfs].set_npix(self._npix[wfs])
             # finally
             self.config.p_centroiders[wfs]._nslope = self.rtc.d_centro[wfs].nslopes
-            print("wfs ", wfs, " set as ", self._centroiderType[wfs])
-        size = sum(self._cMatSize)
+            print("wfs ", wfs, " set as ", self._centroider_type[wfs])
+        size = sum(self._cmat_size)
         cMat = np.zeros((nact, size), dtype=np.float32)
         print("Size of cMat:", cMat.shape)
 
@@ -321,58 +346,67 @@ class BenchSupervisor(AoSupervisor):
         self.rtc.d_control[0].set_decayFactor(
                 np.ones(nact, dtype=np.float32) * (self._gain[0] - 1))
         self.rtc.d_control[0].set_matE(np.identity(nact, dtype=np.float32))
-        self.rtc.d_control[0].set_mgain(np.ones(nact, dtype=np.float32) * -self._gain[0])
+        self.rtc.d_control[0].set_modal_gains(np.ones(nact, dtype=np.float32) * -self._gain[0])
         self.is_init = True
         print("RTC initialized")
 
-    def adaptiveWindows(self, initConfig=False, numwfs=0):
-        '''
-        Re-centre the centroiding boxes around the spots, and loads
+    def adaptiveWindows(self, init_config=False, centro_index : int=0):
+        """ Re-centre the centroiding boxes around the spots, and loads
         the new box coordinates in the slopes computation supervisor
         pipeline.
 
-        Input arguments:
-            <initConfig> : True/False(default).
-            True resets to the default positions of boxes.
-            False does the centring job normally.
-        '''
-        if initConfig:
+        Parameters:
+            init_config : (bool): Flag to reset to the default positions of boxes. Default is False
+
+            centro_index : (int) : centroider index
+        """
+        if init_config:
             # reset de la configuration initiale
-            ijSubap = self.config.p_wfss[numwfs].get_validsub()
-            nsubap = ijSubap.shape[1]
-            self.rtc.d_centro[numwfs].load_validpos(ijSubap[0], ijSubap[1], nsubap)
+            ij_subap = self.config.p_wfss[centro_index].get_validsub()
+            nsubap = ij_subap.shape[1]
+            self.rtc.d_centro[centro_index].load_validpos(ij_subap[0], ij_subap[1], nsubap)
         else:
             # acquire slopes first
             nslopes = 10
             s = 0.
             for i in range(nslopes):
-                self.loadNewWfsFrame()  # sinon toutes les slopes sont les memes
-                self.computeWfsFrame()
-                s = s + self.getSlope()[self.slopesIdx[numwfs]:self.slopesIdx[numwfs +
+                self.load_new_wfs_frame()  # sinon toutes les slopes sont les memes
+                self.compute_wfs_frame()
+                s = s + self.get_slopes()[self.slopes_index[centro_index]:self.slopes_index[centro_index +
                                                                               1]]
             s /= nslopes
             # get coordinates of valid sub-apertures
-            #ijSubap = self.config.p_wfss[numwfs].get_validsub()
-            iSubap = np.array(self.rtc.d_centro[numwfs].d_validx)
-            jSubap = np.array(self.rtc.d_centro[numwfs].d_validy)
+            #ij_subap = self.config.p_wfss[centro_index].get_validsub()
+            i_subap = np.array(self.rtc.d_centro[centro_index].d_validx)
+            j_subap = np.array(self.rtc.d_centro[centro_index].d_validy)
             # get number of subaps
-            nsubap = iSubap.shape[0]
-            # reshape the array <s> to be conformable with <ijSubap>
+            nsubap = i_subap.shape[0]
+            # reshape the array <s> to be conformable with <ij_subap>
             s = np.resize(s, (2, nsubap))
             # re-centre the boxes around the spots
-            new_iSubap = (iSubap + s[0, :].round()).astype(int)
-            new_jSubap = (jSubap + s[1, :].round()).astype(int)
+            new_i_subap = (i_subap + s[0, :].round()).astype(int)
+            new_j_subap = (j_subap + s[1, :].round()).astype(int)
             # load the new positions of boxes
-            self.rtc.d_centro[numwfs].load_validpos(new_iSubap, new_jSubap, nsubap)
+            self.rtc.d_centro[centro_index].load_validpos(new_i_subap, new_j_subap, nsubap)
 
-    def getCurrentWindowsPos(self, numwfs=0):
+    def getCurrentWindowsPos(self, centro_index : int=0):
+        """ Returns the currently used subapertures positions
+
+        Parameters:
+            centro_index : (int) : Index of the centroider
+
+        Return:
+            current_pos : (tuple) : (i_subap, j_subap)
         """
-        Returns the currently used subapertures positions.
+        i_subap = np.array(self.rtc.d_centro[centro_index].d_validx)
+        j_subap = np.array(self.rtc.d_centro[centro_index].d_validy)
+        return i_subap, j_subap
 
+    def get_slopes_index(self):
+        """ Return the index of the first position of each WFS slopes vector
+        inside the global RTC slopes vector
+
+        Return:
+            slopes_index : (np.ndarray) : Slopes index
         """
-        iSubap = np.array(self.rtc.d_centro[numwfs].d_validx)
-        jSubap = np.array(self.rtc.d_centro[numwfs].d_validy)
-        return iSubap, jSubap
-
-    def getSlopesIndex(self):
-        return self.slopesIdx
+        return self.slopes_index

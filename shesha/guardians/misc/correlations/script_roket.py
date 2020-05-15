@@ -28,7 +28,7 @@ from scipy.sparse import csr_matrix
 c = ch.carmaWrap_context(devices=np.array([6, 7], dtype=np.int32))
 
 
-def InitConfig(config):
+def init_config(config):
     if (hasattr(config, "simul_name")):
         if (config.simul_name is None):
             simul_name = ""
@@ -50,7 +50,7 @@ def InitConfig(config):
     #   context
     #c=ch.carmaWrap_context(device)
     c = ch.carmaWrap_context(devices=np.array([6, 7], dtype=np.int32))
-    #c.set_activeDevice(device)
+    #c.set_active_device(device)
 
     #    wfs
     print("->wfs")
@@ -139,8 +139,8 @@ def loop(n):
     """
     if (error_flag):
         # Initialize buffers for error breakdown
-        nactu = rtc.getCom(0).size
-        nslopes = rtc.getCentroids(0).size
+        nactu = rtc.get_command(0).size
+        nslopes = rtc.get_centroids(0).size
         com = np.zeros((n, nactu), dtype=np.float32)
         noise_com = np.zeros((n, nactu), dtype=np.float32)
         alias_wfs_com = np.copy(noise_com)
@@ -173,8 +173,8 @@ def loop(n):
                 wfs.sensors_compimg(w)
             rtc.docentroids(0)
             rtc.docontrol(0)
-            #m = np.reshape(rtc.getCentroids(0),(nslopes,1))
-            #v = np.reshape(rtc.getCom(0),(nactu,1))
+            #m = np.reshape(rtc.get_centroids(0),(nslopes,1))
+            #v = np.reshape(rtc.get_command(0),(nactu,1))
             if (error_flag and i > -1):
                 #compute the error breakdown for this iteration
                 #covm += m.dot(m.T)
@@ -253,7 +253,7 @@ def preloop(n):
 # | _ \/ _` (_-< (_-<
 # |___/\__,_/__/_/__/
 ################################################################################
-def compute_Btt():
+def compute_btt():
     IF = rtc.get_IFsparse(1).T
     N = IF.shape[0]
     n = IF.shape[1]
@@ -470,9 +470,9 @@ config.p_atmos.set_winddir([d])
 config.p_atmos.set_windspeed([s])
 config.p_controllers[0].set_gain(g)
 
-atm, wfs, tel, dms, tar, rtc = InitConfig(config)
+atm, wfs, tel, dms, tar, rtc = init_config(config)
 #config.p_loop.set_niter(niters)
-Btt, P = compute_Btt()
+Btt, P = compute_btt()
 rtc.load_Btt(1, Btt.dot(Btt.T))
 Dm, cmat = compute_cmatWithBtt(Btt, nfiltered)
 rtc.set_cmat(0, cmat)

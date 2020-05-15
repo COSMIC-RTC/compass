@@ -58,7 +58,7 @@ old2new_dict = {
         "lgsreturnperwatt": "_Param_wfs__lgsreturnperwatt",
         "lltx": "_Param_wfs__lltx",
         "llty": "_Param_wfs__llty",
-        "openloop": "_Param_wfs__openloop",
+        "open_loop": "_Param_wfs__open_loop",
         "proftype": "_Param_wfs__proftype",
         "pyr_ampl": "_Param_wfs__pyr_ampl",
         "pyr_loc": "_Param_wfs__pyr_loc",

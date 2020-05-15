@@ -51,7 +51,7 @@ sutra_kl::sutra_kl(carma_context *context, long dim, long nr, long np, long nkl,
   this->nkl = nkl;
   this->nord = nord;
   this->device = device;
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
 
   long *dims_data1 = new long[2];
   dims_data1[0] = 1;
@@ -109,7 +109,7 @@ sutra_kl::sutra_kl(carma_context *context, long dim, long nr, long np, long nkl,
 
 sutra_kl::~sutra_kl() {
   // delete current_context;
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
 
   delete this->h_ord;
   delete this->d_ord;
@@ -126,7 +126,7 @@ sutra_kl::~sutra_kl() {
 
 int sutra_kl::do_compute(float alpha, float ampli, float *odata, int nkl,
                          int size, int xoff, int yoff) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   // do computation on data and store in result
   int nord = this->h_ord->getData()[nkl] - 1;
 
@@ -147,7 +147,7 @@ int sutra_kl::do_compute(float *odata, int nkl, int size, int xoff, int yoff) {
 }
 
 int sutra_kl::do_combi(float *com, float *odata, int size, int xoff, int yoff) {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   // do computation on data and store in result
   combikl(com, this->nkl, odata, this->d_rabas->getData(),
           this->d_ord->getData(), this->d_azbas->getData(),
@@ -159,7 +159,7 @@ int sutra_kl::do_combi(float *com, float *odata, int size, int xoff, int yoff) {
 
 // Florian features
 int sutra_kl::get_flokl() {
-  current_context->set_activeDevice(device, 1);
+  current_context->set_active_device(device, 1);
   std::cout << "flag in function" << std::endl;
   cget_flokl(this->nkl, this->dim, this->d_covmat->getData(),
              this->d_filter->getData(), this->d_bas->getData());

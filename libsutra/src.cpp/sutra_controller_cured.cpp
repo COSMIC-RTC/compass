@@ -80,7 +80,7 @@ sutra_controller_cured<T, Tout>::sutra_controller_cured(
 
 template <typename T, typename Tout>
 sutra_controller_cured<T, Tout>::~sutra_controller_cured() {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
 
   if (this->h_centroids != nullptr) delete this->h_centroids;
   if (this->h_err != nullptr) delete this->h_err;
@@ -92,7 +92,7 @@ sutra_controller_cured<T, Tout>::~sutra_controller_cured() {
 
 template <typename T, typename Tout>
 int sutra_controller_cured<T, Tout>::comp_com() {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
 
   // this->frame_delay();
   h_centroids->cpy_obj(this->d_centroids, cudaMemcpyDeviceToHost);

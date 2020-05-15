@@ -220,7 +220,7 @@ void controller_mv_impl(py::module &mod, const char *name) {
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
 
-      .def("set_mgain", wy::colCast(&controller_mv::set_mgain), R"pbdoc(
+      .def("set_modal_gains", wy::colCast(&controller_mv::set_modal_gains), R"pbdoc(
       Set the controller modal gains
 
       Parameters

@@ -50,7 +50,7 @@ sutra_centroider_corr<Tin, T>::sutra_centroider_corr(carma_context *context,
                                                      bool filter_TT, int device)
     : sutra_centroider<Tin, T>(context, wfs, nvalid, offset, scale, filter_TT,
                                device) {
-  context->set_activeDevice(device, 1);
+  context->set_active_device(device, 1);
 
   this->nslopes = 2 * nvalid;
   long dims_data2[2] = {1, this->nslopes};
@@ -106,7 +106,7 @@ int sutra_centroider_corr<Tin, T>::set_npix(int npix) {
 
 template <class Tin, class T>
 int sutra_centroider_corr<Tin, T>::fill_bincube(T *img) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
 
   fillbincube(img, this->d_bincube->getData(), this->npix, this->nvalid,
               this->nxsub, this->d_validx->getData(), this->d_validy->getData(),
@@ -117,7 +117,7 @@ int sutra_centroider_corr<Tin, T>::fill_bincube(T *img) {
 template <class Tin, class T>
 int sutra_centroider_corr<Tin, T>::init_corr(int isizex, int isizey,
                                              T *interpmat) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   if (this->d_corrfnct != 0L) delete this->d_corrfnct;
   if (this->d_corrspot != 0L) delete this->d_corrspot;
   if (this->d_corrnorm != 0L) delete this->d_corrnorm;
@@ -174,7 +174,7 @@ int sutra_centroider_corr<Tin, T>::init_corr(int isizex, int isizey,
 
 template <class Tin, class T>
 int sutra_centroider_corr<Tin, T>::load_corr(T *corr, T *corr_norm, int ndim) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   int nval = (ndim == 3) ? 1 : this->nvalid;
 
   this->d_corrnorm->host2device(corr_norm);
@@ -216,7 +216,7 @@ template <class Tin, class T>
 int sutra_centroider_corr<Tin, T>::get_cog(float *img, float *intensities,
                                            T *centroids, int nvalid, int npix,
                                            int ntot, cudaStream_t stream) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   cudaError err;
 
   // set corrspot to 0

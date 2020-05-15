@@ -50,7 +50,7 @@ sutra_centroider_wcog<Tin, T>::sutra_centroider_wcog(carma_context *context,
                                                      bool filter_TT, int device)
     : sutra_centroider<Tin, T>(context, wfs, nvalid, offset, scale, filter_TT,
                                device) {
-  context->set_activeDevice(device, 1);
+  context->set_active_device(device, 1);
 
   this->nslopes = 2 * nvalid;
   if (wfs != nullptr)
@@ -77,7 +77,7 @@ string sutra_centroider_wcog<Tin, T>::get_type() {
 
 template <class Tin, class T>
 int sutra_centroider_wcog<Tin, T>::init_weights() {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   if (this->d_weights != 0L) delete this->d_weights;
 
   long *dims_data3 = new long[4];
@@ -86,7 +86,7 @@ int sutra_centroider_wcog<Tin, T>::init_weights() {
   dims_data3[2] = this->npix;
   dims_data3[3] = this->nvalid;
 
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   this->d_weights = new carma_obj<float>(this->current_context, dims_data3);
 
   delete[] dims_data3;

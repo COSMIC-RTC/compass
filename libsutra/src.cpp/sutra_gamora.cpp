@@ -61,7 +61,7 @@ sutra_gamora::sutra_gamora(carma_context *context, int device, char *type,
     this->device = devices[0];
   }
 
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
 
   this->scale = scale;  // 2*pi/lambda, lambda in microns
   this->Npts = Npts;    // number of pupil points
@@ -190,7 +190,7 @@ sutra_gamora::sutra_gamora(carma_context *context, int device, char *type,
     this->d_Dphi_ngpu.push_back(this->d_Dphi);
 
     for (int d = 1; d < ngpu; d++) {
-      current_context->set_activeDevice(d, 1);
+      current_context->set_active_device(d, 1);
       dims_data2[1] = fft_size;
       dims_data2[2] = fft_size;
       d_amplipup_ngpu.push_back(
@@ -248,14 +248,14 @@ sutra_gamora::sutra_gamora(carma_context *context, int device, char *type,
 }
 
 sutra_gamora::~sutra_gamora() {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   if (this->d_err) delete this->d_err;
 
   if (this->d_amplipup) {
     for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
              this->d_amplipup_ngpu.begin();
          this->d_amplipup_ngpu.end() != it; ++it) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->getDevice(), 1);
       delete *it;
     }
   }
@@ -266,7 +266,7 @@ sutra_gamora::~sutra_gamora() {
     for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
              this->d_pupfft_ngpu.begin();
          this->d_pupfft_ngpu.end() != it; ++it) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->getDevice(), 1);
       delete *it;
     }
   }
@@ -275,7 +275,7 @@ sutra_gamora::~sutra_gamora() {
     for (std::vector<carma_obj<float> *>::iterator it =
              this->d_phase_ngpu.begin();
          this->d_phase_ngpu.end() != it; ++it) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->getDevice(), 1);
       delete *it;
     }
   }
@@ -284,7 +284,7 @@ sutra_gamora::~sutra_gamora() {
     for (std::vector<carma_obj<int> *>::iterator it =
              this->d_wherephase_ngpu.begin();
          this->d_wherephase_ngpu.end() != it; ++it) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->getDevice(), 1);
       delete *it;
     }
   }
@@ -293,7 +293,7 @@ sutra_gamora::~sutra_gamora() {
     for (std::vector<carma_sparse_obj<float> *>::iterator it =
              this->d_IF_ngpu.begin();
          this->d_IF_ngpu.end() != it; ++it) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->getDevice(), 1);
       delete *it;
     }
   }
@@ -302,20 +302,20 @@ sutra_gamora::~sutra_gamora() {
     for (std::vector<carma_obj<float> *>::iterator it =
              this->d_term1_ngpu.begin();
          this->d_term1_ngpu.end() != it; ++it) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->getDevice(), 1);
       delete *it;
     }
 
     for (std::vector<carma_obj<float> *>::iterator it =
              this->d_term2_ngpu.begin();
          this->d_term2_ngpu.end() != it; ++it) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->getDevice(), 1);
       delete *it;
     }
     for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
              this->d_newmodek_ngpu.begin();
          this->d_newmodek_ngpu.end() != it; ++it) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->getDevice(), 1);
       delete *it;
     }
     delete this->d_otftel;
@@ -324,32 +324,32 @@ sutra_gamora::~sutra_gamora() {
     for (std::vector<carma_obj<float> *>::iterator it =
              this->d_Btt_ngpu.begin();
          this->d_Btt_ngpu.end() != it; ++it) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->getDevice(), 1);
       delete *it;
     }
     for (std::vector<carma_obj<float> *>::iterator it =
              this->d_covmodes_ngpu.begin();
          this->d_covmodes_ngpu.end() != it; ++it) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->getDevice(), 1);
       delete *it;
     }
     delete this->h_eigenvals;
     for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
              this->d_Dphi_ngpu.begin();
          this->d_Dphi_ngpu.end() != it; ++it) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->getDevice(), 1);
       delete *it;
     }
     for (std::vector<carma_obj<float> *>::iterator it = this->d_TT_ngpu.begin();
          this->d_TT_ngpu.end() != it; ++it) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->getDevice(), 1);
       delete *it;
     }
   }
 }
 
 int sutra_gamora::psf_rec_roket(float *err) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   // Get the error command buffer
   this->d_err->host2device(err);
   // set psf to 0
@@ -399,7 +399,7 @@ int sutra_gamora::psf_rec_roket(float *err) {
 int sutra_gamora::psf_rec_Vii() {
   // Telescope OTF computation and mask
   // Get the pupil
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
 
   printf("Computing Telescope OTF and corresponding mask...\n");
   carmaSafeCall(
@@ -452,7 +452,7 @@ int sutra_gamora::psf_rec_Vii() {
        this->d_pupfft_ngpu.end() != it; ++it) {
     carma_obj<cuFloatComplex> *tmp_pupfft = this->d_pupfft;
     if (*it != tmp_pupfft) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->getDevice(), 1);
       (*it)->copyFrom(tmp_pupfft->getData(), tmp_pupfft->getNbElem());
     }
   }
@@ -460,7 +460,7 @@ int sutra_gamora::psf_rec_Vii() {
            this->d_Dphi_ngpu.begin();
        this->d_Dphi_ngpu.end() != it; ++it) {
     if (*it != this->d_Dphi) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->getDevice(), 1);
       carmaSafeCall(
           cudaMemset((*it)->getData(), 0, sizeof(float) * (*it)->getNbElem()));
     }
@@ -470,7 +470,7 @@ int sutra_gamora::psf_rec_Vii() {
        this->d_covmodes_ngpu.end() != it; ++it) {
     carma_obj<float> *tmp_cov = this->d_covmodes;
     if (*it != tmp_cov) {
-      current_context->set_activeDevice((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->getDevice(), 1);
       (*it)->copyFrom(tmp_cov->getData(), tmp_cov->getNbElem());
     }
   }
@@ -485,7 +485,7 @@ int sutra_gamora::psf_rec_Vii() {
     // %d%%",this->nmodes,(k*100/this->nmodes));
   }
   progress.finish();
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
 
   carma_obj<cuFloatComplex> *tmp_vector =
       new carma_obj<cuFloatComplex>(current_context, this->d_Dphi->getDims());
@@ -524,7 +524,7 @@ int sutra_gamora::psf_rec_Vii() {
 }
 
 void sutra_gamora::compute_Dphi_on_mode_k(int k) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
   int ngpu = d_pupfft_ngpu.size();
   if (ngpu < 2) {
     carmaSafeCall(
@@ -575,7 +575,7 @@ void sutra_gamora::compute_Dphi_on_mode_k(int k) {
              this->current_context->get_device(this->device));
   } else {
     int cur_device = k % ngpu;
-    this->current_context->set_activeDevice(cur_device, 1);
+    this->current_context->set_active_device(cur_device, 1);
     carmaSafeCall(
         cudaMemset(this->d_amplipup_ngpu[cur_device]->getData(), 0,
                    sizeof(cuFloatComplex) *

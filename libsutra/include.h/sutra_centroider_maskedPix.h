@@ -79,7 +79,7 @@ class sutra_centroider_maskedPix : public sutra_centroider<Tin, T> {
 void fill_intensities(float *intensities, float *img, int *subindx,
                       int *subindy, int ns, int nslopes, carma_device *device);
 template <class T>
-void getMaskedPix(T *centroids, T *ref, float *img, int *subindx, int *subindy,
+void get_masked_pix(T *centroids, T *ref, float *img, int *subindx, int *subindy,
                   float *psum, int ns, int nslopes, carma_device *device);
 template <class T>
 void pyr_fill_selected_pix(T *img, int img_sizex, T *pix, int *subindx, int *subindy,

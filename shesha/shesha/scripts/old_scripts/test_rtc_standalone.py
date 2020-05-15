@@ -41,7 +41,7 @@ rtc_standalone = shesha_init.rtc_standalone(
 rtc_standalone.set_cmat(0, sim.rtc.get_cmat(0))
 rtc_standalone.set_decayFactor(0, np.ones(nactu, dtype=np.float32))
 rtc_standalone.set_matE(0, np.identity(nactu, dtype=np.float32))
-rtc_standalone.set_mgain(
+rtc_standalone.set_modal_gains(
         0,
         np.ones(nactu, dtype=np.float32) * sim.config.p_controller0.gain)
 
@@ -60,8 +60,8 @@ for k in tqdm(range(sim.config.p_loop.niter)):
 
 rtc_standalone.load_rtc_validpos(0, sim.config.p_wfs0._validsubsx,
                                  sim.config.p_wfs0._validsubsy)
-rtc_standalone.set_openloop(0, 1)
-rtc_standalone.set_openloop(0, 0)
+rtc_standalone.set_open_loop(0, 1)
+rtc_standalone.set_open_loop(0, 0)
 
 rtc_time = 0
 for k in tqdm(range(sim.config.p_loop.niter)):

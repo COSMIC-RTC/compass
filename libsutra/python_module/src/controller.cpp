@@ -253,7 +253,7 @@ void controller_impl(py::module &mod, const char *name) {
           Remove all perturbation voltage buffers
      )pbdoc")
 
-      .def("set_openloop", wy::colCast(&controller::set_openloop),
+      .def("set_open_loop", wy::colCast(&controller::set_open_loop),
            R"pbdoc(
           Open (1) or close (0) the loop
 

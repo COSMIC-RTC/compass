@@ -12,12 +12,12 @@ dec = 5
 sup = Supervisor(
         os.getenv("COMPASS_ROOT") + "/shesha/data/par/par4bench/scao_sh_80x80_8pix.py")
 sup.config.p_controller0.set_type("generic")
-sup.initConfig()
-sup.singleNext()
+sup.init_config()
+sup.single_next()
 xvalid = np.array(sup._sim.rtc.d_centro[0].d_validx)
 yvalid = np.array(sup._sim.rtc.d_centro[0].d_validy)
-cmat = sup.getCmat(0)
-frame = sup.getWfsImage()
+cmat = sup.get_command_matrix(0)
+frame = sup.get_wfs_image()
 frame /= frame.max()
 
 rtc = Rtc()

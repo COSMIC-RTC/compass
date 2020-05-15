@@ -60,7 +60,7 @@ __global__ void get_maskedPix_krnl(T *g_odata, T *ref, float *g_idata,
 }
 
 template <class T>
-void getMaskedPix(T *d_odata, T *ref, float *d_idata, int *subindx,
+void get_masked_pix(T *d_odata, T *ref, float *d_idata, int *subindx,
                   int *subindy, float *intensities, int ns, int nslopes,
                   carma_device *device) {
   // cout << "hello cu" << endl;
@@ -75,13 +75,13 @@ void getMaskedPix(T *d_odata, T *ref, float *d_idata, int *subindx,
   carmaCheckMsg("get_maskedPix_kernel<<<>>> execution failed\n");
 }
 
-template void getMaskedPix<float>(float *d_odata, float *ref, float *d_idata,
+template void get_masked_pix<float>(float *d_odata, float *ref, float *d_idata,
                                   int *subindx, int *subindy,
                                   float *intensities, int ns, int nslopes,
                                   carma_device *device);
 
 #ifdef CAN_DO_HALF
-template void getMaskedPix<half>(half *d_odata, half *ref, float *d_idata,
+template void get_masked_pix<half>(half *d_odata, half *ref, float *d_idata,
                                  int *subindx, int *subindy, float *intensities,
                                  int ns, int nslopes, carma_device *device);
 #endif
