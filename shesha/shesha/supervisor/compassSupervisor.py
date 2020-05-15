@@ -802,25 +802,6 @@ class CompassSupervisor(AoSupervisor):
         return np.array(self._sim.rtc.d_centro[0].d_selected_pix)
 
 
-
-
-    """
-    ____    _    ____ ___ ____  
-    | __ )  / \  / ___|_ _/ ___| 
-    |  _ \ / _ \ \___ \| |\___ \ 
-    | |_) / ___ \ ___) | | ___) |
-    |____/_/   \_\____/___|____/ 
-                                
-     ____ ___  __  __ ____  _   _ _____  _  _____ ___ ___  _   _ 
-    / ___/ _ \|  \/  |  _ \| | | |_   _|/ \|_   _|_ _/ _ \| \ | |
-    | |  | | | | |\/| | |_) | | | | | | / _ \ | |  | | | | |  \| |
-    | |__| |_| | |  | |  __/| |_| | | |/ ___ \| |  | | |_| | |\  |
-    \____\___/|_|  |_|_|    \___/  |_/_/   \_\_| |___\___/|_| \_|
-                                                                
-    """
-
-
-
     def first_non_zero(self, array : np.ndarray, axis : int, invalid_val : int=-1) -> np.ndarray:
         """ Find the first non zero element of an array
 
@@ -1257,16 +1238,6 @@ class CompassSupervisor(AoSupervisor):
             v3 = v[-2:]
             ai = self.P.dot(np.concatenate((v2, v3))) * 1000.
         return ai
-
-        """
-         ______   ______  
-        |  _ \ \ / /  _ \ 
-        | |_) \ V /| |_) |
-        |  __/ | | |  _ < 
-        |_|    |_| |_| \_\
-                        
-        """
-
 
     def set_pyr_multiple_stars_source(self, wfs_index : int, coords : List, weights : List=None, pyr_mod : float=3., niters : int=None):
         """ Sets the Pyramid modulation points with a multiple star system

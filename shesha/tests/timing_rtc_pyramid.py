@@ -23,10 +23,10 @@ frame = sup.get_wfs_image()
 frame /= frame.max()
 
 rtc = Rtc()
-rtc.add_centroider(sup._sim.c, sup.config.p_wfs0._nvalid,
+rtc.add_centroider(sup._sim.context, sup.config.p_wfs0._nvalid,
                    sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize, False, 0,
                    "maskedpix")
-rtc.add_controller(sup._sim.c, sup.config.p_wfs0._nvalid,
+rtc.add_controller(sup._sim.context, sup.config.p_wfs0._nvalid,
                    sup.config.p_controller0.nslope, sup.config.p_controller0.nactu,
                    sup.config.p_controller0.delay, 0, "generic", idx_centro=np.zeros(1), ncentro=1)
 rtc.d_centro[0].set_npix(sup.config.p_wfs0.npix)
@@ -36,10 +36,10 @@ rtc.d_control[0].set_gain(sup.config.p_controller0.gain)
 rtc.d_centro[0].load_img(frame, frame.shape[0])
 
 rtcH = RtcH()
-rtcH.add_centroider(sup._sim.c, sup.config.p_wfs0._nvalid,
+rtcH.add_centroider(sup._sim.context, sup.config.p_wfs0._nvalid,
                     sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize, False, 0,
                     "maskedpix")
-rtcH.add_controller(sup._sim.c, sup.config.p_wfs0._nvalid,
+rtcH.add_controller(sup._sim.context, sup.config.p_wfs0._nvalid,
                     sup.config.p_controller0.nslope, sup.config.p_controller0.nactu,
                     sup.config.p_controller0.delay, 0, "generic", idx_centro=np.zeros(1), ncentro=1)
 rtcH.d_centro[0].set_npix(sup.config.p_wfs0.npix)

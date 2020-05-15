@@ -118,24 +118,24 @@ class AoSupervisor(AbstractSupervisor):
             image : (np.ndarray) : WFS image
         """
         if (cal_pix):
-            if self.rtc.d_centro[numWFS].d_dark is None: # Simulation case
-                return np.array(self._sim.wfs.d_wfs[numWFS].d_binimg)
-            if self.rtc.d_centro[numWFS].type == CentroiderType.MASKEDPIX: # Standalone case
-                #     self.rtc.d_centro[numWFS].fill_selected_pix(
+            if self.rtc.d_centro[wfs_index].d_dark is None: # Simulation case
+                return np.array(self._sim.wfs.d_wfs[wfs_index].d_binimg)
+            if self.rtc.d_centro[wfs_index].type == CentroiderType.MASKEDPIX: # Standalone case
+                #     self.rtc.d_centro[wfs_index].fill_selected_pix(
                 #             self.rtc.d_control[0].d_centroids)
-                #     return np.array(self.rtc.d_centro[numWFS].d_selected_pix)
+                #     return np.array(self.rtc.d_centro[wfs_index].d_selected_pix)
                 # else:
-                self.rtc.d_centro[numWFS].fill_selected_pix(
+                self.rtc.d_centro[wfs_index].fill_selected_pix(
                         self.rtc.d_control[0].d_centroids)
-                mask = np.array(self.rtc.d_centro[numWFS].d_selected_pix)
+                mask = np.array(self.rtc.d_centro[wfs_index].d_selected_pix)
                 mask[np.where(mask)] = np.array(
-                        self.rtc.d_centro[numWFS].d_img)[np.where(mask)]
+                        self.rtc.d_centro[wfs_index].d_img)[np.where(mask)]
                 return mask
-            return np.array(self.rtc.d_centro[numWFS].d_img)
+            return np.array(self.rtc.d_centro[wfs_index].d_img)
         else: 
-            if self.rtc.d_centro[numWFS].d_dark is None: # Simulation case
-                return np.array(self._sim.wfs.d_wfs[numWFS].d_binimg)
-            return np.array(self.rtc.d_centro[numWFS].d_img_raw) # Standalone case
+            if self.rtc.d_centro[wfs_index].d_dark is None: # Simulation case
+                return np.array(self._sim.wfs.d_wfs[wfs_index].d_binimg)
+            return np.array(self.rtc.d_centro[wfs_index].d_img_raw) # Standalone case
 
     def get_intensities(self) -> np.ndarray:
         """ Return sum of intensities in subaps. Size nSubaps, same order as slopes

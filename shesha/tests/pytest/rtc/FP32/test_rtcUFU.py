@@ -22,9 +22,9 @@ sup.open_loop()
 sup.close_loop()
 sup._sim.do_control(0)
 rtc = Rtc()
-rtc.add_centroider(sup._sim.c, sup.config.p_wfs0._nvalid,
+rtc.add_centroider(sup._sim.context, sup.config.p_wfs0._nvalid,
                    sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize, False, 0, "cog")
-rtc.add_controller(sup._sim.c, sup.config.p_wfs0._nvalid, sup.config.p_wfs0._nvalid * 2,
+rtc.add_controller(sup._sim.context, sup.config.p_wfs0._nvalid, sup.config.p_wfs0._nvalid * 2,
                    sup.config.p_controller0.nactu, sup.config.p_controller0.delay, 0,
                    "generic", idx_centro=np.zeros(1), ncentro=1)
 centro = rtc.d_centro[0]
@@ -237,7 +237,7 @@ def test_remove_centroider():
 
 
 def test_doCentroids_tcog():
-    rtc.add_centroider(sup._sim.c, sup.config.p_wfs0._nvalid,
+    rtc.add_centroider(sup._sim.context, sup.config.p_wfs0._nvalid,
                        sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize, False, 0,
                        "tcog")
 
@@ -268,7 +268,7 @@ def test_doCentroids_tcog():
 
 def test_doCentroids_bpcog():
     rtc.remove_centroider(0)
-    rtc.add_centroider(sup._sim.c, sup.config.p_wfs0._nvalid,
+    rtc.add_centroider(sup._sim.context, sup.config.p_wfs0._nvalid,
                        sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize, False, 0,
                        "bpcog")
 
