@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Nov 26 13:25:54 2019
+Created on Friday 7th of February 2020
 
 @author: nour
 """
 
 import shesha.config as conf
 
-simul_name = "scexao"
+simul_name = "sphere+"
 
 # loop
 p_loop = conf.Param_loop()
@@ -57,11 +57,11 @@ p_wfs0.set_fssize(1.5) # Size of the field stop
 p_wfs0.set_fracsub(0.0001) # was 0.8 before Vincent 
 p_wfs0.set_xpos(0.)
 p_wfs0.set_ypos(0.)
-p_wfs0.set_Lambda(0.75) # pyramid wavelength on SCExAO - NB. on Sphere+ is about 0.5
-p_wfs0.set_gsmag(7.) # Guide star magnitude ! at =12 we have lots of photon noise
+p_wfs0.set_Lambda(0.5) # pyramid wavelength 
+p_wfs0.set_gsmag(5.) # Guide star magnitude
 p_wfs0.set_optthroughput(0.5) # Optiical throughput coefficient
 p_wfs0.set_zerop(1.e11)
-p_wfs0.set_noise(-1) # when =-1 there NO NOISE AT ALLLLLL
+p_wfs0.set_noise(-1)
 p_wfs0.set_fstop("round")
 p_wfs0.set_pyr_npts(16) # Number of modulation point along the circle
 p_wfs0.set_pyr_ampl(3) # Pyramid modulation amplitude (pyramid only)
@@ -76,21 +76,20 @@ p_dm1 = conf.Param_dm()
 p_dms = [p_dm0, p_dm1]
 p_dm0.set_type("pzt")
 # nact = p_wfs0.nxsub + 1
-nact = 54 # was 60 before cf ALPAO 
+nact = 60
 p_dm0.set_nact(nact)
 p_dm0.set_alt(0.) # Layers altitudes
 p_dm0.set_thresh(0.3) # Threshold on response for selection of valid actuators. Expressed in fraction of the maximal response
-p_dm0.set_unitpervolt(1) # 
-p_dm0.set_coupling(0.2) #valeur que prend la fonctiond'influence a l'endroit de l'actionneur voisin
-p_dm0.set_push4imat(0.01) # Nominal voltage for imat, 
+p_dm0.set_coupling(0.2)
+p_dm0.set_unitpervolt(0.01)
+p_dm0.set_push4imat(100.) # Nominal voltage for imat = integration matrix = response matrix
 p_dm0.set_margin_out(0.3) # pour adapter la taille de la pupille du DM a celle du WFS
-p_dm0.set_influType("radialSchwartz")
-p_dm0.set_margin_out(4) #DIRTY WAY TO REMOVE THE REBEL ACTUATOR 
 
 p_dm1.set_type("tt")
 p_dm1.set_alt(0.)
-p_dm1.set_unitpervolt(1) #par default, pousser de 1V donne 1um.
-p_dm1.set_push4imat(0.005)
+p_dm1.set_unitpervolt(0.0005) # Influence function sensitivity
+p_dm1.set_push4imat(100)
+
 # centroiders
 p_centroider0 = conf.Param_centroider()
 p_centroiders = [p_centroider0]
@@ -109,4 +108,4 @@ p_controller0.set_nwfs([0])
 p_controller0.set_ndm([0, 1])
 p_controller0.set_maxcond(5.) # what determines the number of modes to be filtered
 p_controller0.set_delay(1)
-p_controller0.set_gain(0.5) 
+p_controller0.set_gain(0.4)
