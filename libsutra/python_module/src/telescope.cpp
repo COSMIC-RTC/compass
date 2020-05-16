@@ -32,9 +32,9 @@
 
 //! \file      telescope.cpp
 //! \ingroup   libsutra
-//! \brief     this file provides pybind wrapper for sutra_telescope
+//! \brief     this file provides pybind wrapper for SutraTelescope
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -44,21 +44,21 @@
 
 namespace py = pybind11;
 
-std::unique_ptr<sutra_telescope> telescope_init(carma_context &context,
+std::unique_ptr<SutraTelescope> telescope_init(CarmaContext &context,
                                                 long n_pup, long npos,
                                                 float *pupil, long n_pup_m,
                                                 float *pupil_m) {
-  return std::unique_ptr<sutra_telescope>(
-      new sutra_telescope(&context, n_pup, npos, pupil, n_pup_m, pupil_m));
+  return std::unique_ptr<SutraTelescope>(
+      new SutraTelescope(&context, n_pup, npos, pupil, n_pup_m, pupil_m));
 }
 
 void declare_telescope(py::module &mod) {
-  py::class_<sutra_telescope>(mod, "Telescope")
+  py::class_<SutraTelescope>(mod, "Telescope")
       .def(py::init(wy::colCast(telescope_init)), R"pbdoc(
         Create and initialise a Telescope object
         Parameters
         ------------
-        context: (carma_context) : current carma context
+        context: (CarmaContext) : current carma context
         n_pup: (long) : spupil size
         npos : (long): number of points in the pupil
         pupil: (np.ndarray[ndim=2, dtype=np.float32_t]) : spupil
@@ -76,36 +76,36 @@ void declare_telescope(py::module &mod) {
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
       .def_property_readonly(
-          "device", [](sutra_telescope &sp) { return sp.device; },
+          "device", [](SutraTelescope &sp) { return sp.device; },
           "Device number")
 
       .def_property_readonly(
-          "pup_size", [](sutra_telescope &sp) { return sp.pup_size; },
+          "pup_size", [](SutraTelescope &sp) { return sp.pup_size; },
           "Small Pupil size")
 
       .def_property_readonly(
-          "pup_size_m", [](sutra_telescope &sp) { return sp.pup_size_m; },
+          "pup_size_m", [](SutraTelescope &sp) { return sp.pup_size_m; },
           "Medium Pupil size")
 
       .def_property_readonly(
-          "num_eleme_pup", [](sutra_telescope &sp) { return sp.num_eleme_pup; },
+          "num_eleme_pup", [](SutraTelescope &sp) { return sp.num_eleme_pup; },
           "number of points in the pupil")
 
       .def_property_readonly(
-          "d_pupil", [](sutra_telescope &sp) { return sp.d_pupil; },
+          "d_pupil", [](SutraTelescope &sp) { return sp.d_pupil; },
           "Small pupil of the Telescope")
 
       .def_property_readonly(
-          "d_pupil_m", [](sutra_telescope &sp) { return sp.d_pupil_m; },
+          "d_pupil_m", [](SutraTelescope &sp) { return sp.d_pupil_m; },
           "Medium pupil of the Telescope")
 
       .def_property_readonly(
-          "d_phase_ab_M1", [](sutra_telescope &sp) { return sp.d_phase_ab_M1; },
+          "d_phase_ab_M1", [](SutraTelescope &sp) { return sp.d_phase_ab_M1; },
           "M1 aberrations on the small pupil")
 
       .def_property_readonly(
           "d_phase_ab_M1_m",
-          [](sutra_telescope &sp) { return sp.d_phase_ab_M1_m; },
+          [](SutraTelescope &sp) { return sp.d_phase_ab_M1_m; },
           "M1 aberrations on the medium pupil")
 
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
@@ -117,10 +117,10 @@ void declare_telescope(py::module &mod) {
       //
       .def(
           "set_pupil",
-          [](sutra_telescope &sp,
+          [](SutraTelescope &sp,
              py::array_t<float, py::array::f_style | py::array::forcecast>
                  data) {
-            if (sp.d_pupil->getNbElem() == data.size())
+            if (sp.d_pupil->get_nb_elements() == data.size())
               sp.d_pupil->host2device(data.mutable_data());
             else
               DEBUG_TRACE("Wrong dimensions");
@@ -135,10 +135,10 @@ void declare_telescope(py::module &mod) {
 
       .def(
           "set_pupil_m",
-          [](sutra_telescope &sp,
+          [](SutraTelescope &sp,
              py::array_t<float, py::array::f_style | py::array::forcecast>
                  data) {
-            if (sp.d_pupil_m->getNbElem() == data.size())
+            if (sp.d_pupil_m->get_nb_elements() == data.size())
               sp.d_pupil_m->host2device(data.mutable_data());
             else
               DEBUG_TRACE("Wrong dimensions");
@@ -153,7 +153,7 @@ void declare_telescope(py::module &mod) {
 
       .def(
           "set_phase_ab_M1",
-          [](sutra_telescope &sp,
+          [](SutraTelescope &sp,
              py::array_t<float, py::array::f_style | py::array::forcecast>
                  data) {
             return sp.set_phase_ab_M1(data.mutable_data(), data.size());
@@ -168,7 +168,7 @@ void declare_telescope(py::module &mod) {
 
       .def(
           "set_phase_ab_M1_m",
-          [](sutra_telescope &sp,
+          [](SutraTelescope &sp,
              py::array_t<float, py::array::f_style | py::array::forcecast>
                  data) {
             return sp.set_phase_ab_M1_m(data.mutable_data(), data.size());

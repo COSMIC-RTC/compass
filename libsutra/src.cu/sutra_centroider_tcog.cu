@@ -32,27 +32,27 @@
 
 //! \file      sutra_centroider_tcog.cu
 //! \ingroup   libsutra
-//! \class     sutra_centroider_tcog
+//! \class     SutraCentroiderTcog
 //! \brief     this class provides the centroider_tcog features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
 #include <sutra_centroider_tcog.h>
 #include <carma_utils.cuh>
 
-template <class T, int Nthreads>
+template <class T, int nb_threads>
 __global__ void centroids(float *d_img, T *d_centroids, T *ref, int *validx,
                           int *validy, float *d_intensities, float threshold,
                           unsigned int npix, unsigned int size, T scale,
                           T offset, unsigned int nelem_thread) {
-  if (blockDim.x > Nthreads) {
+  if (blockDim.x > nb_threads) {
     if (threadIdx.x == 0) printf("Wrong size argument\n");
     return;
   }
   // Specialize BlockReduce for a 1D block of 128 threads on type int
-  typedef cub::BlockReduce<float, Nthreads> BlockReduce;
+  typedef cub::BlockReduce<float, nb_threads> BlockReduce;
   // Allocate shared memory for BlockReduce
   __shared__ typename BlockReduce::TempStorage temp_storage;
 
@@ -106,7 +106,7 @@ template <class T>
 void get_centroids(int size, int threads, int blocks, int npix, float *d_img,
                    T *d_centroids, T *ref, int *validx, int *validy,
                    float *intensities, float threshold, float scale,
-                   float offset, carma_device *device) {
+                   float offset, CarmaDevice *device) {
   int maxThreads = device->get_properties().maxThreadsPerBlock;
   unsigned int nelem_thread = 1;
   while ((threads / nelem_thread > maxThreads) ||
@@ -155,32 +155,32 @@ void get_centroids(int size, int threads, int blocks, int npix, float *d_img,
   else
     printf("SH way too big !!!\n");
 
-  carmaCheckMsg("centroids_kernel<<<>>> execution failed\n");
+  carma_check_msg("centroids_kernel<<<>>> execution failed\n");
 }
 
 template void get_centroids<float>(int size, int threads, int blocks, int npix,
                                    float *d_img, float *d_centroids, float *ref,
                                    int *validx, int *validy, float *intensities,
                                    float threshold, float scale, float offset,
-                                   carma_device *device);
+                                   CarmaDevice *device);
 
 template void get_centroids<double>(int size, int threads, int blocks, int npix,
                                     float *d_img, double *d_centroids,
                                     double *ref, int *validx, int *validy,
                                     float *intensities, float threshold,
                                     float scale, float offset,
-                                    carma_device *device);
+                                    CarmaDevice *device);
 #ifdef CAN_DO_HALF
 template void get_centroids<half>(int size, int threads, int blocks, int npix,
                                   float *d_img, half *d_centroids, half *ref,
                                   int *validx, int *validy, float *intensities,
                                   float threshold, float scale, float offset,
-                                  carma_device *device);
+                                  CarmaDevice *device);
 #endif
 // template <class T>
 // void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
 //                    T *d_odata, T *alpha, T thresh, float scale, float offset,
-//                    carma_device *device) {
+//                    CarmaDevice *device) {
 //   int maxThreads = device->get_properties().maxThreadsPerBlock;
 //   unsigned int nelem_thread = 1;
 //   while ((threads / nelem_thread > maxThreads) ||
@@ -198,26 +198,26 @@ template void get_centroids<half>(int size, int threads, int blocks, int npix,
 //   centroidx<T><<<dimGrid, dimBlock, smemSize>>>(
 //       d_idata, d_odata, alpha, thresh, n, size, scale, offset, nelem_thread);
 
-//   carmaCheckMsg("centroidx_kernel<<<>>> execution failed\n");
+//   carma_check_msg("centroidx_kernel<<<>>> execution failed\n");
 
 //   centroidy<T><<<dimGrid, dimBlock, smemSize>>>(d_idata, &(d_odata[blocks]),
 //                                                 alpha, thresh, n, size,
 //                                                 scale, offset, nelem_thread);
 
-//   carmaCheckMsg("centroidy_kernel<<<>>> execution failed\n");
+//   carma_check_msg("centroidy_kernel<<<>>> execution failed\n");
 // }
 
 // template void get_centroids<float>(int size, int threads, int blocks, int n,
 //                                    float *d_idata, float *d_odata, float
 //                                    *alpha,
 //                                    float thresh, float scale, float offset,
-//                                    carma_device *device);
+//                                    CarmaDevice *device);
 
 // template void get_centroids<double>(int size, int threads, int blocks, int n,
 //                                     double *d_idata, double *d_odata,
 //                                     double *alpha, double thresh, double
 //                                     scale,
-//                                     double offset, carma_device *device);
+//                                     double offset, CarmaDevice *device);
 // template <class T>
 // __global__ void centroidx(T *g_idata, T *g_odata, T *alpha, T thresh,
 //                           unsigned int n, unsigned int N, float scale, float

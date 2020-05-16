@@ -32,9 +32,9 @@
 
 //! \file      atmos.cpp
 //! \ingroup   libsutra
-//! \brief     this file provides pybind wrapper for sutra_atmos
+//! \brief     this file provides pybind wrapper for SutraAtmos
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -44,24 +44,24 @@
 
 namespace py = pybind11;
 
-std::unique_ptr<sutra_atmos> atmos_init(carma_context &context, int nscreens,
+std::unique_ptr<SutraAtmos> atmos_init(CarmaContext &context, int nscreens,
                                         float global_r0, float *r0_per_layers,
                                         long *dim_screens, long *stencil_size,
                                         float *altitude, float *windspeed,
                                         float *winddir, float *deltax,
                                         float *deltay, int device) {
-  return std::unique_ptr<sutra_atmos>(new sutra_atmos(
+  return std::unique_ptr<SutraAtmos>(new SutraAtmos(
       &context, nscreens, global_r0, r0_per_layers, dim_screens, stencil_size,
       altitude, windspeed, winddir, deltax, deltay, device));
 }
 
 void declare_atmos(py::module &mod) {
-  py::class_<sutra_atmos>(mod, "Atmos")
+  py::class_<SutraAtmos>(mod, "Atmos")
       .def(py::init(wy::colCast(atmos_init)), R"pbdoc(
         Create and initialise an atmos object
         Parameters
         ------------
-        context: (carma_context) : current carma context
+        context: (CarmaContext) : current carma context
         nscreens: (float) : number of turbulent layers
         global_r0: (float): global r0
         r0_per_layer: (float) : r0 per layer
@@ -88,15 +88,15 @@ void declare_atmos(py::module &mod) {
       //
 
       .def_property_readonly(
-          "nscreens", [](sutra_atmos &sa) { return sa.nscreens; },
+          "nscreens", [](SutraAtmos &sa) { return sa.nscreens; },
           "Number of turbulent screens")
 
       .def_property_readonly(
-          "r0", [](sutra_atmos &sa) { return sa.r0; }, "Global r0")
+          "r0", [](SutraAtmos &sa) { return sa.r0; }, "Global r0")
 
       .def_property_readonly(
           "d_screens",
-          [](sutra_atmos &sa) -> vector<sutra_tscreen *> & {
+          [](SutraAtmos &sa) -> vector<SutraTurbuScreen *> & {
             return sa.d_screens;
           },
           "Vector of tscreens")
@@ -108,12 +108,12 @@ void declare_atmos(py::module &mod) {
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
 
-      .def("move_atmos", &sutra_atmos::move_atmos, R"pbdoc(
+      .def("move_atmos", &SutraAtmos::move_atmos, R"pbdoc(
         Move the turbulence in the atmos screen following loaded
         parameters such as windspeed and wind direction
         )pbdoc")
 
-      .def("init_screen", wy::colCast(&sutra_atmos::init_screen), R"pbdoc(
+      .def("init_screen", wy::colCast(&SutraAtmos::init_screen), R"pbdoc(
         Initialize an newly allocated screen
 
         Parameters
@@ -128,7 +128,7 @@ void declare_atmos(py::module &mod) {
            py::arg("idx"), py::arg("A"), py::arg("B"), py::arg("istencilx"),
            py::arg("istencily"), py::arg("seed"))
 
-      .def("add_screen", wy::colCast(&sutra_atmos::add_screen), R"pbdoc(
+      .def("add_screen", wy::colCast(&SutraAtmos::add_screen), R"pbdoc(
         Add a screen to the atmos object.
 
         Parameters
@@ -147,7 +147,7 @@ void declare_atmos(py::module &mod) {
            py::arg("r0"), py::arg("windspeed"), py::arg("winddir"),
            py::arg("deltax"), py::arg("deltay"), py::arg("device"))
 
-      .def("refresh_screen", wy::colCast(&sutra_atmos::refresh_screen),
+      .def("refresh_screen", wy::colCast(&SutraAtmos::refresh_screen),
            R"pbdoc(
         Refresh the selected screen by extrusion
         Parameters
@@ -156,7 +156,7 @@ void declare_atmos(py::module &mod) {
         )pbdoc",
            py::arg("idx"))
 
-      .def("del_screen", wy::colCast(&sutra_atmos::del_screen), R"pbdoc(
+      .def("del_screen", wy::colCast(&SutraAtmos::del_screen), R"pbdoc(
         Delete the selected screen
         Parameters
         ------------
@@ -165,11 +165,11 @@ void declare_atmos(py::module &mod) {
            py::arg("idx"))
 
       .def("__str__",
-           [](sutra_atmos &sa) {
+           [](SutraAtmos &sa) {
              std::cout << "Screen # | alt.(m) | speed (m/s) | dir.(deg) | r0 "
                           "(pix) | deltax | deltay"
                        << std::endl;
-             vector<sutra_tscreen *>::iterator it = sa.d_screens.begin();
+             vector<SutraTurbuScreen *>::iterator it = sa.d_screens.begin();
              int i = 0;
              while (it != sa.d_screens.end()) {
                std::cout << i << " | " << (*it)->altitude << " | "
@@ -190,7 +190,7 @@ void declare_atmos(py::module &mod) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
-      .def("set_r0", wy::colCast(&sutra_atmos::set_r0),
+      .def("set_r0", wy::colCast(&SutraAtmos::set_r0),
            R"pbdoc(
         Change the current global r0 of all layers
 
@@ -200,7 +200,7 @@ void declare_atmos(py::module &mod) {
         )pbdoc",
            py::arg("r0"))
 
-      .def("set_seed", wy::colCast(&sutra_atmos::set_seed), R"pbdoc(
+      .def("set_seed", wy::colCast(&SutraAtmos::set_seed), R"pbdoc(
         Set the seed of the selected screen RNG
 
         Parameters

@@ -32,10 +32,10 @@
 
 //! \file      sutra_centroider_corr.h
 //! \ingroup   libsutra
-//! \class     sutra_centroider_corr
+//! \class     SutraCentroiderCorr
 //! \brief     this class provides the centroider_corr features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -81,10 +81,10 @@ __global__ void fillcorrim_krnl(Tcu *d_out, T *d_in, int npix_in, int Npix_in,
 
 template <class Tcu, class T>
 int fillcorr(Tcu *d_out, T *d_in, int npix_in, int npix_out, int N, int nvalid,
-             carma_device *device) {
-  int nBlocks, nThreads;
-  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
-  dim3 grid(nBlocks), threads(nThreads);
+             CarmaDevice *device) {
+  int nb_blocks, nb_threads;
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
   if (nvalid == 1) {
     // cout << "3d" << endl;
@@ -97,18 +97,18 @@ int fillcorr(Tcu *d_out, T *d_in, int npix_in, int npix_out, int N, int nvalid,
     // cout << "2d" << endl;
   }
 
-  carmaCheckMsg("fillcorr_kernel<<<>>> execution failed\n");
+  carma_check_msg("fillcorr_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
 
 template int fillcorr<cuFloatComplex, float>(cuFloatComplex *d_out, float *d_in,
                                              int npix_in, int npix_out, int N,
-                                             int nvalid, carma_device *device);
+                                             int nvalid, CarmaDevice *device);
 template int fillcorr<cuDoubleComplex, double>(cuDoubleComplex *d_out,
                                                double *d_in, int npix_in,
                                                int npix_out, int N, int nvalid,
-                                               carma_device *device);
+                                               CarmaDevice *device);
 
 template <class T>
 __global__ void corr_krnl(T *odata, T *idata, int N) {
@@ -125,23 +125,23 @@ __global__ void corr_krnl(T *odata, T *idata, int N) {
 }
 
 template <class T>
-int correl(T *d_odata, T *d_idata, int N, carma_device *device) {
-  int nBlocks, nThreads;
-  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
-  dim3 grid(nBlocks), threads(nThreads);
+int correl(T *d_odata, T *d_idata, int N, CarmaDevice *device) {
+  int nb_blocks, nb_threads;
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
   corr_krnl<<<grid, threads>>>(d_odata, d_idata, N);
 
-  carmaCheckMsg("corr_kernel<<<>>> execution failed\n");
+  carma_check_msg("corr_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
 template int correl<cuFloatComplex>(cuFloatComplex *d_odata,
                                     cuFloatComplex *d_idata, int N,
-                                    carma_device *device);
+                                    CarmaDevice *device);
 template int correl<cuDoubleComplex>(cuDoubleComplex *d_odata,
                                      cuDoubleComplex *d_idata, int N,
-                                     carma_device *device);
+                                     CarmaDevice *device);
 
 template <class Tcu, class T>
 __global__ void roll2real_krnl(T *odata, Tcu *idata, int n, int Npix, int N) {
@@ -171,25 +171,25 @@ __global__ void roll2real_krnl(T *odata, Tcu *idata, int n, int Npix, int N) {
 
 template <class Tcu, class T>
 int roll2real(T *d_odata, Tcu *d_idata, int n, int Npix, int N,
-              carma_device *device) {
-  int nBlocks, nThreads;
-  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
-  dim3 grid(nBlocks), threads(nThreads);
+              CarmaDevice *device) {
+  int nb_blocks, nb_threads;
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
   roll2real_krnl<<<grid, threads>>>(d_odata, d_idata, n, Npix, N);
 
-  carmaCheckMsg("roll2real_kernel<<<>>> execution failed\n");
+  carma_check_msg("roll2real_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
 template int roll2real<cuFloatComplex, float>(float *d_odata,
                                               cuFloatComplex *d_idata, int n,
                                               int Npix, int N,
-                                              carma_device *device);
+                                              CarmaDevice *device);
 template int roll2real<cuDoubleComplex, double>(double *d_odata,
                                                 cuDoubleComplex *d_idata, int n,
                                                 int Npix, int N,
-                                                carma_device *device);
+                                                CarmaDevice *device);
 
 template <class T>
 __global__ void corrnorm_krnl(T *odata, T *idata, int Npix, int N) {
@@ -207,21 +207,21 @@ __global__ void corrnorm_krnl(T *odata, T *idata, int Npix, int N) {
 }
 
 template <class T>
-int corr_norm(T *d_odata, T *d_idata, int Npix, int N, carma_device *device) {
-  int nBlocks, nThreads;
-  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
-  dim3 grid(nBlocks), threads(nThreads);
+int corr_norm(T *d_odata, T *d_idata, int Npix, int N, CarmaDevice *device) {
+  int nb_blocks, nb_threads;
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
   corrnorm_krnl<<<grid, threads>>>(d_odata, d_idata, Npix, N);
 
-  carmaCheckMsg("corrnorm_kernel<<<>>> execution failed\n");
+  carma_check_msg("corrnorm_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
 template int corr_norm<float>(float *d_odata, float *d_idata, int Npix, int N,
-                              carma_device *device);
+                              CarmaDevice *device);
 template int corr_norm<double>(double *d_odata, double *d_idata, int Npix,
-                               int N, carma_device *device);
+                               int N, CarmaDevice *device);
 
 template <class T>
 __device__ inline void sortmaxi_krnl(T *sdata, unsigned int *values, int size,
@@ -309,7 +309,7 @@ void subap_sortmaxi(int threads, int blocks, T *d_idata, int *values, int nmax,
   sortmaxi<T><<<dimGrid, dimBlock, smemSize>>>(d_idata, values, nmax, offx,
                                                offy, npix, Npix, Npix * Npix);
 
-  carmaCheckMsg("sortmaxi_kernel<<<>>> execution failed\n");
+  carma_check_msg("sortmaxi_kernel<<<>>> execution failed\n");
 }
 template void subap_sortmaxi<float>(int threads, int blocks, float *d_idata,
                                     int *values, int nmax, int offx, int offy,
@@ -418,7 +418,7 @@ void subap_pinterp(int threads, int blocks, T *d_idata, int *values,
       d_idata, d_centroids, values, d_matinterp, sizex, sizey, nvalid, Npix,
       Npix * Npix, scale, offset);
 
-  carmaCheckMsg("sortmaxi_kernel<<<>>> execution failed\n");
+  carma_check_msg("sortmaxi_kernel<<<>>> execution failed\n");
 }
 
 template void subap_pinterp<float>(int threads, int blocks, float *d_idata,

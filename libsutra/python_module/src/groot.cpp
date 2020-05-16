@@ -32,9 +32,9 @@
 
 //! \file      groot.cpp
 //! \ingroup   libsutra
-//! \brief     this file provides pybind wrapper for sutra_groot
+//! \brief     this file provides pybind wrapper for SutraGroot
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -45,35 +45,35 @@
 namespace py = pybind11;
 typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;
 
-std::unique_ptr<sutra_groot> groot_init(carma_context &context, int device,
+std::unique_ptr<SutraGroot> groot_init(CarmaContext &context, int device,
                                         int nactus, int nlayers, float gsangle,
                                         float *vdt, float *Htheta, float *L0,
                                         float *winddir, float *scale,
                                         float *pzt2tt, float *TTPfilter,
                                         float *Nact, float *xpos, float *ypos,
                                         float fc) {
-  return std::unique_ptr<sutra_groot>(new sutra_groot(
+  return std::unique_ptr<SutraGroot>(new SutraGroot(
       &context, device, nactus, nlayers, gsangle, vdt, Htheta, L0, winddir,
       scale, pzt2tt, TTPfilter, Nact, xpos, ypos, fc));
 };
 
-std::unique_ptr<sutra_groot> groot_init_alias(carma_context &context,
+std::unique_ptr<SutraGroot> groot_init_alias(CarmaContext &context,
                                               int device, int nssp,
                                               float *weights, float scale,
                                               float *xpos, float *ypos,
                                               float fc, float d, int npts) {
-  return std::unique_ptr<sutra_groot>(new sutra_groot(
+  return std::unique_ptr<SutraGroot>(new SutraGroot(
       &context, device, nssp, weights, scale, xpos, ypos, fc, d, npts));
 };
 
 void declare_groot(py::module &mod) {
-  py::class_<sutra_groot>(mod, "Groot")
+  py::class_<SutraGroot>(mod, "Groot")
       .def(py::init(wy::colCast(groot_init)), R"pbdoc(
           Initializes Groot to compute aniso and bandwidth model
 
           Parameters
           ------------
-          context: (carma_context): context
+          context: (CarmaContext): context
           device: (int): context active device
           nssp : (str) :
           nlayers:
@@ -101,7 +101,7 @@ void declare_groot(py::module &mod) {
 
           Parameters
           ------------
-          context: (carma_context): context
+          context: (CarmaContext): context
           device: (int): context active device
           nssp : (str) :
           weights:
@@ -124,78 +124,78 @@ void declare_groot(py::module &mod) {
       //
 
       .def_property_readonly(
-          "device", [](sutra_groot &sg) { return sg.device; }, "GPU device")
+          "device", [](SutraGroot &sg) { return sg.device; }, "GPU device")
 
       .def_property_readonly(
-          "nactus", [](sutra_groot &sg) { return sg.nactus; },
+          "nactus", [](SutraGroot &sg) { return sg.nactus; },
           "Number of actuators")
 
       .def_property_readonly(
-          "nssp", [](sutra_groot &sg) { return sg.nssp; }, "number of subap")
+          "nssp", [](SutraGroot &sg) { return sg.nssp; }, "number of subap")
 
       .def_property_readonly(
-          "nlayers", [](sutra_groot &sg) { return sg.nlayers; },
+          "nlayers", [](SutraGroot &sg) { return sg.nlayers; },
           "number of turbulent layers")
 
       .def_property_readonly(
-          "npts", [](sutra_groot &sg) { return sg.npts; },
+          "npts", [](SutraGroot &sg) { return sg.npts; },
           "number of samples for aliasig computation")
 
       .def_property_readonly(
-          "gsangle", [](sutra_groot &sg) { return sg.gsangle; },
+          "gsangle", [](SutraGroot &sg) { return sg.gsangle; },
           "Guide star angle [rad]")
 
       .def_property_readonly(
-          "fc", [](sutra_groot &sg) { return sg.fc; },
+          "fc", [](SutraGroot &sg) { return sg.fc; },
           "DM cut-off frequency [m]")
 
       .def_property_readonly(
-          "d", [](sutra_groot &sg) { return sg.d; }, "DM pitch")
+          "d", [](SutraGroot &sg) { return sg.d; }, "DM pitch")
 
       .def_property_readonly(
-          "d_Cerr", [](sutra_groot &sg) { return sg.d_Cerr; },
+          "d_Cerr", [](SutraGroot &sg) { return sg.d_Cerr; },
           "Model of aniso and bandwidth covariance error matrix")
 
       .def_property_readonly(
-          "d_CaXX", [](sutra_groot &sg) { return sg.d_CaXX; },
+          "d_CaXX", [](SutraGroot &sg) { return sg.d_CaXX; },
           "XX component of the aliasing model")
 
       .def_property_readonly(
-          "d_CaYY", [](sutra_groot &sg) { return sg.d_CaYY; },
+          "d_CaYY", [](SutraGroot &sg) { return sg.d_CaYY; },
           "YY component of the aliasing model")
 
       .def_property_readonly(
-          "d_TT", [](sutra_groot &sg) { return sg.d_TT; }, "tip-tilt IF matrix")
+          "d_TT", [](SutraGroot &sg) { return sg.d_TT; }, "tip-tilt IF matrix")
 
       .def_property_readonly(
-          "scale", [](sutra_groot &sg) { return sg.scale; }, "Scale factor")
+          "scale", [](SutraGroot &sg) { return sg.scale; }, "Scale factor")
 
       .def_property_readonly(
-          "d_TTPfilter", [](sutra_groot &sg) { return sg.d_TTPfilter; },
+          "d_TTPfilter", [](SutraGroot &sg) { return sg.d_TTPfilter; },
           "Tip-tilt and piston filter matrix (= Btt.dot(P))")
 
       .def_property_readonly(
-          "d_pzt2tt", [](sutra_groot &sg) { return sg.d_pzt2tt; },
+          "d_pzt2tt", [](SutraGroot &sg) { return sg.d_pzt2tt; },
           "pzt to TT matrix")
 
       .def_property_readonly(
-          "d_Nact", [](sutra_groot &sg) { return sg.d_Nact; },
+          "d_Nact", [](SutraGroot &sg) { return sg.d_Nact; },
           "Coupling matrix")
 
       .def_property_readonly(
-          "d_xpos", [](sutra_groot &sg) { return sg.d_xpos; },
+          "d_xpos", [](SutraGroot &sg) { return sg.d_xpos; },
           "X-positions of DM actuators or ssp [m]")
 
       .def_property_readonly(
-          "d_ypos", [](sutra_groot &sg) { return sg.d_ypos; },
+          "d_ypos", [](SutraGroot &sg) { return sg.d_ypos; },
           "Y-positions of DM actuators or ssp [m]")
 
       .def_property_readonly(
-          "d_tab_int_x", [](sutra_groot &sg) { return sg.d_tab_int_x; },
+          "d_tab_int_x", [](SutraGroot &sg) { return sg.d_tab_int_x; },
           "Tabulated integral")
 
       .def_property_readonly(
-          "d_tab_int_y", [](sutra_groot &sg) { return sg.d_tab_int_y; },
+          "d_tab_int_y", [](SutraGroot &sg) { return sg.d_tab_int_y; },
           "Tabulated integral")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
@@ -204,9 +204,9 @@ void declare_groot(py::module &mod) {
       //  ██║╚██╔╝██║██╔══╝     ██║   ██╔══██║██║   ██║██║  ██║╚════██║
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
-      .def("compute_Cerr", wy::colCast(&sutra_groot::compute_Cerr),
+      .def("compute_Cerr", wy::colCast(&SutraGroot::compute_Cerr),
            "Computes the aniso and bandwidth error covariance matrix")
 
-      .def("compute_Calias", wy::colCast(&sutra_groot::compute_Calias),
+      .def("compute_Calias", wy::colCast(&SutraGroot::compute_Calias),
            "Computes the aliasing error covariance matrix");
 };

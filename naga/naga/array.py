@@ -1,7 +1,7 @@
 ## @package   naga.array
 ## @brief     Documentation for naga
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   4.4.1
+## @version   5.0.0
 ## @date      2011/01/28
 ## @copyright GNU Lesser General Public License
 #
@@ -163,7 +163,7 @@ class Array():
 
     def copy(self):
         tmp = Array(shape=self.shape, dtype=self.dtype)
-        tmp.data.copyFrom(self.data)
+        tmp.data.copy_from(self.data)
         return tmp
 
     def dot(self, idata):

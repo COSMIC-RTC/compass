@@ -34,7 +34,7 @@
 //! \ingroup   libcarma
 //! \brief     this file provides fft convolution CUDA kernels
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -86,11 +86,11 @@ __global__ void unpad_krnl(float *odata, float *idata, int fftW, int dataW,
 int fftconv_unpad(float *d_odata, float *d_idata, int fftW, int dataH,
                   int dataW, int N, int n, int nim) {
   dim3 threads(16, 8, 8);
-  dim3 grid(iDivUp(dataW, threads.x), iDivUp(dataH, threads.y),
-            iDivUp(nim, threads.z));
+  dim3 grid(i_div_up(dataW, threads.x), i_div_up(dataH, threads.y),
+            i_div_up(nim, threads.z));
 
   unpad_krnl<<<grid, threads>>>(d_odata, d_idata, fftW, dataW, N, n, nim);
-  carmaCheckMsg("unpad_kernel<<<>>> execution failed\n");
+  carma_check_msg("unpad_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }

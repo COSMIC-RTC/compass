@@ -32,49 +32,49 @@
 
 //! \file      sutra_telemetry.cpp
 //! \ingroup   libsutra
-//! \class     sutra_telemetry
+//! \class     SutraTelemetry
 //! \brief     this class provides the telemetry features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
 #include <sutra_telemetry.h>
 
-sutra_telemetry::sutra_telemetry() { streams = new carma_streams(); }
+SutraTelemetry::SutraTelemetry() { streams = new CarmaStreams(); }
 
-sutra_telemetry::sutra_telemetry(type_telemetry_pair obj,
-                                 carma_host_obj<float> *host_obj,
-                                 unsigned int nbStreams) {
+SutraTelemetry::SutraTelemetry(type_telemetry_pair obj,
+                                 CarmaHostObj<float> *host_obj,
+                                 unsigned int nb_streams) {
   add_obj(obj, host_obj);
-  streams = new carma_streams(nbStreams);
-  // carmaSafeCall(cudaEventCreateWithFlags(&(this->start_event),
-  // cudaDeviceBlockingSync)); carmaSafeCall(
+  streams = new CarmaStreams(nb_streams);
+  // carma_safe_call(cudaEventCreateWithFlags(&(this->start_event),
+  // cudaDeviceBlockingSync)); carma_safe_call(
   // cudaEventCreateWithFlags(&(this->stop_event), cudaDeviceBlockingSync));
   // cudaEventDefault
 }
 
-sutra_telemetry::sutra_telemetry(std::string type_obj, int num_obj,
-                                 carma_host_obj<float> *host_obj,
-                                 unsigned int nbStreams) {
+SutraTelemetry::SutraTelemetry(std::string type_obj, int num_obj,
+                                 CarmaHostObj<float> *host_obj,
+                                 unsigned int nb_streams) {
   add_obj(type_obj, num_obj, host_obj);
-  streams = new carma_streams(nbStreams);
-  // carmaSafeCall(cudaEventCreateWithFlags(&(this->start_event),
-  // cudaDeviceBlockingSync)); carmaSafeCall(
+  streams = new CarmaStreams(nb_streams);
+  // carma_safe_call(cudaEventCreateWithFlags(&(this->start_event),
+  // cudaDeviceBlockingSync)); carma_safe_call(
   // cudaEventCreateWithFlags(&(this->stop_event), cudaDeviceBlockingSync));
   // cudaEventDefault
 }
 
 /*
- sutra_telemetry::sutra_telemetry(const sutra_telemetry& src_sutra_telemetry)
+ SutraTelemetry::SutraTelemetry(const SutraTelemetry& src_sutra_telemetry)
  {
- int nbStreams=src_sutra_telemetry.get_nbStreams();
- sutra_telemetry(nbStreams);
+ int nb_streams=src_sutra_telemetry.get_nb_streams();
+ SutraTelemetry(nb_streams);
  }
  */
 
-sutra_telemetry::~sutra_telemetry() {
-  for (std::map<type_telemetry_pair, carma_host_obj<float> *>::iterator it =
+SutraTelemetry::~SutraTelemetry() {
+  for (std::map<type_telemetry_pair, CarmaHostObj<float> *>::iterator it =
            objs.begin();
        objs.end() != it; it++) {
     delete it->second;
@@ -86,101 +86,101 @@ sutra_telemetry::~sutra_telemetry() {
   // cudaEventDestroy(this->stop_event);
 }
 
-int sutra_telemetry::get_nbObjs() { return this->objs.size(); }
+int SutraTelemetry::get_nbObjs() { return this->objs.size(); }
 
-int sutra_telemetry::get_nbStreams() { return this->streams->get_nbStreams(); }
+int SutraTelemetry::get_nb_streams() { return this->streams->get_nb_streams(); }
 
-int sutra_telemetry::add_stream() {
+int SutraTelemetry::add_stream() {
   this->streams->add_stream();
-  return this->streams->get_nbStreams();
+  return this->streams->get_nb_streams();
 }
 
-int sutra_telemetry::add_stream(int nb) {
+int SutraTelemetry::add_stream(int nb) {
   this->streams->add_stream(nb);
-  return this->streams->get_nbStreams();
+  return this->streams->get_nb_streams();
 }
 
-int sutra_telemetry::del_stream() {
+int SutraTelemetry::del_stream() {
   this->streams->del_stream();
-  return this->streams->get_nbStreams();
+  return this->streams->get_nb_streams();
 }
 
-int sutra_telemetry::del_stream(int nb) {
+int SutraTelemetry::del_stream(int nb) {
   this->streams->del_stream(nb);
-  return this->streams->get_nbStreams();
+  return this->streams->get_nb_streams();
 }
 
-int sutra_telemetry::del_all_streams() {
+int SutraTelemetry::del_all_streams() {
   this->streams->del_all_streams();
-  return this->streams->get_nbStreams();
+  return this->streams->get_nb_streams();
 }
 
-int sutra_telemetry::add_obj(type_telemetry_pair obj,
-                             carma_host_obj<float> *host_obj) {
+int SutraTelemetry::add_obj(type_telemetry_pair obj,
+                             CarmaHostObj<float> *host_obj) {
   this->objs[obj] = host_obj;
   return get_nbObjs();
 }
 
-int sutra_telemetry::add_obj(std::string type_obj, int num_obj,
-                             carma_host_obj<float> *host_obj) {
+int SutraTelemetry::add_obj(std::string type_obj, int num_obj,
+                             CarmaHostObj<float> *host_obj) {
   this->objs[make_pair(type_obj, num_obj)] = host_obj;
   return get_nbObjs();
 }
 
-int sutra_telemetry::del_obj(type_telemetry_pair obj) {
+int SutraTelemetry::del_obj(type_telemetry_pair obj) {
   delete this->objs[obj];
   this->objs.erase(obj);
   return get_nbObjs();
 }
 
-int sutra_telemetry::del_obj(std::string type_obj, int num_obj) {
+int SutraTelemetry::del_obj(std::string type_obj, int num_obj) {
   delete this->objs[make_pair(type_obj, num_obj)];
   this->objs.erase(make_pair(type_obj, num_obj));
   return get_nbObjs();
 }
 
-carma_host_obj<float> *sutra_telemetry::get_carma_host_obj(
+CarmaHostObj<float> *SutraTelemetry::get_CarmaHostObj(
     type_telemetry_pair obj) {
   return this->objs[obj];
 }
 
-carma_host_obj<float> *sutra_telemetry::get_carma_host_obj(std::string type_obj,
+CarmaHostObj<float> *SutraTelemetry::get_CarmaHostObj(std::string type_obj,
                                                            int num_obj) {
   return this->objs[make_pair(type_obj, num_obj)];
 }
 
-int sutra_telemetry::cpy_obj(std::string type_obj, int num_obj,
-                             carma_obj<float> *d_obj, cudaMemcpyKind flag) {
+int SutraTelemetry::cpy_obj(std::string type_obj, int num_obj,
+                             CarmaObj<float> *d_obj, cudaMemcpyKind flag) {
   this->objs[make_pair(type_obj, num_obj)]->cpy_obj(d_obj, flag);
   return EXIT_SUCCESS;
 }
 
 /**< Memory transfer */
-int sutra_telemetry::fill_from(std::string type_obj, int num_obj, float *data) {
+int SutraTelemetry::fill_from(std::string type_obj, int num_obj, float *data) {
   this->objs[make_pair(type_obj, num_obj)]->fill_from(data);
   return EXIT_SUCCESS;
 }
 
-int sutra_telemetry::fill_into(std::string type_obj, int num_obj, float *data) {
+int SutraTelemetry::fill_into(std::string type_obj, int num_obj, float *data) {
   this->objs[make_pair(type_obj, num_obj)]->fill_into(data);
   return EXIT_SUCCESS;
 }
 
-int sutra_telemetry::wait_obj(std::string type_obj, int num_obj) {
+int SutraTelemetry::wait_obj(std::string type_obj, int num_obj) {
   this->objs[make_pair(type_obj, num_obj)]->wait_all_streams();
   return EXIT_SUCCESS;
 }
 
-cudaStream_t sutra_telemetry::get_cudaStream_t(int stream) {
+cudaStream_t SutraTelemetry::get_cuda_stream(int stream) {
   return this->streams->get_stream(stream);
 }
 
-int sutra_telemetry::wait_stream(int stream) {
+int SutraTelemetry::wait_stream(int stream) {
   this->streams->wait_stream(stream);
   return EXIT_SUCCESS;
 }
 
-int sutra_telemetry::wait_all_streams() {
+int SutraTelemetry::wait_all_streams() {
   this->streams->wait_all_streams();
   return EXIT_SUCCESS;
 }

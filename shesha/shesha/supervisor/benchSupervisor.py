@@ -1,7 +1,7 @@
 ## @package   shesha.supervisor.benchSupervisor
 ## @brief     Initialization and execution of a Bench supervisor
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   4.4.1
+## @version   5.0.0
 ## @date      2011/01/28
 ## @copyright GNU Lesser General Public License
 #
@@ -84,7 +84,7 @@ class BenchSupervisor(AoSupervisor):
     # |_|  |_|\___|\__|_| |_|\___/ \__,_|___/
 
     def single_next(self) -> None:
-        """ Performs a single loop iteration        
+        """ Performs a single loop iteration
         """
         self.load_new_wfs_frame()
         if (self.pause_loop is not True):
@@ -155,7 +155,7 @@ class BenchSupervisor(AoSupervisor):
                                               self.frame[i].shape[1])
         else:
             self.rtc.d_centro[centro_index].load_img(self.frame, self.frame.shape[0],
-                                               self.frame.shape[1])
+                                                     self.frame.shape[1])
 
     def compute_wfs_frame(self):
         """ Compute the WFS frame: calibrate, centroid, commands.
@@ -169,7 +169,7 @@ class BenchSupervisor(AoSupervisor):
         self.rtc.comp_voltage(0)
 
     def set_one_actu(self, nctrl: int, nactu: int, ampli: float = 1,
-                   reset: bool = True) -> None:
+                     reset: bool = True) -> None:
         """ Push the selected actuator
 
         Parameters:
@@ -259,10 +259,11 @@ class BenchSupervisor(AoSupervisor):
         print("Configuration of", self.number_of_wfs, "wfs ...")
 
         if (hasattr(self.config, 'p_loop') and self.config.p_loop.devices.size > 1):
-            self.context = carmaWrap_context.get_instance_ngpu(self.config.p_loop.devices.size,
-                                                         self.config.p_loop.devices)
+            self.context = carmaWrap_context.get_instance_ngpu(
+                    self.config.p_loop.devices.size, self.config.p_loop.devices)
         else:
-            self.context = carmaWrap_context.get_instance_1gpu(self.config.p_loop.devices[0])
+            self.context = carmaWrap_context.get_instance_1gpu(
+                    self.config.p_loop.devices[0])
         nact = self.config.p_controllers[0].nactu
         self._nvalid = []
         self._centroider_type = []
@@ -319,7 +320,7 @@ class BenchSupervisor(AoSupervisor):
                 raise ValueError('WFS type not supported')
 
         # Create RTC
-        self.rtc = rtc_standalone(self.context,  self.number_of_wfs, self._nvalid, nact,
+        self.rtc = rtc_standalone(self.context, self.number_of_wfs, self._nvalid, nact,
                                   self._centroider_type, self._delay, self._offset,
                                   self._scale, brahma=self.brahma, cacao=self.cacao)
 
@@ -346,11 +347,12 @@ class BenchSupervisor(AoSupervisor):
         self.rtc.d_control[0].set_decayFactor(
                 np.ones(nact, dtype=np.float32) * (self._gain[0] - 1))
         self.rtc.d_control[0].set_matE(np.identity(nact, dtype=np.float32))
-        self.rtc.d_control[0].set_modal_gains(np.ones(nact, dtype=np.float32) * -self._gain[0])
+        self.rtc.d_control[0].set_modal_gains(
+                np.ones(nact, dtype=np.float32) * -self._gain[0])
         self.is_init = True
         print("RTC initialized")
 
-    def adaptiveWindows(self, init_config=False, centro_index : int=0):
+    def adaptiveWindows(self, init_config=False, centro_index: int = 0):
         """ Re-centre the centroiding boxes around the spots, and loads
         the new box coordinates in the slopes computation supervisor
         pipeline.
@@ -364,7 +366,8 @@ class BenchSupervisor(AoSupervisor):
             # reset de la configuration initiale
             ij_subap = self.config.p_wfss[centro_index].get_validsub()
             nsubap = ij_subap.shape[1]
-            self.rtc.d_centro[centro_index].load_validpos(ij_subap[0], ij_subap[1], nsubap)
+            self.rtc.d_centro[centro_index].load_validpos(ij_subap[0], ij_subap[1],
+                                                          nsubap)
         else:
             # acquire slopes first
             nslopes = 10
@@ -372,8 +375,8 @@ class BenchSupervisor(AoSupervisor):
             for i in range(nslopes):
                 self.load_new_wfs_frame()  # sinon toutes les slopes sont les memes
                 self.compute_wfs_frame()
-                s = s + self.get_slopes()[self.slopes_index[centro_index]:self.slopes_index[centro_index +
-                                                                              1]]
+                s = s + self.get_slopes()[self.slopes_index[centro_index]:self.
+                                          slopes_index[centro_index + 1]]
             s /= nslopes
             # get coordinates of valid sub-apertures
             #ij_subap = self.config.p_wfss[centro_index].get_validsub()
@@ -387,9 +390,10 @@ class BenchSupervisor(AoSupervisor):
             new_i_subap = (i_subap + s[0, :].round()).astype(int)
             new_j_subap = (j_subap + s[1, :].round()).astype(int)
             # load the new positions of boxes
-            self.rtc.d_centro[centro_index].load_validpos(new_i_subap, new_j_subap, nsubap)
+            self.rtc.d_centro[centro_index].load_validpos(new_i_subap, new_j_subap,
+                                                          nsubap)
 
-    def getCurrentWindowsPos(self, centro_index : int=0):
+    def getCurrentWindowsPos(self, centro_index: int = 0):
         """ Returns the currently used subapertures positions
 
         Parameters:

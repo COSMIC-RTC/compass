@@ -32,10 +32,10 @@
 
 //! \file      sutra_lgs.h
 //! \ingroup   libsutra
-//! \class     sutra_lgs
+//! \class     SutraLGS
 //! \brief     this class provides the lgs features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -50,7 +50,7 @@ using std::map;
 using std::pair;
 using std::vector;
 
-class sutra_lgs {
+class SutraLGS {
  public:
   int device;
   long nvalid;
@@ -63,53 +63,53 @@ class sutra_lgs {
   long nprof;
 
   cufftHandle *ftlgskern_plan;
-  carma_obj<float> *d_doffaxis;
-  carma_obj<float> *d_azimuth;
-  carma_obj<float> *d_prof1d;
-  carma_obj<float> *d_profcum;
-  carma_obj<cuFloatComplex> *d_prof2d;
-  carma_obj<float> *d_beam;
-  carma_obj<cuFloatComplex> *d_ftbeam;
-  carma_obj<float> *d_lgskern;
-  carma_obj<cuFloatComplex> *d_ftlgskern;
+  CarmaObj<float> *d_doffaxis;
+  CarmaObj<float> *d_azimuth;
+  CarmaObj<float> *d_prof1d;
+  CarmaObj<float> *d_profcum;
+  CarmaObj<cuFloatComplex> *d_prof2d;
+  CarmaObj<float> *d_beam;
+  CarmaObj<cuFloatComplex> *d_ftbeam;
+  CarmaObj<float> *d_lgskern;
+  CarmaObj<cuFloatComplex> *d_ftlgskern;
 
-  carma_context *current_context;
+  CarmaContext *current_context;
   /*
    cudaArray                *d_spotarray;
-   cudaChannelFormatDesc    channelDesc;
+   cudaChannelFormatDesc    channel_desc;
    cudaMemcpy3DParms        copyParams;
    */
 
  public:
-  sutra_lgs(carma_context *context, carma_obj<float> *d_lgskern,
-            carma_obj<cuFloatComplex> *d_ftlgskern,
+  SutraLGS(CarmaContext *context, CarmaObj<float> *d_lgskern,
+            CarmaObj<cuFloatComplex> *d_ftlgskern,
             map<vector<int>, cufftHandle *> ftlgskern_plans, long nvalid,
             long npix, long nmaxhr);
-  ~sutra_lgs();
+  ~SutraLGS();
 
   int lgs_init(int nprof, float hg, float h0, float deltah, float pixsie,
                float *doffaxis, float *prof1d, float *profcum, float *beam,
                cuFloatComplex *ftbeam, float *azimuth);
   int load_prof(float *prof1d, float *profcum, float hg, float h0,
                 float deltah);
-  int lgs_update(carma_device *device);
-  int lgs_makespot(carma_device *device, int nin);
-  int load_kernels(float *h_lgskern, carma_device *device);
+  int lgs_update(CarmaDevice *device);
+  int lgs_makespot(CarmaDevice *device, int nin);
+  int load_kernels(float *h_lgskern, CarmaDevice *device);
 };
 
 // General utilities
 int interp_prof(cuFloatComplex *profout, float *prof1d, float *profcum,
                 int npix, float *doffaxis, float hg, float pixsize, float h0,
-                float deltah, int hmax, int Ntot, carma_device *device);
+                float deltah, int hmax, int Ntot, CarmaDevice *device);
 int times_ftbeam(cuFloatComplex *profout, cuFloatComplex *fbeam, int N,
-                 int Ntot, carma_device *device);
-int rollbeamexp(float *imout, cuFloatComplex *iprof, float *beam, int N,
-                int Ntot, carma_device *device);
+                 int Ntot, CarmaDevice *device);
+int roll_beam_exp(float *imout, cuFloatComplex *iprof, float *beam, int N,
+                int Ntot, CarmaDevice *device);
 int lgs_rotate(cuFloatComplex *odata, float *idata, int width, int height,
-               float *theta, float center, int Ntot, carma_device *device);
+               float *theta, float center, int Ntot, CarmaDevice *device);
 int rotate3d(cuFloatComplex *d_odata, cudaMemcpy3DParms copyParams,
-             cudaArray *d_array, cudaChannelFormatDesc channelDesc, int width,
+             cudaArray *d_array, cudaChannelFormatDesc channel_desc, int width,
              int height, float *theta, float center, int Ntot,
-             carma_device *device);
+             CarmaDevice *device);
 
 #endif  // _SUTRA_LGS_H_

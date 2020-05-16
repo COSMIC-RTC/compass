@@ -32,10 +32,10 @@
 
 //! \file      sutra_centroider_corr.h
 //! \ingroup   libsutra
-//! \class     sutra_centroider_corr
+//! \class     SutraCentroiderCorr
 //! \brief     this class provides the centroider_corr features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -46,23 +46,23 @@
 #include <sutra_centroider.h>
 
 template <class Tin, class T>
-class sutra_centroider_corr : public sutra_centroider<Tin, T> {
+class SutraCentroiderCorr : public SutraCentroider<Tin, T> {
  public:
   int npix;
   int interp_sizex;
   int interp_sizey;
-  carma_obj<cuFloatComplex> *d_corrfnct;
-  carma_obj<cuFloatComplex> *d_corrspot;
-  carma_obj<T> *d_corrnorm;
-  carma_obj<int> *d_corrmax;
-  carma_obj<T> *d_corr;
-  carma_obj<T> *d_interpmat;
+  CarmaObj<cuFloatComplex> *d_corrfnct;
+  CarmaObj<cuFloatComplex> *d_corrspot;
+  CarmaObj<T> *d_corrnorm;
+  CarmaObj<int> *d_corrmax;
+  CarmaObj<T> *d_corr;
+  CarmaObj<T> *d_interpmat;
 
  public:
-  sutra_centroider_corr(carma_context *context, sutra_wfs *wfs, long nvalid,
+  SutraCentroiderCorr(CarmaContext *context, SutraWfs *wfs, long nvalid,
                         float offset, float scale, bool filter_TT, int device);
-  sutra_centroider_corr(const sutra_centroider_corr &centroider);
-  ~sutra_centroider_corr();
+  SutraCentroiderCorr(const SutraCentroiderCorr &centroider);
+  ~SutraCentroiderCorr();
 
   string get_type();
   int fill_bincube(T *img);
@@ -88,16 +88,16 @@ void subap_pinterp(int threads, int blocks, T *d_idata, int *values,
 
 template <class Tcu, class T>
 int fillcorr(Tcu *d_out, T *d_in, int npix_in, int npix_out, int N, int nvalid,
-             carma_device *device);
+             CarmaDevice *device);
 
 template <class T>
-int correl(T *d_odata, T *d_idata, int N, carma_device *device);
+int correl(T *d_odata, T *d_idata, int N, CarmaDevice *device);
 
 template <class Tcu, class T>
 int roll2real(T *d_odata, Tcu *d_idata, int n, int Npix, int N,
-              carma_device *device);
+              CarmaDevice *device);
 
 template <class T>
-int corr_norm(T *d_odata, T *d_idata, int Npix, int N, carma_device *device);
+int corr_norm(T *d_odata, T *d_idata, int Npix, int N, CarmaDevice *device);
 
 #endif  // _SUTRA_CENTROIDER_CORR_H_

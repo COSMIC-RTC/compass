@@ -1,7 +1,7 @@
 ## @package   shesha.sim.simulator
 ## @brief     Simulator class definition must be instantiated for running a COMPASS simulation script easily
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   4.4.1
+## @version   5.0.0
 ## @date      2011/01/28
 ## @copyright GNU Lesser General Public License
 #
@@ -175,10 +175,11 @@ class Simulator:
                     param_dict)
         # self.context = carmaWrap_context(devices=self.config.p_loop.devices)
         if (self.config.p_loop.devices.size > 1):
-            self.context = carmaWrap_context.get_instance_ngpu(self.config.p_loop.devices.size,
-                                                         self.config.p_loop.devices)
+            self.context = carmaWrap_context.get_instance_ngpu(
+                    self.config.p_loop.devices.size, self.config.p_loop.devices)
         else:
-            self.context = carmaWrap_context.get_instance_1gpu(self.config.p_loop.devices[0])
+            self.context = carmaWrap_context.get_instance_1gpu(
+                    self.config.p_loop.devices[0])
         # self.force_context()
 
         if self.config.p_tel is None or self.config.p_geom is None:
@@ -217,8 +218,8 @@ class Simulator:
         """ Initializes the Telescope object in the simulator
         """
         print("->tel")
-        self.tel = tel_init(self.context,  self.config.p_geom, self.config.p_tel, r0, ittime,
-                            self.config.p_wfss)
+        self.tel = tel_init(self.context, self.config.p_geom, self.config.p_tel, r0,
+                            ittime, self.config.p_wfss)
 
     def _atm_init(self, ittime: float) -> None:
         """ Initializes the Atmos object in the simulator
@@ -226,7 +227,7 @@ class Simulator:
         if self.config.p_atmos is not None:
             #   atmos
             print("->atmos")
-            self.atm = atmos_init(self.context,  self.config.p_atmos, self.config.p_tel,
+            self.atm = atmos_init(self.context, self.config.p_atmos, self.config.p_tel,
                                   self.config.p_geom, ittime, p_wfss=self.config.p_wfss,
                                   p_targets=self.config.p_targets,
                                   dataBase=self.matricesToLoad, use_DB=self.use_DB)
@@ -239,7 +240,7 @@ class Simulator:
         if self.config.p_dms is not None:
             #   dm
             print("->dm")
-            self.dms = dm_init(self.context,  self.config.p_dms, self.config.p_tel,
+            self.dms = dm_init(self.context, self.config.p_dms, self.config.p_tel,
                                self.config.p_geom, self.config.p_wfss)
         else:
             self.dms = None
@@ -249,7 +250,7 @@ class Simulator:
         """
         if self.config.p_targets is not None:
             print("->target")
-            self.tar = target_init(self.context,  self.tel, self.config.p_targets,
+            self.tar = target_init(self.context, self.tel, self.config.p_targets,
                                    self.config.p_atmos, self.config.p_tel,
                                    self.config.p_geom, self.config.p_dms, brahma=False)
         else:
@@ -260,8 +261,8 @@ class Simulator:
         """
         if self.config.p_wfss is not None:
             print("->wfs")
-            self.wfs = wfs_init(self.context,  self.tel, self.config.p_wfss, self.config.p_tel,
-                                self.config.p_geom, self.config.p_dms,
+            self.wfs = wfs_init(self.context, self.tel, self.config.p_wfss,
+                                self.config.p_tel, self.config.p_geom, self.config.p_dms,
                                 self.config.p_atmos)
         else:
             self.wfs = None
@@ -272,7 +273,7 @@ class Simulator:
         if self.config.p_controllers is not None or self.config.p_centroiders is not None:
             print("->rtc")
             #   rtc
-            self.rtc = rtc_init(self.context,  self.tel, self.wfs, self.dms, self.atm,
+            self.rtc = rtc_init(self.context, self.tel, self.wfs, self.dms, self.atm,
                                 self.config.p_wfss, self.config.p_tel,
                                 self.config.p_geom, self.config.p_atmos, ittime,
                                 self.config.p_centroiders, self.config.p_controllers,
@@ -467,10 +468,10 @@ class Simulator:
         self._raytrace(gs, layers, rst=rst)
 
     def _raytrace(self, source, layers: list, rst: bool = True):
-        """ Performs the raytracing operation to obtain the phase screen of the given sutra_source
+        """ Performs the raytracing operation to obtain the phase screen of the given SutraSource
 
         Parameters :
-            source : (sutra_source): Source object
+            source : (SutraSource): Source object
 
             layers: (list): list of string containing the layers to raytrace through.
                 Accepted are : "all" -> raytrace through all layers

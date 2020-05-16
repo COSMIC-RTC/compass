@@ -32,10 +32,10 @@
 
 //! \file      sutra_tscreen.cu
 //! \ingroup   libsutra
-//! \class     sutra_tscreen
+//! \class     SutraTurbuScreen
 //! \brief     this class provides the tscreen features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -102,7 +102,7 @@ int gene_vonkarman(cuFloatComplex *d_odata, float *d_idata, float k0,
   vonkarman_krnl<<<blocks, threads, smemSize>>>(d_odata, d_idata, k0, nalias,
                                                 nx, ny, block_size);
 
-  carmaCheckMsg("raytrace_kernel<<<>>> execution failed\n");
+  carma_check_msg("raytrace_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
@@ -130,29 +130,29 @@ __global__ void dphiy_krnl(float *odata, float *idata, int N, int iter,
 }
 
 int norm_pscreen(float *d_odata, float *d_idata, int nx, int ny,
-                 float norm_fact, carma_device *device) {
+                 float norm_fact, CarmaDevice *device) {
   float sfx, sfy, norm = 0;
-  int nthreads = 0, nblocks = 0;
-  getNumBlocksAndThreads(device, nx * ny, nblocks, nthreads);
+  int nb_threads = 0, nb_blocks = 0;
+  get_num_blocks_and_threads(device, nx * ny, nb_blocks, nb_threads);
 
-  dim3 grid(nblocks), threads(nthreads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
   cublasHandle_t cublas_handle;
   cublasCreate(&cublas_handle);
 
   int npts = 5;
   for (int i = 1; i < npts + 1; i++) {
-    carmaSafeCall(cudaMemset(d_odata, 0, sizeof(float) * nx * ny));
+    carma_safe_call(cudaMemset(d_odata, 0, sizeof(float) * nx * ny));
     dphix_krnl<<<grid, threads>>>(d_odata, d_idata, nx * ny, i, nx);
-    carmaCheckMsg("dphix_kernel<<<>>> execution failed\n");
+    carma_check_msg("dphix_kernel<<<>>> execution failed\n");
     // sfx  = cublasSasum(nx*ny,d_odata,1)/((nx-i)*ny);
     // here we can use asum because the initial array is positive (result of a
     // square)
     cublasSasum(cublas_handle, nx * ny, d_odata, 1, &sfx);
 
-    carmaSafeCall(cudaMemset(d_odata, 0, sizeof(float) * nx * ny));
+    carma_safe_call(cudaMemset(d_odata, 0, sizeof(float) * nx * ny));
     dphiy_krnl<<<grid, threads>>>(d_odata, d_idata, nx * ny, i, nx);
-    carmaCheckMsg("dphiy_kernel<<<>>> execution failed\n");
+    carma_check_msg("dphiy_kernel<<<>>> execution failed\n");
     // sfy  = cublasSasum(nx*ny,d_odata,1)/((ny-i)*nx);
     cublasSasum(cublas_handle, nx * ny, d_odata, 1, &sfy);
 
@@ -162,7 +162,7 @@ int norm_pscreen(float *d_odata, float *d_idata, int nx, int ny,
   }
   norm /= npts;
 
-  carmaSafeCall(cudaMemset(d_odata, 0, sizeof(float) * nx * ny));
+  carma_safe_call(cudaMemset(d_odata, 0, sizeof(float) * nx * ny));
   // cublasSaxpy(nx*ny,1.0f/norm*norm_fact, d_idata, 1, d_odata, 1);
   norm = (1.0f / norm) * norm_fact;
   cublasSaxpy(cublas_handle, nx * ny, &norm, d_idata, 1, d_odata, 1);

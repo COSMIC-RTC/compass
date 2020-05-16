@@ -21,80 +21,80 @@
 ////////////////////////////////////////////////////////////////////////////////
 /// Position convolution kernel center at (0, 0) in the image
 ////////////////////////////////////////////////////////////////////////////////
-extern "C" void padKernel(float *d_Dst, float *d_Src, int fftH, int fftW,
+extern "C" void pad_kernel(float *d_Dst, float *d_Src, int fftH, int fftW,
                           int kernelH, int kernelW, int kernelY, int kernelX) {
   assert(d_Src != d_Dst);
   dim3 threads(32, 8);
-  dim3 grid(iDivUp(kernelW, threads.x), iDivUp(kernelH, threads.y));
+  dim3 grid(i_div_up(kernelW, threads.x), i_div_up(kernelH, threads.y));
 
   SET_FLOAT_BASE;
   padKernel_kernel<<<grid, threads>>>(d_Dst, d_Src, fftH, fftW, kernelH,
                                       kernelW, kernelY, kernelX);
-  carmaCheckMsg("padKernel_kernel<<<>>> execution failed\n");
+  carma_check_msg("padKernel_kernel<<<>>> execution failed\n");
 }
 
-extern "C" void padKernel3d(float *d_Dst, float *d_Src, int fftH, int fftW,
+extern "C" void pad_kernel_3d(float *d_Dst, float *d_Src, int fftH, int fftW,
                             int kernelH, int kernelW, int kernelY, int kernelX,
                             int nim) {
   assert(d_Src != d_Dst);
   dim3 threads(16, 8, 8);
-  dim3 grid(iDivUp(kernelW, threads.x), iDivUp(kernelH, threads.y),
-            iDivUp(nim, threads.z));
-  // dim3 grid(iDivUp(kernelW, threads.x), iDivUp(kernelH, threads.y),nim);
+  dim3 grid(i_div_up(kernelW, threads.x), i_div_up(kernelH, threads.y),
+            i_div_up(nim, threads.z));
+  // dim3 grid(i_div_up(kernelW, threads.x), i_div_up(kernelH, threads.y),nim);
 
   SET_FLOAT_BASE;
-  padKernel3d_kernel<<<grid, threads>>>(d_Dst, d_Src, fftH, fftW, kernelH,
+  pad_kernel_3d_kernel<<<grid, threads>>>(d_Dst, d_Src, fftH, fftW, kernelH,
                                         kernelW, kernelY, kernelX, nim);
 
-  carmaCheckMsg("padKernel3d_kernel<<<>>> execution failed\n");
+  carma_check_msg("pad_kernel_3d_kernel<<<>>> execution failed\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Prepare data for "pad to border" addressing mode
 ////////////////////////////////////////////////////////////////////////////////
-extern "C" void padDataClampToBorder(float *d_Dst, float *d_Src, int fftH,
+extern "C" void pad_data_clamp_to_border(float *d_Dst, float *d_Src, int fftH,
                                      int fftW, int dataH, int dataW,
                                      int kernelW, int kernelH, int kernelY,
                                      int kernelX) {
   assert(d_Src != d_Dst);
   dim3 threads(32, 8);
-  dim3 grid(iDivUp(fftW, threads.x), iDivUp(fftH, threads.y));
+  dim3 grid(i_div_up(fftW, threads.x), i_div_up(fftH, threads.y));
 
   SET_FLOAT_BASE;
-  padDataClampToBorder_kernel<<<grid, threads>>>(d_Dst, d_Src, fftH, fftW,
+  pad_data_clamp_to_border_kernel<<<grid, threads>>>(d_Dst, d_Src, fftH, fftW,
                                                  dataH, dataW, kernelH, kernelW,
                                                  kernelY, kernelX);
-  carmaCheckMsg("padDataClampToBorder_kernel<<<>>> execution failed\n");
+  carma_check_msg("pad_data_clamp_to_border_kernel<<<>>> execution failed\n");
 }
 
-extern "C" void padDataClampToBorder3d(float *d_Dst, float *d_Src, int fftH,
+extern "C" void pad_data_clamp_to_border_3d(float *d_Dst, float *d_Src, int fftH,
                                        int fftW, int dataH, int dataW,
                                        int kernelW, int kernelH, int kernelY,
                                        int kernelX, int nim) {
   assert(d_Src != d_Dst);
   dim3 threads(16, 8, 8);
-  dim3 grid(iDivUp(fftW, threads.x), iDivUp(fftH, threads.y),
-            iDivUp(nim, threads.z));
+  dim3 grid(i_div_up(fftW, threads.x), i_div_up(fftH, threads.y),
+            i_div_up(nim, threads.z));
 
   SET_FLOAT_BASE;
-  padDataClampToBorder3d_kernel<<<grid, threads>>>(
+  pad_data_clamp_to_border_3d_kernel<<<grid, threads>>>(
       d_Dst, d_Src, fftH, fftW, dataH, dataW, kernelH, kernelW, kernelY,
       kernelX, nim);
-  carmaCheckMsg("padDataClampToBorder3d_kernel<<<>>> execution failed\n");
+  carma_check_msg("pad_data_clamp_to_border_3d_kernel<<<>>> execution failed\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Modulate Fourier image of padded data by Fourier image of padded kernel
 // and normalize by FFT size
 ////////////////////////////////////////////////////////////////////////////////
-extern "C" void modulateAndNormalize(fComplex *d_Dst, fComplex *d_Src, int fftH,
+extern "C" void modulate_and_normalize(fComplex *d_Dst, fComplex *d_Src, int fftH,
                                      int fftW, int padding, int nim) {
   assert(fftW % 2 == 0);
   const int dataSize = fftH * (fftW / 2 + padding) * nim;
 
-  modulateAndNormalize_kernel<<<iDivUp(dataSize, 256), 256>>>(
+  modulate_and_normalize_kernel<<<i_div_up(dataSize, 256), 256>>>(
       d_Dst, d_Src, dataSize, 1.0f / (float)(fftW * fftH));
-  carmaCheckMsg("modulateAndNormalize() execution failed\n");
+  carma_check_msg("modulate_and_normalize() execution failed\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -103,7 +103,7 @@ extern "C" void modulateAndNormalize(fComplex *d_Dst, fComplex *d_Src, int fftH,
 static const double PI = 3.1415926535897932384626433832795;
 static const uint BLOCKDIM = 256;
 
-extern "C" void spPostprocess2D(void *d_Dst, void *d_Src, uint DY, uint DX,
+extern "C" void sp_postprocess_2d(void *d_Dst, void *d_Src, uint DY, uint DX,
                                 uint padding, int dir) {
   assert(d_Src != d_Dst);
   assert(DX % 2 == 0);
@@ -119,13 +119,13 @@ extern "C" void spPostprocess2D(void *d_Dst, void *d_Src, uint DY, uint DX,
   const double phaseBase = dir * PI / (double)DX;
 
   SET_FCOMPLEX_BASE;
-  spPostprocess2D_kernel<<<iDivUp(threadCount, BLOCKDIM), BLOCKDIM>>>(
+  sp_postprocess_2d_kernel<<<i_div_up(threadCount, BLOCKDIM), BLOCKDIM>>>(
       (fComplex *)d_Dst, (fComplex *)d_Src, DY, DX, threadCount, padding,
       (float)phaseBase);
-  carmaCheckMsg("spPostprocess2D_kernel<<<>>> execution failed\n");
+  carma_check_msg("sp_postprocess_2d_kernel<<<>>> execution failed\n");
 }
 
-extern "C" void spPreprocess2D(void *d_Dst, void *d_Src, uint DY, uint DX,
+extern "C" void sp_preprocess_2d(void *d_Dst, void *d_Src, uint DY, uint DX,
                                uint padding, int dir) {
   assert(d_Src != d_Dst);
   assert(DX % 2 == 0);
@@ -141,16 +141,16 @@ extern "C" void spPreprocess2D(void *d_Dst, void *d_Src, uint DY, uint DX,
   const double phaseBase = -dir * PI / (double)DX;
 
   SET_FCOMPLEX_BASE;
-  spPreprocess2D_kernel<<<iDivUp(threadCount, BLOCKDIM), BLOCKDIM>>>(
+  sp_preprocess_2d_kernel<<<i_div_up(threadCount, BLOCKDIM), BLOCKDIM>>>(
       (fComplex *)d_Dst, (fComplex *)d_Src, DY, DX, threadCount, padding,
       (float)phaseBase);
-  carmaCheckMsg("spPreprocess2D_kernel<<<>>> execution failed\n");
+  carma_check_msg("sp_preprocess_2d_kernel<<<>>> execution failed\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Combined spPostprocess2D + modulateAndNormalize + spPreprocess2D
+// Combined sp_postprocess_2d + modulate_and_normalize + sp_preprocess_2d
 ////////////////////////////////////////////////////////////////////////////////
-extern "C" void spProcess2D(void *d_Dst, void *d_SrcA, void *d_SrcB, uint DY,
+extern "C" void sp_process_2d(void *d_Dst, void *d_SrcA, void *d_SrcB, uint DY,
                             uint DX, int dir) {
   assert(DY % 2 == 0);
 
@@ -166,8 +166,8 @@ extern "C" void spProcess2D(void *d_Dst, void *d_SrcA, void *d_SrcB, uint DY,
 
   SET_FCOMPLEX_BASE_A;
   SET_FCOMPLEX_BASE_B;
-  spProcess2D_kernel<<<iDivUp(threadCount, BLOCKDIM), BLOCKDIM>>>(
+  sp_process_2d_kernel<<<i_div_up(threadCount, BLOCKDIM), BLOCKDIM>>>(
       (fComplex *)d_Dst, (fComplex *)d_SrcA, (fComplex *)d_SrcB, DY, DX,
       threadCount, (float)phaseBase, 0.5f / (float)(DY * DX));
-  carmaCheckMsg("spProcess2D_kernel<<<>>> execution failed\n");
+  carma_check_msg("sp_process_2d_kernel<<<>>> execution failed\n");
 }

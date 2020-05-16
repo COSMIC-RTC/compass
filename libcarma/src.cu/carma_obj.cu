@@ -32,9 +32,9 @@
 
 //! \file      carma_obj.cu
 //! \ingroup   libcarma
-//! \brief     this file provides carma_obj CUDA kernels
+//! \brief     this file provides CarmaObj CUDA kernels
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -77,11 +77,11 @@ __global__ void generic1d(T *odata, T *idata, int N) {
 }
 
 template <class T>
-int launch_generic1d(T *d_odata, T *d_idata, int N, carma_device *device) {
-  int nBlocks, nThreads;
-  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
+int launch_generic1d(T *d_odata, T *d_idata, int N, CarmaDevice *device) {
+  int nb_blocks, nb_threads;
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
 
-  dim3 grid(nBlocks), threads(nThreads);
+  dim3 grid(nb_blocks), threads(nb_threads);
   //  dim3 grid(128), threads(128);
 
   generic1d<<<grid, threads>>>(d_odata, d_idata, N);
@@ -90,10 +90,10 @@ int launch_generic1d(T *d_odata, T *d_idata, int N, carma_device *device) {
 }
 
 template int launch_generic1d<float>(float *d_odata, float *d_idata, int N,
-                                     carma_device *device);
+                                     CarmaDevice *device);
 
 template int launch_generic1d<double>(double *d_odata, double *d_idata, int N,
-                                      carma_device *device);
+                                      CarmaDevice *device);
 
 template <class T>
 __global__ void generic2d(T *odata, T *idata, int N) {
@@ -138,47 +138,47 @@ __global__ void krnl_clip(T_data *data, T_data min, T_data max, int N) {
 
 template <class T_data>
 void clip_array(T_data *d_data, T_data min, T_data max, int N,
-                carma_device *device) {
-  int nBlocks, nThreads;
-  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
+                CarmaDevice *device) {
+  int nb_blocks, nb_threads;
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
 
-  dim3 grid(nBlocks), threads(nThreads);
+  dim3 grid(nb_blocks), threads(nb_threads);
   //  dim3 grid(128), threads(128);
 
   krnl_clip<<<grid, threads>>>(d_data, min, max, N);
-  carmaCheckMsg("krnl_clip<<<>>> execution failed\n");
+  carma_check_msg("krnl_clip<<<>>> execution failed\n");
 }
 
 template void clip_array<int>(int *d_data, int min, int max, int N,
-                              carma_device *device);
+                              CarmaDevice *device);
 template void clip_array<unsigned int>(unsigned int *d_data, unsigned int min,
                                        unsigned int max, int N,
-                                       carma_device *device);
+                                       CarmaDevice *device);
 template void clip_array<float>(float *d_data, float min, float max, int N,
-                                carma_device *device);
+                                CarmaDevice *device);
 template void clip_array<uint16_t>(uint16_t *d_data, uint16_t min, uint16_t max,
-                                   int N, carma_device *device);
+                                   int N, CarmaDevice *device);
 
 template void clip_array<double>(double *d_data, double min, double max, int N,
-                                 carma_device *device);
+                                 CarmaDevice *device);
 #ifdef CAN_DO_HALF
 template void clip_array<half>(half *d_data, half min, half max, int N,
-                               carma_device *device);
+                               CarmaDevice *device);
 #endif
 template <>
 void clip_array(cuFloatComplex *d_data, cuFloatComplex min, cuFloatComplex max,
-                int N, carma_device *device) {
+                int N, CarmaDevice *device) {
   throw "not implemented";
 }
 template <>
 void clip_array(cuDoubleComplex *d_data, cuDoubleComplex min,
-                cuDoubleComplex max, int N, carma_device *device) {
+                cuDoubleComplex max, int N, CarmaDevice *device) {
   throw "not implemented";
 }
 // template <>
 // void clip_array(tuple_t<float> *d_data, tuple_t<float> min, tuple_t<float>
 // max,
-//                 int N, carma_device *device) {
+//                 int N, CarmaDevice *device) {
 //   throw "not implemented";
 // }
 
@@ -193,24 +193,24 @@ __global__ void krnl_fillindex(T *odata, T *idata, int *indx, int N) {
 }
 
 template <class T>
-int fillindex(T *d_odata, T *d_idata, int *indx, int N, carma_device *device) {
-  int nBlocks, nThreads;
-  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
+int fillindex(T *d_odata, T *d_idata, int *indx, int N, CarmaDevice *device) {
+  int nb_blocks, nb_threads;
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
 
-  dim3 grid(nBlocks), threads(nThreads);
+  dim3 grid(nb_blocks), threads(nb_threads);
   //  dim3 grid(128), threads(128);
 
   krnl_fillindex<<<grid, threads>>>(d_odata, d_idata, indx, N);
-  carmaCheckMsg("krnl_fillindex<<<>>> execution failed\n");
+  carma_check_msg("krnl_fillindex<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
 
 template int fillindex<float>(float *d_odata, float *d_idata, int *indx, int N,
-                              carma_device *device);
+                              CarmaDevice *device);
 
 template int fillindex<double>(double *d_odata, double *d_idata, int *indx,
-                               int N, carma_device *device);
+                               int N, CarmaDevice *device);
 
 template <class T>
 __global__ void krnl_fillvalues(T *odata, T *val, int N) {
@@ -223,26 +223,26 @@ __global__ void krnl_fillvalues(T *odata, T *val, int N) {
 }
 
 template <class T>
-int fillvalues(T *d_odata, T *val, int N, carma_device *device) {
-  int nBlocks, nThreads;
-  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
-  dim3 grid(nBlocks), threads(nThreads);
+int fillvalues(T *d_odata, T *val, int N, CarmaDevice *device) {
+  int nb_blocks, nb_threads;
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
   //  dim3 grid(128), threads(128);
 
   krnl_fillvalues<<<grid, threads>>>(d_odata, val, N);
-  carmaCheckMsg("krnl_fillvalues<<<>>> execution failed\n");
+  carma_check_msg("krnl_fillvalues<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
 
 template int fillvalues<float>(float *d_odata, float *val, int N,
-                               carma_device *device);
+                               CarmaDevice *device);
 
 template int fillvalues<double>(double *d_odata, double *val, int N,
-                                carma_device *device);
+                                CarmaDevice *device);
 
 template int fillvalues<unsigned int>(unsigned int *d_odata, unsigned int *val,
-                                      int N, carma_device *device);
+                                      int N, CarmaDevice *device);
 
 template <class T>
 __global__ void getarray2d_krnl(T *odata, T *idata, int tidx0, int Ncol, int NC,
@@ -262,24 +262,24 @@ __global__ void getarray2d_krnl(T *odata, T *idata, int tidx0, int Ncol, int NC,
 
 template <class T>
 int getarray2d(T *d_odata, T *d_idata, int x0, int Ncol, int NC, int N,
-               carma_device *device) {
-  int nBlocks, nThreads;
-  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
-  dim3 grid(nBlocks), threads(nThreads);
+               CarmaDevice *device) {
+  int nb_blocks, nb_threads;
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
   //  dim3 grid(128), threads(128);
 
   getarray2d_krnl<<<grid, threads>>>(d_odata, d_idata, x0, Ncol, NC, N);
 
-  carmaCheckMsg("getarray2d_kernel<<<>>> execution failed\n");
+  carma_check_msg("getarray2d_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
 
 template int getarray2d<float>(float *d_odata, float *d_idata, int x0, int Ncol,
-                               int NC, int N, carma_device *device);
+                               int NC, int N, CarmaDevice *device);
 
 template int getarray2d<double>(double *d_odata, double *d_idata, int x0,
-                                int Ncol, int NC, int N, carma_device *device);
+                                int Ncol, int NC, int N, CarmaDevice *device);
 
 template <class T>
 __global__ void fillarray2d_krnl(T *odata, T *idata, int tidx0, int Ncol,
@@ -299,24 +299,24 @@ __global__ void fillarray2d_krnl(T *odata, T *idata, int tidx0, int Ncol,
 
 template <class T>
 int fillarray2d(T *d_odata, T *d_idata, int x0, int Ncol, int NC, int N,
-                carma_device *device) {
-  int nBlocks, nThreads;
-  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
-  dim3 grid(nBlocks), threads(nThreads);
+                CarmaDevice *device) {
+  int nb_blocks, nb_threads;
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
   //  dim3 grid(128), threads(128);
 
   fillarray2d_krnl<<<grid, threads>>>(d_odata, d_idata, x0, Ncol, NC, N);
 
-  carmaCheckMsg("fillarray2d_kernel<<<>>> execution failed\n");
+  carma_check_msg("fillarray2d_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
 
 template int fillarray2d<float>(float *d_odata, float *d_idata, int x0,
-                                int Ncol, int NC, int N, carma_device *device);
+                                int Ncol, int NC, int N, CarmaDevice *device);
 
 template int fillarray2d<double>(double *d_odata, double *d_idata, int x0,
-                                 int Ncol, int NC, int N, carma_device *device);
+                                 int Ncol, int NC, int N, CarmaDevice *device);
 
 template <class T>
 __global__ void plus_krnl(T *idata, T alpha, int N) {
@@ -329,24 +329,24 @@ __global__ void plus_krnl(T *idata, T alpha, int N) {
 }
 
 template <class T>
-int carma_plus(T *d_odata, T alpha, int N, carma_device *device) {
-  int nBlocks, nThreads;
-  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
-  dim3 grid(nBlocks), threads(nThreads);
+int carma_plus(T *d_odata, T alpha, int N, CarmaDevice *device) {
+  int nb_blocks, nb_threads;
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
   //  dim3 grid(128), threads(128);
 
   plus_krnl<<<grid, threads>>>(d_odata, alpha, N);
 
-  carmaCheckMsg("plus_kernel<<<>>> execution failed\n");
+  carma_check_msg("plus_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
 
 template int carma_plus<float>(float *d_odata, float alpha, int N,
-                               carma_device *device);
+                               CarmaDevice *device);
 
 template int carma_plus<double>(double *d_odata, double alpha, int N,
-                                carma_device *device);
+                                CarmaDevice *device);
 
 template <class T>
 __global__ void plusai_krnl(T *odata, T *idata, int i, int sgn, int N) {
@@ -363,24 +363,24 @@ __global__ void plusai_krnl(T *odata, T *idata, int i, int sgn, int N) {
 
 template <class T>
 int carma_plusai(T *d_odata, T *i_data, int i, int sgn, int N,
-                 carma_device *device) {
-  int nBlocks, nThreads;
-  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
-  dim3 grid(nBlocks), threads(nThreads);
+                 CarmaDevice *device) {
+  int nb_blocks, nb_threads;
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
   //  dim3 grid(128), threads(128);
 
   plusai_krnl<<<grid, threads>>>(d_odata, i_data, i, sgn, N);
 
-  carmaCheckMsg("plusai_kernel<<<>>> execution failed\n");
+  carma_check_msg("plusai_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
 
 template int carma_plusai<float>(float *d_odata, float *d_idata, int i, int sgn,
-                                 int N, carma_device *device);
+                                 int N, CarmaDevice *device);
 
 template int carma_plusai<double>(double *d_odata, double *d_idata, int i,
-                                  int sgn, int N, carma_device *device);
+                                  int sgn, int N, CarmaDevice *device);
 
 template <class T>
 __global__ void fillarray2d2_krnl(T *odata, T *idata, int tidx0, int Ncol,
@@ -400,25 +400,25 @@ __global__ void fillarray2d2_krnl(T *odata, T *idata, int tidx0, int Ncol,
 
 template <class T>
 int fillarray2d2(T *d_odata, T *d_idata, int x0, int Ncol, int NC, int N,
-                 carma_device *device) {
-  int nBlocks, nThreads;
-  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
-  dim3 grid(nBlocks), threads(nThreads);
+                 CarmaDevice *device) {
+  int nb_blocks, nb_threads;
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
   //  dim3 grid(128), threads(128);
 
   fillarray2d2_krnl<<<grid, threads>>>(d_odata, d_idata, x0, Ncol, NC, N);
 
-  carmaCheckMsg("fillarray2d_kernel<<<>>> execution failed\n");
+  carma_check_msg("fillarray2d_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
 
 template int fillarray2d2<float>(float *d_odata, float *d_idata, int x0,
-                                 int Ncol, int NC, int N, carma_device *device);
+                                 int Ncol, int NC, int N, CarmaDevice *device);
 
 template int fillarray2d2<double>(double *d_odata, double *d_idata, int x0,
                                   int Ncol, int NC, int N,
-                                  carma_device *device);
+                                  CarmaDevice *device);
 
 template <class T>
 __global__ void kern_fill_sym_matrix(char src_uplo, T *data, int Ncol, int N) {
@@ -442,24 +442,24 @@ __global__ void kern_fill_sym_matrix(char src_uplo, T *data, int Ncol, int N) {
 
 template <class T>
 int fill_sym_matrix(char src_uplo, T *d_data, int Ncol, int N,
-                    carma_device *device) {
-  int nBlocks, nThreads;
-  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
-  dim3 grid(nBlocks), threads(nThreads);
+                    CarmaDevice *device) {
+  int nb_blocks, nb_threads;
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
   //  dim3 grid(128), threads(128);
 
   kern_fill_sym_matrix<<<grid, threads>>>(src_uplo, d_data, Ncol, N);
 
-  carmaCheckMsg("kern_fill_sym_matrix<<<>>> execution failed");
+  carma_check_msg("kern_fill_sym_matrix<<<>>> execution failed");
 
   return EXIT_SUCCESS;
 }
 
 template int fill_sym_matrix<float>(char uplo, float *d_data, int Ncol, int N,
-                                    carma_device *device);
+                                    CarmaDevice *device);
 
 template int fill_sym_matrix<double>(char uplo, double *d_data, int Ncol, int N,
-                                     carma_device *device);
+                                     CarmaDevice *device);
 
 #ifdef CAN_DO_HALF
 __global__ void half_axpy_krnl(half *source, half *dest, half alpha, int incx,
@@ -472,13 +472,13 @@ __global__ void half_axpy_krnl(half *source, half *dest, half alpha, int incx,
 }
 
 int custom_half_axpy(half alpha, half *source, int incx, int incy, int N,
-                     half *dest, carma_device *device) {
-  int nBlocks, nThreads;
-  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
-  dim3 grid(nBlocks), threads(nThreads);
+                     half *dest, CarmaDevice *device) {
+  int nb_blocks, nb_threads;
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
   half_axpy_krnl<<<grid, threads>>>(source, dest, alpha, incx, incy, N);
-  carmaCheckMsg("half_axpy_krnl<<<>>> execution failed");
+  carma_check_msg("half_axpy_krnl<<<>>> execution failed");
   return EXIT_SUCCESS;
 }
 #endif
@@ -548,7 +548,7 @@ int extract(T *d_smallimg, const T *d_fullimg, int fullimg_size, int center_pos,
   extract_krnl<<<1, extract_size * extract_size>>>(
       d_smallimg, d_fullimg, fullimg_size, center_pos, extract_size, roll);
 
-  carmaCheckMsg("extract_krnl<<<>>> execution failed\n");
+  carma_check_msg("extract_krnl<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }

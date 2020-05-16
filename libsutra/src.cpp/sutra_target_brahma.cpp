@@ -32,10 +32,10 @@
 
 //! \file      sutra_target_brahma.cpp
 //! \ingroup   libsutra
-//! \class     sutra_target_brahma
+//! \class     SutraTargetBrahma
 //! \brief     this class provides the target_brahma features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -44,13 +44,13 @@
 #include <sutra_target_brahma.h>
 #include <sutra_telescope.h>
 
-sutra_target_brahma::sutra_target_brahma(carma_context *context,
+SutraTargetBrahma::SutraTargetBrahma(CarmaContext *context,
                                          ACE_TCHAR *name,
-                                         sutra_telescope *d_tel, int subsample_,
+                                         SutraTelescope *d_tel, int subsample_,
                                          int ntargets, float *xpos, float *ypos,
                                          float *lambda, float *mag, float zerop,
                                          long *sizes, int Npts, int device)
-    : sutra_target(context, d_tel, ntargets, xpos, ypos, lambda, mag, zerop,
+    : SutraTarget(context, d_tel, ntargets, xpos, ypos, lambda, mag, zerop,
                    sizes, Npts, device) {
   DEBUG_TRACE("init %s", name);
   BRAHMA::BRAHMA_context brahma = BRAHMA::BRAHMA_context::get_instance(name);
@@ -79,9 +79,9 @@ sutra_target_brahma::sutra_target_brahma(carma_context *context,
     /*
         // Create an BRAHMA Command listener
         brahma.register_command_type(topics[BRAHMA::CommandType]);
-        cmd_listener = (new sutra_target_brahmaListenerImpl);
+        cmd_listener = (new SutraTargetBrahmaListenerImpl);
         cmd_listener_servant =
-            dynamic_cast<sutra_target_brahmaListenerImpl *>(cmd_listener.in());
+            dynamic_cast<SutraTargetBrahmaListenerImpl *>(cmd_listener.in());
 
         if (CORBA::is_nil(cmd_listener.in())) {
           throw "BRAHMA Command listener is nil.";
@@ -115,7 +115,7 @@ sutra_target_brahma::sutra_target_brahma(carma_context *context,
   }
 }
 
-sutra_target_brahma::~sutra_target_brahma() {
+SutraTargetBrahma::~SutraTargetBrahma() {
   if (!is_initialised) {
     return;
   }
@@ -124,7 +124,7 @@ sutra_target_brahma::~sutra_target_brahma() {
   if (dims_pixels) BRAHMA::Dims::freebuf(dims_pixels);
 }
 
-void sutra_target_brahma::allocateBuffers() {
+void SutraTargetBrahma::allocate_buffers() {
   if (!is_initialised) {
     return;
   }
@@ -133,11 +133,11 @@ void sutra_target_brahma::allocateBuffers() {
     // TODO : handle targets with different supports...
     dims_pixels = BRAHMA::Dims::allocbuf(3);
     dims_pixels[0] = d_targets.size();
-    dims_pixels[1] = d_targets[0]->d_image_le->getDims(1);
-    dims_pixels[2] = d_targets[0]->d_image_le->getDims(2);
+    dims_pixels[1] = d_targets[0]->d_image_le->get_dims(1);
+    dims_pixels[2] = d_targets[0]->d_image_le->get_dims(2);
 
     buff_pixels = BRAHMA::Values::allocbuf(
-        d_targets.size() * d_targets[0]->d_image_le->getNbElem() *
+        d_targets.size() * d_targets[0]->d_image_le->get_nb_elements() *
         sizeof(float));
   } catch (CORBA::Exception &e) {
     cerr << "Exception caught in main.cpp:" << endl << e << endl;
@@ -145,7 +145,7 @@ void sutra_target_brahma::allocateBuffers() {
   }
 }
 
-void sutra_target_brahma::set_subsample(int ntarget, int subsample_) {
+void SutraTargetBrahma::set_subsample(int ntarget, int subsample_) {
   if (!is_initialised) {
     return;
   }
@@ -156,7 +156,7 @@ void sutra_target_brahma::set_subsample(int ntarget, int subsample_) {
   this->subsample = subsample_;
 }
 
-void sutra_target_brahma::publish() {
+void SutraTargetBrahma::publish() {
   if (!is_initialised) {
     cerr << "brahma not initialised!" << endl;
     return;
@@ -168,26 +168,26 @@ void sutra_target_brahma::publish() {
     return;
   }
 
-  if (buff_pixels == NULL) allocateBuffers();
+  if (buff_pixels == NULL) allocate_buffers();
 
   CORBA::Float *buff_pixels_servant = (CORBA::Float *)buff_pixels;
 
   long idx = 0;
-  carma_obj<float> tmp_img(d_targets[0]->current_context,
-                           d_targets[0]->d_image_le->getDims());
+  CarmaObj<float> tmp_img(d_targets[0]->current_context,
+                           d_targets[0]->d_image_le->get_dims());
   for (size_t target = 0; target < d_targets.size(); target++) {
     d_targets[target]->comp_image(0, true);
     float flux = 1.0f;
     // d_targets[target]->zp * powf(10, -0.4 * d_targets[target]->mag);
-    roll_mult<float>(tmp_img.getData(),
-                     d_targets[target]->d_image_le->getData(),
-                     d_targets[target]->d_image_le->getDims(1),
-                     d_targets[target]->d_image_le->getDims(2), flux,
+    roll_mult<float>(tmp_img.get_data(),
+                     d_targets[target]->d_image_le->get_data(),
+                     d_targets[target]->d_image_le->get_dims(1),
+                     d_targets[target]->d_image_le->get_dims(2), flux,
                      d_targets[target]->current_context->get_device(
                          d_targets[target]->device));
     tmp_img.device2host(buff_pixels_servant + idx);
 
-    idx += d_targets[target]->d_image_le->getNbElem();
+    idx += d_targets[target]->d_image_le->get_nb_elements();
   }
 
   BRAHMA::Frame zFrame;

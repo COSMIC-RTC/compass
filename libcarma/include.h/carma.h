@@ -34,7 +34,7 @@
 //! \defgroup  libcarma Carma
 //! \brief     Carma is a library that provides GPU acceleration
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -43,7 +43,6 @@
 
 #include "carma_context.h"
 #include "carma_cublas.h"
-#include "carma_cula.h"
 #include "carma_cusparse.h"
 #include "carma_exception.h"
 // #include "carma_fft.h"

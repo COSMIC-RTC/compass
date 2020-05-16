@@ -1,7 +1,7 @@
 ## @package   naga.context
 ## @brief     Documentation for naga
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   4.4.1
+## @version   5.0.0
 ## @date      2011/01/28
 ## @copyright GNU Lesser General Public License
 #
@@ -41,7 +41,7 @@ import numpy as np
 
 class Context:
     """
-    Python class for wrapping a carma_context
+    Python class for wrapping a CarmaContext
     """
 
     def __init__(self, devices=None):

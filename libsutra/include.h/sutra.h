@@ -34,7 +34,7 @@
 //! \defgroup  libsutra Sutra
 //! \brief     Sutra is a library that provides OA tools with GPU acceleration
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -43,7 +43,7 @@
 
 #include "carma_context.h"
 #include "sutra_acquisim.h"
-#include "sutra_aotemplate.h"
+#include "sutra_template.h"
 #include "sutra_atmos.h"
 #include "sutra_centroider.h"
 #include "sutra_centroider_bpcog.h"
@@ -68,9 +68,9 @@
 #include "sutra_phase.h"
 #include "sutra_roket.h"
 #include "sutra_rtc.h"
-#include "sutra_rtc_brahma.h"
-#include "sutra_rtc_brahmaListenerImpl.h"
-#include "sutra_rtc_cacao.h"
+#include "SutraRtc_brahma.h"
+#include "SutraRtcBrahmaListenerImpl.h"
+#include "SutraRtc_cacao.h"
 #include "sutra_sensors.h"
 #include "sutra_source.h"
 #include "sutra_target.h"

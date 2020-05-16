@@ -30,12 +30,12 @@
 //  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 // -----------------------------------------------------------------------------
 
-//! \file      sutra_rtc_brahma.h
+//! \file      SutraRtc_brahma.h
 //! \ingroup   libsutra
-//! \class     sutra_rtc_brahma
+//! \class     SutraRtcBrahma
 //! \brief     this class provides the rtc_brahma features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -44,18 +44,18 @@
 
 #include <BRAHMA_context.h>
 #include <sutra_rtc.h>
-#include <sutra_rtc_brahmaListenerImpl.h>
+#include <SutraRtcBrahmaListenerImpl.h>
 #include <sutra_target.h>
 #include <sutra_wfs.h>
 
 template <typename T>
-class sutra_rtc_brahma : public sutra_rtc<float, T, float> {
+class SutraRtcBrahma : public SutraRtc<float, T, float> {
  private:
   DDS::Subscriber_var sub;
   DDS::Publisher_var pub;
 
   DDS::DataReaderListener_var cmd_listener;
-  sutra_rtc_brahmaListenerImpl<T> *cmd_listener_servant;
+  SutraRtcBrahmaListenerImpl<T> *cmd_listener_servant;
   DDS::DataReader_var cmd_dr;
 
   DDS::DataWriter_var superframe_base_dw;
@@ -87,10 +87,10 @@ class sutra_rtc_brahma : public sutra_rtc<float, T, float> {
 
   int wfs_size;
   int wfs_phase_size;
-  sutra_sensors *wfs;
+  SutraSensors *wfs;
   int target_size;
   int target_phase_size;
-  sutra_target *target;
+  SutraTarget *target;
 
   int nslp;
   int ncmd;
@@ -99,14 +99,14 @@ class sutra_rtc_brahma : public sutra_rtc<float, T, float> {
   int is_initialised;
 
  public:
-  sutra_rtc_brahma(carma_context *context, sutra_sensors *wfs,
-                   sutra_target *target, ACE_TCHAR *name);
-  ~sutra_rtc_brahma();
+  SutraRtcBrahma(CarmaContext *context, SutraSensors *wfs,
+                   SutraTarget *target, ACE_TCHAR *name);
+  ~SutraRtcBrahma();
 
   void publish();
 
  private:
-  void allocateBuffers();
+  void allocate_buffers();
 };
 
 #endif /* SUTRA_RTC_BRAHMA_H_ */

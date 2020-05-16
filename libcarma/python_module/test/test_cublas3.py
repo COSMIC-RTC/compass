@@ -25,7 +25,7 @@ def test_float_gemm():
     #testing: C=A.B+C
     #A,B,C matrices
 
-    #generating random matrices A,B,C and associated carma_obj
+    #generating random matrices A,B,C and associated CarmaObj
 
     # np.random.seed(seed)
     # A = A.dot(A.T)
@@ -89,7 +89,7 @@ def test_float_symm():
     B = np.random.randn(sizek, sizen)
     C = np.random.randn(sizek, sizen)
 
-    #generating random matrices and associated carma_obj
+    #generating random matrices and associated CarmaObj
     matA = ch.obj_float(c, A)  #np.random.randn(sizek, sizek)))
     matB = ch.obj_float(c, B)  #np.random.randn(sizek, sizen)))
     matC = ch.obj_float(c, C)  #np.random.randn(sizek, sizen)))
@@ -145,7 +145,7 @@ def test_float_dgmm():
     #testing: C=A.d
     # C,A matrices, d vector (diagonal matrix as a vector)
 
-    #generating random matrices and associated carma_obj
+    #generating random matrices and associated CarmaObj
     matA = ch.obj_float(c, np.random.randn(sizek, sizek))
     Vectx = ch.obj_float(c, np.random.randn(sizek))
 
@@ -188,7 +188,7 @@ def test_float_syrk():
     #testing: C=A.transpose(A)+C
     #A matrix, C symetric matrix
 
-    #generating random matrices and associated carma_obj
+    #generating random matrices and associated CarmaObj
     matA = ch.obj_float(c, np.random.randn(sizen, sizek))
     matC = ch.obj_float(c, np.random.randn(sizen, sizen))
 
@@ -239,7 +239,7 @@ def test_float_syrkx():
     #testing: C=A.transpose(B)+C
     #A matrix, C symetric matrix
 
-    #generating random matrices and associated carma_obj
+    #generating random matrices and associated CarmaObj
     matA = ch.obj_float(c, np.random.randn(sizen, sizek))
     matB = ch.obj_float(c, np.random.randn(sizen, sizek))
     matC = ch.obj_float(c, np.random.randn(sizen, sizen))
@@ -295,7 +295,7 @@ def test_float_geam():
     #testing: C=A.B
     #A,B matrices
 
-    #generating random matrices and associated carma_obj
+    #generating random matrices and associated CarmaObj
     matA = ch.obj_float(c, np.random.randn(sizem, sizen))
     matB = ch.obj_float(c, np.random.randn(sizem, sizen))
 
@@ -329,7 +329,7 @@ def test_double_gemm():
     #testing: C=A.B+C
     #A,B,C matrices
 
-    #generating random matrices A,B,C and associated carma_obj
+    #generating random matrices A,B,C and associated CarmaObj
 
     # np.random.seed(seed)
     # A = A.dot(A.T)
@@ -393,7 +393,7 @@ def test_double_symm():
     B = np.random.randn(sizek, sizen)
     C = np.random.randn(sizek, sizen)
 
-    #generating random matrices and associated carma_obj
+    #generating random matrices and associated CarmaObj
     matA = ch.obj_double(c, A)  #np.random.randn(sizek, sizek)))
     matB = ch.obj_double(c, B)  #np.random.randn(sizek, sizen)))
     matC = ch.obj_double(c, C)  #np.random.randn(sizek, sizen)))
@@ -449,7 +449,7 @@ def test_double_dgmm():
     #testing: C=A.d
     # C,A matrices, d vector (diagonal matrix as a vector)
 
-    #generating random matrices and associated carma_obj
+    #generating random matrices and associated CarmaObj
     matA = ch.obj_double(c, np.random.randn(sizek, sizek))
     Vectx = ch.obj_double(c, np.random.randn(sizek))
 
@@ -492,7 +492,7 @@ def test_double_syrk():
     #testing: C=A.transpose(A)+C
     #A matrix, C symetric matrix
 
-    #generating random matrices and associated carma_obj
+    #generating random matrices and associated CarmaObj
     matA = ch.obj_double(c, np.random.randn(sizen, sizek))
     matC = ch.obj_double(c, np.random.randn(sizen, sizen))
 
@@ -543,7 +543,7 @@ def test_double_syrkx():
     #testing: C=A.transpose(B)+C
     #A matrix, C symetric matrix
 
-    #generating random matrices and associated carma_obj
+    #generating random matrices and associated CarmaObj
     matA = ch.obj_double(c, np.random.randn(sizen, sizek))
     matB = ch.obj_double(c, np.random.randn(sizen, sizek))
     matC = ch.obj_double(c, np.random.randn(sizen, sizen))
@@ -599,7 +599,7 @@ def test_double_geam():
     #testing: C=A.B
     #A,B matrices
 
-    #generating random matrices and associated carma_obj
+    #generating random matrices and associated CarmaObj
     matA = ch.obj_double(c, np.random.randn(sizem, sizen))
     matB = ch.obj_double(c, np.random.randn(sizem, sizen))
 

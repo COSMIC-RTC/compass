@@ -1,7 +1,7 @@
 ## @package   shesha.init.wfs_init
 ## @brief     Initialization of a Sensors object
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   4.4.1
+## @version   5.0.0
 ## @date      2011/01/28
 ## @copyright GNU Lesser General Public License
 #
@@ -84,8 +84,8 @@ def wfs_init(context: carmaWrap_context, telescope: Telescope, p_wfss: list,
     nphot4imat = np.array([o.nphotons4imat for o in p_wfss], dtype=np.float32)
     lgs = np.array([o.gsalt > 0 for o in p_wfss], dtype=np.int32)
     fakecam = np.array([o.fakecam for o in p_wfss], dtype=np.bool)
-    maxFlux = np.array([o.maxFluxPerPix for o in p_wfss], dtype=np.int32)
-    maxPixValue = np.array([o.maxPixValue for o in p_wfss], dtype=np.int32)
+    maxFlux = np.array([o.max_flux_per_pix for o in p_wfss], dtype=np.int32)
+    max_pix_value = np.array([o.max_pix_value for o in p_wfss], dtype=np.int32)
 
     # arrays needed to call initgs
     xpos = np.array([o.xpos for o in p_wfss], dtype=np.float32)
@@ -106,7 +106,7 @@ def wfs_init(context: carmaWrap_context, telescope: Telescope, p_wfss: list,
     if (p_wfss[0].type == scons.WFSType.SH):
         g_wfs = Sensors(context, telescope, t_wfs, nsensors, nxsub, nvalid, nPupils,
                         npix, nphase, nrebin, nfft, ntota, npup, pdiam, nphot,
-                        nphot4imat, lgs, fakecam, maxFlux, maxPixValue,
+                        nphot4imat, lgs, fakecam, maxFlux, max_pix_value,
                         context.active_device, roket_flag)
 
         mag = np.array([o.gsmag for o in p_wfss], dtype=np.float32)
@@ -126,7 +126,7 @@ def wfs_init(context: carmaWrap_context, telescope: Telescope, p_wfss: list,
 
         g_wfs = Sensors(context, telescope, t_wfs, nsensors, nxsub, nvalid, nPupils,
                         npix, nphase, nrebin, nfft, ntota, npup, pdiam, nphot,
-                        nphot4imat, lgs, fakecam, maxFlux, maxPixValue,
+                        nphot4imat, lgs, fakecam, maxFlux, max_pix_value,
                         context.active_device, roket_flag)
 
         mag = np.array([o.gsmag for o in p_wfss], dtype=np.float32)
@@ -148,13 +148,13 @@ def wfs_init(context: carmaWrap_context, telescope: Telescope, p_wfss: list,
             if (p_wfs._pyr_weights is None):
                 p_wfs.set_pyr_weights(np.ones(p_wfs._pyr_cx.size))
             wfs.compute_pyrfocalplane = p_wfs.pyr_compute_focalplane
-            wfs.loadarrays(halfxy, p_wfs._pyr_cx, p_wfs._pyr_cy, p_wfs._pyr_weights,
-                           p_wfs._sincar, p_wfs._submask, p_wfs._validsubsx,
-                           p_wfs._validsubsy, p_wfs._phasemap, fluxPerSub)
+            wfs.load_arrays(halfxy, p_wfs._pyr_cx, p_wfs._pyr_cy, p_wfs._pyr_weights,
+                            p_wfs._sincar, p_wfs._submask, p_wfs._validsubsx,
+                            p_wfs._validsubsy, p_wfs._phasemap, fluxPerSub)
         else:
-            wfs.loadarrays(p_wfs._phasemap, p_wfs._hrmap, p_wfs._binmap, p_wfs._halfxy,
-                           fluxPerSub, p_wfs._validsubsx, p_wfs._validsubsy,
-                           p_wfs._validpuppixx, p_wfs._validpuppixy, p_wfs._ftkernel)
+            wfs.load_arrays(p_wfs._phasemap, p_wfs._hrmap, p_wfs._binmap, p_wfs._halfxy,
+                            fluxPerSub, p_wfs._validsubsx, p_wfs._validsubsy,
+                            p_wfs._validpuppixx, p_wfs._validpuppixy, p_wfs._ftkernel)
 
     # lgs case
     for i in range(nsensors):

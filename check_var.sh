@@ -19,12 +19,6 @@ check_var CUDA_SM $CUDA_SM
 echo *** check MAGMA definitions
 check_var MAGMA_ROOT $MAGMA_ROOT
 
-# echo *** CULA default definitions
-# check_var CULA_ROOT $CULA_ROOT
-# check_var CULA_INC_PATH $CULA_INC_PATH
-# check_var CULA_LIB_PATH $CULA_LIB_PATH
-# check_var CULA_LIB_PATH_64 $CULA_LIB_PATH_64
-
 echo *** check COMPASS definitions
 check_var COMPASS_ROOT $COMPASS_ROOT
 check_var NAGA_ROOT $NAGA_ROOT

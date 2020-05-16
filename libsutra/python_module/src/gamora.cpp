@@ -32,9 +32,9 @@
 
 //! \file      gamora.cpp
 //! \ingroup   libsutra
-//! \brief     this file provides pybind wrapper for sutra_gamora
+//! \brief     this file provides pybind wrapper for SutraGamora
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -45,26 +45,26 @@
 namespace py = pybind11;
 typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;
 
-std::unique_ptr<sutra_gamora> gamora_init(carma_context &context, int device,
+std::unique_ptr<SutraGamora> gamora_init(CarmaContext &context, int device,
                                           char *type, int nactus, int nmodes,
                                           int niter, float *IFvalue,
                                           int *IFrowind, int *IFcolind,
                                           int IFnz, float *d_TT, float *pupil,
                                           int size, int Npts, float scale,
                                           float *Btt, float *covmodes) {
-  return std::unique_ptr<sutra_gamora>(new sutra_gamora(
+  return std::unique_ptr<SutraGamora>(new SutraGamora(
       &context, device, type, nactus, nmodes, niter, IFvalue, IFrowind,
       IFcolind, IFnz, d_TT, pupil, size, Npts, scale, Btt, covmodes));
 };
 
 void declare_gamora(py::module &mod) {
-  py::class_<sutra_gamora>(mod, "Gamora")
+  py::class_<SutraGamora>(mod, "Gamora")
       .def(py::init(wy::colCast(gamora_init)), R"pbdoc(
           Initializes Gamora
 
           Parameters
           ------------
-          context: (carma_context): context
+          context: (CarmaContext): context
           device: (int): context active device
           type : (str) : reconstruction method used ("roket" or "Vii")
           nactus : (int) : number of actuators
@@ -98,97 +98,97 @@ void declare_gamora(py::module &mod) {
       //
 
       .def_property_readonly(
-          "device", [](sutra_gamora &sg) { return sg.device; }, "GPU device")
+          "device", [](SutraGamora &sg) { return sg.device; }, "GPU device")
 
       .def_property_readonly(
-          "nactus", [](sutra_gamora &sg) { return sg.nactus; },
+          "nactus", [](SutraGamora &sg) { return sg.nactus; },
           "Number of actuators")
 
       .def_property_readonly(
-          "niter", [](sutra_gamora &sg) { return sg.niter; },
+          "niter", [](SutraGamora &sg) { return sg.niter; },
           "number of iterations")
 
       .def_property_readonly(
-          "nmodes", [](sutra_gamora &sg) { return sg.nmodes; },
+          "nmodes", [](SutraGamora &sg) { return sg.nmodes; },
           "number of modes")
 
       .def_property_readonly(
-          "d_err", [](sutra_gamora &sg) { return sg.d_err; }, "Error buffer")
+          "d_err", [](SutraGamora &sg) { return sg.d_err; }, "Error buffer")
 
       .def_property_readonly(
-          "d_amplipup", [](sutra_gamora &sg) { return sg.d_amplipup; },
+          "d_amplipup", [](SutraGamora &sg) { return sg.d_amplipup; },
           "Complex amplitude in the pupil")
 
       .def_property_readonly(
-          "d_psf", [](sutra_gamora &sg) { return sg.d_psf; },
+          "d_psf", [](SutraGamora &sg) { return sg.d_psf; },
           "Reconstructed PSF")
 
       .def_property_readonly(
-          "d_phase", [](sutra_gamora &sg) { return sg.d_phase; },
+          "d_phase", [](SutraGamora &sg) { return sg.d_phase; },
           "Residual phase")
 
       .def_property_readonly(
-          "d_wherephase", [](sutra_gamora &sg) { return sg.d_wherephase; },
+          "d_wherephase", [](SutraGamora &sg) { return sg.d_wherephase; },
           "index of valid point")
 
       .def_property_readonly(
-          "d_IF", [](sutra_gamora &sg) { return sg.d_IF; }, "sparse IF matrix")
+          "d_IF", [](SutraGamora &sg) { return sg.d_IF; }, "sparse IF matrix")
 
       .def_property_readonly(
-          "d_TT", [](sutra_gamora &sg) { return sg.d_TT; },
+          "d_TT", [](SutraGamora &sg) { return sg.d_TT; },
           "tip-tilt IF matrix")
 
       .def_property_readonly(
-          "scale", [](sutra_gamora &sg) { return sg.scale; }, "Scale factor")
+          "scale", [](SutraGamora &sg) { return sg.scale; }, "Scale factor")
 
       .def_property_readonly(
-          "size", [](sutra_gamora &sg) { return sg.size; },
+          "size", [](SutraGamora &sg) { return sg.size; },
           "Pupil support size")
 
       .def_property_readonly(
-          "Npts", [](sutra_gamora &sg) { return sg.Npts; },
+          "Npts", [](SutraGamora &sg) { return sg.Npts; },
           "number of points in the pupil")
 
       .def_property_readonly(
-          "d_term1", [](sutra_gamora &sg) { return sg.d_term1; },
+          "d_term1", [](SutraGamora &sg) { return sg.d_term1; },
           "Buffer for Vii computation")
 
       .def_property_readonly(
-          "d_term2", [](sutra_gamora &sg) { return sg.d_term2; },
+          "d_term2", [](SutraGamora &sg) { return sg.d_term2; },
           "Buffer for Vii computation")
 
       .def_property_readonly(
-          "d_otftel", [](sutra_gamora &sg) { return sg.d_otftel; },
+          "d_otftel", [](SutraGamora &sg) { return sg.d_otftel; },
           "OTF of the telescope")
 
       .def_property_readonly(
-          "d_otfVii", [](sutra_gamora &sg) { return sg.d_otfVii; },
+          "d_otfVii", [](SutraGamora &sg) { return sg.d_otfVii; },
           "OTF reconstructed from Vii")
 
       .def_property_readonly(
-          "d_mask", [](sutra_gamora &sg) { return sg.d_mask; }, "Mask")
+          "d_mask", [](SutraGamora &sg) { return sg.d_mask; }, "Mask")
 
       .def_property_readonly(
-          "d_eigenvals", [](sutra_gamora &sg) { return sg.d_eigenvals; },
+          "d_eigenvals", [](SutraGamora &sg) { return sg.d_eigenvals; },
           "Eigenvalues of Vii diago")
 
       .def_property_readonly(
-          "d_Btt", [](sutra_gamora &sg) { return sg.d_Btt; }, "Btt modal basis")
+          "d_Btt", [](SutraGamora &sg) { return sg.d_Btt; }, "Btt modal basis")
 
       .def_property_readonly(
-          "d_covmodes", [](sutra_gamora &sg) { return sg.d_covmodes; },
+          "d_covmodes", [](SutraGamora &sg) { return sg.d_covmodes; },
           "error covariance marix on the modes")
 
       .def_property_readonly(
-          "d_newmodek", [](sutra_gamora &sg) { return sg.d_newmodek; },
+          "d_newmodek", [](SutraGamora &sg) { return sg.d_newmodek; },
           "Mode k from Vii")
 
       .def_property_readonly(
-          "d_Dphi", [](sutra_gamora &sg) { return sg.d_Dphi; },
+          "d_Dphi", [](SutraGamora &sg) { return sg.d_Dphi; },
           "Structure function")
 
       .def_property_readonly(
-          "d_pupfft", [](sutra_gamora &sg) { return sg.d_pupfft; },
+          "d_pupfft", [](SutraGamora &sg) { return sg.d_pupfft; },
           "FFT of the pupil")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
@@ -197,7 +197,7 @@ void declare_gamora(py::module &mod) {
       //  ██║╚██╔╝██║██╔══╝     ██║   ██╔══██║██║   ██║██║  ██║╚════██║
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
-      .def("psf_rec_roket", wy::colCast(&sutra_gamora::psf_rec_roket), R"pbdoc(
+      .def("psf_rec_roket", wy::colCast(&SutraGamora::psf_rec_roket), R"pbdoc(
         Reconstruct the PSF from ROKET error buffer
 
         Parameters
@@ -207,5 +207,5 @@ void declare_gamora(py::module &mod) {
     )pbdoc",
            py::arg("err"))
 
-      .def("psf_rec_Vii", &sutra_gamora::psf_rec_Vii, "Vii PSF reconstruction");
+      .def("psf_rec_Vii", &SutraGamora::psf_rec_Vii, "Vii PSF reconstruction");
 };

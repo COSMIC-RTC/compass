@@ -1,7 +1,7 @@
 ## @package   shesha.ao.modopti
 ## @brief     Functions used for modal optimization control
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   4.4.1
+## @version   5.0.0
 ## @date      2011/01/28
 ## @copyright GNU Lesser General Public License
 #
@@ -40,7 +40,7 @@ from shesha.sutra_wrap import Sensors, Telescope, Rtc_FFF as Rtc, Atmos
 
 
 def open_loopSlp(tel: Telescope, atmos: Atmos, wfs: Sensors, rtc: Rtc, nrec: int,
-                ncontrol: int, p_wfss: list):
+                 ncontrol: int, p_wfss: list):
     """ Return a set of recorded open-loop slopes, usefull for initialize modal control optimization
 
     :parameters:

@@ -20,7 +20,7 @@
 #if (USE_TEXTURE)
 texture<float, 1, cudaReadModeElementType> texFloat;
 #define LOAD_FLOAT(i) tex1Dfetch(texFloat, i)
-#define SET_FLOAT_BASE carmaSafeCall(cudaBindTexture(0, texFloat, d_Src))
+#define SET_FLOAT_BASE carma_safe_call(cudaBindTexture(0, texFloat, d_Src))
 #else
 #define LOAD_FLOAT(i) d_Src[i]
 #define SET_FLOAT_BASE
@@ -44,7 +44,7 @@ __global__ void padKernel_kernel(float *d_Dst, float *d_Src, int fftH, int fftW,
   }
 }
 
-__global__ void padKernel3d_kernel(float *d_Dst, float *d_Src, int fftH,
+__global__ void pad_kernel_3d_kernel(float *d_Dst, float *d_Src, int fftH,
                                    int fftW, int kernelH, int kernelW,
                                    int kernelY, int kernelX, int nim) {
   const int y = blockDim.y * blockIdx.y + threadIdx.y;
@@ -66,7 +66,7 @@ __global__ void padKernel3d_kernel(float *d_Dst, float *d_Src, int fftH,
 ////////////////////////////////////////////////////////////////////////////////
 // Prepare data for "pad to border" addressing mode
 ////////////////////////////////////////////////////////////////////////////////
-__global__ void padDataClampToBorder_kernel(float *d_Dst, float *d_Src,
+__global__ void pad_data_clamp_to_border_kernel(float *d_Dst, float *d_Src,
                                             int fftH, int fftW, int dataH,
                                             int dataW, int kernelH, int kernelW,
                                             int kernelY, int kernelX) {
@@ -89,7 +89,7 @@ __global__ void padDataClampToBorder_kernel(float *d_Dst, float *d_Src,
   }
 }
 
-__global__ void padDataClampToBorder3d_kernel(float *d_Dst, float *d_Src,
+__global__ void pad_data_clamp_to_border_3d_kernel(float *d_Dst, float *d_Src,
                                               int fftH, int fftW, int dataH,
                                               int dataW, int kernelH,
                                               int kernelW, int kernelY,
@@ -127,7 +127,7 @@ inline __device__ void mulAndScale(fComplex &a, const fComplex &b,
   a = t;
 }
 
-__global__ void modulateAndNormalize_kernel(fComplex *d_Dst, fComplex *d_Src,
+__global__ void modulate_and_normalize_kernel(fComplex *d_Dst, fComplex *d_Src,
                                             int dataSize, float c) {
   const int i = blockDim.x * blockIdx.x + threadIdx.x;
   if (i >= dataSize) return;
@@ -150,11 +150,11 @@ texture<fComplex, 1, cudaReadModeElementType> texComplexB;
 #define LOAD_FCOMPLEX_A(i) tex1Dfetch(texComplexA, i)
 #define LOAD_FCOMPLEX_B(i) tex1Dfetch(texComplexB, i)
 
-#define SET_FCOMPLEX_BASE carmaSafeCall(cudaBindTexture(0, texComplexA, d_Src))
+#define SET_FCOMPLEX_BASE carma_safe_call(cudaBindTexture(0, texComplexA, d_Src))
 #define SET_FCOMPLEX_BASE_A \
-  carmaSafeCall(cudaBindTexture(0, texComplexA, d_SrcA))
+  carma_safe_call(cudaBindTexture(0, texComplexA, d_SrcA))
 #define SET_FCOMPLEX_BASE_B \
-  carmaSafeCall(cudaBindTexture(0, texComplexB, d_SrcB))
+  carma_safe_call(cudaBindTexture(0, texComplexB, d_SrcB))
 #else
 #define LOAD_FCOMPLEX(i) d_Src[i]
 #define LOAD_FCOMPLEX_A(i) d_SrcA[i]
@@ -222,7 +222,7 @@ inline __device__ void udivmod(uint &dividend, uint divisor, uint &rem) {
 #endif
 }
 
-__global__ void spPostprocess2D_kernel(fComplex *d_Dst, fComplex *d_Src,
+__global__ void sp_postprocess_2d_kernel(fComplex *d_Dst, fComplex *d_Src,
                                        uint DY, uint DX, uint threadCount,
                                        uint padding, float phaseBase) {
   const uint threadId = blockIdx.x * blockDim.x + threadIdx.x;
@@ -272,7 +272,7 @@ __global__ void spPostprocess2D_kernel(fComplex *d_Dst, fComplex *d_Src,
   }
 }
 
-__global__ void spPreprocess2D_kernel(fComplex *d_Dst, fComplex *d_Src, uint DY,
+__global__ void sp_preprocess_2d_kernel(fComplex *d_Dst, fComplex *d_Src, uint DY,
                                       uint DX, uint threadCount, uint padding,
                                       float phaseBase) {
   const uint threadId = blockIdx.x * blockDim.x + threadIdx.x;
@@ -327,9 +327,9 @@ __global__ void spPreprocess2D_kernel(fComplex *d_Dst, fComplex *d_Src, uint DY,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Combined spPostprocess2D + modulateAndNormalize + spPreprocess2D
+// Combined sp_postprocess_2d + modulate_and_normalize + sp_preprocess_2d
 ////////////////////////////////////////////////////////////////////////////////
-__global__ void spProcess2D_kernel(fComplex *d_Dst, fComplex *d_SrcA,
+__global__ void sp_process_2d_kernel(fComplex *d_Dst, fComplex *d_SrcA,
                                    fComplex *d_SrcB, uint DY, uint DX,
                                    uint threadCount, float phaseBase, float c) {
   const uint threadId = blockIdx.x * blockDim.x + threadIdx.x;

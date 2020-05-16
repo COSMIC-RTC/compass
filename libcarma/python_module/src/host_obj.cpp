@@ -32,9 +32,9 @@
 
 //! \file      host_obj.cpp
 //! \ingroup   libcarma
-//! \brief     this file provides pybind wrapper for carma_host_obj
+//! \brief     this file provides pybind wrapper for CarmaHostObj
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 

@@ -2,7 +2,7 @@
 ## @package   shesha.widgets.widget_ao
 ## @brief     Widget to simulate a closed loop
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   4.4.1
+## @version   5.0.0
 ## @date      2011/01/28
 ## @copyright GNU Lesser General Public License
 #
@@ -88,8 +88,9 @@ from shesha.supervisor.compassSupervisor import CompassSupervisor, scons
 
 class widgetAOWindow(AOClassTemplate, WidgetBase):
 
-    def __init__(self, config_file: Any = None, cacao: bool = False, expert: bool = False,
-                 devices: str = None, hideHistograms: bool = False) -> None:
+    def __init__(self, config_file: Any = None, cacao: bool = False,
+                 expert: bool = False, devices: str = None,
+                 hideHistograms: bool = False) -> None:
         WidgetBase.__init__(self, hideHistograms=hideHistograms)
         AOClassTemplate.__init__(self)
 

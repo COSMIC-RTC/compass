@@ -326,7 +326,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
             "hostname": hostname,
             "ndevices": c.get_ndevice(),
             "device": c.get_device_names()[0],
-            "cuda_version": c.get_cudaRuntimeGetVersion(),
+            "cuda_version": c.get_cuda_runtime_get_version(),
             "magma_version": c.get_magma_info(),
             "platform": platform.platform(),
             "ncpu": nb_cpu,

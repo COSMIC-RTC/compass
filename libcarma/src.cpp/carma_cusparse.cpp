@@ -32,9 +32,9 @@
 
 //! \file      carma_cusparse.cpp
 //! \ingroup   libcarma
-//! \brief     this file provides the cusparse features to carma_obj
+//! \brief     this file provides the cusparse features to CarmaObj
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -43,7 +43,7 @@
 #include <carma_sparse_obj.h>
 #include <string>
 
-#define carma_checkCusparseStatus(status) \
+#define carma_check_cusparse_status(status) \
   carma_checkCusparseStatus_v2(status, __LINE__, __FILE__)
 
 cusparseStatus_t carma_checkCusparseStatus_v2(cusparseStatus_t status, int line,
@@ -103,17 +103,17 @@ cusparseStatus_t carma_checkCusparseStatus_v2(cusparseStatus_t status, int line,
   return status;
 }
 
-cusparseStatus_t carma_initCusparse(cusparseHandle_t *cusparse_handle) {
+cusparseStatus_t carma_init_cusparse(cusparseHandle_t *cusparse_handle) {
   /**< Generic CUSPARSE init routine */
-  return carma_checkCusparseStatus(cusparseCreate(cusparse_handle));
+  return carma_check_cusparse_status(cusparseCreate(cusparse_handle));
 }
 
-cusparseStatus_t carma_shutdownCusparse(cusparseHandle_t cusparse_handle) {
+cusparseStatus_t carma_shutdown_cusparse(cusparseHandle_t cusparse_handle) {
   /**< Generic CUSPARSE shutdown routine */
-  return carma_checkCusparseStatus(cusparseDestroy(cusparse_handle));
+  return carma_check_cusparse_status(cusparseDestroy(cusparse_handle));
 }
 
-cusparseOperation_t carma_char2cusparseOperation(char operation) {
+cusparseOperation_t carma_char2cusparse_operation(char operation) {
   switch (operation) {
     case 't':
     case 'T':
@@ -143,18 +143,18 @@ template <class T_data,
               const int *csrColIndA, const T_data *x, const T_data *beta,
               T_data *y)>
 cusparseStatus_t carma_gemv(cusparseHandle_t handle, char op_A, T_data alpha,
-                            carma_sparse_obj<T_data> *A, T_data *x, T_data beta,
+                            CarmaSparseObj<T_data> *A, T_data *x, T_data beta,
                             T_data *y) {
-  cusparseOperation_t trans = carma_char2cusparseOperation(op_A);
+  cusparseOperation_t trans = carma_char2cusparse_operation(op_A);
 
-  return carma_checkCusparseStatus(
-      csrmv(handle, trans, A->getDims(1), A->getDims(2), A->nz_elem, &alpha,
+  return carma_check_cusparse_status(
+      csrmv(handle, trans, A->get_dims(1), A->get_dims(2), A->nz_elem, &alpha,
             A->descr, A->d_data, A->d_rowind, A->d_colind, x, &beta, y));
 }
 
 template <>
 cusparseStatus_t carma_gemv<double>(cusparseHandle_t handle, char op_A,
-                                    double alpha, carma_sparse_obj<double> *A,
+                                    double alpha, CarmaSparseObj<double> *A,
                                     double *x, double beta, double *y) {
   if (A->format != "CSR") {
     DEBUG_TRACE("carma_gemv needs a CSR matrix as input");
@@ -163,7 +163,7 @@ cusparseStatus_t carma_gemv<double>(cusparseHandle_t handle, char op_A,
 }
 template <>
 cusparseStatus_t carma_gemv<float>(cusparseHandle_t handle, char op_A,
-                                   float alpha, carma_sparse_obj<float> *A,
+                                   float alpha, CarmaSparseObj<float> *A,
                                    float *x, float beta, float *y) {
   if (A->format != "CSR") {
     DEBUG_TRACE("carma_gemv needs a CSR matrix as input");
@@ -179,15 +179,15 @@ template <class T_data,
               const int *csrRowPtrA, const int *csrColIndA, const T_data *B,
               int ldb, const T_data *beta, T_data *C, int ldc)>
 cusparseStatus_t carma_gemm(cusparseHandle_t handle, char op_A, T_data alpha,
-                            carma_sparse_obj<T_data> *A, carma_obj<T_data> *B,
-                            T_data beta, carma_obj<T_data> *C) {
-  cusparseOperation_t transa = carma_char2cusparseOperation(op_A);
+                            CarmaSparseObj<T_data> *A, CarmaObj<T_data> *B,
+                            T_data beta, CarmaObj<T_data> *C) {
+  cusparseOperation_t transa = carma_char2cusparse_operation(op_A);
   cusparseStatus_t status;
 
-  status = carma_checkCusparseStatus(
-      csrmm(handle, transa, A->getDims(1), B->getDims(2), A->getDims(2),
+  status = carma_check_cusparse_status(
+      csrmm(handle, transa, A->get_dims(1), B->get_dims(2), A->get_dims(2),
             A->nz_elem, &alpha, A->descr, A->d_data, A->d_rowind, A->d_colind,
-            *B, B->getDims(1), &beta, *C, C->getDims(1)));
+            *B, B->get_dims(1), &beta, *C, C->get_dims(1)));
 
   if (status != CUSPARSE_STATUS_SUCCESS) {
     std::cerr
@@ -201,9 +201,9 @@ cusparseStatus_t carma_gemm(cusparseHandle_t handle, char op_A, T_data alpha,
 
 template <>
 cusparseStatus_t carma_gemm<float>(cusparseHandle_t handle, char op_A,
-                                   float alpha, carma_sparse_obj<float> *A,
-                                   carma_obj<float> *B, float beta,
-                                   carma_obj<float> *C) {
+                                   float alpha, CarmaSparseObj<float> *A,
+                                   CarmaObj<float> *B, float beta,
+                                   CarmaObj<float> *C) {
   if (A->format != "CSR") {
     DEBUG_TRACE("carma_gemm needs a CSR matrix as input");
   }
@@ -212,9 +212,9 @@ cusparseStatus_t carma_gemm<float>(cusparseHandle_t handle, char op_A,
 
 template <>
 cusparseStatus_t carma_gemm<double>(cusparseHandle_t handle, char op_A,
-                                    double alpha, carma_sparse_obj<double> *A,
-                                    carma_obj<double> *B, double beta,
-                                    carma_obj<double> *C) {
+                                    double alpha, CarmaSparseObj<double> *A,
+                                    CarmaObj<double> *B, double beta,
+                                    CarmaObj<double> *C) {
   if (A->format != "CSR") {
     DEBUG_TRACE("carma_gemm needs a CSR matrix as input");
   }
@@ -232,16 +232,16 @@ template <class T_data,
               const int *csrColIndB, const cusparseMatDescr_t descrC,
               T_data *csrValC, const int *csrRowPtrC, int *csrColIndC)>
 cusparseStatus_t carma_gemm(cusparseHandle_t handle, char op_A, char op_B,
-                            carma_sparse_obj<T_data> *A,
-                            carma_sparse_obj<T_data> *B,
-                            carma_sparse_obj<T_data> *C) {
-  cusparseOperation_t transA = carma_char2cusparseOperation(op_A);
-  cusparseOperation_t transB = carma_char2cusparseOperation(op_B);
+                            CarmaSparseObj<T_data> *A,
+                            CarmaSparseObj<T_data> *B,
+                            CarmaSparseObj<T_data> *C) {
+  cusparseOperation_t transA = carma_char2cusparse_operation(op_A);
+  cusparseOperation_t transB = carma_char2cusparse_operation(op_B);
   cusparseStatus_t status;
 
-  const int m = (op_A == 't' ? A->getDims(2) : A->getDims(1));
-  const int n = (op_B == 't' ? B->getDims(1) : B->getDims(2));
-  const int k = (op_A == 't' ? A->getDims(1) : A->getDims(2));
+  const int m = (op_A == 't' ? A->get_dims(2) : A->get_dims(1));
+  const int n = (op_B == 't' ? B->get_dims(1) : B->get_dims(2));
+  const int k = (op_A == 't' ? A->get_dims(1) : A->get_dims(2));
 
   int nnzC = 0;
   // nnzTotalDevHostPtr points to host memory
@@ -249,7 +249,7 @@ cusparseStatus_t carma_gemm(cusparseHandle_t handle, char op_A, char op_B,
   cusparseSetPointerMode(handle, CUSPARSE_POINTER_MODE_HOST);
   int *csrRowPtrC;
   cudaMalloc(reinterpret_cast<void **>(&csrRowPtrC), sizeof(int) * (m + 1));
-  status = carma_checkCusparseStatus(cusparseXcsrgemmNnz(
+  status = carma_check_cusparse_status(cusparseXcsrgemmNnz(
       handle, transA, transB, m, n, k, A->descr, A->nz_elem, A->d_rowind,
       A->d_colind, B->descr, B->nz_elem, B->d_rowind, B->d_colind, C->descr,
       csrRowPtrC, nnzTotalDevHostPtr));
@@ -272,7 +272,7 @@ cusparseStatus_t carma_gemm(cusparseHandle_t handle, char op_A, char op_B,
     C->resize(nnzC, m, n);
     cudaMemcpy(C->d_rowind, csrRowPtrC, sizeof(int) * (m + 1),
                cudaMemcpyDeviceToDevice);
-    status = carma_checkCusparseStatus(csrgemm(
+    status = carma_check_cusparse_status(csrgemm(
         handle, transA, transB, m, n, k, A->descr, A->nz_elem, A->d_data,
         A->d_rowind, A->d_colind, B->descr, B->nz_elem, B->d_data, B->d_rowind,
         B->d_colind, C->descr, C->d_data, C->d_rowind, C->d_colind));
@@ -290,9 +290,9 @@ cusparseStatus_t carma_gemm(cusparseHandle_t handle, char op_A, char op_B,
 
 template <>
 cusparseStatus_t carma_gemm<float>(cusparseHandle_t handle, char op_A,
-                                   char op_B, carma_sparse_obj<float> *A,
-                                   carma_sparse_obj<float> *B,
-                                   carma_sparse_obj<float> *C) {
+                                   char op_B, CarmaSparseObj<float> *A,
+                                   CarmaSparseObj<float> *B,
+                                   CarmaSparseObj<float> *C) {
   if (A->format != "CSR") {
     DEBUG_TRACE("carma_gemm needs a CSR matrix as input");
   }
@@ -301,9 +301,9 @@ cusparseStatus_t carma_gemm<float>(cusparseHandle_t handle, char op_A,
 
 template <>
 cusparseStatus_t carma_gemm<double>(cusparseHandle_t handle, char op_A,
-                                    char op_B, carma_sparse_obj<double> *A,
-                                    carma_sparse_obj<double> *B,
-                                    carma_sparse_obj<double> *C) {
+                                    char op_B, CarmaSparseObj<double> *A,
+                                    CarmaSparseObj<double> *B,
+                                    CarmaSparseObj<double> *C) {
   if (A->format != "CSR") {
     DEBUG_TRACE("carma_gemm needs a CSR matrix as input");
   }
@@ -315,9 +315,9 @@ template <class T_data,
               cusparseHandle_t handle, int m, int n,
               const cusparseMatDescr_t descrA, const T_data *csrValA,
               const int *csrRowPtrA, const int *csrColIndA, T_data *B, int ldb)>
-cusparseStatus_t carma_csr2dense_gen(carma_sparse_obj<T_data> *A, T_data *B) {
+cusparseStatus_t carma_csr2dense_gen(CarmaSparseObj<T_data> *A, T_data *B) {
   cusparseStatus_t status;
-  cusparseHandle_t handle = A->current_context->get_cusparseHandle();
+  cusparseHandle_t handle = A->current_context->get_cusparse_handle();
 
   status = csr2dense(handle, A->dims_data[1], A->dims_data[2], A->descr,
                      A->d_data, A->d_rowind, A->d_colind, B, A->dims_data[1]);
@@ -330,7 +330,7 @@ cusparseStatus_t carma_csr2dense_gen(carma_sparse_obj<T_data> *A, T_data *B) {
 }
 
 template <>
-cusparseStatus_t carma_csr2dense(carma_sparse_obj<float> *A, float *B) {
+cusparseStatus_t carma_csr2dense(CarmaSparseObj<float> *A, float *B) {
   if (A->format != "CSR") {
     DEBUG_TRACE("carma_csr2dense needs a CSR matrix as input");
   }
@@ -338,7 +338,7 @@ cusparseStatus_t carma_csr2dense(carma_sparse_obj<float> *A, float *B) {
 }
 
 template <>
-cusparseStatus_t carma_csr2dense(carma_sparse_obj<double> *A, double *B) {
+cusparseStatus_t carma_csr2dense(CarmaSparseObj<double> *A, double *B) {
   if (A->format != "CSR") {
     DEBUG_TRACE("carma_csr2dense needs a CSR matrix as input");
   }
@@ -349,11 +349,11 @@ template <class T_data,
           cusparseStatus_t (*csr2bsr)(
               cusparseHandle_t handle, cusparseDirection_t dir, int m, int n,
               const cusparseMatDescr_t descrA, const T_data *csrValA,
-              const int *csrRowPtrA, const int *csrColIndA, int blockDim,
+              const int *csrRowPtrA, const int *csrColIndA, int block_dim,
               const cusparseMatDescr_t descrC, T_data *bsrValC, int *bsrRowPtrC,
               int *bsrColIndC)>
-cusparseStatus_t carma_csr2bsr_gen(carma_sparse_obj<T_data> *A, int blockDim,
-                                   carma_sparse_obj<T_data> *B) {
+cusparseStatus_t carma_csr2bsr_gen(CarmaSparseObj<T_data> *A, int block_dim,
+                                   CarmaSparseObj<T_data> *B) {
   // Given CSR format (csrRowPtrA, csrcolIndA, csrValA) and
   // blocks of BSR format are stored in column-major order.
   if (B->nz_elem > 0) {
@@ -363,57 +363,57 @@ cusparseStatus_t carma_csr2bsr_gen(carma_sparse_obj<T_data> *A, int blockDim,
   }
 
   cusparseDirection_t dir = CUSPARSE_DIRECTION_COLUMN;
-  cusparseHandle_t handle = A->current_context->get_cusparseHandle();
+  cusparseHandle_t handle = A->current_context->get_cusparse_handle();
   int m = A->dims_data[1];
   int n = A->dims_data[2];
-  int mb = (m + blockDim - 1) / blockDim;
+  int mb = (m + block_dim - 1) / block_dim;
   cudaMalloc(reinterpret_cast<void **>(&B->d_rowind), sizeof(int) * (mb + 1));
 
   int nnzb;
   // nnzTotalDevHostPtr points to host memory
   cusparseXcsr2bsrNnz(handle, dir, m, n, A->descr, A->d_rowind, A->d_colind,
-                      blockDim, B->descr, B->d_rowind, &nnzb);
+                      block_dim, B->descr, B->d_rowind, &nnzb);
   B->dims_data[0] = 2;
   B->dims_data[1] = m;
   B->dims_data[2] = n;
   B->nz_elem = nnzb;
   B->format = "BSR";
-  B->blockDim = blockDim;
+  B->block_dim = block_dim;
   cudaMalloc(reinterpret_cast<void **>(&B->d_colind), sizeof(int) * B->nz_elem);
   cudaMalloc(reinterpret_cast<void **>(&B->d_data),
-             sizeof(T_data) * (B->blockDim * B->blockDim) * B->nz_elem);
+             sizeof(T_data) * (B->block_dim * B->block_dim) * B->nz_elem);
   return csr2bsr(handle, dir, m, n, A->descr, A->d_data, A->d_rowind,
-                 A->d_colind, B->blockDim, B->descr, B->d_data, B->d_rowind,
+                 A->d_colind, B->block_dim, B->descr, B->d_data, B->d_rowind,
                  B->d_colind);
 }
 
 template <>
-cusparseStatus_t carma_csr2bsr(carma_sparse_obj<float> *src, int blockDim,
-                               carma_sparse_obj<float> *dest) {
+cusparseStatus_t carma_csr2bsr(CarmaSparseObj<float> *src, int block_dim,
+                               CarmaSparseObj<float> *dest) {
   if (src->format != "CSR") {
     DEBUG_TRACE("carma_csr2bsr needs a CSR matrix as input");
   }
-  return carma_csr2bsr_gen<float, cusparseScsr2bsr>(src, blockDim, dest);
+  return carma_csr2bsr_gen<float, cusparseScsr2bsr>(src, block_dim, dest);
 }
 
 template <>
-cusparseStatus_t carma_csr2bsr(carma_sparse_obj<double> *src, int blockDim,
-                               carma_sparse_obj<double> *dest) {
+cusparseStatus_t carma_csr2bsr(CarmaSparseObj<double> *src, int block_dim,
+                               CarmaSparseObj<double> *dest) {
   if (src->format != "CSR") {
     DEBUG_TRACE("carma_csr2bsr needs a CSR matrix as input");
   }
-  return carma_csr2bsr_gen<double, cusparseDcsr2bsr>(src, blockDim, dest);
+  return carma_csr2bsr_gen<double, cusparseDcsr2bsr>(src, block_dim, dest);
 }
 
 template <class T_data,
           cusparseStatus_t (*bsr2csr)(
               cusparseHandle_t handle, cusparseDirection_t dir, int mb, int nb,
               const cusparseMatDescr_t descrA, const T_data *bsrValA,
-              const int *bsrRowPtrA, const int *bsrColIndA, int blockDim,
+              const int *bsrRowPtrA, const int *bsrColIndA, int block_dim,
               const cusparseMatDescr_t descrC, T_data *csrValC, int *csrRowPtrC,
               int *csrColIndC)>
-cusparseStatus_t carma_bsr2csr_gen(carma_sparse_obj<T_data> *A,
-                                   carma_sparse_obj<T_data> *B) {
+cusparseStatus_t carma_bsr2csr_gen(CarmaSparseObj<T_data> *A,
+                                   CarmaSparseObj<T_data> *B) {
   // Given BSR format (bsrRowPtrA, bsrcolIndA, bsrValA) and
   // blocks of BSR format are stored in column-major order.
   if (B->nz_elem > 0) {
@@ -423,13 +423,13 @@ cusparseStatus_t carma_bsr2csr_gen(carma_sparse_obj<T_data> *A,
   }
 
   cusparseDirection_t dir = CUSPARSE_DIRECTION_COLUMN;
-  cusparseHandle_t handle = A->current_context->get_cusparseHandle();
+  cusparseHandle_t handle = A->current_context->get_cusparse_handle();
   int m = A->dims_data[1];
   int n = A->dims_data[2];
-  int mb = (m + A->blockDim - 1) / A->blockDim;
-  int nb = (n + A->blockDim - 1) / A->blockDim;
+  int mb = (m + A->block_dim - 1) / A->block_dim;
+  int nb = (n + A->block_dim - 1) / A->block_dim;
   int nnzb = A->nz_elem;                       // number of blocks
-  int nnz = nnzb * A->blockDim * A->blockDim;  // number of elements
+  int nnz = nnzb * A->block_dim * A->block_dim;  // number of elements
 
   B->dims_data[0] = 2;
   B->dims_data[1] = m;
@@ -440,13 +440,13 @@ cusparseStatus_t carma_bsr2csr_gen(carma_sparse_obj<T_data> *A,
   cudaMalloc(reinterpret_cast<void **>(&B->d_colind), sizeof(int) * nnz);
   cudaMalloc(reinterpret_cast<void **>(&B->d_data), sizeof(T_data) * nnz);
   return bsr2csr(handle, dir, mb, nb, A->descr, A->d_data, A->d_rowind,
-                 A->d_colind, A->blockDim, B->descr, B->d_data, B->d_rowind,
+                 A->d_colind, A->block_dim, B->descr, B->d_data, B->d_rowind,
                  B->d_colind);
 }
 
 template <>
-cusparseStatus_t carma_bsr2csr(carma_sparse_obj<float> *src,
-                               carma_sparse_obj<float> *dest) {
+cusparseStatus_t carma_bsr2csr(CarmaSparseObj<float> *src,
+                               CarmaSparseObj<float> *dest) {
   if (src->format != "BSR") {
     DEBUG_TRACE("carma_bsr2csr needs a BSR matrix as input");
   }
@@ -454,8 +454,8 @@ cusparseStatus_t carma_bsr2csr(carma_sparse_obj<float> *src,
 }
 
 template <>
-cusparseStatus_t carma_bsr2csr(carma_sparse_obj<double> *src,
-                               carma_sparse_obj<double> *dest) {
+cusparseStatus_t carma_bsr2csr(CarmaSparseObj<double> *src,
+                               CarmaSparseObj<double> *dest) {
   if (src->format != "BSR") {
     DEBUG_TRACE("carma_bsr2csr needs a BSR matrix as input");
   }

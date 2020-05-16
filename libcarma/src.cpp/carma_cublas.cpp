@@ -32,9 +32,9 @@
 
 //! \file      carma_cublas.cpp
 //! \ingroup   libcarma
-//! \brief     this file provides the cublas features to carma_obj
+//! \brief     this file provides the cublas features to CarmaObj
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -127,7 +127,7 @@ cublasStatus_t carma_shutdownCublas(cublasHandle_t cublas_handle) {
   return carma_checkCublasStatus(cublasDestroy(cublas_handle));
 }
 
-cublasOperation_t carma_char2cublasOperation(char operation) {
+cublasOperation_t carma_char2cublas_operation(char operation) {
   switch (operation) {
     case 't':
     case 'T':
@@ -512,7 +512,7 @@ cublasStatus_t carma_gemv<float>(cublasHandle_t cublas_handle, char trans,
                                  int m, int n, float alpha, float *matA,
                                  int lda, float *vectx, int incx, float beta,
                                  float *vecty, int incy) {
-  cublasOperation_t trans2 = carma_char2cublasOperation(trans);
+  cublasOperation_t trans2 = carma_char2cublas_operation(trans);
   return carma_checkCublasStatus(cublasSgemv(cublas_handle, trans2, m, n,
                                              &alpha, matA, lda, vectx, incx,
                                              &beta, vecty, incy));
@@ -522,7 +522,7 @@ cublasStatus_t carma_gemv<double>(cublasHandle_t cublas_handle, char trans,
                                   int m, int n, double alpha, double *matA,
                                   int lda, double *vectx, int incx, double beta,
                                   double *vecty, int incy) {
-  cublasOperation_t trans2 = carma_char2cublasOperation(trans);
+  cublasOperation_t trans2 = carma_char2cublas_operation(trans);
   return carma_checkCublasStatus(cublasDgemv(cublas_handle, trans2, m, n,
                                              &alpha, matA, lda, vectx, incx,
                                              &beta, vecty, incy));
@@ -532,7 +532,7 @@ cublasStatus_t carma_gemv<cuFloatComplex>(
     cublasHandle_t cublas_handle, char trans, int m, int n,
     cuFloatComplex alpha, cuFloatComplex *matA, int lda, cuFloatComplex *vectx,
     int incx, cuFloatComplex beta, cuFloatComplex *vecty, int incy) {
-  cublasOperation_t trans2 = carma_char2cublasOperation(trans);
+  cublasOperation_t trans2 = carma_char2cublas_operation(trans);
   return carma_checkCublasStatus(cublasCgemv(cublas_handle, trans2, m, n,
                                              &alpha, matA, lda, vectx, incx,
                                              &beta, vecty, incy));
@@ -545,7 +545,7 @@ cublasStatus_t carma_gemv<cuDoubleComplex>(cublasHandle_t cublas_handle,
                                            cuDoubleComplex *vectx, int incx,
                                            cuDoubleComplex beta,
                                            cuDoubleComplex *vecty, int incy) {
-  cublasOperation_t trans2 = carma_char2cublasOperation(trans);
+  cublasOperation_t trans2 = carma_char2cublas_operation(trans);
   return carma_checkCublasStatus(cublasZgemv(cublas_handle, trans2, m, n,
                                              &alpha, matA, lda, vectx, incx,
                                              &beta, vecty, incy));
@@ -557,8 +557,8 @@ cublasStatus_t carma_gemv<half>(cublasHandle_t cublas_handle, char trans, int m,
                                 half *vectx, int incx, half beta, half *vecty,
                                 int incy) {
   int k = (((trans == 'N') || (trans == 'n')) ? n : m);
-  cublasOperation_t transa2 = carma_char2cublasOperation(trans);
-  cublasOperation_t transb2 = carma_char2cublasOperation('N');
+  cublasOperation_t transa2 = carma_char2cublas_operation(trans);
+  cublasOperation_t transb2 = carma_char2cublas_operation('N');
   return carma_checkCublasStatus(cublasHgemm(cublas_handle, transa2, transb2, m,
                                              1, k, &alpha, matA, lda, vectx, n,
                                              &beta, vecty, n));
@@ -667,8 +667,8 @@ cublasStatus_t carma_gemm<float>(cublasHandle_t cublas_handle, char transa,
                                  char transb, int m, int n, int k, float alpha,
                                  float *matA, int lda, float *matB, int ldb,
                                  float beta, float *matC, int ldc) {
-  cublasOperation_t transa2 = carma_char2cublasOperation(transa);
-  cublasOperation_t transb2 = carma_char2cublasOperation(transb);
+  cublasOperation_t transa2 = carma_char2cublas_operation(transa);
+  cublasOperation_t transb2 = carma_char2cublas_operation(transb);
   return carma_checkCublasStatus(cublasSgemm(cublas_handle, transa2, transb2, m,
                                              n, k, &alpha, matA, lda, matB, ldb,
                                              &beta, matC, ldc));
@@ -679,8 +679,8 @@ cublasStatus_t carma_gemm<double>(cublasHandle_t cublas_handle, char transa,
                                   double alpha, double *matA, int lda,
                                   double *matB, int ldb, double beta,
                                   double *matC, int ldc) {
-  cublasOperation_t transa2 = carma_char2cublasOperation(transa);
-  cublasOperation_t transb2 = carma_char2cublasOperation(transb);
+  cublasOperation_t transa2 = carma_char2cublas_operation(transa);
+  cublasOperation_t transb2 = carma_char2cublas_operation(transb);
   return carma_checkCublasStatus(cublasDgemm(cublas_handle, transa2, transb2, m,
                                              n, k, &alpha, matA, lda, matB, ldb,
                                              &beta, matC, ldc));
@@ -690,8 +690,8 @@ cublasStatus_t carma_gemm<cuFloatComplex>(
     cublasHandle_t cublas_handle, char transa, char transb, int m, int n, int k,
     cuFloatComplex alpha, cuFloatComplex *matA, int lda, cuFloatComplex *matB,
     int ldb, cuFloatComplex beta, cuFloatComplex *matC, int ldc) {
-  cublasOperation_t transa2 = carma_char2cublasOperation(transa);
-  cublasOperation_t transb2 = carma_char2cublasOperation(transb);
+  cublasOperation_t transa2 = carma_char2cublas_operation(transa);
+  cublasOperation_t transb2 = carma_char2cublas_operation(transb);
   return carma_checkCublasStatus(cublasCgemm(cublas_handle, transa2, transb2, m,
                                              n, k, &alpha, matA, lda, matB, ldb,
                                              &beta, matC, ldc));
@@ -704,8 +704,8 @@ cublasStatus_t carma_gemm<cuDoubleComplex>(cublasHandle_t cublas_handle,
                                            cuDoubleComplex *matB, int ldb,
                                            cuDoubleComplex beta,
                                            cuDoubleComplex *matC, int ldc) {
-  cublasOperation_t transa2 = carma_char2cublasOperation(transa);
-  cublasOperation_t transb2 = carma_char2cublasOperation(transb);
+  cublasOperation_t transa2 = carma_char2cublas_operation(transa);
+  cublasOperation_t transb2 = carma_char2cublas_operation(transb);
   return carma_checkCublasStatus(cublasZgemm(cublas_handle, transa2, transb2, m,
                                              n, k, &alpha, matA, lda, matB, ldb,
                                              &beta, matC, ldc));
@@ -717,8 +717,8 @@ cublasStatus_t carma_gemm<half>(cublasHandle_t cublas_handle, char transa,
                                 char transb, int m, int n, int k, half alpha,
                                 half *matA, int lda, half *matB, int ldb,
                                 half beta, half *matC, int ldc) {
-  cublasOperation_t transa2 = carma_char2cublasOperation(transa);
-  cublasOperation_t transb2 = carma_char2cublasOperation(transb);
+  cublasOperation_t transa2 = carma_char2cublas_operation(transa);
+  cublasOperation_t transb2 = carma_char2cublas_operation(transb);
   return carma_checkCublasStatus(cublasHgemm(cublas_handle, transa2, transb2, m,
                                              n, k, &alpha, matA, lda, matB, ldb,
                                              &beta, matC, ldc));
@@ -794,7 +794,7 @@ cublasStatus_t carma_syrk<float>(cublasHandle_t cublas_handle, char uplo,
                                  char transa, int n, int k, float alpha,
                                  float *matA, int lda, float beta, float *matC,
                                  int ldc) {
-  cublasOperation_t transa2 = carma_char2cublasOperation(transa);
+  cublasOperation_t transa2 = carma_char2cublas_operation(transa);
   cublasFillMode_t uplo_cublas = carma_char2cublasFillMode(uplo);
   return carma_checkCublasStatus(cublasSsyrk(cublas_handle, uplo_cublas,
                                              transa2, n, k, &alpha, matA, lda,
@@ -805,7 +805,7 @@ cublasStatus_t carma_syrk<double>(cublasHandle_t cublas_handle, char uplo,
                                   char transa, int n, int k, double alpha,
                                   double *matA, int lda, double beta,
                                   double *matC, int ldc) {
-  cublasOperation_t transa2 = carma_char2cublasOperation(transa);
+  cublasOperation_t transa2 = carma_char2cublas_operation(transa);
   cublasFillMode_t uplo_cublas = carma_char2cublasFillMode(uplo);
   return carma_checkCublasStatus(cublasDsyrk(cublas_handle, uplo_cublas,
                                              transa2, n, k, &alpha, matA, lda,
@@ -818,7 +818,7 @@ cublasStatus_t carma_syrk<cuFloatComplex>(cublasHandle_t cublas_handle,
                                           cuFloatComplex *matA, int lda,
                                           cuFloatComplex beta,
                                           cuFloatComplex *matC, int ldc) {
-  cublasOperation_t transa2 = carma_char2cublasOperation(transa);
+  cublasOperation_t transa2 = carma_char2cublas_operation(transa);
   cublasFillMode_t uplo_cublas = carma_char2cublasFillMode(uplo);
   return carma_checkCublasStatus(cublasCsyrk(cublas_handle, uplo_cublas,
                                              transa2, n, k, &alpha, matA, lda,
@@ -831,7 +831,7 @@ cublasStatus_t carma_syrk<cuDoubleComplex>(cublasHandle_t cublas_handle,
                                            cuDoubleComplex *matA, int lda,
                                            cuDoubleComplex beta,
                                            cuDoubleComplex *matC, int ldc) {
-  cublasOperation_t transa2 = carma_char2cublasOperation(transa);
+  cublasOperation_t transa2 = carma_char2cublas_operation(transa);
   cublasFillMode_t uplo_cublas = carma_char2cublasFillMode(uplo);
   return carma_checkCublasStatus(cublasZsyrk(cublas_handle, uplo_cublas,
                                              transa2, n, k, &alpha, matA, lda,
@@ -851,7 +851,7 @@ cublasStatus_t carma_syrkx<float>(cublasHandle_t cublas_handle, char uplo,
                                   char transa, int n, int k, float alpha,
                                   float *matA, int lda, float *matB, int ldb,
                                   float beta, float *matC, int ldc) {
-  cublasOperation_t transa2 = carma_char2cublasOperation(transa);
+  cublasOperation_t transa2 = carma_char2cublas_operation(transa);
   cublasFillMode_t uplo_cublas = carma_char2cublasFillMode(uplo);
   return carma_checkCublasStatus(cublasSsyrkx(cublas_handle, uplo_cublas,
                                               transa2, n, k, &alpha, matA, lda,
@@ -862,7 +862,7 @@ cublasStatus_t carma_syrkx<double>(cublasHandle_t cublas_handle, char uplo,
                                    char transa, int n, int k, double alpha,
                                    double *matA, int lda, double *matB, int ldb,
                                    double beta, double *matC, int ldc) {
-  cublasOperation_t transa2 = carma_char2cublasOperation(transa);
+  cublasOperation_t transa2 = carma_char2cublas_operation(transa);
   cublasFillMode_t uplo_cublas = carma_char2cublasFillMode(uplo);
   return carma_checkCublasStatus(cublasDsyrkx(cublas_handle, uplo_cublas,
                                               transa2, n, k, &alpha, matA, lda,
@@ -873,7 +873,7 @@ cublasStatus_t carma_syrkx<cuFloatComplex>(
     cublasHandle_t cublas_handle, char uplo, char transa, int n, int k,
     cuFloatComplex alpha, cuFloatComplex *matA, int lda, cuFloatComplex *matB,
     int ldb, cuFloatComplex beta, cuFloatComplex *matC, int ldc) {
-  cublasOperation_t transa2 = carma_char2cublasOperation(transa);
+  cublasOperation_t transa2 = carma_char2cublas_operation(transa);
   cublasFillMode_t uplo_cublas = carma_char2cublasFillMode(uplo);
   return carma_checkCublasStatus(cublasCsyrkx(cublas_handle, uplo_cublas,
                                               transa2, n, k, &alpha, matA, lda,
@@ -887,7 +887,7 @@ cublasStatus_t carma_syrkx<cuDoubleComplex>(cublasHandle_t cublas_handle,
                                             cuDoubleComplex *matB, int ldb,
                                             cuDoubleComplex beta,
                                             cuDoubleComplex *matC, int ldc) {
-  cublasOperation_t transa2 = carma_char2cublasOperation(transa);
+  cublasOperation_t transa2 = carma_char2cublas_operation(transa);
   cublasFillMode_t uplo_cublas = carma_char2cublasFillMode(uplo);
   return carma_checkCublasStatus(cublasZsyrkx(cublas_handle, uplo_cublas,
                                               transa2, n, k, &alpha, matA, lda,
@@ -907,8 +907,8 @@ cublasStatus_t carma_geam<float>(cublasHandle_t cublas_handle, char transa,
                                  char transb, int m, int n, float alpha,
                                  float *matA, int lda, float beta, float *matB,
                                  int ldb, float *matC, int ldc) {
-  cublasOperation_t transa2 = carma_char2cublasOperation(transa);
-  cublasOperation_t transb2 = carma_char2cublasOperation(transb);
+  cublasOperation_t transa2 = carma_char2cublas_operation(transa);
+  cublasOperation_t transb2 = carma_char2cublas_operation(transb);
   return carma_checkCublasStatus(cublasSgeam(cublas_handle, transa2, transb2, m,
                                              n, &alpha, matA, lda, &beta, matB,
                                              ldb, matC, ldc));
@@ -919,8 +919,8 @@ cublasStatus_t carma_geam<double>(cublasHandle_t cublas_handle, char transa,
                                   double *matA, int lda, double beta,
                                   double *matB, int ldb, double *matC,
                                   int ldc) {
-  cublasOperation_t transa2 = carma_char2cublasOperation(transa);
-  cublasOperation_t transb2 = carma_char2cublasOperation(transb);
+  cublasOperation_t transa2 = carma_char2cublas_operation(transa);
+  cublasOperation_t transb2 = carma_char2cublas_operation(transb);
   return carma_checkCublasStatus(cublasDgeam(cublas_handle, transa2, transb2, m,
                                              n, &alpha, matA, lda, &beta, matB,
                                              ldb, matC, ldc));
@@ -930,8 +930,8 @@ cublasStatus_t carma_geam<cuFloatComplex>(
     cublasHandle_t cublas_handle, char transa, char transb, int m, int n,
     cuFloatComplex alpha, cuFloatComplex *matA, int lda, cuFloatComplex beta,
     cuFloatComplex *matB, int ldb, cuFloatComplex *matC, int ldc) {
-  cublasOperation_t transa2 = carma_char2cublasOperation(transa);
-  cublasOperation_t transb2 = carma_char2cublasOperation(transb);
+  cublasOperation_t transa2 = carma_char2cublas_operation(transa);
+  cublasOperation_t transb2 = carma_char2cublas_operation(transb);
   return carma_checkCublasStatus(cublasCgeam(cublas_handle, transa2, transb2, m,
                                              n, &alpha, matA, lda, &beta, matB,
                                              ldb, matC, ldc));
@@ -941,8 +941,8 @@ cublasStatus_t carma_geam<cuDoubleComplex>(
     cublasHandle_t cublas_handle, char transa, char transb, int m, int n,
     cuDoubleComplex alpha, cuDoubleComplex *matA, int lda, cuDoubleComplex beta,
     cuDoubleComplex *matB, int ldb, cuDoubleComplex *matC, int ldc) {
-  cublasOperation_t transa2 = carma_char2cublasOperation(transa);
-  cublasOperation_t transb2 = carma_char2cublasOperation(transb);
+  cublasOperation_t transa2 = carma_char2cublas_operation(transa);
+  cublasOperation_t transb2 = carma_char2cublas_operation(transb);
   return carma_checkCublasStatus(cublasZgeam(cublas_handle, transa2, transb2, m,
                                              n, &alpha, matA, lda, &beta, matB,
                                              ldb, matC, ldc));

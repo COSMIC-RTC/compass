@@ -32,10 +32,10 @@
 
 //! \file      carma_context.h
 //! \ingroup   libcarma
-//! \class     carma_context
-//! \brief     this class provides the context in which carma_obj are created
+//! \class     CarmaContext
+//! \brief     this class provides the context in which CarmaObj are created
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -54,135 +54,135 @@
 #include "carma_cusparse.h"
 #include "carma_utils.h"
 
-class carma_device {
+class CarmaDevice {
  protected:
   int id;
   cudaDeviceProp properties;
   float compute_perf;
   float cores_per_sm;
   bool p2p_activate;
-  size_t freeMem;
-  size_t totalMem;
+  size_t free_mem;
+  size_t total_mem;
 
-  cublasHandle_t cublasHandle;
-  cusparseHandle_t cusparseHandle;
-  cudaStream_t mainStream;
+  cublasHandle_t cublas_handle;
+  cusparseHandle_t cusparse_handle;
+  cudaStream_t main_stream;
 
  public:
-  carma_device(int devid);
+  CarmaDevice(int devid);
   int set_cublas_math_mode(bool tensor);
-  // carma_device(const carma_device& device);
-  ~carma_device();
-  cudaStream_t get_stream() { return mainStream; }
+  // CarmaDevice(const CarmaDevice& device);
+  ~CarmaDevice();
+  cudaStream_t get_stream() { return main_stream; }
   int get_id() { return id; }
   cudaDeviceProp get_properties() { return properties; }
   float get_compute_perf() { return compute_perf; }
   float get_cores_per_sm() { return cores_per_sm; }
-  bool isGPUCapableP2P() { return (bool)(properties.major >= 2); }
+  bool is_gpu_capable_p2p() { return (bool)(properties.major >= 2); }
 
-  bool isP2P_active() { return p2p_activate; }
+  bool is_p2p_activate() { return p2p_activate; }
 
-  std::string getName() { return properties.name; }
+  std::string get_name() { return properties.name; }
 
-  size_t getTotalMem() { return totalMem; }
-  size_t getFreeMem() {
-    carmaSafeCall(cudaMemGetInfo(&freeMem, &totalMem));
-    return freeMem;
+  size_t get_total_mem() { return total_mem; }
+  size_t get_free_mem() {
+    carma_safe_call(cudaMemGetInfo(&total_mem, &total_mem));
+    return total_mem;
   }
 
-  cublasHandle_t get_cublasHandle() { return cublasHandle; }
-  cusparseHandle_t get_cusparseHandle() { return cusparseHandle; }
+  cublasHandle_t get_cublas_handle() { return cublas_handle; }
+  cusparseHandle_t get_cusparse_handle() { return cusparse_handle; }
 };
 
-#define set_active_device(newDevice, silent) \
-  _set_active_device(newDevice, silent, __FILE__, __LINE__)
-#define set_active_device_force(newDevice, silent) \
-  _set_active_device_force(newDevice, silent, __FILE__, __LINE__)
-#define set_active_deviceForCpy(newDevice, silent) \
-  _set_active_deviceForCpy(newDevice, silent, __FILE__, __LINE__)
+#define set_active_device(new_device, silent) \
+  _set_active_device(new_device, silent, __FILE__, __LINE__)
+#define set_active_device_force(new_device, silent) \
+  _set_active_device_force(new_device, silent, __FILE__, __LINE__)
+#define set_active_deviceForCpy(new_device, silent) \
+  _set_active_device_for_copy(new_device, silent, __FILE__, __LINE__)
 
-class carma_context {
+class CarmaContext {
  private:
   int ndevice;
-  std::vector<carma_device*> devices;
+  std::vector<CarmaDevice*> devices;
   int active_device;
   int** can_access_peer;
 
   /// singleton context
-  static std::shared_ptr<carma_context> s_instance;
+  static std::shared_ptr<CarmaContext> s_instance;
 
-  carma_context();
-  carma_context(int num_device);
-  carma_context(int nb_devices, int32_t* devices);
+  CarmaContext();
+  CarmaContext(int num_device);
+  CarmaContext(int nb_devices, int32_t* devices);
 
-  carma_context& operator=(const carma_context&) { return *s_instance; }
-  carma_context(const carma_context&)
+  CarmaContext& operator=(const CarmaContext&) { return *s_instance; }
+  CarmaContext(const CarmaContext&)
       : ndevice(0), active_device(0), can_access_peer(nullptr) {}
 
   void init_context(const int nb_devices, int32_t* devices_id);
 
  public:
-  ~carma_context();
+  ~CarmaContext();
 
-  static carma_context& instance_1gpu(int num_device);
-  static carma_context& instance_ngpu(int nb_devices, int32_t* devices_id);
-  static carma_context& instance();
+  static CarmaContext& instance_1gpu(int num_device);
+  static CarmaContext& instance_ngpu(int nb_devices, int32_t* devices_id);
+  static CarmaContext& instance();
 
   int get_ndevice() { return ndevice; }
-  carma_device* get_device(int dev) { return devices[dev]; }
+  CarmaDevice* get_device(int dev) { return devices[dev]; }
   int get_active_device() { return active_device; }
-  int get_activeRealDevice() { return devices[active_device]->get_id(); }
+  int get_active_real_device() { return devices[active_device]->get_id(); }
 
-  int get_cudaRuntimeGetVersion() {
-    int runtimeVersion;
-    carmaSafeCall(cudaRuntimeGetVersion(&runtimeVersion));
-    return runtimeVersion;
+  int get_cuda_runtime_get_version() {
+    int runtime_version;
+    carma_safe_call(cudaRuntimeGetVersion(&runtime_version));
+    return runtime_version;
   }
 
-  int get_cudaDriverGetVersion() {
-    int driverVersion;
-    carmaSafeCall(cudaRuntimeGetVersion(&driverVersion));
-    return driverVersion;
+  int get_cuda_driver_get_version() {
+    int driver_version;
+    carma_safe_call(cudaRuntimeGetVersion(&driver_version));
+    return driver_version;
   }
 
-  std::string get_DeviceName(int device);
-  std::string get_DeviceInfo(int device);
-  std::string get_DeviceMemInfo(int device);
+  std::string get_device_name(int device);
+  std::string get_device_info(int device);
+  std::string get_device_mem_info(int device);
 
-  inline int _set_active_deviceForCpy(int newDevice, int silent,
+  inline int _set_active_device_for_copy(int new_device, int silent,
                                      std::string file, int line) {
-    if (newDevice > ndevice) return -1;
-    return (can_access_peer[active_device][newDevice] != 1)
-               ? _set_active_device(newDevice, silent, file, line)
+    if (new_device > ndevice) return -1;
+    return (can_access_peer[active_device][new_device] != 1)
+               ? _set_active_device(new_device, silent, file, line)
                : active_device;
   }
-  inline int _set_active_device(int newDevice, int silent, std::string file,
+  inline int _set_active_device(int new_device, int silent, std::string file,
                                int line) {
-    return (this->active_device != newDevice)
-               ? _set_active_device_force(newDevice, silent, file, line)
+    return (this->active_device != new_device)
+               ? _set_active_device_force(new_device, silent, file, line)
                : active_device;
   }
-  int _set_active_device_force(int newDevice, int silent, std::string file,
+  int _set_active_device_force(int new_device, int silent, std::string file,
                              int line);
-  int get_maxGflopsDeviceId();
-  cublasHandle_t get_cublasHandle() { return get_cublasHandle(active_device); }
-  cusparseHandle_t get_cusparseHandle() {
-    return get_cusparseHandle(active_device);
+  int get_max_gflops_device_id();
+  cublasHandle_t get_cublas_handle() { return get_cublas_handle(active_device); }
+  cusparseHandle_t get_cusparse_handle() {
+    return get_cusparse_handle(active_device);
   }
 
-  cublasHandle_t get_cublasHandle(int device) {
-    return devices[device]->get_cublasHandle();
+  cublasHandle_t get_cublas_handle(int device) {
+    return devices[device]->get_cublas_handle();
   }
-  cusparseHandle_t get_cusparseHandle(int device) {
-    return devices[device]->get_cusparseHandle();
+  cusparseHandle_t get_cusparse_handle(int device) {
+    return devices[device]->get_cusparse_handle();
   }
-  bool canP2P(int dev1, int dev2) { return can_access_peer[dev1][dev2]; }
+  bool can_p2p(int dev1, int dev2) { return can_access_peer[dev1][dev2]; }
 
   std::string magma_info();
 };
 
 /// from /usr/local/cuda/samples/common/inc/helper_cuda.h
-inline int ConvertSMVer2Cores(int major, int minor) {
+inline int convert_sm_version2cores(int major, int minor) {
   // Defines for GPU Architecture types (using the SM version to determine the #
   // of cores per SM
   typedef struct {

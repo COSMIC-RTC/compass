@@ -6,9 +6,7 @@ from shesha.supervisor.compassSupervisor import CompassSupervisor as Supervisor
 from scipy.ndimage.measurements import center_of_mass
 
 precision = 1e-2
-sup = Supervisor(
-        os.getenv("COMPASS_ROOT") +
-        "/shesha/tests/pytest/par/test_sh.py")
+sup = Supervisor(os.getenv("COMPASS_ROOT") + "/shesha/tests/pytest/par/test_sh.py")
 sup.config.p_controller0.set_delay(0.0)
 sup.init_config()
 sup.single_next()
@@ -17,10 +15,12 @@ sup.close_loop()
 sup._sim.do_control(0)
 rtc = Rtc()
 rtc.add_centroider(sup._sim.context, sup.config.p_wfs0._nvalid,
-                   sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize, False, 0, "cog")
-rtc.add_controller(sup._sim.context, sup.config.p_wfs0._nvalid, sup.config.p_wfs0._nvalid * 2,
-                   sup.config.p_controller0.nactu, sup.config.p_controller0.delay, 0,
-                   "generic", idx_centro=np.zeros(1), ncentro=1)
+                   sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize, False, 0,
+                   "cog")
+rtc.add_controller(sup._sim.context, sup.config.p_wfs0._nvalid,
+                   sup.config.p_wfs0._nvalid * 2, sup.config.p_controller0.nactu,
+                   sup.config.p_controller0.delay, 0, "generic", idx_centro=np.zeros(1),
+                   ncentro=1)
 centro = rtc.d_centro[0]
 control = rtc.d_control[0]
 rtc.d_centro[0].set_npix(sup.config.p_wfs0.npix)
@@ -155,7 +155,7 @@ def test_clipping():
     C_clipped = C.copy()
     C_clipped[np.where(C > 1)] = 1
     C_clipped[np.where(C < -1)] = -1
-    assert (relative_array_error(ng.array(control.d_comClipped).toarray(), C_clipped) <
+    assert (relative_array_error(ng.array(control.d_com_clipped).toarray(), C_clipped) <
             precision)
 
 
@@ -174,26 +174,26 @@ def test_remove_perturb_voltage():
 def test_add_perturb():
     C = np.random.random(sup.config.p_controller0.nactu)
     control.add_perturb_voltage("test", C, 1)
-    com = ng.array(control.d_comClipped).toarray()
+    com = ng.array(control.d_com_clipped).toarray()
     control.add_perturb()
-    assert (relative_array_error(ng.array(control.d_comClipped).toarray(), com + C) <
+    assert (relative_array_error(ng.array(control.d_com_clipped).toarray(), com + C) <
             precision)
 
 
 def test_disable_perturb_voltage():
     control.disable_perturb_voltage("test")
-    com = ng.array(control.d_comClipped).toarray()
+    com = ng.array(control.d_com_clipped).toarray()
     control.add_perturb()
-    assert (relative_array_error(ng.array(control.d_comClipped).toarray(), com) <
+    assert (relative_array_error(ng.array(control.d_com_clipped).toarray(), com) <
             precision)
 
 
 def test_enable_perturb_voltage():
     control.enable_perturb_voltage("test")
-    com = ng.array(control.d_comClipped).toarray()
+    com = ng.array(control.d_com_clipped).toarray()
     C = ng.array(control.d_perturb_map["test"][0]).toarray()
     control.add_perturb()
-    assert (relative_array_error(ng.array(control.d_comClipped).toarray(), com + C) <
+    assert (relative_array_error(ng.array(control.d_com_clipped).toarray(), com + C) <
             precision)
 
 
@@ -203,9 +203,9 @@ def test_reset_perturb_voltage():
 
 
 def test_comp_voltage():
-    Vmin = -1
-    Vmax = 1
-    control.set_comRange(Vmin, Vmax)
+    volt_min = -1
+    volt_max = 1
+    control.set_comRange(volt_min, volt_max)
     control.comp_voltage()
     C = np.random.random(sup.config.p_controller0.nactu)
     control.add_perturb_voltage("test", C, 1)
@@ -218,8 +218,8 @@ def test_comp_voltage():
     b = 1 - a
     commands = a * com0 + b * com1
     comPertu = commands + C
-    comPertu[np.where(comPertu > Vmax)] = Vmax
-    comPertu[np.where(comPertu < Vmin)] = Vmin
+    comPertu[np.where(comPertu > volt_max)] = volt_max
+    comPertu[np.where(comPertu < volt_min)] = volt_min
     assert (relative_array_error(ng.array(control.d_voltage).toarray(), comPertu) <
             precision)
 
@@ -231,8 +231,8 @@ def test_remove_centroider():
 
 def test_doCentroids_tcog():
     rtc.add_centroider(sup._sim.context, sup.config.p_wfs0._nvalid,
-                       sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize, False, 0,
-                       "tcog")
+                       sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize,
+                       False, 0, "tcog")
 
     centro = rtc.d_centro[-1]
     threshold = 0.1
@@ -260,8 +260,8 @@ def test_doCentroids_tcog():
 def test_doCentroids_bpcog():
     rtc.remove_centroider(0)
     rtc.add_centroider(sup._sim.context, sup.config.p_wfs0._nvalid,
-                       sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize, False, 0,
-                       "bpcog")
+                       sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize,
+                       False, 0, "bpcog")
 
     centro = rtc.d_centro[-1]
     bpix = 8

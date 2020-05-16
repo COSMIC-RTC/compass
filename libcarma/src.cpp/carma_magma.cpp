@@ -39,7 +39,7 @@
 //! \ingroup   libcarma
 //! \brief     this file provides wrappers to the magma functions
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -198,11 +198,11 @@ int carma_magma_syevd_m_gen(Fn const &ptr_syevd_m, magma_int_t ngpu,
 }
 
 template <class T, typename Fn>
-int carma_magma_svd_cpu_gen(Fn const &ptr_gesvd, carma_host_obj<T> *mat,
-                            carma_host_obj<T> *eigenvals,
-                            carma_host_obj<T> *mod2act,
-                            carma_host_obj<T> *mes2mod) {
-  const long *dims = mat->getDims();
+int carma_magma_svd_cpu_gen(Fn const &ptr_gesvd, CarmaHostObj<T> *mat,
+                            CarmaHostObj<T> *eigenvals,
+                            CarmaHostObj<T> *mod2act,
+                            CarmaHostObj<T> *mes2mod) {
+  const long *dims = mat->get_dims();
   long m = dims[1];
   long n = dims[2];
   long min_mn = m < n ? m : n;
@@ -214,10 +214,10 @@ int carma_magma_svd_cpu_gen(Fn const &ptr_gesvd, carma_host_obj<T> *mat,
   long nb = 128;  // magma_get_sgesvd_nb(n);
   magma_int_t lwork = max(5 * min_mn, (3 * min_mn + max_mn)) * nb;
   dims_data[1] = lwork;
-  carma_host_obj<T> *h_work =
-      new carma_host_obj<T>(dims_data, MA_PAGELOCK);  // PAGELOCK
+  CarmaHostObj<T> *h_work =
+      new CarmaHostObj<T>(dims_data, MA_PAGELOCK);  // PAGELOCK
 
-  carma_host_obj<T> *tmp = new carma_host_obj<T>(mat, MA_PAGELOCK);
+  CarmaHostObj<T> *tmp = new CarmaHostObj<T>(mat, MA_PAGELOCK);
 
   magma_int_t info = 0;
   CHECK_MAGMA(
@@ -236,7 +236,7 @@ int carma_magma_svd_cpu_gen(Fn const &ptr_gesvd, carma_host_obj<T> *mat,
 template <class T, typename Fn>
 int carma_magma_potri_gen(Fn const &ptr_potrf, Fn const &ptr_potri,
                           magma_int_t N, magma_int_t ldda, T *d_iA,
-                          carma_device *device) {
+                          CarmaDevice *device) {
   magma_int_t info = 0;
 
   CHECK_MAGMA(ptr_potrf(magma_uplo_const('L'), N, d_iA, ldda, &info), info,
@@ -343,7 +343,7 @@ int carma_magma_potri_m_gen(Fnf const &ptr_potrf, Fni const &ptr_potri,
                             FnSetMat const &ptr_setmatrix_1D_col_bcyclic,
                             FnGetMat const &ptr_getmatrix_1D_col_bcyclic,
                             long num_gpus, T *h_A, T *d_iA, long N,
-                            carma_device *device) {
+                            CarmaDevice *device) {
   magma_int_t nb = ptr_get_potrf_nb(N);
   magma_int_t ldda = ((N + nb - 1) / nb) * nb;
   magma_int_t lda = N;
@@ -429,7 +429,7 @@ template <class T, class var, typename Fn_mtransfert, typename Fn_mconver,
           typename Fn_mfree>
 var carma_magma_csr2ell_gen(Fn_mtransfert const &mtransfer,
                             Fn_mconver const &mconvert, Fn_mfree const &mfree,
-                            carma_sparse_obj<T> *dA) {
+                            CarmaSparseObj<T> *dA) {
   var A;
 
   if (dA->format != "CSR") {
@@ -470,22 +470,22 @@ var carma_magma_csr2ell_gen(Fn_mtransfert const &mtransfer,
 }
 
 template <class T, class varM, class varV, typename Fn>
-int carma_magma_spmv_gen(Fn spmv, T alpha, varM dA, carma_obj<T> *dx, T beta,
-                         carma_obj<T> *dy) {
+int carma_magma_spmv_gen(Fn spmv, T alpha, varM dA, CarmaObj<T> *dx, T beta,
+                         CarmaObj<T> *dy) {
   varV x, y;
 
   x.memory_location = Magma_DEV;
-  x.num_rows = dx->getNbElem();
+  x.num_rows = dx->get_nb_elements();
   x.num_cols = 1;
   x.nnz = x.num_rows;
-  x.dval = dx->getData();
+  x.dval = dx->get_data();
   x.major = MagmaColMajor;
 
   y.memory_location = Magma_DEV;
-  y.num_rows = dy->getNbElem();
+  y.num_rows = dy->get_nb_elements();
   y.num_cols = 1;
   y.nnz = x.num_rows;
-  y.dval = dy->getData();
+  y.dval = dy->get_data();
   y.major = MagmaColMajor;
 
   magma_queue_t queue;
@@ -539,60 +539,60 @@ int carma_magma_syevd<double>(char jobz, long N, double *mat,
 }
 
 template <class T>
-int carma_magma_syevd(char jobz, carma_obj<T> *mat,
-                      carma_host_obj<T> *eigenvals) {
+int carma_magma_syevd(char jobz, CarmaObj<T> *mat,
+                      CarmaHostObj<T> *eigenvals) {
   DEBUG_TRACE("Not implemented for this data type");
   return EXIT_FAILURE;
 }
 
 template <>
-int carma_magma_syevd<float>(char jobz, caObjS *mat,
-                             carma_host_obj<float> *eigenvals) {
-  long N = mat->getDims(1);
+int carma_magma_syevd<float>(char jobz, CarmaObjS *mat,
+                             CarmaHostObj<float> *eigenvals) {
+  long N = mat->get_dims(1);
 
-  if (N != mat->getDims(2)) {
+  if (N != mat->get_dims(2)) {
     std::cerr << "Matrix must be symmetric" << std::endl;
 
     return EXIT_FAILURE;
   }
   TEST_USE_MAGMA(
       return carma_magma_syevd_gen(magma_ssyevd_gpu, magma_vec_const(jobz), N,
-                                   N, mat->getData(), eigenvals->getData()));
+                                   N, mat->get_data(), eigenvals->get_data()));
 }
 
 template <>
-int carma_magma_syevd<double>(char jobz, caObjD *mat,
-                              carma_host_obj<double> *eigenvals) {
-  long N = mat->getDims(1);
+int carma_magma_syevd<double>(char jobz, CarmaObjD *mat,
+                              CarmaHostObj<double> *eigenvals) {
+  long N = mat->get_dims(1);
 
-  if (N != mat->getDims(2)) {
+  if (N != mat->get_dims(2)) {
     std::cerr << "Matrix must be symmetric" << std::endl;
 
     return EXIT_FAILURE;
   }
   TEST_USE_MAGMA(
       return carma_magma_syevd_gen(magma_dsyevd_gpu, magma_vec_const(jobz), N,
-                                   N, mat->getData(), eigenvals->getData()));
+                                   N, mat->get_data(), eigenvals->get_data()));
 }
 
 /*
- template<> int carma_magma_syevd<float, 2>(char jobz, caObjS *mat,
- carma_host_obj<float> *eigenvals) {
+ template<> int carma_magma_syevd<float, 2>(char jobz, CarmaObjS *mat,
+ CarmaHostObj<float> *eigenvals) {
  MAGMA_TRACE("carma_magma_syevd: this method not implemented !\n");
  return EXIT_FAILURE;
  }
- template<> int carma_magma_syevd<double, 2>(char jobz, caObjD *mat,
- carma_host_obj<double> *eigenvals) {
+ template<> int carma_magma_syevd<double, 2>(char jobz, CarmaObjD *mat,
+ CarmaHostObj<double> *eigenvals) {
  return carma_magma_syevd<double,
  magma_dsyevd_gpu_magmablas>(magma_vec_const(jobz), mat, eigenvals);
  }
- template<> int carma_magma_syevd<float, 3>(char jobz, caObjS *mat,
- carma_host_obj<float> *eigenvals) {
+ template<> int carma_magma_syevd<float, 3>(char jobz, CarmaObjS *mat,
+ CarmaHostObj<float> *eigenvals) {
  MAGMA_TRACE("carma_magma_syevd: this method not implemented !\n");
  return EXIT_FAILURE;
  }
- template<> int carma_magma_syevd<double, 3>(char jobz, caObjD *mat,
- carma_host_obj<double> *eigenvals) {
+ template<> int carma_magma_syevd<double, 3>(char jobz, CarmaObjD *mat,
+ CarmaHostObj<double> *eigenvals) {
  return carma_magma_syevd<double, magma_dsyevd_gpu_kblas>(magma_vec_const(jobz),
  mat, eigenvals);
  }
@@ -621,60 +621,60 @@ int carma_magma_syevd_m<double>(long ngpu, char jobz, long N, double *mat,
 }
 
 template <class T>
-int carma_magma_syevd_m(long ngpu, char jobz, long N, carma_host_obj<T> *mat,
-                        carma_host_obj<T> *eigenvals) {
+int carma_magma_syevd_m(long ngpu, char jobz, long N, CarmaHostObj<T> *mat,
+                        CarmaHostObj<T> *eigenvals) {
   DEBUG_TRACE("Not implemented for this data type");
   return EXIT_FAILURE;
 }
 
 template <>
-int carma_magma_syevd_m<float>(long ngpu, char jobz, carma_host_obj<float> *mat,
-                               carma_host_obj<float> *eigenvals) {
-  long N = mat->getDims(1);
+int carma_magma_syevd_m<float>(long ngpu, char jobz, CarmaHostObj<float> *mat,
+                               CarmaHostObj<float> *eigenvals) {
+  long N = mat->get_dims(1);
 
-  if (N != mat->getDims(2)) {
+  if (N != mat->get_dims(2)) {
     std::cerr << "Matrix must be symmetric" << std::endl;
 
     return EXIT_FAILURE;
   }
   TEST_USE_MAGMA(return carma_magma_syevd_m_gen(
-      magma_ssyevd_m, ngpu, magma_vec_const(jobz), N, mat->getData(),
-      eigenvals->getData()));
+      magma_ssyevd_m, ngpu, magma_vec_const(jobz), N, mat->get_data(),
+      eigenvals->get_data()));
 }
 
 template <>
 int carma_magma_syevd_m<double>(long ngpu, char jobz,
-                                carma_host_obj<double> *mat,
-                                carma_host_obj<double> *eigenvals) {
-  long N = mat->getDims(1);
+                                CarmaHostObj<double> *mat,
+                                CarmaHostObj<double> *eigenvals) {
+  long N = mat->get_dims(1);
 
-  if (N != mat->getDims(2)) {
+  if (N != mat->get_dims(2)) {
     std::cerr << "Matrix must be symmetric" << std::endl;
 
     return EXIT_FAILURE;
   }
   TEST_USE_MAGMA(return carma_magma_syevd_m_gen(
       magma_dsyevd_m, magma_int_t(ngpu), magma_vec_const(jobz), N,
-      mat->getData(), eigenvals->getData()));
+      mat->get_data(), eigenvals->get_data()));
 }
 
 template <class T>
-int carma_magma_syevd_m(long ngpu, char jobz, carma_host_obj<T> *mat,
-                        carma_host_obj<T> *eigenvals, carma_host_obj<T> *U) {
+int carma_magma_syevd_m(long ngpu, char jobz, CarmaHostObj<T> *mat,
+                        CarmaHostObj<T> *eigenvals, CarmaHostObj<T> *U) {
   DEBUG_TRACE("Not implemented for this data type");
   return EXIT_FAILURE;
 }
 
 template <>
-int carma_magma_syevd_m<float>(long ngpu, char jobz, carma_host_obj<float> *mat,
-                               carma_host_obj<float> *eigenvals,
-                               carma_host_obj<float> *U) {
+int carma_magma_syevd_m<float>(long ngpu, char jobz, CarmaHostObj<float> *mat,
+                               CarmaHostObj<float> *eigenvals,
+                               CarmaHostObj<float> *U) {
   TEST_USE_MAGMA(
 
       /* Initialize the matrix */
-      magma_int_t N = mat->getDims(1);
+      magma_int_t N = mat->get_dims(1);
 
-      if (N != mat->getDims(2)) {
+      if (N != mat->get_dims(2)) {
         std::cerr << "Matrix must be symmetric" << std::endl;
         return EXIT_FAILURE;
       }
@@ -687,59 +687,59 @@ int carma_magma_syevd_m<float>(long ngpu, char jobz, carma_host_obj<float> *mat,
 
 template <>
 int carma_magma_syevd_m<double>(long ngpu, char jobz,
-                                carma_host_obj<double> *mat,
-                                carma_host_obj<double> *eigenvals,
-                                carma_host_obj<double> *U) {
+                                CarmaHostObj<double> *mat,
+                                CarmaHostObj<double> *eigenvals,
+                                CarmaHostObj<double> *U) {
   TEST_USE_MAGMA(
 
       /* Initialize the matrix */
-      magma_int_t N = mat->getDims(1);
+      magma_int_t N = mat->get_dims(1);
 
-      if (N != mat->getDims(2)) {
+      if (N != mat->get_dims(2)) {
         std::cerr << "Matrix must be symmetric" << std::endl;
         return EXIT_FAILURE;
       } magma_int_t lda = N;
       lapackf77_dlacpy(MagmaUpperLowerStr, &N, &N, *mat, &lda, *U, &lda);
       return carma_magma_syevd_m_gen(magma_dsyevd_m, ngpu,
-                                     magma_vec_const(jobz), N, U->getData(),
-                                     eigenvals->getData()));
+                                     magma_vec_const(jobz), N, U->get_data(),
+                                     eigenvals->get_data()));
 }
 
 template <class T>
-int carma_magma_svd_cpu(carma_host_obj<T> *mat, carma_host_obj<T> *eigenvals,
-                        carma_host_obj<T> *mod2act,
-                        carma_host_obj<T> *mes2mod) {
+int carma_magma_svd_cpu(CarmaHostObj<T> *mat, CarmaHostObj<T> *eigenvals,
+                        CarmaHostObj<T> *mod2act,
+                        CarmaHostObj<T> *mes2mod) {
   DEBUG_TRACE("Not implemented for this data type");
   return EXIT_FAILURE;
 }
 
 template <>
-int carma_magma_svd_cpu<float>(carma_host_obj<float> *mat,
-                               carma_host_obj<float> *eigenvals,
-                               carma_host_obj<float> *mod2act,
-                               carma_host_obj<float> *mes2mod) {
+int carma_magma_svd_cpu<float>(CarmaHostObj<float> *mat,
+                               CarmaHostObj<float> *eigenvals,
+                               CarmaHostObj<float> *mod2act,
+                               CarmaHostObj<float> *mes2mod) {
   TEST_USE_MAGMA(return carma_magma_svd_cpu_gen<float>(
       magma_sgesvd, mat, eigenvals, mod2act, mes2mod));
 }
 
 template <>
-int carma_magma_svd_cpu<double>(carma_host_obj<double> *mat,
-                                carma_host_obj<double> *eigenvals,
-                                carma_host_obj<double> *mod2act,
-                                carma_host_obj<double> *mes2mod) {
+int carma_magma_svd_cpu<double>(CarmaHostObj<double> *mat,
+                                CarmaHostObj<double> *eigenvals,
+                                CarmaHostObj<double> *mod2act,
+                                CarmaHostObj<double> *mes2mod) {
   TEST_USE_MAGMA(return carma_magma_svd_cpu_gen<double>(
       magma_dgesvd, mat, eigenvals, mod2act, mes2mod));
 }
 
 template <class T>
-int carma_magma_potri(carma_obj<T> *d_iA) {
+int carma_magma_potri(CarmaObj<T> *d_iA) {
   DEBUG_TRACE("Not implemented for this data type");
   return EXIT_FAILURE;
 }
 
 template <>
-int carma_magma_potri<float>(carma_obj<float> *d_iA) {
-  const long *dims = d_iA->getDims();
+int carma_magma_potri<float>(CarmaObj<float> *d_iA) {
+  const long *dims = d_iA->get_dims();
   long N = dims[1];
 
   if (N != dims[2]) {
@@ -750,12 +750,12 @@ int carma_magma_potri<float>(carma_obj<float> *d_iA) {
   }
   TEST_USE_MAGMA(return carma_magma_potri_gen<float>(
       magma_spotrf_gpu, magma_spotri_gpu, N, N, *d_iA,
-      d_iA->getContext()->get_device(d_iA->getDevice())));
+      d_iA->get_context()->get_device(d_iA->get_device())));
 }
 
 template <>
-int carma_magma_potri<double>(carma_obj<double> *d_iA) {
-  const long *dims = d_iA->getDims();
+int carma_magma_potri<double>(CarmaObj<double> *d_iA) {
+  const long *dims = d_iA->get_dims();
   long N = dims[1];
 
   if (N != dims[2]) {
@@ -766,22 +766,22 @@ int carma_magma_potri<double>(carma_obj<double> *d_iA) {
   }
   TEST_USE_MAGMA(return carma_magma_potri_gen<double>(
       magma_dpotrf_gpu, magma_dpotri_gpu, N, N, *d_iA,
-      d_iA->getContext()->get_device(d_iA->getDevice())));
+      d_iA->get_context()->get_device(d_iA->get_device())));
 }
 
 template <class T>
-int carma_magma_potri_m(long num_gpus, carma_host_obj<T> *h_A,
-                        carma_obj<T> *d_iA) {
+int carma_magma_potri_m(long num_gpus, CarmaHostObj<T> *h_A,
+                        CarmaObj<T> *d_iA) {
   DEBUG_TRACE("Not implemented for this data type");
   return EXIT_FAILURE;
 }
 
 template <>
-int carma_magma_potri_m<float>(long num_gpus, carma_host_obj<float> *h_A,
-                               carma_obj<float> *d_iA) {
-  long N = h_A->getDims(1);
+int carma_magma_potri_m<float>(long num_gpus, CarmaHostObj<float> *h_A,
+                               CarmaObj<float> *d_iA) {
+  long N = h_A->get_dims(1);
 
-  if (N != h_A->getDims(2)) {
+  if (N != h_A->get_dims(2)) {
     std::cerr << "Matrix must be square and positive-definite" << std::endl;
 
     return EXIT_FAILURE;
@@ -790,15 +790,15 @@ int carma_magma_potri_m<float>(long num_gpus, carma_host_obj<float> *h_A,
       magma_spotrf_mgpu, magma_spotri_gpu, magma_get_spotrf_nb,
       magma_ssetmatrix_1D_col_bcyclic, magma_sgetmatrix_1D_col_bcyclic,
       num_gpus, *h_A, *d_iA, N,
-      d_iA->getContext()->get_device(d_iA->getDevice())));
+      d_iA->get_context()->get_device(d_iA->get_device())));
 }
 
 template <>
-int carma_magma_potri_m<double>(long num_gpus, carma_host_obj<double> *h_A,
-                                carma_obj<double> *d_iA) {
-  long N = h_A->getDims(1);
+int carma_magma_potri_m<double>(long num_gpus, CarmaHostObj<double> *h_A,
+                                CarmaObj<double> *d_iA) {
+  long N = h_A->get_dims(1);
 
-  if (N != h_A->getDims(2)) {
+  if (N != h_A->get_dims(2)) {
     std::cerr << "Matrix must be square and positive-definite" << std::endl;
 
     return EXIT_FAILURE;
@@ -808,20 +808,20 @@ int carma_magma_potri_m<double>(long num_gpus, carma_host_obj<double> *h_A,
       magma_dpotrf_mgpu, magma_dpotri_gpu, magma_get_dpotrf_nb,
       magma_dsetmatrix_1D_col_bcyclic, magma_dgetmatrix_1D_col_bcyclic,
       num_gpus, *h_A, *d_iA, N,
-      d_iA->getContext()->get_device(d_iA->getDevice())));
+      d_iA->get_context()->get_device(d_iA->get_device())));
 }
 
 template <class T>
-int carma_magma_getri(carma_obj<T> *d_iA) {
+int carma_magma_getri(CarmaObj<T> *d_iA) {
   DEBUG_TRACE("Not implemented for this data type");
   return EXIT_FAILURE;
 }
 
 template <>
-int carma_magma_getri<float>(carma_obj<float> *d_iA) {
-  long N = d_iA->getDims(1);
+int carma_magma_getri<float>(CarmaObj<float> *d_iA) {
+  long N = d_iA->get_dims(1);
 
-  if (N != d_iA->getDims(2)) {
+  if (N != d_iA->get_dims(2)) {
     std::cerr << "Matrix must be square" << std::endl;
 
     return EXIT_FAILURE;
@@ -832,10 +832,10 @@ int carma_magma_getri<float>(carma_obj<float> *d_iA) {
 }
 
 template <>
-int carma_magma_getri<double>(carma_obj<double> *d_iA) {
-  long N = d_iA->getDims(1);
+int carma_magma_getri<double>(CarmaObj<double> *d_iA) {
+  long N = d_iA->get_dims(1);
 
-  if (N != d_iA->getDims(2)) {
+  if (N != d_iA->get_dims(2)) {
     std::cerr << "Matrix must be square" << std::endl;
 
     return EXIT_FAILURE;
@@ -845,16 +845,16 @@ int carma_magma_getri<double>(carma_obj<double> *d_iA) {
 }
 
 template <class T>
-int carma_magma_potri_cpu(carma_host_obj<T> *h_A) {
+int carma_magma_potri_cpu(CarmaHostObj<T> *h_A) {
   DEBUG_TRACE("Not implemented for this data type");
   return EXIT_FAILURE;
 }
 
 template <>
-int carma_magma_potri_cpu<float>(carma_host_obj<float> *h_A) {
-  long N = h_A->getDims(1);
+int carma_magma_potri_cpu<float>(CarmaHostObj<float> *h_A) {
+  long N = h_A->get_dims(1);
 
-  if (N != h_A->getDims(2)) {
+  if (N != h_A->get_dims(2)) {
     std::cerr << "Matrix must be symmetric" << std::endl;
 
     return EXIT_FAILURE;
@@ -864,10 +864,10 @@ int carma_magma_potri_cpu<float>(carma_host_obj<float> *h_A) {
 }
 
 template <>
-int carma_magma_potri_cpu<double>(carma_host_obj<double> *h_A) {
-  long N = h_A->getDims(1);
+int carma_magma_potri_cpu<double>(CarmaHostObj<double> *h_A) {
+  long N = h_A->get_dims(1);
 
-  if (N != h_A->getDims(2)) {
+  if (N != h_A->get_dims(2)) {
     std::cerr << "Matrix must be symmetric" << std::endl;
 
     return EXIT_FAILURE;
@@ -895,16 +895,16 @@ int carma_magma_potri_cpu<double>(long N, double *h_A) {
 }
 
 template <class T>
-int carma_magma_getri_cpu(carma_host_obj<T> *h_A) {
+int carma_magma_getri_cpu(CarmaHostObj<T> *h_A) {
   DEBUG_TRACE("Not implemented for this data type");
   return EXIT_FAILURE;
 }
 
 template <>
-int carma_magma_getri_cpu<float>(carma_host_obj<float> *h_A) {
-  long N = h_A->getDims(1);
+int carma_magma_getri_cpu<float>(CarmaHostObj<float> *h_A) {
+  long N = h_A->get_dims(1);
 
-  if (N != h_A->getDims(2)) {
+  if (N != h_A->get_dims(2)) {
     std::cerr << "Matrix must be symmetric" << std::endl;
 
     return EXIT_FAILURE;
@@ -915,10 +915,10 @@ int carma_magma_getri_cpu<float>(carma_host_obj<float> *h_A) {
 }
 
 template <>
-int carma_magma_getri_cpu<double>(carma_host_obj<double> *h_A) {
-  long N = h_A->getDims(1);
+int carma_magma_getri_cpu<double>(CarmaHostObj<double> *h_A) {
+  long N = h_A->get_dims(1);
 
-  if (N != h_A->getDims(2)) {
+  if (N != h_A->get_dims(2)) {
     std::cerr << "Matrix must be symmetric" << std::endl;
 
     return EXIT_FAILURE;
@@ -946,18 +946,18 @@ int carma_magma_getri_cpu<double>(long N, double *h_A) {
 }
 
 template <class T>
-int carma_magma_syevd_cpu(char jobz, carma_host_obj<T> *h_A,
-                          carma_host_obj<T> *eigenvals) {
+int carma_magma_syevd_cpu(char jobz, CarmaHostObj<T> *h_A,
+                          CarmaHostObj<T> *eigenvals) {
   DEBUG_TRACE("Not implemented for this data type");
   return EXIT_FAILURE;
 }
 
 template <>
-int carma_magma_syevd_cpu<float>(char jobz, carma_host_obj<float> *h_A,
-                                 carma_host_obj<float> *eigenvals) {
-  long N = h_A->getDims(1);
+int carma_magma_syevd_cpu<float>(char jobz, CarmaHostObj<float> *h_A,
+                                 CarmaHostObj<float> *eigenvals) {
+  long N = h_A->get_dims(1);
 
-  if (N != h_A->getDims(2)) {
+  if (N != h_A->get_dims(2)) {
     std::cerr << "Matrix must be symmetric" << std::endl;
 
     return EXIT_FAILURE;
@@ -967,11 +967,11 @@ int carma_magma_syevd_cpu<float>(char jobz, carma_host_obj<float> *h_A,
 }
 
 template <>
-int carma_magma_syevd_cpu<double>(char jobz, carma_host_obj<double> *h_A,
-                                  carma_host_obj<double> *eigenvals) {
-  long N = h_A->getDims(1);
+int carma_magma_syevd_cpu<double>(char jobz, CarmaHostObj<double> *h_A,
+                                  CarmaHostObj<double> *eigenvals) {
+  long N = h_A->get_dims(1);
 
-  if (N != h_A->getDims(2)) {
+  if (N != h_A->get_dims(2)) {
     std::cerr << "Matrix must be symmetric" << std::endl;
 
     return EXIT_FAILURE;
@@ -1089,15 +1089,15 @@ int carma_magma_gemv<double>(char trans, int m, int n, double alpha,
 }
 
 template <class T>
-int carma_magma_csr2ell(carma_sparse_obj<T> *dA) {
+int carma_magma_csr2ell(CarmaSparseObj<T> *dA) {
   DEBUG_TRACE("Not implemented for this data type");
   return EXIT_FAILURE;
 }
 
 template <>
-int carma_magma_csr2ell<float>(carma_sparse_obj<float> *dA) {
+int carma_magma_csr2ell<float>(CarmaSparseObj<float> *dA) {
   TEST_USE_SMAGMA(
-      dA->s_spMat = carma_magma_csr2ell_gen<float, magma_s_sparse_matrix>(
+      dA->s_sparse_mat = carma_magma_csr2ell_gen<float, magma_s_sparse_matrix>(
           magma_s_mtransfer, magma_s_mconvert, magma_s_mfree, dA);
 
       return EXIT_SUCCESS;
@@ -1106,9 +1106,9 @@ int carma_magma_csr2ell<float>(carma_sparse_obj<float> *dA) {
 }
 
 template <>
-int carma_magma_csr2ell<double>(carma_sparse_obj<double> *dA) {
+int carma_magma_csr2ell<double>(CarmaSparseObj<double> *dA) {
   TEST_USE_SMAGMA(
-      dA->d_spMat = carma_magma_csr2ell_gen<double, magma_d_sparse_matrix>(
+      dA->d_sparse_mat = carma_magma_csr2ell_gen<double, magma_d_sparse_matrix>(
           magma_d_mtransfer, magma_d_mconvert, magma_d_mfree, dA);
       return EXIT_SUCCESS;
 
@@ -1116,80 +1116,80 @@ int carma_magma_csr2ell<double>(carma_sparse_obj<double> *dA) {
 }
 
 template <class T>
-int carma_magma_spmv(T alpha, carma_sparse_obj<T> *dA, carma_obj<T> *dx, T beta,
-                     carma_obj<T> *dy) {
+int carma_magma_spmv(T alpha, CarmaSparseObj<T> *dA, CarmaObj<T> *dx, T beta,
+                     CarmaObj<T> *dy) {
   DEBUG_TRACE("Not implemented for this data type");
   return EXIT_FAILURE;
 }
 
 template <>
-int carma_magma_spmv<float>(float alpha, carma_sparse_obj<float> *dA,
-                            carma_obj<float> *dx, float beta,
-                            carma_obj<float> *dy) {
+int carma_magma_spmv<float>(float alpha, CarmaSparseObj<float> *dA,
+                            CarmaObj<float> *dx, float beta,
+                            CarmaObj<float> *dy) {
   if (dA->format != "ELL") {
     DEBUG_TRACE("carma_fill_magma_sparse_matrix needs a ELL matrix as input");
     return EXIT_FAILURE;
   }
   TEST_USE_SMAGMA(
       return carma_magma_spmv_gen<float, magma_s_sparse_matrix, magma_s_vector>(
-                 magma_s_spmv, alpha, dA->s_spMat, dx, beta, dy);
+                 magma_s_spmv, alpha, dA->s_sparse_mat, dx, beta, dy);
 
   );
 }
 
 template <>
-int carma_magma_spmv<double>(double alpha, carma_sparse_obj<double> *dA,
-                             carma_obj<double> *dx, double beta,
-                             carma_obj<double> *dy) {
+int carma_magma_spmv<double>(double alpha, CarmaSparseObj<double> *dA,
+                             CarmaObj<double> *dx, double beta,
+                             CarmaObj<double> *dy) {
   if (dA->format != "ELL") {
     DEBUG_TRACE("carma_fill_magma_sparse_matrix needs a ELL matrix as input");
     return EXIT_FAILURE;
   }
   TEST_USE_SMAGMA(return carma_magma_spmv_gen<double, magma_d_sparse_matrix,
                                               magma_d_vector>(
-                             magma_d_spmv, alpha, dA->d_spMat, dx, beta, dy);
+                             magma_d_spmv, alpha, dA->d_sparse_mat, dx, beta, dy);
 
   );
 }
 
 template <class T>
-int carma_magma_sparse_free(carma_sparse_obj<T> *dA) {
+int carma_magma_sparse_free(CarmaSparseObj<T> *dA) {
   DEBUG_TRACE("Not implemented for this data type");
   return EXIT_FAILURE;
 }
 
 template <>
-int carma_magma_sparse_free<float>(carma_sparse_obj<float> *dA) {
+int carma_magma_sparse_free<float>(CarmaSparseObj<float> *dA) {
   if (dA->format != "ELL") {
     return EXIT_FAILURE;
   }
   TEST_USE_SMAGMA(magma_queue_t queue;
                   magma_queue_create(/*devices[ opts->device ],*/ &queue);
-                  int ret = magma_s_mfree(&(dA->s_spMat), queue);
+                  int ret = magma_s_mfree(&(dA->s_sparse_mat), queue);
                   magma_queue_destroy(queue);
 
-                  dA->format = "NONE"; dA->nz_elem = dA->s_spMat.nnz;
-                  dA->d_data = dA->s_spMat.dval;
-                  dA->d_rowind = dA->s_spMat.drow;
-                  dA->d_colind = dA->s_spMat.dcol; return ret;
+                  dA->format = "NONE"; dA->nz_elem = dA->s_sparse_mat.nnz;
+                  dA->d_data = dA->s_sparse_mat.dval;
+                  dA->d_rowind = dA->s_sparse_mat.drow;
+                  dA->d_colind = dA->s_sparse_mat.dcol; return ret;
 
   );
 }
 
 template <>
-int carma_magma_sparse_free<double>(carma_sparse_obj<double> *dA) {
+int carma_magma_sparse_free<double>(CarmaSparseObj<double> *dA) {
   if (dA->format != "ELL") {
     return EXIT_FAILURE;
   }
   TEST_USE_SMAGMA(magma_queue_t queue;
                   magma_queue_create(/*devices[ opts->device ],*/ &queue);
-                  int ret = magma_d_mfree(&(dA->d_spMat), queue);
+                  int ret = magma_d_mfree(&(dA->d_sparse_mat), queue);
                   magma_queue_destroy(queue);
 
-                  dA->format = "NONE"; dA->nz_elem = dA->d_spMat.nnz;
-                  dA->d_data = dA->d_spMat.dval;
-                  dA->d_rowind = dA->d_spMat.drow;
-                  dA->d_colind = dA->d_spMat.dcol; return ret;
+                  dA->format = "NONE"; dA->nz_elem = dA->d_sparse_mat.nnz;
+                  dA->d_data = dA->d_sparse_mat.dval;
+                  dA->d_rowind = dA->d_sparse_mat.drow;
+                  dA->d_colind = dA->d_sparse_mat.dcol; return ret;
 
   );
 }
@@ -1199,28 +1199,28 @@ struct CarmaMagmaInterfacer {
   static void call() {
     force_keep((int (*)(char, long, T_data *, T_data *)) &
                carma_magma_syevd<T_data>);
-    force_keep((int (*)(char, carma_obj<T_data> *, carma_host_obj<T_data> *)) &
+    force_keep((int (*)(char, CarmaObj<T_data> *, CarmaHostObj<T_data> *)) &
                carma_magma_syevd<T_data>);
     force_keep((int (*)(long, char, long, T_data *, T_data *)) &
                carma_magma_syevd_m<T_data>);
-    force_keep((int (*)(long, char, long, carma_host_obj<T_data> *,
-                        carma_host_obj<T_data> *)) &
+    force_keep((int (*)(long, char, long, CarmaHostObj<T_data> *,
+                        CarmaHostObj<T_data> *)) &
                carma_magma_syevd_m<T_data>);
-    force_keep((int (*)(long, char, carma_host_obj<T_data> *,
-                        carma_host_obj<T_data> *, carma_host_obj<T_data> *)) &
+    force_keep((int (*)(long, char, CarmaHostObj<T_data> *,
+                        CarmaHostObj<T_data> *, CarmaHostObj<T_data> *)) &
                carma_magma_syevd_m<T_data>);
     force_keep(&carma_magma_svd_cpu<T_data>);
     force_keep(&carma_magma_getri<T_data>);
     force_keep(&carma_magma_potri<T_data>);
     force_keep(&carma_magma_potri_m<T_data>);
-    force_keep((int (*)(carma_host_obj<T_data> *)) &
+    force_keep((int (*)(CarmaHostObj<T_data> *)) &
                carma_magma_potri_cpu<T_data>);
     force_keep((int (*)(long, T_data *)) & carma_magma_potri_cpu<T_data>);
-    force_keep((int (*)(carma_host_obj<T_data> *)) &
+    force_keep((int (*)(CarmaHostObj<T_data> *)) &
                carma_magma_getri_cpu<T_data>);
     force_keep((int (*)(long, T_data *)) & carma_magma_getri_cpu<T_data>);
     force_keep(
-        (int (*)(char, carma_host_obj<T_data> *, carma_host_obj<T_data> *)) &
+        (int (*)(char, CarmaHostObj<T_data> *, CarmaHostObj<T_data> *)) &
         carma_magma_syevd_cpu<T_data>);
     force_keep((int (*)(char, long, T_data *, T_data *)) &
                carma_magma_syevd_cpu<T_data>);

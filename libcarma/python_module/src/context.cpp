@@ -32,9 +32,9 @@
 
 //! \file      context.cpp
 //! \ingroup   libcarma
-//! \brief     this file provides pybind wrapper for carma_context
+//! \brief     this file provides pybind wrapper for CarmaContext
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -46,24 +46,24 @@
 namespace py = pybind11;
 
 void declare_carmaWrap_context(py::module &mod) {
-  py::class_<carma_device>(mod, "device")
-      .def_property_readonly("id", &carma_device::get_properties)
-      .def_property_readonly("compute_perf", &carma_device::get_compute_perf)
-      .def_property_readonly("cores_per_sm", &carma_device::get_cores_per_sm)
-      .def_property_readonly("p2p_activate", &carma_device::isP2P_active)
-      .def_property_readonly("name", &carma_device::getName)
-      .def_property_readonly("totalMem", &carma_device::getTotalMem)
-      .def_property_readonly("freeMem", &carma_device::getFreeMem);
+  py::class_<CarmaDevice>(mod, "device")
+      .def_property_readonly("id", &CarmaDevice::get_properties)
+      .def_property_readonly("compute_perf", &CarmaDevice::get_compute_perf)
+      .def_property_readonly("cores_per_sm", &CarmaDevice::get_cores_per_sm)
+      .def_property_readonly("p2p_activate", &CarmaDevice::is_p2p_activate)
+      .def_property_readonly("name", &CarmaDevice::get_name)
+      .def_property_readonly("total_mem", &CarmaDevice::get_total_mem)
+      .def_property_readonly("total_mem", &CarmaDevice::get_free_mem);
 
-  py::class_<carma_context>(mod, "context")
-      .def_property_readonly("ndevices", &carma_context::get_ndevice)
+  py::class_<CarmaContext>(mod, "context")
+      .def_property_readonly("ndevices", &CarmaContext::get_ndevice)
 
-      .def_static("get_instance", &carma_context::instance,
+      .def_static("get_instance", &CarmaContext::instance,
                   py::return_value_policy::reference)
-      .def_static("get_instance_1gpu", &carma_context::instance_1gpu,
+      .def_static("get_instance_1gpu", &CarmaContext::instance_1gpu,
                   py::return_value_policy::reference)
       .def_static("get_instance_ngpu",
-                  wy::colCast(carma_context::instance_ngpu),
+                  wy::colCast(CarmaContext::instance_ngpu),
                   py::return_value_policy::reference)
 
       // .def(py::init([](py::buffer data, ::CORBA::Boolean copy) {
@@ -83,28 +83,28 @@ void declare_carmaWrap_context(py::module &mod) {
       //   copy));
       // }))
 
-      .def_property_readonly("ndevice", &carma_context::get_ndevice)
-      .def_property_readonly("active_device", &carma_context::get_active_device)
+      .def_property_readonly("ndevice", &CarmaContext::get_ndevice)
+      .def_property_readonly("active_device", &CarmaContext::get_active_device)
       .def_property_readonly("activeRealDevice",
-                             &carma_context::get_activeRealDevice)
+                             &CarmaContext::get_active_real_device)
       .def_property_readonly("cudaRuntimeGetVersion",
-                             &carma_context::get_cudaRuntimeGetVersion)
+                             &CarmaContext::get_cuda_runtime_get_version)
       .def_property_readonly("driverVersion",
-                             &carma_context::get_cudaDriverGetVersion)
-      .def("get_device", &carma_context::get_device,
+                             &CarmaContext::get_cuda_driver_get_version)
+      .def("get_device", &CarmaContext::get_device,
            py::return_value_policy::reference)
       .def("set_active_device",
-           [](carma_context &cc, int newDevice) {
-             return cc._set_active_device(newDevice, 1, __FILE__, __LINE__);
+           [](CarmaContext &cc, int new_device) {
+             return cc._set_active_device(new_device, 1, __FILE__, __LINE__);
            })
       .def("set_active_device_force",
-           [](carma_context &cc, int newDevice) {
-             return cc._set_active_device_force(newDevice, 0, __FILE__, __LINE__);
+           [](CarmaContext &cc, int new_device) {
+             return cc._set_active_device_force(new_device, 0, __FILE__, __LINE__);
            })
-      // .def("set_active_deviceForCpy", &carma_context::set_active_deviceForCpy);
+      // .def("set_active_deviceForCpy", &CarmaContext::set_active_deviceForCpy);
       .def(
           "activate_tensor_cores",
-          [](carma_context &cc, bool flag) {
+          [](CarmaContext &cc, bool flag) {
             int ndevices = cc.get_ndevice();
             for (int i = 0; i < ndevices; i++) {
               cc.get_device(i)->set_cublas_math_mode(flag);
@@ -113,5 +113,5 @@ void declare_carmaWrap_context(py::module &mod) {
           "Set the cublas math mode using tensor cores or not",
           py::arg("flag"));
 
-  mod.def("deviceSync", &__carmaSafeDeviceSynchronize);
+  mod.def("deviceSync", &__carma_safe_device_synchronize);
 }

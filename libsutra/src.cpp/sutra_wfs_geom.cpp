@@ -32,10 +32,10 @@
 
 //! \file      sutra_wfs_geom.cpp
 //! \ingroup   libsutra
-//! \class     sutra_wfs_geom
+//! \class     SutraWfsGeom
 //! \brief     this class provides the wfs_geom features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -44,15 +44,15 @@
 #include <sutra_utils.h>
 #include <sutra_wfs_geom.h>
 
-sutra_wfs_geom::sutra_wfs_geom(carma_context *context, sutra_telescope *d_tel,
+SutraWfsGeom::SutraWfsGeom(CarmaContext *context, SutraTelescope *d_tel,
                                long nxsub, long nvalid, long nphase, long npup,
                                float pdiam, int device)
-    : sutra_wfs(context, d_tel, nullptr, "geo", nxsub, nvalid, 0, nphase, 0, 0,
+    : SutraWfs(context, d_tel, nullptr, "geo", nxsub, nvalid, 0, nphase, 0, 0,
                 0, npup, pdiam, 0, 0, false, device) {
   context->set_active_device(device, 1);
 
   this->nstreams = 1;  // nvalid/10;
-  this->streams = new carma_streams(nstreams);
+  this->streams = new CarmaStreams(nstreams);
 
   long *dims_data1 = new long[2];
   dims_data1[0] = 1;
@@ -62,28 +62,28 @@ sutra_wfs_geom::sutra_wfs_geom(carma_context *context, sutra_telescope *d_tel,
   dims_data3[0] = 3;
 
   dims_data1[1] = 2 * nvalid;
-  this->d_slopes = new carma_obj<float>(context, dims_data1);
+  this->d_slopes = new CarmaObj<float>(context, dims_data1);
 
   dims_data2[1] = nphase;
   dims_data2[2] = nphase;
-  this->d_offsets = new carma_obj<float>(context, dims_data2);
+  this->d_offsets = new CarmaObj<float>(context, dims_data2);
 
   dims_data1[1] = nvalid;
-  this->d_intensities = new carma_obj<float>(context, dims_data1);
+  this->d_intensities = new CarmaObj<float>(context, dims_data1);
 
-  this->d_fluxPerSub = new carma_obj<float>(context, dims_data1);
-  this->d_validsubsx = new carma_obj<int>(context, dims_data1);
-  this->d_validsubsy = new carma_obj<int>(context, dims_data1);
+  this->d_fluxPerSub = new CarmaObj<float>(context, dims_data1);
+  this->d_validsubsx = new CarmaObj<int>(context, dims_data1);
+  this->d_validsubsy = new CarmaObj<int>(context, dims_data1);
 
   dims_data2[1] = nphase * nphase;
   dims_data2[2] = nvalid;
-  this->d_phasemap = new carma_obj<int>(context, dims_data2);
+  this->d_phasemap = new CarmaObj<int>(context, dims_data2);
   delete[] dims_data1;
   delete[] dims_data2;
   delete[] dims_data3;
 }
 
-sutra_wfs_geom::~sutra_wfs_geom() {
+SutraWfsGeom::~SutraWfsGeom() {
   current_context->set_active_device(device, 1);
   if (this->type != "sh" && this->d_camplipup != 0L) delete this->d_camplipup;
   if (this->type != "sh" && this->d_camplifoc != 0L) delete this->d_camplifoc;
@@ -117,7 +117,7 @@ sutra_wfs_geom::~sutra_wfs_geom() {
   // delete this->current_context;
 }
 
-int sutra_wfs_geom::wfs_initarrays(int *phasemap, float *offsets,
+int SutraWfsGeom::wfs_initarrays(int *phasemap, float *offsets,
                                    float *fluxPerSub, int *validsubsx,
                                    int *validsubsy) {
   current_context->set_active_device(device, 1);
@@ -130,7 +130,7 @@ int sutra_wfs_geom::wfs_initarrays(int *phasemap, float *offsets,
   return EXIT_SUCCESS;
 }
 
-int sutra_wfs_geom::slopes_geom(int type, float *slopes) {
+int SutraWfsGeom::slopes_geom(int type, float *slopes) {
   current_context->set_active_device(device, 1);
   /*
    normalization notes :
@@ -153,8 +153,8 @@ int sutra_wfs_geom::slopes_geom(int type, float *slopes) {
     // float alpha = 0.0328281 * this->d_gs->lambda / this->subapd;
     float alpha = 0.206265 / this->subapd;
     phase_reduce(this->nphase, this->nvalid,
-                 this->d_gs->d_phase->d_screen->getData(), slopes,
-                 this->d_phasemap->getData(), alpha);
+                 this->d_gs->d_phase->d_screen->get_data(), slopes,
+                 this->d_phasemap->get_data(), alpha);
   }
 
   if (type == 1) {
@@ -162,16 +162,16 @@ int sutra_wfs_geom::slopes_geom(int type, float *slopes) {
     float alpha = 0.206265 / this->subapd;
     phase_derive(this->nphase * this->nphase * this->nvalid,
                  this->nphase * this->nphase, this->nvalid, this->nphase,
-                 this->d_gs->d_phase->d_screen->getData(), slopes,
-                 this->d_phasemap->getData(), this->d_pupil->getData(), alpha,
-                 this->d_fluxPerSub->getData());
+                 this->d_gs->d_phase->d_screen->get_data(), slopes,
+                 this->d_phasemap->get_data(), this->d_pupil->get_data(), alpha,
+                 this->d_fluxPerSub->get_data());
   }
 
   return EXIT_SUCCESS;
 }
 
-int sutra_wfs_geom::slopes_geom(int type) {
-  this->slopes_geom(type, this->d_slopes->getData());
+int SutraWfsGeom::slopes_geom(int type) {
+  this->slopes_geom(type, this->d_slopes->get_data());
 
   return EXIT_SUCCESS;
 }

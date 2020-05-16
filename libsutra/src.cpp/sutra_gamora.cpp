@@ -32,17 +32,17 @@
 
 //! \file      sutra_gamora.cpp
 //! \ingroup   libsutra
-//! \class     sutra_gamora
+//! \class     SutraGamora
 //! \brief     this class provides the gamora features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
 #include <carma_magma.h>
 #include <sutra_gamora.h>
 
-sutra_gamora::sutra_gamora(carma_context *context, int device, char *type,
+SutraGamora::SutraGamora(CarmaContext *context, int device, char *type,
                            int nactus, int nmodes, int niter, float *IFvalue,
                            int *IFrowind, int *IFcolind, int IFnz, float *TT,
                            float *pupil, int size, int Npts, float scale,
@@ -93,7 +93,7 @@ sutra_gamora::sutra_gamora(carma_context *context, int device, char *type,
 
   if (strcmp(type, "roket") == 0) {
     // Command error
-    this->d_err = new carma_obj<float>(this->current_context, dims_data2);
+    this->d_err = new CarmaObj<float>(this->current_context, dims_data2);
   }
 
   int *wherephase;
@@ -107,74 +107,74 @@ sutra_gamora::sutra_gamora(carma_context *context, int device, char *type,
     }
   }
   this->d_wherephase =
-      new carma_obj<int>(this->current_context, dims_data1, wherephase);
-  this->d_phase = new carma_obj<float>(this->current_context, dims_data1);
+      new CarmaObj<int>(this->current_context, dims_data1, wherephase);
+  this->d_phase = new CarmaObj<float>(this->current_context, dims_data1);
 
   // dims_data2[1] = size;
   // dims_data2[2] = size;
 
   // spupil
   // this->d_pupil = new
-  // carma_obj<float>(this->current_context,dims_data2,pupil);
+  // CarmaObj<float>(this->current_context,dims_data2,pupil);
   // FFT good size
   dims_data2[1] = fft_size;
   dims_data2[2] = fft_size;
 
-  this->d_psf = new carma_obj<float>(this->current_context, dims_data2);
+  this->d_psf = new CarmaObj<float>(this->current_context, dims_data2);
   this->d_amplipup =
-      new carma_obj<cuFloatComplex>(this->current_context, dims_data2);
+      new CarmaObj<cuFloatComplex>(this->current_context, dims_data2);
 
-  cufftHandle *plan = this->d_amplipup->getPlan();  ///< FFT plan
-  carmafftSafeCall(cufftPlan2d(plan, this->d_amplipup->getDims(1),
-                               this->d_amplipup->getDims(2), CUFFT_C2C));
+  cufftHandle *plan = this->d_amplipup->get_plan();  ///< FFT plan
+  carmafft_safe_call(cufftPlan2d(plan, this->d_amplipup->get_dims(1),
+                               this->d_amplipup->get_dims(2), CUFFT_C2C));
 
   dims_data1[1] = IFnz;
 
-  carma_obj<float> d_val(this->current_context, dims_data1, IFvalue);
-  carma_obj<int> d_row(this->current_context, dims_data1, IFrowind);
+  CarmaObj<float> d_val(this->current_context, dims_data1, IFvalue);
+  CarmaObj<int> d_row(this->current_context, dims_data1, IFrowind);
   dims_data1[1] = this->nactus - 2 + 1;
-  carma_obj<int> d_col(this->current_context, dims_data1, IFcolind);
+  CarmaObj<int> d_col(this->current_context, dims_data1, IFcolind);
   dims_data2[1] = nactus - 2;
   dims_data2[2] = Npts;
-  this->d_IF = new carma_sparse_obj<float>(this->current_context, dims_data2,
-                                           d_val.getData(), d_row.getData(),
-                                           d_col.getData(), IFnz, false);
+  this->d_IF = new CarmaSparseObj<float>(this->current_context, dims_data2,
+                                           d_val.get_data(), d_row.get_data(),
+                                           d_col.get_data(), IFnz, false);
   dims_data2[1] = 2;
   dims_data2[2] = Npts;
-  this->d_TT = new carma_obj<float>(this->current_context, dims_data2, TT);
+  this->d_TT = new CarmaObj<float>(this->current_context, dims_data2, TT);
 
   if (strcmp(type, "Vii") == 0) {
     dims_data2[1] = fft_size;
     dims_data2[2] = fft_size;
-    this->d_term1 = new carma_obj<float>(this->current_context, dims_data2);
-    this->d_term2 = new carma_obj<float>(this->current_context, dims_data2);
+    this->d_term1 = new CarmaObj<float>(this->current_context, dims_data2);
+    this->d_term2 = new CarmaObj<float>(this->current_context, dims_data2);
     this->d_Dphi =
-        new carma_obj<cuFloatComplex>(this->current_context, dims_data2);
+        new CarmaObj<cuFloatComplex>(this->current_context, dims_data2);
     this->d_newmodek =
-        new carma_obj<cuFloatComplex>(this->current_context, dims_data2);
+        new CarmaObj<cuFloatComplex>(this->current_context, dims_data2);
     this->d_pupfft =
-        new carma_obj<cuFloatComplex>(this->current_context, dims_data2);
-    this->d_otftel = new carma_obj<float>(this->current_context, dims_data2);
-    this->d_otfVii = new carma_obj<float>(this->current_context, dims_data2);
-    this->d_mask = new carma_obj<float>(this->current_context, dims_data2);
+        new CarmaObj<cuFloatComplex>(this->current_context, dims_data2);
+    this->d_otftel = new CarmaObj<float>(this->current_context, dims_data2);
+    this->d_otfVii = new CarmaObj<float>(this->current_context, dims_data2);
+    this->d_mask = new CarmaObj<float>(this->current_context, dims_data2);
     dims_data2[1] = nactus;
     dims_data2[2] = nmodes;
-    this->d_Btt = new carma_obj<float>(this->current_context, dims_data2, Btt);
+    this->d_Btt = new CarmaObj<float>(this->current_context, dims_data2, Btt);
     dims_data2[1] = nmodes;
     this->d_covmodes =
-        new carma_obj<float>(this->current_context, dims_data2, covmodes);
+        new CarmaObj<float>(this->current_context, dims_data2, covmodes);
     dims_data1[1] = nmodes;
-    this->h_eigenvals = new carma_host_obj<float>(dims_data1, MA_PAGELOCK);
+    this->h_eigenvals = new CarmaHostObj<float>(dims_data1, MA_PAGELOCK);
     // FFT plans
-    carmafftSafeCall(cufftPlan2d(this->d_pupfft->getPlan(),
-                                 this->d_pupfft->getDims(1),
-                                 this->d_pupfft->getDims(2), CUFFT_C2C));
-    carmafftSafeCall(cufftPlan2d(this->d_newmodek->getPlan(),
-                                 this->d_newmodek->getDims(1),
-                                 this->d_newmodek->getDims(2), CUFFT_C2C));
-    carmafftSafeCall(cufftPlan2d(this->d_Dphi->getPlan(),
-                                 this->d_Dphi->getDims(1),
-                                 this->d_Dphi->getDims(2), CUFFT_C2C));
+    carmafft_safe_call(cufftPlan2d(this->d_pupfft->get_plan(),
+                                 this->d_pupfft->get_dims(1),
+                                 this->d_pupfft->get_dims(2), CUFFT_C2C));
+    carmafft_safe_call(cufftPlan2d(this->d_newmodek->get_plan(),
+                                 this->d_newmodek->get_dims(1),
+                                 this->d_newmodek->get_dims(2), CUFFT_C2C));
+    carmafft_safe_call(cufftPlan2d(this->d_Dphi->get_plan(),
+                                 this->d_Dphi->get_dims(1),
+                                 this->d_Dphi->get_dims(2), CUFFT_C2C));
 
     this->d_amplipup_ngpu.push_back(this->d_amplipup);
     this->d_newmodek_ngpu.push_back(this->d_newmodek);
@@ -194,68 +194,68 @@ sutra_gamora::sutra_gamora(carma_context *context, int device, char *type,
       dims_data2[1] = fft_size;
       dims_data2[2] = fft_size;
       d_amplipup_ngpu.push_back(
-          new carma_obj<cuFloatComplex>(this->current_context, dims_data2));
-      cufftHandle *plan = this->d_amplipup_ngpu[d]->getPlan();  ///< FFT plan
-      carmafftSafeCall(
+          new CarmaObj<cuFloatComplex>(this->current_context, dims_data2));
+      cufftHandle *plan = this->d_amplipup_ngpu[d]->get_plan();  ///< FFT plan
+      carmafft_safe_call(
           cufftPlan2d(plan, dims_data2[1], dims_data2[2], CUFFT_C2C));
       d_term1_ngpu.push_back(
-          new carma_obj<float>(this->current_context, dims_data2));
+          new CarmaObj<float>(this->current_context, dims_data2));
       d_term2_ngpu.push_back(
-          new carma_obj<float>(this->current_context, dims_data2));
+          new CarmaObj<float>(this->current_context, dims_data2));
       d_Dphi_ngpu.push_back(
-          new carma_obj<cuFloatComplex>(this->current_context, dims_data2));
+          new CarmaObj<cuFloatComplex>(this->current_context, dims_data2));
       d_newmodek_ngpu.push_back(
-          new carma_obj<cuFloatComplex>(this->current_context, dims_data2));
+          new CarmaObj<cuFloatComplex>(this->current_context, dims_data2));
       d_pupfft_ngpu.push_back(
-          new carma_obj<cuFloatComplex>(this->current_context, dims_data2));
-      carmafftSafeCall(cufftPlan2d(this->d_pupfft_ngpu[d]->getPlan(),
+          new CarmaObj<cuFloatComplex>(this->current_context, dims_data2));
+      carmafft_safe_call(cufftPlan2d(this->d_pupfft_ngpu[d]->get_plan(),
                                    dims_data2[1], dims_data2[2], CUFFT_C2C));
-      carmafftSafeCall(cufftPlan2d(this->d_newmodek_ngpu[d]->getPlan(),
+      carmafft_safe_call(cufftPlan2d(this->d_newmodek_ngpu[d]->get_plan(),
                                    dims_data2[1], dims_data2[2], CUFFT_C2C));
-      carmafftSafeCall(cufftPlan2d(this->d_Dphi_ngpu[d]->getPlan(),
+      carmafft_safe_call(cufftPlan2d(this->d_Dphi_ngpu[d]->get_plan(),
                                    dims_data2[1], dims_data2[2], CUFFT_C2C));
       dims_data2[1] = nactus;
       dims_data2[2] = nmodes;
       d_Btt_ngpu.push_back(
-          new carma_obj<float>(this->current_context, dims_data2, Btt));
+          new CarmaObj<float>(this->current_context, dims_data2, Btt));
       dims_data2[1] = nmodes;
       d_covmodes_ngpu.push_back(
-          new carma_obj<float>(this->current_context, dims_data2, covmodes));
+          new CarmaObj<float>(this->current_context, dims_data2, covmodes));
       dims_data2[1] = nactus - 2;
       dims_data2[2] = Npts;
 
       dims_data1[1] = IFnz;
-      carma_obj<float> d_val_tmp(this->current_context, dims_data1, IFvalue);
-      carma_obj<int> d_row_tmp(this->current_context, dims_data1, IFrowind);
+      CarmaObj<float> d_val_tmp(this->current_context, dims_data1, IFvalue);
+      CarmaObj<int> d_row_tmp(this->current_context, dims_data1, IFrowind);
       dims_data1[1] = this->nactus - 2 + 1;
-      carma_obj<int> d_col_tmp(this->current_context, dims_data1, IFcolind);
+      CarmaObj<int> d_col_tmp(this->current_context, dims_data1, IFcolind);
 
-      d_IF_ngpu.push_back(new carma_sparse_obj<float>(
-          this->current_context, dims_data2, d_val_tmp.getData(),
-          d_row_tmp.getData(), d_col_tmp.getData(), IFnz, false));
+      d_IF_ngpu.push_back(new CarmaSparseObj<float>(
+          this->current_context, dims_data2, d_val_tmp.get_data(),
+          d_row_tmp.get_data(), d_col_tmp.get_data(), IFnz, false));
 
       dims_data2[1] = 2;
       dims_data2[2] = Npts;
       d_TT_ngpu.push_back(
-          new carma_obj<float>(this->current_context, dims_data2, TT));
+          new CarmaObj<float>(this->current_context, dims_data2, TT));
       dims_data1[1] = Npts;
       d_wherephase_ngpu.push_back(
-          new carma_obj<int>(this->current_context, dims_data1, wherephase));
+          new CarmaObj<int>(this->current_context, dims_data1, wherephase));
       d_phase_ngpu.push_back(
-          new carma_obj<float>(this->current_context, dims_data1));
+          new CarmaObj<float>(this->current_context, dims_data1));
     }
   }
 }
 
-sutra_gamora::~sutra_gamora() {
+SutraGamora::~SutraGamora() {
   this->current_context->set_active_device(this->device, 1);
   if (this->d_err) delete this->d_err;
 
   if (this->d_amplipup) {
-    for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
+    for (std::vector<CarmaObj<cuFloatComplex> *>::iterator it =
              this->d_amplipup_ngpu.begin();
          this->d_amplipup_ngpu.end() != it; ++it) {
-      current_context->set_active_device((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->get_device(), 1);
       delete *it;
     }
   }
@@ -263,125 +263,125 @@ sutra_gamora::~sutra_gamora() {
   if (this->d_psf) delete this->d_psf;
 
   if (this->d_pupfft) {
-    for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
+    for (std::vector<CarmaObj<cuFloatComplex> *>::iterator it =
              this->d_pupfft_ngpu.begin();
          this->d_pupfft_ngpu.end() != it; ++it) {
-      current_context->set_active_device((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->get_device(), 1);
       delete *it;
     }
   }
 
   if (this->d_phase) {
-    for (std::vector<carma_obj<float> *>::iterator it =
+    for (std::vector<CarmaObj<float> *>::iterator it =
              this->d_phase_ngpu.begin();
          this->d_phase_ngpu.end() != it; ++it) {
-      current_context->set_active_device((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->get_device(), 1);
       delete *it;
     }
   }
 
   if (this->d_wherephase) {
-    for (std::vector<carma_obj<int> *>::iterator it =
+    for (std::vector<CarmaObj<int> *>::iterator it =
              this->d_wherephase_ngpu.begin();
          this->d_wherephase_ngpu.end() != it; ++it) {
-      current_context->set_active_device((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->get_device(), 1);
       delete *it;
     }
   }
 
   if (this->d_IF) {
-    for (std::vector<carma_sparse_obj<float> *>::iterator it =
+    for (std::vector<CarmaSparseObj<float> *>::iterator it =
              this->d_IF_ngpu.begin();
          this->d_IF_ngpu.end() != it; ++it) {
-      current_context->set_active_device((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->get_device(), 1);
       delete *it;
     }
   }
 
   if (this->d_term1) {
-    for (std::vector<carma_obj<float> *>::iterator it =
+    for (std::vector<CarmaObj<float> *>::iterator it =
              this->d_term1_ngpu.begin();
          this->d_term1_ngpu.end() != it; ++it) {
-      current_context->set_active_device((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->get_device(), 1);
       delete *it;
     }
 
-    for (std::vector<carma_obj<float> *>::iterator it =
+    for (std::vector<CarmaObj<float> *>::iterator it =
              this->d_term2_ngpu.begin();
          this->d_term2_ngpu.end() != it; ++it) {
-      current_context->set_active_device((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->get_device(), 1);
       delete *it;
     }
-    for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
+    for (std::vector<CarmaObj<cuFloatComplex> *>::iterator it =
              this->d_newmodek_ngpu.begin();
          this->d_newmodek_ngpu.end() != it; ++it) {
-      current_context->set_active_device((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->get_device(), 1);
       delete *it;
     }
     delete this->d_otftel;
     delete this->d_otfVii;
     delete this->d_mask;
-    for (std::vector<carma_obj<float> *>::iterator it =
+    for (std::vector<CarmaObj<float> *>::iterator it =
              this->d_Btt_ngpu.begin();
          this->d_Btt_ngpu.end() != it; ++it) {
-      current_context->set_active_device((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->get_device(), 1);
       delete *it;
     }
-    for (std::vector<carma_obj<float> *>::iterator it =
+    for (std::vector<CarmaObj<float> *>::iterator it =
              this->d_covmodes_ngpu.begin();
          this->d_covmodes_ngpu.end() != it; ++it) {
-      current_context->set_active_device((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->get_device(), 1);
       delete *it;
     }
     delete this->h_eigenvals;
-    for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
+    for (std::vector<CarmaObj<cuFloatComplex> *>::iterator it =
              this->d_Dphi_ngpu.begin();
          this->d_Dphi_ngpu.end() != it; ++it) {
-      current_context->set_active_device((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->get_device(), 1);
       delete *it;
     }
-    for (std::vector<carma_obj<float> *>::iterator it = this->d_TT_ngpu.begin();
+    for (std::vector<CarmaObj<float> *>::iterator it = this->d_TT_ngpu.begin();
          this->d_TT_ngpu.end() != it; ++it) {
-      current_context->set_active_device((*it)->getDevice(), 1);
+      current_context->set_active_device((*it)->get_device(), 1);
       delete *it;
     }
   }
 }
 
-int sutra_gamora::psf_rec_roket(float *err) {
+int SutraGamora::psf_rec_roket(float *err) {
   this->current_context->set_active_device(this->device, 1);
   // Get the error command buffer
   this->d_err->host2device(err);
   // set psf to 0
-  carmaSafeCall(cudaMemset(this->d_psf->getData(), 0,
-                           sizeof(float) * this->d_psf->getNbElem()));
+  carma_safe_call(cudaMemset(this->d_psf->get_data(), 0,
+                           sizeof(float) * this->d_psf->get_nb_elements()));
 
   for (int cc = 0; cc < this->niter; cc++) {
     // set amplipup to 0
-    carmaSafeCall(
-        cudaMemset(this->d_amplipup->getData(), 0,
-                   sizeof(cuFloatComplex) * this->d_amplipup->getNbElem()));
+    carma_safe_call(
+        cudaMemset(this->d_amplipup->get_data(), 0,
+                   sizeof(cuFloatComplex) * this->d_amplipup->get_nb_elements()));
     // Apply iter #cc on the DM to get residual phase
-    carma_gemv(this->current_context->get_cusparseHandle(), 't', 1.0f,
-               this->d_IF, this->d_err->getDataAt(cc * this->nactus), 0.0f,
-               this->d_phase->getData());
-    carma_gemv(this->current_context->get_cublasHandle(), 't',
-               this->d_TT->getDims(1), this->d_TT->getDims(2), 1.0f,
-               this->d_TT->getData(), this->d_TT->getDims(1),
-               this->d_err->getDataAt(cc * this->nactus + (this->nactus - 2)),
-               1, 1.0f, this->d_phase->getData(), 1);
+    carma_gemv(this->current_context->get_cusparse_handle(), 't', 1.0f,
+               this->d_IF, this->d_err->get_data_at(cc * this->nactus), 0.0f,
+               this->d_phase->get_data());
+    carma_gemv(this->current_context->get_cublas_handle(), 't',
+               this->d_TT->get_dims(1), this->d_TT->get_dims(2), 1.0f,
+               this->d_TT->get_data(), this->d_TT->get_dims(1),
+               this->d_err->get_data_at(cc * this->nactus + (this->nactus - 2)),
+               1, 1.0f, this->d_phase->get_data(), 1);
 
     // complex amplitude in the pupil put in the fft support
-    fill_amplipup(this->d_amplipup->getData(), this->d_phase->getData(),
-                  this->d_wherephase->getData(), this->scale * (-1), this->Npts,
-                  this->size, this->d_amplipup->getDims()[1], 0,
+    fill_amplipup(this->d_amplipup->get_data(), this->d_phase->get_data(),
+                  this->d_wherephase->get_data(), this->scale * (-1), this->Npts,
+                  this->size, this->d_amplipup->get_dims()[1], 0,
                   this->current_context->get_device(this->device));
     // complex amplitude in the focal plane
-    carma_fft(this->d_amplipup->getData(), this->d_amplipup->getData(), 1,
-              *this->d_amplipup->getPlan());
+    CarmaFFT(this->d_amplipup->get_data(), this->d_amplipup->get_data(), 1,
+              *this->d_amplipup->get_plan());
     // take square modulus and add it a the psf LE
-    cumulpsf(this->d_psf->getData(), this->d_amplipup->getData(),
-             this->d_psf->getDims(1) * this->d_psf->getDims(2),
+    cumulpsf(this->d_psf->get_data(), this->d_amplipup->get_data(),
+             this->d_psf->get_dims(1) * this->d_psf->get_dims(2),
              current_context->get_device(device));
 
     printf("\rComputing and stacking %d PSFs : %d%%", this->niter,
@@ -389,89 +389,89 @@ int sutra_gamora::psf_rec_roket(float *err) {
   }
   // rescale because of fft and number of iterations
   this->d_psf->scale(
-      1.0f / (this->d_wherephase->getDims(1) * this->d_wherephase->getDims(1)),
+      1.0f / (this->d_wherephase->get_dims(1) * this->d_wherephase->get_dims(1)),
       1);
   this->d_psf->scale(1.0f / this->niter, 1);
   // DEBUG_TRACE("%d %d",this->Npts*this->Npts*this->niter,this->niter);
   return EXIT_SUCCESS;
 }
 
-int sutra_gamora::psf_rec_Vii() {
+int SutraGamora::psf_rec_Vii() {
   // Telescope OTF computation and mask
   // Get the pupil
   this->current_context->set_active_device(this->device, 1);
 
   printf("Computing Telescope OTF and corresponding mask...\n");
-  carmaSafeCall(
-      cudaMemset(this->d_pupfft->getData(), 0,
-                 sizeof(cuFloatComplex) * this->d_pupfft->getNbElem()));
-  carmaSafeCall(cudaMemset(this->d_otftel->getData(), 0,
-                           sizeof(float) * this->d_otftel->getNbElem()));
+  carma_safe_call(
+      cudaMemset(this->d_pupfft->get_data(), 0,
+                 sizeof(cuFloatComplex) * this->d_pupfft->get_nb_elements()));
+  carma_safe_call(cudaMemset(this->d_otftel->get_data(), 0,
+                           sizeof(float) * this->d_otftel->get_nb_elements()));
 
-  fill_amplipup(this->d_pupfft->getData(), this->d_term1->getData(),
-                this->d_wherephase->getData(), 1.0f, this->Npts, this->size,
-                this->d_pupfft->getDims(1), 1,
+  fill_amplipup(this->d_pupfft->get_data(), this->d_term1->get_data(),
+                this->d_wherephase->get_data(), 1.0f, this->Npts, this->size,
+                this->d_pupfft->get_dims(1), 1,
                 this->current_context->get_device(this->device));
   // compute fft(pupil)
 
-  carma_fft(this->d_pupfft->getData(), this->d_pupfft->getData(), 1,
-            *this->d_pupfft->getPlan());
+  CarmaFFT(this->d_pupfft->get_data(), this->d_pupfft->get_data(), 1,
+            *this->d_pupfft->get_plan());
   // compute pupfft * conjpupfft as abs(pupfft)**2 and store it in
   // the real part of d_amplipup
-  abs2complex(this->d_amplipup->getData(), this->d_pupfft->getData(),
-              this->d_pupfft->getNbElem(),
+  abs2complex(this->d_amplipup->get_data(), this->d_pupfft->get_data(),
+              this->d_pupfft->get_nb_elements(),
               this->current_context->get_device(this->device));
   // compute ifft(pupfft*conjpupfft)
 
-  carma_fft(this->d_amplipup->getData(), this->d_amplipup->getData(), -1,
-            *this->d_amplipup->getPlan());
-  ifftscale(this->d_amplipup->getData(), 1.0f / this->d_amplipup->getNbElem(),
-            this->d_amplipup->getNbElem(),
+  CarmaFFT(this->d_amplipup->get_data(), this->d_amplipup->get_data(), -1,
+            *this->d_amplipup->get_plan());
+  ifftscale(this->d_amplipup->get_data(), 1.0f / this->d_amplipup->get_nb_elements(),
+            this->d_amplipup->get_nb_elements(),
             this->current_context->get_device(this->device));
   // Get telescope OTF as real part of amplipup
-  real(this->d_otftel->getData(), this->d_amplipup->getData(),
-       this->d_amplipup->getNbElem(),
+  real(this->d_otftel->get_data(), this->d_amplipup->get_data(),
+       this->d_amplipup->get_nb_elements(),
        this->current_context->get_device(this->device));
   // Deduce the mask from telescope OTF
-  fill_mask(this->d_mask->getData(), this->d_otftel->getData(),
-            this->d_mask->getNbElem(), this->Npts,
+  fill_mask(this->d_mask->get_data(), this->d_otftel->get_data(),
+            this->d_mask->get_nb_elements(), this->Npts,
             this->current_context->get_device(this->device));
   printf("Done\n");
 
   // OTF|| computation with Vii algorithm
-  carmaSafeCall(cudaMemset(this->d_Dphi->getData(), 0,
-                           sizeof(cuFloatComplex) * this->d_Dphi->getNbElem()));
-  carmaSafeCall(cudaMemset(this->d_otfVii->getData(), 0,
-                           sizeof(float) * this->d_otfVii->getNbElem()));
+  carma_safe_call(cudaMemset(this->d_Dphi->get_data(), 0,
+                           sizeof(cuFloatComplex) * this->d_Dphi->get_nb_elements()));
+  carma_safe_call(cudaMemset(this->d_otfVii->get_data(), 0,
+                           sizeof(float) * this->d_otfVii->get_nb_elements()));
 
   // Diagonalisation of covmodes
   carma_magma_syevd<float>('V', this->d_covmodes, this->h_eigenvals);
 
-  for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
+  for (std::vector<CarmaObj<cuFloatComplex> *>::iterator it =
            this->d_pupfft_ngpu.begin();
        this->d_pupfft_ngpu.end() != it; ++it) {
-    carma_obj<cuFloatComplex> *tmp_pupfft = this->d_pupfft;
+    CarmaObj<cuFloatComplex> *tmp_pupfft = this->d_pupfft;
     if (*it != tmp_pupfft) {
-      current_context->set_active_device((*it)->getDevice(), 1);
-      (*it)->copyFrom(tmp_pupfft->getData(), tmp_pupfft->getNbElem());
+      current_context->set_active_device((*it)->get_device(), 1);
+      (*it)->copy_from(tmp_pupfft->get_data(), tmp_pupfft->get_nb_elements());
     }
   }
-  for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
+  for (std::vector<CarmaObj<cuFloatComplex> *>::iterator it =
            this->d_Dphi_ngpu.begin();
        this->d_Dphi_ngpu.end() != it; ++it) {
     if (*it != this->d_Dphi) {
-      current_context->set_active_device((*it)->getDevice(), 1);
-      carmaSafeCall(
-          cudaMemset((*it)->getData(), 0, sizeof(float) * (*it)->getNbElem()));
+      current_context->set_active_device((*it)->get_device(), 1);
+      carma_safe_call(
+          cudaMemset((*it)->get_data(), 0, sizeof(float) * (*it)->get_nb_elements()));
     }
   }
-  for (std::vector<carma_obj<float> *>::iterator it =
+  for (std::vector<CarmaObj<float> *>::iterator it =
            this->d_covmodes_ngpu.begin();
        this->d_covmodes_ngpu.end() != it; ++it) {
-    carma_obj<float> *tmp_cov = this->d_covmodes;
+    CarmaObj<float> *tmp_cov = this->d_covmodes;
     if (*it != tmp_cov) {
-      current_context->set_active_device((*it)->getDevice(), 1);
-      (*it)->copyFrom(tmp_cov->getData(), tmp_cov->getNbElem());
+      current_context->set_active_device((*it)->get_device(), 1);
+      (*it)->copy_from(tmp_cov->get_data(), tmp_cov->get_nb_elements());
     }
   }
 
@@ -487,20 +487,20 @@ int sutra_gamora::psf_rec_Vii() {
   progress.finish();
   this->current_context->set_active_device(this->device, 1);
 
-  carma_obj<cuFloatComplex> *tmp_vector =
-      new carma_obj<cuFloatComplex>(current_context, this->d_Dphi->getDims());
+  CarmaObj<cuFloatComplex> *tmp_vector =
+      new CarmaObj<cuFloatComplex>(current_context, this->d_Dphi->get_dims());
 
   cuFloatComplex alpha;
   alpha.x = 1.0f;
   alpha.y = 0.0f;
-  for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
+  for (std::vector<CarmaObj<cuFloatComplex> *>::iterator it =
            this->d_Dphi_ngpu.begin();
        this->d_Dphi_ngpu.end() != it; ++it) {
     if (*it != d_Dphi) {
-      if (current_context->canP2P(d_Dphi->getDevice(), (*it)->getDevice())) {
+      if (current_context->can_p2p(d_Dphi->get_device(), (*it)->get_device())) {
         d_Dphi->axpy(alpha, (*it), 1, 1);
       } else {
-        tmp_vector->copyFrom((*it)->getData(), (*it)->getNbElem());
+        tmp_vector->copy_from((*it)->get_data(), (*it)->get_nb_elements());
         d_Dphi->axpy(alpha, tmp_vector, 1, 1);
       }
     }
@@ -508,140 +508,140 @@ int sutra_gamora::psf_rec_Vii() {
   delete tmp_vector;
 
   // ifft(2*Dphi)
-  carma_fft(this->d_Dphi->getData(), this->d_Dphi->getData(), -1,
-            *this->d_Dphi->getPlan());
-  ifftscale(this->d_Dphi->getData(), 1.0f / this->d_Dphi->getNbElem(),
-            this->d_Dphi->getNbElem(),
+  CarmaFFT(this->d_Dphi->get_data(), this->d_Dphi->get_data(), -1,
+            *this->d_Dphi->get_plan());
+  ifftscale(this->d_Dphi->get_data(), 1.0f / this->d_Dphi->get_nb_elements(),
+            this->d_Dphi->get_nb_elements(),
             this->current_context->get_device(this->device));
 
   // OTF = exp(-0.5*real(ifft(2*Dphi)) * mask * scale**2 / otftel) * mask
-  computeOTFvii(this->d_otfVii->getData(), this->d_Dphi->getData(),
-                this->d_otftel->getData(), this->d_mask->getData(), this->scale,
-                this->d_otfVii->getNbElem(),
+  computeOTFvii(this->d_otfVii->get_data(), this->d_Dphi->get_data(),
+                this->d_otftel->get_data(), this->d_mask->get_data(), this->scale,
+                this->d_otfVii->get_nb_elements(),
                 this->current_context->get_device(this->device));
 
   return EXIT_SUCCESS;
 }
 
-void sutra_gamora::compute_Dphi_on_mode_k(int k) {
+void SutraGamora::compute_Dphi_on_mode_k(int k) {
   this->current_context->set_active_device(this->device, 1);
   int ngpu = d_pupfft_ngpu.size();
   if (ngpu < 2) {
-    carmaSafeCall(
-        cudaMemset(this->d_amplipup->getData(), 0,
-                   sizeof(cuFloatComplex) * this->d_amplipup->getNbElem()));
-    carmaSafeCall(
-        cudaMemset(this->d_newmodek->getData(), 0,
-                   sizeof(cuFloatComplex) * this->d_newmodek->getNbElem()));
+    carma_safe_call(
+        cudaMemset(this->d_amplipup->get_data(), 0,
+                   sizeof(cuFloatComplex) * this->d_amplipup->get_nb_elements()));
+    carma_safe_call(
+        cudaMemset(this->d_newmodek->get_data(), 0,
+                   sizeof(cuFloatComplex) * this->d_newmodek->get_nb_elements()));
     // Get the new mode shape from d_U, IF and Btt
-    carma_gemv<float>(this->current_context->get_cublasHandle(), 'n',
-                      this->nactus, this->nmodes, 1.0f, this->d_Btt->getData(),
+    carma_gemv<float>(this->current_context->get_cublas_handle(), 'n',
+                      this->nactus, this->nmodes, 1.0f, this->d_Btt->get_data(),
                       this->nactus,
-                      this->d_covmodes->getDataAt(k * this->nmodes), 1, 0.0f,
-                      this->d_term1->getData(), 1);
-    carma_gemv(this->current_context->get_cusparseHandle(), 't', 1.0f,
-               this->d_IF, this->d_term1->getData(), 0.0f,
-               this->d_phase->getData());
+                      this->d_covmodes->get_data_at(k * this->nmodes), 1, 0.0f,
+                      this->d_term1->get_data(), 1);
+    carma_gemv(this->current_context->get_cusparse_handle(), 't', 1.0f,
+               this->d_IF, this->d_term1->get_data(), 0.0f,
+               this->d_phase->get_data());
 
-    carma_gemv(this->current_context->get_cublasHandle(), 't',
-               this->d_TT->getDims(1), this->d_TT->getDims(2), 1.0f,
-               this->d_TT->getData(), this->d_TT->getDims(1),
-               this->d_term1->getDataAt(this->nactus - 2), 1, 1.0f,
-               this->d_phase->getData(), 1);
-    fill_amplipup(this->d_newmodek->getData(), this->d_phase->getData(),
-                  this->d_wherephase->getData(), 1.0f, this->Npts, this->size,
-                  this->d_newmodek->getDims(1), 2,
+    carma_gemv(this->current_context->get_cublas_handle(), 't',
+               this->d_TT->get_dims(1), this->d_TT->get_dims(2), 1.0f,
+               this->d_TT->get_data(), this->d_TT->get_dims(1),
+               this->d_term1->get_data_at(this->nactus - 2), 1, 1.0f,
+               this->d_phase->get_data(), 1);
+    fill_amplipup(this->d_newmodek->get_data(), this->d_phase->get_data(),
+                  this->d_wherephase->get_data(), 1.0f, this->Npts, this->size,
+                  this->d_newmodek->get_dims(1), 2,
                   this->current_context->get_device(this->device));
     // Compute term2 = abs(fft(newmode))**2
 
-    carma_fft(this->d_newmodek->getData(), this->d_amplipup->getData(), 1,
-              *this->d_amplipup->getPlan());
-    modulus2(this->d_term2->getData(), this->d_amplipup->getData(),
-             this->d_term2->getNbElem(),
+    CarmaFFT(this->d_newmodek->get_data(), this->d_amplipup->get_data(), 1,
+              *this->d_amplipup->get_plan());
+    modulus2(this->d_term2->get_data(), this->d_amplipup->get_data(),
+             this->d_term2->get_nb_elements(),
              this->current_context->get_device(this->device));
     // Compute term1 = real(fft(newmodek**2)*conjpupfft)
-    pow2(this->d_newmodek->getData(), this->d_newmodek->getData(),
-         this->d_newmodek->getNbElem(),
+    pow2(this->d_newmodek->get_data(), this->d_newmodek->get_data(),
+         this->d_newmodek->get_nb_elements(),
          this->current_context->get_device(this->device));
-    carma_fft(this->d_newmodek->getData(), this->d_newmodek->getData(), 1,
-              *this->d_newmodek->getPlan());
-    fill_term1(this->d_term1->getData(), this->d_newmodek->getData(),
-               this->d_pupfft->getData(), this->d_term1->getNbElem(),
+    CarmaFFT(this->d_newmodek->get_data(), this->d_newmodek->get_data(), 1,
+              *this->d_newmodek->get_plan());
+    fill_term1(this->d_term1->get_data(), this->d_newmodek->get_data(),
+               this->d_pupfft->get_data(), this->d_term1->get_nb_elements(),
                this->current_context->get_device(this->device));
     // Dphi += (term1 - term2) * eigenvals[k]
-    add2Dphi(this->d_Dphi->getData(), this->d_term1->getData(),
-             this->d_term2->getData(), this->h_eigenvals->getData()[k],
-             this->d_Dphi->getNbElem(),
+    add2Dphi(this->d_Dphi->get_data(), this->d_term1->get_data(),
+             this->d_term2->get_data(), this->h_eigenvals->get_data()[k],
+             this->d_Dphi->get_nb_elements(),
              this->current_context->get_device(this->device));
   } else {
     int cur_device = k % ngpu;
     this->current_context->set_active_device(cur_device, 1);
-    carmaSafeCall(
-        cudaMemset(this->d_amplipup_ngpu[cur_device]->getData(), 0,
+    carma_safe_call(
+        cudaMemset(this->d_amplipup_ngpu[cur_device]->get_data(), 0,
                    sizeof(cuFloatComplex) *
-                       this->d_amplipup_ngpu[cur_device]->getNbElem()));
-    carmaSafeCall(
-        cudaMemset(this->d_newmodek_ngpu[cur_device]->getData(), 0,
+                       this->d_amplipup_ngpu[cur_device]->get_nb_elements()));
+    carma_safe_call(
+        cudaMemset(this->d_newmodek_ngpu[cur_device]->get_data(), 0,
                    sizeof(cuFloatComplex) *
-                       this->d_newmodek_ngpu[cur_device]->getNbElem()));
+                       this->d_newmodek_ngpu[cur_device]->get_nb_elements()));
     // Get the new mode shape from d_U, IF and Btt
     carma_gemv<float>(
-        this->current_context->get_cublasHandle(), 'n', this->nactus,
-        this->nmodes, 1.0f, this->d_Btt_ngpu[cur_device]->getData(),
+        this->current_context->get_cublas_handle(), 'n', this->nactus,
+        this->nmodes, 1.0f, this->d_Btt_ngpu[cur_device]->get_data(),
         this->nactus,
-        this->d_covmodes_ngpu[cur_device]->getDataAt(k * this->nmodes), 1, 0.0f,
-        this->d_term1_ngpu[cur_device]->getData(), 1);
+        this->d_covmodes_ngpu[cur_device]->get_data_at(k * this->nmodes), 1, 0.0f,
+        this->d_term1_ngpu[cur_device]->get_data(), 1);
 
-    carma_gemv(this->current_context->get_cusparseHandle(), 't', 1.0f,
+    carma_gemv(this->current_context->get_cusparse_handle(), 't', 1.0f,
                this->d_IF_ngpu[cur_device],
-               this->d_term1_ngpu[cur_device]->getData(), 0.0f,
-               this->d_phase_ngpu[cur_device]->getData());
+               this->d_term1_ngpu[cur_device]->get_data(), 0.0f,
+               this->d_phase_ngpu[cur_device]->get_data());
 
-    carma_gemv(this->current_context->get_cublasHandle(), 't',
-               this->d_TT_ngpu[cur_device]->getDims(1),
-               this->d_TT_ngpu[cur_device]->getDims(2), 1.0f,
-               this->d_TT_ngpu[cur_device]->getData(),
-               this->d_TT_ngpu[cur_device]->getDims(1),
-               this->d_term1_ngpu[cur_device]->getDataAt(this->nactus - 2), 1,
-               1.0f, this->d_phase_ngpu[cur_device]->getData(), 1);
+    carma_gemv(this->current_context->get_cublas_handle(), 't',
+               this->d_TT_ngpu[cur_device]->get_dims(1),
+               this->d_TT_ngpu[cur_device]->get_dims(2), 1.0f,
+               this->d_TT_ngpu[cur_device]->get_data(),
+               this->d_TT_ngpu[cur_device]->get_dims(1),
+               this->d_term1_ngpu[cur_device]->get_data_at(this->nactus - 2), 1,
+               1.0f, this->d_phase_ngpu[cur_device]->get_data(), 1);
 
-    fill_amplipup(this->d_newmodek_ngpu[cur_device]->getData(),
-                  this->d_phase_ngpu[cur_device]->getData(),
-                  this->d_wherephase_ngpu[cur_device]->getData(), 1.0f,
+    fill_amplipup(this->d_newmodek_ngpu[cur_device]->get_data(),
+                  this->d_phase_ngpu[cur_device]->get_data(),
+                  this->d_wherephase_ngpu[cur_device]->get_data(), 1.0f,
                   this->Npts, this->size,
-                  this->d_newmodek_ngpu[cur_device]->getDims(1), 2,
+                  this->d_newmodek_ngpu[cur_device]->get_dims(1), 2,
                   this->current_context->get_device(cur_device));
     // Compute term2 = abs(fft(newmode))**2
 
-    carma_fft(this->d_newmodek_ngpu[cur_device]->getData(),
-              this->d_amplipup_ngpu[cur_device]->getData(), 1,
-              *this->d_amplipup_ngpu[cur_device]->getPlan());
+    CarmaFFT(this->d_newmodek_ngpu[cur_device]->get_data(),
+              this->d_amplipup_ngpu[cur_device]->get_data(), 1,
+              *this->d_amplipup_ngpu[cur_device]->get_plan());
 
-    modulus2(this->d_term2_ngpu[cur_device]->getData(),
-             this->d_amplipup_ngpu[cur_device]->getData(),
-             this->d_term2_ngpu[cur_device]->getNbElem(),
+    modulus2(this->d_term2_ngpu[cur_device]->get_data(),
+             this->d_amplipup_ngpu[cur_device]->get_data(),
+             this->d_term2_ngpu[cur_device]->get_nb_elements(),
              this->current_context->get_device(cur_device));
     // Compute term1 = real(fft(newmodek**2)*conjpupfft)
-    pow2(this->d_newmodek_ngpu[cur_device]->getData(),
-         this->d_newmodek_ngpu[cur_device]->getData(),
-         this->d_newmodek_ngpu[cur_device]->getNbElem(),
+    pow2(this->d_newmodek_ngpu[cur_device]->get_data(),
+         this->d_newmodek_ngpu[cur_device]->get_data(),
+         this->d_newmodek_ngpu[cur_device]->get_nb_elements(),
          this->current_context->get_device(cur_device));
 
-    carma_fft(this->d_newmodek_ngpu[cur_device]->getData(),
-              this->d_newmodek_ngpu[cur_device]->getData(), 1,
-              *this->d_newmodek_ngpu[cur_device]->getPlan());
+    CarmaFFT(this->d_newmodek_ngpu[cur_device]->get_data(),
+              this->d_newmodek_ngpu[cur_device]->get_data(), 1,
+              *this->d_newmodek_ngpu[cur_device]->get_plan());
 
-    fill_term1(this->d_term1_ngpu[cur_device]->getData(),
-               this->d_newmodek_ngpu[cur_device]->getData(),
-               this->d_pupfft_ngpu[cur_device]->getData(),
-               this->d_term1_ngpu[cur_device]->getNbElem(),
+    fill_term1(this->d_term1_ngpu[cur_device]->get_data(),
+               this->d_newmodek_ngpu[cur_device]->get_data(),
+               this->d_pupfft_ngpu[cur_device]->get_data(),
+               this->d_term1_ngpu[cur_device]->get_nb_elements(),
                this->current_context->get_device(cur_device));
     // Dphi += (term1 - term2) * eigenvals[k]
-    add2Dphi(this->d_Dphi_ngpu[cur_device]->getData(),
-             this->d_term1_ngpu[cur_device]->getData(),
-             this->d_term2_ngpu[cur_device]->getData(),
-             this->h_eigenvals->getData()[k],
-             this->d_Dphi_ngpu[cur_device]->getNbElem(),
+    add2Dphi(this->d_Dphi_ngpu[cur_device]->get_data(),
+             this->d_term1_ngpu[cur_device]->get_data(),
+             this->d_term2_ngpu[cur_device]->get_data(),
+             this->h_eigenvals->get_data()[k],
+             this->d_Dphi_ngpu[cur_device]->get_nb_elements(),
              this->current_context->get_device(cur_device));
   }
 }

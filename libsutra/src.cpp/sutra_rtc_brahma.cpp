@@ -30,19 +30,19 @@
 //  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 // -----------------------------------------------------------------------------
 
-//! \file      sutra_rtc_brahma.cpp
+//! \file      SutraRtc_brahma.cpp
 //! \ingroup   libsutra
-//! \class     sutra_rtc_brahma
+//! \class     SutraRtcBrahma
 //! \brief     this class provides the rtc_brahma features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
 #ifdef USE_BRAHMA
 
-#include <sutra_rtc_brahma.h>
-#include <sutra_rtc_brahmaListenerImpl.h>
+#include <SutraRtc_brahma.h>
+#include <SutraRtcBrahmaListenerImpl.h>
 
 template <typename T>
 BRAHMA::BRAHMADataType get_brahma_datatype() {
@@ -60,10 +60,10 @@ BRAHMA::BRAHMADataType get_brahma_datatype<half>() {
 }
 
 template <typename T>
-sutra_rtc_brahma<T>::sutra_rtc_brahma(carma_context *context,
-                                      sutra_sensors *wfs_,
-                                      sutra_target *target_, ACE_TCHAR *name)
-    : sutra_rtc<float, T, float>(), wfs(wfs_), target(target_) {
+SutraRtcBrahma<T>::SutraRtcBrahma(CarmaContext *context,
+                                      SutraSensors *wfs_,
+                                      SutraTarget *target_, ACE_TCHAR *name)
+    : SutraRtc<float, T, float>(), wfs(wfs_), target(target_) {
   DEBUG_TRACE("init %s", name);
   BRAHMA::BRAHMA_context brahma = BRAHMA::BRAHMA_context::get_instance(name);
   cmd_listener_servant = NULL;
@@ -104,9 +104,9 @@ sutra_rtc_brahma<T>::sutra_rtc_brahma(carma_context *context,
     /*
         // Create an BRAHMA Command listener
         brahma.register_command_type(topics[BRAHMA::CommandType]);
-        cmd_listener = (new sutra_rtc_brahmaListenerImpl);
+        cmd_listener = (new SutraRtcBrahmaListenerImpl);
         cmd_listener_servant =
-            dynamic_cast<sutra_rtc_brahmaListenerImpl *>(cmd_listener.in());
+            dynamic_cast<SutraRtcBrahmaListenerImpl *>(cmd_listener.in());
 
         if (CORBA::is_nil(cmd_listener.in())) {
           throw "BRAHMA Command listener is nil.";
@@ -162,7 +162,7 @@ sutra_rtc_brahma<T>::sutra_rtc_brahma(carma_context *context,
 }
 
 template <typename T>
-sutra_rtc_brahma<T>::~sutra_rtc_brahma() {
+SutraRtcBrahma<T>::~SutraRtcBrahma() {
   if (!is_initialised) {
     return;
   }
@@ -185,7 +185,7 @@ sutra_rtc_brahma<T>::~sutra_rtc_brahma() {
 }
 
 template <typename T>
-void sutra_rtc_brahma<T>::allocateBuffers() {
+void SutraRtcBrahma<T>::allocate_buffers() {
   if (!is_initialised) {
     return;
   }
@@ -197,13 +197,13 @@ void sutra_rtc_brahma<T>::allocateBuffers() {
     target_phase_size = 0;
     if (target != 0L) {
       for (unsigned int i = 0; i < wfs->d_wfs.size(); i++) {
-        wfs_size += wfs->d_wfs[i]->d_binimg->getNbElem();
-        wfs_phase_size += wfs->d_wfs[i]->d_gs->d_phase->d_screen->getNbElem();
+        wfs_size += wfs->d_wfs[i]->d_binimg->get_nb_elements();
+        wfs_phase_size += wfs->d_wfs[i]->d_gs->d_phase->d_screen->get_nb_elements();
       }
       for (unsigned int i = 0; i < target->d_targets.size(); i++) {
-        target_size += target->d_targets[i]->d_image_se->getNbElem();
+        target_size += target->d_targets[i]->d_image_se->get_nb_elements();
         target_phase_size +=
-            target->d_targets[i]->d_phase->d_screen->getNbElem();
+            target->d_targets[i]->d_phase->d_screen->get_nb_elements();
       }
     }
 
@@ -257,13 +257,13 @@ void sutra_rtc_brahma<T>::allocateBuffers() {
 }
 
 template <typename T>
-void sutra_rtc_brahma<T>::publish() {
+void SutraRtcBrahma<T>::publish() {
   if (!is_initialised) {
     cerr << "brahma not initialised!" << endl;
     return;
   }
 
-  if (buff_intensities == NULL) allocateBuffers();
+  if (buff_intensities == NULL) allocate_buffers();
 
   CORBA::Float *buff_wfs_servant = (CORBA::Float *)buff_wfs;
   CORBA::Float *buff_wfs_phase_servant = (CORBA::Float *)buff_wfs_phase;
@@ -300,34 +300,34 @@ void sutra_rtc_brahma<T>::publish() {
     for (size_t wfs_i = 0; wfs_i < wfs->d_wfs.size(); wfs_i++) {
       if (wfs->d_wfs[wfs_i]->type == "sh") wfs->d_wfs[wfs_i]->fill_binimage(0);
       wfs->d_wfs[wfs_i]->d_binimg->device2host(buff_wfs_servant + idx);
-      idx += wfs->d_wfs[wfs_i]->d_binimg->getNbElem();
+      idx += wfs->d_wfs[wfs_i]->d_binimg->get_nb_elements();
       wfs->d_wfs[wfs_i]->d_gs->d_phase->d_screen->device2host(
           buff_wfs_phase_servant + idx_phase);
-      idx_phase += wfs->d_wfs[wfs_i]->d_gs->d_phase->d_screen->getNbElem();
+      idx_phase += wfs->d_wfs[wfs_i]->d_gs->d_phase->d_screen->get_nb_elements();
     }
 
     idx = 0;
     idx_phase = 0;
-    carma_obj<float> tmp_img(target->d_targets[0]->current_context,
-                             target->d_targets[0]->d_image_se->getDims());
+    CarmaObj<float> tmp_img(target->d_targets[0]->current_context,
+                             target->d_targets[0]->d_image_se->get_dims());
     for (size_t i = 0; i < target->d_targets.size(); i++) {
       target->d_targets[i]->comp_image(0, true);
       float flux = 1.0f;
       // target->d_targets[i]->zp * powf(10, -0.4 * target->d_targets[i]->mag);
-      roll_mult<float>(tmp_img.getData(),
-                       target->d_targets[i]->d_image_se->getData(),
-                       target->d_targets[i]->d_image_se->getDims(1),
-                       target->d_targets[i]->d_image_se->getDims(2), flux,
+      roll_mult<float>(tmp_img.get_data(),
+                       target->d_targets[i]->d_image_se->get_data(),
+                       target->d_targets[i]->d_image_se->get_dims(1),
+                       target->d_targets[i]->d_image_se->get_dims(2), flux,
                        target->d_targets[i]->current_context->get_device(
                            target->d_targets[i]->device));
       tmp_img.device2host(buff_target_servant + idx);
 
-      idx += target->d_targets[i]->d_image_se->getNbElem();
+      idx += target->d_targets[i]->d_image_se->get_nb_elements();
 
       target->d_targets[i]->d_phase->d_screen->device2host(
           buff_target_phase_servant + idx_phase);
 
-      idx_phase += target->d_targets[i]->d_phase->d_screen->getNbElem();
+      idx_phase += target->d_targets[i]->d_phase->d_screen->get_nb_elements();
     }
   }
 
@@ -459,9 +459,9 @@ void sutra_rtc_brahma<T>::publish() {
   // ACE_Time_Value ace_wait(0, 25);
   // ACE_OS::sleep(ace_wait);
 }
-template class sutra_rtc_brahma<float>;
+template class SutraRtcBrahma<float>;
 #ifdef CAN_DO_HALF
-template class sutra_rtc_brahma<half>;
+template class SutraRtcBrahma<half>;
 #endif
 
 #endif /* USE_BRAHMA */

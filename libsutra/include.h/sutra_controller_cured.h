@@ -32,10 +32,10 @@
 
 //! \file      sutra_controller_cured.h
 //! \ingroup   libsutra
-//! \class     sutra_controller_cured
+//! \class     SutraControllerCured
 //! \brief     this class provides the controller_cured features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -45,19 +45,19 @@
 #include <sutra_controller.h>
 
 template <typename Tcomp, typename Tout>
-class sutra_controller_cured : public sutra_controller<Tcomp, Tout> {
+class SutraControllerCured : public SutraController<Tcomp, Tout> {
  public:
   int ndivs;     // number of subdivision levels for cured
   bool tt_flag;  // flag for separate tt
 
   // data for CuReD */
-  carma_host_obj<Tcomp> *h_centroids;
-  carma_host_obj<Tcomp> *h_err;
-  carma_obj<Tcomp> *d_err;      // current error
-  carma_obj<Tcomp> *d_cenbuff;  // centroids circular buffer
+  CarmaHostObj<Tcomp> *h_centroids;
+  CarmaHostObj<Tcomp> *h_err;
+  CarmaObj<Tcomp> *d_err;      // current error
+  CarmaObj<Tcomp> *d_cenbuff;  // centroids circular buffer
 
   // data for CuReD */
-  carma_obj<Tcomp> *d_imat;
+  CarmaObj<Tcomp> *d_imat;
 
   // structures needed to run CuReD */
   // sysCure* h_syscure;
@@ -66,11 +66,11 @@ class sutra_controller_cured : public sutra_controller<Tcomp, Tout> {
   void *h_parcure;
 
  public:
-  sutra_controller_cured(carma_context *context, long nvalid, long nslope,
-                         long nactu, float delay, sutra_dms *dms, int *idx_dms,
+  SutraControllerCured(CarmaContext *context, long nvalid, long nslope,
+                         long nactu, float delay, SutraDms *dms, int *idx_dms,
                          int ndm, int *idx_centro, int ncentro);
-  sutra_controller_cured(const sutra_controller_cured &controller);
-  ~sutra_controller_cured();
+  SutraControllerCured(const SutraControllerCured &controller);
+  ~SutraControllerCured();
 
   string get_type() { return "cured"; }
 

@@ -71,14 +71,14 @@ ENDIF(CMAKE_BUILD_TYPE MATCHES "Debug")
 #       $ENV{TAO_ROOT}/orbsvcs
 #       $ENV{DDS_ROOT})
 
-#   set(BRAHMA_CPP src.cpp/sutra_rtc_brahma.cpp
-#       # src.cpp/sutra_rtc_brahmaListenerImpl.cpp
+#   set(BRAHMA_CPP src.cpp/SutraRtc_brahma.cpp
+#       # src.cpp/SutraRtcBrahmaListenerImpl.cpp
 #       src.cpp/sutra_target_brahma.cpp
 #       # src.cpp/sutra_target_brahmaListenerImpl.cpp
 #       )
 
-#   set(BRAHMA_H include.h/sutra_rtc_brahma.h
-#       # include.h/sutra_rtc_brahmaListenerImpl.h
+#   set(BRAHMA_H include.h/SutraRtc_brahma.h
+#       # include.h/SutraRtcBrahmaListenerImpl.h
 #       include.h/sutra_target_brahma.h
 #       # include.h/sutra_target_brahmaListenerImpl.h
 #       )
@@ -101,7 +101,7 @@ ENDIF(CMAKE_BUILD_TYPE MATCHES "Debug")
 add_library(sutra
             SHARED
             src.cpp/sutra_acquisim.cpp
-            src.cpp/sutra_aotemplate.cpp
+            src.cpp/sutra_template.cpp
             src.cpp/sutra_atmos.cpp
             src.cpp/sutra_centroider_bpcog.cpp
             src.cpp/sutra_centroider_cog.cpp
@@ -136,7 +136,7 @@ add_library(sutra
             src.cpp/sutra_wfs_pyr_pyrhr.cpp
             src.cpp/sutra_wfs_sh.cpp
             src.cu/sutra_acquisim.cu
-            src.cu/sutra_aotemplate.cu
+            src.cu/sutra_template.cu
             src.cu/sutra_utils.cu
             src.cu/sutra_centroider.cu
             src.cu/sutra_centroider_cog.cu
@@ -208,7 +208,7 @@ install(TARGETS sutra
         LIBRARY DESTINATION lib)
 
 install(FILES include.h/sutra_acquisim.h
-              include.h/sutra_aotemplate.h
+              include.h/sutra_template.h
               include.h/sutra_atmos.h
               include.h/sutra_centroider_bpcog.h
               include.h/sutra_centroider_cog.h

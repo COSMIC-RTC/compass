@@ -32,9 +32,9 @@
 
 //! \file      carma_utils.cpp
 //! \ingroup   libcarma
-//! \brief     this file provides tools to carma_obj
+//! \brief     this file provides tools to CarmaObj
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -89,18 +89,18 @@ carma_utils::ProgressBar::ProgressBar(int max_, const std::string &desc_)
   desc = desc_ + ": ";
   struct winsize w;
   ioctl(0, TIOCGWINSZ, &w);
-  barWidth = w.ws_col - 2 * (ndigits)-35 - desc.length();
+  bar_width = w.ws_col - 2 * (ndigits)-35 - desc.length();
 };
 
 void carma_utils::ProgressBar::update() {
   count++;
   progress = (double)(count) / max;
-  if (2 * barWidth * progress > prev || progress == 1) {
+  if (2 * bar_width * progress > prev || progress == 1) {
     prev++;
     int n = (int)(progress * 100.0);
     std::cout << desc << disp(n, 3) << "%|";
-    int pos = barWidth * progress;
-    for (int i = 0; i < barWidth; i++) {
+    int pos = bar_width * progress;
+    for (int i = 0; i < bar_width; i++) {
       if (i < pos) std::cout << "█";
       // else if(i==pos) std::cout << ">";
       else
@@ -126,7 +126,7 @@ void carma_utils::ProgressBar::finish() {
   std::cout << std::endl << "done in " << elapsed.count() << " s" << std::endl;
 };
 
-void getNumBlocksAndThreads(carma_device *device, int n, int &blocks,
+void get_num_blocks_and_threads(CarmaDevice *device, int n, int &blocks,
                             int &threads) {
   // int maxThreads = device->get_properties().maxThreadsPerBlock;
   // blocks = device->get_properties().multiProcessorCount *
@@ -147,12 +147,12 @@ void getNumBlocksAndThreads(carma_device *device, int n, int &blocks,
 
 }
 
-void sumGetNumBlocksAndThreads(int n, carma_device *device, int &blocks,
+void sum_get_num_blocks_and_threads(int n, CarmaDevice *device, int &blocks,
                                int &threads) {
   int maxThreads = device->get_properties().maxThreadsPerBlock;
   int maxBlocks = device->get_properties().multiProcessorCount;
 
-  threads = (n < maxThreads * 2) ? nextPow2((n + 1) / 2) : maxThreads;
+  threads = (n < maxThreads * 2) ? next_pow2((n + 1) / 2) : maxThreads;
   blocks = (n + (threads * 2 - 1)) / (threads * 2);
   blocks = MIN(maxBlocks, blocks);
 }
@@ -250,14 +250,14 @@ float gammln(float xx) {
 }
 }
 
-int printMemInfo() {
+int print_mem_info() {
   size_t free_mem;
   size_t total_mem;
   float free_float;
   float total_float;
   float used_mem;
 
-  carmaSafeCall(cudaMemGetInfo(&free_mem, &total_mem));
+  carma_safe_call(cudaMemGetInfo(&free_mem, &total_mem));
   free_float = (float)free_mem / 1000000.;
   total_float = (float)total_mem / 1000000.;
   used_mem = total_float - free_float;

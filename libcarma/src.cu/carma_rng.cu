@@ -34,7 +34,7 @@
 //! \ingroup   libcarma
 //! \brief     this file provides RNG CUDA kernels
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -56,14 +56,14 @@ __global__ void initPRNG(curandState *s, int n, int *seed, int offset) {
   if (id < n) curand_init(seed[id], threadIdx.x, offset, &s[id]);
 }
 
-int carma_prng_init(int *seed, const int nThreads, const int nBlocks,
+int carma_prng_init(int *seed, const int nb_threads, const int nb_blocks,
                     curandState *state) {
-  dim3 grid(nBlocks);
-  dim3 threads(nThreads);
+  dim3 grid(nb_blocks);
+  dim3 threads(nb_threads);
 
   // Initialise RNG
-  initPRNG<<<grid, threads>>>(state, nThreads * nBlocks, seed, nThreads);
-  carmaCheckMsg("initRNG<<<>>> execution failed\n");
+  initPRNG<<<grid, threads>>>(state, nb_threads * nb_blocks, seed, nb_threads);
+  carma_check_msg("initRNG<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -263,11 +263,11 @@ __global__ void carma_curand_montagn_krn(curandState *state, double *res,
 
 template <class T>
 int carma_curand_montagn(curandState *state, T *d_odata, int N,
-                         carma_device *device) {
-  int nBlocks, nThreads;
-  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
+                         CarmaDevice *device) {
+  int nb_blocks, nb_threads;
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
 
-  dim3 grid(nBlocks), threads(nThreads);
+  dim3 grid(nb_blocks), threads(nb_threads);
   //  dim3 grid(128), threads(128);
 
   carma_curand_montagn_krn<<<grid, threads>>>(state, d_odata, N);
@@ -276,73 +276,73 @@ int carma_curand_montagn(curandState *state, T *d_odata, int N,
 }
 
 template int carma_curand_montagn<float>(curandState *state, float *d_odata,
-                                         int N, carma_device *device);
+                                         int N, CarmaDevice *device);
 
 template int carma_curand_montagn<double>(curandState *state, double *d_odata,
-                                          int N, carma_device *device);
+                                          int N, CarmaDevice *device);
 
 template int carma_curand_montagn<cuFloatComplex>(curandState *state,
                                                   cuFloatComplex *d_odata,
-                                                  int N, carma_device *device);
+                                                  int N, CarmaDevice *device);
 
 template int carma_curand_montagn<cuDoubleComplex>(curandState *state,
                                                    cuDoubleComplex *d_odata,
-                                                   int N, carma_device *device);
+                                                   int N, CarmaDevice *device);
 
 template int carma_curand_montagn<int>(curandState *state, int *d_odata, int N,
-                                       carma_device *device);
+                                       CarmaDevice *device);
 
 template int carma_curand_montagn<unsigned int>(curandState *state,
                                                 unsigned int *d_odata, int N,
-                                                carma_device *device);
+                                                CarmaDevice *device);
 
 template <>
 int carma_curand_montagn<uint16_t>(curandState *state, uint16_t *d_odata, int N,
-                                   carma_device *device) {
+                                   CarmaDevice *device) {
   CARMA_NYI_DEV;
   return EXIT_FAILURE;
 }
 
 template <class T>
-int carma_prng_cu(T *results, const int nThreads, const int nBlocks,
+int carma_prng_cu(T *results, const int nb_threads, const int nb_blocks,
                   curandState *state, char gtype, int n, float alpha,
                   float beta) {
   // dim3 grid(1);
-  dim3 threads(2 * nThreads);
+  dim3 threads(2 * nb_threads);
 
   if (gtype == 'U')
-    carma_curand_uniform<<<nBlocks, nThreads>>>(state, results, n, beta);
+    carma_curand_uniform<<<nb_blocks, nb_threads>>>(state, results, n, beta);
   if (gtype == 'N')
-    carma_curand_normal<<<nBlocks, nThreads>>>(state, results, n, alpha, beta);
+    carma_curand_normal<<<nb_blocks, nb_threads>>>(state, results, n, alpha, beta);
   if (gtype == 'P') {
-    carma_curand_poisson<<<nBlocks, nThreads>>>(state, results, n);
+    carma_curand_poisson<<<nb_blocks, nb_threads>>>(state, results, n);
   }
-  carmaCheckMsg("PRNG<<<>>> execution failed\n");
+  carma_check_msg("PRNG<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
-template int carma_prng_cu(int *results, const int nThreads, const int nBlocks,
+template int carma_prng_cu(int *results, const int nb_threads, const int nb_blocks,
                            curandState *state, char gtype, int n, float alpha,
                            float beta);
-template int carma_prng_cu(unsigned int *results, const int nThreads,
-                           const int nBlocks, curandState *state, char gtype,
+template int carma_prng_cu(unsigned int *results, const int nb_threads,
+                           const int nb_blocks, curandState *state, char gtype,
                            int n, float alpha, float beta);
 
-template int carma_prng_cu(float *results, const int nThreads,
-                           const int nBlocks, curandState *state, char gtype,
+template int carma_prng_cu(float *results, const int nb_threads,
+                           const int nb_blocks, curandState *state, char gtype,
                            int n, float alpha, float beta);
-template int carma_prng_cu(double *results, const int nThreads,
-                           const int nBlocks, curandState *state, char gtype,
+template int carma_prng_cu(double *results, const int nb_threads,
+                           const int nb_blocks, curandState *state, char gtype,
                            int n, float alpha, float beta);
-template int carma_prng_cu(cuFloatComplex *results, const int nThreads,
-                           const int nBlocks, curandState *state, char gtype,
+template int carma_prng_cu(cuFloatComplex *results, const int nb_threads,
+                           const int nb_blocks, curandState *state, char gtype,
                            int n, float alpha, float beta);
-template int carma_prng_cu(cuDoubleComplex *results, const int nThreads,
-                           const int nBlocks, curandState *state, char gtype,
+template int carma_prng_cu(cuDoubleComplex *results, const int nb_threads,
+                           const int nb_blocks, curandState *state, char gtype,
                            int n, float alpha, float beta);
 
 template <>
-int carma_prng_cu(uint16_t *results, const int nThreads, const int nBlocks,
+int carma_prng_cu(uint16_t *results, const int nb_threads, const int nb_blocks,
                   curandState *state, char gtype, int n, float alpha,
                   float beta) {
   CARMA_NYI_DEV;

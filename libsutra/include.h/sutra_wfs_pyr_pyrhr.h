@@ -32,10 +32,10 @@
 
 //! \file      sutra_wfs_pyr_pyrhr.h
 //! \ingroup   libsutra
-//! \class     sutra_wfs_pyr_pyrhr
+//! \class     SutraWfs_PyrHR
 //! \brief     this class provides the wfs_pyr_pyrhr features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -52,44 +52,44 @@
 #include <vector>
 
 using std::string;
-class sutra_wfs_pyr_pyrhr : public sutra_wfs {
+class SutraWfs_PyrHR : public SutraWfs {
  public:
   long npupils;
   bool compute_pyrfocalplane;
-  carma_obj<float> *d_hrimg;
-  carma_obj<float> *d_submask;
-  carma_obj<float> *d_psum;
-  carma_obj<float> *d_pyrfocalplane;
-  carma_obj<cuFloatComplex> *d_phalfxy;
-  carma_obj<cuFloatComplex> *d_poffsets;
-  carma_obj<float> *d_modu_gather;
-  carma_host_obj<float> *pyr_cx;
-  carma_host_obj<float> *pyr_cy;
-  carma_host_obj<float> *pyr_mod_weights;
+  CarmaObj<float> *d_hrimg;
+  CarmaObj<float> *d_submask;
+  CarmaObj<float> *d_psum;
+  CarmaObj<float> *d_pyrfocalplane;
+  CarmaObj<cuFloatComplex> *d_phalfxy;
+  CarmaObj<cuFloatComplex> *d_poffsets;
+  CarmaObj<float> *d_modu_gather;
+  CarmaHostObj<float> *pyr_cx;
+  CarmaHostObj<float> *pyr_cy;
+  CarmaHostObj<float> *pyr_mod_weights;
 
 
  public:
-  sutra_wfs_pyr_pyrhr(carma_context *context, sutra_telescope *d_tel,
-                      carma_obj<cuFloatComplex> *d_camplipup,
-                      carma_obj<cuFloatComplex> *d_camplifoc,
-                      carma_obj<cuFloatComplex> *d_fttotim, long nxsub,
+  SutraWfs_PyrHR(CarmaContext *context, SutraTelescope *d_tel,
+                      CarmaObj<cuFloatComplex> *d_camplipup,
+                      CarmaObj<cuFloatComplex> *d_camplifoc,
+                      CarmaObj<cuFloatComplex> *d_fttotim, long nxsub,
                       long nvalid, long npupils, long npix, long nphase,
                       long nrebin, long nfft, long ntot, long npup, float pdiam,
                       float nphotons, float nphot4imat, int lgs, bool fakecam,
-                      int maxFluxPerPix, int maxPixValue, bool roket,
+                      int max_flux_per_pix, int max_pix_value, bool roket,
                       int device);
-  sutra_wfs_pyr_pyrhr(carma_context *context, sutra_telescope *d_tel,
-                      carma_obj<cuFloatComplex> *d_camplipup,
-                      carma_obj<cuFloatComplex> *d_camplifoc,
-                      carma_obj<cuFloatComplex> *d_fttotim, long nxsub,
+  SutraWfs_PyrHR(CarmaContext *context, SutraTelescope *d_tel,
+                      CarmaObj<cuFloatComplex> *d_camplipup,
+                      CarmaObj<cuFloatComplex> *d_camplifoc,
+                      CarmaObj<cuFloatComplex> *d_fttotim, long nxsub,
                       long nvalid, long npupils, long npix, long nphase,
                       long nrebin, long nfft, long ntot, long npup, float pdiam,
                       float nphotons, float nphot4imat, int lgs, bool fakecam,
-                      int maxFluxPerPix, int maxPixValue, bool roket,
+                      int max_flux_per_pix, int max_pix_value, bool roket,
                       int nbdevices, int *devices);
-  ~sutra_wfs_pyr_pyrhr();
+  ~SutraWfs_PyrHR();
 
-  int loadarrays(cuFloatComplex *halfxy, float *cx, float *cy, float *weights,
+  int load_arrays(cuFloatComplex *halfxy, float *cx, float *cy, float *weights,
                  float *sincar, float *submask, int *validsubsx,
                  int *validsubsy, int *phasemap, float *fluxPerSub);
   int set_submask(float *submask);
@@ -99,7 +99,7 @@ class sutra_wfs_pyr_pyrhr : public sutra_wfs {
   int comp_image(bool noise = true);
   void comp_modulation(int cpt);
 
-  int copyValidPix(float *img, int *validx, int *validy, int im_dim);
+  int copy_valid_pix(float *img, int *validx, int *validy, int im_dim);
   int set_pyr_modulation_points(float *cx, float *cy, int npts);
   int set_pyr_modulation_points(float *cx, float *cy, float *weights, int npts);
   int set_pyr_mod_weights(float *weights, int npts);
@@ -114,14 +114,14 @@ class sutra_wfs_pyr_pyrhr : public sutra_wfs {
 
  private:
   int comp_generic();
-  std::vector<carma_obj<cuFloatComplex> *> d_camplipup_ngpu;
-  std::vector<carma_obj<cuFloatComplex> *> d_camplifoc_ngpu;
-  std::vector<carma_obj<cuFloatComplex> *> d_phalfxy_ngpu;
-  std::vector<carma_obj<cuFloatComplex> *> d_fttotim_ngpu;
-  std::vector<carma_obj<float> *> d_pyrfocalplane_ngpu;
-  std::vector<carma_obj<float> *> d_screen_ngpu;
-  std::vector<carma_obj<float> *> d_hrimg_ngpu;
-  std::vector<carma_obj<float> *> d_submask_ngpu;
+  std::vector<CarmaObj<cuFloatComplex> *> d_camplipup_ngpu;
+  std::vector<CarmaObj<cuFloatComplex> *> d_camplifoc_ngpu;
+  std::vector<CarmaObj<cuFloatComplex> *> d_phalfxy_ngpu;
+  std::vector<CarmaObj<cuFloatComplex> *> d_fttotim_ngpu;
+  std::vector<CarmaObj<float> *> d_pyrfocalplane_ngpu;
+  std::vector<CarmaObj<float> *> d_screen_ngpu;
+  std::vector<CarmaObj<float> *> d_hrimg_ngpu;
+  std::vector<CarmaObj<float> *> d_submask_ngpu;
 };
 
 #endif  // _SUTRA_WFS_PYR_PYRHR_H_

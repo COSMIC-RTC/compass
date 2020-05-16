@@ -34,7 +34,7 @@
 //! \ingroup   libcarma
 //! \brief     this file provides SVD CUDA kernels
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -50,9 +50,9 @@ __global__ void kernel_setidd(double *d,int N) {
 
 int carma_setidd(double *d,int n) {
   int blockSize = 8;
-  int nBlocks = n / blockSize + (n % blockSize == 0?0:1);
+  int nb_blocks = n / blockSize + (n % blockSize == 0?0:1);
 
-  kernel_setidd <<< nBlocks, blockSize >>> ((double *)d,n);
+  kernel_setidd <<< nb_blocks, blockSize >>> ((double *)d,n);
 
   return EXIT_SUCCESS;
 }
@@ -66,9 +66,9 @@ __global__ void kernel_setidf(float *d,int N) {
 
 int carma_setidf(float *d,int n) {
   int blockSize = 8;
-  int nBlocks = n / blockSize + (n % blockSize == 0?0:1);
+  int nb_blocks = n / blockSize + (n % blockSize == 0?0:1);
 
-  kernel_setidf <<< nBlocks, blockSize >>> ((float *)d,n);
+  kernel_setidf <<< nb_blocks, blockSize >>> ((float *)d,n);
 
   return EXIT_SUCCESS;
 }

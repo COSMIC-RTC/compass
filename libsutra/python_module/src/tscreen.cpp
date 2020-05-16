@@ -32,9 +32,9 @@
 
 //! \file      tscreen.cpp
 //! \ingroup   libsutra
-//! \brief     this file provides pybind wrapper for sutra_tscreen
+//! \brief     this file provides pybind wrapper for SutraTurbuScreen
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -45,7 +45,7 @@
 namespace py = pybind11;
 
 void declare_tscreen(py::module &mod) {
-  py::class_<sutra_tscreen>(mod, "Tscreen")
+  py::class_<SutraTurbuScreen>(mod, "Tscreen")
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
       //  ██████╔╝██████╔╝██║   ██║██████╔╝█████╗  ██████╔╝   ██║    ╚████╔╝
@@ -54,77 +54,77 @@ void declare_tscreen(py::module &mod) {
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
       .def_property_readonly(
-          "device", [](sutra_tscreen &st) { return st.device; }, "Device index")
+          "device", [](SutraTurbuScreen &st) { return st.device; }, "Device index")
 
       .def_property_readonly(
-          "d_A", [](sutra_tscreen &st) { return st.d_A; },
+          "d_mat_a", [](SutraTurbuScreen &st) { return st.d_mat_a; },
           "A matrix for extrusion")
 
       .def_property_readonly(
-          "d_B", [](sutra_tscreen &st) { return st.d_B; },
+          "d_mat_b", [](SutraTurbuScreen &st) { return st.d_mat_b; },
           "B matrix for extrusion")
 
       .def_property_readonly(
-          "d_istencilx", [](sutra_tscreen &st) { return st.d_istencilx; },
+          "d_istencilx", [](SutraTurbuScreen &st) { return st.d_istencilx; },
           "stencil for row extrusion")
 
       .def_property_readonly(
-          "d_istencily", [](sutra_tscreen &st) { return st.d_istencily; },
+          "d_istencily", [](SutraTurbuScreen &st) { return st.d_istencily; },
           "stencil for column extrusion")
 
       .def_property_readonly(
-          "d_z", [](sutra_tscreen &st) { return st.d_z; },
+          "d_z", [](SutraTurbuScreen &st) { return st.d_z; },
           "tmp array for extrusion process")
 
       .def_property_readonly(
-          "d_noise", [](sutra_tscreen &st) { return st.d_noise; },
+          "d_noise", [](SutraTurbuScreen &st) { return st.d_noise; },
           "random numbers for extrusion")
 
       .def_property_readonly(
-          "d_ytmp", [](sutra_tscreen &st) { return st.d_ytmp; },
+          "d_ytmp", [](SutraTurbuScreen &st) { return st.d_ytmp; },
           "contains the extrude update")
 
       .def_property_readonly(
-          "screen_size", [](sutra_tscreen &st) { return st.screen_size; },
+          "screen_size", [](SutraTurbuScreen &st) { return st.screen_size; },
           "size of phase screen")
 
       .def_property_readonly(
-          "r0", [](sutra_tscreen &st) { return st.r0; }, "layer r0 in pixels")
+          "r0", [](SutraTurbuScreen &st) { return st.r0; }, "layer r0 in pixels")
 
       .def_property_readonly(
-          "amplitude", [](sutra_tscreen &st) { return st.amplitude; },
+          "amplitude", [](SutraTurbuScreen &st) { return st.amplitude; },
           "amplitude for extrusion (r0**(-5/6)")
 
       .def_property_readonly(
-          "altitude", [](sutra_tscreen &st) { return st.altitude; },
+          "altitude", [](SutraTurbuScreen &st) { return st.altitude; },
           "altitude of the phase screen")
 
       .def_property_readonly(
-          "windspeed", [](sutra_tscreen &st) { return st.windspeed; },
+          "windspeed", [](SutraTurbuScreen &st) { return st.windspeed; },
           "wind speed of phase screen")
 
       .def_property_readonly(
-          "winddir", [](sutra_tscreen &st) { return st.winddir; },
+          "winddir", [](SutraTurbuScreen &st) { return st.winddir; },
           "wind direction of phase screen")
 
       .def_property_readonly(
-          "deltax", [](sutra_tscreen &st) { return st.deltax; },
+          "deltax", [](SutraTurbuScreen &st) { return st.deltax; },
           "number of columns to extrude per iteration")
 
       .def_property_readonly(
-          "deltay", [](sutra_tscreen &st) { return st.deltay; },
+          "deltay", [](SutraTurbuScreen &st) { return st.deltay; },
           "number of rows to extrude per iteration")
 
       .def_property_readonly(
-          "accumx", [](sutra_tscreen &st) { return st.accumx; },
+          "accumx", [](SutraTurbuScreen &st) { return st.accumx; },
           "accumulate columns to extrude")
 
       .def_property_readonly(
-          "accumy", [](sutra_tscreen &st) { return st.accumy; },
+          "accumy", [](SutraTurbuScreen &st) { return st.accumy; },
           "accumulate rows to extrude")
 
       .def_property_readonly(
-          "d_screen", [](sutra_tscreen &st) { return st.d_tscreen->d_screen; },
+          "d_screen", [](SutraTurbuScreen &st) { return st.d_tscreen->d_screen; },
           "Turbulent phase screen")
 
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
@@ -135,7 +135,7 @@ void declare_tscreen(py::module &mod) {
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
       .def(
-          "set_deltax", &sutra_tscreen::set_deltax,
+          "set_deltax", &SutraTurbuScreen::set_deltax,
           R"pbdoc(
         Set the screen movement along the X-axis at each iteration in pixels
 
@@ -146,7 +146,7 @@ void declare_tscreen(py::module &mod) {
           py::arg("deltax"))
 
       .def(
-          "set_deltay", &sutra_tscreen::set_deltay,
+          "set_deltay", &SutraTurbuScreen::set_deltay,
           R"pbdoc(
         Set the screen movement along the Y-axis at each iteration in pixels
 
@@ -157,7 +157,7 @@ void declare_tscreen(py::module &mod) {
           py::arg("deltay"))
 
       .def(
-          "set_istencilx", wy::colCast(&sutra_tscreen::set_istencilx),
+          "set_istencilx", wy::colCast(&SutraTurbuScreen::set_istencilx),
           R"pbdoc(
         Set the stencil along the X-Axis
 
@@ -168,7 +168,7 @@ void declare_tscreen(py::module &mod) {
           py::arg("stencil"))
 
       .def(
-          "set_istencily", wy::colCast(&sutra_tscreen::set_istencily),
+          "set_istencily", wy::colCast(&SutraTurbuScreen::set_istencily),
           R"pbdoc(
         Set the stencil along the Y-Axis
 

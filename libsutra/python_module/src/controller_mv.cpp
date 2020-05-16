@@ -34,7 +34,7 @@
 //! \ingroup   libsutra
 //! \brief     this file provides pybind wrapper for sutra_controller_mv
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -48,7 +48,7 @@ template <typename Tcomp, typename Tout>
 void controller_mv_impl(py::module &mod, const char *name) {
   using controller_mv = sutra_controller_mv<Tcomp, Tout>;
 
-  py::class_<controller_mv, sutra_controller<Tcomp, Tout>>(mod, name)
+  py::class_<controller_mv, SutraController<Tcomp, Tout>>(mod, name)
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
@@ -168,8 +168,8 @@ void controller_mv_impl(py::module &mod, const char *name) {
 
         Parameters
         ------------
-        atmos : (sutra_atmos): sutra_atmos object
-        sensors: (sutra_sensors): sutra_sensors object
+        atmos : (SutraAtmos): SutraAtmos object
+        sensors: (SutraSensors): SutraSensors object
         LO: (np.array[ndim=1,dtype=np.float64]): outer scale of each layer
         Cn2: (np.array[ndim=1,dtype=np.float64]): Cn2 profile
         alphaX: (np.array[ndim=1,dtype=np.float64]): X position of each WFS
@@ -188,9 +188,9 @@ void controller_mv_impl(py::module &mod, const char *name) {
 
         Parameters
         ------------
-        atmos : (sutra_atmos): sutra_atmos object
-        sensors: (sutra_sensors): sutra_sensors object
-        dms: (sutra_dms): sutra_dms object
+        atmos : (SutraAtmos): SutraAtmos object
+        sensors: (SutraSensors): SutraSensors object
+        dms: (SutraDms): SutraDms object
         LO: (np.array[ndim=1,dtype=np.float64]): outer scale of each layer
         Cn2: (np.array[ndim=1,dtype=np.float64]): Cn2 profile
         alphaX: (np.array[ndim=1,dtype=np.float64]): X position of each WFS

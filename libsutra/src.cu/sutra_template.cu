@@ -30,63 +30,58 @@
 //  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 // -----------------------------------------------------------------------------
 
-//! \file      sutra_aotemplate.cpp
+//! \file      sutra_template.cu
 //! \ingroup   libsutra
-//! \class     sutra_aotemplate
+//! \class     SutraTemplate
 //! \brief     this class provides a class template to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
-#include <sutra_aotemplate.h>
+#include <sutra_template.h>
+#include "carma_utils.cuh"
 
-sutra_aotemplate::sutra_aotemplate(carma_context *context, const char *type,
-                                   long dim, int device) {
-  // some inits
-  this->current_context = context;
-  this->dim = dim;
-  this->type = type;
-  this->device = device;
+template <class T>
+__global__ void comp_aotemplate_krnl(T *g_idata, T *g_odata, int sh_size,
+                                     int N) {
+  T *sdata = SharedMemory<T>();
 
-  // allocate data and result
-  long *dims_data1 = new long[2];
-  dims_data1[0] = 1;
-  dims_data1[1] = dim;
-  this->d_data = new carma_obj<float>(context, dims_data1);
-  this->d_res = new carma_obj<float>(context, dims_data1);
-  delete[] dims_data1;
+  // load shared mem
+  unsigned int tid = threadIdx.x;
+  unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if (i < N) {
+    // fill shared mem with data
+    sdata[tid] = g_idata[i];
+  }
+
+  __syncthreads();
+
+  if (i < N) {
+    // write result for this block to global mem
+    g_odata[i] =
+        sin((sdata[tid] - sdata[(tid + 1) % sh_size]) * 2.0f * CARMA_PI);
+  }
 }
 
-sutra_aotemplate::~sutra_aotemplate() {
-  // delete data and result
-  delete this->d_data;
-  delete this->d_res;
+template <class T>
+void comp_aotemplate(int threads, int blocks, T *d_idata, T *d_odata, int N) {
+  dim3 dimBlock(threads, 1, 1);
+  dim3 dimGrid(blocks, 1, 1);
+
+  // when there is only one warp per block, we need to allocate two warps
+  // worth of shared memory so that we don't index shared memory out of bounds
+  int smemSize =
+      (threads <= 32) ? 2 * threads * sizeof(T) : threads * sizeof(T);
+  comp_aotemplate_krnl<T>
+      <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, smemSize, N);
+
+  carma_check_msg("comp_aotemplate_kernel<<<>>> execution failed\n");
 }
 
-int sutra_aotemplate::fill_data(float *idata) {
-  // fill data with an external array
-  this->d_data->host2device(idata);
+template void comp_aotemplate<float>(int threads, int blocks, float *d_idata,
+                                     float *d_odata, int N);
 
-  return EXIT_SUCCESS;
-}
-
-int sutra_aotemplate::fill_data() {
-  // fill data with random numbers
-  this->d_data->init_prng();
-  this->d_data->prng('N');
-
-  return EXIT_SUCCESS;
-}
-
-int sutra_aotemplate::do_compute() {
-  // do computation on data and store in result
-  int nthreads = 0, nblocks = 0;
-  getNumBlocksAndThreads(current_context->get_device(device), this->dim,
-                         nblocks, nthreads);
-
-  comp_aotemplate(nthreads, nblocks, this->d_data->getData(),
-                  this->d_res->getData(), this->d_data->getNbElem());
-
-  return EXIT_SUCCESS;
-}
+template void comp_aotemplate<double>(int threads, int blocks, double *d_idata,
+                                      double *d_odata, int N);

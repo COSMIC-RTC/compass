@@ -34,27 +34,27 @@
 //! \ingroup   libcarma
 //! \brief     this file provides timer CUDA kernels
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
 
 #include <carma_timer.h>
 
-__global__ void clockKernel(long long int* clockCounter) {
-  *clockCounter = clock64();
+__global__ void clockKernel(long long int* clock_counter) {
+  *clock_counter = clock64();
 }
 
-__global__ void clockKernel(double* timeBuffer, long long int* clockCounter,
-                            double GPUfreq) {
-  timeBuffer[0] = (clock64() - *clockCounter) / GPUfreq;
+__global__ void clockKernel(double* time_buffer, long long int* clock_counter,
+                            double gpu_freq) {
+  time_buffer[0] = (clock64() - *clock_counter) / gpu_freq;
 }
 
-void getClockCount(long long int* clockCounter) {
-  clockKernel<<<1, 1>>>(clockCounter);
+void get_clock_count(long long int* clock_counter) {
+  clockKernel<<<1, 1>>>(clock_counter);
 }
 
-void getClockCount(double* timeBuffer, long long int* clockCounter,
-                   double GPUfreq) {
-  clockKernel<<<1, 1>>>(timeBuffer, clockCounter, GPUfreq);
+void get_clock_count(double* time_buffer, long long int* clock_counter,
+                   double gpu_freq) {
+  clockKernel<<<1, 1>>>(time_buffer, clock_counter, gpu_freq);
 }

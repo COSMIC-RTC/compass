@@ -32,10 +32,10 @@
 
 //! \file      sutra_kl.h
 //! \ingroup   libsutra
-//! \class     sutra_kl
+//! \class     SutraKL
 //! \brief     this class provides the kl features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -46,7 +46,7 @@
 #include <carma_host_obj.h>
 #include <carma_obj.h>
 
-class sutra_kl {
+class SutraKL {
  public:
   int device;  // # device
   long dim;    // dim of final array
@@ -55,24 +55,24 @@ class sutra_kl {
   long nkl;    // # of functions in the basis
   long nord;   // # number of radial orders
 
-  carma_obj<float> *d_rabas;   // the radial array of the basis
-  carma_obj<float> *d_azbas;   // the azimuthal array of the basis
-  carma_host_obj<int> *h_ord;  // the radial orders of the basis
-  carma_obj<int> *d_ord;       // the radial orders of the basis
-  carma_obj<float> *d_cr;      //
-  carma_obj<float> *d_cp;      //
+  CarmaObj<float> *d_rabas;   // the radial array of the basis
+  CarmaObj<float> *d_azbas;   // the azimuthal array of the basis
+  CarmaHostObj<int> *h_ord;  // the radial orders of the basis
+  CarmaObj<int> *d_ord;       // the radial orders of the basis
+  CarmaObj<float> *d_cr;      //
+  CarmaObj<float> *d_cp;      //
 
   // Florian features
-  carma_obj<float> *d_covmat;
-  carma_obj<float> *d_filter;
-  carma_obj<float> *d_bas;
-  carma_obj<float> *d_evals;
+  CarmaObj<float> *d_covmat;
+  CarmaObj<float> *d_filter;
+  CarmaObj<float> *d_bas;
+  CarmaObj<float> *d_evals;
 
-  carma_context *current_context;  // the context in which it has been created
+  CarmaContext *current_context;  // the context in which it has been created
  public:
-  sutra_kl(carma_context *context, long dim, long nr, long np, long nkl,
+  SutraKL(CarmaContext *context, long dim, long nr, long np, long nkl,
            long nord, int device);
-  ~sutra_kl();
+  ~SutraKL();
 
   int do_compute(float alpha, float ampli, float *odata, int nkl, int size,
                  int xoff, int yoff);

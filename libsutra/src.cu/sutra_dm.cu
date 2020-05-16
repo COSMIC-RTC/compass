@@ -32,10 +32,10 @@
 
 //! \file      sutra_dm.cu
 //! \ingroup   libsutra
-//! \class     sutra_dm
+//! \class     SutraDm
 //! \brief     this class provides the dm features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -53,7 +53,7 @@ __device__ inline struct doubleint getInterval(const int pos,
 }
 
 template <class T>
-__device__ inline T getData(const int pos, const T *cmdVector,
+__device__ inline T get_data(const int pos, const T *cmdVector,
                             const T *influData, const int *iPos) {
   return cmdVector[iPos[pos]] * influData[pos];
 }
@@ -70,7 +70,7 @@ __global__ void compShape2(T *outData, const T *cmdVector, const T *influData,
 
     for (int pos = interval.start; pos < interval.start + interval.nbInflu;
          ++pos)
-      sum += getData(pos, cmdVector, influData, iPos);
+      sum += get_data(pos, cmdVector, influData, iPos);
 
     outData[id] = sum;
   }
@@ -83,7 +83,7 @@ void comp_dmshape2(T *outData, const T *cmdVector, const T *influData,
   compShape2<T><<<blocks, threads>>>(outData, cmdVector, influData, iPos,
                                      iStart_t, roiLength);
 
-  carmaCheckMsg("comp_dmshape2<<<>>> execution failed\n");
+  carma_check_msg("comp_dmshape2<<<>>> execution failed\n");
 }
 
 template void comp_dmshape2<float>(float *outData, const float *cmdVector,
@@ -148,7 +148,7 @@ void comp_dmshape(int threads, int blocks, T *d_idata, T *d_odata, int *pos,
   dmshape_krnl<T><<<dimGrid, dimBlock /*, smemSize*/>>>(
       d_idata, d_odata, pos, istart, npts, comm, n, N);
 
-  carmaCheckMsg("dmshape_kernel<<<>>> execution failed\n");
+  carma_check_msg("dmshape_kernel<<<>>> execution failed\n");
 }
 
 template void comp_dmshape<float>(int threads, int blocks, float *d_idata,
@@ -192,7 +192,7 @@ void oneactu(int threads, int blocks, T *d_idata, T *d_odata, int nactu,
   oneactu_krnl_fast<T><<<dimGrid, dimBlock>>>(d_idata, d_odata, nactu, ampli,
                                               xoff, yoff, dim_im, dim_influ, N);
 
-  carmaCheckMsg("oneactu_kernel<<<>>> execution failed\n");
+  carma_check_msg("oneactu_kernel<<<>>> execution failed\n");
 }
 
 template void oneactu<float>(int threads, int blocks, float *d_idata,
@@ -231,7 +231,7 @@ void oneactu(int threads, int blocks, T *d_idata, T *d_odata, int nactu,
   oneactu_krnl_fast<T><<<dimGrid, dimBlock>>>(d_idata, d_odata, nactu, ampli,
                                               dim_im, dim_influ, N);
 
-  carmaCheckMsg("oneactu_kernel<<<>>> execution failed\n");
+  carma_check_msg("oneactu_kernel<<<>>> execution failed\n");
 }
 
 template void oneactu<float>(int threads, int blocks, float *d_idata,
@@ -279,7 +279,7 @@ void comp_fulldmshape(int threads, int blocks, T *d_idata, T *d_odata,
   fulldmshape_krnl<T><<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, ninflu,
                                                        diminflu, comm, N);
 
-  carmaCheckMsg("fulldmshape_kernel<<<>>> execution failed\n");
+  carma_check_msg("fulldmshape_kernel<<<>>> execution failed\n");
 }
 
 template void comp_fulldmshape<float>(int threads, int blocks, float *d_idata,
@@ -310,25 +310,25 @@ __global__ void getIFfull_krnl(T *IF, float *dmshape, long nb_pts, long column,
 }
 template <class T>
 int getIF(T *IF, float *dmshape, int *indx_pup, long nb_pts, int column,
-          long nb_col, int puponly, carma_device *device) {
-  int nthreads = 0, nblocks = 0;
-  getNumBlocksAndThreads(device, nb_pts, nblocks, nthreads);
-  dim3 grid(nblocks), threads(nthreads);
+          long nb_col, int puponly, CarmaDevice *device) {
+  int nb_threads = 0, nb_blocks = 0;
+  get_num_blocks_and_threads(device, nb_pts, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
   if (puponly)
     getIF_krnl<T>
         <<<grid, threads>>>(IF, dmshape, indx_pup, nb_pts, column, nb_col);
   else
     getIFfull_krnl<T><<<grid, threads>>>(IF, dmshape, nb_pts, column, nb_col);
-  carmaCheckMsg("getIF_krnl<<<>>> execution failed\n");
+  carma_check_msg("getIF_krnl<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
 template int getIF<float>(float *IF, float *dmshape, int *indx_pup, long nb_pts,
                           int column, long nb_col, int puponly,
-                          carma_device *device);
+                          CarmaDevice *device);
 template int getIF<double>(double *IF, float *dmshape, int *indx_pup,
                            long nb_pts, int column, long nb_col, int puponly,
-                           carma_device *device);
+                           CarmaDevice *device);
 
 __global__ void do_statmat_krnl(float *statcov, float *xpos, float *ypos,
                                 float norm, long dim, long N) {
@@ -347,13 +347,13 @@ __global__ void do_statmat_krnl(float *statcov, float *xpos, float *ypos,
   }
 }
 int dm_dostatmat(float *statcov, long dim, float *xpos, float *ypos, float norm,
-                 carma_device *device) {
-  int nthreads = 0, nblocks = 0;
+                 CarmaDevice *device) {
+  int nb_threads = 0, nb_blocks = 0;
   int N = (dim * dim);
-  getNumBlocksAndThreads(device, N, nblocks, nthreads);
-  dim3 grid(nblocks), threads(nthreads);
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
   do_statmat_krnl<<<grid, threads>>>(statcov, xpos, ypos, norm, dim, N);
-  carmaCheckMsg("do_statcov_krnl<<<>>> execution failed\n");
+  carma_check_msg("do_statcov_krnl<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -367,34 +367,34 @@ __global__ void fill_filtermat_krnl(float *filter, int nactu, int N) {
   }
 }
 
-int fill_filtermat(float *filter, int nactu, int N, carma_device *device) {
-  int nthreads = 0, nblocks = 0;
-  getNumBlocksAndThreads(device, N, nblocks, nthreads);
-  dim3 grid(nblocks), threads(nthreads);
+int fill_filtermat(float *filter, int nactu, int N, CarmaDevice *device) {
+  int nb_threads = 0, nb_blocks = 0;
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
   fill_filtermat_krnl<<<grid, threads>>>(filter, nactu, N);
-  carmaCheckMsg("fill_filtmat_krnl<<<>>> execution failed\n");
+  carma_check_msg("fill_filtmat_krnl<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
 
 __global__ void convertToCom_krnl(uint16_t *volts, float *com, int N,
-                                  float Vmin, float Vmax, uint16_t valMax) {
+                                  float volt_min, float volt_max, uint16_t val_max) {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
   while (tid < N) {
-    com[tid] = float(volts[tid]) / float(valMax) * (Vmax - Vmin) + Vmin;
+    com[tid] = float(volts[tid]) / float(val_max) * (volt_max - volt_min) + volt_min;
     tid += blockDim.x * gridDim.x;
   }
 }
 
-int convertToCom(uint16_t *volts, float *com, int N, float Vmin, float Vmax,
-                 uint16_t valMax, carma_device *device) {
-  int nthreads = 0, nblocks = 0;
-  getNumBlocksAndThreads(device, N, nblocks, nthreads);
-  dim3 grid(nblocks), threads(nthreads);
+int convertToCom(uint16_t *volts, float *com, int N, float volt_min, float volt_max,
+                 uint16_t val_max, CarmaDevice *device) {
+  int nb_threads = 0, nb_blocks = 0;
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
-  convertToCom_krnl<<<grid, threads>>>(volts, com, N, Vmin, Vmax, valMax);
-  carmaCheckMsg("convertToCom_krnl<<<>>> execution failed\n");
+  convertToCom_krnl<<<grid, threads>>>(volts, com, N, volt_min, volt_max, val_max);
+  carma_check_msg("convertToCom_krnl<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }

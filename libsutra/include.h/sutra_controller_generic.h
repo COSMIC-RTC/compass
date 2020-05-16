@@ -35,7 +35,7 @@
 //! \class     sutra_controller_generic
 //! \brief     this class provides the controller_generic features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -46,19 +46,19 @@
 #include <sutra_controller.h>
 
 template <typename Tcomp, typename Tout>
-class sutra_controller_generic : public sutra_controller<Tcomp, Tout> {
+class sutra_controller_generic : public SutraController<Tcomp, Tout> {
  public:
-  carma_obj<Tcomp> *d_matE;
-  carma_obj<Tcomp> *d_cmat;
-  carma_obj<Tcomp> *d_cmatPadded;
-  carma_obj<Tcomp> *d_gain;
-  carma_obj<Tcomp> *d_decayFactor;
-  carma_obj<Tcomp> *d_compbuff;  // Buffer for computations
-  carma_obj<Tcomp> *d_compbuff2;
-  carma_obj<Tcomp> *d_olmeas;  // Open-loop measurements for POLC
-  carma_obj<Tcomp> *d_imat;
-  std::vector<carma_obj<Tcomp> *> d_err_ngpu;
-  std::vector<carma_obj<Tcomp> *> d_cmat_ngpu;
+  CarmaObj<Tcomp> *d_matE;
+  CarmaObj<Tcomp> *d_cmat;
+  CarmaObj<Tcomp> *d_cmatPadded;
+  CarmaObj<Tcomp> *d_gain;
+  CarmaObj<Tcomp> *d_decayFactor;
+  CarmaObj<Tcomp> *d_compbuff;  // Buffer for computations
+  CarmaObj<Tcomp> *d_compbuff2;
+  CarmaObj<Tcomp> *d_olmeas;  // Open-loop measurements for POLC
+  CarmaObj<Tcomp> *d_imat;
+  std::vector<CarmaObj<Tcomp> *> d_err_ngpu;
+  std::vector<CarmaObj<Tcomp> *> d_cmat_ngpu;
   std::vector<int> P2Pdevices;
   bool polc;
   int nstates;
@@ -66,8 +66,8 @@ class sutra_controller_generic : public sutra_controller<Tcomp, Tout> {
   string command_law;
 
  public:
-  sutra_controller_generic(carma_context *context, long nvalid, long nslope,
-                           long nactu, float delay, sutra_dms *dms,
+  sutra_controller_generic(CarmaContext *context, long nvalid, long nslope,
+                           long nactu, float delay, SutraDms *dms,
                            int *idx_dms, int ndm, int *idx_centro, int ncentro, int nstates);
   sutra_controller_generic(const sutra_controller_generic &controller);
   ~sutra_controller_generic();
@@ -99,5 +99,5 @@ class sutra_controller_generic : public sutra_controller<Tcomp, Tout> {
 
 template <typename T>
 void pad_cmat(T *idata, int m, int n, T *odata, int m2, int n2,
-              carma_device *device);
+              CarmaDevice *device);
 #endif  // _SUTRA_CONTROLLER_GENERIC_H_

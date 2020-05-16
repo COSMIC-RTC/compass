@@ -41,7 +41,7 @@ write_sysParam.write_metaDx(metaDx,path=datapath)
 #get reconstructor from file
 sup.reset()
 Mfile="/home/dgratadour/apply/chameleon/build/M_glao.fits"
-M=fits.getdata(Mfile).T
+M=fits.get_data(Mfile).T
 #check dimensions
 CMATSHAPE=sup.get_command_matrix(0).shape
 if(M.shape[0] !=CMATSHAPE[0] or M.shape[1]!=CMATSHAPE[1]):
@@ -52,10 +52,10 @@ if(np.any(M!=M)):
 sup.set_command_matrix(M)
 sup.loop(1000,monitoring_freq=100)
 
-NSTAR = 10  
-map1=np.zeros((NSTAR,NSTAR))  
-for i in range(NSTAR*NSTAR):  
-    map1.itemset(i,sim.getStrehl(i)[1])  
+NSTAR = 10
+map1=np.zeros((NSTAR,NSTAR))
+for i in range(NSTAR*NSTAR):
+    map1.itemset(i,sim.getStrehl(i)[1])
 
 RADIUS      = 30
 NLGS        = 6
@@ -74,4 +74,3 @@ plt.scatter(lgs_ypos,lgs_xpos,color="red")
 plt.scatter(asterism_y,asterism_x,color="blue")
 
 plt.title("GLAO Strehl @ 1650nm 30 arcsec ring optim")
-

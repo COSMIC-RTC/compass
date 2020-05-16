@@ -1,7 +1,7 @@
 ## @package   shesha.supervisor.compassSupervisor
 ## @brief     Initialization and execution of a COMPASS supervisor
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   4.4.1
+## @version   5.0.0
 ## @date      2011/01/28
 ## @copyright GNU Lesser General Public License
 #
@@ -47,12 +47,14 @@ import time
 
 from typing import List
 
+
 class CompassSupervisor(AoSupervisor):
+
     def __init__(self, config_file: str = None, cacao: bool = False,
                  use_DB: bool = False):
         """ Init the COMPASS supervisor
 
-        Parameters: 
+        Parameters:
             config_file: (str): (optionnal) Path to the parameter file
 
             cacao: (bool): (optionnal) Flag to enable cacao
@@ -72,7 +74,6 @@ class CompassSupervisor(AoSupervisor):
     def __repr__(self):
         return object.__repr__(self) + str(self._sim)
 
-
     #     _    _         _                  _
     #    / \  | |__  ___| |_ _ __ __ _  ___| |_
     #   / _ \ | '_ \/ __| __| '__/ _` |/ __| __|
@@ -86,22 +87,22 @@ class CompassSupervisor(AoSupervisor):
     # |_|  |_|\___|\__|_| |_|\___/ \__,_|___/
 
     def single_next(self, move_atmos: bool = True, show_atmos: bool = True,
-                   get_psf: bool = False, get_residual: bool = False) -> None:
-        """ Performs a single loop iteration 
+                    get_psf: bool = False, get_residual: bool = False) -> None:
+        """ Performs a single loop iteration
 
         Parameters:
             move_atmos : (bool, optional) : Move the atmosphere layers. Default is True
 
             show_atmos : (bool, optional) : WFS and targets see the atmosphere layers. Default is True
 
-            get_psf : (bool, optional) : 
+            get_psf : (bool, optional) :
 
-            get_residual : (bool, optional) : 
+            get_residual : (bool, optional) :
         """
         self._sim.next(see_atmos=show_atmos)  # why not self._see_atmos?
         self.iter += 1
 
-    def get_psf(self, tar_index : int, expo_type: str = "se") -> np.ndarray:
+    def get_psf(self, tar_index: int, expo_type: str = "se") -> np.ndarray:
         """ Get the PSF in the direction of the given target
 
         Parameters:
@@ -109,15 +110,17 @@ class CompassSupervisor(AoSupervisor):
 
             expo_type : (str, optional) : "se" for short exposure (default)
                                           "le" for long exposure
-        
+
         Return:
             psf : (np.ndarray) : PSF
         """
         if (expo_type == "se"):
-            return np.fft.fftshift(np.array(self._sim.tar.d_targets[tar_index].d_image_se))
+            return np.fft.fftshift(
+                    np.array(self._sim.tar.d_targets[tar_index].d_image_se))
         elif (expo_type == "le"):
-            return np.fft.fftshift(np.array(self._sim.tar.d_targets[tar_index].d_image_le)
-                                   ) / self._sim.tar.d_targets[tar_index].strehl_counter
+            return np.fft.fftshift(
+                    np.array(self._sim.tar.d_targets[tar_index].d_image_le)
+            ) / self._sim.tar.d_targets[tar_index].strehl_counter
         else:
             raise ValueError("Unknown exposure type")
 
@@ -140,10 +143,10 @@ class CompassSupervisor(AoSupervisor):
         This is not the vector that is applied on the DM
 
         See get_voltages() to get the vector applied on the DM
-        
+
         Parameters:
             nctrl : (int) : controller index
-        
+
         Return:
             com : (np.ndarray) : current command vector
         """
@@ -156,7 +159,8 @@ class CompassSupervisor(AoSupervisor):
     # |____/| .__/ \___|\___|_|\__|_|\___| |_|  |_|\___|\__|_| |_|\___/ \__,_|___/
     #       |_|
 
-    def set_pyr_modulation_points(self, wfs_index : int, cx : np.ndarray, cy : np.ndarray, weights : np.ndarray=None) -> None:
+    def set_pyr_modulation_points(self, wfs_index: int, cx: np.ndarray, cy: np.ndarray,
+                                  weights: np.ndarray = None) -> None:
         """ Set pyramid modulation positions
 
         Parameters:
@@ -176,11 +180,12 @@ class CompassSupervisor(AoSupervisor):
         if weights is not None:
             self._sim.wfs.d_wfs[wfs_index].set_pyr_modulation_points(cx, cy, pyr_npts)
         else:
-            self._sim.wfs.d_wfs[wfs_index].set_pyr_modulation_points(cx, cy, weights, pyr_npts)
+            self._sim.wfs.d_wfs[wfs_index].set_pyr_modulation_points(
+                    cx, cy, weights, pyr_npts)
 
-    def set_pyr_modulation_ampli(self, wfs_index : int, pyr_mod: float) -> None:
+    def set_pyr_modulation_ampli(self, wfs_index: int, pyr_mod: float) -> None:
         """ Set pyramid circular modulation amplitude value - in lambda/D units.
-        
+
         Compute new modulation points corresponding to the new amplitude value
         and upload them
 
@@ -192,9 +197,10 @@ class CompassSupervisor(AoSupervisor):
         from shesha.ao.wfs import comp_new_pyr_ampl
         p_wfs = self._sim.config.p_wfss[wfs_index]
 
-        cx, cy, scale, pyr_npts = comp_new_pyr_ampl(wfs_index, pyr_mod, self._sim.wfs, self._sim.rtc,
-                                              self._sim.config.p_wfss,
-                                              self._sim.config.p_tel)
+        cx, cy, scale, pyr_npts = comp_new_pyr_ampl(wfs_index, pyr_mod, self._sim.wfs,
+                                                    self._sim.rtc,
+                                                    self._sim.config.p_wfss,
+                                                    self._sim.config.p_tel)
         self.set_pyr_modulation_points(wfs_index, cx, cy)
         self._sim.rtc.d_centro[wfs_index].set_scale(scale)
 
@@ -211,7 +217,7 @@ class CompassSupervisor(AoSupervisor):
             raise ValueError("Error unknown p_wfs._halfxy shape")
         self._sim.rtc.do_centroids(0)  # To be ready for the next get_slopess
 
-    def set_fourier_mask(self, new_mask : np.ndarray, wfs_index : int=0):
+    def set_fourier_mask(self, new_mask: np.ndarray, wfs_index: int = 0):
         """ Set a mask in the Fourier Plane of the given WFS
 
         Parameters:
@@ -226,7 +232,7 @@ class CompassSupervisor(AoSupervisor):
             self._sim.wfs.d_wfs[wfs_index].set_phalfxy(
                     np.exp(1j * np.fft.fftshift(new_mask)).astype(np.complex64).T)
 
-    def set_noise(self, noise : float, wfs_index : int=0, seed : int=1234):
+    def set_noise(self, noise: float, wfs_index: int = 0, seed: int = 1234):
         """ Set noise value of WFS wfs_index
 
         Parameters:
@@ -260,7 +266,7 @@ class CompassSupervisor(AoSupervisor):
         """
         self._sim.dms.d_dms[dm_index].comp_oneactu(nactu, ampli)
 
-    def enable_atmos(self, enable : bool) -> None:
+    def enable_atmos(self, enable: bool) -> None:
         """ Set or unset whether atmos is enabled when running loop (see single_next)
 
         Parameters:
@@ -268,7 +274,7 @@ class CompassSupervisor(AoSupervisor):
         """
         self._see_atmos = enable
 
-    def set_r0(self, r0 : float, reset_seed : int=-1):
+    def set_r0(self, r0: float, reset_seed: int = -1):
         """ Change the current r0 for all layers
 
         Parameters:
@@ -291,7 +297,7 @@ class CompassSupervisor(AoSupervisor):
                 ilayer += 1
         self.config.p_atmos.set_r0(r0)
 
-    def set_gs_mag(self, mag : float, wfs_index : int=0):
+    def set_gs_mag(self, mag: float, wfs_index: int = 0):
         """ Change the guide star magnitude for the given WFS
 
         Parameters:
@@ -337,7 +343,8 @@ class CompassSupervisor(AoSupervisor):
         for w in self._sim.wfs.d_wfs:
             w.d_gs.comp_image()
 
-    def set_wind(self, screen_index : int, windspeed : float = None, winddir : float = None):
+    def set_wind(self, screen_index: int, windspeed: float = None,
+                 winddir: float = None):
         """ Set new wind information for the given screen
 
         Parameters:
@@ -351,21 +358,27 @@ class CompassSupervisor(AoSupervisor):
             self.config.p_atmos.windspeed[screen_index] = windspeed
         if winddir is not None:
             self.config.p_atmos.winddir[screen_index] = winddir
-        
+
         lin_delta = self.config.p_geom.pupdiam / self.config.p_tel.diam * self.config.p_atmos.windspeed[screen_index] * \
                     np.cos(CONST.DEG2RAD * self.config.p_geom.zenithangle) * self.config.p_loop.ittime
         oldx = self.config.p_atmos._deltax[screen_index]
         oldy = self.config.p_atmos._deltay[screen_index]
-        self.config.p_atmos._deltax[screen_index] = lin_delta * np.sin(CONST.DEG2RAD * self.config.p_atmos.winddir[screen_index] + np.pi)
-        self.config.p_atmos._deltay[screen_index] = lin_delta * np.cos(CONST.DEG2RAD * self.config.p_atmos.winddir[screen_index] + np.pi)
-        self._sim.atm.d_screens[screen_index].set_deltax(self.config.p_atmos._deltax[screen_index])
-        self._sim.atm.d_screens[screen_index].set_deltay(self.config.p_atmos._deltay[screen_index])
-        if(oldx * self.config.p_atmos._deltax[screen_index] < 0): #Sign has changed, must change the stencil
+        self.config.p_atmos._deltax[screen_index] = lin_delta * np.sin(
+                CONST.DEG2RAD * self.config.p_atmos.winddir[screen_index] + np.pi)
+        self.config.p_atmos._deltay[screen_index] = lin_delta * np.cos(
+                CONST.DEG2RAD * self.config.p_atmos.winddir[screen_index] + np.pi)
+        self._sim.atm.d_screens[screen_index].set_deltax(
+                self.config.p_atmos._deltax[screen_index])
+        self._sim.atm.d_screens[screen_index].set_deltay(
+                self.config.p_atmos._deltay[screen_index])
+        if (oldx * self.config.p_atmos._deltax[screen_index] <
+                    0):  #Sign has changed, must change the stencil
             stencilx = np.array(self._sim.atm.d_screens[screen_index].d_istencilx)
             n = self.config.p_atmos.dim_screens[screen_index]
             stencilx = (n * n - 1) - stencilx
             self._sim.atm.d_screens[screen_index].set_istencilx(stencilx)
-        if(oldy * self.config.p_atmos._deltay[screen_index] < 0): #Sign has changed, must change the stencil
+        if (oldy * self.config.p_atmos._deltay[screen_index] <
+                    0):  #Sign has changed, must change the stencil
             stencily = np.array(self._sim.atm.d_screens[screen_index].d_istencily)
             n = self.config.p_atmos.dim_screens[screen_index]
             stencily = (n * n - 1) - stencily
@@ -387,7 +400,7 @@ class CompassSupervisor(AoSupervisor):
 
         Parameters:
             dm_index : (int) : index of the DM
-        
+
         Return:
             coords : (tuple) : (i, j)
         """
@@ -397,7 +410,7 @@ class CompassSupervisor(AoSupervisor):
         jj1 = j1 + self._sim.config.p_dm0._n1  # in  ipupil coords
         return ii1, jj1
 
-    def get_tar_phase(self, tar_index: int, pupil : bool=False) -> np.ndarray:
+    def get_tar_phase(self, tar_index: int, pupil: bool = False) -> np.ndarray:
         """ Returns the target phase screen of target number tar_index
 
         Parameters:
@@ -405,7 +418,7 @@ class CompassSupervisor(AoSupervisor):
 
             pupil : (bool, optional) : If True, applies the pupil on top of the phase screen
                                        Default is False
-        
+
         Return:
             tar_phase : (np.ndarray) : Target phase screen
         """
@@ -465,7 +478,8 @@ class CompassSupervisor(AoSupervisor):
         """ Reset the WFS RNG to their original state
         """
         for wfs_index in range(len(self._sim.config.p_wfss)):
-            self._sim.wfs.d_wfs[wfs_index].set_noise([p.noise for p in self.config.pwfss], 1234 + wfs_index)
+            self._sim.wfs.d_wfs[wfs_index].set_noise(
+                    [p.noise for p in self.config.pwfss], 1234 + wfs_index)
 
     def reset_strehl(self, tar_index: int) -> None:
         """ Reset the Strehl Ratio of the target tar_index
@@ -527,7 +541,7 @@ class CompassSupervisor(AoSupervisor):
         self.enable_atmos(True)
         self.is_init = True
 
-    def get_ncpa_wfs(self, wfs_index : int):
+    def get_ncpa_wfs(self, wfs_index: int):
         """ Return the current NCPA phase screen of the WFS path
 
         Parameters:
@@ -572,7 +586,7 @@ class CompassSupervisor(AoSupervisor):
         return np.array(self._sim.wfs.d_wfs[wfs_index].d_gs.d_phase)
 
     def get_dm_shape(self, indx: int) -> np.ndarray:
-        """ Return the current phase shape of the selected DM 
+        """ Return the current phase shape of the selected DM
 
         Parameters:
             indx : (int) : Index of the DM
@@ -582,7 +596,6 @@ class CompassSupervisor(AoSupervisor):
 
         """
         return np.array(self._sim.dms.d_dms[indx].d_shape)
-
 
     def get_pyrhr_image(self, wfs_index: int = 0) -> np.ndarray:
         """ Get an high resolution image from the PWFS
@@ -601,13 +614,13 @@ class CompassSupervisor(AoSupervisor):
 
         Parameters:
             ncontrol : (int, optional) : controller index. Default is 0
-        
+
         Return:
             slopes_geom : (np.ndarray) : geometrically computed slopes
         """
         self._sim.rtc.do_centroids_geom(ncontrol)
         slopes_geom = np.array(self._sim.rtc.d_control[ncontrol].d_centroids)
-        self._sim.rtc.do_centroids(ncontrol) # To return in non-geo state
+        self._sim.rtc.do_centroids(ncontrol)  # To return in non-geo state
         return slopes_geom
 
     def get_strehl(self, tar_index: int, do_fit: bool = True) -> np.ndarray:
@@ -620,7 +633,7 @@ class CompassSupervisor(AoSupervisor):
 
             do_fit : (bool, optional) : If True (default), fit the PSF
                                         with a sinc before computing SR
-        
+
         Return:
             strehl : (np.ndarray) : Strehl ratios and phase variances
         """
@@ -667,13 +680,13 @@ class CompassSupervisor(AoSupervisor):
         """
         from shesha.ao import basis
         influ_sparse = basis.compute_dm_basis(self._sim.dms.d_dms[dm_index],
-                                          self._sim.config.p_dms[dm_index],
-                                          self._sim.config.p_geom)
+                                              self._sim.config.p_dms[dm_index],
+                                              self._sim.config.p_geom)
 
         return influ_sparse
 
-    def set_ncpa_wfs(self, wfs_index : int, ncpa : np.ndarray):
-        """ Set the additional fixed NCPA phase in the WFS path. 
+    def set_ncpa_wfs(self, wfs_index: int, ncpa: np.ndarray):
+        """ Set the additional fixed NCPA phase in the WFS path.
         ncpa must be of the same size of the mpupil support
 
         Parameters:
@@ -683,8 +696,8 @@ class CompassSupervisor(AoSupervisor):
         """
         self._sim.wfs.d_wfs[wfs_index].d_gs.set_ncpa(ncpa)
 
-    def set_ncpa_tar(self, tar_index : int, ncpa : np.ndarray):
-        """ Set the additional fixed NCPA phase in the target path. 
+    def set_ncpa_tar(self, tar_index: int, ncpa: np.ndarray):
+        """ Set the additional fixed NCPA phase in the target path.
         ncpa must be of the same size of the spupil support
 
         Parameters:
@@ -719,20 +732,21 @@ class CompassSupervisor(AoSupervisor):
         dimx = old_mpup.shape[0]
         dimy = old_mpup.shape[1]
         if ((mpupil.shape[0] != dimx) or (mpupil.shape[1] != dimy)):
-            print("Error mpupil shape on wfs %d must be: (%d,%d)" % (wfs_index, dimx, dimy))
+            print("Error mpupil shape on wfs %d must be: (%d,%d)" % (wfs_index, dimx,
+                                                                     dimy))
         else:
             self._sim.wfs.d_wfs[wfs_index].set_pupil(mpupil.copy())
 
-    def get_pupil(self, pupil_type : str="ipupil") -> np.ndarray:
-        """ Return the selected pupil. 
-        Available pupils are : 
+    def get_pupil(self, pupil_type: str = "ipupil") -> np.ndarray:
+        """ Return the selected pupil.
+        Available pupils are :
             spupil : smallest one (use for target phase screen)
             mpupil : medium one (use for wfs phase screen)
             ipupil : biggest one (use for FFT)
-        
+
         Parameters:
             pupil_type : (str, optional) : Pupil to return ("spupil","mpupil" or "ipupil")
-        
+
         Return:
             pupil : (np.ndarray) : pupil
         """
@@ -748,18 +762,19 @@ class CompassSupervisor(AoSupervisor):
         return pupil
 
     def get_pyr_focal_plane(self, wfs_index: int) -> np.ndarray:
-        """ Returns the psf on the top of the pyramid. 
+        """ Returns the psf on the top of the pyramid.
         pyrhr WFS only
 
         Parameters:
             wfs_index : (int) : WFS index
-        
+
         Return:
             focal_plane : (np.ndarray) : psf on the top of the pyramid
         """
         return np.fft.fftshift(np.array(self._sim.wfs.d_wfs[wfs_index].d_pyrfocalplane))
 
-    def set_dm_registration(self, dm_index, dx=None, dy=None, theta=None, G=None) -> None:
+    def set_dm_registration(self, dm_index, dx=None, dy=None, theta=None,
+                            G=None) -> None:
         """Set the registration parameters for DM #dm_index
 
         Parameters:
@@ -801,8 +816,8 @@ class CompassSupervisor(AoSupervisor):
 
         return np.array(self._sim.rtc.d_centro[0].d_selected_pix)
 
-
-    def first_non_zero(self, array : np.ndarray, axis : int, invalid_val : int=-1) -> np.ndarray:
+    def first_non_zero(self, array: np.ndarray, axis: int,
+                       invalid_val: int = -1) -> np.ndarray:
         """ Find the first non zero element of an array
 
         Parameters:
@@ -819,16 +834,16 @@ class CompassSupervisor(AoSupervisor):
         mask = array != 0
         return np.where(mask.any(axis=axis), mask.argmax(axis=axis), invalid_val)
 
-    def compute_modes_to_volts_basis(self, modal_basis_type : str, merged : bool=False, nbpairs : int=None,
-                        return_delta : bool=False):
+    def compute_modes_to_volts_basis(self, modal_basis_type: str, merged: bool = False,
+                                     nbpairs: int = None, return_delta: bool = False):
         """ Computes a given modal basis ("KL2V", "Btt", "Btt_petal") and return the 2 transfer matrices
 
         Parameters:
-            modal_basis_type : (str) : modal basis to compute ("KL2V", "Btt", "Btt_petal") 
+            modal_basis_type : (str) : modal basis to compute ("KL2V", "Btt", "Btt_petal")
 
-            merged : (bool, optional) : 
+            merged : (bool, optional) :
 
-            nbpairs : (int, optional) : 
+            nbpairs : (int, optional) :
 
         Return:
             modal_basis : (np.ndarray) : modes to volts matrix
@@ -837,9 +852,10 @@ class CompassSupervisor(AoSupervisor):
         """
         if (modal_basis_type == "KL2V"):
             print("Computing KL2V basis...")
-            self.modal_basis = basis.compute_KL2V(self._sim.config.p_controllers[0], self._sim.dms,
-                                   self._sim.config.p_dms, self._sim.config.p_geom,
-                                   self._sim.config.p_atmos, self._sim.config.p_tel)
+            self.modal_basis = basis.compute_KL2V(
+                    self._sim.config.p_controllers[0], self._sim.dms,
+                    self._sim.config.p_dms, self._sim.config.p_geom,
+                    self._sim.config.p_atmos, self._sim.config.p_tel)
             fnz = self.first_non_zero(self.modal_basis, axis=0)
             # Computing the sign of the first non zero element
             #sig = np.sign(self.modal_basis[[fnz, np.arange(self.modal_basis.shape[1])]])
@@ -868,11 +884,11 @@ class CompassSupervisor(AoSupervisor):
 
         return self.modal_basis, self.P
 
-
-    def compute_btt_basis(self, merged : bool=False, nbpairs : int=None, return_delta : bool=False):
+    def compute_btt_basis(self, merged: bool = False, nbpairs: int = None,
+                          return_delta: bool = False):
         """ Computes the so-called Btt modal basis. The <merged> flag allows merto merge
         2x2 the actuators influence functions for actuators on each side of the spider (ELT case)
-         
+
         Parameters:
             merged : (bool, optional) : If True, merge 2x2 the actuators influence functions for
                                         actuators on each side of the spider (ELT case). Default
@@ -880,27 +896,29 @@ class CompassSupervisor(AoSupervisor):
 
             nbpairs : (int, optional) : Default is None. TODO : description
 
-            return_delta : (bool, optional) : If False (default), the function returns 
-                                              Btt (modes to volts matrix), 
+            return_delta : (bool, optional) : If False (default), the function returns
+                                              Btt (modes to volts matrix),
                                               and P (volts to mode matrix).
-                                              If True, returns delta = IF.T.dot(IF) / N 
+                                              If True, returns delta = IF.T.dot(IF) / N
                                               instead of P
-        
+
         Return:
             Btt : (np.ndarray) : Btt modes to volts matrix
 
             P : (np.ndarray) : volts to Btt modes matrix
         """
-        influ_basis = self.get_influ_basis_sparse(1)        
+        influ_basis = self.get_influ_basis_sparse(1)
         tt_basis = self.get_tt_influ_basis(1)
         if (merged):
-            couples_actus, index_under_spiders = self.compute_merged_influ(nbpairs=nbpairs)
+            couples_actus, index_under_spiders = self.compute_merged_influ(
+                    nbpairs=nbpairs)
             influ_basis2 = influ_basis.copy()
             index_remove = index_under_spiders.copy()
             index_remove += list(couples_actus[:, 1])
             print("Pairing Actuators...")
             for i in tqdm(range(couples_actus.shape[0])):
-                influ_basis2[couples_actus[i, 0], :] += influ_basis2[couples_actus[i, 1], :]
+                influ_basis2[couples_actus[i, 0], :] += influ_basis2[
+                        couples_actus[i, 1], :]
             print("Pairing Done")
             boolarray = np.zeros(influ_basis2.shape[0], dtype=np.bool)
             boolarray[index_remove] = True
@@ -915,7 +933,7 @@ class CompassSupervisor(AoSupervisor):
             self.selected_actus = None
             self.couples_actus = None
             self.index_under_spiders = None
-            
+
         Btt, P = basis.compute_btt(influ_basis.T, tt_basis, return_delta=return_delta)
 
         if (merged):
@@ -932,10 +950,8 @@ class CompassSupervisor(AoSupervisor):
             P = delta
         return Btt, P
 
-
-
-    def compute_merged_influ(self, nbpairs : int=None):
-        """ Used to compute merged IF from each side of the spider 
+    def compute_merged_influ(self, nbpairs: int = None):
+        """ Used to compute merged IF from each side of the spider
         for an ELT case (Petalling Effect)
 
         Parameters:
@@ -978,7 +994,8 @@ class CompassSupervisor(AoSupervisor):
 
         # For each of the k pieces of the spider
         for k, px_list in enumerate(px_list_spider):
-            pts = np.c_[px_list[1], px_list[0]]  # x,y coord of pixels of the spider piece
+            pts = np.c_[px_list[1],
+                        px_list[0]]  # x,y coord of pixels of the spider piece
             # line_eq = [a, b]
             # Which minimizes leqst squares of aa*x + bb*y = 1
             line_eq = np.linalg.pinv(pts).dot(np.ones(pts.shape[0]))
@@ -998,7 +1015,8 @@ class CompassSupervisor(AoSupervisor):
             rotated_px = rotation.dot(pts.T - one_point[:, None])
             # Min and max coordinates along the spider length - to filter actuators that are on
             # 'This' side of the pupil and not the other side
-            min_u, max_u = rotated_px[0].min() - 5. * pitch, rotated_px[0].max() + 5. * pitch
+            min_u, max_u = rotated_px[0].min() - 5. * pitch, rotated_px[0].max(
+            ) + 5. * pitch
 
             # Rotate the actuators
             rotated_actus = rotation.dot(dm_pos_mat - one_point[:, None])
@@ -1054,7 +1072,9 @@ class CompassSupervisor(AoSupervisor):
             P : (np.ndarray) : volts to Btt modes matrix
         """
         influ_pzt = self.get_influ_basis_sparse(1)
-        petal_dm_index = np.where([d.influ_type is scons.InfluType.PETAL for d in self.config.p_dms])[0][0]
+        petal_dm_index = np.where([
+                d.influ_type is scons.InfluType.PETAL for d in self.config.p_dms
+        ])[0][0]
         influ_petal = self.compute_influ_basis(petal_dm_index)
         tt_index = np.where([d.type is scons.DmType.TT for d in self.config.p_dms])[0][0]
 
@@ -1062,14 +1082,14 @@ class CompassSupervisor(AoSupervisor):
 
         return basis.compute_btt(influ_pzt.T, influ_tt, influ_petal=influ_petal)
 
-    def compute_phase_to_modes(self, modal_basis : np.ndarray):
+    def compute_phase_to_modes(self, modal_basis: np.ndarray):
         """ Return the phase to modes matrix by using the given modal basis
 
         Parameters:
             modal_basis : (np.ndarray) : Modal basis matrix
-        
+
         Return:
-            phase_to_modes : (np.ndarray) : phase to modes matrix 
+            phase_to_modes : (np.ndarray) : phase to modes matrix
         """
         old_noise = self.config.p_wfss[0].noise
         self.set_noise(-1)
@@ -1090,7 +1110,8 @@ class CompassSupervisor(AoSupervisor):
         self.set_noise(old_noise)
         return phase_to_modes
 
-    def apply_volts_and_get_slopes(self, controller_index : int=0, noise : bool=False, turbu : bool=False, reset : bool=True):
+    def apply_volts_and_get_slopes(self, controller_index: int = 0, noise: bool = False,
+                                   turbu: bool = False, reset: bool = True):
         """ Apply voltages, raytrace, compute WFS image, compute slopes and returns it
 
         Parameters:
@@ -1099,7 +1120,7 @@ class CompassSupervisor(AoSupervisor):
             noise : (bool, optional) : Flag to enable noise for WFS image compuation. Default is False
 
             turbu : (bool, optional) : Flag to enable atmosphere for WFS phase screen raytracing.
-                                       Default is False 
+                                       Default is False
 
             reset : (bool, optional) : Flag to reset previous phase screen before raytracing.
                                        Default is True
@@ -1115,8 +1136,8 @@ class CompassSupervisor(AoSupervisor):
         slopes = self.get_slopes(0)
         return slopes
 
-    def do_imat_modal(self, controller_index, ampli, modal_basis,
-                    noise=False, nmodes_max=0, with_turbu=False, push_pull=False):
+    def do_imat_modal(self, controller_index, ampli, modal_basis, noise=False,
+                      nmodes_max=0, with_turbu=False, push_pull=False):
         """ Computes an interaction matrix from provided modal basis
 
         Parameters:
@@ -1131,18 +1152,18 @@ class CompassSupervisor(AoSupervisor):
             nmodes_max : (int, optional) : Default is 0. TODO : description
 
             with_turbu : (bool, optional) : Flag to enable atmosphere for WFS phase screen raytracing.
-                                            Default is False 
-            
+                                            Default is False
+
             push_pull : (bool, optional) : If True, imat is computed as an average of push and pull ampli
                                             on each mode
-        
+
         Return:
             modal_imat : (np.ndarray) : Modal interaction matrix
         """
         nslopes = self.config.p_controllers[controller_index].nslope
         modal_imat = np.zeros((nslopes, modal_basis.shape[1]))
 
-        if (nmodes_max ==0):
+        if (nmodes_max == 0):
             nmodes_max = modal_basis.shape[1]
         v_old = self.get_command(controller_index)
         self.open_loop(rst=False)
@@ -1154,9 +1175,11 @@ class CompassSupervisor(AoSupervisor):
                 self.set_perturbation_voltage(
                         0, "imat_modal",
                         v_old + v)  # Adding Perturbation voltage on current iteration
-                devpos = self.apply_volts_and_get_slopes(controller_index, turbu=with_turbu, noise=noise)
+                devpos = self.apply_volts_and_get_slopes(controller_index,
+                                                         turbu=with_turbu, noise=noise)
                 self.set_perturbation_voltage(controller_index, "imat_modal", v_old - v)
-                devmin = self.apply_volts_and_get_slopes(controller_index, turbu=with_turbu, noise=noise)
+                devmin = self.apply_volts_and_get_slopes(controller_index,
+                                                         turbu=with_turbu, noise=noise)
                 modal_imat[:, m] = (devpos - devmin) / (2. * ampli[m])
                 #imat[:-2, :] /= pushDMMic
                 #if(nmodes_max == 0):# i.e we measured all modes including TT
@@ -1164,15 +1187,15 @@ class CompassSupervisor(AoSupervisor):
             else:  # No turbulence => push only
                 self.open_loop()  # open_loop
                 self.set_perturbation_voltage(controller_index, "imat_modal", v)
-                modal_imat[:, m] = self.apply_volts_and_get_slopes(controller_index, noise=noise) / ampli[m]
+                modal_imat[:, m] = self.apply_volts_and_get_slopes(
+                        controller_index, noise=noise) / ampli[m]
         self.removePerturbationVoltage(controller_index, "imat_modal")
         if ((push_pull is True) or (with_turbu is True)):
             self.close_loop()  # We are supposed to be in close loop now
         return modal_imat
 
-
-    def do_imat_phase(self, controller_index : int, cube_phase : np.ndarray, noise=False, nmodes_max=0, with_turbu=False,
-                    push_pull=False, wfs_index=0):
+    def do_imat_phase(self, controller_index: int, cube_phase: np.ndarray, noise=False,
+                      nmodes_max=0, with_turbu=False, push_pull=False, wfs_index=0):
         """ Computes an interaction matrix with the provided cube phase
 
         Parameters:
@@ -1185,8 +1208,8 @@ class CompassSupervisor(AoSupervisor):
             nmodes_max : (int, optional) : Default is 0. TODO : description
 
             with_turbu : (bool, optional) : Flag to enable atmosphere for WFS phase screen raytracing.
-                                            Default is False 
-            
+                                            Default is False
+
             push_pull : (bool, optional) : If True, imat is computed as an average of push and pull ampli
                                             on each mode
 
@@ -1194,26 +1217,30 @@ class CompassSupervisor(AoSupervisor):
 
         Return:
             phase_imat : (np.ndarray) : Phase interaction matrix
-        """        
+        """
         nslopes = self.config.p_controllers[controller_index].nslope
         imat_phase = np.zeros((cube_phase.shape[0], nslopes))
         for nphase in range(cube_phase.shape[0]):
-            if ((push_pull is True) or
-                (with_turbu is True)):  # with turbulence/aberrations => push/pullADOPT/projects/cosmic/
+            if ((push_pull is True) or (with_turbu is True)
+                ):  # with turbulence/aberrations => push/pullADOPT/projects/cosmic/
                 self.set_ncpa_wfs(wfs_index, cube_phase[nphase, :, :])
-                devpos = self.apply_volts_and_get_slopes(controller_index, turbu=with_turbu, noise=noise)
+                devpos = self.apply_volts_and_get_slopes(controller_index,
+                                                         turbu=with_turbu, noise=noise)
                 self.set_ncpa_wfs(wfs_index, -cube_phase[nphase, :, :])
-                devmin = self.apply_volts_and_get_slopes(controller_index, turbu=with_turbu, noise=noise)
+                devmin = self.apply_volts_and_get_slopes(controller_index,
+                                                         turbu=with_turbu, noise=noise)
                 imat_phase[nphase, :] = (devpos - devmin) / 2
             else:  # No turbulence => push only
                 self.open_loop()  # open_loop
                 self.set_ncpa_wfs(wfs_index, cube_phase[nphase, :, :])
-                imat_phase[nphase, :] = self.apply_volts_and_get_slopes(controller_index, noise=noise)
-        self.set_ncpa_wfs(wfs_index, cube_phase[nphase, :, :] * 0.)  # Remove the Phase on WFS
-        _ = self.apply_volts_and_get_slopes(controller_index, turbu=with_turbu, noise=noise)
+                imat_phase[nphase, :] = self.apply_volts_and_get_slopes(
+                        controller_index, noise=noise)
+        self.set_ncpa_wfs(wfs_index,
+                          cube_phase[nphase, :, :] * 0.)  # Remove the Phase on WFS
+        _ = self.apply_volts_and_get_slopes(controller_index, turbu=with_turbu,
+                                            noise=noise)
 
         return imat_phase
-
 
     def compute_modal_residuals(self):
         """ Computes the modal residual coefficients of the residual phase.
@@ -1223,23 +1250,28 @@ class CompassSupervisor(AoSupervisor):
         Return:
             ai : (np.ndarray) : Modal coefficients
         """
-        try: 
+        try:
             self._sim.do_control(1, 0)
         except:
             return [0]
-        v = self.get_command(1)  # We compute here the residual phase on the DM modes. Gives the Equivalent volts to apply/
+        v = self.get_command(
+                1
+        )  # We compute here the residual phase on the DM modes. Gives the Equivalent volts to apply/
         if (self.P is None):
             return [0]
             # self.modal_basis, self.P = self.compute_modes_to_volts_basis("Btt")
         if (self.selected_actus is None):
             ai = self.P.dot(v) * 1000.  # np rms units
         else:  # Slaving actus case
-            v2 = v[:-2][list(self.selected_actus)]  # If actus are slaved then we select them.
+            v2 = v[:-2][list(
+                    self.selected_actus)]  # If actus are slaved then we select them.
             v3 = v[-2:]
             ai = self.P.dot(np.concatenate((v2, v3))) * 1000.
         return ai
 
-    def set_pyr_multiple_stars_source(self, wfs_index : int, coords : List, weights : List=None, pyr_mod : float=3., niters : int=None):
+    def set_pyr_multiple_stars_source(self, wfs_index: int, coords: List,
+                                      weights: List = None, pyr_mod: float = 3.,
+                                      niters: int = None):
         """ Sets the Pyramid modulation points with a multiple star system
 
         Parameters:
@@ -1277,7 +1309,7 @@ class CompassSupervisor(AoSupervisor):
             weights = np.array(w)
         self.set_pyr_modulation_points(wfs_index, cx, cy, weights)
 
-    def set_pyr_disk_source_hexa(self, wfs_index : int, radius : float):
+    def set_pyr_disk_source_hexa(self, wfs_index: int, radius: float):
         """ Create disk object by packing PSF in a given radius, using hexagonal packing
 
         /!\ There is no modulation
@@ -1302,7 +1334,7 @@ class CompassSupervisor(AoSupervisor):
         cx, cy = mat_circ[:, 0], mat_circ[:, 1]
         self.set_pyr_modulation_points(wfs_index, cx, cy)
 
-    def generate_square(self, radius : float, density : float=1.):
+    def generate_square(self, radius: float, density: float = 1.):
         """ Generate modulation points positions following a square pattern
 
         Parameters:
@@ -1321,7 +1353,7 @@ class CompassSupervisor(AoSupervisor):
         cy = cy.flatten()
         return (cx, cy)
 
-    def generate_circle(self, radius : float, density : float=1.):
+    def generate_circle(self, radius: float, density: float = 1.):
         """ Generate modulation points positions following a circular pattern
 
         Parameters:
@@ -1338,8 +1370,7 @@ class CompassSupervisor(AoSupervisor):
         r = cx * cx + cy * cy <= radius**2
         return (cx[r], cy[r])
 
-
-    def set_pyr_disk_source(self, wfs_index : int, radius : float, density: float=1.):
+    def set_pyr_disk_source(self, wfs_index: int, radius: float, density: float = 1.):
         """ Create disk object by packing PSF in a given radius, using square packing
 
         /!\ There is no modulation
@@ -1357,7 +1388,7 @@ class CompassSupervisor(AoSupervisor):
         cy = cy.flatten() * self.config.p_wfss[wfs_index]._pyr_scale_pos
         self.set_pyr_modulation_points(wfs_index, cx, cy)
 
-    def set_pyr_square_source(self, wfs_index : int, radius : float, density: float=1.):
+    def set_pyr_square_source(self, wfs_index: int, radius: float, density: float = 1.):
         """ Create a square object by packing PSF in a given radius, using square packing
 
         /!\ There is no modulation
@@ -1375,7 +1406,7 @@ class CompassSupervisor(AoSupervisor):
         cy = cy.flatten() * self.config.p_wfss[wfs_index]._pyr_scale_pos
         self.set_pyr_modulation_points(wfs_index, cx, cy)
 
-    def generate_pseudo_source(self, radius : float, additional_psf=0, density=1.):
+    def generate_pseudo_source(self, radius: float, additional_psf=0, density=1.):
         """ Used to generate a pseudo source for PYRWFS
 
         Parameters:
@@ -1384,7 +1415,7 @@ class CompassSupervisor(AoSupervisor):
             additional_psf : (int) :TODO description
 
             density : (float, optional) :TODO description
-        
+
         Return:
             ox : TODO description & explicit naming
 
@@ -1437,9 +1468,7 @@ class CompassSupervisor(AoSupervisor):
                     H_edge_weight.append(val)
         pup_cent_x = []
         pup_cent_y = []
-        pup_cent_weight = 4 * [
-                (len(xc) - 2 * np.sum(H_edge_weight) - struct_size) / 4
-        ]
+        pup_cent_weight = 4 * [(len(xc) - 2 * np.sum(H_edge_weight) - struct_size) / 4]
         pup_cent_dist = int(edge_dist // np.sqrt(2))
         for l in [-1, 1]:
             for m in [-1, 1]:
@@ -1451,7 +1480,8 @@ class CompassSupervisor(AoSupervisor):
                             pup_cent_weight))
         return (ox, oy, w, xc, yc)
 
-    def set_pyr_pseudo_source(self, wfs_index : int, radius : float, additional_psf : int=0, density : float=1.):
+    def set_pyr_pseudo_source(self, wfs_index: int, radius: float,
+                              additional_psf: int = 0, density: float = 1.):
         """ TODO : DESCRIPTION
 
         Parameters:
@@ -1463,23 +1493,25 @@ class CompassSupervisor(AoSupervisor):
 
             density : (float, optional) :TODO : DESCRIPTION
         """
-        cx, cy, weights, _, _ = self.generate_pseudo_source(radius, additional_psf, density)
+        cx, cy, weights, _, _ = self.generate_pseudo_source(radius, additional_psf,
+                                                            density)
         cx = cx.flatten() * self.config.p_wfss[wfs_index]._pyr_scale_pos
         cy = cy.flatten() * self.config.p_wfss[wfs_index]._pyr_scale_pos
         self.set_pyr_modulation_points(wfs_index, cx, cy, weights)
 
-    def record_ao_circular_buffer(self, cb_count : int, sub_sample : int=1, controller_index : int=0, tar_index : int=0, see_atmos : bool=True,
-                 cube_data_type : str=None, cube_data_file_path : str="", ncpa : int=0, ncpa_wfs : np.ndarray=None, ref_slopes : np.ndarray=None,
-                 ditch_strehl : bool=True):
-
-        """ Used to record a synchronized circular buffer AO loop data. 
+    def record_ao_circular_buffer(
+            self, cb_count: int, sub_sample: int = 1, controller_index: int = 0,
+            tar_index: int = 0, see_atmos: bool = True, cube_data_type: str = None,
+            cube_data_file_path: str = "", ncpa: int = 0, ncpa_wfs: np.ndarray = None,
+            ref_slopes: np.ndarray = None, ditch_strehl: bool = True):
+        """ Used to record a synchronized circular buffer AO loop data.
 
         Parameters:
-            cb_count: (int) : the number of iterations to record. 
+            cb_count: (int) : the number of iterations to record.
 
             sub_sample:  (int) : sub sampling of the data (default=1, I.e no subsampling)
 
-            controller_index:  (int) : 
+            controller_index:  (int) :
 
             tar_index:  (int) : target number
 
@@ -1487,14 +1519,14 @@ class CompassSupervisor(AoSupervisor):
 
             cube_data_type:   (int) : if  specified ("tarPhase" or "psfse") returns the target phase or short exposure PSF data cube in the output variable
 
-            cube_data_file_path:  (int) : if specified it will also save the target phase cube data (full path on the server) 
-            
+            cube_data_file_path:  (int) : if specified it will also save the target phase cube data (full path on the server)
+
             ncpa:  (int) : !!experimental!!!: Used only in the context of PYRWFS + NCPA compensation on the fly (with optical gain)
             defines how many iters the NCPA refslopes are updates with the proper optical gain. Ex: if NCPA=10 refslopes will be updates every 10 iters.
 
             ncpa_wfs:  (int) : the ncpa phase as seen from the wfs array with dims = size of Mpupil
 
-            ref_slopes:  (int) : the reference slopes to use. 
+            ref_slopes:  (int) : the reference slopes to use.
 
             ditch_strehl:  (int) : resets the long exposure SR computation at the beginning of the Circular buffer (default= True)
 
@@ -1536,10 +1568,9 @@ class CompassSupervisor(AoSupervisor):
             if (ncpa):
                 if (j % ncpa == 0):
                     ncpa_diff = ref_slopes[None, :]
-                    ncpa_turbu = self.do_imat_phase(controller_index, 
-                                                   -ncpa_wfs[None, :, :], 
-                                                   noise=False,
-                                                   with_turbu=True)
+                    ncpa_turbu = self.do_imat_phase(controller_index,
+                                                    -ncpa_wfs[None, :, :], noise=False,
+                                                    with_turbu=True)
                     g_ncpa = float(
                             np.sqrt(
                                     np.dot(ncpa_diff, ncpa_diff.T) / np.dot(
@@ -1569,12 +1600,14 @@ class CompassSupervisor(AoSupervisor):
 
                 slopes_vector = self.get_slopes(0)
                 if (slopes_data is None):
-                    slopes_data = np.zeros((len(slopes_vector), int(cb_count / sub_sample)))
+                    slopes_data = np.zeros((len(slopes_vector),
+                                            int(cb_count / sub_sample)))
                 slopes_data[:, k] = slopes_vector
 
                 volts_vector = self.get_command(0)
                 if (volts_data is None):
-                    volts_data = np.zeros((len(volts_vector), int(cb_count / sub_sample)))
+                    volts_data = np.zeros((len(volts_vector),
+                                           int(cb_count / sub_sample)))
                 volts_data[:, k] = volts_vector
 
                 if (cube_data_type):
@@ -1585,7 +1618,8 @@ class CompassSupervisor(AoSupervisor):
                     else:
                         raise ValueError("unknown dataData" % cube_data_type)
                     if (cube_data is None):
-                        cube_data = np.zeros((*dataArray.shape, int(cb_count / sub_sample)))
+                        cube_data = np.zeros((*dataArray.shape,
+                                              int(cb_count / sub_sample)))
                     cube_data[:, :, k] = dataArray
                 k += 1
         if (cube_data_file_path != ""):

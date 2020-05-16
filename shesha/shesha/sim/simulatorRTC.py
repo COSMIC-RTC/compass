@@ -170,7 +170,7 @@ class SimulatorRTC(Simulator):
                 self.fakewfs.send(self.frame)
             elif (self.location == "GPUSHM"):
                 # self.fakewfs.send(self.frame)
-                self.fakewfs.copyFrom(self.wfs.d_wfs[0].d_binimg)
+                self.fakewfs.copy_from(self.wfs.d_wfs[0].d_binimg)
                 self.fakewfs.notify()
             else:
                 raise ValueError("location not known")
@@ -193,7 +193,7 @@ class SimulatorRTC(Simulator):
             elif (self.location == "GPUSHM"):
                 # self.fakewfs.send(self.frame)
                 self.timer.tic()
-                self.fakewfs.copyFrom(self.wfs.d_wfs[0].d_binimg)
+                self.fakewfs.copy_from(self.wfs.d_wfs[0].d_binimg)
                 self.fakewfs.notify()
                 self.sendTime += [self.timer.toc()]
             else:

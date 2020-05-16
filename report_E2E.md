@@ -1,6 +1,6 @@
 # E2E Test Report
 
-*Report generated on 21-Jan-2020 15:57:11 by checkCompass.sh*
+*Report generated on 16-May-2020 22:05:08 by checkCompass.sh*
 
 [Unit Tests report](report_unit_test.html)
 
@@ -26,6 +26,6 @@
 | 15 | test_sh_kl.py                  | True   |     0.69051  |
 | 16 | test_sh_lgs_corr.py            | True   |     0.405807 |
 | 17 | test_sh_lgs_wcog.py            | True   |     0.687303 |
-| 18 | test_sh_modopti.py             | True   |     0.112608 |
+| 18 | test_sh_modopti.py             | True   |     0.661331 |
 | 19 | test_sh_mv.py                  | True   |     0.757639 |
 | 20 | test_sh_tcog.py                | True   |     0.709768 |

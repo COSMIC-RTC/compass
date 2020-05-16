@@ -32,10 +32,10 @@
 
 //! \file      sutra_acquisim.cu
 //! \ingroup   libsutra
-//! \class     sutra_acquisim
+//! \class     SutraAcquisim
 //! \brief     this class provides the acquisition simulator to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -72,7 +72,7 @@ int fillbincube_2D(T *bimage, T *bcube, int npix, int nxsub, int *num_ssp) {
 
   bcube_krnl_2D<T><<<grid, threads>>>(bimage, bcube, num_ssp);
 
-  carmaCheckMsg("binimg_kernel<<<>>> execution failed\n");
+  carma_check_msg("binimg_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -107,27 +107,27 @@ __global__ void bcube_krnl(T *bimage, T *bcube, int npix, int npix2, int nsub,
 
 template <class T>
 int fillbincube(T *bimage, T *bcube, int npix, int nsub, int Nsub, int *ivalid,
-                int *jvalid, carma_device *device) {
+                int *jvalid, CarmaDevice *device) {
   int Npix = npix * npix;
   int N = Npix * nsub;
-  int nthreads = 0, nblocks = 0;
-  getNumBlocksAndThreads(device, N, nblocks, nthreads);
+  int nb_threads = 0, nb_blocks = 0;
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
 
-  dim3 grid(nblocks), threads(nthreads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
   bcube_krnl<T>
       <<<grid, threads>>>(bimage, bcube, npix, Npix, Nsub, ivalid, jvalid, N);
 
-  carmaCheckMsg("binimg_kernel<<<>>> execution failed\n");
+  carma_check_msg("binimg_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
 template int fillbincube<float>(float *bimage, float *bcube, int npix, int nsub,
                                 int Nsub, int *ivalid, int *jvalid,
-                                carma_device *device);
+                                CarmaDevice *device);
 template int fillbincube<double>(double *bimage, double *bcube, int npix,
                                  int nsub, int Nsub, int *ivalid, int *jvalid,
-                                 carma_device *device);
+                                 CarmaDevice *device);
 
 template <class T>
 __global__ void bcube_krnl_async(T *bimage, T *bcube, int npix, int npix2,
@@ -155,29 +155,29 @@ __global__ void bcube_krnl_async(T *bimage, T *bcube, int npix, int npix2,
 }
 
 template <class T>
-int fillbincube_async(carma_host_obj<T> *image_telemetry, T *bimage, T *bcube,
+int fillbincube_async(CarmaHostObj<T> *image_telemetry, T *bimage, T *bcube,
                       int npix, int nsub, int Nsub, int *ivalid, int *jvalid,
-                      int nim, carma_device *device) {
-  int nstreams = image_telemetry->get_nbStreams();
+                      int nim, CarmaDevice *device) {
+  int nstreams = image_telemetry->get_nb_streams();
 
   int Npix = npix * npix;
   int N = Npix * nsub;
-  int nthreads = 0, nblocks = 0;
-  getNumBlocksAndThreads(device, N, nblocks, nthreads);
+  int nb_threads = 0, nb_blocks = 0;
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
 
   // here nstreams should be : final image size / npix
-  dim3 threads(nthreads);
+  dim3 threads(nb_threads);
   dim3 grid(N / (nstreams * threads.x));
 
   // asynchronously launch nstreams kernels, each operating on its own portion
   // of data
   for (int i = 0; i < nstreams; i++) {
     cudaMemcpyAsync(&(bimage[i * nim / nstreams]),
-                    image_telemetry->getDataAt(i * nim / nstreams),
+                    image_telemetry->get_data_at(i * nim / nstreams),
                     sizeof(float) * nim / nstreams, cudaMemcpyHostToDevice,
-                    image_telemetry->get_cudaStream_t(i));
+                    image_telemetry->get_cuda_stream(i));
     bcube_krnl_async<T>
-        <<<grid, threads, 0, image_telemetry->get_cudaStream_t(i)>>>(
+        <<<grid, threads, 0, image_telemetry->get_cuda_stream(i)>>>(
             bimage, bcube, npix, Npix, Nsub, ivalid, jvalid, N,
             i * N / nstreams);
     // asynchronously launch nstreams memcopies.  Note that memcopy in stream x
@@ -185,35 +185,35 @@ int fillbincube_async(carma_host_obj<T> *image_telemetry, T *bimage, T *bcube,
     //   commence executing when all previous CUDA calls in stream x have
     //   completed
   }
-  // cudaStreamSynchronize(image_telemetry->get_cudaStream_t(nstreams-1));
-  carmaCheckMsg("binimg_kernel<<<>>> execution failed\n");
+  // cudaStreamSynchronize(image_telemetry->get_cuda_stream(nstreams-1));
+  carma_check_msg("binimg_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
-template int fillbincube_async<float>(carma_host_obj<float> *image_telemetry,
+template int fillbincube_async<float>(CarmaHostObj<float> *image_telemetry,
                                       float *bimage, float *bcube, int npix,
                                       int nsub, int Nsub, int *ivalid,
                                       int *jvalid, int nim,
-                                      carma_device *device);
-template int fillbincube_async<double>(carma_host_obj<double> *image_telemetry,
+                                      CarmaDevice *device);
+template int fillbincube_async<double>(CarmaHostObj<double> *image_telemetry,
                                        double *bimage, double *bcube, int npix,
                                        int nsub, int Nsub, int *ivalid,
                                        int *jvalid, int nim,
-                                       carma_device *device);
+                                       CarmaDevice *device);
 
 template <class T>
-int fillbincube_async(carma_streams *streams, carma_obj<T> *bimage,
-                      carma_obj<T> *bcube, int npix, int nsub, int Nsub,
-                      int *ivalid, int *jvalid, carma_device *device) {
-  int nstreams = streams->get_nbStreams();
+int fillbincube_async(CarmaStreams *streams, CarmaObj<T> *bimage,
+                      CarmaObj<T> *bcube, int npix, int nsub, int Nsub,
+                      int *ivalid, int *jvalid, CarmaDevice *device) {
+  int nstreams = streams->get_nb_streams();
 
   int Npix = npix * npix;
   int N = Npix * nsub;
-  int nthreads = 0, nblocks = 0;
-  getNumBlocksAndThreads(device, N, nblocks, nthreads);
+  int nb_threads = 0, nb_blocks = 0;
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
 
   // here nstreams should be : final image size / npix
-  dim3 threads(nthreads);
+  dim3 threads(nb_threads);
   dim3 grid(N / (nstreams * threads.x));
 
   // asynchronously launch nstreams kernels, each operating on its own portion
@@ -227,17 +227,17 @@ int fillbincube_async(carma_streams *streams, carma_obj<T> *bimage,
     //   completed
   }
 
-  carmaCheckMsg("binimg_kernel<<<>>> execution failed\n");
+  carma_check_msg("binimg_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
-template int fillbincube_async<float>(carma_streams *streams,
-                                      carma_obj<float> *bimage,
-                                      carma_obj<float> *bcube, int npix,
+template int fillbincube_async<float>(CarmaStreams *streams,
+                                      CarmaObj<float> *bimage,
+                                      CarmaObj<float> *bcube, int npix,
                                       int nsub, int Nsub, int *ivalid,
-                                      int *jvalid, carma_device *device);
-template int fillbincube_async<double>(carma_streams *streams,
-                                       carma_obj<double> *bimage,
-                                       carma_obj<double> *bcube, int npix,
+                                      int *jvalid, CarmaDevice *device);
+template int fillbincube_async<double>(CarmaStreams *streams,
+                                       CarmaObj<double> *bimage,
+                                       CarmaObj<double> *bcube, int npix,
                                        int nsub, int Nsub, int *ivalid,
-                                       int *jvalid, carma_device *device);
+                                       int *jvalid, CarmaDevice *device);

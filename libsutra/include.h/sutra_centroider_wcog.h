@@ -32,10 +32,10 @@
 
 //! \file      sutra_centroider_wcog.h
 //! \ingroup   libsutra
-//! \class     sutra_centroider_wcog
+//! \class     SutraCentroiderWcog
 //! \brief     this class provides the centroider_wcog features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -46,16 +46,16 @@
 #include <sutra_centroider.h>
 
 template <class Tin, class T>
-class sutra_centroider_wcog : public sutra_centroider<Tin, T> {
+class SutraCentroiderWcog : public SutraCentroider<Tin, T> {
  public:
   int npix;
-  carma_obj<float> *d_weights;
+  CarmaObj<float> *d_weights;
 
  public:
-  sutra_centroider_wcog(carma_context *context, sutra_wfs *wfs, long nvalid,
+  SutraCentroiderWcog(CarmaContext *context, SutraWfs *wfs, long nvalid,
                         float offset, float scale, bool filter_TT, int device);
-  sutra_centroider_wcog(const sutra_centroider_wcog &centroider);
-  ~sutra_centroider_wcog();
+  SutraCentroiderWcog(const SutraCentroiderWcog &centroider);
+  ~SutraCentroiderWcog();
 
   string get_type();
 
@@ -73,8 +73,8 @@ template <class T>
 void get_centroids(int size, int threads, int blocks, int n, float *d_idata,
                    T *d_odata, T *ref, int *validx, int *validy,
                    float *intensities, float *d_weights, float scale,
-                   float offset, carma_device *device);
+                   float offset, CarmaDevice *device);
 
 template <class T>
-int fillweights(T *d_out, T *d_in, int npix, int N, carma_device *device);
+int fill_weights(T *d_out, T *d_in, int npix, int N, CarmaDevice *device);
 #endif  // _SUTRA_CENTROIDER_WCOG_H_

@@ -51,7 +51,7 @@ if __name__ == "__main__":
             ])
         try:
             supervisor.init_config()
-            is_init = supervisor.is_init()
+            is_init = supervisor.is_init
         except:
             is_init = False
             SR = "N/A"

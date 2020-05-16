@@ -16,12 +16,6 @@ export CUDA_LIB_PATH_64=$CUDA_ROOT/lib64
 export CPLUS_INCLUDE_PATH=$CUDA_INC_PATH
 export PATH=$CUDA_ROOT/bin:$PATH
 
-# CULA default definitions
-# export CULA_ROOT= #/usr/local/cula
-# export CULA_INC_PATH= #$CULA_ROOT/include
-# export CULA_LIB_PATH= #$CULA_ROOT/lib
-# export CULA_LIB_PATH_64= #$CULA_ROOT/lib64
-
 # MAGMA definitions (uncomment this line if MAGMA is installed)
 export MAGMA_ROOT= #$HOME/local/cuda
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MAGMA_ROOT/lib
@@ -32,7 +26,7 @@ export COMPASS_ROOT= #$HOME/compass
 export NAGA_ROOT=$COMPASS_ROOT/carmaWrap
 export SHESHA_ROOT=$COMPASS_ROOT/shesha
 
-export LD_LIBRARY_PATH=$COMPASS_ROOT/libcarma:$COMPASS_ROOT/libsutra:$CUDA_LIB_PATH_64:$CUDA_LIB_PATH:$CULA_LIB_PATH_64:$CULA_LIB_PATH:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$COMPASS_ROOT/libcarma:$COMPASS_ROOT/libsutra:$CUDA_LIB_PATH_64:$CUDA_LIB_PATH:$LD_LIBRARY_PATH
 
 export PYTHONPATH=$SHESHA/:$NAGA/:$PYTHONPATH
 
@@ -49,12 +43,6 @@ echo "export PATH=\$CUDA_ROOT/bin:\$PATH"
 echo
 echo "export GENCODE=\"$GENCODE\""
 echo
-# echo "# CULA default definitions (optional)"
-# echo "export CULA_ROOT=$CULA_ROOT"
-# echo "export CULA_INC_PATH=$CULA_INC_PATH"
-# echo "export CULA_LIB_PATH=$CULA_LIB_PATH"
-# echo "export CULA_LIB_PATH_64=$CULA_LIB_PATH_64"
-# echo
 echo "# MAGMA definitions (optional)"
 echo "export MAGMA_ROOT=$MAGMA_ROOT"
 echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:\$MAGMA_ROOT/lib"

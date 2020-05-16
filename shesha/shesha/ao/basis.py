@@ -1,7 +1,7 @@
 ## @package   shesha.ao.basis
 ## @brief     Functions for modal basis (DM basis, KL, Btt, etc...)
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   4.4.1
+## @version   5.0.0
 ## @date      2011/01/28
 ## @copyright GNU Lesser General Public License
 #
@@ -380,7 +380,7 @@ def compute_btt(IFpzt, IFtt, influ_petal=None, return_delta=False):
     deltaT = IFpzt.T.dot(Tp) / N
     # Tip tilt projection on the pzt dm
     tau = np.linalg.inv(delta).dot(deltaT)
-    nfilt = 3 # Piston + tip + tilt
+    nfilt = 3  # Piston + tip + tilt
 
     if influ_petal is not None:
         # Petal basis generation (orthogonal to global piston)
@@ -390,7 +390,7 @@ def compute_btt(IFpzt, IFtt, influ_petal=None, return_delta=False):
                 nseg - 1)]  # petal modes within the petal dm space
         tau_petal = IFpzt.T.dot(influ_petal).toarray().dot(petal_modes.T)
         tau = np.concatenate((tau_petal, np.linalg.inv(delta).dot(deltaT)), axis=1)
-        nfilt = 8 
+        nfilt = 8
     # Famille generatrice sans tip tilt
     G = np.identity(n)
     tdt = tau.T.dot(delta).dot(tau)
@@ -412,7 +412,7 @@ def compute_btt(IFpzt, IFtt, influ_petal=None, return_delta=False):
     mini = 1. / np.sqrt(np.abs(TT))
     mini[0, 1] = 0
     mini[1, 0] = 0
-    Btt[n:,-2:] = mini
+    Btt[n:, -2:] = mini
     if influ_petal is not None:
         Btt[:n, -7:-2] = tau_petal
 

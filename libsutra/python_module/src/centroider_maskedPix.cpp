@@ -39,7 +39,7 @@
 //! \ingroup   libsutra
 //! \brief     this file provides pybind wrapper for sutra_centroider_maskedpix
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -51,9 +51,9 @@ namespace py = pybind11;
 
 template <typename Tin, typename Tcomp>
 void centroider_maskedPix_impl(py::module &mod, const char *name) {
-  using centroider_maskedPix = sutra_centroider_maskedPix<Tin, Tcomp>;
+  using centroider_maskedPix = SutraCentroiderMaskedPix<Tin, Tcomp>;
 
-  py::class_<centroider_maskedPix, sutra_centroider<Tin, Tcomp>>(mod, name)
+  py::class_<centroider_maskedPix, SutraCentroider<Tin, Tcomp>>(mod, name)
 
       .def_property_readonly(
           "d_selected_pix",

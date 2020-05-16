@@ -32,10 +32,10 @@
 
 //! \file      sutra_controller.h
 //! \ingroup   libsutra
-//! \class     sutra_controller
+//! \class     SutraController
 //! \brief     this class provides the controller features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -59,57 +59,57 @@ using std::tuple;
 
 template <typename Tcomp, typename Tout>
 typename std::enable_if<std::is_same<Tcomp, Tout>::value, void>::type
-init_voltage_impl(carma_obj<Tout> *&volts, carma_obj<Tcomp> *comClipped) {
+init_voltage_impl(CarmaObj<Tout> *&volts, CarmaObj<Tcomp> *comClipped) {
   volts = comClipped;
 };
 
 template <typename Tcomp, typename Tout>
 typename std::enable_if<!std::is_same<Tcomp, Tout>::value, void>::type
-init_voltage_impl(carma_obj<Tout> *&volts, carma_obj<Tcomp> *comClipped) {
-  volts = new carma_obj<Tout>(comClipped->getContext(), comClipped->getDims());
+init_voltage_impl(CarmaObj<Tout> *&volts, CarmaObj<Tcomp> *comClipped) {
+  volts = new CarmaObj<Tout>(comClipped->get_context(), comClipped->get_dims());
 };
 
 template <typename Tcomp, typename Tout>
-class sutra_controller {
+class SutraController {
  public:
-  carma_context *current_context;
+  CarmaContext *current_context;
   int device;
 
   int open_loop;
   Tcomp delay;
   Tcomp gain;
-  float Vmin;
-  float Vmax;
+  float volt_min;
+  float volt_max;
   int nactus;
   int nslopes;
-  Tout valMax;
+  Tout val_max;
   Tcomp a;  // Coefficient for linear interpolation on command buffer to allow
             // non-integer delay
   Tcomp b;  // Coefficient for linear interpolation on command buffer to allow
             // non-integer delay
   Tcomp c;  // Coefficient for linear interpolation on command buffer to allow
             // non-integer delay
-  vector<sutra_dm *> d_dmseen;
-  carma_obj<Tcomp> *d_centroids;        // current centroids
-  carma_obj<Tcomp> *d_centroidsPadded;  // current centroids
-  carma_obj<Tcomp> *d_com;              // current command
-  carma_obj<Tcomp> *d_comPadded;        // current command
-  carma_obj<Tcomp> *d_comClipped;       // current command
-  carma_obj<Tout> *d_voltage;  // commands after perturbation and clipping
-  carma_obj<Tcomp> *d_com1;    // commands k-1
+  vector<SutraDm *> d_dmseen;
+  CarmaObj<Tcomp> *d_centroids;        // current centroids
+  CarmaObj<Tcomp> *d_centroids_padded;  // current centroids
+  CarmaObj<Tcomp> *d_com;              // current command
+  CarmaObj<Tcomp> *d_com_padded;        // current command
+  CarmaObj<Tcomp> *d_com_clipped;       // current command
+  CarmaObj<Tout> *d_voltage;  // commands after perturbation and clipping
+  CarmaObj<Tcomp> *d_com1;    // commands k-1
   vector<int> centro_idx; // Centroider indices to handle
-  std::deque<carma_obj<Tcomp> *> d_circularComs; //Circular buffer of commands for latency
+  std::deque<CarmaObj<Tcomp> *> d_circular_coms; //Circular buffer of commands for latency
 
 
-  map<string, tuple<carma_obj<Tcomp> *, int, bool>> d_perturb_map;
+  map<string, tuple<CarmaObj<Tcomp> *, int, bool>> d_perturb_map;
   // perturbation command buffer
 
-  carma_streams *streams;
+  CarmaStreams *streams;
 
   // allocation of d_centroids and d_com
-  sutra_controller(carma_context *context, int nvalid, int nslope, int nactu,
-                   float delay, sutra_dms *dms, int *idx_dms, int ndm,  int *idx_centro, int ncentro);
-  virtual ~sutra_controller();
+  SutraController(CarmaContext *context, int nvalid, int nslope, int nactu,
+                   float delay, SutraDms *dms, int *idx_dms, int ndm,  int *idx_centro, int ncentro);
+  virtual ~SutraController();
 
   virtual string get_type() = 0;
 
@@ -117,16 +117,16 @@ class sutra_controller {
   virtual int comp_com() = 0;
 
   // It is better to have something like this (+protected d_centroids):
-  // virtual int comp_com (carma_obj<T> *new_centroids)=0;
+  // virtual int comp_com (CarmaObj<T> *new_centroids)=0;
   // it would imply copy, but would be much safer
 
   inline int nactu() { return this->nactus; }
   inline int nslope() { return this->nslopes; }
 
-  cublasHandle_t cublas_handle() { return current_context->get_cublasHandle(); }
+  cublasHandle_t cublas_handle() { return current_context->get_cublas_handle(); }
 
   void init_voltage() {
-    init_voltage_impl<Tcomp, Tout>(this->d_voltage, this->d_comClipped);
+    init_voltage_impl<Tcomp, Tout>(this->d_voltage, this->d_com_clipped);
   };
 
   int set_centroids_ref(Tcomp *centroids_ref);
@@ -142,15 +142,15 @@ class sutra_controller {
   int comp_voltage();
   int comp_latency();
   int set_delay(float delay);
-  int set_Vmin(float Vmin);
-  int set_Vmax(float Vmax);
-  int set_valMax(float valMax);
+  int set_volt_min(float volt_min);
+  int set_volt_max(float volt_max);
+  int set_val_max(float val_max);
   int set_gain(float gain);
   int reset_coms();
 
-  // int syevd_f(char meth, carma_obj<T> *d_U,
-  //             carma_host_obj<T> *h_eingenvals);
-  // int invgen(carma_obj<T> *d_mat, T cond, int job);
+  // int syevd_f(char meth, CarmaObj<T> *d_U,
+  //             CarmaHostObj<T> *h_eingenvals);
+  // int invgen(CarmaObj<T> *d_mat, T cond, int job);
   int command_delay();
   int add_perturb();
 
@@ -160,30 +160,30 @@ class sutra_controller {
 
 template <typename Tin, typename Tout>
 typename std::enable_if<std::is_same<Tin, Tout>::value, void>::type
-convertToVoltage(Tin *d_idata, Tout *d_odata, int N, float Vmin, float Vmax,
-                 uint16_t valMax, carma_device *device){};
+convert_to_voltage(Tin *d_idata, Tout *d_odata, int N, float volt_min, float volt_max,
+                 uint16_t val_max, CarmaDevice *device){};
 
 template <typename Tin, typename Tout>
 typename std::enable_if<!std::is_same<Tin, Tout>::value, void>::type
-convertToVoltage(Tin *d_idata, Tout *d_odata, int N, float Vmin, float Vmax,
-                 uint16_t valMax, carma_device *device);
+convert_to_voltage(Tin *d_idata, Tout *d_odata, int N, float volt_min, float volt_max,
+                 uint16_t val_max, CarmaDevice *device);
 
-int shift_buf(float *d_data, int offset, int N, carma_device *device);
-int fill_filtmat(float *filter, int nactu, int N, carma_device *device);
-int TT_filt(float *mat, int n, carma_device *device);
+int shift_buf(float *d_data, int offset, int N, CarmaDevice *device);
+int fill_filtmat(float *filter, int nactu, int N, CarmaDevice *device);
+int TT_filt(float *mat, int n, CarmaDevice *device);
 int fill_cmat(float *cmat, float *wtt, float *Mtt, int nactu, int nslopes,
-              carma_device *device);
+              CarmaDevice *device);
 int do_statmat(float *statcov, long dim, float *xpos, float *ypos, float norm,
-               carma_device *device);
+               CarmaDevice *device);
 
 template <class T>
 int get_pupphase(T *odata, float *idata, int *indx_pup, int Nphi,
-                 carma_device *device);
+                 CarmaDevice *device);
 
 int compute_Hcor_gpu(float *o_data, int nrow, int ncol, float Fs, float gmin,
-                     float gmax, float delay, carma_device *device);
+                     float gmax, float delay, CarmaDevice *device);
 int absnormfft(cuFloatComplex *idata, float *odata, int N, float norm,
-               carma_device *device);
+               CarmaDevice *device);
 int adjust_csr_index(int *rowind, int *NNZ, int *nact, int nact_tot,
-                     int row_off, carma_device *device);
+                     int row_off, CarmaDevice *device);
 #endif  // _SUTRA_CONTROLLER_H_

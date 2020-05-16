@@ -32,16 +32,16 @@
 
 //! \file      carma_multithread.cpp
 //! \ingroup   libcarma
-//! \brief     this fle provides the multithread features to carma_obj
+//! \brief     this fle provides the multithread features to CarmaObj
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
 #include <carma_multithread.h>
 #include <iostream>
 
-carma_thread carma_start_thread(CARMAT_routine func, void *data) {
+carma_thread carma_start_thread(carma_routine func, void *data) {
   pthread_t thread;
   pthread_create(&thread, NULL, func, data);
   return thread;
@@ -61,8 +61,8 @@ void carma_wait4thread(const carma_thread *threads, int num) {
 }
 
 // Create barrier.
-carma_thread_barrier carma_create_barrier(int releaseCount) {
-  carma_thread_barrier barrier;
+CarmaThreadBarrier carma_create_barrier(int releaseCount) {
+  CarmaThreadBarrier barrier;
 
   barrier.count = 0;
   barrier.releaseCount = releaseCount;
@@ -74,7 +74,7 @@ carma_thread_barrier carma_create_barrier(int releaseCount) {
 }
 
 // Increment barrier. (excution continues)
-void carma_increment_barrier(carma_thread_barrier *barrier) {
+void carma_increment_barrier(CarmaThreadBarrier *barrier) {
   int myBarrierCount;
   pthread_mutex_lock(&barrier->mutex);
   myBarrierCount = ++barrier->count;
@@ -86,7 +86,7 @@ void carma_increment_barrier(carma_thread_barrier *barrier) {
 }
 
 // Wait for barrier release.
-void carma_wait4barrier(carma_thread_barrier *barrier) {
+void carma_wait4barrier(CarmaThreadBarrier *barrier) {
   pthread_mutex_lock(&barrier->mutex);
 
   while (barrier->count < barrier->releaseCount) {
@@ -97,7 +97,7 @@ void carma_wait4barrier(carma_thread_barrier *barrier) {
 }
 
 // Destory barrier
-void carma_destroy_barrier(carma_thread_barrier *barrier) {
+void carma_destroy_barrier(CarmaThreadBarrier *barrier) {
   pthread_mutex_destroy(&barrier->mutex);
   pthread_cond_destroy(&barrier->conditionVariable);
 }

@@ -1,7 +1,7 @@
 ## @package   shesha.sim.simulatorCacao
 ## @brief     Class SimulatorCacao: Cacao overloaded simulator
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   4.4.1
+## @version   5.0.0
 ## @date      2011/01/28
 ## @copyright GNU Lesser General Public License
 #
@@ -56,7 +56,7 @@ class SimulatorCacao(Simulator):
         if self.config.p_controllers is not None or self.config.p_centroiders is not None:
             print("->rtc")
             #   rtc
-            self.rtc = rtc_init(self.context,  self.tel, self.wfs, self.dms, self.atm,
+            self.rtc = rtc_init(self.context, self.tel, self.wfs, self.dms, self.atm,
                                 self.config.p_wfss, self.config.p_tel,
                                 self.config.p_geom, self.config.p_atmos, ittime,
                                 self.config.p_centroiders, self.config.p_controllers,

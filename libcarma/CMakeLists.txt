@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.8)
 
 option(do_half "Compile half codes")
-option(use_cula "Compile using cula library")
-
 
 find_package(CUDA QUIET REQUIRED)
 
@@ -90,10 +88,6 @@ if(NOT TARGET cub::cub)
   endif()
 endif()
 
-if(NOT use_cula)
-  message(STATUS "CULA features disabled")
-endif()
-
 pkg_check_modules(MAGMA magma)
 if(${MAGMA_FOUND})
   link_directories(${MAGMA_LIBRARY_DIRS})
@@ -117,7 +111,6 @@ add_library(carma
             SHARED
             ./src.cpp/carma_context.cpp
             ./src.cpp/carma_cublas.cpp
-            ./src.cpp/carma_cula.cpp
             ./src.cpp/carma_cusolver.cpp
             ./src.cpp/carma_cusparse.cpp
             ./src.cpp/carma_fft.cpp
@@ -185,10 +178,6 @@ target_include_directories(
   carma
   PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${MAGMA_INCLUDE_DIRS}>)
 
-if(use_cula)
-  target_compile_definitions(carma PRIVATE $<$<COMPILE_LANGUAGE:CXX>:USE_CULA>)
-endif()
-
 if(${MAGMA_FOUND})
   target_compile_options(
     carma
@@ -236,7 +225,6 @@ install(TARGETS carma
         LIBRARY DESTINATION lib)
 install(FILES include.h/carma_context.h
               include.h/carma_cublas.h
-              include.h/carma_cula.h
               include.h/carma_cusolver.h
               include.h/carma_cusparse.h
               include.h/carma_exception.h

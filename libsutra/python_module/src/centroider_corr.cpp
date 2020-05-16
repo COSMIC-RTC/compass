@@ -32,9 +32,9 @@
 
 //! \file      centroider_corr.cpp
 //! \ingroup   libsutra
-//! \brief     this file provides pybind wrapper for sutra_centroider_corr
+//! \brief     this file provides pybind wrapper for SutraCentroiderCorr
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -46,9 +46,9 @@ namespace py = pybind11;
 
 template <typename Tin, typename Tcomp>
 void centroider_corr_impl(py::module &mod, const char *name) {
-  using centroider_corr = sutra_centroider_corr<Tin, Tcomp>;
+  using centroider_corr = SutraCentroiderCorr<Tin, Tcomp>;
 
-  py::class_<centroider_corr, sutra_centroider<Tin, Tcomp>>(mod, name)
+  py::class_<centroider_corr, SutraCentroider<Tin, Tcomp>>(mod, name)
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
       //  ██████╔╝██████╔╝██║   ██║██████╔╝█████╗  ██████╔╝   ██║    ╚████╔╝

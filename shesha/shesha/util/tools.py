@@ -1,7 +1,7 @@
 ## @package   shesha.util.tools
 ## @brief     Imported from CANARY
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   4.4.1
+## @version   5.0.0
 ## @date      2011/01/28
 ## @copyright GNU Lesser General Public License
 #
@@ -319,7 +319,7 @@ def plsh(slopesvector, nssp, validint, sparta=False, invertxy=False, returnquive
 
 def pl3d(im):
     """
-    ir = pyfits.getdata("/home/fvidal/data/Run2015/June2015_27_onsky/ir/ir_2015-06-28_06h27m40s_script44_gain.fits")
+    ir = pyfits.get_data("/home/fvidal/data/Run2015/June2015_27_onsky/ir/ir_2015-06-28_06h27m40s_script44_gain.fits")
 
     JAMAIS TESTEE !!!!!!!!!!!!!!
 

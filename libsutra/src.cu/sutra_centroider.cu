@@ -32,10 +32,10 @@
 
 //! \file      sutra_centroider.cu
 //! \ingroup   libsutra
-//! \class     sutra_centroider
+//! \class     SutraCentroider
 //! \brief     this class provides the centroider features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -94,25 +94,25 @@ __global__ void fillvalidMask_krnl(T *d_validMask, int *validx, int *validy,
  */
 template <class T>
 int convert_centro(T *d_odata, T *d_idata, float offset, float scale, int N,
-                   carma_device *device) {
-  int nBlocks, nThreads;
-  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
-  dim3 grid(nBlocks), threads(nThreads);
+                   CarmaDevice *device) {
+  int nb_blocks, nb_threads;
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
   convert_krnl<<<grid, threads>>>(d_odata, d_idata, offset, scale, N);
 
-  carmaCheckMsg("convert_kernel<<<>>> execution failed\n");
+  carma_check_msg("convert_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
 template int convert_centro<float>(float *d_odata, float *d_idata, float offset,
-                                   float scale, int N, carma_device *device);
+                                   float scale, int N, CarmaDevice *device);
 template int convert_centro<double>(double *d_odata, double *d_idata,
                                     float offset, float scale, int N,
-                                    carma_device *device);
+                                    CarmaDevice *device);
 
 int fill_validMask(int size, int npix, int blocks, int *d_validMask,
-                   int *validx, int *validy, carma_device *device) {
+                   int *validx, int *validy, CarmaDevice *device) {
   int maxThreads = device->get_properties().maxThreadsPerBlock;
   int threads = npix * npix;
   unsigned int nelem_thread = 1;
@@ -128,7 +128,7 @@ int fill_validMask(int size, int npix, int blocks, int *d_validMask,
   fillvalidMask_krnl<<<dimGrid, dimBlock>>>(d_validMask, validx, validy, npix,
                                             size, nelem_thread);
 
-  carmaCheckMsg("fillvalidMask_krnl<<<>>> execution failed\n");
+  carma_check_msg("fillvalidMask_krnl<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
@@ -144,20 +144,20 @@ __global__ void calib_krnl(Tin *img_raw, float *img_cal, float *dark,
 
 template <class Tin>
 int calibration(Tin *img_raw, float *img_cal, float *dark, float *flat,
-                int *lutPix, int N, carma_device *device, cudaStream_t stream) {
-  int nBlocks, nThreads;
-  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
-  dim3 grid(nBlocks), threads(nThreads);
+                int *lutPix, int N, CarmaDevice *device, cudaStream_t stream) {
+  int nb_blocks, nb_threads;
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
   calib_krnl<<<grid, threads, 0, stream>>>(img_raw, img_cal, dark, flat, lutPix, N);
 
-  carmaCheckMsg("calib_krnl<<<>>> execution failed\n");
+  carma_check_msg("calib_krnl<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
 template int calibration<float>(float *img_raw, float *img_cal, float *dark,
                                 float *flat, int *lutPix, int N,
-                                carma_device *device, cudaStream_t stream);
+                                CarmaDevice *device, cudaStream_t stream);
 template int calibration<uint16_t>(uint16_t *img_raw, float *img_cal,
                                    float *dark, float *flat, int *lutPix, int N,
-                                   carma_device *device, cudaStream_t stream);
+                                   CarmaDevice *device, cudaStream_t stream);

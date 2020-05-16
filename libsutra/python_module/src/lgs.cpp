@@ -32,9 +32,9 @@
 
 //! \file      lgs.cpp
 //! \ingroup   libsutra
-//! \brief     this file provides pybind wrapper for sutra_lgs
+//! \brief     this file provides pybind wrapper for SutraLGS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -45,7 +45,7 @@
 namespace py = pybind11;
 
 void declare_lgs(py::module &mod) {
-  py::class_<sutra_lgs>(mod, "LGS")
+  py::class_<SutraLGS>(mod, "LGS")
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
       //  ██████╔╝██████╔╝██║   ██║██████╔╝█████╗  ██████╔╝   ██║    ╚████╔╝
@@ -54,67 +54,67 @@ void declare_lgs(py::module &mod) {
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
       .def_property_readonly(
-          "device", [](sutra_lgs &sl) { return sl.device; }, "GPU device index")
+          "device", [](SutraLGS &sl) { return sl.device; }, "GPU device index")
 
       .def_property_readonly(
-          "nvalid", [](sutra_lgs &sl) { return sl.nvalid; }, "TODO: docstring")
+          "nvalid", [](SutraLGS &sl) { return sl.nvalid; }, "TODO: docstring")
 
       .def_property_readonly(
-          "npix", [](sutra_lgs &sl) { return sl.npix; }, "TODO: docstring")
+          "npix", [](SutraLGS &sl) { return sl.npix; }, "TODO: docstring")
 
       .def_property_readonly(
-          "nmaxhr", [](sutra_lgs &sl) { return sl.nmaxhr; },
+          "nmaxhr", [](SutraLGS &sl) { return sl.nmaxhr; },
           "Size of HR support")
 
       .def_property_readonly(
-          "hg", [](sutra_lgs &sl) { return sl.hg; }, "TODO: docstring")
+          "hg", [](SutraLGS &sl) { return sl.hg; }, "TODO: docstring")
 
       .def_property_readonly(
-          "h0", [](sutra_lgs &sl) { return sl.h0; }, "TODO: docstring")
+          "h0", [](SutraLGS &sl) { return sl.h0; }, "TODO: docstring")
 
       .def_property_readonly(
-          "deltah", [](sutra_lgs &sl) { return sl.deltah; }, "TODO: docstring")
+          "deltah", [](SutraLGS &sl) { return sl.deltah; }, "TODO: docstring")
 
       .def_property_readonly(
-          "pixsize", [](sutra_lgs &sl) { return sl.pixsize; },
+          "pixsize", [](SutraLGS &sl) { return sl.pixsize; },
           "Pixel size on sky[arcsec]")
 
       .def_property_readonly(
-          "nprof", [](sutra_lgs &sl) { return sl.nprof; }, "TODO: docstring")
+          "nprof", [](SutraLGS &sl) { return sl.nprof; }, "TODO: docstring")
 
       .def_property_readonly(
-          "d_doffaxis", [](sutra_lgs &sl) { return sl.d_doffaxis; },
+          "d_doffaxis", [](SutraLGS &sl) { return sl.d_doffaxis; },
           "TODO: docstring")
 
       .def_property_readonly(
-          "d_azimuth", [](sutra_lgs &sl) { return sl.d_azimuth; },
+          "d_azimuth", [](SutraLGS &sl) { return sl.d_azimuth; },
           "TODO: docstring")
 
       .def_property_readonly(
-          "d_prof1d", [](sutra_lgs &sl) { return sl.d_prof1d; },
+          "d_prof1d", [](SutraLGS &sl) { return sl.d_prof1d; },
           "TODO: docstring")
 
       .def_property_readonly(
-          "d_profcum", [](sutra_lgs &sl) { return sl.d_profcum; },
+          "d_profcum", [](SutraLGS &sl) { return sl.d_profcum; },
           "TODO: docstring")
 
       .def_property_readonly(
-          "d_prof2d", [](sutra_lgs &sl) { return sl.d_prof2d; },
+          "d_prof2d", [](SutraLGS &sl) { return sl.d_prof2d; },
           "TODO: docstring")
 
       .def_property_readonly(
-          "d_beam", [](sutra_lgs &sl) { return sl.d_beam; }, "TODO: docstring")
+          "d_beam", [](SutraLGS &sl) { return sl.d_beam; }, "TODO: docstring")
 
       .def_property_readonly(
-          "d_ftbeam", [](sutra_lgs &sl) { return sl.d_ftbeam; },
+          "d_ftbeam", [](SutraLGS &sl) { return sl.d_ftbeam; },
           "TODO: docstring")
 
       .def_property_readonly(
-          "d_lgskern", [](sutra_lgs &sl) { return sl.d_lgskern; },
+          "d_lgskern", [](SutraLGS &sl) { return sl.d_lgskern; },
           "TODO: docstring")
 
       .def_property_readonly(
-          "d_ftlgskern", [](sutra_lgs &sl) { return sl.d_ftlgskern; },
+          "d_ftlgskern", [](SutraLGS &sl) { return sl.d_ftlgskern; },
           "TODO: docstring")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
@@ -124,7 +124,7 @@ void declare_lgs(py::module &mod) {
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
 
-      .def("lgs_init", wy::colCast(&sutra_lgs::lgs_init), R"pbdoc(
+      .def("lgs_init", wy::colCast(&SutraLGS::lgs_init), R"pbdoc(
         Initialize LGS object
 
         Parameters

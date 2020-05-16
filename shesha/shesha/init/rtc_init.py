@@ -1,7 +1,7 @@
 ## @package   shesha.init.rtc_init
 ## @brief     Initialization of a Rtc object
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   4.4.1
+## @version   5.0.0
 ## @date      2011/01/28
 ## @copyright GNU Lesser General Public License
 #
@@ -56,7 +56,7 @@ def rtc_init(context: carmaWrap_context, tel: Telescope, wfs: Sensors, dms: Dms,
              p_atmos: conf.Param_atmos, ittime: float, p_centroiders=None,
              p_controllers=None, p_dms=None, do_refslp=False, brahma=False, cacao=False,
              tar=None, dataBase={}, use_DB=False):
-    """Initialize all the sutra_rtc objects : centroiders and controllers
+    """Initialize all the SutraRtc objects : centroiders and controllers
 
     :parameters:
         context: (carmaWrap_context): context
@@ -496,7 +496,7 @@ def init_controller_ls(i: int, p_controller: conf.Param_controller, p_wfss: list
                                         p_controller.gmin, p_controller.gmax,
                                         p_controller.ngain, 1. / ittime)
         ol_slopes = modopti.open_loopSlp(tel, atmos, wfs, rtc, p_controller.nrec, i,
-                                        p_wfss)
+                                         p_wfss)
         rtc.d_control[i].loadopen_loopSlp(ol_slopes)
         rtc.d_control[i].modalControlOptimization()
     else:

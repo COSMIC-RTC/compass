@@ -30,28 +30,63 @@
 //  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 // -----------------------------------------------------------------------------
 
-//! \file      carma_cula.h
-//! \ingroup   libcarma
-//! \brief     this file provides wrappers to the cula functions
+//! \file      sutra_template.cpp
+//! \ingroup   libsutra
+//! \class     SutraTemplate
+//! \brief     this class provides a class template to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
-#ifndef _CARMA_CULA_H_
-#define _CARMA_CULA_H_
+#include <sutra_template.h>
 
-#include <carma_host_obj.h>
-#include <carma_obj.h>
+SutraTemplate::SutraTemplate(CarmaContext *context, const char *type,
+                                   long dim, int device) {
+  // some inits
+  this->current_context = context;
+  this->dim = dim;
+  this->type = type;
+  this->device = device;
 
-template <class T>
-int carma_cula_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals,
-                   carma_obj<T> *mod2act, carma_obj<T> *mes2mod);
+  // allocate data and result
+  long *dims_data1 = new long[2];
+  dims_data1[0] = 1;
+  dims_data1[1] = dim;
+  this->d_data = new CarmaObj<float>(context, dims_data1);
+  this->d_res = new CarmaObj<float>(context, dims_data1);
+  delete[] dims_data1;
+}
 
-template <class T_data>
-int carma_cula_svd(carma_host_obj<T_data> *imat,
-                   carma_host_obj<T_data> *eigenvals,
-                   carma_host_obj<T_data> *mod2act,
-                   carma_host_obj<T_data> *mes2mod);
+SutraTemplate::~SutraTemplate() {
+  // delete data and result
+  delete this->d_data;
+  delete this->d_res;
+}
 
-#endif  // _CARMA_CULA_H_
+int SutraTemplate::fill_data(float *idata) {
+  // fill data with an external array
+  this->d_data->host2device(idata);
+
+  return EXIT_SUCCESS;
+}
+
+int SutraTemplate::fill_data() {
+  // fill data with random numbers
+  this->d_data->init_prng();
+  this->d_data->prng('N');
+
+  return EXIT_SUCCESS;
+}
+
+int SutraTemplate::do_compute() {
+  // do computation on data and store in result
+  int nb_threads = 0, nb_blocks = 0;
+  get_num_blocks_and_threads(current_context->get_device(device), this->dim,
+                         nb_blocks, nb_threads);
+
+  comp_aotemplate(nb_threads, nb_blocks, this->d_data->get_data(),
+                  this->d_res->get_data(), this->d_data->get_nb_elements());
+
+  return EXIT_SUCCESS;
+}

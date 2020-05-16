@@ -1,7 +1,7 @@
 ## @package   shesha.config.PWFS
 ## @brief     Param_wfs class definition
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   4.4.1
+## @version   5.0.0
 ## @date      2011/01/28
 ## @copyright GNU Lesser General Public License
 #
@@ -219,7 +219,7 @@ class Param_wfs:
         self.__pyr_cy = None  # (float*)
         self.__pyr_weights = None
         """ Modulation points ponderation weights"""
-        self.__pyr_scale_pos = None # (float) : scale to apply on cx, cy
+        self.__pyr_scale_pos = None  # (float) : scale to apply on cx, cy
 
     def get_type(self):
         """ Get the type of wfs
@@ -542,36 +542,36 @@ class Param_wfs:
     fakecam = property(get_fakecam, set_fakecam)
 
     def get_maxFluxPerPix(self):
-        """ Get the maxFluxPerPix
+        """ Get the max_flux_per_pix
 
-        :return: (int) : maxFluxPerPix
+        :return: (int) : max_flux_per_pix
         """
         return self.__maxFluxPerPix
 
-    def set_maxFluxPerPix(self, maxFluxPerPix):
-        """ Set the maxFluxPerPix
+    def set_max_flux_per_pix(self, max_flux_per_pix):
+        """ Set the max_flux_per_pix
 
-        :return: (int) : maxFluxPerPix
+        :return: (int) : max_flux_per_pix
         """
-        self.__maxFluxPerPix = csu.enforce_int(maxFluxPerPix)
+        self.__maxFluxPerPix = csu.enforce_int(max_flux_per_pix)
 
-    maxFluxPerPix = property(get_maxFluxPerPix, set_maxFluxPerPix)
+    max_flux_per_pix = property(get_maxFluxPerPix, set_max_flux_per_pix)
 
     def get_maxPixValue(self):
-        """ Get the maxPixValue
+        """ Get the max_pix_value
 
-        :return: (int) : maxPixValue
+        :return: (int) : max_pix_value
         """
         return self.__maxPixValue
 
-    def set_maxPixValue(self, maxPixValue):
-        """ Set the maxPixValue
+    def set_max_pix_value(self, max_pix_value):
+        """ Set the max_pix_value
 
-        :return: (int) : maxPixValue
+        :return: (int) : max_pix_value
         """
-        self.__maxPixValue = csu.enforce_int(maxPixValue)
+        self.__maxPixValue = csu.enforce_int(max_pix_value)
 
-    maxPixValue = property(get_maxPixValue, set_maxPixValue)
+    max_pix_value = property(get_maxPixValue, set_max_pix_value)
 
     def get_gsalt(self):
         """ Get the altitude of guide star

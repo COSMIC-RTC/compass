@@ -18,8 +18,6 @@
 
 ## Release v4.4.1
 
-Release v4.4.1:
-
  - handle different shape for raw images and cal images (using the LUT feature)
  - possibility to attach a stream to centroiders
  - opimization of pyramid HR wfs
@@ -31,8 +29,6 @@ Release v4.4.1:
  - generate gcov trace in debug
 
 ## Release v4.4.0
-
-Release v4.4.0:
 
 - Debug issue with Kepler architecture
 - Multi GPU controller reworked

@@ -478,9 +478,9 @@ if (imatFromFile):
     print("Reloading imat KL2V and gains4K from files...")
     #print(imat0_PATH+"/"+iMatName)
     #print(imat0_PATH+"/gains4K_MODU_"+str(int(MODU))+".fits")
-    imat = pf.getdata(imat0_PATH + "/" + iMatName)
-    modal_basis = pf.getdata(imat0_PATH + "/" + KL2VName)
-    gains4KRAW = pf.getdata(imat0_PATH + "/" + gainModalName)
+    imat = pf.get_data(imat0_PATH + "/" + iMatName)
+    modal_basis = pf.get_data(imat0_PATH + "/" + KL2VName)
+    gains4KRAW = pf.get_data(imat0_PATH + "/" + gainModalName)
     gains4K = np.zeros(imat.shape[0] - nfilt)
     gains4K[:-2] = gains4KRAW[:imat.shape[0] - nfilt - 2]
     gains4K[-2:] = gains4KRAW[-2:]
@@ -500,7 +500,8 @@ else:
 
     # Closing loop until we reach the fitting error for the given ao config + turbulence conditions (seeing ect...) but without noise and bandwidth (screen is frozen)
     SR, lambdaTargetList, sr_se, numiter, _, _, _ = loop(200, wfs, tel, atm, dms, tar,
-                                                         rtc, move_atmos=True, noise=True)
+                                                         rtc, move_atmos=True,
+                                                         noise=True)
     print("SR After 200 iterations of closed loop:")
 
     if (PYR):
@@ -557,7 +558,7 @@ com.close_loop()
 """
 # ------------------------------------------------------------------------------
 
-#cmat = pf.getdata(os.environ["SHESHA_ROOT"]+"/test/scripts/cmatKLGood.fits").byteswap().newbyteorder()
+#cmat = pf.get_data(os.environ["SHESHA_ROOT"]+"/test/scripts/cmatKLGood.fits").byteswap().newbyteorder()
 #rtc.set_cmat(0, cmat.copy().astype(np.float32))
 
 # -----------------------------------------------------------------------------

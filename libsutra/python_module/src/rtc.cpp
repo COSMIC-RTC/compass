@@ -32,9 +32,9 @@
 
 //! \file      rtc.cpp
 //! \ingroup   libsutra
-//! \brief     this file provides pybind wrapper for sutra_rtc
+//! \brief     this file provides pybind wrapper for SutraRtc
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -50,13 +50,13 @@ using F_arrayS = py::array_t<T, py::array::f_style | py::array::forcecast>;
 // F_arrayS;
 
 template <typename Tin, typename Tcomp, typename Tout>
-std::unique_ptr<sutra_rtc<Tin, Tcomp, Tout>> rtc_init() {
-  return std::unique_ptr<sutra_rtc<Tin, Tcomp, Tout>>(
-      new sutra_rtc<Tin, Tcomp, Tout>());
+std::unique_ptr<SutraRtc<Tin, Tcomp, Tout>> rtc_init() {
+  return std::unique_ptr<SutraRtc<Tin, Tcomp, Tout>>(
+      new SutraRtc<Tin, Tcomp, Tout>());
 }
 
 template <typename Tin, typename Tcomp, typename Tout>
-void add_controller_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, carma_context *ctxt,
+void add_controller_impl(SutraRtc<Tin, Tcomp, Tout> &sr, CarmaContext *ctxt,
                          int nvalid, int nslope, int nactu, float delay,
                          long device, std::string typec, int nstates) {
   sr.add_controller(ctxt, nvalid, nslope, nactu, delay, device, typec, nullptr,
@@ -65,7 +65,7 @@ void add_controller_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, carma_context *ctxt,
 
 template <typename Tin, typename Tcomp, typename Tout>
 typename std::enable_if<!std::is_same<Tcomp, half>::value, void>::type
-build_cmat_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, int ncontrol, int nfilt,
+build_cmat_impl(SutraRtc<Tin, Tcomp, Tout> &sr, int ncontrol, int nfilt,
                 bool filt_tt) {
   sutra_controller_ls<Tcomp, Tout> *control =
       dynamic_cast<sutra_controller_ls<Tcomp, Tout> *>(sr.d_control[ncontrol]);
@@ -74,7 +74,7 @@ build_cmat_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, int ncontrol, int nfilt,
 #ifdef CAN_DO_HALF
 template <typename Tin, typename Tcomp, typename Tout>
 typename std::enable_if<std::is_same<Tcomp, half>::value, void>::type
-build_cmat_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, int ncontrol, int nfilt,
+build_cmat_impl(SutraRtc<Tin, Tcomp, Tout> &sr, int ncontrol, int nfilt,
                 bool filt_tt) {
   throw std::runtime_error("Not implemented");
 };
@@ -82,7 +82,7 @@ build_cmat_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, int ncontrol, int nfilt,
 
 template <typename Tin, typename Tcomp, typename Tout>
 typename std::enable_if<!std::is_same<Tcomp, half>::value, void>::type
-set_modal_gains_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, int ncontrol,
+set_modal_gains_impl(SutraRtc<Tin, Tcomp, Tout> &sr, int ncontrol,
                F_arrayS<Tcomp> data) {
   sutra_controller_ls<Tcomp, Tout> *control =
       dynamic_cast<sutra_controller_ls<Tcomp, Tout> *>(sr.d_control[ncontrol]);
@@ -91,7 +91,7 @@ set_modal_gains_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, int ncontrol,
 #ifdef CAN_DO_HALF
 template <typename Tin, typename Tcomp, typename Tout>
 typename std::enable_if<std::is_same<Tcomp, half>::value, void>::type
-set_modal_gains_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, int ncontrol,
+set_modal_gains_impl(SutraRtc<Tin, Tcomp, Tout> &sr, int ncontrol,
                F_arrayS<Tcomp> data) {
   throw std::runtime_error("Not implemented");
 }
@@ -99,7 +99,7 @@ set_modal_gains_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, int ncontrol,
 
 template <typename Tin, typename Tcomp, typename Tout>
 typename std::enable_if<!std::is_same<Tcomp, half>::value, void>::type
-svdec_imat_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, int ncontrol) {
+svdec_imat_impl(SutraRtc<Tin, Tcomp, Tout> &sr, int ncontrol) {
   sutra_controller_ls<Tcomp, Tout> *control =
       dynamic_cast<sutra_controller_ls<Tcomp, Tout> *>(sr.d_control[ncontrol]);
   control->svdec_imat();
@@ -108,14 +108,14 @@ svdec_imat_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, int ncontrol) {
 #ifdef CAN_DO_HALF
 template <typename Tin, typename Tcomp, typename Tout>
 typename std::enable_if<std::is_same<Tcomp, half>::value, void>::type
-svdec_imat_impl(sutra_rtc<Tin, Tcomp, Tout> &sr, int ncontrol) {
+svdec_imat_impl(SutraRtc<Tin, Tcomp, Tout> &sr, int ncontrol) {
   throw std::runtime_error("Not implemented");
 }
 #endif
 
 template <typename Tin, typename Tcomp, typename Tout>
 void rtc_impl(py::module &mod, const char *name) {
-  using rtc = sutra_rtc<Tin, Tcomp, Tout>;
+  using rtc = SutraRtc<Tin, Tcomp, Tout>;
 
   py::class_<rtc>(mod, name)
       .def(py::init(wy::colCast(rtc_init<Tin, Tcomp, Tout>)),
@@ -131,14 +131,14 @@ void rtc_impl(py::module &mod, const char *name) {
 
       .def_property_readonly(
           "d_centro",
-          [](rtc &sr) -> vector<sutra_centroider<Tin, Tcomp> *> & {
+          [](rtc &sr) -> vector<SutraCentroider<Tin, Tcomp> *> & {
             return sr.d_centro;
           },
           "Vector of centroiders")
 
       .def_property_readonly(
           "d_control",
-          [](rtc &sr) -> vector<sutra_controller<Tcomp, Tout> *> & {
+          [](rtc &sr) -> vector<SutraController<Tcomp, Tout> *> & {
             return sr.d_control;
           },
           "Vector of controllers")
@@ -150,23 +150,23 @@ void rtc_impl(py::module &mod, const char *name) {
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
       .def("add_centroider",
-           wy::colCast((int (rtc::*)(carma_context *, long, float, float, bool,
-                                     long, std::string, sutra_wfs *)) &
+           wy::colCast((int (rtc::*)(CarmaContext *, long, float, float, bool,
+                                     long, std::string, SutraWfs *)) &
                        rtc::add_centroider),
 
            R"pbdoc(
-        Add a sutra_centroider object in the RTC
+        Add a SutraCentroider object in the RTC
 
         Parameters
         ------------
-        context: (carma_context): carma context
+        context: (CarmaContext): carma context
         nvalid:(int): Number of WFS valid ssp
         offset: (float): offset for centroiding computation
         scale: (float): scale factor to get the right unit, ie. arcsec
         filt_TT: (bool): flag to control TT filtering
         device: (int): GPU device index
         typec: (str): Centroider type
-        wfs: (sutra_wfs): sutra_wfs handled by the centroider
+        wfs: (SutraWfs): SutraWfs handled by the centroider
 
     )pbdoc",
            py::arg("context"), py::arg("nvalid"), py::arg("offset"),
@@ -174,15 +174,15 @@ void rtc_impl(py::module &mod, const char *name) {
            py::arg("typec"), py::arg("wfs"))
 
       .def("add_centroider",
-           wy::colCast((int (rtc::*)(carma_context *, long, float, float, bool,
+           wy::colCast((int (rtc::*)(CarmaContext *, long, float, float, bool,
                                      long, std::string)) &
                        rtc::add_centroider),
            R"pbdoc(
-        Add a sutra_centroider object in the RTC
+        Add a SutraCentroider object in the RTC
 
         Parameters
         ------------
-        context: (carma_context): carma context
+        context: (CarmaContext): carma context
         nvalid:(int): Number of WFS valid ssp
         offset: (float): offset for centroiding computation
         scale: (float): scale factor to get the right unit, ie. arcsec
@@ -196,19 +196,19 @@ void rtc_impl(py::module &mod, const char *name) {
            py::arg("typec"))
 
       .def("add_controller", wy::colCast(&rtc::add_controller), R"pbdoc(
-        Add a sutra_controller object in the RTC
+        Add a SutraController object in the RTC
 
         Parameters
         ------------
-        context: (carma_context): carma context
+        context: (CarmaContext): carma context
         nvalid: (int): Number of valid subap.
         nslope: (int): Number of slopes
         nactu:(int): Number of actuators to command
         delay: (float): Loop delay [frames]
         device: (int): GPU device index
         typec: (str): Controller type
-        dms: (sutra_dms): sutra_dms object
-        idx_dms: (np.array[ndim=1,dtype=np.int64]): index of DM in sutra_dms to command
+        dms: (SutraDms): SutraDms object
+        idx_dms: (np.array[ndim=1,dtype=np.int64]): index of DM in SutraDms to command
         ndm: (int): Number of DM to command
         idx_centro: (np.array[ndim=1,dtype=np.int64]): index of centoiders in sutra_rtc.d_centro to handle
         ncentro: (int): number of centroiders handled
@@ -225,11 +225,11 @@ void rtc_impl(py::module &mod, const char *name) {
 
       .def("add_controller", wy::colCast(add_controller_impl<Tin, Tcomp, Tout>),
            R"pbdoc(
-        Add a sutra_controller object in the RTC
+        Add a SutraController object in the RTC
 
         Parameters
         ------------
-        context: (carma_context): carma context
+        context: (CarmaContext): carma context
         nvalid: (int): Number of valid subap.
         nslope: (int): Number of slopes
         nactu:(int): Number of actuators to command
@@ -345,7 +345,7 @@ void rtc_impl(py::module &mod, const char *name) {
         Parameters
         ------------
         ncontrol: (int): Index of the controller
-        dms: (sutra_dms): sutra_dms object
+        dms: (SutraDms): SutraDms object
     )pbdoc",
            py::arg("ncontrol"), py::arg("dms"))
 
@@ -355,7 +355,7 @@ void rtc_impl(py::module &mod, const char *name) {
 		Parameters
 		------------
 		ncontrol: (int): Index of the controller
-		dms: (sutra_dms): sutra_dms object
+		dms: (SutraDms): SutraDms object
         nModes: (int): number of modes in the basis
         m2v: (np.array[ndim=2,dtype=np.float32]): modeToActu matrix
         pushAmpl: (np.array[ndim=1,dtype=np.float32]): pushpull strength in mode units
@@ -386,7 +386,7 @@ void rtc_impl(py::module &mod, const char *name) {
            py::arg("ncontrol"), py::arg("nfilt"), py::arg("filt_tt") = false)
 
       .def("do_clipping", wy::colCast(&rtc::do_clipping), R"pbdoc(
-        Clip the command to apply on the DMs on a sutra_controller object
+        Clip the command to apply on the DMs on a SutraController object
 
         Parameters
         ------------

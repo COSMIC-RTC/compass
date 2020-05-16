@@ -32,10 +32,10 @@
 
 //! \file      sutra_controller.cu
 //! \ingroup   libsutra
-//! \class     sutra_controller
+//! \class     SutraController
 //! \brief     this class provides the controller features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -207,109 +207,109 @@ __global__ void adjust_csrrow_krnl(int *rowind, int *nact, int *nnz,
 
  */
 
-int shift_buf(float *d_data, int offset, int N, carma_device *device) {
-  int nBlocks, nThreads;
-  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
-  dim3 grid(nBlocks), threads(nThreads);
+int shift_buf(float *d_data, int offset, int N, CarmaDevice *device) {
+  int nb_blocks, nb_threads;
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
   shift_krnl<<<grid, threads>>>(d_data, offset, N);
 
-  carmaCheckMsg("shift_kernel<<<>>> execution failed\n");
+  carma_check_msg("shift_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
-int fill_filtmat(float *filter, int nactu, int N, carma_device *device) {
-  int nthreads = 0, nblocks = 0;
-  getNumBlocksAndThreads(device, N, nblocks, nthreads);
-  dim3 grid(nblocks), threads(nthreads);
+int fill_filtmat(float *filter, int nactu, int N, CarmaDevice *device) {
+  int nb_threads = 0, nb_blocks = 0;
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
   fill_filtmat_krnl<<<grid, threads>>>(filter, nactu, N);
-  carmaCheckMsg("fill_filtmat_krnl<<<>>> execution failed\n");
+  carma_check_msg("fill_filtmat_krnl<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
-int TT_filt(float *mat, int n, carma_device *device) {
-  int nthreads = 0, nblocks = 0;
+int TT_filt(float *mat, int n, CarmaDevice *device) {
+  int nb_threads = 0, nb_blocks = 0;
   int N = n * n;
-  getNumBlocksAndThreads(device, N, nblocks, nthreads);
-  dim3 grid(nblocks), threads(nthreads);
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
   TT_filt_krnl<<<grid, threads>>>(mat, n, N);
-  carmaCheckMsg("TT_filt_krnl<<<>>> execution failed\n");
+  carma_check_msg("TT_filt_krnl<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
 
 int fill_cmat(float *cmat, float *wtt, float *Mtt, int nactu, int nslopes,
-              carma_device *device) {
-  int nthreads = 0, nblocks = 0;
+              CarmaDevice *device) {
+  int nb_threads = 0, nb_blocks = 0;
   int N = nactu * nslopes;
-  getNumBlocksAndThreads(device, N, nblocks, nthreads);
-  dim3 grid(nblocks), threads(nthreads);
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
   fill_cmat_krnl<<<grid, threads>>>(cmat, wtt, Mtt, nactu, nslopes, N);
-  carmaCheckMsg("fill_cmat_krnl<<<>>> execution failed\n");
+  carma_check_msg("fill_cmat_krnl<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
 
 int do_statmat(float *statcov, long dim, float *xpos, float *ypos, float norm,
-               carma_device *device) {
-  int nthreads = 0, nblocks = 0;
+               CarmaDevice *device) {
+  int nb_threads = 0, nb_blocks = 0;
   int N = (dim * dim);
-  getNumBlocksAndThreads(device, N, nblocks, nthreads);
-  dim3 grid(nblocks), threads(nthreads);
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
   do_statcov_krnl<<<grid, threads>>>(statcov, xpos, ypos, norm, dim, N);
-  carmaCheckMsg("do_statcov_krnl<<<>>> execution failed\n");
+  carma_check_msg("do_statcov_krnl<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
 
 template <class T>
 int get_pupphase(T *o_data, float *i_data, int *indx_pup, int Nphi,
-                 carma_device *device) {
-  int nthreads = 0, nblocks = 0;
-  getNumBlocksAndThreads(device, Nphi, nblocks, nthreads);
-  dim3 grid(nblocks), threads(nthreads);
+                 CarmaDevice *device) {
+  int nb_threads = 0, nb_blocks = 0;
+  get_num_blocks_and_threads(device, Nphi, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
   pupphase_krnl<<<grid, threads>>>(o_data, i_data, indx_pup, Nphi);
-  carmaCheckMsg("pupphase_krnl<<<>>> execution failed\n");
+  carma_check_msg("pupphase_krnl<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
 template int get_pupphase<float>(float *o_data, float *i_data, int *indx_pup,
-                                 int Nphi, carma_device *device);
+                                 int Nphi, CarmaDevice *device);
 template int get_pupphase<double>(double *o_data, float *i_data, int *indx_pup,
-                                  int Nphi, carma_device *device);
+                                  int Nphi, CarmaDevice *device);
 
 int compute_Hcor_gpu(float *o_data, int nrow, int ncol, float Fs, float gmin,
-                     float gmax, float delay, carma_device *device) {
-  int nthreads = 0, nblocks = 0;
-  getNumBlocksAndThreads(device, nrow * ncol, nblocks, nthreads);
-  dim3 grid(nblocks), threads(nthreads);
+                     float gmax, float delay, CarmaDevice *device) {
+  int nb_threads = 0, nb_blocks = 0;
+  get_num_blocks_and_threads(device, nrow * ncol, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
   compute_Hcor_krnl<<<grid, threads>>>(o_data, nrow, ncol, Fs, 1.0f / Fs, gmin,
                                        gmax, delay);
-  carmaCheckMsg("compute_Hcor_krnl<<<>>> execution failed\n");
+  carma_check_msg("compute_Hcor_krnl<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
 
 int absnormfft(cuFloatComplex *idata, float *odata, int N, float norm,
-               carma_device *device) {
-  int nthreads = 0, nblocks = 0;
-  getNumBlocksAndThreads(device, N, nblocks, nthreads);
-  dim3 grid(nblocks), threads(nthreads);
+               CarmaDevice *device) {
+  int nb_threads = 0, nb_blocks = 0;
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
   absnormfft_krnl<<<grid, threads>>>(idata, odata, N, norm);
-  carmaCheckMsg("absnormfft_krnl<<<>>> execution failed\n");
+  carma_check_msg("absnormfft_krnl<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
 int adjust_csr_index(int *rowind, int *NNZ, int *nact, int nact_tot,
-                     int row_off, carma_device *device) {
+                     int row_off, CarmaDevice *device) {
   int N = nact_tot - row_off;
-  int nthreads = 0, nblocks = 0;
-  getNumBlocksAndThreads(device, N, nblocks, nthreads);
-  dim3 grid2(nblocks), threads2(nthreads);
+  int nb_threads = 0, nb_blocks = 0;
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
+  dim3 grid2(nb_blocks), threads2(nb_threads);
 
   adjust_csrrow_krnl<<<grid2, threads2>>>(rowind, nact, NNZ, nact_tot);
 
@@ -318,7 +318,7 @@ int adjust_csr_index(int *rowind, int *NNZ, int *nact, int nact_tot,
 
 #ifdef CAN_DO_HALF
 __global__ void convertVoltage_krnl(half *d_idata, float *d_odata, int N,
-                                    float Vmin, float Vmax, uint16_t valMax) {
+                                    float volt_min, float volt_max, uint16_t val_max) {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
   while (tid < N) {
     d_odata[tid] = __half2float(d_idata[tid]);
@@ -329,44 +329,44 @@ __global__ void convertVoltage_krnl(half *d_idata, float *d_odata, int N,
 
 template <typename T>
 __global__ void convertVoltage_krnl(T *d_idata, uint16_t *d_odata, int N,
-                                    float Vmin, float Vmax, uint16_t valMax) {
+                                    float volt_min, float volt_max, uint16_t val_max) {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
   while (tid < N) {
     d_odata[tid] =
-        uint16_t((float(d_idata[tid]) - Vmin) / (Vmax - Vmin) * float(valMax));
+        uint16_t((float(d_idata[tid]) - volt_min) / (volt_max - volt_min) * float(val_max));
     tid += blockDim.x * gridDim.x;
   }
 }
 
 template <typename Tin, typename Tout>
 typename std::enable_if<!std::is_same<Tin, Tout>::value, void>::type
-convertToVoltage(Tin *d_idata, Tout *d_odata, int N, float Vmin, float Vmax,
-                 uint16_t valMax, carma_device *device) {
-  int nthreads = 0, nblocks = 0;
-  getNumBlocksAndThreads(device, N, nblocks, nthreads);
-  dim3 grid(nblocks), threads(nthreads);
+convert_to_voltage(Tin *d_idata, Tout *d_odata, int N, float volt_min, float volt_max,
+                 uint16_t val_max, CarmaDevice *device) {
+  int nb_threads = 0, nb_blocks = 0;
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
-  convertVoltage_krnl<<<grid, threads>>>(d_idata, d_odata, N, Vmin, Vmax,
-                                         valMax);
-  carmaCheckMsg("convertVoltage_krnl<<<>>> execution failed\n");
+  convertVoltage_krnl<<<grid, threads>>>(d_idata, d_odata, N, volt_min, volt_max,
+                                         val_max);
+  carma_check_msg("convertVoltage_krnl<<<>>> execution failed\n");
 }
 
 template
     typename std::enable_if<!std::is_same<float, uint16_t>::value, void>::type
-    convertToVoltage<float, uint16_t>(float *d_idata, uint16_t *d_odata, int N,
-                                      float Vmin, float Vmax, uint16_t valMax,
-                                      carma_device *device);
+    convert_to_voltage<float, uint16_t>(float *d_idata, uint16_t *d_odata, int N,
+                                      float volt_min, float volt_max, uint16_t val_max,
+                                      CarmaDevice *device);
 
 #ifdef CAN_DO_HALF
 template typename std::enable_if<!std::is_same<half, float>::value, void>::type
-convertToVoltage<half, float>(half *d_idata, float *d_odata, int N, float Vmin,
-                              float Vmax, uint16_t valMax,
-                              carma_device *device);
+convert_to_voltage<half, float>(half *d_idata, float *d_odata, int N, float volt_min,
+                              float volt_max, uint16_t val_max,
+                              CarmaDevice *device);
 template
     typename std::enable_if<!std::is_same<half, uint16_t>::value, void>::type
-    convertToVoltage<half, uint16_t>(half *d_idata, uint16_t *d_odata, int N,
-                                     float Vmin, float Vmax, uint16_t valMax,
-                                     carma_device *device);
+    convert_to_voltage<half, uint16_t>(half *d_idata, uint16_t *d_odata, int N,
+                                     float volt_min, float volt_max, uint16_t val_max,
+                                     CarmaDevice *device);
 #endif
 
 template <typename T>
@@ -383,16 +383,16 @@ __global__ void padCmat_krnl(T *idata, int m, int n, T *odata, int m2, int n2) {
 
 template <typename T>
 void pad_cmat(T *idata, int m, int n, T *odata, int m2, int n2,
-              carma_device *device) {
-  int nthreads = 0, nblocks = 0;
-  getNumBlocksAndThreads(device, m * n, nblocks, nthreads);
-  dim3 grid(nblocks), threads(nthreads);
+              CarmaDevice *device) {
+  int nb_threads = 0, nb_blocks = 0;
+  get_num_blocks_and_threads(device, m * n, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
   padCmat_krnl<<<grid, threads>>>(idata, m, n, odata, m2, n2);
-  carmaCheckMsg("padCmat_krnl<<<>>> execution failed\n");
+  carma_check_msg("padCmat_krnl<<<>>> execution failed\n");
 }
 
 #ifdef CAN_DO_HALF
 template void pad_cmat<half>(half *idata, int m, int n, half *odata, int m2,
-                             int n2, carma_device *device);
+                             int n2, CarmaDevice *device);
 #endif

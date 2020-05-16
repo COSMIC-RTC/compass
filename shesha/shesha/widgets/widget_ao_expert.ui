@@ -1591,7 +1591,7 @@
   <customwidget>
    <class>MatplotlibWidget</class>
    <extends>QWidget</extends>
-   <header>shesha.util.matplotlibwidget.h</header>
+   <header>shesha.util.matplotlibwidget</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

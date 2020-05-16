@@ -32,10 +32,10 @@
 
 //! \file      sutra_roket.h
 //! \ingroup   libsutra
-//! \class     sutra_roket
+//! \class     SutraRoket
 //! \brief     this class provides the roket features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -51,9 +51,9 @@
 #include <sutra_telescope.h>
 #include <sutra_utils.h>
 
-class sutra_roket {
+class SutraRoket {
  public:
-  carma_context *current_context;
+  CarmaContext *current_context;
   int device;
   float gain;  // Loop gain
   int nfilt;   // Number of filtered modes
@@ -65,67 +65,67 @@ class sutra_roket {
   int geocontroller;   // index of the geo controller
   int nslopes;
   // sutra objects to supervise
-  sutra_rtc *rtc;
-  sutra_sensors *sensors;
-  sutra_target *target;
-  sutra_telescope *tel;
-  sutra_atmos *atm;
-  sutra_dms *dms;
+  SutraRtc *rtc;
+  SutraSensors *sensors;
+  SutraTarget *target;
+  SutraTelescope *tel;
+  SutraAtmos *atm;
+  SutraDms *dms;
   sutra_controller_ls *loopcontrol;
   sutra_controller_geo *geocontrol;
 
   // Projection matrices
-  carma_obj<float> *d_P;
-  carma_obj<float> *d_Btt;
+  CarmaObj<float> *d_P;
+  CarmaObj<float> *d_Btt;
 
   // Error contributors buffers
-  carma_obj<float> *d_noise;
-  carma_obj<float> *d_nonlinear;
-  carma_obj<float> *d_tomo;
-  carma_obj<float> *d_filtered;
-  carma_obj<float> *d_alias;
-  carma_obj<float> *d_bandwidth;
+  CarmaObj<float> *d_noise;
+  CarmaObj<float> *d_nonlinear;
+  CarmaObj<float> *d_tomo;
+  CarmaObj<float> *d_filtered;
+  CarmaObj<float> *d_alias;
+  CarmaObj<float> *d_bandwidth;
   float fitting;
 
   // Residual error buffers
-  carma_obj<float> *d_fullErr;
-  carma_obj<float> *d_err1;
-  carma_obj<float> *d_err2;
+  CarmaObj<float> *d_fullErr;
+  CarmaObj<float> *d_err1;
+  CarmaObj<float> *d_err2;
   // Command loop backup
-  carma_obj<float> *d_bkup_com;
+  CarmaObj<float> *d_bkup_com;
   // Target screen backup
-  carma_obj<float> *d_bkup_screen;
+  CarmaObj<float> *d_bkup_screen;
   // Additional buffers
-  carma_obj<float> *d_commanded;
-  carma_obj<float> *d_modes;
-  carma_obj<float> *d_filtmodes;
-  carma_obj<float> *d_tmpdiff;
+  CarmaObj<float> *d_commanded;
+  CarmaObj<float> *d_modes;
+  CarmaObj<float> *d_filtmodes;
+  CarmaObj<float> *d_tmpdiff;
   // Loop filter matrix
-  carma_obj<float> *d_gRD;
+  CarmaObj<float> *d_gRD;
   // R*D matrix
-  carma_obj<float> *d_RD;
+  CarmaObj<float> *d_RD;
   // PSF ortho
-  carma_obj<float> *d_psfortho;
+  CarmaObj<float> *d_psfortho;
   // Loop output covariance matrices
-  carma_obj<float> *d_covv;
-  carma_obj<float> *d_covm;
+  CarmaObj<float> *d_covv;
+  CarmaObj<float> *d_covm;
 
  public:
-  sutra_roket(carma_context *context, int device, sutra_rtc *rtc,
-              sutra_sensors *sensors, sutra_target *target, sutra_dms *dms,
-              sutra_telescope *tel, sutra_atmos *atm, int loopcontroller,
+  SutraRoket(CarmaContext *context, int device, SutraRtc *rtc,
+              SutraSensors *sensors, SutraTarget *target, SutraDms *dms,
+              SutraTelescope *tel, SutraAtmos *atm, int loopcontroller,
               int geocontroller, int nactus, int nmodes, int nfilt, int niter,
               float *Btt, float *P, float *gRD, float *RD);
-  ~sutra_roket();
+  ~SutraRoket();
 
   int compute_breakdown();
   int save_loop_state();
   int restore_loop_state();
-  int apply_loop_filter(carma_obj<float> *d_odata, carma_obj<float> *d_idata1,
-                        carma_obj<float> *d_idata2, float gain, int k);
+  int apply_loop_filter(CarmaObj<float> *d_odata, CarmaObj<float> *d_idata1,
+                        CarmaObj<float> *d_idata2, float gain, int k);
 };
 
 int separate_modes(float *modes, float *filtmodes, int nmodes, int nfilt,
-                   carma_device *device);
+                   CarmaDevice *device);
 
 #endif

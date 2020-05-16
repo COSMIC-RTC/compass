@@ -1,7 +1,7 @@
 ## @package   shesha.supervisor.aoSupervisor
 ## @brief     Abstract layer for initialization and execution of a AO supervisor
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   4.4.1
+## @version   5.0.0
 ## @date      2011/01/28
 ## @copyright GNU Lesser General Public License
 #
@@ -44,6 +44,7 @@ from collections import OrderedDict
 import astropy.io.fits as pfits
 import shesha.constants as scons
 
+
 class AoSupervisor(AbstractSupervisor):
 
     #     _    _         _                  _
@@ -64,9 +65,8 @@ class AoSupervisor(AbstractSupervisor):
         self.P = None
         self.current_buffer = 1
 
-
     def get_config(self):
-        """ Returns the configuration in use, in a supervisor specific format ? 
+        """ Returns the configuration in use, in a supervisor specific format ?
 
         Return:
             config : (config module) : Current supervisor configuration
@@ -98,7 +98,7 @@ class AoSupervisor(AbstractSupervisor):
 
         Parameters:
             controller_index : (int, optional) : Controller index that will compute its slopes. Default is 0
-        
+
         Return:
             slopes : (np.ndarray) : Slopes vector
         """
@@ -113,14 +113,15 @@ class AoSupervisor(AbstractSupervisor):
             wfs_index : (int) : index of the WFS (or the centroider) to request an image
 
             cal_pix : (bool, optional) : Flag to get calibrated image instead of raw one. Default is False
-        
+
         Return:
             image : (np.ndarray) : WFS image
         """
         if (cal_pix):
-            if self.rtc.d_centro[wfs_index].d_dark is None: # Simulation case
+            if self.rtc.d_centro[wfs_index].d_dark is None:  # Simulation case
                 return np.array(self._sim.wfs.d_wfs[wfs_index].d_binimg)
-            if self.rtc.d_centro[wfs_index].type == CentroiderType.MASKEDPIX: # Standalone case
+            if self.rtc.d_centro[
+                    wfs_index].type == CentroiderType.MASKEDPIX:  # Standalone case
                 #     self.rtc.d_centro[wfs_index].fill_selected_pix(
                 #             self.rtc.d_control[0].d_centroids)
                 #     return np.array(self.rtc.d_centro[wfs_index].d_selected_pix)
@@ -132,10 +133,10 @@ class AoSupervisor(AbstractSupervisor):
                         self.rtc.d_centro[wfs_index].d_img)[np.where(mask)]
                 return mask
             return np.array(self.rtc.d_centro[wfs_index].d_img)
-        else: 
-            if self.rtc.d_centro[wfs_index].d_dark is None: # Simulation case
+        else:
+            if self.rtc.d_centro[wfs_index].d_dark is None:  # Simulation case
                 return np.array(self._sim.wfs.d_wfs[wfs_index].d_binimg)
-            return np.array(self.rtc.d_centro[wfs_index].d_img_raw) # Standalone case
+            return np.array(self.rtc.d_centro[wfs_index].d_img_raw)  # Standalone case
 
     def get_intensities(self) -> np.ndarray:
         """ Return sum of intensities in subaps. Size nSubaps, same order as slopes
@@ -144,7 +145,7 @@ class AoSupervisor(AbstractSupervisor):
         # return np.empty(1)
 
     def set_perturbation_voltage(self, controller_index: int, name: str,
-                               command: np.ndarray) -> None:
+                                 command: np.ndarray) -> None:
         """ Add circular buffer of offset values to integrator (will be applied at the end of next iteration)
 
         Parameters:
@@ -157,8 +158,8 @@ class AoSupervisor(AbstractSupervisor):
         if len(command.shape) == 1:
             self.rtc.d_control[controller_index].set_perturb_voltage(name, command, 1)
         elif len(command.shape) == 2:
-            self.rtc.d_control[controller_index].set_perturb_voltage(name, command,
-                                                             command.shape[0])
+            self.rtc.d_control[controller_index].set_perturb_voltage(
+                    name, command, command.shape[0])
         else:
             raise AttributeError("command should be a 1D or 2D array")
 
@@ -197,7 +198,7 @@ class AoSupervisor(AbstractSupervisor):
         """ Get integrator increment from controller_index controller
 
         Parameters:
-            controller_index : (int) : controller index           
+            controller_index : (int) : controller index
         """
         return np.array(self.rtc.d_control[controller_index].d_err)
 
@@ -205,10 +206,10 @@ class AoSupervisor(AbstractSupervisor):
         """ Get voltages vector (i.e. vector sent to the DM) from controller_index controller
 
         Parameters:
-            controller_index : (int) : controller index  
+            controller_index : (int) : controller index
 
         Return:
-            voltages : (np.ndarray) : current voltages vector         
+            voltages : (np.ndarray) : current voltages vector
 
         """
         return np.array(self.rtc.d_control[controller_index].d_voltage)
@@ -275,7 +276,7 @@ class AoSupervisor(AbstractSupervisor):
         """ Reset the reference slopes of each WFS handled by the specified controller
 
         Parameters:
-            controller_index: (int, optional): controller index. Default is 0            
+            controller_index: (int, optional): controller index. Default is 0
         """
         for centro in self.rtc.d_centro:
             centro.d_centroids_ref.reset()
@@ -284,7 +285,7 @@ class AoSupervisor(AbstractSupervisor):
         """ DM receives controller output + pertuVoltage
 
         Parameters:
-            controller_index: (int, optional): controller index. Default is 0     
+            controller_index: (int, optional): controller index. Default is 0
         """
         self.rtc.d_control[controller_index].set_open_loop(0)  # close_loop
 
@@ -294,7 +295,7 @@ class AoSupervisor(AbstractSupervisor):
         Parameters:
             rst : (bool, optional) : If True (default), integrator is reset
 
-            controller_index: (int, optional): controller index. Default is 0    
+            controller_index: (int, optional): controller index. Default is 0
         """
         self.rtc.d_control[controller_index].set_open_loop(1, rst)  # open_loop
 
@@ -322,7 +323,7 @@ class AoSupervisor(AbstractSupervisor):
                                              used by the specified centroider. If None, the reference
                                              slopes vector returned is a concatenation of all the reference
                                              slopes used for by centroiders in the RTC
-        
+
         Return:
             ref_slopes : (np.ndarray) : Reference slopes vector
         """
@@ -390,7 +391,7 @@ class AoSupervisor(AbstractSupervisor):
         self.rtc.do_centroids(0)  # To be ready for the next get_slopess
         print("PYR method set to " + self.rtc.d_centro[centro_index].pyr_method)
 
-    def set_gain(self, controller_index : int, gain : float) -> None:
+    def set_gain(self, controller_index: int, gain: float) -> None:
         """ Set the scalar gain
 
         Parameters:
@@ -400,7 +401,7 @@ class AoSupervisor(AbstractSupervisor):
         """
         self.rtc.d_control[controller_index].set_gain(gain)
 
-    def set_modal_gains(self, mgain : np.ndarray, controller_index : int=0):
+    def set_modal_gains(self, mgain: np.ndarray, controller_index: int = 0):
         """ Sets the modal gain (when using modal integrator control law)
 
         Parameters:
@@ -410,8 +411,8 @@ class AoSupervisor(AbstractSupervisor):
         """
         self.rtc.d_control[control].set_modal_gains(mgain)
 
-    def get_modal_gains(self, controller_index : int=0):
-        """ Returns the modal gains (when using modal integrator control law)  
+    def get_modal_gains(self, controller_index: int = 0):
+        """ Returns the modal gains (when using modal integrator control law)
 
         Parameters:
             controller_index : (int, optional) : Controller index to modify. Default is 0
@@ -421,7 +422,7 @@ class AoSupervisor(AbstractSupervisor):
         """
         return np.array(self.rtc.d_control[control].d_gain)
 
-    def set_command_matrix(self, cmat: np.ndarray, controller_index : int=0) -> None:
+    def set_command_matrix(self, cmat: np.ndarray, controller_index: int = 0) -> None:
         """ Set the command matrix for the controller to use
 
         Parameters:
@@ -445,7 +446,7 @@ class AoSupervisor(AbstractSupervisor):
 
         Parameters:
             centro_index : (int): Centroider index. Must be a maskedpix centroider
-        
+
         Return:
             mask : (np.ndarray) : Mask used
         """

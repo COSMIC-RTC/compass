@@ -34,7 +34,7 @@
 //! \ingroup   libcarma
 //! \brief     this file provides wrappers to the cuSolver functions
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2019/03/28
 //! \copyright GNU Lesser General Public License
 
@@ -118,39 +118,39 @@ int carma_syevd<double>(cusolverEigMode_t jobz, long N, double *mat,
 }
 
 template <class T>
-int carma_syevd(cusolverEigMode_t jobz, carma_obj<T> *mat,
-                carma_obj<T> *eigenvals) {
+int carma_syevd(cusolverEigMode_t jobz, CarmaObj<T> *mat,
+                CarmaObj<T> *eigenvals) {
   DEBUG_TRACE("Not implemented for this data type");
   return EXIT_FAILURE;
 }
 
 template <>
-int carma_syevd<float>(cusolverEigMode_t jobz, caObjS *mat, caObjS *eigenvals) {
-  long N = mat->getDims(1);
+int carma_syevd<float>(cusolverEigMode_t jobz, CarmaObjS *mat, CarmaObjS *eigenvals) {
+  long N = mat->get_dims(1);
 
-  if (N != mat->getDims(2)) {
+  if (N != mat->get_dims(2)) {
     std::cerr << "Matrix must be symmetric" << std::endl;
 
     return EXIT_FAILURE;
   }
 
   return carma_syevd_gen(cusolverDnSsyevd_bufferSize, cusolverDnSsyevd, jobz, N,
-                         N, mat->getData(), eigenvals->getData());
+                         N, mat->get_data(), eigenvals->get_data());
 }
 
 template <>
-int carma_syevd<double>(cusolverEigMode_t jobz, caObjD *mat,
-                        caObjD *eigenvals) {
-  long N = mat->getDims(1);
+int carma_syevd<double>(cusolverEigMode_t jobz, CarmaObjD *mat,
+                        CarmaObjD *eigenvals) {
+  long N = mat->get_dims(1);
 
-  if (N != mat->getDims(2)) {
+  if (N != mat->get_dims(2)) {
     std::cerr << "Matrix must be symmetric" << std::endl;
 
     return EXIT_FAILURE;
   }
 
   return carma_syevd_gen(cusolverDnDsyevd_bufferSize, cusolverDnDsyevd, jobz, N,
-                         N, mat->getData(), eigenvals->getData());
+                         N, mat->get_data(), eigenvals->get_data());
 }
 
 struct CarmaCusolverInterfacer {
@@ -159,7 +159,7 @@ struct CarmaCusolverInterfacer {
     force_keep((int (*)(cusolverEigMode_t, long, T_data *, T_data *)) &
                carma_syevd<T_data>);
     force_keep(
-        (int (*)(cusolverEigMode_t, carma_obj<T_data> *, carma_obj<T_data> *)) &
+        (int (*)(cusolverEigMode_t, CarmaObj<T_data> *, CarmaObj<T_data> *)) &
         carma_syevd<T_data>);
   }
 };

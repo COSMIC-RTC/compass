@@ -32,10 +32,10 @@
 
 //! \file      sutra_roket.cu
 //! \ingroup   libsutra
-//! \class     sutra_roket
+//! \class     SutraRoket
 //! \brief     this class provides the roket features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -58,13 +58,13 @@ __global__ void separate_modes_krnl(float *modes, float *filtmodes, int nmodes,
 }
 
 int separate_modes(float *modes, float *filtmodes, int nmodes, int nfilt,
-                   carma_device *device) {
-  int nthreads = 0, nblocks = 0;
-  getNumBlocksAndThreads(device, nmodes, nblocks, nthreads);
-  dim3 grid(nblocks), threads(nthreads);
+                   CarmaDevice *device) {
+  int nb_threads = 0, nb_blocks = 0;
+  get_num_blocks_and_threads(device, nmodes, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
   separate_modes_krnl<<<grid, threads>>>(modes, filtmodes, nmodes, nfilt);
-  carmaCheckMsg("separate_modes_krnl<<<>>> execution failed\n");
+  carma_check_msg("separate_modes_krnl<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }

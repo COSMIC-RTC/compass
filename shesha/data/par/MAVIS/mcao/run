@@ -40,7 +40,7 @@ write_sysParam.write_metaDx(metaDx,nTS=conf.NTS,path=datapath)
 #get reconstructor from file
 sup.reset()
 Mfile="/home/dgratadour/apply/chameleon/build/M_mcao.fits"
-M=fits.getdata(Mfile).T
+M=fits.get_data(Mfile).T
 #check dimensions
 CMATSHAPE=sup.get_command_matrix(0).shape
 if(M.shape[0] !=CMATSHAPE[0] or M.shape[1]!=CMATSHAPE[1]):

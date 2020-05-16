@@ -35,7 +35,7 @@
 //! \class     sutra_controller_geo
 //! \brief     this class provides the controller_geo features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -45,29 +45,29 @@
 #include <sutra_controller.h>
 
 template <typename Tcomp, typename Tout>
-class sutra_controller_geo : public sutra_controller<Tcomp, Tout> {
+class sutra_controller_geo : public SutraController<Tcomp, Tout> {
  public:
   long Nphi;
   int Ntt;
 
-  carma_obj<Tcomp> *d_gain;
-  carma_obj<Tcomp> *d_proj;
-  carma_obj<double> *d_phi;
-  carma_obj<Tcomp> *d_phif;
-  carma_obj<int> *d_indx_pup;
-  carma_obj<int> *d_indx_mpup;
-  carma_sparse_obj<double> *d_IFsparse;
-  carma_obj<Tcomp> *d_geocov;
-  carma_obj<double> *d_compdouble;
-  carma_obj<float> *d_compfloat;
-  carma_obj<Tcomp> *d_TT;
-  carma_obj<Tcomp> *d_geocovTT;
-  //  carma_obj<T> *d_Btt;
-  // carma_obj<T> *d_cenbuff; // centroids circular buffer
+  CarmaObj<Tcomp> *d_gain;
+  CarmaObj<Tcomp> *d_proj;
+  CarmaObj<double> *d_phi;
+  CarmaObj<Tcomp> *d_phif;
+  CarmaObj<int> *d_indx_pup;
+  CarmaObj<int> *d_indx_mpup;
+  CarmaSparseObj<double> *d_IFsparse;
+  CarmaObj<Tcomp> *d_geocov;
+  CarmaObj<double> *d_compdouble;
+  CarmaObj<float> *d_compfloat;
+  CarmaObj<Tcomp> *d_TT;
+  CarmaObj<Tcomp> *d_geocovTT;
+  //  CarmaObj<T> *d_Btt;
+  // CarmaObj<T> *d_cenbuff; // centroids circular buffer
 
  public:
-  sutra_controller_geo(carma_context *context, long nactu, long Nphi,
-                       float delay, sutra_dms *dms, int *idx_dms, int ndm,
+  sutra_controller_geo(CarmaContext *context, long nactu, long Nphi,
+                       float delay, SutraDms *dms, int *idx_dms, int ndm,
                        int *idx_centro, int ncentro, bool wfs_direction);
   sutra_controller_geo(const sutra_controller_geo &controller);
   ~sutra_controller_geo();
@@ -75,15 +75,15 @@ class sutra_controller_geo : public sutra_controller<Tcomp, Tout> {
   string get_type();
 
   cusparseHandle_t cusparse_handle() {
-    return this->current_context->get_cusparseHandle();
+    return this->current_context->get_cusparse_handle();
   }
   int load_Btt(Tcomp *Btt_pzt, Tcomp *Btt_TT);
   int load_mgain(Tcomp *mgain);
-  int comp_dphi(sutra_source *target, bool wfs_direction);
+  int comp_dphi(SutraSource *target, bool wfs_direction);
   int comp_com();
-  int init_proj(sutra_dms *dms, int *indx_dm, Tcomp *unitpervolt,
+  int init_proj(SutraDms *dms, int *indx_dm, Tcomp *unitpervolt,
                 int *indx_pup);
-  int init_proj_sparse(sutra_dms *dms, int *indx_dm, Tcomp *unitpervolt,
+  int init_proj_sparse(SutraDms *dms, int *indx_dm, Tcomp *unitpervolt,
                        int *indx_pup, int *indx_mpup, bool roket);
 };
 

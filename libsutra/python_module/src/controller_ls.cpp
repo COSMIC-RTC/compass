@@ -34,7 +34,7 @@
 //! \ingroup   libsutra
 //! \brief     this file provides pybind wrapper for sutra_controller_ls
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -48,7 +48,7 @@ template <typename Tcomp, typename Tout>
 void controller_ls_impl(py::module &mod, const char *name) {
   using controller_ls = sutra_controller_ls<Tcomp, Tout>;
 
-  py::class_<controller_ls, sutra_controller<Tcomp, Tout>>(mod, name)
+  py::class_<controller_ls, SutraController<Tcomp, Tout>>(mod, name)
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝

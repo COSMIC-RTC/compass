@@ -35,7 +35,7 @@
 //! \class     sutra_controller_generic
 //! \brief     this class provides the controller_generic features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -43,33 +43,33 @@
 
 template <typename T, typename Tout>
 sutra_controller_generic<T, Tout>::sutra_controller_generic(
-    carma_context *context, long nvalid, long nslope, long nactu, float delay,
-    sutra_dms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro, int nstates)
-    : sutra_controller<T, Tout>(context, nvalid, nslope, nactu, delay, dms,
+    CarmaContext *context, long nvalid, long nslope, long nactu, float delay,
+    SutraDms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro, int nstates)
+    : SutraController<T, Tout>(context, nvalid, nslope, nactu, delay, dms,
                                 idx_dms, ndm, idx_centro, ncentro) {
   this->command_law = "integrator";
   this->nstates = nstates;
 
   long dims_data1[2] = {1, nactu + nstates};
-  this->d_gain = new carma_obj<T>(this->current_context, dims_data1);
-  this->d_decayFactor = new carma_obj<T>(this->current_context, dims_data1);
-  this->d_compbuff = new carma_obj<T>(this->current_context, dims_data1);
-  for (int k=0; k < this->d_circularComs.size() ; k++) {
-    delete this->d_circularComs[k];
+  this->d_gain = new CarmaObj<T>(this->current_context, dims_data1);
+  this->d_decayFactor = new CarmaObj<T>(this->current_context, dims_data1);
+  this->d_compbuff = new CarmaObj<T>(this->current_context, dims_data1);
+  for (int k=0; k < this->d_circular_coms.size() ; k++) {
+    delete this->d_circular_coms[k];
   }
-  this->d_circularComs.clear();
-  this->d_com = new carma_obj<T>(this->current_context, dims_data1);
-  this->d_circularComs.push_front(this->d_com);
-  this->d_com1 = new carma_obj<T>(this->current_context, dims_data1);
+  this->d_circular_coms.clear();
+  this->d_com = new CarmaObj<T>(this->current_context, dims_data1);
+  this->d_circular_coms.push_front(this->d_com);
+  this->d_com1 = new CarmaObj<T>(this->current_context, dims_data1);
   if (this->delay > 0) {
-      this->d_circularComs.push_front(this->d_com1);
-      while (this->d_circularComs.size() <= int(this->delay) + 1) {
-        this->d_circularComs.push_front(new carma_obj<T>(context, dims_data1));
+      this->d_circular_coms.push_front(this->d_com1);
+      while (this->d_circular_coms.size() <= int(this->delay) + 1) {
+        this->d_circular_coms.push_front(new CarmaObj<T>(context, dims_data1));
       }
     }
 
   for (int cpt = 0; cpt < this->current_context->get_ndevice(); cpt++) {
-    if(this->current_context->canP2P(this->device, cpt)) {
+    if(this->current_context->can_p2p(this->device, cpt)) {
       this->P2Pdevices.push_back(cpt);
     }
   }
@@ -77,41 +77,41 @@ sutra_controller_generic<T, Tout>::sutra_controller_generic(
   for (auto dev_id : this->P2Pdevices) {
     if(dev_id != this->device) {
       this->current_context->set_active_device(dev_id, 1);
-      this->d_err_ngpu.push_back(new carma_obj<T>(this->current_context, dims_data1));
+      this->d_err_ngpu.push_back(new CarmaObj<T>(this->current_context, dims_data1));
     }
   }
   this->current_context->set_active_device(this->device, 1);
 
   this->d_cmatPadded = nullptr;
   dims_data1[1] = this->nslope();
-  this->d_olmeas = new carma_obj<T>(this->current_context, dims_data1);
-  this->d_compbuff2 = new carma_obj<T>(this->current_context, dims_data1);
+  this->d_olmeas = new CarmaObj<T>(this->current_context, dims_data1);
+  this->d_compbuff2 = new CarmaObj<T>(this->current_context, dims_data1);
 
   long dims_data2[3] = {2, nactu + nstates, nslope};
-  this->d_cmat = new carma_obj<T>(this->current_context, dims_data2);
+  this->d_cmat = new CarmaObj<T>(this->current_context, dims_data2);
   this->d_cmat_ngpu.push_back(this->d_cmat);
   if(this->P2Pdevices.size() > 1) {
     dims_data2[2] = this->nslope() / this->P2Pdevices.size();
     for (auto dev_id : this->P2Pdevices) {
       if(dev_id != this->P2Pdevices.back() && dev_id != this->device) {
         this->current_context->set_active_device(dev_id, 1);
-        this->d_cmat_ngpu.push_back(new carma_obj<T>(this->current_context, dims_data2));
+        this->d_cmat_ngpu.push_back(new CarmaObj<T>(this->current_context, dims_data2));
       }
     }
     int dev_id = this->P2Pdevices.back();
     int cpt = this->P2Pdevices.size() - 1;
     dims_data2[2] = this->nslope() - cpt * (this->nslope() / this->P2Pdevices.size());
     this->current_context->set_active_device(dev_id, 1);
-    this->d_cmat_ngpu.push_back(new carma_obj<T>(this->current_context, dims_data2));
+    this->d_cmat_ngpu.push_back(new CarmaObj<T>(this->current_context, dims_data2));
 
     this->current_context->set_active_device(this->device, 1);
   }
   this->gain = 0.f;
 
   dims_data2[2] = nactu + nstates;
-  this->d_matE = new carma_obj<T>(this->current_context, dims_data2);
+  this->d_matE = new CarmaObj<T>(this->current_context, dims_data2);
   dims_data2[1] = this->nslope();
-  this->d_imat = new carma_obj<T>(this->current_context, dims_data2);
+  this->d_imat = new CarmaObj<T>(this->current_context, dims_data2);
 
   this->polc = false;
 
@@ -122,14 +122,14 @@ sutra_controller_generic<T, Tout>::sutra_controller_generic(
     while (n % 8 != 0) n++;
     dims_data2[1] = m;
     dims_data2[2] = n;
-    this->d_cmatPadded = new carma_obj<T>(this->current_context, dims_data2);
+    this->d_cmatPadded = new CarmaObj<T>(this->current_context, dims_data2);
     this->d_cmatPadded->reset();
     dims_data1[1] = n;
-    this->d_centroidsPadded = new carma_obj<T>(context, dims_data1);
-    this->d_centroids->swapPtr(this->d_centroidsPadded->getData());
+    this->d_centroids_padded = new CarmaObj<T>(context, dims_data1);
+    this->d_centroids->swap_ptr(this->d_centroids_padded->get_data());
     dims_data1[1] = m;
-    this->d_comPadded = new carma_obj<T>(context, dims_data1);
-    this->d_com->swapPtr(this->d_comPadded->getData());
+    this->d_com_padded = new CarmaObj<T>(context, dims_data1);
+    this->d_com->swap_ptr(this->d_com_padded->get_data());
   }
 }
 
@@ -210,7 +210,7 @@ int sutra_controller_generic<T, Tout>::distribute_cmat() {
     for (auto dev_id : this->P2Pdevices) {
       if(dev_id != this->device) {
         this->current_context->set_active_device(dev_id, 1);
-        this->d_cmat_ngpu[cpt]->copyFrom(this->d_cmat->getDataAt(cpt * N), this->d_cmat_ngpu[cpt]->getNbElem());
+        this->d_cmat_ngpu[cpt]->copy_from(this->d_cmat->get_data_at(cpt * N), this->d_cmat_ngpu[cpt]->get_nb_elements());
         cpt++;
       }
     }
@@ -241,9 +241,9 @@ int sutra_controller_generic<T, Tout>::comp_polc() {
   this->d_olmeas->copy(this->d_centroids, 1, 1);
 
   carma_gemv(this->cublas_handle(), 'n', this->nslope(), this->nactu(), T(1.0f),
-             this->d_imat->getData(), this->nslope(),
-             this->d_compbuff->getData(), 1, T(0.0f),
-             this->d_compbuff2->getData(), 1);
+             this->d_imat->get_data(), this->nslope(),
+             this->d_compbuff->get_data(), 1, T(0.0f),
+             this->d_compbuff2->get_data(), 1);
 
   this->d_olmeas->axpy(T(-1.0f), this->d_compbuff2, 1, 1);
   return EXIT_SUCCESS;
@@ -252,11 +252,11 @@ int sutra_controller_generic<T, Tout>::comp_polc() {
 template <typename T, typename Tout>
 int sutra_controller_generic<T, Tout>::comp_com() {
   this->current_context->set_active_device(this->device, 1);
-  carma_obj<T> *centroids;
+  CarmaObj<T> *centroids;
   T berta = T(1.0f);
-  // cudaEvent_t startEv, stopEv;
-  // carmaSafeCall(cudaEventCreate(&startEv));
-  // carmaSafeCall(cudaEventCreate(&stopEv));
+  // cudaEvent_t start_event, stop_event;
+  // carma_safe_call(cudaEventCreate(&start_event));
+  // carma_safe_call(cudaEventCreate(&stop_event));
   // float gpuTime;
   int m, n;
 
@@ -268,21 +268,21 @@ int sutra_controller_generic<T, Tout>::comp_com() {
     centroids = this->d_centroids;
   }
 
-  carma_obj<T> *cmat;
+  CarmaObj<T> *cmat;
   // if (std::is_same<T, half>::value) {
   //   cmat = this->d_cmatPadded;
-  //   m = this->d_cmatPadded->getDims(1);
-  //   n = this->d_cmatPadded->getDims(2);
+  //   m = this->d_cmatPadded->get_dims(1);
+  //   n = this->d_cmatPadded->get_dims(2);
   // } else {
     cmat = this->d_cmat;
-    m = this->d_cmat->getDims(1);
-    n = this->d_cmat->getDims(2);
+    m = this->d_cmat->get_dims(1);
+    n = this->d_cmat->get_dims(2);
   //}
 
   if (this->command_law == "integrator") {
     // cublasSetStream(this->cublas_handle(),
     //                 current_context->get_device(device)->get_stream());
-    // carmaSafeCall(cudaEventRecord(startEv));
+    // carma_safe_call(cudaEventRecord(start_event));
     if(this->P2Pdevices.size() > 1) {
       n = this->nslope() / this->P2Pdevices.size();
       int cc = n;
@@ -290,11 +290,11 @@ int sutra_controller_generic<T, Tout>::comp_com() {
       for (auto dev_id : this->P2Pdevices) {
           if(dev_id != this->device) {
           this->current_context->set_active_device(dev_id, 1);
-          n = this->d_cmat_ngpu[cpt]->getDims()[2];
+          n = this->d_cmat_ngpu[cpt]->get_dims()[2];
 
           carma_gemv(this->cublas_handle(), 'n', m, n, (T)(-1 * this->gain),
-                this->d_cmat_ngpu[cpt]->getData(), m, centroids->getData() + cc, 1, T(0.f),
-                this->d_err_ngpu[cpt - 1]->getData(), 1);
+                this->d_cmat_ngpu[cpt]->get_data(), m, centroids->get_data() + cc, 1, T(0.f),
+                this->d_err_ngpu[cpt - 1]->get_data(), 1);
           cc += n;
           cpt ++;
           }
@@ -302,8 +302,8 @@ int sutra_controller_generic<T, Tout>::comp_com() {
       this->current_context->set_active_device(this->device, 1);
       n = this->nslope() / this->P2Pdevices.size();
       carma_gemv(this->cublas_handle(), 'n', m, n, (T)(-1 * this->gain),
-            this->d_cmat_ngpu[0]->getData(), m, centroids->getData(), 1, T(1.f),
-            this->d_com->getData(), 1);
+            this->d_cmat_ngpu[0]->get_data(), m, centroids->get_data(), 1, T(1.f),
+            this->d_com->get_data(), 1);
       // Now, the rest of the GPUs where we can use cmat_gpu dimension as n
       // Finally, we reduce all the results
       cpt = 0;
@@ -316,47 +316,47 @@ int sutra_controller_generic<T, Tout>::comp_com() {
           cpt ++;
         }
       }
-    // carmaSafeCall(cudaEventRecord(stopEv));
-    // carmaSafeCall(cudaEventSynchronize(stopEv));
-    // carmaSafeCall(cudaEventElapsedTime(&gpuTime, startEv, stopEv));
+    // carma_safe_call(cudaEventRecord(stop_event));
+    // carma_safe_call(cudaEventSynchronize(stop_event));
+    // carma_safe_call(cudaEventElapsedTime(&gpuTime, start_event, stop_event));
     // DEBUG_TRACE("GEMV DONE IN %f ms", gpuTime);
 
     } else { // Single GPU case or P2P not available between all GPUs
       carma_gemv(this->cublas_handle(), 'n', m, n, (T)(-1 * this->gain),
-               cmat->getData(), m, centroids->getData(), 1, berta,
-               this->d_com->getData(), 1);
+               cmat->get_data(), m, centroids->get_data(), 1, berta,
+               this->d_com->get_data(), 1);
     }
   } else {
     // CMAT*s(k)
     carma_gemv(this->cublas_handle(), 'n', this->nactu() + this->nstates, this->nslope(),
-               (T)1.0f, this->d_cmat->getData(), this->nactu() + this->nstates,
-               centroids->getData(), 1, (T)0.0f, this->d_compbuff->getData(),
+               (T)1.0f, this->d_cmat->get_data(), this->nactu() + this->nstates,
+               centroids->get_data(), 1, (T)0.0f, this->d_compbuff->get_data(),
                1);
     // g*CMAT*s(k)
-    mult_vect(this->d_compbuff->getData(), this->d_gain->getData(), (T)(-1.0f),
+    mult_vect(this->d_compbuff->get_data(), this->d_gain->get_data(), (T)(-1.0f),
               this->nactu() + this->nstates, this->current_context->get_device(this->device));
     if (this->command_law == "modal_integrator") {
       // M2V * g * CMAT * s(k)
       carma_gemv(this->cublas_handle(), 'n', this->nactu() + this->nstates, this->nactu() + this->nstates,
-                 (T)1.0f, this->d_matE->getData(), this->nactu() + this->nstates,
-                 this->d_compbuff->getData(), 1, berta, this->d_com->getData(),
+                 (T)1.0f, this->d_matE->get_data(), this->nactu() + this->nstates,
+                 this->d_compbuff->get_data(), 1, berta, this->d_com->get_data(),
                  1);
     } else {  // 2matrices
       if(!this->delay)
-        this->d_com1->copyFrom(this->d_com->getData(), this->d_com->getNbElem());
+        this->d_com1->copy_from(this->d_com->get_data(), this->d_com->get_nb_elements());
       carma_gemv(this->cublas_handle(), 'n', this->nactu() + this->nstates, this->nactu() + this->nstates,
-                 (T)1.0f, this->d_matE->getData(), this->nactu() + this->nstates,
-                 this->d_com1->getData(), 1, (T)0.0f, this->d_com->getData(),
+                 (T)1.0f, this->d_matE->get_data(), this->nactu() + this->nstates,
+                 this->d_com1->get_data(), 1, (T)0.0f, this->d_com->get_data(),
                  1);
       // v(k) = alpha*E*v(k-1)
-      mult_vect(this->d_com->getData(), this->d_decayFactor->getData(), (T)1.0f,
+      mult_vect(this->d_com->get_data(), this->d_decayFactor->get_data(), (T)1.0f,
                 this->nactu() + this->nstates, this->current_context->get_device(this->device));
       // v(k) = alpha*E*v(k-1) + g*CMAT*s(k)
       this->d_com->axpy((T)1.0f, this->d_compbuff, 1, 1);
     }
   }
-  //   cudaEventDestroy(startEv);
-  // cudaEventDestroy(stopEv);
+  //   cudaEventDestroy(start_event);
+  // cudaEventDestroy(stop_event);
   return EXIT_SUCCESS;
 }
 
@@ -364,9 +364,9 @@ template <typename T, typename Tout>
 template <typename Q>
 typename std::enable_if<std::is_same<Q, half>::value, int>::type
 sutra_controller_generic<T, Tout>::fill_cmatPadded_impl() {
-  pad_cmat(this->d_cmat->getData(), this->d_cmat->getDims(1),
-           this->d_cmat->getDims(2), this->d_cmatPadded->getData(),
-           this->d_cmatPadded->getDims(1), this->d_cmatPadded->getDims(2),
+  pad_cmat(this->d_cmat->get_data(), this->d_cmat->get_dims(1),
+           this->d_cmat->get_dims(2), this->d_cmatPadded->get_data(),
+           this->d_cmatPadded->get_dims(1), this->d_cmatPadded->get_dims(2),
            this->current_context->get_device(this->device));
 
   return EXIT_SUCCESS;

@@ -37,10 +37,10 @@
 
 //! \file      sutra_centroider_pyr.cpp
 //! \ingroup   libsutra
-//! \class     sutra_centroider_pyr
+//! \class     SutraCentroiderPyr
 //! \brief     this class provides the centroider_pyr features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -49,11 +49,11 @@
 #include <string>
 
 template <class Tin, class T>
-sutra_centroider_pyr<Tin, T>::sutra_centroider_pyr(carma_context *context,
-                                                   sutra_wfs *wfs, long nvalid,
+SutraCentroiderPyr<Tin, T>::SutraCentroiderPyr(CarmaContext *context,
+                                                   SutraWfs *wfs, long nvalid,
                                                    float offset, float scale,
                                                    bool filter_TT, int device)
-    : sutra_centroider<Tin, T>(context, wfs, nvalid, offset, scale, filter_TT,
+    : SutraCentroider<Tin, T>(context, wfs, nvalid, offset, scale, filter_TT,
                                device) {
   context->set_active_device(device, 1);
 
@@ -68,7 +68,7 @@ sutra_centroider_pyr<Tin, T>::sutra_centroider_pyr(carma_context *context,
 
   this->d_intensities->init_reduceCub();
   long dims_data2[2] = {1, this->nslopes};
-  this->d_centroids_ref = new carma_obj<T>(this->current_context, dims_data2);
+  this->d_centroids_ref = new CarmaObj<T>(this->current_context, dims_data2);
   this->d_centroids_ref->reset();
 
   if (filter_TT) {
@@ -77,72 +77,72 @@ sutra_centroider_pyr<Tin, T>::sutra_centroider_pyr(carma_context *context,
 }
 
 template <class Tin, class T>
-sutra_centroider_pyr<Tin, T>::~sutra_centroider_pyr() {}
+SutraCentroiderPyr<Tin, T>::~SutraCentroiderPyr() {}
 
 template <class Tin, class T>
-string sutra_centroider_pyr<Tin, T>::get_type() {
+string SutraCentroiderPyr<Tin, T>::get_type() {
   return this->pyr_type;
 }
 
 template <class Tin, class T>
-int sutra_centroider_pyr<Tin, T>::set_valid_thresh(T valid_thresh) {
+int SutraCentroiderPyr<Tin, T>::set_valid_thresh(T valid_thresh) {
   this->valid_thresh = valid_thresh;
   return EXIT_SUCCESS;
 }
 template <class Tin, class T>
-T sutra_centroider_pyr<Tin, T>::get_valid_thresh() {
+T SutraCentroiderPyr<Tin, T>::get_valid_thresh() {
   return this->valid_thresh;
 }
 
 template <class Tin, class T>
-int sutra_centroider_pyr<Tin, T>::set_method(Method_CoG method) {
+int SutraCentroiderPyr<Tin, T>::set_method(Method_CoG method) {
   this->method = method;
   return EXIT_SUCCESS;
 }
 
 template <class Tin, class T>
-Method_CoG sutra_centroider_pyr<Tin, T>::get_method() {
+Method_CoG SutraCentroiderPyr<Tin, T>::get_method() {
   return this->method;
 }
 
 template <class Tin, class T>
-string sutra_centroider_pyr<Tin, T>::get_method_str() {
+string SutraCentroiderPyr<Tin, T>::get_method_str() {
   return Method_CoG::str(this->method);
 }
 
 template <class Tin, class T>
-int sutra_centroider_pyr<Tin, T>::get_cog(float *cube, float *intensities,
+int SutraCentroiderPyr<Tin, T>::get_cog(float *cube, float *intensities,
                                           T *centroids, int nvalid, int npix,
                                           int ntot, cudaStream_t stream) {
-  // TODO(Implement sutra_centroider_pyr<Tin, T>::get_cog)
+  // TODO(Implement SutraCentroiderPyr<Tin, T>::get_cog)
 
-  return get_pyr(cube, intensities, centroids, this->d_validx->getData(),
-                 this->d_validy->getData(), this->nvalid,
-                 this->d_img->getDims(1), 4);
+  return get_pyr(cube, intensities, centroids, this->d_validx->get_data(),
+                 this->d_validy->get_data(), this->nvalid,
+                 this->d_img->get_dims(1), 4);
 }
 
 template <class Tin, class T>
-int sutra_centroider_pyr<Tin, T>::get_pyr(float *cube, float *intensities,
+int SutraCentroiderPyr<Tin, T>::get_pyr(float *cube, float *intensities,
                                           T *centroids, int *subindx,
                                           int *subindy, int nvalid, int ns,
                                           int nim) {
   this->current_context->set_active_device(this->device, 1);
 
-  pyr_intensities(this->d_intensities->getData(), cube, subindx, subindy, ns,
+  pyr_intensities(this->d_intensities->get_data(), cube, subindx, subindy, ns,
                   nvalid, nim, this->current_context->get_device(this->device));
 
-  if (!(this->method.isLocal)) {
-    // float p_sum = reduce<float>(this->d_intensities->getData(), nvalid);
+  if (!(this->method.is_local)) {
+    // float p_sum = reduce<float>(this->d_intensities->get_data(), nvalid);
     this->d_intensities->reduceCub();
-    fillvalues<float>(this->d_intensities->getData(),
-                      this->d_intensities->getOData(), nvalid,
+    fillvalues<float>(this->d_intensities->get_data(),
+                      this->d_intensities->get_o_data(), nvalid,
                       this->current_context->get_device(this->device));
   }
 
-  pyr2_slopes(centroids, this->d_centroids_ref->getData(), cube, subindx,
-              subindy, this->d_intensities->getData(), ns, nvalid, this->scale,
+  pyr2_slopes(centroids, this->d_centroids_ref->get_data(), cube, subindx,
+              subindy, this->d_intensities->get_data(), ns, nvalid, this->scale,
               this->valid_thresh,
-              this->method.isSinus,  // if we are using a sin method
+              this->method.is_sinus,  // if we are using a sin method
               this->current_context->get_device(this->device));
 
   if (this->filter_TT) {
@@ -153,7 +153,7 @@ int sutra_centroider_pyr<Tin, T>::get_pyr(float *cube, float *intensities,
 }
 
 template <class Tin, class T>
-int sutra_centroider_pyr<Tin, T>::get_cog(float *intensities, T *slopes,
+int SutraCentroiderPyr<Tin, T>::get_cog(float *intensities, T *slopes,
                                           bool noise) {
   if (this->wfs != nullptr) {
     if (this->pyr_type == "pyr" || this->pyr_type == "roof")
@@ -180,7 +180,7 @@ int sutra_centroider_pyr<Tin, T>::get_cog(float *intensities, T *slopes,
 }
 
 template <class Tin, class T>
-int sutra_centroider_pyr<Tin, T>::get_cog() {
+int SutraCentroiderPyr<Tin, T>::get_cog() {
   if (this->wfs != nullptr)
     return this->get_cog(*(this->wfs->d_intensities), *(this->wfs->d_slopes),
                          true);
@@ -189,5 +189,5 @@ int sutra_centroider_pyr<Tin, T>::get_cog() {
   return EXIT_FAILURE;
 }
 
-template class sutra_centroider_pyr<float, float>;
-template class sutra_centroider_pyr<uint16_t, float>;
+template class SutraCentroiderPyr<float, float>;
+template class SutraCentroiderPyr<uint16_t, float>;

@@ -276,7 +276,7 @@ if (not (type(resAll) == pd.core.frame.DataFrame)):
 #magnitudes=[11.5,12.5,13.5,14.5]
 ##
 
-#res500 = pf.getdata("/home/fvidal/res_500.fits")
+#res500 = pf.get_data("/home/fvidal/res_500.fits")
 #fig = plt.figure(num = 1)
 #fig.show()
 Nsimutot = len(gainslist) * len(magnitudes) * len(bps) * len(RONS) * len(pixsizes) * len(

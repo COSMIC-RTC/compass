@@ -37,10 +37,10 @@
 
 //! \file      sutra_centroider_pyr.h
 //! \ingroup   libsutra
-//! \class     sutra_centroider_pyr
+//! \class     SutraCentroiderPyr
 //! \brief     this class provides the centroider_pyr features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -50,11 +50,11 @@
 #include <sutra_centroider.h>
 
 struct Method_CoG {
-  bool isLocal = false;
-  bool isSinus = true;
+  bool is_local = false;
+  bool is_sinus = true;
 
   Method_CoG(bool isLocal_ = false, bool isSinus_ = true)
-      : isLocal(isLocal_), isSinus(isSinus_) {}
+      : is_local(isLocal_), is_sinus(isSinus_) {}
 
   /** Method_CoG(int method)
    * where method is
@@ -63,27 +63,27 @@ struct Method_CoG {
    *        2: sinus local)
    *        3: nosinus local
    **/
-  Method_CoG(uint8_t method) : isLocal(method > 1), isSinus(!(method % 2)) {}
+  Method_CoG(uint8_t method) : is_local(method > 1), is_sinus(!(method % 2)) {}
 
   static const char *str(const struct Method_CoG &method) {
-    if (method.isSinus && !method.isLocal) return "sinus global";     // 0
-    if (!method.isSinus && !method.isLocal) return "nosinus global";  // 1
-    if (method.isSinus && method.isLocal) return "sinus local";       // 2
-    if (!method.isSinus && method.isLocal) return "nosinus local";    // 3
+    if (method.is_sinus && !method.is_local) return "sinus global";     // 0
+    if (!method.is_sinus && !method.is_local) return "nosinus global";  // 1
+    if (method.is_sinus && method.is_local) return "sinus local";       // 2
+    if (!method.is_sinus && method.is_local) return "nosinus local";    // 3
     throw "method unknown";
   };
 };
 
 template <class Tin, class T>
-class sutra_centroider_pyr : public sutra_centroider<Tin, T> {
+class SutraCentroiderPyr : public SutraCentroider<Tin, T> {
  private:
   string pyr_type;
 
  public:
-  sutra_centroider_pyr(carma_context *context, sutra_wfs *wfs, long nvalid,
+  SutraCentroiderPyr(CarmaContext *context, SutraWfs *wfs, long nvalid,
                        float offset, float scale, bool filter_TT, int device);
-  sutra_centroider_pyr(const sutra_centroider_pyr &centroider);
-  ~sutra_centroider_pyr();
+  SutraCentroiderPyr(const SutraCentroiderPyr &centroider);
+  ~SutraCentroiderPyr();
 
   string get_type();
   int set_valid_thresh(T valid_thresh);
@@ -108,10 +108,10 @@ class sutra_centroider_pyr : public sutra_centroider<Tin, T> {
 template <class T>
 void pyr_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy,
                 float *intensities, int ns, int nvalid, int nim,
-                carma_device *device);
+                CarmaDevice *device);
 
 template <class T>
 void pyr2_slopes(T *d_odata, T *ref, T *d_idata, int *subindx, int *subindy,
                  float *intensities, int ns, int nvalid, float scale,
-                 T valid_thresh, int do_sin, carma_device *device);
+                 T valid_thresh, int do_sin, CarmaDevice *device);
 #endif  // _SUTRA_CENTROIDER_PYR_H_

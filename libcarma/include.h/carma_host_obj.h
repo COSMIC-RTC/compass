@@ -32,15 +32,15 @@
 
 //! \file      carma_host_obj.h
 //! \ingroup   libcarma
-//! \class     carma_host_obj
+//! \class     CarmaHostObj
 //! \brief     this class provides wrappers to the generic carma host object
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
-#ifndef _CARMA_HOST_OBJ_H_
-#define _CARMA_HOST_OBJ_H_
+#ifndef _CarmaHostObj_H_
+#define _CarmaHostObj_H_
 
 #include <carma.h>
 #include <carma_context.h>
@@ -62,52 +62,52 @@ enum MemAlloc {
 #define ALIGN_UP(x, size) (((size_t)x + (size - 1)) & (~(size - 1)))
 
 template <class T_data>
-class carma_obj;
+class CarmaObj;
 
 template <class T_data>
-class carma_host_obj {
+class CarmaHostObj {
  protected:
   T_data *h_data;       ///< Input data
   T_data *data_UA;      ///< unpadded input dara for generic pinned mem
   long *dims_data;      ///< dimensions of the array
   int nb_elem;          ///< number of elments in the array
-  MemAlloc mallocType;  ///< type of host alloc
-  carma_streams *streams;
+  MemAlloc malloc_type;  ///< type of host alloc
+  CarmaStreams *streams;
 
-  void init(const long *dims_data, const T_data *data, MemAlloc mallocType,
+  void init(const long *dims_data, const T_data *data, MemAlloc malloc_type,
             int nb_streams);
 
  public:
-  carma_host_obj(const long *dims_data);
-  carma_host_obj(const long *dims_data, MemAlloc mallocType);
-  carma_host_obj(const carma_host_obj<T_data> *obj);
-  carma_host_obj(const carma_host_obj<T_data> *obj, MemAlloc mallocType);
-  carma_host_obj(const long *dims_data, const T_data *data);
-  carma_host_obj(const long *dims_data, const T_data *data,
-                 MemAlloc mallocType);
-  carma_host_obj(const long *dims_data, int nb_streams);
-  carma_host_obj(const long *dims_data, MemAlloc mallocType, int nb_streams);
-  carma_host_obj(const carma_host_obj<T_data> *obj, int nb_streams);
-  carma_host_obj(const carma_host_obj<T_data> *obj, MemAlloc mallocType,
+  CarmaHostObj(const long *dims_data);
+  CarmaHostObj(const long *dims_data, MemAlloc malloc_type);
+  CarmaHostObj(const CarmaHostObj<T_data> *obj);
+  CarmaHostObj(const CarmaHostObj<T_data> *obj, MemAlloc malloc_type);
+  CarmaHostObj(const long *dims_data, const T_data *data);
+  CarmaHostObj(const long *dims_data, const T_data *data,
+                 MemAlloc malloc_type);
+  CarmaHostObj(const long *dims_data, int nb_streams);
+  CarmaHostObj(const long *dims_data, MemAlloc malloc_type, int nb_streams);
+  CarmaHostObj(const CarmaHostObj<T_data> *obj, int nb_streams);
+  CarmaHostObj(const CarmaHostObj<T_data> *obj, MemAlloc malloc_type,
                  int nb_streams);
-  carma_host_obj(const long *dims_data, const T_data *data, int nb_streams);
-  carma_host_obj(const long *dims_data, const T_data *data, MemAlloc mallocType,
+  CarmaHostObj(const long *dims_data, const T_data *data, int nb_streams);
+  CarmaHostObj(const long *dims_data, const T_data *data, MemAlloc malloc_type,
                  int nb_streams);
-  ~carma_host_obj();
+  ~CarmaHostObj();
 
   void get_devpntr(void **pntr_dev);
 
-  int get_nbStreams();
+  int get_nb_streams();
   int add_stream();
   int add_stream(int nb);
   int del_stream();
   int del_stream(int nb);
-  cudaStream_t get_cudaStream_t(int stream);
+  cudaStream_t get_cuda_stream(int stream);
   int wait_stream(int stream);
   int wait_all_streams();
 
-  int cpy_obj(carma_obj<T_data> *caObj, cudaMemcpyKind flag);
-  int cpy_obj(carma_obj<T_data> *caObj, cudaMemcpyKind flag,
+  int cpy_obj(CarmaObj<T_data> *carma_obj, cudaMemcpyKind flag);
+  int cpy_obj(CarmaObj<T_data> *carma_obj, cudaMemcpyKind flag,
               unsigned int stream);
 
   /**< General Utilities */
@@ -119,19 +119,19 @@ class carma_host_obj {
   }
   inline char const *c_str() { return std::string(*this).c_str(); }
   T_data &operator[](int index) { return h_data[index]; }
-  T_data *getData() { return h_data; }
-  T_data *getDataAt(int index) { return &h_data[index]; }
-  const long *getDims() { return dims_data; }
-  long getDims(int i) { return dims_data[i]; }
-  int getNbElem() { return nb_elem; }
+  T_data *get_data() { return h_data; }
+  T_data *get_data_at(int index) { return &h_data[index]; }
+  const long *get_dims() { return dims_data; }
+  long get_dims(int i) { return dims_data[i]; }
+  int get_nb_elements() { return nb_elem; }
 
   /**< Memory transfer */
   int fill_from(const T_data *data);
   int fill_into(T_data *data);
   int fill(T_data value);
 
-  std::string getMetAlloc() {
-    switch (mallocType) {
+  std::string get_mem_alloc() {
+    switch (malloc_type) {
       case MA_MALLOC:
         return "MA_MALLOC";
       case MA_PAGELOCK:
@@ -151,15 +151,15 @@ class carma_host_obj {
 };
 
 template <class T_data>
-std::ostream &operator<<(std::ostream &os, carma_host_obj<T_data> &obj) {
+std::ostream &operator<<(std::ostream &os, CarmaHostObj<T_data> &obj) {
   os << "-----------------------" << std::endl;
-  os << "carma_host_obj<" << typeid(T_data).name() << "> object" << std::endl;
-  long ndims = obj.getDims(0);
+  os << "CarmaHostObj<" << typeid(T_data).name() << "> object" << std::endl;
+  long ndims = obj.get_dims(0);
   os << "ndims = " << ndims << std::endl;
   for (long dim = 0; dim < ndims; dim++) {
-    os << "dim[" << dim << "] = " << obj.getDims(dim + 1) << std::endl;
+    os << "dim[" << dim << "] = " << obj.get_dims(dim + 1) << std::endl;
   }
-  os << "nbElem = " << obj.getNbElem() << std::endl;
+  os << "nbElem = " << obj.get_nb_elements() << std::endl;
   os << "sizeof(" << typeid(T_data).name() << ") = " << sizeof(T_data)
      << std::endl;
   os << "-----------------------" << std::endl;
@@ -172,4 +172,4 @@ std::ostream &operator<<(std::ostream &os, carma_host_obj<T_data> &obj) {
  }
  */
 
-#endif  // _CARMA_HOST_OBJ_H_
+#endif  // _CarmaHostObj_H_

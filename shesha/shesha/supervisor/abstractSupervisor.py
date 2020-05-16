@@ -1,7 +1,7 @@
 ## @package   shesha.supervisor.abstractSupervisor
 ## @brief     Abstract layer for initialization and execution of a COMPASS supervisor
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   4.4.1
+## @version   5.0.0
 ## @date      2011/01/28
 ## @copyright GNU Lesser General Public License
 #
@@ -44,10 +44,9 @@ class AbstractSupervisor(ABC):
 
     @abstractmethod
     def get_config(self):
-        """ Returns the configuration in use, in a supervisor specific format ? 
+        """ Returns the configuration in use, in a supervisor specific format ?
         """
         ...
-
 
     @abstractmethod
     def load_config(self):
@@ -55,26 +54,24 @@ class AbstractSupervisor(ABC):
         """
         ...
 
-
     @abstractmethod
     def init_config(self):
         """ Init the configuration for the supervisor
         """
         ...
 
-
     @abstractmethod
     def set_command(self, command: np.ndarray) -> None:
-        """ Immediately sets provided command to DMs - does not affect integrator 
+        """ Immediately sets provided command to DMs - does not affect integrator
 
         Parameters:
             command : (np.ndarray) : DM Command vector
         """
         ...
 
-
     @abstractmethod
-    def set_perturbation_voltage(self, nControl: int, name : str, command: np.ndarray) -> None:
+    def set_perturbation_voltage(self, nControl: int, name: str,
+                                 command: np.ndarray) -> None:
         """ Add circular buffer of offset values to integrator (will be applied at the end of next iteration)
 
         Parameters:
@@ -86,36 +83,34 @@ class AbstractSupervisor(ABC):
         """
         ...
 
-
     @abstractmethod
     def get_slopes(self) -> np.ndarray:
-        """ Immediately gets one slope vector for all WFS at the current state of the system 
+        """ Immediately gets one slope vector for all WFS at the current state of the system
 
         Return:
             slopes : (np.ndarray) : Current WFS slopes
         """
         ...
 
-
     @abstractmethod
     def single_next(self, move_atmos: bool = True, show_atmos: bool = True,
-                   get_psf: bool = False, get_residual: bool = False) -> None:
-        """ Performs a single loop iteration 
+                    get_psf: bool = False, get_residual: bool = False) -> None:
+        """ Performs a single loop iteration
 
         Parameters:
             move_atmos : (bool, optional) : Move the atmosphere layers. Default is True
 
             show_atmos : (bool, optional) : WFS and targets see the atmosphere layers. Default is True
 
-            get_psf : (bool, optional) : 
+            get_psf : (bool, optional) :
 
-            get_residual : (bool, optional) : 
+            get_residual : (bool, optional) :
         """
         ...
 
     def next(self, nbiters, see_atmos=True):
-        """ Performs nbiters loop iterations 
-        
+        """ Performs nbiters loop iterations
+
         Parameters:
             nbiters : (int) : Number of iterations to perform
 
@@ -124,55 +119,47 @@ class AbstractSupervisor(ABC):
         for i in range(nbiters):
             self.single_next(show_atmos=see_atmos)
 
-
     @abstractmethod
     def close_loop(self) -> None:
-        """ DM receives controller output + pertuVoltage 
+        """ DM receives controller output + pertuVoltage
         """
         ...
-
 
     @abstractmethod
     def open_loop(self) -> None:
-        """ Integrator computation goes to /dev/null but pertuVoltage still applied 
+        """ Integrator computation goes to /dev/null but pertuVoltage still applied
         """
         ...
-
 
     @abstractmethod
     def set_ref_slopes(self, ref_slopes: np.ndarray) -> None:
-        """ Set given ref slopes in controller 
+        """ Set given ref slopes in controller
         """
         ...
-
 
     @abstractmethod
     def get_ref_slopes(self) -> np.ndarray:
-        """ Get the currently used reference slopes 
+        """ Get the currently used reference slopes
         """
         ...
-
 
     @abstractmethod
     def set_gain(self, gain: float):
-        """ Set the scalar gain of feedback controller loop 
+        """ Set the scalar gain of feedback controller loop
         """
         ...
-
 
     @abstractmethod
     def set_command_matrix(self, cMat: np.ndarray):
-        """ Set the cmat for the controller to use 
+        """ Set the cmat for the controller to use
         """
         ...
-
 
     @abstractmethod
     def get_psf(self, tar_index):
-        """ Get an image from a target 
+        """ Get an image from a target
         """
         ...
-
 
     @abstractmethod
     def get_wfs_image(self, numWFS: int = 0, cal_pix: bool = False) -> np.ndarray:
@@ -180,13 +167,11 @@ class AbstractSupervisor(ABC):
         """
         ...
 
-
     @abstractmethod
     def get_intensities(self):
-        """ Return sum of intensities in subaps. Size nSubaps, same order as slopes 
+        """ Return sum of intensities in subaps. Size nSubaps, same order as slopes
         """
         ...
-
 
     @abstractmethod
     def get_frame_counter(self):

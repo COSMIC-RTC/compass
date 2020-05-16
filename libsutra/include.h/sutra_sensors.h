@@ -32,10 +32,10 @@
 
 //! \file      sutra_sensors.h
 //! \ingroup   libsutra
-//! \class     sutra_sensors
+//! \class     SutraSensors
 //! \brief     this class provides the sensors features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -56,31 +56,31 @@ using std::map;
 using std::string;
 using std::vector;
 
-class sutra_sensors {
+class SutraSensors {
  public:
   int device;
   bool roket;
-  carma_context *current_context;
+  CarmaContext *current_context;
   size_t nsensors() { return d_wfs.size(); }
-  vector<sutra_wfs *> d_wfs;
+  vector<SutraWfs *> d_wfs;
   map<vector<int>, cufftHandle *> campli_plans;
   map<vector<int>, cufftHandle *> fttotim_plans;
   map<vector<int>, cufftHandle *> ftlgskern_plans;
 
-  carma_obj<cuFloatComplex> *d_camplipup;
-  carma_obj<cuFloatComplex> *d_camplifoc;
-  carma_obj<cuFloatComplex> *d_fttotim;
-  carma_obj<cuFloatComplex> *d_ftlgskern;
-  carma_obj<float> *d_lgskern;
+  CarmaObj<cuFloatComplex> *d_camplipup;
+  CarmaObj<cuFloatComplex> *d_camplifoc;
+  CarmaObj<cuFloatComplex> *d_fttotim;
+  CarmaObj<cuFloatComplex> *d_ftlgskern;
+  CarmaObj<float> *d_lgskern;
 
  public:
-  sutra_sensors(carma_context *context, sutra_telescope *d_tel,
+  SutraSensors(CarmaContext *context, SutraTelescope *d_tel,
                 vector<string> type, int nwfs, long *nxsub, long *nvalid,
                 long *npupils, long *npix, long *nphase, long *nrebin,
                 long *nfft, long *ntot, long *npup, float *pdiam, float *nphot,
-                float *nphot4imat, int *lgs, bool *fakecam, int *maxFluxPerPix,
-                int *maxPixValue, int device, bool roket);
-  ~sutra_sensors();
+                float *nphot4imat, int *lgs, bool *fakecam, int *max_flux_per_pix,
+                int *max_pix_value, int device, bool roket);
+  ~SutraSensors();
 
   int allocate_buffers();
   int define_mpi_rank(int rank, int size);

@@ -277,7 +277,7 @@ if (not (type(resAll) == pd.core.frame.DataFrame)):
 #magnitudes=[11.5,12.5,13.5,14.5]
 ##
 
-#res500 = pf.getdata("/home/fvidal/res_500.fits")
+#res500 = pf.get_data("/home/fvidal/res_500.fits")
 #fig = plt.figure(num = 1)
 #fig.show()
 NCurrSim = 0
@@ -309,7 +309,7 @@ for freq in freqs:
                     print("Reading cMat")
                     print(1 / 0.)
 
-                    #cmat = pf.getdata(os.environ["SHESHA_ROOT"]+"/test/scripts/cmatKLGood.fits").byteswap().newbyteorder()
+                    #cmat = pf.get_data(os.environ["SHESHA_ROOT"]+"/test/scripts/cmatKLGood.fits").byteswap().newbyteorder()
                     print("Setting cMat")
                     #rtc.set_cmat(0, cmat.copy().astype(np.float32))
                     rtc.set_cmat(0, cmat.copy())
