@@ -57,7 +57,7 @@ if __name__ == "__main__":
             SR = "N/A"
         try:
             supervisor.loop(supervisor.config.p_loop.niter)
-            SR = supervisor.get_strehl(0)[1]
+            SR = supervisor.target.get_strehl(0)[1]
         except:
             SR = "N/A"
 

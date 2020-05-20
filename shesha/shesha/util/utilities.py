@@ -2,7 +2,7 @@
 ## @brief     Basic utilities function
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   5.0.0
-## @date      2011/01/28
+## @date      2020/05/18
 ## @copyright GNU Lesser General Public License
 #
 #  This file is part of COMPASS <https://anr-compass.github.io/compass/>
@@ -156,16 +156,16 @@ def makegaussian(size, fwhm, xc=-1, yc=-1, norm=0):
     return tmp
 
 
-def load_config_from_file(sim_class, filename_path: str) -> None:
+def load_config_from_file(filename_path: str):
     """
     Load the parameters from the parameters file
 
-    :parameters:
+    Parameters:
         filename_path: (str): path to the parameters file
 
+    Return:
+        config : (config) : a config module
     """
-    sim_class.loaded = False
-    sim_class.is_init = False
     path = os.path.dirname(os.path.abspath(filename_path))
     filename = os.path.basename(filename_path)
     name, ext = os.path.splitext(filename)
@@ -174,63 +174,60 @@ def load_config_from_file(sim_class, filename_path: str) -> None:
         if (path not in sys.path):
             sys.path.insert(0, path)
 
-        load_config_from_module(sim_class, name)
+        return load_config_from_module(name)
 
         # exec("import %s as wao_config" % filename)
         sys.path.remove(path)
     elif importlib.util.find_spec(filename_path) is not None:
-        load_config_from_module(sim_class, filename_path)
+        return load_config_from_module(filename_path)
     else:
         raise ValueError("Config file must be .py or a module")
 
 
-def load_config_from_module(sim_class, filepath: str) -> None:
+def load_config_from_module(filepath: str):
     """
     Load the parameters from the parameters module
 
-    :parameters:
-        filepath: (str): path to the parameters module
+    Parameters:
+        filename_path: (str): path to the parameters file
 
+    Return:
+        config : (config) : a config module
     """
-    sim_class.loaded = False
-    sim_class.is_init = False
-
     filename = filepath.split('.')[-1]
     print("loading: %s" % filename)
 
-    sim_class.config = importlib.import_module(filepath)
-    del sys.modules[sim_class.config.__name__]  # Forced reload
-    sim_class.config = importlib.import_module(filepath)
+    config = importlib.import_module(filepath)
+    del sys.modules[config.__name__]  # Forced reload
+    config = importlib.import_module(filepath)
 
-    if hasattr(sim_class.config, 'par'):
-        sim_class.config = getattr("sim_class.config.par.par4bench", filename)
+    if hasattr(config, 'par'):
+        config = getattr("config.par.par4bench", filename)
 
     # Set missing config attributes to None
-    if not hasattr(sim_class.config, 'p_loop'):
-        sim_class.config.p_loop = None
-    if not hasattr(sim_class.config, 'p_geom'):
-        sim_class.config.p_geom = None
-    if not hasattr(sim_class.config, 'p_tel'):
-        sim_class.config.p_tel = None
-    if not hasattr(sim_class.config, 'p_atmos'):
-        sim_class.config.p_atmos = None
-    if not hasattr(sim_class.config, 'p_dms'):
-        sim_class.config.p_dms = None
-    if not hasattr(sim_class.config, 'p_targets'):
-        sim_class.config.p_targets = None
-    if not hasattr(sim_class.config, 'p_wfss'):
-        sim_class.config.p_wfss = None
-    if not hasattr(sim_class.config, 'p_centroiders'):
-        sim_class.config.p_centroiders = None
-    if not hasattr(sim_class.config, 'p_controllers'):
-        sim_class.config.p_controllers = None
+    if not hasattr(config, 'p_loop'):
+        config.p_loop = None
+    if not hasattr(config, 'p_geom'):
+        config.p_geom = None
+    if not hasattr(config, 'p_tel'):
+        config.p_tel = None
+    if not hasattr(config, 'p_atmos'):
+        config.p_atmos = None
+    if not hasattr(config, 'p_dms'):
+        config.p_dms = None
+    if not hasattr(config, 'p_targets'):
+        config.p_targets = None
+    if not hasattr(config, 'p_wfss'):
+        config.p_wfss = None
+    if not hasattr(config, 'p_centroiders'):
+        config.p_centroiders = None
+    if not hasattr(config, 'p_controllers'):
+        config.p_controllers = None
 
-    if not hasattr(sim_class.config, 'simul_name'):
-        sim_class.config.simul_name = None
+    if not hasattr(config, 'simul_name'):
+        config.simul_name = None
 
-    sim_class.loaded = True
-
-
+    return config
 # def rotate3d(im, ang, cx=-1, cy=-1, zoom=1.0):
 #     """Rotates an image of an angle "ang" (in DEGREES).
 

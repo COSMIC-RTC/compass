@@ -2,7 +2,7 @@
 ## @brief     Simulator class definition must be instantiated for running a COMPASS simulation script easily
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   5.0.0
-## @date      2011/01/28
+## @date      2020/05/18
 ## @copyright GNU Lesser General Public License
 #
 #  This file is part of COMPASS <https://anr-compass.github.io/compass/>
@@ -584,16 +584,3 @@ class Simulator:
             nControl: (int): controller index
         """
         self.rtc.do_clipping(nControl)
-
-    def get_strehl(self, numTar: int, do_fit: bool = True):
-        """ Return the Strehl Ratio of target number numTar as [SR short exp., SR long exp., np.var(phiSE), np.var(phiLE)]
-
-        Parameters :
-            numTar: (int): target index
-        """
-        src = self.tar.d_targets[numTar]
-        src.comp_strehl(do_fit)
-        avgVar = 0
-        if (src.phase_var_count > 0):
-            avgVar = src.phase_var_avg / src.phase_var_count
-        return [src.strehl_se, src.strehl_le, src.phase_var, avgVar]

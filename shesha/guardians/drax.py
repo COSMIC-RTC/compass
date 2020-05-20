@@ -512,7 +512,7 @@ def get_mode(filename, n):
     return sc.reshape((dim, dim))
 
 
-def get_psf(filename):
+def get_tar_image(filename):
     """
     Return the PSF computed by COMPASS saved in the ROKET file
 

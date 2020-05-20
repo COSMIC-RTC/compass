@@ -2,7 +2,7 @@
 ## @brief     Initialization and execution of a Bench supervisor
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   5.0.0
-## @date      2011/01/28
+## @date      2020/05/18
 ## @copyright GNU Lesser General Public License
 #
 #  This file is part of COMPASS <https://anr-compass.github.io/compass/>
@@ -94,7 +94,7 @@ class BenchSupervisor(AoSupervisor):
             self.rtc.publish()
         self.iter += 1
 
-    def get_psf(self, tar_index, expo_type: str = "se") -> np.ndarray:
+    def get_tar_image(self, tar_index, expo_type: str = "se") -> np.ndarray:
         """ NOT IMPLEMENTED
         """
         raise NotImplementedError("Not implemented")

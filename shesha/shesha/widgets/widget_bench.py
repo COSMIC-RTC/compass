@@ -2,7 +2,7 @@
 ## @brief     Widget to use on a bench
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   4.3.0
-## @date      2011/01/28
+## @date      2020/05/18
 ## @copyright GNU Lesser General Public License
 #
 #  This file is part of COMPASS <https://anr-compass.github.io/compass/>
@@ -277,7 +277,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
                         index = int(key.split("_")[-1])
                         data = None
                         if "wfs" in key:
-                            data = self.supervisor.get_wfs_image(index)
+                            data = self.supervisor.wfs.get_wfs_image(index)
                             if (data is not None):
                                 autoscale = True  # self.uiBench.actionAuto_Scale.isChecked()
                                 # if (autoscale):
@@ -294,7 +294,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
                             x, y = self.supervisor.config.p_wfss[index].get_validsub()
 
                             nssp = x.size
-                            centroids = self.supervisor.get_slopes()
+                            centroids = self.supervisor.rtc.get_slopes()
                             vx = centroids[:nssp]
                             vy = centroids[nssp:]
 

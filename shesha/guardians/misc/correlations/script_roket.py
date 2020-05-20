@@ -405,7 +405,7 @@ def save_it(filename):
     dm_dim = config.p_dms[0]._n2 - config.p_dms[0]._n1 + 1
     cov, cor = cov_cor(P, noise_com, trunc_com, alias_wfs_com, H_com, bp_com, tomo_com)
     psf = tar.get_image(0, "le", fluxNorm=False)
-    psfortho = roket.get_psfortho()
+    psfortho = roket.get_tar_imageortho()
     covv = roket.get_covv()
     covm = roket.get_covm()
 

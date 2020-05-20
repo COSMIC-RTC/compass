@@ -2,7 +2,7 @@
 ## @brief     Benchmark class for COMPASS simulation timing (Not used, incomplete)
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   4.3.0
-## @date      2011/01/28
+## @date      2020/05/18
 ## @copyright GNU Lesser General Public License
 #
 #  This file is part of COMPASS <https://anr-compass.github.io/compass/>

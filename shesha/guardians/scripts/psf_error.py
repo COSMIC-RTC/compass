@@ -19,7 +19,7 @@ psfm = np.fft.fftshift(np.real(np.fft.ifft2(otf_fit * otf2 * otftel)))
 psfm *= (psfm.shape[0] * psfm.shape[0] / float(np.where(spup)[0].shape[0]))
 
 psfe = gamora.psf_rec_Vii(filename)
-psf_compass = drax.get_psf(filename)
+psf_compass = drax.get_tar_image(filename)
 SR = []
 EE5 = []
 EE10 = []

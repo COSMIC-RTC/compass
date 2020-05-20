@@ -67,7 +67,7 @@ class Roket(CompassSupervisor):
         self.mod_com = np.copy(self.noise_com)
         self.bp_com = np.copy(self.noise_com)
         self.fit = np.zeros(self.n)
-        self.psf_ortho = self.get_psf(0) * 0
+        self.psf_ortho = self.get_tar_image(0) * 0
         self.centroid_gain = 0
         self.centroid_gain2 = 0
         self.slopes = np.zeros((self.n, self.nslopes), dtype=np.float32)
@@ -258,7 +258,7 @@ class Roket(CompassSupervisor):
         self._sim.compStrehl(0)
         self.fit[self.iter_number] = self.get_strehl(0)[2]
         if (self.iter_number >= self.N_preloop):
-            self.psf_ortho += self.get_psf(0, 'se')
+            self.psf_ortho += self.get_tar_image(0, 'se')
 
         ###########################################################################
         ## Filtered modes error & Commanded modes
@@ -315,7 +315,7 @@ class Roket(CompassSupervisor):
         indx_pup = np.where(pup.flatten() > 0)[0].astype(np.int32)
         dm_dim = self.config.p_dms[0]._n2 - self.config.p_dms[0]._n1 + 1
         self.cov_cor()
-        psf = self.get_psf(0, "le")
+        psf = self.get_tar_image(0, "le")
 
         fname = os.getenv("DATA_GUARDIAN") + savename
         pdict = {

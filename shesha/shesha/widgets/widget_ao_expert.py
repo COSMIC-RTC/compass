@@ -2,7 +2,7 @@
 ## @brief
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   4.3.0
-## @date      2011/01/28
+## @date      2020/05/18
 ## @copyright GNU Lesser General Public License
 #
 #  This file is part of COMPASS <https://anr-compass.github.io/compass/>
@@ -116,9 +116,9 @@ class WidgetAOExpert(ExpertClassTemplate):
 
     def updatePyrAmpl(self) -> None:
         if (self.sim.rtc):
-            comp_new_pyr_ampl(0, self.uiExpert.wao_pyr_ampl.value(), self.sim.wfs,
-                              self.sim.rtc, self.sim.config.p_wfss,
+            comp_new_pyr_ampl(0, self.uiExpert.wao_pyr_ampl.value(), self.sim.config.p_wfss,
                               self.sim.config.p_tel)
+            self.sim.config.p_wfss[0].set_pyr_ampli(self.uiExpert.wao_pyr_ampl.value())
             print("Pyramid modulation updated on GPU")
             self.updatePlotWfs()
 

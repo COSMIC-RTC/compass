@@ -2,7 +2,7 @@
 ## @brief     Widget to simulate a closed loop using CANAPASS
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   4.3.0
-## @date      2011/01/28
+## @date      2020/05/18
 ## @copyright GNU Lesser General Public License
 #
 #  This file is part of COMPASS <https://anr-compass.github.io/compass/>
@@ -143,7 +143,7 @@ class widgetCanapassWindowPyro(widgetAOWindow):
 
     def setPyrToolsParams(self, ai):
         self.wpyr.pup = self.supervisor.get_pupil("spupil")
-        self.wpyr.phase = self.supervisor.get_tar_phase(0, pupil=True)
+        self.wpyr.phase = self.supervisor.target.get_tar_phase(0, pupil=True)
         self.wpyr.updateResiduals(ai)
         if (self.supervisor.phase_to_modes is None):
             print('computing phase 2 Modes basis')

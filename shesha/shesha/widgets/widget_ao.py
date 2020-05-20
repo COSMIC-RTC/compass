@@ -3,7 +3,7 @@
 ## @brief     Widget to simulate a closed loop
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   5.0.0
-## @date      2011/01/28
+## @date      2020/05/18
 ## @copyright GNU Lesser General Public License
 #
 #  This file is part of COMPASS <https://anr-compass.github.io/compass/>
@@ -138,7 +138,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         self.uiAO.wao_allTarget.stateChanged.connect(self.updateAllTarget)
         self.uiAO.wao_forever.stateChanged.connect(self.updateForever)
 
-        self.uiAO.wao_atmosphere.clicked[bool].connect(self.set_see_atmos)
+        self.uiAO.wao_atmosphere.clicked[bool].connect(self.enable_atmos)
         self.dispStatsInTerminal = False
         self.uiAO.wao_clearSR.clicked.connect(self.clearSR)
         # self.uiAO.actionStats_in_Terminal.toggled.connect(self.updateStatsInTerminal)
@@ -210,17 +210,17 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
     def updateForever(self, state):
         self.uiAO.wao_nbiters.setDisabled(state)
 
-    def set_see_atmos(self, atmos):
-        self.supervisor.enable_atmos(atmos)
+    def enable_atmos(self, atmos):
+        self.supervisor.atmos.enable_atmos(atmos)
 
     def resetSR(self) -> None:
         if self.uiAO.wao_allTarget.isChecked():
             for t in range(len(self.config.p_targets)):
-                self.supervisor.reset_strehl(t)
+                self.supervisor.target.reset_strehl(t)
         else:
             tarnum = self.uiAO.wao_resetSR_tarNum.value()
             print("Reset SR on target %d" % tarnum)
-            self.supervisor.reset_strehl(tarnum)
+            self.supervisor.target.reset_strehl(tarnum)
 
     def add_dispDock(self, name: str, parent, type: str = "pg_image") -> None:
         d = WidgetBase.add_dispDock(self, name, parent, type)
@@ -388,7 +388,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
 
         for i in range(self.natm):
             key = "atm_%d" % i
-            data = self.supervisor.get_atmos_layer(i)
+            data = self.supervisor.atmos.get_atmos_layer(i)
             cx, cy = self.circleCoords(self.config.p_geom.pupdiam / 2, 1000,
                                        data.shape[0], data.shape[1])
             self.SRcircles[key] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
@@ -397,7 +397,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
 
         for i in range(self.nwfs):
             key = "wfs_%d" % i
-            data = self.supervisor.get_wfs_phase(i)
+            data = self.supervisor.wfs.get_wfs_phase(i)
             cx, cy = self.circleCoords(self.config.p_geom.pupdiam / 2, 1000,
                                        data.shape[0], data.shape[1])
             self.SRcircles[key] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
@@ -415,7 +415,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             key = "dm_%d" % i
             dm_type = self.config.p_dms[i].type
             alt = self.config.p_dms[i].alt
-            data = self.supervisor.get_dm_shape(i)
+            data = self.supervisor.dms.get_dm_shape(i)
             cx, cy = self.circleCoords(self.config.p_geom.pupdiam / 2, 1000,
                                        data.shape[0], data.shape[1])
             self.SRcircles[key] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
@@ -424,14 +424,14 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
 
         for i in range(len(self.config.p_targets)):
             key = "tar_%d" % i
-            data = self.supervisor.get_tar_phase(i)
+            data = self.supervisor.target.get_tar_phase(i)
             cx, cy = self.circleCoords(self.config.p_geom.pupdiam / 2, 1000,
                                        data.shape[0], data.shape[1])
             self.SRcircles[key] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
             self.viewboxes[key].addItem(self.SRcircles[key])
             self.SRcircles[key].setPoints(cx, cy)
 
-            data = self.supervisor.get_psf(i)
+            data = self.supervisor.target.get_tar_image(i)
             for psf in ["psfSE_", "psfLE_"]:
                 key = psf + str(i)
                 Delta = 5
@@ -456,7 +456,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             if (self.config.p_wfss[i].type == scons.WFSType.PYRHR or
                         self.config.p_wfss[i].type == scons.WFSType.PYRLR):
                 key = "pyrFocalPlane_%d" % i
-                data = self.supervisor.get_pyr_focal_plane(i)
+                data = self.supervisor.wfs.get_pyr_focal_plane(i)
                 Delta = len(data) / 2
                 self.PyrEdgeX[key] = pg.PlotCurveItem(
                         np.array([
@@ -524,19 +524,19 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                         index = int(key.split("_")[-1])
                         data = None
                         if "atm" in key:
-                            data = self.supervisor.get_atmos_layer(index)
+                            data = self.supervisor.atmos.get_atmos_layer(index)
                         if "wfs" in key:
-                            data = self.supervisor.get_wfs_phase(index)
+                            data = self.supervisor.wfs.get_wfs_phase(index)
                         if "dm" in key:
                             dm_type = self.config.p_dms[index].type
                             alt = self.config.p_dms[index].alt
-                            data = self.supervisor.get_dm_shape(index)
+                            data = self.supervisor.dms.get_dm_shape(index)
                         if "tar" in key:
-                            data = self.supervisor.get_tar_phase(index)
+                            data = self.supervisor.target.get_tar_phase(index)
                         if "psfLE" in key:
-                            data = self.supervisor.get_psf(index, "le")
+                            data = self.supervisor.target.get_tar_image(index, "le")
                         if "psfSE" in key:
-                            data = self.supervisor.get_psf(index, "se")
+                            data = self.supervisor.target.get_tar_image(index, "se")
 
                         if "psf" in key:
                             if (self.uiAO.actionPSF_Log_Scale.isChecked()):
@@ -553,13 +553,13 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                                 )
 
                         if "SH" in key:
-                            data = self.supervisor.get_wfs_image(index)
+                            data = self.supervisor.wfs.get_wfs_image(index)
                         if "pyrLR" in key:
-                            data = self.supervisor.get_wfs_image(index)
+                            data = self.supervisor.wfs.get_wfs_image(index)
                         if "pyrHR" in key:
-                            data = self.supervisor.get_pyrhr_image(index)
+                            data = self.supervisor.wfs.get_pyrhr_image(index)
                         if "pyrFocalPlane" in key:
-                            data = self.supervisor.get_pyr_focal_plane(index)
+                            data = self.supervisor.wfs.get_pyr_focal_plane(index)
 
                         if (data is not None):
                             autoscale = True  # self.uiAO.actionAuto_Scale.isChecked()
@@ -571,13 +571,13 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                         elif "slp" in key:  # Slope display
                             self.imgs[key].canvas.axes.clear()
                             if "Geom" in key:
-                                slopes = self.supervisor.get_slopes_geom()
+                                slopes = self.supervisor.rtc.get_slopes_geom()
                                 x, y, vx, vy = plsh(
                                         slopes, self.config.p_wfss[index].nxsub,
                                         self.config.p_tel.cobs, returnquiver=True
                                 )  # Preparing mesh and vector for display
                             if "Comp" in key:
-                                centroids = self.supervisor.get_slopes()
+                                centroids = self.supervisor.rtc.get_slopes()
                                 nmes = [
                                         2 * p_wfs._nvalid for p_wfs in self.config.p_wfss
                                 ]
@@ -620,7 +620,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         else:
             try:
                 start = time.time()
-                self.supervisor.single_next(show_atmos=self.supervisor._see_atmos)
+                self.supervisor.single_next(show_atmos=self.supervisor.atmos.is_enable)
                 for t in self.supervisor._sim.tar.d_targets:
                     t.comp_image()
                 loopTime = time.time() - start
@@ -631,7 +631,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                     signal_le = ""
                     signal_se = ""
                     for t in range(len(self.config.p_targets)):
-                        SR = self.supervisor.get_strehl(t)
+                        SR = self.supervisor.target.get_strehl(t)
                         # TODO: handle that !
                         if (t == self.uiAO.wao_dispSR_tar.value()
                             ):  # Plot on the wfs selected

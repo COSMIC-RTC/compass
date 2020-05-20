@@ -351,7 +351,7 @@ def intersample(Cvvmap, pupilImage, IFImage, pixscale, dactu, lambdaIR):
 #     # Launch computation
 #     gpu.psf_rec_roket(err)
 #     # Get psf
-#     psf = gpu.get_psf()
+#     psf = gpu.get_tar_image()
 #     f.close()
 #     return psf, gpu
 

@@ -2,7 +2,7 @@
 ## @brief     Abstract layer for initialization and execution of a COMPASS supervisor
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   5.0.0
-## @date      2011/01/28
+## @date      2020/05/18
 ## @copyright GNU Lesser General Public License
 #
 #  This file is part of COMPASS <https://anr-compass.github.io/compass/>
@@ -94,15 +94,15 @@ class AbstractSupervisor(ABC):
 
     @abstractmethod
     def single_next(self, move_atmos: bool = True, show_atmos: bool = True,
-                    get_psf: bool = False, get_residual: bool = False) -> None:
-        """ Performs a single loop iteration
+                   get_tar_image: bool = False, get_residual: bool = False) -> None:
+        """ Performs a single loop iteration 
 
         Parameters:
             move_atmos : (bool, optional) : Move the atmosphere layers. Default is True
 
             show_atmos : (bool, optional) : WFS and targets see the atmosphere layers. Default is True
 
-            get_psf : (bool, optional) :
+            get_tar_image : (bool, optional) : 
 
             get_residual : (bool, optional) :
         """
@@ -156,8 +156,8 @@ class AbstractSupervisor(ABC):
         ...
 
     @abstractmethod
-    def get_psf(self, tar_index):
-        """ Get an image from a target
+    def get_tar_image(self, tar_index):
+        """ Get an image from a target 
         """
         ...
 
