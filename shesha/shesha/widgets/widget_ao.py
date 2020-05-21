@@ -257,7 +257,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
 
         if supervisor is None:
             self.supervisor = CompassSupervisor()
-            self.supervisor.load_config(config_file=config_file)
+            self.supervisor.load_config(config_file)
         else:
             self.supervisor = supervisor
         self.config = self.supervisor.get_config()
@@ -363,14 +363,13 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
 
     def aoLoopOpen(self, pressed: bool) -> None:
         if (pressed):
-            self.supervisor.close_loop()
+            self.supervisor.rtc.close_loop()
             self.uiAO.wao_open_loop.setText("Open Loop")
         else:
-            self.supervisor.open_loop()
+            self.supervisor.rtc.open_loop()
             self.uiAO.wao_open_loop.setText("Close Loop")
 
     def init_config(self) -> None:
-        self.supervisor.clear_init_sim()
         WidgetBase.init_config(self)
 
     def init_configThread(self) -> None:
@@ -380,7 +379,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         # gpudevice = np.array([2, 3], dtype=np.int32)
         # gpudevice = np.arange(4, dtype=np.int32) # using 4 GPUs: 0-3
         # gpudevice = 0  # using 1 GPU : 0
-        self.supervisor.init_config()
+        self.supervisor.init()
 
     def init_configFinished(self) -> None:
         # Thread carmaWrap context reload:
@@ -509,8 +508,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         self.curveSRLE.setData(self.numiter, self.SRLE)
 
     def updateDisplay(self) -> None:
-        if (self.supervisor is None or not hasattr(self.supervisor, '_sim') or
-                    self.supervisor._sim is None or not self.supervisor.is_init()):
+        if (self.supervisor is None or self.supervisor.is_init is False):
             # print("Widget not fully initialized")
             return
         if not self.loopLock.acquire(False):
@@ -620,9 +618,9 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         else:
             try:
                 start = time.time()
-                self.supervisor.single_next(show_atmos=self.supervisor.atmos.is_enable)
-                for t in self.supervisor._sim.tar.d_targets:
-                    t.comp_image()
+                self.supervisor.next()
+                for t in range(len(self.supervisor.config.p_targets)):
+                    self.supervisor.target.comp_tar_image(t)
                 loopTime = time.time() - start
 
                 refreshDisplayTime = 1. / self.uiBase.wao_frameRate.value()

@@ -159,7 +159,7 @@ class CompassSupervisor(GenericSupervisor):
         else:
             GenericSupervisor.next(self, move_atmos=move_atmos, nControl=nControl,
                                    tar_trace=tar_trace, wfs_trace=wfs_trace,
-                                   do_control=do_control, apply_control=apply_control, **kwargs)
+                                   do_control=do_control, apply_control=apply_control, compute_tar_psf=compute_tar_psf)
 #    ___              _  __ _      __  __     _   _            _    
 #   / __|_ __  ___ __(_)/ _(_)__  |  \/  |___| |_| |_  ___  __| |___
 #   \__ \ '_ \/ -_) _| |  _| / _| | |\/| / -_)  _| ' \/ _ \/ _` (_-<

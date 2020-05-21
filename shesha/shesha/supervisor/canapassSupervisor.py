@@ -78,7 +78,7 @@ class CanapassSupervisor(CompassSupervisor):
         CompassSupervisor.__init__(self, config_file=config_file, cacao=cacao)
 
     def get_config(self):
-        ''' Returns the configuration in use, in a supervisor specific format '''
+        """ Returns the configuration in use, in a supervisor specific format """
         return CompassSupervisor.get_config(self)
 
     def get_configFab(self):
@@ -316,15 +316,10 @@ class CanapassSupervisor(CompassSupervisor):
         return aodict, dataDict
 
     def load_config(self, config_file: str = None, sim=None) -> None:
-        ''' Load the configuration for the compass supervisor'''
+        """ Load the configuration for the compass supervisor"""
         CompassSupervisor.load_config(self, config_file=config_file, sim=sim)
         print("switching to a generic controller")
-        self._sim.config.p_controllers[0].type = scons.ControllerType.GENERIC
-
-    def write_config_on_file(self, root=None):
-        """
-        TODO : je sais pas
-        """
+        self.config.p_controllers[0].type = scons.ControllerType.GENERIC
 
 
 ########################## PROTO #############################
