@@ -36,6 +36,7 @@
 #  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 from shesha.init.atmos_init import atmos_init
 import numpy as np
+from typing import List
 
 class AtmosCompass(object):
     """ Atmosphere handler for compass simulation
@@ -60,6 +61,7 @@ class AtmosCompass(object):
         self.context = context
         self.is_enable = True # Flag to enable/disable atmophere
         self.config = config # Parameters configuration coming from supervisor init
+        print("->atmosphere init")
         self.atmos = atmos_init(self.context, self.config.p_atmos, self.config.p_tel,
                         self.config.p_geom, self.config.p_loop.ittime, p_wfss=self.config.p_wfss,
                         p_targets=self.config.p_targets)
@@ -71,7 +73,7 @@ class AtmosCompass(object):
         Parameters:
             enable : (bool) : True to enable, False to disable
         """
-    self.is_enable = enable
+        self.is_enable = enable
 
     def set_r0(self, r0 : float, reset_seed : int=-1) -> None:
         """ Change the current r0 for all layers

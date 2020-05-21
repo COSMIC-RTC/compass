@@ -35,7 +35,8 @@
 #  You should have received a copy of the GNU Lesser General Public License along with COMPASS.
 #  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 
-from shesha.supervisor.aoSupervisor import AoSupervisor
+from shesha.supervisor.genericSupervisor import GenericSupervisor
+from shesha.supervisor.components import AtmosCompass, DmCompass, RtcCompass, TargetCompass, TelescopeCompass, WfsCompass
 import numpy as np
 
 import shesha.constants as scons
@@ -45,97 +46,125 @@ import astropy.io.fits as pfits
 from tqdm import trange, tqdm
 import time
 
-from typing import List
+from typing import List, Iterable
 
 
-class CompassSupervisor(AoSupervisor):
+class CompassSupervisor(GenericSupervisor):
 
-    def __init__(self, config_file: str = None, cacao: bool = False,
-                 use_DB: bool = False):
-        """ Init the COMPASS supervisor
+#     ___                  _      __  __     _   _            _    
+#    / __|___ _ _  ___ _ _(_)__  |  \/  |___| |_| |_  ___  __| |___
+#   | (_ / -_) ' \/ -_) '_| / _| | |\/| / -_)  _| ' \/ _ \/ _` (_-<
+#    \___\___|_||_\___|_| |_\__| |_|  |_\___|\__|_||_\___/\__,_/__/
 
-        Parameters:
-            config_file: (str): (optionnal) Path to the parameter file
+    def _init_tel(self):
+        """Initialize the telescope component of the supervisor as a TelescopeCompass
+        """ 
+        if self.is_loaded:
+            self.tel = TelescopeCompass(self.context, self.config)
+        else:
+            raise ValueError("Configuration not loaded")
 
-            cacao: (bool): (optionnal) Flag to enable cacao
+    def _init_atmos(self):
+        """Initialize the atmosphere component of the supervisor as a AtmosCompass
+        """ 
+        if self.is_loaded:
+            self.atmos = AtmosCompass(self.context, self.config)
+        else:
+            raise ValueError("Configuration not loaded")
 
-            use_DB: (bool): (optionnal) Flag to enable database
+    def _init_dms(self):
+        """Initialize the DM component of the supervisor as a DmCompass
+        """ 
+        if self.is_loaded:
+            self.dms = DmCompass(self.context, self.config)
+        else:
+            raise ValueError("Configuration not loaded")
+
+    def _init_target(self):
+        """Initialize the target component of the supervisor as a TargetCompass
+        """ 
+        if self.is_loaded and self.tel is not None:
+            self.target = TargetCompass(self.context, self.config, self.tel)
+        else:
+            raise ValueError("Configuration not loaded or Telescope not initilaized")
+
+    def _init_wfs(self):
+        """Initialize the wfs component of the supervisor as a WfsCompass
+        """ 
+        if self.is_loaded and self.tel is not None:
+            self.wfs = WfsCompass(self.context, self.config, self.tel)
+        else:
+            raise ValueError("Configuration not loaded or Telescope not initilaized")
+
+    def _init_rtc(self):
+        """Initialize the rtc component of the supervisor as a RtcCompass
+        """ 
+        if self.is_loaded and self.wfs is not None:
+            self.rtc = RtcCompass(self.context, self.config, self.tel, self.wfs, self.dms, self.atmos)
+        else:
+            raise ValueError("Configuration not loaded or Telescope not initilaized")
+    
+    def next(self, *, move_atmos: bool = True, nControl: int = 0,
+             tar_trace: Iterable[int] = None, wfs_trace: Iterable[int] = None,
+             do_control: bool = True, apply_control: bool = True, compute_tar_psf: bool = True) -> None:
+        """Iterates the AO loop, with optional parameters.
+
+        Overload the GenericSupervisor next() method to handle the GEO controller
+        specific raytrace order operations
+
+        Parameters :
+            move_atmos: (bool), optional: move the atmosphere for this iteration. Default is True
+
+            nControl: (int, optional): Controller number to use. Default is 0 (single control configuration)
+
+            tar_trace: (List, optional): list of targets to trace. None is equivalent to all (default)
+
+            wfs_trace: (List, optional): list of WFS to trace. None is equivalent to all (default)
+
+            do_control : (bool, optional) : Performs RTC operations if True (Default)
+
+            apply_control: (bool): (optional) if True (default), apply control on DMs
+
+            compute_tar_psf : (bool, optional) : If True (default), computes the PSF at the end of the iteration
         """
-        self._sim = None
-        self.config = None
-        self.cacao = cacao
-        self.use_DB = use_DB
-        self.P = None
-        self.modal_basis = None
-        if config_file is not None:
-            self.load_config(config_file=config_file)
+        if (self.config.p_controllers is not None and
+            self.config.p_controllers[nControl].type == scons.ControllerType.GEO):
+            if tar_trace is None and self.target is not None:
+                tar_trace = range(len(self.config.p_targets))
+            if wfs_trace is None and self.wfs is not None:
+                wfs_trace = range(len(self.config.p_wfss))
 
-    def __repr__(self):
-        return object.__repr__(self) + str(self._sim)
+            if move_atmos and self.atmos is not None:
+                self.atmos.move_atmos()
+            
+            if tar_trace is not None:
+                for t in tar_trace:
+                    if self.atmos.is_enable:
+                        self.target.raytrace(t, tel=self.tel, atm=self.atmos, ncpa=False)
+                    else:
+                        self.target.raytrace(t, tel=self.tel, ncpa=False)
 
-    #     _    _         _                  _
-    #    / \  | |__  ___| |_ _ __ __ _  ___| |_
-    #   / _ \ | '_ \/ __| __| '__/ _` |/ __| __|
-    #  / ___ \| |_) \__ \ |_| | | (_| | (__| |_
-    # /_/   \_\_.__/|___/\__|_|  \__,_|\___|\__|
-    #
-    #  __  __      _   _               _
-    # |  \/  | ___| |_| |__   ___   __| |___
-    # | |\/| |/ _ \ __| '_ \ / _ \ / _` / __|
-    # | |  | |  __/ |_| | | | (_) | (_| \__ \
-    # |_|  |_|\___|\__|_| |_|\___/ \__,_|___/
+                    if do_control and self.rtc is not None:
+                        self.rtc.do_control(nControl, sources=self.target.sources)
+                        self.target.raytrace(t, dms=self.dms, ncpa=True, reset=False)
+                        if apply_control:
+                            self.rtc.apply_control(nControl)
+            if compute_tar_psf:
+                for tar_index in tar_trace:
+                    self.target.comp_tar_image(tar_index)
+                    self.target.comp_strehl(tar_index)
 
-    def single_next(self, move_atmos: bool = True, show_atmos: bool = True,
-                   get_tar_image: bool = False, get_residual: bool = False) -> None:
-        """ Performs a single loop iteration 
+            self.iter += 1
 
-        Parameters:
-            move_atmos : (bool, optional) : Move the atmosphere layers. Default is True
-
-            show_atmos : (bool, optional) : WFS and targets see the atmosphere layers. Default is True
-
-            get_tar_image : (bool, optional) : 
-
-            get_residual : (bool, optional) :
-        """
-        self._sim.next(see_atmos=show_atmos)  # why not self.atmos.is_enable?
-
-
-    def set_command(self, nctrl: int, command: np.ndarray) -> None:
-        """ Set the RTC command vector. It is set as it has just been computed
-        from the do_control() method. Then, this is not the vector that will
-        be send to the DM directly (latency will be computed, clipping, etc...)
-
-        See set_voltages() to set directly the DM vector
-
-        Parameters:
-            nctrl : (int) : controller index
-
-            command : (np.ndarray) : command vector
-        """
-        self._sim.rtc.d_control[nctrl].set_com(command, command.size)
-
-    def get_command(self, nctrl: int):
-        """ Get the command vector computed after do_control() method from ncontrol controller.
-        This is not the vector that is applied on the DM
-
-        See get_voltages() to get the vector applied on the DM
-
-        Parameters:
-            nctrl : (int) : controller index
-
-        Return:
-            com : (np.ndarray) : current command vector
-        """
-        return np.array(self._sim.rtc.d_control[ncontrol].d_com)
-
-    #  ____                  _ _   _        __  __      _   _               _
-    # / ___| _ __   ___  ___(_) |_(_) ___  |  \/  | ___| |_| |__   ___   __| |___
-    # \___ \| '_ \ / _ \/ __| | __| |/ __| | |\/| |/ _ \ __| '_ \ / _ \ / _` / __|
-    #  ___) | |_) |  __/ (__| | |_| | (__  | |  | |  __/ |_| | | | (_) | (_| \__ \
-    # |____/| .__/ \___|\___|_|\__|_|\___| |_|  |_|\___|\__|_| |_|\___/ \__,_|___/
-    #       |_|
-
+        else:
+            GenericSupervisor.next(self, move_atmos=move_atmos, nControl=nControl,
+                                   tar_trace=tar_trace, wfs_trace=wfs_trace,
+                                   do_control=do_control, apply_control=apply_control, **kwargs)
+#    ___              _  __ _      __  __     _   _            _    
+#   / __|_ __  ___ __(_)/ _(_)__  |  \/  |___| |_| |_  ___  __| |___
+#   \__ \ '_ \/ -_) _| |  _| / _| | |\/| / -_)  _| ' \/ _ \/ _` (_-<
+#   |___/ .__/\___\__|_|_| |_\__| |_|  |_\___|\__|_||_\___/\__,_/__/
+#       |_|                                                         
 
     def set_pyr_modulation_ampli(self, wfs_index: int, pyr_mod: float) -> None:
         """ Set pyramid circular modulation amplitude value - in lambda/D units.
@@ -170,93 +199,6 @@ class CompassSupervisor(AoSupervisor):
         else:
             raise ValueError("Error unknown p_wfs._halfxy shape")
         self._sim.rtc.do_centroids(0)  # To be ready for the next get_slopess
-
-
-
-
-    def loop(self, n: int = 1, monitoring_freq: int = 100, **kwargs):
-        """ Perform the AO loop for n iterations
-
-        Parameters:
-            n: (int, optional) : Number of iteration that will be done
-
-            monitoring_freq: (int, optional) : Monitoring frequency [frames]
-        """
-        self._sim.loop(n, monitoring_freq=monitoring_freq, **kwargs)
-
-    def force_context(self) -> None:
-        """ Active all the GPU devices specified in the parameters file
-        """
-        self._sim.force_context()
-
-
-
-
-
-    def reset_simu(self):
-        """ Reset the simulation to return to its original state
-        """
-        self.atmos.reset_turbu()
-        self.wfs.reset_noise()
-        for tar_index in range(self._sim.tar.ntargets):
-            self.target.reset_strehl(tar_index)
-        self.dms.reset_dm()
-        self.rtc.open_loop()
-        self.rtc.close_loop()
-
-
-
-
-    def load_config(self, config_file: str = None, sim=None) -> None:
-        """ Init the COMPASS simulator wih the config_file
-
-        Parameters:
-            config_file : (str, optional) : path to the configuration file
-
-            sim : (Simulator, optional) : Simulator instance
-        """
-        if self._sim is None:
-            if sim is None:
-                if self.cacao:
-                    from shesha.sim.simulatorCacao import SimulatorCacao as Simulator
-                else:
-                    from shesha.sim.simulator import Simulator
-                self._sim = Simulator(filepath=config_file, use_DB=self.use_DB)
-            else:
-                self._sim = sim
-        else:
-            self._sim.clear_init()
-            self._sim.load_from_file(config_file)
-        self.config = self._sim.config
-
-    def is_init(self) -> bool:
-        """ Return the status of COMPASS init
-
-        Return:
-            is_init : (bool) : Status of the initialisation
-        """
-        return self._sim.is_init
-
-    def clear_init_sim(self) -> None:
-        """ Clear the initialization of the simulation
-        """
-        self._sim.clear_init()
-
-    def init_config(self) -> None:
-        """ Initialize the simulation
-        """
-        self._sim.init_sim()
-        self.rtc = self._sim.rtc
-        self.iter = self._sim.iter
-        self.enable_atmos(True)
-        self.is_init = True
-
-
-
-
-
-
-
 
 
     def get_influ_basis_sparse(self, ncontrol: int):
@@ -299,35 +241,6 @@ class CompassSupervisor(AoSupervisor):
                                               self._sim.config.p_geom)
 
         return influ_sparse
-
-
-
-
-
-    def get_pupil(self, pupil_type: str = "ipupil") -> np.ndarray:
-        """ Return the selected pupil.
-        Available pupils are :
-            spupil : smallest one (use for target phase screen)
-            mpupil : medium one (use for wfs phase screen)
-            ipupil : biggest one (use for FFT)
-
-        Parameters:
-            pupil_type : (str, optional) : Pupil to return ("spupil","mpupil" or "ipupil")
-
-        Return:
-            pupil : (np.ndarray) : pupil
-        """
-        if pupil_type == "spupil":
-            pupil = self._sim.config.p_geom._spupil
-        elif pupil_type == "mpupil":
-            pupil = self._sim.config.p_geom._mpupil
-        elif pupil_type == "ipupil":
-            pupil = self._sim.config.p_geom._ipupil
-        else:
-            raise ArgumentError("Unknown pupil")
-
-        return pupil
-
 
 
     def get_selected_pix(self) -> np.ndarray:

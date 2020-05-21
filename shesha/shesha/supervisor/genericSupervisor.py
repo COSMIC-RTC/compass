@@ -37,7 +37,10 @@
 
 from abc import abstractmethod
 import numpy as np
+import time
 from shesha.util.utilities import load_config_from_file
+from shesha.sutra_wrap import carmaWrap_context
+from typing import Iterable
 
 
 
@@ -86,6 +89,7 @@ class GenericSupervisor(object):
         self.rtc = None
         self.is_loaded = False
         self.is_init = False
+        self.iter = 0
         if config_file is not None:
             self.load_config(config_file)
     
@@ -115,60 +119,103 @@ class GenericSupervisor(object):
             framecounter : (int) : Number of iteration already performed
         """
         return self.iter
-    
+
+    def force_context(self) -> None:
+        """ Active all the GPU devices specified in the parameters file
+        """
+        if self.is_loaded and self.context is not None:
+            current_device = self.context.active_device
+            for device in range(len(self.config.p_loop.devices)):
+                self.context.set_active_device_force(device)
+            self.context.set_active_device(current_device)
+
     def init(self) -> None:
         """ Initialize all the components
-        """
+        """        
         if self.is_loaded:
-            if self.config.p_tel is not None:
-                self.init_tel()
+            if (self.config.p_loop.devices.size > 1):
+                self.context = carmaWrap_context.get_instance_ngpu(
+                        self.config.p_loop.devices.size, self.config.p_loop.devices)
+            else:
+                self.context = carmaWrap_context.get_instance_1gpu(
+                        self.config.p_loop.devices[0])
+            self.force_context()
+
+            if self.config.p_tel is None or self.config.p_geom is None:
+                raise ValueError("Telescope geometry must be defined (p_geom and p_tel)")
+            self._init_tel()
+
             if self.config.p_atmos is not None:
-                self.init_atmos()
+                self._init_atmos()
             if self.config.p_dms is not None:
-                self.init_dms()
+                self._init_dms()
             if self.config.p_targets is not None:
-                self.init_target()
+                self._init_target()
             if self.config.p_wfss is not None:
-                self.init_wfs()
+                self._init_wfs()
             if self.config.p_controllers is not None or self.config.p_centroiders is not None:
-                self.init_rtc()
+                self._init_rtc()
         self.is_init = True
     
     @abstractmethod
-    def init_tel(self):
+    def _init_tel(self):
         """ Initialize the telescope component of the supervisor
         """
         pass
 
     @abstractmethod
-    def init_atmos(self):
+    def _init_atmos(self):
         """ Initialize the atmos component of the supervisor
         """
         pass
 
     @abstractmethod
-    def init_dms(self):
+    def _init_dms(self):
         """ Initialize the dms component of the supervisor
         """
         pass
 
     @abstractmethod
-    def init_target(self):
+    def _init_target(self):
         """ Initialize the target component of the supervisor
         """
         pass
 
     @abstractmethod
-    def init_wfs(self):
+    def _init_wfs(self):
         """ Initialize the wfs component of the supervisor
         """
         pass
 
     @abstractmethod
-    def init_rtc(self):
+    def _init_rtc(self):
         """ Initialize the rtc component of the supervisor
         """
         pass
+
+    def apply_volts_and_get_slopes(self, controller_index: int, noise: bool = False,
+                                   turbu: bool = False, reset: bool = True):
+        """ Apply voltages, raytrace, compute WFS image, compute slopes and returns it
+
+        Parameters:
+            controller_index : (int) : Controller index
+
+            noise : (bool, optional) : Flag to enable noise for WFS image compuation. Default is False
+
+            turbu : (bool, optional) : Flag to enable atmosphere for WFS phase screen raytracing.
+                                       Default is False
+
+            reset : (bool, optional) : Flag to reset previous phase screen before raytracing.
+                                       Default is True
+        """
+        self.rtc.apply_control(controller_index)
+        for w in range(len(self.config.p_wfss)):
+            if (turbu):
+                self.wfs.raytrace(w, tel=self.tel, atm=self.atmos, dms=self.dms)
+            else:
+                self.wfs.raytrace(w, dms=self.dms, reset=reset)
+            self.wfs.compute_wfs_image(w, noise=noise)
+        return self.rtc.compute_slopes(controller_index)
 
     def next(self, *, move_atmos: bool = True, nControl: int = 0,
              tar_trace: Iterable[int] = None, wfs_trace: Iterable[int] = None,
@@ -177,15 +224,19 @@ class GenericSupervisor(object):
         """Iterates the AO loop, with optional parameters
 
         Parameters :
-             move_atmos: (bool): move the atmosphere for this iteration, default: True
+            move_atmos: (bool), optional: move the atmosphere for this iteration. Default is True
 
-             nControl: (int): Controller number to use, default 0 (single control configurations)
+            nControl: (int, optional): Controller number to use. Default is 0 (single control configuration)
 
-             tar_trace: (None or list[int]): list of targets to trace. None equivalent to all.
+            tar_trace: (List, optional): list of targets to trace. None is equivalent to all (default)
 
-             wfs_trace: (None or list[int]): list of WFS to trace. None equivalent to all.
+            wfs_trace: (List, optional): list of WFS to trace. None is equivalent to all (default)
 
-             apply_control: (bool): (optional) if True (default), apply control on DMs
+            do_control : (bool, optional) : Performs RTC operations if True (Default)
+
+            apply_control: (bool): (optional) if True (default), apply control on DMs
+
+            compute_tar_psf : (bool, optional) : If True (default), computes the PSF at the end of the iteration
         """
         if tar_trace is None and self.target is not None:
             tar_trace = range(len(self.config.p_targets))
@@ -198,9 +249,9 @@ class GenericSupervisor(object):
         if tar_trace is not None:
             for t in tar_trace:
                 if self.atmos.is_enable:
-                    self.target.raytrace(t, tel=self.tel, atm=self.atmos, dm=self.dms)
+                    self.target.raytrace(t, tel=self.tel, atm=self.atmos, dms=self.dms)
                 else:
-                    self.target.raytrace(t, tel=self.tel, dm=self.dms)
+                    self.target.raytrace(t, tel=self.tel, dms=self.dms)
 
         if wfs_trace is not None:
             for w in wfs_trace:
@@ -210,7 +261,7 @@ class GenericSupervisor(object):
                     self.wfs.raytrace(w, tel=self.tel)
 
                 if not self.config.p_wfss[w].open_loop and self.dms is not None:
-                    self.wfs.raytrace(w, dm=self.dms, reset=False)
+                    self.wfs.raytrace(w, dms=self.dms, reset=False)
                 self.wfs.compute_wfs_image(w)
         if do_control and self.rtc is not None:
             for ncontrol in range(len(self.config.p_controllers)):
@@ -227,3 +278,78 @@ class GenericSupervisor(object):
                 self.target.comp_strehl(tar_index)
 
         self.iter += 1
+
+    def _print_strehl(self, monitoring_freq: int, iters_time: float, total_iters: int,
+                     tar_index: int=0):
+        """ Print the Strehl ratio SE and LE from a target on the terminal, the estimated remaining time and framerate
+
+        Parameters:
+            monitoring_freq : (int) : Number of frames between two prints
+
+            iters_time : (float) : time elapsed between two prints
+
+            total_iters : (int) : Total number of iterations
+
+            tar_index : (int, optional) : Index of the target. Default is 0
+        """
+        framerate = monitoring_freq / iters_time
+        strehl = self.target.get_strehl(tar_index)
+        etr = (total_iters - self.iter) / framerate
+        print("%d \t %.3f \t  %.3f\t     %.1f \t %.1f" % (self.iter + 1, strehl[0], strehl[1],
+                                                          etr, framerate))
+
+    def loop(self, number_of_iter: int, *, monitoring_freq: int = 100, compute_tar_psf: bool = True,
+             **kwargs):
+        """ Perform the AO loop for <number_of_iter> iterations
+
+        Parameters :
+            number_of_iter: (int) : Number of iteration that will be done
+
+            monitoring_freq: (int, optional) : Monitoring frequency [frames]. Default is 100
+
+            compute_tar_psf : (bool, optional) : If True (default), computes the PSF at each iteration
+                                                 Else, only computes it each <monitoring_freq> frames
+        """
+        if not compute_tar_psf:
+            print("WARNING: Target PSF will be computed (& accumulated) only during monitoring"
+                  )
+
+        print("----------------------------------------------------")
+        print("iter# | S.E. SR | L.E. SR | ETR (s) | Framerate (Hz)")
+        print("----------------------------------------------------")
+        # self.next(**kwargs)
+        t0 = time.time()
+        t1 = time.time()
+        if number_of_iter == -1: # Infinite loop
+            while (True):
+                self.next(compute_tar_psf=compute_tar_psf, **kwargs)
+                if ((self.iter + 1) % monitoring_freq == 0):
+                    if not compute_tar_psf:
+                        self.comp_tar_image()
+                        self.comp_strehl()
+                    self._print_strehl(monitoring_freq, time.time() - t1, number_of_iter)
+                    t1 = time.time()
+
+        for _ in range(number_of_iter):
+            self.next(compute_tar_psf=compute_tar_psf, **kwargs)
+            if ((self.iter + 1) % monitoring_freq == 0):
+                if not compute_tar_psf:
+                    self.comp_tar_image()
+                    self.comp_strehl()
+                self._print_strehl(monitoring_freq, time.time() - t1, number_of_iter)
+                t1 = time.time()
+        t1 = time.time()
+        print(" loop execution time:", t1 - t0, "  (", number_of_iter, "iterations), ", (t1 - t0) / number_of_iter,
+              "(mean)  ", number_of_iter / (t1 - t0), "Hz")
+
+    def reset(self):
+        """ Reset the simulation to return to its original state
+        """
+        self.atmos.reset_turbu()
+        self.wfs.reset_noise()
+        for tar_index in range(self._sim.tar.ntargets):
+            self.target.reset_strehl(tar_index)
+        self.dms.reset_dm()
+        self.rtc.open_loop()
+        self.rtc.close_loop()
+

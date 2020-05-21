@@ -35,6 +35,8 @@
 #  You should have received a copy of the GNU Lesser General Public License along with COMPASS.
 #  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 from shesha.init.rtc_init import rtc_init
+from shesha.supervisor.components.sourceCompass import SourceCompass
+import shesha.constants as scons
 import numpy as np
 
 class RtcCompass(object):
@@ -47,19 +49,28 @@ class RtcCompass(object):
 
         config : (config module) : Parameters configuration structure module    
     """
-    def __init__(self, context, config):
+    def __init__(self, context, config, tel, wfs, dms, atm):
         """ Initialize a RtcCompass component for rtc related supervision
 
         Parameters:
             context : (carmaContext) : CarmaContext instance
 
             config : (config module) : Parameters configuration structure module
+
+            tel : (TelescopeCompass) : A TelescopeCompass instance
+
+            wfs : (WfsCompass) : A WfsCompass instance
+
+            dms : (DmCompass) : A DmCompass instance
+
+            atm : (AtmosCompass) : An AtmosCompass instance
         """
         self.context = context
         self.config = config # Parameters configuration coming from supervisor init
-        self.rtc = rtc_init(self.context, self.tel, self.wfs, self.dms, self.atm,
+        print("->rtc init")
+        self.rtc = rtc_init(self.context, tel.tel, wfs.wfs, dms.dms, atm.atmos,
                                 self.config.p_wfss, self.config.p_tel,
-                                self.config.p_geom, self.config.p_atmos, ittime,
+                                self.config.p_geom, self.config.p_atmos, self.config.p_loop.ittime,
                                 self.config.p_centroiders, self.config.p_controllers,
                                 self.config.p_dms, brahma=False)
 
@@ -445,32 +456,6 @@ class RtcCompass(object):
 
         return np.array(self.rtc.d_centro[0].d_selected_pix)
 
-    def apply_volts_and_get_slopes(self, controller_index: int, noise: bool = False,
-                                   turbu: bool = False, reset: bool = True):
-        """ Apply voltages, raytrace, compute WFS image, compute slopes and returns it
-
-        Parameters:
-            controller_index : (int) : Controller index
-
-            noise : (bool, optional) : Flag to enable noise for WFS image compuation. Default is False
-
-            turbu : (bool, optional) : Flag to enable atmosphere for WFS phase screen raytracing.
-                                       Default is False
-
-            reset : (bool, optional) : Flag to reset previous phase screen before raytracing.
-                                       Default is True
-        """
-        self.rtc.apply_control(controller_index)
-        for w in range(len(self.wfs.d_wfs)):
-            if (turbu):
-                self.raytrace_wfs(w, "all")
-            else:
-                self.raytrace_wfs(w, ["dm", "ncpa"], rst=reset)
-            self.compute_wfs_image(w, noise=noise)
-        self.rtc.do_centroids(controller_index)
-        slopes = self.rtc.get_slopes(controller_index)
-        return slopes
-
     def do_ref_slopes(self, controller_index: int) -> None:
         """ Computes and set a new reference slopes for each WFS handled by
         the specified controller
@@ -481,3 +466,66 @@ class RtcCompass(object):
         print("Doing reference slopes...")
         self.rtc.do_centroids_ref(controller_index)
         print("Reference slopes done")
+
+    def do_control(self, controller_index: int, *, sources : SourceCompass = None, source_index : int = 0, is_wfs_phase : bool = False) -> None:
+        """Computes the command from the Wfs slopes
+
+        Parameters :
+            controller_index: (int): controller index
+
+            sources : (SourceCompass, optional) : List of phase screens of a wfs or target sutra object
+                                                  If the controller is a GEO one, specify a SourceCompass instance
+                                                  from WfsCompass or TargetCompass to project the corresponding phase
+            
+            source_index : (int, optional) : Index of the phase screen to consider inside <sources>. Default is 0
+
+            is_wfs_phase : (bool, optional) : If True, sources[source_index] is a WFS phase screen.
+                                              Else, it is a Target phase screen (Default)
+        """
+        if (self.rtc.d_control[controller_index].type == scons.ControllerType.GEO):
+            if (sources is not None):
+                self.rtc.d_control[controller_index].comp_dphi(sources[source_index],
+                                                       is_wfs_phase)
+        self.rtc.do_control(controller_index)
+
+    def do_calibrate_img(self, controller_index: int) -> None:
+        """ Computes the calibrated image from the Wfs image
+
+        Parameters :
+            controller_index: (int): controller index
+        """
+        self.rtc.do_calibrate_img(controller_index)
+
+    def do_centroids(self, controller_index: int) -> None:
+        """ Computes the centroids from the Wfs image
+
+        Parameters :
+            controller_index: (int): controller index
+        """
+        self.rtc.do_centroids(controller_index)
+
+    def do_centroids_geom(self, controller_index: int) -> None:
+        """ Computes the centroids geom from the Wfs image
+
+        Parameters :
+            controller_index: (int): controller index
+        """
+        self.rtc.do_centroids_geom(controller_index)
+
+    def apply_control(self, controller_index: int, comp_voltage: bool = True) -> None:
+        """ Computes the final voltage vector to apply on the DM by taking into account delay and perturbation voltages, and shape the DMs
+
+        Parameters :
+            controller_index: (int): controller index
+
+            comp_voltage: (bool): If True (default), computes the voltage vector from the command one (delay + perturb). Else, directly applies the current voltage vector
+        """
+        self.rtc.apply_control(controller_index, comp_voltage)
+
+    def do_clipping(self, controller_index: int) -> None:
+        """ Clip the commands between vmin and vmax values set in the RTC
+
+        Parameters :
+            controller_index: (int): controller index
+        """
+        self.rtc.do_clipping(controller_index)

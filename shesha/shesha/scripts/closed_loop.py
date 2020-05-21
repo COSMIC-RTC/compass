@@ -51,7 +51,6 @@ Options:
   -i, --interactive  keep the script interactive
   -d, --devices devices      Specify the devices
   -n, --niter niter  Number of iterations
-  --DB               Use database to skip init phase
   -g, --generic      Use generic controller
   -f, --fast         Compute PSF only during monitoring
 """
@@ -72,10 +71,7 @@ if __name__ == "__main__":
     else:
         from shesha.supervisor.compassSupervisor import CompassSupervisor as Supervisor
 
-    if arguments["--DB"]:
-        use_DB = True
-
-    supervisor = Supervisor(param_file, use_DB=use_DB)
+    supervisor = Supervisor(param_file)
 
     if arguments["--devices"]:
         supervisor.config.p_loop.set_devices([
@@ -85,7 +81,7 @@ if __name__ == "__main__":
         supervisor.config.p_controllers[0].set_type("generic")
         print("Using GENERIC controller...")
 
-    supervisor.init_config()
+    supervisor.init()
     if arguments["--niter"]:
         supervisor.loop(int(arguments["--niter"]), compute_tar_psf=compute_tar_psf)
     else:

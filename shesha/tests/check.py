@@ -50,7 +50,7 @@ if __name__ == "__main__":
                     int(device) for device in arguments["--devices"].split(",")
             ])
         try:
-            supervisor.init_config()
+            supervisor.init()
             is_init = supervisor.is_init
         except:
             is_init = False

@@ -50,20 +50,23 @@ class WfsCompass(SourceCompass):
 
         sources : (List) : List of SutraSource instances used for raytracing
     """
-    def __init__(self, context, config):
+    def __init__(self, context, config, tel):
         """ Initialize a wfsCompass component for wfs related supervision
 
         Parameters:
             context : (carmaContext) : CarmaContext instance
 
             config : (config module) : Parameters configuration structure module
+
+            tel : (TelescopeCompass) : A TelescopeCompass instance
         """
         self.context = context
         self.config = config # Parameters configuration coming from supervisor init
-        self.wfs = wfs_init(self.context, self.tel, self.config.p_wfss,
+        print("->wfs init")
+        self.wfs = wfs_init(self.context, tel.tel, self.config.p_wfss,
                                 self.config.p_tel, self.config.p_geom, self.config.p_dms,
                                 self.config.p_atmos)
-        self.sources = [wfs.d_gs for wfs in self.wfs.d_wfss]
+        self.sources = [wfs.d_gs for wfs in self.wfs.d_wfs]
         
     def get_wfs_image(self, wfs_index : int) -> np.ndarray:
         """ Get an image from the WFS (wfs[0] by default), or from the centroider handling the WFS

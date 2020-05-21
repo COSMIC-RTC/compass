@@ -35,6 +35,7 @@
 #  You should have received a copy of the GNU Lesser General Public License along with COMPASS.
 #  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 import numpy as np
+from typing import List
 
 class SourceCompass(object):
     """ Source handler for compass simulation
@@ -63,7 +64,7 @@ class SourceCompass(object):
             atm : (AtmosCompass, optional) : AtmosCompass instance.
                                             If provided, raytrace through the layers phase screens 
 
-            dms : (dmsCompass, optional) : DmsCompass instance.
+            dms : (dmsCompass, optional) : DmCompass instance.
                                             If provided, raytrace through the DM shapes
 
             ncpa : (bool, optional) : If True (default), raytrace through NCPA phase screen of the source (default is array of 0, i.e. no impact) 
@@ -76,7 +77,7 @@ class SourceCompass(object):
         if atm is not None:
             self.sources[index].raytrace(atm.atmos) # Must be done first because of automatic reset of the phase screen when call
         if tel is not None:
-            self.sources[index].raytrace(tel.telescope)
+            self.sources[index].raytrace(tel.tel)
         if dms is not None:
             self.sources[index].raytrace(dms.dms)
         if ncpa:

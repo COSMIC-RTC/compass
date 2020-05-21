@@ -50,17 +50,20 @@ class TargetCompass(SourceCompass):
 
         sources : (List) : List of SutraSource instances used for raytracing
     """
-    def __init__(self, context, config):
+    def __init__(self, context, config, tel):
         """ Initialize a TargetCompass component for target related supervision
 
         Parameters:
             context : (carmaContext) : CarmaContext instance
 
             config : (config module) : Parameters configuration structure module
+
+            tel : (TelescopeCompass) : A TelescopeCompass instance
         """
         self.context = context
         self.config = config # Parameters configuration coming from supervisor init
-        self.target = target_init(self.context, self.tel, self.config.p_targets,
+        print("->target init")
+        self.target = target_init(self.context, tel.tel, self.config.p_targets,
                                    self.config.p_atmos, self.config.p_tel,
                                    self.config.p_geom, self.config.p_dms, brahma=False)
         self.sources = self.target.d_targets

@@ -57,6 +57,7 @@ class DmCompass(object):
         """
         self.context = context
         self.config = config # Parameters configuration coming from supervisor init
+        print("->dms init")
         self.dms = dm_init(self.context, self.config.p_dms, self.config.p_tel,
                                self.config.p_geom, self.config.p_wfss)
 
