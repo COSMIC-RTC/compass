@@ -118,7 +118,7 @@ class WidgetAOExpert(ExpertClassTemplate):
         if (self.sim.rtc):
             comp_new_pyr_ampl(0, self.uiExpert.wao_pyr_ampl.value(), self.sim.config.p_wfss,
                               self.sim.config.p_tel)
-            self.sim.config.p_wfss[0].set_pyr_ampli(self.uiExpert.wao_pyr_ampl.value())
+            self.sim.config.p_wfss[0].set_pyr_ampl(self.uiExpert.wao_pyr_ampl.value())
             print("Pyramid modulation updated on GPU")
             self.updatePlotWfs()
 
@@ -373,7 +373,7 @@ class WidgetAOExpert(ExpertClassTemplate):
         self.sim.config.p_wfss[nwfs].set_noise(self.uiExpert.wao_wfsNoise.value())
 
         # LGS params
-        if (self.uiExpert.wao_wfsIsLGS.isChecked()):
+        if (self.uiExpert.wao_wfsIsLGS.is_checked()):
             self.sim.config.p_wfss[nwfs].set_gsalt(self.uiExpert.wao_wfsGsAlt.value())
             self.sim.config.p_wfss[nwfs].set_lltx(self.uiExpert.wao_wfsLLTx.value())
             self.sim.config.p_wfss[nwfs].set_llty(self.uiExpert.wao_wfsLLTy.value())

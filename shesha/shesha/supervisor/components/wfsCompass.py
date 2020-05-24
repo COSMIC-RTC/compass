@@ -35,8 +35,11 @@
 #  You should have received a copy of the GNU Lesser General Public License along with COMPASS.
 #  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 from shesha.init.wfs_init import wfs_init
+import shesha.util.utilities as util
+import shesha.ao.wfs as wfs_util
 from shesha.supervisor.components.sourceCompass import SourceCompass
 import numpy as np
+from typing import List
 
 class WfsCompass(SourceCompass):
     """ WFS handler for compass simulation
@@ -81,7 +84,7 @@ class WfsCompass(SourceCompass):
         return np.array(self.wfs.d_wfs[wfs_index].d_binimg)
 
     def set_pyr_modulation_points(self, wfs_index : int, cx: np.ndarray, cy: np.ndarray,
-                                  weights: np.ndarray = None) -> None:
+                                  *, weights: np.ndarray = None) -> None:
         """ Set pyramid modulation positions
 
         Parameters:
@@ -104,6 +107,170 @@ class WfsCompass(SourceCompass):
             self.wfs.d_wfs[wfs_index].set_pyr_modulation_points(
                     cx, cy, weights, pyr_npts)
 
+    def set_pyr_modulation_ampli(self, wfs_index: int, pyr_mod: float) -> float:
+        """ Set pyramid circular modulation amplitude value - in lambda/D units.
+
+        Compute new modulation points corresponding to the new amplitude value
+        and upload them. 
+        /!\ WARNING : if you are using slopes-based centroider with the PWFS,
+        also update the centroider scale (rtc.set_scale) with the returned
+        value
+
+        Parameters:
+            wfs_index : (int) : WFS index
+
+            pyr_mod : (float) : new pyramid modulation amplitude value
+        
+        Return:
+            scale : (float) : scale factor
+        """
+        p_wfs = self.config.p_wfss[wfs_index]
+
+        cx, cy, scale, pyr_npts = wfs_util.comp_new_pyr_ampl(wfs_index, pyr_mod,
+                                                    self.config.p_wfss,
+                                                    self.config.p_tel)
+        p_wfs.set_pyr_ampl(pyr_mod)
+        self.set_pyr_modulation_points(wfs_index, cx, cy)
+
+        if (len(p_wfs._halfxy.shape) == 2):
+            print("PYR modulation set to: %f L/D using %d points" % (pyr_mod, pyr_npts))
+        elif (len(p_wfs._halfxy.shape) == 3):
+            newhalfxy = np.tile(p_wfs._halfxy[0, :, :], (pyr_npts, 1, 1))
+            print("Loading new modulation arrays")
+            self.wfs.d_wfs[wfs_index].set_phalfxy(
+                    np.exp(1j * newhalfxy).astype(np.complex64).T)
+            print("Done. PYR modulation set to: %f L/D using %d points" % (pyr_mod,
+                                                                           pyr_npts))
+        else:
+            raise ValueError("Error unknown p_wfs._halfxy shape")
+
+        return scale
+
+    def set_pyr_multiple_stars_source(self, wfs_index: int, coords: List,
+                                      *, weights: List = None, pyr_mod: float = 3.,
+                                      niters: int = None) -> None:
+        """ Sets the Pyramid modulation points with a multiple star system
+
+        Parameters:
+            wfs_index : (int) : WFS index
+
+            coords : (list) : list of couples of length n, coordinates of the n stars in lambda/D
+
+            weights : (list, optional) : list of weights to apply on each modulation points. Default is None
+
+            pyr_mod : (float, optional): modulation amplitude of the pyramid in lambda/D. Default is 3
+
+            niters : (int, optional) : number of iteration. Default is None
+        """
+        if niters is None:
+            perim = pyr_mod * 2 * np.pi
+            niters = int((perim // 4 + 1) * 4)
+            print(niters)
+        scale_circ = self.config.p_wfss[wfs_index]._pyr_scale_pos * pyr_mod
+        temp_cx = []
+        temp_cy = []
+        for k in coords:
+            temp_cx.append(scale_circ * \
+                np.sin((np.arange(niters)) * 2. * np.pi / niters) + \
+                k[0] * self.config.p_wfss[wfs_index]._pyr_scale_pos)
+            temp_cy.append(scale_circ * \
+                np.cos((np.arange(niters)) * 2. * np.pi / niters) + \
+                k[1] * self.config.p_wfss[wfs_index]._pyr_scale_pos)
+        cx = np.concatenate(np.array(temp_cx))
+        cy = np.concatenate(np.array(temp_cy))
+        #Gives the arguments to the simulation
+        if weights is not None:
+            w = []
+            for k in weights:
+                w += niters * [k]
+            weights = np.array(w)
+        self.set_pyr_modulation_points(wfs_index, cx, cy, weights=weights)
+
+    def set_pyr_disk_source_hexa(self, wfs_index: int, radius: float) -> None:
+        """ Create disk object by packing PSF in a given radius, using hexagonal packing
+        and set it as modulation pattern
+
+        /!\ There is no modulation
+
+        Parameters:
+            wfs_index  : (int) : WFS index
+
+            radius : (float) : radius of the disk object in lambda/D
+        """
+        #Vectors used to generate the hexagonal paving
+        gen_xp, gen_yp = np.array([1,
+                                   0.]), np.array([np.cos(np.pi / 3),
+                                                   np.sin(np.pi / 3)])
+        n = 1 + int(1.2 * radius)
+        mat_circ = []
+        for k in range(-n, n):
+            for l in range(-n, n):
+                coord = k * gen_xp + l * gen_yp
+                if np.sqrt(coord[0]**2 + coord[1]**2) <= radius:
+                    mat_circ.append(coord)
+        mat_circ = np.array(mat_circ)
+        cx, cy = mat_circ[:, 0], mat_circ[:, 1]
+        self.set_pyr_modulation_points(wfs_index, cx, cy)
+
+
+    def set_pyr_disk_source(self, wfs_index: int, radius: float, *, density: float = 1.) -> None:
+        """ Create disk object by packing PSF in a given radius, using square packing
+        and set it as modulation pattern
+
+        /!\ There is no modulation
+
+        Parameters:
+            wfs_index  : (int) : WFS index
+
+            radius : (float) : radius of the disk object in lambda/D
+
+            density : (float, optional) : Spacing between the packed PSF in the disk object, in lambda/D.
+                                          Default is 1
+        """
+        cx, cy = util.generate_circle(radius, density)
+        cx = cx.flatten() * self.config.p_wfss[wfs_index]._pyr_scale_pos
+        cy = cy.flatten() * self.config.p_wfss[wfs_index]._pyr_scale_pos
+        self.set_pyr_modulation_points(wfs_index, cx, cy)
+
+    def set_pyr_square_source(self, wfs_index: int, radius: float, *, density: float = 1.) -> None:
+        """ Create a square object by packing PSF in a given radius, using square packing
+        and set it as modulation pattern
+
+        /!\ There is no modulation
+
+        Parameters:
+            wfs_index  : (int) : WFS index
+
+            radius : (float) : radius of the disk object in lambda/D
+
+            density : (float, optional) : Spacing between the packed PSF in the disk object, in lambda/D.
+                                          Default is 1
+        """
+        cx, cy = util.generate_square(radius, density)
+        cx = cx.flatten() * self.config.p_wfss[wfs_index]._pyr_scale_pos
+        cy = cy.flatten() * self.config.p_wfss[wfs_index]._pyr_scale_pos
+        self.set_pyr_modulation_points(wfs_index, cx, cy)
+
+
+    def set_pyr_pseudo_source(self, wfs_index: int, radius: float, *,
+                              additional_psf: int = 0, density: float = 1.) -> None:
+        """ TODO : DESCRIPTION
+
+        Parameters:
+            wfs_index : (int) : WFS index
+
+            radius : (float) : TODO : DESCRIPTION
+
+            additional_psf : (int, optional) : TODO : DESCRIPTION
+
+            density : (float, optional) :TODO : DESCRIPTION
+        """
+        cx, cy, weights, _, _ = util.generate_pseudo_source(radius, additional_psf,
+                                                            density)
+        cx = cx.flatten() * self.config.p_wfss[wfs_index]._pyr_scale_pos
+        cy = cy.flatten() * self.config.p_wfss[wfs_index]._pyr_scale_pos
+        self.set_pyr_modulation_points(wfs_index, cx, cy, weights)
+
     def set_fourier_mask(self, wfs_index : int, new_mask: np.ndarray) -> None:
         """ Set a mask in the Fourier Plane of the given WFS
 
@@ -119,7 +286,7 @@ class WfsCompass(SourceCompass):
             self.wfs.d_wfs[wfs_index].set_phalfxy(
                     np.exp(1j * np.fft.fftshift(new_mask)).astype(np.complex64).T)
 
-    def set_noise(self, wfs_index : int, noise: float, seed: int = 1234) -> None:
+    def set_noise(self, wfs_index : int, noise: float, *, seed: int = 1234) -> None:
         """ Set noise value of WFS wfs_index
 
         Parameters:
@@ -155,7 +322,7 @@ class WfsCompass(SourceCompass):
         if (r == 0):
             print("GS magnitude is now %f on WFS %d" % (mag, wfs_index))
 
-    def compute_wfs_image(self, wfs_index : int, noise: bool = True) -> None:
+    def compute_wfs_image(self, wfs_index : int, *, noise: bool = True) -> None:
         """ Computes the image produced by the WFS from its phase screen
 
         Parameters :
@@ -168,9 +335,8 @@ class WfsCompass(SourceCompass):
     def reset_noise(self) -> None:
         """ Reset all the WFS RNG to their original state
         """
-        for wfs_index in range(len(self.config.p_wfss)):
-            self.wfs.d_wfs[wfs_index].set_noise(
-                    [p.noise for p in self.config.pwfss], 1234 + wfs_index)
+        for wfs_index, p_wfs in enumerate(self.config.p_wfss):
+            self.wfs.d_wfs[wfs_index].set_noise(p_wfs.noise, 1234 + wfs_index)
 
     def get_ncpa_wfs(self, wfs_index : int) -> np.ndarray:
         """ Return the current NCPA phase screen of the WFS path
@@ -241,11 +407,11 @@ class WfsCompass(SourceCompass):
         old_mpup = self.config.p_geom._mpupil
         dimx = old_mpup.shape[0]
         dimy = old_mpup.shape[1]
-        if ((mpupil.shape[0] != dimx) or (mpupil.shape[1] != dimy)):
-            print("Error mpupil shape on wfs %d must be: (%d,%d)" % (wfs_index, dimx,
+        if ((pupil.shape[0] != dimx) or (pupil.shape[1] != dimy)):
+            print("Error pupil shape on wfs %d must be: (%d,%d)" % (wfs_index, dimx,
                                                                      dimy))
         else:
-            self.wfs.d_wfs[wfs_index].set_pupil(mpupil.copy())
+            self.wfs.d_wfs[wfs_index].set_pupil(pupil.copy())
 
     def get_pyr_focal_plane(self, wfs_index : int) -> np.ndarray:
         """ Returns the psf on the top of the pyramid.

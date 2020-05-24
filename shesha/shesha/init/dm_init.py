@@ -145,6 +145,7 @@ def _dm_init(context: carmaWrap_context, dms: Dms, p_dm: conf.Param_dm, xpos_wfs
         max_extent = max(max_extent, p_dm._n2 - p_dm._n1 + 1)
 
         dim = max(p_dm._n2 - p_dm._n1 + 1, p_geom._mpupil.shape[0])
+        p_dm._dim_screen = dim
         ninflupos = p_dm._influpos.size
         n_npts = p_dm._ninflu.size  #// 2
         dms.add_dm(context, p_dm.type, p_dm.alt, dim, p_dm._ntotact, p_dm._influsize,
@@ -167,6 +168,7 @@ def _dm_init(context: carmaWrap_context, dms: Dms, p_dm: conf.Param_dm, xpos_wfs
 
         dim = p_dm._n2 - p_dm._n1 + 1
         make_tiptilt_dm(p_dm, patchDiam, p_geom, diam)
+        p_dm._dim_screen = dim
         dms.add_dm(context, p_dm.type, p_dm.alt, dim, 2, dim, 1, 1, p_dm.push4imat, 0,
                    context.active_device)
         dms.d_dms[-1].tt_loadarrays(p_dm._influ)
@@ -183,6 +185,7 @@ def _dm_init(context: carmaWrap_context, dms: Dms, p_dm: conf.Param_dm, xpos_wfs
         make_kl_dm(p_dm, patchDiam, p_geom, cobs)
 
         ninflu = p_dm.nkl
+        p_dm._dim_screen = dim
 
         dms.add_dm(context, p_dm.type, p_dm.alt, dim, p_dm.nkl, p_dm._ncp, p_dm._nr,
                    p_dm._npp, p_dm.push4imat, p_dm._ord.max(), context.active_device)

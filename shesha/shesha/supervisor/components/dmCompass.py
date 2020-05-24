@@ -69,7 +69,7 @@ class DmCompass(object):
         """
         self.dms.set_full_com(commands)
 
-    def set_one_actu(self, dm_index: int, nactu: int, ampli: float = 1) -> None:
+    def set_one_actu(self, dm_index: int, nactu: int, *, ampli: float = 1) -> None:
         """ Push the selected actuator
 
         Parameters:
@@ -81,7 +81,7 @@ class DmCompass(object):
         """
         self.dms.d_dms[dm_index].comp_oneactu(nactu, ampli)
 
-    def get_influ_function(self, dm_index):
+    def get_influ_function(self, dm_index : int) -> np.ndarray:
         """ Returns the influence function cube for the given dm
 
         Parameters:
@@ -92,7 +92,7 @@ class DmCompass(object):
         """
         return self.config.p_dms[dm_index]._influ
 
-    def get_influ_function_ipupil_coords(self, dm_index):
+    def get_influ_function_ipupil_coords(self, dm_index : int) -> np.ndarray:
         """ Returns the lower left coordinates of the influ function support in the ipupil coord system
 
         Parameters:
@@ -120,7 +120,7 @@ class DmCompass(object):
         else:
             self.dms.d_dms[dm_index].reset_shape()
 
-    def get_dm_shape(self, indx: int) -> np.ndarray:
+    def get_dm_shape(self, indx : int) -> np.ndarray:
         """ Return the current phase shape of the selected DM
 
         Parameters:
@@ -132,8 +132,8 @@ class DmCompass(object):
         """
         return np.array(self.dms.d_dms[indx].d_shape)
 
-    def set_dm_registration(self, dm_index, dx=None, dy=None, theta=None,
-                            G=None) -> None:
+    def set_dm_registration(self, dm_index : int, *, dx : float=None, dy : float=None, 
+                            theta : float=None, G : float=None) -> None:
         """Set the registration parameters for DM #dm_index
 
         Parameters:

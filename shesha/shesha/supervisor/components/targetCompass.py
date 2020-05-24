@@ -68,7 +68,7 @@ class TargetCompass(SourceCompass):
                                    self.config.p_geom, self.config.p_dms, brahma=False)
         self.sources = self.target.d_targets
 
-    def get_tar_image(self, tar_index : int, expo_type: str = "se") -> np.ndarray:
+    def get_tar_image(self, tar_index : int, *, expo_type: str = "se") -> np.ndarray:
         """ Get the PSF in the direction of the given target
 
         Parameters:
@@ -100,7 +100,7 @@ class TargetCompass(SourceCompass):
         """
         self.target.d_targets[tar_index].set_phase(phase)
 
-    def get_tar_phase(self, tar_index: int, pupil: bool = False) -> np.ndarray:
+    def get_tar_phase(self, tar_index: int, *, pupil: bool = False) -> np.ndarray:
         """ Returns the target phase screen of target number tar_index
 
         Parameters:
@@ -134,7 +134,7 @@ class TargetCompass(SourceCompass):
         """
         self.target.d_targets[tar_index].d_phase.reset()
 
-    def get_strehl(self, tar_index: int, do_fit: bool = True) -> np.ndarray:
+    def get_strehl(self, tar_index: int, *, do_fit: bool = True) -> np.ndarray:
         """ Return the Strehl Ratio of target number tar_index.
         This fuction will return an array of 4 values as
         [SR SE, SR LE, phase variance SE [µm²], phase variance LE [µm²]]
@@ -155,7 +155,7 @@ class TargetCompass(SourceCompass):
             avg_var = src.phase_var_avg / src.phase_var_count
         return [src.strehl_se, src.strehl_le, src.phase_var, avg_var]
 
-    def get_ncpa_tar(self, tar_index) -> np.ndarray:
+    def get_ncpa_tar(self, tar_index : int) -> np.ndarray:
         """ Return the current NCPA phase screen of the target path
 
         Parameters:
@@ -177,22 +177,22 @@ class TargetCompass(SourceCompass):
         """
         self.target.d_targets[tar_index].set_ncpa(ncpa)
 
-    def comp_tar_image(self, tarNum: int = 0, puponly: int = 0, compLE: bool = True) -> None:
+    def comp_tar_image(self, tarNum: int, *, puponly: int = 0, compLE: bool = True) -> None:
         """ Computes the PSF
 
         Parameters :
-            tarNum: (int): (optionnal) target index (default=0)
+            tarNum: (int): target index
 
-            puponly: (int): (optionnal) if set to 1, computes Airy (default=0)
+            puponly: (int, optionnal) : if set to 1, computes Airy (default=0)
 
-            compLE: (bool): (optionnal) if True, the computed image is taken into account in long exposure image (default=True)
+            compLE: (bool, optionnal) : if True, the computed image is taken into account in long exposure image (default=True)
         """
         self.target.d_targets[tarNum].comp_image(puponly, compLE)
 
-    def comp_strehl(self, tarNum: int = 0, do_fit: bool = True) -> None:
+    def comp_strehl(self, tarNum: int, *, do_fit: bool = True) -> None:
         """ Computes the Strehl ratio
 
         Parameters :
-            tarNum: (int): (optionnal) target index (default 0)
+            tarNum: (int): target index
         """
         self.target.d_targets[tarNum].comp_strehl(do_fit)

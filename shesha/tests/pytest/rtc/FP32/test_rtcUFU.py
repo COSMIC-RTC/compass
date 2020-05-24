@@ -11,32 +11,32 @@ sup.config.p_dms[0].unitpervolt = 500
 sup.config.p_dms[0].push4imat = 0.5
 sup.config.p_dms[1].unitpervolt = 500
 sup.config.p_dms[1].push4imat = 0.5
-sup.init_config()
-sup._sim.wfs.d_wfs[0].set_fakecam(True)
-sup._sim.wfs.d_wfs[0].set_max_flux_per_pix(int(sup.config.p_wfs0._nphotons // 2))
-sup._sim.wfs.d_wfs[0].set_max_pix_value(2**16 - 1)
-sup.single_next()
-sup.open_loop()
-sup.close_loop()
-sup._sim.do_control(0)
+sup.init()
+sup.wfs.wfs.d_wfs[0].set_fakecam(True)
+sup.wfs.wfs.d_wfs[0].set_max_flux_per_pix(int(sup.config.p_wfs0._nphotons // 2))
+sup.wfs.wfs.d_wfs[0].set_max_pix_value(2**16 - 1)
+sup.next()
+sup.rtc.open_loop(0)
+sup.rtc.close_loop(0)
+sup.rtc.do_control(0)
 rtc = Rtc()
-rtc.add_centroider(sup._sim.context, sup.config.p_wfs0._nvalid,
+rtc.add_centroider(sup.context, sup.config.p_wfs0._nvalid,
                    sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize, False, 0,
                    "cog")
-rtc.add_controller(sup._sim.context, sup.config.p_wfs0._nvalid,
+rtc.add_controller(sup.context, sup.config.p_wfs0._nvalid,
                    sup.config.p_wfs0._nvalid * 2, sup.config.p_controller0.nactu,
                    sup.config.p_controller0.delay, 0, "generic", idx_centro=np.zeros(1),
                    ncentro=1)
 centro = rtc.d_centro[0]
 control = rtc.d_control[0]
 rtc.d_centro[0].set_npix(sup.config.p_wfs0.npix)
-xvalid = np.array(sup._sim.rtc.d_centro[0].d_validx)
-yvalid = np.array(sup._sim.rtc.d_centro[0].d_validy)
+xvalid = np.array(sup.rtc.rtc.d_centro[0].d_validx)
+yvalid = np.array(sup.rtc.rtc.d_centro[0].d_validy)
 rtc.d_centro[0].load_validpos(xvalid, yvalid, xvalid.size)
 cmat = sup.rtc.get_command_matrix(0)
 rtc.d_control[0].set_cmat(cmat)
 rtc.d_control[0].set_gain(sup.config.p_controller0.gain)
-frame = np.array(sup._sim.wfs.d_wfs[0].d_camimg)
+frame = np.array(sup.wfs.wfs.d_wfs[0].d_camimg)
 rtc.d_centro[0].load_img(frame, frame.shape[0])
 rtc.d_centro[0].calibrate_img()
 
@@ -126,7 +126,7 @@ def test_calibrate_img():
 
 
 def test_doCentroids_cog():
-    bincube = np.array(sup._sim.wfs.d_wfs[0].d_bincube)
+    bincube = np.array(sup.wfs.wfs.d_wfs[0].d_bincube)
     slopes = np.zeros(sup.config.p_wfs0._nvalid * 2)
     offset = centro.offset
     scale = centro.scale
@@ -237,7 +237,7 @@ def test_remove_centroider():
 
 
 def test_doCentroids_tcog():
-    rtc.add_centroider(sup._sim.context, sup.config.p_wfs0._nvalid,
+    rtc.add_centroider(sup.context, sup.config.p_wfs0._nvalid,
                        sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize,
                        False, 0, "tcog")
 
@@ -268,7 +268,7 @@ def test_doCentroids_tcog():
 
 def test_doCentroids_bpcog():
     rtc.remove_centroider(0)
-    rtc.add_centroider(sup._sim.context, sup.config.p_wfs0._nvalid,
+    rtc.add_centroider(sup.context, sup.config.p_wfs0._nvalid,
                        sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize,
                        False, 0, "bpcog")
 
@@ -280,7 +280,7 @@ def test_doCentroids_bpcog():
     centro.load_img(frame, frame.shape[0])
     centro.calibrate_img()
     rtc.do_centroids(0)
-    bincube = np.array(sup._sim.wfs.d_wfs[0].d_bincube)
+    bincube = np.array(sup.wfs.wfs.d_wfs[0].d_bincube)
     bincube /= bincube.max()
     slopes = np.zeros(sup.config.p_wfs0._nvalid * 2)
     offset = centro.offset

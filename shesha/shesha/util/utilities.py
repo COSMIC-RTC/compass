@@ -228,6 +228,135 @@ def load_config_from_module(filepath: str):
         config.simul_name = None
 
     return config
+
+def generate_square(radius: float, density: float = 1.):
+    """ Generate modulation points positions following a square pattern
+
+    Parameters:
+        radius : (float) : half the length of a side in lambda/D
+
+        density : (float), optional) : number of psf per lambda/D. Default is 1
+
+    Return:
+        cx : (np.ndarray) : X-positions of the modulation points
+
+        cy : (np.ndarray) : Y-positions of the modulation points
+    """
+    x = np.linspace(-radius, radius, 1 + 2 * int(radius * density))
+    cx, cy = np.meshgrid(x, x, indexing='ij')
+    cx = cx.flatten()
+    cy = cy.flatten()
+    return (cx, cy)
+
+def generate_circle(radius: float, density: float = 1.):
+    """ Generate modulation points positions following a circular pattern
+s
+    Parameters:
+        radius : (float) : half the length of a side in lambda/D
+
+        density : (float), optional) : number of psf per lambda/D. Default is 1
+
+    Return:
+        cx : (np.ndarray) : X-positions of the modulation points
+
+        cy : (np.ndarray) : Y-positions of the modulation points
+    """
+    cx, cy = generate_square(radius, density)
+    r = cx * cx + cy * cy <= radius**2
+    return (cx[r], cy[r])
+
+    def generate_pseudo_source(radius: float, additional_psf=0, density=1.):
+        """ Used to generate a pseudo source for PYRWFS
+
+        Parameters:
+            radius : (float) : TODO description
+
+            additional_psf : (int) :TODO description
+
+            density : (float, optional) :TODO description
+
+        Return:
+            ox : TODO description & explicit naming
+
+            oy : TODO description & explicit naming
+
+            w : TODO description & explicit naming
+
+            xc : TODO description & explicit naming
+
+            yc : TODO description & explicit naming
+        """
+        struct_size = (1 + 2 * additional_psf)**2
+        center_x, center_y = generate_square(additional_psf, density)
+        center_weight = (1 + 2 * int(additional_psf * density))**2 * [1]
+        center_size = 1 + 2 * int(additional_psf * density)
+
+        weight_edge = [(1 + 2 * int(radius * density) - center_size) // 2]
+        xc, yc = generate_circle(radius, density)
+        for k in range(additional_psf):
+            line_length = np.sum(yc == (k + 1))
+            print(line_length)
+            weight_edge.append((line_length - center_size) // 2)
+
+        edge_dist = (radius + additional_psf) // 2
+        V_edge_x = []
+        V_edge_y = []
+        V_edge_weight = []
+        for m in [-1, 1]:
+            V_edge_x.append(0)
+            V_edge_y.append(m * edge_dist)
+            V_edge_weight.append(weight_edge[0])
+        for k, val in enumerate(weight_edge[1:]):
+            for l in [-1, 1]:
+                for m in [-1, 1]:
+                    V_edge_x.append(l * (k + 1) * density)
+                    V_edge_y.append(m * edge_dist)
+                    V_edge_weight.append(val)
+        H_edge_x = []
+        H_edge_y = []
+        H_edge_weight = []
+        for m in [-1, 1]:
+            H_edge_x.append(m * edge_dist)
+            H_edge_y.append(0)
+            H_edge_weight.append(weight_edge[0])
+        for k, val in enumerate(weight_edge[1:]):
+            for l in [-1, 1]:
+                for m in [-1, 1]:
+                    H_edge_x.append(m * edge_dist)
+                    H_edge_y.append(l * (k + 1) * density)
+                    H_edge_weight.append(val)
+        pup_cent_x = []
+        pup_cent_y = []
+        pup_cent_weight = 4 * [(len(xc) - 2 * np.sum(H_edge_weight) - struct_size) / 4]
+        pup_cent_dist = int(edge_dist // np.sqrt(2))
+        for l in [-1, 1]:
+            for m in [-1, 1]:
+                pup_cent_x.append(l * pup_cent_dist)
+                pup_cent_y.append(m * pup_cent_dist)
+        ox = np.concatenate((center_x, V_edge_x, H_edge_x, pup_cent_x))
+        oy = np.concatenate((center_y, V_edge_y, H_edge_y, pup_cent_y))
+        w = np.concatenate((center_weight, V_edge_weight, H_edge_weight,
+                            pup_cent_weight))
+        return (ox, oy, w, xc, yc)
+
+def first_non_zero(array: np.ndarray, axis: int,
+                    invalid_val: int = -1) -> np.ndarray:
+    """ Find the first non zero element of an array
+
+    Parameters:
+        array : (np.ndarray) : input array
+
+        axis : (int) : axis index
+
+        invalid_val : (int, optional) : Default is -1
+
+    Return:
+        non_zeros_pos : (np.ndarray) : Index of the first non-zero element
+                                        for each line or column following the axis
+    """
+    mask = array != 0
+    return np.where(mask.any(axis=axis), mask.argmax(axis=axis), invalid_val)
+
 # def rotate3d(im, ang, cx=-1, cy=-1, zoom=1.0):
 #     """Rotates an image of an angle "ang" (in DEGREES).
 

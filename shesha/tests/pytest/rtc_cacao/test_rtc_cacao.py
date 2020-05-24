@@ -10,29 +10,29 @@ from Octopus import CacaoInterface
 
 precision = 1e-5
 sup = Supervisor(os.getenv("COMPASS_ROOT") + "/shesha/tests/pytest/par/test_sh.py")
-sup.init_config()
-sup.single_next()
-sup.open_loop()
-sup.close_loop()
-sup._sim.do_control(0)
+sup.init()
+sup.next()
+sup.rtc.open_loop(0)
+sup.rtc.close_loop(0)
+sup.rtc.do_control(0)
 rtc = Rtc("compass_calPix", "compass_loopData")
-rtc.add_centroider(sup._sim.context, sup.config.p_wfs0._nvalid,
+rtc.add_centroider(sup.context, sup.config.p_wfs0._nvalid,
                    sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize, False, 0,
                    "cog")
-rtc.add_controller(sup._sim.context, sup.config.p_wfs0._nvalid,
+rtc.add_controller(sup.context, sup.config.p_wfs0._nvalid,
                    sup.config.p_wfs0._nvalid * 2, sup.config.p_controller0.nactu,
                    sup.config.p_controller0.delay, 0, "generic", idx_centro=np.zeros(1),
                    ncentro=1)
 centro = rtc.d_centro[0]
 control = rtc.d_control[0]
 rtc.d_centro[0].set_npix(sup.config.p_wfs0.npix)
-xvalid = np.array(sup._sim.rtc.d_centro[0].d_validx)
-yvalid = np.array(sup._sim.rtc.d_centro[0].d_validy)
+xvalid = np.array(sup.rtc.rtc.d_centro[0].d_validx)
+yvalid = np.array(sup.rtc.rtc.d_centro[0].d_validy)
 rtc.d_centro[0].load_validpos(xvalid, yvalid, xvalid.size)
 cmat = sup.rtc.get_command_matrix(0)
 rtc.d_control[0].set_cmat(cmat)
 rtc.d_control[0].set_gain(sup.config.p_controller0.gain)
-frame = sup.get_wfs_image(0)
+frame = sup.wfs.get_wfs_image(0)
 frame /= frame.max()
 rtc.d_centro[0].load_img(frame, frame.shape[0])
 rtc.d_centro[0].calibrate_img()
@@ -123,7 +123,7 @@ def test_calibrate_img():
 
 
 def test_doCentroids_cog():
-    bincube = np.array(sup._sim.wfs.d_wfs[0].d_bincube)
+    bincube = np.array(sup.wfs.wfs.d_wfs[0].d_bincube)
     slopes = np.zeros(sup.config.p_wfs0._nvalid * 2)
     offset = centro.offset
     scale = centro.scale
@@ -231,7 +231,7 @@ def test_remove_centroider():
 
 
 def test_doCentroids_tcog():
-    rtc.add_centroider(sup._sim.context, sup.config.p_wfs0._nvalid,
+    rtc.add_centroider(sup.context, sup.config.p_wfs0._nvalid,
                        sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize,
                        False, 0, "tcog")
 
@@ -243,7 +243,7 @@ def test_doCentroids_tcog():
     centro.load_img(frame, frame.shape[0])
     centro.calibrate_img()
     rtc.do_centroids(0)
-    bincube = np.array(sup._sim.wfs.d_wfs[0].d_bincube)
+    bincube = np.array(sup.wfs.wfs.d_wfs[0].d_bincube)
     bincube /= bincube.max()
     slopes = np.zeros(sup.config.p_wfs0._nvalid * 2)
     offset = centro.offset
@@ -260,7 +260,7 @@ def test_doCentroids_tcog():
 
 def test_doCentroids_bpcog():
     rtc.remove_centroider(0)
-    rtc.add_centroider(sup._sim.context, sup.config.p_wfs0._nvalid,
+    rtc.add_centroider(sup.context, sup.config.p_wfs0._nvalid,
                        sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize,
                        False, 0, "bpcog")
 
@@ -272,7 +272,7 @@ def test_doCentroids_bpcog():
     centro.load_img(frame, frame.shape[0])
     centro.calibrate_img()
     rtc.do_centroids(0)
-    bincube = np.array(sup._sim.wfs.d_wfs[0].d_bincube)
+    bincube = np.array(sup.wfs.wfs.d_wfs[0].d_bincube)
     bincube /= bincube.max()
     slopes = np.zeros(sup.config.p_wfs0._nvalid * 2)
     offset = centro.offset

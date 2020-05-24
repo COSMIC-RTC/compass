@@ -315,40 +315,41 @@ class CanapassSupervisor(CompassSupervisor):
         aodict.update({"Nsubap": Nsubap})
         return aodict, dataDict
 
-    def load_config(self, config_file: str = None, sim=None) -> None:
-        """ Load the configuration for the compass supervisor"""
-        CompassSupervisor.load_config(self, config_file=config_file, sim=sim)
+    def load_config(self, config_file: str) -> None:
+        """ Load the configuration for the compass supervisor
+        """
+        CompassSupervisor.load_config(self, config_file)
         print("switching to a generic controller")
         self.config.p_controllers[0].type = scons.ControllerType.GENERIC
 
 
 ########################## PROTO #############################
 
-    def initModalGain(self, gain, cmatModal, modal_basis, control=0, reset_gain=True):
-        """
-        Given a gain, cmat and btt2v initialise the modal gain mode
-        """
-        print("TODO: A RECODER !!!!")
-        nmode_total = modal_basis.shape[1]
-        nactu_total = modal_basis.shape[0]
-        nfilt = nmode_total - cmatModal.shape[0]
-        ctrl = self._sim.rtc.d_control[control]
-        ctrl.set_commandlaw('modal_integrator')
-        cmat = np.zeros((nactu_total, cmatModal.shape[1]))
-        dec = cmat.shape[0] - cmatModal.shape[0]
-        cmat[:-dec, :] += cmatModal  # Fill the full Modal with all non-filtered modes
-        modes2V = np.zeros((nactu_total, nactu_total))
-        dec2 = modes2V.shape[1] - modal_basis.shape[1]
-        modes2V[:, :-dec2] += modal_basis
-        mgain = np.ones(len(modes2V)) * gain  # Initialize the gain
-        ctrl.set_matE(modes2V)
-        ctrl.set_cmat(cmat)
-        if reset_gain:
-            ctrl.set_modal_gains(mgain)
+    # def initModalGain(self, gain, cmatModal, modal_basis, control=0, reset_gain=True):
+    #     """
+    #     Given a gain, cmat and btt2v initialise the modal gain mode
+    #     """
+    #     print("TODO: A RECODER !!!!")
+    #     nmode_total = modal_basis.shape[1]
+    #     nactu_total = modal_basis.shape[0]
+    #     nfilt = nmode_total - cmatModal.shape[0]
+    #     ctrl = self._sim.rtc.d_control[control]
+    #     ctrl.set_commandlaw('modal_integrator')
+    #     cmat = np.zeros((nactu_total, cmatModal.shape[1]))
+    #     dec = cmat.shape[0] - cmatModal.shape[0]
+    #     cmat[:-dec, :] += cmatModal  # Fill the full Modal with all non-filtered modes
+    #     modes2V = np.zeros((nactu_total, nactu_total))
+    #     dec2 = modes2V.shape[1] - modal_basis.shape[1]
+    #     modes2V[:, :-dec2] += modal_basis
+    #     mgain = np.ones(len(modes2V)) * gain  # Initialize the gain
+    #     ctrl.set_matE(modes2V)
+    #     ctrl.set_cmat(cmat)
+    #     if reset_gain:
+    #         ctrl.set_modal_gains(mgain)
 
-    def leaveModalGain(self, control=0):
-        ctrl = self._sim.rtc.d_control[control]
-        ctrl.set_commandlaw('integrator')
+    # def leaveModalGain(self, control=0):
+    #     ctrl = self._sim.rtc.d_control[control]
+    #     ctrl.set_commandlaw('integrator')
 
 if __name__ == '__main__':
     from docopt import docopt
@@ -360,7 +361,7 @@ if __name__ == '__main__':
     if (arguments["--delay"]):
         print("Warning changed delay loop to: ", arguments["--delay"])
         supervisor.config.p_controllers[0].set_delay(float(arguments["--delay"]))
-    supervisor.init_config()
+    supervisor.init()
 
     try:
         from subprocess import Popen, PIPE

@@ -35,6 +35,7 @@
 #  You should have received a copy of the GNU Lesser General Public License along with COMPASS.
 #  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 from shesha.init.atmos_init import atmos_init
+from shesha.constants import CONST
 import numpy as np
 from typing import List
 
@@ -75,7 +76,7 @@ class AtmosCompass(object):
         """
         self.is_enable = enable
 
-    def set_r0(self, r0 : float, reset_seed : int=-1) -> None:
+    def set_r0(self, r0 : float, *, reset_seed : int=-1) -> None:
         """ Change the current r0 for all layers
 
         Parameters:

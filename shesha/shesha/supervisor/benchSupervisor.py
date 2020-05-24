@@ -243,15 +243,7 @@ class BenchSupervisor(AoSupervisor):
         self.dm_get_callback = dm_get_callback
         self.dm_set_callback = dm_set_callback
 
-    def is_init(self) -> bool:
-        """ Return the status on COMPASS init
-
-        Return:
-            is_init : (bool) : Status of the initialisation
-        """
-        return self.is_init
-
-    def init_config(self) -> None:
+    def init(self) -> None:
         """ Initialize the bench
         """
         print("->RTC")
@@ -352,7 +344,7 @@ class BenchSupervisor(AoSupervisor):
         self.is_init = True
         print("RTC initialized")
 
-    def adaptiveWindows(self, init_config=False, centro_index: int = 0):
+    def adaptive_windows(self, init_config=False, centro_index: int = 0):
         """ Re-centre the centroiding boxes around the spots, and loads
         the new box coordinates in the slopes computation supervisor
         pipeline.
@@ -393,7 +385,7 @@ class BenchSupervisor(AoSupervisor):
             self.rtc.d_centro[centro_index].load_validpos(new_i_subap, new_j_subap,
                                                           nsubap)
 
-    def getCurrentWindowsPos(self, centro_index: int = 0):
+    def get_current_windows_pos(self, centro_index: int = 0):
         """ Returns the currently used subapertures positions
 
         Parameters:

@@ -9,27 +9,27 @@ precision = 1e-5
 sup = Supervisor(
         os.getenv("COMPASS_ROOT") +
         "/shesha/tests/pytest/par/test_pyrhr.py")
-sup.init_config()
-sup.single_next()
-sup.open_loop()
-sup.close_loop()
-sup._sim.do_control(0)
+sup.init()
+sup.next()
+sup.rtc.open_loop(0)
+sup.rtc.close_loop(0)
+sup.rtc.do_control(0)
 rtc = Rtc()
-rtc.add_centroider(sup._sim.context, sup.config.p_wfs0._nvalid, 0, sup.config.p_wfs0.pixsize,
+rtc.add_centroider(sup.context, sup.config.p_wfs0._nvalid, 0, sup.config.p_wfs0.pixsize,
                    False, 0, "maskedpix")
-rtc.add_controller(sup._sim.context, sup.config.p_wfs0._nvalid,
+rtc.add_controller(sup.context, sup.config.p_wfs0._nvalid,
                    sup.config.p_controller0.nslope, sup.config.p_controller0.nactu,
                    sup.config.p_controller0.delay, 0, "generic", idx_centro=np.zeros(1), ncentro=1)
 centro = rtc.d_centro[0]
 control = rtc.d_control[0]
 rtc.d_centro[0].set_npix(sup.config.p_wfs0.npix)
-xvalid = np.array(sup._sim.rtc.d_centro[0].d_validx)
-yvalid = np.array(sup._sim.rtc.d_centro[0].d_validy)
+xvalid = np.array(sup.rtc.rtc.d_centro[0].d_validx)
+yvalid = np.array(sup.rtc.rtc.d_centro[0].d_validy)
 rtc.d_centro[0].load_validpos(xvalid, yvalid, xvalid.size)
 cmat = sup.rtc.get_command_matrix(0)
 rtc.d_control[0].set_cmat(cmat)
 rtc.d_control[0].set_gain(sup.config.p_controller0.gain)
-frame = sup.get_wfs_image(0)
+frame = sup.wfs.get_wfs_image(0)
 frame /= frame.max()
 rtc.d_centro[0].load_img(frame, frame.shape[0])
 rtc.d_centro[0].calibrate_img()

@@ -12,18 +12,18 @@ dec = 5
 sup = Supervisor(
         os.getenv("COMPASS_ROOT") + "/shesha/data/par/par4bench/scao_sh_80x80_8pix.py")
 sup.config.p_controller0.set_type("generic")
-sup.init_config()
-sup.single_next()
-xvalid = np.array(sup._sim.rtc.d_centro[0].d_validx)
-yvalid = np.array(sup._sim.rtc.d_centro[0].d_validy)
+sup.init()
+sup.next()
+xvalid = np.array(sup.rtc.rtc.d_centro[0].d_validx)
+yvalid = np.array(sup.rtc.rtc.d_centro[0].d_validy)
 cmat = sup.rtc.get_command_matrix(0)
-frame = sup.get_wfs_image(0)
+frame = sup.wfs.get_wfs_image(0)
 frame /= frame.max()
 
 rtc = Rtc()
-rtc.add_centroider(sup._sim.context, sup.config.p_wfs0._nvalid,
+rtc.add_centroider(sup.context, sup.config.p_wfs0._nvalid,
                    sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize, False, 0, "cog")
-rtc.add_controller(sup._sim.context, sup.config.p_wfs0._nvalid, sup.config.p_wfs0._nvalid * 2,
+rtc.add_controller(sup.context, sup.config.p_wfs0._nvalid, sup.config.p_wfs0._nvalid * 2,
                    sup.config.p_controller0.nactu, sup.config.p_controller0.delay, 0,
                    "generic", idx_centro=np.zeros(1), ncentro=1)
 rtc.d_centro[0].set_npix(sup.config.p_wfs0.npix)
@@ -33,10 +33,10 @@ rtc.d_control[0].set_gain(sup.config.p_controller0.gain)
 rtc.d_centro[0].load_img(frame, frame.shape[0])
 
 rtcH = RtcH()
-rtcH.add_centroider(sup._sim.context, sup.config.p_wfs0._nvalid,
+rtcH.add_centroider(sup.context, sup.config.p_wfs0._nvalid,
                     sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize, False, 0,
                     "cog")
-rtcH.add_controller(sup._sim.context, sup.config.p_wfs0._nvalid, sup.config.p_wfs0._nvalid * 2,
+rtcH.add_controller(sup.context, sup.config.p_wfs0._nvalid, sup.config.p_wfs0._nvalid * 2,
                     sup.config.p_controller0.nactu, sup.config.p_controller0.delay, 0,
                     "generic", idx_centro=np.zeros(1), ncentro=1)
 rtcH.d_centro[0].set_npix(sup.config.p_wfs0.npix)

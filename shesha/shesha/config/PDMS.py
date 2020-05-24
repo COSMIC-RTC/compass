@@ -54,6 +54,7 @@ class Param_dm:
         self.__coupling = 0.2  # Actuator coupling (< .3)
         self.__gain = 1.0  # Actuator gains
         self.__pupoffset = np.array([0, 0])
+        self.__dim_screen = 0 # Phase screen dimension
         # Global offset in pupil (x,y) of the whole actuator pattern
 
         self.__unitpervolt = 0.01
@@ -280,6 +281,22 @@ class Param_dm:
         self.__gain = csu.enforce_float(g)
 
     gain = property(get_gain, set_gain)
+
+    def _get_dim_screen(self):
+        """ Get the phase screen dimension
+
+        :return: (long) : phase screen dimension
+        """
+        return self.__dim_screen
+
+    def _set_dim_screen(self, n):
+        """ Set the phase screen dimension
+
+        :param n: (long) : phase screen dimension
+        """
+        self.__dim_screen = csu.enforce_int(n)
+
+    _dim_screen = property(_get_dim_screen, _set_dim_screen)
 
     def get_nkl(self):
         """ Get the number of KL modes used for computation of covmat in case of minimum variance controller

@@ -122,7 +122,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
         self.uiBench.wao_run.clicked[bool].connect(self.aoLoopClicked)
         self.uiBench.wao_open_loop.setCheckable(True)
         self.uiBench.wao_open_loop.clicked[bool].connect(self.aoLoopOpen)
-        self.uiBench.wao_next.clicked.connect(self.loopOnce)
+        self.uiBench.wao_next.clicked.connect(self.loop_once)
 
         self.uiBench.wao_forever.stateChanged.connect(self.updateForever)
 
@@ -210,7 +210,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
             self.refreshTime = time.time()
             self.nbiter = self.uiBench.wao_nbiters.value()
             if self.dispStatsInTerminal:
-                if self.uiBench.wao_forever.isChecked():
+                if self.uiBench.wao_forever.is_checked():
                     print("LOOP STARTED")
                 else:
                     print("LOOP STARTED FOR %d iterations" % self.nbiter)
@@ -263,7 +263,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
 
     def updateDisplay(self) -> None:
         if (self.supervisor is None) or (not self.supervisor.is_init()) or (
-                not self.uiBase.wao_Display.isChecked()):
+                not self.uiBase.wao_Display.is_checked()):
             # print("Widget not fully initialized")
             return
         if not self.loopLock.acquire(False):
@@ -279,7 +279,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
                         if "wfs" in key:
                             data = self.supervisor.wfs.get_wfs_image(index)
                             if (data is not None):
-                                autoscale = True  # self.uiBench.actionAuto_Scale.isChecked()
+                                autoscale = True  # self.uiBench.actionAuto_Scale.is_checked()
                                 # if (autoscale):
                                 #     # inits levels
                                 #     self.hist.setLevels(data.min(), data.max())
@@ -308,7 +308,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
             finally:
                 self.loopLock.release()
 
-    def loopOnce(self) -> None:
+    def loop_once(self) -> None:
         if not self.loopLock.acquire(False):
             print("Display locked")
             return
@@ -330,7 +330,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
 
     def run(self):
         WidgetBase.run(self)
-        if not self.uiBench.wao_forever.isChecked():
+        if not self.uiBench.wao_forever.is_checked():
             self.nbiter -= 1
 
         if self.nbiter <= 0:

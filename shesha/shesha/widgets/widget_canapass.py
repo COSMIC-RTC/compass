@@ -71,7 +71,7 @@ class widgetCanapassWindowPyro(widgetAOWindow):
 
     def __init__(self, config_file: Any = None, cacao: bool = False,
                  expert: bool = False) -> None:
-        widgetAOWindow.__init__(self, config_file, cacao, hideHistograms=True)
+        widgetAOWindow.__init__(self, config_file, cacao, hide_histograms=True)
         #Pyro.core.ObjBase.__init__(self)
 
         self.CB = {}
@@ -83,17 +83,16 @@ class widgetCanapassWindowPyro(widgetAOWindow):
         # Default path for config files
         #self.uiAO.wao_open_loop.setChecked(False)
         #self.uiAO.wao_open_loop.setText("Close Loop")
-        self.uiAO.actionShow_Pyramid_Tools.toggled.connect(self.showPyrTools)
+        self.uiAO.actionShow_Pyramid_Tools.toggled.connect(self.show_pyr_tools)
         self.wpyrNbBuffer = 1
         #############################################################
         #                       METHODS                             #
         #############################################################
 
     def init_config(self) -> None:
-        self.supervisor.clear_init_sim()
         widgetAOWindow.init_config(self)
         global server
-        server = self.startPyroServer()
+        server = self.start_pyro_server()
 
     def load_config(self, *args, config_file=None, supervisor=None) -> None:
         '''
@@ -105,13 +104,13 @@ class widgetCanapassWindowPyro(widgetAOWindow):
         widgetAOWindow.load_config(self, args, config_file=config_file,
                                   supervisor=supervisor)
 
-    def loopOnce(self) -> None:
-        widgetAOWindow.loopOnce(self)
-        if (self.uiAO.actionShow_Pyramid_Tools.isChecked()):  # PYR only
+    def loop_once(self) -> None:
+        widgetAOWindow.loop_once(self)
+        if (self.uiAO.actionShow_Pyramid_Tools.is_checked()):  # PYR only
             self.wpyr.Fe = 1 / self.config.p_loop.ittime  # needs Fe for PSD...
             if (self.wpyr.CBNumber == 1):
                 self.ai = self.compute_modal_residuals()
-                self.setPyrToolsParams(self.ai)
+                self.set_pyr_tools_params(self.ai)
             else:
                 if (self.current_buffer == 1):  # First iter of the CB
                     aiVect = self.compute_modal_residuals()
@@ -125,12 +124,12 @@ class widgetCanapassWindowPyro(widgetAOWindow):
                         self.current_buffer += 1  # Keep going
                     else:
                         self.current_buffer = 1  # reset buffer
-                        self.setPyrToolsParams(self.ai)  # display
+                        self.set_pyr_tools_params(self.ai)  # display
 
-    def next(self, nbIters, see_atmos=True):
+    def next(self, nbIters):
         ''' Move atmos -> get_slopes -> applyControl ; One integrator step '''
         for i in trange(nbIters):
-            self.supervisor.single_next(show_atmos=see_atmos)
+            self.supervisor.next()
 
     def initPyrTools(self):
         ADOPTPATH = os.getenv("ADOPTPATH")
@@ -141,16 +140,16 @@ class widgetCanapassWindowPyro(widgetAOWindow):
         self.wpyrNbBuffer = self.wpyr.CBNumber
         self.wpyr.show()
 
-    def setPyrToolsParams(self, ai):
-        self.wpyr.pup = self.supervisor.get_pupil("spupil")
+    def set_pyr_tools_params(self, ai):
+        self.wpyr.pup = self.supervisor.config.p_geom._spupil
         self.wpyr.phase = self.supervisor.target.get_tar_phase(0, pupil=True)
         self.wpyr.updateResiduals(ai)
-        if (self.supervisor.phase_to_modes is None):
+        if (self.phase_to_modes is None):
             print('computing phase 2 Modes basis')
-            self.supervisor.compute_phase_to_modes()
-        self.wpyr.phase_to_modes = self.supervisor.phase_to_modes
+            self.phase_to_modes = self.supervisor.basis.compute_phase_to_modes(self.modal_basis)
+        self.wpyr.phase_to_modes = self.phase_to_modes
 
-    def showPyrTools(self):
+    def show_pyr_tools(self):
         if (self.wpyr is None):
             try:
                 print("Lauching pyramid widget...")
@@ -159,7 +158,7 @@ class widgetCanapassWindowPyro(widgetAOWindow):
             except:
                 raise ValueError("ERROR: ADOPT  not found. Cannot launch Pyramid tools")
         else:
-            if (self.uiAO.actionShow_Pyramid_Tools.isChecked()):
+            if (self.uiAO.actionShow_Pyramid_Tools.is_checked()):
                 self.wpyr.show()
             else:
                 self.wpyr.hide()
@@ -167,7 +166,7 @@ class widgetCanapassWindowPyro(widgetAOWindow):
     def getAi(self):
         return self.wpyr.ai
 
-    def startPyroServer(self):
+    def start_pyro_server(self):
         try:
             from subprocess import Popen, PIPE
             from hraa.server.pyroServer import PyroServer

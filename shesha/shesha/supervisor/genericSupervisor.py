@@ -155,6 +155,8 @@ class GenericSupervisor(object):
                 self._init_wfs()
             if self.config.p_controllers is not None or self.config.p_centroiders is not None:
                 self._init_rtc()
+        else:
+            raise RuntimeError("Configuration not loaded")
         self.is_init = True
     
     @abstractmethod
@@ -192,30 +194,6 @@ class GenericSupervisor(object):
         """ Initialize the rtc component of the supervisor
         """
         pass
-
-    def apply_volts_and_get_slopes(self, controller_index: int, noise: bool = False,
-                                   turbu: bool = False, reset: bool = True):
-        """ Apply voltages, raytrace, compute WFS image, compute slopes and returns it
-
-        Parameters:
-            controller_index : (int) : Controller index
-
-            noise : (bool, optional) : Flag to enable noise for WFS image compuation. Default is False
-
-            turbu : (bool, optional) : Flag to enable atmosphere for WFS phase screen raytracing.
-                                       Default is False
-
-            reset : (bool, optional) : Flag to reset previous phase screen before raytracing.
-                                       Default is True
-        """
-        self.rtc.apply_control(controller_index)
-        for w in range(len(self.config.p_wfss)):
-            if (turbu):
-                self.wfs.raytrace(w, tel=self.tel, atm=self.atmos, dms=self.dms)
-            else:
-                self.wfs.raytrace(w, dms=self.dms, reset=reset)
-            self.wfs.compute_wfs_image(w, noise=noise)
-        return self.rtc.compute_slopes(controller_index)
 
     def next(self, *, move_atmos: bool = True, nControl: int = 0,
              tar_trace: Iterable[int] = None, wfs_trace: Iterable[int] = None,
@@ -325,8 +303,8 @@ class GenericSupervisor(object):
                 self.next(compute_tar_psf=compute_tar_psf, **kwargs)
                 if ((self.iter + 1) % monitoring_freq == 0):
                     if not compute_tar_psf:
-                        self.comp_tar_image()
-                        self.comp_strehl()
+                        self.comp_tar_image(0)
+                        self.comp_strehl(0)
                     self._print_strehl(monitoring_freq, time.time() - t1, number_of_iter)
                     t1 = time.time()
 
@@ -334,8 +312,8 @@ class GenericSupervisor(object):
             self.next(compute_tar_psf=compute_tar_psf, **kwargs)
             if ((self.iter + 1) % monitoring_freq == 0):
                 if not compute_tar_psf:
-                    self.comp_tar_image()
-                    self.comp_strehl()
+                    self.comp_tar_image(0)
+                    self.comp_strehl(0)
                 self._print_strehl(monitoring_freq, time.time() - t1, number_of_iter)
                 t1 = time.time()
         t1 = time.time()
@@ -347,7 +325,7 @@ class GenericSupervisor(object):
         """
         self.atmos.reset_turbu()
         self.wfs.reset_noise()
-        for tar_index in range(self._sim.tar.ntargets):
+        for tar_index in range(len(self.config.p_targets)):
             self.target.reset_strehl(tar_index)
         self.dms.reset_dm()
         self.rtc.open_loop()

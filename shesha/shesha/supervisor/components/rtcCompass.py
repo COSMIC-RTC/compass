@@ -48,8 +48,10 @@ class RtcCompass(object):
         context : (carmaContext) : CarmaContext instance
 
         config : (config module) : Parameters configuration structure module    
+
+        cacao : (bool) : CACAO features enabled in the RTC  
     """
-    def __init__(self, context, config, tel, wfs, dms, atm):
+    def __init__(self, context, config, tel, wfs, dms, atm, cacao=False):
         """ Initialize a RtcCompass component for rtc related supervision
 
         Parameters:
@@ -64,15 +66,19 @@ class RtcCompass(object):
             dms : (DmCompass) : A DmCompass instance
 
             atm : (AtmosCompass) : An AtmosCompass instance
+
+            cacao : (bool, optional) : If True, enables CACAO features in RTC (Default is False)
+                                      /!\ Requires OCTOPUS to be installed
         """
         self.context = context
         self.config = config # Parameters configuration coming from supervisor init
+        self.cacao = cacao
         print("->rtc init")
         self.rtc = rtc_init(self.context, tel.tel, wfs.wfs, dms.dms, atm.atmos,
                                 self.config.p_wfss, self.config.p_tel,
                                 self.config.p_geom, self.config.p_atmos, self.config.p_loop.ittime,
                                 self.config.p_centroiders, self.config.p_controllers,
-                                self.config.p_dms, brahma=False)
+                                self.config.p_dms, cacao=cacao)
 
     def set_perturbation_voltage(self, controller_index: int, name: str,
                                  command: np.ndarray) -> None:
@@ -118,18 +124,18 @@ class RtcCompass(object):
         else:
             self.rtc.d_control[controller_index].set_open_loop(0)  # close_loop
 
-    def open_loop(self, controller_index: int=None, rst=True) -> None:
+    def open_loop(self, controller_index: int=None, reset=True) -> None:
         """ Integrator computation goes to /dev/null but pertuVoltage still applied
 
         Parameters:
             controller_index: (int): controller index.
                                      If None (default), apply on all controllers
 
-            rst : (bool, optional) : If True (default), integrator is reset
+            reset : (bool, optional) : If True (default), integrator is reset
         """
         if controller_index is None:
             for controller in self.rtc.d_control:
-                controller.set_open_loop(1, rst)
+                controller.set_open_loop(1, reset)
         else:
             self.rtc.d_control[controller_index].set_open_loop(1, rst)  # open_loop
 
@@ -380,26 +386,26 @@ class RtcCompass(object):
         print("PYR method set to " + self.rtc.d_centro[centro_index].pyr_method)
 
 
-    def set_modal_gains(self, mgain: np.ndarray, controller_index: int) -> None:
+    def set_modal_gains(self, controller_index: int, mgain: np.ndarray) -> None:
         """ Sets the modal gain (when using modal integrator control law)
 
         Parameters:
+            controller_index : (int) : Controller index to modify
+            
             mgain : (np.ndarray) : Modal gains to set
-
-            controller_index : (int, optional) : Controller index to modify. Default is 0
         """
-        self.rtc.d_control[control].set_modal_gains(mgain)
+        self.rtc.d_control[controller_index].set_modal_gains(mgain)
 
     def get_modal_gains(self, controller_index: int) -> np.ndarray:
         """ Returns the modal gains (when using modal integrator control law)
 
         Parameters:
-            controller_index : (int, optional) : Controller index to modify. Default is 0
+            controller_index : (int) : Controller index to modify
 
         Return:
             mgain : (np.ndarray) : Modal gains vector currently used
         """
-        return np.array(self.rtc.d_control[control].d_gain)
+        return np.array(self.rtc.d_control[controller_index].d_gain)
 
     def get_masked_pix(self, centro_index: int) -> np.ndarray:
         """ Return the mask of valid pixels used by a maskedpix centroider
@@ -410,13 +416,36 @@ class RtcCompass(object):
         Return:
             mask : (np.ndarray) : Mask used
         """
-        if (self.rtc.d_centro[centro_index].type != CentroiderType.MASKEDPIX):
+        if (self.rtc.d_centro[centro_index].type != scons.CentroiderType.MASKEDPIX):
             raise TypeError("Centroider must be a maskedpix one")
         self.rtc.d_centro[centro_index].fill_mask()
         return np.array(self.rtc.d_centro[centro_index].d_mask)
 
+    def get_command(self, controller_index: int) -> np.ndarray:
+        """ Returns the last computed command before conversion to voltages
+
+        Parameters:
+            controller_index : (int, optional) : Controller index
+
+        Return:
+            com : (np.ndarray) : Command vector
+        """
+        return np.array(self.rtc.d_control[controller_index].d_com)
+
+    def set_command(self, controller_index: int, com : np.ndarray) -> np.ndarray:
+        """ Returns the last computed command before conversion to voltages
+
+        Parameters:
+            controller_index : (int, optional) : Controller index
+
+            com : (np.ndarray) : Command vector to set
+        """
+        if(com.size != self.config.p_controllers[controller_index].nactu):
+            raise ValueError("Dimension mismatch")
+        self.rtc.d_control[controller_index].set_com(com, com.size)
+
     def reset_command(self, controller_index: int = None) -> None:
-        """ Reset the controller_index Controller command buffer, reset all controllers if controller_index  == -1
+        """ Reset the controller_index Controller command buffer, reset all controllers if controller_index is None
 
         Parameters:
             controller_index : (int, optional) : Controller index
@@ -529,3 +558,23 @@ class RtcCompass(object):
             controller_index: (int): controller index
         """
         self.rtc.do_clipping(controller_index)
+
+    def set_scale(self, centroider_index : int, scale : float) -> None:
+        """ Update the scale factor of the centroider
+
+        Parameters:
+            centroider_index : (int) : Index of the centroider to update
+
+            scale : (float) : scale factor to apply on slopes
+        """
+        self.rtc.d_centro[centroider_index].set_scale(scale)
+
+    def publish(self) -> None:
+        """ Publish loop data on DDS topics
+
+        /!\ only with cacao enabled, requires OCTOPUS
+        """
+        if self.cacao:
+            self.rtc.rtc.publish()
+        else:
+            raise AttributeError("CACAO must be enabled")

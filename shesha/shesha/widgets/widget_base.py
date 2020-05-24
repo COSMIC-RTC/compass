@@ -78,7 +78,7 @@ class PupilBoxes(pg.QtGui.QGraphicsPathItem):
 
 class WidgetBase(BaseClassTemplate):
 
-    def __init__(self, parent=None, hideHistograms=False) -> None:
+    def __init__(self, parent=None, hide_histograms=False) -> None:
         BaseClassTemplate.__init__(self, parent=parent)
 
         self.uiBase = BaseWidgetTemplate()
@@ -90,11 +90,11 @@ class WidgetBase(BaseClassTemplate):
 
         self.gui_timer = QTimer()  # type: QTimer
         self.gui_timer.timeout.connect(self.updateDisplay)
-        if self.uiBase.wao_Display.isChecked():
+        if self.uiBase.wao_Display.is_checked():
             self.gui_timer.start(1000. / self.uiBase.wao_frameRate.value())
         self.loopLock = threading.Lock(
         )  # type: Threading.Lock # Asynchronous loop / display safe-threading
-        self.hideHistograms = hideHistograms
+        self.hide_histograms = hide_histograms
         #############################################################
         #               PYQTGRAPH DockArea INIT                     #
         #############################################################
@@ -243,7 +243,7 @@ class WidgetBase(BaseClassTemplate):
 
     def update_displayDock(self):
         guilty_guy = self.sender().text()
-        state = self.sender().isChecked()
+        state = self.sender().is_checked()
         if state:
             self.area.addDock(self.docks[guilty_guy])
         elif self.docks[guilty_guy].isVisible():
@@ -271,7 +271,7 @@ class WidgetBase(BaseClassTemplate):
             iv = pg.ImageView(view=viewbox, imageItem=img)
             viewbox.invertY(False)
 
-            if (self.hideHistograms):
+            if (self.hide_histograms):
                 iv.ui.histogram.hide()
             iv.ui.histogram.autoHistogramRange()  # init levels
             iv.ui.histogram.setMaximumWidth(100)
@@ -392,7 +392,7 @@ class WidgetBase(BaseClassTemplate):
         print(text, end='\r', flush=True)
 
     def run(self):
-        self.loopOnce()
+        self.loop_once()
         if not self.stop:
             QTimer.singleShot(0, self.run)  # Update loop
 

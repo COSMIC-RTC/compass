@@ -90,8 +90,8 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
 
     def __init__(self, config_file: Any = None, cacao: bool = False,
                  expert: bool = False, devices: str = None,
-                 hideHistograms: bool = False) -> None:
-        WidgetBase.__init__(self, hideHistograms=hideHistograms)
+                 hide_histograms: bool = False) -> None:
+        WidgetBase.__init__(self, hide_histograms=hide_histograms)
         AOClassTemplate.__init__(self)
 
         self.cacao = cacao
@@ -131,7 +131,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         self.uiAO.wao_run.clicked[bool].connect(self.aoLoopClicked)
         self.uiAO.wao_open_loop.setCheckable(True)
         self.uiAO.wao_open_loop.clicked[bool].connect(self.aoLoopOpen)
-        self.uiAO.wao_next.clicked.connect(self.loopOnce)
+        self.uiAO.wao_next.clicked.connect(self.loop_once)
         self.uiAO.wao_resetSR.clicked.connect(self.resetSR)
         # self.uiAO.wao_actionHelp_Contents.triggered.connect(self.on_help_triggered)
 
@@ -214,7 +214,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         self.supervisor.atmos.enable_atmos(atmos)
 
     def resetSR(self) -> None:
-        if self.uiAO.wao_allTarget.isChecked():
+        if self.uiAO.wao_allTarget.is_checked():
             for t in range(len(self.config.p_targets)):
                 self.supervisor.target.reset_strehl(t)
         else:
@@ -353,7 +353,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             self.refreshTime = time.time()
             self.nbiter = self.uiAO.wao_nbiters.value()
             if self.dispStatsInTerminal:
-                if self.uiAO.wao_forever.isChecked():
+                if self.uiAO.wao_forever.is_checked():
                     print("LOOP STARTED")
                 else:
                     print("LOOP STARTED FOR %d iterations" % self.nbiter)
@@ -537,7 +537,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                             data = self.supervisor.target.get_tar_image(index, "se")
 
                         if "psf" in key:
-                            if (self.uiAO.actionPSF_Log_Scale.isChecked()):
+                            if (self.uiAO.actionPSF_Log_Scale.is_checked()):
                                 if np.any(data <= 0):
                                     # warnings.warn("\nZeros founds, filling with min nonzero value.\n")
                                     data[data <= 0] = np.min(data[data > 0])
@@ -560,7 +560,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                             data = self.supervisor.wfs.get_pyr_focal_plane(index)
 
                         if (data is not None):
-                            autoscale = True  # self.uiAO.actionAuto_Scale.isChecked()
+                            autoscale = True  # self.uiAO.actionAuto_Scale.is_checked()
                             # if (autoscale):
                             #     # inits levels
                             #     self.hist.setLevels(data.min(), data.max())
@@ -611,7 +611,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
     def updateCurrentLoopFrequency(self, freq):
         self.uiAO.wao_currentFreq.setValue(freq)
 
-    def loopOnce(self) -> None:
+    def loop_once(self) -> None:
         if not self.loopLock.acquire(False):
             print("Display locked")
             return
@@ -660,7 +660,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
 
     def run(self):
         WidgetBase.run(self)
-        if not self.uiAO.wao_forever.isChecked():
+        if not self.uiAO.wao_forever.is_checked():
             self.nbiter -= 1
 
         if self.nbiter <= 0:
