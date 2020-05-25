@@ -79,18 +79,16 @@ p_dm1 = conf.Param_dm()
 p_dms = [p_dm0, p_dm1]
 p_dm0.set_type("pzt")
 # nact = p_wfs0.nxsub + 1
-nact = 48  # was 60 before cf ALPAO
+nact = 54 # was 60 before cf ALPAO 
 p_dm0.set_nact(nact)
-p_dm0.set_alt(0.)  # Layers altitudes
-p_dm0.set_thresh(
-        0.3
-)  # Threshold on response for selection of valid actuators. Expressed in fraction of the maximal response
-p_dm0.set_coupling(
-        0.2)  #valeur que prend la fonctiond'influence a l'endroit de l'actionneur voisin
-p_dm0.set_unitpervolt(1)  #
-p_dm0.set_push4imat(0.01)  # Nominal voltage for imat,
-p_dm0.set_margin_out(0.3)  # pour adapter la taille de la pupille du DM a celle du WFS
-p_dm0.set_influ_type("radialSchwartz")
+p_dm0.set_alt(0.) # Layers altitudes
+p_dm0.set_thresh(0.3) # Threshold on response for selection of valid actuators. Expressed in fraction of the maximal response
+p_dm0.set_unitpervolt(1) # 
+p_dm0.set_coupling(0.2) #valeur que prend la fonctiond'influence a l'endroit de l'actionneur voisin
+p_dm0.set_push4imat(0.01) # Nominal voltage for imat, 
+p_dm0.set_margin_out(0.3) # pour adapter la taille de la pupille du DM a celle du WFS
+p_dm0.set_influType("radialSchwartz")
+p_dm0.set_margin_out(4) #DIRTY WAY TO REMOVE THE REBEL ACTUATOR 
 
 p_dm1.set_type("tt")
 p_dm1.set_alt(0.)
