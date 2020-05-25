@@ -81,7 +81,7 @@ class Calibration(object):
         self.rtc = rtc
         self.wfs = wfs
 
-    def apply_volts_and_get_slopes(self, controller_index: int, noise: bool = False,
+    def apply_volts_and_get_slopes(self, controller_index: int, *, noise: bool = False,
                                    turbu: bool = False, reset: bool = True):
         """ Apply voltages, raytrace, compute WFS image, compute slopes and returns it
 
@@ -106,7 +106,7 @@ class Calibration(object):
         return self.rtc.compute_slopes(controller_index)
 
     def do_imat_modal(self, controller_index : int, ampli : np.ndarray, modal_basis : np.ndarray, 
-                      noise : bool=False, nmodes_max : int=0, with_turbu : bool=False, push_pull : bool=False) -> np.ndarray:
+                      *, noise : bool=False, nmodes_max : int=0, with_turbu : bool=False, push_pull : bool=False) -> np.ndarray:
         """ Computes an interaction matrix from provided modal basis
 
         Parameters:
@@ -157,7 +157,7 @@ class Calibration(object):
             self.rtc.close_loop(controller_index)  # We are supposed to be in close loop now
         return modal_imat
 
-    def do_imat_phase(self, controller_index: int, cube_phase: np.ndarray, noise : bool=False,
+    def do_imat_phase(self, controller_index: int, cube_phase: np.ndarray, *, noise : bool=False,
                       nmodes_max : int=0, with_turbu : bool=False, push_pull : bool=False, wfs_index : int=0) -> np.ndarray:
         """ Computes an interaction matrix with the provided cube phase
 
@@ -205,7 +205,7 @@ class Calibration(object):
         return imat_phase
 
     def compute_modal_residuals(self, projection_matrix : np.ndarray, 
-                                selected_actus : np.ndarray=None) -> np.ndarray:
+                                *, selected_actus : np.ndarray=None) -> np.ndarray:
         """ Computes the modal residual coefficients of the residual phase.
 
         /!\ It supposed that roket is enabled, and the associated GEO controller is index 1.

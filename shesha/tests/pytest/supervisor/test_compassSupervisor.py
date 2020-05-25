@@ -34,7 +34,7 @@ def test_set_r0():
     assert(sup.config.p_atmos.r0 == 0.15)
 
 def test_set_wind():
-    sup.atmos.set_wind(0,10,45)
+    sup.atmos.set_wind(0,windspeed=10, winddir=45)
     assert(True)
 
 def test_reset_turbu():

@@ -98,7 +98,7 @@ class AtmosCompass(object):
                 ilayer += 1
         self.config.p_atmos.set_r0(r0)
 
-    def set_wind(self, screen_index : int, windspeed : float = None, winddir : float = None) -> None:
+    def set_wind(self, screen_index : int, *, windspeed : float = None, winddir : float = None) -> None:
         """ Set new wind information for the given screen
 
         Parameters:

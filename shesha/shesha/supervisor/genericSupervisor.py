@@ -258,7 +258,7 @@ class GenericSupervisor(object):
         self.iter += 1
 
     def _print_strehl(self, monitoring_freq: int, iters_time: float, total_iters: int,
-                     tar_index: int=0):
+                     *, tar_index: int=0):
         """ Print the Strehl ratio SE and LE from a target on the terminal, the estimated remaining time and framerate
 
         Parameters:

@@ -51,7 +51,7 @@ class RtcCompass(object):
 
         cacao : (bool) : CACAO features enabled in the RTC  
     """
-    def __init__(self, context, config, tel, wfs, dms, atm, cacao=False):
+    def __init__(self, context, config, tel, wfs, dms, atm, *, cacao=False):
         """ Initialize a RtcCompass component for rtc related supervision
 
         Parameters:
@@ -139,7 +139,7 @@ class RtcCompass(object):
         else:
             self.rtc.d_control[controller_index].set_open_loop(1, reset)  # open_loop
 
-    def set_ref_slopes(self, ref_slopes: np.ndarray, centro_index=None) -> None:
+    def set_ref_slopes(self, ref_slopes: np.ndarray, *, centro_index=None) -> None:
         """ Set given ref slopes in centroider
 
         Parameters:
@@ -541,7 +541,7 @@ class RtcCompass(object):
         """
         self.rtc.do_centroids_geom(controller_index)
 
-    def apply_control(self, controller_index: int, comp_voltage: bool = True) -> None:
+    def apply_control(self, controller_index: int, *, comp_voltage: bool = True) -> None:
         """ Computes the final voltage vector to apply on the DM by taking into account delay and perturbation voltages, and shape the DMs
 
         Parameters :

@@ -149,7 +149,7 @@ class ModalBasis(object):
 
         return self.modal_basis, self.projection_matrix
 
-    def compute_btt_basis(self, merged: bool = False, nbpairs: int = None,
+    def compute_btt_basis(self, *, merged: bool = False, nbpairs: int = None,
                           return_delta: bool = False) -> np.ndarray:
         """ Computes the so-called Btt modal basis. The <merged> flag allows merto merge
         2x2 the actuators influence functions for actuators on each side of the spider (ELT case)
@@ -210,7 +210,7 @@ class ModalBasis(object):
 
         return self.btt, self.projection_matrix
 
-    def compute_merged_influ(self, dm_index : int, nbpairs: int = None) -> np.ndarray:
+    def compute_merged_influ(self, dm_index : int, *, nbpairs: int = None) -> np.ndarray:
         """ Used to compute merged IF from each side of the spider
         for an ELT case (Petalling Effect)
 
