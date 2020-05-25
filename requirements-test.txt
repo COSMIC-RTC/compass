@@ -1,4 +1,7 @@
 coverage
 pytest-cov
+pytest-cover
+pytest-coverage
 pytest-html
+pytest-metadata
 tabulate

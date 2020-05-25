@@ -89,27 +89,6 @@ master_pytests:
     - master
     - tags
 
-# pages-doc:
-#   stage: deploy
-#   variables:
-#     COMPASS_ROOT: /builds/compass/compass
-#     SHESHA_ROOT: $COMPASS_ROOT/shesha
-#     NAGA_ROOT: $COMPASS_ROOT/naga
-#   dependencies:
-#     - build_release
-#   script:
-#   - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
-#   - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
-#   - pip install -r requirements.txt
-#   - pip install -r requirements-doc.txt
-#   - doxygen doc/Doxyfile
-#   - doc/correctDoxygen.sh
-#   artifacts:
-#     paths:
-#     - public
-#   when: manual #always
-#   # only: master
-
 pages:
   stage: deploy
   variables:
@@ -117,13 +96,38 @@ pages:
     SHESHA_ROOT: $COMPASS_ROOT/shesha
     NAGA_ROOT: $COMPASS_ROOT/naga
   dependencies:
+    - build_debug
     - pytests
   script:
-    - pip install -r requirements-test.txt
-    - coverage html -d public
+  - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
+  - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
+  - pip install -r requirements.txt
+  - pip install -r requirements-test.txt
+  - pip install -r requirements-doc.txt
+  - ./generate_reports.sh
+
+
   artifacts:
     paths:
     - public
-  when: always
+  when: always  # manual / always
   only:
     - develop
+
+# pages:
+#   stage: deploy
+#   variables:
+#     COMPASS_ROOT: /builds/compass/compass
+#     SHESHA_ROOT: $COMPASS_ROOT/shesha
+#     NAGA_ROOT: $COMPASS_ROOT/naga
+#   dependencies:
+#     - pytests
+#   script:
+#     - pip install -r requirements-test.txt
+#     - coverage html -d public
+#   artifacts:
+#     paths:
+#     - public
+#   when: always
+#   only:
+#     - develop

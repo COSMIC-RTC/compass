@@ -32,7 +32,11 @@ python -m $script osef --displayResult --repportResult=report_E2E.md
 
 doxygen doc/Doxyfile
 
-doc/correctDoxygen.sh
+# mv doc/doxygen-doc/public . # uncomment for V5.0
+doc/correctDoxygen_gitlab.sh
+
+mkdir -p public/coverage
+coverage html -d public/coverage
 
 echo 'Documentation generated in public/. To Publish it:'
 echo 'rsync -PaW --inplace --del public/* lesia:compass-doc/html'
