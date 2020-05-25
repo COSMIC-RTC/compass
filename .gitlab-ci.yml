@@ -47,7 +47,7 @@ build_debug:
   script:
     - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
-    - ./compile.sh
+    - $COMPASS_ROOT/compile.sh
   when: always
   only:
     - develop
@@ -68,7 +68,7 @@ pytests:
     - export PYTHONPATH=$NAGA_ROOT:$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
     - pip install -r requirements-test.txt
-    - ./generate_coverage.sh
+    - $COMPASS_ROOT/doc/generate_coverage.sh
     - coverage report
   coverage: '/^TOTAL.*\s+(\d+\%)$/'
   artifacts:
@@ -99,14 +99,12 @@ pages:
     - build_debug
     - pytests
   script:
-  - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
-  - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
-  - pip install -r requirements.txt
-  - pip install -r requirements-test.txt
-  - pip install -r requirements-doc.txt
-  - ./generate_reports.sh
-
-
+    - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
+    - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
+    - pip install -r requirements.txt
+    - pip install -r requirements-test.txt
+    - pip install -r requirements-doc.txt
+    - $COMPASS_ROOT/doc/generate_reports.sh
   artifacts:
     paths:
     - public
