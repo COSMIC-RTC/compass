@@ -81,7 +81,7 @@ class CanapassSupervisor(CompassSupervisor):
         """ Returns the configuration in use, in a supervisor specific format """
         return CompassSupervisor.get_config(self)
 
-    def get_configFab(self):
+    def get_config_fab(self):
         aodict = OrderedDict()
         dataDict = {}
         if (root is None):

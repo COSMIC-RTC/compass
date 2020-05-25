@@ -3,7 +3,7 @@ import os
 import numpy as np
 import pytest
 
-sup = CompassSupervisor(os.getenv("COMPASS_ROOT") + "/shesha/tests/pytest/par/test_sh.py")
+sup = CompassSupervisor(os.getenv("COMPASS_ROOT") + "/shesha/tests/pytest/par/test_pyrhr.py")
 
 def test_init():
     sup.init()

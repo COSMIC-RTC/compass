@@ -91,7 +91,7 @@ p_centroider0.set_type("maskedpix")
 p_controller0 = conf.Param_controller()
 p_controllers = [p_controller0]
 
-p_controller0.set_type("ls")
+p_controller0.set_type("generic")
 p_controller0.set_nwfs([0])
 p_controller0.set_ndm([0, 1])
 p_controller0.set_maxcond(100.)
