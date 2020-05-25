@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 sup = CompassSupervisor(os.getenv("COMPASS_ROOT") + "/shesha/tests/pytest/par/test_pyrhr.py")
+sup.config.p_controllers[0].set_type("generic")
 
 def test_init():
     sup.init()
