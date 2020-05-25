@@ -37,6 +37,7 @@
 from shesha.ao import basis
 import shesha.util.utilities as util
 import shesha.util.make_pupil as mkP
+import shesha.constants as scons
 import scipy.ndimage
 from scipy.sparse.csr import csr_matrix
 import numpy as np
@@ -59,6 +60,10 @@ class ModalBasis(object):
         couples_actus : TODO : docstring
 
         index_under_spiders : TODO : docstring
+
+        modal_basis : (np.ndarray) : Last modal basis computed
+
+        projection_matrix : (np.ndarray) : Last projection_matrix computed
     """
     def __init__(self, config, dms, target):
         """ Instantiate a ModalBasis object
@@ -77,6 +82,8 @@ class ModalBasis(object):
         self.selected_actus = None
         self.couples_actus = None
         self.index_under_spiders = None
+        self.modal_basis = None
+        self.projection_matrix = None
 
     def compute_influ_basis(self, dm_index: int) -> csr_matrix:
         """ Computes and return the influence function phase basis of the specified DM
@@ -92,7 +99,7 @@ class ModalBasis(object):
                                               self.config.p_dms[dm_index],
                                               self.config.p_geom)
 
-    def compute_modes_to_volts_basis(self, modal_basis_type: str, merged: bool = False,
+    def compute_modes_to_volts_basis(self, modal_basis_type: str, *, merged: bool = False,
                                      nbpairs: int = None, return_delta: bool = False) -> np.ndarray:
         """ Computes a given modal basis ("KL2V", "Btt", "Btt_petal") and return the 2 transfer matrices
 
@@ -110,37 +117,37 @@ class ModalBasis(object):
         """
         if (modal_basis_type == "KL2V"):
             print("Computing KL2V basis...")
-            modal_basis = basis.compute_KL2V(
+            self.modal_basis = basis.compute_KL2V(
                     self.config.p_controllers[0], self.dms.dms,
                     self.config.p_dms, self.config.p_geom,
                     self.config.p_atmos, self.config.p_tel)
-            fnz = util.first_non_zero(modal_basis, axis=0)
+            fnz = util.first_non_zero(self.modal_basis, axis=0)
             # Computing the sign of the first non zero element
             #sig = np.sign(modal_basis[[fnz, np.arange(modal_basis.shape[1])]])
-            sig = np.sign(modal_basis[tuple([
-                    fnz, np.arange(modal_basis.shape[1])
+            sig = np.sign(self.modal_basis[tuple([
+                    fnz, np.arange(self.modal_basis.shape[1])
             ])])  # pour remove le future warning!
-            modal_basis *= sig[None, :]
+            self.modal_basis *= sig[None, :]
             projection_matrix = None
         elif (modal_basis_type == "Btt"):
             print("Computing Btt basis...")
-            modal_basis, projection_matrix = self.compute_btt(inv_method="cpu_svd",
+            self.modal_basis, self.projection_matrix = self.compute_btt_basis(
                                                         merged=merged, nbpairs=nbpairs,
                                                         return_delta=return_delta)
-            fnz = self.first_non_zero(modal_basis, axis=0)
+            fnz = util.first_non_zero(self.modal_basis, axis=0)
             # Computing the sign of the first non zero element
             #sig = np.sign(modal_basis[[fnz, np.arange(modal_basis.shape[1])]])
-            sig = np.sign(modal_basis[tuple([
-                    fnz, np.arange(modal_basis.shape[1])
+            sig = np.sign(self.modal_basis[tuple([
+                    fnz, np.arange(self.modal_basis.shape[1])
             ])])  # pour remove le future warning!
-            modal_basis *= sig[None, :]
+            self.modal_basis *= sig[None, :]
         elif (modal_basis_type == "Btt_petal"):
             print("Computing Btt with a Petal basis...")
-            modal_basis, projection_matrix = self.compute_btt_petal()
+            self.modal_basis, self.projection_matrix = self.compute_btt_petal()
         else:
             raise ArgumentError("Unsupported modal basis")
 
-        return modal_basis, projection_matrix
+        return self.modal_basis, self.projection_matrix
 
     def compute_btt_basis(self, merged: bool = False, nbpairs: int = None,
                           return_delta: bool = False) -> np.ndarray:
@@ -188,22 +195,20 @@ class ModalBasis(object):
             influ_basis2 = influ_basis2[~boolarray, :]
             influ_basis = influ_basis2
 
-        btt, projection_matrix = basis.compute_btt(influ_basis.T, tt_basis.T, return_delta=return_delta)
+        self.btt, self.projection_matrix = basis.compute_btt(influ_basis.T, tt_basis.T, return_delta=return_delta)
 
         if (merged):
-            btt2 = np.zeros((len(boolarray) + 2, btt.shape[1]))
-            btt2[np.r_[~boolarray, True, True], :] = btt
+            btt2 = np.zeros((len(boolarray) + 2, self.btt.shape[1]))
+            btt2[np.r_[~boolarray, True, True], :] = self.btt
             btt2[couples_actus[:, 1], :] = btt2[couples_actus[:, 0], :]
 
-            P2 = np.zeros((btt.shape[1], len(boolarray) + 2))
-            P2[:, np.r_[~boolarray, True, True]] = projection_matrix
+            P2 = np.zeros((self.btt.shape[1], len(boolarray) + 2))
+            P2[:, np.r_[~boolarray, True, True]] = self.projection_matrix
             P2[:, couples_actus[:, 1]] = P2[:, couples_actus[:, 0]]
-            btt = btt2
-            projection_matrix = P2
-        if (return_delta):
-            projection_matrix = delta
+            self.btt = btt2
+            self.projection_matrix = P2
 
-        return btt, projection_matrix
+        return self.btt, self.projection_matrix
 
     def compute_merged_influ(self, dm_index : int, nbpairs: int = None) -> np.ndarray:
         """ Used to compute merged IF from each side of the spider
@@ -335,7 +340,8 @@ class ModalBasis(object):
         tt_index = np.where([d.type is scons.DmType.TT for d in self.config.p_dms])[0][0]
         influ_tt = self.compute_influ_basis(tt_index).toarray()
 
-        return basis.compute_btt(influ_pzt.T, influ_tt.T, influ_petal=influ_petal)
+        self.modal_basis, self.projection_matrix = basis.compute_btt(influ_pzt.T, influ_tt.T, influ_petal=influ_petal)
+        return self.modal_basis, self.projection_matrix
 
     def compute_phase_to_modes(self, modal_basis: np.ndarray) -> np.ndarray:
         """ Return the phase to modes matrix by using the given modal basis
@@ -354,7 +360,7 @@ class ModalBasis(object):
             self.dms.set_command((modal_basis[:, i]).copy())
             # self.next(see_atmos=False)
             self.target.raytrace(0, dms=self.dms, ncpa=False, reset=True)
-            phase = self.target.get_tar_phase(0, pupil=true)
+            phase = self.target.get_tar_phase(0, pupil=True)
             # Normalisation pour les unites rms en microns !!!
             norm = np.sqrt(np.sum((phase)**2) / S)
             phase_to_modes[i] = phase / norm

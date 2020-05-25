@@ -137,7 +137,7 @@ class RtcCompass(object):
             for controller in self.rtc.d_control:
                 controller.set_open_loop(1, reset)
         else:
-            self.rtc.d_control[controller_index].set_open_loop(1, rst)  # open_loop
+            self.rtc.d_control[controller_index].set_open_loop(1, reset)  # open_loop
 
     def set_ref_slopes(self, ref_slopes: np.ndarray, centro_index=None) -> None:
         """ Set given ref slopes in centroider

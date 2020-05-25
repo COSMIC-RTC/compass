@@ -148,7 +148,8 @@ class CompassSupervisor(GenericSupervisor):
         """
         GenericSupervisor.init(self)
         self.basis = ModalBasis(self.config, self.dms, self.target)
-        self.calibration = Calibration(self.config, self.dms, self.target, self.rtc, self.wfs)
+        self.calibration = Calibration(self.config, self.tel, self.atmos, self.dms, 
+                                       self.target, self.rtc, self.wfs)
 
     def next(self, *, move_atmos: bool = True, nControl: int = 0,
              tar_trace: Iterable[int] = None, wfs_trace: Iterable[int] = None,

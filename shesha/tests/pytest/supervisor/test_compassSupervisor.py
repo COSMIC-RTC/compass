@@ -20,13 +20,11 @@ def test_loop():
 def test_reset():
     sup.reset()
     assert(True)
-
 #         _                 ___                            
 #    __ _| |_ _ __  ___ ___/ __|___ _ __  _ __  __ _ ______
 #   / _` |  _| '  \/ _ (_-< (__/ _ \ '  \| '_ \/ _` (_-<_-<
 #   \__,_|\__|_|_|_\___/__/\___\___/_|_|_| .__/\__,_/__/__/
 #                                        |_|               
-
 def test_enable_atmos():
     sup.atmos.enable_atmos(False)
     assert(sup.atmos.is_enable == False)
@@ -158,16 +156,16 @@ def test_reset_noise():
     sup.wfs.reset_noise()
     assert(True)
 
-def test_get_ncpa_wfs():
-    sup.wfs.get_ncpa_wfs(0)
-    assert(True)
-
 def test_get_wfs_phase():
     sup.wfs.get_wfs_phase(0)
     assert(True)
 
 def test_set_ncpa_wfs():
-    sup.wfs.set_ncpa_wfs(0, sup.wfs.get_ncpa_wfs(0))
+    sup.wfs.set_ncpa_wfs(0, sup.wfs.get_wfs_phase(0) * 0.)
+    assert(True)
+
+def test_get_ncpa_wfs():
+    sup.wfs.get_ncpa_wfs(0)
     assert(True)
 
 def test_set_wfs_phase():
@@ -218,12 +216,12 @@ def test_set_fourier_mask():
     assert(True)
 
 @pytest.mark.skipif(sup.config.p_wfss[0].type != "pyrhr", reason="pyrhr only")
-def test_get_pyrhr_image() -> np.ndarray:
+def test_get_pyrhr_image():
     sup.wfs.get_pyrhr_image(0)
     assert(True)
 
 @pytest.mark.skipif(sup.config.p_wfss[0].type != "pyrhr", reason="pyrhr only")
-def test_get_pyr_focal_plane() -> np.ndarray:
+def test_get_pyr_focal_plane():
     sup.wfs.get_pyr_focal_plane(0)
     assert(True)
 #    ___ _       ___                            
@@ -423,4 +421,56 @@ def test_set_scale():
 @pytest.mark.skipif(sup.cacao is False, reason="cacao only")
 def test_publish():
     sup.rtc.publish()
+    assert(True)
+#    __  __         _      _ ___          _    
+#   |  \/  |___  __| |__ _| | _ ) __ _ __(_)___
+#   | |\/| / _ \/ _` / _` | | _ \/ _` (_-< (_-<
+#   |_|  |_\___/\__,_\__,_|_|___/\__,_/__/_/__/
+#                                              
+def test_compute_influ_basis():
+    sup.basis.compute_influ_basis(0)
+    assert(True)
+
+def test_compute_modes_to_volts_basis():
+    _ = sup.basis.compute_modes_to_volts_basis("KL2V")
+    _ = sup.basis.compute_modes_to_volts_basis("Btt")
+    assert(True)
+
+def test_compute_btt_basis():
+    sup.basis.compute_btt_basis()
+    assert(True)
+
+@pytest.mark.skipif(sup.config.p_tel.type_ap == "EELT", reason="EELT pupil only")
+def test_compute_merged_influ():
+    sup.basis.compute_merged_influ(0)
+    assert(True)
+
+@pytest.mark.skipif("petal" not in [dm.influ_type for dm in sup.config.p_dms], reason="Petal dm only")
+def test_compute_btt_petal():
+    sup.basis.compute_btt_petal()
+    assert(True)
+
+def test_compute_phase_to_modes():
+    sup.basis.compute_phase_to_modes(sup.basis.projection_matrix)
+    assert(True)
+#     ___      _ _ _             _   _          
+#    / __|__ _| (_) |__ _ _ __ _| |_(_)___ _ _  
+#   | (__/ _` | | | '_ \ '_/ _` |  _| / _ \ ' \ 
+#    \___\__,_|_|_|_.__/_| \__,_|\__|_\___/_||_|
+#                                               
+def test_apply_volts_and_get_slopes():
+    sup.calibration.apply_volts_and_get_slopes(0)
+    sup.calibration.apply_volts_and_get_slopes(0, noise=True, turbu=True, reset=False)
+    assert(True)
+
+def test_do_imat_modal():
+    sup.calibration.do_imat_modal(0, np.ones(sup.basis.modal_basis.shape[0]), sup.basis.modal_basis)
+    assert(True)
+
+def test_do_imat_phase():
+    sup.calibration.do_imat_phase(0, np.zeros((5, sup.wfs.get_ncpa_wfs(0).shape[0], sup.wfs.get_ncpa_wfs(0).shape[0])))
+    assert(True)
+
+def test_compute_modal_residuals():
+    sup.calibration.compute_modal_residuals(sup.basis.projection_matrix)
     assert(True)

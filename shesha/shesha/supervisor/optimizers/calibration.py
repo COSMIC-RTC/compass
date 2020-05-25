@@ -43,6 +43,10 @@ class Calibration(object):
     Attributes:
         config : (config) : Configuration parameters module
 
+        tel : (TelescopeCompass) : TelescopeCompass instance
+
+        atmos : (AtmosScompass) : AtmosCompass instance
+
         dms : (DmCompass) : DmCompass instance
 
         target : (TargetCompass) : TargetCompass instance
@@ -51,17 +55,27 @@ class Calibration(object):
 
         wfs : (WfsCompass) : WfsCompass instance
     """
-    def __init__(self, config, dms, target, rtc, wfs):
+    def __init__(self, config, tel, atmos, dms, target, rtc, wfs):
         """ Instantiate a ModalBasis object
 
         Parameters:
             config : (config) : Configuration parameters module
 
+            tel : (TelescopeCompass) : TelescopeCompass instance
+
+            atmos : (AtmosScompass) : AtmosCompass instance
+
             dms : (DmCompass) : DmCompass instance
 
             target : (TargetCompass) : TargetCompass instance
+
+            rtc : (RtcCompass) : RtcCompass instance
+
+            wfs : (WfsCompass) : WfsCompass instance
         """
         self.config = config
+        self.tel = tel
+        self.atmos = atmos
         self.dms = dms
         self.target = target
         self.rtc = rtc
@@ -91,7 +105,7 @@ class Calibration(object):
             self.wfs.compute_wfs_image(w, noise=noise)
         return self.rtc.compute_slopes(controller_index)
 
-    def do_imat_modal(self, controller_index : int, ampli : float, modal_basis : np.ndarray, 
+    def do_imat_modal(self, controller_index : int, ampli : np.ndarray, modal_basis : np.ndarray, 
                       noise : bool=False, nmodes_max : int=0, with_turbu : bool=False, push_pull : bool=False) -> np.ndarray:
         """ Computes an interaction matrix from provided modal basis
 
@@ -138,7 +152,7 @@ class Calibration(object):
                 self.rtc.open_loop(controller_index)  # open_loop
                 self.rtc.set_perturbation_voltage(controller_index, "imat_modal", v)
                 modal_imat[:, m] = self.apply_volts_and_get_slopes(controller_index, noise=noise) / ampli[m]
-        self.remove_perturbation_voltage(controller_index, "imat_modal")
+        self.rtc.remove_perturbation_voltage(controller_index, "imat_modal")
         if ((push_pull is True) or (with_turbu is True)):
             self.rtc.close_loop(controller_index)  # We are supposed to be in close loop now
         return modal_imat
