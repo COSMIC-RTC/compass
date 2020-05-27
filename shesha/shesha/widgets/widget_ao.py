@@ -60,6 +60,7 @@ import pyqtgraph as pg
 from pyqtgraph.dockarea import Dock, DockArea
 
 from shesha.util.tools import plsh, plpyr
+from shesha.util.utilities import load_config_from_file
 
 import warnings
 
@@ -214,7 +215,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         self.supervisor.atmos.enable_atmos(atmos)
 
     def resetSR(self) -> None:
-        if self.uiAO.wao_allTarget.is_checked():
+        if self.uiAO.wao_allTarget.isChecked():
             for t in range(len(self.config.p_targets)):
                 self.supervisor.target.reset_strehl(t)
         else:
@@ -256,11 +257,10 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             sys.path.insert(0, self.defaultParPath)
 
         if supervisor is None:
-            self.supervisor = CompassSupervisor()
-            self.supervisor.load_config(config_file)
+            self.config = load_config_from_file(config_file)
         else:
             self.supervisor = supervisor
-        self.config = self.supervisor.get_config()
+            self.config = self.supervisor.get_config()
 
         if self.devices:
             self.config.p_loop.set_devices([
@@ -353,7 +353,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             self.refreshTime = time.time()
             self.nbiter = self.uiAO.wao_nbiters.value()
             if self.dispStatsInTerminal:
-                if self.uiAO.wao_forever.is_checked():
+                if self.uiAO.wao_forever.isChecked():
                     print("LOOP STARTED")
                 else:
                     print("LOOP STARTED FOR %d iterations" % self.nbiter)
@@ -374,12 +374,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
 
     def init_configThread(self) -> None:
         self.uiAO.wao_deviceNumber.setDisabled(True)
-        # self.config.p_loop.devices = self.uiAO.wao_deviceNumber.value()  # using GUI value
-        # gpudevice = "ALL"  # using all GPU avalaible
-        # gpudevice = np.array([2, 3], dtype=np.int32)
-        # gpudevice = np.arange(4, dtype=np.int32) # using 4 GPUs: 0-3
-        # gpudevice = 0  # using 1 GPU : 0
-        self.supervisor.init()
+        self.supervisor = CompassSupervisor(self.config)
 
     def init_configFinished(self) -> None:
         # Thread carmaWrap context reload:
@@ -532,12 +527,12 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                         if "tar" in key:
                             data = self.supervisor.target.get_tar_phase(index)
                         if "psfLE" in key:
-                            data = self.supervisor.target.get_tar_image(index, "le")
+                            data = self.supervisor.target.get_tar_image(index, expo_type="le")
                         if "psfSE" in key:
-                            data = self.supervisor.target.get_tar_image(index, "se")
+                            data = self.supervisor.target.get_tar_image(index, expo_type="se")
 
                         if "psf" in key:
-                            if (self.uiAO.actionPSF_Log_Scale.is_checked()):
+                            if (self.uiAO.actionPSF_Log_Scale.isChecked()):
                                 if np.any(data <= 0):
                                     # warnings.warn("\nZeros founds, filling with min nonzero value.\n")
                                     data[data <= 0] = np.min(data[data > 0])
@@ -560,7 +555,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                             data = self.supervisor.wfs.get_pyr_focal_plane(index)
 
                         if (data is not None):
-                            autoscale = True  # self.uiAO.actionAuto_Scale.is_checked()
+                            autoscale = True  # self.uiAO.actionAuto_Scale.isChecked()
                             # if (autoscale):
                             #     # inits levels
                             #     self.hist.setLevels(data.min(), data.max())
@@ -660,7 +655,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
 
     def run(self):
         WidgetBase.run(self)
-        if not self.uiAO.wao_forever.is_checked():
+        if not self.uiAO.wao_forever.isChecked():
             self.nbiter -= 1
 
         if self.nbiter <= 0:

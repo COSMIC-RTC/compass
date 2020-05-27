@@ -210,7 +210,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
             self.refreshTime = time.time()
             self.nbiter = self.uiBench.wao_nbiters.value()
             if self.dispStatsInTerminal:
-                if self.uiBench.wao_forever.is_checked():
+                if self.uiBench.wao_forever.isChecked():
                     print("LOOP STARTED")
                 else:
                     print("LOOP STARTED FOR %d iterations" % self.nbiter)
@@ -263,7 +263,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
 
     def updateDisplay(self) -> None:
         if (self.supervisor is None) or (not self.supervisor.is_init()) or (
-                not self.uiBase.wao_Display.is_checked()):
+                not self.uiBase.wao_Display.isChecked()):
             # print("Widget not fully initialized")
             return
         if not self.loopLock.acquire(False):
@@ -279,7 +279,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
                         if "wfs" in key:
                             data = self.supervisor.wfs.get_wfs_image(index)
                             if (data is not None):
-                                autoscale = True  # self.uiBench.actionAuto_Scale.is_checked()
+                                autoscale = True  # self.uiBench.actionAuto_Scale.isChecked()
                                 # if (autoscale):
                                 #     # inits levels
                                 #     self.hist.setLevels(data.min(), data.max())
@@ -330,7 +330,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
 
     def run(self):
         WidgetBase.run(self)
-        if not self.uiBench.wao_forever.is_checked():
+        if not self.uiBench.wao_forever.isChecked():
             self.nbiter -= 1
 
         if self.nbiter <= 0:

@@ -373,7 +373,7 @@ class WidgetAOExpert(ExpertClassTemplate):
         self.sim.config.p_wfss[nwfs].set_noise(self.uiExpert.wao_wfsNoise.value())
 
         # LGS params
-        if (self.uiExpert.wao_wfsIsLGS.is_checked()):
+        if (self.uiExpert.wao_wfsIsLGS.isChecked()):
             self.sim.config.p_wfss[nwfs].set_gsalt(self.uiExpert.wao_wfsGsAlt.value())
             self.sim.config.p_wfss[nwfs].set_lltx(self.uiExpert.wao_wfsLLTx.value())
             self.sim.config.p_wfss[nwfs].set_llty(self.uiExpert.wao_wfsLLTy.value())

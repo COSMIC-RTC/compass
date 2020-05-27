@@ -70,26 +70,26 @@ class CompassSupervisor(GenericSupervisor):
 
         rtc : (RtcComponent) : A Rtc component instance
 
-        is_loaded : (bool) : Flag equals to True if a config has already been loaded
-
         is_init : (bool) : Flag equals to True if the supervisor has already been initialized
 
         iter : (int) : Frame counter
 
         cacao : (bool) : CACAO features enabled in the RTC     
     """
-    def __init__(self, config_file : str = None, cacao : bool=False):
+    def __init__(self, config, cacao : bool=False):
         """ Instantiates a CompassSupervisor object
 
         Parameters:
-            config_file: (str, optional) : Path to a configuration file.
-                                           If provided, loads it directly
+            config: (config module) : Configuration module
             
             cacao : (bool, optional) : If True, enables CACAO features in RTC (Default is False)
                                       /!\ Requires OCTOPUS to be installed
         """
         self.cacao = cacao
-        GenericSupervisor.__init__(self, config_file=config_file)
+        GenericSupervisor.__init__(self, config)
+        self.basis = ModalBasis(self.config, self.dms, self.target)
+        self.calibration = Calibration(self.config, self.tel, self.atmos, self.dms, 
+                                       self.target, self.rtc, self.wfs)
 #     ___                  _      __  __     _   _            _    
 #    / __|___ _ _  ___ _ _(_)__  |  \/  |___| |_| |_  ___  __| |___
 #   | (_ / -_) ' \/ -_) '_| / _| | |\/| / -_)  _| ' \/ _ \/ _` (_-<
@@ -98,31 +98,22 @@ class CompassSupervisor(GenericSupervisor):
     def _init_tel(self):
         """Initialize the telescope component of the supervisor as a TelescopeCompass
         """ 
-        if self.is_loaded:
-            self.tel = TelescopeCompass(self.context, self.config)
-        else:
-            raise ValueError("Configuration not loaded")
+        self.tel = TelescopeCompass(self.context, self.config)
 
     def _init_atmos(self):
         """Initialize the atmosphere component of the supervisor as a AtmosCompass
         """ 
-        if self.is_loaded:
-            self.atmos = AtmosCompass(self.context, self.config)
-        else:
-            raise ValueError("Configuration not loaded")
+        self.atmos = AtmosCompass(self.context, self.config)
 
     def _init_dms(self):
         """Initialize the DM component of the supervisor as a DmCompass
         """ 
-        if self.is_loaded:
-            self.dms = DmCompass(self.context, self.config)
-        else:
-            raise ValueError("Configuration not loaded")
+        self.dms = DmCompass(self.context, self.config)
 
     def _init_target(self):
         """Initialize the target component of the supervisor as a TargetCompass
         """ 
-        if self.is_loaded and self.tel is not None:
+        if self.tel is not None:
             self.target = TargetCompass(self.context, self.config, self.tel)
         else:
             raise ValueError("Configuration not loaded or Telescope not initilaized")
@@ -130,7 +121,7 @@ class CompassSupervisor(GenericSupervisor):
     def _init_wfs(self):
         """Initialize the wfs component of the supervisor as a WfsCompass
         """ 
-        if self.is_loaded and self.tel is not None:
+        if self.tel is not None:
             self.wfs = WfsCompass(self.context, self.config, self.tel)
         else:
             raise ValueError("Configuration not loaded or Telescope not initilaized")
@@ -138,18 +129,10 @@ class CompassSupervisor(GenericSupervisor):
     def _init_rtc(self):
         """Initialize the rtc component of the supervisor as a RtcCompass
         """ 
-        if self.is_loaded and self.wfs is not None:
+        if self.wfs is not None:
             self.rtc = RtcCompass(self.context, self.config, self.tel, self.wfs, self.dms, self.atmos, cacao=self.cacao)
         else:
             raise ValueError("Configuration not loaded or Telescope not initilaized")
-
-    def init(self):
-        """ Initialize all the components and the optimizers
-        """
-        GenericSupervisor.init(self)
-        self.basis = ModalBasis(self.config, self.dms, self.target)
-        self.calibration = Calibration(self.config, self.tel, self.atmos, self.dms, 
-                                       self.target, self.rtc, self.wfs)
 
     def next(self, *, move_atmos: bool = True, nControl: int = 0,
              tar_trace: Iterable[int] = None, wfs_trace: Iterable[int] = None,

@@ -88,6 +88,9 @@ class widgetCanapassWindowPyro(widgetAOWindow):
         #############################################################
         #                       METHODS                             #
         #############################################################
+    def init_configThread(self) -> None:
+        self.uiAO.wao_deviceNumber.setDisabled(True)
+        self.supervisor = CanapassSupervisor(self.config)
 
     def init_config(self) -> None:
         widgetAOWindow.init_config(self)
@@ -106,7 +109,7 @@ class widgetCanapassWindowPyro(widgetAOWindow):
 
     def loop_once(self) -> None:
         widgetAOWindow.loop_once(self)
-        if (self.uiAO.actionShow_Pyramid_Tools.is_checked()):  # PYR only
+        if (self.uiAO.actionShow_Pyramid_Tools.isChecked()):  # PYR only
             self.wpyr.Fe = 1 / self.config.p_loop.ittime  # needs Fe for PSD...
             if (self.wpyr.CBNumber == 1):
                 self.ai = self.compute_modal_residuals()
@@ -158,7 +161,7 @@ class widgetCanapassWindowPyro(widgetAOWindow):
             except:
                 raise ValueError("ERROR: ADOPT  not found. Cannot launch Pyramid tools")
         else:
-            if (self.uiAO.actionShow_Pyramid_Tools.is_checked()):
+            if (self.uiAO.actionShow_Pyramid_Tools.isChecked()):
                 self.wpyr.show()
             else:
                 self.wpyr.hide()

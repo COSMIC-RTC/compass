@@ -90,7 +90,7 @@ class WidgetBase(BaseClassTemplate):
 
         self.gui_timer = QTimer()  # type: QTimer
         self.gui_timer.timeout.connect(self.updateDisplay)
-        if self.uiBase.wao_Display.is_checked():
+        if self.uiBase.wao_Display.isChecked():
             self.gui_timer.start(1000. / self.uiBase.wao_frameRate.value())
         self.loopLock = threading.Lock(
         )  # type: Threading.Lock # Asynchronous loop / display safe-threading
@@ -243,7 +243,7 @@ class WidgetBase(BaseClassTemplate):
 
     def update_displayDock(self):
         guilty_guy = self.sender().text()
-        state = self.sender().is_checked()
+        state = self.sender().isChecked()
         if state:
             self.area.addDock(self.docks[guilty_guy])
         elif self.docks[guilty_guy].isVisible():

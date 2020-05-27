@@ -4,10 +4,14 @@ import os
 from shesha.sutra_wrap import Rtc_UFF as Rtc
 from shesha.supervisor.compassSupervisor import CompassSupervisor as Supervisor
 from scipy.ndimage.measurements import center_of_mass
+from shesha.util.utilities import load_config_from_file
 
 precision = 1e-2
-sup = Supervisor(os.getenv("COMPASS_ROOT") + "/shesha/tests/pytest/par/test_sh.py")
-sup.init()
+
+config = load_config_from_file(os.getenv("COMPASS_ROOT") +
+        "/shesha/tests/pytest/par/test_sh.py")
+sup = Supervisor(config)
+
 sup.wfs.wfs.d_wfs[0].set_fakecam(True)
 sup.wfs.wfs.d_wfs[0].set_max_flux_per_pix(int(sup.config.p_wfs0._nphotons // 2))
 sup.wfs.wfs.d_wfs[0].set_max_pix_value(2**16 - 1)

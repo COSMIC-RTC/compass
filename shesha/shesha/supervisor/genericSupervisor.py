@@ -38,7 +38,6 @@
 from abc import abstractmethod
 import numpy as np
 import time
-from shesha.util.utilities import load_config_from_file
 from shesha.sutra_wrap import carmaWrap_context
 from typing import Iterable
 
@@ -67,42 +66,27 @@ class GenericSupervisor(object):
 
         rtc : (RtcComponent) : A Rtc component instance
 
-        is_loaded : (bool) : Flag equals to True if a config has already been loaded
-
         is_init : (bool) : Flag equals to True if the supervisor has already been initialized
 
         iter : (int) : Frame counter     
     """
-    def __init__(self, config_file : str = None):
+    def __init__(self, config):
         """ Init the a supervisor
 
         Parameters:
-            config_file: (str, optional) : Path to a configuration file.
-                                           If provided, loads it directly
+            config : (config module) : Configuration module
         """
-        self.config = None
+        self.context = None
+        self.config = config
         self.telescope = None
         self.atmos = None
         self.target = None
         self.wfs = None
         self.dms = None
         self.rtc = None
-        self.is_loaded = False
         self.is_init = False
         self.iter = 0
-        if config_file is not None:
-            self.load_config(config_file)
-    
-    def load_config(self, config_file: str) -> None:
-        """ Load the parameters configuration from config_file
-
-        Parameters:
-            config_file : (str) : path to the configuration file
-        """
-        self.is_loaded = False
-        self.is_init = False
-        self.config = load_config_from_file(config_file)
-        self.is_loaded = True
+        self._init_components()
     
     def get_config(self):
         """ Returns the configuration in use, in a supervisor specific format ?
@@ -123,40 +107,38 @@ class GenericSupervisor(object):
     def force_context(self) -> None:
         """ Active all the GPU devices specified in the parameters file
         """
-        if self.is_loaded and self.context is not None:
+        if self.context is not None:
             current_device = self.context.active_device
             for device in range(len(self.config.p_loop.devices)):
                 self.context.set_active_device_force(device)
             self.context.set_active_device(current_device)
 
-    def init(self) -> None:
+    def _init_components(self) -> None:
         """ Initialize all the components
         """        
-        if self.is_loaded:
-            if (self.config.p_loop.devices.size > 1):
-                self.context = carmaWrap_context.get_instance_ngpu(
-                        self.config.p_loop.devices.size, self.config.p_loop.devices)
-            else:
-                self.context = carmaWrap_context.get_instance_1gpu(
-                        self.config.p_loop.devices[0])
-            self.force_context()
-
-            if self.config.p_tel is None or self.config.p_geom is None:
-                raise ValueError("Telescope geometry must be defined (p_geom and p_tel)")
-            self._init_tel()
-
-            if self.config.p_atmos is not None:
-                self._init_atmos()
-            if self.config.p_dms is not None:
-                self._init_dms()
-            if self.config.p_targets is not None:
-                self._init_target()
-            if self.config.p_wfss is not None:
-                self._init_wfs()
-            if self.config.p_controllers is not None or self.config.p_centroiders is not None:
-                self._init_rtc()
+        if (self.config.p_loop.devices.size > 1):
+            self.context = carmaWrap_context.get_instance_ngpu(
+                    self.config.p_loop.devices.size, self.config.p_loop.devices)
         else:
-            raise RuntimeError("Configuration not loaded")
+            self.context = carmaWrap_context.get_instance_1gpu(
+                    self.config.p_loop.devices[0])
+        self.force_context()
+
+        if self.config.p_tel is None or self.config.p_geom is None:
+            raise ValueError("Telescope geometry must be defined (p_geom and p_tel)")
+        self._init_tel()
+
+        if self.config.p_atmos is not None:
+            self._init_atmos()
+        if self.config.p_dms is not None:
+            self._init_dms()
+        if self.config.p_targets is not None:
+            self._init_target()
+        if self.config.p_wfss is not None:
+            self._init_wfs()
+        if self.config.p_controllers is not None or self.config.p_centroiders is not None:
+            self._init_rtc()
+
         self.is_init = True
     
     @abstractmethod
@@ -312,8 +294,8 @@ class GenericSupervisor(object):
             self.next(compute_tar_psf=compute_tar_psf, **kwargs)
             if ((self.iter + 1) % monitoring_freq == 0):
                 if not compute_tar_psf:
-                    self.comp_tar_image(0)
-                    self.comp_strehl(0)
+                    self.target.comp_tar_image(0)
+                    self.target.comp_strehl(0)
                 self._print_strehl(monitoring_freq, time.time() - t1, number_of_iter)
                 t1 = time.time()
         t1 = time.time()

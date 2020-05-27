@@ -4,13 +4,15 @@ import os
 from shesha.sutra_wrap import Rtc_FHF as Rtc
 from shesha.supervisor.compassSupervisor import CompassSupervisor as Supervisor
 from scipy.ndimage.measurements import center_of_mass
+from shesha.util.utilities import load_config_from_file
 
 precision = 1e-2
-sup = Supervisor(
-        os.getenv("COMPASS_ROOT") +
+
+config = load_config_from_file(os.getenv("COMPASS_ROOT") +
         "/shesha/tests/pytest/par/test_pyrhr.py")
-sup.config.p_controller0.set_delay(0.0)
-sup.init()
+config.p_controller0.set_delay(0.0)
+sup = Supervisor(config)
+
 sup.next()
 sup.rtc.open_loop(0)
 sup.rtc.close_loop(0)

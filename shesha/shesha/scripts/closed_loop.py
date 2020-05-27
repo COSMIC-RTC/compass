@@ -54,14 +54,16 @@ Options:
   -g, --generic      Use generic controller
   -f, --fast         Compute PSF only during monitoring
 """
-
+from shesha.util.utilities import load_config_from_file
 from docopt import docopt
 
 if __name__ == "__main__":
     arguments = docopt(__doc__)
+
     param_file = arguments["<parameters_filename>"]
-    use_DB = False
     compute_tar_psf = not arguments["--fast"]
+
+    config = load_config_from_file(param_file)
 
     # Get parameters from file
     if arguments["--bench"]:
@@ -71,21 +73,21 @@ if __name__ == "__main__":
     else:
         from shesha.supervisor.compassSupervisor import CompassSupervisor as Supervisor
 
-    supervisor = Supervisor(param_file)
-
     if arguments["--devices"]:
-        supervisor.config.p_loop.set_devices([
+        config.p_loop.set_devices([
                 int(device) for device in arguments["--devices"].split(",")
         ])
+        
     if arguments["--generic"]:
-        supervisor.config.p_controllers[0].set_type("generic")
+        config.p_controllers[0].set_type("generic")
         print("Using GENERIC controller...")
 
-    supervisor.init()
     if arguments["--niter"]:
-        supervisor.loop(int(arguments["--niter"]), compute_tar_psf=compute_tar_psf)
-    else:
-        supervisor.loop(supervisor.config.p_loop.niter, compute_tar_psf=compute_tar_psf)
+        config.p_loop.set_niter(int(arguments["--niter"]))
+
+    supervisor = Supervisor(config)
+
+    supervisor.loop(supervisor.config.p_loop.niter, compute_tar_psf=compute_tar_psf)
 
     if arguments["--interactive"]:
         from shesha.util.ipython_embed import embed

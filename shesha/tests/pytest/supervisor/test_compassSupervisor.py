@@ -1,14 +1,14 @@
 from shesha.supervisor.compassSupervisor import CompassSupervisor
+from shesha.util.utilities import load_config_from_file
+
 import os
 import numpy as np
 import pytest
 
-sup = CompassSupervisor(os.getenv("COMPASS_ROOT") + "/shesha/tests/pytest/par/test_pyrhr.py")
-sup.config.p_controllers[0].set_type("generic")
+config = load_config_from_file(os.getenv("COMPASS_ROOT") + "/shesha/tests/pytest/par/test_pyrhr.py")
+config.p_controllers[0].set_type("generic")
 
-def test_init():
-    sup.init()
-    assert(sup.is_init == True)
+sup = CompassSupervisor(config)
 
 def test_next():
     sup.next()
