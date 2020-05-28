@@ -49,8 +49,8 @@ p_atmos.set_nscreens(1)
 p_atmos.set_frac([1.0])
 p_atmos.set_alt([0.0])
 p_atmos.set_windspeed([10.])
-p_atmos.set_winddir([45.])
-p_atmos.set_L0([25.])  # Not simulated in Yorick?
+p_atmos.set_winddir([0.])
+p_atmos.set_L0([25.0])  # Not simulated in Yorick?
 
 # target
 #p_target = ao.Param_target()
