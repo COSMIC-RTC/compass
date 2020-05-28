@@ -74,7 +74,11 @@ class CompassSupervisor(GenericSupervisor):
 
         iter : (int) : Frame counter
 
-        cacao : (bool) : CACAO features enabled in the RTC     
+        cacao : (bool) : CACAO features enabled in the RTC  
+
+        basis : TODO
+
+        calibration :    
     """
     def __init__(self, config, cacao : bool=False):
         """ Instantiates a CompassSupervisor object
