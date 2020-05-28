@@ -115,7 +115,7 @@ The develop branch is protected, which means that you cannot push on it directly
 * git co -b myname/mybranch # create your branch
 * ... # make your changes
 * git ci -m "my message" # as much as you want
-* git push --set-upstream myname/mybranch # as much as you want
+* git push --set-upstream origin myname/mybranch # as much as you want
 
 When you are satisfied with your changes, in the message, it offers to make a merge request on develop of the style:
 
@@ -130,7 +130,7 @@ If you have already committed to develop, you will not be able to push them on g
 To avoid losing your changes in progress:
 
 * git co -b myname/mybranch
-* git push --set-upstream myname/mybranch # as much as you want
+* git push --set-upstream origin myname/mybranch # as much as you want
 
 then make your merge request as defined above
 
