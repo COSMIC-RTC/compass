@@ -113,7 +113,7 @@ For Visual Studio code users, we recommends to use [Doxygen Documentation Genera
 The develop branch is protected, which means that you cannot push on it directly. The typical process is as follows:
 
 * git co -b myname/mybranch # create your branch
-* # make your changes
+* ... # make your changes
 * git ci -m "my message" # as much as you want
 * git push --set-upstream myname/mybranch # as much as you want
 
