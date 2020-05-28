@@ -10,7 +10,7 @@ p_loop = ao.Param_loop()
 
 p_loop.set_niter(1000)
 p_loop.set_ittime(1 / 500.)  # =1/500
-p_loop.set_devices([0,1,2,3])
+p_loop.set_devices([4, 5, 6, 7])
 # geom
 p_geom = ao.Param_geom()
 p_geom.set_zenithangle(0.)
@@ -120,6 +120,7 @@ p_target.set_xpos(0)
 p_target.set_ypos(0)
 p_target.set_Lambda(2.2)
 p_target.set_mag(4)
+
 # wfs
 p_wfs0 = ao.Param_wfs(roket=True)
 #p_wfs0= ao.Param_wfs()
@@ -145,6 +146,12 @@ rMod = 3.  # Modulation radius, in lam/D units
 nbPtMod = int(np.ceil(int(rMod * 2 * 3.141592653589793) / 4.) * 4)
 p_wfs0.set_pyr_npts(nbPtMod) # nb pts modu around circle
 p_wfs0.set_pyr_ampl(rMod)  # define modulation amplitude
+# p_wfs0.set_pyr_compute_focalplane(True)
+# a = np.zeros((20,2))
+# scale = 1541.7678
+# a[:,0] = np.concatenate((np.linspace(- 0.02561081/scale, 0.02561081/scale, 10), np.zeros(10)))
+# a[:,1] = np.concatenate((np.zeros(10), np.linspace(- 0.02561081/scale, 0.02561081/scale, 10)))
+# p_wfs0.set_pyr_pos(a)
 
 clover_pos = np.array([[ 0.00000000e+00,  0.00000000e+00],       [ 4.01503344e-07,  2.53499235e-06],       [ 1.50860454e-06,  4.64300736e-06],       [ 3.05055438e-06,  5.98705007e-06],
        [ 4.64300736e-06,  6.39055139e-06],       [ 5.87299138e-06,  5.87299138e-06],       [ 6.39055139e-06,  4.64300736e-06],       [ 5.98705007e-06,  3.05055438e-06],
@@ -179,12 +186,6 @@ hypo_pos3 = np.array([[ 8.30566406e-06,  0.00000000e+00],       [ 7.80190421e-06
        [-2.07641602e-06, -6.39055139e-06],       [-2.21635749e-06, -4.34984649e-06],       [-1.50860454e-06, -2.07641602e-06],       [ 0.00000000e+00,  0.00000000e+00],
        [ 2.07641602e-06,  1.50860454e-06],       [ 4.34984649e-06,  2.21635749e-06],       [ 6.39055139e-06,  2.07641602e-06],       [ 7.80190421e-06,  1.23570023e-06]])
 
-# a = np.zeros((20,2))
-# scale = 1541.7678
-# a[:,0] = np.concatenate((np.linspace(- 0.02561081/scale, 0.02561081/scale, 10), np.zeros(10)))
-# a[:,1] = np.concatenate((np.zeros(10), np.linspace(- 0.02561081/scale, 0.02561081/scale, 10)))
-# p_wfs0.set_pyr_pos(a)
-
 # p_wfs0.set_pyr_npts(40)
 # p_wfs0.set_pyr_pos(clover_pos*2)
 
@@ -214,6 +215,7 @@ p_dm0.set_type(scons.DmType.PZT)
 nact = p_wfs0.nxsub + 1
 #nact = 9
 
+"""
 #p_dm0.set_nact(nact)
 p_dm0.set_nact(75)  # 75 actuators on 40m for a projected M4 pitch of 54.05 cm
 p_dm0.set_alt(0.)
@@ -227,6 +229,14 @@ p_dm0.set_type_pattern("hexaM4")
 p_dm0.set_influType("radialSchwartz")
 p_dm0.set_margin_out(0.6)
 p_dm0.segmented_mirror = True
+"""
+
+p_dm0.set_unitpervolt(1)
+p_dm0.set_thresh(0.)  # fraction units
+p_dm0.set_margin_out(0.6)
+#p_dm0.set_file_influ_hdf5('/home/abertrou/m4_eelt_compass/testJojo.fits')
+p_dm0.set_file_influ_hdf5('/home/abertrou/m4_henri_compass/cropped_M4IF.fits')
+p_dm0.set_push4imat(0.01)
 
 """
 p_dm0.set_file_influ_hdf5("/home/fvidal/compass/shesha/data/M4data/elt_influ_spider.h5")
@@ -255,10 +265,13 @@ p_dm2.set_influType("petal")
 
 # centroiders
 p_centroider0 = ao.Param_centroider()
+
 p_centroiders = [p_centroider0]
 
 p_centroider0.set_nwfs(0)
 p_centroider0.set_type("pyr")
+# p_centroider0.set_method(2)
+
 # p_centroider0.set_type("maskedpix")
 # sp_centroider0.set_thresh(0.)
 

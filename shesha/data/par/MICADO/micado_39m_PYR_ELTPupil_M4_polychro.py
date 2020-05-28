@@ -10,7 +10,7 @@ p_loop = ao.Param_loop()
 
 p_loop.set_niter(1000)
 p_loop.set_ittime(1 / 500.)  # =1/500
-p_loop.set_devices([0,1,2,3])
+p_loop.set_devices([0, 1, 2, 3])
 # geom
 p_geom = ao.Param_geom()
 p_geom.set_zenithangle(0.)
@@ -122,8 +122,10 @@ p_target.set_Lambda(2.2)
 p_target.set_mag(4)
 # wfs
 p_wfs0 = ao.Param_wfs(roket=True)
+p_wfs1 = ao.Param_wfs(roket=True)
+p_wfs2 = ao.Param_wfs(roket=True)
 #p_wfs0= ao.Param_wfs()
-p_wfss = [p_wfs0]
+p_wfss = [p_wfs0, p_wfs1, p_wfs2]
 
 p_wfs0.set_type("pyrhr") # type de WFS: "sh", "pyrhr", "pyr"
 
@@ -146,38 +148,51 @@ nbPtMod = int(np.ceil(int(rMod * 2 * 3.141592653589793) / 4.) * 4)
 p_wfs0.set_pyr_npts(nbPtMod) # nb pts modu around circle
 p_wfs0.set_pyr_ampl(rMod)  # define modulation amplitude
 
-clover_pos = np.array([[ 0.00000000e+00,  0.00000000e+00],       [ 4.01503344e-07,  2.53499235e-06],       [ 1.50860454e-06,  4.64300736e-06],       [ 3.05055438e-06,  5.98705007e-06],
-       [ 4.64300736e-06,  6.39055139e-06],       [ 5.87299138e-06,  5.87299138e-06],       [ 6.39055139e-06,  4.64300736e-06],       [ 5.98705007e-06,  3.05055438e-06],
-       [ 4.64300736e-06,  1.50860454e-06],       [ 2.53499235e-06,  4.01503344e-07],       [ 1.01715049e-21,  6.22825046e-38],       [-2.53499235e-06,  4.01503344e-07],
-       [-4.64300736e-06,  1.50860454e-06],       [-5.98705007e-06,  3.05055438e-06],       [-6.39055139e-06,  4.64300736e-06],       [-5.87299138e-06,  5.87299138e-06],
-       [-4.64300736e-06,  6.39055139e-06],       [-3.05055438e-06,  5.98705007e-06],       [-1.50860454e-06,  4.64300736e-06],       [-4.01503344e-07,  2.53499235e-06],
-       [-2.49130019e-37,  2.03430098e-21],       [-4.01503344e-07, -2.53499235e-06],       [-1.50860454e-06, -4.64300736e-06],       [-3.05055438e-06, -5.98705007e-06],
-       [-4.64300736e-06, -6.39055139e-06],       [-5.87299138e-06, -5.87299138e-06],       [-6.39055139e-06, -4.64300736e-06],       [-5.98705007e-06, -3.05055438e-06],
-       [-4.64300736e-06, -1.50860454e-06],       [-2.53499235e-06, -4.01503344e-07],       [-3.05145147e-21, -5.60542542e-37],       [ 2.53499235e-06, -4.01503344e-07],
-       [ 4.64300736e-06, -1.50860454e-06],       [ 5.98705007e-06, -3.05055438e-06],       [ 6.39055139e-06, -4.64300736e-06],       [ 5.87299138e-06, -5.87299138e-06],
-       [ 4.64300736e-06, -6.39055139e-06],       [ 3.05055438e-06, -5.98705007e-06],       [ 1.50860454e-06, -4.64300736e-06],       [ 4.01503344e-07, -2.53499235e-06]])
 
-hypo_pos2 = np.array([[ 8.30566406e-06,  0.00000000e+00],       [ 7.88220488e-06, -7.28701763e-07],       [ 6.69227230e-06, -1.14781454e-06],       [ 4.95995737e-06, -1.01894748e-06],
-       [ 3.00501749e-06, -2.30494264e-07],       [ 1.17459828e-06,  1.17459828e-06],       [-2.30494264e-07,  3.00501749e-06],       [-1.01894748e-06,  4.95995737e-06],
-       [-1.14781454e-06,  6.69227230e-06],       [-7.28701763e-07,  7.88220488e-06],       [-3.05145147e-22,  8.30566406e-06],       [ 7.28701763e-07,  7.88220488e-06],
-       [ 1.14781454e-06,  6.69227230e-06],       [ 1.01894748e-06,  4.95995737e-06],       [ 2.30494264e-07,  3.00501749e-06],       [-1.17459828e-06,  1.17459828e-06],
-       [-3.00501749e-06, -2.30494264e-07],       [-4.95995737e-06, -1.01894748e-06],       [-6.69227230e-06, -1.14781454e-06],       [-7.88220488e-06, -7.28701763e-07],
-       [-8.30566406e-06, -6.10290295e-22],       [-7.88220488e-06,  7.28701763e-07],       [-6.69227230e-06,  1.14781454e-06],       [-4.95995737e-06,  1.01894748e-06],
-       [-3.00501749e-06,  2.30494264e-07],       [-1.17459828e-06, -1.17459828e-06],       [ 2.30494264e-07, -3.00501749e-06],       [ 1.01894748e-06, -4.95995737e-06],
-       [ 1.14781454e-06, -6.69227230e-06],       [ 7.28701763e-07, -7.88220488e-06],       [ 9.15435442e-22, -8.30566406e-06],       [-7.28701763e-07, -7.88220488e-06],
-       [-1.14781454e-06, -6.69227230e-06],       [-1.01894748e-06, -4.95995737e-06],       [-2.30494264e-07, -3.00501749e-06],       [ 1.17459828e-06, -1.17459828e-06],
-       [ 3.00501749e-06,  2.30494264e-07],       [ 4.95995737e-06,  1.01894748e-06],       [ 6.69227230e-06,  1.14781454e-06],       [ 7.88220488e-06,  7.28701763e-07]])
+p_wfs1.set_type("pyrhr") # type de WFS: "sh", "pyrhr", "pyr"
 
-hypo_pos3 = np.array([[ 8.30566406e-06,  0.00000000e+00],       [ 7.80190421e-06, -1.23570023e-06],       [ 6.39055139e-06, -2.07641602e-06],       [ 4.34984649e-06, -2.21635749e-06],
-       [ 2.07641602e-06, -1.50860454e-06],       [ 6.14742632e-22,  0.00000000e+00],       [-1.50860454e-06,  2.07641602e-06],       [-2.21635749e-06,  4.34984649e-06],
-       [-2.07641602e-06,  6.39055139e-06],       [-1.23570023e-06,  7.80190421e-06],       [-5.08575245e-22,  8.30566406e-06],       [ 1.23570023e-06,  7.80190421e-06],
-       [ 2.07641602e-06,  6.39055139e-06],       [ 2.21635749e-06,  4.34984649e-06],       [ 1.50860454e-06,  2.07641602e-06],       [ 6.14742632e-22,  1.22948526e-21],
-       [-2.07641602e-06, -1.50860454e-06],       [-4.34984649e-06, -2.21635749e-06],       [-6.39055139e-06, -2.07641602e-06],       [-7.80190421e-06, -1.23570023e-06],
-       [-8.30566406e-06, -1.01715049e-21],       [-7.80190421e-06,  1.23570023e-06],       [-6.39055139e-06,  2.07641602e-06],       [-4.34984649e-06,  2.21635749e-06],
-       [-2.07641602e-06,  1.50860454e-06],       [-4.30319842e-21,  4.30319842e-21],       [ 1.50860454e-06, -2.07641602e-06],       [ 2.21635749e-06, -4.34984649e-06],
-       [ 2.07641602e-06, -6.39055139e-06],       [ 1.23570023e-06, -7.80190421e-06],       [ 1.52572574e-21, -8.30566406e-06],       [-1.23570023e-06, -7.80190421e-06],
-       [-2.07641602e-06, -6.39055139e-06],       [-2.21635749e-06, -4.34984649e-06],       [-1.50860454e-06, -2.07641602e-06],       [ 0.00000000e+00,  0.00000000e+00],
-       [ 2.07641602e-06,  1.50860454e-06],       [ 4.34984649e-06,  2.21635749e-06],       [ 6.39055139e-06,  2.07641602e-06],       [ 7.80190421e-06,  1.23570023e-06]])
+p_wfs1.set_nxsub(
+        92
+)  # 92 sub aps for hexagonal grid of actuators eq. 78 subaps square grid. (pitch = 0.5m)
+p_wfs1.set_fracsub(0.01) # 0.01 for pixels below spider, nominal = 0.1 Minimal illumination fraction
+p_wfs1.set_xpos(0.)     # direction of guide star in X (arcsec)
+p_wfs1.set_ypos(0.)     # direction of guide star in Y (arcsec)
+p_wfs1.set_Lambda(0.6)  # wavelength (microns)
+p_wfs1.set_gsmag(11)    # magnitude of guide star
+p_wfs1.set_optthroughput(0.28) # optical transmission
+p_wfs1.set_zerop(2.6e10)  # 2.6e10 ph/s/m**2 computed by Rico in R band for MOSAIC
+p_wfs1.set_noise(0.3)   # units: electrons/pixel
+p_wfs1.set_atmos_seen(1)   # tell if atmos is seen or not
+p_wfs1.set_fstop("square") # shape of field stop, "round", "square"
+p_wfs1.set_fssize(1.6)     # size of field stop (arcsec)
+rMod = 3.*0.7/0.6    # Modulation radius, in lam/D units
+nbPtMod = int(np.ceil(int(rMod * 2 * 3.141592653589793) / 4.) * 4)
+p_wfs1.set_pyr_npts(nbPtMod) # nb pts modu around circle
+p_wfs1.set_pyr_ampl(rMod)  # define modulation amplitude
+# p_wfs1.set_pyr_npts(1)
+# p_wfs1.set_pyr_pos(np.zeros((1,2)))
+
+
+p_wfs2.set_type("pyrhr") # type de WFS: "sh", "pyrhr", "pyr"
+
+p_wfs2.set_nxsub(
+        92
+)  # 92 sub aps for hexagonal grid of actuators eq. 78 subaps square grid. (pitch = 0.5m)
+p_wfs2.set_fracsub(0.01) # 0.01 for pixels below spider, nominal = 0.1 Minimal illumination fraction
+p_wfs2.set_xpos(0.)     # direction of guide star in X (arcsec)
+p_wfs2.set_ypos(0.)     # direction of guide star in Y (arcsec)
+p_wfs2.set_Lambda(0.8)  # wavelength (microns)
+p_wfs2.set_gsmag(11)    # magnitude of guide star
+p_wfs2.set_optthroughput(0.28) # optical transmission
+p_wfs2.set_zerop(2.6e10)  # 2.6e10 ph/s/m**2 computed by Rico in R band for MOSAIC
+p_wfs2.set_noise(0.3)   # units: electrons/pixel
+p_wfs2.set_atmos_seen(1)   # tell if atmos is seen or not
+p_wfs2.set_fstop("square") # shape of field stop, "round", "square"
+p_wfs2.set_fssize(1.6)     # size of field stop (arcsec)
+rMod = 3.*0.7/0.8  # Modulation radius, in lam/D units
+nbPtMod = int(np.ceil(int(rMod * 2 * 3.141592653589793) / 4.) * 4)
+p_wfs2.set_pyr_npts(nbPtMod) # nb pts modu around circle
+p_wfs2.set_pyr_ampl(rMod)  # define modulation amplitude
 
 # a = np.zeros((20,2))
 # scale = 1541.7678
@@ -203,6 +218,8 @@ in Compass pupsep is separation between 1 pupil center and Half of detector
 pupsep = 52/2+92/2 = 72
 """
 p_wfs0.set_pyr_pup_sep(72) # half pupil separation (center-to-center)
+p_wfs1.set_pyr_pup_sep(72)
+p_wfs2.set_pyr_pup_sep(72)
 
 # dm
 p_dm0 = ao.Param_dm()
@@ -214,6 +231,7 @@ p_dm0.set_type(scons.DmType.PZT)
 nact = p_wfs0.nxsub + 1
 #nact = 9
 
+"""
 #p_dm0.set_nact(nact)
 p_dm0.set_nact(75)  # 75 actuators on 40m for a projected M4 pitch of 54.05 cm
 p_dm0.set_alt(0.)
@@ -227,6 +245,14 @@ p_dm0.set_type_pattern("hexaM4")
 p_dm0.set_influType("radialSchwartz")
 p_dm0.set_margin_out(0.6)
 p_dm0.segmented_mirror = True
+"""
+
+p_dm0.set_unitpervolt(1)
+p_dm0.set_thresh(0.)  # fraction units
+p_dm0.set_margin_out(0.6)
+#p_dm0.set_file_influ_hdf5('/home/abertrou/m4_eelt_compass/testJojo.fits')
+p_dm0.set_file_influ_hdf5('/home/abertrou/m4_henri_compass/cropped_M4IF.fits')
+p_dm0.set_push4imat(0.01)
 
 """
 p_dm0.set_file_influ_hdf5("/home/fvidal/compass/shesha/data/M4data/elt_influ_spider.h5")
@@ -255,10 +281,19 @@ p_dm2.set_influType("petal")
 
 # centroiders
 p_centroider0 = ao.Param_centroider()
-p_centroiders = [p_centroider0]
+p_centroider1 = ao.Param_centroider()
+p_centroider2 = ao.Param_centroider()
+p_centroiders = [p_centroider0, p_centroider1, p_centroider2]
 
 p_centroider0.set_nwfs(0)
 p_centroider0.set_type("pyr")
+
+p_centroider1.set_nwfs(1)
+p_centroider1.set_type("pyr")
+
+p_centroider2.set_nwfs(2)
+p_centroider2.set_type("pyr")
+
 # p_centroider0.set_type("maskedpix")
 # sp_centroider0.set_thresh(0.)
 
@@ -276,7 +311,7 @@ p_controllers = [p_controller0]
 p_controller0.set_type("generic") # V(k) = a.E.V(k-1) + g.R.m(k)
 #p_controller0.set_type("geo")    # bypass the WFS (direct DM proj)
 
-p_controller0.set_nwfs([0])
+p_controller0.set_nwfs([0, 1, 2])
 p_controller0.set_ndm([0, 2])
 p_controller0.set_maxcond(150.)
 p_controller0.set_delay(0)   # loop delay. "0 = 1 frame delay".
