@@ -41,11 +41,11 @@ class DmCompass(object):
     """ DM handler for compass simulation
 
     Attributes:
-        dms : (sutraWrap.Dms) : Sutra dms instance
+        _dms : (sutraWrap.Dms) : Sutra dms instance
 
-        context : (carmaContext) : CarmaContext instance
+        _context : (carmaContext) : CarmaContext instance
 
-        config : (config module) : Parameters configuration structure module    
+        _config : (config module) : Parameters configuration structure module    
     """
     def __init__(self, context, config):
         """ Initialize a DmCompass component for DM related supervision
@@ -55,11 +55,11 @@ class DmCompass(object):
 
             config : (config module) : Parameters configuration structure module
         """
-        self.context = context
-        self.config = config # Parameters configuration coming from supervisor init
+        self._context = context
+        self._config = config # Parameters configuration coming from supervisor init
         print("->dms init")
-        self.dms = dm_init(self.context, self.config.p_dms, self.config.p_tel,
-                               self.config.p_geom, self.config.p_wfss)
+        self._dms = dm_init(self._context, self._config.p_dms, self._config.p_tel,
+                               self._config.p_geom, self._config.p_wfss)
 
     def set_command(self, commands: np.ndarray) -> None:
         """ Immediately sets provided command to DMs - does not affect integrator
@@ -67,7 +67,7 @@ class DmCompass(object):
         Parameters:
             commands : (np.ndarray) : commands vector to apply
         """
-        self.dms.set_full_com(commands)
+        self._dms.set_full_com(commands)
 
     def set_one_actu(self, dm_index: int, nactu: int, *, ampli: float = 1) -> None:
         """ Push the selected actuator
@@ -79,7 +79,7 @@ class DmCompass(object):
 
             ampli : (float, optional) : amplitude to apply. Default is 1 volt
         """
-        self.dms.d_dms[dm_index].comp_oneactu(nactu, ampli)
+        self._dms.d_dms[dm_index].comp_oneactu(nactu, ampli)
 
     def get_influ_function(self, dm_index : int) -> np.ndarray:
         """ Returns the influence function cube for the given dm
@@ -90,7 +90,7 @@ class DmCompass(object):
         Return:
             influ : (np.ndarray) : Influence functions of the DM dm_index
         """
-        return self.config.p_dms[dm_index]._influ
+        return self._config.p_dms[dm_index]._influ
 
     def get_influ_function_ipupil_coords(self, dm_index : int) -> np.ndarray:
         """ Returns the lower left coordinates of the influ function support in the ipupil coord system
@@ -101,10 +101,10 @@ class DmCompass(object):
         Return:
             coords : (tuple) : (i, j)
         """
-        i1 = self.config.p_dm0._i1  # i1 is in the dmshape support coords
-        j1 = self.config.p_dm0._j1  # j1 is in the dmshape support coords
-        ii1 = i1 + self.config.p_dm0._n1  # in  ipupil coords
-        jj1 = j1 + self.config.p_dm0._n1  # in  ipupil coords
+        i1 = self._config.p_dm0._i1  # i1 is in the dmshape support coords
+        j1 = self._config.p_dm0._j1  # j1 is in the dmshape support coords
+        ii1 = i1 + self._config.p_dm0._n1  # in  ipupil coords
+        jj1 = j1 + self._config.p_dm0._n1  # in  ipupil coords
         return ii1, jj1
 
     def reset_dm(self, dm_index: int = -1) -> None:
@@ -115,10 +115,10 @@ class DmCompass(object):
                                          Default is -1, i.e. all DMs are reset
         """
         if (dm_index == -1):  # All Dms reset
-            for dm in self.dms.d_dms:
+            for dm in self._dms.d_dms:
                 dm.reset_shape()
         else:
-            self.dms.d_dms[dm_index].reset_shape()
+            self._dms.d_dms[dm_index].reset_shape()
 
     def get_dm_shape(self, indx : int) -> np.ndarray:
         """ Return the current phase shape of the selected DM
@@ -130,7 +130,7 @@ class DmCompass(object):
             dm_shape : (np.ndarray) : DM phase screen
 
         """
-        return np.array(self.dms.d_dms[indx].d_shape)
+        return np.array(self._dms.d_dms[indx].d_shape)
 
     def set_dm_registration(self, dm_index : int, *, dx : float=None, dy : float=None, 
                             theta : float=None, G : float=None) -> None:
@@ -148,15 +148,15 @@ class DmCompass(object):
             G : (float, optionnal) : Magnification factor. If None, re-use the last one
         """
         if dx is not None:
-            self.config.p_dms[dm_index].set_dx(dx)
+            self._config.p_dms[dm_index].set_dx(dx)
         if dy is not None:
-            self.config.p_dms[dm_index].set_dy(dy)
+            self._config.p_dms[dm_index].set_dy(dy)
         if theta is not None:
-            self.config.p_dms[dm_index].set_theta(theta)
+            self._config.p_dms[dm_index].set_theta(theta)
         if G is not None:
-            self.config.p_dms[dm_index].set_G(G)
+            self._config.p_dms[dm_index].set_G(G)
 
-        self.dms.d_dms[dm_index].set_registration(
-                self.config.p_dms[dm_index].dx / self.config.p_geom._pixsize,
-                self.config.p_dms[dm_index].dy / self.config.p_geom._pixsize,
-                self.config.p_dms[dm_index].theta, self.config.p_dms[dm_index].G)
+        self._dms.d_dms[dm_index].set_registration(
+                self._config.p_dms[dm_index].dx / self._config.p_geom._pixsize,
+                self._config.p_dms[dm_index].dy / self._config.p_geom._pixsize,
+                self._config.p_dms[dm_index].theta, self._config.p_dms[dm_index].G)

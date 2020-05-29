@@ -41,19 +41,19 @@ class Calibration(object):
     related operations.
 
     Attributes:
-        config : (config) : Configuration parameters module
+        _config : (config) : Configuration parameters module
 
-        tel : (TelescopeCompass) : TelescopeCompass instance
+        _tel : (TelescopeCompass) : TelescopeCompass instance
 
-        atmos : (AtmosScompass) : AtmosCompass instance
+        _atmos : (AtmosScompass) : AtmosCompass instance
 
-        dms : (DmCompass) : DmCompass instance
+        _dms : (DmCompass) : DmCompass instance
 
-        target : (TargetCompass) : TargetCompass instance
+        _target : (TargetCompass) : TargetCompass instance
 
-        rtc : (RtcCompass) : RtcCompass instance
+        _rtc : (RtcCompass) : RtcCompass instance
 
-        wfs : (WfsCompass) : WfsCompass instance
+        _wfs : (WfsCompass) : WfsCompass instance
     """
     def __init__(self, config, tel, atmos, dms, target, rtc, wfs):
         """ Instantiate a ModalBasis object
@@ -73,13 +73,13 @@ class Calibration(object):
 
             wfs : (WfsCompass) : WfsCompass instance
         """
-        self.config = config
-        self.tel = tel
-        self.atmos = atmos
-        self.dms = dms
-        self.target = target
-        self.rtc = rtc
-        self.wfs = wfs
+        self._config = config
+        self._tel = tel
+        self._atmos = atmos
+        self._dms = dms
+        self._target = target
+        self._rtc = rtc
+        self._wfs = wfs
 
     def apply_volts_and_get_slopes(self, controller_index: int, *, noise: bool = False,
                                    turbu: bool = False, reset: bool = True):
@@ -96,14 +96,14 @@ class Calibration(object):
             reset : (bool, optional) : Flag to reset previous phase screen before raytracing.
                                        Default is True
         """
-        self.rtc.apply_control(controller_index)
-        for w in range(len(self.config.p_wfss)):
+        self._rtc.apply_control(controller_index)
+        for w in range(len(self._config.p_wfss)):
             if (turbu):
-                self.wfs.raytrace(w, tel=self.tel, atm=self.atmos, dms=self.dms)
+                self._wfs.raytrace(w, tel=self._tel, atm=self._atmos, dms=self._dms)
             else:
-                self.wfs.raytrace(w, dms=self.dms, reset=reset)
-            self.wfs.compute_wfs_image(w, noise=noise)
-        return self.rtc.compute_slopes(controller_index)
+                self._wfs.raytrace(w, dms=self._dms, reset=reset)
+            self._wfs.compute_wfs_image(w, noise=noise)
+        return self._rtc.compute_slopes(controller_index)
 
     def do_imat_modal(self, controller_index : int, ampli : np.ndarray, modal_basis : np.ndarray, 
                       *, noise : bool=False, nmodes_max : int=0, with_turbu : bool=False, push_pull : bool=False) -> np.ndarray:
@@ -129,32 +129,32 @@ class Calibration(object):
         Return:
             modal_imat : (np.ndarray) : Modal interaction matrix
         """
-        modal_imat = np.zeros((self.config.p_controllers[controller_index].nslope, modal_basis.shape[1]))
+        modal_imat = np.zeros((self._config.p_controllers[controller_index].nslope, modal_basis.shape[1]))
 
         if (nmodes_max == 0):
             nmodes_max = modal_basis.shape[1]
-        v_old = self.rtc.get_command(controller_index)
-        self.rtc.open_loop(controller_index, reset=False)
+        v_old = self._rtc.get_command(controller_index)
+        self._rtc.open_loop(controller_index, reset=False)
         for m in range(nmodes_max):
             v = ampli[m] * modal_basis[:, m]
             if ((push_pull is True) or
                 (with_turbu is True)):  # with turbulence/aberrations => push/pull
-                self.rtc.set_perturbation_voltage(
+                self._rtc.set_perturbation_voltage(
                         controller_index, "imat_modal",
                         v_old + v)  # Adding Perturbation voltage on current iteration
                 devpos = self.apply_volts_and_get_slopes(controller_index,
                                                          turbu=with_turbu, noise=noise)
-                self.rtc.set_perturbation_voltage(controller_index, "imat_modal", v_old - v)
+                self._rtc.set_perturbation_voltage(controller_index, "imat_modal", v_old - v)
                 devmin = self.apply_volts_and_get_slopes(controller_index,
                                                          turbu=with_turbu, noise=noise)
                 modal_imat[:, m] = (devpos - devmin) / (2. * ampli[m])
             else:  # No turbulence => push only
-                self.rtc.open_loop(controller_index)  # open_loop
-                self.rtc.set_perturbation_voltage(controller_index, "imat_modal", v)
+                self._rtc.open_loop(controller_index)  # open_loop
+                self._rtc.set_perturbation_voltage(controller_index, "imat_modal", v)
                 modal_imat[:, m] = self.apply_volts_and_get_slopes(controller_index, noise=noise) / ampli[m]
-        self.rtc.remove_perturbation_voltage(controller_index, "imat_modal")
+        self._rtc.remove_perturbation_voltage(controller_index, "imat_modal")
         if ((push_pull is True) or (with_turbu is True)):
-            self.rtc.close_loop(controller_index)  # We are supposed to be in close loop now
+            self._rtc.close_loop(controller_index)  # We are supposed to be in close loop now
         return modal_imat
 
     def do_imat_phase(self, controller_index: int, cube_phase: np.ndarray, *, noise : bool=False,
@@ -181,11 +181,11 @@ class Calibration(object):
         Return:
             phase_imat : (np.ndarray) : Phase interaction matrix
         """
-        imat_phase = np.zeros((cube_phase.shape[0], self.config.p_controllers[controller_index].nslope))
+        imat_phase = np.zeros((cube_phase.shape[0], self._config.p_controllers[controller_index].nslope))
         for nphase in range(cube_phase.shape[0]):
             if ((push_pull is True) or (with_turbu is True)
                 ):  # with turbulence/aberrations => push/pullADOPT/projects/cosmic/
-                self.wfs.set_ncpa_wfs(wfs_index, cube_phase[nphase, :, :])
+                self._wfs.set_ncpa_wfs(wfs_index, cube_phase[nphase, :, :])
                 devpos = self.apply_volts_and_get_slopes(controller_index,
                                                          turbu=with_turbu, noise=noise)
                 self.set_ncpa_wfs(wfs_index, -cube_phase[nphase, :, :])
@@ -193,11 +193,11 @@ class Calibration(object):
                                                          turbu=with_turbu, noise=noise)
                 imat_phase[nphase, :] = (devpos - devmin) / 2
             else:  # No turbulence => push only
-                self.rtc.open_loop(controller_index)  # open_loop
-                self.wfs.set_ncpa_wfs(wfs_index, cube_phase[nphase, :, :])
+                self._rtc.open_loop(controller_index)  # open_loop
+                self._wfs.set_ncpa_wfs(wfs_index, cube_phase[nphase, :, :])
                 imat_phase[nphase, :] = self.apply_volts_and_get_slopes(
                         controller_index, noise=noise)
-        self.wfs.set_ncpa_wfs(wfs_index,
+        self._wfs.set_ncpa_wfs(wfs_index,
                           cube_phase[nphase, :, :] * 0.)  # Remove the Phase on WFS
         _ = self.apply_volts_and_get_slopes(controller_index, turbu=with_turbu,
                                             noise=noise)
@@ -221,10 +221,10 @@ class Calibration(object):
             ai : (np.ndarray) : Modal coefficients
         """
         try:
-            self.rtc.do_control(1, sources=self.target.sources)
+            self._rtc.do_control(1, sources=self._target.sources)
         except:
             return [0]
-        v = self.rtc.get_command(1)  # We compute here the residual phase on the DM modes. Gives the Equivalent volts to apply/
+        v = self._rtc.get_command(1)  # We compute here the residual phase on the DM modes. Gives the Equivalent volts to apply/
         if (selected_actus is None):
             ai = projection_matrix.dot(v) * 1000.  # np rms units
         else:  # Slaving actus case

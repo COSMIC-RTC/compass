@@ -75,11 +75,11 @@ class SourceCompass(object):
             self.sources[index].d_phase.reset()
 
         if atm is not None:
-            self.sources[index].raytrace(atm.atmos) # Must be done first because of automatic reset of the phase screen when call
+            self.sources[index].raytrace(atm._atmos) # Must be done first because of automatic reset of the phase screen when call
         if tel is not None:
-            self.sources[index].raytrace(tel.tel)
+            self.sources[index].raytrace(tel._tel)
         if dms is not None:
-            self.sources[index].raytrace(dms.dms)
+            self.sources[index].raytrace(dms._dms)
         if ncpa:
             self.sources[index].raytrace()
 

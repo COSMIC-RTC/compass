@@ -45,13 +45,13 @@ class WfsCompass(SourceCompass):
     """ WFS handler for compass simulation
 
     Attributes:
-        wfs : (sutraWrap.Wfs) : SutraSensors instance
-
-        context : (carmaContext) : CarmaContext instance
-
-        config : (config module) : Parameters configuration structure module
-
         sources : (List) : List of SutraSource instances used for raytracing
+
+        _wfs : (sutraWrap.Wfs) : SutraSensors instance
+
+        _context : (carmaContext) : CarmaContext instance
+
+        _config : (config module) : Parameters configuration structure module
     """
     def __init__(self, context, config, tel):
         """ Initialize a wfsCompass component for wfs related supervision
@@ -63,13 +63,13 @@ class WfsCompass(SourceCompass):
 
             tel : (TelescopeCompass) : A TelescopeCompass instance
         """
-        self.context = context
-        self.config = config # Parameters configuration coming from supervisor init
+        self._context = context
+        self._config = config # Parameters configuration coming from supervisor init
         print("->wfs init")
-        self.wfs = wfs_init(self.context, tel.tel, self.config.p_wfss,
-                                self.config.p_tel, self.config.p_geom, self.config.p_dms,
-                                self.config.p_atmos)
-        self.sources = [wfs.d_gs for wfs in self.wfs.d_wfs]
+        self._wfs = wfs_init(self._context, tel._tel, self._config.p_wfss,
+                                self._config.p_tel, self._config.p_geom, self._config.p_dms,
+                                self._config.p_atmos)
+        self.sources = [wfs.d_gs for wfs in self._wfs.d_wfs]
         
     def get_wfs_image(self, wfs_index : int) -> np.ndarray:
         """ Get an image from the WFS (wfs[0] by default), or from the centroider handling the WFS
@@ -81,7 +81,7 @@ class WfsCompass(SourceCompass):
         Return:
             image : (np.ndarray) : WFS image
         """
-        return np.array(self.wfs.d_wfs[wfs_index].d_binimg)
+        return np.array(self._wfs.d_wfs[wfs_index].d_binimg)
 
     def set_pyr_modulation_points(self, wfs_index : int, cx: np.ndarray, cy: np.ndarray,
                                   *, weights: np.ndarray = None) -> None:
@@ -97,14 +97,14 @@ class WfsCompass(SourceCompass):
             weights : (np.ndarray, optional) : Weights to apply on each modulation point contribution
         """
         pyr_npts = len(cx)
-        pwfs = self.config.p_wfss[wfs_index]
+        pwfs = self._config.p_wfss[wfs_index]
         pwfs.set_pyr_npts(pyr_npts)
         pwfs.set_pyr_cx(cx)
         pwfs.set_pyr_cy(cy)
         if weights is not None:
-            self.wfs.d_wfs[wfs_index].set_pyr_modulation_points(cx, cy, pyr_npts)
+            self._wfs.d_wfs[wfs_index].set_pyr_modulation_points(cx, cy, pyr_npts)
         else:
-            self.wfs.d_wfs[wfs_index].set_pyr_modulation_points(
+            self._wfs.d_wfs[wfs_index].set_pyr_modulation_points(
                     cx, cy, weights, pyr_npts)
 
     def set_pyr_modulation_ampli(self, wfs_index: int, pyr_mod: float) -> float:
@@ -124,11 +124,11 @@ class WfsCompass(SourceCompass):
         Return:
             scale : (float) : scale factor
         """
-        p_wfs = self.config.p_wfss[wfs_index]
+        p_wfs = self._config.p_wfss[wfs_index]
 
         cx, cy, scale, pyr_npts = wfs_util.comp_new_pyr_ampl(wfs_index, pyr_mod,
-                                                    self.config.p_wfss,
-                                                    self.config.p_tel)
+                                                    self._config.p_wfss,
+                                                    self._config.p_tel)
         p_wfs.set_pyr_ampl(pyr_mod)
         self.set_pyr_modulation_points(wfs_index, cx, cy)
 
@@ -137,7 +137,7 @@ class WfsCompass(SourceCompass):
         elif (len(p_wfs._halfxy.shape) == 3):
             newhalfxy = np.tile(p_wfs._halfxy[0, :, :], (pyr_npts, 1, 1))
             print("Loading new modulation arrays")
-            self.wfs.d_wfs[wfs_index].set_phalfxy(
+            self._wfs.d_wfs[wfs_index].set_phalfxy(
                     np.exp(1j * newhalfxy).astype(np.complex64).T)
             print("Done. PYR modulation set to: %f L/D using %d points" % (pyr_mod,
                                                                            pyr_npts))
@@ -166,16 +166,16 @@ class WfsCompass(SourceCompass):
             perim = pyr_mod * 2 * np.pi
             niters = int((perim // 4 + 1) * 4)
             print(niters)
-        scale_circ = self.config.p_wfss[wfs_index]._pyr_scale_pos * pyr_mod
+        scale_circ = self._config.p_wfss[wfs_index]._pyr_scale_pos * pyr_mod
         temp_cx = []
         temp_cy = []
         for k in coords:
             temp_cx.append(scale_circ * \
                 np.sin((np.arange(niters)) * 2. * np.pi / niters) + \
-                k[0] * self.config.p_wfss[wfs_index]._pyr_scale_pos)
+                k[0] * self._config.p_wfss[wfs_index]._pyr_scale_pos)
             temp_cy.append(scale_circ * \
                 np.cos((np.arange(niters)) * 2. * np.pi / niters) + \
-                k[1] * self.config.p_wfss[wfs_index]._pyr_scale_pos)
+                k[1] * self._config.p_wfss[wfs_index]._pyr_scale_pos)
         cx = np.concatenate(np.array(temp_cx))
         cy = np.concatenate(np.array(temp_cy))
         #Gives the arguments to the simulation
@@ -228,8 +228,8 @@ class WfsCompass(SourceCompass):
                                           Default is 1
         """
         cx, cy = util.generate_circle(radius, density)
-        cx = cx.flatten() * self.config.p_wfss[wfs_index]._pyr_scale_pos
-        cy = cy.flatten() * self.config.p_wfss[wfs_index]._pyr_scale_pos
+        cx = cx.flatten() * self._config.p_wfss[wfs_index]._pyr_scale_pos
+        cy = cy.flatten() * self._config.p_wfss[wfs_index]._pyr_scale_pos
         self.set_pyr_modulation_points(wfs_index, cx, cy)
 
     def set_pyr_square_source(self, wfs_index: int, radius: float, *, density: float = 1.) -> None:
@@ -247,8 +247,8 @@ class WfsCompass(SourceCompass):
                                           Default is 1
         """
         cx, cy = util.generate_square(radius, density)
-        cx = cx.flatten() * self.config.p_wfss[wfs_index]._pyr_scale_pos
-        cy = cy.flatten() * self.config.p_wfss[wfs_index]._pyr_scale_pos
+        cx = cx.flatten() * self._config.p_wfss[wfs_index]._pyr_scale_pos
+        cy = cy.flatten() * self._config.p_wfss[wfs_index]._pyr_scale_pos
         self.set_pyr_modulation_points(wfs_index, cx, cy)
 
 
@@ -267,8 +267,8 @@ class WfsCompass(SourceCompass):
         """
         cx, cy, weights, _, _ = util.generate_pseudo_source(radius, additional_psf,
                                                             density)
-        cx = cx.flatten() * self.config.p_wfss[wfs_index]._pyr_scale_pos
-        cy = cy.flatten() * self.config.p_wfss[wfs_index]._pyr_scale_pos
+        cx = cx.flatten() * self._config.p_wfss[wfs_index]._pyr_scale_pos
+        cy = cy.flatten() * self._config.p_wfss[wfs_index]._pyr_scale_pos
         self.set_pyr_modulation_points(wfs_index, cx, cy, weights)
 
     def set_fourier_mask(self, wfs_index : int, new_mask: np.ndarray) -> None:
@@ -279,11 +279,11 @@ class WfsCompass(SourceCompass):
 
             new_mask : (ndarray) : mask to set
         """
-        if new_mask.shape != self.config.p_wfss[wfs_index].get_halfxy().shape:
+        if new_mask.shape != self._config.p_wfss[wfs_index].get_halfxy().shape:
             print('Error : mask shape should be {}'.format(
-                    self.config.p_wfss[wfs_index].get_halfxy().shape))
+                    self._config.p_wfss[wfs_index].get_halfxy().shape))
         else:
-            self.wfs.d_wfs[wfs_index].set_phalfxy(
+            self._wfs.d_wfs[wfs_index].set_phalfxy(
                     np.exp(1j * np.fft.fftshift(new_mask)).astype(np.complex64).T)
 
     def set_noise(self, wfs_index : int, noise: float, *, seed: int = 1234) -> None:
@@ -297,7 +297,7 @@ class WfsCompass(SourceCompass):
             seed : (int, optional) : RNG seed. The seed used will be computed as seed + wfs_index
                                      Default is 1234
         """
-        self.wfs.d_wfs[wfs_index].set_noise(noise, int(seed + wfs_index))
+        self._wfs.d_wfs[wfs_index].set_noise(noise, int(seed + wfs_index))
         print("Noise set to: %f on WFS %d" % (noise, wfs_index))
 
     def set_gs_mag(self, wfs_index : int, mag : float) -> None:
@@ -308,17 +308,17 @@ class WfsCompass(SourceCompass):
 
             mag : (float) : New magnitude of the guide star
         """
-        wfs = self.wfs.d_wfs[wfs_index]
-        if (self.config.p_wfs0.type == "pyrhr"):
-            r = wfs.comp_nphot(self.config.p_loop.ittime,
-                               self.config.p_wfss[wfs_index].optthroughput,
-                               self.config.p_tel.diam, self.config.p_tel.cobs,
-                               self.config.p_wfss[wfs_index].zerop, mag)
+        wfs = self._wfs.d_wfs[wfs_index]
+        if (self._config.p_wfs0.type == "pyrhr"):
+            r = wfs.comp_nphot(self._config.p_loop.ittime,
+                               self._config.p_wfss[wfs_index].optthroughput,
+                               self._config.p_tel.diam, self._config.p_tel.cobs,
+                               self._config.p_wfss[wfs_index].zerop, mag)
         else:
-            r = wfs.comp_nphot(self.config.p_loop.ittime,
-                               self.config.p_wfss[wfs_index].optthroughput,
-                               self.config.p_tel.diam, self.config.p_wfss[wfs_index].nxsub,
-                               self.config.p_wfss[wfs_index].zerop, mag)
+            r = wfs.comp_nphot(self._config.p_loop.ittime,
+                               self._config.p_wfss[wfs_index].optthroughput,
+                               self._config.p_tel.diam, self._config.p_wfss[wfs_index].nxsub,
+                               self._config.p_wfss[wfs_index].zerop, mag)
         if (r == 0):
             print("GS magnitude is now %f on WFS %d" % (mag, wfs_index))
 
@@ -330,13 +330,13 @@ class WfsCompass(SourceCompass):
 
             noise : (bool, optional) : Flag to enable noise for image computation. Default is True
         """
-        self.wfs.d_wfs[wfs_index].comp_image(noise)
+        self._wfs.d_wfs[wfs_index].comp_image(noise)
 
     def reset_noise(self) -> None:
         """ Reset all the WFS RNG to their original state
         """
-        for wfs_index, p_wfs in enumerate(self.config.p_wfss):
-            self.wfs.d_wfs[wfs_index].set_noise(p_wfs.noise, 1234 + wfs_index)
+        for wfs_index, p_wfs in enumerate(self._config.p_wfss):
+            self._wfs.d_wfs[wfs_index].set_noise(p_wfs.noise, 1234 + wfs_index)
 
     def get_ncpa_wfs(self, wfs_index : int) -> np.ndarray:
         """ Return the current NCPA phase screen of the WFS path
@@ -347,7 +347,7 @@ class WfsCompass(SourceCompass):
         Return:
             ncpa : (np.ndarray) : NCPA phase screen
         """
-        return np.array(self.wfs.d_wfs[wfs_index].d_gs.d_ncpa_phase)
+        return np.array(self._wfs.d_wfs[wfs_index].d_gs.d_ncpa_phase)
 
     def get_wfs_phase(self, wfs_index : int) -> np.ndarray:
         """ Return the WFS phase screen of WFS number wfs_index
@@ -358,7 +358,7 @@ class WfsCompass(SourceCompass):
         Return:
             phase : (np.ndarray) : WFS phase screen
         """
-        return np.array(self.wfs.d_wfs[wfs_index].d_gs.d_phase)
+        return np.array(self._wfs.d_wfs[wfs_index].d_gs.d_phase)
 
     def get_pyrhr_image(self, wfs_index : int) -> np.ndarray:
         """ Get an high resolution image from the PWFS
@@ -370,7 +370,7 @@ class WfsCompass(SourceCompass):
             image : (np.ndarray) : PWFS high resolution image
 
         """
-        return np.array(self.wfs.d_wfs[wfs_index].d_hrimg)
+        return np.array(self._wfs.d_wfs[wfs_index].d_hrimg)
 
     def set_ncpa_wfs(self, wfs_index : int, ncpa: np.ndarray) -> None:
         """ Set the additional fixed NCPA phase in the WFS path.
@@ -381,7 +381,7 @@ class WfsCompass(SourceCompass):
 
             ncpa : (ndarray) : NCPA phase screen to set [µm]
         """
-        self.wfs.d_wfs[wfs_index].d_gs.set_ncpa(ncpa)
+        self._wfs.d_wfs[wfs_index].d_gs.set_ncpa(ncpa)
 
     def set_wfs_phase(self, wfs_index : int, phase : np.ndarray) -> None:
         """ Set the phase screen seen by the WFS
@@ -391,7 +391,7 @@ class WfsCompass(SourceCompass):
 
             phase : (np.ndarray) : phase screen to set
         """
-        self.wfs.d_wfs[wfs_index].d_gs.set_phase(phase)
+        self._wfs.d_wfs[wfs_index].d_gs.set_phase(phase)
 
     def set_wfs_pupil(self, wfs_index : int, pupil : np.ndarray) -> None:
         """ Set the pupil seen by the WFS
@@ -404,14 +404,14 @@ class WfsCompass(SourceCompass):
 
             pupil : (np.ndarray) : new pupil to set
         """
-        old_mpup = self.config.p_geom._mpupil
+        old_mpup = self._config.p_geom._mpupil
         dimx = old_mpup.shape[0]
         dimy = old_mpup.shape[1]
         if ((pupil.shape[0] != dimx) or (pupil.shape[1] != dimy)):
             print("Error pupil shape on wfs %d must be: (%d,%d)" % (wfs_index, dimx,
                                                                      dimy))
         else:
-            self.wfs.d_wfs[wfs_index].set_pupil(pupil.copy())
+            self._wfs.d_wfs[wfs_index].set_pupil(pupil.copy())
 
     def get_pyr_focal_plane(self, wfs_index : int) -> np.ndarray:
         """ Returns the psf on the top of the pyramid.
@@ -423,4 +423,4 @@ class WfsCompass(SourceCompass):
         Return:
             focal_plane : (np.ndarray) : psf on the top of the pyramid
         """
-        return np.fft.fftshift(np.array(self.wfs.d_wfs[wfs_index].d_pyrfocalplane))
+        return np.fft.fftshift(np.array(self._wfs.d_wfs[wfs_index].d_pyrfocalplane))

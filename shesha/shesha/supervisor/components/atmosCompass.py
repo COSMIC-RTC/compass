@@ -43,13 +43,13 @@ class AtmosCompass(object):
     """ Atmosphere handler for compass simulation
 
     Attributes:
-        atmos : (sutraWrap.Atmos) : Sutra atmos instance
-
         is_enable : (bool) : Flag to enable/disable atmophere
 
-        context : (carmaContext) : CarmaContext instance
+        _atmos : (sutraWrap.Atmos) : Sutra atmos instance
 
-        config : (config module) : Parameters configuration structure module
+        _context : (carmaContext) : CarmaContext instance
+
+        _config : (config module) : Parameters configuration structure module
     """
     def __init__(self, context, config):
         """ Initialize an AtmosCompass component for atmosphere related supervision
@@ -59,13 +59,13 @@ class AtmosCompass(object):
 
             config : (config module) : Parameters configuration structure module
         """
-        self.context = context
         self.is_enable = True # Flag to enable/disable atmophere
-        self.config = config # Parameters configuration coming from supervisor init
+        self._context = context
+        self._config = config # Parameters configuration coming from supervisor init
         print("->atmosphere init")
-        self.atmos = atmos_init(self.context, self.config.p_atmos, self.config.p_tel,
-                        self.config.p_geom, self.config.p_loop.ittime, p_wfss=self.config.p_wfss,
-                        p_targets=self.config.p_targets)
+        self._atmos = atmos_init(self._context, self._config.p_atmos, self._config.p_tel,
+                        self._config.p_geom, self._config.p_loop.ittime, p_wfss=self._config.p_wfss,
+                        p_targets=self._config.p_targets)
 
     
     def enable_atmos(self, enable : bool) -> None:
@@ -86,17 +86,17 @@ class AtmosCompass(object):
                                 if 0 random seed is applied and refresh screens
                                 if (value) set the given seed and refresh screens
         """
-        self.atmos.set_r0(r0)
+        self._atmos.set_r0(r0)
         if reset_seed != -1:
             if reset_seed == 0:
                 ilayer = np.random.randint(1e4)
             else:
                 ilayer = reset_seed
-            for k in range(self.atmos.nscreens):
-                self.atmos.set_seed(k, 1234 + ilayer)
-                self.atmos.refresh_screen(k)
+            for k in range(self._atmos.nscreens):
+                self._atmos.set_seed(k, 1234 + ilayer)
+                self._atmos.refresh_screen(k)
                 ilayer += 1
-        self.config.p_atmos.set_r0(r0)
+        self._config.p_atmos.set_r0(r0)
 
     def set_wind(self, screen_index : int, *, windspeed : float = None, winddir : float = None) -> None:
         """ Set new wind information for the given screen
@@ -109,36 +109,36 @@ class AtmosCompass(object):
             winddir : (float) [deg]: new wind direction of the screen. If None, the wind direction is unchanged
         """
         if windspeed is not None:
-            self.config.p_atmos.windspeed[screen_index] = windspeed
+            self._config.p_atmos.windspeed[screen_index] = windspeed
         if winddir is not None:
-            self.config.p_atmos.winddir[screen_index] = winddir
+            self._config.p_atmos.winddir[screen_index] = winddir
         
-        lin_delta = self.config.p_geom.pupdiam / self.config.p_tel.diam * self.config.p_atmos.windspeed[screen_index] * \
-                    np.cos(CONST.DEG2RAD * self.config.p_geom.zenithangle) * self.config.p_loop.ittime
-        oldx = self.config.p_atmos._deltax[screen_index]
-        oldy = self.config.p_atmos._deltay[screen_index]
-        self.config.p_atmos._deltax[screen_index] = lin_delta * np.sin(CONST.DEG2RAD * self.config.p_atmos.winddir[screen_index] + np.pi)
-        self.config.p_atmos._deltay[screen_index] = lin_delta * np.cos(CONST.DEG2RAD * self.config.p_atmos.winddir[screen_index] + np.pi)
-        self.atmos.d_screens[screen_index].set_deltax(self.config.p_atmos._deltax[screen_index])
-        self.atmos.d_screens[screen_index].set_deltay(self.config.p_atmos._deltay[screen_index])
-        if(oldx * self.config.p_atmos._deltax[screen_index] < 0): #Sign has changed, must change the stencil
-            stencilx = np.array(self.atmos.d_screens[screen_index].d_istencilx)
-            n = self.config.p_atmos.dim_screens[screen_index]
+        lin_delta = self._config.p_geom.pupdiam / self._config.p_tel.diam * self._config.p_atmos.windspeed[screen_index] * \
+                    np.cos(CONST.DEG2RAD * self._config.p_geom.zenithangle) * self._config.p_loop.ittime
+        oldx = self._config.p_atmos._deltax[screen_index]
+        oldy = self._config.p_atmos._deltay[screen_index]
+        self._config.p_atmos._deltax[screen_index] = lin_delta * np.sin(CONST.DEG2RAD * self._config.p_atmos.winddir[screen_index] + np.pi)
+        self._config.p_atmos._deltay[screen_index] = lin_delta * np.cos(CONST.DEG2RAD * self._config.p_atmos.winddir[screen_index] + np.pi)
+        self._atmos.d_screens[screen_index].set_deltax(self._config.p_atmos._deltax[screen_index])
+        self._atmos.d_screens[screen_index].set_deltay(self._config.p_atmos._deltay[screen_index])
+        if(oldx * self._config.p_atmos._deltax[screen_index] < 0): #Sign has changed, must change the stencil
+            stencilx = np.array(self._atmos.d_screens[screen_index].d_istencilx)
+            n = self._config.p_atmos.dim_screens[screen_index]
             stencilx = (n * n - 1) - stencilx
-            self.atmos.d_screens[screen_index].set_istencilx(stencilx)
-        if(oldy * self.config.p_atmos._deltay[screen_index] < 0): #Sign has changed, must change the stencil
-            stencily = np.array(self.atmos.d_screens[screen_index].d_istencily)
-            n = self.config.p_atmos.dim_screens[screen_index]
+            self._atmos.d_screens[screen_index].set_istencilx(stencilx)
+        if(oldy * self._config.p_atmos._deltay[screen_index] < 0): #Sign has changed, must change the stencil
+            stencily = np.array(self._atmos.d_screens[screen_index].d_istencily)
+            n = self._config.p_atmos.dim_screens[screen_index]
             stencily = (n * n - 1) - stencily
-            self.atmos.d_screens[screen_index].set_istencily(stencily)
+            self._atmos.d_screens[screen_index].set_istencily(stencily)
 
     def reset_turbu(self) -> None:
         """ Reset the turbulence layers to their original state
         """
         ilayer = 0
-        for k in range(self.atmos.nscreens):
-            self.atmos.set_seed(k, 1234 + ilayer)
-            self.atmos.refresh_screen(k)
+        for k in range(self._atmos.nscreens):
+            self._atmos.set_seed(k, 1234 + ilayer)
+            self._atmos.refresh_screen(k)
             ilayer += 1
 
     def get_atmos_layer(self, indx: int) -> np.ndarray:
@@ -150,9 +150,9 @@ class AtmosCompass(object):
         Return:
             layer : (np.ndarray) : turbulent layer phase screen
         """
-        return np.array(self.atmos.d_screens[indx].d_screen)
+        return np.array(self._atmos.d_screens[indx].d_screen)
 
     def move_atmos(self) -> None:
         """ Move the turbulent layers according to wind speed and direction for a single iteration
         """
-        self.atmos.move_atmos()
+        self._atmos.move_atmos()

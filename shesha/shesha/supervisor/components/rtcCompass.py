@@ -43,11 +43,11 @@ class RtcCompass(object):
     """ RTC handler for compass simulation
 
     Attributes:
-        rtc : (sutraWrap.Rtc) : Sutra rtc instance
+        _rtc : (sutraWrap.Rtc) : Sutra rtc instance
 
-        context : (carmaContext) : CarmaContext instance
+        _context : (carmaContext) : CarmaContext instance
 
-        config : (config module) : Parameters configuration structure module    
+        _config : (config module) : Parameters configuration structure module    
 
         cacao : (bool) : CACAO features enabled in the RTC  
     """
@@ -70,15 +70,15 @@ class RtcCompass(object):
             cacao : (bool, optional) : If True, enables CACAO features in RTC (Default is False)
                                       /!\ Requires OCTOPUS to be installed
         """
-        self.context = context
-        self.config = config # Parameters configuration coming from supervisor init
         self.cacao = cacao
+        self._context = context
+        self._config = config # Parameters configuration coming from supervisor init
         print("->rtc init")
-        self.rtc = rtc_init(self.context, tel.tel, wfs.wfs, dms.dms, atm.atmos,
-                                self.config.p_wfss, self.config.p_tel,
-                                self.config.p_geom, self.config.p_atmos, self.config.p_loop.ittime,
-                                self.config.p_centroiders, self.config.p_controllers,
-                                self.config.p_dms, cacao=cacao)
+        self._rtc = rtc_init(self._context, tel._tel, wfs._wfs, dms._dms, atm._atmos,
+                                self._config.p_wfss, self._config.p_tel,
+                                self._config.p_geom, self._config.p_atmos, self._config.p_loop.ittime,
+                                self._config.p_centroiders, self._config.p_controllers,
+                                self._config.p_dms, cacao=cacao)
 
     def set_perturbation_voltage(self, controller_index: int, name: str,
                                  command: np.ndarray) -> None:
@@ -92,9 +92,9 @@ class RtcCompass(object):
             command : (np.ndarray) : perturbation voltage circular buffer
         """
         if len(command.shape) == 1:
-            self.rtc.d_control[controller_index].set_perturb_voltage(name, command, 1)
+            self._rtc.d_control[controller_index].set_perturb_voltage(name, command, 1)
         elif len(command.shape) == 2:
-            self.rtc.d_control[controller_index].set_perturb_voltage(
+            self._rtc.d_control[controller_index].set_perturb_voltage(
                     name, command, command.shape[0])
         else:
             raise AttributeError("command should be a 1D or 2D array")
@@ -109,7 +109,7 @@ class RtcCompass(object):
             slopes : (np.ndarray) : Current slopes vector containing slopes of all
                                     the WFS handled by the specified controller
         """
-        return np.array(self.rtc.d_control[controller_index].d_centroids)
+        return np.array(self._rtc.d_control[controller_index].d_centroids)
 
     def close_loop(self, controller_index: int=None) -> None:
         """ DM receives controller output + pertuVoltage
@@ -119,10 +119,10 @@ class RtcCompass(object):
                                                If None (default), apply on all controllers
         """
         if controller_index is None:
-            for controller in self.rtc.d_control:
+            for controller in self._rtc.d_control:
                 controller.set_open_loop(0)
         else:
-            self.rtc.d_control[controller_index].set_open_loop(0)  # close_loop
+            self._rtc.d_control[controller_index].set_open_loop(0)  # close_loop
 
     def open_loop(self, controller_index: int=None, reset=True) -> None:
         """ Integrator computation goes to /dev/null but pertuVoltage still applied
@@ -134,10 +134,10 @@ class RtcCompass(object):
             reset : (bool, optional) : If True (default), integrator is reset
         """
         if controller_index is None:
-            for controller in self.rtc.d_control:
+            for controller in self._rtc.d_control:
                 controller.set_open_loop(1, reset)
         else:
-            self.rtc.d_control[controller_index].set_open_loop(1, reset)  # open_loop
+            self._rtc.d_control[controller_index].set_open_loop(1, reset)  # open_loop
 
     def set_ref_slopes(self, ref_slopes: np.ndarray, *, centro_index : int=None) -> None:
         """ Set given ref slopes in centroider
@@ -151,9 +151,9 @@ class RtcCompass(object):
                                              slopes to use for each centroiders handled by the controller
         """
         if (centro_index is None):
-            self.rtc.set_centroids_ref(ref_slopes)
+            self._rtc.set_centroids_ref(ref_slopes)
         else:
-            self.rtc.d_centro[centro_index].set_centroids_ref(ref_slopes)
+            self._rtc.d_centro[centro_index].set_centroids_ref(ref_slopes)
 
     def get_ref_slopes(self, centro_index=None) -> np.ndarray:
         """ Get the currently used reference slopes
@@ -169,11 +169,11 @@ class RtcCompass(object):
         """
         ref_slopes = np.empty(0)
         if (centro_index is None):
-            for centro in self.rtc.d_centro:
+            for centro in self._rtc.d_centro:
                 ref_slopes = np.append(ref_slopes, np.array(centro.d_centroids_ref))
             return ref_slopes
         else:
-            return np.array(self.rtc.d_centro[centro_index].d_centroids_ref)
+            return np.array(self._rtc.d_centro[centro_index].d_centroids_ref)
 
     def set_gain(self, controller_index: int, gain: float) -> None:
         """ Set the scalar gain
@@ -183,7 +183,7 @@ class RtcCompass(object):
 
             gain : (float) : scalar gain of modal gain to set
         """
-        self.rtc.d_control[controller_index].set_gain(gain)
+        self._rtc.d_control[controller_index].set_gain(gain)
 
     def get_interaction_matrix(self, controller_index: int):
         """ Return the interaction matrix of the controller
@@ -194,7 +194,7 @@ class RtcCompass(object):
         Return:
             imat : (np.ndarray) : Interaction matrix currently set in the controller
         """
-        return np.array(self.rtc.d_control[controller_index].d_imat)
+        return np.array(self._rtc.d_control[controller_index].d_imat)
 
     def get_command_matrix(self, controller_index: int):
         """ Return the command matrix of the controller
@@ -205,7 +205,7 @@ class RtcCompass(object):
         Return:
             cmat : (np.ndarray) : Command matrix currently used by the controller
         """
-        return np.array(self.rtc.d_control[controller_index].d_cmat)
+        return np.array(self._rtc.d_control[controller_index].d_cmat)
 
     def set_command_matrix(self, controller_index: int, cmat: np.ndarray) -> None:
         """ Set the command matrix for the controller to use
@@ -215,7 +215,7 @@ class RtcCompass(object):
 
             cmat : (np.ndarray) : command matrix to set
         """
-        self.rtc.d_control[controller_index].set_cmat(cmat)
+        self._rtc.d_control[controller_index].set_cmat(cmat)
 
     def get_intensities(self) -> np.ndarray:
         """ Return sum of intensities in subaps. Size nSubaps, same order as slopes
@@ -230,7 +230,7 @@ class RtcCompass(object):
 
             flat : (np.ndarray) : New WFS flat to use
         """
-        self.rtc.d_centro[centro_index].set_flat(flat, flat.shape[0])
+        self._rtc.d_centro[centro_index].set_flat(flat, flat.shape[0])
 
     def set_dark(self, centro_index: int, dark: np.ndarray):
         """ Load dark for the given wfs
@@ -240,7 +240,7 @@ class RtcCompass(object):
 
             dark : (np.ndarray) : New WFS dark to use
         """
-        self.rtc.d_centro[centro_index].set_dark(dark, dark.shape[0])
+        self._rtc.d_centro[centro_index].set_dark(dark, dark.shape[0])
 
     def compute_slopes(self, controller_index: int):
         """ Compute the slopes handled by a controller, and returns it
@@ -251,7 +251,7 @@ class RtcCompass(object):
         Return:
             slopes : (np.ndarray) : Slopes vector
         """
-        self.rtc.do_centroids(controller_index)
+        self._rtc.do_centroids(controller_index)
         return self.get_slopes(controller_index)
 
     def reset_perturbation_voltage(self, controller_index: int) -> None:
@@ -262,7 +262,7 @@ class RtcCompass(object):
         Parameters:
             controller_index : (int) : controller index from where to remove the buffer
         """
-        self.rtc.d_control[controller_index].reset_perturb_voltage()
+        self._rtc.d_control[controller_index].reset_perturb_voltage()
 
     def remove_perturbation_voltage(self, controller_index: int, name: str) -> None:
         """ Remove the perturbation voltage called <name>, from the controller number <controller_index>.
@@ -271,7 +271,7 @@ class RtcCompass(object):
         Parameters:
             controller_index : (int) : controller index from where to remove the buffer
         """
-        self.rtc.d_control[controller_index].remove_perturb_voltage(name)
+        self._rtc.d_control[controller_index].remove_perturb_voltage(name)
 
     def get_err(self, controller_index: int) -> np.ndarray:
         """ Get integrator increment from controller_index controller
@@ -279,7 +279,7 @@ class RtcCompass(object):
         Parameters:
             controller_index : (int) : controller index
         """
-        return np.array(self.rtc.d_control[controller_index].d_err)
+        return np.array(self._rtc.d_control[controller_index].d_err)
 
     def get_voltages(self, controller_index: int) -> np.ndarray:
         """ Get voltages vector (i.e. vector sent to the DM) from controller_index controller
@@ -291,7 +291,7 @@ class RtcCompass(object):
             voltages : (np.ndarray) : current voltages vector
 
         """
-        return np.array(self.rtc.d_control[controller_index].d_voltage)
+        return np.array(self._rtc.d_control[controller_index].d_voltage)
 
     def set_integrator_law(self, controller_index: int) -> None:
         """ Set the control law to integrator (controller generic only)
@@ -300,7 +300,7 @@ class RtcCompass(object):
         Parameters:
             controller_index: (int): controller index
         """
-        self.rtc.d_control[controller_index].set_commandlaw("integrator")
+        self._rtc.d_control[controller_index].set_commandlaw("integrator")
 
     def set_2matrices_law(self, controller_index: int) -> None:
         """ Set the control law to 2matrices (controller generic only)
@@ -309,7 +309,7 @@ class RtcCompass(object):
         Parameters:
             controller_index: (int): controller index
         """
-        self.rtc.d_control[controller_index].set_commandlaw("2matrices")
+        self._rtc.d_control[controller_index].set_commandlaw("2matrices")
 
     def set_modal_integrator_law(self, controller_index: int) -> None:
         """ Set the control law to 2matrices (controller generic only)
@@ -318,7 +318,7 @@ class RtcCompass(object):
         Parameters:
             controller_index: (int): controller index
         """
-        self.rtc.d_control[controller_index].set_commandlaw("modal_integrator")
+        self._rtc.d_control[controller_index].set_commandlaw("modal_integrator")
 
     def set_decay_factor(self, controller_index: int, decay : np.ndarray) -> None:
         """ Set the decay factor used in 2matrices command law (controller generic only)
@@ -328,7 +328,7 @@ class RtcCompass(object):
 
             decay : (np.ndarray) : decay factor vector
         """
-        self.rtc.d_control[controller_index].set_decayFactor(decay)
+        self._rtc.d_control[controller_index].set_decayFactor(decay)
 
     def set_E_matrix(self, controller_index: int, e_matrix : np.ndarray) -> None:
         """ Set the E matrix used in 2matrices or modal command law (controller generic only)
@@ -338,7 +338,7 @@ class RtcCompass(object):
 
             controller_index: (int): controller index
         """
-        self.rtc.d_control[controller_index].set_matE(e_matrix)
+        self._rtc.d_control[controller_index].set_matE(e_matrix)
 
     def reset_ref_slopes(self, controller_index: int) -> None:
         """ Reset the reference slopes of each WFS handled by the specified controller
@@ -346,7 +346,7 @@ class RtcCompass(object):
         Parameters:
             controller_index: (int): controller index
         """
-        for centro in self.rtc.d_centro:
+        for centro in self._rtc.d_centro:
             centro.d_centroids_ref.reset()
 
     def set_centroider_threshold(self, centro_index: int, thresh: float) -> None:
@@ -357,7 +357,7 @@ class RtcCompass(object):
 
             thresh: (float): new threshold value
         """
-        self.rtc.d_centro[centro_index].set_threshold(thresh)
+        self._rtc.d_centro[centro_index].set_threshold(thresh)
 
     def get_pyr_method(self, centro_index : int) -> str:
         """ Get pyramid compute method currently used
@@ -368,7 +368,7 @@ class RtcCompass(object):
         Return:
             method : (str) : Pyramid compute method currently used
         """
-        return self.rtc.d_centro[centro_index].pyr_method
+        return self._rtc.d_centro[centro_index].pyr_method
 
     def set_pyr_method(self, centro_index: int, pyr_method : int) -> None:
         """ Set the pyramid method for slopes computation
@@ -381,9 +381,9 @@ class RtcCompass(object):
                                                 2: nosinus local
                                                 3: sinus local)
         """
-        self.rtc.d_centro[centro_index].set_pyr_method(pyr_method)  # Sets the pyr method
-        self.rtc.do_centroids(0)  # To be ready for the next get_slopess
-        print("PYR method set to " + self.rtc.d_centro[centro_index].pyr_method)
+        self._rtc.d_centro[centro_index].set_pyr_method(pyr_method)  # Sets the pyr method
+        self._rtc.do_centroids(0)  # To be ready for the next get_slopess
+        print("PYR method set to " + self._rtc.d_centro[centro_index].pyr_method)
 
 
     def set_modal_gains(self, controller_index: int, mgain: np.ndarray) -> None:
@@ -394,7 +394,7 @@ class RtcCompass(object):
             
             mgain : (np.ndarray) : Modal gains to set
         """
-        self.rtc.d_control[controller_index].set_modal_gains(mgain)
+        self._rtc.d_control[controller_index].set_modal_gains(mgain)
 
     def get_modal_gains(self, controller_index: int) -> np.ndarray:
         """ Returns the modal gains (when using modal integrator control law)
@@ -405,7 +405,7 @@ class RtcCompass(object):
         Return:
             mgain : (np.ndarray) : Modal gains vector currently used
         """
-        return np.array(self.rtc.d_control[controller_index].d_gain)
+        return np.array(self._rtc.d_control[controller_index].d_gain)
 
     def get_masked_pix(self, centro_index: int) -> np.ndarray:
         """ Return the mask of valid pixels used by a maskedpix centroider
@@ -416,10 +416,10 @@ class RtcCompass(object):
         Return:
             mask : (np.ndarray) : Mask used
         """
-        if (self.rtc.d_centro[centro_index].type != scons.CentroiderType.MASKEDPIX):
+        if (self._rtc.d_centro[centro_index].type != scons.CentroiderType.MASKEDPIX):
             raise TypeError("Centroider must be a maskedpix one")
-        self.rtc.d_centro[centro_index].fill_mask()
-        return np.array(self.rtc.d_centro[centro_index].d_mask)
+        self._rtc.d_centro[centro_index].fill_mask()
+        return np.array(self._rtc.d_centro[centro_index].d_mask)
 
     def get_command(self, controller_index: int) -> np.ndarray:
         """ Returns the last computed command before conversion to voltages
@@ -430,7 +430,7 @@ class RtcCompass(object):
         Return:
             com : (np.ndarray) : Command vector
         """
-        return np.array(self.rtc.d_control[controller_index].d_com)
+        return np.array(self._rtc.d_control[controller_index].d_com)
 
     def set_command(self, controller_index: int, com : np.ndarray) -> np.ndarray:
         """ Returns the last computed command before conversion to voltages
@@ -440,9 +440,9 @@ class RtcCompass(object):
 
             com : (np.ndarray) : Command vector to set
         """
-        if(com.size != self.config.p_controllers[controller_index].nactu):
+        if(com.size != self._config.p_controllers[controller_index].nactu):
             raise ValueError("Dimension mismatch")
-        self.rtc.d_control[controller_index].set_com(com, com.size)
+        self._rtc.d_control[controller_index].set_com(com, com.size)
 
     def reset_command(self, controller_index: int = None) -> None:
         """ Reset the controller_index Controller command buffer, reset all controllers if controller_index is None
@@ -452,10 +452,10 @@ class RtcCompass(object):
                                       Default is None, i.e. all controllers are reset
         """
         if (controller_index is None):  # All Dms reset
-            for control in self.rtc.d_control:
+            for control in self._rtc.d_control:
                 control.d_com.reset()
         else:
-            self.rtc.d_control[controller_index].d_com.reset()
+            self._rtc.d_control[controller_index].d_com.reset()
 
     def get_slopes_geom(self, controller_index: int) -> np.ndarray:
         """ Computes and return the slopes geom from the specified controller
@@ -466,9 +466,9 @@ class RtcCompass(object):
         Return:
             slopes_geom : (np.ndarray) : geometrically computed slopes
         """
-        self.rtc.do_centroids_geom(controller_index)
-        slopes_geom = np.array(self.rtc.d_control[controller_index].d_centroids)
-        self.rtc.do_centroids(controller_index)  # To return in non-geo state
+        self._rtc.do_centroids_geom(controller_index)
+        slopes_geom = np.array(self._rtc.d_control[controller_index].d_centroids)
+        self._rtc.do_centroids(controller_index)  # To return in non-geo state
         return slopes_geom
 
     def get_selected_pix(self) -> np.ndarray:
@@ -477,13 +477,13 @@ class RtcCompass(object):
         Return:
             selected_pix : (np.ndarray) : PWFS image with only selected pixels
         """
-        if (self.config.p_centroiders[0].type != scons.CentroiderType.MASKEDPIX):
+        if (self._config.p_centroiders[0].type != scons.CentroiderType.MASKEDPIX):
             raise TypeError("Centroider must be maskedPix")
 
-        carma_centroids = self.rtc.d_control[0].d_centroids
-        self.rtc.d_centro[0].fill_selected_pix(carma_centroids)
+        carma_centroids = self._rtc.d_control[0].d_centroids
+        self._rtc.d_centro[0].fill_selected_pix(carma_centroids)
 
-        return np.array(self.rtc.d_centro[0].d_selected_pix)
+        return np.array(self._rtc.d_centro[0].d_selected_pix)
 
     def do_ref_slopes(self, controller_index: int) -> None:
         """ Computes and set a new reference slopes for each WFS handled by
@@ -493,7 +493,7 @@ class RtcCompass(object):
             controller_index: (int): controller index
         """
         print("Doing reference slopes...")
-        self.rtc.do_centroids_ref(controller_index)
+        self._rtc.do_centroids_ref(controller_index)
         print("Reference slopes done")
 
     def do_control(self, controller_index: int, *, sources : SourceCompass = None, source_index : int = 0, is_wfs_phase : bool = False) -> None:
@@ -511,11 +511,11 @@ class RtcCompass(object):
             is_wfs_phase : (bool, optional) : If True, sources[source_index] is a WFS phase screen.
                                               Else, it is a Target phase screen (Default)
         """
-        if (self.rtc.d_control[controller_index].type == scons.ControllerType.GEO):
+        if (self._rtc.d_control[controller_index].type == scons.ControllerType.GEO):
             if (sources is not None):
-                self.rtc.d_control[controller_index].comp_dphi(sources[source_index],
+                self._rtc.d_control[controller_index].comp_dphi(sources[source_index],
                                                        is_wfs_phase)
-        self.rtc.do_control(controller_index)
+        self._rtc.do_control(controller_index)
 
     def do_calibrate_img(self, controller_index: int) -> None:
         """ Computes the calibrated image from the Wfs image
@@ -523,7 +523,7 @@ class RtcCompass(object):
         Parameters :
             controller_index: (int): controller index
         """
-        self.rtc.do_calibrate_img(controller_index)
+        self._rtc.do_calibrate_img(controller_index)
 
     def do_centroids(self, controller_index: int) -> None:
         """ Computes the centroids from the Wfs image
@@ -531,7 +531,7 @@ class RtcCompass(object):
         Parameters :
             controller_index: (int): controller index
         """
-        self.rtc.do_centroids(controller_index)
+        self._rtc.do_centroids(controller_index)
 
     def do_centroids_geom(self, controller_index: int) -> None:
         """ Computes the centroids geom from the Wfs image
@@ -539,7 +539,7 @@ class RtcCompass(object):
         Parameters :
             controller_index: (int): controller index
         """
-        self.rtc.do_centroids_geom(controller_index)
+        self._rtc.do_centroids_geom(controller_index)
 
     def apply_control(self, controller_index: int, *, comp_voltage: bool = True) -> None:
         """ Computes the final voltage vector to apply on the DM by taking into account delay and perturbation voltages, and shape the DMs
@@ -549,7 +549,7 @@ class RtcCompass(object):
 
             comp_voltage: (bool): If True (default), computes the voltage vector from the command one (delay + perturb). Else, directly applies the current voltage vector
         """
-        self.rtc.apply_control(controller_index, comp_voltage)
+        self._rtc.apply_control(controller_index, comp_voltage)
 
     def do_clipping(self, controller_index: int) -> None:
         """ Clip the commands between vmin and vmax values set in the RTC
@@ -557,7 +557,7 @@ class RtcCompass(object):
         Parameters :
             controller_index: (int): controller index
         """
-        self.rtc.do_clipping(controller_index)
+        self._rtc.do_clipping(controller_index)
 
     def set_scale(self, centroider_index : int, scale : float) -> None:
         """ Update the scale factor of the centroider
@@ -567,7 +567,7 @@ class RtcCompass(object):
 
             scale : (float) : scale factor to apply on slopes
         """
-        self.rtc.d_centro[centroider_index].set_scale(scale)
+        self._rtc.d_centro[centroider_index].set_scale(scale)
 
     def publish(self) -> None:
         """ Publish loop data on DDS topics
@@ -575,7 +575,7 @@ class RtcCompass(object):
         /!\ only with cacao enabled, requires OCTOPUS
         """
         if self.cacao:
-            self.rtc.publish()
+            self._rtc.publish()
         else:
             raise AttributeError("CACAO must be enabled")
     
@@ -588,7 +588,7 @@ class RtcCompass(object):
         Return:
             image_raw : (np.ndarray) : Raw WFS image loaded in the centroider
         """
-        return np.array(self.rtc.d_centro[centroider_index].d_img_raw)
+        return np.array(self._rtc.d_centro[centroider_index].d_img_raw)
 
     def get_image_calibrated(self, centroider_index : int) -> np.ndarray:
         """ Return the last image calibrated by the specified centroider
@@ -599,4 +599,4 @@ class RtcCompass(object):
         Return:
             image_cal : (np.ndarray) : Calibrated WFS image loaded in the centroider
         """
-        return np.array(self.rtc.d_centro[centroider_index].d_img)
+        return np.array(self._rtc.d_centro[centroider_index].d_img)

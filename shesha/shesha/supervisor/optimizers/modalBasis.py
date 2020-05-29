@@ -47,11 +47,11 @@ class ModalBasis(object):
     related operations.
 
     Attributes:
-        config : (config) : Configuration parameters module
+        _config : (config) : Configuration parameters module
 
-        dms : (DmCompass) : DmCompass instance
+        _dms : (DmCompass) : DmCompass instance
 
-        target : (TargetCompass) : TargetCompass instance
+        _target : (TargetCompass) : TargetCompass instance
 
         slaved_actus : TODO : docstring
 
@@ -75,9 +75,9 @@ class ModalBasis(object):
 
             target : (TargetCompass) : TargetCompass instance
         """
-        self.config = config
-        self.dms = dms
-        self.target = target
+        self._config = config
+        self._dms = dms
+        self._target = target
         self.slaved_actus = None
         self.selected_actus = None
         self.couples_actus = None
@@ -95,9 +95,9 @@ class ModalBasis(object):
         Return:
             influ_sparse : (csr_matrix) : influence function phases
         """
-        return basis.compute_dm_basis(self.dms.dms.d_dms[dm_index],
-                                              self.config.p_dms[dm_index],
-                                              self.config.p_geom)
+        return basis.compute_dm_basis(self._dms._dms.d_dms[dm_index],
+                                              self._config.p_dms[dm_index],
+                                              self._config.p_geom)
 
     def compute_modes_to_volts_basis(self, modal_basis_type: str, *, merged: bool = False,
                                      nbpairs: int = None, return_delta: bool = False) -> np.ndarray:
@@ -118,9 +118,9 @@ class ModalBasis(object):
         if (modal_basis_type == "KL2V"):
             print("Computing KL2V basis...")
             self.modal_basis = basis.compute_KL2V(
-                    self.config.p_controllers[0], self.dms.dms,
-                    self.config.p_dms, self.config.p_geom,
-                    self.config.p_atmos, self.config.p_tel)
+                    self._config.p_controllers[0], self._dms._dms,
+                    self._config.p_dms, self._config.p_geom,
+                    self._config.p_atmos, self._config.p_tel)
             fnz = util.first_non_zero(self.modal_basis, axis=0)
             # Computing the sign of the first non zero element
             #sig = np.sign(modal_basis[[fnz, np.arange(modal_basis.shape[1])]])
@@ -172,7 +172,7 @@ class ModalBasis(object):
 
             projection_matrix : (np.ndarray) : volts to Btt modes matrix
         """
-        dms_basis = basis.compute_IFsparse(self.dms.dms, self.config.p_dms, self.config.p_geom)
+        dms_basis = basis.compute_IFsparse(self._dms._dms, self._config.p_dms, self._config.p_geom)
         influ_basis = dms_basis[:-2,:]
         tt_basis = dms_basis[-2:,:].toarray()
         if (merged):
@@ -224,11 +224,11 @@ class ModalBasis(object):
 
             discard : (list) : TODO description
         """
-        p_geom = self.config.p_geom
+        p_geom = self._config.p_geom
 
 
         cent = p_geom.pupdiam / 2. + 0.5
-        p_tel = self.config.p_tel
+        p_tel = self._config.p_tel
         p_tel.t_spiders = 0.51
         spup = mkP.make_pupil(p_geom.pupdiam, p_geom.pupdiam, p_tel, cent,
                               cent).astype(np.float32).T
@@ -244,11 +244,11 @@ class ModalBasis(object):
         px_list_spider = [np.where(spidersi == i) for i in range(1, k + 1)]
 
         # DM positions in iPupil:
-        dm_posx = self.config.p_dms[dm_index]._xpos - 0.5
-        dm_posy = self.config.p_dms[dm_index]._ypos - 0.5
+        dm_posx = self._config.p_dms[dm_index]._xpos - 0.5
+        dm_posy = self._config.p_dms[dm_index]._ypos - 0.5
         dm_pos_mat = np.c_[dm_posx, dm_posy].T  # one actu per column
 
-        pitch = self.config.p_dms[dm_index]._pitch
+        pitch = self._config.p_dms[dm_index]._pitch
         discard = np.zeros(len(dm_posx), dtype=np.bool)
         pairs = []
 
@@ -331,13 +331,13 @@ class ModalBasis(object):
 
             P : (np.ndarray) : volts to Btt modes matrix
         """
-        pzt_index = np.where([d.type is scons.DmType.PZT for d in self.config.p_dms])[0][0]
+        pzt_index = np.where([d.type is scons.DmType.PZT for d in self._config.p_dms])[0][0]
         influ_pzt = self.compute_influ_basis(pzt_index)
         petal_dm_index = np.where([
-                d.influ_type is scons.InfluType.PETAL for d in self.config.p_dms
+                d.influ_type is scons.InfluType.PETAL for d in self._config.p_dms
         ])[0][0]
         influ_petal = self.compute_influ_basis(petal_dm_index)
-        tt_index = np.where([d.type is scons.DmType.TT for d in self.config.p_dms])[0][0]
+        tt_index = np.where([d.type is scons.DmType.TT for d in self._config.p_dms])[0][0]
         influ_tt = self.compute_influ_basis(tt_index).toarray()
 
         self.modal_basis, self.projection_matrix = basis.compute_btt(influ_pzt.T, influ_tt.T, influ_petal=influ_petal)
@@ -353,14 +353,14 @@ class ModalBasis(object):
             phase_to_modes : (np.ndarray) : phase to modes matrix
         """
         nbmode = modal_basis.shape[1]
-        phase = self.target.get_tar_phase(0)
+        phase = self._target.get_tar_phase(0)
         phase_to_modes = np.zeros((nbmode, phase.shape[0], phase.shape[1]))
-        S = np.sum(self.config.p_geom._spupil)
+        S = np.sum(self._config.p_geom._spupil)
         for i in range(nbmode):
-            self.dms.set_command((modal_basis[:, i]).copy())
+            self._dms.set_command((modal_basis[:, i]).copy())
             # self.next(see_atmos=False)
-            self.target.raytrace(0, dms=self.dms, ncpa=False, reset=True)
-            phase = self.target.get_tar_phase(0, pupil=True)
+            self._target.raytrace(0, dms=self._dms, ncpa=False, reset=True)
+            phase = self._target.get_tar_phase(0, pupil=True)
             # Normalisation pour les unites rms en microns !!!
             norm = np.sqrt(np.sum((phase)**2) / S)
             phase_to_modes[i] = phase / norm

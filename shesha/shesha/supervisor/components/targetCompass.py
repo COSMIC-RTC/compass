@@ -42,13 +42,13 @@ class TargetCompass(SourceCompass):
     """ Target handler for compass simulation
 
     Attributes:
-        target : (sutraWrap.Target) : Sutra target instance
-
-        context : (carmaContext) : CarmaContext instance
-
-        config : (config module) : Parameters configuration structure module
-
         sources : (List) : List of SutraSource instances used for raytracing
+
+        _target : (sutraWrap.Target) : Sutra target instance
+
+        _context : (carmaContext) : CarmaContext instance
+
+        _config : (config module) : Parameters configuration structure module
     """
     def __init__(self, context, config, tel):
         """ Initialize a TargetCompass component for target related supervision
@@ -60,13 +60,13 @@ class TargetCompass(SourceCompass):
 
             tel : (TelescopeCompass) : A TelescopeCompass instance
         """
-        self.context = context
-        self.config = config # Parameters configuration coming from supervisor init
+        self._context = context
+        self._config = config # Parameters configuration coming from supervisor init
         print("->target init")
-        self.target = target_init(self.context, tel.tel, self.config.p_targets,
-                                   self.config.p_atmos, self.config.p_tel,
-                                   self.config.p_geom, self.config.p_dms, brahma=False)
-        self.sources = self.target.d_targets
+        self._target = target_init(self._context, tel._tel, self._config.p_targets,
+                                   self._config.p_atmos, self._config.p_tel,
+                                   self._config.p_geom, self._config.p_dms, brahma=False)
+        self.sources = self._target.d_targets
 
     def get_tar_image(self, tar_index : int, *, expo_type: str = "se") -> np.ndarray:
         """ Get the PSF in the direction of the given target
@@ -82,11 +82,11 @@ class TargetCompass(SourceCompass):
         """
         if (expo_type == "se"):
             return np.fft.fftshift(
-                    np.array(self.target.d_targets[tar_index].d_image_se))
+                    np.array(self._target.d_targets[tar_index].d_image_se))
         elif (expo_type == "le"):
             return np.fft.fftshift(
-                    np.array(self.target.d_targets[tar_index].d_image_le)
-            ) / self.target.d_targets[tar_index].strehl_counter
+                    np.array(self._target.d_targets[tar_index].d_image_le)
+            ) / self._target.d_targets[tar_index].strehl_counter
         else:
             raise ValueError("Unknown exposure type")
 
@@ -98,7 +98,7 @@ class TargetCompass(SourceCompass):
 
             phase : (np.ndarray) : phase screen to set
         """
-        self.target.d_targets[tar_index].set_phase(phase)
+        self._target.d_targets[tar_index].set_phase(phase)
 
     def get_tar_phase(self, tar_index: int, *, pupil: bool = False) -> np.ndarray:
         """ Returns the target phase screen of target number tar_index
@@ -112,9 +112,9 @@ class TargetCompass(SourceCompass):
         Return:
             tar_phase : (np.ndarray) : Target phase screen
         """
-        tar_phase = np.array(self.target.d_targets[tar_index].d_phase)
+        tar_phase = np.array(self._target.d_targets[tar_index].d_phase)
         if pupil:
-            pup = self.config.p_geom._spupil
+            pup = self._config.p_geom._spupil
             tar_phase *= pup
         return tar_phase
 
@@ -124,7 +124,7 @@ class TargetCompass(SourceCompass):
         Parameters:
             tar_index : (int) : Target index
         """
-        self.target.d_targets[tar_index].reset_strehlmeter()
+        self._target.d_targets[tar_index].reset_strehlmeter()
 
     def reset_tar_phase(self, tar_index: int) -> None:
         """ Reset the phase screen of the target tar_index
@@ -132,7 +132,7 @@ class TargetCompass(SourceCompass):
         Parameters:
             tar_index : (int) : Target index
         """
-        self.target.d_targets[tar_index].d_phase.reset()
+        self._target.d_targets[tar_index].d_phase.reset()
 
     def get_strehl(self, tar_index: int, *, do_fit: bool = True) -> np.ndarray:
         """ Return the Strehl Ratio of target number tar_index.
@@ -148,7 +148,7 @@ class TargetCompass(SourceCompass):
         Return:
             strehl : (np.ndarray) : Strehl ratios and phase variances
         """
-        src = self.target.d_targets[tar_index]
+        src = self._target.d_targets[tar_index]
         src.comp_strehl(do_fit)
         avg_var = 0
         if (src.phase_var_count > 0):
@@ -164,7 +164,7 @@ class TargetCompass(SourceCompass):
         Return:
             ncpa : (np.ndarray) : NCPA phase screen
         """
-        return np.array(self.target.d_targets[tar_index].d_ncpa_phase)
+        return np.array(self._target.d_targets[tar_index].d_ncpa_phase)
 
     def set_ncpa_tar(self, tar_index: int, ncpa: np.ndarray) -> None:
         """ Set the additional fixed NCPA phase in the target path.
@@ -175,7 +175,7 @@ class TargetCompass(SourceCompass):
 
             ncpa : (ndarray) : NCPA phase screen to set [µm]
         """
-        self.target.d_targets[tar_index].set_ncpa(ncpa)
+        self._target.d_targets[tar_index].set_ncpa(ncpa)
 
     def comp_tar_image(self, tarNum: int, *, puponly: int = 0, compLE: bool = True) -> None:
         """ Computes the PSF
@@ -187,7 +187,7 @@ class TargetCompass(SourceCompass):
 
             compLE: (bool, optionnal) : if True, the computed image is taken into account in long exposure image (default=True)
         """
-        self.target.d_targets[tarNum].comp_image(puponly, compLE)
+        self._target.d_targets[tarNum].comp_image(puponly, compLE)
 
     def comp_strehl(self, tarNum: int, *, do_fit: bool = True) -> None:
         """ Computes the Strehl ratio
@@ -195,4 +195,4 @@ class TargetCompass(SourceCompass):
         Parameters :
             tarNum: (int): target index
         """
-        self.target.d_targets[tarNum].comp_strehl(do_fit)
+        self._target.d_targets[tarNum].comp_strehl(do_fit)
