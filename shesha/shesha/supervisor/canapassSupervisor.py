@@ -86,8 +86,8 @@ class CanapassSupervisor(CompassSupervisor):
     def get_config_fab(self):
         aodict = OrderedDict()
         dataDict = {}
-        if (root is None):
-            root = self
+        #if (root is None):
+        root = self
 
         if (root.config.p_tel is not None):
             aodict.update({"teldiam": root.config.p_tel.diam})
@@ -112,7 +112,7 @@ class CanapassSupervisor(CompassSupervisor):
 
         # DMS
         aodict.update({"nbDms": len(root.config.p_dms)})
-        aodict.update({"Nactu": root.rtc.d_control[0].nactu})
+        aodict.update({"Nactu": root.rtc.rtc.d_control[0].nactu})
         # List of things
         aodict.update({"list_NgsOffAxis": []})
         aodict.update({"list_Fig": []})
@@ -370,8 +370,19 @@ if __name__ == '__main__':
         else:
             user = out.split(b"\n")[0].decode("utf-8")
             print("User is " + user)
-        server = PyroServer()
-        server.add_device(supervisor, "waoconfig_" + user)
+
+        devices = [supervisor, supervisor.rtc, supervisor.wfs, 
+        supervisor.target, supervisor.tel,supervisor.basis, supervisor.calibration,
+        supervisor.atmos, supervisor.dms]
+
+        names = ["supervisor", "supervisor_rtc", "supervisor_wfs", 
+        "supervisor_target", "supervisor_tel", "supervisor_basis", "supervisor_calibration", 
+        "supervisor_atmos", "supervisor_dms"]
+        nname = []  
+        for name in names: 
+            nname.append(name+"_"+user) 
+        server = PyroServer(listDevices=devices, listNames=names)
+        #server.add_device(supervisor, "waoconfig_" + user)
         server.start()
     except:
         raise EnvironmentError(

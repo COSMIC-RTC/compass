@@ -73,7 +73,6 @@ class widgetCanapassWindowPyro(widgetAOWindow):
                  expert: bool = False) -> None:
         widgetAOWindow.__init__(self, config_file, cacao, hide_histograms=True)
         #Pyro.core.ObjBase.__init__(self)
-
         self.CB = {}
         self.wpyr = None
         self.current_buffer = 1
@@ -92,8 +91,9 @@ class widgetCanapassWindowPyro(widgetAOWindow):
         self.uiAO.wao_deviceNumber.setDisabled(True)
         self.supervisor = CanapassSupervisor(self.config)
 
-    def init_config(self) -> None:
-        widgetAOWindow.init_config(self)
+
+    def init_configFinished(self) -> None:
+        widgetAOWindow.init_configFinished(self)
         global server
         server = self.start_pyro_server()
 
@@ -163,7 +163,6 @@ class widgetCanapassWindowPyro(widgetAOWindow):
         try:
             from subprocess import Popen, PIPE
             from hraa.server.pyroServer import PyroServer
-
             # Init looper
             wao_loop = loopHandler(self)
 
@@ -177,13 +176,21 @@ class widgetCanapassWindowPyro(widgetAOWindow):
                 user = out.split(b"\n")[0].decode("utf-8")
                 print("User is " + user)
 
-            server = PyroServer()
-            server.add_device(self.supervisor, "waoconfig_" + user)
-            server.add_device(wao_loop, "waoloop_" + user)
+
+            devices = [self.supervisor, self.supervisor.rtc, self.supervisor.wfs, 
+            self.supervisor.target, self.supervisor.tel,self.supervisor.basis, self.supervisor.calibration,
+            self.supervisor.atmos, self.supervisor.dms, wao_loop]
+            
+            names = ["supervisor", "supervisor_rtc", "supervisor_wfs", 
+            "supervisor_target", "supervisor_tel", "supervisor_basis", "supervisor_calibration", 
+            "supervisor_atmos", "supervisor_dms", "wao_loop"]
+            nname = [];  
+            for name in names: 
+                nname.append(name+"_"+user) 
+            server = PyroServer(listDevices=devices, listNames=nname)
             server.start()
         except:
             raise Exception("Error could not connect to Pyro server.\n It can  be:\n - Missing dependencies? (check if Pyro4 is installed)\n - pyro server not running")
-
         return server
 
 
