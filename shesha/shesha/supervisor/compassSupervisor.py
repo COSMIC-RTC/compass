@@ -76,9 +76,9 @@ class CompassSupervisor(GenericSupervisor):
 
         cacao : (bool) : CACAO features enabled in the RTC  
 
-        basis : TODO
+        basis : (ModalBasis) : a ModalBasis instance (optimizer)
 
-        calibration :    
+        calibration : (Calibration) : a Calibration instance (optimizer) 
     """
     def __init__(self, config, cacao : bool=False):
         """ Instantiates a CompassSupervisor object

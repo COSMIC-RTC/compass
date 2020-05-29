@@ -97,16 +97,6 @@ class widgetCanapassWindowPyro(widgetAOWindow):
         global server
         server = self.start_pyro_server()
 
-    def load_config(self, *args, config_file=None, supervisor=None) -> None:
-        '''
-            Callback when 'LOAD' button is hit
-        '''
-        if supervisor is None:
-            supervisor = CanapassSupervisor(config_file)
-
-        widgetAOWindow.load_config(self, args, config_file=config_file,
-                                  supervisor=supervisor)
-
     def loop_once(self) -> None:
         widgetAOWindow.loop_once(self)
         if (self.uiAO.actionShow_Pyramid_Tools.isChecked()):  # PYR only

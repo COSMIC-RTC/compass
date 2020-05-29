@@ -259,8 +259,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         if supervisor is None:
             self.config = load_config_from_file(config_file)
         else:
-            self.supervisor = supervisor
-            self.config = self.supervisor.get_config()
+            self.config = supervisor.get_config()
 
         if self.devices:
             self.config.p_loop.set_devices([

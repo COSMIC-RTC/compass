@@ -74,8 +74,10 @@ from shesha.supervisor.compassSupervisor import CompassSupervisor
 
 class CanapassSupervisor(CompassSupervisor):
 
-    def __init__(self, config_file: str = None, cacao: bool = True) -> None:
-        CompassSupervisor.__init__(self, config_file=config_file, cacao=cacao)
+    def __init__(self, config, cacao: bool = True) -> None:
+        print("switching to a generic controller")
+        config.p_controllers[0].type = scons.ControllerType.GENERIC
+        CompassSupervisor.__init__(self, config, cacao=cacao)
 
     def get_config(self):
         """ Returns the configuration in use, in a supervisor specific format """
@@ -315,14 +317,6 @@ class CanapassSupervisor(CompassSupervisor):
         aodict.update({"Nsubap": Nsubap})
         return aodict, dataDict
 
-    def load_config(self, config_file: str) -> None:
-        """ Load the configuration for the compass supervisor
-        """
-        CompassSupervisor.load_config(self, config_file)
-        print("switching to a generic controller")
-        self.config.p_controllers[0].type = scons.ControllerType.GENERIC
-
-
 ########################## PROTO #############################
 
     # def initModalGain(self, gain, cmatModal, modal_basis, control=0, reset_gain=True):
@@ -353,15 +347,16 @@ class CanapassSupervisor(CompassSupervisor):
 
 if __name__ == '__main__':
     from docopt import docopt
+    from shesha.util.utilities import load_config_from_file
     arguments = docopt(__doc__)
-    supervisor = CanapassSupervisor(arguments["<parameters_filename>"], cacao=True)
+    config = load_config_from_file(arguments["<parameters_filename>"])
+    supervisor = CanapassSupervisor(config, cacao=True)
     if (arguments["--freq"]):
         print("Warning changed frequency loop to: ", arguments["--freq"])
         supervisor.config.p_loop.set_ittime(1 / float(arguments["--freq"]))
     if (arguments["--delay"]):
         print("Warning changed delay loop to: ", arguments["--delay"])
         supervisor.config.p_controllers[0].set_delay(float(arguments["--delay"]))
-    supervisor.init()
 
     try:
         from subprocess import Popen, PIPE
