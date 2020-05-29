@@ -575,6 +575,28 @@ class RtcCompass(object):
         /!\ only with cacao enabled, requires OCTOPUS
         """
         if self.cacao:
-            self.rtc.rtc.publish()
+            self.rtc.publish()
         else:
             raise AttributeError("CACAO must be enabled")
+    
+    def get_image_raw(self, centroider_index : int) -> np.ndarray:
+        """ Return the raw image currently loaded on the specified centroider
+
+        Parameters:
+            centroider_index : (int) : Index of the centroider
+        
+        Return:
+            image_raw : (np.ndarray) : Raw WFS image loaded in the centroider
+        """
+        return np.array(self.rtc.d_centro[centroider_index].d_img_raw)
+
+    def get_image_calibrated(self, centroider_index : int) -> np.ndarray:
+        """ Return the last image calibrated by the specified centroider
+
+        Parameters:
+            centroider_index : (int) : Index of the centroider
+        
+        Return:
+            image_cal : (np.ndarray) : Calibrated WFS image loaded in the centroider
+        """
+        return np.array(self.rtc.d_centro[centroider_index].d_img)

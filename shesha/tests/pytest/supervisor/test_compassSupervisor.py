@@ -382,6 +382,18 @@ def test_get_slopes_geom():
     sup.rtc.get_slopes_geom(0)
     assert(True)
 
+def test_get_image_raw():
+    sup.rtc.get_image_raw(0)
+    assert(True)
+
+def test_get_image_calibrated():
+    sup.rtc.get_image_calibrated(0)
+    assert(True)
+
+def test_get_image_cal():
+    sup.rtc.get_image_raw(0)
+    assert(True)
+
 @pytest.mark.skipif(sup.config.p_centroiders[0].type != "maskedpix", reason="maskedpix only")
 def test_get_selected_pix():
     sup.rtc.get_selected_pix()
