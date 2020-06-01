@@ -369,11 +369,11 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             self.uiAO.wao_open_loop.setText("Close Loop")
 
     def init_config(self) -> None:
+        self.supervisor = CompassSupervisor(self.config)
         WidgetBase.init_config(self)
 
     def init_configThread(self) -> None:
         self.uiAO.wao_deviceNumber.setDisabled(True)
-        self.supervisor = CompassSupervisor(self.config)
 
     def init_configFinished(self) -> None:
         # Thread carmaWrap context reload:
