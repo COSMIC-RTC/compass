@@ -81,7 +81,10 @@ class WfsCompass(SourceCompass):
         Return:
             image : (np.ndarray) : WFS image
         """
-        return np.array(self._wfs.d_wfs[wfs_index].d_binimg)
+        if self._config.p_wfss[wfs_index].fakecam:
+            return np.array(self._wfs.d_wfs[wfs_index].d_camimg)
+        else:
+            return np.array(self._wfs.d_wfs[wfs_index].d_binimg)
 
     def set_pyr_modulation_points(self, wfs_index : int, cx: np.ndarray, cy: np.ndarray,
                                   *, weights: np.ndarray = None) -> None:

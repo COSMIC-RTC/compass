@@ -79,10 +79,6 @@ class CanapassSupervisor(CompassSupervisor):
         config.p_controllers[0].type = scons.ControllerType.GENERIC
         CompassSupervisor.__init__(self, config, cacao=cacao)
 
-    def get_config(self):
-        """ Returns the configuration in use, in a supervisor specific format """
-        return CompassSupervisor.get_config(self)
-
     def get_config_fab(self):
         aodict = OrderedDict()
         dataDict = {}
