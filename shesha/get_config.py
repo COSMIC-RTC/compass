@@ -18,6 +18,16 @@ import shesha
 
 
 def launch_cmd(command_line: str):
+    """ Get the command output
+
+    Get the command output
+
+    Parameters:
+        command_line : (str) : command to launch
+
+    Return:
+        output : (str) : the output of the command
+    """
     pipes = command_line.split('|')
 
     pipe_in = None
