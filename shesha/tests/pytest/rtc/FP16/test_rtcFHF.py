@@ -27,8 +27,8 @@ rtc.add_controller(sup.context, sup.config.p_wfs0._nvalid,
 centro = rtc.d_centro[0]
 control = rtc.d_control[0]
 rtc.d_centro[0].set_npix(sup.config.p_wfs0.npix)
-xvalid = np.array(sup.rtc.rtc.d_centro[0].d_validx)
-yvalid = np.array(sup.rtc.rtc.d_centro[0].d_validy)
+xvalid = np.array(sup.rtc._rtc.d_centro[0].d_validx)
+yvalid = np.array(sup.rtc._rtc.d_centro[0].d_validy)
 rtc.d_centro[0].load_validpos(xvalid, yvalid, xvalid.size)
 cmat = sup.rtc.get_command_matrix(0)
 rtc.d_control[0].set_cmat(cmat)
@@ -124,7 +124,7 @@ def test_calibrate_img():
 
 
 def test_doCentroids_cog():
-    bincube = np.array(sup.wfs.wfs.d_wfs[0].d_bincube)
+    bincube = np.array(sup.wfs._wfs.d_wfs[0].d_bincube)
     slopes = np.zeros(sup.config.p_wfs0._nvalid * 2)
     offset = centro.offset
     scale = centro.scale
@@ -245,7 +245,7 @@ def test_doCentroids_tcog():
     centro.load_img(frame, frame.shape[0])
     centro.calibrate_img()
     rtc.do_centroids(0)
-    bincube = np.array(sup.wfs.wfs.d_wfs[0].d_bincube)
+    bincube = np.array(sup.wfs._wfs.d_wfs[0].d_bincube)
     bincube /= bincube.max()
     slopes = np.zeros(sup.config.p_wfs0._nvalid * 2)
     offset = centro.offset
@@ -274,7 +274,7 @@ def test_doCentroids_bpcog():
     centro.load_img(frame, frame.shape[0])
     centro.calibrate_img()
     rtc.do_centroids(0)
-    bincube = np.array(sup.wfs.wfs.d_wfs[0].d_bincube)
+    bincube = np.array(sup.wfs._wfs.d_wfs[0].d_bincube)
     bincube /= bincube.max()
     slopes = np.zeros(sup.config.p_wfs0._nvalid * 2)
     offset = centro.offset

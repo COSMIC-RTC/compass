@@ -30,8 +30,8 @@ rtc.add_controller(sup.context, sup.config.p_wfs0._nvalid, sup.config.p_wfs0._nv
 centro = rtc.d_centro[0]
 control = rtc.d_control[0]
 rtc.d_centro[0].set_npix(sup.config.p_wfs0.npix)
-xvalid = np.array(sup.rtc.rtc.d_centro[0].d_validx)
-yvalid = np.array(sup.rtc.rtc.d_centro[0].d_validy)
+xvalid = np.array(sup.rtc._rtc.d_centro[0].d_validx)
+yvalid = np.array(sup.rtc._rtc.d_centro[0].d_validy)
 rtc.d_centro[0].load_validpos(xvalid, yvalid, xvalid.size)
 cmat = sup.rtc.get_command_matrix(0)
 rtc.d_control[0].set_cmat(cmat)
