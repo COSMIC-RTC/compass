@@ -76,7 +76,7 @@ nbLayers = len(alt)
 # atmos
 p_atmos = ao.Param_atmos()
 
-## 1 Layer 
+## 1 Layer
 
 p_atmos.set_r0(0.129)
 # p_atmos.set_r0(0.215)
@@ -227,17 +227,6 @@ p_dm0.set_type_pattern("hexaM4")
 p_dm0.set_influType("radialSchwartz")
 p_dm0.set_margin_out(0.6)
 p_dm0.segmented_mirror = True
-
-"""
-p_dm0.set_file_influ_hdf5("/home/fvidal/compass/shesha/data/M4data/elt_influ_spider.h5")
-p_dm0.set_center_name("center")
-p_dm0.set_cube_name("m_influ")
-p_dm0.set_x_name("xpos")
-p_dm0.set_y_name("ypos")
-p_dm0.set_influ_res("res")
-p_dm0.set_diam_dm("diam")
-p_dm0.set_diam_dm_proj("diam_projet")
-"""
 
 #p_dm0.set_gain(0.2)
 
