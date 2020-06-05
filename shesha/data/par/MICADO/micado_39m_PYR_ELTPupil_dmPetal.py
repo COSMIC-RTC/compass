@@ -10,7 +10,7 @@ p_loop = ao.Param_loop()
 
 p_loop.set_niter(1000)
 p_loop.set_ittime(1 / 500.)  # =1/500
-p_loop.set_devices([4, 5, 6, 7])
+p_loop.set_devices([0,1,2,3])
 # geom
 p_geom = ao.Param_geom()
 p_geom.set_zenithangle(0.)
@@ -76,7 +76,7 @@ nbLayers = len(alt)
 # atmos
 p_atmos = ao.Param_atmos()
 
-## 1 Layer 
+## 1 Layer
 
 p_atmos.set_r0(0.129)
 # p_atmos.set_r0(0.215)
@@ -130,7 +130,7 @@ p_wfs0.set_type("pyrhr") # type de WFS: "sh", "pyrhr", "pyr"
 p_wfs0.set_nxsub(
         92
 )  # 92 sub aps for hexagonal grid of actuators eq. 78 subaps square grid. (pitch = 0.5m)
-p_wfs0.set_fracsub(0.1) # Minimal illumination fraction
+p_wfs0.set_fracsub(0.01) # 0.01 for pixels below spider, nominal = 0.1 Minimal illumination fraction
 p_wfs0.set_xpos(0.)     # direction of guide star in X (arcsec)
 p_wfs0.set_ypos(0.)     # direction of guide star in Y (arcsec)
 p_wfs0.set_Lambda(0.7)  # wavelength (microns)
@@ -228,17 +228,6 @@ p_dm0.set_influ_type("radialSchwartz")
 p_dm0.set_margin_out(0.6)
 p_dm0.segmented_mirror = True
 
-"""
-p_dm0.set_file_influ_hdf5("/home/fvidal/compass/shesha/data/M4data/elt_influ_spider.h5")
-p_dm0.set_center_name("center")
-p_dm0.set_cube_name("m_influ")
-p_dm0.set_x_name("xpos")
-p_dm0.set_y_name("ypos")
-p_dm0.set_influ_res("res")
-p_dm0.set_diam_dm("diam")
-p_dm0.set_diam_dm_proj("diam_projet")
-"""
-
 #p_dm0.set_gain(0.2)
 
 p_dm1.set_type("tt")
@@ -281,7 +270,7 @@ p_controller0.set_ndm([0, 2])
 p_controller0.set_maxcond(150.)
 p_controller0.set_delay(0)   # loop delay. "0 = 1 frame delay".
 p_controller0.set_gain(1)
-p_controller0.set_nstates(6)
+# p_controller0.set_nstates(6)
 
 # p_controller0.set_modopti(0)
 # p_controller0.set_nrec(2048)

@@ -49,8 +49,8 @@ p_atmos.set_nscreens(1)
 p_atmos.set_frac([1.0])
 p_atmos.set_alt([0.0])
 p_atmos.set_windspeed([10.])
-p_atmos.set_winddir([45.])
-p_atmos.set_L0([25.])  # Not simulated in Yorick?
+p_atmos.set_winddir([0.])
+p_atmos.set_L0([25.0])  # Not simulated in Yorick?
 
 # target
 #p_target = ao.Param_target()
@@ -129,18 +129,8 @@ p_dm0.set_coupling(0.2)
 p_dm0.set_unitpervolt(1)
 p_dm0.set_push4imat(0.01)
 p_dm0.set_type_pattern("hexaM4")
-#p_dm0.set_influ_type("gaussian")
+#p_dm0.set_influType("gaussian")
 p_dm0.set_influ_type("radialSchwartz")
-"""
-p_dm0.set_file_influ_hdf5("/home/fvidal/compass/shesha/data/M4data/elt_influ_spider.h5")
-p_dm0.set_center_name("center")
-p_dm0.set_cube_name("m_influ")
-p_dm0.set_x_name("xpos")
-p_dm0.set_y_name("ypos")
-p_dm0.set_influ_res("res")
-p_dm0.set_diam_dm("diam")
-p_dm0.set_diam_dm_proj("diam_projet")
-"""
 
 #p_dm0.set_gain(0.2)
 
