@@ -61,6 +61,7 @@ from shesha.supervisor.canapassSupervisor import CanapassSupervisor
 from typing import Any, Dict, Tuple, Callable, List
 from docopt import docopt
 
+from shesha.widgets.widget_base import WidgetBase
 from shesha.widgets.widget_ao import widgetAOWindow, widgetAOWindow
 
 global server
@@ -87,10 +88,9 @@ class widgetCanapassWindowPyro(widgetAOWindow):
         #############################################################
         #                       METHODS                             #
         #############################################################
-    def init_configThread(self) -> None:
-        self.uiAO.wao_deviceNumber.setDisabled(True)
+    def init_config(self) -> None:
         self.supervisor = CanapassSupervisor(self.config)
-
+        WidgetBase.init_config(self)
 
     def init_configFinished(self) -> None:
         widgetAOWindow.init_configFinished(self)
