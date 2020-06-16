@@ -10,7 +10,6 @@ precision = 1e-2
 
 config = load_config_from_file(os.getenv("COMPASS_ROOT") +
         "/shesha/tests/pytest/par/test_sh.py")
-config.p_controller0.set_delay(0.0)
 sup = Supervisor(config)
 sup.next()
 sup.rtc.open_loop(0)

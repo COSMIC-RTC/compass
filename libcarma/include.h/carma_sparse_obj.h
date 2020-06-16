@@ -68,6 +68,9 @@ class CarmaSparseObj {
   int *d_rowind;   // dim1+1  elements
   int *d_colind;   // nz_elem elements
   cusparseMatDescr_t descr;
+#if CUDA_VERSION >= 11000
+  cusparseSpMatDescr_t sp_descr; // New cuSPARSE API from CUDA 11
+#endif
 
   char major_dim;
   std::string format;
@@ -97,7 +100,6 @@ class CarmaSparseObj {
   void operator=(CarmaSparseHostObj<T_data> &M);
 
   void resize(int nnz_, int dim1_, int dim2_);
-  void init_from_transpose(CarmaSparseObj<T_data> *M);
   bool is_column_major();
   char get_major_dim() const { return major_dim; }
   void set_majorDim(char c) { major_dim = c; }
@@ -115,6 +117,22 @@ class CarmaSparseObj {
   int get_device() { return device; }
 
   void sparse_to_host(int *h_rowInd, int *h_colInd, T_data *h_data);
+
+#if CUDA_VERSION >= 11000
+  void transpose();
+  cudaDataType_t get_data_type() {
+    cudaDataType_t data_type;
+    if (std::is_same<T_data, float>::value)
+      data_type = CUDA_R_32F;
+    else if (std::is_same<T_data, double>::value)
+      data_type = CUDA_R_64F;
+    else
+      std::cerr << "Unsupported data type" << std::endl;
+    return data_type;
+  }
+#endif
+
+  void allocate(int nnz, int dim1, int dim2);
 
  private:
   void _create(int nnz_, int dim1_, int dim2_);

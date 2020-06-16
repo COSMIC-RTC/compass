@@ -18,6 +18,7 @@ from docopt import docopt
 if __name__ == "__main__":
     import pandas
     from shesha.supervisor.compassSupervisor import CompassSupervisor
+    from shesha.util.utilities import load_config_from_file
 
     arguments = docopt(__doc__)
 
@@ -43,16 +44,18 @@ if __name__ == "__main__":
     else:
         # Get parameters from file
         param_file = arguments["<parameters_filename>"]
-        supervisor = CompassSupervisor(param_file)
+        config = load_config_from_file(param_file)
 
         if arguments["--devices"]:
-            supervisor.config.p_loop.set_devices([
+            config.p_loop.set_devices([
                     int(device) for device in arguments["--devices"].split(",")
             ])
+
         try:
-            supervisor.init()
+            supervisor = CompassSupervisor(config)
             is_init = supervisor.is_init
         except:
+            supervisor = None
             is_init = False
             SR = "N/A"
         try:
@@ -60,7 +63,6 @@ if __name__ == "__main__":
             SR = supervisor.target.get_strehl(0)[1]
         except:
             SR = "N/A"
-
         try:
             df = pandas.read_hdf("check.h5")
         except FileNotFoundError:
