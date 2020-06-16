@@ -73,7 +73,7 @@ p_dm0 = conf.Param_dm()
 p_dm1 = conf.Param_dm()
 p_dms = [p_dm0, p_dm1]
 p_dm0.set_type("pzt")
-p_dm0.set_file_influ_fits("../../data/dm-data/test_custom_dm.fits")
+p_dm0.set_file_influ_fits("test_custom_dm.fits")
 p_dm0.set_alt(0.)
 p_dm0.set_thresh(0.3)
 p_dm0.set_unitpervolt(0.01)

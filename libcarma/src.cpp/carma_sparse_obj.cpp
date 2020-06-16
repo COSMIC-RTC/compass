@@ -100,6 +100,13 @@ void CarmaSparseObj<T_data>::init_carma_sparse_obj(
                   this->d_data, this->d_rowind, this->d_colind);
   }
   format = "CSR";
+
+#if CUDA_VERSION >= 11000
+  carma_check_cusparse_status(cusparseCreateCsr(&sp_descr, dims[1], dims[2], nnzTotalDevHostPtr,
+                                      this->d_rowind, this->d_colind, this->d_data,
+                                      CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
+                                      CUSPARSE_INDEX_BASE_ZERO, this->get_data_type()));
+#endif
 #ifndef USE_MAGMA_SPARSE
   d_sparse_mat = s_sparse_mat = 0L;
 #endif
@@ -189,6 +196,12 @@ CarmaSparseObj<T_data>::CarmaSparseObj(CarmaContext *current_context,
     cudaMemcpy(this->d_rowind, rowind, (dims[1] + 1) * sizeof(int),
                cudaMemcpyDeviceToDevice);
   }
+#if CUDA_VERSION >= 11000
+  carma_check_cusparse_status(cusparseCreateCsr(&sp_descr, dims[1], dims[2], nz,
+                                      this->d_rowind, this->d_colind, this->d_data,
+                                      CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
+                                      CUSPARSE_INDEX_BASE_ZERO, this->get_data_type()));
+#endif
 }
 template CarmaSparseObj<float>::CarmaSparseObj(
     CarmaContext *current_context, const long *dims, float *values,
@@ -235,6 +248,12 @@ CarmaSparseObj<T_data>::CarmaSparseObj(CarmaSparseObj<T_data> *M) {
   cusparseSetMatFillMode(descr, cusparseGetMatFillMode(M->descr));
   cusparseSetMatIndexBase(descr, cusparseGetMatIndexBase(M->descr));
   cusparseSetMatType(descr, cusparseGetMatType(M->descr));
+#if CUDA_VERSION >= 11000
+  carma_check_cusparse_status(cusparseCreateCsr(&sp_descr, M->get_dims(1), M->get_dims(2), M->nz_elem,
+                                      this->d_rowind, this->d_colind, this->d_data,
+                                      CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
+                                      CUSPARSE_INDEX_BASE_ZERO, M->get_data_type()));
+#endif
 }
 
 template <class T_data>
@@ -254,6 +273,13 @@ CarmaSparseObj<T_data>::CarmaSparseObj(CarmaContext *current_context,
 
   major_dim = M->get_major_dim();
   format = "CSR";
+#if CUDA_VERSION >= 11000
+  carma_check_cusparse_status(cusparseCreateCsr(&sp_descr, M->get_dims(1), M->get_dims(2), M->nz_elem,
+                                      this->d_rowind, this->d_colind, this->d_data,
+                                      CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
+                                      CUSPARSE_INDEX_BASE_ZERO, this->get_data_type()));
+#endif
+
 }
 
 template <class T_data>
@@ -276,6 +302,13 @@ void CarmaSparseObj<T_data>::operator=(CarmaSparseObj<T_data> &M) {
   cusparseSetMatFillMode(descr, cusparseGetMatFillMode(M.descr));
   cusparseSetMatIndexBase(descr, cusparseGetMatIndexBase(M.descr));
   cusparseSetMatType(descr, cusparseGetMatType(M.descr));
+#if CUDA_VERSION >= 11000
+  carma_check_cusparse_status(cusparseCreateCsr(&sp_descr, M.get_dims(1), M.get_dims(2), M.nz_elem,
+                                      this->d_rowind, this->d_colind, this->d_data,
+                                      CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
+                                      CUSPARSE_INDEX_BASE_ZERO, this->get_data_type()));
+#endif
+
 }
 
 template <class T_data>
@@ -289,18 +322,38 @@ void CarmaSparseObj<T_data>::operator=(CarmaSparseHostObj<T_data> &M) {
 
   major_dim = M.get_major_dim();
   this->format = "CSR";
+#if CUDA_VERSION >= 11000
+  carma_check_cusparse_status(cusparseCreateCsr(&sp_descr, M.get_dims(1), M.get_dims(2), M.nz_elem,
+                                      this->d_rowind, this->d_colind, this->d_data,
+                                      CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
+                                      CUSPARSE_INDEX_BASE_ZERO, this->get_data_type()));
+#endif
 }
 
 template <class T_data>
 void CarmaSparseObj<T_data>::resize(int nz_elem_, int dim1_, int dim2_) {
-  if (nz_elem != nz_elem_) {
     _clear();
     _create(nz_elem_, dim1_, dim2_);
-  } else {
-    dims_data[0] = 2;
-    dims_data[1] = dim1_;
-    dims_data[2] = dim2_;
+}
+
+template <class T_data>
+void CarmaSparseObj<T_data>::allocate(int nz_elem, int dim1, int dim2) {
+  if (d_data != NULL) {
+    carma_check_msg(cudaFree(d_data));
+    carma_check_msg(cudaFree(d_rowind));
+    carma_check_msg(cudaFree(d_colind));
+    carma_check_cusparse_status(cusparseDestroyMatDescr(descr));
   }
+  _create(nz_elem, dim1, dim2);
+#if CUDA_VERSION >= 11000
+  if(sp_descr != 0)
+      carma_check_cusparse_status(cusparseDestroySpMat(sp_descr));
+
+  carma_check_cusparse_status(cusparseCreateCsr(&sp_descr, dim1, dim2, nz_elem,
+                                      this->d_rowind, this->d_colind, this->d_data,
+                                      CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
+                                      CUSPARSE_INDEX_BASE_ZERO, this->get_data_type()));
+#endif
 }
 
 template <class T_data>
@@ -323,15 +376,10 @@ void CarmaSparseObj<T_data>::_create(int nz_elem_, int dim1_, int dim2_) {
   major_dim = 'U';
   format = "CSR";
 
-  status = cusparseCreateMatDescr(&descr);
-  if (status != CUSPARSE_STATUS_SUCCESS) {
-    DEBUG_TRACE(
-        "Error | CarmaSparseObj<T_data>::_create | Matrix descriptor "
-        "initialization failed");
-    throw "Error | CarmaSparseObj<T_data>::_create | Matrix descriptor initialization failed";
-    // exit(EXIT_FAILURE);
-  }
-
+  carma_check_cusparse_status(cusparseCreateMatDescr(&descr));
+#if CUDA_VERSION >= 11000
+  sp_descr = 0;
+#endif
   cusparseSetMatType(descr, CUSPARSE_MATRIX_TYPE_GENERAL);
   // cusparseSetMatDiagType(descr, CUSPARSE_DIAG_TYPE_NON_UNIT);
   // cusparseSetMatFillMode(descr, CUSPARSE_FILL_MODE_LOWER);
@@ -363,43 +411,86 @@ void CarmaSparseObj<T_data>::_clear() {
 
   //  DEBUG_TRACE("clear %p : d_data %p d_rowind %p d_colind %p", this, d_data,
   //  d_rowind, d_colind);
-  status = cusparseDestroyMatDescr(descr);
+  carma_check_cusparse_status(cusparseDestroyMatDescr(descr));
+#if CUDA_VERSION >= 11000
+  if(sp_descr != 0)
+    carma_check_cusparse_status(cusparseDestroySpMat(sp_descr));
+#endif
   //  DEBUG_TRACE("clear %p : d_data %p d_rowind %p d_colind %p", this, d_data,
   //  d_rowind, d_colind);
 
   descr = 0;
 
-  if (status != CUSPARSE_STATUS_SUCCESS) {
-    DEBUG_TRACE(
-        "Error | CarmaSparseObj<T_data>::_clear | Matrix descriptor "
-        "destruction failed");
-    throw "Error | CarmaSparseObj<T_data>::_clear | Matrix descriptor destruction failed";
-    // exit(EXIT_FAILURE);
-  }
 }
-
+#if CUDA_VERSION >= 11000
 template <class T_data>
-void CarmaSparseObj<T_data>::init_from_transpose(
-    CarmaSparseObj<T_data> *M) {
-  resize(M->nz_elem, M->get_dims(1), M->get_dims(2));
+void CarmaSparseObj<T_data>::transpose() {
 
-  cudaMemcpy(d_data, M->d_data, nz_elem * sizeof(T_data),
-             cudaMemcpyDeviceToDevice);
-  cudaMemcpy(d_rowind, M->d_rowind, (M->get_dims(1) + 1) * sizeof(int),
-             cudaMemcpyDeviceToDevice);
-  cudaMemcpy(d_colind, M->d_colind, nz_elem * sizeof(int),
-             cudaMemcpyDeviceToDevice);
+  T_data *csc_val;
+  int *csc_rows;
+  int *csc_cols;
 
-  d_sparse_mat = M->d_sparse_mat;
-  s_sparse_mat = M->s_sparse_mat;
+  cudaMalloc((void**)&csc_val, nz_elem * sizeof(T_data));
+  cudaMalloc((void**)&csc_rows, nz_elem * sizeof(int));
+  cudaMalloc((void**)&csc_cols, (this->get_dims(2) + 1) * sizeof(int));
 
-  if (M->major_dim == 'C')
+  size_t buffer_size = 0;
+  void *d_buffer;
+
+  cusparseCsr2cscEx2_bufferSize(current_context->get_cusparse_handle(),
+                                this->get_dims(1), this->get_dims(2), nz_elem,
+                                d_data, d_rowind, d_colind,
+                                csc_val, csc_cols, csc_rows,
+                                this->get_data_type(), CUSPARSE_ACTION_NUMERIC,
+                                CUSPARSE_INDEX_BASE_ZERO, CUSPARSE_CSR2CSC_ALG1,
+                                &buffer_size);
+
+  cudaMalloc((void**) &d_buffer, buffer_size);
+
+  cusparseCsr2cscEx2(current_context->get_cusparse_handle(),
+                      this->get_dims(1), this->get_dims(2), nz_elem,
+                                d_data, d_rowind, d_colind,
+                                csc_val, csc_cols, csc_rows,
+                                this->get_data_type(), CUSPARSE_ACTION_NUMERIC,
+                                CUSPARSE_INDEX_BASE_ZERO, CUSPARSE_CSR2CSC_ALG1,
+                                d_buffer);
+
+  resize(this->nz_elem, this->get_dims(2), this->get_dims(1));
+
+  cudaMemcpy(d_data, csc_val, nz_elem * sizeof(T_data),
+              cudaMemcpyDeviceToDevice);
+  cudaMemcpy(d_colind, csc_rows, nz_elem * sizeof(int),
+              cudaMemcpyDeviceToDevice);
+  cudaMemcpy(d_rowind, csc_cols, (this->get_dims(1) + 1) * sizeof(int),
+              cudaMemcpyDeviceToDevice);
+
+  cudaFree(csc_val);
+  cudaFree(csc_rows);
+  cudaFree(csc_cols);
+  cudaFree(d_buffer);
+
+  d_sparse_mat = this->d_sparse_mat;
+  s_sparse_mat = this->s_sparse_mat;
+
+  if (this->major_dim == 'C')
     major_dim = 'R';
-  else if (M->major_dim == 'R')
+  else if (this->major_dim == 'R')
     major_dim = 'C';
   else
     major_dim = 'U';
+#if CUDA_VERSION >= 11000
+  if(sp_descr != 0) {
+    carma_check_cusparse_status(cusparseDestroySpMat(sp_descr));
+  }
+  sp_descr = 0;
+  carma_check_cusparse_status(cusparseCreateCsr(&sp_descr, this->get_dims(1), this->get_dims(2), this->nz_elem,
+                                      this->d_rowind, this->d_colind, this->d_data,
+                                      CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
+                                      CUSPARSE_INDEX_BASE_ZERO, this->get_data_type()));
+#endif
+
 }
+#endif
 
 template <class T_data>
 bool CarmaSparseObj<T_data>::is_column_major() {
@@ -435,28 +526,31 @@ CarmaSparseObj<T_data>::~CarmaSparseObj<T_data>() {
   _clear();
 }
 
-#define EXPLICITE_TEMPLATE(T_data)                                         \
-  template CarmaSparseObj<T_data>::CarmaSparseObj(                     \
-      CarmaContext *current_context);                                     \
-  template CarmaSparseObj<T_data>::CarmaSparseObj(                     \
-      CarmaSparseObj<T_data> *M);                                        \
-  template CarmaSparseObj<T_data>::CarmaSparseObj(                     \
-      CarmaContext *current_context, CarmaSparseHostObj<T_data> *M);   \
-  template CarmaSparseObj<T_data>::~CarmaSparseObj<T_data>();          \
-  template void CarmaSparseObj<T_data>::operator=(                       \
-      CarmaSparseObj<T_data> &M);                                        \
-  template void CarmaSparseObj<T_data>::operator=(                       \
-      CarmaSparseHostObj<T_data> &M);                                   \
-  template void CarmaSparseObj<T_data>::resize(int nz_elem_, int dim1_,  \
-                                                 int dim2_);               \
-  template void CarmaSparseObj<T_data>::_create(int nz_elem_, int dim1_, \
-                                                  int dim2_);              \
-  template void CarmaSparseObj<T_data>::_clear();                        \
-  template void CarmaSparseObj<T_data>::init_from_transpose(             \
-      CarmaSparseObj<T_data> *M);                                        \
-  template bool CarmaSparseObj<T_data>::is_column_major();
+template class CarmaSparseObj<float>;
+template class CarmaSparseObj<double>;
 
-EXPLICITE_TEMPLATE(double);
-EXPLICITE_TEMPLATE(float);
+// #define EXPLICITE_TEMPLATE(T_data)                                         \
+//   template CarmaSparseObj<T_data>::CarmaSparseObj(                     \
+//       CarmaContext *current_context);                                     \
+//   template CarmaSparseObj<T_data>::CarmaSparseObj(                     \
+//       CarmaSparseObj<T_data> *M);                                        \
+//   template CarmaSparseObj<T_data>::CarmaSparseObj(                     \
+//       CarmaContext *current_context, CarmaSparseHostObj<T_data> *M);   \
+//   template CarmaSparseObj<T_data>::~CarmaSparseObj<T_data>();          \
+//   template void CarmaSparseObj<T_data>::operator=(                       \
+//       CarmaSparseObj<T_data> &M);                                        \
+//   template void CarmaSparseObj<T_data>::operator=(                       \
+//       CarmaSparseHostObj<T_data> &M);                                   \
+//   template void CarmaSparseObj<T_data>::resize(int nz_elem_, int dim1_,  \
+//                                                  int dim2_);               \
+//   template void CarmaSparseObj<T_data>::_create(int nz_elem_, int dim1_, \
+//                                                   int dim2_);              \
+//   template void CarmaSparseObj<T_data>::_clear();                        \
+//   template void CarmaSparseObj<T_data>::transpose(             \
+//       CarmaSparseObj<T_data> *M);                                        \
+//   template bool CarmaSparseObj<T_data>::is_column_major();
 
-#undef EXPLICITE_TEMPLATE
+// EXPLICITE_TEMPLATE(double);
+// EXPLICITE_TEMPLATE(float);
+
+// #undef EXPLICITE_TEMPLATE

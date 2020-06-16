@@ -43,10 +43,7 @@
 #include <carma_sparse_obj.h>
 #include <string>
 
-#define carma_check_cusparse_status(status) \
-  carma_checkCusparseStatus_v2(status, __LINE__, __FILE__)
-
-cusparseStatus_t carma_checkCusparseStatus_v2(cusparseStatus_t status, int line,
+cusparseStatus_t carma_check_cusparse_status_v2(cusparseStatus_t status, int line,
                                               std::string file) {
   /**< Generic CUSPARSE check status routine */
   switch (status) {
@@ -135,147 +132,227 @@ cusparseOperation_t carma_char2cusparse_operation(char operation) {
  *
  */
 
-template <class T_data,
-          cusparseStatus_t CUSPARSEAPI (*csrmv)(
-              cusparseHandle_t handle, cusparseOperation_t transA, int m, int n,
-              int nnz, const T_data *alpha, const cusparseMatDescr_t descrA,
-              const T_data *csrValA, const int *csrRowPtrA,
-              const int *csrColIndA, const T_data *x, const T_data *beta,
-              T_data *y)>
-cusparseStatus_t carma_gemv(cusparseHandle_t handle, char op_A, T_data alpha,
+namespace detail {
+  template<typename T> struct Sparse;
+
+  // Specialization of Sparse with float routine.
+  template<> struct Sparse<float>
+  {
+#if CUDA_VERSION < 11000
+    constexpr static auto mv()    {  return cusparseScsrmv; }
+    constexpr static auto mm()    { return cusparseScsrmm; }
+    constexpr static auto gemm()  { return cusparseScsrgemm; }
+#endif
+    constexpr static auto bsr()   { return cusparseScsr2bsr; }
+    constexpr static auto csr()   { return cusparseSbsr2csr; }
+    constexpr static auto dense() { return cusparseScsr2dense; }
+  };
+
+  // Specialization of Sparse with double routine.
+  template<> struct Sparse<double>
+  {
+#if CUDA_VERSION < 11000
+    constexpr static auto mv()    { return cusparseDcsrmv; }
+    constexpr static auto mm()    { return cusparseDcsrmm; }
+    constexpr static auto gemm()  { return cusparseDcsrgemm; }
+#endif
+    constexpr static auto bsr()   { return cusparseDcsr2bsr; }
+    constexpr static auto csr()   { return cusparseDbsr2csr; }
+    constexpr static auto dense() { return cusparseDcsr2dense; }
+  };
+}
+
+// Type dependant function binded to corresponding routine.
+#if CUDA_VERSION < 11000
+template<typename T> constexpr auto sparse_mv =    detail::Sparse<T>::mv();
+template<typename T> constexpr auto sparse_mm =    detail::Sparse<T>::mm();
+template<typename T> constexpr auto sparse_gemm =  detail::Sparse<T>::gemm();
+#endif
+template<typename T> constexpr auto sparse_bsr =   detail::Sparse<T>::bsr();
+template<typename T> constexpr auto sparse_csr =   detail::Sparse<T>::csr();
+template<typename T> constexpr auto sparse_dense = detail::Sparse<T>::dense();
+
+#if CUDA_VERSION >= 11000
+  template <class T_data>
+  cusparseStatus_t carma_gemv(cusparseHandle_t handle, char op_A, T_data alpha,
                             CarmaSparseObj<T_data> *A, T_data *x, T_data beta,
                             T_data *y) {
-  cusparseOperation_t trans = carma_char2cusparse_operation(op_A);
+    cusparseStatus_t status;
+    cusparseDnVecDescr_t vec_x, vec_y;
+    void*  d_buffer    = NULL;
+    size_t buffer_size = 0;
+    cusparseOperation_t trans_A = carma_char2cusparse_operation(op_A);
 
-  return carma_check_cusparse_status(
-      csrmv(handle, trans, A->get_dims(1), A->get_dims(2), A->nz_elem, &alpha,
-            A->descr, A->d_data, A->d_rowind, A->d_colind, x, &beta, y));
-}
+    carma_check_cusparse_status(cusparseCreateDnVec(&vec_x, A->get_dims(2), x, A->get_data_type()));
+    carma_check_cusparse_status(cusparseCreateDnVec(&vec_y, A->get_dims(1), y, A->get_data_type()));
+    carma_check_cusparse_status(cusparseSpMV_bufferSize(
+                                 handle, trans_A,
+                                 &alpha, A->sp_descr, vec_x, &beta, vec_y, A->get_data_type(),
+                                 CUSPARSE_MV_ALG_DEFAULT, &buffer_size));
+    carma_check_msg(cudaMalloc(&d_buffer, buffersize));
+    status = carma_check_cusparse_status(cusparseSpMV(handle, trans_A,
+                                 &alpha, A->sp_descr, vec_x, &beta, vec_y, A->get_data_type(),
+                                 CUSPARSE_MV_ALG_DEFAULT, d_buffer));
+    carma_check_cusparse_status(cusparseDestroyDnVec(vec_x));
+    carma_check_cusparse_status(cusparseDestroyDnVec(vec_y));
+    carma_check_msg(cudaFree(d_buffer));
 
-template <>
-cusparseStatus_t carma_gemv<double>(cusparseHandle_t handle, char op_A,
-                                    double alpha, CarmaSparseObj<double> *A,
-                                    double *x, double beta, double *y) {
-  if (A->format != "CSR") {
-    DEBUG_TRACE("carma_gemv needs a CSR matrix as input");
+    return status;
   }
-  return carma_gemv<double, cusparseDcsrmv>(handle, op_A, alpha, A, x, beta, y);
-}
-template <>
-cusparseStatus_t carma_gemv<float>(cusparseHandle_t handle, char op_A,
-                                   float alpha, CarmaSparseObj<float> *A,
-                                   float *x, float beta, float *y) {
-  if (A->format != "CSR") {
-    DEBUG_TRACE("carma_gemv needs a CSR matrix as input");
+
+  template <class T_data>
+  cusparseStatus_t carma_gemm(cusparseHandle_t handle, char op_A, T_data alpha,
+                              CarmaSparseObj<T_data> *A, CarmaObj<T_data> *B,
+                              T_data beta, CarmaObj<T_data> *C) {
+    cusparseStatus_t status;
+    cusparseDnMatDescr_t mat_b, mat_c;
+    cusparseOperation_t trans_A = carma_char2cusparse_operation(op_A);
+
+    void*  d_buffer    = NULL;
+    size_t buffer_size = 0;
+    carma_check_cusparse_status(cusparseCreateDnMat(&mat_b, B->get_dims(1), B->get_dims(2), B->get_dims(1),
+                                                    B->get_data(), A->get_data_type(), CUSPARSE_ORDER_COL));
+    carma_check_cusparse_status(cusparseCreateDnMat(&mat_c, C->get_dims(1), C->get_dims(2), C->get_dims(1),
+                                                    C->get_data(), A->get_data_type(), CUSPARSE_ORDER_COL));
+    carma_check_cusparse_status(cusparseSpMM_bufferSize(
+                                 handle, trans_A, CUSPARSE_OPERATION_NON_TRANSPOSE,
+                                 &alpha, A->sp_descr, mat_b, &beta, mat_c, A->get_data_type(),
+                                 CUSPARSE_MM_ALG_DEFAULT, &buffer_size));
+    carma_check_msg(cudaMalloc(&d_buffer, buffersize));
+    status = carma_check_cusparse_status(cusparseSpMM(handle, trans_A, CUSPARSE_OPERATION_NON_TRANSPOSE,
+                                 &alpha, A->sp_descr, mat_b, &beta, mat_c, A->get_data_type(),
+                                 CUSPARSE_MM_ALG_DEFAULT, d_buffer));
+    carma_check_cusparse_status(cusparseDestroyDnMat(mat_b));
+    carma_check_cusparse_status(cusparseDestroyDnMat(mat_c));
+    carma_check_msg(cudaFree(d_buffer));
+
+    return status;
   }
-  return carma_gemv<float, cusparseScsrmv>(handle, op_A, alpha, A, x, beta, y);
-}
-
-template <class T_data,
-          cusparseStatus_t CUSPARSEAPI (*csrmm)(
-              cusparseHandle_t handle, cusparseOperation_t transA, int m, int n,
-              int k, int nnz, const T_data *alpha,
-              const cusparseMatDescr_t descrA, const T_data *csrValA,
-              const int *csrRowPtrA, const int *csrColIndA, const T_data *B,
-              int ldb, const T_data *beta, T_data *C, int ldc)>
-cusparseStatus_t carma_gemm(cusparseHandle_t handle, char op_A, T_data alpha,
-                            CarmaSparseObj<T_data> *A, CarmaObj<T_data> *B,
-                            T_data beta, CarmaObj<T_data> *C) {
-  cusparseOperation_t transa = carma_char2cusparse_operation(op_A);
-  cusparseStatus_t status;
-
-  status = carma_check_cusparse_status(
-      csrmm(handle, transa, A->get_dims(1), B->get_dims(2), A->get_dims(2),
-            A->nz_elem, &alpha, A->descr, A->d_data, A->d_rowind, A->d_colind,
-            *B, B->get_dims(1), &beta, *C, C->get_dims(1)));
-
-  if (status != CUSPARSE_STATUS_SUCCESS) {
-    std::cerr
-        << "Error | carma_gemm (sparse) | Matrix-matrix multiplication failed"
-        << std::endl;
-    throw "Error | carma_gemm (sparse) | Matrix-matrix multiplication failed";
-    // exit(EXIT_FAILURE);
-  }
-  return status;
-}
-
-template <>
-cusparseStatus_t carma_gemm<float>(cusparseHandle_t handle, char op_A,
-                                   float alpha, CarmaSparseObj<float> *A,
-                                   CarmaObj<float> *B, float beta,
-                                   CarmaObj<float> *C) {
-  if (A->format != "CSR") {
-    DEBUG_TRACE("carma_gemm needs a CSR matrix as input");
-  }
-  return carma_gemm<float, cusparseScsrmm>(handle, op_A, alpha, A, B, beta, C);
-}
-
-template <>
-cusparseStatus_t carma_gemm<double>(cusparseHandle_t handle, char op_A,
-                                    double alpha, CarmaSparseObj<double> *A,
-                                    CarmaObj<double> *B, double beta,
-                                    CarmaObj<double> *C) {
-  if (A->format != "CSR") {
-    DEBUG_TRACE("carma_gemm needs a CSR matrix as input");
-  }
-  return carma_gemm<double, cusparseDcsrmm>(handle, op_A, alpha, A, B, beta, C);
-}
-
-template <class T_data,
-          cusparseStatus_t csrgemm(
-              cusparseHandle_t handle, cusparseOperation_t transA,
-              cusparseOperation_t transB, int m, int n, int k,
-              const cusparseMatDescr_t descrA, const int nnzA,
-              const T_data *csrValA, const int *csrRowPtrA,
-              const int *csrColIndA, const cusparseMatDescr_t descrB,
-              const int nnzB, const T_data *csrValB, const int *csrRowPtrB,
-              const int *csrColIndB, const cusparseMatDescr_t descrC,
-              T_data *csrValC, const int *csrRowPtrC, int *csrColIndC)>
-cusparseStatus_t carma_gemm(cusparseHandle_t handle, char op_A, char op_B,
+  template <class T_data>
+  cusparseStatus_t carma_gemm(cusparseHandle_t handle, char op_A, char op_B,
                             CarmaSparseObj<T_data> *A,
                             CarmaSparseObj<T_data> *B,
                             CarmaSparseObj<T_data> *C) {
-  cusparseOperation_t transA = carma_char2cusparse_operation(op_A);
-  cusparseOperation_t transB = carma_char2cusparse_operation(op_B);
-  cusparseStatus_t status;
+    cusparseStatus_t status;
+    cusparseSpMatDescr_t matA, matB, matC;
 
-  const int m = (op_A == 't' ? A->get_dims(2) : A->get_dims(1));
-  const int n = (op_B == 't' ? B->get_dims(1) : B->get_dims(2));
-  const int k = (op_A == 't' ? A->get_dims(1) : A->get_dims(2));
+    int64_t A_num_rows, A_num_cols, A_nnz;
+    int64_t B_num_rows, B_num_cols, B_nnz;
+    cusparseOperation_t trans_A = CUSPARSE_OPERATION_NON_TRANSPOSE; // Only one supported
+    cusparseOperation_t trans_B = CUSPARSE_OPERATION_NON_TRANSPOSE; // Only one supported
+    CarmaSparseObj<T_data> *At = nullptr;
+    CarmaSparseObj<T_data> *Bt = nullptr;
+    if(op_A == 't') { // Have to transpose manually
+      At = new CarmaSparseObj<T_data>(A);
+      At->transpose();
+      matA = At->sp_descr;
+    }
+    else {
+      matA = A->sp_descr;
+    }
+    if(op_B == 't') { // Have to transpose manually
+      Bt = new CarmaSparseObj<T_data>(B);
+      Bt->transpose();
+      matB = Bt->sp_descr;
 
-  int nnzC = 0;
-  // nnzTotalDevHostPtr points to host memory
-  int *nnzTotalDevHostPtr = &nnzC;
-  cusparseSetPointerMode(handle, CUSPARSE_POINTER_MODE_HOST);
-  int *csrRowPtrC;
-  cudaMalloc(reinterpret_cast<void **>(&csrRowPtrC), sizeof(int) * (m + 1));
-  status = carma_check_cusparse_status(cusparseXcsrgemmNnz(
-      handle, transA, transB, m, n, k, A->descr, A->nz_elem, A->d_rowind,
-      A->d_colind, B->descr, B->nz_elem, B->d_rowind, B->d_colind, C->descr,
-      csrRowPtrC, nnzTotalDevHostPtr));
-  // if (status != CUSPARSE_STATUS_SUCCESS) {
-  //    cerr << "Error | carma_gemm (sparse) | Matrix-matrix multiplication
-  //    failed"
-  //        << endl;
-  //    throw "Error | carma_gemm (sparse) | Matrix-matrix multiplication
-  //    failed"; exit(EXIT_FAILURE);
-  //  }
-  if (NULL != nnzTotalDevHostPtr) {
-    nnzC = *nnzTotalDevHostPtr;
-  } else {
-    int baseC = 0;
-    cudaMemcpy(&nnzC, csrRowPtrC + m, sizeof(int), cudaMemcpyDeviceToHost);
-    cudaMemcpy(&baseC, csrRowPtrC, sizeof(int), cudaMemcpyDeviceToHost);
-    nnzC -= baseC;
+    }
+    else {
+      matB = B->sp_descr;
+    }
+    cusparseSpMatGetSize(matA, &A_num_rows, &A_num_cols, &A_nnz);
+    cusparseSpMatGetSize(matB, &B_num_rows, &B_num_cols, &B_nnz);
+
+    void* d_buffer1 = NULL, *d_buffer2 = NULL;
+    size_t buffer_size1 = 0, buffer_size2 = 0;
+    T_data alpha = T_data(1);
+    T_data beta = T_data(0);
+
+    // Init C descriptor --> C must have been created with CarmaSparseObj(context)
+    carma_check_cusparse_status(cusparseCreateCsr(&(C->sp_descr), A_num_rows, B_num_cols, 0,
+                                      NULL, NULL, NULL,
+                                      CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
+                                      CUSPARSE_INDEX_BASE_ZERO, A->get_data_type()));
+    // SpGEMM Computation
+    cusparseSpGEMMDescr_t spgemm_desc;
+    carma_check_cusparse_status(cusparseSpGEMM_createDescr(&spgemm_desc));
+    // ask bufferSize1 bytes for external memory
+    cusparseSpGEMM_workEstimation(handle, trans_A, trans_B,
+                                  &alpha, matA, matB, &beta, C->sp_descr,
+                                  A->get_data_type(), CUSPARSE_SPGEMM_DEFAULT,
+                                  spgemm_desc, &buffer_size1, NULL);
+    cudaMalloc((void**) &d_buffer1, buffer_size1);
+    // inspect the matrices A and B to understand the memory requiremnent for
+    // the next step
+    cusparseSpGEMM_workEstimation(handle, trans_A, trans_B,
+                                  &alpha, matA, matB, &beta, C->sp_descr,
+                                  A->get_data_type(), CUSPARSE_SPGEMM_DEFAULT,
+                                  spgemm_desc, &buffer_size1, d_buffer1);
+    // ask bufferSize2 bytes for external memory
+    cusparseSpGEMM_compute(handle, trans_A, trans_B,
+                                  &alpha, matA, matB, &beta, C->sp_descr,
+                                  A->get_data_type(), CUSPARSE_SPGEMM_DEFAULT,
+                                  spgemm_desc, &buffer_size2, NULL);
+
+    cudaMalloc((void**) &d_buffer2, buffer_size2);
+    // compute the intermediate product of A * B
+    cusparseSpGEMM_compute(handle, trans_A, trans_B,
+                            &alpha, matA, matB, &beta, C->sp_descr,
+                            A->get_data_type(), CUSPARSE_SPGEMM_DEFAULT,
+                            spgemm_desc, &buffer_size2, d_buffer2);
+    // get matrix C non-zero entries C_num_nnz1
+    int64_t C_num_rows1, C_num_cols1, C_num_nnz1;
+    cusparseSpMatGetSize(C->sp_descr, &C_num_rows1, &C_num_cols1, &C_num_nnz1);
+    // allocate matrix C and update descriptor
+    C->allocate(C_num_nnz1, A_num_rows, B_num_cols);
+
+    // copy the final products to the matrix C
+    cusparseSpGEMM_copy(handle, trans_A, trans_B,
+                        &alpha, matA, matB, &beta, C->sp_descr,
+                        A->get_data_type(), CUSPARSE_SPGEMM_DEFAULT, spgemm_desc);
+    // destroy matrix/vector descriptors
+    status = carma_check_cusparse_status(cusparseSpGEMM_destroyDescr(spgemm_desc));
+    carma_check_msg(cudaFree(d_buffer1));
+    carma_check_msg(cudaFree(d_buffer2));
+    if(At != nullptr)
+      delete At;
+    if(Bt != nullptr)
+      delete Bt;
+
+    return status;
   }
-  if (nnzC > 0) {
-    C->resize(nnzC, m, n);
-    cudaMemcpy(C->d_rowind, csrRowPtrC, sizeof(int) * (m + 1),
-               cudaMemcpyDeviceToDevice);
-    status = carma_check_cusparse_status(csrgemm(
-        handle, transA, transB, m, n, k, A->descr, A->nz_elem, A->d_data,
-        A->d_rowind, A->d_colind, B->descr, B->nz_elem, B->d_data, B->d_rowind,
-        B->d_colind, C->descr, C->d_data, C->d_rowind, C->d_colind));
+
+#else
+  template <class T_data>
+  cusparseStatus_t carma_gemv(cusparseHandle_t handle, char op_A, T_data alpha,
+                              CarmaSparseObj<T_data> *A, T_data *x, T_data beta,
+                              T_data *y) {
+    if (A->format != "CSR") {
+      DEBUG_TRACE("carma_gemv needs a CSR matrix as input");
+    }
+
+    cusparseOperation_t trans = carma_char2cusparse_operation(op_A);
+
+    return carma_check_cusparse_status(
+        sparse_mv<T_data>(handle, trans, A->get_dims(1), A->get_dims(2), A->nz_elem, &alpha,
+              A->descr, A->d_data, A->d_rowind, A->d_colind, x, &beta, y));
+  }
+
+  template <class T_data>
+  cusparseStatus_t carma_gemm(cusparseHandle_t handle, char op_A, T_data alpha,
+                              CarmaSparseObj<T_data> *A, CarmaObj<T_data> *B,
+                              T_data beta, CarmaObj<T_data> *C) {
+    if (A->format != "CSR") {
+      DEBUG_TRACE("carma_gemm needs a CSR matrix as input");
+    }
+
+    cusparseOperation_t transa = carma_char2cusparse_operation(op_A);
+    cusparseStatus_t status;
+
+    status = carma_check_cusparse_status(
+        sparse_mm<T_data>(handle, transa, A->get_dims(1), B->get_dims(2), A->get_dims(2),
+              A->nz_elem, &alpha, A->descr, A->d_data, A->d_rowind, A->d_colind,
+              *B, B->get_dims(1), &beta, *C, C->get_dims(1)));
+
     if (status != CUSPARSE_STATUS_SUCCESS) {
       std::cerr
           << "Error | carma_gemm (sparse) | Matrix-matrix multiplication failed"
@@ -283,43 +360,83 @@ cusparseStatus_t carma_gemm(cusparseHandle_t handle, char op_A, char op_B,
       throw "Error | carma_gemm (sparse) | Matrix-matrix multiplication failed";
       // exit(EXIT_FAILURE);
     }
+    return status;
   }
-  cudaFree(csrRowPtrC);
-  return status;
-}
 
-template <>
-cusparseStatus_t carma_gemm<float>(cusparseHandle_t handle, char op_A,
-                                   char op_B, CarmaSparseObj<float> *A,
-                                   CarmaSparseObj<float> *B,
-                                   CarmaSparseObj<float> *C) {
+
+  template <class T_data>
+  cusparseStatus_t carma_gemm(cusparseHandle_t handle, char op_A, char op_B,
+                              CarmaSparseObj<T_data> *A,
+                              CarmaSparseObj<T_data> *B,
+                              CarmaSparseObj<T_data> *C) {
+    if (A->format != "CSR") {
+      DEBUG_TRACE("carma_gemm needs a CSR matrix as input");
+    }
+
+    cusparseOperation_t transA = carma_char2cusparse_operation(op_A);
+    cusparseOperation_t transB = carma_char2cusparse_operation(op_B);
+    cusparseStatus_t status;
+
+    const int m = (op_A == 't' ? A->get_dims(2) : A->get_dims(1));
+    const int n = (op_B == 't' ? B->get_dims(1) : B->get_dims(2));
+    const int k = (op_A == 't' ? A->get_dims(1) : A->get_dims(2));
+
+    int nnzC = 0;
+    // nnzTotalDevHostPtr points to host memory
+    int *nnzTotalDevHostPtr = &nnzC;
+    cusparseSetPointerMode(handle, CUSPARSE_POINTER_MODE_HOST);
+    int *csrRowPtrC;
+    cudaMalloc(reinterpret_cast<void **>(&csrRowPtrC), sizeof(int) * (m + 1));
+    status = carma_check_cusparse_status(cusparseXcsrgemmNnz(
+        handle, transA, transB, m, n, k, A->descr, A->nz_elem, A->d_rowind,
+        A->d_colind, B->descr, B->nz_elem, B->d_rowind, B->d_colind, C->descr,
+        csrRowPtrC, nnzTotalDevHostPtr));
+    // if (status != CUSPARSE_STATUS_SUCCESS) {
+    //    cerr << "Error | carma_gemm (sparse) | Matrix-matrix multiplication
+    //    failed"
+    //        << endl;
+    //    throw "Error | carma_gemm (sparse) | Matrix-matrix multiplication
+    //    failed"; exit(EXIT_FAILURE);
+    //  }
+    if (NULL != nnzTotalDevHostPtr) {
+      nnzC = *nnzTotalDevHostPtr;
+    } else {
+      int baseC = 0;
+      cudaMemcpy(&nnzC, csrRowPtrC + m, sizeof(int), cudaMemcpyDeviceToHost);
+      cudaMemcpy(&baseC, csrRowPtrC, sizeof(int), cudaMemcpyDeviceToHost);
+      nnzC -= baseC;
+    }
+    if (nnzC > 0) {
+      C->resize(nnzC, m, n);
+      cudaMemcpy(C->d_rowind, csrRowPtrC, sizeof(int) * (m + 1),
+                cudaMemcpyDeviceToDevice);
+      status = carma_check_cusparse_status(sparse_gemm<T_data>(
+          handle, transA, transB, m, n, k, A->descr, A->nz_elem, A->d_data,
+          A->d_rowind, A->d_colind, B->descr, B->nz_elem, B->d_data, B->d_rowind,
+          B->d_colind, C->descr, C->d_data, C->d_rowind, C->d_colind));
+      if (status != CUSPARSE_STATUS_SUCCESS) {
+        std::cerr
+            << "Error | carma_gemm (sparse) | Matrix-matrix multiplication failed"
+            << std::endl;
+        throw "Error | carma_gemm (sparse) | Matrix-matrix multiplication failed";
+        // exit(EXIT_FAILURE);
+      }
+    }
+    cudaFree(csrRowPtrC);
+    return status;
+  }
+#endif
+
+template <class T_data>
+cusparseStatus_t carma_csr2dense(CarmaSparseObj<T_data> *A, T_data *B) {
   if (A->format != "CSR") {
-    DEBUG_TRACE("carma_gemm needs a CSR matrix as input");
+    DEBUG_TRACE("carma_csr2dense needs a CSR matrix as input");
   }
-  return carma_gemm<float, cusparseScsrgemm>(handle, op_A, op_B, A, B, C);
-}
 
-template <>
-cusparseStatus_t carma_gemm<double>(cusparseHandle_t handle, char op_A,
-                                    char op_B, CarmaSparseObj<double> *A,
-                                    CarmaSparseObj<double> *B,
-                                    CarmaSparseObj<double> *C) {
-  if (A->format != "CSR") {
-    DEBUG_TRACE("carma_gemm needs a CSR matrix as input");
-  }
-  return carma_gemm<double, cusparseDcsrgemm>(handle, op_A, op_B, A, B, C);
-}
-
-template <class T_data,
-          cusparseStatus_t csr2dense(
-              cusparseHandle_t handle, int m, int n,
-              const cusparseMatDescr_t descrA, const T_data *csrValA,
-              const int *csrRowPtrA, const int *csrColIndA, T_data *B, int ldb)>
-cusparseStatus_t carma_csr2dense_gen(CarmaSparseObj<T_data> *A, T_data *B) {
   cusparseStatus_t status;
   cusparseHandle_t handle = A->current_context->get_cusparse_handle();
 
-  status = csr2dense(handle, A->dims_data[1], A->dims_data[2], A->descr,
+  status = sparse_dense<T_data>(handle, A->dims_data[1], A->dims_data[2], A->descr,
                      A->d_data, A->d_rowind, A->d_colind, B, A->dims_data[1]);
   if (status != CUSPARSE_STATUS_SUCCESS) {
     std::cerr << "Error | carma_csr2dense (sparse) | csr2dense failed"
@@ -329,31 +446,12 @@ cusparseStatus_t carma_csr2dense_gen(CarmaSparseObj<T_data> *A, T_data *B) {
   return status;
 }
 
-template <>
-cusparseStatus_t carma_csr2dense(CarmaSparseObj<float> *A, float *B) {
-  if (A->format != "CSR") {
-    DEBUG_TRACE("carma_csr2dense needs a CSR matrix as input");
-  }
-  return carma_csr2dense_gen<float, cusparseScsr2dense>(A, B);
-}
-
-template <>
-cusparseStatus_t carma_csr2dense(CarmaSparseObj<double> *A, double *B) {
-  if (A->format != "CSR") {
-    DEBUG_TRACE("carma_csr2dense needs a CSR matrix as input");
-  }
-  return carma_csr2dense_gen<double, cusparseDcsr2dense>(A, B);
-}
-
-template <class T_data,
-          cusparseStatus_t (*csr2bsr)(
-              cusparseHandle_t handle, cusparseDirection_t dir, int m, int n,
-              const cusparseMatDescr_t descrA, const T_data *csrValA,
-              const int *csrRowPtrA, const int *csrColIndA, int block_dim,
-              const cusparseMatDescr_t descrC, T_data *bsrValC, int *bsrRowPtrC,
-              int *bsrColIndC)>
-cusparseStatus_t carma_csr2bsr_gen(CarmaSparseObj<T_data> *A, int block_dim,
+template <class T_data>
+cusparseStatus_t carma_csr2bsr(CarmaSparseObj<T_data> *A, int block_dim,
                                    CarmaSparseObj<T_data> *B) {
+  if (A->format != "CSR") {
+    DEBUG_TRACE("carma_csr2bsr needs a CSR matrix as input");
+  }
   // Given CSR format (csrRowPtrA, csrcolIndA, csrValA) and
   // blocks of BSR format are stored in column-major order.
   if (B->nz_elem > 0) {
@@ -382,38 +480,17 @@ cusparseStatus_t carma_csr2bsr_gen(CarmaSparseObj<T_data> *A, int block_dim,
   cudaMalloc(reinterpret_cast<void **>(&B->d_colind), sizeof(int) * B->nz_elem);
   cudaMalloc(reinterpret_cast<void **>(&B->d_data),
              sizeof(T_data) * (B->block_dim * B->block_dim) * B->nz_elem);
-  return csr2bsr(handle, dir, m, n, A->descr, A->d_data, A->d_rowind,
+  return sparse_bsr<T_data>(handle, dir, m, n, A->descr, A->d_data, A->d_rowind,
                  A->d_colind, B->block_dim, B->descr, B->d_data, B->d_rowind,
                  B->d_colind);
 }
 
-template <>
-cusparseStatus_t carma_csr2bsr(CarmaSparseObj<float> *src, int block_dim,
-                               CarmaSparseObj<float> *dest) {
-  if (src->format != "CSR") {
-    DEBUG_TRACE("carma_csr2bsr needs a CSR matrix as input");
-  }
-  return carma_csr2bsr_gen<float, cusparseScsr2bsr>(src, block_dim, dest);
-}
-
-template <>
-cusparseStatus_t carma_csr2bsr(CarmaSparseObj<double> *src, int block_dim,
-                               CarmaSparseObj<double> *dest) {
-  if (src->format != "CSR") {
-    DEBUG_TRACE("carma_csr2bsr needs a CSR matrix as input");
-  }
-  return carma_csr2bsr_gen<double, cusparseDcsr2bsr>(src, block_dim, dest);
-}
-
-template <class T_data,
-          cusparseStatus_t (*bsr2csr)(
-              cusparseHandle_t handle, cusparseDirection_t dir, int mb, int nb,
-              const cusparseMatDescr_t descrA, const T_data *bsrValA,
-              const int *bsrRowPtrA, const int *bsrColIndA, int block_dim,
-              const cusparseMatDescr_t descrC, T_data *csrValC, int *csrRowPtrC,
-              int *csrColIndC)>
-cusparseStatus_t carma_bsr2csr_gen(CarmaSparseObj<T_data> *A,
+template <class T_data>
+cusparseStatus_t carma_bsr2csr(CarmaSparseObj<T_data> *A,
                                    CarmaSparseObj<T_data> *B) {
+  if (A->format != "BSR") {
+    DEBUG_TRACE("carma_bsr2csr needs a BSR matrix as input");
+  }
   // Given BSR format (bsrRowPtrA, bsrcolIndA, bsrValA) and
   // blocks of BSR format are stored in column-major order.
   if (B->nz_elem > 0) {
@@ -439,25 +516,62 @@ cusparseStatus_t carma_bsr2csr_gen(CarmaSparseObj<T_data> *A,
   cudaMalloc(reinterpret_cast<void **>(&B->d_rowind), sizeof(int) * (m + 1));
   cudaMalloc(reinterpret_cast<void **>(&B->d_colind), sizeof(int) * nnz);
   cudaMalloc(reinterpret_cast<void **>(&B->d_data), sizeof(T_data) * nnz);
-  return bsr2csr(handle, dir, mb, nb, A->descr, A->d_data, A->d_rowind,
+  return sparse_csr<T_data>(handle, dir, mb, nb, A->descr, A->d_data, A->d_rowind,
                  A->d_colind, A->block_dim, B->descr, B->d_data, B->d_rowind,
                  B->d_colind);
 }
 
-template <>
-cusparseStatus_t carma_bsr2csr(CarmaSparseObj<float> *src,
-                               CarmaSparseObj<float> *dest) {
-  if (src->format != "BSR") {
-    DEBUG_TRACE("carma_bsr2csr needs a BSR matrix as input");
-  }
-  return carma_bsr2csr_gen<float, cusparseSbsr2csr>(src, dest);
-}
+template cusparseStatus_t carma_gemv<float>(cusparseHandle_t handle,
+                                            char op_A, float alpha,
+                                            CarmaSparseObj<float> *A,
+                                            float *x, float beta, float *y);
 
-template <>
-cusparseStatus_t carma_bsr2csr(CarmaSparseObj<double> *src,
-                               CarmaSparseObj<double> *dest) {
-  if (src->format != "BSR") {
-    DEBUG_TRACE("carma_bsr2csr needs a BSR matrix as input");
-  }
-  return carma_bsr2csr_gen<double, cusparseDbsr2csr>(src, dest);
-}
+template cusparseStatus_t carma_gemv<double>(cusparseHandle_t handle,
+                                             char op_A, double alpha,
+                                             CarmaSparseObj<double> *A,
+                                             double *x, double beta, double *y);
+
+
+template cusparseStatus_t carma_gemm<float>(cusparseHandle_t handle,
+                                            char op_A, float alpha,
+                                            CarmaSparseObj<float> *A,
+                                            CarmaObj<float> *B,
+                                            float beta, CarmaObj<float> *C);
+
+template cusparseStatus_t carma_gemm<double>(cusparseHandle_t handle,
+                                             char op_A, double alpha,
+                                             CarmaSparseObj<double> *A,
+                                             CarmaObj<double> *B,
+                                             double beta, CarmaObj<double> *C);
+
+
+template cusparseStatus_t carma_gemm<float>(cusparseHandle_t handle,
+                                            char op_A, char op_B,
+                                            CarmaSparseObj<float> *A,
+                                            CarmaSparseObj<float> *B,
+                                            CarmaSparseObj<float> *C);
+
+template cusparseStatus_t carma_gemm<double>(cusparseHandle_t handle,
+                                             char op_A, char op_B,
+                                             CarmaSparseObj<double> *A,
+                                             CarmaSparseObj<double> *B,
+                                             CarmaSparseObj<double> *C);
+
+template cusparseStatus_t carma_csr2dense(CarmaSparseObj<float> *A, float *B);
+
+template cusparseStatus_t carma_csr2dense(CarmaSparseObj<double> *A, double *B);
+
+
+template cusparseStatus_t carma_csr2bsr(CarmaSparseObj<float> *src, int block_dim,
+                                        CarmaSparseObj<float> *dest);
+
+template cusparseStatus_t carma_csr2bsr(CarmaSparseObj<double> *src, int block_dim,
+                                        CarmaSparseObj<double> *dest);
+
+
+
+template cusparseStatus_t carma_bsr2csr(CarmaSparseObj<float> *src,
+                                        CarmaSparseObj<float> *dest);
+
+template cusparseStatus_t carma_bsr2csr(CarmaSparseObj<double> *src,
+                                        CarmaSparseObj<double> *dest);

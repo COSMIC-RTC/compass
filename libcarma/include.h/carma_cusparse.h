@@ -44,9 +44,13 @@
 #include <cuda_runtime_api.h>
 /* Using updated (v2) interfaces to cublas */
 #include <cusparse_v2.h>
+#include <string>
 
-cusparseStatus_t carma_check_cusparse_status(cusparseStatus_t status);
+#define carma_check_cusparse_status(status) \
+  carma_check_cusparse_status_v2(status, __LINE__, __FILE__)
 
+cusparseStatus_t carma_check_cusparse_status_v2(cusparseStatus_t status, int line,
+                                              std::string file);
 cusparseStatus_t carma_init_cusparse(cusparseHandle_t *cusparse_handle);
 cusparseStatus_t carma_shutdown_cusparse(cusparseHandle_t cusparse_handle);
 
