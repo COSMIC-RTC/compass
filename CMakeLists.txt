@@ -22,6 +22,9 @@ project(compass
         VERSION ${VERSION_INFO} DESCRIPTION "COMPASS library"
         LANGUAGES CUDA CXX)
 
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup(TARGETS NO_OUTPUT_DIRS)
+
 add_subdirectory(libcarma)
 add_subdirectory(libsutra)
 # add_subdirectory(shesha)

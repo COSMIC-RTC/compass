@@ -73,21 +73,6 @@ project(carma
 find_package(PkgConfig REQUIRED)
 find_package(CUDA REQUIRED)
 
-if(NOT TARGET cub::cub)
-  if(hunter_build)
-    hunter_add_package(cub)
-    find_package(cub CONFIG REQUIRED)
-  else()
-    if(IS_DIRECTORY $ENV{CUB_ROOT})
-      add_library(cub INTERFACE)
-      target_include_directories(cub INTERFACE $ENV{CUB_ROOT})
-      add_library(cub::cub ALIAS cub) # to match exported target
-    else()
-      message(FATAL_ERROR "cub not found please define CUB_ROOT or use hunter")
-    endif()
-  endif()
-endif()
-
 pkg_check_modules(MAGMA magma)
 if(${MAGMA_FOUND})
   link_directories(${MAGMA_LIBRARY_DIRS})
@@ -166,7 +151,7 @@ target_link_libraries(carma
                              ${CUDA_curand_LIBRARY}
                              ${CUDA_cusparse_LIBRARY}
                              ${CUDA_cusolver_LIBRARY}
-                             cub::cub
+                             CONAN_PKG::cub
                              ${GCOV})
 
 target_include_directories(

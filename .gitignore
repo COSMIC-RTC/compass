@@ -72,3 +72,7 @@ public
 doc/html/coverage
 compass_cov.xml
 compass_tests.xml
+
+# Conan
+conanlocal.py
+tmp_conan

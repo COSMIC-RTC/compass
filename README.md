@@ -24,6 +24,7 @@ Develop status:
   - [Install the platform](#install-the-platform)
     - [Download sources](#download-sources)
     - [Install dependencies (if not already done)](#install-dependencies-if-not-already-done)
+      - [Conan dependencies](#conan-dependencies)
     - [Install COMPASS](#install-compass)
 
 ## Overview
@@ -171,10 +172,6 @@ export MAGMA_ROOT=$HOME/local/magma
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MAGMA_ROOT/lib
 export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$MAGMA_ROOT/lib/pkgconfig
 
-#third party lib path
-export CUB_ROOT=$COMPASS_ROOT/tplib/cub
-export WYRM_ROOT=$COMPASS_ROOT/tplib/wyrm
-
 #COMPASS default definitions
 export COMPASS_ROOT=$HOME/compass
 export COMPASS_INSTALL_ROOT=$COMPASS_ROOT/local
@@ -190,8 +187,26 @@ export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$COMPASS_INSTALL_ROOT/lib/pkgconfig
 
 ```bash
 
-conda install -y numpy pyqtgraph ipython pyqt qt matplotlib astropy blaze h5py hdf5 pytest-html pandas scipy docopt tqdm tabulate
+conda install -y numpy pyqtgraph ipython pyqt qt matplotlib astropy blaze h5py hdf5 pytest-html pandas scipy docopt tqdm tabulate conan
 
+```
+#### Conan dependencies
+
+Compass rely on dependencies that are not uploaded in conan server. These dependencies can be installed using the [gitlab.obspm.fr/jbernard/conan-packages](gitlab.obspm.fr/jbernard/conan-packages).
+
+```bash
+git clone git@gitlab.obspm.fr:jbernard/conan-packages.git
+conan-packages/packages.sh install
+```
+
+Two others dependencies have to be installed:
+
+* [https://gitlab.obspm.fr/cosmic/ocean/wyrm](https://gitlab.obspm.fr/cosmic/ocean/wyrm)
+
+The process is the same for these dependencies:
+```bash
+git clone `repo_url`.git
+conan install `repo_directory` user/develop
 ```
 
 ### Install COMPASS

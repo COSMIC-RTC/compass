@@ -99,7 +99,7 @@ void declare_carmaWrap_context(py::module &mod) {
            })
       .def("set_active_device_force",
            [](CarmaContext &cc, int new_device) {
-             return cc._set_active_device_force(new_device, 0, __FILE__, __LINE__);
+             return cc.set_active_device_force(new_device, 0);
            })
       // .def("set_active_deviceForCpy", &CarmaContext::set_active_deviceForCpy);
       .def(

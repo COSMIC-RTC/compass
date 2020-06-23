@@ -6,19 +6,7 @@ project(sutraWrap
     LANGUAGES CXX CUDA
 )
 
-if(NOT TARGET wyrm::wyrm)
-    if(hunter_build)
-        hunter_add_package(wyrm)
-        find_package(wyrm CONFIG REQUIRED)
-    else()
-        if(IS_DIRECTORY $ENV{WYRM_ROOT})
-            add_subdirectory($ENV{WYRM_ROOT} wyrm_dir)
-            add_library(wyrm::wyrm ALIAS wyrm) # to match exported target
-        else()
-            message(FATAL_ERROR "Wyrm not found please define WYRM_ROOT or use hunter")
-        endif()
-    endif()
-endif()
+find_package(pybind11 REQUIRED)
 
 # cmake-format: off
 # if (DEFINED ENV{BRAHMA_ROOT})
@@ -33,7 +21,7 @@ if (${OCTOPUS_FOUND})
     SET(OCTOPUS_CPP src/rtc_cacao.cpp)
 endif()
 
-add_library(sutraWrap MODULE
+pybind11_add_module(sutraWrap MODULE
                     src/telescope.cpp
                     src/tscreen.cpp
                     src/atmos.cpp
@@ -67,9 +55,7 @@ add_library(sutraWrap MODULE
                     )
 #link_directories($ENV{COMPASS_ROOT}/libsutra)
 
-target_link_libraries(sutraWrap PRIVATE wyrm::wyrm carma sutra)
-set_target_properties(sutraWrap PROPERTIES PREFIX "${PYTHON_MODULE_PREFIX}"
-                                      SUFFIX "${PYTHON_MODULE_EXTENSION}")
+target_link_libraries(sutraWrap PRIVATE CONAN_PKG::wyrm carma sutra)
 
 install(TARGETS sutraWrap EXPORT SutraWrapConfig
     ARCHIVE  DESTINATION python
