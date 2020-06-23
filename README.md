@@ -14,13 +14,6 @@ Develop status:
   - [Install Anaconda with python3](#install-anaconda-with-python3)
     - [setup .bashrc](#setup-bashrc)
     - [Download and installation](#download-and-installation)
-  - [Install MAGMA](#install-magma)
-    - [Why MAGMA?](#why-magma)
-    - [Extraction](#extraction)
-    - [Configure MAGMA with MKL & installation](#configure-magma-with-mkl--installation)
-    - [Configure with Makefile](#configure-with-makefile)
-    - [Configure with CMake (not working fine...)](#configure-with-cmake-not-working-fine)
-    - [Tuning (not tested)](#tuning-not-tested)
   - [Install the platform](#install-the-platform)
     - [Download sources](#download-sources)
     - [Install dependencies (if not already done)](#install-dependencies-if-not-already-done)
@@ -56,96 +49,6 @@ export PATH=$CONDA_ROOT/bin:$PATH
 wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
 bash Miniconda3-latest-Linux-x86_64.sh -b -p $CONDA_ROOT
 ```
-
-## Install MAGMA
-
-### Why MAGMA?
-
-The MAGMA project aims to develop a dense linear algebra library similar to LAPACK but for heterogeneous/hybrid architectures, starting with current "Multicore+GPU" systems.
-
-Unlike CULA, MAGMA propose a dense linear algebra library handling double for free.
-
-But MAGMA needs a LAPACK and a BLAS implementation. Actually, we try two options : openBLAS (free, easy to install) and MKL (free, need a registration but better optimized on Intel processors)
-
-### Extraction
-
-MAGMA is available here : <http://icl.cs.utk.edu/magma/software/index.html>
-
-extract the tgz file and go into the new directory
-
-```bash
-wget http://icl.cs.utk.edu/projectsfiles/magma/downloads/magma-2.5.0.tar.gz -O - | tar xz
-cd magma-2.5.0
-```
-
-### Configure MAGMA with MKL & installation
-
-Installation of dependencies using anaconda
-
-```bash
-conda install -y numpy mkl-include pyqtgraph ipython pyqt qt matplotlib astropy blaze h5py hdf5 pytest-html pandas scipy docopt tqdm tabulate
-```
-
-### Configure with Makefile
-
-You have to create your own make.inc based on make.inc.openblas:
-
-```bash
-cp make.inc-examples/make.inc.mkl-gcc make.inc
-sed -i -e 's:/intel64: -Wl,-rpath=$(CUDADIR)/lib64 -Wl,-rpath=$(MKLROOT)/lib:' make.inc
-```
-
-just compile the shared target (and test if you want)
-
-```bash
-export MKLROOT=$CONDA_ROOT
-export CUDA_ROOT=/usr/local/cuda
-export NCPUS=8
-GPU_TARGET=sm_XX MKLROOT=$MKLROOT CUDADIR=$CUDA_ROOT make -j $NCPUS shared sparse-shared
-```
-
-Where:
-
-- sm_XX is compatible with the [compute capability](http://www.nvidia.com/object/cuda_gpus.html). For example, sm_60 for Tesla Tesla P100
-- NCPUS is the number of CPUs in your system
-
-To install libraries and include files in a given prefix, run:
-
-```bash
-GPU_TARGET=sm_XX MKLROOT=$MKLROOT CUDADIR=$CUDA_ROOT make install prefix=$HOME/local/magma
-```
-
-### Configure with CMake (not working fine...)
-
-```bash
-wget https://gitlab.obspm.fr/snippets/30/raw -O CMakeLists.txt
-wget https://gitlab.obspm.fr/snippets/31/raw -O magma.pc.in
-mkdir build
-cd build
-export CUDA_ROOT=/usr/local/cuda
-export NCPUS=8
-cmake .. -DGPU_TARGET=sm_XX -DLAPACK_LIBRARIES=$CONDA_ROOT/lib/libmkl_core.so -DMKLROOT=$CONDA_ROOT -DCMAKE_INSTALL_PREFIX=$HOME/local/magma
-make -j $NCPUS
-make install
-```
-
-Where:
-
-- sm_XX is compatible with the [compute capability](http://www.nvidia.com/object/cuda_gpus.html). For example, sm_60 for Tesla Tesla P100
-- NCPUS is the number of CPUs in your system
-
-Note: If your gcc/g++ is too recent, please specify
-
-```
--DCMAKE_CXX_COMPILER=$CUDA_ROOT/bin/g++ -DCMAKE_C_COMPILER=$CUDA_ROOT/bin/gcc
-```
-
-### Tuning (not tested)
-
-For multi-GPU functions, set $MAGMA_NUM_GPUS to set the number of GPUs to use.
-
-For multi-core BLAS libraries, set $OMP_NUM_THREADS or $MKL_NUM_THREADS or $VECLIB_MAXIMUM_THREADS to set the number of CPU threads, depending on your BLAS library.
-
 ## Install the platform
 
 ### Download sources
@@ -167,11 +70,6 @@ export CUDA_LIB_PATH_64=$CUDA_ROOT/lib64
 export PATH=$CUDA_ROOT/bin:$PATH
 export LD_LIBRARY_PATH=$CUDA_LIB_PATH_64:$CUDA_LIB_PATH:$LD_LIBRARY_PATH
 
-#MAGMA definitions
-export MAGMA_ROOT=$HOME/local/magma
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MAGMA_ROOT/lib
-export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$MAGMA_ROOT/lib/pkgconfig
-
 #COMPASS default definitions
 export COMPASS_ROOT=$HOME/compass
 export COMPASS_INSTALL_ROOT=$COMPASS_ROOT/local
@@ -186,27 +84,9 @@ export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$COMPASS_INSTALL_ROOT/lib/pkgconfig
 ### Install dependencies (if not already done)
 
 ```bash
-
-conda install -y numpy pyqtgraph ipython pyqt qt matplotlib astropy blaze h5py hdf5 pytest-html pandas scipy docopt tqdm tabulate conan
-
-```
-#### Conan dependencies
-
-Compass rely on dependencies that are not uploaded in conan server. These dependencies can be installed using the [gitlab.obspm.fr/jbernard/conan-packages](gitlab.obspm.fr/jbernard/conan-packages).
-
-```bash
-git clone git@gitlab.obspm.fr:jbernard/conan-packages.git
-conan-packages/packages.sh install
-```
-
-Two others dependencies have to be installed:
-
-* [https://gitlab.obspm.fr/cosmic/ocean/wyrm](https://gitlab.obspm.fr/cosmic/ocean/wyrm)
-
-The process is the same for these dependencies:
-```bash
-git clone `repo_url`.git
-conan install `repo_directory` user/develop
+pip install -r requirements.txt
+cd $COMPASS_ROOT
+./install_dependencies.sh
 ```
 
 ### Install COMPASS
