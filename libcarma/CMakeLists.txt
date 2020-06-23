@@ -183,7 +183,7 @@ if(${MAGMA_FOUND})
     carma
     PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${MAGMA_CFLAGS_OTHER}>)
 
-  target_compile_definitions(carma PRIVATE $<$<COMPILE_LANGUAGE:CXX>:USE_MAGMA>)
+  target_compile_definitions(carma PUBLIC $<$<COMPILE_LANGUAGE:CXX>:USE_MAGMA>)
 
   target_link_libraries(carma PRIVATE magma) # ${MAGMA_LIBRARIES})
 

@@ -429,16 +429,16 @@ struct CarmaObjComplexInterfacer {
         [](Class &d_mat_a, ClassHost &eigenvals, Class *d_U, bool computeU) {
           if (d_U == nullptr) {
             if (computeU) {
-              carma_magma_syevd('V', &d_mat_a, &eigenvals);
+              carma_magma_syevd(SOLVER_EIG_MODE_VECTOR, &d_mat_a, &eigenvals);
             } else {
-              carma_magma_syevd('N', &d_mat_a, &eigenvals);
+              carma_magma_syevd(SOLVER_EIG_MODE_NOVECTOR, &d_mat_a, &eigenvals);
             }
           } else {
             d_U->copy_from(d_mat_a, d_mat_a.get_nb_elements());
             if (computeU) {
-              carma_magma_syevd('V', d_U, &eigenvals);
+              carma_magma_syevd(SOLVER_EIG_MODE_VECTOR, d_U, &eigenvals);
             } else {
-              carma_magma_syevd('N', d_U, &eigenvals);
+              carma_magma_syevd(SOLVER_EIG_MODE_NOVECTOR, d_U, &eigenvals);
             }
           }
         },
@@ -450,16 +450,16 @@ struct CarmaObjComplexInterfacer {
         [](Class &d_mat_a, Class &eigenvals, Class *d_U, bool computeU) {
           if (d_U == nullptr) {
             if (computeU) {
-              carma_syevd(CUSOLVER_EIG_MODE_VECTOR, &d_mat_a, &eigenvals);
+              carma_syevd(SOLVER_EIG_MODE_VECTOR, &d_mat_a, &eigenvals);
             } else {
-              carma_syevd(CUSOLVER_EIG_MODE_NOVECTOR, &d_mat_a, &eigenvals);
+              carma_syevd(SOLVER_EIG_MODE_NOVECTOR, &d_mat_a, &eigenvals);
             }
           } else {
             d_U->copy_from(d_mat_a, d_mat_a.get_nb_elements());
             if (computeU) {
-              carma_syevd(CUSOLVER_EIG_MODE_VECTOR, d_U, &eigenvals);
+              carma_syevd(SOLVER_EIG_MODE_VECTOR, d_U, &eigenvals);
             } else {
-              carma_syevd(CUSOLVER_EIG_MODE_NOVECTOR, d_U, &eigenvals);
+              carma_syevd(SOLVER_EIG_MODE_NOVECTOR, d_U, &eigenvals);
             }
           }
         },
@@ -479,12 +479,12 @@ struct CarmaObjComplexInterfacer {
     mod.def(appendName<T>("magma_getri_").data(), &carma_magma_getri<T>);
 
     // template<class T>
-    // int carma_magma_potri(CarmaObj<T> *d_iA);
-    mod.def(appendName<T>("magma_potri_").data(), &carma_magma_potri<T>);
+    // int carma_magma_potr_inv(CarmaObj<T> *d_iA);
+    mod.def(appendName<T>("magma_potri_").data(), &carma_magma_potr_inv<T>);
 
     // TODO after CarmaHostObj
     // template<class T>
-    // int carma_magma_potri_m(long num_gpus, CarmaHostObj<T> *h_A,
+    // int carma_magma_potr_inv_m(long num_gpus, CarmaHostObj<T> *h_A,
     // CarmaObj<T> *d_iA);
 
     // MAGMA functions (direct access)
@@ -494,7 +494,7 @@ struct CarmaObjComplexInterfacer {
     // int carma_magma_syevd(char jobz, long N, T *mat, T *eigenvals);
     // template<class T>
     // int carma_magma_syevd_m(long ngpu, char jobz, long N, T *mat, T
-    // *eigenvals); template<class T> int carma_magma_potri_m(long num_gpus,
+    // *eigenvals); template<class T> int carma_magma_potr_inv_m(long num_gpus,
     // long N, T *h_A, T *d_iA);
 
   }

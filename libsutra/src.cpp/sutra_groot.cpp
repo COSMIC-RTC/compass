@@ -167,7 +167,7 @@ int SutraGroot::compute_Cerr() {
 
   printf("Applying coupling matrix...\n");
   // Coupling matrix filter
-  // carma_magma_potri(this->d_Nact);
+  // carma_potr_inv(this->d_Nact);
   CarmaObj<float> d_tmp(this->d_Cerr);
   carma_gemm(this->cublas_handle(), 'n', 'n', this->nactus, this->nactus,
              this->nactus, (float)1., this->d_Nact->get_data(), this->nactus,

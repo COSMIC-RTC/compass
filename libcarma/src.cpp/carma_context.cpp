@@ -45,6 +45,9 @@
 #include <string>
 
 #include <carma_context.h>
+#include "carma_cublas.h"
+#include "carma_cusparse.h"
+#include "carma_cusolver.h"
 
 #ifdef USE_MAGMA
 // MAGMA headers
@@ -73,8 +76,9 @@ CarmaDevice::CarmaDevice(int devid) {
 
   carma_safe_call(cudaMemGetInfo(&total_mem, &total_mem));
 
-  carma_initCublas(&cublas_handle);
+  carma_init_cublas(&cublas_handle);
   carma_init_cusparse(&cusparse_handle);
+  carma_init_cusolver(&cusolver_handle);
 
   // cudaStreamCreate(&main_stream);
   //  cusparsePointerMode_t mode;
@@ -95,8 +99,9 @@ int CarmaDevice::set_cublas_math_mode(bool tensor) {
 }
 
 CarmaDevice::~CarmaDevice() {
-  carma_shutdownCublas(cublas_handle);
+  carma_shutdown_cublas(cublas_handle);
   carma_shutdown_cusparse(cusparse_handle);
+  carma_shutdown_cusolver(cusolver_handle);
   // cudaStreamDestroy(main_stream);
 
   this->id = -1;

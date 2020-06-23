@@ -117,12 +117,12 @@ cublasStatus_t __carma_checkCublasStatus(cublasStatus_t status, int line,
   return status;
 }
 
-cublasStatus_t carma_initCublas(cublasHandle_t *cublas_handle) {
+cublasStatus_t carma_init_cublas(cublasHandle_t *cublas_handle) {
   /**< Generic CUBLAS init routine */
   return carma_checkCublasStatus(cublasCreate(cublas_handle));
 }
 
-cublasStatus_t carma_shutdownCublas(cublasHandle_t cublas_handle) {
+cublasStatus_t carma_shutdown_cublas(cublasHandle_t cublas_handle) {
   /**< Generic CUBLAS shutdown routine */
   return carma_checkCublasStatus(cublasDestroy(cublas_handle));
 }

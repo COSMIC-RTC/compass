@@ -150,12 +150,12 @@ struct CarmaHostObjInterfacer {
     mod.def(appendName<T>("magma_getri_cpu_").data(), py::overload_cast<Class *>(&carma_magma_getri_cpu<T>));
 
     // template<class T>
-    // int carma_magma_potri(CarmaObj<T> *d_iA);
-    mod.def(appendName<T>("magma_potri_cpu_").data(), py::overload_cast<Class *>(&carma_magma_potri_cpu<T>));
+    // int carma_magma_potr_inv(CarmaObj<T> *d_iA);
+    mod.def(appendName<T>("magma_potri_cpu_").data(), py::overload_cast<Class *>(&carma_magma_potr_inv_cpu<T>));
 
     // TODO after CarmaHostObj
     // template<class T>
-    // int carma_magma_potri_m(long num_gpus, CarmaHostObj<T> *h_A, CarmaObj<T>
+    // int carma_magma_potr_inv_m(long num_gpus, CarmaHostObj<T> *h_A, CarmaObj<T>
     // *d_iA);
 
     // MAGMA functions (direct access)
@@ -166,7 +166,7 @@ struct CarmaHostObjInterfacer {
     // template<class T>
     // int carma_magma_syevd_m(long ngpu, char jobz, long N, T *mat, T *eigenvals);
     // template<class T>
-    // int carma_magma_potri_m(long num_gpus, long N, T *h_A, T *d_iA);
+    // int carma_magma_potr_inv_m(long num_gpus, long N, T *h_A, T *d_iA);
 
   }
 };

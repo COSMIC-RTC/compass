@@ -5,29 +5,34 @@
 //  All rights reserved.
 //  Distributed under GNU - LGPL
 //
-//  COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-//  General Public License as published by the Free Software Foundation, either version 3 of the License,
-//  or any later version.
+//  COMPASS is free software: you can redistribute it and/or modify it under the
+//  terms of the GNU Lesser General Public License as published by the Free
+//  Software Foundation, either version 3 of the License, or any later version.
 //
 //  COMPASS: End-to-end AO simulation tool using GPU acceleration
-//  The COMPASS platform was designed to meet the need of high-performance for the simulation of AO systems.
+//  The COMPASS platform was designed to meet the need of high-performance for
+//  the simulation of AO systems.
 //
-//  The final product includes a software package for simulating all the critical subcomponents of AO,
-//  particularly in the context of the ELT and a real-time core based on several control approaches,
-//  with performances consistent with its integration into an instrument. Taking advantage of the specific
-//  hardware architecture of the GPU, the COMPASS tool allows to achieve adequate execution speeds to
-//  conduct large simulation campaigns called to the ELT.
+//  The final product includes a software package for simulating all the
+//  critical subcomponents of AO, particularly in the context of the ELT and a
+//  real-time core based on several control approaches, with performances
+//  consistent with its integration into an instrument. Taking advantage of the
+//  specific hardware architecture of the GPU, the COMPASS tool allows to
+//  achieve adequate execution speeds to conduct large simulation campaigns
+//  called to the ELT.
 //
-//  The COMPASS platform can be used to carry a wide variety of simulations to both testspecific components
-//  of AO of the E-ELT (such as wavefront analysis device with a pyramid or elongated Laser star), and
-//  various systems configurations such as multi-conjugate AO.
+//  The COMPASS platform can be used to carry a wide variety of simulations to
+//  both testspecific components of AO of the E-ELT (such as wavefront analysis
+//  device with a pyramid or elongated Laser star), and various systems
+//  configurations such as multi-conjugate AO.
 //
-//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
-//  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-//  See the GNU Lesser General Public License for more details.
+//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY
+//  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+//  FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+//  details.
 //
-//  You should have received a copy of the GNU Lesser General Public License along with COMPASS.
-//  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
+//  You should have received a copy of the GNU Lesser General Public License
+//  along with COMPASS. If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 // -----------------------------------------------------------------------------
 
 //! \file      sutra_dm.cpp
@@ -579,9 +584,14 @@ int SutraDm::DDiago(CarmaObj<float> *d_statcov, CarmaObj<float> *d_geocov) {
       new CarmaHostObj<float>(dims_data2, MA_PAGELOCK);
 
   // 1. SVdec(geocov,U) --> Ut * geocov * U = D������
-  carma_magma_syevd<float>('V', d_geocov, h_eigenvals);
+  if (!carma_magma_disabled()) {
+    carma_magma_syevd<float>(SOLVER_EIG_MODE_VECTOR, d_geocov, h_eigenvals);
 
-  d_eigenvals->host2device(h_eigenvals->get_data());
+    d_eigenvals->host2device(h_eigenvals->get_data());
+  } else {
+    carma_syevd<float>(SOLVER_EIG_MODE_VECTOR, d_geocov, d_eigenvals);
+    d_eigenvals->device2host(h_eigenvals->get_data());
+  }
   for (int i = 0; i < this->nactus; i++) {
     h_eigenvals_sqrt->get_data()[i] =
         sqrt(h_eigenvals->get_data()[i]);  // D = sqrt(D������)
@@ -614,7 +624,7 @@ int SutraDm::DDiago(CarmaObj<float> *d_statcov, CarmaObj<float> *d_geocov) {
                     0.0f, d_tmp2->get_data(), nactus);
 
   // 4. SVdec(C',A)
-  carma_magma_syevd<float>('V', d_tmp2, h_eigenvals);
+  carma_magma_syevd<float>(SOLVER_EIG_MODE_VECTOR, d_tmp2, h_eigenvals);
 
   // 5. M = U * D���������������
   carma_dgmm<float>(this->cublas_handle(), CUBLAS_SIDE_RIGHT, this->nactus,

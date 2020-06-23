@@ -434,9 +434,9 @@ template class SutraController<half, uint16_t>;
 //       new CarmaHostObj<float>(dims_data2, MA_PAGELOCK);
 
 //   d_U->copy(d_mat, 1, 1);
-//   carma_magma_syevd<float, 1>('V', d_U, h_eigenvals);
+//   carma_magma_syevd<float, 1>(SOLVER_EIG_MODE_VECTOR, d_U, h_eigenvals);
 
-//   // syevd_f('V',d_U,h_eigenvals);
+//   // syevd_f(SOLVER_EIG_MODE_VECTOR,d_U,h_eigenvals);
 //   if (job == 1) {  // Conditionnement
 //     float maxe = h_eigenvals->get_data()[d_mat->get_dims()[1] - 1];
 

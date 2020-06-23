@@ -72,16 +72,16 @@ int carma_magma_syevd_m(long ngpu, char jobz, CarmaHostObj<T> *mat,
 template <class T>
 int carma_magma_getri(CarmaObj<T> *d_iA);
 template <class T>
-int carma_magma_potri(CarmaObj<T> *d_iA);
+int carma_magma_potr_inv(CarmaObj<T> *d_iA);
 template <class T>
-int carma_magma_potri_m(long num_gpus, CarmaHostObj<T> *h_A,
+int carma_magma_potr_inv_m(long num_gpus, CarmaHostObj<T> *h_A,
                         CarmaObj<T> *d_iA);
 
 // MAGMA functions (direct access)
 template <class T>
 int carma_magma_syevd(char jobz, long N, T *mat, T *eigenvals);
 // template <class T>
-// int carma_magma_potri_m(long num_gpus, long N, T *h_A, T *d_iA);
+// int carma_magma_potr_inv_m(long num_gpus, long N, T *h_A, T *d_iA);
 
 template <class T_data>
 int carma_magma_svd_cpu(CarmaHostObj<T_data> *imat,
@@ -91,7 +91,7 @@ int carma_magma_svd_cpu(CarmaHostObj<T_data> *imat,
 template <class T>
 int carma_magma_getri_cpu(CarmaHostObj<T> *h_A);
 template <class T>
-int carma_magma_potri_cpu(CarmaHostObj<T> *h_A);
+int carma_magma_potr_inv_cpu(CarmaHostObj<T> *h_A);
 template <class T>
 int carma_magma_syevd_cpu(char jobz, CarmaHostObj<T> *h_A,
                           CarmaHostObj<T> *eigenvals);
@@ -103,7 +103,7 @@ int carma_magma_syevd_cpu(char jobz, CarmaHostObj<T> *h_A,
 template <class T>
 int carma_magma_getri_cpu(long N, T *h_A);
 template <class T>
-int carma_magma_potri_cpu(long N, T *h_A);
+int carma_magma_potr_inv_cpu(long N, T *h_A);
 template <class T>
 int carma_magma_syevd_cpu(char jobz, long N, T *h_A, T *eigenvals);
 template <class T>

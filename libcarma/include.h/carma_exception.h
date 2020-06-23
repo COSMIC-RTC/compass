@@ -43,7 +43,9 @@
 #ifndef CARMA_EXCEPTION_H_
 #define CARMA_EXCEPTION_H_
 
+#include <iostream>
 #include <string>
+#include <sstream>
 
 #define Carma_Error(s) CarmaException(s, __FILE__, __LINE__)
 

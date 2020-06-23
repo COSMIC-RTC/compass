@@ -234,7 +234,7 @@ int carma_magma_svd_cpu_gen(Fn const &ptr_gesvd, CarmaHostObj<T> *mat,
 }
 
 template <class T, typename Fn>
-int carma_magma_potri_gen(Fn const &ptr_potrf, Fn const &ptr_potri,
+int carma_magma_potr_inv_gen(Fn const &ptr_potrf, Fn const &ptr_potri,
                           magma_int_t N, magma_int_t ldda, T *d_iA,
                           CarmaDevice *device) {
   magma_int_t info = 0;
@@ -338,7 +338,7 @@ int carma_magma_getri_cpu_gen(Fnf const &ptr_getrf, Fni const &ptr_getri,
 
 template <class T, typename Fnf, typename Fni, typename Fnf_nb,
           typename FnSetMat, typename FnGetMat>
-int carma_magma_potri_m_gen(Fnf const &ptr_potrf, Fni const &ptr_potri,
+int carma_magma_potr_inv_m_gen(Fnf const &ptr_potrf, Fni const &ptr_potri,
                             Fnf_nb const &ptr_get_potrf_nb,
                             FnSetMat const &ptr_setmatrix_1D_col_bcyclic,
                             FnGetMat const &ptr_getmatrix_1D_col_bcyclic,
@@ -396,7 +396,7 @@ int carma_magma_potri_m_gen(Fnf const &ptr_potrf, Fni const &ptr_potri,
 }
 
 template <class T, typename Fn, typename Fn_copy>
-int carma_magma_potri_cpu_gen(Fn const &ptr_potrf, Fn const &ptr_potri,
+int carma_magma_potr_inv_cpu_gen(Fn const &ptr_potrf, Fn const &ptr_potri,
                               Fn_copy const &ptr_copy, magma_int_t N, T *h_A) {
   magma_int_t info = 0;
   char uplo = 'L';
@@ -417,7 +417,7 @@ int carma_magma_gemv_gen(Fn mcompute, char trans, int m, int n, T alpha,
                          T *matA, int lda, T *vectx, int incx, T beta, T *vecty,
                          int incy) {
   magma_trans_t trans2 =
-      (trans == 'N' || trans == 'n') ? MagmaNoTrans : MagmaTrans;
+      (trans == SOLVER_EIG_MODE_NOVECTOR || trans == 'n') ? MagmaNoTrans : MagmaTrans;
   DEBUG_TRACE("%c %d", trans, trans2);
   mcompute(trans2, m, n, alpha, matA, lda, vectx, incx, beta, vecty, incy);
 
@@ -504,13 +504,13 @@ int carma_magma_spmv_gen(Fn spmv, T alpha, varM dA, CarmaObj<T> *dx, T beta,
 #warning "MAGMA will not be used"
 
 #define TEST_USE_MAGMA(...)                          \
-  MAGMA_TRACE("!!!!!! MAGMA not compiled !!!!!!\n"); \
   return EXIT_FAILURE;
+  // MAGMA_TRACE("!!!!!! MAGMA not compiled !!!!!!\n"); \
 
 #warning "SPARSE MAGMA will not be used"
 #define TEST_USE_SMAGMA(...)                                \
-  MAGMA_TRACE("!!!!!! SPARSE MAGMA not compiled !!!!!!\n"); \
   return EXIT_FAILURE;
+  // MAGMA_TRACE("!!!!!! SPARSE MAGMA not compiled !!!!!!\n"); \
 
 #endif  // ifdef USE_MAGMA
 
@@ -732,52 +732,52 @@ int carma_magma_svd_cpu<double>(CarmaHostObj<double> *mat,
 }
 
 template <class T>
-int carma_magma_potri(CarmaObj<T> *d_iA) {
+int carma_magma_potr_inv(CarmaObj<T> *d_iA) {
   DEBUG_TRACE("Not implemented for this data type");
   return EXIT_FAILURE;
 }
 
 template <>
-int carma_magma_potri<float>(CarmaObj<float> *d_iA) {
+int carma_magma_potr_inv<float>(CarmaObj<float> *d_iA) {
   const long *dims = d_iA->get_dims();
   long N = dims[1];
 
   if (N != dims[2]) {
     MAGMA_TRACE(
-        "carma_magma_potri : non square and positive-definite matrix\n");
+        "carma_magma_potr_inv : non square and positive-definite matrix\n");
 
     return EXIT_FAILURE;
   }
-  TEST_USE_MAGMA(return carma_magma_potri_gen<float>(
+  TEST_USE_MAGMA(return carma_magma_potr_inv_gen<float>(
       magma_spotrf_gpu, magma_spotri_gpu, N, N, *d_iA,
       d_iA->get_context()->get_device(d_iA->get_device())));
 }
 
 template <>
-int carma_magma_potri<double>(CarmaObj<double> *d_iA) {
+int carma_magma_potr_inv<double>(CarmaObj<double> *d_iA) {
   const long *dims = d_iA->get_dims();
   long N = dims[1];
 
   if (N != dims[2]) {
     MAGMA_TRACE(
-        "carma_magma_potri : non square and positive-definite matrix\n");
+        "carma_magma_potr_inv : non square and positive-definite matrix\n");
 
     return EXIT_FAILURE;
   }
-  TEST_USE_MAGMA(return carma_magma_potri_gen<double>(
+  TEST_USE_MAGMA(return carma_magma_potr_inv_gen<double>(
       magma_dpotrf_gpu, magma_dpotri_gpu, N, N, *d_iA,
       d_iA->get_context()->get_device(d_iA->get_device())));
 }
 
 template <class T>
-int carma_magma_potri_m(long num_gpus, CarmaHostObj<T> *h_A,
+int carma_magma_potr_inv_m(long num_gpus, CarmaHostObj<T> *h_A,
                         CarmaObj<T> *d_iA) {
   DEBUG_TRACE("Not implemented for this data type");
   return EXIT_FAILURE;
 }
 
 template <>
-int carma_magma_potri_m<float>(long num_gpus, CarmaHostObj<float> *h_A,
+int carma_magma_potr_inv_m<float>(long num_gpus, CarmaHostObj<float> *h_A,
                                CarmaObj<float> *d_iA) {
   long N = h_A->get_dims(1);
 
@@ -786,7 +786,7 @@ int carma_magma_potri_m<float>(long num_gpus, CarmaHostObj<float> *h_A,
 
     return EXIT_FAILURE;
   }
-  TEST_USE_MAGMA(return carma_magma_potri_m_gen<float>(
+  TEST_USE_MAGMA(return carma_magma_potr_inv_m_gen<float>(
       magma_spotrf_mgpu, magma_spotri_gpu, magma_get_spotrf_nb,
       magma_ssetmatrix_1D_col_bcyclic, magma_sgetmatrix_1D_col_bcyclic,
       num_gpus, *h_A, *d_iA, N,
@@ -794,7 +794,7 @@ int carma_magma_potri_m<float>(long num_gpus, CarmaHostObj<float> *h_A,
 }
 
 template <>
-int carma_magma_potri_m<double>(long num_gpus, CarmaHostObj<double> *h_A,
+int carma_magma_potr_inv_m<double>(long num_gpus, CarmaHostObj<double> *h_A,
                                 CarmaObj<double> *d_iA) {
   long N = h_A->get_dims(1);
 
@@ -804,7 +804,7 @@ int carma_magma_potri_m<double>(long num_gpus, CarmaHostObj<double> *h_A,
     return EXIT_FAILURE;
   }
 
-  TEST_USE_MAGMA(return carma_magma_potri_m_gen<double>(
+  TEST_USE_MAGMA(return carma_magma_potr_inv_m_gen<double>(
       magma_dpotrf_mgpu, magma_dpotri_gpu, magma_get_dpotrf_nb,
       magma_dsetmatrix_1D_col_bcyclic, magma_dgetmatrix_1D_col_bcyclic,
       num_gpus, *h_A, *d_iA, N,
@@ -845,13 +845,13 @@ int carma_magma_getri<double>(CarmaObj<double> *d_iA) {
 }
 
 template <class T>
-int carma_magma_potri_cpu(CarmaHostObj<T> *h_A) {
+int carma_magma_potr_inv_cpu(CarmaHostObj<T> *h_A) {
   DEBUG_TRACE("Not implemented for this data type");
   return EXIT_FAILURE;
 }
 
 template <>
-int carma_magma_potri_cpu<float>(CarmaHostObj<float> *h_A) {
+int carma_magma_potr_inv_cpu<float>(CarmaHostObj<float> *h_A) {
   long N = h_A->get_dims(1);
 
   if (N != h_A->get_dims(2)) {
@@ -859,12 +859,12 @@ int carma_magma_potri_cpu<float>(CarmaHostObj<float> *h_A) {
 
     return EXIT_FAILURE;
   }
-  TEST_USE_MAGMA(return carma_magma_potri_cpu_gen<float>(
+  TEST_USE_MAGMA(return carma_magma_potr_inv_cpu_gen<float>(
       lapackf77_spotrf, lapackf77_spotri, blasf77_scopy, N, *h_A));
 }
 
 template <>
-int carma_magma_potri_cpu<double>(CarmaHostObj<double> *h_A) {
+int carma_magma_potr_inv_cpu<double>(CarmaHostObj<double> *h_A) {
   long N = h_A->get_dims(1);
 
   if (N != h_A->get_dims(2)) {
@@ -872,25 +872,25 @@ int carma_magma_potri_cpu<double>(CarmaHostObj<double> *h_A) {
 
     return EXIT_FAILURE;
   }
-  TEST_USE_MAGMA(return carma_magma_potri_cpu_gen<double>(
+  TEST_USE_MAGMA(return carma_magma_potr_inv_cpu_gen<double>(
       lapackf77_dpotrf, lapackf77_dpotri, blasf77_dcopy, N, *h_A));
 }
 
 template <class T>
-int carma_magma_potri_cpu(long N, T *h_A) {
+int carma_magma_potr_inv_cpu(long N, T *h_A) {
   DEBUG_TRACE("Not implemented for this data type");
   return EXIT_FAILURE;
 }
 
 template <>
-int carma_magma_potri_cpu<float>(long N, float *h_A) {
-  TEST_USE_MAGMA(return carma_magma_potri_cpu_gen<float>(
+int carma_magma_potr_inv_cpu<float>(long N, float *h_A) {
+  TEST_USE_MAGMA(return carma_magma_potr_inv_cpu_gen<float>(
       lapackf77_spotrf, lapackf77_spotri, blasf77_scopy, N, h_A));
 }
 
 template <>
-int carma_magma_potri_cpu<double>(long N, double *h_A) {
-  TEST_USE_MAGMA(return carma_magma_potri_cpu_gen<double>(
+int carma_magma_potr_inv_cpu<double>(long N, double *h_A) {
+  TEST_USE_MAGMA(return carma_magma_potr_inv_cpu_gen<double>(
       lapackf77_dpotrf, lapackf77_dpotri, blasf77_dcopy, N, h_A));
 }
 
@@ -1211,11 +1211,11 @@ struct CarmaMagmaInterfacer {
                carma_magma_syevd_m<T_data>);
     force_keep(&carma_magma_svd_cpu<T_data>);
     force_keep(&carma_magma_getri<T_data>);
-    force_keep(&carma_magma_potri<T_data>);
-    force_keep(&carma_magma_potri_m<T_data>);
+    force_keep(&carma_magma_potr_inv<T_data>);
+    force_keep(&carma_magma_potr_inv_m<T_data>);
     force_keep((int (*)(CarmaHostObj<T_data> *)) &
-               carma_magma_potri_cpu<T_data>);
-    force_keep((int (*)(long, T_data *)) & carma_magma_potri_cpu<T_data>);
+               carma_magma_potr_inv_cpu<T_data>);
+    force_keep((int (*)(long, T_data *)) & carma_magma_potr_inv_cpu<T_data>);
     force_keep((int (*)(CarmaHostObj<T_data> *)) &
                carma_magma_getri_cpu<T_data>);
     force_keep((int (*)(long, T_data *)) & carma_magma_getri_cpu<T_data>);

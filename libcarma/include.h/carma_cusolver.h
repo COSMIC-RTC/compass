@@ -46,31 +46,43 @@
 #include <carma_sparse_obj.h>
 #include <cusolverDn.h>
 
+#ifndef SOLVER_EIG_MODE_VECTOR
+  #define SOLVER_EIG_MODE_VECTOR 'V'
+#endif
+#ifndef SOLVER_EIG_MODE_NOVECTOR
+  #define SOLVER_EIG_MODE_NOVECTOR 'N'
+#endif
+
+cusolverStatus_t carma_init_cusolver(cusolverDnHandle_t *cusolver_handle);
+cusolverStatus_t carma_shutdown_cusolver(cusolverDnHandle_t cusolver_handle);
+
 template <class T>
-int carma_syevd(cusolverEigMode_t jobz, CarmaObj<T> *mat,
+int carma_syevd(char jobz, CarmaObj<T> *mat,
                 CarmaObj<T> *eigenvals);
 // template <class T, int method>
-// int carma_syevd(char jobz, CarmaObj<T> *mat, CarmaHostObj<T> *eigenvals);
+// int carma_syevd(cusolverDnHandle_t cusolver_handle, char jobz, CarmaObj<T> *mat, CarmaHostObj<T> *eigenvals);
 // template <class T>
-// int carma_syevd_m(long ngpu, char jobz, long N, T *mat, T *eigenvals);
+// int carma_syevd_m(cusolverDnHandle_t cusolver_handle, long ngpu, char jobz, long N, T *mat, T *eigenvals);
 // template <class T>
-// int carma_syevd_m(long ngpu, char jobz, CarmaHostObj<T> *mat,
+// int carma_syevd_m(cusolverDnHandle_t cusolver_handle, long ngpu, char jobz, CarmaHostObj<T> *mat,
 //                   CarmaHostObj<T> *eigenvals);
 // template <class T>
-// int carma_syevd_m(long ngpu, char jobz, CarmaHostObj<T> *mat,
+// int carma_syevd_m(cusolverDnHandle_t cusolver_handle, long ngpu, char jobz, CarmaHostObj<T> *mat,
 //                   CarmaHostObj<T> *eigenvals, CarmaHostObj<T> *U);
 // template <class T>
 // int carma_getri(CarmaObj<T> *d_iA);
+template <class T>
+int carma_potr_inv(CarmaObj<T> *d_iA);
 // template <class T>
-// int carma_potri(CarmaObj<T> *d_iA);
-// template <class T>
-// int carma_potri_m(long num_gpus, CarmaHostObj<T> *h_A, CarmaObj<T> *d_iA);
+// int carma_potr_inv_m(long num_gpus, CarmaHostObj<T> *h_A, CarmaObj<T> *d_iA);
 
 // MAGMA functions (direct access)
 template <class T>
-int carma_syevd(cusolverEigMode_t jobz, long N, T *mat, T *eigenvals);
+int carma_syevd(cusolverDnHandle_t cusolver_handle, char jobz, long N, T *mat, T *eigenvals);
+template <class T>
+int carma_potr_inv(cusolverDnHandle_t cusolver_handle, long N, T *h_A);
 // template <class T>
-// int carma_potri_m(long num_gpus, long N, T *h_A, T *d_iA);
+// int carma_potr_inv_m(cusolverDnHandle_t cusolver_handle, long num_gpus, long N, T *h_A, T *d_iA);
 
 // template <class T_data>
 // int carma_svd_cpu(CarmaHostObj<T_data> *imat,
@@ -80,7 +92,7 @@ int carma_syevd(cusolverEigMode_t jobz, long N, T *mat, T *eigenvals);
 // template <class T>
 // int carma_getri_cpu(CarmaHostObj<T> *h_A);
 // template <class T>
-// int carma_potri_cpu(CarmaHostObj<T> *h_A);
+// int carma_potr_inv_cpu(CarmaHostObj<T> *h_A);
 // template <class T>
 // int carma_syevd_cpu(char jobz, CarmaHostObj<T> *h_A,
 //                     CarmaHostObj<T> *eigenvals);
@@ -92,7 +104,7 @@ int carma_syevd(cusolverEigMode_t jobz, long N, T *mat, T *eigenvals);
 // template <class T>
 // int carma_getri_cpu(long N, T *h_A);
 // template <class T>
-// int carma_potri_cpu(long N, T *h_A);
+// int carma_potr_inv_cpu(long N, T *h_A);
 // template <class T>
 // int carma_syevd_cpu(char jobz, long N, T *h_A, T *eigenvals);
 // template <class T>

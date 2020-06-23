@@ -39,7 +39,6 @@
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
-#include <carma_magma.h>
 #include <sutra_controller_geo.h>
 
 template <typename T, typename Tout>
@@ -163,7 +162,7 @@ int sutra_controller_geo<T, Tout>::init_proj(SutraDms *dms, int *indx_dm,
                 this->Nphi, 1.0f, d_IF.get_data(), d_IF.get_dims()[1],
                 d_IF.get_data(), d_IF.get_dims()[1], 0.0f, d_tmp.get_data(),
                 d_tmp.get_dims()[1]);
-  carma_magma_potri(&d_tmp);
+  carma_potr_inv(&d_tmp);
   // invgen(d_tmp,1000.0f,1);
 
   // d_proj = d_tmp * transpose(d_IF)
@@ -286,7 +285,7 @@ int sutra_controller_geo<T, Tout>::init_proj_sparse(
                 this->current_context->get_device(this->device));
 
   this->d_geocov->scale(1.0f / this->Nphi, 1);
-  carma_magma_potri(d_geocov);
+  carma_potr_inv(d_geocov);
   // invgen(d_geocov,2.0f,0);
   delete d_tmp;
   delete d_tmp2;

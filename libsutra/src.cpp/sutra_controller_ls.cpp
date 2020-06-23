@@ -5,29 +5,34 @@
 //  All rights reserved.
 //  Distributed under GNU - LGPL
 //
-//  COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-//  General Public License as published by the Free Software Foundation, either version 3 of the License,
-//  or any later version.
+//  COMPASS is free software: you can redistribute it and/or modify it under the
+//  terms of the GNU Lesser General Public License as published by the Free
+//  Software Foundation, either version 3 of the License, or any later version.
 //
 //  COMPASS: End-to-end AO simulation tool using GPU acceleration
-//  The COMPASS platform was designed to meet the need of high-performance for the simulation of AO systems.
+//  The COMPASS platform was designed to meet the need of high-performance for
+//  the simulation of AO systems.
 //
-//  The final product includes a software package for simulating all the critical subcomponents of AO,
-//  particularly in the context of the ELT and a real-time core based on several control approaches,
-//  with performances consistent with its integration into an instrument. Taking advantage of the specific
-//  hardware architecture of the GPU, the COMPASS tool allows to achieve adequate execution speeds to
-//  conduct large simulation campaigns called to the ELT.
+//  The final product includes a software package for simulating all the
+//  critical subcomponents of AO, particularly in the context of the ELT and a
+//  real-time core based on several control approaches, with performances
+//  consistent with its integration into an instrument. Taking advantage of the
+//  specific hardware architecture of the GPU, the COMPASS tool allows to
+//  achieve adequate execution speeds to conduct large simulation campaigns
+//  called to the ELT.
 //
-//  The COMPASS platform can be used to carry a wide variety of simulations to both testspecific components
-//  of AO of the E-ELT (such as wavefront analysis device with a pyramid or elongated Laser star), and
-//  various systems configurations such as multi-conjugate AO.
+//  The COMPASS platform can be used to carry a wide variety of simulations to
+//  both testspecific components of AO of the E-ELT (such as wavefront analysis
+//  device with a pyramid or elongated Laser star), and various systems
+//  configurations such as multi-conjugate AO.
 //
-//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
-//  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-//  See the GNU Lesser General Public License for more details.
+//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY
+//  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+//  FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+//  details.
 //
-//  You should have received a copy of the GNU Lesser General Public License along with COMPASS.
-//  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
+//  You should have received a copy of the GNU Lesser General Public License
+//  along with COMPASS. If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 // -----------------------------------------------------------------------------
 
 //! \file      sutra_controller_ls.cpp
@@ -159,20 +164,23 @@ int sutra_controller_ls<T, Tout>::svdec_imat() {
     return EXIT_FAILURE;
   }
 
+  // we can skip this step syevd use only the lower part
+  fill_sym_matrix('U', d_U->get_data(), nCols, nCols * nCols,
+                  this->current_context->get_device(this->device));
   if (!carma_magma_disabled()) {
-    // we can skip this step syevd use only the lower part
-    fill_sym_matrix('U', d_U->get_data(), nCols, nCols * nCols,
-                    this->current_context->get_device(this->device));
 
     // doing evd of U inplace
-    if (carma_magma_syevd<T>('V', d_U, h_eigenvals) == EXIT_FAILURE) {
-      // if (syevd_f('V', d_U, h_eigenvals) == EXIT_FAILURE) {
+    if (carma_magma_syevd<T>(SOLVER_EIG_MODE_VECTOR, d_U, h_eigenvals) == EXIT_FAILURE) {
       // Case where MAGMA is not feeling good :-/
       return EXIT_FAILURE;
     }
     d_eigenvals->host2device(h_eigenvals->get_data());
-  } else {  // TODO: cuSolver case
-    throw std::runtime_error("cuSolver implementation not done");
+  } else {  // CUsolver case
+    // doing evd of U inplace
+    if (carma_syevd<T>(SOLVER_EIG_MODE_VECTOR, d_U, d_eigenvals) == EXIT_FAILURE) {
+      return EXIT_FAILURE;
+    }
+    d_eigenvals->device2host(h_eigenvals->get_data());
   }
   return EXIT_SUCCESS;
 }
@@ -223,17 +231,10 @@ int sutra_controller_ls<T, Tout>::build_cmat(int nfilt, bool filt_tt) {
   if (filt_tt)
     nb_elem -= 2;
   */
-  if (!carma_magma_disabled()) {
-    for (int cc = nfilt; cc < nb_elem; cc++) {
-      T eigenval = (*this->h_eigenvals)[cc];
-      h_eigenvals_inv[cc] =  // 1.0f / eigenval;
-          (fabs(eigenval) > 1.e-9) ? 1.0f / eigenval : 0.f;
-    }
-  } else {
-    for (int cc = 0; cc < nb_elem - nfilt; cc++) {
-      T eigenval = (*this->h_eigenvals)[cc];
-      h_eigenvals_inv[cc] = (fabs(eigenval) > 1.e-9) ? 1.0f / eigenval : 0.f;
-    }
+  for (int cc = nfilt; cc < nb_elem; cc++) {
+    T eigenval = (*this->h_eigenvals)[cc];
+    h_eigenvals_inv[cc] =  // 1.0f / eigenval;
+        (fabs(eigenval) > 1.e-9) ? 1.0f / eigenval : 0.f;
   }
   d_eigenvals_inv.host2device(h_eigenvals_inv.get_data());
 
@@ -414,7 +415,8 @@ int sutra_controller_ls<T, Tout>::init_modalOpti(int nmodes, int nrec, T *M2V,
              this->nslope(), 0.0f, d_tmp2->get_data(), nmodes);
 
   // 3. tmp2 = (tmp2)⁻¹
-  carma_magma_potri(d_tmp2);
+  carma_potr_inv(d_tmp2);
+  // carma_potr_inv(d_tmp2);
   // 4. S2M = (D*M2V)⁻¹
   carma_gemm(this->cublas_handle(), 'n', 't', nmodes, this->nslope(), nmodes,
              1.0f, d_tmp2->get_data(), nmodes, d_tmp->get_data(), this->nslope(),

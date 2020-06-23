@@ -24,8 +24,12 @@ if(NOT TARGET wyrm::wyrm)
 endif()
 
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(MAGMA REQUIRED magma)
-link_directories( ${MAGMA_LIBRARY_DIRS} )
+pkg_check_modules(MAGMA magma)
+if(${MAGMA_FOUND})
+  link_directories(${MAGMA_LIBRARY_DIRS})
+else()
+  message(STATUS "MAGMA not found, MAGMA features disabled")
+endif()
 
 add_library(carmaWrap MODULE
 src/context.cpp

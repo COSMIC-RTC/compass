@@ -50,8 +50,9 @@
 #include <string>
 #include <vector>
 
-#include "carma_cublas.h"
-#include "carma_cusparse.h"
+#include <cublas_v2.h>
+#include <cusparse_v2.h>
+#include <cusolverDn.h>
 #include "carma_utils.h"
 
 class CarmaDevice {
@@ -66,6 +67,7 @@ class CarmaDevice {
 
   cublasHandle_t cublas_handle;
   cusparseHandle_t cusparse_handle;
+  cusolverDnHandle_t cusolver_handle;
   cudaStream_t main_stream;
 
  public:
@@ -92,6 +94,7 @@ class CarmaDevice {
 
   cublasHandle_t get_cublas_handle() { return cublas_handle; }
   cusparseHandle_t get_cusparse_handle() { return cusparse_handle; }
+  cusolverDnHandle_t get_cusolver_handle() { return cusolver_handle; }
 };
 
 #define set_active_device(new_device, silent) \
