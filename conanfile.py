@@ -10,8 +10,7 @@ def cuda_version():
 
 class CompassConan(ConanFile):
     settings = 'os', 'compiler', 'build_type', 'arch'
-    requires = ['emu/0.1@cosmic/stable',
-                'wyrm/0.1@cosmic/stable']
+    requires = ['wyrm/0.1@cosmic/stable']
     generators = 'cmake'
     default_options = {'emu:cuda': True, 'wyrm:cuda': True, 'wyrm:half': True}
 
