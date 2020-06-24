@@ -1,7 +1,7 @@
 ## @package   shesha.init.dm_init
 ## @brief     Initialization of a Dms object
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   4.4.1
+## @version   4.4.2
 ## @date      2011/01/28
 ## @copyright GNU Lesser General Public License
 #
@@ -551,18 +551,19 @@ def init_custom_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, diam: float):
     f_xpos, f_ypos = hdul[3].data
 
     # Projecting the dm in the tel pupil plane with the desired factor
-    cases = [p_dm.diam_dm is not None,
-             p_dm._pitch is not None,
-             p_dm.diam_dm_proj is not None]
+    cases = [
+            p_dm.diam_dm is not None, p_dm._pitch is not None,
+            p_dm.diam_dm_proj is not None
+    ]
 
     if cases == [False, False, False]:
         scale = diam / f_pupm
     elif cases == [True, False, False]:
-        scale = diam  / p_dm.diam_dm
+        scale = diam / p_dm.diam_dm
     elif cases == [False, True, False]:
         scale = p_dm._pitch / f_pitchm
     elif cases == [False, False, True]:
-        scale = p_dm.diam_dm_proj  / f_pupm
+        scale = p_dm.diam_dm_proj / f_pupm
     else:
         err_msg = '''Invalid rescaling parameters
         To set the scale of the custom dm, MAXIMUM ONE of the following parameters should be set:
@@ -587,8 +588,8 @@ def init_custom_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, diam: float):
 
     # computing IF spport size in compass system
     iSize, jSize, ntotact = f_influ.shape
-    if iSize!=jSize:
-        raise('Error')
+    if iSize != jSize:
+        raise ('Error')
 
     ess1 = np.ceil((fi_i1+iSize) * scaleToCompass + offsetXToCompass) \
         - np.floor(fi_i1 * scaleToCompass + offsetXToCompass)
@@ -632,7 +633,7 @@ def init_custom_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, diam: float):
         f = interpolate.interp2d(ci_y, ci_x, f_influ[:, :, i], kind='cubic')
         temp = f(ci_ypix, ci_xpix) * p_dm.unitpervolt
         # temp[np.where(temp<1e-6)] = 0.
-        p_dm._influ[:,:,i] = temp
+        p_dm._influ[:, :, i] = temp
 
         # ....
         p_dm._i1[i] = ci_i1

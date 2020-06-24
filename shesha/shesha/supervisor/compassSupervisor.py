@@ -1,7 +1,7 @@
 ## @package   shesha.supervisor.compassSupervisor
 ## @brief     Initialization and execution of a COMPASS supervisor
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   4.4.1
+## @version   4.4.2
 ## @date      2011/01/28
 ## @copyright GNU Lesser General Public License
 #
@@ -55,7 +55,9 @@ import astropy.io.fits as pfits
 from tqdm import trange, tqdm
 import time
 
+
 class CompassSupervisor(AoSupervisor):
+
     def __init__(self, configFile: str = None, cacao: bool = False,
                  use_DB: bool = False):
         '''
@@ -79,7 +81,6 @@ class CompassSupervisor(AoSupervisor):
 
     def __repr__(self):
         return object.__repr__(self) + str(self._sim)
-
 
     #     _    _         _                  _
     #    / \  | |__  ___| |_ _ __ __ _  ___| |_
@@ -131,7 +132,6 @@ class CompassSupervisor(AoSupervisor):
     #  ___) | |_) |  __/ (__| | |_| | (__  | |  | |  __/ |_| | | | (_) | (_| \__ \
     # |____/| .__/ \___|\___|_|\__|_|\___| |_|  |_|\___|\__|_| |_|\___/ \__,_|___/
     #       |_|
-
 
     def setPyrModulation(self, pyrMod: float, numwfs=0) -> None:
         '''
@@ -253,7 +253,7 @@ class CompassSupervisor(AoSupervisor):
         for w in self._sim.wfs.d_wfs:
             w.d_gs.comp_image()
 
-    def setWind(self, nScreen : int, windspeed : float = None, winddir : float = None):
+    def setWind(self, nScreen: int, windspeed: float = None, winddir: float = None):
         """ Set new wind information for the given screen
 
         Parameters:
@@ -270,21 +270,25 @@ class CompassSupervisor(AoSupervisor):
             self.config.p_atmos.windspeed[nScreen] = windspeed
         if winddir is not None:
             self.config.p_atmos.winddir[nScreen] = winddir
-        
+
         lin_delta = self.config.p_geom.pupdiam / self.config.p_tel.diam * self.config.p_atmos.windspeed[nScreen] * \
                     np.cos(CONST.DEG2RAD * self.config.p_geom.zenithangle) * self.config.p_loop.ittime
         oldx = self.config.p_atmos._deltax[nScreen]
         oldy = self.config.p_atmos._deltay[nScreen]
-        self.config.p_atmos._deltax[nScreen] = lin_delta * np.sin(CONST.DEG2RAD * self.config.p_atmos.winddir[nScreen] + np.pi)
-        self.config.p_atmos._deltay[nScreen] = lin_delta * np.cos(CONST.DEG2RAD * self.config.p_atmos.winddir[nScreen] + np.pi)
+        self.config.p_atmos._deltax[nScreen] = lin_delta * np.sin(
+                CONST.DEG2RAD * self.config.p_atmos.winddir[nScreen] + np.pi)
+        self.config.p_atmos._deltay[nScreen] = lin_delta * np.cos(
+                CONST.DEG2RAD * self.config.p_atmos.winddir[nScreen] + np.pi)
         self._sim.atm.d_screens[nScreen].set_deltax(self.config.p_atmos._deltax[nScreen])
         self._sim.atm.d_screens[nScreen].set_deltay(self.config.p_atmos._deltay[nScreen])
-        if(oldx * self.config.p_atmos._deltax[nScreen] < 0): #Sign has changed, must change the stencil
+        if (oldx * self.config.p_atmos._deltax[nScreen] <
+                    0):  #Sign has changed, must change the stencil
             stencilx = np.array(self._sim.atm.d_screens[nScreen].d_istencilx)
             n = self.config.p_atmos.dim_screens[nScreen]
             stencilx = (n * n - 1) - stencilx
             self._sim.atm.d_screens[nScreen].set_istencilx(stencilx)
-        if(oldy * self.config.p_atmos._deltay[nScreen] < 0): #Sign has changed, must change the stencil
+        if (oldy * self.config.p_atmos._deltay[nScreen] <
+                    0):  #Sign has changed, must change the stencil
             stencily = np.array(self._sim.atm.d_screens[nScreen].d_istencily)
             n = self.config.p_atmos.dim_screens[nScreen]
             stencily = (n * n - 1) - stencily
@@ -321,7 +325,6 @@ class CompassSupervisor(AoSupervisor):
         returns the target screen of target number numTar
         '''
         return np.array(self._sim.tar.d_targets[numTar].d_phase)
-
 
     def resetDM(self, numdm: int = -1) -> None:
         '''
@@ -434,7 +437,6 @@ class CompassSupervisor(AoSupervisor):
         '''
         return np.array(self._sim.dms.d_dms[indx].d_shape)
 
-
     def getPyrHRImage(self, numWFS: int = 0) -> np.ndarray:
         '''
         Get an HR image from the WFS
@@ -487,7 +489,7 @@ class CompassSupervisor(AoSupervisor):
 
     def setNcpaWfs(self, ncpa, wfsnum):
         """
-        sets the additional fixed phase in the WFS path. 
+        sets the additional fixed phase in the WFS path.
 
         ncpa must be of the same size of the Mpupil support (see also getMpupil())
         """
@@ -495,14 +497,13 @@ class CompassSupervisor(AoSupervisor):
 
     def setNcpaTar(self, ncpa, tarnum):
         """
-        sets the additional fixed phase in the TARGET path. 
+        sets the additional fixed phase in the TARGET path.
 
         ncpa must be of the same size of the Spupil support (see also getSpupil())
         """
         self._sim.tar.d_targets[tarnum].set_ncpa(ncpa)
 
     def setWfsPhase(self, numwfs, phase):
-
 
         self._sim.wfs.d_wfs[numwfs].d_gs.set_phase(phase)
 
@@ -545,7 +546,6 @@ class CompassSupervisor(AoSupervisor):
         self.openLoop(rst=rst)
         self.closeLoop()
 
-
     def setDmCommand(self, numdm, volts):
         """
         Allows to by-pass the RTC for sending a command to the
@@ -565,7 +565,6 @@ class CompassSupervisor(AoSupervisor):
         else:
             print("ERROR !!!!\nRequested DM (", numdm,
                   ") conflicts with number of available DMs (", ntotDm, ").")
-
 
     def setDMRegistration(self, indDM, dx=None, dy=None, theta=None, G=None):
         """Set the registration parameters for DM #indDM
@@ -603,32 +602,25 @@ class CompassSupervisor(AoSupervisor):
 
         return np.array(self._sim.rtc.d_centro[0].d_selected_pix)
 
-
-
     """
     ---------------------------------
     ---- Imported from Canapass -----
     ---------------------------------
     """
-
-
-
     """
-    ____    _    ____ ___ ____  
-    | __ )  / \  / ___|_ _/ ___| 
-    |  _ \ / _ \ \___ \| |\___ \ 
+    ____    _    ____ ___ ____
+    | __ )  / \  / ___|_ _/ ___|
+    |  _ \ / _ \ \___ \| |\___ \
     | |_) / ___ \ ___) | | ___) |
-    |____/_/   \_\____/___|____/ 
-                                
-     ____ ___  __  __ ____  _   _ _____  _  _____ ___ ___  _   _ 
+    |____/_/   \_\____/___|____/
+
+     ____ ___  __  __ ____  _   _ _____  _  _____ ___ ___  _   _
     / ___/ _ \|  \/  |  _ \| | | |_   _|/ \|_   _|_ _/ _ \| \ | |
     | |  | | | | |\/| | |_) | | | | | | / _ \ | |  | | | | |  \| |
     | |__| |_| | |  | |  __/| |_| | | |/ ___ \| |  | | |_| | |\  |
     \____\___/|_|  |_|_|    \___/  |_/_/   \_\_| |___\___/|_| \_|
-                                                                
+
     """
-
-
 
     def first_nonzero(self, arr, axis, invalid_val=-1):
         """
@@ -638,8 +630,6 @@ class CompassSupervisor(AoSupervisor):
         """
         mask = arr != 0
         return np.where(mask.any(axis=axis), mask.argmax(axis=axis), invalid_val)
-
-
 
     def getModes2VBasis(self, ModalBasisType, merged=False, nbpairs=None,
                         returnDelta=False):
@@ -666,8 +656,8 @@ class CompassSupervisor(AoSupervisor):
         elif (ModalBasisType == "Btt"):
             print("Computing Btt basis...")
             self.modalBasis, self.P = self.compute_Btt(inv_method="cpu_svd",
-                                                        merged=merged, nbpairs=nbpairs,
-                                                        returnDelta=returnDelta)
+                                                       merged=merged, nbpairs=nbpairs,
+                                                       returnDelta=returnDelta)
             fnz = self.first_nonzero(self.modalBasis, axis=0)
             # Computing the sign of the first non zero element
             #sig = np.sign(self.modalBasis[[fnz, np.arange(self.modalBasis.shape[1])]])
@@ -681,7 +671,6 @@ class CompassSupervisor(AoSupervisor):
             self.modalBasis, self.P = self.compute_btt_petal()
             return self.modalBasis, self.P
 
-
     def returnkl2V(self):
         """
         Compute the Karhunen-Loeve to Volt matrix
@@ -692,25 +681,22 @@ class CompassSupervisor(AoSupervisor):
         if (self.KL2V is None):
             print("Computing KL2V...")
             KL2V = basis.compute_KL2V(self._sim.config.p_controllers[0], self._sim.dms,
-                                   self._sim.config.p_dms, self._sim.config.p_geom,
-                                   self._sim.config.p_atmos, self._sim.config.p_tel)
+                                      self._sim.config.p_dms, self._sim.config.p_geom,
+                                      self._sim.config.p_atmos, self._sim.config.p_tel)
             print("KL2V Done!")
             self.KL2V = KL2V
             return KL2V, 0
         else:
             return self.KL2V, 0
 
-
-
-
     def compute_Btt(self, inv_method: str = "cpu_svd", merged=False, nbpairs=None,
-                     returnDelta=False):
+                    returnDelta=False):
         """
         Computes the so-called Btt modal basis.
 
-        if returnDelta = False: returns 
+        if returnDelta = False: returns
         (Btt, projection matrix)
-        if returnDelta = True: returns 
+        if returnDelta = True: returns
         (Btt, Delta Matrix)
         If return Delta is True returns:
 
@@ -828,8 +814,6 @@ class CompassSupervisor(AoSupervisor):
             P = delta
         return Btt, P
 
-
-
     def computeMerged(self, nbpairs=None):
         """
         Used to compute merged IF from each side of the spider for an ELT case (Petalling Effect)
@@ -935,9 +919,6 @@ class CompassSupervisor(AoSupervisor):
             list(np.where(DISCARD)[0])
         return np.asarray(PAIRS), list(np.where(DISCARD)[0])
 
-
-
-
     def compute_btt_petal(self):
         """
         Computes a Btt modal basis with Pistons filtered
@@ -1003,15 +984,12 @@ class CompassSupervisor(AoSupervisor):
 
         return Btt.astype(np.float32), P.astype(np.float32)
 
-
-
     def setModalBasis(self, modalBasis, P):
         """
         Function used to set the modal basis and projector in canapass
         """
         self.modalBasis = modalBasis
         self.P = P
-
 
     def computePh2Modes(self, modalBasis):
         """
@@ -1029,8 +1007,7 @@ class CompassSupervisor(AoSupervisor):
         S = np.sum(pup)
         for i in range(nbmode):
             self.resetTarPhase(0)
-            self._sim.dms.set_full_comm(
-                    (modalBasis[:, i]).astype(np.float32).copy())
+            self._sim.dms.set_full_comm((modalBasis[:, i]).astype(np.float32).copy())
             self._sim.next(see_atmos=False)
             ph = self.getTarPhase(0) * pup
             # Normalisation pour les unites rms en microns !!!
@@ -1045,11 +1022,9 @@ class CompassSupervisor(AoSupervisor):
         computes the phase 2 modes matrix by using the modal basis and writes it in the user provided fits file
 
         Author: unknown
-        """ 
+        """
         data = self.computePh2Modes(modalBasis)
         pfits.writeto(fullpath, data, overwrite=True)
-
-
 
     def applyVoltGetSlopes(self, noise=False, turbu=False, reset=1):
         """
@@ -1070,7 +1045,6 @@ class CompassSupervisor(AoSupervisor):
         c = self.getCentroids(0)
         return c
 
-
     def doImatModal(self, ampliVec, modalbasis, Nslopes, noise=False, nmodesMax=0,
                     withTurbu=False, pushPull=False):
         """
@@ -1080,7 +1054,7 @@ class CompassSupervisor(AoSupervisor):
         """
         iMatKL = np.zeros((Nslopes, modalbasis.shape[1]))
 
-        if (nmodesMax ==0):
+        if (nmodesMax == 0):
             nmodesMax = modalbasis.shape[1]
         vold = self.getCom(0)
         self.openLoop(rst=False)
@@ -1108,7 +1082,6 @@ class CompassSupervisor(AoSupervisor):
             self.closeLoop()  # We are supposed to be in close loop now
         return iMatKL
 
-
     def doImatPhase(self, cubePhase, Nslopes, noise=False, nmodesMax=0, withTurbu=False,
                     pushPull=False, wfsnum=0):
         """
@@ -1116,7 +1089,7 @@ class CompassSupervisor(AoSupervisor):
 
 
         Author: FV
-        """        
+        """
         iMatPhase = np.zeros((cubePhase.shape[0], Nslopes))
         for nphase in range(cubePhase.shape[0]):
             if ((pushPull is True) or
@@ -1136,7 +1109,6 @@ class CompassSupervisor(AoSupervisor):
 
         return iMatPhase
 
-
     def computeModalResiduals(self):
         """
         Computes the modal residuals coefficients of the residual phase.
@@ -1146,34 +1118,32 @@ class CompassSupervisor(AoSupervisor):
         Requires to use Rocket
         Author: FV
         """
-        try: 
+        try:
             self._sim.doControl(1, 0)
         except:
             return [0]
-        v = self.getCom(1)  # We compute here the residual phase on the DM modes. Gives the Equivalent volts to apply/
+        v = self.getCom(
+                1
+        )  # We compute here the residual phase on the DM modes. Gives the Equivalent volts to apply/
         if (self.P is None):
             return [0]
             # self.modalBasis, self.P = self.getModes2VBasis("Btt")
         if (self.selectedActus is None):
             ai = self.P.dot(v) * 1000.  # np rms units
         else:  # Slaving actus case
-            v2 = v[:-2][list(self.selectedActus)]  # If actus are slaved then we select them.
+            v2 = v[:-2][list(
+                    self.selectedActus)]  # If actus are slaved then we select them.
             v3 = v[-2:]
             ai = self.P.dot(np.concatenate((v2, v3))) * 1000.
         return ai
-
-
-
-
         """
-         ______   ______  
-        |  _ \ \ / /  _ \ 
+         ______   ______
+        |  _ \ \ / /  _ \
         | |_) \ V /| |_) |
-        |  __/ | | |  _ < 
+        |  __/ | | |  _ <
         |_|    |_| |_| \_\
-                        
-        """
 
+        """
 
     def setPyrSourceArray(self, cx, cy, nwfs=0):
         """
@@ -1192,8 +1162,6 @@ class CompassSupervisor(AoSupervisor):
         # RTC scale units to be updated ????
         #scale = pwfs.Lambda * 1e-6 / p_tel.diam * ampli * 180. / np.pi * 3600.
         #rtc.d_centro[nwfs].set_scale(scale)
-
-
 
     def setPyrMultipleStarsSource(self, coords, weights=None, pyrmod=3., niters=None,
                                   nwfs=0):
@@ -1244,7 +1212,6 @@ class CompassSupervisor(AoSupervisor):
                 w += niters * [k]
             wfs.d_wfs[nwfs].set_pyr_modulation(cx, cy, w, pyr_npts)
 
-
     def setPyrDiskSourceHP(self, radius, density=1., nwfs=0):
         """
         radius is the radius of the disk object in lambda/D
@@ -1281,10 +1248,6 @@ class CompassSupervisor(AoSupervisor):
         pwfs.set_pyr_cy(cy)
         wfs.d_wfs[nwfs].set_pyr_modulation(cx, cy, pyr_npts)
 
-
-
-
-
     def generate_square(self, radius, density=1.):
         """
         radius is half the length of a side in lambda/D
@@ -1309,7 +1272,6 @@ class CompassSupervisor(AoSupervisor):
         r = cx * cx + cy * cy <= radius**2
         return (cx[r], cy[r])
 
-
     def setPyrDiskSourceSP(self, radius, density=1., nwfs=0):
         """
         radius is the radius of the disk object in lambda/D
@@ -1320,7 +1282,6 @@ class CompassSupervisor(AoSupervisor):
 
         Author: MG
         """
-
 
         wfs = self._sim.wfs
         pwfs = self._sim.config.p_wfss[nwfs]
@@ -1415,9 +1376,7 @@ class CompassSupervisor(AoSupervisor):
                     H_edge_weight.append(val)
         pup_cent_x = []
         pup_cent_y = []
-        pup_cent_weight = 4 * [
-                (len(xc) - 2 * np.sum(H_edge_weight) - struct_size) / 4
-        ]
+        pup_cent_weight = 4 * [(len(xc) - 2 * np.sum(H_edge_weight) - struct_size) / 4]
         pup_cent_dist = int(edge_dist // np.sqrt(2))
         for l in [-1, 1]:
             for m in [-1, 1]:
@@ -1452,32 +1411,30 @@ class CompassSupervisor(AoSupervisor):
         pwfs.set_pyr_cy(cy)
         wfs.d_wfs[nwfs].set_pyr_modulation(cx, cy, w, pyr_npts)
 
-
-    def recordCB(self, CBcount, subSample=1, tarnum=0, seeAtmos=True,
-                 cubeDataType=None, cubeDataFilePath="", NCPA=False, ncpawfs=None, refSlopes=None,
+    def recordCB(self, CBcount, subSample=1, tarnum=0, seeAtmos=True, cubeDataType=None,
+                 cubeDataFilePath="", NCPA=False, ncpawfs=None, refSlopes=None,
                  ditchStrehl=True):
-
         """
 
-        Used to record a synchronized circular buffer AO loop data. 
+        Used to record a synchronized circular buffer AO loop data.
 
-        ----- Inputs ----- : 
+        ----- Inputs ----- :
 
-        CBcount: the number of iterations to record. 
+        CBcount: the number of iterations to record.
         subSample: sub sampling of the data (default=1, I.e no subsampling)
         tarnum: target number
         seeAtmos: used for the next function to enable or not the Atmos
         cubeDataType:  if  specified ("tarPhase" or "psfse") returns the target phase or short exposure PSF data cube in the output variable
-        cubeDataFilePath: if specified it will also save the target phase cube data (full path on the server) 
-        
+        cubeDataFilePath: if specified it will also save the target phase cube data (full path on the server)
+
         NCPA: !!experimental!!!: Used only in the context of PYRWFS + NCPA compensation on the fly (with optical gain)
         defines how many iters the NCPA refslopes are updates with the proper optical gain. Ex: if NCPA=10 refslopes will be updates every 10 iters.
         ncpawfs: the ncpa phase as seen from the wfs array with dims = size of Mpupil
-        refSlopes: the reference slopes to use. 
+        refSlopes: the reference slopes to use.
 
         DitchStrehl: resets the long exposure SR computation at the beginning of the Circular buffer (default= True)
 
-        ----- Outputs ----- : 
+        ----- Outputs ----- :
 
         slopes: the slopes CB
         volts: the volts applied to the DM(s) CB

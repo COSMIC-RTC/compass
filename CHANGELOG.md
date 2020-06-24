@@ -1,6 +1,7 @@
 # COMPASS Change logs
 
 - [COMPASS Change logs](#compass-change-logs)
+  - [Release v4.4.2](#release-v442)
   - [Release v4.4.1](#release-v441)
   - [Release v4.4.0](#release-v440)
   - [Release v4.3.2](#release-v432)
@@ -16,23 +17,27 @@
   - [Release v2.0](#release-v20)
   - [Release v1.1](#release-v11)
 
+## Release v4.4.2
+
+- Fix COMPASS Ray tracing with LGS bug
+- New feature : change wind on the fly
+- Debug modal opti with Btt
+- Add custom DM feature
+- Add `carma_magma_gemv` method in libcarma
+
 ## Release v4.4.1
 
-Release v4.4.1:
-
- - handle different shape for raw images and cal images (using the LUT feature)
- - possibility to attach a stream to centroiders
- - opimization of pyramid HR wfs
- - debug ```do_centroids_ref``` method
- - debug ```init_custom_dm``` method
- - add ```requirements*.txt``` file to install python dependencies
- - add ```Jenkinsfile```
- - update Doxyfile script and documentation rst
- - generate gcov trace in debug
+- handle different shape for raw images and cal images (using the LUT feature)
+- possibility to attach a stream to centroiders
+- opimization of pyramid HR wfs
+- debug ```do_centroids_ref``` method
+- debug ```init_custom_dm``` method
+- add ```requirements*.txt``` file to install python dependencies
+- add ```Jenkinsfile```
+- update Doxyfile script and documentation rst
+- generate gcov trace in debug
 
 ## Release v4.4.0
-
-Release v4.4.0:
 
 - Debug issue with Kepler architecture
 - Multi GPU controller reworked

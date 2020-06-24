@@ -34,7 +34,7 @@
 //! \ingroup   libcarma
 //! \brief     this file provides carma_obj CUDA kernels
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   4.4.2
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 

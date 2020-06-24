@@ -1,7 +1,7 @@
 ## @package   shesha.supervisor.aoSupervisor
 ## @brief     Abstract layer for initialization and execution of a AO supervisor
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   4.4.1
+## @version   4.4.2
 ## @date      2011/01/28
 ## @copyright GNU Lesser General Public License
 #
@@ -44,6 +44,7 @@ from collections import OrderedDict
 import astropy.io.fits as pfits
 import shesha.constants as scons
 
+
 class AoSupervisor(AbstractSupervisor):
 
     #     _    _         _                  _
@@ -64,7 +65,6 @@ class AoSupervisor(AbstractSupervisor):
         self.KL2V = None
         self.P = None
         self.currentBuffer = 1
-
 
     def getConfig(self):
         ''' Returns the configuration in use, in a supervisor specific format ? '''
@@ -93,9 +93,10 @@ class AoSupervisor(AbstractSupervisor):
         Get an image from the WFS (wfs[0] by default)
         '''
         if (calPix):
-            if self.rtc.d_centro[numWFS].d_dark is None: # Simulation case
+            if self.rtc.d_centro[numWFS].d_dark is None:  # Simulation case
                 return np.array(self._sim.wfs.d_wfs[numWFS].d_binimg)
-            if self.rtc.d_centro[numWFS].type == CentroiderType.MASKEDPIX: # Standalone case
+            if self.rtc.d_centro[
+                    numWFS].type == CentroiderType.MASKEDPIX:  # Standalone case
                 #     self.rtc.d_centro[numWFS].fill_selected_pix(
                 #             self.rtc.d_control[0].d_centroids)
                 #     return np.array(self.rtc.d_centro[numWFS].d_selected_pix)
@@ -107,10 +108,10 @@ class AoSupervisor(AbstractSupervisor):
                         self.rtc.d_centro[numWFS].d_img)[np.where(mask)]
                 return mask
             return np.array(self.rtc.d_centro[numWFS].d_img)
-        else: 
-            if self.rtc.d_centro[numWFS].d_dark is None: # Simulation case
+        else:
+            if self.rtc.d_centro[numWFS].d_dark is None:  # Simulation case
                 return np.array(self._sim.wfs.d_wfs[numWFS].d_binimg)
-            return np.array(self.rtc.d_centro[numWFS].d_img_raw) # Standalone case
+            return np.array(self.rtc.d_centro[numWFS].d_img_raw)  # Standalone case
 
     def getAllDataLoop(self, nIter: int, slope: bool, command: bool, target: bool,
                        intensity: bool, targetPhase: bool) -> np.ndarray:
@@ -340,7 +341,7 @@ class AoSupervisor(AbstractSupervisor):
 
     def get_mgain(self, control=0):
         """
-        Returns the modal gain (when using modal integrator control law)        
+        Returns the modal gain (when using modal integrator control law)
         """
         return np.array(self.rtc.d_control[control].d_gain)
 
@@ -369,7 +370,7 @@ class AoSupervisor(AbstractSupervisor):
             raise TypeError("Centroider must be a maskedpix one")
         self.rtc.d_centro[nCentro].fill_mask()
         return np.array(self.rtc.d_centro[nCentro].d_mask)
-        
+
     def writeConfigOnFile(self, root=None):
         aodict = OrderedDict()
         dataDict = {}

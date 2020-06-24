@@ -1,7 +1,7 @@
 ## @package   shesha.supervisor.canapassSupervisor
 ## @brief     Initialization and execution of a CANAPASS supervisor
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   4.4.1
+## @version   4.4.2
 ## @date      2011/01/28
 ## @copyright GNU Lesser General Public License
 #
@@ -91,8 +91,6 @@ class CanapassSupervisor(CompassSupervisor):
         self._sim.config.p_controllers[0].type = scons.ControllerType.GENERIC
 
 
-
-
 ########################## PROTO #############################
 
     def initModalGain(self, gain, cmatModal, modalBasis, control=0, resetGain=True):
@@ -120,9 +118,6 @@ class CanapassSupervisor(CompassSupervisor):
     def leaveModalGain(self, control=0):
         ctrl = self._sim.rtc.d_control[control]
         ctrl.set_commandlaw('integrator')
-
-
-
 
 if __name__ == '__main__':
     from docopt import docopt
