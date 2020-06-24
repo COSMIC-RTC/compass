@@ -409,6 +409,10 @@ def write_atmParam(sim,path="."):
     f.write(toStr(sim.config.p_atmos.get_alt().tolist()))
     f.write("\nl0 in meters\n")
     f.write(toStr(sim.config.p_atmos.get_L0().tolist()))
+    f.write("\nwind direction \n")
+    f.write(toStr(sim.config.p_atmos.get_winddir().tolist()))
+    f.write("\nwind speed meter/s^-1\n")
+    f.write(toStr(sim.config.p_atmos.get_windspeed().tolist()))
     f.close()
     shutil.copyfile(path+"/prof-1-atmos-night0.txt",path+"/prof0-atmos-night0.txt")
 
