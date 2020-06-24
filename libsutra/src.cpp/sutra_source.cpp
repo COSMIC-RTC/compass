@@ -310,7 +310,7 @@ int SutraSource::raytrace(SutraDms *ydms, bool rst, bool do_phase_var,
                               yoff[make_pair(types, inddm)], this->block_size);
       } else {
         if (this->lgs) {
-          float delta = 1.0f - ps->altitude / this->d_lgs->hg;
+          delta = 1.0f - ps->altitude / this->d_lgs->hg;
         }
         target_raytrace(this->d_phase->d_screen->get_data(),
                           ps->d_shape->d_screen->get_data(),
