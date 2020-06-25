@@ -182,7 +182,7 @@ class ModalBasis(object):
             index_remove = index_under_spiders.copy()
             index_remove += list(couples_actus[:, 1])
             print("Pairing Actuators...")
-            for i in tqdm(range(couples_actus.shape[0])):
+            for i in range(couples_actus.shape[0]):
                 influ_basis2[couples_actus[i, 0], :] += influ_basis2[
                         couples_actus[i, 1], :]
             print("Pairing Done")
@@ -311,7 +311,7 @@ class ModalBasis(object):
                 # Check if next actu in sorted order is very close
                 # Some lonely actuators may be hanging in this list
                 if np.abs(order[i] - order[i + 1]) < .2 * pitch:
-                    pairs += [(order_index[i], order_indx[i + 1])]
+                    pairs += [(order_index[i], order_index[i + 1])]
                     i += 2
                 else:
                     i += 1

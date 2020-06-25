@@ -203,16 +203,14 @@ class CompassSupervisor(GenericSupervisor):
 #       |_|                                                         
 
     def record_ao_circular_buffer(
-            self, cb_count: int, projection_matrix : np.ndarray, sub_sample: int = 1, controller_index: int = 0,
+            self, cb_count: int, sub_sample: int = 1, controller_index: int = 0,
             tar_index: int = 0, see_atmos: bool = True, cube_data_type: str = None,
             cube_data_file_path: str = "", ncpa: int = 0, ncpa_wfs: np.ndarray = None,
-            ref_slopes: np.ndarray = None, ditch_strehl: bool = True):
+            ref_slopes: np.ndarray = None, ditch_strehl: bool = True, projection_matrix : np.ndarray = None):
         """ Used to record a synchronized circular buffer AO loop data.
 
         Parameters:
             cb_count: (int) : the number of iterations to record.
-
-            projection_matrix : (np.ndarray) : projection matrix on modal basis to compute residual coefficients
 
             sub_sample:  (int) : sub sampling of the data (default=1, I.e no subsampling)
 
@@ -234,6 +232,8 @@ class CompassSupervisor(GenericSupervisor):
             ref_slopes:  (int) : the reference slopes to use.
 
             ditch_strehl:  (int) : resets the long exposure SR computation at the beginning of the Circular buffer (default= True)
+            
+            projection_matrix : (np.ndarray) : projection matrix on modal basis to compute residual coefficients
 
         Return:
             slopes:  (int) : the slopes CB
@@ -299,10 +299,11 @@ class CompassSupervisor(GenericSupervisor):
             sthrel_se_list.append(srse)
             sthrel_le_list.append(srle)
             if (j % sub_sample == 0):
-                ai_vector = self.calibration.compute_modal_residuals(projection_matrix, selected_actus=self.basis.selected_actus)
-                if (ai_data is None):
-                    ai_data = np.zeros((len(ai_vector), int(cb_count / sub_sample)))
-                ai_data[:, k] = ai_vector
+                if(projection_matrix is not None):
+                    ai_vector = self.calibration.compute_modal_residuals(projection_matrix, selected_actus=self.basis.selected_actus)
+                    if (ai_data is None):
+                        ai_data = np.zeros((len(ai_vector), int(cb_count / sub_sample)))
+                    ai_data[:, k] = ai_vector
 
                 slopes_vector = self.rtc.get_slopes(controller_index)
                 if (slopes_data is None):
@@ -334,3 +335,17 @@ class CompassSupervisor(GenericSupervisor):
 
         psf_le = self.target.get_tar_image(tar_index, expo_type="le")
         return slopes_data, volts_data, ai_data, psf_le, sthrel_se_list, sthrel_le_list, g_ncpa_list, cube_data
+
+
+    def export_config(self):
+        """
+        Extract and convert compass supervisor configuration parameters 
+        into 2 dictionnaries containing relevant AO parameters
+
+        Parameters :
+            root: (object), COMPASS supervisor object to be parsed
+
+        Returns : 2 dictionnaries
+        """
+        from shesha.util.exportConfig import export_config
+        return export_config(self)
