@@ -180,7 +180,7 @@ class widgetCanapassWindowPyro(widgetAOWindow):
             out, err = p.communicate()
             if (err != b''):
                 print(err)
-                raise ValueError("ERROR CANNOT RECOGNIZE USER")
+                raise Exception("ERROR CANNOT RECOGNIZE USER")
             else:
                 user = out.split(b"\n")[0].decode("utf-8")
                 print("User is " + user)
@@ -190,7 +190,7 @@ class widgetCanapassWindowPyro(widgetAOWindow):
             server.add_device(wao_loop, "waoloop_" + user)
             server.start()
         except:
-            raise EnvironmentError("Missing dependencies (code HRAA, Pyro4)")
+            raise Exception("Error could not connect to Pyro server.\n It can  be:\n - Missing dependencies? (check if Pyro4 is installed)\n - pyro server not running")
 
         return server
 

@@ -15,6 +15,86 @@ c = ch.context.get_instance()
 print("precision: ", prec)
 
 
+def test_float_gemv():
+
+    #function gemv
+    # testing: y=A.x
+    # x and y are vector, A a matrix
+
+    alpha = 2
+    beta = 1
+
+    Mat = ch.obj_float(c, np.random.randn(m, n))
+    MatT = ch.obj_float(c, np.random.randn(n, m))
+    # Mat.random_host(seed, 'U')
+    # MatT.random_host(seed + 2, 'U')
+
+    Vectx = ch.obj_float(c, np.random.randn(n))
+    Vecty = ch.obj_float(c, np.random.randn(m))
+    # Vectx.random_host(seed + 3, 'U')
+    # Vecty.random_host(seed + 4, 'U')
+
+    A = np.array(Mat)
+    AT = np.array(MatT)
+    x = np.array(Vectx)
+    y = np.array(Vecty)
+
+    y = alpha * A.dot(x) + beta * y
+    y2 = alpha * A.dot(x)
+    y3 = alpha * AT.T.dot(x)
+
+    # Vecty = ch.obj_float(c, np.random.randn((m)))
+
+    Mat.magma_gemv(Vectx, alpha, 'N', Vecty, beta)
+    Vecty_2 = Mat.magma_gemv(Vectx, alpha, 'N')
+    Vecty_3 = MatT.magma_gemv(Vectx, alpha, 'T')
+
+    npt.assert_array_almost_equal(x, np.array(Vectx), decimal=dec - 1)
+    npt.assert_array_almost_equal(y, np.array(Vecty), decimal=dec - 1)
+    npt.assert_array_almost_equal(y2, np.array(Vecty_2), decimal=dec - 1)
+    npt.assert_array_almost_equal(y3, np.array(Vecty_3), decimal=dec - 1)
+
+
+def test_double_gemv():
+
+    #function gemv
+    # testing: y=A.x
+    # x and y are vector, A a matrix
+
+    alpha = 2
+    beta = 1
+
+    Mat = ch.obj_double(c, np.random.randn(m, n))
+    MatT = ch.obj_double(c, np.random.randn(n, m))
+    # Mat.random_host(seed, 'U')
+    # MatT.random_host(seed + 2, 'U')
+
+    Vectx = ch.obj_double(c, np.random.randn(n))
+    Vecty = ch.obj_double(c, np.random.randn(m))
+    # Vectx.random_host(seed + 3, 'U')
+    # Vecty.random_host(seed + 4, 'U')
+
+    A = np.array(Mat)
+    AT = np.array(MatT)
+    x = np.array(Vectx)
+    y = np.array(Vecty)
+
+    y = alpha * A.dot(x) + beta * y
+    y2 = alpha * A.dot(x)
+    y3 = alpha * AT.T.dot(x)
+
+    # Vecty = ch.obj_double(c, np.random.randn((m)))
+
+    Mat.magma_gemv(Vectx, alpha, 'N', Vecty, beta)
+    Vecty_2 = Mat.magma_gemv(Vectx, alpha, 'N')
+    Vecty_3 = MatT.magma_gemv(Vectx, alpha, 'T')
+
+    npt.assert_array_almost_equal(x, np.array(Vectx), decimal=dec - 1)
+    npt.assert_array_almost_equal(y, np.array(Vecty), decimal=dec - 1)
+    npt.assert_array_almost_equal(y2, np.array(Vecty_2), decimal=dec - 1)
+    npt.assert_array_almost_equal(y3, np.array(Vecty_3), decimal=dec - 1)
+
+
 def test_magma_float_svd():
 
     mat = np.random.rand(m, n).astype(np.float32)

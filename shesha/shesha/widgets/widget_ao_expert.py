@@ -45,7 +45,7 @@ import shesha.constants as scons
 from shesha.constants import CONST
 from shesha.ao.wfs import comp_new_pyr_ampl
 
-from .widget_base import uiLoader
+from shesha.widgets.widget_base import uiLoader
 ExpertWidgetTemplate, ExpertClassTemplate = uiLoader('widget_ao_expert')
 
 

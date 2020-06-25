@@ -88,8 +88,8 @@ p_dm0.set_margin_out(0.3) # pour adapter la taille de la pupille du DM a celle d
 
 p_dm1.set_type("tt")
 p_dm1.set_alt(0.)
-p_dm1.set_unitpervolt(0.0005) # Influence function sensitivity
-p_dm1.set_push4imat(100)
+p_dm1.set_unitpervolt(1.) # Influence function sensitivity
+p_dm1.set_push4imat(0.01)
 
 # centroiders
 p_centroider0 = conf.Param_centroider()
@@ -110,3 +110,4 @@ p_controller0.set_ndm([0, 1])
 p_controller0.set_maxcond(5.) # what determines the number of modes to be filtered
 p_controller0.set_delay(1)
 p_controller0.set_gain(0.4)
+#p_controller0.set_nstates(6)

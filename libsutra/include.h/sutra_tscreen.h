@@ -35,7 +35,7 @@
 //! \class     sutra_tscreen
 //! \brief     this class provides the tscreen features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.0
+//! \version   4.4.1
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -92,6 +92,10 @@ class sutra_tscreen {
   int generate_vk(float l0, int nalias);
   int refresh_screen();
   int set_seed(int seed);
+  int set_deltax(float deltax);
+  int set_deltay(float deltay);
+  int set_istencilx(unsigned int* istencil);
+  int set_istencily(unsigned int* istencil);
 };
 
 int gene_vonkarman(cuFloatComplex *d_odata, float *d_idata, float k0,
