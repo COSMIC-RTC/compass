@@ -42,7 +42,6 @@ from shesha.sutra_wrap import carmaWrap_context
 from typing import Iterable
 
 
-
 class GenericSupervisor(object):
     """ This class defines generic methods and behavior of a supervisor
     It is not intended to be instantiated as it is : prefer to build
@@ -68,8 +67,9 @@ class GenericSupervisor(object):
 
         is_init : (bool) : Flag equals to True if the supervisor has already been initialized
 
-        iter : (int) : Frame counter     
+        iter : (int) : Frame counter
     """
+
     def __init__(self, config):
         """ Init the a supervisor
 
@@ -87,7 +87,7 @@ class GenericSupervisor(object):
         self.is_init = False
         self.iter = 0
         self._init_components()
-    
+
     def get_config(self):
         """ Returns the configuration in use, in a supervisor specific format ?
 
@@ -115,7 +115,7 @@ class GenericSupervisor(object):
 
     def _init_components(self) -> None:
         """ Initialize all the components
-        """        
+        """
         if (self.config.p_loop.devices.size > 1):
             self.context = carmaWrap_context.get_instance_ngpu(
                     self.config.p_loop.devices.size, self.config.p_loop.devices)
@@ -140,7 +140,7 @@ class GenericSupervisor(object):
             self._init_rtc()
 
         self.is_init = True
-    
+
     @abstractmethod
     def _init_tel(self):
         """ Initialize the telescope component of the supervisor
@@ -232,6 +232,9 @@ class GenericSupervisor(object):
         if apply_control:
             self.rtc.apply_control(ncontrol)
 
+        if self.cacao:
+            self.rtc.publish()
+
         if compute_tar_psf:
             for tar_index in tar_trace:
                 self.target.comp_tar_image(tar_index)
@@ -239,8 +242,8 @@ class GenericSupervisor(object):
 
         self.iter += 1
 
-    def _print_strehl(self, monitoring_freq: int, iters_time: float, total_iters: int,
-                     *, tar_index: int=0):
+    def _print_strehl(self, monitoring_freq: int, iters_time: float, total_iters: int, *,
+                      tar_index: int = 0):
         """ Print the Strehl ratio SE and LE from a target on the terminal, the estimated remaining time and framerate
 
         Parameters:
@@ -255,11 +258,11 @@ class GenericSupervisor(object):
         framerate = monitoring_freq / iters_time
         strehl = self.target.get_strehl(tar_index)
         etr = (total_iters - self.iter) / framerate
-        print("%d \t %.3f \t  %.3f\t     %.1f \t %.1f" % (self.iter + 1, strehl[0], strehl[1],
-                                                          etr, framerate))
+        print("%d \t %.3f \t  %.3f\t     %.1f \t %.1f" % (self.iter + 1, strehl[0],
+                                                          strehl[1], etr, framerate))
 
-    def loop(self, number_of_iter: int, *, monitoring_freq: int = 100, compute_tar_psf: bool = True,
-             **kwargs):
+    def loop(self, number_of_iter: int, *, monitoring_freq: int = 100,
+             compute_tar_psf: bool = True, **kwargs):
         """ Perform the AO loop for <number_of_iter> iterations
 
         Parameters :
@@ -280,7 +283,7 @@ class GenericSupervisor(object):
         # self.next(**kwargs)
         t0 = time.time()
         t1 = time.time()
-        if number_of_iter == -1: # Infinite loop
+        if number_of_iter == -1:  # Infinite loop
             while (True):
                 self.next(compute_tar_psf=compute_tar_psf, **kwargs)
                 if ((self.iter + 1) % monitoring_freq == 0):
@@ -299,8 +302,8 @@ class GenericSupervisor(object):
                 self._print_strehl(monitoring_freq, time.time() - t1, number_of_iter)
                 t1 = time.time()
         t1 = time.time()
-        print(" loop execution time:", t1 - t0, "  (", number_of_iter, "iterations), ", (t1 - t0) / number_of_iter,
-              "(mean)  ", number_of_iter / (t1 - t0), "Hz")
+        print(" loop execution time:", t1 - t0, "  (", number_of_iter, "iterations), ",
+              (t1 - t0) / number_of_iter, "(mean)  ", number_of_iter / (t1 - t0), "Hz")
 
     def reset(self):
         """ Reset the simulation to return to its original state
@@ -312,4 +315,3 @@ class GenericSupervisor(object):
         self.dms.reset_dm()
         self.rtc.open_loop()
         self.rtc.close_loop()
-
