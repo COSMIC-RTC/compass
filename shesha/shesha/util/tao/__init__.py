@@ -68,7 +68,7 @@ def check():
     return stop
 
 
-def init(sup,mod,WFS="all",DM_TT=False):
+def init(sup,mod,WFS="all",DM_TT=False,nfilt=None):
     """ Set up the compass loop
 
     set the interaction matrix, loop gain and write parameter files for TAO
@@ -88,7 +88,10 @@ def init(sup,mod,WFS="all",DM_TT=False):
     #update gain
     sim.rtc.d_control[0].set_gain(conf.p_controllers[0].gain)
 
-    mod.init(VARS,sup,DM_TT=DM_TT,WFS=WFS)
+    if nfilt is None:
+        mod.init(VARS,sup,DM_TT=DM_TT,WFS=WFS)
+    else:
+        mod.init(VARS,sup,DM_TT=DM_TT,WFS=WFS,nfilt=nfilt)
 
 def reconstructor(mod):
     """ Compute the TAO reconstructor for a given AO mode
@@ -112,12 +115,12 @@ def run(sup,mod,nIter=1000,initialisation=0,reset=1,WFS="all",DM_TT=False):
     check()
     if(initialisation):
         init(sup,mod,WFS=WFS,DM_TT=DM_TT)
-    M=reconstructor(mod)
-    if(reset):
-        sup.reset()
-    cmatShape=sup.getCmat().shape
-    if(M.shape[0] != cmatShape[0] or M.shape[1] != cmatShape[1]):
-        print("ToR shape is not valid:\n\twaiting for:",cmatShape,"\n\tgot        :",M.shape)
-    else:
-        sup.setCommandMatrix(M)
-        sup.loop(nIter)
+    #M=reconstructor(mod)
+    #if(reset):
+    #    sup.reset()
+    #cmatShape=sup.getCmat().shape
+    #if(M.shape[0] != cmatShape[0] or M.shape[1] != cmatShape[1]):
+    #    print("ToR shape is not valid:\n\twaiting for:",cmatShape,"\n\tgot        :",M.shape)
+    #else:
+    #    sup.setCommandMatrix(M)
+    #    sup.loop(nIter)
