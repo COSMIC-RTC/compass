@@ -56,8 +56,7 @@ bash Miniconda3-latest-Linux-x86_64.sh -b -p $CONDA_ROOT
 First check out the latest version from the svn repository :
 
 ```bash
-git clone https://gitlab.obspm.fr/compass/compass --recurse-submodules
-```
+git clone https://gitlab.obspm.fr/compass/compass
 
 once there, you need to modify system variables in our .bashrc :
 
