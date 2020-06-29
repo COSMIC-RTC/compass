@@ -49,6 +49,7 @@ export PATH=$CONDA_ROOT/bin:$PATH
 wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
 bash Miniconda3-latest-Linux-x86_64.sh -b -p $CONDA_ROOT
 ```
+
 ## Install the platform
 
 ### Download sources
@@ -57,6 +58,7 @@ First check out the latest version from the svn repository :
 
 ```bash
 git clone https://gitlab.obspm.fr/compass/compass
+```
 
 once there, you need to modify system variables in our .bashrc :
 
