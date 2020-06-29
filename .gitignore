@@ -75,4 +75,4 @@ compass_tests.xml
 
 # Conan
 conanlocal.py
-tmp_conan
+conanbuildinfo.cmake
