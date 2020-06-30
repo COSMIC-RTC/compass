@@ -4,8 +4,7 @@
 ## @brief     script test to simulate a closed loop
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   5.0.0
-## @date      2020/05/18
-## @copyright GNU Lesser General Public License
+## @date      2020/05/18## @copyright GNU Lesser General Public License
 #
 #  This file is part of COMPASS <https://anr-compass.github.io/compass/>
 #
@@ -77,7 +76,7 @@ if __name__ == "__main__":
         config.p_loop.set_devices([
                 int(device) for device in arguments["--devices"].split(",")
         ])
-        
+
     if arguments["--generic"]:
         config.p_controllers[0].set_type("generic")
         print("Using GENERIC controller...")

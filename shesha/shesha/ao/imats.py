@@ -2,8 +2,7 @@
 ## @brief     Computation implementations of interaction matrix
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   5.0.0
-## @date      2020/05/18
-## @copyright GNU Lesser General Public License
+## @date      2020/05/18## @copyright GNU Lesser General Public License
 #
 #  This file is part of COMPASS <https://anr-compass.github.io/compass/>
 #
@@ -203,8 +202,8 @@ def imat_geom_ts_multiple_direction(wfs: Sensors, dms: Dms, p_wfss: List[conf.Pa
 
         meth: (int) : (optional) method type (0 or 1)
     """
-    if(ind_TS<0):
-        ind_TS=len(p_wfss)-1
+    if (ind_TS < 0):
+        ind_TS = len(p_wfss) - 1
     imat_size2 = 0
     print("DMS_SEEN: ", ind_dmseen)
     for nm in ind_dmseen:
@@ -228,8 +227,8 @@ def imat_geom_ts_multiple_direction(wfs: Sensors, dms: Dms, p_wfss: List[conf.Pa
             wfs.d_wfs[ind_TS].d_gs.remove_layer(p_dms[k].type, k)
             wfs.d_wfs[ind_TS].d_gs.add_layer(p_dms[k].type, k, xoff, yoff)
         imat_cpu = np.concatenate(
-            (imat_cpu, imat_geom_ts(wfs, dms, p_wfss, ind_TS, p_dms, ind_dmseen,
-                                    meth)), axis=0)
+                (imat_cpu, imat_geom_ts(wfs, dms, p_wfss, ind_TS, p_dms, ind_dmseen,
+                                        meth)), axis=0)
 
     return imat_cpu
 

@@ -2,8 +2,7 @@
 ## @brief     Initialization and execution of a COMPASS supervisor
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   5.0.0
-## @date      2020/05/18
-## @copyright GNU Lesser General Public License
+## @date      2020/05/18## @copyright GNU Lesser General Public License
 #
 #  This file is part of COMPASS <https://anr-compass.github.io/compass/>
 #
@@ -74,49 +73,50 @@ class CompassSupervisor(GenericSupervisor):
 
         iter : (int) : Frame counter
 
-        cacao : (bool) : CACAO features enabled in the RTC  
+        cacao : (bool) : CACAO features enabled in the RTC
 
         basis : (ModalBasis) : a ModalBasis instance (optimizer)
 
-        calibration : (Calibration) : a Calibration instance (optimizer) 
+        calibration : (Calibration) : a Calibration instance (optimizer)
     """
-    def __init__(self, config, cacao : bool=False):
+
+    def __init__(self, config, cacao: bool = False):
         """ Instantiates a CompassSupervisor object
 
         Parameters:
             config: (config module) : Configuration module
-            
+
             cacao : (bool, optional) : If True, enables CACAO features in RTC (Default is False)
                                       /!\ Requires OCTOPUS to be installed
         """
         self.cacao = cacao
         GenericSupervisor.__init__(self, config)
         self.basis = ModalBasis(self.config, self.dms, self.target)
-        self.calibration = Calibration(self.config, self.tel, self.atmos, self.dms, 
+        self.calibration = Calibration(self.config, self.tel, self.atmos, self.dms,
                                        self.target, self.rtc, self.wfs)
-#     ___                  _      __  __     _   _            _    
+#     ___                  _      __  __     _   _            _
 #    / __|___ _ _  ___ _ _(_)__  |  \/  |___| |_| |_  ___  __| |___
 #   | (_ / -_) ' \/ -_) '_| / _| | |\/| / -_)  _| ' \/ _ \/ _` (_-<
 #    \___\___|_||_\___|_| |_\__| |_|  |_\___|\__|_||_\___/\__,_/__/
 
     def _init_tel(self):
         """Initialize the telescope component of the supervisor as a TelescopeCompass
-        """ 
+        """
         self.tel = TelescopeCompass(self.context, self.config)
 
     def _init_atmos(self):
         """Initialize the atmosphere component of the supervisor as a AtmosCompass
-        """ 
+        """
         self.atmos = AtmosCompass(self.context, self.config)
 
     def _init_dms(self):
         """Initialize the DM component of the supervisor as a DmCompass
-        """ 
+        """
         self.dms = DmCompass(self.context, self.config)
 
     def _init_target(self):
         """Initialize the target component of the supervisor as a TargetCompass
-        """ 
+        """
         if self.tel is not None:
             self.target = TargetCompass(self.context, self.config, self.tel)
         else:
@@ -124,7 +124,7 @@ class CompassSupervisor(GenericSupervisor):
 
     def _init_wfs(self):
         """Initialize the wfs component of the supervisor as a WfsCompass
-        """ 
+        """
         if self.tel is not None:
             self.wfs = WfsCompass(self.context, self.config, self.tel)
         else:
@@ -132,15 +132,17 @@ class CompassSupervisor(GenericSupervisor):
 
     def _init_rtc(self):
         """Initialize the rtc component of the supervisor as a RtcCompass
-        """ 
+        """
         if self.wfs is not None:
-            self.rtc = RtcCompass(self.context, self.config, self.tel, self.wfs, self.dms, self.atmos, cacao=self.cacao)
+            self.rtc = RtcCompass(self.context, self.config, self.tel, self.wfs,
+                                  self.dms, self.atmos, cacao=self.cacao)
         else:
             raise ValueError("Configuration not loaded or Telescope not initilaized")
 
     def next(self, *, move_atmos: bool = True, nControl: int = 0,
              tar_trace: Iterable[int] = None, wfs_trace: Iterable[int] = None,
-             do_control: bool = True, apply_control: bool = True, compute_tar_psf: bool = True) -> None:
+             do_control: bool = True, apply_control: bool = True,
+             compute_tar_psf: bool = True) -> None:
         """Iterates the AO loop, with optional parameters.
 
         Overload the GenericSupervisor next() method to handle the GEO controller
@@ -161,8 +163,9 @@ class CompassSupervisor(GenericSupervisor):
 
             compute_tar_psf : (bool, optional) : If True (default), computes the PSF at the end of the iteration
         """
-        if (self.config.p_controllers is not None and
-            self.config.p_controllers[nControl].type == scons.ControllerType.GEO):
+        if (
+                self.config.p_controllers is not None and
+                self.config.p_controllers[nControl].type == scons.ControllerType.GEO):
             if tar_trace is None and self.target is not None:
                 tar_trace = range(len(self.config.p_targets))
             if wfs_trace is None and self.wfs is not None:
@@ -170,7 +173,7 @@ class CompassSupervisor(GenericSupervisor):
 
             if move_atmos and self.atmos is not None:
                 self.atmos.move_atmos()
-            
+
             if tar_trace is not None:
                 for t in tar_trace:
                     if self.atmos.is_enable:
@@ -195,18 +198,22 @@ class CompassSupervisor(GenericSupervisor):
         else:
             GenericSupervisor.next(self, move_atmos=move_atmos, nControl=nControl,
                                    tar_trace=tar_trace, wfs_trace=wfs_trace,
-                                   do_control=do_control, apply_control=apply_control, compute_tar_psf=compute_tar_psf)
-#    ___              _  __ _      __  __     _   _            _    
+                                   do_control=do_control, apply_control=apply_control,
+                                   compute_tar_psf=compute_tar_psf)
+
+
+#    ___              _  __ _      __  __     _   _            _
 #   / __|_ __  ___ __(_)/ _(_)__  |  \/  |___| |_| |_  ___  __| |___
 #   \__ \ '_ \/ -_) _| |  _| / _| | |\/| / -_)  _| ' \/ _ \/ _` (_-<
 #   |___/ .__/\___\__|_|_| |_\__| |_|  |_\___|\__|_||_\___/\__,_/__/
-#       |_|                                                         
+#       |_|
 
     def record_ao_circular_buffer(
             self, cb_count: int, sub_sample: int = 1, controller_index: int = 0,
             tar_index: int = 0, see_atmos: bool = True, cube_data_type: str = None,
             cube_data_file_path: str = "", ncpa: int = 0, ncpa_wfs: np.ndarray = None,
-            ref_slopes: np.ndarray = None, ditch_strehl: bool = True, projection_matrix : np.ndarray = None):
+            ref_slopes: np.ndarray = None, ditch_strehl: bool = True,
+            projection_matrix: np.ndarray = None):
         """ Used to record a synchronized circular buffer AO loop data.
 
         Parameters:
@@ -232,7 +239,7 @@ class CompassSupervisor(GenericSupervisor):
             ref_slopes:  (int) : the reference slopes to use.
 
             ditch_strehl:  (int) : resets the long exposure SR computation at the beginning of the Circular buffer (default= True)
-            
+
             projection_matrix : (np.ndarray) : projection matrix on modal basis to compute residual coefficients
 
         Return:
@@ -273,9 +280,9 @@ class CompassSupervisor(GenericSupervisor):
             if (ncpa):
                 if (j % ncpa == 0):
                     ncpa_diff = ref_slopes[None, :]
-                    ncpa_turbu = self.calibration.do_imat_phase(controller_index,
-                                                    -ncpa_wfs[None, :, :], noise=False,
-                                                    with_turbu=True)
+                    ncpa_turbu = self.calibration.do_imat_phase(
+                            controller_index, -ncpa_wfs[None, :, :], noise=False,
+                            with_turbu=True)
                     g_ncpa = float(
                             np.sqrt(
                                     np.dot(ncpa_diff, ncpa_diff.T) / np.dot(
@@ -299,8 +306,9 @@ class CompassSupervisor(GenericSupervisor):
             sthrel_se_list.append(srse)
             sthrel_le_list.append(srle)
             if (j % sub_sample == 0):
-                if(projection_matrix is not None):
-                    ai_vector = self.calibration.compute_modal_residuals(projection_matrix, selected_actus=self.basis.selected_actus)
+                if (projection_matrix is not None):
+                    ai_vector = self.calibration.compute_modal_residuals(
+                            projection_matrix, selected_actus=self.basis.selected_actus)
                     if (ai_data is None):
                         ai_data = np.zeros((len(ai_vector), int(cb_count / sub_sample)))
                     ai_data[:, k] = ai_vector
@@ -311,7 +319,8 @@ class CompassSupervisor(GenericSupervisor):
                                             int(cb_count / sub_sample)))
                 slopes_data[:, k] = slopes_vector
 
-                volts_vector = self.rtc.get_command(controller_index) # get_command or get_voltages ?
+                volts_vector = self.rtc.get_command(
+                        controller_index)  # get_command or get_voltages ?
                 if (volts_data is None):
                     volts_data = np.zeros((len(volts_vector),
                                            int(cb_count / sub_sample)))
@@ -336,10 +345,9 @@ class CompassSupervisor(GenericSupervisor):
         psf_le = self.target.get_tar_image(tar_index, expo_type="le")
         return slopes_data, volts_data, ai_data, psf_le, sthrel_se_list, sthrel_le_list, g_ncpa_list, cube_data
 
-
     def export_config(self):
         """
-        Extract and convert compass supervisor configuration parameters 
+        Extract and convert compass supervisor configuration parameters
         into 2 dictionnaries containing relevant AO parameters
 
         Parameters :
