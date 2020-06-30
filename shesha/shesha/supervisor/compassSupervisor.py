@@ -1,8 +1,8 @@
 ## @package   shesha.supervisor.compassSupervisor
 ## @brief     Initialization and execution of a COMPASS supervisor
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   4.4.0
-## @date      2011/01/28
+## @version   5.0.0
+## @date      2020/05/18
 ## @copyright GNU Lesser General Public License
 #
 #  This file is part of COMPASS <https://anr-compass.github.io/compass/>
@@ -34,473 +34,314 @@
 #
 #  You should have received a copy of the GNU Lesser General Public License along with COMPASS.
 #  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
-"""
-Initialization and execution of a COMPASS supervisor
 
-Usage:
-  compassSupervisor.py [<parameters_filename>]
-
-with 'parameters_filename' the path to the parameters file
-
-Options:
-  -h --help          Show this help message and exit
-"""
-from shesha.supervisor.aoSupervisor import AoSupervisor
+from shesha.supervisor.genericSupervisor import GenericSupervisor
+from shesha.supervisor.components import AtmosCompass, DmCompass, RtcCompass, TargetCompass, TelescopeCompass, WfsCompass
+from shesha.supervisor.optimizers import ModalBasis, Calibration
 import numpy as np
 
 import shesha.constants as scons
 from shesha.constants import CONST
 
-from tqdm import trange
+from typing import List, Iterable
 
 
-class CompassSupervisor(AoSupervisor):
+class CompassSupervisor(GenericSupervisor):
+    """ This class implements generic supervisor to handle compass simulation
 
-    #     _    _         _                  _
-    #    / \  | |__  ___| |_ _ __ __ _  ___| |_
-    #   / _ \ | '_ \/ __| __| '__/ _` |/ __| __|
-    #  / ___ \| |_) \__ \ |_| | | (_| | (__| |_
-    # /_/   \_\_.__/|___/\__|_|  \__,_|\___|\__|
-    #
-    #  __  __      _   _               _
-    # |  \/  | ___| |_| |__   ___   __| |___
-    # | |\/| |/ _ \ __| '_ \ / _ \ / _` / __|
-    # | |  | |  __/ |_| | | | (_) | (_| \__ \
-    # |_|  |_|\___|\__|_| |_|\___/ \__,_|___/
+    Attributes:
+        context : (CarmaContext) : a CarmaContext instance
 
-    def singleNext(self, moveAtmos: bool = True, showAtmos: bool = True,
-                   getPSF: bool = False, getResidual: bool = False) -> None:
-        '''
-        Move atmos -> getSlope -> applyControl ; One integrator step
-        '''
-        self._sim.next(see_atmos=showAtmos)  # why not self._seeAtmos?
-        self.iter += 1
+        config : (config) : Parameters structure
 
-    def getTarImage(self, tarID, expoType: str = "se") -> np.ndarray:
-        '''
-        Get an image from a target
-        '''
-        if (expoType == "se"):
-            return np.fft.fftshift(np.array(self._sim.tar.d_targets[tarID].d_image_se))
-        elif (expoType == "le"):
-            return np.fft.fftshift(np.array(self._sim.tar.d_targets[tarID].d_image_le)
-                                   ) / self._sim.tar.d_targets[tarID].strehl_counter
-        else:
-            raise ValueError("Unknown exposure type")
+        telescope : (TelescopeComponent) : a TelescopeComponent instance
 
-    def setCommand(self, nctrl: int, command: np.ndarray) -> None:
-        '''
-        Set the RTC command vector
-        '''
-        self._sim.rtc.d_control[nctrl].set_com(command, command.size)
+        atmos : (AtmosComponent) : An AtmosComponent instance
 
-    def getCom(self, nControl: int):
-        '''
-        Get command from nControl controller
-        '''
-        return np.array(self._sim.rtc.d_control[nControl].d_com)
+        target : (targetComponent) : A TargetComponent instance
 
-    #  ____                  _ _   _        __  __      _   _               _
-    # / ___| _ __   ___  ___(_) |_(_) ___  |  \/  | ___| |_| |__   ___   __| |___
-    # \___ \| '_ \ / _ \/ __| | __| |/ __| | |\/| |/ _ \ __| '_ \ / _ \ / _` / __|
-    #  ___) | |_) |  __/ (__| | |_| | (__  | |  | |  __/ |_| | | | (_) | (_| \__ \
-    # |____/| .__/ \___|\___|_|\__|_|\___| |_|  |_|\___|\__|_| |_|\___/ \__,_|___/
-    #       |_|
+        wfs : (WfsComponent) : A WfsComponent instance
 
-    def __init__(self, configFile: str = None, cacao: bool = False,
-                 use_DB: bool = False):
-        '''
-        Init the COMPASS supervisor
+        dms : (DmComponent) : A DmComponent instance
 
-        Parameters
-        ------------
-        configFile: (str): (optionnal) Path to the parameter file
-        cacao: (bool): (optionnal) Flag to enable cacao
-        use_DB: (bool): (optionnal) Flag to enable database
-        '''
-        self._sim = None
-        self._seeAtmos = False
-        self.config = None
-        self.cacao = cacao
-        self.use_DB = use_DB
+        rtc : (RtcComponent) : A Rtc component instance
 
-        if configFile is not None:
-            self.loadConfig(configFile=configFile)
+        is_init : (bool) : Flag equals to True if the supervisor has already been initialized
 
-    def __repr__(self):
-        return object.__repr__(self) + str(self._sim)
+        iter : (int) : Frame counter
 
-    def setPyrModulation(self, pyrMod: float, numwfs=0) -> None:
-        '''
-        Set pyramid modulation value - in l/D units
-        '''
-        from shesha.ao.wfs import comp_new_pyr_ampl
-        p_wfs = self._sim.config.p_wfss[numwfs]
+        cacao : (bool) : CACAO features enabled in the RTC  
 
-        _, _, _, pyr_npts = comp_new_pyr_ampl(0, pyrMod, self._sim.wfs, self._sim.rtc,
-                                              self._sim.config.p_wfss,
-                                              self._sim.config.p_tel)
-        if (len(p_wfs._halfxy.shape) == 2):
-            print("PYR modulation set to: %f L/D using %d points" % (pyrMod, pyr_npts))
-        elif (len(p_wfs._halfxy.shape) == 3):
-            newhalfxy = np.tile(p_wfs._halfxy[0, :, :], (pyr_npts, 1, 1))
-            print("Loading new modulation arrays")
-            self._sim.wfs.d_wfs[numwfs].set_phalfxy(
-                    np.exp(1j * newhalfxy).astype(np.complex64).T)
-            print("Done. PYR modulation set to: %f L/D using %d points" % (pyrMod,
-                                                                           pyr_npts))
-        else:
-            raise ValueError("Error unknown p_wfs._halfxy shape")
+        basis : (ModalBasis) : a ModalBasis instance (optimizer)
 
-    def setFourierMask(self, newmask, wfsnum=0):
-        """
-        Set a mask in the Fourier Plane of the given WFS
-        """
-        if newmask.shape != self.config.p_wfss[wfsnum].get_halfxy().shape:
-            print('Error : mask shape should be {}'.format(self.config.p_wfss[wfsnum].get_halfxy().shape))
-        else:
-            self._sim.wfs.d_wfs[wfsnum].set_phalfxy(np.exp(1j * np.fft.fftshift(newmask)).astype(np.complex64).T)
-
-    def setNoise(self, noise, numwfs=0, seed=1234):
-        '''
-        Set noise value of WFS numwfs
-        '''
-        self._sim.wfs.d_wfs[numwfs].set_noise(noise, int(seed + numwfs))
-        print("Noise set to: %f on WFS %d" % (noise, numwfs))
-
-    def setDmShapeFrom(self, command: np.ndarray) -> None:
-        '''
-        Immediately sets provided command to DMs - does not affect integrator
-        '''
-        self._sim.dms.set_full_com(command)
-
-    def setOneActu(self, ndm: int, nactu: int, ampli: float = 1) -> None:
-        '''
-        Push the selected actuator
-        '''
-        self._sim.dms.d_dms[ndm].comp_oneactu(nactu, ampli)
-
-    def enableAtmos(self, enable) -> None:
-        ''' TODO
-        Set or unset whether atmos is enabled when running loop (see singleNext)
-        '''
-        self._seeAtmos = enable
-
-    def setGlobalR0(self, r0, reset_seed=-1):
-        """
-        Change the current global r0 of all layers
-        :param r0 (float): r0 @ 0.5 µm
-        :param reset_seed (int): if -1 keep same seed and same screen
-                                if 0 random seed is applied and refresh screens
-                                if (value) set the given seed and refresh screens
-        """
-
-        self._sim.atm.set_global_r0(r0)
-        if reset_seed != -1:
-            if reset_seed == 0:
-                ilayer = np.random.randint(1e4)
-            else:
-                ilayer = reset_seed
-            for k in range(self._sim.atm.nscreens):
-                self._sim.atm.set_seed(k, 1234 + ilayer)
-                self._sim.atm.refresh_screen(k)
-                ilayer += 1
-
-    def setGSmag(self, mag, numwfs=0):
-        numwfs = int(numwfs)
-        sim = self._sim
-        wfs = sim.wfs.d_wfs[numwfs]
-        if (sim.config.p_wfs0.type == "pyrhr"):
-            r = wfs.comp_nphot(sim.config.p_loop.ittime,
-                               sim.config.p_wfss[numwfs].optthroughput,
-                               sim.config.p_tel.diam, sim.config.p_tel.cobs,
-                               sim.config.p_wfss[numwfs].zerop, mag)
-        else:
-            r = wfs.comp_nphot(sim.config.p_loop.ittime,
-                               sim.config.p_wfss[numwfs].optthroughput,
-                               sim.config.p_tel.diam, sim.config.p_wfss[numwfs].nxsub,
-                               sim.config.p_wfss[numwfs].zerop, mag)
-        if (r == 0):
-            print("GS magnitude is now %f on WFS %d" % (mag, numwfs))
-
-    def loop(self, n: int = 1, monitoring_freq: int = 100, abortThresh: float = 0., **kwargs):
-        """
-        Perform the AO loop for n iterations
-
-        :parameters:
-            n: (int): (optional) Number of iteration that will be done
-            monitoring_freq: (int): (optional) Monitoring frequency [frames]
-        """
-        print("loop")
-        self._sim.loop(n, monitoring_freq=monitoring_freq, abortThresh=abortThresh, **kwargs)
-
-    def forceContext(self) -> None:
-        '''
-        Clear the initialization of the simulation
-        '''
-        self._sim.force_context()
-
-    def computeImages(self):
-        for w in self._sim.wfs.d_wfs:
-            w.d_gs.comp_image()
-
-    def resetDM(self, numdm: int = -1) -> None:
-        '''
-        Reset the DM number nDM or all DMs if  == -1
-        '''
-        if (numdm == -1):  # All Dms reset
-            for dm in self._sim.dms.d_dms:
-                dm.reset_shape()
-        else:
-            self._sim.dms.d_dms[numdm].reset_shape()
-
-    def resetCommand(self, nctrl: int = -1) -> None:
-        '''
-        Reset the nctrl Controller command buffer, reset all controllers if nctrl  == -1
-        '''
-        if (nctrl == -1):  # All Dms reset
-            for control in self._sim.rtc.d_control:
-                control.d_com.reset()
-        else:
-            self._sim.rtc.d_control[nctrl].d_com.reset()
-
-    def resetSimu(self, noiseList):
-        self.resetTurbu()
-        self.resetNoise(noiseList)
-
-    def resetTurbu(self):
-        ilayer = 0
-        for k in range(self._sim.atm.nscreens):
-            self._sim.atm.set_seed(k, 1234 + ilayer)
-            self._sim.atm.refresh_screen(k)
-            ilayer += 1
-
-    def resetNoise(self, noiseList):
-        for nwfs in range(len(self._sim.config.p_wfss)):
-            self._sim.wfs.d_wfs[nwfs].set_noise(noiseList[nwfs], 1234 + nwfs)
-
-    def resetStrehl(self, nTar: int) -> None:
-        '''
-        Reset the Strehl Ratio of the target nTar
-        '''
-        self._sim.tar.d_targets[nTar].reset_strehlmeter()
-
-    def resetTarPhase(self, nTar: int) -> None:
-        '''
-        Reset the phase screen of the target nTar
-        '''
-        self._sim.tar.d_targets[nTar].d_phase.reset()
-
-    def loadConfig(self, configFile: str = None, sim=None) -> None:
-        '''
-        Init the COMPASS simulator wih the configFile
-        '''
-        if self._sim is None:
-            if sim is None:
-                if self.cacao:
-                    from shesha.sim.simulatorCacao import SimulatorCacao as Simulator
-                else:
-                    from shesha.sim.simulator import Simulator
-                self._sim = Simulator(filepath=configFile, use_DB=self.use_DB)
-            else:
-                self._sim = sim
-        else:
-            self._sim.clear_init()
-            self._sim.load_from_file(configFile)
-        self.config = self._sim.config
-
-    def isInit(self) -> bool:
-        '''
-        return the status on COMPASS init
-        '''
-        return self._sim.is_init
-
-    def clearInitSim(self) -> None:
-        '''
-        Clear the initialization of the simulation
-        '''
-        self._sim.clear_init()
-
-    def initConfig(self) -> None:
-        '''
-        Initialize the simulation
-        '''
-        self._sim.init_sim()
-        self.rtc = self._sim.rtc
-        self.iter = self._sim.iter
-        self.enableAtmos(True)
-        self.is_init = True
-
-    def getNcpaWfs(self, wfsnum):
-        return np.array(self._sim.wfs.d_wfs[wfsnum].d_gs.d_ncpa_phase)
-
-    def getNcpaTar(self, tarnum):
-        return np.array(self._sim.tar.d_targets[tarnum].d_ncpa_phase)
-
-    def getAtmScreen(self, indx: int) -> np.ndarray:
-        '''
-        return the selected atmos screen
-        '''
-        return np.array(self._sim.atm.d_screens[indx].d_screen)
-
-    def getWfsPhase(self, numWFS: int) -> np.ndarray:
-        '''
-        return the WFS screen of WFS number numWFS
-        '''
-        return np.array(self._sim.wfs.d_wfs[numWFS].d_gs.d_phase)
-
-    def getDmShape(self, indx: int) -> np.ndarray:
-        '''
-        return the selected DM screen
-        '''
-        return np.array(self._sim.dms.d_dms[indx].d_shape)
-
-    def getTarPhase(self, numTar: int) -> np.ndarray:
-        '''
-        return the target screen of target number numTar
-        '''
-        return np.array(self._sim.tar.d_targets[numTar].d_phase)
-
-    def getPyrHRImage(self, numWFS: int = 0) -> np.ndarray:
-        '''
-        Get an HR image from the WFS
-        '''
-        return np.array(self._sim.wfs.d_wfs[numWFS].d_hrimg)
-
-    def getSlopeGeom(self, numWFS: int, ncontrol: int = 0) -> np.ndarray:
-        '''
-        return the slopes geom of WFS number numWFS
-        '''
-        self._sim.rtc.do_centroids_geom(ncontrol)
-        slopesGeom = np.array(self._sim.rtc.d_control[ncontrol].d_centroids)
-        self._sim.rtc.do_centroids(ncontrol)
-        return slopesGeom
-
-    def getStrehl(self, numTar: int, do_fit: bool = True) -> np.ndarray:
-        '''
-        return the Strehl Ratio of target number numTar
-        '''
-        src = self._sim.tar.d_targets[numTar]
-        src.comp_strehl(do_fit)
-        avgVar = 0
-        if (src.phase_var_count > 0):
-            avgVar = src.phase_var_avg / src.phase_var_count
-        return [src.strehl_se, src.strehl_le, src.phase_var, avgVar]
-
-    def getIFsparse(self, nControl: int):
-        '''
-        Return the IF of DM as a sparse matrix
-        '''
-        return self._sim.rtc.d_control[nControl].d_IFsparse.get_csr()
-
-    def getIFtt(self, nControl: int):
-        '''
-        Return the IF of a TT DM as a sparse matrix
-        '''
-        return np.array(self._sim.rtc.d_control[nControl].d_TT)
-
-    def getIFdm(self, nDM: int):
-        '''
-        Return the IF of a Petal DM made with M4
-        '''
-
-        from shesha.ao import basis
-        if_sparse = basis.compute_DMbasis(self._sim.dms.d_dms[nDM],
-                                          self._sim.config.p_dms[nDM],
-                                          self._sim.config.p_geom)
-
-        return if_sparse
-
-    def setNcpaWfs(self, ncpa, wfsnum):
-        self._sim.wfs.d_wfs[wfsnum].d_gs.set_ncpa(ncpa)
-
-    def setNcpaTar(self, ncpa, tarnum):
-        self._sim.tar.d_targets[tarnum].set_ncpa(ncpa)
-
-    def setWfsPhase(self, numwfs, phase):
-        self._sim.wfs.d_wfs[numwfs].d_gs.set_phase(phase)
-
-    def setMpupil(self, mpupil, numwfs=0):
-        oldmpup = self.getMpupil()
-        dimx = oldmpup.shape[0]
-        dimy = oldmpup.shape[1]
-        if ((mpupil.shape[0] != dimx) or (mpupil.shape[1] != dimy)):
-            print("Error mpupil shape on wfs %d must be: (%d,%d)" % (numwfs, dimx, dimy))
-        else:
-            self._sim.wfs.d_wfs[numwfs].set_pupil(mpupil.copy())
-
-    def getIpupil(self):
-        return self._sim.config.p_geom._ipupil
-
-    def getSpupil(self):
-        return self._sim.config.p_geom._spupil
-
-    def getMpupil(self):
-        return self._sim.config.p_geom._mpupil
-
-    def getTarAmplipup(self, tarnum):
-        return self._sim.config.tar.get_amplipup(tarnum)
-
-    def getPyrFocalPlane(self, nwfs: int = 0):
-        """
-        No arguments
-        Returns the psf in the focal plane of the pyramid.
-        """
-        return np.fft.fftshift(np.array(self._sim.wfs.d_wfs[nwfs].d_pyrfocalplane))
-
-    def reset(self, tar=-1, rst=True):
-        self.resetTurbu()
-        if (tar < 0):
-            for tar in range(self._sim.tar.ntargets):
-                self.resetStrehl(tar)
-        else:
-            self.resetStrehl(tar)
-        self.resetDM()
-        self.openLoop(rst=rst)
-        self.closeLoop()
-
-    def setDMRegistration(self, indDM, dx=None, dy=None, theta=None, G=None):
-        """Set the registration parameters for DM #indDM
+        calibration : (Calibration) : a Calibration instance (optimizer) 
+    """
+    def __init__(self, config, cacao : bool=False):
+        """ Instantiates a CompassSupervisor object
 
         Parameters:
-            indDM : (int) : DM index
-            dx : (float, optionnal) : X axis registration parameter [meters]. If None, re-use the last one
-            dy : (float, optionnal) : Y axis registration parameter [meters]. If None, re-use the last one
-            theta : (float, optionnal) : Rotation angle parameter [rad]. If None, re-use the last one
-            G : (float, optionnal) : Magnification factor. If None, re-use the last one
-
+            config: (config module) : Configuration module
+            
+            cacao : (bool, optional) : If True, enables CACAO features in RTC (Default is False)
+                                      /!\ Requires OCTOPUS to be installed
         """
-        if dx is not None:
-            self.config.p_dms[indDM].set_dx(dx)
-        if dy is not None:
-            self.config.p_dms[indDM].set_dy(dy)
-        if theta is not None:
-            self.config.p_dms[indDM].set_theta(theta)
-        if G is not None:
-            self.config.p_dms[indDM].set_G(G)
+        self.cacao = cacao
+        GenericSupervisor.__init__(self, config)
+        self.basis = ModalBasis(self.config, self.dms, self.target)
+        self.calibration = Calibration(self.config, self.tel, self.atmos, self.dms, 
+                                       self.target, self.rtc, self.wfs)
+#     ___                  _      __  __     _   _            _    
+#    / __|___ _ _  ___ _ _(_)__  |  \/  |___| |_| |_  ___  __| |___
+#   | (_ / -_) ' \/ -_) '_| / _| | |\/| / -_)  _| ' \/ _ \/ _` (_-<
+#    \___\___|_||_\___|_| |_\__| |_|  |_\___|\__|_||_\___/\__,_/__/
 
-        self._sim.dms.d_dms[indDM].set_registration(
-                self.config.p_dms[indDM].dx / self.config.p_geom._pixsize,
-                self.config.p_dms[indDM].dy / self.config.p_geom._pixsize,
-                self.config.p_dms[indDM].theta, self.config.p_dms[indDM].G)
+    def _init_tel(self):
+        """Initialize the telescope component of the supervisor as a TelescopeCompass
+        """ 
+        self.tel = TelescopeCompass(self.context, self.config)
 
-    def getSelectedPix(self):
-        """Return the pyramid image with only the selected pixels used by the full pixels centroider
+    def _init_atmos(self):
+        """Initialize the atmosphere component of the supervisor as a AtmosCompass
+        """ 
+        self.atmos = AtmosCompass(self.context, self.config)
+
+    def _init_dms(self):
+        """Initialize the DM component of the supervisor as a DmCompass
+        """ 
+        self.dms = DmCompass(self.context, self.config)
+
+    def _init_target(self):
+        """Initialize the target component of the supervisor as a TargetCompass
+        """ 
+        if self.tel is not None:
+            self.target = TargetCompass(self.context, self.config, self.tel)
+        else:
+            raise ValueError("Configuration not loaded or Telescope not initilaized")
+
+    def _init_wfs(self):
+        """Initialize the wfs component of the supervisor as a WfsCompass
+        """ 
+        if self.tel is not None:
+            self.wfs = WfsCompass(self.context, self.config, self.tel)
+        else:
+            raise ValueError("Configuration not loaded or Telescope not initilaized")
+
+    def _init_rtc(self):
+        """Initialize the rtc component of the supervisor as a RtcCompass
+        """ 
+        if self.wfs is not None:
+            self.rtc = RtcCompass(self.context, self.config, self.tel, self.wfs, self.dms, self.atmos, cacao=self.cacao)
+        else:
+            raise ValueError("Configuration not loaded or Telescope not initilaized")
+
+    def next(self, *, move_atmos: bool = True, nControl: int = 0,
+             tar_trace: Iterable[int] = None, wfs_trace: Iterable[int] = None,
+             do_control: bool = True, apply_control: bool = True, compute_tar_psf: bool = True) -> None:
+        """Iterates the AO loop, with optional parameters.
+
+        Overload the GenericSupervisor next() method to handle the GEO controller
+        specific raytrace order operations
+
+        Parameters :
+            move_atmos: (bool), optional: move the atmosphere for this iteration. Default is True
+
+            nControl: (int, optional): Controller number to use. Default is 0 (single control configuration)
+
+            tar_trace: (List, optional): list of targets to trace. None is equivalent to all (default)
+
+            wfs_trace: (List, optional): list of WFS to trace. None is equivalent to all (default)
+
+            do_control : (bool, optional) : Performs RTC operations if True (Default)
+
+            apply_control: (bool): (optional) if True (default), apply control on DMs
+
+            compute_tar_psf : (bool, optional) : If True (default), computes the PSF at the end of the iteration
         """
-        if (self.config.p_centroiders[0].type != scons.CentroiderType.MASKEDPIX):
-            raise TypeError("Centroider must be maskedPix")
+        if (self.config.p_controllers is not None and
+            self.config.p_controllers[nControl].type == scons.ControllerType.GEO):
+            if tar_trace is None and self.target is not None:
+                tar_trace = range(len(self.config.p_targets))
+            if wfs_trace is None and self.wfs is not None:
+                wfs_trace = range(len(self.config.p_wfss))
 
-        carma_centroids = self._sim.rtc.d_control[0].d_centroids
-        self._sim.rtc.d_centro[0].fill_selected_pix(carma_centroids)
+            if move_atmos and self.atmos is not None:
+                self.atmos.move_atmos()
+            
+            if tar_trace is not None:
+                for t in tar_trace:
+                    if self.atmos.is_enable:
+                        self.target.raytrace(t, tel=self.tel, atm=self.atmos, ncpa=False)
+                    else:
+                        self.target.raytrace(t, tel=self.tel, ncpa=False)
 
-        return np.array(self._sim.rtc.d_centro[0].d_selected_pix)
+                    if do_control and self.rtc is not None:
+                        self.rtc.do_control(nControl, sources=self.target.sources)
+                        self.target.raytrace(t, dms=self.dms, ncpa=True, reset=False)
+                        if apply_control:
+                            self.rtc.apply_control(nControl)
+                        if self.cacao:
+                            self.rtc.publish()
+            if compute_tar_psf:
+                for tar_index in tar_trace:
+                    self.target.comp_tar_image(tar_index)
+                    self.target.comp_strehl(tar_index)
 
-    def set_global_r0(self,r0):
-        self.config.p_atmos.r0=r0
-        self._sim.atm.set_global_r0(r0)
+            self.iter += 1
 
-    def set_frac_r0(self,frac):
-        if(frac.size != self._sim.atm.nscreens):
-            raise  ValueError("number of screen does not match")
-        self.config.p_atmos.frac=np.copy(frac.astype(np.float32))
-        self._sim.atm.set_frac(frac)
+        else:
+            GenericSupervisor.next(self, move_atmos=move_atmos, nControl=nControl,
+                                   tar_trace=tar_trace, wfs_trace=wfs_trace,
+                                   do_control=do_control, apply_control=apply_control, compute_tar_psf=compute_tar_psf)
+#    ___              _  __ _      __  __     _   _            _    
+#   / __|_ __  ___ __(_)/ _(_)__  |  \/  |___| |_| |_  ___  __| |___
+#   \__ \ '_ \/ -_) _| |  _| / _| | |\/| / -_)  _| ' \/ _ \/ _` (_-<
+#   |___/ .__/\___\__|_|_| |_\__| |_|  |_\___|\__|_||_\___/\__,_/__/
+#       |_|                                                         
+
+    def record_ao_circular_buffer(
+            self, cb_count: int, sub_sample: int = 1, controller_index: int = 0,
+            tar_index: int = 0, see_atmos: bool = True, cube_data_type: str = None,
+            cube_data_file_path: str = "", ncpa: int = 0, ncpa_wfs: np.ndarray = None,
+            ref_slopes: np.ndarray = None, ditch_strehl: bool = True, projection_matrix : np.ndarray = None):
+        """ Used to record a synchronized circular buffer AO loop data.
+
+        Parameters:
+            cb_count: (int) : the number of iterations to record.
+
+            sub_sample:  (int) : sub sampling of the data (default=1, I.e no subsampling)
+
+            controller_index:  (int) :
+
+            tar_index:  (int) : target number
+
+            see_atmos:  (int) : used for the next function to enable or not the Atmos
+
+            cube_data_type:   (int) : if  specified ("tarPhase" or "psfse") returns the target phase or short exposure PSF data cube in the output variable
+
+            cube_data_file_path:  (int) : if specified it will also save the target phase cube data (full path on the server)
+
+            ncpa:  (int) : !!experimental!!!: Used only in the context of PYRWFS + NCPA compensation on the fly (with optical gain)
+            defines how many iters the NCPA refslopes are updates with the proper optical gain. Ex: if NCPA=10 refslopes will be updates every 10 iters.
+
+            ncpa_wfs:  (int) : the ncpa phase as seen from the wfs array with dims = size of Mpupil
+
+            ref_slopes:  (int) : the reference slopes to use.
+
+            ditch_strehl:  (int) : resets the long exposure SR computation at the beginning of the Circular buffer (default= True)
+            
+            projection_matrix : (np.ndarray) : projection matrix on modal basis to compute residual coefficients
+
+        Return:
+            slopes:  (int) : the slopes CB
+
+            volts:  (int) : the volts applied to the DM(s) CB
+
+            ai:  (int) : the modal coefficient of the residual phase projected on the currently used modal Basis
+
+            psf_le:  (int) : Long exposure PSF over the <cb_count> iterations (I.e SR is reset at the begining of the CB if ditch_strehl=True)
+
+            sthrel_se_list:  (int) : The SR short exposure evolution during CB recording
+
+            sthrel_le_list:  (int) : The SR long exposure evolution during CB recording
+
+            g_ncpa_list:  (int) : the gain applied to the NCPA (PYRWFS CASE) if NCPA is set to True
+
+            cube_data:  (int) : the tarPhase or psfse cube data (see cube_data_type)
+        """
+        slopes_data = None
+        volts_data = None
+        cube_data = None
+        ai_data = None
+        k = 0
+        sthrel_se_list = []
+        sthrel_le_list = []
+        g_ncpa_list = []
+
+        # Resets the target so that the PSF LE is synchro with the data
+        # Doesn't reset it if Ditch_strehl == False (used for real time gain computation)
+        if ditch_strehl:
+            for i in range(len(self.config.p_targets)):
+                self.target.reset_strehl(i)
+
+        # Starting CB loop...
+        for j in range(cb_count):
+            print(j, end="\r")
+            if (ncpa):
+                if (j % ncpa == 0):
+                    ncpa_diff = ref_slopes[None, :]
+                    ncpa_turbu = self.calibration.do_imat_phase(controller_index,
+                                                    -ncpa_wfs[None, :, :], noise=False,
+                                                    with_turbu=True)
+                    g_ncpa = float(
+                            np.sqrt(
+                                    np.dot(ncpa_diff, ncpa_diff.T) / np.dot(
+                                            ncpa_turbu, ncpa_turbu.T)))
+                    if (g_ncpa > 1e18):
+                        g_ncpa = 0
+                        print('Warning NCPA ref slopes gain too high!')
+                        g_ncpa_list.append(g_ncpa)
+                        self.rtc.set_ref_slopes(-ref_slopes * g_ncpa)
+                    else:
+                        g_ncpa_list.append(g_ncpa)
+                        print('NCPA ref slopes gain: %4.3f' % g_ncpa)
+                        self.rtc.set_ref_slopes(-ref_slopes / g_ncpa)
+
+            self.atmos.enable_atmos(see_atmos)
+            self.next()
+            for t in range(len(self.config.p_targets)):
+                self.target.comp_tar_image(t)
+
+            srse, srle, _, _ = self.target.get_strehl(tar_index)
+            sthrel_se_list.append(srse)
+            sthrel_le_list.append(srle)
+            if (j % sub_sample == 0):
+                if(projection_matrix is not None):
+                    ai_vector = self.calibration.compute_modal_residuals(projection_matrix, selected_actus=self.basis.selected_actus)
+                    if (ai_data is None):
+                        ai_data = np.zeros((len(ai_vector), int(cb_count / sub_sample)))
+                    ai_data[:, k] = ai_vector
+
+                slopes_vector = self.rtc.get_slopes(controller_index)
+                if (slopes_data is None):
+                    slopes_data = np.zeros((len(slopes_vector),
+                                            int(cb_count / sub_sample)))
+                slopes_data[:, k] = slopes_vector
+
+                volts_vector = self.rtc.get_command(controller_index) # get_command or get_voltages ?
+                if (volts_data is None):
+                    volts_data = np.zeros((len(volts_vector),
+                                           int(cb_count / sub_sample)))
+                volts_data[:, k] = volts_vector
+
+                if (cube_data_type):
+                    if (cube_data_type == "tarPhase"):
+                        dataArray = self.target.get_tar_phase(tar_index, pupil=True)
+                    elif (cube_data_type == "psfse"):
+                        dataArray = self.target.get_tar_image(tar_index, expo_type="se")
+                    else:
+                        raise ValueError("unknown dataData" % cube_data_type)
+                    if (cube_data is None):
+                        cube_data = np.zeros((*dataArray.shape,
+                                              int(cb_count / sub_sample)))
+                    cube_data[:, :, k] = dataArray
+                k += 1
+        if (cube_data_file_path != ""):
+            print("Saving tarPhase cube at: ", cube_data_file_path)
+            pfits.writeto(cube_data_file_path, cube_data, overwrite=True)
+
+        psf_le = self.target.get_tar_image(tar_index, expo_type="le")
+        return slopes_data, volts_data, ai_data, psf_le, sthrel_se_list, sthrel_le_list, g_ncpa_list, cube_data
+
+
+    def export_config(self):
+        """
+        Extract and convert compass supervisor configuration parameters 
+        into 2 dictionnaries containing relevant AO parameters
+
+        Parameters :
+            root: (object), COMPASS supervisor object to be parsed
+
+        Returns : 2 dictionnaries
+        """
+        from shesha.util.exportConfig import export_config
+        return export_config(self)

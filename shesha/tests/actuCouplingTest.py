@@ -37,8 +37,8 @@ pitch = wao.config.p_dm0._pitch
 
 plt.clf()
 plt.scatter(*dmposMat)
-DISCARD = np.zeros(len(dmposx), dtype=np.bool)
-PAIRS = []
+discard = np.zeros(len(dmposx), dtype=np.bool)
+pairs = []
 
 # For each of the k pieces of the spider
 for k, pxList in enumerate(pxListSpider):
@@ -74,7 +74,7 @@ for k, pxList in enumerate(pxListSpider):
 
     # Actuators below this piece of spider
     selDiscard = (np.abs(rotatedActus[1]) < 0.5 * pitch) & selGoodSide
-    DISCARD |= selDiscard
+    discard |= selDiscard
 
     # Actuator 'near' this piece of spider
     selPairable = (np.abs(rotatedActus[1]) > 0.5 * pitch) & \
@@ -92,14 +92,14 @@ for k, pxList in enumerate(pxListSpider):
         # Check if next actu in sorted order is very close
         # Some lonely actuators may be hanging in this list
         if np.abs(order[i] - order[i + 1]) < .2 * pitch:
-            PAIRS += [(orderIdx[i], orderIdx[i + 1])]
+            pairs += [(orderIdx[i], orderIdx[i + 1])]
 
     plt.scatter(*dmposMat[:, selDiscard], color='C1')
     plt.scatter(*dmposMat[:, selPairable], color='C2')
     plt.legend(loc=0)
 
-for (p, q) in PAIRS:
+for (p, q) in pairs:
     plt.scatter(*dmposMat[:, [p, q]])
 
-print('To discard: %u actu' % np.sum(DISCARD))
-print('%u pairs to slave' % len(PAIRS))
+print('To discard: %u actu' % np.sum(discard))
+print('%u pairs to slave' % len(pairs))

@@ -270,15 +270,15 @@ def initSimu(config, c):
     return wfs, tel, atm, dms, tar, rtc
 
 
-def computeModalResiduals(P, rtc, dms, tar):
+def compute_modal_residuals(P, rtc, dms, tar):
     rtc.do_control_geo(1, dms, tar, 0)
     #self.rtc.do_control_geo_on(1, self.dms,self.tar, 0)
-    v = rtc.getCom(1)
+    v = rtc.get_command(1)
     ai = P.dot(v) * 1000.  # np rms units
     return ai
 
 
-def loop(n, wfs, tel, atm, dms, tar, rtc, moveAtmos=True, noise=True, loopData=0,
+def loop(n, wfs, tel, atm, dms, tar, rtc, move_atmos=True, noise=True, loopData=0,
          P=None):
     t0 = time.time()
     print("----------------------------------------------------")
@@ -314,7 +314,7 @@ def loop(n, wfs, tel, atm, dms, tar, rtc, moveAtmos=True, noise=True, loopData=0
     sr_le = np.zeros((n / 10, config.p_target.ntargets))
 
     for i in range(n):
-        if (moveAtmos):
+        if (move_atmos):
             atm.move_atmos()
 
         for t in range(config.p_target.ntargets):
@@ -340,7 +340,7 @@ def loop(n, wfs, tel, atm, dms, tar, rtc, moveAtmos=True, noise=True, loopData=0
         signal_le = ""
         signal_se = ""
         if (P is not None):
-            ai = computeModalResiduals(P, rtc, dms, tar)
+            ai = compute_modal_residuals(P, rtc, dms, tar)
             tarPhaseError = np.sqrt(np.sum(ai**2))
         else:
             tarPhaseError = 0.
@@ -460,14 +460,14 @@ sys.path.insert(0, ADOPTPATH)
 import adoptCompass as adoptComm
 import adoptVariables as adoptVar
 import aoCalib as cal
-configFileName = ADOPTPATH + "/config/ADOPT.conf"
+config_fileName = ADOPTPATH + "/config/ADOPT.conf"
 wao = wao_class(config, wfs, tel, atm, dms, tar, rtc)
-cf.returnConfigfromWao(wao, filepath=configFileName)
+cf.returnConfigfromWao(wao, filepath=config_fileName)
 com = adoptComm.command_class(wao, ao)
 aoAd = adoptVar.ao_class(adoptVar.ao_attributes, adoptVar.wfs_attributes,
-                         adoptVar.dm_attributes, configFileName)
+                         adoptVar.dm_attributes, config_fileName)
 com.initComm(aoAd)
-com.doRefslopes()
+com.do_ref_slopes()
 
 #KL2V = com.getKL2V()
 #
@@ -478,9 +478,9 @@ if (imatFromFile):
     print("Reloading imat KL2V and gains4K from files...")
     #print(imat0_PATH+"/"+iMatName)
     #print(imat0_PATH+"/gains4K_MODU_"+str(int(MODU))+".fits")
-    imat = pf.getdata(imat0_PATH + "/" + iMatName)
-    modalBasis = pf.getdata(imat0_PATH + "/" + KL2VName)
-    gains4KRAW = pf.getdata(imat0_PATH + "/" + gainModalName)
+    imat = pf.get_data(imat0_PATH + "/" + iMatName)
+    modal_basis = pf.get_data(imat0_PATH + "/" + KL2VName)
+    gains4KRAW = pf.get_data(imat0_PATH + "/" + gainModalName)
     gains4K = np.zeros(imat.shape[0] - nfilt)
     gains4K[:-2] = gains4KRAW[:imat.shape[0] - nfilt - 2]
     gains4K[-2:] = gains4KRAW[-2:]
@@ -494,47 +494,48 @@ else:
     gains = np.linspace(1., 1., aoAd.Nactu - 2 - nfilt)
     gains[-2:] = 1.0
     cmat0, cmatKL0 = cal.computeCmatModal(imat, KL2VNorm, nfilt, gains)
-    com.setCommandMatrix(cmat0)
-    com.closeLoop()
+    com.set_command_matrix(cmat0)
+    com.close_loop()
     print("Closing Loop with Imat Diffraction Limited")
 
     # Closing loop until we reach the fitting error for the given ao config + turbulence conditions (seeing ect...) but without noise and bandwidth (screen is frozen)
     SR, lambdaTargetList, sr_se, numiter, _, _, _ = loop(200, wfs, tel, atm, dms, tar,
-                                                         rtc, moveAtmos=True, noise=True)
+                                                         rtc, move_atmos=True,
+                                                         noise=True)
     print("SR After 200 iterations of closed loop:")
 
     if (PYR):
-        cmat0, cmatModal0 = cal.computeCmatModal(imat, modalBasis, nfilt, gains)
-        com.setCommandMatrix(cmat0)
-        com.closeLoop()
+        cmat0, cmatModal0 = cal.computeCmatModal(imat, modal_basis, nfilt, gains)
+        com.set_command_matrix(cmat0)
+        com.close_loop()
         print("Closing Loop with Imat Diffraction Limited")
 
         # Closing loop until we reach the fitting error for the given ao config + turbulence conditions (seeing ect...) but without noise and bandwidth (screen is frozen)
         SR, lambdaTargetList, sr_se, sr_le, numiter, _, _, _, _ = loop(
-                100, wfs, tel, atm, dms, tar, rtc, moveAtmos=True, noise=True, P=P)
+                100, wfs, tel, atm, dms, tar, rtc, move_atmos=True, noise=True, P=P)
         print("SR After 100 iterations of closed loop:")
 
         # Computing 2nd imat  with this best conditions (no noise + limited by fitting)
-        imatTurbu = cal.computeImatModal(com, modalBasis, aoAd.dm0.push4iMat,
+        imatTurbu = cal.computeImatModal(com, modal_basis, aoAd.dm0.push4iMat,
                                          aoAd.dm1.push4iMat, withTurbu=True, noise=False)
         gains4K = cal.computeOptimGainK(imat, imatTurbu, nfilt)
 
         date = time.strftime("_%d-%m-%Y_%H:%M:%S_")
         gainModalName = "gains4K_" + date + ".fits"
         iMatName = "imat_" + date + ".fits"
-        KL2VName = "modalBasis_" + date + ".fits"
+        KL2VName = "modal_basis_" + date + ".fits"
         # saving imat, modal basis, and gains...
         pf.writeto(pathResults + "/AODATA/" + iMatName, imat)
-        pf.writeto(pathResults + "/AODATA/" + KL2VName, modalBasis)
+        pf.writeto(pathResults + "/AODATA/" + KL2VName, modal_basis)
         pf.writeto(pathResults + "/AODATA/" + gainModalName, gains4K)
         gainopt = gains4K.copy()
     else:
         gainopt = np.linspace(1., 1., aoAd.Nactu - 2 - nfilt)
         gainopt[-2:] = 1.0
-cmatT, cmatKLT = cal.computeCmatModal(imat, modalBasis, nfilt, gainopt * gain)
+cmatT, cmatKLT = cal.computeCmatModal(imat, modal_basis, nfilt, gainopt * gain)
 cmat = cmatT
-com.setCommandMatrix(cmatT)
-com.closeLoop()
+com.set_command_matrix(cmatT)
+com.close_loop()
 com.resetSR()
 
 # ------------------------------------------------------------------------------
@@ -547,17 +548,17 @@ SR, lambdaTargetList, sr_le, sr_se, numiter, _, _ = loop(200,wfs,tel,atm,dms,tar
 com.resetSR()
 SR, lambdaTargetList, sr_le, sr_se, numiter, slopes, volts = loop(2048,wfs,tel,atm,dms,tar,rtc, noise=True, loopData=True)
 V2KL  =np.linalg.pinv(KL2VNorm)
-sol = cal.recPseudoOpenloop(slopes, volts, imat, V2KL, gains4K, nfilt, 1/aoAd.Fe, aoAd.Fe)
-gainoptCorr = cal.modalControlOptimizationOpenLoopData(sol.T, cmatKL0, KL2VNorm, gmax = 1.0, Fs = aoAd.Fe, latency = 1/aoAd.Fe, BP = 1e12,ngain=200)
+sol = cal.recPseudoopen_loop(slopes, volts, imat, V2KL, gains4K, nfilt, 1/aoAd.Fe, aoAd.Fe)
+gainoptCorr = cal.modalControlOptimizationopen_loopData(sol.T, cmatKL0, KL2VNorm, gmax = 1.0, Fs = aoAd.Fe, latency = 1/aoAd.Fe, BP = 1e12,ngain=200)
 gainopt = gainopt*gainoptCorr
 cmatOptim,_ = cal.computeCmatModal(imat, KL2VNorm, nfilt, gainopt);
-com.setCommandMatrix(cmatOptim)
+com.set_command_matrix(cmatOptim)
 
-com.closeLoop()
+com.close_loop()
 """
 # ------------------------------------------------------------------------------
 
-#cmat = pf.getdata(os.environ["SHESHA_ROOT"]+"/test/scripts/cmatKLGood.fits").byteswap().newbyteorder()
+#cmat = pf.get_data(os.environ["SHESHA_ROOT"]+"/test/scripts/cmatKLGood.fits").byteswap().newbyteorder()
 #rtc.set_cmat(0, cmat.copy().astype(np.float32))
 
 # -----------------------------------------------------------------------------

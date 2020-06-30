@@ -32,10 +32,10 @@
 
 //! \file      sutra_centroider_tcog.h
 //! \ingroup   libsutra
-//! \class     sutra_centroider_tcog
+//! \class     SutraCentroiderTcog
 //! \brief     this class provides the centroider_tcog features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -46,15 +46,15 @@
 #include <sutra_centroider.h>
 
 template <class Tin, class T>
-class sutra_centroider_tcog : public sutra_centroider<Tin, T> {
+class SutraCentroiderTcog : public SutraCentroider<Tin, T> {
  public:
   float threshold;
 
  public:
-  sutra_centroider_tcog(carma_context *context, sutra_wfs *wfs, long nvalid,
+  SutraCentroiderTcog(CarmaContext *context, SutraWfs *wfs, long nvalid,
                         float offset, float scale, bool filter_TT, int device);
-  sutra_centroider_tcog(const sutra_centroider_tcog &centroider);
-  ~sutra_centroider_tcog();
+  SutraCentroiderTcog(const SutraCentroiderTcog &centroider);
+  ~SutraCentroiderTcog();
 
   string get_type();
 
@@ -70,6 +70,6 @@ template <class T>
 void get_centroids(int size, int threads, int blocks, int n, float *d_idata,
                    T *d_odata, T *ref, int *validx, int *validy,
                    float *intensities, float threshold, float scale,
-                   float offset, carma_device *device);
+                   float offset, CarmaDevice *device);
 
 #endif  // _SUTRA_CENTROIDER_TCOG_H_

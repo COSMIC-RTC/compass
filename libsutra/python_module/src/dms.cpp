@@ -32,9 +32,9 @@
 
 //! \file      dms.cpp
 //! \ingroup   libsutra
-//! \brief     this file provides pybind wrapper for sutra_dms
+//! \brief     this file provides pybind wrapper for SutraDms
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -44,8 +44,8 @@
 
 namespace py = pybind11;
 
-std::unique_ptr<sutra_dms> dms_init() {
-  return std::unique_ptr<sutra_dms>(new sutra_dms());
+std::unique_ptr<SutraDms> dms_init() {
+  return std::unique_ptr<SutraDms>(new SutraDms());
 };
 
 //  ██████╗ ███╗   ███╗███████╗
@@ -57,7 +57,7 @@ std::unique_ptr<sutra_dms> dms_init() {
 //
 
 void declare_dms(py::module &mod) {
-  py::class_<sutra_dms>(mod, "Dms")
+  py::class_<SutraDms>(mod, "Dms")
       .def(py::init(wy::colCast(dms_init)), R"pbdoc(
             Create a void DMS object
         )pbdoc")
@@ -72,15 +72,15 @@ void declare_dms(py::module &mod) {
 
       .def_property_readonly(
           "d_dms",
-          [](sutra_dms &sdms) -> vector<sutra_dm *> & { return sdms.d_dms; },
-          "Vector of sutra_dm")
+          [](SutraDms &sdms) -> vector<SutraDm *> & { return sdms.d_dms; },
+          "Vector of SutraDm")
 
       .def_property_readonly(
-          "ndm", [](sutra_dms &sdms) { return sdms.d_dms.size(); },
-          "Number of sutra_dm in sutra_dms")
+          "ndm", [](SutraDms &sdms) { return sdms.d_dms.size(); },
+          "Number of SutraDm in SutraDms")
       .def_property_readonly(
-          "nact_total", [](sutra_dms &sdms) { return sdms.nact_total(); },
-          "Total number of actuators in sutra_dms")
+          "nact_total", [](SutraDms &sdms) { return sdms.nact_total(); },
+          "Total number of actuators in SutraDms")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝
@@ -89,15 +89,15 @@ void declare_dms(py::module &mod) {
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
 
-      .def("add_dm", (int (sutra_dms::*)(carma_context *, const char *, float, long,
+      .def("add_dm", (int (SutraDms::*)(CarmaContext *, const char *, float, long,
              long, long, long, long,
-             float, long, float, float, float, float,  int))&sutra_dms::add_dm,
+             float, long, float, float, float, float,  int))&SutraDms::add_dm,
            R"pbdoc(
-        Add a sutra_dm in the sutra_dms vector
+        Add a SutraDm in the SutraDms vector
 
         Parameters
         ------------
-        context: (carma_context) : current carma context
+        context: (CarmaContext) : current carma context
         type: (str): DM type ("pzt", "kl", or "tt")
         alt: (float): Conjugaison altitude in meters
         dim: (long): Support dimension
@@ -118,15 +118,15 @@ void declare_dms(py::module &mod) {
            py::arg("n_npoints"), py::arg("push4imat"), py::arg("nord"), py::arg("dx"), py::arg("dy"), py::arg("thetaML"), py::arg("G"),
            py::arg("device"))
 
-      .def("add_dm", (int (sutra_dms::*)(carma_context *, const char *, float, long,
+      .def("add_dm", (int (SutraDms::*)(CarmaContext *, const char *, float, long,
              long, long, long, long,
-             float, long, int))&sutra_dms::add_dm,
+             float, long, int))&SutraDms::add_dm,
            R"pbdoc(
-        Add a sutra_dm in the sutra_dms vector
+        Add a SutraDm in the SutraDms vector
 
         Parameters
         ------------
-        context: (carma_context) : current carma context
+        context: (CarmaContext) : current carma context
         type: (str): DM type ("pzt", "kl", or "tt")
         alt: (float): Conjugaison altitude in meters
         dim: (long): Support dimension
@@ -143,13 +143,13 @@ void declare_dms(py::module &mod) {
            py::arg("n_npoints"), py::arg("push4imat"), py::arg("nord"),
            py::arg("device"))
 
-      .def("insert_dm", wy::colCast(&sutra_dms::insert_dm),
+      .def("insert_dm", wy::colCast(&SutraDms::insert_dm),
            R"pbdoc(
-        Add a sutra_dm in the sutra_dms vector at the specified index
+        Add a SutraDm in the SutraDms vector at the specified index
 
         Parameters
         ------------
-        context: (carma_context) : current carma context
+        context: (CarmaContext) : current carma context
         type: (str): DM type ("pzt", "kl", or "tt")
         alt: (float): Conjugaison altitude in meters
         dim: (long): Support dimension
@@ -171,9 +171,9 @@ void declare_dms(py::module &mod) {
            py::arg("n_npoints"), py::arg("push4imat"), py::arg("nord"), py::arg("dx"), py::arg("dy"), py::arg("theta"), py::arg("G"),
            py::arg("device"), py::arg("idx"))
 
-      .def("remove_dm", wy::colCast(&sutra_dms::remove_dm),
+      .def("remove_dm", wy::colCast(&SutraDms::remove_dm),
            R"pbdoc(
-        Remove and delete the selected DM from sutra_dms
+        Remove and delete the selected DM from SutraDms
         Parameters
         ------------
         idx: (int): index of DM
@@ -181,12 +181,12 @@ void declare_dms(py::module &mod) {
            py::arg("idx"))
 
       .def("__str__",
-           [](sutra_dms &sdms) {
+           [](SutraDms &sdms) {
              std::cout << sdms.d_dms.size() << " DMs created" << std::endl;
              std::cout << "Total number of actuators : " << sdms.nact_total()
                        << std::endl;
              std::cout << "DM # | Type  |   Alt   | Nact | Dim" << std::endl;
-             vector<sutra_dm *>::iterator it = sdms.d_dms.begin();
+             vector<SutraDm *>::iterator it = sdms.d_dms.begin();
              int i = 0;
              while (it != sdms.d_dms.end()) {
                std::cout << i << " | " << (*it)->type << " | "
@@ -208,7 +208,7 @@ void declare_dms(py::module &mod) {
 
       .def(
           "set_full_com",
-          [](sutra_dms &sdms,
+          [](SutraDms &sdms,
              py::array_t<float, py::array::f_style | py::array::forcecast> data,
              bool shape_dm = true) {
             if (data.size() != sdms.nact_total())
@@ -216,7 +216,7 @@ void declare_dms(py::module &mod) {
             else {
               int com_idx = 0;
               float *com = data.mutable_data();
-              for (vector<sutra_dm *>::iterator it = sdms.d_dms.begin();
+              for (vector<SutraDm *>::iterator it = sdms.d_dms.begin();
                    it != sdms.d_dms.end(); it++) {
                 (*it)->d_com->host2device(&com[com_idx]);
                 com_idx += (*it)->nactus;
@@ -225,7 +225,7 @@ void declare_dms(py::module &mod) {
             }
           },
           R"pbdoc(
-        Set the command vector of all DM in sutra_dms, and computes the DMs shapes
+        Set the command vector of all DM in SutraDms, and computes the DMs shapes
 
         Parameters
         ------------
@@ -246,7 +246,7 @@ void declare_dms(py::module &mod) {
 //
 
 void declare_dm(py::module &mod) {
-  py::class_<sutra_dm>(mod, "Dm")
+  py::class_<SutraDm>(mod, "Dm")
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
       //  ██████╔╝██████╔╝██║   ██║██████╔╝█████╗  ██████╔╝   ██║    ╚████╔╝
@@ -255,78 +255,78 @@ void declare_dm(py::module &mod) {
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
       .def_property_readonly(
-          "device", [](sutra_dm &sdm) { return sdm.device; }, "Device index")
+          "device", [](SutraDm &sdm) { return sdm.device; }, "Device index")
 
       .def_property_readonly(
-          "type", [](sutra_dm &sdm) { return sdm.type; }, "DM type")
+          "type", [](SutraDm &sdm) { return sdm.type; }, "DM type")
 
       .def_property_readonly(
-          "altitude", [](sutra_dm &sdm) { return sdm.altitude; },
+          "altitude", [](SutraDm &sdm) { return sdm.altitude; },
           "DM conjugaison altitude")
 
       .def_property_readonly(
-          "nactus", [](sutra_dm &sdm) { return sdm.nactus; },
+          "nactus", [](SutraDm &sdm) { return sdm.nactus; },
           "Number of actuators")
 
       .def_property_readonly(
-          "influsize", [](sutra_dm &sdm) { return sdm.influsize; },
+          "influsize", [](SutraDm &sdm) { return sdm.influsize; },
           "Influence function support size")
 
       .def_property_readonly(
-          "dim", [](sutra_dm &sdm) { return sdm.dim; }, "DM support size")
+          "dim", [](SutraDm &sdm) { return sdm.dim; }, "DM support size")
 
       .def_property_readonly(
-          "push4imat", [](sutra_dm &sdm) { return sdm.push4imat; },
+          "push4imat", [](SutraDm &sdm) { return sdm.push4imat; },
           "Voltage to apply for imat computation")
 
       .def_property_readonly(
-          "d_shape", [](sutra_dm &sdm) { return sdm.d_shape->d_screen; },
+          "d_shape", [](SutraDm &sdm) { return sdm.d_shape->d_screen; },
           "DM shape")
 
       .def_property_readonly(
-          "d_com", [](sutra_dm &sdm) { return sdm.d_com; },
+          "d_com", [](SutraDm &sdm) { return sdm.d_com; },
           "Current commands of the DM")
 
       .def_property_readonly(
-          "d_influ", [](sutra_dm &sdm) { return sdm.d_influ; },
+          "d_influ", [](SutraDm &sdm) { return sdm.d_influ; },
           "Cube of influence functions")
 
       .def_property_readonly(
-          "d_istart", [](sutra_dm &sdm) { return sdm.d_istart; },
+          "d_istart", [](SutraDm &sdm) { return sdm.d_istart; },
           "TODO: docstring")
 
       .def_property_readonly(
-          "d_npoints", [](sutra_dm &sdm) { return sdm.d_npoints; },
+          "d_npoints", [](SutraDm &sdm) { return sdm.d_npoints; },
           "Number of IF that impact each pixel of the pupil")
 
       .def_property_readonly(
-          "d_influpos", [](sutra_dm &sdm) { return sdm.d_influpos; },
+          "d_influpos", [](SutraDm &sdm) { return sdm.d_influpos; },
           "Influence functions positions in the pupil")
 
       .def_property_readonly(
-          "d_xoff", [](sutra_dm &sdm) { return sdm.d_xoff; }, "TODO: docstring")
+          "d_xoff", [](SutraDm &sdm) { return sdm.d_xoff; }, "TODO: docstring")
 
       .def_property_readonly(
-          "dx", [](sutra_dm &sdm) { return sdm.dx; }, "X registration in pixels")
+          "dx", [](SutraDm &sdm) { return sdm.dx; }, "X registration in pixels")
 
       .def_property_readonly(
-          "dy", [](sutra_dm &sdm) { return sdm.dy; }, "Y registration in pixels")
+          "dy", [](SutraDm &sdm) { return sdm.dy; }, "Y registration in pixels")
 
       .def_property_readonly(
-          "thetaML", [](sutra_dm &sdm) { return sdm.thetaML; }, "thetaML registration in radians")
+          "thetaML", [](SutraDm &sdm) { return sdm.thetaML; }, "thetaML registration in radians")
 
       .def_property_readonly(
-          "G", [](sutra_dm &sdm) { return sdm.G; }, "Magnification factor registration in pixels")
+          "G", [](SutraDm &sdm) { return sdm.G; }, "Magnification factor registration in pixels")
 
       .def_property_readonly(
-          "d_yoff", [](sutra_dm &sdm) { return sdm.d_yoff; }, "TODO: docstring")
+          "d_yoff", [](SutraDm &sdm) { return sdm.d_yoff; }, "TODO: docstring")
 
       .def_property_readonly(
-          "d_KLbasis", [](sutra_dm &sdm) { return sdm.d_KLbasis; },
+          "d_KLbasis", [](SutraDm &sdm) { return sdm.d_KLbasis; },
           "KL to volts matrix")
 
       .def_property_readonly(
-          "d_kl", [](sutra_dm &sdm) { return sdm.d_kl; }, "sutra_kl DM")
+          "d_kl", [](SutraDm &sdm) { return sdm.d_kl; }, "SutraKL DM")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝
@@ -334,10 +334,10 @@ void declare_dm(py::module &mod) {
       //  ██║╚██╔╝██║██╔══╝     ██║   ██╔══██║██║   ██║██║  ██║╚════██║
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
-      .def("pzt_loadarrays", wy::colCast(&sutra_dm::pzt_loadarrays),
+      .def("pzt_loadarrays", wy::colCast(&SutraDm::pzt_loadarrays),
            R"pbdoc(
         Load all the arrays computed during the initialization
-        for a pzt DM in a sutra_dm object
+        for a pzt DM in a SutraDm object
 
         Parameters
         ------------
@@ -356,24 +356,24 @@ void declare_dm(py::module &mod) {
            /*py::arg("influpos2"),*/ py::arg("npoints"), py::arg("istart"),
            py::arg("xoff"), py::arg("yoff"))
 
-      .def("tt_loadarrays", wy::colCast(&sutra_dm::tt_loadarrays),
+      .def("tt_loadarrays", wy::colCast(&SutraDm::tt_loadarrays),
            R"pbdoc(
         Load all the arrays computed during the initialization
-        for a tt DM in a sutra_dm object
+        for a tt DM in a SutraDm object
 
         Parameters
         ------------
         influ: (np.ndarray[ndim=3,dtype=np.float32_t]) : influence functions cube
         )pbdoc",
            py::arg("influ"))
-      // .def("tt_loadarrays",[](sutra_dm &sdm, py::array_t<float,
+      // .def("tt_loadarrays",[](SutraDm &sdm, py::array_t<float,
       // py::array::f_style | py::array::forcecast> data){
       //   sdm.d_influ->host2device(data.mutable_data());
       // })
-      .def("kl_loadarrays", wy::colCast(&sutra_dm::kl_loadarrays),
+      .def("kl_loadarrays", wy::colCast(&SutraDm::kl_loadarrays),
            R"pbdoc(
         Load all the arrays computed during the initialization
-        for a kl DM in a sutra_dm object
+        for a kl DM in a SutraDm object
 
         Parameters
         ------------
@@ -386,17 +386,17 @@ void declare_dm(py::module &mod) {
            py::arg("rabas"), py::arg("azbas"), py::arg("ords"), py::arg("cr"),
            py::arg("cp"))
 
-      .def("reset_shape", &sutra_dm::reset_shape, R"pbdoc(
+      .def("reset_shape", &SutraDm::reset_shape, R"pbdoc(
         Reset the DM shape to zeros (flat)
       )pbdoc")
 
-      .def("comp_shape", (int (sutra_dm::*)(void)) & sutra_dm::comp_shape,
+      .def("comp_shape", (int (SutraDm::*)(void)) & SutraDm::comp_shape,
            R"pbdoc(
         Compute the DM shape according to commands d_com
       )pbdoc")
 
       .def("comp_shape",
-           wy::colCast((int (sutra_dm::*)(float *)) & sutra_dm::comp_shape),
+           wy::colCast((int (SutraDm::*)(float *)) & SutraDm::comp_shape),
            R"pbdoc(
         Compute the DM shape according to given commands
 
@@ -408,7 +408,7 @@ void declare_dm(py::module &mod) {
            py::arg("com"))
 
       .def("comp_shape",
-           wy::colCast((int (sutra_dm::*)(uint16_t *)) & sutra_dm::comp_shape),
+           wy::colCast((int (SutraDm::*)(uint16_t *)) & SutraDm::comp_shape),
            R"pbdoc(
         Compute the DM shape according to given commands
 
@@ -419,7 +419,7 @@ void declare_dm(py::module &mod) {
       )pbdoc",
            py::arg("com"))
 
-      .def("comp_oneactu", wy::colCast(&sutra_dm::comp_oneactu), R"pbdoc(
+      .def("comp_oneactu", wy::colCast(&SutraDm::comp_oneactu), R"pbdoc(
         Push the specified actuator and computes the corresponding DM shape
 
         Parameters
@@ -429,7 +429,7 @@ void declare_dm(py::module &mod) {
       )pbdoc",
            py::arg("nactu"), py::arg("ampli"))
 
-      .def("set_registration", wy::colCast(&sutra_dm::set_registration), R"pbdoc(
+      .def("set_registration", wy::colCast(&SutraDm::set_registration), R"pbdoc(
         Set the registration parameters : dx, dy, theta and G
 
         Parameters
@@ -441,7 +441,7 @@ void declare_dm(py::module &mod) {
       )pbdoc",
            py::arg("dx"), py::arg("dy"), py::arg("theta"), py::arg("G"))
 
-      .def("compute_KLbasis", wy::colCast(&sutra_dm::compute_KLbasis),
+      .def("compute_KLbasis", wy::colCast(&SutraDm::compute_KLbasis),
            R"pbdoc(
         Computes the KL to volt matrix by double diagonalisation (cf. Gendron thesis)
             - compute the phase covariance matrix on the actuators using Kolmogorov
@@ -461,7 +461,7 @@ void declare_dm(py::module &mod) {
            py::arg("dim"), py::arg("norm"), py::arg("ampli"))
 
       .def("__str__",
-           [](sutra_dm &sdm) {
+           [](SutraDm &sdm) {
              std::cout << "Type  |   Alt   | Nact | Dim" << std::endl;
              std::cout << sdm.type << " | " << sdm.altitude << " | "
                        << sdm.nactus << " | " << sdm.dim << std::endl;
@@ -478,17 +478,17 @@ void declare_dm(py::module &mod) {
 
       .def(
           "set_com",
-          [](sutra_dm &sdm,
+          [](SutraDm &sdm,
              py::array_t<float, py::array::f_style | py::array::forcecast> data,
              bool shape_dm = true) {
-            if (sdm.d_com->getNbElem() == data.size()) {
+            if (sdm.d_com->get_nb_elements() == data.size()) {
               sdm.d_com->host2device(data.mutable_data());
               if (shape_dm) sdm.comp_shape();
             } else
               DEBUG_TRACE("Wrong dimension");
           },
           R"pbdoc(
-        Set the command vector of a sutra_dm, and computes the DM shape
+        Set the command vector of a SutraDm, and computes the DM shape
 
         Parameters
         ------------

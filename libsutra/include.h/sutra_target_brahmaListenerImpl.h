@@ -32,10 +32,10 @@
 
 //! \file      sutra_target_brahmaListenerImpl.h
 //! \ingroup   libsutra
-//! \class     sutra_target_brahmaListenerImpl
+//! \class     SutraTargetBrahmaListenerImpl
 //! \brief     this class provides the target_brahmaListenerImpl features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -50,22 +50,22 @@
 #pragma once
 #endif /* ACE_LACKS_PRAGMA_ONCE */
 
-class sutra_target_brahma;
-class libBRAHMACommon_Export sutra_target_brahmaListenerImpl
+class SutraTargetBrahma;
+class libBRAHMACommon_Export SutraTargetBrahmaListenerImpl
     : public virtual OpenDDS::DCPS::LocalObject<DDS::DataReaderListener> {
  private:
-  sutra_target_brahma* target;
+  SutraTargetBrahma* target;
   ACE_Mutex lock_;
 
  public:
   // Constructor
-  sutra_target_brahmaListenerImpl();
+  SutraTargetBrahmaListenerImpl();
 
   // Destructor
-  virtual ~sutra_target_brahmaListenerImpl(void);
+  virtual ~SutraTargetBrahmaListenerImpl(void);
 
   // app-specific
-  void attach_target(sutra_target_brahma* target);
+  void attach_target(SutraTargetBrahma* target);
 
   // must also override:
   virtual void on_data_available(DDS::DataReader_ptr reader) noexcept(false);

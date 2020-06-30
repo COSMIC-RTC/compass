@@ -32,10 +32,10 @@
 
 //! \file      sutra_kl.cu
 //! \ingroup   libsutra
-//! \class     sutra_kl
+//! \class     SutraKL
 //! \brief     this class provides the kl features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -189,7 +189,7 @@ int getkl(float alpha, float ampli, float *d_odata, float *rabas, float *azbas,
   getkl_krnl<<<blocks, threads>>>(alpha, ampli, d_odata, rabas, azbas, cr, cp,
                                   nr, np, nx, Nx, xoff, yoff);
 
-  carmaCheckMsg("get_kernel<<<>>> execution failed\n");
+  carma_check_msg("get_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
@@ -221,7 +221,7 @@ int combikl(float *com, int nkl, float *d_odata, float *rabas, int *d_ord,
   combikl_krnl<<<blocks, threads>>>(com, nkl, d_odata, rabas, d_ord, azbas, cr,
                                     cp, nr, np, nx, Nx, xoff, yoff);
 
-  carmaCheckMsg("get_kernel<<<>>> execution failed\n");
+  carma_check_msg("get_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
@@ -237,6 +237,6 @@ int cget_flokl(long nkl, long dim, float *covmat, float *filter, float *bas) {
   // for (i=0;i<dim;i++) bas[i] = i;
   flokrnl<<<dim, 1>>>(dim, bas);
   printf("flag CUDA done \n");
-  carmaCheckMsg("get_kernel<<<>>> execution failed\n");
+  carma_check_msg("get_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }

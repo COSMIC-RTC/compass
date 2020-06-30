@@ -7,7 +7,7 @@ with 'parameters_filename' the path to the parameters file
 
 Options:
   -h --help          Show this help message and exit
-  --brahma            Distribute data with BRAHMA
+  --brahma            Distribute data with brahma
   --bench            For a timed call
   -d, --devices devices      Specify the devices
 """

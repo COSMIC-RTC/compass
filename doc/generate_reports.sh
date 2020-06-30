@@ -36,8 +36,8 @@ rm -rf $COMPASS_ROOT/public
 
 doxygen $COMPASS_ROOT/doc/Doxyfile
 
-#TODO:  mv doc/doxygen-doc/public . # uncomment for V5.0
-$COMPASS_ROOT/doc/correctDoxygen_gitlab.sh
+mv doc/doxygen-doc/public .
+$COMPASS_ROOT/doc/correctDoxygen.sh
 
 mkdir -p public/coverage
 coverage html -d public/coverage

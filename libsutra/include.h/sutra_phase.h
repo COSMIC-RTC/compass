@@ -32,10 +32,10 @@
 
 //! \file      sutra_phase.h
 //! \ingroup   libsutra
-//! \class     sutra_phase
+//! \class     SutraPhase
 //! \brief     this class provides the phase features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -53,21 +53,21 @@
 #include <carma.h>
 #include <carma_obj.h>
 
-class sutra_phase {
+class SutraPhase {
  public:
-  carma_context *current_context;
+  CarmaContext *current_context;
   int device;
 
-  carma_obj<float> *d_screen;
+  CarmaObj<float> *d_screen;
   long screen_size;
-  float *zerCoeff;
-  carma_obj<float> *zernikes;
-  carma_obj<float> *mat;
+  float *zer_coeff;
+  CarmaObj<float> *zernikes;
+  CarmaObj<float> *mat;
 
  public:
-  sutra_phase(carma_context *current_context, long size);
-  sutra_phase(const sutra_phase &phase);
-  ~sutra_phase();
+  SutraPhase(CarmaContext *current_context, long size);
+  SutraPhase(const SutraPhase &phase);
+  ~SutraPhase();
 };
 
 #endif  // _SUTRA_PHASE_H_

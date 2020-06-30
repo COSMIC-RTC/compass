@@ -32,10 +32,10 @@
 
 //! \file      sutra_centroider_tcog.cpp
 //! \ingroup   libsutra
-//! \class     sutra_centroider_tcog
+//! \class     SutraCentroiderTcog
 //! \brief     this class provides the centroider_tcog features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -43,19 +43,19 @@
 #include <string>
 
 template <class Tin, class T>
-sutra_centroider_tcog<Tin, T>::sutra_centroider_tcog(carma_context *context,
-                                                     sutra_wfs *wfs,
+SutraCentroiderTcog<Tin, T>::SutraCentroiderTcog(CarmaContext *context,
+                                                     SutraWfs *wfs,
                                                      long nvalid, float offset,
                                                      float scale,
                                                      bool filter_TT, int device)
-    : sutra_centroider<Tin, T>(context, wfs, nvalid, offset, scale, filter_TT,
+    : SutraCentroider<Tin, T>(context, wfs, nvalid, offset, scale, filter_TT,
                                device) {
-  context->set_activeDevice(device, 1);
+  context->set_active_device(device, 1);
 
   this->nslopes = 2 * nvalid;
   this->threshold = 0.f;
   long dims_data2[2] = {1, this->nslopes};
-  this->d_centroids_ref = new carma_obj<T>(this->current_context, dims_data2);
+  this->d_centroids_ref = new CarmaObj<T>(this->current_context, dims_data2);
   this->d_centroids_ref->reset();
 
   if (filter_TT) {
@@ -64,29 +64,29 @@ sutra_centroider_tcog<Tin, T>::sutra_centroider_tcog(carma_context *context,
 }
 
 template <class Tin, class T>
-sutra_centroider_tcog<Tin, T>::~sutra_centroider_tcog() {}
+SutraCentroiderTcog<Tin, T>::~SutraCentroiderTcog() {}
 
 template <class Tin, class T>
-string sutra_centroider_tcog<Tin, T>::get_type() {
+string SutraCentroiderTcog<Tin, T>::get_type() {
   return "tcog";
 }
 
 template <class Tin, class T>
-int sutra_centroider_tcog<Tin, T>::set_threshold(float threshold) {
+int SutraCentroiderTcog<Tin, T>::set_threshold(float threshold) {
   this->threshold = threshold;
 
   return EXIT_SUCCESS;
 }
 
 template <class Tin, class T>
-int sutra_centroider_tcog<Tin, T>::get_cog(float *img, float *intensities,
+int SutraCentroiderTcog<Tin, T>::get_cog(float *img, float *intensities,
                                            T *centroids, int nvalid, int npix,
                                            int ntot, cudaStream_t stream) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
 
   get_centroids(ntot, (npix * npix), nvalid, npix, img, centroids,
-                this->d_centroids_ref->getData(), this->d_validx->getData(),
-                this->d_validy->getData(), intensities, this->threshold,
+                this->d_centroids_ref->get_data(), this->d_validx->get_data(),
+                this->d_validy->get_data(), intensities, this->threshold,
                 this->scale, this->offset,
                 this->current_context->get_device(this->device));
 
@@ -121,24 +121,24 @@ int sutra_centroider_tcog<Tin, T>::get_cog(float *img, float *intensities,
 }
 
 template <class Tin, class T>
-int sutra_centroider_tcog<Tin, T>::get_cog(float *intensities, T *slopes,
+int SutraCentroiderTcog<Tin, T>::get_cog(float *intensities, T *slopes,
                                            bool noise) {
   if (this->wfs != nullptr) {
     if (noise || this->wfs->roket == false)
       return this->get_cog(*(this->wfs->d_binimg), intensities, slopes,
                            this->wfs->nvalid, this->wfs->npix,
-                           this->wfs->d_binimg->getDims()[1]);
+                           this->wfs->d_binimg->get_dims()[1]);
     else
       return this->get_cog(*(this->wfs->d_binimg_notnoisy), intensities, slopes,
                            this->wfs->nvalid, this->wfs->npix,
-                           this->wfs->d_binimg->getDims()[1]);
+                           this->wfs->d_binimg->get_dims()[1]);
   }
   DEBUG_TRACE("this->wfs was not initialized");
   return EXIT_FAILURE;
 }
 
 template <class Tin, class T>
-int sutra_centroider_tcog<Tin, T>::get_cog() {
+int SutraCentroiderTcog<Tin, T>::get_cog() {
   if (this->wfs != nullptr)
     return this->get_cog(*(this->wfs->d_intensities), *(this->wfs->d_slopes),
                          true);
@@ -146,36 +146,36 @@ int sutra_centroider_tcog<Tin, T>::get_cog() {
   return EXIT_FAILURE;
 }
 
-template class sutra_centroider_tcog<float, float>;
-template class sutra_centroider_tcog<uint16_t, float>;
+template class SutraCentroiderTcog<float, float>;
+template class SutraCentroiderTcog<uint16_t, float>;
 
 #ifdef CAN_DO_HALF
 template <>
-int sutra_centroider_tcog<float, half>::get_cog(float *intensities,
+int SutraCentroiderTcog<float, half>::get_cog(float *intensities,
                                                 half *slopes, bool noise) {
   DEBUG_TRACE("Not implemented for half precision");
   return EXIT_FAILURE;
 }
 
 template <>
-int sutra_centroider_tcog<uint16_t, half>::get_cog(float *intensities,
+int SutraCentroiderTcog<uint16_t, half>::get_cog(float *intensities,
                                                    half *slopes, bool noise) {
   DEBUG_TRACE("Not implemented for half precision");
   return EXIT_FAILURE;
 }
 
 template <>
-int sutra_centroider_tcog<float, half>::get_cog() {
+int SutraCentroiderTcog<float, half>::get_cog() {
   DEBUG_TRACE("Not implemented for half precision");
   return EXIT_FAILURE;
 }
 
 template <>
-int sutra_centroider_tcog<uint16_t, half>::get_cog() {
+int SutraCentroiderTcog<uint16_t, half>::get_cog() {
   DEBUG_TRACE("Not implemented for half precision");
   return EXIT_FAILURE;
 }
 
-template class sutra_centroider_tcog<float, half>;
-template class sutra_centroider_tcog<uint16_t, half>;
+template class SutraCentroiderTcog<float, half>;
+template class SutraCentroiderTcog<uint16_t, half>;
 #endif

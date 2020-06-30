@@ -89,7 +89,7 @@ p_dm0.set_coupling(0.2)
 p_dm0.set_unitpervolt(1)
 p_dm0.set_push4imat(0.01)
 p_dm0.set_type_pattern("hexaM4")
-p_dm0.set_influType("radialSchwartz")
+p_dm0.set_influ_type("radialSchwartz")
 
 p_dm1.set_type("tt")
 p_dm1.set_alt(0.)

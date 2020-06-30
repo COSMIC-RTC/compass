@@ -32,10 +32,10 @@
 
 //! \file      sutra_centroider_wcog.cu
 //! \ingroup   libsutra
-//! \class     sutra_centroider_wcog
+//! \class     SutraCentroiderWcog
 //! \brief     this class provides the centroider_wcog features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -56,34 +56,34 @@ __global__ void fillweights_krnl(T *d_out, T *weights, int Npix, int N) {
 }
 
 template <class T>
-int fillweights(T *d_out, T *d_in, int npix, int N, carma_device *device) {
-  int nBlocks, nThreads;
-  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
-  dim3 grid(nBlocks), threads(nThreads);
+int fill_weights(T *d_out, T *d_in, int npix, int N, CarmaDevice *device) {
+  int nb_blocks, nb_threads;
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
   fillweights_krnl<<<grid, threads>>>(d_out, d_in, npix * npix, N);
-  carmaCheckMsg("<<<fillweights_krnl>>> execution failed\n");
+  carma_check_msg("<<<fillweights_krnl>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
 
-template int fillweights<float>(float *d_out, float *d_in, int npix, int N,
-                                carma_device *device);
+template int fill_weights<float>(float *d_out, float *d_in, int npix, int N,
+                                CarmaDevice *device);
 
-template int fillweights<double>(double *d_out, double *d_in, int npix, int N,
-                                 carma_device *device);
+template int fill_weights<double>(double *d_out, double *d_in, int npix, int N,
+                                 CarmaDevice *device);
 
-template <class T, int Nthreads>
+template <class T, int nb_threads>
 __global__ void centroids(float *d_img, T *d_centroids, T *ref, int *validx,
                           int *validy, float *d_intensities, float *weights,
                           unsigned int npix, unsigned int size, float scale,
                           float offset, unsigned int nelem_thread) {
-  if (blockDim.x > Nthreads) {
+  if (blockDim.x > nb_threads) {
     if (threadIdx.x == 0) printf("Wrong size argument\n");
     return;
   }
   // Specialize BlockReduce for a 1D block of 128 threads on type int
-  typedef cub::BlockReduce<float, Nthreads> BlockReduce;
+  typedef cub::BlockReduce<float, nb_threads> BlockReduce;
   // Allocate shared memory for BlockReduce
   __shared__ typename BlockReduce::TempStorage temp_storage;
 
@@ -136,7 +136,7 @@ template <class T>
 void get_centroids(int size, int threads, int blocks, int npix, float *d_img,
                    T *d_centroids, T *ref, int *validx, int *validy,
                    float *intensities, float *weights, float scale,
-                   float offset, carma_device *device) {
+                   float offset, CarmaDevice *device) {
   int maxThreads = device->get_properties().maxThreadsPerBlock;
   unsigned int nelem_thread = 1;
   while ((threads / nelem_thread > maxThreads) ||
@@ -185,21 +185,21 @@ void get_centroids(int size, int threads, int blocks, int npix, float *d_img,
   else
     printf("SH way too big !!!\n");
 
-  carmaCheckMsg("centroids_kernel<<<>>> execution failed\n");
+  carma_check_msg("centroids_kernel<<<>>> execution failed\n");
 }
 
 template void get_centroids<float>(int size, int threads, int blocks, int npix,
                                    float *d_img, float *d_centroids, float *ref,
                                    int *validx, int *validy, float *intensities,
                                    float *weights, float scale, float offset,
-                                   carma_device *device);
+                                   CarmaDevice *device);
 
 template void get_centroids<double>(int size, int threads, int blocks, int npix,
                                     float *d_img, double *d_centroids,
                                     double *ref, int *validx, int *validy,
                                     float *intensities, float *weights,
                                     float scale, float offset,
-                                    carma_device *device);
+                                    CarmaDevice *device);
 
 // template <class T>
 // __global__ void centroidx(T *g_idata, T *g_odata, T *alpha, T *weights,
@@ -274,7 +274,7 @@ template void get_centroids<double>(int size, int threads, int blocks, int npix,
 // template <class T>
 // void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
 //                    T *d_odata, T *alpha, T *weights, float scale, float
-//                    offset, carma_device *device) {
+//                    offset, CarmaDevice *device) {
 //   int maxThreads = device->get_properties().maxThreadsPerBlock;
 //   unsigned int nelem_thread = 1;
 //   while ((threads / nelem_thread > maxThreads) ||
@@ -294,22 +294,22 @@ template void get_centroids<double>(int size, int threads, int blocks, int npix,
 //       d_idata, d_odata, alpha, weights, n, size, scale, offset,
 //       nelem_thread);
 
-//   carmaCheckMsg("centroidx_kernel<<<>>> execution failed\n");
+//   carma_check_msg("centroidx_kernel<<<>>> execution failed\n");
 
 //   centroidy<T><<<dimGrid, dimBlock, smemSize>>>(d_idata, &(d_odata[blocks]),
 //                                                 alpha, weights, n, size,
 //                                                 scale, offset, nelem_thread);
 
-//   carmaCheckMsg("centroidy_kernel<<<>>> execution failed\n");
+//   carma_check_msg("centroidy_kernel<<<>>> execution failed\n");
 // }
 
 // template void get_centroids<float>(int size, int threads, int blocks, int n,
 //                                    float *d_idata, float *d_odata, float
 //                                    *alpha, float *weights, float scale, float
-//                                    offset, carma_device *device);
+//                                    offset, CarmaDevice *device);
 
 // template void get_centroids<double>(int size, int threads, int blocks, int n,
 //                                     double *d_idata, double *d_odata,
 //                                     double *alpha, double *weights,
 //                                     double scale, double offset,
-//                                     carma_device *device);
+//                                     CarmaDevice *device);

@@ -32,10 +32,10 @@
 
 //! \file      carma_sparse_host_obj.h
 //! \ingroup   libcarma
-//! \class     carma_sparse_host_obj
+//! \class     CarmaSparseHostObj
 //! \brief     this class provides wrappers to the generic carma sparse host object
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -45,47 +45,47 @@
 #include "carma_host_obj.h"
 
 template <class T_data>
-class carma_sparse_obj;
+class CarmaSparseObj;
 
 template <class T_data>
-class carma_sparse_host_obj {
+class CarmaSparseHostObj {
  public:
-  carma_sparse_host_obj();
-  carma_sparse_host_obj(carma_sparse_obj<T_data>& sm);
-  carma_sparse_host_obj(carma_sparse_host_obj<T_data>& sm);
-  carma_sparse_host_obj(const long* dims, T_data* M, char order);
-  virtual ~carma_sparse_host_obj();
+  CarmaSparseHostObj();
+  CarmaSparseHostObj(CarmaSparseObj<T_data>& sm);
+  CarmaSparseHostObj(CarmaSparseHostObj<T_data>& sm);
+  CarmaSparseHostObj(const long* dims, T_data* M, char order);
+  virtual ~CarmaSparseHostObj();
 
   // delete all arrays and create new for nnz=new_nnz
   void resize(int new_nnz, int dim1_, int dim2_);
 
-  void operator=(carma_sparse_obj<T_data>& M);
-  void operator=(carma_sparse_host_obj<T_data>& M);
+  void operator=(CarmaSparseObj<T_data>& M);
+  void operator=(CarmaSparseHostObj<T_data>& M);
 
-  void init_from_matrix(const long* dims, T_data* M, char majorDim);
-  void copy_into_matrix(T_data* M, char majorDim);
-  void resize2rowMajor();
-  void resize2colMajor();
-  char get_majorDim() const { return majorDim; }
+  void init_from_matrix(const long* dims, T_data* M, char major_dim);
+  void copy_into_matrix(T_data* M, char major_dim);
+  void resize2row_major();
+  void resize2col_major();
+  char get_major_dim() const { return major_dim; }
 
   /**< General Utilities */
   operator T_data*() { return h_data; }
   T_data* operator[](int index) { return &h_data[index]; }
-  T_data* getData() { return h_data; }
-  T_data* getData(int index) { return &h_data[index]; }
-  const long* getDims() { return dims_data; }
-  long getDims(int i) { return dims_data[i]; }
-  int getNzElem() { return nz_elem; }
+  T_data* get_data() { return h_data; }
+  T_data* get_data(int index) { return &h_data[index]; }
+  const long* get_dims() { return dims_data; }
+  long get_dims(int i) { return dims_data[i]; }
+  int get_nonzero_elem() { return nz_elem; }
 
  private:
   void _create(int nnz_, int dim1_, int dim2_);  // create new arrays
   void _clear();                                 // clear arrays
 
-  char majorDim;  // U - undefined
+  char major_dim;  // U - undefined
   // R - row major
   // C - col major
 
-  MemAlloc mallocType;  ///< type of host alloc
+  MemAlloc malloc_type;  ///< type of host alloc
 
  public:
   long dims_data[3];  ///< dimensions of the array
@@ -101,9 +101,9 @@ class carma_sparse_host_obj {
 // Multiply sparce matrix by vector
 // y := alpha*A*x + betta * y
 template <class T_data>
-void carma_gemv(T_data alpha, carma_sparse_host_obj<T_data>* A,
-                carma_host_obj<T_data>* x, T_data betta,
-                carma_host_obj<T_data>* y,
+void carma_gemv(T_data alpha, CarmaSparseHostObj<T_data>* A,
+                CarmaHostObj<T_data>* x, T_data betta,
+                CarmaHostObj<T_data>* y,
                 void (*ptr_coomv)(char* transa, long* m, long* k, T_data* alpha,
                                   char* matdescra, T_data* val, int* rowind,
                                   int* colind, int* nnz, T_data* x,
@@ -113,16 +113,16 @@ void carma_gemv(T_data alpha, carma_sparse_host_obj<T_data>* A,
 // C := alpha*op(A)*B + betta * y
 // op_A could be N (do nothing) or T (transpose)
 template <class T_data>
-void carma_gemm(char op_A, T_data alpha, carma_sparse_host_obj<T_data>* A,
-                carma_host_obj<T_data>* B, T_data betta,
-                carma_host_obj<T_data>* C);
+void carma_gemm(char op_A, T_data alpha, CarmaSparseHostObj<T_data>* A,
+                CarmaHostObj<T_data>* B, T_data betta,
+                CarmaHostObj<T_data>* C);
 
 // Multiply sparce matrix by dense matrix
 // C := alpha*A*B + betta * y
 template <class T_data>
-inline void carma_gemm(T_data alpha, carma_sparse_host_obj<T_data>* A,
-                       carma_host_obj<T_data>* B, T_data betta,
-                       carma_host_obj<T_data>* C) {
+inline void carma_gemm(T_data alpha, CarmaSparseHostObj<T_data>* A,
+                       CarmaHostObj<T_data>* B, T_data betta,
+                       CarmaHostObj<T_data>* C) {
   kp_gemm('N', alpha, A, B, betta, C);
 }
 

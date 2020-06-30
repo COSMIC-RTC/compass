@@ -32,9 +32,9 @@
 
 //! \file      controller_cured.cpp
 //! \ingroup   libsutra
-//! \brief     this file provides pybind wrapper for sutra_controller_cured
+//! \brief     this file provides pybind wrapper for SutraControllerCured
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -46,9 +46,9 @@ namespace py = pybind11;
 
 template <typename Tcomp, typename Tout>
 void controller_cured_impl(py::module &mod, const char *name) {
-  using controller_cured = sutra_controller_cured<Tcomp, Tout>;
+  using controller_cured = SutraControllerCured<Tcomp, Tout>;
 
-  py::class_<controller_cured, sutra_controller<Tcomp, Tout>>(mod, name)
+  py::class_<controller_cured, SutraController<Tcomp, Tout>>(mod, name)
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝

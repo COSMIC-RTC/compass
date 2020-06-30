@@ -32,10 +32,10 @@
 
 //! \file      sutra_rtc.h
 //! \ingroup   libsutra
-//! \class     sutra_rtc
+//! \class     SutraRtc
 //! \brief     this class provides the rtc features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -57,39 +57,39 @@
 #include <sutra_controller_mv.h>
 
 template <typename Tin, typename T, typename Tout>
-class sutra_rtc {
+class SutraRtc {
  public:
-  vector<sutra_centroider<Tin, T> *> d_centro;
-  vector<sutra_controller<T, Tout> *> d_control;
+  vector<SutraCentroider<Tin, T> *> d_centro;
+  vector<SutraController<T, Tout> *> d_control;
 
  public:
-  sutra_rtc();
-  ~sutra_rtc();
-  int add_centroider(carma_context *context, long nvalid, float offset,
+  SutraRtc();
+  ~SutraRtc();
+  int add_centroider(CarmaContext *context, long nvalid, float offset,
                      float scale, bool filter_TT, long device,
                      std::string typec);
 
-  int add_centroider(carma_context *context, long nvalid, float offset,
+  int add_centroider(CarmaContext *context, long nvalid, float offset,
                      float scale, bool filter_TT, long device,
-                     std::string typec, sutra_wfs *wfs);
+                     std::string typec, SutraWfs *wfs);
 
-  int add_controller(carma_context *context, int nvalid, int nslope, int nactu,
+  int add_controller(CarmaContext *context, int nvalid, int nslope, int nactu,
                      float delay, long device, std::string typec,
-                     sutra_dms *dms = nullptr, int *idx_dms = nullptr,
+                     SutraDms *dms = nullptr, int *idx_dms = nullptr,
                      int ndm = 0, int *idx_centro = nullptr, int ncentro = 0,
                      int Nphi = 0, bool wfs_direction = false, int nstates = 0);
 
   int remove_centroider(int ncentro);
   int remove_controller(int ncontrol);
 
-  int do_imat(int ncntrl, sutra_dms *ydms);
+  int do_imat(int ncntrl, SutraDms *ydms);
 
-  int do_imat_basis(int ncntrl, sutra_dms *ydm, int nModes, T *m2v,
+  int do_imat_basis(int ncntrl, SutraDms *ydm, int nModes, T *m2v,
                     T *pushAmpl);
 
-  int do_imat_geom(int ncntrl, sutra_dms *ydm, int type);
+  int do_imat_geom(int ncntrl, SutraDms *ydm, int type);
 
-  int comp_images_imat(sutra_dms *ydm);
+  int comp_images_imat(SutraDms *ydm);
 
   int do_calibrate_img();
   int do_calibrate_img(int ncntrl);
@@ -108,19 +108,19 @@ class sutra_rtc {
  private:
   template <typename Q = T>
   typename std::enable_if<std::is_same<Q, float>::value, int>::type
-  do_imat_impl(int ncntrl, sutra_dms *ydm, std::true_type);
-  int do_imat_impl(int ncntrl, sutra_dms *ydm, std::false_type);
+  do_imat_impl(int ncntrl, SutraDms *ydm, std::true_type);
+  int do_imat_impl(int ncntrl, SutraDms *ydm, std::false_type);
 
   template <typename Q = T>
   typename std::enable_if<std::is_same<Q, float>::value, int>::type
-  do_imat_basis_impl(int ncntrl, sutra_dms *ydm, int nModes, T *m2v,
+  do_imat_basis_impl(int ncntrl, SutraDms *ydm, int nModes, T *m2v,
                      T *pushAmpl, std::true_type);
-  int do_imat_basis_impl(int ncntrl, sutra_dms *ydm, int nModes, T *m2v,
+  int do_imat_basis_impl(int ncntrl, SutraDms *ydm, int nModes, T *m2v,
                          T *pushAmpl, std::false_type);
   template <typename Q = T>
   typename std::enable_if<std::is_same<Q, float>::value, int>::type
-  do_imat_geom_impl(int ncntrl, sutra_dms *ydm, int type, std::true_type);
-  int do_imat_geom_impl(int ncntrl, sutra_dms *ydm, int type, std::false_type);
+  do_imat_geom_impl(int ncntrl, SutraDms *ydm, int type, std::true_type);
+  int do_imat_geom_impl(int ncntrl, SutraDms *ydm, int type, std::false_type);
 
   template <typename Q = T>
   typename std::enable_if<std::is_same<Q, float>::value, int>::type
@@ -129,26 +129,26 @@ class sutra_rtc {
 
   template <typename Q = T>
   typename std::enable_if<!std::is_same<Q, half>::value, int>::type
-  add_centroider_impl(carma_context *context, long nvalid, float offset,
+  add_centroider_impl(CarmaContext *context, long nvalid, float offset,
                       float scale, bool filter_TT, long device,
-                      std::string typec, sutra_wfs *wfs, std::false_type);
-  int add_centroider_impl(carma_context *context, long nvalid, float offset,
+                      std::string typec, SutraWfs *wfs, std::false_type);
+  int add_centroider_impl(CarmaContext *context, long nvalid, float offset,
                           float scale, bool filter_TT, long device,
-                          std::string typec, sutra_wfs *wfs, std::true_type);
+                          std::string typec, SutraWfs *wfs, std::true_type);
 
   template <typename Q = T>
   typename std::enable_if<!std::is_same<Q, half>::value, int>::type
-  add_controller_impl(carma_context *context,
-                      vector<sutra_controller<T, Tout> *> &d_control,
+  add_controller_impl(CarmaContext *context,
+                      vector<SutraController<T, Tout> *> &d_control,
                       int nvalid, int nslope, int nactu, float delay,
-                      long device, std::string typec, sutra_dms *dms,
+                      long device, std::string typec, SutraDms *dms,
                       int *idx_dms, int ndm, int *idx_centro, int ncentro,
                       int Nphi, bool wfs_direction, int nstates,
                       std::false_type);
-  int add_controller_impl(carma_context *context,
-                          vector<sutra_controller<T, Tout> *> &d_control,
+  int add_controller_impl(CarmaContext *context,
+                          vector<SutraController<T, Tout> *> &d_control,
                           int nvalid, int nslope, int nactu, float delay,
-                          long device, std::string typec, sutra_dms *dms,
+                          long device, std::string typec, SutraDms *dms,
                           int *idx_dms, int ndm, int *idx_centro, int ncentro,
                           int Nphi, bool wfs_direction, int nstates,
                           std::true_type);

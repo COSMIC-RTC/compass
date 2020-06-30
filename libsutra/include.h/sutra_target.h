@@ -32,10 +32,10 @@
 
 //! \file      sutra_target.h
 //! \ingroup   libsutra
-//! \class     sutra_target
+//! \class     SutraTarget
 //! \brief     this class provides the target features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -51,16 +51,16 @@ using std::vector;
 
 typedef std::pair<std::string, int> type_screen;
 
-class sutra_target {
+class SutraTarget {
  public:
   int ntargets;
-  vector<sutra_source *> d_targets;
+  vector<SutraSource *> d_targets;
 
  public:
-  sutra_target(carma_context *context, sutra_telescope *d_tel, int ntargets,
+  SutraTarget(CarmaContext *context, SutraTelescope *d_tel, int ntargets,
                float *xpos, float *ypos, float *lambda, float *mag, float zerop,
                long *sizes, int Npts, int device);
-  ~sutra_target();
+  ~SutraTarget();
 
   int get_phase(int ntarget, float *dest);
 };

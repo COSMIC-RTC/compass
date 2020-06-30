@@ -53,7 +53,7 @@ config.p_geom.set_pupdiam(500)
 #   context
 # c = ch.carmaWrap_context(0)
 # c = ch.carmaWrap_context(devices=np.array([0,1], dtype=np.int32))
-# c.set_activeDevice(0) #useful only if you use ch.carmaWrap_context()
+# c.set_active_device(0) #useful only if you use ch.carmaWrap_context()
 c = ch.carmaWrap_context(devices=config.p_loop.devices)
 
 #    wfs

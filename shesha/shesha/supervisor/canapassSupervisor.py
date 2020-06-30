@@ -1,8 +1,8 @@
 ## @package   shesha.supervisor.canapassSupervisor
 ## @brief     Initialization and execution of a CANAPASS supervisor
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   4.4.1
-## @date      2011/01/28
+## @version   5.0.0
+## @date      2020/05/18
 ## @copyright GNU Lesser General Public License
 #
 #  This file is part of COMPASS <https://anr-compass.github.io/compass/>
@@ -51,7 +51,6 @@ Options:
 import os, sys
 import numpy as np
 import time
-from collections import OrderedDict
 
 from tqdm import tqdm
 import astropy.io.fits as pfits
@@ -73,68 +72,51 @@ from shesha.supervisor.compassSupervisor import CompassSupervisor
 
 
 class CanapassSupervisor(CompassSupervisor):
-
-    def __init__(self, configFile: str = None, cacao: bool = True) -> None:
-        CompassSupervisor.__init__(self, configFile=configFile, cacao=cacao)
-
-    def getConfig(self):
-        ''' Returns the configuration in use, in a supervisor specific format '''
-        return CompassSupervisor.getConfig(self)
-
-    def getConfigFab(self):
-        return self.writeConfigOnFile()
-
-    def loadConfig(self, configFile: str = None, sim=None) -> None:
-        ''' Load the configuration for the compass supervisor'''
-        CompassSupervisor.loadConfig(self, configFile=configFile, sim=sim)
+    def __init__(self, config, cacao: bool = True) -> None:
         print("switching to a generic controller")
-        self._sim.config.p_controllers[0].type = scons.ControllerType.GENERIC
-
-
-
+        config.p_controllers[0].type = scons.ControllerType.GENERIC
+        CompassSupervisor.__init__(self, config, cacao=cacao)
 
 ########################## PROTO #############################
 
-    def initModalGain(self, gain, cmatModal, modalBasis, control=0, resetGain=True):
-        """
-        Given a gain, cmat and btt2v initialise the modal gain mode
-        """
-        print("TODO: A RECODER !!!!")
-        nmode_total = modalBasis.shape[1]
-        nactu_total = modalBasis.shape[0]
-        nfilt = nmode_total - cmatModal.shape[0]
-        ctrl = self._sim.rtc.d_control[control]
-        ctrl.set_commandlaw('modal_integrator')
-        cmat = np.zeros((nactu_total, cmatModal.shape[1]))
-        dec = cmat.shape[0] - cmatModal.shape[0]
-        cmat[:-dec, :] += cmatModal  # Fill the full Modal with all non-filtered modes
-        modes2V = np.zeros((nactu_total, nactu_total))
-        dec2 = modes2V.shape[1] - modalBasis.shape[1]
-        modes2V[:, :-dec2] += modalBasis
-        mgain = np.ones(len(modes2V)) * gain  # Initialize the gain
-        ctrl.set_matE(modes2V)
-        ctrl.set_cmat(cmat)
-        if resetGain:
-            ctrl.set_mgain(mgain)
+    # def initModalGain(self, gain, cmatModal, modal_basis, control=0, reset_gain=True):
+    #     """
+    #     Given a gain, cmat and btt2v initialise the modal gain mode
+    #     """
+    #     print("TODO: A RECODER !!!!")
+    #     nmode_total = modal_basis.shape[1]
+    #     nactu_total = modal_basis.shape[0]
+    #     nfilt = nmode_total - cmatModal.shape[0]
+    #     ctrl = self._sim.rtc.d_control[control]
+    #     ctrl.set_commandlaw('modal_integrator')
+    #     cmat = np.zeros((nactu_total, cmatModal.shape[1]))
+    #     dec = cmat.shape[0] - cmatModal.shape[0]
+    #     cmat[:-dec, :] += cmatModal  # Fill the full Modal with all non-filtered modes
+    #     modes2V = np.zeros((nactu_total, nactu_total))
+    #     dec2 = modes2V.shape[1] - modal_basis.shape[1]
+    #     modes2V[:, :-dec2] += modal_basis
+    #     mgain = np.ones(len(modes2V)) * gain  # Initialize the gain
+    #     ctrl.set_matE(modes2V)
+    #     ctrl.set_cmat(cmat)
+    #     if reset_gain:
+    #         ctrl.set_modal_gains(mgain)
 
-    def leaveModalGain(self, control=0):
-        ctrl = self._sim.rtc.d_control[control]
-        ctrl.set_commandlaw('integrator')
-
-
-
+    # def leaveModalGain(self, control=0):
+    #     ctrl = self._sim.rtc.d_control[control]
+    #     ctrl.set_commandlaw('integrator')
 
 if __name__ == '__main__':
     from docopt import docopt
+    from shesha.util.utilities import load_config_from_file
     arguments = docopt(__doc__)
-    supervisor = CanapassSupervisor(arguments["<parameters_filename>"], cacao=True)
+    config = load_config_from_file(arguments["<parameters_filename>"])
+    supervisor = CanapassSupervisor(config, cacao=True)
     if (arguments["--freq"]):
         print("Warning changed frequency loop to: ", arguments["--freq"])
         supervisor.config.p_loop.set_ittime(1 / float(arguments["--freq"]))
     if (arguments["--delay"]):
         print("Warning changed delay loop to: ", arguments["--delay"])
         supervisor.config.p_controllers[0].set_delay(float(arguments["--delay"]))
-    supervisor.initConfig()
 
     try:
         from subprocess import Popen, PIPE
@@ -148,8 +130,19 @@ if __name__ == '__main__':
         else:
             user = out.split(b"\n")[0].decode("utf-8")
             print("User is " + user)
-        server = PyroServer()
-        server.add_device(supervisor, "waoconfig_" + user)
+
+        devices = [supervisor, supervisor.rtc, supervisor.wfs, 
+        supervisor.target, supervisor.tel,supervisor.basis, supervisor.calibration,
+        supervisor.atmos, supervisor.dms]
+
+        names = ["supervisor", "supervisor_rtc", "supervisor_wfs", 
+        "supervisor_target", "supervisor_tel", "supervisor_basis", "supervisor_calibration", 
+        "supervisor_atmos", "supervisor_dms"]
+        nname = []  
+        for name in names: 
+            nname.append(name+"_"+user) 
+        server = PyroServer(listDevices=devices, listNames=names)
+        #server.add_device(supervisor, "waoconfig_" + user)
         server.start()
     except:
         raise EnvironmentError(

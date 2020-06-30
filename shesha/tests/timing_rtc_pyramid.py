@@ -14,19 +14,19 @@ sup = Supervisor(
 sup.config.p_controller0.set_type("generic")
 sup.config.p_centroider0.set_type("maskedpix")
 sup.config.p_wfs0.roket = False
-sup.initConfig()
-sup.singleNext()
-xvalid = np.array(sup._sim.rtc.d_centro[0].d_validx)
-yvalid = np.array(sup._sim.rtc.d_centro[0].d_validy)
-cmat = sup.getCmat(0)
-frame = sup.getWfsImage()
+sup.init()
+sup.next()
+xvalid = np.array(sup.rtc._rtc.d_centro[0].d_validx)
+yvalid = np.array(sup.rtc._rtc.d_centro[0].d_validy)
+cmat = sup.rtc.get_command_matrix(0)
+frame = sup.wfs.get_wfs_image(0)
 frame /= frame.max()
 
 rtc = Rtc()
-rtc.add_centroider(sup._sim.c, sup.config.p_wfs0._nvalid,
+rtc.add_centroider(sup.context, sup.config.p_wfs0._nvalid,
                    sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize, False, 0,
                    "maskedpix")
-rtc.add_controller(sup._sim.c, sup.config.p_wfs0._nvalid,
+rtc.add_controller(sup.context, sup.config.p_wfs0._nvalid,
                    sup.config.p_controller0.nslope, sup.config.p_controller0.nactu,
                    sup.config.p_controller0.delay, 0, "generic", idx_centro=np.zeros(1), ncentro=1)
 rtc.d_centro[0].set_npix(sup.config.p_wfs0.npix)
@@ -36,10 +36,10 @@ rtc.d_control[0].set_gain(sup.config.p_controller0.gain)
 rtc.d_centro[0].load_img(frame, frame.shape[0])
 
 rtcH = RtcH()
-rtcH.add_centroider(sup._sim.c, sup.config.p_wfs0._nvalid,
+rtcH.add_centroider(sup.context, sup.config.p_wfs0._nvalid,
                     sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize, False, 0,
                     "maskedpix")
-rtcH.add_controller(sup._sim.c, sup.config.p_wfs0._nvalid,
+rtcH.add_controller(sup.context, sup.config.p_wfs0._nvalid,
                     sup.config.p_controller0.nslope, sup.config.p_controller0.nactu,
                     sup.config.p_controller0.delay, 0, "generic", idx_centro=np.zeros(1), ncentro=1)
 rtcH.d_centro[0].set_npix(sup.config.p_wfs0.npix)

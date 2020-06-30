@@ -118,7 +118,7 @@ p_dms[0].set_thresh(0.3)
 p_dms[0].set_coupling(0.2)
 p_dms[0].set_unitpervolt(1.)
 p_dms[0].set_push4imat(1.)
-p_dms[0].set_influType("radialSchwartz")
+p_dms[0].set_influ_type("radialSchwartz")
 
 p_dms[1].set_type("tt")
 p_dms[1].set_alt(0.)

@@ -32,10 +32,10 @@
 
 //! \file      carma_context.cpp
 //! \ingroup   libcarma
-//! \class     carma_context
-//! \brief     this class provides the context in which carma_obj are created
+//! \class     CarmaContext
+//! \brief     this class provides the context in which CarmaObj are created
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -45,11 +45,9 @@
 #include <string>
 
 #include <carma_context.h>
-
-#ifdef USE_CULA
-// CULA headers
-#include <cula.hpp>
-#endif  // USE_CULA
+#include "carma_cublas.h"
+#include "carma_cusparse.h"
+#include "carma_cusolver.h"
 
 #ifdef USE_MAGMA
 // MAGMA headers
@@ -57,86 +55,88 @@
 #include "magma_lapack.h"
 #endif  // USE_MAGMA
 
-carma_device::carma_device(int devid) {
-  carmaSafeCall(cudaSetDevice(devid));
+CarmaDevice::CarmaDevice(int devid) {
+  carma_safe_call(cudaSetDevice(devid));
 
   // Instruct CUDA to yield its thread when waiting for results from the device.
   // This can increase latency when waiting for the device, but can increase the
   // performance of CPU threads performing work in parallel with the device. see
   // also: cudaDeviceScheduleAuto, cudaDeviceScheduleSpin,
   // cudaDeviceScheduleYield
-  // carmaSafeCall(cudaSetDeviceFlags(cudaDeviceScheduleYield));
+  // carma_safe_call(cudaSetDeviceFlags(cudaDeviceScheduleYield));
 
   this->id = devid;
   cudaGetDeviceProperties(&(this->properties), devid);
   this->cores_per_sm =
-      ConvertSMVer2Cores(this->properties.major, this->properties.minor);
+      convert_sm_version2cores(this->properties.major, this->properties.minor);
   this->compute_perf = this->properties.multiProcessorCount *
                        this->cores_per_sm * this->properties.clockRate;
 
   this->p2p_activate = false;
 
-  carmaSafeCall(cudaMemGetInfo(&freeMem, &totalMem));
+  carma_safe_call(cudaMemGetInfo(&total_mem, &total_mem));
 
-  carma_initCublas(&cublasHandle);
-  carma_initCusparse(&cusparseHandle);
+  carma_init_cublas(&cublas_handle);
+  carma_init_cusparse(&cusparse_handle);
+  carma_init_cusolver(&cusolver_handle);
 
-  // cudaStreamCreate(&mainStream);
+  // cudaStreamCreate(&main_stream);
   //  cusparsePointerMode_t mode;
-  //  cusparseGetPointerMode(cusparseHandle, &mode);
+  //  cusparseGetPointerMode(cusparse_handle, &mode);
   //  DEBUG_TRACE("%d\n", mode);
 
   // DEBUG_TRACE("done\n");
 }
-int carma_device::set_cublas_math_mode(bool tensor) {
+int CarmaDevice::set_cublas_math_mode(bool tensor) {
   if (tensor)
     carma_checkCublasStatus(
-        cublasSetMathMode(cublasHandle, CUBLAS_TENSOR_OP_MATH));
+        cublasSetMathMode(cublas_handle, CUBLAS_TENSOR_OP_MATH));
   else
     carma_checkCublasStatus(
-        cublasSetMathMode(cublasHandle, CUBLAS_DEFAULT_MATH));
+        cublasSetMathMode(cublas_handle, CUBLAS_DEFAULT_MATH));
 
   return EXIT_SUCCESS;
 }
 
-carma_device::~carma_device() {
-  carma_shutdownCublas(cublasHandle);
-  carma_shutdownCusparse(cusparseHandle);
-  // cudaStreamDestroy(mainStream);
+CarmaDevice::~CarmaDevice() {
+  carma_shutdown_cublas(cublas_handle);
+  carma_shutdown_cusparse(cusparse_handle);
+  carma_shutdown_cusolver(cusolver_handle);
+  // cudaStreamDestroy(main_stream);
 
   this->id = -1;
 }
 
-std::shared_ptr<carma_context> carma_context::s_instance;
+std::shared_ptr<CarmaContext> CarmaContext::s_instance;
 
-carma_context &carma_context::instance_1gpu(int num_device) {
-  if (!carma_context::s_instance) {
-    carma_context::s_instance =
-        std::shared_ptr<carma_context>(new carma_context(num_device));
+CarmaContext &CarmaContext::instance_1gpu(int num_device) {
+  if (!CarmaContext::s_instance) {
+    CarmaContext::s_instance =
+        std::shared_ptr<CarmaContext>(new CarmaContext(num_device));
   }
-  return *carma_context::s_instance;
+  return *CarmaContext::s_instance;
 }
 
-carma_context &carma_context::instance_ngpu(int nb_devices,
+CarmaContext &CarmaContext::instance_ngpu(int nb_devices,
                                             int32_t *devices_id) {
-  if (!carma_context::s_instance) {
-    carma_context::s_instance = std::shared_ptr<carma_context>(
-        new carma_context(nb_devices, devices_id));
+  if (!CarmaContext::s_instance) {
+    CarmaContext::s_instance = std::shared_ptr<CarmaContext>(
+        new CarmaContext(nb_devices, devices_id));
   }
-  return *carma_context::s_instance;
+  return *CarmaContext::s_instance;
 }
 
-carma_context &carma_context::instance() {
-  if (!carma_context::s_instance) {
-    carma_context::s_instance =
-        std::shared_ptr<carma_context>(new carma_context());
+CarmaContext &CarmaContext::instance() {
+  if (!CarmaContext::s_instance) {
+    CarmaContext::s_instance =
+        std::shared_ptr<CarmaContext>(new CarmaContext());
   }
-  return *carma_context::s_instance;
+  return *CarmaContext::s_instance;
 }
 
-carma_context::carma_context(int num_device) {
+CarmaContext::CarmaContext(int num_device) {
   can_access_peer = nullptr;
-  this->activeDevice = -1;
+  this->active_device = -1;
   this->ndevice = -1;
 
   int devices[1];
@@ -144,15 +144,15 @@ carma_context::carma_context(int num_device) {
   init_context(1, devices);
 }
 
-carma_context::carma_context() {
-  carmaSafeCall(cudaGetDeviceCount(&(this->ndevice)));
+CarmaContext::CarmaContext() {
+  carma_safe_call(cudaGetDeviceCount(&(this->ndevice)));
   can_access_peer = nullptr;
-  this->activeDevice = -1;
+  this->active_device = -1;
 
   if (this->ndevice == 0) {
-    DEBUG_TRACE("carma_context() CUDA error: no devices supporting CUDA.");
+    DEBUG_TRACE("CarmaContext() CUDA error: no devices supporting CUDA.");
     throw std::runtime_error(
-        "carma_context() CUDA error: no devices supporting CUDA.");
+        "CarmaContext() CUDA error: no devices supporting CUDA.");
   }
 
   int const size = this->ndevice;
@@ -162,42 +162,42 @@ carma_context::carma_context() {
   init_context(this->ndevice, devices_id);
 }
 
-carma_context::carma_context(int nb_devices, int32_t *devices_id) {
+CarmaContext::CarmaContext(int nb_devices, int32_t *devices_id) {
   can_access_peer = nullptr;
-  this->activeDevice = -1;
+  this->active_device = -1;
   this->ndevice = -1;
 
   init_context(nb_devices, devices_id);
 }
 
-void carma_context::init_context(const int nb_devices, int32_t *devices_id) {
+void CarmaContext::init_context(const int nb_devices, int32_t *devices_id) {
   // TODO(all) : why seed is initialized here ?
   srandom(1234);
-  this->activeDevice = -1;
+  this->active_device = -1;
 
   int n_cuda_devices = 0;
 
-  carmaSafeCall(cudaGetDeviceCount(&n_cuda_devices));
+  carma_safe_call(cudaGetDeviceCount(&n_cuda_devices));
 
   if (!n_cuda_devices) {
-    DEBUG_TRACE("carma_context() CUDA error: no devices supporting CUDA.");
+    DEBUG_TRACE("CarmaContext() CUDA error: no devices supporting CUDA.");
     throw std::runtime_error(
-        "carma_context() CUDA error: no devices supporting CUDA.");
+        "CarmaContext() CUDA error: no devices supporting CUDA.");
   }
 
   if (nb_devices > n_cuda_devices) {
     DEBUG_TRACE(
-        "carma_context() CUDA error: not enough devices supporting CUDA. ask "
+        "CarmaContext() CUDA error: not enough devices supporting CUDA. ask "
         "%d, available %d",
         nb_devices, n_cuda_devices);
-    DEBUG_TRACE("carma_context() will be initialized on GPU 0 only");
+    DEBUG_TRACE("CarmaContext() will be initialized on GPU 0 only");
     this->ndevice = 1;
   } else
     this->ndevice = nb_devices;
   int current_device = 0;
 
   while (current_device < this->ndevice) {
-    devices.push_back(new carma_device(devices_id[current_device]));
+    devices.push_back(new CarmaDevice(devices_id[current_device]));
     current_device++;
   }
 
@@ -219,7 +219,7 @@ void carma_context::init_context(const int nb_devices, int32_t *devices_id) {
   current_device = 0;
 
   while (current_device < this->ndevice) {
-    if (devices[current_device]->isGPUCapableP2P())
+    if (devices[current_device]->is_gpu_capable_p2p())
       gpuid[gpu_count++] = current_device;
     current_device++;
   }
@@ -231,10 +231,10 @@ void carma_context::init_context(const int nb_devices, int32_t *devices_id) {
       has_uva &= devices[gpuid[i]]->get_properties().unifiedAddressing;
 
       for (int j = i + 1; j < gpu_count; j++) {
-        carmaSafeCall(cudaDeviceCanAccessPeer(
+        carma_safe_call(cudaDeviceCanAccessPeer(
             &can_access_peer[gpuid[i]][gpuid[j]], devices_id[gpuid[i]],
             devices_id[gpuid[j]]));
-        carmaSafeCall(cudaDeviceCanAccessPeer(
+        carma_safe_call(cudaDeviceCanAccessPeer(
             &can_access_peer[gpuid[j]][gpuid[i]], devices_id[gpuid[j]],
             devices_id[gpuid[i]]));
 
@@ -242,10 +242,10 @@ void carma_context::init_context(const int nb_devices, int32_t *devices_id) {
             (can_access_peer[gpuid[j]][gpuid[i]] == 1)) {
           printf("*** Enabling peer access between GPU%d and GPU%d... ***\n",
                  devices_id[gpuid[i]], devices_id[gpuid[j]]);
-          carmaSafeCall(cudaSetDevice(devices_id[gpuid[i]]));
-          carmaSafeCall(cudaDeviceEnablePeerAccess(devices_id[gpuid[j]], 0));
-          carmaSafeCall(cudaSetDevice(devices_id[gpuid[j]]));
-          carmaSafeCall(cudaDeviceEnablePeerAccess(devices_id[gpuid[i]], 0));
+          carma_safe_call(cudaSetDevice(devices_id[gpuid[i]]));
+          carma_safe_call(cudaDeviceEnablePeerAccess(devices_id[gpuid[j]], 0));
+          carma_safe_call(cudaSetDevice(devices_id[gpuid[j]]));
+          carma_safe_call(cudaDeviceEnablePeerAccess(devices_id[gpuid[i]], 0));
         }
       }
     }
@@ -258,20 +258,8 @@ void carma_context::init_context(const int nb_devices, int32_t *devices_id) {
   }
 #endif  // USE_UVA
 
-  this->activeDevice =
-      set_activeDeviceForce(0, 1);  // get_maxGflopsDeviceId(), 1);
-
-#ifdef USE_CULA
-
-  // CULA init
-  culaStatus status = culaInitialize();
-
-  if (status) {
-    char buf[256];
-    culaGetErrorInfoString(status, culaGetErrorInfo(), buf, sizeof(buf));
-    printf("%s\n", buf);
-  }
-#endif  // USE_CULA
+  this->active_device =
+      set_active_device_force(0, 1);  // get_max_gflops_device_id(), 1);
 
 #ifdef USE_MAGMA
 
@@ -293,13 +281,8 @@ void carma_context::init_context(const int nb_devices, int32_t *devices_id) {
 #endif  // DEBUG
 }
 
-carma_context::~carma_context() {
-  carmaSafeCall(cudaDeviceSynchronize());
-
-#ifdef USE_CULA
-  // CULA finalize
-  culaShutdown();
-#endif  // USE_CULA
+CarmaContext::~CarmaContext() {
+  carma_safe_call(cudaDeviceSynchronize());
 
 #ifdef USE_MAGMA
 
@@ -324,48 +307,39 @@ carma_context::~carma_context() {
 #endif  // DEBUG
 }
 
-int carma_context::_set_activeDeviceForce(int newDevice, int silent,
+int CarmaContext::_set_active_device_force(int new_device, int silent,
                                           std::string file, int line) {
-  if (newDevice < ndevice) {
-    carmaSafeCall(cudaSetDevice(devices[newDevice]->get_id()));
-#ifdef USE_CULA
-    culaStatus status = culaSelectDevice(newDevice);
-
-    if (status) {
-      char buf[256];
-      culaGetErrorInfoString(status, culaGetErrorInfo(), buf, sizeof(buf));
-      printf("%s\n", buf);
-    }
-#endif  // USE_CULA
+  if (new_device < ndevice) {
+    carma_safe_call(cudaSetDevice(devices[new_device]->get_id()));
 #if DEBUG
     silent = 0;
 #endif  // DEBUG
 
     if (!silent) {
-      std::cout << "Using device " << devices[newDevice]->get_id() << ": \""
-                << devices[newDevice]->get_properties().name
+      std::cout << "Using device " << devices[new_device]->get_id() << ": \""
+                << devices[new_device]->get_properties().name
                 << "\" with Compute "
-                << devices[newDevice]->get_properties().major << "."
-                << devices[newDevice]->get_properties().minor << " capability"
+                << devices[new_device]->get_properties().major << "."
+                << devices[new_device]->get_properties().minor << " capability"
                 << std::endl;
     }
-    activeDevice = newDevice;
+    active_device = new_device;
   } else {
     fprintf(stderr,
             "[%s:%d] Invalid Device Id : %d, Your system has only %d CUDA "
             "capable device(s) available ",
-            file.c_str(), line, newDevice, ndevice);
-    std::cerr << "Leaving activeDevice to its current value : " << activeDevice
+            file.c_str(), line, new_device, ndevice);
+    std::cerr << "Leaving active_device to its current value : " << active_device
               << std::endl;
   }
-  return activeDevice;
+  return active_device;
 }
 
-std::string carma_context::get_DeviceName(int device) {
+std::string CarmaContext::get_device_name(int device) {
   return devices[device]->get_properties().name;
 }
 
-std::string carma_context::get_DeviceInfo(int device) {
+std::string CarmaContext::get_device_info(int device) {
   std::stringstream buf;
 
   buf << "device " << device << ": \"" << devices[device]->get_properties().name
@@ -374,18 +348,18 @@ std::string carma_context::get_DeviceInfo(int device) {
   return buf.str();
 }
 
-std::string carma_context::get_DeviceMemInfo(int device) {
+std::string CarmaContext::get_device_mem_info(int device) {
   std::stringstream buf;
-  size_t totalMem = devices[device]->getTotalMem() / 1024 / 1024;
-  size_t usedMem = totalMem - devices[device]->getFreeMem() / 1024 / 1024;
+  size_t total_mem = devices[device]->get_total_mem() / 1024 / 1024;
+  size_t usedMem = total_mem - devices[device]->get_free_mem() / 1024 / 1024;
 
   buf << "device " << device << ": \"" << devices[device]->get_properties().name
-      << "\" memory used " << usedMem << "MB / " << totalMem << "MB ("
-      << usedMem * 100. / totalMem << "%)";
+      << "\" memory used " << usedMem << "MB / " << total_mem << "MB ("
+      << usedMem * 100. / total_mem << "%)";
   return buf.str();
 }
 
-int carma_context::get_maxGflopsDeviceId() {
+int CarmaContext::get_max_gflops_device_id() {
   /*! \brief Get the fastest device on the machine (with maximum GFLOPS).
    *
    * This function returns the identifier of the best available GPU (with
@@ -416,7 +390,7 @@ int carma_context::get_maxGflopsDeviceId() {
       if ((deviceProp.major == 9999) && (deviceProp.minor == 9999)) {
         cores_per_sm = 1;
       } else {
-        cores_per_sm = ConvertSMVer2Cores(deviceProp.major, deviceProp.minor);
+        cores_per_sm = convert_sm_version2cores(deviceProp.major, deviceProp.minor);
       }
       int compute_perf =
           deviceProp.multiProcessorCount * cores_per_sm * deviceProp.clockRate;
@@ -440,7 +414,7 @@ int carma_context::get_maxGflopsDeviceId() {
   return max_perf_device;
 }
 
-std::string carma_context::magma_info() {
+std::string CarmaContext::magma_info() {
   std::ostringstream stream;
 #ifdef USE_MAGMA
   magma_int_t major, minor, micro;

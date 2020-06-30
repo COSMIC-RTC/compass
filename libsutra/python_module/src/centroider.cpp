@@ -37,9 +37,9 @@
 
 //! \file      centroider.cpp
 //! \ingroup   libsutra
-//! \brief     this file provides pybind wrapper for sutra_centroider
+//! \brief     this file provides pybind wrapper for SutraCentroider
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -51,7 +51,7 @@ namespace py = pybind11;
 
 template <typename Tin, typename Tcomp>
 void centroider_impl(py::module &mod, const char *name) {
-  using centroider = sutra_centroider<Tin, Tcomp>;
+  using centroider = SutraCentroider<Tin, Tcomp>;
 
   py::class_<centroider>(mod, name)
 
@@ -78,7 +78,7 @@ void centroider_impl(py::module &mod, const char *name) {
                              "Number of slopes")
 
       .def_property_readonly("wfs", [](centroider &sc) { return sc.wfs; },
-                             "sutra_wfs handled by this centroider")
+                             "SutraWfs handled by this centroider")
 
       .def_property_readonly("nvalid", [](centroider &sc) { return sc.nvalid; },
                              "Number of valid ssp of the WFS")
@@ -230,14 +230,14 @@ void centroider_impl(py::module &mod, const char *name) {
            py::arg("img"), py::arg("n"), py::arg("location") = -1)
 
       .def("load_img",
-           wy::colCast((int (centroider::*)(carma_obj<Tin> *)) &
+           wy::colCast((int (centroider::*)(CarmaObj<Tin> *)) &
                        centroider::load_img),
            R"pbdoc(
-            Load an image in a RTC standalone from a carma_obj
+            Load an image in a RTC standalone from a CarmaObj
 
         Parameters
         ------------
-        img: (carma_obj): SH image
+        img: (CarmaObj): SH image
     )pbdoc",
            py::arg("img"))
 

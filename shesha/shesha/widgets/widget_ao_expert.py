@@ -2,7 +2,7 @@
 ## @brief
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   4.3.0
-## @date      2011/01/28
+## @date      2020/05/18
 ## @copyright GNU Lesser General Public License
 #
 #  This file is part of COMPASS <https://anr-compass.github.io/compass/>
@@ -76,7 +76,7 @@ class WidgetAOExpert(ExpertClassTemplate):
         self.uiExpert.wao_setControl.clicked.connect(self.setRtcParams)
         self.uiExpert.wao_setCentro.clicked.connect(self.setRtcParams)
         self.uiExpert.wao_setTelescope.clicked.connect(self.setTelescopeParams)
-        self.uiExpert.wao_resetDM.clicked.connect(self.resetDM)
+        self.uiExpert.wao_reset_dm.clicked.connect(self.reset_dm)
         self.uiExpert.wao_update_gain.clicked.connect(self.updateGain)
         self.uiExpert.wao_update_pyr_ampl.clicked.connect(self.updatePyrAmpl)
         self.uiExpert.wao_selectRtcMatrix.currentIndexChanged.connect(
@@ -116,9 +116,9 @@ class WidgetAOExpert(ExpertClassTemplate):
 
     def updatePyrAmpl(self) -> None:
         if (self.sim.rtc):
-            comp_new_pyr_ampl(0, self.uiExpert.wao_pyr_ampl.value(), self.sim.wfs,
-                              self.sim.rtc, self.sim.config.p_wfss,
+            comp_new_pyr_ampl(0, self.uiExpert.wao_pyr_ampl.value(), self.sim.config.p_wfss,
                               self.sim.config.p_tel)
+            self.sim.config.p_wfss[0].set_pyr_ampl(self.uiExpert.wao_pyr_ampl.value())
             print("Pyramid modulation updated on GPU")
             self.updatePlotWfs()
 
@@ -401,7 +401,7 @@ class WidgetAOExpert(ExpertClassTemplate):
         self.sim.config.p_dms[ndm].set_thresh(self.uiExpert.wao_dmThresh.value())
         print("New DM parameters set")
 
-    def resetDM(self) -> None:
+    def reset_dm(self) -> None:
         if (self.sim.dms):
             ndm = self.uiExpert.wao_selectDM.currentIndex()
             if (ndm > -1):

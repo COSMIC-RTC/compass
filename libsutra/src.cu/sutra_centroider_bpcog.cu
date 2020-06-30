@@ -35,7 +35,7 @@
 //! \class     sutra_centroider_pbcog
 //! \brief     this class provides the centroider_pbcog features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -108,7 +108,7 @@ template <class T>
 void get_centroids(int size, int threads, int blocks, int npix, float *d_img,
                    T *d_centroids, T *ref, int *validx, int *validy,
                    float *intensities, int nbpix, float scale, float offset,
-                   carma_device *device) {
+                   CarmaDevice *device) {
   int maxThreads = device->get_properties().maxThreadsPerBlock;
   unsigned int nelem_thread = 1;
   while ((threads / nelem_thread > maxThreads) ||
@@ -157,26 +157,26 @@ void get_centroids(int size, int threads, int blocks, int npix, float *d_img,
   else
     printf("SH way too big !!!\n");
 
-  carmaCheckMsg("centroids_kernel<<<>>> execution failed\n");
+  carma_check_msg("centroids_kernel<<<>>> execution failed\n");
 }
 
 template void get_centroids<float>(int size, int threads, int blocks, int npix,
                                    float *d_img, float *d_centroids, float *ref,
                                    int *validx, int *validy, float *intensities,
                                    int nbpix, float scale, float offset,
-                                   carma_device *device);
+                                   CarmaDevice *device);
 
 template void get_centroids<double>(int size, int threads, int blocks, int npix,
                                     float *d_img, double *d_centroids,
                                     double *ref, int *validx, int *validy,
                                     float *intensities, int nbpix, float scale,
-                                    float offset, carma_device *device);
+                                    float offset, CarmaDevice *device);
 #ifdef CAN_DO_HALF
 template void get_centroids<half>(int size, int threads, int blocks, int npix,
                                   float *d_img, half *d_centroids, half *ref,
                                   int *validx, int *validy, float *intensities,
                                   int nbpix, float scale, float offset,
-                                  carma_device *device);
+                                  CarmaDevice *device);
 #endif
 
 template <class T>
@@ -269,7 +269,7 @@ __global__ void sortmax(T *g_idata, T *g_odata, unsigned int *values, int nmax,
 
 template <class T>
 void subap_sortmax(int threads, int blocks, T *d_idata, T *d_odata,
-                   unsigned int *values, int nmax, carma_device *device) {
+                   unsigned int *values, int nmax, CarmaDevice *device) {
   int maxThreads = device->get_properties().maxThreadsPerBlock;
   unsigned int nelem_thread = 1;
   while ((threads / nelem_thread > maxThreads) ||
@@ -286,14 +286,14 @@ void subap_sortmax(int threads, int blocks, T *d_idata, T *d_odata,
   sortmax<T><<<dimGrid, dimBlock, smemSize>>>(
       d_idata, d_odata, values, nmax, threads, threads * blocks, nelem_thread);
 
-  carmaCheckMsg("sortmax_kernel<<<>>> execution failed\n");
+  carma_check_msg("sortmax_kernel<<<>>> execution failed\n");
 }
 template void subap_sortmax<float>(int threads, int blocks, float *d_idata,
                                    float *d_odata, unsigned int *values,
-                                   int nmax, carma_device *device);
+                                   int nmax, CarmaDevice *device);
 template void subap_sortmax<double>(int threads, int blocks, double *d_idata,
                                     double *d_odata, unsigned int *values,
-                                    int nmax, carma_device *device);
+                                    int nmax, CarmaDevice *device);
 
 template <class T>
 __global__ void centroid_bpix(int nsub, int n, T *g_idata, unsigned int *values,
@@ -367,7 +367,7 @@ void subap_bpcentro(int threads, int blocks, int npix, T *d_idata,
   centroid_bpix<T><<<dimGrid, dimBlock, smemSize>>>(
       blocks, npix, d_idata, values, d_odata, scale, offset);
 
-  carmaCheckMsg("centroid_bpix<<<>>> execution failed\n");
+  carma_check_msg("centroid_bpix<<<>>> execution failed\n");
 }
 template void subap_bpcentro<float>(int threads, int blocks, int npix,
                                     float *d_idata, unsigned int *values,

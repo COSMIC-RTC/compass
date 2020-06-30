@@ -34,7 +34,7 @@
 //! \ingroup   libsutra
 //! \brief     this file provides the controller utilities to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -973,8 +973,8 @@ __global__ void matcov_kernel_copy(double *data, int nrows, int ncols,
 //=============================== TOMO INIT/FIN FUNCTIONS
 //====================================
 //============================================================================================
-void init_tomo_gpu_gb(struct gtomo_struct *tomo_gpu, sutra_atmos *atmos,
-                      sutra_sensors *sensors, double diamTel, double cobs) {
+void init_tomo_gpu_gb(struct gtomo_struct *tomo_gpu, SutraAtmos *atmos,
+                      SutraSensors *sensors, double diamTel, double cobs) {
   cudaError_t e;
 
   tomo_gpu->DiamTel = diamTel;
@@ -1184,16 +1184,16 @@ void tab_dphi_lowpass(double *tab_dphi, struct cphim_struct *cphim_struct,
  */
 {
   // Assume one thread per element
-  // int nblocks = (Ndphi * Nl0) / tabDPHI_thread_x +
+  // int nb_blocks = (Ndphi * Nl0) / tabDPHI_thread_x +
   //               (((Ndphi * Nl0) % tabDPHI_thread_x) != 0);
   // dim3 dimBlock(tabDPHI_thread_x, 1);
-  // dim3 dimGrid(nblocks, 1);
+  // dim3 dimGrid(nb_blocks, 1);
 
   // tabulateDPHI_lowpass_kernel<<<dimGrid, dimBlock, 0,
   // cphim_struct->cphim_stream>>>(tab_dphi,cphim_struct->tab_int_x,
   // cphim_struct->tab_int_y, cphim_struct->dx, L0diff_d, Nl0, Ndphi, convert,
   // convert_int, cphim_struct->int_npts);
-  carmaCheckMsg("tabulateDPHI_gpu_gb_kernel<<<>>> execution failed\n");
+  carma_check_msg("tabulateDPHI_gpu_gb_kernel<<<>>> execution failed\n");
   // CudaCheckError();
 }
 
@@ -1222,14 +1222,14 @@ void tab_dphi_gpu_gb(double *tab_dphi, struct gtomo_struct *tomo_gpu,
  */
 {
   // Assume one thread per element
-  int nblocks = (Ndphi * Nl0) / tabDPHI_thread_x +
+  int nb_blocks = (Ndphi * Nl0) / tabDPHI_thread_x +
                 (((Ndphi * Nl0) % tabDPHI_thread_x) != 0);
   dim3 dimBlock(tabDPHI_thread_x, 1);
-  dim3 dimGrid(nblocks, 1);
+  dim3 dimGrid(nb_blocks, 1);
 
   tabulateDPHI_gpu_gb_kernel<<<dimGrid, dimBlock, 0, tomo_gpu->matcov_stream>>>(
       tab_dphi, L0diff_d, Nl0, Ndphi, convert);
-  carmaCheckMsg("tabulateDPHI_gpu_gb_kernel<<<>>> execution failed\n");
+  carma_check_msg("tabulateDPHI_gpu_gb_kernel<<<>>> execution failed\n");
   // CudaCheckError();
 }
 //------------------------------------------------------------------------------------
@@ -1247,14 +1247,14 @@ void sub_pos_gpu_gb(struct gtomo_struct *tomo_gpu, long Nlayer)
  */
 {
   int msize = Nlayer * tomo_gpu->Nx;
-  int nblocks = msize / tabDPHI_thread_x + ((msize % tabDPHI_thread_x) != 0);
+  int nb_blocks = msize / tabDPHI_thread_x + ((msize % tabDPHI_thread_x) != 0);
   dim3 dimBlock(tabDPHI_thread_x, 1);
-  dim3 dimGrid(nblocks, 1);
+  dim3 dimGrid(nb_blocks, 1);
   /*
     int nb = (int)(2);
       long *tmp;
       tmp=(long*)malloc((nb)*sizeof(long));
-      carmaSafeCall(cudaMemcpy(tmp, tomo_gpu->ioff_d, sizeof(long) * nb,
+      carma_safe_call(cudaMemcpy(tmp, tomo_gpu->ioff_d, sizeof(long) * nb,
                     cudaMemcpyDeviceToHost));
       for (int ii = 0 ; ii < nb ; ii++){
           printf("%5.5d \n",tmp[ii]);
@@ -1267,12 +1267,12 @@ void sub_pos_gpu_gb(struct gtomo_struct *tomo_gpu, long Nlayer)
       tomo_gpu->Nssp_d, tomo_gpu->diamPup_d, tomo_gpu->thetaML_d,
       tomo_gpu->ioff_d, tomo_gpu->X_d, tomo_gpu->Y_d, tomo_gpu->XPup_d,
       tomo_gpu->YPup_d, tomo_gpu->u_d, tomo_gpu->v_d);
-  carmaCheckMsg("subposition_gpu_gb_kernel<<<>>> execution failed\n");
+  carma_check_msg("subposition_gpu_gb_kernel<<<>>> execution failed\n");
   /*
      int nb = (int)tomo_gpu->Nx * Nlayer;
         double *tmpp;
         tmpp=(double*)malloc((nb)*sizeof(double));
-        carmaSafeCall(cudaMemcpy(tmpp, tomo_gpu->v_d, sizeof(double) * nb,
+        carma_safe_call(cudaMemcpy(tmpp, tomo_gpu->v_d, sizeof(double) * nb,
                             cudaMemcpyDeviceToHost));
         for (int ii = 0 ; ii < nb ; ii++){
           printf("%5.5f \n",tmpp[ii]);
@@ -1286,14 +1286,14 @@ void sub_pos_gpu_gb(struct gtomo_struct *tomo_gpu, long Nlayer)
 //======================================
 //============================================================================================
 void update_tomo_atm_gpu_gb(struct gtomo_struct *tomo_gpu,
-                            sutra_sensors *sensors, sutra_atmos *atmos,
+                            SutraSensors *sensors, SutraAtmos *atmos,
                             double *L0, double *cn2, double *alphaX,
                             double *alphaY) {
   cudaError_t e;
 
   double h[atmos->nscreens];
   int ii = 0;
-  for (vector<sutra_tscreen *>::iterator it = atmos->d_screens.begin();
+  for (vector<SutraTurbuScreen *>::iterator it = atmos->d_screens.begin();
        it != atmos->d_screens.end(); ++it) {
     h[ii] = (double)(*it)->altitude;
     ii++;
@@ -1401,7 +1401,7 @@ void update_tomo_atm_gpu_gb(struct gtomo_struct *tomo_gpu,
   // DEBUG_TRACE("HERE !");
   // tab_dphi_gpu_gb(tomo_gpu->tabDPHI_d, tomo_gpu, Ndphi, tomo_gpu->L0diff_d,
   // Nl0,convert);
-  // carmaSafeCall(cudaDeviceSynchronize());
+  // carma_safe_call(cudaDeviceSynchronize());
 
   // %%%%%%% Computation of the sub-apertures positions and sizes %%%%%%%%%%%
   // u, v :arrays containing all the sub-apertures coordinates of all WFS, one
@@ -1413,14 +1413,14 @@ void update_tomo_atm_gpu_gb(struct gtomo_struct *tomo_gpu,
   sub_pos_gpu_gb(tomo_gpu, (long)atmos->nscreens);
   // DEBUG_TRACE("HERE !");
 
-  carmaSafeCall(cudaDeviceSynchronize());
+  carma_safe_call(cudaDeviceSynchronize());
 
   if (sspSizeL) free(sspSizeL);
   // DEBUG_TRACE("Here !\n");
 }
 //---------------------------------------------------------------------------------
 void update_tomo_sys_gpu_gb(struct gtomo_struct *tomo_gpu,
-                            sutra_sensors *sensors, double *alphaX,
+                            SutraSensors *sensors, double *alphaX,
                             double *alphaY) {
   cudaError_t e;
 
@@ -1489,11 +1489,11 @@ void update_tomo_sys_gpu_gb(struct gtomo_struct *tomo_gpu,
   int ind = 0;
   double p2m;
   for (int i = 0; i < tomo_gpu->Nw; i++) {
-    e = cudaMemcpyAsync(tmpX, sensors->d_wfs[i]->d_validsubsx->getData(),
+    e = cudaMemcpyAsync(tmpX, sensors->d_wfs[i]->d_validsubsx->get_data(),
                         sizeof(int) * sensors->d_wfs[i]->nvalid,
                         cudaMemcpyDeviceToHost, tomo_gpu->matcov_stream);
     process_err(e, "copy tmpX");
-    e = cudaMemcpyAsync(tmpY, sensors->d_wfs[i]->d_validsubsy->getData(),
+    e = cudaMemcpyAsync(tmpY, sensors->d_wfs[i]->d_validsubsy->get_data(),
                         sizeof(int) * sensors->d_wfs[i]->nvalid,
                         cudaMemcpyDeviceToHost, tomo_gpu->matcov_stream);
     process_err(e, "copy tmpY");
@@ -1532,7 +1532,7 @@ void update_tomo_sys_gpu_gb(struct gtomo_struct *tomo_gpu,
     int nb = (int)(408);
     double *tmp;
     tmp=(double*)malloc((nb)*sizeof(double));
-    carmaSafeCall(cudaMemcpy(tmp, tomo_gpu->Y_d, sizeof(double) * nb,
+    carma_safe_call(cudaMemcpy(tmp, tomo_gpu->Y_d, sizeof(double) * nb,
                     cudaMemcpyDeviceToHost));
     for (int ii = 0 ; ii < nb ; ii++){
           printf("%5.5f \n",tmp[ii]);
@@ -1540,7 +1540,7 @@ void update_tomo_sys_gpu_gb(struct gtomo_struct *tomo_gpu,
   */
 }
 
-void generateXY(struct gtomo_struct *tomo, sutra_sensors *sensors)
+void generateXY(struct gtomo_struct *tomo, SutraSensors *sensors)
 /* DOCUMENT  generateXY(struct tomo_struct tomo, double *Nsubap)
  <tomo>               :  structure with all the needed information
  <tomo.X> & <tomo.Y>            :   arrays containing all the sub-apertures
@@ -2190,8 +2190,8 @@ __global__ void CPHIM_kernel(
 //=============================================
 //============================================================================================
 void matcov_gpu_4(float *data, int nrows, int ncols, int xoffset, int yoffset,
-                  int lda, struct gtomo_struct *tomo_gpu, sutra_atmos *atmos,
-                  sutra_sensors *sensors, double *alphaX, double *alphaY) {
+                  int lda, struct gtomo_struct *tomo_gpu, SutraAtmos *atmos,
+                  SutraSensors *sensors, double *alphaX, double *alphaY) {
   /* *** matcov gpu kernel driver ***
    *  Arguments
    *  ==========
@@ -2248,7 +2248,7 @@ void matcov_gpu_4(float *data, int nrows, int ncols, int xoffset, int yoffset,
   // for each DIFFERENT L0
   double h[atmos->nscreens];
   int ii = 0;
-  for (vector<sutra_tscreen *>::iterator it = atmos->d_screens.begin();
+  for (vector<SutraTurbuScreen *>::iterator it = atmos->d_screens.begin();
        it != atmos->d_screens.end(); ++it) {
     h[ii] = (double)(*it)->altitude;
     ii++;
@@ -2279,7 +2279,7 @@ void matcov_gpu_4(float *data, int nrows, int ncols, int xoffset, int yoffset,
     int nb = (int)(atmos->nscreens*tomo_gpu->Nw);
     double *tmp;
     tmp=(double*)malloc((nb)*sizeof(double));
-    carmaSafeCall(cudaMemcpy(tmp, tomo_gpu->sspSizeL_d, sizeof(double) * nb,
+    carma_safe_call(cudaMemcpy(tmp, tomo_gpu->sspSizeL_d, sizeof(double) * nb,
                     cudaMemcpyDeviceToHost));
     for (int ii = 0 ; ii < nb ; ii++){
           printf("%f \n",tmp[ii]);
@@ -2296,14 +2296,14 @@ void matcov_gpu_4(float *data, int nrows, int ncols, int xoffset, int yoffset,
       (double)0.0 /*sensors->d_wfs[0]->noise*/, tomo_gpu->spot_width,
       tomo_gpu->lgs_depth, tomo_gpu->lgs_alt, type_mat, tomo_gpu->nlgs,
       tomo_gpu->DiamTel);
-  carmaCheckMsg("matcov_kernel_4<<<>>> execution failed\n");
+  carma_check_msg("matcov_kernel_4<<<>>> execution failed\n");
   cudaStreamSynchronize(tomo_gpu->matcov_stream);
   /*
   int nb = (int)sensors->d_wfs[0]->nvalid * 2;
   nb = nb*nb;
     double *tmp;
     tmp=(double*)malloc((nb)*sizeof(double));
-    carmaSafeCall(cudaMemcpy(tmp, data, sizeof(double) * nb,
+    carma_safe_call(cudaMemcpy(tmp, data, sizeof(double) * nb,
                     cudaMemcpyDeviceToHost));
     for (int ii = 0 ; ii < nb ; ii++)
         std::cout << tmp[ii] << std::endl;
@@ -2318,9 +2318,9 @@ void matcov_gpu_4(float *data, int nrows, int ncols, int xoffset, int yoffset,
 //=============================================
 //============================================================================================
 void CPHIM(float *data, int nrows, int ncols, int xoffset, int yoffset, int lda,
-           struct cphim_struct *cphim_struct, sutra_atmos *atmos,
-           sutra_sensors *sensors, double *alphaX, double *alphaY,
-           carma_device *device) {
+           struct cphim_struct *cphim_struct, SutraAtmos *atmos,
+           SutraSensors *sensors, double *alphaX, double *alphaY,
+           CarmaDevice *device) {
   /* *** matcov gpu kernel driver ***
    *  Arguments
    *  ==========
@@ -2350,7 +2350,7 @@ void CPHIM(float *data, int nrows, int ncols, int xoffset, int yoffset, int lda,
 
   double h[atmos->nscreens];
   int ii = 0;
-  for (vector<sutra_tscreen *>::iterator it = atmos->d_screens.begin();
+  for (vector<SutraTurbuScreen *>::iterator it = atmos->d_screens.begin();
        it != atmos->d_screens.end(); ++it) {
     h[ii] = (double)(*it)->altitude;
     ii++;
@@ -2382,7 +2382,7 @@ void CPHIM(float *data, int nrows, int ncols, int xoffset, int yoffset, int lda,
     int nb = (int)(1224);
     double *tmp;
     tmp=(double*)malloc((nb)*sizeof(double));
-    carmaSafeCall(cudaMemcpy(tmp, tomo_gpu->u_d, sizeof(double) * nb,
+    carma_safe_call(cudaMemcpy(tmp, tomo_gpu->u_d, sizeof(double) * nb,
                     cudaMemcpyDeviceToHost));
     for (int ii = 0 ; ii < nb ; ii++){
           printf("%5.20f \n",tmp[ii]);
@@ -2405,7 +2405,7 @@ void CPHIM(float *data, int nrows, int ncols, int xoffset, int yoffset, int lda,
       cphim_struct->FoV, cphim_struct->nlgs, cphim_struct->DiamTel,
       cphim_struct->k2_d, cphim_struct->tab_int_x, cphim_struct->tab_int_y);
 
-  carmaCheckMsg("matcov_kernel_4<<<>>> execution failed\n");
+  carma_check_msg("matcov_kernel_4<<<>>> execution failed\n");
   cudaStreamSynchronize(cphim_struct->cphim_stream);
 }
 
@@ -2459,14 +2459,14 @@ void sub_pos_cphim(struct cphim_struct *cphim_struct, long Nlayer)
  */
 {
   int msize = Nlayer * cphim_struct->Nx;
-  int nblocks = msize / tabDPHI_thread_x + ((msize % tabDPHI_thread_x) != 0);
+  int nb_blocks = msize / tabDPHI_thread_x + ((msize % tabDPHI_thread_x) != 0);
   dim3 dimBlock(tabDPHI_thread_x, 1);
-  dim3 dimGrid(nblocks, 1);
+  dim3 dimGrid(nb_blocks, 1);
   /*
     int nb = (int)(msize);
         double *tmpp;
         tmpp=(double*)malloc((nb)*sizeof(double));
-        carmaSafeCall(cudaMemcpy(tmpp, cphim_struct->X_d, sizeof(double) * nb,
+        carma_safe_call(cudaMemcpy(tmpp, cphim_struct->X_d, sizeof(double) * nb,
                             cudaMemcpyDeviceToHost));
         for (int ii = 0 ; ii < nb ; ii++){
           printf("%5.5f \n",tmpp[ii]);
@@ -2483,12 +2483,12 @@ void sub_pos_cphim(struct cphim_struct *cphim_struct, long Nlayer)
       cphim_struct->Y_d, cphim_struct->XPup_d, cphim_struct->YPup_d,
       cphim_struct->u_d, cphim_struct->v_d);
 
-  carmaCheckMsg("subposition_gpu_gb_kernel<<<>>> execution failed\n");
+  carma_check_msg("subposition_gpu_gb_kernel<<<>>> execution failed\n");
   /*
      int nb = (int)(184);
         double *tmpp;
         tmpp=(double*)malloc((nb)*sizeof(double));
-        carmaSafeCall(cudaMemcpy(tmpp, tomo_gpu->u_d, sizeof(double) * nb,
+        carma_safe_call(cudaMemcpy(tmpp, tomo_gpu->u_d, sizeof(double) * nb,
                             cudaMemcpyDeviceToHost));
         for (int ii = 0 ; ii < nb ; ii++){
           printf("%5.5f \n",tmpp[ii]);
@@ -2497,8 +2497,8 @@ void sub_pos_cphim(struct cphim_struct *cphim_struct, long Nlayer)
   // CudaCheckError();
 }
 
-void init_cphim_struct(struct cphim_struct *cphim_struct, sutra_atmos *atmos,
-                       sutra_sensors *sensors, sutra_dms *dms, double diamTel) {
+void init_cphim_struct(struct cphim_struct *cphim_struct, SutraAtmos *atmos,
+                       SutraSensors *sensors, SutraDms *dms, double diamTel) {
   cudaError_t e;
 
   cphim_struct->DiamTel = diamTel;
@@ -2506,10 +2506,10 @@ void init_cphim_struct(struct cphim_struct *cphim_struct, sutra_atmos *atmos,
 
   int Nactu = 0;
   int Ndm = 0;
-  vector<sutra_dm *>::iterator p;
+  vector<SutraDm *>::iterator p;
   p = dms->d_dms.begin();
   while (p != dms->d_dms.end()) {
-    sutra_dm *dm = *p;
+    SutraDm *dm = *p;
     if (dm->type != "tt") {
       Nactu += dm->nactus;
       Ndm += 1;
@@ -2528,7 +2528,7 @@ void init_cphim_struct(struct cphim_struct *cphim_struct, sutra_atmos *atmos,
   p = dms->d_dms.begin();
   int indx = 0;
   while (p != dms->d_dms.end()) {
-    sutra_dm *dm = *p;
+    SutraDm *dm = *p;
     if (dm->type != "tt") {
       cphim_struct->Nactu_tot[indx] = dm->nactus;
       indx += 1;
@@ -2711,30 +2711,30 @@ void tab_u831J0(double *tab_int_x, double *tab_int_y, long npts) {
   double *tab;
   tab = (double *)malloc((npts) * sizeof(double));
   double *temp_d;
-  // int nblocks = 0 , nthreads = 0;
+  // int nb_blocks = 0 , nb_threads = 0;
   double dt = (tmax - tmin) / (npts - 1);
-  // getNumBlocksAndThreads(device, npts, nblocks, nthreads);
+  // get_num_blocks_and_threads(device, npts, nb_blocks, nb_threads);
   /*
-  int nblocks = msize / tabDPHI_thread_x + ( ( msize % tabDPHI_thread_x) != 0);
+  int nb_blocks = msize / tabDPHI_thread_x + ( ( msize % tabDPHI_thread_x) != 0);
   dim3 dimBlock(tabDPHI_thread_x, 1);
-  dim3 dimGrid(nblocks, 1);
+  dim3 dimGrid(nb_blocks, 1);
   */
   int device;
   cudaGetDevice(&device);
   struct cudaDeviceProp props;
   cudaGetDeviceProperties(&props, device);
-  int nthreads = props.maxThreadsPerBlock;
-  int nblocks = npts / nthreads + ((npts % nthreads) != 0);
-  dim3 grid(nblocks), threads(nthreads);
+  int nb_threads = props.maxThreadsPerBlock;
+  int nb_blocks = npts / nb_threads + ((npts % nb_threads) != 0);
+  dim3 grid(nb_blocks), threads(nb_threads);
   compute_u831J0<<<grid, threads>>>(tab_int_x, tab_int_y, npts, tmin, tmax, dt);
-  carmaCheckMsg("compute_u831J0<<<>>> execution failed\n");
+  carma_check_msg("compute_u831J0<<<>>> execution failed\n");
   // DEBUG_TRACE("tab_int !\n");
   e = cudaMalloc((void **)&(temp_d), (npts - 1) * sizeof(double));
   process_err(e, "alloc gpu temp_d");
-  nblocks = (npts - 1) / nthreads + (((npts - 1) % nthreads) != 0);
-  dim3 grid2(nblocks);
+  nb_blocks = (npts - 1) / nb_threads + (((npts - 1) % nb_threads) != 0);
+  dim3 grid2(nb_blocks);
   cuda_zcen_krnl<<<grid2, threads>>>(tab_int_y, temp_d, npts - 1);
-  carmaCheckMsg("cuda_zcen_krnl<<<>>> execution failed\n");
+  carma_check_msg("cuda_zcen_krnl<<<>>> execution failed\n");
   // cuda_zcen(tab_int_y,temp_d, npts-1, device);
   // DEBUG_TRACE("tab_int !\n");
   e = cudaMemcpy(temp, temp_d, (npts - 1) * sizeof(double),
@@ -2751,7 +2751,7 @@ void tab_u831J0(double *tab_int_x, double *tab_int_y, long npts) {
   double smallInt = (0.75 * pow(smallx, 1 / 3.) * (1 - smallx * smallx / 112.));
   // DEBUG_TRACE("tab_int !\n");
   intfrominftomin<<<grid, threads>>>(tab_int_y, smallInt, npts);
-  carmaCheckMsg("intfrominftomin<<<>>> execution failed\n");
+  carma_check_msg("intfrominftomin<<<>>> execution failed\n");
 }
 
 void cumsum(double *odata, double *idata, int N) {
@@ -2761,23 +2761,23 @@ void cumsum(double *odata, double *idata, int N) {
   }
 }
 
-void cuda_zcen(double *idata, double *odata, int N, carma_device *device) {
-  int nblocks = 0, nthreads = 0;
-  getNumBlocksAndThreads(device, N, nblocks, nthreads);
-  dim3 grid(nblocks), threads(nthreads);
+void cuda_zcen(double *idata, double *odata, int N, CarmaDevice *device) {
+  int nb_blocks = 0, nb_threads = 0;
+  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
   cuda_zcen_krnl<<<grid, threads>>>(idata, odata, N);
-  carmaCheckMsg("cuda_zcen_krnl<<<>>> execution failed\n");
+  carma_check_msg("cuda_zcen_krnl<<<>>> execution failed\n");
 }
 
-void update_cphim_atm(struct cphim_struct *cphim_struct, sutra_sensors *sensors,
-                      sutra_atmos *atmos, double *L0, double *cn2,
+void update_cphim_atm(struct cphim_struct *cphim_struct, SutraSensors *sensors,
+                      SutraAtmos *atmos, double *L0, double *cn2,
                       double *alphaX, double *alphaY) {
   cudaError_t e;
 
   double h[atmos->nscreens];
   int ii = 0;
-  for (vector<sutra_tscreen *>::iterator it = atmos->d_screens.begin();
+  for (vector<SutraTurbuScreen *>::iterator it = atmos->d_screens.begin();
        it != atmos->d_screens.end(); ++it) {
     h[ii] = (double)(*it)->altitude;
     ii++;
@@ -2891,7 +2891,7 @@ void update_cphim_atm(struct cphim_struct *cphim_struct, sutra_sensors *sensors,
   // FILE *f = fopen("tabDPHI_d.txt","w");
     double *tmpp;
     tmpp=(double*)malloc((nb)*sizeof(double));
-    carmaSafeCall(cudaMemcpy(tmpp, cphim_struct->h_d, sizeof(double) * nb,
+    carma_safe_call(cudaMemcpy(tmpp, cphim_struct->h_d, sizeof(double) * nb,
                     cudaMemcpyDeviceToHost));
     for (int ii = 0 ; ii < nb ; ii++){
         DEBUG_TRACE("%5.5f \n",tmpp[ii]);
@@ -2900,13 +2900,13 @@ void update_cphim_atm(struct cphim_struct *cphim_struct, sutra_sensors *sensors,
 
   // tab_dphi_lowpass(cphim_struct->tabDPHI_d, cphim_struct, Ndphi,
   // cphim_struct->L0diff_d, Nl0,convert,convert_int);
-  // carmaSafeCall(cudaDeviceSynchronize());
+  // carma_safe_call(cudaDeviceSynchronize());
   /*
   int nb = (int)(Ndphi);
    // FILE *f = fopen("tabDPHI_d.txt","w");
       double *tmpp;
       tmpp=(double*)malloc((nb)*sizeof(double));
-      carmaSafeCall(cudaMemcpy(tmpp, cphim_struct->tabDPHI_d, sizeof(double) *
+      carma_safe_call(cudaMemcpy(tmpp, cphim_struct->tabDPHI_d, sizeof(double) *
   nb, cudaMemcpyDeviceToHost)); for (int ii = 0 ; ii < nb ; ii++){ printf("%5.5f
   \n",tmpp[ii]);
       }
@@ -2920,11 +2920,11 @@ void update_cphim_atm(struct cphim_struct *cphim_struct, sutra_sensors *sensors,
   // DEBUG_TRACE("Here %d %d %d!\n", (long)atmos->nscreens,
   // (long)cphim_struct->Nw, (long)sensors->d_wfs[0]->nvalid);
   sub_pos_cphim(cphim_struct, (long)atmos->nscreens);
-  // carmaSafeCall(cudaDeviceSynchronize());
+  // carma_safe_call(cudaDeviceSynchronize());
   /*
     int nb = (int)(atmos->nscreens * sensors->d_wfs[0]->nvalid *
     cphim_struct->Nw); double *tmpp; tmpp=(double*)malloc((nb)*sizeof(double));
-      carmaSafeCall(cudaMemcpy(tmpp, cphim_struct->u_d, sizeof(double) * nb,
+      carma_safe_call(cudaMemcpy(tmpp, cphim_struct->u_d, sizeof(double) * nb,
                     cudaMemcpyDeviceToHost));
       for (int ii = 0 ; ii < nb ; ii++){
           printf("%5.5f \n",tmpp[ii]);
@@ -2934,7 +2934,7 @@ void update_cphim_atm(struct cphim_struct *cphim_struct, sutra_sensors *sensors,
   // DEBUG_TRACE("Here !\n");
 }
 
-void update_cphim_sys(struct cphim_struct *cphim_struct, sutra_sensors *sensors,
+void update_cphim_sys(struct cphim_struct *cphim_struct, SutraSensors *sensors,
                       double *alphaX, double *alphaY, double *xactu,
                       double *yactu, double *X, double *Y, long *NlayerDm,
                       long *indLayerDm, double *alt_dm, double *pitch,
@@ -3038,12 +3038,12 @@ void update_cphim_sys(struct cphim_struct *cphim_struct, sutra_sensors *sensors,
     for(int i=0 ; i<cphim_struct->Nw ; i++){
           if(i<sensors->nsensors()){
                   e =
-    cudaMemcpyAsync(tmpX,sensors->d_wfs[i]->d_validsubsx->getData() ,
+    cudaMemcpyAsync(tmpX,sensors->d_wfs[i]->d_validsubsx->get_data() ,
     sizeof(int) * sensors->d_wfs[i]->nvalid,
                     cudaMemcpyDeviceToHost,cphim_struct->cphim_stream);
                   process_err(e,"copy tmpX");
                   e =
-    cudaMemcpyAsync(tmpY,sensors->d_wfs[i]->d_validsubsy->getData() ,
+    cudaMemcpyAsync(tmpY,sensors->d_wfs[i]->d_validsubsy->get_data() ,
     sizeof(int) * sensors->d_wfs[i]->nvalid,
                             cudaMemcpyDeviceToHost,cphim_struct->cphim_stream);
                   process_err(e,"copy tmpY");
@@ -3052,12 +3052,12 @@ void update_cphim_sys(struct cphim_struct *cphim_struct, sutra_sensors *sensors,
           }
           else{
                   e =
-    cudaMemcpyAsync(tmpX,sensors->d_wfs[i-1]->d_validsubsx->getData() ,
+    cudaMemcpyAsync(tmpX,sensors->d_wfs[i-1]->d_validsubsx->get_data() ,
     sizeof(int) * sensors->d_wfs[i-1]->nvalid,
                                     cudaMemcpyDeviceToHost,cphim_struct->cphim_stream);
                   process_err(e,"copy tmpX");
                   e =
-    cudaMemcpyAsync(tmpY,sensors->d_wfs[i-1]->d_validsubsy->getData() ,
+    cudaMemcpyAsync(tmpY,sensors->d_wfs[i-1]->d_validsubsy->get_data() ,
     sizeof(int) * sensors->d_wfs[i-1]->nvalid,
                                             cudaMemcpyDeviceToHost,cphim_struct->cphim_stream);
                   process_err(e,"copy tmpY");
@@ -3127,7 +3127,7 @@ void update_cphim_sys(struct cphim_struct *cphim_struct, sutra_sensors *sensors,
     int nb = (int)(cphim_struct->Nactu);
     double *tmp;
     tmp=(double*)malloc((nb)*sizeof(double));
-    carmaSafeCall(cudaMemcpy(tmp, cphim_struct->yact_d, sizeof(double) * nb,
+    carma_safe_call(cudaMemcpy(tmp, cphim_struct->yact_d, sizeof(double) * nb,
                     cudaMemcpyDeviceToHost));
     for (int ii = 0 ; ii < nb ; ii++){
           printf("%5.5f \n",tmp[ii]);
@@ -3250,7 +3250,7 @@ __global__ void test_dphi_highpass_krnl(double *odata, double *r, double *tabx,
   }
 }
 
-void test_DPHI_highpass(double R, double x0, long npts, carma_device *device) {
+void test_DPHI_highpass(double R, double x0, long npts, CarmaDevice *device) {
   // DEBUG_TRACE("tab_int !\n");
   cudaError_t e;
   double *tabx_d;
@@ -3287,10 +3287,10 @@ void test_DPHI_highpass(double R, double x0, long npts, carma_device *device) {
   e = cudaMemcpy(r_d, r, (npts) * sizeof(double), cudaMemcpyHostToDevice);
   process_err(e, "copy cpu temp");
   process_err(e, "alloc gpu temp_d");
-  int nblocks = 0;
-  int nthreads = 0;
-  getNumBlocksAndThreads(device, npts, nblocks, nthreads);
-  dim3 grid(nblocks), threads(nthreads);
+  int nb_blocks = 0;
+  int nb_threads = 0;
+  get_num_blocks_and_threads(device, npts, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
   test_dphi_highpass_krnl<<<grid, threads>>>(odata, r_d, tabx_d, taby_d, x0,
                                              npts);
 

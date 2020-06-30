@@ -32,9 +32,9 @@
 
 //! \file      sensors.cpp
 //! \ingroup   libsutra
-//! \brief     this file provides pybind wrapper for sutra_sensors
+//! \brief     this file provides pybind wrapper for SutraSensors
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -44,26 +44,26 @@
 
 namespace py = pybind11;
 
-std::unique_ptr<sutra_sensors> sensors_init(
-    carma_context &context, sutra_telescope *d_tel, vector<string> type,
+std::unique_ptr<SutraSensors> sensors_init(
+    CarmaContext &context, SutraTelescope *d_tel, vector<string> type,
     int nwfs, long *nxsub, long *nvalid, long *npupils, long *npix,
     long *nphase, long *nrebin, long *nfft, long *ntot, long *npup,
     float *pdiam, float *nphot, float *nphot4imat, int *lgs, bool *fakecam,
-    int *maxFluxPerPix, int *maxPixValue, int device, bool roket) {
-  return std::unique_ptr<sutra_sensors>(new sutra_sensors(
+    int *max_flux_per_pix, int *max_pix_value, int device, bool roket) {
+  return std::unique_ptr<SutraSensors>(new SutraSensors(
       &context, d_tel, type, nwfs, nxsub, nvalid, npupils, npix, nphase, nrebin,
-      nfft, ntot, npup, pdiam, nphot, nphot4imat, lgs, fakecam, maxFluxPerPix,
-      maxPixValue, device, roket));
+      nfft, ntot, npup, pdiam, nphot, nphot4imat, lgs, fakecam, max_flux_per_pix,
+      max_pix_value, device, roket));
 }
 
 void declare_sensors(py::module &mod) {
-  py::class_<sutra_sensors>(mod, "Sensors")
+  py::class_<SutraSensors>(mod, "Sensors")
       .def(py::init(wy::colCast(sensors_init)), R"pbdoc(
         Create and initialise a sensors object
         Parameters
         ------------
-        context: (carma_context) : current carma context
-        d_tel: (sutra_telescope) : sutra_telescope object
+        context: (CarmaContext) : current carma context
+        d_tel: (SutraTelescope) : SutraTelescope object
         type: (list of string): WFS types
         nwfs: (int) : number of WFS
         nxsub: (np.ndarray[ndim=1, dtype=np.int64]) : number of ssp in the diameter for each WFS
@@ -80,8 +80,8 @@ void declare_sensors(py::module &mod) {
         nphot4imat: (np.ndarray[ndim=1,dtype=np.float32]) : photons per subap per iter for each WFS (for imat computation only)
         lgs: (np.ndarray[ndim=1,dtype=np.int64]) : LGS flag for each WFS
         fakecam: (bool): if True, image is computed in uint16
-        maxFluxPerPix: (np.ndarray[ndim=1, dtype=np.int32]): maximum number of photons a pixel can handle before saturation
-        maxPixValue: (np.ndarray[ndim=1, dtype=np.int32]): maximum number of ADU possible in the uint16 image
+        max_flux_per_pix: (np.ndarray[ndim=1, dtype=np.int32]): maximum number of photons a pixel can handle before saturation
+        max_pix_value: (np.ndarray[ndim=1, dtype=np.int32]): maximum number of ADU possible in the uint16 image
         device: (int): GPU device index
         roket : (bool): flag for enabling ROKET
 
@@ -91,8 +91,8 @@ void declare_sensors(py::module &mod) {
            py::arg("npupils"), py::arg("npix"), py::arg("nphase"),
            py::arg("nrebin"), py::arg("nfft"), py::arg("ntot"), py::arg("npup"),
            py::arg("pdiam"), py::arg("nphot"), py::arg("nphot4imat"),
-           py::arg("lgs"), py::arg("fakecam"), py::arg("maxFluxPerPix"),
-           py::arg("maxPixValue"), py::arg("device"), py::arg("roket"))
+           py::arg("lgs"), py::arg("fakecam"), py::arg("max_flux_per_pix"),
+           py::arg("max_pix_value"), py::arg("device"), py::arg("roket"))
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
@@ -102,39 +102,39 @@ void declare_sensors(py::module &mod) {
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
       .def_property_readonly(
-          "device", [](sutra_sensors &ss) { return ss.device; },
+          "device", [](SutraSensors &ss) { return ss.device; },
           "GPU device index")
 
       .def_property_readonly(
-          "roket", [](sutra_sensors &ss) { return ss.roket; }, "ROKET flag")
+          "roket", [](SutraSensors &ss) { return ss.roket; }, "ROKET flag")
 
       .def_property_readonly(
-          "nsensors", [](sutra_sensors &ss) { return ss.nsensors(); },
+          "nsensors", [](SutraSensors &ss) { return ss.nsensors(); },
           "Number of WFS")
 
       .def_property_readonly(
           "d_wfs",
-          [](sutra_sensors &ss) -> vector<sutra_wfs *> & { return ss.d_wfs; },
+          [](SutraSensors &ss) -> vector<SutraWfs *> & { return ss.d_wfs; },
           "Vector of WFS")
 
       .def_property_readonly(
-          "d_camplipup", [](sutra_sensors &ss) { return ss.d_camplipup; },
+          "d_camplipup", [](SutraSensors &ss) { return ss.d_camplipup; },
           "Complex amplitude in the pupil")
 
       .def_property_readonly(
-          "d_camplifoc", [](sutra_sensors &ss) { return ss.d_camplifoc; },
+          "d_camplifoc", [](SutraSensors &ss) { return ss.d_camplifoc; },
           "Complex amplitude in the focal plane")
 
       .def_property_readonly(
-          "d_fttotim", [](sutra_sensors &ss) { return ss.d_fttotim; },
+          "d_fttotim", [](SutraSensors &ss) { return ss.d_fttotim; },
           "Buffer for FFT computation")
 
       .def_property_readonly(
-          "d_ftlgskern", [](sutra_sensors &ss) { return ss.d_ftlgskern; },
+          "d_ftlgskern", [](SutraSensors &ss) { return ss.d_ftlgskern; },
           "Convolution kernel for LGS spot")
 
       .def_property_readonly(
-          "d_lgskern", [](sutra_sensors &ss) { return ss.d_lgskern; },
+          "d_lgskern", [](SutraSensors &ss) { return ss.d_lgskern; },
           "LGS spot")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
@@ -145,10 +145,10 @@ void declare_sensors(py::module &mod) {
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
       .def("initgs",
            wy::colCast(
-               (int (sutra_sensors::*)(float *, float *, float *, float *,
+               (int (SutraSensors::*)(float *, float *, float *, float *,
                                        float, long *, float *, long *, float *,
                                        float *, float *, float *)) &
-               sutra_sensors::initgs),
+               SutraSensors::initgs),
            R"pbdoc(
                          Initializes the guide stars of all WFS
 

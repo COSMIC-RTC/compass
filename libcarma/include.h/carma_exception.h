@@ -33,9 +33,9 @@
 //! \file      carma_exception.h
 //! \ingroup   libcarma
 //! \class     carma_exception
-//! \brief     this class provides the exception to carma_obj
+//! \brief     this class provides the exception to CarmaObj
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -43,7 +43,9 @@
 #ifndef CARMA_EXCEPTION_H_
 #define CARMA_EXCEPTION_H_
 
+#include <iostream>
 #include <string>
+#include <sstream>
 
 #define Carma_Error(s) CarmaException(s, __FILE__, __LINE__)
 
@@ -58,9 +60,9 @@
 
 class CarmaException {
  private:
-  std::string aReason;  //!< a detailed description of the error
-  std::string aFile;    //!< in which file this exception has been created
-  unsigned int aLine;   //!< on which line this exception has been created
+  std::string a_reason;  //!< a detailed description of the error
+  std::string a_file;    //!< in which file this exception has been created
+  unsigned int a_line;   //!< on which line this exception has been created
  public:
   /*!
    *  \brief Constructor
@@ -73,7 +75,7 @@ class CarmaException {
    */
 
   CarmaException(std::string reason, std::string file, unsigned int line)
-      : aReason(reason), aFile(file), aLine(line) {}
+      : a_reason(reason), a_file(file), a_line(line) {}
 
   /*!
    *  \brief Destructor
@@ -91,9 +93,9 @@ class CarmaException {
    *  \return Formated exception
    */
 
-  const char* showReason() const {
+  const char* show_reason() const {
     std::stringstream buf;
-    buf << aReason << " in " << aFile << "@" << aLine << std::endl;
+    buf << a_reason << " in " << a_file << "@" << a_line << std::endl;
     return buf.str().c_str();
   }
 
@@ -105,9 +107,9 @@ class CarmaException {
    *  \return Formated exception
    */
 
-  std::string showReasonStr() const {
+  std::string show_reason_str() const {
     std::stringstream buf;
-    buf << aReason << " in " << aFile << "@" << aLine << std::endl;
+    buf << a_reason << " in " << a_file << "@" << a_line << std::endl;
     return buf.str();
   }
 };

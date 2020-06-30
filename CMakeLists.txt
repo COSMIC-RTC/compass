@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.8)
 
 if(NOT DEFINED VERSION_INFO)
-  set(VERSION_INFO 4.4.1)
+  set(VERSION_INFO 5.0.0)
 endif()
 
 message(STATUS "COMPASS will be installed in: ${CMAKE_INSTALL_PREFIX}")
@@ -21,6 +21,9 @@ endif()
 project(compass
         VERSION ${VERSION_INFO} DESCRIPTION "COMPASS library"
         LANGUAGES CUDA CXX)
+
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup(TARGETS NO_OUTPUT_DIRS)
 
 add_subdirectory(libcarma)
 add_subdirectory(libsutra)

@@ -1,4 +1,4 @@
-image: aocompass/base-devel-16.04:10.2
+image: aocompass/base-18.04:10.2
 
 stages:
   - build
@@ -8,16 +8,14 @@ stages:
 build_release:
   stage: build
   variables:
-    GIT_SUBMODULE_STRATEGY: recursive
     COMPASS_ROOT: /builds/compass/compass
     SHESHA_ROOT: $COMPASS_ROOT/shesha
-    CUB_ROOT: $COMPASS_ROOT/tplib/cub
-    WYRM_ROOT: $COMPASS_ROOT/tplib/wyrm
-    COMPASS_DO_HALF: "ON"
   script:
+    - export COMPASS_DO_HALF="ON"
     - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
-    - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
-    - ./compile.sh
+    - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
+    - ./install_dependencies.sh
+    - ./compile.sh $PWD/local
   when: manual
   # only:
   #  - develop
@@ -37,19 +35,18 @@ build_release_master:
 build_debug:
   stage: build
   variables:
-    GIT_SUBMODULE_STRATEGY: recursive
     COMPASS_ROOT: /builds/compass/compass
     SHESHA_ROOT: $COMPASS_ROOT/shesha
-    CUB_ROOT: $COMPASS_ROOT/tplib/cub
-    WYRM_ROOT: $COMPASS_ROOT/tplib/wyrm
     COMPASS_DEBUG: "-DCMAKE_BUILD_TYPE=Debug"
     COMPASS_DO_HALF: "ON"
   script:
     - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
-    - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
-    - $COMPASS_ROOT/compile.sh
+    - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
+    - ./install_dependencies.sh
+    - ./compile.sh $PWD/local
   when: always
   only:
+    - merge_requests
     - develop
   artifacts:
     paths:
@@ -66,7 +63,7 @@ pytests:
     - build_debug
   script:
     - export PYTHONPATH=$NAGA_ROOT:$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
-    - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
+    - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
     - pip install -r requirements-test.txt
     - $COMPASS_ROOT/doc/generate_coverage.sh
     - coverage report
@@ -77,6 +74,7 @@ pytests:
     expire_in: 1 week
   when: always
   only:
+    - merge_requests
     - develop
 
 master_pytests:
@@ -105,11 +103,13 @@ pages:
     - pip install -r requirements-test.txt
     - pip install -r requirements-doc.txt
     - $COMPASS_ROOT/doc/generate_reports.sh
+    - $COMPASS_ROOT/doc/correctDoxygen_gitlab.sh
   artifacts:
     paths:
     - public
   when: always  # manual / always
   only:
+    - merge_requests
     - develop
 
 # pages:

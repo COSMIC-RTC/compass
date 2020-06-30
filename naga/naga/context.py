@@ -1,8 +1,8 @@
 ## @package   naga.context
 ## @brief     Documentation for naga
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   4.4.1
-## @date      2011/01/28
+## @version   5.0.0
+## @date      2020/05/18
 ## @copyright GNU Lesser General Public License
 #
 #  This file is part of COMPASS <https://anr-compass.github.io/compass/>
@@ -41,7 +41,7 @@ import numpy as np
 
 class Context:
     """
-    Python class for wrapping a carma_context
+    Python class for wrapping a CarmaContext
     """
 
     def __init__(self, devices=None):
@@ -64,12 +64,12 @@ class Context:
 
     def getActiveDevice(self):
         """ Return the index of the current active device """
-        return self.context.activeDevice
+        return self.context.active_device
 
     def setActiveDevice(self, index: int):
         """ Set the device index as the active device """
         if index in self.devices:
-            self.context.set_activeDevice(index)
+            self.context.set_active_device(index)
         else:
             raise ValueError("Index given is not valid")
 

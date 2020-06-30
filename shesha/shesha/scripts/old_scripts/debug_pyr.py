@@ -54,7 +54,7 @@ else:
 # initialisation:
 #   context
 c = ch.carmaWrap_context(0)
-# c.set_activeDevice(0) #useful only if you use ch.carmaWrap_context()
+# c.set_active_device(0) #useful only if you use ch.carmaWrap_context()
 
 # wfs
 config.p_wfs0.set_atmos_seen(0)

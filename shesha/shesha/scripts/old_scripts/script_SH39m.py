@@ -101,7 +101,7 @@ else:
 #   context
 c = ch.carmaWrap_context(devices=np.array([0, 1, 2, 3], dtype=np.int32))
 
-#c.set_activeDevice(6)
+#c.set_active_device(6)
 
 
 def makeFITSHeader(filepath, df):
@@ -276,7 +276,7 @@ if (not (type(resAll) == pd.core.frame.DataFrame)):
 #magnitudes=[11.5,12.5,13.5,14.5]
 ##
 
-#res500 = pf.getdata("/home/fvidal/res_500.fits")
+#res500 = pf.get_data("/home/fvidal/res_500.fits")
 #fig = plt.figure(num = 1)
 #fig.show()
 Nsimutot = len(gainslist) * len(magnitudes) * len(bps) * len(RONS) * len(pixsizes) * len(

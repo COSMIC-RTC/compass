@@ -32,10 +32,10 @@
 
 //! \file      sutra_groot.cu
 //! \ingroup   libsutra
-//! \class     sutra_groot
+//! \class     SutraGroot
 //! \brief     this class provides the groot features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -235,17 +235,17 @@ __device__ void compute_u831J0_gen(Fn const &ptr_exp, T_data *x, T_data *y,
 
 template <class T_data>
 __global__ void compute_u831J0(T_data *x, T_data *y, int npts, T_data tmin,
-                               T_data tmax, T_data dt, carma_device *device);
+                               T_data tmax, T_data dt, CarmaDevice *device);
 template <>
 __global__ void compute_u831J0<float>(float *x, float *y, int npts, float tmin,
                                       float tmax, float dt,
-                                      carma_device *device) {
+                                      CarmaDevice *device) {
   compute_u831J0_gen<float>(expf, x, y, npts, tmin, tmax, dt);
 }
 template <>
 __global__ void compute_u831J0<double>(double *x, double *y, int npts,
                                        double tmin, double tmax, double dt,
-                                       carma_device *device) {
+                                       CarmaDevice *device) {
   compute_u831J0_gen<double, double (*)(double)>(exp, x, y, npts, tmin, tmax,
                                                  dt);
 }
@@ -292,12 +292,12 @@ template void cumsum<double>(double *odata, double *idata, int N);
 
 template <class T_data>
 int tab_u831J0(T_data *tab_int_x, T_data *tab_int_y, int npts,
-               carma_device *device) {
+               CarmaDevice *device) {
   T_data tmin = -4.;
   T_data tmax = 10.;
   T_data *t = (T_data *)malloc(sizeof(T_data) * npts);
   cudaMemcpy(t, tab_int_x, (npts) * sizeof(T_data), cudaMemcpyDeviceToHost);
-  carmaCheckMsg("copy test");
+  carma_check_msg("copy test");
 
   T_data *temp;
   temp = (T_data *)malloc((npts - 1) * sizeof(T_data));
@@ -306,30 +306,30 @@ int tab_u831J0(T_data *tab_int_x, T_data *tab_int_y, int npts,
   T_data *temp_d;
   T_data dt = (tmax - tmin) / (npts - 1);
 
-  int nthreads = 0, nblocks = 0;
-  getNumBlocksAndThreads(device, npts, nblocks, nthreads);
-  dim3 grid(nblocks), threads(nthreads);
+  int nb_threads = 0, nb_blocks = 0;
+  get_num_blocks_and_threads(device, npts, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
   compute_u831J0<<<grid, threads>>>(tab_int_x, tab_int_y, npts, tmin, tmax, dt,
                                     device);
-  carmaCheckMsg("compute_u831J0<<<>>> execution failed\n");
+  carma_check_msg("compute_u831J0<<<>>> execution failed\n");
   // DEBUG_TRACE("tab_int !\n");
   cudaMalloc((void **)&(temp_d), (npts - 1) * sizeof(T_data));
-  carmaCheckMsg("alloc gpu temp_d");
+  carma_check_msg("alloc gpu temp_d");
 
-  getNumBlocksAndThreads(device, npts - 1, nblocks, nthreads);
-  dim3 grid2(nblocks), threads2(nthreads);
+  get_num_blocks_and_threads(device, npts - 1, nb_blocks, nb_threads);
+  dim3 grid2(nb_blocks), threads2(nb_threads);
   cuda_zcen_krnl<<<grid2, threads2>>>(tab_int_y, temp_d, npts - 1);
-  carmaCheckMsg("cuda_zcen_krnl<<<>>> execution failed\n");
+  carma_check_msg("cuda_zcen_krnl<<<>>> execution failed\n");
   // cuda_zcen(tab_int_y,temp_d, npts-1, device);
   // DEBUG_TRACE("tab_int !\n");
   cudaMemcpy(temp, temp_d, (npts - 1) * sizeof(T_data), cudaMemcpyDeviceToHost);
-  carmaCheckMsg("copy cpu temp");
+  carma_check_msg("copy cpu temp");
   cudaFree(temp_d);
   cumsum(tab, temp, npts);
   // DEBUG_TRACE("tab_int !\n");
   cudaMemcpy(tab_int_y, tab, (npts) * sizeof(T_data), cudaMemcpyHostToDevice);
-  carmaCheckMsg("copy gpu tab");
+  carma_check_msg("copy gpu tab");
   // DEBUG_TRACE("tab_int !\n");
   T_data smallx = exp(tmin);
   T_data smallInt =
@@ -337,15 +337,15 @@ int tab_u831J0(T_data *tab_int_x, T_data *tab_int_y, int npts,
   // DEBUG_TRACE("tab_int !\n");
 
   intfrominftomin<<<grid, threads>>>(tab_int_y, smallInt, npts);
-  carmaCheckMsg("intfrominftomin<<<>>> execution failed\n");
+  carma_check_msg("intfrominftomin<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
 template int tab_u831J0(float *tab_int_x, float *tab_int_y, int npts,
-                        carma_device *device);
+                        CarmaDevice *device);
 
 template int tab_u831J0(double *tab_int_x, double *tab_int_y, int npts,
-                        carma_device *device);
+                        CarmaDevice *device);
 
 template <class T_data, typename Fn, typename Fne, typename Fnl>
 __device__ T_data Ij0t83_gen(Fn const &ptr_pow, Fne const &ptr_exp,
@@ -554,7 +554,7 @@ __global__ void compute_Cerr_element(T_data *Cerr, int N, T_data *tab_int_x,
                                      T_data *ypos, T_data vdt, T_data Htheta,
                                      T_data L0, T_data fc, T_data winddir,
                                      T_data gsangle, T_data scale, int Ntab,
-                                     carma_device *device);
+                                     CarmaDevice *device);
 
 template <>
 __global__ void compute_Cerr_element(float *Cerr, int N, float *tab_int_x,
@@ -562,7 +562,7 @@ __global__ void compute_Cerr_element(float *Cerr, int N, float *tab_int_x,
                                      float vdt, float Htheta, float L0,
                                      float fc, float winddir, float gsangle,
                                      float scale, int Ntab,
-                                     carma_device *device) {
+                                     CarmaDevice *device) {
   return compute_Cerr_element_gen<float>(cosf, sinf, Cerr, N, tab_int_x,
                                          tab_int_y, xpos, ypos, vdt, Htheta, L0,
                                          fc, winddir, gsangle, scale, Ntab);
@@ -573,7 +573,7 @@ __global__ void compute_Cerr_element(double *Cerr, int N, double *tab_int_x,
                                      double *ypos, double vdt, double Htheta,
                                      double L0, double fc, double winddir,
                                      double gsangle, double scale, int Ntab,
-                                     carma_device *device) {
+                                     CarmaDevice *device) {
   return compute_Cerr_element_gen<double, double (*)(double),
                                   double (*)(double)>(
       cos, sin, Cerr, N, tab_int_x, tab_int_y, xpos, ypos, vdt, Htheta, L0, fc,
@@ -608,15 +608,15 @@ int compute_Cerr_layer(T_data *Cerr, int N, T_data *tab_int_x,
                        T_data *tab_int_y, T_data *xpos, T_data *ypos,
                        T_data vdt, T_data Htheta, T_data L0, T_data fc,
                        T_data winddir, T_data gsangle, T_data scale, int Ntab,
-                       carma_device *device) {
-  int nthreads = 0, nblocks = 0;
-  getNumBlocksAndThreads(device, N * N, nblocks, nthreads);
-  dim3 grid(nblocks), threads(nthreads);
+                       CarmaDevice *device) {
+  int nb_threads = 0, nb_blocks = 0;
+  get_num_blocks_and_threads(device, N * N, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
   compute_Cerr_element<<<grid, threads>>>(Cerr, N, tab_int_x, tab_int_y, xpos,
                                           ypos, vdt, Htheta, L0, fc, winddir,
                                           gsangle, scale, Ntab, device);
-  carmaCheckMsg("compute_Cerr_element<<<>>> execution failed\n");
+  carma_check_msg("compute_Cerr_element<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -626,45 +626,45 @@ template int compute_Cerr_layer<float>(float *Cerr, int N, float *tab_int_x,
                                        float *ypos, float vdt, float Htheta,
                                        float L0, float fc, float winddir,
                                        float gsangle, float scale, int Ntab,
-                                       carma_device *device);
+                                       CarmaDevice *device);
 template int compute_Cerr_layer<double>(double *Cerr, int N, double *tab_int_x,
                                         double *tab_int_y, double *xpos,
                                         double *ypos, double vdt, double Htheta,
                                         double L0, double fc, double winddir,
                                         double gsangle, double scale, int Ntab,
-                                        carma_device *device);
+                                        CarmaDevice *device);
 
 template <class T_data>
-int add_transpose(T_data *Cerr, int N, carma_device *device) {
-  int nthreads = 0, nblocks = 0;
-  getNumBlocksAndThreads(device, N * (N + 1) / 2, nblocks, nthreads);
-  dim3 grid2(nblocks), threads2(nthreads);
+int add_transpose(T_data *Cerr, int N, CarmaDevice *device) {
+  int nb_threads = 0, nb_blocks = 0;
+  get_num_blocks_and_threads(device, N * (N + 1) / 2, nb_blocks, nb_threads);
+  dim3 grid2(nb_blocks), threads2(nb_threads);
   add_transpose_krnl<<<grid2, threads2>>>(Cerr, N);
-  carmaCheckMsg("add_transpose<<<>>> execution failed\n");
+  carma_check_msg("add_transpose<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
-template int add_transpose<float>(float *Cerr, int N, carma_device *device);
-template int add_transpose<double>(double *Cerr, int N, carma_device *device);
+template int add_transpose<float>(float *Cerr, int N, CarmaDevice *device);
+template int add_transpose<double>(double *Cerr, int N, CarmaDevice *device);
 
 template <class T_data>
 int compute_Ca(T_data *CaXX, T_data *CaYY, int nssp, T_data *tab_int_x,
                T_data *tab_int_y, T_data *xpos, T_data *ypos, T_data offset,
                T_data d, T_data fc, T_data scale, T_data weight, int Ntab,
-               carma_device *device) {
-  int nthreads = 0, nblocks = 0;
-  getNumBlocksAndThreads(device, nssp * nssp, nblocks, nthreads);
-  dim3 grid(nblocks), threads(nthreads);
+               CarmaDevice *device) {
+  int nb_threads = 0, nb_blocks = 0;
+  get_num_blocks_and_threads(device, nssp * nssp, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
   compute_Ca_element_XX<<<grid, threads>>>(CaXX, nssp, tab_int_x, tab_int_y,
                                            xpos, ypos, d, fc, scale, weight,
                                            offset, Ntab);
-  carmaCheckMsg("compute_Cerr_element_XX<<<>>> execution failed\n");
+  carma_check_msg("compute_Cerr_element_XX<<<>>> execution failed\n");
 
   compute_Ca_element_YY<<<grid, threads>>>(CaYY, nssp, tab_int_x, tab_int_y,
                                            xpos, ypos, d, fc, scale, weight,
                                            offset, Ntab);
-  carmaCheckMsg("compute_Cerr_element_XX<<<>>> execution failed\n");
+  carma_check_msg("compute_Cerr_element_XX<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -672,8 +672,8 @@ int compute_Ca(T_data *CaXX, T_data *CaYY, int nssp, T_data *tab_int_x,
 template int compute_Ca(float *CaXX, float *CaYY, int nssp, float *tab_int_x,
                         float *tab_int_y, float *xpos, float *ypos,
                         float offset, float d, float fc, float scale,
-                        float weight, int Ntab, carma_device *device);
+                        float weight, int Ntab, CarmaDevice *device);
 template int compute_Ca(double *CaXX, double *CaYY, int nssp, double *tab_int_x,
                         double *tab_int_y, double *xpos, double *ypos,
                         double offset, double d, double fc, double scale,
-                        double weight, int Ntab, carma_device *device);
+                        double weight, int Ntab, CarmaDevice *device);

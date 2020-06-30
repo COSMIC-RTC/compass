@@ -34,7 +34,7 @@
 //! \ingroup   libsutra
 //! \brief     this file provides pybind wrapper for sutra_controller_geo
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -48,7 +48,7 @@ template <typename Tcomp, typename Tout>
 void controller_geo_impl(py::module &mod, const char *name) {
   using controller_geo = sutra_controller_geo<Tcomp, Tout>;
 
-  py::class_<controller_geo, sutra_controller<Tcomp, Tout>>(mod, name)
+  py::class_<controller_geo, SutraController<Tcomp, Tout>>(mod, name)
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
@@ -133,7 +133,7 @@ void controller_geo_impl(py::module &mod, const char *name) {
 
         Parameters
         ------------
-        dms: (sutra_dms): sutra_dms object
+        dms: (SutraDms): SutraDms object
         indx_dm: (np.array[ndim=1,dtype=np.int64]): Indices of valid pixels of the pupil in the DM support
         unitpervolt: (np.array[ndim=1,dtype=np.float32]): Unit per volt of each DM
         indx_pup: (np.array[ndim=1,dtype=np.int64]): Indices of valid pixels of the small pupil
@@ -149,7 +149,7 @@ void controller_geo_impl(py::module &mod, const char *name) {
 
       Parameters
       ------------
-      source: (sutra_source): Phase source
+      source: (SutraSource): Phase source
       wfs_direction: (bool): Must be True if the source is a WFS GS
     )pbdoc",
            py::arg("source"), py::arg("wfs_direction"))

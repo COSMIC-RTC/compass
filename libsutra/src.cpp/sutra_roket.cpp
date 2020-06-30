@@ -32,25 +32,25 @@
 
 //! \file      sutra_roket.cpp
 //! \ingroup   libsutra
-//! \class     sutra_roket
+//! \class     SutraRoket
 //! \brief     this class provides the roket features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
 #include <sutra_roket.h>
 
-sutra_roket::sutra_roket(carma_context *context, int device, sutra_rtc *rtc,
-                         sutra_sensors *sensors, sutra_target *target,
-                         sutra_dms *dms, sutra_telescope *tel, sutra_atmos *atm,
+SutraRoket::SutraRoket(CarmaContext *context, int device, SutraRtc *rtc,
+                         SutraSensors *sensors, SutraTarget *target,
+                         SutraDms *dms, SutraTelescope *tel, SutraAtmos *atm,
                          int loopcontroller, int geocontroller, int nactus,
                          int nmodes, int nfilt, int niter, float *Btt, float *P,
                          float *gRD, float *RD) {
   // context
   this->current_context = context;
   this->device = device;
-  this->current_context->set_activeDevice(device, 1);
+  this->current_context->set_active_device(device, 1);
   // sutra objects to supervise
   this->rtc = rtc;
   this->sensors = sensors;
@@ -80,78 +80,78 @@ sutra_roket::sutra_roket(carma_context *context, int device, sutra_rtc *rtc,
   }
   this->gain = loopcontrol->gain;
   this->fitting = 0.;
-  this->nslopes = this->loopcontrol->d_centroids->getDims(1);
+  this->nslopes = this->loopcontrol->d_centroids->get_dims(1);
   // contributors buffers initialsations
   long dims_data2[3] = {2, this->niter, this->nactus};
-  this->d_noise = new carma_obj<float>(this->current_context, dims_data2);
-  this->d_nonlinear = new carma_obj<float>(this->current_context, dims_data2);
-  this->d_tomo = new carma_obj<float>(this->current_context, dims_data2);
-  this->d_filtered = new carma_obj<float>(this->current_context, dims_data2);
-  this->d_alias = new carma_obj<float>(this->current_context, dims_data2);
-  this->d_bandwidth = new carma_obj<float>(this->current_context, dims_data2);
-  this->d_commanded = new carma_obj<float>(this->current_context, dims_data2);
+  this->d_noise = new CarmaObj<float>(this->current_context, dims_data2);
+  this->d_nonlinear = new CarmaObj<float>(this->current_context, dims_data2);
+  this->d_tomo = new CarmaObj<float>(this->current_context, dims_data2);
+  this->d_filtered = new CarmaObj<float>(this->current_context, dims_data2);
+  this->d_alias = new CarmaObj<float>(this->current_context, dims_data2);
+  this->d_bandwidth = new CarmaObj<float>(this->current_context, dims_data2);
+  this->d_commanded = new CarmaObj<float>(this->current_context, dims_data2);
 
   // Matrix initialisation
   dims_data2[1] = this->nmodes;
-  this->d_P = new carma_obj<float>(this->current_context, dims_data2, P);
+  this->d_P = new CarmaObj<float>(this->current_context, dims_data2, P);
   dims_data2[1] = this->nactus;
-  this->d_gRD = new carma_obj<float>(this->current_context, dims_data2, gRD);
-  this->d_RD = new carma_obj<float>(this->current_context, dims_data2, RD);
+  this->d_gRD = new CarmaObj<float>(this->current_context, dims_data2, gRD);
+  this->d_RD = new CarmaObj<float>(this->current_context, dims_data2, RD);
   dims_data2[2] = this->nmodes;
-  this->d_Btt = new carma_obj<float>(this->current_context, dims_data2, Btt);
+  this->d_Btt = new CarmaObj<float>(this->current_context, dims_data2, Btt);
   dims_data2[1] = this->nactus;
   dims_data2[2] = this->nactus;
-  this->d_covv = new carma_obj<float>(this->current_context, dims_data2);
+  this->d_covv = new CarmaObj<float>(this->current_context, dims_data2);
   dims_data2[1] = this->nslopes;
   dims_data2[2] = this->nslopes;
-  this->d_covm = new carma_obj<float>(this->current_context, dims_data2);
+  this->d_covm = new CarmaObj<float>(this->current_context, dims_data2);
 
-  carmaSafeCall(cudaMemset(this->d_covv->getData(), 0,
-                           sizeof(float) * this->d_covv->getNbElem()));
-  carmaSafeCall(cudaMemset(this->d_covm->getData(), 0,
-                           sizeof(float) * this->d_covm->getNbElem()));
-  carmaSafeCall(cudaMemset(this->d_noise->getData(), 0,
-                           sizeof(float) * this->d_noise->getNbElem()));
-  carmaSafeCall(cudaMemset(this->d_nonlinear->getData(), 0,
-                           sizeof(float) * this->d_nonlinear->getNbElem()));
-  carmaSafeCall(cudaMemset(this->d_tomo->getData(), 0,
-                           sizeof(float) * this->d_tomo->getNbElem()));
-  carmaSafeCall(cudaMemset(this->d_filtered->getData(), 0,
-                           sizeof(float) * this->d_filtered->getNbElem()));
-  carmaSafeCall(cudaMemset(this->d_alias->getData(), 0,
-                           sizeof(float) * this->d_alias->getNbElem()));
-  carmaSafeCall(cudaMemset(this->d_bandwidth->getData(), 0,
-                           sizeof(float) * this->d_bandwidth->getNbElem()));
-  carmaSafeCall(cudaMemset(this->d_commanded->getData(), 0,
-                           sizeof(float) * this->d_commanded->getNbElem()));
+  carma_safe_call(cudaMemset(this->d_covv->get_data(), 0,
+                           sizeof(float) * this->d_covv->get_nb_elements()));
+  carma_safe_call(cudaMemset(this->d_covm->get_data(), 0,
+                           sizeof(float) * this->d_covm->get_nb_elements()));
+  carma_safe_call(cudaMemset(this->d_noise->get_data(), 0,
+                           sizeof(float) * this->d_noise->get_nb_elements()));
+  carma_safe_call(cudaMemset(this->d_nonlinear->get_data(), 0,
+                           sizeof(float) * this->d_nonlinear->get_nb_elements()));
+  carma_safe_call(cudaMemset(this->d_tomo->get_data(), 0,
+                           sizeof(float) * this->d_tomo->get_nb_elements()));
+  carma_safe_call(cudaMemset(this->d_filtered->get_data(), 0,
+                           sizeof(float) * this->d_filtered->get_nb_elements()));
+  carma_safe_call(cudaMemset(this->d_alias->get_data(), 0,
+                           sizeof(float) * this->d_alias->get_nb_elements()));
+  carma_safe_call(cudaMemset(this->d_bandwidth->get_data(), 0,
+                           sizeof(float) * this->d_bandwidth->get_nb_elements()));
+  carma_safe_call(cudaMemset(this->d_commanded->get_data(), 0,
+                           sizeof(float) * this->d_commanded->get_nb_elements()));
   // Residual error buffer initialsations
   long dims_data1[2] = {1, this->nactus};
-  this->d_fullErr = new carma_obj<float>(this->current_context, dims_data1);
-  this->d_err1 = new carma_obj<float>(this->current_context, dims_data1);
-  this->d_err2 = new carma_obj<float>(this->current_context, dims_data1);
-  this->d_bkup_com = new carma_obj<float>(this->current_context, dims_data1);
-  this->d_tmpdiff = new carma_obj<float>(this->current_context, dims_data1);
+  this->d_fullErr = new CarmaObj<float>(this->current_context, dims_data1);
+  this->d_err1 = new CarmaObj<float>(this->current_context, dims_data1);
+  this->d_err2 = new CarmaObj<float>(this->current_context, dims_data1);
+  this->d_bkup_com = new CarmaObj<float>(this->current_context, dims_data1);
+  this->d_tmpdiff = new CarmaObj<float>(this->current_context, dims_data1);
 
   // Additional buffers initialsations
   dims_data1[1] = this->nmodes;
-  this->d_modes = new carma_obj<float>(this->current_context, dims_data1);
-  this->d_filtmodes = new carma_obj<float>(this->current_context, dims_data1);
+  this->d_modes = new CarmaObj<float>(this->current_context, dims_data1);
+  this->d_filtmodes = new CarmaObj<float>(this->current_context, dims_data1);
 
   // Target screen backup
-  this->d_bkup_screen = new carma_obj<float>(
+  this->d_bkup_screen = new CarmaObj<float>(
       this->current_context,
-      this->target->d_targets[0]->d_phase->d_screen->getDims());
+      this->target->d_targets[0]->d_phase->d_screen->get_dims());
   // PSF fitting
-  this->d_psfortho = new carma_obj<float>(
-      this->current_context, this->target->d_targets[0]->d_image_se->getDims());
+  this->d_psfortho = new CarmaObj<float>(
+      this->current_context, this->target->d_targets[0]->d_image_se->get_dims());
   // this->d_psfse = new
-  // carma_obj<float>(this->current_context,this->target->d_targets[0]->d_image_se->getDims());
-  // carmaSafeCall(cudaMemset(this->d_psfse->getData(), 0, sizeof(float) *
-  // this->d_psfse->getNbElem()));
+  // CarmaObj<float>(this->current_context,this->target->d_targets[0]->d_image_se->get_dims());
+  // carma_safe_call(cudaMemset(this->d_psfse->get_data(), 0, sizeof(float) *
+  // this->d_psfse->get_nb_elements()));
 }
 
-sutra_roket::~sutra_roket() {
-  this->current_context->set_activeDevice(this->device, 1);
+SutraRoket::~SutraRoket() {
+  this->current_context->set_active_device(this->device, 1);
   if (this->d_covv) delete this->d_covv;
   if (this->d_covm) delete this->d_covm;
   if (this->d_P) delete this->d_P;
@@ -178,69 +178,69 @@ sutra_roket::~sutra_roket() {
   //        delete this->d_psfse;
 }
 
-int sutra_roket::save_loop_state() {
-  this->current_context->set_activeDevice(this->device, 1);
-  this->d_fullErr->copyFrom(this->loopcontrol->d_err->getData(), this->nactus);
-  this->d_bkup_com->copyFrom(this->loopcontrol->d_com->getData(), this->nactus);
-  this->d_bkup_screen->copyFrom(
-      this->target->d_targets[0]->d_phase->d_screen->getData(),
-      this->target->d_targets[0]->d_phase->d_screen->getNbElem());
+int SutraRoket::save_loop_state() {
+  this->current_context->set_active_device(this->device, 1);
+  this->d_fullErr->copy_from(this->loopcontrol->d_err->get_data(), this->nactus);
+  this->d_bkup_com->copy_from(this->loopcontrol->d_com->get_data(), this->nactus);
+  this->d_bkup_screen->copy_from(
+      this->target->d_targets[0]->d_phase->d_screen->get_data(),
+      this->target->d_targets[0]->d_phase->d_screen->get_nb_elements());
   // Stack covariance matrices
-  carma_ger(this->current_context->get_cublasHandle(), this->nactus,
+  carma_ger(this->current_context->get_cublas_handle(), this->nactus,
             this->nactus, 1.0f / this->niter,
-            this->loopcontrol->d_com->getData(), 1,
-            this->loopcontrol->d_com->getData(), 1, this->d_covv->getData(),
+            this->loopcontrol->d_com->get_data(), 1,
+            this->loopcontrol->d_com->get_data(), 1, this->d_covv->get_data(),
             this->nactus);
-  carma_ger(this->current_context->get_cublasHandle(), this->nslopes,
+  carma_ger(this->current_context->get_cublas_handle(), this->nslopes,
             this->nslopes, 1.0f / this->niter,
-            this->loopcontrol->d_centroids->getData(), 1,
-            this->loopcontrol->d_centroids->getData(), 1,
-            this->d_covm->getData(), this->nslopes);
+            this->loopcontrol->d_centroids->get_data(), 1,
+            this->loopcontrol->d_centroids->get_data(), 1,
+            this->d_covm->get_data(), this->nslopes);
 
   return EXIT_SUCCESS;
 }
 
-int sutra_roket::restore_loop_state() {
-  this->current_context->set_activeDevice(this->device, 1);
-  this->d_bkup_com->copyInto(this->loopcontrol->d_com->getData(), this->nactus);
-  this->d_bkup_screen->copyInto(
-      this->target->d_targets[0]->d_phase->d_screen->getData(),
-      this->target->d_targets[0]->d_phase->d_screen->getNbElem());
+int SutraRoket::restore_loop_state() {
+  this->current_context->set_active_device(this->device, 1);
+  this->d_bkup_com->copy_into(this->loopcontrol->d_com->get_data(), this->nactus);
+  this->d_bkup_screen->copy_into(
+      this->target->d_targets[0]->d_phase->d_screen->get_data(),
+      this->target->d_targets[0]->d_phase->d_screen->get_nb_elements());
 
   return EXIT_SUCCESS;
 }
 
-int sutra_roket::apply_loop_filter(carma_obj<float> *d_odata,
-                                   carma_obj<float> *d_idata1,
-                                   carma_obj<float> *d_idata2, float gain,
+int SutraRoket::apply_loop_filter(CarmaObj<float> *d_odata,
+                                   CarmaObj<float> *d_idata1,
+                                   CarmaObj<float> *d_idata2, float gain,
                                    int k) {
-  this->current_context->set_activeDevice(this->device, 1);
-  this->d_tmpdiff->copyFrom(d_idata1->getData(), this->nactus);
+  this->current_context->set_active_device(this->device, 1);
+  this->d_tmpdiff->copy_from(d_idata1->get_data(), this->nactus);
   this->d_tmpdiff->axpy(-1.0f, d_idata2, 1, 1);  // err1-err2
-  this->d_tmpdiff->copyInto(d_odata->getDataAt((k + 1) * this->nactus),
+  this->d_tmpdiff->copy_into(d_odata->get_data_at((k + 1) * this->nactus),
                             this->nactus);  // odata[k+1,:] = err1 - err2
-  carma_gemv<float>(this->current_context->get_cublasHandle(), 'n',
-                    this->nactus, this->nactus, 1.0f, this->d_gRD->getData(),
-                    this->nactus, d_odata->getDataAt(k * this->nactus), 1, gain,
-                    d_odata->getDataAt((k + 1) * this->nactus),
+  carma_gemv<float>(this->current_context->get_cublas_handle(), 'n',
+                    this->nactus, this->nactus, 1.0f, this->d_gRD->get_data(),
+                    this->nactus, d_odata->get_data_at(k * this->nactus), 1, gain,
+                    d_odata->get_data_at((k + 1) * this->nactus),
                     1);  // odata[k+1,:] = gRD*odata[k,:] + g*(err1-err2)
 
   return EXIT_SUCCESS;
 }
 
-int sutra_roket::compute_breakdown() {
-  this->current_context->set_activeDevice(this->device, 1);
+int SutraRoket::compute_breakdown() {
+  this->current_context->set_active_device(this->device, 1);
   save_loop_state();
   // Noise
   this->rtc->do_centroids(this->loopcontroller, false);
   this->rtc->do_control(this->loopcontroller);
-  this->d_err1->copyFrom(this->loopcontrol->d_err->getData(), this->nactus);
+  this->d_err1->copy_from(this->loopcontrol->d_err->get_data(), this->nactus);
   apply_loop_filter(this->d_noise, this->d_fullErr, this->d_err1, this->gain,
                     this->iterk);
   // Non-linearity
   this->rtc->do_centroids_geom(this->loopcontroller);
   this->rtc->do_control(this->loopcontroller);
-  this->d_err2->copyFrom(this->loopcontrol->d_err->getData(), this->nactus);
+  this->d_err2->copy_from(this->loopcontrol->d_err->get_data(), this->nactus);
   apply_loop_filter(this->d_nonlinear, this->d_err1, this->d_err2, this->gain,
                     this->iterk);
   // Aliasing on GS direction
@@ -253,86 +253,86 @@ int sutra_roket::compute_breakdown() {
   this->sensors->d_wfs[0]->comp_image();
   this->rtc->do_centroids(this->loopcontroller, false);
   this->rtc->do_control(this->loopcontroller);
-  this->d_err1->copyFrom(this->loopcontrol->d_err->getData(), this->nactus);
-  this->d_err2->copyFrom(this->d_tmpdiff->getData(), this->nactus);
+  this->d_err1->copy_from(this->loopcontrol->d_err->get_data(), this->nactus);
+  this->d_err2->copy_from(this->d_tmpdiff->get_data(), this->nactus);
   apply_loop_filter(this->d_alias, this->d_err1, this->d_err2, this->gain,
                     this->iterk);
   // Wavefront
   this->target->d_targets[0]->raytrace(this->atm);
   this->target->d_targets[0]->d_phase->d_screen->axpy(
       1.0, this->tel->d_phase_ab_M1_m, 1, 1);
-  this->current_context->set_activeDevice(this->geocontrol->device, 1);
+  this->current_context->set_active_device(this->geocontrol->device, 1);
   this->geocontrol->comp_dphi(this->target->d_targets[0], false);
 
   this->rtc->do_control(this->geocontroller);
-  this->d_err1->copyFrom(this->geocontrol->d_com->getData(), this->nactus);
+  this->d_err1->copy_from(this->geocontrol->d_com->get_data(), this->nactus);
   // Fitting
   this->rtc->apply_control(this->geocontroller);
 
   this->target->d_targets[0]->raytrace(this->dms, 0, 0);
   this->fitting += this->target->d_targets[0]->phase_var / this->niter;
   this->target->d_targets[0]->comp_image(0, false);
-  // this->d_psfse->copyFrom(this->target->d_targets[0]->d_image_se->getData(),this->d_psfse->getNbElem());
+  // this->d_psfse->copy_from(this->target->d_targets[0]->d_image_se->get_data(),this->d_psfse->get_nb_elements());
   this->d_psfortho->axpy(1.0f / this->niter,
                          this->target->d_targets[0]->d_image_se, 1, 1);
   // Filtered modes
-  carma_gemv<float>(this->current_context->get_cublasHandle(), 'n',
-                    this->nmodes, this->nactus, 1.0f, this->d_P->getData(),
-                    this->nmodes, this->d_err1->getData(), 1, 0.f,
-                    this->d_modes->getData(), 1);
-  separate_modes(this->d_modes->getData(), this->d_filtmodes->getData(),
+  carma_gemv<float>(this->current_context->get_cublas_handle(), 'n',
+                    this->nmodes, this->nactus, 1.0f, this->d_P->get_data(),
+                    this->nmodes, this->d_err1->get_data(), 1, 0.f,
+                    this->d_modes->get_data(), 1);
+  separate_modes(this->d_modes->get_data(), this->d_filtmodes->get_data(),
                  this->nmodes, this->nfilt,
                  this->current_context->get_device(this->device));
-  carma_gemv<float>(this->current_context->get_cublasHandle(), 'n',
-                    this->nactus, this->nmodes, 1.0f, this->d_Btt->getData(),
-                    this->nactus, this->d_filtmodes->getData(), 1, 0.f,
-                    this->d_filtered->getDataAt(this->iterk * this->nactus), 1);
+  carma_gemv<float>(this->current_context->get_cublas_handle(), 'n',
+                    this->nactus, this->nmodes, 1.0f, this->d_Btt->get_data(),
+                    this->nactus, this->d_filtmodes->get_data(), 1, 0.f,
+                    this->d_filtered->get_data_at(this->iterk * this->nactus), 1);
   // Commanded modes
-  carma_gemv<float>(this->current_context->get_cublasHandle(), 'n',
-                    this->nactus, this->nmodes, 1.0f, this->d_Btt->getData(),
-                    this->nactus, this->d_modes->getData(), 1, 0.f,
-                    this->d_commanded->getDataAt(this->iterk * this->nactus),
+  carma_gemv<float>(this->current_context->get_cublas_handle(), 'n',
+                    this->nactus, this->nmodes, 1.0f, this->d_Btt->get_data(),
+                    this->nactus, this->d_modes->get_data(), 1, 0.f,
+                    this->d_commanded->get_data_at(this->iterk * this->nactus),
                     1);
   // Bandwidth
   if (this->iterk > 0) {
-    this->d_err1->copyFrom(
-        this->d_commanded->getDataAt(this->iterk * this->nactus), this->nactus);
-    this->d_err2->copyFrom(
-        this->d_commanded->getDataAt((this->iterk - 1) * this->nactus),
+    this->d_err1->copy_from(
+        this->d_commanded->get_data_at(this->iterk * this->nactus), this->nactus);
+    this->d_err2->copy_from(
+        this->d_commanded->get_data_at((this->iterk - 1) * this->nactus),
         this->nactus);
     apply_loop_filter(this->d_bandwidth, this->d_err1, this->d_err2, -1.0f,
                       this->iterk - 1);
   } else {
-    carmaSafeCall(
-        cudaMemset(this->d_err2->getData(), 0, sizeof(float) * this->nactus));
+    carma_safe_call(
+        cudaMemset(this->d_err2->get_data(), 0, sizeof(float) * this->nactus));
     this->d_err2->axpy(-1.0f, this->d_err1, 1, 1);
-    this->d_err2->copyInto(this->d_bandwidth->getData(), this->nactus);
+    this->d_err2->copy_into(this->d_bandwidth->get_data(), this->nactus);
   }
   // tomography
   this->sensors->d_wfs[0]->sensor_trace(this->atm);
   this->geocontrol->comp_dphi(this->sensors->d_wfs[0]->d_gs, true);
   this->rtc->do_control(this->geocontroller);
-  this->d_err1->copyFrom(this->geocontrol->d_com->getData(), this->nactus);
-  carma_gemv<float>(this->current_context->get_cublasHandle(), 'n',
-                    this->nmodes, this->nactus, 1.0f, this->d_P->getData(),
-                    this->nmodes, this->d_err1->getData(), 1, 0.f,
-                    this->d_modes->getData(), 1);
-  separate_modes(this->d_modes->getData(), this->d_filtmodes->getData(),
+  this->d_err1->copy_from(this->geocontrol->d_com->get_data(), this->nactus);
+  carma_gemv<float>(this->current_context->get_cublas_handle(), 'n',
+                    this->nmodes, this->nactus, 1.0f, this->d_P->get_data(),
+                    this->nmodes, this->d_err1->get_data(), 1, 0.f,
+                    this->d_modes->get_data(), 1);
+  separate_modes(this->d_modes->get_data(), this->d_filtmodes->get_data(),
                  this->nmodes, this->nfilt,
                  this->current_context->get_device(this->device));
-  carma_gemv<float>(this->current_context->get_cublasHandle(), 'n',
-                    this->nactus, this->nmodes, 1.0f, this->d_Btt->getData(),
-                    this->nactus, this->d_modes->getData(), 1, 0.f,
-                    this->d_err2->getData(), 1);
-  this->d_err1->copyFrom(
-      this->d_commanded->getDataAt(this->iterk * this->nactus), this->nactus);
+  carma_gemv<float>(this->current_context->get_cublas_handle(), 'n',
+                    this->nactus, this->nmodes, 1.0f, this->d_Btt->get_data(),
+                    this->nactus, this->d_modes->get_data(), 1, 0.f,
+                    this->d_err2->get_data(), 1);
+  this->d_err1->copy_from(
+      this->d_commanded->get_data_at(this->iterk * this->nactus), this->nactus);
   this->d_err1->axpy(-1.0f, this->d_err2, 1, 1);
-  carma_gemv<float>(this->current_context->get_cublasHandle(), 'n',
-                    this->nactus, this->nactus, 1.0f, this->d_RD->getData(),
-                    this->nactus, this->d_err1->getData(), 1, 0.f,
-                    this->d_err2->getData(), 1);
-  carmaSafeCall(
-      cudaMemset(this->d_err1->getData(), 0, sizeof(float) * this->nactus));
+  carma_gemv<float>(this->current_context->get_cublas_handle(), 'n',
+                    this->nactus, this->nactus, 1.0f, this->d_RD->get_data(),
+                    this->nactus, this->d_err1->get_data(), 1, 0.f,
+                    this->d_err2->get_data(), 1);
+  carma_safe_call(
+      cudaMemset(this->d_err1->get_data(), 0, sizeof(float) * this->nactus));
   apply_loop_filter(this->d_tomo, this->d_err2, this->d_err1, this->gain,
                     this->iterk);
 

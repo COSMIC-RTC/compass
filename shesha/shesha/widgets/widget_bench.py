@@ -2,7 +2,7 @@
 ## @brief     Widget to use on a bench
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   4.3.0
-## @date      2011/01/28
+## @date      2020/05/18
 ## @copyright GNU Lesser General Public License
 #
 #  This file is part of COMPASS <https://anr-compass.github.io/compass/>
@@ -44,7 +44,7 @@ with 'parameters_filename' the path to the parameters file
 
 Options:
   -h --help          Show this help message and exit
-  --brahma            Distribute data with BRAHMA
+  --brahma            Distribute data with brahma
   -d, --devices devices      Specify the devices
   -i, --interactive  keep the script interactive
 """
@@ -85,12 +85,12 @@ from shesha.supervisor.benchSupervisor import WFSType, BenchSupervisor as Superv
 
 class widgetBenchWindow(BenchClassTemplate, WidgetBase):
 
-    def __init__(self, configFile: Any = None, BRAHMA: bool = False,
+    def __init__(self, config_file: Any = None, brahma: bool = False,
                  devices: str = None) -> None:
         WidgetBase.__init__(self)
         BenchClassTemplate.__init__(self)
 
-        self.BRAHMA = BRAHMA
+        self.brahma = brahma
         self.devices = devices
 
         self.uiBench = BenchWindowTemplate()
@@ -120,9 +120,9 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
 
         self.uiBench.wao_run.setCheckable(True)
         self.uiBench.wao_run.clicked[bool].connect(self.aoLoopClicked)
-        self.uiBench.wao_openLoop.setCheckable(True)
-        self.uiBench.wao_openLoop.clicked[bool].connect(self.aoLoopOpen)
-        self.uiBench.wao_next.clicked.connect(self.loopOnce)
+        self.uiBench.wao_open_loop.setCheckable(True)
+        self.uiBench.wao_open_loop.clicked[bool].connect(self.aoLoopOpen)
+        self.uiBench.wao_next.clicked.connect(self.loop_once)
 
         self.uiBench.wao_forever.stateChanged.connect(self.updateForever)
 
@@ -139,11 +139,11 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
 
         self.adjustSize()
 
-        if configFile is not None:
+        if config_file is not None:
             self.uiBase.wao_selectConfig.clear()
-            self.uiBase.wao_selectConfig.addItem(configFile)
-            self.loadConfig()
-            self.initConfig()
+            self.uiBase.wao_selectConfig.addItem(config_file)
+            self.load_config()
+            self.init_config()
 
     #############################################################
     #                       METHODS                             #
@@ -160,17 +160,17 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
         if type == "SR":
             d.addWidget(self.uiBench.wao_Strehl)
 
-    def loadConfig(self) -> None:
+    def load_config(self) -> None:
         '''
             Callback when 'LOAD' button is hit
         '''
-        WidgetBase.loadConfig(self)
-        configFile = str(self.uiBase.wao_selectConfig.currentText())
+        WidgetBase.load_config(self)
+        config_file = str(self.uiBase.wao_selectConfig.currentText())
         sys.path.insert(0, self.defaultParPath)
 
-        self.supervisor = Supervisor(configFile, self.BRAHMA)
+        self.supervisor = Supervisor(config_file, self.brahma)
 
-        self.config = self.supervisor.getConfig()
+        self.config = self.supervisor.get_config()
 
         # if self.devices:
         #     self.config.p_loop.set_devices([
@@ -220,30 +220,30 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
 
     def aoLoopOpen(self, pressed: bool) -> None:
         if (pressed):
-            self.supervisor.openLoop()
-            self.uiAO.wao_openLoop.setText("Close Loop")
+            self.supervisor.open_loop()
+            self.uiAO.wao_open_loop.setText("Close Loop")
         else:
-            self.supervisor.closeLoop()
-            self.uiAO.wao_openLoop.setText("Open Loop")
+            self.supervisor.close_loop()
+            self.uiAO.wao_open_loop.setText("Open Loop")
 
-    def initConfig(self) -> None:
-        WidgetBase.initConfig(self)
+    def init_config(self) -> None:
+        WidgetBase.init_config(self)
 
-    def initConfigThread(self) -> None:
+    def init_configThread(self) -> None:
         # self.uiBench.wao_deviceNumber.setDisabled(True)
         # self.config.p_loop.devices = self.uiBench.wao_deviceNumber.value()  # using GUI value
         # gpudevice = "ALL"  # using all GPU avalaible
         # gpudevice = np.array([2, 3], dtype=np.int32)
         # gpudevice = np.arange(4, dtype=np.int32) # using 4 GPUs: 0-3
         # gpudevice = 0  # using 1 GPU : 0
-        self.supervisor.initConfig()
+        self.supervisor.init_config()
 
-    def initConfigFinished(self) -> None:
+    def init_configFinished(self) -> None:
         # Thread carmaWrap context reload:
         try:
-            self.supervisor.forceContext()
+            self.supervisor.force_context()
         except:
-            print('Warning: could not call supervisor.forceContext().')
+            print('Warning: could not call supervisor.force_context().')
 
         for i in range(self.nwfs):
             if self.config.p_wfss[i].type == WFSType.SH:
@@ -256,13 +256,13 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
 
         self.uiBench.wao_run.setDisabled(False)
         self.uiBench.wao_next.setDisabled(False)
-        self.uiBench.wao_openLoop.setDisabled(False)
+        self.uiBench.wao_open_loop.setDisabled(False)
         self.uiBench.wao_unzoom.setDisabled(False)
 
-        WidgetBase.initConfigFinished(self)
+        WidgetBase.init_configFinished(self)
 
     def updateDisplay(self) -> None:
-        if (self.supervisor is None) or (not self.supervisor.isInit()) or (
+        if (self.supervisor is None) or (not self.supervisor.is_init()) or (
                 not self.uiBase.wao_Display.isChecked()):
             # print("Widget not fully initialized")
             return
@@ -277,7 +277,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
                         index = int(key.split("_")[-1])
                         data = None
                         if "wfs" in key:
-                            data = self.supervisor.getWfsImage(index)
+                            data = self.supervisor.wfs.get_wfs_image(index)
                             if (data is not None):
                                 autoscale = True  # self.uiBench.actionAuto_Scale.isChecked()
                                 # if (autoscale):
@@ -294,7 +294,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
                             x, y = self.supervisor.config.p_wfss[index].get_validsub()
 
                             nssp = x.size
-                            centroids = self.supervisor.getSlope()
+                            centroids = self.supervisor.rtc.get_slopes()
                             vx = centroids[:nssp]
                             vy = centroids[nssp:]
 
@@ -308,14 +308,14 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
             finally:
                 self.loopLock.release()
 
-    def loopOnce(self) -> None:
+    def loop_once(self) -> None:
         if not self.loopLock.acquire(False):
             print("Display locked")
             return
         else:
             try:
                 start = time.time()
-                self.supervisor.singleNext()
+                self.supervisor.single_next()
                 loopTime = time.time() - start
                 refreshDisplayTime = 1. / self.uiBase.wao_frameRate.value()
 
@@ -343,7 +343,7 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     app.setStyle('cleanlooks')
     wao = widgetBenchWindow(arguments["<parameters_filename>"],
-                            BRAHMA=arguments["--brahma"], devices=arguments["--devices"])
+                            brahma=arguments["--brahma"], devices=arguments["--devices"])
     wao.show()
     if arguments["--interactive"]:
         from shesha.util.ipython_embed import embed

@@ -35,7 +35,7 @@
 //! \class     sutra_centroider_pbcog
 //! \brief     this class provides the centroider_pbcog features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -45,18 +45,18 @@
 #include <sutra_centroider.h>
 
 template <class Tin, class T>
-class sutra_centroider_bpcog : public sutra_centroider<Tin, T> {
+class SutraCentroiderBpcog : public SutraCentroider<Tin, T> {
  public:
   int nmax;
-  carma_obj<T> *d_bpix;
-  carma_obj<uint> *d_bpind;
+  CarmaObj<T> *d_bpix;
+  CarmaObj<uint> *d_bpind;
 
  public:
-  sutra_centroider_bpcog(carma_context *context, sutra_wfs *wfs, long nvalid,
+  SutraCentroiderBpcog(CarmaContext *context, SutraWfs *wfs, long nvalid,
                          float offset, float scale, bool filter_TT, int device,
                          int nmax);
-  sutra_centroider_bpcog(const sutra_centroider_bpcog &centroider);
-  ~sutra_centroider_bpcog();
+  SutraCentroiderBpcog(const SutraCentroiderBpcog &centroider);
+  ~SutraCentroiderBpcog();
 
   string get_type();
 
@@ -72,11 +72,11 @@ template <class T>
 void get_centroids(int size, int threads, int blocks, int n, float *d_idata,
                    T *d_odata, T *ref, int *validx, int *validy,
                    float *intensities, int nbpix, float scale, float offset,
-                   carma_device *device);
+                   CarmaDevice *device);
 
 template <class T>
 void subap_sortmax(int threads, int blocks, T *d_idata, T *d_odata,
-                   unsigned int *values, int nmax, carma_device *device);
+                   unsigned int *values, int nmax, CarmaDevice *device);
 template <class T>
 void subap_bpcentro(int threads, int blocks, int npix, T *d_idata,
                     unsigned int *values, T *d_odata, float scale,

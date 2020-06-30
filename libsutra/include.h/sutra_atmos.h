@@ -32,10 +32,10 @@
 
 //! \file      sutra_atmos.h
 //! \ingroup   libsutra
-//! \class     sutra_atmos
+//! \class     SutraAtmos
 //! \brief     this class provides the atmos features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -47,18 +47,18 @@
 using std::pair;
 using std::vector;
 
-class sutra_atmos {
+class SutraAtmos {
  public:
   int nscreens;
-  vector<sutra_tscreen *> d_screens;
+  vector<SutraTurbuScreen *> d_screens;
   float r0;
-  carma_context *current_context;
+  CarmaContext *current_context;
 
  public:
-  sutra_atmos(carma_context *context, int nscreens, float global_r0, float *r0,
+  SutraAtmos(CarmaContext *context, int nscreens, float global_r0, float *r0,
               long *size, long *size2, float *altitude, float *windspeed,
               float *winddir, float *deltax, float *deltay, int device);
-  ~sutra_atmos();
+  ~SutraAtmos();
 
   int init_screen(int idx, float *h_A, float *h_B, unsigned int *h_istencilx,
                   unsigned int *h_istencily, int seed);
@@ -70,8 +70,7 @@ class sutra_atmos {
   int refresh_screen(int idx);
 
   int move_atmos();
-  int set_global_r0(float r0);
-  int set_frac(float *frac);
+  int set_r0(float r0);
   int set_seed(int idx, float seed);
 };
 

@@ -37,10 +37,10 @@
 
 //! \file      sutra_centroider_maskedPix.cpp
 //! \ingroup   libsutra
-//! \class     sutra_centroider_maskedPix
+//! \class     SutraCentroiderMaskedPix
 //! \brief     this class provides the centroider_maskedPix features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -48,23 +48,23 @@
 #include <string>
 
 template <class Tin, class T>
-sutra_centroider_maskedPix<Tin, T>::sutra_centroider_maskedPix(
-    carma_context *context, sutra_wfs *wfs, long nvalid, long npupils,
+SutraCentroiderMaskedPix<Tin, T>::SutraCentroiderMaskedPix(
+    CarmaContext *context, SutraWfs *wfs, long nvalid, long npupils,
     float offset, float scale, bool filter_TT, int device)
-    : sutra_centroider<Tin, T>(context, wfs, nvalid, offset, scale, filter_TT,
+    : SutraCentroider<Tin, T>(context, wfs, nvalid, offset, scale, filter_TT,
                                device) {
-  context->set_activeDevice(device, 1);
+  context->set_active_device(device, 1);
 
   if (wfs != nullptr)
-    this->nslopes = wfs->d_validsubsx->getNbElem();
+    this->nslopes = wfs->d_validsubsx->get_nb_elements();
   else
     this->nslopes = nvalid * npupils;
   long dims_data[2] = {1, this->nslopes};
   if (this->d_intensities != nullptr) delete this->d_intensities;
-  this->d_intensities = new carma_obj<float>(context, dims_data);
+  this->d_intensities = new CarmaObj<float>(context, dims_data);
   this->d_intensities->init_reduceCub();
   long dims_data2[2] = {1, this->nslopes};
-  this->d_centroids_ref = new carma_obj<T>(this->current_context, dims_data2);
+  this->d_centroids_ref = new CarmaObj<T>(this->current_context, dims_data2);
   this->d_centroids_ref->reset();
   this->d_selected_pix = nullptr;
   this->d_mask = nullptr;
@@ -75,86 +75,86 @@ sutra_centroider_maskedPix<Tin, T>::sutra_centroider_maskedPix(
 }
 
 template <class Tin, class T>
-sutra_centroider_maskedPix<Tin, T>::~sutra_centroider_maskedPix() {}
+SutraCentroiderMaskedPix<Tin, T>::~SutraCentroiderMaskedPix() {}
 
 template <class Tin, class T>
-string sutra_centroider_maskedPix<Tin, T>::get_type() {
+string SutraCentroiderMaskedPix<Tin, T>::get_type() {
   return "maskedpix";  // TODO: Fix an use constants !!!
 }
 
 template <class Tin, class T>
-int sutra_centroider_maskedPix<Tin, T>::fill_selected_pix(carma_obj<T> *pix) {
-  this->current_context->set_activeDevice(this->device, 1);
+int SutraCentroiderMaskedPix<Tin, T>::fill_selected_pix(CarmaObj<T> *pix) {
+  this->current_context->set_active_device(this->device, 1);
 
   const long *dims_data2;
   if (this->d_img != nullptr) {
-    dims_data2 = this->d_img->getDims();
+    dims_data2 = this->d_img->get_dims();
   } else if (this->wfs != nullptr) {
-    dims_data2 = this->wfs->d_binimg->getDims();
+    dims_data2 = this->wfs->d_binimg->get_dims();
   } else {
     std::cerr << "Image not initialized" << std::endl;
     return EXIT_FAILURE;
   }
   if (this->d_selected_pix == nullptr) {
-    this->d_selected_pix = new carma_obj<T>(this->current_context, dims_data2);
+    this->d_selected_pix = new CarmaObj<T>(this->current_context, dims_data2);
   }
   this->d_selected_pix->reset();
-  pyr_fill_selected_pix(this->d_selected_pix->getData(), dims_data2[1],
-                        pix->getData(), this->d_validx->getData(),
-                        this->d_validy->getData(), this->d_validx->getNbElem(),
+  pyr_fill_selected_pix(this->d_selected_pix->get_data(), dims_data2[1],
+                        pix->get_data(), this->d_validx->get_data(),
+                        this->d_validy->get_data(), this->d_validx->get_nb_elements(),
                         this->current_context->get_device(this->device));
   return EXIT_SUCCESS;
 }
 
 template <class Tin, class T>
-int sutra_centroider_maskedPix<Tin, T>::fill_mask() {
-  this->current_context->set_activeDevice(this->device, 1);
+int SutraCentroiderMaskedPix<Tin, T>::fill_mask() {
+  this->current_context->set_active_device(this->device, 1);
 
   const long *dims_data2;
   if (this->d_img != nullptr) {
-    dims_data2 = this->d_img->getDims();
+    dims_data2 = this->d_img->get_dims();
   } else if (this->wfs != nullptr) {
-    dims_data2 = this->wfs->d_binimg->getDims();
+    dims_data2 = this->wfs->d_binimg->get_dims();
   } else {
     std::cerr << "Image not initialized" << std::endl;
     return EXIT_FAILURE;
   }
   if (this->d_mask == nullptr) {
-    this->d_mask = new carma_obj<T>(this->current_context, dims_data2);
+    this->d_mask = new CarmaObj<T>(this->current_context, dims_data2);
   }
   this->d_mask->reset();
-  pyr_fill_mask(this->d_mask->getData(), dims_data2[1],
-                        this->d_validx->getData(),
-                        this->d_validy->getData(), this->d_validx->getNbElem(),
+  pyr_fill_mask(this->d_mask->get_data(), dims_data2[1],
+                        this->d_validx->get_data(),
+                        this->d_validy->get_data(), this->d_validx->get_nb_elements(),
                         this->current_context->get_device(this->device));
   return EXIT_SUCCESS;
 }
 
 template <class Tin, class T>
-int sutra_centroider_maskedPix<Tin, T>::get_cog(float *img, float *intensities,
+int SutraCentroiderMaskedPix<Tin, T>::get_cog(float *img, float *intensities,
                                                 T *centroids, int nvalid,
                                                 int npix, int ntot, cudaStream_t stream) {
-  // TODO(Implement sutra_centroider_maskedPix<Tin, T>::get_cog)
+  // TODO(Implement SutraCentroiderMaskedPix<Tin, T>::get_cog)
 
-  return get_maskedPix(img, intensities, centroids, this->d_validx->getData(),
-                       this->d_validy->getData(), this->nvalid, ntot);
+  return get_maskedPix(img, intensities, centroids, this->d_validx->get_data(),
+                       this->d_validy->get_data(), this->nvalid, ntot);
 }
 
 template <class Tin, class T>
-int sutra_centroider_maskedPix<Tin, T>::get_maskedPix(
+int SutraCentroiderMaskedPix<Tin, T>::get_maskedPix(
     float *img, float *intensities, T *centroids, int *subindx, int *subindy,
     int nvalid, int ns) {
-  this->current_context->set_activeDevice(this->device, 1);
+  this->current_context->set_active_device(this->device, 1);
 
-  fill_intensities(this->d_intensities->getData(), img, subindx, subindy, ns,
+  fill_intensities(this->d_intensities->get_data(), img, subindx, subindy, ns,
                    this->nslopes,
                    this->current_context->get_device(this->device));
 
-  // T p_sum = reduce<T>(this->d_intensities->getData(), this->nslopes);
+  // T p_sum = reduce<T>(this->d_intensities->get_data(), this->nslopes);
   this->d_intensities->reduceCub();
 
-  getMaskedPix<T>(centroids, this->d_centroids_ref->getData(), img, subindx,
-                  subindy, this->d_intensities->getOData(), ns, this->nslopes,
+  get_masked_pix<T>(centroids, this->d_centroids_ref->get_data(), img, subindx,
+                  subindy, this->d_intensities->get_o_data(), ns, this->nslopes,
                   this->current_context->get_device(this->device));
 
   if (this->filter_TT) {
@@ -165,7 +165,7 @@ int sutra_centroider_maskedPix<Tin, T>::get_maskedPix(
 }
 
 template <class Tin, class T>
-int sutra_centroider_maskedPix<Tin, T>::get_cog(float *intensities, T *slopes,
+int SutraCentroiderMaskedPix<Tin, T>::get_cog(float *intensities, T *slopes,
                                                 bool noise) {
   if (this->wfs != nullptr) {
     if (this->wfs->type == "pyrhr") {
@@ -187,7 +187,7 @@ int sutra_centroider_maskedPix<Tin, T>::get_cog(float *intensities, T *slopes,
 }
 
 template <class Tin, class T>
-int sutra_centroider_maskedPix<Tin, T>::get_cog() {
+int SutraCentroiderMaskedPix<Tin, T>::get_cog() {
   if (this->wfs != nullptr)
     return this->get_cog(*(this->wfs->d_intensities), *(this->wfs->d_slopes),
                          true);
@@ -196,18 +196,18 @@ int sutra_centroider_maskedPix<Tin, T>::get_cog() {
   return EXIT_FAILURE;
 }
 
-template class sutra_centroider_maskedPix<float, float>;
-template class sutra_centroider_maskedPix<uint16_t, float>;
+template class SutraCentroiderMaskedPix<float, float>;
+template class SutraCentroiderMaskedPix<uint16_t, float>;
 #ifdef CAN_DO_HALF
 template <>
-int sutra_centroider_maskedPix<float, half>::get_cog(float *intensities,
+int SutraCentroiderMaskedPix<float, half>::get_cog(float *intensities,
                                                      half *slopes, bool noise) {
   DEBUG_TRACE("Not implemented for half precision");
   return EXIT_FAILURE;
 }
 
 template <>
-int sutra_centroider_maskedPix<uint16_t, half>::get_cog(float *intensities,
+int SutraCentroiderMaskedPix<uint16_t, half>::get_cog(float *intensities,
                                                         half *slopes,
                                                         bool noise) {
   DEBUG_TRACE("Not implemented for half precision");
@@ -215,16 +215,16 @@ int sutra_centroider_maskedPix<uint16_t, half>::get_cog(float *intensities,
 }
 
 template <>
-int sutra_centroider_maskedPix<float, half>::get_cog() {
+int SutraCentroiderMaskedPix<float, half>::get_cog() {
   DEBUG_TRACE("Not implemented for half precision");
   return EXIT_FAILURE;
 }
 
 template <>
-int sutra_centroider_maskedPix<uint16_t, half>::get_cog() {
+int SutraCentroiderMaskedPix<uint16_t, half>::get_cog() {
   DEBUG_TRACE("Not implemented for half precision");
   return EXIT_FAILURE;
 }
-template class sutra_centroider_maskedPix<float, half>;
-template class sutra_centroider_maskedPix<uint16_t, half>;
+template class SutraCentroiderMaskedPix<float, half>;
+template class SutraCentroiderMaskedPix<uint16_t, half>;
 #endif

@@ -32,10 +32,10 @@
 
 //! \file      sutra_lgs.cu
 //! \ingroup   libsutra
-//! \class     sutra_lgs
+//! \class     SutraLGS
 //! \brief     this class provides the lgs features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -107,15 +107,15 @@ __global__ void iprof_krnl(cuFloatComplex *profout, float *profin,
 
 int interp_prof(cuFloatComplex *profout, float *prof1d, float *profcum,
                 int npix, float *doffaxis, float hg, float pixsize, float h0,
-                float deltah, int hmax, int Ntot, carma_device *device) {
-  int nthreads = 0, nblocks = 0;
-  getNumBlocksAndThreads(device, Ntot, nblocks, nthreads);
+                float deltah, int hmax, int Ntot, CarmaDevice *device) {
+  int nb_threads = 0, nb_blocks = 0;
+  get_num_blocks_and_threads(device, Ntot, nb_blocks, nb_threads);
 
-  dim3 grid(nblocks), threads(nthreads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
   iprof_krnl<<<grid, threads>>>(profout, prof1d, profcum, npix, doffaxis, hg,
                                 pixsize, h0, deltah, hmax, Ntot);
-  carmaCheckMsg("iprof_krnl<<<>>> execution failed\n");
+  carma_check_msg("iprof_krnl<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -135,14 +135,14 @@ __global__ void tftbeam_krnl(cuFloatComplex *profout, cuFloatComplex *fbeam,
 }
 
 int times_ftbeam(cuFloatComplex *profout, cuFloatComplex *ftbeam, int N,
-                 int Ntot, carma_device *device) {
-  int nthreads = 0, nblocks = 0;
-  getNumBlocksAndThreads(device, Ntot, nblocks, nthreads);
+                 int Ntot, CarmaDevice *device) {
+  int nb_threads = 0, nb_blocks = 0;
+  get_num_blocks_and_threads(device, Ntot, nb_blocks, nb_threads);
 
-  dim3 grid(nblocks), threads(nthreads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
   tftbeam_krnl<<<grid, threads>>>(profout, ftbeam, N, Ntot);
-  carmaCheckMsg("tftbeam_krnl<<<>>> execution failed\n");
+  carma_check_msg("tftbeam_krnl<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -162,15 +162,15 @@ __global__ void rollbeamexp_krnl(float *imout, cuFloatComplex *iprof,
   }
 }
 
-int rollbeamexp(float *imout, cuFloatComplex *iprof, float *beam, int N,
-                int Ntot, carma_device *device) {
-  int nthreads = 0, nblocks = 0;
-  getNumBlocksAndThreads(device, Ntot, nblocks, nthreads);
+int roll_beam_exp(float *imout, cuFloatComplex *iprof, float *beam, int N,
+                int Ntot, CarmaDevice *device) {
+  int nb_threads = 0, nb_blocks = 0;
+  get_num_blocks_and_threads(device, Ntot, nb_blocks, nb_threads);
 
-  dim3 grid(nblocks), threads(nthreads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
   rollbeamexp_krnl<<<grid, threads>>>(imout, iprof, beam, N, Ntot);
-  carmaCheckMsg("beamexp_krnl<<<>>> execution failed\n");
+  carma_check_msg("beamexp_krnl<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -245,16 +245,16 @@ __global__ void rotate_krnl(cuFloatComplex *odata, float *idata, int width,
 }
 
 int lgs_rotate(cuFloatComplex *odata, float *idata, int width, int height,
-               float *theta, float center, int Ntot, carma_device *device) {
-  int nthreads = 0, nblocks = 0;
-  getNumBlocksAndThreads(device, Ntot, nblocks, nthreads);
-  dim3 grid(nblocks), threads(nthreads);
+               float *theta, float center, int Ntot, CarmaDevice *device) {
+  int nb_threads = 0, nb_blocks = 0;
+  get_num_blocks_and_threads(device, Ntot, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
   int N = width * height;
 
   rotate_krnl<<<grid, threads>>>(odata, idata, width, height, theta, center, N,
                                  Ntot);
-  carmaCheckMsg("rotate_krnl<<<>>> execution failed\n");
+  carma_check_msg("rotate_krnl<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -288,9 +288,9 @@ __global__ void rotate3d_krnl(cuFloatComplex *g_odata, int width, int height,
 }
 
 int rotate3d(cuFloatComplex *d_odata, cudaMemcpy3DParms copyParams,
-             cudaArray *d_array, cudaChannelFormatDesc channelDesc, int width,
+             cudaArray *d_array, cudaChannelFormatDesc channel_desc, int width,
              int height, float *theta, float center, int Ntot,
-             carma_device *device) {
+             CarmaDevice *device) {
   tex3.normalized = false;
   tex3.filterMode = cudaFilterModeLinear;      // linear interpolation
   tex3.addressMode[0] = cudaAddressModeClamp;  // wrap texture coordinates
@@ -298,22 +298,22 @@ int rotate3d(cuFloatComplex *d_odata, cudaMemcpy3DParms copyParams,
   tex3.addressMode[2] = cudaAddressModeClamp;
 
   // copy the data into the array
-  carmaSafeCall(cudaMemcpy3D(&copyParams));
+  carma_safe_call(cudaMemcpy3D(&copyParams));
   // bind array to 3D texture
-  carmaSafeCall(cudaBindTextureToArray(tex3, d_array, channelDesc));
+  carma_safe_call(cudaBindTextureToArray(tex3, d_array, channel_desc));
 
   int N = width * height;
 
-  int nBlocks, nThreads;
-  getNumBlocksAndThreads(device, Ntot, nBlocks, nThreads);
-  dim3 grid(nBlocks), threads(nThreads);
+  int nb_blocks, nb_threads;
+  get_num_blocks_and_threads(device, Ntot, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
-  // cout << nBlocks << " " << nx / nBlocks << " " << ny / nBlocks << " " <<  nz
-  // / nBlocks <<endl;
+  // cout << nb_blocks << " " << nx / nb_blocks << " " << ny / nb_blocks << " " <<  nz
+  // / nb_blocks <<endl;
   rotate3d_krnl<<<grid, threads, 0>>>(d_odata, width, height, N, theta, center,
                                       Ntot);
 
-  carmaCheckMsg("rotate3d_krnl <<<>>> execution failed\n");
+  carma_check_msg("rotate3d_krnl <<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }

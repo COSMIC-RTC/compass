@@ -79,7 +79,7 @@ else:
 #   context
 #c=ch.carmaWrap_context(device)
 c = ch.carmaWrap_context(devices=np.array([0, 1], dtype=np.int32))
-#c.set_activeDevice(device)
+#c.set_active_device(device)
 
 #    wfs
 print("->wfs")
@@ -166,8 +166,8 @@ def loop(n):
     """
     if (error_flag):
         # Initialize buffers for error breakdown
-        nactu = rtc.getCom(0).size
-        nslopes = rtc.getCentroids(0).size
+        nactu = rtc.get_command(0).size
+        nslopes = rtc.get_centroids(0).size
         com = np.zeros((n, nactu), dtype=np.float32)
         noise_com = np.zeros((n, nactu), dtype=np.float32)
         alias_wfs_com = np.copy(noise_com)
@@ -200,8 +200,8 @@ def loop(n):
                 wfs.sensors_compimg(w)
             rtc.docentroids(0)
             rtc.docontrol(0)
-            #m = np.reshape(rtc.getCentroids(0),(nslopes,1))
-            #v = np.reshape(rtc.getCom(0),(nactu,1))
+            #m = np.reshape(rtc.get_centroids(0),(nslopes,1))
+            #v = np.reshape(rtc.get_command(0),(nactu,1))
             if (error_flag and i > -1):
                 #compute the error breakdown for this iteration
                 #covm += m.dot(m.T)
@@ -280,7 +280,7 @@ def preloop(n):
 # | _ \/ _` (_-< (_-<
 # |___/\__,_/__/_/__/
 ################################################################################
-def compute_Btt():
+def compute_btt():
     IF = rtc.get_IFsparse(1).T
     N = IF.shape[0]
     n = IF.shape[1]
@@ -432,7 +432,7 @@ def save_it(filename):
     dm_dim = config.p_dms[0]._n2 - config.p_dms[0]._n1 + 1
     cov, cor = cov_cor(P, noise_com, trunc_com, alias_wfs_com, H_com, bp_com, tomo_com)
     psf = tar.get_image(0, "le", fluxNorm=False)
-    psfortho = roket.get_psfortho()
+    psfortho = roket.get_tar_imageortho()
     covv = roket.get_covv()
     covm = roket.get_covm()
 
@@ -477,7 +477,7 @@ def save_it(filename):
 nfiltered = config.p_controllers[0].maxcond
 niters = config.p_loop.niter
 #config.p_loop.set_niter(niters)
-Btt, P = compute_Btt()
+Btt, P = compute_btt()
 rtc.load_Btt(1, Btt.dot(Btt.T))
 Dm, cmat = compute_cmatWithBtt(Btt, nfiltered)
 rtc.set_cmat(0, cmat)

@@ -32,9 +32,9 @@
 
 //! \file      rtc_cacao.cpp
 //! \ingroup   libsutra
-//! \brief     this file provides pybind wrapper for sutra_rtc_cacao
+//! \brief     this file provides pybind wrapper for SutraRtcCacao
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -45,16 +45,16 @@
 namespace py = pybind11;
 
 template <typename Tin, typename Tcomp, typename Tout>
-std::unique_ptr<sutra_rtc_cacao<Tin, Tcomp, Tout>> rtc_cacao_init(
-    std::string iCalFrame_name, std::string iLoopFrame_name) {
-  return std::unique_ptr<sutra_rtc_cacao<Tin, Tcomp, Tout>>(
-      new sutra_rtc_cacao<Tin, Tcomp, Tout>(iCalFrame_name, iLoopFrame_name));
+std::unique_ptr<SutraRtcCacao<Tin, Tcomp, Tout>> rtc_cacao_init(
+    std::string interface_cal_frame_name, std::string interface_loop_frame_name) {
+  return std::unique_ptr<SutraRtcCacao<Tin, Tcomp, Tout>>(
+      new SutraRtcCacao<Tin, Tcomp, Tout>(interface_cal_frame_name, interface_loop_frame_name));
 }
 
 template <typename Tin, typename Tcomp, typename Tout>
 void rtc_cacao_impl(py::module &mod, const char *name) {
-  using rtc = sutra_rtc<Tin, Tcomp, Tout>;
-  using rtc_cacao = sutra_rtc_cacao<Tin, Tcomp, Tout>;
+  using rtc = SutraRtc<Tin, Tcomp, Tout>;
+  using rtc_cacao = SutraRtcCacao<Tin, Tcomp, Tout>;
 
   py::class_<rtc_cacao, rtc>(mod, name)
       .def(py::init(wy::colCast(rtc_cacao_init<Tin, Tcomp, Tout>)), R"pbdoc(
@@ -62,10 +62,10 @@ void rtc_cacao_impl(py::module &mod, const char *name) {
 
             Parameters
             ------------
-            iCalFrame_name:
-            iLoopFrame_name:
+            interface_cal_frame_name:
+            interface_loop_frame_name:
             )pbdoc",
-           py::arg("iCalFrame_name"), py::arg("iLoopFrame_name"))
+           py::arg("interface_cal_frame_name"), py::arg("interface_loop_frame_name"))
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝

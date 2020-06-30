@@ -34,7 +34,7 @@
 //! \ingroup   libcarma
 //! \brief     this file provides summation CUDA kernels
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -163,7 +163,7 @@ void reduce(int size, int threads, int blocks, T *d_idata, T *d_odata) {
   int smemSize =
       (threads <= 32) ? 2 * threads * sizeof(T) : threads * sizeof(T);
 
-  if (isPow2(size)) {
+  if (is_pow2(size)) {
     switch (threads) {
       case 1024:
         reduce6<T, 1024, true>

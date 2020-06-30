@@ -32,10 +32,10 @@
 
 //! \file      carma_streams.h
 //! \ingroup   libcarma
-//! \class     carma_streams
-//! \brief     this class provides the stream features to carma_obj
+//! \class     CarmaStreams
+//! \brief     this class provides the stream features to CarmaObj
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -46,23 +46,23 @@
 #include <driver_types.h>
 #include <vector>
 
-class carma_streams {
+class CarmaStreams {
  protected:
   std::vector<cudaStream_t> streams;
   std::vector<cudaEvent_t> events;
   int eventflags;
 
  public:
-  carma_streams();
-  carma_streams(unsigned int nbStreams);
+  CarmaStreams();
+  CarmaStreams(unsigned int nb_streams);
   // carma_stream(const carma_stream& src_carma_stream);
-  ~carma_streams();
+  ~CarmaStreams();
 
   cudaStream_t get_stream(int stream);
   cudaEvent_t get_event(int stream);
   cudaStream_t operator[](int idx) { return get_stream(idx); }
 
-  int get_nbStreams();
+  int get_nb_streams();
   int add_stream();
   int add_stream(int nb);
   int del_stream();

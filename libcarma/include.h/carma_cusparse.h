@@ -32,9 +32,9 @@
 
 //! \file      carma_cusparse.h
 //! \ingroup   libcarma
-//! \brief     this file provides the cusparse features to carma_obj
+//! \brief     this file provides the cusparse features to CarmaObj
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -44,13 +44,17 @@
 #include <cuda_runtime_api.h>
 /* Using updated (v2) interfaces to cublas */
 #include <cusparse_v2.h>
+#include <string>
 
-cusparseStatus_t carma_checkCusparseStatus(cusparseStatus_t status);
+#define carma_check_cusparse_status(status) \
+  carma_check_cusparse_status_v2(status, __LINE__, __FILE__)
 
-cusparseStatus_t carma_initCusparse(cusparseHandle_t *cusparse_handle);
-cusparseStatus_t carma_shutdownCusparse(cusparseHandle_t cusparse_handle);
+cusparseStatus_t carma_check_cusparse_status_v2(cusparseStatus_t status, int line,
+                                              std::string file);
+cusparseStatus_t carma_init_cusparse(cusparseHandle_t *cusparse_handle);
+cusparseStatus_t carma_shutdown_cusparse(cusparseHandle_t cusparse_handle);
 
-cusparseOperation_t carma_char2cusparseOperation(char operation);
+cusparseOperation_t carma_char2cusparse_operation(char operation);
 
 /*
  * _____ _____ __  __ ____  _        _  _____ _____ ____

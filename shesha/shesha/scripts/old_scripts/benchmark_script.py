@@ -41,7 +41,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
     """
 
     c = carmaWrap_context(devices=np.array(devices, dtype=np.int32))
-    #     c.set_activeDevice(device)
+    #     c.set_active_device(device)
 
     timer = carmaWrap_timer()
 
@@ -188,7 +188,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
                     s_raytrace_atmos_time += timer.stop() - synctime
                     timer.reset()
 
-                    if (not config.p_wfss[i].openloop and dms is not None):
+                    if (not config.p_wfss[i].open_loop and dms is not None):
                         timer.start()
                         wfs.raytrace(i, b"dm", tel, atm, dms)
                         threadSync()
@@ -308,7 +308,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
     stype += str(config.p_wfss[0].type)
 
     if (controller == "modopti"):
-        G = np.mean(rtc.get_mgain(0))
+        G = np.mean(rtc.get_modal_gains(0))
     else:
         G = 0.
 
@@ -326,7 +326,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
             "hostname": hostname,
             "ndevices": c.get_ndevice(),
             "device": c.get_device_names()[0],
-            "cuda_version": c.get_cudaRuntimeGetVersion(),
+            "cuda_version": c.get_cuda_runtime_get_version(),
             "magma_version": c.get_magma_info(),
             "platform": platform.platform(),
             "ncpu": nb_cpu,

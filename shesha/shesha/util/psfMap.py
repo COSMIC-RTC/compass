@@ -1,8 +1,8 @@
 ## @package   shesha.util.psfMap
 ## @brief     class PSF_map
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   4.4.1
-## @date      2011/01/28
+## @version   5.0.0
+## @date      2020/05/18
 ## @copyright GNU Lesser General Public License
 #
 #  This file is part of COMPASS <https://anr-compass.github.io/compass/>
@@ -118,7 +118,6 @@ class PSF_map:
             self.map = np.zeros((NTAR_side, NTAR_side))
             for i in range(NTAR):
                 self.map.itemset(i,sup._sim.getStrehl(i)[1])
-                #self.map.itemset(i,sup._sim.getStrehl(i)[0])
                 tar=sup._sim.tar.d_targets[i]
                 self._Rtar=max(self._Rtar,tar.posx,tar.posy)
             self.r0=sup.config.p_atmos.r0

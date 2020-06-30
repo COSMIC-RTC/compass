@@ -32,10 +32,10 @@
 
 //! \file      sutra_wfs_sh.h
 //! \ingroup   libsutra
-//! \class     sutra_wfs_sh
+//! \class     SutraWfsSH
 //! \brief     this class provides the wfs_sh features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -51,30 +51,30 @@
 #include <map>
 #include <vector>
 
-class sutra_wfs_sh : public sutra_wfs {
+class SutraWfsSH : public SutraWfs {
  public:
   // sh only
-  carma_obj<int> *d_binmap;
-  carma_obj<int> *d_validpuppixx;  // nxsub
-  carma_obj<int> *d_validpuppixy;  // nxsub
+  CarmaObj<int> *d_binmap;
+  CarmaObj<int> *d_validpuppixx;  // nxsub
+  CarmaObj<int> *d_validpuppixy;  // nxsub
 
  public:
-  sutra_wfs_sh(carma_context *context, sutra_telescope *d_tel,
-               carma_obj<cuFloatComplex> *d_camplipup,
-               carma_obj<cuFloatComplex> *d_camplifoc,
-               carma_obj<cuFloatComplex> *d_fttotim, long nxsub, long nvalid,
+  SutraWfsSH(CarmaContext *context, SutraTelescope *d_tel,
+               CarmaObj<cuFloatComplex> *d_camplipup,
+               CarmaObj<cuFloatComplex> *d_camplifoc,
+               CarmaObj<cuFloatComplex> *d_fttotim, long nxsub, long nvalid,
                long npix, long nphase, long nrebin, long nfft, long ntot,
                long npup, float pdiam, float nphotons, float nphot4imat,
-               int lgs, bool fakecam, int maxFluxPerPix, int maxPixValue,
+               int lgs, bool fakecam, int max_flux_per_pix, int max_pix_value,
                bool is_low_order, bool roket, int device);
-  sutra_wfs_sh(const sutra_wfs_sh &wfs);
-  ~sutra_wfs_sh();
+  SutraWfsSH(const SutraWfsSH &wfs);
+  ~SutraWfsSH();
 
   int define_mpi_rank(int rank, int size);
   int allocate_buffers(map<vector<int>, cufftHandle *> campli_plans,
                        map<vector<int>, cufftHandle *> fttotim_plans);
 
-  int loadarrays(int *phasemap, int *hrmap, int *binmap, float *offsets,
+  int load_arrays(int *phasemap, int *hrmap, int *binmap, float *offsets,
                  float *fluxPerSub, int *validsubsx, int *validsubsy,
                  int *istart, int *jstart, cuFloatComplex *kernel);
 

@@ -32,16 +32,16 @@
 
 //! \file      sutra_groot.cpp
 //! \ingroup   libsutra
-//! \class     sutra_groot
+//! \class     SutraGroot
 //! \brief     this class provides the groot features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
 #include <sutra_groot.h>
 
-sutra_groot::sutra_groot(carma_context *context, int device, int nactus,
+SutraGroot::SutraGroot(CarmaContext *context, int device, int nactus,
                          int nlayers, float gsangle, float *vdt, float *Htheta,
                          float *L0, float *winddir, float *scale, float *pzt2tt,
                          float *TTPfilter, float *Nact, float *xpos,
@@ -52,28 +52,28 @@ sutra_groot::sutra_groot(carma_context *context, int device, int nactus,
   this->gsangle = gsangle;
 
   long dims_data1[2] = {1, nlayers};
-  this->h_vdt = new carma_host_obj<float>(dims_data1, vdt, MA_PAGELOCK);
-  this->h_Htheta = new carma_host_obj<float>(dims_data1, Htheta, MA_PAGELOCK);
-  this->h_L0 = new carma_host_obj<float>(dims_data1, L0, MA_PAGELOCK);
-  this->h_winddir = new carma_host_obj<float>(dims_data1, winddir, MA_PAGELOCK);
-  this->h_scale = new carma_host_obj<float>(dims_data1, scale, MA_PAGELOCK);
+  this->h_vdt = new CarmaHostObj<float>(dims_data1, vdt, MA_PAGELOCK);
+  this->h_Htheta = new CarmaHostObj<float>(dims_data1, Htheta, MA_PAGELOCK);
+  this->h_L0 = new CarmaHostObj<float>(dims_data1, L0, MA_PAGELOCK);
+  this->h_winddir = new CarmaHostObj<float>(dims_data1, winddir, MA_PAGELOCK);
+  this->h_scale = new CarmaHostObj<float>(dims_data1, scale, MA_PAGELOCK);
 
   long dims_data2[3] = {2, nactus, nactus};
-  this->d_Nact = new carma_obj<float>(context, dims_data2, Nact);
-  this->d_Cerr = new carma_obj<float>(context, dims_data2);
-  this->d_TTPfilter = new carma_obj<float>(context, dims_data2, TTPfilter);
+  this->d_Nact = new CarmaObj<float>(context, dims_data2, Nact);
+  this->d_Cerr = new CarmaObj<float>(context, dims_data2);
+  this->d_TTPfilter = new CarmaObj<float>(context, dims_data2, TTPfilter);
   dims_data2[1] = 2;
   dims_data2[2] = 2;
-  this->d_TT = new carma_obj<float>(context, dims_data2);
+  this->d_TT = new CarmaObj<float>(context, dims_data2);
 
   dims_data2[1] = 2;
   dims_data2[2] = nactus;
-  this->d_pzt2tt = new carma_obj<float>(context, dims_data2, pzt2tt);
+  this->d_pzt2tt = new CarmaObj<float>(context, dims_data2, pzt2tt);
 
   printf("I am Groot\n");
 }
 
-sutra_groot::sutra_groot(carma_context *context, int device, int nssp,
+SutraGroot::SutraGroot(CarmaContext *context, int device, int nssp,
                          float *weights, float scale, float *xpos, float *ypos,
                          float fc, float d, int npts) {
   init_common(context, device, xpos, ypos, nssp, fc);
@@ -82,32 +82,32 @@ sutra_groot::sutra_groot(carma_context *context, int device, int nssp,
   this->scale = scale;
   this->nssp = nssp;
   long dims_data1[2] = {1, npts};
-  this->h_weights = new carma_host_obj<float>(dims_data1, weights, MA_PAGELOCK);
+  this->h_weights = new CarmaHostObj<float>(dims_data1, weights, MA_PAGELOCK);
 
   long dims_data2[3] = {2, nssp, nssp};
-  this->d_CaXX = new carma_obj<float>(context, dims_data2);
-  this->d_CaYY = new carma_obj<float>(context, dims_data2);
+  this->d_CaXX = new CarmaObj<float>(context, dims_data2);
+  this->d_CaYY = new CarmaObj<float>(context, dims_data2);
   printf("I am Groot\n");
 }
 
-void sutra_groot::init_common(carma_context *context, int device, float *xpos,
+void SutraGroot::init_common(CarmaContext *context, int device, float *xpos,
                               float *ypos, int N, float fc) {
   this->current_context = context;
   this->device = device;
-  this->current_context->set_activeDevice(device, 1);
+  this->current_context->set_active_device(device, 1);
   this->fc = fc;
 
   long dims_data1[2] = {1, N};
-  this->d_xpos = new carma_obj<float>(context, dims_data1, xpos);
-  this->d_ypos = new carma_obj<float>(context, dims_data1, ypos);
+  this->d_xpos = new CarmaObj<float>(context, dims_data1, xpos);
+  this->d_ypos = new CarmaObj<float>(context, dims_data1, ypos);
 
   int Npts = 10000;
   dims_data1[1] = Npts;
 
-  this->d_tab_int_x = new carma_obj<float>(context, dims_data1);
-  this->d_tab_int_y = new carma_obj<float>(context, dims_data1);
+  this->d_tab_int_x = new CarmaObj<float>(context, dims_data1);
+  this->d_tab_int_y = new CarmaObj<float>(context, dims_data1);
 
-  tab_u831J0(this->d_tab_int_x->getData(), this->d_tab_int_y->getData(), Npts,
+  tab_u831J0(this->d_tab_int_x->get_data(), this->d_tab_int_y->get_data(), Npts,
              this->current_context->get_device(device));
   this->d_CaXX = NULL;
   this->d_CaYY = NULL;
@@ -124,8 +124,8 @@ void sutra_groot::init_common(carma_context *context, int device, float *xpos,
   this->h_scale = NULL;
 }
 
-sutra_groot::~sutra_groot() {
-  this->current_context->set_activeDevice(this->device, 1);
+SutraGroot::~SutraGroot() {
+  this->current_context->set_active_device(this->device, 1);
   if (this->h_vdt != NULL) delete this->h_vdt;
   if (this->h_Htheta != NULL) delete this->h_Htheta;
   if (this->h_L0 != NULL) delete this->h_L0;
@@ -145,90 +145,90 @@ sutra_groot::~sutra_groot() {
   if (this->d_tab_int_y != NULL) delete this->d_tab_int_y;
 }
 
-int sutra_groot::compute_Cerr() {
-  this->current_context->set_activeDevice(this->device, 1);
+int SutraGroot::compute_Cerr() {
+  this->current_context->set_active_device(this->device, 1);
 
-  carmaSafeCall(cudaMemset(this->d_Cerr->getData(), 0,
-                           sizeof(float) * this->d_Cerr->getNbElem()));
+  carma_safe_call(cudaMemset(this->d_Cerr->get_data(), 0,
+                           sizeof(float) * this->d_Cerr->get_nb_elements()));
   printf("Computing Cerr...\n");
 
   for (int l = 0; l < this->nlayers; l++) {
     compute_Cerr_layer<float>(
-        this->d_Cerr->getData(), this->nactus, this->d_tab_int_x->getData(),
-        this->d_tab_int_y->getData(), this->d_xpos->getData(),
-        this->d_ypos->getData(), (*this->h_vdt)[l], (*this->h_Htheta)[l],
+        this->d_Cerr->get_data(), this->nactus, this->d_tab_int_x->get_data(),
+        this->d_tab_int_y->get_data(), this->d_xpos->get_data(),
+        this->d_ypos->get_data(), (*this->h_vdt)[l], (*this->h_Htheta)[l],
         (*this->h_L0)[l], this->fc, (*this->h_winddir)[l], this->gsangle,
-        (*this->h_scale)[l], this->d_tab_int_y->getNbElem(),
+        (*this->h_scale)[l], this->d_tab_int_y->get_nb_elements(),
         this->current_context->get_device(device));
   }
-  add_transpose<float>(this->d_Cerr->getData(), this->nactus,
+  add_transpose<float>(this->d_Cerr->get_data(), this->nactus,
                        this->current_context->get_device(device));
   printf("Done\n");
 
   printf("Applying coupling matrix...\n");
   // Coupling matrix filter
-  // carma_magma_potri(this->d_Nact);
-  carma_obj<float> d_tmp(this->d_Cerr);
+  // carma_potr_inv(this->d_Nact);
+  CarmaObj<float> d_tmp(this->d_Cerr);
   carma_gemm(this->cublas_handle(), 'n', 'n', this->nactus, this->nactus,
-             this->nactus, (float)1., this->d_Nact->getData(), this->nactus,
-             this->d_Cerr->getData(), this->nactus, (float)0.0, d_tmp.getData(),
+             this->nactus, (float)1., this->d_Nact->get_data(), this->nactus,
+             this->d_Cerr->get_data(), this->nactus, (float)0.0, d_tmp.get_data(),
              this->nactus);
   carma_gemm(this->cublas_handle(), 'n', 'n', this->nactus, this->nactus,
-             this->nactus, (float)1.0, d_tmp.getData(), this->nactus,
-             this->d_Nact->getData(), this->nactus, (float)0.0,
-             this->d_Cerr->getData(), this->nactus);
+             this->nactus, (float)1.0, d_tmp.get_data(), this->nactus,
+             this->d_Nact->get_data(), this->nactus, (float)0.0,
+             this->d_Cerr->get_data(), this->nactus);
   printf("Done\n");
 
   // Tip-tilt component
   printf("Computing TT component...\n");
-  carma_obj<float> d_tmp2(this->d_pzt2tt);
+  CarmaObj<float> d_tmp2(this->d_pzt2tt);
   carma_gemm(this->cublas_handle(), 'n', 'n', 2, this->nactus, this->nactus,
-             (float)1.0, this->d_pzt2tt->getData(), 2, this->d_Cerr->getData(),
-             this->nactus, (float)0.0, d_tmp2.getData(), 2);
+             (float)1.0, this->d_pzt2tt->get_data(), 2, this->d_Cerr->get_data(),
+             this->nactus, (float)0.0, d_tmp2.get_data(), 2);
   carma_gemm(this->cublas_handle(), 'n', 't', 2, 2, this->nactus, (float)1.0,
-             d_tmp2.getData(), 2, this->d_pzt2tt->getData(), 2, (float)0.0,
-             this->d_TT->getData(), 2);
+             d_tmp2.get_data(), 2, this->d_pzt2tt->get_data(), 2, (float)0.0,
+             this->d_TT->get_data(), 2);
   printf("Done\n");
 
   // Filtering TT + piston from Cerr
   printf("Filtering TT + piston from Cerr...\n");
   carma_gemm(this->cublas_handle(), 'n', 'n', this->nactus, this->nactus,
-             this->nactus, (float)1.0, this->d_TTPfilter->getData(),
-             this->nactus, this->d_Cerr->getData(), this->nactus, (float)0.0,
-             d_tmp.getData(), this->nactus);
+             this->nactus, (float)1.0, this->d_TTPfilter->get_data(),
+             this->nactus, this->d_Cerr->get_data(), this->nactus, (float)0.0,
+             d_tmp.get_data(), this->nactus);
   carma_gemm(this->cublas_handle(), 'n', 't', this->nactus, this->nactus,
-             this->nactus, (float)1.0, d_tmp.getData(), this->nactus,
-             this->d_TTPfilter->getData(), this->nactus, (float)0.0,
-             this->d_Cerr->getData(), this->nactus);
+             this->nactus, (float)1.0, d_tmp.get_data(), this->nactus,
+             this->d_TTPfilter->get_data(), this->nactus, (float)0.0,
+             this->d_Cerr->get_data(), this->nactus);
   printf("Done\n");
 
   return EXIT_SUCCESS;
 }
 
-int sutra_groot::compute_Calias() {
-  this->current_context->set_activeDevice(this->device, 1);
-  carmaSafeCall(cudaMemset(this->d_CaXX->getData(), 0,
-                           sizeof(float) * this->d_CaXX->getNbElem()));
-  carmaSafeCall(cudaMemset(this->d_CaYY->getData(), 0,
-                           sizeof(float) * this->d_CaYY->getNbElem()));
+int SutraGroot::compute_Calias() {
+  this->current_context->set_active_device(this->device, 1);
+  carma_safe_call(cudaMemset(this->d_CaXX->get_data(), 0,
+                           sizeof(float) * this->d_CaXX->get_nb_elements()));
+  carma_safe_call(cudaMemset(this->d_CaYY->get_data(), 0,
+                           sizeof(float) * this->d_CaYY->get_nb_elements()));
 
   float offset;
   for (int k = 0; k < this->npts; k++) {
     offset = k / float(this->npts - 1) * this->d;
-    compute_Ca<float>(this->d_CaXX->getData(), this->d_CaYY->getData(),
-                      this->nssp, this->d_tab_int_x->getData(),
-                      this->d_tab_int_y->getData(), this->d_xpos->getData(),
-                      this->d_ypos->getData(), offset, this->d, this->fc,
-                      this->scale, this->h_weights->getData()[k],
-                      this->d_tab_int_y->getNbElem(),
+    compute_Ca<float>(this->d_CaXX->get_data(), this->d_CaYY->get_data(),
+                      this->nssp, this->d_tab_int_x->get_data(),
+                      this->d_tab_int_y->get_data(), this->d_xpos->get_data(),
+                      this->d_ypos->get_data(), offset, this->d, this->fc,
+                      this->scale, this->h_weights->get_data()[k],
+                      this->d_tab_int_y->get_nb_elements(),
                       this->current_context->get_device(device));
     if (k > 0) {
-      compute_Ca<float>(this->d_CaXX->getData(), this->d_CaYY->getData(),
-                        this->nssp, this->d_tab_int_x->getData(),
-                        this->d_tab_int_y->getData(), this->d_xpos->getData(),
-                        this->d_ypos->getData(), -offset, this->d, this->fc,
-                        this->scale, this->h_weights->getData()[k],
-                        this->d_tab_int_y->getNbElem(),
+      compute_Ca<float>(this->d_CaXX->get_data(), this->d_CaYY->get_data(),
+                        this->nssp, this->d_tab_int_x->get_data(),
+                        this->d_tab_int_y->get_data(), this->d_xpos->get_data(),
+                        this->d_ypos->get_data(), -offset, this->d, this->fc,
+                        this->scale, this->h_weights->get_data()[k],
+                        this->d_tab_int_y->get_nb_elements(),
                         this->current_context->get_device(device));
     }
   }

@@ -32,17 +32,17 @@
 
 //! \file      sutra_atmos.cpp
 //! \ingroup   libsutra
-//! \class     sutra_atmos
+//! \class     SutraAtmos
 //! \brief     this class provides the atmos features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
 #include <sutra_atmos.h>
 #include <algorithm>
 
-sutra_atmos::sutra_atmos(carma_context *context, int nscreens, float global_r0,
+SutraAtmos::SutraAtmos(CarmaContext *context, int nscreens, float global_r0,
                          float *r0, long *size, long *stencilSize,
                          float *altitude, float *windspeed, float *winddir,
                          float *deltax, float *deltay, int device) {
@@ -52,14 +52,14 @@ sutra_atmos::sutra_atmos(carma_context *context, int nscreens, float global_r0,
   this->r0 = global_r0;
 
   for (int i = 0; i < nscreens; i++) {
-    d_screens.push_back(new sutra_tscreen(
+    d_screens.push_back(new SutraTurbuScreen(
         context, size[i], stencilSize[i], r0[i], altitude[i], windspeed[i],
         winddir[i], deltax[i], deltay[i], device));
   }
 }
 
-sutra_atmos::~sutra_atmos() {
-  for (vector<sutra_tscreen *>::iterator it = this->d_screens.begin();
+SutraAtmos::~SutraAtmos() {
+  for (vector<SutraTurbuScreen *>::iterator it = this->d_screens.begin();
        this->d_screens.end() != it; it++) {
     delete *it;
   }
@@ -68,7 +68,7 @@ sutra_atmos::~sutra_atmos() {
   // d_screens.erase(d_screens.begin(),d_screens.end());
 }
 
-int sutra_atmos::init_screen(int idx, float *h_A, float *h_B,
+int SutraAtmos::init_screen(int idx, float *h_A, float *h_B,
                              unsigned int *h_istencilx,
                              unsigned int *h_istencily, int seed) {
   if (idx < this->d_screens.size()) {
@@ -80,7 +80,7 @@ int sutra_atmos::init_screen(int idx, float *h_A, float *h_B,
   return EXIT_SUCCESS;
 }
 
-int sutra_atmos::refresh_screen(int idx) {
+int SutraAtmos::refresh_screen(int idx) {
   if (idx < this->d_screens.size())
     this->d_screens[idx]->refresh_screen();
   else
@@ -88,11 +88,11 @@ int sutra_atmos::refresh_screen(int idx) {
   return EXIT_SUCCESS;
 }
 
-int sutra_atmos::add_screen(float alt, long size, long stencilSize,
+int SutraAtmos::add_screen(float alt, long size, long stencilSize,
                             float r0_thislayer, float windspeed, float winddir,
                             float deltax, float deltay, int device) {
   this->d_screens.push_back(
-      new sutra_tscreen(current_context, size, stencilSize, r0_thislayer, alt,
+      new SutraTurbuScreen(current_context, size, stencilSize, r0_thislayer, alt,
                         windspeed, winddir, deltax, deltay, device));
   this->r0 = powf(powf(r0, -5.0f / 3.0f) + powf(r0_thislayer, -5.0f / 3.0f),
                   -3.0f / 5.0f);
@@ -101,7 +101,7 @@ int sutra_atmos::add_screen(float alt, long size, long stencilSize,
   return EXIT_SUCCESS;
 }
 
-int sutra_atmos::del_screen(int idx) {
+int SutraAtmos::del_screen(int idx) {
   if (idx < this->d_screens.size()) {
     this->nscreens--;
     this->r0 =
@@ -117,8 +117,8 @@ int sutra_atmos::del_screen(int idx) {
   return EXIT_SUCCESS;
 }
 
-int sutra_atmos::move_atmos() {
-  vector<sutra_tscreen *>::iterator p;
+int SutraAtmos::move_atmos() {
+  vector<SutraTurbuScreen *>::iterator p;
   p = this->d_screens.begin();
 
   while (p != this->d_screens.end()) {
@@ -138,10 +138,10 @@ int sutra_atmos::move_atmos() {
   return EXIT_SUCCESS;
 }
 
-int sutra_atmos::set_global_r0(float r0) {
+int SutraAtmos::set_r0(float r0) {
   // this->amplitude = powf(r0, -5.0f / 6.0f)
   float scaling = powf(r0 / this->r0, -5.0f / 6.0f);
-  for (vector<sutra_tscreen *>::iterator it = this->d_screens.begin();
+  for (vector<SutraTurbuScreen *>::iterator it = this->d_screens.begin();
        this->d_screens.end() != it; it++) {
     (*it)->r0 *= this->r0 / r0;
     (*it)->amplitude *= scaling;
@@ -150,26 +150,7 @@ int sutra_atmos::set_global_r0(float r0) {
   return EXIT_SUCCESS;
 }
 
-int sutra_atmos::set_frac(float *frac) {
-  float R0 = 0;
-  // screen.r0 = this->r0 / pupixsize * frac^-3/5
-  // r0 / pupixsize = sum( screen.r0 ^-5/3 ) ^-3/5
-  for (vector<sutra_tscreen *>::iterator it = this->d_screens.begin();
-       this->d_screens.end() != it; it++) {
-    R0 +=  powf( (*it)->r0 , -5.f/3.f);
-   }
-   R0 = powf(R0 , -3.f/5.f);
-  for (int i=0;i<this->nscreens;i++) {
-    this->d_screens[i]->r0 = R0* powf(frac[i],-3.f/5.f);
-    this->d_screens[i]->amplitude = powf(this->d_screens[i]->r0, -5.0f / 6.0f);
-    // ajust amplitude so that phase screens are generated in microns
-    // r0 has been given @0.5µm
-    this->d_screens[i]->amplitude /= (4*CARMA_PI);
-  }
-  return EXIT_SUCCESS;
-}
-
-int sutra_atmos::set_seed(int idx, float seed) {
+int SutraAtmos::set_seed(int idx, float seed) {
   if (idx < this->d_screens.size())
     this->d_screens[idx]->set_seed(seed);
   else

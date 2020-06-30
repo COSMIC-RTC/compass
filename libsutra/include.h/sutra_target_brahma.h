@@ -32,10 +32,10 @@
 
 //! \file      sutra_target_brahma.h
 //! \ingroup   libsutra
-//! \class     sutra_target_brahma
+//! \class     SutraTargetBrahma
 //! \brief     this class provides the target_brahma features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -46,12 +46,12 @@
 #include <sutra_target.h>
 #include <sutra_target_brahmaListenerImpl.h>
 
-class sutra_target_brahma : public sutra_target {
+class SutraTargetBrahma : public SutraTarget {
  private:
   DDS::Subscriber_var sub;
   DDS::Publisher_var pub;
   DDS::DataReaderListener_var cmd_listener;
-  sutra_target_brahmaListenerImpl *cmd_listener_servant;
+  SutraTargetBrahmaListenerImpl *cmd_listener_servant;
   DDS::DataReader_var cmd_dr;
   DDS::DataWriter_var frame_base_dw;
   BRAHMA::FrameDataWriter_var frame_dw;
@@ -69,17 +69,17 @@ class sutra_target_brahma : public sutra_target {
   int is_initialised;
 
  public:
-  sutra_target_brahma(carma_context *context, ACE_TCHAR *name,
-                      sutra_telescope *d_tel, int subsample, int ntargets,
+  SutraTargetBrahma(CarmaContext *context, ACE_TCHAR *name,
+                      SutraTelescope *d_tel, int subsample, int ntargets,
                       float *xpos, float *ypos, float *lambda, float *mag,
                       float zerop, long *sizes, int Npts, int device);
-  ~sutra_target_brahma();
+  ~SutraTargetBrahma();
 
   void set_subsample(int ntarget, int subsample);
   void publish();
 
  private:
-  void allocateBuffers();
+  void allocate_buffers();
 };
 
 #endif /* SUTRA_TARGET_BRAHMA_H_ */

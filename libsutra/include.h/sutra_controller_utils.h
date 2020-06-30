@@ -34,7 +34,7 @@
 //! \ingroup   libsutra
 //! \brief     this file provides the controller utilities to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -168,20 +168,20 @@ void process_err(cudaError_t e, const char *str);
 void matts_gpu_gb(double *data, int nrows, int ncols, int xoffset, int yoffset,
                   int lda, struct tomo_struct tomo,
                   struct gtomo_struct *tomo_gpu);
-void init_tomo_gpu_gb(struct gtomo_struct *tomo_gpu, sutra_atmos *atmos,
-                      sutra_sensors *sensors, double diamTel, double cobs);
+void init_tomo_gpu_gb(struct gtomo_struct *tomo_gpu, SutraAtmos *atmos,
+                      SutraSensors *sensors, double diamTel, double cobs);
 void free_tomo_gpu_gb(struct gtomo_struct *tomo_gpu);
 void update_tomo_atm_gpu_gb(struct gtomo_struct *tomo_gpu,
-                            sutra_sensors *sensors, sutra_atmos *atmos,
+                            SutraSensors *sensors, SutraAtmos *atmos,
                             double *L0, double *cn2, double *alphaX,
                             double *alphaY);
 void update_tomo_sys_gpu_gb(struct gtomo_struct *tomo_gpu,
-                            sutra_sensors *sensors, double *alphaX,
+                            SutraSensors *sensors, double *alphaX,
                             double *alphaY);
-void update_cphim_atm(struct cphim_struct *cphim_struct, sutra_sensors *sensors,
-                      sutra_atmos *atmos, double *L0, double *cn2,
+void update_cphim_atm(struct cphim_struct *cphim_struct, SutraSensors *sensors,
+                      SutraAtmos *atmos, double *L0, double *cn2,
                       double *alphaX, double *alphaY);
-void update_cphim_sys(struct cphim_struct *cphim_struct, sutra_sensors *sensors,
+void update_cphim_sys(struct cphim_struct *cphim_struct, SutraSensors *sensors,
                       double *alphaX, double *alphaY, double *xactu,
                       double *yactu, double *X, double *Y, long *NlayerDm,
                       long *indLayerDm, double *alt_dm, double *pitch,
@@ -190,24 +190,24 @@ void matcov_gpu_3(double *data, int nrows, int ncols, int xoffset, int yoffset,
                   int lda, struct tomo_struct tomo,
                   struct gtomo_struct *tomo_gpu);
 void matcov_gpu_4(float *data, int nrows, int ncols, int xoffset, int yoffset,
-                  int lda, struct gtomo_struct *tomo_gpu, sutra_atmos *atmos,
-                  sutra_sensors *sensors, double *alphaX, double *alphaY);
+                  int lda, struct gtomo_struct *tomo_gpu, SutraAtmos *atmos,
+                  SutraSensors *sensors, double *alphaX, double *alphaY);
 void CPHIM(float *data, int nrows, int ncols, int xoffset, int yoffset, int lda,
-           struct cphim_struct *cphim_struct, sutra_atmos *atmos,
-           sutra_sensors *sensors, double *alphaX, double *alphaY,
-           carma_device *device);
-void generateXY(struct gtomo_struct *tomo_gpu, sutra_sensors *sensors);
+           struct cphim_struct *cphim_struct, SutraAtmos *atmos,
+           SutraSensors *sensors, double *alphaX, double *alphaY,
+           CarmaDevice *device);
+void generateXY(struct gtomo_struct *tomo_gpu, SutraSensors *sensors);
 void tab_dphi_gpu_gb(double *tab_dphi, struct gtomo_struct *tomo_gpu,
                      long Ndphi, double *L0diff_d, int Nl0, double convert);
 void sub_pos_gpu_gb(struct gtomo_struct *tomo_gpu, long Nlayer);
 void sub_pos_cphim(struct cphim_struct *cphim_struct, long Nlayer, long Nw,
                    long Nsubap);
 void tab_u831J0(double *tab_int_x, double *tab_int_y, long npts);
-void cuda_zcen(double *idata, double *odata, int N, carma_device *device);
+void cuda_zcen(double *idata, double *odata, int N, CarmaDevice *device);
 void cumsum(double *odata, double *idata, int N);
-void init_cphim_struct(struct cphim_struct *cphim_struct, sutra_atmos *atmos,
-                       sutra_sensors *sensors, sutra_dms *dms, double diamTel);
+void init_cphim_struct(struct cphim_struct *cphim_struct, SutraAtmos *atmos,
+                       SutraSensors *sensors, SutraDms *dms, double diamTel);
 void free_cphim_struct(struct cphim_struct *cphim_struct);
-void test_DPHI_highpass(double R, double x0, long npts, carma_device *device);
+void test_DPHI_highpass(double R, double x0, long npts, CarmaDevice *device);
 
 #endif  // SUTRA_CONTROLLER_UTILS_H_

@@ -32,9 +32,9 @@
 
 //! \file      target_brahma.cpp
 //! \ingroup   libsutra
-//! \brief     this file provides pybind wrapper for sutra_target_brahma
+//! \brief     this file provides pybind wrapper for SutraTargetBrahma
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -44,26 +44,26 @@
 
 namespace py = pybind11;
 
-std::unique_ptr<sutra_target_brahma> target_brahma_init(
-    carma_context *context, ACE_TCHAR *name, sutra_telescope *d_tel,
+std::unique_ptr<SutraTargetBrahma> target_brahma_init(
+    CarmaContext *context, ACE_TCHAR *name, SutraTelescope *d_tel,
     int subsample, int ntargets, float *xpos, float *ypos, float *lambda,
     float *mag, float zerop, long *sizes, int Npts, int device) {
-  return std::unique_ptr<sutra_target_brahma>(
-      new sutra_target_brahma(context, name, d_tel, subsample, ntargets, xpos,
+  return std::unique_ptr<SutraTargetBrahma>(
+      new SutraTargetBrahma(context, name, d_tel, subsample, ntargets, xpos,
                               ypos, lambda, mag, zerop, sizes, Npts, device));
 }
 
 void declare_target_brahma(py::module &mod) {
-  py::class_<sutra_target_brahma, sutra_target>(mod, "Target_brahma")
+  py::class_<SutraTargetBrahma, SutraTarget>(mod, "Target_brahma")
       .def(py::init(wy::colCast(target_brahma_init)), R"pbdoc(
         Create and initialise a brahma target object
 
         Parameters
         ------------
-        context: (carma_context) : current carma context
+        context: (CarmaContext) : current carma context
         name:
         subsample:
-        d_tel: (sutra_telescope) : sutra_telescope object
+        d_tel: (SutraTelescope) : SutraTelescope object
         ntargets: (int): number of targets
         xpos: (np.ndarray[ndim=1,dtype=np.float32_t]) : X positions of each target in arcsec
         ypos: (np.ndarray[ndim=1,dtype=np.float32_t]) : Y positions of each target in arcsec
@@ -87,23 +87,23 @@ void declare_target_brahma(py::module &mod) {
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
       // .def_property_readonly("framecounter",
-      //                        [](sutra_target_brahma &st) { return
+      //                        [](SutraTargetBrahma &st) { return
       //                        st.framecounter; }, "Frame counter")
 
       // .def_property_readonly("samplecounter",
-      //                        [](sutra_target_brahma &st) {
+      //                        [](SutraTargetBrahma &st) {
       //                          return st.samplecounter;
       //                        },
       //                        "Sample counter")
 
       // .def_property_readonly("subsample",
-      //                        [](sutra_target_brahma &st) {
+      //                        [](SutraTargetBrahma &st) {
       //                          return st.subsample;
       //                        },
       //                        "Subsample")
 
       // .def_property_readonly("is_initialised",
-      //                        [](sutra_target_brahma &st) {
+      //                        [](SutraTargetBrahma &st) {
       //                          return st.is_initialised;
       //                        },
       //                        "is_initialised flag")
@@ -113,7 +113,7 @@ void declare_target_brahma(py::module &mod) {
       //  ██║╚██╔╝██║██╔══╝     ██║   ██╔══██║██║   ██║██║  ██║╚════██║
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
-      .def("publish", &sutra_target_brahma::publish)
+      .def("publish", &SutraTargetBrahma::publish)
 
       ;
 };

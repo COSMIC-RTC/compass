@@ -32,10 +32,10 @@
 
 //! \file      sutra_acquisim.h
 //! \ingroup   libsutra
-//! \class     sutra_acquisim
+//! \class     SutraAcquisim
 //! \brief     this class provides the acquisition simulator to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -45,7 +45,7 @@
 #include <sutra_sensors.h>
 #include <sutra_wfs_sh.h>
 
-class sutra_acquisim {
+class SutraAcquisim {
  public:
   int device;
   string type;
@@ -53,22 +53,22 @@ class sutra_acquisim {
   long nvalid;
   long npix;
 
-  carma_context *current_context;
+  CarmaContext *current_context;
 
-  sutra_wfs_sh *wfs;
-  carma_obj<int32_t> *d_validsubsx;
-  carma_obj<int32_t> *d_validsubsy;
+  SutraWfsSH *wfs;
+  CarmaObj<int32_t> *d_validsubsx;
+  CarmaObj<int32_t> *d_validsubsy;
 
  public:
-  sutra_acquisim(sutra_sensors *sensors, int wfs_num);
-  sutra_acquisim(const sutra_acquisim &acquisim);
-  ~sutra_acquisim();
+  SutraAcquisim(SutraSensors *sensors, int wfs_num);
+  SutraAcquisim(const SutraAcquisim &acquisim);
+  ~SutraAcquisim();
 
   int set_validsubs(int64_t nvalid, int32_t *validsubsx, int32_t *validsubsy);
 
   int comp_image_tele(long *dims, float *bimage);
   int comp_image(long *dims, float *bimage);
-  int comp_image(long *dims, float *bimage, carma_obj<float> *d_bincube);
+  int comp_image(long *dims, float *bimage, CarmaObj<float> *d_bincube);
   int comp_image_2D(long *dims, float *bimage, int *num_ssp);
 
  private:
@@ -80,16 +80,16 @@ int fillbincube_2D(T *bimage, T *bcube, int npix, int nsub, int *valid);
 
 template <class T>
 int fillbincube(T *bimage, T *bcube, int npix, int nsub, int Nsub, int *ivalid,
-                int *jvalid, carma_device *device);
+                int *jvalid, CarmaDevice *device);
 
 template <class T>
-int fillbincube_async(carma_streams *streams, carma_obj<T> *bimage,
-                      carma_obj<T> *bcube, int npix, int nsub, int Nsub,
-                      int *ivalid, int *jvalid, carma_device *device);
+int fillbincube_async(CarmaStreams *streams, CarmaObj<T> *bimage,
+                      CarmaObj<T> *bcube, int npix, int nsub, int Nsub,
+                      int *ivalid, int *jvalid, CarmaDevice *device);
 
 template <class T>
-int fillbincube_async(carma_host_obj<T> *image_telemetry, T *bimage, T *bcube,
+int fillbincube_async(CarmaHostObj<T> *image_telemetry, T *bimage, T *bcube,
                       int npix, int nsub, int Nsub, int *ivalid, int *jvalid,
-                      int nim, carma_device *device);
+                      int nim, CarmaDevice *device);
 
 #endif /* SUTRA_ACQUISIM_H_ */

@@ -37,10 +37,10 @@
 
 //! \file      sutra_centroider_pyr.cu
 //! \ingroup   libsutra
-//! \class     sutra_centroider_pyr
+//! \class     SutraCentroiderPyr
 //! \brief     this class provides the centroider_pyr features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -71,25 +71,25 @@ __global__ void pyrslopes_krnl(T *g_odata, T *g_idata, int *subindx,
 template <class T>
 void pyr_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy,
                 float *intensities, int ns, int nvalid, int nim,
-                carma_device *device) {
+                CarmaDevice *device) {
   // cout << "hello cu" << endl;
 
-  int nBlocks, nThreads;
-  getNumBlocksAndThreads(device, nvalid, nBlocks, nThreads);
-  dim3 grid(nBlocks), threads(nThreads);
+  int nb_blocks, nb_threads;
+  get_num_blocks_and_threads(device, nvalid, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
   pyrslopes_krnl<T><<<grid, threads>>>(d_odata, d_idata, subindx, subindy,
                                        intensities, ns, nvalid, nim);
 
-  carmaCheckMsg("pyrslopes_kernel<<<>>> execution failed\n");
+  carma_check_msg("pyrslopes_kernel<<<>>> execution failed\n");
 }
 
 template void pyr_slopes<float>(float *d_odata, float *d_idata, int *subindx,
                                 int *subindy, float *intensities, int ns,
-                                int nvalid, int nim, carma_device *device);
+                                int nvalid, int nim, CarmaDevice *device);
 template void pyr_slopes<double>(double *d_odata, double *d_idata, int *subindx,
                                  int *subindy, float *intensities, int ns,
-                                 int nvalid, int nim, carma_device *device);
+                                 int nvalid, int nim, CarmaDevice *device);
 
 template <class T, T fct_sin(T)>
 __global__ void pyr2slopes_krnl(T *g_odata, T *ref, T *g_idata, int *subindx,
@@ -145,25 +145,25 @@ template <class T, T fct_sin(T)>
 void pyr2_slopes_full(T *d_odata, T *ref, T *d_idata, int *subindx,
                       int *subindy, float *intensities, int ns, int nvalid,
                       float scale, T valid_thresh, int do_sin,
-                      carma_device *device) {
+                      CarmaDevice *device) {
   // cout << "hello cu" << endl;
 
-  int nBlocks, nThreads;
-  getNumBlocksAndThreads(device, nvalid, nBlocks, nThreads);
-  dim3 grid(nBlocks), threads(nThreads);
+  int nb_blocks, nb_threads;
+  get_num_blocks_and_threads(device, nvalid, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
   pyr2slopes_krnl<T, fct_sin>
       <<<grid, threads>>>(d_odata, ref, d_idata, subindx, subindy, intensities,
                           ns, nvalid, scale, valid_thresh, do_sin);
 
-  carmaCheckMsg("pyrslopes_kernel<<<>>> execution failed\n");
+  carma_check_msg("pyrslopes_kernel<<<>>> execution failed\n");
 }
 
 template <>
 void pyr2_slopes<float>(float *d_odata, float *ref, float *d_idata,
                         int *subindx, int *subindy, float *intensities, int ns,
                         int nvalid, float scale, float valid_thresh, int do_sin,
-                        carma_device *device) {
+                        CarmaDevice *device) {
   pyr2_slopes_full<float, sinpif>(d_odata, ref, d_idata, subindx, subindy,
                                   intensities, ns, nvalid, scale, valid_thresh,
                                   do_sin, device);
@@ -172,7 +172,7 @@ template <>
 void pyr2_slopes<double>(double *d_odata, double *ref, double *d_idata,
                          int *subindx, int *subindy, float *intensities, int ns,
                          int nvalid, float scale, double valid_thresh,
-                         int do_sin, carma_device *device) {
+                         int do_sin, CarmaDevice *device) {
   pyr2_slopes_full<double, sinpi>(d_odata, ref, d_idata, subindx, subindy,
                                   intensities, ns, nvalid, scale, valid_thresh,
                                   do_sin, device);

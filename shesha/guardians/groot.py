@@ -82,7 +82,7 @@ def compute_Cerr(filename, modal=True, ctype="float", speed=None, H=None, theta=
     pzt2tt = np.linalg.inv(deltaTT).dot(deltaF.T)
 
     if (ctype == "float"):
-        groot = Groot(cxt, cxt.activeDevice, Nact.shape[0],
+        groot = Groot(cxt, cxt.active_device, Nact.shape[0],
                       int(f.attrs["_Param_atmos__nscreens"]), angleht,
                       vdt.astype(np.float32), Htheta.astype(np.float32), L0, theta,
                       scale.astype(np.float32), pzt2tt.astype(np.float32),
@@ -510,7 +510,7 @@ def compute_Calias_gpu(filename, slopes_space=False, modal=True, npts=3):
     weights = np.zeros(npts)
     for k in range(npts):
         weights[k] = (coeff[k:] * coeff[:npts - k]).sum()
-    groot = Groot(cxt, cxt.activeDevice, nsub, weights.astype(np.float32), scale, x, y,
+    groot = Groot(cxt, cxt.active_device, nsub, weights.astype(np.float32), scale, x, y,
                   fc, d, npts)
     groot.compute_Calias()
     CaXX = np.array(groot.d_CaXX)

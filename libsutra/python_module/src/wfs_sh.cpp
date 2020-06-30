@@ -32,9 +32,9 @@
 
 //! \file      wfs_sh.cpp
 //! \ingroup   libsutra
-//! \brief     this file provides pybind wrapper for sutra_wfs_sh
+//! \brief     this file provides pybind wrapper for SutraWfsSH
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -45,7 +45,7 @@
 namespace py = pybind11;
 
 void declare_wfs_sh(py::module &mod) {
-  py::class_<sutra_wfs_sh, sutra_wfs>(mod, "SHWFS")
+  py::class_<SutraWfsSH, SutraWfs>(mod, "SHWFS")
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
@@ -55,17 +55,17 @@ void declare_wfs_sh(py::module &mod) {
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
       .def_property_readonly(
-          "d_binmap", [](sutra_wfs_sh &ssh) { return ssh.d_binmap; },
+          "d_binmap", [](SutraWfsSH &ssh) { return ssh.d_binmap; },
           "TODO: docstring")
 
       .def_property_readonly(
           "d_validpuppixx",
-          [](sutra_wfs_sh &ssh) { return ssh.d_validpuppixx; },
+          [](SutraWfsSH &ssh) { return ssh.d_validpuppixx; },
           "X position of the bottom left corner of each ssp")
 
       .def_property_readonly(
           "d_validpuppixy",
-          [](sutra_wfs_sh &ssh) { return ssh.d_validpuppixy; },
+          [](SutraWfsSH &ssh) { return ssh.d_validpuppixy; },
           "Y position of the bottom left corner of each ssp")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
@@ -74,7 +74,7 @@ void declare_wfs_sh(py::module &mod) {
       //  ██║╚██╔╝██║██╔══╝     ██║   ██╔══██║██║   ██║██║  ██║╚════██║
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
-      .def("loadarrays", wy::colCast(&sutra_wfs_sh::loadarrays), R"pbdoc(
+      .def("load_arrays", wy::colCast(&SutraWfsSH::load_arrays), R"pbdoc(
       Load SH WFS arrays
 
       Parameters
@@ -95,7 +95,7 @@ void declare_wfs_sh(py::module &mod) {
            py::arg("validsubsy"), py::arg("istart"), py::arg("jstart"),
            py::arg("kernel"))
 
-      .def("comp_nphot", &sutra_wfs_sh::comp_nphot, R"pbdoc(
+      .def("comp_nphot", &SutraWfsSH::comp_nphot, R"pbdoc(
       Compute the currect number of photons for a given system
 
       Parameters
@@ -120,7 +120,7 @@ void declare_wfs_sh(py::module &mod) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
-      .def("set_bincube", wy::colCast(&sutra_wfs_sh::set_bincube), R"pbdoc(
+      .def("set_bincube", wy::colCast(&SutraWfsSH::set_bincube), R"pbdoc(
         Set the bincube of the SH WFS
 
         Parameters

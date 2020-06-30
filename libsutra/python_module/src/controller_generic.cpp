@@ -34,7 +34,7 @@
 //! \ingroup   libsutra
 //! \brief     this file provides pybind wrapper for sutra_controller_generic
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -48,7 +48,7 @@ template <typename Tcomp, typename Tout>
 void controller_generic_impl(py::module &mod, const char *name) {
   using controller_generic = sutra_controller_generic<Tcomp, Tout>;
 
-  py::class_<controller_generic, sutra_controller<Tcomp, Tout>>(mod, name)
+  py::class_<controller_generic, SutraController<Tcomp, Tout>>(mod, name)
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
@@ -143,7 +143,7 @@ void controller_generic_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("commandlaw"))
 
-      .def("set_mgain", wy::colCast(&controller_generic::set_mgain),
+      .def("set_modal_gains", wy::colCast(&controller_generic::set_modal_gains),
            R"pbdoc(
       Set the controller modal gains
 

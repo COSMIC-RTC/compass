@@ -78,6 +78,6 @@ if arguments["--devices"]:
         devices.append(int(arguments["--devices"][k]))
     roket.config.p_loop.set_devices(devices)
 
-roket.initConfig()
+roket.init_config()
 roket.loop()
 roket.save_in_hdf5(savefile)

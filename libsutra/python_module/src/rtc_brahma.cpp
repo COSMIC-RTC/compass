@@ -32,31 +32,31 @@
 
 //! \file      rtc_brahma.cpp
 //! \ingroup   libsutra
-//! \brief     this file provides pybind wrapper for sutra_rtc_brahma
+//! \brief     this file provides pybind wrapper for SutraRtcBrahma
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
 #include <wyrm>
 
-#include <sutra_rtc_brahma.h>
+#include <SutraRtc_brahma.h>
 
 namespace py = pybind11;
 
 template <typename T>
-std::unique_ptr<sutra_rtc_brahma<T>> rtc_brahma_init(carma_context *context,
-                                                     sutra_sensors *wfs,
-                                                     sutra_target *target,
+std::unique_ptr<SutraRtcBrahma<T>> rtc_brahma_init(CarmaContext *context,
+                                                     SutraSensors *wfs,
+                                                     SutraTarget *target,
                                                      ACE_TCHAR *name) {
-  return std::unique_ptr<sutra_rtc_brahma<T>>(
-      new sutra_rtc_brahma<T>(context, wfs, target, name));
+  return std::unique_ptr<SutraRtcBrahma<T>>(
+      new SutraRtcBrahma<T>(context, wfs, target, name));
 }
 
 template <typename T>
 void rtc_brahma_impl(py::module &mod, const char *name) {
-  using rtc = sutra_rtc<float, T, float>;
-  using rtc_brahma = sutra_rtc_brahma<T>;
+  using rtc = SutraRtc<float, T, float>;
+  using rtc_brahma = SutraRtcBrahma<T>;
 
   py::class_<rtc_brahma, rtc>(mod, name)
       .def(py::init(wy::colCast(rtc_brahma_init<T>)), R"pbdoc(
@@ -64,7 +64,7 @@ void rtc_brahma_impl(py::module &mod, const char *name) {
 
             Parameters
             ------------
-            context: (carma_context) : current carma context
+            context: (CarmaContext) : current carma context
             wfs:
             target:
             name:

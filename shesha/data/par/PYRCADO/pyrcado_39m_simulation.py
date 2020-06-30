@@ -89,7 +89,7 @@ p_dm0.set_coupling(0.2)  # 0.2 only
 p_dm0.set_unitpervolt(1)
 p_dm0.set_push4imat(0.01)
 p_dm0.set_type_pattern(scons.PatternType.HEXAM4)
-p_dm0.set_influType(scons.InfluType.RADIALSCHWARTZ)
+p_dm0.set_influ_type(scons.InfluType.RADIALSCHWARTZ)
 
 p_dm1.set_type(scons.DmType.TT)
 p_dm1.set_alt(0.)

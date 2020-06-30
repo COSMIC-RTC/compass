@@ -1,8 +1,8 @@
 ## @package   shesha.config.PDMS
 ## @brief     Param_dm class definition
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   4.4.1
-## @date      2011/01/28
+## @version   5.0.0
+## @date      2020/05/18
 ## @copyright GNU Lesser General Public License
 #
 #  This file is part of COMPASS <https://anr-compass.github.io/compass/>
@@ -54,6 +54,7 @@ class Param_dm:
         self.__coupling = 0.2  # Actuator coupling (< .3)
         self.__gain = 1.0  # Actuator gains
         self.__pupoffset = np.array([0, 0])
+        self.__dim_screen = 0 # Phase screen dimension
         # Global offset in pupil (x,y) of the whole actuator pattern
 
         self.__unitpervolt = 0.01
@@ -86,7 +87,7 @@ class Param_dm:
         # Hidden variable safe-typed in shesha_constants
         self.__type = None  # Private storage of type
         self.__type_pattern = None  # Private storage of type_pattern
-        self.__influType = scons.InfluType.DEFAULT  # Private storage of influType
+        self.__influ_type = scons.InfluType.DEFAULT  # Private storage of influ_type
         self.__type_kl = scons.KLType.KOLMO  # Private storage for KL type
 
         # HDF5 storage management
@@ -197,21 +198,21 @@ class Param_dm:
 
     segmented_mirror = property(get_segmented_mirror, set_segmented_mirror)
 
-    def get_influType(self):
+    def get_influ_type(self):
         """ Get the influence function type for pzt DM
 
         :return: (str) : centroider type
         """
-        return self.__influType
+        return self.__influ_type
 
-    def set_influType(self, t):
+    def set_influ_type(self, t):
         """ Set the influence function type for pzt DM
 
         :param t: (str) : centroider type
         """
-        self.__influType = scons.check_enum(scons.InfluType, t)
+        self.__influ_type = scons.check_enum(scons.InfluType, t)
 
-    influType = property(get_influType, set_influType)
+    influ_type = property(get_influ_type, set_influ_type)
 
     def get_influpos(self):
         """ Get the influence functions pixels that contributes to each DM pixel
@@ -280,6 +281,22 @@ class Param_dm:
         self.__gain = csu.enforce_float(g)
 
     gain = property(get_gain, set_gain)
+
+    def _get_dim_screen(self):
+        """ Get the phase screen dimension
+
+        :return: (long) : phase screen dimension
+        """
+        return self.__dim_screen
+
+    def _set_dim_screen(self, n):
+        """ Set the phase screen dimension
+
+        :param n: (long) : phase screen dimension
+        """
+        self.__dim_screen = csu.enforce_int(n)
+
+    _dim_screen = property(_get_dim_screen, _set_dim_screen)
 
     def get_nkl(self):
         """ Get the number of KL modes used for computation of covmat in case of minimum variance controller

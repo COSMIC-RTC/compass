@@ -32,10 +32,10 @@
 
 //! \file      sutra_target_brahmaListenerImpl.cpp
 //! \ingroup   libsutra
-//! \class     sutra_target_brahmaListenerImpl
+//! \class     SutraTargetBrahmaListenerImpl
 //! \brief     this class provides the target_brahmaListenerImpl features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -50,19 +50,19 @@
 #include "sutra_target_brahma.h"
 
 // Constructor
-sutra_target_brahmaListenerImpl::sutra_target_brahmaListenerImpl()
+SutraTargetBrahmaListenerImpl::SutraTargetBrahmaListenerImpl()
     : target(0L) {}
 
 // Destructor
-sutra_target_brahmaListenerImpl::~sutra_target_brahmaListenerImpl(void) {}
+SutraTargetBrahmaListenerImpl::~SutraTargetBrahmaListenerImpl(void) {}
 
 // app-specific
-void sutra_target_brahmaListenerImpl::attach_target(
-    sutra_target_brahma* target_) {
+void SutraTargetBrahmaListenerImpl::attach_target(
+    SutraTargetBrahma* target_) {
   target = target_;
 }
 
-void sutra_target_brahmaListenerImpl::on_data_available(
+void SutraTargetBrahmaListenerImpl::on_data_available(
     DDS::DataReader_ptr reader) noexcept(false) {
   try {
     BRAHMA::CommandDataReader_var target_cmd_dr =
@@ -143,34 +143,34 @@ void sutra_target_brahmaListenerImpl::on_data_available(
 }
 
 // must also override:
-void sutra_target_brahmaListenerImpl::on_requested_deadline_missed(
+void SutraTargetBrahmaListenerImpl::on_requested_deadline_missed(
     DDS::DataReader_ptr reader,
     const DDS::RequestedDeadlineMissedStatus& status) noexcept(false) {
   //  cerr << "CommandDataReaderListenerImpl::on_requested_deadline_missed" <<
   //  endl;
 }
-void sutra_target_brahmaListenerImpl::on_requested_incompatible_qos(
+void SutraTargetBrahmaListenerImpl::on_requested_incompatible_qos(
     DDS::DataReader_ptr reader,
     const DDS::RequestedIncompatibleQosStatus& status) noexcept(false) {
   //  cerr << "CommandDataReaderListenerImpl::on_requested_incompatible_qos" <<
   //  endl;
 }
-void sutra_target_brahmaListenerImpl::on_liveliness_changed(
+void SutraTargetBrahmaListenerImpl::on_liveliness_changed(
     DDS::DataReader_ptr reader,
     const DDS::LivelinessChangedStatus& status) noexcept(false) {
   //  cerr << "CommandDataReaderListenerImpl::on_liveliness_changed" << endl;
 }
-void sutra_target_brahmaListenerImpl::on_subscription_matched(
+void SutraTargetBrahmaListenerImpl::on_subscription_matched(
     DDS::DataReader_ptr reader,
     const DDS::SubscriptionMatchedStatus& status) noexcept(false) {
   //  cerr << "CommandDataReaderListenerImpl::on_subscription_matched" << endl;
 }
-void sutra_target_brahmaListenerImpl::on_sample_rejected(
+void SutraTargetBrahmaListenerImpl::on_sample_rejected(
     DDS::DataReader_ptr reader,
     const DDS::SampleRejectedStatus& status) noexcept(false) {
   //  cerr << "CommandDataReaderListenerImpl::on_sample_rejected" << endl;
 }
-void sutra_target_brahmaListenerImpl::on_sample_lost(
+void SutraTargetBrahmaListenerImpl::on_sample_lost(
     DDS::DataReader_ptr reader,
     const DDS::SampleLostStatus& status) noexcept(false) {
   //  cerr << "CommandDataReaderListenerImpl::on_sample_lost" << endl;

@@ -32,10 +32,10 @@
 
 //! \file      sutra_target.cu
 //! \ingroup   libsutra
-//! \class     sutra_target
+//! \class     SutraTarget
 //! \brief     this class provides the target features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -117,15 +117,15 @@ int target_raytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
   raytrace_krnl<<<blocks, threads, smemSize>>>(
       d_odata, d_idata, nx, ny, xoff, yoff, G, thetaML, dx, dy, Nx, block_size, delta);
 
-  carmaCheckMsg("raytrace_kernel<<<>>> execution failed\n");
+  carma_check_msg("raytrace_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
 
-int target_raytrace_async(carma_streams *streams, float *d_odata,
+int target_raytrace_async(CarmaStreams *streams, float *d_odata,
                           float *d_idata, int nx, int ny, int Nx, float xoff,
                           float yoff, int block_size) {
-  int nstreams = streams->get_nbStreams();
+  int nstreams = streams->get_nb_streams();
 
   int nnx =
       nx + block_size - nx % block_size;  // find next multiple of BLOCK_SZ
@@ -136,15 +136,15 @@ int target_raytrace_async(carma_streams *streams, float *d_odata,
     raytrace_krnl<<<blocks, threads, smemSize, streams->get_stream(i)>>>(
         d_odata, d_idata, nx, ny, xoff, yoff, Nx, block_size, i * block_size, 1.0f);
 
-  carmaCheckMsg("raytrace_kernel<<<>>> execution failed\n");
+  carma_check_msg("raytrace_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
-int target_raytrace_async(carma_host_obj<float> *phase_telemetry,
+int target_raytrace_async(CarmaHostObj<float> *phase_telemetry,
                           float *d_odata, float *d_idata, int nx, int ny,
                           int Nx, float xoff, float yoff, int block_size) {
-  float *hdata = phase_telemetry->getData();
-  int nstreams = phase_telemetry->get_nbStreams();
+  float *hdata = phase_telemetry->get_data();
+  int nstreams = phase_telemetry->get_nb_streams();
 
   int nnx =
       nx + block_size - nx % block_size;  // find next multiple of BLOCK_SZ
@@ -153,10 +153,10 @@ int target_raytrace_async(carma_host_obj<float> *phase_telemetry,
 
   for (int i = 0; i < nstreams; i++)
     raytrace_krnl<<<blocks, threads, smemSize,
-                    phase_telemetry->get_cudaStream_t(i)>>>(
+                    phase_telemetry->get_cuda_stream(i)>>>(
         d_odata, d_idata, nx, ny, xoff, yoff, Nx, block_size, i * block_size, 1.0f);
 
-  carmaCheckMsg("raytrace_kernel<<<>>> execution failed\n");
+  carma_check_msg("raytrace_kernel<<<>>> execution failed\n");
   // asynchronously launch nstreams memcopies.  Note that memcopy in stream x
   // will only
   //   commence executing when all previous CUDA calls in stream x have
@@ -171,7 +171,7 @@ int target_raytrace_async(carma_host_obj<float> *phase_telemetry,
     cudaMemcpyAsync(&(hdata[i * block_size * nx]),
                     &(d_odata[i * block_size * nx]), sizeof(float) * nbcopy,
                     cudaMemcpyDeviceToHost,
-                    phase_telemetry->get_cudaStream_t(i));
+                    phase_telemetry->get_cuda_stream(i));
   }
 
   return EXIT_SUCCESS;
@@ -200,14 +200,14 @@ __global__ void fillamplikrnl(cuFloatComplex *amplipup, float *phase,
 
 int fill_amplipup(cuFloatComplex *amplipup, float *phase, float *mask,
                   float scale, int puponly, int nx, int ny, int Nx,
-                  carma_device *device) {
-  int nBlocks, nThreads;
-  getNumBlocksAndThreads(device, nx * ny, nBlocks, nThreads);
-  dim3 grid(nBlocks), threads(nThreads);
+                  CarmaDevice *device) {
+  int nb_blocks, nb_threads;
+  get_num_blocks_and_threads(device, nx * ny, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
 
   fillamplikrnl<<<grid, threads>>>(amplipup, phase, mask, scale, puponly, nx,
                                    nx * ny, Nx);
-  carmaCheckMsg("fillamplikrnl<<<>>> execution failed\n");
+  carma_check_msg("fillamplikrnl<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }

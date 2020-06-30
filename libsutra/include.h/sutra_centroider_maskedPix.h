@@ -37,10 +37,10 @@
 
 //! \file      sutra_centroider_maskedPix.h
 //! \ingroup   libsutra
-//! \class     sutra_centroider_maskedPix
+//! \class     SutraCentroiderMaskedPix
 //! \brief     this class provides the centroider_maskedPix features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -52,17 +52,17 @@
 #include <string>
 
 template <class Tin, class T>
-class sutra_centroider_maskedPix : public sutra_centroider<Tin, T> {
+class SutraCentroiderMaskedPix : public SutraCentroider<Tin, T> {
  public:
-  carma_obj<T> *d_selected_pix;
-  carma_obj<T> *d_mask;
+  CarmaObj<T> *d_selected_pix;
+  CarmaObj<T> *d_mask;
 
  public:
-  sutra_centroider_maskedPix(carma_context *context, sutra_wfs *wfs,
+  SutraCentroiderMaskedPix(CarmaContext *context, SutraWfs *wfs,
                              long nvalid, long npupils, float offset,
                              float scale, bool filter_TT, int device);
 
-  ~sutra_centroider_maskedPix();
+  ~SutraCentroiderMaskedPix();
 
   string get_type();
 
@@ -72,20 +72,20 @@ class sutra_centroider_maskedPix : public sutra_centroider<Tin, T> {
               int npix, int ntot, cudaStream_t stream=0);
   int get_cog(float *intensities, T *slopes, bool noise);
   int get_cog();
-  int fill_selected_pix(carma_obj<T> *pix);
+  int fill_selected_pix(CarmaObj<T> *pix);
   int fill_mask();
 };
 
 void fill_intensities(float *intensities, float *img, int *subindx,
-                      int *subindy, int ns, int nslopes, carma_device *device);
+                      int *subindy, int ns, int nslopes, CarmaDevice *device);
 template <class T>
-void getMaskedPix(T *centroids, T *ref, float *img, int *subindx, int *subindy,
-                  float *psum, int ns, int nslopes, carma_device *device);
+void get_masked_pix(T *centroids, T *ref, float *img, int *subindx, int *subindy,
+                  float *psum, int ns, int nslopes, CarmaDevice *device);
 template <class T>
 void pyr_fill_selected_pix(T *img, int img_sizex, T *pix, int *subindx, int *subindy,
-                      int nvalid, carma_device *device);
+                      int nvalid, CarmaDevice *device);
 template <class T>
 void pyr_fill_mask(T *mask, int img_sizex, int *subindx, int *subindy,
-                      int nvalid, carma_device *device);
+                      int nvalid, CarmaDevice *device);
 
 #endif  // _SUTRA_CENTROIDER_MASKEDPIX_H_

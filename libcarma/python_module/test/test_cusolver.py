@@ -114,32 +114,61 @@ print("precision: ", prec)
 
 #     npt.assert_almost_equal(err, 0., decimal=dec)
 
-# def test_float_potri_gpu():
 
-#     d_mat = ch.obj_float(c, np.random.randn([m, m))
-#     d_mat.random(np.int32(time.perf_counter() * 1e3))
-#     a = np.array(d_mat)
-#     a = a.T
-#     a.reshape(a.T.shape)
+def test_float_potri_gpu():
 
-#     identity = ch.obj_float(c, np.identity(m))
+    d_mat = ch.obj_float(c, np.random.randn(m, m))
+    d_mat.random(np.int32(time.perf_counter() * 1e3))
+    a = np.array(d_mat)
+    a = a.T
+    a.reshape(a.T.shape)
 
-#     d_res = d_mat.gemm(d_mat, op_a='n', op_b='t', beta=1, matC=identity)
+    identity = ch.obj_float(c, np.identity(m))
 
-#     b = np.dot(a, a.T)
-#     mat = np.array(d_res)
+    d_res = d_mat.gemm(d_mat, op_a='n', op_b='t', beta=1, matC=identity)
 
-#     d_mat = ch.obj_float(c, d_res)
-#     ch.potri_float(d_res)
+    b = np.dot(a, a.T)
+    mat = np.array(d_res)
 
-#     d_id = d_mat.gemm(d_res)
-#     res_id = np.array(d_id)
+    d_mat = ch.obj_float(c, d_res)
+    ch.potri_float(d_res)
 
-#     err = np.amax(np.abs(res_id - np.identity(m)))
-#     print("")
-#     print(err)
+    d_id = d_mat.gemm(d_res)
+    res_id = np.array(d_id)
 
-#     npt.assert_almost_equal(err, 0, decimal=dec)
+    err = np.amax(np.abs(res_id - np.identity(m)))
+    print("")
+    print(err)
+
+    npt.assert_almost_equal(err, 0, decimal=dec)
+
+
+def test_double_potri_gpu():
+
+    d_mat = ch.obj_double(c, np.random.randn(m, m))
+    d_mat.random(np.int32(time.perf_counter() * 1e3))
+    a = np.array(d_mat)
+    a = a.T
+    a.reshape(a.T.shape)
+
+    identity = ch.obj_double(c, np.identity(m))
+
+    d_res = d_mat.gemm(d_mat, op_a='n', op_b='t', beta=1, matC=identity)
+
+    b = np.dot(a, a.T)
+    mat = np.array(d_res)
+
+    d_mat = ch.obj_double(c, d_res)
+    ch.potri_double(d_res)
+
+    d_id = d_mat.gemm(d_res)
+    res_id = np.array(d_id)
+
+    err = np.amax(np.abs(res_id - np.identity(m)))
+    print("")
+    print(err)
+
+    npt.assert_almost_equal(err, 0, decimal=2 * dec)
 
 
 def test_float_syevd():
@@ -150,16 +179,18 @@ def test_float_syevd():
     d_EV2 = ch.obj_float(c, np.random.randn(m))
 
     d_res = d_mat.gemm(d_mat, op_a='n', op_b='t')
+    mat = np.array(d_res)
 
     ch.syevd_float(d_res, d_EV, d_U)
 
     U = np.array(d_U)
-    Mat = np.array(d_res)
+    res = np.array(d_res)
     EV = np.diag(d_EV)
 
-    npt.assert_almost_equal(np.dot(np.dot(U, EV), U.T), Mat, decimal=dec - 1)
+    npt.assert_almost_equal(
+            np.dot(np.dot(U, EV), U.T).astype(np.float32), res, decimal=dec - 1)
 
-    err = np.amax(np.abs(Mat - np.dot(np.dot(U, EV), U.T)))
+    err = np.amax(np.abs(res - np.dot(np.dot(U, EV), U.T)))
 
     print("")
 

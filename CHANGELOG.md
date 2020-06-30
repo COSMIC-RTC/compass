@@ -1,6 +1,7 @@
 # COMPASS Change logs
 
 - [COMPASS Change logs](#compass-change-logs)
+  - [Release v5.0](#release-v50)
   - [Release v4.4.1](#release-v441)
   - [Release v4.4.0](#release-v440)
   - [Release v4.3.2](#release-v432)
@@ -16,9 +17,62 @@
   - [Release v2.0](#release-v20)
   - [Release v1.1](#release-v11)
 
-## Release v4.4.1
+## Release v5.0
+The goal of this release is to improve the code quality.
+This is a major (and disruptive) update, there are changes in most supervisor codes : scripts need to be updated according to these changes.
 
-Release v4.4.1:
+COMPASS is more and more used by the AO community. With time, the amount of contributions external from the core team had become significant, especially in the user layer defined by the shesha package.
+With its legacy architecture, the readability of the source code became messy, and the long term maintanability was penalized.
+
+With this release, we propose a new architecture for the user top-level interface, i.e. supervisors. The goal is to become fully modular while increasing the level of documentation and code readability.
+
+The architecture export the abstraction level from the supervisor to so called "components" : a supervisor is now a set of components in charge of the implementation of each AO module, such as Wfs, Dm, Rtc, etc...
+Then, the supervisor defines the sequence of execution of each component. This approach aims to reach "plug-and-play" components, where third party library could be used to implements some components and still interface it with compass ones. 
+
+For this, we also define code guidelines that must be followed by each contribution to ensure self consistence. Usage of unit tests through pytest also becomes mandatory : each newly added feature accessible at user level has to come with its set of unit tests.
+
+IMPORTANT NOTE : due to the very short available development time of the core COMPASS developers, this version does not fulfill all our expectations yet. This is a first step, but full modularity also requires to rework core software layers, and this is time consuming. Version 5 will be updated through time and the final version before next major release will reach the goals.
+
+- PEP 8 application in `shesha.supervisor`
+- PEP 8 style in `carma` / `sutra`
+- Add CUDA 11 support
+- Make MAGMA an optional dependency
+- New supervisor architecture using components and optimizers
+- Remove `get_centroids` --> becomes `get_slopes`
+- Old behavior of `get_slopes` was to call `compute_slopes`, which compute and return. Directly use `compute_slopes` instead
+- Remove `get_all_data_loop` functions from `abstractSupervisor` and `AoSupervisor` : unused
+- Remove `computeImatModal` from `AoSupervisor` : not used and not implemented
+- `set_gain` was able to set mgain also depending on the parameter given. Change the function to be more explicit : `set_gain only` set scalar loop gain while `set_modal_gain` set the modal gain vector
+- Rename `set_mgain` to `set_modal_gain`
+- Rename get_mgain to `get_modal_gain`
+- Remove `write_config_on_file` from `AoSupervisor`, and rename it `getConfigFab` in `canapassSupervisor`
+- Rename `set_global_r0` to `set_r0`
+- Rename `getIFsparse` to `get_influ_basis` (to make difference with `get_influ`)
+- Rename `getIFtt` to `get_tt_influ_basis`
+- Rename `getIFdm` to `compute_influ_basis`
+- Remove `getTarAmpliPup` (unused)
+- Remove `reset` function, use `reset_simu` instead
+- Remove `setModalBasis` : unused
+- Remove `computePh2ModesFits` : unused
+- Rename `setPyrSourceArray` in `set_pyr_modulation_points`
+- `set_pyr_modulation` becomes `set_pyr_modulation_ampli`
+- Signature changes in `setPyr*Source` : wfs_index first is mandatory
+- Add new parameter in PWFS : `p_wfs._pyr_scale_pos` to store the scale applied to `pyr_cx` and `pyr_cy` before upload. Useful for Milan functions
+- Rename recordCB in `record_ao_circular_buffer`
+- Signature changes for `set_fourier_mask`, `set_noise`, `set_gs_mask` : wfs_index as first argument and mandatory
+- Remove `compute_wfs_images` : not used
+- Rename `set_dm_shape_from` into `set_command`
+- Add new parameter in PDMS : `p_dms[0]._dim_screen` to store the dimension of the DM shape screen
+- Add components module : this module defines classes to handle implementation of AO components such as Wfs, Dm, Rtc and so on. For now, only compass implementations are coded, but an abstraction for each component will be developed to allow third party library implementation
+- Add optimizers module : this module defines classes to operate on the supervisor components for AO optimization. It could include many algorithms, define in some "thematic" class. For now, it includes `ModalBasis` class (for modal basis computations) and `Calibration` class (for interaction and command matrices). User defined algorithms that do not fit into one of those classes should be written in an other new class with an explicit name to be used by the supervisor.
+- Remove `abstractSupervisor`
+- Remove `aoSupervisor`
+- Remove the simulator module : methods have been moved into the right component
+- Add `CONTRIBUTING.md` file to define code guidelines
+- Add unit tests for each method accessible from a `compassSupervisor` using pytest. Each contribution should define a new unit test
+- Add templates for issue and merge request
+
+## Release v4.4.1
 
  - handle different shape for raw images and cal images (using the LUT feature)
  - possibility to attach a stream to centroiders
@@ -31,8 +85,6 @@ Release v4.4.1:
  - generate gcov trace in debug
 
 ## Release v4.4.0
-
-Release v4.4.0:
 
 - Debug issue with Kepler architecture
 - Multi GPU controller reworked

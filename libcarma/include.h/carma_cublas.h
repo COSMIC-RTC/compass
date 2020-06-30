@@ -32,9 +32,9 @@
 
 //! \file      carma_cublas.h
 //! \ingroup   libcarma
-//! \brief     this file provides the cublas features to carma_obj
+//! \brief     this file provides the cublas features to CarmaObj
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -53,10 +53,10 @@
 cublasStatus_t __carma_checkCublasStatus(cublasStatus_t status, int line,
                                          std::string file);
 
-cublasStatus_t carma_initCublas(cublasHandle_t *cublas_handle);
-cublasStatus_t carma_shutdownCublas(cublasHandle_t cublas_handle);
+cublasStatus_t carma_init_cublas(cublasHandle_t *cublas_handle);
+cublasStatus_t carma_shutdown_cublas(cublasHandle_t cublas_handle);
 
-cublasOperation_t carma_char2cublasOperation(char operation);
+cublasOperation_t carma_char2cublas_operation(char operation);
 
 /*
  * _____ _____ __  __ ____  _        _  _____ _____ ____

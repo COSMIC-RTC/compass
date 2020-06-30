@@ -120,7 +120,7 @@ p_dm0.set_unitpervolt(1)
 p_dm0.set_push4imat(0.01)
 p_dm0.set_type_pattern("hexa")
 #p_dm0.set_influType("gaussian")
-p_dm0.set_influType("radialSchwartz")
+p_dm0.set_influ_type("radialSchwartz")
 
 #p_dm0.set_gain(0.2)
 

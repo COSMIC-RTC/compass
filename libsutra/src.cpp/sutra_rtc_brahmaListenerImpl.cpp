@@ -30,43 +30,43 @@
 //  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 // -----------------------------------------------------------------------------
 
-//! \file      sutra_rtc_brahmaListenerImpl.cpp
+//! \file      SutraRtcBrahmaListenerImpl.cpp
 //! \ingroup   libsutra
-//! \class     sutra_rtc_brahmaListenerImpl
+//! \class     SutraRtcBrahmaListenerImpl
 //! \brief     this class provides the rtc_brahmaListenerImpl features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
 #ifdef USE_BRAHMA
 
-#include <sutra_rtc_brahmaListenerImpl.h>
+#include <SutraRtcBrahmaListenerImpl.h>
 #include "ace/streams.h"
 #include "dds/DCPS/Service_Participant.h"
 #include "libBRAHMATypeSupportImpl.h"
 
-#include "sutra_rtc_brahma.h"
+#include "SutraRtc_brahma.h"
 
 // Constructor
 template <typename T>
-sutra_rtc_brahmaListenerImpl<T>::sutra_rtc_brahmaListenerImpl() : rtc(0L) {}
+SutraRtcBrahmaListenerImpl<T>::SutraRtcBrahmaListenerImpl() : rtc(0L) {}
 
 // Destructor
 template <typename T>
-sutra_rtc_brahmaListenerImpl<T>::~sutra_rtc_brahmaListenerImpl(void) {}
+SutraRtcBrahmaListenerImpl<T>::~SutraRtcBrahmaListenerImpl(void) {}
 
 // app-specific
 template <typename T>
-void sutra_rtc_brahmaListenerImpl<T>::attach_rtc(sutra_rtc_brahma<T> *rtc_) {
+void SutraRtcBrahmaListenerImpl<T>::attach_rtc(SutraRtcBrahma<T> *rtc_) {
   rtc = rtc_;
 }
 
 template <typename T>
-void sutra_rtc_brahmaListenerImpl<T>::on_data_available(
+void SutraRtcBrahmaListenerImpl<T>::on_data_available(
     DDS::DataReader_ptr reader) noexcept(false) {
   //  DEBUG_TRACE("Entering in
-  //  sutra_rtc_brahmaListenerImpl::on_data_available");
+  //  SutraRtcBrahmaListenerImpl::on_data_available");
 
   try {
     BRAHMA::CommandDataReader_var rtc_cmd_dr =
@@ -106,18 +106,18 @@ void sutra_rtc_brahmaListenerImpl<T>::on_data_available(
             if (rtc->d_control[ncontrol]->get_type() == "ls") {
               sutra_controller_ls *control =
                   dynamic_cast<sutra_controller_ls *>(rtc->d_control[ncontrol]);
-              control->set_mgain(data);
+              control->set_modal_gains(data);
               return;
             } else if (rtc->d_control[ncontrol]->get_type() == "mv") {
               sutra_controller_mv *control =
                   dynamic_cast<sutra_controller_mv *>(rtc->d_control[ncontrol]);
-              control->set_mgain(data);
+              control->set_modal_gains(data);
               return;
             } else if (rtc->d_control[ncontrol]->get_type() == "generic") {
               sutra_controller_generic *control =
                   dynamic_cast<sutra_controller_generic *>(
                       rtc->d_control[ncontrol]);
-              control->set_mgain(data);
+              control->set_modal_gains(data);
               return;
             } else {
               BRAHMA_DEBUG_TRACE("controller %d must be a ls or mv controller",
@@ -143,11 +143,11 @@ void sutra_rtc_brahmaListenerImpl<T>::on_data_available(
                                  ncontrol);
               throw CORBA::BAD_PARAM();
             }
-          } else if (cmd_splited[0] == "openLoop") {
+          } else if (cmd_splited[0] == "open_loop") {
             int ncontrol = carma_utils::from_string<int>(cmd_splited[1]);
-            int openloop = carma_utils::from_string<int>(cmd_splited[2]);
-            DEBUG_TRACE("Updating openloop num %d to %d", ncontrol, openloop);
-            rtc->d_control[ncontrol]->set_openloop(openloop);
+            int open_loop = carma_utils::from_string<int>(cmd_splited[2]);
+            DEBUG_TRACE("Updating open_loop num %d to %d", ncontrol, open_loop);
+            rtc->d_control[ncontrol]->set_open_loop(open_loop);
           } else if (cmd_splited[0] == "CM") {
             int ncontrol = carma_utils::from_string<int>(cmd_splited[1]);
 
@@ -315,7 +315,7 @@ void sutra_rtc_brahmaListenerImpl<T>::on_data_available(
           BRAHMA_DEBUG_TRACE("%s", stm.str().c_str());
         }
       } else {
-        //         BRAHMA_DEBUG_TRACE("sutra_rtc_brahmaListenerImpl::on_data_available
+        //         BRAHMA_DEBUG_TRACE("SutraRtcBrahmaListenerImpl::on_data_available
         //         received a non-data sample. ");
       }
     }
@@ -327,7 +327,7 @@ void sutra_rtc_brahmaListenerImpl<T>::on_data_available(
 
 // must also override:
 template <typename T>
-void sutra_rtc_brahmaListenerImpl<T>::on_requested_deadline_missed(
+void SutraRtcBrahmaListenerImpl<T>::on_requested_deadline_missed(
     DDS::DataReader_ptr reader,
     const DDS::RequestedDeadlineMissedStatus &status) noexcept(false) {
   //   BRAHMA_DEBUG_TRACE(
@@ -336,7 +336,7 @@ void sutra_rtc_brahmaListenerImpl<T>::on_requested_deadline_missed(
   //  endl;
 }
 template <typename T>
-void sutra_rtc_brahmaListenerImpl<T>::on_requested_incompatible_qos(
+void SutraRtcBrahmaListenerImpl<T>::on_requested_incompatible_qos(
     DDS::DataReader_ptr reader,
     const DDS::RequestedIncompatibleQosStatus &status) noexcept(false) {
   //   BRAHMA_DEBUG_TRACE(
@@ -345,7 +345,7 @@ void sutra_rtc_brahmaListenerImpl<T>::on_requested_incompatible_qos(
   //  endl;
 }
 template <typename T>
-void sutra_rtc_brahmaListenerImpl<T>::on_liveliness_changed(
+void SutraRtcBrahmaListenerImpl<T>::on_liveliness_changed(
     DDS::DataReader_ptr reader,
     const DDS::LivelinessChangedStatus &status) noexcept(false) {
   //   BRAHMA_DEBUG_TRACE(
@@ -353,7 +353,7 @@ void sutra_rtc_brahmaListenerImpl<T>::on_liveliness_changed(
   //  cerr << "CommandDataReaderListenerImpl::on_liveliness_changed" << endl;
 }
 template <typename T>
-void sutra_rtc_brahmaListenerImpl<T>::on_subscription_matched(
+void SutraRtcBrahmaListenerImpl<T>::on_subscription_matched(
     DDS::DataReader_ptr reader,
     const DDS::SubscriptionMatchedStatus &status) noexcept(false) {
   //   BRAHMA_DEBUG_TRACE(
@@ -361,7 +361,7 @@ void sutra_rtc_brahmaListenerImpl<T>::on_subscription_matched(
   //  cerr << "CommandDataReaderListenerImpl::on_subscription_matched" << endl;
 }
 template <typename T>
-void sutra_rtc_brahmaListenerImpl<T>::on_sample_rejected(
+void SutraRtcBrahmaListenerImpl<T>::on_sample_rejected(
     DDS::DataReader_ptr reader,
     const DDS::SampleRejectedStatus &status) noexcept(false) {
   //   BRAHMA_DEBUG_TRACE(
@@ -369,7 +369,7 @@ void sutra_rtc_brahmaListenerImpl<T>::on_sample_rejected(
   //  cerr << "CommandDataReaderListenerImpl::on_sample_rejected" << endl;
 }
 template <typename T>
-void sutra_rtc_brahmaListenerImpl<T>::on_sample_lost(
+void SutraRtcBrahmaListenerImpl<T>::on_sample_lost(
     DDS::DataReader_ptr reader,
     const DDS::SampleLostStatus &status) noexcept(false) {
   //   BRAHMA_DEBUG_TRACE(
@@ -377,9 +377,9 @@ void sutra_rtc_brahmaListenerImpl<T>::on_sample_lost(
   //  cerr << "CommandDataReaderListenerImpl::on_sample_lost" << endl;
 }
 
-template class sutra_rtc_brahmaListenerImpl<float>;
+template class SutraRtcBrahmaListenerImpl<float>;
 #ifdef CAN_DO_HALF
-template class sutra_rtc_brahmaListenerImpl<half>;
+template class SutraRtcBrahmaListenerImpl<half>;
 #endif
 
 #endif /* USE_BRAHMA */

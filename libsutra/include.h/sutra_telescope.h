@@ -32,10 +32,10 @@
 
 //! \file      sutra_telescope.h
 //! \ingroup   libsutra
-//! \class     sutra_telescope
+//! \class     SutraTelescope
 //! \brief     this class provides the telescope features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -50,26 +50,26 @@
 
 using std::string;
 
-class sutra_telescope {
+class SutraTelescope {
  public:
-  carma_context *current_context;
+  CarmaContext *current_context;
   int device;  // device #
 
   long pup_size;       // size of pupil
   long num_eleme_pup;  // number of points in the pupil
 
-  carma_obj<float> *d_pupil;        // the pupil mask
-  carma_obj<float> *d_phase_ab_M1;  // the phase aberration for M1
+  CarmaObj<float> *d_pupil;        // the pupil mask
+  CarmaObj<float> *d_phase_ab_M1;  // the phase aberration for M1
 
   long pup_size_m;  // size of pupil
 
-  carma_obj<float> *d_pupil_m;        // the pupil mask
-  carma_obj<float> *d_phase_ab_M1_m;  // the phase aberration for M1
+  CarmaObj<float> *d_pupil_m;        // the pupil mask
+  CarmaObj<float> *d_phase_ab_M1_m;  // the phase aberration for M1
 
  public:
-  sutra_telescope(carma_context *context, long pup_size, long num_eleme_pup,
+  SutraTelescope(CarmaContext *context, long pup_size, long num_eleme_pup,
                   float *pupil, long pup_size_m, float *pupil_m);
-  ~sutra_telescope();
+  ~SutraTelescope();
   int set_phase_ab_M1(float *phase_ab_M1, int size);
   int set_phase_ab_M1_m(float *phase_ab_M1_m, int size);
 };

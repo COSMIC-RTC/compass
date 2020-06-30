@@ -74,7 +74,7 @@ else:
 #   context
 #c=ch.carmaWrap_context(7)
 c = ch.carmaWrap_context(devices=np.array([6], dtype=np.int32))
-#c.set_activeDevice(device)
+#c.set_active_device(device)
 
 #    wfs
 print("->wfs")
@@ -161,7 +161,7 @@ def loop(n):
     """
     if (error_flag):
         # Initialize buffers for error breakdown
-        nactu = rtc.getCom(0).size
+        nactu = rtc.get_command(0).size
         com = np.zeros((n, nactu), dtype=np.float32)
         noise_com = np.zeros((n, nactu), dtype=np.float32)
         alias_wfs_com = np.copy(noise_com)
@@ -304,7 +304,7 @@ def error_breakdown(com, noise_com, alias_wfs_com, tomo_com, H_com, trunc_com, b
 
         - G : tomo
 
-    Note : rtc.getErr returns to -CMAT.slopes
+    Note : rtc.get_err returns to -CMAT.slopes
 
     :parameters:
         noise_com : np.array((niter,nactu)) : Noise contribution
@@ -334,8 +334,8 @@ def error_breakdown(com, noise_com, alias_wfs_com, tomo_com, H_com, trunc_com, b
 
     """
     g = config.p_controllers[0].gain
-    Dcom = rtc.getCom(0)
-    Derr = rtc.getErr(0)
+    Dcom = rtc.get_command(0)
+    Derr = rtc.get_err(0)
     com[i, :] = Dcom
     tarphase = tar.get_phase(0)
     ###########################################################################
@@ -359,7 +359,7 @@ def error_breakdown(com, noise_com, alias_wfs_com, tomo_com, H_com, trunc_com, b
         rtc.setthresh(0, config.p_centroiders[0].thresh)
 
     rtc.docontrol(0)
-    E = rtc.getErr(0)
+    E = rtc.get_err(0)
     Ee[i, :] = E
     # Apply loop filter to get contribution of noise on commands
     if (i + 1 < config.p_loop.niter):
@@ -370,7 +370,7 @@ def error_breakdown(com, noise_com, alias_wfs_com, tomo_com, H_com, trunc_com, b
     ###########################################################################
     rtc.docentroids_geom(0)
     rtc.docontrol(0)
-    F = rtc.getErr(0)
+    F = rtc.get_err(0)
     Ff[i, :] = F
     # Apply loop filter to get contribution of sampling/truncature on commands
     if (i + 1 < config.p_loop.niter):
@@ -399,7 +399,7 @@ def error_breakdown(com, noise_com, alias_wfs_com, tomo_com, H_com, trunc_com, b
     """
     rtc.docentroids_geom(0)
     rtc.docontrol(0)
-    Ageom = rtc.getErr(0)
+    Ageom = rtc.get_err(0)
     if (i + 1 < config.p_loop.niter):
         alias_wfs_com[i + 1, :] = gRD.dot(
                 alias_wfs_com[i, :]) + gamma * g * (Ageom)  # - (E-F))
@@ -409,7 +409,7 @@ def error_breakdown(com, noise_com, alias_wfs_com, tomo_com, H_com, trunc_com, b
     ###########################################################################
     tar.atmos_trace(0, atm, tel)
     rtc.docontrol_geo(1, dms, tar, 0)
-    B = rtc.getCom(1)
+    B = rtc.get_command(1)
 
     ###########################################################################
     ## Fitting
@@ -444,7 +444,7 @@ def error_breakdown(com, noise_com, alias_wfs_com, tomo_com, H_com, trunc_com, b
     for w in range(len(config.p_wfss)):
         wfs.sensors_trace(w, "atmos", tel, atm, dms)
     rtc.docontrol_geo_onwfs(1, dms, wfs, 0)
-    G = rtc.getCom(1)
+    G = rtc.get_command(1)
     modes = P.dot(G)
     modes[-nfiltered - 2:-2] = 0
     wf_com[i, :] = Btt.dot(modes)
@@ -473,7 +473,7 @@ def centroid_gain(E, F):
 # | _ \/ _` (_-< (_-<
 # |___/\__,_/__/_/__/
 ################################################################################
-def compute_Btt2():
+def compute_btt2():
     IF = rtc.get_IFsparse(1).T
     N = IF.shape[0]
     n = IF.shape[1]
@@ -668,7 +668,7 @@ nfiltered = int(config.p_controllers[0].maxcond)
 niters = config.p_loop.niter
 N_preloop = 1000
 config.p_loop.set_niter(niters + N_preloop)
-Btt, P = compute_Btt2()
+Btt, P = compute_btt2()
 rtc.load_Btt(1, Btt.dot(Btt.T))
 Dm, cmat = compute_cmatWithBtt(Btt, nfiltered)
 rtc.set_cmat(0, cmat)

@@ -32,10 +32,10 @@
 
 //! \file      sutra_tscreen.h
 //! \ingroup   libsutra
-//! \class     sutra_tscreen
-//! \brief     this class provides the tscreen features to COMPASS
+//! \class     SutraTurbuScreen
+//! \brief     this class provides the turbulent screen features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -45,19 +45,19 @@
 #include <sutra_phase.h>
 #include <sutra_utils.h>
 
-class sutra_tscreen {
+class SutraTurbuScreen {
  public:
   int device;              // The device #
-  sutra_phase *d_tscreen;  // The phase screen
-  carma_obj<float>
+  SutraPhase *d_tscreen;  // The phase screen
+  CarmaObj<float>
       *d_tscreen_o;  // Additional space of the same size as the phase screen
-  carma_obj<float> *d_A;                 // A matrix for extrusion
-  carma_obj<float> *d_B;                 // B matrix for extrusion
-  carma_obj<unsigned int> *d_istencilx;  // stencil for column extrusion
-  carma_obj<unsigned int> *d_istencily;  // stencil for row extrusion
-  carma_obj<float> *d_z;                 // tmp array for extrusion process
-  carma_obj<float> *d_noise;             // tmp array containing random numbers
-  carma_obj<float> *d_ytmp;  // contains the extrude update (row or column)
+  CarmaObj<float> *d_mat_a;                 // A matrix for extrusion
+  CarmaObj<float> *d_mat_b;                 // B matrix for extrusion
+  CarmaObj<unsigned int> *d_istencilx;  // stencil for column extrusion
+  CarmaObj<unsigned int> *d_istencily;  // stencil for row extrusion
+  CarmaObj<float> *d_z;                 // tmp array for extrusion process
+  CarmaObj<float> *d_noise;             // tmp array containing random numbers
+  CarmaObj<float> *d_ytmp;  // contains the extrude update (row or column)
   long screen_size;          // size of phase screens
   float r0;                  // layer r0 (pixel units)
   float amplitude;           // amplitude for extrusion (r0^-5/6)
@@ -70,20 +70,20 @@ class sutra_tscreen {
   float accumx;
   float accumy;
   cudaChannelFormatDesc
-      channelDesc;  // Channel descriptor for texture memory access
+      channel_desc;  // Channel descriptor for texture memory access
 
-  carma_obj<cuFloatComplex>
+  CarmaObj<cuFloatComplex>
       *d_tscreen_c;  // Additional space for von karman screen generation
   float norm_vk;
   bool vk_on;
-  carma_context *current_context;
+  CarmaContext *current_context;
 
  public:
-  sutra_tscreen(carma_context *context, long size, long size2, float amplitude,
+  SutraTurbuScreen(CarmaContext *context, long size, long size2, float amplitude,
                 float altitude, float windspeed, float winddir, float deltax,
                 float deltay, int device);
-  // sutra_tscreen(const sutra_tscreen &tscreen);
-  ~sutra_tscreen();
+  // SutraTurbuScreen(const SutraTurbuScreen &tscreen);
+  ~SutraTurbuScreen();
 
   int init_screen(float *h_A, float *h_B, unsigned int *h_istencilx,
                   unsigned int *h_istencily, int seed);
@@ -101,6 +101,6 @@ class sutra_tscreen {
 int gene_vonkarman(cuFloatComplex *d_odata, float *d_idata, float k0,
                    int nalias, int nx, int ny, int block_size);
 int norm_pscreen(float *d_odata, float *d_idata, int nx, int ny,
-                 float norm_fact, carma_device *device);
+                 float norm_fact, CarmaDevice *device);
 
 #endif  // _SUTRA_TSCREEN_H_

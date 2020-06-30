@@ -32,9 +32,9 @@
 
 //! \file      sparse_obj.hpp
 //! \ingroup   libcarma
-//! \brief     this file provides pybind wrapper for carma_sparse_obj
+//! \brief     this file provides pybind wrapper for CarmaSparseObj
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -56,13 +56,13 @@ namespace py = pybind11;
 struct CarmaSparseObjInterfacer {
   template <typename T> static void call(py::module &mod) {
     auto name = appendName<T>("sparse_obj_");
-    using Class = carma_sparse_obj<T>;
+    using Class = CarmaSparseObj<T>;
 
     py::class_<Class>(mod, name.data(), py::buffer_protocol())
     .def("get_csr",[](Class &frame){
         py::object CSR = py::module::import("scipy.sparse").attr("csr_matrix");
-        int dim1 = frame.getDims(1);
-        int dim2 = frame.getDims(2);
+        int dim1 = frame.get_dims(1);
+        int dim2 = frame.get_dims(2);
         int nnz = frame.nz_elem;
 
         std::vector<int> rowind = std::vector<int>(dim1 + 1);

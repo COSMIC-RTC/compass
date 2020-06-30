@@ -16,7 +16,7 @@ import numpy as np
 from shesha.supervisor.compassSupervisor import CompassSupervisor
 from shesha.util.rtc_util import centroid_gain
 from shesha.ao.tomo import create_nact_geom
-from shesha.ao.basis import compute_Btt, compute_cmat_with_Btt
+from shesha.ao.basis import compute_btt, compute_cmat_with_Btt
 import shesha.constants as scons
 import time
 import matplotlib.pyplot as pl
@@ -45,16 +45,16 @@ class Roket(CompassSupervisor):
         self.N_preloop = N_preloop
         self.gamma = gamma
 
-    def initConfig(self):
+    def init_config(self):
         """
         Initializes the COMPASS simulation and the ROKET buffers
         """
-        super().initConfig()
+        super().init_config()
         self.iter_number = 0
         self.n = self.config.p_loop.niter + self.N_preloop
         self.nfiltered = int(self.config.p_controllers[0].maxcond)
-        self.nactus = self.getCom(0).size
-        self.nslopes = self.getCentroids(0).size
+        self.nactus = self.get_command(0).size
+        self.nslopes = self.get_slopes(0).size
         self.com = np.zeros((self.n, self.nactus), dtype=np.float32)
         self.noise_com = np.zeros((self.n, self.nactus), dtype=np.float32)
         self.alias_wfs_com = np.copy(self.noise_com)
@@ -67,21 +67,21 @@ class Roket(CompassSupervisor):
         self.mod_com = np.copy(self.noise_com)
         self.bp_com = np.copy(self.noise_com)
         self.fit = np.zeros(self.n)
-        self.psf_ortho = self.getTarImage(0) * 0
+        self.psf_ortho = self.get_tar_image(0) * 0
         self.centroid_gain = 0
         self.centroid_gain2 = 0
         self.slopes = np.zeros((self.n, self.nslopes), dtype=np.float32)
         #gamma = 1.0
         self.config.p_loop.set_niter(self.n)
-        self.IFpzt = self.getIFsparse(1)
-        self.TT = self.getIFtt(1)
+        self.IFpzt = self.get_influ_basis_sparse(1)
+        self.TT = self.get_tt_influ_basis(1)
 
-        self.Btt, self.P = compute_Btt(self.IFpzt.T, self.TT)
+        self.Btt, self.P = compute_btt(self.IFpzt.T, self.TT)
         tmp = self.Btt.dot(self.Btt.T)
         self._sim.rtc.d_control[1].load_Btt(tmp[:-2, :-2], tmp[-2:, -2:])
         compute_cmat_with_Btt(self._sim.rtc, self.Btt, self.nfiltered)
-        self.cmat = self.getCmat(0)
-        self.D = self.getImat(0)
+        self.cmat = self.get_command_matrix(0)
+        self.D = self.get_interaction_matrix(0)
         self.RD = np.dot(self.cmat, self.D)
         self.gRD = np.identity(
                 self.RD.
@@ -120,9 +120,9 @@ class Roket(CompassSupervisor):
             self.next(**kwargs)
             if ((i + 1) % monitoring_freq == 0):
                 framerate = (i + 1) / (time.time() - t0)
-                self._sim.compTarImage(0)
+                self._sim.comp_tar_image(0)
                 self._sim.compStrehl(0)
-                strehltmp = self.getStrehl(0)
+                strehltmp = self.get_strehl(0)
                 etr = (self.n - i) / framerate
                 print("%d \t %.2f \t  %.2f\t %.2f \t %.2f \t    %.1f \t %.1f" %
                       (i + 1, strehltmp[0], strehltmp[1], np.exp(-strehltmp[2]),
@@ -133,7 +133,7 @@ class Roket(CompassSupervisor):
               (t1 - t0) / self.n, "(mean)  ", self.n / (t1 - t0), "Hz")
 
         #self.tar.comp_image(0)
-        SRs = self.getStrehl(0)
+        SRs = self.get_strehl(0)
         self.SR2 = np.exp(SRs[3])
         self.SR = SRs[1]
 
@@ -164,11 +164,11 @@ class Roket(CompassSupervisor):
         Note : rtc.get_err returns to -CMAT.slopes
         """
         g = self.config.p_controllers[0].gain
-        Dcom = self.getCom(0)
-        Derr = self.getErr(0)
+        Dcom = self.get_command(0)
+        Derr = self.get_err(0)
         self.com[self.iter_number, :] = Dcom
-        tarphase = self.getTarPhase(0)
-        self.slopes[self.iter_number, :] = self.getCentroids(0)
+        tarphase = self.get_tar_phase(0)
+        self.slopes[self.iter_number, :] = self.get_slopes(0)
 
         ###########################################################################
         ## Noise contribution
@@ -180,7 +180,7 @@ class Roket(CompassSupervisor):
                 ):  # Select the same pixels with or without noise
                 invalidpix = np.where(binimg <= self.config.p_centroiders[0].thresh)
                 ideal_img[invalidpix] = 0
-                self.setCentroThresh(0, -1e16)
+                self.set_centroider_threshold(0, -1e16)
             self._sim.wfs.d_wfs[0].set_binimg(ideal_img, ideal_img.size)
         elif (self.config.p_wfss[0].type == scons.centroiderType.PYRHR):
             ideal_pyrimg = np.array(self._sim.wfs.d_wfs[0].d_binimg_notnoisy)
@@ -188,11 +188,11 @@ class Roket(CompassSupervisor):
 
         self._sim.doCentroids(0)
         if (self.config.p_centroiders[0].type == scons.CentroiderType.TCOG):
-            self.setCentroThresh(0, config.p_centroiders[0].thresh)
+            self.set_centroider_threshold(0, config.p_centroiders[0].thresh)
 
-        self._sim.doControl(0)
-        E = self.getErr(0)
-        E_meas = self.getCentroids(0)
+        self._sim.do_control(0)
+        E = self.get_err(0)
+        E_meas = self.get_slopes(0)
         # Apply loop filter to get contribution of noise on commands
         if (self.iter_number + 1 < self.config.p_loop.niter):
             self.noise_com[self.iter_number + 1, :] = self.gRD.dot(
@@ -201,9 +201,9 @@ class Roket(CompassSupervisor):
         ## Sampling/truncature contribution
         ###########################################################################
         self._sim.doCentroidsGeom(0)
-        self._sim.doControl(0)
-        F = self.getErr(0)
-        F_meas = self.getCentroids(0)
+        self._sim.do_control(0)
+        F = self.get_err(0)
+        F_meas = self.get_slopes(0)
         self.trunc_meas[self.iter_number, :] = E_meas - F_meas
         # Apply loop filter to get contribution of sampling/truncature on commands
         if (self.iter_number + 1 < self.config.p_loop.niter):
@@ -214,10 +214,10 @@ class Roket(CompassSupervisor):
         ###########################################################################
         ## Aliasing contribution on WFS direction
         ###########################################################################
-        self._sim.doControl(1, 0, wfs_direction=True)
+        self._sim.do_control(1, 0, wfs_direction=True)
         self._sim.applyControl(1)
         for w in range(len(self.config.p_wfss)):
-            self._sim.raytraceWfs(w, "dm", rst=False)
+            self._sim.raytrace_wfs(w, "dm", rst=False)
         """
             wfs.sensors_compimg(0)
         if(config.p_wfss[0].type == scons.WFSType.SH):
@@ -233,9 +233,9 @@ class Roket(CompassSupervisor):
             wfs.set_pyrimg(0,ideal_pyrimg)
         """
         self._sim.doCentroidsGeom(0)
-        self._sim.doControl(0)
-        Ageom = self.getErr(0)
-        self.alias_meas[self.iter_number, :] = self.getCentroids(0)
+        self._sim.do_control(0)
+        Ageom = self.get_err(0)
+        self.alias_meas[self.iter_number, :] = self.get_slopes(0)
         if (self.iter_number + 1 < self.config.p_loop.niter):
             self.alias_wfs_com[self.iter_number + 1, :] = self.gRD.dot(
                     self.alias_wfs_com[self.iter_number, :]) + self.gamma * g * (
@@ -245,8 +245,8 @@ class Roket(CompassSupervisor):
         ## Wavefront + filtered modes reconstruction
         ###########################################################################
         self._sim.raytraceTar(0, "atmos")
-        self._sim.doControl(1, 0, wfs_direction=False)
-        B = self.getCom(1)
+        self._sim.do_control(1, 0, wfs_direction=False)
+        B = self.get_command(1)
 
         ###########################################################################
         ## Fitting
@@ -254,11 +254,11 @@ class Roket(CompassSupervisor):
         self._sim.applyControl(1)
         self._sim.raytraceTar(0, "dm", rst=False)
 
-        self._sim.compTarImage(0, compLE=False)
+        self._sim.comp_tar_image(0, compLE=False)
         self._sim.compStrehl(0)
-        self.fit[self.iter_number] = self.getStrehl(0)[2]
+        self.fit[self.iter_number] = self.get_strehl(0)[2]
         if (self.iter_number >= self.N_preloop):
-            self.psf_ortho += self.getTarImage(0, 'se')
+            self.psf_ortho += self.get_tar_image(0, 'se')
 
         ###########################################################################
         ## Filtered modes error & Commanded modes
@@ -283,10 +283,10 @@ class Roket(CompassSupervisor):
         ###########################################################################
         #G = F - (mod_com[self.iter_number,:] + Ageom - np.dot(RDgeom,com[self.iter_number-1,:]))
         for w in range(len(self.config.p_wfss)):
-            self._sim.raytraceWfs(w, "atmos")
+            self._sim.raytrace_wfs(w, "atmos")
 
-        self._sim.doControl(1, 0, wfs_direction=True)
-        G = self.getCom(1)
+        self._sim.do_control(1, 0, wfs_direction=True)
+        G = self.get_command(1)
         modes = self.P.dot(G)
         modes[-self.nfiltered - 2:-2] = 0
         self.wf_com[self.iter_number, :] = self.Btt.dot(modes)
@@ -315,7 +315,7 @@ class Roket(CompassSupervisor):
         indx_pup = np.where(pup.flatten() > 0)[0].astype(np.int32)
         dm_dim = self.config.p_dms[0]._n2 - self.config.p_dms[0]._n1 + 1
         self.cov_cor()
-        psf = self.getTarImage(0, "le")
+        psf = self.get_tar_image(0, "le")
 
         fname = os.getenv("DATA_GUARDIAN") + savename
         pdict = {
@@ -372,9 +372,9 @@ class Roket(CompassSupervisor):
                 "dm.ypos":
                         self.config.p_dms[0]._ypos,
                 "R":
-                        self.getCmat(0),
+                        self.get_command_matrix(0),
                 "D":
-                        self.getImat(0),
+                        self.get_interaction_matrix(0),
                 "Nact":
                         self.Nact,
                 "com":
@@ -440,6 +440,6 @@ if __name__ == "__main__":
         savename = "roket_default.h5"
 
     roket = Roket(param_file)
-    roket.initConfig()
+    roket.init_config()
     roket.loop()
     roket.save_in_hdf5(savename)

@@ -62,7 +62,7 @@ def psf_rec_Vii(filename, err=None, fitting=True, covmodes=None, cov=None):
     # Scale factor
     scale = float(2 * np.pi / f.attrs["_Param_target__Lambda"][0])
     # Init GPU
-    gpu = Gamora(c, c.activeDevice, "Vii", Btt.shape[0], covmodes.shape[0],
+    gpu = Gamora(c, c.active_device, "Vii", Btt.shape[0], covmodes.shape[0],
                  f["noise"][:].shape[1], IF.data, IF.indices, IF.indptr, IF.data.size, T,
                  spup, spup.shape[0],
                  np.where(spup)[0].size, scale, Btt, covmodes)
@@ -351,7 +351,7 @@ def intersample(Cvvmap, pupilImage, IFImage, pixscale, dactu, lambdaIR):
 #     # Launch computation
 #     gpu.psf_rec_roket(err)
 #     # Get psf
-#     psf = gpu.get_psf()
+#     psf = gpu.get_tar_image()
 #     f.close()
 #     return psf, gpu
 

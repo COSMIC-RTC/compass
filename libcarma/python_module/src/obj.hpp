@@ -37,9 +37,9 @@
 
 //! \file      obj.hpp
 //! \ingroup   libcarma
-//! \brief     this file provides pybind wrapper for carma_obj
+//! \brief     this file provides pybind wrapper for CarmaObj
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -60,11 +60,11 @@ struct CarmaObjInterfacer {
   template <typename T>
   static void call(py::module &mod) {
     auto name = appendName<T>("obj_");
-    using Class = carma_obj<T>;
-    using ClassHost = carma_host_obj<T>;
+    using Class = CarmaObj<T>;
+    using ClassHost = CarmaHostObj<T>;
 
     py::class_<Class>(mod, name.data(), py::buffer_protocol())
-        .def(py::init([](carma_context &c,
+        .def(py::init([](CarmaContext &c,
                          const py::array_t<T, py::array::f_style |
                                                   py::array::forcecast> &data) {
                int ndim = data.ndim() + 1;
@@ -78,7 +78,7 @@ struct CarmaObjInterfacer {
              "TODO",  // TODO do the documentation...
              py::arg("context").none(false), py::arg("h_data").none(false))
 
-        .def(py::init([](carma_context &c, const Class &data) {
+        .def(py::init([](CarmaContext &c, const Class &data) {
                return std::unique_ptr<Class>(new Class(&c, &data));
              }),
              "TODO",  // TODO do the documentation...
@@ -87,7 +87,7 @@ struct CarmaObjInterfacer {
         .def_buffer([](Class &frame) -> py::buffer_info {
           frame.sync_h_data();
 
-          const long *dims = frame.getDims();
+          const long *dims = frame.get_dims();
           std::vector<ssize_t> shape(dims[0]);
           std::vector<ssize_t> strides(dims[0]);
           ssize_t stride = sizeof(T);
@@ -112,10 +112,10 @@ struct CarmaObjInterfacer {
                                  shape, strides);
         })
 
-        .def("__repr__", &Class::toString)
+        .def("__repr__", &Class::to_string)
 
-        // int get_nbStreams()
-        .def_property_readonly("nbStreams", &Class::get_nbStreams,
+        // int get_nb_streams()
+        .def_property_readonly("nb_streams", &Class::get_nb_streams,
                                "TODO")  // TODO do the documentation...
         // int add_stream()
         .def("add_stream", (int (Class::*)()) & Class::add_stream,
@@ -132,14 +132,14 @@ struct CarmaObjInterfacer {
         // int wait_stream(int stream)
         .def("wait_stream", &Class::wait_stream, "TODO",
              py::arg("steam"))  // TODO do the documentation...
-        .def("swapPtr", [](Class &obj, Class &obj2){
-          obj.swapPtr(obj2.getData());
+        .def("swap_ptr", [](Class &obj, Class &obj2){
+          obj.swap_ptr(obj2.get_data());
         }, "TODO",
              py::arg("ptr"))  // TODO do the documentation...
     // int wait_all_streams()
 #ifdef USE_OCTOPUS
-        .def("swapPtr", [](Class &obj, ipc::Cacao<T> &obj2){
-          obj.swapPtr(obj2.inputPtr());
+        .def("swap_ptr", [](Class &obj, ipc::Cacao<T> &obj2){
+          obj.swap_ptr(obj2.inputPtr());
         }, "TODO",
              py::arg("ptr"))  // TODO do the documentation...
     // int wait_all_streams()
@@ -147,26 +147,26 @@ struct CarmaObjInterfacer {
         .def("wait_all_streams", &Class::wait_all_streams,
              "TODO")  // TODO do the documentation...
 
-        // const long *getDims()
+        // const long *get_dims()
         .def_property_readonly("shape",
                                [](Class &frame) -> py::array_t<long> {
-                                 long nb_dim = frame.getDims(0);
-                                 const long *c_dim = frame.getDims() + 1;
+                                 long nb_dim = frame.get_dims(0);
+                                 const long *c_dim = frame.get_dims() + 1;
                                  return py::array_t<long>(nb_dim, c_dim);
                                },
                                "TODO")  // TODO do the documentation...
 
-        // int getNbElem()
-        .def_property_readonly("nbElem", &Class::getNbElem,
+        // int get_nb_elements()
+        .def_property_readonly("nbElem", &Class::get_nb_elements,
                                "TODO")  // TODO do the documentation...
-        // carma_context* getContext()
-        .def_property_readonly("context", &Class::getContext,
+        // CarmaContext* get_context()
+        .def_property_readonly("context", &Class::get_context,
                                "TODO")  // TODO do the documentation...
-        // int getDevice()
-        .def_property_readonly("device", &Class::getDevice,
+        // int get_device()
+        .def_property_readonly("device", &Class::get_device,
                                "TODO")  // TODO do the documentation...
-        // int getOData()
-        .def_property_readonly("o_data", &Class::getODataValue,
+        // int get_o_data()
+        .def_property_readonly("o_data", &Class::get_o_data_value,
                                "TODO")  // TODO do the documentation...
 
         // int host2device(T_data *data);
@@ -184,29 +184,29 @@ struct CarmaObjInterfacer {
              "TODO",
              py::arg("data").none(false))  // TODO do the documentation...
 
-        // int copyInto(T_data *data, int nb_elem);
-        .def("copyInto",
+        // int copy_into(T_data *data, int nb_elem);
+        .def("copy_into",
              [](Class &src, Class &dest, long nb_elem) {
                if (nb_elem < 0) {
-                 nb_elem = src.getNbElem();
+                 nb_elem = src.get_nb_elements();
                }
-               src.copyInto(dest, nb_elem);
+               src.copy_into(dest, nb_elem);
              },
              "TODO", py::arg("dest"),
              py::arg("nb_elem") = -1)  // TODO do the documentation...
-        // int copyFrom(T_data *data, int nb_elem);
-        .def("copyFrom",
+        // int copy_from(T_data *data, int nb_elem);
+        .def("copy_from",
              [](Class &dest, Class &src, long nb_elem) {
                if (nb_elem < 0) {
-                 nb_elem = dest.getNbElem();
+                 nb_elem = dest.get_nb_elements();
                }
-               dest.copyFrom(src, nb_elem);
+               dest.copy_from(src, nb_elem);
              },
              "TODO", py::arg("data"),
              py::arg("nb_elem") = -1)  // TODO do the documentation...
 #ifdef USE_OCTOPUS
-        .def("copyInto",(int (Class::*)(ipc::Cacao<T>*))&Class::copyInto)
-        .def("copyFrom",(int (Class::*)(ipc::Cacao<T>*))&Class::copyFrom)
+        .def("copy_into",(int (Class::*)(ipc::Cacao<T>*))&Class::copy_into)
+        .def("copy_from",(int (Class::*)(ipc::Cacao<T>*))&Class::copy_from)
 #endif
         // inline int reset()
         .def("reset", &Class::reset, "TODO")  // TODO do the documentation...
@@ -225,10 +225,10 @@ struct CarmaObjInterfacer {
              py::arg("data_max").none(false))  // TODO do the documentation...
 
         // /**< transpose */
-        // int transpose(carma_obj<T_data> *source);
+        // int transpose(CarmaObj<T_data> *source);
         .def("transpose", &Class::transpose, "TODO",
              py::arg("source").none(false))  // TODO do the documentation...
-        // //carma_obj<T_data>& operator= (const carma_obj<T_data>& obj);
+        // //CarmaObj<T_data>& operator= (const CarmaObj<T_data>& obj);
 
         // /**< Cublas V2 */
         // int imax(int incx);
@@ -243,44 +243,44 @@ struct CarmaObjInterfacer {
         // T_data nrm2(int incx);
         .def("nrm2", &Class::nrm2, "TODO",
              py::arg("incx") = 1)  // TODO do the documentation...
-        // T_data dot(carma_obj<T_data> *source, int incx, int incy);
+        // T_data dot(CarmaObj<T_data> *source, int incx, int incy);
         .def("dot", &Class::dot, "TODO", py::arg("source").none(false),
              py::arg("incx") = 1,
              py::arg("incy") = 1)  // TODO do the documentation...
         // void scale(T_data alpha, int incx);
         .def("scale", &Class::scale, "TODO", py::arg("scale").none(false),
              py::arg("incx") = 1)  // TODO do the documentation...
-        // void swap(carma_obj<T_data> *source, int incx, int incy);
+        // void swap(CarmaObj<T_data> *source, int incx, int incy);
         .def("swap", &Class::swap, "TODO", py::arg("source").none(false),
              py::arg("incx") = 1,
              py::arg("incy") = 1)  // TODO do the documentation...
-        // void copy(carma_obj<T_data> *source, int incx, int incy);
+        // void copy(CarmaObj<T_data> *source, int incx, int incy);
         .def("copy", &Class::copy, "TODO")  // TODO do the documentation...
-        // void axpy(T_data alpha, carma_obj<T_data> *source, int incx, int
+        // void axpy(T_data alpha, CarmaObj<T_data> *source, int incx, int
         // incy);
         .def("axpy", &Class::axpy, "TODO", py::arg("alpha"),
              py::arg("source").none(false), py::arg("incx") = 1,
              py::arg("incy") = 1, py::arg("offset") = 0) // TODO do the documentation...
-        // void rot(carma_obj<T_data> *source, int incx, int incy, T_data sc,
+        // void rot(CarmaObj<T_data> *source, int incx, int incy, T_data sc,
         //          T_data ss);
         .def("rot", &Class::rot, "TODO")  // TODO do the documentation...
 
-        // void gemv(char trans, T_data alpha, carma_obj<T_data> *matA, int lda,
-        //           carma_obj<T_data> *vectx, int incx, T_data beta, int incy);
+        // void gemv(char trans, T_data alpha, CarmaObj<T_data> *matA, int lda,
+        //           CarmaObj<T_data> *vectx, int incx, T_data beta, int incy);
         .def("magma_gemv",
              [](Class &mat, Class &vectx, T alpha, char op, Class *vecty,
                 T beta) {
                if (vecty == nullptr) {
                  long dims[] = {1, 0};
                  if (op == 'N' || op == 'n') {
-                   dims[1] = mat.getDims(1);
+                   dims[1] = mat.get_dims(1);
                  } else {
-                   dims[1] = mat.getDims(2);
+                   dims[1] = mat.get_dims(2);
                  }
-                 vecty = new Class(mat.getContext(), dims);
+                 vecty = new Class(mat.get_context(), dims);
                  vecty->reset();
                }
-               carma_magma_gemv(op, mat.getDims(1), mat.getDims(2), alpha, mat.getData(), mat.getDims(1), vectx.getData(), 1, beta, vecty->getData(), 1);
+               carma_magma_gemv(op, mat.get_dims(1), mat.get_dims(2), alpha, mat.get_data(), mat.get_dims(1), vectx.get_data(), 1, beta, vecty->get_data(), 1);
                return vecty;
              },
              "this method performs one of the matrix‐vector operations vecty = "
@@ -293,37 +293,37 @@ struct CarmaObjInterfacer {
                if (vecty == nullptr) {
                  long dims[] = {1, 0};
                  if (op == 'N' || op == 'n') {
-                   dims[1] = mat.getDims(1);
+                   dims[1] = mat.get_dims(1);
                  } else {
-                   dims[1] = mat.getDims(2);
+                   dims[1] = mat.get_dims(2);
                  }
-                 vecty = new Class(mat.getContext(), dims);
+                 vecty = new Class(mat.get_context(), dims);
                  vecty->reset();
                }
-               vecty->gemv(op, alpha, &mat, mat.getDims(1), &vectx, 1, beta, 1);
+               vecty->gemv(op, alpha, &mat, mat.get_dims(1), &vectx, 1, beta, 1);
                return vecty;
              },
              "this method performs one of the matrix‐vector operations vecty = "
              "alpha * op(mat) * vectx + beta * vecty",
              py::arg("vectx"), py::arg("alpha") = 1, py::arg("op") = 'N',
              py::arg("vecty") = nullptr, py::arg("beta") = 0)  // &Class::gemv)
-    // void ger(T_data alpha, carma_obj<T_data> *vectx, int incx,
-    //          carma_obj<T_data> *vecty, int incy, int lda);
+    // void ger(T_data alpha, CarmaObj<T_data> *vectx, int incx,
+    //          CarmaObj<T_data> *vecty, int incy, int lda);
 #ifdef CAN_DO_HALF
         .def("gemv",
-             [](carma_obj<half> &mat, carma_obj<half> &vectx, float alpha,
-                char op, carma_obj<half> *vecty, float beta) {
+             [](CarmaObj<half> &mat, CarmaObj<half> &vectx, float alpha,
+                char op, CarmaObj<half> *vecty, float beta) {
                if (vecty == nullptr) {
                  long dims[] = {1, 0, 1};
                  if (op == 'N' || op == 'n') {
-                   dims[1] = mat.getDims(1);
+                   dims[1] = mat.get_dims(1);
                  } else {
-                   dims[1] = mat.getDims(2);
+                   dims[1] = mat.get_dims(2);
                  }
-                 vecty = new carma_obj<half>(mat.getContext(), dims);
+                 vecty = new CarmaObj<half>(mat.get_context(), dims);
                  vecty->reset();
                }
-               vecty->gemv(op, __float2half(alpha), &mat, mat.getDims(1),
+               vecty->gemv(op, __float2half(alpha), &mat, mat.get_dims(1),
                            &vectx, 1, __float2half(beta), 1);
                return vecty;
              },
@@ -332,33 +332,33 @@ struct CarmaObjInterfacer {
              py::arg("vectx"), py::arg("alpha") = 1, py::arg("op") = 'N',
              py::arg("vecty") = nullptr, py::arg("beta") = 0)  // &Class::gemv)
 #endif
-        // void ger(T_data alpha, carma_obj<T_data> *vectx, int incx,
-        //          carma_obj<T_data> *vecty, int incy, int lda);
+        // void ger(T_data alpha, CarmaObj<T_data> *vectx, int incx,
+        //          CarmaObj<T_data> *vecty, int incy, int lda);
         .def("ger",
              [](Class &vectx, Class &vecty, Class *mat, T alpha) {
                std::unique_ptr<Class> ptr_res;
                if (mat == nullptr) {
-                 long dims[] = {2, vectx.getNbElem(), vecty.getNbElem()};
-                 mat = new Class(vectx.getContext(), dims);
+                 long dims[] = {2, vectx.get_nb_elements(), vecty.get_nb_elements()};
+                 mat = new Class(vectx.get_context(), dims);
                  mat->reset();
                }
-               mat->ger(alpha, &vectx, 1, &vecty, 1, vectx.getNbElem());
+               mat->ger(alpha, &vectx, 1, &vecty, 1, vectx.get_nb_elements());
                return mat;
              },
              "this method performs the symmetric rank 1 operation A = alpha * "
              "x * y T + A",
              py::arg("vecty"), py::arg("mat") = nullptr,
              py::arg("alpha") = 1)  // &Class::ger)
-        // void symv(char uplo, T_data alpha, carma_obj<T_data> *matA,
-        //           int lda, carma_obj<T_data> *vectx, int incx, T_data beta,
+        // void symv(char uplo, T_data alpha, CarmaObj<T_data> *matA,
+        //           int lda, CarmaObj<T_data> *vectx, int incx, T_data beta,
         //           int incy);
         .def("symv",
              [](Class &mat, Class &vectx, T alpha, char uplo, Class *vecty,
                 T beta) {
-               int lda = mat.getDims(2);
+               int lda = mat.get_dims(2);
                if (vecty == nullptr) {
                  long dims[] = {1, lda};
-                 vecty = new Class(mat.getContext(), dims);
+                 vecty = new Class(mat.get_context(), dims);
                  vecty->reset();
                }
                vecty->symv(uplo, alpha, &mat, lda, &vectx, 1, beta, 1);
@@ -368,39 +368,39 @@ struct CarmaObjInterfacer {
              "alpha * mat * vectx + beta * vecty",
              py::arg("vectx"), py::arg("alpha") = 1, py::arg("uplo") = 'l',
              py::arg("vecty") = nullptr, py::arg("beta") = 0)  // &Class::gemv)
-        // void gemm(char transa, char transb, T_data alpha, carma_obj<T_data>
+        // void gemm(char transa, char transb, T_data alpha, CarmaObj<T_data>
         // *matA,
-        //           int lda, carma_obj<T_data> *matB, int ldb, T_data beta, int
+        //           int lda, CarmaObj<T_data> *matB, int ldb, T_data beta, int
         //           ldc);
         .def("gemm",
              [](Class &matA, Class &matB, char op_a, char op_b, T alpha,
                 Class *matC, T beta) /*-> std::unique_ptr<Class>*/ {
                int lda, ldb, ldc, m, n, k;
                if (op_a == 'N' || op_a == 'n') {
-                 m = matA.getDims(1);
-                 k = matA.getDims(2);
+                 m = matA.get_dims(1);
+                 k = matA.get_dims(2);
                } else {
-                 m = matA.getDims(2);
-                 k = matA.getDims(1);
+                 m = matA.get_dims(2);
+                 k = matA.get_dims(1);
                }
 
                if (op_b == 'N' || op_b == 'n') {
-                 k = matB.getDims(1);
-                 n = matB.getDims(2);
+                 k = matB.get_dims(1);
+                 n = matB.get_dims(2);
                } else {
-                 k = matB.getDims(2);
-                 n = matB.getDims(1);
+                 k = matB.get_dims(2);
+                 n = matB.get_dims(1);
                }
 
                if (matC == nullptr) {
                  long dims[] = {2, m, n};
-                 matC = new Class(matA.getContext(), dims);
+                 matC = new Class(matA.get_context(), dims);
                  matC->reset();
                }
 
-               carma_gemm<T>(matA.getContext()->get_cublasHandle(), op_a, op_b,
-                             m, n, k, alpha, matA, matA.getDims(1), matB,
-                             matB.getDims(1), beta, *matC, matC->getDims(1));
+               carma_gemm<T>(matA.get_context()->get_cublas_handle(), op_a, op_b,
+                             m, n, k, alpha, matA, matA.get_dims(1), matB,
+                             matB.get_dims(1), beta, *matC, matC->get_dims(1));
                return matC;
              },
              "this method performs one of the matrix‐marix operations matC = "
@@ -410,19 +410,19 @@ struct CarmaObjInterfacer {
              py::arg("beta") = 0)
 
         // void symm(char side, char uplo, T_data alpha,
-        //           carma_obj<T_data> *matA, int lda, carma_obj<T_data> *matB,
+        //           CarmaObj<T_data> *matA, int lda, CarmaObj<T_data> *matB,
         //           int ldb, T_data beta, int ldc);
         .def("symm",
              [](Class &matA, Class &matB, T alpha, Class *matC, T beta,
                 char side, char uplo) {
                if (matC == nullptr) {
-                 long dims[] = {2, matB.getDims(1), matB.getDims(2)};
-                 matC = new Class(matA.getContext(), dims);
+                 long dims[] = {2, matB.get_dims(1), matB.get_dims(2)};
+                 matC = new Class(matA.get_context(), dims);
                }
-               carma_symm<T>(matA.getContext()->get_cublasHandle(), side, uplo,
-                             matB.getDims(1), matB.getDims(2), alpha, matA,
-                             matA.getDims(1), matB, matB.getDims(1), beta,
-                             *matC, matC->getDims(1));
+               carma_symm<T>(matA.get_context()->get_cublas_handle(), side, uplo,
+                             matB.get_dims(1), matB.get_dims(2), alpha, matA,
+                             matA.get_dims(1), matB, matB.get_dims(1), beta,
+                             *matC, matC->get_dims(1));
                return matC;
                // matA.symm(uplo, alpha, &matB, lda, &vectx, 1, beta, 1);
              },
@@ -440,81 +440,81 @@ struct CarmaObjInterfacer {
         */
 
         // void syrk(char uplo, char transa, T_data alpha,
-        //           carma_obj<T_data> *matA, int lda, T_data beta, int ldc);
+        //           CarmaObj<T_data> *matA, int lda, T_data beta, int ldc);
         .def("syrk",
              [](Class &matA, char fill, char op, T alpha, Class *matC, T beta) {
                int n, k;
                if (op == 'N' || op == 'n') {
-                 n = matA.getDims(1);
-                 k = matA.getDims(2);
+                 n = matA.get_dims(1);
+                 k = matA.get_dims(2);
                } else {
-                 n = matA.getDims(2);
-                 k = matA.getDims(1);
+                 n = matA.get_dims(2);
+                 k = matA.get_dims(1);
                }
                if (matC == nullptr) {
                  long dims[] = {2, n, n};
-                 matC = new Class(matA.getContext(), dims);
+                 matC = new Class(matA.get_context(), dims);
                  matC->reset();
                }
-               carma_syrk<T>(matA.getContext()->get_cublasHandle(), fill, op, n,
-                             k, alpha, matA, matA.getDims(1), beta, *matC,
-                             matC->getDims(1));
+               carma_syrk<T>(matA.get_context()->get_cublas_handle(), fill, op, n,
+                             k, alpha, matA, matA.get_dims(1), beta, *matC,
+                             matC->get_dims(1));
                return matC;
              },
              "this method performs the symmetric rank- k update",
              py::arg("fill") = "U", py::arg("op") = 'N', py::arg("alpha") = 1,
              py::arg("matC") = nullptr, py::arg("beta") = 0)
         // void syrkx(char uplo, char transa, T_data alpha,
-        //            carma_obj<T_data> *matA, int lda, carma_obj<T_data> *matB,
+        //            CarmaObj<T_data> *matA, int lda, CarmaObj<T_data> *matB,
         //            int ldb, T_data beta, int ldc);
         .def("syrkx",
              [](Class &matA, Class &matB, char fill, char op, T alpha,
                 Class *matC, T beta) {
                int n, k;
                if (op == 'N' || op == 'n') {
-                 n = matA.getDims(1);
-                 k = matA.getDims(2);
+                 n = matA.get_dims(1);
+                 k = matA.get_dims(2);
                } else {
-                 n = matA.getDims(2);
-                 k = matA.getDims(1);
+                 n = matA.get_dims(2);
+                 k = matA.get_dims(1);
                }
                if (matC == nullptr) {
                  long dims[] = {2, n, n};
-                 matC = new Class(matA.getContext(), dims);
+                 matC = new Class(matA.get_context(), dims);
                  matC->reset();
                }
-               carma_syrkx<T>(matA.getContext()->get_cublasHandle(), fill, op,
-                              n, k, alpha, matA, matA.getDims(1), matB,
-                              matB.getDims(1), beta, *matC, matC->getDims(1));
+               carma_syrkx<T>(matA.get_context()->get_cublas_handle(), fill, op,
+                              n, k, alpha, matA, matA.get_dims(1), matB,
+                              matB.get_dims(1), beta, *matC, matC->get_dims(1));
                return matC;
              },
              "this method performs the symmetric rank- k update",
              py::arg("matB"), py::arg("fill") = "U", py::arg("op") = 'N',
              py::arg("alpha") = 1, py::arg("matC") = nullptr,
              py::arg("beta") = 0)
-        // void geam(char transa, char transb, T_data alpha, carma_obj<T_data>
+        // void geam(char transa, char transb, T_data alpha, CarmaObj<T_data>
         // *matA,
-        //           int lda, T_data beta, carma_obj<T_data> *matB, int ldb, int
+        //           int lda, T_data beta, CarmaObj<T_data> *matB, int ldb, int
         //           ldc);
         .def("geam",
              [](Class &matA, Class &matB, char opA, char opB, T alpha,
                 Class *matC, T beta) {
                int m, n;
                if (opA == 'N' || opA == 'n') {
-                 m = matA.getDims(1);
-                 n = matA.getDims(2);
+                 m = matA.get_dims(1);
+                 n = matA.get_dims(2);
                } else {
-                 m = matA.getDims(2);
-                 n = matA.getDims(1);
+                 m = matA.get_dims(2);
+                 n = matA.get_dims(1);
                }
                if (matC == nullptr) {
                  long dims[] = {2, m, n};
-                 matC = new Class(matA.getContext(), dims);
+                 matC = new Class(matA.get_context(), dims);
                  matC->reset();
                }
-               carma_geam<T>(matA.getContext()->get_cublasHandle(), opA, opB, m,
-                             n, alpha, matA, matA.getDims(1), beta, matB,
-                             matB.getDims(1), *matC, matC->getDims(1));
+               carma_geam<T>(matA.get_context()->get_cublas_handle(), opA, opB, m,
+                             n, alpha, matA, matA.get_dims(1), beta, matB,
+                             matB.get_dims(1), *matC, matC->get_dims(1));
                return matC;
              },
              "this method performs the symmetric rank- k update",
@@ -525,14 +525,14 @@ struct CarmaObjInterfacer {
              [](Class &matA, Class &vectX, T alpha, char side, Class *matC,
                 int incx) {
                if (matC == nullptr) {
-                 long dims[] = {2, matA.getDims(1), matA.getDims(2)};
-                 matC = new Class(matA.getContext(), dims);
+                 long dims[] = {2, matA.get_dims(1), matA.get_dims(2)};
+                 matC = new Class(matA.get_context(), dims);
                  matC->reset();
                }
-               carma_dgmm<T>(matA.getContext()->get_cublasHandle(), side,
-                             matA.getDims(1), matA.getDims(2), matA,
-                             matA.getDims(1), vectX, incx, *matC,
-                             matC->getDims(1));
+               carma_dgmm<T>(matA.get_context()->get_cublas_handle(), side,
+                             matA.get_dims(1), matA.get_dims(2), matA,
+                             matA.get_dims(1), vectX, incx, *matC,
+                             matC->get_dims(1));
                return matC;
              },
              "this method performs one of the matrix‐marix operations matC = "
@@ -590,19 +590,19 @@ struct CarmaObjInterfacer {
         .def("fft",
              [](Class &data, Class &dest, int direction) {
                throw std::runtime_error("not implemented");
-               //  const long *dims = data.getDims();
-               //  cufftHandle *handle = data.getPlan();
+               //  const long *dims = data.get_dims();
+               //  cufftHandle *handle = data.get_plan();
                //  if(dest == nullptr) {
-               //    dest = Class(data.getContext(), dims);
+               //    dest = Class(data.get_context(), dims);
                //  }
                //  carma_initfft(dims, handle, carma_select_plan<T,T>());
-               //  carma_fft(data.getData(), dest.getData(), direction, handle);
+               //  CarmaFFT(data.get_data(), dest.get_data(), direction, handle);
              },
              py::arg("dest") = nullptr, py::arg("direction") = 1);
     // CU functions clip
     // template<class T_data>
     // void clip_array(T_data *d_data, T_data min, T_data max, int N,
-    // carma_device *device);
+    // CarmaDevice *device);
 
     // CU functions sum
     // template<class T_data>
@@ -618,74 +618,74 @@ struct CarmaObjInterfacer {
     // CU functions generic
     // template<class T_data>
     // int launch_generic1d(T_data *d_idata, T_data *d_odata, int N,
-    //                     carma_device *device);
+    //                     CarmaDevice *device);
     // template<class T_data>
     // int launch_generic2d(T_data *d_odata, T_data *d_idata, int N1, int N2);
 
     // CU functions curand
-    // int carma_prng_init(int *seed, const int nThreads, const int nBlocks,
+    // int carma_prng_init(int *seed, const int nb_threads, const int nb_blocks,
     //                     curandState *state);
     // template<class T>
-    // int carma_prng_cu(T *results, const int nThreads, const int nBlocks,
+    // int carma_prng_cu(T *results, const int nb_threads, const int nb_blocks,
     //                   curandState *state, char gtype, int n, float alpha,
     //                   float beta);
     // template<class T>
     // int carma_curand_montagn(curandState *state, T *d_odata, int N,
-    // carma_device *device);
+    // CarmaDevice *device);
 
     // CU functions fft
     // template<class T_in, class T_out>
     // cufftType carma_select_plan();
     // template<class T_in, class T_out>
     // void carma_initfft(const long *dims_data, cufftHandle *plan, cufftType
-    // tPlan); template<class T_in, class T_out> int carma_fft(T_in *input,
+    // type_plan); template<class T_in, class T_out> int CarmaFFT(T_in *input,
     // T_out *output, int dir, cufftHandle plan);
 
     // CU functions generic
     // template<class T_data>
     // int fillindex(T_data *d_odata, T_data *d_idata, int *indx, int N,
-    //               carma_device *device);
+    //               CarmaDevice *device);
     // template<class T_data>
     // int fillvalues(T_data *d_odata, T_data val, int N,
-    //               carma_device *device);
+    //               CarmaDevice *device);
     // template<class T>
     // int getarray2d(T *d_odata, T *d_idata, int x0, int Ncol, int NC, int N,
-    //               carma_device *device);
+    //               CarmaDevice *device);
     // template<class T>
     // int fillarray2d(T *d_odata, T *d_idata, int x0, int Ncol, int NC, int N,
-    //                 carma_device *device);
+    //                 CarmaDevice *device);
     // template<class T>
     // int fillarray2d2(T *d_odata, T *d_idata, int x0, int Ncol, int NC, int N,
-    //                 carma_device *device);
+    //                 CarmaDevice *device);
     // template<class T>
     // int fill_sym_matrix(char src_uplo, T *d_data, int Ncol, int N,
-    //                     carma_device *device);
+    //                     CarmaDevice *device);
     // template<class T>
-    // int carma_plus(T *d_odata, T elpha, int N, carma_device *device);
+    // int carma_plus(T *d_odata, T elpha, int N, CarmaDevice *device);
     // template<class T>
     // int carma_plusai(T *d_odata, T *i_data, int i, int sgn, int N,
-    //                 carma_device *device);
+    //                 CarmaDevice *device);
 
     // CU functions fftconv
     // int fftconv_unpad(float *d_odata, float *d_idata, int fftW, int dataH,
     //                   int dataW, int N, int n, int nim);
-    // int carma_initfftconv(caObjS *data_in, caObjS *kernel_in, caObjS
-    // *padded_data, caObjC *padded_spectrum, int kernelY, int kernelX);
+    // int carma_initfftconv(CarmaObjS *data_in, CarmaObjS *kernel_in, CarmaObjS
+    // *padded_data, CarmaObjC *padded_spectrum, int kernelY, int kernelX);
 
     // CPP functions fftconv
-    // int carma_fftconv(caObjS *data_out, caObjS *padded_data,
-    //                   caObjC *padded_spectrum, int kernelY, int kernelX);
+    // int carma_fftconv(CarmaObjS *data_out, CarmaObjS *padded_data,
+    //                   CarmaObjC *padded_spectrum, int kernelY, int kernelX);
 
     // MAGMA functions
 
     // template<class T>
-    // int carma_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals,
-    //               carma_obj<T> *mod2act, carma_obj<T> *mes2mod);
+    // int carma_svd(CarmaObj<T> *imat, CarmaObj<T> *eigenvals,
+    //               CarmaObj<T> *mod2act, CarmaObj<T> *mes2mod);
     // mod.def(appendName<T>("svd_").data(), &carma_svd<T>);
 
-    // TODO after carma_host_obj
+    // TODO after CarmaHostObj
     // template<class T>
-    // int carma_magma_syevd(char jobz, carma_obj<T> *mat, carma_host_obj<T>
+    // int carma_magma_syevd(char jobz, CarmaObj<T> *mat, CarmaHostObj<T>
     // *eigenvals);
     // mod.def( appendName<T>("syevd_").data(), py::overload_cast<char, Class *,
     // ClassHost *>(&carma_magma_syevd<T>)); mod.def(
@@ -693,66 +693,78 @@ struct CarmaObjInterfacer {
     // *>(&carma_magma_syevd<T>));
     mod.def(
         appendName<T>("magma_syevd_").data(),
-        [](Class &d_A, ClassHost &eigenvals, Class *d_U, bool computeU) {
+        [](Class &d_mat_a, ClassHost &eigenvals, Class *d_U, bool computeU) {
           if (d_U == nullptr) {
             if (computeU) {
-              carma_magma_syevd('V', &d_A, &eigenvals);
+              carma_magma_syevd(SOLVER_EIG_MODE_VECTOR, &d_mat_a, &eigenvals);
             } else {
-              carma_magma_syevd('N', &d_A, &eigenvals);
+              carma_magma_syevd(SOLVER_EIG_MODE_NOVECTOR, &d_mat_a, &eigenvals);
             }
           } else {
-            d_U->copyFrom(d_A, d_A.getNbElem());
+            d_U->copy_from(d_mat_a, d_mat_a.get_nb_elements());
             if (computeU) {
-              carma_magma_syevd('V', d_U, &eigenvals);
+              carma_magma_syevd(SOLVER_EIG_MODE_VECTOR, d_U, &eigenvals);
             } else {
-              carma_magma_syevd('N', d_U, &eigenvals);
+              carma_magma_syevd(SOLVER_EIG_MODE_NOVECTOR, d_U, &eigenvals);
             }
           }
         },
-        py::arg("d_A"), py::arg("eigenvals"), py::arg("d_U") = nullptr,
+        py::arg("d_mat_a"), py::arg("eigenvals"), py::arg("d_U") = nullptr,
         py::arg("computeU") = true);
 
     mod.def(
         appendName<T>("syevd_").data(),
-        [](Class &d_A, Class &eigenvals, Class *d_U, bool computeU) {
+        [](Class &d_mat_a, Class &eigenvals, Class *d_U, bool computeU) {
           if (d_U == nullptr) {
             if (computeU) {
-              carma_syevd(CUSOLVER_EIG_MODE_VECTOR, &d_A, &eigenvals);
+              carma_syevd(SOLVER_EIG_MODE_VECTOR, &d_mat_a, &eigenvals);
             } else {
-              carma_syevd(CUSOLVER_EIG_MODE_NOVECTOR, &d_A, &eigenvals);
+              carma_syevd(SOLVER_EIG_MODE_NOVECTOR, &d_mat_a, &eigenvals);
             }
           } else {
-            d_U->copyFrom(d_A, d_A.getNbElem());
+            d_U->copy_from(d_mat_a, d_mat_a.get_nb_elements());
             if (computeU) {
-              carma_syevd(CUSOLVER_EIG_MODE_VECTOR, d_U, &eigenvals);
+              carma_syevd(SOLVER_EIG_MODE_VECTOR, d_U, &eigenvals);
             } else {
-              carma_syevd(CUSOLVER_EIG_MODE_NOVECTOR, d_U, &eigenvals);
+              carma_syevd(SOLVER_EIG_MODE_NOVECTOR, d_U, &eigenvals);
             }
           }
         },
-        py::arg("d_A"), py::arg("eigenvals"), py::arg("d_U") = nullptr,
+        py::arg("d_mat_a"), py::arg("eigenvals"), py::arg("d_U") = nullptr,
         py::arg("computeU") = true);
     // template<class T, int method>
-    // int carma_magma_syevd(char jobz, carma_obj<T> *mat, carma_host_obj<T>
+    // int carma_magma_syevd(char jobz, CarmaObj<T> *mat, CarmaHostObj<T>
     // *eigenvals); template<class T> int carma_magma_syevd_m(long ngpu, char
     // jobz, long N, T *mat, T *eigenvals); template<class T> int
-    // carma_magma_syevd_m(long ngpu, char jobz, carma_host_obj<T> *mat,
-    //                   carma_host_obj<T> *eigenvals);
+    // carma_magma_syevd_m(long ngpu, char jobz, CarmaHostObj<T> *mat,
+    //                   CarmaHostObj<T> *eigenvals);
     // template<class T>
-    // int carma_magma_syevd_m(long ngpu, char jobz, carma_host_obj<T> *mat,
-    //                   carma_host_obj<T> *eigenvals, carma_host_obj<T> *U);
+    // int carma_magma_syevd_m(long ngpu, char jobz, CarmaHostObj<T> *mat,
+    //                   CarmaHostObj<T> *eigenvals, CarmaHostObj<T> *U);
     // template<class T>
-    // int carma_magma_getri(carma_obj<T> *d_iA);
+    // int carma_magma_getri(CarmaObj<T> *d_iA);
     mod.def(appendName<T>("magma_getri_").data(), &carma_magma_getri<T>);
 
     // template<class T>
-    // int carma_magma_potri(carma_obj<T> *d_iA);
-    mod.def(appendName<T>("magma_potri_").data(), &carma_magma_potri<T>);
+    // int carma_magma_potr_inv(CarmaObj<T> *d_iA);
+    mod.def(appendName<T>("magma_potri_").data(), &carma_magma_potr_inv<T>);
 
-    // TODO after carma_host_obj
+    mod.def(
+        appendName<T>("potri_").data(),
+        [](Class &d_A, Class *d_res) {
+          if (d_res == nullptr) {
+            carma_potr_inv(&d_A);
+          } else {
+            d_res->copy_from(d_A, d_A.get_nb_elements());
+            carma_potr_inv(d_res);
+          }
+        },
+        py::arg("d_A"), py::arg("d_res") = nullptr);
+
+    // TODO after CarmaHostObj
     // template<class T>
-    // int carma_magma_potri_m(long num_gpus, carma_host_obj<T> *h_A,
-    // carma_obj<T> *d_iA);
+    // int carma_magma_potr_inv_m(long num_gpus, CarmaHostObj<T> *h_A,
+    // CarmaObj<T> *d_iA);
 
     // MAGMA functions (direct access)
     // template<class T>
@@ -761,15 +773,9 @@ struct CarmaObjInterfacer {
     // int carma_magma_syevd(char jobz, long N, T *mat, T *eigenvals);
     // template<class T>
     // int carma_magma_syevd_m(long ngpu, char jobz, long N, T *mat, T
-    // *eigenvals); template<class T> int carma_magma_potri_m(long num_gpus,
+    // *eigenvals); template<class T> int carma_magma_potr_inv_m(long num_gpus,
     // long N, T *h_A, T *d_iA);
 
-    // CULA functions
-    // template<class T>
-    // int carma_cula_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals,
-    //                   carma_obj<T> *mod2act, carma_obj<T> *mes2mod);
-
-    // int snapTransformSize(unsigned int dataSize);
   }
 };
 #endif

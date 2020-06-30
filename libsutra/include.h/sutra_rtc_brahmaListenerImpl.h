@@ -30,12 +30,12 @@
 //  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 // -----------------------------------------------------------------------------
 
-//! \file      sutra_rtc_brahmaListenerImpl.h
+//! \file      SutraRtcBrahmaListenerImpl.h
 //! \ingroup   libsutra
-//! \class     sutra_rtc_brahmaListenerImpl
+//! \class     SutraRtcBrahmaListenerImpl
 //! \brief     this class provides the rtc_brahmaListenerImpl features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -51,24 +51,24 @@
 #endif /* ACE_LACKS_PRAGMA_ONCE */
 
 template <typename T>
-class sutra_rtc_brahma;
+class SutraRtcBrahma;
 
 template <typename T>
-class libBRAHMACommon_Export sutra_rtc_brahmaListenerImpl
+class libBRAHMACommon_Export SutraRtcBrahmaListenerImpl
     : public virtual OpenDDS::DCPS::LocalObject<DDS::DataReaderListener> {
  private:
-  sutra_rtc_brahma<T>* rtc;
+  SutraRtcBrahma<T>* rtc;
   ACE_Mutex lock_;
 
  public:
   // Constructor
-  sutra_rtc_brahmaListenerImpl();
+  SutraRtcBrahmaListenerImpl();
 
   // Destructor
-  virtual ~sutra_rtc_brahmaListenerImpl(void);
+  virtual ~SutraRtcBrahmaListenerImpl(void);
 
   // app-specific
-  void attach_rtc(sutra_rtc_brahma<T>* rtc);
+  void attach_rtc(SutraRtcBrahma<T>* rtc);
 
   // must also override:
   virtual void on_data_available(DDS::DataReader_ptr reader) noexcept(false);

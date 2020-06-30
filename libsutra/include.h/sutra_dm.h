@@ -32,10 +32,10 @@
 
 //! \file      sutra_dm.h
 //! \ingroup   libsutra
-//! \class     sutra_dm
+//! \class     SutraDm
 //! \brief     this class provides the dm features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -70,7 +70,7 @@ using std::vector;
 //  ╚═════╝ ╚═╝     ╚═╝
 //
 
-class sutra_dm {
+class SutraDm {
  public:
   int device;
   string type;
@@ -79,47 +79,47 @@ class sutra_dm {
   long influsize;
   long dim;
   float push4imat;
-  float Vmin;
-  float Vmax;
+  float volt_min;
+  float volt_max;
   float dx;
   float dy;
   float thetaML;
   float G;
 
-  uint16_t valMax;
+  uint16_t val_max;
 
-  sutra_phase *d_shape;
+  SutraPhase *d_shape;
 
-  carma_obj<float> *d_com;
+  CarmaObj<float> *d_com;
 
-  carma_obj<float> *d_influ;  // if relevant
+  CarmaObj<float> *d_influ;  // if relevant
 
-  carma_obj<int> *d_istart;
-  carma_obj<int> *d_npoints;
+  CarmaObj<int> *d_istart;
+  CarmaObj<int> *d_npoints;
 
-  carma_obj<int> *d_influpos;
+  CarmaObj<int> *d_influpos;
 
   // pzt
-  carma_obj<int> *d_xoff;
-  carma_obj<int> *d_yoff;
-  carma_obj<float> *d_KLbasis;
-  // carma_sparse_obj<float> *d_IFsparse;
-  // carma_obj<float> *d_comdouble;
-  // carma_obj<double> *d_shapedouble;
+  CarmaObj<int> *d_xoff;
+  CarmaObj<int> *d_yoff;
+  CarmaObj<float> *d_KLbasis;
+  // CarmaSparseObj<float> *d_IFsparse;
+  // CarmaObj<float> *d_comdouble;
+  // CarmaObj<double> *d_shapedouble;
 
-  sutra_kl *d_kl;
+  SutraKL *d_kl;
 
-  carma_context *current_context;
-  cublasHandle_t cublas_handle() { return current_context->get_cublasHandle(); }
+  CarmaContext *current_context;
+  cublasHandle_t cublas_handle() { return current_context->get_cublas_handle(); }
   cusparseHandle_t cusparse_handle() {
-    return current_context->get_cusparseHandle();
+    return current_context->get_cusparse_handle();
   }
 
  public:
-  sutra_dm(carma_context *context, const char *type, float altitude, long dim,
+  SutraDm(CarmaContext *context, const char *type, float altitude, long dim,
            long nactus, long influsize, long ninflupos, long n_npoints,
            float push4imat, long nord, float dx, float dy, float thetaML, float G, int device);
-  ~sutra_dm();
+  ~SutraDm();
 
   int nact();
   int pzt_loadarrays(float *influ, int *influpos, int *npoints, int *istart,
@@ -138,18 +138,18 @@ class sutra_dm {
   template <class T>
   int get_IF(T *IF, int *indx_pup, long nb_pts, float ampli);
   template <class T>
-  int get_IF_sparse(carma_sparse_obj<T> *&d_IFsparse, int *indx_pup,
+  int get_IF_sparse(CarmaSparseObj<T> *&d_IFsparse, int *indx_pup,
                     long nb_pts, float ampli, int puponly);
 
   int do_geomat(float *d_geocov, float *d_IF, long n_pts);
 
   template <class T>
-  int do_geomatFromSparse(T *d_geocov, carma_sparse_obj<T> *d_IFsparse);
+  int do_geomat_from_sparse(T *d_geocov, CarmaSparseObj<T> *d_IFsparse);
 
-  int DDiago(carma_obj<float> *d_statcov, carma_obj<float> *d_geocov);
+  int DDiago(CarmaObj<float> *d_statcov, CarmaObj<float> *d_geocov);
   int compute_KLbasis(float *xpos, float *ypos, int *indx, long dim, float norm,
                       float ampli);
-  int piston_filt(carma_obj<float> *d_statcov);
+  int piston_filt(CarmaObj<float> *d_statcov);
   int set_registration(float dx, float dy, float thetaML, float G);
 };
 
@@ -161,21 +161,21 @@ class sutra_dm {
 //  ╚═════╝ ╚═╝     ╚═╝╚══════╝
 //
 
-class sutra_dms {
+class SutraDms {
  public:
-  vector<sutra_dm *> d_dms;
+  vector<SutraDm *> d_dms;
 
  public:
-  sutra_dms();
-  ~sutra_dms();
+  SutraDms();
+  ~SutraDms();
 
-  int add_dm(carma_context *context, const char *type, float alt, long dim,
+  int add_dm(CarmaContext *context, const char *type, float alt, long dim,
              long nactus, long influsize, long ninflupos, long n_npoints,
              float push4imat, long nord, float dx, float dy, float thetaML, float G,  int device);
-  int add_dm(carma_context *context, const char *type, float alt, long dim,
+  int add_dm(CarmaContext *context, const char *type, float alt, long dim,
              long nactus, long influsize, long ninflupos, long n_npoints,
              float push4imat, long nord, int device);
-  int insert_dm(carma_context *context, const char *type, float alt, long dim,
+  int insert_dm(CarmaContext *context, const char *type, float alt, long dim,
                 long nactus, long influsize, long ninflupos, long n_npoints,
                 float push4imat, long nord, float dx, float dy, float thetaML, float G, int device, int idx);
   int remove_dm(int idx);
@@ -205,12 +205,12 @@ void comp_fulldmshape(int threads, int blocks, T *d_idata, T *d_odata,
 
 template <class T>
 int getIF(T *IF, float *dmshape, int *indx_pup, long nb_pts, int column,
-          long nb_col, int puponly, carma_device *device);
+          long nb_col, int puponly, CarmaDevice *device);
 int dm_dostatmat(float *d_statcov, long Nkl, float *d_xpos, float *d_ypos,
-                 float norm, carma_device *device);
-int fill_filtermat(float *filter, int nactu, int N, carma_device *device);
-int find_nnz(float *d_data, int N, carma_device *device);
-int convertToCom(uint16_t *volts, float *com, int N, float Vmin, float Vmax,
-                 uint16_t valMax, carma_device *device);
+                 float norm, CarmaDevice *device);
+int fill_filtermat(float *filter, int nactu, int N, CarmaDevice *device);
+int find_nnz(float *d_data, int N, CarmaDevice *device);
+int convertToCom(uint16_t *volts, float *com, int N, float volt_min, float volt_max,
+                 uint16_t val_max, CarmaDevice *device);
 
 #endif  // _SUTRA_DM_H_

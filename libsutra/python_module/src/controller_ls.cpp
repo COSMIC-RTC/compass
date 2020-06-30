@@ -34,7 +34,7 @@
 //! \ingroup   libsutra
 //! \brief     this file provides pybind wrapper for sutra_controller_ls
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -48,7 +48,7 @@ template <typename Tcomp, typename Tout>
 void controller_ls_impl(py::module &mod, const char *name) {
   using controller_ls = sutra_controller_ls<Tcomp, Tout>;
 
-  py::class_<controller_ls, sutra_controller<Tcomp, Tout>>(mod, name)
+  py::class_<controller_ls, SutraController<Tcomp, Tout>>(mod, name)
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
@@ -181,7 +181,7 @@ void controller_ls_impl(py::module &mod, const char *name) {
            py::arg("nmodes"), py::arg("nrec"), py::arg("M2V"), py::arg("gmin"),
            py::arg("gmax"), py::arg("ngain"), py::arg("Fs"))
 
-      .def("loadOpenLoopSlp", wy::colCast(&controller_ls::loadOpenLoopSlp),
+      .def("loadopen_loopSlp", wy::colCast(&controller_ls::loadopen_loopSlp),
            R"pbdoc(
       Load recorded open loop slopes for modal optimization initialization
 
@@ -201,7 +201,7 @@ void controller_ls_impl(py::module &mod, const char *name) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
-      .def("set_mgain", wy::colCast(&controller_ls::set_mgain), R"pbdoc(
+      .def("set_modal_gains", wy::colCast(&controller_ls::set_modal_gains), R"pbdoc(
       Set the controller modal gains
 
       Parameters

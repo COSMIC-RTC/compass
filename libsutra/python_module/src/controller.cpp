@@ -32,9 +32,9 @@
 
 //! \file      controller.cpp
 //! \ingroup   libsutra
-//! \brief     this file provides pybind wrapper for sutra_controller
+//! \brief     this file provides pybind wrapper for SutraController
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -46,31 +46,31 @@ namespace py = pybind11;
 
 template <typename Tcomp, typename Tout>
 typename std::enable_if<!std::is_same<Tcomp, half>::value, float>::type
-get_gain(sutra_controller<Tcomp, Tout> &sc) {
+get_gain(SutraController<Tcomp, Tout> &sc) {
   return float(sc.gain);
 }
 
 template <typename Tcomp, typename Tout>
 typename std::enable_if<std::is_same<Tcomp, half>::value, float>::type get_gain(
-    sutra_controller<Tcomp, Tout> &sc) {
+    SutraController<Tcomp, Tout> &sc) {
   return __half2float(sc.gain);
 }
 
 template <typename Tcomp, typename Tout>
 typename std::enable_if<!std::is_same<Tcomp, half>::value, float>::type
-get_delay(sutra_controller<Tcomp, Tout> &sc) {
+get_delay(SutraController<Tcomp, Tout> &sc) {
   return float(sc.delay);
 }
 
 template <typename Tcomp, typename Tout>
 typename std::enable_if<std::is_same<Tcomp, half>::value, float>::type
-get_delay(sutra_controller<Tcomp, Tout> &sc) {
+get_delay(SutraController<Tcomp, Tout> &sc) {
   return __half2float(sc.delay);
 }
 
 template <typename Tcomp, typename Tout>
 void controller_impl(py::module &mod, const char *name) {
-  using controller = sutra_controller<Tcomp, Tout>;
+  using controller = SutraController<Tcomp, Tout>;
 
   py::class_<controller>(mod, name)
 
@@ -113,7 +113,7 @@ void controller_impl(py::module &mod, const char *name) {
 
       .def_property_readonly(
           "d_dmseen", [](controller &sc) { return sc.d_dmseen; },
-          "Vector of sutra_dm commanded")
+          "Vector of SutraDm commanded")
 
       .def_property_readonly(
           "centro_idx", [](controller &sc) { return sc.centro_idx; },
@@ -132,26 +132,26 @@ void controller_impl(py::module &mod, const char *name) {
           "Command vector at iteration k-1")
 
       .def_property_readonly(
-          "d_circularComs0", [](controller &sc) { return sc.d_circularComs[0]; },
+          "d_circularComs0", [](controller &sc) { return sc.d_circular_coms[0]; },
           "Oldest command vector in the circular buffer")
 
       .def_property_readonly(
-          "d_circularComs1", [](controller &sc) { return sc.d_circularComs[1]; },
+          "d_circularComs1", [](controller &sc) { return sc.d_circular_coms[1]; },
           "Second oldest Command vector in the circular buffer")
 
       .def_property_readonly(
           "comRange",
-          [](controller &sc) { return std::make_tuple(sc.Vmin, sc.Vmax); },
-          "Tuple (Vmin, Vmax) used for command clipping")
+          [](controller &sc) { return std::make_tuple(sc.volt_min, sc.volt_max); },
+          "Tuple (volt_min, volt_max) used for command clipping")
       .def_property_readonly(
-          "valMax", [](controller &sc) { return sc.valMax; },
+          "val_max", [](controller &sc) { return sc.val_max; },
           "Maximum value for d_voltage (ADU). Only used if "
           "output is expected in uint16")
 
       .def_property_readonly(
           "d_perturb_map",
           [](controller &sc)
-              -> map<string, tuple<carma_obj<Tcomp> *, int, bool>> & {
+              -> map<string, tuple<CarmaObj<Tcomp> *, int, bool>> & {
             return sc.d_perturb_map;
           },
           "Perturbation voltage buffers")
@@ -161,7 +161,7 @@ void controller_impl(py::module &mod, const char *name) {
           "Total voltage to apply on the DMs")
 
       .def_property_readonly(
-          "d_comClipped", [](controller &sc) { return sc.d_comClipped; },
+          "d_com_clipped", [](controller &sc) { return sc.d_com_clipped; },
           "Delayed commands")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
@@ -203,7 +203,7 @@ void controller_impl(py::module &mod, const char *name) {
            "Computes the final voltage to send to the DM")
 
       .def("clip_commands", wy::colCast(&controller::clip_commands),
-           "Clip the commands between Vmin and Vmax (values set in the "
+           "Clip the commands between volt_min and volt_max (values set in the "
            "controller)")
 
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
@@ -253,7 +253,7 @@ void controller_impl(py::module &mod, const char *name) {
           Remove all perturbation voltage buffers
      )pbdoc")
 
-      .def("set_openloop", wy::colCast(&controller::set_openloop),
+      .def("set_open_loop", wy::colCast(&controller::set_open_loop),
            R"pbdoc(
           Open (1) or close (0) the loop
 
@@ -286,39 +286,39 @@ void controller_impl(py::module &mod, const char *name) {
 
       .def(
           "set_comRange",
-          [](controller &sc, float Vmin, float Vmax) {
-            sc.set_Vmax(Vmax);
-            sc.set_Vmin(Vmin);
+          [](controller &sc, float volt_min, float volt_max) {
+            sc.set_volt_max(volt_max);
+            sc.set_volt_min(volt_min);
           },
           R"pbdoc(
-          Set the Vmin and Vmax value for command clipping
+          Set the volt_min and volt_max value for command clipping
 
           Parameters
           ------------
-          Vmin: (float): Vmin value for clipping
-          Vmax: (float): Vmax value for clipping
+          volt_min: (float): volt_min value for clipping
+          volt_max: (float): volt_max value for clipping
      )pbdoc",
-          py::arg("Vmin"), py::arg("Vmax"))
+          py::arg("volt_min"), py::arg("volt_max"))
 
-      .def("set_Vmax", wy::colCast(&controller::set_Vmax),
+      .def("set_volt_max", wy::colCast(&controller::set_volt_max),
            R"pbdoc(
-          Set the Vmax value for command clipping
+          Set the volt_max value for command clipping
 
           Parameters
           ------------
-          Vmax: (float): Vmax value for clipping
+          volt_max: (float): volt_max value for clipping
      )pbdoc",
-           py::arg("Vmax"))
+           py::arg("volt_max"))
 
-      .def("set_valMax", wy::colCast(&controller::set_valMax),
+      .def("set_val_max", wy::colCast(&controller::set_val_max),
            R"pbdoc(
-          Set the valMax value for command conversion
+          Set the val_max value for command conversion
 
           Parameters
           ------------
-          valMax: (float): valMax value for conversion
+          val_max: (float): val_max value for conversion
      )pbdoc",
-           py::arg("valMax"))
+           py::arg("val_max"))
 
       .def("set_com", wy::colCast(&controller::set_com), R"pbdoc(
           Set the command vector of the controller

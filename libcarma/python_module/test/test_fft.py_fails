@@ -25,12 +25,12 @@ def test_fft_C2C():
 
     C1_data = np.empty((n, m), dtype=np.complex64)
     C2_data = np.empty((n, m), dtype=np.complex64)
-    #generating random carma_obj
+    #generating random CarmaObj
     C1 = ch.obj_double_complex(c, C1_data)
     C1.random(int(time.perf_counter() * 1e3))
     C2 = ch.obj_double_complex(c, C2_data)
 
-    #matrix associated to carma_obj
+    #matrix associated to CarmaObj
     C1.device2host(C1_data)
     #switch from data layout
     C1_data = np.reshape(C1_data.flatten("F"), (m, n), order="C")
@@ -126,11 +126,11 @@ def test_fft_R2C_C2R():
     nc = n / 2 + 1
     ncElem = (n + 1) / 2 * m
 
-    #generating random carma_obj
+    #generating random CarmaObj
     R1 = ch.obj_Double2D(c, dims=np.array((m, n), dtype=np.int64))
     R1.random(time.perf_counter() * 1e3)
 
-    #matrix associated to carma_obj
+    #matrix associated to CarmaObj
     R1_data = R1.device2host()
     #switch from data layout
     R2_data = np.reshape(R1_data.flatten("F"), (m, n), order="C")

@@ -32,10 +32,10 @@
 
 //! \file      sutra_wfs_geom.h
 //! \ingroup   libsutra
-//! \class     sutra_wfs_geom
+//! \class     SutraWfsGeom
 //! \brief     this class provides the wfs_geom features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -52,13 +52,13 @@
 #include <vector>
 
 using std::string;
-class sutra_wfs_geom : public sutra_wfs {
+class SutraWfsGeom : public SutraWfs {
  public:
  public:
-  sutra_wfs_geom(carma_context *context, sutra_telescope *d_tel, long nxsub,
+  SutraWfsGeom(CarmaContext *context, SutraTelescope *d_tel, long nxsub,
                  long nvalid, long nphase, long npup, float pdiam, int device);
-  sutra_wfs_geom(const sutra_wfs_geom &wfs);
-  ~sutra_wfs_geom();
+  SutraWfsGeom(const SutraWfsGeom &wfs);
+  ~SutraWfsGeom();
 
   int wfs_initarrays(int *phasemap, float *offsets, float *fluxPerSub,
                      int *validsubsx, int *validsubsy);

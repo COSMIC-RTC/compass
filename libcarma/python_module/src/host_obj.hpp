@@ -32,9 +32,9 @@
 
 //! \file      host_obj.hpp
 //! \ingroup   libcarma
-//! \brief     this file provides pybind wrapper for carma_host_obj
+//! \brief     this file provides pybind wrapper for CarmaHostObj
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -56,12 +56,12 @@ namespace py = pybind11;
 struct CarmaHostObjInterfacer {
   template <typename T> static void call(py::module &mod) {
     auto name = appendName<T>("host_obj_");
-    using Class = carma_host_obj<T>;
+    using Class = CarmaHostObj<T>;
 
     py::class_<Class>(mod, name.data(), py::buffer_protocol())
         .def(py::init([](const py::array_t<T, py::array::f_style |
                                                   py::array::forcecast> &data,
-                         MemAlloc mallocType) {
+                         MemAlloc malloc_type) {
                int ndim = data.ndim() + 1;
                std::vector<long> data_dims(ndim);
                data_dims[0] = data.ndim();
@@ -71,7 +71,7 @@ struct CarmaHostObjInterfacer {
                    new Class(data_dims.data(), (const T *)data.data()));
              }),
              "TODO", // TODO do the documentation...
-             py::arg("h_data").none(false), py::arg("mallocType")=MA_MALLOC)
+             py::arg("h_data").none(false), py::arg("malloc_type")=MA_MALLOC)
 
         .def(py::init([](const Class &data) {
                return std::unique_ptr<Class>(new Class(&data));
@@ -81,7 +81,7 @@ struct CarmaHostObjInterfacer {
 
         .def_buffer([](Class &frame) -> py::buffer_info {
 
-          const long *dims = frame.getDims();
+          const long *dims = frame.get_dims();
           std::vector<ssize_t> shape(dims[0]);
           std::vector<ssize_t> strides(dims[0]);
           ssize_t stride = sizeof(T);
@@ -101,61 +101,61 @@ struct CarmaHostObjInterfacer {
             stride *= shape[dim];
           }
 
-          return py::buffer_info(frame.getData(), sizeof(T),
+          return py::buffer_info(frame.get_data(), sizeof(T),
                                  py::format_descriptor<T>::format(), dims[0],
                                  shape, strides);
         })
 
         // .def("__repr__", &std::string)
 
-        // const long *getDims()
+        // const long *get_dims()
         .def_property_readonly("shape",
                                [](Class &frame) -> py::array_t<long> {
-                                 long nb_dim = frame.getDims(0);
-                                 const long *c_dim = frame.getDims() + 1;
+                                 long nb_dim = frame.get_dims(0);
+                                 const long *c_dim = frame.get_dims() + 1;
                                  return py::array_t<long>(nb_dim, c_dim);
                                },
                                "TODO") // TODO do the documentation...
 
-        // int getNbElem()
-        .def_property_readonly("nbElem", &Class::getNbElem,
+        // int get_nb_elements()
+        .def_property_readonly("nbElem", &Class::get_nb_elements,
                                "TODO") // TODO do the documentation...
     ;
     // MAGMA functions
 
     // template<class T>
-    // int carma_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals,
-    //               carma_obj<T> *mod2act, carma_obj<T> *mes2mod);
+    // int carma_svd(CarmaObj<T> *imat, CarmaObj<T> *eigenvals,
+    //               CarmaObj<T> *mod2act, CarmaObj<T> *mes2mod);
     mod.def(appendName<T>("magma_svd_cpu_").data(), py::overload_cast<Class *,
                   Class *, Class *, Class *>(&carma_magma_svd_cpu<T>));
 
-    // TODO after carma_host_obj
+    // TODO after CarmaHostObj
     // template<class T>
-    // int carma_magma_syevd(char jobz, carma_obj<T> *mat, carma_host_obj<T>
+    // int carma_magma_syevd(char jobz, CarmaObj<T> *mat, CarmaHostObj<T>
     // *eigenvals);
     // mod.def(appendName<T>("syevd_").data(), &carma_magma_syevd<T>);
     mod.def(appendName<T>("magma_syevd_cpu_").data(), py::overload_cast<char, Class *, Class *>(&carma_magma_syevd_cpu<T>));
 
     // template<class T, int method>
-    // int carma_magma_syevd(char jobz, carma_obj<T> *mat, carma_host_obj<T>
+    // int carma_magma_syevd(char jobz, CarmaObj<T> *mat, CarmaHostObj<T>
     // *eigenvals); template<class T> int carma_magma_syevd_m(long ngpu, char jobz,
     // long N, T *mat, T *eigenvals); template<class T> int carma_magma_syevd_m(long
-    // ngpu, char jobz, carma_host_obj<T> *mat,
-    //                   carma_host_obj<T> *eigenvals);
+    // ngpu, char jobz, CarmaHostObj<T> *mat,
+    //                   CarmaHostObj<T> *eigenvals);
     // template<class T>
-    // int carma_magma_syevd_m(long ngpu, char jobz, carma_host_obj<T> *mat,
-    //                   carma_host_obj<T> *eigenvals, carma_host_obj<T> *U);
+    // int carma_magma_syevd_m(long ngpu, char jobz, CarmaHostObj<T> *mat,
+    //                   CarmaHostObj<T> *eigenvals, CarmaHostObj<T> *U);
     // template<class T>
-    // int carma_magma_getri(carma_obj<T> *d_iA);
+    // int carma_magma_getri(CarmaObj<T> *d_iA);
     mod.def(appendName<T>("magma_getri_cpu_").data(), py::overload_cast<Class *>(&carma_magma_getri_cpu<T>));
 
     // template<class T>
-    // int carma_magma_potri(carma_obj<T> *d_iA);
-    mod.def(appendName<T>("magma_potri_cpu_").data(), py::overload_cast<Class *>(&carma_magma_potri_cpu<T>));
+    // int carma_magma_potr_inv(CarmaObj<T> *d_iA);
+    mod.def(appendName<T>("magma_potri_cpu_").data(), py::overload_cast<Class *>(&carma_magma_potr_inv_cpu<T>));
 
-    // TODO after carma_host_obj
+    // TODO after CarmaHostObj
     // template<class T>
-    // int carma_magma_potri_m(long num_gpus, carma_host_obj<T> *h_A, carma_obj<T>
+    // int carma_magma_potr_inv_m(long num_gpus, CarmaHostObj<T> *h_A, CarmaObj<T>
     // *d_iA);
 
     // MAGMA functions (direct access)
@@ -166,9 +166,8 @@ struct CarmaHostObjInterfacer {
     // template<class T>
     // int carma_magma_syevd_m(long ngpu, char jobz, long N, T *mat, T *eigenvals);
     // template<class T>
-    // int carma_magma_potri_m(long num_gpus, long N, T *h_A, T *d_iA);
+    // int carma_magma_potr_inv_m(long num_gpus, long N, T *h_A, T *d_iA);
 
-    // int snapTransformSize(unsigned int dataSize);
   }
 };
 #endif

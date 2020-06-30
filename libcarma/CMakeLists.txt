@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.8)
 
 option(do_half "Compile half codes")
-option(use_cula "Compile using cula library")
-
 
 find_package(CUDA QUIET REQUIRED)
 
@@ -75,25 +73,6 @@ project(carma
 find_package(PkgConfig REQUIRED)
 find_package(CUDA REQUIRED)
 
-if(NOT TARGET cub::cub)
-  if(hunter_build)
-    hunter_add_package(cub)
-    find_package(cub CONFIG REQUIRED)
-  else()
-    if(IS_DIRECTORY $ENV{CUB_ROOT})
-      add_library(cub INTERFACE)
-      target_include_directories(cub INTERFACE $ENV{CUB_ROOT})
-      add_library(cub::cub ALIAS cub) # to match exported target
-    else()
-      message(FATAL_ERROR "cub not found please define CUB_ROOT or use hunter")
-    endif()
-  endif()
-endif()
-
-if(NOT use_cula)
-  message(STATUS "CULA features disabled")
-endif()
-
 pkg_check_modules(MAGMA magma)
 if(${MAGMA_FOUND})
   link_directories(${MAGMA_LIBRARY_DIRS})
@@ -117,7 +96,6 @@ add_library(carma
             SHARED
             ./src.cpp/carma_context.cpp
             ./src.cpp/carma_cublas.cpp
-            ./src.cpp/carma_cula.cpp
             ./src.cpp/carma_cusolver.cpp
             ./src.cpp/carma_cusparse.cpp
             ./src.cpp/carma_fft.cpp
@@ -173,7 +151,7 @@ target_link_libraries(carma
                              ${CUDA_curand_LIBRARY}
                              ${CUDA_cusparse_LIBRARY}
                              ${CUDA_cusolver_LIBRARY}
-                             cub::cub
+                             CONAN_PKG::cub
                              ${GCOV})
 
 target_include_directories(
@@ -185,16 +163,12 @@ target_include_directories(
   carma
   PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${MAGMA_INCLUDE_DIRS}>)
 
-if(use_cula)
-  target_compile_definitions(carma PRIVATE $<$<COMPILE_LANGUAGE:CXX>:USE_CULA>)
-endif()
-
 if(${MAGMA_FOUND})
   target_compile_options(
     carma
     PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${MAGMA_CFLAGS_OTHER}>)
 
-  target_compile_definitions(carma PRIVATE $<$<COMPILE_LANGUAGE:CXX>:USE_MAGMA>)
+  target_compile_definitions(carma PUBLIC $<$<COMPILE_LANGUAGE:CXX>:USE_MAGMA>)
 
   target_link_libraries(carma PRIVATE magma) # ${MAGMA_LIBRARIES})
 
@@ -236,7 +210,6 @@ install(TARGETS carma
         LIBRARY DESTINATION lib)
 install(FILES include.h/carma_context.h
               include.h/carma_cublas.h
-              include.h/carma_cula.h
               include.h/carma_cusolver.h
               include.h/carma_cusparse.h
               include.h/carma_exception.h

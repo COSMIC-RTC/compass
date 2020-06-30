@@ -32,10 +32,10 @@
 
 //! \file      sutra_centroider_cog.h
 //! \ingroup   libsutra
-//! \class     sutra_centroider_cog
+//! \class     SutraCentroiderCog
 //! \brief     this class provides the centroider_cog features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   4.4.1
+//! \version   5.0.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -46,12 +46,12 @@
 #include <sutra_centroider.h>
 
 template <class Tin, class T>
-class sutra_centroider_cog : public sutra_centroider<Tin, T> {
+class SutraCentroiderCog : public SutraCentroider<Tin, T> {
  public:
-  sutra_centroider_cog(carma_context *context, sutra_wfs *wfs, long nvalid,
+  SutraCentroiderCog(CarmaContext *context, SutraWfs *wfs, long nvalid,
                        float offset, float scale, bool filter_TT, int device);
-  sutra_centroider_cog(const sutra_centroider_cog &centroider);
-  ~sutra_centroider_cog();
+  SutraCentroiderCog(const SutraCentroiderCog &centroider);
+  ~SutraCentroiderCog();
 
   string get_type();
 
@@ -65,10 +65,10 @@ template <class T>
 void get_centroids(int size, int threads, int blocks, int n, float *d_idata,
                    T *d_odata, T *ref, int *validx, int *validy,
                    float *intensities, float scale, float offset,
-                   carma_device *device, cudaStream_t stream=0);
+                   CarmaDevice *device, cudaStream_t stream=0);
 
 template <class T>
-void get_centroids_async(int threads, int blocks, int n, carma_streams *streams,
+void get_centroids_async(int threads, int blocks, int n, CarmaStreams *streams,
                          T *d_idata, T *d_odata, T *alpha, float scale,
                          float offset);
 
