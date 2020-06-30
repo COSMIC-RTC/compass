@@ -77,16 +77,15 @@ def init(sup,mod,WFS="all",DM_TT=False,nfilt=None):
     mod : module            : AO mode requested (among: ltao , mcao)
     """
     #easier access to datas
-    sim=sup._sim
     conf=sup.config
 
     #setting open loop
-    sim.rtc.d_control[0].set_polc(True)
+    sup.rtc._rtc.d_control[0].set_polc(True)
 
     #if generic: need to update imat in controller
-    sim.rtc.d_control[0].set_imat(conf.p_controllers[0]._imat)
+    sup.rtc._rtc.d_control[0].set_imat(conf.p_controllers[0]._imat)
     #update gain
-    sim.rtc.d_control[0].set_gain(conf.p_controllers[0].gain)
+    sup.rtc._rtc.d_control[0].set_gain(conf.p_controllers[0].gain)
 
     if nfilt is None:
         mod.init(VARS,sup,DM_TT=DM_TT,WFS=WFS)
