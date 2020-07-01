@@ -1,10 +1,11 @@
+import os
+import numpy as np 
+from astropy.io import fits 
+
 from shesha.ao import imats 
 from shesha.ao import cmats 
-from astropy.io import fits 
-import numpy as np 
-from shesha.util import write_sysParam 
-import os
-from shesha.util import fits_io
+
+from . import writer
 
 def init(VARS,sup,nfilt=10,WFS="all",DM_TT=False):
     """Initialize the LTAO mode
@@ -28,8 +29,8 @@ def init(VARS,sup,nfilt=10,WFS="all",DM_TT=False):
     LGSCST=0.1
     if(DM_TT):
         LGSCST=0.
-    write_sysParam.generate_files(sup,dataPath,singleFile=True,dm_tt=DM_TT,WFS=WFS,LGSTT=LGSCST) 
-    write_sysParam.write_metaDx(metaDx,nTS=sup.config.NTS,path=dataPath) 
+    writer.generate_files(sup,dataPath,singleFile=True,dm_tt=DM_TT,WFS=WFS,LGSTT=LGSCST) 
+    writer.write_metaDx(metaDx,nTS=sup.config.NTS,path=dataPath) 
 
 
 def reconstructor(VARS,applyLog="./log"):
@@ -48,4 +49,4 @@ def reconstructor(VARS,applyLog="./log"):
     ts=str(VARS["TILESIZE"])
     applyCmd=flags+" "+taoPath+"/ltao_reconstructor --sys_path="+dataPath+" --atm_path="+dataPath+" --ncores=1 --gpuIds="+gpus+" --ts="+ts+" --sync=1 --warmup=0  >"+applyLog+" 2>&1"
     os.system(applyCmd)
-    return fits_io.fitsread("M_ltao_0.fits").T
+    return fits.open("M_ltao_0.fits")[0].data.T

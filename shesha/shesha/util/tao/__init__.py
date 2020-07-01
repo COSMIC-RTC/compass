@@ -1,16 +1,14 @@
+from importlib import reload
+import numpy as np 
+from astropy.io import fits 
+
 from shesha.ao import imats 
 from shesha.ao import cmats 
-from astropy.io import fits 
-import numpy as np 
-import os
-from shutil import copyfile
-from shesha.util import write_sysParam 
-from shesha.util import fits_io
+#from shesha.util import write_sysParam 
 
-
+from . import writer
 from . import ltao
 from . import mcao
-from importlib import reload
 reload(ltao)
 reload(mcao)
 
@@ -22,7 +20,7 @@ STARPU_FLAGS=""
 VARS={"SCHED":"dmdas",
       "STARPU_FLAGS":"",
       "GPUIDS":0,
-      "TILESIZE":1000,
+      "TILESIZE":TILESIZE,
       "INPUTPATH":0,
       "TAOPATH":0
       }
@@ -98,7 +96,7 @@ def updateCmat(sup, cmatFile):
     sup         : CompassSupervisor :
     cmatFile    : str               : name of the cmat fits file
     """
-    M=fits_io.fitsread(cmatFile).T
+    M=fits.open(cmatFile)[0].data.T
     sup.setCommandMatrix(M)
     return M
 

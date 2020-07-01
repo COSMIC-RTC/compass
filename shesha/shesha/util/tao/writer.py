@@ -1,6 +1,5 @@
 import numpy as np
 import astropy.io.fits as fits
-import os
 import shutil
 
 #filtering
@@ -212,7 +211,6 @@ def generate_files(sup,path=".",singleFile=False,dm_tt=False,WFS="all",LGSTT=0.1
 
     write_sysParam(sup,path=path,WFS=WFS,LGSTT=LGSTT,TAR=TAR)
     write_atmParam(sup,path=path)
-    #os.rename("sys-params.txt", path+"/sys-params.txt")
     idx = get_idx(p_dm, p_dm._xpos, p_dm._ypos)
     otf = OTF_telescope(sup)
     abs2fi = get_abs2fi(sup)
