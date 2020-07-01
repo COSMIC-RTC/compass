@@ -103,7 +103,7 @@ def updateCmat(sup, cmatFile):
     return M
 
 
-def run(sup,mod,nIter=1000,initialisation=0,reset=1,WFS="all",DM_TT=False):
+def run(sup,mod,nIter=1000,initialisation=0,reset=1,WFS="all",DM_TT=False,nfilt=None):
     check()
 
     #setting open loop
@@ -117,7 +117,7 @@ def run(sup,mod,nIter=1000,initialisation=0,reset=1,WFS="all",DM_TT=False):
     sup.rtc._rtc.set_gain(0,sup.config.p_controllers[0].gain)
 
     if(initialisation):
-        init(sup,mod,WFS=WFS,DM_TT=DM_TT)
+        init(sup,mod,WFS=WFS,DM_TT=DM_TT,nfilt=nfilt)
     M=reconstructor(mod)
     if(reset):
         sup.reset()
