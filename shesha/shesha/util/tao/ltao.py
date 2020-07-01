@@ -7,46 +7,51 @@ from shesha.ao import cmats
 
 from . import writer
 
-def init(VARS,sup,nfilt=10,WFS="all",DM_TT=False):
+def init(tao_settings,sup,n_filt=10, wfs="all", dm_use_tt=False):
     """Initialize the LTAO mode
 
     compute meta matrix of interaction / command and write parameter files
 
-    VARS    : dict              : tao settings variables
-    sup     : CompassSupervisor : compass supervisor
-    nfilt   : int               : number of Imat eigenvalues to filter out 
+    tao_settings : (dict) : tao settings variables
+    sup : CompassSupervisor : compass supervisor
+    wfs : (str) : (optional), default "all" wfs used by tao ( among "all", "lgs", "ngs")
+    n_filt : (int) : number of Imat eigenvalues to filter out
     """
  
     #compute meta imat 
-    metaD=imats.get_metaD(sup,0,0) 
+    meta_D = imats.get_metaD(sup,0,0) 
     #get svd of (D.T*D) 
-    SVD=cmats.svd_for_cmat(metaD) 
+    SVD = cmats.svd_for_cmat(meta_D) 
     #plt.plot(SVD[1]) 
-    metaDx=cmats.get_cmat(metaD,nfilt=nfilt,svd=SVD) 
+    meta_Dx = cmats.get_cmat(meta_D,nfilt=n_filt,svd=SVD) 
 
     #write MOAO pipeline inputs 
-    dataPath=VARS["INPUTPATH"]
-    LGSCST=0.1
-    if(DM_TT):
-        LGSCST=0.
-    writer.generate_files(sup,dataPath,singleFile=True,dm_tt=DM_TT,WFS=WFS,LGSTT=LGSCST) 
-    writer.write_metaDx(metaDx,nTS=sup.config.NTS,path=dataPath) 
+    data_path = tao_settings["INPUT_PATH"]
+    lgs_filter_cst=0.1
+    if(dm_use_tt):
+        lgs_filter_cst=0.
+    writer.generate_files(sup, data_path, single_file=True, 
+        dm_use_tt=dm_use_tt, wfs=wfs, lgs_filter_cst=lgs_filter_cst) 
+    writer.write_metaDx(meta_Dx,nTS=sup.config.NTS,path=data_path) 
 
 
-def reconstructor(VARS,applyLog="./log"):
+def reconstructor(tao_settings,apply_log="./log"):
     """Initialize the LTAO mode
 
     compute meta matrix of interaction / command and write parameter files
 
-    VARS        : dict  : tao settings variables
-    applyLog    : str   : tao log file name
+    tao_settings    : dict  : tao settings variables
+    apply_og        : str   : tao log file name
     """
     
-    flags=VARS["STARPU_FLAGS"]
-    taoPath=VARS["TAOPATH"]
-    dataPath=VARS["INPUTPATH"]
-    gpus=VARS["GPUIDS"]
-    ts=str(VARS["TILESIZE"])
-    applyCmd=flags+" "+taoPath+"/ltao_reconstructor --sys_path="+dataPath+" --atm_path="+dataPath+" --ncores=1 --gpuIds="+gpus+" --ts="+ts+" --sync=1 --warmup=0  >"+applyLog+" 2>&1"
-    os.system(applyCmd)
+    flags = tao_settings["STARPU_FLAGS"]
+    tao_path = tao_settings["TAO_PATH"]
+    data_path = tao_settings["INPUT_PATH"]
+    gpus = tao_settings["GPU_IDS"]
+    tile_size = str( tao_settings["TILE_SIZE"])
+    apply_cmd = flags + " " + tao_path + "/ltao_reconstructor --sys_path=" \
+        + data_path + " --atm_path=" + data_path + " --ncores=1 --gpuIds=" \
+        + gpus + " --ts=" + tile_size + " --sync=1 --warmup=0  >" + apply_log \
+        +" 2>&1"
+    os.system(apply_cmd)
     return fits.open("M_ltao_0.fits")[0].data.T

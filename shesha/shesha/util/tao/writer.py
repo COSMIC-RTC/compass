@@ -116,14 +116,14 @@ def OTF_telescope(sup):
     return FTOtel
 
 
-def get_subaps(sup, WFS="all"):
+def get_subaps(sup, wfs="all"):
     #X=(sup.config.p_wfss[0]._validpuppixx-mpup.shape[0]/2-1)*(sup.config.p_tel.diam/sup.config.p_wfss[0].nxsub/sup.config.p_wfss[0]._pdiam )
     nsubap = []
     X = []
     Y = []
-    if (WFS == "ngs"):
+    if (wfs == "ngs"):
         p_wfss = sup.config.p_wfs_ngs
-    elif (WFS == "lgs"):
+    elif (wfs == "lgs"):
         p_wfss = sup.config.p_wfs_lgs + [sup.config.p_wfs_ngs[-1]]
     else:  # case all
         p_wfss = sup.config.p_wfs_lgs + sup.config.p_wfs_ngs
@@ -179,7 +179,8 @@ def funcInflu(x, y, x0):
     return 1.e-6 * np.exp(-(x * x + y * y) / (2 * x0 * x0))
 
 
-def generate_files(sup,path=".",singleFile=False,dm_tt=False,WFS="all",LGSTT=0.1, TAR=-1):
+def generate_files(sup,path=".", single_file=False, dm_use_tt=False, wfs="all",
+    lgs_filter_cst=0.1, tar=-1):
     """write inputs parameters
 
     sys-params.txt: contains the system parameters
@@ -189,11 +190,9 @@ def generate_files(sup,path=".",singleFile=False,dm_tt=False,WFS="all",LGSTT=0.1
      subaps.fits  : number and position of the subapertures
 
     :parameters:
-        sup: (CompassSupervisor): current supervisor
-
-        path: (str): (optional), default './' path where the files are written
-
-        singleFile: (bool): (optional), default=False write a single fits File
+        sup : (CompassSupervisor) : current supervisor
+        path : (str): (optional), default './' path where the files are written
+        single_file : (bool): (optional), default=False write a single fits File
     """
     p_dm = sup.config.p_dms[0]
     if (p_dm.type == 'tt'):
@@ -202,20 +201,20 @@ def generate_files(sup,path=".",singleFile=False,dm_tt=False,WFS="all",LGSTT=0.1
     nact = p_dm.nact
     ntotact = p_dm._ntotact
 
-    if (dm_tt):
+    if (dm_use_tt):
         p_dm_tt = sup.config.p_dms[-1]
         if (p_dm_tt.type != 'tt'):
             print("ERROR: tip-tilt dm must be the last one")
             return
         ntotact += 2
 
-    write_sysParam(sup,path=path,WFS=WFS,LGSTT=LGSTT,TAR=TAR)
-    write_atmParam(sup,path=path)
+    write_sysParam(sup, path=path, wfs=wfs, lgs_filter_cst=lgs_filter_cst, tar=tar)
+    write_atmParam(sup, path=path)
     idx = get_idx(p_dm, p_dm._xpos, p_dm._ypos)
     otf = OTF_telescope(sup)
     abs2fi = get_abs2fi(sup)
-    nsubaps, X, Y = get_subaps(sup, WFS=WFS)
-    if (not singleFile):
+    nsubaps, X, Y = get_subaps(sup, wfs=wfs)
+    if (not single_file):
         hdu_idx = fits.PrimaryHDU(idx)
         hdu_idx.header["NACT"] = nact
         hdu_idx.header["NTOTACT"] = ntotact
@@ -247,6 +246,10 @@ def generate_files(sup,path=".",singleFile=False,dm_tt=False,WFS="all",LGSTT=0.1
 
 
 def toStr(a=""):
+    """  transform a np.array into a string
+
+    a : (np.ndarray[ndim=1, dtype=np.int32]) : input array
+    """
     string = ""
     if (type(a) is np.ndarray):
         for i in range(a.size):
@@ -259,38 +262,46 @@ def toStr(a=""):
 
     return string
 
-def write_sysParam(sim,path=".",WFS="all",LGSTT=0.1, TAR=-1):
+def write_sysParam(sup, path=".", wfs="all", lgs_filter_cst=0.1, tar=-1):
+    """ Write a sysParam file for tao based on the compass configuration
+
+    sup : (CompassSupervisor) : current supervisor
+    path : (str) : (optional),
+    wfs : (str) : (optional),
+    lgs_filter_cst : (float) : (optional)
+    tar_ind : (list) : (optional),
+    """
     bdw = 3.3e-7
-    lgsdepth = 5000.
-    throughAtm = 1.
-    p_wfs_ngs = sim.config.p_wfs_ngs
-    p_wfs_lgs = sim.config.p_wfs_lgs
-    if (WFS == "ngs"):
+    lgs_depth = 5000.
+    through_atm = 1.
+    p_wfs_ngs = sup.config.p_wfs_ngs
+    p_wfs_lgs = sup.config.p_wfs_lgs
+    if (wfs == "ngs"):
         p_wfss = p_wfs_ngs
-    elif (WFS == "lgs"):
+    elif (wfs == "lgs"):
         p_wfss = p_wfs_lgs + [p_wfs_ngs[-1]]
     else:  # case all
         p_wfss = p_wfs_lgs + p_wfs_ngs
-    p_wfs_ts = sim.config.p_wfs_ts
-    p_targets = sim.config.p_targets
-    p_tel = sim.config.p_tel
-    p_loop = sim.config.p_loop
+    p_wfs_ts = sup.config.p_wfs_ts
+    p_targets = sup.config.p_targets
+    p_tel = sup.config.p_tel
+    p_loop = sup.config.p_loop
 
     if (len(p_wfs_lgs) > 0):
-        lgsFlux = p_wfs_lgs[0].lgsreturnperwatt * p_wfs_lgs[0].laserpower * p_wfs_lgs[
+        lgs_flux = p_wfs_lgs[0].lgsreturnperwatt * p_wfs_lgs[0].laserpower * p_wfs_lgs[
                 0].optthroughput * 10**4
-        lgsPixSize = p_wfs_lgs[0].pixsize
-        lambdaLGS = p_wfs_lgs[0].Lambda * 1e-6
-        throughLGS = p_wfs_lgs[0].optthroughput
-        spotWidth = p_wfs_lgs[0].beamsize
-        lgsAlt = p_wfs_lgs[0].gsalt
+        lgs_pix_size = p_wfs_lgs[0].pixsize
+        lambda_lgs = p_wfs_lgs[0].Lambda * 1e-6
+        through_lgs = p_wfs_lgs[0].optthroughput
+        spot_width = p_wfs_lgs[0].beamsize
+        lgs_alt = p_wfs_lgs[0].gsalt
     else:
-        lgsFlux = 7.e6
-        lgsPixSize = 0.7
-        lambdaLGS = 5.89e-07
-        throughLGS = 0.382
-        spotWidth = 0.8
-        lgsAlt = 90000
+        lgs_flux = 7.e6
+        lgs_pix_size = 0.7
+        lambda_lgs = 5.89e-07
+        through_lgs = 0.382
+        spot_width = 0.8
+        lgs_alt = 90000
 
     if (len(p_wfs_ts) > 0):
         ts_xpos = [w.xpos for w in p_wfs_ts]
@@ -313,7 +324,7 @@ def write_sysParam(sim,path=".",WFS="all",LGSTT=0.1, TAR=-1):
     f.write("\nnTS        :           : number of Truth Sensor\n")
     f.write(toStr(len(p_wfs_ts)))
     f.write("\nnTarget    :           : number of Target\n")
-    if(TAR==-1):
+    if(tar==-1):
         f.write(toStr(len(p_targets)))
     else:
         f.write("1")
@@ -353,21 +364,21 @@ def write_sysParam(sim,path=".",WFS="all",LGSTT=0.1, TAR=-1):
     else:
         f.write(toStr([0.0]))
     f.write("\nlgsFlux    : (ph/m2/s) : LGS photon return at M1\n")
-    f.write(toStr(lgsFlux))
+    f.write(toStr(lgs_flux))
     f.write("\nngsPixSize : arcsec    : NGS pixel size\n")
     if (len(p_wfs_ngs) > 0):
         f.write(toStr(p_wfs_ngs[0].pixsize))
     else:
         f.write(toStr(0.0))
     f.write("\nlgsPixSize : arcsec    : LGS pixel size\n")
-    f.write(toStr(lgsPixSize))
+    f.write(toStr(lgs_pix_size))
     f.write("\nlambdaNGS  : meter     : wave length for NGS\n")
     if (len(p_wfs_ngs) > 0):
         f.write(toStr(p_wfs_ngs[0].Lambda * 1e-6))
     else:
         f.write(toStr(0.0))
     f.write("\nlambdaLGS  : meter     : wave length for LGS\n")
-    f.write(toStr(lambdaLGS))
+    f.write(toStr(lambda_lgs))
     f.write("\nbdw_m      : meter     : bandwidth\n")
     f.write(toStr(bdw))
     f.write("\nthroughNGS : percent   : transmission for NGS\n")
@@ -376,62 +387,67 @@ def write_sysParam(sim,path=".",WFS="all",LGSTT=0.1, TAR=-1):
     else:
         f.write(toStr(0.0))
     f.write("\nthroughLGS : percent   : transmission for LGS\n")
-    f.write(toStr(throughLGS))
+    f.write(toStr(through_lgs))
     f.write("\nthroughAtm : percent   : atmosphere transmission\n")
-    f.write(toStr(throughAtm))
+    f.write(toStr(through_atm))
     f.write("\nRON        : nb of e-  : Read Out Noise \n")
     f.write(toStr(int(np.ceil(p_wfss[0].noise))))
     f.write("\nlgsCst     :           : constant on lgs (simulate that LGS cannot measure tip-tilt and focus)\n")
-    f.write(toStr(LGSTT))
+    f.write(toStr(lgs_filter_cst))
     f.write("\nspotWidth  : arcsec    : lazer width\n")
-    f.write(toStr(spotWidth))
+    f.write(toStr(spot_width))
     f.write("\nlgsAlt     : meter     : sodium layer altitude\n")
-    f.write(toStr(lgsAlt))
+    f.write(toStr(lgs_alt))
     f.write("\nlgsDepth   : meter     : depth of the sodium layer\n")
-    f.write(toStr(lgsdepth))
+    f.write(toStr(lgs_depth))
     f.write("\ntargetX_as : arcsec    :  taget direction on x axis\n")
-    if(TAR==-1):
+    if(tar==-1):
         f.write(toStr(ts_xpos + [t.xpos for t in p_targets]))
-    elif(isinstance(TAR,(list,np.ndarray))):
-        f.write(toStr(ts_xpos + [TAR[0]]))
+    elif(isinstance(tar,(list,np.ndarray))):
+        f.write(toStr(ts_xpos + [tar[0]]))
     else:
-        f.write(toStr(ts_xpos + [p_targets[TAR].xpos]))
+        f.write(toStr(ts_xpos + [p_targets[tar].xpos]))
     f.write("\ntargetY_as : arcsec    :  taget direction on y axis\n")
-    if(TAR==-1):
+    if(tar==-1):
         f.write(toStr(ts_ypos + [t.ypos for t in p_targets]))
-    elif(isinstance(TAR,(list,np.ndarray))):
-        f.write(toStr(ts_ypos + [TAR[1]]))
+    elif(isinstance(tar,(list,np.ndarray))):
+        f.write(toStr(ts_ypos + [tar[1]]))
     else:
-        f.write(toStr(ts_ypos + [p_targets[TAR].ypos]))
+        f.write(toStr(ts_ypos + [p_targets[tar].ypos]))
 
 
-def write_atmParam(sim, path="."):
+def write_atmParam(sup, path="."):
+    """ Write a atmParam file for tao based on the compass configuration
+
+    sup : (CompassSupervisor) : current supervisor
+    path : (str) : (optional), default "./"
+    """
     f = open(path + "/prof-1-atmos-night0.txt", "w")
     f.write("Nlayer\n")
-    f.write(toStr(sim.config.p_atmos.nscreens))
+    f.write(toStr(sup.config.p_atmos.nscreens))
     f.write("\nr0 @ wfs lambda\n")
-    f.write(toStr(sim.config.p_atmos.r0))
+    f.write(toStr(sup.config.p_atmos.r0))
     f.write("\ncn2 ESO units\n")
-    f.write(toStr(sim.config.p_atmos.get_frac().tolist()))
+    f.write(toStr(sup.config.p_atmos.get_frac().tolist()))
     f.write("\nh in meters\n")
-    f.write(toStr(sim.config.p_atmos.get_alt().tolist()))
+    f.write(toStr(sup.config.p_atmos.get_alt().tolist()))
     f.write("\nl0 in meters\n")
-    f.write(toStr(sim.config.p_atmos.get_L0().tolist()))
+    f.write(toStr(sup.config.p_atmos.get_L0().tolist()))
     f.write("\nwind direction \n")
-    f.write(toStr(sim.config.p_atmos.get_winddir().tolist()))
+    f.write(toStr(sup.config.p_atmos.get_winddir().tolist()))
     f.write("\nwind speed meter/s^-1\n")
-    f.write(toStr(sim.config.p_atmos.get_windspeed().tolist()))
+    f.write(toStr(sup.config.p_atmos.get_windspeed().tolist()))
     f.close()
     shutil.copyfile(path + "/prof-1-atmos-night0.txt", path + "/prof0-atmos-night0.txt")
 
 
-def write_metaDx(metaDx, nTS=0, nmeas=None, trans=True, path="."):
+def write_metaDx(meta_Dx, nTS=0, nmeas=None, trans=True, path="."):
     """Write command matrices
 
     split the meta command matrix
 
     :parameters:
-        metaDx: (np.ndarray[ndim=2, dtype=np.float32]): "meta" command matrix
+        meta_Dx: (np.ndarray[ndim=2, dtype=np.float32]): "meta" command matrix
 
         nTS: (int): (optional), default=0. Number of truth sensors, command matrices are written as Di.fits where 'i' belongs to [0,nTS[ , if nTS<1 write the whole matrix as Dx.fits
 
@@ -443,20 +459,20 @@ def write_metaDx(metaDx, nTS=0, nmeas=None, trans=True, path="."):
         """
     if (nTS < 1):
         if (trans):
-            fits.writeto(path + "/Dx.fits", metaDx.T, overwrite=True)
+            fits.writeto(path + "/Dx.fits", meta_Dx.T, overwrite=True)
         else:
-            fits.writeto(path + "/Dx.fits", metaDx, overwrite=True)
+            fits.writeto(path + "/Dx.fits", meta_Dx, overwrite=True)
         return
 
     if (nmeas is None):
-        n = metaDx.shape[1] // nTS
-        nmeas = np.arange(0, metaDx.shape[1] + n, n)
+        n = meta_Dx.shape[1] // nTS
+        nmeas = np.arange(0, meta_Dx.shape[1] + n, n)
     else:
         nmeas = np.append(0, nmeas.cumsum())
 
     for i in range(nTS):
         print(i + 1, "out of", nTS, end='\r')
-        Dx = metaDx[:, nmeas[i]:nmeas[i + 1]]
+        Dx = meta_Dx[:, nmeas[i]:nmeas[i + 1]]
         if (trans):
             fits.writeto(path + "/Dx" + str(i) + ".fits", Dx.T, overwrite=True)
         else:

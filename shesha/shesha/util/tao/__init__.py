@@ -12,17 +12,17 @@ from . import mcao
 reload(ltao)
 reload(mcao)
 
-TILESIZE="1000"
+TILE_SIZE="1000"
 
 STARPU_FLAGS=""
 
 #variable necessary to run TAO
-VARS={"SCHED":"dmdas",
+TAO_SETTINGS={"SCHED":"dmdas",
       "STARPU_FLAGS":"",
-      "GPUIDS":0,
-      "TILESIZE":TILESIZE,
-      "INPUTPATH":0,
-      "TAOPATH":0
+      "GPU_IDS":0,
+      "TILE_SIZE":TILE_SIZE,
+      "INPUT_PATH":0,
+      "TAO_PATH":0
       }
 
 
@@ -31,32 +31,32 @@ def check():
     """
     stop=0
     try :
-        if (not isinstance(VARS["SCHED"], str)):
-            print("you must select a scheduler (dmda,dmdas,dmdar...)\n\tex: VARS[\"SCHED\"]=\"dmdas\"")
+        if (not isinstance(TAO_SETTINGS["SCHED"], str)):
+            print("you must select a scheduler (dmda,dmdas,dmdar...)\n\tex: TAO_SETTINGS[\"SCHED\"]=\"dmdas\"")
             stop=1
     except:
-        print("you must select a scheduler (dmda,dmdas,dmdar...)\n\tex: VARS[\"SCHED\"]=\"dmdas\"")
+        print("you must select a scheduler (dmda,dmdas,dmdar...)\n\tex: TAO_SETTINGS[\"SCHED\"]=\"dmdas\"")
         stop=1
     try :
-        if( not isinstance(VARS["GPUIDS"], str)):
-            print("you must define the GPUs to use as a string \n\tex:VARS[\"GPUIDS\"]=\"1,2\"")
+        if( not isinstance(TAO_SETTINGS["GPU_IDS"], str)):
+            print("you must define the GPUs to use as a string \n\tex:TAO_SETTINGS[\"GPU_IDS\"]=\"1,2\"")
             stop=1
     except:
-        print("you must define the GPUs to use as a string \n\tex:VARS[\"GPUIDS\"]=\"1,2\"")
+        print("you must define the GPUs to use as a string \n\tex:TAO_SETTINGS[\"GPU_IDS\"]=\"1,2\"")
         stop=1
     try :
-        if( not isinstance(VARS["INPUTPATH"], str)):
-            print("you must define the location of the system parameters \n\tex: VARS[\"INPUTPATH\"]=\"~/workspace/compass/params\"")
+        if( not isinstance(TAO_SETTINGS["INPUT_PATH"], str)):
+            print("you must define the location of the system parameters \n\tex: TAO_SETTINGS[\"INPUT_PATH\"]=\"~/workspace/compass/params\"")
             stop=1
     except:
-        print("you must define the location of the system parameters \n\tex: VARS[\"INPUTPATH\"]=\"~/workspace/compass/params\"")
+        print("you must define the location of the system parameters \n\tex: TAO_SETTINGS[\"INPUTPATH\"]=\"~/workspace/compass/params\"")
         stop=1
     try :
-        if( not isinstance(VARS["TAOPATH"], str)):
-            print("you must define the location of the tao executables \n\tex: VARS[\"TAOPATH\"]=\"~/workspace/tao/install/bin\"")
+        if( not isinstance(TAO_SETTINGS["TAO_PATH"], str)):
+            print("you must define the location of the tao executables \n\tex: TAO_SETTINGS[\"TAO_PATH\"]=\"~/workspace/tao/install/bin\"")
             stop=1
     except:
-        print("you must define the location of the tao executables \n\tex: VARS[\"TAOPATH\"]=\"~/workspace/tao/install/bin\"")
+        print("you must define the location of the tao executables \n\tex: TAO_SETTINGS[\"TAOPATH\"]=\"~/workspace/tao/install/bin\"")
         stop=1
     try :
         STARPU_FLAGS
@@ -66,42 +66,57 @@ def check():
     return stop
 
 
-def init(sup,mod,WFS="all",DM_TT=False,nfilt=None):
+def init(sup, mod, wfs="all", dm_use_tt=False, n_filt=None):
     """ Set up the compass loop
 
     set the interaction matrix, loop gain and write parameter files for TAO
 
-    sup : CompassSupervisor :
-    mod : module            : AO mode requested (among: ltao , mcao)
+    sup : (CompassSupervisor) : current supervisor
+    mod : (module) : AO mode requested (among: ltao , mcao)
+    wfs : (str) : (optional), default "all" wfs used by tao ( among "all", "lgs", "ngs")
+    dm_use_tt : (bool) :(optional), default False using a TT DM
+    n_filt : (int) : (optional), default None number of meta interaction matrix singular values filtered out
     """
 
     #setting open loop
     sup.rtc._rtc.d_control[0].set_polc(True)
 
-    if nfilt is None:
-        mod.init(VARS,sup,DM_TT=DM_TT,WFS=WFS)
+    if n_filt is None:
+        mod.init(TAO_SETTINGS, sup, dm_use_tt=dm_use_tt, wfs=wfs)
     else:
-        mod.init(VARS,sup,DM_TT=DM_TT,WFS=WFS,nfilt=nfilt)
+        mod.init(TAO_SETTINGS, sup, dm_use_tt=dm_use_tt, wfs=wfs, n_filt=n_filt)
 
 def reconstructor(mod):
     """ Compute the TAO reconstructor for a given AO mode
 
-    mod : module    : AO mode requested (among: ltao , mcao)
+    mod : (module)  : AO mode requested (among: ltao , mcao)
     """
-    return mod.reconstructor(VARS)
+    return mod.reconstructor(TAO_SETTINGS)
 
-def updateCmat(sup, cmatFile):
+def updateCmat(sup, cmat_file):
     """ Update the compass command matrix from an input fits file
     
-    sup         : CompassSupervisor :
-    cmatFile    : str               : name of the cmat fits file
+    sup : (CompassSupervisor) : current supervisor
+    cmat_file : (str) : name of the cmat fits file
     """
-    M=fits.open(cmatFile)[0].data.T
+    M=fits.open(cmat_file)[0].data.T
     sup.setCommandMatrix(M)
     return M
 
 
-def run(sup,mod,nIter=1000,initialisation=0,reset=1,WFS="all",DM_TT=False,nfilt=None):
+def run(sup, mod, nIter=1000, initialisation=True, reset=True, wfs="all",
+    dm_use_tt=False, n_filt=None):
+    """ Computes a tao reconstructor and run a compass loop with it
+
+    sup : (CompassSupervisor) : current supervisor
+    mod : (module) : AO mode requested (among: ltao , mcao)
+    nIter : (int) : (optional), default 1000 number of iteration of the ao loop
+    initialisation : (bool) : (optional), default True initialise tao (include comptation of meta matrices of interaction/command)
+    reset : (bool) : (optional), default True reset the supervisor before the loop
+    wfs : (str) : (optional), default "all" wfs used by tao ( among "all", "lgs", "ngs")
+    dm_use_tt : (bool) :(optional), default False using a TT DM
+    n_filt : (int) : (optional), default None number of meta interaction matrix singular values filtered out
+    """
     check()
 
     #setting open loop
@@ -115,7 +130,7 @@ def run(sup,mod,nIter=1000,initialisation=0,reset=1,WFS="all",DM_TT=False,nfilt=
     sup.rtc._rtc.set_gain(0,sup.config.p_controllers[0].gain)
 
     if(initialisation):
-        init(sup,mod,WFS=WFS,DM_TT=DM_TT,nfilt=nfilt)
+        init(sup, mod, wfs=wfs, dm_use_tt=dm_use_tt, n_filt=n_filt)
     M=reconstructor(mod)
     if(reset):
         sup.reset()
