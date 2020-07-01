@@ -29,7 +29,10 @@ def init(VARS,sup,nfilt=110,WFS="all",DM_TT=False):
     #write MOAO pipeline inputs
     dataPath=VARS["INPUTPATH"]
 
-    write_sysParam.generate_files(sup,dataPath,singleFile=True,dm_tt=False,WFS=WFS)
+    LGSCST=0.1
+    if(DM_TT):
+        LGSCST=0.
+    write_sysParam.generate_files(sup,dataPath,singleFile=True,dm_tt=DM_TT,WFS=WFS,LGSTT=LGSCST)
     write_sysParam.write_metaDx(metaDx,nTS=sup.config.NTS,path=dataPath)
 
 

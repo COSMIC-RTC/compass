@@ -76,16 +76,9 @@ def init(sup,mod,WFS="all",DM_TT=False,nfilt=None):
     sup : CompassSupervisor :
     mod : module            : AO mode requested (among: ltao , mcao)
     """
-    #easier access to datas
-    conf=sup.config
 
     #setting open loop
     sup.rtc._rtc.d_control[0].set_polc(True)
-
-    #if generic: need to update imat in controller
-    sup.rtc._rtc.d_control[0].set_imat(conf.p_controllers[0]._imat)
-    #update gain
-    sup.rtc._rtc.d_control[0].set_gain(conf.p_controllers[0].gain)
 
     if nfilt is None:
         mod.init(VARS,sup,DM_TT=DM_TT,WFS=WFS)
@@ -112,14 +105,26 @@ def updateCmat(sup, cmatFile):
 
 def run(sup,mod,nIter=1000,initialisation=0,reset=1,WFS="all",DM_TT=False):
     check()
+
+    #setting open loop
+    sup.rtc._rtc.d_control[0].set_polc(True)
+
+    #if generic: need to update imat in controller
+    if(np.abs(np.array(sup.rtc._rtc.d_control[0].d_imat)).max()==0):
+        #imat not set yet for controller
+        sup.rtc._rtc.d_control[0].set_imat(sup.config.p_controllers[0]._imat)
+    #update gain
+    sup.rtc._rtc.set_gain(0,sup.config.p_controllers[0].gain)
+
     if(initialisation):
         init(sup,mod,WFS=WFS,DM_TT=DM_TT)
-    #M=reconstructor(mod)
-    #if(reset):
-    #    sup.reset()
-    #cmatShape=sup.getCmat().shape
-    #if(M.shape[0] != cmatShape[0] or M.shape[1] != cmatShape[1]):
-    #    print("ToR shape is not valid:\n\twaiting for:",cmatShape,"\n\tgot        :",M.shape)
-    #else:
-    #    sup.setCommandMatrix(M)
-    #    sup.loop(nIter)
+    M=reconstructor(mod)
+    if(reset):
+        sup.reset()
+    cmat_shape=sup.rtc.get_command_matrix(0).shape
+    if(M.shape[0] != cmat_shape[0] or M.shape[1] != cmat_shape[1]):
+        print("ToR shape is not valid:\n\twaiting for:",cmat_shape,"\n\tgot        :",M.shape)
+    else:
+        sup.rtc.set_command_matrix(0,M)
+        if(nIter>0):
+            sup.loop(nIter)
