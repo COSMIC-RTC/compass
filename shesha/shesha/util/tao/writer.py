@@ -13,7 +13,7 @@ import shutil
 def used_actu(xpos, ypos, Np=-1):
     """return the indices of the used actuators
 
-    :parameters:
+    Parameters:
         xpos: (np.ndarray[ndim=1, dtype=np.int32]): (optional) actuator position in x
 
         ypos: (np.ndarray[ndim=1, dtype=np.int32]): (optional) actuator position in y
@@ -39,7 +39,7 @@ def used_actu(xpos, ypos, Np=-1):
 def get_idx(p_dm, xpos=None, ypos=None):
     """return a correspondance between the covariance matrix indices and the covariance map indices
 
-    :parameters:
+    Parameters:
         p_dm: (Param_dm): dm settings
 
         xpos: (np.ndarray[ndim=1, dtype=np.int32]): (optional) actuator position in x
@@ -117,6 +117,13 @@ def OTF_telescope(sup):
 
 
 def get_subaps(sup, wfs="all"):
+    """ Return the number of valid subaps (per wfs) as well as their position
+
+    Parameters:
+        sup : (CompassSupervisor) : current supervisor
+        wfs : (str) : (optional), default "all" wfs used by tao ( among "all", "lgs", "ngs")
+
+    """
     #X=(sup.config.p_wfss[0]._validpuppixx-mpup.shape[0]/2-1)*(sup.config.p_tel.diam/sup.config.p_wfss[0].nxsub/sup.config.p_wfss[0]._pdiam )
     nsubap = []
     X = []
@@ -144,7 +151,7 @@ def autocorrelation(a):
 
     max(aa) == sum(a^2)
 
-    :parameters:
+    Parameters:
         a: (np.ndarray[ndim=2, dtype=np.float32]): matrix to compute the autocorrelation on
 
     """
@@ -189,7 +196,7 @@ def generate_files(sup,path=".", single_file=False, dm_use_tt=False, wfs="all",
      abs2fi.fits  :
      subaps.fits  : number and position of the subapertures
 
-    :parameters:
+    Parameters:
         sup : (CompassSupervisor) : current supervisor
         path : (str): (optional), default './' path where the files are written
         single_file : (bool): (optional), default=False write a single fits File
@@ -248,7 +255,8 @@ def generate_files(sup,path=".", single_file=False, dm_use_tt=False, wfs="all",
 def toStr(a=""):
     """  transform a np.array into a string
 
-    a : (np.ndarray[ndim=1, dtype=np.int32]) : input array
+    Parameters:
+        a : (np.ndarray[ndim=1, dtype=np.int32]) : input array
     """
     string = ""
     if (type(a) is np.ndarray):
@@ -265,11 +273,12 @@ def toStr(a=""):
 def write_sysParam(sup, path=".", wfs="all", lgs_filter_cst=0.1, tar=-1):
     """ Write a sysParam file for tao based on the compass configuration
 
-    sup : (CompassSupervisor) : current supervisor
-    path : (str) : (optional),
-    wfs : (str) : (optional),
-    lgs_filter_cst : (float) : (optional)
-    tar_ind : (list) : (optional),
+    Parameters:
+        sup : (CompassSupervisor) : current supervisor
+        path : (str) : (optional), "./" path to the sysParam file
+        wfs : (str) : (optional), default "all" wfs used by tao ( among "all", "lgs", "ngs")
+        lgs_filter_cst : (float) : (optional)
+        tar_ind : (list) : (optional),
     """
     bdw = 3.3e-7
     lgs_depth = 5000.
@@ -419,8 +428,9 @@ def write_sysParam(sup, path=".", wfs="all", lgs_filter_cst=0.1, tar=-1):
 def write_atmParam(sup, path="."):
     """ Write a atmParam file for tao based on the compass configuration
 
-    sup : (CompassSupervisor) : current supervisor
-    path : (str) : (optional), default "./"
+    Parameters:
+        sup : (CompassSupervisor) : current supervisor
+        path : (str) : (optional), default "./" path to the atmParam file
     """
     f = open(path + "/prof-1-atmos-night0.txt", "w")
     f.write("Nlayer\n")

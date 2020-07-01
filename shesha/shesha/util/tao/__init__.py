@@ -71,11 +71,12 @@ def init(sup, mod, wfs="all", dm_use_tt=False, n_filt=None):
 
     set the interaction matrix, loop gain and write parameter files for TAO
 
-    sup : (CompassSupervisor) : current supervisor
-    mod : (module) : AO mode requested (among: ltao , mcao)
-    wfs : (str) : (optional), default "all" wfs used by tao ( among "all", "lgs", "ngs")
-    dm_use_tt : (bool) :(optional), default False using a TT DM
-    n_filt : (int) : (optional), default None number of meta interaction matrix singular values filtered out
+    Parameters:
+        sup : (CompassSupervisor) : current supervisor
+        mod : (module) : AO mode requested (among: ltao , mcao)
+        wfs : (str) : (optional), default "all" wfs used by tao ( among "all", "lgs", "ngs")
+        dm_use_tt : (bool) :(optional), default False using a TT DM
+        n_filt : (int) : (optional), default None number of meta interaction matrix singular values filtered out
     """
 
     #setting open loop
@@ -89,33 +90,36 @@ def init(sup, mod, wfs="all", dm_use_tt=False, n_filt=None):
 def reconstructor(mod):
     """ Compute the TAO reconstructor for a given AO mode
 
-    mod : (module)  : AO mode requested (among: ltao , mcao)
+    Parameters:
+        mod : (module)  : AO mode requested (among: ltao , mcao)
     """
     return mod.reconstructor(TAO_SETTINGS)
 
 def updateCmat(sup, cmat_file):
     """ Update the compass command matrix from an input fits file
     
-    sup : (CompassSupervisor) : current supervisor
-    cmat_file : (str) : name of the cmat fits file
+    Parameters:
+        sup : (CompassSupervisor) : current supervisor
+        cmat_file : (str) : name of the cmat fits file
     """
     M=fits.open(cmat_file)[0].data.T
     sup.setCommandMatrix(M)
     return M
 
 
-def run(sup, mod, nIter=1000, initialisation=True, reset=True, wfs="all",
+def run(sup, mod, n_iter=1000, initialisation=True, reset=True, wfs="all",
     dm_use_tt=False, n_filt=None):
     """ Computes a tao reconstructor and run a compass loop with it
 
-    sup : (CompassSupervisor) : current supervisor
-    mod : (module) : AO mode requested (among: ltao , mcao)
-    nIter : (int) : (optional), default 1000 number of iteration of the ao loop
-    initialisation : (bool) : (optional), default True initialise tao (include comptation of meta matrices of interaction/command)
-    reset : (bool) : (optional), default True reset the supervisor before the loop
-    wfs : (str) : (optional), default "all" wfs used by tao ( among "all", "lgs", "ngs")
-    dm_use_tt : (bool) :(optional), default False using a TT DM
-    n_filt : (int) : (optional), default None number of meta interaction matrix singular values filtered out
+    Parameters:
+        sup : (CompassSupervisor) : current supervisor
+        mod : (module) : AO mode requested (among: ltao , mcao)
+        n_iter : (int) : (optional), default 1000 number of iteration of the ao loop
+        initialisation : (bool) : (optional), default True initialise tao (include comptation of meta matrices of interaction/command)
+        reset : (bool) : (optional), default True reset the supervisor before the loop
+        wfs : (str) : (optional), default "all" wfs used by tao ( among "all", "lgs", "ngs")
+        dm_use_tt : (bool) :(optional), default False using a TT DM
+        n_filt : (int) : (optional), default None number of meta interaction matrix singular values filtered out
     """
     check()
 
@@ -139,5 +143,5 @@ def run(sup, mod, nIter=1000, initialisation=True, reset=True, wfs="all",
         print("ToR shape is not valid:\n\twaiting for:",cmat_shape,"\n\tgot        :",M.shape)
     else:
         sup.rtc.set_command_matrix(0,M)
-        if(nIter>0):
-            sup.loop(nIter)
+        if(n_iter>0):
+            sup.loop(n_iter)
