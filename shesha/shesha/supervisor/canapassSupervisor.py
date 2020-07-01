@@ -2,8 +2,7 @@
 ## @brief     Initialization and execution of a CANAPASS supervisor
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   5.0.0
-## @date      2020/05/18
-## @copyright GNU Lesser General Public License
+## @date      2020/05/18## @copyright GNU Lesser General Public License
 #
 #  This file is part of COMPASS <https://anr-compass.github.io/compass/>
 #
@@ -72,38 +71,40 @@ from shesha.supervisor.compassSupervisor import CompassSupervisor
 
 
 class CanapassSupervisor(CompassSupervisor):
+
     def __init__(self, config, cacao: bool = True) -> None:
         print("switching to a generic controller")
         config.p_controllers[0].type = scons.ControllerType.GENERIC
         CompassSupervisor.__init__(self, config, cacao=cacao)
 
+
 ########################## PROTO #############################
 
-    # def initModalGain(self, gain, cmatModal, modal_basis, control=0, reset_gain=True):
-    #     """
-    #     Given a gain, cmat and btt2v initialise the modal gain mode
-    #     """
-    #     print("TODO: A RECODER !!!!")
-    #     nmode_total = modal_basis.shape[1]
-    #     nactu_total = modal_basis.shape[0]
-    #     nfilt = nmode_total - cmatModal.shape[0]
-    #     ctrl = self._sim.rtc.d_control[control]
-    #     ctrl.set_commandlaw('modal_integrator')
-    #     cmat = np.zeros((nactu_total, cmatModal.shape[1]))
-    #     dec = cmat.shape[0] - cmatModal.shape[0]
-    #     cmat[:-dec, :] += cmatModal  # Fill the full Modal with all non-filtered modes
-    #     modes2V = np.zeros((nactu_total, nactu_total))
-    #     dec2 = modes2V.shape[1] - modal_basis.shape[1]
-    #     modes2V[:, :-dec2] += modal_basis
-    #     mgain = np.ones(len(modes2V)) * gain  # Initialize the gain
-    #     ctrl.set_matE(modes2V)
-    #     ctrl.set_cmat(cmat)
-    #     if reset_gain:
-    #         ctrl.set_modal_gains(mgain)
+# def initModalGain(self, gain, cmatModal, modal_basis, control=0, reset_gain=True):
+#     """
+#     Given a gain, cmat and btt2v initialise the modal gain mode
+#     """
+#     print("TODO: A RECODER !!!!")
+#     nmode_total = modal_basis.shape[1]
+#     nactu_total = modal_basis.shape[0]
+#     nfilt = nmode_total - cmatModal.shape[0]
+#     ctrl = self._sim.rtc.d_control[control]
+#     ctrl.set_commandlaw('modal_integrator')
+#     cmat = np.zeros((nactu_total, cmatModal.shape[1]))
+#     dec = cmat.shape[0] - cmatModal.shape[0]
+#     cmat[:-dec, :] += cmatModal  # Fill the full Modal with all non-filtered modes
+#     modes2V = np.zeros((nactu_total, nactu_total))
+#     dec2 = modes2V.shape[1] - modal_basis.shape[1]
+#     modes2V[:, :-dec2] += modal_basis
+#     mgain = np.ones(len(modes2V)) * gain  # Initialize the gain
+#     ctrl.set_matE(modes2V)
+#     ctrl.set_cmat(cmat)
+#     if reset_gain:
+#         ctrl.set_modal_gains(mgain)
 
-    # def leaveModalGain(self, control=0):
-    #     ctrl = self._sim.rtc.d_control[control]
-    #     ctrl.set_commandlaw('integrator')
+# def leaveModalGain(self, control=0):
+#     ctrl = self._sim.rtc.d_control[control]
+#     ctrl.set_commandlaw('integrator')
 
 if __name__ == '__main__':
     from docopt import docopt
@@ -131,16 +132,20 @@ if __name__ == '__main__':
             user = out.split(b"\n")[0].decode("utf-8")
             print("User is " + user)
 
-        devices = [supervisor, supervisor.rtc, supervisor.wfs, 
-        supervisor.target, supervisor.tel,supervisor.basis, supervisor.calibration,
-        supervisor.atmos, supervisor.dms]
+        devices = [
+                supervisor, supervisor.rtc, supervisor.wfs, supervisor.target,
+                supervisor.tel, supervisor.basis, supervisor.calibration,
+                supervisor.atmos, supervisor.dms
+        ]
 
-        names = ["supervisor", "supervisor_rtc", "supervisor_wfs", 
-        "supervisor_target", "supervisor_tel", "supervisor_basis", "supervisor_calibration", 
-        "supervisor_atmos", "supervisor_dms"]
-        nname = []  
-        for name in names: 
-            nname.append(name+"_"+user) 
+        names = [
+                "supervisor", "supervisor_rtc", "supervisor_wfs", "supervisor_target",
+                "supervisor_tel", "supervisor_basis", "supervisor_calibration",
+                "supervisor_atmos", "supervisor_dms"
+        ]
+        nname = []
+        for name in names:
+            nname.append(name + "_" + user)
         server = PyroServer(listDevices=devices, listNames=names)
         #server.add_device(supervisor, "waoconfig_" + user)
         server.start()

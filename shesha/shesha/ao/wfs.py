@@ -2,8 +2,7 @@
 ## @brief     On the fly modification of the WFS
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   5.0.0
-## @date      2020/05/18
-## @copyright GNU Lesser General Public License
+## @date      2020/05/18## @copyright GNU Lesser General Public License
 #
 #  This file is part of COMPASS <https://anr-compass.github.io/compass/>
 #
@@ -45,8 +44,8 @@ import numpy as np
 from shesha.sutra_wrap import Sensors, Rtc_FFF as Rtc
 
 
-def comp_new_pyr_ampl(nwfs: int, ampli: float, p_wfss: list,
-                      p_tel: conf.Param_tel, npts_force: int = None):
+def comp_new_pyr_ampl(nwfs: int, ampli: float, p_wfss: list, p_tel: conf.Param_tel,
+                      npts_force: int = None):
     """ Set the pyramid modulation amplitude
 
     :parameters:

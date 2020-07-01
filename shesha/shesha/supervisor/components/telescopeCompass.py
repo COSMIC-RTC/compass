@@ -37,6 +37,7 @@
 from shesha.init.geom_init import tel_init
 import numpy as np
 
+
 class TelescopeCompass(object):
     """ Telescope handler for compass simulation
 
@@ -47,6 +48,7 @@ class TelescopeCompass(object):
 
         _config : (config module) : Parameters configuration structure module
     """
+
     def __init__(self, context, config):
         """ Initialize an AtmosCompass component for atmosphere related supervision
 
@@ -56,7 +58,7 @@ class TelescopeCompass(object):
             config : (config module) : Parameters configuration structure module
         """
         self._context = context
-        self._config = config # Parameters configuration coming from supervisor init
+        self._config = config  # Parameters configuration coming from supervisor init
         if self._config.p_atmos is not None:
             r0 = self._config.p_atmos.r0
         else:
@@ -67,7 +69,7 @@ class TelescopeCompass(object):
         else:
             raise ValueError(
                     'An ittime (iteration time in seconds) value through a Param_loop is required.'
-            )        
+            )
         print("->telescope init")
         self._tel = tel_init(self._context, self._config.p_geom, self._config.p_tel, r0,
-                            ittime, self._config.p_wfss)
+                             ittime, self._config.p_wfss)

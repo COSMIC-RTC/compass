@@ -2,8 +2,7 @@
 ## @brief     Param_dm class definition
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   5.0.0
-## @date      2020/05/18
-## @copyright GNU Lesser General Public License
+## @date      2020/05/18## @copyright GNU Lesser General Public License
 #
 #  This file is part of COMPASS <https://anr-compass.github.io/compass/>
 #
@@ -54,7 +53,7 @@ class Param_dm:
         self.__coupling = 0.2  # Actuator coupling (< .3)
         self.__gain = 1.0  # Actuator gains
         self.__pupoffset = np.array([0, 0])
-        self.__dim_screen = 0 # Phase screen dimension
+        self.__dim_screen = 0  # Phase screen dimension
         # Global offset in pupil (x,y) of the whole actuator pattern
 
         self.__unitpervolt = 0.01

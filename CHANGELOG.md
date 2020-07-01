@@ -2,6 +2,7 @@
 
 - [COMPASS Change logs](#compass-change-logs)
   - [Release v5.0](#release-v50)
+  - [Release v4.4.2](#release-v442)
   - [Release v4.4.1](#release-v441)
   - [Release v4.4.0](#release-v440)
   - [Release v4.3.2](#release-v432)
@@ -18,6 +19,7 @@
   - [Release v1.1](#release-v11)
 
 ## Release v5.0
+
 The goal of this release is to improve the code quality.
 This is a major (and disruptive) update, there are changes in most supervisor codes : scripts need to be updated according to these changes.
 
@@ -27,7 +29,7 @@ With its legacy architecture, the readability of the source code became messy, a
 With this release, we propose a new architecture for the user top-level interface, i.e. supervisors. The goal is to become fully modular while increasing the level of documentation and code readability.
 
 The architecture export the abstraction level from the supervisor to so called "components" : a supervisor is now a set of components in charge of the implementation of each AO module, such as Wfs, Dm, Rtc, etc...
-Then, the supervisor defines the sequence of execution of each component. This approach aims to reach "plug-and-play" components, where third party library could be used to implements some components and still interface it with compass ones. 
+Then, the supervisor defines the sequence of execution of each component. This approach aims to reach "plug-and-play" components, where third party library could be used to implements some components and still interface it with compass ones.
 
 For this, we also define code guidelines that must be followed by each contribution to ensure self consistence. Usage of unit tests through pytest also becomes mandatory : each newly added feature accessible at user level has to come with its set of unit tests.
 
@@ -72,17 +74,25 @@ IMPORTANT NOTE : due to the very short available development time of the core CO
 - Add unit tests for each method accessible from a `compassSupervisor` using pytest. Each contribution should define a new unit test
 - Add templates for issue and merge request
 
+## Release v4.4.2
+
+- Fix COMPASS Ray tracing with LGS bug
+- New feature : change wind on the fly
+- Debug modal opti with Btt
+- Add custom DM feature
+- Add `carma_magma_gemv` method in libcarma
+
 ## Release v4.4.1
 
- - handle different shape for raw images and cal images (using the LUT feature)
- - possibility to attach a stream to centroiders
- - opimization of pyramid HR wfs
- - debug ```do_centroids_ref``` method
- - debug ```init_custom_dm``` method
- - add ```requirements*.txt``` file to install python dependencies
- - add ```Jenkinsfile```
- - update Doxyfile script and documentation rst
- - generate gcov trace in debug
+- handle different shape for raw images and cal images (using the LUT feature)
+- possibility to attach a stream to centroiders
+- opimization of pyramid HR wfs
+- debug ```do_centroids_ref``` method
+- debug ```init_custom_dm``` method
+- add ```requirements*.txt``` file to install python dependencies
+- add ```Jenkinsfile```
+- update Doxyfile script and documentation rst
+- generate gcov trace in debug
 
 ## Release v4.4.0
 

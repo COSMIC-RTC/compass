@@ -109,7 +109,6 @@ pages:
     - public
   when: always  # manual / always
   only:
-    - merge_requests
     - develop
 
 # pages:

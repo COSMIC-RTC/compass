@@ -3,8 +3,7 @@
 ## @brief     Widget to simulate a closed loop
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   5.0.0
-## @date      2020/05/18
-## @copyright GNU Lesser General Public License
+## @date      2020/05/18## @copyright GNU Lesser General Public License
 #
 #  This file is part of COMPASS <https://anr-compass.github.io/compass/>
 #
@@ -526,9 +525,11 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                         if "tar" in key:
                             data = self.supervisor.target.get_tar_phase(index)
                         if "psfLE" in key:
-                            data = self.supervisor.target.get_tar_image(index, expo_type="le")
+                            data = self.supervisor.target.get_tar_image(
+                                    index, expo_type="le")
                         if "psfSE" in key:
-                            data = self.supervisor.target.get_tar_image(index, expo_type="se")
+                            data = self.supervisor.target.get_tar_image(
+                                    index, expo_type="se")
 
                         if "psf" in key:
                             if (self.uiAO.actionPSF_Log_Scale.isChecked()):

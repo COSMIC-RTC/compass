@@ -2,8 +2,7 @@
 ## @brief     Basic utilities function
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   5.0.0
-## @date      2020/05/18
-## @copyright GNU Lesser General Public License
+## @date      2020/05/18## @copyright GNU Lesser General Public License
 #
 #  This file is part of COMPASS <https://anr-compass.github.io/compass/>
 #
@@ -229,6 +228,7 @@ def load_config_from_module(filepath: str):
 
     return config
 
+
 def generate_square(radius: float, density: float = 1.):
     """ Generate modulation points positions following a square pattern
 
@@ -247,6 +247,7 @@ def generate_square(radius: float, density: float = 1.):
     cx = cx.flatten()
     cy = cy.flatten()
     return (cx, cy)
+
 
 def generate_circle(radius: float, density: float = 1.):
     """ Generate modulation points positions following a circular pattern
@@ -339,8 +340,8 @@ s
                             pup_cent_weight))
         return (ox, oy, w, xc, yc)
 
-def first_non_zero(array: np.ndarray, axis: int,
-                    invalid_val: int = -1) -> np.ndarray:
+
+def first_non_zero(array: np.ndarray, axis: int, invalid_val: int = -1) -> np.ndarray:
     """ Find the first non zero element of an array
 
     Parameters:
@@ -356,6 +357,7 @@ def first_non_zero(array: np.ndarray, axis: int,
     """
     mask = array != 0
     return np.where(mask.any(axis=axis), mask.argmax(axis=axis), invalid_val)
+
 
 # def rotate3d(im, ang, cx=-1, cy=-1, zoom=1.0):
 #     """Rotates an image of an angle "ang" (in DEGREES).
