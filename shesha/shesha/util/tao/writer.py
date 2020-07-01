@@ -10,7 +10,7 @@ import shutil
 #
 
 
-def used_actu(xpos, ypos, Np=-1):
+def used_actu(xpos, ypos,*, Np=-1):
     """return the indices of the used actuators
 
     Parameters:
@@ -36,7 +36,7 @@ def used_actu(xpos, ypos, Np=-1):
     return (Y * Np + X).astype(np.int32)
 
 
-def get_idx(p_dm, xpos=None, ypos=None):
+def get_idx(p_dm, *, xpos=None, ypos=None):
     """return a correspondance between the covariance matrix indices and the covariance map indices
 
     Parameters:
@@ -68,7 +68,7 @@ def get_idx(p_dm, xpos=None, ypos=None):
     return dx.flatten("F") + (p_dm.nact * 2 - 1) * (dy.flatten("F") - 1)
 
 
-def get_abs2fi(sup, dm=0):
+def get_abs2fi(sup, *,dm=0):
     size = sup.config.p_geom.pupdiam
     N = 2**(int(np.log(2 * size) / np.log(2) + 1))  #SutraTarget:138,
 
@@ -116,7 +116,7 @@ def OTF_telescope(sup):
     return FTOtel
 
 
-def get_subaps(sup, wfs="all"):
+def get_subaps(sup, *, wfs="all"):
     """ Return the number of valid subaps (per wfs) as well as their position
 
     Parameters:
@@ -186,7 +186,7 @@ def funcInflu(x, y, x0):
     return 1.e-6 * np.exp(-(x * x + y * y) / (2 * x0 * x0))
 
 
-def generate_files(sup,path=".", single_file=False, dm_use_tt=False, wfs="all",
+def generate_files(sup, *,path=".", single_file=False, dm_use_tt=False, wfs="all",
     lgs_filter_cst=0.1, tar=-1):
     """write inputs parameters
 
@@ -217,7 +217,7 @@ def generate_files(sup,path=".", single_file=False, dm_use_tt=False, wfs="all",
 
     write_sysParam(sup, path=path, wfs=wfs, lgs_filter_cst=lgs_filter_cst, tar=tar)
     write_atmParam(sup, path=path)
-    idx = get_idx(p_dm, p_dm._xpos, p_dm._ypos)
+    idx = get_idx(p_dm, xpos=p_dm._xpos, ypos=p_dm._ypos)
     otf = OTF_telescope(sup)
     abs2fi = get_abs2fi(sup)
     nsubaps, X, Y = get_subaps(sup, wfs=wfs)
@@ -425,7 +425,7 @@ def write_sysParam(sup, path=".", wfs="all", lgs_filter_cst=0.1, tar=-1):
         f.write(toStr(ts_ypos + [p_targets[tar].ypos]))
 
 
-def write_atmParam(sup, path="."):
+def write_atmParam(sup, *,path="."):
     """ Write a atmParam file for tao based on the compass configuration
 
     Parameters:
@@ -451,7 +451,7 @@ def write_atmParam(sup, path="."):
     shutil.copyfile(path + "/prof-1-atmos-night0.txt", path + "/prof0-atmos-night0.txt")
 
 
-def write_metaDx(meta_Dx, nTS=0, nmeas=None, trans=True, path="."):
+def write_metaDx(meta_Dx, *,nTS=0, nmeas=None, trans=True, path="."):
     """Write command matrices
 
     split the meta command matrix

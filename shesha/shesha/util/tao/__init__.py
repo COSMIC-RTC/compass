@@ -66,7 +66,7 @@ def check():
     return stop
 
 
-def init(sup, mod, wfs="all", dm_use_tt=False, n_filt=None):
+def init(sup, mod, *,wfs="all", dm_use_tt=False, n_filt=None):
     """ Set up the compass loop
 
     set the interaction matrix, loop gain and write parameter files for TAO
@@ -107,7 +107,7 @@ def updateCmat(sup, cmat_file):
     return M
 
 
-def run(sup, mod, n_iter=1000, initialisation=True, reset=True, wfs="all",
+def run(sup, mod, *, n_iter=1000, initialisation=True, reset=True, wfs="all",
     dm_use_tt=False, n_filt=None):
     """ Computes a tao reconstructor and run a compass loop with it
 
