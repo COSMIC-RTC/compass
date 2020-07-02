@@ -45,6 +45,9 @@ def get_idx(p_dm, *, xpos=None, ypos=None):
         xpos: (np.ndarray[ndim=1, dtype=np.int32]): (optional) actuator position in x
 
         ypos: (np.ndarray[ndim=1, dtype=np.int32]): (optional) actuator position in y
+
+    Return:
+        index_map :  (np.ndarray[ndim=1, dtype=np.int32]) : correspondance between the covariance matrix indices and the covariance map indices
     """
 
     if (xpos is not None and ypos is not None):

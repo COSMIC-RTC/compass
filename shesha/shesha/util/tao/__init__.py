@@ -72,10 +72,15 @@ def init(sup, mod, *,wfs="all", dm_use_tt=False, n_filt=None):
     set the interaction matrix, loop gain and write parameter files for TAO
 
     Parameters:
+
         sup : (CompassSupervisor) : current supervisor
+    
         mod : (module) : AO mode requested (among: ltao , mcao)
+    
         wfs : (str) : (optional), default "all" wfs used by tao ( among "all", "lgs", "ngs")
+    
         dm_use_tt : (bool) :(optional), default False using a TT DM
+    
         n_filt : (int) : (optional), default None number of meta interaction matrix singular values filtered out
     """
 
@@ -100,6 +105,7 @@ def updateCmat(sup, cmat_file):
     
     Parameters:
         sup : (CompassSupervisor) : current supervisor
+
         cmat_file : (str) : name of the cmat fits file
     """
     M=fits.open(cmat_file)[0].data.T
@@ -113,12 +119,19 @@ def run(sup, mod, *, n_iter=1000, initialisation=True, reset=True, wfs="all",
 
     Parameters:
         sup : (CompassSupervisor) : current supervisor
+        
         mod : (module) : AO mode requested (among: ltao , mcao)
+
         n_iter : (int) : (optional), default 1000 number of iteration of the ao loop
+
         initialisation : (bool) : (optional), default True initialise tao (include comptation of meta matrices of interaction/command)
+
         reset : (bool) : (optional), default True reset the supervisor before the loop
+
         wfs : (str) : (optional), default "all" wfs used by tao ( among "all", "lgs", "ngs")
+
         dm_use_tt : (bool) :(optional), default False using a TT DM
+
         n_filt : (int) : (optional), default None number of meta interaction matrix singular values filtered out
     """
     check()

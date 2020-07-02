@@ -14,9 +14,10 @@ def init(tao_settings ,sup,*,n_filt=0,wfs="all",dm_use_tt=False):
     compute meta matrix of interaction / command and write parameter files
 
     Parameters:
-        tao_settings : (dict)              : tao settings variables
+        tao_settings : (dict) : tao settings variables
+
         sup : (CompassSupervisor) : compass supervisor
-        n_filt : (int)               : number of Imat eigenvalues to filter out 
+        n_filt : (int) : number of Imat eigenvalues to filter out
         wfs : (str) : (optional), default "all" wfs used by tao ( among "all", "lgs", "ngs")
         dm_use_tt : (bool) :(optional), default False DM compensating TT
     """
@@ -35,7 +36,7 @@ def init(tao_settings ,sup,*,n_filt=0,wfs="all",dm_use_tt=False):
     lgs_filter_cst = 0.1
     if(dm_use_tt):
         lgs_filter_cst = 0.
-    writer.generate_files(sup, path=data_path, single_file=True, 
+    writer.generate_files(sup, path=data_path, single_file=True,
         dm_use_tt=dm_use_tt,wfs=wfs, lgs_filter_cst=lgs_filter_cst)
     writer.write_metaDx(meta_Dx, nTS=sup.config.NTS, path=data_path)
 
@@ -49,7 +50,7 @@ def reconstructor(tao_settings, *,apply_log="./log"):
         tao_settings : (dict)  : tao settings variables
         apply_log    : (str)   : (optional), default "./log" tao log file name
     """
-    
+
     flags = tao_settings["STARPU_FLAGS"]
     tao_path = tao_settings["TAO_PATH"]
     data_path = tao_settings["INPUT_PATH"]
