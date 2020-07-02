@@ -47,7 +47,7 @@ class Param_dm:
     def __init__(self):
 
         # DM properties
-        self.__nact = 0  # DM number of actuators
+        self.__nact = 0  # linear number of actuators across the pupil diameter
         self.__alt = 0.0  # DM conjugation altitude
         self.__thresh = 0.0  # Threshold on response for selection
         self.__coupling = 0.2  # Actuator coupling (< .3)
@@ -104,7 +104,7 @@ class Param_dm:
         self.__pitch = None
         """ inter-actuator space in pixels"""
         self.__ntotact = None
-        """ total number of actuators"""
+        """ total number of actuators over the full area of the pupil"""
         self.__influsize = None
         """ influ function support size"""
         self.__n1 = None

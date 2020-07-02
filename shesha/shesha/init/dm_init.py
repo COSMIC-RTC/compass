@@ -354,7 +354,7 @@ def make_pzt_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, cobs: float,
     coupling = p_dm.coupling
 
     # prepare to compute IF on partial (local) support of size <smallsize>
-    pitch = p_dm._pitch
+    pitch = p_dm._pitch  # unit is pixels
     smallsize = 0
 
     # Petal DM (segmentation of M4)
