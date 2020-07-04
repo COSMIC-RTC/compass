@@ -172,8 +172,8 @@ def autocorrelation(a):
     return b
 
 
-def funcInflu(x, y, x0):
-    #/* DOCUMENT opd_metres = funcInflu(x,y,x0)
+def func_influ(x, y, x0):
+    #/* DOCUMENT opd_metres = func_influ(x,y,x0)
     #
     #   The arguments <x>, <y> and <x0> must all be in the same units.
     #
@@ -218,8 +218,8 @@ def generate_files(sup, *,path=".", single_file=False, dm_use_tt=False, wfs="all
             return
         ntotact += 2
 
-    write_sysParam(sup, path=path, wfs=wfs, lgs_filter_cst=lgs_filter_cst, tar=tar)
-    write_atmParam(sup, path=path)
+    write_sys_param(sup, path=path, wfs=wfs, lgs_filter_cst=lgs_filter_cst, tar=tar)
+    write_atm_param(sup, path=path)
     idx = get_idx(p_dm, xpos=p_dm._xpos, ypos=p_dm._ypos)
     otf = OTF_telescope(sup)
     abs2fi = get_abs2fi(sup)
@@ -255,7 +255,7 @@ def generate_files(sup, *,path=".", single_file=False, dm_use_tt=False, wfs="all
         hdul.writeto(path + "/sys-inputs.fits", overwrite=1)
 
 
-def toStr(a=""):
+def to_str(a=""):
     """  transform a np.array into a string
 
     Parameters:
@@ -273,7 +273,7 @@ def toStr(a=""):
 
     return string
 
-def write_sysParam(sup, path=".", wfs="all", lgs_filter_cst=0.1, tar=-1):
+def write_sys_param(sup, path=".", wfs="all", lgs_filter_cst=0.1, tar=-1):
     """ Write a sysParam file for tao based on the compass configuration
 
     Parameters:
@@ -324,111 +324,111 @@ def write_sysParam(sup, path=".", wfs="all", lgs_filter_cst=0.1, tar=-1):
 
     f = open(path + "/sys-params.txt", "w")
     f.write("diam       : meter     : Telescope diameter\n")
-    f.write(toStr(p_tel.diam))
+    f.write(to_str(p_tel.diam))
     f.write("\nobs        : percent   : Central obscuration\n")
-    f.write(toStr(p_tel.cobs))
+    f.write(to_str(p_tel.cobs))
     f.write("\ntFrame     : second    : frame rate\n")
-    f.write(toStr(p_loop.ittime))
+    f.write(to_str(p_loop.ittime))
     f.write("\nnW         :           : number of WFS\n")
-    f.write(toStr(len(p_wfss)))
+    f.write(to_str(len(p_wfss)))
     f.write("\nnLgs       :           : number of LGS\n")
-    f.write(toStr(len(p_wfs_lgs)))
+    f.write(to_str(len(p_wfs_lgs)))
     f.write("\nnTS        :           : number of Truth Sensor\n")
-    f.write(toStr(len(p_wfs_ts)))
+    f.write(to_str(len(p_wfs_ts)))
     f.write("\nnTarget    :           : number of Target\n")
     if(tar==-1):
-        f.write(toStr(len(p_targets)))
+        f.write(to_str(len(p_targets)))
     else:
         f.write("1")
     f.write("\nNssp       :           : number of subaperture per wfs along the diameter\n")
-    f.write(toStr([wfs.nxsub for wfs in p_wfss]))
+    f.write(to_str([wfs.nxsub for wfs in p_wfss]))
     f.write("\nfracsub    : %         : Minimal illumination fraction for valid subap\n")
-    f.write("-1")  #toStr(p_wfss[0].fracsub))
+    f.write("-1")  #to_str(p_wfss[0].fracsub))
     f.write("\ngsAlt      : meter^-1  : inverse of lazer altitude\n")
-    f.write(toStr([1 / w.gsalt for w in p_wfs_lgs] + [0 for w in p_wfs_ngs]))
+    f.write(to_str([1 / w.gsalt for w in p_wfs_lgs] + [0 for w in p_wfs_ngs]))
     f.write("\ntype       :           : guide star type (1:NGS, 2:LGS)\n")
-    f.write(toStr([2 for w in p_wfs_lgs] + [1 for w in p_wfs_ngs]))
+    f.write(to_str([2 for w in p_wfs_lgs] + [1 for w in p_wfs_ngs]))
     f.write("\nalphaX_as  : arcsec    : pointing direction of the wfs on x axis\n")
-    f.write(toStr([w.xpos for w in p_wfss]))
+    f.write(to_str([w.xpos for w in p_wfss]))
     f.write("\nalphaY_as  : arcsec    : pointing direction of the wfs on y axis\n")
-    f.write(toStr([w.ypos for w in p_wfss]))
+    f.write(to_str([w.ypos for w in p_wfss]))
     f.write("\nXPup       : meter     : pupil shift of the WFS\n")
-    f.write(toStr([0 for i in range(len(p_wfss))]))
+    f.write(to_str([0 for i in range(len(p_wfss))]))
     f.write("\nYPup       : meter     : pupil shift of the WFS\n")
-    f.write(toStr([0 for i in range(len(p_wfss))]))
+    f.write(to_str([0 for i in range(len(p_wfss))]))
     f.write("\nthetaML    :           : rotation of the microlenses\n")
-    f.write(toStr([0 for i in range(len(p_wfss))]))
+    f.write(to_str([0 for i in range(len(p_wfss))]))
     f.write("\nthetaCam   :           : rotation of the camera\n")
-    f.write(toStr([0 for i in range(len(p_wfss))]))
+    f.write(to_str([0 for i in range(len(p_wfss))]))
     f.write("\nsensibility:           : sensitivity coeff of this WFS\n")
-    f.write(toStr([1 for i in range(len(p_wfss))]))
+    f.write(to_str([1 for i in range(len(p_wfss))]))
     f.write("\ntracking   : arcsec^2  : telescope tracking error parameters (x^2, y^2 and xy)\n"
             )
-    f.write(toStr("1 1 1"))
+    f.write(to_str("1 1 1"))
     f.write("\npasDPHI    :           : Precision of DPHI precomputation. //deprecated\n"
             )
-    f.write(toStr(0.0001))
+    f.write(to_str(0.0001))
     f.write("\nncpu       :           : Number of CPU used (only with openMP)\n")
-    f.write(toStr(1))
+    f.write(to_str(1))
     f.write("\nmrNGS      :           : magnitude of NGS\n")
     if (len(p_wfs_ngs) > 0):
-        f.write(toStr([w.gsmag for w in p_wfs_ngs]))
+        f.write(to_str([w.gsmag for w in p_wfs_ngs]))
     else:
-        f.write(toStr([0.0]))
+        f.write(to_str([0.0]))
     f.write("\nlgsFlux    : (ph/m2/s) : LGS photon return at M1\n")
-    f.write(toStr(lgs_flux))
+    f.write(to_str(lgs_flux))
     f.write("\nngsPixSize : arcsec    : NGS pixel size\n")
     if (len(p_wfs_ngs) > 0):
-        f.write(toStr(p_wfs_ngs[0].pixsize))
+        f.write(to_str(p_wfs_ngs[0].pixsize))
     else:
-        f.write(toStr(0.0))
+        f.write(to_str(0.0))
     f.write("\nlgsPixSize : arcsec    : LGS pixel size\n")
-    f.write(toStr(lgs_pix_size))
+    f.write(to_str(lgs_pix_size))
     f.write("\nlambdaNGS  : meter     : wave length for NGS\n")
     if (len(p_wfs_ngs) > 0):
-        f.write(toStr(p_wfs_ngs[0].Lambda * 1e-6))
+        f.write(to_str(p_wfs_ngs[0].Lambda * 1e-6))
     else:
-        f.write(toStr(0.0))
+        f.write(to_str(0.0))
     f.write("\nlambdaLGS  : meter     : wave length for LGS\n")
-    f.write(toStr(lambda_lgs))
+    f.write(to_str(lambda_lgs))
     f.write("\nbdw_m      : meter     : bandwidth\n")
-    f.write(toStr(bdw))
+    f.write(to_str(bdw))
     f.write("\nthroughNGS : percent   : transmission for NGS\n")
     if (len(p_wfs_ngs) > 0):
-        f.write(toStr(p_wfs_ngs[0].optthroughput))
+        f.write(to_str(p_wfs_ngs[0].optthroughput))
     else:
-        f.write(toStr(0.0))
+        f.write(to_str(0.0))
     f.write("\nthroughLGS : percent   : transmission for LGS\n")
-    f.write(toStr(through_lgs))
+    f.write(to_str(through_lgs))
     f.write("\nthroughAtm : percent   : atmosphere transmission\n")
-    f.write(toStr(through_atm))
+    f.write(to_str(through_atm))
     f.write("\nRON        : nb of e-  : Read Out Noise \n")
-    f.write(toStr(int(np.ceil(p_wfss[0].noise))))
+    f.write(to_str(int(np.ceil(p_wfss[0].noise))))
     f.write("\nlgsCst     :           : constant on lgs (simulate that LGS cannot measure tip-tilt and focus)\n")
-    f.write(toStr(lgs_filter_cst))
+    f.write(to_str(lgs_filter_cst))
     f.write("\nspotWidth  : arcsec    : lazer width\n")
-    f.write(toStr(spot_width))
+    f.write(to_str(spot_width))
     f.write("\nlgsAlt     : meter     : sodium layer altitude\n")
-    f.write(toStr(lgs_alt))
+    f.write(to_str(lgs_alt))
     f.write("\nlgsDepth   : meter     : depth of the sodium layer\n")
-    f.write(toStr(lgs_depth))
+    f.write(to_str(lgs_depth))
     f.write("\ntargetX_as : arcsec    :  taget direction on x axis\n")
     if(tar==-1):
-        f.write(toStr(ts_xpos + [t.xpos for t in p_targets]))
+        f.write(to_str(ts_xpos + [t.xpos for t in p_targets]))
     elif(isinstance(tar,(list,np.ndarray))):
-        f.write(toStr(ts_xpos + [tar[0]]))
+        f.write(to_str(ts_xpos + [tar[0]]))
     else:
-        f.write(toStr(ts_xpos + [p_targets[tar].xpos]))
+        f.write(to_str(ts_xpos + [p_targets[tar].xpos]))
     f.write("\ntargetY_as : arcsec    :  taget direction on y axis\n")
     if(tar==-1):
-        f.write(toStr(ts_ypos + [t.ypos for t in p_targets]))
+        f.write(to_str(ts_ypos + [t.ypos for t in p_targets]))
     elif(isinstance(tar,(list,np.ndarray))):
-        f.write(toStr(ts_ypos + [tar[1]]))
+        f.write(to_str(ts_ypos + [tar[1]]))
     else:
-        f.write(toStr(ts_ypos + [p_targets[tar].ypos]))
+        f.write(to_str(ts_ypos + [p_targets[tar].ypos]))
 
 
-def write_atmParam(sup, *,path="."):
+def write_atm_param(sup, *,path="."):
     """ Write a atmParam file for tao based on the compass configuration
 
     Parameters:
@@ -437,24 +437,24 @@ def write_atmParam(sup, *,path="."):
     """
     f = open(path + "/prof-1-atmos-night0.txt", "w")
     f.write("Nlayer\n")
-    f.write(toStr(sup.config.p_atmos.nscreens))
+    f.write(to_str(sup.config.p_atmos.nscreens))
     f.write("\nr0 @ wfs lambda\n")
-    f.write(toStr(sup.config.p_atmos.r0))
+    f.write(to_str(sup.config.p_atmos.r0))
     f.write("\ncn2 ESO units\n")
-    f.write(toStr(sup.config.p_atmos.get_frac().tolist()))
+    f.write(to_str(sup.config.p_atmos.get_frac().tolist()))
     f.write("\nh in meters\n")
-    f.write(toStr(sup.config.p_atmos.get_alt().tolist()))
+    f.write(to_str(sup.config.p_atmos.get_alt().tolist()))
     f.write("\nl0 in meters\n")
-    f.write(toStr(sup.config.p_atmos.get_L0().tolist()))
+    f.write(to_str(sup.config.p_atmos.get_L0().tolist()))
     f.write("\nwind direction \n")
-    f.write(toStr(sup.config.p_atmos.get_winddir().tolist()))
+    f.write(to_str(sup.config.p_atmos.get_winddir().tolist()))
     f.write("\nwind speed meter/s^-1\n")
-    f.write(toStr(sup.config.p_atmos.get_windspeed().tolist()))
+    f.write(to_str(sup.config.p_atmos.get_windspeed().tolist()))
     f.close()
     shutil.copyfile(path + "/prof-1-atmos-night0.txt", path + "/prof0-atmos-night0.txt")
 
 
-def write_metaDx(meta_Dx, *,nTS=0, nmeas=None, trans=True, path="."):
+def write_meta_Dx(meta_Dx, *,nTS=0, nmeas=None, trans=True, path="."):
     """Write command matrices
 
     split the meta command matrix

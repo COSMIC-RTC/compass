@@ -61,7 +61,7 @@ def get_yao_subap_pos(sup, *, n_wfs=-1):
     return n_valid.astype(np.int32), valid_subap.astype(np.float64)
 
 
-def get_yao_actuPos_single(sup, dm_id):
+def get_yao_actu_pos_single(sup, dm_id):
     """return the coordinates of a given DM actuators for YAO
 
     Parameters:
@@ -97,7 +97,7 @@ def get_yao_actu_pos(sup):
     ind=0
     for dm in range(len(config.p_dms)):
         if(sup.config.p_dms[dm].type !="tt"):
-            actu_pos[0,ind:ind+n_actu[dm]],actu_pos[1,ind:ind+n_actu[dm]]=get_yao_actuPos_single(sup,dm)
+            actu_pos[0,ind:ind+n_actu[dm]],actu_pos[1,ind:ind+n_actu[dm]]=get_yao_actu_pos_single(sup,dm)
         ind+=n_actu[dm]
     return n_actu.astype(np.int32), actu_pos.astype(np.float64)
 

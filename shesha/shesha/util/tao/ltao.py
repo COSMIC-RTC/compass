@@ -5,7 +5,7 @@ from astropy.io import fits
 from shesha.ao import imats 
 from shesha.ao import cmats 
 
-from . import writer
+from shesha.util.tao import writer
 
 def init(tao_settings,sup,*,n_filt=10, wfs="all", dm_use_tt=False):
     """Initialize the LTAO mode
@@ -36,7 +36,7 @@ def init(tao_settings,sup,*,n_filt=10, wfs="all", dm_use_tt=False):
         lgs_filter_cst=0.
     writer.generate_files(sup, path=data_path, single_file=True,
         dm_use_tt=dm_use_tt, wfs=wfs, lgs_filter_cst=lgs_filter_cst)
-    writer.write_metaDx(meta_Dx,nTS=sup.config.NTS,path=data_path)
+    writer.write_meta_Dx(meta_Dx,nTS=sup.config.NTS,path=data_path)
 
 
 def reconstructor(tao_settings,*,apply_log="./log"):

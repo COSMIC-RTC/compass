@@ -4,11 +4,10 @@ from astropy.io import fits
 
 from shesha.ao import imats 
 from shesha.ao import cmats 
-#from shesha.util import write_sysParam 
 
-from . import writer
-from . import ltao
-from . import mcao
+from shesha.util.tao import writer
+from shesha.util.tao import ltao
+from shesha.util.tao import mcao
 reload(ltao)
 reload(mcao)
 
@@ -99,18 +98,6 @@ def reconstructor(mod):
         mod : (module)  : AO mode requested (among: ltao , mcao)
     """
     return mod.reconstructor(TAO_SETTINGS)
-
-def updateCmat(sup, cmat_file):
-    """ Update the compass command matrix from an input fits file
-    
-    Parameters:
-        sup : (CompassSupervisor) : current supervisor
-
-        cmat_file : (str) : name of the cmat fits file
-    """
-    M=fits.open(cmat_file)[0].data.T
-    sup.setCommandMatrix(M)
-    return M
 
 
 def run(sup, mod, *, n_iter=1000, initialisation=True, reset=True, wfs="all",
