@@ -36,7 +36,7 @@ fi
 
 conan install -if build --build=missing $CONAN_LOCATION
 conan build -bf build  $CONAN_LOCATION
-conan package -bf build -pf local  $CONAN_LOCATION
+conan package -bf build -pf $COMPASS_INSTALL_ROOT  $CONAN_LOCATION
 
 # cmake .. -DCMAKE_INSTALL_PREFIX=$COMPASS_INSTALL_ROOT -Ddo_half=$COMPASS_DO_HALF $COMPASS_DEBUG $BUILD_TOOL
 # cmake --build . --target install -- -j $NCPUS
