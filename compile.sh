@@ -1,7 +1,13 @@
 #!/bin/bash
 LOCAL_DIR="$(realpath --relative-to=$(pwd) $( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd ))"
 
-if [ -n $1 ]
+if [ -z $COMPASS_ROOT ]
+then
+    echo "COMPASS_ROOT not define but set it in your .bashrc"
+    exit 1
+fi
+
+if [ -z $1 ]
 then
     COMPASS_INSTALL_ROOT=$1
 fi
