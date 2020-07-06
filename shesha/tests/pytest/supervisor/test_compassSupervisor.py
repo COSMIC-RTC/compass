@@ -234,6 +234,11 @@ def test_set_perturbation_voltage():
     sup.rtc.set_perturbation_voltage(0,"test",np.zeros(sup.config.p_controllers[0].nactu))
     assert(True)
 
+def test_get_perturbation_voltage():
+    sup.rtc.get_perturbation_voltage(0)
+    sup.rtc.get_perturbation_voltage(0, name="test")
+    assert(True)
+    
 def test_get_slopes():
     sup.rtc.get_slopes(0)
     assert(True)
