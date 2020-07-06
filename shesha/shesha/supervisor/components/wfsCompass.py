@@ -104,7 +104,7 @@ class WfsCompass(SourceCompass):
         pwfs.set_pyr_npts(pyr_npts)
         pwfs.set_pyr_cx(cx)
         pwfs.set_pyr_cy(cy)
-        if weights is not None:
+        if weights is None:
             self._wfs.d_wfs[wfs_index].set_pyr_modulation_points(cx, cy, pyr_npts)
         else:
             self._wfs.d_wfs[wfs_index].set_pyr_modulation_points(
