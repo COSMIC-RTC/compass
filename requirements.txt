@@ -1,5 +1,4 @@
 astropy
-blaze
 docopt
 h5py
 ipython

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.8)
 
-option(do_half "Compile half codes")
+option(do_half "Compile half codes" ON)
 
 find_package(CUDA QUIET REQUIRED)
 

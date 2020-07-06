@@ -7,6 +7,7 @@ endif()
 message(STATUS "COMPASS will be installed in: ${CMAKE_INSTALL_PREFIX}")
 
 option(python_build "Compile Python Wrappers" ON)
+option(do_half "Compile half codes" ON)
 
 project(compass
         VERSION ${VERSION_INFO} DESCRIPTION "COMPASS library"

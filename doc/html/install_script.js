@@ -122,20 +122,12 @@ function generate_script(div_text, access, cuda_sm) {
       <div class="line">export NCPUS=8</div>
       <div class="line">export GPU_TARGET=sm_${cuda_sm}</div>
       <div class="line"></div>
-      <div class="line">conda install -y numpy mkl-devel pyqtgraph ipython pyqt qt matplotlib astropy blaze h5py hdf5 pytest pandas scipy docopt tqdm tabulate</div>
-      <div class="line"></div>
-      <div class="line">wget http://icl.cs.utk.edu/projectsfiles/magma/downloads/magma-2.5.2.tar.gz -O - | tar xz</div>
-      <div class="line">cd magma-2.5.2</div>
-      <div class="line"></div>
-      <div class="line">cp make.inc-examples/make.inc.mkl-gcc make.inc</div>
-      <div class="line">sed -i -e "s:/intel64: -Wl,-rpath=$CUDADIR/lib64 -Wl,-rpath=$MKLROOT/lib:" make.inc</div>
-      <div class="line"></div>
-      <div class="line">make -j $NCPUS shared sparse-shared</div>
-      <div class="line">make install prefix=$MAGMA_ROOT</div>
+      <div class="line">conda install -y numpy pyqtgraph ipython pyqt qt matplotlib astropy h5py hdf5 pytest pandas scipy docopt tqdm tabulate</div>
       <div class="line"></div>
       <div class="line">cd $HOME</div>
-      <div class="line">git clone https://gitlab.obspm.fr/compass/compass --recurse-submodules</div>
+      <div class="line">git clone https://gitlab.obspm.fr/compass/compass</div>
       <div class="line">cd $COMPASS_ROOT</div>
+      <div class="line">./install_dependencies.sh</div>
       <div class="line">./compile.sh</div>
     `;
   }

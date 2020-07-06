@@ -20,7 +20,13 @@ class CompassConan(ConanFile):
     settings = 'os', 'compiler', 'build_type', 'arch'
     requires = ['wyrm/0.1@cosmic/stable']
     generators = 'cmake'
-    default_options = {'wyrm:cuda': True, 'wyrm:half': False}
+    options = {"python_build": [True, False], "do_half": [True, False]}
+    default_options = {
+            "python_build": True,
+            "do_half": True,
+            'wyrm:cuda': True,
+            'wyrm:half': True
+    }
     scm = {
             "type": "git",
             "subfolder": ".",
@@ -44,6 +50,7 @@ class CompassConan(ConanFile):
         # cmake.configure(source_folder="compass")
         cmake.configure()
         cmake.build()
+        cmake.install()
 
         # Explicit way:
         # self.run('cmake %s/hello %s'
@@ -51,13 +58,7 @@ class CompassConan(ConanFile):
         # self.run("cmake --build . %s" % cmake.build_config)
 
     def package(self):
-        self.copy("*.h", dst="include", keep_path=False)
-        self.copy("lib*/lib*.so*", dst="lib", keep_path=False)
-        self.copy("lib*/*.pc", dst="lib/pkgconfig", keep_path=False)
-        self.copy("lib*/python_module/*.so", dst="python", keep_path=False)
-
-    #     self.copy("naga", dst="python", keep_path=True)
-    #     self.copy("shesha", dst="python", keep_path=True)
+        self.copy("*", ".", "build/package")  #keep_path default is True
 
     def package_info(self):
         self.cpp_info.libs = ["carma", "sutra"]
