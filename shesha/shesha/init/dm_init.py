@@ -2,7 +2,8 @@
 ## @brief     Initialization of a Dms object
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   5.0.0
-## @date      2020/05/18## @copyright GNU Lesser General Public License
+## @date      2020/05/18
+## @copyright GNU Lesser General Public License
 #
 #  This file is part of COMPASS <https://anr-compass.github.io/compass/>
 #
@@ -354,7 +355,7 @@ def make_pzt_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, cobs: float,
     coupling = p_dm.coupling
 
     # prepare to compute IF on partial (local) support of size <smallsize>
-    pitch = p_dm._pitch
+    pitch = p_dm._pitch  # unit is pixels
     smallsize = 0
 
     # Petal DM (segmentation of M4)

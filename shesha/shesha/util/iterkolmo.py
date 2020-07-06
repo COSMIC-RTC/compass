@@ -2,7 +2,8 @@
 ## @brief     Stencil and matrices computation for the creation of a turbulent screen
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   5.0.0
-## @date      2020/05/18## @copyright GNU Lesser General Public License
+## @date      2020/05/18
+## @copyright GNU Lesser General Public License
 #
 #  This file is part of COMPASS <https://anr-compass.github.io/compass/>
 #
