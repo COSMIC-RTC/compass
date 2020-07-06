@@ -7,7 +7,7 @@ def export_config(supervisor):
     Extract and convert compass supervisor configuration parameters 
     into 2 dictionnaries containing relevant AO parameters
 
-    Parameters :
+    Args:
         root: (object), COMPASS supervisor object to be parsed
 
     Returns : 2 dictionnaries
