@@ -7,6 +7,7 @@ def write_targets(file_name, tars, *, sub_system=1):
 
         tars : (list[Param_target]) : compass target parameters list
 
+    Kwargs:
         sub_system : (int) : (optional), default 1 yao sub system index     
     """
     f=open(file_name,"a+")

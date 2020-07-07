@@ -3,7 +3,7 @@ import numpy as np
 def write_general(file_name, geom, controllers, tel, simul_name):
     """Write (append) general simulation parameter to file for YAO use
 
-    Parameters:
+    Args:
         file_name : (str) : name of the file to append the parameter to
 
         geom : (Param_geom) : compass AO geometry parameters  

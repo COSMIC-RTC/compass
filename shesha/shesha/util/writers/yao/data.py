@@ -6,7 +6,7 @@ def get_yao_subap_pos_single(sup, wfs_id):
 
     this coordinates are given in meters and centered
 
-    Parameters:
+    Args:
         sup : (compassSupervisor) : supervisor
 
         wfs_id : (int) : index of the WFS
@@ -35,9 +35,10 @@ def get_yao_subap_pos(sup, *, n_wfs=-1):
     
     the coordinates are given in meters and centered
 
-    Parameters:
+    Args:
         sup : (compasSSupervisor) : supervisor
 
+    Kwargs:
         n_wfs : (int) : number of wfs
 
     Return:
@@ -64,7 +65,7 @@ def get_yao_subap_pos(sup, *, n_wfs=-1):
 def get_yao_actu_pos_single(sup, dm_id):
     """return the coordinates of a given DM actuators for YAO
 
-    Parameters:
+    Args:
         sup : (compasSSupervisor) : supervisor
 
         dm_id : (int) : index of the DM
@@ -82,7 +83,7 @@ def get_yao_actu_pos_single(sup, dm_id):
 def get_yao_actu_pos(sup):
     """return the coordinates of all  DM actuators for YAO
 
-    Parameters:
+    Args:
         sup : (compasSSupervisor) : supervisor
 
     Return:
@@ -114,7 +115,7 @@ def write_data(file_name, sup, *, n_wfs=-1 ,controller_id=0 ,
         * interaction matrix (2*nSubap , nactu)
         * command matrix (nacy , 2*nSubap)
 
-    Parameters:
+    Args:
         file_name : (str) : data file name
 
         sup : (compasSSupervisor) : supervisor
@@ -172,7 +173,7 @@ def compose_imat(sup, *, compose_type="controller", controller_id=0):
     return either the specified controller interaction matrix (if compose_type="controller")
     or an imat composed of all controller interaction matrices (if compose_type="splitTomo")
 
-    Parameters:
+    Args:
         sup : (compasSSupervisor) : supervisor
 
         compose_type : (str) : (optional), default "controller" possibility to specify split tomography case ("controller" or "splitTomo")

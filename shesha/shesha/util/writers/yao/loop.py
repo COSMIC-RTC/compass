@@ -2,7 +2,7 @@
 def write_loop(file_name, loop, controller):
     """Write (append) AO loop parameters to file for YAO
 
-    Parameters:
+    Args:
         file_name (str) : yao parameter file name
 
         loop : (Param_loop) : compass loop parameters

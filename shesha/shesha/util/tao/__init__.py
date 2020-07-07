@@ -70,12 +70,13 @@ def init(sup, mod, *,wfs="all", dm_use_tt=False, n_filt=None):
 
     set the interaction matrix, loop gain and write parameter files for TAO
 
-    Parameters:
+    Args:
 
         sup : (CompassSupervisor) : current supervisor
     
         mod : (module) : AO mode requested (among: ltao , mcao)
     
+    Kwargs:
         wfs : (str) : (optional), default "all" wfs used by tao ( among "all", "lgs", "ngs")
     
         dm_use_tt : (bool) :(optional), default False using a TT DM
@@ -94,7 +95,7 @@ def init(sup, mod, *,wfs="all", dm_use_tt=False, n_filt=None):
 def reconstructor(mod):
     """ Compute the TAO reconstructor for a given AO mode
 
-    Parameters:
+    Args:
         mod : (module)  : AO mode requested (among: ltao , mcao)
     """
     return mod.reconstructor(TAO_SETTINGS)
@@ -104,11 +105,12 @@ def run(sup, mod, *, n_iter=1000, initialisation=True, reset=True, wfs="all",
     dm_use_tt=False, n_filt=None):
     """ Computes a tao reconstructor and run a compass loop with it
 
-    Parameters:
+    Args:
         sup : (CompassSupervisor) : current supervisor
         
         mod : (module) : AO mode requested (among: ltao , mcao)
 
+    Kwargs
         n_iter : (int) : (optional), default 1000 number of iteration of the ao loop
 
         initialisation : (bool) : (optional), default True initialise tao (include comptation of meta matrices of interaction/command)

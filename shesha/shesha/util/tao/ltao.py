@@ -12,14 +12,17 @@ def init(tao_settings,sup,*,n_filt=10, wfs="all", dm_use_tt=False):
 
     compute meta matrix of interaction / command and write parameter files
 
-    Parameters:
+    Args:
         tao_settings : (dict) : tao settings variables
 
         sup : CompassSupervisor : compass supervisor
 
+    Kwargs:
         wfs : (str) : (optional), default "all" wfs used by tao ( among "all", "lgs", "ngs")
 
         n_filt : (int) : number of Imat eigenvalues to filter out
+
+        dm_use_tt : (bool) : (optional), default False using a TT DM
     """
 
     #compute meta imat
@@ -44,9 +47,10 @@ def reconstructor(tao_settings,*,apply_log="./log"):
 
     compute meta matrix of interaction / command and write parameter files
 
-    Parameters:
+    Args:
         tao_settings : (dict)  : tao settings variables
 
+    Kwargs:
         apply_log : (str)   : tao log file name
 
     Return:

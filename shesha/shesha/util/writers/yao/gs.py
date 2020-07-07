@@ -2,7 +2,7 @@
 def write_gs(file_name, zero_point, lgs_return_per_watt, zenith_angle):
     """Write (append) guide stars parameters to file for YAO
 
-    Parameters:
+    Args:
         file_name : (str) : name of the file to append the parameter to
 
         zero_point : (float) : flux for magnitude 0 (ph/m²/s)

@@ -13,11 +13,12 @@ import shutil
 def used_actu(xpos, ypos,*, Np=-1):
     """return the indices of the used actuators
 
-    Parameters:
+    Args:
         xpos: (np.ndarray[ndim=1, dtype=np.int32]): (optional) actuator position in x
 
         ypos: (np.ndarray[ndim=1, dtype=np.int32]): (optional) actuator position in y
 
+    Kwargs:
         Np: (int): (optional) number of actuators along the diameter
     """
 
@@ -39,9 +40,10 @@ def used_actu(xpos, ypos,*, Np=-1):
 def get_idx(p_dm, *, xpos=None, ypos=None):
     """return a correspondance between the covariance matrix indices and the covariance map indices
 
-    Parameters:
+    Args:
         p_dm: (Param_dm): dm settings
 
+    Kwargs:
         xpos: (np.ndarray[ndim=1, dtype=np.int32]): (optional) actuator position in x
 
         ypos: (np.ndarray[ndim=1, dtype=np.int32]): (optional) actuator position in y
@@ -122,8 +124,10 @@ def OTF_telescope(sup):
 def get_subaps(sup, *, wfs="all"):
     """ Return the number of valid subaps (per wfs) as well as their position
 
-    Parameters:
+    Args:
         sup : (CompassSupervisor) : current supervisor
+
+    Kwargs:
         wfs : (str) : (optional), default "all" wfs used by tao ( among "all", "lgs", "ngs")
 
     """
@@ -154,7 +158,7 @@ def autocorrelation(a):
 
     max(aa) == sum(a^2)
 
-    Parameters:
+    Args:
         a: (np.ndarray[ndim=2, dtype=np.float32]): matrix to compute the autocorrelation on
 
     """
@@ -199,10 +203,19 @@ def generate_files(sup, *,path=".", single_file=False, dm_use_tt=False, wfs="all
      abs2fi.fits  :
      subaps.fits  : number and position of the subapertures
 
-    Parameters:
+    Args:
         sup : (CompassSupervisor) : current supervisor
+
+    Kwargs:
         path : (str): (optional), default './' path where the files are written
+
         single_file : (bool): (optional), default=False write a single fits File
+
+        wfs : (str) : (optional), default "all" wfs used by tao ( among "all", "lgs", "ngs")
+
+        lgs_filter_cst : (float) : (optional) add constant to filter out lgs tt
+
+        tar : (list) : (optional), default -1 index of the target
     """
     p_dm = sup.config.p_dms[0]
     if (p_dm.type == 'tt'):
@@ -258,7 +271,7 @@ def generate_files(sup, *,path=".", single_file=False, dm_use_tt=False, wfs="all
 def to_str(a=""):
     """  transform a np.array into a string
 
-    Parameters:
+    Kwargs:
         a : (np.ndarray[ndim=1, dtype=np.int32]) : input array
     """
     string = ""
@@ -276,12 +289,17 @@ def to_str(a=""):
 def write_sys_param(sup, path=".", wfs="all", lgs_filter_cst=0.1, tar=-1):
     """ Write a sysParam file for tao based on the compass configuration
 
-    Parameters:
+    Args:
         sup : (CompassSupervisor) : current supervisor
+
+    Kwargs:
         path : (str) : (optional), "./" path to the sysParam file
+
         wfs : (str) : (optional), default "all" wfs used by tao ( among "all", "lgs", "ngs")
-        lgs_filter_cst : (float) : (optional)
-        tar_ind : (list) : (optional),
+
+        lgs_filter_cst : (float) : (optional) add constant to filter out lgs tt
+
+        tar : (list) : (optional), default -1 index of the target
     """
     bdw = 3.3e-7
     lgs_depth = 5000.
@@ -431,8 +449,10 @@ def write_sys_param(sup, path=".", wfs="all", lgs_filter_cst=0.1, tar=-1):
 def write_atm_param(sup, *,path="."):
     """ Write a atmParam file for tao based on the compass configuration
 
-    Parameters:
+    Args:
         sup : (CompassSupervisor) : current supervisor
+
+    Kwargs:
         path : (str) : (optional), default "./" path to the atmParam file
     """
     f = open(path + "/prof-1-atmos-night0.txt", "w")
@@ -459,9 +479,10 @@ def write_meta_Dx(meta_Dx, *,nTS=0, nmeas=None, trans=True, path="."):
 
     split the meta command matrix
 
-    :parameters:
+    Args:
         meta_Dx: (np.ndarray[ndim=2, dtype=np.float32]): "meta" command matrix
 
+    Kwargs:
         nTS: (int): (optional), default=0. Number of truth sensors, command matrices are written as Di.fits where 'i' belongs to [0,nTS[ , if nTS<1 write the whole matrix as Dx.fits
 
         nmeas: (np.ndarray[ndim=1, dtype=np.int32]): (optional) if set, must contains the number of measurements for each TS, the matrix is split according to theses numbers. By default, the matrix is split evenly between the nTS truth sensors

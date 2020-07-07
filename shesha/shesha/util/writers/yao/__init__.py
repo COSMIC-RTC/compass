@@ -15,9 +15,10 @@ def write_parfiles(sup, *,  param_file_name="./yao.par",
                             imat_type="controller"):
     """Write parameter files for YAO simulations
 
-    Parameters:
+    Args:
         sup : (CompassSupervisor) : supervisor
 
+    Kwargs:
         param_file_name : (str) : (optional), default "./yao.par" name of the yao parameter file
 
         fits_file_name : (str) : (optional), default "./yao.fits" name of fits file containing sub-apertures and actuator position

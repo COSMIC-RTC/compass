@@ -4,7 +4,7 @@ YAO_DMTYPE={"pzt":"\"stackarray\"",
 def init_dm(file_name):
     """ Initialise dm entry in yao parameter file
 
-    Parameters:
+    Args:
         file_name : (str) : yao parameter file name
     """
     f = open(file_name, "a+")
@@ -17,7 +17,7 @@ def init_dm(file_name):
 def write_dm(file_name, dm, index, *, sub_system=1):
     """Write (append) dm parameter to file for YAO use for a single dm
 
-    Parameters:
+    Args:
         file_name : (str) : name of the file to append the parameter to
 
         dm : (Param_dm) : compass dm  parameters
@@ -48,11 +48,12 @@ def write_dm(file_name, dm, index, *, sub_system=1):
 def write_dms(file_name, dms, *, sub_system=1, offset=0):
     """Write (append) dm parameter to file for YAO
 
-    Parameters:
+    Args:
         file_name : str       : name of the file to append the parameter to
 
         dms       : list[Param_dm] : compass dm  parameters list
 
+    Kwargs:
         sub_system : (int) : (optional), default 1 index of yao sub-system
 
         offset : (int) : (optional), default 0 yao dm index offset
@@ -75,7 +76,7 @@ def write_dms(file_name, dms, *, sub_system=1, offset=0):
 def finish_dm(file_name, n_dm):
     """ Finalize wfs section in yao parameter file
 
-    Parameters:
+    Args:
         file_name : (str) : yao parameter file name
 
         n_dm : (int) : number of ngs written to yao parameter file

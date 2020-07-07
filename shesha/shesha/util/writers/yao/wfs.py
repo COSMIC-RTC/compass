@@ -5,7 +5,7 @@ YAO_WFSTYPE={"sh":"\"hartmann\"", "pyrhr":"\"pyramid\""}
 def init_wfs(file_name):
     """ Initialise wfs entry in yao parameter file
 
-    Parameters:
+    Args:
         file_name : (str) : yao parameter file name
     """
     f = open(file_name,"a+")
@@ -17,13 +17,14 @@ def init_wfs(file_name):
 def write_wfs(file_name, wfs, index, *, sub_system=1):
     """Write (append) wfs parameter to file for YAO use for a single wfs
 
-    Parameters:
+    Args:
         file_name : (str) : name of the file to append the parameter to
 
         wfs : (Param_wfs) : compass wfs parameters
 
         index :(int) : wfs index in ayo parameter file
 
+    Kwargs:
         sub_system : (int) : (optional), default 1 sub_system in yao
     """
     obj = "wfs(" + str(index) + ")"
@@ -63,11 +64,12 @@ def write_wfs(file_name, wfs, index, *, sub_system=1):
 def write_wfss(file_name, wfss, *, n_wfs=-1, sub_system=1, offset=0):
     """Write (append) wfs parameter to file for YAO use for a wfs list
 
-    Parameters:
+    Args:
         file_name : (str) : name of the file to append the parameter to
         
         wfss : (list[ Param_wfs]) : compass wfs parameters list
 
+    Kwargs:
         n_wfs : (int) : (optional), default -1 number of wfs passed to yao (-1 : all wfs)
 
         sub_system : (int) : (optional), default 1 yao sub system index
@@ -106,7 +108,7 @@ def write_wfss(file_name, wfss, *, n_wfs=-1, sub_system=1, offset=0):
 def finish_wfs(file_name, n_ngs, n_lgs):
     """ Finalize wfs section in yao parameter file
 
-    Parameters:
+    Args:
         file_name : (str) : yao parameter file name
 
         n_ngs : (int) : number of ngs written to yao parameter file

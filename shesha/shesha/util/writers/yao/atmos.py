@@ -3,7 +3,7 @@ import numpy as np
 def write_atm(file_name, atm, screen_file):
     """Write (append) atmospheric parameters to file for YAO use
 
-    Parameters:
+    Args:
         file_name : (str) : name of the file to append the parameter to
 
         atm : (Param_atmos) : compass atmospheric parameters
