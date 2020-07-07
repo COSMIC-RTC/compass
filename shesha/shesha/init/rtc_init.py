@@ -153,12 +153,27 @@ def rtc_init(context: carmaWrap_context, tel: Telescope, wfs: Sensors, dms: Dms,
     return rtc
 
 
-# MODBY J
 def rtc_standalone(context: carmaWrap_context, nwfs: int, nvalid: list, nactu: int,
                    centroider_type: list, delay: list, offset: list, scale: list,
                    brahma: bool = False, fp16: bool = False, cacao: bool = False) -> Rtc:
-    """
-    TODO docstring
+    """Initialize all the SutraRtc objects : centroiders and controllers
+
+    :parameters:
+        context: (carmaWrap_context): context
+        nwfs:
+        nvalid:
+        nactu:
+        centroider_type:
+        delay:
+        offset:
+        scale:
+        brahma: (bool) : (optional) brahma flag
+        cacao: (bool) : (optional) cacao flag
+        tar: (Target) : (optional)
+        dataBase: (dict): (optional) dict containig paths to files to load
+        use_DB: (bool): use dataBase flag
+    :return:
+        Rtc : (Rtc) : Rtc object
     """
     print("start rtc_standalone")
     if brahma:

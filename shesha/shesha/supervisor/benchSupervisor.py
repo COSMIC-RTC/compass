@@ -42,12 +42,14 @@ from shesha.init.dm_init import dm_init_standalone
 from shesha.init.rtc_init import rtc_standalone
 from shesha.sutra_wrap import carmaWrap_context
 
-from shesha.supervisor.aoSupervisor import AoSupervisor
+from shesha.supervisor.genericSupervisor import GenericSupervisor
+
+from shesha.util.utilities import load_config_from_file
 
 from typing import Callable
 
 
-class BenchSupervisor(AoSupervisor):
+class BenchSupervisor(GenericSupervisor):
 
     def __init__(self, config_file: str = None, brahma: bool = False,
                  cacao: bool = False):
@@ -67,9 +69,17 @@ class BenchSupervisor(AoSupervisor):
         self.cacao = cacao
         self.iter = 0
         self.slopes_index = None
+        config = load_config_from_file(config_file)
 
-        if config_file is not None:
-            self.load_config(config_file=config_file)
+        GenericSupervisor.__init__(self, config)
+
+    def _init_rtc(self):
+        """Initialize the rtc component of the supervisor as a RtcCompass
+        """
+        if self.wfs is not None:
+            self.rtc = RtcCompass(self.context, self.config, cacao=self.cacao)
+        else:
+            raise ValueError("Configuration not loaded or Telescope not initilaized")
 
     #     _    _         _                  _
     #    / \  | |__  ___| |_ _ __ __ _  ___| |_
@@ -193,7 +203,7 @@ class BenchSupervisor(AoSupervisor):
         Required for using with widgets, due to multithreaded init
         and in case GPU 0 is not used by the simu
         """
-        if self.is_init() and self.context is not None:
+        if self.is_init and self.context is not None:
             current_device = self.context.active_device
             for device in range(len(self.config.p_loop.devices)):
                 self.context.set_active_device_force(device)
@@ -224,7 +234,7 @@ class BenchSupervisor(AoSupervisor):
             config_file : (str) : path to the configuration file
         """
         from shesha.util.utilities import load_config_from_file
-        load_config_from_file(self, config_file)
+        load_config_from_file(config_file)
 
     def set_cam_callback(self, cam_callback: Callable):
         """ Set the externally defined function that allows to grab frames
@@ -313,9 +323,9 @@ class BenchSupervisor(AoSupervisor):
                 raise ValueError('WFS type not supported')
 
         # Create RTC
-        self.rtc = rtc_standalone(self.context, self.number_of_wfs, self._nvalid, nact,
-                                  self._centroider_type, self._delay, self._offset,
-                                  self._scale, brahma=self.brahma, cacao=self.cacao)
+        self.rtc.init_standalone(self.number_of_wfs, self._nvalid, nact,
+                                 self._centroider_type, self._delay, self._offset,
+                                 self._scale)
 
         self.slopes_index = np.cumsum([0] + [wfs.nslopes for wfs in self.rtc.d_centro])
 
