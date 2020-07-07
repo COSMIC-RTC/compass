@@ -73,6 +73,10 @@ project(carma
 find_package(PkgConfig REQUIRED)
 find_package(CUDA REQUIRED)
 
+if (${CUDA_VERSION} LESS 11)
+set(CUB_TARGET "CONAN_PKG::cub")
+endif()
+
 pkg_check_modules(MAGMA magma)
 if(${MAGMA_FOUND})
   link_directories(${MAGMA_LIBRARY_DIRS})
@@ -151,7 +155,7 @@ target_link_libraries(carma
                              ${CUDA_curand_LIBRARY}
                              ${CUDA_cusparse_LIBRARY}
                              ${CUDA_cusolver_LIBRARY}
-                             CONAN_PKG::cub
+                             ${CUB_TARGET}
                              ${GCOV})
 
 target_include_directories(
