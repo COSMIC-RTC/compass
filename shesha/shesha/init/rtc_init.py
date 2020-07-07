@@ -160,18 +160,16 @@ def rtc_standalone(context: carmaWrap_context, nwfs: int, nvalid: list, nactu: i
 
     :parameters:
         context: (carmaWrap_context): context
-        nwfs:
-        nvalid:
-        nactu:
-        centroider_type:
-        delay:
-        offset:
-        scale:
+        nwfs: (int): number of wavefront sensors
+        nvalid: (int): number of valid measures as input
+        nactu: (int): number of actuators as output
+        centroider_type: (list): type of centroiders
+        delay: (list): delay of each controller
+        offset: (list): offset added in the cog computation of each WFS
+        scale: (list): scale factor used in the cog computation of each WFS
         brahma: (bool) : (optional) brahma flag
+        fp16: (bool) : (optional) fp16 flag
         cacao: (bool) : (optional) cacao flag
-        tar: (Target) : (optional)
-        dataBase: (dict): (optional) dict containig paths to files to load
-        use_DB: (bool): use dataBase flag
     :return:
         Rtc : (Rtc) : Rtc object
     """
@@ -197,9 +195,9 @@ def rtc_standalone(context: carmaWrap_context, nwfs: int, nvalid: list, nactu: i
                            context.active_device, centroider_type[k])
 
     nslopes = sum([c.nslopes for c in rtc.d_centro])
-    rtc.add_controller(context, sum(nvalid), nslopes, nactu, delay[k],
-                       context.active_device, "generic", idx_centro=np.arange(nwfs),
-                       ncentro=nwfs)
+    rtc.add_controller(context, sum(nvalid), nslopes, nactu, delay[0],
+                       context.active_device, "generic", 
+                       idx_centro=np.arange(nwfs), ncentro=nwfs)
 
     print("rtc_standalone set")
     return rtc
