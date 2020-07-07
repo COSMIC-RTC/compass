@@ -38,6 +38,7 @@ from shesha.init.rtc_init import rtc_init
 from shesha.supervisor.components.sourceCompass import SourceCompass
 import shesha.constants as scons
 import numpy as np
+from typing import Union
 
 class RtcCompass(object):
     """ RTC handler for compass simulation
@@ -270,8 +271,32 @@ class RtcCompass(object):
 
         Parameters:
             controller_index : (int) : controller index from where to remove the buffer
+
+            name : (str) : Name of the buffer to remove
         """
         self._rtc.d_control[controller_index].remove_perturb_voltage(name)
+
+    def get_perturbation_voltage(self, controller_index: int, *, name: str=None) -> Union[dict, tuple]:
+        """ Get a perturbation voltage buffer
+
+        Parameters:
+            controller_index : (int) : controller index from where to get the buffer
+
+            name : (str, optional) : Name of the buffer to get. If None, returns all the buffers
+
+        Returns:
+            pertu : (dict or tuple) : If name is None, returns a dictionnary with the buffers names as keys
+                                      and a tuple (buffer, circular_counter, is_enabled)
+        """ 
+        pertu_map = self._rtc.d_control[controller_index].d_perturb_map
+        if name is None:
+            for key in pertu_map.keys():
+                pertu_map[key] = (np.array(pertu_map[key][0]), pertu_map[key][1], pertu_map[key][2])
+            return pertu_map
+        else:
+            pertu = pertu_map[name]
+            pertu = (np.array(pertu[0]), pertu[1], pertu[2])
+            return pertu
 
     def get_err(self, controller_index: int) -> np.ndarray:
         """ Get integrator increment from controller_index controller
