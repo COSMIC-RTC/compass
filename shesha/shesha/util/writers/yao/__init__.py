@@ -1,12 +1,12 @@
 
-from .general import *
-from .wfs     import *
-from .dm      import *
-from .targets import *
-from .atmos   import *
-from .loop    import *
-from .gs      import *
-from .data    import *
+from shesha.util.writers.yao.general import *
+from shesha.util.writers.yao.wfs     import *
+from shesha.util.writers.yao.dm      import *
+from shesha.util.writers.yao.targets import *
+from shesha.util.writers.yao.atmos   import *
+from shesha.util.writers.yao.loop    import *
+from shesha.util.writers.yao.gs      import *
+from shesha.util.writers.yao.data    import *
 
 def write_parfiles(sup, *,  param_file_name="./yao.par",
                             fits_file_name="./yao.fits",
