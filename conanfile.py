@@ -31,7 +31,7 @@ class CompassConan(ConanFile):
             "type": "git",
             "subfolder": ".",
             "url": "https://gitlab.obspm.fr/compass/compass.git",
-            "revision": "rc",
+            #"revision": "rc",
             "username": "conan",
             "password": "yLQJgzs1-x_yYWxjWerA"
     }
