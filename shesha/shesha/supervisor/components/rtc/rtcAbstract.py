@@ -34,14 +34,16 @@
 #
 #  You should have received a copy of the GNU Lesser General Public License along with COMPASS.
 #  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
-from shesha.init.rtc_init import rtc_init
+
+from shesha.sutra_wrap import carmaWrap_context
+
 from shesha.supervisor.components.sourceCompass import SourceCompass
 import shesha.constants as scons
 import numpy as np
 from typing import Union
 
 
-class RtcCompass(object):
+class RtcAbstract(object):
     """ RTC handler for compass simulation
 
     Attributes:
@@ -57,66 +59,6 @@ class RtcCompass(object):
 
         cacao : (bool) : CACAO features enabled in the RTC
     """
-
-    def __init__(self, context: carmaWrap_context, config, *, brahma: bool = False,
-                 fp16: bool = False, cacao: bool = False):
-        """ Initialize a RtcCompass component for rtc related supervision
-
-        Args:
-            context : (carmaContext) : CarmaContext instance
-
-            config : (config module) : Parameters configuration structure module
-
-            brahma : (bool, optional) : If True, enables BRAHMA features in RTC (Default is False)
-                                      /!\ Requires BRAHMA to be installed
-
-            fp16 : (bool, optional) : If True, enables FP16 features in RTC (Default is False)
-                                      /!\ Requires CUDA_SM>60 to be installed
-
-        Kwargs:
-            cacao : (bool) : If True, enables CACAO features in RTC (Default is False)
-                                      /!\ Requires OCTOPUS to be installed
-        """
-        self.brahma = brahma
-        self.fp16 = fp16
-        self.cacao = cacao
-        self._context = context
-        self._config = config  # Parameters configuration coming from supervisor init
-        self._rtc = None
-
-    def init_compass(self, tel, wfs, dms, atm):
-        """ Initialize the rtc component for using COMPASS
-
-        Parameters:
-        tel: (Telescope) : Telescope object
-        wfs: (Sensors) : Sensors object
-        dms: (Dms) : Dms object
-        atm: (Atmos) : Atmos object
-        """
-        print("->rtc init")
-        self._rtc = rtc_init(self._context, tel._tel, wfs._wfs, dms._dms, atm._atmos,
-                             self._config.p_wfss, self._config.p_tel,
-                             self._config.p_geom, self._config.p_atmos,
-                             self._config.p_loop.ittime, self._config.p_centroiders,
-                             self._config.p_controllers, self._config.p_dms,
-                             cacao=self.cacao)
-
-    def init_standalone(nwfs: int, nvalid: list, nactu: int, centroider_type: list,
-                        delay: list, offset: list, scale: list):
-        """ Initialize the rtc component for using COMPASS
-
-        Parameters:
-        nwfs:
-        nvalid:
-        nactu:
-        centroider_type:
-        delay:
-        offset:
-        scale:
-        """
-        self._rtc = rtc_standalone(self._context, nwfs, nvalid, nactu, centroider_type,
-                                   delay, offset, scale, brahma=self.brahma,
-                                   fp16=self.fp16, cacao=self.cacao)
 
     def set_perturbation_voltage(self, controller_index: int, name: str,
                                  command: np.ndarray) -> None:

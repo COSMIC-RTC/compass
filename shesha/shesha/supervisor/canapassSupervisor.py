@@ -112,13 +112,13 @@ if __name__ == '__main__':
     from shesha.util.utilities import load_config_from_file
     arguments = docopt(__doc__)
     config = load_config_from_file(arguments["<parameters_filename>"])
-    supervisor = CanapassSupervisor(config, cacao=True)
     if (arguments["--freq"]):
         print("Warning changed frequency loop to: ", arguments["--freq"])
-        supervisor.config.p_loop.set_ittime(1 / float(arguments["--freq"]))
+        config.p_loop.set_ittime(1 / float(arguments["--freq"]))
     if (arguments["--delay"]):
         print("Warning changed delay loop to: ", arguments["--delay"])
-        supervisor.config.p_controllers[0].set_delay(float(arguments["--delay"]))
+        config.p_controllers[0].set_delay(float(arguments["--delay"]))
+    supervisor = CanapassSupervisor(config, cacao=True)
 
     try:
         from subprocess import Popen, PIPE

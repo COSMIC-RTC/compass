@@ -34,16 +34,7 @@
 #
 #  You should have received a copy of the GNU Lesser General Public License along with COMPASS.
 #  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
-__all__ = [
-        "atmosCompass", "dmCompass", "rtc", "targetCompass", "sourceCompass",
-        "telescopeCompass", "wfsCompass"
-]
+__all__ = ["rtcCompass", "rtcStandalone"]
 
-from .atmosCompass import AtmosCompass
-from .dmCompass import DmCompass
-from .rtc.rtcCompass import RtcCompass
-from .rtc.rtcStandalone import RtcStandalone
-from .targetCompass import TargetCompass
-from .sourceCompass import SourceCompass
-from .telescopeCompass import TelescopeCompass
-from .wfsCompass import WfsCompass
+from .rtcCompass import RtcCompass
+from .rtcStandalone import RtcStandalone

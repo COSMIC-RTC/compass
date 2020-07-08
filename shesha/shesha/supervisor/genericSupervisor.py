@@ -70,11 +70,14 @@ class GenericSupervisor(object):
         iter : (int) : Frame counter
     """
 
-    def __init__(self, config):
+    def __init__(self, config, *, rtc_only: bool = False):
         """ Init the a supervisor
 
         Args:
             config : (config module) : Configuration module
+
+        Kwargs:
+            rtc_only : (bool) : do only the RTC initialization
         """
         self.context = None
         self.config = config
@@ -86,7 +89,8 @@ class GenericSupervisor(object):
         self.rtc = None
         self.is_init = False
         self.iter = 0
-        self._init_components()
+
+        self._init_components(rtc_only=rtc_only)
 
     def get_config(self):
         """ Returns the configuration in use, in a supervisor specific format ?
@@ -113,8 +117,10 @@ class GenericSupervisor(object):
                 self.context.set_active_device_force(device)
             self.context.set_active_device(current_device)
 
-    def _init_components(self) -> None:
+    def _init_components(self, *, rtc_only: bool = False) -> None:
         """ Initialize all the components
+        Kwargs:
+            rtc_only : (bool) : do only the RTC initialization
         """
         if (self.config.p_loop.devices.size > 1):
             self.context = carmaWrap_context.get_instance_ngpu(
@@ -124,18 +130,19 @@ class GenericSupervisor(object):
                     self.config.p_loop.devices[0])
         self.force_context()
 
-        if self.config.p_tel is None or self.config.p_geom is None:
-            raise ValueError("Telescope geometry must be defined (p_geom and p_tel)")
-        self._init_tel()
+        if not rtc_only:
+            if self.config.p_tel is None or self.config.p_geom is None:
+                raise ValueError("Telescope geometry must be defined (p_geom and p_tel)")
+            self._init_tel()
 
-        if self.config.p_atmos is not None:
-            self._init_atmos()
-        if self.config.p_dms is not None:
-            self._init_dms()
-        if self.config.p_targets is not None:
-            self._init_target()
-        if self.config.p_wfss is not None:
-            self._init_wfs()
+            if self.config.p_atmos is not None:
+                self._init_atmos()
+            if self.config.p_dms is not None:
+                self._init_dms()
+            if self.config.p_targets is not None:
+                self._init_target()
+            if self.config.p_wfss is not None:
+                self._init_wfs()
         if self.config.p_controllers is not None or self.config.p_centroiders is not None:
             self._init_rtc()
 
