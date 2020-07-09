@@ -77,13 +77,14 @@ class CompassSupervisor(GenericSupervisor):
         calibration : (Calibration) : a Calibration instance (optimizer)
     """
 
-    def __init__(self, config, cacao: bool = False):
+    def __init__(self, config, *, cacao: bool = False):
         """ Instantiates a CompassSupervisor object
 
-        Parameters:
+        Args:
             config: (config module) : Configuration module
 
-            cacao : (bool, optional) : If True, enables CACAO features in RTC (Default is False)
+        Kwargs:
+            cacao : (bool) : If True, enables CACAO features in RTC (Default is False)
                                       /!\ Requires OCTOPUS to be installed
         """
         self.cacao = cacao
@@ -145,20 +146,20 @@ class CompassSupervisor(GenericSupervisor):
         Overload the GenericSupervisor next() method to handle the GEO controller
         specific raytrace order operations
 
-        Parameters :
-            move_atmos: (bool), optional: move the atmosphere for this iteration. Default is True
+        Kwargs:
+            move_atmos: (bool): move the atmosphere for this iteration. Default is True
 
-            nControl: (int, optional): Controller number to use. Default is 0 (single control configuration)
+            nControl: (int): Controller number to use. Default is 0 (single control configuration)
 
-            tar_trace: (List, optional): list of targets to trace. None is equivalent to all (default)
+            tar_trace: (List): list of targets to trace. None is equivalent to all (default)
 
-            wfs_trace: (List, optional): list of WFS to trace. None is equivalent to all (default)
+            wfs_trace: (List): list of WFS to trace. None is equivalent to all (default)
 
-            do_control : (bool, optional) : Performs RTC operations if True (Default)
+            do_control : (bool) : Performs RTC operations if True (Default)
 
-            apply_control: (bool): (optional) if True (default), apply control on DMs
+            apply_control: (bool): if True (default), apply control on DMs
 
-            compute_tar_psf : (bool, optional) : If True (default), computes the PSF at the end of the iteration
+            compute_tar_psf : (bool) : If True (default), computes the PSF at the end of the iteration
         """
         if (
                 self.config.p_controllers is not None and
@@ -213,7 +214,7 @@ class CompassSupervisor(GenericSupervisor):
             projection_matrix: np.ndarray = None):
         """ Used to record a synchronized circular buffer AO loop data.
 
-        Parameters:
+        Args:
             cb_count: (int) : the number of iterations to record.
 
             sub_sample:  (int) : sub sampling of the data (default=1, I.e no subsampling)
@@ -347,7 +348,7 @@ class CompassSupervisor(GenericSupervisor):
         Extract and convert compass supervisor configuration parameters
         into 2 dictionnaries containing relevant AO parameters
 
-        Parameters :
+        Args:
             root: (object), COMPASS supervisor object to be parsed
 
         Returns : 2 dictionnaries

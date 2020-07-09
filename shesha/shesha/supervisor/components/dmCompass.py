@@ -50,7 +50,7 @@ class DmCompass(object):
     def __init__(self, context, config):
         """ Initialize a DmCompass component for DM related supervision
 
-        Parameters:
+        Args:
             context : (carmaContext) : CarmaContext instance
 
             config : (config module) : Parameters configuration structure module
@@ -64,7 +64,7 @@ class DmCompass(object):
     def set_command(self, commands: np.ndarray) -> None:
         """ Immediately sets provided command to DMs - does not affect integrator
 
-        Parameters:
+        Args:
             commands : (np.ndarray) : commands vector to apply
         """
         self._dms.set_full_com(commands)
@@ -72,19 +72,20 @@ class DmCompass(object):
     def set_one_actu(self, dm_index: int, nactu: int, *, ampli: float = 1) -> None:
         """ Push the selected actuator
 
-        Parameters:
+        Args:
             dm_index : (int) : DM index
 
             nactu : (int) : actuator index to push
 
-            ampli : (float, optional) : amplitude to apply. Default is 1 volt
+        Kwargs:
+            ampli : (float) : amplitude to apply. Default is 1 volt
         """
         self._dms.d_dms[dm_index].comp_oneactu(nactu, ampli)
 
     def get_influ_function(self, dm_index : int) -> np.ndarray:
         """ Returns the influence function cube for the given dm
 
-        Parameters:
+        Args:
             dm_index : (int) : index of the DM
 
         Return:
@@ -95,7 +96,7 @@ class DmCompass(object):
     def get_influ_function_ipupil_coords(self, dm_index : int) -> np.ndarray:
         """ Returns the lower left coordinates of the influ function support in the ipupil coord system
 
-        Parameters:
+        Args:
             dm_index : (int) : index of the DM
 
         Return:
@@ -110,8 +111,8 @@ class DmCompass(object):
     def reset_dm(self, dm_index: int = -1) -> None:
         """ Reset the specified DM or all DMs if dm_index is -1
 
-        Parameters:
-            dm_index : (int, optional) : Index of the DM to reset
+        Kwargs:
+            dm_index : (int) : Index of the DM to reset
                                          Default is -1, i.e. all DMs are reset
         """
         if (dm_index == -1):  # All Dms reset
@@ -123,7 +124,7 @@ class DmCompass(object):
     def get_dm_shape(self, indx : int) -> np.ndarray:
         """ Return the current phase shape of the selected DM
 
-        Parameters:
+        Args:
             indx : (int) : Index of the DM
 
         Return:
@@ -136,16 +137,17 @@ class DmCompass(object):
                             theta : float=None, G : float=None) -> None:
         """Set the registration parameters for DM #dm_index
 
-        Parameters:
+        Args:
             dm_index : (int) : DM index
 
-            dx : (float, optionnal) : X axis registration parameter [meters]. If None, re-use the last one
+        Kwargs:
+            dx : (float) : X axis registration parameter [meters]. If None, re-use the last one
 
-            dy : (float, optionnal) : Y axis registration parameter [meters]. If None, re-use the last one
+            dy : (float) : Y axis registration parameter [meters]. If None, re-use the last one
 
-            theta : (float, optionnal) : Rotation angle parameter [rad]. If None, re-use the last one
+            theta : (float) : Rotation angle parameter [rad]. If None, re-use the last one
 
-            G : (float, optionnal) : Magnification factor. If None, re-use the last one
+            G : (float) : Magnification factor. If None, re-use the last one
         """
         if dx is not None:
             self._config.p_dms[dm_index].set_dx(dx)

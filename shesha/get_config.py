@@ -22,7 +22,7 @@ def launch_cmd(command_line: str):
 
     Get the command output
 
-    Parameters:
+    Args:
         command_line : (str) : command to launch
 
     Return:
@@ -46,12 +46,13 @@ def check_command(file_handler, command_line: str, *, desc: str = None):
 
     Check the command output and format it for log
 
-    Parameters:
+    Args:
         file_handler : (file) : file where the command output will be written
 
         command_line : (str) : command to launch
 
-        desc : (str) : description of the command to launch (optionnal)
+    Kwargs:
+        desc : (str) : description of the command to launch
     """
     if desc is None:
         desc = command_line

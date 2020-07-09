@@ -87,12 +87,13 @@ def my_favorite_function(self, file_path : str, wfs_index : int,
 
     Detailed description
 
-    Parameters:
+    Args:
         file_path : (str) : parameter description
 
         wfs_index : (int) : parameter description
 
-        optional_argument : (bool, optional) : parameter description. Default value is False
+    Kwargs:
+        keyword_argument : (bool) : parameter description. Default value is False
 
     Return:
         something : (int) : return description
