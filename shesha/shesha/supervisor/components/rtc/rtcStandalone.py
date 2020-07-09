@@ -44,40 +44,33 @@ from shesha.supervisor.components.rtc.rtcAbstract import RtcAbstract, carmaWrap_
 
 
 class RtcStandalone(RtcAbstract):
-    """ RTC handler for compass simulation
-
-    Attributes:
-        _rtc : (sutraWrap.Rtc) : Sutra rtc instance
-
-        _context : (carmaContext) : CarmaContext instance
-
-        _config : (config module) : Parameters configuration structure module
-
-        brahma : (bool) : BRAHMA features enabled in the RTC
-
-        fp16 : (bool) : FP16 features enabled in the RTC
-
-        cacao : (bool) : CACAO features enabled in the RTC
+    """ RTC handler for compass standalone
     """
 
     def __init__(self, context: carmaWrap_context, config, nwfs: int, nvalid: list,
                  nactu: int, centroider_type: list, delay: list, offset: list,
                  scale: list, *, brahma: bool = False, fp16: bool = False,
                  cacao: bool = False):
-        """ Initialize a RtcCompass component for rtc related supervision
+        """ Initialize a RtcStandalone component for rtc related supervision
 
         Args:
             context : (carmaContext) : CarmaContext instance
 
             config : (config module) : Parameters configuration structure module
 
-            nwfs:
-            nvalid:
-            nactu:
-            centroider_type:
-            delay:
-            offset:
-            scale:
+            nwfs: (int): number of wavefront sensors
+
+            nvalid: (int): number of valid measures as input
+
+            nactu: (int): number of actuators as output
+
+            centroider_type: (list): type of centroiders
+
+            delay: (list): delay of each controller
+
+            offset: (list): offset added in the cog computation of each WFS
+
+            scale: (list): scale factor used in the cog computation of each WFS
 
         Kwargs:
             brahma : (bool, optional) : If True, enables BRAHMA features in RTC (Default is False)
@@ -89,13 +82,30 @@ class RtcStandalone(RtcAbstract):
             cacao : (bool) : If True, enables CACAO features in RTC (Default is False)
                                       /!\ Requires OCTOPUS to be installed
         """
-        self.brahma = brahma
-        self.fp16 = fp16
-        self.cacao = cacao
-        self._context = context
-        self._config = config  # Parameters configuration coming from supervisor init
-        self._rtc = None
+        RtcAbstract.__init__(self, context, config, brahma=brahma, fp16=fp16,
+                             cacao=cacao)
 
+        self.rtc_init(nwfs, nvalid, nactu, centroider_type, delay, offset, scale)
+
+    def rtc_init(self, nwfs: int, nvalid: list, nactu: int, centroider_type: list,
+                 delay: list, offset: list, scale: list):
+        """ Initialize a RtcStandalone component for rtc related supervision
+
+        Args:
+            nwfs: (int): number of wavefront sensors
+
+            nvalid: (int): number of valid measures as input
+
+            nactu: (int): number of actuators as output
+
+            centroider_type: (list): type of centroiders
+
+            delay: (list): delay of each controller
+
+            offset: (list): offset added in the cog computation of each WFS
+
+            scale: (list): scale factor used in the cog computation of each WFS
+        """
         self._rtc = rtc_standalone(self._context, nwfs, nvalid, nactu, centroider_type,
                                    delay, offset, scale, brahma=self.brahma,
                                    fp16=self.fp16, cacao=self.cacao)

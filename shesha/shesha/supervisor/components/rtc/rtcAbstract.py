@@ -42,8 +42,10 @@ import shesha.constants as scons
 import numpy as np
 from typing import Union
 
+from abc import ABC, abstractmethod
 
-class RtcAbstract(object):
+
+class RtcAbstract(ABC):
     """ RTC handler for compass simulation
 
     Attributes:
@@ -59,6 +61,36 @@ class RtcAbstract(object):
 
         cacao : (bool) : CACAO features enabled in the RTC
     """
+
+    def __init__(self, context: carmaWrap_context, config, *, brahma: bool = False,
+                 fp16: bool = False, cacao: bool = False):
+        """ Initialize a RtcCompass component for rtc related supervision
+
+        Args:
+            context : (carmaContext) : CarmaContext instance
+
+            config : (config module) : Parameters configuration structure module
+
+        Kwargs:
+            brahma : (bool, optional) : If True, enables BRAHMA features in RTC (Default is False)
+                                      /!\ Requires BRAHMA to be installed
+
+            fp16 : (bool, optional) : If True, enables FP16 features in RTC (Default is False)
+                                      /!\ Requires CUDA_SM>60 to be installed
+
+            cacao : (bool) : If True, enables CACAO features in RTC (Default is False)
+                                      /!\ Requires OCTOPUS to be installed
+        """
+        self.brahma = brahma
+        self.fp16 = fp16
+        self.cacao = cacao
+        self._context = context
+        self._config = config  # Parameters configuration coming from supervisor init
+        self._rtc = None
+
+    @abstractmethod
+    def rtc_init(self):
+        pass
 
     def set_perturbation_voltage(self, controller_index: int, name: str,
                                  command: np.ndarray) -> None:

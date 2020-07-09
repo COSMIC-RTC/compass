@@ -132,8 +132,8 @@ class CompassSupervisor(GenericSupervisor):
         """Initialize the rtc component of the supervisor as a RtcCompass
         """
         if self.wfs is not None:
-            self.rtc = RtcCompass(self.context, self.config, cacao=self.cacao)
-            self.rtc.init_compass(self.tel, self.wfs, self.dms, self.atmos)
+            self.rtc = RtcCompass(self.context, self.config, self.tel, self.wfs,
+                                  self.dms, self.atmos, cacao=self.cacao)
         else:
             raise ValueError("Configuration not loaded or Telescope not initilaized")
 

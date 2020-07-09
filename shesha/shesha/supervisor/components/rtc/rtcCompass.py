@@ -46,19 +46,6 @@ from shesha.supervisor.components.rtc.rtcAbstract import RtcAbstract, carmaWrap_
 
 class RtcCompass(RtcAbstract):
     """ RTC handler for compass simulation
-
-    Attributes:
-        _rtc : (sutraWrap.Rtc) : Sutra rtc instance
-
-        _context : (carmaContext) : CarmaContext instance
-
-        _config : (config module) : Parameters configuration structure module
-
-        brahma : (bool) : BRAHMA features enabled in the RTC
-
-        fp16 : (bool) : FP16 features enabled in the RTC
-
-        cacao : (bool) : CACAO features enabled in the RTC
     """
 
     def __init__(self, context: carmaWrap_context, config, tel, wfs, dms, atm, *,
@@ -88,13 +75,22 @@ class RtcCompass(RtcAbstract):
             cacao : (bool) : If True, enables CACAO features in RTC (Default is False)
                                       /!\ Requires OCTOPUS to be installed
         """
-        self.brahma = brahma
-        self.fp16 = fp16
-        self.cacao = cacao
-        self._context = context
-        self._config = config  # Parameters configuration coming from supervisor init
-        self._rtc = None
+        RtcAbstract.__init__(self, context, config, brahma=brahma, fp16=fp16,
+                             cacao=cacao)
+        self.rtc_init(tel, wfs, dms, atm)
 
+    def rtc_init(self, tel, wfs, dms, atm):
+        """ Initialize a RtcCompass component for rtc related supervision
+
+        Args:
+            tel: (Telescope) : Telescope object
+
+            wfs: (Sensors) : Sensors object
+
+            dms: (Dms) : Dms object
+
+            atm: (Atmos) : Atmos object
+        """
         self._rtc = rtc_init(self._context, tel._tel, wfs._wfs, dms._dms, atm._atmos,
                              self._config.p_wfss, self._config.p_tel,
                              self._config.p_geom, self._config.p_atmos,
