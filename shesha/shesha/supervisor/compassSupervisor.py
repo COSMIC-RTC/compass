@@ -42,10 +42,6 @@ import numpy as np
 
 import shesha.constants as scons
 from shesha.constants import CONST
-import shesha.ao.basis as basis
-import astropy.io.fits as pfits
-from tqdm import trange, tqdm
-import time
 
 from typing import List, Iterable
 
