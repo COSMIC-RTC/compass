@@ -249,9 +249,9 @@ class CompassSupervisor(GenericSupervisor):
 
             psf_le:  (int) : Long exposure PSF over the <cb_count> iterations (I.e SR is reset at the begining of the CB if ditch_strehl=True)
 
-            sthrel_se_list:  (int) : The SR short exposure evolution during CB recording
+            strehl_se_list:  (int) : The SR short exposure evolution during CB recording
 
-            sthrel_le_list:  (int) : The SR long exposure evolution during CB recording
+            strehl_le_list:  (int) : The SR long exposure evolution during CB recording
 
             g_ncpa_list:  (int) : the gain applied to the NCPA (PYRWFS CASE) if NCPA is set to True
 
