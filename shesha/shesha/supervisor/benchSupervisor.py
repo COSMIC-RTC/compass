@@ -52,28 +52,44 @@ from typing import Callable
 
 
 class BenchSupervisor(GenericSupervisor):
+    """ This class implements generic supervisor to handle compass simulation
 
-    def __init__(self, config_file: str = None, brahma: bool = False,
-                 cacao: bool = False):
+    Attributes inherited from GenericSupervisor:
+        context : (CarmaContext) : a CarmaContext instance
+
+        config : (config) : Parameters structure
+
+        is_init : (bool) : Flag equals to True if the supervisor has already been initialized
+
+        iter : (int) : Frame counter
+
+    Attributes:
+        rtc : (RtcComponent) : A Rtc component instance
+
+        cacao : (bool) : CACAO features enabled in the RTC
+
+        basis : (ModalBasis) : a ModalBasis instance (optimizer)
+
+        calibration : (Calibration) : a Calibration instance (optimizer)
+    """
+
+    def __init__(self, config_file: str = None, cacao: bool = False):
         """ Init the COMPASS wih the config_file
 
         Kwargs:
             config_file : (str) : path to the configuration file. Default is None
-
-            brahma : (bool) : Flag to use brahma. Default is False
 
             cacao : (bool) : Flag to use cacao rtc. Default is False
         """
         self.pause_loop = None
         self.rtc = None
         self.frame = None
-        self.brahma = brahma
         self.cacao = cacao
         self.iter = 0
         self.slopes_index = None
         config = load_config_from_file(config_file)
 
-        GenericSupervisor.__init__(self, config, rtc_only=True)
+        GenericSupervisor.__init__(self, config)
 
     def _init_rtc(self):
         """Initialize the rtc component of the supervisor as a RtcCompass
@@ -178,6 +194,14 @@ class BenchSupervisor(GenericSupervisor):
         print("RTC initialized")
         self.is_init = True
 
+    def _init_components(self) -> None:
+        """ Initialize all the components
+        """
+        if self.config.p_controllers is not None or self.config.p_centroiders is not None:
+            self._init_rtc()
+
+        GenericSupervisor._init_components(self)
+
     #     _    _         _                  _
     #    / \  | |__  ___| |_ _ __ __ _  ___| |_
     #   / _ \ | '_ \/ __| __| '__/ _` |/ __| __|
@@ -198,7 +222,7 @@ class BenchSupervisor(GenericSupervisor):
         if (self.pause_loop is not True):
             self.compute_wfs_frame()
             self.set_command(0, np.array(self.rtc._rtc.d_control[0].d_voltage))
-        if self.brahma or self.cacao:
+        if self.cacao:
             self.rtc.publish()
         self.iter += 1
 

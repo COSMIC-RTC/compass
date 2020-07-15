@@ -49,11 +49,16 @@ from typing import List, Iterable
 class CompassSupervisor(GenericSupervisor):
     """ This class implements generic supervisor to handle compass simulation
 
-    Attributes:
+    Attributes inherited from GenericSupervisor:
         context : (CarmaContext) : a CarmaContext instance
 
         config : (config) : Parameters structure
 
+        is_init : (bool) : Flag equals to True if the supervisor has already been initialized
+
+        iter : (int) : Frame counter
+
+    Attributes:
         telescope : (TelescopeComponent) : a TelescopeComponent instance
 
         atmos : (AtmosComponent) : An AtmosComponent instance
@@ -65,10 +70,6 @@ class CompassSupervisor(GenericSupervisor):
         dms : (DmComponent) : A DmComponent instance
 
         rtc : (RtcComponent) : A Rtc component instance
-
-        is_init : (bool) : Flag equals to True if the supervisor has already been initialized
-
-        iter : (int) : Frame counter
 
         cacao : (bool) : CACAO features enabled in the RTC
 
@@ -88,6 +89,12 @@ class CompassSupervisor(GenericSupervisor):
                                       /!\ Requires OCTOPUS to be installed
         """
         self.cacao = cacao
+        self.telescope = None
+        self.atmos = None
+        self.target = None
+        self.wfs = None
+        self.dms = None
+        self.rtc = None
         GenericSupervisor.__init__(self, config)
         self.basis = ModalBasis(self.config, self.dms, self.target)
         self.calibration = Calibration(self.config, self.tel, self.atmos, self.dms,
@@ -136,6 +143,27 @@ class CompassSupervisor(GenericSupervisor):
                                   self.dms, self.atmos, cacao=self.cacao)
         else:
             raise ValueError("Configuration not loaded or Telescope not initilaized")
+
+    def _init_components(self) -> None:
+        """ Initialize all the components
+        """
+
+        if self.config.p_tel is None or self.config.p_geom is None:
+            raise ValueError("Telescope geometry must be defined (p_geom and p_tel)")
+        self._init_tel()
+
+        if self.config.p_atmos is not None:
+            self._init_atmos()
+        if self.config.p_dms is not None:
+            self._init_dms()
+        if self.config.p_targets is not None:
+            self._init_target()
+        if self.config.p_wfss is not None:
+            self._init_wfs()
+        if self.config.p_controllers is not None or self.config.p_centroiders is not None:
+            self._init_rtc()
+
+        GenericSupervisor._init_components(self)
 
     def next(self, *, move_atmos: bool = True, nControl: int = 0,
              tar_trace: Iterable[int] = None, wfs_trace: Iterable[int] = None,
@@ -363,7 +391,6 @@ class CompassSupervisor(GenericSupervisor):
         Return np.array
         """
         return self.config.p_geom.get_spupil()
-
 
     def get_i_pupil(self):
         """

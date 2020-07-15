@@ -647,16 +647,8 @@ class RtcAbstract(ABC):
         Return:
             image_cal : (np.ndarray) : Calibrated WFS image loaded in the centroider
         """
-        if self._rtc.d_centro[
-                centroider_index].type == scons.CentroiderType.MASKEDPIX:  # Standalone case
-            #     self.rtc.d_centro[centroider_index].fill_selected_pix(
-            #             self.rtc.d_control[0].d_centroids)
-            #     return np.array(self.rtc.d_centro[centroider_index].d_selected_pix)
-            # else:
-            self._rtc.d_centro[centroider_index].fill_selected_pix(
-                    self._rtc.d_control[0].d_centroids)
-            mask = np.array(self._rtc.d_centro[centroider_index].d_selected_pix)
-            mask[np.where(mask)] = np.array(
-                    self._rtc.d_centro[centroider_index].d_img)[np.where(mask)]
-            return mask
-        return np.array(self._rtc.d_centro[centroider_index].d_img)
+        img = np.array(self._rtc.d_centro[centroider_index].d_img)
+        if self._config.p_centroiders[
+                centroider_index].type == scons.CentroiderType.MASKEDPIX:  # Full pixel case
+            img *= self.get_masked_pix(centroider_index)
+        return img

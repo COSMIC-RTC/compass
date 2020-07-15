@@ -35,14 +35,14 @@
 #  You should have received a copy of the GNU Lesser General Public License along with COMPASS.
 #  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 import numpy as np
 import time
 from shesha.sutra_wrap import carmaWrap_context
 from typing import Iterable
 
 
-class GenericSupervisor(object):
+class GenericSupervisor(ABC):
     """ This class defines generic methods and behavior of a supervisor
     It is not intended to be instantiated as it is : prefer to build
     a supervisor class inheriting from it. This approach allows to build multiple
@@ -53,44 +53,32 @@ class GenericSupervisor(object):
 
         config : (config) : Parameters structure
 
-        telescope : (TelescopeComponent) : a TelescopeComponent instance
-
-        atmos : (AtmosComponent) : An AtmosComponent instance
-
-        target : (targetComponent) : A TargetComponent instance
-
-        wfs : (WfsComponent) : A WfsComponent instance
-
-        dms : (DmComponent) : A DmComponent instance
-
-        rtc : (RtcComponent) : A Rtc component instance
-
         is_init : (bool) : Flag equals to True if the supervisor has already been initialized
 
         iter : (int) : Frame counter
     """
 
-    def __init__(self, config, *, rtc_only: bool = False):
+    def __init__(self, config):
         """ Init the a supervisor
 
         Args:
             config : (config module) : Configuration module
 
-        Kwargs:
-            rtc_only : (bool) : do only the RTC initialization
         """
         self.context = None
         self.config = config
-        self.telescope = None
-        self.atmos = None
-        self.target = None
-        self.wfs = None
-        self.dms = None
-        self.rtc = None
         self.is_init = False
         self.iter = 0
 
-        self._init_components(rtc_only=rtc_only)
+        if (self.config.p_loop.devices.size > 1):
+            self.context = carmaWrap_context.get_instance_ngpu(
+                    self.config.p_loop.devices.size, self.config.p_loop.devices)
+        else:
+            self.context = carmaWrap_context.get_instance_1gpu(
+                    self.config.p_loop.devices[0])
+        self.force_context()
+
+        self._init_components()
 
     def get_config(self):
         """ Returns the configuration in use, in a supervisor specific format ?
@@ -117,72 +105,11 @@ class GenericSupervisor(object):
                 self.context.set_active_device_force(device)
             self.context.set_active_device(current_device)
 
-    def _init_components(self, *, rtc_only: bool = False) -> None:
+    @abstractmethod
+    def _init_components(self) -> None:
         """ Initialize all the components
-        Kwargs:
-            rtc_only : (bool) : do only the RTC initialization
         """
-        if (self.config.p_loop.devices.size > 1):
-            self.context = carmaWrap_context.get_instance_ngpu(
-                    self.config.p_loop.devices.size, self.config.p_loop.devices)
-        else:
-            self.context = carmaWrap_context.get_instance_1gpu(
-                    self.config.p_loop.devices[0])
-        self.force_context()
-
-        if not rtc_only:
-            if self.config.p_tel is None or self.config.p_geom is None:
-                raise ValueError("Telescope geometry must be defined (p_geom and p_tel)")
-            self._init_tel()
-
-            if self.config.p_atmos is not None:
-                self._init_atmos()
-            if self.config.p_dms is not None:
-                self._init_dms()
-            if self.config.p_targets is not None:
-                self._init_target()
-            if self.config.p_wfss is not None:
-                self._init_wfs()
-        if self.config.p_controllers is not None or self.config.p_centroiders is not None:
-            self._init_rtc()
-
         self.is_init = True
-
-    @abstractmethod
-    def _init_tel(self):
-        """ Initialize the telescope component of the supervisor
-        """
-        pass
-
-    @abstractmethod
-    def _init_atmos(self):
-        """ Initialize the atmos component of the supervisor
-        """
-        pass
-
-    @abstractmethod
-    def _init_dms(self):
-        """ Initialize the dms component of the supervisor
-        """
-        pass
-
-    @abstractmethod
-    def _init_target(self):
-        """ Initialize the target component of the supervisor
-        """
-        pass
-
-    @abstractmethod
-    def _init_wfs(self):
-        """ Initialize the wfs component of the supervisor
-        """
-        pass
-
-    @abstractmethod
-    def _init_rtc(self):
-        """ Initialize the rtc component of the supervisor
-        """
-        pass
 
     def next(self, *, move_atmos: bool = True, nControl: int = 0,
              tar_trace: Iterable[int] = None, wfs_trace: Iterable[int] = None,
