@@ -10,3 +10,4 @@ scipy
 tables
 tabulate
 tqdm
+aenum

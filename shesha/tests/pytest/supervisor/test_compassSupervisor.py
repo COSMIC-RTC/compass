@@ -1,11 +1,11 @@
 from shesha.supervisor.compassSupervisor import CompassSupervisor
-from shesha.util.utilities import load_config_from_file
+from shesha.config import ParamConfig
 
 import os
 import numpy as np
 import pytest
 
-config = load_config_from_file(os.getenv("COMPASS_ROOT") + "/shesha/tests/pytest/par/test_pyrhr.py")
+config = ParamConfig(os.getenv("COMPASS_ROOT") + "/shesha/tests/pytest/par/test_pyrhr.py")
 config.p_controllers[0].set_type("generic")
 
 sup = CompassSupervisor(config)
@@ -21,6 +21,32 @@ def test_loop():
 def test_reset():
     sup.reset()
     assert(True)
+
+#                 __ _
+#    __ ___ _ _  / _(_)__ _
+#   / _/ _ \ ' \|  _| / _` |
+#   \__\___/_||_|_| |_\__, |
+#                     |___/
+
+def test_get_ipupil():
+    ipupil = sup.config.get_pupil("i")
+    ipupil = sup.config.get_pupil("ipupil")
+    assert(ipupil is sup.config.p_geom._ipupil)
+
+def test_get_mpupil():
+    mpupil = sup.config.get_pupil("m")
+    mpupil = sup.config.get_pupil("mpupil")
+    assert(mpupil is sup.config.p_geom._mpupil)
+
+def test_get_spupil():
+    spupil = sup.config.get_pupil("spupil")
+    spupil = sup.config.get_pupil("s")
+    assert(spupil is sup.config.p_geom._spupil)
+
+def test_export_config():
+    aodict, datadict = sup.config.export_config()
+    assert(True)
+
 #         _                 ___
 #    __ _| |_ _ __  ___ ___/ __|___ _ __  _ __  __ _ ______
 #   / _` |  _| '  \/ _ (_-< (__/ _ \ '  \| '_ \/ _` (_-<_-<

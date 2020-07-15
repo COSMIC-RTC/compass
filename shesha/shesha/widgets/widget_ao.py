@@ -60,7 +60,7 @@ import pyqtgraph as pg
 from pyqtgraph.dockarea import Dock, DockArea
 
 from shesha.util.tools import plsh, plpyr
-from shesha.util.utilities import load_config_from_file
+from shesha.config import ParamConfig
 
 import warnings
 
@@ -257,7 +257,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             sys.path.insert(0, self.defaultParPath)
 
         if supervisor is None:
-            self.config = load_config_from_file(config_file)
+            self.config = ParamConfig(config_file)
         else:
             self.config = supervisor.get_config()
 

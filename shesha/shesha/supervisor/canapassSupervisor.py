@@ -109,9 +109,9 @@ class CanapassSupervisor(CompassSupervisor):
 
 if __name__ == '__main__':
     from docopt import docopt
-    from shesha.util.utilities import load_config_from_file
+    from shesha.config import ParamConfig
     arguments = docopt(__doc__)
-    config = load_config_from_file(arguments["<parameters_filename>"])
+    config = ParamConfig(arguments["<parameters_filename>"])
     supervisor = CanapassSupervisor(config, cacao=True)
     if (arguments["--freq"]):
         print("Warning changed frequency loop to: ", arguments["--freq"])
