@@ -39,6 +39,7 @@ from shesha.supervisor.genericSupervisor import GenericSupervisor
 from shesha.supervisor.components import AtmosCompass, DmCompass, RtcCompass, TargetCompass, TelescopeCompass, WfsCompass
 from shesha.supervisor.optimizers import ModalBasis, Calibration
 import numpy as np
+import time
 
 import shesha.constants as scons
 from shesha.constants import CONST
@@ -189,17 +190,16 @@ class CompassSupervisor(GenericSupervisor):
 
             compute_tar_psf : (bool) : If True (default), computes the PSF at the end of the iteration
         """
+        if tar_trace is None and self.target is not None:
+            tar_trace = range(len(self.config.p_targets))
+        if wfs_trace is None and self.wfs is not None:
+            wfs_trace = range(len(self.config.p_wfss))
+
+        if move_atmos and self.atmos is not None:
+            self.atmos.move_atmos()
         if (
                 self.config.p_controllers is not None and
                 self.config.p_controllers[nControl].type == scons.ControllerType.GEO):
-            if tar_trace is None and self.target is not None:
-                tar_trace = range(len(self.config.p_targets))
-            if wfs_trace is None and self.wfs is not None:
-                wfs_trace = range(len(self.config.p_wfss))
-
-            if move_atmos and self.atmos is not None:
-                self.atmos.move_atmos()
-
             if tar_trace is not None:
                 for t in tar_trace:
                     if self.atmos.is_enable:
@@ -214,18 +214,118 @@ class CompassSupervisor(GenericSupervisor):
                             self.rtc.apply_control(nControl)
                         if self.cacao:
                             self.rtc.publish()
-            if compute_tar_psf:
-                for tar_index in tar_trace:
-                    self.target.comp_tar_image(tar_index)
-                    self.target.comp_strehl(tar_index)
-
-            self.iter += 1
-
         else:
-            GenericSupervisor.next(self, move_atmos=move_atmos, nControl=nControl,
-                                   tar_trace=tar_trace, wfs_trace=wfs_trace,
-                                   do_control=do_control, apply_control=apply_control,
-                                   compute_tar_psf=compute_tar_psf)
+            if tar_trace is not None:
+                for t in tar_trace:
+                    if self.atmos.is_enable:
+                        self.target.raytrace(t, tel=self.tel, atm=self.atmos, dms=self.dms)
+                    else:
+                        self.target.raytrace(t, tel=self.tel, dms=self.dms)
+
+            if wfs_trace is not None:
+                for w in wfs_trace:
+                    if self.atmos.is_enable:
+                        self.wfs.raytrace(w, tel=self.tel, atm=self.atmos)
+                    else:
+                        self.wfs.raytrace(w, tel=self.tel)
+
+                    if not self.config.p_wfss[w].open_loop and self.dms is not None:
+                        self.wfs.raytrace(w, dms=self.dms, reset=False)
+                    self.wfs.compute_wfs_image(w)
+            if do_control and self.rtc is not None:
+                for ncontrol in range(len(self.config.p_controllers)):
+                    self.rtc.do_centroids(ncontrol)
+                    self.rtc.do_control(ncontrol)
+                    self.rtc.do_clipping(ncontrol)
+
+            if apply_control:
+                self.rtc.apply_control(ncontrol)
+
+            if self.cacao:
+                self.rtc.publish()
+
+        if compute_tar_psf:
+            for tar_index in tar_trace:
+                self.target.comp_tar_image(tar_index)
+                self.target.comp_strehl(tar_index)
+
+        self.iter += 1
+
+    def _print_strehl(self, monitoring_freq: int, iters_time: float, total_iters: int, *,
+                      tar_index: int = 0):
+        """ Print the Strehl ratio SE and LE from a target on the terminal, the estimated remaining time and framerate
+
+        Args:
+            monitoring_freq : (int) : Number of frames between two prints
+
+            iters_time : (float) : time elapsed between two prints
+
+            total_iters : (int) : Total number of iterations
+
+        Kwargs:
+            tar_index : (int) : Index of the target. Default is 0
+        """
+        framerate = monitoring_freq / iters_time
+        strehl = self.target.get_strehl(tar_index)
+        etr = (total_iters - self.iter) / framerate
+        print("%d \t %.3f \t  %.3f\t     %.1f \t %.1f" % (self.iter + 1, strehl[0],
+                                                          strehl[1], etr, framerate))
+
+    def loop(self, number_of_iter: int, *, monitoring_freq: int = 100,
+             compute_tar_psf: bool = True, **kwargs):
+        """ Perform the AO loop for <number_of_iter> iterations
+
+        Args:
+            number_of_iter: (int) : Number of iteration that will be done
+
+        Kwargs:
+            monitoring_freq: (int) : Monitoring frequency [frames]. Default is 100
+
+            compute_tar_psf : (bool) : If True (default), computes the PSF at each iteration
+                                                 Else, only computes it each <monitoring_freq> frames
+        """
+        if not compute_tar_psf:
+            print("WARNING: Target PSF will be computed (& accumulated) only during monitoring"
+                  )
+
+        print("----------------------------------------------------")
+        print("iter# | S.E. SR | L.E. SR | ETR (s) | Framerate (Hz)")
+        print("----------------------------------------------------")
+        # self.next(**kwargs)
+        t0 = time.time()
+        t1 = time.time()
+        if number_of_iter == -1:  # Infinite loop
+            while (True):
+                self.next(compute_tar_psf=compute_tar_psf, **kwargs)
+                if ((self.iter + 1) % monitoring_freq == 0):
+                    if not compute_tar_psf:
+                        self.target.comp_tar_image(0)
+                        self.target.comp_strehl(0)
+                    self._print_strehl(monitoring_freq, time.time() - t1, number_of_iter)
+                    t1 = time.time()
+
+        for _ in range(number_of_iter):
+            self.next(compute_tar_psf=compute_tar_psf, **kwargs)
+            if ((self.iter + 1) % monitoring_freq == 0):
+                if not compute_tar_psf:
+                    self.target.comp_tar_image(0)
+                    self.target.comp_strehl(0)
+                self._print_strehl(monitoring_freq, time.time() - t1, number_of_iter)
+                t1 = time.time()
+        t1 = time.time()
+        print(" loop execution time:", t1 - t0, "  (", number_of_iter, "iterations), ",
+              (t1 - t0) / number_of_iter, "(mean)  ", number_of_iter / (t1 - t0), "Hz")
+
+    def reset(self):
+        """ Reset the simulation to return to its original state
+        """
+        self.atmos.reset_turbu()
+        self.wfs.reset_noise()
+        for tar_index in range(len(self.config.p_targets)):
+            self.target.reset_strehl(tar_index)
+        self.dms.reset_dm()
+        self.rtc.open_loop()
+        self.rtc.close_loop()
 
 
 #    ___              _  __ _      __  __     _   _            _
