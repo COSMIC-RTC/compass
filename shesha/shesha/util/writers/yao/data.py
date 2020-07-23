@@ -34,7 +34,6 @@ def wfs_to_fits_hdu(sup, wfs_id):
     Args:
         sup : (compasSSupervisor) : supervisor
 
-    Kwargs:
         wfs_id : (int) : index of the WFS in the supervisor
 
     Return:
@@ -105,7 +104,6 @@ def dm_to_fits_hdu(sup, dm_id):
     Args:
         sup : (compasSSupervisor) : supervisor
 
-    Kwargs:
         wfs_id : (int) : index of the DM in the supervisor
 
     Return:
@@ -121,14 +119,16 @@ def dm_to_fits_hdu(sup, dm_id):
     hdu.header["ALT"] = sup.config.p_dms[dm_id].get_alt()
     return hdu
 
-def dm_influ_to_fits_hdu(sup, dm_id):
+def dm_influ_to_fits_hdu(sup, dm_id, *, influ_index=-1):
     """Return a fits Header Data Unit (HDU) holding the influence functions of a specific DM
 
     Args:
         sup : (compasSSupervisor) : supervisor
 
-    Kwargs:
         wfs_id : (int) : index of the DM in the supervisor
+
+    Kwargs:
+        influ_index : (int) : (optional) default -1, index of the actuator to get the influence function from. -1 : get all influence functions
 
     Return:
         hdu : (ImageHDU) : hdu holding the DM influence functions
@@ -178,6 +178,7 @@ def write_data_old(file_name, sup, *, n_wfs=-1 ,controller_id=0 ,
 
         sup : (compasSSupervisor) : supervisor
 
+    Kargs:
         n_wfs : (int) : number of wfs passed to yao
 
         controller_id : (int) : index of the controller passed to yao
@@ -225,7 +226,7 @@ def write_data_old(file_name, sup, *, n_wfs=-1 ,controller_id=0 ,
     hdul.writeto(file_name, overwrite=1)
 
 def write_data(file_name, sup, *, wfss_indices=None, dms_indices=None,
-               controller_id=0, compose_type="controller"):
+               controller_id=0, influ=0, compose_type="controller"):
     """ Write data for yao compatibility
 
     write into a single fits:
@@ -241,13 +242,16 @@ def write_data(file_name, sup, *, wfss_indices=None, dms_indices=None,
 
         sup : (compasSSupervisor) : supervisor
 
+    Kargs:
         wfss_indices : (list[int]) : optional, default all, list of the wfs indices to include
 
         dms_indices : (list[int]) : optional, default all, list of the DM indices to include
 
-        controller_id : (int) : index of the controller passed to yao
+        controller_id : (int) : optional, index of the controller passed to yao
 
-        compose_type : (str) : possibility to specify split tomography case ("controller" or "splitTomo")
+        influ : (int) : optional, actuator index for the influence function
+
+        compose_type : (str) : optional, possibility to specify split tomography case ("controller" or "splitTomo")
     """
     print("writing data to" + file_name)
     hdul=fits.HDUList([])
@@ -257,7 +261,10 @@ def write_data(file_name, sup, *, wfss_indices=None, dms_indices=None,
     if(wfss_indices is None):
         wfss_indices = np.arange(len(conf.p_wfss))
     if(dms_indices is None):
-        dms_indices = np.arange(len(conf.p_dms))
+        dms_indices = []
+        for i in range(len(conf.p_dms)):
+            if( conf.p_dms[i].type != "tt"):
+                dms_indices.append(i)
     
     #cout the number of lgs
     n_lgs = 0
@@ -283,7 +290,7 @@ def write_data(file_name, sup, *, wfss_indices=None, dms_indices=None,
     # add dm
     for i in dms_indices:
         hdul.append(dm_to_fits_hdu(sup, i))
-        hdul.append(dm_influ_to_fits_hdu(sup, i))
+        hdul.append(dm_influ_to_fits_hdu(sup, i, 0))
 
     # IMAT
     imat=compose_imat(sup, compose_type=compose_type,
@@ -313,6 +320,7 @@ def compose_imat(sup, *, compose_type="controller", controller_id=0):
     Args:
         sup : (compasSSupervisor) : supervisor
 
+    Kargs:
         compose_type : (str) : (optional), default "controller" possibility to specify split tomography case ("controller" or "splitTomo")
 
         controller_id : (int) : (optional), default 0 controller index
