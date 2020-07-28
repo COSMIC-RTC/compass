@@ -6,12 +6,12 @@ from shesha.util.writers.yao.targets import *
 from shesha.util.writers.yao.atmos   import *
 from shesha.util.writers.yao.loop    import *
 from shesha.util.writers.yao.gs      import *
-from shesha.util.writers.yao.data    import *
+from shesha.util.writers import common
 
 def write_parfiles(sup, *,  param_file_name="./yao.par",
                             fits_file_name="./yao.fits",
                             screen_dir="./yao_screen",
-                            n_wfs=-1,
+                            n_wfs=None,
                             imat_type="controller"):
     """Write parameter files for YAO simulations
 
@@ -25,11 +25,13 @@ def write_parfiles(sup, *,  param_file_name="./yao.par",
 
         screen_dir : (str) : (optional), default "./yao_screen" path to the yao turbulent screen files
 
-        n_wfs : (int) : (optional), default -1 number of WFS (-1: all wfs)
+        n_wfs : (int) : (optional), number of WFS (default: all wfs)
 
         imat_type : (str) : (optional), default "controller" use of regular controller or split tomography (among "controller", "splitTomo")
     """
     conf = sup.config
+    if(n_wfs is None):
+        n_wfs = len(conf.p_wfss)
     zerop = conf.p_wfss[0].zerop
     lgs_return_per_watt = max([w.lgsreturnperwatt for w in conf.p_wfss])
 
@@ -58,4 +60,4 @@ def write_parfiles(sup, *,  param_file_name="./yao.par",
              conf.p_geom.zenithangle)
     write_atm(param_file_name, conf.p_atmos, screen_dir)
     write_loop(param_file_name, conf.p_loop, conf.p_controllers[0])
-    write_data(fits_file_name, sup, n_wfs=n_wfs, compose_type=imat_type)
+    common.write_data(fits_file_name, sup, wfss_indices=np.arange(n_wfs), compose_type=imat_type)
