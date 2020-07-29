@@ -12,6 +12,8 @@ def write_parfiles(sup, *,  param_file_name="./yao.par",
                             fits_file_name="./yao.fits",
                             screen_dir="./yao_screen",
                             n_wfs=None,
+                            controller_id=-1,
+                            influ_index=0,
                             imat_type="controller"):
     """Write parameter files for YAO simulations
 
@@ -21,11 +23,15 @@ def write_parfiles(sup, *,  param_file_name="./yao.par",
     Kwargs:
         param_file_name : (str) : (optional), default "./yao.par" name of the yao parameter file
 
-        fits_file_name : (str) : (optional), default "./yao.fits" name of fits file containing sub-apertures and actuator position
+        fits_file_name : (str) : (optional), default "./yao.fits" name of fits file containing sub-apertures and actuator position etc
 
         screen_dir : (str) : (optional), default "./yao_screen" path to the yao turbulent screen files
 
         n_wfs : (int) : (optional), number of WFS (default: all wfs)
+
+        controller_id : (int) : index of te controller (default : all)
+
+        influ_index : (int) : actuator index to get the influence function from
 
         imat_type : (str) : (optional), default "controller" use of regular controller or split tomography (among "controller", "splitTomo")
     """
@@ -60,4 +66,5 @@ def write_parfiles(sup, *,  param_file_name="./yao.par",
              conf.p_geom.zenithangle)
     write_atm(param_file_name, conf.p_atmos, screen_dir)
     write_loop(param_file_name, conf.p_loop, conf.p_controllers[0])
-    common.write_data(fits_file_name, sup, wfss_indices=np.arange(n_wfs), compose_type=imat_type)
+    common.write_data(fits_file_name, sup, wfss_indices=np.arange(n_wfs),
+       controller_id=controller_id, influ=influ_index, compose_type=imat_type)

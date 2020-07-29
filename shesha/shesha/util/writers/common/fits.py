@@ -120,6 +120,7 @@ def write_data(file_name, sup, *, wfss_indices=None, dms_indices=None,
     hdu.header["NLGS"] = n_lgs
     hdu.header["NNGS"] = len(wfss_indices) - n_lgs
     hdu.header["NDM" ] = len(dms_indices)
+    hdu.header["PIXSIZE"] = conf.p_geom.get_pixsize()
 
     #add primary hdu to list
     hdul.append(hdu)
