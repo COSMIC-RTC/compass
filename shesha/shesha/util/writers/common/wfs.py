@@ -105,7 +105,7 @@ def wfs_to_json(wfs, geom, type, *, x_pos=None, y_pos=None):
             if(type == "ngs"):
                 ValueError("wfs is not a NGS (gsalt > 0)")
                 
-            wfs_json["lgsAlt"] = 1./wfs.get_gsalt()
+            wfs_json["lgsAlt"] = wfs.get_gsalt()
             wfs_json["lgsDepth"] = lgs_depth
             wfs_json["lgsFlux"] = wfs.lgsreturnperwatt * wfs.laserpower * \
                 wfs.optthroughput * 10**4

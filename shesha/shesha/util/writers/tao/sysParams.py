@@ -38,7 +38,7 @@ def write_json_sys_param(sup, *, wfss_indices=None, ts=False, dms_indices=None, 
         },  
         "tFrame": {
             "comment": " second     : frame rate",
-            "value": 0.000699999975040555
+            "value": sup.config.p_loop.ittime
         },  
         "fracsub": {
             "comment": "Minimal illumination fraction for valid subap",
