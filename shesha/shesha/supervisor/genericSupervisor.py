@@ -221,7 +221,7 @@ class GenericSupervisor(object):
                     self.wfs.raytrace(w, tel=self.tel)
 
                 if not self.config.p_wfss[w].open_loop and self.dms is not None:
-                    self.wfs.raytrace(w, dms=self.dms, reset=False)
+                    self.wfs.raytrace(w, dms=self.dms, ncpa=False, reset=False)
                 self.wfs.compute_wfs_image(w)
         if do_control and self.rtc is not None:
             for ncontrol in range(len(self.config.p_controllers)):
