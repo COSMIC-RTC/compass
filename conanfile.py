@@ -27,21 +27,9 @@ class CompassConan(ConanFile):
             'wyrm:cuda': True,
             'wyrm:half': True
     }
-    scm = {
-            "type": "git",
-            "subfolder": ".",
-            "url": "https://gitlab.obspm.fr/compass/compass.git",
-            #"revision": "rc",
-            "username": "conan",
-            "password": "yLQJgzs1-x_yYWxjWerA"
-    }
-
     def requirements(self):
         if cuda_version() < version.parse('11.0'):
             self.requires('cub/1.8.0@cosmic/stable')
-
-    # def source(self):
-    #     self.run("git clone https://gitlab.obspm.fr/compass/compass.git -b rc .")
 
     def build(self):
         cmake = CMake(self)
