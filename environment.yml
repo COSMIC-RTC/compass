@@ -1,0 +1,24 @@
+name: compass
+channels:
+  - conda-forge
+dependencies:
+  - python
+  - astropy
+  - docopt
+  - h5py
+  - ipython
+  - matplotlib
+  - numpy
+  - pandas
+  - pyqtgraph
+  - scipy
+  - pytables
+  - tabulate
+  - tqdm
+  - conan
+  - cmake
+  - pybind11
+  - coverage
+  - pytest-cov
+  - pytest-html
+  - pytest-metadata
