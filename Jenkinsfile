@@ -1,4 +1,10 @@
 pipeline {
+    // agent {
+    //     docker {
+    //         image 'aocompass/base-18.04:10.2'
+    //         args '-u compass'
+    //     }
+    // }
     agent any
 
     environment {
@@ -8,19 +14,17 @@ pipeline {
         CUDA_LIB_PATH="$CUDA_ROOT/lib"
         CUDA_LIB_PATH_64="$CUDA_ROOT/lib64"
 
-        MAGMA_ROOT="/var/lib/jenkins/magma"
-
         COMPASS_ROOT="$WORKSPACE"
         COMPASS_INSTALL_ROOT="$COMPASS_ROOT/local"
         COMPASS_DO_HALF="ON"
-        COMPASS_DEBUG: "-DCMAKE_BUILD_TYPE=Debug"
+        COMPASS_DEBUG="-DCMAKE_BUILD_TYPE=Debug"
         NAGA_ROOT="$COMPASS_ROOT/naga"
         SHESHA_ROOT="$COMPASS_ROOT/shesha"
 
         PATH="/var/lib/jenkins/miniconda3/bin:$CUDA_ROOT/bin:$PATH"
-        LD_LIBRARY_PATH="$COMPASS_INSTALL_ROOT/lib:$CUDA_LIB_PATH_64:$CUDA_LIB_PATH:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH"
+        LD_LIBRARY_PATH="$COMPASS_INSTALL_ROOT/lib:$CUDA_LIB_PATH_64:$CUDA_LIB_PATH:$LD_LIBRARY_PATH"
         PYTHONPATH="$NAGA_ROOT:$SHESHA_ROOT:$COMPASS_INSTALL_ROOT/python:$PYTHONPATH"
-        PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$MAGMA_ROOT/lib/pkgconfig:$COMPASS_INSTALL_ROOT/lib/pkgconfig"
+        PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$COMPASS_INSTALL_ROOT/lib/pkgconfig"
 
         CUB_ROOT="$COMPASS_ROOT/tplib/cub"
         WYRM_ROOT="$COMPASS_ROOT/tplib/wyrm"
@@ -28,10 +32,16 @@ pipeline {
     }
 
     stages {
+        stage('Prepare') {
+            steps {
+                echo 'Prepare'
+                sh '$COMPASS_ROOT/install_dependencies.sh'
+            }
+        }
         stage('Build') {
             steps {
                 echo 'Building'
-                sh './compile.sh'
+                sh '$COMPASS_ROOT/compile.sh'
             }
         }
         stage('Unit tests') {
@@ -48,7 +58,8 @@ pipeline {
     post {
         always {
             echo 'This will always run'
-        }
+            junit 'compass_tests.xml'
+            step([$class: 'CoberturaPublisher', autoUpdateHealth: false, autoUpdateStability: false, coberturaReportFile: 'compass_cov.xml', failUnhealthy: false, failUnstable: false, maxNumberOfBuilds: 0, onlyStable: false, sourceEncoding: 'ASCII', zoomCoverageChart: true])        }
         success {
             echo 'This will run only if successful'
             emailext (
