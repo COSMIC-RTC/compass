@@ -76,3 +76,7 @@ compass_tests.xml
 # Conan
 conanlocal.py
 conanbuildinfo.cmake
+conan.lock
+conanbuildinfo.txt
+conaninfo.txt
+graph_info.json

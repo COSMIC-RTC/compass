@@ -4,4 +4,3 @@ pytest-cover
 pytest-coverage
 pytest-html
 pytest-metadata
-tabulate
