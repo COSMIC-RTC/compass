@@ -13,8 +13,6 @@ function generate_all() {
   var access = document.getElementById("access").value;
   var cuda_path = document.getElementById("cuda_path").value;
   var conda_path = document.getElementById("conda_path").value;
-  var magma_install = document.getElementById("magma_install").value;
-  var cuda_sm = document.getElementById("cuda_sm").value;
   var hf16 = "OFF";
   if (document.getElementById("half16").checked) {
     hf16 = "ON";
@@ -25,10 +23,9 @@ function generate_all() {
     access,
     conda_path,
     cuda_path,
-    magma_install,
     hf16
   );
-  generate_script(document.getElementById("script"), access, cuda_sm);
+  generate_script(document.getElementById("script"), access);
 }
 
 function generate_bashrc(
@@ -36,7 +33,6 @@ function generate_bashrc(
   access,
   conda_path,
   cuda_path,
-  magma_install,
   hf16
 ) {
   text_html = `
@@ -64,24 +60,15 @@ function generate_bashrc(
     <div class="line">export PATH=$CUDA_ROOT/bin:$PATH</div>
     <div class="line">export LD_LIBRARY_PATH=$CUDA_LIB_PATH_64:$CUDA_LIB_PATH:$LD_LIBRARY_PATH</div>
     <div class="line"></div>
-    <div class="line">#MAGMA definitions</div>
-      <div class="line">export MAGMA_ROOT="${magma_install}"</div>
-      <div class="line">export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MAGMA_ROOT/lib</div>
-      <div class="line">export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$MAGMA_ROOT/lib/pkgconfig</div>
-    <div class="line"></div>
-      <div class="line">#COMPASS default definitions</div>
-      <div class="line">export COMPASS_ROOT=$HOME/compass</div>
-      <div class="line">export COMPASS_INSTALL_ROOT=$COMPASS_ROOT/local</div>
-      <div class="line">export COMPASS_DO_HALF="${hf16}" # set to ON if you want to use half precision RTC (needs SM>=60)</div>
-      <div class="line">export NAGA_ROOT=$COMPASS_ROOT/naga</div>
-      <div class="line">export SHESHA_ROOT=$COMPASS_ROOT/shesha</div>
-      <div class="line">export LD_LIBRARY_PATH=$COMPASS_INSTALL_ROOT/lib:$LD_LIBRARY_PATH</div>
-      <div class="line">export PYTHONPATH=$NAGA_ROOT:$SHESHA_ROOT:$COMPASS_INSTALL_ROOT/python:$PYTHONPATH</div>
-      <div class="line">export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$COMPASS_INSTALL_ROOT/lib/pkgconfig</div>
-    <div class="line"></div>
-    <div class="line">#third party lib path</div>
-      <div class="line">export CUB_ROOT=$COMPASS_ROOT/tplib/cub</div>
-      <div class="line">export WYRM_ROOT=$COMPASS_ROOT/tplib/wyrm</div>
+    <div class="line">#COMPASS default definitions</div>
+    <div class="line">export COMPASS_ROOT=$HOME/compass</div>
+    <div class="line">export COMPASS_INSTALL_ROOT=$COMPASS_ROOT/local</div>
+    <div class="line">export COMPASS_DO_HALF="${hf16}" # set to ON if you want to use half precision RTC (needs SM>=60)</div>
+    <div class="line">export NAGA_ROOT=$COMPASS_ROOT/naga</div>
+    <div class="line">export SHESHA_ROOT=$COMPASS_ROOT/shesha</div>
+    <div class="line">export LD_LIBRARY_PATH=$COMPASS_INSTALL_ROOT/lib:$LD_LIBRARY_PATH</div>
+    <div class="line">export PYTHONPATH=$NAGA_ROOT:$SHESHA_ROOT:$COMPASS_INSTALL_ROOT/python:$PYTHONPATH</div>
+    <div class="line">export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$COMPASS_INSTALL_ROOT/lib/pkgconfig</div>
     `;
   }
   text_html += "</div><!-- fragment -->";
@@ -89,7 +76,7 @@ function generate_bashrc(
   div_text.innerHTML = text_html;
 }
 
-function generate_script(div_text, access, cuda_sm) {
+function generate_script(div_text, access) {
   // var val = document.getElementById("access").selectedIndex;
   // var x = document.getElementById("devBlock");
   // if (val == 1) {
@@ -117,11 +104,6 @@ function generate_script(div_text, access, cuda_sm) {
     `;
   } else {
     text_html += `
-      <div class="line">export MKLROOT=$CONDA_ROOT</div>
-      <div class="line">export CUDADIR=$CUDA_ROOT</div>
-      <div class="line">export NCPUS=8</div>
-      <div class="line">export GPU_TARGET=sm_${cuda_sm}</div>
-      <div class="line"></div>
       <div class="line">conda install -y numpy pyqtgraph ipython pyqt qt matplotlib astropy h5py hdf5 pytest pandas scipy docopt tqdm tabulate</div>
       <div class="line"></div>
       <div class="line">cd $HOME</div>
@@ -138,7 +120,7 @@ function generate_script(div_text, access, cuda_sm) {
 
 function generate_form(div_text) {
   div_text.innerHTML = `
-  <fieldset>
+  <fieldset>\n
     <legend>Option script</legend>\n
     <label for="access">Access : </label>\n
     <select name="access" id="access" onchange="select_fct()">\n
@@ -146,22 +128,18 @@ function generate_form(div_text) {
       <option value="git">Gitlab Obspm</option>\n
     </select><br>\n
     <label for="conda_path">Conda install:</label>\n
-    <input type="text" name="conda_path" id="conda_path" value="$HOME/miniconda3" onchange="generate_all()" /><br>
-    <div id="devBlock">
-      <label for="cuda_path">Cuda install:</label>
-      <input type="text" name="cuda_path" id="cuda_path" value="/usr/local/cuda" onchange="generate_all()" /><br>
-      <label for="magma_install">Magma installation path:</label>
-      <input type="text" name="magma_install" id="magma_install" value="$HOME/local/magma" onchange="generate_all()" /><br>
-      <label for="cuda_sm">CUDA Compute capability:</label>
-      <input type="text" name="cuda_sm" id="cuda_sm" value="70" onchange="generate_all()" /><br>
-      <label for="half16">half16</label>
-      <input type="checkbox" name="half16" id="half16" onchange="generate_all()" /><br>
-    </div>
-  </fieldset>
-  <div id="bashrc">
-  </div>
-  <div id="script">
-  </div>
+    <input type="text" name="conda_path" id="conda_path" value="$HOME/miniconda3" onchange="generate_all()" /><br>\n
+    <div id="devBlock">\n
+      <label for="cuda_path">CUDA install:</label>\n
+      <input type="text" name="cuda_path" id="cuda_path" value="/usr/local/cuda" onchange="generate_all()" /><br>\n
+      <label for="half16">half16</label>\n
+      <input type="checkbox" name="half16" id="half16" onchange="generate_all()" /><br>\n
+    </div>\n
+  </fieldset>\n
+  <div id="bashrc">\n
+  </div>\n
+  <div id="script">\n
+  </div>\n
   `;
 }
 
