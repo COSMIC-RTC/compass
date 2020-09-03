@@ -64,6 +64,7 @@ pytests:
   script:
     - export PYTHONPATH=$NAGA_ROOT:$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
+    - pip install -r requirements.txt
     - pip install -r requirements-test.txt
     - $COMPASS_ROOT/doc/generate_coverage.sh
     - coverage report
