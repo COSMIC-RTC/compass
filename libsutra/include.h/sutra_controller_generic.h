@@ -60,6 +60,7 @@ class sutra_controller_generic : public SutraController<Tcomp, Tout> {
   std::vector<CarmaObj<Tcomp> *> d_err_ngpu;
   std::vector<CarmaObj<Tcomp> *> d_cmat_ngpu;
   std::vector<int> P2Pdevices;
+  std::vector<cudaEvent_t> events;
   bool polc;
   int nstates;
 
