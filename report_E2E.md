@@ -1,6 +1,6 @@
 # E2E Test Report
 
-*Report generated on 03-Sep-2020 20:20:17 by checkCompass.sh*
+*Report generated on 04-Sep-2020 20:27:36 by checkCompass.sh*
 
 [Unit Tests report](report_unit_test.html)
 
