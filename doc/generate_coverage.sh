@@ -1,6 +1,6 @@
 #!/bin/bash
 
-coverage run --omit="*/data/*,*/guardians/*,*canapass*,*/scripts/*,*/widgets/*,*/tao/*" -m pytest $COMPASS_ROOT/libcarma/python_module/test $SHESHA_ROOT/tests/pytest/rtc #|| echo "It's just a scratch"
+coverage run -m pytest $COMPASS_ROOT/libcarma/python_module/test $SHESHA_ROOT/tests/pytest/rtc #|| echo "It's just a scratch"
 
 # script="$SHESHA_ROOT/shesha/tests/check.py"
 rm -f $COMPASS_ROOT/check.h5

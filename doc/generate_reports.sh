@@ -12,7 +12,7 @@
 
 rm $COMPASS_ROOT/doc/html/report_unit_test.html
 # TODO: generate large file with errors... Need to be fixed
-pytest --html=$COMPASS_ROOT/doc/html/report_unit_test.html --self-contained-html --cov-report html:$COMPASS_ROOT/doc/html/coverage --cov=carmaWrap --cov=sutraWrap --cov=shesha $COMPASS_ROOT/libcarma/python_module/test $COMPASS_ROOT/shesha/tests/pytest
+pytest --html=$COMPASS_ROOT/doc/html/report_unit_test.html --self-contained-html --cov-report html:$COMPASS_ROOT/doc/html/coverage --cov=carmaWrap --cov=sutraWrap --cov=shesha $COMPASS_ROOT/libcarma/python_module/test $COMPASS_ROOT/shesha/tests/pytest/rtc/FP32 $COMPASS_ROOT/shesha/tests/pytest/supervisor
 
 # script="$SHESHA_ROOT/shesha/tests/check.py"
 rm -f $COMPASS_ROOT/check.h5
@@ -40,7 +40,7 @@ mv doc/doxygen-doc/public .
 $COMPASS_ROOT/doc/correctDoxygen.sh
 
 mkdir -p public/coverage
-coverage html -d public/coverage
+coverage html --omit="*/data/*,*/guardians/*,*canapass*,*/scripts/*,*/widgets/*,*/tao/*,*/rtc_cacao/*,*/pytest/*" -d public/coverage
 
 echo 'Documentation generated in public/. To Publish it:'
 echo 'rsync -PaW --inplace --del public/* lesia:compass-doc/html/v5.0.0'
