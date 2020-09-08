@@ -355,28 +355,3 @@ class CompassSupervisor(GenericSupervisor):
         """
         from shesha.util.exportConfig import export_config
         return export_config(self)
-
-    def get_s_pupil(self):
-        """
-        Returns the so called S Pupil of COMPASS
-
-        Return np.array
-        """
-        return self.config.p_geom.get_spupil()
-
-
-    def get_i_pupil(self):
-        """
-        Returns the so called I Pupil of COMPASS
-
-        Return np.array
-        """
-        return self.config.p_geom.get_ipupil()
-
-    def get_m_pupil(self):
-        """
-        Returns the so called M Pupil of COMPASS
-
-        Return np.array
-        """
-        return self.config.p_geom.get_mpupil()

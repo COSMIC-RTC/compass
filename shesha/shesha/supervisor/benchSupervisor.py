@@ -223,8 +223,8 @@ class BenchSupervisor(AoSupervisor):
         Args:
             config_file : (str) : path to the configuration file
         """
-        from shesha.util.utilities import load_config_from_file
-        load_config_from_file(self, config_file)
+        from shesha.config import ParamConfig
+        self.config = ParamConfig(config_file)
 
     def set_cam_callback(self, cam_callback: Callable):
         """ Set the externally defined function that allows to grab frames

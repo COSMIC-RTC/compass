@@ -18,7 +18,7 @@ from docopt import docopt
 if __name__ == "__main__":
     import pandas
     from shesha.supervisor.compassSupervisor import CompassSupervisor
-    from shesha.util.utilities import load_config_from_file
+    from shesha.config import ParamConfig
 
     arguments = docopt(__doc__)
 
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     else:
         # Get parameters from file
         param_file = arguments["<parameters_filename>"]
-        config = load_config_from_file(param_file)
+        config = ParamConfig(param_file)
 
         if arguments["--devices"]:
             config.p_loop.set_devices([

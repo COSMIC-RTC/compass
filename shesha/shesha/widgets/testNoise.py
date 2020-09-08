@@ -5,10 +5,10 @@ plt.ion()
 
 def testNoise(noise=0.9, niter=100, close_loop=True):
 
-    s1 = np.zeros(((niter, int(wao.sim.config.p_controller0.nvalid * 2))))
-    s2 = np.zeros(((niter, int(wao.sim.config.p_controller0.nvalid * 2))))
-    sub1 = np.zeros(((niter, int(wao.sim.config.p_controller0.nvalid))))
-    sub2 = np.zeros(((niter, int(wao.sim.config.p_controller0.nvalid))))
+    s1 = np.zeros(((niter, int(wao.sim.config.p_controllers[0].nvalid * 2))))
+    s2 = np.zeros(((niter, int(wao.sim.config.p_controllers[0].nvalid * 2))))
+    sub1 = np.zeros(((niter, int(wao.sim.config.p_controllers[0].nvalid))))
+    sub2 = np.zeros(((niter, int(wao.sim.config.p_controllers[0].nvalid))))
     dimim = wao.sim.wfs.get_pyrimg(0).shape[0]
     dimimHR = wao.sim.wfs.get_pyrimghr(0).shape[0]
     dimscreen = wao.sim.atm.get_screen(0).shape[0]

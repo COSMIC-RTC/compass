@@ -254,7 +254,7 @@ def plsh(slopesvector,  nssp=14,  rmax=0.98, obs=0, win=1, invertxy=False):
 
 def plpyr(slopesvector, validArray):
     """
-    wao.config.p_wfs0._isvalid
+    wao.config.p_wfss[0]._isvalid
     """
     nslopes = slopesvector.shape[0] / 2
     x, y = np.where(validArray.T)

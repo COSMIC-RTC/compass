@@ -70,7 +70,7 @@ class WfsCompass(SourceCompass):
                                 self._config.p_tel, self._config.p_geom, self._config.p_dms,
                                 self._config.p_atmos)
         self.sources = [wfs.d_gs for wfs in self._wfs.d_wfs]
-        
+
     def get_wfs_image(self, wfs_index : int) -> np.ndarray:
         """ Get an image from the WFS (wfs[0] by default), or from the centroider handling the WFS
         to get the calibrated image
@@ -115,7 +115,7 @@ class WfsCompass(SourceCompass):
         """ Set pyramid circular modulation amplitude value - in lambda/D units.
 
         Compute new modulation points corresponding to the new amplitude value
-        and upload them. 
+        and upload them.
         /!\ WARNING : if you are using slopes-based centroider with the PWFS,
         also update the centroider scale (rtc.set_scale) with the returned
         value
@@ -124,7 +124,7 @@ class WfsCompass(SourceCompass):
             wfs_index : (int) : WFS index
 
             pyr_mod : (float) : new pyramid modulation amplitude value
-        
+
         Return:
             scale : (float) : scale factor
         """
@@ -318,7 +318,7 @@ class WfsCompass(SourceCompass):
             mag : (float) : New magnitude of the guide star
         """
         wfs = self._wfs.d_wfs[wfs_index]
-        if (self._config.p_wfs0.type == "pyrhr"):
+        if (self._config.p_wfss[0].type == "pyrhr"):
             r = wfs.comp_nphot(self._config.p_loop.ittime,
                                self._config.p_wfss[wfs_index].optthroughput,
                                self._config.p_tel.diam, self._config.p_tel.cobs,

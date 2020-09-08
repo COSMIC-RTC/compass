@@ -109,9 +109,9 @@ class CanapassSupervisor(CompassSupervisor):
 
 if __name__ == '__main__':
     from docopt import docopt
-    from shesha.util.utilities import load_config_from_file
+    from shesha.config import ParamConfig
     arguments = docopt(__doc__)
-    config = load_config_from_file(arguments["<parameters_filename>"])
+    config = ParamConfig(arguments["<parameters_filename>"])
     supervisor = CanapassSupervisor(config, cacao=True)
     if (arguments["--freq"]):
         print("Warning changed frequency loop to: ", arguments["--freq"])
@@ -132,17 +132,16 @@ if __name__ == '__main__':
         else:
             user = out.split(b"\n")[0].decode("utf-8")
             print("User is " + user)
-
         devices = [
                 supervisor, supervisor.rtc, supervisor.wfs, supervisor.target,
                 supervisor.tel, supervisor.basis, supervisor.calibration,
-                supervisor.atmos, supervisor.dms
+                supervisor.atmos, supervisor.dms, supervisor.config
         ]
 
         names = [
                 "supervisor", "supervisor_rtc", "supervisor_wfs", "supervisor_target",
                 "supervisor_tel", "supervisor_basis", "supervisor_calibration",
-                "supervisor_atmos", "supervisor_dms"
+                "supervisor_atmos", "supervisor_dms", "supervisor_config"
         ]
         nname = []
         for name in names:
