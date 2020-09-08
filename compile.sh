@@ -1,5 +1,5 @@
 #!/bin/bash
-LOCAL_DIR="$(realpath --relative-to=$(pwd) $( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd ))"
+LOCAL_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 if [ -z $1 ]
 then
@@ -29,11 +29,12 @@ fi
 #NCPUS=`fgrep processor /proc/cpuinfo | wc -l`
 
 conan install -if build --build=missing $CONAN_LOCATION
-conan build -bf build  $CONAN_LOCATION
-conan package -bf build -pf $COMPASS_INSTALL_ROOT $CONAN_LOCATION
+# conan build -bf build  $CONAN_LOCATION
+# conan package -bf build -pf $COMPASS_INSTALL_ROOT $CONAN_LOCATION
 
-# cmake .. -DCMAKE_INSTALL_PREFIX=$COMPASS_INSTALL_ROOT -Ddo_half=$COMPASS_DO_HALF $COMPASS_DEBUG $BUILD_TOOL
-# cmake --build . --target install -- -j $NCPUS
+cd build
+cmake .. -DCMAKE_INSTALL_PREFIX=$COMPASS_INSTALL_ROOT -Ddo_half=$COMPASS_DO_HALF $COMPASS_DEBUG $BUILD_TOOL
+cmake --build . --target install -- -j $NCPUS
 
 # conan export-pkg . conan/stable -f
 # conan upload compass/5.0@conan/stable --all -r=hippo6
