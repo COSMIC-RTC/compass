@@ -340,8 +340,8 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             self.expertWidget.setSupervisor(self.supervisor)
             self.expertWidget.updatePanels()
 
-        if (hasattr(self.config, "layout")):
-            area_filename = self.defaultAreaPath + "/" + self.config.layout + ".area"
+        if (hasattr(self.config._config, "layout")):
+            area_filename = self.defaultAreaPath + "/" + self.config._config.layout + ".area"
             self.loadArea(filename=area_filename)
 
         self.adjustSize()
