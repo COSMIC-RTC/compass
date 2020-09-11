@@ -113,7 +113,7 @@ def pli(data, color='gist_earth', cmin=9998, cmax=9998, win=1, origin=None,
         color = 'gist_earth'
     if (origin is None):
         origin = ""
-    if (aspect is not 'auto'):
+    if (aspect != 'auto'):
         aspect = "\'" + aspect + "\'"
     else:
         aspect = "\'auto\'"
