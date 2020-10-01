@@ -44,6 +44,7 @@
 //! \copyright GNU Lesser General Public License
 
 #include <sutra_centroider_maskedPix.h>
+#include <wyrm>
 
 namespace py = pybind11;
 
