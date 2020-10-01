@@ -72,7 +72,7 @@ class SutraCentroiderMaskedPix : public SutraCentroider<Tin, T> {
               int npix, int ntot, cudaStream_t stream=0);
   int get_cog(float *intensities, T *slopes, bool noise);
   int get_cog();
-  int fill_selected_pix(CarmaObj<T> *pix);
+  int fill_selected_pix(T *pix);
   int fill_mask();
 };
 

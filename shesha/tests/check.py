@@ -52,14 +52,18 @@ if __name__ == "__main__":
             ])
 
         try:
+            t0= time.perf_counter()
             supervisor = CompassSupervisor(config)
+            t_init = time.perf_counter() - t0
             is_init = supervisor.is_init
         except:
             supervisor = None
             is_init = False
             SR = "N/A"
         try:
+            t0= time.perf_counter()
             supervisor.loop(supervisor.config.p_loop.niter)
+            t_loop = time.perf_counter() - t0
             SR = supervisor.target.get_strehl(0)[1]
         except:
             SR = "N/A"
@@ -72,6 +76,8 @@ if __name__ == "__main__":
         idx = len(df.index)
         df.loc[idx, "Test name"] = param_file.split('/')[-1]
         df.loc[idx, "Init"] = str(is_init)
+        df.loc[idx, "T Init"] = str(t_init)
         df.loc[idx, "SR@100iter"] = str(SR)
+        df.loc[idx, "T Loop"] = str(t_loop)
 
         df.to_hdf("check.h5", "check")
