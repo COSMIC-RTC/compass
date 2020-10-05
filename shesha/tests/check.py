@@ -14,6 +14,7 @@ Options:
 """
 
 from docopt import docopt
+import time
 
 if __name__ == "__main__":
     import pandas
@@ -52,18 +53,20 @@ if __name__ == "__main__":
             ])
 
         try:
-            t0= time.perf_counter()
+            t0 = time.perf_counter()
             supervisor = CompassSupervisor(config)
             t_init = time.perf_counter() - t0
             is_init = supervisor.is_init
         except:
             supervisor = None
             is_init = False
+            t_init = 0
             SR = "N/A"
         try:
-            t0= time.perf_counter()
+            t0 = time.perf_counter()
             supervisor.loop(supervisor.config.p_loop.niter)
             t_loop = time.perf_counter() - t0
+            t_init = 0
             SR = supervisor.target.get_strehl(0)[1]
         except:
             SR = "N/A"
