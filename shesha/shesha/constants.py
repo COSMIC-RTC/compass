@@ -36,6 +36,7 @@
 #  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 
 import numpy as np
+from aenum import MultiValueEnum
 
 
 class CONST:
@@ -208,3 +209,10 @@ class FieldStopType:
     """
     SQUARE = 'square'
     ROUND = 'round'
+
+class PupilType(MultiValueEnum):
+    """Compass pupil enumeration
+    """
+    SPUPIL = "spupil", "s"
+    MPUPIL = "mpupil", "m"
+    IPUPIL = "ipupil", "i"

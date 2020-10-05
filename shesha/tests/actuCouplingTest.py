@@ -29,11 +29,11 @@ spidersi = util.pad_array(spidersID, p_geom.ssize).astype(np.float32)
 pxListSpider = [np.where(spidersi == i) for i in range(1, k + 1)]
 
 # DM positions in iPupil:
-dmposx = wao.config.p_dm0._xpos - 0.5
-dmposy = wao.config.p_dm0._ypos - 0.5
+dmposx = wao.config.p_dms[0]._xpos - 0.5
+dmposy = wao.config.p_dms[0]._ypos - 0.5
 dmposMat = np.c_[dmposx, dmposy].T  # one actu per column
 
-pitch = wao.config.p_dm0._pitch
+pitch = wao.config.p_dms[0]._pitch
 
 plt.clf()
 plt.scatter(*dmposMat)

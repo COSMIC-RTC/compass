@@ -218,7 +218,8 @@ class CompassSupervisor(GenericSupervisor):
             if tar_trace is not None:
                 for t in tar_trace:
                     if self.atmos.is_enable:
-                        self.target.raytrace(t, tel=self.tel, atm=self.atmos, dms=self.dms)
+                        self.target.raytrace(t, tel=self.tel, atm=self.atmos,
+                                             dms=self.dms)
                     else:
                         self.target.raytrace(t, tel=self.tel, dms=self.dms)
 

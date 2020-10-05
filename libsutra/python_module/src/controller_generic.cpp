@@ -82,6 +82,9 @@ void controller_generic_impl(py::module &mod, const char *name) {
           "polc", [](controller_generic &sc) { return sc.polc; }, "POLC flag")
 
       .def_property_readonly(
+          "d_err_ngpu", [](controller_generic &sc) { return sc.d_err_ngpu; }, "")
+
+      .def_property_readonly(
           "d_compbuff", [](controller_generic &sc) { return sc.d_compbuff; },
           "Computation buffer buffer")
 

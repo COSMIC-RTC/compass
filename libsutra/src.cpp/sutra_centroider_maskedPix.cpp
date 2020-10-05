@@ -83,7 +83,7 @@ string SutraCentroiderMaskedPix<Tin, T>::get_type() {
 }
 
 template <class Tin, class T>
-int SutraCentroiderMaskedPix<Tin, T>::fill_selected_pix(CarmaObj<T> *pix) {
+int SutraCentroiderMaskedPix<Tin, T>::fill_selected_pix(T *pix) {
   this->current_context->set_active_device(this->device, 1);
 
   const long *dims_data2;
@@ -100,7 +100,7 @@ int SutraCentroiderMaskedPix<Tin, T>::fill_selected_pix(CarmaObj<T> *pix) {
   }
   this->d_selected_pix->reset();
   pyr_fill_selected_pix(this->d_selected_pix->get_data(), dims_data2[1],
-                        pix->get_data(), this->d_validx->get_data(),
+                        pix, this->d_validx->get_data(),
                         this->d_validy->get_data(), this->d_validx->get_nb_elements(),
                         this->current_context->get_device(this->device));
   return EXIT_SUCCESS;

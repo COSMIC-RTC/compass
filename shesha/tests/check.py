@@ -18,7 +18,7 @@ from docopt import docopt
 if __name__ == "__main__":
     import pandas
     from shesha.supervisor.compassSupervisor import CompassSupervisor
-    from shesha.util.utilities import load_config_from_file
+    from shesha.config import ParamConfig
 
     arguments = docopt(__doc__)
 
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     else:
         # Get parameters from file
         param_file = arguments["<parameters_filename>"]
-        config = load_config_from_file(param_file)
+        config = ParamConfig(param_file)
 
         if arguments["--devices"]:
             config.p_loop.set_devices([
@@ -52,14 +52,18 @@ if __name__ == "__main__":
             ])
 
         try:
+            t0= time.perf_counter()
             supervisor = CompassSupervisor(config)
+            t_init = time.perf_counter() - t0
             is_init = supervisor.is_init
         except:
             supervisor = None
             is_init = False
             SR = "N/A"
         try:
+            t0= time.perf_counter()
             supervisor.loop(supervisor.config.p_loop.niter)
+            t_loop = time.perf_counter() - t0
             SR = supervisor.target.get_strehl(0)[1]
         except:
             SR = "N/A"
@@ -71,7 +75,9 @@ if __name__ == "__main__":
 
         idx = len(df.index)
         df.loc[idx, "Test name"] = param_file.split('/')[-1]
-        df.loc[idx, "Init"] = is_init
-        df.loc[idx, "SR@100iter"] = SR
+        df.loc[idx, "Init"] = str(is_init)
+        df.loc[idx, "T Init"] = str(t_init)
+        df.loc[idx, "SR@100iter"] = str(SR)
+        df.loc[idx, "T Loop"] = str(t_loop)
 
         df.to_hdf("check.h5", "check")

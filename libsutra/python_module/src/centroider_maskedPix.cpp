@@ -43,9 +43,8 @@
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
-#include <wyrm>
-
 #include <sutra_centroider_maskedPix.h>
+#include <wyrm>
 
 namespace py = pybind11;
 
@@ -61,8 +60,7 @@ void centroider_maskedPix_impl(py::module &mod, const char *name) {
           "Selected pixels as an image")
 
       .def_property_readonly(
-          "d_mask",
-          [](centroider_maskedPix &sc) { return sc.d_mask; },
+          "d_mask", [](centroider_maskedPix &sc) { return sc.d_mask; },
           "Mask of valid pixels")
 
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
@@ -73,21 +71,25 @@ void centroider_maskedPix_impl(py::module &mod, const char *name) {
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
 
-      .def("fill_selected_pix",
-           wy::colCast(&centroider_maskedPix::fill_selected_pix),
-           R"pbdoc(
+      .def(
+          "fill_selected_pix",
+          [](centroider_maskedPix &sc, CarmaObj<Tcomp> &centroids) {
+            sc.fill_selected_pix(centroids);
+          },
+          // wy::colCast(&centroider_maskedPix::fill_selected_pix),
+          R"pbdoc(
         Return the given pixels vector in an image format
 
         Parameters
         ------------
-        pix: (np.array[ndim=1,dtype=np.float32]): Pixels to map on the image
+        centroids: (CarmaObj): Pixels to map on the image
     )pbdoc",
-           py::arg("pix"))
+          py::arg("centroids"))
 
       .def("fill_mask", &centroider_maskedPix::fill_mask,
-        "Fill the mask of valid pixels")
+           "Fill the mask of valid pixels")
 
-;
+      ;
 };
 void declare_centroider_maskedPix(py::module &mod) {
   centroider_maskedPix_impl<float, float>(mod, "CentroiderMASKEDPIX_FF");

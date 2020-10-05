@@ -7,11 +7,11 @@ from shesha.sutra_wrap import Rtc_cacao_FFF as Rtc
 from shesha.supervisor.compassSupervisor import CompassSupervisor as Supervisor
 from scipy.ndimage.measurements import center_of_mass
 from Octopus import CacaoInterface
-from shesha.util.utilities import load_config_from_file
+from shesha.config import ParamConfig
 
 precision = 1e-5
 
-config = load_config_from_file(os.getenv("COMPASS_ROOT") +
+config = ParamConfig(os.getenv("COMPASS_ROOT") +
         "/shesha/tests/pytest/par/test_sh.py")
 sup = Supervisor(config)
 sup.next()
@@ -19,22 +19,22 @@ sup.rtc.open_loop(0)
 sup.rtc.close_loop(0)
 sup.rtc.do_control(0)
 rtc = Rtc("compass_calPix", "compass_loopData")
-rtc.add_centroider(sup.context, sup.config.p_wfs0._nvalid,
-                   sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize, False, 0,
+rtc.add_centroider(sup.context, sup.config.p_wfss[0]._nvalid,
+                   sup.config.p_wfss[0].npix / 2 - 0.5, sup.config.p_wfss[0].pixsize, False, 0,
                    "cog")
-rtc.add_controller(sup.context, sup.config.p_wfs0._nvalid,
-                   sup.config.p_wfs0._nvalid * 2, sup.config.p_controller0.nactu,
-                   sup.config.p_controller0.delay, 0, "generic", idx_centro=np.zeros(1),
+rtc.add_controller(sup.context, sup.config.p_wfss[0]._nvalid,
+                   sup.config.p_wfss[0]._nvalid * 2, sup.config.p_controllers[0].nactu,
+                   sup.config.p_controllers[0].delay, 0, "generic", idx_centro=np.zeros(1),
                    ncentro=1)
 centro = rtc.d_centro[0]
 control = rtc.d_control[0]
-rtc.d_centro[0].set_npix(sup.config.p_wfs0.npix)
+rtc.d_centro[0].set_npix(sup.config.p_wfss[0].npix)
 xvalid = np.array(sup.rtc._rtc.d_centro[0].d_validx)
 yvalid = np.array(sup.rtc._rtc.d_centro[0].d_validy)
 rtc.d_centro[0].load_validpos(xvalid, yvalid, xvalid.size)
 cmat = sup.rtc.get_command_matrix(0)
 rtc.d_control[0].set_cmat(cmat)
-rtc.d_control[0].set_gain(sup.config.p_controller0.gain)
+rtc.d_control[0].set_gain(sup.config.p_controllers[0].gain)
 frame = sup.wfs.get_wfs_image(0)
 frame /= frame.max()
 rtc.d_centro[0].load_img(frame, frame.shape[0])
@@ -56,15 +56,15 @@ def relative_array_error(array1, array2):
 
 
 def test_initCentro_nvalid():
-    assert (centro.nvalid - sup.config.p_wfs0._nvalid < precision)
+    assert (centro.nvalid - sup.config.p_wfss[0]._nvalid < precision)
 
 
 def test_initCentro_offset():
-    assert (centro.offset - (sup.config.p_wfs0.npix / 2 - 0.5) < precision)
+    assert (centro.offset - (sup.config.p_wfss[0].npix / 2 - 0.5) < precision)
 
 
 def test_initCentro_scale():
-    assert (centro.scale - sup.config.p_wfs0.pixsize < precision)
+    assert (centro.scale - sup.config.p_wfss[0].pixsize < precision)
 
 
 def test_initCentro_type():
@@ -72,11 +72,11 @@ def test_initCentro_type():
 
 
 def test_initControl_nslope():
-    assert (control.nslope - sup.config.p_wfs0._nvalid * 2 < precision)
+    assert (control.nslope - sup.config.p_wfss[0]._nvalid * 2 < precision)
 
 
 def test_initControl_nactu():
-    assert (control.nactu - sup.config.p_controller0.nactu < precision)
+    assert (control.nactu - sup.config.p_controllers[0].nactu < precision)
 
 
 def test_initControl_type():
@@ -84,11 +84,11 @@ def test_initControl_type():
 
 
 def test_initControl_delay():
-    assert (control.delay - sup.config.p_controller0.delay < precision)
+    assert (control.delay - sup.config.p_controllers[0].delay < precision)
 
 
 def test_set_npix():
-    assert (centro.npix - sup.config.p_wfs0.npix < precision)
+    assert (centro.npix - sup.config.p_wfss[0].npix < precision)
 
 
 def test_load_validposX():
@@ -104,7 +104,7 @@ def test_set_cmat():
 
 
 def test_set_gain():
-    assert (control.gain - sup.config.p_controller0.gain < precision)
+    assert (control.gain - sup.config.p_controllers[0].gain < precision)
 
 
 def test_load_img():
@@ -127,13 +127,13 @@ def test_calibrate_img():
 
 def test_doCentroids_cog():
     bincube = np.array(sup.wfs._wfs.d_wfs[0].d_bincube)
-    slopes = np.zeros(sup.config.p_wfs0._nvalid * 2)
+    slopes = np.zeros(sup.config.p_wfss[0]._nvalid * 2)
     offset = centro.offset
     scale = centro.scale
-    for k in range(sup.config.p_wfs0._nvalid):
+    for k in range(sup.config.p_wfss[0]._nvalid):
         tmp = center_of_mass(bincube[:, :, k])
         slopes[k] = (tmp[0] - offset) * scale
-        slopes[k + sup.config.p_wfs0._nvalid] = (tmp[1] - offset) * scale
+        slopes[k + sup.config.p_wfss[0]._nvalid] = (tmp[1] - offset) * scale
     assert (relative_array_error(ng.array(control.d_centroids).toarray(), slopes) <
             precision)
 
@@ -154,7 +154,7 @@ def test_set_comRange():
 
 def test_clipping():
     control.set_comRange(-1, 1)
-    C = (np.random.random(sup.config.p_controller0.nactu) - 0.5) * 4
+    C = (np.random.random(sup.config.p_controllers[0].nactu) - 0.5) * 4
     control.set_com(C, C.size)
     rtc.do_clipping(0)
     C_clipped = C.copy()
@@ -165,7 +165,7 @@ def test_clipping():
 
 
 def test_add_perturb_voltage():
-    C = np.random.random(sup.config.p_controller0.nactu)
+    C = np.random.random(sup.config.p_controllers[0].nactu)
     control.add_perturb_voltage("test", C, 1)
     assert (relative_array_error(
             ng.array(control.d_perturb_map["test"][0]).toarray(), C) < precision)
@@ -177,7 +177,7 @@ def test_remove_perturb_voltage():
 
 
 def test_add_perturb():
-    C = np.random.random(sup.config.p_controller0.nactu)
+    C = np.random.random(sup.config.p_controllers[0].nactu)
     control.add_perturb_voltage("test", C, 1)
     com = ng.array(control.d_com_clipped).toarray()
     control.add_perturb()
@@ -211,13 +211,13 @@ def test_comp_voltage():
     volt_max = 1
     control.set_comRange(volt_min, volt_max)
     control.comp_voltage()
-    C = np.random.random(sup.config.p_controller0.nactu)
+    C = np.random.random(sup.config.p_controllers[0].nactu)
     control.add_perturb_voltage("test", C, 1)
     control.set_com(C, C.size)
     com0 = ng.array(control.d_circularComs0).toarray()
     com1 = ng.array(control.d_circularComs1).toarray()
     control.comp_voltage()
-    delay = sup.config.p_controller0.delay
+    delay = sup.config.p_controllers[0].delay
     a = delay - int(delay)
     b = 1 - a
     commands = a * com0 + b * com1
@@ -234,60 +234,60 @@ def test_remove_centroider():
 
 
 def test_doCentroids_tcog():
-    rtc.add_centroider(sup.context, sup.config.p_wfs0._nvalid,
-                       sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize,
+    rtc.add_centroider(sup.context, sup.config.p_wfss[0]._nvalid,
+                       sup.config.p_wfss[0].npix / 2 - 0.5, sup.config.p_wfss[0].pixsize,
                        False, 0, "tcog")
 
     centro = rtc.d_centro[-1]
     threshold = 0.1
     centro.set_threshold(threshold)
-    centro.set_npix(sup.config.p_wfs0.npix)
+    centro.set_npix(sup.config.p_wfss[0].npix)
     centro.load_validpos(xvalid, yvalid, xvalid.size)
     centro.load_img(frame, frame.shape[0])
     centro.calibrate_img()
     rtc.do_centroids(0)
     bincube = np.array(sup.wfs._wfs.d_wfs[0].d_bincube)
     bincube /= bincube.max()
-    slopes = np.zeros(sup.config.p_wfs0._nvalid * 2)
+    slopes = np.zeros(sup.config.p_wfss[0]._nvalid * 2)
     offset = centro.offset
     scale = centro.scale
     bincube = bincube - threshold
     bincube[np.where(bincube < 0)] = 0
-    for k in range(sup.config.p_wfs0._nvalid):
+    for k in range(sup.config.p_wfss[0]._nvalid):
         tmp = center_of_mass(bincube[:, :, k])
         slopes[k] = (tmp[0] - offset) * scale
-        slopes[k + sup.config.p_wfs0._nvalid] = (tmp[1] - offset) * scale
+        slopes[k + sup.config.p_wfss[0]._nvalid] = (tmp[1] - offset) * scale
     assert (relative_array_error(ng.array(control.d_centroids).toarray(), slopes) <
             precision)
 
 
 def test_doCentroids_bpcog():
     rtc.remove_centroider(0)
-    rtc.add_centroider(sup.context, sup.config.p_wfs0._nvalid,
-                       sup.config.p_wfs0.npix / 2 - 0.5, sup.config.p_wfs0.pixsize,
+    rtc.add_centroider(sup.context, sup.config.p_wfss[0]._nvalid,
+                       sup.config.p_wfss[0].npix / 2 - 0.5, sup.config.p_wfss[0].pixsize,
                        False, 0, "bpcog")
 
     centro = rtc.d_centro[-1]
     bpix = 8
     centro.set_nmax(8)
-    centro.set_npix(sup.config.p_wfs0.npix)
+    centro.set_npix(sup.config.p_wfss[0].npix)
     centro.load_validpos(xvalid, yvalid, xvalid.size)
     centro.load_img(frame, frame.shape[0])
     centro.calibrate_img()
     rtc.do_centroids(0)
     bincube = np.array(sup.wfs._wfs.d_wfs[0].d_bincube)
     bincube /= bincube.max()
-    slopes = np.zeros(sup.config.p_wfs0._nvalid * 2)
+    slopes = np.zeros(sup.config.p_wfss[0]._nvalid * 2)
     offset = centro.offset
     scale = centro.scale
-    for k in range(sup.config.p_wfs0._nvalid):
+    for k in range(sup.config.p_wfss[0]._nvalid):
         imagette = bincube[:, :, k]
         threshold = np.sort(imagette, axis=None)[-(bpix + 1)]
         imagette -= threshold
         imagette[np.where(imagette < 0)] = 0
         tmp = center_of_mass(imagette)
         slopes[k] = (tmp[0] - offset) * scale
-        slopes[k + sup.config.p_wfs0._nvalid] = (tmp[1] - offset) * scale
+        slopes[k + sup.config.p_wfss[0]._nvalid] = (tmp[1] - offset) * scale
     assert (relative_array_error(ng.array(control.d_centroids).toarray(), slopes) <
             precision)
 
@@ -306,9 +306,9 @@ def test_publish_loopData():
     rtc.publish()
     it = CacaoInterface.getInterface("compass_loopData")
     data = np.array(it)
-    nvalid = sup.config.p_wfs0._nvalid
-    nslopes = sup.config.p_controller0.nslope
-    nactus = sup.config.p_controller0.nactu
+    nvalid = sup.config.p_wfss[0]._nvalid
+    nslopes = sup.config.p_controllers[0].nslope
+    nactus = sup.config.p_controllers[0].nactu
     tmp = np.zeros(nvalid + nslopes + nactus)
     tmp[:nvalid] = np.array(centro.d_intensities)
     tmp[nvalid:nvalid + nslopes] = np.array(control.d_centroids)

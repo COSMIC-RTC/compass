@@ -62,8 +62,9 @@ pytests:
   dependencies:
     - build_debug
   script:
-    - export PYTHONPATH=$NAGA_ROOT:$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
+    - export PYTHONPATH=$NAGA_ROOT:$SHESHA_ROOT:$NAGA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
+    - pip install -r requirements.txt
     - pip install -r requirements-test.txt
     - $COMPASS_ROOT/doc/generate_coverage.sh
     - coverage report
@@ -97,7 +98,7 @@ pages:
     - build_debug
     - pytests
   script:
-    - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
+    - export PYTHONPATH=$SHESHA_ROOT:$NAGA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
     - pip install -r requirements.txt
     - pip install -r requirements-test.txt

@@ -54,7 +54,7 @@ Options:
   -g, --generic      Use generic controller
   -f, --fast         Compute PSF only during monitoring
 """
-from shesha.util.utilities import load_config_from_file
+from shesha.config import ParamConfig
 from docopt import docopt
 
 if __name__ == "__main__":
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     param_file = arguments["<parameters_filename>"]
     compute_tar_psf = not arguments["--fast"]
 
-    config = load_config_from_file(param_file)
+    config = ParamConfig(param_file)
 
     # Get parameters from file
     if arguments["--bench"]:
