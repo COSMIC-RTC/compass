@@ -100,7 +100,9 @@ public:
   int init_calib(int n, int m);
   int init_roi(int N);
   int set_centroids_ref(float *centroids_ref);
-  int calibrate_img() {return calibrate_img(0);};
+  int calibrate_img_validPix() { return calibrate_img(0); };
+  int calibrate_img_validPix(cudaStream_t stream);
+  int calibrate_img() { return calibrate_img(0); };
   int calibrate_img(cudaStream_t stream);
   int load_validpos(int *ivalid, int *jvalid, int N);
   int set_npix(int npix);
@@ -118,13 +120,28 @@ public:
   virtual string get_type() = 0;
 
   virtual int get_cog(float *img, float *intensities, Tout *centroids,
-                      int nvalid, int npix, int ntot, cudaStream_t stream=0) = 0;
+                      int nvalid, int npix, int ntot,
+                      cudaStream_t stream = 0) = 0;
   virtual int get_cog(float *intensities, Tout *slopes, bool noise) = 0;
   virtual int get_cog() = 0;
 };
+
 template <class Tin>
-int calibration(Tin *img_raw, float *img_cal, float *dark, float *flat, int *lutPix, int N,
-                CarmaDevice *device, cudaStream_t stream=0);
+int calibration_validPix_sh(int npix, int size, int blocks, Tin *img_raw,
+                            float *img_cal, float *dark, float *flat,
+                            int *lutPix, int *validx, int *validy,
+                            CarmaDevice *device, cudaStream_t stream);
+
+template <class Tin>
+int calibration_validPix_pyr(Tin *img_raw, float *img_cal, float *dark,
+                             float *flat, int *lutPix, int *validx, int *validy,
+                             int nvalid, int img_sizex, CarmaDevice *device,
+                             cudaStream_t stream = 0);
+
+template <class Tin>
+int calibration(Tin *img_raw, float *img_cal, float *dark, float *flat,
+                int *lutPix, int N, CarmaDevice *device,
+                cudaStream_t stream = 0);
 
 template <typename T>
 int convert_centro(T *d_odata, T *d_idata, float offset, float scale, int N,

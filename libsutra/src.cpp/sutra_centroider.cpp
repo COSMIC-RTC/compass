@@ -48,9 +48,9 @@
 
 template <class Tin, class Tout>
 SutraCentroider<Tin, Tout>::SutraCentroider(CarmaContext *context,
-                                              SutraWfs *wfs, long nvalid,
-                                              float offset, float scale,
-                                              bool filter_TT, int device) {
+                                            SutraWfs *wfs, long nvalid,
+                                            float offset, float scale,
+                                            bool filter_TT, int device) {
   this->current_context = context;
   this->device = device;
   context->set_active_device(device, 1);
@@ -69,10 +69,9 @@ SutraCentroider<Tin, Tout>::SutraCentroider(CarmaContext *context,
   this->d_intensities->reset();
 
   this->d_centroids_ref = nullptr;
-  if(this->wfs != nullptr) {
+  if (this->wfs != nullptr) {
     this->d_img = this->wfs->d_binimg;
-  }
-  else {
+  } else {
     this->d_img = nullptr;
   }
   this->d_img_raw = nullptr;
@@ -216,6 +215,39 @@ int SutraCentroider<Tin, Tout>::get_validMask() {
 }
 
 template <class Tin, class Tout>
+int SutraCentroider<Tin, Tout>::calibrate_img_validPix(cudaStream_t stream) {
+  current_context->set_active_device(device, 1);
+
+  if (this->d_img_raw == nullptr) {
+    std::cout << "Image not initialized\n" << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  const long *dims = this->d_img_raw->get_dims();
+  init_calib(dims[1], dims[2]);
+
+  this->d_img->reset();
+  string type = get_type();
+
+  if ((type == "maskedpix") || (type == "pyrhr")) {
+    return calibration_validPix_pyr<Tin>(
+        this->d_img_raw->get_data(), this->d_img->get_data(),
+        this->d_dark->get_data(), this->d_flat->get_data(),
+        this->d_lutPix->get_data(), this->d_validx->get_data(),
+        this->d_validy->get_data(), this->d_validy->get_nb_elements(), dims[1],
+        this->current_context->get_device(this->device), stream);
+  } else {
+    return calibration_validPix_sh<Tin>(
+        this->d_validMask->get_dims(1), this->npix, this->nvalid,
+        this->d_img_raw->get_data(), this->d_img->get_data(),
+        this->d_dark->get_data(), this->d_flat->get_data(),
+        this->d_lutPix->get_data(), this->d_validx->get_data(),
+        this->d_validy->get_data(),
+        this->current_context->get_device(this->device), stream);
+  }
+}
+
+template <class Tin, class Tout>
 int SutraCentroider<Tin, Tout>::calibrate_img(cudaStream_t stream) {
   current_context->set_active_device(device, 1);
 
@@ -251,8 +283,7 @@ int SutraCentroider<Tin, Tout>::load_img(Tin *img, int n, int location) {
 }
 
 template <class Tin, class Tout>
-int SutraCentroider<Tin, Tout>::load_img(Tin *img, int m, int n,
-                                          int location) {
+int SutraCentroider<Tin, Tout>::load_img(Tin *img, int m, int n, int location) {
   init_img_raw(m, n);
   if (location < 0) {  // img data on host
     this->d_img_raw->host2device(img);
@@ -280,8 +311,7 @@ int SutraCentroider<Tin, Tout>::set_npix(int npix) {
 }
 
 template <class Tin, class Tout>
-int SutraCentroider<Tin, Tout>::load_validpos(int *ivalid, int *jvalid,
-                                               int N) {
+int SutraCentroider<Tin, Tout>::load_validpos(int *ivalid, int *jvalid, int N) {
   current_context->set_active_device(device, 1);
   if (this->d_validx == nullptr) {
     this->init_roi(N);
@@ -322,7 +352,7 @@ template <class Tin, class Tout>
 template <typename Q>
 typename std::enable_if<std::is_same<Q, float>::value, int>::type
 SutraCentroider<Tin, Tout>::apply_TT_filter_impl(Tout *centroids,
-                                                  std::true_type) {
+                                                 std::true_type) {
   this->d_centro_filtered->copy_from(centroids, this->nslopes);
 
   float tip = this->d_centro_filtered->dot(this->d_ref_Tip, 1, 1);
@@ -341,7 +371,7 @@ SutraCentroider<Tin, Tout>::apply_TT_filter_impl(Tout *centroids,
 
 template <class Tin, class Tout>
 int SutraCentroider<Tin, Tout>::apply_TT_filter_impl(Tout *centroids,
-                                                      std::false_type) {
+                                                     std::false_type) {
   DEBUG_TRACE("Tip/tilt filtering is only implemented in single precision");
   return EXIT_SUCCESS;
 }
