@@ -116,7 +116,7 @@ class WfsCompass(SourceCompass):
 
         Compute new modulation points corresponding to the new amplitude value
         and upload them.
-        /!\ WARNING : if you are using slopes-based centroider with the PWFS,
+        WARNING : if you are using slopes-based centroider with the PWFS,
         also update the centroider scale (rtc.set_scale) with the returned
         value
 
@@ -195,7 +195,7 @@ class WfsCompass(SourceCompass):
         """ Create disk object by packing PSF in a given radius, using hexagonal packing
         and set it as modulation pattern
 
-        /!\ There is no modulation
+        There is no modulation
 
         Args:
             wfs_index  : (int) : WFS index
@@ -222,7 +222,7 @@ class WfsCompass(SourceCompass):
         """ Create disk object by packing PSF in a given radius, using square packing
         and set it as modulation pattern
 
-        /!\ There is no modulation
+        There is no modulation
 
         Args:
             wfs_index  : (int) : WFS index
@@ -242,7 +242,7 @@ class WfsCompass(SourceCompass):
         """ Create a square object by packing PSF in a given radius, using square packing
         and set it as modulation pattern
 
-        /!\ There is no modulation
+        There is no modulation
 
         Args:
             wfs_index  : (int) : WFS index

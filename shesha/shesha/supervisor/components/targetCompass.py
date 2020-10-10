@@ -85,9 +85,9 @@ class TargetCompass(SourceCompass):
             return np.fft.fftshift(
                     np.array(self._target.d_targets[tar_index].d_image_se))
         elif (expo_type == "le"):
-            return np.fft.fftshift(
-                    np.array(self._target.d_targets[tar_index].d_image_le)
-            ) / self._target.d_targets[tar_index].strehl_counter
+            nb = self._target.d_targets[tar_index].strehl_counter
+            if nb == 0: nb = 1
+            return np.fft.fftshift(np.array(self._target.d_targets[tar_index].d_image_le)) / nb
         else:
             raise ValueError("Unknown exposure type")
 

@@ -73,13 +73,13 @@ class RtcAbstract(ABC):
 
         Kwargs:
             brahma : (bool, optional) : If True, enables BRAHMA features in RTC (Default is False)
-                                      /!\ Requires BRAHMA to be installed
+                                      Requires BRAHMA to be installed
 
             fp16 : (bool, optional) : If True, enables FP16 features in RTC (Default is False)
-                                      /!\ Requires CUDA_SM>60 to be installed
+                                      Requires CUDA_SM>60 to be installed
 
             cacao : (bool) : If True, enables CACAO features in RTC (Default is False)
-                                      /!\ Requires OCTOPUS to be installed
+                                      Requires OCTOPUS to be installed
         """
         self.brahma = brahma
         self.fp16 = fp16
@@ -620,7 +620,7 @@ class RtcAbstract(ABC):
     def publish(self) -> None:
         """ Publish loop data on DDS topics
 
-        /!\ only with cacao enabled, requires OCTOPUS
+        only with cacao enabled, requires OCTOPUS
         """
         if self.cacao:
             self._rtc.publish()
