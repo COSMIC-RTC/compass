@@ -365,5 +365,6 @@ class ModalBasis(object):
             phase = self._target.get_tar_phase(0, pupil=True)
             # Normalisation pour les unites rms en microns !!!
             norm = np.sqrt(np.sum((phase)**2) / S)
+            if norm == 0: norm = 1
             phase_to_modes[i] = phase / norm
         return phase_to_modes
