@@ -116,6 +116,13 @@ def test_calibrate_img():
     imgCal = (frame - dark) * flat
     assert (relative_array_error(np.array(centro.d_img), imgCal) < precision)
 
+def test_calibrate_img_validPix():
+    centro.calibrate_img_validPix()
+    valid_mask = np.array(centro.d_validMask)
+    valid_mask[np.where(valid_mask)] = 1
+    imgCal = (frame - dark) * flat * valid_mask
+    assert (relative_array_error(np.array(centro.d_img), imgCal) < precision)
+
 
 def test_doCentroids_cog():
     bincube = np.array(sup.wfs._wfs.d_wfs[0].d_bincube)
