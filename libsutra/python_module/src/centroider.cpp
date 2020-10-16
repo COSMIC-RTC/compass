@@ -246,6 +246,11 @@ void centroider_impl(py::module &mod, const char *name) {
            Performs the raw WFS frame calibration
            )pbdoc")
 
+      .def("calibrate_img_validPix", wy::colCast((int (centroider::*)(void)) &
+                       centroider::calibrate_img_validPix), R"pbdoc(
+           Performs the raw WFS frame calibration only on validPix
+           )pbdoc")
+
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝
       //  ███████╗█████╗     ██║      ██║   █████╗  ██████╔╝███████╗
