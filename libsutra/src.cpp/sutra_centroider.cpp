@@ -238,7 +238,7 @@ int SutraCentroider<Tin, Tout>::calibrate_img_validPix(cudaStream_t stream) {
         this->current_context->get_device(this->device), stream);
   } else {
     return calibration_validPix_sh<Tin>(
-        this->d_validMask->get_dims(1), this->npix, this->nvalid,
+        this->npix, this->d_img->get_dims(1), this->nvalid,
         this->d_img_raw->get_data(), this->d_img->get_data(),
         this->d_dark->get_data(), this->d_flat->get_data(),
         this->d_lutPix->get_data(), this->d_validx->get_data(),
