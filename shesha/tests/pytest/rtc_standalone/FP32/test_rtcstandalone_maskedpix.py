@@ -45,7 +45,6 @@ centro.set_flat(flat, frame.shape[0])
 def relative_array_error(array1, array2):
     return np.abs((array1 - array2) / array2.max()).max()
 
-
 def test_doCentroids_maskedPix():
     binimg = np.array(centro.d_img)
     slopes = np.zeros(xvalid.size)
@@ -54,3 +53,13 @@ def test_doCentroids_maskedPix():
         slopes[k] = binimg[xvalid[k], yvalid[k]] / psum
     assert (relative_array_error(ng.array(control.d_centroids).toarray(), slopes) <
             precision)
+            
+def test_calibrate_img_validPix():
+    centro.calibrate_img_validPix()
+    validx = np.array(centro.d_validx)
+    validy = np.array(centro.d_validy)
+    valid_mask = frame*0
+    valid_mask[validx, validy] = 1
+    imgCal = (frame - dark) * flat * valid_mask
+    assert (relative_array_error(np.array(centro.d_img), imgCal) < precision)
+
