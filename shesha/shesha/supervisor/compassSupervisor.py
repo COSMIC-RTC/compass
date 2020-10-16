@@ -87,7 +87,7 @@ class CompassSupervisor(GenericSupervisor):
 
         Kwargs:
             cacao : (bool) : If True, enables CACAO features in RTC (Default is False)
-                                      /!\ Requires OCTOPUS to be installed
+                                      Requires OCTOPUS to be installed
         """
         self.cacao = cacao
         self.telescope = None
