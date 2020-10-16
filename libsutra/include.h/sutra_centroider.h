@@ -100,7 +100,7 @@ public:
   int init_calib(int n, int m);
   int init_roi(int N);
   int set_centroids_ref(float *centroids_ref);
-  int calibrate_img_validPix() { return calibrate_img(0); };
+  int calibrate_img_validPix() { return calibrate_img_validPix(0); };
   int calibrate_img_validPix(cudaStream_t stream);
   int calibrate_img() { return calibrate_img(0); };
   int calibrate_img(cudaStream_t stream);
