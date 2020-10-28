@@ -1,7 +1,7 @@
 #!/bin/bash
 LOCAL_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-if [ -z $1 ]
+if [ -n $1 ]
 then
     COMPASS_INSTALL_ROOT=$1
 fi
