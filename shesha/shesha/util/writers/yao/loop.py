@@ -16,7 +16,7 @@ def write_loop(file_name, loop, controller):
     f.write("\nloop.method     = " + "\"none\"" + ";")  
     f.write("\nloop.leak       = " + str(0.001) + ";")
     f.write("\nloop.gain       = " + str(controller.gain) + ";")
-    f.write("\nloop.framedelay = " + str(controller.delay) + ";")
+    f.write("\nloop.framedelay = " + str(controller.delay+1) + ";") # delay_yao = delay_compass + 1
     f.write("\nloop.niter      = " + str(loop.niter) + ";")
     f.write("\nloop.ittime     = " + str(loop.ittime) + ";")
     f.write("\nloop.skipevery  = " + str(100000) + ";")
