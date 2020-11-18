@@ -34,3 +34,5 @@ def write_general(file_name, geom, controllers, tel, simul_name):
 
     f.write("\ntel.diam = " + str(tel.diam) + ";")
     f.write("\ntel.cobs = " + str(tel.cobs) + ";")
+    f.write("\ndm       = [];")
+    f.write("\nwfs      = [];")
