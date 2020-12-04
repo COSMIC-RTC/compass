@@ -49,6 +49,7 @@ sutra_controller_generic<T, Tout>::sutra_controller_generic(
                                 idx_dms, ndm, idx_centro, ncentro) {
   this->command_law = "integrator";
   this->nstates = nstates;
+  this->leaky_factor = 1.0f;
 
   long dims_data1[2] = {1, nactu + nstates};
   this->d_gain = new CarmaObj<T>(this->current_context, dims_data1);
@@ -146,6 +147,12 @@ sutra_controller_generic<T, Tout>::~sutra_controller_generic() {
 template <typename T, typename Tout>
 int sutra_controller_generic<T, Tout>::set_polc(bool p) {
   this->polc = p;
+  return EXIT_SUCCESS;
+}
+
+template <typename T, typename Tout>
+int sutra_controller_generic<T, Tout>::set_leaky_factor(T factor) {
+  this->leaky_factor = factor;
   return EXIT_SUCCESS;
 }
 
@@ -253,7 +260,7 @@ template <typename T, typename Tout>
 int sutra_controller_generic<T, Tout>::comp_com() {
   this->current_context->set_active_device(this->device, 1);
   CarmaObj<T> *centroids;
-  T berta = T(1.0f);
+  T berta = this->leaky_factor;
   // cudaEvent_t start_event, stop_event;
   // carma_safe_call(cudaEventCreate(&start_event));
   // carma_safe_call(cudaEventCreate(&stop_event));
@@ -263,7 +270,7 @@ int sutra_controller_generic<T, Tout>::comp_com() {
   if (this->polc) {
     this->comp_polc();
     centroids = this->d_olmeas;
-    berta = T(1.0f - this->gain);
+    berta = T(1.0f - this->gain) * this->leaky_factor;
   } else {
     centroids = this->d_centroids;
   }
@@ -304,7 +311,7 @@ int sutra_controller_generic<T, Tout>::comp_com() {
       this->current_context->set_active_device(this->device, 1);
       for (auto dev_id : this->P2Pdevices) {
           cudaStreamWaitEvent(0, this->events[dev_id], 0);
-          this->d_com->axpy(1.0f, this->d_err_ngpu[dev_id], 1,1);
+          this->d_com->axpy(berta, this->d_err_ngpu[dev_id], 1,1);
       }
     // carma_safe_call(cudaEventRecord(stop_event));
     // carma_safe_call(cudaEventSynchronize(stop_event));

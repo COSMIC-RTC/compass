@@ -63,6 +63,7 @@ class sutra_controller_generic : public SutraController<Tcomp, Tout> {
   std::vector<cudaEvent_t> events;
   bool polc;
   int nstates;
+  Tcomp leaky_factor;
 
   string command_law;
 
@@ -82,6 +83,7 @@ class sutra_controller_generic : public SutraController<Tcomp, Tout> {
   int set_commandlaw(string law);
   int set_polc(bool p);
   int set_imat(float *imat);
+  int set_leaky_factor(Tcomp factor);
   int comp_polc();
   int comp_com();
   int fill_cmatPadded();
