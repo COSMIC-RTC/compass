@@ -450,5 +450,4 @@ class BenchSupervisor(GenericSupervisor):
 
         Returns : 2 dictionnaries
         """
-        from shesha.util.exportConfig import export_config
-        return export_config(self)
+        return self.config.export_config()
