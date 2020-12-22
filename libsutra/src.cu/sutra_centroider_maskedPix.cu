@@ -62,14 +62,14 @@ __global__ void get_maskedPix_krnl(T *g_odata, T *ref, float *g_idata,
 template <class T>
 void get_masked_pix(T *d_odata, T *ref, float *d_idata, int *subindx,
                   int *subindy, float *intensities, int ns, int nslopes,
-                  CarmaDevice *device) {
+                  CarmaDevice *device, cudaStream_t stream) {
   // cout << "hello cu" << endl;
 
   int nb_blocks, nb_threads;
   get_num_blocks_and_threads(device, nslopes, nb_blocks, nb_threads);
   dim3 grid(nb_blocks), threads(nb_threads);
 
-  get_maskedPix_krnl<T><<<grid, threads>>>(d_odata, ref, d_idata, subindx,
+  get_maskedPix_krnl<T><<<grid, threads, 0, stream>>>(d_odata, ref, d_idata, subindx,
                                            subindy, intensities, ns, nslopes);
 
   carma_check_msg("get_maskedPix_kernel<<<>>> execution failed\n");
@@ -78,12 +78,12 @@ void get_masked_pix(T *d_odata, T *ref, float *d_idata, int *subindx,
 template void get_masked_pix<float>(float *d_odata, float *ref, float *d_idata,
                                   int *subindx, int *subindy,
                                   float *intensities, int ns, int nslopes,
-                                  CarmaDevice *device);
+                                  CarmaDevice *device, cudaStream_t stream);
 
 #ifdef CAN_DO_HALF
 template void get_masked_pix<half>(half *d_odata, half *ref, float *d_idata,
                                  int *subindx, int *subindy, float *intensities,
-                                 int ns, int nslopes, CarmaDevice *device);
+                                 int ns, int nslopes, CarmaDevice *device, cudaStream_t stream);
 #endif
 
 __global__ void fill_intensities_krnl(float *g_odata, float *g_idata,
@@ -99,12 +99,12 @@ __global__ void fill_intensities_krnl(float *g_odata, float *g_idata,
 }
 
 void fill_intensities(float *d_odata, float *d_idata, int *subindx,
-                      int *subindy, int ns, int nslopes, CarmaDevice *device) {
+                      int *subindy, int ns, int nslopes, CarmaDevice *device, cudaStream_t stream) {
   int nb_blocks, nb_threads;
   get_num_blocks_and_threads(device, nslopes, nb_blocks, nb_threads);
   dim3 grid(nb_blocks), threads(nb_threads);
 
-  fill_intensities_krnl<<<grid, threads>>>(d_odata, d_idata, subindx, subindy,
+  fill_intensities_krnl<<<grid, threads, 0, stream>>>(d_odata, d_idata, subindx, subindy,
                                            ns, nslopes);
 
   carma_check_msg("fill_intensities_kernel<<<>>> execution failed\n");

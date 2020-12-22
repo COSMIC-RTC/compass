@@ -218,7 +218,7 @@ struct CarmaObjInterfacer {
         .def("init_reduceCub", &Class::init_reduceCub,
              "TODO")  // TODO do the documentation...
         // void reduceCub();
-        .def("reduceCub", &Class::reduceCub,
+        .def("reduceCub", (void (Class::*)(void)) &Class::reduceCub,
              "TODO")  // TODO do the documentation...
         // void clip(T_data min, T_data max);
         .def("clip", &Class::clip, "TODO", py::arg("data_min").none(false),

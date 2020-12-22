@@ -286,7 +286,8 @@ class CarmaObj {
   /**< sum */
   T_data sum();
   void init_reduceCub();
-  void reduceCub();
+  void reduceCub(cudaStream_t stream);
+  void reduceCub() {reduceCub(0);};
 
   void clip(T_data min, T_data max);
 
@@ -420,7 +421,7 @@ void init_reduceCubCU(T_data *&cub_data, size_t &cub_data_size, T_data *data,
                       T_data *&o_data, int N);
 template <class T_data>
 void reduceCubCU(T_data *cub_data, size_t cub_data_size, T_data *data,
-                 T_data *o_data, int N);
+                 T_data *o_data, int N, cudaStream_t stream=0);
 
 // CU functions transpose
 template <class T_data>

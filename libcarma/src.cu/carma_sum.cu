@@ -409,26 +409,26 @@ template void init_reduceCubCU<half>(half *&cub_data, size_t &cub_data_size,
 #endif
 
 template <class T>
-void reduceCubCU(T *cub_data, size_t cub_data_size, T *data, T *o_data, int N) {
-  cub::DeviceReduce::Sum(cub_data, cub_data_size, data, o_data, N);
+void reduceCubCU(T *cub_data, size_t cub_data_size, T *data, T *o_data, int N, cudaStream_t stream) {
+  cub::DeviceReduce::Sum(cub_data, cub_data_size, data, o_data, N, stream);
 }
 
 template void reduceCubCU<int>(int *cub_data, size_t cub_data_size, int *data,
-                               int *o_data, int N);
+                               int *o_data, int N, cudaStream_t stream);
 template void reduceCubCU<unsigned int>(unsigned int *cub_data,
                                         size_t cub_data_size,
                                         unsigned int *data,
-                                        unsigned int *o_data, int N);
+                                        unsigned int *o_data, int N, cudaStream_t stream);
 template void reduceCubCU<uint16_t>(uint16_t *cub_data, size_t cub_data_size,
-                                    uint16_t *data, uint16_t *o_data, int N);
+                                    uint16_t *data, uint16_t *o_data, int , cudaStream_t stream);
 template void reduceCubCU<float>(float *cub_data, size_t cub_data_size,
-                                 float *data, float *o_data, int N);
+                                 float *data, float *o_data, int N, cudaStream_t stream);
 template void reduceCubCU<double>(double *cub_data, size_t cub_data_size,
-                                  double *data, double *o_data, int N);
+                                  double *data, double *o_data, int N, cudaStream_t stream);
 template <>
 void reduceCubCU<cuFloatComplex>(cuFloatComplex *cub_data, size_t cub_data_size,
                                  cuFloatComplex *data, cuFloatComplex *o_data,
-                                 int N) {
+                                 int N, cudaStream_t stream) {
   DEBUG_TRACE("Not implemented");
 }
 // template <>
@@ -441,10 +441,10 @@ void reduceCubCU<cuFloatComplex>(cuFloatComplex *cub_data, size_t cub_data_size,
 template <>
 void reduceCubCU<cuDoubleComplex>(cuDoubleComplex *cub_data,
                                   size_t cub_data_size, cuDoubleComplex *data,
-                                  cuDoubleComplex *o_data, int N) {
+                                  cuDoubleComplex *o_data, int N, cudaStream_t stream) {
   DEBUG_TRACE("Not implemented");
 }
 #ifdef CAN_DO_HALF
 template void reduceCubCU<half>(half *cub_data, size_t cub_data_size,
-                                half *data, half *o_data, int N);
+                                half *data, half *o_data, int N, cudaStream_t stream);
 #endif

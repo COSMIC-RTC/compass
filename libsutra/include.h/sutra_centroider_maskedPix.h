@@ -67,7 +67,7 @@ class SutraCentroiderMaskedPix : public SutraCentroider<Tin, T> {
   string get_type();
 
   int get_maskedPix(float *img, float *intensities, T *centroids, int *subindx,
-                    int *subindy, int nvalid, int ns);
+                    int *subindy, int nvalid, int ns, cudaStream_t stream=0);
   int get_cog(float *img, float *intensities, T *centroids, int nvalid,
               int npix, int ntot, cudaStream_t stream=0);
   int get_cog(float *intensities, T *slopes, bool noise);
@@ -77,10 +77,10 @@ class SutraCentroiderMaskedPix : public SutraCentroider<Tin, T> {
 };
 
 void fill_intensities(float *intensities, float *img, int *subindx,
-                      int *subindy, int ns, int nslopes, CarmaDevice *device);
+                      int *subindy, int ns, int nslopes, CarmaDevice *device, cudaStream_t stream=0);
 template <class T>
 void get_masked_pix(T *centroids, T *ref, float *img, int *subindx, int *subindy,
-                  float *psum, int ns, int nslopes, CarmaDevice *device);
+                  float *psum, int ns, int nslopes, CarmaDevice *device, cudaStream_t stream=0);
 template <class T>
 void pyr_fill_selected_pix(T *img, int img_sizex, T *pix, int *subindx, int *subindy,
                       int nvalid, CarmaDevice *device);

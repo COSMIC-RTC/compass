@@ -441,9 +441,9 @@ void CarmaObj<T_data>::init_reduceCub() {
 }
 
 template <class T_data>
-void CarmaObj<T_data>::reduceCub() {
+void CarmaObj<T_data>::reduceCub(cudaStream_t stream) {
   reduceCubCU(this->cub_data, this->cub_data_size, this->d_data, this->o_data,
-              this->nb_elem);
+              this->nb_elem, stream);
 }
 
 template <class T_data>

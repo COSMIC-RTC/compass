@@ -221,7 +221,7 @@ struct CarmaObjComplexInterfacer {
     carmaWrapObj.def("init_reduceCub", &Class::init_reduceCub,
                      "TODO");  // TODO do the documentation...
     // void reduceCub();
-    carmaWrapObj.def("reduceCub", &Class::reduceCub,
+    carmaWrapObj.def("reduceCub", (void (Class::*)(void)) &Class::reduceCub,
                      "TODO");  // TODO do the documentation...
     // void clip(T_data min, T_data max);
     // carmaWrapObj.def(

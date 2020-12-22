@@ -137,25 +137,25 @@ int SutraCentroiderMaskedPix<Tin, T>::get_cog(float *img, float *intensities,
   // TODO(Implement SutraCentroiderMaskedPix<Tin, T>::get_cog)
 
   return get_maskedPix(img, intensities, centroids, this->d_validx->get_data(),
-                       this->d_validy->get_data(), this->nvalid, ntot);
+                       this->d_validy->get_data(), this->nvalid, ntot, stream);
 }
 
 template <class Tin, class T>
 int SutraCentroiderMaskedPix<Tin, T>::get_maskedPix(
     float *img, float *intensities, T *centroids, int *subindx, int *subindy,
-    int nvalid, int ns) {
+    int nvalid, int ns, cudaStream_t stream) {
   this->current_context->set_active_device(this->device, 1);
 
   fill_intensities(this->d_intensities->get_data(), img, subindx, subindy, ns,
                    this->nslopes,
-                   this->current_context->get_device(this->device));
+                   this->current_context->get_device(this->device), stream);
 
   // T p_sum = reduce<T>(this->d_intensities->get_data(), this->nslopes);
-  this->d_intensities->reduceCub();
+  this->d_intensities->reduceCub(stream);
 
   get_masked_pix<T>(centroids, this->d_centroids_ref->get_data(), img, subindx,
                   subindy, this->d_intensities->get_o_data(), ns, this->nslopes,
-                  this->current_context->get_device(this->device));
+                  this->current_context->get_device(this->device), stream);
 
   if (this->filter_TT) {
     this->apply_TT_filter(centroids);
