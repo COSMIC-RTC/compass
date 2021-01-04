@@ -104,7 +104,7 @@ class SutraController {
   map<string, tuple<CarmaObj<Tcomp> *, int, bool>> d_perturb_map;
   // perturbation command buffer
 
-  CarmaStreams *streams;
+  cudaStream_t mainStream;
 
   // allocation of d_centroids and d_com
   SutraController(CarmaContext *context, int nvalid, int nslope, int nactu,
@@ -161,12 +161,12 @@ class SutraController {
 template <typename Tin, typename Tout>
 typename std::enable_if<std::is_same<Tin, Tout>::value, void>::type
 convert_to_voltage(Tin *d_idata, Tout *d_odata, int N, float volt_min, float volt_max,
-                 uint16_t val_max, CarmaDevice *device){};
+                 uint16_t val_max, CarmaDevice *device, cudaStream_t stream){};
 
 template <typename Tin, typename Tout>
 typename std::enable_if<!std::is_same<Tin, Tout>::value, void>::type
 convert_to_voltage(Tin *d_idata, Tout *d_odata, int N, float volt_min, float volt_max,
-                 uint16_t val_max, CarmaDevice *device);
+                 uint16_t val_max, CarmaDevice *device, cudaStream_t stream);
 
 int shift_buf(float *d_data, int offset, int N, CarmaDevice *device);
 int fill_filtmat(float *filter, int nactu, int N, CarmaDevice *device);

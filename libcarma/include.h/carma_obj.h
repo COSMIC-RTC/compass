@@ -261,6 +261,7 @@ class CarmaObj {
 
   int copy_into(T_data *data, int nb_elem);
   int copy_from(const T_data *data, int nb_elem);
+  int copy_from_async(const T_data *data, int nb_elem, cudaStream_t stream);
 
 #ifdef USE_OCTOPUS
   int copy_into(ipc::Cacao<T_data> *cacaoInterface);
@@ -289,7 +290,8 @@ class CarmaObj {
   void reduceCub(cudaStream_t stream);
   void reduceCub() {reduceCub(0);};
 
-  void clip(T_data min, T_data max);
+  void clip(T_data min, T_data max, cudaStream_t stream);
+  void clip(T_data min, T_data max) {clip(min, max, 0);};
 
   /**< transpose */
   int transpose(CarmaObj<T_data> *source);
@@ -407,7 +409,7 @@ std::ostream &operator<<(std::ostream &os, CarmaObj<T_data> &obj) {
 // CU functions clip
 template <class T_data>
 void clip_array(T_data *d_data, T_data min, T_data max, int N,
-                CarmaDevice *device);
+                CarmaDevice *device, cudaStream_t stream);
 
 // CU functions sum
 template <class T_data>

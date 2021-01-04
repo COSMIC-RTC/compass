@@ -58,11 +58,6 @@ sutra_controller_mv<Tcomp, Tout>::sutra_controller_mv(
                                    dms, idx_dms, ndm, idx_centro, ncentro) {
   this->gain = 0.0;
 
-  //  this->nstreams = 1; //nvalid/10;
-  //  while (this->nactu() % this->nstreams != 0)
-  //    nstreams--;
-  //  std::cerr << "controller uses " << nstreams << " streams" << std::endl;
-  //  streams = new CarmaStreams(nstreams);
   long dims_data2[3];
   dims_data2[0] = 2;
   dims_data2[1] = this->nslope();
@@ -947,34 +942,10 @@ int sutra_controller_mv<Tcomp, Tout>::comp_com() {
                     *this->d_centroids, this->nslope(), -1.0, *d_compbuff2,
                     this->nslope(), *d_olmeas, this->nslope());
 
-  int nstreams = this->streams->get_nb_streams();
-  if (nstreams > 1) {
-    Tcomp alpha = -1.0;
-    Tcomp beta = 0.0;
-
-    for (int i = 0; i < nstreams; i++) {
-      int istart1 =
-          i * this->d_cmat->get_dims(2) * this->d_cmat->get_dims(1) / nstreams;
-      int istart2 = i * this->d_cmat->get_dims(1) / nstreams;
-
-      cublasSetStream(cublas_handle, this->streams->get_stream(i));
-
-      cublasOperation_t trans = carma_char2cublas_operation('n');
-
-      carma_checkCublasStatus(cublasSgemv(
-          cublas_handle, trans, this->d_cmat->get_dims(1) / nstreams,
-          this->d_cmat->get_dims(2), &alpha, this->d_cmat->get_data_at(istart1),
-          this->d_cmat->get_dims(1) / nstreams, *d_olmeas, 1, &beta,
-          this->d_err->get_data_at(istart2), 1));
-    }
-
-    this->streams->wait_all_streams();
-
-  } else {
     // compute error
     this->d_err->gemv('n', -1.0, this->d_cmat, this->d_cmat->get_dims(1),
                       d_olmeas, 1, 0.0, 1);  // POLC --> d_olmeas
-  }
+  
   /*
    mult_int(this->d_com, this->d_err,
    this->d_gain, this->gain, this->nactu(),

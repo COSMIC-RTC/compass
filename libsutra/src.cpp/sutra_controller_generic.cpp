@@ -75,14 +75,22 @@ sutra_controller_generic<T, Tout>::sutra_controller_generic(
     }
   }
   cudaEvent_t ev[this->P2Pdevices.size()];
+  cudaStream_t st[this->P2Pdevices.size()];
   for (auto dev_id : this->P2Pdevices) {
     this->current_context->set_active_device(dev_id, 1);
-    cudaEventCreate(&ev[dev_id]);
+    cudaEventCreateWithFlags(&ev[dev_id], cudaEventDisableTiming);
     this->events.push_back(ev[dev_id]);
     this->d_err_ngpu.push_back(new CarmaObj<T>(this->current_context, dims_data1));
+    if (dev_id != this->device) {
+      cudaStreamCreate(&st[dev_id]);
+      this->streams.push_back(st[dev_id]);
+    }
+    else {
+      this->streams.push_back(this->mainStream);
+    }
   }
   this->current_context->set_active_device(this->device, 1);
-
+  cudaEventCreateWithFlags(&start_mvm_event, cudaEventDisableTiming);
   this->d_cmatPadded = nullptr;
   dims_data1[1] = this->nslope();
   this->d_olmeas = new CarmaObj<T>(this->current_context, dims_data1);
@@ -290,6 +298,7 @@ int sutra_controller_generic<T, Tout>::comp_com() {
     //                 current_context->get_device(device)->get_stream());
     // carma_safe_call(cudaEventRecord(start_event));
     if(this->P2Pdevices.size() > 1) {
+      cudaEventRecord(start_mvm_event, this->streams[this->device]);
       int cpt = 0;
       int cc = 0;
       for (auto dev_id : this->P2Pdevices) {
@@ -300,17 +309,20 @@ int sutra_controller_generic<T, Tout>::comp_com() {
           else {
             n = this->nslope() / this->P2Pdevices.size();
           }
+          cublasSetStream(this->cublas_handle(), this->streams[dev_id]);
+          cudaStreamWaitEvent(this->streams[dev_id], start_mvm_event, 0); // make sure mainstream is ready before launching sub mvm
           carma_gemv(this->cublas_handle(), 'n', m, n, (T)(-1 * this->gain),
                 this->d_cmat_ngpu[cpt]->get_data(), m, centroids->get_data() + cc, 1, T(0.f),
                 this->d_err_ngpu[cpt]->get_data(), 1);
-          cudaEventRecord(this->events[dev_id]);
+          cudaEventRecord(this->events[dev_id], this->streams[dev_id]);
           cc += n;
           cpt ++;
       }
       // Finally, we reduce all the results
       this->current_context->set_active_device(this->device, 1);
+      cublasSetStream(this->cublas_handle(), this->streams[this->device]);
       for (auto dev_id : this->P2Pdevices) {
-          cudaStreamWaitEvent(0, this->events[dev_id], 0);
+          cudaStreamWaitEvent(this->streams[this->device], this->events[dev_id], 0);
           this->d_com->axpy(berta, this->d_err_ngpu[dev_id], 1,1);
       }
     // carma_safe_call(cudaEventRecord(stop_event));
@@ -319,6 +331,7 @@ int sutra_controller_generic<T, Tout>::comp_com() {
     // DEBUG_TRACE("GEMV DONE IN %f ms", gpuTime);
 
     } else { // Single GPU case or P2P not available between all GPUs
+      cublasSetStream(this->cublas_handle(), this->mainStream);
       carma_gemv(this->cublas_handle(), 'n', m, n, (T)(-1 * this->gain),
                cmat->get_data(), m, centroids->get_data(), 1, berta,
                this->d_com->get_data(), 1);
@@ -352,6 +365,7 @@ int sutra_controller_generic<T, Tout>::comp_com() {
       this->d_com->axpy((T)1.0f, this->d_compbuff, 1, 1);
     }
   }
+  cublasSetStream(this->cublas_handle(), this->mainStream);
   //   cudaEventDestroy(start_event);
   // cudaEventDestroy(stop_event);
   return EXIT_SUCCESS;

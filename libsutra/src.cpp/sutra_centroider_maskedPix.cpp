@@ -65,7 +65,7 @@ SutraCentroiderMaskedPix<Tin, T>::SutraCentroiderMaskedPix(
   this->d_intensities->init_reduceCub();
   long dims_data2[2] = {1, this->nslopes};
   this->d_centroids_ref = new CarmaObj<T>(this->current_context, dims_data2);
-  this->d_centroids_ref->reset();
+  this->d_centroids_ref->memset(1);
   this->d_selected_pix = nullptr;
   this->d_mask = nullptr;
 

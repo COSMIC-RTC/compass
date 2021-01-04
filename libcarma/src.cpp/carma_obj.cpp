@@ -372,6 +372,21 @@ int CarmaObj<T_data>::copy_from(const T_data *data, int nb_elem) {
   return EXIT_SUCCESS;
 }
 
+template <class T_data>
+int CarmaObj<T_data>::copy_from_async(const T_data *data, int nb_elem, cudaStream_t stream) {
+  /** \brief device2host data transfer.
+   * \param data : output data
+   *
+   * this method copies the values in d_output to the output array
+   */
+  if (nb_elem > this->nb_elem) nb_elem = this->nb_elem;
+
+  carma_safe_call(cudaMemcpyAsync(this->d_data, data, sizeof(T_data) * nb_elem,
+                           cudaMemcpyDeviceToDevice, stream));
+
+  return EXIT_SUCCESS;
+}
+
 #ifdef USE_OCTOPUS
 template <class T_data>
 int CarmaObj<T_data>::copy_into(ipc::Cacao<T_data> *cacaoInterface) {
@@ -447,9 +462,9 @@ void CarmaObj<T_data>::reduceCub(cudaStream_t stream) {
 }
 
 template <class T_data>
-void CarmaObj<T_data>::clip(T_data min, T_data max) {
+void CarmaObj<T_data>::clip(T_data min, T_data max, cudaStream_t stream) {
   clip_array<T_data>(this->d_data, min, max, this->nb_elem,
-                     this->current_context->get_device(device));
+                     this->current_context->get_device(device), stream);
 }
 
 template <class T_data>

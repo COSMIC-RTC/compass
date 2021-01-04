@@ -63,3 +63,9 @@ def test_calibrate_img_validPix():
     imgCal = (frame - dark) * flat * valid_mask
     assert (relative_array_error(np.array(centro.d_img), imgCal) < precision)
 
+def test_do_control_generic():
+    slopes = np.array(control.d_centroids)
+    gain = control.gain
+    cmat = np.array(control.d_cmat)
+    commands = cmat.dot(slopes) * gain * (-1)
+    assert (relative_array_error(np.array(control.d_com), commands) < precision)

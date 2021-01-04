@@ -58,12 +58,8 @@ SutraController<Tcomp, Tout>::SutraController(CarmaContext *context,
   this->d_com_padded = nullptr;
   this->d_centroids_padded = nullptr;
 
-  int nstreams = 1;  // nvalid/10;
-
-  while (nactu % nstreams != 0) nstreams--;
-
-  std::cerr << "controller uses " << nstreams << " streams" << std::endl;
-  streams = new CarmaStreams(nstreams);
+  this->mainStream = NULL;
+  cublasSetStream(this->cublas_handle(), this->mainStream);
 
   this->open_loop = 0;
   if (std::is_same<Tout, uint16_t>::value) {
@@ -247,7 +243,7 @@ template <typename Tcomp, typename Tout>
 int SutraController<Tcomp, Tout>::clip_commands() {
   current_context->set_active_device(device, 1);
   if (this->volt_min < this->volt_max)
-    this->d_com_clipped->clip(this->volt_min, this->volt_max);
+    this->d_com_clipped->clip(this->volt_min, this->volt_max, this->mainStream);
   else
     DEBUG_TRACE(
         "volt_max value must be greater than volt_min value. Nothing has been done.");
@@ -275,15 +271,15 @@ int SutraController<Tcomp, Tout>::comp_voltage() {
     this->comp_latency();
     this->command_delay();
   } else {
-    this->d_com_clipped->copy_from(this->d_com->get_data(),
-                                 this->d_com_clipped->get_nb_elements());
+    this->d_com_clipped->copy_from_async(this->d_com->get_data(),
+                                 this->d_com_clipped->get_nb_elements(), this->mainStream);
   }
   this->add_perturb();
   this->clip_commands();
   convert_to_voltage<Tcomp, Tout>(
       this->d_com_clipped->get_data(), this->d_voltage->get_data(), this->nactu(),
       this->volt_min, this->volt_max, this->val_max,
-      this->current_context->get_device(this->device));
+      this->current_context->get_device(this->device), this->mainStream);
 
   return EXIT_SUCCESS;
 }
@@ -312,7 +308,6 @@ int SutraController<Tcomp, Tout>::add_perturb() {
 
 template <typename Tcomp, typename Tout>
 SutraController<Tcomp, Tout>::~SutraController() {
-  delete this->streams;
 
   if (this->d_centroids != nullptr) delete this->d_centroids;
   if (this->d_centroids_padded != nullptr) delete this->d_centroids_padded;

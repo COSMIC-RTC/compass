@@ -288,7 +288,6 @@ int sutra_controller_ls<T, Tout>::comp_com() {
   this->current_context->set_active_device(this->device, 1);
 
   // this->frame_delay();
-  int nstreams = this->streams->get_nb_streams();
 
   // Modal Control Optimization
   if (this->is_modopti) {
@@ -301,52 +300,22 @@ int sutra_controller_ls<T, Tout>::comp_com() {
   }
 
   // INTEGRATOR
-  if (nstreams > 1) {
-    T alpha = -1.0f;
-    T beta = 0.0f;
+  //    T *cmat=(T*)malloc(this->d_cmat->get_nb_elements()*sizeof(T));
+  //    d_cmat->device2host(cmat);
+  //    DEBUG_TRACE("here %f %f %d", cmat[0], this->gain, this->open_loop);
+  // compute error
+  this->d_err->gemv('n', -1.0f, this->d_cmat, this->d_cmat->get_dims(1),
+                    this->d_centroids, 1, 0.0f, 1);
 
-    for (int i = 0; i < nstreams; i++) {
-      int istart1 =
-          i * this->d_cmat->get_dims(2) * this->d_cmat->get_dims(1) / nstreams;
-      int istart2 = i * this->d_cmat->get_dims(1) / nstreams;
-
-      // cout << istart1 << " " << istart2 << endl;
-
-      cublasSetStream(this->cublas_handle(), this->streams->get_stream(i));
-
-      cublasOperation_t trans = carma_char2cublas_operation('n');
-
-      carma_checkCublasStatus(cublasSgemv(
-          this->cublas_handle(), trans, this->d_cmat->get_dims(1) / nstreams,
-          this->d_cmat->get_dims(2), &alpha,
-          &((this->d_cmat->get_data())[istart1]),
-          this->d_cmat->get_dims(1) / nstreams, this->d_centroids->get_data(), 1,
-          &beta, &((this->d_err->get_data())[istart2]), 1));
-    }
-
+  // apply modal gain & loop gain
+  if (this->is_modopti)
+    mult_int(this->d_com->get_data(), this->d_err->get_data(), this->gain,
+              this->nactu(), this->current_context->get_device(this->device));
+  else
     mult_int(this->d_com->get_data(), this->d_err->get_data(),
-             this->d_gain->get_data(), this->gain, this->nactu(),
-             this->current_context->get_device(this->device), this->streams);
+              this->d_gain->get_data(), this->gain, this->nactu(),
+              this->current_context->get_device(this->device));
 
-    this->streams->wait_all_streams();
-
-  } else {
-    //    T *cmat=(T*)malloc(this->d_cmat->get_nb_elements()*sizeof(T));
-    //    d_cmat->device2host(cmat);
-    //    DEBUG_TRACE("here %f %f %d", cmat[0], this->gain, this->open_loop);
-    // compute error
-    this->d_err->gemv('n', -1.0f, this->d_cmat, this->d_cmat->get_dims(1),
-                      this->d_centroids, 1, 0.0f, 1);
-
-    // apply modal gain & loop gain
-    if (this->is_modopti)
-      mult_int(this->d_com->get_data(), this->d_err->get_data(), this->gain,
-               this->nactu(), this->current_context->get_device(this->device));
-    else
-      mult_int(this->d_com->get_data(), this->d_err->get_data(),
-               this->d_gain->get_data(), this->gain, this->nactu(),
-               this->current_context->get_device(this->device));
-  }
 
   return EXIT_SUCCESS;
 }

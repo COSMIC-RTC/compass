@@ -61,6 +61,8 @@ class sutra_controller_generic : public SutraController<Tcomp, Tout> {
   std::vector<CarmaObj<Tcomp> *> d_cmat_ngpu;
   std::vector<int> P2Pdevices;
   std::vector<cudaEvent_t> events;
+  cudaEvent_t start_mvm_event;
+  std::vector<cudaStream_t> streams;
   bool polc;
   int nstates;
   Tcomp leaky_factor;

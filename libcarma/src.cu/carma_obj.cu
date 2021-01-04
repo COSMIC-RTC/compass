@@ -138,41 +138,41 @@ __global__ void krnl_clip(T_data *data, T_data min, T_data max, int N) {
 
 template <class T_data>
 void clip_array(T_data *d_data, T_data min, T_data max, int N,
-                CarmaDevice *device) {
+                CarmaDevice *device, cudaStream_t stream) {
   int nb_blocks, nb_threads;
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
 
   dim3 grid(nb_blocks), threads(nb_threads);
   //  dim3 grid(128), threads(128);
 
-  krnl_clip<<<grid, threads>>>(d_data, min, max, N);
+  krnl_clip<<<grid, threads, 0, stream>>>(d_data, min, max, N);
   carma_check_msg("krnl_clip<<<>>> execution failed\n");
 }
 
 template void clip_array<int>(int *d_data, int min, int max, int N,
-                              CarmaDevice *device);
+                              CarmaDevice *device, cudaStream_t stream);
 template void clip_array<unsigned int>(unsigned int *d_data, unsigned int min,
                                        unsigned int max, int N,
-                                       CarmaDevice *device);
+                                       CarmaDevice *device, cudaStream_t stream);
 template void clip_array<float>(float *d_data, float min, float max, int N,
-                                CarmaDevice *device);
+                                CarmaDevice *device, cudaStream_t stream);
 template void clip_array<uint16_t>(uint16_t *d_data, uint16_t min, uint16_t max,
-                                   int N, CarmaDevice *device);
+                                   int N, CarmaDevice *device, cudaStream_t stream);
 
 template void clip_array<double>(double *d_data, double min, double max, int N,
-                                 CarmaDevice *device);
+                                 CarmaDevice *device, cudaStream_t stream);
 #ifdef CAN_DO_HALF
 template void clip_array<half>(half *d_data, half min, half max, int N,
-                               CarmaDevice *device);
+                               CarmaDevice *device, cudaStream_t stream);
 #endif
 template <>
 void clip_array(cuFloatComplex *d_data, cuFloatComplex min, cuFloatComplex max,
-                int N, CarmaDevice *device) {
+                int N, CarmaDevice *device, cudaStream_t stream) {
   throw "not implemented";
 }
 template <>
 void clip_array(cuDoubleComplex *d_data, cuDoubleComplex min,
-                cuDoubleComplex max, int N, CarmaDevice *device) {
+                cuDoubleComplex max, int N, CarmaDevice *device, cudaStream_t stream) {
   throw "not implemented";
 }
 // template <>
