@@ -271,6 +271,11 @@ class CarmaObj {
   inline int reset() {
     return cudaMemset(this->d_data, 0, this->nb_elem * sizeof(T_data));
   }
+
+  inline int reset(cudaStream_t stream) {
+    return cudaMemsetAsync(this->d_data, 0, this->nb_elem * sizeof(T_data), stream);
+  }
+
   inline int memset(T_data value) {
     return fill_array_with_value(
         this->d_data, value, this->nb_elem,

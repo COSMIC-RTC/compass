@@ -210,7 +210,7 @@ struct CarmaObjHalfInterfacer {
                      (int (Class::*)(ipc::Cacao<T> *)) & Class::copy_from);
 #endif
     // inline int reset()
-    carmaWrapObj.def("reset", &Class::reset,
+    carmaWrapObj.def("reset", (int (Class::*)(void)) &Class::reset,
                      "TODO");  // TODO do the documentation...
   }
 };

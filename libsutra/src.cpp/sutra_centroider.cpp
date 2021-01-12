@@ -226,7 +226,7 @@ int SutraCentroider<Tin, Tout>::calibrate_img_validPix(cudaStream_t stream) {
   const long *dims = this->d_img_raw->get_dims();
   init_calib(dims[1], dims[2]);
 
-  this->d_img->reset();
+  this->d_img->reset(stream);
   string type = get_type();
 
   if ((type == "maskedpix") || (type == "pyrhr")) {

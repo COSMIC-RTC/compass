@@ -209,7 +209,7 @@ struct CarmaObjInterfacer {
         .def("copy_from",(int (Class::*)(ipc::Cacao<T>*))&Class::copy_from)
 #endif
         // inline int reset()
-        .def("reset", &Class::reset, "TODO")  // TODO do the documentation...
+        .def("reset", (int (Class::*)(void)) &Class::reset, "TODO")  // TODO do the documentation...
 
         /**< sum */
         // T_data sum();
