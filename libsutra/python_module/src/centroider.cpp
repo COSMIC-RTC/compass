@@ -291,7 +291,7 @@ void centroider_impl(py::module &mod, const char *name) {
 
         Parameters
         ------------
-        dark: (np.ndarray[ndim=2, dtype=np.float32_t): dark frame
+        dark: (np.ndarray[ndim=2, dtype=np.float32_t): dark frame (size n by n)
         n: (int): image support size
     )pbdoc",
            py::arg("dark"), py::arg("n"))
@@ -301,7 +301,7 @@ void centroider_impl(py::module &mod, const char *name) {
 
         Parameters
         ------------
-        flat: (np.ndarray[ndim=2, dtype=np.float32_t): flat frame
+        flat: (np.ndarray[ndim=2, dtype=np.float32_t): flat frame (size n by n)
         n: (int): image support size
     )pbdoc",
            py::arg("flat"), py::arg("n"))
