@@ -50,7 +50,7 @@ def test_doCentroids_maskedPix():
     slopes = np.zeros(xvalid.size)
     psum = binimg[xvalid, yvalid].sum() / slopes.size
     for k in range(slopes.size):
-        slopes[k] = binimg[xvalid[k], yvalid[k]] / psum
+        slopes[k] = binimg[xvalid[k], yvalid[k]] / psum - 1
     assert (relative_array_error(ng.array(control.d_centroids).toarray(), slopes) <
             precision)
             

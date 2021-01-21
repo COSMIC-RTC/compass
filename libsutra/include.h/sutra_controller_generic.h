@@ -58,6 +58,7 @@ class sutra_controller_generic : public SutraController<Tcomp, Tout> {
   CarmaObj<Tcomp> *d_olmeas;  // Open-loop measurements for POLC
   CarmaObj<Tcomp> *d_imat;
   std::vector<CarmaObj<Tcomp> *> d_err_ngpu;
+  std::vector<CarmaObj<Tcomp> *> d_centroids_ngpu;
   std::vector<CarmaObj<Tcomp> *> d_cmat_ngpu;
   std::vector<int> P2Pdevices;
   std::vector<cudaEvent_t> events;
@@ -66,7 +67,6 @@ class sutra_controller_generic : public SutraController<Tcomp, Tout> {
   bool polc;
   int nstates;
   Tcomp leaky_factor;
-
   string command_law;
 
  public:

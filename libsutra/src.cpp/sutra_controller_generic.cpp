@@ -95,23 +95,27 @@ sutra_controller_generic<T, Tout>::sutra_controller_generic(
   dims_data1[1] = this->nslope();
   this->d_olmeas = new CarmaObj<T>(this->current_context, dims_data1);
   this->d_compbuff2 = new CarmaObj<T>(this->current_context, dims_data1);
-
   long dims_data2[3] = {2, nactu + nstates, nslope};
   this->d_cmat = new CarmaObj<T>(this->current_context, dims_data2);
   this->d_cmat_ngpu.push_back(this->d_cmat);
+  this->d_centroids_ngpu.push_back(this->d_centroids);
   if(this->P2Pdevices.size() > 1) {
     dims_data2[2] = this->nslope() / this->P2Pdevices.size();
+    dims_data1[1] = this->nslope() / this->P2Pdevices.size();
     for (auto dev_id : this->P2Pdevices) {
       if(dev_id != this->P2Pdevices.back() && dev_id != this->device) {
         this->current_context->set_active_device(dev_id, 1);
         this->d_cmat_ngpu.push_back(new CarmaObj<T>(this->current_context, dims_data2));
+        this->d_centroids_ngpu.push_back(new CarmaObj<T>(this->current_context, dims_data1));
       }
     }
     int dev_id = this->P2Pdevices.back();
     int cpt = this->P2Pdevices.size() - 1;
     dims_data2[2] = this->nslope() - cpt * (this->nslope() / this->P2Pdevices.size());
+    dims_data1[1] = this->nslope() - cpt * (this->nslope() / this->P2Pdevices.size());
     this->current_context->set_active_device(dev_id, 1);
     this->d_cmat_ngpu.push_back(new CarmaObj<T>(this->current_context, dims_data2));
+    this->d_centroids_ngpu.push_back(new CarmaObj<T>(this->current_context, dims_data1));
 
     this->current_context->set_active_device(this->device, 1);
   }
@@ -282,6 +286,18 @@ int sutra_controller_generic<T, Tout>::comp_com() {
   } else {
     centroids = this->d_centroids;
   }
+  int cc = this->nslope() / this->P2Pdevices.size();
+  for (auto dev_id : this->P2Pdevices) {
+    if(dev_id != this->device) {
+      this->current_context->set_active_device(dev_id, 1);
+      cudaMemcpyAsync(d_centroids_ngpu[dev_id]->get_data(), 
+                    centroids->get_data() + cc, 
+                    d_centroids_ngpu[dev_id]->get_nb_elements() * sizeof(T),
+                    cudaMemcpyDeviceToDevice,
+                    this->streams[dev_id]);
+      cc += d_centroids_ngpu[dev_id]->get_nb_elements();
+    }
+  }
   CarmaObj<T> *cmat;
   // if (std::is_same<T, half>::value) {
   //   cmat = this->d_cmatPadded;
@@ -299,12 +315,10 @@ int sutra_controller_generic<T, Tout>::comp_com() {
     // carma_safe_call(cudaEventRecord(start_event));
     if(this->P2Pdevices.size() > 1) {
       cudaEventRecord(start_mvm_event, this->streams[this->device]);
-      int cpt = 0;
-      int cc = 0;
       for (auto dev_id : this->P2Pdevices) {
           this->current_context->set_active_device(dev_id, 1);
           if(dev_id != this->device) {
-            n = this->d_cmat_ngpu[cpt]->get_dims()[2];
+            n = this->d_cmat_ngpu[dev_id]->get_dims()[2];
           }
           else {
             n = this->nslope() / this->P2Pdevices.size();
@@ -312,11 +326,9 @@ int sutra_controller_generic<T, Tout>::comp_com() {
           cublasSetStream(this->cublas_handle(), this->streams[dev_id]);
           cudaStreamWaitEvent(this->streams[dev_id], start_mvm_event, 0); // make sure mainstream is ready before launching sub mvm
           carma_gemv(this->cublas_handle(), 'n', m, n, (T)(-1 * this->gain),
-                this->d_cmat_ngpu[cpt]->get_data(), m, centroids->get_data() + cc, 1, T(0.f),
+                this->d_cmat_ngpu[cpt]->get_data(), m, d_centroids_ngpu[dev_id]->get_data(), 1, T(0.f),
                 this->d_err_ngpu[cpt]->get_data(), 1);
           cudaEventRecord(this->events[dev_id], this->streams[dev_id]);
-          cc += n;
-          cpt ++;
       }
       // Finally, we reduce all the results
       this->current_context->set_active_device(this->device, 1);
