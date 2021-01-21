@@ -326,8 +326,8 @@ int sutra_controller_generic<T, Tout>::comp_com() {
           cublasSetStream(this->cublas_handle(), this->streams[dev_id]);
           cudaStreamWaitEvent(this->streams[dev_id], start_mvm_event, 0); // make sure mainstream is ready before launching sub mvm
           carma_gemv(this->cublas_handle(), 'n', m, n, (T)(-1 * this->gain),
-                this->d_cmat_ngpu[cpt]->get_data(), m, d_centroids_ngpu[dev_id]->get_data(), 1, T(0.f),
-                this->d_err_ngpu[cpt]->get_data(), 1);
+                this->d_cmat_ngpu[dev_id]->get_data(), m, d_centroids_ngpu[dev_id]->get_data(), 1, T(0.f),
+                this->d_err_ngpu[dev_id]->get_data(), 1);
           cudaEventRecord(this->events[dev_id], this->streams[dev_id]);
       }
       // Finally, we reduce all the results
