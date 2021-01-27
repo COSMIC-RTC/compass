@@ -289,12 +289,11 @@ int sutra_controller_generic<T, Tout>::comp_com() {
   int cc = this->nslope() / this->P2Pdevices.size();
   for (auto dev_id : this->P2Pdevices) {
     if(dev_id != this->device) {
-      this->current_context->set_active_device(dev_id, 1);
       cudaMemcpyAsync(d_centroids_ngpu[dev_id]->get_data(), 
                     centroids->get_data() + cc, 
                     d_centroids_ngpu[dev_id]->get_nb_elements() * sizeof(T),
                     cudaMemcpyDeviceToDevice,
-                    this->streams[dev_id]);
+                    this->streams[this->device]);
       cc += d_centroids_ngpu[dev_id]->get_nb_elements();
     }
   }
