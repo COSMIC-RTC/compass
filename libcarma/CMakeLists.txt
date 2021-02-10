@@ -77,14 +77,14 @@ if (${CUDA_VERSION} LESS 11)
 set(CUB_TARGET "CONAN_PKG::cub")
 endif()
 
-pkg_check_modules(MAGMA magma)
+#pkg_check_modules(MAGMA magma)
 if(${MAGMA_FOUND})
   link_directories(${MAGMA_LIBRARY_DIRS})
 else()
   message(STATUS "MAGMA not found, MAGMA features disabled")
 endif()
 
-pkg_check_modules(OCTOPUS octopus)
+#pkg_check_modules(OCTOPUS octopus)
 if(${OCTOPUS_FOUND})
   link_directories(${OCTOPUS_LIBRARY_DIRS})
 else()
@@ -145,7 +145,7 @@ target_compile_definitions(
   PUBLIC
   CUDA_HIGHEST_SM=${CUDA_HIGHEST_SM}
   CUDA_LOWEREST_SM=${CUDA_LOWEREST_SM}
-  $<$<COMPILE_LANGUAGE:CXX>:VERSION_INFO=${VERSION_INFO} USE_UVA>
+  $<$<COMPILE_LANGUAGE:CXX>:VERSION_INFO=${VERSION_INFO}> # USE_P2P_ACCESS>
   )
 
 target_link_libraries(carma

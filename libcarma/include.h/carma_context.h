@@ -61,7 +61,6 @@ class CarmaDevice {
   cudaDeviceProp properties;
   float compute_perf;
   float cores_per_sm;
-  bool p2p_activate;
   size_t free_mem;
   size_t total_mem;
 
@@ -81,8 +80,6 @@ class CarmaDevice {
   float get_compute_perf() { return compute_perf; }
   float get_cores_per_sm() { return cores_per_sm; }
   bool is_gpu_capable_p2p() { return (bool)(properties.major >= 2); }
-
-  bool is_p2p_activate() { return p2p_activate; }
 
   std::string get_name() { return properties.name; }
 

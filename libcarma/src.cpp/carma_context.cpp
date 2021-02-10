@@ -72,8 +72,6 @@ CarmaDevice::CarmaDevice(int devid) {
   this->compute_perf = this->properties.multiProcessorCount *
                        this->cores_per_sm * this->properties.clockRate;
 
-  this->p2p_activate = false;
-
   carma_safe_call(cudaMemGetInfo(&total_mem, &total_mem));
 
   carma_init_cublas(&cublas_handle);
@@ -211,7 +209,7 @@ void CarmaContext::init_context(const int nb_devices, int32_t *devices_id) {
     }
   }
 
-#ifdef USE_UVA
+#ifdef USE_P2P_ACCESS
 
   int gpuid[this->ndevice];  // we want to find the first two GPU's that can
                              // support P2P
@@ -225,11 +223,7 @@ void CarmaContext::init_context(const int nb_devices, int32_t *devices_id) {
   }
 
   if (gpu_count > 1) {
-    bool has_uva = true;
-
     for (int i = 0; i < gpu_count - 1; i++) {
-      has_uva &= devices[gpuid[i]]->get_properties().unifiedAddressing;
-
       for (int j = i + 1; j < gpu_count; j++) {
         carma_safe_call(cudaDeviceCanAccessPeer(
             &can_access_peer[gpuid[i]][gpuid[j]], devices_id[gpuid[i]],
@@ -249,14 +243,8 @@ void CarmaContext::init_context(const int nb_devices, int32_t *devices_id) {
         }
       }
     }
-    has_uva &=
-        devices[gpuid[gpu_count - 1]]->get_properties().unifiedAddressing;
-
-    if (has_uva) {
-      printf("*** All GPUs listed can support UVA... ***\n");
-    }
   }
-#endif  // USE_UVA
+#endif  // USE_P2P_ACCESS
 
   this->active_device =
       set_active_device_force(0, 1);  // get_max_gflops_device_id(), 1);

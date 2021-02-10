@@ -50,7 +50,6 @@ void declare_carmaWrap_context(py::module &mod) {
       .def_property_readonly("id", &CarmaDevice::get_properties)
       .def_property_readonly("compute_perf", &CarmaDevice::get_compute_perf)
       .def_property_readonly("cores_per_sm", &CarmaDevice::get_cores_per_sm)
-      .def_property_readonly("p2p_activate", &CarmaDevice::is_p2p_activate)
       .def_property_readonly("name", &CarmaDevice::get_name)
       .def_property_readonly("total_mem", &CarmaDevice::get_total_mem)
       .def_property_readonly("total_mem", &CarmaDevice::get_free_mem);
