@@ -70,9 +70,11 @@ sutra_controller_generic<T, Tout>::sutra_controller_generic(
     }
 
   for (int cpt = 0; cpt < this->current_context->get_ndevice(); cpt++) {
-    if(this->current_context->can_p2p(this->device, cpt)) {
-      this->P2Pdevices.push_back(cpt);
+    if( !this->current_context->can_p2p(this->device, cpt) ) {
+      fprintf(stderr, "[%s@%d]: WARNING P2P not activate between %d and %d, it may failed\n",
+        __FILE__, __LINE__, this->device, cpt);
     }
+    this->P2Pdevices.push_back(cpt);
   }
   cudaEvent_t ev[this->P2Pdevices.size()];
   cudaStream_t st[this->P2Pdevices.size()];
@@ -289,8 +291,8 @@ int sutra_controller_generic<T, Tout>::comp_com() {
   int cc = this->nslope() / this->P2Pdevices.size();
   for (auto dev_id : this->P2Pdevices) {
     if(dev_id != this->device) {
-      cudaMemcpyAsync(d_centroids_ngpu[dev_id]->get_data(), 
-                    centroids->get_data() + cc, 
+      cudaMemcpyAsync(d_centroids_ngpu[dev_id]->get_data(),
+                    centroids->get_data() + cc,
                     d_centroids_ngpu[dev_id]->get_nb_elements() * sizeof(T),
                     cudaMemcpyDeviceToDevice,
                     this->streams[this->device]);

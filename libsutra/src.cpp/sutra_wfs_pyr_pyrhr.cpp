@@ -538,12 +538,12 @@ int SutraWfs_PyrHR::comp_generic() {
       current_context->set_active_device((*it)->get_device(), 1);
       cudaStreamSynchronize(0);
       current_context->set_active_device(device, 1);
-      if (current_context->can_p2p(d_hrimg->get_device(), (*it)->get_device())) {
-        d_hrimg->axpy(1.0f, (*it), 1, 1);
-      } else {
+      // if (current_context->can_p2p(d_hrimg->get_device(), (*it)->get_device())) {
+      //   d_hrimg->axpy(1.0f, (*it), 1, 1);
+      // } else {
         d_modu_gather->copy_from((*it)->get_data(), (*it)->get_nb_elements());
         d_hrimg->axpy(1.0f, d_modu_gather, 1, 1);
-      }
+      // }
     }
   }
 
@@ -552,13 +552,13 @@ int SutraWfs_PyrHR::comp_generic() {
              this->d_pyrfocalplane_ngpu.begin();
          this->d_pyrfocalplane_ngpu.end() != it; ++it) {
       if (*it != d_pyrfocalplane) {
-        if (current_context->can_p2p(d_pyrfocalplane->get_device(),
-                                    (*it)->get_device())) {
-          d_pyrfocalplane->axpy(1.0f, (*it), 1, 1);
-        } else {
+        // if (current_context->can_p2p(d_pyrfocalplane->get_device(),
+        //                             (*it)->get_device())) {
+        //   d_pyrfocalplane->axpy(1.0f, (*it), 1, 1);
+        // } else {
           d_modu_gather->copy_from((*it)->get_data(), (*it)->get_nb_elements());
           d_pyrfocalplane->axpy(1.0f, d_modu_gather, 1, 1);
-        }
+        // }
       }
     }
   }
