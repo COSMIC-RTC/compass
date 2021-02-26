@@ -136,13 +136,13 @@ if __name__ == '__main__':
         devices = [
                 supervisor, supervisor.rtc, supervisor.wfs, supervisor.target,
                 supervisor.tel, supervisor.basis, supervisor.calibration,
-                supervisor.atmos, supervisor.dms, supervisor.config
+                supervisor.atmos, supervisor.dms, supervisor.config, supervisor.modalgains
         ]
 
         names = [
                 "supervisor", "supervisor_rtc", "supervisor_wfs", "supervisor_target",
                 "supervisor_tel", "supervisor_basis", "supervisor_calibration",
-                "supervisor_atmos", "supervisor_dms", "supervisor_config"
+                "supervisor_atmos", "supervisor_dms", "supervisor_config", "supervisor_modalgains"
         ]
         nname = []
         for name in names:

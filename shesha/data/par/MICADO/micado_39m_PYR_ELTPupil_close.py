@@ -174,6 +174,9 @@ p_controller0.set_maxcond(150.)
 p_controller0.set_delay(1)  # loop delay. "0 = 1 frame delay".
 p_controller0.set_gain(1)
 
+p_controller0.set_close_opti(True)
+p_controller0.set_close_learning_factor(0.3)
+
 # p_controller0.set_modopti(0)
 # p_controller0.set_nrec(2048)
 # p_controller0.set_nmodes(5064)
