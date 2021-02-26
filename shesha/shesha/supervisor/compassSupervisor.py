@@ -37,7 +37,7 @@
 
 from shesha.supervisor.genericSupervisor import GenericSupervisor
 from shesha.supervisor.components import AtmosCompass, DmCompass, RtcCompass, TargetCompass, TelescopeCompass, WfsCompass
-from shesha.supervisor.optimizers import ModalBasis, Calibration
+from shesha.supervisor.optimizers import ModalBasis, Calibration, ModalGains
 import numpy as np
 import time
 
@@ -77,6 +77,10 @@ class CompassSupervisor(GenericSupervisor):
         basis : (ModalBasis) : a ModalBasis instance (optimizer)
 
         calibration : (Calibration) : a Calibration instance (optimizer)
+
+        modalgains : (ModalGains) : a ModalGain instance (optimizer) using CLOSE algorithm
+
+        close_modal_gains : (list of floats) : list of the previous values of the modal gains
     """
 
     def __init__(self, config, *, cacao: bool = False):
@@ -100,6 +104,10 @@ class CompassSupervisor(GenericSupervisor):
         self.basis = ModalBasis(self.config, self.dms, self.target)
         self.calibration = Calibration(self.config, self.tel, self.atmos, self.dms,
                                        self.target, self.rtc, self.wfs)
+        self.modalgains = ModalGains(self.config, self.rtc)
+        self.close_modal_gains = []
+
+        
 #     ___                  _      __  __     _   _            _
 #    / __|___ _ _  ___ _ _(_)__  |  \/  |___| |_| |_  ___  __| |___
 #   | (_ / -_) ' \/ -_) '_| / _| | |\/| / -_)  _| ' \/ _ \/ _` (_-<
@@ -250,7 +258,12 @@ class CompassSupervisor(GenericSupervisor):
                 self.target.comp_tar_image(tar_index)
                 self.target.comp_strehl(tar_index)
 
+        if self.config.p_controllers[0].close_opti:
+            self.modalgains.update_mgains()
+            self.close_modal_gains.append(self.modalgains.get_modal_gains())
+
         self.iter += 1
+            
 
     def _print_strehl(self, monitoring_freq: int, iters_time: float, total_iters: int, *,
                       tar_index: int = 0):

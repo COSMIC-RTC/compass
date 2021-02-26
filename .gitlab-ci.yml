@@ -11,7 +11,7 @@ build_release:
     COMPASS_ROOT: /builds/compass/compass
     SHESHA_ROOT: $COMPASS_ROOT/shesha
   script:
-    - export COMPASS_DO_HALF="ON"
+    - export COMPASS_DO_HALF="OFF"
     - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
     - ./install_dependencies.sh
@@ -38,7 +38,7 @@ build_debug:
     COMPASS_ROOT: /builds/compass/compass
     SHESHA_ROOT: $COMPASS_ROOT/shesha
     COMPASS_DEBUG: "-DCMAKE_BUILD_TYPE=Debug"
-    COMPASS_DO_HALF: "ON"
+    COMPASS_DO_HALF: "OFF"
   script:
     - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH

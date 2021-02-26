@@ -179,11 +179,11 @@ class widgetCanapassWindowPyro(widgetAOWindow):
 
             devices = [self.supervisor, self.supervisor.rtc, self.supervisor.wfs, 
             self.supervisor.target, self.supervisor.tel,self.supervisor.basis, self.supervisor.calibration,
-            self.supervisor.atmos, self.supervisor.dms,  self.supervisor.config, wao_loop]
+            self.supervisor.atmos, self.supervisor.dms,  self.supervisor.config, self.supervisor.modalgains, wao_loop]
             
             names = ["supervisor", "supervisor_rtc", "supervisor_wfs", 
             "supervisor_target", "supervisor_tel", "supervisor_basis", "supervisor_calibration", 
-            "supervisor_atmos", "supervisor_dms", "supervisor_config", "wao_loop"]
+            "supervisor_atmos", "supervisor_dms", "supervisor_config", "supervisor_modalgains", "wao_loop"]
             nname = [];  
             for name in names: 
                 nname.append(name+"_"+user) 

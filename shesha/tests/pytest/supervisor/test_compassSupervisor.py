@@ -520,3 +520,58 @@ def test_do_imat_phase():
 def test_compute_modal_residuals():
     sup.calibration.compute_modal_residuals(sup.basis.projection_matrix)
     assert(True)
+
+#
+# ModalGains
+#
+
+def test_set_modal_basis():
+    nactu = sup.config.p_controllers[0].nactu
+    sup.modalgains.set_modal_basis(np.ones((nactu, nactu)))
+    assert(True)
+
+def test_get_modal_basis():
+    sup.modalgains.get_modal_basis()
+    assert(True)
+
+def test_set_cmat_modal():
+    nslope = sup.config.p_controllers[0].nslope
+    nactu = sup.config.p_controllers[0].nactu
+    sup.modalgains.set_cmat_modal(np.ones((nactu, nslope)))
+    assert(True)
+
+def test_get_modal_gains():
+    sup.modalgains.get_modal_gains()
+    assert(True)
+
+def test_set_mask():
+    sup.modalgains.set_mask(np.zeros(sup.config.p_controllers[0].nactu))
+    assert(True)
+
+def test_set_initial_gain():
+    sup.modalgains.set_initial_gain(1)
+    assert(True)
+
+def test_set_config():
+    sup.modalgains.set_config(0.1, 0.05, 0.05, 0.0)
+    assert(True)
+
+def test_adapt_modal_gains():
+    sup.modalgains.adapt_modal_gains(False)
+    assert(True)
+
+def test_reset_mgains():
+    sup.modalgains.reset_mgains()
+    assert(True)
+
+def test_reset_close():
+    sup.modalgains.reset_close()
+    assert(True)
+
+def test_update_modal_meas():
+    sup.modalgains.update_modal_meas()
+    assert(True)
+
+def test_update_mgains():
+    sup.modalgains.update_mgains()
+    assert(True)

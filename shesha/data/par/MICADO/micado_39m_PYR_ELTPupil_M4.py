@@ -3,7 +3,7 @@ import shesha.constants as scons
 import numpy as np
 
 simul_name = ""
-layout = "layoutDeArielle"
+layout = "layoutDeFab"
 
 # loop
 p_loop = ao.Param_loop()
@@ -208,9 +208,9 @@ p_wfs0.set_pyr_pup_sep(72) # half pupil separation (center-to-center)
 # dm
 p_dm0 = ao.Param_dm()
 p_dm1 = ao.Param_dm()
-p_dm2 = ao.Param_dm()
-p_dms = [p_dm0, p_dm2, p_dm1]
-#p_dms = [p_dm0, p_dm1]
+# p_dm2 = ao.Param_dm()
+# p_dms = [p_dm0, p_dm2, p_dm1]
+p_dms = [p_dm0, p_dm1]
 p_dm0.set_type(scons.DmType.PZT)
 nact = p_wfs0.nxsub + 1
 #nact = 9
@@ -235,7 +235,7 @@ p_dm0.set_unitpervolt(1)
 p_dm0.set_thresh(0.)  # fraction units
 p_dm0.set_margin_out(0.6)
 #p_dm0.set_file_influ_fits('/home/abertrou/m4_eelt_compass/testJojo.fits')
-p_dm0.set_file_influ_fits('/home/abertrou/m4_henri_compass/cropped_M4IF.fits')
+p_dm0.set_file_influ_fits('cropped_M4IF.fits')
 p_dm0.set_push4imat(0.01)
 p_dm0.set_diam_dm(40.0)
 
@@ -247,11 +247,11 @@ p_dm1.set_unitpervolt(1)
 p_dm1.set_push4imat(0.005)
 #p_dm1.set_gain(0.2)
 
-p_dm2.set_type('pzt')
-p_dm2.set_alt(0.)
-p_dm2.set_unitpervolt(1)
-p_dm2.set_push4imat(0.01)
-p_dm2.set_influType("petal")
+# p_dm2.set_type('pzt')
+# p_dm2.set_alt(0.)
+# p_dm2.set_unitpervolt(1)
+# p_dm2.set_push4imat(0.01)
+# p_dm2.set_influType("petal")
 
 # centroiders
 p_centroider0 = ao.Param_centroider()
@@ -280,7 +280,8 @@ p_controller0.set_type("generic") # V(k) = a.E.V(k-1) + g.R.m(k)
 #p_controller0.set_type("geo")    # bypass the WFS (direct DM proj)
 
 p_controller0.set_nwfs([0])
-p_controller0.set_ndm([0, 2])
+#p_controller0.set_ndm([0, 2])
+p_controller0.set_ndm([0, 1])
 p_controller0.set_maxcond(150.)
 p_controller0.set_delay(0)   # loop delay. "0 = 1 frame delay".
 p_controller0.set_gain(1)

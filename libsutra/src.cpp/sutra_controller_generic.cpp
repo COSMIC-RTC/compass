@@ -361,7 +361,7 @@ int sutra_controller_generic<T, Tout>::comp_com() {
     if (this->command_law == "modal_integrator") {
       // M2V * g * CMAT * s(k)
       carma_gemv(this->cublas_handle(), 'n', this->nactu() + this->nstates, this->nactu() + this->nstates,
-                 (T)1.0f, this->d_matE->get_data(), this->nactu() + this->nstates,
+                 this->gain, this->d_matE->get_data(), this->nactu() + this->nstates,
                  this->d_compbuff->get_data(), 1, berta, this->d_com->get_data(),
                  1);
     } else {  // 2matrices
