@@ -66,7 +66,8 @@ class ModalGains(object):
         # out variables
         self.mgains = np.ones(self._ntotact) * self._initial_gain
         self.close_iter = 0
-        self._rtc.set_modal_gains(0, self.mgains)
+        if (self._config.p_controllers[0].close_opti):
+            self._rtc.set_modal_gains(0, self.mgains)
         print(f"total number of actuators {self._ntotact}")
         print(f"Autocorrelation index for CLOSE optimization is {self._ac_idx}")
         
