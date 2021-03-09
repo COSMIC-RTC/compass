@@ -107,7 +107,7 @@ class CompassSupervisor(GenericSupervisor):
         self.modalgains = ModalGains(self.config, self.rtc)
         self.close_modal_gains = []
 
-        
+
 #     ___                  _      __  __     _   _            _
 #    / __|___ _ _  ___ _ _(_)__  |  \/  |___| |_| |_  ___  __| |___
 #   | (_ / -_) ' \/ -_) '_| / _| | |\/| / -_)  _| ' \/ _ \/ _` (_-<
@@ -198,6 +198,16 @@ class CompassSupervisor(GenericSupervisor):
 
             compute_tar_psf : (bool) : If True (default), computes the PSF at the end of the iteration
         """
+        try:
+            iter(nControl)
+        except TypeError:
+            # nControl is not an iterable creating a list
+            nControl = [nControl]
+
+        #get the index of the first GEO controller (-1 if there is no GEO controller)
+        geo_index = next(( i for i,c in enumerate(self.config.p_controllers)
+            if c.type== scons.ControllerType.GEO ), -1)
+
         if tar_trace is None and self.target is not None:
             tar_trace = range(len(self.config.p_targets))
         if wfs_trace is None and self.wfs is not None:
@@ -205,9 +215,9 @@ class CompassSupervisor(GenericSupervisor):
 
         if move_atmos and self.atmos is not None:
             self.atmos.move_atmos()
-        if (
-                self.config.p_controllers is not None and
-                self.config.p_controllers[nControl].type == scons.ControllerType.GEO):
+        # in case there is at least 1 controller GEO in the controller list : use this one only
+        if ( geo_index > -1):
+            nControl = geo_index
             if tar_trace is not None:
                 for t in tar_trace:
                     if self.atmos.is_enable:
@@ -223,7 +233,7 @@ class CompassSupervisor(GenericSupervisor):
                         if self.cacao:
                             self.rtc.publish()
         else:
-            if tar_trace is not None:
+            if tar_trace is not None: # already checked at line 213?
                 for t in tar_trace:
                     if self.atmos.is_enable:
                         self.target.raytrace(t, tel=self.tel, atm=self.atmos,
@@ -231,7 +241,7 @@ class CompassSupervisor(GenericSupervisor):
                     else:
                         self.target.raytrace(t, tel=self.tel, dms=self.dms)
 
-            if wfs_trace is not None:
+            if wfs_trace is not None: # already checked at line 215?
                 for w in wfs_trace:
                     if self.atmos.is_enable:
                         self.wfs.raytrace(w, tel=self.tel, atm=self.atmos)
@@ -242,13 +252,14 @@ class CompassSupervisor(GenericSupervisor):
                         self.wfs.raytrace(w, dms=self.dms, reset=False)
                     self.wfs.compute_wfs_image(w)
             if do_control and self.rtc is not None:
-                for ncontrol in range(len(self.config.p_controllers)):
+                for ncontrol in nControl : # range(len(self.config.p_controllers)):
                     self.rtc.do_centroids(ncontrol)
                     self.rtc.do_control(ncontrol)
                     self.rtc.do_clipping(ncontrol)
 
             if apply_control:
-                self.rtc.apply_control(ncontrol)
+                for ncontrol in nControl :
+                    self.rtc.apply_control(ncontrol)
 
             if self.cacao:
                 self.rtc.publish()
@@ -263,7 +274,6 @@ class CompassSupervisor(GenericSupervisor):
             self.close_modal_gains.append(self.modalgains.get_modal_gains())
 
         self.iter += 1
-            
 
     def _print_strehl(self, monitoring_freq: int, iters_time: float, total_iters: int, *,
                       tar_index: int = 0):
