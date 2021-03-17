@@ -84,7 +84,7 @@ else()
   message(STATUS "MAGMA not found, MAGMA features disabled")
 endif()
 
-#pkg_check_modules(OCTOPUS octopus)
+pkg_check_modules(OCTOPUS octopus)
 if(${OCTOPUS_FOUND})
   link_directories(${OCTOPUS_LIBRARY_DIRS})
 else()
