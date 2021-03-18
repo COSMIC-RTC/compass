@@ -107,6 +107,20 @@ class CanapassSupervisor(CompassSupervisor):
 #     ctrl = self._sim.rtc.d_control[control]
 #     ctrl.set_commandlaw('integrator')
 
+class loopHandler:
+
+    def __init__(self):
+        pass
+
+    def start(self):
+        pass
+
+    def stop(self):
+        pass
+
+    def alive(self):
+        return "alive"
+
 if __name__ == '__main__':
     from docopt import docopt
     from shesha.config import ParamConfig
@@ -124,31 +138,30 @@ if __name__ == '__main__':
     try:
         from subprocess import Popen, PIPE
         from hraa.server.pyroServer import PyroServer
+        # Init looper
+        wao_loop = loopHandler()
 
+        # Find username
         p = Popen("whoami", shell=True, stdout=PIPE, stderr=PIPE)
         out, err = p.communicate()
         if (err != b''):
             print(err)
-            raise ValueError("ERROR CANNOT RECOGNIZE USER")
+            raise Exception("ERROR CANNOT RECOGNIZE USER")
         else:
             user = out.split(b"\n")[0].decode("utf-8")
             print("User is " + user)
-        devices = [
-                supervisor, supervisor.rtc, supervisor.wfs, supervisor.target,
-                supervisor.tel, supervisor.basis, supervisor.calibration,
-                supervisor.atmos, supervisor.dms, supervisor.config, supervisor.modalgains
-        ]
 
-        names = [
-                "supervisor", "supervisor_rtc", "supervisor_wfs", "supervisor_target",
-                "supervisor_tel", "supervisor_basis", "supervisor_calibration",
-                "supervisor_atmos", "supervisor_dms", "supervisor_config", "supervisor_modalgains"
-        ]
-        nname = []
-        for name in names:
-            nname.append(name + "_" + user)
-        server = PyroServer(listDevices=devices, listNames=names)
-        #server.add_device(supervisor, "waoconfig_" + user)
+        devices = [supervisor, supervisor.rtc, supervisor.wfs, 
+        supervisor.target, supervisor.tel,supervisor.basis, supervisor.calibration,
+        supervisor.atmos, supervisor.dms,  supervisor.config, supervisor.modalgains, wao_loop]
+        
+        names = ["supervisor", "supervisor_rtc", "supervisor_wfs", 
+        "supervisor_target", "supervisor_tel", "supervisor_basis", "supervisor_calibration", 
+        "supervisor_atmos", "supervisor_dms", "supervisor_config", "supervisor_modalgains", "wao_loop"]
+        nname = [];  
+        for name in names: 
+            nname.append(name+"_"+user) 
+        server = PyroServer(listDevices=devices, listNames=nname)
         server.start()
     except:
         raise EnvironmentError(
