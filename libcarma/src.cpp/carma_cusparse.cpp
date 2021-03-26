@@ -96,7 +96,7 @@ cusparseStatus_t carma_check_cusparse_status_v2(cusparseStatus_t status, int lin
       break;
 #endif
   }
-  std::cerr << "Cusparse error in " << file << "@" << line << std::endl;
+  std::cerr << "Cusparse error in " << file << "@" << line << " : " << cusparseGetErrorString(status) << std::endl;
   return status;
 }
 
@@ -266,7 +266,6 @@ template<typename T> constexpr auto sparse_dense = detail::Sparse<T>::dense();
     size_t buffer_size1 = 0, buffer_size2 = 0;
     T_data alpha = T_data(1);
     T_data beta = T_data(0);
-
     // Init C descriptor --> C must have been created with CarmaSparseObj(context)
     carma_check_cusparse_status(cusparseCreateCsr(&(C->sp_descr), A_num_rows, B_num_cols, 0,
                                       NULL, NULL, NULL,
@@ -276,29 +275,31 @@ template<typename T> constexpr auto sparse_dense = detail::Sparse<T>::dense();
     cusparseSpGEMMDescr_t spgemm_desc;
     carma_check_cusparse_status(cusparseSpGEMM_createDescr(&spgemm_desc));
     // ask bufferSize1 bytes for external memory
-    cusparseSpGEMM_workEstimation(handle, trans_A, trans_B,
+    carma_check_cusparse_status(cusparseSpGEMM_workEstimation(handle, trans_A, trans_B,
                                   &alpha, matA, matB, &beta, C->sp_descr,
                                   A->get_data_type(), CUSPARSE_SPGEMM_DEFAULT,
-                                  spgemm_desc, &buffer_size1, NULL);
-    cudaMalloc((void**) &d_buffer1, buffer_size1);
+                                  spgemm_desc, &buffer_size1, NULL));
+    carma_check_msg(cudaMalloc((void**) &d_buffer1, buffer_size1));
+    cudaDeviceSynchronize();
     // inspect the matrices A and B to understand the memory requiremnent for
     // the next step
-    cusparseSpGEMM_workEstimation(handle, trans_A, trans_B,
+    carma_check_cusparse_status(cusparseSpGEMM_workEstimation(handle, trans_A, trans_B,
                                   &alpha, matA, matB, &beta, C->sp_descr,
                                   A->get_data_type(), CUSPARSE_SPGEMM_DEFAULT,
-                                  spgemm_desc, &buffer_size1, d_buffer1);
+                                  spgemm_desc, &buffer_size1, d_buffer1));
     // ask bufferSize2 bytes for external memory
-    cusparseSpGEMM_compute(handle, trans_A, trans_B,
+    carma_check_cusparse_status(cusparseSpGEMM_compute(handle, trans_A, trans_B,
                                   &alpha, matA, matB, &beta, C->sp_descr,
                                   A->get_data_type(), CUSPARSE_SPGEMM_DEFAULT,
-                                  spgemm_desc, &buffer_size2, NULL);
+                                  spgemm_desc, &buffer_size2, NULL));
 
-    cudaMalloc((void**) &d_buffer2, buffer_size2);
+    carma_check_msg(cudaMalloc((void**) &d_buffer2, buffer_size1));
+
     // compute the intermediate product of A * B
-    cusparseSpGEMM_compute(handle, trans_A, trans_B,
+    carma_check_cusparse_status(cusparseSpGEMM_compute(handle, trans_A, trans_B,
                             &alpha, matA, matB, &beta, C->sp_descr,
                             A->get_data_type(), CUSPARSE_SPGEMM_DEFAULT,
-                            spgemm_desc, &buffer_size2, d_buffer2);
+                            spgemm_desc, &buffer_size1, d_buffer2));
     // get matrix C non-zero entries C_num_nnz1
     int64_t C_num_rows1, C_num_cols1, C_num_nnz1;
     cusparseSpMatGetSize(C->sp_descr, &C_num_rows1, &C_num_cols1, &C_num_nnz1);
