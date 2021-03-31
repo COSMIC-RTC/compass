@@ -279,7 +279,7 @@ template<typename T> constexpr auto sparse_dense = detail::Sparse<T>::dense();
                                   &alpha, matA, matB, &beta, C->sp_descr,
                                   A->get_data_type(), CUSPARSE_SPGEMM_DEFAULT,
                                   spgemm_desc, &buffer_size1, NULL));
-    carma_check_msg(cudaMalloc((void**) &d_buffer1, buffer_size1));
+    cudaMalloc((void**) &d_buffer1, buffer_size1);
     cudaDeviceSynchronize();
     // inspect the matrices A and B to understand the memory requiremnent for
     // the next step
@@ -293,7 +293,7 @@ template<typename T> constexpr auto sparse_dense = detail::Sparse<T>::dense();
                                   A->get_data_type(), CUSPARSE_SPGEMM_DEFAULT,
                                   spgemm_desc, &buffer_size2, NULL));
 
-    carma_check_msg(cudaMalloc((void**) &d_buffer2, buffer_size1));
+    cudaMalloc((void**) &d_buffer2, buffer_size1);
 
     // compute the intermediate product of A * B
     carma_check_cusparse_status(cusparseSpGEMM_compute(handle, trans_A, trans_B,
@@ -312,8 +312,8 @@ template<typename T> constexpr auto sparse_dense = detail::Sparse<T>::dense();
                         A->get_data_type(), CUSPARSE_SPGEMM_DEFAULT, spgemm_desc);
     // destroy matrix/vector descriptors
     status = carma_check_cusparse_status(cusparseSpGEMM_destroyDescr(spgemm_desc));
-    carma_check_msg(cudaFree(d_buffer1));
-    carma_check_msg(cudaFree(d_buffer2));
+    cudaFree(d_buffer1);
+    cudaFree(d_buffer2);
     if(At != nullptr)
       delete At;
     if(Bt != nullptr)
