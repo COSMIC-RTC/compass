@@ -16,7 +16,7 @@ pipeline {
 
         COMPASS_ROOT="$WORKSPACE"
         COMPASS_INSTALL_ROOT="$COMPASS_ROOT/local"
-        COMPASS_DO_HALF="ON"
+        COMPASS_DO_HALF="OFF"
         COMPASS_DEBUG="-DCMAKE_BUILD_TYPE=Debug"
         NAGA_ROOT="$COMPASS_ROOT/naga"
         SHESHA_ROOT="$COMPASS_ROOT/shesha"
