@@ -40,6 +40,11 @@ def write_wfs(file_name, wfs, index, *, sub_system=1):
     f.write("\n" + obj + ".shthreshold   = 0;   // not set by compass")
     f.write("\n" + obj + ".dispzoom      = 1.0; // not set by compass")
     f.write("\n" + obj + ".fracIllum     = " + str(wfs.fracsub) + ";")
+    f.write("\n" + obj + ".rotation      = " + str(wfs.thetaML) + ";")
+    f.write("\n" + obj + ".shift         = [ " + str(wfs.dx)   + " , " + \
+            str(wfs.dy) + " ];")
+    f.write("\n" + obj + ".LLTxy         = [ " + str(wfs.lltx) + " , " + \
+            str(wfs.llty) + " ];")
     f.write("\n" + obj + ".gspos         = [ " + str(wfs.xpos) + " , " + \
             str(wfs.ypos) + " ];")
     if(wfs.noise<0):
