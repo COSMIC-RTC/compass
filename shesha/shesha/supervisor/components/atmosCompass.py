@@ -94,7 +94,7 @@ class AtmosCompass(object):
             else:
                 ilayer = reset_seed
             for k in range(self._atmos.nscreens):
-                self._atmos.set_seed(k, 1234 + ilayer)
+                self._atmos.set_seed(k, self._config.p_atmos.seeds[ilayer])
                 self._atmos.refresh_screen(k)
                 ilayer += 1
         self._config.p_atmos.set_r0(r0)
@@ -139,7 +139,7 @@ class AtmosCompass(object):
         """
         ilayer = 0
         for k in range(self._atmos.nscreens):
-            self._atmos.set_seed(k, 1234 + ilayer)
+            self._atmos.set_seed(k, self._config.p_atmos.seeds[ilayer])
             self._atmos.refresh_screen(k)
             ilayer += 1
 

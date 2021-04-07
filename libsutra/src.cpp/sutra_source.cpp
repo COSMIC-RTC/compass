@@ -274,8 +274,8 @@ int SutraSource::raytrace(SutraAtmos *yatmos, bool async) {
                           (int)d_phase->d_screen->get_dims(1),
                           (int)d_phase->d_screen->get_dims(2),
                           (int)ps->d_tscreen->d_screen->get_dims(1),
-                          xoff[std::make_pair("atmos", idx)],
-                          yoff[std::make_pair("atmos", idx)], this->G,
+                          xoff[std::make_pair("atmos", idx)] - ps->accumx,
+                          yoff[std::make_pair("atmos", idx)] - ps->accumy, this->G,
                           this->thetaML, this->dx, this->dy, this->block_size, delta);
       }
     }

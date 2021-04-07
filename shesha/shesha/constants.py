@@ -195,11 +195,13 @@ class ProfType:
     GAUSS2 = 'Gauss2'
     GAUSS3 = 'Gauss3'
     EXP = 'Exp'
+    MULTIPEAK = 'Multipeak'
     FILES = dict({
             GAUSS1: "allProfileNa_withAltitude_1Gaussian.npy",
             GAUSS2: "allProfileNa_withAltitude_2Gaussian.npy",
             GAUSS3: "allProfileNa_withAltitude_3Gaussian.npy",
-            EXP: "allProfileNa_withAltitude.npy"
+            EXP: "allProfileNa_withAltitude.npy",
+            MULTIPEAK: "multipeakProfileNa_withAltitude.npy"
     })
 
 
