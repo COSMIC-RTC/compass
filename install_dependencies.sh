@@ -12,5 +12,5 @@ conan remote list | grep cosmic || conan remote add cosmic https://api.bintray.c
 # OPTIONAL: Adds hippo6 conan repository if it is not already the case.
 #conan remote list | grep hippo6 || conan remote add hippo6 https://hippo6.obspm.fr/conan False
 
-conan install $LOCAL_DIR --build=missing
+conan profile new default --detect --force
 conan profile update settings.compiler.libcxx=libstdc++11 default
