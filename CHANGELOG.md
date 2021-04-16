@@ -143,7 +143,7 @@ IMPORTANT NOTE : due to the very short available development time of the core CO
 - remove KALMAN support
 - add pyramid modulation weight
 - add ```filter_TT``` parameter in centroider
-- add modal integrator control law
+- add modal integrator command law
 
 for Internal developments:
 

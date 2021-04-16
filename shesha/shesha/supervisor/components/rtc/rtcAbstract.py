@@ -339,7 +339,7 @@ class RtcAbstract(ABC):
         return np.array(self._rtc.d_control[controller_index].d_voltage)
 
     def set_integrator_law(self, controller_index: int) -> None:
-        """ Set the control law to integrator (controller generic only)
+        """ Set the command law to integrator (controller generic only)
             v[k] = v[k-1] + g.R.s[k]
 
         Args:
@@ -348,7 +348,7 @@ class RtcAbstract(ABC):
         self._rtc.d_control[controller_index].set_commandlaw("integrator")
 
     def set_2matrices_law(self, controller_index: int) -> None:
-        """ Set the control law to 2matrices (controller generic only)
+        """ Set the command law to 2matrices (controller generic only)
         v[k] = decayFactor.E.v[k-1] + g.R.s[k]
 
         Args:
@@ -357,7 +357,7 @@ class RtcAbstract(ABC):
         self._rtc.d_control[controller_index].set_commandlaw("2matrices")
 
     def set_modal_integrator_law(self, controller_index: int) -> None:
-        """ Set the control law to 2matrices (controller generic only)
+        """ Set the command law to 2matrices (controller generic only)
         v[k] = v[k-1] + E.g.R.s[k]
 
         Args:
@@ -432,7 +432,7 @@ class RtcAbstract(ABC):
         print("PYR method set to " + self._rtc.d_centro[centro_index].pyr_method)
 
     def set_modal_gains(self, controller_index: int, mgain: np.ndarray) -> None:
-        """ Sets the modal gain (when using modal integrator control law)
+        """ Sets the modal gain (when using modal integrator command law)
 
         Args:
             controller_index : (int) : Controller index to modify
@@ -442,7 +442,7 @@ class RtcAbstract(ABC):
         self._rtc.d_control[controller_index].set_modal_gains(mgain)
 
     def get_modal_gains(self, controller_index: int) -> np.ndarray:
-        """ Returns the modal gains (when using modal integrator control law)
+        """ Returns the modal gains (when using modal integrator command law)
 
         Args:
             controller_index : (int) : Controller index to modify
