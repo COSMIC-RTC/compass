@@ -142,7 +142,7 @@ void controller_generic_impl(py::module &mod, const char *name) {
 
       Parameters
       ------------
-      commandlaw: (str): command law "integrator" or "2matrices"
+      commandlaw: (str): command law "integrator", "modal_integrator" or "2matrices"
     )pbdoc",
            py::arg("commandlaw"))
 

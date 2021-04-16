@@ -693,6 +693,9 @@ def init_controller_generic(i: int, p_controller: conf.Param_controller, p_dms: 
     matE = np.identity(size, dtype=np.float32)
     cmat = np.zeros((size, p_controller.nslope), dtype=np.float32)
 
+    if p_controller.command_law is not None:
+        rtc.d_control[i].set_commandlaw(p_controller.command_law)
+
     rtc.d_control[i].set_decayFactor(decayFactor)
     rtc.d_control[i].set_modal_gains(mgain)
     rtc.d_control[i].set_cmat(cmat)

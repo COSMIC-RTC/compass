@@ -213,12 +213,12 @@ class ParamConfig(object):
         aodict.update({"list_Steering": []})
 
         listOfNstatesPerController = []
-        listOfcontrolLawTypePerController = []
+        listOfcommandLawTypePerController = []
         for control in self.p_controllers:
             listOfNstatesPerController.append(control.nstates)
-            listOfcontrolLawTypePerController.append(control.type)
+            listOfcommandLawTypePerController.append(control.type)
         aodict.update({"list_nstatesPerController": listOfNstatesPerController})
-        aodict.update({"list_controllerType": listOfcontrolLawTypePerController})
+        aodict.update({"list_controllerType": listOfcommandLawTypePerController})
 
         # fct of Nb of wfss
         NslopesList = []

@@ -112,6 +112,16 @@ class ControllerType:
     GEO = 'geo'
 
 
+class CommandLawType:
+    """
+        Command law types for generic controller only
+    """
+
+    INTEGRATOR = 'integrator'
+    MODAL_INTEGRATOR = 'modal_integrator'
+    TWO_MATRICES = '2matrices'
+
+
 class CentroiderType:
     """
         Centroider types
