@@ -59,7 +59,7 @@ class SutraCentroiderMaskedPix : public SutraCentroider<Tin, T> {
 
  public:
   SutraCentroiderMaskedPix(CarmaContext *context, SutraWfs *wfs,
-                             long nvalid, long npupils, float offset,
+                             long nvalid, float offset,
                              float scale, bool filter_TT, int device);
 
   ~SutraCentroiderMaskedPix();
@@ -67,7 +67,7 @@ class SutraCentroiderMaskedPix : public SutraCentroider<Tin, T> {
   string get_type();
 
   int get_maskedPix(float *img, float *intensities, T *centroids, int *subindx,
-                    int *subindy, int nvalid, int ns, cudaStream_t stream=0);
+                    int *subindy, int ns, cudaStream_t stream=0);
   int get_cog(float *img, float *intensities, T *centroids, int nvalid,
               int npix, int ntot, cudaStream_t stream=0);
   int get_cog(float *intensities, T *slopes, bool noise);
