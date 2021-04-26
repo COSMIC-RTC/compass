@@ -65,11 +65,11 @@ void declare_carmaWrap_timer(py::module &mod) {
              return std::unique_ptr<CarmaClock>(new CarmaClock(&context, i));
            }),
            R"pbdoc(
-        Create a CarmaClock object which provides timing based on GPU clock count
+    Create a CarmaClock object which provides timing based on GPU clock count
 
-        Parameters
-        ------------
+    Args:
         context: (CarmaContext): carma context
+
         i: (int): time buffer size
       )pbdoc",
            py::arg("context"), py::arg("i"))

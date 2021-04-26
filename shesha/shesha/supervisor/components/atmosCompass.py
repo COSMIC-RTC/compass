@@ -67,7 +67,7 @@ class AtmosCompass(object):
                         self._config.p_geom, self._config.p_loop.ittime, p_wfss=self._config.p_wfss,
                         p_targets=self._config.p_targets)
 
-    
+
     def enable_atmos(self, enable : bool) -> None:
         """ Set or unset whether atmos is enabled when running loop
 
@@ -114,7 +114,7 @@ class AtmosCompass(object):
             self._config.p_atmos.windspeed[screen_index] = windspeed
         if winddir is not None:
             self._config.p_atmos.winddir[screen_index] = winddir
-        
+
         lin_delta = self._config.p_geom.pupdiam / self._config.p_tel.diam * self._config.p_atmos.windspeed[screen_index] * \
                     np.cos(CONST.DEG2RAD * self._config.p_geom.zenithangle) * self._config.p_loop.ittime
         oldx = self._config.p_atmos._deltax[screen_index]
@@ -149,7 +149,7 @@ class AtmosCompass(object):
         Args:
             indx : (int) : Index of the turbulent layer to return
 
-        Return:
+        Returns:
             layer : (np.ndarray) : turbulent layer phase screen
         """
         return np.array(self._atmos.d_screens[indx].d_screen)

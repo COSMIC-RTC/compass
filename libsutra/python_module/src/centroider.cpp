@@ -170,32 +170,31 @@ void centroider_impl(py::module &mod, const char *name) {
 
       .def("load_validpos", wy::colCast(&centroider::load_validpos),
            R"pbdoc(
-        Load the validx and validy arrays
+     Load the validx and validy arrays
 
-        Parameters
-        ------------
+     Args:
         validx: (np.array[ndim=1,dtype=np.float32]): X positions of the valid ssp
+
         validy: (np.array[ndim=1,dtype=np.float32]): Y positions of the valid ssp
+
         N: (int): arrays size
     )pbdoc",
            py::arg("validx"), py::arg("validy"), py::arg("N"))
 
       .def("set_npix", wy::colCast(&centroider::set_npix),
            R"pbdoc(
-            Set the number of pixels per subap for a RTC standalone
+     Set the number of pixels per subap for a RTC standalone
 
-        Parameters
-        ------------
+     Args:
         npix: (int): number of pixel along a subap. side
     )pbdoc",
            py::arg("npix"))
 
       .def("set_nxsub", wy::colCast(&centroider::set_nxsub),
            R"pbdoc(
-            Set the number of ssp across the pupil diameter for a RTC standalone
+     Set the number of ssp across the pupil diameter for a RTC standalone
 
-        Parameters
-        ------------
+     Args:
         nxsub: (int): number of ssp across the pupil diameter
     )pbdoc",
            py::arg("nxsub"))
@@ -204,13 +203,15 @@ void centroider_impl(py::module &mod, const char *name) {
            wy::colCast((int (centroider::*)(Tin *, int, int, int)) &
                        centroider::load_img),
            R"pbdoc(
-            Load an image in a RTC standalone (host to device)
+     Load an image in a RTC standalone (host to device)
 
-        Parameters
-        ------------
+     Args:
         img: (np.ndarray[ndim=2, dtype=np.float32_t]): SH image
+
         m: (int): Image support size X
+
         n: (int): Image support size Y
+
         location: (int): If -1, image is located on the CPU (hostToDevice). Else, it is the GPU index where the image is located
     )pbdoc",
            py::arg("img"), py::arg("m"), py::arg("n"), py::arg("location"))
@@ -219,12 +220,14 @@ void centroider_impl(py::module &mod, const char *name) {
            wy::colCast((int (centroider::*)(Tin *, int, int)) &
                        centroider::load_img),
            R"pbdoc(
-            Load a square image (n, n) in a RTC standalone
+     Load a square image (n, n) in a RTC standalone
 
-        Parameters
-        ------------
+     Args:
         img: (np.ndarray[ndim=2, dtype=np.float32_t]): SH image
+
         n: (int): Image support size along one axis
+
+     Kwargs:
         location: (int): (optionnal) If -1 (default), image is located on the CPU (hostToDevice). Else, it is the GPU index where the image is located
     )pbdoc",
            py::arg("img"), py::arg("n"), py::arg("location") = -1)
@@ -233,10 +236,9 @@ void centroider_impl(py::module &mod, const char *name) {
            wy::colCast((int (centroider::*)(CarmaObj<Tin> *)) &
                        centroider::load_img),
            R"pbdoc(
-            Load an image in a RTC standalone from a CarmaObj
+     Load an image in a RTC standalone from a CarmaObj
 
-        Parameters
-        ------------
+     Args:
         img: (CarmaObj): SH image
     )pbdoc",
            py::arg("img"))
@@ -260,78 +262,75 @@ void centroider_impl(py::module &mod, const char *name) {
       //
       .def("set_centroids_ref", wy::colCast(&centroider::set_centroids_ref),
            R"pbdoc(
-      Set the references slopes
+     Set the references slopes
 
-      Parameters
-      ------------
-      refslopes: (np.array[ndim1,dtype=np.float32]): reference slopes to set
+     Args:
+          refslopes: (np.array[ndim1,dtype=np.float32]): reference slopes to set
     )pbdoc",
            py::arg("refslopes"))
 
       .def("set_scale", &centroider::set_scale, R"pbdoc(
-        Set the controider scale factor
+     Set the controider scale factor
 
-        Parameters
-        ------------
+     Args:
         scale: (float): new scale factor
-    )pbdoc",
+     )pbdoc",
            py::arg("scale"))
 
       .def("set_offset", &centroider::set_offset, R"pbdoc(
-        Set the controider offset [pixels]
+     Set the controider offset [pixels]
 
-        Parameters
-        ------------
+     Args:
         offset: (float): new offset [pixels]
     )pbdoc",
            py::arg("offset"))
 
       .def("set_dark", wy::colCast(&centroider::set_dark), R"pbdoc(
-        Set the dark frame for calibration
+     Set the dark frame for calibration
 
-        Parameters
-        ------------
+     Args:
         dark: (np.ndarray[ndim=2, dtype=np.float32_t): dark frame (size n by n)
+
         n: (int): image support size
     )pbdoc",
            py::arg("dark"), py::arg("n"))
 
       .def("set_flat", wy::colCast(&centroider::set_flat), R"pbdoc(
-        Set the flat frame for calibration
+     Set the flat frame for calibration
 
-        Parameters
-        ------------
+     Args:
         flat: (np.ndarray[ndim=2, dtype=np.float32_t): flat frame (size n by n)
+
         n: (int): image support size
     )pbdoc",
            py::arg("flat"), py::arg("n"))
 
       .def("init_calib", wy::colCast(&centroider::init_calib), R"pbdoc(
-        Initialize data used for calibration
+     Initialize data used for calibration
 
-        Parameters
-        ------------
+     Args:
         n: (int): image support height
+
         m: (int): image support width
     )pbdoc",
            py::arg("n"), py::arg("m"))
 
       .def("init_img_raw", wy::colCast(&centroider::init_img_raw), R"pbdoc(
-        Initialize array to store raw WFS image in RTC standalone mode
+     Initialize array to store raw WFS image in RTC standalone mode
 
-        Parameters
-        ------------
+     Args:
         n: (int): image support height
+
         m: (int): image support width
     )pbdoc",
            py::arg("n"), py::arg("m"))
 
       .def("set_lutPix", wy::colCast(&centroider::set_lutPix), R"pbdoc(
-        Set the lookup Table Pixel vector for calibration
+     Set the lookup Table Pixel vector for calibration
 
-        Parameters
-        ------------
+     Args:
         lutPix: (np.ndarray[ndim=1, dtype=np.float32_t): lutPix vector
+
         n: (int): image pixel size
     )pbdoc",
            py::arg("lutPix"), py::arg("n"));

@@ -392,7 +392,7 @@ class CompassSupervisor(GenericSupervisor):
 
             projection_matrix : (np.ndarray) : projection matrix on modal basis to compute residual coefficients
 
-        Return:
+        Returns:
             slopes:  (int) : the slopes CB
 
             volts:  (int) : the volts applied to the DM(s) CB
@@ -503,7 +503,8 @@ class CompassSupervisor(GenericSupervisor):
         Args:
             root: (object), COMPASS supervisor object to be parsed
 
-        Returns : 2 dictionnaries
+        Returns :
+            2 dictionnaries... See F. Vidal :)
         """
         return self.config.export_config()
 
@@ -511,7 +512,8 @@ class CompassSupervisor(GenericSupervisor):
         """
         Returns the so called S Pupil of COMPASS
 
-        Return np.array
+        Return:
+            s_pupil: (np.array) : S Pupil of COMPASS
         """
         return self.config.p_geom.get_spupil()
 
@@ -519,7 +521,8 @@ class CompassSupervisor(GenericSupervisor):
         """
         Returns the so called I Pupil of COMPASS
 
-        Return np.array
+        Return:
+            i_pupil: (np.array) : I Pupil of COMPASS
         """
         return self.config.p_geom.get_ipupil()
 
@@ -527,6 +530,7 @@ class CompassSupervisor(GenericSupervisor):
         """
         Returns the so called M Pupil of COMPASS
 
-        Return np.array
+        Return:
+            m_pupil: (np.array) : M Pupil of COMPASS
         """
         return self.config.p_geom.get_mpupil()

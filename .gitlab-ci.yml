@@ -103,6 +103,7 @@ pages:
     - pip install -r requirements.txt
     - pip install -r requirements-test.txt
     - pip install -r requirements-doc.txt
+    - $COMPASS_ROOT/doc/generate_stubs.sh
     - $COMPASS_ROOT/doc/generate_reports.sh
     - $COMPASS_ROOT/doc/correctDoxygen_gitlab.sh
   artifacts:

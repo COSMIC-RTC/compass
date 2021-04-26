@@ -69,25 +69,39 @@ std::unique_ptr<SutraGroot> groot_init_alias(CarmaContext &context,
 void declare_groot(py::module &mod) {
   py::class_<SutraGroot>(mod, "Groot")
       .def(py::init(wy::colCast(groot_init)), R"pbdoc(
-          Initializes Groot to compute aniso and bandwidth model
+    Initializes Groot to compute aniso and bandwidth model
 
-          Parameters
-          ------------
+    Args:
           context: (CarmaContext): context
+
           device: (int): context active device
+
           nssp : (str) :
+
           nlayers:
+
           gsangle:
+
           vdt:
+
           Htheta:
+
           L0:
+
           winddir:
+
           scale:
+
           pzt2tt:
+
           TTPfilter:
+
           Nact:
+
           xpos:
+
           ypos:
+
           fc:
            )pbdoc",
            py::arg("context"), py::arg("device"), py::arg("nssp"),
@@ -97,19 +111,27 @@ void declare_groot(py::module &mod) {
            py::arg("Nact"), py::arg("xpos"), py::arg("ypos"), py::arg("fc"))
 
       .def(py::init(wy::colCast(groot_init_alias)), R"pbdoc(
-          Initializes Groot to compute aliasing model
+    Initializes Groot to compute aliasing model
 
-          Parameters
-          ------------
+    Args:
           context: (CarmaContext): context
+
           device: (int): context active device
+
           nssp : (str) :
+
           weights:
+
           scale:
+
           xpos:
+
           ypos:
+
           fc:
+
           d:
+
           npts:
            )pbdoc",
            py::arg("context"), py::arg("device"), py::arg("nssp"),

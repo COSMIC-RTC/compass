@@ -41,7 +41,7 @@ import numpy as np
 def create_interp_mat(dimx: int, dimy: int):
     """TODO doc
 
-    :parameters:
+    Args:
 
         dimx: (int) :
 
@@ -66,7 +66,7 @@ def create_interp_mat(dimx: int, dimy: int):
 def centroid_gain(E, F):
     """ Returns the mean centroid gain
 
-    :parameters:
+    Args:
 
         E : (np.array(dtype=np.float32)) : measurements from WFS
 

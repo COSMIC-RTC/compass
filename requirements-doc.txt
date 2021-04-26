@@ -2,3 +2,4 @@ breathe
 doxypypy
 sphinx
 sphinx-rtd-theme
+pybind11-stubgen

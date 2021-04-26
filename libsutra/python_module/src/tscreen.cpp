@@ -137,21 +137,19 @@ void declare_tscreen(py::module &mod) {
       .def(
           "set_deltax", &SutraTurbuScreen::set_deltax,
           R"pbdoc(
-        Set the screen movement along the X-axis at each iteration in pixels
+    Set the screen movement along the X-axis at each iteration in pixels
 
-        Parameters:
-
-            deltax: (float) :  Number of columns to add at each iteration
+    Args:
+        deltax: (float) :  Number of columns to add at each iteration
       )pbdoc",
           py::arg("deltax"))
 
       .def(
           "set_deltay", &SutraTurbuScreen::set_deltay,
           R"pbdoc(
-        Set the screen movement along the Y-axis at each iteration in pixels
+    Set the screen movement along the Y-axis at each iteration in pixels
 
-        Parameters:
-
+    Args:
             deltay: (float) :  Number of lines to add at each iteration
       )pbdoc",
           py::arg("deltay"))
@@ -159,10 +157,9 @@ void declare_tscreen(py::module &mod) {
       .def(
           "set_istencilx", wy::colCast(&SutraTurbuScreen::set_istencilx),
           R"pbdoc(
-        Set the stencil along the X-Axis
+    Set the stencil along the X-Axis
 
-        Parameters:
-
+    Args:
             stencil: (np.array) :  Stencil along the X-axis
       )pbdoc",
           py::arg("stencil"))
@@ -170,10 +167,9 @@ void declare_tscreen(py::module &mod) {
       .def(
           "set_istencily", wy::colCast(&SutraTurbuScreen::set_istencily),
           R"pbdoc(
-        Set the stencil along the Y-Axis
+    Set the stencil along the Y-Axis
 
-        Parameters:
-
+    Args:
             stencil: (np.array) :  Stencil along the Y-axis
       )pbdoc",
           py::arg("stencil"))

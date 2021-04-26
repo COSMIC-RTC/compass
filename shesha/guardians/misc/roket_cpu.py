@@ -306,7 +306,7 @@ def error_breakdown(com, noise_com, alias_wfs_com, tomo_com, H_com, trunc_com, b
 
     Note : rtc.get_err returns to -CMAT.slopes
 
-    :parameters:
+    Args:
         noise_com : np.array((niter,nactu)) : Noise contribution
             Computed with com-E
 

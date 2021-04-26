@@ -156,26 +156,30 @@ void controller_ls_impl(py::module &mod, const char *name) {
            wy::colCast((int (controller_ls::*)(int)) &
                        controller_ls::build_cmat),
            R"pbdoc(
-        Computes the command matrix after imat SVD
+    Computes the command matrix after imat SVD
 
-        Parameters
-        ------------
+    Args:
         nfilt: (int): number of modes to filter
     )pbdoc",
            py::arg("nfilt"))
 
       .def("init_modalOpti", wy::colCast(&controller_ls::init_modalOpti),
            R"pbdoc(
-      Initialize modal optimization control
+    Initialize modal optimization control
 
-      Parameters
-      ------------
+    Args:
       nmodes: (int): number of modes to control
+
       nrec: (int): number of open loop slopes to consider
+
       M2V: (np.array[ndim=2,dtype=np.float32]): Modes to Volt matrix
+
       gmin: (float): Minimal gain
+
       gmax: (float): Maximal gain
+
       ngain: (int): Number of gain values to test between gmin and gmax
+
       Fs: (float): Sampling frequency [Hz]
     )pbdoc",
            py::arg("nmodes"), py::arg("nrec"), py::arg("M2V"), py::arg("gmin"),
@@ -183,10 +187,9 @@ void controller_ls_impl(py::module &mod, const char *name) {
 
       .def("loadopen_loopSlp", wy::colCast(&controller_ls::loadopen_loopSlp),
            R"pbdoc(
-      Load recorded open loop slopes for modal optimization initialization
+    Load recorded open loop slopes for modal optimization initialization
 
-      Parameters
-      ------------
+    Args:
       slopes: (np.array[ndim=2,dtype=np.float32]): Open loop slopes
     )pbdoc",
            py::arg("slopes"))
@@ -202,28 +205,25 @@ void controller_ls_impl(py::module &mod, const char *name) {
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
       .def("set_modal_gains", wy::colCast(&controller_ls::set_modal_gains), R"pbdoc(
-      Set the controller modal gains
+    Set the controller modal gains
 
-      Parameters
-      ------------
+    Args:
       mgain: (np.array[ndim1,dtype=np.float32]): modal gains to set
     )pbdoc",
            py::arg("mgain"))
 
       .def("set_cmat", wy::colCast(&controller_ls::set_cmat), R"pbdoc(
-      Set the command matrix
+    Set the command matrix
 
-      Parameters
-      ------------
+    Args:
       cmat: (np.array[ndim=2,dtype=np.float32]): command matrix to set
     )pbdoc",
            py::arg("cmat"))
 
       .def("set_imat", wy::colCast(&controller_ls::set_imat), R"pbdoc(
-      Set the interaction matrix
+    Set the interaction matrix
 
-      Parameters
-      ------------
+    Args:
       imat: (np.array[ndim=2,dtype=np.float32]): interaction matrix to set
     )pbdoc",
            py::arg("imat"))

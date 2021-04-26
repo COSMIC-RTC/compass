@@ -35,18 +35,18 @@ def write_json_sys_param(sup, *, wfss_indices=None, ts=False, dms_indices=None, 
         "cobs" : {
             "comment": " percent    : central obscuration",
             "value" :  sup.config.p_tel.get_cobs()
-        },  
+        },
         "tFrame": {
             "comment": " second     : frame rate",
             "value": sup.config.p_loop.ittime
-        },  
+        },
         "fracsub": {
             "comment": "Minimal illumination fraction for valid subap",
             "value": sup.config.p_wfss[0].get_fracsub()
-        },  
+        },
         "throughAtm": {
             "comment": "percent    : atmosphere transmission",
-            "value": 1.0 
+            "value": 1.0
         },
         "tracking": {
             "comment": "arcsec^2  : telescope tracking error parameters (x^2, y^2 and xy)",
@@ -83,14 +83,14 @@ def write_json_sys_param(sup, *, wfss_indices=None, ts=False, dms_indices=None, 
             w[0].set_nxsub(sup.config.p_wfss[argmax].nxsub)
             w[0].set_pdiam(sup.config.p_wfss[argmax]._pdiam)
         ts_json = common.wfs_to_json(w,geom,"ts")
-                
-    wfs_json = { 
+
+    wfs_json = {
         "notice_lgs" : common.wfs_json_notice("lgs"),
         "notice_ngs" : common.wfs_json_notice("ngs"),
         "lgs" : lgs_json,
         "ngs" : ngs_json,
         "ts" : ts_json,
-        "target":target_json} 
+        "target":target_json}
 
     sys_json["wfs"] = wfs_json
 
@@ -104,4 +104,3 @@ def write_json_sys_param(sup, *, wfss_indices=None, ts=False, dms_indices=None, 
     f = open(file_name, "w")
     f.write(json.dumps({"instrument":sys_json},indent=4))
     f.close()
-

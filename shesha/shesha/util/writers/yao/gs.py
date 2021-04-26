@@ -21,5 +21,3 @@ def write_gs(file_name, zero_point, lgs_return_per_watt, zenith_angle):
     f.write("\ngs.lgsreturnperwatt  = " + str(lgs_return_per_watt) + \
             "; //TODO check lgs case")
     f.write("\ngs.zenithangle       = " + str(zenith_angle) + ";")
-
-

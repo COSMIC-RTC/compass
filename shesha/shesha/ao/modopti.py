@@ -43,7 +43,7 @@ def open_loopSlp(tel: Telescope, atmos: Atmos, wfs: Sensors, rtc: Rtc, nrec: int
                  ncontrol: int, p_wfss: list):
     """ Return a set of recorded open-loop slopes, usefull for initialize modal control optimization
 
-    :parameters:
+    Args:
 
         tel: (Telescope) : Telescope object
 

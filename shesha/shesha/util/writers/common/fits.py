@@ -12,7 +12,7 @@ def wfs_to_fits_hdu(sup, wfs_id):
 
         wfs_id : (int) : index of the WFS in the supervisor
 
-    Return:
+    Returns:
         hdu : (ImageHDU) : fits representation of the WFS
     """
     hdu_name = "WFS" + str(wfs_id)
@@ -31,7 +31,7 @@ def dm_to_fits_hdu(sup, dm_id):
 
         wfs_id : (int) : index of the DM in the supervisor
 
-    Return:
+    Returns:
         hdu : (ImageHDU) : fits representation of the DM
     """
     hdu_name = "DM" + str(dm_id)
@@ -55,7 +55,7 @@ def dm_influ_to_fits_hdu(sup, dm_id, *, influ_index=-1):
     Kwargs:
         influ_index : (int) : (optional) default -1, index of the actuator to get the influence function from. -1 : get all influence functions
 
-    Return:
+    Returns:
         hdu : (ImageHDU) : hdu holding the DM influence functions
     """
     hdu_name = "INFLU_DM" + str(dm_id)
@@ -106,7 +106,7 @@ def write_data(file_name, sup, *, wfss_indices=None, dms_indices=None,
         for i in range(len(conf.p_dms)):
             if( conf.p_dms[i].type != "tt"):
                 dms_indices.append(i)
-    
+
     #cout the number of lgs
     n_lgs = 0
     for i in wfss_indices :

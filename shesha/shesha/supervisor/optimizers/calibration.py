@@ -128,7 +128,7 @@ class Calibration(object):
             push_pull : (bool) : If True, imat is computed as an average of push and pull ampli
                                             on each mode
 
-        Return:
+        Returns:
             modal_imat : (np.ndarray) : Modal interaction matrix
         """
         modal_imat = np.zeros((self._config.p_controllers[controller_index].nslope, modal_basis.shape[1]))
@@ -181,7 +181,7 @@ class Calibration(object):
 
             wfs_index : (int) : WFS index. Default is 0
 
-        Return:
+        Returns:
             phase_imat : (np.ndarray) : Phase interaction matrix
         """
         imat_phase = np.zeros((cube_phase.shape[0], self._config.p_controllers[controller_index].nslope))
@@ -221,7 +221,7 @@ class Calibration(object):
         Kwargs:
             selected_actus : (np.ndarray) : TODO : description
 
-        Return:
+        Returns:
             ai : (np.ndarray) : Modal coefficients
         """
         try:

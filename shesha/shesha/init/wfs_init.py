@@ -49,7 +49,7 @@ def wfs_init(context: carmaWrap_context, telescope: Telescope, p_wfss: list,
     """
     Create and initialise  a Sensors object
 
-    :parameters:
+    Args:
         context : (carmaWrap_context)
         telescope: (Telescope) : Telescope object
         p_wfss: (list of Param_wfs) : wfs settings

@@ -60,8 +60,8 @@ def write_wfs(file_name, wfs, index, *, sub_system=1):
         f.write("\n" + obj + ".optthroughput = " + str(wfs.optthroughput) +\
                 ";")
         f.write("\n" + obj + ".laserpower    = " + str(wfs.laserpower) + ";")
-        f.write("\n" + obj + ".filtertilt    = " + str(1) + ";") 
-        f.write("\n" + obj + ".correctUpTT   = " + str(1) + ";") 
+        f.write("\n" + obj + ".filtertilt    = " + str(1) + ";")
+        f.write("\n" + obj + ".correctUpTT   = " + str(1) + ";")
         f.write("\n" + obj + ".uplinkgain    = " + str(0.2) + ";")
     f.close()
 
@@ -71,7 +71,7 @@ def write_wfss(file_name, wfss, *, n_wfs=-1, sub_system=1, offset=0):
 
     Args:
         file_name : (str) : name of the file to append the parameter to
-        
+
         wfss : (list[ Param_wfs]) : compass wfs parameters list
 
     Kwargs:
@@ -81,7 +81,7 @@ def write_wfss(file_name, wfss, *, n_wfs=-1, sub_system=1, offset=0):
 
         offset : (int) : (optional), default 0 yao wfs index offset
 
-    Return:
+    Returns:
         n_ngs : (int) : number of ngs passed to yao
         n_lgs : (int) : number of lgs passed to yao
     """

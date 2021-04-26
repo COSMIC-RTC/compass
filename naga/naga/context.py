@@ -47,8 +47,7 @@ class Context:
     def __init__(self, devices=None):
         """ Initializes a Context object
 
-        Parameters
-        ------------
+    Args:
         devices: (list): (optionnal) list of devices to use. Default is 0
         """
         if devices is None:

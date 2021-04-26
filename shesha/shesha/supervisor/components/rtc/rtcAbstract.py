@@ -117,7 +117,7 @@ class RtcAbstract(ABC):
         Args:
             controller_index : (int) : controller index handling the slopes
 
-        Return:
+        Returns:
             slopes : (np.ndarray) : Current slopes vector containing slopes of all
                                     the WFS handled by the specified controller
         """
@@ -178,7 +178,7 @@ class RtcAbstract(ABC):
                                              slopes vector returned is a concatenation of all the reference
                                              slopes used for by centroiders in the RTC
 
-        Return:
+        Returns:
             ref_slopes : (np.ndarray) : Reference slopes vector
         """
         ref_slopes = np.empty(0)
@@ -205,7 +205,7 @@ class RtcAbstract(ABC):
         Args:
             controller_index: (int): controller index
 
-        Return:
+        Returns:
             imat : (np.ndarray) : Interaction matrix currently set in the controller
         """
         return np.array(self._rtc.d_control[controller_index].d_imat)
@@ -216,7 +216,7 @@ class RtcAbstract(ABC):
         Args:
             controller_index: (int): controller index
 
-        Return:
+        Returns:
             cmat : (np.ndarray) : Command matrix currently used by the controller
         """
         return np.array(self._rtc.d_control[controller_index].d_cmat)
@@ -266,7 +266,7 @@ class RtcAbstract(ABC):
         Args:
             controller_index : (int) : Controller index that will compute its slopes
 
-        Return:
+        Returns:
             slopes : (np.ndarray) : Slopes vector
         """
         self._rtc.do_centroids(controller_index)
@@ -332,7 +332,7 @@ class RtcAbstract(ABC):
         Args:
             controller_index : (int) : controller index
 
-        Return:
+        Returns:
             voltages : (np.ndarray) : current voltages vector
 
         """
@@ -410,7 +410,7 @@ class RtcAbstract(ABC):
         Args:
             centro_index: (int): centroider index
 
-        Return:
+        Returns:
             method : (str) : Pyramid compute method currently used
         """
         return self._rtc.d_centro[centro_index].pyr_method
@@ -447,7 +447,7 @@ class RtcAbstract(ABC):
         Args:
             controller_index : (int) : Controller index to modify
 
-        Return:
+        Returns:
             mgain : (np.ndarray) : Modal gains vector currently used
         """
         return np.array(self._rtc.d_control[controller_index].d_gain)
@@ -458,7 +458,7 @@ class RtcAbstract(ABC):
         Args:
             centro_index : (int): Centroider index. Must be a maskedpix centroider
 
-        Return:
+        Returns:
             mask : (np.ndarray) : Mask used
         """
         if (self._rtc.d_centro[centro_index].type != scons.CentroiderType.MASKEDPIX):
@@ -472,7 +472,7 @@ class RtcAbstract(ABC):
         Args:
             controller_index : (int) : Controller index
 
-        Return:
+        Returns:
             com : (np.ndarray) : Command vector
         """
         return np.array(self._rtc.d_control[controller_index].d_com)
@@ -508,7 +508,7 @@ class RtcAbstract(ABC):
         Args:
             controller_index : (int) : controller index
 
-        Return:
+        Returns:
             slopes_geom : (np.ndarray) : geometrically computed slopes
         """
         self._rtc.do_centroids_geom(controller_index)
@@ -519,7 +519,7 @@ class RtcAbstract(ABC):
     def get_selected_pix(self) -> np.ndarray:
         """ Return the pyramid image with only the selected pixels used by the full pixels centroider
 
-        Return:
+        Returns:
             selected_pix : (np.ndarray) : PWFS image with only selected pixels
         """
         if (self._config.p_centroiders[0].type != scons.CentroiderType.MASKEDPIX):
@@ -633,7 +633,7 @@ class RtcAbstract(ABC):
         Args:
             centroider_index : (int) : Index of the centroider
 
-        Return:
+        Returns:
             image_raw : (np.ndarray) : Raw WFS image loaded in the centroider
         """
         return np.array(self._rtc.d_centro[centroider_index].d_img_raw)
@@ -644,7 +644,7 @@ class RtcAbstract(ABC):
         Args:
             centroider_index : (int) : Index of the centroider
 
-        Return:
+        Returns:
             image_cal : (np.ndarray) : Calibrated WFS image loaded in the centroider
         """
         img = np.array(self._rtc.d_centro[centroider_index].d_img)

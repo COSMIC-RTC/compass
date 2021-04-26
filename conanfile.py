@@ -18,7 +18,7 @@ class CompassConan(ConanFile):
     description = "End-to-end AO simulation tool using GPU acceleration"
     topics = ("Adaptive Optics", "Simulation")
     settings = 'os', 'compiler', 'build_type', 'arch'
-    requires = ['wyrm/0.1@cosmic/stable']
+    requires = ['wyrm/0.3@cosmic/stable']
     generators = 'cmake'
     options = {"python_build": [True, False], "do_half": [True, False]}
     default_options = {

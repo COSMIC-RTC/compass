@@ -13,7 +13,7 @@ def init_dm(file_name):
     f.write("\n//------------------------------")
     f.close()
     return 0
-    
+
 def write_dm(file_name, dm, index, *, sub_system=1):
     """Write (append) dm parameter to file for YAO use for a single dm
 
@@ -58,7 +58,7 @@ def write_dms(file_name, dms, *, sub_system=1, offset=0):
 
         offset : (int) : (optional), default 0 yao dm index offset
 
-    Return:
+    Returns:
         n_dm : (int) : number of dm passed to yao
     """
     f = open(file_name,"a+")

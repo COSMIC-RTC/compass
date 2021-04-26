@@ -3,7 +3,7 @@ from shesha.util.writers.tao.atmParams import *
 from shesha.util.writers import common
 
 def write_parfiles(sup, *, file_name_sys="./sysParams.json",
-    file_name_atm="./atmParams.json", file_name_data="sys-input.fits", 
+    file_name_atm="./atmParams.json", file_name_data="sys-input.fits",
     wfss_indices=None, ts=False, dms_indices=None, imat_type="controller",
     controller_id=-1,influ_index=0):
     """write the parameter files for SHIPS

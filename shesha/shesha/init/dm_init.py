@@ -65,7 +65,7 @@ def dm_init(context: carmaWrap_context, p_dms: List[conf.Param_dm],
             p_wfss: List[conf.Param_wfs] = None) -> Dms:
     """Create and initialize a Dms object on the gpu
 
-    :parameters:
+    Args:
         context: (carmaWrap_context): context
         p_dms: (list of Param_dms) : dms settings
         p_tel: (Param_tel) : telescope settings
@@ -104,7 +104,7 @@ def _dm_init(context: carmaWrap_context, dms: Dms, p_dm: conf.Param_dm, xpos_wfs
              pupAngle: float, max_extent: int):
     """ inits a Dms object on the gpu
 
-    :parameters:
+    Args:
         context: (carmaWrap_context): context
         dms: (Dms) : dm object
 
@@ -217,7 +217,7 @@ def _dm_init_factorized(context: carmaWrap_context, dms: Dms, p_dm: conf.Param_d
     """ inits a Dms object on the gpu
     NOTE: This is the
 
-    :parameters:
+    Args:
         context: (carmaWrap_context): context
         dms: (Dms) : dm object
 
@@ -310,7 +310,7 @@ def dm_init_standalone(context: carmaWrap_context, p_dms: list, p_geom: conf.Par
                        diam=1., cobs=0., pupAngle=0., wfs_xpos=[0], wfs_ypos=[0]):
     """Create and initialize a Dms object on the gpu
 
-    :parameters:
+    Args:
         p_dms: (list of Param_dms) : dms settings
 
         p_geom: (Param_geom) : geom settings
@@ -340,7 +340,7 @@ def make_pzt_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, cobs: float,
     """Compute the actuators positions and the influence functions for a pzt DM.
     NOTE: if the DM is in altitude, central obstruction is forced to 0
 
-    :parameters:
+    Args:
         p_dm: (Param_dm) : dm parameters
 
         p_geom: (Param_geom) : geometry parameters
@@ -354,7 +354,7 @@ def make_pzt_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, cobs: float,
     # best parameters, as determined by a multi-dimensional fit
     #(see coupling3.i)
     coupling = p_dm.coupling
-    
+
     # prepare to compute IF on partial (local) support of size <smallsize>
     pitch = p_dm._pitch  # unit is pixels
     smallsize = 0
@@ -519,7 +519,7 @@ def make_pzt_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, cobs: float,
 def init_custom_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, diam: float):
     """Read Fits for influence pzt fonction and form
 
-    :parameters:
+    Args:
         p_dm: (Param_dm) : dm settings
 
         p_geom: (Param_geom) : geom settings
@@ -670,7 +670,7 @@ def make_tiptilt_dm(p_dm: conf.Param_dm, patchDiam: int, p_geom: conf.Param_geom
                     diam: float):
     """Compute the influence functions for a tip-tilt DM
 
-    :parameters:
+    Args:
         p_dm: (Param_dm) : dm settings
 
         patchDiam: (int) : patchDiam for dm size
@@ -706,7 +706,7 @@ def make_kl_dm(p_dm: conf.Param_dm, patchDiam: int, p_geom: conf.Param_geom,
                cobs: float) -> None:
     """Compute the influence function for a Karhunen-Loeve DM
 
-    :parameters:
+    Args:
         p_dm: (Param_dm) : dm settings
 
         patchDiam: (int) : patchDiam for dm size
@@ -758,7 +758,7 @@ def make_kl_dm(p_dm: conf.Param_dm, patchDiam: int, p_geom: conf.Param_geom,
 def comp_dmgeom(p_dm: conf.Param_dm, p_geom: conf.Param_geom):
     """Compute the geometry of a DM : positions of actuators and influence functions
 
-    :parameters:
+    Args:
         dm: (Param_dm) : dm settings
 
         geom: (Param_geom) : geom settings
@@ -827,7 +827,7 @@ def correct_dm(context, dms: Dms, p_dms: list, p_controller: conf.Param_controll
                use_DB: bool = False):
     """Correct the geometry of the DMs using the imat (filter unseen actuators)
 
-    :parameters:
+    Args:
         context: (carmaWrap_context): context
         dms: (Dms) : Dms object
         p_dms: (list of Param_dm) : dms settings

@@ -125,20 +125,29 @@ void declare_lgs(py::module &mod) {
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
 
       .def("lgs_init", wy::colCast(&SutraLGS::lgs_init), R"pbdoc(
-        Initialize LGS object
+    Initialize LGS object
 
-        Parameters
-        ------------
+    Args:
         nprof: (int): TODO: docstring
+
         hg: (float):
+
         h0: (float):
+
         deltah: (float):
+
         pixsize: (float):
+
         doffaxis:(np.array[ndim= , dtype=np.float32]):
+
         prof1d:(np.array[ndim= , dtype=np.float32]):
+
         profcum:(np.array[ndim= , dtype=np.float32]):
+
         beam:(np.array[ndim= , dtype=np.float32]):
+
         ftbeam:(np.array[ndim= , dtype=np.complex64]):
+
         azimuth:(np.array[ndim= , dtype=np.float32]):
     )pbdoc",
            py::arg("nprof"), py::arg("hg"), py::arg("h0"), py::arg("deltah"),

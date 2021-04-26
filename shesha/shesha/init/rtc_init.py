@@ -98,7 +98,7 @@ def rtc_init(context: carmaWrap_context, tel: Telescope, wfs: Sensors, dms: Dms,
 
         use_DB: (bool): use dataBase flag
 
-    Return:
+    Returns:
         Rtc : (Rtc) : Rtc object
     """
     # initialisation var
@@ -202,7 +202,7 @@ def rtc_standalone(context: carmaWrap_context, nwfs: int, nvalid: list, nactu: i
 
         cacao: (bool) : cacao flag (default=False)
 
-    Return:
+    Returns:
         Rtc : (Rtc) : Rtc object
     """
     print("start rtc_standalone")

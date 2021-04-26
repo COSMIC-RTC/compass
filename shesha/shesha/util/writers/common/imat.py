@@ -14,7 +14,7 @@ def compose_imat(sup, *, compose_type="controller", controller_id=0):
 
         controller_id : (int) : (optional), default 0 controller index
 
-    Return:
+    Returns:
         imat : (np.ndarray[ndim=1, dtype=np.float32]) : interaction matrix
     """
     if(compose_type=="controller"):
