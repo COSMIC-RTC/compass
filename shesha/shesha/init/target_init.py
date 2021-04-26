@@ -49,7 +49,7 @@ def target_init(ctxt: carmaWrap_context, telescope: Telescope, p_targets: list,
                 p_geom: conf.Param_geom, dm=None, brahma=False):
     """Create a cython target from parametres structures
 
-    :parameters:
+    Args:
         ctxt: (carmaWrap_context) :
         telescope: (Telescope): Telescope object
         p_targets: (lis of Param_target) : target_settings

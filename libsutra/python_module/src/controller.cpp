@@ -5,29 +5,34 @@
 //  All rights reserved.
 //  Distributed under GNU - LGPL
 //
-//  COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-//  General Public License as published by the Free Software Foundation, either version 3 of the License,
-//  or any later version.
+//  COMPASS is free software: you can redistribute it and/or modify it under the
+//  terms of the GNU Lesser General Public License as published by the Free
+//  Software Foundation, either version 3 of the License, or any later version.
 //
 //  COMPASS: End-to-end AO simulation tool using GPU acceleration
-//  The COMPASS platform was designed to meet the need of high-performance for the simulation of AO systems.
+//  The COMPASS platform was designed to meet the need of high-performance for
+//  the simulation of AO systems.
 //
-//  The final product includes a software package for simulating all the critical subcomponents of AO,
-//  particularly in the context of the ELT and a real-time core based on several control approaches,
-//  with performances consistent with its integration into an instrument. Taking advantage of the specific
-//  hardware architecture of the GPU, the COMPASS tool allows to achieve adequate execution speeds to
-//  conduct large simulation campaigns called to the ELT.
+//  The final product includes a software package for simulating all the
+//  critical subcomponents of AO, particularly in the context of the ELT and a
+//  real-time core based on several control approaches, with performances
+//  consistent with its integration into an instrument. Taking advantage of the
+//  specific hardware architecture of the GPU, the COMPASS tool allows to
+//  achieve adequate execution speeds to conduct large simulation campaigns
+//  called to the ELT.
 //
-//  The COMPASS platform can be used to carry a wide variety of simulations to both testspecific components
-//  of AO of the E-ELT (such as wavefront analysis device with a pyramid or elongated Laser star), and
-//  various systems configurations such as multi-conjugate AO.
+//  The COMPASS platform can be used to carry a wide variety of simulations to
+//  both testspecific components of AO of the E-ELT (such as wavefront analysis
+//  device with a pyramid or elongated Laser star), and various systems
+//  configurations such as multi-conjugate AO.
 //
-//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
-//  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-//  See the GNU Lesser General Public License for more details.
+//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY
+//  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+//  FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+//  details.
 //
-//  You should have received a copy of the GNU Lesser General Public License along with COMPASS.
-//  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
+//  You should have received a copy of the GNU Lesser General Public License
+//  along with COMPASS. If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 // -----------------------------------------------------------------------------
 
 //! \file      controller.cpp
@@ -38,9 +43,9 @@
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
-#include <wyrm>
-
 #include <sutra_controller.h>
+
+#include <wyrm>
 
 namespace py = pybind11;
 
@@ -132,16 +137,20 @@ void controller_impl(py::module &mod, const char *name) {
           "Command vector at iteration k-1")
 
       .def_property_readonly(
-          "d_circularComs0", [](controller &sc) { return sc.d_circular_coms[0]; },
+          "d_circularComs0",
+          [](controller &sc) { return sc.d_circular_coms[0]; },
           "Oldest command vector in the circular buffer")
 
       .def_property_readonly(
-          "d_circularComs1", [](controller &sc) { return sc.d_circular_coms[1]; },
+          "d_circularComs1",
+          [](controller &sc) { return sc.d_circular_coms[1]; },
           "Second oldest Command vector in the circular buffer")
 
       .def_property_readonly(
           "comRange",
-          [](controller &sc) { return std::make_tuple(sc.volt_min, sc.volt_max); },
+          [](controller &sc) {
+            return std::make_tuple(sc.volt_min, sc.volt_max);
+          },
           "Tuple (volt_min, volt_max) used for command clipping")
       .def_property_readonly(
           "val_max", [](controller &sc) { return sc.val_max; },
@@ -175,27 +184,26 @@ void controller_impl(py::module &mod, const char *name) {
 
       .def("command_delay", &controller::command_delay, "Delay the command")
 
-      .def("reset_coms", &controller::reset_coms, "Reset the commands circular buffer")
+      .def("reset_coms", &controller::reset_coms,
+           "Reset the commands circular buffer")
 
       .def("enable_perturb_voltage",
            wy::colCast(&controller::enable_perturb_voltage),
            R"pbdoc(
-          Enable a perturbation voltage buffer
+    Enable a perturbation voltage buffer
 
-          Parameters
-          ------------
-          name: (str): name of the buffer to enable
+    Args:
+        name: (str): name of the buffer to enable
      )pbdoc",
            py::arg("name"))
 
       .def("disable_perturb_voltage",
            wy::colCast(&controller::disable_perturb_voltage),
            R"pbdoc(
-          Disable a perturbation voltage buffer
+    Disable a perturbation voltage buffer
 
-          Parameters
-          ------------
-          name: (str): name of the buffer to enable
+    Args:
+        name: (str): name of the buffer to enable
      )pbdoc",
            py::arg("name"))
 
@@ -215,72 +223,71 @@ void controller_impl(py::module &mod, const char *name) {
       //
       .def("add_perturb_voltage", wy::colCast(&controller::add_perturb_voltage),
            R"pbdoc(
-          Add a new perturbation voltage buffer
+    Add a new perturbation voltage buffer
 
-          Parameters
-          ------------
-          name: (str): name of the new buffer
-          perturb: (np.array[ndim=2,dtype=np.float32]): perturbation voltage to set
-          N: (int): Number of perturb voltage vectors in the buffer
+    Args:
+        name: (str): name of the new buffer
+
+        perturb: (np.array[ndim=2,dtype=np.float32]): perturbation voltage to set
+
+        N: (int): Number of perturb voltage vectors in the buffer
      )pbdoc",
            py::arg("name"), py::arg("perturb"), py::arg("N"))
 
       .def("set_perturb_voltage", wy::colCast(&controller::set_perturb_voltage),
            R"pbdoc(
-          Set an existing perturbation voltage buffer
+    Set an existing perturbation voltage buffer
 
-          Parameters
-          ------------
-          name: (str): name of the buffer
-          perturb: (np.array[ndim=2,dtype=np.float32]): perturbation voltage to set
-          N: (int): Number of perturb voltage vectors in the buffer
+    Args:
+        name: (str): name of the buffer
+
+        perturb: (np.array[ndim=2,dtype=np.float32]): perturbation voltage to set
+
+        N: (int): Number of perturb voltage vectors in the buffer
      )pbdoc",
            py::arg("name"), py::arg("perturb"), py::arg("N"))
 
       .def("remove_perturb_voltage",
            wy::colCast(&controller::remove_perturb_voltage),
            R"pbdoc(
-          Remove a perturbation voltage buffer
+    Remove a perturbation voltage buffer
 
-          Parameters
-          ------------
-          name: (str): name of the buffer to remove
+    Args:
+        name: (str): name of the buffer to remove
      )pbdoc",
            py::arg("name"))
 
       .def("reset_perturb_voltage", &controller::reset_perturb_voltage,
            R"pbdoc(
-          Remove all perturbation voltage buffers
+    Remove all perturbation voltage buffers
      )pbdoc")
 
       .def("set_open_loop", wy::colCast(&controller::set_open_loop),
            R"pbdoc(
-          Open (1) or close (0) the loop
+    Open (1) or close (0) the loop
 
-          Parameters
-          ------------
-          status: (int): open loop status
-          rst: (bool): reset integrator if True
+    Args:
+        status: (int): open loop status
+
+        rst: (bool): reset integrator if True
      )pbdoc",
            py::arg("status"), py::arg("rst") = true)
 
       .def("set_delay", wy::colCast(&controller::set_delay),
            R"pbdoc(
-          Set the delay
+    Set the delay
 
-          Parameters
-          ------------
-          delay: (float): loop delay in frames
+    Args:
+        delay: (float): loop delay in frames
      )pbdoc",
            py::arg("delay"))
 
       .def("set_gain", wy::colCast(&controller::set_gain),
            R"pbdoc(
-          Set the gain
+    Set the gain
 
-          Parameters
-          ------------
-          gain: (float): loop gain
+    Args:
+        gain: (float): loop gain
      )pbdoc",
            py::arg("gain"))
 
@@ -291,42 +298,41 @@ void controller_impl(py::module &mod, const char *name) {
             sc.set_volt_min(volt_min);
           },
           R"pbdoc(
-          Set the volt_min and volt_max value for command clipping
+    Set the volt_min and volt_max value for command clipping
 
-          Parameters
-          ------------
-          volt_min: (float): volt_min value for clipping
-          volt_max: (float): volt_max value for clipping
+    Args:
+        volt_min: (float): volt_min value for clipping
+
+        volt_max: (float): volt_max value for clipping
      )pbdoc",
           py::arg("volt_min"), py::arg("volt_max"))
 
       .def("set_volt_max", wy::colCast(&controller::set_volt_max),
            R"pbdoc(
-          Set the volt_max value for command clipping
+    Set the volt_max value for command clipping
 
-          Parameters
-          ------------
-          volt_max: (float): volt_max value for clipping
+    Args:
+        volt_max: (float): volt_max value for clipping
      )pbdoc",
            py::arg("volt_max"))
 
       .def("set_val_max", wy::colCast(&controller::set_val_max),
            R"pbdoc(
-          Set the val_max value for command conversion
+    Set the val_max value for command conversion
 
-          Parameters
-          ------------
-          val_max: (float): val_max value for conversion
+    Args:
+        val_max: (float): val_max value for conversion
      )pbdoc",
            py::arg("val_max"))
 
       .def("set_com", wy::colCast(&controller::set_com), R"pbdoc(
-          Set the command vector of the controller
-          Parameters
-          ------------
-          com: (np.array[ndim=3, dtype=np.float32]) : command vector
-          nElem: (int): Number of elements in com
-          )pbdoc",
+    Set the command vector of the controller
+
+    Args:
+        com: (np.array[ndim=3, dtype=np.float32]) : command vector
+
+        nElem: (int): Number of elements in com
+        )pbdoc",
            py::arg("com"), py::arg("nElem"));
 };
 

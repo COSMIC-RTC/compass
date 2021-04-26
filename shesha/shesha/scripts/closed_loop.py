@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-## @package   shesha.script.closed_loop
+## @package   shesha.scripts.closed_loop
 ## @brief     script test to simulate a closed loop
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   5.0.0

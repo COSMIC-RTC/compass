@@ -78,7 +78,7 @@ class WfsCompass(SourceCompass):
         Args:
             wfs_index : (int) : index of the WFS (or the centroider) to request an image
 
-        Return:
+        Returns:
             image : (np.ndarray) : WFS image
         """
         if self._config.p_wfss[wfs_index].fakecam:
@@ -125,7 +125,7 @@ class WfsCompass(SourceCompass):
 
             pyr_mod : (float) : new pyramid modulation amplitude value
 
-        Return:
+        Returns:
             scale : (float) : scale factor
         """
         p_wfs = self._config.p_wfss[wfs_index]
@@ -354,7 +354,7 @@ class WfsCompass(SourceCompass):
         Args:
             wfs_index : (int) : Index of the WFS
 
-        Return:
+        Returns:
             ncpa : (np.ndarray) : NCPA phase screen
         """
         return np.array(self._wfs.d_wfs[wfs_index].d_gs.d_ncpa_phase)
@@ -365,7 +365,7 @@ class WfsCompass(SourceCompass):
         Args:
             wfs_index : (int) : Index of the WFS
 
-        Return:
+        Returns:
             phase : (np.ndarray) : WFS phase screen
         """
         return np.array(self._wfs.d_wfs[wfs_index].d_gs.d_phase)
@@ -376,7 +376,7 @@ class WfsCompass(SourceCompass):
         Args:
             wfs_index : (int) : Index of the WFS
 
-        Return:
+        Returns:
             image : (np.ndarray) : PWFS high resolution image
 
         """
@@ -430,7 +430,7 @@ class WfsCompass(SourceCompass):
         Args:
             wfs_index : (int) : WFS index
 
-        Return:
+        Returns:
             focal_plane : (np.ndarray) : psf on the top of the pyramid
         """
         return np.fft.fftshift(np.array(self._wfs.d_wfs[wfs_index].d_pyrfocalplane))

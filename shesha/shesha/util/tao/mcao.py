@@ -67,4 +67,3 @@ def reconstructor(tao_settings, *,apply_log="./log"):
 
     os.system(apply_cmd)
     return fits.open("./M_mcao.fits")[0].data.T
-

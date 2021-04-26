@@ -1,9 +1,9 @@
 from importlib import reload
-import numpy as np 
-from astropy.io import fits 
+import numpy as np
+from astropy.io import fits
 
-from shesha.ao import imats 
-from shesha.ao import cmats 
+from shesha.ao import imats
+from shesha.ao import cmats
 
 from shesha.util.tao import writer
 from shesha.util.tao import ltao
@@ -73,14 +73,14 @@ def init(sup, mod, *,wfs="all", dm_use_tt=False, n_filt=None):
     Args:
 
         sup : (CompassSupervisor) : current supervisor
-    
+
         mod : (module) : AO mode requested (among: ltao , mcao)
-    
+
     Kwargs:
         wfs : (str) : (optional), default "all" wfs used by tao ( among "all", "lgs", "ngs")
-    
+
         dm_use_tt : (bool) :(optional), default False using a TT DM
-    
+
         n_filt : (int) : (optional), default None number of meta interaction matrix singular values filtered out
     """
 
@@ -107,7 +107,7 @@ def run(sup, mod, *, n_iter=1000, initialisation=True, reset=True, wfs="all",
 
     Args:
         sup : (CompassSupervisor) : current supervisor
-        
+
         mod : (module) : AO mode requested (among: ltao , mcao)
 
     Kwargs

@@ -25,7 +25,7 @@ def launch_cmd(command_line: str):
     Args:
         command_line : (str) : command to launch
 
-    Return:
+    Returns:
         output : (str) : the output of the command
     """
     pipes = command_line.split('|')

@@ -676,6 +676,40 @@ struct CarmaObjInterfacer {
     // int carma_fftconv(CarmaObjS *data_out, CarmaObjS *padded_data,
     //                   CarmaObjC *padded_spectrum, int kernelY, int kernelX);
 
+    mod.def(
+        appendName<T>("syevd_").data(),
+        [](Class &d_mat_a, Class &eigenvals, Class *d_U, bool computeU) {
+          if (d_U == nullptr) {
+            if (computeU) {
+              carma_syevd(SOLVER_EIG_MODE_VECTOR, &d_mat_a, &eigenvals);
+            } else {
+              carma_syevd(SOLVER_EIG_MODE_NOVECTOR, &d_mat_a, &eigenvals);
+            }
+          } else {
+            d_U->copy_from(d_mat_a, d_mat_a.get_nb_elements());
+            if (computeU) {
+              carma_syevd(SOLVER_EIG_MODE_VECTOR, d_U, &eigenvals);
+            } else {
+              carma_syevd(SOLVER_EIG_MODE_NOVECTOR, d_U, &eigenvals);
+            }
+          }
+        },
+        py::arg("d_mat_a"), py::arg("eigenvals"), py::arg("d_U") = nullptr,
+        py::arg("computeU") = true);
+
+    mod.def(
+        appendName<T>("potri_").data(),
+        [](Class &d_A, Class *d_res) {
+          if (d_res == nullptr) {
+            carma_potr_inv(&d_A);
+          } else {
+            d_res->copy_from(d_A, d_A.get_nb_elements());
+            carma_potr_inv(d_res);
+          }
+        },
+        py::arg("d_A"), py::arg("d_res") = nullptr);
+
+#ifdef USE_MAGMA
     // MAGMA functions
 
     // template<class T>
@@ -712,26 +746,6 @@ struct CarmaObjInterfacer {
         py::arg("d_mat_a"), py::arg("eigenvals"), py::arg("d_U") = nullptr,
         py::arg("computeU") = true);
 
-    mod.def(
-        appendName<T>("syevd_").data(),
-        [](Class &d_mat_a, Class &eigenvals, Class *d_U, bool computeU) {
-          if (d_U == nullptr) {
-            if (computeU) {
-              carma_syevd(SOLVER_EIG_MODE_VECTOR, &d_mat_a, &eigenvals);
-            } else {
-              carma_syevd(SOLVER_EIG_MODE_NOVECTOR, &d_mat_a, &eigenvals);
-            }
-          } else {
-            d_U->copy_from(d_mat_a, d_mat_a.get_nb_elements());
-            if (computeU) {
-              carma_syevd(SOLVER_EIG_MODE_VECTOR, d_U, &eigenvals);
-            } else {
-              carma_syevd(SOLVER_EIG_MODE_NOVECTOR, d_U, &eigenvals);
-            }
-          }
-        },
-        py::arg("d_mat_a"), py::arg("eigenvals"), py::arg("d_U") = nullptr,
-        py::arg("computeU") = true);
     // template<class T, int method>
     // int carma_magma_syevd(char jobz, CarmaObj<T> *mat, CarmaHostObj<T>
     // *eigenvals); template<class T> int carma_magma_syevd_m(long ngpu, char
@@ -749,18 +763,6 @@ struct CarmaObjInterfacer {
     // int carma_magma_potr_inv(CarmaObj<T> *d_iA);
     mod.def(appendName<T>("magma_potri_").data(), &carma_magma_potr_inv<T>);
 
-    mod.def(
-        appendName<T>("potri_").data(),
-        [](Class &d_A, Class *d_res) {
-          if (d_res == nullptr) {
-            carma_potr_inv(&d_A);
-          } else {
-            d_res->copy_from(d_A, d_A.get_nb_elements());
-            carma_potr_inv(d_res);
-          }
-        },
-        py::arg("d_A"), py::arg("d_res") = nullptr);
-
     // TODO after CarmaHostObj
     // template<class T>
     // int carma_magma_potr_inv_m(long num_gpus, CarmaHostObj<T> *h_A,
@@ -775,6 +777,7 @@ struct CarmaObjInterfacer {
     // int carma_magma_syevd_m(long ngpu, char jobz, long N, T *mat, T
     // *eigenvals); template<class T> int carma_magma_potr_inv_m(long num_gpus,
     // long N, T *h_A, T *d_iA);
+#endif
 
   }
 };

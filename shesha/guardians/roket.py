@@ -36,7 +36,7 @@ class Roket(CompassSupervisor):
         """
         Initializes an instance of Roket class
 
-        :parameters:
+        Args:
             str: (str): (optional) path to a parameter file
             N_preloop: (int): (optional) number of iterations before starting error breakdown estimation
             gamma: (float): (optional) centroid gain
@@ -109,7 +109,7 @@ class Roket(CompassSupervisor):
         """
         Performs the AO loop for n iterations
 
-        :parameters:
+        Args:
             monitoring_freq: (int): (optional) Loop monitoring frequency [frames] in the terminal
         """
         print("-----------------------------------------------------------------")
@@ -304,7 +304,7 @@ class Roket(CompassSupervisor):
         """
         Saves all the ROKET buffers + simuation parameters in a HDF5 file
 
-        :parameters:
+        Args:
             savename: (str): name of the output file
         """
         tmp = (self.config.p_geom._ipupil.shape[0] -

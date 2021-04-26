@@ -1,4 +1,4 @@
-## @package   shesha.script.dm_standalone
+## @package   shesha.scripts.dm_standalone
 ## @brief     Python dm standalone script
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   5.0.0

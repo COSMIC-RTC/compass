@@ -44,6 +44,7 @@
 //! \copyright GNU Lesser General Public License
 
 #include <sutra_centroider_maskedPix.h>
+
 #include <wyrm>
 
 namespace py = pybind11;
@@ -78,10 +79,9 @@ void centroider_maskedPix_impl(py::module &mod, const char *name) {
           },
           // wy::colCast(&centroider_maskedPix::fill_selected_pix),
           R"pbdoc(
-        Return the given pixels vector in an image format
+    Return the given pixels vector in an image format
 
-        Parameters
-        ------------
+    Args:
         centroids: (CarmaObj): Pixels to map on the image
     )pbdoc",
           py::arg("centroids"))

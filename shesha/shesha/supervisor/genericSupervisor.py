@@ -80,7 +80,7 @@ class GenericSupervisor(ABC):
     def get_config(self):
         """ Returns the configuration in use, in a supervisor specific format ?
 
-        Return:
+        Returns:
             config : (config module) : Current supervisor configuration
         """
         return self.config
@@ -88,7 +88,7 @@ class GenericSupervisor(ABC):
     def get_frame_counter(self) -> int:
         """Return the current iteration number of the loop
 
-        Return:
+        Returns:
             framecounter : (int) : Number of iteration already performed
         """
         return self.iter

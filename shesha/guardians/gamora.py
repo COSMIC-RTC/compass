@@ -24,7 +24,7 @@ def psf_rec_Vii(filename, err=None, fitting=True, covmodes=None, cov=None):
     """
     PSF reconstruction using Vii functions with GPU acceleration.
 
-    :parameters:
+    Args:
         filename: (str): path to the ROKET file
         err: (np.ndarray[ndim=2, dtype=np.float32]): (optionnal) Buffers of command error
         fitting: (bool): (optional) Add the fitting error to the PSF or not (True by default)
@@ -98,7 +98,7 @@ def psf_rec_vii_cpu(filename):
     """
     PSF reconstruction using Vii functions (CPU version)
 
-    :parameters:
+    Args:
         filename: (str): path to the ROKET file
 
     :return:
@@ -170,7 +170,7 @@ def test_Vii(filename):
     Test function comparing results and performance of GPU version
     versus CPU version of Vii PSF reconstruction
 
-    :parameters:
+    Args:
         filename: (str): path to the ROKET file
     """
     a = time.time()
@@ -191,7 +191,7 @@ def add_fitting_to_psf(filename, otf, otffit):
     """
     Compute the PSF including the fitting OTF
 
-    :parameters:
+    Args:
         otf: (np.ndarray[ndim=2, dtype=np.float32]): OTF
         otffit: (np.ndarray[ndim=2, dtype=np.float32]): Fitting error OTF
     :return:
@@ -329,7 +329,7 @@ def intersample(Cvvmap, pupilImage, IFImage, pixscale, dactu, lambdaIR):
 #     for each frame and stacked to obtain the LE PSF.
 #     Used for ROKET debug only.
 
-#     :parameters:
+#     Args:
 #         filename: (str): path to the ROKET file
 #         err: (np.ndarray[ndim=2, dtype=np.float32]): (optionnal) Buffers of command error
 #     :return:
@@ -361,7 +361,7 @@ def intersample(Cvvmap, pupilImage, IFImage, pixscale, dactu, lambdaIR):
 #     for each frame and stacked to obtain the LE PSF.
 #     Used for ROKET debug only.
 
-#     :parameters:
+#     Args:
 #         filename: (str): path to the ROKET file
 #     :return:
 #         psf: (np.ndarray[ndim=2, dtype=np.float32]): LE PSF

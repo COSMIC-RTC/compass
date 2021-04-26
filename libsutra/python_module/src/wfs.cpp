@@ -225,35 +225,33 @@ void declare_wfs(py::module &mod) {
 
       .def("comp_image", &SutraWfs::comp_image,
            R"pbdoc(
-               Computes the WFS image from the WFS phase
+    Computes the WFS image from the WFS phase
 
-               Parameters
-               ------------
-               noise: (bool): take noise into account or not
-               )pbdoc",
+    Args:
+        noise: (bool): take noise into account or not
+    )pbdoc",
            py::arg("noise") = true)
       .def("slopes_geom",
            wy::colCast((int (SutraWfs::*)(int)) & SutraWfs::slopes_geom),
            R"pbdoc(
-          Computes theoretical slopes in wfs.d_slopes
+    Computes theoretical slopes in wfs.d_slopes
 
-          Parameters
-          ------------
-          type: (int): method to use (0: reduce, 1: derive)
-        )pbdoc",
+    Args:
+        type: (int): method to use (0: reduce, 1: derive)
+    )pbdoc",
            py::arg("type") = 0)
 
       .def("slopes_geom",
            wy::colCast((int (SutraWfs::*)(float *, int)) &
                        SutraWfs::slopes_geom),
            R"pbdoc(
-          Computes theoretical slopes in given array
+    Computes theoretical slopes in given array
 
-          Parameters
-          ------------
-          slopes: (np.array(ndim=1, dtype=np.float32)):
-          type: (int): method to use (0: reduce, 1: derive)
-        )pbdoc",
+    Args:
+        slopes: (np.array(ndim=1, dtype=np.float32)):
+
+        type: (int): method to use (0: reduce, 1: derive)
+    )pbdoc",
            py::arg("slopes"), py::arg("type") = 0)
 
       .def("fill_binimage", &SutraWfs::fill_binimage,
@@ -277,79 +275,74 @@ void declare_wfs(py::module &mod) {
               DEBUG_TRACE("Wrong dimensions");
           },
           R"pbdoc(
-                      Set the pupil seen by the WFS
+    Set the pupil seen by the WFS
 
-                      Parameters
-                      ------------
-                      pupil: (np.array(ndim=2,dtype=np.float32)): pupil to set
-                  )pbdoc",
+    Args:
+        pupil: (np.array(ndim=2,dtype=np.float32)): pupil to set
+)pbdoc",
           py::arg("pupil"))
 
       .def("set_noise", &SutraWfs::set_noise, R"pbdoc(
-            Set the noise of the WFS
+    Set the noise of the WFS
 
-            Parameters
-            ------------
-            noise: (float): desired noise (< 0 = no noise
-                                           0 = photon only
-                                           > 0 = photon + ron in e-)
-            seed: (int): seed for the RNG
+    Args:
+        noise: (float): desired noise (< 0 = no noise
+                                        0 = photon only
+                                        > 0 = photon + ron in e-)
+        seed: (int): seed for the RNG
         )pbdoc",
            py::arg("noise"), py::arg("seed"))
 
       .def("set_fakecam", &SutraWfs::set_fakecam, R"pbdoc(
-            Enable or disable uint16 computation for the WFS
+    Enable or disable uint16 computation for the WFS
 
-            Parameters
-            ------------
-            fakecam: (bool): fakecam flag
+    Args:
+        fakecam: (bool): fakecam flag
         )pbdoc",
            py::arg("fakecam"))
 
       .def("set_max_flux_per_pix", &SutraWfs::set_max_flux_per_pix, R"pbdoc(
-            Set the maximum number of photons allowed before pixel saturation
+    Set the maximum number of photons allowed before pixel saturation
 
-            Parameters
-            ------------
-            max_flux_per_pix: (int): maximum number of photons allowed before pixel saturation
+    Args:
+        max_flux_per_pix: (int): maximum number of photons allowed before pixel saturation
         )pbdoc",
            py::arg("max_flux_per_pix"))
 
       .def("set_max_pix_value", &SutraWfs::set_max_pix_value, R"pbdoc(
-            Set the maximum number of ADU allowed in the uint16 image
+    Set the maximum number of ADU allowed in the uint16 image
 
-            Parameters
-            ------------
-            max_pix_value: (int): maximum number of ADU allowed in the uint16 image
+    Args:
+        max_pix_value: (int): maximum number of ADU allowed in the uint16 image
         )pbdoc",
            py::arg("max_pix_value"))
 
       .def("set_binimg", wy::colCast(&SutraWfs::set_binimg), R"pbdoc(
-        Set the binimg of the SH WFS
+    Set the binimg of the SH WFS
 
-        Parameters
-        ------------
+    Args:
         binimg: (np.array[ndim=3, dtype=np.float32]) : cube of subap. images
+
         nElem: (int): Number of elements in binimg
       )pbdoc",
            py::arg("binimg"), py::arg("nElem"))
 
       .def("set_dark", wy::colCast(&SutraWfs::set_dark), R"pbdoc(
-        Set the dark of the SH WFS
+    Set the dark of the SH WFS
 
-        Parameters
-        ------------
+    Args:
         dark: (np.array[ndim=2, dtype=np.float32]) : dark image
+
         nElem: (int): Number of elements in dark
       )pbdoc",
            py::arg("dark"), py::arg("nElem"))
 
       .def("set_flat", wy::colCast(&SutraWfs::set_flat), R"pbdoc(
-        Set the flat of the SH WFS
+    Set the flat of the SH WFS
 
-        Parameters
-        ------------
+    Args:
         flat: (np.array[ndim=2, dtype=np.float32]) : flat image
+
         nElem: (int): Number of elements in flat
       )pbdoc",
            py::arg("flat"), py::arg("nElem"));

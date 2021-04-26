@@ -44,7 +44,7 @@ from . import utilities as util
 def make_apodizer(dim, pupd, filename, angle):
     """TODO doc
 
-    :parameters:
+    Args:
 
         (int) : im:
 

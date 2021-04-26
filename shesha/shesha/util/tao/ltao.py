@@ -1,9 +1,9 @@
 import os
-import numpy as np 
-from astropy.io import fits 
+import numpy as np
+from astropy.io import fits
 
-from shesha.ao import imats 
-from shesha.ao import cmats 
+from shesha.ao import imats
+from shesha.ao import cmats
 
 from shesha.util.tao import writer
 
@@ -53,7 +53,7 @@ def reconstructor(tao_settings,*,apply_log="./log"):
     Kwargs:
         apply_log : (str)   : tao log file name
 
-    Return:
+    Returns:
         tor : () : tomographic reconstructor
     """
 

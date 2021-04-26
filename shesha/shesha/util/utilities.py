@@ -54,7 +54,7 @@ def rebin(a, shape):
 def fft_goodsize(s):
     """find best size for a fft from size s
 
-    :parameters:
+    Args:
 
          s: (int) size
     """
@@ -164,7 +164,7 @@ def generate_square(radius: float, density: float = 1.):
 
         density : (float), optional) : number of psf per lambda/D. Default is 1
 
-    Return:
+    Returns:
         cx : (np.ndarray) : X-positions of the modulation points
 
         cy : (np.ndarray) : Y-positions of the modulation points
@@ -184,7 +184,7 @@ s
 
         density : (float), optional) : number of psf per lambda/D. Default is 1
 
-    Return:
+    Returns:
         cx : (np.ndarray) : X-positions of the modulation points
 
         cy : (np.ndarray) : Y-positions of the modulation points
@@ -203,7 +203,7 @@ s
 
             density : (float, optional) :TODO description
 
-        Return:
+        Returns:
             ox : TODO description & explicit naming
 
             oy : TODO description & explicit naming
@@ -278,7 +278,7 @@ def first_non_zero(array: np.ndarray, axis: int, invalid_val: int = -1) -> np.nd
 
         invalid_val : (int, optional) : Default is -1
 
-    Return:
+    Returns:
         non_zeros_pos : (np.ndarray) : Index of the first non-zero element
                                         for each line or column following the axis
     """
@@ -298,7 +298,7 @@ def first_non_zero(array: np.ndarray, axis: int, invalid_val: int = -1) -> np.nd
 
 #     modif dg : allow to rotate a cube of images with one angle per image
 
-#     :parameters:
+#     Args:
 
 #         im: (np.ndarray[ndim=3,dtype=np.float32_t]) : array to rotate
 
@@ -387,7 +387,7 @@ def first_non_zero(array: np.ndarray, axis: int, invalid_val: int = -1) -> np.nd
 #     center of the image.
 #     If zoom is not specified, the default value of 1.0 is taken.
 
-#     :parameters:
+#     Args:
 
 #         im: (np.ndarray[ndim=3,dtype=np.float32_t]) : array to rotate
 

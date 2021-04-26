@@ -114,7 +114,7 @@ class ParamConfig(object):
         Args:
             filename_path: (str): path to the parameters file
 
-        Return:
+        Returns:
             config : (config) : a config module
         """
         filename = filepath.split('.')[-1]
@@ -158,7 +158,7 @@ class ParamConfig(object):
             - "m" or "mpupil" : returns the medium pupil, used for WFS computation
             - "s" or "spupil" : returns the smallest pupil of size (p_geom.pupdiam x p_geom.pupdiam)
 
-        Return:
+        Returns:
             pupil : (np.ndarray) : pupil
         """
         if scons.PupilType(pupil_type) is scons.PupilType.SPUPIL:

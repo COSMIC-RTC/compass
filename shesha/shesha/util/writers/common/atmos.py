@@ -19,7 +19,7 @@ def atmos_to_json(atmos, name=""):
     if(name != ""):
         json_atm["name"] = name
     return json_atm
-    
+
 
 def atmos_json_notice():
     notice = {

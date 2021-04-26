@@ -56,7 +56,7 @@ def imat_geom(wfs: Sensors, dms: Dms, p_wfss: List[conf.Param_wfs],
               meth: int = 0) -> np.ndarray:
     """ Compute the interaction matrix with a geometric method
 
-    :parameters:
+    Args:
 
         wfs: (Sensors) : Sensors object
 
@@ -117,7 +117,7 @@ def imat_init(ncontrol: int, rtc: Rtc, dms: Dms, p_dms: list, wfs: Sensors, p_wf
               dataBase: dict = {}, use_DB: bool = False) -> None:
     """ Initialize and compute the interaction matrix on the GPU
 
-    :parameters:
+    Args:
 
         ncontrol: (int) : controller's index
 

@@ -13,7 +13,7 @@ def write_loop(file_name, loop, controller):
     f.write("\n\n//------------------------------")
     f.write("\n//LOOP  parameters")
     f.write("\n//------------------------------")
-    f.write("\nloop.method     = " + "\"none\"" + ";")  
+    f.write("\nloop.method     = " + "\"none\"" + ";")
     f.write("\nloop.leak       = " + str(0.001) + ";")
     f.write("\nloop.gain       = " + str(controller.gain) + ";")
     f.write("\nloop.framedelay = " + str(controller.delay+1) + ";") # delay_yao = delay_compass + 1

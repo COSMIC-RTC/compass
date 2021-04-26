@@ -58,23 +58,33 @@ std::unique_ptr<SutraTarget> target_init(CarmaContext &context,
 void declare_target(py::module &mod) {
   py::class_<SutraTarget>(mod, "Target")
       .def(py::init(wy::colCast(target_init)), R"pbdoc(
-        Create and initialise an target object
-        Parameters
-        ------------
+    Create and initialise an target object
+
+    Args:
         context: (CarmaContext) : current carma context
+
         d_tel: (SutraTelescope) : SutraTelescope object
+
         ntargets: (int): number of targets
+
         xpos: (np.ndarray[ndim=1,dtype=np.float32_t]) : X positions of each target in arcsec
+
         ypos: (np.ndarray[ndim=1,dtype=np.float32_t]) : Y positions of each target in arcsec
-        lambda: (np.ndarray[ndim=1,dtype=np.float32_t]) : Wavelength of each target in µm
+
+        lambda_um: (np.ndarray[ndim=1,dtype=np.float32_t]) : Wavelength of each target in µm
+
         mag: (np.ndarray[ndim=1,dtype=np.float32_t]) : magnitude of each target
+
         zerop: (float) : Flux at magnitude 0 in photons/m²/s
+
         sizes: (np.ndarray[ndim=1,dtype=np.int64_t]) : Support size of each target
+
         Npts : (int): number of points in the pupil
+
         device: (int): GPU device index
         )pbdoc",
            py::arg("context"), py::arg("d_tel"), py::arg("ntargets"),
-           py::arg("xpos"), py::arg("ypos"), py::arg("lambda"), py::arg("mag"),
+           py::arg("xpos"), py::arg("ypos"), py::arg("lambda_um"), py::arg("mag"),
            py::arg("zerop"), py::arg("sizes"), py::arg("Npts"),
            py::arg("device"))
 

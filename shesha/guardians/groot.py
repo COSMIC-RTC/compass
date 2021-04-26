@@ -213,7 +213,7 @@ def compute_Cerr_cpu(filename, modal=True):
 def test_Cerr(filename):
     """ Compute PSF of aniso and bandwidth from GROOT model and ROKET to compare
 
-    :parameters:
+    Args:
         filename:(str):path to the ROKET file
     """
     C = drax.get_covmat_contrib(filename, ["bandwidth", "tomography"])
@@ -415,7 +415,7 @@ def compute_OTF_fitting(filename, otftel):
     """
     Modelize the OTF due to the fitting using dphi_highpass
 
-    :parameters:
+    Args:
         filename: (str) : ROKET hdf5 file path
         otftel: (np.ndarray) : Telescope OTF
     :return:
@@ -457,7 +457,7 @@ def compute_PSF(filename):
     Modelize the PSF using GROOT model for aniso and bandwidth, Gendron model for aliasing,
     dphi_highpass for fitting, noise extracted from datas. Non linearity not taken into account
 
-    :parameters:
+    Args:
         filename: (str) : ROKET hdf5 file path
     :return:
         psf: (np.ndarray) : PSF
@@ -610,7 +610,7 @@ def compute_Calias(filename, slopes_space=False, modal=True, npts=3):
 def simpson_coeff(n):
     """
     Returns the n weights to apply for a Simpson integration on n elements
-    :parameters:
+    Args:
         n: (int): number of elements, must be odd
     :return:
         coeff: (np.array[ndims=1,dtype=np.int64]): simpson coefficients
@@ -632,7 +632,7 @@ def compute_Calias_element_XX(xx, yy, fc, d, nsub, tabx, taby, xoff=0, yoff=0):
     """
         Compute the element of the aliasing covariance matrix
 
-    :parameters:
+    Args:
         Ca: (np.ndarray(ndim=2, dtype=np.float32)): aliasing covariance matrix to fill
         xx: (np.ndarray(ndim=2, dtype=np.float32)): X positions of the WFS subap
         yy: (np.ndarray(ndim=2, dtype=np.float32)): Y positions of the WFS subap
@@ -667,7 +667,7 @@ def compute_Calias_element_YY(xx, yy, fc, d, nsub, tabx, taby, xoff=0, yoff=0):
     """
         Compute the element of the aliasing covariance matrix
 
-    :parameters:
+    Args:
         Ca: (np.ndarray(ndim=2, dtype=np.float32)): aliasing covariance matrix to fill
         xx: (np.ndarray(ndim=2, dtype=np.float32)): X positions of the WFS subap
         yy: (np.ndarray(ndim=2, dtype=np.float32)): Y positions of the WFS subap
@@ -702,7 +702,7 @@ def compute_Calias_element_XY(xx, yy, fc, d, nsub, tabx, taby, xoff=0, yoff=0):
     """
         Compute the element of the aliasing covariance matrix
 
-    :parameters:
+    Args:
         Ca: (np.ndarray(ndim=2, dtype=np.float32)): aliasing covariance matrix to fill
         xx: (np.ndarray(ndim=2, dtype=np.float32)): X positions of the WFS subap
         yy: (np.ndarray(ndim=2, dtype=np.float32)): Y positions of the WFS subap
@@ -736,7 +736,7 @@ def compute_Calias_element(xx, yy, fc, d, nsub, tabx, taby, xoff=0, yoff=0):
     """
         Compute the element of the aliasing covariance matrix
 
-    :parameters:
+    Args:
         Ca: (np.ndarray(ndim=2, dtype=np.float32)): aliasing covariance matrix to fill
         xx: (np.ndarray(ndim=2, dtype=np.float32)): X positions of the WFS subap
         yy: (np.ndarray(ndim=2, dtype=np.float32)): Y positions of the WFS subap
@@ -841,7 +841,7 @@ def compute_dCmm_element(xx, yy, d, nsub, ws, wd, dt, L0):
     """
         Compute the element of the derivative slopes covariance matrix
 
-    :parameters:
+    Args:
         xx: (np.ndarray(ndim=2, dtype=np.float32)): X positions of the WFS subap
         yy: (np.ndarray(ndim=2, dtype=np.float32)): Y positions of the WFS subap
         d: (float): subap diameter

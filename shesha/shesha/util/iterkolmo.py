@@ -101,7 +101,7 @@ def stencil_size_array(size):
 
     Compute the size of a stencil, given the screen size
 
-    :parameters:
+    Args:
 
         size: (np.ndarray[ndim=1,dtype=np.int64_t]) :screen size
     """

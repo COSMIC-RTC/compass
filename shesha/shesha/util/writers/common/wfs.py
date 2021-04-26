@@ -9,7 +9,7 @@ def get_subap_pos_pixel(wfs):
     Args:
         wfs : Param_wfs : wfs to get the subapertures position from
 
-    Return :
+    Return:
         valid_X : (np.ndarray[ndim=1, dtype=np.float64]) : subapertures positions along axis x
 
         valid_Y : (np.ndarray[ndim=1, dtype=np.float64]) : subapertures positions along axis y
@@ -64,7 +64,7 @@ def wfs_to_json(wfs, geom, type, *, x_pos=None, y_pos=None):
         ValueError("type must be one of "+str(types))
 
     wfs_json={}
-        
+
     if(type == "ts"):
         wfs_json = {
             "nssp" : wfs[0].get_nxsub(),
@@ -86,7 +86,7 @@ def wfs_to_json(wfs, geom, type, *, x_pos=None, y_pos=None):
         lgs_depth = 5000.
         lgs_cst = 0.1
         wfs_json = {
-            "nssp" : wfs.get_nxsub(), 
+            "nssp" : wfs.get_nxsub(),
             "alphaX_as" : wfs.get_xpos(),
             "alphaY_as" : wfs.get_ypos(),
             "XPup" : wfs.get_dx() * geom.get_pixsize(),
@@ -104,7 +104,7 @@ def wfs_to_json(wfs, geom, type, *, x_pos=None, y_pos=None):
         if(wfs.get_gsalt()>0):
             if(type == "ngs"):
                 ValueError("wfs is not a NGS (gsalt > 0)")
-                
+
             wfs_json["lgsAlt"] = wfs.get_gsalt()
             wfs_json["lgsDepth"] = lgs_depth
             wfs_json["lgsFlux"] = wfs.lgsreturnperwatt * wfs.laserpower * \
