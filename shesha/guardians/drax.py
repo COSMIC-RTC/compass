@@ -845,6 +845,7 @@ def cutsPSF(filename, psf, psfs):
     plt.legend(["PSF exp", "PSF model", "Diff"])
     plt.xlim(-20, 20)
     plt.ylim(1e-7, 1)
+    plt.savefig('thefig.png')
     f.close()
 
 

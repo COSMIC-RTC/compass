@@ -16,7 +16,8 @@ from guardians import drax
 
 plt.ion()
 
-gpudevices = np.array([0, 1, 2, 3], dtype=np.int32)
+#gpudevices = np.array([0, 1, 2, 3], dtype=np.int32)
+gpudevices = np.array([0], dtype=np.int32)
 c = carmaWrap_context.get_instance_ngpu(gpudevices.size, gpudevices)
 
 
