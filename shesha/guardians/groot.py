@@ -10,12 +10,14 @@ import sys
 import os
 from tqdm import tqdm
 
-#from guardians import gamora
+from guardians import gamora
 from guardians import drax, starlord
 import matplotlib.pyplot as plt
 plt.ion()
 
-gpudevices = np.array([0, 1, 2, 3], dtype=np.int32)
+#gpudevices = np.array([0, 1, 2, 3], dtype=np.int32)
+gpudevices = np.array([0], dtype=np.int32)
+
 cxt = carmaWrap_context.get_instance_ngpu(gpudevices.size, gpudevices)
 
 

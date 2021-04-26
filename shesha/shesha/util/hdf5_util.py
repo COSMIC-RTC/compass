@@ -48,32 +48,24 @@ def updateParamDict(pdict, pClass, prefix):
     Prefix must be set to define the key value of the new dict entries
     """
     if (isinstance(pClass, list)):
-        params = [
-                i for i in dir(pClass[0])
-                if (not i.startswith('_') and not i.startswith('set_') and
-                    not i.startswith('get_'))
-        ]
+        params = pClass[0].__dict__.keys()
         for k in params:
             pdict.update({
-                    prefix + k: [
-                            p.__dict__[prefix + k].encode("utf8") if isinstance(
-                                    p.__dict__[prefix + k], str) else
-                            p.__dict__[prefix + k] for p in pClass
+                    k: [
+                            p.__dict__[k].encode("utf8") if isinstance(
+                                    p.__dict__[k], str) else
+                            p.__dict__[k] for p in pClass
                     ]
             })
 
     else:
-        params = [
-                i for i in dir(pClass)
-                if (not i.startswith('_') and not i.startswith('set_') and
-                    not i.startswith('get_'))
-        ]
+        params = pClass.__dict__.keys()
 
         for k in params:
-            if isinstance(pClass.__dict__[prefix + k], str):
-                pdict.update({prefix + k: pClass.__dict__[prefix + k].encode("utf8")})
+            if isinstance(pClass.__dict__[k], str):
+                pdict.update({k: pClass.__dict__[k].encode("utf8")})
             else:
-                pdict.update({prefix + k: pClass.__dict__[prefix + k]})
+                pdict.update({k: pClass.__dict__[k]})
 
 
 def params_dictionary(config):
@@ -94,7 +86,7 @@ def params_dictionary(config):
     updateParamDict(param_dict, config.p_tel, "_Param_tel__")
     if config.p_atmos is not None:
         updateParamDict(param_dict, config.p_atmos, "_Param_atmos__")
-    if config.p_target is not None:
+    if config.p_targets is not None:
         updateParamDict(param_dict, config.p_targets, "_Param_target__")
         param_dict.update({"ntargets": len(config.p_targets)})
     if config.p_wfss is not None:
@@ -139,7 +131,16 @@ def create_file_attributes(filename, param_dict):
             ]
         else:
             attr = param_dict[i]
-        f.attrs.create(i, attr)
+        if(isinstance(attr, np.ndarray)):
+            save_hdf5(filename, i, attr)
+        elif(isinstance(attr, list)):
+            if(isinstance(attr[0], np.ndarray)):
+                for k,data in enumerate(attr):
+                    save_hdf5(filename, i + str(k), data)
+            else:
+                f.attrs.create(i, attr)
+        else:
+            f.attrs.create(i, attr)
     f.attrs.create("validity", False)
     print(filename, "initialized")
     f.close()

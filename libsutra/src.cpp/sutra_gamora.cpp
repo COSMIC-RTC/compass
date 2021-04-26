@@ -39,7 +39,6 @@
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
-#include <carma_magma.h>
 #include <sutra_gamora.h>
 
 SutraGamora::SutraGamora(CarmaContext *context, int device, char *type,
@@ -165,6 +164,7 @@ SutraGamora::SutraGamora(CarmaContext *context, int device, char *type,
         new CarmaObj<float>(this->current_context, dims_data2, covmodes);
     dims_data1[1] = nmodes;
     this->h_eigenvals = new CarmaHostObj<float>(dims_data1, MA_PAGELOCK);
+    this->d_eigenvals = new CarmaObj<float>(this->current_context, dims_data1);
     // FFT plans
     carmafft_safe_call(cufftPlan2d(this->d_pupfft->get_plan(),
                                  this->d_pupfft->get_dims(1),
@@ -445,7 +445,8 @@ int SutraGamora::psf_rec_Vii() {
                            sizeof(float) * this->d_otfVii->get_nb_elements()));
 
   // Diagonalisation of covmodes
-  carma_magma_syevd<float>(SOLVER_EIG_MODE_VECTOR, this->d_covmodes, this->h_eigenvals);
+  carma_syevd<float>(SOLVER_EIG_MODE_VECTOR, this->d_covmodes, this->d_eigenvals);
+  d_eigenvals->device2host(h_eigenvals->get_data());
 
   for (std::vector<CarmaObj<cuFloatComplex> *>::iterator it =
            this->d_pupfft_ngpu.begin();
