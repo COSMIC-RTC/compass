@@ -37,4 +37,4 @@ cmake $LOCAL_DIR -DPYTHON_EXECUTABLE=$(which python) -DCMAKE_INSTALL_PREFIX=$COM
 cmake --build . --target install -- -j $NCPUS
 
 # conan export-pkg . conan/stable -f
-# conan upload compass/5.0@conan/stable --all -r=hippo6
+# conan upload compass/5.1@conan/stable --all -r=hippo6

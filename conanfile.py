@@ -12,7 +12,7 @@ def cuda_version():
 
 class CompassConan(ConanFile):
     name = "compass"
-    version = "5.0"
+    version = "5.1.0"
     author = "COMPASS Team <https://github.com/ANR-COMPASS>"
     url = "https://anr-compass.github.io/compass/"
     description = "End-to-end AO simulation tool using GPU acceleration"
