@@ -42,9 +42,8 @@ import numpy as np
 import time
 
 import shesha.constants as scons
-from shesha.constants import CONST
 
-from typing import List, Iterable
+from typing import Iterable
 
 
 class CompassSupervisor(GenericSupervisor):
@@ -504,7 +503,7 @@ class CompassSupervisor(GenericSupervisor):
             root: (object), COMPASS supervisor object to be parsed
 
         Returns :
-            2 dictionnaries... See F. Vidal :)
+            2 dictionaries... See F. Vidal :)
         """
         return self.config.export_config()
 
