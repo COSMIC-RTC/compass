@@ -30,6 +30,7 @@ build_release_master:
   when: always
   only:
     - master
+    - rc
     - tags
 
 build_debug:
@@ -86,6 +87,7 @@ master_pytests:
   when: always
   only:
     - master
+    - rc
     - tags
 
 pages:

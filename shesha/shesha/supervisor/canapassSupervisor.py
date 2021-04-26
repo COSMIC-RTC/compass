@@ -1,7 +1,7 @@
 ## @package   shesha.supervisor.canapassSupervisor
 ## @brief     Initialization and execution of a CANAPASS supervisor
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   5.0.0
+## @version   5.1.0
 ## @date      2020/05/18
 ## @copyright GNU Lesser General Public License
 #
@@ -151,16 +151,16 @@ if __name__ == '__main__':
             user = out.split(b"\n")[0].decode("utf-8")
             print("User is " + user)
 
-        devices = [supervisor, supervisor.rtc, supervisor.wfs, 
+        devices = [supervisor, supervisor.rtc, supervisor.wfs,
         supervisor.target, supervisor.tel,supervisor.basis, supervisor.calibration,
         supervisor.atmos, supervisor.dms,  supervisor.config, supervisor.modalgains, wao_loop]
-        
-        names = ["supervisor", "supervisor_rtc", "supervisor_wfs", 
-        "supervisor_target", "supervisor_tel", "supervisor_basis", "supervisor_calibration", 
+
+        names = ["supervisor", "supervisor_rtc", "supervisor_wfs",
+        "supervisor_target", "supervisor_tel", "supervisor_basis", "supervisor_calibration",
         "supervisor_atmos", "supervisor_dms", "supervisor_config", "supervisor_modalgains", "wao_loop"]
-        nname = [];  
-        for name in names: 
-            nname.append(name+"_"+user) 
+        nname = [];
+        for name in names:
+            nname.append(name+"_"+user)
         server = PyroServer(listDevices=devices, listNames=nname)
         server.start()
     except:
