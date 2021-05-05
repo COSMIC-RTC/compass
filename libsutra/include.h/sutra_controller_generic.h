@@ -86,6 +86,7 @@ class sutra_controller_generic : public SutraController<Tcomp, Tout> {
   int set_polc(bool p);
   int set_imat(float *imat);
   int set_leaky_factor(Tcomp factor);
+  using SutraController<Tcomp,Tout>::comp_polc;
   int comp_polc();
   int comp_com();
   int fill_cmatPadded();

@@ -154,6 +154,24 @@ class SutraController {
   int command_delay();
   int add_perturb();
 
+  /**
+   * @brief Compute the open loop measurements and effective commands
+   *
+   * eff_u = a * u_{k-1} + b * u_k
+   * ol_meas = s_k - iMat * eff_u
+   *
+   * @param[in ] a       : Tcomp             :
+   * @param[in ] uk_1    : CarmaObj<Tcomp>&  : commands at iteration k-1
+   * @param[in ] b       : Tcomp             :
+   * @param[in ] uk      : CarmaObj<Tcomp>&  : commands at iteration k
+   * @param[in ] sk      : CarmaObj<Tcomp>&  : closed loop slopes at iteration k
+   * @param[in ] iMat    : CarmaObj<Tcomp>&  : interaction matrix
+   * @param[out] ol_meas : CarmaObj<Tcomp>&  : open loop measurements
+   * @param[out] eff_u   : CarmaObj<Tcomp>&  : effective commands
+   * @return int                             : error code
+   */
+  int comp_polc(Tcomp a, CarmaObj<Tcomp>& uk_1, Tcomp b, CarmaObj<Tcomp>& uk, CarmaObj<Tcomp>& sk, CarmaObj<Tcomp>& iMat, CarmaObj<Tcomp>& ol_meas, CarmaObj<Tcomp>& eff_u);
+
  protected:
   mutex comp_voltage_mutex;
 };

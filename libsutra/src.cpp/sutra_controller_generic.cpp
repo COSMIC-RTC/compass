@@ -253,20 +253,10 @@ int sutra_controller_generic<T, Tout>::set_commandlaw(string law) {
 }
 
 template <typename T, typename Tout>
-int sutra_controller_generic<T, Tout>::comp_polc() {
-  this->current_context->set_active_device(this->device, 1);
-  // POLC equations
-  this->d_compbuff->reset();
-  this->d_compbuff->axpy(T(this->a), this->d_com1, 1, 1);
-  this->d_compbuff->axpy(T(this->b), this->d_com, 1, 1);
-  this->d_olmeas->copy(this->d_centroids, 1, 1);
+int sutra_controller_generic<T, Tout>::comp_polc(){
+  comp_polc(T(this->a), *(this->d_com1), T(this->b), *(this->d_com), *(this->d_centroids),
+    *(this->d_imat), *(this->d_olmeas), *(this->d_compbuff));
 
-  carma_gemv(this->cublas_handle(), 'n', this->nslope(), this->nactu(), T(1.0f),
-             this->d_imat->get_data(), this->nslope(),
-             this->d_compbuff->get_data(), 1, T(0.0f),
-             this->d_compbuff2->get_data(), 1);
-
-  this->d_olmeas->axpy(T(-1.0f), this->d_compbuff2, 1, 1);
   return EXIT_SUCCESS;
 }
 
