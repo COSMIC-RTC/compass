@@ -85,6 +85,7 @@ class CarmaHostObj {
 
  public:
   CarmaHostObj(const long *dims_data);
+  CarmaHostObj(const std::vector<long> &dims);
   CarmaHostObj(const long *dims_data, MemAlloc malloc_type);
   CarmaHostObj(const CarmaHostObj<T_data> *obj);
   CarmaHostObj(const CarmaHostObj<T_data> *obj, MemAlloc malloc_type);

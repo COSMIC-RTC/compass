@@ -54,6 +54,11 @@ CarmaObj<T_data>::CarmaObj(CarmaContext *current_context,
 }
 
 template <class T_data>
+CarmaObj<T_data>::CarmaObj(CarmaContext *current_context,
+                             const std::vector<long> &dims):
+CarmaObj(current_context,dims.data()){}
+
+template <class T_data>
 CarmaObj<T_data>::CarmaObj(const CarmaObj<T_data> *src) {
   /** \brief CarmaObj creator.
    * \param src : CarmaObj to copy

@@ -150,6 +150,7 @@ class CarmaObj {
  public:
   CarmaObj(const CarmaObj<T_data> *obj);
   CarmaObj(CarmaContext *current_context, const long *dims_data);
+  CarmaObj(CarmaContext *current_context, const std::vector<long> &dims);
   CarmaObj(CarmaContext *current_context, const CarmaObj<T_data> *obj);
   CarmaObj(CarmaContext *current_context, const long *dims_data,
             const T_data *data);

@@ -60,6 +60,11 @@ template CarmaHostObj<unsigned int>::CarmaHostObj(const long *dims_data);
 template CarmaHostObj<cuFloatComplex>::CarmaHostObj(const long *dims_data);
 template CarmaHostObj<cuDoubleComplex>::CarmaHostObj(const long *dims_data);
 
+
+template <class T_data>
+CarmaHostObj<T_data>::CarmaHostObj(const std::vector<long> &dims):
+CarmaHostObj(dims.data()){}
+
 template <class T_data>
 CarmaHostObj<T_data>::CarmaHostObj(const long *dims_data,
                                        MemAlloc malloc_type) {
