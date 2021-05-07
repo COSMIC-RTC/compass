@@ -1014,6 +1014,37 @@ cublasStatus_t carma_dgmm<cuDoubleComplex>(cublasHandle_t cublas_handle,
       cublas_handle, side_cublas, m, n, matA, lda, vectx, incx, matC, ldc));
 }
 
+/** These templates are used to select the proper sbmv
+ * executable from T_data*/
+template <class T_data>
+cublasStatus_t carma_sbmv(cublasHandle_t cublas_handle, char uplo, int n, int k,
+                          T_data alpha, T_data *matA, int lda, T_data *vectx,
+                          int incx, T_data beta, T_data *vecty,
+                          int incy) CARMA_NIY;
+/**< Specialized template for carma_sbmv executable selection */
+template<>
+cublasStatus_t carma_sbmv<float>(cublasHandle_t cublas_handle, char uplo, int n, int k,
+                                 float alpha, float *matA, int lda,
+                                 float *vectx, int incx, float beta,
+                                 float *vecty, int incy) {
+  cublasFillMode_t filla = carma_char2cublasFillMode(uplo);
+
+  return carma_checkCublasStatus(cublasSsbmv(cublas_handle, filla, n, k, &alpha,
+                                             matA, lda, vectx, incx, &beta,
+                                             vecty, incy));
+}
+template<>
+cublasStatus_t carma_sbmv<double>(cublasHandle_t cublas_handle, char uplo, int n, int k,
+                                  double alpha, double *matA, int lda,
+                                  double *vectx, int incx, double beta,
+                                  double *vecty, int incy) {
+  cublasFillMode_t filla = carma_char2cublasFillMode(uplo);
+  return carma_checkCublasStatus(cublasDsbmv(cublas_handle, filla, n, k, &alpha,
+                                             matA, lda, vectx, incx, &beta,
+                                             vecty, incy));
+}
+
+
 struct CarmaCublasInterfacer {
   template <typename T_data>
   static void call() {
@@ -1036,6 +1067,7 @@ struct CarmaCublasInterfacer {
     force_keep(&carma_syrkx<T_data>);
     force_keep(&carma_geam<T_data>);
     force_keep(&carma_dgmm<T_data>);
+    force_keep(&carma_sbmv<T_data>);
   }
 };
 

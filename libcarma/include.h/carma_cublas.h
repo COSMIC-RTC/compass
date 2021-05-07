@@ -159,4 +159,7 @@ cublasStatus_t carma_dgmm(cublasHandle_t cublas_handle, char side, int m, int n,
                           const T_data *matA, int lda, const T_data *vectx,
                           int incx, T_data *matC, int ldc);
 
+template <class T_data>
+cublasStatus_t carma_sbmv(cublasHandle_t cublas_handle, char uplo, int N, int K, T_data alpha, T_data *A,
+                          int lda, T_data *x, int incx, T_data beta, T_data *y, int incy);
 #endif /* CARMA_CUBLAS_H_ */
