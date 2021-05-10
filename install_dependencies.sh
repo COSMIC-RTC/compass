@@ -7,7 +7,7 @@ pip install -r $LOCAL_DIR/requirements.txt || exit 0
 pip install -r $LOCAL_DIR/requirements-dev.txt || exit 0
 
 # Adds cosmic conan repository if it is not already the case.
-conan remote list | grep cosmic || conan remote add cosmic https://api.bintray.com/conan/odp/cosmic
+conan remote list | grep cosmic || conan remote add cosmic https://odp2.jfrog.io/artifactory/api/conan/cosmic
 
 # OPTIONAL: Adds hippo6 conan repository if it is not already the case.
 #conan remote list | grep hippo6 || conan remote add hippo6 https://hippo6.obspm.fr/conan False
