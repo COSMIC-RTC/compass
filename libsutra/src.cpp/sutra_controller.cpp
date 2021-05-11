@@ -44,8 +44,7 @@
 
 template <typename Tcomp, typename Tout>
 SutraController<Tcomp, Tout>::SutraController(CarmaContext *context,
-                                                int nvalid, int nslope,
-                                                int nactu, float delay,
+                                                int nslope, int nactu, float delay,
                                                 SutraDms *dms, int *idx_dms,
                                                 int ndm, int *idx_centro, int ncentro) {
   this->current_context = context;

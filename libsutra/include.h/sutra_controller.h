@@ -107,7 +107,7 @@ class SutraController {
   cudaStream_t mainStream;
 
   // allocation of d_centroids and d_com
-  SutraController(CarmaContext *context, int nvalid, int nslope, int nactu,
+  SutraController(CarmaContext *context, int nslope, int nactu,
                    float delay, SutraDms *dms, int *idx_dms, int ndm,  int *idx_centro, int ncentro);
   virtual ~SutraController();
 

@@ -180,10 +180,10 @@ int SutraRtc<Tin, T, Tout>::add_centroider_impl(CarmaContext *context,
 
 template <typename Tin, typename T, typename Tout>
 int SutraRtc<Tin, T, Tout>::add_controller(
-    CarmaContext *context, int nvalid, int nslope, int nactu, float delay,
+    CarmaContext *context, int nslope, int nactu, float delay,
     long device, std::string typec, SutraDms *dms, int *idx_dms, int ndm,
     int *idx_centro, int ncentro, int Nphi, bool wfs_direction, int nstates) {
-  return add_controller_impl(context, this->d_control, nvalid, nslope, nactu,
+  return add_controller_impl(context, this->d_control, nslope, nactu,
                              delay, device, typec, dms, idx_dms, ndm,
                              idx_centro, ncentro, Nphi, wfs_direction, nstates,
                              std::is_same<T, half>());
@@ -194,12 +194,12 @@ template <typename Q>
 typename std::enable_if<!std::is_same<Q, half>::value, int>::type
 SutraRtc<Tin, T, Tout>::add_controller_impl(
     CarmaContext *context, vector<SutraController<T, Tout> *> &d_control,
-    int nvalid, int nslope, int nactu, float delay, long device,
+    int nslope, int nactu, float delay, long device,
     std::string typec, SutraDms *dms, int *idx_dms, int ndm, int *idx_centro,
     int ncentro, int Nphi, bool wfs_direction, int nstates, std::false_type) {
   if (typec.compare("ls") == 0) {
     d_control.push_back(new sutra_controller_ls<T, Tout>(
-        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro,
+        context, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro,
         ncentro));
   } else if (typec.compare("geo") == 0) {
     d_control.push_back(new sutra_controller_geo<T, Tout>(
@@ -208,15 +208,15 @@ SutraRtc<Tin, T, Tout>::add_controller_impl(
 
   } else if (typec.compare("cured") == 0) {
     d_control.push_back(new SutraControllerCured<T, Tout>(
-        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro,
+        context, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro,
         ncentro));
   } else if (typec.compare("mv") == 0) {
     d_control.push_back(new sutra_controller_mv<T, Tout>(
-        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro,
+        context, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro,
         ncentro));
   } else if (typec.compare("generic") == 0) {
     d_control.push_back(new sutra_controller_generic<T, Tout>(
-        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro,
+        context, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro,
         ncentro, nstates));
     // } else if ((typec.compare("kalman_GPU") == 0) ||
     //            (typec.compare("kalman_CPU") == 0)) {
@@ -233,12 +233,12 @@ SutraRtc<Tin, T, Tout>::add_controller_impl(
 template <typename Tin, typename T, typename Tout>
 int SutraRtc<Tin, T, Tout>::add_controller_impl(
     CarmaContext *context, vector<SutraController<T, Tout> *> &d_control,
-    int nvalid, int nslope, int nactu, float delay, long device,
+    int nslope, int nactu, float delay, long device,
     std::string typec, SutraDms *dms, int *idx_dms, int ndm, int *idx_centro,
     int ncentro, int Nphi, bool wfs_direction, int nstates, std::true_type) {
   if (typec.compare("generic") == 0) {
     d_control.push_back(new sutra_controller_generic<T, Tout>(
-        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro,
+        context, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro,
         ncentro, nstates));
 
   } else {

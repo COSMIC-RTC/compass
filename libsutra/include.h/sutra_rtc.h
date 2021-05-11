@@ -73,7 +73,7 @@ class SutraRtc {
                      float scale, bool filter_TT, long device,
                      std::string typec, SutraWfs *wfs);
 
-  int add_controller(CarmaContext *context, int nvalid, int nslope, int nactu,
+  int add_controller(CarmaContext *context, int nslope, int nactu,
                      float delay, long device, std::string typec,
                      SutraDms *dms = nullptr, int *idx_dms = nullptr,
                      int ndm = 0, int *idx_centro = nullptr, int ncentro = 0,
@@ -140,14 +140,14 @@ class SutraRtc {
   typename std::enable_if<!std::is_same<Q, half>::value, int>::type
   add_controller_impl(CarmaContext *context,
                       vector<SutraController<T, Tout> *> &d_control,
-                      int nvalid, int nslope, int nactu, float delay,
+                      int nslope, int nactu, float delay,
                       long device, std::string typec, SutraDms *dms,
                       int *idx_dms, int ndm, int *idx_centro, int ncentro,
                       int Nphi, bool wfs_direction, int nstates,
                       std::false_type);
   int add_controller_impl(CarmaContext *context,
                           vector<SutraController<T, Tout> *> &d_control,
-                          int nvalid, int nslope, int nactu, float delay,
+                          int nslope, int nactu, float delay,
                           long device, std::string typec, SutraDms *dms,
                           int *idx_dms, int ndm, int *idx_centro, int ncentro,
                           int Nphi, bool wfs_direction, int nstates,

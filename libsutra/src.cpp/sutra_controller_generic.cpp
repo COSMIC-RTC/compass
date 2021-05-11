@@ -43,9 +43,9 @@
 
 template <typename T, typename Tout>
 sutra_controller_generic<T, Tout>::sutra_controller_generic(
-    CarmaContext *context, long nvalid, long nslope, long nactu, float delay,
+    CarmaContext *context, long nslope, long nactu, float delay,
     SutraDms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro, int nstates)
-    : SutraController<T, Tout>(context, nvalid, nslope, nactu, delay, dms,
+    : SutraController<T, Tout>(context, nslope, nactu, delay, dms,
                                 idx_dms, ndm, idx_centro, ncentro) {
   this->command_law = "integrator";
   this->nstates = nstates;

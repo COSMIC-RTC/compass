@@ -50,11 +50,10 @@
 
 template <typename T, typename Tout>
 sutra_controller_ls<T, Tout>::sutra_controller_ls(CarmaContext *context,
-                                                  long nvalid, long nslope,
-                                                  long nactu, float delay,
+                                                  long nslope, long nactu, float delay,
                                                   SutraDms *dms, int *idx_dms,
                                                   int ndm, int *idx_centro, int ncentro)
-    : SutraController<T, Tout>(context, nvalid, nslope, nactu, delay, dms,
+    : SutraController<T, Tout>(context, nslope, nactu, delay, dms,
                                 idx_dms, ndm, idx_centro, ncentro) {
   this->d_imat = 0L;
   this->d_cmat = 0L;

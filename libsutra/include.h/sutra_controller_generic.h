@@ -70,7 +70,7 @@ class sutra_controller_generic : public SutraController<Tcomp, Tout> {
   string command_law;
 
  public:
-  sutra_controller_generic(CarmaContext *context, long nvalid, long nslope,
+  sutra_controller_generic(CarmaContext *context, long nslope,
                            long nactu, float delay, SutraDms *dms,
                            int *idx_dms, int ndm, int *idx_centro, int ncentro, int nstates);
   sutra_controller_generic(const sutra_controller_generic &controller);

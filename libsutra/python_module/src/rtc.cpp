@@ -62,9 +62,9 @@ std::unique_ptr<SutraRtc<Tin, Tcomp, Tout>> rtc_init() {
 
 template <typename Tin, typename Tcomp, typename Tout>
 void add_controller_impl(SutraRtc<Tin, Tcomp, Tout> &sr, CarmaContext *ctxt,
-                         int nvalid, int nslope, int nactu, float delay,
+                         int nslope, int nactu, float delay,
                          long device, std::string typec, int nstates) {
-  sr.add_controller(ctxt, nvalid, nslope, nactu, delay, device, typec, nullptr,
+  sr.add_controller(ctxt, nslope, nactu, delay, device, typec, nullptr,
                     nullptr, 0, nullptr, 0, 0, false, nstates);
 }
 
@@ -217,8 +217,6 @@ void rtc_impl(py::module &mod, const char *name) {
     Args:
         context: (CarmaContext): carma context
 
-        nvalid: (int): Number of valid subap.
-
         nslope: (int): Number of slopes
 
         nactu:(int): Number of actuators to command
@@ -245,7 +243,7 @@ void rtc_impl(py::module &mod, const char *name) {
 
         nstates: (int): (optionnal) number of states
         )pbdoc",
-           py::arg("context"), py::arg("nvalid"), py::arg("nslope"),
+           py::arg("context"), py::arg("nslope"),
            py::arg("nactu"), py::arg("delay"), py::arg("device"),
            py::arg("typec"), py::arg("dms") = nullptr,
            py::arg("idx_dms") = std::vector<int64_t>(), py::arg("ndm") = 0,
@@ -260,8 +258,6 @@ void rtc_impl(py::module &mod, const char *name) {
     Args:
         context: (CarmaContext): carma context
 
-        nvalid: (int): Number of valid subap.
-
         nslope: (int): Number of slopes
 
         nactu:(int): Number of actuators to command
@@ -274,7 +270,7 @@ void rtc_impl(py::module &mod, const char *name) {
 
         nstates: (int): (optionnal) Number of states
         )pbdoc",
-           py::arg("context"), py::arg("nvalid"), py::arg("nslope"),
+           py::arg("context"), py::arg("nslope"),
            py::arg("nactu"), py::arg("delay"), py::arg("device"),
            py::arg("typec"), py::arg("nstates") = 0)
 
