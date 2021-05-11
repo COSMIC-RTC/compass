@@ -51,6 +51,7 @@
 #include <sutra_centroider_wcog.h>
 #include <sutra_controller_cured.h>
 #include <sutra_controller_generic.h>
+#include <sutra_controller_generic_linear.h>
 #include <sutra_controller_geo.h>
 //#include <sutra_controller_kalman.h>
 #include <sutra_controller_ls.h>
@@ -73,11 +74,15 @@ class SutraRtc {
                      float scale, bool filter_TT, long device,
                      std::string typec, SutraWfs *wfs);
 
-  int add_controller(CarmaContext *context, int nslope, int nactu,
-                     float delay, long device, std::string typec,
-                     SutraDms *dms = nullptr, int *idx_dms = nullptr,
-                     int ndm = 0, int *idx_centro = nullptr, int ncentro = 0,
-                     int Nphi = 0, bool wfs_direction = false, int nstates = 0);
+  int add_controller(CarmaContext *context, std::string typec,long device,
+                    int nslope, int nslope_buffers, int nactu,
+                    int nstates, int nstate_buffers, int nmodes, int nmode_buffers,
+                    int niir_in, int niir_out, float delay, bool polc,bool is_modal,
+                    SutraDms *dms = nullptr, int *idx_dms = nullptr, int ndm = 0,
+                    int *idx_centro = nullptr, int ncentro = 0,
+                    int Nphi = 0, bool wfs_direction = false);
+
+
 
   int remove_centroider(int ncentro);
   int remove_controller(int ncontrol);
@@ -140,17 +145,22 @@ class SutraRtc {
   typename std::enable_if<!std::is_same<Q, half>::value, int>::type
   add_controller_impl(CarmaContext *context,
                       vector<SutraController<T, Tout> *> &d_control,
-                      int nslope, int nactu, float delay,
-                      long device, std::string typec, SutraDms *dms,
-                      int *idx_dms, int ndm, int *idx_centro, int ncentro,
-                      int Nphi, bool wfs_direction, int nstates,
+                      std::string typec,long device,  int nslope, int nslope_buffers, int nactu,
+                      int nstates, int nstate_buffers, int nmodes, int nmode_buffers,
+                      int niir_in, int niir_out, float delay, bool polc,bool is_modal,
+                      SutraDms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro,
+                      int Nphi, bool wfs_direction,
                       std::false_type);
+
+
+
   int add_controller_impl(CarmaContext *context,
                           vector<SutraController<T, Tout> *> &d_control,
-                          int nslope, int nactu, float delay,
-                          long device, std::string typec, SutraDms *dms,
-                          int *idx_dms, int ndm, int *idx_centro, int ncentro,
-                          int Nphi, bool wfs_direction, int nstates,
+                          std::string typec,long device,  int nslope, int nslope_buffers, int nactu,
+                          int nstates, int nstate_buffers, int nmodes, int nmode_buffers,
+                          int niir_in, int niir_out, float delay, bool polc,bool is_modal,
+                          SutraDms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro,
+                          int Nphi, bool wfs_direction,
                           std::true_type);
 };
 

@@ -156,11 +156,17 @@ def rtc_init(context: carmaWrap_context, tel: Telescope, wfs: Sensors, dms: Dms,
                 list_dmseen = [p_dms[j].type for j in p_controller.ndm]
                 nactu = np.sum([p_dms[j]._ntotact for j in p_controller.ndm])
 
-                rtc.add_controller(context, p_controller.nvalid, p_controller.nslope,
-                                   p_controller.nactu, p_controller.delay,
-                                   context.active_device, scons.ControllerType.GEO, dms,
-                                   p_controller.ndm, p_controller.ndm.size,
-                                   p_controller.nwfs, p_controller.nwfs.size, Nphi, True)
+                nmodes = 0
+                if(p_controller.nmodes is not None):
+                    nmodes = p_controller.nmodes
+
+                rtc.add_controller(context, scons.ControllerType.GEO, context.active_device,
+                    p_controller.nslope, p_controller.nslope_buffer,
+                    p_controller.nactu, p_controller.nstates, p_controller.nstate_buffer,
+                    nmodes, p_controller.nmode_buffer,
+                    p_controller.n_iir_in, p_controller.n_iir_out,p_controller.delay,
+                    p_controller.polc, p_controller.modal, dms, p_controller.ndm,
+                    p_controller.ndm.size, p_controller.nwfs, p_controller.nwfs.size, Nphi, True)
 
                 # rtc.add_controller_geo(context, nactu, Nphi, p_controller.delay,
                 #                        context.active_device, p_controller.type, dms,
@@ -227,9 +233,27 @@ def rtc_standalone(context: carmaWrap_context, nwfs: int, nvalid: list, nactu: i
                            context.active_device, centroider_type[k])
 
     nslopes = sum([c.nslopes for c in rtc.d_centro])
-    rtc.add_controller(context, sum(nvalid), nslopes, nactu, delay[0],
-                       context.active_device, "generic", idx_centro=np.arange(nwfs),
-                       ncentro=nwfs)
+
+    nslope_buffer = 0
+    nstates = 0
+    nstate_buffer = 0
+    nmodes = 0
+    nmode_buffer = 0
+    niir_in = 0
+    niir_out = 0
+    polc = False
+    modal = False
+    dms=[]
+    idx_dms = []
+    ndm = 0
+
+    rtc.add_controller(context, "generic", context.active_device,
+                    nslopes, nslope_buffer,
+                    nactu, nstates, nstate_buffer,
+                    nmodes, nmode_buffer,
+                    niir_in, niir_out,delay[0],
+                    polc, modal, dms, idx_dms, ndm,
+                    np.arange(nwfs), nwfs, Nphi, False)
 
     print("rtc_standalone set")
     return rtc
@@ -425,7 +449,6 @@ def init_controller(context, i: int, p_controller: conf.Param_controller, p_wfss
         if (len(p_wfss) == 1):
             nwfs = p_controller.nwfs
             # TODO fixing a bug ... still not understood
-        nvalid = sum([p_wfss[k]._nvalid for k in nwfs])
         p_controller.set_nvalid(int(np.sum([p_wfss[k]._nvalid for k in nwfs])))
         tmp = 0
         for c in p_centroiders:
@@ -452,12 +475,19 @@ def init_controller(context, i: int, p_controller: conf.Param_controller, p_wfss
     #nslope = np.sum([c._nslope for c in p_centroiders])
     #p_controller.set_nslope(int(nslope))
 
+    nmodes = 0
+    if(p_controller.nmodes is not None):
+        nmodes = p_controller.nmodes
+
     #TODO : find a proper way to set the number of slope (other than 2 times nvalid)
-    rtc.add_controller(context, p_controller.nvalid, p_controller.nslope,
-                       p_controller.nactu, p_controller.delay, context.active_device,
-                       p_controller.type, dms, p_controller.ndm, p_controller.ndm.size,
-                       p_controller.nwfs, p_controller.nwfs.size, Nphi, False,
-                       p_controller.nstates)
+    rtc.add_controller(context, p_controller.type, context.active_device,
+                    p_controller.nslope, p_controller.nslope_buffer,
+                    p_controller.nactu, p_controller.nstates, p_controller.nstate_buffer,
+                    nmodes, p_controller.nmode_buffer,
+                    p_controller.n_iir_in, p_controller.n_iir_out,p_controller.delay,
+                    p_controller.polc, p_controller.modal, dms, p_controller.ndm,
+                    p_controller.ndm.size, p_controller.nwfs, p_controller.nwfs.size, Nphi, False)
+
     print("CONTROLLER ADDED")
     if (p_wfss is not None and do_refslp):
         rtc.do_centroids_ref(i)

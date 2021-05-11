@@ -61,11 +61,20 @@ std::unique_ptr<SutraRtc<Tin, Tcomp, Tout>> rtc_init() {
 }
 
 template <typename Tin, typename Tcomp, typename Tout>
-void add_controller_impl(SutraRtc<Tin, Tcomp, Tout> &sr, CarmaContext *ctxt,
-                         int nslope, int nactu, float delay,
-                         long device, std::string typec, int nstates) {
-  sr.add_controller(ctxt, nslope, nactu, delay, device, typec, nullptr,
-                    nullptr, 0, nullptr, 0, 0, false, nstates);
+void add_controller_impl(SutraRtc<Tin, Tcomp, Tout> &sr, CarmaContext *context,
+                    std::string typec,long device, int nslope, int nslope_buffers, int nactu,
+                    int nstates, int nstate_buffers, int nmodes, int nmode_buffers,
+                    int niir_in, int niir_out, float delay, bool polc,bool is_modal) {
+  SutraDms *dms = nullptr;
+  int *idx_dms = nullptr;
+  int ndm = 0;
+  int *idx_centro = nullptr;
+  int ncentro = 0;
+  int Nphi = 0;
+  bool wfs_direction = false;
+  sr.add_controller(context, typec, device, nslope, nslope_buffers, nactu, nstates, nstate_buffers,
+                    nmodes, nmode_buffers,niir_in, niir_out, delay, polc, is_modal,
+                    dms, idx_dms, ndm, idx_centro, ncentro, Nphi, wfs_direction);
 }
 
 template <typename Tin, typename Tcomp, typename Tout>
@@ -242,14 +251,15 @@ void rtc_impl(py::module &mod, const char *name) {
         wfs_direction: (bool): Flag for ROKET
 
         nstates: (int): (optionnal) number of states
-        )pbdoc",
-           py::arg("context"), py::arg("nslope"),
-           py::arg("nactu"), py::arg("delay"), py::arg("device"),
-           py::arg("typec"), py::arg("dms") = nullptr,
-           py::arg("idx_dms") = std::vector<int64_t>(), py::arg("ndm") = 0,
-           py::arg("idx_centro") = std::vector<int64_t>(),
-           py::arg("ncentro") = 0, py::arg("Nphi") = 0,
-           py::arg("wfs_direction") = false, py::arg("nstates") = 0)
+        )pbdoc"//,
+          // py::arg("context"), py::arg("nslope"),
+          // py::arg("nactu"), py::arg("delay"), py::arg("device"),
+          // py::arg("typec"), py::arg("dms") = nullptr,
+          // py::arg("idx_dms") = std::vector<int64_t>(), py::arg("ndm") = 0,
+          // py::arg("idx_centro") = std::vector<int64_t>(),
+          // py::arg("ncentro") = 0, py::arg("Nphi") = 0,
+          // py::arg("wfs_direction") = false, py::arg("nstates") = 0
+           )
 
       .def("add_controller", wy::colCast(add_controller_impl<Tin, Tcomp, Tout>),
            R"pbdoc(
@@ -269,10 +279,11 @@ void rtc_impl(py::module &mod, const char *name) {
         typec: (str): Controller type
 
         nstates: (int): (optionnal) Number of states
-        )pbdoc",
-           py::arg("context"), py::arg("nslope"),
-           py::arg("nactu"), py::arg("delay"), py::arg("device"),
-           py::arg("typec"), py::arg("nstates") = 0)
+        )pbdoc"//,
+           //py::arg("context"), py::arg("nslope"),
+           //py::arg("nactu"), py::arg("delay"), py::arg("device"),
+           //py::arg("typec"), py::arg("nstates") = 0
+           )
 
       .def("remove_controller", &rtc::remove_controller, R"pbdoc(
      Remove the specified controller from the RTC

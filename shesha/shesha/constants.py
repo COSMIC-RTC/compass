@@ -106,6 +106,7 @@ class ControllerType:
     """
 
     GENERIC = 'generic'
+    GENERIC_LINEAR = 'generic_linear'
     LS = 'ls'
     MV = 'mv'
     CURED = 'cured'
