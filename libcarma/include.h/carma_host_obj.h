@@ -84,6 +84,7 @@ class CarmaHostObj {
             int nb_streams);
 
  public:
+  CarmaHostObj();
   CarmaHostObj(const long *dims_data);
   CarmaHostObj(const std::vector<long> &dims);
   CarmaHostObj(const long *dims_data, MemAlloc malloc_type);

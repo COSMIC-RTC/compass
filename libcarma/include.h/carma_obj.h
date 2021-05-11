@@ -148,6 +148,7 @@ class CarmaObj {
             const T_data *data, bool fromHost, int nb_streams);
 
  public:
+  CarmaObj();
   CarmaObj(const CarmaObj<T_data> *obj);
   CarmaObj(CarmaContext *current_context, const long *dims_data);
   CarmaObj(CarmaContext *current_context, const std::vector<long> &dims);

@@ -54,6 +54,16 @@ CarmaObj<T_data>::CarmaObj(CarmaContext *current_context,
 }
 
 template <class T_data>
+CarmaObj<T_data>::CarmaObj() {
+  /** \brief CarmaObj creator.
+   * \param current_context : the context in which the CarmaObj is created
+   * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
+   */
+  long dims_data[2] = {1,0};
+  init(&CarmaContext::instance(), dims_data, NULL, true, 0);
+}
+
+template <class T_data>
 CarmaObj<T_data>::CarmaObj(CarmaContext *current_context,
                              const std::vector<long> &dims):
 CarmaObj(current_context,dims.data()){}
