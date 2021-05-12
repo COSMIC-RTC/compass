@@ -118,6 +118,7 @@ add_library(sutra
             src.cpp/sutra_controller.cpp
             src.cpp/sutra_controller_cured.cpp
             src.cpp/sutra_controller_generic.cpp
+            src.cpp/sutra_controller_generic_linear.cpp
             src.cpp/sutra_controller_geo.cpp
             src.cpp/sutra_controller_ls.cpp
             src.cpp/sutra_controller_mv.cpp
@@ -224,6 +225,7 @@ install(FILES include.h/sutra_acquisim.h
               include.h/sutra_centroider_wcog.h
               include.h/sutra_controller_cured.h
               include.h/sutra_controller_generic.h
+              include.h/sutra_controller_generic_linear.h
               include.h/sutra_controller_geo.h
               include.h/sutra_controller.h
               include.h/sutra_controller_ls.h
