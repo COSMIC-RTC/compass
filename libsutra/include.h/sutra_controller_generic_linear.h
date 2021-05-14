@@ -56,7 +56,7 @@ private:
   CarmaObj<Tcomp> d_s_now;                         //!< nslopes
   std::deque<CarmaObj<Tcomp> *> d_circular_s;      //!< nslopes     m_n_slopes_buffer
 
-  CarmaObj<Tcomp> d_eff_u;                         //!< nacuts
+  CarmaObj<Tcomp> d_eff_u;                         //!< nactus
   CarmaObj<Tcomp> d_u_now;                         //!< m_n_modes
   std::deque<CarmaObj<Tcomp> *> d_circular_u_in;   //!< m_n_modes   m_n_iir_in
   std::deque<CarmaObj<Tcomp> *> d_circular_u_out;  //!< m_n_modes   m_n_iir_out
@@ -90,13 +90,14 @@ private:
 public:
 
   bool polc(){return m_polc;}
-  bool n_slope_buffers(){return m_n_slope_buffers;}
-  bool n_states(){return m_n_states;}
-  bool n_state_buffers(){return m_n_state_buffers;}
-  bool n_modes(){return m_n_modes;}
-  bool n_modes_buffers(){return m_n_mode_buffers;}
-  bool n_iir_in(){return m_n_iir_in;}
-  bool n_iir_out(){return m_n_iir_out;}
+  bool modal(){return m_modal;}
+  int n_slope_buffers(){return m_n_slope_buffers;}
+  int n_states(){return m_n_states;}
+  int n_state_buffers(){return m_n_state_buffers;}
+  int n_modes(){return m_n_modes;}
+  int n_modes_buffers(){return m_n_mode_buffers;}
+  int n_iir_in(){return m_n_iir_in;}
+  int n_iir_out(){return m_n_iir_out;}
 
   using SutraController<Tcomp,Tout>::d_com;
   using SutraController<Tcomp,Tout>::d_circular_coms;
@@ -105,7 +106,7 @@ public:
  public:
  sutra_controller_generic_linear() = delete;
   sutra_controller_generic_linear(
-    CarmaContext *context, long nslopes, int nslopes_buffers, long nactu, int nstates,
+    CarmaContext *context, int nslope, int nslopes_buffers, int nactu, int nstates,
     int nstates_buffers, int nmodes, int nmode_buffers, int niir_in, int niir_out,
     float delay, bool polc, bool is_modal,
     SutraDms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro);

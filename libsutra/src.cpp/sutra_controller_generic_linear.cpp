@@ -59,14 +59,14 @@ int update_circular(std::deque<CarmaObj<T> *> buffer, CarmaObj<T> &update){
 
 template<typename T, typename Tout>
 sutra_controller_generic_linear<T, Tout>::sutra_controller_generic_linear(
-    CarmaContext *context, long nslopes, int nslope_buffers, long nactu, int nstates,
+    CarmaContext *context, int nslope, int nslope_buffers, int nactu, int nstates,
     int nstate_buffers, int nmodes, int nmode_buffers, int niir_in, int niir_out,
     float delay, bool polc, bool is_modal,
     SutraDms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro)
-    : SutraController<T, Tout>(context, nslopes, nactu, delay, dms,
+    : SutraController<T, Tout>(context, nslope, nactu, delay, dms,
                                 idx_dms, ndm, idx_centro, ncentro)
     {
-
+  // TODO remove n_mode_buffers everywhere
   m_n_slope_buffers  = nslope_buffers;
   m_n_states  = nstates;
   m_n_state_buffers  = nstate_buffers;
@@ -246,6 +246,8 @@ int sutra_controller_generic_linear<T, Tout>::recursion(){
                  d_A[i].get_data(), m_n_states, d_circular_x.at(i)->get_data(), 1, T(1.0f),
                  d_x_now.get_data(), 1);
     }
+  } else {
+    d_x_now.memset(T(0.0f));
   }
   return EXIT_SUCCESS;
 }
@@ -279,7 +281,7 @@ template <typename T, typename Tout>
 int sutra_controller_generic_linear<T, Tout>::filter_iir_in(){
    // u_now = sum_{i=0}^{}(iir_b[i]*u_in[i]) //gbmv
   if(m_n_iir_in>0){
-    //1st gemv : reset x_now
+    //1st gemv : reset u_now
     carma_sbmv(cublas_handle(), 'l', m_n_modes, 0, T(1.0f),
                d_iir_b[0].get_data(), 1, d_circular_u_in.at(0)->get_data(), 1, T(0.0f),
                d_u_now.get_data(), 1);
@@ -297,7 +299,7 @@ int sutra_controller_generic_linear<T, Tout>::filter_iir_in(){
 template <typename T, typename Tout>
 int sutra_controller_generic_linear<T, Tout>::filter_iir_out(){
    // u_now += sum_{i=0}^{}(iir_a[i]*u_out[i]) //gbmv
-    for(int i=1;i<m_n_iir_in; i++){
+    for(int i=0;i<m_n_iir_out; i++){
     carma_sbmv(cublas_handle(), 'l', m_n_modes, 0, T(1.0f),
                d_iir_a[i].get_data(), 1, d_circular_u_out.at(i)->get_data(), 1, T(1.0f),
                d_u_now.get_data(), 1);

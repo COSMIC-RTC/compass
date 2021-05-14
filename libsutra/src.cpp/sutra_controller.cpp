@@ -378,23 +378,23 @@ int SutraController<Tcomp, Tout>::comp_polc(Tcomp a, CarmaObj<Tcomp>& uk_1, Tcom
 
   std::string err = "";
   if(uk_1.get_dims(1) < n_actu){
-    err += "\n\tinconsistent dimension fo uk_1   : expected:";
+    err += "\n\tinconsistent dimension for uk_1   : expected:";
     err += std::to_string(n_actu)+", got:" +std::to_string(uk_1.get_dims(1));
   }
   if(uk.get_dims(1) < n_actu){
-    err += "\n\tinconsistent dimension fo uk     : expected:";
+    err += "\n\tinconsistent dimension for uk     : expected:";
     err += std::to_string(n_actu)+", got:" +std::to_string(uk.get_dims(1));
   }
   if(eff_u.get_dims(1) != n_actu){
-    err += "\n\tinconsistent dimension fo eff_u  : expected:";
+    err += "\n\tinconsistent dimension for eff_u  : expected:";
     err += std::to_string(n_actu)+", got:" +std::to_string(eff_u.get_dims(1));
   }
   if(sk.get_dims(1) != n_slope){
-    err += "\n\tinconsistent dimension fo sk     : expected:";
+    err += "\n\tinconsistent dimension for sk     : expected:";
     err += std::to_string(n_slope)+", got:" +std::to_string(sk.get_dims(1));
   }
   if(ol_meas.get_dims(1) != n_slope){
-    err += "\n\tinconsistent dimension fo ol_meas: expected:";
+    err += "\n\tinconsistent dimension for ol_meas: expected:";
     err += std::to_string(n_slope)+", got:" +std::to_string(ol_meas.get_dims(1));
   }
   if(!err.empty()){

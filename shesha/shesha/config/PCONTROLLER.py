@@ -58,7 +58,7 @@ class Param_controller:
         self.__nslope = 0
         """ number of slope to handle"""
         self.__nslope_buffer = 0
-        """ TODO"""
+        """ number of previous slopes to use in control"""
         self.__ndm = None
         """ index of dms in controller"""
         self.__nactu = 0
@@ -86,7 +86,7 @@ class Param_controller:
         self.__nmodes = None
         """ Number of modes for M2V matrix (modal optimization)"""
         self.__nmode_buffer = 0
-        """TODO"""
+        """ Number of previous modal vectors to use for control"""
         self.__gmin = 0.
         """ Minimum gain for modal optimization"""
         self.__gmax = 1.
@@ -101,9 +101,9 @@ class Param_controller:
         self.__klgain = None
         """ Gain applied to modes at cMat inversion """
         self.__nstates = 0
-        """ TODO """
+        """ Number of states for generic linear controller """
         self.__nstate_buffer = 0
-        """ Number of states"""
+        """ Number of state vectors to use for control"""
         ''' MODAL OPTIMIZATION CLOSE'''
         self.__close_opti = False
         """ Flag for modal optimization with close """
@@ -116,13 +116,13 @@ class Param_controller:
         self.__close_target = 0.0
         """ Target value """
         self.__n_iir_in = 0
-        """ TODO """
+        """ number of input taps to iir filter """
         self.__n_iir_out = 0
-        """ TODO """
+        """ number of output taps to iir filter """
         self.__polc = 0
-        """ TODO """
+        """ flag to do polc in generic linear controller """
         self.__modal = 0
-        """ TODO """
+        """ flag to use a modal control in generic linenar controller """
 
     def get_type(self):
         """ Get the controller type
@@ -291,14 +291,14 @@ class Param_controller:
         """
         return self.__nslope_buffer
 
-    #def set_nslope_buffer(self, l):
-    #    """ Set the number of slope buffers
+    def set_nslope_buffer(self, l):
+        """ Set the number of slope buffers
 
-    #    :param l: (int) : number of slope buffers
-    #    """
-    #    self.__nslope_buffer = csu.enforce_int(l)
+        :param l: (int) : number of slope buffers
+        """
+        self.__nslope_buffer = csu.enforce_int(l)
 
-    nslope_buffer = property(get_nslope_buffer) #, set_nslope_buffer)
+    nslope_buffer = property(get_nslope_buffer, set_nslope_buffer)
 
     def get_nvalid(self):
         """ Get the number of valid subaps
@@ -451,14 +451,14 @@ class Param_controller:
         """
         return self.__nmode_buffer
 
-    #def set_nmode_buffer(self, n):
-    #    """ Set the number of mode buffers
+    def set_nmode_buffer(self, n):
+        """ Set the number of mode buffers
 
-    #    :param n: (int) : number of modes buffers
-    #    """
-    #    self.__nmode_buffer = csu.enforce_int(n)
+        :param n: (int) : number of modes buffers
+        """
+        self.__nmode_buffer = csu.enforce_int(n)
 
-    nmode_buffer = property(get_nmode_buffer)#, set_nmode_buffer)
+    nmode_buffer = property(get_nmode_buffer, set_nmode_buffer)
 
     def get_gmin(self):
         """ Get the minimum gain for modal optimization
@@ -567,14 +567,14 @@ class Param_controller:
         """
         return self.__nstate_buffer
 
-    #def set_nstate_buffer(self, l):
-    #    """ Set the number of state buffer
+    def set_nstate_buffer(self, l):
+        """ Set the number of state buffer
 
-    #    :param l: (int) : number of state buffer
-    #    """
-    #    self.__nstate_buffer = csu.enforce_int(l)
+        :param l: (int) : number of state buffer
+        """
+        self.__nstate_buffer = csu.enforce_int(l)
 
-    nstate_buffer = property(get_nstate_buffer) #, set_nstate_buffer)
+    nstate_buffer = property(get_nstate_buffer, set_nstate_buffer)
 
     def get_close_opti(self):
         """ Get flag for CLOSE modal optimization
@@ -664,14 +664,14 @@ class Param_controller:
         """
         return self.__n_iir_in
 
-    #def set_n_iir_in(self, n):
-    #    """
+    def set_n_iir_in(self, n):
+        """
 
-    #    :param : (int) :
-    #    """
-    #    self.__n_iir_in = csu.enforce_int(n)
+        :param : (int) :
+        """
+        self.__n_iir_in = csu.enforce_int(n)
 
-    n_iir_in = property(get_n_iir_in)#, set_)
+    n_iir_in = property(get_n_iir_in, set_n_iir_in)
 
     def get_n_iir_out(self):
         """TODO
@@ -680,14 +680,14 @@ class Param_controller:
         """
         return self.__n_iir_out
 
-    #def set_n_iir_out(self, n):
-    #    """
+    def set_n_iir_out(self, n):
+        """
 
-    #    :param : (int) :
-    #    """
-    #    self.__n_iir_out = csu.enforce_out(n)
+        :param : (int) :
+        """
+        self.__n_iir_out = csu.enforce_int(n)
 
-    n_iir_out = property(get_n_iir_out)#, set_)
+    n_iir_out = property(get_n_iir_out, set_n_iir_out)
 
     def get_polc(self):
         """TODO
@@ -696,14 +696,14 @@ class Param_controller:
         """
         return self.__polc
 
-    #def set_polc(self, p):
-    #    """
+    def set_polc(self, p):
+        """
 
-    #    :param : (bool) :
-    #    """
-    #    self.__polc = csu.enforce_bool(b)
+        :param : (bool) :
+        """
+        self.__polc = csu.enforce_or_cast_bool(p)
 
-    polc = property(get_polc)#, set_)
+    polc = property(get_polc, set_polc)
 
     def get_modal(self):
         """TODO
@@ -712,11 +712,11 @@ class Param_controller:
         """
         return self.__modal
 
-    #def set_modalt(self, m):
-    #    """
+    def set_modal(self, m):
+        """
 
-    #    :param : (bool) :
-    #    """
-    #    self.__modal = csu.enforce_int(m)
+        :param : (bool) :
+        """
+        self.__modal = csu.enforce_or_cast_bool(m)
 
-    modal = property(get_modal)#, set_)
+    modal = property(get_modal, set_modal)

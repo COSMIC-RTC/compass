@@ -116,15 +116,15 @@ class CarmaHostObj;
 template <class T_data>
 class CarmaObj {
  protected:
-  T_data *d_data;  ///< Input data  => change to vector
+  T_data *d_data = nullptr;  ///< Input data  => change to vector
   std::vector<T_data> h_data;
-  T_data *o_data;        ///< optional data (used for scan / reduction)
-  T_data *cub_data;      ///< optional data (used for scan / reduction)
-  size_t cub_data_size;  // optionnal for reduction
-  int ndim;
-  long *dims_data;  ///< dimensions of the array
-  int nb_elem;      ///< number of elements in the array
-  int device;       ///< device where the CarmaObj is allocate
+  T_data *o_data = nullptr;        ///< optional data (used for scan / reduction)
+  T_data *cub_data = nullptr;      ///< optional data (used for scan / reduction)
+  size_t cub_data_size = 0;  // optionnal for reduction
+  int ndim = 0;
+  long *dims_data = nullptr;  ///< dimensions of the array
+  int nb_elem = 0;      ///< number of elements in the array
+  int device = -1;       ///< device where the CarmaObj is allocate
   CarmaContext *current_context;
 
   curandGenerator_t gen;
@@ -161,6 +161,8 @@ class CarmaObj {
             int nb_streams);
   CarmaObj(CarmaContext *current_context, const long *dims_data,
             const T_data *data, int nb_streams);
+  CarmaObj(const CarmaObj &)=delete;
+  //CarmaObj(CarmaObj &&);
   ~CarmaObj();
 
   void sync_h_data() {
@@ -209,7 +211,7 @@ class CarmaObj {
   }
 
   void dealloc() {
-    if (owner) cudaFree(d_data);
+    if (owner && d_data) cudaFree(d_data);
   }
 
   /**< General Utilities */

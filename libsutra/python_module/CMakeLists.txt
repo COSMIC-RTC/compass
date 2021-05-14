@@ -45,6 +45,7 @@ pybind11_add_module(sutraWrap MODULE
                     src/controller_mv.cpp
                     src/controller_geo.cpp
                     src/controller_generic.cpp
+                    src/controller_generic_linear.cpp
                     src/controller_cured.cpp
                     src/rtc.cpp
                     src/gamora.cpp
