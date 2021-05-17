@@ -162,7 +162,6 @@ class CarmaObj {
   CarmaObj(CarmaContext *current_context, const long *dims_data,
             const T_data *data, int nb_streams);
   CarmaObj(const CarmaObj &)=delete;
-  //CarmaObj(CarmaObj &&);
   ~CarmaObj();
 
   void sync_h_data() {

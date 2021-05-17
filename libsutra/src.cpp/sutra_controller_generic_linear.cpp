@@ -41,20 +41,32 @@
 
 #include <sutra_controller_generic_linear.h>
 
-
 template<typename T>
 int rotate_circular_buffer(std::deque<CarmaObj<T> *> buffer){
   CarmaObj<T> *tmp = std::move(buffer.front());
-    buffer.pop_front();
-    buffer.push_back(tmp);
-    return EXIT_SUCCESS;
+  buffer.pop_front();
+  buffer.push_back(tmp);
+  return EXIT_SUCCESS;
 }
 
 template<typename T>
 int update_circular(std::deque<CarmaObj<T> *> buffer, CarmaObj<T> &update){
+  if(buffer.size()>0){
     rotate_circular_buffer(buffer);
     buffer.at(0)->copy_from(update, update.get_nb_elements());
+  }
     return EXIT_SUCCESS;
+}
+
+template<typename T>
+std::unique_ptr<CarmaObj<T>> make_unique_carma_obj(CarmaContext *context, std::initializer_list<long> il) {
+
+  std::vector<long> dims(il.size() + 1);
+  dims[0] = il.size();
+
+  std::copy(il.begin(), il.end(), dims.begin() + 1);
+
+  return std::make_unique<CarmaObj<T>>(context, dims);
 }
 
 template<typename T, typename Tout>
@@ -75,40 +87,40 @@ sutra_controller_generic_linear<T, Tout>::sutra_controller_generic_linear(
   m_n_iir_in  = niir_in;
   m_n_iir_out = niir_out;
 
-  d_x_now = CarmaObj<T>(context, {1,m_n_states});
+  //d_x_now = CarmaObj<T>(context, {1,m_n_states});
+  d_x_now = make_unique_carma_obj<T>(context, {m_n_states});
   for(int i=0;i<m_n_state_buffers;i++){
     d_circular_x.push_front(new CarmaObj<T>(context, {1,m_n_states}));
-    d_A.push_back(CarmaObj<T>(context, {2,m_n_states, m_n_states}));
+    d_A.push_back(new CarmaObj<T>(context, {2,m_n_states, m_n_states}));
   }
-
-  d_s_now = CarmaObj<T>(context, {1,nslopes});
+  d_s_now = make_unique_carma_obj<T>(context, {nslopes});
   for(int i=0;i<m_n_slope_buffers;i++){
     d_circular_s.push_front(new CarmaObj<T>(context, {1,nslopes}));
-    d_L.push_back(CarmaObj<T>(context, {2,m_n_states, nslopes}));
+    d_L.push_back(new CarmaObj<T>(context, {2,m_n_states, nslopes}));
   }
 
-  d_eff_u = CarmaObj<T>(context, {1,nactu});
+  d_eff_u = make_unique_carma_obj<T>(context, {nactu});
 
-  d_u_now = CarmaObj<T>(context, {1,nmodes});
+  d_u_now = make_unique_carma_obj<T>(context, {nmodes});
   for(int i=0;i<m_n_iir_in;i++){
     d_circular_u_in.push_front(new CarmaObj<T>(context, {1,m_n_modes}));
-    d_iir_b.push_back(CarmaObj<T>(context, {1,m_n_modes}));
+    d_iir_b.push_back(new CarmaObj<T>(context, {1,m_n_modes}));
   }
   for(int i=0;i<m_n_iir_out;i++){
     d_circular_u_out.push_front(new CarmaObj<T>(context, {1,m_n_modes}));
-    d_iir_a.push_back(CarmaObj<T>(context, {1,m_n_modes}));
+    d_iir_a.push_back(new CarmaObj<T>(context, {1,m_n_modes}));
   }
 
   m_polc = false;
   m_modal = false;
-  d_K = CarmaObj<T>(context, {2,nmodes , nstates});
+  d_K = make_unique_carma_obj<T>(context, {nmodes , nstates});
   if(polc){
     m_polc = true;
-    d_D = CarmaObj<T>(context, {2,nslopes , nactu  });
+    d_D = make_unique_carma_obj<T>(context, {nslopes , nactu  });
   }
   if(is_modal){
     m_modal = true;
-    d_F = CarmaObj<T>(context, {2,nactu  , nmodes });
+    d_F = make_unique_carma_obj<T>(context, {nactu  , nmodes });
   }
   this->current_context->set_active_device(this->device, 1);
   //cudaEventCreateWithFlags(&start_mvm_event, cudaEventDisableTiming);
@@ -121,6 +133,10 @@ sutra_controller_generic_linear<T, Tout>::~sutra_controller_generic_linear() {
   for(auto &c : d_circular_s)    {delete c;}
   for(auto &c : d_circular_u_in) {delete c;}
   for(auto &c : d_circular_u_out){delete c;}
+  for(auto &v : d_iir_a){delete v;}
+  for(auto &v : d_iir_b){delete v;}
+  for(auto &v : d_A){delete v;}
+  for(auto &v : d_L){delete v;}
   d_circular_x.clear();
   d_circular_s.clear();
   d_circular_u_in.clear();
@@ -144,56 +160,56 @@ int sutra_controller_generic_linear<T, Tout>::set_polc(bool p) {
 template<typename T, typename Tout>
 int sutra_controller_generic_linear<T, Tout>::set_A(float *M, int i) {
   this->current_context->set_active_device(this->device, 1);
-  d_A[i].host2device(M);
+  d_A[i]->host2device(M);
   return EXIT_SUCCESS;
 }
 
 template<typename T, typename Tout>
 int sutra_controller_generic_linear<T, Tout>::set_L(float *M, int i) {
   this->current_context->set_active_device(this->device, 1);
-  d_L[i].host2device(M);
+  d_L[i]->host2device(M);
   return EXIT_SUCCESS;
 }
 
 template<typename T, typename Tout>
 int sutra_controller_generic_linear<T, Tout>::set_K(float *M) {
   this->current_context->set_active_device(this->device, 1);
-  d_K.host2device(M);
+  (*d_K).host2device(M);
   return EXIT_SUCCESS;
 }
 
 template<typename T, typename Tout>
 int sutra_controller_generic_linear<T, Tout>::set_D(float *M) {
   this->current_context->set_active_device(this->device, 1);
-  d_D.host2device(M);
+  (*d_D).host2device(M);
   return EXIT_SUCCESS;
 }
 
 template<typename T, typename Tout>
 int sutra_controller_generic_linear<T, Tout>::set_F(float *M) {
   this->current_context->set_active_device(this->device, 1);
-  d_F.host2device(M);
+  (*d_F).host2device(M);
   return EXIT_SUCCESS;
 }
 
 template<typename T, typename Tout>
 int sutra_controller_generic_linear<T, Tout>::set_iir_a(float *M, int i) {
   this->current_context->set_active_device(this->device, 1);
-  d_iir_a[i].host2device(M);
+  d_iir_a[i]->host2device(M);
   return EXIT_SUCCESS;
 }
 
 template<typename T, typename Tout>
 int sutra_controller_generic_linear<T, Tout>::set_iir_b(float *M, int i) {
   this->current_context->set_active_device(this->device, 1);
-  d_iir_b[i].host2device(M);
+  d_iir_b[i]->host2device(M);
   return EXIT_SUCCESS;
 }
 
 template <typename T, typename Tout>
 int sutra_controller_generic_linear<T, Tout>::comp_polc(){
   comp_polc(a, *(d_circular_coms.at(1)), b, *(d_circular_coms.at(0)),
-    *(d_centroids), d_D, d_s_now, d_eff_u);
+    *d_centroids, *d_D, *d_s_now, *d_eff_u);
 
   return EXIT_SUCCESS;
 }
@@ -204,29 +220,29 @@ int sutra_controller_generic_linear<T, Tout>::comp_com() {
   if(m_polc){
     comp_polc();
   }else{
-    d_s_now.copy_from(*d_centroids, d_centroids->get_nb_elements());
+    (*d_s_now).copy_from(*d_centroids, d_centroids->get_nb_elements());
   }
-  update_circular(d_circular_s, d_s_now);
+  update_circular(d_circular_s, *d_s_now);
 
   recursion();
   innovation();
   modal_projection();
 
-  update_circular(d_circular_x, d_x_now);
+  update_circular(d_circular_x, *d_x_now);
 
-  update_circular(d_circular_u_in, d_u_now);
+  update_circular(d_circular_u_in, *d_u_now);
 
   filter_iir_in();
   filter_iir_out();
 
-  update_circular(d_circular_u_out, d_u_now);
+  update_circular(d_circular_u_out, *d_u_now);
 
   if(m_modal){
     carma_gemv(cublas_handle(), 'n', nactus, m_n_modes, T(1.0f),
-               d_F.get_data(), m_n_modes, d_u_now.get_data(), 1, T(1.0f),
+               (*d_F).get_data(), m_n_modes, (*d_u_now).get_data(), 1, T(1.0f),
                d_com->get_data(), 1);
   }else{
-    d_com->copy_from(d_u_now, d_u_now.get_nb_elements());
+    d_com->copy_from(*d_u_now, (*d_u_now).get_nb_elements());
   }
 
   return EXIT_SUCCESS;
@@ -238,16 +254,16 @@ int sutra_controller_generic_linear<T, Tout>::recursion(){
   if(d_circular_x.size()>0){
     //1st gemv : reset x_now
     carma_gemv(cublas_handle(), 'n', m_n_states, m_n_states, T(1.0f),
-               d_A[0].get_data(), m_n_states, d_circular_x.at(0)->get_data(), 1, T(0.0f),
-               d_x_now.get_data(), 1);
+               d_A[0]->get_data(), m_n_states, d_circular_x.at(0)->get_data(), 1, T(0.0f),
+               (*d_x_now).get_data(), 1);
     //continue summation
     for(int i=1;i<d_circular_x.size(); i++){
       carma_gemv(cublas_handle(), 'n', m_n_states, m_n_states, T(1.0f),
-                 d_A[i].get_data(), m_n_states, d_circular_x.at(i)->get_data(), 1, T(1.0f),
-                 d_x_now.get_data(), 1);
+                 d_A[i]->get_data(), m_n_states, d_circular_x.at(i)->get_data(), 1, T(1.0f),
+                 (*d_x_now).get_data(), 1);
     }
   } else {
-    d_x_now.memset(T(0.0f));
+    (*d_x_now).memset(T(0.0f));
   }
   return EXIT_SUCCESS;
 }
@@ -257,8 +273,8 @@ int sutra_controller_generic_linear<T, Tout>::innovation(){
   //x_now += sum_{i}^{m_n_slope_buffer}(L[i]* circular_s[i])
   for(int i=0;i<d_circular_s.size(); i++){
     carma_gemv(cublas_handle(), 'n', m_n_states, nslopes, T(1.0f),
-               d_L[i].get_data(), m_n_states, d_circular_s.at(i)->get_data(), 1, T(1.0f),
-               d_x_now.get_data(), 1);
+               d_L[i]->get_data(), m_n_states, d_circular_s.at(i)->get_data(), 1, T(1.0f),
+               (*d_x_now).get_data(), 1);
   }
   return EXIT_SUCCESS;
 }
@@ -268,11 +284,11 @@ int sutra_controller_generic_linear<T, Tout>::modal_projection(){
   if(m_n_state_buffers>0){
     // u_now = K * x_now
     carma_gemv(cublas_handle(), 'n', m_n_modes, m_n_states, T(1.0f),
-               d_K.get_data(), m_n_modes, d_x_now.get_data(), 1, T(1.0f),
-               d_u_now.get_data(), 1);
+               (*d_K).get_data(), m_n_modes, (*d_x_now).get_data(), 1, T(1.0f),
+               (*d_u_now).get_data(), 1);
   }else{
     //u_now = x_now
-    d_u_now.copy_from(d_x_now,d_x_now.get_nb_elements());
+    (*d_u_now).copy_from(*d_x_now,(*d_x_now).get_nb_elements());
   }
   return EXIT_SUCCESS;
 }
@@ -283,14 +299,14 @@ int sutra_controller_generic_linear<T, Tout>::filter_iir_in(){
   if(m_n_iir_in>0){
     //1st gemv : reset u_now
     carma_sbmv(cublas_handle(), 'l', m_n_modes, 0, T(1.0f),
-               d_iir_b[0].get_data(), 1, d_circular_u_in.at(0)->get_data(), 1, T(0.0f),
-               d_u_now.get_data(), 1);
+               d_iir_b[0]->get_data(), 1, d_circular_u_in.at(0)->get_data(), 1, T(0.0f),
+               (*d_u_now).get_data(), 1);
 
     //continue summation
     for(int i=1;i<m_n_iir_in; i++){
     carma_sbmv(cublas_handle(), 'l', m_n_modes, 0, T(1.0f),
-               d_iir_b[i].get_data(), 1, d_circular_u_in.at(i)->get_data(), 1, T(1.0f),
-               d_u_now.get_data(), 1);
+               d_iir_b[i]->get_data(), 1, d_circular_u_in.at(i)->get_data(), 1, T(1.0f),
+               (*d_u_now).get_data(), 1);
     }
   }
   return EXIT_SUCCESS;
@@ -301,8 +317,8 @@ int sutra_controller_generic_linear<T, Tout>::filter_iir_out(){
    // u_now += sum_{i=0}^{}(iir_a[i]*u_out[i]) //gbmv
     for(int i=0;i<m_n_iir_out; i++){
     carma_sbmv(cublas_handle(), 'l', m_n_modes, 0, T(1.0f),
-               d_iir_a[i].get_data(), 1, d_circular_u_out.at(i)->get_data(), 1, T(1.0f),
-               d_u_now.get_data(), 1);
+               d_iir_a[i]->get_data(), 1, d_circular_u_out.at(i)->get_data(), 1, T(1.0f),
+               (*d_u_now).get_data(), 1);
   }
 
   return EXIT_SUCCESS;

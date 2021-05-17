@@ -62,52 +62,56 @@ void controller_generic_linear_impl(py::module &mod, const char *name) {
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
-      
+
       .def_property_readonly(
-          "m_polc", [](controller_generic_linear &sc) { return sc.m_polc; },
+          "polc", [](controller_generic_linear &sc) { return sc.polc(); },
           "polc flag (see compass.io details on the generic linear controller)")
-	
-      .def_property_readonly(
-          "d_A", [](controller_generic_linear &sc) { return sc.d_A; },
-          "A matrix (see compass.io details on the generic linear controller)")
 
       .def_property_readonly(
-          "d_L", [](controller_generic_linear &sc) { return sc.d_L; },
-          "L matrix (see compass.io details on the generic linear controller)")
+          "modal", [](controller_generic_linear &sc) { return sc.modal(); },
+          "modal flag (see compass.io details on the generic linear controller)")
 
-      .def_property_readonly(
-          "d_K", [](controller_generic_linear &sc) { return sc.d_K; },
-          "K matrix (see compass.io details on the generic linear controller)")
-
-      .def_property_readonly(
-          "d_D", [](controller_generic_linear &sc) { return sc.d_D; },
-          "D matrix (see compass.io details on the generic linear controller)")
-
-      .def_property_readonly(
-          "d_F", [](controller_generic_linear &sc) { return sc.d_F; },
-          "F matrix (see compass.io details on the generic linear controller)")
-
-      .def_property_readonly(
-          "d_iir_a", [](controller_generic_linear &sc) { return sc.d_iir_a; },
-          "iir_a coefficients (see compass.io details on the generic linear controller)")
-
-      .def_property_readonly(
-          "d_iir_b", [](controller_generic_linear &sc) { return sc.d_iir_b; },
-          "iir_b coefficients (see compass.io details on the generic linear controller)")
+//      .def_property_readonly(
+//          "d_A", [](controller_generic_linear &sc) { return sc.d_A; },
+//          "A matrix (see compass.io details on the generic linear controller)")
+//
+//      .def_property_readonly(
+//          "d_L", [](controller_generic_linear &sc) { return sc.d_L; },
+//          "L matrix (see compass.io details on the generic linear controller)")
+//
+//      .def_property_readonly(
+//          "d_K", [](controller_generic_linear &sc) { return sc.d_K; },
+//          "K matrix (see compass.io details on the generic linear controller)")
+//
+//      .def_property_readonly(
+//          "d_D", [](controller_generic_linear &sc) { return sc.d_D; },
+//          "D matrix (see compass.io details on the generic linear controller)")
+//
+//      .def_property_readonly(
+//          "d_F", [](controller_generic_linear &sc) { return sc.d_F; },
+//          "F matrix (see compass.io details on the generic linear controller)")
+//
+//      .def_property_readonly(
+//          "d_iir_a", [](controller_generic_linear &sc) { return sc.d_iir_a; },
+//          "iir_a coefficients (see compass.io details on the generic linear controller)")
+//
+//      .def_property_readonly(
+//          "d_iir_b", [](controller_generic_linear &sc) { return sc.d_iir_b; },
+//          "iir_b coefficients (see compass.io details on the generic linear controller)")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝
-      //  ██╔████╔██║█████╗     ██║   ███████║██║   ██║██║  ██║███████╗
-      //  ██║╚██╔╝██║██╔══╝     ██║   ██╔══██║██║   ██║██║  ██║╚════██║
-      //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
-      //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
+      //  ██╔████╔██║█████╗    ██║   ███████║██║   ██║██║  ██║███████╗
+      //  ██║╚██╔╝██║██╔══╝    ██║   ██╔══██║██║   ██║██║  ██║╚════██║
+      //  ██║ ╚═╝ ██║███████╗  ██║   ██║  ██║╚██████╔╝██████╔╝███████║
+      //  ╚═╝     ╚═╝╚══════╝  ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
 
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝
-      //  ███████╗█████╗     ██║      ██║   █████╗  ██████╔╝███████╗
-      //  ╚════██║██╔══╝     ██║      ██║   ██╔══╝  ██╔══██╗╚════██║
-      //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
-      //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
+      //  ███████╗█████╗    ██║     ██║   █████╗  ██████╔╝███████╗
+      //  ╚════██║██╔══╝    ██║     ██║   ██╔══╝  ██╔══██╗╚════██║
+      //  ███████║███████╗  ██║     ██║   ███████╗██║  ██║███████║
+      //  ╚══════╝╚══════╝  ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
       .def("set_polc", wy::colCast(&controller_generic_linear::set_polc),
            R"pbdoc(

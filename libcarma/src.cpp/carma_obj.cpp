@@ -55,12 +55,6 @@ CarmaObj<T_data>::CarmaObj(CarmaContext *current_context,
 
 template <class T_data>
 CarmaObj<T_data>::CarmaObj() {
-  /** \brief CarmaObj creator.
-   * \param current_context : the context in which the CarmaObj is created
-   * \param dims : the array size Yorick format : [ndims,dims1,dims2,...]
-   */
-  //long dims[2] = {1,1};
-  //init(&CarmaContext::instance(), dims, NULL, true, 0);
 }
 
 template <class T_data>
