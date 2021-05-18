@@ -57,7 +57,7 @@ class Param_controller:
         """ number of valid subaps"""
         self.__nslope = 0
         """ number of slope to handle"""
-        self.__nslope_buffer = 0
+        self.__nslope_buffer = 1
         """ number of previous slopes to use in control"""
         self.__ndm = None
         """ index of dms in controller"""
@@ -115,9 +115,9 @@ class Param_controller:
         """ Autocorrelation learning factor """
         self.__close_target = 0.0
         """ Target value """
-        self.__n_iir_in = 0
+        self.__n_iir_in = 1
         """ number of input taps to iir filter """
-        self.__n_iir_out = 0
+        self.__n_iir_out = 1
         """ number of output taps to iir filter """
         self.__polc = 0
         """ flag to do polc in generic linear controller """

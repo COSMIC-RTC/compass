@@ -479,6 +479,10 @@ def init_controller(context, i: int, p_controller: conf.Param_controller, p_wfss
     if(p_controller.nmodes is not None):
         nmodes = p_controller.nmodes
 
+    if (p_controller.type == scons.ControllerType.GENERIC_LINEAR):
+        configure_generic_linear(p_controller)
+        nmodes = p_controller.nmodes
+
     #TODO : find a proper way to set the number of slope (other than 2 times nvalid)
     rtc.add_controller(context, p_controller.type, context.active_device,
                     p_controller.nslope, p_controller.nslope_buffer,
@@ -730,3 +734,21 @@ def init_controller_generic(i: int, p_controller: conf.Param_controller, p_dms: 
     rtc.d_control[i].set_modal_gains(mgain)
     rtc.d_control[i].set_cmat(cmat)
     rtc.d_control[i].set_matE(matE)
+
+def configure_generic_linear(p_controller: conf.Param_controller):
+    """ Configures the generic controller based on set parameters.
+
+    Args:
+        i: (int): controller index
+
+        p_controller: (Param_controller): controller settings
+
+        p_dms: (list of Param_dm): dms settings
+
+        rtc: (Rtc): Rtc object
+    """
+    if not p_controller.get_modal():
+        p_controller.set_nmodes(p_controller.get_nactu())
+    if p_controller.get_nstate_buffer() == 0:
+        p_controller.set_nstates(p_controller.get_nmodes())
+    
