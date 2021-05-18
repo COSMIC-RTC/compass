@@ -85,11 +85,11 @@ __global__ void centroids(float *d_img, T *d_centroids, T *ref, int *validx,
   // sdata[tid] = (i < N) ? g_idata[i] * x : 0;
   __syncthreads();
 
-  float intensity = BlockReduce(temp_storage).Sum(idata, blockDim.x);
+  float intensity = BlockReduce(temp_storage).Sum(idata, npix * npix);
   __syncthreads();
-  float slopex = BlockReduce(temp_storage).Sum(xdata, blockDim.x);
+  float slopex = BlockReduce(temp_storage).Sum(xdata, npix * npix);
   __syncthreads();
-  float slopey = BlockReduce(temp_storage).Sum(ydata, blockDim.x);
+  float slopey = BlockReduce(temp_storage).Sum(ydata, npix * npix);
 
   // write result for this block to global mem
   if (tid == 0) {
