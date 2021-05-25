@@ -1,7 +1,7 @@
 ## @package   shesha.supervisor.benchSupervisor
 ## @brief     Initialization and execution of a Bench supervisor
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   5.0.0
+## @version   5.1.0
 ## @date      2020/05/18
 ## @copyright GNU Lesser General Public License
 #
@@ -247,7 +247,7 @@ class BenchSupervisor(GenericSupervisor):
     def get_command(self) -> np.ndarray:
         """ Get command from DM
 
-        Return:
+        Returns:
             command : (np.ndarray) : Command vector
         """
         # Do something
@@ -424,7 +424,7 @@ class BenchSupervisor(GenericSupervisor):
         Args:
             centro_index : (int) : Index of the centroider
 
-        Return:
+        Returns:
             current_pos : (tuple) : (i_subap, j_subap)
         """
         i_subap = np.array(self.rtc._rtc.d_centro[centro_index].d_validx)
@@ -435,7 +435,7 @@ class BenchSupervisor(GenericSupervisor):
         """ Return the index of the first position of each WFS slopes vector
         inside the global RTC slopes vector
 
-        Return:
+        Returns:
             slopes_index : (np.ndarray) : Slopes index
         """
         return self.slopes_index
@@ -445,7 +445,7 @@ class BenchSupervisor(GenericSupervisor):
         Extract and convert compass supervisor configuration parameters
         into 2 dictionnaries containing relevant AO parameters
 
-        Parameters :
+        Args:
             root: (object), COMPASS supervisor object to be parsed
 
         Returns : 2 dictionnaries

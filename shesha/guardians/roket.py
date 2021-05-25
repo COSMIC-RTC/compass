@@ -36,7 +36,7 @@ class Roket(CompassSupervisor):
         """
         Initializes an instance of Roket class
 
-        :parameters:
+        Args:
             str: (str): (optional) path to a parameter file
             N_preloop: (int): (optional) number of iterations before starting error breakdown estimation
             gamma: (float): (optional) centroid gain
@@ -49,12 +49,14 @@ class Roket(CompassSupervisor):
         """
         Initializes the COMPASS simulation and the ROKET buffers
         """
-        super().init_config()
+        #super().init_config()
         self.iter_number = 0
         self.n = self.config.p_loop.niter + self.N_preloop
-        self.nfiltered = int(self.config.p_controllers[0].maxcond)
-        self.nactus = self.get_command(0).size
-        self.nslopes = self.get_slopes(0).size
+        #self.nfiltered = int(self.config.p_controllers[0].maxcond)
+        self.nfiltered = 20
+        #self.nactus = self.get_command(0).size
+        self.nactus = self.rtc.get_command(0).size
+        self.nslopes = self.rtc.get_slopes(0).size
         self.com = np.zeros((self.n, self.nactus), dtype=np.float32)
         self.noise_com = np.zeros((self.n, self.nactus), dtype=np.float32)
         self.alias_wfs_com = np.copy(self.noise_com)
@@ -67,21 +69,24 @@ class Roket(CompassSupervisor):
         self.mod_com = np.copy(self.noise_com)
         self.bp_com = np.copy(self.noise_com)
         self.fit = np.zeros(self.n)
-        self.psf_ortho = self.get_tar_image(0) * 0
+        self.psf_ortho = self.target.get_tar_image(0) * 0
         self.centroid_gain = 0
         self.centroid_gain2 = 0
         self.slopes = np.zeros((self.n, self.nslopes), dtype=np.float32)
         #gamma = 1.0
         self.config.p_loop.set_niter(self.n)
-        self.IFpzt = self.get_influ_basis_sparse(1)
-        self.TT = self.get_tt_influ_basis(1)
+        #self.IFpzt = self.get_influ_basis_sparse(1)
+        self.IFpzt = self.rtc._rtc.d_control[1].d_IFsparse.get_csr()
+        #self.IFpzt.P = scipy.sparse.csr_matrix.transpose(self.IFpzt.get_csr())
+        #self.TT = self.get_tt_influ_basis(1)
+        self.TT = np.array(self.rtc._rtc.d_control[1].d_TT)
 
         self.Btt, self.P = compute_btt(self.IFpzt.T, self.TT)
         tmp = self.Btt.dot(self.Btt.T)
-        self._sim.rtc.d_control[1].load_Btt(tmp[:-2, :-2], tmp[-2:, -2:])
-        compute_cmat_with_Btt(self._sim.rtc, self.Btt, self.nfiltered)
-        self.cmat = self.get_command_matrix(0)
-        self.D = self.get_interaction_matrix(0)
+        self.rtc._rtc.d_control[1].load_Btt(tmp[:-2, :-2], tmp[-2:, -2:])
+        compute_cmat_with_Btt(self.rtc._rtc, self.Btt, self.nfiltered)
+        self.cmat = self.rtc.get_command_matrix(0)
+        self.D = self.rtc.get_interaction_matrix(0)
         self.RD = np.dot(self.cmat, self.D)
         self.gRD = np.identity(
                 self.RD.
@@ -89,7 +94,7 @@ class Roket(CompassSupervisor):
 
         self.Nact = create_nact_geom(self.config.p_dms[0])
 
-    def next(self, **kwargs):
+    def loop_next(self, **kwargs):
         """
             function next
             Iterates the AO loop, with optional parameters
@@ -100,16 +105,16 @@ class Roket(CompassSupervisor):
         :param wfs_trace (None or list[int]): list of WFS to trace. None equivalent to all.
         :param apply_control (bool): (optional) if True (default), apply control on DMs
         """
-        self._sim.next(apply_control=False)
+        self.next(apply_control=False)
         self.error_breakdown()
-        self._sim.applyControl(0)
+        self.rtc.apply_control(0)
         self.iter_number += 1
 
     def loop(self, monitoring_freq=100, **kwargs):
         """
         Performs the AO loop for n iterations
 
-        :parameters:
+        Args:
             monitoring_freq: (int): (optional) Loop monitoring frequency [frames] in the terminal
         """
         print("-----------------------------------------------------------------")
@@ -117,12 +122,12 @@ class Roket(CompassSupervisor):
         print("-----------------------------------------------------------------")
         t0 = time.time()
         for i in range(self.n):
-            self.next(**kwargs)
+            self.loop_next(**kwargs)
             if ((i + 1) % monitoring_freq == 0):
                 framerate = (i + 1) / (time.time() - t0)
-                self._sim.comp_tar_image(0)
-                self._sim.compStrehl(0)
-                strehltmp = self.get_strehl(0)
+                self.target.comp_tar_image(0)
+                self.target.comp_strehl(0)
+                strehltmp = self.target.get_strehl(0)
                 etr = (self.n - i) / framerate
                 print("%d \t %.2f \t  %.2f\t %.2f \t %.2f \t    %.1f \t %.1f" %
                       (i + 1, strehltmp[0], strehltmp[1], np.exp(-strehltmp[2]),
@@ -133,7 +138,7 @@ class Roket(CompassSupervisor):
               (t1 - t0) / self.n, "(mean)  ", self.n / (t1 - t0), "Hz")
 
         #self.tar.comp_image(0)
-        SRs = self.get_strehl(0)
+        SRs = self.target.get_strehl(0)
         self.SR2 = np.exp(SRs[3])
         self.SR = SRs[1]
 
@@ -164,35 +169,35 @@ class Roket(CompassSupervisor):
         Note : rtc.get_err returns to -CMAT.slopes
         """
         g = self.config.p_controllers[0].gain
-        Dcom = self.get_command(0)
-        Derr = self.get_err(0)
+        Dcom = self.rtc.get_command(0)
+        Derr = self.rtc.get_err(0)
         self.com[self.iter_number, :] = Dcom
-        tarphase = self.get_tar_phase(0)
-        self.slopes[self.iter_number, :] = self.get_slopes(0)
-
+        tarphase = self.target.get_tar_phase(0)
+        self.slopes[self.iter_number, :] = self.rtc.get_slopes(0)
+        
         ###########################################################################
         ## Noise contribution
         ###########################################################################
         if (self.config.p_wfss[0].type == scons.WFSType.SH):
-            ideal_img = np.array(self._sim.wfs.d_wfs[0].d_binimg_notnoisy)
-            binimg = np.array(self._sim.wfs.d_wfs[0].d_binimg)
+            ideal_img = np.array(self.wfs._wfs.d_wfs[0].d_binimg_notnoisy)
+            binimg = np.array(self.wfs._wfs.d_wfs[0].d_binimg)
             if (self.config.p_centroiders[0].type == scons.CentroiderType.TCOG
                 ):  # Select the same pixels with or without noise
                 invalidpix = np.where(binimg <= self.config.p_centroiders[0].thresh)
                 ideal_img[invalidpix] = 0
-                self.set_centroider_threshold(0, -1e16)
-            self._sim.wfs.d_wfs[0].set_binimg(ideal_img, ideal_img.size)
+                self.rtc.set_centroider_threshold(0, -1e16)
+            self.wfs._wfs.d_wfs[0].set_binimg(ideal_img, ideal_img.size)
         elif (self.config.p_wfss[0].type == scons.centroiderType.PYRHR):
-            ideal_pyrimg = np.array(self._sim.wfs.d_wfs[0].d_binimg_notnoisy)
-            self._sim.wfs.d_wfs[0].set_binimg(ideal_pyrimg, ideal_pyrimg.size)
+            ideal_pyrimg = np.array(self.wfs._wfs.d_wfs[0].d_binimg_notnoisy)
+            self.wfs._wfs.d_wfs[0].set_binimg(ideal_pyrimg, ideal_pyrimg.size)
 
-        self._sim.doCentroids(0)
+        self.rtc.do_centroids(0)
         if (self.config.p_centroiders[0].type == scons.CentroiderType.TCOG):
-            self.set_centroider_threshold(0, config.p_centroiders[0].thresh)
+            self.rtc.set_centroider_threshold(0, config.p_centroiders[0].thresh)
 
-        self._sim.do_control(0)
-        E = self.get_err(0)
-        E_meas = self.get_slopes(0)
+        self.rtc.do_control(0)
+        E = self.rtc.get_err(0)
+        E_meas = self.rtc.get_slopes(0)
         # Apply loop filter to get contribution of noise on commands
         if (self.iter_number + 1 < self.config.p_loop.niter):
             self.noise_com[self.iter_number + 1, :] = self.gRD.dot(
@@ -200,24 +205,30 @@ class Roket(CompassSupervisor):
         ###########################################################################
         ## Sampling/truncature contribution
         ###########################################################################
-        self._sim.doCentroidsGeom(0)
-        self._sim.do_control(0)
-        F = self.get_err(0)
-        F_meas = self.get_slopes(0)
+        self.rtc.do_centroids_geom(0)
+        self.rtc.do_control(0)
+        F = self.rtc.get_err(0)
+        F_meas = self.rtc.get_slopes(0)
         self.trunc_meas[self.iter_number, :] = E_meas - F_meas
         # Apply loop filter to get contribution of sampling/truncature on commands
         if (self.iter_number + 1 < self.config.p_loop.niter):
             self.trunc_com[self.iter_number + 1, :] = self.gRD.dot(
                     self.trunc_com[self.iter_number, :]) + g * (E - self.gamma * F)
         self.centroid_gain += centroid_gain(E, F)
+        #Derr = np.ones(Derr)
+        #print(Derr)
+        #print(F)
         self.centroid_gain2 += centroid_gain(Derr, F)
         ###########################################################################
         ## Aliasing contribution on WFS direction
         ###########################################################################
-        self._sim.do_control(1, 0, wfs_direction=True)
-        self._sim.applyControl(1)
+        #self.rtc.do_control(1, 0, wfs_direction=True)
+        self.rtc.do_control(1, sources=self.wfs.sources, is_wfs_phase=True)
+        #self.rtc.do_control(0)
+        #self.rtc.do_control(1)
+        self.rtc.apply_control(1)
         for w in range(len(self.config.p_wfss)):
-            self._sim.raytrace_wfs(w, "dm", rst=False)
+            self.wfs.raytrace(w, dms=self.dms, reset=False)
         """
             wfs.sensors_compimg(0)
         if(config.p_wfss[0].type == scons.WFSType.SH):
@@ -232,10 +243,10 @@ class Roket(CompassSupervisor):
             ideal_pyrimg = wfs.get_binimg_notnoisy(0)
             wfs.set_pyrimg(0,ideal_pyrimg)
         """
-        self._sim.doCentroidsGeom(0)
-        self._sim.do_control(0)
-        Ageom = self.get_err(0)
-        self.alias_meas[self.iter_number, :] = self.get_slopes(0)
+        self.rtc.do_centroids_geom(0)
+        self.rtc.do_control(0)
+        Ageom = self.rtc.get_err(0)
+        self.alias_meas[self.iter_number, :] = self.rtc.get_slopes(0)
         if (self.iter_number + 1 < self.config.p_loop.niter):
             self.alias_wfs_com[self.iter_number + 1, :] = self.gRD.dot(
                     self.alias_wfs_com[self.iter_number, :]) + self.gamma * g * (
@@ -244,21 +255,23 @@ class Roket(CompassSupervisor):
         ###########################################################################
         ## Wavefront + filtered modes reconstruction
         ###########################################################################
-        self._sim.raytraceTar(0, "atmos")
-        self._sim.do_control(1, 0, wfs_direction=False)
-        B = self.get_command(1)
+        self.target.raytrace(0, atm=self.atmos)
+        #self.rtc.do_control(1, 0, wfs_direction=False)
+        self.rtc.do_control(1, sources=self.target.sources, is_wfs_phase=False)
+        #self.rtc.do_control(0)
+        #self.rtc.do_control(1)
+        B = self.rtc.get_command(1)
 
         ###########################################################################
         ## Fitting
         ###########################################################################
-        self._sim.applyControl(1)
-        self._sim.raytraceTar(0, "dm", rst=False)
-
-        self._sim.comp_tar_image(0, compLE=False)
-        self._sim.compStrehl(0)
-        self.fit[self.iter_number] = self.get_strehl(0)[2]
+        self.rtc.apply_control(1)
+        self.target.raytrace(0, dms=self.dms, reset=False)
+        self.target.comp_tar_image(0, compLE=False)
+        self.target.comp_strehl(0)
+        self.fit[self.iter_number] = self.target.get_strehl(0)[2]
         if (self.iter_number >= self.N_preloop):
-            self.psf_ortho += self.get_tar_image(0, 'se')
+            self.psf_ortho += self.target.get_tar_image(0, expo_type='se')
 
         ###########################################################################
         ## Filtered modes error & Commanded modes
@@ -283,10 +296,13 @@ class Roket(CompassSupervisor):
         ###########################################################################
         #G = F - (mod_com[self.iter_number,:] + Ageom - np.dot(RDgeom,com[self.iter_number-1,:]))
         for w in range(len(self.config.p_wfss)):
-            self._sim.raytrace_wfs(w, "atmos")
+            self.wfs.raytrace(w, atm=self.atmos)
 
-        self._sim.do_control(1, 0, wfs_direction=True)
-        G = self.get_command(1)
+        #self.rtc.do_control(1, 0, wfs_direction=True)
+        self.rtc.do_control(1, sources=self.wfs.sources, is_wfs_phase=True)
+        #self.rtc.do_control(0)
+        #self.rtc.do_control(1)
+        G = self.rtc.get_command(1)
         modes = self.P.dot(G)
         modes[-self.nfiltered - 2:-2] = 0
         self.wf_com[self.iter_number, :] = self.Btt.dot(modes)
@@ -297,14 +313,16 @@ class Roket(CompassSupervisor):
                     self.tomo_com[self.iter_number, :]) - g * self.gamma * self.RD.dot(G)
 
         # Without anyone noticing...
-        self._sim.tar.d_targets[0].set_phase(tarphase)
-        self._sim.rtc.d_control[0].set_com(Dcom, Dcom.size)
+        #self._sim.tar.d_targets[0].set_phase(tarphase)
+        self.target.set_tar_phase(0, tarphase)
+        #self._sim.rtc.d_control[0].set_com(Dcom, Dcom.size)
+        self.rtc.set_command(0, Dcom)
 
     def save_in_hdf5(self, savename):
         """
         Saves all the ROKET buffers + simuation parameters in a HDF5 file
 
-        :parameters:
+        Args:
             savename: (str): name of the output file
         """
         tmp = (self.config.p_geom._ipupil.shape[0] -
@@ -315,9 +333,12 @@ class Roket(CompassSupervisor):
         indx_pup = np.where(pup.flatten() > 0)[0].astype(np.int32)
         dm_dim = self.config.p_dms[0]._n2 - self.config.p_dms[0]._n1 + 1
         self.cov_cor()
-        psf = self.get_tar_image(0, "le")
-
-        fname = os.getenv("DATA_GUARDIAN") + savename
+        psf = self.target.get_tar_image(0, expo_type='le')
+        if(os.getenv("DATA_GUARDIAN") is not None):
+                fname = os.getenv("DATA_GUARDIAN") + "/" + savename
+        else:
+                fname = savename
+        #fname = "test"
         pdict = {
                 "noise":
                         self.noise_com[self.N_preloop:, :].T,
@@ -372,9 +393,9 @@ class Roket(CompassSupervisor):
                 "dm.ypos":
                         self.config.p_dms[0]._ypos,
                 "R":
-                        self.get_command_matrix(0),
+                        self.rtc.get_command_matrix(0),
                 "D":
-                        self.get_interaction_matrix(0),
+                        self.rtc.get_interaction_matrix(0),
                 "Nact":
                         self.Nact,
                 "com":
@@ -427,6 +448,8 @@ class Roket(CompassSupervisor):
 #
 ###############################################################################
 if __name__ == "__main__":
+    from shesha.config import ParamConfig
+
     if (len(sys.argv) < 2):
         error = 'command line should be at least:"python -i test.py parameters_filename"\n with "parameters_filename" the path to the parameters file'
         raise Exception(error)
@@ -438,8 +461,8 @@ if __name__ == "__main__":
         savename = sys.argv[2]
     else:
         savename = "roket_default.h5"
-
-    roket = Roket(param_file)
+    config = ParamConfig(param_file)
+    roket = Roket(config)
     roket.init_config()
     roket.loop()
     roket.save_in_hdf5(savename)

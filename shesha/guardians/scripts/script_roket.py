@@ -30,7 +30,9 @@ from docopt import docopt
 
 import sys
 import os
-from guardian.roket import Roket
+#from guardian.roket import Roket
+from roket import Roket
+from shesha.util.utilities import load_config_from_file
 
 arguments = docopt(__doc__)
 param_file = arguments["<parameters_filename>"]
@@ -44,7 +46,9 @@ else:
 gamma = 1.0
 if arguments["--gamma"]:
     gamma = 1 / float(arguments["--gamma"])
-roket = Roket(param_file, gamma=gamma)
+    
+config = load_config_from_file(param_file)
+roket = Roket(config, gamma=gamma)
 
 if arguments["--diam"]:
     roket.config.p_tel.set_diam(float(arguments["--diam"]))
@@ -72,11 +76,11 @@ if arguments["--seeds"]:
 if arguments["--alt"]:
     roket.config.p_atmos.set_alt([float(arguments["--alt"])])
 
-if arguments["--devices"]:
-    devices = []
-    for k in range(len(arguments["--devices"])):
-        devices.append(int(arguments["--devices"][k]))
-    roket.config.p_loop.set_devices(devices)
+#if arguments["--devices"]:
+#    devices = []
+#    for k in range(len(arguments["--devices"])):
+#        devices.append(int(arguments["--devices"][k]))
+#    roket.config.p_loop.set_devices(devices)
 
 roket.init_config()
 roket.loop()

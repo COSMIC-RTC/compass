@@ -1,7 +1,7 @@
 ## @package   shesha.init.rtc_init
 ## @brief     Initialization of a Rtc object
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   5.0.0
+## @version   5.1.0
 ## @date      2020/05/18
 ## @copyright GNU Lesser General Public License
 #
@@ -98,7 +98,7 @@ def rtc_init(context: carmaWrap_context, tel: Telescope, wfs: Sensors, dms: Dms,
 
         use_DB: (bool): use dataBase flag
 
-    Return:
+    Returns:
         Rtc : (Rtc) : Rtc object
     """
     # initialisation var
@@ -202,7 +202,7 @@ def rtc_standalone(context: carmaWrap_context, nwfs: int, nvalid: list, nactu: i
 
         cacao: (bool) : cacao flag (default=False)
 
-    Return:
+    Returns:
         Rtc : (Rtc) : Rtc object
     """
     print("start rtc_standalone")
@@ -692,6 +692,9 @@ def init_controller_generic(i: int, p_controller: conf.Param_controller, p_dms: 
     mgain = np.ones(size, dtype=np.float32) * p_controller.gain
     matE = np.identity(size, dtype=np.float32)
     cmat = np.zeros((size, p_controller.nslope), dtype=np.float32)
+
+    if p_controller.command_law is not None:
+        rtc.d_control[i].set_commandlaw(p_controller.command_law)
 
     rtc.d_control[i].set_decayFactor(decayFactor)
     rtc.d_control[i].set_modal_gains(mgain)

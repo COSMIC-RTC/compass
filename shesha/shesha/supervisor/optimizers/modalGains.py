@@ -27,9 +27,9 @@ class ModalGains(object):
 
         _initial_gain : (float) : initial value for the modal gains (same for all modes)
 
-        _modal_meas : (list) : list containing previous modal measurements to 
+        _modal_meas : (list) : list containing previous modal measurements to
                                 be used for CLOSE optimization
-        
+
         _ac_est_0 : (np.ndarray) : autocorrelation estimation for no frames delay
 
         _ac_est_dt : (np.ndarray) : autocorrelation estimation for _ac_idx delay
@@ -70,7 +70,7 @@ class ModalGains(object):
             self._rtc.set_modal_gains(0, self.mgains)
         print(f"total number of actuators {self._ntotact}")
         print(f"Autocorrelation index for CLOSE optimization is {self._ac_idx}")
-        
+
     def update_modal_meas(self):
         """Save the modal measurement of the current iter"""
         if self.cmat_modal is None or self.modal_basis is None :
@@ -151,7 +151,7 @@ class ModalGains(object):
     def get_modal_basis(self):
         """Get the modal basis
 
-        Return:
+        Returns:
             self.modal_basis : (np.ndarray) : modal basis (KL2V) used in the optimizer
         """
         return self.modal_basis
@@ -169,7 +169,7 @@ class ModalGains(object):
     def get_modal_gains(self):
         """Get the modal gains
 
-        Return:
+        Returns:
             self.mgains : (np.ndarray) : modal gains
         """
         return self.mgains
@@ -201,11 +201,11 @@ class ModalGains(object):
 
         Args:
             p: (float) : learning factor for autocorrelation
-            
+
             qplus: (float) : learning factor for mgain optimization when higher than target
-            
+
             qminus: (float) : learning factor for mgain optimization when lower than target
-            
+
             target: (float) : autocorrelation target for optimization
         """
         self._lf = p

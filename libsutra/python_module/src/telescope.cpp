@@ -34,7 +34,7 @@
 //! \ingroup   libsutra
 //! \brief     this file provides pybind wrapper for SutraTelescope
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.0.0
+//! \version   5.1.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -55,14 +55,19 @@ std::unique_ptr<SutraTelescope> telescope_init(CarmaContext &context,
 void declare_telescope(py::module &mod) {
   py::class_<SutraTelescope>(mod, "Telescope")
       .def(py::init(wy::colCast(telescope_init)), R"pbdoc(
-        Create and initialise a Telescope object
-        Parameters
-        ------------
+    Create and initialise a Telescope object
+
+    Args:
         context: (CarmaContext) : current carma context
+
         n_pup: (long) : spupil size
+
         npos : (long): number of points in the pupil
+
         pupil: (np.ndarray[ndim=2, dtype=np.float32_t]) : spupil
+
         n_pup_m: (long) : mpupil size
+
         pupil_m: (np.ndarray[ndim=2, dtype=np.float32_t]) : mpupil
         )pbdoc",
            py::arg("context"), py::arg("n_pup"), py::arg("npos"),
@@ -126,9 +131,9 @@ void declare_telescope(py::module &mod) {
               DEBUG_TRACE("Wrong dimensions");
           },
           R"pbdoc(
-        Set the small pupil
-        Parameters
-        ------------
+    Set the small pupil
+
+    Args:
         pup: (np.ndarray[ndim=2,dtype=np.float32_t]) :  small pupil
       )pbdoc",
           py::arg("pup"))
@@ -144,9 +149,9 @@ void declare_telescope(py::module &mod) {
               DEBUG_TRACE("Wrong dimensions");
           },
           R"pbdoc(
-        Set the medium pupil
-        Parameters
-        ------------
+    Set the medium pupil
+
+    Args:
         pup: (np.ndarray[ndim=2,dtype=np.float32_t]) :  medium pupil
       )pbdoc",
           py::arg("pup"))
@@ -159,9 +164,9 @@ void declare_telescope(py::module &mod) {
             return sp.set_phase_ab_M1(data.mutable_data(), data.size());
           },
           R"pbdoc(
-        Set the M1 phase aberration in the small pupil
-        Parameters
-        ------------
+    Set the M1 phase aberration in the small pupil
+
+    Args:
         phase_ab: (np.ndarray[ndim=2,dtype=np.float32_t]) : M1 phase aberration in the small pupil
       )pbdoc",
           py::arg("phase_ab"))
@@ -174,9 +179,9 @@ void declare_telescope(py::module &mod) {
             return sp.set_phase_ab_M1_m(data.mutable_data(), data.size());
           },
           R"pbdoc(
-        Set the M1 phase aberration in the medium pupil
-        Parameters
-        ------------
+    Set the M1 phase aberration in the medium pupil
+
+    Args:
         phase_ab: (np.ndarray[ndim=2,dtype=np.float32_t]) : M1 phase aberration in the medium pupil
       )pbdoc",
           py::arg("phase_ab"))

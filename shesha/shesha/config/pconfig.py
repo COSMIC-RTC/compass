@@ -1,7 +1,7 @@
 ## @package   shesha.config
 ## @brief     Parameters configuration class
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   5.0.0
+## @version   5.1.0
 ## @date      2020/05/18
 ## @copyright GNU Lesser General Public License
 #
@@ -114,7 +114,7 @@ class ParamConfig(object):
         Args:
             filename_path: (str): path to the parameters file
 
-        Return:
+        Returns:
             config : (config) : a config module
         """
         filename = filepath.split('.')[-1]
@@ -158,7 +158,7 @@ class ParamConfig(object):
             - "m" or "mpupil" : returns the medium pupil, used for WFS computation
             - "s" or "spupil" : returns the smallest pupil of size (p_geom.pupdiam x p_geom.pupdiam)
 
-        Return:
+        Returns:
             pupil : (np.ndarray) : pupil
         """
         if scons.PupilType(pupil_type) is scons.PupilType.SPUPIL:
@@ -213,12 +213,12 @@ class ParamConfig(object):
         aodict.update({"list_Steering": []})
 
         listOfNstatesPerController = []
-        listOfcontrolLawTypePerController = []
+        listOfcommandLawTypePerController = []
         for control in self.p_controllers:
             listOfNstatesPerController.append(control.nstates)
-            listOfcontrolLawTypePerController.append(control.type)
+            listOfcommandLawTypePerController.append(control.type)
         aodict.update({"list_nstatesPerController": listOfNstatesPerController})
-        aodict.update({"list_controllerType": listOfcontrolLawTypePerController})
+        aodict.update({"list_controllerType": listOfcommandLawTypePerController})
 
         # fct of Nb of wfss
         NslopesList = []

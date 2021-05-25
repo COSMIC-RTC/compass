@@ -5,42 +5,47 @@
 //  All rights reserved.
 //  Distributed under GNU - LGPL
 //
-//  COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-//  General Public License as published by the Free Software Foundation, either version 3 of the License,
-//  or any later version.
+//  COMPASS is free software: you can redistribute it and/or modify it under the
+//  terms of the GNU Lesser General Public License as published by the Free
+//  Software Foundation, either version 3 of the License, or any later version.
 //
 //  COMPASS: End-to-end AO simulation tool using GPU acceleration
-//  The COMPASS platform was designed to meet the need of high-performance for the simulation of AO systems.
+//  The COMPASS platform was designed to meet the need of high-performance for
+//  the simulation of AO systems.
 //
-//  The final product includes a software package for simulating all the critical subcomponents of AO,
-//  particularly in the context of the ELT and a real-time core based on several control approaches,
-//  with performances consistent with its integration into an instrument. Taking advantage of the specific
-//  hardware architecture of the GPU, the COMPASS tool allows to achieve adequate execution speeds to
-//  conduct large simulation campaigns called to the ELT.
+//  The final product includes a software package for simulating all the
+//  critical subcomponents of AO, particularly in the context of the ELT and a
+//  real-time core based on several control approaches, with performances
+//  consistent with its integration into an instrument. Taking advantage of the
+//  specific hardware architecture of the GPU, the COMPASS tool allows to
+//  achieve adequate execution speeds to conduct large simulation campaigns
+//  called to the ELT.
 //
-//  The COMPASS platform can be used to carry a wide variety of simulations to both testspecific components
-//  of AO of the E-ELT (such as wavefront analysis device with a pyramid or elongated Laser star), and
-//  various systems configurations such as multi-conjugate AO.
+//  The COMPASS platform can be used to carry a wide variety of simulations to
+//  both testspecific components of AO of the E-ELT (such as wavefront analysis
+//  device with a pyramid or elongated Laser star), and various systems
+//  configurations such as multi-conjugate AO.
 //
-//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
-//  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-//  See the GNU Lesser General Public License for more details.
+//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY
+//  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+//  FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+//  details.
 //
-//  You should have received a copy of the GNU Lesser General Public License along with COMPASS.
-//  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
+//  You should have received a copy of the GNU Lesser General Public License
+//  along with COMPASS. If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 // -----------------------------------------------------------------------------
 
 //! \file      controller_geo.cpp
 //! \ingroup   libsutra
 //! \brief     this file provides pybind wrapper for sutra_controller_geo
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.0.0
+//! \version   5.1.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
-#include <wyrm>
-
 #include <sutra_controller_geo.h>
+
+#include <wyrm>
 
 namespace py = pybind11;
 
@@ -118,26 +123,29 @@ void controller_geo_impl(py::module &mod, const char *name) {
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
       .def("load_Btt", wy::colCast(&controller_geo::load_Btt),
            R"pbdoc(
-               Load the Btt modal basis in the geo controller for ROKET
+    Load the Btt modal basis in the geo controller for ROKET
 
-               Parameters
-               ------------
-               Btt_pzt: (np.array[ndim=2,dtype=np.float32]) : PZT DM component
-               Btt_tt: (np.array[ndim=2,dtype=np.float32]) : TT mirror component
-               )pbdoc",
+    Args:
+        Btt_pzt: (np.array[ndim=2,dtype=np.float32]) : PZT DM component
+
+        Btt_tt: (np.array[ndim=2,dtype=np.float32]) : TT mirror component
+        )pbdoc",
            py::arg("Btt_pzt"), py::arg("Btt_tt"))
 
       .def("init_proj_sparse", wy::colCast(&controller_geo::init_proj_sparse),
            R"pbdoc(
-        Initializes projection matrices
+    Initializes projection matrices
 
-        Parameters
-        ------------
+    Args:
         dms: (SutraDms): SutraDms object
+
         indx_dm: (np.array[ndim=1,dtype=np.int64]): Indices of valid pixels of the pupil in the DM support
         unitpervolt: (np.array[ndim=1,dtype=np.float32]): Unit per volt of each DM
+
         indx_pup: (np.array[ndim=1,dtype=np.int64]): Indices of valid pixels of the small pupil
+
         indx_mpup: (np.array[ndim=1,dtype=np.int64]): Indices of valid pixels of the medium pupil
+
         roket: (bool): ROKET flag
     )pbdoc",
            py::arg("dms"), py::arg("indx_dm"), py::arg("unitpervolt"),
@@ -145,11 +153,11 @@ void controller_geo_impl(py::module &mod, const char *name) {
 
       .def("comp_dphi", wy::colCast(&controller_geo::comp_dphi),
            R"pbdoc(
-      Get the pupil phase and remove piston before projection
+    Get the pupil phase and remove piston before projection
 
-      Parameters
-      ------------
+    Args:
       source: (SutraSource): Phase source
+
       wfs_direction: (bool): Must be True if the source is a WFS GS
     )pbdoc",
            py::arg("source"), py::arg("wfs_direction"))
@@ -164,10 +172,9 @@ void controller_geo_impl(py::module &mod, const char *name) {
 
       .def("load_mgain", wy::colCast(&controller_geo::load_mgain),
            R"pbdoc(
-      Set the controller modal gains
+    Set the controller modal gains
 
-      Parameters
-      ------------
+    Args:
       mgain: (np.array[ndim1,dtype=np.float32]): modal gains to set
     )pbdoc",
            py::arg("mgain"))

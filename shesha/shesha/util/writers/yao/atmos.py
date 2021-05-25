@@ -7,7 +7,7 @@ def write_atm(file_name, atm, screen_file, zenithangle):
         file_name : (str) : name of the file to append the parameter to
 
         atm : (Param_atmos) : compass atmospheric parameters. Note that
-            atm.winddir is transformed 
+            atm.winddir is transformed
 
         screen_file : (str) : path to the yao turbulent screen files. Note
             that the string is passed through raw (without quotes around it)
@@ -26,7 +26,7 @@ def write_atm(file_name, atm, screen_file, zenithangle):
         indexList += ',"' + str(i) + '"'
     f.write("\natm.screen = &(" + screen_file + "+["+indexList + \
             "]+\".fits\")")
-    f.write("\natm.layerspeed  = &(" + np.array2string(atm.windspeed, \
+    f.write("\natm.layerspeed  = &(" + np.array2string(atm.windspeed / np.cos(np.pi*zenithangle/180), \
             separator=',', max_line_width=300) + ");")
     f.write("\natm.layeralt    = &(" + np.array2string(atm.alt * np.cos(np.pi*zenithangle/180), \
             separator=',', max_line_width=300) + ");")
@@ -35,4 +35,3 @@ def write_atm(file_name, atm, screen_file, zenithangle):
     f.write("\natm.winddir     = &(" + np.array2string(-(atm.winddir+90)%360, \
             separator=',', max_line_width=300) + ");")
     f.close()
-

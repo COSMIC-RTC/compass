@@ -139,6 +139,7 @@ p_controllers = [p_controller0]
 
 # p_controller0.set_type("ls")
 p_controller0.set_type("generic")
+#p_controller0.set_command_law("modal_integrator")
 
 p_controller0.set_nwfs([0])
 p_controller0.set_ndm([0, 1])

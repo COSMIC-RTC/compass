@@ -7,7 +7,7 @@ def get_actu_pos_pixel(dm):
     Args:
         dm : (Param_dm) : Dm to get the actuators position from
 
-    Return:
+    Returns:
         xpos : (np.ndarray[ndim=1, dtype=np.float32]) : actuators positions along axis x
 
         ypos : (np.ndarray[ndim=1, dtype=np.float32]) : actuators positions along axis y
@@ -24,7 +24,7 @@ def get_actu_pos_meter(sup, dm_id):
 
         dm_id : (int) : index of the DM
 
-    Return:
+    Returns:
         xpos : (np.ndarray[ndim=1, dtype=np.float32]) : actuators positions along axis x
 
         ypos : (np.ndarray[ndim=1, dtype=np.float32]) : actuators positions along axis y
@@ -45,11 +45,11 @@ def dm_to_json(dm, geom):
         dm : (Param_dm) : dm to represent as json
     """
     dm_json = {
-        "n_actu" : dm.get_nact(), 
+        "n_actu" : dm.get_nact(),
         "h" : dm.get_alt(),
         "coupling" : dm.get_coupling(),
         "shift_x" : dm.get_dx() * geom.get_pixsize(),
         "shift_y" : dm.get_dy() * geom.get_pixsize(),
-        "theta" : dm.get_theta() 
+        "theta" : dm.get_theta()
     }
     return dm_json

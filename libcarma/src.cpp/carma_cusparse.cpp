@@ -34,7 +34,7 @@
 //! \ingroup   libcarma
 //! \brief     this file provides the cusparse features to CarmaObj
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.0.0
+//! \version   5.1.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -96,7 +96,7 @@ cusparseStatus_t carma_check_cusparse_status_v2(cusparseStatus_t status, int lin
       break;
 #endif
   }
-  std::cerr << "Cusparse error in " << file << "@" << line << std::endl;
+  std::cerr << "Cusparse error in " << file << "@" << line << " : " << cusparseGetErrorString(status) << std::endl;
   return status;
 }
 
@@ -179,23 +179,36 @@ template<typename T> constexpr auto sparse_dense = detail::Sparse<T>::dense();
                             T_data *y) {
     cusparseStatus_t status;
     cusparseDnVecDescr_t vec_x, vec_y;
+    cusparseSpMatDescr_t matA;
+    CarmaSparseObj<T_data> *At = nullptr;
+    int64_t A_num_rows, A_num_cols, A_nnz;
     void*  d_buffer    = NULL;
     size_t buffer_size = 0;
-    cusparseOperation_t trans_A = carma_char2cusparse_operation(op_A);
-
-    carma_check_cusparse_status(cusparseCreateDnVec(&vec_x, A->get_dims(2), x, A->get_data_type()));
-    carma_check_cusparse_status(cusparseCreateDnVec(&vec_y, A->get_dims(1), y, A->get_data_type()));
+    cusparseOperation_t trans_A = CUSPARSE_OPERATION_NON_TRANSPOSE;
+    if(op_A == 't') { // Have to transpose manually
+      At = new CarmaSparseObj<T_data>(A);
+      At->transpose();
+      matA = At->sp_descr;
+    }
+    else {
+      matA = A->sp_descr;
+    }
+    carma_check_cusparse_status(cusparseSpMatGetSize(matA, &A_num_rows, &A_num_cols, &A_nnz));
+    carma_check_cusparse_status(cusparseCreateDnVec(&vec_x, A_num_cols, x, A->get_data_type()));
+    carma_check_cusparse_status(cusparseCreateDnVec(&vec_y, A_num_rows, y, A->get_data_type()));
     carma_check_cusparse_status(cusparseSpMV_bufferSize(
                                  handle, trans_A,
-                                 &alpha, A->sp_descr, vec_x, &beta, vec_y, A->get_data_type(),
+                                 &alpha, matA, vec_x, &beta, vec_y, A->get_data_type(),
                                  CUSPARSE_MV_ALG_DEFAULT, &buffer_size));
-    carma_check_msg(cudaMalloc(&d_buffer, buffersize));
+    cudaMalloc(&d_buffer, buffer_size);
     status = carma_check_cusparse_status(cusparseSpMV(handle, trans_A,
-                                 &alpha, A->sp_descr, vec_x, &beta, vec_y, A->get_data_type(),
+                                 &alpha, matA, vec_x, &beta, vec_y, A->get_data_type(),
                                  CUSPARSE_MV_ALG_DEFAULT, d_buffer));
     carma_check_cusparse_status(cusparseDestroyDnVec(vec_x));
     carma_check_cusparse_status(cusparseDestroyDnVec(vec_y));
     carma_check_msg(cudaFree(d_buffer));
+    if(At != nullptr)
+      delete At;
 
     return status;
   }
@@ -266,7 +279,6 @@ template<typename T> constexpr auto sparse_dense = detail::Sparse<T>::dense();
     size_t buffer_size1 = 0, buffer_size2 = 0;
     T_data alpha = T_data(1);
     T_data beta = T_data(0);
-
     // Init C descriptor --> C must have been created with CarmaSparseObj(context)
     carma_check_cusparse_status(cusparseCreateCsr(&(C->sp_descr), A_num_rows, B_num_cols, 0,
                                       NULL, NULL, NULL,
@@ -276,29 +288,30 @@ template<typename T> constexpr auto sparse_dense = detail::Sparse<T>::dense();
     cusparseSpGEMMDescr_t spgemm_desc;
     carma_check_cusparse_status(cusparseSpGEMM_createDescr(&spgemm_desc));
     // ask bufferSize1 bytes for external memory
-    cusparseSpGEMM_workEstimation(handle, trans_A, trans_B,
+    carma_check_cusparse_status(cusparseSpGEMM_workEstimation(handle, trans_A, trans_B,
                                   &alpha, matA, matB, &beta, C->sp_descr,
                                   A->get_data_type(), CUSPARSE_SPGEMM_DEFAULT,
-                                  spgemm_desc, &buffer_size1, NULL);
+                                  spgemm_desc, &buffer_size1, NULL));
     cudaMalloc((void**) &d_buffer1, buffer_size1);
     // inspect the matrices A and B to understand the memory requiremnent for
     // the next step
-    cusparseSpGEMM_workEstimation(handle, trans_A, trans_B,
+    carma_check_cusparse_status(cusparseSpGEMM_workEstimation(handle, trans_A, trans_B,
                                   &alpha, matA, matB, &beta, C->sp_descr,
                                   A->get_data_type(), CUSPARSE_SPGEMM_DEFAULT,
-                                  spgemm_desc, &buffer_size1, d_buffer1);
+                                  spgemm_desc, &buffer_size1, d_buffer1));
     // ask bufferSize2 bytes for external memory
-    cusparseSpGEMM_compute(handle, trans_A, trans_B,
+    carma_check_cusparse_status(cusparseSpGEMM_compute(handle, trans_A, trans_B,
                                   &alpha, matA, matB, &beta, C->sp_descr,
                                   A->get_data_type(), CUSPARSE_SPGEMM_DEFAULT,
-                                  spgemm_desc, &buffer_size2, NULL);
+                                  spgemm_desc, &buffer_size2, NULL));
 
     cudaMalloc((void**) &d_buffer2, buffer_size2);
+
     // compute the intermediate product of A * B
-    cusparseSpGEMM_compute(handle, trans_A, trans_B,
+    carma_check_cusparse_status(cusparseSpGEMM_compute(handle, trans_A, trans_B,
                             &alpha, matA, matB, &beta, C->sp_descr,
                             A->get_data_type(), CUSPARSE_SPGEMM_DEFAULT,
-                            spgemm_desc, &buffer_size2, d_buffer2);
+                            spgemm_desc, &buffer_size2, d_buffer2));
     // get matrix C non-zero entries C_num_nnz1
     int64_t C_num_rows1, C_num_cols1, C_num_nnz1;
     cusparseSpMatGetSize(C->sp_descr, &C_num_rows1, &C_num_cols1, &C_num_nnz1);
@@ -311,8 +324,8 @@ template<typename T> constexpr auto sparse_dense = detail::Sparse<T>::dense();
                         A->get_data_type(), CUSPARSE_SPGEMM_DEFAULT, spgemm_desc);
     // destroy matrix/vector descriptors
     status = carma_check_cusparse_status(cusparseSpGEMM_destroyDescr(spgemm_desc));
-    carma_check_msg(cudaFree(d_buffer1));
-    carma_check_msg(cudaFree(d_buffer2));
+    cudaFree(d_buffer1);
+    cudaFree(d_buffer2);
     if(At != nullptr)
       delete At;
     if(Bt != nullptr)

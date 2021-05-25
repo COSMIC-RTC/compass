@@ -5,42 +5,47 @@
 //  All rights reserved.
 //  Distributed under GNU - LGPL
 //
-//  COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-//  General Public License as published by the Free Software Foundation, either version 3 of the License,
-//  or any later version.
+//  COMPASS is free software: you can redistribute it and/or modify it under the
+//  terms of the GNU Lesser General Public License as published by the Free
+//  Software Foundation, either version 3 of the License, or any later version.
 //
 //  COMPASS: End-to-end AO simulation tool using GPU acceleration
-//  The COMPASS platform was designed to meet the need of high-performance for the simulation of AO systems.
+//  The COMPASS platform was designed to meet the need of high-performance for
+//  the simulation of AO systems.
 //
-//  The final product includes a software package for simulating all the critical subcomponents of AO,
-//  particularly in the context of the ELT and a real-time core based on several control approaches,
-//  with performances consistent with its integration into an instrument. Taking advantage of the specific
-//  hardware architecture of the GPU, the COMPASS tool allows to achieve adequate execution speeds to
-//  conduct large simulation campaigns called to the ELT.
+//  The final product includes a software package for simulating all the
+//  critical subcomponents of AO, particularly in the context of the ELT and a
+//  real-time core based on several control approaches, with performances
+//  consistent with its integration into an instrument. Taking advantage of the
+//  specific hardware architecture of the GPU, the COMPASS tool allows to
+//  achieve adequate execution speeds to conduct large simulation campaigns
+//  called to the ELT.
 //
-//  The COMPASS platform can be used to carry a wide variety of simulations to both testspecific components
-//  of AO of the E-ELT (such as wavefront analysis device with a pyramid or elongated Laser star), and
-//  various systems configurations such as multi-conjugate AO.
+//  The COMPASS platform can be used to carry a wide variety of simulations to
+//  both testspecific components of AO of the E-ELT (such as wavefront analysis
+//  device with a pyramid or elongated Laser star), and various systems
+//  configurations such as multi-conjugate AO.
 //
-//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
-//  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-//  See the GNU Lesser General Public License for more details.
+//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY
+//  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+//  FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+//  details.
 //
-//  You should have received a copy of the GNU Lesser General Public License along with COMPASS.
-//  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
+//  You should have received a copy of the GNU Lesser General Public License
+//  along with COMPASS. If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 // -----------------------------------------------------------------------------
 
 //! \file      source.cpp
 //! \ingroup   libsutra
 //! \brief     this file provides pybind wrapper for SutraSource
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.0.0
+//! \version   5.1.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
-#include <wyrm>
-
 #include <sutra_source.h>
+
+#include <wyrm>
 
 namespace py = pybind11;
 
@@ -74,8 +79,8 @@ void declare_source(py::module &mod) {
           "Magnitude of the source")
 
       .def_property_readonly(
-          "lambda", [](SutraSource &ss) { return ss.lambda; },
-          "Wavelength of the source")
+          "lambda_um", [](SutraSource &ss) { return ss.lambda; },
+          "Wavelength of the source in µm")
 
       .def_property_readonly(
           "zp", [](SutraSource &ss) { return ss.zp; }, "Flux at magnitude 0")
@@ -136,8 +141,7 @@ void declare_source(py::module &mod) {
           "Long exposure variance in the pupil [µm²]")
 
       .def_property_readonly(
-          "phase_var_count",
-          [](SutraSource &ss) { return ss.phase_var_count; },
+          "phase_var_count", [](SutraSource &ss) { return ss.phase_var_count; },
           "Counter fo long exposure variance computation")
 
       .def_property_readonly(
@@ -145,8 +149,7 @@ void declare_source(py::module &mod) {
           "Phase screen of the source")
 
       .def_property_readonly(
-          "phase_telemetry",
-          [](SutraSource &ss) { return ss.phase_telemetry; },
+          "phase_telemetry", [](SutraSource &ss) { return ss.phase_telemetry; },
           "TODO: docstring")
 
       .def_property_readonly(
@@ -197,34 +200,36 @@ void declare_source(py::module &mod) {
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
       .def("add_layer", wy::colCast(&SutraSource::add_layer), R"pbdoc(
-        Add a phase screen "dm" or "atmos" as layers to consider for raytracing
+    Add a phase screen "dm" or "atmos" as layers to consider for raytracing
 
-        Parameters
-        ------------
+    Args:
         context: (CarmaContext) : carma or carmaWrap context
+
         type: (str) : "atmos" or "dm"
+
         xoff: (float) : x-offset for raytracing
+
         yoff: (float) : y-offset for raytracing
         )pbdoc",
            py::arg("context"), py::arg("type"), py::arg("xoff"),
            py::arg("yoff"))
 
       .def("remove_layer", wy::colCast(&SutraSource::remove_layer), R"pbdoc(
-        Remove a phase screen for raytracing
+    Remove a phase screen for raytracing
 
-        Parameters
-        ------------
+    Args:
         type: (str) : "atmos" or "dm"
+
         idx: (int) : index of the DM or turbulent layer to remove
         )pbdoc",
            py::arg("type"), py::arg("idx"))
 
       .def("comp_image", &SutraSource::comp_image, R"pbdoc(
-        Compute short and long exposure images
+    Compute short and long exposure images
 
-        Parameters
-        ------------
+    Args:
         puponly: (int) : Airy computation
+
         comp_le: (bool) : Flag for computing LE image
         )pbdoc",
            py::arg("puponly") = 0, py::arg("comp_le") = true)
@@ -242,10 +247,9 @@ void declare_source(py::module &mod) {
 
       .def("raytrace", (int (SutraSource::*)(bool)) & SutraSource::raytrace,
            R"pbdoc(
-        Raytrace through ncpa layers
+    Raytrace through ncpa layers
 
-        Parameters
-        ------------
+    Args:
         rst: (bool): reset screen phase before raytracing
     )pbdoc",
            py::arg("rst") = false)
@@ -254,11 +258,11 @@ void declare_source(py::module &mod) {
            (int (SutraSource::*)(SutraTelescope * tel, bool)) &
                SutraSource::raytrace,
            R"pbdoc(
-        Raytrace through telescope aberrations
+    Raytrace through telescope aberrations
 
-        Parameters
-        ------------
+    Args:
         tel: (SutraTelescope): SutraTelescope object
+
         rst: (bool): reset screen phase before raytracing
     )pbdoc",
            py::arg("tel"), py::arg("rst") = false)
@@ -267,50 +271,55 @@ void declare_source(py::module &mod) {
            (int (SutraSource::*)(SutraAtmos * atmos, bool)) &
                SutraSource::raytrace,
            R"pbdoc(
-        Raytrace through turbulent layers. Calling this function will automatically reset the screen phase before raytracing.
+    Raytrace through turbulent layers. Calling this function will automatically reset the screen phase before raytracing.
 
-        Parameters
-        ------------
+    Args:
         atmos: (SutraAtmos): SutraAtmos object
-        async: (bool): asynchronous mode
+
+        do_async: (bool): asynchronous mode
     )pbdoc",
-           py::arg("atmos"), py::arg("async") = false)
+           py::arg("atmos"), py::arg("do_async") = false)
 
       .def("raytrace",
 
            (int (SutraSource::*)(SutraDms * dms, bool, bool, bool)) &
                SutraSource::raytrace,
            R"pbdoc(
-        Raytrace through DMs
+    Raytrace through DMs
 
-        Parameters
-        ------------
+    Args:
         dms: (SutraDms): SutraDms object
+
         rst: (bool): reset phase screen before raytracing
+
         do_phase_var: (bool): compute the residual phase variance
-        async: (bool): asynchronous mode
+
+        do_async: (bool): asynchronous mode
     )pbdoc",
            py::arg("dms"), py::arg("rst") = false,
-           py::arg("do_phase_var") = true, py::arg("async") = false)
+           py::arg("do_phase_var") = true, py::arg("do_async") = false)
 
       .def("raytrace",
 
            (int (SutraSource::*)(SutraTelescope * tel, SutraAtmos * atm,
-                                  SutraDms * dms, bool, bool)) &
+                                 SutraDms * dms, bool, bool)) &
                SutraSource::raytrace,
            R"pbdoc(
-        Raytrace through all layers (turbu, dms, telescope, ncpa)
+    Raytrace through all layers (turbu, dms, telescope, ncpa)
 
-        Parameters
-        ------------
+    Args:
         tel: (sutra_tel): SutraTelescope object
+
         atm: (SutraAtmos): SutraAtmos object
+
         dms: (SutraDms): SutraDms object
+
         do_phase_var: (bool): compute the residual phase variance
-        async: (bool): asynchronous mode
+
+        do_async: (bool): asynchronous mode
     )pbdoc",
            py::arg("dms"), py::arg("atm"), py::arg("tel"),
-           py::arg("do_phase_var") = true, py::arg("async") = false)
+           py::arg("do_phase_var") = true, py::arg("do_async") = false)
 
       .def("__str__",
            [](SutraSource &ss) {
@@ -344,11 +353,10 @@ void declare_source(py::module &mod) {
               DEBUG_TRACE("Wrong dimensions");
           },
           R"pbdoc(
-                      Set the NCPA phase
+    Set the NCPA phase
 
-                      Parameters
-                      ------------
-                      data: (np.array(ndim=2,dtype=np.float32)): NCPA phase to set
+    Args:
+        data: (np.array(ndim=2,dtype=np.float32)): NCPA phase to set
                   )pbdoc",
           py::arg("data"))
 
@@ -363,12 +371,11 @@ void declare_source(py::module &mod) {
               DEBUG_TRACE("Wrong dimensions");
           },
           R"pbdoc(
-                      Set the target screen phase
+    Set the target screen phase
 
-                      Parameters
-                      ------------
-                      data: (np.array(ndim=2,dtype=np.float32)): target phase to set
-                  )pbdoc",
+    Args:
+        data: (np.array(ndim=2,dtype=np.float32)): target phase to set
+    )pbdoc",
           py::arg("data"))
 
       ;

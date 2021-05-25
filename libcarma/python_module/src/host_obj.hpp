@@ -34,7 +34,7 @@
 //! \ingroup   libcarma
 //! \brief     this file provides pybind wrapper for CarmaHostObj
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.0.0
+//! \version   5.1.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -121,6 +121,8 @@ struct CarmaHostObjInterfacer {
         .def_property_readonly("nbElem", &Class::get_nb_elements,
                                "TODO") // TODO do the documentation...
     ;
+
+#ifdef USE_MAGMA
     // MAGMA functions
 
     // template<class T>
@@ -167,6 +169,7 @@ struct CarmaHostObjInterfacer {
     // int carma_magma_syevd_m(long ngpu, char jobz, long N, T *mat, T *eigenvals);
     // template<class T>
     // int carma_magma_potr_inv_m(long num_gpus, long N, T *h_A, T *d_iA);
+#endif
 
   }
 };

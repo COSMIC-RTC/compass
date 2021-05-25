@@ -34,7 +34,7 @@
 //! \ingroup   libsutra
 //! \brief     this file provides pybind wrapper for sutra_wfs_pyrhr
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.0.0
+//! \version   5.1.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -110,19 +110,27 @@ void declare_wfs_pyrhr(py::module &mod) {
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
       .def("load_arrays", wy::colCast(&SutraWfs_PyrHR::load_arrays), R"pbdoc(
-      Load PYRHR WFS arrays
+  Load PYRHR WFS arrays
 
-      Parameters
-      ------------
+  Args:
       halfxy:
+
       cx:
+
       cy:
+
       weights:
+
       sincar:
+
       submask:
+
       validsubsx:
+
       validsubsy:
+
       phasemap:
+
       fluxPerSub:
     )pbdoc",
            py::arg("halfxy"), py::arg("cx"), py::arg("cy"), py::arg("weights"),
@@ -130,15 +138,19 @@ void declare_wfs_pyrhr(py::module &mod) {
            py::arg("validsubsy"), py::arg("phasemap"), py::arg("fluxPerSub"))
 
       .def("comp_nphot", &SutraWfs_PyrHR::comp_nphot, R"pbdoc(
-      Compute the currect number of photons for a given system
+    Compute the currect number of photons for a given system
 
-      Parameters
-      ------------
+    Args:
       ittime: (float): 1/loop frequency [s].
+
       optthroughput: (float): wfs global throughput.
+
       diam: (float): telescope diameter.
+
       cobs: (float): telescope central obstruction.
+
       zerop: (float): (optional for LGS)  detector zero point expressed in ph/m**2/s in the bandwidth of the WFS.
+
       gsmag: (float): (optional for LGS)  magnitude of guide star.
     )pbdoc",
            py::arg("ittime"), py::arg("optthroughput"), py::arg("diam"),
@@ -160,10 +172,9 @@ void declare_wfs_pyrhr(py::module &mod) {
               DEBUG_TRACE("Wrong dimensions");
           },
           R"pbdoc(
-        Set the image of the PWFS
+    Set the image of the PWFS
 
-        Parameters
-        ------------
+    Args:
         img: (np.array[ndim=2,dtype=np.float32]): new image to set
       )pbdoc",
           py::arg("img"))
@@ -172,12 +183,13 @@ void declare_wfs_pyrhr(py::module &mod) {
            wy::colCast((int (SutraWfs_PyrHR::*)(float *, float *, int)) &
                        SutraWfs_PyrHR::set_pyr_modulation_points),
            R"pbdoc(
-        Set the modulation points of a PWFS
+    Set the modulation points of a PWFS
 
-        Parameters
-        ------------
+    Args:
         cx: (np.ndarray[ndim=1, dtype=np.float32_t]): X position of modulation points
+
         cy: (np.ndarray[ndim=1, dtype=np.float32_t]): Y position of modulation points
+
         npts: (int): number of modulation points
       )pbdoc",
            py::arg("cx"), py::arg("cy"), py::arg("npts"))
@@ -187,34 +199,35 @@ void declare_wfs_pyrhr(py::module &mod) {
                (int (SutraWfs_PyrHR::*)(float *, float *, float *, int)) &
                SutraWfs_PyrHR::set_pyr_modulation_points),
            R"pbdoc(
-        Set the modulation points and weights of a PWFS
+    Set the modulation points and weights of a PWFS
 
-        Parameters
-        ------------
+    Args:
         cx: (np.ndarray[ndim=1, dtype=np.float32_t]): X position of modulation points
+
         cy: (np.ndarray[ndim=1, dtype=np.float32_t]): Y position of modulation points
+
         weights: (np.ndarray[ndim=1, dtype=np.float32_t]): modulation points weights ponderation
+
         npts: (int): number of modulation points
       )pbdoc",
            py::arg("cx"), py::arg("cy"), py::arg("weights"), py::arg("npts"))
 
       .def("set_phalfxy",
            wy::colCast(&SutraWfs_PyrHR::set_phalfxy), R"pbdoc(
-        Set the pyramid mask for each modulation point
+    Set the pyramid mask for each modulation point
 
-        Parameters
-        ------------
+    Args:
         phalfxy: (np.ndarray[ndim=2, dtype=np.complex64]): pyramid mask for each modulation point
       )pbdoc",
            py::arg("phalfxy"))
 
       .def("set_pyr_mod_weights",
            wy::colCast(&SutraWfs_PyrHR::set_pyr_mod_weights), R"pbdoc(
-        Set the modulation points weights of a PWFS
+    Set the modulation points weights of a PWFS
 
-        Parameters
-        ------------
+    Args:
         weights: (np.ndarray[ndim=1, dtype=np.float32_t]): modulation points weights ponderation
+
         npts: (int): number of modulation points
       )pbdoc",
            py::arg("weights"), py::arg("npts"))
@@ -228,10 +241,9 @@ void declare_wfs_pyrhr(py::module &mod) {
               DEBUG_TRACE("Wrong dimensions");
           },
           R"pbdoc(
-        Set the field stop of the PWFS
+    Set the field stop of the PWFS
 
-        Parameters
-        ------------
+    Args:
         mask: (np.array[ndim=2,dtype=np.float32]): new field stop to set
       )pbdoc",
           py::arg("mask"))
@@ -247,24 +259,26 @@ void declare_wfs_pyrhr(py::module &mod) {
               DEBUG_TRACE("Wrong dimensions");
           },
           R"pbdoc(
-        Set the valid pixels of the PWFS
+    Set the valid pixels of the PWFS
 
-        Parameters
-        ------------
+    Args:
         datax: (np.array[ndim=2,dtype=np.float32]): new X positions of valid pixels
+
         datay: (np.array[ndim=2,dtype=np.float32]): new Y positions of valid pixels
       )pbdoc",
           py::arg("datax"), py::arg("datay"))
 
       .def("copy_valid_pix", wy::colCast(&SutraWfs_PyrHR::copy_valid_pix),
            R"pbdoc(
-        Copy the given pixels on the right place in the binimg of PWFS
+    Copy the given pixels on the right place in the binimg of PWFS
 
-        Parameters
-        ------------
+    Args:
         data:
+
         validx:
+
         validy:
+
         dim:
       )pbdoc",
            py::arg("data"), py::arg("validx"), py::arg("validy"),

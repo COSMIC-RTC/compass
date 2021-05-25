@@ -21,7 +21,7 @@ if [ -f $LOCAL_DIR/conanlocal.py ]
 then
     CONAN_LOCATION=conanlocal.py
 else
-    CONAN_LOCATION=.
+    CONAN_LOCATION=$LOCAL_DIR
 fi
 
 # BUILD_TOOL="-GNinja" # build with ninja instead of make
@@ -33,8 +33,8 @@ conan install -if build --build=missing $CONAN_LOCATION
 # conan package -bf build -pf $COMPASS_INSTALL_ROOT $CONAN_LOCATION
 
 cd build
-cmake .. -DPYTHON_EXECUTABLE=$(which python) -DCMAKE_INSTALL_PREFIX=$COMPASS_INSTALL_ROOT -Ddo_half=$COMPASS_DO_HALF $COMPASS_DEBUG $BUILD_TOOL
+cmake $LOCAL_DIR -DPYTHON_EXECUTABLE=$(which python) -DCMAKE_INSTALL_PREFIX=$COMPASS_INSTALL_ROOT -Ddo_half=$COMPASS_DO_HALF $COMPASS_DEBUG $BUILD_TOOL
 cmake --build . --target install -- -j $NCPUS
 
 # conan export-pkg . conan/stable -f
-# conan upload compass/5.0@conan/stable --all -r=hippo6
+# conan upload compass/5.1@conan/stable --all -r=hippo6

@@ -34,7 +34,7 @@
 //! \ingroup   libsutra
 //! \brief     this file provides pybind wrapper for SutraRtcCacao
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.0.0
+//! \version   5.1.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -58,12 +58,12 @@ void rtc_cacao_impl(py::module &mod, const char *name) {
 
   py::class_<rtc_cacao, rtc>(mod, name)
       .def(py::init(wy::colCast(rtc_cacao_init<Tin, Tcomp, Tout>)), R"pbdoc(
-            Create and initialise a cacao rtc object
+    Create and initialise a cacao rtc object
 
-            Parameters
-            ------------
-            interface_cal_frame_name:
-            interface_loop_frame_name:
+    Args:
+        interface_cal_frame_name:
+
+        interface_loop_frame_name:
             )pbdoc",
            py::arg("interface_cal_frame_name"), py::arg("interface_loop_frame_name"))
 

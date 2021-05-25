@@ -1,7 +1,44 @@
+## @package   shesha.tests
+## @brief     Tests the RTC module
+## @author    COMPASS Team <https://github.com/ANR-COMPASS>
+## @version   5.1.0
+## @date      2020/05/18
+## @copyright GNU Lesser General Public License
+#
+#  This file is part of COMPASS <https://anr-compass.github.io/compass/>
+#
+#  Copyright (C) 2011-2019 COMPASS Team <https://github.com/ANR-COMPASS>
+#  All rights reserved.
+#  Distributed under GNU - LGPL
+#
+#  COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
+#  General Public License as published by the Free Software Foundation, either version 3 of the License,
+#  or any later version.
+#
+#  COMPASS: End-to-end AO simulation tool using GPU acceleration
+#  The COMPASS platform was designed to meet the need of high-performance for the simulation of AO systems.
+#
+#  The final product includes a software package for simulating all the critical subcomponents of AO,
+#  particularly in the context of the ELT and a real-time core based on several control approaches,
+#  with performances consistent with its integration into an instrument. Taking advantage of the specific
+#  hardware architecture of the GPU, the COMPASS tool allows to achieve adequate execution speeds to
+#  conduct large simulation campaigns called to the ELT.
+#
+#  The COMPASS platform can be used to carry a wide variety of simulations to both testspecific components
+#  of AO of the E-ELT (such as wavefront analysis device with a pyramid or elongated Laser star), and
+#  various systems configurations such as multi-conjugate AO.
+#
+#  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+#  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#  See the GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public License along with COMPASS.
+#  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
+
 import numpy as np
 import naga as ng
 import os
-from shesha.sutra_wrap import Rtc_FFF as Rtc
+from shesha.sutra_wrap import Rtc_FHF as Rtc
 from shesha.supervisor.compassSupervisor import CompassSupervisor as Supervisor
 from scipy.ndimage.measurements import center_of_mass
 from shesha.config import ParamConfig
@@ -10,7 +47,6 @@ precision = 1e-2
 
 config = ParamConfig(os.getenv("COMPASS_ROOT") +
         "/shesha/tests/pytest/par/test_sh.py")
-
 sup = Supervisor(config)
 sup.next()
 sup.rtc.open_loop(0)
@@ -98,7 +134,7 @@ def test_load_validposY():
 
 
 def test_set_cmat():
-    assert (relative_array_error(np.array(control.d_cmat), cmat) < precision)
+    assert (relative_array_error(ng.array(control.d_cmat).toarray(), cmat) < precision)
 
 
 def test_set_gain():
@@ -110,17 +146,17 @@ def test_load_img():
 
 
 def test_set_dark():
-    assert (relative_array_error(np.array(centro.d_dark), dark) < precision)
+    assert (relative_array_error(ng.array(centro.d_dark).toarray(), dark) < precision)
 
 
 def test_set_flat():
-    assert (relative_array_error(np.array(centro.d_flat), flat) < precision)
+    assert (relative_array_error(ng.array(centro.d_flat).toarray(), flat) < precision)
 
 
 def test_calibrate_img():
     centro.calibrate_img()
     imgCal = (frame - dark) * flat
-    assert (relative_array_error(np.array(centro.d_img), imgCal) < precision)
+    assert (relative_array_error(ng.array(centro.d_img).toarray(), imgCal) < precision)
 
 
 def test_doCentroids_cog():
@@ -132,15 +168,17 @@ def test_doCentroids_cog():
         tmp = center_of_mass(bincube[:, :, k])
         slopes[k] = (tmp[0] - offset) * scale
         slopes[k + sup.config.p_wfss[0]._nvalid] = (tmp[1] - offset) * scale
-    assert (relative_array_error(np.array(control.d_centroids), slopes) < precision)
+    assert (relative_array_error(ng.array(control.d_centroids).toarray(), slopes) <
+            precision)
 
 
 def test_do_control_generic():
-    slopes = np.array(control.d_centroids)
+    slopes = ng.array(control.d_centroids).toarray()
     gain = control.gain
-    cmat = np.array(control.d_cmat)
+    cmat = ng.array(control.d_cmat).toarray()
     commands = cmat.dot(slopes) * gain * (-1)
-    assert (relative_array_error(np.array(control.d_com), commands) < precision)
+    assert (relative_array_error(ng.array(control.d_com).toarray(), commands) <
+            precision)
 
 
 def test_set_comRange():
@@ -183,9 +221,10 @@ def test_add_perturb():
 
 def test_disable_perturb_voltage():
     control.disable_perturb_voltage("test")
-    com = np.array(control.d_com)
+    com = ng.array(control.d_com_clipped).toarray()
     control.add_perturb()
-    assert (relative_array_error(np.array(control.d_com), com) < precision)
+    assert (relative_array_error(ng.array(control.d_com_clipped).toarray(), com) <
+            precision)
 
 
 def test_enable_perturb_voltage():
@@ -253,7 +292,8 @@ def test_doCentroids_tcog():
         tmp = center_of_mass(bincube[:, :, k])
         slopes[k] = (tmp[0] - offset) * scale
         slopes[k + sup.config.p_wfss[0]._nvalid] = (tmp[1] - offset) * scale
-    assert (relative_array_error(np.array(control.d_centroids), slopes) < precision)
+    assert (relative_array_error(ng.array(control.d_centroids).toarray(), slopes) <
+            precision)
 
 
 def test_doCentroids_bpcog():
@@ -283,4 +323,5 @@ def test_doCentroids_bpcog():
         tmp = center_of_mass(imagette)
         slopes[k] = (tmp[0] - offset) * scale
         slopes[k + sup.config.p_wfss[0]._nvalid] = (tmp[1] - offset) * scale
-    assert (relative_array_error(np.array(control.d_centroids), slopes) < precision)
+    assert (relative_array_error(ng.array(control.d_centroids).toarray(), slopes) <
+            precision)

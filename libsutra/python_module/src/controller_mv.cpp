@@ -34,7 +34,7 @@
 //! \ingroup   libsutra
 //! \brief     this file provides pybind wrapper for sutra_controller_mv
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.0.0
+//! \version   5.1.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -123,40 +123,37 @@ void controller_mv_impl(py::module &mod, const char *name) {
       .def("build_cmat",
            (int (controller_mv::*)(float)) & controller_mv::build_cmat,
            R"pbdoc(
-        Computes the command matrix
+    Computes the command matrix
 
-        Parameters
-        ------------
+    Args:
         cond: (float): Conditioning number for inversion
     )pbdoc",
            py::arg("cond"))
 
       .def("load_noisemat", wy::colCast(&controller_mv::load_noisemat),
            R"pbdoc(
-        Load the noise covariance matrix
+    Load the noise covariance matrix
 
-        Parameters
-        ------------
+    Args:
         noisemat: (float): noise covariance marix
     )pbdoc",
            py::arg("noisemat"))
 
       .def("filter_cmat", &controller_mv::filter_cmat, R"pbdoc(
-        Filter command matrix from TT
+    Filter command matrix from TT
 
-        Parameters
-        ------------
+    Args:
         cond: (float): TODO: docstring
     )pbdoc",
            py::arg("cond"))
 
       .def("filter_cphim", wy::colCast(&controller_mv::filter_cphim),
            R"pbdoc(
-        Filter Cphim from piston and apply coupling
+    Filter Cphim from piston and apply coupling
 
-        Parameters
-        ------------
+    Args:
         F: (np.array[ndim=2,dtype=np.float32]): Piston filter matrix
+
         Nact: (np.array[ndim=2,dtype=np.float32]): Coupling matrix
 
     )pbdoc",
@@ -164,17 +161,23 @@ void controller_mv_impl(py::module &mod, const char *name) {
 
       .def("compute_Cmm", wy::colCast(&controller_mv::compute_Cmm),
            R"pbdoc(
-        Compute the Cmm matrix
+    Compute the Cmm matrix
 
-        Parameters
-        ------------
+    Args:
         atmos : (SutraAtmos): SutraAtmos object
+
         sensors: (SutraSensors): SutraSensors object
+
         LO: (np.array[ndim=1,dtype=np.float64]): outer scale of each layer
+
         Cn2: (np.array[ndim=1,dtype=np.float64]): Cn2 profile
+
         alphaX: (np.array[ndim=1,dtype=np.float64]): X position of each WFS
+
         alphaY: (np.array[ndim=1,dtype=np.float64]): Y position of each WFS
+
         diamTel: (double): Telescope diameter
+
         cobs: (double): Central obstruction ratio
 
     )pbdoc",
@@ -184,27 +187,43 @@ void controller_mv_impl(py::module &mod, const char *name) {
 
       .def("compute_Cphim", wy::colCast(&controller_mv::compute_Cphim),
            R"pbdoc(
-        Compute the Cphim matrix
+    Compute the Cphim matrix
 
-        Parameters
-        ------------
+    Args:
         atmos : (SutraAtmos): SutraAtmos object
+
         sensors: (SutraSensors): SutraSensors object
+
         dms: (SutraDms): SutraDms object
+
         LO: (np.array[ndim=1,dtype=np.float64]): outer scale of each layer
+
         Cn2: (np.array[ndim=1,dtype=np.float64]): Cn2 profile
+
         alphaX: (np.array[ndim=1,dtype=np.float64]): X position of each WFS
+
         alphaY: (np.array[ndim=1,dtype=np.float64]): Y position of each WFS
+
         X: (np.array[ndim=1,dtype=np.float64]): X position of each subaperture
+
         Y: (np.array[ndim=1,dtype=np.float64]): Y position of each subaperture
+
         xactu: (np.array[ndim=1,dtype=np.float64]): X position of each actuators
+
         yactu: (np.array[ndim=1,dtype=np.float64]): Y position of each actuators
+
         diamTel: (double): Telescope diameter
+
         k2: (np.array[ndim=1,dtype=np.float64]): scales
+
         NlayerDm: (np.array[ndim=1,dtype=np.int64]): Number of layers handled by each DM
+
         indLayerDm: (np.array[ndim=1,dtype=np.int64]): Indices of layers handled by each DM
+
         FoV: (double): Field of view
+
         pitch: (np.array[ndim=1,dtype=np.int64]): Pitch of each DM
+
         alt_dm: (np.array[ndim=1,dtype=np.int64]): Altitude of each DM
     )pbdoc",
            py::arg("atmos"), py::arg("sensors"), py::arg("dms"), py::arg("LO"),
@@ -221,28 +240,25 @@ void controller_mv_impl(py::module &mod, const char *name) {
       //
 
       .def("set_modal_gains", wy::colCast(&controller_mv::set_modal_gains), R"pbdoc(
-      Set the controller modal gains
+    Set the controller modal gains
 
-      Parameters
-      ------------
+    Args:
       mgain: (np.array[ndim1,dtype=np.float32]): modal gains to set
     )pbdoc",
            py::arg("mgain"))
 
       .def("set_cmat", wy::colCast(&controller_mv::set_cmat), R"pbdoc(
-      Set the command matrix
+    Set the command matrix
 
-      Parameters
-      ------------
+    Args:
       cmat: (np.array[ndim=2,dtype=np.float32]): command matrix to set
     )pbdoc",
            py::arg("cmat"))
 
       .def("set_imat", wy::colCast(&controller_mv::set_imat), R"pbdoc(
-      Set the interaction matrix
+    Set the interaction matrix
 
-      Parameters
-      ------------
+    Args:
       imat: (np.array[ndim=2,dtype=np.float32]): command matrix to set
     )pbdoc",
            py::arg("imat"))

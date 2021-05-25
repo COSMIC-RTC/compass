@@ -5,42 +5,47 @@
 //  All rights reserved.
 //  Distributed under GNU - LGPL
 //
-//  COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-//  General Public License as published by the Free Software Foundation, either version 3 of the License,
-//  or any later version.
+//  COMPASS is free software: you can redistribute it and/or modify it under the
+//  terms of the GNU Lesser General Public License as published by the Free
+//  Software Foundation, either version 3 of the License, or any later version.
 //
 //  COMPASS: End-to-end AO simulation tool using GPU acceleration
-//  The COMPASS platform was designed to meet the need of high-performance for the simulation of AO systems.
+//  The COMPASS platform was designed to meet the need of high-performance for
+//  the simulation of AO systems.
 //
-//  The final product includes a software package for simulating all the critical subcomponents of AO,
-//  particularly in the context of the ELT and a real-time core based on several control approaches,
-//  with performances consistent with its integration into an instrument. Taking advantage of the specific
-//  hardware architecture of the GPU, the COMPASS tool allows to achieve adequate execution speeds to
-//  conduct large simulation campaigns called to the ELT.
+//  The final product includes a software package for simulating all the
+//  critical subcomponents of AO, particularly in the context of the ELT and a
+//  real-time core based on several control approaches, with performances
+//  consistent with its integration into an instrument. Taking advantage of the
+//  specific hardware architecture of the GPU, the COMPASS tool allows to
+//  achieve adequate execution speeds to conduct large simulation campaigns
+//  called to the ELT.
 //
-//  The COMPASS platform can be used to carry a wide variety of simulations to both testspecific components
-//  of AO of the E-ELT (such as wavefront analysis device with a pyramid or elongated Laser star), and
-//  various systems configurations such as multi-conjugate AO.
+//  The COMPASS platform can be used to carry a wide variety of simulations to
+//  both testspecific components of AO of the E-ELT (such as wavefront analysis
+//  device with a pyramid or elongated Laser star), and various systems
+//  configurations such as multi-conjugate AO.
 //
-//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
-//  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-//  See the GNU Lesser General Public License for more details.
+//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY
+//  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+//  FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+//  details.
 //
-//  You should have received a copy of the GNU Lesser General Public License along with COMPASS.
-//  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
+//  You should have received a copy of the GNU Lesser General Public License
+//  along with COMPASS. If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 // -----------------------------------------------------------------------------
 
 //! \file      wfs_sh.cpp
 //! \ingroup   libsutra
 //! \brief     this file provides pybind wrapper for SutraWfsSH
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.0.0
+//! \version   5.1.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
-#include <wyrm>
-
 #include <sutra_wfs_sh.h>
+
+#include <wyrm>
 
 namespace py = pybind11;
 
@@ -59,13 +64,11 @@ void declare_wfs_sh(py::module &mod) {
           "TODO: docstring")
 
       .def_property_readonly(
-          "d_validpuppixx",
-          [](SutraWfsSH &ssh) { return ssh.d_validpuppixx; },
+          "d_validpuppixx", [](SutraWfsSH &ssh) { return ssh.d_validpuppixx; },
           "X position of the bottom left corner of each ssp")
 
       .def_property_readonly(
-          "d_validpuppixy",
-          [](SutraWfsSH &ssh) { return ssh.d_validpuppixy; },
+          "d_validpuppixy", [](SutraWfsSH &ssh) { return ssh.d_validpuppixy; },
           "Y position of the bottom left corner of each ssp")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
@@ -75,19 +78,27 @@ void declare_wfs_sh(py::module &mod) {
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
       .def("load_arrays", wy::colCast(&SutraWfsSH::load_arrays), R"pbdoc(
-      Load SH WFS arrays
+    Load SH WFS arrays
 
-      Parameters
-      ------------
+    Args:
       phasemap: TODO: docstring
+
       hrmap:
+
       binmap:
+
       offsets:
+
       fluxPerSub: (np.array[ndim=2,dtype=np.float32]): Normalized flux per ssp
+
       validsubsx: (np.array[ndim=1, dtype=np.int64]): X position of each valid ssp
+
       validsubsy: (np.array[ndim=1, dtype=np.int64]): Y position of each valid ssp
+
       istart:
+
       jstart:
+
       kernel:
     )pbdoc",
            py::arg("phasemap"), py::arg("hrmap"), py::arg("binmap"),
@@ -96,17 +107,23 @@ void declare_wfs_sh(py::module &mod) {
            py::arg("kernel"))
 
       .def("comp_nphot", &SutraWfsSH::comp_nphot, R"pbdoc(
-      Compute the currect number of photons for a given system
+    Compute the currect number of photons for a given system
 
-      Parameters
-      ------------
+    Args:
       ittime: (float): 1/loop frequency [s].
+
       optthroughput: (float): wfs global throughput.
+
       diam: (float):  telescope diameter.
+
       nxsub: (float): linear number of subaps.
+
       zerop: (float): (optional for LGS)  detector zero point expressed in ph/m**2/s in the bandwidth of the WFS.
+
       gsmag: (float): (optional for LGS)  magnitude of guide star.
+
       lgsreturnperwatt: (float): (optional for NGS) return per watt factor (high season : 10 ph/cm2/s/W).
+
       laserpower: (float): (optional for NGS) laser power in W.
     )pbdoc",
            py::arg("ittime"), py::arg("optthroughput"), py::arg("diam"),
@@ -121,11 +138,11 @@ void declare_wfs_sh(py::module &mod) {
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
       .def("set_bincube", wy::colCast(&SutraWfsSH::set_bincube), R"pbdoc(
-        Set the bincube of the SH WFS
+    Set the bincube of the SH WFS
 
-        Parameters
-        ------------
+    Args:
         bincube: (np.array[ndim=3, dtype=np.float32]) : cube of subap. images
+
         nElem: (int): Number of elements in bincube
       )pbdoc",
            py::arg("bincube"), py::arg("nElem"));

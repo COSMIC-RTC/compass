@@ -40,7 +40,7 @@
 //! \class     sutra_controller_mv
 //! \brief     this class provides the controller_mv features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.0.0
+//! \version   5.1.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -945,7 +945,7 @@ int sutra_controller_mv<Tcomp, Tout>::comp_com() {
     // compute error
     this->d_err->gemv('n', -1.0, this->d_cmat, this->d_cmat->get_dims(1),
                       d_olmeas, 1, 0.0, 1);  // POLC --> d_olmeas
-  
+
   /*
    mult_int(this->d_com, this->d_err,
    this->d_gain, this->gain, this->nactu(),

@@ -1,7 +1,7 @@
 ## @package   shesha.supervisor
 ## @brief     User layer for initialization and execution of a COMPASS simulation
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   5.0.0
+## @version   5.1.0
 ## @date      2020/05/18
 ## @copyright GNU Lesser General Public License
 #
@@ -78,7 +78,7 @@ class WfsCompass(SourceCompass):
         Args:
             wfs_index : (int) : index of the WFS (or the centroider) to request an image
 
-        Return:
+        Returns:
             image : (np.ndarray) : WFS image
         """
         if self._config.p_wfss[wfs_index].fakecam:
@@ -125,7 +125,7 @@ class WfsCompass(SourceCompass):
 
             pyr_mod : (float) : new pyramid modulation amplitude value
 
-        Return:
+        Returns:
             scale : (float) : scale factor
         """
         p_wfs = self._config.p_wfss[wfs_index]
@@ -277,7 +277,7 @@ class WfsCompass(SourceCompass):
                                                             density)
         cx = cx.flatten() * self._config.p_wfss[wfs_index]._pyr_scale_pos
         cy = cy.flatten() * self._config.p_wfss[wfs_index]._pyr_scale_pos
-        self.set_pyr_modulation_points(wfs_index, cx, cy, weights)
+        self.set_pyr_modulation_points(wfs_index, cx, cy, weights=weights)
 
     def set_fourier_mask(self, wfs_index : int, new_mask: np.ndarray) -> None:
         """ Set a mask in the Fourier Plane of the given WFS
@@ -354,7 +354,7 @@ class WfsCompass(SourceCompass):
         Args:
             wfs_index : (int) : Index of the WFS
 
-        Return:
+        Returns:
             ncpa : (np.ndarray) : NCPA phase screen
         """
         return np.array(self._wfs.d_wfs[wfs_index].d_gs.d_ncpa_phase)
@@ -365,7 +365,7 @@ class WfsCompass(SourceCompass):
         Args:
             wfs_index : (int) : Index of the WFS
 
-        Return:
+        Returns:
             phase : (np.ndarray) : WFS phase screen
         """
         return np.array(self._wfs.d_wfs[wfs_index].d_gs.d_phase)
@@ -376,7 +376,7 @@ class WfsCompass(SourceCompass):
         Args:
             wfs_index : (int) : Index of the WFS
 
-        Return:
+        Returns:
             image : (np.ndarray) : PWFS high resolution image
 
         """
@@ -430,7 +430,7 @@ class WfsCompass(SourceCompass):
         Args:
             wfs_index : (int) : WFS index
 
-        Return:
+        Returns:
             focal_plane : (np.ndarray) : psf on the top of the pyramid
         """
         return np.fft.fftshift(np.array(self._wfs.d_wfs[wfs_index].d_pyrfocalplane))

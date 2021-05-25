@@ -85,7 +85,7 @@ def get_cumSR(filename):
     Compute the SR over the modes from the variance
     on each mode
 
-    :parameters:
+    Args:
         filename: (str): path to the ROKET file
     """
     f = h5py.File(filename, 'r')
@@ -127,7 +127,7 @@ def get_cumSR(filename):
 def get_Btt(filename):
     """
     Return the Modes to Volt matrix
-    :parameters:
+    Args:
         filename: (str): path to the ROKET file
     """
     f = h5py.File(filename, 'r')
@@ -137,7 +137,7 @@ def get_Btt(filename):
 def get_P(filename):
     """
     Return the Volt to Modes matrix
-    :parameters:
+    Args:
         filename: (str): path to the ROKET file
     """
     f = h5py.File(filename, 'r')
@@ -148,7 +148,7 @@ def get_contribution(filename, contributor):
     """
     Return the variance of an error contributor
 
-    :parameters:
+    Args:
         filename: (str): path to the ROKET file
         contributor: (str): contributor name
     :return:
@@ -167,7 +167,7 @@ def get_err_contributors(filename, contributors):
     """
     Return the sum of the specified contributors error buffers
 
-    :parameters:
+    Args:
         filename: (str): path to the ROKET file
         contributors: (list): list of contributors
     :return:
@@ -187,7 +187,7 @@ def get_err(filename):
     """
     Return the sum of all the error buffers
 
-    :parameters:
+    Args:
         filename: (str): path to the ROKET file
     :return:
         err: (np.ndarray[ndim=2,dtype=np.float32]): Sum of the error buffers
@@ -210,7 +210,7 @@ def get_coverr_independence(filename):
     """
     Return the error covariance matrix considering statistical independence between contributors
 
-    :parameters:
+    Args:
         filename: (str): path to the ROKET file
     :return:
         err: (np.ndarray[ndim=2,dtype=np.float32]): Covariance matrix
@@ -234,7 +234,7 @@ def get_coverr_independence_contributors(filename, contributors):
     """
     Return the error covariance matrix considering statistical independence between specified contributors
 
-    :parameters:
+    Args:
         filename: (str): path to the ROKET file
         contributors: (list): list of contributors
     :return:
@@ -257,7 +257,7 @@ def get_covmat_contrib(filename, contributors, modal=True):
     """
     Return the covariance matrix of the specified contributors
 
-    :parameters:
+    Args:
         filename: (str): path to the ROKET file
         contributor: (list): name of a contributor of the ROKET file
         modal: (bool): if True (default), return the matrix expressed in the modal basis
@@ -280,7 +280,7 @@ def get_covmat_contrib(filename, contributors, modal=True):
 def get_pup(filename):
     """
     Return the pupil saved in a ROKET file
-    :parameters:
+    Args:
         filename: (str): path to the ROKET file
     :return:
         spup: (np.ndarray[ndim=2,dtype=np.float32]): pupil
@@ -306,7 +306,7 @@ def get_breakdown(filename):
     """
     Computes the error breakdown in nm rms from a ROKET file
 
-    :parameters:
+    Args:
         filename: (str): path to the ROKET file
     :return:
         breakdown: (dict): dictionnary containing the error breakdown
@@ -444,7 +444,7 @@ def get_breakdown(filename):
 def plotCovCor(filename, maparico=None):
     """
     Displays the covariance and correlation matrix between the contributors
-    :parameters:
+    Args:
         filename: (str): path to the ROKET file
         maparico: (str): (optional) matplotlib colormap to use
 
@@ -472,7 +472,7 @@ def plotCovCor(filename, maparico=None):
 def get_IF(filename):
     """
     Return the influence functions of the pzt and tt DM saved in a ROKET file
-    :parameters:
+    Args:
        filename: (str): path to the ROKET file
     :return:
         IF: (csr_matrix): pzt influence function (sparse)
@@ -492,7 +492,7 @@ def get_IF(filename):
 def get_mode(filename, n):
     """
     Return the #n mode of the Btt modal basis contains in a ROKET file
-    :parameters:
+    Args:
         filename: (str): path to the ROKET file
         n: (int): mode number
     :return:
@@ -516,7 +516,7 @@ def get_tar_image(filename):
     """
     Return the PSF computed by COMPASS saved in the ROKET file
 
-    :parameters:
+    Args:
         filename: (str): path to the ROKET file
     :return:
         psf: (np.ndarray[ndim=2,dtype=np.float32]): PSF computed by COMPASS
@@ -531,7 +531,7 @@ def get_tar_image(filename):
 def getMap(filename, covmat):
     """
     Return the spatial representation of a covariance matrix expressed in the DM space
-    :parameters:
+    Args:
         filename: (str): path to the ROKET file
         covmat: (np.ndarray[ndim=2,dtype=np.float32]): covariance matrix
     :return:
@@ -582,7 +582,7 @@ def SlopesMap(covmat, filename=None, nssp=None, validint=None):
     Return a part of the spatial representation of a covariance matrix expressed in the slopes space.
     Need to be called 4 times to get the full map (XX, YY, XY, YX)
 
-    :parameters:
+    Args:
         covmat: (np.ndarray[ndim=2,dtype=np.float32]): part of the covariance matrix
         filename: (str): (optional) path to the ROKET file
         nssp: (int): (optional) Number of ssp in the diameter
@@ -645,7 +645,7 @@ def covFromMap(Map, nsub, filename=None, nssp=None, validint=None):
     Return a part of the spatial representation of a covariance matrix expressed in the slopes space.
     Need to be called 4 times to get the full map (XX, YY, XY, YX)
 
-    :parameters:
+    Args:
         covmat: (np.ndarray[ndim=2,dtype=np.float32]): part of the covariance matrix
         filename: (str): (optional) path to the ROKET file
         nssp: (int): (optional) Number of ssp in the diameter
@@ -702,7 +702,7 @@ def getCovFromMap(Map, nsub, filename=None, nssp=None, validint=None):
     """
     Return the full spatial representation of a covariance matrix expressed in the slopes space.
 
-    :parameters:
+    Args:
         covmat: (np.ndarray[ndim=2,dtype=np.float32]): part of the covariance matrix
         filename: (str): (optional) path to the ROKET file
         nssp: (int): (optional) Number of ssp in the diameter
@@ -733,7 +733,7 @@ def get_slopessMap(covmat, filename=None, nssp=None, validint=None):
     """
     Return the full spatial representation of a covariance matrix expressed in the slopes space.
 
-    :parameters:
+    Args:
         covmat: (np.ndarray[ndim=2,dtype=np.float32]): part of the covariance matrix
         filename: (str): (optional) path to the ROKET file
         nssp: (int): (optional) Number of ssp in the diameter
@@ -765,7 +765,7 @@ def ensquare_PSF(filename, psf, N, display=False, cmap="jet"):
     """
     Return the ensquared PSF
 
-    :parameters:
+    Args:
         filename: (str): path to the ROKET file
         psf: (np.ndarray[ndim=2,dtype=np.float32]): PSF to ensquare
         N: (int): size of the square in units of Lambda/D
@@ -800,7 +800,7 @@ def ensquared_energy(filename, psf, N):
     """
     Return the ensquared energy in a box width of N * lambda/D
 
-    :parameters:
+    Args:
         filename: (str): path to the ROKET file
         N: (int): size of the square in units of Lambda/D
     """
@@ -810,7 +810,7 @@ def ensquared_energy(filename, psf, N):
 def cutsPSF(filename, psf, psfs):
     """
     Plots cuts of two PSF along X and Y axis for comparison
-    :parameters:
+    Args:
         filename: (str): path to the ROKET file
         psf: (np.ndarray[ndim=2,dtype=np.float32]): first PSF
         psfs: (np.ndarray[ndim=2,dtype=np.float32]): second PSF
@@ -845,13 +845,14 @@ def cutsPSF(filename, psf, psfs):
     plt.legend(["PSF exp", "PSF model", "Diff"])
     plt.xlim(-20, 20)
     plt.ylim(1e-7, 1)
+    plt.savefig('thefig.png')
     f.close()
 
 
 def compDerivativeCmm(filename=None, slopes=None, dt=1, dd=False, ss=False):
     """
     Compute d/dt(slopes)*slopes from ROKET buffer
-    :parameters:
+    Args:
         filename: (str): (optional) path to the ROKET file
         slopes: (np.ndarray[ndim=2,dtype=np.float32]: (optional) Buffer of slopes arranged as (nsub x niter)
         dt: (int): (optionnal) dt in frames
@@ -880,7 +881,7 @@ def compProfile(filename, nlayers):
     """
     Identify turbulent parameters (wind speed, direction and frac. of r0) from ROKET file
 
-    :parameters:
+    Args:
         filename: (str): path to the ROKET file
         nlayers: (int): number of turbulent layers (maybe deduced in the future ?)
     """

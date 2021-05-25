@@ -11,14 +11,15 @@ Develop status:
   - [Overview](#overview)
     - [Hardware requirements](#hardware-requirements)
     - [Environment requirements](#environment-requirements)
-  - [Install Anaconda with python3](#install-anaconda-with-python3)
-    - [setup .bashrc](#setup-bashrc)
-    - [Download and installation](#download-and-installation)
-  - [Install the platform](#install-the-platform)
-    - [Download sources](#download-sources)
-    - [Install dependencies (if not already done)](#install-dependencies-if-not-already-done)
-      - [Conan dependencies](#conan-dependencies)
-    - [Install COMPASS](#install-compass)
+  - [Automatic Install of COMPASS](#automatic-install-of-compass)
+  - [Manual install of COMPASS](#manual-install-of-compass)
+    - [Install Anaconda with python3](#install-anaconda-with-python3)
+      - [setup .bashrc](#setup-bashrc)
+      - [Download and installation](#download-and-installation)
+    - [Install the platform](#install-the-platform)
+      - [Download sources](#download-sources)
+      - [Install dependencies (if not already done)](#install-dependencies-if-not-already-done)
+      - [Install COMPASS](#install-compass)
 
 ## Overview
 
@@ -32,27 +33,33 @@ The system must contain at least an x86 CPU and a CUDA capable GPU. list of comp
 
 The system must be running a 64 bit distribution of Linux with the latest NVIDIA drivers and CUDA toolkit. The following installation instructions are valid if the default installation paths have been selected for these components.
 
-## Install Anaconda with python3
+## Automatic Install of COMPASS
+
+The faster procedure consist to follow instructions from this page: https://lesia.obspm.fr/compass/latest/md_doc_html_install_script.html
+
+## Manual install of COMPASS
+
+### Install Anaconda with python3
 
 more info: <https://www.continuum.io/downloads#linux>
 
-### setup .bashrc
+#### setup .bashrc
 
 ```bashrc
 export CONDA_ROOT=$HOME/miniconda3
 export PATH=$CONDA_ROOT/bin:$PATH
 ```
 
-### Download and installation
+#### Download and installation
 
 ```bash
 wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
 bash Miniconda3-latest-Linux-x86_64.sh -b -p $CONDA_ROOT
 ```
 
-## Install the platform
+### Install the platform
 
-### Download sources
+#### Download sources
 
 First check out the latest version from the svn repository :
 
@@ -82,7 +89,7 @@ export PYTHONPATH=$NAGA_ROOT:$SHESHA_ROOT:$COMPASS_INSTALL_ROOT/python:$PYTHONPA
 export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$COMPASS_INSTALL_ROOT/lib/pkgconfig
 ```
 
-### Install dependencies (if not already done)
+#### Install dependencies (if not already done)
 
 ```bash
 pip install -r requirements.txt
@@ -90,7 +97,7 @@ cd $COMPASS_ROOT
 ./install_dependencies.sh
 ```
 
-### Install COMPASS
+#### Install COMPASS
 
 ```bash
 cd $COMPASS_ROOT

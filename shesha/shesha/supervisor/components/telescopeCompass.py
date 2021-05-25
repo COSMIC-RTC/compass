@@ -1,7 +1,7 @@
 ## @package   shesha.supervisor
 ## @brief     User layer for initialization and execution of a COMPASS simulation
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   5.0.0
+## @version   5.1.0
 ## @date      2020/05/18
 ## @copyright GNU Lesser General Public License
 #
@@ -35,7 +35,6 @@
 #  You should have received a copy of the GNU Lesser General Public License along with COMPASS.
 #  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 from shesha.init.geom_init import tel_init
-import numpy as np
 
 
 class TelescopeCompass(object):

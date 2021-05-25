@@ -34,7 +34,7 @@
 //! \ingroup   libsutra
 //! \brief     this file provides pybind wrapper for SutraTargetBrahma
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.0.0
+//! \version   5.1.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -56,27 +56,38 @@ std::unique_ptr<SutraTargetBrahma> target_brahma_init(
 void declare_target_brahma(py::module &mod) {
   py::class_<SutraTargetBrahma, SutraTarget>(mod, "Target_brahma")
       .def(py::init(wy::colCast(target_brahma_init)), R"pbdoc(
-        Create and initialise a brahma target object
+    Create and initialise a brahma target object
 
-        Parameters
-        ------------
+    Args:
         context: (CarmaContext) : current carma context
+
         name:
+
         subsample:
+
         d_tel: (SutraTelescope) : SutraTelescope object
+
         ntargets: (int): number of targets
+
         xpos: (np.ndarray[ndim=1,dtype=np.float32_t]) : X positions of each target in arcsec
+
         ypos: (np.ndarray[ndim=1,dtype=np.float32_t]) : Y positions of each target in arcsec
-        lambda: (np.ndarray[ndim=1,dtype=np.float32_t]) : Wavelength of each target in µm
+
+        lambda_um: (np.ndarray[ndim=1,dtype=np.float32_t]) : Wavelength of each target in µm
+
         mag: (np.ndarray[ndim=1,dtype=np.float32_t]) : magnitude of each target
+
         zerop: (float) : Flux at magnitude 0 in photons/m²/s
+
         sizes: (np.ndarray[ndim=1,dtype=np.int64_t]) : Support size of each target
+
         Npts : (int): number of points in the pupil
+
         device: (int): GPU device index
         )pbdoc",
            py::arg("context"), py::arg("name"), py::arg("subsample"),
            py::arg("d_tel"), py::arg("ntargets"), py::arg("xpos"),
-           py::arg("ypos"), py::arg("lambda"), py::arg("mag"), py::arg("zerop"),
+           py::arg("ypos"), py::arg("lambda_um"), py::arg("mag"), py::arg("zerop"),
            py::arg("sizes"), py::arg("Npts"), py::arg("device"))
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗

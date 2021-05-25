@@ -5,42 +5,47 @@
 //  All rights reserved.
 //  Distributed under GNU - LGPL
 //
-//  COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-//  General Public License as published by the Free Software Foundation, either version 3 of the License,
-//  or any later version.
+//  COMPASS is free software: you can redistribute it and/or modify it under the
+//  terms of the GNU Lesser General Public License as published by the Free
+//  Software Foundation, either version 3 of the License, or any later version.
 //
 //  COMPASS: End-to-end AO simulation tool using GPU acceleration
-//  The COMPASS platform was designed to meet the need of high-performance for the simulation of AO systems.
+//  The COMPASS platform was designed to meet the need of high-performance for
+//  the simulation of AO systems.
 //
-//  The final product includes a software package for simulating all the critical subcomponents of AO,
-//  particularly in the context of the ELT and a real-time core based on several control approaches,
-//  with performances consistent with its integration into an instrument. Taking advantage of the specific
-//  hardware architecture of the GPU, the COMPASS tool allows to achieve adequate execution speeds to
-//  conduct large simulation campaigns called to the ELT.
+//  The final product includes a software package for simulating all the
+//  critical subcomponents of AO, particularly in the context of the ELT and a
+//  real-time core based on several control approaches, with performances
+//  consistent with its integration into an instrument. Taking advantage of the
+//  specific hardware architecture of the GPU, the COMPASS tool allows to
+//  achieve adequate execution speeds to conduct large simulation campaigns
+//  called to the ELT.
 //
-//  The COMPASS platform can be used to carry a wide variety of simulations to both testspecific components
-//  of AO of the E-ELT (such as wavefront analysis device with a pyramid or elongated Laser star), and
-//  various systems configurations such as multi-conjugate AO.
+//  The COMPASS platform can be used to carry a wide variety of simulations to
+//  both testspecific components of AO of the E-ELT (such as wavefront analysis
+//  device with a pyramid or elongated Laser star), and various systems
+//  configurations such as multi-conjugate AO.
 //
-//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
-//  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-//  See the GNU Lesser General Public License for more details.
+//  COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY
+//  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+//  FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+//  details.
 //
-//  You should have received a copy of the GNU Lesser General Public License along with COMPASS.
-//  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
+//  You should have received a copy of the GNU Lesser General Public License
+//  along with COMPASS. If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 // -----------------------------------------------------------------------------
 
 //! \file      dms.cpp
 //! \ingroup   libsutra
 //! \brief     this file provides pybind wrapper for SutraDms
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.0.0
+//! \version   5.1.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
-#include <wyrm>
-
 #include <sutra_dm.h>
+
+#include <wyrm>
 
 namespace py = pybind11;
 
@@ -89,54 +94,80 @@ void declare_dms(py::module &mod) {
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
 
-      .def("add_dm", (int (SutraDms::*)(CarmaContext *, const char *, float, long,
-             long, long, long, long,
-             float, long, float, float, float, float,  int))&SutraDms::add_dm,
+      .def("add_dm",
+           (int (SutraDms::*)(CarmaContext *, const char *, float, long, long,
+                              long, long, long, float, long, float, float,
+                              float, float, int)) &
+               SutraDms::add_dm,
            R"pbdoc(
-        Add a SutraDm in the SutraDms vector
+    Add a SutraDm in the SutraDms vector
 
-        Parameters
-        ------------
-        context: (CarmaContext) : current carma context
-        type: (str): DM type ("pzt", "kl", or "tt")
-        alt: (float): Conjugaison altitude in meters
-        dim: (long): Support dimension
-        nactus: (long): Number of actuators
-        influsize: (long): Influenction function support size
-        ninflupos: (long): Size of _influpos array
-        n_npoints: (long): Size of _ninflu array
-        push4imat: (float): Voltage to apply for imat computation
-        nord: (long): Number of radial order for kl dm (0 if not kl)
-        dx: (float): X axis misregistration [pixels]
-        dy: (float): Y axis misregistration [pixels]
-        theta: (float): Rotation angle misregistration [radians]
-        G: (float): Magnification factor
-        device: (int): Device index
-        )pbdoc",
+    Args:
+      context: (CarmaContext) : current carma context
+
+      type: (str): DM type ("pzt", "kl", or "tt")
+
+      alt: (float): Conjugaison altitude in meters
+
+      dim: (long): Support dimension
+
+      nactus: (long): Number of actuators
+
+      influsize: (long): Influenction function support size
+
+      ninflupos: (long): Size of _influpos array
+
+      n_npoints: (long): Size of _ninflu array
+
+      push4imat: (float): Voltage to apply for imat computation
+
+      nord: (long): Number of radial order for kl dm (0 if not kl)
+
+      dx: (float): X axis misregistration [pixels]
+
+      dy: (float): Y axis misregistration [pixels]
+
+      theta: (float): Rotation angle misregistration [radians]
+
+      G: (float): Magnification factor
+
+      device: (int): Device index
+      )pbdoc",
            py::arg("context"), py::arg("type"), py::arg("alt"), py::arg("dim"),
            py::arg("nactus"), py::arg("influsize"), py::arg("ninflupos"),
-           py::arg("n_npoints"), py::arg("push4imat"), py::arg("nord"), py::arg("dx"), py::arg("dy"), py::arg("thetaML"), py::arg("G"),
+           py::arg("n_npoints"), py::arg("push4imat"), py::arg("nord"),
+           py::arg("dx"), py::arg("dy"), py::arg("thetaML"), py::arg("G"),
            py::arg("device"))
 
-      .def("add_dm", (int (SutraDms::*)(CarmaContext *, const char *, float, long,
-             long, long, long, long,
-             float, long, int))&SutraDms::add_dm,
+      .def("add_dm",
+           (int (SutraDms::*)(CarmaContext *, const char *, float, long, long,
+                              long, long, long, float, long, int)) &
+               SutraDms::add_dm,
            R"pbdoc(
-        Add a SutraDm in the SutraDms vector
+    Add a SutraDm in the SutraDms vector
 
-        Parameters
-        ------------
-        context: (CarmaContext) : current carma context
-        type: (str): DM type ("pzt", "kl", or "tt")
-        alt: (float): Conjugaison altitude in meters
-        dim: (long): Support dimension
-        nactus: (long): Number of actuators
-        influsize: (long): Influenction function support size
-        ninflupos: (long): Size of _influpos array
-        n_npoints: (long): Size of _ninflu array
-        push4imat: (float): Voltage to apply for imat computation
-        nord: (long): Number of radial order for kl dm (0 if not kl)
-        device: (int): Device index
+    Args:
+      context: (CarmaContext) : current carma context
+
+      type: (str): DM type ("pzt", "kl", or "tt")
+
+      alt: (float): Conjugaison altitude in meters
+
+      dim: (long): Support dimension
+
+      nactus: (long): Number of actuators
+
+      influsize: (long): Influenction function support size
+
+      ninflupos: (long): Size of _influpos array
+
+      n_npoints: (long): Size of _ninflu array
+
+      push4imat: (float): Voltage to apply for imat computation
+
+      nord: (long): Number of radial order for kl dm (0 if not kl)
+
+      device: (int): Device index
         )pbdoc",
            py::arg("context"), py::arg("type"), py::arg("alt"), py::arg("dim"),
            py::arg("nactus"), py::arg("influsize"), py::arg("ninflupos"),
@@ -145,39 +176,54 @@ void declare_dms(py::module &mod) {
 
       .def("insert_dm", wy::colCast(&SutraDms::insert_dm),
            R"pbdoc(
-        Add a SutraDm in the SutraDms vector at the specified index
+    Add a SutraDm in the SutraDms vector at the specified index
 
-        Parameters
-        ------------
-        context: (CarmaContext) : current carma context
-        type: (str): DM type ("pzt", "kl", or "tt")
-        alt: (float): Conjugaison altitude in meters
-        dim: (long): Support dimension
-        nactus: (long): Number of actuators
-        influsize: (long): Influenction function support size
-        ninflupos: (long): Size of _influpos array
-        n_npoints: (long): Size of _ninflu array
-        push4imat: (float): Voltage to apply for imat computation
-        nord: (long): Number of radial order for kl dm (0 if not kl)
-        dx: (float): X axis misregistration [pixels]
-        dy: (float): Y axis misregistration [pixels]
-        theta: (float): Rotation angle misregistration [radians]
-        G: (float): Magnification factor
-        device: (int): Device index
-        idx: (int) : DM index in the vector dms
-        )pbdoc",
+    Args:
+      context: (CarmaContext) : current carma context
+
+      type: (str): DM type ("pzt", "kl", or "tt")
+
+      alt: (float): Conjugaison altitude in meters
+
+      dim: (long): Support dimension
+
+      nactus: (long): Number of actuators
+
+      influsize: (long): Influenction function support size
+
+      ninflupos: (long): Size of _influpos array
+
+      n_npoints: (long): Size of _ninflu array
+
+      push4imat: (float): Voltage to apply for imat computation
+
+      nord: (long): Number of radial order for kl dm (0 if not kl)
+
+      dx: (float): X axis misregistration [pixels]
+
+      dy: (float): Y axis misregistration [pixels]
+
+      theta: (float): Rotation angle misregistration [radians]
+
+      G: (float): Magnification factor
+
+      device: (int): Device index
+
+      idx: (int) : DM index in the vector dms
+      )pbdoc",
            py::arg("context"), py::arg("type"), py::arg("alt"), py::arg("dim"),
            py::arg("nactus"), py::arg("influsize"), py::arg("ninflupos"),
-           py::arg("n_npoints"), py::arg("push4imat"), py::arg("nord"), py::arg("dx"), py::arg("dy"), py::arg("theta"), py::arg("G"),
+           py::arg("n_npoints"), py::arg("push4imat"), py::arg("nord"),
+           py::arg("dx"), py::arg("dy"), py::arg("theta"), py::arg("G"),
            py::arg("device"), py::arg("idx"))
 
       .def("remove_dm", wy::colCast(&SutraDms::remove_dm),
            R"pbdoc(
-        Remove and delete the selected DM from SutraDms
-        Parameters
-        ------------
-        idx: (int): index of DM
-        )pbdoc",
+    Remove and delete the selected DM from SutraDms
+
+    Args:
+      idx: (int): index of DM
+      )pbdoc",
            py::arg("idx"))
 
       .def("__str__",
@@ -225,11 +271,11 @@ void declare_dms(py::module &mod) {
             }
           },
           R"pbdoc(
-        Set the command vector of all DM in SutraDms, and computes the DMs shapes
+    Set the command vector of all DM in SutraDms, and computes the DMs shapes
 
-        Parameters
-        ------------
+    Args:
         com: (np.array(ndim=1, dtype=np.float32)): Concatened command vectors
+
         shape_dm: (bool): (optionnal, default=True)  Computes the DM shape
       )pbdoc",
           py::arg("com"), py::arg("shape_dm") = true)
@@ -313,10 +359,12 @@ void declare_dm(py::module &mod) {
           "dy", [](SutraDm &sdm) { return sdm.dy; }, "Y registration in pixels")
 
       .def_property_readonly(
-          "thetaML", [](SutraDm &sdm) { return sdm.thetaML; }, "thetaML registration in radians")
+          "thetaML", [](SutraDm &sdm) { return sdm.thetaML; },
+          "thetaML registration in radians")
 
       .def_property_readonly(
-          "G", [](SutraDm &sdm) { return sdm.G; }, "Magnification factor registration in pixels")
+          "G", [](SutraDm &sdm) { return sdm.G; },
+          "Magnification factor registration in pixels")
 
       .def_property_readonly(
           "d_yoff", [](SutraDm &sdm) { return sdm.d_yoff; }, "TODO: docstring")
@@ -336,19 +384,25 @@ void declare_dm(py::module &mod) {
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
       .def("pzt_loadarrays", wy::colCast(&SutraDm::pzt_loadarrays),
            R"pbdoc(
-        Load all the arrays computed during the initialization
-        for a pzt DM in a SutraDm object
+    Load all the arrays computed during the initialization for a pzt DM in a SutraDm object
 
-        Parameters
-        ------------
+    Args:
         influ: (np.ndarray[ndim=3,dtype=np.float32_t]) : influence functions cube
+
         influ2:
+
         influ3:
+
         influpos: (np.ndarray[ndim=1,dtype=np.int32_t]) : positions of the IF in the pupil
+
         influpos2:
+
         npoints: (np.ndarray[ndim=1,dtype=np.int32_t]) : for each pixel on the DM screen, the number of IF which impact on this pixel
+
         istart: (np.ndarray[ndim=1,dtype=np.int32_t]) :
+
         xoff: (np.ndarray[ndim=1,dtype=np.int32_t]) : x-offset for shape computation
+
         yoff: (np.ndarray[ndim=1,dtype=np.int32_t]) : y-offset or shape computation
         )pbdoc",
            py::arg("influ"),
@@ -358,11 +412,9 @@ void declare_dm(py::module &mod) {
 
       .def("tt_loadarrays", wy::colCast(&SutraDm::tt_loadarrays),
            R"pbdoc(
-        Load all the arrays computed during the initialization
-        for a tt DM in a SutraDm object
+    Load all the arrays computed during the initialization for a tt DM in a SutraDm object
 
-        Parameters
-        ------------
+    Args:
         influ: (np.ndarray[ndim=3,dtype=np.float32_t]) : influence functions cube
         )pbdoc",
            py::arg("influ"))
@@ -372,15 +424,17 @@ void declare_dm(py::module &mod) {
       // })
       .def("kl_loadarrays", wy::colCast(&SutraDm::kl_loadarrays),
            R"pbdoc(
-        Load all the arrays computed during the initialization
-        for a kl DM in a SutraDm object
+    Load all the arrays computed during the initialization for a kl DM in a SutraDm object
 
-        Parameters
-        ------------
+    Args:
         rabas: (np.ndarray[ndim=1,dtype=np.float32_t]): TODO docstring
+
         azbas: (np.ndarray[ndim=1,dtype=np.float32_t]):
+
         ords: (np.ndarray[ndim=1,dtype=np.int32_t]):
+
         cr: (np.ndarray[ndim=1,dtype=np.float32_t]):
+
         cp: (np.ndarray[ndim=1,dtype=np.float32_t]):
         )pbdoc",
            py::arg("rabas"), py::arg("azbas"), py::arg("ords"), py::arg("cr"),
@@ -398,10 +452,9 @@ void declare_dm(py::module &mod) {
       .def("comp_shape",
            wy::colCast((int (SutraDm::*)(float *)) & SutraDm::comp_shape),
            R"pbdoc(
-        Compute the DM shape according to given commands
+    Compute the DM shape according to given commands
 
-        Parameters
-        ------------
+    Args:
         com: (np.ndarray[ndim=1,dtype=np.float32_t]): commands to apply
 
       )pbdoc",
@@ -410,51 +463,56 @@ void declare_dm(py::module &mod) {
       .def("comp_shape",
            wy::colCast((int (SutraDm::*)(uint16_t *)) & SutraDm::comp_shape),
            R"pbdoc(
-        Compute the DM shape according to given commands
+    Compute the DM shape according to given commands
 
-        Parameters
-        ------------
+    Args:
         com: (np.ndarray[ndim=1,dtype=np.uint16_t]): commands to apply
 
       )pbdoc",
            py::arg("com"))
 
       .def("comp_oneactu", wy::colCast(&SutraDm::comp_oneactu), R"pbdoc(
-        Push the specified actuator and computes the corresponding DM shape
+    Push the specified actuator and computes the corresponding DM shape
 
-        Parameters
-        ------------
+    Args:
         nactu: (int): Actuator index
+
         ampli: (float): Volt to apply to this actuator
       )pbdoc",
            py::arg("nactu"), py::arg("ampli"))
 
       .def("set_registration", wy::colCast(&SutraDm::set_registration), R"pbdoc(
-        Set the registration parameters : dx, dy, theta and G
+    Set the registration parameters : dx, dy, theta and G
 
-        Parameters
-        ------------
+    Args:
         dx: (float): X axis misregistration [pixels]
+
         dy: (float): Y axis misregistration [pixels]
+
         theta: (float): Rotation angle misregistration [radians]
+
         G: (float): Magnification factor
       )pbdoc",
            py::arg("dx"), py::arg("dy"), py::arg("theta"), py::arg("G"))
 
       .def("compute_KLbasis", wy::colCast(&SutraDm::compute_KLbasis),
            R"pbdoc(
-        Computes the KL to volt matrix by double diagonalisation (cf. Gendron thesis)
-            - compute the phase covariance matrix on the actuators using Kolmogorov
-            - compute the geometric covariance matrix
-            - double diagonalisation to obtain KL basis
+    Computes the KL to volt matrix by double diagonalisation (cf. Gendron thesis)
+        - compute the phase covariance matrix on the actuators using Kolmogorov
+        - compute the geometric covariance matrix
+        - double diagonalisation to obtain KL basis
 
-        Parameters
-        ------------
+    Args:
         xpos: (np.ndarray[ndim=1,dtype=np.float32_t]) : x-position of actuators
+
         ypos: (np.ndarray[ndim=1,dtype=np.float32_t]) : y-position of actuators
+
         indx_pup: (np.ndarray[ndim=1,dtype=np.int32_t]) : indices of pupil points
+
         dim: (long) : number of points in the pupil
+
         norm: (float) : normalization factor
+
         ampli: (float) : amplitude
       )pbdoc",
            py::arg("xpos"), py::arg("ypos"), py::arg("indx_pup"),
@@ -488,11 +546,11 @@ void declare_dm(py::module &mod) {
               DEBUG_TRACE("Wrong dimension");
           },
           R"pbdoc(
-        Set the command vector of a SutraDm, and computes the DM shape
+    Set the command vector of a SutraDm, and computes the DM shape
 
-        Parameters
-        ------------
+    Args:
         com: (np.array(ndim=1, dtype=np.float32)): Command vector
+
         shape_dm: (bool): (optionnal, default=True)  Computes the DM shape
       )pbdoc",
           py::arg("com"), py::arg("shape_dm") = true);

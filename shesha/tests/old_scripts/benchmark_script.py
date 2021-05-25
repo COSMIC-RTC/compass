@@ -32,7 +32,7 @@ def get_processor_name():
 def script4bench(param_file, centroider, controller, devices, fwrite=True):
     """
 
-    :parameters:
+    Args:
         param_file: (str) : parameters filename
 
         centroider: (str) : centroider type

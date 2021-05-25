@@ -1,7 +1,7 @@
 ## @package   shesha.supervisor
 ## @brief     User layer for initialization and execution of a COMPASS simulation
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   5.0.0
+## @version   5.1.0
 ## @date      2020/05/18
 ## @copyright GNU Lesser General Public License
 #
@@ -100,7 +100,7 @@ class DmCompass(object):
         Args:
             dm_index : (int) : index of the DM
 
-        Return:
+        Returns:
             influ : (np.ndarray) : Influence functions of the DM dm_index
         """
         return self._config.p_dms[dm_index]._influ
@@ -111,7 +111,7 @@ class DmCompass(object):
         Args:
             dm_index : (int) : index of the DM
 
-        Return:
+        Returns:
             coords : (tuple) : (i, j)
         """
         i1 = self._config.p_dms[0]._i1  # i1 is in the dmshape support coords
@@ -139,7 +139,7 @@ class DmCompass(object):
         Args:
             indx : (int) : Index of the DM
 
-        Return:
+        Returns:
             dm_shape : (np.ndarray) : DM phase screen
 
         """

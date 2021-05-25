@@ -35,7 +35,7 @@
 //! \class     sutra_controller_generic
 //! \brief     this class provides the controller_generic features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.0.0
+//! \version   5.1.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -289,16 +289,20 @@ int sutra_controller_generic<T, Tout>::comp_com() {
     centroids = this->d_centroids;
   }
   int cc = this->nslope() / this->P2Pdevices.size();
+  cudaEventRecord(start_mvm_event, this->streams[this->device]);
   for (auto dev_id : this->P2Pdevices) {
     if(dev_id != this->device) {
+      this->current_context->set_active_device(dev_id, 1);
+      cudaStreamWaitEvent(this->streams[dev_id], start_mvm_event, 0);
       cudaMemcpyAsync(d_centroids_ngpu[dev_id]->get_data(),
                     centroids->get_data() + cc,
                     d_centroids_ngpu[dev_id]->get_nb_elements() * sizeof(T),
                     cudaMemcpyDeviceToDevice,
-                    this->streams[this->device]);
+                    this->streams[dev_id]);
       cc += d_centroids_ngpu[dev_id]->get_nb_elements();
     }
   }
+  this->current_context->set_active_device(this->device, 1);
   CarmaObj<T> *cmat;
   // if (std::is_same<T, half>::value) {
   //   cmat = this->d_cmatPadded;
@@ -315,7 +319,7 @@ int sutra_controller_generic<T, Tout>::comp_com() {
     //                 current_context->get_device(device)->get_stream());
     // carma_safe_call(cudaEventRecord(start_event));
     if(this->P2Pdevices.size() > 1) {
-      cudaEventRecord(start_mvm_event, this->streams[this->device]);
+      // cudaEventRecord(start_mvm_event, this->streams[this->device]);
       for (auto dev_id : this->P2Pdevices) {
           this->current_context->set_active_device(dev_id, 1);
           if(dev_id != this->device) {
@@ -325,7 +329,7 @@ int sutra_controller_generic<T, Tout>::comp_com() {
             n = this->nslope() / this->P2Pdevices.size();
           }
           cublasSetStream(this->cublas_handle(), this->streams[dev_id]);
-          cudaStreamWaitEvent(this->streams[dev_id], start_mvm_event, 0); // make sure mainstream is ready before launching sub mvm
+          // cudaStreamWaitEvent(this->streams[dev_id], start_mvm_event, 0); // make sure mainstream is ready before launching sub mvm
           carma_gemv(this->cublas_handle(), 'n', m, n, (T)(-1 * this->gain),
                 this->d_cmat_ngpu[dev_id]->get_data(), m, d_centroids_ngpu[dev_id]->get_data(), 1, T(0.f),
                 this->d_err_ngpu[dev_id]->get_data(), 1);

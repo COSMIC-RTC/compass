@@ -39,13 +39,13 @@
 //! \ingroup   libsutra
 //! \brief     this file provides pybind wrapper for SutraCentroiderPyr
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.0.0
+//! \version   5.1.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
-#include <wyrm>
-
 #include <sutra_centroider_pyr.h>
+
+#include <wyrm>
 
 namespace py = pybind11;
 
@@ -66,15 +66,15 @@ void centroider_pyr_impl(py::module &mod, const char *name) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
-      .def("set_pyr_method",
-           [](centroider_pyr &sc, uint8_t method) {
-             return sc.set_method(method);
-           },
-           R"pbdoc(
-            Set the pyramid method for slopes computation
+      .def(
+          "set_pyr_method",
+          [](centroider_pyr &sc, uint8_t method) {
+            return sc.set_method(method);
+          },
+          R"pbdoc(
+    Set the pyramid method for slopes computation
 
-            Parameters
-            ------------
+    Args:
             method : (int) : new centroiding method (0: nosinus global
                                                     1: sinus global
                                                     2: nosinus local
@@ -82,20 +82,20 @@ void centroider_pyr_impl(py::module &mod, const char *name) {
                             favor use of shesha_constant.PyrCentroiderMethod
 
         )pbdoc",
-           py::arg("method"))
+          py::arg("method"))
 
-      .def("set_pyr_thresh",
-           [](centroider_pyr &sc, float thresh) {
-             return sc.set_valid_thresh(thresh);
-           },
-           R"pbdoc(
-            Set the pyramid threshold value
+      .def(
+          "set_pyr_thresh",
+          [](centroider_pyr &sc, float thresh) {
+            return sc.set_valid_thresh(thresh);
+          },
+          R"pbdoc(
+    Set the pyramid threshold value
 
-            Parameters
-            ------------
+    Args:
             thresh : (float) : threshold value
         )pbdoc",
-           py::arg("thresh"))
+          py::arg("thresh"))
 
       ;
 };

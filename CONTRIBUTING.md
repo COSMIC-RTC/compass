@@ -40,11 +40,11 @@ Then :
 - Only use an acronym if it is used widely
 
 ## Class attributes
-All the attributes of a class must be declared in its __init__ method. 
+All the attributes of a class must be declared in its __init__ method.
 If it is assigned by an other method, declares it as None in the __init__ method.
 
 ## Force explicit use of keyword arguments
-If a method/function use keyword arguments, force to use explicitly each keyword when a call is made. Python 3 allows to do it easily using ```*``` : 
+If a method/function use keyword arguments, force to use explicitly each keyword when a call is made. Python 3 allows to do it easily using ```*``` :
 ```python
 def my_favorite_function(self, variable_1, *, kwarg_1=None, kwarg_2=None):
     ...
@@ -52,7 +52,7 @@ def my_favorite_function(self, variable_1, *, kwarg_1=None, kwarg_2=None):
 With this convention, calling ```my_favorite_function(0, 1)``` will result in an error as the code expects only one positional argument.
 Then, the correct way to call this function is ```my_favorite_function(0, kwarg_1=1)```, and this is much more explicit and easy to read and understand.
 
-Exception can be made for method/function using only one keyword argument without any positional argument : 
+Exception can be made for method/function using only one keyword argument without any positional argument :
 ```python
 def my_favorite_function(self,kwarg_1=None):
     ...
@@ -62,13 +62,16 @@ def my_favorite_function(self,kwarg_1=None):
 ## Code documentation with doxypypy and typing
 
 All the class and method must be documented following a doxypypy compatible format.
-In the class documentation, attributes of the class must be listed and described : 
+In the class documentation, attributes of the class must be listed and described :
 
 ```python
-class MyBeautifulClass:
+class MyBeautifulClass(MyBeautifulParentClass):
     """ Brief description of the class
 
     Detailed description
+
+    Attributes inherited from MyBeautifulParentClass:
+        titi : (int) : titi description
 
     Attributes:
         toto: (dict) : toto description
@@ -81,7 +84,7 @@ class MyBeautifulClass:
 In the method documentation, follow the docstring template below:
 
 ```python
-def my_favorite_function(self, file_path : str, wfs_index : int, 
+def my_favorite_function(self, file_path : str, wfs_index : int,
                          optional_argument : bool=False) -> int:
     """ Brief description of the function
 
@@ -95,8 +98,15 @@ def my_favorite_function(self, file_path : str, wfs_index : int,
     Kwargs:
         keyword_argument : (bool) : parameter description. Default value is False
 
-    Return:
+    Returns:
         something : (int) : return description
+
+    Raises:
+        ZeroDivisionError, AssertionError, & ValueError.
+
+    Examples:
+        >>> my_favorite_function(file_path, wfs_index)
+        0
     """
 ```
 
@@ -105,7 +115,7 @@ Respect the docstring template described above, including attention to alinea, l
 
 As COMPASS had become quite huge with time, code documentation will be a long term objective which will require contributions from everyone : do not hesitate to reformat, complete or modify docstrings that do not respect the above rules. We are counting on you all...
 
-For Visual Studio code users, we recommends to use [Doxygen Documentation Generator](https://marketplace.visualstudio.com/items?itemName=cschlosser.doxdocgen). It really useful, it will generate a template based on the function signature. 
+For Visual Studio code users, we recommends to use [Doxygen Documentation Generator](https://marketplace.visualstudio.com/items?itemName=cschlosser.doxdocgen). It really useful, it will generate a template based on the function signature.
 
 [more info](http://www.doxygen.nl/manual/docblocks.html)
 

@@ -34,7 +34,7 @@
 //! \ingroup   libcarma
 //! \brief     this file provides pybind wrapper for CarmaTimer
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.0.0
+//! \version   5.1.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -65,11 +65,11 @@ void declare_carmaWrap_timer(py::module &mod) {
              return std::unique_ptr<CarmaClock>(new CarmaClock(&context, i));
            }),
            R"pbdoc(
-        Create a CarmaClock object which provides timing based on GPU clock count
+    Create a CarmaClock object which provides timing based on GPU clock count
 
-        Parameters
-        ------------
+    Args:
         context: (CarmaContext): carma context
+
         i: (int): time buffer size
       )pbdoc",
            py::arg("context"), py::arg("i"))

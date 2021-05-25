@@ -2,13 +2,13 @@ import numpy as np
 def write_targets(file_name, tars, *, sub_system=1):
     """Write (append) target parameter to file for YAO use for a single dm
 
-    Parameters:
+    Args:
         file_name : (str) : name of the file to append the parameter to
 
         tars : (list[Param_target]) : compass target parameters list
 
     Kwargs:
-        sub_system : (int) : (optional), default 1 yao sub system index     
+        sub_system : (int) : (optional), default 1 yao sub system index
     """
     f=open(file_name,"a+")
     f.write("\n\n//------------------------------")

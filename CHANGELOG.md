@@ -1,6 +1,7 @@
 # COMPASS Change logs
 
 - [COMPASS Change logs](#compass-change-logs)
+  - [Release v5.1](#release-v51)
   - [Release v5.0](#release-v50)
   - [Release v4.4.2](#release-v442)
   - [Release v4.4.1](#release-v441)
@@ -17,6 +18,20 @@
   - [Release v3.0](#release-v30)
   - [Release v2.0](#release-v20)
   - [Release v1.1](#release-v11)
+
+## Release v5.1
+
+COMPASS v5.1 release notes :
+
+- New class ParamConfig to handle parameters configuration : supervisor constructor requires an instance of it now. This change
+- Multi GPU controller generic improvements
+- Standalone RTC debug + pytests
+- Add leaky factor in the generic controller
+- Add [CLOSE](https://arxiv.org/abs/2103.09921) algorithm implementation
+- Multi controllers support in the supervisor
+- Sub-pixels move for phase screens
+- GuARDIANS package updated
+- Code documentation update
 
 ## Release v5.0
 
@@ -143,7 +158,7 @@ IMPORTANT NOTE : due to the very short available development time of the core CO
 - remove KALMAN support
 - add pyramid modulation weight
 - add ```filter_TT``` parameter in centroider
-- add modal integrator control law
+- add modal integrator command law
 
 for Internal developments:
 

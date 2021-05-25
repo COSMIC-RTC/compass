@@ -35,7 +35,7 @@
 //! \class     SutraRtcBrahmaListenerImpl
 //! \brief     this class provides the rtc_brahmaListenerImpl features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.0.0
+//! \version   5.1.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 

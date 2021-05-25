@@ -34,7 +34,7 @@
 //! \ingroup   libsutra
 //! \brief     this file provides pybind wrapper for SutraGamora
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.0.0
+//! \version   5.1.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -60,26 +60,41 @@ std::unique_ptr<SutraGamora> gamora_init(CarmaContext &context, int device,
 void declare_gamora(py::module &mod) {
   py::class_<SutraGamora>(mod, "Gamora")
       .def(py::init(wy::colCast(gamora_init)), R"pbdoc(
-          Initializes Gamora
+    Initializes Gamora
 
-          Parameters
-          ------------
+    Args:
           context: (CarmaContext): context
+
           device: (int): context active device
+
           type : (str) : reconstruction method used ("roket" or "Vii")
+
           nactus : (int) : number of actuators
+
           nmodes (int) : number of modes
+
           niter : (int) : number of iterations performed with roket
+
           IFvalue : (np.ndarray[ndim=1,dtype=float32_t]) : Non zeros values of pzt influence function matrix
+
           IFrowind : (np.ndarray[ndim=1,dtype=int32_t]) : Row indices of nnz values (csr sparse format)
+
           IFcolind : (np.ndarray[ndim=1,dtype=int32_t]) : Column indices of nnz values (csr sparse format)
+
           IFnz: (int): number of non zero element in IF
+
           TT : (np.ndarray[ndim=1,dtype=float32_t])np.ndarray[ndim=1,dtype=float32_t]) : Tip-tilt influence functions
+
           spupil : (np.ndarray[ndim=2,dtype=float32_t]) : Small pupil
+
           size: (int): pupil size
+
           Npts: (int): number of points in the pupil
+
           scale : (float) : 2*pi/lambda_target with lambda_target expressed in microns
+
           Btt : (np.ndarray[ndim=2, dtype=np.float32_t]) : Volts to Btt modes matrix
+
           covmodes : (np.ndarray[ndim=2, dtype=np.float32_t]) : error covariance matrix expressed in a modal basis
            )pbdoc",
            py::arg("context"), py::arg("device"), py::arg("type"),
@@ -198,10 +213,9 @@ void declare_gamora(py::module &mod) {
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
       .def("psf_rec_roket", wy::colCast(&SutraGamora::psf_rec_roket), R"pbdoc(
-        Reconstruct the PSF from ROKET error buffer
+    Reconstruct the PSF from ROKET error buffer
 
-        Parameters
-        ------------
+    Args:
         err: (np.array[ndim=2,dtype=np.float32]): ROKET error buffer
 
     )pbdoc",
