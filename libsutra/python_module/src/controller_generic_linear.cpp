@@ -102,33 +102,62 @@ void controller_generic_linear_impl(py::module &mod, const char *name) {
       .def_property_readonly(
           "d_com", [](controller_generic_linear &sc) { return sc.d_com; },
           "command vector (see compass.io details on the generic linear controller)")
-      
+
       .def_property_readonly(
           "d_circular_coms", [](controller_generic_linear &sc) { return sc.d_circular_coms; },
           "circular command buffer (see compass.io details on the generic linear controller)")
-      
+
       .def_property_readonly(
           "d_centroids", [](controller_generic_linear &sc) { return sc.d_centroids; },
           "centroid/slope vector (see compass.io details on the generic linear controller)")
-      
+
       .def_property_readonly(
           "d_circular_x", [](controller_generic_linear &sc) { return sc.d_circular_x; },
           "circular state buffer (see compass.io details on the generic linear controller)")
-      
+
       .def_property_readonly(
           "d_circular_s", [](controller_generic_linear &sc) { return sc.d_circular_s; },
           "circular slope buffer (see compass.io details on the generic linear controller)")
-      
+
       .def_property_readonly(
           "d_circular_u_in", [](controller_generic_linear &sc) { return sc.d_circular_u_in; },
           "circular buffer of iir inputs (see compass.io details on the generic linear controller)")
-      
+
       .def_property_readonly(
           "d_circular_u_out", [](controller_generic_linear &sc) { return sc.d_circular_u_out; },
           "circular buffer of iir outputs (see compass.io details on the generic linear controller)")
-      
-      
-      
+
+
+      .def_property_readonly(
+          "d_A", [](controller_generic_linear &sc) { return sc.d_A; },
+          "")
+
+      .def_property_readonly(
+          "d_L", [](controller_generic_linear &sc) { return sc.d_L; },
+          "")
+
+      .def_property_readonly(
+          "d_K", [](controller_generic_linear &sc) { return sc.d_K.get(); },
+          "")
+
+      .def_property_readonly(
+          "d_D", [](controller_generic_linear &sc) { return sc.d_D.get(); },
+          "")
+
+      .def_property_readonly(
+          "d_F", [](controller_generic_linear &sc) { return sc.d_F.get(); },
+          "")
+
+      .def_property_readonly(
+          "d_iir_a", [](controller_generic_linear &sc) { return sc.d_iir_a; },
+          "")
+
+      .def_property_readonly(
+          "d_iir_b", [](controller_generic_linear &sc) { return sc.d_iir_b; },
+          "")
+
+
+
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝
       //  ██╔████╔██║█████╗    ██║   ███████║██║   ██║██║  ██║███████╗

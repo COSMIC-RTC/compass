@@ -52,21 +52,12 @@ class sutra_controller_generic_linear : public SutraController<Tcomp, Tout> {
 
 
 private:
-  std::unique_ptr<CarmaObj<Tcomp>> d_x_now;       //!< m_n_states
+  std::unique_ptr<CarmaObj<Tcomp>> d_x_now;       //!<
 
-  std::unique_ptr<CarmaObj<Tcomp>> d_s_now;       //!< nslopes
+  std::unique_ptr<CarmaObj<Tcomp>> d_s_now;       //!<
 
-  std::unique_ptr<CarmaObj<Tcomp>> d_eff_u;       //!< nactus
-  std::unique_ptr<CarmaObj<Tcomp>> d_u_now;       //!< m_n_modes
-
-  std::vector<CarmaObj<Tcomp>*> d_iir_a;           //!< m_n_modes m_n_iir_out
-  std::vector<CarmaObj<Tcomp>*> d_iir_b;           //!< m_n_modes m_n_iir_in
-
-  std::vector<CarmaObj<Tcomp>*> d_A;              //!< m_n_states m_n_states  m_n_states_buffer
-  std::vector<CarmaObj<Tcomp>*> d_L;              //!< m_n_states nslopes     m_n_slopes_buffer
-  std::unique_ptr<CarmaObj<Tcomp>> d_K;           //!< m_n_modes  m_n_states
-  std::unique_ptr<CarmaObj<Tcomp>> d_D;           //!< nslopes    nactus
-  std::unique_ptr<CarmaObj<Tcomp>> d_F;           //!< nactus     m_n_modes
+  std::unique_ptr<CarmaObj<Tcomp>> d_eff_u;       //!<
+  std::unique_ptr<CarmaObj<Tcomp>> d_u_now;       //!<
 
   bool m_polc;                          //!<
   bool m_modal;                         //!<
@@ -97,10 +88,19 @@ public:
   int n_iir_in(){return m_n_iir_in;}
   int n_iir_out(){return m_n_iir_out;}
 
-  std::deque<CarmaObj<Tcomp> *> d_circular_x;     //!< m_n_states  m_n_states_buffer
-  std::deque<CarmaObj<Tcomp> *> d_circular_s;     //!< nslopes     m_n_slopes_buffer
-  std::deque<CarmaObj<Tcomp> *> d_circular_u_in;  //!< m_n_modes   m_n_iir_in
-  std::deque<CarmaObj<Tcomp> *> d_circular_u_out; //!< m_n_modes   m_n_iir_out
+  std::deque<CarmaObj<Tcomp> *> d_circular_x;     //!<
+  std::deque<CarmaObj<Tcomp> *> d_circular_s;     //!<
+  std::deque<CarmaObj<Tcomp> *> d_circular_u_in;  //!<
+  std::deque<CarmaObj<Tcomp> *> d_circular_u_out; //!<
+
+  std::vector<CarmaObj<Tcomp>*> d_A;              //!<
+  std::vector<CarmaObj<Tcomp>*> d_L;              //!<
+  std::unique_ptr<CarmaObj<Tcomp>> d_K;           //!<
+  std::unique_ptr<CarmaObj<Tcomp>> d_D;           //!<
+  std::unique_ptr<CarmaObj<Tcomp>> d_F;           //!<
+
+  std::vector<CarmaObj<Tcomp>*> d_iir_a;           //!<
+  std::vector<CarmaObj<Tcomp>*> d_iir_b;           //!<
 
   using SutraController<Tcomp,Tout>::d_com;
   using SutraController<Tcomp,Tout>::d_circular_coms;
@@ -119,9 +119,7 @@ public:
   string get_type();
   string get_commandlaw();
   int set_A(float * A, int i);
-  //int set_A(float * A, int i);
   int set_L(float * L, int i);
-  //int set_L(float * L, int i);
   int set_K(float * K);
   int set_D(float * D);
   int set_F(float * F);
