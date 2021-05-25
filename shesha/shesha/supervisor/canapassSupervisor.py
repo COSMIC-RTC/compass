@@ -46,6 +46,9 @@ Options:
   -h, --help          Show this help message and exit
   -f, --freq freq       change the frequency of the loop
   -d, --delay delay     change the delay of the loop
+  -s, --spiders spiders     change the spiders size
+  -n, --nxsub nxsub     change the number of pixels in subap
+  -p, --pupsep pupsep     change the distance between subap center and frame center
 """
 
 import os, sys
@@ -126,13 +129,21 @@ if __name__ == '__main__':
     from shesha.config import ParamConfig
     arguments = docopt(__doc__)
     config = ParamConfig(arguments["<parameters_filename>"])
-    supervisor = CanapassSupervisor(config, cacao=True)
     if (arguments["--freq"]):
         print("Warning changed frequency loop to: ", arguments["--freq"])
         config.p_loop.set_ittime(1 / float(arguments["--freq"]))
     if (arguments["--delay"]):
         print("Warning changed delay loop to: ", arguments["--delay"])
         config.p_controllers[0].set_delay(float(arguments["--delay"]))
+    if (arguments["--spiders"]):
+        print("Warning changed spiders size to: ", arguments["--spiders"])
+        config.p_tel.set_t_spiders(float(arguments["--spiders"]))
+    if (arguments["--nxsub"]):
+        print("Warning changed number of pixels per subaperture to: ", arguments["--nxsub"])
+        config.p_wfss[0].set_nxsub(int(arguments["--nxsub"]))
+    if (arguments["--pupsep"]):
+        print("Warning changed distance between subaperture center and frame center to: ", arguments["--pupsep"])
+        config.p_wfss[0].set_pyr_pup_sep(int(arguments["--pupsep"]))
     supervisor = CanapassSupervisor(config, cacao=True)
 
     try:

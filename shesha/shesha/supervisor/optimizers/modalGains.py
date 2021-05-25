@@ -182,6 +182,7 @@ class ModalGains(object):
         """
         self._mask = mask
         self.mgains[mask == 0] = 0
+        self._rtc.set_modal_gains(0, self.mgains)
 
     def set_initial_gain(self, gain):
         """Set the initial value for modal gains. This function reinitializes the modal gains.

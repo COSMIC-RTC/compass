@@ -99,6 +99,23 @@ class ModalBasis(object):
                                               self._config.p_dms[dm_index],
                                               self._config.p_geom)
 
+    def compute_influ_delta(self, dm_index: int) -> np.ndarray:
+        """ Computes and return IF delta for the specified DM
+
+        Args:
+            dm_index : (int) : Index of the DM
+
+        Return:
+            influ_delta : (np.ndarray) : influence function deltas
+        """
+        ifsparse =  basis.compute_dm_basis(self._dms._dms.d_dms[dm_index],
+                                              self._config.p_dms[dm_index],
+                                              self._config.p_geom)
+        mpup = self._config.p_geom.get_mpupil()
+        npix_in_pup = np.sum(mpup)
+        ifdelta = ifsparse.dot(ifsparse.T) / np.sum(mpup)
+        return ifdelta.toarray()
+
     def compute_modes_to_volts_basis(self, modal_basis_type: str, *, merged: bool = False,
                                      nbpairs: int = None, return_delta: bool = False) -> np.ndarray:
         """ Computes a given modal basis ("KL2V", "Btt", "Btt_petal") and return the 2 transfer matrices
