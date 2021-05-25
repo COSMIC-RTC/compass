@@ -115,9 +115,9 @@ class Param_controller:
         """ Autocorrelation learning factor """
         self.__close_target = 0.0
         """ Target value """
-        self.__n_iir_in = 1
+        self.__n_iir_in = 0
         """ number of input taps to iir filter """
-        self.__n_iir_out = 1
+        self.__n_iir_out = 0
         """ number of output taps to iir filter """
         self.__polc = 0
         """ flag to do polc in generic linear controller """

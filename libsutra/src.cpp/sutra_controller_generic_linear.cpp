@@ -43,9 +43,9 @@
 
 template<typename T>
 int rotate_circular_buffer(std::deque<CarmaObj<T> *> buffer){
-  CarmaObj<T> *tmp = std::move(buffer.front());
-  buffer.pop_front();
-  buffer.push_back(tmp);
+  CarmaObj<T> *tmp = std::move(buffer.back());
+  buffer.pop_back();
+  buffer.push_front(tmp);
   return EXIT_SUCCESS;
 }
 
@@ -53,7 +53,7 @@ template<typename T>
 int update_circular(std::deque<CarmaObj<T> *> buffer, CarmaObj<T> &update){
   if(buffer.size()>0){
     rotate_circular_buffer(buffer);
-    buffer.at(0)->copy_from(update, update.get_nb_elements());
+    buffer.front()->copy_from(update, update.get_nb_elements());
   }
     return EXIT_SUCCESS;
 }
@@ -284,7 +284,7 @@ int sutra_controller_generic_linear<T, Tout>::modal_projection(){
   if(m_n_state_buffers>0){
     // u_now = K * x_now
     carma_gemv(cublas_handle(), 'n', m_n_modes, m_n_states, T(1.0f),
-               (*d_K).get_data(), m_n_modes, (*d_x_now).get_data(), 1, T(1.0f),
+               (*d_K).get_data(), m_n_modes, (*d_x_now).get_data(), 1, T(0.0f),
                (*d_u_now).get_data(), 1);
   }else{
     //u_now = x_now
@@ -315,12 +315,11 @@ int sutra_controller_generic_linear<T, Tout>::filter_iir_in(){
 template <typename T, typename Tout>
 int sutra_controller_generic_linear<T, Tout>::filter_iir_out(){
    // u_now += sum_{i=0}^{}(iir_a[i]*u_out[i]) //gbmv
-    for(int i=0;i<m_n_iir_out; i++){
+  for(int i=0;i<m_n_iir_out; i++){
     carma_sbmv(cublas_handle(), 'l', m_n_modes, 0, T(1.0f),
                d_iir_a[i]->get_data(), 1, d_circular_u_out.at(i)->get_data(), 1, T(1.0f),
                (*d_u_now).get_data(), 1);
   }
-
   return EXIT_SUCCESS;
 }
 

@@ -71,34 +71,64 @@ void controller_generic_linear_impl(py::module &mod, const char *name) {
           "modal", [](controller_generic_linear &sc) { return sc.modal(); },
           "modal flag (see compass.io details on the generic linear controller)")
 
-//      .def_property_readonly(
-//          "d_A", [](controller_generic_linear &sc) { return sc.d_A; },
-//          "A matrix (see compass.io details on the generic linear controller)")
-//
-//      .def_property_readonly(
-//          "d_L", [](controller_generic_linear &sc) { return sc.d_L; },
-//          "L matrix (see compass.io details on the generic linear controller)")
-//
-//      .def_property_readonly(
-//          "d_K", [](controller_generic_linear &sc) { return sc.d_K; },
-//          "K matrix (see compass.io details on the generic linear controller)")
-//
-//      .def_property_readonly(
-//          "d_D", [](controller_generic_linear &sc) { return sc.d_D; },
-//          "D matrix (see compass.io details on the generic linear controller)")
-//
-//      .def_property_readonly(
-//          "d_F", [](controller_generic_linear &sc) { return sc.d_F; },
-//          "F matrix (see compass.io details on the generic linear controller)")
-//
-//      .def_property_readonly(
-//          "d_iir_a", [](controller_generic_linear &sc) { return sc.d_iir_a; },
-//          "iir_a coefficients (see compass.io details on the generic linear controller)")
-//
-//      .def_property_readonly(
-//          "d_iir_b", [](controller_generic_linear &sc) { return sc.d_iir_b; },
-//          "iir_b coefficients (see compass.io details on the generic linear controller)")
+      .def_property_readonly(
+          "n_slope_buffers", [](controller_generic_linear &sc) { return sc.n_slope_buffers(); },
+          "number of slope vectors to store in buffer\n(see compass.io details on the generic linear controller)")
 
+      .def_property_readonly(
+          "n_state_buffers", [](controller_generic_linear &sc) { return sc.n_state_buffers(); },
+          "number of state vectors to store in buffer\n(see compass.io details on the generic linear controller)")
+
+      .def_property_readonly(
+          "n_mode_buffers", [](controller_generic_linear &sc) { return sc.n_mode_buffers(); },
+          "number of mode vectors to store in buffer\n(see compass.io details on the generic linear controller)")
+
+      .def_property_readonly(
+          "n_states", [](controller_generic_linear &sc) { return sc.n_states(); },
+          "number of states in state vector (see compass.io details on the generic linear controller)")
+
+      .def_property_readonly(
+          "n_modes", [](controller_generic_linear &sc) { return sc.n_modes(); },
+          "number of modes in mode vector (see compass.io details on the generic linear controller)")
+
+      .def_property_readonly(
+          "n_iir_in", [](controller_generic_linear &sc) { return sc.n_iir_in(); },
+          "number of iir inputs to use (see compass.io details on the generic linear controller)")
+
+      .def_property_readonly(
+          "n_iir_out", [](controller_generic_linear &sc) { return sc.n_iir_out(); },
+          "number of iir outputs to use (see compass.io details on the generic linear controller)")
+
+      .def_property_readonly(
+          "d_com", [](controller_generic_linear &sc) { return sc.d_com; },
+          "command vector (see compass.io details on the generic linear controller)")
+      
+      .def_property_readonly(
+          "d_circular_coms", [](controller_generic_linear &sc) { return sc.d_circular_coms; },
+          "circular command buffer (see compass.io details on the generic linear controller)")
+      
+      .def_property_readonly(
+          "d_centroids", [](controller_generic_linear &sc) { return sc.d_centroids; },
+          "centroid/slope vector (see compass.io details on the generic linear controller)")
+      
+      .def_property_readonly(
+          "d_circular_x", [](controller_generic_linear &sc) { return sc.d_circular_x; },
+          "circular state buffer (see compass.io details on the generic linear controller)")
+      
+      .def_property_readonly(
+          "d_circular_s", [](controller_generic_linear &sc) { return sc.d_circular_s; },
+          "circular slope buffer (see compass.io details on the generic linear controller)")
+      
+      .def_property_readonly(
+          "d_circular_u_in", [](controller_generic_linear &sc) { return sc.d_circular_u_in; },
+          "circular buffer of iir inputs (see compass.io details on the generic linear controller)")
+      
+      .def_property_readonly(
+          "d_circular_u_out", [](controller_generic_linear &sc) { return sc.d_circular_u_out; },
+          "circular buffer of iir outputs (see compass.io details on the generic linear controller)")
+      
+      
+      
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝
       //  ██╔████╔██║█████╗    ██║   ███████║██║   ██║██║  ██║███████╗
