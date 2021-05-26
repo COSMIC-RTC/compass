@@ -52,27 +52,26 @@ class sutra_controller_generic_linear : public SutraController<Tcomp, Tout> {
 
 
 private:
-  std::unique_ptr<CarmaObj<Tcomp>> d_x_now;       //!<
+  std::unique_ptr<CarmaObj<Tcomp>> d_x_now;   //!< vector used for state calcs
+  std::unique_ptr<CarmaObj<Tcomp>> d_s_now;   //!< vector used for slope calcs
+  std::unique_ptr<CarmaObj<Tcomp>> d_u_now;   //!< vector used for modal calcs
+  std::unique_ptr<CarmaObj<Tcomp>> d_eff_u;   //!< vector used for command calcs
 
-  std::unique_ptr<CarmaObj<Tcomp>> d_s_now;       //!<
+  using SutraController<Tcomp,Tout>::nslopes; //!< num of meas in slope vector
+  using SutraController<Tcomp,Tout>::nactus;  //!< num of coms in com vector
 
-  std::unique_ptr<CarmaObj<Tcomp>> d_eff_u;       //!<
-  std::unique_ptr<CarmaObj<Tcomp>> d_u_now;       //!<
+  bool m_polc;              //!< flag to compute POL slopes
+  bool m_modal;             //!< flag to do projection from modes to actu
+  int m_n_slope_buffers;    //!< num of historic slopes vectors to use
+  int m_n_states;           //!< num of states in state vector
+  int m_n_state_buffers;    //!< num of historic state vectors to use
+  int m_n_modes;            //!< num of modes in mode vector
+  int m_n_mode_buffers;     //!< (not used, to be deleted)
+  int m_n_iir_in;           //!< num of input mode vectors for iir filter
+  int m_n_iir_out;          //!< num of output mode vectors for iir filter
 
-  bool m_polc;                          //!<
-  bool m_modal;                         //!<
-  using SutraController<Tcomp,Tout>::nslopes;
-  int m_n_slope_buffers;                //!<
-  using SutraController<Tcomp,Tout>::nactus;
-  int m_n_states;                       //!<
-  int m_n_state_buffers;                //!<
-  int m_n_modes;                        //!<
-  int m_n_mode_buffers;                 //!<
-  int m_n_iir_in;                       //!<
-  int m_n_iir_out;                      //!<
-
-  using SutraController<Tcomp,Tout>::a;
-  using SutraController<Tcomp,Tout>::b;
+  using SutraController<Tcomp,Tout>::a; //!< coefficient used to comp delay 
+  using SutraController<Tcomp,Tout>::b; //!< coefficient used to comp delay
 
   using SutraController<Tcomp,Tout>::cublas_handle;
 
@@ -88,23 +87,23 @@ public:
   int n_iir_in(){return m_n_iir_in;}
   int n_iir_out(){return m_n_iir_out;}
 
-  std::deque<CarmaObj<Tcomp> *> d_circular_x;     //!<
-  std::deque<CarmaObj<Tcomp> *> d_circular_s;     //!<
-  std::deque<CarmaObj<Tcomp> *> d_circular_u_in;  //!<
-  std::deque<CarmaObj<Tcomp> *> d_circular_u_out; //!<
+  std::deque<CarmaObj<Tcomp> *> d_circular_x;     //!< circ buffer states
+  std::deque<CarmaObj<Tcomp> *> d_circular_s;     //!< circ buffer slopes
+  std::deque<CarmaObj<Tcomp> *> d_circular_u_in;  //!< circ buffer iir inputs
+  std::deque<CarmaObj<Tcomp> *> d_circular_u_out; //!< circ buffer iir output
 
-  std::vector<CarmaObj<Tcomp>*> d_A;              //!<
-  std::vector<CarmaObj<Tcomp>*> d_L;              //!<
-  std::unique_ptr<CarmaObj<Tcomp>> d_K;           //!<
-  std::unique_ptr<CarmaObj<Tcomp>> d_D;           //!<
-  std::unique_ptr<CarmaObj<Tcomp>> d_F;           //!<
+  std::vector<CarmaObj<Tcomp>*> d_A;      //!< list of A matrices (recursions)
+  std::vector<CarmaObj<Tcomp>*> d_L;      //!< list of L matrices (innovations)
+  std::unique_ptr<CarmaObj<Tcomp>> d_K;   //!< K matrix (state to modes)
+  std::unique_ptr<CarmaObj<Tcomp>> d_D;   //!< D matrix (interaction matrix)
+  std::unique_ptr<CarmaObj<Tcomp>> d_F;   //!< F matrix (mode to actu)
 
-  std::vector<CarmaObj<Tcomp>*> d_iir_a;           //!<
-  std::vector<CarmaObj<Tcomp>*> d_iir_b;           //!<
+  std::vector<CarmaObj<Tcomp>*> d_iir_a;  //!< list of iir 'a' vectors (outputs)
+  std::vector<CarmaObj<Tcomp>*> d_iir_b;  //!< list of iir 'b' vectors (inputs)
 
-  using SutraController<Tcomp,Tout>::d_com;
-  using SutraController<Tcomp,Tout>::d_circular_coms;
-  using SutraController<Tcomp,Tout>::d_centroids;
+  using SutraController<Tcomp,Tout>::d_com;  //!< most recently computed command
+  using SutraController<Tcomp,Tout>::d_centroids;  //!< closed loop slope vector
+  using SutraController<Tcomp,Tout>::d_circular_coms; //!< circular com buffer
 
  public:
  sutra_controller_generic_linear() = delete;
