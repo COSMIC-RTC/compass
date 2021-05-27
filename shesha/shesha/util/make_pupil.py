@@ -213,7 +213,7 @@ def make_VLT(dim, pupd, tel):
         tel: (Param_tel) : Telescope structure
     """
 
-    if (tel.set_t_spiders == -1):
+    if (tel.t_spiders == -1):
         print("force t_spider =%5.3f" % (0.09 / 18.))
         tel.set_t_spiders(0.09 / 18.)
     angle = 50.5 * np.pi / 180.  # --> 50.5 degre *2 d'angle entre les spiders
@@ -225,7 +225,7 @@ def make_VLT(dim, pupd, tel):
 
     pup = ((R < 0.5) & (R > (tel.cobs / 2))).astype(np.float32)
 
-    if (tel.set_t_spiders == -1):
+    if (tel.t_spiders == -1):
         print('No spider')
     else:
         spiders_map = (

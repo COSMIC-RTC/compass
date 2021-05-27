@@ -239,7 +239,7 @@ int sutra_controller_generic_linear<T, Tout>::comp_com() {
 
   if(m_modal){
     carma_gemv(cublas_handle(), 'n', nactus, m_n_modes, T(1.0f),
-               (*d_F).get_data(), m_n_modes, (*d_u_now).get_data(), 1, T(1.0f),
+               (*d_F).get_data(), nactus, (*d_u_now).get_data(), 1, T(1.0f),
                d_com->get_data(), 1);
   }else{
     d_com->copy_from(*d_u_now, (*d_u_now).get_nb_elements());

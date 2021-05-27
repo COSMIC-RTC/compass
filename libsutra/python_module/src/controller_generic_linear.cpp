@@ -183,6 +183,12 @@ void controller_generic_linear_impl(py::module &mod, const char *name) {
               return sc.d_D.get(); },
           "D matrix, typically set to the interaction matrix\n\
           (see compass.io details on the generic linear controller)")
+      
+      .def_property_readonly(
+          "d_imat", [](controller_generic_linear &sc) { 
+              return sc.d_D.get(); },
+          "D matrix, typically set to the interaction matrix\n\
+          (see compass.io details on the generic linear controller)")
 
       .def_property_readonly(
           "d_F", [](controller_generic_linear &sc) { 
