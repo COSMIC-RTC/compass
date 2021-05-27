@@ -70,7 +70,7 @@ private:
   int m_n_iir_in;           //!< num of input mode vectors for iir filter
   int m_n_iir_out;          //!< num of output mode vectors for iir filter
 
-  using SutraController<Tcomp,Tout>::a; //!< coefficient used to comp delay 
+  using SutraController<Tcomp,Tout>::a; //!< coefficient used to comp delay
   using SutraController<Tcomp,Tout>::b; //!< coefficient used to comp delay
 
   using SutraController<Tcomp,Tout>::cublas_handle;
@@ -104,6 +104,7 @@ public:
   using SutraController<Tcomp,Tout>::d_com;  //!< most recently computed command
   using SutraController<Tcomp,Tout>::d_centroids;  //!< closed loop slope vector
   using SutraController<Tcomp,Tout>::d_circular_coms; //!< circular com buffer
+  using SutraController<Tcomp,Tout>::delay;
 
  public:
  sutra_controller_generic_linear() = delete;
