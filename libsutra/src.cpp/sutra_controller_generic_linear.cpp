@@ -76,9 +76,8 @@ sutra_controller_generic_linear<T, Tout>::sutra_controller_generic_linear(
     float delay, bool polc, bool is_modal,
     SutraDms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro)
     : SutraController<T, Tout>(context, nslope, nactu, delay, dms,
-                                idx_dms, ndm, idx_centro, ncentro)
-    {
-  // TODO remove n_mode_buffers everywhere
+                                idx_dms, ndm, idx_centro, ncentro){
+  // TODO: remove n_mode_buffers everywhere
   m_n_slope_buffers  = nslope_buffers;
   m_n_states  = nstates;
   m_n_state_buffers  = nstate_buffers;
@@ -87,7 +86,6 @@ sutra_controller_generic_linear<T, Tout>::sutra_controller_generic_linear(
   m_n_iir_in  = niir_in;
   m_n_iir_out = niir_out;
 
-  //d_x_now = CarmaObj<T>(context, {1,m_n_states});
   d_x_now = make_unique_carma_obj<T>(context, {m_n_states});
   for(int i=0;i<m_n_state_buffers;i++){
     d_circular_x.push_front(new CarmaObj<T>(context, {1,m_n_states}));
@@ -123,7 +121,6 @@ sutra_controller_generic_linear<T, Tout>::sutra_controller_generic_linear(
     d_F = make_unique_carma_obj<T>(context, {nactu  , nmodes });
   }
   this->current_context->set_active_device(this->device, 1);
-  //cudaEventCreateWithFlags(&start_mvm_event, cudaEventDisableTiming);
 }
 
 template<typename T, typename Tout>
@@ -142,8 +139,6 @@ sutra_controller_generic_linear<T, Tout>::~sutra_controller_generic_linear() {
   d_circular_u_in.clear();
   d_circular_u_out.clear();
 }
-
-
 
 template <typename T, typename Tout>
 string sutra_controller_generic_linear<T, Tout>::get_type() {
@@ -208,16 +203,14 @@ int sutra_controller_generic_linear<T, Tout>::set_iir_b(float *M, int i) {
 
 template <typename T, typename Tout>
 int sutra_controller_generic_linear<T, Tout>::comp_polc(){
-
   CarmaObj<T> *uk,*uk_1;
-  uk = d_circular_coms.at(0);
+  uk_1 = d_circular_coms.at(0);
   if(delay>0){
-    uk_1 = d_circular_coms.at(1);
+    uk = d_circular_coms.at(1);
   }else{
-    uk_1 = d_circular_coms.at(0);
+    uk = d_circular_coms.at(0);
   }
-  comp_polc(a, *uk_1, b, *uk, *d_centroids, *d_D, *d_s_now, *d_eff_u);
-
+  comp_polc(*uk_1, *uk, *d_centroids, *d_D, *d_s_now, *d_eff_u);
   return EXIT_SUCCESS;
 }
 
@@ -294,7 +287,7 @@ int sutra_controller_generic_linear<T, Tout>::modal_projection(){
                (*d_K).get_data(), m_n_modes, (*d_x_now).get_data(), 1, T(0.0f),
                (*d_u_now).get_data(), 1);
   }else{
-    //u_now = x_now
+    // u_now = x_now
     (*d_u_now).copy_from(*d_x_now,(*d_x_now).get_nb_elements());
   }
   return EXIT_SUCCESS;
@@ -330,6 +323,26 @@ int sutra_controller_generic_linear<T, Tout>::filter_iir_out(){
   return EXIT_SUCCESS;
 }
 
+template <typename Tcomp, typename Tout>
+int SutraController<Tcomp, Tout>::reset_coms() {
+  current_context->set_active_device(device, 1);
+  for (auto cobj : this->d_circular_coms) {
+    cobj->reset();
+  }
+  for (auto cobj : this->d_circular_x) {
+    cobj->reset();
+  }
+  for (auto cobj : this->d_circular_s) {
+    cobj->reset();
+  }
+  for (auto cobj : this->d_circular_u_in) {
+    cobj->reset();
+  }
+  for (auto cobj : this->d_circular_u_out) {
+    cobj->reset();
+  }
+  return EXIT_SUCCESS;
+}
 
 template class sutra_controller_generic_linear<float, float>;
 template class sutra_controller_generic_linear<float, uint16_t>;

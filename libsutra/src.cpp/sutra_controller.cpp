@@ -369,7 +369,7 @@ int SutraController<Tcomp, Tout>::set_val_max(float val_max) {
 }
 
 template <typename Tcomp, typename Tout>
-int SutraController<Tcomp, Tout>::comp_polc(Tcomp a, CarmaObj<Tcomp>& uk_1, Tcomp b,
+int SutraController<Tcomp, Tout>::comp_polc(CarmaObj<Tcomp>& uk_1,
   CarmaObj<Tcomp>& uk, CarmaObj<Tcomp>& sk, CarmaObj<Tcomp>& iMat, CarmaObj<Tcomp>& ol_meas,
   CarmaObj<Tcomp>& eff_u){
 
