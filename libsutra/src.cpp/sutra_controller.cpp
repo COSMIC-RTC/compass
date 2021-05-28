@@ -369,26 +369,13 @@ int SutraController<Tcomp, Tout>::set_val_max(float val_max) {
 }
 
 template <typename Tcomp, typename Tout>
-int SutraController<Tcomp, Tout>::comp_polc(CarmaObj<Tcomp>& uk_1,
-  CarmaObj<Tcomp>& uk, CarmaObj<Tcomp>& sk, CarmaObj<Tcomp>& iMat, CarmaObj<Tcomp>& ol_meas,
-  CarmaObj<Tcomp>& eff_u){
+int SutraController<Tcomp, Tout>::comp_polc(CarmaObj<Tcomp>& sk,
+   CarmaObj<Tcomp>& iMat, CarmaObj<Tcomp>& ol_meas){
 
   long n_slope = iMat.get_dims(1);
   long n_actu  = iMat.get_dims(2);
 
   std::string err = "";
-  if(uk_1.get_dims(1) < n_actu){
-    err += "\n\tinconsistent dimension for uk_1   : expected:";
-    err += std::to_string(n_actu)+", got:" +std::to_string(uk_1.get_dims(1));
-  }
-  if(uk.get_dims(1) < n_actu){
-    err += "\n\tinconsistent dimension for uk     : expected:";
-    err += std::to_string(n_actu)+", got:" +std::to_string(uk.get_dims(1));
-  }
-  if(eff_u.get_dims(1) != n_actu){
-    err += "\n\tinconsistent dimension for eff_u  : expected:";
-    err += std::to_string(n_actu)+", got:" +std::to_string(eff_u.get_dims(1));
-  }
   if(sk.get_dims(1) != n_slope){
     err += "\n\tinconsistent dimension for sk     : expected:";
     err += std::to_string(n_slope)+", got:" +std::to_string(sk.get_dims(1));
@@ -402,16 +389,11 @@ int SutraController<Tcomp, Tout>::comp_polc(CarmaObj<Tcomp>& uk_1,
   }
 
   this->current_context->set_active_device(this->device, 1);
-  // eff_u = a * u_{k-1} + b * u_k
-  eff_u.reset();
-  eff_u.axpy(a, &uk_1, 1, 1);
-  eff_u.axpy(b, &uk  , 1, 1);
-
   // ol_meas = s_k
   ol_meas.copy(&sk, 1, 1);
   // ol_meas = - iMat * eff_u + s_k
   carma_gemv(this->cublas_handle(), 'n', n_slope, n_actu, Tcomp(-1.0f),
-             iMat.get_data(), n_slope, eff_u.get_data(), 1, Tcomp(1.0f),
+             iMat.get_data(), n_slope, d_com_clipped->get_data(), 1, Tcomp(1.0f),
              ol_meas.get_data(), 1);
 
   return EXIT_SUCCESS;

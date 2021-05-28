@@ -203,14 +203,7 @@ int sutra_controller_generic_linear<T, Tout>::set_iir_b(float *M, int i) {
 
 template <typename T, typename Tout>
 int sutra_controller_generic_linear<T, Tout>::comp_polc(){
-  CarmaObj<T> *uk,*uk_1;
-  uk_1 = d_circular_coms.at(0);
-  if(delay>0){
-    uk = d_circular_coms.at(1);
-  }else{
-    uk = d_circular_coms.at(0);
-  }
-  comp_polc(*uk_1, *uk, *d_centroids, *d_D, *d_s_now, *d_eff_u);
+  comp_polc(*d_centroids, *d_D, *d_s_now);
   return EXIT_SUCCESS;
 }
 

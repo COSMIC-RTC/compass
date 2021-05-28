@@ -170,7 +170,7 @@ class SutraController {
    * @param[out] eff_u   : CarmaObj<Tcomp>&  : effective commands
    * @return int                             : error code
    */
-  int comp_polc(CarmaObj<Tcomp>& uk_1, CarmaObj<Tcomp>& uk, CarmaObj<Tcomp>& sk, CarmaObj<Tcomp>& iMat, CarmaObj<Tcomp>& ol_meas, CarmaObj<Tcomp>& eff_u);
+  int comp_polc(CarmaObj<Tcomp>& sk, CarmaObj<Tcomp>& iMat, CarmaObj<Tcomp>& ol_meas);
 
  protected:
   mutex comp_voltage_mutex;
