@@ -256,9 +256,7 @@ template <typename T, typename Tout>
 int sutra_controller_generic<T, Tout>::comp_polc() {
   this->current_context->set_active_device(this->device, 1);
   // POLC equations
-  this->d_compbuff->reset();
-  this->d_compbuff->axpy(T(this->a), this->d_com1, 1, 1);
-  this->d_compbuff->axpy(T(this->b), this->d_com, 1, 1);
+  this->d_compbuff->copy(this->d_com_clipped, 1, 1);
   this->d_olmeas->copy(this->d_centroids, 1, 1);
 
   carma_gemv(this->cublas_handle(), 'n', this->nslope(), this->nactu(), T(1.0f),
