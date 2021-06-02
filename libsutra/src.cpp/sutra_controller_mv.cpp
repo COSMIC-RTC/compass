@@ -932,9 +932,7 @@ int sutra_controller_mv<Tcomp, Tout>::comp_com() {
 
   // POLC equations
 
-  carma_geam<Tcomp>(cublas_handle, 'n', 'n', this->nactu(), 1, (Tcomp)(this->a),
-                    *this->d_com1, this->nactu(), this->b, *this->d_com,
-                    this->nactu(), *d_compbuff, this->nactu());
+  this->d_compbuff->copy(this->d_com_clipped, 1, 1);
   carma_gemv<Tcomp>(cublas_handle, 'n', this->nslope(), this->nactu(), 1.0,
                     *d_imat, this->nslope(), *d_compbuff, 1, 0.0, *d_compbuff2,
                     1);
