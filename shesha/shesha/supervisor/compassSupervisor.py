@@ -268,7 +268,7 @@ class CompassSupervisor(GenericSupervisor):
                 self.target.comp_tar_image(tar_index)
                 self.target.comp_strehl(tar_index)
 
-        if self.config.p_controllers[0].close_opti:
+        if self.config.p_controllers[0].close_opti and (not self.rtc._rtc.d_control[0].open_loop):
             self.modalgains.update_mgains()
             self.close_modal_gains.append(self.modalgains.get_modal_gains())
 

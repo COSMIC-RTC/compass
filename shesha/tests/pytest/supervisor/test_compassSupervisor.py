@@ -514,6 +514,10 @@ def test_compute_influ_basis():
     sup.basis.compute_influ_basis(0)
     assert(True)
 
+def test_compute_influ_delta():
+    sup.basis.compute_influ_delta(0)
+    assert(True)
+
 def test_compute_modes_to_volts_basis():
     _ = sup.basis.compute_modes_to_volts_basis("KL2V")
     _ = sup.basis.compute_modes_to_volts_basis("Btt")
