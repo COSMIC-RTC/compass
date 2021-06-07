@@ -686,8 +686,8 @@ def make_tiptilt_dm(p_dm: conf.Param_dm, patchDiam: int, p_geom: conf.Param_geom
     #norms = [np.linalg.norm([w.xpos, w.ypos]) for w in p_wfs]
 
     nzer = 2
-    influ = dm_util.make_zernike(nzer + 1, dim, patchDiam, p_geom.cent - p_dm._n1 + 1,
-                                 p_geom.cent - p_dm._n1 + 1, 1)[:, :, 1:]
+    influ = dm_util.make_zernike(nzer + 1, dim, patchDiam, p_geom.cent - p_dm._n1 - 0.5,
+                                 p_geom.cent - p_dm._n1 - 0.5, 1)[:, :, 1:]
 
     # normalization factor: one unit of tilt gives 1 arcsec:
     current = influ[dim // 2 - 1, dim // 2 - 1, 0] - \
