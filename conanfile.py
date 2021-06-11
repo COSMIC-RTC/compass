@@ -16,9 +16,7 @@ class CompassConan(ConanFile):
     description = 'End-to-end AO simulation tool using GPU acceleration'
     topics = ('Adaptive Optics', 'Simulation')
     settings = 'os', 'compiler', 'build_type', 'arch'
-    requires = [
-        'emu/0.1@cosmic/stable',
-        ]
+    requires = ['emu/0.1@cosmic/stable']
     generators = ['cmake', 'cmake_find_package']
     options = {
         'shared'        : [True, False],

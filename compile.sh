@@ -22,6 +22,14 @@ fi
 
 echo "Installing compass at ${COMPASS_INSTALL_PATH}"
 
+if [ ! -z $CUDA_SM ]
+then
+    echo "CUDA_SM found: ${CUDA_SM}"
+else
+    echo "CUDA_SM not found. Use auto detection."
+    CUDA_SM=Auto
+fi
+
 if [[ "${COMPASS_DO_HALF,,}" =~ ^(yes|true|on)$ ]]
 then
     COMPASS_DO_HALF=True
@@ -45,6 +53,7 @@ fi
 
 # Resolves dependencies.
 conan install $CONAN_LOCATION -if $LOCAL_DIR/build -b missing \
+    -o emu:cuda_sm=${CUDA_SM}                                 \
     -o compass:half=${COMPASS_DO_HALF}                        \
     -o compass:python_version=${PYTHON_VERSION} || exit 0
 
