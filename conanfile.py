@@ -17,35 +17,45 @@ class CompassConan(ConanFile):
     topics = ('Adaptive Optics', 'Simulation')
     settings = 'os', 'compiler', 'build_type', 'arch'
     requires = [
-        'wyrm/0.4@cosmic/stable',
         'emu/0.1@cosmic/stable',
         ]
     generators = ['cmake', 'cmake_find_package']
     options = {
         'shared'        : [True, False],
         'fPIC'          : [True, False],
-        'python_build'  : [True, False],
+        'python'        : [True, False],
         'half'          : [True, False],
         'python_version': 'ANY'
     }
     default_options = {
-        'shared'      : True,
-        'fPIC'        : True,
-        'python_build': True,
-        'half'        : True,
-        'wyrm:cuda'   : True,
-        'wyrm:half'   : True,
+        'shared'   : True,
+        'fPIC'     : True,
+        'python'   : True,
+        'half'     : True,
+        'wyrm:cuda': True,
     }
+
+    def configure(self):
+        if self.options.half:
+            self.options['wyrm'].python = self.options.python
 
     def requirements(self):
         if cuda_version() < version.parse('11.0'):
             self.requires('cub/1.8.0@cosmic/stable')
+        if self.options.python:
+            self.requires('wyrm/0.4@cosmic/stable')
+        else:
+            self.options.remove('python_version')
 
     def _configure(self):
         cmake = CMake(self)
+
         cmake.definitions['do_half']                 = self.options.half
-        cmake.definitions['build_python_module']     = self.options.python_build
-        cmake.definitions['PYBIND11_PYTHON_VERSION'] = self.options.python_version
+
+        cmake.definitions['build_python_module']     = self.options.python
+        if self.options.python:
+            cmake.definitions['PYBIND11_PYTHON_VERSION'] = self.options.python_version
+
         cmake.definitions['CMAKE_CUDA_ARCHITECTURES'] = self.options['emu'].cuda_sm
 
         cmake.configure(source_folder='.')
