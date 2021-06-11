@@ -72,6 +72,7 @@ template <class T>
 void get_centroids(int size, int threads, int blocks, int n, float *d_idata,
                    T *d_odata, T *ref, int *validx, int *validy,
                    float *intensities, int nbpix, float scale, float offset,
+                   SlopeOrder slope_order,
                    CarmaDevice *device);
 
 template <class T>

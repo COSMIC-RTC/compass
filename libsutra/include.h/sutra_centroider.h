@@ -47,6 +47,14 @@
 #include <sutra_wfs.h>
 #include <string>
 
+enum class SlopeOrder {
+    untied     = 0, // x,x,x,y,y,y
+    interlaced = 1  // x,y,x,y,x,y
+};
+
+inline SlopeOrder slope_order(std::size_t value) {
+    return static_cast<SlopeOrder>(value);
+}
 template <class Tin, class Tout>
 class SutraCentroider {
 public:
@@ -60,6 +68,8 @@ public:
 
   float offset;
   float scale;
+
+  SlopeOrder slope_order = SlopeOrder::untied;
 
   CarmaContext *current_context;
 

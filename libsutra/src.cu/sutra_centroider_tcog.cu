@@ -40,12 +40,13 @@
 //! \copyright GNU Lesser General Public License
 
 #include <sutra_centroider_tcog.h>
+#include <sutra_centroider_utils.cuh>
 #include <carma_utils.cuh>
 
-template <class T, int nb_threads>
+template <int nb_threads, typename T>
 __global__ void centroids(float *d_img, T *d_centroids, T *ref, int *validx,
                           int *validy, float *d_intensities, float threshold,
-                          unsigned int npix, unsigned int size, T scale,
+                          unsigned int npix, sutra::SlopesIndex si, unsigned int size, T scale,
                           T offset, unsigned int nelem_thread) {
   if (blockDim.x > nb_threads) {
     if (threadIdx.x == 0) printf("Wrong size argument\n");
@@ -84,7 +85,6 @@ __global__ void centroids(float *d_img, T *d_centroids, T *ref, int *validx,
 
   // sdata[tid] = (i < N) ? g_idata[i] * x : 0;
   __syncthreads();
-
   float intensity = BlockReduce(temp_storage).Sum(idata, npix * npix);
   __syncthreads();
   float slopex = BlockReduce(temp_storage).Sum(xdata, npix * npix);
@@ -93,11 +93,8 @@ __global__ void centroids(float *d_img, T *d_centroids, T *ref, int *validx,
 
   // write result for this block to global mem
   if (tid == 0) {
-    d_centroids[blockIdx.x] =
-        (T(slopex / (intensity + 1.e-6)) - offset) * scale - ref[blockIdx.x];
-    d_centroids[blockIdx.x + gridDim.x] =
-        (T(slopey / (intensity + 1.e-6)) - offset) * scale -
-        ref[blockIdx.x + gridDim.x];
+    d_centroids[si.x(blockIdx.x)] = (T(slopex / (intensity + 1.e-6)) - offset) * scale - ref[si.x(blockIdx.x)];
+    d_centroids[si.y(blockIdx.x)] = (T(slopey / (intensity + 1.e-6)) - offset) * scale - ref[si.y(blockIdx.x)];
     d_intensities[blockIdx.x] = intensity;
   }
 }
@@ -106,7 +103,9 @@ template <class T>
 void get_centroids(int size, int threads, int blocks, int npix, float *d_img,
                    T *d_centroids, T *ref, int *validx, int *validy,
                    float *intensities, float threshold, float scale,
-                   float offset, CarmaDevice *device) {
+                   float offset,
+                   SlopeOrder slope_order,
+                   CarmaDevice *device) {
   int maxThreads = device->get_properties().maxThreadsPerBlock;
   unsigned int nelem_thread = 1;
   while ((threads / nelem_thread > maxThreads) ||
@@ -114,44 +113,46 @@ void get_centroids(int size, int threads, int blocks, int npix, float *d_img,
     nelem_thread++;
   }
 
+  sutra::SlopesIndex si{blocks, slope_order};
+
   threads /= nelem_thread;
   dim3 dimGrid(blocks, 1, 1);
 
   // when there is only one warp per block, we need to allocate two warps
   // worth of shared memory so that we don't index shared memory out of bounds
   if (threads <= 16)
-    centroids<T, 16><<<dimGrid, 16>>>(d_img, d_centroids, ref, validx, validy,
-                                      intensities, threshold, npix, size,
-                                      T(scale), T(offset), nelem_thread);
+    centroids<  16><<<dimGrid, threads>>>(d_img, d_centroids, ref, validx, validy,
+                                             intensities, threshold, npix, si, size,
+                                             T(scale), T(offset), nelem_thread);
   else if (threads <= 36)
-    centroids<T, 36><<<dimGrid, 36>>>(d_img, d_centroids, ref, validx, validy,
-                                      intensities, threshold, npix, size,
-                                      T(scale), T(offset), nelem_thread);
+    centroids<  36><<<dimGrid, threads>>>(d_img, d_centroids, ref, validx, validy,
+                                             intensities, threshold, npix, si, size,
+                                             T(scale), T(offset), nelem_thread);
 
   else if (threads <= 64)
-    centroids<T, 64><<<dimGrid, 64>>>(d_img, d_centroids, ref, validx, validy,
-                                      intensities, threshold, npix, size,
-                                      T(scale), T(offset), nelem_thread);
+    centroids<  64><<<dimGrid, threads>>>(d_img, d_centroids, ref, validx, validy,
+                                             intensities, threshold, npix, si, size,
+                                             T(scale), T(offset), nelem_thread);
   else if (threads <= 100)
-    centroids<T, 100><<<dimGrid, 100>>>(d_img, d_centroids, ref, validx, validy,
-                                        intensities, threshold, npix, size,
-                                        T(scale), T(offset), nelem_thread);
+    centroids< 100><<<dimGrid, threads>>>(d_img, d_centroids, ref, validx, validy,
+                                             intensities, threshold, npix, si, size,
+                                             T(scale), T(offset), nelem_thread);
   else if (threads <= 144)
-    centroids<T, 144><<<dimGrid, 144>>>(d_img, d_centroids, ref, validx, validy,
-                                        intensities, threshold, npix, size,
-                                        T(scale), T(offset), nelem_thread);
+    centroids< 144><<<dimGrid, threads>>>(d_img, d_centroids, ref, validx, validy,
+                                             intensities, threshold, npix, si, size,
+                                             T(scale), T(offset), nelem_thread);
   else if (threads <= 256)
-    centroids<T, 256><<<dimGrid, 256>>>(d_img, d_centroids, ref, validx, validy,
-                                        intensities, threshold, npix, size,
-                                        T(scale), T(offset), nelem_thread);
+    centroids< 256><<<dimGrid, threads>>>(d_img, d_centroids, ref, validx, validy,
+                                             intensities, threshold, npix, si, size,
+                                             T(scale), T(offset), nelem_thread);
   else if (threads <= 512)
-    centroids<T, 512><<<dimGrid, 512>>>(d_img, d_centroids, ref, validx, validy,
-                                        intensities, threshold, npix, size,
-                                        T(scale), T(offset), nelem_thread);
+    centroids< 512><<<dimGrid, threads>>>(d_img, d_centroids, ref, validx, validy,
+                                             intensities, threshold, npix, si, size,
+                                             T(scale), T(offset), nelem_thread);
   else if (threads <= 1024)
-    centroids<T, 1024><<<dimGrid, 1024>>>(
-        d_img, d_centroids, ref, validx, validy, intensities, threshold, npix,
-        size, T(scale), T(offset), nelem_thread);
+    centroids<1024><<<dimGrid, threads>>>(d_img, d_centroids, ref, validx, validy,
+                                             intensities, threshold, npix, si, size,
+                                             T(scale), T(offset), nelem_thread);
   else
     printf("SH way too big !!!\n");
 
@@ -162,6 +163,7 @@ template void get_centroids<float>(int size, int threads, int blocks, int npix,
                                    float *d_img, float *d_centroids, float *ref,
                                    int *validx, int *validy, float *intensities,
                                    float threshold, float scale, float offset,
+                                   SlopeOrder slope_order,
                                    CarmaDevice *device);
 
 template void get_centroids<double>(int size, int threads, int blocks, int npix,
@@ -169,12 +171,14 @@ template void get_centroids<double>(int size, int threads, int blocks, int npix,
                                     double *ref, int *validx, int *validy,
                                     float *intensities, float threshold,
                                     float scale, float offset,
+                                    SlopeOrder slope_order,
                                     CarmaDevice *device);
 #ifdef CAN_DO_HALF
 template void get_centroids<half>(int size, int threads, int blocks, int npix,
                                   float *d_img, half *d_centroids, half *ref,
                                   int *validx, int *validy, float *intensities,
                                   float threshold, float scale, float offset,
+                                  SlopeOrder slope_order,
                                   CarmaDevice *device);
 #endif
 // template <class T>
