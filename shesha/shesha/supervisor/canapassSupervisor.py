@@ -82,8 +82,6 @@ class CanapassSupervisor(CompassSupervisor):
         CompassSupervisor.__init__(self, config, cacao=cacao)
 
 
-    def get_m_pupil(self):
-        return self.config.p_geom.get_mpupil()
 ########################## PROTO #############################
 
 # def initModalGain(self, gain, cmatModal, modal_basis, control=0, reset_gain=True):

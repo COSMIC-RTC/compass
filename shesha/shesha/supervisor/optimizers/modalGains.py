@@ -179,8 +179,8 @@ class ModalGains(object):
     def set_modal_gains(self, mgains):
         """Sets manually the modal gains
 
-        Return:
-            NA
+        Args:
+            mgains : (np.ndarray) : the modal gains array
         """
         self.mgains = mgains
         self._rtc.set_modal_gains(0, mgains)
