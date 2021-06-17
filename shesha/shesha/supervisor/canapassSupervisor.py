@@ -82,6 +82,8 @@ class CanapassSupervisor(CompassSupervisor):
         CompassSupervisor.__init__(self, config, cacao=cacao)
 
 
+    def get_m_pupil(self):
+        return self.config.p_geom.get_mpupil()
 ########################## PROTO #############################
 
 # def initModalGain(self, gain, cmatModal, modal_basis, control=0, reset_gain=True):
@@ -149,10 +151,8 @@ if __name__ == '__main__':
     try:
         from subprocess import Popen, PIPE
         from hraa.server.pyroServer import PyroServer
-        # Init looper
-        wao_loop = loopHandler()
-
-        # Find username
+        import Pyro4
+        Pyro4.config.REQUIRE_EXPOSE = False
         p = Popen("whoami", shell=True, stdout=PIPE, stderr=PIPE)
         out, err = p.communicate()
         if (err != b''):
@@ -161,18 +161,21 @@ if __name__ == '__main__':
         else:
             user = out.split(b"\n")[0].decode("utf-8")
             print("User is " + user)
-
-        devices = [supervisor, supervisor.rtc, supervisor.wfs,
-        supervisor.target, supervisor.tel,supervisor.basis, supervisor.calibration,
-        supervisor.atmos, supervisor.dms,  supervisor.config, supervisor.modalgains, wao_loop]
-
-        names = ["supervisor", "supervisor_rtc", "supervisor_wfs",
-        "supervisor_target", "supervisor_tel", "supervisor_basis", "supervisor_calibration",
-        "supervisor_atmos", "supervisor_dms", "supervisor_config", "supervisor_modalgains", "wao_loop"]
-        nname = [];
+        devices = [
+                supervisor, supervisor.rtc, supervisor.wfs, supervisor.target,
+                supervisor.tel, supervisor.basis, supervisor.calibration,
+                supervisor.atmos, supervisor.dms, supervisor.config, supervisor.modalgains
+        ]
+        names = [
+                "supervisor", "supervisor_rtc", "supervisor_wfs", "supervisor_target",
+                "supervisor_tel", "supervisor_basis", "supervisor_calibration",
+                "supervisor_atmos", "supervisor_dms", "supervisor_config", "supervisor_modalgains"
+        ]
+        nname = []
         for name in names:
-            nname.append(name+"_"+user)
-        server = PyroServer(listDevices=devices, listNames=nname)
+            nname.append(name + "_" + user)
+        server = PyroServer(listDevices=devices, listNames=names)
+        #server.add_device(supervisor, "waoconfig_" + user)
         server.start()
     except:
         raise EnvironmentError(

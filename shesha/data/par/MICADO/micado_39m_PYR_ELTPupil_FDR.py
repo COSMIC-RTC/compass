@@ -10,10 +10,11 @@ p_loop = ao.Param_loop()
 
 p_loop.set_niter(1000)
 p_loop.set_ittime(1 / 500.)  # =1/500
-p_loop.set_devices([4, 5, 6, 7])
+p_loop.set_devices([0, 1, 2, 3])
 # geom
 p_geom = ao.Param_geom()
 p_geom.set_zenithangle(0.)
+# p_geom.set_pupdiam(1104)
 
 # tel
 p_tel = ao.Param_tel()
@@ -24,6 +25,8 @@ p_tel.set_diam(40)
 p_tel.set_pupangle(0.)  #ELT pup rotation in degrees
 # p_tel.set_t_spiders(0.51)  #Spider size in meters
 p_tel.set_t_spiders(0.51)  #Spider size in meters
+#p_tel.set_std_tt(0.03)
+#p_tel.set_std_piston(0.02)
 
 """
 #E_ELT PUPIL Alexis like
@@ -79,6 +82,7 @@ p_atmos = ao.Param_atmos()
 ## 1 Layer
 
 p_atmos.set_r0(0.129)
+# p_atmos.set_r0(0.078)
 # p_atmos.set_r0(0.215)
 p_atmos.set_nscreens(1)
 p_atmos.set_frac([1.0])
@@ -142,75 +146,55 @@ p_wfs0.set_noise(0.3)   # units: electrons/pixel
 p_wfs0.set_atmos_seen(1)   # tell if atmos is seen or not
 p_wfs0.set_fstop("square") # shape of field stop, "round", "square"
 p_wfs0.set_fssize(1.6)     # size of field stop (arcsec)
+# p_wfs0.set_fssize(0.0185)
 rMod = 3.  # Modulation radius, in lam/D units
 nbPtMod = int(np.ceil(int(rMod * 2 * 3.141592653589793) / 4.) * 4)
 p_wfs0.set_pyr_npts(nbPtMod) # nb pts modu around circle
 p_wfs0.set_pyr_ampl(rMod)  # define modulation amplitude
+#p_wfs0.set_nPupils(6)    #8, 24
+
 # p_wfs0.set_pyr_compute_focalplane(True)
-# a = np.zeros((20,2))
-# scale = 1541.7678
-# a[:,0] = np.concatenate((np.linspace(- 0.02561081/scale, 0.02561081/scale, 10), np.zeros(10)))
-# a[:,1] = np.concatenate((np.zeros(10), np.linspace(- 0.02561081/scale, 0.02561081/scale, 10)))
-# p_wfs0.set_pyr_pos(a)
 
-clover_pos = np.array([[ 0.00000000e+00,  0.00000000e+00],       [ 4.01503344e-07,  2.53499235e-06],       [ 1.50860454e-06,  4.64300736e-06],       [ 3.05055438e-06,  5.98705007e-06],
-       [ 4.64300736e-06,  6.39055139e-06],       [ 5.87299138e-06,  5.87299138e-06],       [ 6.39055139e-06,  4.64300736e-06],       [ 5.98705007e-06,  3.05055438e-06],
-       [ 4.64300736e-06,  1.50860454e-06],       [ 2.53499235e-06,  4.01503344e-07],       [ 1.01715049e-21,  6.22825046e-38],       [-2.53499235e-06,  4.01503344e-07],
-       [-4.64300736e-06,  1.50860454e-06],       [-5.98705007e-06,  3.05055438e-06],       [-6.39055139e-06,  4.64300736e-06],       [-5.87299138e-06,  5.87299138e-06],
-       [-4.64300736e-06,  6.39055139e-06],       [-3.05055438e-06,  5.98705007e-06],       [-1.50860454e-06,  4.64300736e-06],       [-4.01503344e-07,  2.53499235e-06],
-       [-2.49130019e-37,  2.03430098e-21],       [-4.01503344e-07, -2.53499235e-06],       [-1.50860454e-06, -4.64300736e-06],       [-3.05055438e-06, -5.98705007e-06],
-       [-4.64300736e-06, -6.39055139e-06],       [-5.87299138e-06, -5.87299138e-06],       [-6.39055139e-06, -4.64300736e-06],       [-5.98705007e-06, -3.05055438e-06],
-       [-4.64300736e-06, -1.50860454e-06],       [-2.53499235e-06, -4.01503344e-07],       [-3.05145147e-21, -5.60542542e-37],       [ 2.53499235e-06, -4.01503344e-07],
-       [ 4.64300736e-06, -1.50860454e-06],       [ 5.98705007e-06, -3.05055438e-06],       [ 6.39055139e-06, -4.64300736e-06],       [ 5.87299138e-06, -5.87299138e-06],
-       [ 4.64300736e-06, -6.39055139e-06],       [ 3.05055438e-06, -5.98705007e-06],       [ 1.50860454e-06, -4.64300736e-06],       [ 4.01503344e-07, -2.53499235e-06]])
-
-hypo_pos2 = np.array([[ 8.30566406e-06,  0.00000000e+00],       [ 7.88220488e-06, -7.28701763e-07],       [ 6.69227230e-06, -1.14781454e-06],       [ 4.95995737e-06, -1.01894748e-06],
-       [ 3.00501749e-06, -2.30494264e-07],       [ 1.17459828e-06,  1.17459828e-06],       [-2.30494264e-07,  3.00501749e-06],       [-1.01894748e-06,  4.95995737e-06],
-       [-1.14781454e-06,  6.69227230e-06],       [-7.28701763e-07,  7.88220488e-06],       [-3.05145147e-22,  8.30566406e-06],       [ 7.28701763e-07,  7.88220488e-06],
-       [ 1.14781454e-06,  6.69227230e-06],       [ 1.01894748e-06,  4.95995737e-06],       [ 2.30494264e-07,  3.00501749e-06],       [-1.17459828e-06,  1.17459828e-06],
-       [-3.00501749e-06, -2.30494264e-07],       [-4.95995737e-06, -1.01894748e-06],       [-6.69227230e-06, -1.14781454e-06],       [-7.88220488e-06, -7.28701763e-07],
-       [-8.30566406e-06, -6.10290295e-22],       [-7.88220488e-06,  7.28701763e-07],       [-6.69227230e-06,  1.14781454e-06],       [-4.95995737e-06,  1.01894748e-06],
-       [-3.00501749e-06,  2.30494264e-07],       [-1.17459828e-06, -1.17459828e-06],       [ 2.30494264e-07, -3.00501749e-06],       [ 1.01894748e-06, -4.95995737e-06],
-       [ 1.14781454e-06, -6.69227230e-06],       [ 7.28701763e-07, -7.88220488e-06],       [ 9.15435442e-22, -8.30566406e-06],       [-7.28701763e-07, -7.88220488e-06],
-       [-1.14781454e-06, -6.69227230e-06],       [-1.01894748e-06, -4.95995737e-06],       [-2.30494264e-07, -3.00501749e-06],       [ 1.17459828e-06, -1.17459828e-06],
-       [ 3.00501749e-06,  2.30494264e-07],       [ 4.95995737e-06,  1.01894748e-06],       [ 6.69227230e-06,  1.14781454e-06],       [ 7.88220488e-06,  7.28701763e-07]])
-
-hypo_pos3 = np.array([[ 8.30566406e-06,  0.00000000e+00],       [ 7.80190421e-06, -1.23570023e-06],       [ 6.39055139e-06, -2.07641602e-06],       [ 4.34984649e-06, -2.21635749e-06],
-       [ 2.07641602e-06, -1.50860454e-06],       [ 6.14742632e-22,  0.00000000e+00],       [-1.50860454e-06,  2.07641602e-06],       [-2.21635749e-06,  4.34984649e-06],
-       [-2.07641602e-06,  6.39055139e-06],       [-1.23570023e-06,  7.80190421e-06],       [-5.08575245e-22,  8.30566406e-06],       [ 1.23570023e-06,  7.80190421e-06],
-       [ 2.07641602e-06,  6.39055139e-06],       [ 2.21635749e-06,  4.34984649e-06],       [ 1.50860454e-06,  2.07641602e-06],       [ 6.14742632e-22,  1.22948526e-21],
-       [-2.07641602e-06, -1.50860454e-06],       [-4.34984649e-06, -2.21635749e-06],       [-6.39055139e-06, -2.07641602e-06],       [-7.80190421e-06, -1.23570023e-06],
-       [-8.30566406e-06, -1.01715049e-21],       [-7.80190421e-06,  1.23570023e-06],       [-6.39055139e-06,  2.07641602e-06],       [-4.34984649e-06,  2.21635749e-06],
-       [-2.07641602e-06,  1.50860454e-06],       [-4.30319842e-21,  4.30319842e-21],       [ 1.50860454e-06, -2.07641602e-06],       [ 2.21635749e-06, -4.34984649e-06],
-       [ 2.07641602e-06, -6.39055139e-06],       [ 1.23570023e-06, -7.80190421e-06],       [ 1.52572574e-21, -8.30566406e-06],       [-1.23570023e-06, -7.80190421e-06],
-       [-2.07641602e-06, -6.39055139e-06],       [-2.21635749e-06, -4.34984649e-06],       [-1.50860454e-06, -2.07641602e-06],       [ 0.00000000e+00,  0.00000000e+00],
-       [ 2.07641602e-06,  1.50860454e-06],       [ 4.34984649e-06,  2.21635749e-06],       [ 6.39055139e-06,  2.07641602e-06],       [ 7.80190421e-06,  1.23570023e-06]])
-
-# p_wfs0.set_pyr_npts(40)
-# p_wfs0.set_pyr_pos(clover_pos*2)
-
-# p_wfs0.set_pyr_npts(40)
-# p_wfs0.set_pyr_pos(hypo_pos2*2)
-
-# p_wfs0.set_pyr_npts(1)
-# p_wfs0.set_pyr_pos(np.zeros((1,2)))
+#p_wfs0.set_pyr_npts(1)
+#p_wfs0.set_pyr_pos(np.zeros((1,2)))
 
 #p_wfs0.set_pyr_pup_sep(int(2 / 3. * p_wfs0.nxsub)) # diffraction effect
 #p_wfs0.set_pyr_pup_sep((p_wfs0.nxsub))
+
+npts = 36    # number of modulation points
+t = np.linspace(0, 2 * np.pi * (1-1/npts), npts)
+#p_wfs0.set_pyr_npts(npts)
+
+nb = 4    # number of branches / edges of the clover
+k = 2
+a_mod = 3    # modulation amplitude [lambda / D]
+
+path = np.zeros((npts, 2))
+n_samp = 4096    # * 2
+r_fac = a_mod / (nb-1 + k) * 2 * 0.7e-6 * 3600 * 180 / n_samp / 40
+temp1 = ((nb - 1) * np.cos(t) + k * np.cos((nb - 1) * t))
+temp2 = ((nb - 1) * np.sin(t) - k * np.sin((nb - 1) * t))
+
+# path[:, 0] = r_fac * temp1
+# path[:, 1] = r_fac * temp2
+theta = 0
+path[:, 0] = r_fac * (temp1 * np.cos(theta) - temp2 * np.sin(theta))
+path[:, 1] = r_fac * (temp1 * np.sin(theta) + temp2 * np.cos(theta))
+#p_wfs0.set_pyr_pos(path)
 
 """
 With 52 pixels of margin between 2 edges of pupils on a 240x240 detector and 92 pixels of pupil:
 in Compass pupsep is separation between 1 pupil center and Half of detector
 pupsep = 52/2+92/2 = 72
 """
-p_wfs0.set_pyr_pup_sep(72) # half pupil separation (center-to-center)
-
+p_wfs0.set_pyr_pup_sep(72)    # 72, 72//8 # half pupil separation (center-to-center)
+# p_wfs0.set_pyr_pup_sep(2)
 # dm
 p_dm0 = ao.Param_dm()
 p_dm1 = ao.Param_dm()
-# p_dm2 = ao.Param_dm()
-# p_dms = [p_dm0, p_dm2, p_dm1]
-p_dms = [p_dm0, p_dm1]
+p_dm2 = ao.Param_dm()
+p_dms = [p_dm0, p_dm2, p_dm1]
+#p_dms = [p_dm0, p_dm1]
 p_dm0.set_type(scons.DmType.PZT)
 nact = p_wfs0.nxsub + 1
 #nact = 9
@@ -235,7 +219,7 @@ p_dm0.set_unitpervolt(1)
 p_dm0.set_thresh(0.)  # fraction units
 p_dm0.set_margin_out(0.6)
 #p_dm0.set_file_influ_fits('/home/abertrou/m4_eelt_compass/testJojo.fits')
-p_dm0.set_file_influ_fits('/home/fvidal/shesha/data/dm-init/cropped_M4IF.fits')
+p_dm0.set_file_influ_fits('cropped_M4IF.fits')
 p_dm0.set_push4imat(0.01)
 p_dm0.set_diam_dm(40.0)
 
@@ -247,11 +231,11 @@ p_dm1.set_unitpervolt(1)
 p_dm1.set_push4imat(0.005)
 #p_dm1.set_gain(0.2)
 
-# p_dm2.set_type('pzt')
-# p_dm2.set_alt(0.)
-# p_dm2.set_unitpervolt(1)
-# p_dm2.set_push4imat(0.01)
-# p_dm2.set_influType("petal")
+p_dm2.set_type('pzt')
+p_dm2.set_alt(0.)
+p_dm2.set_unitpervolt(1)
+p_dm2.set_push4imat(0.01)
+p_dm2.set_influ_type("petal")
 
 # centroiders
 p_centroider0 = ao.Param_centroider()
@@ -259,9 +243,8 @@ p_centroider0 = ao.Param_centroider()
 p_centroiders = [p_centroider0]
 
 p_centroider0.set_nwfs(0)
-#p_centroider0.set_type("pyr")
 # p_centroider0.set_method(2)
-
+# p_centroider0.set_type("pyr")
 p_centroider0.set_type("maskedpix")
 # sp_centroider0.set_thresh(0.)
 
@@ -280,10 +263,9 @@ p_controller0.set_type("generic") # V(k) = a.E.V(k-1) + g.R.m(k)
 #p_controller0.set_type("geo")    # bypass the WFS (direct DM proj)
 
 p_controller0.set_nwfs([0])
-#p_controller0.set_ndm([0, 2])
-p_controller0.set_ndm([0, 1])
+p_controller0.set_ndm([0, 2])
 p_controller0.set_maxcond(150.)
-p_controller0.set_delay(0)   # loop delay. "0 = 1 frame delay".
+p_controller0.set_delay(1)   # loop delay. "0 = 1 frame delay".
 p_controller0.set_gain(1)
 # p_controller0.set_nstates(6)
 

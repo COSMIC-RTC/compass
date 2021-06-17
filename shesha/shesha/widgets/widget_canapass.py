@@ -163,6 +163,7 @@ class widgetCanapassWindowPyro(widgetAOWindow):
         try:
             from subprocess import Popen, PIPE
             from hraa.server.pyroServer import PyroServer
+
             # Init looper
             wao_loop = loopHandler(self)
 
