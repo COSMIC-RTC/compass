@@ -24,6 +24,7 @@ p_tel.set_type_ap("EELT")
 p_tel.set_diam(40.0)
 p_tel.set_pupangle(0.)  #ELT pup rotation in degrees
 p_tel.set_t_spiders(0.0)  #Spider size in meters
+#p_tel.set_t_spiders(0.51)  #Spider size in meters
 """
 #E_ELT PUPIL Alexis like
 p_tel.set_diam(38.542)
@@ -83,7 +84,7 @@ p_wfss = [p_wfs0]
 p_wfs0.set_type("pyrhr")  # type de WFS: "sh", "pyrhr", "pyr"
 
 p_wfs0.set_nxsub(
-        92
+        100 # 100 to get 95 pixels in the pupil. 
 )  # 92 sub aps for hexagonal grid of actuators eq. 78 subaps square grid. (pitch = 0.5m)
 p_wfs0.set_fracsub(0.1)  # Minimal illumination fraction
 p_wfs0.set_xpos(0.)  # direction of guide star in X (arcsec)
@@ -173,7 +174,7 @@ p_controller0.set_ndm([0, 1])
 p_controller0.set_maxcond(150.)
 p_controller0.set_delay(1)  # loop delay. "0 = 1 frame delay".
 p_controller0.set_gain(1)
-
+#p_controller0.set_nstates(6)
 # p_controller0.set_modopti(0)
 # p_controller0.set_nrec(2048)
 # p_controller0.set_nmodes(5064)

@@ -14,6 +14,7 @@ build_release:
     - export COMPASS_DO_HALF="OFF"
     - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
+    - rm -rf ~/.conan
     - ./install_dependencies.sh
     - ./compile.sh $PWD/local
   when: manual
@@ -43,6 +44,7 @@ build_debug:
   script:
     - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
+    - rm -rf ~/.conan
     - ./install_dependencies.sh
     - ./compile.sh $PWD/local
   when: always
