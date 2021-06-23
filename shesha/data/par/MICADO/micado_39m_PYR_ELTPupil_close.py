@@ -83,7 +83,7 @@ p_wfss = [p_wfs0]
 p_wfs0.set_type("pyrhr")  # type de WFS: "sh", "pyrhr", "pyr"
 
 p_wfs0.set_nxsub(
-        92
+        100
 )  # 92 sub aps for hexagonal grid of actuators eq. 78 subaps square grid. (pitch = 0.5m)
 p_wfs0.set_fracsub(0.1)  # Minimal illumination fraction
 p_wfs0.set_xpos(0.)  # direction of guide star in X (arcsec)
@@ -152,6 +152,7 @@ p_centroiders = [p_centroider0]
 
 p_centroider0.set_nwfs(0)
 p_centroider0.set_type("pyr")
+p_centroider0.set_type("maskedpix")
 # sp_centroider0.set_thresh(0.)
 
 # p_centroider0.set_type("bpcog")
@@ -174,7 +175,8 @@ p_controller0.set_maxcond(150.)
 p_controller0.set_delay(1)  # loop delay. "0 = 1 frame delay".
 p_controller0.set_gain(1)
 
-p_controller0.set_close_opti(True)
+
+p_controller0.set_close_opti(False)
 p_controller0.set_close_learning_factor(0.3)
 
 # p_controller0.set_modopti(0)

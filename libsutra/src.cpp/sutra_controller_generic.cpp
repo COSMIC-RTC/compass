@@ -255,7 +255,6 @@ int sutra_controller_generic<T, Tout>::set_commandlaw(string law) {
 template <typename T, typename Tout>
 int sutra_controller_generic<T, Tout>::comp_polc(){
   comp_polc(*(this->d_centroids), *(this->d_imat), *(this->d_olmeas));
-
   return EXIT_SUCCESS;
 }
 

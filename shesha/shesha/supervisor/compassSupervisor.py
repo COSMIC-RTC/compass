@@ -248,7 +248,7 @@ class CompassSupervisor(GenericSupervisor):
                         self.wfs.raytrace(w, tel=self.tel)
 
                     if not self.config.p_wfss[w].open_loop and self.dms is not None:
-                        self.wfs.raytrace(w, dms=self.dms, reset=False)
+                        self.wfs.raytrace(w, dms=self.dms, ncpa=False, reset=False)
                     self.wfs.compute_wfs_image(w)
             if do_control and self.rtc is not None:
                 for ncontrol in nControl : # range(len(self.config.p_controllers)):
@@ -268,7 +268,7 @@ class CompassSupervisor(GenericSupervisor):
                 self.target.comp_tar_image(tar_index)
                 self.target.comp_strehl(tar_index)
 
-        if self.config.p_controllers[0].close_opti:
+        if self.config.p_controllers[0].close_opti and (not self.rtc._rtc.d_control[0].open_loop):
             self.modalgains.update_mgains()
             self.close_modal_gains.append(self.modalgains.get_modal_gains())
 

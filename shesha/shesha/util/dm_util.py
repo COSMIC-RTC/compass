@@ -345,7 +345,6 @@ def make_zernike(nzer: int, size: int, diameter: int, xc=-1., yc=-1., ext=0):
 
     zr = zr * zmask[:, :, 0]
 
-    #x = np.tile(np.linspace(1, size, size).astype(np.float32), (size, 1))
     x = np.tile(np.arange(size).astype(np.float32), (size, 1))
     zteta = np.arctan2(x - yc, x.T - xc).astype(np.float32)
 

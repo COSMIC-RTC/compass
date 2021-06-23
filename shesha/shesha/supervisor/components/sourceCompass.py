@@ -50,7 +50,7 @@ class SourceCompass(object):
         """
         self.sources = sources
 
-    def raytrace(self, index, *, tel=None, atm=None, dms=None, ncpa : bool=True, reset : bool = True) -> None:
+    def raytrace(self, index, *, tel=None, atm=None, dms=None, ncpa : bool=True, reset : bool = True, comp_avg_var : bool = True) -> None:
         """ Performs the raytracing operation through provided object phase screens
         to obtain the phase screen of the SutraSource
 
@@ -78,7 +78,7 @@ class SourceCompass(object):
             self.sources[index].raytrace(atm._atmos) # Must be done first because of automatic reset of the phase screen when call
         if tel is not None:
             self.sources[index].raytrace(tel._tel)
-        if dms is not None:
-            self.sources[index].raytrace(dms._dms)
         if ncpa:
             self.sources[index].raytrace()
+        if dms is not None:
+            self.sources[index].raytrace(dms._dms, do_phase_var=comp_avg_var)

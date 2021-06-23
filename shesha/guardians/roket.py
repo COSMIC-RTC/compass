@@ -139,7 +139,7 @@ class Roket(CompassSupervisor):
 
         #self.tar.comp_image(0)
         SRs = self.target.get_strehl(0)
-        self.SR2 = np.exp(SRs[3])
+        self.SR2 = np.exp(-SRs[3])
         self.SR = SRs[1]
 
     def error_breakdown(self):
@@ -255,7 +255,7 @@ class Roket(CompassSupervisor):
         ###########################################################################
         ## Wavefront + filtered modes reconstruction
         ###########################################################################
-        self.target.raytrace(0, atm=self.atmos)
+        self.target.raytrace(0, atm=self.atmos, ncpa=False)
         #self.rtc.do_control(1, 0, wfs_direction=False)
         self.rtc.do_control(1, sources=self.target.sources, is_wfs_phase=False)
         #self.rtc.do_control(0)
@@ -266,7 +266,7 @@ class Roket(CompassSupervisor):
         ## Fitting
         ###########################################################################
         self.rtc.apply_control(1)
-        self.target.raytrace(0, dms=self.dms, reset=False)
+        self.target.raytrace(0, dms=self.dms, ncpa=False, reset=False, comp_avg_var=False)
         self.target.comp_tar_image(0, compLE=False)
         self.target.comp_strehl(0)
         self.fit[self.iter_number] = self.target.get_strehl(0)[2]
@@ -462,7 +462,7 @@ if __name__ == "__main__":
     else:
         savename = "roket_default.h5"
     config = ParamConfig(param_file)
-    roket = Roket(config)
+    roket = Roket(config, gamma=1.057157528070756)
     roket.init_config()
     roket.loop()
     roket.save_in_hdf5(savename)
