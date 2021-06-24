@@ -136,6 +136,24 @@ void controller_generic_linear_impl(py::module &mod, const char *name) {
           (see compass.io details on the generic linear controller)")
 
       .def_property_readonly(
+          "d_x_now", [](controller_generic_linear &sc) { 
+              return sc.d_x_now.get(); },
+          "temporary state vector used for control calcs\n\
+          (see compass.io details on the generic linear controller)")
+
+      .def_property_readonly(
+          "d_s_now", [](controller_generic_linear &sc) { 
+              return sc.d_s_now.get(); },
+          "temporary slope vector used for control calcs\n\
+          (see compass.io details on the generic linear controller)")
+
+      .def_property_readonly(
+          "d_u_now", [](controller_generic_linear &sc) { 
+              return sc.d_u_now.get(); },
+          "temporary command vector used for control calcs\n\
+          (see compass.io details on the generic linear controller)")
+
+      .def_property_readonly(
           "d_circular_x", [](controller_generic_linear &sc) { 
               return sc.d_circular_x; },
           "circular state buffer\n\

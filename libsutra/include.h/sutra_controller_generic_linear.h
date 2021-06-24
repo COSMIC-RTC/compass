@@ -52,11 +52,6 @@ class sutra_controller_generic_linear : public SutraController<Tcomp, Tout> {
 
 
 private:
-  std::unique_ptr<CarmaObj<Tcomp>> d_x_now;   //!< vector used for state calcs
-  std::unique_ptr<CarmaObj<Tcomp>> d_s_now;   //!< vector used for slope calcs
-  std::unique_ptr<CarmaObj<Tcomp>> d_u_now;   //!< vector used for modal calcs
-  std::unique_ptr<CarmaObj<Tcomp>> d_eff_u;   //!< vector used for command calcs
-
   using SutraController<Tcomp,Tout>::nslopes; //!< num of meas in slope vector
   using SutraController<Tcomp,Tout>::nactus;  //!< num of coms in com vector
 
@@ -86,6 +81,10 @@ public:
   int n_mode_buffers(){return m_n_mode_buffers;}
   int n_iir_in(){return m_n_iir_in;}
   int n_iir_out(){return m_n_iir_out;}
+
+  std::unique_ptr<CarmaObj<Tcomp>> d_x_now;   //!< vector used for state calcs
+  std::unique_ptr<CarmaObj<Tcomp>> d_s_now;   //!< vector used for slope calcs
+  std::unique_ptr<CarmaObj<Tcomp>> d_u_now;   //!< vector used for modal calcs
 
   std::deque<CarmaObj<Tcomp> *> d_circular_x;     //!< circ buffer states
   std::deque<CarmaObj<Tcomp> *> d_circular_s;     //!< circ buffer slopes

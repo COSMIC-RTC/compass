@@ -97,8 +97,6 @@ sutra_controller_generic_linear<T, Tout>::sutra_controller_generic_linear(
     d_L.push_back(new CarmaObj<T>(context, {2,m_n_states, nslopes}));
   }
 
-  d_eff_u = make_unique_carma_obj<T>(context, {nactu});
-
   d_u_now = make_unique_carma_obj<T>(context, {nmodes});
   for(int i=0;i<m_n_iir_in;i++){
     d_circular_u_in.push_front(new CarmaObj<T>(context, {1,m_n_modes}));
