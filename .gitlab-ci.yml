@@ -25,12 +25,12 @@ build_release:
       - local/
     expire_in: 1 week
 
-build_release_master:
+build_release_main:
   stage: build
   extends: build_release
   when: always
   only:
-    - master
+    - main
     - rc
     - tags
 
@@ -81,14 +81,14 @@ pytests:
     - merge_requests
     - develop
 
-master_pytests:
+main_pytests:
   stage: test
   extends: pytests
   dependencies:
-    - build_release_master
+    - build_release_main
   when: always
   only:
-    - master
+    - main
     - rc
     - tags
 
