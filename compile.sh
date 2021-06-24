@@ -28,13 +28,13 @@ fi
 # COMPASS_DEBUG="-DCMAKE_BUILD_TYPE=Debug"
 #NCPUS=`fgrep processor /proc/cpuinfo | wc -l`
 
-conan install -if build --build=missing $CONAN_LOCATION
+conan install -if build --build=missing $CONAN_LOCATION || exit 127
 # conan build -bf build  $CONAN_LOCATION
 # conan package -bf build -pf $COMPASS_INSTALL_ROOT $CONAN_LOCATION
 
 cd build
-cmake $LOCAL_DIR -DPYTHON_EXECUTABLE=$(which python) -DCMAKE_INSTALL_PREFIX=$COMPASS_INSTALL_ROOT -Ddo_half=$COMPASS_DO_HALF $COMPASS_DEBUG $BUILD_TOOL
-cmake --build . --target install -- -j $NCPUS
+cmake $LOCAL_DIR -DPYTHON_EXECUTABLE=$(which python) -DCMAKE_INSTALL_PREFIX=$COMPASS_INSTALL_ROOT -Ddo_half=$COMPASS_DO_HALF $COMPASS_DEBUG $BUILD_TOOL || exit 127
+cmake --build . --target install -- -j $NCPUS || exit 127
 
 # conan export-pkg . conan/stable -f
 # conan upload compass/5.1@conan/stable --all -r=hippo6
