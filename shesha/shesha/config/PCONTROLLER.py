@@ -658,64 +658,64 @@ class Param_controller:
     close_target = property(get_close_target, set_close_target)
 
     def get_n_iir_in(self):
-        """TODO
+        """ Get the number of inputs used in iir filter
 
-        :return: (int) :
+        :return: (int) : number of iir inputs
         """
         return self.__n_iir_in
 
     def set_n_iir_in(self, n):
-        """
+        """ Set the number of inputs used in iir filter
 
-        :param : (int) :
+        :param : (int) : number of iir inputs
         """
         self.__n_iir_in = csu.enforce_int(n)
 
     n_iir_in = property(get_n_iir_in, set_n_iir_in)
 
     def get_n_iir_out(self):
-        """TODO
+        """ Get the number of outputs used in iir filter
 
-        :return: (int) :
+        :return: (int) : number of iir outputs
         """
         return self.__n_iir_out
 
     def set_n_iir_out(self, n):
-        """
+        """ Set the number of outputs used in iir filter
 
-        :param : (int) :
+        :param : (int) : number of iir outputs
         """
         self.__n_iir_out = csu.enforce_int(n)
 
     n_iir_out = property(get_n_iir_out, set_n_iir_out)
 
     def get_polc(self):
-        """TODO
+        """ Get POLC flag (True means using POL slopes)
 
-        :return: (bool) :
+        :return: (bool) : POLC flag
         """
         return self.__polc
 
     def set_polc(self, p):
-        """
+        """ Set POLC flag (True means using POL slopes)
 
-        :param : (bool) :
+        :param : (bool) : POLC flag
         """
         self.__polc = csu.enforce_or_cast_bool(p)
 
     polc = property(get_polc, set_polc)
 
     def get_modal(self):
-        """TODO
+        """ Get flag to use modal control \n(allows MVM from modes to actu)
 
-        :return: (bool) :
+        :return: (bool) : modal flag
         """
         return self.__modal
 
     def set_modal(self, m):
-        """
+        """ Set flag to use modal control \n(allows MVM from modes to actu)
 
-        :param : (bool) :
+        :param : (bool) : modal flag
         """
         self.__modal = csu.enforce_or_cast_bool(m)
 
