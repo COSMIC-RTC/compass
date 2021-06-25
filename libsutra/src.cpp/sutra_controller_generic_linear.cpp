@@ -88,15 +88,13 @@ sutra_controller_generic_linear<T, Tout>::sutra_controller_generic_linear(
   d_x_now = make_unique_carma_obj<T>(context, {m_n_states});
   for(int i=0;i<m_n_state_buffers;i++){
     d_circular_x.push_front(new CarmaObj<T>(context, {1,m_n_states}));
-    d_A.push_back(new CarmaObj<T>(context, {2,m_n_states, m_n_states}));
+    d_matA.push_back(new CarmaObj<T>(context, {2,m_n_states, m_n_states}));
   }
   d_s_now = make_unique_carma_obj<T>(context, {nslopes});
   for(int i=0;i<m_n_slope_buffers;i++){
     d_circular_s.push_front(new CarmaObj<T>(context, {1,nslopes}));
-    d_L.push_back(new CarmaObj<T>(context, {2,m_n_states, nslopes}));
+    d_matL.push_back(new CarmaObj<T>(context, {2,m_n_states, nslopes}));
   }
-
-  d_eff_u = make_unique_carma_obj<T>(context, {nactu});
 
   d_u_now = make_unique_carma_obj<T>(context, {nmodes});
   for(int i=0;i<m_n_iir_in;i++){
@@ -110,14 +108,14 @@ sutra_controller_generic_linear<T, Tout>::sutra_controller_generic_linear(
 
   m_polc = false;
   m_modal = false;
-  d_K = make_unique_carma_obj<T>(context, {nmodes , nstates});
+  d_matK = make_unique_carma_obj<T>(context, {nmodes , nstates});
   if(polc){
     m_polc = true;
-    d_D = make_unique_carma_obj<T>(context, {nslopes , nactu  });
+    d_matD = make_unique_carma_obj<T>(context, {nslopes , nactu  });
   }
   if(is_modal){
     m_modal = true;
-    d_F = make_unique_carma_obj<T>(context, {nactu  , nmodes });
+    d_matF = make_unique_carma_obj<T>(context, {nactu  , nmodes });
   }
   this->current_context->set_active_device(this->device, 1);
 }
@@ -131,8 +129,8 @@ sutra_controller_generic_linear<T, Tout>::~sutra_controller_generic_linear() {
   for(auto &c : d_circular_u_out){delete c;}
   for(auto &v : d_iir_a){delete v;}
   for(auto &v : d_iir_b){delete v;}
-  for(auto &v : d_A){delete v;}
-  for(auto &v : d_L){delete v;}
+  for(auto &v : d_matA){delete v;}
+  for(auto &v : d_matL){delete v;}
   d_circular_x.clear();
   d_circular_s.clear();
   d_circular_u_in.clear();
@@ -152,37 +150,37 @@ int sutra_controller_generic_linear<T, Tout>::set_polc(bool p) {
 }
 
 template<typename T, typename Tout>
-int sutra_controller_generic_linear<T, Tout>::set_A(float *M, int i) {
+int sutra_controller_generic_linear<T, Tout>::set_matA(float *M, int i) {
   this->current_context->set_active_device(this->device, 1);
-  d_A[i]->host2device(M);
+  d_matA[i]->host2device(M);
   return EXIT_SUCCESS;
 }
 
 template<typename T, typename Tout>
-int sutra_controller_generic_linear<T, Tout>::set_L(float *M, int i) {
+int sutra_controller_generic_linear<T, Tout>::set_matL(float *M, int i) {
   this->current_context->set_active_device(this->device, 1);
-  d_L[i]->host2device(M);
+  d_matL[i]->host2device(M);
   return EXIT_SUCCESS;
 }
 
 template<typename T, typename Tout>
-int sutra_controller_generic_linear<T, Tout>::set_K(float *M) {
+int sutra_controller_generic_linear<T, Tout>::set_matK(float *M) {
   this->current_context->set_active_device(this->device, 1);
-  (*d_K).host2device(M);
+  (*d_matK).host2device(M);
   return EXIT_SUCCESS;
 }
 
 template<typename T, typename Tout>
-int sutra_controller_generic_linear<T, Tout>::set_D(float *M) {
+int sutra_controller_generic_linear<T, Tout>::set_matD(float *M) {
   this->current_context->set_active_device(this->device, 1);
-  (*d_D).host2device(M);
+  (*d_matD).host2device(M);
   return EXIT_SUCCESS;
 }
 
 template<typename T, typename Tout>
-int sutra_controller_generic_linear<T, Tout>::set_F(float *M) {
+int sutra_controller_generic_linear<T, Tout>::set_matF(float *M) {
   this->current_context->set_active_device(this->device, 1);
-  (*d_F).host2device(M);
+  (*d_matF).host2device(M);
   return EXIT_SUCCESS;
 }
 
@@ -202,7 +200,7 @@ int sutra_controller_generic_linear<T, Tout>::set_iir_b(float *M, int i) {
 
 template <typename T, typename Tout>
 int sutra_controller_generic_linear<T, Tout>::comp_polc(){
-  comp_polc(*d_centroids, *d_D, *d_s_now);
+  comp_polc(*d_centroids, *d_matD, *d_s_now);
   return EXIT_SUCCESS;
 }
 
@@ -231,7 +229,7 @@ int sutra_controller_generic_linear<T, Tout>::comp_com() {
 
   if(m_modal){
     carma_gemv(cublas_handle(), 'n', nactus, m_n_modes, T(1.0f),
-               (*d_F).get_data(), nactus, (*d_u_now).get_data(), 1, T(1.0f),
+               (*d_matF).get_data(), nactus, (*d_u_now).get_data(), 1, T(1.0f),
                d_com->get_data(), 1);
   }else{
     d_com->copy_from(*d_u_now, (*d_u_now).get_nb_elements());
@@ -246,12 +244,12 @@ int sutra_controller_generic_linear<T, Tout>::recursion(){
   if(d_circular_x.size()>0){
     //1st gemv : reset x_now
     carma_gemv(cublas_handle(), 'n', m_n_states, m_n_states, T(1.0f),
-               d_A[0]->get_data(), m_n_states, d_circular_x.at(0)->get_data(), 1, T(0.0f),
+               d_matA[0]->get_data(), m_n_states, d_circular_x.at(0)->get_data(), 1, T(0.0f),
                (*d_x_now).get_data(), 1);
     //continue summation
     for(int i=1;i<d_circular_x.size(); i++){
       carma_gemv(cublas_handle(), 'n', m_n_states, m_n_states, T(1.0f),
-                 d_A[i]->get_data(), m_n_states, d_circular_x.at(i)->get_data(), 1, T(1.0f),
+                 d_matA[i]->get_data(), m_n_states, d_circular_x.at(i)->get_data(), 1, T(1.0f),
                  (*d_x_now).get_data(), 1);
     }
   } else {
@@ -265,7 +263,7 @@ int sutra_controller_generic_linear<T, Tout>::innovation(){
   //x_now += sum_{i}^{m_n_slope_buffer}(L[i]* circular_s[i])
   for(int i=0;i<d_circular_s.size(); i++){
     carma_gemv(cublas_handle(), 'n', m_n_states, nslopes, T(1.0f),
-               d_L[i]->get_data(), m_n_states, d_circular_s.at(i)->get_data(), 1, T(1.0f),
+               d_matL[i]->get_data(), m_n_states, d_circular_s.at(i)->get_data(), 1, T(1.0f),
                (*d_x_now).get_data(), 1);
   }
   return EXIT_SUCCESS;
@@ -276,7 +274,7 @@ int sutra_controller_generic_linear<T, Tout>::modal_projection(){
   if(m_n_state_buffers>0){
     // u_now = K * x_now
     carma_gemv(cublas_handle(), 'n', m_n_modes, m_n_states, T(1.0f),
-               (*d_K).get_data(), m_n_modes, (*d_x_now).get_data(), 1, T(0.0f),
+               (*d_matK).get_data(), m_n_modes, (*d_x_now).get_data(), 1, T(0.0f),
                (*d_u_now).get_data(), 1);
   }else{
     // u_now = x_now

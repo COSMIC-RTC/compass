@@ -130,6 +130,24 @@ void controller_generic_linear_impl(py::module &mod, const char *name) {
           (see compass.io details on the generic linear controller)")
 
       .def_property_readonly(
+          "d_x_now", [](controller_generic_linear &sc) {
+              return sc.d_x_now.get(); },
+          "temporary state vector used for control calcs\n\
+          (see compass.io details on the generic linear controller)")
+
+      .def_property_readonly(
+          "d_s_now", [](controller_generic_linear &sc) {
+              return sc.d_s_now.get(); },
+          "temporary slope vector used for control calcs\n\
+          (see compass.io details on the generic linear controller)")
+
+      .def_property_readonly(
+          "d_u_now", [](controller_generic_linear &sc) {
+              return sc.d_u_now.get(); },
+          "temporary command vector used for control calcs\n\
+          (see compass.io details on the generic linear controller)")
+
+      .def_property_readonly(
           "d_circular_x", [](controller_generic_linear &sc) {
               return sc.d_circular_x; },
           "circular state buffer\n\
@@ -155,38 +173,38 @@ void controller_generic_linear_impl(py::module &mod, const char *name) {
 
 
       .def_property_readonly(
-          "d_A", [](controller_generic_linear &sc) {
-              return sc.d_A; },
+          "d_matA", [](controller_generic_linear &sc) {
+              return sc.d_matA; },
           "List of A matrices used for state recursion\n\
           (see compass.io details on the generic linear controller)")
 
       .def_property_readonly(
-          "d_L", [](controller_generic_linear &sc) {
-              return sc.d_L; },
+          "d_matL", [](controller_generic_linear &sc) {
+              return sc.d_matL; },
           "List of L matrices used for innovation from measurements\n\
           (see compass.io details on the generic linear controller)")
 
       .def_property_readonly(
-          "d_K", [](controller_generic_linear &sc) {
-              return sc.d_K.get(); },
+          "d_matK", [](controller_generic_linear &sc) {
+              return sc.d_matK.get(); },
           "K matrix, used for projection from state to modes\n\
           (see compass.io details on the generic linear controller)")
 
       .def_property_readonly(
-          "d_D", [](controller_generic_linear &sc) {
-              return sc.d_D.get(); },
+          "d_matD", [](controller_generic_linear &sc) {
+              return sc.d_matD.get(); },
           "D matrix, typically set to the interaction matrix\n\
           (see compass.io details on the generic linear controller)")
 
       .def_property_readonly(
           "d_imat", [](controller_generic_linear &sc) {
-              return sc.d_D.get(); },
+              return sc.d_matD.get(); },
           "D matrix, typically set to the interaction matrix\n\
           (see compass.io details on the generic linear controller)")
 
       .def_property_readonly(
-          "d_F", [](controller_generic_linear &sc) {
-              return sc.d_F.get(); },
+          "d_matF", [](controller_generic_linear &sc) {
+              return sc.d_matF.get(); },
           "F matrix, used to project from modes to actuator voltages\n\
           (see compass.io details on the generic linear controller)")
 
@@ -227,7 +245,7 @@ void controller_generic_linear_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("polc"))
 
-      .def("set_A", wy::colCast(&controller_generic_linear::set_A),
+      .def("set_matA", wy::colCast(&controller_generic_linear::set_matA),
            R"pbdoc(
     Set a single A matrix within the list of A matrices (state recursions)
 
@@ -238,7 +256,7 @@ void controller_generic_linear_impl(py::module &mod, const char *name) {
            py::arg("M"),
 	   py::arg("i"))
 
-      .def("set_L", wy::colCast(&controller_generic_linear::set_L),
+      .def("set_matL", wy::colCast(&controller_generic_linear::set_matL),
            R"pbdoc(
     Set a single L matrix within the list of L matrices (innovations)
 
@@ -249,7 +267,7 @@ void controller_generic_linear_impl(py::module &mod, const char *name) {
            py::arg("M"),
 	   py::arg("i"))
 
-      .def("set_K", wy::colCast(&controller_generic_linear::set_K),
+      .def("set_matK", wy::colCast(&controller_generic_linear::set_matK),
            R"pbdoc(
     Set K matrix (state to mode projection)
 
@@ -258,7 +276,7 @@ void controller_generic_linear_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("M"))
 
-      .def("set_D", wy::colCast(&controller_generic_linear::set_D),
+      .def("set_matD", wy::colCast(&controller_generic_linear::set_matD),
            R"pbdoc(
     Set D matrix (interaction matrix)
 
@@ -267,7 +285,7 @@ void controller_generic_linear_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("M"))
 
-      .def("set_F", wy::colCast(&controller_generic_linear::set_F),
+      .def("set_matF", wy::colCast(&controller_generic_linear::set_matF),
            R"pbdoc(
     Set F matrix (mode to actuator voltage projection)
 
