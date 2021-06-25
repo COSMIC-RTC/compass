@@ -72,7 +72,7 @@ std::unique_ptr<CarmaObj<T>> make_unique_carma_obj(CarmaContext *context, std::i
 template<typename T, typename Tout>
 sutra_controller_generic_linear<T, Tout>::sutra_controller_generic_linear(
     CarmaContext *context, int nslope, int nslope_buffers, int nactu, int nstates,
-    int nstate_buffers, int nmodes, int nmode_buffers, int niir_in, int niir_out,
+    int nstate_buffers, int nmodes, int niir_in, int niir_out,
     float delay, bool polc, bool is_modal,
     SutraDms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro)
     : SutraController<T, Tout>(context, nslope, nactu, delay, dms,
@@ -82,7 +82,6 @@ sutra_controller_generic_linear<T, Tout>::sutra_controller_generic_linear(
   m_n_states  = nstates;
   m_n_state_buffers  = nstate_buffers;
   m_n_modes   = nmodes;
-  m_n_mode_buffers   = nmode_buffers;
   m_n_iir_in  = niir_in;
   m_n_iir_out = niir_out;
 

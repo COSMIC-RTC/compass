@@ -62,9 +62,9 @@ std::unique_ptr<SutraRtc<Tin, Tcomp, Tout>> rtc_init() {
 
 template <typename Tin, typename Tcomp, typename Tout>
 void add_controller_impl(SutraRtc<Tin, Tcomp, Tout> &sr, CarmaContext *context,
-                    std::string typec,long device, int nslope, int nslope_buffers, int nactu,
-                    int nstates, int nstate_buffers, int nmodes, int nmode_buffers,
-                    int niir_in, int niir_out, float delay, bool polc,bool is_modal) {
+                    std::string typec, long device, float delay, int nslope, int nactu,
+                    int nslope_buffers, int nstates, int nstate_buffers, int nmodes,
+                    int niir_in, int niir_out, bool polc,bool is_modal) {
   SutraDms *dms = nullptr;
   int *idx_dms = nullptr;
   int ndm = 0;
@@ -73,7 +73,7 @@ void add_controller_impl(SutraRtc<Tin, Tcomp, Tout> &sr, CarmaContext *context,
   int Nphi = 0;
   bool wfs_direction = false;
   sr.add_controller(context, typec, device, nslope, nslope_buffers, nactu, nstates, nstate_buffers,
-                    nmodes, nmode_buffers,niir_in, niir_out, delay, polc, is_modal,
+                    nmodes,niir_in, niir_out, delay, polc, is_modal,
                     dms, idx_dms, ndm, idx_centro, ncentro, Nphi, wfs_direction);
 }
 
@@ -226,40 +226,57 @@ void rtc_impl(py::module &mod, const char *name) {
     Args:
         context: (CarmaContext): carma context
 
+        typec: (str): Controller type
+
+        device: (int): GPU device index
+
+        delay: (float): Loop delay [frames]
+
         nslope: (int): Number of slopes
 
         nactu:(int): Number of actuators to command
 
-        delay: (float): Loop delay [frames]
+    Kwargs:
 
-        device: (int): GPU device index
+        nslope_buffers: (int) : Number of historic slopes vectors to use
 
-        typec: (str): Controller type
+        nstates       : (int)        : Number of states in state vector
 
-        dms: (SutraDms): SutraDms object
+        nstate_buffers: (int)        : Number of historic state vectors to use
 
-        idx_dms: (np.array[ndim=1,dtype=np.int64]): index of DM in SutraDms to command
+        nmodes        : (int)        : Number of modes in mode vector
 
-        ndm: (int): Number of DM to command
+        niir_in       : (int)        : Number of input mode vectors for iir filter
 
-        idx_centro: (np.array[ndim=1,dtype=np.int64]): index of centoiders in sutra_rtc.d_centro to handle
+        niir_out      : (int)        : Number of output mode vectors for iir filter
 
-        ncentro: (int): number of centroiders handled
+        polc          : (bool)       : Activate the Pseudo Open Loop Control if available
 
-        Nphi: (int): Number of pixels in the pupil
+        is_modal      : (bool)       : Activate projection from modes to actu if available
 
-        wfs_direction: (bool): Flag for ROKET
+        dms           : (SutraDms)  : SutraDms object
 
-        nstates: (int): (optionnal) number of states
-        )pbdoc"//,
-          // py::arg("context"), py::arg("nslope"),
-          // py::arg("nactu"), py::arg("delay"), py::arg("device"),
-          // py::arg("typec"), py::arg("dms") = nullptr,
-          // py::arg("idx_dms") = std::vector<int64_t>(), py::arg("ndm") = 0,
-          // py::arg("idx_centro") = std::vector<int64_t>(),
-          // py::arg("ncentro") = 0, py::arg("Nphi") = 0,
-          // py::arg("wfs_direction") = false, py::arg("nstates") = 0
-           )
+        idx_dms       : (np.array[ndim=1,dtype=np.int64]) : index of DM in SutraDms to command
+
+        ndm           : (int)        : Number of DM to command
+
+        idx_centro    : (np.array[ndim=1,dtype=np.int64]): (optional) Index of centoiders in sutra_rtc.d_centro to handle
+
+        ncentro       : (int)        : Number of centroiders handled
+
+        Nphi          : (int)        : umber of pixels in the pupil
+
+        wfs_direction : (bool)       : Flag for ROKET
+
+        )pbdoc",
+          py::arg("context"), py::arg("typec"), py::arg("device"), py::arg("delay"),
+          py::arg("nslope"), py::arg("nactu"),
+          py::arg("nslope_buffers")=0, py::arg("nstates")=0, py::arg("nstate_buffers")=0,
+          py::arg("nmodes")=0,py::arg("niir_in")=0,py::arg("niir_out")=0,py::arg("polc")=false,
+          py::arg("is_modal")=false, py::arg("dms") = nullptr,
+          py::arg("idx_dms") = std::vector<int64_t>(), py::arg("ndm") = 0,
+          py::arg("idx_centro") = std::vector<int64_t>(), py::arg("ncentro") = 0,
+          py::arg("Nphi") = 0, py::arg("wfs_direction") = false)
 
       .def("add_controller", wy::colCast(add_controller_impl<Tin, Tcomp, Tout>),
            R"pbdoc(
@@ -268,22 +285,54 @@ void rtc_impl(py::module &mod, const char *name) {
     Args:
         context: (CarmaContext): carma context
 
+        typec: (str): Controller type
+
+        device: (int): GPU device index
+
+        delay: (float): Loop delay [frames]
+
         nslope: (int): Number of slopes
 
         nactu:(int): Number of actuators to command
 
-        delay: (float): Loop delay [frames]
+    Kwargs:
+        nslope_buffers: (int) : Number of historic slopes vectors to use
 
-        device: (int): GPU device index
+        nstates       : (int)        : Number of states in state vector
 
-        typec: (str): Controller type
+        nstate_buffers: (int)        : Number of historic state vectors to use
 
-        nstates: (int): (optionnal) Number of states
-        )pbdoc"//,
-           //py::arg("context"), py::arg("nslope"),
-           //py::arg("nactu"), py::arg("delay"), py::arg("device"),
-           //py::arg("typec"), py::arg("nstates") = 0
-           )
+        nmodes        : (int)        : Number of modes in mode vector
+
+        niir_in       : (int)        : Number of input mode vectors for iir filter
+
+        niir_out      : (int)        : Number of output mode vectors for iir filter
+
+        polc          : (bool)       : Activate the Pseudo Open Loop Control if available
+
+        is_modal      : (bool)       : Activate projection from modes to actu if available
+
+        dms           : (SutraDms)  : SutraDms object
+
+        idx_dms       : (np.array[ndim=1,dtype=np.int64]) : index of DM in SutraDms to command
+
+        ndm           : (int)        : Number of DM to command
+
+        idx_centro    : (np.array[ndim=1,dtype=np.int64]): (optional) Index of centoiders in sutra_rtc.d_centro to handle
+
+        ncentro       : (int)        : Number of centroiders handled
+
+        Nphi          : (int)        : umber of pixels in the pupil
+
+        wfs_direction : (bool)       : Flag for ROKET
+
+        )pbdoc",
+          py::arg("context"), py::arg("typec"), py::arg("device"), py::arg("delay"),
+          py::arg("nslope"), py::arg("nactu"),
+          py::arg("nslope_buffers")=0, py::arg("nstates")=0, py::arg("nstate_buffers")=0,
+          py::arg("nmodes")=0,py::arg("niir_in")=0,py::arg("niir_out")=0,py::arg("polc")=false,
+          py::arg("is_modal")=false
+    )
 
       .def("remove_controller", &rtc::remove_controller, R"pbdoc(
      Remove the specified controller from the RTC

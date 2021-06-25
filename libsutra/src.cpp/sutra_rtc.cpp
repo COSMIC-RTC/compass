@@ -180,14 +180,14 @@ int SutraRtc<Tin, T, Tout>::add_centroider_impl(CarmaContext *context,
 
 template <typename Tin, typename T, typename Tout>
 int SutraRtc<Tin, T, Tout>::add_controller(CarmaContext *context, std::string typec,long device,
-                    int nslope, int nslope_buffers, int nactu,
-                    int nstates, int nstate_buffers, int nmodes, int nmode_buffers,
-                    int niir_in, int niir_out, float delay, bool polc,bool is_modal,
+                    float delay, int nslope, int nactu,
+                    int nslope_buffers, int nstates, int nstate_buffers, int nmodes,
+                    int niir_in, int niir_out, bool polc,bool is_modal,
                     SutraDms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro,
                     int Nphi, bool wfs_direction) {
   return add_controller_impl(context, this->d_control, typec,device,
-                        nslope, nslope_buffers, nactu, nstates, nstate_buffers, nmodes,
-                        nmode_buffers, niir_in, niir_out, delay, polc, is_modal, dms, idx_dms, ndm,
+                        delay, nslope, nactu, nslope_buffers, nstates, nstate_buffers, nmodes,
+                        niir_in, niir_out, polc, is_modal, dms, idx_dms, ndm,
                         idx_centro, ncentro, Nphi, wfs_direction, std::is_same<T, half>());
 }
 
@@ -196,9 +196,9 @@ template <typename Q>
 typename std::enable_if<!std::is_same<Q, half>::value, int>::type
 SutraRtc<Tin, T, Tout>::add_controller_impl(
     CarmaContext *context, vector<SutraController<T, Tout> *> &d_control,
-    std::string typec,long device, int nslope, int nslope_buffers, int nactu,
-    int nstates, int nstate_buffers, int nmodes, int nmode_buffers,
-    int niir_in, int niir_out, float delay, bool polc,bool is_modal,
+    std::string typec,long device, float delay, int nslope, int nactu,
+    int nslope_buffers, int nstates, int nstate_buffers, int nmodes,
+    int niir_in, int niir_out, bool polc,bool is_modal,
     SutraDms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro,
     int Nphi, bool wfs_direction, std::false_type) {
   if (typec.compare("ls") == 0) {
@@ -229,7 +229,7 @@ SutraRtc<Tin, T, Tout>::add_controller_impl(
     //       ndm));
   } else if(typec.compare("generic_linear") == 0){
     d_control.push_back(new sutra_controller_generic_linear<T, Tout>( context,
-    nslope, nslope_buffers, nactu, nstates, nstate_buffers, nmodes, nmode_buffers,
+    nslope, nslope_buffers, nactu, nstates, nstate_buffers, nmodes,
     niir_in, niir_out, delay, polc, is_modal,
     dms, idx_dms, ndm, idx_centro, ncentro));
   } else {
@@ -242,9 +242,9 @@ SutraRtc<Tin, T, Tout>::add_controller_impl(
 template <typename Tin, typename T, typename Tout>
 int SutraRtc<Tin, T, Tout>::add_controller_impl(
     CarmaContext *context, vector<SutraController<T, Tout> *> &d_control,
-    std::string typec,long device, int nslope, int nslope_buffers, int nactu,
-    int nstates, int nstate_buffers, int nmodes, int nmode_buffers,
-    int niir_in, int niir_out, float delay, bool polc,bool is_modal,
+    std::string typec,long device, float delay, int nslope, int nactu,
+    int nslope_buffers, int nstates, int nstate_buffers, int nmodes,
+    int niir_in, int niir_out, bool polc,bool is_modal,
     SutraDms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro,
     int Nphi, bool wfs_direction, std::true_type) {
   if (typec.compare("generic") == 0) {

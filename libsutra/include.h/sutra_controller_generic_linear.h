@@ -66,7 +66,6 @@ private:
   int m_n_states;           //!< num of states in state vector
   int m_n_state_buffers;    //!< num of historic state vectors to use
   int m_n_modes;            //!< num of modes in mode vector
-  int m_n_mode_buffers;     //!< (not used, to be deleted)
   int m_n_iir_in;           //!< num of input mode vectors for iir filter
   int m_n_iir_out;          //!< num of output mode vectors for iir filter
 
@@ -83,7 +82,6 @@ public:
   int n_states(){return m_n_states;}
   int n_state_buffers(){return m_n_state_buffers;}
   int n_modes(){return m_n_modes;}
-  int n_mode_buffers(){return m_n_mode_buffers;}
   int n_iir_in(){return m_n_iir_in;}
   int n_iir_out(){return m_n_iir_out;}
 
@@ -110,7 +108,7 @@ public:
  sutra_controller_generic_linear() = delete;
   sutra_controller_generic_linear(
     CarmaContext *context, int nslope, int nslopes_buffers, int nactu, int nstates,
-    int nstates_buffers, int nmodes, int nmode_buffers, int niir_in, int niir_out,
+    int nstates_buffers, int nmodes, int niir_in, int niir_out,
     float delay, bool polc, bool is_modal,
     SutraDms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro);
   //sutra_controller_generic_linear(const sutra_controller_generic_linear &controller);

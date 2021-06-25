@@ -74,13 +74,39 @@ class SutraRtc {
                      float scale, bool filter_TT, long device,
                      std::string typec, SutraWfs *wfs);
 
-  int add_controller(CarmaContext *context, std::string typec,long device,
-                    int nslope, int nslope_buffers, int nactu,
-                    int nstates, int nstate_buffers, int nmodes, int nmode_buffers,
-                    int niir_in, int niir_out, float delay, bool polc,bool is_modal,
-                    SutraDms *dms = nullptr, int *idx_dms = nullptr, int ndm = 0,
-                    int *idx_centro = nullptr, int ncentro = 0,
-                    int Nphi = 0, bool wfs_direction = false);
+
+/**
+ * @brief Add a SutraController object in the RTC
+ *
+ * @param context       : CarmaContext: carma context
+ * @param typec         : string      : Controller type
+ * @param device        : long        : GPU device index
+ * @param delay         : float       : Loop delay [frames]
+ * @param nslope        : int         : Number of slopes
+ * @param nactu         : int         : Number of actuators to command
+ * @param nslope_buffers: int         : (optional) Number of historic slopes vectors to use
+ * @param nstates       : int         : (optional) Number of states in state vector
+ * @param nstate_buffers: int         : (optional) Number of historic state vectors to use
+ * @param nmodes        : int         : (optional) Number of modes in mode vector
+ * @param niir_in       : int         : (optional) Number of input mode vectors for iir filter
+ * @param niir_out      : int         : (optional) Number of output mode vectors for iir filter
+ * @param polc          : bool        : (optional) Activate the Pseudo Open Loop Control if available
+ * @param is_modal      : bool        : (optional) Activate projection from modes to actu if available
+ * @param dms           : SutraDms*   : (optional) SutraDms object
+ * @param idx_dms       : int*        : (optional) index of DM in SutraDms to command
+ * @param ndm           : int         : (optional) Number of DM to command
+ * @param idx_centro    : int*        : (optional) Index of centoiders in sutra_rtc.d_centro to handle
+ * @param ncentro       : int         : (optional) Number of centroiders handled
+ * @param Nphi          : int         : (optional) Number of pixels in the pupil
+ * @param wfs_direction : bool        : (optional) Flag for ROKET
+ * @return int          : exit status
+ */
+  int add_controller(CarmaContext *context, std::string typec,long device, float delay, int nslope,
+                    int nactu, int nslope_buffers = 0, int nstates = 0, int nstate_buffers = 0,
+                    int nmodes = 0, int niir_in = 0, int niir_out = 0, bool polc = false,
+                    bool is_modal = false, SutraDms *dms = nullptr, int *idx_dms = nullptr,
+                    int ndm = 0, int *idx_centro = nullptr, int ncentro = 0, int Nphi = 0,
+                    bool wfs_direction = false);
 
 
 
@@ -145,9 +171,9 @@ class SutraRtc {
   typename std::enable_if<!std::is_same<Q, half>::value, int>::type
   add_controller_impl(CarmaContext *context,
                       vector<SutraController<T, Tout> *> &d_control,
-                      std::string typec,long device,  int nslope, int nslope_buffers, int nactu,
-                      int nstates, int nstate_buffers, int nmodes, int nmode_buffers,
-                      int niir_in, int niir_out, float delay, bool polc,bool is_modal,
+                      std::string typec,long device, float delay,  int nslope, int nactu,
+                      int nslope_buffers, int nstates, int nstate_buffers, int nmodes,
+                      int niir_in, int niir_out, bool polc,bool is_modal,
                       SutraDms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro,
                       int Nphi, bool wfs_direction,
                       std::false_type);
@@ -156,9 +182,9 @@ class SutraRtc {
 
   int add_controller_impl(CarmaContext *context,
                           vector<SutraController<T, Tout> *> &d_control,
-                          std::string typec,long device,  int nslope, int nslope_buffers, int nactu,
-                          int nstates, int nstate_buffers, int nmodes, int nmode_buffers,
-                          int niir_in, int niir_out, float delay, bool polc,bool is_modal,
+                          std::string typec,long device, float delay,  int nslope, int nactu,
+                          int nslope_buffers, int nstates, int nstate_buffers, int nmodes,
+                          int niir_in, int niir_out, bool polc,bool is_modal,
                           SutraDms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro,
                           int Nphi, bool wfs_direction,
                           std::true_type);
