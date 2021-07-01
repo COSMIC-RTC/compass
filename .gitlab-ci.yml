@@ -11,10 +11,11 @@ build_release:
     COMPASS_ROOT: /builds/compass/compass
     SHESHA_ROOT: $COMPASS_ROOT/shesha
   script:
+    - export CUDA_ROOT=/usr/local/cuda
     - export COMPASS_DO_HALF="OFF"
     - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
-    - rm -rf ~/.conan
+    - ./install_conan.sh 8
     - ./install_dependencies.sh
     - ./compile.sh $PWD/local
   when: manual
@@ -42,9 +43,10 @@ build_debug:
     COMPASS_DEBUG: "-DCMAKE_BUILD_TYPE=Debug"
     COMPASS_DO_HALF: "OFF"
   script:
+    - export CUDA_ROOT=/usr/local/cuda
     - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
-    - rm -rf ~/.conan
+    - ./install_conan.sh 8
     - ./install_dependencies.sh
     - ./compile.sh $PWD/local
   when: always
