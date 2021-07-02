@@ -7,10 +7,7 @@ find_package(CUDAToolkit REQUIRED)
 
 pkg_check_modules(MAGMA   IMPORTED_TARGET magma)
 pkg_check_modules(OCTOPUS IMPORTED_TARGET octopus)
-
-IF(CMAKE_BUILD_TYPE MATCHES "Debug")
-  set(GCOV gcov)
-ENDIF(CMAKE_BUILD_TYPE MATCHES "Debug")
+find_package(emu REQUIRED)
 
 add_library(carma
     src.cpp/carma_context.cpp
@@ -59,6 +56,7 @@ target_compile_options(carma PUBLIC -Wno-deprecated-declarations
 target_compile_definitions(carma PUBLIC
     $<$<COMPILE_LANGUAGE:CXX>:VERSION_INFO=${VERSION_INFO} USE_UVA>
 )
+
 target_link_libraries(carma PUBLIC
     CUDA::cudart
     CUDA::cufft
@@ -66,12 +64,13 @@ target_link_libraries(carma PUBLIC
     CUDA::curand
     CUDA::cusparse
     CUDA::cusolver
-    CONAN_PKG::emu
+    emu::emu
     ${GCOV}
 )
 
 if (${CUDAToolkit_VERSION_MAJOR} LESS 11)
-    target_link_libraries(carma PUBLIC CONAN_PKG::cub)
+    find_package(cub REQUIRED)
+    target_link_libraries(carma PUBLIC cub::cub)
 endif()
 
 if(${OCTOPUS_FOUND})
@@ -90,15 +89,11 @@ endif()
 
 
 if(do_half)
-  if(${CUDA_LOWEREST_SM} GREATER_EQUAL 60)
     target_compile_definitions(carma PUBLIC CAN_DO_HALF=1)
-  else()
-    message(FATAL_ERROR "(at least one of) Your NVIDIA card can not support half precision (SM should be >=60)")
-  endif()
 endif()
 
 if(python_build)
-  add_subdirectory(python_module)
+    add_subdirectory(python_module)
 endif()
 
 set(INSTALL_PKGCONFIG_DIR "lib/pkgconfig"
@@ -111,25 +106,8 @@ install(TARGETS carma
         EXPORT CarmaConfig
         ARCHIVE DESTINATION lib
         LIBRARY DESTINATION lib)
-install(FILES include.h/carma_context.h
-              include.h/carma_cublas.h
-              include.h/carma_cusolver.h
-              include.h/carma_cusparse.h
-              include.h/carma_exception.h
-              include.h/carma_fft.h
-              include.h/carma.h
-              include.h/carma_host_obj.h
-              include.h/carma_ipcs.h
-              include.h/carma_magma.h
-              include.h/carma_multithread.h
-              include.h/carma_obj.h
-              include.h/carma_sparse_host_obj.h
-              include.h/carma_sparse_obj.h
-              include.h/carma_streams.h
-              include.h/carma_timer.h
-              include.h/carma_utils.h
-              include.h/type_list.hpp
-        DESTINATION include)
+
+install(DIRECTORY include.h/ DESTINATION include)
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/carma.pc
         DESTINATION "${INSTALL_PKGCONFIG_DIR}")

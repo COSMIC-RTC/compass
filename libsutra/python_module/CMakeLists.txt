@@ -7,6 +7,7 @@ project(sutraWrap
 )
 
 find_package(pybind11 REQUIRED)
+find_package(wyrm REQUIRED)
 
 pybind11_add_module(sutraWrap MODULE
     src/telescope.cpp
@@ -44,7 +45,7 @@ if (${OCTOPUS_FOUND})
     target_sources(sutraWrap PRIVATE src/rtc_cacao.cpp)
 endif()
 
-target_link_libraries(sutraWrap PRIVATE CONAN_PKG::wyrm sutra)
+target_link_libraries(sutraWrap PRIVATE wyrm::wyrm sutra)
 
 install(TARGETS sutraWrap EXPORT SutraWrapConfig
     ARCHIVE  DESTINATION python

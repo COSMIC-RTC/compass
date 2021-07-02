@@ -1,6 +1,6 @@
 #!/bin/bash
 
-rm -rf ~/.conan/
+rm -rf ~/.conan
 
 # install dependencies
 pip install conan --upgrade

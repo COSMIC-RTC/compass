@@ -35,7 +35,7 @@ pipeline {
         stage('Prepare') {
             steps {
                 echo 'Prepare'
-                sh '$COMPASS_ROOT/install_dependencies.sh'
+                sh '$COMPASS_ROOT/script/install_dependencies.sh'
             }
         }
         stage('Build') {

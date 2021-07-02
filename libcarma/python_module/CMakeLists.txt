@@ -7,6 +7,7 @@ project(carmaWrap
 )
 
 find_package(pybind11 REQUIRED)
+find_package(wyrm REQUIRED)
 
 pybind11_add_module(carmaWrap MODULE
     src/context.cpp
@@ -17,7 +18,7 @@ pybind11_add_module(carmaWrap MODULE
     src/carmaWrap.cpp
 )
 
-target_link_libraries(carmaWrap PRIVATE CONAN_PKG::wyrm carma)
+target_link_libraries(carmaWrap PRIVATE wyrm::wyrm carma)
 
 install(TARGETS carmaWrap EXPORT CarmaWrapConfig
     ARCHIVE  DESTINATION python

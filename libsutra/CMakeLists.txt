@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.18)
 project(sutra VERSION ${VERSION_INFO} DESCRIPTION "COMPASS SUTRA lirary" LANGUAGES CXX CUDA)
 
 find_package(CUDAToolkit REQUIRED)
+find_package(emu REQUIRED)
 
 IF(CMAKE_BUILD_TYPE MATCHES "Debug")
   set(GCOV gcov)
@@ -89,7 +90,7 @@ target_compile_features(sutra PUBLIC cxx_std_14)
 target_link_libraries(sutra PUBLIC
     carma
     CUDA::cudart
-    CONAN_PKG::emu
+    emu::emu
     ${GCOV}
 )
 
@@ -114,46 +115,7 @@ install(TARGETS sutra
         ARCHIVE DESTINATION lib
         LIBRARY DESTINATION lib)
 
-install(FILES include.h/sutra_acquisim.h
-              include.h/sutra_template.h
-              include.h/sutra_atmos.h
-              include.h/sutra_centroider_bpcog.h
-              include.h/sutra_centroider_cog.h
-              include.h/sutra_centroider_corr.h
-              include.h/sutra_centroider.h
-              include.h/sutra_centroider_maskedPix.h
-              include.h/sutra_centroider_pyr.h
-              include.h/sutra_centroider_tcog.h
-              include.h/sutra_centroider_wcog.h
-              include.h/sutra_controller_cured.h
-              include.h/sutra_controller_generic.h
-              include.h/sutra_controller_geo.h
-              include.h/sutra_controller.h
-              include.h/sutra_controller_ls.h
-              include.h/sutra_controller_mv.h
-              include.h/sutra_controller_utils.h
-              include.h/sutra_dm.h
-              include.h/sutra_gamora.h
-              include.h/sutra_groot.h
-              include.h/sutra_kl.h
-              include.h/sutra_lgs.h
-              include.h/sutra_phase.h
-              include.h/sutra_roket.h
-              include.h/sutra_rtc.h
-              include.h/sutra_sensors.h
-              include.h/sutra_source.h
-              include.h/sutra_target.h
-              include.h/sutra_telemetry.h
-              include.h/sutra_telescope.h
-              include.h/sutra_tscreen.h
-              include.h/sutra_utils.h
-              include.h/sutra_wfs_geom.h
-              include.h/sutra_wfs.h
-              include.h/sutra_wfs_pyr_pyrhr.h
-              include.h/sutra_wfs_sh.h
-              ${BRAHMA_H}
-              ${OCTOPUS_H}
-        DESTINATION include)
+install(DIRECTORY include.h/ DESTINATION include)
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/sutra.pc
         DESTINATION "${INSTALL_PKGCONFIG_DIR}")
