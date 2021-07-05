@@ -17,6 +17,7 @@ build_release:
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
     - ./script/install_conan.sh 8
     - pip install -r script/requirements.txt
+    - pip install -r script/requirements-dev.txt
     - ./compile.sh $PWD/local
   when: manual
   # only:
@@ -48,6 +49,7 @@ build_debug:
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
     - ./script/install_conan.sh 8
     - pip install -r script/requirements.txt
+    - pip install -r script/requirements-dev.txt
     - ./compile.sh $PWD/local
   when: always
   only:

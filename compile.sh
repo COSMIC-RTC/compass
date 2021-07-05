@@ -51,15 +51,18 @@ then
     echo "python version ${PYTHON_VERSION} used"
 fi
 
+# Exit on first error.
+set -e
+
 # Resolves dependencies.
 conan install $CONAN_LOCATION -if $LOCAL_DIR/build -b missing \
     -o emu:cuda_sm=${CUDA_SM}                                 \
     -o compass:half=${COMPASS_DO_HALF}                        \
-    -o compass:python_version=${PYTHON_VERSION} || exit 0
+    -o compass:python_version=${PYTHON_VERSION}
 
 # Build compass
 # Only use conan to configure due to no paralelism buring build (bug).
-conan build $CONAN_LOCATION -bf $LOCAL_DIR/build -pf ${COMPASS_INSTALL_PATH} --configure || exit 0
+conan build $CONAN_LOCATION -bf $LOCAL_DIR/build -pf ${COMPASS_INSTALL_PATH} --configure
 cmake --build build -j
 # Install compass to specified location
-conan package $CONAN_LOCATION -bf $LOCAL_DIR/build -pf ${COMPASS_INSTALL_PATH} || exit 0
+conan package $CONAN_LOCATION -bf $LOCAL_DIR/build -pf ${COMPASS_INSTALL_PATH}
