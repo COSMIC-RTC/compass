@@ -1,5 +1,4 @@
-from conans import ConanFile, tools
-from conan.tools.cmake import CMakeToolchain, CMakeDeps, CMake
+from conans import ConanFile, tools, CMake
 
 import os, re, subprocess as sp
 from packaging import version
@@ -16,11 +15,11 @@ class CompassConan(ConanFile):
     description = 'End-to-end AO simulation tool using GPU acceleration'
     topics = 'Adaptive Optics', 'Simulation'
     settings = 'os', 'compiler', 'build_type', 'arch'
+    generators = ['cmake', 'cmake_find_package']
 
     requires = ['emu/0.1@cosmic/stable']
     python_requires = 'cuda_arch/0.1@cosmic/stable'
 
-    # generators = 'cmake_paths' #, 'cmake_find_package'
     options = {
         'shared'        : [True, False],
         'fPIC'          : [True, False],
@@ -32,7 +31,7 @@ class CompassConan(ConanFile):
         'shared'   : True,
         'fPIC'     : True,
         'python'   : True,
-        'half'     : True,
+        'half'     : False,
         'wyrm:cuda': True,
     }
 
@@ -55,9 +54,10 @@ class CompassConan(ConanFile):
         self.version = version.strip()
 
     def configure(self):
-        self.options.half = self._half_support()
+        if self.options.half:
+            self.options.half = self._half_support()
 
-        if self.options.half and self.options.python:
+        if self.options.python:
             self.options['wyrm'].half = self.options.half
 
     def requirements(self):
@@ -68,22 +68,16 @@ class CompassConan(ConanFile):
         else:
             self.options.remove('python_version')
 
-    def generate(self):
-        tc = CMakeToolchain(self)
-        tc.variables['do_half'] = self.options.half
-        tc.variables['build_python_module']     = self.options.python
-        if self.options.python:
-            tc.variables['PYBIND11_PYTHON_VERSION'] = self.options.python_version
-
-        tc.variables['CMAKE_CUDA_ARCHITECTURES'] = self.options['emu'].cuda_sm
-        tc.generate()
-
-        deps = CMakeDeps(self)
-        deps.generate()
-
     def _configure(self):
         cmake = CMake(self)
-        cmake.configure()
+        cmake.definitions['do_half'] = self.options.half
+        cmake.definitions['build_python_module']     = self.options.python
+        if self.options.python:
+            cmake.definitions['PYBIND11_PYTHON_VERSION'] = self.options.python_version
+
+        cmake.definitions['CMAKE_CUDA_ARCHITECTURES'] = self.options['emu'].cuda_sm
+
+        cmake.configure(source_folder='.')
 
         return cmake
 
