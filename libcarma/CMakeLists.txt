@@ -1,205 +1,102 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.18)
 
-option(do_half "Compile half codes" ON)
-
-find_package(CUDA QUIET REQUIRED)
-
-if(DEFINED ENV{CUDA_SM})
-  set(CUDA_SM $ENV{CUDA_SM})
-  if("${CUDA_SM}" STREQUAL "ALL")
-    CUDA_SELECT_NVCC_ARCH_FLAGS(CUDA_ARCH "Common")  # Auto/All/Common/Volta/7.0
-  else()
-    CUDA_SELECT_NVCC_ARCH_FLAGS(CUDA_ARCH ${CUDA_SM})  # Auto/All/Common/Volta/7.0
-  endif()
-else()
-  CUDA_SELECT_NVCC_ARCH_FLAGS(CUDA_ARCH "Auto")  # Auto/All/Common/Volta/7.0
-endif()
-
-# message(STATUS "CUDA_ARCH : ${CUDA_ARCH}")
-
-# message(STATUS "CUDA_ARCH_readable : ${CUDA_ARCH_readable}")
-
-string(REGEX REPLACE "([a-z]*)_" "" CUDA_SM "${CUDA_ARCH_readable}")
-string(REGEX REPLACE "\ " ";" CUDA_SM "${CUDA_SM}")
-message(STATUS "Building for Compute Capability ${CUDA_SM}")
-
-set(CUDA_LOWEREST_SM 999)
-set(CUDA_HIGHEST_SM 0)
-foreach(SM ${CUDA_SM})
-  if(${SM} GREATER_EQUAL ${CUDA_HIGHEST_SM})
-    set(CUDA_HIGHEST_SM ${SM})
-  endif()
-  if(${SM} LESS_EQUAL ${CUDA_LOWEREST_SM})
-    set(CUDA_LOWEREST_SM ${SM})
-  endif()
-endforeach(SM)
-message(
-  STATUS
-    "Building for Compute Capability min: ${CUDA_LOWEREST_SM}, max: ${CUDA_HIGHEST_SM}"
-  )
-message(STATUS "Building for half precision RTC module: ${do_half}")
-
-foreach(SM ${CUDA_SM})
-  list(APPEND CUDA_GENCODE -gencode=arch=compute_${SM},code=sm_${SM})
-endforeach(SM)
-
-project(carma
-        VERSION ${VERSION_INFO} DESCRIPTION "COMPASS CARMA lirary"
-        LANGUAGES CUDA CXX)
-
-# cmake-format: off
-# EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
-# message( STATUS "Architecture: ${ARCHITECTURE}" )
-# ifeq ($(OS_ARCH),armv7l)
-#   ifeq ($(abi),gnueabi)
-#     CCFLAGS += -mfloat-abi=softfp
-#   else
-#     # default to gnueabihf
-#     override abi := gnueabihf
-#     #      LDFLAGSS += --dynamic-linker=/lib/ld-linux-armhf.so.3
-#     CCFLAGS   += -marm -mfpu=vfpv3  -mfloat-abi=hard -march=armv7-a
-#     NVCCFLAGS := -target-cpu-arch ARM -Xlinker --dynamic-linker=/lib/ld-linux-armhf.so.3 -Xcompiler "$(CCFLAGS)"
-#   endif
-# else
-#   ifeq ($(OS_ARCH),aarch64)
-#     # CCFLAGS += -march=armv8-a+crc -mtune=cortex-a50  # Armageddon
-#     CCFLAGS += -march=armv8-a+crc+crypto+fp+simd -mtune=cortex-a57  # TX2
-#   else
-#     CCFLAGS += -m64
-#   endif
-# endif
-# cmake-format: on
+project(carma VERSION ${VERSION_INFO} DESCRIPTION "COMPASS CARMA lirary" LANGUAGES CUDA CXX)
 
 find_package(PkgConfig REQUIRED)
-find_package(CUDA REQUIRED)
+find_package(CUDAToolkit REQUIRED)
 
-if (${CUDA_VERSION} LESS 11)
-set(CUB_TARGET "CONAN_PKG::cub")
+pkg_check_modules(MAGMA   IMPORTED_TARGET magma)
+pkg_check_modules(OCTOPUS IMPORTED_TARGET octopus)
+find_package(emu REQUIRED)
+
+add_library(carma
+    src.cpp/carma_context.cpp
+    src.cpp/carma_cublas.cpp
+    src.cpp/carma_cusolver.cpp
+    src.cpp/carma_cusparse.cpp
+    src.cpp/carma_fft.cpp
+    src.cpp/carma_fft_conv.cpp
+    src.cpp/carma_host_obj.cpp
+    src.cpp/carma_ipcs.cpp
+    src.cpp/carma_ksparse.cpp
+    src.cpp/carma_magma.cpp
+    src.cpp/carma_multithread.cpp
+    src.cpp/carma_sparse_host_obj.cpp
+    src.cpp/carma_sparse_obj.cpp
+    src.cpp/carma_streams.cpp
+    src.cpp/carma_utils.cpp
+    src.cpp/carma_obj.cpp
+    src.cu/carma_fft_conv.cu
+    src.cu/carma_timer.cu
+    src.cu/carma_rng.cu
+    src.cu/carma_svd.cu
+    src.cu/carma_utils.cu
+    src.cu/convolutionFFT2D.cu
+    src.cu/carma_obj.cu
+    src.cu/carma_sum.cu
+    src.cu/carma_transpose.cu
+)
+
+target_include_directories(carma PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include.h
+    $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CURRENT_SOURCE_DIR}/include.cuh>
+)
+
+set_target_properties(carma PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION_MAJOR}
+)
+
+target_compile_features(carma PUBLIC cxx_std_14)
+
+target_compile_options(carma PUBLIC -Wno-deprecated-declarations
+    $<$<COMPILE_LANGUAGE:CUDA>:-use_fast_math>
+)
+
+target_compile_definitions(carma PUBLIC
+    $<$<COMPILE_LANGUAGE:CXX>:VERSION_INFO=${VERSION_INFO} USE_UVA>
+)
+
+target_link_libraries(carma PUBLIC
+    CUDA::cudart
+    CUDA::cufft
+    CUDA::cublas
+    CUDA::curand
+    CUDA::cusparse
+    CUDA::cusolver
+    emu::emu
+    ${GCOV}
+)
+
+if (${CUDAToolkit_VERSION_MAJOR} LESS 11)
+    find_package(cub REQUIRED)
+    target_link_libraries(carma PUBLIC cub::cub)
 endif()
 
-#pkg_check_modules(MAGMA magma)
-if(${MAGMA_FOUND})
-  link_directories(${MAGMA_LIBRARY_DIRS})
-else()
-  message(STATUS "MAGMA not found, MAGMA features disabled")
-endif()
-
-pkg_check_modules(OCTOPUS octopus)
 if(${OCTOPUS_FOUND})
-  link_directories(${OCTOPUS_LIBRARY_DIRS})
+  target_link_libraries(carma PUBLIC PkgConfig::OCTOPUS)
+  target_compile_definitions(carma PUBLIC USE_OCTOPUS=1)
 else()
   message(STATUS "OCTOPUS_ROOT not found, CACAO features disabled")
 endif()
 
-IF(CMAKE_BUILD_TYPE MATCHES "Debug")
-  message(STATUS "DEBUG Compilation")
-  set(GCOV gcov)
-ENDIF(CMAKE_BUILD_TYPE MATCHES "Debug")
-
-add_library(carma
-            SHARED
-            ./src.cpp/carma_context.cpp
-            ./src.cpp/carma_cublas.cpp
-            ./src.cpp/carma_cusolver.cpp
-            ./src.cpp/carma_cusparse.cpp
-            ./src.cpp/carma_fft.cpp
-            ./src.cpp/carma_fft_conv.cpp
-            ./src.cpp/carma_host_obj.cpp
-            ./src.cpp/carma_ipcs.cpp
-            ./src.cpp/carma_ksparse.cpp
-            ./src.cpp/carma_magma.cpp
-            ./src.cpp/carma_multithread.cpp
-            ./src.cpp/carma_sparse_host_obj.cpp
-            ./src.cpp/carma_sparse_obj.cpp
-            ./src.cpp/carma_streams.cpp
-            ./src.cpp/carma_utils.cpp
-            ./src.cpp/carma_obj.cpp
-            ./src.cu/carma_fft_conv.cu
-            ./src.cu/carma_timer.cu
-            ./src.cu/carma_rng.cu
-            ./src.cu/carma_svd.cu
-            ./src.cu/carma_utils.cu
-            ./src.cu/convolutionFFT2D.cu
-            ./src.cu/carma_obj.cu
-            ./src.cu/carma_sum.cu
-            ./src.cu/carma_transpose.cu)
-
-set_target_properties(carma
-                      PROPERTIES VERSION
-                                 ${PROJECT_VERSION}
-                                 SOVERSION
-                                 ${PROJECT_VERSION_MAJOR}
-                                 # CUDA_SEPARABLE_COMPILATION OFF
-                      )
-target_compile_features(carma PUBLIC cxx_std_14)
-
-target_compile_options(carma
-                       PUBLIC -Wno-deprecated-declarations
-                              $<$<COMPILE_LANGUAGE:CUDA>:
-                              ${CUDA_GENCODE}
-                              -use_fast_math
-                              >)
-
-target_compile_definitions(
-  carma
-  PUBLIC
-  CUDA_HIGHEST_SM=${CUDA_HIGHEST_SM}
-  CUDA_LOWEREST_SM=${CUDA_LOWEREST_SM}
-  $<$<COMPILE_LANGUAGE:CXX>:VERSION_INFO=${VERSION_INFO} USE_P2P_ACCESS>
-  )
-
-target_link_libraries(carma
-                      PUBLIC ${CUDA_LIBRARIES}
-                             ${CUDA_cufft_LIBRARY}
-                             ${CUDA_cublas_LIBRARY}
-                             ${CUDA_curand_LIBRARY}
-                             ${CUDA_cusparse_LIBRARY}
-                             ${CUDA_cusolver_LIBRARY}
-                             ${CUB_TARGET}
-                             ${GCOV})
-
-target_include_directories(
-  carma
-  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include.h ${CUDA_INCLUDE_DIRS}
-         $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CURRENT_SOURCE_DIR}/include.cuh>)
-
-target_include_directories(
-  carma
-  PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${MAGMA_INCLUDE_DIRS}>)
-
 if(${MAGMA_FOUND})
-  target_compile_options(
-    carma
-    PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${MAGMA_CFLAGS_OTHER}>)
-
-  target_compile_definitions(carma PUBLIC $<$<COMPILE_LANGUAGE:CXX>:USE_MAGMA>)
-
-  target_link_libraries(carma PRIVATE magma) # ${MAGMA_LIBRARIES})
-
+    target_link_libraries(carma PUBLIC PkgConfig::MAGMA)
+    target_compile_definitions(carma PUBLIC $<$<COMPILE_LANGUAGE:CXX>:USE_MAGMA=1>)
+else()
+    message(STATUS "MAGMA not found, MAGMA features disabled")
 endif()
 
-if(${OCTOPUS_FOUND})
-  target_compile_definitions(carma PUBLIC USE_OCTOPUS=1)
-  target_compile_options(carma PUBLIC -DUSE_CACAO ${OCTOPUS_CFLAGS})
-  target_include_directories(
-    carma
-    PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${OCTOPUS_INCLUDE_DIRS}>)
-  target_link_libraries(carma PUBLIC ${OCTOPUS_LIBRARIES})
-endif()
 
 if(do_half)
-  if(${CUDA_LOWEREST_SM} GREATER_EQUAL 60)
+    message(STATUS "COMPASS half precision enabled")
     target_compile_definitions(carma PUBLIC CAN_DO_HALF=1)
-  else()
-    message(
-      FATAL_ERROR
-        "(at least one of) Your NVIDIA card can not support half precision (SM should be >=60)"
-      )
-  endif()
+else()
+    message(STATUS "COMPASS half precision disabled")
 endif()
 
 if(python_build)
-  add_subdirectory(python_module)
+    add_subdirectory(python_module)
 endif()
 
 set(INSTALL_PKGCONFIG_DIR "lib/pkgconfig"
@@ -212,25 +109,8 @@ install(TARGETS carma
         EXPORT CarmaConfig
         ARCHIVE DESTINATION lib
         LIBRARY DESTINATION lib)
-install(FILES include.h/carma_context.h
-              include.h/carma_cublas.h
-              include.h/carma_cusolver.h
-              include.h/carma_cusparse.h
-              include.h/carma_exception.h
-              include.h/carma_fft.h
-              include.h/carma.h
-              include.h/carma_host_obj.h
-              include.h/carma_ipcs.h
-              include.h/carma_magma.h
-              include.h/carma_multithread.h
-              include.h/carma_obj.h
-              include.h/carma_sparse_host_obj.h
-              include.h/carma_sparse_obj.h
-              include.h/carma_streams.h
-              include.h/carma_timer.h
-              include.h/carma_utils.h
-              include.h/type_list.hpp
-        DESTINATION include)
+
+install(DIRECTORY include.h/ DESTINATION include)
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/carma.pc
         DESTINATION "${INSTALL_PKGCONFIG_DIR}")
