@@ -61,8 +61,7 @@ conan install $CONAN_LOCATION -if $LOCAL_DIR/build -b missing \
     -o compass:python_version=${PYTHON_VERSION}
 
 # Build compass
-# Only use conan to configure due to no paralelism buring build (bug).
-conan build $CONAN_LOCATION -bf $LOCAL_DIR/build -pf ${COMPASS_INSTALL_PATH} --configure
-cmake --build build -j
+# conan build $CONAN_LOCATION -bf $LOCAL_DIR/build
+
 # Install compass to specified location
 conan package $CONAN_LOCATION -bf $LOCAL_DIR/build -pf ${COMPASS_INSTALL_PATH}

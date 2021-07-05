@@ -89,7 +89,10 @@ endif()
 
 
 if(do_half)
+    message(STATUS "COMPASS half precision enabled")
     target_compile_definitions(carma PUBLIC CAN_DO_HALF=1)
+else()
+    message(STATUS "COMPASS half precision disabled")
 endif()
 
 if(python_build)
