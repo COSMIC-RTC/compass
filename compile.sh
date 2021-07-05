@@ -1,40 +1,68 @@
 #!/bin/bash
 LOCAL_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-if [ ! -z $1 ]
+if [ -z $1 ]
 then
-    COMPASS_INSTALL_ROOT=$1
+    if [ ! -z $COMPASS_INSTALL_ROOT ]
+    then
+        echo "COMPASS_INSTALL_ROOT found."
+        COMPASS_INSTALL_PATH=$COMPASS_INSTALL_ROOT
+    else
+        echo "Installation destination not found. Use default."
+        COMPASS_INSTALL_PATH=$LOCAL_DIR/local
+    fi
+elif [[ $1 = "cleanup" ]]
+then
+    rm -rf $LOCAL_DIR/build $LOCAL_DIR/local
+    COMPASS_INSTALL_PATH=$LOCAL_DIR/local
+else
+    echo "Installation destination provided."
+    COMPASS_INSTALL_PATH=$1
 fi
 
-if [ -z $COMPASS_INSTALL_ROOT ]
+echo "Installing compass at ${COMPASS_INSTALL_PATH}"
+
+if [ ! -z $CUDA_SM ]
 then
-    COMPASS_INSTALL_ROOT=$LOCAL_DIR/local
+    echo "CUDA_SM found: ${CUDA_SM}"
+else
+    echo "CUDA_SM not found. Use auto detection."
+    CUDA_SM=Auto
 fi
 
-if [ -z $COMPASS_DO_HALF ]
+if [[ "${COMPASS_DO_HALF,,}" =~ ^(yes|true|on)$ ]]
 then
-    COMPASS_DO_HALF="OFF"
+    COMPASS_DO_HALF=True
+else
+    COMPASS_DO_HALF=False
 fi
 
-# If `conanlocal.txt` exists, use it instead of `conanfile.txt`
+# If `conanlocal.py` exists, use it instead of `conanfile.py`
 if [ -f $LOCAL_DIR/conanlocal.py ]
 then
-    CONAN_LOCATION=conanlocal.py
+    CONAN_LOCATION=$LOCAL_DIR/conanlocal.py
 else
     CONAN_LOCATION=$LOCAL_DIR
 fi
 
-# BUILD_TOOL="-GNinja" # build with ninja instead of make
-# COMPASS_DEBUG="-DCMAKE_BUILD_TYPE=Debug"
-#NCPUS=`fgrep processor /proc/cpuinfo | wc -l`
+if [ -z $PYTHON_VERSION ]
+then
+    PYTHON_VERSION=$(python --version | cut -d' ' -f2 | cut -d'.' -f1,2)
+    echo "python version ${PYTHON_VERSION} used"
+fi
 
-conan install -if build --build=missing $CONAN_LOCATION || exit 127
-# conan build -bf build  $CONAN_LOCATION
-# conan package -bf build -pf $COMPASS_INSTALL_ROOT $CONAN_LOCATION
+# Exit on first error.
+set -e
 
-cd build
-cmake $LOCAL_DIR -DPYTHON_EXECUTABLE=$(which python) -DCMAKE_INSTALL_PREFIX=$COMPASS_INSTALL_ROOT -Ddo_half=$COMPASS_DO_HALF $COMPASS_DEBUG $BUILD_TOOL || exit 127
-cmake --build . --target install -- -j $NCPUS || exit 127
+# Resolves dependencies.
+conan install $CONAN_LOCATION -if $LOCAL_DIR/build -b missing \
+    -o emu:cuda_sm=${CUDA_SM}                                 \
+    -o compass:half=${COMPASS_DO_HALF}                        \
+    -o compass:python_version=${PYTHON_VERSION}
 
-# conan export-pkg . conan/stable -f
-# conan upload compass/5.1@conan/stable --all -r=hippo6
+# Build compass
+# Only use conan to configure due to no paralelism buring build (bug).
+conan build $CONAN_LOCATION -bf $LOCAL_DIR/build -pf ${COMPASS_INSTALL_PATH} --configure
+cmake --build build -j
+# Install compass to specified location
+conan package $CONAN_LOCATION -bf $LOCAL_DIR/build -pf ${COMPASS_INSTALL_PATH}
