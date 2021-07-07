@@ -24,6 +24,7 @@ add_library(sutra
     src.cpp/sutra_controller.cpp
     src.cpp/sutra_controller_cured.cpp
     src.cpp/sutra_controller_generic.cpp
+    src.cpp/sutra_controller_generic_linear.cpp
     src.cpp/sutra_controller_geo.cpp
     src.cpp/sutra_controller_ls.cpp
     src.cpp/sutra_controller_mv.cpp

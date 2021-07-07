@@ -70,7 +70,7 @@ class sutra_controller_generic : public SutraController<Tcomp, Tout> {
   string command_law;
 
  public:
-  sutra_controller_generic(CarmaContext *context, long nvalid, long nslope,
+  sutra_controller_generic(CarmaContext *context, long nslope,
                            long nactu, float delay, SutraDms *dms,
                            int *idx_dms, int ndm, int *idx_centro, int ncentro, int nstates);
   sutra_controller_generic(const sutra_controller_generic &controller);
@@ -86,6 +86,7 @@ class sutra_controller_generic : public SutraController<Tcomp, Tout> {
   int set_polc(bool p);
   int set_imat(float *imat);
   int set_leaky_factor(Tcomp factor);
+  using SutraController<Tcomp,Tout>::comp_polc;
   int comp_polc();
   int comp_com();
   int fill_cmatPadded();

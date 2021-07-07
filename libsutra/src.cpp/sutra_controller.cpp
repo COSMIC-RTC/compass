@@ -44,8 +44,7 @@
 
 template <typename Tcomp, typename Tout>
 SutraController<Tcomp, Tout>::SutraController(CarmaContext *context,
-                                                int nvalid, int nslope,
-                                                int nactu, float delay,
+                                                int nslope, int nactu, float delay,
                                                 SutraDms *dms, int *idx_dms,
                                                 int ndm, int *idx_centro, int ncentro) {
   this->current_context = context;
@@ -366,6 +365,37 @@ int SutraController<Tcomp, Tout>::set_volt_max(float volt_max) {
 template <typename Tcomp, typename Tout>
 int SutraController<Tcomp, Tout>::set_val_max(float val_max) {
   this->val_max = Tcomp(val_max);
+  return EXIT_SUCCESS;
+}
+
+template <typename Tcomp, typename Tout>
+int SutraController<Tcomp, Tout>::comp_polc(CarmaObj<Tcomp>& sk,
+   CarmaObj<Tcomp>& iMat, CarmaObj<Tcomp>& ol_meas){
+
+  long n_slope = iMat.get_dims(1);
+  long n_actu  = iMat.get_dims(2);
+
+  std::string err = "";
+  if(sk.get_dims(1) != n_slope){
+    err += "\n\tinconsistent dimension for sk     : expected:";
+    err += std::to_string(n_slope)+", got:" +std::to_string(sk.get_dims(1));
+  }
+  if(ol_meas.get_dims(1) != n_slope){
+    err += "\n\tinconsistent dimension for ol_meas: expected:";
+    err += std::to_string(n_slope)+", got:" +std::to_string(ol_meas.get_dims(1));
+  }
+  if(!err.empty()){
+    throw std::runtime_error("ERROR while computing polc:" + err);
+  }
+
+  this->current_context->set_active_device(this->device, 1);
+  // ol_meas = s_k
+  ol_meas.copy(&sk, 1, 1);
+  // ol_meas = - iMat * eff_u + s_k
+  carma_gemv(this->cublas_handle(), 'n', n_slope, n_actu, Tcomp(-1.0f),
+             iMat.get_data(), n_slope, d_com_clipped->get_data(), 1, Tcomp(1.0f),
+             ol_meas.get_data(), 1);
+
   return EXIT_SUCCESS;
 }
 

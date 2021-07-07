@@ -78,7 +78,7 @@ class sutra_controller_mv : public SutraController<Tcomp, Tout> {
   cublasHandle_t cublas_handle;
 
  public:
-  sutra_controller_mv(CarmaContext *context, long nvalid, long nslope,
+  sutra_controller_mv(CarmaContext *context, long nslope,
                       long nactu, float delay, SutraDms *dms, int *idx_dms,
                       int ndm, int *idx_centro, int ncentro);
   sutra_controller_mv(const sutra_controller_mv &controller);

@@ -66,7 +66,7 @@ class SutraControllerCured : public SutraController<Tcomp, Tout> {
   void *h_parcure;
 
  public:
-  SutraControllerCured(CarmaContext *context, long nvalid, long nslope,
+  SutraControllerCured(CarmaContext *context, long nslope,
                          long nactu, float delay, SutraDms *dms, int *idx_dms,
                          int ndm, int *idx_centro, int ncentro);
   SutraControllerCured(const SutraControllerCured &controller);

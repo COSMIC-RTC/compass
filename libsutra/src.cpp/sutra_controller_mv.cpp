@@ -52,9 +52,9 @@
 
 template <typename Tcomp, typename Tout>
 sutra_controller_mv<Tcomp, Tout>::sutra_controller_mv(
-    CarmaContext *context, long nvalid_, long nslope_, long nactu_, float delay,
+    CarmaContext *context, long nslope_, long nactu_, float delay,
     SutraDms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro)
-    : SutraController<Tcomp, Tout>(context, nvalid_, nslope_, nactu_, delay,
+    : SutraController<Tcomp, Tout>(context, nslope_, nactu_, delay,
                                    dms, idx_dms, ndm, idx_centro, ncentro) {
   this->gain = 0.0;
 

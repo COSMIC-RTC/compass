@@ -47,7 +47,7 @@ sutra_controller_geo<T, Tout>::sutra_controller_geo(CarmaContext *context,
                                                     float delay, SutraDms *dms,
                                                     int *idx_dms, int ndm, int *idx_centro, int ncentro,
                                                     bool wfs_direction)
-    : SutraController<T, Tout>(context, 0, 0, nactu, 0.0f, dms, idx_dms, ndm, idx_centro, ncentro) {
+    : SutraController<T, Tout>(context, 0, nactu, 0.0f, dms, idx_dms, ndm, idx_centro, ncentro) {
   this->gain = 0.0f;
   this->Nphi = Nphi;
 
