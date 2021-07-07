@@ -52,7 +52,7 @@ sup.next()
 sup.rtc.open_loop(0)
 sup.rtc.close_loop(0)
 sup.rtc._rtc.do_control(0)
-rtc = RtcStandalone(sup.context, sup.config, 1, [sup.config.p_wfss[0]._nvalid], sup.config.p_controllers[0].nactu,
+rtc = RtcStandalone(sup.context, sup.config, 1, [sup.config.p_centroiders[0]._nslope], sup.config.p_controllers[0].nactu,
                     ["maskedpix"], [sup.config.p_controllers[0].delay], [0], [1])
 centro = rtc._rtc.d_centro[0]
 control = rtc._rtc.d_control[0]

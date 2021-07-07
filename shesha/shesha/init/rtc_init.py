@@ -227,25 +227,9 @@ def rtc_standalone(context: carmaWrap_context, nwfs: int, nvalid: list, nactu: i
 
     nslopes = sum([c.nslopes for c in rtc.d_centro])
 
-    nslope_buffer = 0
-    nstates = 0
-    nstate_buffer = 0
-    nmodes = 0
-    niir_in = 0
-    niir_out = 0
-    polc = False
-    modal = False
-    dms=[]
-    idx_dms = []
-    ndm = 0
-
     rtc.add_controller(context, "generic", context.active_device,delay[0],
-                    nslopes, nactu, nslope_buffer,
-                    nstates, nstate_buffer,
-                    nmodes,
-                    niir_in, niir_out,
-                    polc, modal, dms, idx_dms, ndm,
-                    np.arange(nwfs), nwfs, Nphi, False)
+                        nslopes, nactu, idx_centro=np.arange(nwfs),
+                        ncentro=nwfs)
 
     print("rtc_standalone set")
     return rtc

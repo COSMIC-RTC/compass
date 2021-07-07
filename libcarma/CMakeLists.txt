@@ -54,7 +54,7 @@ target_compile_options(carma PUBLIC -Wno-deprecated-declarations
 )
 
 target_compile_definitions(carma PUBLIC
-    $<$<COMPILE_LANGUAGE:CXX>:VERSION_INFO=${VERSION_INFO} USE_UVA>
+    $<$<COMPILE_LANGUAGE:CXX>:VERSION_INFO=${VERSION_INFO} USE_P2P_ACCESS>
 )
 
 target_link_libraries(carma PUBLIC
