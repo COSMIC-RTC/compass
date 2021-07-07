@@ -161,7 +161,7 @@ def rtc_init(context: carmaWrap_context, tel: Telescope, wfs: Sensors, dms: Dms,
                     nmodes = p_controller.nmodes
 
                 rtc.add_controller(context, scons.ControllerType.GEO, context.active_device,
-                    p_controller.delay, p_controller.nslope, p_controller.nactu,
+                    0, p_controller.nslope, p_controller.nactu,
                     p_controller.nslope_buffer, p_controller.nstates, p_controller.nstate_buffer,
                     nmodes, p_controller.n_iir_in, p_controller.n_iir_out,
                     p_controller.polc, p_controller.modal, dms, p_controller.ndm,
