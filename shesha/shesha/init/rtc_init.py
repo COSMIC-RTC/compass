@@ -157,7 +157,7 @@ def rtc_init(context: carmaWrap_context, tel: Telescope, wfs: Sensors, dms: Dms,
                 nactu = np.sum([p_dms[j]._ntotact for j in p_controller.ndm])
 
                 rtc.add_controller(context, p_controller.nvalid, p_controller.nslope,
-                                   p_controller.nactu, p_controller.delay,
+                                   p_controller.nactu, 0,
                                    context.active_device, scons.ControllerType.GEO, dms,
                                    p_controller.ndm, p_controller.ndm.size,
                                    p_controller.nwfs, p_controller.nwfs.size, Nphi, True)
