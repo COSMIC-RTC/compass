@@ -154,7 +154,8 @@ def wfs_init(context: carmaWrap_context, telescope: Telescope, p_wfss: list,
         else:
             wfs.load_arrays(p_wfs._phasemap, p_wfs._hrmap, p_wfs._binmap, p_wfs._halfxy,
                             fluxPerSub, p_wfs._validsubsx, p_wfs._validsubsy,
-                            p_wfs._validpuppixx, p_wfs._validpuppixy, p_wfs._ftkernel)
+                            p_wfs._validpuppixx, p_wfs._validpuppixy, p_wfs._ttprojmat,
+                            p_wfs._ftkernel)
 
     # lgs case
     for i in range(nsensors):

@@ -209,6 +209,10 @@ void declare_wfs(py::module &mod) {
           "TODO: docstring")
 
       .def_property_readonly(
+          "d_ttprojmat", [](SutraWfs &sw) { return sw.d_ttprojmat; },
+          "TT projection matrix from subap phase to slopes")
+
+      .def_property_readonly(
           "d_validsubsx", [](SutraWfs &sw) { return sw.d_validsubsx; },
           "X-position of valid ssp")
 

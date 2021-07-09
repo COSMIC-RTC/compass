@@ -685,14 +685,25 @@ def init_sh_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
 
     n = p_wfs._nvalid
     # for i in range(p_wfs._nvalid):
+    ttprojmat = np.zeros([2,p_wfs._pdiam**2,p_wfs._nvalid], dtype=np.float32)
     for i in range(n):
         indi = istart[p_wfs._validsubsy[i]]  # +2-1 (yorick->python)
         indj = jstart[p_wfs._validsubsx[i]]
         phasemap[:, i] = tmp[indi:indi + p_wfs._pdiam, indj:indj +
                              p_wfs._pdiam].flatten()
+        xx,yy = [ x.flatten() for x in np.mgrid[
+            indi:indi+p_wfs._pdiam,
+            indj:indj+p_wfs._pdiam] ]
+        valid_proj = 1 == p_geom._mpupil[indi:indi + p_wfs._pdiam, 
+                                    indj:indj + p_wfs._pdiam].flatten()
+        A = np.r_[[xx,yy,xx*0+1]][:,valid_proj]
+        ttprojmat[:,valid_proj,i] = np.linalg.solve(A @ A.T, A)[:2,:] # yeet piston
+    
     p_wfs._phasemap = phasemap
     p_wfs._validsubsx *= p_wfs.npix
     p_wfs._validsubsy *= p_wfs.npix
+    p_wfs._ttprojmat = ttprojmat * p_geom.get_pupdiam() / p_tel.get_diam() \
+            * CONST.RAD2ARCSEC * 1e-6
 
     # this is a phase shift of 1/2 pix in x and y
     halfxy = np.linspace(0, 2 * np.pi, p_wfs._Nfft + 1)[0:p_wfs._pdiam] / 2.

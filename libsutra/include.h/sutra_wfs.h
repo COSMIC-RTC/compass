@@ -115,6 +115,7 @@ class SutraWfs {
   int nstreams;
 
   CarmaObj<int> *d_phasemap;
+  CarmaObj<float> *d_ttprojmat;
   CarmaObj<int> *d_validsubsx;  // nvalid
   CarmaObj<int> *d_validsubsy;  // nvalid
 
