@@ -233,7 +233,7 @@ int SutraWfs::slopes_geom(float *slopes, int type) {
     // just 206265* 0.000001 = 0.206265
 
     // float alpha = 0.0328281 * this->d_gs->lambda / this->subapd;
-    float alpha = 0.206265 / this->subapd;
+    float alpha = 0.206265 / this->subapd * (this->nphase + 1) / this->nphase;
     phase_reduce(this->nphase, this->nvalid,
                  this->d_gs->d_phase->d_screen->get_data(), slopes,
                  this->d_phasemap->get_data(), alpha);
@@ -241,7 +241,7 @@ int SutraWfs::slopes_geom(float *slopes, int type) {
 
   if (type == 1) {
     // float alpha = 0.0328281 * this->d_gs->lambda / this->subapd;
-    float alpha = 0.206265 / this->subapd;
+    float alpha = 0.206265 / this->subapd * (this->nphase + 1) / this->nphase;
     phase_derive(this->nphase * this->nphase * this->nvalid,
                  this->nphase * this->nphase, this->nvalid, this->nphase,
                  this->d_gs->d_phase->d_screen->get_data(), slopes,
