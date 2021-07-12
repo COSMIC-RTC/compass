@@ -140,6 +140,7 @@ int SutraCentroiderWcog<Tin, T>::get_cog(float *img, float *intensities,
                 this->d_centroids_ref->get_data(), this->d_validx->get_data(),
                 this->d_validy->get_data(), intensities,
                 this->d_weights->get_data(), this->scale, this->offset,
+                this->slope_order,
                 this->current_context->get_device(this->device));
 
   if (this->filter_TT) {

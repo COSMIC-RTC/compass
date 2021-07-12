@@ -143,6 +143,7 @@ int SutraCentroiderPyr<Tin, T>::get_pyr(float *cube, float *intensities,
               subindy, this->d_intensities->get_data(), ns, nvalid, this->scale,
               this->valid_thresh,
               this->method.is_sinus,  // if we are using a sin method
+              this->slope_order,
               this->current_context->get_device(this->device));
 
   if (this->filter_TT) {
