@@ -34,7 +34,7 @@
 //! \ingroup   libsutra
 //! \brief     this file provides pybind wrapper for SutraWfs
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.1.0
+//! \version   5.2.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 

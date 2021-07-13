@@ -10,9 +10,9 @@ build_release:
   variables:
     COMPASS_ROOT: /builds/compass/compass
     SHESHA_ROOT: $COMPASS_ROOT/shesha
+    COMPASS_DO_HALF: "OFF"
   script:
     - export CUDA_ROOT=/usr/local/cuda
-    - export COMPASS_DO_HALF="OFF"
     - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
     - ./script/install_conan.sh 8

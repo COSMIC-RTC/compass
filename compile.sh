@@ -22,7 +22,7 @@ fi
 
 echo "Installing compass at ${COMPASS_INSTALL_PATH}"
 
-if [ ! -z $CUDA_SM ]
+if [ ! -z "$CUDA_SM" ]
 then
     echo "CUDA_SM found: ${CUDA_SM}"
 else
