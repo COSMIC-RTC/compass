@@ -100,6 +100,7 @@ SutraWfs::SutraWfs(CarmaContext *context, SutraTelescope *d_tel,
       d_validsubsx(nullptr),
       d_validsubsy(nullptr),
       d_ttprojmat(nullptr),
+      d_ttprojvec(nullptr),
       current_context(context),
       offset(0),
       nvalid_tot(nvalid),
@@ -250,10 +251,11 @@ int SutraWfs::slopes_geom(float *slopes, int type) {
                  this->d_fluxPerSub->get_data());
   }
   
-  if (type == 2) { // linalg method
-    // gpu kernel to re-sort phase into batch of vectors
-    // gpu batch gemv to compute x-y slope from phase vectors and ttprojmat
-    // gpu kernel to re-sort output x-y slopes pairs into x-slopes then y-slopes
+  if (type == 2) { // linalg/regression method
+    phase_regress(current_context->get_cublas_handle(), this->nphase, 
+                  this->nvalid, this->d_gs->d_phase->d_screen->get_data(), 
+                  slopes, this->d_phasemap->get_data(), 
+                  this->d_ttprojmat->get_data(), this->d_ttprojvec->get_data());
   }
 
   return EXIT_SUCCESS;

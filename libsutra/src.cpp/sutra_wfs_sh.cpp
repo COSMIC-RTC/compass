@@ -273,10 +273,12 @@ int SutraWfsSH::allocate_buffers(
   dims_data2[2] = nvalid;
   this->d_phasemap = new CarmaObj<int>(current_context, dims_data2);
   
-  dims_data3[1] = 2;
-  dims_data3[2] = nphase * nphase;
-  dims_data3[3] = nvalid;
-  this->d_ttprojmat = new CarmaObj<float>(current_context, dims_data3);
+  dims_data2[1] = nphase * nphase;
+  dims_data2[2] = nvalid * 2;
+  this->d_ttprojmat = new CarmaObj<float>(current_context, dims_data2);
+
+  dims_data1[1] = nphase*nphase*nvalid;
+  this->d_ttprojvec = new CarmaObj<float>(current_context, dims_data1);
 
   delete[] dims_data1;
   delete[] dims_data2;
@@ -303,6 +305,7 @@ SutraWfsSH::~SutraWfsSH() {
 
   if (this->d_phasemap != 0L) delete this->d_phasemap;
   if (this->d_ttprojmat != 0L) delete this->d_ttprojmat;
+  if (this->d_ttprojvec != 0L) delete this->d_ttprojvec;
   if (this->d_binmap != 0L) delete this->d_binmap;
   if (this->d_validsubsx != 0L) delete this->d_validsubsx;
   if (this->d_validsubsy != 0L) delete this->d_validsubsy;

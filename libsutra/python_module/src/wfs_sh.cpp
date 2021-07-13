@@ -99,7 +99,8 @@ void declare_wfs_sh(py::module &mod) {
 
       jstart:
 
-      ttprojmat: (np.array[ndim=3, dtype=np.float32]): TT projection matrix for geom wfs
+      ttprojmat: (np.array[ndim=2, dtype=np.float32]): slope projection matrix
+                 for geom wfs.
 
       kernel:
     )pbdoc",

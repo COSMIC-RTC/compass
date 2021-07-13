@@ -685,19 +685,23 @@ def init_sh_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
 
     n = p_wfs._nvalid
     # for i in range(p_wfs._nvalid):
-    ttprojmat = np.zeros([2,p_wfs._pdiam**2,p_wfs._nvalid], dtype=np.float32)
+    ttprojmat = np.zeros([p_wfs._pdiam**2,p_wfs._nvalid*2], dtype=np.float32)
     for i in range(n):
         indi = istart[p_wfs._validsubsy[i]]  # +2-1 (yorick->python)
         indj = jstart[p_wfs._validsubsx[i]]
         phasemap[:, i] = tmp[indi:indi + p_wfs._pdiam, indj:indj +
                              p_wfs._pdiam].flatten()
-        xx,yy = [ x.flatten() for x in np.mgrid[
+        yy,xx = [ x.flatten() for x in np.mgrid[
             indi:indi+p_wfs._pdiam,
             indj:indj+p_wfs._pdiam] ]
         valid_proj = 1 == p_geom._mpupil[indi:indi + p_wfs._pdiam, 
                                     indj:indj + p_wfs._pdiam].flatten()
-        A = np.r_[[xx,yy,xx*0+1]][:,valid_proj]
-        ttprojmat[:,valid_proj,i] = np.linalg.solve(A @ A.T, A)[:2,:] # yeet piston
+        A_forward = np.r_[[xx,yy,xx*0+1]][:,valid_proj]
+        A_inv = np.linalg.solve(
+                A_forward @ A_forward.T, A_forward)[:2,:] # yeet piston
+        ttprojmat[valid_proj,i] = A_inv[0,:]
+        ttprojmat[valid_proj,i+p_wfs._nvalid] = A_inv[1,:]
+
     
     p_wfs._phasemap = phasemap
     p_wfs._validsubsx *= p_wfs.npix

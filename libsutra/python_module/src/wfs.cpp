@@ -210,7 +210,11 @@ void declare_wfs(py::module &mod) {
 
       .def_property_readonly(
           "d_ttprojmat", [](SutraWfs &sw) { return sw.d_ttprojmat; },
-          "TT projection matrix from subap phase to slopes")
+          "TT projection matrix from subap phase to slopes (geom wfs type 2)")
+
+      .def_property_readonly(
+          "d_ttprojvec", [](SutraWfs &sw) { return sw.d_ttprojvec; },
+          "Input vector for TT projection from subap phase to slopes (geom wfs type 2)")
 
       .def_property_readonly(
           "d_validsubsx", [](SutraWfs &sw) { return sw.d_validsubsx; },
