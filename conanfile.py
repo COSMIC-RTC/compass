@@ -17,7 +17,6 @@ class CompassConan(ConanFile):
     settings = 'os', 'compiler', 'build_type', 'arch'
     generators = ['cmake', 'cmake_find_package']
 
-    requires = ['emu/0.1@cosmic/stable']
     python_requires = 'cuda_arch/0.1@cosmic/stable'
 
     options = {
@@ -25,6 +24,7 @@ class CompassConan(ConanFile):
         'fPIC'          : [True, False],
         'python'        : [True, False],
         'half'          : [True, False],
+        'cuda_sm'       : 'ANY',
         'python_version': 'ANY'
     }
     default_options = {
@@ -33,17 +33,14 @@ class CompassConan(ConanFile):
         'python'   : True,
         'half'     : False,
         'wyrm:cuda': True,
+        'cuda_sm'  : 'Auto'
     }
 
     def _cuda_compute_capabilities(self):
         return self.python_requires["cuda_arch"].module.compute_capabilities()
 
     def _half_support(self):
-        # Retreive list of cuda compute capabilities.
-        if self.options['emu'].cuda_sm == 'Auto':
-            archs = self._cuda_compute_capabilities()
-        else:
-            archs = str(self.options['emu'].cuda_sm)
+        archs = str(self.options.cuda_sm)
 
         # Check if they are all above or equal 60.
         return min(map(int, archs.split(';'))) >= 60
@@ -54,11 +51,16 @@ class CompassConan(ConanFile):
         self.version = version.strip()
 
     def configure(self):
+        # If `Auto`, replace by local compute capabilities.
+        if str(self.options.cuda_sm) == 'Auto':
+            self.options.cuda_sm = self._cuda_compute_capabilities()
+
         if self.options.half:
             self.options.half = self._half_support()
 
         if self.options.python:
             self.options['wyrm'].half = self.options.half
+
 
     def requirements(self):
         if cuda_version() < version.parse('11.0'):
@@ -75,7 +77,7 @@ class CompassConan(ConanFile):
         if self.options.python:
             cmake.definitions['PYBIND11_PYTHON_VERSION'] = self.options.python_version
 
-        cmake.definitions['CMAKE_CUDA_ARCHITECTURES'] = self.options['emu'].cuda_sm
+        cmake.definitions['CMAKE_CUDA_ARCHITECTURES'] = self.options.cuda_sm
 
         cmake.configure(source_folder='.')
 

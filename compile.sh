@@ -56,7 +56,7 @@ set -e
 
 # Resolves dependencies.
 conan install $CONAN_LOCATION -if $LOCAL_DIR/build -b missing \
-    -o emu:cuda_sm=${CUDA_SM}                                 \
+    -o compass:cuda_sm=${CUDA_SM}                             \
     -o compass:half=${COMPASS_DO_HALF}                        \
     -o compass:python_version=${PYTHON_VERSION}
 
