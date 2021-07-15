@@ -691,17 +691,28 @@ def init_sh_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
         indj = jstart[p_wfs._validsubsx[i]]
         phasemap[:, i] = tmp[indi:indi + p_wfs._pdiam, indj:indj +
                              p_wfs._pdiam].flatten()
-        yy,xx = [ x.flatten() for x in np.mgrid[
-            indi:indi+p_wfs._pdiam,
-            indj:indj+p_wfs._pdiam] ]
-        valid_proj = 1 == p_geom._mpupil[indi:indi + p_wfs._pdiam, 
-                                    indj:indj + p_wfs._pdiam].flatten()
-        A_forward = np.r_[[xx,yy,xx*0+1]][:,valid_proj]
-        A_inv = np.linalg.solve(
-                A_forward @ A_forward.T, A_forward)[:2,:] # yeet piston
-        ttprojmat[valid_proj,i] = A_inv[0,:]
-        ttprojmat[valid_proj,i+p_wfs._nvalid] = A_inv[1,:]
-
+        
+        Sx = np.zeros([p_wfs._pdiam,p_wfs._pdiam],dtype=np.float32)
+        Sy = np.zeros([p_wfs._pdiam,p_wfs._pdiam],dtype=np.float32)
+        
+        subapmask = p_geom._mpupil[indi:indi + p_wfs._pdiam, 
+                                   indj:indj + p_wfs._pdiam]
+        for ii in range(p_wfs._pdiam):
+            for jj in range(p_wfs._pdiam):
+                Sx[ii,jj] += subapmask[ii,jj-1] if jj>0 else 0
+                Sx[ii,jj] -= subapmask[ii,jj+1] if jj+1 < p_wfs._pdiam else 0
+                Sx[ii,jj]  *= subapmask[ii,jj]
+                Sy[ii,jj] += subapmask[ii-1,jj] if ii>0 else 0
+                Sy[ii,jj] -= subapmask[ii+1,jj] if ii+1 < p_wfs._pdiam else 0
+                Sy[ii,jj]  *= subapmask[ii,jj]
+        Sx_den = -Sx.cumsum(axis=1).sum()
+        Sy_den = -Sx.cumsum(axis=1).sum()
+        if Sx_den == 0 or Sy_den == 0:
+            continue
+        Sx /= Sx_den
+        Sy /= Sy_den
+        ttprojmat[:,i] = Sx.flatten()
+        ttprojmat[:,i+p_wfs._nvalid] = Sy.flatten()
     
     p_wfs._phasemap = phasemap
     p_wfs._validsubsx *= p_wfs.npix
