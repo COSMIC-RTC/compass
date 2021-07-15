@@ -231,7 +231,7 @@ void phase_derive(int size, int threads, int blocks, int n, T *d_idata,
                   T *d_odata, int *indx, T *mask, T alpha, float *fluxPerSub);
 
 template <class T>
-void phase_regress(cublasHandle_t handle, int nphase, int nvalid, T *d_idata, 
+void phase_project(cublasHandle_t handle, int nphase, int nvalid, T *d_idata, 
                   T *d_odata, int *indx, T *d_ttprojmat, T *d_ttprojvec);
 
 template <class Tout, class Tin>

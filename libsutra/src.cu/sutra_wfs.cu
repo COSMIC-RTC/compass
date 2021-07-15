@@ -957,7 +957,7 @@ template void phase_derive<double>(int size, int threads, int blocks, int n,
                                    float *fluxPerSub);
 
 template <class T>
-__global__ void regress_gather(T *g_idata, T *g_odata, int *indx, 
+__global__ void project_gather(T *g_idata, T *g_odata, int *indx, 
                                unsigned int N) {
   
   unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -969,7 +969,7 @@ __global__ void regress_gather(T *g_idata, T *g_odata, int *indx,
 }
 
 template <class T>
-void phase_regress(cublasHandle_t handle, int nphase, int nvalid, T *d_idata,
+void phase_project(cublasHandle_t handle, int nphase, int nvalid, T *d_idata,
                    T *d_odata, int *indx, 
                    T *d_ttprojmat, T *d_ttprojvec) {
   int size = nphase * nphase * nvalid;
@@ -977,10 +977,10 @@ void phase_regress(cublasHandle_t handle, int nphase, int nvalid, T *d_idata,
   dim3 dimBlockGather(32, 1, 1);
   dim3 dimGridGather(size/32+1, 1, 1);
   
-  regress_gather<T><<<dimGridGather,dimBlockGather>>>(
+  project_gather<T><<<dimGridGather,dimBlockGather>>>(
       d_idata, d_ttprojvec, indx, size);
   
-  carma_check_msg("regress_gather_kernel<<<>>> execution failed\n");
+  carma_check_msg("project_gather_kernel<<<>>> execution failed\n");
 
   // x-slope
   carma_gemm_strided_batched(handle, 'n', 'n', 1, 1, nphase * nphase, T(1.0f), 
@@ -1000,12 +1000,12 @@ void phase_regress(cublasHandle_t handle, int nphase, int nvalid, T *d_idata,
   
 }
 
-template void phase_regress<float>(cublasHandle_t handle, int nphase,
+template void phase_project<float>(cublasHandle_t handle, int nphase,
                                 int nvalid, float *d_idata, float *d_odata, 
                                 int *indx, float *d_ttprojmat,
                                 float *d_ttprojvec);
 
-template void phase_regress<double>(cublasHandle_t handle, int nphase, 
+template void phase_project<double>(cublasHandle_t handle, int nphase, 
                                 int nvalid, double *d_idata, double *d_odata, 
                                 int *indx, double *d_ttprojmat,
                                 double *d_ttprojvec);
