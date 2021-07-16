@@ -672,11 +672,12 @@ int SutraRtc<Tin, T, Tout>::do_centroids(int ncntrl, bool noise) {
 }
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::do_centroids_geom(int ncntrl) {
-  return do_centroids_geom_impl(ncntrl, std::is_same<T, float>());
+int SutraRtc<Tin, T, Tout>::do_centroids_geom(int ncntrl, int type) {
+  return do_centroids_geom_impl(ncntrl, type, std::is_same<T, float>());
 }
+
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::do_centroids_geom_impl(int ncntrl,
+int SutraRtc<Tin, T, Tout>::do_centroids_geom_impl(int ncntrl, int type,
                                                    std::false_type) {
   DEBUG_TRACE("Not implemented for this compuation type");
   return EXIT_FAILURE;
@@ -685,7 +686,8 @@ int SutraRtc<Tin, T, Tout>::do_centroids_geom_impl(int ncntrl,
 template <typename Tin, typename T, typename Tout>
 template <typename Q>
 typename std::enable_if<std::is_same<Q, float>::value, int>::type
-SutraRtc<Tin, T, Tout>::do_centroids_geom_impl(int ncntrl, std::true_type) {
+SutraRtc<Tin, T, Tout>::do_centroids_geom_impl(int ncntrl, int type, 
+                                               std::true_type) {
   int inds2 = 0;
 
   for (size_t idxh = 0; idxh < this->d_control[ncntrl]->centro_idx.size();
@@ -695,11 +697,11 @@ SutraRtc<Tin, T, Tout>::do_centroids_geom_impl(int ncntrl, std::true_type) {
     if (wfs->type == "sh") {
       SutraWfsSH *_wfs = dynamic_cast<SutraWfsSH *>(wfs);
       _wfs->slopes_geom(
-          this->d_control[ncntrl]->d_centroids->get_data_at(inds2));
+          this->d_control[ncntrl]->d_centroids->get_data_at(inds2), type);
     } else if (wfs->type == "pyrhr") {
       SutraWfs_PyrHR *_wfs = dynamic_cast<SutraWfs_PyrHR *>(wfs);
       _wfs->slopes_geom(
-          this->d_control[ncntrl]->d_centroids->get_data_at(inds2));
+          this->d_control[ncntrl]->d_centroids->get_data_at(inds2), type);
     } else {
       DEBUG_TRACE("wfs could be a SH, geo or pyrhr");
       return EXIT_FAILURE;

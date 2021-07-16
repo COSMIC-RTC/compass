@@ -115,6 +115,8 @@ class SutraWfs {
   int nstreams;
 
   CarmaObj<int> *d_phasemap;
+  CarmaObj<float> *d_ttprojmat;
+  CarmaObj<float> *d_ttprojvec;
   CarmaObj<int> *d_validsubsx;  // nvalid
   CarmaObj<int> *d_validsubsy;  // nvalid
 
@@ -227,6 +229,10 @@ void phase_reduce(int threads, int blocks, T *d_idata, T *d_odata, int *indx,
 template <class T>
 void phase_derive(int size, int threads, int blocks, int n, T *d_idata,
                   T *d_odata, int *indx, T *mask, T alpha, float *fluxPerSub);
+
+template <class T>
+void phase_project(int nphase, int nvalid, T *d_idata, T *d_odata, int *indx, 
+                   T *d_ttprojmat, T *d_ttprojvec, CarmaDevice *device);
 
 template <class Tout, class Tin>
 void pyr_getpup(Tout *d_odata, Tin *d_idata, Tout *d_offsets, Tin *d_pup,

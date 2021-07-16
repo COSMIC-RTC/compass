@@ -99,12 +99,15 @@ void declare_wfs_sh(py::module &mod) {
 
       jstart:
 
+      ttprojmat: (np.array[ndim=2, dtype=np.float32]): slope projection matrix
+                 for geom wfs.
+
       kernel:
     )pbdoc",
            py::arg("phasemap"), py::arg("hrmap"), py::arg("binmap"),
            py::arg("offsets"), py::arg("fluxPerSub"), py::arg("validsubsx"),
            py::arg("validsubsy"), py::arg("istart"), py::arg("jstart"),
-           py::arg("kernel"))
+           py::arg("ttprojmat"), py::arg("kernel"))
 
       .def("comp_nphot", &SutraWfsSH::comp_nphot, R"pbdoc(
     Compute the currect number of photons for a given system

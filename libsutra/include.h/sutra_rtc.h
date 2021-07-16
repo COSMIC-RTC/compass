@@ -127,7 +127,7 @@ class SutraRtc {
   int do_centroids();
   int do_centroids(int ncntrl);
   int do_centroids(int ncntrl, bool noise);
-  int do_centroids_geom(int ncntrl);
+  int do_centroids_geom(int ncntrl, int type = 0);
   int do_centroids_ref(int ncntrl);
   int do_control(int ncntrl);
   int do_clipping(int ncntrl);
@@ -155,8 +155,8 @@ class SutraRtc {
 
   template <typename Q = T>
   typename std::enable_if<std::is_same<Q, float>::value, int>::type
-  do_centroids_geom_impl(int ncntrl, std::true_type);
-  int do_centroids_geom_impl(int ncntrl, std::false_type);
+  do_centroids_geom_impl(int ncntrl, int type, std::true_type);
+  int do_centroids_geom_impl(int ncntrl, int type, std::false_type);
 
   template <typename Q = T>
   typename std::enable_if<!std::is_same<Q, half>::value, int>::type

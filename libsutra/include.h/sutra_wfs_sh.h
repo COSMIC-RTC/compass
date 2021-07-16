@@ -76,7 +76,8 @@ class SutraWfsSH : public SutraWfs {
 
   int load_arrays(int *phasemap, int *hrmap, int *binmap, float *offsets,
                  float *fluxPerSub, int *validsubsx, int *validsubsy,
-                 int *istart, int *jstart, cuFloatComplex *kernel);
+                 int *istart, int *jstart, float *ttprojmat,
+                cuFloatComplex *kernel);
 
   int fill_binimage(int async);
   int comp_image(bool noise = true);

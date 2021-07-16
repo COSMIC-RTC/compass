@@ -374,8 +374,9 @@ void rtc_impl(py::module &mod, const char *name) {
 
      Args:
         ncontrol: (int): Index of the controller
+        type: (int): Centroiding method of geom wfs
     )pbdoc",
-           py::arg("ncontrol"))
+           py::arg("ncontrol"), py::arg("type") = 0)
 
       .def("do_centroids_ref", &rtc::do_centroids_ref,
            R"pbdoc(
