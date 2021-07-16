@@ -969,13 +969,15 @@ __global__ void project_gather(T *g_idata, T *g_odata, int *indx,
 }
 
 template <class T>
-void phase_project(cublasHandle_t handle, int nphase, int nvalid, T *d_idata,
-                   T *d_odata, int *indx, 
-                   T *d_ttprojmat, T *d_ttprojvec) {
+void phase_project(int nphase, int nvalid, T *d_idata, T *d_odata, int *indx, 
+                   T *d_ttprojmat, T *d_ttprojvec, CarmaDevice *device) {
+
+  int nb_blocks, nb_threads;
   int size = nphase * nphase * nvalid;
-  // TODO: use maxthreadsperblock instead of hardcoded 32
-  dim3 dimBlockGather(32, 1, 1);
-  dim3 dimGridGather(size/32+1, 1, 1);
+  get_num_blocks_and_threads(device, size, nb_blocks, nb_threads);
+  
+  dim3 dimGridGather(nb_blocks, 1, 1);
+  dim3 dimBlockGather(nb_threads, 1, 1);
   
   project_gather<T><<<dimGridGather,dimBlockGather>>>(
       d_idata, d_ttprojvec, indx, size);
@@ -983,7 +985,8 @@ void phase_project(cublasHandle_t handle, int nphase, int nvalid, T *d_idata,
   carma_check_msg("project_gather_kernel<<<>>> execution failed\n");
 
   // x-slope
-  carma_gemm_strided_batched(handle, 'n', 'n', 1, 1, nphase * nphase, T(1.0f), 
+  carma_gemm_strided_batched(device->get_cublas_handle(), 'n', 'n', 1, 1, 
+                            nphase * nphase, T(1.0f), 
                             d_ttprojmat, 1, nphase * nphase,
                             d_ttprojvec, nphase * nphase, nphase * nphase, 
                             T(0.0f), d_odata, 1, 1, nvalid);
@@ -991,7 +994,8 @@ void phase_project(cublasHandle_t handle, int nphase, int nvalid, T *d_idata,
   carma_check_msg("cublas_batched_gemm<<<>>> execution failed\n");
 
   // y-slope
-  carma_gemm_strided_batched(handle, 'n', 'n', 1, 1, nphase * nphase, T(1.0f),
+  carma_gemm_strided_batched(device->get_cublas_handle(), 'n', 'n', 1, 1, 
+                    nphase * nphase, T(1.0f), 
                     &(d_ttprojmat[nvalid*nphase*nphase]), 1, nphase * nphase,
                     d_ttprojvec, nphase * nphase, nphase * nphase, 
                     T(0.0f), &(d_odata[nvalid]), 1, 1, nvalid);
@@ -1000,15 +1004,13 @@ void phase_project(cublasHandle_t handle, int nphase, int nvalid, T *d_idata,
   
 }
 
-template void phase_project<float>(cublasHandle_t handle, int nphase,
-                                int nvalid, float *d_idata, float *d_odata, 
-                                int *indx, float *d_ttprojmat,
-                                float *d_ttprojvec);
+template void phase_project<float>(int nphase, int nvalid, float *d_idata, 
+                                  float *d_odata, int *indx, float *d_ttprojmat,
+                                  float *d_ttprojvec, CarmaDevice *device);
 
-template void phase_project<double>(cublasHandle_t handle, int nphase, 
-                                int nvalid, double *d_idata, double *d_odata, 
-                                int *indx, double *d_ttprojmat,
-                                double *d_ttprojvec);
+template void phase_project<double>(int nphase, int nvalid, double *d_idata, 
+                                double *d_odata, int *indx, double *d_ttprojmat,
+                                double *d_ttprojvec, CarmaDevice *device);
 
 template <class Tout, class Tin>
 __global__ void pyrgetpup_krnl(Tout *g_odata, Tin *g_idata, Tout *offsets,

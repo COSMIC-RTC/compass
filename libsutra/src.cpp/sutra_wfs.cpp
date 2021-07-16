@@ -252,10 +252,11 @@ int SutraWfs::slopes_geom(float *slopes, int type) {
   }
   
   if (type == 2) { // linear projection method
-    phase_project(current_context->get_cublas_handle(), this->nphase, 
-                  this->nvalid, this->d_gs->d_phase->d_screen->get_data(), 
-                  slopes, this->d_phasemap->get_data(), 
-                  this->d_ttprojmat->get_data(), this->d_ttprojvec->get_data());
+    phase_project(this->nphase, this->nvalid, 
+                  this->d_gs->d_phase->d_screen->get_data(), slopes, 
+                  this->d_phasemap->get_data(), this->d_ttprojmat->get_data(), 
+                  this->d_ttprojvec->get_data(), 
+                  current_context->get_device(device));
   }
 
   return EXIT_SUCCESS;
