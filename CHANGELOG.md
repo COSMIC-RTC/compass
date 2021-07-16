@@ -1,6 +1,7 @@
 # COMPASS Change logs
 
 - [COMPASS Change logs](#compass-change-logs)
+  - [Release v5.2](#release-v52)
   - [Release v5.1](#release-v51)
   - [Release v5.0](#release-v50)
   - [Release v4.4.2](#release-v442)
@@ -18,6 +19,21 @@
   - [Release v3.0](#release-v30)
   - [Release v2.0](#release-v20)
   - [Release v1.1](#release-v11)
+
+## Release v5.2
+
+COMPASS v5.2 release notes :
+
+- Add generic linear controller, see documentation
+- Remove unused `nvalid` argument from controller signatures
+- Debug WFS NCPA that were applied twice
+- Debug RTC standalone
+- Debug P2P GPU access
+- Debug roket script in guardians
+- Pytests debug
+- Debug centroider to make it right with any number of sub-aperture and pixel per subap
+- Debug geometric slope computation (edited)
+- Rework CMakeFiles and conan dependencies
 
 ## Release v5.1
 

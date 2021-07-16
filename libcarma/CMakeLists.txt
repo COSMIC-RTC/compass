@@ -7,7 +7,6 @@ find_package(CUDAToolkit REQUIRED)
 
 pkg_check_modules(MAGMA   IMPORTED_TARGET magma)
 pkg_check_modules(OCTOPUS IMPORTED_TARGET octopus)
-find_package(emu REQUIRED)
 
 add_library(carma
     src.cpp/carma_context.cpp
@@ -64,7 +63,6 @@ target_link_libraries(carma PUBLIC
     CUDA::curand
     CUDA::cusparse
     CUDA::cusolver
-    emu::emu
     ${GCOV}
 )
 

@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 3.18)
 project(sutra VERSION ${VERSION_INFO} DESCRIPTION "COMPASS SUTRA lirary" LANGUAGES CXX CUDA)
 
 find_package(CUDAToolkit REQUIRED)
-find_package(emu REQUIRED)
 
 IF(CMAKE_BUILD_TYPE MATCHES "Debug")
   set(GCOV gcov)
@@ -92,7 +91,6 @@ target_compile_features(sutra PUBLIC cxx_std_14)
 target_link_libraries(sutra PUBLIC
     carma
     CUDA::cudart
-    emu::emu
     ${GCOV}
 )
 

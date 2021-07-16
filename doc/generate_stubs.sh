@@ -7,7 +7,7 @@ cat > stubs/sutraWrap.py << EOF
 ## @package   sutraWrap
 ## @brief     stubs for sutraWrap module
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   5.1.0
+## @version   5.2.0
 ## @date      2020/05/18
 ## @copyright GNU Lesser General Public License
 #
@@ -48,7 +48,7 @@ cat > stubs/carmaWrap.py << EOF
 ## @package   carmaWrap
 ## @brief     stubs for carmaWrap module
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   5.1.0
+## @version   5.2.0
 ## @date      2020/05/18
 ## @copyright GNU Lesser General Public License
 #
