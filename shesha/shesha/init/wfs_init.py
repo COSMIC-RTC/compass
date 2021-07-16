@@ -150,7 +150,8 @@ def wfs_init(context: carmaWrap_context, telescope: Telescope, p_wfss: list,
             wfs.compute_pyrfocalplane = p_wfs.pyr_compute_focalplane
             wfs.load_arrays(halfxy, p_wfs._pyr_cx, p_wfs._pyr_cy, p_wfs._pyr_weights,
                             p_wfs._sincar, p_wfs._submask, p_wfs._validsubsx,
-                            p_wfs._validsubsy, p_wfs._phasemap, fluxPerSub)
+                            p_wfs._validsubsy, p_wfs._phasemap, fluxPerSub, 
+                            p_wfs._ttprojmat)
         else:
             wfs.load_arrays(p_wfs._phasemap, p_wfs._hrmap, p_wfs._binmap, p_wfs._halfxy,
                             fluxPerSub, p_wfs._validsubsx, p_wfs._validsubsy,

@@ -85,6 +85,13 @@ SutraWfs_PyrHR::SutraWfs_PyrHR(
   dims_data2[2] = nvalid;
   this->d_phasemap = new CarmaObj<int>(current_context, dims_data2);
 
+  dims_data2[1] = nphase * nphase;
+  dims_data2[2] = nvalid * 2;
+  this->d_ttprojmat = new CarmaObj<float>(current_context, dims_data2);
+
+  dims_data1[1] = nphase * nphase * nvalid;
+  this->d_ttprojvec = new CarmaObj<float>(current_context, dims_data1);
+
   dims_data2[1] = nfft / nrebin;
   dims_data2[2] = nfft / nrebin;
 
@@ -303,6 +310,8 @@ SutraWfs_PyrHR::~SutraWfs_PyrHR() {
   if (this->image_telemetry != 0L) delete this->image_telemetry;
 
   if (this->d_phasemap != 0L) delete this->d_phasemap;
+  if (this->d_ttprojmat != 0L) delete this->d_ttprojmat;
+  if (this->d_ttprojvec != 0L) delete this->d_ttprojvec;
   if (this->d_validsubsx != 0L) delete this->d_validsubsx;
   if (this->d_validsubsy != 0L) delete this->d_validsubsy;
 
@@ -324,7 +333,7 @@ int SutraWfs_PyrHR::load_arrays(cuFloatComplex *halfxy, float *cx,
                                     float *cy, float *weights, float *sincar,
                                     float *submask, int *validsubsx,
                                     int *validsubsy, int *phasemap,
-                                    float *fluxPerSub) {
+                                    float *fluxPerSub, float *ttprojmat) {
   for (std::vector<CarmaObj<cuFloatComplex> *>::iterator it =
            this->d_phalfxy_ngpu.begin();
        this->d_phalfxy_ngpu.end() != it; ++it) {
@@ -362,6 +371,7 @@ int SutraWfs_PyrHR::load_arrays(cuFloatComplex *halfxy, float *cx,
   this->d_validsubsx->host2device(validsubsx);
   this->d_validsubsy->host2device(validsubsy);
   this->d_phasemap->host2device(phasemap);
+  this->d_ttprojmat->host2device(ttprojmat);
   this->d_fluxPerSub->host2device(fluxPerSub);
 
   return EXIT_SUCCESS;

@@ -277,7 +277,7 @@ int SutraWfsSH::allocate_buffers(
   dims_data2[2] = nvalid * 2;
   this->d_ttprojmat = new CarmaObj<float>(current_context, dims_data2);
 
-  dims_data1[1] = nphase*nphase*nvalid;
+  dims_data1[1] = nphase * nphase * nvalid;
   this->d_ttprojvec = new CarmaObj<float>(current_context, dims_data1);
 
   delete[] dims_data1;

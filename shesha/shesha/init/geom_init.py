@@ -616,13 +616,38 @@ def init_pyrhr_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
 
     pyrtmp = np.zeros((p_geom._n, p_geom._n), dtype=np.int32)
 
+    ttprojmat = np.zeros([p_wfs.npix * p_wfs.npix,p_wfs._nvalid*2], dtype=np.float32)
     for i in range(len(validsubsx)):
         indi = istart[validsubsy[i]]  # +2-1 (yorick->python
         indj = jstart[validsubsx[i]]
         phasemap[:, i] = tmp[indi:indi + p_wfs.npix, indj:indj + p_wfs.npix].flatten("C")
         pyrtmp[indi:indi + p_wfs.npix, indj:indj + p_wfs.npix] = i
+        
+        Sx = np.zeros([p_wfs.npix,p_wfs.npix],dtype=np.float32)
+        Sy = np.zeros([p_wfs.npix,p_wfs.npix],dtype=np.float32)
+        
+        subapmask = p_geom._mpupil[indi:indi + p_wfs._pdiam, 
+                                   indj:indj + p_wfs._pdiam]
+        for ii in range(p_wfs.npix):
+            for jj in range(p_wfs.npix):
+                Sx[ii,jj] += subapmask[ii,jj-1] if jj>0 else 0
+                Sx[ii,jj] -= subapmask[ii,jj+1] if jj+1 < p_wfs.npix else 0
+                Sx[ii,jj]  *= subapmask[ii,jj]
+                Sy[ii,jj] += subapmask[ii-1,jj] if ii>0 else 0
+                Sy[ii,jj] -= subapmask[ii+1,jj] if ii+1 < p_wfs.npix else 0
+                Sy[ii,jj]  *= subapmask[ii,jj]
+        Sx_den = -Sx.cumsum(axis=1).sum()
+        Sy_den = -Sy.cumsum(axis=0).sum()
+        if Sx_den == 0 or Sy_den == 0:
+            continue
+        Sx /= Sx_den
+        Sy /= Sy_den
+        ttprojmat[:,i] = Sx.flatten()
+        ttprojmat[:,i+p_wfs._nvalid] = Sy.flatten()
 
     p_wfs._phasemap = phasemap
+    p_wfs._ttprojmat = ttprojmat * p_geom.get_pupdiam() / p_tel.get_diam() \
+            * CONST.RAD2ARCSEC * 1e-6
 
     p_wfs._pyr_offsets = pyrtmp  # pshift
 
@@ -706,7 +731,7 @@ def init_sh_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
                 Sy[ii,jj] -= subapmask[ii+1,jj] if ii+1 < p_wfs._pdiam else 0
                 Sy[ii,jj]  *= subapmask[ii,jj]
         Sx_den = -Sx.cumsum(axis=1).sum()
-        Sy_den = -Sx.cumsum(axis=1).sum()
+        Sy_den = -Sy.cumsum(axis=0).sum()
         if Sx_den == 0 or Sy_den == 0:
             continue
         Sx /= Sx_den

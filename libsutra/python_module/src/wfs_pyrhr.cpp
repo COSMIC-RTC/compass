@@ -132,10 +132,15 @@ void declare_wfs_pyrhr(py::module &mod) {
       phasemap:
 
       fluxPerSub:
+      
+      ttprojmat: (np.array[ndim=2, dtype=np.float32]): slope projection matrix
+                 for geom wfs.
+
     )pbdoc",
            py::arg("halfxy"), py::arg("cx"), py::arg("cy"), py::arg("weights"),
            py::arg("sincar"), py::arg("submask"), py::arg("validsubsx"),
-           py::arg("validsubsy"), py::arg("phasemap"), py::arg("fluxPerSub"))
+           py::arg("validsubsy"), py::arg("phasemap"), py::arg("fluxPerSub"),
+           py::arg("ttprojmat"))
 
       .def("comp_nphot", &SutraWfs_PyrHR::comp_nphot, R"pbdoc(
     Compute the currect number of photons for a given system

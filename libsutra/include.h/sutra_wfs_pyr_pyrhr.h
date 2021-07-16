@@ -91,7 +91,8 @@ class SutraWfs_PyrHR : public SutraWfs {
 
   int load_arrays(cuFloatComplex *halfxy, float *cx, float *cy, float *weights,
                  float *sincar, float *submask, int *validsubsx,
-                 int *validsubsy, int *phasemap, float *fluxPerSub);
+                 int *validsubsy, int *phasemap, float *fluxPerSub,
+                 float *ttprojmat);
   int set_submask(float *submask);
   int set_phalfxy(cuFloatComplex *phalfxy);
 
