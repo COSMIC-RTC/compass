@@ -690,7 +690,7 @@ class RtcAbstract(ABC):
         Returns:
             slopes_geom : (np.ndarray) : geometrically computed slopes
         """
-        self._rtc.do_centroids_geom(controller_index, geom_type)
+        self.do_centroids_geom(controller_index, geom_type=geom_type)
         slopes_geom = np.array(self._rtc.d_control[controller_index].d_centroids)
         self._rtc.do_centroids(controller_index)  # To return in non-geo state
         return slopes_geom
@@ -759,7 +759,7 @@ class RtcAbstract(ABC):
         """
         self._rtc.do_centroids(controller_index)
 
-    def do_centroids_geom(self, controller_index: int, geom_type: int = 0) -> None:
+    def do_centroids_geom(self, controller_index: int, *, geom_type: int = 0) -> None:
         """ Computes the centroids geom from the Wfs image
 
         Args:

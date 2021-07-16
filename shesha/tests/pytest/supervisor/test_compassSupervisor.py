@@ -488,9 +488,9 @@ def test_do_centroids():
 
 def test_do_centroids_geom():
     sup.rtc.do_centroids_geom(0)    # default 
-    sup.rtc.do_centroids_geom(0,0)  # type 0
-    sup.rtc.do_centroids_geom(0,1)  # type 1
-    sup.rtc.do_centroids_geom(0,2)  # type 2
+    sup.rtc.do_centroids_geom(0, geom_type=0)  # type 0
+    sup.rtc.do_centroids_geom(0, geom_type=1)  # type 1
+    sup.rtc.do_centroids_geom(0, geom_type=2)  # type 2
     assert(True)
 
 def test_apply_control():
