@@ -98,6 +98,16 @@ function generate_script(div_text, access, conda_path, cuda_path, hf16) {
   }
   text_html += '</div><!-- fragment -->';
 
+  if (access == 'conda') {
+    text_html += `
+    <p><h3>Or you can run the installer (choise one solution curl or wget)</h3></p>
+    <div class="fragment">
+    <div class="line">wget -O- https://lesia.obspm.fr/compass/get_compass.sh | /bin/bash</div>
+    <div class="line">curl -L https://lesia.obspm.fr/compass/get_compass.sh | /bin/bash</div>
+    </div><!-- fragment -->
+    `;
+  }
+
   div_text.innerHTML = text_html;
 }
 
