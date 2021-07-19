@@ -722,7 +722,7 @@ def configure_generic_linear(p_controller: conf.Param_controller):
 
         rtc: (Rtc): Rtc object
     """
-    if not p_controller.get_modal():
+    if not p_controller.get_modal() or p_controller.get_nmodes() is None:
         p_controller.set_nmodes(p_controller.get_nactu())
     if p_controller.get_nstate_buffer() == 0:
         p_controller.set_nstates(p_controller.get_nmodes())
