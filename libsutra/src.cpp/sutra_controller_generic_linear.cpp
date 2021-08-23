@@ -42,7 +42,7 @@
 #include <sutra_controller_generic_linear.h>
 
 template<typename T>
-int rotate_circular_buffer(std::deque<CarmaObj<T> *> buffer){
+int rotate_circular_buffer(std::deque<CarmaObj<T> *> &buffer){
   CarmaObj<T> *tmp = std::move(buffer.back());
   buffer.pop_back();
   buffer.push_front(tmp);
@@ -50,7 +50,7 @@ int rotate_circular_buffer(std::deque<CarmaObj<T> *> buffer){
 }
 
 template<typename T>
-int update_circular(std::deque<CarmaObj<T> *> buffer, CarmaObj<T> &update){
+int update_circular(std::deque<CarmaObj<T> *> &buffer, CarmaObj<T> &update){
   if(buffer.size()>0){
     rotate_circular_buffer(buffer);
     buffer.front()->copy_from(update, update.get_nb_elements());
