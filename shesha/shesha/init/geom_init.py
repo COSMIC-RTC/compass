@@ -626,7 +626,7 @@ def init_pyrhr_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
         Sx = np.zeros([p_wfs.npix,p_wfs.npix],dtype=np.float32)
         Sy = np.zeros([p_wfs.npix,p_wfs.npix],dtype=np.float32)
         
-        subapmask = p_geom._mpupil[indi:indi + p_wfs._pdiam, 
+        subapmask = p_geom._mpupil.T[indi:indi + p_wfs._pdiam, 
                                    indj:indj + p_wfs._pdiam]
         for ii in range(p_wfs.npix):
             for jj in range(p_wfs.npix):
@@ -720,7 +720,7 @@ def init_sh_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
         Sx = np.zeros([p_wfs._pdiam,p_wfs._pdiam],dtype=np.float32)
         Sy = np.zeros([p_wfs._pdiam,p_wfs._pdiam],dtype=np.float32)
         
-        subapmask = p_geom._mpupil[indi:indi + p_wfs._pdiam, 
+        subapmask = p_geom._mpupil.T[indi:indi + p_wfs._pdiam, 
                                    indj:indj + p_wfs._pdiam]
         for ii in range(p_wfs._pdiam):
             for jj in range(p_wfs._pdiam):
