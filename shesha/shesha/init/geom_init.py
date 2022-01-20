@@ -497,7 +497,7 @@ def init_pyrhr_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
 
     # Valid pixels identification
     # Generate buffer with pupil at center
-    pup = np.zeros((pyrsize, pyrsize), dtype=np.int32)
+    pup = np.zeros((pyrsize, pyrsize))#, dtype=np.int32)
     pup[pyrsize // 2 - p_geom._n // 2:pyrsize // 2 + p_geom._n // 2,
         pyrsize // 2 - p_geom._n // 2:pyrsize // 2 + p_geom._n // 2] = \
             p_geom._mpupil
@@ -854,7 +854,7 @@ def geom_init(p_geom: conf.Param_geom, p_tel: conf.Param_tel, padding=2):
     # useful pupil + 4 pixels
     p_geom._mpupil = util.pad_array(p_geom._spupil, p_geom._n).astype(np.float32)
 
-    if (p_tel.std_piston and p_tel.std_tt):
+    if (p_tel.std_piston or p_tel.std_tt):
         p_geom._phase_ab_M1 = mkP.make_phase_ab(p_geom.pupdiam, p_geom.pupdiam, p_tel,
                                                 p_geom._spupil, cent,
                                                 cent).astype(np.float32)
