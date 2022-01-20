@@ -24,30 +24,32 @@ p_tel.set_pupangle(0.)          # ELT pup rotation in degrees
 p_tel.set_t_spiders(0.51)       # Spider size in meters
 
 # ATMOS
+# Conditions Q4
 p_atmos = ao.Param_atmos()
-r0 = atmosPar.r0Q3
-alt = atmosPar.altESO
-frac = atmosPar.fracQ3
-wind = atmosPar.windESO
+p_atmos.set_r0(0.089)
+p_atmos.set_nscreens(1)
+p_atmos.set_frac([1.0])
+p_atmos.set_alt([0.0])
+p_atmos.set_windspeed([10.])
+p_atmos.set_winddir([45.])
+p_atmos.set_L0([25.0])
 
-nbLayers = len(alt)
-p_atmos.set_r0(r0)
-p_atmos.set_nscreens(nbLayers)
-p_atmos.set_frac(frac)
-p_atmos.set_alt(alt)
-p_atmos.set_windspeed(wind)
-p_atmos.set_winddir([45.] * nbLayers)
-p_atmos.set_L0([25.] * nbLayers)
+# 3 LAMBDA TARGET
+p_targets = [ao.Param_target(), ao.Param_target(), ao.Param_target()]
+p_targets[0].set_xpos(0.)
+p_targets[0].set_ypos(0.)
+p_targets[0].set_Lambda(1.2)
+p_targets[0].set_mag(4.)
+p_targets[1].set_xpos(0.)
+p_targets[1].set_ypos(0.)
+p_targets[1].set_Lambda(1.65)
+p_targets[1].set_mag(4.)
+p_targets[2].set_xpos(0.)
+p_targets[2].set_ypos(0.)
+p_targets[2].set_Lambda(2.2)
+p_targets[2].set_mag(4.)
 
-# 1 LAMBDA TARGET
-p_target = ao.Param_target()
-p_targets = [p_target]
-p_target.set_xpos(0)
-p_target.set_ypos(0)
-p_target.set_Lambda(2.2)
-p_target.set_mag(4)
-
-rMod = 3  # Modulation radius, in lam/D units
+rMod = 10  # Modulation radius, in lam/D units
 nbPtMod = int(np.ceil(int(rMod * 2 * 3.141592653589793) / 4.) * 4)
 
 # WFS
