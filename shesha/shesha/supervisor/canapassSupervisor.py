@@ -43,12 +43,15 @@ Usage:
 with 'parameters_filename' the path to the parameters file
 
 Options:
-  -h, --help          Show this help message and exit
-  -f, --freq freq       change the frequency of the loop
-  -d, --delay delay     change the delay of the loop
+  -h, --help                Show this help message and exit
+  -f, --freq freq           change the frequency of the loop
+  -d, --delay delay         change the delay of the loop
   -s, --spiders spiders     change the spiders size
-  -n, --nxsub nxsub     change the number of pixels in subap
-  -p, --pupsep pupsep     change the distance between subap center and frame center
+  -n, --nxsub nxsub         change the number of pixels in subap
+  -p, --pupsep pupsep       change the distance between subap center and frame center
+  -g, --gsmag gsmag         change guide star magnitude
+  -r, --rmod rmod           change modulation radius
+  -x, --offaxis offaxis     change all targets position along x axis
 """
 
 import os, sys
@@ -144,6 +147,21 @@ if __name__ == '__main__':
     if (arguments["--pupsep"]):
         print("Warning changed distance between subaperture center and frame center to: ", arguments["--pupsep"])
         config.p_wfss[0].set_pyr_pup_sep(int(arguments["--pupsep"]))
+    if (arguments["--gsmag"]):
+        print("Warning changed guide star magnitude to: ", arguments["--gsmag"])
+        config.p_wfss[0].set_gsmag(float(arguments["--gsmag"]))
+    if (arguments["--rmod"]):
+        print("Warning changed modulation radius to: ", arguments["--rmod"])
+        rMod = int(arguments["--rmod"])
+        nbPtMod = int(np.ceil(int(rMod * 2 * 3.141592653589793) / 4.) * 4)
+        config.p_wfss[0].set_pyr_npts(nbPtMod)
+        config.p_wfss[0].set_pyr_ampl(rMod)
+    if (arguments["--offaxis"]):
+        print("Warning changed target x position: ", arguments["--offaxis"])
+        config.p_targets[0].set_xpos(float(arguments["--offaxis"]))
+        config.p_targets[1].set_xpos(float(arguments["--offaxis"]))
+        config.p_targets[2].set_xpos(float(arguments["--offaxis"]))
+
     supervisor = CanapassSupervisor(config, cacao=True)
 
     try:
