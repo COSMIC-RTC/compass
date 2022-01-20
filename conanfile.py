@@ -1,9 +1,7 @@
-from conans import ConanFile, CMake, tools
+from conans import ConanFile, tools, CMake
 
-import os
-import subprocess as sp
+import os, re, subprocess as sp
 from packaging import version
-
 
 def cuda_version():
     cmd_output = sp.run(['nvcc', '--version'], stdout=sp.PIPE).stdout.decode('utf-8')
@@ -11,42 +9,82 @@ def cuda_version():
 
 
 class CompassConan(ConanFile):
-    name = "compass"
-    version = "5.1.0"
-    author = "COMPASS Team <https://github.com/ANR-COMPASS>"
-    url = "https://anr-compass.github.io/compass/"
-    description = "End-to-end AO simulation tool using GPU acceleration"
-    topics = ("Adaptive Optics", "Simulation")
+    name = 'compass'
+    author = 'COMPASS Team <https://github.com/ANR-COMPASS>'
+    url = 'https://anr-compass.github.io/compass/'
+    description = 'End-to-end AO simulation tool using GPU acceleration'
+    topics = 'Adaptive Optics', 'Simulation'
     settings = 'os', 'compiler', 'build_type', 'arch'
-    requires = ['wyrm/0.3@cosmic/stable']
-    generators = 'cmake'
-    options = {"python_build": [True, False], "do_half": [True, False]}
-    default_options = {
-            "python_build": True,
-            "do_half": True,
-            'wyrm:cuda': True,
-            'wyrm:half': True
+    generators = ['cmake', 'cmake_find_package']
+
+    python_requires = 'cuda_arch/0.1@cosmic/stable'
+
+    options = {
+        'shared'        : [True, False],
+        'fPIC'          : [True, False],
+        'python'        : [True, False],
+        'half'          : [True, False],
+        'cuda_sm'       : 'ANY',
+        'python_version': 'ANY'
     }
+    default_options = {
+        'shared'   : True,
+        'fPIC'     : True,
+        'python'   : True,
+        'half'     : False,
+        'wyrm:cuda': True,
+        'cuda_sm'  : 'Auto'
+    }
+
+    def _cuda_compute_capabilities(self):
+        return self.python_requires["cuda_arch"].module.compute_capabilities()
+
+    def _half_support(self):
+        archs = str(self.options.cuda_sm)
+
+        # Check if they are all above or equal 60.
+        return min(map(int, archs.split(';'))) >= 60
+
+    def set_version(self):
+        content = tools.load(os.path.join(self.recipe_folder, 'CMakeLists.txt'))
+        version = re.search(r'set\(VERSION_INFO (\d+\.\d+\.\d+)[^\)]*\)', content).group(1)
+        self.version = version.strip()
+
+    def configure(self):
+        # If `Auto`, replace by local compute capabilities.
+        if str(self.options.cuda_sm) == 'Auto':
+            self.options.cuda_sm = self._cuda_compute_capabilities()
+
+        if self.options.half:
+            self.options.half = self._half_support()
+
+        if self.options.python:
+            self.options['wyrm'].half = self.options.half
+
+
     def requirements(self):
         if cuda_version() < version.parse('11.0'):
             self.requires('cub/1.8.0@cosmic/stable')
+        if self.options.python:
+            self.requires('wyrm/0.4@cosmic/stable')
+        else:
+            self.options.remove('python_version')
+
+    def _configure(self):
+        cmake = CMake(self)
+        cmake.definitions['do_half'] = self.options.half
+        cmake.definitions['build_python_module']     = self.options.python
+        if self.options.python:
+            cmake.definitions['PYBIND11_PYTHON_VERSION'] = self.options.python_version
+
+        cmake.definitions['CMAKE_CUDA_ARCHITECTURES'] = self.options.cuda_sm
+
+        cmake.configure(source_folder='.')
+
+        return cmake
 
     def build(self):
-        cmake = CMake(self)
-        if "COMPASS_DO_HALF" in os.environ:
-            cmake.definitions["do_half"] = os.environ['COMPASS_DO_HALF']
-        # cmake.configure(source_folder="compass")
-        cmake.configure()
-        cmake.build()
-        cmake.install()
-
-        # Explicit way:
-        # self.run('cmake %s/hello %s'
-        #          % (self.source_folder, cmake.command_line))
-        # self.run("cmake --build . %s" % cmake.build_config)
+        self._configure().build()
 
     def package(self):
-        self.copy("*", ".", "build/package")  #keep_path default is True
-
-    def package_info(self):
-        self.cpp_info.libs = ["carma", "sutra"]
+        self._configure().install()

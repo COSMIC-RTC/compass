@@ -35,7 +35,7 @@
 //! \class     sutra_controller_ls
 //! \brief     this class provides the controller_ls features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.1.0
+//! \version   5.2.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -78,7 +78,7 @@ class sutra_controller_ls : public SutraController<Tcomp, Tout> {
   CarmaObj<Tcomp> *d_compbuff2;  // Buffer for POLC computation
 
  public:
-  sutra_controller_ls(CarmaContext *context, long nvalid, long nslope,
+  sutra_controller_ls(CarmaContext *context, long nslope,
                       long nactu, float delay, SutraDms *dms, int *idx_dms,
                       int ndm, int *idx_centro, int ncentro);
   sutra_controller_ls(const sutra_controller_ls &controller);

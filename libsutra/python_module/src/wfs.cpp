@@ -34,7 +34,7 @@
 //! \ingroup   libsutra
 //! \brief     this file provides pybind wrapper for SutraWfs
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.1.0
+//! \version   5.2.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -207,6 +207,14 @@ void declare_wfs(py::module &mod) {
       .def_property_readonly(
           "d_phasemap", [](SutraWfs &sw) { return sw.d_phasemap; },
           "TODO: docstring")
+
+      .def_property_readonly(
+          "d_ttprojmat", [](SutraWfs &sw) { return sw.d_ttprojmat; },
+          "TT projection matrix from subap phase to slopes (geom wfs type 2)")
+
+      .def_property_readonly(
+          "d_ttprojvec", [](SutraWfs &sw) { return sw.d_ttprojvec; },
+          "Input vector for TT projection from subap phase to slopes (geom wfs type 2)")
 
       .def_property_readonly(
           "d_validsubsx", [](SutraWfs &sw) { return sw.d_validsubsx; },

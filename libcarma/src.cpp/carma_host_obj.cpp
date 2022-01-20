@@ -35,7 +35,7 @@
 //! \class     CarmaHostObj
 //! \brief     this class provides wrappers to the generic carma host object
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.1.0
+//! \version   5.2.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -59,6 +59,21 @@ template CarmaHostObj<int>::CarmaHostObj(const long *dims_data);
 template CarmaHostObj<unsigned int>::CarmaHostObj(const long *dims_data);
 template CarmaHostObj<cuFloatComplex>::CarmaHostObj(const long *dims_data);
 template CarmaHostObj<cuDoubleComplex>::CarmaHostObj(const long *dims_data);
+
+
+template <class T_data>
+CarmaHostObj<T_data>::CarmaHostObj() {
+  /** \brief CarmaHostObj creator.
+   * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
+   */
+
+  long dims_data[2] = {1,0};
+  init(dims_data, 0L, MA_MALLOC, 0);
+}
+
+template <class T_data>
+CarmaHostObj<T_data>::CarmaHostObj(const std::vector<long> &dims):
+CarmaHostObj(dims.data()){}
 
 template <class T_data>
 CarmaHostObj<T_data>::CarmaHostObj(const long *dims_data,

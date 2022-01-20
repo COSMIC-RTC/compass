@@ -35,7 +35,7 @@
 //! \class     SutraCentroiderTcog
 //! \brief     this class provides the centroider_tcog features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.1.0
+//! \version   5.2.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -88,6 +88,7 @@ int SutraCentroiderTcog<Tin, T>::get_cog(float *img, float *intensities,
                 this->d_centroids_ref->get_data(), this->d_validx->get_data(),
                 this->d_validy->get_data(), intensities, this->threshold,
                 this->scale, this->offset,
+                this->slope_order,
                 this->current_context->get_device(this->device));
 
   if (this->filter_TT) {

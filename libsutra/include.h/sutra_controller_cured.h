@@ -35,7 +35,7 @@
 //! \class     SutraControllerCured
 //! \brief     this class provides the controller_cured features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.1.0
+//! \version   5.2.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -66,7 +66,7 @@ class SutraControllerCured : public SutraController<Tcomp, Tout> {
   void *h_parcure;
 
  public:
-  SutraControllerCured(CarmaContext *context, long nvalid, long nslope,
+  SutraControllerCured(CarmaContext *context, long nslope,
                          long nactu, float delay, SutraDms *dms, int *idx_dms,
                          int ndm, int *idx_centro, int ncentro);
   SutraControllerCured(const SutraControllerCured &controller);

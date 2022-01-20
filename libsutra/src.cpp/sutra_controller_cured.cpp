@@ -35,7 +35,7 @@
 //! \class     SutraControllerCured
 //! \brief     this class provides the controller_cured features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.1.0
+//! \version   5.2.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -45,9 +45,9 @@
 
 template <typename T, typename Tout>
 SutraControllerCured<T, Tout>::SutraControllerCured(
-    CarmaContext *context, long nvalid, long nslopes, long nactu, float delay,
+    CarmaContext *context, long nslopes, long nactu, float delay,
     SutraDms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro)
-    : SutraController<T, Tout>(context, nvalid, nslopes, nactu, delay, dms,
+    : SutraController<T, Tout>(context, nslopes, nactu, delay, dms,
                                 idx_dms, ndm, idx_centro, ncentro),
       ndivs(0),
       tt_flag(false),

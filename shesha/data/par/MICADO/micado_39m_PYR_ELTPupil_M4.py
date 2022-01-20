@@ -129,7 +129,7 @@ p_wfss = [p_wfs0]
 p_wfs0.set_type("pyrhr") # type de WFS: "sh", "pyrhr", "pyr"
 
 p_wfs0.set_nxsub(
-        92
+        100
 )  # 92 sub aps for hexagonal grid of actuators eq. 78 subaps square grid. (pitch = 0.5m)
 p_wfs0.set_fracsub(0.01) # 0.01 for pixels below spider, nominal = 0.1 Minimal illumination fraction
 p_wfs0.set_xpos(0.)     # direction of guide star in X (arcsec)
@@ -235,7 +235,7 @@ p_dm0.set_unitpervolt(1)
 p_dm0.set_thresh(0.)  # fraction units
 p_dm0.set_margin_out(0.6)
 #p_dm0.set_file_influ_fits('/home/abertrou/m4_eelt_compass/testJojo.fits')
-p_dm0.set_file_influ_fits('cropped_M4IF.fits')
+p_dm0.set_file_influ_fits('/home/fvidal/shesha/data/dm-init/cropped_M4IF.fits')
 p_dm0.set_push4imat(0.01)
 p_dm0.set_diam_dm(40.0)
 
@@ -259,10 +259,10 @@ p_centroider0 = ao.Param_centroider()
 p_centroiders = [p_centroider0]
 
 p_centroider0.set_nwfs(0)
-p_centroider0.set_type("pyr")
+#p_centroider0.set_type("pyr")
 # p_centroider0.set_method(2)
 
-# p_centroider0.set_type("maskedpix")
+p_centroider0.set_type("maskedpix")
 # sp_centroider0.set_thresh(0.)
 
 # p_centroider0.set_type("bpcog")

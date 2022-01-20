@@ -40,7 +40,7 @@
 //! \class     SutraRtc
 //! \brief     this class provides the rtc features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.1.0
+//! \version   5.2.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -179,14 +179,16 @@ int SutraRtc<Tin, T, Tout>::add_centroider_impl(CarmaContext *context,
 #endif
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::add_controller(
-    CarmaContext *context, int nvalid, int nslope, int nactu, float delay,
-    long device, std::string typec, SutraDms *dms, int *idx_dms, int ndm,
-    int *idx_centro, int ncentro, int Nphi, bool wfs_direction, int nstates) {
-  return add_controller_impl(context, this->d_control, nvalid, nslope, nactu,
-                             delay, device, typec, dms, idx_dms, ndm,
-                             idx_centro, ncentro, Nphi, wfs_direction, nstates,
-                             std::is_same<T, half>());
+int SutraRtc<Tin, T, Tout>::add_controller(CarmaContext *context, std::string typec,long device,
+                    float delay, int nslope, int nactu,
+                    int nslope_buffers, int nstates, int nstate_buffers, int nmodes,
+                    int niir_in, int niir_out, bool polc,bool is_modal,
+                    SutraDms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro,
+                    int Nphi, bool wfs_direction) {
+  return add_controller_impl(context, this->d_control, typec,device,
+                        delay, nslope, nactu, nslope_buffers, nstates, nstate_buffers, nmodes,
+                        niir_in, niir_out, polc, is_modal, dms, idx_dms, ndm,
+                        idx_centro, ncentro, Nphi, wfs_direction, std::is_same<T, half>());
 }
 
 template <typename Tin, typename T, typename Tout>
@@ -194,12 +196,14 @@ template <typename Q>
 typename std::enable_if<!std::is_same<Q, half>::value, int>::type
 SutraRtc<Tin, T, Tout>::add_controller_impl(
     CarmaContext *context, vector<SutraController<T, Tout> *> &d_control,
-    int nvalid, int nslope, int nactu, float delay, long device,
-    std::string typec, SutraDms *dms, int *idx_dms, int ndm, int *idx_centro,
-    int ncentro, int Nphi, bool wfs_direction, int nstates, std::false_type) {
+    std::string typec,long device, float delay, int nslope, int nactu,
+    int nslope_buffers, int nstates, int nstate_buffers, int nmodes,
+    int niir_in, int niir_out, bool polc,bool is_modal,
+    SutraDms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro,
+    int Nphi, bool wfs_direction, std::false_type) {
   if (typec.compare("ls") == 0) {
     d_control.push_back(new sutra_controller_ls<T, Tout>(
-        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro,
+        context, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro,
         ncentro));
   } else if (typec.compare("geo") == 0) {
     d_control.push_back(new sutra_controller_geo<T, Tout>(
@@ -208,21 +212,26 @@ SutraRtc<Tin, T, Tout>::add_controller_impl(
 
   } else if (typec.compare("cured") == 0) {
     d_control.push_back(new SutraControllerCured<T, Tout>(
-        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro,
+        context, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro,
         ncentro));
   } else if (typec.compare("mv") == 0) {
     d_control.push_back(new sutra_controller_mv<T, Tout>(
-        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro,
+        context, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro,
         ncentro));
   } else if (typec.compare("generic") == 0) {
     d_control.push_back(new sutra_controller_generic<T, Tout>(
-        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro,
+        context, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro,
         ncentro, nstates));
     // } else if ((typec.compare("kalman_GPU") == 0) ||
     //            (typec.compare("kalman_CPU") == 0)) {
     //   d_control.push_back(
     //       new sutra_controller_kalman(context, nslope, nactu, dms, idx_dms,
     //       ndm));
+  } else if(typec.compare("generic_linear") == 0){
+    d_control.push_back(new sutra_controller_generic_linear<T, Tout>( context,
+    nslope, nslope_buffers, nactu, nstates, nstate_buffers, nmodes,
+    niir_in, niir_out, delay, polc, is_modal,
+    dms, idx_dms, ndm, idx_centro, ncentro));
   } else {
     DEBUG_TRACE("Controller '%s' unknown\n", typec.c_str());
     return EXIT_FAILURE;
@@ -233,12 +242,14 @@ SutraRtc<Tin, T, Tout>::add_controller_impl(
 template <typename Tin, typename T, typename Tout>
 int SutraRtc<Tin, T, Tout>::add_controller_impl(
     CarmaContext *context, vector<SutraController<T, Tout> *> &d_control,
-    int nvalid, int nslope, int nactu, float delay, long device,
-    std::string typec, SutraDms *dms, int *idx_dms, int ndm, int *idx_centro,
-    int ncentro, int Nphi, bool wfs_direction, int nstates, std::true_type) {
+    std::string typec,long device, float delay, int nslope, int nactu,
+    int nslope_buffers, int nstates, int nstate_buffers, int nmodes,
+    int niir_in, int niir_out, bool polc,bool is_modal,
+    SutraDms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro,
+    int Nphi, bool wfs_direction, std::true_type) {
   if (typec.compare("generic") == 0) {
     d_control.push_back(new sutra_controller_generic<T, Tout>(
-        context, nvalid, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro,
+        context, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro,
         ncentro, nstates));
 
   } else {
@@ -661,11 +672,12 @@ int SutraRtc<Tin, T, Tout>::do_centroids(int ncntrl, bool noise) {
 }
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::do_centroids_geom(int ncntrl) {
-  return do_centroids_geom_impl(ncntrl, std::is_same<T, float>());
+int SutraRtc<Tin, T, Tout>::do_centroids_geom(int ncntrl, int type) {
+  return do_centroids_geom_impl(ncntrl, type, std::is_same<T, float>());
 }
+
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::do_centroids_geom_impl(int ncntrl,
+int SutraRtc<Tin, T, Tout>::do_centroids_geom_impl(int ncntrl, int type,
                                                    std::false_type) {
   DEBUG_TRACE("Not implemented for this compuation type");
   return EXIT_FAILURE;
@@ -674,7 +686,8 @@ int SutraRtc<Tin, T, Tout>::do_centroids_geom_impl(int ncntrl,
 template <typename Tin, typename T, typename Tout>
 template <typename Q>
 typename std::enable_if<std::is_same<Q, float>::value, int>::type
-SutraRtc<Tin, T, Tout>::do_centroids_geom_impl(int ncntrl, std::true_type) {
+SutraRtc<Tin, T, Tout>::do_centroids_geom_impl(int ncntrl, int type, 
+                                               std::true_type) {
   int inds2 = 0;
 
   for (size_t idxh = 0; idxh < this->d_control[ncntrl]->centro_idx.size();
@@ -684,11 +697,11 @@ SutraRtc<Tin, T, Tout>::do_centroids_geom_impl(int ncntrl, std::true_type) {
     if (wfs->type == "sh") {
       SutraWfsSH *_wfs = dynamic_cast<SutraWfsSH *>(wfs);
       _wfs->slopes_geom(
-          this->d_control[ncntrl]->d_centroids->get_data_at(inds2));
+          this->d_control[ncntrl]->d_centroids->get_data_at(inds2), type);
     } else if (wfs->type == "pyrhr") {
       SutraWfs_PyrHR *_wfs = dynamic_cast<SutraWfs_PyrHR *>(wfs);
       _wfs->slopes_geom(
-          this->d_control[ncntrl]->d_centroids->get_data_at(inds2));
+          this->d_control[ncntrl]->d_centroids->get_data_at(inds2), type);
     } else {
       DEBUG_TRACE("wfs could be a SH, geo or pyrhr");
       return EXIT_FAILURE;

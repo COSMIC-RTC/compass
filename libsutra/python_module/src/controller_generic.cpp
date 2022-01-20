@@ -39,7 +39,7 @@
 //! \ingroup   libsutra
 //! \brief     this file provides pybind wrapper for sutra_controller_generic
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.1.0
+//! \version   5.2.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -117,7 +117,7 @@ void controller_generic_impl(py::module &mod, const char *name) {
     Set the decay factor vector
 
     Args:
-      decayFactor: (np.array[ndim1,dtype=np.float32]): decay factor
+      decayFactor: (np.array[ndim=1,dtype=np.float32]): decay factor
     )pbdoc",
            py::arg("decayFactor"))
 
@@ -153,7 +153,7 @@ void controller_generic_impl(py::module &mod, const char *name) {
     Set the controller modal gains
 
     Args:
-      mgain: (np.array[ndim1,dtype=np.float32]): modal gains to set
+      mgain: (np.array[ndim=1,dtype=np.float32]): modal gains to set
     )pbdoc",
            py::arg("mgain"))
 

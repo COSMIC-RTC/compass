@@ -35,7 +35,7 @@
 //! \class     sutra_controller_generic
 //! \brief     this class provides the controller_generic features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.1.0
+//! \version   5.2.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -43,9 +43,9 @@
 
 template <typename T, typename Tout>
 sutra_controller_generic<T, Tout>::sutra_controller_generic(
-    CarmaContext *context, long nvalid, long nslope, long nactu, float delay,
+    CarmaContext *context, long nslope, long nactu, float delay,
     SutraDms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro, int nstates)
-    : SutraController<T, Tout>(context, nvalid, nslope, nactu, delay, dms,
+    : SutraController<T, Tout>(context, nslope, nactu, delay, dms,
                                 idx_dms, ndm, idx_centro, ncentro) {
   this->command_law = "integrator";
   this->nstates = nstates;
@@ -253,20 +253,8 @@ int sutra_controller_generic<T, Tout>::set_commandlaw(string law) {
 }
 
 template <typename T, typename Tout>
-int sutra_controller_generic<T, Tout>::comp_polc() {
-  this->current_context->set_active_device(this->device, 1);
-  // POLC equations
-  this->d_compbuff->reset();
-  this->d_compbuff->axpy(T(this->a), this->d_com1, 1, 1);
-  this->d_compbuff->axpy(T(this->b), this->d_com, 1, 1);
-  this->d_olmeas->copy(this->d_centroids, 1, 1);
-
-  carma_gemv(this->cublas_handle(), 'n', this->nslope(), this->nactu(), T(1.0f),
-             this->d_imat->get_data(), this->nslope(),
-             this->d_compbuff->get_data(), 1, T(0.0f),
-             this->d_compbuff2->get_data(), 1);
-
-  this->d_olmeas->axpy(T(-1.0f), this->d_compbuff2, 1, 1);
+int sutra_controller_generic<T, Tout>::comp_polc(){
+  comp_polc(*(this->d_centroids), *(this->d_imat), *(this->d_olmeas));
   return EXIT_SUCCESS;
 }
 

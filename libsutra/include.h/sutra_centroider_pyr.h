@@ -40,7 +40,7 @@
 //! \class     SutraCentroiderPyr
 //! \brief     this class provides the centroider_pyr features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.1.0
+//! \version   5.2.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -108,10 +108,11 @@ class SutraCentroiderPyr : public SutraCentroider<Tin, T> {
 template <class T>
 void pyr_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy,
                 float *intensities, int ns, int nvalid, int nim,
-                CarmaDevice *device);
+                SlopeOrder slope_order, CarmaDevice *device);
 
 template <class T>
 void pyr2_slopes(T *d_odata, T *ref, T *d_idata, int *subindx, int *subindy,
                  float *intensities, int ns, int nvalid, float scale,
-                 T valid_thresh, int do_sin, CarmaDevice *device);
+                 T valid_thresh, int do_sin, SlopeOrder slope_order,
+                 CarmaDevice *device);
 #endif  // _SUTRA_CENTROIDER_PYR_H_

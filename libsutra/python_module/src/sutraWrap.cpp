@@ -39,7 +39,7 @@
 //! \ingroup   libsutra
 //! \brief     this file provides pybind wrapper for sutra
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.1.0
+//! \version   5.2.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -71,6 +71,7 @@ void declare_controller_ls(py::module &);
 void declare_controller_mv(py::module &);
 void declare_controller_geo(py::module &);
 void declare_controller_generic(py::module &);
+void declare_controller_generic_linear(py::module &);
 void declare_controller_cured(py::module &);
 void declare_rtc(py::module &);
 void declare_gamora(py::module &);
@@ -113,6 +114,7 @@ PYBIND11_MODULE(sutraWrap, mod) {
   declare_controller_mv(mod);
   declare_controller_geo(mod);
   declare_controller_generic(mod);
+  declare_controller_generic_linear(mod);
   declare_controller_cured(mod);
   declare_rtc(mod);
   declare_gamora(mod);

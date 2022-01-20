@@ -1,7 +1,7 @@
 ## @package   shesha.tests
 ## @brief     Timing of te RTC pyramid
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   5.1.0
+## @version   5.2.0
 ## @date      2020/05/18
 ## @copyright GNU Lesser General Public License
 #
@@ -63,9 +63,9 @@ rtc = Rtc()
 rtc.add_centroider(sup.context, sup.config.p_wfss[0]._nvalid,
                    sup.config.p_wfss[0].npix / 2 - 0.5, sup.config.p_wfss[0].pixsize, False, 0,
                    "maskedpix")
-rtc.add_controller(sup.context, sup.config.p_wfss[0]._nvalid,
+rtc.add_controller(sup.context, "generic", 0, sup.config.p_controllers[0].delay,
                    sup.config.p_controllers[0].nslope, sup.config.p_controllers[0].nactu,
-                   sup.config.p_controllers[0].delay, 0, "generic", idx_centro=np.zeros(1), ncentro=1)
+                   idx_centro=np.zeros(1), ncentro=1)
 rtc.d_centro[0].set_npix(sup.config.p_wfss[0].npix)
 rtc.d_centro[0].load_validpos(xvalid, yvalid, xvalid.size)
 rtc.d_control[0].set_cmat(cmat)
@@ -76,9 +76,9 @@ rtcH = RtcH()
 rtcH.add_centroider(sup.context, sup.config.p_wfss[0]._nvalid,
                     sup.config.p_wfss[0].npix / 2 - 0.5, sup.config.p_wfss[0].pixsize, False, 0,
                     "maskedpix")
-rtcH.add_controller(sup.context, sup.config.p_wfss[0]._nvalid,
+rtcH.add_controller(sup.context, "generic", 0, sup.config.p_controllers[0].delay,
                     sup.config.p_controllers[0].nslope, sup.config.p_controllers[0].nactu,
-                    sup.config.p_controllers[0].delay, 0, "generic", idx_centro=np.zeros(1), ncentro=1)
+                    idx_centro=np.zeros(1), ncentro=1)
 rtcH.d_centro[0].set_npix(sup.config.p_wfss[0].npix)
 rtcH.d_centro[0].load_validpos(xvalid, yvalid, xvalid.size)
 rtcH.d_control[0].set_cmat(cmat)

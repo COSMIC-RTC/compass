@@ -40,7 +40,7 @@
 //! \class     CarmaHostObj
 //! \brief     this class provides wrappers to the generic carma host object
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.1.0
+//! \version   5.2.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -84,7 +84,9 @@ class CarmaHostObj {
             int nb_streams);
 
  public:
+  CarmaHostObj();
   CarmaHostObj(const long *dims_data);
+  CarmaHostObj(const std::vector<long> &dims);
   CarmaHostObj(const long *dims_data, MemAlloc malloc_type);
   CarmaHostObj(const CarmaHostObj<T_data> *obj);
   CarmaHostObj(const CarmaHostObj<T_data> *obj, MemAlloc malloc_type);

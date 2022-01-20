@@ -89,7 +89,8 @@ p_centroider0.set_type("maskedpix")
 
 # controllers
 p_controller0 = conf.Param_controller()
-p_controllers = [p_controller0]
+p_controller1 = conf.Param_controller()
+p_controllers = [p_controller0,p_controller1]
 
 p_controller0.set_type("ls")
 p_controller0.set_nwfs([0])
@@ -97,3 +98,16 @@ p_controller0.set_ndm([0, 1])
 p_controller0.set_maxcond(100.)
 p_controller0.set_delay(1)
 p_controller0.set_gain(0.4)
+
+p_controller1.set_type("generic_linear")
+p_controller1.set_nwfs([0])
+p_controller1.set_ndm([0, 1])
+p_controller1.set_delay(1)
+p_controller1.set_polc(True)
+p_controller1.set_modal(True)
+p_controller1.set_nstates(100)
+p_controller1.set_nmodes(50)
+p_controller1.set_nstate_buffer(5)
+p_controller1.set_nslope_buffer(3)
+p_controller1.set_n_iir_in(4)
+p_controller1.set_n_iir_out(6)

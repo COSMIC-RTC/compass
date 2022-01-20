@@ -34,7 +34,7 @@
 //! \ingroup   libcarma
 //! \brief     this file provides the cublas features to CarmaObj
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.1.0
+//! \version   5.2.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -725,6 +725,88 @@ cublasStatus_t carma_gemm<half>(cublasHandle_t cublas_handle, char transa,
 }
 #endif
 
+/** These templates are used to select the proper batched gemm
+ * executable from T_data*/
+template <class T_data>
+cublasStatus_t carma_gemm_strided_batched(cublasHandle_t cublas_handle, 
+                    char transa, char transb, int m, int n, int k, T_data alpha,
+                    T_data *matsA, int lda, long long int strideA, 
+                    T_data *matsB, int ldb, long long int strideB, T_data beta,
+                    T_data *matsC, int ldc, long long int strideC, 
+                    int batch_count) CARMA_NIY;
+/**< Specialized template for carma_gemm_batched executable selection */
+template <>
+cublasStatus_t carma_gemm_strided_batched<float>(cublasHandle_t cublas_handle, 
+                    char transa, char transb, int m, int n, int k, float alpha, 
+                    float *matsA, int lda, long long int strideA,
+                    float *matsB, int ldb, long long int strideB, float beta,
+                    float *matsC, int ldc, long long int strideC,
+                    int batch_count) {
+  cublasOperation_t transa2 = carma_char2cublas_operation(transa);
+  cublasOperation_t transb2 = carma_char2cublas_operation(transb);
+  return carma_checkCublasStatus(cublasSgemmStridedBatched(cublas_handle, 
+                      transa2, transb2, m, n, k, &alpha, matsA, lda, strideA,
+                      matsB, ldb, strideB, &beta, matsC, ldc, strideC, 
+                      batch_count));
+}
+template <>
+cublasStatus_t carma_gemm_strided_batched<double>(cublasHandle_t cublas_handle,
+                    char transa, char transb, int m, int n, int k, double alpha, 
+                    double *matsA, int lda, long long int strideA,
+                    double *matsB, int ldb, long long int strideB, double beta,
+                    double *matsC, int ldc, long long int strideC,
+                    int batch_count) {
+  cublasOperation_t transa2 = carma_char2cublas_operation(transa);
+  cublasOperation_t transb2 = carma_char2cublas_operation(transb);
+  return carma_checkCublasStatus(cublasDgemmStridedBatched(cublas_handle, 
+                      transa2, transb2, m, n, k, &alpha, matsA, lda, strideA,
+                      matsB, ldb, strideB, &beta, matsC, ldc, strideC, 
+                      batch_count));
+}
+template <>
+cublasStatus_t carma_gemm_strided_batched<cuFloatComplex>(
+    cublasHandle_t cublas_handle, char transa, char transb, int m, int n, int k,
+    cuFloatComplex alpha, cuFloatComplex *matsA, int lda, long long int strideA,
+    cuFloatComplex *matsB, int ldb, long long int strideB, cuFloatComplex beta,
+    cuFloatComplex *matsC, int ldc, long long int strideC, int batch_count) {
+  cublasOperation_t transa2 = carma_char2cublas_operation(transa);
+  cublasOperation_t transb2 = carma_char2cublas_operation(transb);
+  return carma_checkCublasStatus(cublasCgemmStridedBatched(cublas_handle,
+                      transa2, transb2, m, n, k, &alpha, matsA, lda, strideA,
+                      matsB, ldb, strideB, &beta, matsC, ldc, strideC,
+                      batch_count));
+}
+template <>
+cublasStatus_t carma_gemm_strided_batched<cuDoubleComplex>(
+  cublasHandle_t cublas_handle, char transa, char transb, int m, int n, int k,
+  cuDoubleComplex alpha, cuDoubleComplex *matsA, int lda, long long int strideA,
+  cuDoubleComplex *matsB, int ldb, long long int strideB, cuDoubleComplex beta,
+  cuDoubleComplex *matsC, int ldc, long long int strideC, int batch_count) {
+  cublasOperation_t transa2 = carma_char2cublas_operation(transa);
+  cublasOperation_t transb2 = carma_char2cublas_operation(transb);
+  return carma_checkCublasStatus(cublasZgemmStridedBatched(cublas_handle,
+                      transa2, transb2, m, n, k, &alpha, matsA, lda, strideA,
+                      matsB, ldb, strideB, &beta, matsC, ldc, strideC,
+                      batch_count));
+}
+
+#ifdef CAN_DO_HALF
+template <>
+cublasStatus_t carma_gemm_strided_batched<half>(cublasHandle_t cublas_handle,
+                      char transa, char transb, int m, int n, int k, half alpha,
+                      half *matsA, int lda, long long int strideA,
+                      half *matsB, int ldb, long long int strideB, half beta, 
+                      half *matsC, int ldc, long long int strideC, 
+                      int batch_count) {
+  cublasOperation_t transa2 = carma_char2cublas_operation(transa);
+  cublasOperation_t transb2 = carma_char2cublas_operation(transb);
+  return carma_checkCublasStatus(cublasHgemmStridedBatched(cublas_handle,
+                      transa2, transb2, m, n, k, &alpha, matsA, lda, strideA,
+                      matsB, ldb, strideB, &beta, matsC, ldc, strideC, 
+                      batch_count));
+}
+#endif
+
 /** These templates are used to select the proper symm
  * executable from T_data*/
 template <class T_data>
@@ -1014,6 +1096,37 @@ cublasStatus_t carma_dgmm<cuDoubleComplex>(cublasHandle_t cublas_handle,
       cublas_handle, side_cublas, m, n, matA, lda, vectx, incx, matC, ldc));
 }
 
+/** These templates are used to select the proper sbmv
+ * executable from T_data*/
+template <class T_data>
+cublasStatus_t carma_sbmv(cublasHandle_t cublas_handle, char uplo, int n, int k,
+                          T_data alpha, T_data *matA, int lda, T_data *vectx,
+                          int incx, T_data beta, T_data *vecty,
+                          int incy) CARMA_NIY;
+/**< Specialized template for carma_sbmv executable selection */
+template<>
+cublasStatus_t carma_sbmv<float>(cublasHandle_t cublas_handle, char uplo, int n, int k,
+                                 float alpha, float *matA, int lda,
+                                 float *vectx, int incx, float beta,
+                                 float *vecty, int incy) {
+  cublasFillMode_t filla = carma_char2cublasFillMode(uplo);
+
+  return carma_checkCublasStatus(cublasSsbmv(cublas_handle, filla, n, k, &alpha,
+                                             matA, lda, vectx, incx, &beta,
+                                             vecty, incy));
+}
+template<>
+cublasStatus_t carma_sbmv<double>(cublasHandle_t cublas_handle, char uplo, int n, int k,
+                                  double alpha, double *matA, int lda,
+                                  double *vectx, int incx, double beta,
+                                  double *vecty, int incy) {
+  cublasFillMode_t filla = carma_char2cublasFillMode(uplo);
+  return carma_checkCublasStatus(cublasDsbmv(cublas_handle, filla, n, k, &alpha,
+                                             matA, lda, vectx, incx, &beta,
+                                             vecty, incy));
+}
+
+
 struct CarmaCublasInterfacer {
   template <typename T_data>
   static void call() {
@@ -1036,6 +1149,7 @@ struct CarmaCublasInterfacer {
     force_keep(&carma_syrkx<T_data>);
     force_keep(&carma_geam<T_data>);
     force_keep(&carma_dgmm<T_data>);
+    force_keep(&carma_sbmv<T_data>);
   }
 };
 

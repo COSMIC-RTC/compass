@@ -40,7 +40,7 @@
 //! \class     SutraCentroiderPyr
 //! \brief     this class provides the centroider_pyr features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.1.0
+//! \version   5.2.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -143,6 +143,7 @@ int SutraCentroiderPyr<Tin, T>::get_pyr(float *cube, float *intensities,
               subindy, this->d_intensities->get_data(), ns, nvalid, this->scale,
               this->valid_thresh,
               this->method.is_sinus,  // if we are using a sin method
+              this->slope_order,
               this->current_context->get_device(this->device));
 
   if (this->filter_TT) {

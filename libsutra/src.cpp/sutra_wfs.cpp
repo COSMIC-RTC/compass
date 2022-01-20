@@ -35,7 +35,7 @@
 //! \class     SutraWfs
 //! \brief     this class provides the wfs features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.1.0
+//! \version   5.2.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -99,6 +99,8 @@ SutraWfs::SutraWfs(CarmaContext *context, SutraTelescope *d_tel,
       d_phasemap(nullptr),
       d_validsubsx(nullptr),
       d_validsubsy(nullptr),
+      d_ttprojmat(nullptr),
+      d_ttprojvec(nullptr),
       current_context(context),
       offset(0),
       nvalid_tot(nvalid),
@@ -233,7 +235,7 @@ int SutraWfs::slopes_geom(float *slopes, int type) {
     // just 206265* 0.000001 = 0.206265
 
     // float alpha = 0.0328281 * this->d_gs->lambda / this->subapd;
-    float alpha = 0.206265 / this->subapd;
+    float alpha = 0.206265 / this->subapd * this->nphase / (this->nphase - 1);
     phase_reduce(this->nphase, this->nvalid,
                  this->d_gs->d_phase->d_screen->get_data(), slopes,
                  this->d_phasemap->get_data(), alpha);
@@ -241,12 +243,20 @@ int SutraWfs::slopes_geom(float *slopes, int type) {
 
   if (type == 1) {
     // float alpha = 0.0328281 * this->d_gs->lambda / this->subapd;
-    float alpha = 0.206265 / this->subapd;
+    float alpha = 0.206265 / this->subapd * this->nphase / (this->nphase - 1);
     phase_derive(this->nphase * this->nphase * this->nvalid,
                  this->nphase * this->nphase, this->nvalid, this->nphase,
                  this->d_gs->d_phase->d_screen->get_data(), slopes,
                  this->d_phasemap->get_data(), this->d_pupil->get_data(), alpha,
                  this->d_fluxPerSub->get_data());
+  }
+  
+  if (type == 2) { // linear projection method
+    phase_project(this->nphase, this->nvalid, 
+                  this->d_gs->d_phase->d_screen->get_data(), slopes, 
+                  this->d_phasemap->get_data(), this->d_ttprojmat->get_data(), 
+                  this->d_ttprojvec->get_data(), 
+                  current_context->get_device(device));
   }
 
   return EXIT_SUCCESS;

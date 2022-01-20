@@ -35,7 +35,7 @@
 //! \class     CarmaObj
 //! \brief     this class provides wrappers to the generic carma object
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.1.0
+//! \version   5.2.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -45,13 +45,22 @@
 
 template <class T_data>
 CarmaObj<T_data>::CarmaObj(CarmaContext *current_context,
-                             const long *dims_data) {
+                             const long *dims) {
   /** \brief CarmaObj creator.
    * \param current_context : the context in which the CarmaObj is created
-   * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
+   * \param dims : the array size Yorick format : [ndims,dims1,dims2,...]
    */
-  init(current_context, dims_data, NULL, true, 0);
+  init(current_context, dims, NULL, true, 0);
 }
+
+template <class T_data>
+CarmaObj<T_data>::CarmaObj() {
+}
+
+template <class T_data>
+CarmaObj<T_data>::CarmaObj(CarmaContext *current_context,
+                             const std::vector<long> &dims):
+CarmaObj(current_context,dims.data()){}
 
 template <class T_data>
 CarmaObj<T_data>::CarmaObj(const CarmaObj<T_data> *src) {
@@ -73,45 +82,45 @@ CarmaObj<T_data>::CarmaObj(CarmaContext *current_context,
 
 template <class T_data>
 CarmaObj<T_data>::CarmaObj(CarmaContext *current_context,
-                             const long *dims_data, const T_data *data) {
+                             const long *dims, const T_data *data) {
   /** \brief CarmaObj creator.
-   * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
+   * \param dims : the array size Yorick format : [ndims,dims1,dims2,...]
    * \param data : the array
    */
-  init(current_context, dims_data, data, true, 0);
+  init(current_context, dims, data, true, 0);
 }
 
 template <class T_data>
 CarmaObj<T_data>::CarmaObj(CarmaContext *current_context,
-                             const long *dims_data, int nb_streams) {
+                             const long *dims, int nb_streams) {
   /** \brief CarmaObj creator.
-   * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
+   * \param dims : the array size Yorick format : [ndims,dims1,dims2,...]
    */
-  init(current_context, dims_data, NULL, true, nb_streams);
+  init(current_context, dims, NULL, true, nb_streams);
 }
 
 template <class T_data>
 CarmaObj<T_data>::CarmaObj(CarmaContext *current_context,
-                             const long *dims_data, const T_data *data,
+                             const long *dims, const T_data *data,
                              int nb_streams) {
   /** \brief CarmaObj creator.
-   * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
+   * \param dims : the array size Yorick format : [ndims,dims1,dims2,...]
    * \param data : the array
    */
-  init(current_context, dims_data, data, true, nb_streams);
+  init(current_context, dims, data, true, nb_streams);
 }
 
 template <class T_data>
-void CarmaObj<T_data>::init(CarmaContext *context, const long *dims_data,
+void CarmaObj<T_data>::init(CarmaContext *context, const long *dims,
                              const T_data *data, bool fromHost,
                              int nb_streams) {
   this->current_context = context;
-  const long size_data = dims_data[0] + 1;
+  const long size_data = dims[0] + 1;
   this->dims_data = new long[size_data];
-  memcpy(this->dims_data, dims_data, size_data * sizeof(long));
+  memcpy(this->dims_data, dims, size_data * sizeof(long));
 
-  this->nb_elem = dims_data[1];
-  for (int i = 2; i < size_data; i++) this->nb_elem *= dims_data[i];
+  this->nb_elem = dims[1];
+  for (int i = 2; i < size_data; i++) this->nb_elem *= dims[i];
 
   carma_safe_call(
       cudaMalloc((void **)&(this->d_data), sizeof(T_data) * this->nb_elem));
@@ -163,26 +172,42 @@ CarmaObj<T_data>::~CarmaObj() {
   dealloc();
   this->d_data = nullptr;
 
-  delete[](this->dims_data);
-  this->dims_data = 0;
+  if (dims_data) {
+    delete[](this->dims_data);
+    this->dims_data = nullptr;
+  }
+  if(d_num_valid) {
+    cudaFree(this->d_num_valid);
+    this->d_num_valid = nullptr;
+  }
 
-  cudaFree(this->d_num_valid);
-  this->d_num_valid = nullptr;
+  if (streams) {
+    delete this->streams;
+  }
 
-  delete this->streams;
-
-  if (this->values != 0) carma_safe_call(cudaFree(this->values));
+  if (this->values != 0) {
+    carma_safe_call(cudaFree(this->values));
+    values = nullptr;
+  }
 
   // if (this->o_data!=0) carma_safe_call( cudaFree(this->o_data) );
 
   /* Destroy the CUFFT plan. */
-  if (this->plan != 0) carmafft_safe_call(cufftDestroy(this->plan));
+  //if (this->plan ) {
+    carmafft_safe_call(cufftDestroy(this->plan));
+  //  plan = nullptr;
+  //}
 
-  if (this->gen != 0) this->destroy_prng_host();
+  if (this->gen){
+    this->destroy_prng_host();
+    gen = nullptr;
+  }
 
-  if (this->d_states != 0) this->destroy_prng();
+  if (this->d_states){
+     this->destroy_prng();
     //  carma_safe_call(cudaFree(this->d_states));
-    // this->d_states = 0;
+    d_states = nullptr;
+  }
 
 #if DEBUG
   printf("CARMA Object deleted @ 0x%p on GPU%d\n", this,

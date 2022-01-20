@@ -1,7 +1,7 @@
 ## @package   shesha.supervisor
 ## @brief     User layer for initialization and execution of a COMPASS simulation
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   5.1.0
+## @version   5.2.0
 ## @date      2020/05/18
 ## @copyright GNU Lesser General Public License
 #
@@ -385,6 +385,184 @@ class RtcAbstract(ABC):
         """
         self._rtc.d_control[controller_index].set_matE(e_matrix)
 
+    def _get_x_buffer(self, controller_index: int) -> list:
+        """ Get the buffer of state vectors (controller generic linear only)
+
+        Args:
+            controller_index: (int): controller index
+        """
+        return [np.array(x) for x in self._rtc.d_control[controller_index].d_circular_x]
+
+    def _get_s_buffer(self, controller_index: int) -> list:
+        """ Get the buffer of slope vectors (controller generic linear only)
+
+        Args:
+            controller_index: (int): controller index
+        """
+        return [np.array(x) for x in self._rtc.d_control[controller_index].d_circular_s]
+
+    def _get_u_in_buffer(self, controller_index: int) -> list:
+        """ Get the buffer of iir input vectors (controller generic linear only)
+
+        Args:
+            controller_index: (int): controller index
+        """
+        return [np.array(x) for x in self._rtc.d_control[controller_index].d_circular_u_in]
+
+    def _get_u_out_buffer(self, controller_index: int) -> list:
+        """ Get the buffer of iir output vectors (controller generic linear only)
+
+        Args:
+            controller_index: (int): controller index
+        """
+        return [np.array(x) for x in self._rtc.d_control[controller_index].d_circular_u_out]
+
+    def _get_A_matrix(self, controller_index: int, matrix_index: int) -> np.ndarray:
+        """ Get a particular A matrix from the list of A matrices (controller generic linear only)
+
+        Args:
+            controller_index: (int): controller index
+
+            matrix_index: (int): matrix index
+        """
+        return np.array(self._rtc.d_control[controller_index].d_matA[matrix_index])
+
+    def _get_L_matrix(self, controller_index: int, matrix_index: int) -> np.ndarray:
+        """ Get a particular L matrix from the list of L matrices (controller generic linear only)
+
+        Args:
+            controller_index: (int): controller index
+
+            matrix_index: (int): matrix index
+        """
+        return np.array(self._rtc.d_control[controller_index].d_matL[matrix_index])
+
+    def _get_K_matrix(self, controller_index: int) -> np.ndarray:
+        """ Get the K matrix (controller generic linear only)
+
+        Args:
+            controller_index: (int): controller index
+        """
+        return np.array(self._rtc.d_control[controller_index].d_matK)
+
+    def _get_D_matrix(self, controller_index: int) -> np.ndarray:
+        """ Get the D matrix (controller generic linear only)
+
+        Args:
+            controller_index: (int): controller index
+        """
+        return np.array(self._rtc.d_control[controller_index].d_matD)
+
+    def _get_F_matrix(self, controller_index: int) -> np.ndarray:
+        """ Get the F matrix (controller generic linear only)
+
+        Args:
+            controller_index: (int): controller index
+        """
+        return np.array(self._rtc.d_control[controller_index].d_matF)
+
+    def _get_iir_a_vector(self, controller_index: int, vector_index: int) -> np.ndarray:
+        """ Get a particular iir "a" vector (outputs) (controller generic linear only)
+
+        Args:
+            controller_index: (int): controller index
+
+            vector_index: (int): vector index
+        """
+        return np.array(self._rtc.d_control[controller_index].d_iir_a[vector_index])
+
+    def _get_iir_b_vector(self, controller_index: int, vector_index: int) -> np.ndarray:
+        """ Get a particular iir "b" vector (inputs) (controller generic linear only)
+
+        Args:
+            controller_index: (int): controller index
+
+            vector_index: (int): vector index
+        """
+        return np.array(self._rtc.d_control[controller_index].d_iir_b[vector_index])
+
+    def set_A_matrix(self, controller_index: int, matrix_index: int,
+        a_matrix: np.ndarray) -> None:
+        """ Set a particular A matrix (controller generic linear only)
+
+        Args:
+            controller_index: (int): controller index
+
+            matrix_index : (int) : matrix index
+
+            a_matrix : (np.ndarray) : A matrix to set
+        """
+        self._rtc.d_control[controller_index].set_matA(a_matrix, matrix_index)
+
+    def set_L_matrix(self, controller_index: int, matrix_index: int,
+        l_matrix: np.ndarray) -> None:
+        """ Set a particular L matrix (controller generic linear only)
+
+        Args:
+            controller_index: (int): controller index
+
+            matrix_index : (int) : matrix index
+
+            l_matrix : (np.ndarray) : L matrix to set
+        """
+        self._rtc.d_control[controller_index].set_matL(l_matrix, matrix_index)
+
+    def set_K_matrix(self, controller_index: int, k_matrix: np.ndarray) -> None:
+        """ Set the K matrix (controller generic linear only)
+
+        Args:
+            controller_index: (int): controller index
+
+            k_matrix : (np.ndarray) : K matrix to set
+        """
+        self._rtc.d_control[controller_index].set_matK(k_matrix)
+
+    def set_D_matrix(self, controller_index: int, d_matrix: np.ndarray) -> None:
+        """ Set the D matrix (controller generic linear only)
+
+        Args:
+            controller_index: (int): controller index
+
+            d_matrix : (np.ndarray) : D matrix to set
+        """
+        self._rtc.d_control[controller_index].set_matD(d_matrix)
+
+    def set_F_matrix(self, controller_index: int, f_matrix: np.ndarray) -> None:
+        """ Set the K matrix (controller generic linear only)
+
+        Args:
+            controller_index: (int): controller index
+
+            f_matrix : (np.ndarray) : F matrix to set
+        """
+        self._rtc.d_control[controller_index].set_matF(f_matrix)
+
+    def set_iir_a_vector(self, controller_index: int, vector_index: int,
+        iir_a_vector: np.ndarray) -> None:
+        """ Set a particular iir "a" vector (outputs) (controller generic linear only)
+
+        Args:
+            controller_index: (int): controller index
+
+            vector_index: (int): vector index
+
+            iir_a_vector : (np.ndarray) : iir "a" vector to set
+        """
+        self._rtc.d_control[controller_index].set_iir_a(iir_a_vector, vector_index)
+
+    def set_iir_b_vector(self, controller_index: int, vector_index: int,
+        iir_b_vector: np.ndarray) -> None:
+        """ Set a particular iir "b" vector (outputs) (controller generic linear only)
+
+        Args:
+            controller_index: (int): controller index
+
+            vector_index: (int): vector index
+
+            iir_b_vector : (np.ndarray) : iir "b" vector to set
+        """
+        self._rtc.d_control[controller_index].set_iir_b(iir_b_vector, vector_index)
+
     def reset_ref_slopes(self, controller_index: int) -> None:
         """ Reset the reference slopes of each WFS handled by the specified controller
 
@@ -502,16 +680,17 @@ class RtcAbstract(ABC):
         else:
             self._rtc.d_control[controller_index].d_com.reset()
 
-    def get_slopes_geom(self, controller_index: int) -> np.ndarray:
+    def get_slopes_geom(self, controller_index: int, geom_type: int = 0) -> np.ndarray:
         """ Computes and return the slopes geom from the specified controller
 
         Args:
             controller_index : (int) : controller index
-
+            
+            geom_type : (int) : geom centroiding method, default = 0, others (1,2) are experimental
         Returns:
             slopes_geom : (np.ndarray) : geometrically computed slopes
         """
-        self._rtc.do_centroids_geom(controller_index)
+        self.do_centroids_geom(controller_index, geom_type=geom_type)
         slopes_geom = np.array(self._rtc.d_control[controller_index].d_centroids)
         self._rtc.do_centroids(controller_index)  # To return in non-geo state
         return slopes_geom
@@ -580,13 +759,15 @@ class RtcAbstract(ABC):
         """
         self._rtc.do_centroids(controller_index)
 
-    def do_centroids_geom(self, controller_index: int) -> None:
+    def do_centroids_geom(self, controller_index: int, *, geom_type: int = 0) -> None:
         """ Computes the centroids geom from the Wfs image
 
         Args:
             controller_index: (int): controller index
+            
+            geom_type : (int) : geom centroiding method, default = 0, others (1,2) are experimental
         """
-        self._rtc.do_centroids_geom(controller_index)
+        self._rtc.do_centroids_geom(controller_index, geom_type)
 
     def apply_control(self, controller_index: int, *, comp_voltage: bool = True) -> None:
         """ Computes the final voltage vector to apply on the DM by taking into account delay and perturbation voltages, and shape the DMs

@@ -35,7 +35,7 @@
 //! \class     SutraController
 //! \brief     this class provides the controller features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.1.0
+//! \version   5.2.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -107,7 +107,7 @@ class SutraController {
   cudaStream_t mainStream;
 
   // allocation of d_centroids and d_com
-  SutraController(CarmaContext *context, int nvalid, int nslope, int nactu,
+  SutraController(CarmaContext *context, int nslope, int nactu,
                    float delay, SutraDms *dms, int *idx_dms, int ndm,  int *idx_centro, int ncentro);
   virtual ~SutraController();
 
@@ -153,6 +153,24 @@ class SutraController {
   // int invgen(CarmaObj<T> *d_mat, T cond, int job);
   int command_delay();
   int add_perturb();
+
+  /**
+   * @brief Compute the open loop measurements and effective commands
+   *
+   * eff_u = a * u_{k-1} + b * u_k
+   * ol_meas = s_k - iMat * eff_u
+   *
+   * @param[in ] a       : Tcomp             :
+   * @param[in ] uk_1    : CarmaObj<Tcomp>&  : commands at iteration k-1
+   * @param[in ] b       : Tcomp             :
+   * @param[in ] uk      : CarmaObj<Tcomp>&  : commands at iteration k
+   * @param[in ] sk      : CarmaObj<Tcomp>&  : closed loop slopes at iteration k
+   * @param[in ] iMat    : CarmaObj<Tcomp>&  : interaction matrix
+   * @param[out] ol_meas : CarmaObj<Tcomp>&  : open loop measurements
+   * @param[out] eff_u   : CarmaObj<Tcomp>&  : effective commands
+   * @return int                             : error code
+   */
+  int comp_polc(CarmaObj<Tcomp>& sk, CarmaObj<Tcomp>& iMat, CarmaObj<Tcomp>& ol_meas);
 
  protected:
   mutex comp_voltage_mutex;

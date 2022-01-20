@@ -35,7 +35,7 @@
 //! \class     SutraWfsSH
 //! \brief     this class provides the wfs_sh features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.1.0
+//! \version   5.2.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -272,6 +272,13 @@ int SutraWfsSH::allocate_buffers(
   dims_data2[1] = nphase * nphase;
   dims_data2[2] = nvalid;
   this->d_phasemap = new CarmaObj<int>(current_context, dims_data2);
+  
+  dims_data2[1] = nphase * nphase;
+  dims_data2[2] = nvalid * 2;
+  this->d_ttprojmat = new CarmaObj<float>(current_context, dims_data2);
+
+  dims_data1[1] = nphase * nphase * nvalid;
+  this->d_ttprojvec = new CarmaObj<float>(current_context, dims_data1);
 
   delete[] dims_data1;
   delete[] dims_data2;
@@ -297,6 +304,8 @@ SutraWfsSH::~SutraWfsSH() {
   if (this->image_telemetry != 0L) delete this->image_telemetry;
 
   if (this->d_phasemap != 0L) delete this->d_phasemap;
+  if (this->d_ttprojmat != 0L) delete this->d_ttprojmat;
+  if (this->d_ttprojvec != 0L) delete this->d_ttprojvec;
   if (this->d_binmap != 0L) delete this->d_binmap;
   if (this->d_validsubsx != 0L) delete this->d_validsubsx;
   if (this->d_validsubsy != 0L) delete this->d_validsubsy;
@@ -314,8 +323,8 @@ SutraWfsSH::~SutraWfsSH() {
 
 int SutraWfsSH::load_arrays(int *phasemap, int *hrmap, int *binmap,
                              float *offsets, float *fluxPerSub, int *validsubsx,
-                             int *validsubsy, int *istart, int *jstart,
-                             cuFloatComplex *kernel) {
+                             int *validsubsy, int *istart, int *jstart, 
+                             float *ttprojmat, cuFloatComplex *kernel) {
   if (this->d_bincube == NULL) {
     DEBUG_TRACE(
         "ERROR : d_bincube not initialized, did you do the allocate_buffers?");
@@ -323,6 +332,7 @@ int SutraWfsSH::load_arrays(int *phasemap, int *hrmap, int *binmap,
   }
   current_context->set_active_device(device, 1);
   this->d_phasemap->host2device(&phasemap[offset * nphase * nphase]);
+  this->d_ttprojmat->host2device(ttprojmat);
   this->d_offsets->host2device(offsets);
   this->d_binmap->host2device(binmap);
   this->d_fluxPerSub->host2device(&fluxPerSub[offset]);

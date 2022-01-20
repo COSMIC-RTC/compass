@@ -35,7 +35,7 @@
 //! \class     sutra_centroider_pbcog
 //! \brief     this class provides the centroider_pbcog features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.1.0
+//! \version   5.2.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -105,7 +105,7 @@ int SutraCentroiderBpcog<Tin, T>::get_cog(float *img, float *intensities,
   get_centroids(ntot, (npix * npix), nvalid, npix, img, centroids,
                 this->d_centroids_ref->get_data(), this->d_validx->get_data(),
                 this->d_validy->get_data(), intensities, this->nmax, this->scale,
-                this->offset, this->current_context->get_device(this->device));
+                this->offset, this->slope_order, this->current_context->get_device(this->device));
 
   if (this->filter_TT) {
     this->apply_TT_filter(centroids);

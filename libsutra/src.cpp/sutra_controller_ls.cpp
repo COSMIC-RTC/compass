@@ -40,7 +40,7 @@
 //! \class     sutra_controller_ls
 //! \brief     this class provides the controller_ls features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.1.0
+//! \version   5.2.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -50,11 +50,10 @@
 
 template <typename T, typename Tout>
 sutra_controller_ls<T, Tout>::sutra_controller_ls(CarmaContext *context,
-                                                  long nvalid, long nslope,
-                                                  long nactu, float delay,
+                                                  long nslope, long nactu, float delay,
                                                   SutraDms *dms, int *idx_dms,
                                                   int ndm, int *idx_centro, int ncentro)
-    : SutraController<T, Tout>(context, nvalid, nslope, nactu, delay, dms,
+    : SutraController<T, Tout>(context, nslope, nactu, delay, dms,
                                 idx_dms, ndm, idx_centro, ncentro) {
   this->d_imat = 0L;
   this->d_cmat = 0L;
@@ -406,10 +405,7 @@ int sutra_controller_ls<T, Tout>::modalControlOptimization() {
   if (this->cpt_rec >= this->delay) {
     // POLC to retrieve open-loop measurements for further refreshing modal
     // gains
-    carma_geam<T>(this->cublas_handle(), 'n', 'n', this->nactu(), 1,
-                  (T)(this->a), this->d_com1->get_data(), this->nactu(),
-                  this->b, this->d_com->get_data(),
-                  this->nactu(), this->d_compbuff->get_data(), this->nactu());
+    this->d_compbuff->copy(this->d_com_clipped, 1, 1);
     carma_gemv<T>(this->cublas_handle(), 'n', this->nslope(), this->nactu(),
                   1.0f, *d_imat, this->nslope(), *d_compbuff, 1, 0.0f,
                   *d_compbuff2, 1);

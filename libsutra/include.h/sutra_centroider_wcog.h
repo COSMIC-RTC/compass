@@ -35,7 +35,7 @@
 //! \class     SutraCentroiderWcog
 //! \brief     this class provides the centroider_wcog features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.1.0
+//! \version   5.2.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -73,7 +73,9 @@ template <class T>
 void get_centroids(int size, int threads, int blocks, int n, float *d_idata,
                    T *d_odata, T *ref, int *validx, int *validy,
                    float *intensities, float *d_weights, float scale,
-                   float offset, CarmaDevice *device);
+                   float offset,
+                   SlopeOrder slope_order,
+                   CarmaDevice *device);
 
 template <class T>
 int fill_weights(T *d_out, T *d_in, int npix, int N, CarmaDevice *device);

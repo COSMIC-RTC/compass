@@ -35,7 +35,7 @@
 //! \class     SutraWfsSH
 //! \brief     this class provides the wfs_sh features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.1.0
+//! \version   5.2.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -76,7 +76,8 @@ class SutraWfsSH : public SutraWfs {
 
   int load_arrays(int *phasemap, int *hrmap, int *binmap, float *offsets,
                  float *fluxPerSub, int *validsubsx, int *validsubsy,
-                 int *istart, int *jstart, cuFloatComplex *kernel);
+                 int *istart, int *jstart, float *ttprojmat,
+                cuFloatComplex *kernel);
 
   int fill_binimage(int async);
   int comp_image(bool noise = true);

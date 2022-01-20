@@ -35,7 +35,7 @@
 //! \class     SutraWfs
 //! \brief     this class provides the wfs features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.1.0
+//! \version   5.2.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -955,6 +955,62 @@ template void phase_derive<double>(int size, int threads, int blocks, int n,
                                    double *d_idata, double *d_odata, int *indx,
                                    double *mask, double alpha,
                                    float *fluxPerSub);
+
+template <class T>
+__global__ void project_gather(T *g_idata, T *g_odata, int *indx,
+                               unsigned int N) {
+
+  unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if (i < N) {
+    g_odata[i] = g_idata[indx[i]];
+  }
+
+}
+
+template <class T>
+void phase_project(int nphase, int nvalid, T *d_idata, T *d_odata, int *indx,
+                   T *d_ttprojmat, T *d_ttprojvec, CarmaDevice *device) {
+
+  int nb_blocks, nb_threads;
+  int size = nphase * nphase * nvalid;
+  get_num_blocks_and_threads(device, size, nb_blocks, nb_threads);
+
+  dim3 dimGridGather(nb_blocks, 1, 1);
+  dim3 dimBlockGather(nb_threads, 1, 1);
+
+  project_gather<T><<<dimGridGather,dimBlockGather>>>(
+      d_idata, d_ttprojvec, indx, size);
+
+  carma_check_msg("project_gather_kernel<<<>>> execution failed\n");
+
+  // x-slope
+  carma_gemm_strided_batched(device->get_cublas_handle(), 'n', 'n', 1, 1,
+                            nphase * nphase, T(1.0f),
+                            d_ttprojmat, 1, nphase * nphase,
+                            d_ttprojvec, nphase * nphase, nphase * nphase,
+                            T(0.0f), d_odata, 1, 1, nvalid);
+
+  carma_check_msg("cublas_batched_gemm<<<>>> execution failed\n");
+
+  // y-slope
+  carma_gemm_strided_batched(device->get_cublas_handle(), 'n', 'n', 1, 1,
+                    nphase * nphase, T(1.0f),
+                    &(d_ttprojmat[nvalid*nphase*nphase]), 1, nphase * nphase,
+                    d_ttprojvec, nphase * nphase, nphase * nphase,
+                    T(0.0f), &(d_odata[nvalid]), 1, 1, nvalid);
+
+  carma_check_msg("cublas_batched_gemm<<<>>> execution failed\n");
+
+}
+
+template void phase_project<float>(int nphase, int nvalid, float *d_idata,
+                                  float *d_odata, int *indx, float *d_ttprojmat,
+                                  float *d_ttprojvec, CarmaDevice *device);
+
+template void phase_project<double>(int nphase, int nvalid, double *d_idata,
+                                double *d_odata, int *indx, double *d_ttprojmat,
+                                double *d_ttprojvec, CarmaDevice *device);
 
 template <class Tout, class Tin>
 __global__ void pyrgetpup_krnl(Tout *g_odata, Tin *g_idata, Tout *offsets,
@@ -1877,7 +1933,7 @@ __global__ void intensities_krnl(T *g_odata, T *g_idata, int *subindx,
     g_odata[i] = 0;
 
     for (int cpt = 0; cpt < nim; cpt++) {
-      i2 = subindx[i + cpt * nim] + subindy[i + cpt * nim] * ns;
+      i2 = subindx[i + cpt * nvalid] + subindy[i + cpt * nvalid] * ns;
       g_odata[i] += g_idata[i2];
     }
   }

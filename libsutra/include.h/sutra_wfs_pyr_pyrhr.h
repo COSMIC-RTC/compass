@@ -35,7 +35,7 @@
 //! \class     SutraWfs_PyrHR
 //! \brief     this class provides the wfs_pyr_pyrhr features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.1.0
+//! \version   5.2.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -91,7 +91,8 @@ class SutraWfs_PyrHR : public SutraWfs {
 
   int load_arrays(cuFloatComplex *halfxy, float *cx, float *cy, float *weights,
                  float *sincar, float *submask, int *validsubsx,
-                 int *validsubsy, int *phasemap, float *fluxPerSub);
+                 int *validsubsy, int *phasemap, float *fluxPerSub,
+                 float *ttprojmat);
   int set_submask(float *submask);
   int set_phalfxy(cuFloatComplex *phalfxy);
 

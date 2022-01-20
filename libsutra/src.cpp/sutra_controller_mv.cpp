@@ -40,7 +40,7 @@
 //! \class     sutra_controller_mv
 //! \brief     this class provides the controller_mv features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.1.0
+//! \version   5.2.0
 //! \date      2011/01/28
 //! \copyright GNU Lesser General Public License
 
@@ -52,9 +52,9 @@
 
 template <typename Tcomp, typename Tout>
 sutra_controller_mv<Tcomp, Tout>::sutra_controller_mv(
-    CarmaContext *context, long nvalid_, long nslope_, long nactu_, float delay,
+    CarmaContext *context, long nslope_, long nactu_, float delay,
     SutraDms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro)
-    : SutraController<Tcomp, Tout>(context, nvalid_, nslope_, nactu_, delay,
+    : SutraController<Tcomp, Tout>(context, nslope_, nactu_, delay,
                                    dms, idx_dms, ndm, idx_centro, ncentro) {
   this->gain = 0.0;
 
@@ -932,9 +932,7 @@ int sutra_controller_mv<Tcomp, Tout>::comp_com() {
 
   // POLC equations
 
-  carma_geam<Tcomp>(cublas_handle, 'n', 'n', this->nactu(), 1, (Tcomp)(this->a),
-                    *this->d_com1, this->nactu(), this->b, *this->d_com,
-                    this->nactu(), *d_compbuff, this->nactu());
+  this->d_compbuff->copy(this->d_com_clipped, 1, 1);
   carma_gemv<Tcomp>(cublas_handle, 'n', this->nslope(), this->nactu(), 1.0,
                     *d_imat, this->nslope(), *d_compbuff, 1, 0.0, *d_compbuff2,
                     1);
