@@ -1,7 +1,7 @@
 // -----------------------------------------------------------------------------
 //  This file is part of COMPASS <https://anr-compass.github.io/compass/>
 //
-//  Copyright (C) 2011-2019 COMPASS Team <https://github.com/ANR-COMPASS>
+//  Copyright (C) 2011-2022 COMPASS Team <https://github.com/ANR-COMPASS>
 //  All rights reserved.
 //  Distributed under GNU - LGPL
 //
@@ -39,7 +39,7 @@
 //! \ingroup   libsutra
 //! \brief     this file provides pybind wrapper for sutra_controller_generic_linear
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.2.0
+//! \version   5.2.1
 //! \date      2021/05/12
 //! \copyright GNU Lesser General Public License
 
