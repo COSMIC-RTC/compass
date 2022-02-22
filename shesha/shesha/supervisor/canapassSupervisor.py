@@ -190,7 +190,7 @@ if __name__ == '__main__':
         nname = []
         for name in names:
             nname.append(name + "_" + user)
-        server = PyroServer(listDevices=devices, listNames=names)
+        server = PyroServer(listDevices=devices, listNames=nname)
         #server.add_device(supervisor, "waoconfig_" + user)
         server.start()
     except:
