@@ -598,7 +598,7 @@ def test_set_initial_gain():
     assert(True)
 
 def test_set_config():
-    sup.modalgains.set_config(0.1, 0.05, 0.05, 0.0)
+    sup.modalgains.set_config(0.1, 0.05, 0.05, 0.0, 1)
     assert(True)
 
 def test_adapt_modal_gains():

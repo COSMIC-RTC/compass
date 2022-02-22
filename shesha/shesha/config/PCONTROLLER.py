@@ -114,6 +114,8 @@ class Param_controller:
         self.__close_learning_factor = 0.3
         """ Autocorrelation learning factor """
         self.__close_target = 0.0
+        """ Update framerate """
+        self.__close_update_index = 1
         """ Target value """
         self.__n_iir_in = 0
         """ number of input taps to iir filter """
@@ -656,6 +658,22 @@ class Param_controller:
         self.__close_target = csu.enforce_float(t)
 
     close_target = property(get_close_target, set_close_target)
+
+    def get_close_update_index(self):
+        """ Get the modal gains update rate
+
+        :return: (int) : CLOSE update index
+        """
+        return self.__close_update_index
+
+    def set_close_update_index(self, idx):
+        """ Set the modal gains update rate
+
+        :param idx: (int) : close update index
+        """
+        self.__close_update_index = csu.enforce_int(idx)
+
+    close_update_index = property(get_close_update_index, set_close_update_index)
 
     def get_n_iir_in(self):
         """ Get the number of inputs used in iir filter

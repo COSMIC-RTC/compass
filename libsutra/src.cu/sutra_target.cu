@@ -188,11 +188,17 @@ __global__ void fillamplikrnl(cuFloatComplex *amplipup, float *phase,
     int nim = ncol + nlinep * Nx;
 
     if (puponly == 1) {
-      amplipup[nim].x = mask[tid];
+      amplipup[nim].x = mask[tid] > 0 ? 1.0f : 0.0f;
       amplipup[nim].y = 0.0f;
     } else {
-      amplipup[nim].x = cosf(scale * phase[tid]) * mask[tid];
-      amplipup[nim].y = sinf(scale * phase[tid]) * mask[tid];
+      if (mask[tid] > 0) {
+          amplipup[nim].x = cosf(scale * phase[tid]);
+          amplipup[nim].y = sinf(scale * phase[tid]); 
+      }
+      else {
+        amplipup[nim].x = 0.0f;
+        amplipup[nim].y = 0.0f;
+      }
     }
     tid += blockDim.x * gridDim.x;
   }
