@@ -8,7 +8,6 @@ Created on Friday 7th of February 2020
 
 import shesha.config as conf
 
-simul_name = "sphere+"
 
 # loop
 p_loop = conf.Param_loop()
@@ -24,7 +23,7 @@ p_geom.set_zenithangle(0.)
 # tel
 p_tel = conf.Param_tel()
 
-p_tel.set_diam(8.3) # Subaru diameter
+p_tel.set_diam(8.2) # VLT diameter
 p_tel.set_cobs(0.12)# TBC (central obstruction)
 
 # atmos
