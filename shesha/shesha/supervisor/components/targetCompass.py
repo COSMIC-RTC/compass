@@ -139,7 +139,7 @@ class TargetCompass(SourceCompass):
     def get_strehl(self, tar_index: int, *, do_fit: bool = True) -> np.ndarray:
         """ Return the Strehl Ratio of target number tar_index.
         This fuction will return an array of 4 values as
-        [SR SE, SR LE, phase variance SE [µm²], phase variance LE [µm²]]
+        [SR SE, SR LE, phase variance SE [rad²], phase variance LE [rad²]]
 
         Args:
             tar_index : (int) : Target index
