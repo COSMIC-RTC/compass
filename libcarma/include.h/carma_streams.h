@@ -1,7 +1,7 @@
 // -----------------------------------------------------------------------------
 //  This file is part of COMPASS <https://anr-compass.github.io/compass/>
 //
-//  Copyright (C) 2011-2019 COMPASS Team <https://github.com/ANR-COMPASS>
+//  Copyright (C) 2011-2022 COMPASS Team <https://github.com/ANR-COMPASS>
 //  All rights reserved.
 //  Distributed under GNU - LGPL
 //
@@ -35,8 +35,8 @@
 //! \class     CarmaStreams
 //! \brief     this class provides the stream features to CarmaObj
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.2.0
-//! \date      2011/01/28
+//! \version   5.2.1
+//! \date      2022/01/24
 //! \copyright GNU Lesser General Public License
 
 #ifndef _CARMA_STREAM_H_
