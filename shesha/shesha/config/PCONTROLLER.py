@@ -617,13 +617,13 @@ class Param_controller:
         """
         return self.__lfdownup
 
-    def set_lfdownup(self, qplus, qminus):
+    def set_lfdownup(self, qminus, qplus):
         """ Set the autocorrelation learning factor
 
-        :param qplus: (float) : learning factor when higher than target
-        :param qminus: (float) : learning factor when lower than target
+        :param qminus: (float) : learning factor when higher than target
+        :param qplus: (float) : learning factor when lower than target
         """
-        self.__lfdownup = (csu.enforce_float(qplus), csu.enforce_float(qminus))
+        self.__lfdownup = (csu.enforce_float(qminus), csu.enforce_float(qplus))
 
     lfdownup = property(get_lfdownup, set_lfdownup)
 
