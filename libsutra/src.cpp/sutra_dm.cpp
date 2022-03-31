@@ -624,7 +624,10 @@ int SutraDm::DDiago(CarmaObj<float> *d_statcov, CarmaObj<float> *d_geocov) {
                     0.0f, d_tmp2->get_data(), nactus);
 
   // 4. SVdec(C',A)
-  carma_magma_syevd<float>(SOLVER_EIG_MODE_VECTOR, d_tmp2, h_eigenvals);
+  if (!carma_magma_disabled()) 
+    carma_magma_syevd<float>(SOLVER_EIG_MODE_VECTOR, d_tmp2, h_eigenvals);
+  else
+    carma_syevd<float>(SOLVER_EIG_MODE_VECTOR, d_tmp2, d_eigenvals);
 
   // 5. M = U * D���������������
   carma_dgmm<float>(this->cublas_handle(), CUBLAS_SIDE_RIGHT, this->nactus,
