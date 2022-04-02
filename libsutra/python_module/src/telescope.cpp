@@ -113,6 +113,30 @@ void declare_telescope(py::module &mod) {
           [](SutraTelescope &sp) { return sp.d_phase_ab_M1_m; },
           "M1 aberrations on the medium pupil")
 
+      .def_property_readonly(
+          "d_input_phase",
+          [](SutraTelescope &sp) { return sp.d_input_phase; },
+          "Cube of user-defined input phase screens")
+
+      .def_property_readonly(
+          "input_phase_counter",
+          [](SutraTelescope &sp) { return sp.input_phase_counter; },
+          "Index of the current phase screen in the cube d_input_phase")
+
+      //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
+      //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝
+      //  ██╔████╔██║█████╗     ██║   ███████║██║   ██║██║  ██║███████╗
+      //  ██║╚██╔╝██║██╔══╝     ██║   ██╔══██║██║   ██║██║  ██║╚════██║
+      //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
+      //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
+      //
+      .def(
+          "update_input_phase", &SutraTelescope::update_input_phase,
+          R"pbdoc(
+              Update input_phase_counter to take the next phase screen in the circular buffer d_input_phase
+          )pbdoc"
+      )
+      
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝
       //  ███████╗█████╗     ██║      ██║   █████╗  ██████╔╝███████╗
@@ -183,6 +207,21 @@ void declare_telescope(py::module &mod) {
 
     Args:
         phase_ab: (np.ndarray[ndim=2,dtype=np.float32_t]) : M1 phase aberration in the medium pupil
+      )pbdoc",
+          py::arg("phase_ab"))
+
+      .def(
+          "set_input_phase",
+          [](SutraTelescope &sp,
+             py::array_t<float, py::array::f_style | py::array::forcecast>
+                 data) {
+            return sp.set_input_phase(data.mutable_data(), data.shape(0) * data.shape(1), data.shape(2));
+          },
+          R"pbdoc(
+        Set a 3D cube of phase screens to be played. Each phase screen is shown to sources as an additional layer to be raytraced. Each phase screen must have the same dimensions as m_pupil
+    
+    Args:
+        input_hase: (np.ndarray[ndim=3,dtype=np.float32_t]) : Cube of input phase screens
       )pbdoc",
           py::arg("phase_ab"))
 
