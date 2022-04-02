@@ -116,7 +116,6 @@ class ModalGains(object):
                 mean = np.mean(self._buffer, axis=0)
                 sign_ac = (mean > 0).astype(np.int8)
                 self.mgains[ctrl_modes] = self.mgains[ctrl_modes] * (1 + self._lfdownup[sign_ac] * x)
-                self.mgains[ctrl_modes] += 0.01
                 self._rtc.set_modal_gains(0, self.mgains)
                 self._buffer = []
             self._modal_meas.pop(0)
@@ -215,15 +214,15 @@ class ModalGains(object):
         self._rtc.set_modal_gains(0, self.mgains)
         self._config.p_controllers[0].set_mgain_init(gain)
 
-    def set_config(self, p, qplus, qminus, target, up_idx):
+    def set_config(self, p, qminus, qplus, target, up_idx):
         """Set the 4 parameters for the CLOSE optimization loop
 
         Args:
             p: (float) : learning factor for autocorrelation
 
-            qplus: (float) : learning factor for mgain optimization when higher than target
-
             qminus: (float) : learning factor for mgain optimization when lower than target
+
+            qplus: (float) : learning factor for mgain optimization when higher than target
 
             target: (float) : autocorrelation target for optimization
         
@@ -231,8 +230,8 @@ class ModalGains(object):
         """
         self._lf = p
         self._config.p_controllers[0].set_close_learning_factor(p)
-        self._lfdownup = np.array([qplus, qminus])
-        self._config.p_controllers[0].set_lfdownup(qplus, qminus)
+        self._lfdownup = np.array([qminus, qplus])
+        self._config.p_controllers[0].set_lfdownup(qminus, qplus)
         self._trgt = target
         self._config.p_controllers[0].set_close_target(target)
         self._up_idx = up_idx
