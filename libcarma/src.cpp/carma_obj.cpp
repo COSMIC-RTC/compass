@@ -230,17 +230,17 @@ int CarmaObj<T_data>::host2device(const T_dest *data) {
 
   return EXIT_SUCCESS;
 }
-template int CarmaObj<unsigned int>::template host2device<unsigned int>(
+template int CarmaObj<unsigned int>::host2device<unsigned int>(
     const unsigned int *data);
-template int CarmaObj<uint16_t>::template host2device<uint16_t>(
+template int CarmaObj<uint16_t>::host2device<uint16_t>(
     const uint16_t *data);
-template int CarmaObj<int>::template host2device<int>(const int *data);
-template int CarmaObj<float>::template host2device<float>(const float *data);
-template int CarmaObj<double>::template host2device<double>(
+template int CarmaObj<int>::host2device<int>(const int *data);
+template int CarmaObj<float>::host2device<float>(const float *data);
+template int CarmaObj<double>::host2device<double>(
     const double *data);
-template int CarmaObj<cuFloatComplex>::template host2device<cuFloatComplex>(
+template int CarmaObj<cuFloatComplex>::host2device<cuFloatComplex>(
     const cuFloatComplex *data);
-template int CarmaObj<cuDoubleComplex>::template host2device<cuDoubleComplex>(
+template int CarmaObj<cuDoubleComplex>::host2device<cuDoubleComplex>(
     const cuDoubleComplex *data);
 
 /*
@@ -275,21 +275,21 @@ int CarmaObj<T_data>::device2host(T_dest *data) {
   return EXIT_SUCCESS;
 }
 
-template int CarmaObj<unsigned int>::template device2host<unsigned int>(
+template int CarmaObj<unsigned int>::device2host<unsigned int>(
     unsigned int *data);
-template int CarmaObj<int>::template device2host<int>(int *data);
-template int CarmaObj<uint16_t>::template device2host<uint16_t>(
+template int CarmaObj<int>::device2host<int>(int *data);
+template int CarmaObj<uint16_t>::device2host<uint16_t>(
     uint16_t *data);
-template int CarmaObj<float>::template device2host<float>(float *data);
-template int CarmaObj<double>::template device2host<double>(double *data);
-template int CarmaObj<cuFloatComplex>::template device2host<cuFloatComplex>(
+template int CarmaObj<float>::device2host<float>(float *data);
+template int CarmaObj<double>::device2host<double>(double *data);
+template int CarmaObj<cuFloatComplex>::device2host<cuFloatComplex>(
     cuFloatComplex *data);
-template int CarmaObj<cuDoubleComplex>::template device2host<cuDoubleComplex>(
+template int CarmaObj<cuDoubleComplex>::device2host<cuDoubleComplex>(
     cuDoubleComplex *data);
 
 #ifdef CAN_DO_HALF
-template int CarmaObj<half>::template host2device<half>(const half *data);
-template int CarmaObj<half>::template device2host<half>(half *data);
+template int CarmaObj<half>::host2device<half>(const half *data);
+template int CarmaObj<half>::device2host<half>(half *data);
 template <>
 template <>
 // std::enable_if_t<std::is_same<T_data, half>::value>

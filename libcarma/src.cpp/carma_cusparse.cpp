@@ -87,6 +87,8 @@ cusparseStatus_t carma_check_cusparse_status_v2(cusparseStatus_t status, int lin
                    "function."
                 << std::endl;
       break;
+    case CUSPARSE_STATUS_NOT_SUPPORTED:
+      std::cerr << "The operation or data type combination is currently not supported by the function" << std::endl;
 // Define not supported status for pre-6.0 compatibility.
 #if CUDA_VERSION >= 6000
     case CUSPARSE_STATUS_ZERO_PIVOT:
@@ -94,6 +96,10 @@ cusparseStatus_t carma_check_cusparse_status_v2(cusparseStatus_t status, int lin
                    "structural zero or numerical zero (singular block)"
                 << std::endl;
       break;
+#endif
+#if CUDA_VERSION >= 11000
+    case CUSPARSE_STATUS_INSUFFICIENT_RESOURCES:
+      std::cerr << "The resources for the computation, such as GPU global or shared memory, are not sufficient to complete the operation" << std::endl;
 #endif
   }
   std::cerr << "Cusparse error in " << file << "@" << line << " : " << cusparseGetErrorString(status) << std::endl;

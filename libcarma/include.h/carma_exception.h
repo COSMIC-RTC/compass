@@ -93,21 +93,7 @@ class CarmaException {
    *  \return Formated exception
    */
 
-  const char* show_reason() const {
-    std::stringstream buf;
-    buf << a_reason << " in " << a_file << "@" << a_line << std::endl;
-    return buf.str().c_str();
-  }
-
-  /*!
-   *  \brief Format into a string
-   *
-   *  Format the Carma exception into a string
-   *
-   *  \return Formated exception
-   */
-
-  std::string show_reason_str() const {
+  std::string show_reason() const {
     std::stringstream buf;
     buf << a_reason << " in " << a_file << "@" << a_line << std::endl;
     return buf.str();
