@@ -203,12 +203,12 @@ CarmaSparseObj<T_data>::CarmaSparseObj(CarmaContext *current_context,
                                       CUSPARSE_INDEX_BASE_ZERO, this->get_data_type()));
 #endif
 }
-template CarmaSparseObj<float>::CarmaSparseObj(
-    CarmaContext *current_context, const long *dims, float *values,
-    int *colind, int *rowind, int nz, bool load_from_host);
-template CarmaSparseObj<double>::CarmaSparseObj(
-    CarmaContext *current_context, const long *dims, double *values,
-    int *colind, int *rowind, int nz, bool load_from_host);
+// template CarmaSparseObj<float>::CarmaSparseObj(
+//     CarmaContext *current_context, const long *dims, float *values,
+//     int *colind, int *rowind, int nz, bool load_from_host);
+// template CarmaSparseObj<double>::CarmaSparseObj(
+//     CarmaContext *current_context, const long *dims, double *values,
+//     int *colind, int *rowind, int nz, bool load_from_host);
 
 template <class T_data>
 CarmaSparseObj<T_data>::CarmaSparseObj(CarmaObj<T_data> *M) {

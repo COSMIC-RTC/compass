@@ -338,9 +338,8 @@ __global__ void convertVoltage_krnl(T *d_idata, uint16_t *d_odata, int N,
   }
 }
 
-template <typename Tin, typename Tout>
-typename std::enable_if<!std::is_same<Tin, Tout>::value, void>::type
-convert_to_voltage(Tin *d_idata, Tout *d_odata, int N, float volt_min, float volt_max,
+template <typename Tin, typename Tout, std::enable_if_t<!std::is_same<Tin, Tout>::value, bool>>
+void convert_to_voltage(Tin *d_idata, Tout *d_odata, int N, float volt_min, float volt_max,
                  uint16_t val_max, CarmaDevice *device, cudaStream_t stream) {
   int nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
@@ -351,20 +350,18 @@ convert_to_voltage(Tin *d_idata, Tout *d_odata, int N, float volt_min, float vol
   carma_check_msg("convertVoltage_krnl<<<>>> execution failed\n");
 }
 
-template
-    typename std::enable_if<!std::is_same<float, uint16_t>::value, void>::type
+template void
     convert_to_voltage<float, uint16_t>(float *d_idata, uint16_t *d_odata, int N,
                                       float volt_min, float volt_max, uint16_t val_max,
                                       CarmaDevice *device, cudaStream_t stream);
 
 #ifdef CAN_DO_HALF
-template typename std::enable_if<!std::is_same<half, float>::value, void>::type
-convert_to_voltage<half, float>(half *d_idata, float *d_odata, int N, float volt_min,
+template void
+convert_to_voltage<half, float, std::enable_if<!std::is_same<half, float>::value>>(half *d_idata, float *d_odata, int N, float volt_min,
                               float volt_max, uint16_t val_max,
                               CarmaDevice *device, cudaStream_t stream);
-template
-    typename std::enable_if<!std::is_same<half, uint16_t>::value, void>::type
-    convert_to_voltage<half, uint16_t>(half *d_idata, uint16_t *d_odata, int N,
+template void
+    convert_to_voltage<half, uint16_t, std::enable_if<!std::is_same<half, uint16_t>::value>>(half *d_idata, uint16_t *d_odata, int N,
                                      float volt_min, float volt_max, uint16_t val_max,
                                      CarmaDevice *device, cudaStream_t stream);
 #endif

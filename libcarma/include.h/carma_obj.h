@@ -223,7 +223,7 @@ class CarmaObj {
   }
 
   operator std::string() { return this->to_string(); }
-  inline char const *c_str() { return this->to_string().c_str(); }
+  // inline char const *c_str() { return this->to_string().c_str(); }
   const T_data operator[](int index) const {
     T_data tmp_float;
     carma_safe_call(cudaMemcpy(&tmp_float, &d_data[index], sizeof(T_data),

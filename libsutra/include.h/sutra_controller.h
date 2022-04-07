@@ -176,14 +176,12 @@ class SutraController {
   mutex comp_voltage_mutex;
 };
 
-template <typename Tin, typename Tout>
-typename std::enable_if<std::is_same<Tin, Tout>::value, void>::type
-convert_to_voltage(Tin *d_idata, Tout *d_odata, int N, float volt_min, float volt_max,
+template <typename Tin, typename Tout, std::enable_if_t<std::is_same<Tin, Tout>::value, bool> = true>
+void convert_to_voltage(Tin *d_idata, Tout *d_odata, int N, float volt_min, float volt_max,
                  uint16_t val_max, CarmaDevice *device, cudaStream_t stream){};
 
-template <typename Tin, typename Tout>
-typename std::enable_if<!std::is_same<Tin, Tout>::value, void>::type
-convert_to_voltage(Tin *d_idata, Tout *d_odata, int N, float volt_min, float volt_max,
+template <typename Tin, typename Tout, std::enable_if_t<!std::is_same<Tin, Tout>::value, bool> = true>
+void convert_to_voltage(Tin *d_idata, Tout *d_odata, int N, float volt_min, float volt_max,
                  uint16_t val_max, CarmaDevice *device, cudaStream_t stream);
 
 int shift_buf(float *d_data, int offset, int N, CarmaDevice *device);

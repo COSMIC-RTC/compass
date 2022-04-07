@@ -45,11 +45,11 @@
  from the T_in and T_out types. */
 
 template <class T_in, class T_out>
-cufftType carma_select_plan()
-/**< Generic template for cufft type selection */
-{
-  return EXIT_FAILURE;
-}
+cufftType carma_select_plan();
+// /**< Generic template for cufft type selection */
+// {
+//   return EXIT_FAILURE;
+// }
 
 template <>
 cufftType carma_select_plan<cuFloatComplex, cuFloatComplex>() {
@@ -147,10 +147,6 @@ void carma_initfft(const long *dims_data, cufftHandle *plan, cufftType type_plan
    */
 
   type_plan = carma_select_plan<T_in, T_out>();
-  if (type_plan == -1) {
-    DEBUG_TRACE("Wrong data type");
-    throw "Wrong data type\n";
-  }
   if (dims_data[0] == 1) /* Create a 1D FFT plan. */
     carmafft_safe_call(cufftPlan1d(plan, dims_data[1], type_plan, 1));
   else if (dims_data[0] == 2)

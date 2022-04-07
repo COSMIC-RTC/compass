@@ -126,7 +126,7 @@ class CarmaHostObj {
     stream << *this;
     return stream.str();
   }
-  inline char const *c_str() { return std::string(*this).c_str(); }
+  // inline char const *c_str() { return std::string(*this).c_str(); }
   T_data *get_data() { return h_data; }
   T_data *get_data_at(int index) { return &h_data[index]; }
   const long *get_dims() { return dims_data; }

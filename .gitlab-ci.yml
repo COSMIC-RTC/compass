@@ -15,7 +15,7 @@ build_release:
     - export CUDA_ROOT=/usr/local/cuda
     - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
-    - ./script/install_conan.sh 8
+    - ./script/install_conan_gcc.sh 8
     - pip install -r script/requirements.txt
     - pip install -r script/requirements-dev.txt
     - ./compile.sh $PWD/local
@@ -47,7 +47,7 @@ build_debug:
     - export CUDA_ROOT=/usr/local/cuda
     - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
-    - ./script/install_conan.sh 8
+    - ./script/install_conan_gcc.sh 8
     - pip install -r script/requirements.txt
     - pip install -r script/requirements-dev.txt
     - ./compile.sh $PWD/local

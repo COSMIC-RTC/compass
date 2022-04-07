@@ -52,7 +52,7 @@ SutraLGS::SutraLGS(CarmaContext *context, CarmaObj<float> *d_lgskern,
 
   this->nvalid = nvalid;
   this->npix = npix;
-  this->nprof = nprof;
+  this->nprof = 0;
   this->nmaxhr = nmaxhr;
   this->d_doffaxis = this->d_prof1d = this->d_profcum = 0;
   this->hg = this->pixsize = this->h0 = this->deltah = 0;
