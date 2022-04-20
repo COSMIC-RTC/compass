@@ -72,8 +72,8 @@ class ModalGains(object):
         self.close_iter = 0
         if (self._config.p_controllers[0].close_opti):
             self._rtc.set_modal_gains(0, self.mgains)
-        print(f"total number of actuators {self._ntotact}")
-        print(f"Autocorrelation index for CLOSE optimization is {self._ac_idx}")
+        # print(f"total number of actuators {self._ntotact}")
+        # print(f"Autocorrelation index for CLOSE optimization is {self._ac_idx}")
 
     def update_modal_meas(self):
         """Save the modal measurement of the current iter"""
