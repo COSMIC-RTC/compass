@@ -419,11 +419,10 @@ dm_fits_content="""The DM FITS file is compatible with COMPASS DM database.
     * XCENTER, YCENTER are the coordinates of the centre of the pupil, expressed in pixels, in a reference frame conformable to (i,j) coords. The translation from pixels to meters can be done using:
         meters = (pixels - XCENTER) * PIXSIZE
 
-    * PUPM is the diameter of pupil stop (meters) and this is redundant information,
-            but may be handy is some cases and useful when using this file with COMPASS software.
+    * PUPM is the diameter of pupil stop (meters).
 
     * Additionally the header provides the user with:
-        PITCHM is the size of the DM pitch in meters
+        PITCHM is the size of the DM pitch in meters (may be handy is some cases and useful when using this file with COMPASS software)
 
     This FITS file contains 3 extensions:
     * Extension 'HI_I1, HI_J1' are the coordinate (i,j) of the first pixel for each of the 2D maps (see Extension 2), so that they can be inserted in a larger map.
