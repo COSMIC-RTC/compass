@@ -36,6 +36,7 @@
 #  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 
 import numpy as np
+from astropy.io import fits
 
 import shesha.constants as scons
 from shesha.constants import CONST
