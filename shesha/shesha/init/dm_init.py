@@ -554,11 +554,9 @@ def init_custom_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, diam: float):
     f_xC = hdul[0].header['XCENTER']
     f_yC = hdul[0].header['YCENTER']
     f_pixsize = hdul[0].header['PIXSIZE']
-    f_pitchm = hdul[0].header['PITCHM']
-    f_pupm = hdul[0].header['PUPM']
-    fi_i1, fi_j1 = hdul[1].data
-    f_influ = hdul[2].data
-    f_xpos, f_ypos = hdul[3].data
+    fi_i1, fi_j1 = hdul['HI_I1, HI_J1'].data
+    f_influ = hdul['INFLU'].data
+    f_xpos, f_ypos = hdul['XPOS, YPOS'].data
 
     # Projecting the dm in the tel pupil plane with the desired factor
     cases = [
@@ -567,12 +565,15 @@ def init_custom_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, diam: float):
     ]
 
     if cases == [False, False, False]:
+        f_pupm = hdul[0].header['PUPM']
         scale = diam / f_pupm
     elif cases == [True, False, False]:
         scale = diam / p_dm.diam_dm
     elif cases == [False, True, False]:
+        f_pitchm = hdul[0].header['PITCHM']
         scale = p_dm._pitch / f_pitchm
     elif cases == [False, False, True]:
+        f_pupm = hdul[0].header['PUPM']
         scale = p_dm.diam_dm_proj / f_pupm
     else:
         err_msg = '''Invalid rescaling parameters
@@ -588,7 +589,7 @@ def init_custom_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, diam: float):
     print("Custom dm scaling factor to pupil plane :", scale)
 
     # Scaling factor from fits to compass system
-    scaleToCompass = f_pixsize / p_geom._pixsize
+    scaleToCompass = np.float32(f_pixsize) / np.float32(p_geom._pixsize)
 
     # shift to add to coordinates from fits to compass
     # Compass = Fits * scaleToCompass + offsetToCompass
