@@ -72,6 +72,9 @@ SutraTelescope::SutraTelescope(CarmaContext *current_context, long n_pup,
   this->d_pupil_m = new CarmaObj<float>(this->current_context, dims_data3);
   this->d_pupil_m->host2device(pupil_m);
 
+  this->d_input_phase = nullptr;
+  this->input_phase_counter = 0;
+
   delete[] dims_data2;
   delete[] dims_data3;
 }
@@ -117,6 +120,49 @@ int SutraTelescope::set_phase_ab_M1_m(float *phase_ab_M1_m, int size) {
       this->d_phase_ab_M1_m->host2device(phase_ab_M1_m);
   } else
     DEBUG_TRACE("Wrong dimensions");
+
+  return EXIT_SUCCESS;
+}
+
+int SutraTelescope::set_input_phase(float *input_phase, int size, int N) {
+  current_context->set_active_device(device, 1);
+  if (size == this->pup_size_m * this->pup_size_m) {
+    long *dims_data3 = new long[4];
+    dims_data3[0] = 3;
+    dims_data3[1] = this->pup_size_m;
+    dims_data3[2] = this->pup_size_m;
+    dims_data3[3] = N;
+    if (this->d_input_phase != nullptr)
+      delete this->d_input_phase;
+    
+    this->d_input_phase = new CarmaObj<float>(this->current_context,
+                                                   dims_data3, input_phase);
+    this->input_phase_counter = 0;
+
+  } else {
+      DEBUG_TRACE("Wrong dimensions");
+      return EXIT_FAILURE;
+  }
+
+  return EXIT_SUCCESS;
+}
+
+int SutraTelescope::update_input_phase() {
+  if (this->d_input_phase != nullptr) {
+    this->input_phase_counter++;
+    if(this->input_phase_counter >= this->d_input_phase->get_dims(3))
+      this->input_phase_counter = 0;
+  }
+
+  return EXIT_SUCCESS;
+}
+
+int SutraTelescope::reset_input_phase() {
+  if (this->d_input_phase != nullptr) {
+    delete this->d_input_phase;
+    this->d_input_phase = nullptr;
+    this->input_phase_counter = 0;
+  }
 
   return EXIT_SUCCESS;
 }
