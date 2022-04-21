@@ -426,11 +426,11 @@ dm_fits_content="""The DM FITS file is compatible with COMPASS DM database.
         PITCHM is the size of the DM pitch in meters (may be handy is some cases and useful when using this file with COMPASS software)
 
     This FITS file contains 3 extensions:
-    * Extension 'HI_I1, HI_J1' are the coordinate (i,j) of the first pixel for each of the 2D maps (see Extension 2), so that they can be inserted in a larger map.
+    * Extension 'I1_J1' are the coordinate (i,j) of the first pixel for each of the 2D maps (see Extension 2), so that they can be inserted in a larger map.
 
     * Extension 'INFLU' are the 2D maps of the influence functions.
 
-    * Extension 'XPOS, YPOS' are the coordinates (xpos, ypos) of the  physical location of the actuator, in pixels. This data is provided for information only and does not directly participate to build the DM. The present coordinates are positions in M1 space, i.e. include the distorsion due to telescope optics.
+    * Extension 'XPOS_YPOS' are the coordinates (xpos, ypos) of the  physical location of the actuator, in pixels. This data is provided for information only and does not directly participate to build the DM. The present coordinates are positions in M1 space, i.e. include the distorsion due to telescope optics.
 """
 
 def add_doc_content(*content):
@@ -440,8 +440,60 @@ def add_doc_content(*content):
         return obj
     return dec
 
+def write_dm_custom_fits(file_name, i1, j1, influ_cube, xpos, ypos, xcenter, ycenter,pixsize,pupm, *,pitchm=None):
+    """Write a custom_dm fits file based on user provided data (see args)
+
+    Args:
+        file_name : (string) : name of the custom dm fits file
+
+        i1 : (np.ndarray) : x coordinate of the first pixel for each of the 2D maps
+
+        j1 : (np.ndarray) : y coordinate of the first pixel for each of the 2D maps
+
+        influ_cube : (np.ndarray) : 2D maps of the influence functions
+
+        xpos : (np.ndarray) : x coordinate of the physical location of the actuator
+
+        ypos : (np.ndarray) : y coordinate of the physical location of the actuator
+
+        xcenter : (float) : x coordinate of the centre of the pupil, expressed in pixels
+
+        ycenter : (float) : y coordinate of the centre of the pupil, expressed in pixels
+
+        pixsize : (float) : size of the pixels on the maps in meters
+
+        pupm : (float) : diameter of pupil stop (meters)
+
+    Kwargs:
+        pitchm : (float) : size of the DM pitch in meters. Defaults to None.
+
+    Returns:
+        (HDUList) : custom_dm data
+    """
+    fits_version=1.2
+    primary_hdu = fits.PrimaryHDU()
+    primary_hdu.header['VERSION'] = (fits_version,'file format version')
+    primary_hdu.header['XCENTER'] = (xcenter     ,'DM centre along X in pixels')
+    primary_hdu.header['YCENTER'] = (ycenter     ,'DM centre along Y in pixels')
+    primary_hdu.header['PIXSIZE'] = (pixsize     ,'pixel size (meters)')
+    primary_hdu.header['PUPM']    = (pupm        ,'nominal pupil diameter (meters)')
+    if(pitchm is not None):
+        primary_hdu.header['PITCHM'] = (pitchm,'DM pitch (meters)')
+
+    for line in dm_fits_content.splitlines():
+        primary_hdu.header.add_comment(line)
+
+    image_hdu = fits.ImageHDU(np.c_[i1 , j1 ].T, name="I1_J1")
+    image_hdu2 = fits.ImageHDU(influ_cube, name="INFLU")
+    image_hdu3 = fits.ImageHDU(np.c_[xpos, ypos].T, name="XPOS_YPOS")
+
+    dm_custom = fits.HDUList([primary_hdu, image_hdu, image_hdu2, image_hdu3])
+
+    dm_custom.writeto(file_name,overwrite=1)
+    return dm_custom
+
 @add_doc_content(dm_fits_content)
-def export_custom_dm(p_dm, p_geom, *, file_name=None, p_tel=None):
+def export_custom_dm(file_name, p_dm, p_geom, *, p_tel=None):
     """Return an HDUList (FITS) with the data required to create a COMPASS custom_dm
 
     {}
@@ -456,11 +508,9 @@ def export_custom_dm(p_dm, p_geom, *, file_name=None, p_tel=None):
 
         p_tel : (Param_tel) : telescope settings, used to provide the diameter (if not provided, the default diameter id obtained from the p_geom as pupdiam*pixsize)
 
-    Return:
-        dm_hdu : (HDUList) : custom_dm data
+    Returns:
+        (HDUList) : custom_dm data
     """
-    fits_version=1.1
-    primary_hdu = fits.PrimaryHDU()
 
     pixsize = p_geom.get_pixsize()
     diam = p_geom.pupdiam * p_geom._pixsize
@@ -475,16 +525,12 @@ def export_custom_dm(p_dm, p_geom, *, file_name=None, p_tel=None):
     xcenter = p_geom.cent
     ycenter = p_geom.cent
 
-    primary_hdu.header['VERSION'] = (fits_version,'file format version')
-    primary_hdu.header['XCENTER'] = (xcenter     ,'DM centre along X in pixels')
-    primary_hdu.header['YCENTER'] = (ycenter     ,'DM centre along Y in pixels')
-    primary_hdu.header['PIXSIZE'] = (pixsize     ,'pixel size (meters)')
-    primary_hdu.header['PUPM']    = (diam        ,'nominal pupil diameter (meters)')
-    if(p_dm._pitch is not None):
-        primary_hdu.header['PITCHM'] = (p_dm._pitch*pixsize,'DM pitch (meters)')
+    pitchm=None
+    if p_dm._pitch :
+        pitchm = p_dm._pitch*pixsize
+    dm_custom = write_dm_custom_fits(file_name,i1,j1,influ,xpos,ypos,xcenter,ycenter,pixsize,diam,pitchm=pitchm)
 
-    for line in dm_fits_content.splitlines():
-        primary_hdu.header.add_comment(line)
+    return dm_custom
 
     image_hdu = fits.ImageHDU(np.c_[i1 , j1 ].T, name="HI_I1, HI_J1")
     image_hdu2 = fits.ImageHDU(influ, name="INFLU")

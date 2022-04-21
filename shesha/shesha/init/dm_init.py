@@ -551,12 +551,19 @@ def init_custom_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, diam: float):
     hdul = pfits.open(shesha_dm + "/" + p_dm.file_influ_fits)
     print("Read influence function from fits file : ", p_dm.file_influ_fits)
 
+    dm_fits_version = hdul[0].header['VERSION']
+
     f_xC = hdul[0].header['XCENTER']
     f_yC = hdul[0].header['YCENTER']
     f_pixsize = hdul[0].header['PIXSIZE']
-    fi_i1, fi_j1 = hdul['HI_I1, HI_J1'].data
-    f_influ = hdul['INFLU'].data
-    f_xpos, f_ypos = hdul['XPOS, YPOS'].data
+    if(dm_fits_version < 1.2 ):
+        fi_i1 , fi_j1  = hdul[1].data
+        f_influ        = hdul[2].data
+        f_xpos, f_ypos = hdul[3].data
+    else:
+        fi_i1, fi_j1 = hdul['HI_I1, HI_J1'].data
+        f_influ = hdul['INFLU'].data
+        f_xpos, f_ypos = hdul['XPOS, YPOS'].data
 
     # Projecting the dm in the tel pupil plane with the desired factor
     cases = [
