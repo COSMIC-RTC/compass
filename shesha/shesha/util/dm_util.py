@@ -531,13 +531,3 @@ def export_custom_dm(file_name, p_dm, p_geom, *, p_tel=None):
     dm_custom = write_dm_custom_fits(file_name,i1,j1,influ,xpos,ypos,xcenter,ycenter,pixsize,diam,pitchm=pitchm)
 
     return dm_custom
-
-    image_hdu = fits.ImageHDU(np.c_[i1 , j1 ].T, name="HI_I1, HI_J1")
-    image_hdu2 = fits.ImageHDU(influ, name="INFLU")
-    image_hdu3 = fits.ImageHDU(np.c_[xpos, ypos].T, name="XPOS, YPOS")
-
-    dm_custom = fits.HDUList([primary_hdu, image_hdu, image_hdu2, image_hdu3])
-
-    if file_name is not None:
-        dm_custom.writeto(file_name,overwrite=1)
-    return dm_custom

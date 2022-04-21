@@ -565,9 +565,9 @@ def init_custom_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, diam: float):
         f_influ        = hdul[2].data
         f_xpos, f_ypos = hdul[3].data
     else:
-        fi_i1, fi_j1 = hdul['HI_I1, HI_J1'].data
+        fi_i1, fi_j1 = hdul['I1_J1'].data
         f_influ = hdul['INFLU'].data
-        f_xpos, f_ypos = hdul['XPOS, YPOS'].data
+        f_xpos, f_ypos = hdul['XPOS_YPOS'].data
 
     # Projecting the dm in the tel pupil plane with the desired factor
     cases = [
