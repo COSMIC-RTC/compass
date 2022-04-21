@@ -548,8 +548,12 @@ def init_custom_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, diam: float):
     from astropy.io import fits as pfits
 
     # read fits file
-    hdul = pfits.open(shesha_dm + "/" + p_dm.file_influ_fits)
-    print("Read influence function from fits file : ", p_dm.file_influ_fits)
+    file_name = p_dm.file_influ_fits
+    if(not os.path.isfile(file_name)):
+        file_name = shesha_dm + "/" + p_dm.file_influ_fits
+
+    hdul = pfits.open(file_name)
+    print("Read influence function from fits file : ", file_name)
 
     dm_fits_version = hdul[0].header['VERSION']
 
