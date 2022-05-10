@@ -238,3 +238,11 @@ int SutraSensors::set_noise(int nwfs, float noise, long seed) {
   this->d_wfs[nwfs]->set_noise(noise, seed);
   return EXIT_SUCCESS;
 }
+
+int SutraSensors::set_field_stop(int nwfs, float* field_stop, int N) {
+  if(this->d_wfs[nwfs]->type == "sh") {
+    SutraWfsSH *wfs = dynamic_cast<SutraWfsSH *>(this->d_wfs[nwfs]);
+    wfs->set_field_stop(this->campli_plans, field_stop, N);
+  }
+  return EXIT_SUCCESS;
+}

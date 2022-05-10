@@ -57,7 +57,6 @@ class SutraWfs_PyrHR : public SutraWfs {
   long npupils;
   bool compute_pyrfocalplane;
   CarmaObj<float> *d_hrimg;
-  CarmaObj<float> *d_submask;
   CarmaObj<float> *d_psum;
   CarmaObj<float> *d_pyrfocalplane;
   CarmaObj<cuFloatComplex> *d_phalfxy;

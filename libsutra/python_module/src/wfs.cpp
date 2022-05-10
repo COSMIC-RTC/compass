@@ -223,6 +223,9 @@ void declare_wfs(py::module &mod) {
       .def_property_readonly(
           "d_validsubsy", [](SutraWfs &sw) { return sw.d_validsubsy; },
           "Y-position of valid ssp")
+      .def_property_readonly(
+          "d_submask", [](SutraWfs &sw) { return sw.d_submask; },
+          "TODO: docstring")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝

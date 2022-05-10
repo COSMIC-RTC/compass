@@ -103,6 +103,102 @@ int fillcamplipup(cuFloatComplex *amplipup, float *phase, float *offset,
   return EXIT_SUCCESS;
 }
 
+__global__ void camplipup_krnl(cuFloatComplex *amplipup, cuFloatComplex *phase,
+                               float *offset,
+                               int *istart, int *jstart, int *ivalid,
+                               int *jvalid, int nphase, int nphase2,
+                               int N, int Nfft, int Ntot) {
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+
+  while (tid < Ntot) {
+    int nim = tid / nphase2;
+    int idim = tid - nim * nphase2;
+
+    int idimx = idim % nphase;  // nphase : size of the phase support in subaps
+    int idimy = idim / nphase;
+
+    int idphase = idimx + idimy * N + istart[nim] + jstart[nim] * N;
+
+    // npup : size of the input phase screen
+
+    int idx = idimx + idimy * Nfft + nim * Nfft * Nfft;
+    // Compute exp(1j*(phi - offset))
+    float cos_phi = phase[idphase].x;
+    float sin_phi = phase[idphase].y;
+    float cos_off = cosf(offset[idim]);
+    float sin_off = sinf(offset[idim]);
+
+    // cos(phi - off) & normalize FFT
+    amplipup[idx].x = (cos_phi * cos_off + sin_phi * sin_off) / N / N;
+    // sin(phi - off) & normalize FFT
+    amplipup[idx].y = (sin_phi * cos_off - cos_phi * sin_off) / N / N;
+
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+int fillcamplipup(cuFloatComplex *amplipup, cuFloatComplex *phase, float *offset,
+                  int *istart, int *jstart,
+                  int *ivalid, int *jvalid, int nphase, int N, int Nfft,
+                  int Ntot, CarmaDevice *device) {
+
+  int nb_blocks, nb_threads;
+
+  get_num_blocks_and_threads(device, Ntot, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
+
+  /*
+     int nb_threads = 0,nb_blocks = 0;
+     get_num_blocks_and_threads(device, Ntot, nb_blocks, nb_threads);
+
+     dim3 grid(nb_blocks), threads(nb_threads);
+   */
+
+  int nphase2 = nphase * nphase;
+
+  camplipup_krnl<<<grid, threads>>>(
+      amplipup, phase, offset, istart, jstart, ivalid, jvalid,
+      nphase, nphase2, N, Nfft, Ntot);  
+  carma_check_msg("camplipup_krnl<<<>>> execution failed\n");
+
+  return EXIT_SUCCESS;
+}
+
+__global__ void fsamplipup_krnl(cuFloatComplex *d_odata, float *idata,
+                                float *mask, float scale,
+                                int Nfft, int N) {
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+
+  while (tid < N*N) {
+    
+    int idimx = tid % N;  // nphase : size of the phase support in subaps
+    int idimy = tid / N;
+
+    int odx = idimx + idimy * Nfft;
+
+    d_odata[odx].x =
+        cosf(idata[tid] * scale) * mask[tid];
+    d_odata[odx].y =
+        sinf(idata[tid] * scale) * mask[tid];
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+int fillfsamplipup(cuFloatComplex *d_odata, float *idata, 
+                    float *mask, float scale,
+                    int Nfft, int N, CarmaDevice *device) {
+
+  int nb_blocks, nb_threads;
+
+  get_num_blocks_and_threads(device, N * N, nb_blocks, nb_threads);
+  dim3 grid(nb_blocks), threads(nb_threads);
+
+  fsamplipup_krnl<<<grid, threads>>>(d_odata, idata, mask, scale, Nfft, N);
+  carma_check_msg("fsamplipup_krnl<<<>>> execution failed\n");
+
+  return EXIT_SUCCESS;
+}
+
 __global__ void bimg_krnl(float *bimage, float *bcube, int npix, int npix2,
                           int nsub, int *ivalid, int *jvalid, float alpha,
                           int N) {
@@ -1799,7 +1895,7 @@ __global__ void submask_krnl(Tout *g_odata, Tin *g_mask, unsigned int n) {
 }
 
 template <class Tout, class Tin>
-void pyr_submask(Tout *d_odata, Tin *d_mask, int n, CarmaDevice *device) {
+void apply_submask(Tout *d_odata, Tin *d_mask, int n, CarmaDevice *device) {
   int nb_blocks, nb_threads;
 
   get_num_blocks_and_threads(device, n * n, nb_blocks, nb_threads);
@@ -1810,10 +1906,10 @@ void pyr_submask(Tout *d_odata, Tin *d_mask, int n, CarmaDevice *device) {
   carma_check_msg("submask_kernel<<<>>> execution failed\n");
 }
 
-template void pyr_submask<cuFloatComplex, float>(cuFloatComplex *d_odata,
+template void apply_submask<cuFloatComplex, float>(cuFloatComplex *d_odata,
                                                  float *d_mask, int n,
                                                  CarmaDevice *device);
-template void pyr_submask<cuDoubleComplex, double>(cuDoubleComplex *d_odata,
+template void apply_submask<cuDoubleComplex, double>(cuDoubleComplex *d_odata,
                                                    double *d_idata, int n,
                                                    CarmaDevice *device);
 

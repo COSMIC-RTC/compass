@@ -65,10 +65,6 @@ void declare_wfs_pyrhr(py::module &mod) {
           "d_hrimg", [](SutraWfs_PyrHR &sp) { return sp.d_hrimg; },
           "TODO: docstring")
 
-      .def_property_readonly(
-          "d_submask", [](SutraWfs_PyrHR &sp) { return sp.d_submask; },
-          "TODO: docstring")
-
       .def_readwrite("compute_pyrfocalplane",
                      &SutraWfs_PyrHR::compute_pyrfocalplane,
                      "TODO: docstring")

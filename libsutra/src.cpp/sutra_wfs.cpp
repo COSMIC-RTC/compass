@@ -106,7 +106,8 @@ SutraWfs::SutraWfs(CarmaContext *context, SutraTelescope *d_tel,
       nvalid_tot(nvalid),
       rank(0),
       displ_bincube(nullptr),
-      count_bincube(nullptr) {
+      count_bincube(nullptr),
+      d_submask(nullptr) {
   if (d_camplipup != nullptr && !is_low_order) this->d_camplipup = d_camplipup;
   if (d_camplifoc != nullptr && !is_low_order) this->d_camplifoc = d_camplifoc;
   if (d_fttotim != nullptr && !is_low_order) this->d_fttotim = d_fttotim;

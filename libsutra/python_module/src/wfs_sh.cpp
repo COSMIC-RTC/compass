@@ -70,6 +70,12 @@ void declare_wfs_sh(py::module &mod) {
       .def_property_readonly(
           "d_validpuppixy", [](SutraWfsSH &ssh) { return ssh.d_validpuppixy; },
           "Y position of the bottom left corner of each ssp")
+      .def_property_readonly(
+          "d_fsamplipup", [](SutraWfsSH &ss) { return ss.d_fsamplipup; },
+          "Complex amplitude in the pupil in the field stop array size")
+      .def_property_readonly(
+          "d_fsamplifoc", [](SutraWfsSH &ss) { return ss.d_fsamplifoc; },
+          "Focal plane with field stop")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝

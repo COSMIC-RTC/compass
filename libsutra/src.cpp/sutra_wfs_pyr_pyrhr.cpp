@@ -410,7 +410,7 @@ void SutraWfs_PyrHR::comp_modulation(int cpt) {
     CarmaFFT(this->d_camplipup->get_data(), this->d_camplifoc->get_data(), -1,
               *this->d_camplipup->get_plan());
 
-    pyr_submask(this->d_camplifoc->get_data(), this->d_submask->get_data(),
+    apply_submask(this->d_camplifoc->get_data(), this->d_submask->get_data(),
                 this->nfft, this->current_context->get_device(device));
     // float fact = 1.0f / this->nfft / this->nfft / this->nfft / 2.0;
     float fact = 1.0f * (this->pyr_mod_weights->get_data())[cpt];
@@ -444,7 +444,7 @@ void SutraWfs_PyrHR::comp_modulation(int cpt) {
               this->d_camplifoc_ngpu[cur_device]->get_data(), -1,
               *this->d_camplipup_ngpu[cur_device]->get_plan());
 
-    pyr_submask(this->d_camplifoc_ngpu[cur_device]->get_data(),
+    apply_submask(this->d_camplifoc_ngpu[cur_device]->get_data(),
                 this->d_submask_ngpu[cur_device]->get_data(), this->nfft,
                 this->current_context->get_device(cur_device));
     // float fact = 1.0f / this->nfft / this->nfft / this->nfft / 2.0;
@@ -580,7 +580,7 @@ int SutraWfs_PyrHR::comp_generic() {
   CarmaFFT(this->d_fttotim->get_data(), this->d_fttotim->get_data(), -1,
             *this->d_camplipup->get_plan());
 
-  pyr_submask(this->d_fttotim->get_data(), this->d_sincar->get_data(), this->nfft,
+  apply_submask(this->d_fttotim->get_data(), this->d_sincar->get_data(), this->nfft,
               this->current_context->get_device(device));
 
   CarmaFFT(this->d_fttotim->get_data(), this->d_fttotim->get_data(), 1,

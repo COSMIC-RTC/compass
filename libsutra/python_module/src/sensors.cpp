@@ -206,7 +206,6 @@ void declare_sensors(py::module &mod) {
            py::arg("mag"), py::arg("zerop"), py::arg("sizes"), py::arg("noise"),
            py::arg("seeds"), py::arg("G"), py::arg("thetaML"), py::arg("dx"),
            py::arg("dy"))
-
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝
       //  ███████╗█████╗     ██║      ██║   █████╗  ██████╔╝███████╗
@@ -214,5 +213,17 @@ void declare_sensors(py::module &mod) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
+        .def("set_field_stop", wy::colCast(&SutraSensors::set_field_stop), R"pbdoc(
+    Set new field stop for the specified SH WFS
+
+    Args:
+        nwfs: (int): WFS index
+
+        field_stop: (np.array(ndim=2,dtype=np.float32)): Field stop to use
+
+        N : (int): Size of the field stop array along one axis
+    )pbdoc",
+            py::arg("nwfs"), py::arg("field_stop"), py::arg("N"))
+
       ;
 };
