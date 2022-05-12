@@ -52,6 +52,7 @@ Options:
   -g, --gsmag gsmag         change guide star magnitude
   -r, --rmod rmod           change modulation radius
   -x, --offaxis offaxis     change all targets position along x axis
+  -r0,--setr0 setr0        change the global r0
 """
 
 import os, sys
@@ -150,6 +151,9 @@ if __name__ == '__main__':
     if (arguments["--gsmag"]):
         print("Warning changed guide star magnitude to: ", arguments["--gsmag"])
         config.p_wfss[0].set_gsmag(float(arguments["--gsmag"]))
+    if (arguments["--setr0"]):
+        print("Warning changed r0 to: ", arguments["--setr0"])
+        config.p_atmos.set_r0(float(arguments["--setr0"]))
     if (arguments["--rmod"]):
         print("Warning changed modulation radius to: ", arguments["--rmod"])
         rMod = int(arguments["--rmod"])

@@ -32,7 +32,7 @@ p_tel.set_cobs(0.12)        # TBC (central obstruction)
 # here we simulate the first stage of correction of ao188
 p_atmos = conf.Param_atmos()
 
-p_atmos.set_r0(0.15) # Fried parameters @ 500 nm
+p_atmos.set_r0(0.07) # Fried parameters @ 500 nm
 p_atmos.set_nscreens(1) # Number of layers
 p_atmos.set_frac([1.0])
 p_atmos.set_alt([0.0])
@@ -58,7 +58,7 @@ p_wfs0.set_fssize(1.5) # Size of the field stop
 p_wfs0.set_fracsub(0.0001) # was 0.8 before Vincent 
 p_wfs0.set_xpos(0.)
 p_wfs0.set_ypos(0.)
-p_wfs0.set_Lambda(1.2) # pyramid wavelength 
+p_wfs0.set_Lambda(0.5) # pyramid wavelength 
 p_wfs0.set_gsmag(5.) # Guide star magnitude
 p_wfs0.set_optthroughput(0.5) # Optiical throughput coefficient
 p_wfs0.set_zerop(1.e11)
@@ -77,14 +77,18 @@ p_dm1 = conf.Param_dm()
 p_dms = [p_dm0, p_dm1]
 p_dm0.set_type("pzt")
 # nact = p_wfs0.nxsub + 1
-nact = 32
-p_dm0.set_nact(nact)
+#nact = 24
+#p_dm0.set_nact(nact)
 p_dm0.set_alt(0.) # Layers altitudes
-p_dm0.set_thresh(0.3) # Threshold on response for selection of valid actuators. Expressed in fraction of the maximal response
+p_dm0.set_thresh(-200) # Threshold on response for selection of valid actuators. Expressed in fraction of the maximal response
 p_dm0.set_coupling(0.2)
 p_dm0.set_unitpervolt(1.0)
 p_dm0.set_push4imat(1.0e-3) # Nominal voltage for imat = integration matrix = response matrix
-p_dm0.set_margin_out(0.3) # pour adapter la taille de la pupille du DM a celle du WFS
+p_dm0.set_margin_out(2) # pour adapter la taille de la pupille du DM a celle du WFS
+p_dm0.set_margin_in(10) # pour adapter la taille de la pupille du DM a celle du WFS
+p_dm0.set_file_influ_fits('SAXO_HODM.fits')
+#p_dm0.set_file_influ_fits('Boston32x32.fits')
+#p_dm0.set_file_influ_fits('Boston24x24.fits')
 
 p_dm1.set_type("tt")
 p_dm1.set_alt(0.)
