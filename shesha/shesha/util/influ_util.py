@@ -140,7 +140,11 @@ def bessel_influence(xx, yy, type_i=PatternType.SQUARE):
 
 
 def makeRigaut(pitch: float, coupling: float, x=None, y=None):
-    """ Compute 'Rigaut-like' influence function
+    """ Compute 'Rigaut-like' influence function.
+    
+    The arguments <pitch> and <x>, <y> must be in the same unit.
+    This unit shall be [pixels] if one expects that the returned value
+    <smallsize> is also in [pixels].
 
     Args:
 

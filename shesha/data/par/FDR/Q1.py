@@ -58,7 +58,7 @@ rMod = 3  # Modulation radius, in lam/D units
 nbPtMod = int(np.ceil(int(rMod * 2 * 3.141592653589793) / 4.) * 4)
 
 # WFS
-p_wfs0 = ao.Param_wfs(roket=True)
+p_wfs0 = ao.Param_wfs()
 p_wfss = [p_wfs0]
 p_wfs0.set_type("pyrhr")        # type de WFS: "sh", "pyrhr", "pyr"
 p_wfs0.set_nxsub(100)           # to get 95 after rescaling

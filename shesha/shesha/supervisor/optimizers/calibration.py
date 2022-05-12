@@ -35,6 +35,7 @@
 #  You should have received a copy of the GNU Lesser General Public License along with COMPASS.
 #  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 import numpy as np
+from tqdm import trange
 
 class Calibration(object):
     """ This optimizer class handles all the modal basis and DM Influence functions
@@ -132,12 +133,12 @@ class Calibration(object):
             modal_imat : (np.ndarray) : Modal interaction matrix
         """
         modal_imat = np.zeros((self._config.p_controllers[controller_index].nslope, modal_basis.shape[1]))
-
+        print("Starting Modal imat...")
         if (nmodes_max == 0):
             nmodes_max = modal_basis.shape[1]
         v_old = self._rtc.get_command(controller_index)
         self._rtc.open_loop(controller_index, reset=False)
-        for m in range(nmodes_max):
+        for m in trange(nmodes_max):
             v = ampli[m] * modal_basis[:, m]
             if ((push_pull is True) or
                 (with_turbu is True)):  # with turbulence/aberrations => push/pull
