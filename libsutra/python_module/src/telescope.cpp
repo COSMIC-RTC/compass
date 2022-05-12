@@ -136,6 +136,13 @@ void declare_telescope(py::module &mod) {
               Update input_phase_counter to take the next phase screen in the circular buffer d_input_phase
           )pbdoc"
       )
+
+      .def(
+          "reset_input_phase", &SutraTelescope::reset_input_phase,
+          R"pbdoc(
+              Reset circular buffer d_input_phase
+          )pbdoc"
+      )
       
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝

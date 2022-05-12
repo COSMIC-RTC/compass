@@ -93,6 +93,12 @@ class SutraTelescope {
    * @return int Success status
    */
   int update_input_phase();
+  /**
+   * @brief Reset circular buffer d_input_phase
+   * 
+   * @return int Success status
+   */
+  int reset_input_phase();
 };
 
 #endif  // _SUTRA_TELESCOPE_H_

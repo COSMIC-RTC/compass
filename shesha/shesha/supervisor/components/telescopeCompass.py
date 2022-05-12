@@ -90,6 +90,11 @@ class TelescopeCompass(object):
         """ Update the index of the current phase screen in the circular buffer, so it passes to the next one
         """
         self._tel.update_input_phase()
+
+    def reset_input_phase(self):
+        """ Reset circular buffer d_input_phase
+        """
+        self._tel.reset_input_phase()
         
     def get_input_phase(self):
         """ Return the circular buffer of telescope phase screens

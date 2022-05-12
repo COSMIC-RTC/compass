@@ -156,3 +156,13 @@ int SutraTelescope::update_input_phase() {
 
   return EXIT_SUCCESS;
 }
+
+int SutraTelescope::reset_input_phase() {
+  if (this->d_input_phase != nullptr) {
+    delete this->d_input_phase;
+    this->d_input_phase = nullptr;
+    this->input_phase_counter = 0;
+  }
+
+  return EXIT_SUCCESS;
+}

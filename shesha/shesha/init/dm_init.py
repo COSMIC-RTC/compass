@@ -107,13 +107,21 @@ def _dm_init(context: carmaWrap_context, dms: Dms, p_dm: conf.Param_dm, xpos_wfs
     Args:
         context: (carmaWrap_context): context
         dms: (Dms) : dm object
+
         p_dm: (Param_dms) : dm settings
+
         xpos_wfs: (list) : list of wfs xpos
+
         ypos_wfs: (list) : list of wfs ypos
+
         p_geom: (Param_geom) : geom settings
+
         diam: (float) : diameter of telescope
+
         cobs: (float) : cobs of telescope
+
         pupAngle: (float) : rotation/clocking angle of the pupil in degrees
+
         max_extent: (int) : maximum dimension of all dms
 
     :return:
@@ -213,14 +221,23 @@ def _dm_init_factorized(context: carmaWrap_context, dms: Dms, p_dm: conf.Param_d
 
     Args:
         context: (carmaWrap_context): context
+    
         dms: (Dms) : dm object
+
         p_dm: (Param_dms) : dm settings
+
         xpos_wfs: (list) : list of wfs xpos
+
         ypos_wfs: (list) : list of wfs ypos
+
         p_geom: (Param_geom) : geom settings
+
         diam: (float) : diameter of telescope
+
         cobs: (float) : cobs of telescope
+
         pupAngle: (float) : rotation/clocking angle of the pupil in degrees
+
         max_extent: (int) : maximum dimension of all dms
 
     :return:
@@ -330,11 +347,14 @@ def make_pzt_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, cobs: float,
 
     Args:
         p_dm: (Param_dm) : dm parameters
+
         p_geom: (Param_geom) : geometry parameters
+
         cobs: (float) : telescope central obstruction
+
         pupAngle: (float) : rotation/clocking angle of the pupil in degrees
 
-    :return:
+    Returns:
         influ: (np.ndarray(dims=3, dtype=np.float64)) : cube of the IF for each actuator
 
     """
@@ -499,7 +519,9 @@ def init_custom_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, diam: float):
 
     Args:
         p_dm: (Param_dm) : dm settings
+
         p_geom: (Param_geom) : geom settings
+
         diam: (float) : tel diameter
 
     Conversion. There are sereval coordinate systems.
