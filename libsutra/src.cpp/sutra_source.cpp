@@ -382,6 +382,25 @@ int SutraSource::raytrace(SutraTelescope *tel, bool rst) {
   if (tel->d_phase_ab_M1_m != nullptr && this->type == "wfs") {
     this->d_phase->d_screen->axpy(1.0f, tel->d_phase_ab_M1_m, 1, 1);
   }
+
+  if(tel->d_input_phase != nullptr) {
+    if(this->type == "wfs") {
+      this->d_phase->d_screen->axpy(1.0f, tel->d_input_phase, 1, 1, tel->pup_size_m * tel->pup_size_m * tel->input_phase_counter);
+    }
+    else {
+      float xoff = (tel->pup_size_m - tel->pup_size) / 2;
+      float yoff = xoff;
+    
+    target_raytrace(this->d_phase->d_screen->get_data(),
+                    tel->d_input_phase->get_data_at(tel->pup_size_m * tel->pup_size_m * tel->input_phase_counter),
+                    (int)d_phase->d_screen->get_dims(1),
+                    (int)d_phase->d_screen->get_dims(2),
+                    (int)tel->d_input_phase->get_dims(1),
+                    xoff,
+                    yoff, 1.0f,
+                    0.f, 0.f, 0.f, this->block_size, 1.f);
+    }
+  }
   return EXIT_SUCCESS;
 }
 

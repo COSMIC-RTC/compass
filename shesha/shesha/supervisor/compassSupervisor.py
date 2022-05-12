@@ -215,6 +215,7 @@ class CompassSupervisor(GenericSupervisor):
         if move_atmos and self.atmos is not None:
             self.atmos.move_atmos()
         # in case there is at least 1 controller GEO in the controller list : use this one only
+        self.tel.update_input_phase()
         if ( geo_index > -1):
             nControl = geo_index
             if tar_trace is not None:
