@@ -93,7 +93,7 @@ class CompassSupervisor(GenericSupervisor):
                                       Requires OCTOPUS to be installed
         """
         self.cacao = cacao
-        self.telescope = None
+        self.tel = None
         self.atmos = None
         self.target = None
         self.wfs = None
