@@ -7,6 +7,7 @@ pip install conan --upgrade
 
 # Adds cosmic conan repository if it is not already the case.
 conan remote list | grep cosmic || conan remote add cosmic https://odp2.jfrog.io/artifactory/api/conan/cosmic
+conan remote list | grep obspm || conan remote add obspm https://conan.obspm.fr/conan
 
 # OPTIONAL: Adds hippo6 conan repository if it is not already the case.
 #conan remote list | grep hippo6 || conan remote add hippo6 https://hippo6.obspm.fr/conan False
