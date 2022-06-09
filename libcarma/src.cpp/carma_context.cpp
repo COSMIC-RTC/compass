@@ -35,7 +35,7 @@
 //! \class     CarmaContext
 //! \brief     this class provides the context in which CarmaObj are created
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.2.1
+//! \version   5.3.0
 //! \date      2022/01/24
 //! \copyright GNU Lesser General Public License
 

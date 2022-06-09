@@ -1,7 +1,7 @@
 ## @package   shesha.init.geom_init
 ## @brief     Initialization of the system geometry and of the Telescope object
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   5.2.1
+## @version   5.3.0
 ## @date      2022/01/24
 ## @copyright GNU Lesser General Public License
 #

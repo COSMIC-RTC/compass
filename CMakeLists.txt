@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.18)
 
 if(NOT DEFINED VERSION_INFO)
-    set(VERSION_INFO 5.2.1)
+    set(VERSION_INFO 5.3.0)
 endif()
 
 option(python_build "Compile Python Wrappers" ON)
