@@ -170,5 +170,5 @@ def comp_new_fstop(wfs: Sensors, n: int, p_wfs: conf.Param_wfs, fssize: float,
     # pyr_focmask = np.roll(pyr_focmask,focmask.shape[1]/2,axis=1)
     pyr_focmask = focmask * 1.0  # np.fft.fftshift(focmask*1.0)
     p_wfs._submask = np.fft.fftshift(pyr_focmask).astype(np.float32)
-    p_wfs_fssize = fssize
+    p_wfs._fssize = fssize
     wfs.d_wfs[n].set_submask(p_wfs._submask)

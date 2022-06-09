@@ -59,7 +59,10 @@ SutraWfsSH::SutraWfsSH(CarmaContext *context, SutraTelescope *d_tel,
                 is_low_order, roket, device),
       d_binmap(nullptr),
       d_validpuppixx(nullptr),
-      d_validpuppixy(nullptr) {}
+      d_validpuppixy(nullptr),
+      d_fsamplipup(nullptr),
+      d_fsamplifoc(nullptr),
+      fsampli_plan(nullptr) {}
 
 int SutraWfsSH::define_mpi_rank(int rank, int size) {
   if (this->device == 0) this->device = rank % current_context->get_ndevice();
@@ -368,15 +371,44 @@ int SutraWfsSH::comp_generic() {
    */
 
   // segment phase and fill cube of complex ampli with exp(i*phase_seg)
-  fillcamplipup(
-      this->d_camplipup->get_data(), this->d_gs->d_phase->d_screen->get_data(),
-      this->d_offsets->get_data(), this->d_pupil->get_data(), this->d_gs->scale,
-      this->d_validpuppixx->get_data(), this->d_validpuppixy->get_data(),
-      this->d_validsubsx->get_data(), this->d_validsubsy->get_data(),
-      this->nphase, this->d_gs->d_phase->d_screen->get_dims(1), this->nfft,
-      this->nphase * this->nphase * this->nvalid,
-      this->current_context->get_device(device), 0);  //, this->offset);
-                                                      // do fft of the cube
+  if (this->d_fsamplipup == nullptr) {// No Field stop case
+    fillcamplipup(
+        this->d_camplipup->get_data(), this->d_gs->d_phase->d_screen->get_data(),
+        this->d_offsets->get_data(), this->d_pupil->get_data(), this->d_gs->scale,
+        this->d_validpuppixx->get_data(), this->d_validpuppixy->get_data(),
+        this->d_validsubsx->get_data(), this->d_validsubsy->get_data(),
+        this->nphase, this->d_gs->d_phase->d_screen->get_dims(1), this->nfft,
+        this->nphase * this->nphase * this->nvalid,
+        this->current_context->get_device(device), 0);  //, this->offset);
+                                                        // do fft of the cube
+  }
+  else { // There is a field stop
+    cudaMemset(this->d_fsamplipup->get_data(), 0,
+                sizeof(cuFloatComplex) * this->d_fsamplipup->get_nb_elements());
+    fillfsamplipup(
+        this->d_fsamplipup->get_data(), this->d_gs->d_phase->d_screen->get_data(),
+        this->d_pupil->get_data(), this->d_gs->scale, 
+        this->d_fsamplipup->get_dims(1),this->d_gs->d_phase->d_screen->get_dims(1), 
+        this->current_context->get_device(device));
+
+    CarmaFFT(this->d_fsamplipup->get_data(), this->d_fsamplifoc->get_data(), 1,
+            *this->fsampli_plan);
+    apply_submask(this->d_fsamplifoc->get_data(),
+               this->d_submask->get_data(),
+               this->d_fsamplipup->get_dims(1), this->current_context->get_device(device));
+    CarmaFFT(this->d_fsamplifoc->get_data(), this->d_fsamplifoc->get_data(), -1,
+            *this->fsampli_plan);
+    fillcamplipup(
+        this->d_camplipup->get_data(), this->d_fsamplifoc->get_data(),
+        this->d_offsets->get_data(),
+        this->d_validpuppixx->get_data(), this->d_validpuppixy->get_data(),
+        this->d_validsubsx->get_data(), this->d_validsubsy->get_data(),
+        this->nphase, this->d_fsamplifoc->get_dims(1), this->nfft,
+        this->nphase * this->nphase * this->nvalid,
+        this->current_context->get_device(device));  //, this->offset);
+
+  }
+
   CarmaFFT(this->d_camplipup->get_data(), this->d_camplifoc->get_data(), 1,
             *this->campli_plan);  //*this->d_camplipup->get_plan());
 
@@ -655,5 +687,40 @@ int SutraWfsSH::set_bincube(float *bincube, int nElem) {
     this->d_bincube->host2device(bincube);
   else
     DEBUG_TRACE("Wrong size of cube");
+  return EXIT_SUCCESS;
+}
+
+int SutraWfsSH::set_field_stop(map<vector<int>, cufftHandle *> campli_plans,
+                                float* field_stop, int N) {
+  if(this->d_submask != nullptr) {
+    delete d_submask;
+    delete d_fsamplipup;
+    delete d_fsamplifoc;
+    fsampli_plan = nullptr;
+  }
+  long dims_data[3] = {2, N, N};
+
+  this->d_submask = new CarmaObj<float>(current_context, dims_data, field_stop);
+  this->d_fsamplipup = new CarmaObj<cuFloatComplex>(current_context, dims_data);
+  this->d_fsamplifoc = new CarmaObj<cuFloatComplex>(current_context, dims_data);
+
+  vector<int> vector_dims {2, N, N};
+  if (campli_plans.find(vector_dims) == campli_plans.end()) {
+    // DEBUG_TRACE("Creating FFT plan : %d %d
+    // %d",mdims[0],mdims[1],dims_data3[3]);print_mem_info();
+    cufftHandle *plan = (cufftHandle *)malloc(
+        sizeof(cufftHandle));  // = this->d_camplipup->get_plan(); ///< FFT plan
+    carmafft_safe_call(cufftPlan2d(plan, N, N, CUFFT_C2C));
+
+    campli_plans.insert(pair<vector<int>, cufftHandle *>(vector_dims, plan));
+
+    this->fsampli_plan = plan;
+    // DEBUG_TRACE("FFT plan created");print_mem_info();
+  } else {
+    // DEBUG_TRACE("FFT plan already exists : %d %d
+    // %d",mdims[0],mdims[1],dims_data3[3]);
+    this->fsampli_plan = campli_plans.at(vector_dims);
+  }
+
   return EXIT_SUCCESS;
 }

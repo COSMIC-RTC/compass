@@ -157,6 +157,8 @@ def wfs_init(context: carmaWrap_context, telescope: Telescope, p_wfss: list,
                             fluxPerSub, p_wfs._validsubsx, p_wfs._validsubsy,
                             p_wfs._validpuppixx, p_wfs._validpuppixy, p_wfs._ttprojmat,
                             p_wfs._ftkernel)
+            if (p_wfs._submask is not None):
+                g_wfs.set_field_stop(i, p_wfs._submask, p_wfs._submask.shape[0])
 
     # lgs case
     for i in range(nsensors):

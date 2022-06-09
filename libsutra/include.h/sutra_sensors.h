@@ -66,6 +66,7 @@ class SutraSensors {
   map<vector<int>, cufftHandle *> campli_plans;
   map<vector<int>, cufftHandle *> fttotim_plans;
   map<vector<int>, cufftHandle *> ftlgskern_plans;
+  map<vector<int>, cufftHandle *> field_stop_plans;
 
   CarmaObj<cuFloatComplex> *d_camplipup;
   CarmaObj<cuFloatComplex> *d_camplifoc;
@@ -85,6 +86,7 @@ class SutraSensors {
   int allocate_buffers();
   int define_mpi_rank(int rank, int size);
   int set_noise(int nwfs, float noise, long seed);
+  int set_field_stop(int nwfs, float* field_stop, int N);
 
   int initgs(float *xpos, float *ypos, float *lambda, float *mag, float zerop,
              long *size, float *noise, long *seed, float *G, float *thetaML,

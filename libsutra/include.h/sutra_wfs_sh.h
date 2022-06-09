@@ -57,6 +57,9 @@ class SutraWfsSH : public SutraWfs {
   CarmaObj<int> *d_binmap;
   CarmaObj<int> *d_validpuppixx;  // nxsub
   CarmaObj<int> *d_validpuppixy;  // nxsub
+  CarmaObj<cuFloatComplex> *d_fsamplipup; // Field stop computation arrays
+  CarmaObj<cuFloatComplex> *d_fsamplifoc; // Field stop computation arrays
+  cufftHandle *fsampli_plan;
 
  public:
   SutraWfsSH(CarmaContext *context, SutraTelescope *d_tel,
@@ -85,6 +88,7 @@ class SutraWfsSH : public SutraWfs {
                  float zerop = 0, float gsmag = 0, float lgsreturnperwatt = 0,
                  float laserpower = 0);
   int set_bincube(float *bincube, int nElem);
+  int set_field_stop(map<vector<int>, cufftHandle *> campli_plans, float* field_stop, int N);
 
  private:
   int comp_generic();

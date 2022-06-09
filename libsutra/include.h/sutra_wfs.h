@@ -119,6 +119,7 @@ class SutraWfs {
   CarmaObj<float> *d_ttprojvec;
   CarmaObj<int> *d_validsubsx;  // nvalid
   CarmaObj<int> *d_validsubsy;  // nvalid
+  CarmaObj<float> *d_submask; //field stop
 
   CarmaContext *current_context;
 
@@ -180,6 +181,12 @@ int fillcamplipup(cuFloatComplex *amplipup, float *phase, float *offset,
                   float *mask, float scale, int *istart, int *jstart,
                   int *ivalid, int *jvalid, int nphase, int npup, int Nfft,
                   int Ntot, CarmaDevice *device, int offset_phase);
+int fillcamplipup(cuFloatComplex *amplipup, cuFloatComplex *phase, float *offset,
+                  int *istart, int *jstart,
+                  int *ivalid, int *jvalid, int nphase, int N, int Nfft,
+                  int Ntot, CarmaDevice *device);
+int fillfsamplipup(cuFloatComplex *d_odata, float *idata, float *mask, float scale,
+                    int Nfft, int N, CarmaDevice *device);
 int indexfill(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int *indx,
               int nx, int Nx, int N, CarmaDevice *device);
 int fillbincube(float *bcube, cuFloatComplex *hrimage, int *indxpix, int Nfft,
@@ -263,7 +270,7 @@ void pyr_abs2(Tout *d_odata, Tin *d_idata, Tout fact, int ns, int nim,
               CarmaDevice *device);
 
 template <class Tout, class Tin>
-void pyr_submask(Tout *d_odata, Tin *d_mask, int n, CarmaDevice *device);
+void apply_submask(Tout *d_odata, Tin *d_mask, int n, CarmaDevice *device);
 
 template <class T>
 void pyr_submaskpyr(T *d_odata, T *d_mask, int n, CarmaDevice *device);
