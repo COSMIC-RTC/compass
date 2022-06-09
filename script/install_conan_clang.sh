@@ -3,7 +3,7 @@
 rm -rf ~/.conan
 
 # install dependencies
-pip install conan cmake --upgrade
+pip install "conan<1.48" cmake --upgrade
 
 # Adds cosmic conan repository if it is not already the case.
 conan remote list | grep cosmic || conan remote add cosmic https://odp2.jfrog.io/artifactory/api/conan/cosmic
