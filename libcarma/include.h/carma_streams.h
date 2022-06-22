@@ -13,7 +13,6 @@
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
 //! \version   5.3.0
 //! \date      2022/01/24
-//! \copyright GNU Lesser General Public License
 
 #ifndef _CARMA_STREAM_H_
 #define _CARMA_STREAM_H_
