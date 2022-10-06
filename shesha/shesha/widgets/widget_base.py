@@ -268,9 +268,11 @@ class WidgetBase(BaseClassTemplate):
             viewbox.setAspectLocked(True)
             viewbox.addItem(img)  # Put image in plot area
             self.viewboxes[name] = viewbox
-            iv = pg.ImageView(view=viewbox, imageItem=img)
             viewbox.invertY(False)
 
+            iv = pg.ImageView(view=viewbox, imageItem=img)
+            cmap = pg.colormap.get('viridis') # prepare a viridis color map
+            iv.setColorMap(cmap)
             if (self.hide_histograms):
                 iv.ui.histogram.hide()
             iv.ui.histogram.autoHistogramRange()  # init levels
