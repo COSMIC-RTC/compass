@@ -103,7 +103,8 @@ class CompassSupervisor(GenericSupervisor):
         self.basis = ModalBasis(self.config, self.dms, self.target)
         self.calibration = Calibration(self.config, self.tel, self.atmos, self.dms,
                                        self.target, self.rtc, self.wfs)
-        self.modalgains = ModalGains(self.config, self.rtc)
+        if config.p_controllers is not None:
+            self.modalgains = ModalGains(self.config, self.rtc)
         self.close_modal_gains = []
 
 
