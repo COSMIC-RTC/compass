@@ -230,12 +230,12 @@ int SutraRtc<Tin, T, Tout>::add_controller_impl(
 }
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::do_imat(int ncntrl, SutraDms *ydm) {
-  return do_imat_impl(ncntrl, ydm, std::is_same<T, float>());
+int SutraRtc<Tin, T, Tout>::do_imat(int ncntrl, SutraDms *ydm, int kernconv) {
+  return do_imat_impl(ncntrl, ydm, kernconv, std::is_same<T, float>());
 }
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::do_imat_impl(int ncntrl, SutraDms *ydm,
+int SutraRtc<Tin, T, Tout>::do_imat_impl(int ncntrl, SutraDms *ydm, int kernconv,
                                          std::false_type) {
   DEBUG_TRACE("Not implemented for this computation type");
   return EXIT_FAILURE;
@@ -244,7 +244,7 @@ int SutraRtc<Tin, T, Tout>::do_imat_impl(int ncntrl, SutraDms *ydm,
 template <typename Tin, typename T, typename Tout>
 template <typename Q>
 typename std::enable_if<std::is_same<Q, float>::value, int>::type
-SutraRtc<Tin, T, Tout>::do_imat_impl(int ncntrl, SutraDms *ydm,
+SutraRtc<Tin, T, Tout>::do_imat_impl(int ncntrl, SutraDms *ydm, int kernconv,
                                      std::true_type) {
   CarmaObj<T> *d_imat = NULL;
   if (this->d_control[ncntrl]->get_type().compare("ls") == 0) {
@@ -278,7 +278,7 @@ SutraRtc<Tin, T, Tout>::do_imat_impl(int ncntrl, SutraDms *ydm,
           // Tip Push
           dm->comp_oneactu(0, dm->push4imat);
 
-          this->comp_images_imat(ydm);
+          this->comp_images_imat(ydm, kernconv);
           this->d_centro[idx_cntr]->get_cog(
               this->d_centro[idx_cntr]->d_intensities->get_data(),
               this->d_centro[idx_cntr]->d_centro_filtered->get_data(), true);
@@ -292,7 +292,7 @@ SutraRtc<Tin, T, Tout>::do_imat_impl(int ncntrl, SutraDms *ydm,
 
           // Tip Pull
           dm->comp_oneactu(0, -1.0f * dm->push4imat);
-          this->comp_images_imat(ydm);
+          this->comp_images_imat(ydm, kernconv);
           this->d_centro[idx_cntr]->get_cog(
               this->d_centro[idx_cntr]->d_intensities->get_data(),
               this->d_centro[idx_cntr]->d_centro_filtered->get_data(), true);
@@ -306,7 +306,7 @@ SutraRtc<Tin, T, Tout>::do_imat_impl(int ncntrl, SutraDms *ydm,
           // Tilt Push
           dm->comp_oneactu(1, dm->push4imat);
 
-          this->comp_images_imat(ydm);
+          this->comp_images_imat(ydm, kernconv);
           this->d_centro[idx_cntr]->get_cog(
               this->d_centro[idx_cntr]->d_intensities->get_data(),
               this->d_centro[idx_cntr]->d_centro_filtered->get_data(), true);
@@ -320,7 +320,7 @@ SutraRtc<Tin, T, Tout>::do_imat_impl(int ncntrl, SutraDms *ydm,
 
           // Tilt Pull
           dm->comp_oneactu(1, -1.0f * dm->push4imat);
-          this->comp_images_imat(ydm);
+          this->comp_images_imat(ydm, kernconv);
           this->d_centro[idx_cntr]->get_cog(
               this->d_centro[idx_cntr]->d_intensities->get_data(),
               this->d_centro[idx_cntr]->d_centro_filtered->get_data(), true);
@@ -356,7 +356,7 @@ SutraRtc<Tin, T, Tout>::do_imat_impl(int ncntrl, SutraDms *ydm,
       // Push
       dm->comp_oneactu(j, dm->push4imat);
 
-      this->comp_images_imat(ydm);
+      this->comp_images_imat(ydm, kernconv);
       do_centroids(ncntrl, true);
 
       int device = this->d_control[ncntrl]->d_centroids->get_device();
@@ -366,7 +366,7 @@ SutraRtc<Tin, T, Tout>::do_imat_impl(int ncntrl, SutraDms *ydm,
       dm->reset_shape();
       // Pull
       dm->comp_oneactu(j, -1.0f * dm->push4imat);
-      this->comp_images_imat(ydm);
+      this->comp_images_imat(ydm, kernconv);
       device = this->d_control[ncntrl]->d_centroids->get_device();
       do_centroids(ncntrl, true);
 
@@ -391,14 +391,14 @@ SutraRtc<Tin, T, Tout>::do_imat_impl(int ncntrl, SutraDms *ydm,
 
 template <typename Tin, typename T, typename Tout>
 int SutraRtc<Tin, T, Tout>::do_imat_basis(int ncntrl, SutraDms *ydm, int nModes,
-                                          T *m2v, T *pushAmpl) {
-  return do_imat_basis_impl(ncntrl, ydm, nModes, m2v, pushAmpl,
+                                          T *m2v, T *pushAmpl, int kernconv) {
+  return do_imat_basis_impl(ncntrl, ydm, nModes, m2v, pushAmpl, kernconv,
                             std::is_same<T, float>());
 }
 
 template <typename Tin, typename T, typename Tout>
 int SutraRtc<Tin, T, Tout>::do_imat_basis_impl(int ncntrl, SutraDms *ydm,
-                                               int nModes, T *m2v, T *pushAmpl,
+                                               int nModes, T *m2v, T *pushAmpl, int kernconv,
                                                std::false_type) {
   DEBUG_TRACE("Not implemented for this computation type");
   return EXIT_FAILURE;
@@ -408,7 +408,7 @@ template <typename Tin, typename T, typename Tout>
 template <typename Q>
 typename std::enable_if<std::is_same<Q, float>::value, int>::type
 SutraRtc<Tin, T, Tout>::do_imat_basis_impl(int ncntrl, SutraDms *ydm,
-                                           int nModes, T *m2v, T *pushAmpl,
+                                           int nModes, T *m2v, T *pushAmpl, int kernconv,
                                            std::true_type) {
   CarmaObj<T> d_m2v(this->d_control[ncntrl]->current_context,
                     std::vector<long>{2, ydm->nact_total(), nModes}.data(),
@@ -456,7 +456,7 @@ SutraRtc<Tin, T, Tout>::do_imat_basis_impl(int ncntrl, SutraDms *ydm,
       actuCount += dm->nactus;
       ++p;
     }
-    this->comp_images_imat(ydm);  // Raytrace & compute all WFS
+    this->comp_images_imat(ydm, kernconv);  // Raytrace & compute all WFS
     do_centroids(ncntrl, true);
     int device = this->d_control[ncntrl]->d_centroids->get_device();
     this->d_control[ncntrl]->d_centroids->scale(0.5f / pushAmpl[j], 1);
@@ -474,7 +474,7 @@ SutraRtc<Tin, T, Tout>::do_imat_basis_impl(int ncntrl, SutraDms *ydm,
       actuCount += dm->nactus;
       ++p;
     }
-    this->comp_images_imat(ydm);  // Raytrace & compute all WFS
+    this->comp_images_imat(ydm, kernconv);  // Raytrace & compute all WFS
     do_centroids(ncntrl, true);
 
     device = this->d_control[ncntrl]->d_centroids->get_device();
@@ -493,14 +493,14 @@ SutraRtc<Tin, T, Tout>::do_imat_basis_impl(int ncntrl, SutraDms *ydm,
 }
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::comp_images_imat(SutraDms *ydm) {
+int SutraRtc<Tin, T, Tout>::comp_images_imat(SutraDms *ydm, int kernconv) {
   for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
     SutraWfs *wfs = this->d_centro[idx_cntr]->wfs;
     float tmp_noise = wfs->noise;
     float tmp_nphot = wfs->nphot;
     wfs->nphot = wfs->nphot4imat;
     wfs->noise = -1;
-    wfs->kernconv = true;
+    wfs->kernconv = kernconv;
     wfs->sensor_trace(ydm, 1);
     wfs->comp_image();
     wfs->noise = tmp_noise;

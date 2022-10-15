@@ -157,9 +157,9 @@ def imat_init(ncontrol: int, rtc: Rtc, dms: Dms, p_dms: list, wfs: Sensors, p_wf
         t0 = time.time()
         if M2V is not None:
             p_controller._M2V = M2V.copy()
-            rtc.do_imat_basis(ncontrol, dms, M2V.shape[1], M2V, p_controller.klpush)
+            rtc.do_imat_basis(ncontrol, dms, M2V.shape[1], M2V, p_controller.klpush, p_controller.kernconv4imat)
         else:
-            rtc.do_imat(ncontrol, dms)
+            rtc.do_imat(ncontrol, dms, p_controller.kernconv4imat)
         print("done in %f s" % (time.time() - t0))
         imat = np.array(rtc.d_control[ncontrol].d_imat)
         if use_DB:

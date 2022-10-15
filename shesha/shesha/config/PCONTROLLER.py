@@ -125,7 +125,8 @@ class Param_controller:
         """ flag to do polc in generic linear controller """
         self.__modal = 0
         """ flag to use a modal control in generic linenar controller """
-
+        self.__kernconv4imat = 1
+        """ Flag to use kernel convolution when computing imat """
     def get_type(self):
         """ Get the controller type
 
@@ -738,3 +739,21 @@ class Param_controller:
         self.__modal = csu.enforce_or_cast_bool(m)
 
     modal = property(get_modal, set_modal)
+
+    def get_kernconv4imat(self):
+        """Get kernconv4imat, i.e. a flag for using kernel convolution to have better
+        sensitivity on SH spot movements for imat computation
+
+        :return: (int) : kernconv4imat
+        """
+        return self.__kernconv4imat
+
+    def set_kernconv4imat(self, n):
+        """Set kernconv4imat, i.e. a flag for using kernel convolution to have better
+        sensitivity on SH spot movements for imat computation
+
+        :param k: (int) : kernconv4imat
+        """
+        self.__kernconv4imat = csu.enforce_or_cast_bool(n)
+
+    kernconv4imat = property(get_kernconv4imat, set_kernconv4imat)
