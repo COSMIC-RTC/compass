@@ -119,7 +119,7 @@ p_dm0.set_margin_out(0.3) # pour adapter la taille de la pupille du DM a celle d
 
 p_dm1.set_type("pzt")
 # nact = p_wfs0.nxsub + 1
-nact = 24
+nact = 32
 p_dm1.set_nact(nact)
 p_dm1.set_alt(0.) # Layers altitudes
 p_dm1.set_thresh(0.3) # Threshold on response for selection of valid actuators. Expressed in fraction of the maximal response

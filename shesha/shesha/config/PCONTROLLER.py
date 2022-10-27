@@ -125,6 +125,41 @@ class Param_controller:
         """ flag to do polc in generic linear controller """
         self.__modal = 0
         """ flag to use a modal control in generic linenar controller """
+        self.__calpix_name = "compass_calPix"
+        self.__loopdata_name = "compass_loopData"
+
+
+    def get_calpix_name(self):
+        """ Get the topic name of calpix stream
+
+        :return: (string) : type
+        """
+        return self.__calpix_name
+
+    def set_calpix_name(self, calpix_name):
+        """ Set the calpix topic name type
+
+        :param t: (string) : type
+        """
+        self.__calpix_name = calpix_name
+
+    calpix_name = property(get_calpix_name, set_calpix_name)
+
+    def get_loopdata_name(self):
+        """ Get the topic name of calpix stream
+
+        :return: (string) : type
+        """
+        return self.__loopdata_name
+
+    def set_loopdata_name(self, loopdata_name):
+        """ Set the loop data topic name type
+
+        :param t: (string) : type
+        """
+        self.__loopdata_name = loopdata_name
+
+    loopdata_name = property(get_loopdata_name, set_loopdata_name)
 
     def get_type(self):
         """ Get the controller type

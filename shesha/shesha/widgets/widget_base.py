@@ -271,8 +271,11 @@ class WidgetBase(BaseClassTemplate):
             viewbox.invertY(False)
 
             iv = pg.ImageView(view=viewbox, imageItem=img)
-            cmap = pg.colormap.get('viridis') # prepare a viridis color map
-            iv.setColorMap(cmap)
+            try:
+                cmap = pg.colormap.get('viridis') # prepare a viridis color map
+                iv.setColorMap(cmap)
+            except:
+                pass
             if (self.hide_histograms):
                 iv.ui.histogram.hide()
             iv.ui.histogram.autoHistogramRange()  # init levels
