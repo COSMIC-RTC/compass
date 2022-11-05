@@ -674,14 +674,41 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             self.stop = True
             self.uiAO.wao_run.setChecked(False)
 
+import os
+import socket
+
+def tcp_connect_to_display():
+        # get the display from the environment
+        display_env = os.environ['DISPLAY']
+
+        # parse the display string
+        display_host, display_num = display_env.split(':')
+        display_num_major, display_num_minor = display_num.split('.')
+
+        # calculate the port number
+        display_port = 6000 + int(display_num_major)
+
+        # attempt a TCP connection
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+                sock.connect((display_host, display_port))
+        except socket.error:
+                return False
+        finally:
+            sock.close()
+        return True
 
 if __name__ == '__main__':
+    if(not tcp_connect_to_display()):
+        raise RuntimeError("Cannot connect to display")
+        
     arguments = docopt(__doc__)
     app = QtWidgets.QApplication(sys.argv)
     app.setStyle('cleanlooks')
     wao = widgetAOWindow(arguments["<parameters_filename>"], cacao=arguments["--cacao"],
                          expert=arguments["--expert"], devices=arguments["--devices"])
     wao.show()
+    print("If the GUI is black, type %gui qt5 to unlock GUI")
     if arguments["--interactive"]:
         from shesha.util.ipython_embed import embed
         embed(os.path.basename(__file__), locals())
