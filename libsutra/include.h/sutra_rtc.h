@@ -88,14 +88,14 @@ class SutraRtc {
   int remove_centroider(int ncentro);
   int remove_controller(int ncontrol);
 
-  int do_imat(int ncntrl, SutraDms *ydms);
+  int do_imat(int ncntrl, SutraDms *ydms, int kernconv);
 
   int do_imat_basis(int ncntrl, SutraDms *ydm, int nModes, T *m2v,
-                    T *pushAmpl);
+                    T *pushAmpl, int kernconv);
 
   int do_imat_geom(int ncntrl, SutraDms *ydm, int type);
 
-  int comp_images_imat(SutraDms *ydm);
+  int comp_images_imat(SutraDms *ydm, int kernconv);
 
   int do_calibrate_img();
   int do_calibrate_img(int ncntrl);
@@ -114,15 +114,15 @@ class SutraRtc {
  private:
   template <typename Q = T>
   typename std::enable_if<std::is_same<Q, float>::value, int>::type
-  do_imat_impl(int ncntrl, SutraDms *ydm, std::true_type);
-  int do_imat_impl(int ncntrl, SutraDms *ydm, std::false_type);
+  do_imat_impl(int ncntrl, SutraDms *ydm, int kernconv, std::true_type);
+  int do_imat_impl(int ncntrl, SutraDms *ydm, int kernconv, std::false_type);
 
   template <typename Q = T>
   typename std::enable_if<std::is_same<Q, float>::value, int>::type
   do_imat_basis_impl(int ncntrl, SutraDms *ydm, int nModes, T *m2v,
-                     T *pushAmpl, std::true_type);
+                     T *pushAmpl, int kernconv, std::true_type);
   int do_imat_basis_impl(int ncntrl, SutraDms *ydm, int nModes, T *m2v,
-                         T *pushAmpl, std::false_type);
+                         T *pushAmpl, int kernconv, std::false_type);
   template <typename Q = T>
   typename std::enable_if<std::is_same<Q, float>::value, int>::type
   do_imat_geom_impl(int ncntrl, SutraDms *ydm, int type, std::true_type);

@@ -400,8 +400,10 @@ void rtc_impl(py::module &mod, const char *name) {
         ncontrol: (int): Index of the controller
 
         dms: (SutraDms): SutraDms object
+
+        kernconv : (bool) : Flag for WFS spot convolution
     )pbdoc",
-           py::arg("ncontrol"), py::arg("dms"))
+           py::arg("ncontrol"), py::arg("dms"), py::arg("kernconv"))
 
       .def("do_imat_basis", wy::colCast(&rtc::do_imat_basis), R"pbdoc(
      Computes a modal interaction matrix
@@ -416,9 +418,11 @@ void rtc_impl(py::module &mod, const char *name) {
           m2v: (np.array[ndim=2,dtype=np.float32]): modeToActu matrix
 
           pushAmpl: (np.array[ndim=1,dtype=np.float32]): pushpull strength in mode units
+
+          kernconv : (bool) : Flag for WFS spot convolution
 	)pbdoc",
            py::arg("ncontrol"), py::arg("dms"), py::arg("nModes"),
-           py::arg("m2v"), py::arg("pushAmpl"))
+           py::arg("m2v"), py::arg("pushAmpl"), py::arg("kernconv"))
 
       .def("imat_svd", svdec_imat_impl<Tin, Tcomp, Tout>,
            R"pbdoc(
