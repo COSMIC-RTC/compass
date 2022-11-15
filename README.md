@@ -1,7 +1,7 @@
 # COMPASS
 
-Master status:
-[![Master status](https://gitlab.obspm.fr/compass/compass/badges/master/pipeline.svg)](https://gitlab.obspm.fr/compass/compass/commits/master)
+Main status:
+[![Main status](https://gitlab.obspm.fr/compass/compass/badges/main/pipeline.svg)](https://gitlab.obspm.fr/compass/compass/commits/main)
 
 Develop status:
 [![Develop status](https://gitlab.obspm.fr/compass/compass/badges/develop/pipeline.svg)](https://gitlab.obspm.fr/compass/compass/commits/develop)
