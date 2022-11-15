@@ -106,7 +106,7 @@ def rtc_init(context: carmaWrap_context, tel: Telescope, wfs: Sensors, dms: Dms,
     if brahma:
         rtc = Rtc_brahma(context, wfs, tar, "rtc_brahma")
     elif cacao:
-        rtc = Rtc_cacao_FFF(p_controllers[0].calpixName, p_controllers[0].loopDataName)
+        rtc = Rtc_cacao_FFF(p_controllers[0].calpix_name, p_controllers[0].loopdata_name)
     else:
         rtc = Rtc()
 
