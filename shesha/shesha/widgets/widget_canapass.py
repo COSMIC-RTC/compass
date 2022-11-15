@@ -49,16 +49,20 @@ Options:
 
 import os, sys
 import numpy as np
-import time
 
-import pyqtgraph as pg
-from shesha.util.tools import plsh, plpyr
 from tqdm import trange
-import astropy.io.fits as pfits
-from PyQt5 import QtWidgets
+
+try:
+    from PyQt5 import QtWidgets
+except ModuleNotFoundError as e:
+    try:    
+        from PySide2 import QtWidgets
+    except ModuleNotFoundError as e:
+        raise ModuleNotFoundError("No module named 'PyQt5' or PySide2', please install one of them\nException raised: "+e.msg)
+
 from shesha.supervisor.canapassSupervisor import CanapassSupervisor
 
-from typing import Any, Dict, Tuple, Callable, List
+from typing import Any
 from docopt import docopt
 
 from shesha.widgets.widget_base import WidgetBase

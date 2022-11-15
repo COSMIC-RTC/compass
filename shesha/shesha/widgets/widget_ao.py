@@ -57,20 +57,21 @@ import numpy as np
 import time
 
 import pyqtgraph as pg
-from pyqtgraph.dockarea import Dock, DockArea
 
 from shesha.util.tools import plsh, plpyr
 from shesha.config import ParamConfig
 
-import warnings
+try:
+    from PyQt5 import QtWidgets
+    from PyQt5.QtCore import Qt
+except ModuleNotFoundError as e:
+    try:    
+        from PySide2 import QtWidgets
+        from PySide2.QtCore import Qt
+    except ModuleNotFoundError as e:
+        raise ModuleNotFoundError("No module named 'PyQt5' or PySide2', please install one of them\nException raised: "+e.msg)
 
-from PyQt5 import QtGui, QtWidgets
-from PyQt5.uic import loadUiType
-from PyQt5.QtCore import QThread, QTimer, Qt
-
-from subprocess import Popen, PIPE
-
-from typing import Any, Dict, Tuple, Callable, List
+from typing import Any, Dict, Tuple
 
 from docopt import docopt
 from collections import deque

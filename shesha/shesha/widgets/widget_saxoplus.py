@@ -55,18 +55,22 @@ import os, sys
 import numpy as np
 import time
 
-import pyqtgraph as pg
-from shesha.util.tools import plsh, plpyr
 from tqdm import trange
-import astropy.io.fits as pfits
-from PyQt5 import QtWidgets
+
+try:
+    from PyQt5 import QtWidgets
+except ModuleNotFoundError as e:
+    try:    
+        from PySide2 import QtWidgets
+    except ModuleNotFoundError as e:
+        raise ModuleNotFoundError("No module named 'PyQt5' or PySide2', please install one of them\nException raised: "+e.msg)
+
 from shesha.supervisor.saxoPlusSupervisor import SaxoPlusManager
 
-from typing import Any, Dict, Tuple, Callable, List
+from typing import Any
 from docopt import docopt
 
-from shesha.widgets.widget_base import WidgetBase
-from shesha.widgets.widget_ao import widgetAOWindow, widgetAOWindow
+from shesha.widgets.widget_ao import widgetAOWindow
 
 global server
 server = None
@@ -78,9 +82,6 @@ class widgetSaxoPlusWindowPyro():
                  expert: bool = False) -> None:
         self.config1 = config_file1
         self.config2 = config_file2
-
-        from shesha.config import ParamConfig
-
 
         self.wao2=widgetAOWindow(config_file2, cacao=cacao, hide_histograms=True)
         self.wao1=widgetAOWindow(config_file1, cacao=cacao, hide_histograms=True)

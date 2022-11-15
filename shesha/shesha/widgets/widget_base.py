@@ -39,13 +39,23 @@ import os
 import sys
 import threading
 import warnings
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Callable, Dict
 
 import numpy as np
 import pyqtgraph as pg
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import QObject, QThread, QTimer, pyqtSignal
-from PyQt5.uic import loadUiType
+
+try:
+    from PyQt5 import QtWidgets
+    from PyQt5.QtCore import QThread, QTimer
+    from PyQt5.uic import loadUiType
+except ModuleNotFoundError as e:
+    try:    
+        from PySide2 import QtWidgets
+        from PySide2.QtCore import  QThread, QTimer
+        from PySide2.QtUiTools import loadUiType
+    except ModuleNotFoundError as e:
+        raise ModuleNotFoundError("No module named 'PyQt5' or PySide2', please install one of them\nException raised: "+e.msg)
+
 from pyqtgraph.dockarea import Dock, DockArea
 
 from shesha.util.matplotlibwidget import MatplotlibWidget
