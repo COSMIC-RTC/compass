@@ -43,7 +43,7 @@ from typing import Any, Callable, Dict, List, Tuple
 
 import numpy as np
 import pyqtgraph as pg
-from PyQt5 import QtGui, QtWidgets
+from PyQt5 import QtWidgets
 from PyQt5.QtCore import QObject, QThread, QTimer, pyqtSignal
 from PyQt5.uic import loadUiType
 from pyqtgraph.dockarea import Dock, DockArea
@@ -250,9 +250,9 @@ class WidgetBase(BaseClassTemplate):
             self.docks[guilty_guy].close()
 
     def add_dispDock(self, name: str, parent, type: str = "pg_image") -> Dock:
-        checkBox = QtGui.QCheckBox(name, parent)
+        checkBox = QtWidgets.QCheckBox(name, parent)
         checkBox.clicked.connect(self.update_displayDock)
-        checkableAction = QtGui.QWidgetAction(parent)
+        checkableAction = QtWidgets.QWidgetAction(parent)
         checkableAction.setDefaultWidget(checkBox)
         parent.addAction(checkableAction)
         self.disp_checkboxes.append(checkBox)
@@ -260,7 +260,7 @@ class WidgetBase(BaseClassTemplate):
         d = Dock(name)  # , closable=True)
         self.docks[name] = d
         if type == "pg_image":
-            img = pg.ImageItem(border='w')
+            img = pg.ImageItem(border='w', image=np.zeros((2,2)))
             self.imgs[name] = img
 
             viewbox = pg.ViewBox()
@@ -319,18 +319,18 @@ class WidgetBase(BaseClassTemplate):
         self.imgs.clear()
         self.viewboxes.clear()
 
-        self.wao_phasesgroup_cb = QtGui.QMenu(self)
+        self.wao_phasesgroup_cb = QtWidgets.QMenu(self)
         self.uiBase.wao_phasesgroup_tb.setMenu(self.wao_phasesgroup_cb)
         self.uiBase.wao_phasesgroup_tb.setText('Select')
         self.uiBase.wao_phasesgroup_tb.setPopupMode(QtWidgets.QToolButton.InstantPopup)
 
-        self.wao_graphgroup_cb = QtGui.QMenu(self)
+        self.wao_graphgroup_cb = QtWidgets.QMenu(self)
         self.uiBase.wao_graphgroup_tb.setMenu(self.wao_graphgroup_cb)
         self.uiBase.wao_graphgroup_tb.setText('Select')
         self.uiBase.wao_graphgroup_tb.setPopupMode(QtWidgets.QToolButton.InstantPopup)
 
         self.uiBase.wao_imagesgroup_tb.setText('Select')
-        self.wao_imagesgroup_cb = QtGui.QMenu(self)
+        self.wao_imagesgroup_cb = QtWidgets.QMenu(self)
         self.uiBase.wao_imagesgroup_tb.setMenu(self.wao_imagesgroup_cb)
         self.uiBase.wao_imagesgroup_tb.setPopupMode(QtWidgets.QToolButton.InstantPopup)
 
