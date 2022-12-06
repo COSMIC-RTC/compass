@@ -82,8 +82,8 @@ class widgetSaxoPlusWindowPyro():
         from shesha.config import ParamConfig
 
 
-        self.wao2=widgetAOWindow(config_file2, cacao, hide_histograms=True)
-        self.wao1=widgetAOWindow(config_file1, cacao, hide_histograms=True)
+        self.wao2=widgetAOWindow(config_file2, cacao=cacao, hide_histograms=True)
+        self.wao1=widgetAOWindow(config_file1, cacao=cacao, hide_histograms=True)
         pupdiamSAXO = self.wao1.supervisor.config.p_geom.pupdiam
         pupdiamSAXOPLUS = self.wao2.supervisor.config.p_geom.pupdiam
         if(pupdiamSAXO != pupdiamSAXOPLUS):

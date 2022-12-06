@@ -91,6 +91,7 @@ class SaxoPlusManager():
         self.second_stage_input = np.zeros((mpup_shape[0], mpup_shape[1], 1))
         residual_shape = self.first_stage.config.p_geom._spupil.shape
         self.mpup_offset = (mpup_shape[0] - residual_shape[0]) // 2
+        self.frequency_ratio = round(1e-3 / self.second_stage.config.p_loop.ittime)
 
     def next(self, seeAtmos=True):
         """
@@ -107,7 +108,7 @@ class SaxoPlusManager():
         # every 3 iteration to be 3 times slower than the second stage
         # self.first_stage.atmos.enable_atmos(seeAtmos) #Enabling (or not) Turbulence
         self.second_stage.atmos.enable_atmos(False) # Turbulence always disabled on 2nd instance of COMPASS
-        if not (self.iterations % 3): # Time for first stage full computation: We update the first stage command evry 3 iterations. 
+        if not (self.iterations % self.frequency_ratio): # Time for first stage full computation: We update the first stage command every frequency_ratio iterations. 
             self.first_stage.next()
         else: # Only raytracing current tubulence phase (if any) and current DMs phase (no command updates). 
             self.first_stage.next(do_control=False, apply_control=False, compute_tar_psf=False)
@@ -143,10 +144,6 @@ if __name__ == '__main__':
 
     config1 = ParamConfig(arguments["<saxoparameters_filename>"])
     config2 = ParamConfig(arguments["<saxoPlusparameters_filename>"])
-    if(config2.p_geom.get_pupdiam() != config1.p_geom.get_pupdiam()):
-        pupdiamSAXOPLUS = config2.p_geom.get_pupdiam() # pupdiam from PYRWFS
-        config1.p_geom.get_pupdiam(pupdiamSAXOPLUS)
-        print("WARNING: SETTING SAXO SIMULATION PUPDIAM TO %d" % pupdiamSAXOPLUS)
 
     """
     if (arguments["--freq"]):
