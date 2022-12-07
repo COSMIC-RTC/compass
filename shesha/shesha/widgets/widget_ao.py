@@ -372,7 +372,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             self.uiAO.wao_open_loop.setText("Close Loop")
 
     def init_config(self) -> None:
-        self.supervisor = CompassSupervisor(self.config)
+        self.supervisor = CompassSupervisor(self.config, cacao=self.cacao)
         WidgetBase.init_config(self)
 
     def init_configThread(self) -> None:
