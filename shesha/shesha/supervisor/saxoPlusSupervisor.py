@@ -76,11 +76,29 @@ from shesha.supervisor.compassSupervisor import CompassSupervisor
 
 class SaxoPlusManager():
     """
-        DOC To be done..
+    Class handling both supervisors of first stage and second stage.
+
+    Attributes:
+        first_stage : (CompassSupervisor) : first stage CompassSupervisor instance
+
+        second_stage : (CompassSupervisor) : second stage CompassSupervisor instance
+
+        iterations : (int) : frame counter
+
+        second_stage_input : (array) : input phase screen for second stage
+
+        mpup_offset : (int) : number of padding pixel from first stage s_pupil to second stage m_pupil
+
+        frequency_ratio : (int) : second stage simulated frequency over first stage simulated frequency
     """
     def __init__(self, first_stage, second_stage):
         """ 
         Init of the saxoPlusManager object
+
+        Args:
+            first_stage : (CompassSupervisor) : first stage CompassSupervisor instance
+
+            second_stage : (CompassSupervisor) : second stage CompassSupervisor instance
         """
 
         self.first_stage = first_stage
