@@ -96,7 +96,7 @@ class widgetSaxoPlusWindowPyro():
         self.CB = {}
         self.wpyr = None
         self.current_buffer = 1
-        self.supervisorMaster = None
+        self.manager = None
         self.cacao = cacao
         #############################################################
         #                 CONNECTED BUTTONS                         #
@@ -111,13 +111,13 @@ class widgetSaxoPlusWindowPyro():
         #                       METHODS                             #
         #############################################################
 
-        self.supervisorMaster = SaxoPlusManager(self.wao1.supervisor, self.wao2.supervisor)
+        self.manager = SaxoPlusManager(self.wao1.supervisor, self.wao2.supervisor)
         if(self.cacao):
             global server
             server = self.start_pyro_server()
 
     def loop_once(self) -> None:
-        self.supervisorMaster.next()
+        self.manager.next()
 
         for wao in [self.wao1, self.wao2]:
             start = time.time()
@@ -175,7 +175,7 @@ class widgetSaxoPlusWindowPyro():
     def next(self, nbIters):
         ''' Move atmos -> get_slopes -> applyControl ; One integrator step '''
         for i in trange(nbIters):
-            self.supervisorMaster.next()
+            self.manager.next()
 
     def initPyrTools(self):
         ADOPTPATH = os.getenv("ADOPTPATH")
@@ -187,12 +187,12 @@ class widgetSaxoPlusWindowPyro():
         self.wpyr.show()
 
     def set_pyr_tools_params(self, ai):
-        self.wpyr.pup = self.supervisorMaster.second_stage.config.p_geom._spupil
+        self.wpyr.pup = self.manager.second_stage.config.p_geom._spupil
         self.wpyr.phase = self.supervisor.target.get_tar_phase(0, pupil=True)
         self.wpyr.updateResiduals(ai)
         if (self.phase_to_modes is None):
             print('computing phase 2 Modes basis')
-            self.phase_to_modes = self.supervisorMaster.second_stage.basis.compute_phase_to_modes(self.modal_basis)
+            self.phase_to_modes = self.manager.second_stage.basis.compute_phase_to_modes(self.modal_basis)
         self.wpyr.phase_to_modes = self.phase_to_modes
 
     def show_pyr_tools(self):
@@ -228,9 +228,9 @@ class widgetSaxoPlusWindowPyro():
             else:
                 user = out.split(b"\n")[0].decode("utf-8")
                 print("User is " + user)
-            supervisor  = self.supervisorMaster
-            supervisor1 = self.supervisorMaster.first_stage
-            supervisor2 = self.supervisorMaster.second_stage
+            supervisor  = self.manager
+            supervisor1 = self.manager.first_stage
+            supervisor2 = self.manager.second_stage
 
             devices1 = [
                     supervisor1, supervisor1.rtc, supervisor1.wfs, supervisor1.target,
