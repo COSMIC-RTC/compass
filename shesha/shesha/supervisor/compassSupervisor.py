@@ -73,6 +73,8 @@ class CompassSupervisor(GenericSupervisor):
 
         cacao : (bool) : CACAO features enabled in the RTC
 
+        silence_tqdm : (bool) : Silence tqdm's output
+
         basis : (ModalBasis) : a ModalBasis instance (optimizer)
 
         calibration : (Calibration) : a Calibration instance (optimizer)
@@ -82,7 +84,7 @@ class CompassSupervisor(GenericSupervisor):
         close_modal_gains : (list of floats) : list of the previous values of the modal gains
     """
 
-    def __init__(self, config, *, cacao: bool = False):
+    def __init__(self, config, *, cacao: bool = False, silence_tqdm: bool = False):
         """ Instantiates a CompassSupervisor object
 
         Args:
@@ -99,7 +101,7 @@ class CompassSupervisor(GenericSupervisor):
         self.wfs = None
         self.dms = None
         self.rtc = None
-        GenericSupervisor.__init__(self, config)
+        GenericSupervisor.__init__(self, config, silence_tqdm=silence_tqdm)
         self.basis = ModalBasis(self.config, self.dms, self.target)
         self.calibration = Calibration(self.config, self.tel, self.atmos, self.dms,
                                        self.target, self.rtc, self.wfs)
@@ -121,12 +123,12 @@ class CompassSupervisor(GenericSupervisor):
     def _init_atmos(self):
         """Initialize the atmosphere component of the supervisor as a AtmosCompass
         """
-        self.atmos = AtmosCompass(self.context, self.config)
+        self.atmos = AtmosCompass(self.context, self.config, silence_tqdm=self.silence_tqdm)
 
     def _init_dms(self):
         """Initialize the DM component of the supervisor as a DmCompass
         """
-        self.dms = DmCompass(self.context, self.config)
+        self.dms = DmCompass(self.context, self.config, silence_tqdm=self.silence_tqdm)
 
     def _init_target(self):
         """Initialize the target component of the supervisor as a TargetCompass
@@ -149,7 +151,7 @@ class CompassSupervisor(GenericSupervisor):
         """
         if self.wfs is not None:
             self.rtc = RtcCompass(self.context, self.config, self.tel, self.wfs,
-                                  self.dms, self.atmos, cacao=self.cacao)
+                                  self.dms, self.atmos, cacao=self.cacao, silence_tqdm=self.silence_tqdm)
         else:
             raise ValueError("Configuration not loaded or Telescope not initilaized")
 

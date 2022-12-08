@@ -35,7 +35,7 @@ class MatplotlibWidget(QtGui.QWidget):
 try:
     from PyQt5 import QtWidgets
 except ModuleNotFoundError as e:
-    try:    sys
+    try:
         from PySide2 import QtWidgets
     except ModuleNotFoundError as e:
         raise ModuleNotFoundError("No module named 'PyQt5' or PySide2', please install one of them\nException raised: "+e.msg)

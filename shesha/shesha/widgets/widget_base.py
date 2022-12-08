@@ -69,7 +69,7 @@ def uiLoader(moduleName):
 BaseWidgetTemplate, BaseClassTemplate = uiLoader('widget_base')
 
 
-class PupilBoxes(pg.QtWidgets.QGraphicsPathItem):
+class PupilBoxes(QtWidgets.QGraphicsPathItem):
 
     def __init__(self, x, y):
         """x and y are 2D arrays of shape (Nplots, Nsamples)"""

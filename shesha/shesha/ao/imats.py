@@ -38,7 +38,7 @@
 import numpy as np  # type: ignore
 import time
 from typing import List  # Mypy checker
-from tqdm import tqdm, trange
+from tqdm import tqdm
 
 import shesha.config as conf
 import shesha.constants as scons
@@ -53,7 +53,7 @@ from astropy.io import fits
 
 def imat_geom(wfs: Sensors, dms: Dms, p_wfss: List[conf.Param_wfs],
               p_dms: List[conf.Param_dm], p_controller: conf.Param_controller,
-              meth: int = 0) -> np.ndarray:
+              meth: int = 0, silence_tqdm: bool = False) -> np.ndarray:
     """ Compute the interaction matrix with a geometric method
 
     Args:
@@ -69,6 +69,8 @@ def imat_geom(wfs: Sensors, dms: Dms, p_wfss: List[conf.Param_wfs],
         p_controller: (Param_controller) : controller settings
 
         meth: (int) : (optional) method type (0 or 1)
+    
+        silence_tqdm : (bool) : Silence tqdm's output
     """
 
     nwfs = p_controller.nwfs.size
@@ -94,7 +96,7 @@ def imat_geom(wfs: Sensors, dms: Dms, p_wfss: List[conf.Param_wfs],
     for nmc in range(ndm):
         nm = p_controller.ndm[nmc]
         dms.d_dms[nm].reset_shape()
-        for i in tqdm(range(p_dms[nm]._ntotact), desc="DM%d" % nmc):
+        for i in tqdm(range(p_dms[nm]._ntotact), desc="DM%d" % nmc, disable=silence_tqdm):
             dms.d_dms[nm].comp_oneactu(i, p_dms[nm].push4imat)
             nslps = 0
             for nw in range(nwfs):
@@ -209,7 +211,7 @@ def imat_geom_ts_multiple_direction(wfs: Sensors, dms: Dms, p_ts: conf.Param_wfs
         imat_size2 += p_dms[nm]._ntotact
     imat_cpu = np.ndarray((0, imat_size2))
 
-    for i in trange(x.size, desc="TS pos"):
+    for i in tqdm(range(x.size), desc="TS pos"):
         xpos = x[i]
         ypos = y[i]
         for k in ind_dmseen:
@@ -277,7 +279,7 @@ def imat_geom_ts(wfs: Sensors, dms: Dms, p_ts: conf.Param_wfs, ind_TS: int,
     cc = 0
     for nm in tqdm(ind_DMs, desc="imat geom DM"):
         dms.d_dms[nm].reset_shape()
-        for i in trange(p_dms[nm]._ntotact, desc="imat geom actu"):
+        for i in tqdm(range(p_dms[nm]._ntotact), desc="imat geom actu"):
             dms.d_dms[nm].comp_oneactu(i, p_dms[nm].push4imat)
             wfs.d_wfs[ind_TS].d_gs.raytrace(dms, rst=1)
             wfs.d_wfs[ind_TS].slopes_geom(meth)

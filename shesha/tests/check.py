@@ -91,7 +91,7 @@ if __name__ == "__main__":
 
         try:
             t0 = time.perf_counter()
-            supervisor = CompassSupervisor(config)
+            supervisor = CompassSupervisor(config, silence_tqdm=True)
             t_init = time.perf_counter() - t0
             is_init = supervisor.is_init
         except:

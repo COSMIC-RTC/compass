@@ -68,12 +68,14 @@ class BenchSupervisor(GenericSupervisor):
 
         cacao : (bool) : CACAO features enabled in the RTC
 
+        silence_tqdm : (bool) : Silence tqdm's output
+
         basis : (ModalBasis) : a ModalBasis instance (optimizer)
 
         calibration : (Calibration) : a Calibration instance (optimizer)
     """
 
-    def __init__(self, config_file: str = None, cacao: bool = False):
+    def __init__(self, config_file: str = None, cacao: bool = False, silence_tqdm: bool = False):
         """ Init the COMPASS wih the config_file
 
         Kwargs:
@@ -85,6 +87,7 @@ class BenchSupervisor(GenericSupervisor):
         self.rtc = None
         self.frame = None
         self.cacao = cacao
+        self.silence_tqdm = silence_tqdm
         self.iter = 0
         self.slopes_index = None
         config = load_config_from_file(config_file)

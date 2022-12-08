@@ -55,15 +55,18 @@ class GenericSupervisor(ABC):
         iter : (int) : Frame counter
     """
 
-    def __init__(self, config):
+    def __init__(self, config, silence_tqdm: bool = False):
         """ Init the a supervisor
 
         Args:
             config : (config module) : Configuration module
 
+            silence_tqdm : (bool) : Silence tqdm's output
+
         """
         self.context = None
         self.config = config
+        self.silence_tqdm = silence_tqdm
         self.is_init = False
         self.iter = 0
 

@@ -80,10 +80,10 @@ from shesha.supervisor.compassSupervisor import CompassSupervisor
 
 class CanapassSupervisor(CompassSupervisor):
 
-    def __init__(self, config, cacao: bool = True) -> None:
+    def __init__(self, config, cacao: bool = True, silence_tqdm: bool = False) -> None:
         print("switching to a generic controller")
         config.p_controllers[0].type = scons.ControllerType.GENERIC
-        CompassSupervisor.__init__(self, config, cacao=cacao)
+        CompassSupervisor.__init__(self, config, cacao=cacao, silence_tqdm=silence_tqdm)
 
 
 ########################## PROTO #############################
