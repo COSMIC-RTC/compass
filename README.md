@@ -92,9 +92,8 @@ export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$COMPASS_INSTALL_ROOT/lib/pkgconfig
 #### Install dependencies (if not already done)
 
 ```bash
-pip install -r requirements.txt
 cd $COMPASS_ROOT
-./install_dependencies.sh
+./script/install_conan_gcc.sh
 ```
 
 #### Install COMPASS

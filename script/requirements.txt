@@ -11,3 +11,4 @@ tables
 scipy
 tabulate
 tqdm
+packaging
