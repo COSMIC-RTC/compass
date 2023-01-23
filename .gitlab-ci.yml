@@ -1,4 +1,4 @@
-image: aocompass/base-18.04:10.2
+image: aocompass/base-20.04
 
 stages:
   - build
@@ -12,10 +12,9 @@ build_release:
     SHESHA_ROOT: $COMPASS_ROOT/shesha
     COMPASS_DO_HALF: "OFF"
   script:
-    - export CUDA_ROOT=/usr/local/cuda
     - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
-    - ./script/install_conan_gcc.sh 8
+    - ./script/install_conan_gcc.sh
     - pip install -r script/requirements.txt
     - pip install -r script/requirements-dev.txt
     - ./compile.sh $PWD/local
@@ -44,10 +43,9 @@ build_debug:
     COMPASS_DEBUG: "-DCMAKE_BUILD_TYPE=Debug"
     COMPASS_DO_HALF: "OFF"
   script:
-    - export CUDA_ROOT=/usr/local/cuda
     - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
-    - ./script/install_conan_gcc.sh 8
+    - ./script/install_conan_gcc.sh
     - pip install -r script/requirements.txt
     - pip install -r script/requirements-dev.txt
     - ./compile.sh $PWD/local
@@ -73,12 +71,14 @@ pytests:
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
     - pip install -r script/requirements.txt
     - pip install -r script/requirements-test.txt
+    - $COMPASS_ROOT/shesha/tests/checkCompass.sh 
     - $COMPASS_ROOT/doc/generate_coverage.sh
     - coverage report
   coverage: '/^TOTAL.*\s+(\d+\%)$/'
   artifacts:
     paths:
       - .coverage
+      - report_E2E.md
     expire_in: 1 week
   when: always
   only:
