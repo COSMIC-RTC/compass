@@ -82,9 +82,9 @@ int roll_beam_exp(float *imout, cuFloatComplex *iprof, float *beam, int N,
                 int Ntot, CarmaDevice *device);
 int lgs_rotate(cuFloatComplex *odata, float *idata, int width, int height,
                float *theta, float center, int Ntot, CarmaDevice *device);
-int rotate3d(cuFloatComplex *d_odata, cudaMemcpy3DParms copyParams,
-             cudaArray *d_array, cudaChannelFormatDesc channel_desc, int width,
-             int height, float *theta, float center, int Ntot,
-             CarmaDevice *device);
+// int rotate3d(cuFloatComplex *d_odata, cudaMemcpy3DParms copyParams,
+//              cudaArray *d_array, cudaChannelFormatDesc channel_desc, int width,
+//              int height, float *theta, float center, int Ntot,
+//              CarmaDevice *device);
 
 #endif  // _SUTRA_LGS_H_

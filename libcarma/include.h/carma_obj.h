@@ -463,13 +463,13 @@ int carma_plusai(T *d_odata, T *i_data, int i, int sgn, int N,
                  CarmaDevice *device);
 
 // CU functions fftconv
-int fftconv_unpad(float *d_odata, float *d_idata, int fftW, int dataH,
-                  int dataW, int N, int n, int nim);
-int carma_initfftconv(CarmaObjS *data_in, CarmaObjS *kernel_in, CarmaObjS *padded_data,
-                      CarmaObjC *padded_spectrum, int kernelY, int kernelX);
-// CPP functions fftconv
-int carma_fftconv(CarmaObjS *data_out, CarmaObjS *padded_data,
-                  CarmaObjC *padded_spectrum, int kernelY, int kernelX);
+// int fftconv_unpad(float *d_odata, float *d_idata, int fftW, int dataH,
+//                   int dataW, int N, int n, int nim);
+// int carma_initfftconv(CarmaObjS *data_in, CarmaObjS *kernel_in, CarmaObjS *padded_data,
+//                       CarmaObjC *padded_spectrum, int kernelY, int kernelX);
+// // CPP functions fftconv
+// int carma_fftconv(CarmaObjS *data_out, CarmaObjS *padded_data,
+//                   CarmaObjC *padded_spectrum, int kernelY, int kernelX);
 
 #ifdef CAN_DO_HALF
 int custom_half_axpy(half alpha, half *source, int incx, int incy, int N,
