@@ -16,7 +16,7 @@
 
 #include <sutra_lgs.h>
 
-texture<float, 3, cudaReadModeElementType> tex3;  // 3D texture
+// texture<float, 3, cudaReadModeElementType> tex3;  // 3D texture
 
 __device__ float interp_transf(float *idata, float tidim, int npix,
                                float pixsize, float norm, float shiftx,
@@ -234,61 +234,61 @@ int lgs_rotate(cuFloatComplex *odata, float *idata, int width, int height,
   return EXIT_SUCCESS;
 }
 
-__global__ void rotate3d_krnl(cuFloatComplex *g_odata, int width, int height,
-                              int N, float *theta, float center, int Ntot)
-// rotate a cube using 3d texture fetch
-{
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+// __global__ void rotate3d_krnl(cuFloatComplex *g_odata, int width, int height,
+//                               int N, float *theta, float center, int Ntot)
+// // rotate a cube using 3d texture fetch
+// {
+//   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-  while (tid < Ntot) {
-    int nim = tid / N;
-    int tidim = tid - nim * N;
+//   while (tid < Ntot) {
+//     int nim = tid / N;
+//     int tidim = tid - nim * N;
 
-    int y = tidim / width;
-    int x = tidim - y * width;
+//     int y = tidim / width;
+//     int x = tidim - y * width;
 
-    float ucent = width / 2 - center;
-    float vcent = height / 2 - center;
+//     float ucent = width / 2 - center;
+//     float vcent = height / 2 - center;
 
-    float u = x - ucent;
-    float v = y - vcent;
-    // transform coordinates
-    float tu = u * cos(theta[nim]) + v * sin(theta[nim]) + ucent;
-    float tv = -u * sin(theta[nim]) + v * cos(theta[nim]) + ucent;
+//     float u = x - ucent;
+//     float v = y - vcent;
+//     // transform coordinates
+//     float tu = u * cos(theta[nim]) + v * sin(theta[nim]) + ucent;
+//     float tv = -u * sin(theta[nim]) + v * cos(theta[nim]) + ucent;
 
-    g_odata[tid].x = tex3D(tex3, tu + 0.5, tv + 0.5, nim + 0.5);
-    g_odata[tid].y = 0.0f;
-    tid += blockDim.x * gridDim.x;
-  }
-}
+//     g_odata[tid].x = tex3D(tex3, tu + 0.5, tv + 0.5, nim + 0.5);
+//     g_odata[tid].y = 0.0f;
+//     tid += blockDim.x * gridDim.x;
+//   }
+// }
 
-int rotate3d(cuFloatComplex *d_odata, cudaMemcpy3DParms copyParams,
-             cudaArray *d_array, cudaChannelFormatDesc channel_desc, int width,
-             int height, float *theta, float center, int Ntot,
-             CarmaDevice *device) {
-  tex3.normalized = false;
-  tex3.filterMode = cudaFilterModeLinear;      // linear interpolation
-  tex3.addressMode[0] = cudaAddressModeClamp;  // wrap texture coordinates
-  tex3.addressMode[1] = cudaAddressModeClamp;
-  tex3.addressMode[2] = cudaAddressModeClamp;
+// int rotate3d(cuFloatComplex *d_odata, cudaMemcpy3DParms copyParams,
+//              cudaArray *d_array, cudaChannelFormatDesc channel_desc, int width,
+//              int height, float *theta, float center, int Ntot,
+//              CarmaDevice *device) {
+//   tex3.normalized = false;
+//   tex3.filterMode = cudaFilterModeLinear;      // linear interpolation
+//   tex3.addressMode[0] = cudaAddressModeClamp;  // wrap texture coordinates
+//   tex3.addressMode[1] = cudaAddressModeClamp;
+//   tex3.addressMode[2] = cudaAddressModeClamp;
 
-  // copy the data into the array
-  carma_safe_call(cudaMemcpy3D(&copyParams));
-  // bind array to 3D texture
-  carma_safe_call(cudaBindTextureToArray(tex3, d_array, channel_desc));
+//   // copy the data into the array
+//   carma_safe_call(cudaMemcpy3D(&copyParams));
+//   // bind array to 3D texture
+//   carma_safe_call(cudaBindTextureToArray(tex3, d_array, channel_desc));
 
-  int N = width * height;
+//   int N = width * height;
 
-  int nb_blocks, nb_threads;
-  get_num_blocks_and_threads(device, Ntot, nb_blocks, nb_threads);
-  dim3 grid(nb_blocks), threads(nb_threads);
+//   int nb_blocks, nb_threads;
+//   get_num_blocks_and_threads(device, Ntot, nb_blocks, nb_threads);
+//   dim3 grid(nb_blocks), threads(nb_threads);
 
-  // cout << nb_blocks << " " << nx / nb_blocks << " " << ny / nb_blocks << " " <<  nz
-  // / nb_blocks <<endl;
-  rotate3d_krnl<<<grid, threads, 0>>>(d_odata, width, height, N, theta, center,
-                                      Ntot);
+//   // cout << nb_blocks << " " << nx / nb_blocks << " " << ny / nb_blocks << " " <<  nz
+//   // / nb_blocks <<endl;
+//   rotate3d_krnl<<<grid, threads, 0>>>(d_odata, width, height, N, theta, center,
+//                                       Ntot);
 
-  carma_check_msg("rotate3d_krnl <<<>>> execution failed\n");
+//   carma_check_msg("rotate3d_krnl <<<>>> execution failed\n");
 
-  return EXIT_SUCCESS;
-}
+//   return EXIT_SUCCESS;
+// }

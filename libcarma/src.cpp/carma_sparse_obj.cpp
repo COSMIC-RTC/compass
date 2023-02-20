@@ -25,6 +25,7 @@ CarmaSparseObj<T_data>::CarmaSparseObj(CarmaContext *current_context) {
   _create(0, 0, 0);
 }
 
+#if CUDA_VERSION < 12000
 template <class T_data>
 template <cusparseStatus_t CUSPARSEAPI (*ptr_nnz)(
               cusparseHandle_t handle, cusparseDirection_t dirA, int m, int n,
@@ -92,6 +93,57 @@ void CarmaSparseObj<T_data>::init_carma_sparse_obj(
   }
 }
 
+#else
+template <class T_data>
+void CarmaSparseObj<T_data>::init_carma_sparse_obj(
+    CarmaContext *current_context, const long *dims, T_data *M,
+    bool load_from_host) {
+  _create(0, 0, 0);
+  this->current_context = current_context;
+  device = current_context->get_active_device();
+  cusparseHandle_t handle = current_context->get_cusparse_handle();
+  T_data *d_M;
+  if (load_from_host) {
+    cudaMalloc((void **)&d_M, dims[1] * dims[2] * sizeof(T_data));
+    cudaMemcpy(d_M, M, dims[1] * dims[2] * sizeof(T_data),
+               cudaMemcpyHostToDevice);
+  } else {
+    d_M = M;
+  }
+
+  cudaMalloc((void**)&(this->d_rowind), (dims[1] + 1)*sizeof(T_data));
+
+  carma_check_cusparse_status(cusparseCreateDnMat(&(this->dn_descr), dims[1], dims[2], dims[1], d_M,
+                                        this->get_data_type(), CUSPARSE_ORDER_COL));
+  carma_check_cusparse_status(cusparseCreateCsr(&(this->sp_descr), dims[1], dims[2], 0,
+                                      this->d_rowind, NULL, NULL,
+                                      CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
+                                      CUSPARSE_INDEX_BASE_ZERO, this->get_data_type()));
+  void* d_buffer = NULL;
+  size_t bufferSize = 0;
+  carma_check_cusparse_status(cusparseDenseToSparse_bufferSize(handle, this->dn_descr, this->sp_descr,
+                                    CUSPARSE_DENSETOSPARSE_ALG_DEFAULT,
+                                    &bufferSize)); 
+  cudaMalloc(&d_buffer, bufferSize);
+  carma_check_cusparse_status(cusparseDenseToSparse_analysis(handle, this->dn_descr, this->sp_descr,
+                                  CUSPARSE_DENSETOSPARSE_ALG_DEFAULT,
+                                  d_buffer));
+  int64_t num_rows_tmp, num_cols_tmp, nnz;
+  carma_check_cusparse_status(cusparseSpMatGetSize(this->sp_descr, &num_rows_tmp, &num_cols_tmp,
+                                         &nnz));
+  this->nz_elem = nnz;
+  cudaMalloc((void**) &d_colind, nnz * sizeof(int));
+  cudaMalloc((void**) &d_data, nnz * sizeof(T_data));
+  carma_check_cusparse_status(cusparseCsrSetPointers(this->sp_descr, this->d_rowind, this->d_colind,
+                                           this->d_data));
+  carma_check_cusparse_status(cusparseDenseToSparse_convert(handle, this->dn_descr, this->sp_descr,
+                                        CUSPARSE_DENSETOSPARSE_ALG_DEFAULT,
+                                        d_buffer));
+  
+  cusparseDestroyDnMat(this->dn_descr);
+  cudaFree(d_buffer);
+}
+#endif
 template <class T_data>
 void CarmaSparseObj<T_data>::sparse_to_host(int *h_rowInd, int *h_colInd,
                                               T_data *h_data) {
@@ -131,6 +183,8 @@ CarmaSparseObj<T_data>::CarmaSparseObj(CarmaContext *current_context,
                                            bool load_from_host) {
   _create(0, 0, 0);
 }
+
+#if CUDA_VERSION < 12000
 template <>
 CarmaSparseObj<float>::CarmaSparseObj(CarmaContext *current_context,
                                           const long *dims, float *M,
@@ -145,7 +199,21 @@ CarmaSparseObj<double>::CarmaSparseObj(CarmaContext *current_context,
   init_carma_sparse_obj<cusparseDnnz, cusparseDdense2csr>(current_context, dims,
                                                           M, load_from_host);
 }
+#else
+template <>
+CarmaSparseObj<float>::CarmaSparseObj(CarmaContext *current_context,
+                                          const long *dims, float *M,
+                                          bool load_from_host) {
+  init_carma_sparse_obj(current_context, dims, M, load_from_host);
+}
+template <>
+CarmaSparseObj<double>::CarmaSparseObj(CarmaContext *current_context,
+                                           const long *dims, double *M,
+                                           bool load_from_host) {
+  init_carma_sparse_obj(current_context, dims, M, load_from_host);
+}
 
+#endif
 template <class T_data>
 CarmaSparseObj<T_data>::CarmaSparseObj(CarmaContext *current_context,
                                            const long *dims, T_data *values,
@@ -189,6 +257,7 @@ template <class T_data>
 CarmaSparseObj<T_data>::CarmaSparseObj(CarmaObj<T_data> *M) {
   _create(0, 0, 0);
 }
+#if CUDA_VERSION < 12000
 template <>
 CarmaSparseObj<float>::CarmaSparseObj(CarmaObj<float> *M) {
   init_carma_sparse_obj<cusparseSnnz, cusparseSdense2csr>(
@@ -199,7 +268,18 @@ CarmaSparseObj<double>::CarmaSparseObj(CarmaObj<double> *M) {
   init_carma_sparse_obj<cusparseDnnz, cusparseDdense2csr>(
       M->get_context(), M->get_dims(), M->get_data(), false);
 }
-
+#else
+template <>
+CarmaSparseObj<float>::CarmaSparseObj(CarmaObj<float> *M) {
+  init_carma_sparse_obj(
+      M->get_context(), M->get_dims(), M->get_data(), false);
+}
+template <>
+CarmaSparseObj<double>::CarmaSparseObj(CarmaObj<double> *M) {
+  init_carma_sparse_obj(
+      M->get_context(), M->get_dims(), M->get_data(), false);
+}
+#endif
 template <class T_data>
 CarmaSparseObj<T_data>::CarmaSparseObj(CarmaSparseObj<T_data> *M) {
   this->current_context = M->current_context;

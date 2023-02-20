@@ -45,6 +45,7 @@ class CarmaSparseObj {
   cusparseMatDescr_t descr;
 #if CUDA_VERSION >= 11000
   cusparseSpMatDescr_t sp_descr; // New cuSPARSE API from CUDA 11
+  cusparseDnMatDescr_t dn_descr; // New cuSPARSE API from CUDA 11
 #endif
 
   char major_dim;
@@ -113,6 +114,7 @@ class CarmaSparseObj {
   void _create(int nnz_, int dim1_, int dim2_);
   void _clear();
 
+#if CUDA_VERSION < 12000
   template <cusparseStatus_t CUSPARSEAPI (*ptr_nnz)(
                 cusparseHandle_t handle, cusparseDirection_t dirA, int m, int n,
                 const cusparseMatDescr_t descrA, const T_data *A, int lda,
@@ -124,6 +126,11 @@ class CarmaSparseObj {
                 int *csrColIndA)>
   void init_carma_sparse_obj(CarmaContext *current_context, const long *dims,
                              T_data *M, bool load_from_host);
+# else
+  void init_carma_sparse_obj(CarmaContext *current_context, const long *dims,
+                             T_data *M, bool load_from_host);
+
+#endif
 };
 
 template <class T_data>

@@ -123,10 +123,10 @@ namespace detail {
     constexpr static auto mv()    {  return cusparseScsrmv; }
     constexpr static auto mm()    { return cusparseScsrmm; }
     constexpr static auto gemm()  { return cusparseScsrgemm; }
+    constexpr static auto dense() { return cusparseScsr2dense; }
 #endif
     constexpr static auto bsr()   { return cusparseScsr2bsr; }
     constexpr static auto csr()   { return cusparseSbsr2csr; }
-    constexpr static auto dense() { return cusparseScsr2dense; }
   };
 
   // Specialization of Sparse with double routine.
@@ -136,10 +136,10 @@ namespace detail {
     constexpr static auto mv()    { return cusparseDcsrmv; }
     constexpr static auto mm()    { return cusparseDcsrmm; }
     constexpr static auto gemm()  { return cusparseDcsrgemm; }
+    constexpr static auto dense() { return cusparseDcsr2dense; }
 #endif
     constexpr static auto bsr()   { return cusparseDcsr2bsr; }
     constexpr static auto csr()   { return cusparseDbsr2csr; }
-    constexpr static auto dense() { return cusparseDcsr2dense; }
   };
 }
 
@@ -148,10 +148,10 @@ namespace detail {
 template<typename T> constexpr auto sparse_mv =    detail::Sparse<T>::mv();
 template<typename T> constexpr auto sparse_mm =    detail::Sparse<T>::mm();
 template<typename T> constexpr auto sparse_gemm =  detail::Sparse<T>::gemm();
+template<typename T> constexpr auto sparse_dense = detail::Sparse<T>::dense();
 #endif
 template<typename T> constexpr auto sparse_bsr =   detail::Sparse<T>::bsr();
 template<typename T> constexpr auto sparse_csr =   detail::Sparse<T>::csr();
-template<typename T> constexpr auto sparse_dense = detail::Sparse<T>::dense();
 
 #if CUDA_VERSION >= 11000
   template <class T_data>
@@ -180,11 +180,11 @@ template<typename T> constexpr auto sparse_dense = detail::Sparse<T>::dense();
     carma_check_cusparse_status(cusparseSpMV_bufferSize(
                                  handle, trans_A,
                                  &alpha, matA, vec_x, &beta, vec_y, A->get_data_type(),
-                                 CUSPARSE_MV_ALG_DEFAULT, &buffer_size));
+                                 CUSPARSE_SPMV_ALG_DEFAULT, &buffer_size));
     cudaMalloc(&d_buffer, buffer_size);
     status = carma_check_cusparse_status(cusparseSpMV(handle, trans_A,
                                  &alpha, matA, vec_x, &beta, vec_y, A->get_data_type(),
-                                 CUSPARSE_MV_ALG_DEFAULT, d_buffer));
+                                 CUSPARSE_SPMV_ALG_DEFAULT, d_buffer));
     carma_check_cusparse_status(cusparseDestroyDnVec(vec_x));
     carma_check_cusparse_status(cusparseDestroyDnVec(vec_y));
     carma_check_msg(cudaFree(d_buffer));
@@ -211,11 +211,11 @@ template<typename T> constexpr auto sparse_dense = detail::Sparse<T>::dense();
     carma_check_cusparse_status(cusparseSpMM_bufferSize(
                                  handle, trans_A, CUSPARSE_OPERATION_NON_TRANSPOSE,
                                  &alpha, A->sp_descr, mat_b, &beta, mat_c, A->get_data_type(),
-                                 CUSPARSE_MM_ALG_DEFAULT, &buffer_size));
+                                 CUSPARSE_SPMM_ALG_DEFAULT, &buffer_size));
     carma_check_msg(cudaMalloc(&d_buffer, buffersize));
     status = carma_check_cusparse_status(cusparseSpMM(handle, trans_A, CUSPARSE_OPERATION_NON_TRANSPOSE,
                                  &alpha, A->sp_descr, mat_b, &beta, mat_c, A->get_data_type(),
-                                 CUSPARSE_MM_ALG_DEFAULT, d_buffer));
+                                 CUSPARSE_SPMM_ALG_DEFAULT, d_buffer));
     carma_check_cusparse_status(cusparseDestroyDnMat(mat_b));
     carma_check_cusparse_status(cusparseDestroyDnMat(mat_c));
     carma_check_msg(cudaFree(d_buffer));
@@ -430,8 +430,30 @@ cusparseStatus_t carma_csr2dense(CarmaSparseObj<T_data> *A, T_data *B) {
   cusparseStatus_t status;
   cusparseHandle_t handle = A->current_context->get_cusparse_handle();
 
+#if CUDA_VERSION < 11000
   status = sparse_dense<T_data>(handle, A->dims_data[1], A->dims_data[2], A->descr,
                      A->d_data, A->d_rowind, A->d_colind, B, A->dims_data[1]);
+#else
+  void* d_buffer = NULL;
+  size_t bufferSize = 0;
+
+  cusparseCreateDnMat(&(A->dn_descr), A->dims_data[1], A->dims_data[2], A->dims_data[2],
+                      B, A->get_data_type(), CUSPARSE_ORDER_ROW);
+
+  cusparseSparseToDense_bufferSize(handle, A->sp_descr, A->dn_descr,
+                                        CUSPARSE_SPARSETODENSE_ALG_DEFAULT,
+                                        &bufferSize);
+  cudaMalloc(&d_buffer, bufferSize);
+  status = cusparseSparseToDense(handle, A->sp_descr, A->dn_descr,
+                                        CUSPARSE_SPARSETODENSE_ALG_DEFAULT,
+                                        d_buffer);
+
+
+  cusparseDestroyDnMat(A->dn_descr);
+  cudaFree(d_buffer);
+
+#endif
+
   if (status != CUSPARSE_STATUS_SUCCESS) {
     std::cerr << "Error | carma_csr2dense (sparse) | csr2dense failed"
               << std::endl;

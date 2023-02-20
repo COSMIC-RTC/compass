@@ -14,7 +14,7 @@ add_library(carma
     src.cpp/carma_cusolver.cpp
     src.cpp/carma_cusparse.cpp
     src.cpp/carma_fft.cpp
-    src.cpp/carma_fft_conv.cpp
+    # src.cpp/carma_fft_conv.cpp
     src.cpp/carma_host_obj.cpp
     src.cpp/carma_ipcs.cpp
     src.cpp/carma_ksparse.cpp
@@ -25,12 +25,12 @@ add_library(carma
     src.cpp/carma_streams.cpp
     src.cpp/carma_utils.cpp
     src.cpp/carma_obj.cpp
-    src.cu/carma_fft_conv.cu
+    # src.cu/carma_fft_conv.cu
     src.cu/carma_timer.cu
     src.cu/carma_rng.cu
     src.cu/carma_svd.cu
     src.cu/carma_utils.cu
-    src.cu/convolutionFFT2D.cu
+    # src.cu/convolutionFFT2D.cu
     src.cu/carma_obj.cu
     src.cu/carma_sum.cu
     src.cu/carma_transpose.cu
