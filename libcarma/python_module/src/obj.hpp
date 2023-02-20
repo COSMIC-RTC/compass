@@ -81,6 +81,26 @@ struct CarmaObjInterfacer {
                                  shape, strides);
         })
 
+        .def("to_cupy", [](Class &cls) {
+          py::object MemoryPointer = py::module::import("cupy.cuda.memory").attr("MemoryPointer");
+          py::object UnownedMemory = py::module::import("cupy.cuda.memory").attr("UnownedMemory");
+          py::object ndarray = py::module::import("cupy").attr("ndarray");
+          const long *dims = cls.get_dims();
+          std::vector<ssize_t> shape(dims[0]);
+          std::vector<ssize_t> strides(dims[0]);
+          ssize_t stride = sizeof(T);
+
+          for (ssize_t dim(0); dim < dims[0]; ++dim) {
+            shape[dim] = dims[dim + 1];
+            strides[dim] = stride;
+            stride *= shape[dim];
+          }
+          return ndarray(shape, 
+                        py::arg("dtype")=py::format_descriptor<T>::format(),
+                        py::arg("memptr")=MemoryPointer(UnownedMemory(reinterpret_cast<intptr_t>(cls.get_data()), stride, py::cast<py::none>(Py_None)), 0),
+                        py::arg("strides")=strides);
+        }, "TODO")
+
         .def("__repr__", &Class::to_string)
 
         // int get_nb_streams()
@@ -137,7 +157,7 @@ struct CarmaObjInterfacer {
         // int get_o_data()
         .def_property_readonly("o_data", &Class::get_o_data_value,
                                "TODO")  // TODO do the documentation...
-
+        .def_property_readonly("d_ptr", [](Class &cls) {return reinterpret_cast<intptr_t>(cls.get_data());}, "TODO")
         // int host2device(T_data *data);
         .def("host2device",
              [](Class &c,
