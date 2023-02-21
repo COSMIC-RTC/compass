@@ -1,4 +1,4 @@
-## @package   shesha.supervisor.canapassSupervisor
+## @package   shesha.supervisor.twoStagesManager
 ## @brief     Initialization and execution of a CANAPASS supervisor
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   5.2.1
@@ -35,46 +35,32 @@
 #  You should have received a copy of the GNU Lesser General Public License along with COMPASS.
 #  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 """
-Initialization and execution of a saxo+Supervisor manager. 
+Initialization and execution of an AO 2-stages manager. 
 It instanciates in one process two compass simulations: 
 1 for first stage and 1 for the second stage (as defined in their relative .par files)
 
 IMPORTANT:
-The next method of this manager --superseeds-- the compass next method so that the loop is fully handled by the saxoPlus manager. 
+The next method of this manager --superseeds-- the compass next method so that the loop is fully handled by the manager. 
 
 Usage:
-  saxo+Supervisor.py <saxoparameters_filename> <saxoPlusparameters_filename> [options]
+  twoStagesManager.py <parameters_filename1> <parameters_filename2> [options]
 
-with 'saxoparameters_filename' the path to the parameters file for SAXO+ First stage (I.e current SAXO system)
-with 'saxoPlusparameters_filename' the path to the parameters file for SAXO+ Second stage
+with 'parameters_filename1' the path to the parameters file the first stage 
+with 'parameters_filename2' the path to the parameters file the second stage
 
 Options:
-  -a, --adopt       used to connect ADOPT client to the manager (via pyro + shm cacao)
+  -a, --adopt       used to connect optional ADOPT client to the manager (via pyro + shm cacao)
 
 Example: 
-    ipython -i saxoPlusSupervisor.py ../../data/par/SPHERE+/sphere.py ../../data/par/SPHERE+/sphere+.py
-    ipython -i saxoPlusSupervisor.py ../../data/par/SPHERE+/sphere.py ../../data/par/SPHERE+/sphere+.py -- --adopt
+    ipython -i twoStagesManager.py ../../data/par/SPHERE+/sphere.py ../../data/par/SPHERE+/sphere+.py
+    ipython -i twoStagesManager.py ../../data/par/SPHERE+/sphere.py ../../data/par/SPHERE+/sphere+.py -- --adopt
 """
 
-import os, sys
 import numpy as np
-import time
-
-from tqdm import tqdm
-import astropy.io.fits as pfits
-from threading import Thread
-from subprocess import Popen, PIPE
-
-import shesha.ao as ao
-import shesha.constants as scons
-from shesha.constants import CentroiderType, WFSType
-
-from typing import Any, Dict, Tuple, Callable, List
 from shesha.supervisor.compassSupervisor import CompassSupervisor
 
 
-
-class SaxoPlusManager():
+class TwoStagesManager(object):
     """
     Class handling both supervisors of first stage and second stage.
 
@@ -93,7 +79,7 @@ class SaxoPlusManager():
     """
     def __init__(self, first_stage, second_stage):
         """ 
-        Init of the saxoPlusManager object
+        Init of the TwoStagesManager object
 
         Args:
             first_stage : (CompassSupervisor) : first stage CompassSupervisor instance
@@ -111,34 +97,85 @@ class SaxoPlusManager():
         self.mpup_offset = (mpup_shape[0] - residual_shape[0]) // 2
         self.frequency_ratio = round(1e-3 / self.second_stage.config.p_loop.ittime)
 
-    def next(self, seeAtmos=True):
-        """
-        MAIN method that allows to manage properly the 2 AO stages of SAXO+ system. 
-        The phase residuals (including turbulence + AO loop residuals) of the first stage simulation is sent to second stage simulation
-        at each iteration of the manager. 
-        The saxo+ manager disable the seconds stage turbulence simulation (as it is propageated through the first stage residals if any). 
+        # flags for enabling coronagraphic images computation
+        self.compute_first_stage_corono = False
+        self.compute_second_stage_corono = False
 
-        This next method sould ALWAYS be called to perform a regular SAXO+ simulation 
-        instead of the individuals COMPASS next methods to ensure the correct synchronisation of the 2 systems. 
+    def next(self):
         """
-        # Iteration time of the first stage is set as the same as the second stage to allow
-        # correct atmosphere movement for second stage integration. Then, first stage as to compute
-        # every 3 iteration to be 3 times slower than the second stage
-        # self.first_stage.atmos.enable_atmos(seeAtmos) #Enabling (or not) Turbulence
-        self.second_stage.atmos.enable_atmos(False) # Turbulence always disabled on 2nd instance of COMPASS
-        if not (self.iterations % self.frequency_ratio): # Time for first stage full computation: We update the first stage command every frequency_ratio iterations. 
-            self.first_stage.next()
-        else: # Only raytracing current tubulence phase (if any) and current DMs phase (no command updates). 
-            self.first_stage.next(do_control=False, apply_control=False, compute_tar_psf=False)
+        MAIN method that allows to manage properly the 2 AO stages.
+
+        The phase residuals (including turbulence + AO loop residuals) of the first stage simulation
+        are sent to second stage simulation at each iteration of the manager. 
+        The manager disables the seconds stage turbulence simulation (as it is propagated through
+        the first stage residuals if any).
+
+        Iteration time of the first stage is set as the same as the second stage to allow correct
+        atmosphere movement for second stage integration. For now, first stage simulated frequency
+        is set at 1 kHz with the manager attribute "frequency_ratio". First stage command is updated
+        every frequency_ratio iterations, to be as much slower than the second stage.
+
+        This next method sould ALWAYS be called to perform a regular simulation for the second stage 
+        instead of the individuals COMPASS next methods to ensure the correct synchronization of the 2 systems. 
+        """
+        # Disabling turbulence on second stage simulation
+        self.second_stage.atmos.enable_atmos(False)
+
+        if not (self.iterations % self.frequency_ratio): 
+            # Time for first stage full computation: we update the first stage command every frequency_ratio iterations. 
+            self.first_stage.next(compute_corono=self.compute_first_stage_corono)
+        else:
+            # Only raytracing current tubulence phase (if any) and current DMs phase (no command updates). 
+            self.first_stage.next(do_control=False, apply_control=False, compute_tar_psf=False, compute_corono=False)
+
         # Get residual of first stage to put it into second stage
         # For now, involves GPU-CPU memory copies, can be improved later if speed is a limiting factor here... 
         first_stage_residual = self.first_stage.target.get_tar_phase(0)
         self.second_stage_input[self.mpup_offset:-self.mpup_offset,self.mpup_offset:-self.mpup_offset,:] = first_stage_residual[:,:,None]
-        self.second_stage.tel.set_input_phase(self.second_stage_input) # 1st stage residuals sent to seconds stage simulation. 
+        self.second_stage.tel.set_input_phase(self.second_stage_input)
+
         # Second stage computation
-        self.second_stage.next(move_atmos=False) #"Updates the second stage siulation accordingly". 
+        self.second_stage.next(move_atmos=False, compute_corono=self.compute_second_stage_corono)
+
         self.iterations += 1
 
+    def enable_corono(self, stage=None):
+        """ Enable coronagraphic image computation for both stages.
+
+        Args:
+            stage: (str, optional): If 'first', enable only first stage coronagrapic image computation.
+                If 'second', enable only second stage coronagraphic image computation.
+                Default = None.
+        """
+        if stage == 'first':
+            self.compute_first_stage_corono = True
+        elif stage == 'second':
+            self.compute_second_stage_corono = True
+        else:
+            self.compute_first_stage_corono = True
+            self.compute_second_stage_corono = True
+
+    def disable_corono(self):
+        """ Disable all coronagraphic image computation
+        """
+        self.compute_first_stage_corono = False
+        self.compute_second_stage_corono = False
+    
+    def reset_exposure(self):
+        """ Reset long exposure psf and coronagraphic images for both stages
+        """
+        self.first_stage.corono.reset()
+        self.second_stage.corono.reset()
+        self.first_stage.target.reset_strehl(0)
+        self.second_stage.target.reset_strehl(0)
+
+    def get_frame_counter(self):
+        """ Returns the current iteration number of the manager
+        
+        Returns:
+            iterations : (int) : Number of manager iterations already performed
+        """
+        return self.iterations
 
 class loopHandler:
 
@@ -160,48 +197,12 @@ if __name__ == '__main__':
     arguments = docopt(__doc__)
     adopt = arguments["--adopt"]
 
-    config1 = ParamConfig(arguments["<saxoparameters_filename>"])
-    config2 = ParamConfig(arguments["<saxoPlusparameters_filename>"])
-
-    """
-    if (arguments["--freq"]):
-        print("Warning changed frequency loop to: ", arguments["--freq"])
-        config.p_loop.set_ittime(1 / float(arguments["--freq"]))
-    if (arguments["--delay"]):
-        print("Warning changed delay loop to: ", arguments["--delay"])
-        config.p_controllers[0].set_delay(float(arguments["--delay"]))
-    if (arguments["--spiders"]):
-        print("Warning changed spiders size to: ", arguments["--spiders"])
-        config.p_tel.set_t_spiders(float(arguments["--spiders"]))
-    if (arguments["--nxsub"]):
-        print("Warning changed number of pixels per subaperture to: ", arguments["--nxsub"])
-        config.p_wfss[0].set_nxsub(int(arguments["--nxsub"]))
-    if (arguments["--pupsep"]):
-        print("Warning changed distance between subaperture center and frame center to: ", arguments["--pupsep"])
-        config.p_wfss[0].set_pyr_pup_sep(int(arguments["--pupsep"]))
-    if (arguments["--gsmag"]):
-        print("Warning changed guide star magnitude to: ", arguments["--gsmag"])
-        config.p_wfss[0].set_gsmag(float(arguments["--gsmag"]))
-    if (arguments["--setr0"]):
-        print("Warning changed r0 to: ", arguments["--setr0"])
-        config.p_atmos.set_r0(float(arguments["--setr0"]))
-    if (arguments["--rmod"]):
-        print("Warning changed modulation radius to: ", arguments["--rmod"])
-        rMod = int(arguments["--rmod"])
-        nbPtMod = int(np.ceil(int(rMod * 2 * 3.141592653589793) / 4.) * 4)
-        config.p_wfss[0].set_pyr_npts(nbPtMod)
-        config.p_wfss[0].set_pyr_ampl(rMod)
-    if (arguments["--offaxis"]):
-        print("Warning changed target x position: ", arguments["--offaxis"])
-        config.p_targets[0].set_xpos(float(arguments["--offaxis"]))
-        config.p_targets[1].set_xpos(float(arguments["--offaxis"]))
-        config.p_targets[2].set_xpos(float(arguments["--offaxis"]))
-    """
-
+    config1 = ParamConfig(arguments["<parameters_filename1>"])
+    config2 = ParamConfig(arguments["<parameters_filename2>"])
 
     first_stage = CompassSupervisor(config1, cacao=adopt)
     second_stage = CompassSupervisor(config2, cacao=adopt)
-    manager = SaxoPlusManager(first_stage, second_stage)
+    manager = TwoStagesManager(first_stage, second_stage)
 
     if(adopt): 
         
@@ -227,17 +228,20 @@ if __name__ == '__main__':
             devices1 = [
                     supervisor1, supervisor1.rtc, supervisor1.wfs, supervisor1.target,
                     supervisor1.tel, supervisor1.basis, supervisor1.calibration,
-                    supervisor1.atmos, supervisor1.dms, supervisor1.config, supervisor1.modalgains
+                    supervisor1.atmos, supervisor1.dms, supervisor1.config, supervisor1.modalgains,
+                    supervisor1.corono
             ]
             devices2 = [
                     supervisor2, supervisor2.rtc, supervisor2.wfs, supervisor2.target,
                     supervisor2.tel, supervisor2.basis, supervisor2.calibration,
-                    supervisor2.atmos, supervisor2.dms, supervisor2.config, supervisor2.modalgains
+                    supervisor2.atmos, supervisor2.dms, supervisor2.config, supervisor2.modalgains,
+                    supervisor2.corono
             ]
             names = [
                     "supervisor", "supervisor_rtc", "supervisor_wfs", "supervisor_target",
                     "supervisor_tel", "supervisor_basis", "supervisor_calibration",
-                    "supervisor_atmos", "supervisor_dms", "supervisor_config", "supervisor_modalgains"
+                    "supervisor_atmos", "supervisor_dms", "supervisor_config", "supervisor_modalgains",
+                    "supervisor_corono"
             ]
 
             label = "firstStage"
@@ -249,7 +253,7 @@ if __name__ == '__main__':
             for name in names:
                 nname.append(name + "_" + user + "_" +label)
 
-            nname.append('supervisorSAXOPlus'+ "_" + user ) # Adding master next dedicated to trigger SAXO+ hybrid loop
+            nname.append('twoStagesManager'+ "_" + user ) # Adding master next 2-stages loop
             devices = devices1 + devices2 + [manager]
             server = PyroServer(listDevices=devices, listNames=nname)
             #server.add_device(supervisor, "waoconfig_" + user)

@@ -229,3 +229,29 @@ class PupilType(MultiValueEnum):
     SPUPIL = "spupil", "s"
     MPUPIL = "mpupil", "m"
     IPUPIL = "ipupil", "i"
+
+class CoronoType:
+    """ Coronograph types
+    """
+    MODULE = "module"
+    PERFECT = "perfect"
+    CUSTOM = "custom"
+    SPHERE_APLC = "SPHERE_APLC"
+
+class ApodizerType:
+    """ Apodizer types
+    """
+    SPHERE_APLC_APO1 = "SPHERE_APLC_apodizer_APO1"
+
+class FpmType:
+    """ Focal plane mask types
+    """
+    CLASSICAL_LYOT = "classical_Lyot"
+    SPHERE_APLC_fpm_ALC1 = "SPHERE_APLC_fpm_ALC1"
+    SPHERE_APLC_fpm_ALC2 = "SPHERE_APLC_fpm_ALC2"
+    SPHERE_APLC_fpm_ALC3 = "SPHERE_APLC_fpm_ALC3"
+
+class LyotStopType:
+    """ Lyot stop types
+    """
+    SPHERE_APLC_LYOT_STOP = "SPHERE_APLC_Lyot_stop"

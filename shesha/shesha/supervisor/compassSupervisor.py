@@ -101,6 +101,8 @@ class CompassSupervisor(GenericSupervisor):
         self.wfs = None
         self.dms = None
         self.rtc = None
+        self.corono = None
+        
         GenericSupervisor.__init__(self, config, silence_tqdm=silence_tqdm)
         self.basis = ModalBasis(self.config, self.dms, self.target)
         self.calibration = Calibration(self.config, self.tel, self.atmos, self.dms,
@@ -109,6 +111,8 @@ class CompassSupervisor(GenericSupervisor):
             self.modalgains = ModalGains(self.config, self.rtc)
         self.close_modal_gains = []
 
+        if config.p_corono is not None:
+            self._init_coronagraph()
 
 #     ___                  _      __  __     _   _            _
 #    / __|___ _ _  ___ _ _(_)__  |  \/  |___| |_| |_  ___  __| |___
@@ -176,10 +180,21 @@ class CompassSupervisor(GenericSupervisor):
 
         GenericSupervisor._init_components(self)
 
+    def _init_coronagraph(self):
+        """ Initialize the coronagraph
+        """
+        if(self.config.p_corono._type == scons.CoronoType.CUSTOM) or (self.config.p_corono._type == scons.CoronoType.SPHERE_APLC):
+            from shesha.supervisor.components.coronagraph.classicalCoronagraph import ClassicalCoronagraph
+            self.corono = ClassicalCoronagraph(self.config.p_corono, self.config.p_geom)
+
+        elif(self.config.p_corono._type == scons.CoronoType.PERFECT):
+            from shesha.supervisor.components.coronagraph.perfectCoronagraph import PerfectCoronagraph
+            self.corono = PerfectCoronagraph(self.config.p_corono, self.config.p_geom)
+
     def next(self, *, move_atmos: bool = True, nControl: int = 0,
              tar_trace: Iterable[int] = None, wfs_trace: Iterable[int] = None,
              do_control: bool = True, apply_control: bool = True,
-             compute_tar_psf: bool = True) -> None:
+             compute_tar_psf: bool = True, compute_corono: bool=True) -> None:
         """Iterates the AO loop, with optional parameters.
 
         Overload the GenericSupervisor next() method to handle the GEO controller
@@ -199,6 +214,8 @@ class CompassSupervisor(GenericSupervisor):
             apply_control: (bool): if True (default), apply control on DMs
 
             compute_tar_psf : (bool) : If True (default), computes the PSF at the end of the iteration
+
+            compute_corono: (bool): If True (default), computes the coronagraphic image
         """
         try:
             iter(nControl)
@@ -271,6 +288,9 @@ class CompassSupervisor(GenericSupervisor):
             for tar_index in tar_trace:
                 self.target.comp_tar_image(tar_index)
                 self.target.comp_strehl(tar_index)
+
+        if self.corono is not None and compute_corono:
+            self.corono.compute_image(self.target.get_tar_phase(0))
 
         if self.config.p_controllers[0].close_opti and (not self.rtc._rtc.d_control[0].open_loop):
             self.modalgains.update_mgains()
