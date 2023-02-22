@@ -18,15 +18,14 @@
 #define _SUTRA_PERFECT_CORONAGRAPH_H_
 
 #include <sutra_coronagraph.h>
+#include <map>
 
 class SutraPerfectCoronagraph : public SutraCoronagraph {
     public:
-        std::vector<CarmaObj<cuFloatComplex>*> AA;
-        std::vector<CarmaObj<cuFloatComplex>*> BB;
-        std::vector<float> norm;
-        std::vector<CarmaObj<cuFloatComplex>*> AA_psf;
-        std::vector<CarmaObj<cuFloatComplex>*> BB_psf;
-        std::vector<float> norm_psf;
+        std::map<std::string, std::vector<CarmaObj<cuFloatComplex>*>> AA;
+        std::map<std::string, std::vector<CarmaObj<cuFloatComplex>*>> BB;
+        std::map<std::string, std::vector<float>> norm;
+
         CarmaObj<cuFloatComplex> *tmp_mft;
 
     public:
@@ -35,11 +34,9 @@ class SutraPerfectCoronagraph : public SutraCoronagraph {
         ~SutraPerfectCoronagraph()=default;
         int compute_image(bool accumulate);
         int compute_psf(bool accumulate);
-        int set_mft(cuFloatComplex *A, cuFloatComplex *B, float* norm);
-        int set_mft_psf(cuFloatComplex *A, cuFloatComplex *B, float* norm);
+        int set_mft(cuFloatComplex *A, cuFloatComplex *B, float* norm, std::string mftType);
 
     private:
-        int _set_mft(cuFloatComplex *A, cuFloatComplex *B, float* norm, bool psf);
         int _compute_image(bool psf, bool remove_coro, bool accumulate);
 };
 

@@ -63,12 +63,6 @@ void declare_perfect_coronagraph(py::module &mod) {
           "BB", [](SutraPerfectCoronagraph &sc) { return sc.BB; }, "B MFT matrix")
       .def_property_readonly(
           "norm", [](SutraPerfectCoronagraph &sc) { return sc.norm; }, "MFT normalization")
-      .def_property_readonly(
-          "AA_psf", [](SutraPerfectCoronagraph &sc) { return sc.AA_psf; }, "A MFT matrix")
-      .def_property_readonly(
-          "BB_psf", [](SutraPerfectCoronagraph &sc) { return sc.BB_psf; }, "B MFT matrix")
-      .def_property_readonly(
-          "norm_psf", [](SutraPerfectCoronagraph &sc) { return sc.norm_psf; }, "MFT normalization")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝
@@ -83,21 +77,15 @@ void declare_perfect_coronagraph(py::module &mod) {
 
     Args:
         A : (np.ndarray[dtype=np.complex32, ndims=3]): A MFT matrix for each wavelength
-        B : (np.ndarray[dtype=np.complex32, ndims=3]): B MFT matrix for each wavelength
-        norm : (np.ndarray[dtype=np.complex32, ndims=3]): MFT normalization for each wavelength
-    )pbdoc",
-           py::arg("A"), py::arg("B"), py::arg("norm"))
 
-      .def("set_mft_psf", wy::colCast(&SutraPerfectCoronagraph::set_mft_psf),
-           R"pbdoc(
-    Set MFT matrices for PSF computation
-
-    Args:
-        A : (np.ndarray[dtype=np.complex32, ndims=3]): A MFT matrix for each wavelength
         B : (np.ndarray[dtype=np.complex32, ndims=3]): B MFT matrix for each wavelength
+
         norm : (np.ndarray[dtype=np.complex32, ndims=3]): MFT normalization for each wavelength
+
+        mft_type : (str): MFT matrices to set, i.e. "img" or "psf"
+
     )pbdoc",
-           py::arg("A"), py::arg("B"), py::arg("norm"));
+           py::arg("A"), py::arg("B"), py::arg("norm"), py::arg("mft_type"));
 
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝

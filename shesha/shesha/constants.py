@@ -256,6 +256,13 @@ class LyotStopType:
     """
     SPHERE_APLC_LYOT_STOP = "SPHERE_APLC_Lyot_stop"
 
+class MftType:
+    """ MFT types
+    """
+    IMG = "img"
+    PSF = "psf"
+    FPM = "fpm"
+    LYOT= "lyot"
 class ExposureType:
     """ Exposure type
     """

@@ -1,5 +1,6 @@
 import numpy as np
 import shesha.config as conf
+import shesha.constants as scons
 from shesha.supervisor.components.coronagraph.genericCoronagraph import GenericCoronagraph
 from shesha.init.coronagraph_init import init_coronagraph, init_mft, mft_multiplication
 from shesha.supervisor.components.targetCompass import TargetCompass
@@ -86,8 +87,8 @@ class PerfectCoronagraphCompass(GenericCoronagraph):
         BB = np.rollaxis(np.array(self._BB), 0, self._wav_vec.size)
         AA_c = np.rollaxis(np.array(self._AA_c), 0, self._wav_vec.size)
         BB_c = np.rollaxis(np.array(self._BB_c), 0, self._wav_vec.size)
-        self._coronagraph.set_mft(AA, BB, self._norm0)
-        self._coronagraph.set_mft_psf(AA_c, BB_c, self._norm0_c)
+        self._coronagraph.set_mft(AA, BB, self._norm0, scons.MftType.IMG)
+        self._coronagraph.set_mft(AA_c, BB_c, self._norm0_c, scons.MftType.PSF)
         self._compute_normalization()
 
     def _compute_electric_field(self, input_opd, wavelength):

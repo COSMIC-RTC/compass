@@ -20,26 +20,20 @@ SutraPerfectCoronagraph::SutraPerfectCoronagraph(CarmaContext *context, SutraSou
                                     int im_dimx, int im_dimy, float *wavelength, int nWavelength, 
                                     int device):
     SutraCoronagraph(context, "perfect", d_source, im_dimx, im_dimy, wavelength, nWavelength, device),
-    tmp_mft(nullptr) {}
-
-int SutraPerfectCoronagraph::_set_mft(cuFloatComplex *A, cuFloatComplex *B, float* norm0, bool psf) {
-    std::vector<CarmaObj<cuFloatComplex>*> *vecA = &AA;
-    std::vector<CarmaObj<cuFloatComplex>*> *vecB = &BB;
-    std::vector<float> *vecNorm = &norm;
-    if(psf) {
-        vecA = &AA_psf;
-        vecB = &BB_psf;
-        vecNorm = &norm_psf;
+    tmp_mft(nullptr) {
+        AA["img"] = std::vector<CarmaObj<cuFloatComplex>*>(nWavelength, nullptr);
+        AA["psf"] = std::vector<CarmaObj<cuFloatComplex>*>(nWavelength, nullptr);
+        BB["img"] = std::vector<CarmaObj<cuFloatComplex>*>(nWavelength, nullptr);
+        BB["psf"] = std::vector<CarmaObj<cuFloatComplex>*>(nWavelength, nullptr);
+        norm["img"] = std::vector<float>(nWavelength, 1);
+        norm["psf"] = std::vector<float>(nWavelength, 1);
     }
 
-    if(!vecA->empty()) {
-        vecA->clear();
-    }
-    if(!vecB->empty()) {
-        vecB->clear();
-    }
-    if(!vecNorm->empty()) {
-        vecNorm->clear();
+int SutraPerfectCoronagraph::set_mft(cuFloatComplex *A, cuFloatComplex *B, float* norm0, 
+                                        std::string mftType) {
+    if(AA.count(mftType) < 1) {
+        std::cout << "Invalid mftType. Must be img or psf" << std::endl;
+        return EXIT_FAILURE;
     }
 
     long dims[3];
@@ -47,12 +41,13 @@ int SutraPerfectCoronagraph::_set_mft(cuFloatComplex *A, cuFloatComplex *B, floa
     for (int i = 0; i < wavelength.size() ; i++) {
         dims[1] = imageDimx;
         dims[2] = pupDimx;
-        vecA->push_back(new CarmaObj<cuFloatComplex>(current_context, dims, A + i * imageDimx * pupDimx));
+        AA[mftType][i] = new CarmaObj<cuFloatComplex>(current_context, dims, A + i * imageDimx * pupDimx);
         dims[1] = pupDimy;
         dims[2] = imageDimy;
-        vecB->push_back(new CarmaObj<cuFloatComplex>(current_context, dims, B + i * imageDimy * pupDimy));
-        vecNorm->push_back(norm0[i]);
+        BB[mftType][i] = new CarmaObj<cuFloatComplex>(current_context, dims, B + i * imageDimy * pupDimy);
+        norm[mftType][i] = norm0[i];
     }
+
     if (tmp_mft == nullptr) {
         dims[1] = imageDimx;
         dims[2] = pupDimy;
@@ -61,26 +56,18 @@ int SutraPerfectCoronagraph::_set_mft(cuFloatComplex *A, cuFloatComplex *B, floa
     return EXIT_SUCCESS;
 }
 
-int SutraPerfectCoronagraph::set_mft(cuFloatComplex *A, cuFloatComplex *B, float* norm0) {
-    return _set_mft(A, B, norm0, false);
-}
-
-int SutraPerfectCoronagraph::set_mft_psf(cuFloatComplex *A, cuFloatComplex *B, float* norm0) {
-    return _set_mft(A, B, norm0, true);
-}
-
 int SutraPerfectCoronagraph::_compute_image(bool psf, bool accumulate, bool remove_coro) {
     CarmaObj<float> *img_se = d_image_se;
     CarmaObj<float> *img_le = d_image_le;
-    std::vector<CarmaObj<cuFloatComplex>*> *mftA = &AA;
-    std::vector<CarmaObj<cuFloatComplex>*> *mftB = &BB;
-    std::vector<float> *mftNorm = &norm;
+    std::vector<CarmaObj<cuFloatComplex>*> *mftA = &(AA["img"]);
+    std::vector<CarmaObj<cuFloatComplex>*> *mftB = &(BB["img"]);
+    std::vector<float> *mftNorm = &(norm["img"]);
     if (psf) {
         img_se = d_psf_se;
         img_le = d_psf_le;
-        mftA = &AA_psf;
-        mftB = &BB_psf;
-        mftNorm = &norm_psf;
+        mftA = &(AA["psf"]);
+        mftB = &(BB["psf"]);
+        mftNorm = &(norm["psf"]);
     }
 
     img_se->reset();
