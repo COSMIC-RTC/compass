@@ -80,7 +80,7 @@ class PerfectCoronagraphCompass(GenericCoronagraph):
 
         self._coronagraph = PerfectCoronagraph(context, self._target.sources[0], 
                                                self._dim_image, self._dim_image, 
-                                               self._wav_vec * 1e6, self._wav_vec.size, 0)
+                                               self._wav_vec, self._wav_vec.size, 0)
         
         AA = np.rollaxis(np.array(self._AA), 0, self._wav_vec.size)
         BB = np.rollaxis(np.array(self._BB), 0, self._wav_vec.size)
@@ -101,7 +101,7 @@ class PerfectCoronagraphCompass(GenericCoronagraph):
         Return:
             electric_field: (np.ndarray[ndim=2, dtype=np.complex64]): Electric field
         """
-        phase = input_opd * 1e-6 * 2 * np.pi / wavelength
+        phase = input_opd * 2 * np.pi / wavelength
         electric_field = np.exp(1j * phase)
         return electric_field
 

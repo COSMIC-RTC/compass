@@ -71,7 +71,7 @@ def init_sphere_aplc(p_corono: conf.Param_corono, pupdiam):
     if p_corono._image_sampling == None:
         irdis_plate_scale = 12.25  # [mas]
         VLT_pupil_diameter = 8  # [m]
-        lambda_over_D = p_corono._wavelength_0 / VLT_pupil_diameter  # [rad]
+        lambda_over_D = p_corono._wavelength_0 * 1e-6 / VLT_pupil_diameter  # [rad]
         image_sampling = (lambda_over_D * 180 / np.pi * 3600 * 1000) / irdis_plate_scale
         p_corono.set_image_sampling(image_sampling)
 
@@ -113,7 +113,7 @@ def init_focal_plane_mask(p_corono: conf.Param_corono):
         elif (p_corono._focal_plane_mask_name == scons.FpmType.SPHERE_APLC_fpm_ALC3):
             fpm_radius_in_mas = 240 / 2  # [mas]
         VLT_pupil_diameter = 8  # [m]
-        lambda_over_D = p_corono._wavelength_0 / VLT_pupil_diameter  # [rad]
+        lambda_over_D = p_corono._wavelength_0 * 1e-6 / VLT_pupil_diameter  # [rad]
         fpm_radius = fpm_radius_in_mas / (lambda_over_D * 180 / np.pi * 3600 * 1000)  # [lambda/D]
         p_corono.set_lyot_fpm_radius(fpm_radius)
     else:
