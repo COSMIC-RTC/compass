@@ -1,8 +1,7 @@
 import numpy as np
 import shesha.config as conf
 from shesha.supervisor.components.coronagraph.genericCoronagraph import GenericCoronagraph
-from shesha.supervisor.components.coronagraph.coronagraph_init import init_coronagraph, init_mft, mft_multiplication
-
+from shesha.init.coronagraph_init import init_coronagraph, init_mft, mft_multiplication
 
 class ClassicalCoronagraph(GenericCoronagraph):
     """ Class supervising coronagraph component
@@ -71,7 +70,7 @@ class ClassicalCoronagraph(GenericCoronagraph):
                 EF_before_lyot = mft_multiplication(EF_after_fpm,
                                                     self._AA_fpm_to_lyot[i],
                                                     self._BB_fpm_to_lyot[i],
-                                                    self._norm0_fpm_to_lyot)
+                                                    self._norm0_fpm_to_lyot[i])
             EF_after_lyot = EF_before_lyot * self._p_corono._lyot_stop
 
             if center_on_pixel:
@@ -135,16 +134,3 @@ class ClassicalCoronagraph(GenericCoronagraph):
             self.cnt += 1
             self.image_le += self.image_se
             self.psf_le += self.psf_se
-
-
-
-## TODO / questions:
-# introduce phase and amplitude aberrations. NCPA dans compass ?
-# Johan : sphere image size ? why 256 pixels ?
-
-## further work :
-# padded pupil options ?
-# pupangle handling ?
-# grey pupil ?
-# hardcoding sphere parameters in pupil functions
-# rewrite correctly VLT pupil (VLT pupil 'range' issue, maybe use meshgrid instead)

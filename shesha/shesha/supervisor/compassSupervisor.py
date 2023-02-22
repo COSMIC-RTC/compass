@@ -111,9 +111,6 @@ class CompassSupervisor(GenericSupervisor):
             self.modalgains = ModalGains(self.config, self.rtc)
         self.close_modal_gains = []
 
-        if config.p_corono is not None:
-            self._init_coronagraph()
-
 #     ___                  _      __  __     _   _            _
 #    / __|___ _ _  ___ _ _(_)__  |  \/  |___| |_| |_  ___  __| |___
 #   | (_ / -_) ' \/ -_) '_| / _| | |\/| / -_)  _| ' \/ _ \/ _` (_-<
@@ -177,6 +174,8 @@ class CompassSupervisor(GenericSupervisor):
             self._init_wfs()
         if self.config.p_controllers is not None or self.config.p_centroiders is not None:
             self._init_rtc()
+        if self.config.p_corono is not None:
+            self._init_coronagraph()
 
         GenericSupervisor._init_components(self)
 
@@ -188,8 +187,8 @@ class CompassSupervisor(GenericSupervisor):
             self.corono = ClassicalCoronagraph(self.config.p_corono, self.config.p_geom)
 
         elif(self.config.p_corono._type == scons.CoronoType.PERFECT):
-            from shesha.supervisor.components.coronagraph.perfectCoronagraph import PerfectCoronagraph
-            self.corono = PerfectCoronagraph(self.config.p_corono, self.config.p_geom)
+            from shesha.supervisor.components.coronagraph.perfectCoronagraph import PerfectCoronagraphCompass
+            self.corono = PerfectCoronagraphCompass(self.context, self.target, self.config.p_corono, self.config.p_geom)
 
     def next(self, *, move_atmos: bool = True, nControl: int = 0,
              tar_trace: Iterable[int] = None, wfs_trace: Iterable[int] = None,
@@ -290,7 +289,7 @@ class CompassSupervisor(GenericSupervisor):
                 self.target.comp_strehl(tar_index)
 
         if self.corono is not None and compute_corono:
-            self.corono.compute_image(self.target.get_tar_phase(0))
+            self.corono.compute_image()
 
         if self.config.p_controllers[0].close_opti and (not self.rtc._rtc.d_control[0].open_loop):
             self.modalgains.update_mgains()

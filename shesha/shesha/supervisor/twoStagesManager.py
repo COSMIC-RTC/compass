@@ -57,6 +57,7 @@ Example:
 """
 
 import numpy as np
+import time
 from shesha.supervisor.compassSupervisor import CompassSupervisor
 
 
@@ -176,6 +177,38 @@ class TwoStagesManager(object):
             iterations : (int) : Number of manager iterations already performed
         """
         return self.iterations
+
+    def loop(self, number_of_iter: int, *, monitoring_freq: int = 100, **kwargs):
+        """ Perform the AO loop for <number_of_iter> iterations
+
+        Args:
+            number_of_iter: (int) : Number of iteration that will be done
+
+        Kwargs:
+            monitoring_freq: (int) : Monitoring frequency [frames]. Default is 100
+        """
+
+        print("----------------------------------------------------")
+        print("iter# | S.E. SR | L.E. SR | ETR (s) | Framerate (Hz)")
+        print("----------------------------------------------------")
+        # self.next(**kwargs)
+        t0 = time.time()
+        t1 = time.time()
+        if number_of_iter == -1:  # Infinite loop
+            while (True):
+                self.next()
+                if ((self.iterations + 1) % monitoring_freq == 0):
+                    self.second_stage._print_strehl(monitoring_freq, time.time() - t1, number_of_iter)
+                    t1 = time.time()
+
+        for _ in range(number_of_iter):
+            self.next()
+            if ((self.iterations + 1) % monitoring_freq == 0):
+                self.second_stage._print_strehl(monitoring_freq, time.time() - t1, number_of_iter)
+                t1 = time.time()
+        t1 = time.time()
+        print(" loop execution time:", t1 - t0, "  (", number_of_iter, "iterations), ",
+              (t1 - t0) / number_of_iter, "(mean)  ", number_of_iter / (t1 - t0), "Hz")
 
 class loopHandler:
 

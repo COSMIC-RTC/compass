@@ -255,3 +255,9 @@ class LyotStopType:
     """ Lyot stop types
     """
     SPHERE_APLC_LYOT_STOP = "SPHERE_APLC_Lyot_stop"
+
+class ExposureType:
+    """ Exposure type
+    """
+    LE = "le"
+    SE = "se"

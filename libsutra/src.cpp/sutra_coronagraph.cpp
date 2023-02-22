@@ -30,6 +30,8 @@ SutraCoronagraph::SutraCoronagraph(CarmaContext *context, std::string type, Sutr
     long dims[3] = {2, dimx, dimy};
     d_image_se = new CarmaObj<float>(current_context, dims);
     d_image_le = new CarmaObj<float>(current_context, dims);
+    d_psf_se = new CarmaObj<float>(current_context, dims);
+    d_psf_le = new CarmaObj<float>(current_context, dims);
     d_amplitude = new CarmaObj<float>(current_context, d_source->d_phase->d_screen->get_dims());
     d_amplitude->memset(1);
     d_pupil = d_source->d_pupil;
@@ -46,33 +48,38 @@ SutraCoronagraph::SutraCoronagraph(CarmaContext *context, std::string type, Sutr
 int SutraCoronagraph::reset() {
     d_image_se->reset();
     d_image_le->reset();
+    d_psf_se->reset();
+    d_psf_le->reset();
     cnt = 0;
     return EXIT_SUCCESS;
 }
 
 int SutraCoronagraph::compute_electric_field(int wavelengthIndex) {
     float scale = 2 * CARMA_PI / wavelength[wavelengthIndex];
-    compute_electric_field(d_electric_field->get_data(), d_source->d_phase->d_screen->get_data(), 
+    ::compute_electric_field(d_electric_field->get_data(), d_source->d_phase->d_screen->get_data(), 
                             scale, d_amplitude->get_data(), d_pupil->get_data(), pupDimx, pupDimy, 
                             current_context->get_device(device));
     return EXIT_SUCCESS;
 }
 
-int mft(CarmaObj<cuFloatComplex> *A, CarmaObj<cuFloatComplex> *B, 
+int SutraCoronagraph::mft(CarmaObj<cuFloatComplex> *A, CarmaObj<cuFloatComplex> *B, 
                 CarmaObj<cuFloatComplex> *Ainput,
                 CarmaObj<cuFloatComplex> *input, CarmaObj<cuFloatComplex> *output, float norm) {
-
-    cuFloatComplex alpha(norm, 0);
-    cuFloatComplex beta(0, 0);
-    carma_gemm(current_context->get_cublas_handle(), 'n', 'n', A->get_dims(1), input->get_dims(2),
-                input->get_dims(1), &alpha, A->get_data(), A->get_dims(1),
+    cuFloatComplex alpha(make_float2(norm, 0));
+    cuFloatComplex beta(make_float2(0, 0));
+    carma_gemm<cuFloatComplex>(current_context->get_cublas_handle(), 'n', 'n', A->get_dims(1), 
+                input->get_dims(2), input->get_dims(1), alpha, A->get_data(), A->get_dims(1),
                 input->get_data(), input->get_dims(1), 
-                &beta, Ainput->get_data(), Ainput->get_dims(1));
+                beta, Ainput->get_data(), Ainput->get_dims(1));
     alpha.x = 1.f;
-    carma_gemm(current_context->get_cublas_handle(), 'n', 'n', Ainput->get_dims(1), B->get_dims(2),
-                B->get_dims(1), &alpha, Ainput->get_data(), Ainput->get_dims(1),
+    carma_gemm<cuFloatComplex>(current_context->get_cublas_handle(), 'n', 'n', Ainput->get_dims(1), 
+                B->get_dims(2), B->get_dims(1), alpha, Ainput->get_data(), Ainput->get_dims(1),
                 B->get_data(), B->get_dims(1), 
-                &beta, output->get_data(), output->get_dims(1));
+                beta, output->get_data(), output->get_dims(1));
+    return EXIT_SUCCESS;
+}
 
+int SutraCoronagraph::set_amplitude(float* amplitude) {
+    d_amplitude->host2device(amplitude);
     return EXIT_SUCCESS;
 }

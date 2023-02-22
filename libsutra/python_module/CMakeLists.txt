@@ -38,6 +38,8 @@ pybind11_add_module(sutraWrap MODULE
     src/rtc.cpp
     src/gamora.cpp
     src/groot.cpp
+    src/coronagraph.cpp
+    src/perfect_coronagraph.cpp
     src/sutraWrap.cpp
     ${BRAHMA_CPP}
 )

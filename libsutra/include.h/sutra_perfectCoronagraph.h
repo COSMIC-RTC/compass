@@ -21,23 +21,26 @@
 
 class SutraPerfectCoronagraph : public SutraCoronagraph {
     public:
-        bool remove_coro;
         std::vector<CarmaObj<cuFloatComplex>*> AA;
         std::vector<CarmaObj<cuFloatComplex>*> BB;
         std::vector<float> norm;
+        std::vector<CarmaObj<cuFloatComplex>*> AA_psf;
+        std::vector<CarmaObj<cuFloatComplex>*> BB_psf;
+        std::vector<float> norm_psf;
         CarmaObj<cuFloatComplex> *tmp_mft;
 
     public:
+        SutraPerfectCoronagraph(CarmaContext *context, SutraSource *d_source,int im_dimx, 
+                                int im_dimy, float *wavelength, int nWavelength, int device);
         ~SutraPerfectCoronagraph()=default;
         int compute_image(bool accumulate);
-        int set_mft(cuFloatComplex *A, cuFloatComplex *B, float* norm, int dimx, int dimy);
-        int set_remove_coro(bool remove);
-    protected:
-        int propagate();
-        SutraPerfectCoronagraph(CarmaContext *context, std::string type, SutraSource *d_source, 
-                            int im_dimx, int im_dimy, float *wavelength, int nWavelength, 
-                            int device);
+        int compute_psf(bool accumulate);
+        int set_mft(cuFloatComplex *A, cuFloatComplex *B, float* norm);
+        int set_mft_psf(cuFloatComplex *A, cuFloatComplex *B, float* norm);
 
-}
+    private:
+        int _set_mft(cuFloatComplex *A, cuFloatComplex *B, float* norm, bool psf);
+        int _compute_image(bool psf, bool remove_coro, bool accumulate);
+};
 
 #endif //_SUTRA_PERFECT_CORONAGRAPH_H_

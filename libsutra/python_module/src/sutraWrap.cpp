@@ -46,6 +46,8 @@ void declare_controller_cured(py::module &);
 void declare_rtc(py::module &);
 void declare_gamora(py::module &);
 void declare_groot(py::module &);
+void declare_coronagraph(py::module &mod);
+void declare_perfect_coronagraph(py::module &mod);
 
 #ifdef USE_BRAHMA
 void declare_target_brahma(py::module &);
@@ -89,7 +91,8 @@ PYBIND11_MODULE(sutraWrap, mod) {
   declare_rtc(mod);
   declare_gamora(mod);
   declare_groot(mod);
-
+  declare_coronagraph(mod);
+  declare_perfect_coronagraph(mod);
 #ifdef USE_BRAHMA
   declare_target_brahma(mod);
   declare_rtc_brahma(mod);

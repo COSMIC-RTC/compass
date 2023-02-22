@@ -1,90 +1,112 @@
 import numpy as np
 import shesha.config as conf
+import shesha.constants as scons
+from shesha.supervisor.components.targetCompass import TargetCompass
 from abc import ABC, abstractmethod
-from shesha.supervisor.components.coronagraph.coronagraph_utils import compute_contrast
+from shesha.util.coronagraph_utils import compute_contrast
 
 class GenericCoronagraph(ABC):
+    """ Generic class for Compass Coronagraph modules
 
-    def __init__(self, p_corono: conf.Param_corono, p_geom: conf.Param_geom):
+    Attributes:
+        _image_se: (np.ndarray[ndim=2, dtype=np.float32]): Short exposure coronagraphic image
 
+        _image_le: (np.ndarray[ndim=2, dtype=np.float32]): Long exposure coronagraphic image
+
+        _psf_se: (np.ndarray[ndim=2, dtype=np.float32]): Long exposure PSF
+
+        _psf_le: (np.ndarray[ndim=2, dtype=np.float32]): Long exposure PSF
+
+        _spupil: (np.ndarray[ndim=2, dtype=np.float32]): Telescope pupil mask
+
+        _pupdiam : (int): Number of pixels along the pupil diameter
+
+        _dim_image :(int): Coronagraphic image dimension
+
+        _p_corono: (Param_corono): Coronagraph parameters
+
+        _target: (TargetCompass): Compass Target used as input for the coronagraph
+
+        _norm_img : (float): Normalization factor for coronagraphic image
+
+        _norm_psf : (float): Normalization factor for PSF
+
+        _coronagraph: (SutraCoronagraph): Sutra coronagraph instance
+    """
+    def __init__(self, p_corono: conf.Param_corono, p_geom: conf.Param_geom, targetCompass: TargetCompass):
+        """ Initialize a coronagraph instance with generic attributes
+
+        Args:
+            p_corono: (Param_corono): Compass coronagraph parameters
+
+            p_geom: (Param_geom): Compass geometry parameters 
+
+            targetCompass: (TargetCompass): Compass Target used as input for the coronagraph
+        """
         self._spupil = p_geom.get_spupil()
         self._pupdiam = self._spupil.shape[0]
         self._dim_image = p_corono._dim_image
         self._p_corono = p_corono
+        self._target = targetCompass
 
-        self.image_se = np.zeros((self._dim_image, self._dim_image)) # Short exposure image
-        self.image_le = np.zeros((self._dim_image, self._dim_image)) # Long exposure image
-        self.psf_se = np.zeros((self._dim_image, self._dim_image))  # Short exposure PSF
-        self.psf_le = np.zeros((self._dim_image, self._dim_image))  # Long exposure PSF
-        self.cnt = 0
+        self._image_se = np.zeros((self._dim_image, self._dim_image)) # Short exposure image
+        self._image_le = np.zeros((self._dim_image, self._dim_image)) # Long exposure image
+        self._psf_se = np.zeros((self._dim_image, self._dim_image))  # Short exposure PSF
+        self._psf_le = np.zeros((self._dim_image, self._dim_image))  # Long exposure PSF
+        self._norm_img = 1
+        self._norm_psf = 1
+        self._cnt = 0
 
-        self._aberrations = 0
-        self._ab_buffer = None
-        self._ab_cnt = 0
+        self._coronagraph = None
 
     @abstractmethod
-    def compute_image(self):
+    def compute_image(self, *, accumulate: bool=True):
+        """ Compute the SE coronagraphic image, and accumulate it in the LE image
+
+        Args:
+            accumulate: (bool, optional): If True (default), the computed SE image is accumulated in 
+                                            long exposure
+        """
         pass
 
-    def get_image(self, *, expo_type="le"):
-        """ Return the coronographic image
+    def get_image(self, *, expo_type:str=scons.ExposureType.LE):
+        """ Return the coronagraphic image
 
         Args:
-            expo_type: (str, optional): If "le" (default), return the long exposure image. If "se", return the short exposure one.
+            expo_type: (str, optional): If "le" (default), returns the long exposure image.
+                                        If "se", returns short exposure one.
+        
+        Return:
+            img: (np.ndarra[ndim=2,dtype=np.float32]): coronagraphic image
         """
-        if(expo_type == "le"):
-            if (self.cnt):
-                img = self.image_le / self.cnt
-            else:
-                img = self.image_le
-        if(expo_type == "se"):
-            img = self.image_se
-        return img
+        if expo_type == scons.ExposureType.LE:
+            img = np.array(self._coronagraph.d_image_le) / self._coronagraph.cnt
+        if expo_type == scons.ExposureType.SE:
+            img = np.array(self._coronagraph.d_image_se)
+        return img / self._norm_img
 
-    def get_psf(self, *, expo_type="le"):
-        """ Return the PSF, i.e. the intensity without focal plane mask
+    def get_psf(self, *, expo_type:str=scons.ExposureType.LE):
+        """ Return the psf
 
         Args:
-            expo_type: (str, optional): If "le" (default), return the long exposure psf. If "se", return the short exposure one.
+            expo_type: (str, optional): If "le" (default), returns the long exposure psf.
+                                        If "se", returns short exposure one.
+        
+        Return:
+            img: (np.ndarra[ndim=2,dtype=np.float32]): psf
         """
-        if(expo_type == "le"):
-            if (self.cnt):
-                psf = self.psf_le / self.cnt
-            else:
-                psf = self.psf_le
-        if(expo_type == "se"):
-            psf = self.psf_se
-        return psf
+        if expo_type == scons.ExposureType.LE:
+            img = np.array(self._coronagraph.d_psf_le) / self._coronagraph.cnt
+        if expo_type == scons.ExposureType.SE:
+            img = np.array(self._coronagraph.d_psf_se)
+        return img / self._norm_psf
 
-    def reset(self):  # add a reset_abb option ?
+    def reset(self):
         """ Reset long exposure image and PSF
         """
-        self.image_le *= 0
-        self.psf_le *= 0
-        self.cnt = 0
+        self._coronagraph.reset()
 
-    def set_aberrations(self, aberrations):
-        if len(aberrations.shape) == 2:
-            ab_buffer = np.zeros(aberrations.shape + (1,))
-            ab_buffer[:, :, 0] = aberrations[:, :]
-        self._ab_buffer = ab_buffer
-        self._ab_cnt = 0
-
-    def reset_aberrations(self):
-        self._ab_buffer = None
-        self._aberrations = 0
-        self._ab_cnt = 0
-
-    def get_aberrations(self):
-        return self._ab_buffer
-
-    def _update_aberrations_buffer(self):
-        if self._ab_buffer is not None:
-            index = self._ab_cnt % self._ab_buffer.shape[2]
-            self._aberrations = self._ab_buffer[:, :, index]
-            self._ab_cnt += 1
-
-    def get_contrast(self, *, expo_type='le', d_min=None, d_max=None, width=None, normalized_by_psf=True):
+    def get_contrast(self, *, expo_type=scons.ExposureType.LE, d_min=None, d_max=None, width=None, normalized_by_psf=True):
         """ Computes average, standard deviation, minimum and maximum of coronagraphic
         image intensity, over rings at several angular distances from the optical axis.
 
@@ -141,3 +163,11 @@ class GenericCoronagraph(ABC):
         distances, mean, std, mini, maxi = compute_contrast(image, center, d_min, d_max, width)
         angular_distances = distances / image_sampling
         return angular_distances, mean, std, mini, maxi
+
+    def set_electric_field_amplitude(self, amplitude:np.ndarray):
+        """ Set the amplitude of the electric field
+
+        Args:
+            amplitude: (np.ndarray): amplitude
+        """
+        self._coronagraph.set_amplitude(amplitude)

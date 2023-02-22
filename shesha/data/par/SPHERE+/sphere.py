@@ -127,7 +127,14 @@ p_controller0.set_loopdata_name("compass1_loopData")
 
 p_corono = conf.Param_corono()
 
-p_corono.set_type("SPHERE_APLC")
+# p_corono.set_type("SPHERE_APLC")
+# p_corono.set_wavelength_0(1667e-9)
+# p_corono.set_delta_wav(54e-9)
+# p_corono.set_nb_wav(3)
+
+p_corono.set_type("perfect")
 p_corono.set_wavelength_0(1667e-9)
+p_corono.set_dim_image(256)
+p_corono.set_image_sampling(1667e-9 / 8 * 180 / np.pi * 3600 * 1000 / 12.25)
 p_corono.set_delta_wav(54e-9)
 p_corono.set_nb_wav(3)

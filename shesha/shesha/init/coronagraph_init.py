@@ -3,7 +3,7 @@ import numpy as np
 import astropy.io.fits as pfits
 import shesha.config as conf
 import shesha.constants as scons
-import shesha.supervisor.components.coronagraph.coronagraph_utils as util
+import shesha.util.coronagraph_utils as util
 
 # ---------------------------------- #
 #      Initialization functions      #
@@ -89,9 +89,10 @@ def init_apodizer(p_corono: conf.Param_corono, pupdiam):
         apodizer = np.ones((pupdiam, pupdiam))
     elif isinstance(p_corono._apodizer_name, str):
         if not os.path.exists(p_corono._apodizer_name):
-            raise ValueError("apodizer keyword (or path) '{p_corono._apodizer_name}'",
-                             "is not a known keyword (or path)")
-        apodizer = pfits.getdata(p_corono._apodizer)
+            error_string = "apodizer keyword (or path) '{}'".format(p_corono._apodizer_name) \
+                         + " is not a known keyword (or path)"
+            raise ValueError(error_string)
+        apodizer = pfits.getdata(p_corono._apodizer_name)
     else:
         raise TypeError('apodizer name should be a string')
     p_corono.set_apodizer(apodizer)
@@ -115,6 +116,8 @@ def init_focal_plane_mask(p_corono: conf.Param_corono):
         lambda_over_D = p_corono._wavelength_0 / VLT_pupil_diameter  # [rad]
         fpm_radius = fpm_radius_in_mas / (lambda_over_D * 180 / np.pi * 3600 * 1000)  # [lambda/D]
         p_corono.set_lyot_fpm_radius(fpm_radius)
+    else:
+        classical_lyot = False
 
     if classical_lyot:
         p_corono.set_babinet_trick(True)
@@ -130,15 +133,17 @@ def init_focal_plane_mask(p_corono: conf.Param_corono):
 
     elif isinstance(p_corono._focal_plane_mask_name, str):
         if not os.path.exists(p_corono._focal_plane_mask_name):
-            raise ValueError("focal plane mask keyword (or path) '{p_corono._focal_plane_mask_name}'",
-                             "is not a known keyword (or path)")
+            error_string = "focal plane mask keyword (or path) '{}'".format(p_corono._focal_plane_mask_name) \
+                         + " is not a known keyword (or path)"
+            raise ValueError(error_string)
         fpm_array = pfits.getdata(p_corono._focal_plane_mask_name)
         p_corono.set_dim_fpm(fpm_array.shape[0])
+        print(p_corono._dim_fpm)
         if p_corono._fpm_sampling == None:
             p_corono.set_fpm_sampling(p_corono._image_sampling)
-        if len(fpm_array.shape == 2):
+        if len(fpm_array.shape) == 2:
             fpm = [fpm_array] * p_corono._nb_wav
-        elif len(fpm_array.shape == 3):
+        elif len(fpm_array.shape) == 3:
             fpm = []
             for i in range(p_corono._nb_wav):
                 fpm.append(fpm_array[:, :, i])
@@ -153,9 +158,10 @@ def init_lyot_stop(p_corono: conf.Param_corono, pupdiam):
         lyot_stop = np.ones((pupdiam, pupdiam))
     elif isinstance(p_corono._lyot_stop_name, str):
         if not os.path.exists(p_corono._lyot_stop_name):
-            raise ValueError("Lyot stop keyword (or path) '{p_corono._lyot_stop_name}'",
-                             "is not a known keyword (or path)")
-        lyot_stop = pfits.getdata(p_corono._lyot_stop)
+            error_string = "Lyot stop keyword (or path) '{}'".format(p_corono._lyot_stop_name) \
+                         + " is not a known keyword (or path)"
+            raise ValueError(error_string)
+        lyot_stop = pfits.getdata(p_corono._lyot_stop_name)
     else:
         raise TypeError('Lyot stop name should be a string')
     p_corono.set_lyot_stop(lyot_stop)

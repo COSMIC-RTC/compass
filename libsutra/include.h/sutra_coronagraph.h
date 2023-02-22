@@ -36,6 +36,8 @@ class SutraCoronagraph {
         CarmaContext *current_context;
         CarmaObj<float> *d_image_se;
         CarmaObj<float> *d_image_le;
+        CarmaObj<float> *d_psf_se;
+        CarmaObj<float> *d_psf_le;
         CarmaObj<float> *d_amplitude;
 
         CarmaObj<cuFloatComplex> *d_electric_field;
@@ -47,17 +49,19 @@ class SutraCoronagraph {
     public:
         virtual ~SutraCoronagraph()=default;
         virtual int compute_image(bool accumulate) = 0;
+        virtual int compute_psf(bool accumulate) = 0;
         int reset();
         int compute_electric_field(int wavelengthIndex);
+        int set_amplitude(float* amplitude);
+        
     protected:
-        virtual int propagate() = 0;
         SutraCoronagraph(CarmaContext *context, std::string type, SutraSource *d_source, 
                             int dimx, int dimy,float *wavelength, int nWavelength, int device);
         int mft(CarmaObj<cuFloatComplex> *A, CarmaObj<cuFloatComplex> *B, 
                 CarmaObj<cuFloatComplex> *Ainput,
                 CarmaObj<cuFloatComplex> *input, CarmaObj<cuFloatComplex> *output, float norm);
 
-}
+};
 
 int compute_electric_field(cuFloatComplex *electric_field, float* phase_opd, float scale, 
                             float* amplitude, float* mask, int dimx, int dimy, CarmaDevice *device);

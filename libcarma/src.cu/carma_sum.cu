@@ -17,6 +17,7 @@
 #include <carma_obj.h>
 #include <thrust/device_ptr.h>
 #include <thrust/reduce.h>
+#include <thrust/complex.h>
 #include "carma_utils.cuh"
 
 /*
@@ -308,8 +309,10 @@ uint16_t reduce<uint16_t>(uint16_t *data, int N) {
 }
 template <>
 cuFloatComplex reduce<cuFloatComplex>(cuFloatComplex *data, int N) {
-  DEBUG_TRACE("Not implemented for this data type");
-  return make_cuComplex(0, 0);
+  thrust::device_ptr<thrust::complex<float>> dev_ptr(reinterpret_cast<thrust::complex<float>*>(data));
+  thrust::complex<float> result = thrust::reduce(dev_ptr, dev_ptr + N);
+  cuFloatComplex* sum = reinterpret_cast<cuFloatComplex*>(&result);
+  return *sum;
 }
 
 template <>
