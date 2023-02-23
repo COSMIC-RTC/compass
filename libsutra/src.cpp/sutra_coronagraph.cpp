@@ -25,7 +25,8 @@ SutraCoronagraph::SutraCoronagraph(CarmaContext *context, std::string type, Sutr
     d_source(d_source),
     imageDimx(dimx),
     imageDimy(dimy),
-    cnt(0) {
+    cntPsf(0),
+    cntImg(0) {
     current_context->set_active_device(device, 1);
     long dims[3] = {2, dimx, dimy};
     d_image_se = new CarmaObj<float>(current_context, dims);
@@ -50,7 +51,8 @@ int SutraCoronagraph::reset() {
     d_image_le->reset();
     d_psf_se->reset();
     d_psf_le->reset();
-    cnt = 0;
+    cntPsf = 0;
+    cntImg = 0;
     return EXIT_SUCCESS;
 }
 

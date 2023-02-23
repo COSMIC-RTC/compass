@@ -40,6 +40,7 @@ pybind11_add_module(sutraWrap MODULE
     src/groot.cpp
     src/coronagraph.cpp
     src/perfect_coronagraph.cpp
+    src/stellar_coronagraph.cpp
     src/sutraWrap.cpp
     ${BRAHMA_CPP}
 )

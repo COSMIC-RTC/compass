@@ -156,7 +156,7 @@ class PerfectCoronagraphCompass(GenericCoronagraph):
         """
         self._target.reset_tar_phase(0)
         self.compute_psf(accumulate=False)
-        self._norm_img = np.max(self.get_psf(expo_type="se"))
+        self._norm_img = np.max(self.get_psf(expo_type=scons.ExposureType.SE))
         self._norm_psf = self._norm_img
 
     def _compute_image(self, input_opd: np.array, *, accumulate: bool = True):
@@ -174,24 +174,3 @@ class PerfectCoronagraphCompass(GenericCoronagraph):
             self._cnt += 1
             self._image_le += self._image_se
             self._psf_le += self._psf_se
-
-    def compute_image(self, comp_psf: bool=True, accumulate: bool = True):
-        """ Compute the SE coronagraphic image, and accumulate it in the LE image
-
-        Args:
-            comp_psf: (bool, optionnal): If True (default), also compute the PSF SE & LE
-            accumulate: (bool, optional): If True (default), the computed SE image is accumulated in 
-                                            long exposure
-        """
-        self._coronagraph.compute_image(accumulate=accumulate)
-        if comp_psf:
-            self.compute_psf(accumulate=accumulate)
-
-    def compute_psf(self, accumulate: bool = True):
-        """ Compute the SE psf, and accumulate it in the LE image
-
-        Args:
-            accumulate: (bool, optional): If True (default), the computed SE psf is accumulated in 
-                                            long exposure
-        """
-        self._coronagraph.compute_psf(accumulate=accumulate)

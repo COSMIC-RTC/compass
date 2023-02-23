@@ -79,5 +79,25 @@ int accumulate_abs2(cuFloatComplex *img, float* abs2img, int N, CarmaDevice *dev
   accumulate_abs2_krnl<<<grid, threads>>>(img, abs2img, N);
 
   return EXIT_SUCCESS;
+}
+
+__global__ void apply_mask_krnl(cuFloatComplex *electric_field, float* mask, int N) {
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  while (tid < N) {
+    float cache = mask[tid];
+    electric_field[tid].x *= cache;
+    electric_field[tid].y *= cache;
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+int apply_mask(cuFloatComplex *electric_field, float* mask, int N, CarmaDevice *device) {
+  int nBlocks, nThreads;
+  get_num_blocks_and_threads(device, N, nBlocks, nThreads);
+  dim3 grid(nBlocks), threads(nThreads);
+
+  apply_mask_krnl<<<grid, threads>>>(electric_field, mask, N);
+
+  return EXIT_SUCCESS;
 
 }

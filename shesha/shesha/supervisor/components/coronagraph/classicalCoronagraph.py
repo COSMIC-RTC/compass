@@ -1,15 +1,19 @@
 import numpy as np
 import shesha.config as conf
+import shesha.constants as scons
 from shesha.supervisor.components.coronagraph.genericCoronagraph import GenericCoronagraph
 from shesha.init.coronagraph_init import init_coronagraph, init_mft, mft_multiplication
-
+from shesha.supervisor.components.targetCompass import TargetCompass
+from sutraWrap import StellarCoronagraph
+from carmaWrap import context
 class ClassicalCoronagraph(GenericCoronagraph):
     """ Class supervising coronagraph component
     """
-    def __init__(self, p_corono: conf.Param_corono, p_geom: conf.Param_geom):
+    def __init__(self, context: context, targetCompass: TargetCompass, p_corono: conf.Param_corono, 
+                 p_geom: conf.Param_geom):
 
         init_coronagraph(p_corono, p_geom.pupdiam)
-        GenericCoronagraph.__init__(self, p_corono, p_geom)
+        GenericCoronagraph.__init__(self, p_corono, p_geom, targetCompass)
         self._wav_vec = p_corono._wav_vec
 
         self._AA_apod_to_fpm, self._BB_apod_to_fpm, self._norm0_apod_to_fpm = init_mft(self._p_corono,
@@ -25,6 +29,33 @@ class ClassicalCoronagraph(GenericCoronagraph):
                                                                                                    self._pupdiam,
                                                                                                    planes='lyot_to_image',
                                                                                                    center_on_pixel=True)
+        self._coronagraph = StellarCoronagraph(context, self._target.sources[0], 
+                                               self._dim_image, self._dim_image, 
+                                               self._p_corono._dim_fpm, self._p_corono._dim_fpm, 
+                                               self._wav_vec, self._wav_vec.size, 
+                                               self._p_corono._babinet_trick, 0)
+        
+        AA = np.rollaxis(np.array(self._AA_lyot_to_image), 0, self._wav_vec.size)
+        BB = np.rollaxis(np.array(self._BB_lyot_to_image), 0, self._wav_vec.size)
+        AA_c = np.rollaxis(np.array(self._AA_lyot_to_image_c), 0, self._wav_vec.size)
+        BB_c = np.rollaxis(np.array(self._BB_lyot_to_image_c), 0, self._wav_vec.size)
+        AA_fpm = np.rollaxis(np.array(self._AA_apod_to_fpm), 0, self._wav_vec.size)
+        BB_fpm = np.rollaxis(np.array(self._BB_apod_to_fpm), 0, self._wav_vec.size)
+        AA_lyot = np.rollaxis(np.array(self._AA_fpm_to_lyot), 0, self._wav_vec.size)
+        BB_lyot = np.rollaxis(np.array(self._BB_fpm_to_lyot), 0, self._wav_vec.size)
+        
+        self._coronagraph.set_mft(AA, BB, self._norm0_lyot_to_image, scons.MftType.IMG)
+        self._coronagraph.set_mft(AA_c, BB_c, self._norm0_lyot_to_image_c, scons.MftType.PSF)
+        self._coronagraph.set_mft(AA_fpm, BB_fpm, self._norm0_apod_to_fpm, scons.MftType.FPM)
+        self._coronagraph.set_mft(AA_lyot, BB_lyot, self._norm0_fpm_to_lyot, scons.MftType.LYOT)
+
+        self._coronagraph.set_apodizer(self._p_corono._apodizer)
+        self._coronagraph.set_lyot_stop(self._p_corono._lyot_stop)
+        fpm = np.rollaxis(np.array(self._p_corono._focal_plane_mask), 0, self._wav_vec.size)
+        if self._p_corono._babinet_trick:
+            fpm = 1. - fpm
+        self._coronagraph.set_focal_plane_mask(fpm)
+
         self._compute_normalization()
 
     def _compute_electric_field(self, input_opd, wavelength):
@@ -34,7 +65,7 @@ class ClassicalCoronagraph(GenericCoronagraph):
 
             wavelength: (float): Wavelength in meter
         """
-        phase = (input_opd + self._aberrations) * 1e-6 * 2 * np.pi / wavelength
+        phase = input_opd * 2 * np.pi / wavelength
         electric_field = np.exp(1j * phase)
         return electric_field
 
@@ -107,17 +138,26 @@ class ClassicalCoronagraph(GenericCoronagraph):
             psf_intensity += np.abs(psf_electric_field)**2
         return psf_intensity
 
-    def _compute_normalization(self):
+    def _compute_normalization_cpu(self):
         """ Compute the normalization factor of coronagraphic images
         """
         input_opd = np.zeros((self._pupdiam, self._pupdiam))
 
-        self._norm_image = np.max(self._propagate_through_coro(input_opd,
+        self._norm_img = np.max(self._propagate_through_coro(input_opd,
                                                                no_fpm=True,
                                                                center_on_pixel=True))
         self._norm_psf = np.max(self._compute_psf(input_opd))
 
-    def compute_image(self, input_opd: np.array, *, accumulate: bool = True):
+    def _compute_normalization(self):
+        """ Compute the normalization factor of coronagraphic images
+        """
+        self._target.reset_tar_phase(0)
+        self._coronagraph.compute_image_normalization()
+        self._norm_img = np.max(self.get_image(expo_type=scons.ExposureType.SE))
+        self.compute_psf(accumulate=False)
+        self._norm_psf = np.max(self.get_psf(expo_type=scons.ExposureType.SE))
+
+    def _compute_image(self, *, accumulate: bool = True):
         """ Computes the coronographic image from input phase given as OPD
 
         Args:
@@ -125,12 +165,10 @@ class ClassicalCoronagraph(GenericCoronagraph):
 
             accumulate: (bool, optional): If True (default), the computed image is added to the the long exposure image.
         """
-        self._update_aberrations_buffer()
-
-        self.image_se = self._propagate_through_coro(input_opd) / self._norm_image
-        self.psf_se = self._compute_psf(input_opd) / self._norm_psf
+        self._image_se = self._propagate_through_coro(self._target.get_tar_phase(0)) / self._norm_img
+        self._psf_se = self._compute_psf(self._target.get_tar_phase(0)) / self._norm_psf
 
         if(accumulate):
-            self.cnt += 1
-            self.image_le += self.image_se
-            self.psf_le += self.psf_se
+            self._cnt += 1
+            self._image_le += self._image_se
+            self._psf_le += self._psf_se

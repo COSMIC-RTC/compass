@@ -36,8 +36,12 @@ void declare_coronagraph(py::module &mod) {
           "type", [](SutraCoronagraph &sc) { return sc.type; }, "Coronagraph type")
 
       .def_property_readonly(
-          "cnt", [](SutraCoronagraph &sc) { return sc.cnt; },
-          "Accumulation counter")
+          "cntPsf", [](SutraCoronagraph &sc) { return sc.cntPsf; },
+          "Accumulation counter of psf")
+
+      .def_property_readonly(
+          "cntImg", [](SutraCoronagraph &sc) { return sc.cntImg; },
+          "Accumulation counter of coronagraphic images")
 
       .def_property_readonly(
           "imageDimx", [](SutraCoronagraph &sc) { return sc.imageDimx; },

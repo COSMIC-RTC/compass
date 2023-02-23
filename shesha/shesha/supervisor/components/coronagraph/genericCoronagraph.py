@@ -59,16 +59,27 @@ class GenericCoronagraph(ABC):
 
         self._coronagraph = None
 
-    @abstractmethod
-    def compute_image(self, *, accumulate: bool=True):
+    def compute_image(self, *, comp_psf: bool = True, accumulate: bool = True):
         """ Compute the SE coronagraphic image, and accumulate it in the LE image
 
         Args:
+            comp_psf: (bool, optionnal): If True (default), also compute the PSF SE & LE
             accumulate: (bool, optional): If True (default), the computed SE image is accumulated in 
                                             long exposure
         """
-        pass
+        self._coronagraph.compute_image(accumulate=accumulate)
+        if comp_psf:
+            self.compute_psf(accumulate=accumulate)
 
+    def compute_psf(self, *, accumulate: bool = True):
+        """ Compute the SE psf, and accumulate it in the LE image
+
+        Args:
+            accumulate: (bool, optional): If True (default), the computed SE psf is accumulated in 
+                                            long exposure
+        """
+        self._coronagraph.compute_psf(accumulate=accumulate)
+        
     def get_image(self, *, expo_type:str=scons.ExposureType.LE):
         """ Return the coronagraphic image
 
@@ -80,7 +91,7 @@ class GenericCoronagraph(ABC):
             img: (np.ndarra[ndim=2,dtype=np.float32]): coronagraphic image
         """
         if expo_type == scons.ExposureType.LE:
-            img = np.array(self._coronagraph.d_image_le) / self._coronagraph.cnt
+            img = np.array(self._coronagraph.d_image_le) / self._coronagraph.cntImg
         if expo_type == scons.ExposureType.SE:
             img = np.array(self._coronagraph.d_image_se)
         return img / self._norm_img
@@ -96,7 +107,7 @@ class GenericCoronagraph(ABC):
             img: (np.ndarra[ndim=2,dtype=np.float32]): psf
         """
         if expo_type == scons.ExposureType.LE:
-            img = np.array(self._coronagraph.d_psf_le) / self._coronagraph.cnt
+            img = np.array(self._coronagraph.d_psf_le) / self._coronagraph.cntPsf
         if expo_type == scons.ExposureType.SE:
             img = np.array(self._coronagraph.d_psf_se)
         return img / self._norm_psf

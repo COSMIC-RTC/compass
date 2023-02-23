@@ -184,7 +184,7 @@ class CompassSupervisor(GenericSupervisor):
         """
         if(self.config.p_corono._type == scons.CoronoType.CUSTOM) or (self.config.p_corono._type == scons.CoronoType.SPHERE_APLC):
             from shesha.supervisor.components.coronagraph.classicalCoronagraph import ClassicalCoronagraph
-            self.corono = ClassicalCoronagraph(self.config.p_corono, self.config.p_geom)
+            self.corono = ClassicalCoronagraph(self.context, self.target, self.config.p_corono, self.config.p_geom)
 
         elif(self.config.p_corono._type == scons.CoronoType.PERFECT):
             from shesha.supervisor.components.coronagraph.perfectCoronagraph import PerfectCoronagraphCompass

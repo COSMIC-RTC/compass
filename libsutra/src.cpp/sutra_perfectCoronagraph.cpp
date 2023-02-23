@@ -21,12 +21,19 @@ SutraPerfectCoronagraph::SutraPerfectCoronagraph(CarmaContext *context, SutraSou
                                     int device):
     SutraCoronagraph(context, "perfect", d_source, im_dimx, im_dimy, wavelength, nWavelength, device),
     tmp_mft(nullptr) {
-        AA["img"] = std::vector<CarmaObj<cuFloatComplex>*>(nWavelength, nullptr);
-        AA["psf"] = std::vector<CarmaObj<cuFloatComplex>*>(nWavelength, nullptr);
-        BB["img"] = std::vector<CarmaObj<cuFloatComplex>*>(nWavelength, nullptr);
-        BB["psf"] = std::vector<CarmaObj<cuFloatComplex>*>(nWavelength, nullptr);
-        norm["img"] = std::vector<float>(nWavelength, 1);
-        norm["psf"] = std::vector<float>(nWavelength, 1);
+
+        AA = {
+            {"img", std::vector<CarmaObj<cuFloatComplex>*>(nWavelength, nullptr)},
+            {"psf", std::vector<CarmaObj<cuFloatComplex>*>(nWavelength, nullptr)}
+        };
+        BB = {
+            {"img", std::vector<CarmaObj<cuFloatComplex>*>(nWavelength, nullptr)},
+            {"psf", std::vector<CarmaObj<cuFloatComplex>*>(nWavelength, nullptr)}
+        };
+        norm = {
+            {"img", std::vector<float>(nWavelength, 1)},
+            {"psf", std::vector<float>(nWavelength, 1)}
+        };
     }
 
 int SutraPerfectCoronagraph::set_mft(cuFloatComplex *A, cuFloatComplex *B, float* norm0, 
@@ -59,15 +66,15 @@ int SutraPerfectCoronagraph::set_mft(cuFloatComplex *A, cuFloatComplex *B, float
 int SutraPerfectCoronagraph::_compute_image(bool psf, bool accumulate, bool remove_coro) {
     CarmaObj<float> *img_se = d_image_se;
     CarmaObj<float> *img_le = d_image_le;
-    std::vector<CarmaObj<cuFloatComplex>*> *mftA = &(AA["img"]);
-    std::vector<CarmaObj<cuFloatComplex>*> *mftB = &(BB["img"]);
-    std::vector<float> *mftNorm = &(norm["img"]);
+    std::vector<CarmaObj<cuFloatComplex>*> mftA = AA["img"];
+    std::vector<CarmaObj<cuFloatComplex>*> mftB = BB["img"];
+    std::vector<float> mftNorm = norm["img"];
     if (psf) {
         img_se = d_psf_se;
         img_le = d_psf_le;
-        mftA = &(AA["psf"]);
-        mftB = &(BB["psf"]);
-        mftNorm = &(norm["psf"]);
+        mftA = AA["psf"];
+        mftB = BB["psf"];
+        mftNorm = norm["psf"];
     }
 
     img_se->reset();
@@ -79,14 +86,17 @@ int SutraPerfectCoronagraph::_compute_image(bool psf, bool accumulate, bool remo
                             d_pupil->get_data(), d_source->d_wherephase->get_nb_elements(),
                             pupDimx, pupDimy, current_context->get_device(device));
         }
-        mft((*mftA)[i], (*mftB)[i], tmp_mft, d_electric_field, d_complex_image, (*mftNorm)[i]);
+        mft(mftA[i], mftB[i], tmp_mft, d_electric_field, d_complex_image, mftNorm[i]);
         accumulate_abs2(d_complex_image->get_data(), img_se->get_data(), 
                         img_se->get_nb_elements(), current_context->get_device(device));
     }
 
     if(accumulate) {
         img_le->axpy(1.0f, img_se, 1, 1);
-        cnt += 1;
+        if(psf)
+            cntPsf += 1;
+        else 
+            cntImg += 1;
     }
     return EXIT_SUCCESS;
 }

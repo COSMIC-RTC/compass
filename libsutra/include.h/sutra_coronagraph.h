@@ -27,7 +27,8 @@ class SutraCoronagraph {
     public:
         int device;
         std::string type;
-        long cnt;
+        long cntPsf;
+        long cntImg;
         int imageDimx;
         int imageDimy;
         int pupDimx;
@@ -68,4 +69,5 @@ int compute_electric_field(cuFloatComplex *electric_field, float* phase_opd, flo
 int remove_complex_avg(cuFloatComplex *electric_field, cuFloatComplex sum, float* mask, int Nvalid, 
                         int dimx, int dimy, CarmaDevice *device);
 int accumulate_abs2(cuFloatComplex *img, float* abs2img, int N, CarmaDevice *device);
+int apply_mask(cuFloatComplex *electric_field, float* mask, int N, CarmaDevice *device);
 #endif //_SUTRA_CORONAGRAPH_H_
