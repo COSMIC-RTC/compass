@@ -6,11 +6,76 @@ from shesha.init.coronagraph_init import init_coronagraph, init_mft, mft_multipl
 from shesha.supervisor.components.targetCompass import TargetCompass
 from sutraWrap import StellarCoronagraph
 from carmaWrap import context
-class ClassicalCoronagraph(GenericCoronagraph):
-    """ Class supervising coronagraph component
+class StellarCoronagraph(GenericCoronagraph):
+    """ Class supervising stellar coronagraph component
+
+    Attributes:
+        _image_se: (np.ndarray[ndim=2, dtype=np.float32]): Short exposure coronagraphic image
+
+        _image_le: (np.ndarray[ndim=2, dtype=np.float32]): Long exposure coronagraphic image
+
+        _psf_se: (np.ndarray[ndim=2, dtype=np.float32]): Long exposure PSF
+
+        _psf_le: (np.ndarray[ndim=2, dtype=np.float32]): Long exposure PSF
+
+        _spupil: (np.ndarray[ndim=2, dtype=np.float32]): Telescope pupil mask
+
+        _pupdiam : (int): Number of pixels along the pupil diameter
+
+        _dim_image :(int): Coronagraphic image dimension
+
+        _p_corono: (Param_corono): Coronagraph parameters
+
+        _target: (TargetCompass): Compass Target used as input for the coronagraph
+
+        _norm_img : (float): Normalization factor for coronagraphic image
+
+        _norm_psf : (float): Normalization factor for PSF
+
+        _coronagraph: (SutraCoronagraph): Sutra coronagraph instance
+
+        _wav_vec: (np.ndarray[ndim=1, dtype=np.float32]): Vector of wavelength
+
+        _AA_apod_to_fpm: (np.ndarray[ndim=3, dtype=np.complex64]): MFT matrix for focal plane
+
+        _BB_apod_to_fpm: (np.ndarray[ndim=2, dtype=np.complex64]): MFT matrix for focal plane
+
+        _norm0_apod_to_fpm: (np.ndarray[ndim=2, dtype=np.complex64]): MFT matrix for focal plane
+
+        _AA_fpm_to_lyot: (np.ndarray[ndim=3, dtype=np.complex64]): MFT matrix for lyot plane
+
+        _BB_fpm_to_lyot: (np.ndarray[ndim=2, dtype=np.complex64]): MFT matrix for lyot plane
+
+        _norm0_fpm_to_lyot: (np.ndarray[ndim=2, dtype=np.complex64]): MFT matrix for lyot plane
+
+        _AA_lyot_to_image_c: (np.ndarray[ndim=2, dtype=np.complex64]): MFT matrix for image computation (centered on pixel)
+
+        _BB_lyot_to_image_c: (np.ndarray[ndim=2, dtype=np.complex64]): MFT matrix for psf computation (centered on pixel)
+        
+        _norm0_lyot_to_image_c: (np.ndarray[ndim=2, dtype=np.complex64]): MFT matrix for psf computation (centered on pixel)
+
+        _AA_lyot_to_image: (np.ndarray[ndim=2, dtype=np.complex64]): MFT matrix for image computation
+
+        _BB_lyot_to_image: (np.ndarray[ndim=2, dtype=np.complex64]): MFT matrix for psf computation
+        
+        _norm0_lyot_to_image: (np.ndarray[ndim=2, dtype=np.complex64]): MFT matrix for psf computation
+
+        _indices_pup: (tuple): Tuple of ndarray containing X and Y indices of illuminated 
+                                pixels in the pupil
     """
     def __init__(self, context: context, targetCompass: TargetCompass, p_corono: conf.Param_corono, 
                  p_geom: conf.Param_geom):
+        """ Initialize a stellar coronagraph instance
+
+        Args:
+            context: (CarmaWrap.context): GPU context
+
+            targetCompass: (TargetCompass): Compass Target used as input for the coronagraph
+
+            p_corono: (Param_corono): Coronagraph parameters
+
+            p_geom: (Param_geom): Compass geometry parameters
+        """
 
         init_coronagraph(p_corono, p_geom.pupdiam)
         GenericCoronagraph.__init__(self, p_corono, p_geom, targetCompass)

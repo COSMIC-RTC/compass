@@ -38,17 +38,17 @@ class PerfectCoronagraphCompass(GenericCoronagraph):
 
         _wav_vec: (np.ndarray[ndim=1, dtype=np.float32]): Vector of wavelength
 
-        _AA: (np.ndarray[ndim=2, dtype=np.complex64]): MFT matrix for image computation
+        _AA: (np.ndarray[ndim=3, dtype=np.complex64]): MFT matrix for image computation
 
-        _BB: (np.ndarray[ndim=2, dtype=np.complex64]): MFT matrix for image computation
+        _BB: (np.ndarray[ndim=3, dtype=np.complex64]): MFT matrix for image computation
 
-        _norm0: (np.ndarray[ndim=2, dtype=np.complex64]): MFT matrix for image computation
+        _norm0: (np.ndarray[ndim=3, dtype=np.complex64]): MFT matrix for image computation
 
-        _AA_c: (np.ndarray[ndim=2, dtype=np.complex64]): MFT matrix for image computation
+        _AA_c: (np.ndarray[ndim=3, dtype=np.complex64]): MFT matrix for image computation
 
-        _BB_c: (np.ndarray[ndim=2, dtype=np.complex64]): MFT matrix for psf computation
+        _BB_c: (np.ndarray[ndim=3, dtype=np.complex64]): MFT matrix for psf computation
         
-        _norm0_c: (np.ndarray[ndim=2, dtype=np.complex64]): MFT matrix for psf computation
+        _norm0_c: (np.ndarray[ndim=3, dtype=np.complex64]): MFT matrix for psf computation
 
         _indices_pup: (tuple): Tuple of ndarray containing X and Y indices of illuminated 
                                 pixels in the pupil
@@ -62,9 +62,9 @@ class PerfectCoronagraphCompass(GenericCoronagraph):
 
             targetCompass: (TargetCompass): Compass Target used as input for the coronagraph
 
-            p_geom: (Param_geom): Compass geometry parameters
-
             p_corono: (Param_corono): Coronagraph parameters
+
+            p_geom: (Param_geom): Compass geometry parameters
         """
         init_coronagraph(p_corono, p_geom.pupdiam)
         GenericCoronagraph.__init__(self, p_corono, p_geom, targetCompass)
