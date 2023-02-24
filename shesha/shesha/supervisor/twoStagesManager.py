@@ -155,6 +155,8 @@ class TwoStagesManager(object):
         # WFS exposure is always reset (default).
         self.second_stage.next(move_atmos=False, do_control=do_control) 
         # SECOND STAGE IS DONE.
+        self.iterations += 1
+
     def enable_corono(self, stage=None):
         """ Enable coronagraphic image computation for both stages.
 

@@ -12,7 +12,7 @@ import shesha.config as conf
 import numpy as np
 
 #simul_name = "sphere+"
-layout = "layoutDeSpherePlus"
+#layout = "layoutDeSpherePlus"
 
 # loop
 p_loop = conf.Param_loop()
@@ -88,8 +88,8 @@ p_dm0.set_alt(0.)               # /!\
 p_dm0.set_unitpervolt(1.)       # /!\
 p_dm0.set_push4imat(1.0e-3)
 # select Boston 24x24 or 32x32
-p_dm0.set_file_influ_fits('Boston24x24.fits')   # /?\ Boston 24*24 or Boston 32*32
-# p_dm0.set_file_influ_fits('Boston32x32.fits')
+# p_dm0.set_file_influ_fits('Boston24x24.fits')   # /?\ Boston 24*24 or Boston 32*32
+p_dm0.set_file_influ_fits('Boston32x32.fits')
 
 # centroiders
 p_centroider0 = conf.Param_centroider()
@@ -119,14 +119,5 @@ p_corono = conf.Param_corono()
 
 p_corono.set_type("SPHERE_APLC")
 p_corono.set_wavelength_0(1.667)
-p_corono.set_delta_wav(0.54)
+p_corono.set_delta_wav(0.054)
 p_corono.set_nb_wav(3)
-
-# p_corono.set_type("perfect")
-# p_corono.set_wavelength_0(1.667)
-# p_corono.set_dim_image(256)
-# p_corono.set_image_sampling(1667e-9 / 8 * 180 / np.pi * 3600 * 1000 / 12.25)
-# p_corono.set_delta_wav(0.54)
-# p_corono.set_nb_wav(3)
-# p_corono.set_asterix_parfile("/home/cgoulas/compass/shesha/data/par/SPHERE+/param_file_Asterix.ini")
-# p_corono.set_asterix_datadir("/raid/cgoulas/pythonData/asterixData/asterixInCompass/")

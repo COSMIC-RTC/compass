@@ -126,15 +126,41 @@ p_controller0.set_calpix_name("compass1_calPix")
 p_controller0.set_loopdata_name("compass1_loopData")
 
 p_corono = conf.Param_corono()
+"""
+CORONO PARFAIT
+
+p_corono.set_type("perfect")  # coronagraph type : "perfect", "SPHERE_APLC", "custom"
+p_corono.set_wavelength_0(1.667)  # coronagraph wavelength in micron
+p_corono.set_dim_image(250)     # size of the science image in pixel
+p_corono.set_image_sampling(2)  # number of pixel in lambda/D (2 : Shannon sampling)
+# p_corono.set_delta_wav(0.054)  # spectral bandwidth in micron (for coronagraph images only)
+# p_corono.set_nb_wav(3)        # number of simulated wavelengths in the coronagraph module
+
+# p_corono.set_image_sampling(1667e-9 / 8 * 180 / np.pi * 3600 * 1000 / 12.25)  # to match SPHERE IRDIS pixel scale
+"""
+
+"""
+CORONO APLC SPHERE
 
 p_corono.set_type("SPHERE_APLC")
 p_corono.set_wavelength_0(1.667)
-p_corono.set_delta_wav(0.54)
-p_corono.set_nb_wav(3)
+"""
 
-# p_corono.set_type("perfect")
-# p_corono.set_wavelength_0(1.667)
-# p_corono.set_dim_image(256)
-# p_corono.set_image_sampling(1667e-9 / 8 * 180 / np.pi * 3600 * 1000 / 12.25)
-# p_corono.set_delta_wav(0.54)
-# p_corono.set_nb_wav(3)
+"""
+CORONO MANUEL
+"""
+p_corono.set_type("custom")
+p_corono.set_wavelength_0(1.667)
+p_corono.set_apodizer_name('SPHERE_APLC_apodizer_APO1')  # 'SPHERE_APLC_apodizer_APO1' or path to fits file of size (pupdiam, pupdiam)
+p_corono.set_focal_plane_mask_name('classical_Lyot')  # 'classical_Lyot', "SPHERE_APLC_fpm_ALC1" or 2 or 3
+                                                      # or path to fits file of user defined size [dimx, dimy, nb_wav]
+                                                      # or [dimx, dimy] if same for all wavelength
+p_corono.set_lyot_fpm_radius(2.15)  # radius of the mask in lambda/D units (required)
+# p_corono.set_fpm_sampling()  # lambda/D size in pixel (default = 20.)
+                             # optional if classical lyot
+p_corono.set_lyot_stop_name('SPHERE_APLC_Lyot_stop')  # 'SPHERE_APLC_Lyot_stop', or path to fits file of size (pupdiam, pupdiam)
+                                                      # homogeneous to get_s_pupil() size in COMPASS
+p_corono.set_dim_image(200)
+p_corono.set_image_sampling(3)
+
+# p_corono.set_babinet_trick() # True or False for enabling Babinet propagation method
