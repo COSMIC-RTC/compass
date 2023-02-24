@@ -12,14 +12,6 @@ class PerfectCoronagraphCompass(GenericCoronagraph):
     """ Class supervising perfect coronagraph component
 
     Attributes:
-        _image_se: (np.ndarray[ndim=2, dtype=np.float32]): Short exposure coronagraphic image
-
-        _image_le: (np.ndarray[ndim=2, dtype=np.float32]): Long exposure coronagraphic image
-
-        _psf_se: (np.ndarray[ndim=2, dtype=np.float32]): Long exposure PSF
-
-        _psf_le: (np.ndarray[ndim=2, dtype=np.float32]): Long exposure PSF
-
         _spupil: (np.ndarray[ndim=2, dtype=np.float32]): Telescope pupil mask
 
         _pupdiam : (int): Number of pixels along the pupil diameter
@@ -91,66 +83,6 @@ class PerfectCoronagraphCompass(GenericCoronagraph):
         self._coronagraph.set_mft(AA_c, BB_c, self._norm0_c, scons.MftType.PSF)
         self._compute_normalization()
 
-    def _compute_electric_field(self, input_opd, wavelength):
-        """ Computes the electric field for the given OPD and wavelength (CPU version)
-
-        Args:
-            input_opd: (np.array): Input phase OPD in micron
-
-            wavelength: (float): Wavelength in meter
-        
-        Return:
-            electric_field: (np.ndarray[ndim=2, dtype=np.complex64]): Electric field
-        """
-        phase = input_opd * 2 * np.pi / wavelength
-        electric_field = np.exp(1j * phase)
-        return electric_field
-
-    def _perfect_coro(self, input_opd, center_on_pixel=False, remove_coro=False):
-        """ Applies a perfect coronagraph in the pupil plane
-        and computes intensity in the focal plane. (CPU based)
-
-        Args:
-            input_opd: (np.array): Input OPD screens
-
-            center_on_pixel: (bool, optional): If True, the image is centered on
-                one pixel. Default = False, image centered between four pixels.
-
-            remove_coro: (bool, optional): If True, returns the electric field
-            without applying a perfect coronagraph. Default = False.
-
-        Returns:
-            iamge_intensity: (np.array): Intensity in focal plane, at all wavelengths
-        """
-        image_intensity = np.zeros((self._dim_image, self._dim_image))
-
-        for i, wavelength in enumerate(self._wav_vec):
-            electric_field = self._compute_electric_field(input_opd, wavelength)
-            if remove_coro:
-                electric_field_after_coro = electric_field * self._spupil
-            else:
-                electric_field_after_coro = (electric_field - np.mean(electric_field[self._indices_pup])) * self._spupil
-            if center_on_pixel:
-                image_electric_field = mft_multiplication(electric_field_after_coro,
-                                                          self._AA_c[i],
-                                                          self._BB_c[i],
-                                                          self._norm0_c[i])
-            else:
-                image_electric_field = mft_multiplication(electric_field_after_coro,
-                                                          self._AA[i],
-                                                          self._BB[i],
-                                                          self._norm0[i])
-            image_intensity += np.abs(image_electric_field)**2
-
-        return image_intensity
-
-    def _compute_normalization_cpu(self):
-        """ Computes the normalization factor of coronagraphic images (CPU based)
-        """
-        input_opd = np.zeros((self._pupdiam, self._pupdiam))
-        self._norm_img = np.max(self._perfect_coro(input_opd, center_on_pixel=True, remove_coro=True))
-        self._norm_psf = self._norm_img
-
     def _compute_normalization(self):
         """ Computes the normalization factor of coronagraphic images (CPU based)
         """
@@ -158,19 +90,3 @@ class PerfectCoronagraphCompass(GenericCoronagraph):
         self.compute_psf(accumulate=False)
         self._norm_img = np.max(self.get_psf(expo_type=scons.ExposureType.SE))
         self._norm_psf = self._norm_img
-
-    def _compute_image(self, input_opd: np.array, *, accumulate: bool = True):
-        """ Computes the coronographic image from input phase given as OPD (CPU based)
-
-        Args:
-            input_opd: (np.array): Input phase OPD
-
-            accumulate: (bool, optional): If True (default), the computed image is added to the the long exposure image.
-        """
-        self._image_se = self._perfect_coro(input_opd) / self._norm_img
-        self._psf_se = self._perfect_coro(input_opd, center_on_pixel=True, remove_coro=True) / self._norm_psf
-
-        if(accumulate):
-            self._cnt += 1
-            self._image_le += self._image_se
-            self._psf_le += self._psf_se

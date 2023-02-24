@@ -38,10 +38,11 @@
 Widget built to simulate a 2 stage AO loop (1st stage = SH; second stage = pyramid)
 
 Usage:
-  widget_twoStages.py <parameters_filename1> <parameters_filename2>  [options]
+  widget_twoStages.py <parameters_filename1> <parameters_filename2> <freqratio> [options]
 
 with 'parameters_filename1' the path to the parameters file for first stage
 with 'parameters_filename2' the path to the parameters file for second stage
+with 'freqratio' the ratio of the frequencies of the two stages
 
 Options:
   -a, --adopt       used to connect ADOPT (via pyro + shm cacao)
@@ -74,10 +75,11 @@ server = None
 
 class widgetTwoStagesWindowPyro():
 
-    def __init__(self, config_file1: Any = None, config_file2: Any = None, cacao: bool = False,
-                 expert: bool = False) -> None:
+    def __init__(self, config_file1: Any = None, config_file2: Any = None, freqratio : int = None, 
+                 cacao: bool = False, expert: bool = False) -> None:
         self.config1 = config_file1
         self.config2 = config_file2
+        self.freqratio = freqratio
 
         from shesha.config import ParamConfig
 
@@ -111,7 +113,7 @@ class widgetTwoStagesWindowPyro():
         #                       METHODS                             #
         #############################################################
 
-        self.manager = TwoStagesManager(self.wao1.supervisor, self.wao2.supervisor)
+        self.manager = TwoStagesManager(self.wao1.supervisor, self.wao2.supervisor, self.freqratio)
         if(self.cacao):
             global server
             server = self.start_pyro_server()
@@ -295,7 +297,9 @@ if __name__ == '__main__':
     adopt = arguments["--adopt"]
     app = QtWidgets.QApplication(sys.argv)
     app.setStyle('cleanlooks')
-    wao = widgetTwoStagesWindowPyro(arguments["<parameters_filename1>"], arguments["<parameters_filename2>"], cacao=adopt)
+    wao = widgetTwoStagesWindowPyro(arguments["<parameters_filename1>"], 
+                                    arguments["<parameters_filename2>"], 
+                                    arguments["<freqratio>"], cacao=adopt)
 
     wao.wao1.show()
     # wao.wao2.show()

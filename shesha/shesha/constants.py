@@ -188,7 +188,7 @@ class ApertureType:
     EELT_CUSTOM = 'EELT-Custom'
     VLT = 'VLT'
     KECK = 'keck'
-
+    VLT_NOOBS = 'VLT-NoObs'
 
 class SpiderType:
     """
@@ -222,6 +222,7 @@ class FieldStopType:
     """
     SQUARE = 'square'
     ROUND = 'round'
+    NONE = 'none'
 
 class PupilType(MultiValueEnum):
     """Compass pupil enumeration

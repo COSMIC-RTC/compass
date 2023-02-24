@@ -43,32 +43,32 @@ IMPORTANT:
 The next method of this manager --superseeds-- the compass next method so that the loop is fully handled by the manager. 
 
 Usage:
-  twoStagesManager.py <parameters_filename1> <parameters_filename2> [options]
+  twoStagesManager.py <parameters_filename1> <parameters_filename2> <freqratio> [options]
 
 with 'parameters_filename1' the path to the parameters file the first stage 
 with 'parameters_filename2' the path to the parameters file the second stage
-
+with 'freqratio' the ratio of the frequencies of the two stages
 Options:
   -a, --adopt       used to connect optional ADOPT client to the manager (via pyro + shm cacao)
 
 Example: 
-    ipython -i twoStagesManager.py ../../data/par/SPHERE+/sphere.py ../../data/par/SPHERE+/sphere+.py
-    ipython -i twoStagesManager.py ../../data/par/SPHERE+/sphere.py ../../data/par/SPHERE+/sphere+.py -- --adopt
+    ipython -i twoStagesManager.py ../../data/par/SPHERE+/sphere.py ../../data/par/SPHERE+/sphere+.py 3
+    ipython -i twoStagesManager.py ../../data/par/SPHERE+/sphere.py ../../data/par/SPHERE+/sphere+.py 3 -- --adopt
 """
 
 import numpy as np
 import time
-from shesha.supervisor.compassSupervisor import CompassSupervisor
-
+from typing import Any, Dict, Tuple, Callable, List
+from shesha.supervisor.stageSupervisor import StageSupervisor
 
 class TwoStagesManager(object):
     """
     Class handling both supervisors of first stage and second stage.
 
     Attributes:
-        first_stage : (CompassSupervisor) : first stage CompassSupervisor instance
+        first_stage : (StageSupervisor) : first stage StageSupervisor instance
 
-        second_stage : (CompassSupervisor) : second stage CompassSupervisor instance
+        second_stage : (StageSupervisor) : second stage StageSupervisor instance
 
         iterations : (int) : frame counter
 
@@ -78,14 +78,16 @@ class TwoStagesManager(object):
 
         frequency_ratio : (int) : second stage simulated frequency over first stage simulated frequency
     """
-    def __init__(self, first_stage, second_stage):
+    def __init__(self, first_stage : StageSupervisor, second_stage : StageSupervisor, frequency_ratio : int):
         """ 
         Init of the TwoStagesManager object
 
         Args:
-            first_stage : (CompassSupervisor) : first stage CompassSupervisor instance
+            first_stage : (StageSupervisor) : first stage StageSupervisor instance
 
-            second_stage : (CompassSupervisor) : second stage CompassSupervisor instance
+            second_stage : (StageSupervisor) : second stage StageSupervisor instance
+
+            frequency_ratio : (int) : ratio between second stage frequency and first stage frequency. Only integers are accepted.
         """
 
         self.first_stage = first_stage
@@ -96,50 +98,63 @@ class TwoStagesManager(object):
         self.second_stage_input = np.zeros((mpup_shape[0], mpup_shape[1], 1))
         residual_shape = self.first_stage.config.p_geom._spupil.shape
         self.mpup_offset = (mpup_shape[0] - residual_shape[0]) // 2
-        self.frequency_ratio = round(1e-3 / self.second_stage.config.p_loop.ittime)
+        self.frequency_ratio = int(frequency_ratio)
 
         # flags for enabling coronagraphic images computation
-        self.compute_first_stage_corono = False
-        self.compute_second_stage_corono = False
+        self.compute_first_stage_corono = True
+        self.compute_second_stage_corono = True
 
-    def next(self):
+    def next(self, *, do_control: bool = True) -> None:
         """
-        MAIN method that allows to manage properly the 2 AO stages.
-
-        The phase residuals (including turbulence + AO loop residuals) of the first stage simulation
-        are sent to second stage simulation at each iteration of the manager. 
-        The manager disables the seconds stage turbulence simulation (as it is propagated through
-        the first stage residuals if any).
-
-        Iteration time of the first stage is set as the same as the second stage to allow correct
-        atmosphere movement for second stage integration. For now, first stage simulated frequency
-        is set at 1 kHz with the manager attribute "frequency_ratio". First stage command is updated
-        every frequency_ratio iterations, to be as much slower than the second stage.
-
-        This next method sould ALWAYS be called to perform a regular simulation for the second stage 
-        instead of the individuals COMPASS next methods to ensure the correct synchronization of the 2 systems. 
+        MAIN method that allows to manage properly the 2 AO stages of SAXO+ system. 
+        The phase residuals (including turbulence + AO loop residuals) of the first stage simulation is sent to second stage simulation
+        at each iteration of the manager. 
+        The manager disable the seconds stage turbulence simulation (as it is propageated through the first stage residals if any). 
+        This next method sould ALWAYS be called to perform a regular SAXO+ simulation 
+        instead of the individual stage next methods to ensure the correct synchronisation of the 2 systems. 
         """
-        # Disabling turbulence on second stage simulation
-        self.second_stage.atmos.enable_atmos(False)
+        # Iteration time of the first stage is set as the same as the second stage to
+        # allow correct atmosphere movement for second stage integration. Then,
+        # first stage is controlled only once every frequency_ratio times
 
-        if not (self.iterations % self.frequency_ratio): 
-            # Time for first stage full computation: we update the first stage command every frequency_ratio iterations. 
-            self.first_stage.next(compute_corono=self.compute_first_stage_corono)
+        # Turbulence always disabled on 2nd instance of COMPASS                         
+        self.second_stage.atmos.enable_atmos(False) 
+
+        if do_control:
+            # compute flags to specify which action need to be done in this first stage:
+            # 1. check if go on stacking WFS image
+            first_stage_stack_wfs = bool(self.iterations % self.frequency_ratio)
+            # 2. check if centroids need to be computed  (end of WFS exposure)
+            first_stage_centroids = not(bool((self.iterations + 1) % self.frequency_ratio))
+            # 3. Check if a new command is computed (when new centroids appear)
+            first_stage_control = first_stage_centroids
+            self.first_stage.next(do_control = first_stage_control,
+                                  apply_control = True,
+                                  do_centroids = first_stage_centroids,
+                                  compute_tar_psf = True,
+                                  stack_wfs_image = first_stage_stack_wfs)
         else:
-            # Only raytracing current tubulence phase (if any) and current DMs phase (no command updates). 
-            self.first_stage.next(do_control=False, apply_control=False, compute_tar_psf=False, compute_corono=False)
+            self.first_stage.next(do_control=False,
+                                  do_centroids=True,
+                                  apply_control=True,
+                                  compute_tar_psf = True)
+        
+        # FIRST STAGE IS DONE.
 
         # Get residual of first stage to put it into second stage
-        # For now, involves GPU-CPU memory copies, can be improved later if speed is a limiting factor here... 
+        # For now, involves GPU-CPU memory copies, can be improved later if speed is
+        # a limiting factor here... 
         first_stage_residual = self.first_stage.target.get_tar_phase(0)
-        self.second_stage_input[self.mpup_offset:-self.mpup_offset,self.mpup_offset:-self.mpup_offset,:] = first_stage_residual[:,:,None]
-        self.second_stage.tel.set_input_phase(self.second_stage_input)
+        self.second_stage_input[self.mpup_offset:-self.mpup_offset,
+                                self.mpup_offset:-self.mpup_offset,:] = first_stage_residual[:,:,None]
+        self.second_stage.tel.set_input_phase(self.second_stage_input) # 1st stage residuals sent to seconds stage simulation. 
 
-        # Second stage computation
-        self.second_stage.next(move_atmos=False, compute_corono=self.compute_second_stage_corono)
-
-        self.iterations += 1
-
+        # SECOND STAGE LOOP STARTS...
+        
+        #"Updates the second stage simulation accordingly".
+        # WFS exposure is always reset (default).
+        self.second_stage.next(move_atmos=False, do_control=do_control) 
+        # SECOND STAGE IS DONE.
     def enable_corono(self, stage=None):
         """ Enable coronagraphic image computation for both stages.
 
@@ -232,10 +247,11 @@ if __name__ == '__main__':
 
     config1 = ParamConfig(arguments["<parameters_filename1>"])
     config2 = ParamConfig(arguments["<parameters_filename2>"])
+    frequency_ratio = arguments["<freqratio>"]
 
-    first_stage = CompassSupervisor(config1, cacao=adopt)
-    second_stage = CompassSupervisor(config2, cacao=adopt)
-    manager = TwoStagesManager(first_stage, second_stage)
+    first_stage = StageSupervisor(config1, cacao=adopt)
+    second_stage = StageSupervisor(config2, cacao=adopt)
+    manager = TwoStagesManager(first_stage, second_stage, frequency_ratio)
 
     if(adopt): 
         

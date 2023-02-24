@@ -9,14 +9,6 @@ class GenericCoronagraph(ABC):
     """ Generic class for Compass Coronagraph modules
 
     Attributes:
-        _image_se: (np.ndarray[ndim=2, dtype=np.float32]): Short exposure coronagraphic image
-
-        _image_le: (np.ndarray[ndim=2, dtype=np.float32]): Long exposure coronagraphic image
-
-        _psf_se: (np.ndarray[ndim=2, dtype=np.float32]): Long exposure PSF
-
-        _psf_le: (np.ndarray[ndim=2, dtype=np.float32]): Long exposure PSF
-
         _spupil: (np.ndarray[ndim=2, dtype=np.float32]): Telescope pupil mask
 
         _pupdiam : (int): Number of pixels along the pupil diameter
@@ -48,14 +40,8 @@ class GenericCoronagraph(ABC):
         self._dim_image = p_corono._dim_image
         self._p_corono = p_corono
         self._target = targetCompass
-
-        self._image_se = np.zeros((self._dim_image, self._dim_image)) # Short exposure image
-        self._image_le = np.zeros((self._dim_image, self._dim_image)) # Long exposure image
-        self._psf_se = np.zeros((self._dim_image, self._dim_image))  # Short exposure PSF
-        self._psf_le = np.zeros((self._dim_image, self._dim_image))  # Long exposure PSF
         self._norm_img = 1
         self._norm_psf = 1
-        self._cnt = 0
 
         self._coronagraph = None
 
