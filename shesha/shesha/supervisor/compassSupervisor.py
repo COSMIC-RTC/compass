@@ -183,7 +183,7 @@ class CompassSupervisor(GenericSupervisor):
         """ Initialize the coronagraph
         """
         if(self.config.p_corono._type == scons.CoronoType.CUSTOM) or (self.config.p_corono._type == scons.CoronoType.SPHERE_APLC):
-            from shesha.supervisor.components.coronagraph.classicalCoronagraph import ClassicalCoronagraph
+            from shesha.supervisor.components.coronagraph.stellarCoronagraph import ClassicalCoronagraph
             self.corono = ClassicalCoronagraph(self.context, self.target, self.config.p_corono, self.config.p_geom)
 
         elif(self.config.p_corono._type == scons.CoronoType.PERFECT):

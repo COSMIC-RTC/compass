@@ -179,6 +179,6 @@ class GenericCoronagraph(ABC):
         """ Set the amplitude of the electric field
 
         Args:
-            amplitude: (np.ndarray): amplitude
+            amplitude: (np.ndarray[ndim=3, dtype=np.float32]): amplitude for each wavelength
         """
         self._coronagraph.set_amplitude(amplitude)

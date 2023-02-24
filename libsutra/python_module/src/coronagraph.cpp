@@ -76,7 +76,7 @@ void declare_coronagraph(py::module &mod) {
           "d_psf_le", [](SutraCoronagraph &sc) { return sc.d_psf_le; }, "Long exposure coronagraphic psf")
 
       .def_property_readonly(
-          "d_amplitude", [](SutraCoronagraph &sc) { return sc.d_amplitude; }, "Electric field amplitude in the pupil")
+          "amplitude", [](SutraCoronagraph &sc) { return sc.amplitude; }, "Electric field amplitude in the pupil")
 
       .def_property_readonly(
           "d_electric_field", [](SutraCoronagraph &sc) { return sc.d_electric_field; }, "Electric field in the pupil")

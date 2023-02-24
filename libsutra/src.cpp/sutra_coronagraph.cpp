@@ -33,8 +33,6 @@ SutraCoronagraph::SutraCoronagraph(CarmaContext *context, std::string type, Sutr
     d_image_le = new CarmaObj<float>(current_context, dims);
     d_psf_se = new CarmaObj<float>(current_context, dims);
     d_psf_le = new CarmaObj<float>(current_context, dims);
-    d_amplitude = new CarmaObj<float>(current_context, d_source->d_phase->d_screen->get_dims());
-    d_amplitude->memset(1);
     d_pupil = d_source->d_pupil;
     pupDimx = d_source->d_phase->d_screen->get_dims(1);
     pupDimy = d_source->d_phase->d_screen->get_dims(2);
@@ -43,6 +41,8 @@ SutraCoronagraph::SutraCoronagraph(CarmaContext *context, std::string type, Sutr
     d_complex_image = new CarmaObj<cuFloatComplex>(current_context, dims);
     for (int i = 0; i < nWavelength; i++) {
         this->wavelength.push_back(wavelength[i]);
+        amplitude.push_back(new CarmaObj<float>(current_context, d_source->d_phase->d_screen->get_dims()));
+        amplitude.back()->memset(1);
     }
 }
 
@@ -59,8 +59,8 @@ int SutraCoronagraph::reset() {
 int SutraCoronagraph::compute_electric_field(int wavelengthIndex) {
     float scale = 2 * CARMA_PI / wavelength[wavelengthIndex];
     ::compute_electric_field(d_electric_field->get_data(), d_source->d_phase->d_screen->get_data(), 
-                            scale, d_amplitude->get_data(), d_pupil->get_data(), pupDimx, pupDimy, 
-                            current_context->get_device(device));
+                            scale, amplitude[wavelengthIndex]->get_data(), d_pupil->get_data(), 
+                            pupDimx, pupDimy, current_context->get_device(device));
     return EXIT_SUCCESS;
 }
 
@@ -81,7 +81,11 @@ int SutraCoronagraph::mft(CarmaObj<cuFloatComplex> *A, CarmaObj<cuFloatComplex> 
     return EXIT_SUCCESS;
 }
 
-int SutraCoronagraph::set_amplitude(float* amplitude) {
-    d_amplitude->host2device(amplitude);
+int SutraCoronagraph::set_amplitude(float *ampli) {
+    long dims[3] = {2, pupDimx, pupDimy};
+    for (int i = 0; i < wavelength.size() ; i++) {
+        amplitude[i]->host2device(ampli + i * dims[1] * dims[2]);
+    }
+
     return EXIT_SUCCESS;
 }

@@ -39,7 +39,7 @@ class SutraCoronagraph {
         CarmaObj<float> *d_image_le;
         CarmaObj<float> *d_psf_se;
         CarmaObj<float> *d_psf_le;
-        CarmaObj<float> *d_amplitude;
+        std::vector<CarmaObj<float>*> amplitude;
 
         CarmaObj<cuFloatComplex> *d_electric_field;
         CarmaObj<cuFloatComplex> *d_complex_image;
