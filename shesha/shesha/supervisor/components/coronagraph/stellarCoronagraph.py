@@ -6,7 +6,7 @@ from shesha.init.coronagraph_init import init_coronagraph, init_mft, mft_multipl
 from shesha.supervisor.components.targetCompass import TargetCompass
 from sutraWrap import StellarCoronagraph
 from carmaWrap import context
-class StellarCoronagraph(GenericCoronagraph):
+class StellarCoronagraphCompass(GenericCoronagraph):
     """ Class supervising stellar coronagraph component
 
     Attributes:

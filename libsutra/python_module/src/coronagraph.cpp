@@ -121,12 +121,12 @@ void declare_coronagraph(py::module &mod) {
     Reset long exposure image and counter
     )pbdoc")
 
-      .def("set_amplitude", &SutraCoronagraph::set_amplitude,
+      .def("set_amplitude", wy::colCast(&SutraCoronagraph::set_amplitude),
            R"pbdoc(
     Set the electric field amplitude
 
     Args:
-        amplitude: (np.ndarray[ndim=2, dtype=np.float32]): electric field amplitude
+        amplitude: (np.ndarray[ndim=3, dtype=np.float32]): electric field amplitude
     )pbdoc")
 
       .def("compute_electric_field", &SutraCoronagraph::compute_electric_field,
