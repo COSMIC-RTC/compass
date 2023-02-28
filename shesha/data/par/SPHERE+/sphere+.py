@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Friday 7th of February 2020
 
-@author: nour
+@author: fv
 """
 
 # /!\ : This symbol marks the parameters that must not be changed.
@@ -12,15 +11,15 @@ Created on Friday 7th of February 2020
 import shesha.config as conf
 import numpy as np
 
-simul_name = "sphere+"
-layout = "layoutDeFab_PYR"
+#simul_name = "sphere+"
+#layout = "layoutDeSpherePlus"
 
 # loop
 p_loop = conf.Param_loop()
 p_loop.set_niter(5000)          #     number of loops
                                 # /?\ second stage frequency
-p_loop.set_ittime(1./3000.)     # second loop at 3 kHz
-# p_loop.set_ittime(1./2000.)   # second loop at 2 kHz
+# p_loop.set_ittime(1./3000.)     # second loop at 3 kHz
+p_loop.set_ittime(1./2000.)   # second loop at 2 kHz
 # p_loop.set_ittime(1./1000.)   # second loop at 1 kHz
 p_loop.set_devices([0, 1, 2, 3])
 
@@ -62,12 +61,12 @@ p_wfs0.set_type("pyrhr")        # /!\ pyramid
 p_wfs0.set_nxsub(50)            #     number of pixels
 p_wfs0.set_fracsub(0.0001)      #     threshold on illumination fraction for valid pixel
 p_wfs0.set_Lambda(1.2)          #     wavelength
-p_wfs0.set_gsmag(6.)
-# p_wfs0.set_gsmag(6. + 2.5 * np.log10(3 / 2))  # at 2 kHz
+# p_wfs0.set_gsmag(6.)
+p_wfs0.set_gsmag(6. + 2.5 * np.log10(3 / 2))  # at 2 kHz
 # p_wfs0.set_gsmag(6. + 2.5 * np.log10(3 / 1))  # at 1 kHz
 p_wfs0.set_zerop(1.e11)
 p_wfs0.set_optthroughput(0.5)
-p_wfs0.set_noise(0.1)           #     readout noise
+p_wfs0.set_noise(0.8)           #     readout noise
 p_wfs0.set_xpos(0.)             # /!\ On axis
 p_wfs0.set_ypos(0.)             # /!\ On axis
 rMod = 3.                       # Modulation radius, in lam/D units
@@ -81,8 +80,7 @@ p_wfs0.set_atmos_seen(1)        # /!\
 
 # dm
 p_dm0 = conf.Param_dm()
-p_dm1 = conf.Param_dm()
-p_dms = [p_dm0, p_dm1]
+p_dms = [p_dm0]
 
 p_dm0.set_type("pzt")           # /!\
 p_dm0.set_thresh(-200)          # /!\ to get all Boston actuators
@@ -90,13 +88,8 @@ p_dm0.set_alt(0.)               # /!\
 p_dm0.set_unitpervolt(1.)       # /!\
 p_dm0.set_push4imat(1.0e-3)
 # select Boston 24x24 or 32x32
-p_dm0.set_file_influ_fits('Boston24x24.fits')   # /?\ Boston 24*24 or Boston 32*32
-# p_dm0.set_file_influ_fits('Boston32x32.fits')
-
-p_dm1.set_type("tt")
-p_dm1.set_alt(0.)
-p_dm1.set_unitpervolt(1.)
-p_dm1.set_push4imat(1.0e-3)
+# p_dm0.set_file_influ_fits('Boston24x24.fits')   # /?\ Boston 24*24 or Boston 32*32
+p_dm0.set_file_influ_fits('Boston32x32.fits')
 
 # centroiders
 p_centroider0 = conf.Param_centroider()
@@ -109,15 +102,22 @@ p_centroider0.set_type("maskedpix")
 p_controller0 = conf.Param_controller()
 p_controllers = [p_controller0]
 
-p_controller0.set_type("generic")   # /?\ ls (classic easy simple) or generic
+p_controller0.set_type("generic")   # /?\ generic => must do manual imat.
 # p_controller0.set_type("ls")
 p_controller0.set_nwfs([0])         # /!\
-p_controller0.set_ndm([0, 1])       # /!\
+p_controller0.set_ndm([0])          # /!\
 p_controller0.set_maxcond(5.)       #     determines the number of modes to be filtered
-p_controller0.set_delay(2)          # 
+# p_controller0.set_delay(0.5)        # 
 # for instance at 2 or 1 kHz :
-# p_controller0.set_delay(2 * 2/3)  # at 2 kHz
-# p_controller0.set_delay(2 * 1/3)  # at 1 kHz
-p_controller0.set_gain(0.3)
+p_controller0.set_delay(0.5 * 2/3)  # at 2 kHz
+# p_controller0.set_delay(0.5 * 1/3)  # at 1 kHz
+p_controller0.set_gain(0.4)
 p_controller0.set_calpix_name("compass2_calPix")
 p_controller0.set_loopdata_name("compass2_loopData")
+
+p_corono = conf.Param_corono()
+
+p_corono.set_type("SPHERE_APLC")
+p_corono.set_wavelength_0(1.667)
+p_corono.set_delta_wav(0.054)
+p_corono.set_nb_wav(3)

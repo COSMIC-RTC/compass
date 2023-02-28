@@ -111,3 +111,10 @@ p_controller1.set_nstate_buffer(5)
 p_controller1.set_nslope_buffer(3)
 p_controller1.set_n_iir_in(4)
 p_controller1.set_n_iir_out(6)
+
+p_corono = conf.Param_corono()
+
+p_corono.set_type("SPHERE_APLC")
+p_corono.set_wavelength_0(1.667)
+p_corono.set_delta_wav(0.54)
+p_corono.set_nb_wav(3)

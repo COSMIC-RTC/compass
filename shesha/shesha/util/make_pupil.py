@@ -110,6 +110,10 @@ def make_pupil(dim, pupd, tel, xc=-1, yc=-1, real=0, halfSpider=False):
         tel.set_cobs(0.14)
         print("force_VLT_pup_cobs = %5.3f" % 0.14)
         return make_VLT(dim, pupd, tel)
+    elif tel.type_ap == ApertureType.VLT_NOOBS:
+        tel.set_cobs(0.)
+        print("Remove central obstruction to the VLT")
+        return make_VLT(dim, pupd, tel)
     elif tel.type_ap == ApertureType.GENERIC:
         return make_pupil_generic(dim, pupd, tel.t_spiders, tel.spiders_type, xc, yc,
                                   real, tel.cobs)
@@ -619,7 +623,7 @@ def generateEeltPupilMask(npt, dspider, i0, j0, pixscale, gap, rotdegree, D=40.0
         obstru = (util.dist(pup.shape[0], pup.shape[0] // 2 + 0.5,
                             pup.shape[0] // 2 + 0.5) >=
                   (pup.shape[0] * cobs + 1.) * 0.5).astype(np.float32)
-        pup *= obstru
+        pup = pup * obstru
     return pup
 
 

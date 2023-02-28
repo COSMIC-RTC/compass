@@ -45,6 +45,9 @@ add_library(sutra
     # src.cpp/sutra_wfs_geom.cpp
     src.cpp/sutra_wfs_pyr_pyrhr.cpp
     src.cpp/sutra_wfs_sh.cpp
+    src.cpp/sutra_coronagraph.cpp
+    src.cpp/sutra_perfectCoronagraph.cpp
+    src.cpp/sutra_stellarCoronagraph.cpp
     src.cu/sutra_acquisim.cu
     src.cu/sutra_template.cu
     src.cu/sutra_utils.cu
@@ -68,6 +71,7 @@ add_library(sutra
     src.cu/sutra_target.cu
     src.cu/sutra_tscreen.cu
     src.cu/sutra_wfs.cu
+    src.cu/sutra_coronagraph.cu
     aao/cured/cured.cpp
 )
 

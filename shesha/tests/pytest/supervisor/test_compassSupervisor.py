@@ -755,3 +755,26 @@ def test_set_iir_a_vector():
 def test_set_iir_b_vector():
     sup.rtc.set_iir_b_vector(1,0,sup.rtc._get_iir_b_vector(1,0))
     assert(True)
+
+#                                                _    
+#    __ ___ _ _ ___ _ _  __ _ __ _ _ _ __ _ _ __| |_  
+#   / _/ _ \ '_/ _ \ ' \/ _` / _` | '_/ _` | '_ \ ' \ 
+#   \__\___/_| \___/_||_\__,_\__, |_| \__,_| .__/_||_|
+#                            |___/         |_|        
+
+def test_get_image_corono():
+    img = sup.corono.get_image()
+    assert(True)
+
+def test_get_psf_corono():
+    img = sup.corono.get_psf()
+    assert(True)
+
+def test_reset_corono():
+    sup.corono.reset()
+    assert(True)
+
+def test_set_amplitude_corono():
+    A = np.ones((sup.corono._pupdiam, sup.corono._pupdiam))
+    sup.corono.set_electric_field_amplitude(A)
+    assert(True)

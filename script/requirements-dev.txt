@@ -1,4 +1,4 @@
 cmake
-conan
+conan<2.0
 pybind11
 packaging
