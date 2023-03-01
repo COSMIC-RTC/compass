@@ -84,8 +84,8 @@ class widgetTwoStagesWindowPyro():
         from shesha.config import ParamConfig
 
 
-        self.wao2=widgetAOWindow(config_file2, cacao=cacao, hide_histograms=True)
-        self.wao1=widgetAOWindow(config_file1, cacao=cacao, hide_histograms=True)
+        self.wao2=widgetAOWindow(config_file2, cacao=cacao, hide_histograms=True, twoStages=True)
+        self.wao1=widgetAOWindow(config_file1, cacao=cacao, hide_histograms=True, twoStages=True)
         pupdiam_first_stage = self.wao1.supervisor.config.p_geom.pupdiam
         pupdiam_second_stage = self.wao2.supervisor.config.p_geom.pupdiam
         if(pupdiam_first_stage != pupdiam_second_stage):

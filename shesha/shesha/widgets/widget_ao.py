@@ -92,10 +92,10 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
 
     def __init__(self, config_file: Any = None, cacao: bool = False,
                  expert: bool = False, devices: str = None,
-                 hide_histograms: bool = False) -> None:
+                 hide_histograms: bool = False, twoStages: bool = False) -> None:
         WidgetBase.__init__(self, hide_histograms=hide_histograms)
         AOClassTemplate.__init__(self)
-
+        self.twoStages = twoStages
         self.cacao = cacao
         self.rollingWindow = 100
         self.SRLE = deque(maxlen=self.rollingWindow)
@@ -324,8 +324,24 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         for tar in range(self.ntar):
             name = 'psfLE_%d' % tar
             self.add_dispDock(name, self.wao_imagesgroup_cb)
-
+        self.ncoro = len(self.config.p_coronos)
+        for coro in range(self.ncoro):
+            name = 'coroImageLE_%d' % coro
+            self.add_dispDock(name, self.wao_imagesgroup_cb)
+        for coro in range(self.ncoro):
+            name = 'coroImageSE_%d' % coro
+            self.add_dispDock(name, self.wao_imagesgroup_cb)
+        for coro in range(self.ncoro):
+            name = 'coroPSFLE_%d' % coro
+            self.add_dispDock(name, self.wao_imagesgroup_cb)
+        for coro in range(self.ncoro):
+            name = 'coroPSFSE_%d' % coro
+            self.add_dispDock(name, self.wao_imagesgroup_cb)
+            
         self.add_dispDock("Strehl", self.wao_graphgroup_cb, "SR")
+        for coro in range(self.ncoro):
+            self.add_dispDock(f"ContrastLE_{coro}", self.wao_graphgroup_cb, "MPL")
+            self.add_dispDock(f"ContrastSE_{coro}", self.wao_graphgroup_cb, "MPL")
 
         self.uiAO.wao_resetSR_tarNum.setValue(0)
         self.uiAO.wao_resetSR_tarNum.setMaximum(len(self.config.p_targets) - 1)
@@ -373,7 +389,11 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             self.uiAO.wao_open_loop.setText("Close Loop")
 
     def init_config(self) -> None:
-        self.supervisor = CompassSupervisor(self.config, cacao=self.cacao)
+        if(self.twoStages):
+            from shesha.supervisor.stageSupervisor import StageSupervisor, scons
+            self.supervisor = StageSupervisor(self.config, cacao=self.cacao)
+        else:
+            self.supervisor = CompassSupervisor(self.config, cacao=self.cacao)
         WidgetBase.init_config(self)
 
     def init_configThread(self) -> None:
@@ -449,6 +469,31 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                 # Put image in plot area
                 self.viewboxes[key].addItem(self.SRCrossY[key])
 
+
+        for i in range(len(self.config.p_coronos)):
+            data = self.supervisor.corono.get_image(expo_type="se")
+            for psf in ["coroImageSE_", "coroImageLE_", "coroPSFSE_", "coroPSFLE_"]:
+                key = psf + str(i)
+                Delta = 5
+                self.SRCrossX[key] = pg.PlotCurveItem(
+                        np.array([
+                                data.shape[0] / 2 + 0.5 - Delta,
+                                data.shape[0] / 2 + 0.5 + Delta
+                        ]), np.array([data.shape[1] / 2 + 0.5, data.shape[1] / 2 + 0.5]),
+                        pen='r')
+                self.SRCrossY[key] = pg.PlotCurveItem(
+                        np.array([data.shape[0] / 2 + 0.5, data.shape[0] / 2 + 0.5]),
+                        np.array([
+                                data.shape[1] / 2 + 0.5 - Delta,
+                                data.shape[1] / 2 + 0.5 + Delta
+                        ]), pen='r')
+                # Put image in plot area
+                self.viewboxes[key].addItem(self.SRCrossX[key])
+                # Put image in plot area
+                self.viewboxes[key].addItem(self.SRCrossY[key])
+
+
+
         for i in range(len(self.config.p_wfss)):
             if (self.config.p_wfss[i].type == scons.WFSType.PYRHR or
                         self.config.p_wfss[i].type == scons.WFSType.PYRLR):
@@ -514,7 +559,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         else:
             try:
                 for key, dock in self.docks.items():
-                    if key == "Strehl":
+                    if key in ["Strehl"]:
                         continue
                     elif dock.isVisible():
                         index = int(key.split("_")[-1])
@@ -535,8 +580,16 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                         if "psfSE" in key:
                             data = self.supervisor.target.get_tar_image(
                                     index, expo_type="se")
+                        if "coroImageLE" in key:
+                            data = self.supervisor.corono.get_image(expo_type="le")
+                        if "coroImageSE" in key:
+                            data = self.supervisor.corono.get_image(expo_type="se")
+                        if "coroPSFLE" in key:
+                            data = self.supervisor.corono.get_psf(expo_type="le")
+                        if "coroPSFSE" in key:
+                            data = self.supervisor.corono.get_psf(expo_type="se")
 
-                        if "psf" in key:
+                        if "psf" in key or "coro" in key:
                             if (self.uiAO.actionPSF_Log_Scale.isChecked()):
                                 if np.any(data <= 0):
                                     # warnings.warn("\nZeros founds, filling with min nonzero value.\n")
@@ -603,7 +656,18 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                             self.imgs[key].canvas.axes.clear()
                             self.imgs[key].canvas.axes.plot(data)
                             self.imgs[key].canvas.draw()
-
+                        elif "ContrastLE" in key:     
+                            distances, mean, std, mini, maxi = self.supervisor.corono.get_contrast(expo_type='le')
+                            if(np.all(mean)): 
+                                self.imgs[key].canvas.axes.clear()
+                                self.imgs[key].canvas.axes.plot(distances, np.log10(mean))
+                                self.imgs[key].canvas.draw()
+                        elif "ContrastSE" in key:
+                            distances, mean, std, mini, maxi = self.supervisor.corono.get_contrast(expo_type='se')
+                            if(np.all(mean)): 
+                                self.imgs[key].canvas.axes.clear()
+                                self.imgs[key].canvas.axes.plot(distances, np.log10(mean))
+                                self.imgs[key].canvas.draw()
                 self.firstTime = 1
 
             finally:

@@ -125,7 +125,14 @@ p_controller0.set_gain(0.3)
 p_controller0.set_calpix_name("compass1_calPix")
 p_controller0.set_loopdata_name("compass1_loopData")
 
-p_corono = conf.Param_corono()
+
+
+p_coronos = [conf.Param_corono()]
+
+p_coronos[0].set_type("SPHERE_APLC")
+p_coronos[0].set_wavelength_0(1.667)
+p_coronos[0].set_delta_wav(0.054)
+p_coronos[0].set_nb_wav(3)
 """
 CORONO PARFAIT
 
@@ -149,6 +156,10 @@ p_corono.set_wavelength_0(1.667)
 """
 CORONO MANUEL
 """
+
+"""
+p_corono = conf.Param_corono()
+
 p_corono.set_type("custom")
 p_corono.set_wavelength_0(1.667)
 p_corono.set_apodizer_name('SPHERE_APLC_apodizer_APO1')  # 'SPHERE_APLC_apodizer_APO1' or path to fits file of size (pupdiam, pupdiam)
@@ -164,3 +175,4 @@ p_corono.set_dim_image(200)
 p_corono.set_image_sampling(3)
 
 # p_corono.set_babinet_trick() # True or False for enabling Babinet propagation method
+"""

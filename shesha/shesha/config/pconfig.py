@@ -82,7 +82,7 @@ class ParamConfig(object):
         self.p_loop = self._config.p_loop
         self.p_centroiders = self._config.p_centroiders
         self.p_controllers = self._config.p_controllers
-        self.p_corono = self._config.p_corono
+        self.p_coronos = self._config.p_coronos
 
     def _load_config_from_file(self, filename_path: str) -> NoReturn:
         """ Load the parameters from the parameters file

@@ -174,7 +174,7 @@ class CompassSupervisor(GenericSupervisor):
             self._init_wfs()
         if self.config.p_controllers is not None or self.config.p_centroiders is not None:
             self._init_rtc()
-        if self.config.p_corono is not None:
+        if self.config.p_coronos is not None:
             self._init_coronagraph()
 
         GenericSupervisor._init_components(self)
@@ -182,13 +182,14 @@ class CompassSupervisor(GenericSupervisor):
     def _init_coronagraph(self):
         """ Initialize the coronagraph
         """
-        if(self.config.p_corono._type == scons.CoronoType.CUSTOM) or (self.config.p_corono._type == scons.CoronoType.SPHERE_APLC):
+        #WARNING FLOOOO TODO:     change this with multiple coronos!!!!!! Thanks ;-)
+        if(self.config.p_coronos[0]._type == scons.CoronoType.CUSTOM) or (self.config.p_coronos[0]._type == scons.CoronoType.SPHERE_APLC):
             from shesha.supervisor.components.coronagraph.stellarCoronagraph import StellarCoronagraphCompass
-            self.corono = StellarCoronagraphCompass(self.context, self.target, self.config.p_corono, self.config.p_geom)
+            self.corono = StellarCoronagraphCompass(self.context, self.target, self.config.p_coronos[0], self.config.p_geom)
 
-        elif(self.config.p_corono._type == scons.CoronoType.PERFECT):
+        elif(self.config.p_coronos[0]._type == scons.CoronoType.PERFECT):
             from shesha.supervisor.components.coronagraph.perfectCoronagraph import PerfectCoronagraphCompass
-            self.corono = PerfectCoronagraphCompass(self.context, self.target, self.config.p_corono, self.config.p_geom)
+            self.corono = PerfectCoronagraphCompass(self.context, self.target, self.config.p_coronos[0], self.config.p_geom)
 
     def next(self, *, move_atmos: bool = True, nControl: int = 0,
              tar_trace: Iterable[int] = None, wfs_trace: Iterable[int] = None,

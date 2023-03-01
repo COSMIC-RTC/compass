@@ -77,7 +77,9 @@ class GenericCoronagraph(ABC):
             img: (np.ndarra[ndim=2,dtype=np.float32]): coronagraphic image
         """
         if expo_type == scons.ExposureType.LE:
-            img = np.array(self._coronagraph.d_image_le) / self._coronagraph.cntImg
+            img = np.array(self._coronagraph.d_image_le)
+            if(self._coronagraph.cntImg):
+                img /= self._coronagraph.cntImg
         if expo_type == scons.ExposureType.SE:
             img = np.array(self._coronagraph.d_image_se)
         return img / self._norm_img
@@ -93,7 +95,9 @@ class GenericCoronagraph(ABC):
             img: (np.ndarra[ndim=2,dtype=np.float32]): psf
         """
         if expo_type == scons.ExposureType.LE:
-            img = np.array(self._coronagraph.d_psf_le) / self._coronagraph.cntPsf
+            img = np.array(self._coronagraph.d_psf_le) 
+            if(self._coronagraph.cntPsf):
+                img /= self._coronagraph.cntPsf
         if expo_type == scons.ExposureType.SE:
             img = np.array(self._coronagraph.d_psf_se)
         return img / self._norm_psf
@@ -154,7 +158,7 @@ class GenericCoronagraph(ABC):
 
         center = self._dim_image / 2 - (1 / 2)
         image = self.get_image(expo_type=expo_type)
-        if normalized_by_psf:
+        if normalized_by_psf and np.max(self.get_psf(expo_type=expo_type)):
             image = image / np.max(self.get_psf(expo_type=expo_type))
 
         distances, mean, std, mini, maxi = compute_contrast(image, center, d_min, d_max, width)

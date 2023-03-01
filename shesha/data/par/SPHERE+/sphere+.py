@@ -12,7 +12,7 @@ import shesha.config as conf
 import numpy as np
 
 #simul_name = "sphere+"
-#layout = "layoutDeSpherePlus"
+layout = "spherePlusCorono"
 
 # loop
 p_loop = conf.Param_loop()
@@ -115,9 +115,9 @@ p_controller0.set_gain(0.4)
 p_controller0.set_calpix_name("compass2_calPix")
 p_controller0.set_loopdata_name("compass2_loopData")
 
-p_corono = conf.Param_corono()
+p_coronos = [conf.Param_corono()]
 
-p_corono.set_type("SPHERE_APLC")
-p_corono.set_wavelength_0(1.667)
-p_corono.set_delta_wav(0.054)
-p_corono.set_nb_wav(3)
+p_coronos[0].set_type("SPHERE_APLC")
+p_coronos[0].set_wavelength_0(1.667)
+p_coronos[0].set_delta_wav(0.054)
+p_coronos[0].set_nb_wav(3)
