@@ -496,7 +496,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
 
 
         for i in range(self.ncoro):
-            data = self.supervisor.corono.get_image(expo_type="se")
+            data = self.supervisor.corono.get_image(i, expo_type="se")
             for psf in ["coroImageSE_", "coroImageLE_", "coroPSFSE_", "coroPSFLE_"]:
                 key = psf + str(i)
                 Delta = 5
@@ -609,13 +609,13 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                             data = self.supervisor.target.get_tar_image(
                                     index, expo_type="se")
                         if "coroImageLE" in key:
-                            data = self.supervisor.corono.get_image(expo_type="le")
+                            data = self.supervisor.corono.get_image(index, expo_type="le")
                         if "coroImageSE" in key:
-                            data = self.supervisor.corono.get_image(expo_type="se")
+                            data = self.supervisor.corono.get_image(index, expo_type="se")
                         if "coroPSFLE" in key:
-                            data = self.supervisor.corono.get_psf(expo_type="le")
+                            data = self.supervisor.corono.get_psf(index, expo_type="le")
                         if "coroPSFSE" in key:
-                            data = self.supervisor.corono.get_psf(expo_type="se")
+                            data = self.supervisor.corono.get_psf(index, expo_type="se")
 
                         if "psf" in key or "coro" in key:
                             if (self.uiAO.actionPSF_Log_Scale.isChecked()):
@@ -685,7 +685,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                             self.imgs[key].canvas.axes.plot(data)
                             self.imgs[key].canvas.draw()
                         elif "ContrastLE" in key:     
-                            distances, mean, std, mini, maxi = self.supervisor.corono.get_contrast(expo_type='le')
+                            distances, mean, std, mini, maxi = self.supervisor.corono.get_contrast(index, expo_type='le')
                             if(np.all(mean)): 
                                 self.imgs[key].canvas.axes.clear()
                                 self.imgs[key].canvas.axes.plot(distances, mean)
@@ -696,7 +696,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                                 self.imgs[key].canvas.axes.grid()
                                 self.imgs[key].canvas.draw()
                         elif "ContrastSE" in key:
-                            distances, mean, std, mini, maxi = self.supervisor.corono.get_contrast(expo_type='se')
+                            distances, mean, std, mini, maxi = self.supervisor.corono.get_contrast(index, expo_type='se')
                             if(np.all(mean)): 
                                 self.imgs[key].canvas.axes.clear()
                                 self.imgs[key].canvas.axes.plot(distances, mean)

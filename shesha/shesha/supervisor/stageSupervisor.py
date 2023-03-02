@@ -215,7 +215,8 @@ class StageSupervisor(CompassSupervisor):
                 self.target.comp_strehl(tar_index)
 
         if self.corono is not None and compute_corono:
-            self.corono.compute_image()
+            for coro_index in range(len(self.config.p_coronos)):
+                self.corono.compute_image(coro_index)
 
         if self.config.p_controllers[0].close_opti and (not self.rtc._rtc.d_control[0].open_loop):
             self.modalgains.update_mgains()

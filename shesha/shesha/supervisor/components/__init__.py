@@ -47,3 +47,4 @@ from .targetCompass import TargetCompass
 from .sourceCompass import SourceCompass
 from .telescopeCompass import TelescopeCompass
 from .wfsCompass import WfsCompass
+from .coronagraph.coronagraphCompass import CoronagraphCompass

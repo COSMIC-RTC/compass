@@ -763,18 +763,13 @@ def test_set_iir_b_vector():
 #                            |___/         |_|        
 
 def test_get_image_corono():
-    img = sup.corono.get_image()
+    img = sup.corono.get_image(0)
     assert(True)
 
 def test_get_psf_corono():
-    img = sup.corono.get_psf()
+    img = sup.corono.get_psf(0)
     assert(True)
 
 def test_reset_corono():
     sup.corono.reset()
-    assert(True)
-
-def test_set_amplitude_corono():
-    A = np.ones((sup.corono._pupdiam, sup.corono._pupdiam))
-    sup.corono.set_electric_field_amplitude(A)
     assert(True)

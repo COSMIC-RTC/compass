@@ -36,7 +36,7 @@
 #  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 
 from shesha.supervisor.genericSupervisor import GenericSupervisor
-from shesha.supervisor.components import AtmosCompass, DmCompass, RtcCompass, TargetCompass, TelescopeCompass, WfsCompass
+from shesha.supervisor.components import AtmosCompass, DmCompass, RtcCompass, TargetCompass, TelescopeCompass, WfsCompass, CoronagraphCompass
 from shesha.supervisor.optimizers import ModalBasis, Calibration, ModalGains
 import numpy as np
 import time
@@ -182,14 +182,9 @@ class CompassSupervisor(GenericSupervisor):
     def _init_coronagraph(self):
         """ Initialize the coronagraph
         """
-        #WARNING FLOOOO TODO:     change this with multiple coronos!!!!!! Thanks ;-)
-        if(self.config.p_coronos[0]._type == scons.CoronoType.CUSTOM) or (self.config.p_coronos[0]._type == scons.CoronoType.SPHERE_APLC):
-            from shesha.supervisor.components.coronagraph.stellarCoronagraph import StellarCoronagraphCompass
-            self.corono = StellarCoronagraphCompass(self.context, self.target, self.config.p_coronos[0], self.config.p_geom)
-
-        elif(self.config.p_coronos[0]._type == scons.CoronoType.PERFECT):
-            from shesha.supervisor.components.coronagraph.perfectCoronagraph import PerfectCoronagraphCompass
-            self.corono = PerfectCoronagraphCompass(self.context, self.target, self.config.p_coronos[0], self.config.p_geom)
+        self.corono = CoronagraphCompass()
+        for p_corono in self.config.p_coronos:
+            self.corono.add_corono(self.context, p_corono, self.config.p_geom, self.target)
 
     def next(self, *, move_atmos: bool = True, nControl: int = 0,
              tar_trace: Iterable[int] = None, wfs_trace: Iterable[int] = None,
@@ -290,7 +285,8 @@ class CompassSupervisor(GenericSupervisor):
                 self.target.comp_strehl(tar_index)
 
         if self.corono is not None and compute_corono:
-            self.corono.compute_image()
+            for coro_index in range(len(self.config.p_coronos)):
+                self.corono.compute_image(coro_index)
 
         if self.config.p_controllers[0].close_opti and (not self.rtc._rtc.d_control[0].open_loop):
             self.modalgains.update_mgains()
