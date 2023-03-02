@@ -12,14 +12,14 @@ import shesha.config as conf
 import numpy as np
 
 #simul_name = "sphere+"
-layout = "spherePlusCorono"
+layout = "sphere+Corono"
 
 # loop
 p_loop = conf.Param_loop()
 p_loop.set_niter(5000)          #     number of loops
                                 # /?\ second stage frequency
 # p_loop.set_ittime(1./3000.)     # second loop at 3 kHz
-p_loop.set_ittime(1./2000.)   # second loop at 2 kHz
+p_loop.set_ittime(1./3000.)   # second loop at 2 kHz
 # p_loop.set_ittime(1./1000.)   # second loop at 1 kHz
 p_loop.set_devices([0, 1, 2, 3])
 

@@ -688,13 +688,22 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                             distances, mean, std, mini, maxi = self.supervisor.corono.get_contrast(expo_type='le')
                             if(np.all(mean)): 
                                 self.imgs[key].canvas.axes.clear()
-                                self.imgs[key].canvas.axes.plot(distances, np.log10(mean))
+                                self.imgs[key].canvas.axes.plot(distances, mean)
+                                self.imgs[key].canvas.axes.set_yscale('log')
+                                self.imgs[key].canvas.axes.set_xlabel("angular distance (Lambda/D)")
+                                self.imgs[key].canvas.axes.set_ylabel("Raw contrast")
+
+                                self.imgs[key].canvas.axes.grid()
                                 self.imgs[key].canvas.draw()
                         elif "ContrastSE" in key:
                             distances, mean, std, mini, maxi = self.supervisor.corono.get_contrast(expo_type='se')
                             if(np.all(mean)): 
                                 self.imgs[key].canvas.axes.clear()
-                                self.imgs[key].canvas.axes.plot(distances, np.log10(mean))
+                                self.imgs[key].canvas.axes.plot(distances, mean)
+                                self.imgs[key].canvas.axes.set_yscale('log')
+                                self.imgs[key].canvas.axes.set_xlabel("angular distance (Lambda/D)")
+                                self.imgs[key].canvas.axes.set_ylabel("Raw contrast")
+                                self.imgs[key].canvas.axes.grid()
                                 self.imgs[key].canvas.draw()
                 self.firstTime = 1
 

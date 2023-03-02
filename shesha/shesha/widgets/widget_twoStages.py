@@ -302,7 +302,10 @@ if __name__ == '__main__':
                                     arguments["<freqratio>"], cacao=adopt)
 
     wao.wao1.show()
-    # wao.wao2.show()
+    wao.wao2.show()
+    wao.wao2.uiAO.wao_run.hide()
+    wao.wao2.uiAO.wao_next.hide()
+    wao.wao2.uiAO.wao_atmosphere.hide()
     wao.wao1.loop_once = wao.loop_once # very dirty (for some reason this does not work during class init...)
     wao.wao2.loop_once = wao.loop_once # very dirty bis
 
