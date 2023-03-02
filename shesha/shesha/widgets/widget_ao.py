@@ -802,10 +802,11 @@ if __name__ == '__main__':
                          expert=arguments["--expert"], devices=arguments["--devices"])
     wao.show()
 
-    print("If the GUI is black:")
-    print(" - type %gui qt5 to unlock GUI")
-    print(" - launch ipython with the option '--gui=qt' or '--matplotlib=qt'")
-    print(" - edit ~/.ipython/profile_default/ipython_config.py to set c.TerminalIPythonApp.matplotlib = 'qt'")
+    print("")
+    print("If the GUI is black, you can:")
+    print("    type %gui qt5 to unlock GUI")
+    print(" or launch ipython with the option '--gui=qt' or '--matplotlib=qt'")
+    print(" or edit ~/.ipython/profile_default/ipython_config.py to set c.TerminalIPythonApp.matplotlib = 'qt'")
 
     if arguments["--interactive"]:
         from shesha.util.ipython_embed import embed
