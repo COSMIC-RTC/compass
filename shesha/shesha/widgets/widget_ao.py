@@ -776,7 +776,7 @@ def tcp_connect_to_display():
 
         # parse the display string
         display_host, display_num = display_env.split(':')
-        display_num_major, display_num_minor = display_num.split('.')
+        display_num_major = display_num.split('.')[0]
 
         # calculate the port number
         display_port = 6000 + int(display_num_major)
@@ -801,7 +801,12 @@ if __name__ == '__main__':
     wao = widgetAOWindow(arguments["<parameters_filename>"], cacao=arguments["--cacao"],
                          expert=arguments["--expert"], devices=arguments["--devices"])
     wao.show()
-    print("If the GUI is black, type %gui qt5 to unlock GUI")
+
+    print("If the GUI is black:")
+    print(" - type %gui qt5 to unlock GUI")
+    print(" - launch ipython with the option '--gui=qt' or '--matplotlib=qt'")
+    print(" - edit ~/.ipython/profile_default/ipython_config.py to set c.TerminalIPythonApp.matplotlib = 'qt'")
+
     if arguments["--interactive"]:
         from shesha.util.ipython_embed import embed
         embed(os.path.basename(__file__), locals())
