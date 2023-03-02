@@ -10,7 +10,7 @@
 //! \ingroup   libsutra
 //! \brief     this file provides pybind wrapper for SutraRtcCacao
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.3.0
+//! \version   5.4.0
 //! \date      2022/01/24
 
 #include <wyrm>
