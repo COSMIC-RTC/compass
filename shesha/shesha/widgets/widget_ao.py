@@ -435,7 +435,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                                        data.shape[0], data.shape[1])
             self.SRcircles[key] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
             self.viewboxes[key].addItem(self.SRcircles[key])
-            self.SRcircles[key].setPoints(cx, cy)
+            self.SRcircles[key].setData(cx, cy)
 
         for i in range(self.nwfs):
             key = "wfs_%d" % i
@@ -444,7 +444,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                                        data.shape[0], data.shape[1])
             self.SRcircles[key] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
             self.viewboxes[key].addItem(self.SRcircles[key])
-            self.SRcircles[key].setPoints(cx, cy)
+            self.SRcircles[key].setData(cx, cy)
             key = 'slpComp_%d' % i
             key = 'slpGeom_%d' % i
 
@@ -462,7 +462,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                                        data.shape[0], data.shape[1])
             self.SRcircles[key] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
             self.viewboxes[key].addItem(self.SRcircles[key])
-            self.SRcircles[key].setPoints(cx, cy)
+            self.SRcircles[key].setData(cx, cy)
 
         for i in range(len(self.config.p_targets)):
             key = "tar_%d" % i
@@ -471,7 +471,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                                        data.shape[0], data.shape[1])
             self.SRcircles[key] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
             self.viewboxes[key].addItem(self.SRcircles[key])
-            self.SRcircles[key].setPoints(cx, cy)
+            self.SRcircles[key].setData(cx, cy)
 
             data = self.supervisor.target.get_tar_image(i)
             for psf in ["psfSE_", "psfLE_"]:
