@@ -135,9 +135,11 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         self.uiAO.wao_open_loop.clicked[bool].connect(self.aoLoopOpen)
         self.uiAO.wao_next.clicked.connect(self.loop_once)
         self.uiAO.wao_resetSR.clicked.connect(self.resetSR)
+        self.uiAO.wao_resetCoro.clicked.connect(self.resetCoro)
         # self.uiAO.wao_actionHelp_Contents.triggered.connect(self.on_help_triggered)
 
         self.uiAO.wao_allTarget.stateChanged.connect(self.updateAllTarget)
+        self.uiAO.wao_allCoro.stateChanged.connect(self.updateAllCoro)
         self.uiAO.wao_forever.stateChanged.connect(self.updateForever)
 
         self.uiAO.wao_atmosphere.clicked[bool].connect(self.enable_atmos)
@@ -149,6 +151,8 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         self.uiAO.wao_next.setDisabled(True)
         self.uiAO.wao_unzoom.setDisabled(True)
         self.uiAO.wao_resetSR.setDisabled(True)
+        self.uiAO.wao_resetCoro.setDisabled(True)
+        self.uiAO.wao_allCoro.setDisabled(True)
 
         p1 = self.uiAO.wao_SRPlotWindow.addPlot(title='SR evolution')
         self.curveSRSE = p1.plot(pen=(255, 0, 0), symbolBrush=(255, 0, 0), name="SR SE")
@@ -209,6 +213,9 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
     def updateAllTarget(self, state):
         self.uiAO.wao_resetSR_tarNum.setDisabled(state)
 
+    def updateAllCoro(self, state):
+        self.uiAO.wao_resetCoro_coroNum.setDisabled(state)
+
     def updateForever(self, state):
         self.uiAO.wao_nbiters.setDisabled(state)
 
@@ -223,6 +230,16 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             tarnum = self.uiAO.wao_resetSR_tarNum.value()
             print("Reset SR on target %d" % tarnum)
             self.supervisor.target.reset_strehl(tarnum)
+
+    def resetCoro(self) -> None:
+        # TODO Adapt for multiple corono 
+        if self.uiAO.wao_allCoro.isChecked():
+            for c in range(self.ncoro):
+                self.supervisor.corono.reset()
+        else:
+            coroNum = self.uiAO.wao_resetCoro_coroNum.value()
+            print("Reset Coro %d" % coroNum)
+            self.supervisor.corono.reset()
 
     def add_dispDock(self, name: str, parent, type: str = "pg_image") -> None:
         d = WidgetBase.add_dispDock(self, name, parent, type)
@@ -324,7 +341,10 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         for tar in range(self.ntar):
             name = 'psfLE_%d' % tar
             self.add_dispDock(name, self.wao_imagesgroup_cb)
-        self.ncoro = len(self.config.p_coronos)
+        if(self.config.p_coronos) is not None:
+            self.ncoro = len(self.config.p_coronos)
+        else:
+            self.ncoro = 0
         for coro in range(self.ncoro):
             name = 'coroImageLE_%d' % coro
             self.add_dispDock(name, self.wao_imagesgroup_cb)
@@ -346,6 +366,9 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         self.uiAO.wao_resetSR_tarNum.setValue(0)
         self.uiAO.wao_resetSR_tarNum.setMaximum(len(self.config.p_targets) - 1)
 
+        self.uiAO.wao_resetCoro_coroNum.setValue(0)
+        self.uiAO.wao_resetCoro_coroNum.setMaximum(self.ncoro - 1)
+
         self.uiAO.wao_dispSR_tar.setValue(0)
         self.uiAO.wao_dispSR_tar.setMaximum(len(self.config.p_targets) - 1)
 
@@ -353,6 +376,8 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         self.uiAO.wao_next.setDisabled(True)
         self.uiAO.wao_unzoom.setDisabled(True)
         self.uiAO.wao_resetSR.setDisabled(True)
+        self.uiAO.wao_resetCoro.setDisabled(True)
+        self.uiAO.wao_allCoro.setDisabled(True)
 
         self.uiBase.wao_init.setDisabled(False)
 
@@ -470,7 +495,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                 self.viewboxes[key].addItem(self.SRCrossY[key])
 
 
-        for i in range(len(self.config.p_coronos)):
+        for i in range(self.ncoro):
             data = self.supervisor.corono.get_image(expo_type="se")
             for psf in ["coroImageSE_", "coroImageLE_", "coroPSFSE_", "coroPSFLE_"]:
                 key = psf + str(i)
@@ -529,6 +554,9 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         self.uiAO.wao_open_loop.setDisabled(False)
         self.uiAO.wao_unzoom.setDisabled(False)
         self.uiAO.wao_resetSR.setDisabled(False)
+        if(self.ncoro):
+            self.uiAO.wao_resetCoro.setDisabled(False)
+            self.uiAO.wao_allCoro.setDisabled(False)
 
         WidgetBase.init_configFinished(self)
 
@@ -764,8 +792,8 @@ def tcp_connect_to_display():
         return True
 
 if __name__ == '__main__':
-    if(not tcp_connect_to_display()):
-        raise RuntimeError("Cannot connect to display")
+    # if(not tcp_connect_to_display()):
+    #     raise RuntimeError("Cannot connect to display")
         
     arguments = docopt(__doc__)
     app = QtWidgets.QApplication(sys.argv)

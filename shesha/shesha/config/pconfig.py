@@ -147,8 +147,8 @@ class ParamConfig(object):
             self._config.p_centroiders = None
         if not hasattr(self._config, 'p_controllers'):
             self._config.p_controllers = None
-        if not hasattr(self._config, 'p_corono'):
-            self._config.p_corono = None
+        if not hasattr(self._config, 'p_coronos'):
+            self._config.p_coronos = None
 
         if not hasattr(self._config, 'simul_name'):
             self._config.simul_name = None
