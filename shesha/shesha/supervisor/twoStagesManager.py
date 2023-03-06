@@ -276,17 +276,30 @@ if __name__ == '__main__':
                 print("User is " + user)
 
 
+            if(self.supervisor1.corono == None):
+                from shesha.util.pyroEmptyClass import PyroEmptyClass
+                coro2pyro1 = PyroEmptyClass()
+            else:
+                coro2pyro1 = self.supervisor1.corono
+
+            if(self.supervisor2.corono == None):
+                from shesha.util.pyroEmptyClass import PyroEmptyClass
+                coro2pyro2 = PyroEmptyClass()
+            else:
+                coro2pyro2 = self.supervisor2.corono
+
+
             devices1 = [
                     supervisor1, supervisor1.rtc, supervisor1.wfs, supervisor1.target,
                     supervisor1.tel, supervisor1.basis, supervisor1.calibration,
                     supervisor1.atmos, supervisor1.dms, supervisor1.config, supervisor1.modalgains,
-                    supervisor1.corono
+                    coro2pyro1
             ]
             devices2 = [
                     supervisor2, supervisor2.rtc, supervisor2.wfs, supervisor2.target,
                     supervisor2.tel, supervisor2.basis, supervisor2.calibration,
                     supervisor2.atmos, supervisor2.dms, supervisor2.config, supervisor2.modalgains,
-                    supervisor2.corono
+                    coro2pyro2
             ]
             names = [
                     "supervisor", "supervisor_rtc", "supervisor_wfs", "supervisor_target",
