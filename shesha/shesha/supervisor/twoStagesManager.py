@@ -276,17 +276,17 @@ if __name__ == '__main__':
                 print("User is " + user)
 
 
-            if(self.supervisor1.corono == None):
+            if (supervisor1.corono == None):
                 from shesha.util.pyroEmptyClass import PyroEmptyClass
                 coro2pyro1 = PyroEmptyClass()
             else:
-                coro2pyro1 = self.supervisor1.corono
+                coro2pyro1 = supervisor1.corono
 
-            if(self.supervisor2.corono == None):
+            if (supervisor2.corono == None):
                 from shesha.util.pyroEmptyClass import PyroEmptyClass
                 coro2pyro2 = PyroEmptyClass()
             else:
-                coro2pyro2 = self.supervisor2.corono
+                coro2pyro2 = supervisor2.corono
 
 
             devices1 = [

@@ -181,7 +181,7 @@ if __name__ == '__main__':
         else:
             user = out.split(b"\n")[0].decode("utf-8")
             print("User is " + user)
-        if(self.supervisor.corono == None):
+        if (supervisor.corono == None):
             from shesha.util.pyroEmptyClass import PyroEmptyClass
             coro2pyro = PyroEmptyClass()
         else:
@@ -189,7 +189,7 @@ if __name__ == '__main__':
         devices = [
                 supervisor, supervisor.rtc, supervisor.wfs, supervisor.target,
                 supervisor.tel, supervisor.basis, supervisor.calibration,
-                supervisor.atmos, supervisor.dms, supervisor.config, supervisor.modalgains, supervisor.corono
+                supervisor.atmos, supervisor.dms, supervisor.config, supervisor.modalgains, coro2pyro
         ]
         names = [
                 "supervisor", "supervisor_rtc", "supervisor_wfs", "supervisor_target",
