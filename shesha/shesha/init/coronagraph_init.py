@@ -175,63 +175,53 @@ def init_mft(p_corono: conf.Param_corono, pupdiam, planes, center_on_pixel=False
     image_sampling = p_corono._image_sampling
     wavelength_0 = p_corono._wavelength_0
     wav_vec = p_corono._wav_vec
+    
+    norm0 = np.zeros(len(wav_vec))
 
     if planes == 'apod_to_fpm':
-        AA_apod_to_fpm = list()
-        BB_apod_to_fpm = list()
-        norm0_apod_to_fpm = list()
+        AA_apod_to_fpm = np.zeros((dim_fpm, pupdiam, len(wav_vec)), dtype=np.complex64)
+        BB_apod_to_fpm = np.zeros((pupdiam, dim_fpm, len(wav_vec)), dtype=np.complex64)
 
-        for wavelength in wav_vec:
+        for w, wavelength in enumerate(wav_vec):
             wav_ratio = wavelength / wavelength_0
             nbres = dim_fpm / fpm_sampling / wav_ratio
-            AA, BB, norm0 = mft_matrices(pupdiam,
-                                         dim_fpm,
-                                         nbres)
-            AA_apod_to_fpm.append(AA)
-            BB_apod_to_fpm.append(BB)
-            norm0_apod_to_fpm.append(norm0)
-        return AA_apod_to_fpm, BB_apod_to_fpm, norm0_apod_to_fpm
+            AA_apod_to_fpm[:,:,w], BB_apod_to_fpm[:,:,w], norm0[w] = mft_matrices(pupdiam, 
+                                                                                  dim_fpm, nbres)
+
+        return AA_apod_to_fpm, BB_apod_to_fpm, norm0
 
     elif planes == 'fpm_to_lyot':
-        AA_fpm_to_lyot = list()
-        BB_fpm_to_lyot = list()
-        norm0_fpm_to_lyot = list()
+        AA_fpm_to_lyot = np.zeros((pupdiam, dim_fpm, len(wav_vec)), dtype=np.complex64)
+        BB_fpm_to_lyot = np.zeros((dim_fpm, pupdiam, len(wav_vec)), dtype=np.complex64)
 
-        for wavelength in wav_vec:
+        for w, wavelength in enumerate(wav_vec):
             wav_ratio = wavelength / wavelength_0
             nbres = dim_fpm / fpm_sampling / wav_ratio
-            AA, BB, norm0 = mft_matrices(dim_fpm,
-                                         pupdiam,
-                                         nbres,
-                                         inverse=True)
-            AA_fpm_to_lyot.append(AA)
-            BB_fpm_to_lyot.append(BB)
-            norm0_fpm_to_lyot.append(norm0)
-        return AA_fpm_to_lyot, BB_fpm_to_lyot, norm0_fpm_to_lyot
+
+            AA_fpm_to_lyot[:,:,w], BB_fpm_to_lyot[:,:,w], norm0[w] = mft_matrices(dim_fpm, 
+                                                                                  pupdiam, nbres,inverse=True)
+
+        return AA_fpm_to_lyot, BB_fpm_to_lyot, norm0
 
     elif planes == 'lyot_to_image':
-        AA_lyot_to_image = list()
-        BB_lyot_to_image = list()
-        norm0_lyot_to_image = list()
+        AA_lyot_to_image = np.zeros((dim_image, pupdiam, len(wav_vec)), dtype=np.complex64)
+        BB_lyot_to_image = np.zeros((pupdiam, dim_image, len(wav_vec)), dtype=np.complex64)
 
-        for wavelength in wav_vec:
+        for w, wavelength in enumerate(wav_vec):
             wav_ratio = wavelength / wavelength_0
             nbres = dim_image / image_sampling / wav_ratio
             if center_on_pixel:
-                AA, BB, norm0 = mft_matrices(pupdiam,
-                                             dim_image,
-                                             nbres,
-                                             X_offset_output=0.5,
-                                             Y_offset_output=0.5)
+                AA_lyot_to_image[:,:,w], BB_lyot_to_image[:,:,w], norm0[w] = mft_matrices(pupdiam,
+                                                                                dim_image,
+                                                                                nbres,
+                                                                                X_offset_output=0.5,
+                                                                                Y_offset_output=0.5)
             else:
-                AA, BB, norm0 = mft_matrices(pupdiam,
-                                             dim_image,
-                                             nbres)
-            AA_lyot_to_image.append(AA)
-            BB_lyot_to_image.append(BB)
-            norm0_lyot_to_image.append(norm0)
+                AA_lyot_to_image[:,:,w], BB_lyot_to_image[:,:,w], norm0[w] = mft_matrices(pupdiam,
+                                                                                        dim_image,
+                                                                                        nbres)
 
-        return AA_lyot_to_image, BB_lyot_to_image, norm0_lyot_to_image
+        return AA_lyot_to_image, BB_lyot_to_image, norm0
 
 
 # ---------------------------------------- #

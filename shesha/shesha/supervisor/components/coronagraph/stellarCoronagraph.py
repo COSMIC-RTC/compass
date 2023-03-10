@@ -92,23 +92,22 @@ class StellarCoronagraphCompass(GenericCoronagraph):
                                                self._wav_vec, self._wav_vec.size, 
                                                self._p_corono._babinet_trick, 0)
         
-        AA = np.rollaxis(np.array(self._AA_lyot_to_image), 0, self._wav_vec.size)
-        BB = np.rollaxis(np.array(self._BB_lyot_to_image), 0, self._wav_vec.size)
-        AA_c = np.rollaxis(np.array(self._AA_lyot_to_image_c), 0, self._wav_vec.size)
-        BB_c = np.rollaxis(np.array(self._BB_lyot_to_image_c), 0, self._wav_vec.size)
-        AA_fpm = np.rollaxis(np.array(self._AA_apod_to_fpm), 0, self._wav_vec.size)
-        BB_fpm = np.rollaxis(np.array(self._BB_apod_to_fpm), 0, self._wav_vec.size)
-        AA_lyot = np.rollaxis(np.array(self._AA_fpm_to_lyot), 0, self._wav_vec.size)
-        BB_lyot = np.rollaxis(np.array(self._BB_fpm_to_lyot), 0, self._wav_vec.size)
-        
-        self._coronagraph.set_mft(AA, BB, self._norm0_lyot_to_image, scons.MftType.IMG)
-        self._coronagraph.set_mft(AA_c, BB_c, self._norm0_lyot_to_image_c, scons.MftType.PSF)
-        self._coronagraph.set_mft(AA_fpm, BB_fpm, self._norm0_apod_to_fpm, scons.MftType.FPM)
-        self._coronagraph.set_mft(AA_lyot, BB_lyot, self._norm0_fpm_to_lyot, scons.MftType.LYOT)
+        self._coronagraph.set_mft(self._AA_lyot_to_image, 
+                                  self._BB_lyot_to_image, 
+                                  self._norm0_lyot_to_image, scons.MftType.IMG)
+        self._coronagraph.set_mft(self._AA_lyot_to_image_c, 
+                                  self._BB_lyot_to_image_c, 
+                                  self._norm0_lyot_to_image_c, scons.MftType.PSF)
+        self._coronagraph.set_mft(self._AA_apod_to_fpm, 
+                                  self._BB_apod_to_fpm, 
+                                  self._norm0_apod_to_fpm, scons.MftType.FPM)
+        self._coronagraph.set_mft(self._AA_fpm_to_lyot, 
+                                  self._BB_fpm_to_lyot, 
+                                  self._norm0_fpm_to_lyot, scons.MftType.LYOT)
 
         self._coronagraph.set_apodizer(self._p_corono._apodizer)
         self._coronagraph.set_lyot_stop(self._p_corono._lyot_stop)
-        fpm = np.rollaxis(np.array(self._p_corono._focal_plane_mask), 0, self._wav_vec.size)
+        fpm = np.rollaxis(np.array(self._p_corono._focal_plane_mask), 0, 3)
         if self._p_corono._babinet_trick:
             fpm = 1. - fpm
         self._coronagraph.set_focal_plane_mask(fpm)
