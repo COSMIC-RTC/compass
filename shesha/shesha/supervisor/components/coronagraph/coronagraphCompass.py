@@ -164,3 +164,13 @@ class CoronagraphCompass():
         return self._coronos[coro_index].get_contrast(expo_type=expo_type, d_min=d_min, d_max=d_max,
                                                        width=width, 
                                                        normalized_by_psf=normalized_by_psf)
+
+    def set_electric_field_amplitude(self, coro_index, amplitude:np.ndarray):
+        """ Set the amplitude of the electric field
+
+        Args:
+            coro_index: (int): Index of the coronagraph
+
+            amplitude: (np.ndarray[ndim=3, dtype=np.float32]): amplitude for each wavelength
+        """
+        self._coronos[coro_index].set_electric_field_amplitude(amplitude)
