@@ -74,13 +74,9 @@ class PerfectCoronagraphCompass(GenericCoronagraph):
         self._coronagraph = PerfectCoronagraph(context, self._target.sources[0], 
                                                self._dim_image, self._dim_image, 
                                                self._wav_vec, self._wav_vec.size, 0)
-        
-        AA = np.rollaxis(np.array(self._AA), 0, self._wav_vec.size)
-        BB = np.rollaxis(np.array(self._BB), 0, self._wav_vec.size)
-        AA_c = np.rollaxis(np.array(self._AA_c), 0, self._wav_vec.size)
-        BB_c = np.rollaxis(np.array(self._BB_c), 0, self._wav_vec.size)
-        self._coronagraph.set_mft(AA, BB, self._norm0, scons.MftType.IMG)
-        self._coronagraph.set_mft(AA_c, BB_c, self._norm0_c, scons.MftType.PSF)
+
+        self._coronagraph.set_mft(self._AA, self._BB, self._norm0, scons.MftType.IMG)
+        self._coronagraph.set_mft(self._AA_c, self._BB_c, self._norm0_c, scons.MftType.PSF)
         self._compute_normalization()
 
     def _compute_normalization(self):
