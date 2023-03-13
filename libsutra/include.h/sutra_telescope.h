@@ -11,7 +11,7 @@
 //! \class     SutraTelescope
 //! \brief     this class provides the telescope features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.3.0
+//! \version   5.4.0
 //! \date      2022/01/24
 
 #ifndef _SUTRA_TELESCOPE_H_

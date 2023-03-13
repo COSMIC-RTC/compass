@@ -1,6 +1,7 @@
 # COMPASS Change logs
 
 - [COMPASS Change logs](#compass-change-logs)
+  - [Release v5.4.0](#release-v540)
   - [Release v5.3.0](#release-v530)
   - [Release v5.2.1](#release-v521)
   - [Release v5.2](#release-v52)
@@ -21,6 +22,16 @@
   - [Release v3.0](#release-v30)
   - [Release v2.0](#release-v20)
   - [Release v1.1](#release-v11)
+
+## Release v5.4.0
+
+- Add new GPU-based coronagraph module providing implementation of perfect coronagraph and APLC-like
+- Add new parameters *p_wfs.kernconv4imat* to enable/disable the feature of using a kernel convolution on the SH spots during interaction matrix computation. Default value is True to keep the same behaviour as previous versions of COMPASS
+- Add new TwoStagesManager class in shesha supervisors: this class shows an example of how to handle 2 stages AO systems with COMPASS.
+- Add cupy interface for carmaWrap.CarmaObj object
+- Add support for CUDA 12
+- Add pySide2 support to have another library available to handle GUI
+- Minor fixes and improvements
 
 ## Release v5.3.0
 

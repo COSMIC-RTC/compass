@@ -46,4 +46,4 @@ mkdir -p $COMPASS_ROOT/public/coverage
 coverage html --omit="*/data/*,*/guardians/*,*canapass*,*/scripts/*,*/widgets/*,*/tao/*,*/rtc_cacao/*,*/pytest/*" -d $COMPASS_ROOT/public/coverage
 
 echo 'Documentation generated in $COMPASS_ROOT/public/. To Publish it:'
-echo 'rsync -PaW --inplace --del $COMPASS_ROOT/public/* lesia:compass-doc/html/v5.3.0'
+echo 'rsync -PaW --inplace --del $COMPASS_ROOT/public/* lesia:compass-doc/html/v5.4.0'

@@ -1,7 +1,7 @@
 ## @package   shesha.util.dm_util
 ## @brief     Utilities function for DM geometry initialization
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   5.3.0
+## @version   5.4.0
 ## @date      2022/01/24
 ## @copyright GNU Lesser General Public License
 #

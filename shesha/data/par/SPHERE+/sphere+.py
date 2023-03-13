@@ -121,3 +121,19 @@ p_coronos[0].set_type("SPHERE_APLC")
 p_coronos[0].set_wavelength_0(1.667)
 p_coronos[0].set_delta_wav(0.054)
 p_coronos[0].set_nb_wav(3)
+
+"""
+p_coronos[1].set_type("SPHERE_APLC")
+p_coronos[1].set_wavelength_0(1.2)
+p_coronos[1].set_delta_wav(0.054)
+p_coronos[1].set_nb_wav(3)
+"""
+
+"""
+p_coronos[1].set_type("perfect")  # coronagraph type : "perfect", "SPHERE_APLC", "custom"
+p_coronos[1].set_wavelength_0(1.667)  # coronagraph wavelength in micron
+p_coronos[1].set_image_sampling(2)  # number of pixel in lambda/D (2 : Shannon sampling)
+p_coronos[1].set_dim_image(250)     # size of the science image in pixel
+p_coronos[1].set_delta_wav(0.054)
+p_coronos[1].set_nb_wav(3)
+"""

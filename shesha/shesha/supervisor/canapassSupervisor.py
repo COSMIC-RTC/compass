@@ -1,7 +1,7 @@
 ## @package   shesha.supervisor.canapassSupervisor
 ## @brief     Initialization and execution of a CANAPASS supervisor
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   5.3.0
+## @version   5.4.0
 ## @date      2022/01/24
 ## @copyright GNU Lesser General Public License
 #
@@ -181,15 +181,20 @@ if __name__ == '__main__':
         else:
             user = out.split(b"\n")[0].decode("utf-8")
             print("User is " + user)
+        if (supervisor.corono == None):
+            from shesha.util.pyroEmptyClass import PyroEmptyClass
+            coro2pyro = PyroEmptyClass()
+        else:
+            coro2pyro = supervisor.corono
         devices = [
                 supervisor, supervisor.rtc, supervisor.wfs, supervisor.target,
                 supervisor.tel, supervisor.basis, supervisor.calibration,
-                supervisor.atmos, supervisor.dms, supervisor.config, supervisor.modalgains
+                supervisor.atmos, supervisor.dms, supervisor.config, supervisor.modalgains, coro2pyro
         ]
         names = [
                 "supervisor", "supervisor_rtc", "supervisor_wfs", "supervisor_target",
                 "supervisor_tel", "supervisor_basis", "supervisor_calibration",
-                "supervisor_atmos", "supervisor_dms", "supervisor_config", "supervisor_modalgains"
+                "supervisor_atmos", "supervisor_dms", "supervisor_config", "supervisor_modalgains", "supervisor_corono",
         ]
         nname = []
         for name in names:

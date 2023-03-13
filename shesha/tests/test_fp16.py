@@ -1,7 +1,7 @@
 ## @package   shesha.tests
 ## @brief     tests the FP16 computation
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   5.3.0
+## @version   5.4.0
 ## @date      2022/01/24
 ## @copyright GNU Lesser General Public License
 #

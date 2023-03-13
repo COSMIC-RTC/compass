@@ -45,20 +45,20 @@ wao.wao1.aoLoopClicked(False) # Make sure the loop controlled by the main GUI is
 wao.wao1.enable_atmos(False) # disabling turbulence
 #Measuring ref slopes saxo
 saxo.wfs.set_noise(0, -1) #removing noise on SH WFS (-1 = no noise)
-for i in range(6): saxoplusmanager.next(seeAtmos=False); # check
+for i in range(6): saxoplusmanager.next(); # check
 saxo.rtc.reset_ref_slopes(0) # reset refslopes from saxo to 0 (check)
 saxo.rtc.do_ref_slopes(0) # meaure and load reflopes from null phase
-for i in range(6): saxoplusmanager.next(seeAtmos=False); # check
+for i in range(6): saxoplusmanager.next(); # check
 
 
 
 #Measuring ref slopes saxoplus
 saxoplus.wfs.set_noise(0, -1) #removing noise on PYR WFS (-1 = no noise)
 saxoplus.rtc.reset_ref_slopes(0) # reset refslopes from saxo to 0 (check)
-for i in range(6): saxoplusmanager.next(seeAtmos=False); # check
+for i in range(6): saxoplusmanager.next(); # check
 
 saxoplus.rtc.do_ref_slopes(0) # meaure and load reflopes from null phase
-for i in range(6): saxoplusmanager.next(seeAtmos=False); # check
+for i in range(6): saxoplusmanager.next(); # check
 
 # Computing modified KL basis (Gendron modal basis)
 xpos0 = saxo.config.p_dms[0]._xpos # actus positions
@@ -89,7 +89,7 @@ imat01 = np.zeros((Nslopes1, nModes0))
 for mode in trange(nModes0):
     volts = B0All[:, mode] * ampli0; 
     saxo.rtc.set_perturbation_voltage(0, "tmp", volts)
-    for i in range(6): saxoplusmanager.next(seeAtmos=False); # check
+    for i in range(6): saxoplusmanager.next(); # check
 
     s1 = saxo.rtc.get_slopes(0) / ampli0
     s2 = saxoplus.rtc.get_slopes(0)  / ampli0
@@ -101,7 +101,7 @@ saxo.wfs.set_noise(0, saxo.config.p_wfss[0].get_noise()) #  sets the noise back 
 
 
 # Measuring imat on saxo+. ( Boston and PYR (imat1))
-for i in range(6): saxoplusmanager.next(seeAtmos=False); # check
+for i in range(6): saxoplusmanager.next(); # check
 nmodes1 = B1.shape[1] # number of modes for second stage AO
 ampli1 = 1.0e-2
 imat1 = np.zeros((Nslopes1, nmodes1))
@@ -109,7 +109,7 @@ imat1 = np.zeros((Nslopes1, nmodes1))
 for mode in trange(nmodes1):
     volts = B1[:, mode] * ampli1; 
     saxoplus.rtc.set_perturbation_voltage(0, "tmp", volts)
-    for i in range(6): saxoplusmanager.next(seeAtmos=False); # check
+    for i in range(6): saxoplusmanager.next(); # check
     s = saxoplus.rtc.get_slopes(0)  / ampli1
     imat1[:, mode] = s.copy()
 saxoplus.rtc.reset_perturbation_voltage(0) #remove ALL pertu voltages (rest the DM)

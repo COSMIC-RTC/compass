@@ -2,7 +2,7 @@
 ## @package   shesha.widgets.widget_ao
 ## @brief     Widget to simulate a closed loop
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   5.3.0
+## @version   5.4.0
 ## @date      2022/01/24
 ## @copyright GNU Lesser General Public License
 #
@@ -500,17 +500,21 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             for psf in ["coroImageSE_", "coroImageLE_", "coroPSFSE_", "coroPSFLE_"]:
                 key = psf + str(i)
                 Delta = 5
+                if("Image" in key):
+                    center = 0.
+                else:
+                    center = 0.5
                 self.SRCrossX[key] = pg.PlotCurveItem(
                         np.array([
-                                data.shape[0] / 2 + 0.5 - Delta,
-                                data.shape[0] / 2 + 0.5 + Delta
-                        ]), np.array([data.shape[1] / 2 + 0.5, data.shape[1] / 2 + 0.5]),
+                                data.shape[0] / 2 + center - Delta,
+                                data.shape[0] / 2 + center + Delta
+                        ]), np.array([data.shape[1] / 2 + center, data.shape[1] / 2 + center]),
                         pen='r')
                 self.SRCrossY[key] = pg.PlotCurveItem(
-                        np.array([data.shape[0] / 2 + 0.5, data.shape[0] / 2 + 0.5]),
+                        np.array([data.shape[0] / 2 + center, data.shape[0] / 2 + center]),
                         np.array([
-                                data.shape[1] / 2 + 0.5 - Delta,
-                                data.shape[1] / 2 + 0.5 + Delta
+                                data.shape[1] / 2 + center - Delta,
+                                data.shape[1] / 2 + center + Delta
                         ]), pen='r')
                 # Put image in plot area
                 self.viewboxes[key].addItem(self.SRCrossX[key])
