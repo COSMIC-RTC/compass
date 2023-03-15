@@ -267,6 +267,50 @@ p_controller0.set_ndm([0, 2])
 p_controller0.set_maxcond(150.)
 p_controller0.set_delay(1)   # loop delay. "0 = 1 frame delay".
 p_controller0.set_gain(1)
+
+"""
+ PERFECT CORONO FOR MICADO
+
+p_coronos = [ao.Param_corono()]
+
+
+p_coronos[0].set_type("perfect")  # coronagraph type : "perfect", "SPHERE_APLC", "custom"
+p_coronos[0].set_wavelength_0(1.667)  # coronagraph wavelength in micron
+p_coronos[0].set_image_sampling(2)  # number of pixel in lambda/D (2 : Shannon sampling)
+p_coronos[0].set_dim_image(250)     # size of the science image in pixel
+p_coronos[0].set_delta_wav(0.054)
+p_coronos[0].set_nb_wav(3)
+"""
+
+
+
+
+"""
+CUSTOM CORONO FOR MICADO
+"""
+
+p_coronos = [ao.Param_corono()]
+
+
+p_coronos[0].set_type("custom")
+p_coronos[0].set_wavelength_0(1.667)
+p_coronos[0].set_apodizer_name('SPHERE_APLC_apodizer_APO1')  # 'SPHERE_APLC_apodizer_APO1' or path to fits file of size (pupdiam, pupdiam)
+p_coronos[0].set_focal_plane_mask_name('classical_Lyot')  # 'classical_Lyot', "SPHERE_APLC_fpm_ALC1" or 2 or 3
+                                                      # or path to fits file of user defined size [dimx, dimy, nb_wav]
+                                                      # or [dimx, dimy] if same for all wavelength
+p_coronos[0].set_lyot_fpm_radius(2.15)  # radius of the mask in lambda/D units (required)
+# p_corono.set_fpm_sampling()  # lambda/D size in pixel (default = 20.)
+                             # optional if classical lyot
+p_coronos[0].set_lyot_stop_name("/home/fvidal/spupELT.fits")  # 'SPHERE_APLC_Lyot_stop', or path to fits file of size (pupdiam, pupdiam)
+                                                      # homogeneous to get_s_pupil() size in COMPASS
+p_coronos[0].set_dim_image(400)
+p_coronos[0].set_image_sampling(3)
+
+# p_corono.set_babinet_trick() # True or False for enabling Babinet propagation method
+
+
+
+
 # p_controller0.set_nstates(6)
 
 # p_controller0.set_modopti(0)
