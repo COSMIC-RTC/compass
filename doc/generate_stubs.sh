@@ -13,7 +13,7 @@ cat > stubs/sutraWrap.py << EOF
 #
 #  This file is part of COMPASS <https://anr-compass.github.io/compass/>
 #
-#  Copyright (C) 2011-2022 COMPASS Team <https://github.com/ANR-COMPASS>
+#  Copyright (C) 2011-2023 COMPASS Team <https://github.com/ANR-COMPASS>
 #  All rights reserved.
 #  Distributed under GNU - LGPL
 #
@@ -54,7 +54,7 @@ cat > stubs/carmaWrap.py << EOF
 #
 #  This file is part of COMPASS <https://anr-compass.github.io/compass/>
 #
-#  Copyright (C) 2011-2022 COMPASS Team <https://github.com/ANR-COMPASS>
+#  Copyright (C) 2011-2023 COMPASS Team <https://github.com/ANR-COMPASS>
 #  All rights reserved.
 #  Distributed under GNU - LGPL
 #
