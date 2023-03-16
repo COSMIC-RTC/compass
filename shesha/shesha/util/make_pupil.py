@@ -1,7 +1,7 @@
 ## @package   shesha.util.make_pupil
 ## @brief     Pupil creation functions
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   5.4.0
+## @version   5.4.1
 ## @date      2022/01/24
 ## @copyright GNU Lesser General Public License
 #
