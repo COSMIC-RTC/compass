@@ -9,7 +9,7 @@
 //! \ingroup   libcarma
 //! \brief     this file provides pybind wrapper for CarmaObj
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.0
+//! \version   5.4.2
 //! \date      2022/01/24
 
 #ifndef _WRAP_OBJ_H_

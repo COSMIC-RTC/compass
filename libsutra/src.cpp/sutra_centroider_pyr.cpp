@@ -11,7 +11,7 @@
 //! \class     SutraCentroiderPyr
 //! \brief     this class provides the centroider_pyr features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.0
+//! \version   5.4.2
 //! \date      2022/01/24
 
 #include <sutra_centroider_pyr.h>

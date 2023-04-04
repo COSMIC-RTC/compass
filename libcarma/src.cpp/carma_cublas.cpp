@@ -10,7 +10,7 @@
 //! \ingroup   libcarma
 //! \brief     this file provides the cublas features to CarmaObj
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.0
+//! \version   5.4.2
 //! \date      2022/01/24
 
 #include <carma_cublas.h>

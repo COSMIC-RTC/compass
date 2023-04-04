@@ -1,7 +1,7 @@
 ## @package   shesha.tests
 ## @brief     Initialize widget and load MICADO ELT pupil
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   5.4.0
+## @version   5.4.2
 ## @date      2022/01/24
 ## @copyright GNU Lesser General Public License
 #
