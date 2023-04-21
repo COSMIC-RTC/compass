@@ -97,14 +97,6 @@ void centroider_corr_impl(py::module &mod, const char *name) {
         )pbdoc",
            py::arg("corr"), py::arg("corr_norm"), py::arg("ndim"))
 
-      .def("set_npix", wy::colCast(&centroider_corr::set_npix),
-           R"pbdoc(
-    Set the number of pixels per subap.
-
-    Args:
-        npix: (int): number of pixels per subap
-            )pbdoc",
-           py::arg("npix"))
 
       ;
 };

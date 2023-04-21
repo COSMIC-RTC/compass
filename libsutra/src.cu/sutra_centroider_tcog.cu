@@ -50,7 +50,7 @@ __global__ void centroids(float *d_img, T *d_centroids, T *ref, int *validx,
     idim = (x + xvalid) + (y + yvalid) * size;
     if (idim < size * size) {
       float data_thresh =
-          (d_img[idim] > threshold) ? d_img[idim] - threshold : 0.f;
+          (d_img[idim] > threshold) ? d_img[idim] - threshold : 1.e-6;
       idata += data_thresh;
       xdata += data_thresh * x;
       ydata += data_thresh * y;

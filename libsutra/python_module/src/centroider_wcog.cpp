@@ -32,12 +32,12 @@ void centroider_wcog_impl(py::module &mod, const char *name) {
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
 
       .def_property_readonly(
-          "npix", [](centroider_wcog &sc) { return sc.npix; },
-          "TODO: docstring")
-
-      .def_property_readonly(
           "d_weights", [](centroider_wcog &sc) { return sc.d_weights; },
           "Weights applied")
+
+      .def_property_readonly(
+          "threshold", [](centroider_wcog &sc) { return sc.threshold; },
+          "Threshold value")
 
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝
@@ -49,14 +49,6 @@ void centroider_wcog_impl(py::module &mod, const char *name) {
       .def("init_weights", &centroider_wcog::init_weights,
            "Initializes WCOG computation")
 
-      .def("set_npix", &centroider_wcog::set_npix, R"pbdoc(
-    Set the number of pixels per subap.
-
-    Args:
-            npix: (int): number of pixels per subap
-            )pbdoc",
-           py::arg("npix"))
-
       .def("load_weights", wy::colCast(&centroider_wcog::load_weights),
            R"pbdoc(
     Load weights on WCOG
@@ -67,6 +59,16 @@ void centroider_wcog_impl(py::module &mod, const char *name) {
             ndim: (int): TODO: docstring
         )pbdoc",
            py::arg("weights"), py::arg("ndim"))
+
+      .def("set_threshold", &centroider_wcog::set_threshold,
+           R"pbdoc(
+    Set the threshold value of a TCOG centroider
+
+    Args:
+      thresh : (float) : threshold value to set
+
+        )pbdoc",
+           py::arg("thresh"))
 
       ;
 };

@@ -73,7 +73,7 @@ pitch = wao.config.p_dms[0]._pitch
 
 plt.clf()
 plt.scatter(*dmposMat)
-discard = np.zeros(len(dmposx), dtype=np.bool)
+discard = np.zeros(len(dmposx), dtype=bool)
 pairs = []
 
 # For each of the k pieces of the spider

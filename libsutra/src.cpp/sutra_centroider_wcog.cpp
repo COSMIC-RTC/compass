@@ -28,14 +28,11 @@ SutraCentroiderWcog<Tin, T>::SutraCentroiderWcog(CarmaContext *context,
   context->set_active_device(device, 1);
 
   this->nslopes = 2 * nvalid;
-  if (wfs != nullptr)
-    this->npix = this->wfs->npix;
-  else
-    this->npix = 0;
   this->d_weights = 0L;
   long dims_data2[2] = {1, this->nslopes};
   this->d_centroids_ref = new CarmaObj<T>(this->current_context, dims_data2);
   this->d_centroids_ref->reset();
+  this->threshold = 0;
 
   if (filter_TT) {
     this->init_TT_filter();
@@ -92,10 +89,12 @@ int SutraCentroiderWcog<Tin, T>::load_weights(float *weights, int ndim) {
 }
 
 template <class Tin, class T>
-int SutraCentroiderWcog<Tin, T>::set_npix(int npix) {
-  this->npix = npix;
+int SutraCentroiderWcog<Tin, T>::set_threshold(float threshold) {
+  this->threshold = threshold;
+
   return EXIT_SUCCESS;
 }
+
 template <class Tin, class T>
 int SutraCentroiderWcog<Tin, T>::get_cog(float *img, float *intensities,
                                            T *centroids, int nvalid, int npix,
@@ -110,11 +109,10 @@ int SutraCentroiderWcog<Tin, T>::get_cog(float *img, float *intensities,
   //                      intensities, *(this->d_weights), this->scale,
   //                      this->offset,
   //                      this->current_context->get_device(device));
-
   get_centroids(ntot, (npix * npix), nvalid, npix, img, centroids,
                 this->d_centroids_ref->get_data(), this->d_validx->get_data(),
                 this->d_validy->get_data(), intensities,
-                this->d_weights->get_data(), this->scale, this->offset,
+                this->d_weights->get_data(), this->threshold, this->scale, this->offset,
                 this->slope_order,
                 this->current_context->get_device(this->device));
 

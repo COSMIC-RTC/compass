@@ -107,6 +107,7 @@ if __name__ == "__main__":
             SR = supervisor.target.get_strehl(0)[1]
         except:
             SR = "N/A"
+            t_loop = 0
         try:
             df = pandas.read_hdf("check.h5")
         except FileNotFoundError:

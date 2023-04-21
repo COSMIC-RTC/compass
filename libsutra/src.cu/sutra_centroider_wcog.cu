@@ -51,7 +51,7 @@ template int fill_weights<double>(double *d_out, double *d_in, int npix, int N,
 
 template <int nb_threads, typename T>
 __global__ void centroids(float *d_img, T *d_centroids, T *ref, int *validx,
-                          int *validy, float *d_intensities, float *weights,
+                          int *validy, float *d_intensities, float *weights, float threshold, 
                           unsigned int npix, sutra::SlopesIndex si, unsigned int size, float scale,
                           float offset, unsigned int nelem_thread) {
   if (blockDim.x > nb_threads) {
@@ -81,9 +81,11 @@ __global__ void centroids(float *d_img, T *d_centroids, T *ref, int *validx,
     idim = (x + xvalid) + (y + yvalid) * size;
     wdim = x + y * npix + blockIdx.x * npix * npix;
     if (idim < size * size) {
-      idata += d_img[idim] * weights[wdim];
-      xdata += d_img[idim] * x * weights[wdim];
-      ydata += d_img[idim] * y * weights[wdim];
+      float data_thresh =
+          (d_img[idim] > threshold) ? d_img[idim] - threshold : 1.e-6;
+      idata += data_thresh * weights[wdim];
+      xdata += data_thresh * x * weights[wdim];
+      ydata += data_thresh * y * weights[wdim];
     }
   }
 
@@ -107,7 +109,7 @@ __global__ void centroids(float *d_img, T *d_centroids, T *ref, int *validx,
 template <class T>
 void get_centroids(int size, int threads, int blocks, int npix, float *d_img,
                    T *d_centroids, T *ref, int *validx, int *validy,
-                   float *intensities, float *weights, float scale,
+                   float *intensities, float *weights, float threshold, float scale,
                    float offset,
                    SlopeOrder slope_order, CarmaDevice *device) {
   int maxThreads = device->get_properties().maxThreadsPerBlock;
@@ -121,40 +123,39 @@ void get_centroids(int size, int threads, int blocks, int npix, float *d_img,
 
   threads /= nelem_thread;
   dim3 dimGrid(blocks, 1, 1);
-
   // when there is only one warp per block, we need to allocate two warps
   // worth of shared memory so that we don't index shared memory out of bounds
   if (threads <= 16)
     centroids<  16><<<dimGrid, threads>>>(d_img, d_centroids, ref, validx, validy,
-                                             intensities, weights, npix, si, size, scale,
+                                             intensities, weights, threshold, npix, si, size, scale,
                                              offset, nelem_thread);
   else if (threads <= 36)
     centroids<  36><<<dimGrid, threads>>>(d_img, d_centroids, ref, validx, validy,
-                                             intensities, weights, npix, si, size, scale,
+                                             intensities, weights, threshold, npix, si, size, scale,
                                              offset, nelem_thread);
   else if (threads <= 64)
     centroids<  64><<<dimGrid, threads>>>(d_img, d_centroids, ref, validx, validy,
-                                             intensities, weights, npix, si, size, scale,
+                                             intensities, weights, threshold, npix, si, size, scale,
                                              offset, nelem_thread);
   else if (threads <= 100)
     centroids< 100><<<dimGrid, threads>>>(d_img, d_centroids, ref, validx, validy,
-                                             intensities, weights, npix, si, size, scale,
+                                             intensities, weights, threshold, npix, si, size, scale,
                                              offset, nelem_thread);
   else if (threads <= 144)
     centroids< 144><<<dimGrid, threads>>>(d_img, d_centroids, ref, validx, validy,
-                                             intensities, weights, npix, si, size, scale,
+                                             intensities, weights, threshold, npix, si, size, scale,
                                              offset, nelem_thread);
   else if (threads <= 256)
     centroids< 256><<<dimGrid, threads>>>(d_img, d_centroids, ref, validx, validy,
-                                             intensities, weights, npix, si, size, scale,
+                                             intensities, weights, threshold, npix, si, size, scale,
                                              offset, nelem_thread);
   else if (threads <= 512)
     centroids< 512><<<dimGrid, threads>>>(d_img, d_centroids, ref, validx, validy,
-                                             intensities, weights, npix, si, size, scale,
+                                             intensities, weights, threshold, npix, si, size, scale,
                                              offset, nelem_thread);
   else if (threads <= 1024)
     centroids<1024><<<dimGrid, threads>>>(d_img, d_centroids, ref, validx,
-                                             validy, intensities, weights, npix, si,
+                                             validy, intensities, weights, threshold, npix, si,
                                              size, scale, offset, nelem_thread);
   else
     printf("SH way too big !!!\n");
@@ -165,14 +166,14 @@ void get_centroids(int size, int threads, int blocks, int npix, float *d_img,
 template void get_centroids<float>(int size, int threads, int blocks, int npix,
                                    float *d_img, float *d_centroids, float *ref,
                                    int *validx, int *validy, float *intensities,
-                                   float *weights, float scale, float offset,
+                                   float *weights, float threshold, float scale, float offset,
                                    SlopeOrder slope_order,
                                    CarmaDevice *device);
 
 template void get_centroids<double>(int size, int threads, int blocks, int npix,
                                     float *d_img, double *d_centroids,
                                     double *ref, int *validx, int *validy,
-                                    float *intensities, float *weights,
+                                    float *intensities, float *weights, float threshold,
                                     float scale, float offset,
                                     SlopeOrder slope_order,
                                     CarmaDevice *device);

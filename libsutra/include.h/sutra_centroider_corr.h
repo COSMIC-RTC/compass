@@ -23,7 +23,6 @@
 template <class Tin, class T>
 class SutraCentroiderCorr : public SutraCentroider<Tin, T> {
  public:
-  int npix;
   int interp_sizex;
   int interp_sizey;
   CarmaObj<cuFloatComplex> *d_corrfnct;
@@ -44,8 +43,6 @@ class SutraCentroiderCorr : public SutraCentroider<Tin, T> {
 
   int init_corr(int isizex, int isizey, T *interpmat);
   int load_corr(T *corr, T *corr_norm, int ndim);
-
-  int set_npix(int npix);
 
   int get_cog(float *cube, float *intensities, T *centroids, int nvalid,
               int npix, int ntot, cudaStream_t stream=0);

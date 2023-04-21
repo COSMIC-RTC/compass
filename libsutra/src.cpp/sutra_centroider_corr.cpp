@@ -73,13 +73,6 @@ string SutraCentroiderCorr<Tin, T>::get_type() {
 }
 
 template <class Tin, class T>
-int SutraCentroiderCorr<Tin, T>::set_npix(int npix) {
-  this->npix = npix;
-
-  return EXIT_SUCCESS;
-}
-
-template <class Tin, class T>
 int SutraCentroiderCorr<Tin, T>::fill_bincube(T *img) {
   this->current_context->set_active_device(this->device, 1);
 

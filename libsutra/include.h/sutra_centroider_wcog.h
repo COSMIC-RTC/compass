@@ -23,7 +23,7 @@
 template <class Tin, class T>
 class SutraCentroiderWcog : public SutraCentroider<Tin, T> {
  public:
-  int npix;
+  float threshold;
   CarmaObj<float> *d_weights;
 
  public:
@@ -34,7 +34,8 @@ class SutraCentroiderWcog : public SutraCentroider<Tin, T> {
 
   string get_type();
 
-  int set_npix(int npix);
+  int set_threshold(float threshold);
+
   int init_weights();
   int load_weights(float *weights, int ndim);
 
@@ -47,7 +48,7 @@ class SutraCentroiderWcog : public SutraCentroider<Tin, T> {
 template <class T>
 void get_centroids(int size, int threads, int blocks, int n, float *d_idata,
                    T *d_odata, T *ref, int *validx, int *validy,
-                   float *intensities, float *d_weights, float scale,
+                   float *intensities, float *d_weights, float threshold, float scale,
                    float offset,
                    SlopeOrder slope_order,
                    CarmaDevice *device);
