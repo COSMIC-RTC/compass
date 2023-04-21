@@ -10,7 +10,7 @@
 //! \ingroup   libcarma
 //! \brief     this file provides pybind wrapper for half float CarmaObj
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.2
+//! \version   5.4.3
 //! \date      2022/01/24
 
 #ifndef _WRAP_OBJ_HALF_H_

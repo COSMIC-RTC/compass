@@ -10,7 +10,7 @@
 //! \class     CarmaHostObj
 //! \brief     this class provides wrappers to the generic carma host object
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.2
+//! \version   5.4.3
 //! \date      2022/01/24
 
 #ifndef _CarmaHostObj_H_

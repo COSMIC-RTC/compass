@@ -10,7 +10,7 @@
 //! \ingroup   libcarma
 //! \brief     this file provides the list of types supported in COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.2
+//! \version   5.4.3
 //! \date      2022/01/24
 
 #ifndef CARMA_TYPE_LIST_H
