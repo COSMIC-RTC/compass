@@ -581,6 +581,7 @@ def init_custom_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, diam: float):
     if cases == [False, False, False]:
         f_pupm = hdul[0].header['PUPM']
         scale = diam / f_pupm
+        print('Custom DM: stretching DM to fit PUPM (%f) to compass (%f)' % (f_pupm, diam))
     elif cases == [True, False, False]:
         scale = diam / p_dm.diam_dm
     elif cases == [False, True, False]:
@@ -602,7 +603,9 @@ def init_custom_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, diam: float):
     f_pixsize *= scale
     print("Custom dm scaling factor to pupil plane :", scale)
 
-    # Scaling factor from fits to compass system
+    # Scaling factor from fits to compass system. The float32() acts as a
+    # roundoff, required to avoid weird behavior when exporting/importing
+    # custom DMs from/to compass
     scaleToCompass = np.float32(f_pixsize) / np.float32(p_geom._pixsize)
 
     # shift to add to coordinates from fits to compass
@@ -784,8 +787,10 @@ def comp_dmgeom(p_dm: conf.Param_dm, p_geom: conf.Param_geom):
     mpup_dim = p_geom._mpupil.shape[0]
 
     if (dm_dim < mpup_dim):
+        print('DM support is smaller than mpupil')
         offs = (mpup_dim - dm_dim) // 2
     else:
+        print('DM support is larger than mpupil')
         offs = 0
         mpup_dim = dm_dim
 

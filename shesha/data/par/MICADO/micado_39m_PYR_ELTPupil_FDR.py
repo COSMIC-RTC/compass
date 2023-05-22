@@ -131,10 +131,9 @@ p_wfs0 = ao.Param_wfs()
 p_wfss = [p_wfs0]
 
 p_wfs0.set_type("pyrhr") # type de WFS: "sh", "pyrhr", "pyr"
-
-p_wfs0.set_nxsub(
-        100
-)  # 92 sub aps for hexagonal grid of actuators eq. 78 subaps square grid. (pitch = 0.5m)
+# FDR design has been done with 96 subaps in 38.542 m. This leads to subaps
+# of 0.40148 metres. 
+p_wfs0.set_nxsub(100)
 p_wfs0.set_fracsub(0.01) # 0.01 for pixels below spider, nominal = 0.1 Minimal illumination fraction
 p_wfs0.set_xpos(0.)     # direction of guide star in X (arcsec)
 p_wfs0.set_ypos(0.)     # direction of guide star in Y (arcsec)
@@ -148,7 +147,7 @@ p_wfs0.set_fstop("square") # shape of field stop, "round", "square"
 p_wfs0.set_fssize(1.6)     # size of field stop (arcsec)
 # p_wfs0.set_fssize(0.0185)
 rMod = 3.  # Modulation radius, in lam/D units
-nbPtMod = int(np.ceil(int(rMod * 2 * 3.141592653589793) / 4.) * 4)
+nbPtMod = int(np.ceil(int(rMod * 2 * np.pi) / 4.) * 4)
 p_wfs0.set_pyr_npts(nbPtMod) # nb pts modu around circle
 p_wfs0.set_pyr_ampl(rMod)  # define modulation amplitude
 #p_wfs0.set_nPupils(6)    #8, 24
@@ -287,7 +286,6 @@ p_coronos[0].set_nb_wav(3)
 
 """
 CUSTOM CORONO FOR MICADO
-"""
 
 p_coronos = [ao.Param_corono()]
 
@@ -310,7 +308,7 @@ p_coronos[0].set_image_sampling(3)
 
 
 
-
+"""
 # p_controller0.set_nstates(6)
 
 # p_controller0.set_modopti(0)
