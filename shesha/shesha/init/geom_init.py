@@ -306,15 +306,15 @@ def init_wfs_size(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel, verbo
     elif (p_wfs.type == scons.WFSType.PYRHR or p_wfs.type == scons.WFSType.PYRLR):
         pdiam = pdiam * p_wfs.nxsub
         m = 3
-        Nfft = util.fft_goodsize( m * pdiam)
-        # Nfft = int(2**np.ceil(np.log2(m * pdiam)))
+        # Nfft = util.fft_goodsize( m * pdiam)
+        Nfft = int(2**np.ceil(np.log2(m * pdiam)))
 
         nrebin = pdiam // p_wfs.nxsub
         while (Nfft % nrebin != 0):
             nrebin += 1  # we choose to have a divisor of Nfft
             pdiam = nrebin * p_wfs.nxsub
-            # Nfft = int(2**np.ceil(np.log2(m * pdiam)))
-            Nfft = util.fft_goodsize( m * pdiam)
+            Nfft = int(2**np.ceil(np.log2(m * pdiam)))
+            # Nfft = util.fft_goodsize( m * pdiam)
 
         qpixsize = (pdiam *
                     (p_wfs.Lambda * 1.e-6) / p_tel.diam * CONST.RAD2ARCSEC) / Nfft

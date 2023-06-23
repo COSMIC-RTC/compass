@@ -59,8 +59,8 @@ def fft_goodsize(s):
 
          s: (int) size
     """
-    # return 2**(int(np.log2(s)) + 1)
-    return fft.next_fast_len(s)
+    return 2**(int(np.log2(s)) + 1)
+    # return fft.next_fast_len(s)
 
 
 def bin2d(data_in, binfact):
