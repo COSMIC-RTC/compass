@@ -563,14 +563,22 @@ int SutraDm::DDiago(CarmaObj<float> *d_statcov, CarmaObj<float> *d_geocov) {
     d_eigenvals->device2host(h_eigenvals->get_data());
   }
   for (int i = 0; i < this->nactus; i++) {
-    h_eigenvals_sqrt->get_data()[i] =
-        sqrt(h_eigenvals->get_data()[i]);  // D = sqrt(D������)
-    h_eigenvals_inv->get_data()[i] =
-        1. /
-        sqrt(h_eigenvals->get_data()[i]);  // D��������������� = 1/sqrt(D������)
+    if(h_eigenvals->get_data()[i] < 0.f) {
+      h_eigenvals->get_data()[i] = 0;
+      h_eigenvals_sqrt->get_data()[i] = 0;
+      h_eigenvals_inv->get_data()[i] = 0;
+    }
+    else {
+      h_eigenvals_sqrt->get_data()[i] =
+          sqrt(h_eigenvals->get_data()[i]);  // D = sqrt(D������)
+      h_eigenvals_inv->get_data()[i] =
+          1. /
+          sqrt(h_eigenvals->get_data()[i]);  // D��������������� = 1/sqrt(D������)
+    }
   }
   d_eigenvals_sqrt->host2device(h_eigenvals_sqrt->get_data());
   d_eigenvals_inv->host2device(h_eigenvals_inv->get_data());
+  d_eigenvals->host2device(h_eigenvals->get_data());
 
   // 2. M��������������� = sqrt(eigenvals) * Ut : here, we have
   // transpose(M���������������)
