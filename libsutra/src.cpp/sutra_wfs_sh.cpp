@@ -148,7 +148,7 @@ int SutraWfsSH::allocate_buffers(
 
   this->nstreams = 1;
   while (nvalid % this->nstreams != 0) nstreams--;
-  std::cerr << "wfs uses " << nstreams << " streams" << std::endl;
+  // std::cerr << "wfs uses " << nstreams << " streams" << std::endl;
   this->streams = new CarmaStreams(nstreams);
 
   dims_data1[1] = 2 * nvalid;

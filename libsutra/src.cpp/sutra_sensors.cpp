@@ -98,7 +98,7 @@ SutraSensors::SutraSensors(CarmaContext *context, SutraTelescope *d_tel,
     }
     if (type[i].compare("pyrhr") == 0) {
       const int ngpu = context->get_ndevice();
-      DEBUG_TRACE("using pyrhr with %d GPUs", ngpu);
+      // DEBUG_TRACE("using pyrhr with %d GPUs", ngpu);
       if (ngpu == 1) {
         wfs = new SutraWfs_PyrHR(
             context, d_tel, this->d_camplipup, this->d_camplifoc,
