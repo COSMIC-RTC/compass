@@ -96,7 +96,7 @@ def test_enable_atmos():
 
 def test_set_r0():
     sup.atmos.set_r0(0.15)
-    assert(sup.config.p_atmos.r0 == 0.15)
+    assert(sup.config.p_atmos.r0 == np.float32(0.15))
 
 def test_set_wind():
     sup.atmos.set_wind(0,windspeed=10, winddir=45)
