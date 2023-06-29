@@ -11,7 +11,7 @@
 //! \class     CarmaTimer
 //! \brief     this class provides the timer features to CarmaObj
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.3
+//! \version   5.4.4
 //! \date      2022/01/24
 
 

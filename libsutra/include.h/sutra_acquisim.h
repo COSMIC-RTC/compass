@@ -11,7 +11,7 @@
 //! \class     SutraAcquisim
 //! \brief     this class provides the acquisition simulator to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.3
+//! \version   5.4.4
 //! \date      2022/01/24
 
 #ifndef SUTRA_ACQUISIM_H_

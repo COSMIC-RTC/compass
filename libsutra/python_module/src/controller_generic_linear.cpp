@@ -10,7 +10,7 @@
 //! \ingroup   libsutra
 //! \brief     this file provides pybind wrapper for sutra_controller_generic_linear
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.3
+//! \version   5.4.4
 //! \date      2021/05/12
 
 #include <sutra_controller_generic_linear.h>
