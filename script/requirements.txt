@@ -11,5 +11,5 @@ pyqtgraph
 tables
 scipy
 tabulate
-tqdm
+rich
 packaging

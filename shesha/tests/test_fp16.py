@@ -41,7 +41,7 @@ import os
 from shesha.sutra_wrap import Rtc_FHF as Rtc
 from shesha.supervisor.compassSupervisor import CompassSupervisor as Supervisor
 from scipy.ndimage.measurements import center_of_mass
-from tqdm import tqdm
+from rich.progress import track
 
 precision = 1e-2
 sup = Supervisor(
@@ -105,5 +105,5 @@ def goAhead():
     SR16.append(sup2.get_strehl(0)[0])
 
 def loop(niter):
-    for _ in tqdm(range(niter)):
+    for _ in track(range(niter)):
         goAhead()

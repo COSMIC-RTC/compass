@@ -43,7 +43,7 @@ import os
 from shesha.sutra_wrap import Rtc_FFF as Rtc, Rtc_FHF as RtcH
 from shesha.supervisor.compassSupervisor import CompassSupervisor as Supervisor
 import carmaWrap
-from tqdm import tqdm
+from rich.progress import track
 
 dec = 5
 sup = Supervisor(
@@ -97,7 +97,7 @@ rtc.do_control(0)
 timer.stop()
 timer.reset()
 
-for k in tqdm(range(niter)):
+for k in track(range(niter)):
     timer.start()
     rtc.do_centroids(0)
     rtc.do_control(0)
@@ -111,7 +111,7 @@ rtcH.do_control(0)
 timer.stop()
 timer.reset()
 
-for k in tqdm(range(niter)):
+for k in track(range(niter)):
     timer.start()
     rtcH.do_centroids(0)
     rtcH.do_control(0)
@@ -126,7 +126,7 @@ rtcH.do_control(0)
 timer.stop()
 timer.reset()
 
-for k in tqdm(range(niter)):
+for k in track(range(niter)):
     timer.start()
     rtcH.do_centroids(0)
     rtcH.do_control(0)

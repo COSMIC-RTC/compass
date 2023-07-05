@@ -16,6 +16,8 @@
 
 #include <sutra_gamora.h>
 
+using namespace indicators;
+
 SutraGamora::SutraGamora(CarmaContext *context, int device, char *type,
                            int nactus, int nmodes, int niter, float *IFvalue,
                            int *IFrowind, int *IFcolind, int IFnz, float *TT,
@@ -452,15 +454,15 @@ int SutraGamora::psf_rec_Vii() {
   }
 
   // Loop on the modes to compute OTF from Vii on the fly
-  std::cout << "Computing Vii: " << std::endl;
-  auto progress = carma_utils::ProgressBar(this->nmodes);
+  ProgressBar bar{option::BarWidth{50}, option::ForegroundColor{Color::white},
+                  option::ShowElapsedTime{true}, option::ShowRemainingTime{true},
+                  option::PrefixText{"Computing Vii: "}, option::MaxProgress{this->nmodes}};
   for (int k = 0; k < this->nmodes; k++) {
     compute_Dphi_on_mode_k(k);
-    progress.update();
+    bar.tick();              
     // printf("\rComputing OTF with %d Vii :
     // %d%%",this->nmodes,(k*100/this->nmodes));
   }
-  progress.finish();
   this->current_context->set_active_device(this->device, 1);
 
   CarmaObj<cuFloatComplex> *tmp_vector =

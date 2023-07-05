@@ -87,7 +87,7 @@ function generate_script(div_text, access, conda_path, cuda_path, hf16) {
     `;
   } else {
     text_html += `
-      <div class="line">conda install -y numpy pyqtgraph ipython pyqt qt matplotlib astropy h5py hdf5 pytest pandas scipy docopt tqdm tabulate</div>
+      <div class="line">conda install -y numpy pyqtgraph ipython pyqt qt matplotlib astropy h5py hdf5 pytest pandas scipy docopt rich tabulate</div>
       <div class="line"></div>
       <div class="line">cd $HOME</div>
       <div class="line">git clone https://gitlab.obspm.fr/compass/compass</div>

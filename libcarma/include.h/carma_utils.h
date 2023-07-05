@@ -35,6 +35,8 @@
 #include <cuda_runtime_api.h>
 #include <cufft.h>
 
+#include <carma_indicators.hpp>
+
 #ifdef USE_OCTOPUS
 #include <Cacao.h>
 #endif
@@ -75,20 +77,6 @@ void inline split(std::vector<std::string> &tokens, const std::string &text,
   }
   tokens.push_back(text.substr(start));
 }
-
-class ProgressBar {
-  int prev = 0, count = 0, max;
-  int ndigits = 0;
-  double progress = 0;
-  int bar_width = 42;
-  std::string desc;
-  std::chrono::system_clock::time_point start;
-
- public:
-  ProgressBar(int i, const std::string &desc = "");
-  void update();
-  void finish();
-};
 
 }  // namespace carma_utils
 

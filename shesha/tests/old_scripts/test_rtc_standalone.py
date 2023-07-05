@@ -11,7 +11,7 @@ Options:
 """
 
 from docopt import docopt
-from tqdm import tqdm
+from rich.progress import track
 
 from carmaWrap import threadSync
 import numpy as np
@@ -52,7 +52,7 @@ c_ref = c.copy()
 img = sim.wfs.get_binimg(0)
 img = np.zeros((sim.config.p_loop.niter, img.shape[0], img.shape[1]), dtype=np.float32)
 
-for k in tqdm(range(sim.config.p_loop.niter)):
+for k in track(range(sim.config.p_loop.niter)):
     sim.next()
     img[k, :, :] = sim.wfs.get_binimg(0)
     s_ref[k, :] = sim.rtc.get_centroids(0)
@@ -64,7 +64,7 @@ rtc_standalone.set_open_loop(0, 1)
 rtc_standalone.set_open_loop(0, 0)
 
 rtc_time = 0
-for k in tqdm(range(sim.config.p_loop.niter)):
+for k in track(range(sim.config.p_loop.niter)):
     rtc_standalone.load_rtc_img(0, img[k, :, :].copy())
     a = time.time()
     rtc_standalone.fill_rtc_bincube(0, sim.config.p_wfs0.npix)
