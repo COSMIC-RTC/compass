@@ -10,4 +10,4 @@ pyqtgraph
 pytables
 scipy
 tabulate
-tqdm
+rich

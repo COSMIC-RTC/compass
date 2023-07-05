@@ -18,6 +18,8 @@
 #include <sutra_wfs_pyr_pyrhr.h>
 #include <sutra_wfs_sh.h>
 
+using namespace indicators;
+
 template <typename Tin, typename T, typename Tout>
 SutraRtc<Tin, T, Tout>::SutraRtc() {}
 
@@ -350,8 +352,9 @@ SutraRtc<Tin, T, Tout>::do_imat_impl(int ncntrl, SutraDms *ydm, int kernconv,
   std::cout << "Doing imat..." << std::endl;
   while (p != this->d_control[ncntrl]->d_dmseen.end()) {
     SutraDm *dm = *p;
-    std::string desc = "DM" + carma_utils::to_string(cc2);
-    auto progress = carma_utils::ProgressBar(dm->nactus, desc);
+    ProgressBar bar{option::BarWidth{50}, option::ForegroundColor{Color::white},
+                    option::ShowElapsedTime{true}, option::ShowRemainingTime{true},
+                    option::PrefixText{"DM" + carma_utils::to_string(cc2)}, option::MaxProgress{dm->nactus}};
     for (int j = 0; j < dm->nactus; ++j) {
       // Push
       dm->comp_oneactu(j, dm->push4imat);
@@ -378,10 +381,9 @@ SutraRtc<Tin, T, Tout>::do_imat_impl(int ncntrl, SutraDms *ydm, int kernconv,
 
       dm->reset_shape();
       inds1 += this->d_control[ncntrl]->nslope();
-      progress.update();
+      bar.tick();
       // printf("\rDoing imat...%d%%",(cc*100/nactu));
     }
-    progress.finish();
     ++p;
     ++cc2;
   }
@@ -439,8 +441,9 @@ SutraRtc<Tin, T, Tout>::do_imat_basis_impl(int ncntrl, SutraDms *ydm,
   int inds1 = 0;
 
   std::cout << "Doing imat modal..." << std::endl;
-  std::string desc = "Modal iMat";
-  auto progress = carma_utils::ProgressBar(nModes, desc);
+    ProgressBar bar{option::BarWidth{50}, option::ForegroundColor{Color::white},
+                    option::ShowElapsedTime{true}, option::ShowRemainingTime{true},
+                    option::PrefixText{"Modal iMat"}, option::MaxProgress{nModes}};
   for (int j = 0; j < nModes; ++j) {
     // For each mode
     d_comm.copy_from(d_m2v.get_data_at(j * ydm->nact_total()),
@@ -485,9 +488,8 @@ SutraRtc<Tin, T, Tout>::do_imat_basis_impl(int ncntrl, SutraDms *ydm,
                 d_imat->get_data_at(inds1), 1);
 
     inds1 += this->d_control[ncntrl]->nslope();
-    progress.update();
+    bar.tick();
   }
-  progress.finish();
   printf("\n");
   return EXIT_SUCCESS;
 }

@@ -50,7 +50,7 @@ Options:
 import os, sys
 import numpy as np
 
-from tqdm import trange
+from rich.progress import track
 
 try:
     from PyQt5 import QtWidgets
@@ -124,7 +124,7 @@ class widgetCanapassWindowPyro(widgetAOWindow):
 
     def next(self, nbIters):
         ''' Move atmos -> get_slopes -> applyControl ; One integrator step '''
-        for i in trange(nbIters):
+        for i in track(range(nbIters)):
             self.supervisor.next()
 
     def initPyrTools(self):
