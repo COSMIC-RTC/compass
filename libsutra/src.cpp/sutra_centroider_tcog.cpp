@@ -64,35 +64,12 @@ int SutraCentroiderTcog<Tin, T>::get_cog(float *img, float *intensities,
                 this->d_validy->get_data(), intensities, this->threshold,
                 this->scale, this->offset,
                 this->slope_order,
-                this->current_context->get_device(this->device));
+                this->current_context->get_device(this->device), stream);
 
   if (this->filter_TT) {
     this->apply_TT_filter(centroids);
   }
 
-  // TODO: Implement get_cog_async
-  // #ifndef USE_OLD
-  //   // Modif Nono !!!
-  //   // Now subap_reduce modify cube to apply the threshold on the cube so
-  //   // get_centroids should apply threshold a second time
-  //   subap_reduce_new(ntot, npix * npix, nvalid, cube, intensities,
-  //                    this->threshold,
-  //                    this->current_context->get_device(device));
-
-  //   get_centroids(ntot, npix * npix, nvalid, npix, cube, centroids,
-  //   intensities,
-  //                 this->threshold, this->scale, this->offset,
-  //                 this->current_context->get_device(device));
-  // #else
-  //   subap_reduce(ntot, npix * npix, nvalid, cube, intensities,
-  //   this->threshold,
-  //                this->current_context->get_device(device));
-
-  //   get_centroids(ntot, npix * npix, nvalid, npix, cube, centroids,
-  //   intensities,
-  //                 this->threshold, this->scale, this->offset,
-  //                 this->current_context->get_device(device));
-  // #endif
   return EXIT_SUCCESS;
 }
 

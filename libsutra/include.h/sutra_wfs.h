@@ -263,11 +263,11 @@ void pyr_submask3d(Tout *d_odata, Tin *d_mask, int n, int nim,
 
 template <class T>
 void pyr_intensities(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
-                     int nvalid, int nim, CarmaDevice *device);
+                     int nvalid, int nim, CarmaDevice *device, cudaStream_t stream=0);
 
 template <class T>
 void pyr_intensities(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
-                     int nvalid, CarmaDevice *device);
+                     int nvalid, CarmaDevice *device, cudaStream_t stream=0);
 
 template <class T>
 void pyr_fact(T *d_data, T fact, int n, int nim, CarmaDevice *device);

@@ -2012,25 +2012,25 @@ __global__ void intensities_krnl(T *g_odata, T *g_idata, int *subindx,
 
 template <class T>
 void pyr_intensities(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
-                     int nvalid, int nim, CarmaDevice *device) {
+                     int nvalid, int nim, CarmaDevice *device, cudaStream_t stream) {
   int nb_blocks, nb_threads;
 
   get_num_blocks_and_threads(device, nvalid, nb_blocks, nb_threads);
   dim3 grid(nb_blocks), threads(nb_threads);
 
   intensities_krnl<T>
-      <<<grid, threads>>>(d_odata, d_idata, subindx, subindy, ns, nvalid, nim);
+      <<<grid, threads, 0, stream>>>(d_odata, d_idata, subindx, subindy, ns, nvalid, nim);
 
   carma_check_msg("intensities_kernel<<<>>> execution failed\n");
 }
 
 template void pyr_intensities<float>(float *d_odata, float *d_idata,
                                      int *subindx, int *subindy, int ns,
-                                     int nvalid, int nim, CarmaDevice *device);
+                                     int nvalid, int nim, CarmaDevice *device, cudaStream_t stream);
 template void pyr_intensities<double>(double *d_odata, double *d_idata,
                                       int *subindx, int *subindy, int ns,
                                       int nvalid, int nim,
-                                      CarmaDevice *device);
+                                      CarmaDevice *device, cudaStream_t stream);
 
 template <class T>
 __global__ void intensities_krnl(T *g_odata, T *g_idata, int *subindx,
@@ -2049,24 +2049,24 @@ __global__ void intensities_krnl(T *g_odata, T *g_idata, int *subindx,
 
 template <class T>
 void pyr_intensities(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
-                     int nvalid, CarmaDevice *device) {
+                     int nvalid, CarmaDevice *device, cudaStream_t stream) {
   int nb_blocks, nb_threads;
 
   get_num_blocks_and_threads(device, nvalid, nb_blocks, nb_threads);
   dim3 grid(nb_blocks), threads(nb_threads);
 
   intensities_krnl<T>
-      <<<grid, threads>>>(d_odata, d_idata, subindx, subindy, ns, nvalid);
+      <<<grid, threads, 0, stream>>>(d_odata, d_idata, subindx, subindy, ns, nvalid);
 
   carma_check_msg("intensities_kernel<<<>>> execution failed\n");
 }
 
 template void pyr_intensities<float>(float *d_odata, float *d_idata,
                                      int *subindx, int *subindy, int ns,
-                                     int nvalid, CarmaDevice *device);
+                                     int nvalid, CarmaDevice *device, cudaStream_t stream);
 template void pyr_intensities<double>(double *d_odata, double *d_idata,
                                       int *subindx, int *subindy, int ns,
-                                      int nvalid, CarmaDevice *device);
+                                      int nvalid, CarmaDevice *device, cudaStream_t stream);
 
 // //////////////////////////////////////////////////////////
 // ADDING PYR_SUBSUM MODIFIED FOR HR pyramid              //

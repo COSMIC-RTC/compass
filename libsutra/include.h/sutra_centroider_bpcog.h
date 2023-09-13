@@ -48,14 +48,6 @@ void get_centroids(int size, int threads, int blocks, int n, float *d_idata,
                    T *d_odata, T *ref, int *validx, int *validy,
                    float *intensities, int nbpix, float scale, float offset,
                    SlopeOrder slope_order,
-                   CarmaDevice *device);
-
-template <class T>
-void subap_sortmax(int threads, int blocks, T *d_idata, T *d_odata,
-                   unsigned int *values, int nmax, CarmaDevice *device);
-template <class T>
-void subap_bpcentro(int threads, int blocks, int npix, T *d_idata,
-                    unsigned int *values, T *d_odata, float scale,
-                    float offset);
+                   CarmaDevice *device, cudaStream_t stream=0);
 
 #endif  // _SUTRA_CENTROIDER_H_

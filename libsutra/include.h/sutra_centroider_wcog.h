@@ -51,7 +51,7 @@ void get_centroids(int size, int threads, int blocks, int n, float *d_idata,
                    float *intensities, float *d_weights, float threshold, float scale,
                    float offset,
                    SlopeOrder slope_order,
-                   CarmaDevice *device);
+                   CarmaDevice *device, cudaStream_t stream=0);
 
 template <class T>
 int fill_weights(T *d_out, T *d_in, int npix, int N, CarmaDevice *device);

@@ -88,33 +88,33 @@ int SutraCentroiderPyr<Tin, T>::get_cog(float *cube, float *intensities,
 
   return get_pyr(cube, intensities, centroids, this->d_validx->get_data(),
                  this->d_validy->get_data(), this->nvalid,
-                 this->d_img->get_dims(1), 4);
+                 this->d_img->get_dims(1), 4, stream);
 }
 
 template <class Tin, class T>
 int SutraCentroiderPyr<Tin, T>::get_pyr(float *cube, float *intensities,
                                           T *centroids, int *subindx,
                                           int *subindy, int nvalid, int ns,
-                                          int nim) {
+                                          int nim, cudaStream_t stream) {
   this->current_context->set_active_device(this->device, 1);
 
   pyr_intensities(this->d_intensities->get_data(), cube, subindx, subindy, ns,
-                  nvalid, nim, this->current_context->get_device(this->device));
+                  nvalid, nim, this->current_context->get_device(this->device), stream);
 
   if (!(this->method.is_local)) {
     // float p_sum = reduce<float>(this->d_intensities->get_data(), nvalid);
-    this->d_intensities->reduceCub();
+    this->d_intensities->reduceCub(stream);
     fillvalues<float>(this->d_intensities->get_data(),
                       this->d_intensities->get_o_data(), nvalid,
-                      this->current_context->get_device(this->device));
+                      this->current_context->get_device(this->device), stream);
   }
 
-  pyr2_slopes(centroids, this->d_centroids_ref->get_data(), cube, subindx,
+  pyr_slopes(centroids, this->d_centroids_ref->get_data(), cube, subindx,
               subindy, this->d_intensities->get_data(), ns, nvalid, this->scale,
               this->valid_thresh,
               this->method.is_sinus,  // if we are using a sin method
               this->slope_order,
-              this->current_context->get_device(this->device));
+              this->current_context->get_device(this->device), stream);
 
   if (this->filter_TT) {
     this->apply_TT_filter(centroids);

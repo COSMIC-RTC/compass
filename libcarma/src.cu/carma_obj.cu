@@ -198,26 +198,26 @@ __global__ void krnl_fillvalues(T *odata, T *val, int N) {
 }
 
 template <class T>
-int fillvalues(T *d_odata, T *val, int N, CarmaDevice *device) {
+int fillvalues(T *d_odata, T *val, int N, CarmaDevice *device, cudaStream_t stream) {
   int nb_blocks, nb_threads;
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
   dim3 grid(nb_blocks), threads(nb_threads);
   //  dim3 grid(128), threads(128);
 
-  krnl_fillvalues<<<grid, threads>>>(d_odata, val, N);
+  krnl_fillvalues<<<grid, threads, 0, stream>>>(d_odata, val, N);
   carma_check_msg("krnl_fillvalues<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
 
 template int fillvalues<float>(float *d_odata, float *val, int N,
-                               CarmaDevice *device);
+                               CarmaDevice *device, cudaStream_t stream);
 
 template int fillvalues<double>(double *d_odata, double *val, int N,
-                                CarmaDevice *device);
+                                CarmaDevice *device, cudaStream_t stream);
 
 template int fillvalues<unsigned int>(unsigned int *d_odata, unsigned int *val,
-                                      int N, CarmaDevice *device);
+                                      int N, CarmaDevice *device, cudaStream_t stream);
 
 template <class T>
 __global__ void getarray2d_krnl(T *odata, T *idata, int tidx0, int Ncol, int NC,

@@ -63,7 +63,7 @@ class SutraCentroiderPyr : public SutraCentroider<Tin, T> {
   string get_method_str();
 
   int get_pyr(float *cube, float *intensities, T *centroids, int *subindx,
-              int *subindy, int nvalid, int ns, int nim);
+              int *subindy, int nvalid, int ns, int nim, cudaStream_t stream=0);
   int get_cog(float *cube, float *intensities, T *centroids, int nvalid,
               int npix, int ntot, cudaStream_t stream=0);
   int get_cog(float *intensities, T *slopes, bool noise);
@@ -75,13 +75,8 @@ class SutraCentroiderPyr : public SutraCentroider<Tin, T> {
 };
 
 template <class T>
-void pyr_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy,
-                float *intensities, int ns, int nvalid, int nim,
-                SlopeOrder slope_order, CarmaDevice *device);
-
-template <class T>
-void pyr2_slopes(T *d_odata, T *ref, T *d_idata, int *subindx, int *subindy,
+void pyr_slopes(T *d_odata, T *ref, T *d_idata, int *subindx, int *subindy,
                  float *intensities, int ns, int nvalid, float scale,
                  T valid_thresh, int do_sin, SlopeOrder slope_order,
-                 CarmaDevice *device);
+                 CarmaDevice *device, cudaStream_t stream=0);
 #endif  // _SUTRA_CENTROIDER_PYR_H_

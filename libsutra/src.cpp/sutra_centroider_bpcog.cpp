@@ -80,19 +80,11 @@ int SutraCentroiderBpcog<Tin, T>::get_cog(float *img, float *intensities,
   get_centroids(ntot, (npix * npix), nvalid, npix, img, centroids,
                 this->d_centroids_ref->get_data(), this->d_validx->get_data(),
                 this->d_validy->get_data(), intensities, this->nmax, this->scale,
-                this->offset, this->slope_order, this->current_context->get_device(this->device));
+                this->offset, this->slope_order, this->current_context->get_device(this->device), stream);
 
   if (this->filter_TT) {
     this->apply_TT_filter(centroids);
   }
-  // brightest pixels cog
-  // subap_sortmax<T>(npix * npix, nvalid, cube, this->d_bpix->get_data(),
-  //                      this->d_bpind->get_data(), this->nmax,
-  //                      current_context->get_device(device));
-
-  // subap_bpcentro<T>(this->nmax, nvalid, npix, this->d_bpix->get_data(),
-  //                       this->d_bpind->get_data(), centroids, this->scale,
-  //                       this->offset);
 
   return EXIT_SUCCESS;
 }
