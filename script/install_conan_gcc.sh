@@ -6,8 +6,7 @@ rm -rf ~/.conan
 conda install --file script/requirements-conda.txt -y
 pip install -r script/requirements-dev.txt --upgrade
 
-# Adds cosmic conan repository if it is not already the case.
-conan remote list | grep cosmic || conan remote add cosmic https://odp2.jfrog.io/artifactory/api/conan/cosmic
+# Adds obspm conan repository if it is not already the case.
 conan remote list | grep obspm || conan remote add obspm https://conan.obspm.fr/conan
 
 # OPTIONAL: Adds hippo6 conan repository if it is not already the case.
