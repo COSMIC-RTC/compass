@@ -11,7 +11,7 @@
 //! \class     SutraDm
 //! \brief     this class provides the dm features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.4
+//! \version   5.5.0
 //! \date      2022/01/24
 
 #include <carma_magma.h>
@@ -602,7 +602,7 @@ int SutraDm::DDiago(CarmaObj<float> *d_statcov, CarmaObj<float> *d_geocov) {
                     0.0f, d_tmp2->get_data(), nactus);
 
   // 4. SVdec(C',A)
-  if (!carma_magma_disabled()) 
+  if (!carma_magma_disabled())
     carma_magma_syevd<float>(SOLVER_EIG_MODE_VECTOR, d_tmp2, h_eigenvals);
   else
     carma_syevd<float>(SOLVER_EIG_MODE_VECTOR, d_tmp2, d_eigenvals);

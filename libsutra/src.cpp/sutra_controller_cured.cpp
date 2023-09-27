@@ -11,7 +11,7 @@
 //! \class     SutraControllerCured
 //! \brief     this class provides the controller_cured features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.4
+//! \version   5.5.0
 //! \date      2022/01/24
 
 #include <cured.h>

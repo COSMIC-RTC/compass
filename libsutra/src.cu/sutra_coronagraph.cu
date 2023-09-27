@@ -11,13 +11,13 @@
 //! \class     SutraCoronagraph
 //! \brief     this class provides the coronagraph features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.4
+//! \version   5.5.0
 //! \date      2022/01/24
 
 #include <sutra_coronagraph.h>
 #include <carma_utils.cuh>
 
-__global__ void compute_electric_field_krnl(cuFloatComplex *ef, float* opd, float scale, 
+__global__ void compute_electric_field_krnl(cuFloatComplex *ef, float* opd, float scale,
                             float* amplitude, float* mask, int N) {
     int tid = threadIdx.x + blockIdx.x * blockDim.x;
     while (tid < N) {
@@ -27,10 +27,10 @@ __global__ void compute_electric_field_krnl(cuFloatComplex *ef, float* opd, floa
         ef[tid].x = A * cosf(scale * _opd) * _mask;
         ef[tid].y = A * sinf(scale * _opd) * _mask;
         tid += blockDim.x * gridDim.x;
-    } 
+    }
 }
 
-int compute_electric_field(cuFloatComplex *electric_field, float* phase_opd, float scale, 
+int compute_electric_field(cuFloatComplex *electric_field, float* phase_opd, float scale,
                             float* amplitude, float* mask, int dimx, int dimy, CarmaDevice *device) {
     int nBlocks, nThreads;
     get_num_blocks_and_threads(device, dimx*dimy, nBlocks, nThreads);
@@ -41,7 +41,7 @@ int compute_electric_field(cuFloatComplex *electric_field, float* phase_opd, flo
     return EXIT_SUCCESS;
 }
 
-__global__ void remove_complex_avg_krnl(cuFloatComplex *ef, cuFloatComplex sum, 
+__global__ void remove_complex_avg_krnl(cuFloatComplex *ef, cuFloatComplex sum,
                                     float* mask, int Nvalid, int N) {
     int tid = threadIdx.x + blockIdx.x * blockDim.x;
     while (tid < N) {
@@ -49,11 +49,11 @@ __global__ void remove_complex_avg_krnl(cuFloatComplex *ef, cuFloatComplex sum,
         ef[tid].x -= (sum.x / Nvalid * _mask);
         ef[tid].y -= (sum.y / Nvalid * _mask);
         tid += blockDim.x * gridDim.x;
-    } 
+    }
 }
-int remove_complex_avg(cuFloatComplex *electric_field, cuFloatComplex sum, float* mask, int Nvalid, 
+int remove_complex_avg(cuFloatComplex *electric_field, cuFloatComplex sum, float* mask, int Nvalid,
                         int dimx, int dimy, CarmaDevice *device) {
-    
+
     int nBlocks, nThreads;
     get_num_blocks_and_threads(device, dimx*dimy, nBlocks, nThreads);
     dim3 grid(nBlocks), threads(nThreads);

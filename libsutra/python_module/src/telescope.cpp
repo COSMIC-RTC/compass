@@ -10,7 +10,7 @@
 //! \ingroup   libsutra
 //! \brief     this file provides pybind wrapper for SutraTelescope
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.4
+//! \version   5.5.0
 //! \date      2022/01/24
 
 #include <wyrm>
@@ -118,7 +118,7 @@ void declare_telescope(py::module &mod) {
               Reset circular buffer d_input_phase
           )pbdoc"
       )
-      
+
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝
       //  ███████╗█████╗     ██║      ██║   █████╗  ██████╔╝███████╗
@@ -201,7 +201,7 @@ void declare_telescope(py::module &mod) {
           },
           R"pbdoc(
         Set a 3D cube of phase screens to be played. Each phase screen is shown to sources as an additional layer to be raytraced. Each phase screen must have the same dimensions as m_pupil
-    
+
     Args:
         input_hase: (np.ndarray[ndim=3,dtype=np.float32_t]) : Cube of input phase screens
       )pbdoc",

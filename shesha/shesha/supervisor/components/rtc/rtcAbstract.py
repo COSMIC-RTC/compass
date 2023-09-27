@@ -1,7 +1,7 @@
 ## @package   shesha.supervisor
 ## @brief     User layer for initialization and execution of a COMPASS simulation
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   5.4.4
+## @version   5.5.0
 ## @date      2022/01/24
 ## @copyright GNU Lesser General Public License
 #
@@ -685,7 +685,7 @@ class RtcAbstract(ABC):
 
         Args:
             controller_index : (int) : controller index
-            
+
             geom_type : (int) : geom centroiding method, default = 0, others (1,2) are experimental
         Returns:
             slopes_geom : (np.ndarray) : geometrically computed slopes
@@ -764,7 +764,7 @@ class RtcAbstract(ABC):
 
         Args:
             controller_index: (int): controller index
-            
+
             geom_type : (int) : geom centroiding method, default = 0, others (1,2) are experimental
         """
         self._rtc.do_centroids_geom(controller_index, geom_type)

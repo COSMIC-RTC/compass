@@ -11,7 +11,7 @@
 //! \class     SutraWfs
 //! \brief     this class provides the wfs features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.4
+//! \version   5.5.0
 //! \date      2022/01/24
 
 #include <sutra_utils.h>
@@ -133,7 +133,7 @@ int fillcamplipup(cuFloatComplex *amplipup, cuFloatComplex *phase, float *offset
 
   camplipup_krnl<<<grid, threads>>>(
       amplipup, phase, offset, istart, jstart, ivalid, jvalid,
-      nphase, nphase2, N, Nfft, Ntot);  
+      nphase, nphase2, N, Nfft, Ntot);
   carma_check_msg("camplipup_krnl<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
@@ -145,7 +145,7 @@ __global__ void fsamplipup_krnl(cuFloatComplex *d_odata, float *idata,
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N*N) {
-    
+
     int idimx = tid % N;  // nphase : size of the phase support in subaps
     int idimy = tid / N;
 
@@ -159,7 +159,7 @@ __global__ void fsamplipup_krnl(cuFloatComplex *d_odata, float *idata,
   }
 }
 
-int fillfsamplipup(cuFloatComplex *d_odata, float *idata, 
+int fillfsamplipup(cuFloatComplex *d_odata, float *idata,
                     float *mask, float scale,
                     int Nfft, int N, CarmaDevice *device) {
 

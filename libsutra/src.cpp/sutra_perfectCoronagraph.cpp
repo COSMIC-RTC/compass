@@ -11,13 +11,13 @@
 //! \class     SutraPerfectCoronograph
 //! \brief     this class provides the coronograph features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.4
+//! \version   5.5.0
 //! \date      2022/01/24
 
 #include <sutra_perfectCoronagraph.h>
 
-SutraPerfectCoronagraph::SutraPerfectCoronagraph(CarmaContext *context, SutraSource *d_source, 
-                                    int im_dimx, int im_dimy, float *wavelength, int nWavelength, 
+SutraPerfectCoronagraph::SutraPerfectCoronagraph(CarmaContext *context, SutraSource *d_source,
+                                    int im_dimx, int im_dimy, float *wavelength, int nWavelength,
                                     int device):
     SutraCoronagraph(context, "perfect", d_source, im_dimx, im_dimy, wavelength, nWavelength, device),
     tmp_mft(nullptr) {
@@ -36,7 +36,7 @@ SutraPerfectCoronagraph::SutraPerfectCoronagraph(CarmaContext *context, SutraSou
         };
     }
 
-int SutraPerfectCoronagraph::set_mft(cuFloatComplex *A, cuFloatComplex *B, float* norm0, 
+int SutraPerfectCoronagraph::set_mft(cuFloatComplex *A, cuFloatComplex *B, float* norm0,
                                         std::string mftType) {
     if(AA.count(mftType) < 1) {
         std::cout << "Invalid mftType. Must be img or psf" << std::endl;
@@ -87,7 +87,7 @@ int SutraPerfectCoronagraph::_compute_image(bool psf, bool accumulate, bool remo
                             pupDimx, pupDimy, current_context->get_device(device));
         }
         mft(mftA[i], mftB[i], tmp_mft, d_electric_field, d_complex_image, mftNorm[i]);
-        accumulate_abs2(d_complex_image->get_data(), img_se->get_data(), 
+        accumulate_abs2(d_complex_image->get_data(), img_se->get_data(),
                         img_se->get_nb_elements(), current_context->get_device(device));
     }
 
@@ -95,7 +95,7 @@ int SutraPerfectCoronagraph::_compute_image(bool psf, bool accumulate, bool remo
         img_le->axpy(1.0f, img_se, 1, 1);
         if(psf)
             cntPsf += 1;
-        else 
+        else
             cntImg += 1;
     }
     return EXIT_SUCCESS;

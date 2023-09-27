@@ -11,7 +11,7 @@
 //! \class     SutraTelescope
 //! \brief     this class provides the telescope features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.4
+//! \version   5.5.0
 //! \date      2022/01/24
 
 #ifndef _SUTRA_TELESCOPE_H_
@@ -52,9 +52,9 @@ class SutraTelescope {
   int set_phase_ab_M1(float *phase_ab_M1, int size);
   int set_phase_ab_M1_m(float *phase_ab_M1_m, int size);
   /**
-   * @brief Set a 3D cube of phase screens to be played. Each phase screen 
-   * is shown to sources as an additional layer to be raytraced. 
-   * 
+   * @brief Set a 3D cube of phase screens to be played. Each phase screen
+   * is shown to sources as an additional layer to be raytraced.
+   *
    * @param input_phase Cube of phase screens
    * @param size 1 phase screen size. Must be equal to d_pupil_m size
    * @param N Number of phase screens in the cube
@@ -64,13 +64,13 @@ class SutraTelescope {
   /**
    * @brief Update input_phase_counter to take the next phase screen in
    * the circular buffer d_input_phase
-   * 
+   *
    * @return int Success status
    */
   int update_input_phase();
   /**
    * @brief Reset circular buffer d_input_phase
-   * 
+   *
    * @return int Success status
    */
   int reset_input_phase();

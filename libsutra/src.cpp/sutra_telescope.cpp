@@ -11,7 +11,7 @@
 //! \class     SutraTelescope
 //! \brief     this class provides the telescope features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.4
+//! \version   5.5.0
 //! \date      2022/01/24
 
 #include <sutra_phase.h>
@@ -109,7 +109,7 @@ int SutraTelescope::set_input_phase(float *input_phase, int size, int N) {
     dims_data3[3] = N;
     if (this->d_input_phase != nullptr)
       delete this->d_input_phase;
-    
+
     this->d_input_phase = new CarmaObj<float>(this->current_context,
                                                    dims_data3, input_phase);
     this->input_phase_counter = 0;

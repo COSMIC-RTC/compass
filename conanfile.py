@@ -66,6 +66,7 @@ class CompassConan(ConanFile):
         if cuda_version() < version.parse('11.0'):
             self.requires('cub/1.8.0@cosmic/stable')
         if self.options.python:
+            self.requires('pybind11/2.10.4')
             self.requires('wyrm/0.4@cosmic/stable')
         else:
             self.options.remove('python_version')

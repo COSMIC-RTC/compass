@@ -11,7 +11,7 @@
 //! \class     SutraGamora
 //! \brief     this class provides the gamora features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.4
+//! \version   5.5.0
 //! \date      2022/01/24
 
 #include <sutra_gamora.h>
@@ -459,7 +459,7 @@ int SutraGamora::psf_rec_Vii() {
                   option::PrefixText{"Computing Vii: "}, option::MaxProgress{this->nmodes}};
   for (int k = 0; k < this->nmodes; k++) {
     compute_Dphi_on_mode_k(k);
-    bar.tick();              
+    bar.tick();
     // printf("\rComputing OTF with %d Vii :
     // %d%%",this->nmodes,(k*100/this->nmodes));
   }

@@ -11,7 +11,7 @@
 //! \class     SutraStellarCoronagraph
 //! \brief     this class provides the coronograph features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.4
+//! \version   5.5.0
 //! \date      2022/01/24
 
 #ifndef _SUTRA_STELLAR_CORONAGRAPH_H_
@@ -46,7 +46,7 @@ class SutraStellarCoronagraph : public SutraCoronagraph {
         CarmaObj<cuFloatComplex> *d_electric_field_babinet;
 
     public:
-        SutraStellarCoronagraph(CarmaContext *context, SutraSource *d_source,int im_dimx, 
+        SutraStellarCoronagraph(CarmaContext *context, SutraSource *d_source,int im_dimx,
                                 int im_dimy, int fpm_dimx, int fpm_dimy,
                                 float *wavelength, int nWavelength, bool babinet, int device);
         ~SutraStellarCoronagraph()=default;

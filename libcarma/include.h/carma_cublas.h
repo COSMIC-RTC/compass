@@ -10,7 +10,7 @@
 //! \ingroup   libcarma
 //! \brief     this file provides the cublas features to CarmaObj
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.4
+//! \version   5.5.0
 //! \date      2022/01/24
 
 
@@ -107,9 +107,9 @@ cublasStatus_t carma_gemm(cublasHandle_t cublas_handle, char transa,
                           T_data beta, T_data *matC, int ldc);
 
 template <class T_data>
-cublasStatus_t carma_gemm_strided_batched(cublasHandle_t cublas_handle, 
-                    char transa, char transb, int m, int n, int k, T_data alpha, 
-                    T_data *matsA, int lda, long long int strideA, 
+cublasStatus_t carma_gemm_strided_batched(cublasHandle_t cublas_handle,
+                    char transa, char transb, int m, int n, int k, T_data alpha,
+                    T_data *matsA, int lda, long long int strideA,
                     T_data *matsB, int ldb, long long int strideB,
                     T_data beta, T_data *matsC, int ldc, long long int strideC,
                     int batch_count);

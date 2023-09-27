@@ -11,7 +11,7 @@
 //! \class     SutraWfs_PyrHR
 //! \brief     this class provides the wfs_pyr_pyrhr features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.4
+//! \version   5.5.0
 //! \date      2022/01/24
 
 #ifndef _SUTRA_WFS_PYR_PYRHR_H_

@@ -10,7 +10,7 @@
 //! \ingroup   libsutra
 //! \brief     this file provides pybind wrapper for SutraStellarCoronagraph
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.4
+//! \version   5.5.0
 //! \date      2022/01/24
 
 #include <wyrm>
@@ -19,12 +19,12 @@
 
 namespace py = pybind11;
 
-std::unique_ptr<SutraStellarCoronagraph> stellar_coronagraph_init(CarmaContext &context, 
-                                SutraSource *d_source,int im_dimx, int im_dimy, 
-                                int fpm_dimx, int fpm_dimy, 
+std::unique_ptr<SutraStellarCoronagraph> stellar_coronagraph_init(CarmaContext &context,
+                                SutraSource *d_source,int im_dimx, int im_dimy,
+                                int fpm_dimx, int fpm_dimy,
                                 float *wavelength, int nWavelength, int babinet, int device) {
-  return std::unique_ptr<SutraStellarCoronagraph>(new SutraStellarCoronagraph(&context, d_source, 
-                                                    im_dimx, im_dimy, fpm_dimx, fpm_dimy, 
+  return std::unique_ptr<SutraStellarCoronagraph>(new SutraStellarCoronagraph(&context, d_source,
+                                                    im_dimx, im_dimy, fpm_dimx, fpm_dimy,
                                                     wavelength, nWavelength, babinet, device));
 };
 
@@ -55,8 +55,8 @@ void declare_stellar_coronagraph(py::module &mod) {
 
             device: (int): GPU device index
       )pbdoc",
-      py::arg("context"), py::arg("d_source"), py::arg("im_dimx"), py::arg("im_dimy"), 
-      py::arg("fpm_dimx"), py::arg("fpm_dimy"),py::arg("wavelength"), 
+      py::arg("context"), py::arg("d_source"), py::arg("im_dimx"), py::arg("im_dimy"),
+      py::arg("fpm_dimx"), py::arg("fpm_dimy"),py::arg("wavelength"),
       py::arg("nWavelength"), py::arg("babinet"), py::arg("device"))
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
@@ -122,7 +122,7 @@ void declare_stellar_coronagraph(py::module &mod) {
     Set apodizer for coronagraphic image computation
 
     Args:
-        mask: (np.ndarray[ndim=2, dtype=np.float32]): apodizer 
+        mask: (np.ndarray[ndim=2, dtype=np.float32]): apodizer
     )pbdoc",
            py::arg("mask"))
 
@@ -131,7 +131,7 @@ void declare_stellar_coronagraph(py::module &mod) {
     Set lyot_stop for coronagraphic image computation
 
     Args:
-        mask: (np.ndarray[ndim=2, dtype=np.float32]): lyot_stop 
+        mask: (np.ndarray[ndim=2, dtype=np.float32]): lyot_stop
     )pbdoc",
            py::arg("mask"))
 

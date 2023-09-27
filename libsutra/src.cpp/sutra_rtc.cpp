@@ -11,7 +11,7 @@
 //! \class     SutraRtc
 //! \brief     this class provides the rtc features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.4
+//! \version   5.5.0
 //! \date      2022/01/24
 
 #include <sutra_rtc.h>
@@ -658,7 +658,7 @@ int SutraRtc<Tin, T, Tout>::do_centroids_geom_impl(int ncntrl, int type,
 template <typename Tin, typename T, typename Tout>
 template <typename Q>
 typename std::enable_if<std::is_same<Q, float>::value, int>::type
-SutraRtc<Tin, T, Tout>::do_centroids_geom_impl(int ncntrl, int type, 
+SutraRtc<Tin, T, Tout>::do_centroids_geom_impl(int ncntrl, int type,
                                                std::true_type) {
   int inds2 = 0;
 

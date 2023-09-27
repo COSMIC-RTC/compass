@@ -9,7 +9,7 @@
 //! \ingroup   libcarma
 //! \brief     this file provides pybind wrapper for CarmaObj
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.4
+//! \version   5.5.0
 //! \date      2022/01/24
 
 #ifndef _WRAP_OBJ_H_
@@ -95,7 +95,7 @@ struct CarmaObjInterfacer {
             strides[dim] = stride;
             stride *= shape[dim];
           }
-          return ndarray(shape, 
+          return ndarray(shape,
                         py::arg("dtype")=py::format_descriptor<T>::format(),
                         py::arg("memptr")=MemoryPointer(UnownedMemory(reinterpret_cast<intptr_t>(cls.get_data()), stride, py::cast<py::none>(Py_None)), 0),
                         py::arg("strides")=strides);

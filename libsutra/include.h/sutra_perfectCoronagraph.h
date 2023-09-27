@@ -11,7 +11,7 @@
 //! \class     SutraPerfectCoronagraph
 //! \brief     this class provides the coronograph features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.4
+//! \version   5.5.0
 //! \date      2022/01/24
 
 #ifndef _SUTRA_PERFECT_CORONAGRAPH_H_
@@ -29,7 +29,7 @@ class SutraPerfectCoronagraph : public SutraCoronagraph {
         CarmaObj<cuFloatComplex> *tmp_mft;
 
     public:
-        SutraPerfectCoronagraph(CarmaContext *context, SutraSource *d_source,int im_dimx, 
+        SutraPerfectCoronagraph(CarmaContext *context, SutraSource *d_source,int im_dimx,
                                 int im_dimy, float *wavelength, int nWavelength, int device);
         ~SutraPerfectCoronagraph()=default;
         int compute_image(bool accumulate);

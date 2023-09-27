@@ -11,7 +11,7 @@
 //! \class     SutraWfsSH
 //! \brief     this class provides the wfs_sh features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.4
+//! \version   5.5.0
 //! \date      2022/01/24
 
 #include <carma_utils.h>
@@ -250,7 +250,7 @@ int SutraWfsSH::allocate_buffers(
   dims_data2[1] = nphase * nphase;
   dims_data2[2] = nvalid;
   this->d_phasemap = new CarmaObj<int>(current_context, dims_data2);
-  
+
   dims_data2[1] = nphase * nphase;
   dims_data2[2] = nvalid * 2;
   this->d_ttprojmat = new CarmaObj<float>(current_context, dims_data2);
@@ -301,7 +301,7 @@ SutraWfsSH::~SutraWfsSH() {
 
 int SutraWfsSH::load_arrays(int *phasemap, int *hrmap, int *binmap,
                              float *offsets, float *fluxPerSub, int *validsubsx,
-                             int *validsubsy, int *istart, int *jstart, 
+                             int *validsubsy, int *istart, int *jstart,
                              float *ttprojmat, cuFloatComplex *kernel) {
   if (this->d_bincube == NULL) {
     DEBUG_TRACE(
@@ -362,8 +362,8 @@ int SutraWfsSH::comp_generic() {
                 sizeof(cuFloatComplex) * this->d_fsamplipup->get_nb_elements());
     fillfsamplipup(
         this->d_fsamplipup->get_data(), this->d_gs->d_phase->d_screen->get_data(),
-        this->d_pupil->get_data(), this->d_gs->scale, 
-        this->d_fsamplipup->get_dims(1),this->d_gs->d_phase->d_screen->get_dims(1), 
+        this->d_pupil->get_data(), this->d_gs->scale,
+        this->d_fsamplipup->get_dims(1),this->d_gs->d_phase->d_screen->get_dims(1),
         this->current_context->get_device(device));
 
     CarmaFFT(this->d_fsamplipup->get_data(), this->d_fsamplifoc->get_data(), 1,

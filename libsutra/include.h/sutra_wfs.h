@@ -11,7 +11,7 @@
 //! \class     SutraWfs
 //! \brief     this class provides the wfs features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.4
+//! \version   5.5.0
 //! \date      2022/01/24
 
 #ifndef _SUTRA_WFS_H_
@@ -213,7 +213,7 @@ void phase_derive(int size, int threads, int blocks, int n, T *d_idata,
                   T *d_odata, int *indx, T *mask, T alpha, float *fluxPerSub);
 
 template <class T>
-void phase_project(int nphase, int nvalid, T *d_idata, T *d_odata, int *indx, 
+void phase_project(int nphase, int nvalid, T *d_idata, T *d_odata, int *indx,
                    T *d_ttprojmat, T *d_ttprojvec, CarmaDevice *device);
 
 template <class Tout, class Tin>

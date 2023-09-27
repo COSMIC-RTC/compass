@@ -10,7 +10,7 @@
 //! \ingroup   libsutra
 //! \brief     this file provides pybind wrapper for SutraPerfectCoronagraph
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.4
+//! \version   5.5.0
 //! \date      2022/01/24
 
 #include <wyrm>
@@ -19,10 +19,10 @@
 
 namespace py = pybind11;
 
-std::unique_ptr<SutraPerfectCoronagraph> perfect_coronagraph_init(CarmaContext &context, SutraSource *d_source,int im_dimx, 
+std::unique_ptr<SutraPerfectCoronagraph> perfect_coronagraph_init(CarmaContext &context, SutraSource *d_source,int im_dimx,
                                 int im_dimy, float *wavelength, int nWavelength, int device) {
-  return std::unique_ptr<SutraPerfectCoronagraph>(new SutraPerfectCoronagraph(&context, d_source, 
-                                                    im_dimx, im_dimy, wavelength, 
+  return std::unique_ptr<SutraPerfectCoronagraph>(new SutraPerfectCoronagraph(&context, d_source,
+                                                    im_dimx, im_dimy, wavelength,
                                                     nWavelength, device));
 };
 
@@ -47,7 +47,7 @@ void declare_perfect_coronagraph(py::module &mod) {
 
             device: (int): GPU device index
       )pbdoc",
-      py::arg("context"), py::arg("d_source"), py::arg("im_dimx"), py::arg("im_dimy"), 
+      py::arg("context"), py::arg("d_source"), py::arg("im_dimx"), py::arg("im_dimy"),
       py::arg("wavelength"), py::arg("nWavelength"), py::arg("device"))
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗

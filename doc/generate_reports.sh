@@ -13,8 +13,8 @@
 rm $COMPASS_ROOT/doc/html/report_unit_test.html
 # TODO: generate large file with errors... Need to be fixed
 pytest --html=$COMPASS_ROOT/doc/html/report_unit_test.html --self-contained-html $COMPASS_ROOT/shesha/tests/pytest/rtc $COMPASS_ROOT/shesha/tests/pytest/supervisor
-pytest --cov-report html:$COMPASS_ROOT/doc/html/coverage --cov=carmaWrap $COMPASS_ROOT/libcarma/python_module/test 
-pytest --cov-append --cov-report html:$COMPASS_ROOT/doc/html/coverage --cov=carmaWrap --cov=sutraWrap --cov=shesha $COMPASS_ROOT/shesha/tests/pytest/rtc 
+pytest --cov-report html:$COMPASS_ROOT/doc/html/coverage --cov=carmaWrap $COMPASS_ROOT/libcarma/python_module/test
+pytest --cov-append --cov-report html:$COMPASS_ROOT/doc/html/coverage --cov=carmaWrap --cov=sutraWrap --cov=shesha $COMPASS_ROOT/shesha/tests/pytest/rtc
 pytest --cov-append --cov-report html:$COMPASS_ROOT/doc/html/coverage --cov=carmaWrap --cov=sutraWrap --cov=shesha $COMPASS_ROOT/shesha/tests/pytest/supervisor
 
 # script="$SHESHA_ROOT/shesha/tests/check.py"
@@ -46,4 +46,4 @@ mkdir -p $COMPASS_ROOT/public/coverage
 coverage html --omit="*/data/*,*/guardians/*,*canapass*,*/scripts/*,*/widgets/*,*/tao/*,*/rtc_cacao/*,*/pytest/*" -d $COMPASS_ROOT/public/coverage
 
 echo 'Documentation generated in $COMPASS_ROOT/public/. To Publish it:'
-echo 'rsync -PaW --inplace --del $COMPASS_ROOT/public/* lesia:compass-doc/html/v5.4.4'
+echo 'rsync -PaW --inplace --del $COMPASS_ROOT/public/* lesia:compass-doc/html/v5.5.0'

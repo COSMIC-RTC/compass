@@ -11,7 +11,7 @@
 //! \class     CarmaStreams
 //! \brief     this class provides the stream features to CarmaObj
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.4
+//! \version   5.5.0
 //! \date      2022/01/24
 
 #ifndef _CARMA_STREAM_H_

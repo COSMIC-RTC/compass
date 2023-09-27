@@ -1,7 +1,7 @@
 ## @package   shesha.init.rtc_init
 ## @brief     Initialization of a Rtc object
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   5.4.4
+## @version   5.5.0
 ## @date      2022/01/24
 ## @copyright GNU Lesser General Public License
 #
@@ -289,7 +289,7 @@ def init_centroider(context, nwfs: int, p_wfs: conf.Param_wfs,
         rtc.d_centro[nwfs].set_pyr_thresh(p_centroider.thresh)
 
     elif (p_wfs.type == scons.WFSType.SH):
-        if (p_centroider.type == scons.CentroiderType.TCOG or 
+        if (p_centroider.type == scons.CentroiderType.TCOG or
             p_centroider.type == scons.CentroiderType.WCOG):
             rtc.d_centro[nwfs].set_threshold(p_centroider.thresh)
         if (p_centroider.type == scons.CentroiderType.BPCOG):

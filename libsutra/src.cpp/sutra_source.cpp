@@ -11,7 +11,7 @@
 //! \class     SutraSource
 //! \brief     this class provides the source features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.4
+//! \version   5.5.0
 //! \date      2022/01/24
 
 #include <sutra_source.h>
@@ -365,7 +365,7 @@ int SutraSource::raytrace(SutraTelescope *tel, bool rst) {
     else {
       float xoff = (tel->pup_size_m - tel->pup_size) / 2;
       float yoff = xoff;
-    
+
     target_raytrace(this->d_phase->d_screen->get_data(),
                     tel->d_input_phase->get_data_at(tel->pup_size_m * tel->pup_size_m * tel->input_phase_counter),
                     (int)d_phase->d_screen->get_dims(1),

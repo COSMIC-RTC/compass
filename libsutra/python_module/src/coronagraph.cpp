@@ -10,7 +10,7 @@
 //! \ingroup   libsutra
 //! \brief     this file provides pybind wrapper for SutraCoronagraph
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.4
+//! \version   5.5.0
 //! \date      2022/01/24
 
 #include <wyrm>
@@ -134,7 +134,7 @@ void declare_coronagraph(py::module &mod) {
     Computes the electric field from the specified wavelength
 
     Args:
-        wavelengthIndex: (int): Index of the wavelength to use 
+        wavelengthIndex: (int): Index of the wavelength to use
     )pbdoc");
 
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗

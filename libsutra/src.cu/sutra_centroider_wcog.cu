@@ -11,7 +11,7 @@
 //! \class     SutraCentroiderWcog
 //! \brief     this class provides the centroider_wcog features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.4
+//! \version   5.5.0
 //! \date      2022/01/24
 
 #include <sutra_centroider_wcog.h>
@@ -51,7 +51,7 @@ template int fill_weights<double>(double *d_out, double *d_in, int npix, int N,
 
 template <int nb_threads, typename T>
 __global__ void centroids(float *d_img, T *d_centroids, T *ref, int *validx,
-                          int *validy, float *d_intensities, float *weights, float threshold, 
+                          int *validy, float *d_intensities, float *weights, float threshold,
                           unsigned int npix, sutra::SlopesIndex si, unsigned int size, float scale,
                           float offset, unsigned int nelem_thread) {
   if (blockDim.x > nb_threads) {

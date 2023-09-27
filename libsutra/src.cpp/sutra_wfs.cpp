@@ -11,7 +11,7 @@
 //! \class     SutraWfs
 //! \brief     this class provides the wfs features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.4
+//! \version   5.5.0
 //! \date      2022/01/24
 
 #include <sutra_wfs.h>
@@ -226,12 +226,12 @@ int SutraWfs::slopes_geom(float *slopes, int type) {
                  this->d_phasemap->get_data(), this->d_pupil->get_data(), alpha,
                  this->d_fluxPerSub->get_data());
   }
-  
+
   if (type == 2) { // linear projection method
-    phase_project(this->nphase, this->nvalid, 
-                  this->d_gs->d_phase->d_screen->get_data(), slopes, 
-                  this->d_phasemap->get_data(), this->d_ttprojmat->get_data(), 
-                  this->d_ttprojvec->get_data(), 
+    phase_project(this->nphase, this->nvalid,
+                  this->d_gs->d_phase->d_screen->get_data(), slopes,
+                  this->d_phasemap->get_data(), this->d_ttprojmat->get_data(),
+                  this->d_ttprojvec->get_data(),
                   current_context->get_device(device));
   }
 

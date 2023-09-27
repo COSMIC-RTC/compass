@@ -11,7 +11,7 @@
 //! \class     CarmaSparseObj
 //! \brief     this class provides wrappers to the generic carma sparse object
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
-//! \version   5.4.4
+//! \version   5.5.0
 //! \date      2022/01/24
 
 
@@ -123,7 +123,7 @@ void CarmaSparseObj<T_data>::init_carma_sparse_obj(
   size_t bufferSize = 0;
   carma_check_cusparse_status(cusparseDenseToSparse_bufferSize(handle, this->dn_descr, this->sp_descr,
                                     CUSPARSE_DENSETOSPARSE_ALG_DEFAULT,
-                                    &bufferSize)); 
+                                    &bufferSize));
   cudaMalloc(&d_buffer, bufferSize);
   carma_check_cusparse_status(cusparseDenseToSparse_analysis(handle, this->dn_descr, this->sp_descr,
                                   CUSPARSE_DENSETOSPARSE_ALG_DEFAULT,
@@ -139,7 +139,7 @@ void CarmaSparseObj<T_data>::init_carma_sparse_obj(
   carma_check_cusparse_status(cusparseDenseToSparse_convert(handle, this->dn_descr, this->sp_descr,
                                         CUSPARSE_DENSETOSPARSE_ALG_DEFAULT,
                                         d_buffer));
-  
+
   cusparseDestroyDnMat(this->dn_descr);
   cudaFree(d_buffer);
 }

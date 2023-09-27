@@ -1,7 +1,7 @@
 ## @package   shesha.init.dm_init
 ## @brief     Initialization of a Dms object
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   5.4.4
+## @version   5.5.0
 ## @date      2022/01/24
 ## @copyright GNU Lesser General Public License
 #
@@ -221,7 +221,7 @@ def _dm_init_factorized(context: carmaWrap_context, dms: Dms, p_dm: conf.Param_d
 
     Args:
         context: (carmaWrap_context): context
-    
+
         dms: (Dms) : dm object
 
         p_dm: (Param_dms) : dm settings
@@ -439,7 +439,7 @@ def make_pzt_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, cobs: float,
 
     # Allocate array of influence functions
     influ = np.zeros((smallsize, smallsize, ntotact), dtype=np.float32)
-    
+
     # Computation of influence function for each actuator
     print("Computing Influence Function type : ", p_dm.influ_type)
     for i in track(range(ntotact)):
