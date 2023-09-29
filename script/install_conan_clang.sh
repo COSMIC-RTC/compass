@@ -7,7 +7,7 @@ conda install --file script/requirements-conda.txt -y
 pip install -r script/requirements-dev.txt --upgrade
 
 # Adds obspm conan repository if it is not already the case.
-conan remote list | grep obspm || conan remote add obspm https://conan.obspm.fr/conan
+conan remote list | grep obspm || conan remote add obspm https://conan.obspm.fr/conan False
 
 # OPTIONAL: Adds hippo6 conan repository if it is not already the case.
 #conan remote list | grep hippo6 || conan remote add hippo6 https://hippo6.obspm.fr/conan False
