@@ -1,6 +1,5 @@
 aenum
 astropy
-cupy
 docopt
 h5py
 ipython
