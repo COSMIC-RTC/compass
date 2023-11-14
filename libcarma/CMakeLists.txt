@@ -93,10 +93,6 @@ else()
     message(STATUS "COMPASS half precision disabled")
 endif()
 
-if(python_build)
-    add_subdirectory(python_module)
-endif()
-
 set(INSTALL_PKGCONFIG_DIR "lib/pkgconfig"
     CACHE PATH "Installation directory for pkgconfig (.pc) files")
 

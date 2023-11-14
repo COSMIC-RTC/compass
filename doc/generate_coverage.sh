@@ -2,7 +2,7 @@
 # Exit on first error.
 set -e
 
-coverage run -m pytest $COMPASS_ROOT/libcarma/python_module/test 
+coverage run -m pytest $COMPASS_ROOT/python_module/carmaWrap/test 
 coverage run -a -m pytest $SHESHA_ROOT/tests/pytest/rtc $SHESHA_ROOT/tests/pytest/rtc_standalone $SHESHA_ROOT/tests/pytest/supervisor #|| echo "It's just a scratch"
 
 # script="$SHESHA_ROOT/shesha/tests/check.py"

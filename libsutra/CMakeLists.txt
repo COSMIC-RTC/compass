@@ -104,10 +104,6 @@ if(${OCTOPUS_FOUND})
     target_compile_definitions(carma PUBLIC USE_CACAO)
 endif()
 
-if(python_build)
-  add_subdirectory(python_module)
-endif()
-
 set(INSTALL_PKGCONFIG_DIR "lib/pkgconfig"
     CACHE PATH "Installation directory for pkgconfig (.pc) files")
 

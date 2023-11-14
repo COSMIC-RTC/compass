@@ -8,6 +8,7 @@ project(sutraWrap
 
 find_package(pybind11 REQUIRED)
 find_package(wyrm REQUIRED)
+find_package(CUDAToolkit REQUIRED)
 
 pybind11_add_module(sutraWrap MODULE
     src/telescope.cpp
@@ -45,11 +46,33 @@ pybind11_add_module(sutraWrap MODULE
     ${BRAHMA_CPP}
 )
 
+target_compile_features(sutraWrap PUBLIC cxx_std_14)
+
 if (${OCTOPUS_FOUND})
     target_sources(sutraWrap PRIVATE src/rtc_cacao.cpp)
 endif()
 
-target_link_libraries(sutraWrap PRIVATE wyrm::wyrm sutra)
+if (NOT TARGET sutra)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(SUTRA REQUIRED IMPORTED_TARGET sutra)
+    message(STATUS "Found sutra: ${SUTRA_VERSION}")
+    target_include_directories(carmaWrap PRIVATE ${SUTRA_INCLUDE_DIRS})
+    target_link_libraries(sutraWrap PRIVATE 
+        wyrm::wyrm 
+        PkgConfig::SUTRA
+        CUDA::cudart
+        CUDA::cufft
+        CUDA::cublas
+        CUDA::curand
+        CUDA::cusparse
+        CUDA::cusolver
+    )
+else()
+    message(STATUS "Found sutra target in the project")
+    target_link_libraries(sutraWrap PRIVATE wyrm::wyrm sutra)
+endif()
+
+
 
 install(TARGETS sutraWrap EXPORT SutraWrapConfig
     ARCHIVE  DESTINATION python

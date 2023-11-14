@@ -22,6 +22,7 @@ class CompassConan(ConanFile):
     options = {
         'shared'        : [True, False],
         'fPIC'          : [True, False],
+        'libs'          : [True, False],
         'python'        : [True, False],
         'half'          : [True, False],
         'cuda_sm'       : 'ANY',
@@ -30,7 +31,9 @@ class CompassConan(ConanFile):
     default_options = {
         'shared'   : True,
         'fPIC'     : True,
-        'python'   : True,
+        'libs'     : True,
+        'python'   : False,
+        'python_version': None,
         'half'     : False,
         'wyrm:cuda': True,
         'cuda_sm'  : 'Auto'
@@ -58,14 +61,14 @@ class CompassConan(ConanFile):
         if self.options.half:
             self.options.half = self._half_support()
 
-        if self.options.python:
+        if self.options.python_version:
             self.options['wyrm'].half = self.options.half
 
 
     def requirements(self):
         if cuda_version() < version.parse('11.0'):
             self.requires('cub/1.8.0@cosmic/stable')
-        if self.options.python:
+        if self.options.python_version:
             self.requires('pybind11/2.10.4')
             self.requires('wyrm/0.4@cosmic/stable')
         else:
@@ -74,9 +77,11 @@ class CompassConan(ConanFile):
     def _configure(self):
         cmake = CMake(self)
         cmake.definitions['do_half'] = self.options.half
-        cmake.definitions['build_python_module']     = self.options.python
-        if self.options.python:
+        cmake.definitions['libs_build']     = self.options.libs
+        if self.options.python_version:
             cmake.definitions['PYBIND11_PYTHON_VERSION'] = self.options.python_version
+            self.options.python = True
+        cmake.definitions['python_build']     = self.options.python
 
         cmake.definitions['CMAKE_CUDA_ARCHITECTURES'] = self.options.cuda_sm
 

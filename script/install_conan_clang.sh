@@ -14,7 +14,7 @@ conan remote list | grep obspm || conan remote add obspm https://conan.obspm.fr/
 
 conan profile new default --detect --force > /dev/null
 conan profile update settings.compiler=clang default
-conan profile update settings.compiler.version=13 default
+conan profile update settings.compiler.version=14 default
 conan profile update settings.compiler.libcxx=libstdc++11 default
 conan profile update env.CC=/usr/bin/clang default
 conan profile update env.CXX=/usr/bin/clang++ default

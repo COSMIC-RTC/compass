@@ -45,7 +45,10 @@ else
     CONAN_LOCATION=$LOCAL_DIR
 fi
 
-if [ -z $PYTHON_VERSION ]
+# check if need to be built
+BUILD_LIBS="${BUILD_LIBS:=True}"
+
+if [[ -z $PYTHON_VERSION ]]
 then
     PYTHON_VERSION=$(python --version | cut -d' ' -f2 | cut -d'.' -f1,2)
     echo "python version ${PYTHON_VERSION} used"
@@ -58,6 +61,7 @@ set -e
 conan install $CONAN_LOCATION -if $LOCAL_DIR/build -b missing \
     -o compass:cuda_sm=${CUDA_SM}                             \
     -o compass:half=${COMPASS_DO_HALF}                        \
+    -o compass:libs=${BUILD_LIBS}                             \
     -o compass:python_version=${PYTHON_VERSION}
 
 # The commands generate build system in build/ subfolder, build it and install it
