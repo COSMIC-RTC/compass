@@ -35,8 +35,7 @@ struct CarmaHostObjInterfacer {
 
     py::class_<Class>(mod, name.data(), py::buffer_protocol())
         .def(py::init([](const py::array_t<T, py::array::f_style |
-                                                  py::array::forcecast> &data,
-                         MemAlloc malloc_type) {
+                                                  py::array::forcecast> &data) {
                int ndim = data.ndim() + 1;
                std::vector<long> data_dims(ndim);
                data_dims[0] = data.ndim();
@@ -46,7 +45,7 @@ struct CarmaHostObjInterfacer {
                    new Class(data_dims.data(), (const T *)data.data()));
              }),
              "TODO", // TODO do the documentation...
-             py::arg("h_data").none(false), py::arg("malloc_type")=MA_MALLOC)
+             py::arg("h_data").none(false))
 
         .def(py::init([](const Class &data) {
                return std::unique_ptr<Class>(new Class(&data));

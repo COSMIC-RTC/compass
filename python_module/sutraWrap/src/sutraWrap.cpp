@@ -14,6 +14,7 @@
 //! \date      2022/01/24
 
 #include <pybind11/pybind11.h>
+#include <carma.h>
 
 namespace py = pybind11;
 
@@ -61,20 +62,22 @@ void declare_rtc_cacao(py::module &);
 
 // Expose classes and methods to Python
 PYBIND11_MODULE(sutraWrap, mod) {
-  py::module::import("carmaWrap");
+  auto carmaWrap = py::module::import("carmaWrap");
+  auto complex128 = carmaWrap.attr("complex128");
+  auto complex64 = carmaWrap.attr("complex64");
   mod.doc() = "Binding module for libsutra";
   declare_tscreen(mod);
   declare_atmos(mod);
   declare_telescope(mod);
-  declare_dms(mod);
   declare_dm(mod);
-  declare_source(mod);
+  declare_dms(mod);
   declare_lgs(mod);
+  declare_source(mod);
   declare_target(mod);
-  declare_sensors(mod);
   declare_wfs(mod);
   declare_wfs_sh(mod);
   declare_wfs_pyrhr(mod);
+  declare_sensors(mod);
   declare_centroider(mod);
   declare_centroider_tcog(mod);
   declare_centroider_wcog(mod);

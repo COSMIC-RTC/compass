@@ -262,6 +262,7 @@ void declare_dms(py::module &mod) {
 //
 
 void declare_dm(py::module &mod) {
+  auto sutraKL = py::class_<SutraKL>(mod, "SutraKL");
   py::class_<SutraDm>(mod, "Dm")
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝

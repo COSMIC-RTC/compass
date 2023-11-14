@@ -27,6 +27,9 @@ std::unique_ptr<SutraPerfectCoronagraph> perfect_coronagraph_init(CarmaContext &
 };
 
 void declare_perfect_coronagraph(py::module &mod) {
+  auto carmaWrap = py::module::import("carmaWrap");
+  auto complex128 = carmaWrap.attr("complex128");
+  auto complex64 = carmaWrap.attr("complex64");
   py::class_<SutraPerfectCoronagraph, SutraCoronagraph>(mod, "PerfectCoronagraph")
 
       .def(py::init(wy::colCast(perfect_coronagraph_init)), R"pbdoc(

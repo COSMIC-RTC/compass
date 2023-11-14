@@ -27,6 +27,8 @@ using TypeListHostObj =
 // #endif
 
 void declare_carmaWrap_host_obj(py::module &mod) {
+  auto complex128 = py::class_<cuDoubleComplex>(mod, "complex128");
+  auto complex64 = py::class_<cuFloatComplex>(mod, "complex64");
   py::enum_<MemAlloc>(mod, "MemAlloc")
       .value("MA_MALLOC", MemAlloc::MA_MALLOC)
       .value("MA_PAGELOCK", MemAlloc::MA_PAGELOCK)

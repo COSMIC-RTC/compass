@@ -23,6 +23,9 @@ typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;
 typedef py::array_t<int, py::array::f_style | py::array::forcecast> F_arrayI;
 
 void declare_wfs_pyrhr(py::module &mod) {
+  auto carmaWrap = py::module::import("carmaWrap");
+  auto complex128 = carmaWrap.attr("complex128");
+  auto complex64 = carmaWrap.attr("complex64");
   py::class_<SutraWfs_PyrHR, SutraWfs>(mod, "PYRWFS")
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗

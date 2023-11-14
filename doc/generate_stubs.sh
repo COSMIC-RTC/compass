@@ -42,7 +42,7 @@ cat > stubs/sutraWrap.py << EOF
 #  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 EOF
 
-cat stubs/sutraWrap-stubs/__init__.pyi >> stubs/sutraWrap.py
+cat stubs/sutraWrap.pyi >> stubs/sutraWrap.py
 
 cat > stubs/carmaWrap.py << EOF
 ## @package   carmaWrap
@@ -83,4 +83,4 @@ cat > stubs/carmaWrap.py << EOF
 #  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 EOF
 
-cat stubs/carmaWrap-stubs/__init__.pyi >> stubs/carmaWrap.py
+cat stubs/carmaWrap.pyi >> stubs/carmaWrap.py

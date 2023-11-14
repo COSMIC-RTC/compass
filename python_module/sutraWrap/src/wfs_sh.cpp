@@ -20,6 +20,9 @@
 namespace py = pybind11;
 
 void declare_wfs_sh(py::module &mod) {
+  auto carmaWrap = py::module::import("carmaWrap");
+  auto complex128 = carmaWrap.attr("complex128");
+  auto complex64 = carmaWrap.attr("complex64");
   py::class_<SutraWfsSH, SutraWfs>(mod, "SHWFS")
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗

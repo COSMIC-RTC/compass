@@ -30,6 +30,7 @@ void declare_carmaWrap_timer(py::module &);
 // Expose classes and methods to Python
 PYBIND11_MODULE(carmaWrap, mod) {
   mod.doc() = "";
+  auto cDeviceProp = py::class_<cudaDeviceProp>(mod, "cudaDeviceProp");
   declare_carmaWrap_context(mod);
   declare_carmaWrap_obj(mod);
   declare_carmaWrap_host_obj(mod);
