@@ -44,13 +44,13 @@
 #define CARMA_PI 3.1415926535897932384626433832
 
 struct doubleint {
-  int start;
-  int nbInflu;
+  int32_t start;
+  int32_t nbInflu;
 };
 
 template <class T>
 struct tuple_t {
-  int pos;
+  int32_t pos;
   T data;
 };
 
@@ -120,7 +120,7 @@ void inline split(std::vector<std::string> &tokens, const std::string &text,
 #define MAX(a, b) ((a > b) ? a : b)
 #endif
 
-inline unsigned int next_pow2(unsigned int x) {
+inline uint32_t next_pow2(uint32_t x) {
   --x;
   x |= x >> 1;
   x |= x >> 2;
@@ -130,33 +130,33 @@ inline unsigned int next_pow2(unsigned int x) {
   return ++x;
 }
 
-inline bool is_pow2(unsigned int x) { return ((x & (x - 1)) == 0); }
+inline bool is_pow2(uint32_t x) { return ((x & (x - 1)) == 0); }
 
 class CarmaDevice;
-void get_num_blocks_and_threads(CarmaDevice *device, int n, int &blocks,
-                            int &threads);
-void sum_get_num_blocks_and_threads(int n, CarmaDevice *device, int &blocks,
-                               int &threads);
+void get_num_blocks_and_threads(CarmaDevice *device, int32_t n, int32_t &blocks,
+                            int32_t &threads);
+void sum_get_num_blocks_and_threads(int32_t n, CarmaDevice *device, int32_t &blocks,
+                               int32_t &threads);
 template <class T_data>
-int find_nnz(T_data *d_data, int *tmp_colind, int N, int *d_nnz, int &h_nnz,
+int32_t find_nnz(T_data *d_data, int32_t *tmp_colind, int32_t N, int32_t *d_nnz, int32_t &h_nnz,
              CarmaDevice *device);
 template <class T_data>
-int fill_sparse_vect(T_data *dense_data, int *colind_sorted, T_data *values,
-                     int *colind, int *rowind, int nnz, CarmaDevice *device);
-int float_to_double(float *idata, double *odata, int N, CarmaDevice *device);
-int double_to_float(double *idata, float *odata, int N, CarmaDevice *device);
-int print_mem_info();
+int32_t fill_sparse_vect(T_data *dense_data, int32_t *colind_sorted, T_data *values,
+                     int32_t *colind, int32_t *rowind, int32_t nnz, CarmaDevice *device);
+int32_t float_to_double(float *idata, double *odata, int32_t N, CarmaDevice *device);
+int32_t double_to_float(double *idata, float *odata, int32_t N, CarmaDevice *device);
+int32_t print_mem_info();
 template <typename T_data>
-int fill_array_with_value(T_data *d_data, T_data value, int N,
+int32_t fill_array_with_value(T_data *d_data, T_data value, int32_t N,
                           CarmaDevice *device);
 
 #ifdef CAN_DO_HALF
-int copy_from_float_to_half(const float *data, half *dest, int N,
+int32_t copy_from_float_to_half(const float *data, half *dest, int32_t N,
                         CarmaDevice *device);
-int copy_from_half_to_float(const half *d_data, float *h_dest, int N,
+int32_t copy_from_half_to_float(const half *d_data, float *h_dest, int32_t N,
                         CarmaDevice *device);
-half *float_to_half_array(float *source, int N, CarmaDevice *device);
-float *half_to_float_array(half *source, int N, CarmaDevice *device);
+half *float_to_half_array(float *source, int32_t N, CarmaDevice *device);
+float *half_to_float_array(half *source, int32_t N, CarmaDevice *device);
 #endif
 
 void carma_start_profile();
@@ -167,7 +167,7 @@ void carma_stop_profile();
 // any compile error.
 
 inline void __carma_safe_call_no_sync(cudaError err, const char *file,
-                                  const int line) {
+                                  const int32_t line) {
   if (cudaSuccess != err) {
     fprintf(stderr, "(%s:%i) : carma_safe_call_no_sync() Runtime API error : %s.\n",
             file, line, cudaGetErrorString(err));
@@ -177,7 +177,7 @@ inline void __carma_safe_call_no_sync(cudaError err, const char *file,
 }
 
 inline void __carma_safe_call(cudaError err, const char *code, const char *file,
-                            const int line) {
+                            const int32_t line) {
   if (cudaSuccess != err) {
     fprintf(stderr, "[%s:%i] %s\n carma_safe_call() Runtime API error : %s.\n",
             file, line, code, cudaGetErrorString(err));
@@ -186,7 +186,7 @@ inline void __carma_safe_call(cudaError err, const char *code, const char *file,
   }
 }
 
-inline void __carma_safe_device_synchronize(const char *file, const int line) {
+inline void __carma_safe_device_synchronize(const char *file, const int32_t line) {
   cudaError err = cudaDeviceSynchronize();
   if (cudaSuccess != err) {
     fprintf(stderr,
@@ -198,7 +198,7 @@ inline void __carma_safe_device_synchronize(const char *file, const int line) {
 }
 
 inline void __carmafft_safe_call(cufftResult err, const char *file,
-                               const int line) {
+                               const int32_t line) {
   if (CUFFT_SUCCESS != err) {
     fprintf(stderr, "(%s:%i) : carmafft_safe_call() CUFFT error.\n", file, line);
     // exit(EXIT_FAILURE);
@@ -207,7 +207,7 @@ inline void __carmafft_safe_call(cufftResult err, const char *file,
 }
 
 inline void __carma_check_msg(const char *error_message, const char *file,
-                            const int line) {
+                            const int32_t line) {
   cudaError_t err = cudaGetLastError();
   if (cudaSuccess != err) {
     fprintf(stderr, "(%s:%i) : carma_check_msg() CUTIL CUDA error : %s : %s.\n",
@@ -224,7 +224,7 @@ inline void __carma_check_msg(const char *error_message, const char *file,
   }
 #endif
 }
-inline void __carma_safe_malloc(void *pointer, const char *file, const int line) {
+inline void __carma_safe_malloc(void *pointer, const char *file, const int32_t line) {
   if (!(pointer)) {
     fprintf(stderr, "(%s:%i) : cutil_safe_malloc host malloc failure\n", file,
             line);

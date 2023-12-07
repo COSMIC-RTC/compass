@@ -8,7 +8,7 @@
 
 //! \file      sutra_controller_ls.h
 //! \ingroup   libsutra
-//! \class     sutra_controller_ls
+//! \class     SutraControllerLs
 //! \brief     this class provides the controller_ls features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
 //! \version   5.5.0
@@ -20,7 +20,7 @@
 #include <sutra_controller.h>
 
 template <typename Tcomp, typename Tout>
-class sutra_controller_ls : public SutraController<Tcomp, Tout> {
+class SutraControllerLs : public SutraController<Tcomp, Tout> {
  public:
   CarmaObj<Tcomp> *d_imat;
   CarmaObj<Tcomp> *d_cmat;
@@ -36,14 +36,14 @@ class sutra_controller_ls : public SutraController<Tcomp, Tout> {
   CarmaObj<Tcomp> *d_err;      // current error
 
   // Modal optimization components
-  int is_modopti;                // Flag for using modal optimization
-  int nrec;                      // Number of recorded open slopes measurements
-  int nmodes;                    // Number of modes
+  int32_t is_modopti;                // Flag for using modal optimization
+  int32_t nrec;                      // Number of recorded open slopes measurements
+  int32_t nmodes;                    // Number of modes
   Tcomp gmin;                    // Gain min
   Tcomp gmax;                    // Gain max
-  int ngain;                     // Number of tested gains between gmin and gmax
+  int32_t ngain;                     // Number of tested gains between gmin and gmax
   Tcomp Fs;                      // Sampling frequency
-  int cpt_rec;                   // Counter for modal gains refresh
+  int32_t cpt_rec;                   // Counter for modal gains refresh
   CarmaObj<Tcomp> *d_M2V;       // Modes to Volts matrix
   CarmaObj<Tcomp> *d_S2M;       // Slopes to Modes matrix
   CarmaObj<Tcomp> *d_slpol;     // Open-loop measurements buffer, recorded and
@@ -53,28 +53,27 @@ class sutra_controller_ls : public SutraController<Tcomp, Tout> {
   CarmaObj<Tcomp> *d_compbuff2;  // Buffer for POLC computation
 
  public:
-  sutra_controller_ls(CarmaContext *context, long nslope,
-                      long nactu, float delay, SutraDms *dms, int *idx_dms,
-                      int ndm, int *idx_centro, int ncentro);
-  sutra_controller_ls(const sutra_controller_ls &controller);
-  ~sutra_controller_ls();
+  SutraControllerLs(CarmaContext *context, int64_t nslope,
+                      int64_t nactu, float delay, SutraDms *dms, int32_t *idx_dms,
+                      int32_t ndm, int32_t *idx_centro, int32_t ncentro);
+  ~SutraControllerLs();
 
   string get_type();
 
-  int svdec_imat();
-  int build_cmat(int nfilt, bool filt_tt);
-  int build_cmat(int nfilt);
-  int build_cmat_modopti();
-  int frame_delay();
-  int comp_com();
-  int set_modal_gains(Tcomp *mgain);
-  int set_cmat(Tcomp *cmat);
-  int set_imat(Tcomp *imat);
-  int init_modalOpti(int nmodes, int nrec, Tcomp *M2V, Tcomp gmin, Tcomp gmax,
-                     int ngain, Tcomp Fs);
-  int loadopen_loopSlp(Tcomp *ol_slopes);
-  int modalControlOptimization();
-  int compute_Hcor();
+  int32_t svdec_imat();
+  int32_t build_cmat(int32_t nfilt, bool filt_tt);
+  int32_t build_cmat(int32_t nfilt);
+  int32_t build_cmat_modopti();
+  int32_t frame_delay();
+  int32_t comp_com();
+  int32_t set_modal_gains(Tcomp *mgain);
+  int32_t set_cmat(Tcomp *cmat);
+  int32_t set_imat(Tcomp *imat);
+  int32_t init_modalOpti(int32_t nmodes, int32_t nrec, Tcomp *M2V, Tcomp gmin, Tcomp gmax,
+                     int32_t ngain, Tcomp Fs);
+  int32_t loadopen_loopSlp(Tcomp *ol_slopes);
+  int32_t modalControlOptimization();
+  int32_t compute_Hcor();
 };
 
 #endif  // _SUTRA_CONTROLLER_LS_H_

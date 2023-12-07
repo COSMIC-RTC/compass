@@ -17,7 +17,6 @@
 
 #include <carma.h>
 
-#include <wyrm>
 namespace py = pybind11;
 
 void declare_carmaWrap_context(py::module &mod) {
@@ -37,25 +36,10 @@ void declare_carmaWrap_context(py::module &mod) {
       .def_static("get_instance_1gpu", &CarmaContext::instance_1gpu,
                   py::return_value_policy::reference)
       .def_static("get_instance_ngpu",
-                  wy::colCast(CarmaContext::instance_ngpu),
+                  [](int32_t nb_devices, const py::array_t<int32_t> &devices_id) -> CarmaContext & {
+                      return CarmaContext::instance_ngpu(nb_devices, devices_id.data());
+                  },
                   py::return_value_policy::reference)
-
-      // .def(py::init([](py::buffer data, ::CORBA::Boolean copy) {
-      //   py::buffer_info info = data.request();
-      //   if(info.format != py::format_descriptor<::CORBA::ULong>::format())
-      //     throw invalid_argument("Buffer given has an incorrect format,
-      //     expected: uint32");
-      //   ::CORBA::ULong *ptr;
-      //   if (copy == 0) {
-      //     ptr = reinterpret_cast<::CORBA::ULong *>(info.ptr);
-      //   } else {
-      //     ssize_t size = info.itemsize * info.size;
-      //     ptr = new ::CORBA::ULong[info.size];
-      //     memcpy(ptr, info.ptr, size);
-      //   }
-      //   return unique_ptr<B::Dims>(new B::Dims(info.size, info.size, ptr,
-      //   copy));
-      // }))
 
       .def_property_readonly("ndevice", &CarmaContext::get_ndevice)
       .def_property_readonly("active_device", &CarmaContext::get_active_device)
@@ -68,19 +52,19 @@ void declare_carmaWrap_context(py::module &mod) {
       .def("get_device", &CarmaContext::get_device,
            py::return_value_policy::reference)
       .def("set_active_device",
-           [](CarmaContext &cc, int new_device) {
+           [](CarmaContext &cc, int32_t new_device) {
              return cc._set_active_device(new_device, 1, __FILE__, __LINE__);
            })
       .def("set_active_device_force",
-           [](CarmaContext &cc, int new_device) {
+           [](CarmaContext &cc, int32_t new_device) {
              return cc.set_active_device_force(new_device, 0);
            })
       // .def("set_active_deviceForCpy", &CarmaContext::set_active_deviceForCpy);
       .def(
           "activate_tensor_cores",
           [](CarmaContext &cc, bool flag) {
-            int ndevices = cc.get_ndevice();
-            for (int i = 0; i < ndevices; i++) {
+            int32_t ndevices = cc.get_ndevice();
+            for (int32_t i = 0; i < ndevices; i++) {
               cc.get_device(i)->set_cublas_math_mode(flag);
             }
           },

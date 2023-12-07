@@ -19,21 +19,21 @@
 #include <sutra_centroider_pyr.h>
 
 template <class T, T fct_sin(T)>
-__global__ void pyr2slopes_krnl(T *g_odata, T *ref, T *g_idata, int *subindx,
-                                int *subindy, float *intensities,
+__global__ void pyr2slopes_krnl(T *g_odata, T *ref, T *g_idata, int32_t *subindx,
+                                int32_t *subindy, float *intensities,
                                 sutra::SlopesIndex si,
-                                unsigned int ns, unsigned int nvalid,
-                                float scale, T valid_thresh, int do_sin) {
+                                uint32_t ns, uint32_t nvalid,
+                                float scale, T valid_thresh, int32_t do_sin) {
 
-  unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+  uint32_t i = blockIdx.x * blockDim.x + threadIdx.x;
   T tmp;
   const T cmin(-1);
   const T cmax(1);
   while (i < nvalid) {
-    const int iq1 = subindx[i] + subindy[i] * ns;
-    const int iq2 = subindx[i + nvalid] + subindy[i + nvalid] * ns;
-    const int iq3 = subindx[i + 2 * nvalid] + subindy[i + 2 * nvalid] * ns;
-    const int iq4 = subindx[i + 3 * nvalid] + subindy[i + 3 * nvalid] * ns;
+    const int32_t iq1 = subindx[i] + subindy[i] * ns;
+    const int32_t iq2 = subindx[i + nvalid] + subindy[i + nvalid] * ns;
+    const int32_t iq3 = subindx[i + 2 * nvalid] + subindy[i + 2 * nvalid] * ns;
+    const int32_t iq4 = subindx[i + 3 * nvalid] + subindy[i + 3 * nvalid] * ns;
 
     if (intensities[i] < valid_thresh) { // flux too low -> set slopes to 9
         g_odata[si.x(i)] = 0;
@@ -63,11 +63,11 @@ __global__ void pyr2slopes_krnl(T *g_odata, T *ref, T *g_idata, int *subindx,
 }
 
 template <class T, T fct_sin(T)>
-void pyr_slopes_full(T *d_odata, T *ref, T *d_idata, int *subindx,
-                      int *subindy, float *intensities, int ns, int nvalid,
-                      float scale, T valid_thresh, int do_sin,
+void pyr_slopes_full(T *d_odata, T *ref, T *d_idata, int32_t *subindx,
+                      int32_t *subindy, float *intensities, int32_t ns, int32_t nvalid,
+                      float scale, T valid_thresh, int32_t do_sin,
                       SlopeOrder slope_order, CarmaDevice *device, cudaStream_t stream) {
-  int nb_blocks, nb_threads;
+  int32_t nb_blocks, nb_threads;
   get_num_blocks_and_threads(device, nvalid, nb_blocks, nb_threads);
   dim3 grid(nb_blocks), threads(nb_threads);
 
@@ -83,8 +83,8 @@ void pyr_slopes_full(T *d_odata, T *ref, T *d_idata, int *subindx,
 
 template <>
 void pyr_slopes<float>(float *d_odata, float *ref, float *d_idata,
-                        int *subindx, int *subindy, float *intensities, int ns,
-                        int nvalid, float scale, float valid_thresh, int do_sin,
+                        int32_t *subindx, int32_t *subindy, float *intensities, int32_t ns,
+                        int32_t nvalid, float scale, float valid_thresh, int32_t do_sin,
                         SlopeOrder slope_order, CarmaDevice *device, cudaStream_t stream) {
   pyr_slopes_full<float, sinpif>(d_odata, ref, d_idata, subindx, subindy,
                                   intensities, ns, nvalid, scale, valid_thresh,
@@ -92,8 +92,8 @@ void pyr_slopes<float>(float *d_odata, float *ref, float *d_idata,
 }
 template <>
 void pyr_slopes<double>(double *d_odata, double *ref, double *d_idata,
-                         int *subindx, int *subindy, float *intensities, int ns,
-                         int nvalid, float scale, double valid_thresh, int do_sin,
+                         int32_t *subindx, int32_t *subindy, float *intensities, int32_t ns,
+                         int32_t nvalid, float scale, double valid_thresh, int32_t do_sin,
                          SlopeOrder slope_order, CarmaDevice *device, cudaStream_t stream) {
   pyr_slopes_full<double, sinpi>(d_odata, ref, d_idata, subindx, subindy,
                                   intensities, ns, nvalid, scale, valid_thresh,

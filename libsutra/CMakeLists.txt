@@ -21,7 +21,7 @@ add_library(sutra
     src.cpp/sutra_centroider_tcog.cpp
     src.cpp/sutra_centroider_wcog.cpp
     src.cpp/sutra_controller.cpp
-    src.cpp/sutra_controller_cured.cpp
+src.cpp/sutra_controller_cured.cpp
     src.cpp/sutra_controller_generic.cpp
     src.cpp/sutra_controller_generic_linear.cpp
     src.cpp/sutra_controller_geo.cpp
@@ -72,14 +72,14 @@ add_library(sutra
     src.cu/sutra_tscreen.cu
     src.cu/sutra_wfs.cu
     src.cu/sutra_coronagraph.cu
-    aao/cured/cured.cpp
+aao/cured/cured.cpp
 )
 
 target_include_directories(sutra
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include.h ${BRAHMA_INC}
     PRIVATE
-        $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/aao/cured>
+$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/aao/cured>
         $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CURRENT_SOURCE_DIR}/include.cuh>
         $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CURRENT_SOURCE_DIR}/src.cu>
 )

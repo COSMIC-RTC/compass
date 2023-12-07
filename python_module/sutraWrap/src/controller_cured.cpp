@@ -13,11 +13,17 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
+#include "sutraWrapUtils.hpp"
+
 #include <sutra_controller_cured.h>
 
-#include <wyrm>
-
 namespace py = pybind11;
+
+template <typename Tcomp, typename Tout>
+int32_t init_cured(SutraControllerCured<Tcomp, Tout> &scc, int32_t nxsubs, ArrayFStyle<int32_t> &isvalid, int32_t ndivs, int32_t tt){
+    return scc.init_cured(nxsubs, isvalid.mutable_data(), ndivs, tt);
+}
+
 
 template <typename Tcomp, typename Tout>
 void controller_cured_impl(py::module &mod, const char *name) {
@@ -66,7 +72,7 @@ void controller_cured_impl(py::module &mod, const char *name) {
       //  ██║╚██╔╝██║██╔══╝     ██║   ██╔══██║██║   ██║██║  ██║╚════██║
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
-      .def("init_cured", wy::colCast(&controller_cured::init_cured),
+      .def("init_cured", &init_cured<Tcomp, Tout>,
            R"pbdoc(
     Initialize CURED
 

@@ -33,15 +33,15 @@ typedef void *magma_s_sparse_matrix;
 template <class T_data>
 class CarmaSparseObj {
  public:
-  long dims_data[3];  ///< dimensions of the array
-  int nz_elem;        ///< number of elements in the array
-  int device;         ///< device where the CarmaObj is allocate
+  int64_t dims_data[3];  ///< dimensions of the array
+  int32_t nz_elem;        ///< number of elements in the array
+  int32_t device;         ///< device where the CarmaObj is allocate
   CarmaContext *current_context;
 
   // ZERO-BASED INDEXING CSR-FORMAT
   T_data *d_data;  // nz_elem elements
-  int *d_rowind;   // dim1+1  elements
-  int *d_colind;   // nz_elem elements
+  int32_t *d_rowind;   // dim1+1  elements
+  int32_t *d_colind;   // nz_elem elements
   cusparseMatDescr_t descr;
 #if CUDA_VERSION >= 11000
   cusparseSpMatDescr_t sp_descr; // New cuSPARSE API from CUDA 11
@@ -50,7 +50,7 @@ class CarmaSparseObj {
 
   char major_dim;
   std::string format;
-  int block_dim;  // blockdim for BSR format
+  int32_t block_dim;  // blockdim for BSR format
 
   // Magma stuff
   union {
@@ -65,34 +65,34 @@ class CarmaSparseObj {
   CarmaSparseObj(CarmaSparseObj<T_data> *M);
   CarmaSparseObj(CarmaContext *current_context,
                    CarmaSparseHostObj<T_data> *M);
-  CarmaSparseObj(CarmaContext *current_context, const long *dims, T_data *M,
+  CarmaSparseObj(CarmaContext *current_context, const int64_t *dims, T_data *M,
                    bool load_from_host);
-  CarmaSparseObj(CarmaContext *current_context, const long *dims,
-                   T_data *values, int *colind, int *rowind, int nz,
+  CarmaSparseObj(CarmaContext *current_context, const int64_t *dims,
+                   T_data *values, int32_t *colind, int32_t *rowind, int32_t nz,
                    bool load_from_host);
   virtual ~CarmaSparseObj();
 
   void operator=(CarmaSparseObj<T_data> &M);
   void operator=(CarmaSparseHostObj<T_data> &M);
 
-  void resize(int nnz_, int dim1_, int dim2_);
+  void resize(int32_t nnz_, int32_t dim1_, int32_t dim2_);
   bool is_column_major();
   char get_major_dim() const { return major_dim; }
   void set_majorDim(char c) { major_dim = c; }
 
   /**< General Utilities */
   operator T_data *() { return d_data; }
-  T_data *operator[](int index) { return &d_data[index]; }
+  T_data *operator[](int32_t index) { return &d_data[index]; }
   T_data *get_data() { return d_data; }
-  T_data *get_data(int index) { return &d_data[index]; }
-  const long *get_dims() { return dims_data; }
-  long get_dims(int i) { return dims_data[i]; }
-  int get_nonzero_elem() { return nz_elem; }
+  T_data *get_data(int32_t index) { return &d_data[index]; }
+  const int64_t *get_dims() { return dims_data; }
+  int64_t get_dims(int32_t i) { return dims_data[i]; }
+  int32_t get_nonzero_elem() { return nz_elem; }
   CarmaContext *get_context() { return current_context; }
 
-  int get_device() { return device; }
+  int32_t get_device() { return device; }
 
-  void sparse_to_host(int *h_rowInd, int *h_colInd, T_data *h_data);
+  void sparse_to_host(int32_t *h_rowInd, int32_t *h_colInd, T_data *h_data);
 
 #if CUDA_VERSION >= 11000
   void transpose();
@@ -108,26 +108,26 @@ class CarmaSparseObj {
   }
 #endif
 
-  void allocate(int nnz, int dim1, int dim2);
+  void allocate(int32_t nnz, int32_t dim1, int32_t dim2);
 
  private:
-  void _create(int nnz_, int dim1_, int dim2_);
+  void _create(int32_t nnz_, int32_t dim1_, int32_t dim2_);
   void _clear();
 
 #if CUDA_VERSION < 12000
   template <cusparseStatus_t CUSPARSEAPI (*ptr_nnz)(
-                cusparseHandle_t handle, cusparseDirection_t dirA, int m, int n,
-                const cusparseMatDescr_t descrA, const T_data *A, int lda,
-                int *nnzPerRowCol, int *nnzTotalDevHostPtr),
+                cusparseHandle_t handle, cusparseDirection_t dirA, int32_t m, int32_t n,
+                const cusparseMatDescr_t descrA, const T_data *A, int32_t lda,
+                int32_t *nnzPerRowCol, int32_t *nnzTotalDevHostPtr),
             cusparseStatus_t CUSPARSEAPI (*ptr_dense2csr)(
-                cusparseHandle_t handle, int m, int n,
-                const cusparseMatDescr_t descrA, const T_data *A, int lda,
-                const int *nnzPerRow, T_data *csrValA, int *csrRowPtrA,
-                int *csrColIndA)>
-  void init_carma_sparse_obj(CarmaContext *current_context, const long *dims,
+                cusparseHandle_t handle, int32_t m, int32_t n,
+                const cusparseMatDescr_t descrA, const T_data *A, int32_t lda,
+                const int32_t *nnzPerRow, T_data *csrValA, int32_t *csrRowPtrA,
+                int32_t *csrColIndA)>
+  void init_carma_sparse_obj(CarmaContext *current_context, const int64_t *dims,
                              T_data *M, bool load_from_host);
 # else
-  void init_carma_sparse_obj(CarmaContext *current_context, const long *dims,
+  void init_carma_sparse_obj(CarmaContext *current_context, const int64_t *dims,
                              T_data *M, bool load_from_host);
 
 #endif
@@ -153,7 +153,7 @@ template <class T_data>
 cusparseStatus_t carma_csr2dense(CarmaSparseObj<T_data> *src, T_data *dest);
 
 template <class T_data>
-cusparseStatus_t carma_csr2bsr(CarmaSparseObj<T_data> *src, int block_dim,
+cusparseStatus_t carma_csr2bsr(CarmaSparseObj<T_data> *src, int32_t block_dim,
                                CarmaSparseObj<T_data> *dest);
 
 template <class T_data>
@@ -161,6 +161,6 @@ cusparseStatus_t carma_bsr2csr(CarmaSparseObj<T_data> *src,
                                CarmaSparseObj<T_data> *dest);
 
 template <class T_data>
-int carma_kgemv(CarmaSparseObj<T_data> *A, T_data alpha,
+int32_t carma_kgemv(CarmaSparseObj<T_data> *A, T_data alpha,
                 const T_data *__restrict x, T_data beta, T_data *y);
 #endif /* CARMA_SPARSE_OBJ_H_ */

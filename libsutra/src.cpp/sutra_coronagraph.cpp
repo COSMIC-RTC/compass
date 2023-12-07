@@ -17,8 +17,8 @@
 #include <sutra_coronagraph.h>
 
 SutraCoronagraph::SutraCoronagraph(CarmaContext *context, std::string type, SutraSource *d_source,
-                                    int dimx, int dimy, float *wavelength, int nWavelength,
-                                    int device):
+                                    int32_t dimx, int32_t dimy, float *wavelength, int32_t nWavelength,
+                                    int32_t device):
     current_context(context),
     device(device),
     type(type),
@@ -28,7 +28,7 @@ SutraCoronagraph::SutraCoronagraph(CarmaContext *context, std::string type, Sutr
     cntPsf(0),
     cntImg(0) {
     current_context->set_active_device(device, 1);
-    long dims[3] = {2, dimx, dimy};
+    int64_t dims[3] = {2, dimx, dimy};
     d_image_se = new CarmaObj<float>(current_context, dims);
     d_image_le = new CarmaObj<float>(current_context, dims);
     d_psf_se = new CarmaObj<float>(current_context, dims);
@@ -39,14 +39,14 @@ SutraCoronagraph::SutraCoronagraph(CarmaContext *context, std::string type, Sutr
     d_electric_field = new CarmaObj<cuFloatComplex>(current_context,
                                                     d_source->d_phase->d_screen->get_dims());
     d_complex_image = new CarmaObj<cuFloatComplex>(current_context, dims);
-    for (int i = 0; i < nWavelength; i++) {
+    for (int32_t i = 0; i < nWavelength; i++) {
         this->wavelength.push_back(wavelength[i]);
         amplitude.push_back(new CarmaObj<float>(current_context, d_source->d_phase->d_screen->get_dims()));
         amplitude.back()->memset(1);
     }
 }
 
-int SutraCoronagraph::reset() {
+int32_t SutraCoronagraph::reset() {
     d_image_se->reset();
     d_image_le->reset();
     d_psf_se->reset();
@@ -56,7 +56,7 @@ int SutraCoronagraph::reset() {
     return EXIT_SUCCESS;
 }
 
-int SutraCoronagraph::compute_electric_field(int wavelengthIndex) {
+int32_t SutraCoronagraph::compute_electric_field(int32_t wavelengthIndex) {
     float scale = 2 * CARMA_PI / wavelength[wavelengthIndex];
     ::compute_electric_field(d_electric_field->get_data(), d_source->d_phase->d_screen->get_data(),
                             scale, amplitude[wavelengthIndex]->get_data(), d_pupil->get_data(),
@@ -64,7 +64,7 @@ int SutraCoronagraph::compute_electric_field(int wavelengthIndex) {
     return EXIT_SUCCESS;
 }
 
-int SutraCoronagraph::mft(CarmaObj<cuFloatComplex> *A, CarmaObj<cuFloatComplex> *B,
+int32_t SutraCoronagraph::mft(CarmaObj<cuFloatComplex> *A, CarmaObj<cuFloatComplex> *B,
                 CarmaObj<cuFloatComplex> *Ainput,
                 CarmaObj<cuFloatComplex> *input, CarmaObj<cuFloatComplex> *output, float norm) {
     cuFloatComplex alpha(make_float2(norm, 0));
@@ -81,9 +81,9 @@ int SutraCoronagraph::mft(CarmaObj<cuFloatComplex> *A, CarmaObj<cuFloatComplex> 
     return EXIT_SUCCESS;
 }
 
-int SutraCoronagraph::set_amplitude(float *ampli) {
-    long dims[3] = {2, pupDimx, pupDimy};
-    for (int i = 0; i < wavelength.size() ; i++) {
+int32_t SutraCoronagraph::set_amplitude(float *ampli) {
+    int64_t dims[3] = {2, pupDimx, pupDimy};
+    for (int32_t i = 0; i < wavelength.size() ; i++) {
         amplitude[i]->host2device(ampli + i * dims[1] * dims[2]);
     }
 

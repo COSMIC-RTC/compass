@@ -25,9 +25,9 @@
 #include <sys/ioctl.h>
 
 
-void get_num_blocks_and_threads(CarmaDevice *device, int n, int &blocks,
-                            int &threads) {
-  // int maxThreads = device->get_properties().maxThreadsPerBlock;
+void get_num_blocks_and_threads(CarmaDevice *device, int32_t n, int32_t &blocks,
+                            int32_t &threads) {
+  // int32_t maxThreads = device->get_properties().maxThreadsPerBlock;
   // blocks = device->get_properties().multiProcessorCount *
   //          8;  // device->get_cores_per_sm();
   // threads = (n + blocks - 1) / blocks;
@@ -46,10 +46,10 @@ void get_num_blocks_and_threads(CarmaDevice *device, int n, int &blocks,
 
 }
 
-void sum_get_num_blocks_and_threads(int n, CarmaDevice *device, int &blocks,
-                               int &threads) {
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int maxBlocks = device->get_properties().multiProcessorCount;
+void sum_get_num_blocks_and_threads(int32_t n, CarmaDevice *device, int32_t &blocks,
+                               int32_t &threads) {
+  int32_t maxThreads = device->get_properties().maxThreadsPerBlock;
+  int32_t maxBlocks = device->get_properties().multiProcessorCount;
 
   threads = (n < maxThreads * 2) ? next_pow2((n + 1) / 2) : maxThreads;
   blocks = (n + (threads * 2 - 1)) / (threads * 2);
@@ -75,9 +75,9 @@ float ran1() {
 }
 
 extern "C" {
-int _dist(float *d, long dimx, long dimy, float xc, float yc) {
+int32_t _dist(float *d, int64_t dimx, int64_t dimy, float xc, float yc) {
   /* Declarations */
-  long i, j;
+  int64_t i, j;
 
   /* Loop and fill d with distance values */
   for (i = 0; i < dimx; ++i) {
@@ -89,14 +89,14 @@ int _dist(float *d, long dimx, long dimy, float xc, float yc) {
   return EXIT_SUCCESS;
 }
 
-void _poidev(float *xmv, long n)
+void _poidev(float *xmv, int64_t n)
 /* */
 {
   float gammln(float xx);
-  /*  float ran1(long *idum);*/
+  /*  float ran1(int64_t *idum);*/
   static float sq, alxm, g, oldm = (-1.0);
   float xm, em, t, y;
-  long i;
+  int64_t i;
 
   for (i = 0; i < n; i++) {
     xm = (float)xmv[i];
@@ -138,7 +138,7 @@ float gammln(float xx) {
   static float cof[6] = {76.18009172947146,     -86.50532032941677,
                          24.01409824083091,     -1.231739572450155,
                          0.1208650973866179e-2, -0.5395239384953e-5};
-  int j;
+  int32_t j;
 
   y = x = xx;
   tmp = x + 5.5;
@@ -149,7 +149,7 @@ float gammln(float xx) {
 }
 }
 
-int print_mem_info() {
+int32_t print_mem_info() {
   size_t free_mem;
   size_t total_mem;
   float free_float;

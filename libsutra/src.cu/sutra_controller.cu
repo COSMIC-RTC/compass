@@ -25,8 +25,8 @@
 
  */
 
-__global__ void shift_krnl(float *data, int offset, int N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+__global__ void shift_krnl(float *data, int32_t offset, int32_t N) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
     data[tid] = data[tid + offset * N];
@@ -34,16 +34,16 @@ __global__ void shift_krnl(float *data, int offset, int N) {
   }
 }
 
-__global__ void TT_filt_krnl(float *mat, int n, int N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+__global__ void TT_filt_krnl(float *mat, int32_t n, int32_t N) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
   while (tid < N) {
     tid % (n + 1) ? mat[tid] *= -1.0f : mat[tid] = (1.0f - mat[tid]);
     tid += blockDim.x * gridDim.x;
   }
 }
 
-__global__ void fill_filtmat_krnl(float *filter, int nactu, int N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+__global__ void fill_filtmat_krnl(float *filter, int32_t nactu, int32_t N) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
   while (tid < N) {
     filter[tid] =
         tid % (nactu + 1) ? (float)-1. / nactu : (float)(1. - 1. / nactu);
@@ -51,10 +51,10 @@ __global__ void fill_filtmat_krnl(float *filter, int nactu, int N) {
   }
 }
 
-__global__ void fill_cmat_krnl(float *cmat, float *wtt, float *Mtt, long nact,
-                               long nslope, long N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
-  int i, j;
+__global__ void fill_cmat_krnl(float *cmat, float *wtt, float *Mtt, int64_t nact,
+                               int64_t nslope, int64_t N) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
+  int32_t i, j;
   while (tid < N) {
     i = tid / nact;
     j = tid - i * nact;
@@ -66,9 +66,9 @@ __global__ void fill_cmat_krnl(float *cmat, float *wtt, float *Mtt, long nact,
 }
 
 __global__ void do_statcov_krnl(float *statcov, float *xpos, float *ypos,
-                                float norm, long dim, long N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
-  int i, j;
+                                float norm, int64_t dim, int64_t N) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
+  int32_t i, j;
   while (tid < N) {
     i = tid / dim;
     j = tid - i * dim;
@@ -82,8 +82,8 @@ __global__ void do_statcov_krnl(float *statcov, float *xpos, float *ypos,
   }
 }
 template <class T>
-__global__ void pupphase_krnl(T *o_data, float *i_data, int *indx_pup, int N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+__global__ void pupphase_krnl(T *o_data, float *i_data, int32_t *indx_pup, int32_t N) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
   while (tid < N) {
     o_data[tid] = (T)i_data[indx_pup[tid]];
     tid += blockDim.x * gridDim.x;
@@ -100,12 +100,12 @@ __device__ cuComplex exp_complex(cuComplex z) {
   return res;
 }
 
-__global__ void compute_Hcor_krnl(float *o_data, int nrow, int ncol, float Fs,
+__global__ void compute_Hcor_krnl(float *o_data, int32_t nrow, int32_t ncol, float Fs,
                                   float Te, float gmin, float gmax,
                                   float delay) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
-  int j = tid / nrow;
-  int i = tid - j * nrow;
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
+  int32_t j = tid / nrow;
+  int32_t i = tid - j * nrow;
 
   float step = (Fs / 2.0f - (Fs / (2 * ncol))) / (ncol - 1);
   float f = Fs / (2 * ncol) + j * step;
@@ -128,9 +128,9 @@ __global__ void compute_Hcor_krnl(float *o_data, int nrow, int ncol, float Fs,
   o_data[tid] = 1.0f / (mod * mod);
 }
 
-__global__ void absnormfft_krnl(cuFloatComplex *idata, float *odata, int N,
+__global__ void absnormfft_krnl(cuFloatComplex *idata, float *odata, int32_t N,
                                 float norm) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
   cuFloatComplex cache;
   while (tid < N) {
     cache = idata[tid + 1];  // Reject first element (0 frequency)
@@ -139,11 +139,11 @@ __global__ void absnormfft_krnl(cuFloatComplex *idata, float *odata, int N,
   }
 }
 
-__global__ void adjust_csrcol_krnl(int *colind, int *nnz, int Nphi,
-                                   int nnztot) {
-  int tid = nnz[0] + threadIdx.x + blockIdx.x * blockDim.x;
-  int i = 1;
-  int N = nnz[0] + nnz[i];
+__global__ void adjust_csrcol_krnl(int32_t *colind, int32_t *nnz, int32_t Nphi,
+                                   int32_t nnztot) {
+  int32_t tid = nnz[0] + threadIdx.x + blockIdx.x * blockDim.x;
+  int32_t i = 1;
+  int32_t N = nnz[0] + nnz[i];
 
   if (tid < nnztot) {
     while (tid > N) {
@@ -156,11 +156,11 @@ __global__ void adjust_csrcol_krnl(int *colind, int *nnz, int Nphi,
   }
 }
 
-__global__ void adjust_csrrow_krnl(int *rowind, int *nact, int *nnz,
-                                   int nact_tot) {
-  int tid = nact[0] + threadIdx.x + blockIdx.x * blockDim.x;
-  int i = 1;
-  int N = nact[0] + nact[1];
+__global__ void adjust_csrrow_krnl(int32_t *rowind, int32_t *nact, int32_t *nnz,
+                                   int32_t nact_tot) {
+  int32_t tid = nact[0] + threadIdx.x + blockIdx.x * blockDim.x;
+  int32_t i = 1;
+  int32_t N = nact[0] + nact[1];
 
   if (tid < nact_tot) {
     while (tid > N) {
@@ -182,8 +182,8 @@ __global__ void adjust_csrrow_krnl(int *rowind, int *nact, int *nnz,
 
  */
 
-int shift_buf(float *d_data, int offset, int N, CarmaDevice *device) {
-  int nb_blocks, nb_threads;
+int32_t shift_buf(float *d_data, int32_t offset, int32_t N, CarmaDevice *device) {
+  int32_t nb_blocks, nb_threads;
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
   dim3 grid(nb_blocks), threads(nb_threads);
 
@@ -193,8 +193,8 @@ int shift_buf(float *d_data, int offset, int N, CarmaDevice *device) {
   return EXIT_SUCCESS;
 }
 
-int fill_filtmat(float *filter, int nactu, int N, CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
+int32_t fill_filtmat(float *filter, int32_t nactu, int32_t N, CarmaDevice *device) {
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
   dim3 grid(nb_blocks), threads(nb_threads);
 
@@ -203,9 +203,9 @@ int fill_filtmat(float *filter, int nactu, int N, CarmaDevice *device) {
 
   return EXIT_SUCCESS;
 }
-int TT_filt(float *mat, int n, CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
-  int N = n * n;
+int32_t TT_filt(float *mat, int32_t n, CarmaDevice *device) {
+  int32_t nb_threads = 0, nb_blocks = 0;
+  int32_t N = n * n;
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
   dim3 grid(nb_blocks), threads(nb_threads);
   TT_filt_krnl<<<grid, threads>>>(mat, n, N);
@@ -214,10 +214,10 @@ int TT_filt(float *mat, int n, CarmaDevice *device) {
   return EXIT_SUCCESS;
 }
 
-int fill_cmat(float *cmat, float *wtt, float *Mtt, int nactu, int nslopes,
+int32_t fill_cmat(float *cmat, float *wtt, float *Mtt, int32_t nactu, int32_t nslopes,
               CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
-  int N = nactu * nslopes;
+  int32_t nb_threads = 0, nb_blocks = 0;
+  int32_t N = nactu * nslopes;
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
   dim3 grid(nb_blocks), threads(nb_threads);
 
@@ -227,10 +227,10 @@ int fill_cmat(float *cmat, float *wtt, float *Mtt, int nactu, int nslopes,
   return EXIT_SUCCESS;
 }
 
-int do_statmat(float *statcov, long dim, float *xpos, float *ypos, float norm,
+int32_t do_statmat(float *statcov, int64_t dim, float *xpos, float *ypos, float norm,
                CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
-  int N = (dim * dim);
+  int32_t nb_threads = 0, nb_blocks = 0;
+  int32_t N = (dim * dim);
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
   dim3 grid(nb_blocks), threads(nb_threads);
   do_statcov_krnl<<<grid, threads>>>(statcov, xpos, ypos, norm, dim, N);
@@ -240,9 +240,9 @@ int do_statmat(float *statcov, long dim, float *xpos, float *ypos, float norm,
 }
 
 template <class T>
-int get_pupphase(T *o_data, float *i_data, int *indx_pup, int Nphi,
+int32_t get_pupphase(T *o_data, float *i_data, int32_t *indx_pup, int32_t Nphi,
                  CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, Nphi, nb_blocks, nb_threads);
   dim3 grid(nb_blocks), threads(nb_threads);
   pupphase_krnl<<<grid, threads>>>(o_data, i_data, indx_pup, Nphi);
@@ -250,14 +250,14 @@ int get_pupphase(T *o_data, float *i_data, int *indx_pup, int Nphi,
 
   return EXIT_SUCCESS;
 }
-template int get_pupphase<float>(float *o_data, float *i_data, int *indx_pup,
-                                 int Nphi, CarmaDevice *device);
-template int get_pupphase<double>(double *o_data, float *i_data, int *indx_pup,
-                                  int Nphi, CarmaDevice *device);
+template int32_t get_pupphase<float>(float *o_data, float *i_data, int32_t *indx_pup,
+                                 int32_t Nphi, CarmaDevice *device);
+template int32_t get_pupphase<double>(double *o_data, float *i_data, int32_t *indx_pup,
+                                  int32_t Nphi, CarmaDevice *device);
 
-int compute_Hcor_gpu(float *o_data, int nrow, int ncol, float Fs, float gmin,
+int32_t compute_Hcor_gpu(float *o_data, int32_t nrow, int32_t ncol, float Fs, float gmin,
                      float gmax, float delay, CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, nrow * ncol, nb_blocks, nb_threads);
   dim3 grid(nb_blocks), threads(nb_threads);
 
@@ -268,9 +268,9 @@ int compute_Hcor_gpu(float *o_data, int nrow, int ncol, float Fs, float gmin,
   return EXIT_SUCCESS;
 }
 
-int absnormfft(cuFloatComplex *idata, float *odata, int N, float norm,
+int32_t absnormfft(cuFloatComplex *idata, float *odata, int32_t N, float norm,
                CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
   dim3 grid(nb_blocks), threads(nb_threads);
 
@@ -279,10 +279,10 @@ int absnormfft(cuFloatComplex *idata, float *odata, int N, float norm,
   return EXIT_SUCCESS;
 }
 
-int adjust_csr_index(int *rowind, int *NNZ, int *nact, int nact_tot,
-                     int row_off, CarmaDevice *device) {
-  int N = nact_tot - row_off;
-  int nb_threads = 0, nb_blocks = 0;
+int32_t adjust_csr_index(int32_t *rowind, int32_t *NNZ, int32_t *nact, int32_t nact_tot,
+                     int32_t row_off, CarmaDevice *device) {
+  int32_t N = nact_tot - row_off;
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
   dim3 grid2(nb_blocks), threads2(nb_threads);
 
@@ -292,9 +292,9 @@ int adjust_csr_index(int *rowind, int *NNZ, int *nact, int nact_tot,
 }
 
 #ifdef CAN_DO_HALF
-__global__ void convertVoltage_krnl(half *d_idata, float *d_odata, int N,
+__global__ void convertVoltage_krnl(half *d_idata, float *d_odata, int32_t N,
                                     float volt_min, float volt_max, uint16_t val_max) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
   while (tid < N) {
     d_odata[tid] = __half2float(d_idata[tid]);
     tid += blockDim.x * gridDim.x;
@@ -303,9 +303,9 @@ __global__ void convertVoltage_krnl(half *d_idata, float *d_odata, int N,
 #endif
 
 template <typename T>
-__global__ void convertVoltage_krnl(T *d_idata, uint16_t *d_odata, int N,
+__global__ void convertVoltage_krnl(T *d_idata, uint16_t *d_odata, int32_t N,
                                     float volt_min, float volt_max, uint16_t val_max) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
   while (tid < N) {
     d_odata[tid] =
         uint16_t((float(d_idata[tid]) - volt_min) / (volt_max - volt_min) * float(val_max));
@@ -314,9 +314,9 @@ __global__ void convertVoltage_krnl(T *d_idata, uint16_t *d_odata, int N,
 }
 
 template <typename Tin, typename Tout, std::enable_if_t<!std::is_same<Tin, Tout>::value, bool>>
-void convert_to_voltage(Tin *d_idata, Tout *d_odata, int N, float volt_min, float volt_max,
+void convert_to_voltage(Tin *d_idata, Tout *d_odata, int32_t N, float volt_min, float volt_max,
                  uint16_t val_max, CarmaDevice *device, cudaStream_t stream) {
-  int nb_threads = 0, nb_blocks = 0;
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
   dim3 grid(nb_blocks), threads(nb_threads);
 
@@ -326,37 +326,37 @@ void convert_to_voltage(Tin *d_idata, Tout *d_odata, int N, float volt_min, floa
 }
 
 template void
-    convert_to_voltage<float, uint16_t>(float *d_idata, uint16_t *d_odata, int N,
+    convert_to_voltage<float, uint16_t>(float *d_idata, uint16_t *d_odata, int32_t N,
                                       float volt_min, float volt_max, uint16_t val_max,
                                       CarmaDevice *device, cudaStream_t stream);
 
 #ifdef CAN_DO_HALF
 template void
-convert_to_voltage<half, float, std::enable_if<!std::is_same<half, float>::value>>(half *d_idata, float *d_odata, int N, float volt_min,
+convert_to_voltage<half, float, std::enable_if<!std::is_same<half, float>::value>>(half *d_idata, float *d_odata, int32_t N, float volt_min,
                               float volt_max, uint16_t val_max,
                               CarmaDevice *device, cudaStream_t stream);
 template void
-    convert_to_voltage<half, uint16_t, std::enable_if<!std::is_same<half, uint16_t>::value>>(half *d_idata, uint16_t *d_odata, int N,
+    convert_to_voltage<half, uint16_t, std::enable_if<!std::is_same<half, uint16_t>::value>>(half *d_idata, uint16_t *d_odata, int32_t N,
                                      float volt_min, float volt_max, uint16_t val_max,
                                      CarmaDevice *device, cudaStream_t stream);
 #endif
 
 template <typename T>
-__global__ void padCmat_krnl(T *idata, int m, int n, T *odata, int m2, int n2) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+__global__ void padCmat_krnl(T *idata, int32_t m, int32_t n, T *odata, int32_t m2, int32_t n2) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
   while (tid < m * n) {
-    int j = tid / m;
-    int i = tid - j * m;
-    int tid2 = i + j * m2;
+    int32_t j = tid / m;
+    int32_t i = tid - j * m;
+    int32_t tid2 = i + j * m2;
     odata[tid2] = idata[tid];
     tid += blockDim.x * gridDim.x;
   }
 }
 
 template <typename T>
-void pad_cmat(T *idata, int m, int n, T *odata, int m2, int n2,
+void pad_cmat(T *idata, int32_t m, int32_t n, T *odata, int32_t m2, int32_t n2,
               CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, m * n, nb_blocks, nb_threads);
   dim3 grid(nb_blocks), threads(nb_threads);
 
@@ -365,6 +365,6 @@ void pad_cmat(T *idata, int m, int n, T *odata, int m2, int n2,
 }
 
 #ifdef CAN_DO_HALF
-template void pad_cmat<half>(half *idata, int m, int n, half *odata, int m2,
-                             int n2, CarmaDevice *device);
+template void pad_cmat<half>(half *idata, int32_t m, int32_t n, half *odata, int32_t m2,
+                             int32_t n2, CarmaDevice *device);
 #endif

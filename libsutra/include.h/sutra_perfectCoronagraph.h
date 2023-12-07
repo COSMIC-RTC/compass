@@ -29,15 +29,15 @@ class SutraPerfectCoronagraph : public SutraCoronagraph {
         CarmaObj<cuFloatComplex> *tmp_mft;
 
     public:
-        SutraPerfectCoronagraph(CarmaContext *context, SutraSource *d_source,int im_dimx,
-                                int im_dimy, float *wavelength, int nWavelength, int device);
+        SutraPerfectCoronagraph(CarmaContext *context, SutraSource *d_source,int32_t im_dimx,
+                                int32_t im_dimy, float *wavelength, int32_t nWavelength, int32_t device);
         ~SutraPerfectCoronagraph()=default;
-        int compute_image(bool accumulate);
-        int compute_psf(bool accumulate);
-        int set_mft(cuFloatComplex *A, cuFloatComplex *B, float* norm, std::string mftType);
+        int32_t compute_image(bool accumulate);
+        int32_t compute_psf(bool accumulate);
+        int32_t set_mft(cuFloatComplex *A, cuFloatComplex *B, float* norm, std::string mftType);
 
     private:
-        int _compute_image(bool psf, bool remove_coro, bool accumulate);
+        int32_t _compute_image(bool psf, bool remove_coro, bool accumulate);
 };
 
 #endif //_SUTRA_PERFECT_CORONAGRAPH_H_

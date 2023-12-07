@@ -41,18 +41,18 @@
 #define FLOOR(a, b) (a - (a % b))
 
 template <class T>
-__global__ void transposeDiagonal(T *odata, T *idata, long width, long height,
-                                  int nreps) {
+__global__ void transposeDiagonal(T *odata, T *idata, int64_t width, int64_t height,
+                                  int32_t nreps) {
   __shared__ T tile[TILE_DIM][TILE_DIM + 1];
 
-  int blockIdx_x, blockIdx_y;
+  int32_t blockIdx_x, blockIdx_y;
 
   // do diagonal reordering
   if (width == height) {
     blockIdx_y = blockIdx.x;
     blockIdx_x = (blockIdx.x + blockIdx.y) % gridDim.x;
   } else {
-    int bid = blockIdx.x + gridDim.x * blockIdx.y;
+    int32_t bid = blockIdx.x + gridDim.x * blockIdx.y;
     blockIdx_y = bid % gridDim.y;
     blockIdx_x = ((bid / gridDim.y) + blockIdx_y) % gridDim.x;
   }
@@ -60,52 +60,52 @@ __global__ void transposeDiagonal(T *odata, T *idata, long width, long height,
   // from here on the code is same as previous kernel except blockIdx_x replaces
   // blockIdx.x and similarly for y
 
-  int xIndex = blockIdx_x * TILE_DIM + threadIdx.x;
-  int yIndex = blockIdx_y * TILE_DIM + threadIdx.y;
-  int index_in = xIndex + (yIndex)*width;
+  int32_t xIndex = blockIdx_x * TILE_DIM + threadIdx.x;
+  int32_t yIndex = blockIdx_y * TILE_DIM + threadIdx.y;
+  int32_t index_in = xIndex + (yIndex)*width;
 
   xIndex = blockIdx_y * TILE_DIM + threadIdx.x;
   yIndex = blockIdx_x * TILE_DIM + threadIdx.y;
-  int index_out = xIndex + (yIndex)*height;
+  int32_t index_out = xIndex + (yIndex)*height;
 
-  for (int r = 0; r < nreps; r++) {
-    for (int i = 0; i < TILE_DIM; i += BLOCK_ROWS) {
+  for (int32_t r = 0; r < nreps; r++) {
+    for (int32_t i = 0; i < TILE_DIM; i += BLOCK_ROWS) {
       tile[threadIdx.y + i][threadIdx.x] = idata[index_in + i * width];
     }
 
     __syncthreads();
 
-    for (int i = 0; i < TILE_DIM; i += BLOCK_ROWS) {
+    for (int32_t i = 0; i < TILE_DIM; i += BLOCK_ROWS) {
       odata[index_out + i * height] = tile[threadIdx.x][threadIdx.y + i];
     }
   }
 }
 
 /*
- template<class T> int get_tdim()
+ template<class T> int32_t get_tdim()
  {
  return 32;
  }
- template<> int get_tdim<float>()
+ template<> int32_t get_tdim<float>()
  {
  struct cudaDeviceProp deviceProperties;
  cudaGetDeviceProperties(&deviceProperties, 0);
- int shmemSize = deviceProperties.sharedMemPerBlock;
+ int32_t shmemSize = deviceProperties.sharedMemPerBlock;
  return shmemSize/4;
  }
- template<> int get_tdim<double>()
+ template<> int32_t get_tdim<double>()
  {
  struct cudaDeviceProp deviceProperties;
  cudaGetDeviceProperties(&deviceProperties, 0);
- int shmemSize = deviceProperties.sharedMemPerBlock;
+ int32_t shmemSize = deviceProperties.sharedMemPerBlock;
  return shmemSize/8;
  }
  */
 
 template <class T>
-int transposeCU(T *d_idata, T *d_odata, long N1, long N2) {
+int32_t transposeCU(T *d_idata, T *d_odata, int64_t N1, int64_t N2) {
   /*
-   int totTile = get_tdim<T>();
+   int32_t totTile = get_tdim<T>();
    fprintf(stderr,"tot Tiles : %d\n",totTile);
    fprintf(stderr,"Tile dim : %f\n",sqrt(totTile));
    //TILE_DIM = totTile / N1 / N2;
@@ -113,7 +113,7 @@ int transposeCU(T *d_idata, T *d_odata, long N1, long N2) {
    struct cudaDeviceProp deviceProperties;
    cudaGetDeviceProperties(&deviceProperties, 0);
 
-   int brows = deviceProperties.maxThreadsPerBlock;
+   int32_t brows = deviceProperties.maxThreadsPerBlock;
 
    fprintf(stderr,"block rows : %f\n", brows/sqrt(totTile) );
 
@@ -128,29 +128,29 @@ int transposeCU(T *d_idata, T *d_odata, long N1, long N2) {
   return EXIT_SUCCESS;
 }
 
-template int transposeCU<int>(int *d_idata, int *d_odata, long N1, long N2);
+template int32_t transposeCU<int32_t>(int32_t *d_idata, int32_t *d_odata, int64_t N1, int64_t N2);
 
-template int transposeCU<unsigned int>(unsigned int *d_idata,
-                                       unsigned int *d_odata, long N1, long N2);
+template int32_t transposeCU<uint32_t>(uint32_t *d_idata,
+                                       uint32_t *d_odata, int64_t N1, int64_t N2);
 
-template int transposeCU<uint16_t>(uint16_t *d_idata, uint16_t *d_odata,
-                                   long N1, long N2);
-template int transposeCU<float>(float *d_idata, float *d_odata, long N1,
-                                long N2);
+template int32_t transposeCU<uint16_t>(uint16_t *d_idata, uint16_t *d_odata,
+                                   int64_t N1, int64_t N2);
+template int32_t transposeCU<float>(float *d_idata, float *d_odata, int64_t N1,
+                                int64_t N2);
 
-template int transposeCU<double>(double *d_idata, double *d_odata, long N1,
-                                 long N2);
+template int32_t transposeCU<double>(double *d_idata, double *d_odata, int64_t N1,
+                                 int64_t N2);
 
-template int transposeCU<cuFloatComplex>(cuFloatComplex *d_idata,
-                                         cuFloatComplex *d_odata, long N1,
-                                         long N2);
+template int32_t transposeCU<cuFloatComplex>(cuFloatComplex *d_idata,
+                                         cuFloatComplex *d_odata, int64_t N1,
+                                         int64_t N2);
 
-template int transposeCU<cuDoubleComplex>(cuDoubleComplex *d_idata,
-                                          cuDoubleComplex *d_odata, long N1,
-                                          long N2);
-// template int transposeCU<tuple_t<float>>(tuple_t<float> *d_idata,
-//                                          tuple_t<float> *d_odata, long N1,
-//                                          long N2);
+template int32_t transposeCU<cuDoubleComplex>(cuDoubleComplex *d_idata,
+                                          cuDoubleComplex *d_odata, int64_t N1,
+                                          int64_t N2);
+// template int32_t transposeCU<tuple_t<float>>(tuple_t<float> *d_idata,
+//                                          tuple_t<float> *d_odata, int64_t N1,
+//                                          int64_t N2);
 #ifdef CAN_DO_HALF
-template int transposeCU<half>(half *d_idata, half *d_odata, long N1, long N2);
+template int32_t transposeCU<half>(half *d_idata, half *d_odata, int64_t N1, int64_t N2);
 #endif

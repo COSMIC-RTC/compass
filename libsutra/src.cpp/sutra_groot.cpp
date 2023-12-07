@@ -16,8 +16,8 @@
 
 #include <sutra_groot.h>
 
-SutraGroot::SutraGroot(CarmaContext *context, int device, int nactus,
-                         int nlayers, float gsangle, float *vdt, float *Htheta,
+SutraGroot::SutraGroot(CarmaContext *context, int32_t device, int32_t nactus,
+                         int32_t nlayers, float gsangle, float *vdt, float *Htheta,
                          float *L0, float *winddir, float *scale, float *pzt2tt,
                          float *TTPfilter, float *Nact, float *xpos,
                          float *ypos, float fc) {
@@ -26,14 +26,14 @@ SutraGroot::SutraGroot(CarmaContext *context, int device, int nactus,
   this->nlayers = nlayers;
   this->gsangle = gsangle;
 
-  long dims_data1[2] = {1, nlayers};
+  int64_t dims_data1[2] = {1, nlayers};
   this->h_vdt = new CarmaHostObj<float>(dims_data1, vdt, MA_PAGELOCK);
   this->h_Htheta = new CarmaHostObj<float>(dims_data1, Htheta, MA_PAGELOCK);
   this->h_L0 = new CarmaHostObj<float>(dims_data1, L0, MA_PAGELOCK);
   this->h_winddir = new CarmaHostObj<float>(dims_data1, winddir, MA_PAGELOCK);
   this->h_scale = new CarmaHostObj<float>(dims_data1, scale, MA_PAGELOCK);
 
-  long dims_data2[3] = {2, nactus, nactus};
+  int64_t dims_data2[3] = {2, nactus, nactus};
   this->d_Nact = new CarmaObj<float>(context, dims_data2, Nact);
   this->d_Cerr = new CarmaObj<float>(context, dims_data2);
   this->d_TTPfilter = new CarmaObj<float>(context, dims_data2, TTPfilter);
@@ -48,35 +48,35 @@ SutraGroot::SutraGroot(CarmaContext *context, int device, int nactus,
   printf("I am Groot\n");
 }
 
-SutraGroot::SutraGroot(CarmaContext *context, int device, int nssp,
+SutraGroot::SutraGroot(CarmaContext *context, int32_t device, int32_t nssp,
                          float *weights, float scale, float *xpos, float *ypos,
-                         float fc, float d, int npts) {
+                         float fc, float d, int32_t npts) {
   init_common(context, device, xpos, ypos, nssp, fc);
   this->npts = npts;
   this->d = d;
   this->scale = scale;
   this->nssp = nssp;
-  long dims_data1[2] = {1, npts};
+  int64_t dims_data1[2] = {1, npts};
   this->h_weights = new CarmaHostObj<float>(dims_data1, weights, MA_PAGELOCK);
 
-  long dims_data2[3] = {2, nssp, nssp};
+  int64_t dims_data2[3] = {2, nssp, nssp};
   this->d_CaXX = new CarmaObj<float>(context, dims_data2);
   this->d_CaYY = new CarmaObj<float>(context, dims_data2);
   printf("I am Groot\n");
 }
 
-void SutraGroot::init_common(CarmaContext *context, int device, float *xpos,
-                              float *ypos, int N, float fc) {
+void SutraGroot::init_common(CarmaContext *context, int32_t device, float *xpos,
+                              float *ypos, int32_t N, float fc) {
   this->current_context = context;
   this->device = device;
   this->current_context->set_active_device(device, 1);
   this->fc = fc;
 
-  long dims_data1[2] = {1, N};
+  int64_t dims_data1[2] = {1, N};
   this->d_xpos = new CarmaObj<float>(context, dims_data1, xpos);
   this->d_ypos = new CarmaObj<float>(context, dims_data1, ypos);
 
-  int Npts = 10000;
+  int32_t Npts = 10000;
   dims_data1[1] = Npts;
 
   this->d_tab_int_x = new CarmaObj<float>(context, dims_data1);
@@ -120,14 +120,14 @@ SutraGroot::~SutraGroot() {
   if (this->d_tab_int_y != NULL) delete this->d_tab_int_y;
 }
 
-int SutraGroot::compute_Cerr() {
+int32_t SutraGroot::compute_Cerr() {
   this->current_context->set_active_device(this->device, 1);
 
   carma_safe_call(cudaMemset(this->d_Cerr->get_data(), 0,
                            sizeof(float) * this->d_Cerr->get_nb_elements()));
   printf("Computing Cerr...\n");
 
-  for (int l = 0; l < this->nlayers; l++) {
+  for (int32_t l = 0; l < this->nlayers; l++) {
     compute_Cerr_layer<float>(
         this->d_Cerr->get_data(), this->nactus, this->d_tab_int_x->get_data(),
         this->d_tab_int_y->get_data(), this->d_xpos->get_data(),
@@ -180,7 +180,7 @@ int SutraGroot::compute_Cerr() {
   return EXIT_SUCCESS;
 }
 
-int SutraGroot::compute_Calias() {
+int32_t SutraGroot::compute_Calias() {
   this->current_context->set_active_device(this->device, 1);
   carma_safe_call(cudaMemset(this->d_CaXX->get_data(), 0,
                            sizeof(float) * this->d_CaXX->get_nb_elements()));
@@ -188,7 +188,7 @@ int SutraGroot::compute_Calias() {
                            sizeof(float) * this->d_CaYY->get_nb_elements()));
 
   float offset;
-  for (int k = 0; k < this->npts; k++) {
+  for (int32_t k = 0; k < this->npts; k++) {
     offset = k / float(this->npts - 1) * this->d;
     compute_Ca<float>(this->d_CaXX->get_data(), this->d_CaYY->get_data(),
                       this->nssp, this->d_tab_int_x->get_data(),

@@ -37,11 +37,11 @@ class SutraRtcCacao : public SutraRtc<Tin, Tcomp, Tout> {
   std::string interface_loop_frame_name_;
   std::string interface_commands_name_;
 
-  long framecounter_;
+  int64_t framecounter_;
 
-  int nslp_;
-  int ncmd_;
-  int nvalid_;
+  int32_t nslp_;
+  int32_t ncmd_;
+  int32_t nvalid_;
 
   bool is_initialised_;
 

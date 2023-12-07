@@ -19,17 +19,17 @@
 #include <sutra_centroider_utils.cuh>
 #include <carma_utils.cuh>
 
-template <int nb_threads, typename T>
-__global__ void centroids(float *d_img, T *d_centroids, T *ref, int *validx,
-                          int *validy, float *d_intensities,
-                          unsigned int npix, sutra::SlopesIndex si,
-                          unsigned int size, T scale, T offset,
-                          unsigned int nelem_thread) {
+template <int32_t nb_threads, typename T>
+__global__ void centroids(float *d_img, T *d_centroids, T *ref, int32_t *validx,
+                          int32_t *validy, float *d_intensities,
+                          uint32_t npix, sutra::SlopesIndex si,
+                          uint32_t size, T scale, T offset,
+                          uint32_t nelem_thread) {
   if (blockDim.x > nb_threads) {
     if (threadIdx.x == 0) printf("Wrong size argument\n");
     return;
   }
-  // Specialize BlockReduce for a 1D block of 128 threads on type int
+  // Specialize BlockReduce for a 1D block of 128 threads on type int32_t
   typedef cub::BlockReduce<float, nb_threads> BlockReduce;
   // Allocate shared memory for BlockReduce
   __shared__ typename BlockReduce::TempStorage temp_storage;
@@ -38,13 +38,13 @@ __global__ void centroids(float *d_img, T *d_centroids, T *ref, int *validx,
   float xdata = 0;
   float ydata = 0;
   // load shared mem
-  unsigned int tid = threadIdx.x;
-  unsigned int xvalid = validx[blockIdx.x];
-  unsigned int yvalid = validy[blockIdx.x];
-  unsigned int x, y;
-  int idim;
+  uint32_t tid = threadIdx.x;
+  uint32_t xvalid = validx[blockIdx.x];
+  uint32_t yvalid = validy[blockIdx.x];
+  uint32_t x, y;
+  int32_t idim;
 
-  for (int cc = 0; cc < nelem_thread; cc++) {
+  for (int32_t cc = 0; cc < nelem_thread; cc++) {
     x = ((tid * nelem_thread + cc) % npix);
     y = ((tid * nelem_thread + cc) / npix);
     // idim = tid * nelem_thread + cc + (blockDim.x * nelem_thread) *
@@ -75,13 +75,13 @@ __global__ void centroids(float *d_img, T *d_centroids, T *ref, int *validx,
 }
 
 template <class T>
-void get_centroids(int size, int threads, int blocks, int npix, float *d_img,
-                   T *d_centroids, T *ref, int *validx, int *validy,
+void get_centroids(int32_t size, int32_t threads, int32_t blocks, int32_t npix, float *d_img,
+                   T *d_centroids, T *ref, int32_t *validx, int32_t *validy,
                    float *intensities, float scale, float offset,
                    SlopeOrder slope_order,
                    CarmaDevice *device, cudaStream_t stream) {
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  unsigned int nelem_thread = 1;
+  int32_t maxThreads = device->get_properties().maxThreadsPerBlock;
+  uint32_t nelem_thread = 1;
   while ((threads / nelem_thread > maxThreads) ||
          (threads % nelem_thread != 0)) {
     nelem_thread++;
@@ -143,43 +143,43 @@ void get_centroids(int size, int threads, int blocks, int npix, float *d_img,
   //   carma_check_msg("centroidy_kernel<<<>>> execution failed\n");
 }
 
-template void get_centroids<float>(int size, int threads, int blocks, int npix,
+template void get_centroids<float>(int32_t size, int32_t threads, int32_t blocks, int32_t npix,
                                    float *d_img, float *d_centroids, float *ref,
-                                   int *validx, int *validy, float *intensities,
+                                   int32_t *validx, int32_t *validy, float *intensities,
                                    float scale, float offset,
                                    SlopeOrder slope_order,
                                    CarmaDevice *device, cudaStream_t stream);
 
-template void get_centroids<double>(int size, int threads, int blocks, int npix,
+template void get_centroids<double>(int32_t size, int32_t threads, int32_t blocks, int32_t npix,
                                     float *d_img, double *d_centroids, double *ref,
-                                    int *validx, int *validy, float *intensities,
+                                    int32_t *validx, int32_t *validy, float *intensities,
                                     float scale, float offset,
                                     SlopeOrder slope_order,
                                     CarmaDevice *device, cudaStream_t stream);
 
 #ifdef CAN_DO_HALF
-template void get_centroids<half>(int size, int threads, int blocks, int npix,
+template void get_centroids<half>(int32_t size, int32_t threads, int32_t blocks, int32_t npix,
                                   float *d_img, half *d_centroids, half *ref,
-                                  int *validx, int *validy, float *intensities,
+                                  int32_t *validx, int32_t *validy, float *intensities,
                                   float scale, float offset,
                                   SlopeOrder slope_order,
                                   CarmaDevice *device, cudaStream_t stream);
 #endif
 
 // template <class T>
-// __global__ void centroidx(T *g_idata, T *g_odata, T *alpha, unsigned int n,
-//                           unsigned int N, float scale, float offset,
-//                           unsigned int nelem_thread) {
+// __global__ void centroidx(T *g_idata, T *g_odata, T *alpha, uint32_t n,
+//                           uint32_t N, float scale, float offset,
+//                           uint32_t nelem_thread) {
 //   T *sdata = SharedMemory<T>();
 
 //   // load shared mem
-//   unsigned int tid = threadIdx.x;
-//   // unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
-//   // unsigned int x = (tid % n) + 1;
-//   unsigned int x;
-//   int idim;
+//   uint32_t tid = threadIdx.x;
+//   // uint32_t i = blockIdx.x * blockDim.x + threadIdx.x;
+//   // uint32_t x = (tid % n) + 1;
+//   uint32_t x;
+//   int32_t idim;
 //   sdata[tid] = 0;
-//   for (int cc = 0; cc < nelem_thread; cc++) {
+//   for (int32_t cc = 0; cc < nelem_thread; cc++) {
 //     x = ((tid * nelem_thread + cc) % n);
 //     idim = tid * nelem_thread + cc + (blockDim.x * nelem_thread) *
 //     blockIdx.x; if (idim < N)
@@ -201,19 +201,19 @@ template void get_centroids<half>(int size, int threads, int blocks, int npix,
 // }
 
 // template <class T>
-// __global__ void centroidy(T *g_idata, T *g_odata, T *alpha, unsigned int n,
-//                           unsigned int N, float scale, float offset,
-//                           unsigned int nelem_thread) {
+// __global__ void centroidy(T *g_idata, T *g_odata, T *alpha, uint32_t n,
+//                           uint32_t N, float scale, float offset,
+//                           uint32_t nelem_thread) {
 //   T *sdata = SharedMemory<T>();
 
 //   // load shared mem
-//   unsigned int tid = threadIdx.x;
-//   // unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
-//   // unsigned int y = (tid / n) + 1;
-//   unsigned int y;
-//   int idim;
+//   uint32_t tid = threadIdx.x;
+//   // uint32_t i = blockIdx.x * blockDim.x + threadIdx.x;
+//   // uint32_t y = (tid / n) + 1;
+//   uint32_t y;
+//   int32_t idim;
 //   sdata[tid] = 0;
-//   for (int cc = 0; cc < nelem_thread; cc++) {
+//   for (int32_t cc = 0; cc < nelem_thread; cc++) {
 //     y = ((tid * nelem_thread + cc) / n);
 //     idim = tid * nelem_thread + cc + (blockDim.x * nelem_thread) *
 //     blockIdx.x; if (idim < N)
@@ -236,14 +236,14 @@ template void get_centroids<half>(int size, int threads, int blocks, int npix,
 
 // template <class T>
 // __global__ void centroidx_async(T *g_idata, T *g_odata, T *alpha,
-//                                 unsigned int n, unsigned int N, float scale,
-//                                 float offset, int stream_offset) {
+//                                 uint32_t n, uint32_t N, float scale,
+//                                 float offset, int32_t stream_offset) {
 //   T *sdata = SharedMemory<T>();
 
 //   // load shared mem
-//   unsigned int tid = threadIdx.x;
-//   unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
-//   unsigned int x = (tid % n) + 1;
+//   uint32_t tid = threadIdx.x;
+//   uint32_t i = blockIdx.x * blockDim.x + threadIdx.x;
+//   uint32_t x = (tid % n) + 1;
 //   i += stream_offset * blockDim.x;
 
 //   sdata[tid] = (i < N) ? g_idata[i] * x : 0;
@@ -262,14 +262,14 @@ template void get_centroids<half>(int size, int threads, int blocks, int npix,
 
 // template <class T>
 // __global__ void centroidy_async(T *g_idata, T *g_odata, T *alpha,
-//                                 unsigned int n, unsigned int N, float scale,
-//                                 float offset, int stream_offset) {
+//                                 uint32_t n, uint32_t N, float scale,
+//                                 float offset, int32_t stream_offset) {
 //   T *sdata = SharedMemory<T>();
 
 //   // load shared mem
-//   unsigned int tid = threadIdx.x;
-//   unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
-//   unsigned int y = (tid / n) + 1;
+//   uint32_t tid = threadIdx.x;
+//   uint32_t i = blockIdx.x * blockDim.x + threadIdx.x;
+//   uint32_t y = (tid / n) + 1;
 //   i += stream_offset * blockDim.x;
 
 //   sdata[tid] = (i < N) ? g_idata[i] * y : 0;
@@ -287,22 +287,22 @@ template void get_centroids<half>(int size, int threads, int blocks, int npix,
 // }
 
 // template <class T>
-// void get_centroids_async(int threads, int blocks, int n, CarmaStreams
+// void get_centroids_async(int32_t threads, int32_t blocks, int32_t n, CarmaStreams
 // *streams,
 //                          T *d_idata, T *d_odata, T *alpha, float scale, float
 //                          offset)
 //                          {
-//   int nstreams = streams->get_nb_streams();
-//   int nbelem = threads * blocks;
+//   int32_t nstreams = streams->get_nb_streams();
+//   int32_t nbelem = threads * blocks;
 
 //   dim3 dimBlock(threads);
 //   dim3 dimGrid(blocks / nstreams);
 
 //   // when there is only one warp per block, we need to allocate two warps
 //   // worth of shared memory so that we don't index shared memory out of
-//   bounds int smemSize =
+//   bounds int32_t smemSize =
 //       (threads <= 32) ? 2 * threads * sizeof(T) : threads * sizeof(T);
-//   for (int i = 0; i < nstreams; i++) {
+//   for (int32_t i = 0; i < nstreams; i++) {
 //     centroidx_async<T><<<dimGrid, dimBlock, smemSize,
 //     streams->get_stream(i)>>>(
 //         d_idata, d_odata, alpha, n, nbelem, scale, offset,
@@ -319,11 +319,11 @@ template void get_centroids<half>(int size, int threads, int blocks, int npix,
 //   }
 // }
 
-// template void get_centroids_async<float>(int threads, int blocks, int n,
+// template void get_centroids_async<float>(int32_t threads, int32_t blocks, int32_t n,
 //                                          CarmaStreams *streams, float
 //                                          *d_idata, float *d_odata, float
 //                                          *alpha, float scale, float offset);
-// template void get_centroids_async<double>(int threads, int blocks, int n,
+// template void get_centroids_async<double>(int32_t threads, int32_t blocks, int32_t n,
 //                                           CarmaStreams *streams,
 //                                           double *d_idata, double *d_odata,
 //                                           double *alpha, double scale,

@@ -13,11 +13,27 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <wyrm>
+#include "sutraWrapUtils.hpp"
 
 #include <sutra_wfs.h>
 
 namespace py = pybind11;
+
+int32_t slopes_geom(SutraWfs &sw, ArrayFStyle<float> &slopes, int32_t type) {
+  return sw.slopes_geom(slopes.mutable_data(), type);
+}
+
+int32_t set_binimg(SutraWfs &sw, ArrayFStyle<float> &binimg, int32_t nElem) {
+  return sw.set_binimg(binimg.mutable_data(), nElem);
+}
+
+int32_t set_dark(SutraWfs &sw, ArrayFStyle<float> &binimg, int32_t nElem) {
+  return sw.set_dark(binimg.mutable_data(), nElem);
+}
+
+int32_t set_flat(SutraWfs &sw, ArrayFStyle<float> &binimg, int32_t nElem) {
+  return sw.set_flat(binimg.mutable_data(), nElem);
+}
 
 void declare_wfs(py::module &mod) {
   py::class_<SutraWfs>(mod, "Wfs")
@@ -218,7 +234,7 @@ void declare_wfs(py::module &mod) {
     )pbdoc",
            py::arg("noise") = true)
       .def("slopes_geom",
-           wy::colCast((int (SutraWfs::*)(int)) & SutraWfs::slopes_geom),
+           (int32_t (SutraWfs::*)(int32_t)) & SutraWfs::slopes_geom,
            R"pbdoc(
     Computes theoretical slopes in wfs.d_slopes
 
@@ -227,9 +243,7 @@ void declare_wfs(py::module &mod) {
     )pbdoc",
            py::arg("type") = 0)
 
-      .def("slopes_geom",
-           wy::colCast((int (SutraWfs::*)(float *, int)) &
-                       SutraWfs::slopes_geom),
+      .def("slopes_geom", &slopes_geom,
            R"pbdoc(
     Computes theoretical slopes in given array
 
@@ -253,7 +267,7 @@ void declare_wfs(py::module &mod) {
       .def(
           "set_pupil",
           [](SutraWfs &sw,
-             py::array_t<float, py::array::f_style | py::array::forcecast>
+             ArrayFStyle<float>
                  data) {
             if (data.size() == sw.d_pupil->get_nb_elements())
               sw.set_pupil(data.mutable_data());
@@ -303,7 +317,7 @@ void declare_wfs(py::module &mod) {
         )pbdoc",
            py::arg("max_pix_value"))
 
-      .def("set_binimg", wy::colCast(&SutraWfs::set_binimg), R"pbdoc(
+      .def("set_binimg", &set_binimg, R"pbdoc(
     Set the binimg of the SH WFS
 
     Args:
@@ -313,7 +327,7 @@ void declare_wfs(py::module &mod) {
       )pbdoc",
            py::arg("binimg"), py::arg("nElem"))
 
-      .def("set_dark", wy::colCast(&SutraWfs::set_dark), R"pbdoc(
+      .def("set_dark", &set_dark, R"pbdoc(
     Set the dark of the SH WFS
 
     Args:
@@ -323,7 +337,7 @@ void declare_wfs(py::module &mod) {
       )pbdoc",
            py::arg("dark"), py::arg("nElem"))
 
-      .def("set_flat", wy::colCast(&SutraWfs::set_flat), R"pbdoc(
+      .def("set_flat", &set_flat, R"pbdoc(
     Set the flat of the SH WFS
 
     Args:

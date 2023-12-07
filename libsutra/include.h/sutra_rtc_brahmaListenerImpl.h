@@ -6,7 +6,7 @@
 
 // -----------------------------------------------------------------------------
 
-//! \file      SutraRtcBrahmaListenerImpl.h
+//! \file      sutra_rtc_brahmaListenerImpl.h
 //! \ingroup   libsutra
 //! \class     SutraRtcBrahmaListenerImpl
 //! \brief     this class provides the rtc_brahmaListenerImpl features to COMPASS
@@ -29,7 +29,7 @@ template <typename T>
 class SutraRtcBrahma;
 
 template <typename T>
-class libBRAHMACommon_Export SutraRtcBrahmaListenerImpl
+class libBRAHMACommon_Export sutra_rtc_brahmaListenerImpl
     : public virtual OpenDDS::DCPS::LocalObject<DDS::DataReaderListener> {
  private:
   SutraRtcBrahma<T>* rtc;
@@ -37,10 +37,10 @@ class libBRAHMACommon_Export SutraRtcBrahmaListenerImpl
 
  public:
   // Constructor
-  SutraRtcBrahmaListenerImpl();
+  sutra_rtc_brahmaListenerImpl();
 
   // Destructor
-  virtual ~SutraRtcBrahmaListenerImpl(void);
+  virtual ~sutra_rtc_brahmaListenerImpl(void);
 
   // app-specific
   void attach_rtc(SutraRtcBrahma<T>* rtc);

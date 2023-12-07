@@ -13,7 +13,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <wyrm>
+#include "sutraWrapUtils.hpp"
 
 #include <sutra_target_brahma.h>
 
@@ -21,16 +21,17 @@ namespace py = pybind11;
 
 std::unique_ptr<SutraTargetBrahma> target_brahma_init(
     CarmaContext *context, ACE_TCHAR *name, SutraTelescope *d_tel,
-    int subsample, int ntargets, float *xpos, float *ypos, float *lambda,
-    float *mag, float zerop, long *sizes, int Npts, int device) {
+    int32_t subsample, int32_t ntargets, ArrayFStyle<float> &xpos, ArrayFStyle<float> &ypos, ArrayFStyle<float> &lambda,
+    ArrayFStyle<float> &mag, float zerop, int64_t *sizes, int32_t Npts, int32_t device) {
   return std::unique_ptr<SutraTargetBrahma>(
-      new SutraTargetBrahma(context, name, d_tel, subsample, ntargets, xpos,
-                              ypos, lambda, mag, zerop, sizes, Npts, device));
+      new SutraTargetBrahma(context, name, d_tel, subsample, ntargets, xpos.mutable_data(), ypos.mutable_data(),
+                      lambda.mutable_data(), mag.mutable_data(), zerop, sizes.mutable_data(), Npts,
+                      device));
 }
 
 void declare_target_brahma(py::module &mod) {
   py::class_<SutraTargetBrahma, SutraTarget>(mod, "Target_brahma")
-      .def(py::init(wy::colCast(target_brahma_init)), R"pbdoc(
+      .def(py::init(&target_brahma_init), R"pbdoc(
     Create and initialise a brahma target object
 
     Args:

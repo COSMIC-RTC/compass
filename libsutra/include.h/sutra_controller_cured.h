@@ -22,7 +22,7 @@
 template <typename Tcomp, typename Tout>
 class SutraControllerCured : public SutraController<Tcomp, Tout> {
  public:
-  int ndivs;     // number of subdivision levels for cured
+  int32_t ndivs;     // number of subdivision levels for cured
   bool tt_flag;  // flag for separate tt
 
   // data for CuReD */
@@ -41,18 +41,18 @@ class SutraControllerCured : public SutraController<Tcomp, Tout> {
   void *h_parcure;
 
  public:
-  SutraControllerCured(CarmaContext *context, long nslope,
-                         long nactu, float delay, SutraDms *dms, int *idx_dms,
-                         int ndm, int *idx_centro, int ncentro);
+  SutraControllerCured(CarmaContext *context, int64_t nslope,
+                         int64_t nactu, float delay, SutraDms *dms, int32_t *idx_dms,
+                         int32_t ndm, int32_t *idx_centro, int32_t ncentro);
   SutraControllerCured(const SutraControllerCured &controller);
   ~SutraControllerCured();
 
   string get_type() { return "cured"; }
 
-  int comp_com();
+  int32_t comp_com();
 
-  int init_cured(int nxsubs, int *isvalid, int ndivs, int tt);
-  int frame_delay();
+  int32_t init_cured(int32_t nxsubs, int32_t *isvalid, int32_t ndivs, int32_t tt);
+  int32_t frame_delay();
 };
 
 #endif  // _SUTRA_CONTROLLER_CURED_H_

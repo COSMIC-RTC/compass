@@ -21,80 +21,80 @@
 #include <carma_sparse_obj.h>
 
 // MAGMA functions
-int carma_magma_disabled();
+int32_t carma_magma_disabled();
 // template <class T>
-// int carma_svd(CarmaObj<T> *imat, CarmaObj<T> *eigenvals,
+// int32_t carma_svd(CarmaObj<T> *imat, CarmaObj<T> *eigenvals,
 //               CarmaObj<T> *mod2act, CarmaObj<T> *mes2mod);
 template <class T>
-int carma_magma_syevd(char jobz, CarmaObj<T> *mat,
+int32_t carma_magma_syevd(char jobz, CarmaObj<T> *mat,
                       CarmaHostObj<T> *eigenvals);
-// template <class T, int method>
-// int carma_magma_syevd(char jobz, CarmaObj<T> *mat, CarmaHostObj<T>
+// template <class T, int32_t method>
+// int32_t carma_magma_syevd(char jobz, CarmaObj<T> *mat, CarmaHostObj<T>
 // *eigenvals);
 template <class T>
-int carma_magma_syevd_m(long ngpu, char jobz, long N, T *mat, T *eigenvals);
+int32_t carma_magma_syevd_m(int64_t ngpu, char jobz, int64_t N, T *mat, T *eigenvals);
 template <class T>
-int carma_magma_syevd_m(long ngpu, char jobz, CarmaHostObj<T> *mat,
+int32_t carma_magma_syevd_m(int64_t ngpu, char jobz, CarmaHostObj<T> *mat,
                         CarmaHostObj<T> *eigenvals);
 template <class T>
-int carma_magma_syevd_m(long ngpu, char jobz, CarmaHostObj<T> *mat,
+int32_t carma_magma_syevd_m(int64_t ngpu, char jobz, CarmaHostObj<T> *mat,
                         CarmaHostObj<T> *eigenvals, CarmaHostObj<T> *U);
 template <class T>
-int carma_magma_getri(CarmaObj<T> *d_iA);
+int32_t carma_magma_getri(CarmaObj<T> *d_iA);
 template <class T>
-int carma_magma_potr_inv(CarmaObj<T> *d_iA);
+int32_t carma_magma_potr_inv(CarmaObj<T> *d_iA);
 template <class T>
-int carma_magma_potr_inv_m(long num_gpus, CarmaHostObj<T> *h_A,
+int32_t carma_magma_potr_inv_m(int64_t num_gpus, CarmaHostObj<T> *h_A,
                         CarmaObj<T> *d_iA);
 
 // MAGMA functions (direct access)
 template <class T>
-int carma_magma_syevd(char jobz, long N, T *mat, T *eigenvals);
+int32_t carma_magma_syevd(char jobz, int64_t N, T *mat, T *eigenvals);
 // template <class T>
-// int carma_magma_potr_inv_m(long num_gpus, long N, T *h_A, T *d_iA);
+// int32_t carma_magma_potr_inv_m(int64_t num_gpus, int64_t N, T *h_A, T *d_iA);
 
 template <class T_data>
-int carma_magma_svd_cpu(CarmaHostObj<T_data> *imat,
+int32_t carma_magma_svd_cpu(CarmaHostObj<T_data> *imat,
                         CarmaHostObj<T_data> *eigenvals,
                         CarmaHostObj<T_data> *mod2act,
                         CarmaHostObj<T_data> *mes2mod);
 template <class T>
-int carma_magma_getri_cpu(CarmaHostObj<T> *h_A);
+int32_t carma_magma_getri_cpu(CarmaHostObj<T> *h_A);
 template <class T>
-int carma_magma_potr_inv_cpu(CarmaHostObj<T> *h_A);
+int32_t carma_magma_potr_inv_cpu(CarmaHostObj<T> *h_A);
 template <class T>
-int carma_magma_syevd_cpu(char jobz, CarmaHostObj<T> *h_A,
+int32_t carma_magma_syevd_cpu(char jobz, CarmaHostObj<T> *h_A,
                           CarmaHostObj<T> *eigenvals);
 
 // MAGMA functions (direct access)
 // template <class T>
-// int carma_magma_svd_cpu(long N, long M, T *imat, T *eigenvals, T *mod2act,
+// int32_t carma_magma_svd_cpu(int64_t N, int64_t M, T *imat, T *eigenvals, T *mod2act,
 //                   T *mes2mod);
 template <class T>
-int carma_magma_getri_cpu(long N, T *h_A);
+int32_t carma_magma_getri_cpu(int64_t N, T *h_A);
 template <class T>
-int carma_magma_potr_inv_cpu(long N, T *h_A);
+int32_t carma_magma_potr_inv_cpu(int64_t N, T *h_A);
 template <class T>
-int carma_magma_syevd_cpu(char jobz, long N, T *h_A, T *eigenvals);
+int32_t carma_magma_syevd_cpu(char jobz, int64_t N, T *h_A, T *eigenvals);
 template <class T>
-int carma_magma_axpy_cpu(long N, T alpha, T *h_X, long incX, T *h_Y, long incY);
+int32_t carma_magma_axpy_cpu(int64_t N, T alpha, T *h_X, int64_t incX, T *h_Y, int64_t incY);
 template <class T>
-int carma_gemm_cpu(char transa, char transb, long m, long n, long k, T alpha,
-                   T *A, long lda, T *B, long ldb, T beta, T *C, long ldc);
+int32_t carma_gemm_cpu(char transa, char transb, int64_t m, int64_t n, int64_t k, T alpha,
+                   T *A, int64_t lda, T *B, int64_t ldb, T beta, T *C, int64_t ldc);
 
 template <class T_data>
-int carma_magma_gemv(char trans, int m, int n, T_data alpha, T_data *matA,
-                     int lda, T_data *vectx, int incx, T_data beta,
-                     T_data *vecty, int incy);
+int32_t carma_magma_gemv(char trans, int32_t m, int32_t n, T_data alpha, T_data *matA,
+                     int32_t lda, T_data *vectx, int32_t incx, T_data beta,
+                     T_data *vecty, int32_t incy);
 
 template <class T_data>
-int carma_magma_csr2ell(CarmaSparseObj<T_data> *dA);
+int32_t carma_magma_csr2ell(CarmaSparseObj<T_data> *dA);
 
 template <class T_data>
-int carma_magma_spmv(T_data alpha, CarmaSparseObj<T_data> *dA,
+int32_t carma_magma_spmv(T_data alpha, CarmaSparseObj<T_data> *dA,
                      CarmaObj<T_data> *dx, T_data beta, CarmaObj<T_data> *dy);
 
 template <class T_data>
-int carma_magma_sparse_free(CarmaSparseObj<T_data> *dA);
+int32_t carma_magma_sparse_free(CarmaSparseObj<T_data> *dA);
 
 #endif  // _CARMA_MAGMA_H_

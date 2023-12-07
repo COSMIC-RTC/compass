@@ -13,15 +13,65 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_dm.h>
+#include "sutraWrapUtils.hpp"
 
-#include <wyrm>
+#include <sutra_dm.h>
 
 namespace py = pybind11;
 
-std::unique_ptr<SutraDms> dms_init() {
+std::unique_ptr<SutraDms> dms_init()
+{
   return std::unique_ptr<SutraDms>(new SutraDms());
 };
+
+void set_full_com(SutraDms &sdms,
+                 ArrayFStyle<float> data,
+                 bool shape_dm = true)
+{
+  if (data.size() != sdms.nact_total())
+    DEBUG_TRACE("Command vector has wrong dimension");
+  else
+  {
+    int32_t com_idx = 0;
+    float *com = data.mutable_data();
+    for (vector<SutraDm *>::iterator it = sdms.d_dms.begin();
+         it != sdms.d_dms.end(); it++)
+    {
+      (*it)->d_com->host2device(&com[com_idx]);
+      com_idx += (*it)->nactus;
+      if (shape_dm)
+        (*it)->comp_shape();
+    }
+  }
+}
+
+template <typename T>
+int32_t comp_shape(SutraDm &sdm, ArrayFStyle<T> &com)
+{
+  return sdm.comp_shape(com.mutable_data());
+}
+
+int32_t pzt_loadarrays(SutraDm &sdm, ArrayFStyle<float> &influ, ArrayFStyle<int32_t> &influpos, ArrayFStyle<int32_t> &npoints, ArrayFStyle<int32_t> &istart,
+                       ArrayFStyle<int32_t> &xoff, ArrayFStyle<int32_t> &yoff)
+{
+  return sdm.pzt_loadarrays(influ.mutable_data(), influpos.mutable_data(), npoints.mutable_data(), istart.mutable_data(), xoff.mutable_data(), yoff.mutable_data());
+}
+
+int32_t kl_loadarrays(SutraDm &sdm, ArrayFStyle<float> &rabas, ArrayFStyle<float> &azbas, ArrayFStyle<int32_t> &ord, ArrayFStyle<float> &cr, ArrayFStyle<float> &cp)
+{
+  return sdm.kl_loadarrays(rabas.mutable_data(), azbas.mutable_data(), ord.mutable_data(), cr.mutable_data(), cp.mutable_data());
+}
+
+int32_t tt_loadarrays(SutraDm &sdm, ArrayFStyle<float> &influ)
+{
+  return sdm.tt_loadarrays(influ.mutable_data());
+}
+
+int32_t compute_KLbasis(SutraDm &sdm, ArrayFStyle<float> &xpos, ArrayFStyle<float> &ypos, ArrayFStyle<int32_t> &indx, int64_t dim, float norm,
+                        float ampli)
+{
+  return sdm.compute_KLbasis(xpos.mutable_data(), ypos.mutable_data(), indx.mutable_data(), dim, norm, ampli);
+}
 
 //  ██████╗ ███╗   ███╗███████╗
 //  ██╔══██╗████╗ ████║██╔════╝
@@ -31,9 +81,11 @@ std::unique_ptr<SutraDms> dms_init() {
 //  ╚═════╝ ╚═╝     ╚═╝╚══════╝
 //
 
-void declare_dms(py::module &mod) {
+void declare_dms(py::module &mod)
+{
+  auto carmaWrap = py::module::import("carmaWrap");
   py::class_<SutraDms>(mod, "Dms")
-      .def(py::init(wy::colCast(dms_init)), R"pbdoc(
+      .def(py::init(&dms_init), R"pbdoc(
             Create a void DMS object
         )pbdoc")
 
@@ -47,14 +99,17 @@ void declare_dms(py::module &mod) {
 
       .def_property_readonly(
           "d_dms",
-          [](SutraDms &sdms) -> vector<SutraDm *> & { return sdms.d_dms; },
+          [](SutraDms &sdms) -> vector<SutraDm *> &
+          { return sdms.d_dms; },
           "Vector of SutraDm")
 
       .def_property_readonly(
-          "ndm", [](SutraDms &sdms) { return sdms.d_dms.size(); },
+          "ndm", [](SutraDms &sdms)
+          { return sdms.d_dms.size(); },
           "Number of SutraDm in SutraDms")
       .def_property_readonly(
-          "nact_total", [](SutraDms &sdms) { return sdms.nact_total(); },
+          "nact_total", [](SutraDms &sdms)
+          { return sdms.nact_total(); },
           "Total number of actuators in SutraDms")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
@@ -65,9 +120,9 @@ void declare_dms(py::module &mod) {
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
 
       .def("add_dm",
-           (int (SutraDms::*)(CarmaContext *, const char *, float, long, long,
-                              long, long, long, float, long, float, float,
-                              float, float, int)) &
+           (int32_t(SutraDms::*)(CarmaContext *, const char *, float, int64_t, int64_t,
+                                 int64_t, int64_t, int64_t, float, int64_t, float, float,
+                                 float, float, int32_t)) &
                SutraDms::add_dm,
            R"pbdoc(
     Add a SutraDm in the SutraDms vector
@@ -79,19 +134,19 @@ void declare_dms(py::module &mod) {
 
       alt: (float): Conjugaison altitude in meters
 
-      dim: (long): Support dimension
+      dim: (int64_t): Support dimension
 
-      nactus: (long): Number of actuators
+      nactus: (int64_t): Number of actuators
 
-      influsize: (long): Influenction function support size
+      influsize: (int64_t): Influenction function support size
 
-      ninflupos: (long): Size of _influpos array
+      ninflupos: (int64_t): Size of _influpos array
 
-      n_npoints: (long): Size of _ninflu array
+      n_npoints: (int64_t): Size of _ninflu array
 
       push4imat: (float): Voltage to apply for imat computation
 
-      nord: (long): Number of radial order for kl dm (0 if not kl)
+      nord: (int64_t): Number of radial order for kl dm (0 if not kl)
 
       dx: (float): X axis misregistration [pixels]
 
@@ -110,8 +165,8 @@ void declare_dms(py::module &mod) {
            py::arg("device"))
 
       .def("add_dm",
-           (int (SutraDms::*)(CarmaContext *, const char *, float, long, long,
-                              long, long, long, float, long, int)) &
+           (int32_t(SutraDms::*)(CarmaContext *, const char *, float, int64_t, int64_t,
+                                 int64_t, int64_t, int64_t, float, int64_t, int32_t)) &
                SutraDms::add_dm,
            R"pbdoc(
     Add a SutraDm in the SutraDms vector
@@ -123,19 +178,19 @@ void declare_dms(py::module &mod) {
 
       alt: (float): Conjugaison altitude in meters
 
-      dim: (long): Support dimension
+      dim: (int64_t): Support dimension
 
-      nactus: (long): Number of actuators
+      nactus: (int64_t): Number of actuators
 
-      influsize: (long): Influenction function support size
+      influsize: (int64_t): Influenction function support size
 
-      ninflupos: (long): Size of _influpos array
+      ninflupos: (int64_t): Size of _influpos array
 
-      n_npoints: (long): Size of _ninflu array
+      n_npoints: (int64_t): Size of _ninflu array
 
       push4imat: (float): Voltage to apply for imat computation
 
-      nord: (long): Number of radial order for kl dm (0 if not kl)
+      nord: (int64_t): Number of radial order for kl dm (0 if not kl)
 
       device: (int): Device index
         )pbdoc",
@@ -144,7 +199,7 @@ void declare_dms(py::module &mod) {
            py::arg("n_npoints"), py::arg("push4imat"), py::arg("nord"),
            py::arg("device"))
 
-      .def("insert_dm", wy::colCast(&SutraDms::insert_dm),
+      .def("insert_dm", &SutraDms::insert_dm,
            R"pbdoc(
     Add a SutraDm in the SutraDms vector at the specified index
 
@@ -155,19 +210,19 @@ void declare_dms(py::module &mod) {
 
       alt: (float): Conjugaison altitude in meters
 
-      dim: (long): Support dimension
+      dim: (int64_t): Support dimension
 
-      nactus: (long): Number of actuators
+      nactus: (int64_t): Number of actuators
 
-      influsize: (long): Influenction function support size
+      influsize: (int64_t): Influenction function support size
 
-      ninflupos: (long): Size of _influpos array
+      ninflupos: (int64_t): Size of _influpos array
 
-      n_npoints: (long): Size of _ninflu array
+      n_npoints: (int64_t): Size of _ninflu array
 
       push4imat: (float): Voltage to apply for imat computation
 
-      nord: (long): Number of radial order for kl dm (0 if not kl)
+      nord: (int64_t): Number of radial order for kl dm (0 if not kl)
 
       dx: (float): X axis misregistration [pixels]
 
@@ -179,7 +234,7 @@ void declare_dms(py::module &mod) {
 
       device: (int): Device index
 
-      idx: (int) : DM index in the vector dms
+      idx: (int32_t) : DM index in the vector dms
       )pbdoc",
            py::arg("context"), py::arg("type"), py::arg("alt"), py::arg("dim"),
            py::arg("nactus"), py::arg("influsize"), py::arg("ninflupos"),
@@ -187,7 +242,7 @@ void declare_dms(py::module &mod) {
            py::arg("dx"), py::arg("dy"), py::arg("theta"), py::arg("G"),
            py::arg("device"), py::arg("idx"))
 
-      .def("remove_dm", wy::colCast(&SutraDms::remove_dm),
+      .def("remove_dm", &SutraDms::remove_dm,
            R"pbdoc(
     Remove and delete the selected DM from SutraDms
 
@@ -197,14 +252,16 @@ void declare_dms(py::module &mod) {
            py::arg("idx"))
 
       .def("__str__",
-           [](SutraDms &sdms) {
+           [](SutraDms &sdms)
+           {
              std::cout << sdms.d_dms.size() << " DMs created" << std::endl;
              std::cout << "Total number of actuators : " << sdms.nact_total()
                        << std::endl;
              std::cout << "DM # | Type  |   Alt   | Nact | Dim" << std::endl;
              vector<SutraDm *>::iterator it = sdms.d_dms.begin();
-             int i = 0;
-             while (it != sdms.d_dms.end()) {
+             int32_t i = 0;
+             while (it != sdms.d_dms.end())
+             {
                std::cout << i << " | " << (*it)->type << " | "
                          << (*it)->altitude << " | " << (*it)->nactus << " | "
                          << (*it)->dim << std::endl;
@@ -223,23 +280,7 @@ void declare_dms(py::module &mod) {
       //
 
       .def(
-          "set_full_com",
-          [](SutraDms &sdms,
-             py::array_t<float, py::array::f_style | py::array::forcecast> data,
-             bool shape_dm = true) {
-            if (data.size() != sdms.nact_total())
-              DEBUG_TRACE("Command vector has wrong dimension");
-            else {
-              int com_idx = 0;
-              float *com = data.mutable_data();
-              for (vector<SutraDm *>::iterator it = sdms.d_dms.begin();
-                   it != sdms.d_dms.end(); it++) {
-                (*it)->d_com->host2device(&com[com_idx]);
-                com_idx += (*it)->nactus;
-                if (shape_dm) (*it)->comp_shape();
-              }
-            }
-          },
+          "set_full_com", &set_full_com,
           R"pbdoc(
     Set the command vector of all DM in SutraDms, and computes the DMs shapes
 
@@ -261,7 +302,8 @@ void declare_dms(py::module &mod) {
 //  ╚═════╝ ╚═╝     ╚═╝
 //
 
-void declare_dm(py::module &mod) {
+void declare_dm(py::module &mod)
+{
   auto sutraKL = py::class_<SutraKL>(mod, "SutraKL");
   py::class_<SutraDm>(mod, "Dm")
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
@@ -272,80 +314,109 @@ void declare_dm(py::module &mod) {
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
       .def_property_readonly(
-          "device", [](SutraDm &sdm) { return sdm.device; }, "Device index")
+          "device", [](SutraDm &sdm)
+          { return sdm.device; },
+          "Device index")
 
       .def_property_readonly(
-          "type", [](SutraDm &sdm) { return sdm.type; }, "DM type")
+          "type", [](SutraDm &sdm)
+          { return sdm.type; },
+          "DM type")
 
       .def_property_readonly(
-          "altitude", [](SutraDm &sdm) { return sdm.altitude; },
+          "altitude", [](SutraDm &sdm)
+          { return sdm.altitude; },
           "DM conjugaison altitude")
 
       .def_property_readonly(
-          "nactus", [](SutraDm &sdm) { return sdm.nactus; },
+          "nactus", [](SutraDm &sdm)
+          { return sdm.nactus; },
           "Number of actuators")
 
       .def_property_readonly(
-          "influsize", [](SutraDm &sdm) { return sdm.influsize; },
+          "influsize", [](SutraDm &sdm)
+          { return sdm.influsize; },
           "Influence function support size")
 
       .def_property_readonly(
-          "dim", [](SutraDm &sdm) { return sdm.dim; }, "DM support size")
+          "dim", [](SutraDm &sdm)
+          { return sdm.dim; },
+          "DM support size")
 
       .def_property_readonly(
-          "push4imat", [](SutraDm &sdm) { return sdm.push4imat; },
+          "push4imat", [](SutraDm &sdm)
+          { return sdm.push4imat; },
           "Voltage to apply for imat computation")
 
       .def_property_readonly(
-          "d_shape", [](SutraDm &sdm) { return sdm.d_shape->d_screen; },
+          "d_shape", [](SutraDm &sdm)
+          { return sdm.d_shape->d_screen; },
           "DM shape")
 
       .def_property_readonly(
-          "d_com", [](SutraDm &sdm) { return sdm.d_com; },
+          "d_com", [](SutraDm &sdm)
+          { return sdm.d_com; },
           "Current commands of the DM")
 
       .def_property_readonly(
-          "d_influ", [](SutraDm &sdm) { return sdm.d_influ; },
+          "d_influ", [](SutraDm &sdm)
+          { return sdm.d_influ; },
           "Cube of influence functions")
 
       .def_property_readonly(
-          "d_istart", [](SutraDm &sdm) { return sdm.d_istart; },
+          "d_istart", [](SutraDm &sdm)
+          { return sdm.d_istart; },
           "TODO: docstring")
 
       .def_property_readonly(
-          "d_npoints", [](SutraDm &sdm) { return sdm.d_npoints; },
+          "d_npoints", [](SutraDm &sdm)
+          { return sdm.d_npoints; },
           "Number of IF that impact each pixel of the pupil")
 
       .def_property_readonly(
-          "d_influpos", [](SutraDm &sdm) { return sdm.d_influpos; },
+          "d_influpos", [](SutraDm &sdm)
+          { return sdm.d_influpos; },
           "Influence functions positions in the pupil")
 
       .def_property_readonly(
-          "d_xoff", [](SutraDm &sdm) { return sdm.d_xoff; }, "TODO: docstring")
+          "d_xoff", [](SutraDm &sdm)
+          { return sdm.d_xoff; },
+          "TODO: docstring")
 
       .def_property_readonly(
-          "dx", [](SutraDm &sdm) { return sdm.dx; }, "X registration in pixels")
+          "dx", [](SutraDm &sdm)
+          { return sdm.dx; },
+          "X registration in pixels")
 
       .def_property_readonly(
-          "dy", [](SutraDm &sdm) { return sdm.dy; }, "Y registration in pixels")
+          "dy", [](SutraDm &sdm)
+          { return sdm.dy; },
+          "Y registration in pixels")
 
       .def_property_readonly(
-          "thetaML", [](SutraDm &sdm) { return sdm.thetaML; },
+          "thetaML", [](SutraDm &sdm)
+          { return sdm.thetaML; },
           "thetaML registration in radians")
 
       .def_property_readonly(
-          "G", [](SutraDm &sdm) { return sdm.G; },
+          "G", [](SutraDm &sdm)
+          { return sdm.G; },
           "Magnification factor registration in pixels")
 
       .def_property_readonly(
-          "d_yoff", [](SutraDm &sdm) { return sdm.d_yoff; }, "TODO: docstring")
+          "d_yoff", [](SutraDm &sdm)
+          { return sdm.d_yoff; },
+          "TODO: docstring")
 
       .def_property_readonly(
-          "d_KLbasis", [](SutraDm &sdm) { return sdm.d_KLbasis; },
+          "d_KLbasis", [](SutraDm &sdm)
+          { return sdm.d_KLbasis; },
           "KL to volts matrix")
 
       .def_property_readonly(
-          "d_kl", [](SutraDm &sdm) { return sdm.d_kl; }, "SutraKL DM")
+          "d_kl", [](SutraDm &sdm)
+          { return sdm.d_kl; },
+          "SutraKL DM")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝
@@ -353,7 +424,7 @@ void declare_dm(py::module &mod) {
       //  ██║╚██╔╝██║██╔══╝     ██║   ██╔══██║██║   ██║██║  ██║╚════██║
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
-      .def("pzt_loadarrays", wy::colCast(&SutraDm::pzt_loadarrays),
+      .def("pzt_loadarrays", &pzt_loadarrays,
            R"pbdoc(
     Load all the arrays computed during the initialization for a pzt DM in a SutraDm object
 
@@ -381,7 +452,7 @@ void declare_dm(py::module &mod) {
            /*py::arg("influpos2"),*/ py::arg("npoints"), py::arg("istart"),
            py::arg("xoff"), py::arg("yoff"))
 
-      .def("tt_loadarrays", wy::colCast(&SutraDm::tt_loadarrays),
+      .def("tt_loadarrays", &tt_loadarrays,
            R"pbdoc(
     Load all the arrays computed during the initialization for a tt DM in a SutraDm object
 
@@ -393,7 +464,7 @@ void declare_dm(py::module &mod) {
       // py::array::f_style | py::array::forcecast> data){
       //   sdm.d_influ->host2device(data.mutable_data());
       // })
-      .def("kl_loadarrays", wy::colCast(&SutraDm::kl_loadarrays),
+      .def("kl_loadarrays", &kl_loadarrays,
            R"pbdoc(
     Load all the arrays computed during the initialization for a kl DM in a SutraDm object
 
@@ -415,13 +486,13 @@ void declare_dm(py::module &mod) {
         Reset the DM shape to zeros (flat)
       )pbdoc")
 
-      .def("comp_shape", (int (SutraDm::*)(void)) & SutraDm::comp_shape,
+      .def("comp_shape", (int32_t(SutraDm::*)(void)) & SutraDm::comp_shape,
            R"pbdoc(
         Compute the DM shape according to commands d_com
       )pbdoc")
 
       .def("comp_shape",
-           wy::colCast((int (SutraDm::*)(float *)) & SutraDm::comp_shape),
+           &comp_shape<float>,
            R"pbdoc(
     Compute the DM shape according to given commands
 
@@ -432,7 +503,7 @@ void declare_dm(py::module &mod) {
            py::arg("com"))
 
       .def("comp_shape",
-           wy::colCast((int (SutraDm::*)(uint16_t *)) & SutraDm::comp_shape),
+           &comp_shape<uint16_t>,
            R"pbdoc(
     Compute the DM shape according to given commands
 
@@ -442,7 +513,7 @@ void declare_dm(py::module &mod) {
       )pbdoc",
            py::arg("com"))
 
-      .def("comp_oneactu", wy::colCast(&SutraDm::comp_oneactu), R"pbdoc(
+      .def("comp_oneactu", &SutraDm::comp_oneactu, R"pbdoc(
     Push the specified actuator and computes the corresponding DM shape
 
     Args:
@@ -452,7 +523,7 @@ void declare_dm(py::module &mod) {
       )pbdoc",
            py::arg("nactu"), py::arg("ampli"))
 
-      .def("set_registration", wy::colCast(&SutraDm::set_registration), R"pbdoc(
+      .def("set_registration", &SutraDm::set_registration, R"pbdoc(
     Set the registration parameters : dx, dy, theta and G
 
     Args:
@@ -466,7 +537,7 @@ void declare_dm(py::module &mod) {
       )pbdoc",
            py::arg("dx"), py::arg("dy"), py::arg("theta"), py::arg("G"))
 
-      .def("compute_KLbasis", wy::colCast(&SutraDm::compute_KLbasis),
+      .def("compute_KLbasis", &compute_KLbasis,
            R"pbdoc(
     Computes the KL to volt matrix by double diagonalisation (cf. Gendron thesis)
         - compute the phase covariance matrix on the actuators using Kolmogorov
@@ -480,7 +551,7 @@ void declare_dm(py::module &mod) {
 
         indx_pup: (np.ndarray[ndim=1,dtype=np.int32_t]) : indices of pupil points
 
-        dim: (long) : number of points in the pupil
+        dim: (int64_t) : number of points in the pupil
 
         norm: (float) : normalization factor
 
@@ -490,7 +561,8 @@ void declare_dm(py::module &mod) {
            py::arg("dim"), py::arg("norm"), py::arg("ampli"))
 
       .def("__str__",
-           [](SutraDm &sdm) {
+           [](SutraDm &sdm)
+           {
              std::cout << "Type  |   Alt   | Nact | Dim" << std::endl;
              std::cout << sdm.type << " | " << sdm.altitude << " | "
                        << sdm.nactus << " | " << sdm.dim << std::endl;
@@ -508,12 +580,16 @@ void declare_dm(py::module &mod) {
       .def(
           "set_com",
           [](SutraDm &sdm,
-             py::array_t<float, py::array::f_style | py::array::forcecast> data,
-             bool shape_dm = true) {
-            if (sdm.d_com->get_nb_elements() == data.size()) {
+             ArrayFStyle<float> data,
+             bool shape_dm = true)
+          {
+            if (sdm.d_com->get_nb_elements() == data.size())
+            {
               sdm.d_com->host2device(data.mutable_data());
-              if (shape_dm) sdm.comp_shape();
-            } else
+              if (shape_dm)
+                sdm.comp_shape();
+            }
+            else
               DEBUG_TRACE("Wrong dimension");
           },
           R"pbdoc(

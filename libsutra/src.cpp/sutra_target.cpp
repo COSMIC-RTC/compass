@@ -17,12 +17,12 @@
 #include <sutra_target.h>
 
 SutraTarget::SutraTarget(CarmaContext *context, SutraTelescope *yTelescope,
-                           int ntargets, float *xpos, float *ypos,
-                           float *lambda, float *mag, float zerop, long *sizes,
-                           int Npts, int device) {
+                           int32_t ntargets, float *xpos, float *ypos,
+                           float *lambda, float *mag, float zerop, int64_t *sizes,
+                           int32_t Npts, int32_t device) {
   this->ntargets = ntargets;
 
-  for (int i = 0; i < ntargets; i++) {
+  for (int32_t i = 0; i < ntargets; i++) {
     d_targets.push_back(new SutraSource(context, xpos[i], ypos[i], lambda[i],
                                          mag[i], zerop, sizes[i], "target",
                                          yTelescope->d_pupil, Npts, device));

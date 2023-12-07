@@ -7,7 +7,6 @@ project(carmaWrap
 )
 
 find_package(pybind11 REQUIRED)
-find_package(wyrm REQUIRED)
 find_package(CUDAToolkit REQUIRED)
 
 pybind11_add_module(carmaWrap MODULE
@@ -27,7 +26,6 @@ if (NOT TARGET carma)
     message(STATUS "Found carma: ${CARMA_VERSION}")
     target_include_directories(carmaWrap PRIVATE ${CARMA_INCLUDE_DIRS})
     target_link_libraries(carmaWrap PUBLIC 
-        wyrm::wyrm 
         PkgConfig::CARMA
         CUDA::cudart
         CUDA::cufft
@@ -38,7 +36,7 @@ if (NOT TARGET carma)
     )
 else()
     message(STATUS "Found carma target in the project")
-    target_link_libraries(carmaWrap PRIVATE wyrm::wyrm carma)
+    target_link_libraries(carmaWrap PRIVATE carma)
 endif()
 
 

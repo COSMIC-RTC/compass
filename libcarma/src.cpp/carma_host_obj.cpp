@@ -22,18 +22,18 @@
 #include <sys/mman.h>  // for mmap() / munmap()
 
 template <class T_data>
-CarmaHostObj<T_data>::CarmaHostObj(const long *dims_data) {
+CarmaHostObj<T_data>::CarmaHostObj(const int64_t *dims_data) {
   /** \brief CarmaHostObj creator.
    * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
    */
   init(dims_data, 0L, MA_MALLOC, 0);
 }
-template CarmaHostObj<float>::CarmaHostObj(const long *dims_data);
-template CarmaHostObj<double>::CarmaHostObj(const long *dims_data);
-template CarmaHostObj<int>::CarmaHostObj(const long *dims_data);
-template CarmaHostObj<unsigned int>::CarmaHostObj(const long *dims_data);
-template CarmaHostObj<cuFloatComplex>::CarmaHostObj(const long *dims_data);
-template CarmaHostObj<cuDoubleComplex>::CarmaHostObj(const long *dims_data);
+template CarmaHostObj<float>::CarmaHostObj(const int64_t *dims_data);
+template CarmaHostObj<double>::CarmaHostObj(const int64_t *dims_data);
+template CarmaHostObj<int32_t>::CarmaHostObj(const int64_t *dims_data);
+template CarmaHostObj<uint32_t>::CarmaHostObj(const int64_t *dims_data);
+template CarmaHostObj<cuFloatComplex>::CarmaHostObj(const int64_t *dims_data);
+template CarmaHostObj<cuDoubleComplex>::CarmaHostObj(const int64_t *dims_data);
 
 
 template <class T_data>
@@ -42,16 +42,16 @@ CarmaHostObj<T_data>::CarmaHostObj() {
    * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
    */
 
-  long dims_data[2] = {1,0};
+  int64_t dims_data[2] = {1,0};
   init(dims_data, 0L, MA_MALLOC, 0);
 }
 
 template <class T_data>
-CarmaHostObj<T_data>::CarmaHostObj(const std::vector<long> &dims):
+CarmaHostObj<T_data>::CarmaHostObj(const std::vector<int64_t> &dims):
 CarmaHostObj(dims.data()){}
 
 template <class T_data>
-CarmaHostObj<T_data>::CarmaHostObj(const long *dims_data,
+CarmaHostObj<T_data>::CarmaHostObj(const int64_t *dims_data,
                                        MemAlloc malloc_type) {
   /** \brief CarmaHostObj creator.
    * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
@@ -60,17 +60,17 @@ CarmaHostObj<T_data>::CarmaHostObj(const long *dims_data,
    */
   init(dims_data, 0L, malloc_type, 0);
 }
-template CarmaHostObj<float>::CarmaHostObj(const long *dims_data,
+template CarmaHostObj<float>::CarmaHostObj(const int64_t *dims_data,
                                                MemAlloc malloc_type);
-template CarmaHostObj<double>::CarmaHostObj(const long *dims_data,
+template CarmaHostObj<double>::CarmaHostObj(const int64_t *dims_data,
                                                 MemAlloc malloc_type);
-template CarmaHostObj<int>::CarmaHostObj(const long *dims_data,
+template CarmaHostObj<int32_t>::CarmaHostObj(const int64_t *dims_data,
                                              MemAlloc malloc_type);
-template CarmaHostObj<unsigned int>::CarmaHostObj(const long *dims_data,
+template CarmaHostObj<uint32_t>::CarmaHostObj(const int64_t *dims_data,
                                                       MemAlloc malloc_type);
-template CarmaHostObj<cuFloatComplex>::CarmaHostObj(const long *dims_data,
+template CarmaHostObj<cuFloatComplex>::CarmaHostObj(const int64_t *dims_data,
                                                         MemAlloc malloc_type);
-template CarmaHostObj<cuDoubleComplex>::CarmaHostObj(const long *dims_data,
+template CarmaHostObj<cuDoubleComplex>::CarmaHostObj(const int64_t *dims_data,
                                                          MemAlloc malloc_type);
 
 template <class T_data>
@@ -84,9 +84,9 @@ template CarmaHostObj<float>::CarmaHostObj(
     const CarmaHostObj<float> *src);
 template CarmaHostObj<double>::CarmaHostObj(
     const CarmaHostObj<double> *src);
-template CarmaHostObj<int>::CarmaHostObj(const CarmaHostObj<int> *src);
-template CarmaHostObj<unsigned int>::CarmaHostObj(
-    const CarmaHostObj<unsigned int> *src);
+template CarmaHostObj<int32_t>::CarmaHostObj(const CarmaHostObj<int32_t> *src);
+template CarmaHostObj<uint32_t>::CarmaHostObj(
+    const CarmaHostObj<uint32_t> *src);
 template CarmaHostObj<cuFloatComplex>::CarmaHostObj(
     const CarmaHostObj<cuFloatComplex> *src);
 template CarmaHostObj<cuDoubleComplex>::CarmaHostObj(
@@ -106,17 +106,17 @@ template CarmaHostObj<float>::CarmaHostObj(const CarmaHostObj<float> *src,
                                                MemAlloc malloc_type);
 template CarmaHostObj<double>::CarmaHostObj(
     const CarmaHostObj<double> *src, MemAlloc malloc_type);
-template CarmaHostObj<int>::CarmaHostObj(const CarmaHostObj<int> *src,
+template CarmaHostObj<int32_t>::CarmaHostObj(const CarmaHostObj<int32_t> *src,
                                              MemAlloc malloc_type);
-template CarmaHostObj<unsigned int>::CarmaHostObj(
-    const CarmaHostObj<unsigned int> *src, MemAlloc malloc_type);
+template CarmaHostObj<uint32_t>::CarmaHostObj(
+    const CarmaHostObj<uint32_t> *src, MemAlloc malloc_type);
 template CarmaHostObj<cuFloatComplex>::CarmaHostObj(
     const CarmaHostObj<cuFloatComplex> *src, MemAlloc malloc_type);
 template CarmaHostObj<cuDoubleComplex>::CarmaHostObj(
     const CarmaHostObj<cuDoubleComplex> *src, MemAlloc malloc_type);
 
 template <class T_data>
-CarmaHostObj<T_data>::CarmaHostObj(const long *dims_data,
+CarmaHostObj<T_data>::CarmaHostObj(const int64_t *dims_data,
                                        const T_data *data) {
   /** \brief CarmaHostObj creator.
    * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
@@ -124,21 +124,21 @@ CarmaHostObj<T_data>::CarmaHostObj(const long *dims_data,
    */
   init(dims_data, data, MA_MALLOC, 0);
 }
-template CarmaHostObj<float>::CarmaHostObj(const long *dims_data,
+template CarmaHostObj<float>::CarmaHostObj(const int64_t *dims_data,
                                                const float *data);
-template CarmaHostObj<double>::CarmaHostObj(const long *dims_data,
+template CarmaHostObj<double>::CarmaHostObj(const int64_t *dims_data,
                                                 const double *data);
-template CarmaHostObj<int>::CarmaHostObj(const long *dims_data,
-                                             const int *data);
-template CarmaHostObj<unsigned int>::CarmaHostObj(const long *dims_data,
-                                                      const unsigned int *data);
+template CarmaHostObj<int32_t>::CarmaHostObj(const int64_t *dims_data,
+                                             const int32_t *data);
+template CarmaHostObj<uint32_t>::CarmaHostObj(const int64_t *dims_data,
+                                                      const uint32_t *data);
 template CarmaHostObj<cuFloatComplex>::CarmaHostObj(
-    const long *dims_data, const cuFloatComplex *data);
+    const int64_t *dims_data, const cuFloatComplex *data);
 template CarmaHostObj<cuDoubleComplex>::CarmaHostObj(
-    const long *dims_data, const cuDoubleComplex *data);
+    const int64_t *dims_data, const cuDoubleComplex *data);
 
 template <class T_data>
-CarmaHostObj<T_data>::CarmaHostObj(const long *dims_data,
+CarmaHostObj<T_data>::CarmaHostObj(const int64_t *dims_data,
                                        const T_data *data,
                                        MemAlloc malloc_type) {
   /** \brief CarmaHostObj creator.
@@ -149,46 +149,46 @@ CarmaHostObj<T_data>::CarmaHostObj(const long *dims_data,
    */
   init(dims_data, data, malloc_type, 0);
 }
-template CarmaHostObj<float>::CarmaHostObj(const long *dims_data,
+template CarmaHostObj<float>::CarmaHostObj(const int64_t *dims_data,
                                                const float *data,
                                                MemAlloc malloc_type);
-template CarmaHostObj<double>::CarmaHostObj(const long *dims_data,
+template CarmaHostObj<double>::CarmaHostObj(const int64_t *dims_data,
                                                 const double *data,
                                                 MemAlloc malloc_type);
-template CarmaHostObj<int>::CarmaHostObj(const long *dims_data,
-                                             const int *data,
+template CarmaHostObj<int32_t>::CarmaHostObj(const int64_t *dims_data,
+                                             const int32_t *data,
                                              MemAlloc malloc_type);
-template CarmaHostObj<unsigned int>::CarmaHostObj(const long *dims_data,
-                                                      const unsigned int *data,
+template CarmaHostObj<uint32_t>::CarmaHostObj(const int64_t *dims_data,
+                                                      const uint32_t *data,
                                                       MemAlloc malloc_type);
 template CarmaHostObj<cuFloatComplex>::CarmaHostObj(
-    const long *dims_data, const cuFloatComplex *data, MemAlloc malloc_type);
+    const int64_t *dims_data, const cuFloatComplex *data, MemAlloc malloc_type);
 template CarmaHostObj<cuDoubleComplex>::CarmaHostObj(
-    const long *dims_data, const cuDoubleComplex *data, MemAlloc malloc_type);
+    const int64_t *dims_data, const cuDoubleComplex *data, MemAlloc malloc_type);
 
 template <class T_data>
-CarmaHostObj<T_data>::CarmaHostObj(const long *dims_data, int nb_streams) {
+CarmaHostObj<T_data>::CarmaHostObj(const int64_t *dims_data, int32_t nb_streams) {
   /** \brief CarmaHostObj creator.
    * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
    */
   init(dims_data, 0L, MA_MALLOC, nb_streams);
 }
-template CarmaHostObj<float>::CarmaHostObj(const long *dims_data,
-                                               int nb_streams);
-template CarmaHostObj<double>::CarmaHostObj(const long *dims_data,
-                                                int nb_streams);
-template CarmaHostObj<int>::CarmaHostObj(const long *dims_data,
-                                             int nb_streams);
-template CarmaHostObj<unsigned int>::CarmaHostObj(const long *dims_data,
-                                                      int nb_streams);
-template CarmaHostObj<cuFloatComplex>::CarmaHostObj(const long *dims_data,
-                                                        int nb_streams);
-template CarmaHostObj<cuDoubleComplex>::CarmaHostObj(const long *dims_data,
-                                                         int nb_streams);
+template CarmaHostObj<float>::CarmaHostObj(const int64_t *dims_data,
+                                               int32_t nb_streams);
+template CarmaHostObj<double>::CarmaHostObj(const int64_t *dims_data,
+                                                int32_t nb_streams);
+template CarmaHostObj<int32_t>::CarmaHostObj(const int64_t *dims_data,
+                                             int32_t nb_streams);
+template CarmaHostObj<uint32_t>::CarmaHostObj(const int64_t *dims_data,
+                                                      int32_t nb_streams);
+template CarmaHostObj<cuFloatComplex>::CarmaHostObj(const int64_t *dims_data,
+                                                        int32_t nb_streams);
+template CarmaHostObj<cuDoubleComplex>::CarmaHostObj(const int64_t *dims_data,
+                                                         int32_t nb_streams);
 
 template <class T_data>
-CarmaHostObj<T_data>::CarmaHostObj(const long *dims_data,
-                                       MemAlloc malloc_type, int nb_streams) {
+CarmaHostObj<T_data>::CarmaHostObj(const int64_t *dims_data,
+                                       MemAlloc malloc_type, int32_t nb_streams) {
   /** \brief CarmaHostObj creator.
    * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
    * \param malloc_type : type of memory allacation : MA_MALLOC, MA_PAGELOCK,
@@ -196,49 +196,49 @@ CarmaHostObj<T_data>::CarmaHostObj(const long *dims_data,
    */
   init(dims_data, 0L, malloc_type, nb_streams);
 }
-template CarmaHostObj<float>::CarmaHostObj(const long *dims_data,
+template CarmaHostObj<float>::CarmaHostObj(const int64_t *dims_data,
                                                MemAlloc malloc_type,
-                                               int nb_streams);
-template CarmaHostObj<double>::CarmaHostObj(const long *dims_data,
+                                               int32_t nb_streams);
+template CarmaHostObj<double>::CarmaHostObj(const int64_t *dims_data,
                                                 MemAlloc malloc_type,
-                                                int nb_streams);
-template CarmaHostObj<int>::CarmaHostObj(const long *dims_data,
+                                                int32_t nb_streams);
+template CarmaHostObj<int32_t>::CarmaHostObj(const int64_t *dims_data,
                                              MemAlloc malloc_type,
-                                             int nb_streams);
-template CarmaHostObj<unsigned int>::CarmaHostObj(const long *dims_data,
+                                             int32_t nb_streams);
+template CarmaHostObj<uint32_t>::CarmaHostObj(const int64_t *dims_data,
                                                       MemAlloc malloc_type,
-                                                      int nb_streams);
-template CarmaHostObj<cuFloatComplex>::CarmaHostObj(const long *dims_data,
+                                                      int32_t nb_streams);
+template CarmaHostObj<cuFloatComplex>::CarmaHostObj(const int64_t *dims_data,
                                                         MemAlloc malloc_type,
-                                                        int nb_streams);
-template CarmaHostObj<cuDoubleComplex>::CarmaHostObj(const long *dims_data,
+                                                        int32_t nb_streams);
+template CarmaHostObj<cuDoubleComplex>::CarmaHostObj(const int64_t *dims_data,
                                                          MemAlloc malloc_type,
-                                                         int nb_streams);
+                                                         int32_t nb_streams);
 
 template <class T_data>
 CarmaHostObj<T_data>::CarmaHostObj(const CarmaHostObj<T_data> *src,
-                                       int nb_streams) {
+                                       int32_t nb_streams) {
   /** \brief CarmaHostObj creator.
    * \param src : CarmaHostObj to copy
    */
   init(src->dims_data, src->h_data, src->malloc_type, nb_streams);
 }
 template CarmaHostObj<float>::CarmaHostObj(const CarmaHostObj<float> *src,
-                                               int nb_streams);
+                                               int32_t nb_streams);
 template CarmaHostObj<double>::CarmaHostObj(
-    const CarmaHostObj<double> *src, int nb_streams);
-template CarmaHostObj<int>::CarmaHostObj(const CarmaHostObj<int> *src,
-                                             int nb_streams);
-template CarmaHostObj<unsigned int>::CarmaHostObj(
-    const CarmaHostObj<unsigned int> *src, int nb_streams);
+    const CarmaHostObj<double> *src, int32_t nb_streams);
+template CarmaHostObj<int32_t>::CarmaHostObj(const CarmaHostObj<int32_t> *src,
+                                             int32_t nb_streams);
+template CarmaHostObj<uint32_t>::CarmaHostObj(
+    const CarmaHostObj<uint32_t> *src, int32_t nb_streams);
 template CarmaHostObj<cuFloatComplex>::CarmaHostObj(
-    const CarmaHostObj<cuFloatComplex> *src, int nb_streams);
+    const CarmaHostObj<cuFloatComplex> *src, int32_t nb_streams);
 template CarmaHostObj<cuDoubleComplex>::CarmaHostObj(
-    const CarmaHostObj<cuDoubleComplex> *src, int nb_streams);
+    const CarmaHostObj<cuDoubleComplex> *src, int32_t nb_streams);
 
 template <class T_data>
 CarmaHostObj<T_data>::CarmaHostObj(const CarmaHostObj<T_data> *src,
-                                       MemAlloc malloc_type, int nb_streams) {
+                                       MemAlloc malloc_type, int32_t nb_streams) {
   /** \brief CarmaHostObj creator.
    * \param src : CarmaHostObj to copy
    * \param malloc_type : type of memory allacation : MA_MALLOC, MA_PAGELOCK,
@@ -248,51 +248,51 @@ CarmaHostObj<T_data>::CarmaHostObj(const CarmaHostObj<T_data> *src,
 }
 template CarmaHostObj<float>::CarmaHostObj(const CarmaHostObj<float> *src,
                                                MemAlloc malloc_type,
-                                               int nb_streams);
+                                               int32_t nb_streams);
 template CarmaHostObj<double>::CarmaHostObj(
-    const CarmaHostObj<double> *src, MemAlloc malloc_type, int nb_streams);
-template CarmaHostObj<int>::CarmaHostObj(const CarmaHostObj<int> *src,
+    const CarmaHostObj<double> *src, MemAlloc malloc_type, int32_t nb_streams);
+template CarmaHostObj<int32_t>::CarmaHostObj(const CarmaHostObj<int32_t> *src,
                                              MemAlloc malloc_type,
-                                             int nb_streams);
-template CarmaHostObj<unsigned int>::CarmaHostObj(
-    const CarmaHostObj<unsigned int> *src, MemAlloc malloc_type,
-    int nb_streams);
+                                             int32_t nb_streams);
+template CarmaHostObj<uint32_t>::CarmaHostObj(
+    const CarmaHostObj<uint32_t> *src, MemAlloc malloc_type,
+    int32_t nb_streams);
 template CarmaHostObj<cuFloatComplex>::CarmaHostObj(
     const CarmaHostObj<cuFloatComplex> *src, MemAlloc malloc_type,
-    int nb_streams);
+    int32_t nb_streams);
 template CarmaHostObj<cuDoubleComplex>::CarmaHostObj(
     const CarmaHostObj<cuDoubleComplex> *src, MemAlloc malloc_type,
-    int nb_streams);
+    int32_t nb_streams);
 
 template <class T_data>
-CarmaHostObj<T_data>::CarmaHostObj(const long *dims_data,
-                                       const T_data *data, int nb_streams) {
+CarmaHostObj<T_data>::CarmaHostObj(const int64_t *dims_data,
+                                       const T_data *data, int32_t nb_streams) {
   /** \brief CarmaHostObj creator.
    * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
    * \param data : the array
    */
   init(dims_data, data, MA_MALLOC, nb_streams);
 }
-template CarmaHostObj<float>::CarmaHostObj(const long *dims_data,
+template CarmaHostObj<float>::CarmaHostObj(const int64_t *dims_data,
                                                const float *data,
-                                               int nb_streams);
-template CarmaHostObj<double>::CarmaHostObj(const long *dims_data,
+                                               int32_t nb_streams);
+template CarmaHostObj<double>::CarmaHostObj(const int64_t *dims_data,
                                                 const double *data,
-                                                int nb_streams);
-template CarmaHostObj<int>::CarmaHostObj(const long *dims_data,
-                                             const int *data, int nb_streams);
-template CarmaHostObj<unsigned int>::CarmaHostObj(const long *dims_data,
-                                                      const unsigned int *data,
-                                                      int nb_streams);
+                                                int32_t nb_streams);
+template CarmaHostObj<int32_t>::CarmaHostObj(const int64_t *dims_data,
+                                             const int32_t *data, int32_t nb_streams);
+template CarmaHostObj<uint32_t>::CarmaHostObj(const int64_t *dims_data,
+                                                      const uint32_t *data,
+                                                      int32_t nb_streams);
 template CarmaHostObj<cuFloatComplex>::CarmaHostObj(
-    const long *dims_data, const cuFloatComplex *data, int nb_streams);
+    const int64_t *dims_data, const cuFloatComplex *data, int32_t nb_streams);
 template CarmaHostObj<cuDoubleComplex>::CarmaHostObj(
-    const long *dims_data, const cuDoubleComplex *data, int nb_streams);
+    const int64_t *dims_data, const cuDoubleComplex *data, int32_t nb_streams);
 
 template <class T_data>
-CarmaHostObj<T_data>::CarmaHostObj(const long *dims_data,
+CarmaHostObj<T_data>::CarmaHostObj(const int64_t *dims_data,
                                        const T_data *data, MemAlloc malloc_type,
-                                       int nb_streams) {
+                                       int32_t nb_streams) {
   /** \brief CarmaHostObj creator.
    * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
    * \param data : the array
@@ -301,38 +301,38 @@ CarmaHostObj<T_data>::CarmaHostObj(const long *dims_data,
    */
   init(dims_data, data, malloc_type, nb_streams);
 }
-template CarmaHostObj<float>::CarmaHostObj(const long *dims_data,
+template CarmaHostObj<float>::CarmaHostObj(const int64_t *dims_data,
                                                const float *data,
                                                MemAlloc malloc_type,
-                                               int nb_streams);
-template CarmaHostObj<double>::CarmaHostObj(const long *dims_data,
+                                               int32_t nb_streams);
+template CarmaHostObj<double>::CarmaHostObj(const int64_t *dims_data,
                                                 const double *data,
                                                 MemAlloc malloc_type,
-                                                int nb_streams);
-template CarmaHostObj<int>::CarmaHostObj(const long *dims_data,
-                                             const int *data,
+                                                int32_t nb_streams);
+template CarmaHostObj<int32_t>::CarmaHostObj(const int64_t *dims_data,
+                                             const int32_t *data,
                                              MemAlloc malloc_type,
-                                             int nb_streams);
-template CarmaHostObj<unsigned int>::CarmaHostObj(const long *dims_data,
-                                                      const unsigned int *data,
+                                             int32_t nb_streams);
+template CarmaHostObj<uint32_t>::CarmaHostObj(const int64_t *dims_data,
+                                                      const uint32_t *data,
                                                       MemAlloc malloc_type,
-                                                      int nb_streams);
+                                                      int32_t nb_streams);
 template CarmaHostObj<cuFloatComplex>::CarmaHostObj(
-    const long *dims_data, const cuFloatComplex *data, MemAlloc malloc_type,
-    int nb_streams);
+    const int64_t *dims_data, const cuFloatComplex *data, MemAlloc malloc_type,
+    int32_t nb_streams);
 template CarmaHostObj<cuDoubleComplex>::CarmaHostObj(
-    const long *dims_data, const cuDoubleComplex *data, MemAlloc malloc_type,
-    int nb_streams);
+    const int64_t *dims_data, const cuDoubleComplex *data, MemAlloc malloc_type,
+    int32_t nb_streams);
 
 template <class T_data>
-void CarmaHostObj<T_data>::init(const long *dims_data, const T_data *data,
-                                  MemAlloc malloc_type, int nb_streams) {
-  const long size_data = dims_data[0] + 1;
-  this->dims_data = new long[size_data];
+void CarmaHostObj<T_data>::init(const int64_t *dims_data, const T_data *data,
+                                  MemAlloc malloc_type, int32_t nb_streams) {
+  const int64_t size_data = dims_data[0] + 1;
+  this->dims_data = new int64_t[size_data];
   std::copy(dims_data, dims_data + size_data, this->dims_data);
 
   this->nb_elem = dims_data[1];
-  for (int i = 2; i < size_data; i++) this->nb_elem *= dims_data[i];
+  for (int32_t i = 2; i < size_data; i++) this->nb_elem *= dims_data[i];
 
   this->malloc_type = malloc_type;
   if (malloc_type == MA_MALLOC) {
@@ -438,27 +438,27 @@ CarmaHostObj<T_data>::~CarmaHostObj() {
 }
 template CarmaHostObj<float>::~CarmaHostObj();
 template CarmaHostObj<double>::~CarmaHostObj();
-template CarmaHostObj<int>::~CarmaHostObj();
-template CarmaHostObj<unsigned int>::~CarmaHostObj();
+template CarmaHostObj<int32_t>::~CarmaHostObj();
+template CarmaHostObj<uint32_t>::~CarmaHostObj();
 template CarmaHostObj<cuFloatComplex>::~CarmaHostObj();
 template CarmaHostObj<cuDoubleComplex>::~CarmaHostObj();
 
 template <class T_data>
-int CarmaHostObj<T_data>::get_nb_streams() {
+int32_t CarmaHostObj<T_data>::get_nb_streams() {
   /** \brief get the number of streams attached to the host object
    */
   return streams->get_nb_streams();
 }
 
-template int CarmaHostObj<float>::get_nb_streams();
-template int CarmaHostObj<double>::get_nb_streams();
-template int CarmaHostObj<int>::get_nb_streams();
-template int CarmaHostObj<unsigned int>::get_nb_streams();
-template int CarmaHostObj<cuFloatComplex>::get_nb_streams();
-template int CarmaHostObj<cuDoubleComplex>::get_nb_streams();
+template int32_t CarmaHostObj<float>::get_nb_streams();
+template int32_t CarmaHostObj<double>::get_nb_streams();
+template int32_t CarmaHostObj<int32_t>::get_nb_streams();
+template int32_t CarmaHostObj<uint32_t>::get_nb_streams();
+template int32_t CarmaHostObj<cuFloatComplex>::get_nb_streams();
+template int32_t CarmaHostObj<cuDoubleComplex>::get_nb_streams();
 
 template <class T_data>
-int CarmaHostObj<T_data>::add_stream() {
+int32_t CarmaHostObj<T_data>::add_stream() {
   if (this->malloc_type != MA_MALLOC)
     this->streams->add_stream();
   else
@@ -467,7 +467,7 @@ int CarmaHostObj<T_data>::add_stream() {
 }
 
 template <class T_data>
-int CarmaHostObj<T_data>::add_stream(int nb) {
+int32_t CarmaHostObj<T_data>::add_stream(int32_t nb) {
   if (this->malloc_type != MA_MALLOC)
     this->streams->add_stream(nb);
   else
@@ -476,44 +476,44 @@ int CarmaHostObj<T_data>::add_stream(int nb) {
 }
 
 template <class T_data>
-cudaStream_t CarmaHostObj<T_data>::get_cuda_stream(int stream) {
+cudaStream_t CarmaHostObj<T_data>::get_cuda_stream(int32_t stream) {
   return this->streams->get_stream(stream);
 }
 
-template cudaStream_t CarmaHostObj<float>::get_cuda_stream(int stream);
-template cudaStream_t CarmaHostObj<double>::get_cuda_stream(int stream);
-template cudaStream_t CarmaHostObj<int>::get_cuda_stream(int stream);
-template cudaStream_t CarmaHostObj<unsigned int>::get_cuda_stream(
-    int stream);
+template cudaStream_t CarmaHostObj<float>::get_cuda_stream(int32_t stream);
+template cudaStream_t CarmaHostObj<double>::get_cuda_stream(int32_t stream);
+template cudaStream_t CarmaHostObj<int32_t>::get_cuda_stream(int32_t stream);
+template cudaStream_t CarmaHostObj<uint32_t>::get_cuda_stream(
+    int32_t stream);
 template cudaStream_t CarmaHostObj<cuFloatComplex>::get_cuda_stream(
-    int stream);
+    int32_t stream);
 template cudaStream_t CarmaHostObj<cuDoubleComplex>::get_cuda_stream(
-    int stream);
+    int32_t stream);
 
 template <class T_data>
-int CarmaHostObj<T_data>::del_stream() {
+int32_t CarmaHostObj<T_data>::del_stream() {
   this->streams->del_stream();
   return this->streams->get_nb_streams();
 }
 
 template <class T_data>
-int CarmaHostObj<T_data>::del_stream(int nb) {
+int32_t CarmaHostObj<T_data>::del_stream(int32_t nb) {
   this->streams->del_stream(nb);
   return this->streams->get_nb_streams();
 }
 
 template <class T_data>
-int CarmaHostObj<T_data>::wait_stream(int stream) {
+int32_t CarmaHostObj<T_data>::wait_stream(int32_t stream) {
   this->streams->wait_stream(stream);
   return EXIT_SUCCESS;
 }
 
 template <class T_data>
-int CarmaHostObj<T_data>::wait_all_streams() {
+int32_t CarmaHostObj<T_data>::wait_all_streams() {
   this->streams->wait_all_streams();
   return EXIT_SUCCESS;
 }
-template int CarmaHostObj<float>::wait_all_streams();
+template int32_t CarmaHostObj<float>::wait_all_streams();
 
 /*
  template<class T_data>
@@ -526,24 +526,24 @@ template int CarmaHostObj<float>::wait_all_streams();
  }
  */
 template <class T_data>
-int CarmaHostObj<T_data>::fill(T_data value) {
+int32_t CarmaHostObj<T_data>::fill(T_data value) {
   std::fill(this->h_data, this->h_data + this->get_nb_elements(), value);
 
   return EXIT_SUCCESS;
 }
 
-template int CarmaHostObj<float>::fill(float value);
-template int CarmaHostObj<double>::fill(double value);
-template int CarmaHostObj<int>::fill(int value);
-template int CarmaHostObj<unsigned int>::fill(unsigned int value);
-template int CarmaHostObj<cuFloatComplex>::fill(cuFloatComplex value);
-template int CarmaHostObj<cuDoubleComplex>::fill(cuDoubleComplex value);
+template int32_t CarmaHostObj<float>::fill(float value);
+template int32_t CarmaHostObj<double>::fill(double value);
+template int32_t CarmaHostObj<int32_t>::fill(int32_t value);
+template int32_t CarmaHostObj<uint32_t>::fill(uint32_t value);
+template int32_t CarmaHostObj<cuFloatComplex>::fill(cuFloatComplex value);
+template int32_t CarmaHostObj<cuDoubleComplex>::fill(cuDoubleComplex value);
 
 template <class T_data>
-int CarmaHostObj<T_data>::fill_from(const T_data *data) {
+int32_t CarmaHostObj<T_data>::fill_from(const T_data *data) {
   if (get_nb_streams() > 1) {
-    int nstreams = get_nb_streams();
-    for (int i = 0; i < nstreams; i++) {
+    int32_t nstreams = get_nb_streams();
+    for (int32_t i = 0; i < nstreams; i++) {
       carma_safe_call(cudaMemcpyAsync(&(h_data[i * nb_elem / nstreams]),
                                     &(data[i * nb_elem / nstreams]),
                                     sizeof(T_data) * nb_elem / nstreams,
@@ -562,20 +562,20 @@ int CarmaHostObj<T_data>::fill_from(const T_data *data) {
   }
   return EXIT_SUCCESS;
 }
-template int CarmaHostObj<float>::fill_from(const float *data);
-template int CarmaHostObj<double>::fill_from(const double *data);
-template int CarmaHostObj<int>::fill_from(const int *data);
-template int CarmaHostObj<unsigned int>::fill_from(const unsigned int *data);
-template int CarmaHostObj<cuFloatComplex>::fill_from(
+template int32_t CarmaHostObj<float>::fill_from(const float *data);
+template int32_t CarmaHostObj<double>::fill_from(const double *data);
+template int32_t CarmaHostObj<int32_t>::fill_from(const int32_t *data);
+template int32_t CarmaHostObj<uint32_t>::fill_from(const uint32_t *data);
+template int32_t CarmaHostObj<cuFloatComplex>::fill_from(
     const cuFloatComplex *data);
-template int CarmaHostObj<cuDoubleComplex>::fill_from(
+template int32_t CarmaHostObj<cuDoubleComplex>::fill_from(
     const cuDoubleComplex *data);
 
 template <class T_data>
-int CarmaHostObj<T_data>::fill_into(T_data *data) {
+int32_t CarmaHostObj<T_data>::fill_into(T_data *data) {
   if (get_nb_streams() > 1) {
-    int nstreams = get_nb_streams();
-    for (int i = 0; i < nstreams; i++) {
+    int32_t nstreams = get_nb_streams();
+    for (int32_t i = 0; i < nstreams; i++) {
       carma_safe_call(cudaMemcpyAsync(&(data[i * nb_elem / nstreams]),
                                     &(h_data[i * nb_elem / nstreams]),
                                     sizeof(T_data) * nb_elem / nstreams,
@@ -594,15 +594,15 @@ int CarmaHostObj<T_data>::fill_into(T_data *data) {
   }
   return EXIT_SUCCESS;
 }
-template int CarmaHostObj<float>::fill_into(float *data);
-template int CarmaHostObj<double>::fill_into(double *data);
-template int CarmaHostObj<int>::fill_into(int *data);
-template int CarmaHostObj<unsigned int>::fill_into(unsigned int *data);
-template int CarmaHostObj<cuFloatComplex>::fill_into(cuFloatComplex *data);
-template int CarmaHostObj<cuDoubleComplex>::fill_into(cuDoubleComplex *data);
+template int32_t CarmaHostObj<float>::fill_into(float *data);
+template int32_t CarmaHostObj<double>::fill_into(double *data);
+template int32_t CarmaHostObj<int32_t>::fill_into(int32_t *data);
+template int32_t CarmaHostObj<uint32_t>::fill_into(uint32_t *data);
+template int32_t CarmaHostObj<cuFloatComplex>::fill_into(cuFloatComplex *data);
+template int32_t CarmaHostObj<cuDoubleComplex>::fill_into(cuDoubleComplex *data);
 
 template <class T_data>
-int CarmaHostObj<T_data>::cpy_obj(CarmaObj<T_data> *carma_obj,
+int32_t CarmaHostObj<T_data>::cpy_obj(CarmaObj<T_data> *carma_obj,
                                     cudaMemcpyKind flag) {
   if (nb_elem != carma_obj->get_nb_elements()) {
     std::cerr << "***** ERROR (" << __FILE__ << "@" << __LINE__
@@ -624,8 +624,8 @@ int CarmaHostObj<T_data>::cpy_obj(CarmaObj<T_data> *carma_obj,
   }
 
   if (get_nb_streams() > 1) {
-    int nstreams = get_nb_streams();
-    for (int i = 0; i < nstreams; i++) {
+    int32_t nstreams = get_nb_streams();
+    for (int32_t i = 0; i < nstreams; i++) {
       carma_safe_call(cudaMemcpyAsync(&(data_dst[i * nb_elem / nstreams]),
                                     &(data_src[i * nb_elem / nstreams]),
                                     sizeof(T_data) * nb_elem / nstreams, flag,
@@ -640,23 +640,23 @@ int CarmaHostObj<T_data>::cpy_obj(CarmaObj<T_data> *carma_obj,
   }
   return EXIT_SUCCESS;
 }
-template int CarmaHostObj<float>::cpy_obj(CarmaObj<float> *data,
+template int32_t CarmaHostObj<float>::cpy_obj(CarmaObj<float> *data,
                                             cudaMemcpyKind flag);
-template int CarmaHostObj<double>::cpy_obj(CarmaObj<double> *data,
+template int32_t CarmaHostObj<double>::cpy_obj(CarmaObj<double> *data,
                                              cudaMemcpyKind flag);
-template int CarmaHostObj<int>::cpy_obj(CarmaObj<int> *data,
+template int32_t CarmaHostObj<int32_t>::cpy_obj(CarmaObj<int32_t> *data,
                                           cudaMemcpyKind flag);
-template int CarmaHostObj<unsigned int>::cpy_obj(
-    CarmaObj<unsigned int> *data, cudaMemcpyKind flag);
-template int CarmaHostObj<cuFloatComplex>::cpy_obj(
+template int32_t CarmaHostObj<uint32_t>::cpy_obj(
+    CarmaObj<uint32_t> *data, cudaMemcpyKind flag);
+template int32_t CarmaHostObj<cuFloatComplex>::cpy_obj(
     CarmaObj<cuFloatComplex> *data, cudaMemcpyKind flag);
-template int CarmaHostObj<cuDoubleComplex>::cpy_obj(
+template int32_t CarmaHostObj<cuDoubleComplex>::cpy_obj(
     CarmaObj<cuDoubleComplex> *data, cudaMemcpyKind flag);
 
 template <class T_data>
-int CarmaHostObj<T_data>::cpy_obj(CarmaObj<T_data> *carma_obj,
-                                    cudaMemcpyKind flag, unsigned int stream) {
-  unsigned int nb_streams = this->streams->get_nb_streams();
+int32_t CarmaHostObj<T_data>::cpy_obj(CarmaObj<T_data> *carma_obj,
+                                    cudaMemcpyKind flag, uint32_t stream) {
+  uint32_t nb_streams = this->streams->get_nb_streams();
   if (stream >= nb_streams) return EXIT_FAILURE;
 
   CarmaStreams streams_tmp = *(this->streams);
@@ -672,18 +672,18 @@ int CarmaHostObj<T_data>::cpy_obj(CarmaObj<T_data> *carma_obj,
     return EXIT_FAILURE;
   return EXIT_SUCCESS;
 }
-template int CarmaHostObj<float>::cpy_obj(CarmaObj<float> *data,
+template int32_t CarmaHostObj<float>::cpy_obj(CarmaObj<float> *data,
                                             cudaMemcpyKind flag,
-                                            unsigned int stream);
-template int CarmaHostObj<double>::cpy_obj(CarmaObj<double> *data,
+                                            uint32_t stream);
+template int32_t CarmaHostObj<double>::cpy_obj(CarmaObj<double> *data,
                                              cudaMemcpyKind flag,
-                                             unsigned int stream);
-template int CarmaHostObj<int>::cpy_obj(CarmaObj<int> *data,
+                                             uint32_t stream);
+template int32_t CarmaHostObj<int32_t>::cpy_obj(CarmaObj<int32_t> *data,
                                           cudaMemcpyKind flag,
-                                          unsigned int stream);
-template int CarmaHostObj<unsigned int>::cpy_obj(
-    CarmaObj<unsigned int> *data, cudaMemcpyKind flag, unsigned int stream);
-template int CarmaHostObj<cuFloatComplex>::cpy_obj(
-    CarmaObj<cuFloatComplex> *data, cudaMemcpyKind flag, unsigned int stream);
-template int CarmaHostObj<cuDoubleComplex>::cpy_obj(
-    CarmaObj<cuDoubleComplex> *data, cudaMemcpyKind flag, unsigned int stream);
+                                          uint32_t stream);
+template int32_t CarmaHostObj<uint32_t>::cpy_obj(
+    CarmaObj<uint32_t> *data, cudaMemcpyKind flag, uint32_t stream);
+template int32_t CarmaHostObj<cuFloatComplex>::cpy_obj(
+    CarmaObj<cuFloatComplex> *data, cudaMemcpyKind flag, uint32_t stream);
+template int32_t CarmaHostObj<cuDoubleComplex>::cpy_obj(
+    CarmaObj<cuDoubleComplex> *data, cudaMemcpyKind flag, uint32_t stream);

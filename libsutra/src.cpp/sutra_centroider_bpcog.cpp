@@ -18,13 +18,13 @@
 
 template <class Tin, class T>
 SutraCentroiderBpcog<Tin, T>::SutraCentroiderBpcog(
-    CarmaContext *context, SutraWfs *wfs, long nvalid, float offset,
-    float scale, bool filter_TT, int device, int nmax)
+    CarmaContext *context, SutraWfs *wfs, int64_t nvalid, float offset,
+    float scale, bool filter_TT, int32_t device, int32_t nmax)
     : SutraCentroider<Tin, T>(context, wfs, nvalid, offset, scale, filter_TT,
                                device) {
   this->nslopes = 2 * nvalid;
   this->nmax = nmax;
-  long dims_data2[2] = {1, this->nslopes};
+  int64_t dims_data2[2] = {1, this->nslopes};
   this->d_centroids_ref = new CarmaObj<T>(this->current_context, dims_data2);
   this->d_centroids_ref->reset();
 
@@ -32,7 +32,7 @@ SutraCentroiderBpcog<Tin, T>::SutraCentroiderBpcog(
     this->init_TT_filter();
   }
 
-  long dims_data[3];
+  int64_t dims_data[3];
   dims_data[0] = 2;
   dims_data[1] = nmax;
   dims_data[2] = nvalid;
@@ -53,14 +53,14 @@ string SutraCentroiderBpcog<Tin, T>::get_type() {
 }
 
 template <class Tin, class T>
-int SutraCentroiderBpcog<Tin, T>::set_nmax(int nmax) {
+int32_t SutraCentroiderBpcog<Tin, T>::set_nmax(int32_t nmax) {
   this->current_context->set_active_device(this->device, 1);
   if(nmax != this->nmax) {
     this->nmax = nmax;
     delete this->d_bpix;
     delete this->d_bpind;
 
-    long dims_data[3];
+    int64_t dims_data[3];
     dims_data[0] = 2;
     dims_data[1] = nmax;
     dims_data[2] = this->nvalid;
@@ -72,9 +72,9 @@ int SutraCentroiderBpcog<Tin, T>::set_nmax(int nmax) {
 }
 
 template <class Tin, class T>
-int SutraCentroiderBpcog<Tin, T>::get_cog(float *img, float *intensities,
-                                            T *centroids, int nvalid, int npix,
-                                            int ntot, cudaStream_t stream) {
+int32_t SutraCentroiderBpcog<Tin, T>::get_cog(float *img, float *intensities,
+                                            T *centroids, int32_t nvalid, int32_t npix,
+                                            int32_t ntot, cudaStream_t stream) {
   this->current_context->set_active_device(this->device, 1);
 
   get_centroids(ntot, (npix * npix), nvalid, npix, img, centroids,
@@ -90,7 +90,7 @@ int SutraCentroiderBpcog<Tin, T>::get_cog(float *img, float *intensities,
 }
 
 template <class Tin, class T>
-int SutraCentroiderBpcog<Tin, T>::get_cog(float *intensities, T *slopes,
+int32_t SutraCentroiderBpcog<Tin, T>::get_cog(float *intensities, T *slopes,
                                             bool noise) {
   if (this->wfs != nullptr) {
     if (noise || this->wfs->roket == false)
@@ -107,7 +107,7 @@ int SutraCentroiderBpcog<Tin, T>::get_cog(float *intensities, T *slopes,
 }
 
 template <class Tin, class T>
-int SutraCentroiderBpcog<Tin, T>::get_cog() {
+int32_t SutraCentroiderBpcog<Tin, T>::get_cog() {
   if (this->wfs != nullptr)
     return this->get_cog(*(this->wfs->d_intensities), *(this->wfs->d_slopes),
                          true);
@@ -121,27 +121,27 @@ template class SutraCentroiderBpcog<uint16_t, float>;
 
 #ifdef CAN_DO_HALF
 template <>
-int SutraCentroiderBpcog<float, half>::get_cog(float *intensities,
+int32_t SutraCentroiderBpcog<float, half>::get_cog(float *intensities,
                                                  half *slopes, bool noise) {
   DEBUG_TRACE("Not implemented for half precision");
   return EXIT_FAILURE;
 }
 
 template <>
-int SutraCentroiderBpcog<uint16_t, half>::get_cog(float *intensities,
+int32_t SutraCentroiderBpcog<uint16_t, half>::get_cog(float *intensities,
                                                     half *slopes, bool noise) {
   DEBUG_TRACE("Not implemented for half precision");
   return EXIT_FAILURE;
 }
 
 template <>
-int SutraCentroiderBpcog<float, half>::get_cog() {
+int32_t SutraCentroiderBpcog<float, half>::get_cog() {
   DEBUG_TRACE("Not implemented for half precision");
   return EXIT_FAILURE;
 }
 
 template <>
-int SutraCentroiderBpcog<uint16_t, half>::get_cog() {
+int32_t SutraCentroiderBpcog<uint16_t, half>::get_cog() {
   DEBUG_TRACE("Not implemented for half precision");
   return EXIT_FAILURE;
 }

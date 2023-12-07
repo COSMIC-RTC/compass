@@ -24,20 +24,20 @@
 
 using std::vector;
 
-typedef std::pair<std::string, int> type_screen;
+typedef std::pair<std::string, int32_t> type_screen;
 
 class SutraTarget {
  public:
-  int ntargets;
+  int32_t ntargets;
   vector<SutraSource *> d_targets;
 
  public:
-  SutraTarget(CarmaContext *context, SutraTelescope *d_tel, int ntargets,
+  SutraTarget(CarmaContext *context, SutraTelescope *d_tel, int32_t ntargets,
                float *xpos, float *ypos, float *lambda, float *mag, float zerop,
-               long *sizes, int Npts, int device);
+               int64_t *sizes, int32_t Npts, int32_t device);
   ~SutraTarget();
 
-  int get_phase(int ntarget, float *dest);
+  int32_t get_phase(int32_t ntarget, float *dest);
 };
 
 #endif  // _SUTRA_TARGET_H_

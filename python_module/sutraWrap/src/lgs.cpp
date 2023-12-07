@@ -13,16 +13,24 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <wyrm>
+#include "sutraWrapUtils.hpp"
 
 #include <sutra_lgs.h>
 
 namespace py = pybind11;
 
+int32_t lgs_init(SutraLGS &sl, int32_t nprof, float hg, float h0, float deltah,
+             float pixsize, ArrayFStyle<float> &doffaxis, 
+             ArrayFStyle<float> &prof1d, ArrayFStyle<float> &profcum, 
+             ArrayFStyle<float> &beam, 
+             ArrayFStyle<std::complex<float>> &ftbeam,
+             ArrayFStyle<float> &azimuth) {
+    return sl.lgs_init(nprof, hg, h0, deltah, pixsize, doffaxis.mutable_data(), 
+                       prof1d.mutable_data(), profcum.mutable_data(), beam.mutable_data(), 
+                       reinterpret_cast<cuFloatComplex *>(ftbeam.mutable_data()), azimuth.mutable_data());
+}
+
 void declare_lgs(py::module &mod) {
-  auto carmaWrap = py::module::import("carmaWrap");
-  auto complex128 = carmaWrap.attr("complex128");
-  auto complex64 = carmaWrap.attr("complex64");
   py::class_<SutraLGS>(mod, "LGS")
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
@@ -102,7 +110,7 @@ void declare_lgs(py::module &mod) {
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
 
-      .def("lgs_init", wy::colCast(&SutraLGS::lgs_init), R"pbdoc(
+      .def("lgs_init", &lgs_init, R"pbdoc(
     Initialize LGS object
 
     Args:

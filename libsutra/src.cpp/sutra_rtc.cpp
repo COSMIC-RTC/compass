@@ -41,32 +41,32 @@ SutraRtc<Tin, T, Tout>::~SutraRtc() {
 }
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::remove_centroider(int ncentro) {
+int32_t SutraRtc<Tin, T, Tout>::remove_centroider(int32_t ncentro) {
   delete this->d_centro[ncentro];
   this->d_centro.erase(this->d_centro.begin() + ncentro);
   return EXIT_SUCCESS;
 }
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::remove_controller(int ncontrol) {
+int32_t SutraRtc<Tin, T, Tout>::remove_controller(int32_t ncontrol) {
   delete this->d_control[ncontrol];
   this->d_control.erase(this->d_control.begin() + ncontrol);
   return EXIT_SUCCESS;
 }
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::add_centroider(CarmaContext *context, long nvalid,
+int32_t SutraRtc<Tin, T, Tout>::add_centroider(CarmaContext *context, int64_t nvalid,
                                            float offset, float scale,
-                                           bool filter_TT, long device,
+                                           bool filter_TT, int64_t device,
                                            std::string typec) {
   return add_centroider(context, nvalid, offset, scale, filter_TT, device,
                         typec, nullptr);
 }
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::add_centroider(CarmaContext *context, long nvalid,
+int32_t SutraRtc<Tin, T, Tout>::add_centroider(CarmaContext *context, int64_t nvalid,
                                            float offset, float scale,
-                                           bool filter_TT, long device,
+                                           bool filter_TT, int64_t device,
                                            std::string typec, SutraWfs *wfs) {
   return add_centroider_impl(context, nvalid, offset, scale, filter_TT, device,
                              typec, wfs, std::is_same<T, half>());
@@ -74,10 +74,10 @@ int SutraRtc<Tin, T, Tout>::add_centroider(CarmaContext *context, long nvalid,
 
 template <typename Tin, typename T, typename Tout>
 template <typename Q>
-typename std::enable_if<!std::is_same<Q, half>::value, int>::type
-SutraRtc<Tin, T, Tout>::add_centroider_impl(CarmaContext *context, long nvalid,
+typename std::enable_if<!std::is_same<Q, half>::value, int32_t>::type
+SutraRtc<Tin, T, Tout>::add_centroider_impl(CarmaContext *context, int64_t nvalid,
                                             float offset, float scale,
-                                            bool filter_TT, long device,
+                                            bool filter_TT, int64_t device,
                                             std::string typec, SutraWfs *wfs,
                                             std::false_type) {
   if (typec.compare("bpcog") == 0)
@@ -118,10 +118,10 @@ SutraRtc<Tin, T, Tout>::add_centroider_impl(CarmaContext *context, long nvalid,
 
 #ifdef CAN_DO_HALF
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::add_centroider_impl(CarmaContext *context,
-                                                long nvalid, float offset,
+int32_t SutraRtc<Tin, T, Tout>::add_centroider_impl(CarmaContext *context,
+                                                int64_t nvalid, float offset,
                                                 float scale, bool filter_TT,
-                                                long device, std::string typec,
+                                                int64_t device, std::string typec,
                                                 SutraWfs *wfs, std::true_type) {
   if (typec.compare("cog") == 0)
     this->d_centro.push_back(new SutraCentroiderCog<Tin, T>(
@@ -151,12 +151,12 @@ int SutraRtc<Tin, T, Tout>::add_centroider_impl(CarmaContext *context,
 #endif
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::add_controller(CarmaContext *context, std::string typec,long device,
-                    float delay, int nslope, int nactu,
-                    int nslope_buffers, int nstates, int nstate_buffers, int nmodes,
-                    int niir_in, int niir_out, bool polc,bool is_modal,
-                    SutraDms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro,
-                    int Nphi, bool wfs_direction) {
+int32_t SutraRtc<Tin, T, Tout>::add_controller(CarmaContext *context, std::string typec,int64_t device,
+                    float delay, int32_t nslope, int32_t nactu,
+                    int32_t nslope_buffers, int32_t nstates, int32_t nstate_buffers, int32_t nmodes,
+                    int32_t niir_in, int32_t niir_out, bool polc,bool is_modal,
+                    SutraDms *dms, int32_t *idx_dms, int32_t ndm, int32_t *idx_centro, int32_t ncentro,
+                    int32_t Nphi, bool wfs_direction) {
   return add_controller_impl(context, this->d_control, typec,device,
                         delay, nslope, nactu, nslope_buffers, nstates, nstate_buffers, nmodes,
                         niir_in, niir_out, polc, is_modal, dms, idx_dms, ndm,
@@ -165,42 +165,37 @@ int SutraRtc<Tin, T, Tout>::add_controller(CarmaContext *context, std::string ty
 
 template <typename Tin, typename T, typename Tout>
 template <typename Q>
-typename std::enable_if<!std::is_same<Q, half>::value, int>::type
+typename std::enable_if<!std::is_same<Q, half>::value, int32_t>::type
 SutraRtc<Tin, T, Tout>::add_controller_impl(
     CarmaContext *context, vector<SutraController<T, Tout> *> &d_control,
-    std::string typec,long device, float delay, int nslope, int nactu,
-    int nslope_buffers, int nstates, int nstate_buffers, int nmodes,
-    int niir_in, int niir_out, bool polc,bool is_modal,
-    SutraDms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro,
-    int Nphi, bool wfs_direction, std::false_type) {
+    std::string typec,int64_t device, float delay, int32_t nslope, int32_t nactu,
+    int32_t nslope_buffers, int32_t nstates, int32_t nstate_buffers, int32_t nmodes,
+    int32_t niir_in, int32_t niir_out, bool polc,bool is_modal,
+    SutraDms *dms, int32_t *idx_dms, int32_t ndm, int32_t *idx_centro, int32_t ncentro,
+    int32_t Nphi, bool wfs_direction, std::false_type) {
   if (typec.compare("ls") == 0) {
-    d_control.push_back(new sutra_controller_ls<T, Tout>(
+    d_control.push_back(new SutraControllerLs<T, Tout>(
         context, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro,
         ncentro));
   } else if (typec.compare("geo") == 0) {
-    d_control.push_back(new sutra_controller_geo<T, Tout>(
+    d_control.push_back(new SutraControllerGeo<T, Tout>(
         context, nactu, Nphi, delay, dms, idx_dms, ndm, idx_centro, ncentro,
         wfs_direction));
 
+  } else if (typec.compare("mv") == 0) {
+    d_control.push_back(new SutraControllerMv<T, Tout>(
+        context, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro,
+        ncentro));
   } else if (typec.compare("cured") == 0) {
     d_control.push_back(new SutraControllerCured<T, Tout>(
         context, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro,
         ncentro));
-  } else if (typec.compare("mv") == 0) {
-    d_control.push_back(new sutra_controller_mv<T, Tout>(
-        context, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro,
-        ncentro));
   } else if (typec.compare("generic") == 0) {
-    d_control.push_back(new sutra_controller_generic<T, Tout>(
+    d_control.push_back(new SutraControllerGeneric<T, Tout>(
         context, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro,
         ncentro, nstates));
-    // } else if ((typec.compare("kalman_GPU") == 0) ||
-    //            (typec.compare("kalman_CPU") == 0)) {
-    //   d_control.push_back(
-    //       new sutra_controller_kalman(context, nslope, nactu, dms, idx_dms,
-    //       ndm));
   } else if(typec.compare("generic_linear") == 0){
-    d_control.push_back(new sutra_controller_generic_linear<T, Tout>( context,
+    d_control.push_back(new SutraControllerGenericLinear<T, Tout>( context,
     nslope, nslope_buffers, nactu, nstates, nstate_buffers, nmodes,
     niir_in, niir_out, delay, polc, is_modal,
     dms, idx_dms, ndm, idx_centro, ncentro));
@@ -212,15 +207,15 @@ SutraRtc<Tin, T, Tout>::add_controller_impl(
 }
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::add_controller_impl(
+int32_t SutraRtc<Tin, T, Tout>::add_controller_impl(
     CarmaContext *context, vector<SutraController<T, Tout> *> &d_control,
-    std::string typec,long device, float delay, int nslope, int nactu,
-    int nslope_buffers, int nstates, int nstate_buffers, int nmodes,
-    int niir_in, int niir_out, bool polc,bool is_modal,
-    SutraDms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro,
-    int Nphi, bool wfs_direction, std::true_type) {
+    std::string typec,int64_t device, float delay, int32_t nslope, int32_t nactu,
+    int32_t nslope_buffers, int32_t nstates, int32_t nstate_buffers, int32_t nmodes,
+    int32_t niir_in, int32_t niir_out, bool polc,bool is_modal,
+    SutraDms *dms, int32_t *idx_dms, int32_t ndm, int32_t *idx_centro, int32_t ncentro,
+    int32_t Nphi, bool wfs_direction, std::true_type) {
   if (typec.compare("generic") == 0) {
-    d_control.push_back(new sutra_controller_generic<T, Tout>(
+    d_control.push_back(new SutraControllerGeneric<T, Tout>(
         context, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro,
         ncentro, nstates));
 
@@ -232,12 +227,12 @@ int SutraRtc<Tin, T, Tout>::add_controller_impl(
 }
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::do_imat(int ncntrl, SutraDms *ydm, int kernconv) {
+int32_t SutraRtc<Tin, T, Tout>::do_imat(int32_t ncntrl, SutraDms *ydm, int32_t kernconv) {
   return do_imat_impl(ncntrl, ydm, kernconv, std::is_same<T, float>());
 }
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::do_imat_impl(int ncntrl, SutraDms *ydm, int kernconv,
+int32_t SutraRtc<Tin, T, Tout>::do_imat_impl(int32_t ncntrl, SutraDms *ydm, int32_t kernconv,
                                          std::false_type) {
   DEBUG_TRACE("Not implemented for this computation type");
   return EXIT_FAILURE;
@@ -245,17 +240,17 @@ int SutraRtc<Tin, T, Tout>::do_imat_impl(int ncntrl, SutraDms *ydm, int kernconv
 
 template <typename Tin, typename T, typename Tout>
 template <typename Q>
-typename std::enable_if<std::is_same<Q, float>::value, int>::type
-SutraRtc<Tin, T, Tout>::do_imat_impl(int ncntrl, SutraDms *ydm, int kernconv,
+typename std::enable_if<std::is_same<Q, float>::value, int32_t>::type
+SutraRtc<Tin, T, Tout>::do_imat_impl(int32_t ncntrl, SutraDms *ydm, int32_t kernconv,
                                      std::true_type) {
   CarmaObj<T> *d_imat = NULL;
   if (this->d_control[ncntrl]->get_type().compare("ls") == 0) {
-    sutra_controller_ls<T, Tout> *control =
-        dynamic_cast<sutra_controller_ls<T, Tout> *>(this->d_control[ncntrl]);
+    SutraControllerLs<T, Tout> *control =
+        dynamic_cast<SutraControllerLs<T, Tout> *>(this->d_control[ncntrl]);
     d_imat = control->d_imat;
   } else if (this->d_control[ncntrl]->get_type().compare("mv") == 0) {
-    sutra_controller_mv<T, Tout> *control =
-        dynamic_cast<sutra_controller_mv<T, Tout> *>(this->d_control[ncntrl]);
+    SutraControllerMv<T, Tout> *control =
+        dynamic_cast<SutraControllerMv<T, Tout> *>(this->d_control[ncntrl]);
     d_imat = control->d_imat;
   } else {
     DEBUG_TRACE("Controller needs to be LS or MV\n");
@@ -271,7 +266,7 @@ SutraRtc<Tin, T, Tout>::do_imat_impl(int ncntrl, SutraDms *ydm, int kernconv,
     if (dm->type == "tt") {
       for (size_t idxh = 0; idxh < this->d_control[ncntrl]->centro_idx.size();
            idxh++) {
-        int idx_cntr = this->d_control[ncntrl]->centro_idx[idxh];
+        int32_t idx_cntr = this->d_control[ncntrl]->centro_idx[idxh];
         if (this->d_centro[idx_cntr]->filter_TT) {
           std::cout << "Measuring TT reference for centro : " << idx_cntr
                     << std::endl;
@@ -346,8 +341,8 @@ SutraRtc<Tin, T, Tout>::do_imat_impl(int ncntrl, SutraDms *ydm, int kernconv,
   }
 
   p = this->d_control[ncntrl]->d_dmseen.begin();
-  int inds1 = 0;
-  int cc2 = 0;
+  int32_t inds1 = 0;
+  int32_t cc2 = 0;
 
   std::cout << "Doing imat..." << std::endl;
   while (p != this->d_control[ncntrl]->d_dmseen.end()) {
@@ -355,14 +350,14 @@ SutraRtc<Tin, T, Tout>::do_imat_impl(int ncntrl, SutraDms *ydm, int kernconv,
     ProgressBar bar{option::BarWidth{50}, option::ForegroundColor{Color::white},
                     option::ShowElapsedTime{true}, option::ShowRemainingTime{true},
                     option::PrefixText{"DM" + carma_utils::to_string(cc2)}, option::MaxProgress{dm->nactus}};
-    for (int j = 0; j < dm->nactus; ++j) {
+    for (int32_t j = 0; j < dm->nactus; ++j) {
       // Push
       dm->comp_oneactu(j, dm->push4imat);
 
       this->comp_images_imat(ydm, kernconv);
       do_centroids(ncntrl, true);
 
-      int device = this->d_control[ncntrl]->d_centroids->get_device();
+      int32_t device = this->d_control[ncntrl]->d_centroids->get_device();
       this->d_control[ncntrl]->d_centroids->scale(0.5f / dm->push4imat, 1);
       this->d_control[ncntrl]->d_centroids->copy_into(
           d_imat->get_data_at(inds1), this->d_control[ncntrl]->nslope());
@@ -392,15 +387,15 @@ SutraRtc<Tin, T, Tout>::do_imat_impl(int ncntrl, SutraDms *ydm, int kernconv,
 }
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::do_imat_basis(int ncntrl, SutraDms *ydm, int nModes,
-                                          T *m2v, T *pushAmpl, int kernconv) {
+int32_t SutraRtc<Tin, T, Tout>::do_imat_basis(int32_t ncntrl, SutraDms *ydm, int32_t nModes,
+                                          T *m2v, T *pushAmpl, int32_t kernconv) {
   return do_imat_basis_impl(ncntrl, ydm, nModes, m2v, pushAmpl, kernconv,
                             std::is_same<T, float>());
 }
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::do_imat_basis_impl(int ncntrl, SutraDms *ydm,
-                                               int nModes, T *m2v, T *pushAmpl, int kernconv,
+int32_t SutraRtc<Tin, T, Tout>::do_imat_basis_impl(int32_t ncntrl, SutraDms *ydm,
+                                               int32_t nModes, T *m2v, T *pushAmpl, int32_t kernconv,
                                                std::false_type) {
   DEBUG_TRACE("Not implemented for this computation type");
   return EXIT_FAILURE;
@@ -408,29 +403,29 @@ int SutraRtc<Tin, T, Tout>::do_imat_basis_impl(int ncntrl, SutraDms *ydm,
 
 template <typename Tin, typename T, typename Tout>
 template <typename Q>
-typename std::enable_if<std::is_same<Q, float>::value, int>::type
-SutraRtc<Tin, T, Tout>::do_imat_basis_impl(int ncntrl, SutraDms *ydm,
-                                           int nModes, T *m2v, T *pushAmpl, int kernconv,
+typename std::enable_if<std::is_same<Q, float>::value, int32_t>::type
+SutraRtc<Tin, T, Tout>::do_imat_basis_impl(int32_t ncntrl, SutraDms *ydm,
+                                           int32_t nModes, T *m2v, T *pushAmpl, int32_t kernconv,
                                            std::true_type) {
   CarmaObj<T> d_m2v(this->d_control[ncntrl]->current_context,
-                    std::vector<long>{2, ydm->nact_total(), nModes}.data(),
+                    std::vector<int64_t>{2, ydm->nact_total(), nModes}.data(),
                     m2v);
   CarmaObj<T> d_comm(this->d_control[ncntrl]->current_context,
-                     std::vector<long>{1, ydm->nact_total()}.data());
+                     std::vector<int64_t>{1, ydm->nact_total()}.data());
 
   CarmaObj<T> *d_imat = NULL;
 
   if (this->d_control[ncntrl]->get_type().compare("ls") == 0) {
-    sutra_controller_ls<T, Tout> *control =
-        dynamic_cast<sutra_controller_ls<T, Tout> *>(this->d_control[ncntrl]);
-    long dims[3] = {2, control->d_imat->get_dims()[1], nModes};
+    SutraControllerLs<T, Tout> *control =
+        dynamic_cast<SutraControllerLs<T, Tout> *>(this->d_control[ncntrl]);
+    int64_t dims[3] = {2, control->d_imat->get_dims()[1], nModes};
     d_imat = new CarmaObj<T>(this->d_control[ncntrl]->current_context, dims);
     delete control->d_imat;
     control->d_imat = d_imat;
   } else if (this->d_control[ncntrl]->get_type().compare("mv") == 0) {
-    sutra_controller_mv<T, Tout> *control =
-        dynamic_cast<sutra_controller_mv<T, Tout> *>(this->d_control[ncntrl]);
-    long dims[3] = {2, control->d_imat->get_dims()[1], nModes};
+    SutraControllerMv<T, Tout> *control =
+        dynamic_cast<SutraControllerMv<T, Tout> *>(this->d_control[ncntrl]);
+    int64_t dims[3] = {2, control->d_imat->get_dims()[1], nModes};
     d_imat = new CarmaObj<T>(this->d_control[ncntrl]->current_context, dims);
     delete control->d_imat;
     control->d_imat = d_imat;
@@ -438,19 +433,19 @@ SutraRtc<Tin, T, Tout>::do_imat_basis_impl(int ncntrl, SutraDms *ydm,
     DEBUG_TRACE("Controller needs to be LS or MV\n");
     return EXIT_SUCCESS;
   }
-  int inds1 = 0;
+  int32_t inds1 = 0;
 
   std::cout << "Doing imat modal..." << std::endl;
     ProgressBar bar{option::BarWidth{50}, option::ForegroundColor{Color::white},
                     option::ShowElapsedTime{true}, option::ShowRemainingTime{true},
                     option::PrefixText{"Modal iMat"}, option::MaxProgress{nModes}};
-  for (int j = 0; j < nModes; ++j) {
+  for (int32_t j = 0; j < nModes; ++j) {
     // For each mode
     d_comm.copy_from(d_m2v.get_data_at(j * ydm->nact_total()),
                      ydm->nact_total());
     d_comm.scale(pushAmpl[j], 1);
     // Push
-    int actuCount = 0;
+    int32_t actuCount = 0;
     vector<SutraDm *>::iterator p = this->d_control[ncntrl]->d_dmseen.begin();
     while (p != this->d_control[ncntrl]->d_dmseen.end()) {
       // Set each dm
@@ -461,7 +456,7 @@ SutraRtc<Tin, T, Tout>::do_imat_basis_impl(int ncntrl, SutraDms *ydm,
     }
     this->comp_images_imat(ydm, kernconv);  // Raytrace & compute all WFS
     do_centroids(ncntrl, true);
-    int device = this->d_control[ncntrl]->d_centroids->get_device();
+    int32_t device = this->d_control[ncntrl]->d_centroids->get_device();
     this->d_control[ncntrl]->d_centroids->scale(0.5f / pushAmpl[j], 1);
     this->d_control[ncntrl]->d_centroids->copy_into(
         d_imat->get_data_at(inds1), this->d_control[ncntrl]->nslope());
@@ -495,7 +490,7 @@ SutraRtc<Tin, T, Tout>::do_imat_basis_impl(int ncntrl, SutraDms *ydm,
 }
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::comp_images_imat(SutraDms *ydm, int kernconv) {
+int32_t SutraRtc<Tin, T, Tout>::comp_images_imat(SutraDms *ydm, int32_t kernconv) {
   for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
     SutraWfs *wfs = this->d_centro[idx_cntr]->wfs;
     float tmp_noise = wfs->noise;
@@ -513,42 +508,42 @@ int SutraRtc<Tin, T, Tout>::comp_images_imat(SutraDms *ydm, int kernconv) {
 }
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::do_imat_geom(int ncntrl, SutraDms *ydm, int type) {
+int32_t SutraRtc<Tin, T, Tout>::do_imat_geom(int32_t ncntrl, SutraDms *ydm, int32_t type) {
   return do_imat_geom_impl(ncntrl, ydm, type, std::is_same<T, float>());
 }
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::do_imat_geom_impl(int ncntrl, SutraDms *ydm,
-                                              int type, std::false_type) {
+int32_t SutraRtc<Tin, T, Tout>::do_imat_geom_impl(int32_t ncntrl, SutraDms *ydm,
+                                              int32_t type, std::false_type) {
   DEBUG_TRACE("Not implemented for this computation type");
   return EXIT_FAILURE;
 }
 
 template <typename Tin, typename T, typename Tout>
 template <typename Q>
-typename std::enable_if<std::is_same<Q, float>::value, int>::type
-SutraRtc<Tin, T, Tout>::do_imat_geom_impl(int ncntrl, SutraDms *ydm, int type,
+typename std::enable_if<std::is_same<Q, float>::value, int32_t>::type
+SutraRtc<Tin, T, Tout>::do_imat_geom_impl(int32_t ncntrl, SutraDms *ydm, int32_t type,
                                           std::true_type) {
   vector<SutraDm *>::iterator p;
   p = this->d_control[ncntrl]->d_dmseen.begin();
-  int inds1, inds2;
+  int32_t inds1, inds2;
   inds1 = 0;
   while (p != this->d_control[ncntrl]->d_dmseen.end()) {
     SutraDm *dm = *p;
-    for (int j = 0; j < dm->nactus; j++) {
+    for (int32_t j = 0; j < dm->nactus; j++) {
       dm->comp_oneactu(j, dm->push4imat);  //
       inds2 = 0;
       for (size_t idx_cntr = 0; idx_cntr < (this->d_control).size();
            idx_cntr++) {
         CarmaObj<T> *d_imat;
         if (this->d_control[ncntrl]->get_type().compare("ls") == 0) {
-          sutra_controller_ls<T, Tout> *control =
-              dynamic_cast<sutra_controller_ls<T, Tout> *>(
+          SutraControllerLs<T, Tout> *control =
+              dynamic_cast<SutraControllerLs<T, Tout> *>(
                   this->d_control[ncntrl]);
           d_imat = control->d_imat;
         } else if (this->d_control[ncntrl]->get_type().compare("mv") == 0) {
-          sutra_controller_mv<T, Tout> *control =
-              dynamic_cast<sutra_controller_mv<T, Tout> *>(
+          SutraControllerMv<T, Tout> *control =
+              dynamic_cast<SutraControllerMv<T, Tout> *>(
                   this->d_control[ncntrl]);
           d_imat = control->d_imat;
         } else {
@@ -581,7 +576,7 @@ SutraRtc<Tin, T, Tout>::do_imat_geom_impl(int ncntrl, SutraDms *ydm, int type,
 }
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::do_calibrate_img() {
+int32_t SutraRtc<Tin, T, Tout>::do_calibrate_img() {
   for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
     this->do_calibrate_img(idx_cntr);
   }
@@ -590,10 +585,10 @@ int SutraRtc<Tin, T, Tout>::do_calibrate_img() {
 }
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::do_calibrate_img(int ncntrl) {
+int32_t SutraRtc<Tin, T, Tout>::do_calibrate_img(int32_t ncntrl) {
   for (size_t idxh = 0; idxh < this->d_control[ncntrl]->centro_idx.size();
        idxh++) {
-    int idx_cntr = this->d_control[ncntrl]->centro_idx[idxh];
+    int32_t idx_cntr = this->d_control[ncntrl]->centro_idx[idxh];
     this->d_centro[idx_cntr]->calibrate_img();
   }
 
@@ -601,7 +596,7 @@ int SutraRtc<Tin, T, Tout>::do_calibrate_img(int ncntrl) {
 }
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::do_centroids() {
+int32_t SutraRtc<Tin, T, Tout>::do_centroids() {
   for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
     this->d_centro[idx_cntr]->get_cog();
   }
@@ -610,17 +605,17 @@ int SutraRtc<Tin, T, Tout>::do_centroids() {
 }
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::do_centroids(int ncntrl) {
+int32_t SutraRtc<Tin, T, Tout>::do_centroids(int32_t ncntrl) {
   return do_centroids(ncntrl, true);
 }
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::do_centroids(int ncntrl, bool noise) {
-  int indslope = 0;
+int32_t SutraRtc<Tin, T, Tout>::do_centroids(int32_t ncntrl, bool noise) {
+  int32_t indslope = 0;
 
   for (size_t idxh = 0; idxh < this->d_control[ncntrl]->centro_idx.size();
        idxh++) {
-    int idx_cntr = this->d_control[ncntrl]->centro_idx[idxh];
+    int32_t idx_cntr = this->d_control[ncntrl]->centro_idx[idxh];
     if (this->d_centro[idx_cntr]->wfs != nullptr) {
       this->d_centro[idx_cntr]->get_cog(
           this->d_centro[idx_cntr]->d_intensities->get_data(),
@@ -644,12 +639,12 @@ int SutraRtc<Tin, T, Tout>::do_centroids(int ncntrl, bool noise) {
 }
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::do_centroids_geom(int ncntrl, int type) {
+int32_t SutraRtc<Tin, T, Tout>::do_centroids_geom(int32_t ncntrl, int32_t type) {
   return do_centroids_geom_impl(ncntrl, type, std::is_same<T, float>());
 }
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::do_centroids_geom_impl(int ncntrl, int type,
+int32_t SutraRtc<Tin, T, Tout>::do_centroids_geom_impl(int32_t ncntrl, int32_t type,
                                                    std::false_type) {
   DEBUG_TRACE("Not implemented for this compuation type");
   return EXIT_FAILURE;
@@ -657,14 +652,14 @@ int SutraRtc<Tin, T, Tout>::do_centroids_geom_impl(int ncntrl, int type,
 
 template <typename Tin, typename T, typename Tout>
 template <typename Q>
-typename std::enable_if<std::is_same<Q, float>::value, int>::type
-SutraRtc<Tin, T, Tout>::do_centroids_geom_impl(int ncntrl, int type,
+typename std::enable_if<std::is_same<Q, float>::value, int32_t>::type
+SutraRtc<Tin, T, Tout>::do_centroids_geom_impl(int32_t ncntrl, int32_t type,
                                                std::true_type) {
-  int inds2 = 0;
+  int32_t inds2 = 0;
 
   for (size_t idxh = 0; idxh < this->d_control[ncntrl]->centro_idx.size();
        idxh++) {
-    int idx_cntr = this->d_control[ncntrl]->centro_idx[idxh];
+    int32_t idx_cntr = this->d_control[ncntrl]->centro_idx[idxh];
     SutraWfs *wfs = this->d_centro[idx_cntr]->wfs;
     if (wfs->type == "sh") {
       SutraWfsSH *_wfs = dynamic_cast<SutraWfsSH *>(wfs);
@@ -689,7 +684,7 @@ SutraRtc<Tin, T, Tout>::do_centroids_geom_impl(int ncntrl, int type,
 }
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::do_centroids_ref(int ncntrl) {
+int32_t SutraRtc<Tin, T, Tout>::do_centroids_ref(int32_t ncntrl) {
   typename vector<SutraCentroider<Tin, T> *>::iterator sc;
   sc = this->d_centro.begin();
   while (sc != this->d_centro.end()) {
@@ -698,7 +693,7 @@ int SutraRtc<Tin, T, Tout>::do_centroids_ref(int ncntrl) {
   }
   this->do_centroids(ncntrl);
   sc = this->d_centro.begin();
-  int inds;
+  int32_t inds;
   inds = 0;
   while (sc != this->d_centro.end()) {
     (*sc)->d_centroids_ref->axpy(1.0f, this->d_control[ncntrl]->d_centroids, 1,
@@ -711,10 +706,10 @@ int SutraRtc<Tin, T, Tout>::do_centroids_ref(int ncntrl) {
 }
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::set_centroids_ref(float *centroids_ref) {
+int32_t SutraRtc<Tin, T, Tout>::set_centroids_ref(float *centroids_ref) {
   typename vector<SutraCentroider<Tin, T> *>::iterator sc;
   sc = this->d_centro.begin();
-  int inds;
+  int32_t inds;
   inds = 0;
   while (sc != this->d_centro.end()) {
     (*sc)->set_centroids_ref(&centroids_ref[inds]);
@@ -726,7 +721,7 @@ int SutraRtc<Tin, T, Tout>::set_centroids_ref(float *centroids_ref) {
 }
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::do_control(int ncntrl) {
+int32_t SutraRtc<Tin, T, Tout>::do_control(int32_t ncntrl) {
   if (this->d_control[ncntrl]->open_loop) {
     return EXIT_SUCCESS;
   } else
@@ -736,14 +731,14 @@ int SutraRtc<Tin, T, Tout>::do_control(int ncntrl) {
 }
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::do_clipping(int ncntrl) {
+int32_t SutraRtc<Tin, T, Tout>::do_clipping(int32_t ncntrl) {
   this->d_control[ncntrl]->clip_commands();
 
   return EXIT_SUCCESS;
 }
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::comp_voltage(int ncntrl) {
+int32_t SutraRtc<Tin, T, Tout>::comp_voltage(int32_t ncntrl) {
   this->d_control[ncntrl]->comp_voltage();
   // this->d_control[ncntrl]->command_delay();
 
@@ -751,12 +746,12 @@ int SutraRtc<Tin, T, Tout>::comp_voltage(int ncntrl) {
 }
 
 template <typename Tin, typename T, typename Tout>
-int SutraRtc<Tin, T, Tout>::apply_control(int ncntrl, bool compVoltage) {
+int32_t SutraRtc<Tin, T, Tout>::apply_control(int32_t ncntrl, bool compVoltage) {
   if (compVoltage) comp_voltage(ncntrl);
 
   vector<SutraDm *>::iterator p;
   p = this->d_control[ncntrl]->d_dmseen.begin();
-  int idx = 0;
+  int32_t idx = 0;
   // if ((this->d_control[ncntrl]->get_type().compare("ls") == 0) ||
   //     (this->d_control[ncntrl]->get_type().compare("mv") == 0) ||
   //     (this->d_control[ncntrl]->get_type().compare("geo") == 0)) {
@@ -765,10 +760,10 @@ int SutraRtc<Tin, T, Tout>::apply_control(int ncntrl, bool compVoltage) {
   //   while (p != this->d_control[ncntrl]->d_dmseen.end()) {
   //     SutraDm *dm = *p;
 
-  //     int nstreams = this->d_control[ncntrl]->streams->get_nb_streams();
+  //     int32_t nstreams = this->d_control[ncntrl]->streams->get_nb_streams();
   //     if (nstreams > dm->nactus) {
-  //       for (int i = 0; i < nstreams; i++) {
-  //         int istart = i * dm->nactus / nstreams;
+  //       for (int32_t i = 0; i < nstreams; i++) {
+  //         int32_t istart = i * dm->nactus / nstreams;
   //         carma_safe_call(cudaMemcpyAsync(
   //             dm->d_com->get_data_at(istart),
   //             this->d_control[ncntrl]->d_voltage->get_data_at(idx + istart),

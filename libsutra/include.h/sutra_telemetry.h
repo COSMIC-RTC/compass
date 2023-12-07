@@ -23,7 +23,7 @@
 #include <carma_streams.h>
 #include <map>
 
-typedef std::pair<std::string, int> type_telemetry_pair;
+typedef std::pair<std::string, int32_t> type_telemetry_pair;
 
 class SutraTelemetry {
  protected:
@@ -33,44 +33,44 @@ class SutraTelemetry {
  public:
   SutraTelemetry();
   SutraTelemetry(type_telemetry_pair obj, CarmaHostObj<float> *host_obj,
-                  unsigned int nb_streams);
-  SutraTelemetry(std::string type_obj, int num_obj,
-                  CarmaHostObj<float> *host_obj, unsigned int nb_streams);
+                  uint32_t nb_streams);
+  SutraTelemetry(std::string type_obj, int32_t num_obj,
+                  CarmaHostObj<float> *host_obj, uint32_t nb_streams);
   // SutraTelemetry(const SutraTelemetry& src_sutra_telemetry);
   ~SutraTelemetry();
 
-  // const CarmaHostObj<float>& operator[](int idx) const {return
+  // const CarmaHostObj<float>& operator[](int32_t idx) const {return
   // get_sutra_host_obj(idx);} ;
 
-  int get_nb_streams();
-  int add_stream();
-  int add_stream(int nb);
-  int del_stream();
-  int del_stream(int nb);
-  int del_all_streams();
-  cudaStream_t get_cuda_stream(int stream);
+  int32_t get_nb_streams();
+  int32_t add_stream();
+  int32_t add_stream(int32_t nb);
+  int32_t del_stream();
+  int32_t del_stream(int32_t nb);
+  int32_t del_all_streams();
+  cudaStream_t get_cuda_stream(int32_t stream);
 
-  int get_nbObjs();
-  int add_obj(type_telemetry_pair obj, CarmaHostObj<float> *host_obj);
-  int add_obj(std::string type_obj, int num_obj,
+  int32_t get_nbObjs();
+  int32_t add_obj(type_telemetry_pair obj, CarmaHostObj<float> *host_obj);
+  int32_t add_obj(std::string type_obj, int32_t num_obj,
               CarmaHostObj<float> *host_obj);
-  int del_obj(type_telemetry_pair obj);
-  int del_obj(std::string type_obj, int num_obj);
-  int del_all_objs();
+  int32_t del_obj(type_telemetry_pair obj);
+  int32_t del_obj(std::string type_obj, int32_t num_obj);
+  int32_t del_all_objs();
   CarmaHostObj<float> *get_CarmaHostObj(type_telemetry_pair obj);
-  CarmaHostObj<float> *get_CarmaHostObj(std::string type_obj, int num_obj);
-  // CarmaHostObj<float>* operator[](int idx) {return
+  CarmaHostObj<float> *get_CarmaHostObj(std::string type_obj, int32_t num_obj);
+  // CarmaHostObj<float>* operator[](int32_t idx) {return
   // get_CarmaHostObj(idx);} ;
-  int cpy_obj(std::string type_obj, int num_obj, CarmaObj<float> *d_obj,
+  int32_t cpy_obj(std::string type_obj, int32_t num_obj, CarmaObj<float> *d_obj,
               cudaMemcpyKind flag);
-  int wait_obj(std::string type_obj, int num_obj);
+  int32_t wait_obj(std::string type_obj, int32_t num_obj);
 
-  int wait_stream(int stream);
-  int wait_all_streams();
+  int32_t wait_stream(int32_t stream);
+  int32_t wait_all_streams();
 
   /**< Memory transfer */
-  int fill_from(std::string type_obj, int num_obj, float *data);
-  int fill_into(std::string type_obj, int num_obj, float *data);
+  int32_t fill_from(std::string type_obj, int32_t num_obj, float *data);
+  int32_t fill_into(std::string type_obj, int32_t num_obj, float *data);
 };
 
 #endif  // _SUTRA_TELEMETRY_H_

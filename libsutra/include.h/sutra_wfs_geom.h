@@ -30,27 +30,27 @@ using std::string;
 class SutraWfsGeom : public SutraWfs {
  public:
  public:
-  SutraWfsGeom(CarmaContext *context, SutraTelescope *d_tel, long nxsub,
-                 long nvalid, long nphase, long npup, float pdiam, int device);
+  SutraWfsGeom(CarmaContext *context, SutraTelescope *d_tel, int64_t nxsub,
+                 int64_t nvalid, int64_t nphase, int64_t npup, float pdiam, int32_t device);
   SutraWfsGeom(const SutraWfsGeom &wfs);
   ~SutraWfsGeom();
 
-  int wfs_initarrays(int *phasemap, float *offsets, float *fluxPerSub,
-                     int *validsubsx, int *validsubsy);
-  int slopes_geom(int type, float *slopes);
-  int slopes_geom(int type);
+  int32_t wfs_initarrays(int32_t *phasemap, float *offsets, float *fluxPerSub,
+                     int32_t *validsubsx, int32_t *validsubsy);
+  int32_t slopes_geom(int32_t type, float *slopes);
+  int32_t slopes_geom(int32_t type);
 
-  int define_mpi_rank(int rank, int size) { return EXIT_SUCCESS; }
-  int allocate_buffers(map<vector<int>, cufftHandle *> campli_plans,
-                       map<vector<int>, cufftHandle *> fttotim_plans) {
+  int32_t define_mpi_rank(int32_t rank, int32_t size) { return EXIT_SUCCESS; }
+  int32_t allocate_buffers(map<vector<int32_t>, cufftHandle *> campli_plans,
+                       map<vector<int32_t>, cufftHandle *> fttotim_plans) {
     return EXIT_SUCCESS;
   }
 
-  int fill_binimage(int async) { return 0; }
-  int comp_image() { return 0; }
+  int32_t fill_binimage(int32_t async) { return 0; }
+  int32_t comp_image() { return 0; }
 
  private:
-  int comp_generic() { return 0; }
+  int32_t comp_generic() { return 0; }
 };
 
 #endif  // _SUTRA_WFS_GEOM_H_

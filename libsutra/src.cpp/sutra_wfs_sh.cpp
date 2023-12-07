@@ -22,12 +22,12 @@
 SutraWfsSH::SutraWfsSH(CarmaContext *context, SutraTelescope *d_tel,
                            CarmaObj<cuFloatComplex> *d_camplipup,
                            CarmaObj<cuFloatComplex> *d_camplifoc,
-                           CarmaObj<cuFloatComplex> *d_fttotim, long nxsub,
-                           long nvalid, long npix, long nphase, long nrebin,
-                           long nfft, long ntot, long npup, float pdiam,
-                           float nphotons, float nphot4imat, int lgs,
-                           bool fakecam, int max_flux_per_pix, int max_pix_value,
-                           bool is_low_order, bool roket, int device)
+                           CarmaObj<cuFloatComplex> *d_fttotim, int64_t nxsub,
+                           int64_t nvalid, int64_t npix, int64_t nphase, int64_t nrebin,
+                           int64_t nfft, int64_t ntot, int64_t npup, float pdiam,
+                           float nphotons, float nphot4imat, int32_t lgs,
+                           bool fakecam, int32_t max_flux_per_pix, int32_t max_pix_value,
+                           bool is_low_order, bool roket, int32_t device)
     : SutraWfs(context, d_tel, d_camplipup, d_camplifoc, d_fttotim, "sh",
                 nxsub, nvalid, npix, nphase, nrebin, nfft, ntot, npup, pdiam,
                 nphotons, nphot4imat, lgs, fakecam, max_flux_per_pix, max_pix_value,
@@ -39,13 +39,13 @@ SutraWfsSH::SutraWfsSH(CarmaContext *context, SutraTelescope *d_tel,
       d_fsamplifoc(nullptr),
       fsampli_plan(nullptr) {}
 
-int SutraWfsSH::define_mpi_rank(int rank, int size) {
+int32_t SutraWfsSH::define_mpi_rank(int32_t rank, int32_t size) {
   if (this->device == 0) this->device = rank % current_context->get_ndevice();
 
-  int count = this->nvalid / size;
-  int i;
+  int32_t count = this->nvalid / size;
+  int32_t i;
   this->rank = rank;
-  int r = this->nvalid % size;
+  int32_t r = this->nvalid % size;
   if (rank < r) {
     this->nvalid = this->nvalid / size + 1;
     this->offset = rank * this->nvalid;
@@ -54,8 +54,8 @@ int SutraWfsSH::define_mpi_rank(int rank, int size) {
     this->offset = rank * this->nvalid + r;
   }
 
-  displ_bincube = new int[size];
-  count_bincube = new int[size];
+  displ_bincube = new int32_t[size];
+  count_bincube = new int32_t[size];
   for (i = 0; i < r; i++) {
     count_bincube[i] = npix * npix * (count + 1);
     displ_bincube[i] = i * count_bincube[i];
@@ -68,15 +68,15 @@ int SutraWfsSH::define_mpi_rank(int rank, int size) {
   return EXIT_SUCCESS;
 }
 
-int SutraWfsSH::allocate_buffers(
-    map<vector<int>, cufftHandle *> campli_plans,
-    map<vector<int>, cufftHandle *> fttotim_plans) {
+int32_t SutraWfsSH::allocate_buffers(
+    map<vector<int32_t>, cufftHandle *> campli_plans,
+    map<vector<int32_t>, cufftHandle *> fttotim_plans) {
   current_context->set_active_device(device, 1);
-  long *dims_data1 = new long[2];
+  int64_t *dims_data1 = new int64_t[2];
   dims_data1[0] = 1;
-  long *dims_data2 = new long[3];
+  int64_t *dims_data2 = new int64_t[3];
   dims_data2[0] = 2;
-  long *dims_data3 = new long[4];
+  int64_t *dims_data3 = new int64_t[4];
   dims_data3[0] = 3;
 
   dims_data2[1] = npix * nxsub;
@@ -104,7 +104,7 @@ int SutraWfsSH::allocate_buffers(
   dims_data3[2] = nfft;
 
   dims_data3[3] = nvalid;
-  int mdims[2];
+  int32_t mdims[2];
 
   // this->d_submask = new CarmaObj<float>(current_context, dims_data3); //
   // Useless for SH
@@ -114,13 +114,13 @@ int SutraWfsSH::allocate_buffers(
   if (this->d_camplifoc == nullptr)
     this->d_camplifoc =
         new CarmaObj<cuFloatComplex>(current_context, dims_data3);
-  mdims[0] = (int)dims_data3[1];
-  mdims[1] = (int)dims_data3[2];
+  mdims[0] = (int32_t)dims_data3[1];
+  mdims[1] = (int32_t)dims_data3[2];
 
-  int vector_dims[3] = {mdims[0], mdims[1], (int)dims_data3[3]};
-  vector<int> vdims(vector_dims,
-                    vector_dims + sizeof(vector_dims) / sizeof(int));
-  // vector<int> vdims(dims_data3 + 1, dims_data3 + 4);
+  int32_t vector_dims[3] = {mdims[0], mdims[1], (int32_t)dims_data3[3]};
+  vector<int32_t> vdims(vector_dims,
+                    vector_dims + sizeof(vector_dims) / sizeof(int32_t));
+  // vector<int32_t> vdims(dims_data3 + 1, dims_data3 + 4);
 
   if (campli_plans.find(vdims) == campli_plans.end()) {
     // DEBUG_TRACE("Creating FFT plan : %d %d
@@ -128,9 +128,9 @@ int SutraWfsSH::allocate_buffers(
     cufftHandle *plan = (cufftHandle *)malloc(
         sizeof(cufftHandle));  // = this->d_camplipup->get_plan(); ///< FFT plan
     carmafft_safe_call(cufftPlanMany(plan, 2, mdims, NULL, 1, 0, NULL, 1, 0,
-                                   CUFFT_C2C, (int)dims_data3[3]));
+                                   CUFFT_C2C, (int32_t)dims_data3[3]));
 
-    campli_plans.insert(pair<vector<int>, cufftHandle *>(vdims, plan));
+    campli_plans.insert(pair<vector<int32_t>, cufftHandle *>(vdims, plan));
 
     this->campli_plan = plan;
     // DEBUG_TRACE("FFT plan created");print_mem_info();
@@ -156,7 +156,7 @@ int SutraWfsSH::allocate_buffers(
 
   if (this->ntot != this->nfft) {
     // this is the big array => we use nmaxhr and treat it sequentially
-    int mnmax = 500;
+    int32_t mnmax = 500;
     if (nvalid > 2 * mnmax) {
       nmaxhr = compute_nmaxhr(nvalid);
 
@@ -171,11 +171,11 @@ int SutraWfsSH::allocate_buffers(
       this->d_fttotim =
           new CarmaObj<cuFloatComplex>(current_context, dims_data3);
 
-    mdims[0] = (int)dims_data3[1];
-    mdims[1] = (int)dims_data3[2];
-    int vector_dims[3] = {mdims[0], mdims[1], (int)dims_data3[3]};
-    vector<int> vdims(vector_dims,
-                      vector_dims + sizeof(vector_dims) / sizeof(int));
+    mdims[0] = (int32_t)dims_data3[1];
+    mdims[1] = (int32_t)dims_data3[2];
+    int32_t vector_dims[3] = {mdims[0], mdims[1], (int32_t)dims_data3[3]};
+    vector<int32_t> vdims(vector_dims,
+                      vector_dims + sizeof(vector_dims) / sizeof(int32_t));
 
     if (fttotim_plans.find(vdims) == fttotim_plans.end()) {
       cufftHandle *plan = (cufftHandle *)malloc(
@@ -183,8 +183,8 @@ int SutraWfsSH::allocate_buffers(
       // DEBUG_TRACE("Creating FFT plan :%d %d
       // %d",mdims[0],mdims[1],dims_data3[3]);print_mem_info();
       carmafft_safe_call(cufftPlanMany(plan, 2, mdims, NULL, 1, 0, NULL, 1, 0,
-                                     CUFFT_C2C, (int)dims_data3[3]));
-      fttotim_plans.insert(pair<vector<int>, cufftHandle *>(vdims, plan));
+                                     CUFFT_C2C, (int32_t)dims_data3[3]));
+      fttotim_plans.insert(pair<vector<int32_t>, cufftHandle *>(vdims, plan));
       this->fttotim_plan = plan;
       // DEBUG_TRACE("FFT plan created : ");print_mem_info();
     } else {
@@ -193,7 +193,7 @@ int SutraWfsSH::allocate_buffers(
       this->fttotim_plan = fttotim_plans.at(vdims);
     }
     dims_data1[1] = nfft * nfft;
-    this->d_hrmap = new CarmaObj<int>(current_context, dims_data1);
+    this->d_hrmap = new CarmaObj<int32_t>(current_context, dims_data1);
 
   } else {
     if (this->lgs) {
@@ -202,11 +202,11 @@ int SutraWfsSH::allocate_buffers(
       dims_data3[3] = nvalid;
       // this->d_fttotim = new CarmaObj<cuFloatComplex>(current_context,
       // dims_data3);
-      mdims[0] = (int)dims_data3[1];
-      mdims[1] = (int)dims_data3[2];
-      int vector_dims[3] = {mdims[0], mdims[1], (int)dims_data3[3]};
-      vector<int> vdims(vector_dims,
-                        vector_dims + sizeof(vector_dims) / sizeof(int));
+      mdims[0] = (int32_t)dims_data3[1];
+      mdims[1] = (int32_t)dims_data3[2];
+      int32_t vector_dims[3] = {mdims[0], mdims[1], (int32_t)dims_data3[3]};
+      vector<int32_t> vdims(vector_dims,
+                        vector_dims + sizeof(vector_dims) / sizeof(int32_t));
 
       if (fttotim_plans.find(vdims) == fttotim_plans.end()) {
         // DEBUG_TRACE("Creating FFT plan : %d %d
@@ -214,8 +214,8 @@ int SutraWfsSH::allocate_buffers(
         cufftHandle *plan = (cufftHandle *)malloc(sizeof(
             cufftHandle));  // = this->d_fttotim->get_plan(); ///< FFT plan
         carmafft_safe_call(cufftPlanMany(plan, 2, mdims, NULL, 1, 0, NULL, 1, 0,
-                                       CUFFT_C2C, (int)dims_data3[3]));
-        fttotim_plans.insert(pair<vector<int>, cufftHandle *>(vdims, plan));
+                                       CUFFT_C2C, (int32_t)dims_data3[3]));
+        fttotim_plans.insert(pair<vector<int32_t>, cufftHandle *>(vdims, plan));
         this->fttotim_plan = plan;
         // DEBUG_TRACE("FFT plan created : ");print_mem_info();
       } else {
@@ -236,20 +236,20 @@ int SutraWfsSH::allocate_buffers(
 
   dims_data2[1] = nrebin * nrebin;
   dims_data2[2] = npix * npix;
-  this->d_binmap = new CarmaObj<int>(current_context, dims_data2);
+  this->d_binmap = new CarmaObj<int32_t>(current_context, dims_data2);
 
   dims_data1[1] = nvalid_tot;
   this->d_intensities = new CarmaObj<float>(current_context, dims_data1);
 
   this->d_fluxPerSub = new CarmaObj<float>(current_context, dims_data1);
-  this->d_validsubsx = new CarmaObj<int>(current_context, dims_data1);
-  this->d_validsubsy = new CarmaObj<int>(current_context, dims_data1);
-  this->d_validpuppixx = new CarmaObj<int>(current_context, dims_data1);
-  this->d_validpuppixy = new CarmaObj<int>(current_context, dims_data1);
+  this->d_validsubsx = new CarmaObj<int32_t>(current_context, dims_data1);
+  this->d_validsubsy = new CarmaObj<int32_t>(current_context, dims_data1);
+  this->d_validpuppixx = new CarmaObj<int32_t>(current_context, dims_data1);
+  this->d_validpuppixy = new CarmaObj<int32_t>(current_context, dims_data1);
 
   dims_data2[1] = nphase * nphase;
   dims_data2[2] = nvalid;
-  this->d_phasemap = new CarmaObj<int>(current_context, dims_data2);
+  this->d_phasemap = new CarmaObj<int32_t>(current_context, dims_data2);
 
   dims_data2[1] = nphase * nphase;
   dims_data2[2] = nvalid * 2;
@@ -299,9 +299,9 @@ SutraWfsSH::~SutraWfsSH() {
   // delete this->current_context;
 }
 
-int SutraWfsSH::load_arrays(int *phasemap, int *hrmap, int *binmap,
-                             float *offsets, float *fluxPerSub, int *validsubsx,
-                             int *validsubsy, int *istart, int *jstart,
+int32_t SutraWfsSH::load_arrays(int32_t *phasemap, int32_t *hrmap, int32_t *binmap,
+                             float *offsets, float *fluxPerSub, int32_t *validsubsx,
+                             int32_t *validsubsy, int32_t *istart, int32_t *jstart,
                              float *ttprojmat, cuFloatComplex *kernel) {
   if (this->d_bincube == NULL) {
     DEBUG_TRACE(
@@ -328,7 +328,7 @@ int SutraWfsSH::load_arrays(int *phasemap, int *hrmap, int *binmap,
 // COMPUTATION OF THE SHACK-HARTMANN WAVEFRONT SENSOR  //
 /////////////////////////////////////////////////////////
 
-int SutraWfsSH::comp_generic() {
+int32_t SutraWfsSH::comp_generic() {
   if (this->d_bincube == NULL) {
     DEBUG_TRACE(
         "ERROR : d_bincube not initialized, did you do the allocate_buffers?");
@@ -401,12 +401,12 @@ int SutraWfsSH::comp_generic() {
   // we need to do this sequentially if nvalid > nmaxhr to
   // keep raesonable mem occupancy
   if (this->ntot != this->nfft) {
-    for (int cc = 0; cc < this->nffthr; cc++) {
+    for (int32_t cc = 0; cc < this->nffthr; cc++) {
       carma_safe_call(
           cudaMemset(this->d_fttotim->get_data(), 0,
                      sizeof(cuFloatComplex) * this->d_fttotim->get_nb_elements()));
 
-      int indxstart1, indxstart2 = 0, indxstart3;
+      int32_t indxstart1, indxstart2 = 0, indxstart3;
 
       if ((cc == this->nffthr - 1) && (this->nvalid % this->nmaxhr != 0)) {
         indxstart1 = (this->nfft * this->nfft * this->nvalid) -
@@ -590,7 +590,7 @@ int SutraWfsSH::comp_generic() {
 // a pyramid wfs. The pyramid can also be explicitely asked for, or
 // a roof prism can be asked for as well.
 
-int SutraWfsSH::fill_binimage(int async = 0) {
+int32_t SutraWfsSH::fill_binimage(int32_t async = 0) {
   if (this->d_binimg == NULL) {
     DEBUG_TRACE(
         "ERROR : d_bincube not initialized, did you do the allocate_buffers?");
@@ -614,9 +614,9 @@ int SutraWfsSH::fill_binimage(int async = 0) {
   return EXIT_SUCCESS;
 }
 
-int SutraWfsSH::comp_image(bool noise) {
+int32_t SutraWfsSH::comp_image(bool noise) {
   current_context->set_active_device(device, 1);
-  int result;
+  int32_t result;
   if (noise)
     result = comp_generic();
   else {
@@ -636,8 +636,8 @@ int SutraWfsSH::comp_image(bool noise) {
   return result;
 }
 
-int SutraWfsSH::comp_nphot(float ittime, float optthroughput, float diam,
-                             int nxsub, float zerop, float gsmag,
+int32_t SutraWfsSH::comp_nphot(float ittime, float optthroughput, float diam,
+                             int32_t nxsub, float zerop, float gsmag,
                              float lgsreturnperwatt, float laserpower) {
   this->d_gs->mag = gsmag;
   if (laserpower == 0) {
@@ -656,7 +656,7 @@ int SutraWfsSH::comp_nphot(float ittime, float optthroughput, float diam,
   return EXIT_SUCCESS;
 }
 
-int SutraWfsSH::set_bincube(float *bincube, int nElem) {
+int32_t SutraWfsSH::set_bincube(float *bincube, int32_t nElem) {
   current_context->set_active_device(device, 1);
   if (nElem == this->d_bincube->get_nb_elements())
     this->d_bincube->host2device(bincube);
@@ -665,21 +665,21 @@ int SutraWfsSH::set_bincube(float *bincube, int nElem) {
   return EXIT_SUCCESS;
 }
 
-int SutraWfsSH::set_field_stop(map<vector<int>, cufftHandle *> campli_plans,
-                                float* field_stop, int N) {
+int32_t SutraWfsSH::set_field_stop(map<vector<int32_t>, cufftHandle *> campli_plans,
+                                float* field_stop, int32_t N) {
   if(this->d_submask != nullptr) {
     delete d_submask;
     delete d_fsamplipup;
     delete d_fsamplifoc;
     fsampli_plan = nullptr;
   }
-  long dims_data[3] = {2, N, N};
+  int64_t dims_data[3] = {2, N, N};
 
   this->d_submask = new CarmaObj<float>(current_context, dims_data, field_stop);
   this->d_fsamplipup = new CarmaObj<cuFloatComplex>(current_context, dims_data);
   this->d_fsamplifoc = new CarmaObj<cuFloatComplex>(current_context, dims_data);
 
-  vector<int> vector_dims {2, N, N};
+  vector<int32_t> vector_dims {2, N, N};
   if (campli_plans.find(vector_dims) == campli_plans.end()) {
     // DEBUG_TRACE("Creating FFT plan : %d %d
     // %d",mdims[0],mdims[1],dims_data3[3]);print_mem_info();
@@ -687,7 +687,7 @@ int SutraWfsSH::set_field_stop(map<vector<int>, cufftHandle *> campli_plans,
         sizeof(cufftHandle));  // = this->d_camplipup->get_plan(); ///< FFT plan
     carmafft_safe_call(cufftPlan2d(plan, N, N, CUFFT_C2C));
 
-    campli_plans.insert(pair<vector<int>, cufftHandle *>(vector_dims, plan));
+    campli_plans.insert(pair<vector<int32_t>, cufftHandle *>(vector_dims, plan));
 
     this->fsampli_plan = plan;
     // DEBUG_TRACE("FFT plan created");print_mem_info();

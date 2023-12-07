@@ -29,14 +29,14 @@ void carma_end_thread(carma_thread thread) { pthread_join(thread, NULL); }
 void carma_destroy_thread(carma_thread thread) { pthread_cancel(thread); }
 
 // Wait for multiple threads
-void carma_wait4thread(const carma_thread *threads, int num) {
-  for (int i = 0; i < num; i++) {
+void carma_wait4thread(const carma_thread *threads, int32_t num) {
+  for (int32_t i = 0; i < num; i++) {
     carma_end_thread(threads[i]);
   }
 }
 
 // Create barrier.
-CarmaThreadBarrier carma_create_barrier(int releaseCount) {
+CarmaThreadBarrier carma_create_barrier(int32_t releaseCount) {
   CarmaThreadBarrier barrier;
 
   barrier.count = 0;
@@ -50,7 +50,7 @@ CarmaThreadBarrier carma_create_barrier(int releaseCount) {
 
 // Increment barrier. (excution continues)
 void carma_increment_barrier(CarmaThreadBarrier *barrier) {
-  int myBarrierCount;
+  int32_t myBarrierCount;
   pthread_mutex_lock(&barrier->mutex);
   myBarrierCount = ++barrier->count;
   pthread_mutex_unlock(&barrier->mutex);

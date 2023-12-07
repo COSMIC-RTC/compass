@@ -8,7 +8,7 @@
 
 //! \file      sutra_controller_geo.h
 //! \ingroup   libsutra
-//! \class     sutra_controller_geo
+//! \class     SutraControllerGeo
 //! \brief     this class provides the controller_geo features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
 //! \version   5.5.0
@@ -20,17 +20,17 @@
 #include <sutra_controller.h>
 
 template <typename Tcomp, typename Tout>
-class sutra_controller_geo : public SutraController<Tcomp, Tout> {
+class SutraControllerGeo : public SutraController<Tcomp, Tout> {
  public:
-  long Nphi;
-  int Ntt;
+  int64_t Nphi;
+  int32_t Ntt;
 
   CarmaObj<Tcomp> *d_gain;
   CarmaObj<Tcomp> *d_proj;
   CarmaObj<double> *d_phi;
   CarmaObj<Tcomp> *d_phif;
-  CarmaObj<int> *d_indx_pup;
-  CarmaObj<int> *d_indx_mpup;
+  CarmaObj<int32_t> *d_indx_pup;
+  CarmaObj<int32_t> *d_indx_mpup;
   CarmaSparseObj<double> *d_IFsparse;
   CarmaObj<Tcomp> *d_geocov;
   CarmaObj<double> *d_compdouble;
@@ -41,25 +41,25 @@ class sutra_controller_geo : public SutraController<Tcomp, Tout> {
   // CarmaObj<T> *d_cenbuff; // centroids circular buffer
 
  public:
-  sutra_controller_geo(CarmaContext *context, long nactu, long Nphi,
-                       float delay, SutraDms *dms, int *idx_dms, int ndm,
-                       int *idx_centro, int ncentro, bool wfs_direction);
-  sutra_controller_geo(const sutra_controller_geo &controller);
-  ~sutra_controller_geo();
+  SutraControllerGeo(CarmaContext *context, int64_t nactu, int64_t Nphi,
+                       float delay, SutraDms *dms, int32_t *idx_dms, int32_t ndm,
+                       int32_t *idx_centro, int32_t ncentro, bool wfs_direction);
+  SutraControllerGeo(const SutraControllerGeo &controller);
+  ~SutraControllerGeo();
 
   string get_type();
 
   cusparseHandle_t cusparse_handle() {
     return this->current_context->get_cusparse_handle();
   }
-  int load_Btt(Tcomp *Btt_pzt, Tcomp *Btt_TT);
-  int load_mgain(Tcomp *mgain);
-  int comp_dphi(SutraSource *target, bool wfs_direction);
-  int comp_com();
-  int init_proj(SutraDms *dms, int *indx_dm, Tcomp *unitpervolt,
-                int *indx_pup);
-  int init_proj_sparse(SutraDms *dms, int *indx_dm, Tcomp *unitpervolt,
-                       int *indx_pup, int *indx_mpup, bool roket);
+  int32_t load_Btt(Tcomp *Btt_pzt, Tcomp *Btt_TT);
+  int32_t load_mgain(Tcomp *mgain);
+  int32_t comp_dphi(SutraSource *target, bool wfs_direction);
+  int32_t comp_com();
+  int32_t init_proj(SutraDms *dms, int32_t *indx_dm, Tcomp *unitpervolt,
+                int32_t *indx_pup);
+  int32_t init_proj_sparse(SutraDms *dms, int32_t *indx_dm, Tcomp *unitpervolt,
+                       int32_t *indx_pup, int32_t *indx_mpup, bool roket);
 };
 
 #endif /* SUTRA_CONTROLLER_GEO_H_ */

@@ -29,7 +29,7 @@
 /*
  create a memory object
  void *memory
- int  nb of reference
+ int32_t  nb of reference
 
  create a class which contains :
  - d_data
@@ -68,20 +68,20 @@ template <class T_data>
 class CarmaData {
  protected:
   T_data *d_data;       ///< Pointer to data
-  int ndims;            ///< Number of dimensions
-  int nb_elem;          ///< Number of elements
-  long *dims_data;      ///< Dimensions
-  int *strides;         ///< Strides for each dimension
+  int32_t ndims;            ///< Number of dimensions
+  int32_t nb_elem;          ///< Number of elements
+  int64_t *dims_data;      ///< Dimensions
+  int32_t *strides;         ///< Strides for each dimension
   MemType malloc_type;  ///< type of alloc
 
  public:
   T_data *get_data() { return d_data; }
-  int get_ndims() { return ndims; }
-  int get_nb_elem() { return nb_elem; }
-  const long *get_dims_data() { return dims_data; }
-  long get_dims_data(int i) { return dims_data[i]; }
-  int *get_strides() { return strides; }
-  int get_strides(int i) { return strides[i]; }
+  int32_t get_ndims() { return ndims; }
+  int32_t get_nb_elem() { return nb_elem; }
+  const int64_t *get_dims_data() { return dims_data; }
+  int64_t get_dims_data(int32_t i) { return dims_data[i]; }
+  int32_t *get_strides() { return strides; }
+  int32_t get_strides(int32_t i) { return strides[i]; }
   MemType get_malloc_type() { return malloc_type; }
 };
 
@@ -96,22 +96,22 @@ class CarmaObj {
   T_data *o_data = nullptr;        ///< optional data (used for scan / reduction)
   T_data *cub_data = nullptr;      ///< optional data (used for scan / reduction)
   size_t cub_data_size = 0;  // optionnal for reduction
-  int ndim = 0;
-  long *dims_data = nullptr;  ///< dimensions of the array
-  int nb_elem = 0;      ///< number of elements in the array
-  int device = -1;       ///< device where the CarmaObj is allocate
+  int32_t ndim = 0;
+  int64_t *dims_data = nullptr;  ///< dimensions of the array
+  int32_t nb_elem = 0;      ///< number of elements in the array
+  int32_t device = -1;       ///< device where the CarmaObj is allocate
   CarmaContext *current_context;
 
   curandGenerator_t gen;
   curandState *d_states;
 
-  int nb_threads;
-  int nb_blocks;
+  int32_t nb_threads;
+  int32_t nb_blocks;
 
   bool keys_only;      //< optional flag (used for sort)
   bool owner = true;  // Flag if d_data is created inside the CarmaObj
 
-  unsigned int *values;  ///< optional data (used for sort)
+  uint32_t *values;  ///< optional data (used for sort)
   size_t *d_num_valid;    ///< used for compact
 
   cufftHandle plan;  ///< FFT plan
@@ -119,23 +119,23 @@ class CarmaObj {
 
   CarmaStreams *streams;
 
-  void init(CarmaContext *current_context, const long *dims_data,
-            const T_data *data, bool fromHost, int nb_streams);
+  void init(CarmaContext *current_context, const int64_t *dims_data,
+            const T_data *data, bool fromHost, int32_t nb_streams);
 
  public:
   CarmaObj();
   CarmaObj(const CarmaObj<T_data> *obj);
-  CarmaObj(CarmaContext *current_context, const long *dims_data);
-  CarmaObj(CarmaContext *current_context, const std::vector<long> &dims);
+  CarmaObj(CarmaContext *current_context, const int64_t *dims_data);
+  CarmaObj(CarmaContext *current_context, const std::vector<int64_t> &dims);
   CarmaObj(CarmaContext *current_context, const CarmaObj<T_data> *obj);
-  CarmaObj(CarmaContext *current_context, const long *dims_data,
+  CarmaObj(CarmaContext *current_context, const int64_t *dims_data,
             const T_data *data);
-  CarmaObj(CarmaContext *current_context, const long *dims_data,
-            int nb_streams);
+  CarmaObj(CarmaContext *current_context, const int64_t *dims_data,
+            int32_t nb_streams);
   CarmaObj(CarmaContext *current_context, const CarmaObj<T_data> *obj,
-            int nb_streams);
-  CarmaObj(CarmaContext *current_context, const long *dims_data,
-            const T_data *data, int nb_streams);
+            int32_t nb_streams);
+  CarmaObj(CarmaContext *current_context, const int64_t *dims_data,
+            const T_data *data, int32_t nb_streams);
   CarmaObj(const CarmaObj &)=delete;
   ~CarmaObj();
 
@@ -146,35 +146,35 @@ class CarmaObj {
 
   T_data *get_h_data() { return h_data.data(); }
 
-  int get_nb_streams() const {
+  int32_t get_nb_streams() const {
     /** \brief get the number of streams attached to the host object
      */
     return streams->get_nb_streams();
   }
-  int add_stream() {
+  int32_t add_stream() {
     this->streams->add_stream();
     return this->streams->get_nb_streams();
   }
-  int add_stream(int nb) {
+  int32_t add_stream(int32_t nb) {
     this->streams->add_stream(nb);
     return this->streams->get_nb_streams();
   }
-  int del_stream() {
+  int32_t del_stream() {
     this->streams->del_stream();
     return this->streams->get_nb_streams();
   }
-  int del_stream(int nb) {
+  int32_t del_stream(int32_t nb) {
     this->streams->del_stream(nb);
     return this->streams->get_nb_streams();
   }
-  cudaStream_t get_cuda_stream(int stream) {
+  cudaStream_t get_cuda_stream(int32_t stream) {
     return this->streams->get_stream(stream);
   }
-  int wait_stream(int stream) {
+  int32_t wait_stream(int32_t stream) {
     this->streams->wait_stream(stream);
     return EXIT_SUCCESS;
   }
-  int wait_all_streams() {
+  int32_t wait_all_streams() {
     this->streams->wait_all_streams();
     return EXIT_SUCCESS;
   }
@@ -199,14 +199,14 @@ class CarmaObj {
 
   operator std::string() { return this->to_string(); }
   // inline char const *c_str() { return this->to_string().c_str(); }
-  const T_data operator[](int index) const {
+  const T_data operator[](int32_t index) const {
     T_data tmp_float;
     carma_safe_call(cudaMemcpy(&tmp_float, &d_data[index], sizeof(T_data),
                              cudaMemcpyDeviceToHost));
     return tmp_float;
   }
   T_data *get_data() { return d_data; }
-  T_data *get_data_at(int index) { return &d_data[index]; }
+  T_data *get_data_at(int32_t index) { return &d_data[index]; }
   T_data *get_o_data() { return o_data; }
   const T_data get_o_data_value() const {
     T_data tmp_float;
@@ -214,47 +214,47 @@ class CarmaObj {
         cudaMemcpy(&tmp_float, o_data, sizeof(T_data), cudaMemcpyDeviceToHost));
     return tmp_float;
   }
-  const long *get_dims() { return dims_data; }
-  long get_dims(int i) { return dims_data[i]; }
-  int get_nb_elements() { return nb_elem; }
+  const int64_t *get_dims() { return dims_data; }
+  int64_t get_dims(int32_t i) { return dims_data[i]; }
+  int32_t get_nb_elements() { return nb_elem; }
   CarmaContext *get_context() { return current_context; }
 
-  int get_device() { return device; }
+  int32_t get_device() { return device; }
 
   bool is_rng_init() { return (gen != NULL); }
 
   /**< Memory transfers both ways */
   template <typename T_dest>
-  int host2device(const T_dest *data);
+  int32_t host2device(const T_dest *data);
   template <typename T_dest>
-  int device2host(T_dest *data);
+  int32_t device2host(T_dest *data);
 
-  int host2device_async(const T_data *data, cudaStream_t stream);
-  int device2host_async(T_data *data, cudaStream_t stream);
-  int device2host_opt(T_data *data);
-  int host2device_vect(const T_data *data, int incx, int incy);
-  int device2host_vect(T_data *data, int incx, int incy);
-  int host2device_mat(const T_data *data, int lda, int ldb);
-  int device2host_mat(T_data *data, int lda, int ldb);
+  int32_t host2device_async(const T_data *data, cudaStream_t stream);
+  int32_t device2host_async(T_data *data, cudaStream_t stream);
+  int32_t device2host_opt(T_data *data);
+  int32_t host2device_vect(const T_data *data, int32_t incx, int32_t incy);
+  int32_t device2host_vect(T_data *data, int32_t incx, int32_t incy);
+  int32_t host2device_mat(const T_data *data, int32_t lda, int32_t ldb);
+  int32_t device2host_mat(T_data *data, int32_t lda, int32_t ldb);
 
-  int copy_into(T_data *data, int nb_elem);
-  int copy_from(const T_data *data, int nb_elem);
-  int copy_from_async(const T_data *data, int nb_elem, cudaStream_t stream);
+  int32_t copy_into(T_data *data, int32_t nb_elem);
+  int32_t copy_from(const T_data *data, int32_t nb_elem);
+  int32_t copy_from_async(const T_data *data, int32_t nb_elem, cudaStream_t stream);
 
 #ifdef USE_OCTOPUS
-  int copy_into(ipc::Cacao<T_data> *cacaoInterface);
-  int copy_from(ipc::Cacao<T_data> *cacaoInterface);
+  int32_t copy_into(ipc::Cacao<T_data> *cacaoInterface);
+  int32_t copy_from(ipc::Cacao<T_data> *cacaoInterface);
 #endif
 
-  inline int reset() {
+  inline int32_t reset() {
     return cudaMemset(this->d_data, 0, this->nb_elem * sizeof(T_data));
   }
 
-  inline int reset(cudaStream_t stream) {
+  inline int32_t reset(cudaStream_t stream) {
     return cudaMemsetAsync(this->d_data, 0, this->nb_elem * sizeof(T_data), stream);
   }
 
-  inline int memset(T_data value) {
+  inline int32_t memset(T_data value) {
     return fill_array_with_value(
         this->d_data, value, this->nb_elem,
         this->current_context->get_device(this->device));
@@ -264,7 +264,7 @@ class CarmaObj {
   cufftType get_type_plan() { return type_plan; }
   ///< FFT plan type
 
-  unsigned int *get_values() { return values; }
+  uint32_t *get_values() { return values; }
   ///< optional data (used for sort)
 
   /**< sum */
@@ -277,7 +277,7 @@ class CarmaObj {
   void clip(T_data min, T_data max) {clip(min, max, 0);};
 
   /**< transpose */
-  int transpose(CarmaObj<T_data> *source);
+  int32_t transpose(CarmaObj<T_data> *source);
   // CarmaObj<T_data>& operator= (const CarmaObj<T_data>& obj);
 
   /*
@@ -289,17 +289,17 @@ class CarmaObj {
    *
    */
 
-  int aimax(int incx);
-  int aimin(int incx);
-  T_data asum(int incx);
-  T_data nrm2(int incx);
-  T_data dot(CarmaObj<T_data> *source, int incx, int incy);
-  void scale(T_data alpha, int incx);
-  void swap(CarmaObj<T_data> *source, int incx, int incy);
-  void copy(CarmaObj<T_data> *source, int incx, int incy);
-  void axpy(T_data alpha, CarmaObj<T_data> *source, int incx, int incy,
-            int offset = 0);
-  void rot(CarmaObj<T_data> *source, int incx, int incy, T_data sc, T_data ss);
+  int32_t aimax(int32_t incx);
+  int32_t aimin(int32_t incx);
+  T_data asum(int32_t incx);
+  T_data nrm2(int32_t incx);
+  T_data dot(CarmaObj<T_data> *source, int32_t incx, int32_t incy);
+  void scale(T_data alpha, int32_t incx);
+  void swap(CarmaObj<T_data> *source, int32_t incx, int32_t incy);
+  void copy(CarmaObj<T_data> *source, int32_t incx, int32_t incy);
+  void axpy(T_data alpha, CarmaObj<T_data> *source, int32_t incx, int32_t incy,
+            int32_t offset = 0);
+  void rot(CarmaObj<T_data> *source, int32_t incx, int32_t incy, T_data sc, T_data ss);
 
   /*
    *  ____  _        _    ____ ____
@@ -310,12 +310,12 @@ class CarmaObj {
    *
    */
 
-  void gemv(char trans, T_data alpha, CarmaObj<T_data> *matA, int lda,
-            CarmaObj<T_data> *vectx, int incx, T_data beta, int incy);
-  void ger(T_data alpha, CarmaObj<T_data> *vectx, int incx,
-           CarmaObj<T_data> *vecty, int incy, int lda);
-  void symv(char uplo, T_data alpha, CarmaObj<T_data> *matA, int lda,
-            CarmaObj<T_data> *vectx, int incx, T_data beta, int incy);
+  void gemv(char trans, T_data alpha, CarmaObj<T_data> *matA, int32_t lda,
+            CarmaObj<T_data> *vectx, int32_t incx, T_data beta, int32_t incy);
+  void ger(T_data alpha, CarmaObj<T_data> *vectx, int32_t incx,
+           CarmaObj<T_data> *vecty, int32_t incy, int32_t lda);
+  void symv(char uplo, T_data alpha, CarmaObj<T_data> *matA, int32_t lda,
+            CarmaObj<T_data> *vectx, int32_t incx, T_data beta, int32_t incy);
 
   /*
    *  ____  _        _    ____ _____
@@ -327,38 +327,38 @@ class CarmaObj {
    */
 
   void gemm(char transa, char transb, T_data alpha, CarmaObj<T_data> *matA,
-            int lda, CarmaObj<T_data> *matB, int ldb, T_data beta, int ldc);
+            int32_t lda, CarmaObj<T_data> *matB, int32_t ldb, T_data beta, int32_t ldc);
   void symm(char side, char uplo, T_data alpha, CarmaObj<T_data> *matA,
-            int lda, CarmaObj<T_data> *matB, int ldb, T_data beta, int ldc);
+            int32_t lda, CarmaObj<T_data> *matB, int32_t ldb, T_data beta, int32_t ldc);
   void syrk(char uplo, char transa, T_data alpha, CarmaObj<T_data> *matA,
-            int lda, T_data beta, int ldc);
+            int32_t lda, T_data beta, int32_t ldc);
   void syrkx(char uplo, char transa, T_data alpha, CarmaObj<T_data> *matA,
-             int lda, CarmaObj<T_data> *matB, int ldb, T_data beta, int ldc);
+             int32_t lda, CarmaObj<T_data> *matB, int32_t ldb, T_data beta, int32_t ldc);
   void geam(char transa, char transb, T_data alpha, CarmaObj<T_data> *matA,
-            int lda, T_data beta, CarmaObj<T_data> *matB, int ldb, int ldc);
-  void dgmm(char side, CarmaObj<T_data> *matA, int lda,
-            CarmaObj<T_data> *vectx, int incx, int ldc);
+            int32_t lda, T_data beta, CarmaObj<T_data> *matB, int32_t ldb, int32_t ldc);
+  void dgmm(char side, CarmaObj<T_data> *matA, int32_t lda,
+            CarmaObj<T_data> *vectx, int32_t incx, int32_t ldc);
 
   /**< Curand */
-  int init_prng();
-  int init_prng(long seed);
-  int destroy_prng();
-  int prng(T_data *output, char gtype, float alpha, float beta);
-  int prng(T_data *output, char gtype, float alpha);
-  int prng(char gtype, float alpha, float beta);
-  int prng(char gtype, float alpha);
-  int prng(char gtype);
+  int32_t init_prng();
+  int32_t init_prng(int64_t seed);
+  int32_t destroy_prng();
+  int32_t prng(T_data *output, char gtype, float alpha, float beta);
+  int32_t prng(T_data *output, char gtype, float alpha);
+  int32_t prng(char gtype, float alpha, float beta);
+  int32_t prng(char gtype, float alpha);
+  int32_t prng(char gtype);
 
-  int prng_montagn(float init_montagn);
+  int32_t prng_montagn(float init_montagn);
 
-  int init_prng_host(int seed);
-  int prng_host(char gtype);
-  int prng_host(char gtype, T_data stddev);
-  int prng_host(char gtype, T_data stddev, T_data alpha);
-  int destroy_prng_host();
+  int32_t init_prng_host(int32_t seed);
+  int32_t prng_host(char gtype);
+  int32_t prng_host(char gtype, T_data stddev);
+  int32_t prng_host(char gtype, T_data stddev, T_data alpha);
+  int32_t destroy_prng_host();
 };
-typedef CarmaObj<int> CarmaObjI;
-typedef CarmaObj<unsigned int> CarmaObjUI;
+typedef CarmaObj<int32_t> CarmaObjI;
+typedef CarmaObj<uint32_t> CarmaObjUI;
 typedef CarmaObj<uint16_t> CarmaObjUSI;
 typedef CarmaObj<float> CarmaObjS;
 typedef CarmaObj<double> CarmaObjD;
@@ -377,9 +377,9 @@ std::ostream &operator<<(std::ostream &os, CarmaObj<T_data> &obj) {
   os << "-----------------------" << std::endl;
   os << "CarmaObj<" << typeid(T_data).name() << "> object on GPU"
      << obj.get_device() << std::endl;
-  long ndims = obj.get_dims(0);
+  int64_t ndims = obj.get_dims(0);
   os << "ndims = " << ndims << std::endl;
-  for (long dim = 0; dim < ndims; dim++) {
+  for (int64_t dim = 0; dim < ndims; dim++) {
     os << "dim[" << dim << "] = " << obj.get_dims(dim + 1) << std::endl;
   }
   os << "nbElem = " << obj.get_nb_elements() << std::endl;
@@ -391,88 +391,88 @@ std::ostream &operator<<(std::ostream &os, CarmaObj<T_data> &obj) {
 
 // CU functions clip
 template <class T_data>
-void clip_array(T_data *d_data, T_data min, T_data max, int N,
+void clip_array(T_data *d_data, T_data min, T_data max, int32_t N,
                 CarmaDevice *device, cudaStream_t stream);
 
 // CU functions sum
 template <class T_data>
-void reduce(int size, int threads, int blocks, T_data *d_idata,
+void reduce(int32_t size, int32_t threads, int32_t blocks, T_data *d_idata,
             T_data *d_odata);
 template <class T_data>
-T_data reduce(T_data *data, int N);
+T_data reduce(T_data *data, int32_t N);
 
 template <class T_data>
 void init_reduceCubCU(T_data *&cub_data, size_t &cub_data_size, T_data *data,
-                      T_data *&o_data, int N);
+                      T_data *&o_data, int32_t N);
 template <class T_data>
 void reduceCubCU(T_data *cub_data, size_t cub_data_size, T_data *data,
-                 T_data *o_data, int N, cudaStream_t stream=0);
+                 T_data *o_data, int32_t N, cudaStream_t stream=0);
 
 // CU functions transpose
 template <class T_data>
-int transposeCU(T_data *d_idata, T_data *d_odata, long N1, long N2);
+int32_t transposeCU(T_data *d_idata, T_data *d_odata, int64_t N1, int64_t N2);
 
 // CU functions generic
 template <class T_data>
-int launch_generic1d(T_data *d_idata, T_data *d_odata, int N,
+int32_t launch_generic1d(T_data *d_idata, T_data *d_odata, int32_t N,
                      CarmaDevice *device);
 template <class T_data>
-int launch_generic2d(T_data *d_odata, T_data *d_idata, int N1, int N2);
+int32_t launch_generic2d(T_data *d_odata, T_data *d_idata, int32_t N1, int32_t N2);
 
 // CU functions curand
-int carma_prng_init(int *seed, const int nb_threads, const int nb_blocks,
+int32_t carma_prng_init(int32_t *seed, const int32_t nb_threads, const int32_t nb_blocks,
                     curandState *state);
 template <class T>
-int carma_prng_cu(T *results, const int nb_threads, const int nb_blocks,
-                  curandState *state, char gtype, int n, float alpha,
+int32_t carma_prng_cu(T *results, const int32_t nb_threads, const int32_t nb_blocks,
+                  curandState *state, char gtype, int32_t n, float alpha,
                   float beta);
 template <class T>
-int carma_curand_montagn(curandState *state, T *d_odata, int N,
+int32_t carma_curand_montagn(curandState *state, T *d_odata, int32_t N,
                          CarmaDevice *device);
 
 // CU functions fft
 template <class T_in, class T_out>
 cufftType carma_select_plan();
 template <class T_in, class T_out>
-void carma_initfft(const long *dims_data, cufftHandle *plan, cufftType type_plan);
+void carma_initfft(const int64_t *dims_data, cufftHandle *plan, cufftType type_plan);
 template <class T_in, class T_out>
-int CarmaFFT(T_in *input, T_out *output, int dir, cufftHandle plan);
+int32_t CarmaFFT(T_in *input, T_out *output, int32_t dir, cufftHandle plan);
 
 // CU functions generic
 template <class T_data>
-int fillindex(T_data *d_odata, T_data *d_idata, int *indx, int N,
+int32_t fillindex(T_data *d_odata, T_data *d_idata, int32_t *indx, int32_t N,
               CarmaDevice *device);
 template <class T_data>
-int fillvalues(T_data *d_odata, T_data *val, int N, CarmaDevice *device, cudaStream_t stream=0);
+int32_t fillvalues(T_data *d_odata, T_data *val, int32_t N, CarmaDevice *device, cudaStream_t stream=0);
 template <class T>
-int getarray2d(T *d_odata, T *d_idata, int x0, int Ncol, int NC, int N,
+int32_t getarray2d(T *d_odata, T *d_idata, int32_t x0, int32_t Ncol, int32_t NC, int32_t N,
                CarmaDevice *device);
 template <class T>
-int fillarray2d(T *d_odata, T *d_idata, int x0, int Ncol, int NC, int N,
+int32_t fillarray2d(T *d_odata, T *d_idata, int32_t x0, int32_t Ncol, int32_t NC, int32_t N,
                 CarmaDevice *device);
 template <class T>
-int fillarray2d2(T *d_odata, T *d_idata, int x0, int Ncol, int NC, int N,
+int32_t fillarray2d2(T *d_odata, T *d_idata, int32_t x0, int32_t Ncol, int32_t NC, int32_t N,
                  CarmaDevice *device);
 template <class T>
-int fill_sym_matrix(char src_uplo, T *d_data, int Ncol, int N,
+int32_t fill_sym_matrix(char src_uplo, T *d_data, int32_t Ncol, int32_t N,
                     CarmaDevice *device);
 template <class T>
-int carma_plus(T *d_odata, T elpha, int N, CarmaDevice *device);
+int32_t carma_plus(T *d_odata, T elpha, int32_t N, CarmaDevice *device);
 template <class T>
-int carma_plusai(T *d_odata, T *i_data, int i, int sgn, int N,
+int32_t carma_plusai(T *d_odata, T *i_data, int32_t i, int32_t sgn, int32_t N,
                  CarmaDevice *device);
 
 // CU functions fftconv
-// int fftconv_unpad(float *d_odata, float *d_idata, int fftW, int dataH,
-//                   int dataW, int N, int n, int nim);
-// int carma_initfftconv(CarmaObjS *data_in, CarmaObjS *kernel_in, CarmaObjS *padded_data,
-//                       CarmaObjC *padded_spectrum, int kernelY, int kernelX);
+// int32_t fftconv_unpad(float *d_odata, float *d_idata, int32_t fftW, int32_t dataH,
+//                   int32_t dataW, int32_t N, int32_t n, int32_t nim);
+// int32_t carma_initfftconv(CarmaObjS *data_in, CarmaObjS *kernel_in, CarmaObjS *padded_data,
+//                       CarmaObjC *padded_spectrum, int32_t kernelY, int32_t kernelX);
 // // CPP functions fftconv
-// int carma_fftconv(CarmaObjS *data_out, CarmaObjS *padded_data,
-//                   CarmaObjC *padded_spectrum, int kernelY, int kernelX);
+// int32_t carma_fftconv(CarmaObjS *data_out, CarmaObjS *padded_data,
+//                   CarmaObjC *padded_spectrum, int32_t kernelY, int32_t kernelX);
 
 #ifdef CAN_DO_HALF
-int custom_half_axpy(half alpha, half *source, int incx, int incy, int N,
+int32_t custom_half_axpy(half alpha, half *source, int32_t incx, int32_t incy, int32_t N,
                      half *dest, CarmaDevice *device);
 #endif
 
@@ -488,7 +488,7 @@ int custom_half_axpy(half alpha, half *source, int incx, int incy, int N,
  * @param roll get pixels as if d_fullimg need to be roll
  */
 template <class T>
-int extract(T *d_smallimg, const T *d_fullimg, int fullimg_size, int center_pos,
-            int extract_size, bool roll);
+int32_t extract(T *d_smallimg, const T *d_fullimg, int32_t fullimg_size, int32_t center_pos,
+            int32_t extract_size, bool roll);
 
 #endif  // _CARMA_OBJ_H_

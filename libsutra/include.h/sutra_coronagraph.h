@@ -25,14 +25,14 @@
 
 class SutraCoronagraph {
     public:
-        int device;
+        int32_t device;
         std::string type;
-        long cntPsf;
-        long cntImg;
-        int imageDimx;
-        int imageDimy;
-        int pupDimx;
-        int pupDimy;
+        int64_t cntPsf;
+        int64_t cntImg;
+        int32_t imageDimx;
+        int32_t imageDimy;
+        int32_t pupDimx;
+        int32_t pupDimy;
         std::vector<float> wavelength;
         CarmaContext *current_context;
         CarmaObj<float> *d_image_se;
@@ -49,25 +49,25 @@ class SutraCoronagraph {
 
     public:
         virtual ~SutraCoronagraph()=default;
-        virtual int compute_image(bool accumulate) = 0;
-        virtual int compute_psf(bool accumulate) = 0;
-        int reset();
-        int compute_electric_field(int wavelengthIndex);
-        int set_amplitude(float* amplitude);
+        virtual int32_t compute_image(bool accumulate) = 0;
+        virtual int32_t compute_psf(bool accumulate) = 0;
+        int32_t reset();
+        int32_t compute_electric_field(int32_t wavelengthIndex);
+        int32_t set_amplitude(float* amplitude);
 
     protected:
         SutraCoronagraph(CarmaContext *context, std::string type, SutraSource *d_source,
-                            int dimx, int dimy,float *wavelength, int nWavelength, int device);
-        int mft(CarmaObj<cuFloatComplex> *A, CarmaObj<cuFloatComplex> *B,
+                            int32_t dimx, int32_t dimy,float *wavelength, int32_t nWavelength, int32_t device);
+        int32_t mft(CarmaObj<cuFloatComplex> *A, CarmaObj<cuFloatComplex> *B,
                 CarmaObj<cuFloatComplex> *Ainput,
                 CarmaObj<cuFloatComplex> *input, CarmaObj<cuFloatComplex> *output, float norm);
 
 };
 
-int compute_electric_field(cuFloatComplex *electric_field, float* phase_opd, float scale,
-                            float* amplitude, float* mask, int dimx, int dimy, CarmaDevice *device);
-int remove_complex_avg(cuFloatComplex *electric_field, cuFloatComplex sum, float* mask, int Nvalid,
-                        int dimx, int dimy, CarmaDevice *device);
-int accumulate_abs2(cuFloatComplex *img, float* abs2img, int N, CarmaDevice *device);
-int apply_mask(cuFloatComplex *electric_field, float* mask, int N, CarmaDevice *device);
+int32_t compute_electric_field(cuFloatComplex *electric_field, float* phase_opd, float scale,
+                            float* amplitude, float* mask, int32_t dimx, int32_t dimy, CarmaDevice *device);
+int32_t remove_complex_avg(cuFloatComplex *electric_field, cuFloatComplex sum, float* mask, int32_t Nvalid,
+                        int32_t dimx, int32_t dimy, CarmaDevice *device);
+int32_t accumulate_abs2(cuFloatComplex *img, float* abs2img, int32_t N, CarmaDevice *device);
+int32_t apply_mask(cuFloatComplex *electric_field, float* mask, int32_t N, CarmaDevice *device);
 #endif //_SUTRA_CORONAGRAPH_H_

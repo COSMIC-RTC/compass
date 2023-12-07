@@ -18,13 +18,13 @@
 #include "carma_utils.cuh"
 
 template <class T>
-__global__ void comp_aotemplate_krnl(T *g_idata, T *g_odata, int sh_size,
-                                     int N) {
+__global__ void comp_aotemplate_krnl(T *g_idata, T *g_odata, int32_t sh_size,
+                                     int32_t N) {
   T *sdata = SharedMemory<T>();
 
   // load shared mem
-  unsigned int tid = threadIdx.x;
-  unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+  uint32_t tid = threadIdx.x;
+  uint32_t i = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (i < N) {
     // fill shared mem with data
@@ -41,13 +41,13 @@ __global__ void comp_aotemplate_krnl(T *g_idata, T *g_odata, int sh_size,
 }
 
 template <class T>
-void comp_aotemplate(int threads, int blocks, T *d_idata, T *d_odata, int N) {
+void comp_aotemplate(int32_t threads, int32_t blocks, T *d_idata, T *d_odata, int32_t N) {
   dim3 dimBlock(threads, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
 
   // when there is only one warp per block, we need to allocate two warps
   // worth of shared memory so that we don't index shared memory out of bounds
-  int smemSize =
+  int32_t smemSize =
       (threads <= 32) ? 2 * threads * sizeof(T) : threads * sizeof(T);
   comp_aotemplate_krnl<T>
       <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, smemSize, N);
@@ -55,8 +55,8 @@ void comp_aotemplate(int threads, int blocks, T *d_idata, T *d_odata, int N) {
   carma_check_msg("comp_aotemplate_kernel<<<>>> execution failed\n");
 }
 
-template void comp_aotemplate<float>(int threads, int blocks, float *d_idata,
-                                     float *d_odata, int N);
+template void comp_aotemplate<float>(int32_t threads, int32_t blocks, float *d_idata,
+                                     float *d_odata, int32_t N);
 
-template void comp_aotemplate<double>(int threads, int blocks, double *d_idata,
-                                      double *d_odata, int N);
+template void comp_aotemplate<double>(int32_t threads, int32_t blocks, double *d_idata,
+                                      double *d_odata, int32_t N);

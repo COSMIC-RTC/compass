@@ -23,28 +23,28 @@
 template <class Tin, class T>
 class SutraCentroiderCog : public SutraCentroider<Tin, T> {
  public:
-  SutraCentroiderCog(CarmaContext *context, SutraWfs *wfs, long nvalid,
-                       float offset, float scale, bool filter_TT, int device);
+  SutraCentroiderCog(CarmaContext *context, SutraWfs *wfs, int64_t nvalid,
+                       float offset, float scale, bool filter_TT, int32_t device);
   SutraCentroiderCog(const SutraCentroiderCog &centroider);
   ~SutraCentroiderCog();
 
   string get_type();
 
-  int get_cog(float *cube, float *intensities, T *centroids, int nvalid,
-              int npix, int ntot, cudaStream_t stream=0);
-  int get_cog(float *intensities, T *slopes, bool noise);
-  int get_cog();
+  int32_t get_cog(float *cube, float *intensities, T *centroids, int32_t nvalid,
+              int32_t npix, int32_t ntot, cudaStream_t stream=0);
+  int32_t get_cog(float *intensities, T *slopes, bool noise);
+  int32_t get_cog();
 };
 
 template <class T>
-void get_centroids(int size, int threads, int blocks, int n, float *d_idata,
-                   T *d_odata, T *ref, int *validx, int *validy,
+void get_centroids(int32_t size, int32_t threads, int32_t blocks, int32_t n, float *d_idata,
+                   T *d_odata, T *ref, int32_t *validx, int32_t *validy,
                    float *intensities, float scale, float offset,
                    SlopeOrder slope_order,
                    CarmaDevice *device, cudaStream_t stream=0);
 
 template <class T>
-void get_centroids_async(int threads, int blocks, int n, CarmaStreams *streams,
+void get_centroids_async(int32_t threads, int32_t blocks, int32_t n, CarmaStreams *streams,
                          T *d_idata, T *d_odata, T *alpha, float scale,
                          float offset);
 

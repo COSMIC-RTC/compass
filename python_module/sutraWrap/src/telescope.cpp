@@ -13,35 +13,35 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <wyrm>
+#include "sutraWrapUtils.hpp"
 
 #include <sutra_telescope.h>
 
 namespace py = pybind11;
 
 std::unique_ptr<SutraTelescope> telescope_init(CarmaContext &context,
-                                                long n_pup, long npos,
-                                                float *pupil, long n_pup_m,
-                                                float *pupil_m) {
+                                                int64_t n_pup, int64_t npos,
+                                                ArrayFStyle<float> &pupil, int64_t n_pup_m,
+                                                ArrayFStyle<float> &pupil_m) {
   return std::unique_ptr<SutraTelescope>(
-      new SutraTelescope(&context, n_pup, npos, pupil, n_pup_m, pupil_m));
+      new SutraTelescope(&context, n_pup, npos, pupil.mutable_data(), n_pup_m, pupil_m.mutable_data()));
 }
 
 void declare_telescope(py::module &mod) {
   py::class_<SutraTelescope>(mod, "Telescope")
-      .def(py::init(wy::colCast(telescope_init)), R"pbdoc(
+      .def(py::init(&telescope_init), R"pbdoc(
     Create and initialise a Telescope object
 
     Args:
         context: (CarmaContext) : current carma context
 
-        n_pup: (long) : spupil size
+        n_pup: (int64_t) : spupil size
 
-        npos : (long): number of points in the pupil
+        npos : (int64_t): number of points in the pupil
 
         pupil: (np.ndarray[ndim=2, dtype=np.float32_t]) : spupil
 
-        n_pup_m: (long) : mpupil size
+        n_pup_m: (int64_t) : mpupil size
 
         pupil_m: (np.ndarray[ndim=2, dtype=np.float32_t]) : mpupil
         )pbdoc",
@@ -129,7 +129,7 @@ void declare_telescope(py::module &mod) {
       .def(
           "set_pupil",
           [](SutraTelescope &sp,
-             py::array_t<float, py::array::f_style | py::array::forcecast>
+             ArrayFStyle<float>
                  data) {
             if (sp.d_pupil->get_nb_elements() == data.size())
               sp.d_pupil->host2device(data.mutable_data());
@@ -147,7 +147,7 @@ void declare_telescope(py::module &mod) {
       .def(
           "set_pupil_m",
           [](SutraTelescope &sp,
-             py::array_t<float, py::array::f_style | py::array::forcecast>
+             ArrayFStyle<float>
                  data) {
             if (sp.d_pupil_m->get_nb_elements() == data.size())
               sp.d_pupil_m->host2device(data.mutable_data());
@@ -165,7 +165,7 @@ void declare_telescope(py::module &mod) {
       .def(
           "set_phase_ab_M1",
           [](SutraTelescope &sp,
-             py::array_t<float, py::array::f_style | py::array::forcecast>
+             ArrayFStyle<float>
                  data) {
             return sp.set_phase_ab_M1(data.mutable_data(), data.size());
           },
@@ -180,7 +180,7 @@ void declare_telescope(py::module &mod) {
       .def(
           "set_phase_ab_M1_m",
           [](SutraTelescope &sp,
-             py::array_t<float, py::array::f_style | py::array::forcecast>
+             ArrayFStyle<float>
                  data) {
             return sp.set_phase_ab_M1_m(data.mutable_data(), data.size());
           },
@@ -195,7 +195,7 @@ void declare_telescope(py::module &mod) {
       .def(
           "set_input_phase",
           [](SutraTelescope &sp,
-             py::array_t<float, py::array::f_style | py::array::forcecast>
+             ArrayFStyle<float>
                  data) {
             return sp.set_input_phase(data.mutable_data(), data.shape(0) * data.shape(1), data.shape(2));
           },

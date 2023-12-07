@@ -16,11 +16,11 @@
 
 #include <sutra_roket.h>
 
-SutraRoket::SutraRoket(CarmaContext *context, int device, SutraRtc *rtc,
+SutraRoket::SutraRoket(CarmaContext *context, int32_t device, SutraRtc *rtc,
                          SutraSensors *sensors, SutraTarget *target,
                          SutraDms *dms, SutraTelescope *tel, SutraAtmos *atm,
-                         int loopcontroller, int geocontroller, int nactus,
-                         int nmodes, int nfilt, int niter, float *Btt, float *P,
+                         int32_t loopcontroller, int32_t geocontroller, int32_t nactus,
+                         int32_t nmodes, int32_t nfilt, int32_t niter, float *Btt, float *P,
                          float *gRD, float *RD) {
   // context
   this->current_context = context;
@@ -45,19 +45,19 @@ SutraRoket::SutraRoket(CarmaContext *context, int device, SutraRtc *rtc,
   this->geocontroller = geocontroller;
   if (this->rtc->d_control[this->loopcontroller]->get_type().compare("ls") ==
       0) {
-    this->loopcontrol = dynamic_cast<sutra_controller_ls *>(
+    this->loopcontrol = dynamic_cast<SutraControllerLs *>(
         this->rtc->d_control[this->loopcontroller]);
   }
   if (this->rtc->d_control[this->geocontroller]->get_type().compare("geo") ==
       0) {
-    this->geocontrol = dynamic_cast<sutra_controller_geo *>(
+    this->geocontrol = dynamic_cast<SutraControllerGeo *>(
         this->rtc->d_control[this->geocontroller]);
   }
   this->gain = loopcontrol->gain;
   this->fitting = 0.;
   this->nslopes = this->loopcontrol->d_centroids->get_dims(1);
   // contributors buffers initialsations
-  long dims_data2[3] = {2, this->niter, this->nactus};
+  int64_t dims_data2[3] = {2, this->niter, this->nactus};
   this->d_noise = new CarmaObj<float>(this->current_context, dims_data2);
   this->d_nonlinear = new CarmaObj<float>(this->current_context, dims_data2);
   this->d_tomo = new CarmaObj<float>(this->current_context, dims_data2);
@@ -100,7 +100,7 @@ SutraRoket::SutraRoket(CarmaContext *context, int device, SutraRtc *rtc,
   carma_safe_call(cudaMemset(this->d_commanded->get_data(), 0,
                            sizeof(float) * this->d_commanded->get_nb_elements()));
   // Residual error buffer initialsations
-  long dims_data1[2] = {1, this->nactus};
+  int64_t dims_data1[2] = {1, this->nactus};
   this->d_fullErr = new CarmaObj<float>(this->current_context, dims_data1);
   this->d_err1 = new CarmaObj<float>(this->current_context, dims_data1);
   this->d_err2 = new CarmaObj<float>(this->current_context, dims_data1);
@@ -153,7 +153,7 @@ SutraRoket::~SutraRoket() {
   //        delete this->d_psfse;
 }
 
-int SutraRoket::save_loop_state() {
+int32_t SutraRoket::save_loop_state() {
   this->current_context->set_active_device(this->device, 1);
   this->d_fullErr->copy_from(this->loopcontrol->d_err->get_data(), this->nactus);
   this->d_bkup_com->copy_from(this->loopcontrol->d_com->get_data(), this->nactus);
@@ -175,7 +175,7 @@ int SutraRoket::save_loop_state() {
   return EXIT_SUCCESS;
 }
 
-int SutraRoket::restore_loop_state() {
+int32_t SutraRoket::restore_loop_state() {
   this->current_context->set_active_device(this->device, 1);
   this->d_bkup_com->copy_into(this->loopcontrol->d_com->get_data(), this->nactus);
   this->d_bkup_screen->copy_into(
@@ -185,10 +185,10 @@ int SutraRoket::restore_loop_state() {
   return EXIT_SUCCESS;
 }
 
-int SutraRoket::apply_loop_filter(CarmaObj<float> *d_odata,
+int32_t SutraRoket::apply_loop_filter(CarmaObj<float> *d_odata,
                                    CarmaObj<float> *d_idata1,
                                    CarmaObj<float> *d_idata2, float gain,
-                                   int k) {
+                                   int32_t k) {
   this->current_context->set_active_device(this->device, 1);
   this->d_tmpdiff->copy_from(d_idata1->get_data(), this->nactus);
   this->d_tmpdiff->axpy(-1.0f, d_idata2, 1, 1);  // err1-err2
@@ -203,7 +203,7 @@ int SutraRoket::apply_loop_filter(CarmaObj<float> *d_odata,
   return EXIT_SUCCESS;
 }
 
-int SutraRoket::compute_breakdown() {
+int32_t SutraRoket::compute_breakdown() {
   this->current_context->set_active_device(this->device, 1);
   save_loop_state();
   // Noise

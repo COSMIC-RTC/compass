@@ -33,15 +33,15 @@ using std::vector;
 
 class SutraSensors {
  public:
-  int device;
+  int32_t device;
   bool roket;
   CarmaContext *current_context;
   size_t nsensors() { return d_wfs.size(); }
   vector<SutraWfs *> d_wfs;
-  map<vector<int>, cufftHandle *> campli_plans;
-  map<vector<int>, cufftHandle *> fttotim_plans;
-  map<vector<int>, cufftHandle *> ftlgskern_plans;
-  map<vector<int>, cufftHandle *> field_stop_plans;
+  map<vector<int32_t>, cufftHandle *> campli_plans;
+  map<vector<int32_t>, cufftHandle *> fttotim_plans;
+  map<vector<int32_t>, cufftHandle *> ftlgskern_plans;
+  map<vector<int32_t>, cufftHandle *> field_stop_plans;
 
   CarmaObj<cuFloatComplex> *d_camplipup;
   CarmaObj<cuFloatComplex> *d_camplifoc;
@@ -51,26 +51,26 @@ class SutraSensors {
 
  public:
   SutraSensors(CarmaContext *context, SutraTelescope *d_tel,
-                vector<string> type, int nwfs, long *nxsub, long *nvalid,
-                long *npupils, long *npix, long *nphase, long *nrebin,
-                long *nfft, long *ntot, long *npup, float *pdiam, float *nphot,
-                float *nphot4imat, int *lgs, bool *fakecam, int *max_flux_per_pix,
-                int *max_pix_value, int device, bool roket);
+                vector<string> type, int32_t nwfs, int64_t *nxsub, int64_t *nvalid,
+                int64_t *npupils, int64_t *npix, int64_t *nphase, int64_t *nrebin,
+                int64_t *nfft, int64_t *ntot, int64_t *npup, float *pdiam, float *nphot,
+                float *nphot4imat, int32_t *lgs, bool *fakecam, int32_t *max_flux_per_pix,
+                int32_t *max_pix_value, int32_t device, bool roket);
   ~SutraSensors();
 
-  int allocate_buffers();
-  int define_mpi_rank(int rank, int size);
-  int set_noise(int nwfs, float noise, long seed);
-  int set_field_stop(int nwfs, float* field_stop, int N);
+  int32_t allocate_buffers();
+  int32_t define_mpi_rank(int32_t rank, int32_t size);
+  int32_t set_noise(int32_t nwfs, float noise, int64_t seed);
+  int32_t set_field_stop(int32_t nwfs, float* field_stop, int32_t N);
 
-  int initgs(float *xpos, float *ypos, float *lambda, float *mag, float zerop,
-             long *size, float *noise, long *seed, float *G, float *thetaML,
+  int32_t initgs(float *xpos, float *ypos, float *lambda, float *mag, float zerop,
+             int64_t *size, float *noise, int64_t *seed, float *G, float *thetaML,
              float *dx, float *dy);
-  int initgs(float *xpos, float *ypos, float *lambda, float *mag, float zerop,
-             long *size, float *noise, float *G, float *thetaML, float *dx,
+  int32_t initgs(float *xpos, float *ypos, float *lambda, float *mag, float zerop,
+             int64_t *size, float *noise, float *G, float *thetaML, float *dx,
              float *dy);
-  int initgs(float *xpos, float *ypos, float *lambda, float *mag, float zerop,
-             long *size, float *G, float *thetaML, float *dx, float *dy);
+  int32_t initgs(float *xpos, float *ypos, float *lambda, float *mag, float zerop,
+             int64_t *size, float *G, float *thetaML, float *dx, float *dy);
 };
 
 // General utilities

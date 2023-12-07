@@ -20,8 +20,8 @@
 
 SutraLGS::SutraLGS(CarmaContext *context, CarmaObj<float> *d_lgskern,
                      CarmaObj<cuFloatComplex> *d_ftlgskern,
-                     map<vector<int>, cufftHandle *> ftlgskern_plans,
-                     long nvalid, long npix, long nmaxhr) {
+                     map<vector<int32_t>, cufftHandle *> ftlgskern_plans,
+                     int64_t nvalid, int64_t npix, int64_t nmaxhr) {
   this->current_context = context;
   this->device = current_context->get_active_device();
 
@@ -32,11 +32,11 @@ SutraLGS::SutraLGS(CarmaContext *context, CarmaObj<float> *d_lgskern,
   this->d_doffaxis = this->d_prof1d = this->d_profcum = 0;
   this->hg = this->pixsize = this->h0 = this->deltah = 0;
 
-  long *dims_data1 = new long[2];
+  int64_t *dims_data1 = new int64_t[2];
   dims_data1[0] = 1;
-  long *dims_data2 = new long[3];
+  int64_t *dims_data2 = new int64_t[3];
   dims_data2[0] = 2;
-  long *dims_data3 = new long[4];
+  int64_t *dims_data3 = new int64_t[4];
   dims_data3[0] = 3;
 
   dims_data1[1] = npix;
@@ -50,12 +50,12 @@ SutraLGS::SutraLGS(CarmaContext *context, CarmaObj<float> *d_lgskern,
   dims_data2[2] = nvalid;
   this->d_prof2d = new CarmaObj<cuFloatComplex>(context, dims_data2);
 
-  int mdims[2];
-  mdims[0] = (int)dims_data2[1];
+  int32_t mdims[2];
+  mdims[0] = (int32_t)dims_data2[1];
 
   cufftHandle *plan = this->d_prof2d->get_plan();  ///< FFT plan
   carmafft_safe_call(cufftPlanMany(plan, 1, mdims, NULL, 1, 0, NULL, 1, 0,
-                                 CUFFT_C2C, (int)dims_data2[2]));
+                                 CUFFT_C2C, (int32_t)dims_data2[2]));
 
   dims_data3[1] = npix;
   dims_data3[2] = npix;
@@ -65,10 +65,10 @@ SutraLGS::SutraLGS(CarmaContext *context, CarmaObj<float> *d_lgskern,
   this->d_lgskern = d_lgskern;
   this->d_ftlgskern = d_ftlgskern;
 
-  mdims[0] = (int)dims_data3[1];
-  mdims[1] = (int)dims_data3[2];
+  mdims[0] = (int32_t)dims_data3[1];
+  mdims[1] = (int32_t)dims_data3[2];
 
-  vector<int> vdims(dims_data3 + 1, dims_data3 + 4);
+  vector<int32_t> vdims(dims_data3 + 1, dims_data3 + 4);
 
   if (ftlgskern_plans.find(vdims) == ftlgskern_plans.end()) {
     // DEBUG_TRACE("Creating FFT plan : %d %d
@@ -76,9 +76,9 @@ SutraLGS::SutraLGS(CarmaContext *context, CarmaObj<float> *d_lgskern,
     cufftHandle *plan = (cufftHandle *)malloc(
         sizeof(cufftHandle));  // = this->d_camplipup->get_plan(); ///< FFT plan
     carmafft_safe_call(cufftPlanMany(plan, 2, mdims, NULL, 1, 0, NULL, 1, 0,
-                                   CUFFT_C2C, (int)dims_data3[3]));
+                                   CUFFT_C2C, (int32_t)dims_data3[3]));
 
-    ftlgskern_plans.insert(pair<vector<int>, cufftHandle *>(vdims, plan));
+    ftlgskern_plans.insert(pair<vector<int32_t>, cufftHandle *>(vdims, plan));
 
     this->ftlgskern_plan = plan;
     // DEBUG_TRACE("FFT plan created");print_mem_info();
@@ -91,7 +91,7 @@ SutraLGS::SutraLGS(CarmaContext *context, CarmaObj<float> *d_lgskern,
   // plan = this->d_ftlgskern->get_plan();
   // carmafft_safe_call(
   //     cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C ,
-  //     (int)dims_data3[3]));
+  //     (int32_t)dims_data3[3]));
 
   /*
    cudaExtent volumeSize = make_cudaExtent(npix,npix,nvalid);
@@ -132,7 +132,7 @@ SutraLGS::~SutraLGS() {
   // carma_safe_call(cudaFreeArray(this->d_spotarray));
 }
 
-int SutraLGS::lgs_init(int nprof, float hg, float h0, float deltah,
+int32_t SutraLGS::lgs_init(int32_t nprof, float hg, float h0, float deltah,
                         float pixsize, float *doffaxis, float *prof1d,
                         float *profcum, float *beam, cuFloatComplex *ftbeam,
                         float *azimuth) {
@@ -143,7 +143,7 @@ int SutraLGS::lgs_init(int nprof, float hg, float h0, float deltah,
   this->deltah = deltah;
   this->pixsize = pixsize;
 
-  long *dims_data1 = new long[2];
+  int64_t *dims_data1 = new int64_t[2];
   dims_data1[0] = 1;
   dims_data1[1] = this->nvalid;
   this->d_doffaxis = new CarmaObj<float>(current_context, dims_data1);
@@ -166,7 +166,7 @@ int SutraLGS::lgs_init(int nprof, float hg, float h0, float deltah,
   return EXIT_SUCCESS;
 }
 
-int SutraLGS::load_prof(float *prof1d, float *profcum, float hg, float h0,
+int32_t SutraLGS::load_prof(float *prof1d, float *profcum, float hg, float h0,
                          float deltah) {
   current_context->set_active_device(device, 1);
   this->d_prof1d->host2device(prof1d);
@@ -178,7 +178,7 @@ int SutraLGS::load_prof(float *prof1d, float *profcum, float hg, float h0,
   return EXIT_SUCCESS;
 }
 
-int SutraLGS::lgs_update(CarmaDevice *device) {
+int32_t SutraLGS::lgs_update(CarmaDevice *device) {
   interp_prof(this->d_prof2d->get_data(), this->d_prof1d->get_data(),
               this->d_profcum->get_data(), this->npix,
               this->d_doffaxis->get_data(), this->hg, this->pixsize, this->h0,
@@ -200,7 +200,7 @@ int SutraLGS::lgs_update(CarmaDevice *device) {
   return EXIT_SUCCESS;
 }
 
-int SutraLGS::lgs_makespot(CarmaDevice *device, int nin) {
+int32_t SutraLGS::lgs_makespot(CarmaDevice *device, int32_t nin) {
   carma_safe_call(cudaMemset(this->d_lgskern->get_data(), 0,
                            sizeof(float) * this->d_lgskern->get_nb_elements()));
   // build final image
@@ -231,7 +231,7 @@ int SutraLGS::lgs_makespot(CarmaDevice *device, int nin) {
   return EXIT_SUCCESS;
 }
 
-int SutraLGS::load_kernels(float *h_lgskern, CarmaDevice *device) {
+int32_t SutraLGS::load_kernels(float *h_lgskern, CarmaDevice *device) {
   this->d_lgskern->host2device(h_lgskern);
   cfillrealp(
       this->d_ftlgskern->get_data(), this->d_lgskern->get_data(),

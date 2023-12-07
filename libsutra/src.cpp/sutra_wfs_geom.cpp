@@ -20,8 +20,8 @@
 #include <sutra_wfs_geom.h>
 
 SutraWfsGeom::SutraWfsGeom(CarmaContext *context, SutraTelescope *d_tel,
-                               long nxsub, long nvalid, long nphase, long npup,
-                               float pdiam, int device)
+                               int64_t nxsub, int64_t nvalid, int64_t nphase, int64_t npup,
+                               float pdiam, int32_t device)
     : SutraWfs(context, d_tel, nullptr, "geo", nxsub, nvalid, 0, nphase, 0, 0,
                 0, npup, pdiam, 0, 0, false, device) {
   context->set_active_device(device, 1);
@@ -29,11 +29,11 @@ SutraWfsGeom::SutraWfsGeom(CarmaContext *context, SutraTelescope *d_tel,
   this->nstreams = 1;  // nvalid/10;
   this->streams = new CarmaStreams(nstreams);
 
-  long *dims_data1 = new long[2];
+  int64_t *dims_data1 = new int64_t[2];
   dims_data1[0] = 1;
-  long *dims_data2 = new long[3];
+  int64_t *dims_data2 = new int64_t[3];
   dims_data2[0] = 2;
-  long *dims_data3 = new long[4];
+  int64_t *dims_data3 = new int64_t[4];
   dims_data3[0] = 3;
 
   dims_data1[1] = 2 * nvalid;
@@ -47,12 +47,12 @@ SutraWfsGeom::SutraWfsGeom(CarmaContext *context, SutraTelescope *d_tel,
   this->d_intensities = new CarmaObj<float>(context, dims_data1);
 
   this->d_fluxPerSub = new CarmaObj<float>(context, dims_data1);
-  this->d_validsubsx = new CarmaObj<int>(context, dims_data1);
-  this->d_validsubsy = new CarmaObj<int>(context, dims_data1);
+  this->d_validsubsx = new CarmaObj<int32_t>(context, dims_data1);
+  this->d_validsubsy = new CarmaObj<int32_t>(context, dims_data1);
 
   dims_data2[1] = nphase * nphase;
   dims_data2[2] = nvalid;
-  this->d_phasemap = new CarmaObj<int>(context, dims_data2);
+  this->d_phasemap = new CarmaObj<int32_t>(context, dims_data2);
   delete[] dims_data1;
   delete[] dims_data2;
   delete[] dims_data3;
@@ -92,9 +92,9 @@ SutraWfsGeom::~SutraWfsGeom() {
   // delete this->current_context;
 }
 
-int SutraWfsGeom::wfs_initarrays(int *phasemap, float *offsets,
-                                   float *fluxPerSub, int *validsubsx,
-                                   int *validsubsy) {
+int32_t SutraWfsGeom::wfs_initarrays(int32_t *phasemap, float *offsets,
+                                   float *fluxPerSub, int32_t *validsubsx,
+                                   int32_t *validsubsy) {
   current_context->set_active_device(device, 1);
   this->d_phasemap->host2device(phasemap);
   this->d_offsets->host2device(offsets);
@@ -105,7 +105,7 @@ int SutraWfsGeom::wfs_initarrays(int *phasemap, float *offsets,
   return EXIT_SUCCESS;
 }
 
-int SutraWfsGeom::slopes_geom(int type, float *slopes) {
+int32_t SutraWfsGeom::slopes_geom(int32_t type, float *slopes) {
   current_context->set_active_device(device, 1);
   /*
    normalization notes :
@@ -145,7 +145,7 @@ int SutraWfsGeom::slopes_geom(int type, float *slopes) {
   return EXIT_SUCCESS;
 }
 
-int SutraWfsGeom::slopes_geom(int type) {
+int32_t SutraWfsGeom::slopes_geom(int32_t type) {
   this->slopes_geom(type, this->d_slopes->get_data());
 
   return EXIT_SUCCESS;

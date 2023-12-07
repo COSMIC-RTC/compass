@@ -20,16 +20,16 @@
 template <class Tin, class T>
 SutraCentroiderTcog<Tin, T>::SutraCentroiderTcog(CarmaContext *context,
                                                      SutraWfs *wfs,
-                                                     long nvalid, float offset,
+                                                     int64_t nvalid, float offset,
                                                      float scale,
-                                                     bool filter_TT, int device)
+                                                     bool filter_TT, int32_t device)
     : SutraCentroider<Tin, T>(context, wfs, nvalid, offset, scale, filter_TT,
                                device) {
   context->set_active_device(device, 1);
 
   this->nslopes = 2 * nvalid;
   this->threshold = 0.f;
-  long dims_data2[2] = {1, this->nslopes};
+  int64_t dims_data2[2] = {1, this->nslopes};
   this->d_centroids_ref = new CarmaObj<T>(this->current_context, dims_data2);
   this->d_centroids_ref->reset();
 
@@ -47,16 +47,16 @@ string SutraCentroiderTcog<Tin, T>::get_type() {
 }
 
 template <class Tin, class T>
-int SutraCentroiderTcog<Tin, T>::set_threshold(float threshold) {
+int32_t SutraCentroiderTcog<Tin, T>::set_threshold(float threshold) {
   this->threshold = threshold;
 
   return EXIT_SUCCESS;
 }
 
 template <class Tin, class T>
-int SutraCentroiderTcog<Tin, T>::get_cog(float *img, float *intensities,
-                                           T *centroids, int nvalid, int npix,
-                                           int ntot, cudaStream_t stream) {
+int32_t SutraCentroiderTcog<Tin, T>::get_cog(float *img, float *intensities,
+                                           T *centroids, int32_t nvalid, int32_t npix,
+                                           int32_t ntot, cudaStream_t stream) {
   this->current_context->set_active_device(this->device, 1);
 
   get_centroids(ntot, (npix * npix), nvalid, npix, img, centroids,
@@ -74,7 +74,7 @@ int SutraCentroiderTcog<Tin, T>::get_cog(float *img, float *intensities,
 }
 
 template <class Tin, class T>
-int SutraCentroiderTcog<Tin, T>::get_cog(float *intensities, T *slopes,
+int32_t SutraCentroiderTcog<Tin, T>::get_cog(float *intensities, T *slopes,
                                            bool noise) {
   if (this->wfs != nullptr) {
     if (noise || this->wfs->roket == false)
@@ -91,7 +91,7 @@ int SutraCentroiderTcog<Tin, T>::get_cog(float *intensities, T *slopes,
 }
 
 template <class Tin, class T>
-int SutraCentroiderTcog<Tin, T>::get_cog() {
+int32_t SutraCentroiderTcog<Tin, T>::get_cog() {
   if (this->wfs != nullptr)
     return this->get_cog(*(this->wfs->d_intensities), *(this->wfs->d_slopes),
                          true);
@@ -104,27 +104,27 @@ template class SutraCentroiderTcog<uint16_t, float>;
 
 #ifdef CAN_DO_HALF
 template <>
-int SutraCentroiderTcog<float, half>::get_cog(float *intensities,
+int32_t SutraCentroiderTcog<float, half>::get_cog(float *intensities,
                                                 half *slopes, bool noise) {
   DEBUG_TRACE("Not implemented for half precision");
   return EXIT_FAILURE;
 }
 
 template <>
-int SutraCentroiderTcog<uint16_t, half>::get_cog(float *intensities,
+int32_t SutraCentroiderTcog<uint16_t, half>::get_cog(float *intensities,
                                                    half *slopes, bool noise) {
   DEBUG_TRACE("Not implemented for half precision");
   return EXIT_FAILURE;
 }
 
 template <>
-int SutraCentroiderTcog<float, half>::get_cog() {
+int32_t SutraCentroiderTcog<float, half>::get_cog() {
   DEBUG_TRACE("Not implemented for half precision");
   return EXIT_FAILURE;
 }
 
 template <>
-int SutraCentroiderTcog<uint16_t, half>::get_cog() {
+int32_t SutraCentroiderTcog<uint16_t, half>::get_cog() {
   DEBUG_TRACE("Not implemented for half precision");
   return EXIT_FAILURE;
 }

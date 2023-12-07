@@ -26,9 +26,6 @@ pipeline {
         PYTHONPATH="$NAGA_ROOT:$SHESHA_ROOT:$COMPASS_INSTALL_ROOT/python:$PYTHONPATH"
         PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$COMPASS_INSTALL_ROOT/lib/pkgconfig"
 
-        CUB_ROOT="$COMPASS_ROOT/tplib/cub"
-        WYRM_ROOT="$COMPASS_ROOT/tplib/wyrm"
-
     }
 
     stages {

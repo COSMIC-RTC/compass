@@ -31,16 +31,16 @@
 class SutraPhase {
  public:
   CarmaContext *current_context;
-  int device;
+  int32_t device;
 
   CarmaObj<float> *d_screen;
-  long screen_size;
+  int64_t screen_size;
   float *zer_coeff;
   CarmaObj<float> *zernikes;
   CarmaObj<float> *mat;
 
  public:
-  SutraPhase(CarmaContext *current_context, long size);
+  SutraPhase(CarmaContext *current_context, int64_t size);
   SutraPhase(const SutraPhase &phase);
   ~SutraPhase();
 };

@@ -13,26 +13,28 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <wyrm>
+#include "sutraWrapUtils.hpp"
 
 #include <sutra_perfectCoronagraph.h>
 
 namespace py = pybind11;
 
-std::unique_ptr<SutraPerfectCoronagraph> perfect_coronagraph_init(CarmaContext &context, SutraSource *d_source,int im_dimx,
-                                int im_dimy, float *wavelength, int nWavelength, int device) {
+std::unique_ptr<SutraPerfectCoronagraph> perfect_coronagraph_init(CarmaContext &context, SutraSource *d_source,int32_t im_dimx,
+                                int32_t im_dimy, ArrayFStyle<float> &wavelength, int32_t nWavelength, int32_t device) {
   return std::unique_ptr<SutraPerfectCoronagraph>(new SutraPerfectCoronagraph(&context, d_source,
-                                                    im_dimx, im_dimy, wavelength,
+                                                    im_dimx, im_dimy, wavelength.mutable_data(),
                                                     nWavelength, device));
 };
 
+int32_t set_mft(SutraPerfectCoronagraph &spc, ArrayFStyle<std::complex<float>> &A, ArrayFStyle<std::complex<float>> &B, ArrayFStyle<float> &norm, std::string &mftType) {
+    return spc.set_mft(reinterpret_cast<cuFloatComplex*>(A.mutable_data()), reinterpret_cast<cuFloatComplex*>(B.mutable_data()), norm.mutable_data(), mftType);
+}
+
+
 void declare_perfect_coronagraph(py::module &mod) {
-  auto carmaWrap = py::module::import("carmaWrap");
-  auto complex128 = carmaWrap.attr("complex128");
-  auto complex64 = carmaWrap.attr("complex64");
   py::class_<SutraPerfectCoronagraph, SutraCoronagraph>(mod, "PerfectCoronagraph")
 
-      .def(py::init(wy::colCast(perfect_coronagraph_init)), R"pbdoc(
+      .def(py::init(&perfect_coronagraph_init), R"pbdoc(
         Instantiates a PerfectCoronagraph object
 
         Args:
@@ -74,7 +76,7 @@ void declare_perfect_coronagraph(py::module &mod) {
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
 
-      .def("set_mft", wy::colCast(&SutraPerfectCoronagraph::set_mft),
+      .def("set_mft", &set_mft,
            R"pbdoc(
     Set MFT matrices for coronagraphic image computation
 

@@ -18,9 +18,9 @@
 
 template <class Tin, class Tout>
 SutraCentroider<Tin, Tout>::SutraCentroider(CarmaContext *context,
-                                            SutraWfs *wfs, long nvalid,
+                                            SutraWfs *wfs, int64_t nvalid,
                                             float offset, float scale,
-                                            bool filter_TT, int device) {
+                                            bool filter_TT, int32_t device) {
   this->current_context = context;
   this->device = device;
   context->set_active_device(device, 1);
@@ -34,7 +34,7 @@ SutraCentroider<Tin, Tout>::SutraCentroider(CarmaContext *context,
   this->nxsub = 0;
   this->filter_TT = filter_TT;
 
-  long dims_data[2] = {1, this->nvalid};
+  int64_t dims_data[2] = {1, this->nvalid};
   this->d_intensities = new CarmaObj<float>(current_context, dims_data);
   this->d_intensities->reset();
 
@@ -78,27 +78,27 @@ SutraCentroider<Tin, Tout>::~SutraCentroider() {
 }
 
 template <class Tin, class Tout>
-int SutraCentroider<Tin, Tout>::set_scale(float scale) {
+int32_t SutraCentroider<Tin, Tout>::set_scale(float scale) {
   this->scale = scale;
   return EXIT_SUCCESS;
 }
 
 template <class Tin, class Tout>
-int SutraCentroider<Tin, Tout>::set_offset(float offset) {
+int32_t SutraCentroider<Tin, Tout>::set_offset(float offset) {
   this->offset = offset;
   return EXIT_SUCCESS;
 }
 
 template <class Tin, class Tout>
-int SutraCentroider<Tin, Tout>::set_nxsub(int nxsub) {
+int32_t SutraCentroider<Tin, Tout>::set_nxsub(int32_t nxsub) {
   this->nxsub = nxsub;
   return EXIT_SUCCESS;
 }
 
 template <class Tin, class Tout>
-int SutraCentroider<Tin, Tout>::init_calib(int n, int m) {
+int32_t SutraCentroider<Tin, Tout>::init_calib(int32_t n, int32_t m) {
   current_context->set_active_device(device, 1);
-  long dims_data2[3] = {2, n, m};
+  int64_t dims_data2[3] = {2, n, m};
   if (this->d_img == nullptr) {
     this->d_img = new CarmaObj<float>(current_context, dims_data2);
   }
@@ -111,31 +111,31 @@ int SutraCentroider<Tin, Tout>::init_calib(int n, int m) {
     this->d_flat->memset(1.f);
   }
   if (this->d_lutPix == nullptr) {
-    long dims_data1[3] = {1, n * m};
-    this->d_lutPix = new CarmaObj<int>(current_context, dims_data1);
-    std::vector<int> h_lutPix(n * m);
-    for (int i = 0; i < n * m; ++i) h_lutPix[i] = i;
+    int64_t dims_data1[3] = {1, n * m};
+    this->d_lutPix = new CarmaObj<int32_t>(current_context, dims_data1);
+    std::vector<int32_t> h_lutPix(n * m);
+    for (int32_t i = 0; i < n * m; ++i) h_lutPix[i] = i;
     this->d_lutPix->host2device(h_lutPix.data());
   }
   return EXIT_SUCCESS;
 }
 
 template <class Tin, class Tout>
-int SutraCentroider<Tin, Tout>::init_roi(int N) {
+int32_t SutraCentroider<Tin, Tout>::init_roi(int32_t N) {
   current_context->set_active_device(device, 1);
   if (this->d_validx == nullptr) {
-    long dims_data[2] = {1, N};
-    this->d_validx = new CarmaObj<int>(current_context, dims_data);
-    this->d_validy = new CarmaObj<int>(current_context, dims_data);
+    int64_t dims_data[2] = {1, N};
+    this->d_validx = new CarmaObj<int32_t>(current_context, dims_data);
+    this->d_validy = new CarmaObj<int32_t>(current_context, dims_data);
   }
   return EXIT_SUCCESS;
 }
 
 template <class Tin, class Tout>
-int SutraCentroider<Tin, Tout>::set_dark(float *dark, int n) {
+int32_t SutraCentroider<Tin, Tout>::set_dark(float *dark, int32_t n) {
   current_context->set_active_device(device, 1);
   if (this->d_dark == nullptr) {
-    long dims_data2[3] = {2, n, n};
+    int64_t dims_data2[3] = {2, n, n};
     this->d_dark = new CarmaObj<float>(current_context, dims_data2);
   }
   this->d_dark->host2device(dark);
@@ -143,10 +143,10 @@ int SutraCentroider<Tin, Tout>::set_dark(float *dark, int n) {
 }
 
 template <class Tin, class Tout>
-int SutraCentroider<Tin, Tout>::set_flat(float *flat, int n) {
+int32_t SutraCentroider<Tin, Tout>::set_flat(float *flat, int32_t n) {
   current_context->set_active_device(device, 1);
   if (this->d_flat == nullptr) {
-    long dims_data2[3] = {2, n, n};
+    int64_t dims_data2[3] = {2, n, n};
     this->d_flat = new CarmaObj<float>(current_context, dims_data2);
   }
   this->d_flat->host2device(flat);
@@ -154,25 +154,25 @@ int SutraCentroider<Tin, Tout>::set_flat(float *flat, int n) {
 }
 
 template <class Tin, class Tout>
-int SutraCentroider<Tin, Tout>::set_lutPix(int *lutPix, int n) {
+int32_t SutraCentroider<Tin, Tout>::set_lutPix(int32_t *lutPix, int32_t n) {
   current_context->set_active_device(device, 1);
   if (this->d_lutPix == nullptr) {
-    long dims_data1[2] = {1, n};
-    this->d_lutPix = new CarmaObj<int>(current_context, dims_data1);
+    int64_t dims_data1[2] = {1, n};
+    this->d_lutPix = new CarmaObj<int32_t>(current_context, dims_data1);
   }
   this->d_lutPix->host2device(lutPix);
   return EXIT_SUCCESS;
 }
 
 template <class Tin, class Tout>
-int SutraCentroider<Tin, Tout>::get_validMask() {
+int32_t SutraCentroider<Tin, Tout>::get_validMask() {
   this->current_context->set_active_device(this->device, 1);
   if (this->d_validMask == nullptr) {
     if (this->d_img == nullptr) {
       std::cout << "RTC image has not been initialized" << std::endl;
       return EXIT_FAILURE;
     }
-    this->d_validMask = new CarmaObj<int>(current_context, d_img->get_dims());
+    this->d_validMask = new CarmaObj<int32_t>(current_context, d_img->get_dims());
     this->d_validMask->reset();
   }
 
@@ -185,7 +185,7 @@ int SutraCentroider<Tin, Tout>::get_validMask() {
 }
 
 template <class Tin, class Tout>
-int SutraCentroider<Tin, Tout>::calibrate_img_validPix(cudaStream_t stream) {
+int32_t SutraCentroider<Tin, Tout>::calibrate_img_validPix(cudaStream_t stream) {
   current_context->set_active_device(device, 1);
 
   if (this->d_img_raw == nullptr) {
@@ -193,7 +193,7 @@ int SutraCentroider<Tin, Tout>::calibrate_img_validPix(cudaStream_t stream) {
     return EXIT_FAILURE;
   }
 
-  const long *dims = this->d_img_raw->get_dims();
+  const int64_t *dims = this->d_img_raw->get_dims();
   init_calib(dims[1], dims[2]);
 
   this->d_img->reset(stream);
@@ -218,7 +218,7 @@ int SutraCentroider<Tin, Tout>::calibrate_img_validPix(cudaStream_t stream) {
 }
 
 template <class Tin, class Tout>
-int SutraCentroider<Tin, Tout>::calibrate_img(cudaStream_t stream) {
+int32_t SutraCentroider<Tin, Tout>::calibrate_img(cudaStream_t stream) {
   current_context->set_active_device(device, 1);
 
   if (this->d_img_raw == nullptr) {
@@ -226,7 +226,7 @@ int SutraCentroider<Tin, Tout>::calibrate_img(cudaStream_t stream) {
     return EXIT_FAILURE;
   }
 
-  const long *dims = this->d_img_raw->get_dims();
+  const int64_t *dims = this->d_img_raw->get_dims();
   init_calib(dims[1], dims[2]);
 
   calibration<Tin>(this->d_img_raw->get_data(), this->d_img->get_data(),
@@ -238,22 +238,22 @@ int SutraCentroider<Tin, Tout>::calibrate_img(cudaStream_t stream) {
 }
 
 template <class Tin, class Tout>
-int SutraCentroider<Tin, Tout>::load_img(CarmaObj<Tin> *img) {
+int32_t SutraCentroider<Tin, Tout>::load_img(CarmaObj<Tin> *img) {
   return this->load_img(img->get_data(), img->get_dims(1), img->get_device());
 }
 
 template <class Tin, class Tout>
-int SutraCentroider<Tin, Tout>::load_img(Tin *img, int n) {
+int32_t SutraCentroider<Tin, Tout>::load_img(Tin *img, int32_t n) {
   return this->load_img(img, n, -1);
 }
 
 template <class Tin, class Tout>
-int SutraCentroider<Tin, Tout>::load_img(Tin *img, int n, int location) {
+int32_t SutraCentroider<Tin, Tout>::load_img(Tin *img, int32_t n, int32_t location) {
   return this->load_img(img, n, n, location);
 }
 
 template <class Tin, class Tout>
-int SutraCentroider<Tin, Tout>::load_img(Tin *img, int m, int n, int location) {
+int32_t SutraCentroider<Tin, Tout>::load_img(Tin *img, int32_t m, int32_t n, int32_t location) {
   init_img_raw(m, n);
   if (location < 0) {  // img data on host
     this->d_img_raw->host2device(img);
@@ -264,24 +264,24 @@ int SutraCentroider<Tin, Tout>::load_img(Tin *img, int m, int n, int location) {
 }
 
 template <class Tin, class Tout>
-int SutraCentroider<Tin, Tout>::init_img_raw(int m, int n) {
+int32_t SutraCentroider<Tin, Tout>::init_img_raw(int32_t m, int32_t n) {
   current_context->set_active_device(device, 1);
   if (this->d_img_raw == nullptr) {
-    long dims_data2[3] = {2, m, n};
+    int64_t dims_data2[3] = {2, m, n};
     this->d_img_raw = new CarmaObj<Tin>(current_context, dims_data2);
   }
   return EXIT_SUCCESS;
 }
 
 template <class Tin, class Tout>
-int SutraCentroider<Tin, Tout>::set_npix(int npix) {
+int32_t SutraCentroider<Tin, Tout>::set_npix(int32_t npix) {
   this->npix = npix;
 
   return EXIT_SUCCESS;
 }
 
 template <class Tin, class Tout>
-int SutraCentroider<Tin, Tout>::load_validpos(int *ivalid, int *jvalid, int N) {
+int32_t SutraCentroider<Tin, Tout>::load_validpos(int32_t *ivalid, int32_t *jvalid, int32_t N) {
   current_context->set_active_device(device, 1);
   if (this->d_validx == nullptr) {
     this->init_roi(N);
@@ -294,15 +294,15 @@ int SutraCentroider<Tin, Tout>::load_validpos(int *ivalid, int *jvalid, int N) {
 }
 
 template <class Tin, class Tout>
-int SutraCentroider<Tin, Tout>::set_centroids_ref(float *centroids_ref) {
+int32_t SutraCentroider<Tin, Tout>::set_centroids_ref(float *centroids_ref) {
   this->d_centroids_ref->host2device(centroids_ref);
   return EXIT_SUCCESS;
 }
 
 template <class Tin, class Tout>
-int SutraCentroider<Tin, Tout>::init_TT_filter() {
+int32_t SutraCentroider<Tin, Tout>::init_TT_filter() {
   this->current_context->set_active_device(device, 1);
-  long dims_data[2] = {1, 2};
+  int64_t dims_data[2] = {1, 2};
   this->d_TT_slopes = new CarmaObj<float>(this->current_context, dims_data);
   dims_data[1] = this->nslopes;
   this->d_centro_filtered =
@@ -314,13 +314,13 @@ int SutraCentroider<Tin, Tout>::init_TT_filter() {
 }
 
 template <class Tin, class Tout>
-int SutraCentroider<Tin, Tout>::apply_TT_filter(Tout *centroids) {
+int32_t SutraCentroider<Tin, Tout>::apply_TT_filter(Tout *centroids) {
   return this->apply_TT_filter_impl(centroids, std::is_same<Tout, float>());
 }
 
 template <class Tin, class Tout>
 template <typename Q>
-typename std::enable_if<std::is_same<Q, float>::value, int>::type
+typename std::enable_if<std::is_same<Q, float>::value, int32_t>::type
 SutraCentroider<Tin, Tout>::apply_TT_filter_impl(Tout *centroids,
                                                  std::true_type) {
   this->d_centro_filtered->copy_from(centroids, this->nslopes);
@@ -340,7 +340,7 @@ SutraCentroider<Tin, Tout>::apply_TT_filter_impl(Tout *centroids,
 }
 
 template <class Tin, class Tout>
-int SutraCentroider<Tin, Tout>::apply_TT_filter_impl(Tout *centroids,
+int32_t SutraCentroider<Tin, Tout>::apply_TT_filter_impl(Tout *centroids,
                                                      std::false_type) {
   DEBUG_TRACE("Tip/tilt filtering is only implemented in single precision");
   return EXIT_SUCCESS;

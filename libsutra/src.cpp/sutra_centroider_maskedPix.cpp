@@ -20,8 +20,8 @@
 
 template <class Tin, class T>
 SutraCentroiderMaskedPix<Tin, T>::SutraCentroiderMaskedPix(
-    CarmaContext *context, SutraWfs *wfs, long nvalid, float offset,
-    float scale, bool filter_TT, int device)
+    CarmaContext *context, SutraWfs *wfs, int64_t nvalid, float offset,
+    float scale, bool filter_TT, int32_t device)
     : SutraCentroider<Tin, T>(context, wfs, nvalid, offset, scale, filter_TT,
                               device) {
   context->set_active_device(device, 1);
@@ -30,11 +30,11 @@ SutraCentroiderMaskedPix<Tin, T>::SutraCentroiderMaskedPix(
     this->nslopes = wfs->d_validsubsx->get_nb_elements();
   else
     this->nslopes = nvalid;
-  long dims_data[2] = {1, this->nslopes};
+  int64_t dims_data[2] = {1, this->nslopes};
   if (this->d_intensities != nullptr) delete this->d_intensities;
   this->d_intensities = new CarmaObj<float>(context, dims_data);
   this->d_intensities->init_reduceCub();
-  long dims_data2[2] = {1, this->nslopes};
+  int64_t dims_data2[2] = {1, this->nslopes};
   this->d_centroids_ref = new CarmaObj<T>(this->current_context, dims_data2);
 #ifndef CAN_DO_HALF
   this->d_centroids_ref->memset(1);
@@ -56,10 +56,10 @@ string SutraCentroiderMaskedPix<Tin, T>::get_type() {
 }
 
 template <class Tin, class T>
-int SutraCentroiderMaskedPix<Tin, T>::fill_selected_pix(T *pix) {
+int32_t SutraCentroiderMaskedPix<Tin, T>::fill_selected_pix(T *pix) {
   this->current_context->set_active_device(this->device, 1);
 
-  const long *dims_data2;
+  const int64_t *dims_data2;
   if (this->d_img != nullptr) {
     dims_data2 = this->d_img->get_dims();
   } else if (this->wfs != nullptr) {
@@ -80,10 +80,10 @@ int SutraCentroiderMaskedPix<Tin, T>::fill_selected_pix(T *pix) {
 }
 
 template <class Tin, class T>
-int SutraCentroiderMaskedPix<Tin, T>::fill_mask() {
+int32_t SutraCentroiderMaskedPix<Tin, T>::fill_mask() {
   this->current_context->set_active_device(this->device, 1);
 
-  const long *dims_data2;
+  const int64_t *dims_data2;
   if (this->d_img != nullptr) {
     dims_data2 = this->d_img->get_dims();
   } else if (this->wfs != nullptr) {
@@ -104,9 +104,9 @@ int SutraCentroiderMaskedPix<Tin, T>::fill_mask() {
 }
 
 template <class Tin, class T>
-int SutraCentroiderMaskedPix<Tin, T>::get_cog(float *img, float *intensities,
-                                              T *centroids, int nvalid,
-                                              int npix, int ntot,
+int32_t SutraCentroiderMaskedPix<Tin, T>::get_cog(float *img, float *intensities,
+                                              T *centroids, int32_t nvalid,
+                                              int32_t npix, int32_t ntot,
                                               cudaStream_t stream) {
   // TODO(Implement SutraCentroiderMaskedPix<Tin, T>::get_cog)
 
@@ -115,10 +115,10 @@ int SutraCentroiderMaskedPix<Tin, T>::get_cog(float *img, float *intensities,
 }
 
 template <class Tin, class T>
-int SutraCentroiderMaskedPix<Tin, T>::get_maskedPix(float *img,
+int32_t SutraCentroiderMaskedPix<Tin, T>::get_maskedPix(float *img,
                                                     float *intensities,
-                                                    T *centroids, int *subindx,
-                                                    int *subindy, int ns,
+                                                    T *centroids, int32_t *subindx,
+                                                    int32_t *subindy, int32_t ns,
                                                     cudaStream_t stream) {
   this->current_context->set_active_device(this->device, 1);
 
@@ -142,7 +142,7 @@ int SutraCentroiderMaskedPix<Tin, T>::get_maskedPix(float *img,
 }
 
 template <class Tin, class T>
-int SutraCentroiderMaskedPix<Tin, T>::get_cog(float *intensities, T *slopes,
+int32_t SutraCentroiderMaskedPix<Tin, T>::get_cog(float *intensities, T *slopes,
                                               bool noise) {
   if (this->wfs != nullptr) {
     if (this->wfs->type == "pyrhr") {
@@ -164,7 +164,7 @@ int SutraCentroiderMaskedPix<Tin, T>::get_cog(float *intensities, T *slopes,
 }
 
 template <class Tin, class T>
-int SutraCentroiderMaskedPix<Tin, T>::get_cog() {
+int32_t SutraCentroiderMaskedPix<Tin, T>::get_cog() {
   if (this->wfs != nullptr)
     return this->get_cog(*(this->wfs->d_intensities), *(this->wfs->d_slopes),
                          true);
@@ -177,14 +177,14 @@ template class SutraCentroiderMaskedPix<float, float>;
 template class SutraCentroiderMaskedPix<uint16_t, float>;
 #ifdef CAN_DO_HALF
 template <>
-int SutraCentroiderMaskedPix<float, half>::get_cog(float *intensities,
+int32_t SutraCentroiderMaskedPix<float, half>::get_cog(float *intensities,
                                                    half *slopes, bool noise) {
   DEBUG_TRACE("Not implemented for half precision");
   return EXIT_FAILURE;
 }
 
 template <>
-int SutraCentroiderMaskedPix<uint16_t, half>::get_cog(float *intensities,
+int32_t SutraCentroiderMaskedPix<uint16_t, half>::get_cog(float *intensities,
                                                       half *slopes,
                                                       bool noise) {
   DEBUG_TRACE("Not implemented for half precision");
@@ -192,13 +192,13 @@ int SutraCentroiderMaskedPix<uint16_t, half>::get_cog(float *intensities,
 }
 
 template <>
-int SutraCentroiderMaskedPix<float, half>::get_cog() {
+int32_t SutraCentroiderMaskedPix<float, half>::get_cog() {
   DEBUG_TRACE("Not implemented for half precision");
   return EXIT_FAILURE;
 }
 
 template <>
-int SutraCentroiderMaskedPix<uint16_t, half>::get_cog() {
+int32_t SutraCentroiderMaskedPix<uint16_t, half>::get_cog() {
   DEBUG_TRACE("Not implemented for half precision");
   return EXIT_FAILURE;
 }

@@ -4,13 +4,14 @@ if(NOT DEFINED VERSION_INFO)
     set(VERSION_INFO 5.5.0)
 endif()
 
+
+project(compass
+VERSION ${VERSION_INFO} DESCRIPTION "COMPASS library"
+LANGUAGES CUDA CXX)
+
 option(libs_build "Compile Python Wrappers" ON)
 option(python_build "Compile Python Wrappers" ON)
 option(do_half "Compile half codes" OFF)
-
-project(compass
-        VERSION ${VERSION_INFO} DESCRIPTION "COMPASS library"
-        LANGUAGES CUDA CXX)
 
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
     set(GCOV gcov)

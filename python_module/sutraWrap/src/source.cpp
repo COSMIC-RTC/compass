@@ -13,9 +13,9 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_source.h>
+#include "sutraWrapUtils.hpp"
 
-#include <wyrm>
+#include <sutra_source.h>
 
 namespace py = pybind11;
 
@@ -112,7 +112,7 @@ void declare_source(py::module &mod) {
 
       .def_property_readonly(
           "phase_var_count", [](SutraSource &ss) { return ss.phase_var_count; },
-          "Counter fo long exposure variance computation")
+          "Counter fo int64_t exposure variance computation")
 
       .def_property_readonly(
           "d_phase", [](SutraSource &ss) { return ss.d_phase->d_screen; },
@@ -169,7 +169,7 @@ void declare_source(py::module &mod) {
       //  ██║╚██╔╝██║██╔══╝     ██║   ██╔══██║██║   ██║██║  ██║╚════██║
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
-      .def("add_layer", wy::colCast(&SutraSource::add_layer), R"pbdoc(
+      .def("add_layer", &SutraSource::add_layer, R"pbdoc(
     Add a phase screen "dm" or "atmos" as layers to consider for raytracing
 
     Args:
@@ -184,21 +184,21 @@ void declare_source(py::module &mod) {
            py::arg("context"), py::arg("type"), py::arg("xoff"),
            py::arg("yoff"))
 
-      .def("remove_layer", wy::colCast(&SutraSource::remove_layer), R"pbdoc(
+      .def("remove_layer", &SutraSource::remove_layer, R"pbdoc(
     Remove a phase screen for raytracing
 
     Args:
         type: (str) : "atmos" or "dm"
 
-        idx: (int) : index of the DM or turbulent layer to remove
+        idx: (int32_t) : index of the DM or turbulent layer to remove
         )pbdoc",
            py::arg("type"), py::arg("idx"))
 
       .def("comp_image", &SutraSource::comp_image, R"pbdoc(
-    Compute short and long exposure images
+    Compute short and int64_t exposure images
 
     Args:
-        puponly: (int) : Airy computation
+        puponly: (int32_t) : Airy computation
 
         comp_le: (bool) : Flag for computing LE image
         )pbdoc",
@@ -215,7 +215,7 @@ void declare_source(py::module &mod) {
       .def("comp_strehl", &SutraSource::comp_strehl, "Compute Strehl ratio",
            py::arg("do_fit") = true)
 
-      .def("raytrace", (int (SutraSource::*)(bool)) & SutraSource::raytrace,
+      .def("raytrace", (int32_t (SutraSource::*)(bool)) & SutraSource::raytrace,
            R"pbdoc(
     Raytrace through ncpa layers
 
@@ -225,7 +225,7 @@ void declare_source(py::module &mod) {
            py::arg("rst") = false)
 
       .def("raytrace",
-           (int (SutraSource::*)(SutraTelescope * tel, bool)) &
+           (int32_t (SutraSource::*)(SutraTelescope * tel, bool)) &
                SutraSource::raytrace,
            R"pbdoc(
     Raytrace through telescope aberrations
@@ -238,7 +238,7 @@ void declare_source(py::module &mod) {
            py::arg("tel"), py::arg("rst") = false)
 
       .def("raytrace",
-           (int (SutraSource::*)(SutraAtmos * atmos, bool)) &
+           (int32_t (SutraSource::*)(SutraAtmos * atmos, bool)) &
                SutraSource::raytrace,
            R"pbdoc(
     Raytrace through turbulent layers. Calling this function will automatically reset the screen phase before raytracing.
@@ -252,7 +252,7 @@ void declare_source(py::module &mod) {
 
       .def("raytrace",
 
-           (int (SutraSource::*)(SutraDms * dms, bool, bool, bool)) &
+           (int32_t (SutraSource::*)(SutraDms * dms, bool, bool, bool)) &
                SutraSource::raytrace,
            R"pbdoc(
     Raytrace through DMs
@@ -271,7 +271,7 @@ void declare_source(py::module &mod) {
 
       .def("raytrace",
 
-           (int (SutraSource::*)(SutraTelescope * tel, SutraAtmos * atm,
+           (int32_t (SutraSource::*)(SutraTelescope * tel, SutraAtmos * atm,
                                  SutraDms * dms, bool, bool)) &
                SutraSource::raytrace,
            R"pbdoc(
@@ -313,7 +313,7 @@ void declare_source(py::module &mod) {
       .def(
           "set_ncpa",
           [](SutraSource &ss,
-             py::array_t<float, py::array::f_style | py::array::forcecast>
+             ArrayFStyle<float>
                  data) {
             if (data.size() == ss.d_phase->d_screen->get_nb_elements()) {
               if (ss.d_ncpa_phase == nullptr)
@@ -333,7 +333,7 @@ void declare_source(py::module &mod) {
       .def(
           "set_phase",
           [](SutraSource &ss,
-             py::array_t<float, py::array::f_style | py::array::forcecast>
+             ArrayFStyle<float>
                  data) {
             if (data.size() == ss.d_phase->d_screen->get_nb_elements()) {
               ss.d_phase->d_screen->host2device(data.mutable_data());

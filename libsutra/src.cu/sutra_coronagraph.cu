@@ -18,8 +18,8 @@
 #include <carma_utils.cuh>
 
 __global__ void compute_electric_field_krnl(cuFloatComplex *ef, float* opd, float scale,
-                            float* amplitude, float* mask, int N) {
-    int tid = threadIdx.x + blockIdx.x * blockDim.x;
+                            float* amplitude, float* mask, int32_t N) {
+    int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
     while (tid < N) {
         float A = amplitude[tid];
         float _opd = opd[tid];
@@ -30,9 +30,9 @@ __global__ void compute_electric_field_krnl(cuFloatComplex *ef, float* opd, floa
     }
 }
 
-int compute_electric_field(cuFloatComplex *electric_field, float* phase_opd, float scale,
-                            float* amplitude, float* mask, int dimx, int dimy, CarmaDevice *device) {
-    int nBlocks, nThreads;
+int32_t compute_electric_field(cuFloatComplex *electric_field, float* phase_opd, float scale,
+                            float* amplitude, float* mask, int32_t dimx, int32_t dimy, CarmaDevice *device) {
+    int32_t nBlocks, nThreads;
     get_num_blocks_and_threads(device, dimx*dimy, nBlocks, nThreads);
     dim3 grid(nBlocks), threads(nThreads);
 
@@ -42,8 +42,8 @@ int compute_electric_field(cuFloatComplex *electric_field, float* phase_opd, flo
 }
 
 __global__ void remove_complex_avg_krnl(cuFloatComplex *ef, cuFloatComplex sum,
-                                    float* mask, int Nvalid, int N) {
-    int tid = threadIdx.x + blockIdx.x * blockDim.x;
+                                    float* mask, int32_t Nvalid, int32_t N) {
+    int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
     while (tid < N) {
         float _mask = mask[tid];
         ef[tid].x -= (sum.x / Nvalid * _mask);
@@ -51,10 +51,10 @@ __global__ void remove_complex_avg_krnl(cuFloatComplex *ef, cuFloatComplex sum,
         tid += blockDim.x * gridDim.x;
     }
 }
-int remove_complex_avg(cuFloatComplex *electric_field, cuFloatComplex sum, float* mask, int Nvalid,
-                        int dimx, int dimy, CarmaDevice *device) {
+int32_t remove_complex_avg(cuFloatComplex *electric_field, cuFloatComplex sum, float* mask, int32_t Nvalid,
+                        int32_t dimx, int32_t dimy, CarmaDevice *device) {
 
-    int nBlocks, nThreads;
+    int32_t nBlocks, nThreads;
     get_num_blocks_and_threads(device, dimx*dimy, nBlocks, nThreads);
     dim3 grid(nBlocks), threads(nThreads);
 
@@ -62,8 +62,8 @@ int remove_complex_avg(cuFloatComplex *electric_field, cuFloatComplex sum, float
     return EXIT_SUCCESS;
 }
 
-__global__ void accumulate_abs2_krnl(cuFloatComplex *img, float* abs2img, int N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+__global__ void accumulate_abs2_krnl(cuFloatComplex *img, float* abs2img, int32_t N) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
   while (tid < N) {
     cuFloatComplex cache = img[tid];
     abs2img[tid] += (cache.x * cache.x + cache.y * cache.y);
@@ -71,8 +71,8 @@ __global__ void accumulate_abs2_krnl(cuFloatComplex *img, float* abs2img, int N)
   }
 }
 
-int accumulate_abs2(cuFloatComplex *img, float* abs2img, int N, CarmaDevice *device) {
-  int nBlocks, nThreads;
+int32_t accumulate_abs2(cuFloatComplex *img, float* abs2img, int32_t N, CarmaDevice *device) {
+  int32_t nBlocks, nThreads;
   get_num_blocks_and_threads(device, N, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
@@ -81,8 +81,8 @@ int accumulate_abs2(cuFloatComplex *img, float* abs2img, int N, CarmaDevice *dev
   return EXIT_SUCCESS;
 }
 
-__global__ void apply_mask_krnl(cuFloatComplex *electric_field, float* mask, int N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+__global__ void apply_mask_krnl(cuFloatComplex *electric_field, float* mask, int32_t N) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
   while (tid < N) {
     float cache = mask[tid];
     electric_field[tid].x *= cache;
@@ -91,8 +91,8 @@ __global__ void apply_mask_krnl(cuFloatComplex *electric_field, float* mask, int
   }
 }
 
-int apply_mask(cuFloatComplex *electric_field, float* mask, int N, CarmaDevice *device) {
-  int nBlocks, nThreads;
+int32_t apply_mask(cuFloatComplex *electric_field, float* mask, int32_t N, CarmaDevice *device) {
+  int32_t nBlocks, nThreads;
   get_num_blocks_and_threads(device, N, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 

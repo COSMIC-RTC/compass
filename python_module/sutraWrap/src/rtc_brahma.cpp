@@ -13,9 +13,9 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <wyrm>
+#include "sutraWrapUtils.hpp"
 
-#include <SutraRtc_brahma.h>
+#include <sutra_rtc_brahma.h>
 
 namespace py = pybind11;
 
@@ -34,7 +34,7 @@ void rtc_brahma_impl(py::module &mod, const char *name) {
   using rtc_brahma = SutraRtcBrahma<T>;
 
   py::class_<rtc_brahma, rtc>(mod, name)
-      .def(py::init(wy::colCast(rtc_brahma_init<T>)), R"pbdoc(
+      .def(py::init(&rtc_brahma_init<T>), R"pbdoc(
     Create and initialise a brahma rtc object
 
     Args:

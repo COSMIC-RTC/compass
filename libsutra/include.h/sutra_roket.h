@@ -29,16 +29,16 @@
 class SutraRoket {
  public:
   CarmaContext *current_context;
-  int device;
+  int32_t device;
   float gain;  // Loop gain
-  int nfilt;   // Number of filtered modes
-  int nactus;  // number of actuators
-  int nmodes;  // number of modes
-  int iterk;   // current iteration number
-  int niter;
-  int loopcontroller;  // index of the loop controller
-  int geocontroller;   // index of the geo controller
-  int nslopes;
+  int32_t nfilt;   // Number of filtered modes
+  int32_t nactus;  // number of actuators
+  int32_t nmodes;  // number of modes
+  int32_t iterk;   // current iteration number
+  int32_t niter;
+  int32_t loopcontroller;  // index of the loop controller
+  int32_t geocontroller;   // index of the geo controller
+  int32_t nslopes;
   // sutra objects to supervise
   SutraRtc *rtc;
   SutraSensors *sensors;
@@ -46,8 +46,8 @@ class SutraRoket {
   SutraTelescope *tel;
   SutraAtmos *atm;
   SutraDms *dms;
-  sutra_controller_ls *loopcontrol;
-  sutra_controller_geo *geocontrol;
+  SutraControllerLs *loopcontrol;
+  SutraControllerGeo *geocontrol;
 
   // Projection matrices
   CarmaObj<float> *d_P;
@@ -86,21 +86,21 @@ class SutraRoket {
   CarmaObj<float> *d_covm;
 
  public:
-  SutraRoket(CarmaContext *context, int device, SutraRtc *rtc,
+  SutraRoket(CarmaContext *context, int32_t device, SutraRtc *rtc,
               SutraSensors *sensors, SutraTarget *target, SutraDms *dms,
-              SutraTelescope *tel, SutraAtmos *atm, int loopcontroller,
-              int geocontroller, int nactus, int nmodes, int nfilt, int niter,
+              SutraTelescope *tel, SutraAtmos *atm, int32_t loopcontroller,
+              int32_t geocontroller, int32_t nactus, int32_t nmodes, int32_t nfilt, int32_t niter,
               float *Btt, float *P, float *gRD, float *RD);
   ~SutraRoket();
 
-  int compute_breakdown();
-  int save_loop_state();
-  int restore_loop_state();
-  int apply_loop_filter(CarmaObj<float> *d_odata, CarmaObj<float> *d_idata1,
-                        CarmaObj<float> *d_idata2, float gain, int k);
+  int32_t compute_breakdown();
+  int32_t save_loop_state();
+  int32_t restore_loop_state();
+  int32_t apply_loop_filter(CarmaObj<float> *d_odata, CarmaObj<float> *d_idata1,
+                        CarmaObj<float> *d_idata2, float gain, int32_t k);
 };
 
-int separate_modes(float *modes, float *filtmodes, int nmodes, int nfilt,
+int32_t separate_modes(float *modes, float *filtmodes, int32_t nmodes, int32_t nfilt,
                    CarmaDevice *device);
 
 #endif

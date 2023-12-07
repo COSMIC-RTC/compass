@@ -16,8 +16,8 @@
 
 #include <sutra_kl.h>
 
-SutraKL::SutraKL(CarmaContext *context, long dim, long nr, long np, long nkl,
-                   long nord, int device) {
+SutraKL::SutraKL(CarmaContext *context, int64_t dim, int64_t nr, int64_t np, int64_t nkl,
+                   int64_t nord, int32_t device) {
   // some inits
   this->current_context = context;
   this->dim = dim;
@@ -28,13 +28,13 @@ SutraKL::SutraKL(CarmaContext *context, long dim, long nr, long np, long nkl,
   this->device = device;
   current_context->set_active_device(device, 1);
 
-  long *dims_data1 = new long[2];
+  int64_t *dims_data1 = new int64_t[2];
   dims_data1[0] = 1;
   dims_data1[1] = nkl;
-  this->h_ord = new CarmaHostObj<int>(dims_data1, MA_PAGELOCK);
-  this->d_ord = new CarmaObj<int>(context, dims_data1);
+  this->h_ord = new CarmaHostObj<int32_t>(dims_data1, MA_PAGELOCK);
+  this->d_ord = new CarmaObj<int32_t>(context, dims_data1);
 
-  long *dims_data2 = new long[3];
+  int64_t *dims_data2 = new int64_t[3];
   dims_data2[0] = 2;
   dims_data2[1] = dim;
   dims_data2[2] = dim;
@@ -53,13 +53,13 @@ SutraKL::SutraKL(CarmaContext *context, long dim, long nr, long np, long nkl,
   // delete[] dims_data2;
 
   // Florian features
-  // long *dims_data1 = new long[2];
+  // int64_t *dims_data1 = new int64_t[2];
   dims_data1[0] = 1;
   dims_data1[1] = nkl;
   this->d_evals = new CarmaObj<float>(context, dims_data1);
-  this->d_ord = new CarmaObj<int>(context, dims_data1);
+  this->d_ord = new CarmaObj<int32_t>(context, dims_data1);
 
-  // long *dims_data2 = new long[3];
+  // int64_t *dims_data2 = new int64_t[3];
   dims_data2[0] = 2;
   dims_data2[1] = dim;
   dims_data2[2] = dim;
@@ -99,11 +99,11 @@ SutraKL::~SutraKL() {
   delete this->d_bas;
 }
 
-int SutraKL::do_compute(float alpha, float ampli, float *odata, int nkl,
-                         int size, int xoff, int yoff) {
+int32_t SutraKL::do_compute(float alpha, float ampli, float *odata, int32_t nkl,
+                         int32_t size, int32_t xoff, int32_t yoff) {
   current_context->set_active_device(device, 1);
   // do computation on data and store in result
-  int nord = this->h_ord->get_data()[nkl] - 1;
+  int32_t nord = this->h_ord->get_data()[nkl] - 1;
 
   getkl(alpha, ampli, odata, &(this->d_rabas->get_data()[(nkl) * this->nr]),
         &(this->d_azbas->get_data()[nord * this->np]), this->d_cr->get_data(),
@@ -112,16 +112,16 @@ int SutraKL::do_compute(float alpha, float ampli, float *odata, int nkl,
   return EXIT_SUCCESS;
 }
 
-int SutraKL::do_compute(float ampli, float *odata, int nkl, int size, int xoff,
-                         int yoff) {
+int32_t SutraKL::do_compute(float ampli, float *odata, int32_t nkl, int32_t size, int32_t xoff,
+                         int32_t yoff) {
   return do_compute(0.0f, ampli, odata, nkl, size, xoff, yoff);
 }
 
-int SutraKL::do_compute(float *odata, int nkl, int size, int xoff, int yoff) {
+int32_t SutraKL::do_compute(float *odata, int32_t nkl, int32_t size, int32_t xoff, int32_t yoff) {
   return do_compute(0.0f, 1.0f, odata, nkl, size, xoff, yoff);
 }
 
-int SutraKL::do_combi(float *com, float *odata, int size, int xoff, int yoff) {
+int32_t SutraKL::do_combi(float *com, float *odata, int32_t size, int32_t xoff, int32_t yoff) {
   current_context->set_active_device(device, 1);
   // do computation on data and store in result
   combikl(com, this->nkl, odata, this->d_rabas->get_data(),
@@ -133,7 +133,7 @@ int SutraKL::do_combi(float *com, float *odata, int size, int xoff, int yoff) {
 }
 
 // Florian features
-int SutraKL::get_flokl() {
+int32_t SutraKL::get_flokl() {
   current_context->set_active_device(device, 1);
   std::cout << "flag in function" << std::endl;
   cget_flokl(this->nkl, this->dim, this->d_covmat->get_data(),

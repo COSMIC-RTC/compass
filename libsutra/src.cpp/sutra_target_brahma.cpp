@@ -21,10 +21,10 @@
 
 SutraTargetBrahma::SutraTargetBrahma(CarmaContext *context,
                                          ACE_TCHAR *name,
-                                         SutraTelescope *d_tel, int subsample_,
-                                         int ntargets, float *xpos, float *ypos,
+                                         SutraTelescope *d_tel, int32_t subsample_,
+                                         int32_t ntargets, float *xpos, float *ypos,
                                          float *lambda, float *mag, float zerop,
-                                         long *sizes, int Npts, int device)
+                                         int64_t *sizes, int32_t Npts, int32_t device)
     : SutraTarget(context, d_tel, ntargets, xpos, ypos, lambda, mag, zerop,
                    sizes, Npts, device) {
   DEBUG_TRACE("init %s", name);
@@ -120,7 +120,7 @@ void SutraTargetBrahma::allocate_buffers() {
   }
 }
 
-void SutraTargetBrahma::set_subsample(int ntarget, int subsample_) {
+void SutraTargetBrahma::set_subsample(int32_t ntarget, int32_t subsample_) {
   if (!is_initialised) {
     return;
   }
@@ -147,7 +147,7 @@ void SutraTargetBrahma::publish() {
 
   CORBA::Float *buff_pixels_servant = (CORBA::Float *)buff_pixels;
 
-  long idx = 0;
+  int64_t idx = 0;
   CarmaObj<float> tmp_img(d_targets[0]->current_context,
                            d_targets[0]->d_image_le->get_dims());
   for (size_t target = 0; target < d_targets.size(); target++) {

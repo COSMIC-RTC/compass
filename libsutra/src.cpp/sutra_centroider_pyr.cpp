@@ -20,9 +20,9 @@
 
 template <class Tin, class T>
 SutraCentroiderPyr<Tin, T>::SutraCentroiderPyr(CarmaContext *context,
-                                                   SutraWfs *wfs, long nvalid,
+                                                   SutraWfs *wfs, int64_t nvalid,
                                                    float offset, float scale,
-                                                   bool filter_TT, int device)
+                                                   bool filter_TT, int32_t device)
     : SutraCentroider<Tin, T>(context, wfs, nvalid, offset, scale, filter_TT,
                                device) {
   context->set_active_device(device, 1);
@@ -37,7 +37,7 @@ SutraCentroiderPyr<Tin, T>::SutraCentroiderPyr(CarmaContext *context,
   this->method = Method_CoG(false, false);
 
   this->d_intensities->init_reduceCub();
-  long dims_data2[2] = {1, this->nslopes};
+  int64_t dims_data2[2] = {1, this->nslopes};
   this->d_centroids_ref = new CarmaObj<T>(this->current_context, dims_data2);
   this->d_centroids_ref->reset();
 
@@ -55,7 +55,7 @@ string SutraCentroiderPyr<Tin, T>::get_type() {
 }
 
 template <class Tin, class T>
-int SutraCentroiderPyr<Tin, T>::set_valid_thresh(T valid_thresh) {
+int32_t SutraCentroiderPyr<Tin, T>::set_valid_thresh(T valid_thresh) {
   this->valid_thresh = valid_thresh;
   return EXIT_SUCCESS;
 }
@@ -65,7 +65,7 @@ T SutraCentroiderPyr<Tin, T>::get_valid_thresh() {
 }
 
 template <class Tin, class T>
-int SutraCentroiderPyr<Tin, T>::set_method(Method_CoG method) {
+int32_t SutraCentroiderPyr<Tin, T>::set_method(Method_CoG method) {
   this->method = method;
   return EXIT_SUCCESS;
 }
@@ -81,9 +81,9 @@ string SutraCentroiderPyr<Tin, T>::get_method_str() {
 }
 
 template <class Tin, class T>
-int SutraCentroiderPyr<Tin, T>::get_cog(float *cube, float *intensities,
-                                          T *centroids, int nvalid, int npix,
-                                          int ntot, cudaStream_t stream) {
+int32_t SutraCentroiderPyr<Tin, T>::get_cog(float *cube, float *intensities,
+                                          T *centroids, int32_t nvalid, int32_t npix,
+                                          int32_t ntot, cudaStream_t stream) {
   // TODO(Implement SutraCentroiderPyr<Tin, T>::get_cog)
 
   return get_pyr(cube, intensities, centroids, this->d_validx->get_data(),
@@ -92,10 +92,10 @@ int SutraCentroiderPyr<Tin, T>::get_cog(float *cube, float *intensities,
 }
 
 template <class Tin, class T>
-int SutraCentroiderPyr<Tin, T>::get_pyr(float *cube, float *intensities,
-                                          T *centroids, int *subindx,
-                                          int *subindy, int nvalid, int ns,
-                                          int nim, cudaStream_t stream) {
+int32_t SutraCentroiderPyr<Tin, T>::get_pyr(float *cube, float *intensities,
+                                          T *centroids, int32_t *subindx,
+                                          int32_t *subindy, int32_t nvalid, int32_t ns,
+                                          int32_t nim, cudaStream_t stream) {
   this->current_context->set_active_device(this->device, 1);
 
   pyr_intensities(this->d_intensities->get_data(), cube, subindx, subindy, ns,
@@ -124,7 +124,7 @@ int SutraCentroiderPyr<Tin, T>::get_pyr(float *cube, float *intensities,
 }
 
 template <class Tin, class T>
-int SutraCentroiderPyr<Tin, T>::get_cog(float *intensities, T *slopes,
+int32_t SutraCentroiderPyr<Tin, T>::get_cog(float *intensities, T *slopes,
                                           bool noise) {
   if (this->wfs != nullptr) {
     if (this->pyr_type == "pyr" || this->pyr_type == "roof")
@@ -151,7 +151,7 @@ int SutraCentroiderPyr<Tin, T>::get_cog(float *intensities, T *slopes,
 }
 
 template <class Tin, class T>
-int SutraCentroiderPyr<Tin, T>::get_cog() {
+int32_t SutraCentroiderPyr<Tin, T>::get_cog() {
   if (this->wfs != nullptr)
     return this->get_cog(*(this->wfs->d_intensities), *(this->wfs->d_slopes),
                          true);

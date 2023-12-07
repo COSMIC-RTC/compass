@@ -20,8 +20,6 @@
 
 #include <carma.h>
 
-#include <wyrm>
-
 #include <type_list.hpp>
 
 namespace py = pybind11;
@@ -38,8 +36,8 @@ struct CarmaObjHalfInterfacer {
         py::init([](CarmaContext &c,
                     const py::array_t<T, py::array::f_style |
                                              py::array::forcecast> &data) {
-          int ndim = data.ndim() + 1;
-          std::vector<long> data_dims(ndim);
+          int32_t ndim = data.ndim() + 1;
+          std::vector<int64_t> data_dims(ndim);
           data_dims[0] = data.ndim();
           copy(data.shape(), data.shape() + data.ndim(), begin(data_dims) + 1);
           return std::unique_ptr<Class>(
@@ -58,7 +56,7 @@ struct CarmaObjHalfInterfacer {
     carmaWrapObj.def_buffer([](Class &frame) -> py::buffer_info {
       frame.sync_h_data();
 
-      const long *dims = frame.get_dims();
+      const int64_t *dims = frame.get_dims();
       std::vector<ssize_t> shape(dims[0]);
       std::vector<ssize_t> strides(dims[0]);
       ssize_t stride = sizeof(T);
@@ -85,59 +83,59 @@ struct CarmaObjHalfInterfacer {
 
     carmaWrapObj.def("__repr__", &Class::to_string);
 
-    // int get_nb_streams()
+    // int32_t get_nb_streams()
     carmaWrapObj.def_property_readonly("nb_streams", &Class::get_nb_streams,
                                        "TODO");  // TODO do the documentation...
-    // int add_stream()
-    carmaWrapObj.def("add_stream", (int (Class::*)()) & Class::add_stream,
+    // int32_t add_stream()
+    carmaWrapObj.def("add_stream", (int32_t (Class::*)()) & Class::add_stream,
                      "TODO");  // TODO do the documentation...
-    // int add_stream(int nb)
-    carmaWrapObj.def("add_stream", (int (Class::*)(int)) & Class::add_stream,
+    // int32_t add_stream(int32_t nb)
+    carmaWrapObj.def("add_stream", (int32_t (Class::*)(int32_t)) & Class::add_stream,
                      "TODO",
                      py::arg("np"));  // TODO do the documentation...
-    // int del_stream()
-    carmaWrapObj.def("del_stream", (int (Class::*)()) & Class::del_stream,
+    // int32_t del_stream()
+    carmaWrapObj.def("del_stream", (int32_t (Class::*)()) & Class::del_stream,
                      "TODO");  // TODO do the documentation...
-    // int del_stream(int nb)
-    carmaWrapObj.def("del_stream", (int (Class::*)(int)) & Class::del_stream,
+    // int32_t del_stream(int32_t nb)
+    carmaWrapObj.def("del_stream", (int32_t (Class::*)(int32_t)) & Class::del_stream,
                      "TODO",
                      py::arg("np"));  // TODO do the documentation...
-    // int wait_stream(int stream)
+    // int32_t wait_stream(int32_t stream)
     carmaWrapObj.def("wait_stream", &Class::wait_stream, "TODO",
                      py::arg("steam"));  // TODO do the documentation...
     carmaWrapObj.def(
         "swap_ptr", [](Class &obj, Class &obj2) { obj.swap_ptr(obj2.get_data()); },
         "TODO",
         py::arg("ptr"));  // TODO do the documentation...
-    // int wait_all_streams()
+    // int32_t wait_all_streams()
     carmaWrapObj.def("wait_all_streams", &Class::wait_all_streams,
                      "TODO");  // TODO do the documentation...
 
-    // const long *get_dims()
+    // const int64_t *get_dims()
     carmaWrapObj.def_property_readonly(
         "shape",
-        [](Class &frame) -> py::array_t<long> {
-          long nb_dim = frame.get_dims(0);
-          const long *c_dim = frame.get_dims() + 1;
-          return py::array_t<long>(nb_dim, c_dim);
+        [](Class &frame) -> py::array_t<int64_t> {
+          int64_t nb_dim = frame.get_dims(0);
+          const int64_t *c_dim = frame.get_dims() + 1;
+          return py::array_t<int64_t>(nb_dim, c_dim);
         },
         "TODO");  // TODO do the documentation...
 
-    // int get_nb_elements()
+    // int32_t get_nb_elements()
     carmaWrapObj.def_property_readonly("nbElem", &Class::get_nb_elements,
                                        "TODO");  // TODO do the documentation...
     // CarmaContext* get_context()
     carmaWrapObj.def_property_readonly("context", &Class::get_context,
                                        "TODO");  // TODO do the documentation...
-    // int get_device()
+    // int32_t get_device()
     carmaWrapObj.def_property_readonly("device", &Class::get_device,
                                        "TODO");  // TODO do the documentation...
-    // int get_o_data()
+    // int32_t get_o_data()
     // carmaWrapObj.def_property_readonly("o_data", &Class::get_o_data_value,
     //                                    "TODO");  // TODO do the
     //                                    documentation...
 
-    // int host2device(T_data *data);
+    // int32_t host2device(T_data *data);
     carmaWrapObj.def(
         "host2device",
         [](Class &c,
@@ -146,7 +144,7 @@ struct CarmaObjHalfInterfacer {
         },
         "TODO",
         py::arg("data").none(false));  // TODO do the documentation...
-    // int device2host(T_data *data);
+    // int32_t device2host(T_data *data);
     carmaWrapObj.def(
         "device2host",
         [](Class &c,
@@ -156,10 +154,10 @@ struct CarmaObjHalfInterfacer {
         "TODO",
         py::arg("data").none(false));  // TODO do the documentation...
 
-    // int copy_into(T_data *data, int nb_elem);
+    // int32_t copy_into(T_data *data, int32_t nb_elem);
     carmaWrapObj.def(
         "copy_into",
-        [](Class &src, Class &dest, long nb_elem) {
+        [](Class &src, Class &dest, int64_t nb_elem) {
           if (nb_elem < 0) {
             nb_elem = src.get_nb_elements();
           }
@@ -167,10 +165,10 @@ struct CarmaObjHalfInterfacer {
         },
         "TODO", py::arg("dest"),
         py::arg("nb_elem") = -1);  // TODO do the documentation...
-    // int copy_from(T_data *data, int nb_elem);
+    // int32_t copy_from(T_data *data, int32_t nb_elem);
     carmaWrapObj.def(
         "copy_from",
-        [](Class &dest, Class &src, long nb_elem) {
+        [](Class &dest, Class &src, int64_t nb_elem) {
           if (nb_elem < 0) {
             nb_elem = dest.get_nb_elements();
           }
@@ -180,12 +178,12 @@ struct CarmaObjHalfInterfacer {
         py::arg("nb_elem") = -1);  // TODO do the documentation...
 #ifdef USE_OCTOPUS
     carmaWrapObj.def("copy_into",
-                     (int (Class::*)(ipc::Cacao<T> *)) & Class::copy_into);
+                     (int32_t (Class::*)(ipc::Cacao<T> *)) & Class::copy_into);
     carmaWrapObj.def("copy_from",
-                     (int (Class::*)(ipc::Cacao<T> *)) & Class::copy_from);
+                     (int32_t (Class::*)(ipc::Cacao<T> *)) & Class::copy_from);
 #endif
-    // inline int reset()
-    carmaWrapObj.def("reset", (int (Class::*)(void)) &Class::reset,
+    // inline int32_t reset()
+    carmaWrapObj.def("reset", (int32_t (Class::*)(void)) &Class::reset,
                      "TODO");  // TODO do the documentation...
   }
 };

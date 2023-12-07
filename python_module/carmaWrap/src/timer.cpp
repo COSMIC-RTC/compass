@@ -17,8 +17,6 @@
 
 #include <carma.h>
 
-#include <wyrm>
-
 namespace py = pybind11;
 
 void declare_carmaWrap_timer(py::module &mod) {
@@ -36,7 +34,7 @@ void declare_carmaWrap_timer(py::module &mod) {
   //       [](CarmaTimer &ct, CarmaDevice &cd) { ct.stop(cd.get_stream()); });
 
   py::class_<CarmaClock>(mod, "clock")
-      .def(py::init([](CarmaContext &context, int i) {
+      .def(py::init([](CarmaContext &context, int32_t i) {
              return std::unique_ptr<CarmaClock>(new CarmaClock(&context, i));
            }),
            R"pbdoc(

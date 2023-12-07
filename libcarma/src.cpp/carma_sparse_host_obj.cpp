@@ -43,22 +43,22 @@ CarmaSparseHostObj<T_data>::CarmaSparseHostObj(
 
   cudaMemcpy(h_data, M.d_data, nz_elem * sizeof(T_data),
              cudaMemcpyDeviceToHost);
-  cudaMemcpy(rowind, M.d_rowind, (dims_data[1] + 1) * sizeof(int),
+  cudaMemcpy(rowind, M.d_rowind, (dims_data[1] + 1) * sizeof(int32_t),
              cudaMemcpyDeviceToHost);
-  cudaMemcpy(colind, M.d_colind, nz_elem * sizeof(int), cudaMemcpyDeviceToHost);
+  cudaMemcpy(colind, M.d_colind, nz_elem * sizeof(int32_t), cudaMemcpyDeviceToHost);
 
   major_dim = M.get_major_dim();
 }
 
 template <class T_data>
-CarmaSparseHostObj<T_data>::CarmaSparseHostObj(const long *dims,
+CarmaSparseHostObj<T_data>::CarmaSparseHostObj(const int64_t *dims,
                                                      T_data *M, char order) {
   _create(0, 0, 0);
   init_from_matrix(dims, M, order);
 }
 
 template <class T_data>
-void CarmaSparseHostObj<T_data>::resize(int nnz_, int dim1_, int dim2_) {
+void CarmaSparseHostObj<T_data>::resize(int32_t nnz_, int32_t dim1_, int32_t dim2_) {
   if (nz_elem != nnz_) {
     _clear();
     _create(nnz_, dim1_, dim2_);
@@ -75,8 +75,8 @@ void CarmaSparseHostObj<T_data>::operator=(
     CarmaSparseHostObj<T_data> &M) {
   resize(M.nz_elem, M.get_dims(1), M.get_dims(2));
   memcpy(h_data, M.h_data, sizeof(T_data) * nz_elem);
-  memcpy(rowind, M.rowind, sizeof(int) * (dims_data[1] + 1));
-  memcpy(colind, M.colind, sizeof(int) * nz_elem);
+  memcpy(rowind, M.rowind, sizeof(int32_t) * (dims_data[1] + 1));
+  memcpy(colind, M.colind, sizeof(int32_t) * nz_elem);
 
   major_dim = M.major_dim;
 }
@@ -86,20 +86,20 @@ void CarmaSparseHostObj<T_data>::operator=(CarmaSparseObj<T_data> &M) {
   resize(M.nz_elem, M.get_dims(1), M.get_dims(2));
   cudaMemcpy(h_data, M.d_data, nz_elem * sizeof(T_data),
              cudaMemcpyDeviceToHost);
-  cudaMemcpy(rowind, M.d_rowind, (dims_data[1] + 1) * sizeof(int),
+  cudaMemcpy(rowind, M.d_rowind, (dims_data[1] + 1) * sizeof(int32_t),
              cudaMemcpyDeviceToHost);
-  cudaMemcpy(colind, M.d_colind, nz_elem * sizeof(int), cudaMemcpyDeviceToHost);
+  cudaMemcpy(colind, M.d_colind, nz_elem * sizeof(int32_t), cudaMemcpyDeviceToHost);
 
   major_dim = M.major_dim;
 }
 
 template <class T_data>
-void CarmaSparseHostObj<T_data>::init_from_matrix(const long *dims,
+void CarmaSparseHostObj<T_data>::init_from_matrix(const int64_t *dims,
                                                      T_data *M, char major_dim) {
-  long nb_el = dims[1] * dims[2];
+  int64_t nb_el = dims[1] * dims[2];
   T_data *valB = M;
-  long cmpt = 0;
-  for (long i = 0; i < nb_el; i++) {
+  int64_t cmpt = 0;
+  for (int64_t i = 0; i < nb_el; i++) {
     if (*valB != 0) {
       cmpt++;
     }
@@ -107,9 +107,9 @@ void CarmaSparseHostObj<T_data>::init_from_matrix(const long *dims,
   }
 
   resize(cmpt, dims[1], dims[2]);
-  int *rowcoo = new int[cmpt];
+  int32_t *rowcoo = new int32_t[cmpt];
 
-  int *dim1, *dim2, ld;
+  int32_t *dim1, *dim2, ld;
   if (major_dim == 'R') {
     dim1 = rowcoo;
     dim2 = this->colind;
@@ -120,8 +120,8 @@ void CarmaSparseHostObj<T_data>::init_from_matrix(const long *dims,
     ld = dims_data[2];
   }
   valB = M;
-  long index = 0;
-  for (long i = 0; (index < cmpt) || (i < nb_el); i++) {
+  int64_t index = 0;
+  for (int64_t i = 0; (index < cmpt) || (i < nb_el); i++) {
     if (*valB != 0) {
       dim1[index] = i / ld;
       dim2[index] = i - dim1[index] * ld;
@@ -132,17 +132,17 @@ void CarmaSparseHostObj<T_data>::init_from_matrix(const long *dims,
 
   if (major_dim == 'C') {
     // sort rows
-    std::vector<std::pair<int, std::pair<int, T_data> > > sM(nz_elem);
+    std::vector<std::pair<int32_t, std::pair<int32_t, T_data> > > sM(nz_elem);
     // sM[i].first         -> rowind
     // sM[i].second.first  -> colind
     // sM[i].second.second -> value
-    for (int i = 0; i < nz_elem; i++) {
+    for (int32_t i = 0; i < nz_elem; i++) {
       sM[i].first = rowcoo[i];
       sM[i].second.first = colind[i];
       sM[i].second.second = h_data[i];
     }
     sort(sM.begin(), sM.end());
-    for (int i = 0; i < nz_elem; i++) {
+    for (int32_t i = 0; i < nz_elem; i++) {
       rowcoo[i] = sM[i].first;
       colind[i] = sM[i].second.first;
       h_data[i] = sM[i].second.second;
@@ -151,7 +151,7 @@ void CarmaSparseHostObj<T_data>::init_from_matrix(const long *dims,
 
   // coo2csr
   rowind[0] = 0;
-  long csr_index = 0;
+  int64_t csr_index = 0;
   index = 0;
   while (csr_index < ld + 1) {
     while (rowcoo[index] == csr_index) {
@@ -179,15 +179,15 @@ void CarmaSparseHostObj<T_data>::init_from_matrix(const long *dims,
 
 template <class T_data>
 void CarmaSparseHostObj<T_data>::copy_into_matrix(T_data *M, char major_dim) {
-  int ld;
+  int32_t ld;
   if (major_dim == 'R') {
     ld = dims_data[1];
   } else {
     ld = dims_data[2];
   }
   T_data *val = this->h_data;
-  int index = 0;
-  for (int i = 0; i < dims_data[1]; i++) {
+  int32_t index = 0;
+  for (int32_t i = 0; i < dims_data[1]; i++) {
     while (index < rowind[i + 1]) {
       if (major_dim == 'R') {
         M[i * ld + colind[index]] = *val;
@@ -205,14 +205,14 @@ void CarmaSparseHostObj<T_data>::copy_into_matrix(T_data *M, char major_dim) {
 
 //
 template <class T_data>
-void CarmaSparseHostObj<T_data>::_create(int nnz_, int dim1_, int dim2_) {
+void CarmaSparseHostObj<T_data>::_create(int32_t nnz_, int32_t dim1_, int32_t dim2_) {
   nz_elem = nnz_;
   dims_data[0] = 2;
   dims_data[1] = dim1_;
   dims_data[2] = dim2_;
   h_data = new T_data[nz_elem];
-  rowind = new int[dim1_ + 1];
-  colind = new int[nz_elem];
+  rowind = new int32_t[dim1_ + 1];
+  colind = new int32_t[nz_elem];
   major_dim = 'U';
 }
 
@@ -242,9 +242,9 @@ template <class T_data>
 void carma_gemv(T_data alpha, CarmaSparseHostObj<T_data> *A,
                 CarmaHostObj<T_data> *x, T_data betta,
                 CarmaHostObj<T_data> *y,
-                void (*ptr_coomv)(char *transa, long *m, long *k, T_data *alpha,
-                                  char *matdescra, T_data *val, int *rowind,
-                                  int *colind, int *nnz, T_data *x,
+                void (*ptr_coomv)(char *transa, int64_t *m, int64_t *k, T_data *alpha,
+                                  char *matdescra, T_data *val, int32_t *rowind,
+                                  int32_t *colind, int32_t *nnz, T_data *x,
                                   T_data *beta, T_data *y)) {
   if (A->get_dims(2) != x->get_dims(1) || A->get_dims(1) != y->get_dims(1)) {
     std::cerr << "Error | kp_cscmv | diminsion problem" << std::endl;
@@ -252,9 +252,9 @@ void carma_gemv(T_data alpha, CarmaSparseHostObj<T_data> *A,
     // exit(EXIT_FAILURE);
   }
   //   A.check();
-  long dim1 = A->get_dims(1);
-  long dim2 = A->get_dims(2);
-  int nz_elem = A->nz_elem;
+  int64_t dim1 = A->get_dims(1);
+  int64_t dim2 = A->get_dims(2);
+  int32_t nz_elem = A->nz_elem;
 
   char transa[] = "N";
   char matdescra[] = "GFFFFFFFF";
@@ -271,13 +271,13 @@ void carma_gemm(char op_A, T_data alpha, CarmaSparseHostObj<T_data> *A,
                 CarmaHostObj<T_data> *C) {
   //   A.check();
   /* FIXME: à coder sans MKL ou pas...
-   long dimA1=A->get_dims(1);
-   long dimA2=A->get_dims(2);
-   long dimB1=B->get_dims(1);
-   long dimB2=B->get_dims(2);
-   long dimC1=C->get_dims(1);
-   long dimC2=C->get_dims(2);
-   long nz_elem=A->nz_elem;
+   int64_t dimA1=A->get_dims(1);
+   int64_t dimA2=A->get_dims(2);
+   int64_t dimB1=B->get_dims(1);
+   int64_t dimB2=B->get_dims(2);
+   int64_t dimC1=C->get_dims(1);
+   int64_t dimC2=C->get_dims(2);
+   int64_t nz_elem=A->nz_elem;
 
    mkl_dcoomm(&op_A, &dimA1, &dimC2, &dimA2, &alpha, "GFFFFFFF", A->get_data(),
    A->rowind, A->colind, &nz_elem, B->get_data(), &dimB1, &betta, C->get_data(),
@@ -291,12 +291,12 @@ void carma_gemm(char op_A, T_data alpha, CarmaSparseHostObj<T_data> *A,
 
 template <class T_data>
 void CarmaSparseHostObj<T_data>::resize2row_major() {
-  int i;
-  int indice;
-  std::vector<std::vector<std::pair<int, int> > > position(
-      dims_data[1], std::vector<std::pair<int, int> >());
-  int *rowind2 = new int[nz_elem];
-  int *colind2 = new int[nz_elem];
+  int32_t i;
+  int32_t indice;
+  std::vector<std::vector<std::pair<int32_t, int32_t> > > position(
+      dims_data[1], std::vector<std::pair<int32_t, int32_t> >());
+  int32_t *rowind2 = new int32_t[nz_elem];
+  int32_t *colind2 = new int32_t[nz_elem];
   T_data *values2 = new T_data[nz_elem];
 
   // cout<<"dim1="<<this->dim1<<" dim2="<<this->dim2<<" nnz="<<this->nnz<<endl;
@@ -346,12 +346,12 @@ void CarmaSparseHostObj<T_data>::resize2row_major() {
 }
 template <class T_data>
 void CarmaSparseHostObj<T_data>::resize2col_major() {
-  int i;
-  int indice;
-  std::vector<std::vector<std::pair<int, int> > > position(
-      dims_data[2], std::vector<std::pair<int, int> >());
-  int *rowind2 = new int[nz_elem];
-  int *colind2 = new int[nz_elem];
+  int32_t i;
+  int32_t indice;
+  std::vector<std::vector<std::pair<int32_t, int32_t> > > position(
+      dims_data[2], std::vector<std::pair<int32_t, int32_t> >());
+  int32_t *rowind2 = new int32_t[nz_elem];
+  int32_t *colind2 = new int32_t[nz_elem];
   T_data *values2 = new T_data[nz_elem];
 
   for (i = 0; i < nz_elem; i++) {
@@ -402,26 +402,26 @@ void CarmaSparseHostObj<T_data>::resize2col_major() {
   template CarmaSparseHostObj<T_data>::CarmaSparseHostObj(            \
       CarmaSparseHostObj<T_data> &M);                                    \
   template CarmaSparseHostObj<T_data>::CarmaSparseHostObj(            \
-      const long *dims, T_data *M, char order);                             \
-  template void CarmaSparseHostObj<T_data>::resize(int nnz_, int dim1_,  \
-                                                      int dim2_);           \
+      const int64_t *dims, T_data *M, char order);                             \
+  template void CarmaSparseHostObj<T_data>::resize(int32_t nnz_, int32_t dim1_,  \
+                                                      int32_t dim2_);           \
   template void CarmaSparseHostObj<T_data>::operator=(                   \
       CarmaSparseHostObj<T_data> &M);                                    \
   template void CarmaSparseHostObj<T_data>::operator=(                   \
       CarmaSparseObj<T_data> &M);                                         \
   template void CarmaSparseHostObj<T_data>::init_from_matrix(            \
-      const long *dims, T_data *M, char major_dim = 'R');                    \
+      const int64_t *dims, T_data *M, char major_dim = 'R');                    \
   template void CarmaSparseHostObj<T_data>::copy_into_matrix(            \
       T_data *M, char major_dim = 'R');                                      \
-  template void CarmaSparseHostObj<T_data>::_create(int nnz_, int dim1_, \
-                                                       int dim2_);          \
+  template void CarmaSparseHostObj<T_data>::_create(int32_t nnz_, int32_t dim1_, \
+                                                       int32_t dim2_);          \
   template void CarmaSparseHostObj<T_data>::_clear();                    \
   template void carma_gemv(                                                 \
       T_data alpha, CarmaSparseHostObj<T_data> *A,                       \
       CarmaHostObj<T_data> *x, T_data betta, CarmaHostObj<T_data> *y,   \
-      void (*ptr_coomv)(char *transa, long *m, long *k, T_data *alpha,      \
-                        char *matdescra, T_data *val, int *rowind,          \
-                        int *colind, int *nnz, T_data *x, T_data *beta,     \
+      void (*ptr_coomv)(char *transa, int64_t *m, int64_t *k, T_data *alpha,      \
+                        char *matdescra, T_data *val, int32_t *rowind,          \
+                        int32_t *colind, int32_t *nnz, T_data *x, T_data *beta,     \
                         T_data *y));                                        \
   template void carma_gemm(                                                 \
       char op_A, T_data alpha, CarmaSparseHostObj<T_data> *A,            \

@@ -13,11 +13,53 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <wyrm>
+#include "sutraWrapUtils.hpp"
 
 #include <sutra_centroider.h>
 
 namespace py = pybind11;
+
+template <typename Tin, typename Tcomp>
+int32_t load_validpos(SutraCentroider<Tin, Tcomp> &sc, ArrayFStyle<int32_t> &ivalid, ArrayFStyle<int32_t> &jvalid, int32_t N){
+     return sc.load_validpos(ivalid.mutable_data(), jvalid.mutable_data(), N);
+}
+
+
+template <typename Tin, typename Tcomp>
+int32_t load_img_n(SutraCentroider<Tin, Tcomp> &sc, ArrayFStyle<Tin> &img, int32_t n, int32_t location){
+     return sc.load_img(img.mutable_data(), n, location);
+}
+
+template <typename Tin, typename Tcomp>
+int32_t load_img_m_n(SutraCentroider<Tin, Tcomp> &sc, ArrayFStyle<Tin> &img, int32_t m, int32_t n, int32_t location){
+     return sc.load_img(img.mutable_data(), m, n, location);
+}
+
+template <typename Tin, typename Tcomp>
+int32_t load_img(SutraCentroider<Tin, Tcomp> &sc, CarmaObj<Tin> *img){
+     return sc.load_img(img);
+}
+
+
+template <typename Tin, typename Tcomp>
+int32_t set_dark(SutraCentroider<Tin, Tcomp> &sc, ArrayFStyle<float> &dark, int32_t n){
+     return sc.set_dark(dark.mutable_data(), n);
+}
+
+template <typename Tin, typename Tcomp>
+int32_t set_flat(SutraCentroider<Tin, Tcomp> &sc, ArrayFStyle<float> &flat, int32_t n){
+     return sc.set_flat(flat.mutable_data(), n);
+}
+
+template <typename Tin, typename Tcomp>
+int32_t set_lutPix(SutraCentroider<Tin, Tcomp> &sc, ArrayFStyle<int32_t> &lutPix, int32_t n){
+     return sc.set_lutPix(lutPix.mutable_data(), n);
+}
+
+template <typename Tin, typename Tcomp>
+int32_t set_centroids_ref(SutraCentroider<Tin, Tcomp> &sc, ArrayFStyle<float> &centroids_ref){
+     return sc.set_centroids_ref(centroids_ref.mutable_data());
+}
 
 template <typename Tin, typename Tcomp>
 void centroider_impl(py::module &mod, const char *name) {
@@ -135,10 +177,10 @@ void centroider_impl(py::module &mod, const char *name) {
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
       .def("get_cog",
-           wy::colCast((int (centroider::*)(void)) & centroider::get_cog),
+           (int32_t (centroider::*)(void)) & centroider::get_cog,
            "Computes centroids and stores it in d_slopes of the WFS")
 
-      .def("load_validpos", wy::colCast(&centroider::load_validpos),
+      .def("load_validpos", &load_validpos<Tin, Tcomp>,
            R"pbdoc(
      Load the validx and validy arrays
 
@@ -151,7 +193,7 @@ void centroider_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("validx"), py::arg("validy"), py::arg("N"))
 
-      .def("set_npix", wy::colCast(&centroider::set_npix),
+      .def("set_npix", &centroider::set_npix,
            R"pbdoc(
      Set the number of pixels per subap for a RTC standalone
 
@@ -160,7 +202,7 @@ void centroider_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("npix"))
 
-      .def("set_nxsub", wy::colCast(&centroider::set_nxsub),
+      .def("set_nxsub", &centroider::set_nxsub,
            R"pbdoc(
      Set the number of ssp across the pupil diameter for a RTC standalone
 
@@ -170,8 +212,7 @@ void centroider_impl(py::module &mod, const char *name) {
            py::arg("nxsub"))
 
       .def("load_img",
-           wy::colCast((int (centroider::*)(Tin *, int, int, int)) &
-                       centroider::load_img),
+           &load_img_m_n<Tin, Tcomp>,
            R"pbdoc(
      Load an image in a RTC standalone (host to device)
 
@@ -187,8 +228,7 @@ void centroider_impl(py::module &mod, const char *name) {
            py::arg("img"), py::arg("m"), py::arg("n"), py::arg("location"))
 
       .def("load_img",
-           wy::colCast((int (centroider::*)(Tin *, int, int)) &
-                       centroider::load_img),
+           &load_img_n<Tin, Tcomp>,
            R"pbdoc(
      Load a square image (n, n) in a RTC standalone
 
@@ -203,8 +243,7 @@ void centroider_impl(py::module &mod, const char *name) {
            py::arg("img"), py::arg("n"), py::arg("location") = -1)
 
       .def("load_img",
-           wy::colCast((int (centroider::*)(CarmaObj<Tin> *)) &
-                       centroider::load_img),
+           &load_img<Tin, Tcomp>,
            R"pbdoc(
      Load an image in a RTC standalone from a CarmaObj
 
@@ -213,13 +252,13 @@ void centroider_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("img"))
 
-      .def("calibrate_img", wy::colCast((int (centroider::*)(void)) &
-                       centroider::calibrate_img), R"pbdoc(
+      .def("calibrate_img", (int32_t (centroider::*)(void)) &
+                       centroider::calibrate_img, R"pbdoc(
            Performs the raw WFS frame calibration
            )pbdoc")
 
-      .def("calibrate_img_validPix", wy::colCast((int (centroider::*)(void)) &
-                       centroider::calibrate_img_validPix), R"pbdoc(
+      .def("calibrate_img_validPix", (int32_t (centroider::*)(void)) &
+                       centroider::calibrate_img_validPix, R"pbdoc(
            Performs the raw WFS frame calibration only on useful pixels
            )pbdoc")
 
@@ -230,7 +269,7 @@ void centroider_impl(py::module &mod, const char *name) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
-      .def("set_centroids_ref", wy::colCast(&centroider::set_centroids_ref),
+      .def("set_centroids_ref", &set_centroids_ref<Tin, Tcomp>,
            R"pbdoc(
      Set the references slopes
 
@@ -255,7 +294,7 @@ void centroider_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("offset"))
 
-      .def("set_dark", wy::colCast(&centroider::set_dark), R"pbdoc(
+      .def("set_dark", &set_dark<Tin, Tcomp>, R"pbdoc(
      Set the dark frame for calibration
 
      Args:
@@ -265,7 +304,7 @@ void centroider_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("dark"), py::arg("n"))
 
-      .def("set_flat", wy::colCast(&centroider::set_flat), R"pbdoc(
+      .def("set_flat", &set_flat<Tin, Tcomp>, R"pbdoc(
      Set the flat frame for calibration
 
      Args:
@@ -275,7 +314,7 @@ void centroider_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("flat"), py::arg("n"))
 
-      .def("init_calib", wy::colCast(&centroider::init_calib), R"pbdoc(
+      .def("init_calib", &centroider::init_calib, R"pbdoc(
      Initialize data used for calibration
 
      Args:
@@ -285,7 +324,7 @@ void centroider_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("n"), py::arg("m"))
 
-      .def("init_img_raw", wy::colCast(&centroider::init_img_raw), R"pbdoc(
+      .def("init_img_raw", &centroider::init_img_raw, R"pbdoc(
      Initialize array to store raw WFS image in RTC standalone mode
 
      Args:
@@ -295,7 +334,7 @@ void centroider_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("n"), py::arg("m"))
 
-      .def("set_lutPix", wy::colCast(&centroider::set_lutPix), R"pbdoc(
+      .def("set_lutPix",&set_lutPix<Tin, Tcomp>, R"pbdoc(
      Set the lookup Table Pixel vector for calibration
 
      Args:

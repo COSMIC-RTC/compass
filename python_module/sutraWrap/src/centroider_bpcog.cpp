@@ -13,9 +13,9 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_centroider_bpcog.h>
+#include "sutraWrapUtils.hpp"
 
-#include <wyrm>
+#include <sutra_centroider_bpcog.h>
 
 namespace py = pybind11;
 

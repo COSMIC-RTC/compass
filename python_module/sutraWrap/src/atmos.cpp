@@ -13,26 +13,33 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <wyrm>
+#include "sutraWrapUtils.hpp"
 
 #include <sutra_atmos.h>
 
 namespace py = pybind11;
 
-std::unique_ptr<SutraAtmos> atmos_init(CarmaContext &context, int nscreens,
-                                        float global_r0, float *r0_per_layers,
-                                        long *dim_screens, long *stencil_size,
-                                        float *altitude, float *windspeed,
-                                        float *winddir, float *deltax,
-                                        float *deltay, int device) {
+std::unique_ptr<SutraAtmos> atmos_init(CarmaContext &context, int32_t nscreens,
+                                        float global_r0, ArrayFStyle<float> &r0_per_layers,
+                                        ArrayFStyle<int64_t> &dim_screens, ArrayFStyle<int64_t> &stencil_size,
+                                        ArrayFStyle<float> &altitude, ArrayFStyle<float> &windspeed,
+                                        ArrayFStyle<float> &winddir, ArrayFStyle<float> &deltax,
+                                        ArrayFStyle<float> &deltay, int32_t device) {
   return std::unique_ptr<SutraAtmos>(new SutraAtmos(
-      &context, nscreens, global_r0, r0_per_layers, dim_screens, stencil_size,
-      altitude, windspeed, winddir, deltax, deltay, device));
+      &context, nscreens, global_r0, r0_per_layers.mutable_data(), dim_screens.mutable_data(), stencil_size.mutable_data(),
+      altitude.mutable_data(), windspeed.mutable_data(), winddir.mutable_data(), deltax.mutable_data(), deltay.mutable_data(), device));
 }
+
+int32_t init_screen(SutraAtmos &sa, int32_t idx, ArrayFStyle<float> &h_A, ArrayFStyle<float> &h_B, ArrayFStyle<uint32_t> &h_istencilx,
+                ArrayFStyle<uint32_t> &h_istencily, int32_t seed) {
+  return sa.init_screen(idx, h_A.mutable_data(), h_B.mutable_data(), h_istencilx.mutable_data(), h_istencily.mutable_data(), seed);
+}
+
 
 void declare_atmos(py::module &mod) {
   py::class_<SutraAtmos>(mod, "Atmos")
-      .def(py::init(wy::colCast(atmos_init)), R"pbdoc(
+      .def(py::init(&atmos_init),
+    R"pbdoc(
     Create and initialise an atmos object
 
     Attributes:
@@ -99,7 +106,7 @@ void declare_atmos(py::module &mod) {
         parameters such as windspeed and wind direction
         )pbdoc")
 
-      .def("init_screen", wy::colCast(&SutraAtmos::init_screen), R"pbdoc(
+      .def("init_screen", &init_screen, R"pbdoc(
     Initialize an newly allocated screen
 
     Args:
@@ -118,15 +125,15 @@ void declare_atmos(py::module &mod) {
            py::arg("idx"), py::arg("A"), py::arg("B"), py::arg("istencilx"),
            py::arg("istencily"), py::arg("seed"))
 
-      .def("add_screen", wy::colCast(&SutraAtmos::add_screen), R"pbdoc(
+      .def("add_screen", &SutraAtmos::add_screen, R"pbdoc(
     Add a screen to the atmos object.
 
     Args:
         altitude: (float) : altitude of the screen in meters
 
-        size: (long) : dimension of the screen (size x size)
+        size: (int64_t) : dimension of the screen (size x size)
 
-        stencil_size: (long): dimension of the stencil
+        stencil_size: (int64_t): dimension of the stencil
 
         r0: (float) : frac of r0**(5/3)
 
@@ -138,13 +145,13 @@ void declare_atmos(py::module &mod) {
 
         deltay: (float) : extrude deltay pixels in the y-direction at each iteration
 
-        device: (int) : device number
+        device: (int32_t) : device number
         )pbdoc",
            py::arg("altitude"), py::arg("size"), py::arg("stencil_size"),
            py::arg("r0"), py::arg("windspeed"), py::arg("winddir"),
            py::arg("deltax"), py::arg("deltay"), py::arg("device"))
 
-      .def("refresh_screen", wy::colCast(&SutraAtmos::refresh_screen),
+      .def("refresh_screen", &SutraAtmos::refresh_screen,
            R"pbdoc(
     Refresh the selected screen by extrusion
 
@@ -153,7 +160,7 @@ void declare_atmos(py::module &mod) {
         )pbdoc",
            py::arg("idx"))
 
-      .def("del_screen", wy::colCast(&SutraAtmos::del_screen), R"pbdoc(
+      .def("del_screen", &SutraAtmos::del_screen, R"pbdoc(
     Delete the selected screen
 
     Args:
@@ -167,7 +174,7 @@ void declare_atmos(py::module &mod) {
                           "(pix) | deltax | deltay"
                        << std::endl;
              vector<SutraTurbuScreen *>::iterator it = sa.d_screens.begin();
-             int i = 0;
+             int32_t i = 0;
              while (it != sa.d_screens.end()) {
                std::cout << i << " | " << (*it)->altitude << " | "
                          << (*it)->windspeed << " | " << (*it)->winddir << " | "
@@ -187,7 +194,7 @@ void declare_atmos(py::module &mod) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
-      .def("set_r0", wy::colCast(&SutraAtmos::set_r0),
+      .def("set_r0", &SutraAtmos::set_r0,
            R"pbdoc(
     Change the current global r0 of all layers
 
@@ -196,13 +203,13 @@ void declare_atmos(py::module &mod) {
         )pbdoc",
            py::arg("r0"))
 
-      .def("set_seed", wy::colCast(&SutraAtmos::set_seed), R"pbdoc(
+      .def("set_seed", &SutraAtmos::set_seed, R"pbdoc(
     Set the seed of the selected screen RNG
 
     Args:
         idx: (int): index of the screen
 
-        seed: (int) :new seed
+        seed: (int32_t) :new seed
         )pbdoc",
            py::arg("idx"), py::arg("seed"));
 };

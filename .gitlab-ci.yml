@@ -1,11 +1,11 @@
-image: aocompass/base-20.04
 
 stages:
   - build
   - test
-  - deploy
+  - pages
 
-build_release:
+build_release_focal:
+  image: aocompass/base-20.04:11.8.0
   stage: build
   variables:
     COMPASS_ROOT: /builds/compass/compass
@@ -15,8 +15,6 @@ build_release:
     - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
     - ./script/install_conan_gcc.sh
-    - pip install -r script/requirements.txt
-    - pip install -r script/requirements-dev.txt
     - ./compile.sh $PWD/local
   when: manual
   # only:
@@ -26,16 +24,18 @@ build_release:
       - local/
     expire_in: 1 week
 
-build_release_main:
+build_release_main_focal:
+  image: aocompass/base-20.04:11.8.0
+  extends: build_release_focal
   stage: build
-  extends: build_release
   when: always
   only:
     - main
     - rc
     - tags
 
-build_debug:
+build_debug_focal:
+  image: aocompass/base-20.04:11.8.0
   stage: build
   variables:
     COMPASS_ROOT: /builds/compass/compass
@@ -58,14 +58,15 @@ build_debug:
       - local/
     expire_in: 1 week
 
-pytests:
+test_debug_focal:
+  image: aocompass/base-20.04:11.8.0
   stage: test
+  dependencies:
+    - build_debug_focal
   variables:
     COMPASS_ROOT: /builds/compass/compass
     SHESHA_ROOT: $COMPASS_ROOT/shesha
     NAGA_ROOT: $COMPASS_ROOT/naga
-  dependencies:
-    - build_debug
   script:
     - export PYTHONPATH=$NAGA_ROOT:$SHESHA_ROOT:$NAGA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
@@ -85,11 +86,12 @@ pytests:
     - merge_requests
     - develop
 
-main_pytests:
+test_main_focal:
+  image: aocompass/base-20.04:11.8.0
+  extends: test_debug_focal
   stage: test
-  extends: pytests
   dependencies:
-    - build_release_main
+    - build_release_main_focal
   when: always
   only:
     - main
@@ -97,14 +99,15 @@ main_pytests:
     - tags
 
 pages:
-  stage: deploy
+  image: aocompass/base-20.04:11.8.0
+  stage: pages
   variables:
     COMPASS_ROOT: /builds/compass/compass
     SHESHA_ROOT: $COMPASS_ROOT/shesha
     NAGA_ROOT: $COMPASS_ROOT/naga
   dependencies:
-    - build_debug
-    - pytests
+    - build_debug_focal
+    - test_debug_focal
   script:
     - export PYTHONPATH=$SHESHA_ROOT:$NAGA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
@@ -139,3 +142,193 @@ pages:
 #   when: always
 #   only:
 #     - develop
+
+build_release_jammy:
+  image: aocompass/base-22.04:11.8.0
+  stage: build
+  variables:
+    COMPASS_ROOT: /builds/compass/compass
+    SHESHA_ROOT: $COMPASS_ROOT/shesha
+    COMPASS_DO_HALF: "OFF"
+  script:
+    - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
+    - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
+    - ./script/install_conan_gcc.sh
+    - ./compile.sh $PWD/local
+  when: manual
+  # only:
+  #  - develop
+  artifacts:
+    paths:
+      - local/
+    expire_in: 1 week
+
+build_release_main_jammy:
+  image: aocompass/base-22.04:11.8.0
+  extends: build_release_jammy
+  stage: build
+  when: always
+  only:
+    - main
+    - rc
+    - tags
+
+build_debug_jammy:
+  image: aocompass/base-22.04:11.8.0
+  stage: build
+  variables:
+    COMPASS_ROOT: /builds/compass/compass
+    SHESHA_ROOT: $COMPASS_ROOT/shesha
+    COMPASS_DEBUG: "-DCMAKE_BUILD_TYPE=Debug"
+    COMPASS_DO_HALF: "OFF"
+  script:
+    - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
+    - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
+    - ./script/install_conan_gcc.sh
+    - pip install -r script/requirements.txt
+    - pip install -r script/requirements-dev.txt
+    - ./compile.sh $PWD/local
+  when: always
+  only:
+    - merge_requests
+    - develop
+  artifacts:
+    paths:
+      - local/
+    expire_in: 1 week
+
+test_debug_jammy:
+  image: aocompass/base-22.04:11.8.0
+  stage: test
+  dependencies:
+    - build_debug_jammy
+  variables:
+    COMPASS_ROOT: /builds/compass/compass
+    SHESHA_ROOT: $COMPASS_ROOT/shesha
+    NAGA_ROOT: $COMPASS_ROOT/naga
+  script:
+    - export PYTHONPATH=$NAGA_ROOT:$SHESHA_ROOT:$NAGA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
+    - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
+    - pip install -r script/requirements.txt
+    - pip install -r script/requirements-test.txt
+    - $COMPASS_ROOT/shesha/tests/checkCompass.sh 
+    - $COMPASS_ROOT/doc/generate_coverage.sh
+    - coverage report
+  coverage: '/^TOTAL.*\s+(\d+\%)$/'
+  artifacts:
+    paths:
+      - .coverage
+      - report_E2E.md
+    expire_in: 1 week
+  when: always
+  only:
+    - merge_requests
+    - develop
+
+test_main_jammy:
+  image: aocompass/base-22.04:11.8.0
+  extends: test_debug_jammy
+  stage: test
+  dependencies:
+    - build_release_main_jammy
+  when: always
+  only:
+    - main
+    - rc
+    - tags
+
+
+build_release_rockylinux8:
+  image: aocompass/base-rockylinux8:11.8.0
+  stage: build
+  variables:
+    COMPASS_ROOT: /builds/compass/compass
+    SHESHA_ROOT: $COMPASS_ROOT/shesha
+    COMPASS_DO_HALF: "OFF"
+  script:
+    - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
+    - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
+    - ./script/install_conan_gcc.sh
+    - ./compile.sh $PWD/local
+  when: manual
+  # only:
+  #  - develop
+  artifacts:
+    paths:
+      - local/
+    expire_in: 1 week
+
+build_release_main_rockylinux8:
+  image: aocompass/base-rockylinux8:11.8.0
+  extends: build_release_rockylinux8
+  stage: build
+  when: always
+  only:
+    - main
+    - rc
+    - tags
+
+build_debug_rockylinux8:
+  image: aocompass/base-rockylinux8:11.8.0
+  stage: build
+  variables:
+    COMPASS_ROOT: /builds/compass/compass
+    SHESHA_ROOT: $COMPASS_ROOT/shesha
+    COMPASS_DEBUG: "-DCMAKE_BUILD_TYPE=Debug"
+    COMPASS_DO_HALF: "OFF"
+  script:
+    - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
+    - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
+    - ./script/install_conan_gcc.sh
+    - pip install -r script/requirements.txt
+    - pip install -r script/requirements-dev.txt
+    - ./compile.sh $PWD/local
+  when: always
+  only:
+    - merge_requests
+    - develop
+  artifacts:
+    paths:
+      - local/
+    expire_in: 1 week
+
+test_debug_rockylinux8:
+  image: aocompass/base-rockylinux8:11.8.0
+  stage: test
+  dependencies:
+    - build_debug_rockylinux8
+  variables:
+    COMPASS_ROOT: /builds/compass/compass
+    SHESHA_ROOT: $COMPASS_ROOT/shesha
+    NAGA_ROOT: $COMPASS_ROOT/naga
+  script:
+    - export PYTHONPATH=$NAGA_ROOT:$SHESHA_ROOT:$NAGA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
+    - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
+    - pip install -r script/requirements.txt
+    - pip install -r script/requirements-test.txt
+    - $COMPASS_ROOT/shesha/tests/checkCompass.sh 
+    - $COMPASS_ROOT/doc/generate_coverage.sh
+    - coverage report
+  coverage: '/^TOTAL.*\s+(\d+\%)$/'
+  artifacts:
+    paths:
+      - .coverage
+      - report_E2E.md
+    expire_in: 1 week
+  when: always
+  only:
+    - merge_requests
+    - develop
+
+test_main_rockylinux8:
+  image: aocompass/base-rockylinux8:11.8.0
+  extends: test_debug_rockylinux8
+  stage: test
+  dependencies:
+    - build_release_main_rockylinux8
+  when: always
+  only:
+    - main
+    - rc
+    - tags
+

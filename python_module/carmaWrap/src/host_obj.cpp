@@ -19,16 +19,14 @@
 
 // #ifdef CAN_DO_HALF
 // using TypeListHostObj =
-//     GenericTypeList<int, float, double, half, cuFloatComplex,
+//     GenericTypeList<int32_t, float, double, half, cuFloatComplex,
 //     cuDoubleComplex>;
 // #else
 using TypeListHostObj =
-    GenericTypeList<int, float, double, cuFloatComplex, cuDoubleComplex>;
+    GenericTypeList<int32_t, float, double, cuFloatComplex, cuDoubleComplex>;
 // #endif
 
 void declare_carmaWrap_host_obj(py::module &mod) {
-  auto complex128 = py::class_<cuDoubleComplex>(mod, "complex128");
-  auto complex64 = py::class_<cuFloatComplex>(mod, "complex64");
   py::enum_<MemAlloc>(mod, "MemAlloc")
       .value("MA_MALLOC", MemAlloc::MA_MALLOC)
       .value("MA_PAGELOCK", MemAlloc::MA_PAGELOCK)

@@ -27,17 +27,17 @@ using std::string;
 using std::tuple;
 
 typedef vector<CarmaObj<cuFloatComplex>*> mftVec;
-typedef tuple<mftVec, vector<long>> mftTuple;
+typedef tuple<mftVec, vector<int64_t>> mftTuple;
 
 class SutraStellarCoronagraph : public SutraCoronagraph {
     public:
         bool babinet;
-        int fpmDimx;
-        int fpmDimy;
+        int32_t fpmDimx;
+        int32_t fpmDimy;
         map<string, mftTuple> AA;
         map<string, mftTuple> BB;
         map<string, vector<float>> norm;
-        map<string, tuple<CarmaObj<cuFloatComplex>*, vector<long>>> tmp_mft;
+        map<string, tuple<CarmaObj<cuFloatComplex>*, vector<int64_t>>> tmp_mft;
 
         CarmaObj<float> *d_lyot_stop;
         CarmaObj<float> *d_apodizer;
@@ -46,20 +46,20 @@ class SutraStellarCoronagraph : public SutraCoronagraph {
         CarmaObj<cuFloatComplex> *d_electric_field_babinet;
 
     public:
-        SutraStellarCoronagraph(CarmaContext *context, SutraSource *d_source,int im_dimx,
-                                int im_dimy, int fpm_dimx, int fpm_dimy,
-                                float *wavelength, int nWavelength, bool babinet, int device);
+        SutraStellarCoronagraph(CarmaContext *context, SutraSource *d_source,int32_t im_dimx,
+                                int32_t im_dimy, int32_t fpm_dimx, int32_t fpm_dimy,
+                                float *wavelength, int32_t nWavelength, bool babinet, int32_t device);
         ~SutraStellarCoronagraph()=default;
-        int compute_image(bool accumulate);
-        int compute_psf(bool accumulate);
-        int compute_image_normalization();
-        int set_mft(cuFloatComplex *A, cuFloatComplex *B, float* norm, std::string mftType);
-        int set_focal_plane_mask(float *mask);
-        int set_apodizer(float *apodizer);
-        int set_lyot_stop(float *lyot_stop);
+        int32_t compute_image(bool accumulate);
+        int32_t compute_psf(bool accumulate);
+        int32_t compute_image_normalization();
+        int32_t set_mft(cuFloatComplex *A, cuFloatComplex *B, float* norm, std::string mftType);
+        int32_t set_focal_plane_mask(float *mask);
+        int32_t set_apodizer(float *apodizer);
+        int32_t set_lyot_stop(float *lyot_stop);
 
     private:
-        int _compute_image(bool center_on_pixel, bool accumulate, bool no_fpm);
+        int32_t _compute_image(bool center_on_pixel, bool accumulate, bool no_fpm);
 };
 
 #endif //_SUTRA_STELLAR_CORONAGRAPH_H_

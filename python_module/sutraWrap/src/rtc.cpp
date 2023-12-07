@@ -13,16 +13,11 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
+#include "sutraWrapUtils.hpp"
+
 #include <sutra_rtc.h>
 
-#include <wyrm>
-
 namespace py = pybind11;
-
-template <typename T>
-using F_arrayS = py::array_t<T, py::array::f_style | py::array::forcecast>;
-// typedef py::array_t<float, py::array::f_style | py::array::forcecast>
-// F_arrayS;
 
 template <typename Tin, typename Tcomp, typename Tout>
 std::unique_ptr<SutraRtc<Tin, Tcomp, Tout>> rtc_init() {
@@ -31,34 +26,58 @@ std::unique_ptr<SutraRtc<Tin, Tcomp, Tout>> rtc_init() {
 }
 
 template <typename Tin, typename Tcomp, typename Tout>
-void add_controller_impl(SutraRtc<Tin, Tcomp, Tout> &sr, CarmaContext *context,
-                    std::string typec, long device, float delay, int nslope, int nactu,
-                    int nslope_buffers, int nstates, int nstate_buffers, int nmodes,
-                    int niir_in, int niir_out, bool polc,bool is_modal) {
+int32_t add_controller(SutraRtc<Tin, Tcomp, Tout> &sr, CarmaContext *context, std::string typec,int64_t device, float delay, int32_t nslope,
+               int32_t nactu, int32_t nslope_buffers, int32_t nstates, int32_t nstate_buffers,
+               int32_t nmodes, int32_t niir_in, int32_t niir_out, bool polc,
+               bool is_modal, SutraDms *dms, ArrayFStyle<int32_t> &idx_dms,
+               int32_t ndm,ArrayFStyle<int32_t> &idx_centro, int32_t ncentro, int32_t Nphi,
+               bool wfs_direction) {
+     return sr.add_controller(context, typec, device, delay, nslope, nactu, nslope_buffers, nstates, nstate_buffers,
+                               nmodes,niir_in, niir_out, polc, is_modal,
+                               dms, idx_dms.mutable_data(), ndm, idx_centro.mutable_data(), ncentro, Nphi, wfs_direction);
+}
+
+template <typename Tin, typename Tcomp, typename Tout>
+int32_t set_centroids_ref(SutraRtc<Tin, Tcomp, Tout> &sr, ArrayFStyle<float> &centroids_ref) {
+    return sr.set_centroids_ref(centroids_ref.mutable_data());
+}
+
+template <typename Tin, typename Tcomp, typename Tout>
+int32_t do_imat_basis(SutraRtc<Tin, Tcomp, Tout> &sr, int32_t ncntrl, SutraDms *ydm, int32_t nModes, ArrayFStyle<Tcomp> &m2v,
+                  ArrayFStyle<Tcomp> &pushAmpl, int32_t kernconv) {
+     return sr.do_imat_basis(
+           ncntrl, ydm, nModes, m2v.mutable_data(), pushAmpl.mutable_data(), kernconv);
+}
+
+template <typename Tin, typename Tcomp, typename Tout>
+void add_controller_impl(SutraRtc<Tin, Tcomp, Tout> &sr, CarmaContext &context,
+                    std::string typec, int64_t device, float delay, int32_t nslope, int32_t nactu,
+                    int32_t nslope_buffers, int32_t nstates, int32_t nstate_buffers, int32_t nmodes,
+                    int32_t niir_in, int32_t niir_out, bool polc,bool is_modal) {
   SutraDms *dms = nullptr;
-  int *idx_dms = nullptr;
-  int ndm = 0;
-  int *idx_centro = nullptr;
-  int ncentro = 0;
-  int Nphi = 0;
+  int32_t *idx_dms = nullptr;
+  int32_t ndm = 0;
+  int32_t *idx_centro = nullptr;
+  int32_t ncentro = 0;
+  int32_t Nphi = 0;
   bool wfs_direction = false;
-  sr.add_controller(context, typec, device, nslope, nslope_buffers, nactu, nstates, nstate_buffers,
+  sr.add_controller(&context, typec, device, nslope, nslope_buffers, nactu, nstates, nstate_buffers,
                     nmodes,niir_in, niir_out, delay, polc, is_modal,
                     dms, idx_dms, ndm, idx_centro, ncentro, Nphi, wfs_direction);
 }
 
 template <typename Tin, typename Tcomp, typename Tout>
 typename std::enable_if<!std::is_same<Tcomp, half>::value, void>::type
-build_cmat_impl(SutraRtc<Tin, Tcomp, Tout> &sr, int ncontrol, int nfilt,
+build_cmat_impl(SutraRtc<Tin, Tcomp, Tout> &sr, int32_t ncontrol, int32_t nfilt,
                 bool filt_tt) {
-  sutra_controller_ls<Tcomp, Tout> *control =
-      dynamic_cast<sutra_controller_ls<Tcomp, Tout> *>(sr.d_control[ncontrol]);
+  SutraControllerLs<Tcomp, Tout> *control =
+      dynamic_cast<SutraControllerLs<Tcomp, Tout> *>(sr.d_control[ncontrol]);
   control->build_cmat(nfilt, filt_tt);
 }
 #ifdef CAN_DO_HALF
 template <typename Tin, typename Tcomp, typename Tout>
 typename std::enable_if<std::is_same<Tcomp, half>::value, void>::type
-build_cmat_impl(SutraRtc<Tin, Tcomp, Tout> &sr, int ncontrol, int nfilt,
+build_cmat_impl(SutraRtc<Tin, Tcomp, Tout> &sr, int32_t ncontrol, int32_t nfilt,
                 bool filt_tt) {
   throw std::runtime_error("Not implemented");
 };
@@ -66,33 +85,33 @@ build_cmat_impl(SutraRtc<Tin, Tcomp, Tout> &sr, int ncontrol, int nfilt,
 
 template <typename Tin, typename Tcomp, typename Tout>
 typename std::enable_if<!std::is_same<Tcomp, half>::value, void>::type
-set_modal_gains_impl(SutraRtc<Tin, Tcomp, Tout> &sr, int ncontrol,
-                     F_arrayS<Tcomp> data) {
-  sutra_controller_ls<Tcomp, Tout> *control =
-      dynamic_cast<sutra_controller_ls<Tcomp, Tout> *>(sr.d_control[ncontrol]);
+set_modal_gains_impl(SutraRtc<Tin, Tcomp, Tout> &sr, int32_t ncontrol,
+                     ArrayFStyle<Tcomp> data) {
+  SutraControllerLs<Tcomp, Tout> *control =
+      dynamic_cast<SutraControllerLs<Tcomp, Tout> *>(sr.d_control[ncontrol]);
   control->set_modal_gains(data.mutable_data());
 }
 #ifdef CAN_DO_HALF
 template <typename Tin, typename Tcomp, typename Tout>
 typename std::enable_if<std::is_same<Tcomp, half>::value, void>::type
-set_modal_gains_impl(SutraRtc<Tin, Tcomp, Tout> &sr, int ncontrol,
-                     F_arrayS<Tcomp> data) {
+set_modal_gains_impl(SutraRtc<Tin, Tcomp, Tout> &sr, int32_t ncontrol,
+                     ArrayFStyle<Tcomp> data) {
   throw std::runtime_error("Not implemented");
 }
 #endif
 
 template <typename Tin, typename Tcomp, typename Tout>
 typename std::enable_if<!std::is_same<Tcomp, half>::value, void>::type
-svdec_imat_impl(SutraRtc<Tin, Tcomp, Tout> &sr, int ncontrol) {
-  sutra_controller_ls<Tcomp, Tout> *control =
-      dynamic_cast<sutra_controller_ls<Tcomp, Tout> *>(sr.d_control[ncontrol]);
+svdec_imat_impl(SutraRtc<Tin, Tcomp, Tout> &sr, int32_t ncontrol) {
+  SutraControllerLs<Tcomp, Tout> *control =
+      dynamic_cast<SutraControllerLs<Tcomp, Tout> *>(sr.d_control[ncontrol]);
   control->svdec_imat();
 }
 
 #ifdef CAN_DO_HALF
 template <typename Tin, typename Tcomp, typename Tout>
 typename std::enable_if<std::is_same<Tcomp, half>::value, void>::type
-svdec_imat_impl(SutraRtc<Tin, Tcomp, Tout> &sr, int ncontrol) {
+svdec_imat_impl(SutraRtc<Tin, Tcomp, Tout> &sr, int32_t ncontrol) {
   throw std::runtime_error("Not implemented");
 }
 #endif
@@ -102,7 +121,7 @@ void rtc_impl(py::module &mod, const char *name) {
   using rtc = SutraRtc<Tin, Tcomp, Tout>;
 
   py::class_<rtc>(mod, name)
-      .def(py::init(wy::colCast(rtc_init<Tin, Tcomp, Tout>)),
+      .def(py::init(&rtc_init<Tin, Tcomp, Tout>),
            " Initialize a void rtc object")
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
@@ -134,9 +153,9 @@ void rtc_impl(py::module &mod, const char *name) {
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
       .def("add_centroider",
-           wy::colCast((int (rtc::*)(CarmaContext *, long, float, float, bool,
-                                     long, std::string, SutraWfs *)) &
-                       rtc::add_centroider),
+           (int32_t (rtc::*)(CarmaContext *, int64_t, float, float, bool,
+                                     int64_t, std::string, SutraWfs *)) &
+                       rtc::add_centroider,
 
            R"pbdoc(
      Add a SutraCentroider object in the RTC
@@ -164,9 +183,9 @@ void rtc_impl(py::module &mod, const char *name) {
            py::arg("typec"), py::arg("wfs"))
 
       .def("add_centroider",
-           wy::colCast((int (rtc::*)(CarmaContext *, long, float, float, bool,
-                                     long, std::string)) &
-                       rtc::add_centroider),
+           (int32_t (rtc::*)(CarmaContext *, int64_t, float, float, bool,
+                                     int64_t, std::string)) &
+                       rtc::add_centroider,
            R"pbdoc(
      Add a SutraCentroider object in the RTC
 
@@ -190,7 +209,7 @@ void rtc_impl(py::module &mod, const char *name) {
            py::arg("scale"), py::arg("filter_TT"), py::arg("device"),
            py::arg("typec"))
 
-      .def("add_controller", wy::colCast(&rtc::add_controller), R"pbdoc(
+      .def("add_controller", &add_controller<Tin, Tcomp, Tout>, R"pbdoc(
      Add a SutraController object in the RTC
 
     Args:
@@ -208,17 +227,17 @@ void rtc_impl(py::module &mod, const char *name) {
 
     Kwargs:
 
-        nslope_buffers: (int) : Number of historic slopes vectors to use
+        nslope_buffers: (int32_t) : Number of historic slopes vectors to use
 
-        nstates       : (int)        : Number of states in state vector
+        nstates       : (int32_t)        : Number of states in state vector
 
-        nstate_buffers: (int)        : Number of historic state vectors to use
+        nstate_buffers: (int32_t)        : Number of historic state vectors to use
 
-        nmodes        : (int)        : Number of modes in mode vector
+        nmodes        : (int32_t)        : Number of modes in mode vector
 
-        niir_in       : (int)        : Number of input mode vectors for iir filter
+        niir_in       : (int32_t)        : Number of input mode vectors for iir filter
 
-        niir_out      : (int)        : Number of output mode vectors for iir filter
+        niir_out      : (int32_t)        : Number of output mode vectors for iir filter
 
         polc          : (bool)       : Activate the Pseudo Open Loop Control if available
 
@@ -228,13 +247,13 @@ void rtc_impl(py::module &mod, const char *name) {
 
         idx_dms       : (np.array[ndim=1,dtype=np.int64]) : index of DM in SutraDms to command
 
-        ndm           : (int)        : Number of DM to command
+        ndm           : (int32_t)        : Number of DM to command
 
         idx_centro    : (np.array[ndim=1,dtype=np.int64]): (optional) Index of centoiders in sutra_rtc.d_centro to handle
 
-        ncentro       : (int)        : Number of centroiders handled
+        ncentro       : (int32_t)        : Number of centroiders handled
 
-        Nphi          : (int)        : umber of pixels in the pupil
+        Nphi          : (int32_t)        : umber of pixels in the pupil
 
         wfs_direction : (bool)       : Flag for ROKET
 
@@ -244,11 +263,11 @@ void rtc_impl(py::module &mod, const char *name) {
           py::arg("nslope_buffers")=0, py::arg("nstates")=0, py::arg("nstate_buffers")=0,
           py::arg("nmodes")=0,py::arg("niir_in")=0,py::arg("niir_out")=0,py::arg("polc")=false,
           py::arg("is_modal")=false, py::arg("dms") = nullptr,
-          py::arg("idx_dms") = std::vector<int64_t>(), py::arg("ndm") = 0,
-          py::arg("idx_centro") = std::vector<int64_t>(), py::arg("ncentro") = 0,
+          py::arg("idx_dms") = ArrayFStyle<int32_t>(), py::arg("ndm") = 0,
+          py::arg("idx_centro") = ArrayFStyle<int32_t>(), py::arg("ncentro") = 0,
           py::arg("Nphi") = 0, py::arg("wfs_direction") = false)
 
-      .def("add_controller", wy::colCast(add_controller_impl<Tin, Tcomp, Tout>),
+      .def("add_controller", add_controller_impl<Tin, Tcomp, Tout>,
            R"pbdoc(
      Add a SutraController object in the RTC
 
@@ -266,17 +285,17 @@ void rtc_impl(py::module &mod, const char *name) {
         nactu:(int): Number of actuators to command
 
     Kwargs:
-        nslope_buffers: (int) : Number of historic slopes vectors to use
+        nslope_buffers: (int32_t) : Number of historic slopes vectors to use
 
-        nstates       : (int)        : Number of states in state vector
+        nstates       : (int32_t)        : Number of states in state vector
 
-        nstate_buffers: (int)        : Number of historic state vectors to use
+        nstate_buffers: (int32_t)        : Number of historic state vectors to use
 
-        nmodes        : (int)        : Number of modes in mode vector
+        nmodes        : (int32_t)        : Number of modes in mode vector
 
-        niir_in       : (int)        : Number of input mode vectors for iir filter
+        niir_in       : (int32_t)        : Number of input mode vectors for iir filter
 
-        niir_out      : (int)        : Number of output mode vectors for iir filter
+        niir_out      : (int32_t)        : Number of output mode vectors for iir filter
 
         polc          : (bool)       : Activate the Pseudo Open Loop Control if available
 
@@ -286,13 +305,13 @@ void rtc_impl(py::module &mod, const char *name) {
 
         idx_dms       : (np.array[ndim=1,dtype=np.int64]) : index of DM in SutraDms to command
 
-        ndm           : (int)        : Number of DM to command
+        ndm           : (int32_t)        : Number of DM to command
 
         idx_centro    : (np.array[ndim=1,dtype=np.int64]): (optional) Index of centoiders in sutra_rtc.d_centro to handle
 
-        ncentro       : (int)        : Number of centroiders handled
+        ncentro       : (int32_t)        : Number of centroiders handled
 
-        Nphi          : (int)        : umber of pixels in the pupil
+        Nphi          : (int32_t)        : umber of pixels in the pupil
 
         wfs_direction : (bool)       : Flag for ROKET
 
@@ -320,7 +339,7 @@ void rtc_impl(py::module &mod, const char *name) {
      )pbdoc",
            py::arg("ncentro"))
 
-      .def("do_calibrate_img", (int (rtc::*)(int)) & rtc::do_calibrate_img,
+      .def("do_calibrate_img", (int32_t (rtc::*)(int32_t)) & rtc::do_calibrate_img,
            R"pbdoc(
      Computes the calibrated image
 
@@ -329,7 +348,7 @@ void rtc_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("ncontrol"))
 
-      .def("do_centroids", (int (rtc::*)(int)) & rtc::do_centroids,
+      .def("do_centroids", (int32_t (rtc::*)(int32_t)) & rtc::do_centroids,
            R"pbdoc(
      Computes the centroids
 
@@ -357,7 +376,7 @@ void rtc_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("ncontrol"))
 
-      .def("set_centroids_ref", wy::colCast(&rtc::set_centroids_ref),
+      .def("set_centroids_ref", &set_centroids_ref<Tin, Tcomp, Tout>,
            R"pbdoc(
      Set the reference centroids
 
@@ -366,7 +385,7 @@ void rtc_impl(py::module &mod, const char *name) {
      )pbdoc",
            py::arg("centroidsRef"))
 
-      .def("do_control", (int (rtc::*)(int)) & rtc::do_control,
+      .def("do_control", (int32_t (rtc::*)(int32_t)) & rtc::do_control,
            R"pbdoc(
      Computes the commands
 
@@ -393,7 +412,7 @@ void rtc_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("ncontrol"))
 
-      .def("do_imat", wy::colCast(&rtc::do_imat), R"pbdoc(
+      .def("do_imat", &rtc::do_imat, R"pbdoc(
      Computes interaction matrix
 
      Args:
@@ -405,7 +424,7 @@ void rtc_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("ncontrol"), py::arg("dms"), py::arg("kernconv"))
 
-      .def("do_imat_basis", wy::colCast(&rtc::do_imat_basis), R"pbdoc(
+      .def("do_imat_basis", &do_imat_basis<Tin, Tcomp, Tout>, R"pbdoc(
      Computes a modal interaction matrix
 
      Args:
@@ -446,11 +465,11 @@ void rtc_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("ncontrol"), py::arg("nfilt"), py::arg("filt_tt") = false)
 
-      .def("do_clipping", wy::colCast(&rtc::do_clipping), R"pbdoc(
+      .def("do_clipping", &rtc::do_clipping, R"pbdoc(
      Clip the command to apply on the DMs on a SutraController object
 
      Args:
-        ncontrol: (int) : controller index
+        ncontrol: (int32_t) : controller index
     )pbdoc",
            py::arg("ncontrol"))
 
@@ -463,7 +482,7 @@ void rtc_impl(py::module &mod, const char *name) {
       //
       .def(
           "set_gain",
-          [](rtc &sr, int ncontrol,
+          [](rtc &sr, int32_t ncontrol,
              float gain) { sr.d_control[ncontrol]->set_gain(gain); },
           R"pbdoc(
      Set the loop gain in the controller

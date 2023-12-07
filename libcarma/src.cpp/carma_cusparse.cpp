@@ -18,7 +18,7 @@
 #include <carma_sparse_obj.h>
 #include <string>
 
-cusparseStatus_t carma_check_cusparse_status_v2(cusparseStatus_t status, int line,
+cusparseStatus_t carma_check_cusparse_status_v2(cusparseStatus_t status, int32_t line,
                                               std::string file) {
   /**< Generic CUSPARSE check status routine */
   switch (status) {
@@ -371,16 +371,16 @@ template<typename T> constexpr auto sparse_csr =   detail::Sparse<T>::csr();
     cusparseOperation_t transB = carma_char2cusparse_operation(op_B);
     cusparseStatus_t status;
 
-    const int m = (op_A == 't' ? A->get_dims(2) : A->get_dims(1));
-    const int n = (op_B == 't' ? B->get_dims(1) : B->get_dims(2));
-    const int k = (op_A == 't' ? A->get_dims(1) : A->get_dims(2));
+    const int32_t m = (op_A == 't' ? A->get_dims(2) : A->get_dims(1));
+    const int32_t n = (op_B == 't' ? B->get_dims(1) : B->get_dims(2));
+    const int32_t k = (op_A == 't' ? A->get_dims(1) : A->get_dims(2));
 
-    int nnzC = 0;
+    int32_t nnzC = 0;
     // nnzTotalDevHostPtr points to host memory
-    int *nnzTotalDevHostPtr = &nnzC;
+    int32_t *nnzTotalDevHostPtr = &nnzC;
     cusparseSetPointerMode(handle, CUSPARSE_POINTER_MODE_HOST);
-    int *csrRowPtrC;
-    cudaMalloc(reinterpret_cast<void **>(&csrRowPtrC), sizeof(int) * (m + 1));
+    int32_t *csrRowPtrC;
+    cudaMalloc(reinterpret_cast<void **>(&csrRowPtrC), sizeof(int32_t) * (m + 1));
     status = carma_check_cusparse_status(cusparseXcsrgemmNnz(
         handle, transA, transB, m, n, k, A->descr, A->nz_elem, A->d_rowind,
         A->d_colind, B->descr, B->nz_elem, B->d_rowind, B->d_colind, C->descr,
@@ -395,14 +395,14 @@ template<typename T> constexpr auto sparse_csr =   detail::Sparse<T>::csr();
     if (NULL != nnzTotalDevHostPtr) {
       nnzC = *nnzTotalDevHostPtr;
     } else {
-      int baseC = 0;
-      cudaMemcpy(&nnzC, csrRowPtrC + m, sizeof(int), cudaMemcpyDeviceToHost);
-      cudaMemcpy(&baseC, csrRowPtrC, sizeof(int), cudaMemcpyDeviceToHost);
+      int32_t baseC = 0;
+      cudaMemcpy(&nnzC, csrRowPtrC + m, sizeof(int32_t), cudaMemcpyDeviceToHost);
+      cudaMemcpy(&baseC, csrRowPtrC, sizeof(int32_t), cudaMemcpyDeviceToHost);
       nnzC -= baseC;
     }
     if (nnzC > 0) {
       C->resize(nnzC, m, n);
-      cudaMemcpy(C->d_rowind, csrRowPtrC, sizeof(int) * (m + 1),
+      cudaMemcpy(C->d_rowind, csrRowPtrC, sizeof(int32_t) * (m + 1),
                 cudaMemcpyDeviceToDevice);
       status = carma_check_cusparse_status(sparse_gemm<T_data>(
           handle, transA, transB, m, n, k, A->descr, A->nz_elem, A->d_data,
@@ -463,7 +463,7 @@ cusparseStatus_t carma_csr2dense(CarmaSparseObj<T_data> *A, T_data *B) {
 }
 
 template <class T_data>
-cusparseStatus_t carma_csr2bsr(CarmaSparseObj<T_data> *A, int block_dim,
+cusparseStatus_t carma_csr2bsr(CarmaSparseObj<T_data> *A, int32_t block_dim,
                                    CarmaSparseObj<T_data> *B) {
   if (A->format != "CSR") {
     DEBUG_TRACE("carma_csr2bsr needs a CSR matrix as input");
@@ -478,12 +478,12 @@ cusparseStatus_t carma_csr2bsr(CarmaSparseObj<T_data> *A, int block_dim,
 
   cusparseDirection_t dir = CUSPARSE_DIRECTION_COLUMN;
   cusparseHandle_t handle = A->current_context->get_cusparse_handle();
-  int m = A->dims_data[1];
-  int n = A->dims_data[2];
-  int mb = (m + block_dim - 1) / block_dim;
-  cudaMalloc(reinterpret_cast<void **>(&B->d_rowind), sizeof(int) * (mb + 1));
+  int32_t m = A->dims_data[1];
+  int32_t n = A->dims_data[2];
+  int32_t mb = (m + block_dim - 1) / block_dim;
+  cudaMalloc(reinterpret_cast<void **>(&B->d_rowind), sizeof(int32_t) * (mb + 1));
 
-  int nnzb;
+  int32_t nnzb;
   // nnzTotalDevHostPtr points to host memory
   cusparseXcsr2bsrNnz(handle, dir, m, n, A->descr, A->d_rowind, A->d_colind,
                       block_dim, B->descr, B->d_rowind, &nnzb);
@@ -493,7 +493,7 @@ cusparseStatus_t carma_csr2bsr(CarmaSparseObj<T_data> *A, int block_dim,
   B->nz_elem = nnzb;
   B->format = "BSR";
   B->block_dim = block_dim;
-  cudaMalloc(reinterpret_cast<void **>(&B->d_colind), sizeof(int) * B->nz_elem);
+  cudaMalloc(reinterpret_cast<void **>(&B->d_colind), sizeof(int32_t) * B->nz_elem);
   cudaMalloc(reinterpret_cast<void **>(&B->d_data),
              sizeof(T_data) * (B->block_dim * B->block_dim) * B->nz_elem);
   return sparse_bsr<T_data>(handle, dir, m, n, A->descr, A->d_data, A->d_rowind,
@@ -517,20 +517,20 @@ cusparseStatus_t carma_bsr2csr(CarmaSparseObj<T_data> *A,
 
   cusparseDirection_t dir = CUSPARSE_DIRECTION_COLUMN;
   cusparseHandle_t handle = A->current_context->get_cusparse_handle();
-  int m = A->dims_data[1];
-  int n = A->dims_data[2];
-  int mb = (m + A->block_dim - 1) / A->block_dim;
-  int nb = (n + A->block_dim - 1) / A->block_dim;
-  int nnzb = A->nz_elem;                       // number of blocks
-  int nnz = nnzb * A->block_dim * A->block_dim;  // number of elements
+  int32_t m = A->dims_data[1];
+  int32_t n = A->dims_data[2];
+  int32_t mb = (m + A->block_dim - 1) / A->block_dim;
+  int32_t nb = (n + A->block_dim - 1) / A->block_dim;
+  int32_t nnzb = A->nz_elem;                       // number of blocks
+  int32_t nnz = nnzb * A->block_dim * A->block_dim;  // number of elements
 
   B->dims_data[0] = 2;
   B->dims_data[1] = m;
   B->dims_data[2] = n;
   B->nz_elem = nnz;
   B->format = "CSR";
-  cudaMalloc(reinterpret_cast<void **>(&B->d_rowind), sizeof(int) * (m + 1));
-  cudaMalloc(reinterpret_cast<void **>(&B->d_colind), sizeof(int) * nnz);
+  cudaMalloc(reinterpret_cast<void **>(&B->d_rowind), sizeof(int32_t) * (m + 1));
+  cudaMalloc(reinterpret_cast<void **>(&B->d_colind), sizeof(int32_t) * nnz);
   cudaMalloc(reinterpret_cast<void **>(&B->d_data), sizeof(T_data) * nnz);
   return sparse_csr<T_data>(handle, dir, mb, nb, A->descr, A->d_data, A->d_rowind,
                  A->d_colind, A->block_dim, B->descr, B->d_data, B->d_rowind,
@@ -578,10 +578,10 @@ template cusparseStatus_t carma_csr2dense(CarmaSparseObj<float> *A, float *B);
 template cusparseStatus_t carma_csr2dense(CarmaSparseObj<double> *A, double *B);
 
 
-template cusparseStatus_t carma_csr2bsr(CarmaSparseObj<float> *src, int block_dim,
+template cusparseStatus_t carma_csr2bsr(CarmaSparseObj<float> *src, int32_t block_dim,
                                         CarmaSparseObj<float> *dest);
 
-template cusparseStatus_t carma_csr2bsr(CarmaSparseObj<double> *src, int block_dim,
+template cusparseStatus_t carma_csr2bsr(CarmaSparseObj<double> *src, int32_t block_dim,
                                         CarmaSparseObj<double> *dest);
 
 

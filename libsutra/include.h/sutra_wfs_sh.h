@@ -29,9 +29,9 @@
 class SutraWfsSH : public SutraWfs {
  public:
   // sh only
-  CarmaObj<int> *d_binmap;
-  CarmaObj<int> *d_validpuppixx;  // nxsub
-  CarmaObj<int> *d_validpuppixy;  // nxsub
+  CarmaObj<int32_t> *d_binmap;
+  CarmaObj<int32_t> *d_validpuppixx;  // nxsub
+  CarmaObj<int32_t> *d_validpuppixy;  // nxsub
   CarmaObj<cuFloatComplex> *d_fsamplipup; // Field stop computation arrays
   CarmaObj<cuFloatComplex> *d_fsamplifoc; // Field stop computation arrays
   cufftHandle *fsampli_plan;
@@ -40,33 +40,33 @@ class SutraWfsSH : public SutraWfs {
   SutraWfsSH(CarmaContext *context, SutraTelescope *d_tel,
                CarmaObj<cuFloatComplex> *d_camplipup,
                CarmaObj<cuFloatComplex> *d_camplifoc,
-               CarmaObj<cuFloatComplex> *d_fttotim, long nxsub, long nvalid,
-               long npix, long nphase, long nrebin, long nfft, long ntot,
-               long npup, float pdiam, float nphotons, float nphot4imat,
-               int lgs, bool fakecam, int max_flux_per_pix, int max_pix_value,
-               bool is_low_order, bool roket, int device);
+               CarmaObj<cuFloatComplex> *d_fttotim, int64_t nxsub, int64_t nvalid,
+               int64_t npix, int64_t nphase, int64_t nrebin, int64_t nfft, int64_t ntot,
+               int64_t npup, float pdiam, float nphotons, float nphot4imat,
+               int32_t lgs, bool fakecam, int32_t max_flux_per_pix, int32_t max_pix_value,
+               bool is_low_order, bool roket, int32_t device);
   SutraWfsSH(const SutraWfsSH &wfs);
   ~SutraWfsSH();
 
-  int define_mpi_rank(int rank, int size);
-  int allocate_buffers(map<vector<int>, cufftHandle *> campli_plans,
-                       map<vector<int>, cufftHandle *> fttotim_plans);
+  int32_t define_mpi_rank(int32_t rank, int32_t size);
+  int32_t allocate_buffers(map<vector<int32_t>, cufftHandle *> campli_plans,
+                       map<vector<int32_t>, cufftHandle *> fttotim_plans);
 
-  int load_arrays(int *phasemap, int *hrmap, int *binmap, float *offsets,
-                 float *fluxPerSub, int *validsubsx, int *validsubsy,
-                 int *istart, int *jstart, float *ttprojmat,
+  int32_t load_arrays(int32_t *phasemap, int32_t *hrmap, int32_t *binmap, float *offsets,
+                 float *fluxPerSub, int32_t *validsubsx, int32_t *validsubsy,
+                 int32_t *istart, int32_t *jstart, float *ttprojmat,
                 cuFloatComplex *kernel);
 
-  int fill_binimage(int async);
-  int comp_image(bool noise = true);
-  int comp_nphot(float ittime, float optthroughput, float diam, int nxsub,
+  int32_t fill_binimage(int32_t async);
+  int32_t comp_image(bool noise = true);
+  int32_t comp_nphot(float ittime, float optthroughput, float diam, int32_t nxsub,
                  float zerop = 0, float gsmag = 0, float lgsreturnperwatt = 0,
                  float laserpower = 0);
-  int set_bincube(float *bincube, int nElem);
-  int set_field_stop(map<vector<int>, cufftHandle *> campli_plans, float* field_stop, int N);
+  int32_t set_bincube(float *bincube, int32_t nElem);
+  int32_t set_field_stop(map<vector<int32_t>, cufftHandle *> campli_plans, float* field_stop, int32_t N);
 
  private:
-  int comp_generic();
+  int32_t comp_generic();
 };
 
 #endif  // _SUTRA_WFS_SH_H_

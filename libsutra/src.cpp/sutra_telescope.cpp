@@ -18,8 +18,8 @@
 #include <sutra_telescope.h>
 #include <sutra_utils.h>
 
-SutraTelescope::SutraTelescope(CarmaContext *current_context, long n_pup,
-                                 long npos, float *pupil, long n_pup_m,
+SutraTelescope::SutraTelescope(CarmaContext *current_context, int64_t n_pup,
+                                 int64_t npos, float *pupil, int64_t n_pup_m,
                                  float *pupil_m) {
   this->current_context = current_context;
   this->device = current_context->get_active_device();
@@ -31,7 +31,7 @@ SutraTelescope::SutraTelescope(CarmaContext *current_context, long n_pup,
   this->d_phase_ab_M1 = nullptr;
   this->d_phase_ab_M1_m = nullptr;
 
-  long *dims_data2 = new long[3];
+  int64_t *dims_data2 = new int64_t[3];
   dims_data2[0] = 2;
   dims_data2[1] = this->pup_size;
   dims_data2[2] = this->pup_size;
@@ -39,7 +39,7 @@ SutraTelescope::SutraTelescope(CarmaContext *current_context, long n_pup,
   this->d_pupil = new CarmaObj<float>(this->current_context, dims_data2);
   this->d_pupil->host2device(pupil);
 
-  long *dims_data3 = new long[3];
+  int64_t *dims_data3 = new int64_t[3];
   dims_data3[0] = 2;
   dims_data3[1] = this->pup_size_m;
   dims_data3[2] = this->pup_size_m;
@@ -63,10 +63,10 @@ SutraTelescope::~SutraTelescope() {
   if (this->d_phase_ab_M1_m != nullptr) delete this->d_phase_ab_M1_m;
 }
 
-int SutraTelescope::set_phase_ab_M1(float *phase_ab_M1, int size) {
+int32_t SutraTelescope::set_phase_ab_M1(float *phase_ab_M1, int32_t size) {
   current_context->set_active_device(device, 1);
   if (size == this->pup_size * this->pup_size) {
-    long *dims_data2 = new long[3];
+    int64_t *dims_data2 = new int64_t[3];
     dims_data2[0] = 2;
     dims_data2[1] = this->pup_size;
     dims_data2[2] = this->pup_size;
@@ -81,10 +81,10 @@ int SutraTelescope::set_phase_ab_M1(float *phase_ab_M1, int size) {
   return EXIT_SUCCESS;
 }
 
-int SutraTelescope::set_phase_ab_M1_m(float *phase_ab_M1_m, int size) {
+int32_t SutraTelescope::set_phase_ab_M1_m(float *phase_ab_M1_m, int32_t size) {
   current_context->set_active_device(device, 1);
   if (size == this->pup_size_m * this->pup_size_m) {
-    long *dims_data2 = new long[3];
+    int64_t *dims_data2 = new int64_t[3];
     dims_data2[0] = 2;
     dims_data2[1] = this->pup_size_m;
     dims_data2[2] = this->pup_size_m;
@@ -99,10 +99,10 @@ int SutraTelescope::set_phase_ab_M1_m(float *phase_ab_M1_m, int size) {
   return EXIT_SUCCESS;
 }
 
-int SutraTelescope::set_input_phase(float *input_phase, int size, int N) {
+int32_t SutraTelescope::set_input_phase(float *input_phase, int32_t size, int32_t N) {
   current_context->set_active_device(device, 1);
   if (size == this->pup_size_m * this->pup_size_m) {
-    long *dims_data3 = new long[4];
+    int64_t *dims_data3 = new int64_t[4];
     dims_data3[0] = 3;
     dims_data3[1] = this->pup_size_m;
     dims_data3[2] = this->pup_size_m;
@@ -122,7 +122,7 @@ int SutraTelescope::set_input_phase(float *input_phase, int size, int N) {
   return EXIT_SUCCESS;
 }
 
-int SutraTelescope::update_input_phase() {
+int32_t SutraTelescope::update_input_phase() {
   if (this->d_input_phase != nullptr) {
     this->input_phase_counter++;
     if(this->input_phase_counter >= this->d_input_phase->get_dims(3))
@@ -132,7 +132,7 @@ int SutraTelescope::update_input_phase() {
   return EXIT_SUCCESS;
 }
 
-int SutraTelescope::reset_input_phase() {
+int32_t SutraTelescope::reset_input_phase() {
   if (this->d_input_phase != nullptr) {
     delete this->d_input_phase;
     this->d_input_phase = nullptr;

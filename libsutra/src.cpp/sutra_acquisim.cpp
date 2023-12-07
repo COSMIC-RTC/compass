@@ -16,7 +16,7 @@
 
 #include "sutra_acquisim.h"
 
-SutraAcquisim::SutraAcquisim(SutraSensors *sensors, int wfs_num)
+SutraAcquisim::SutraAcquisim(SutraSensors *sensors, int32_t wfs_num)
     : device(sensors->d_wfs[wfs_num]->device),
       type(sensors->d_wfs[wfs_num]->type),
       nxsub(sensors->d_wfs[wfs_num]->nxsub),
@@ -33,7 +33,7 @@ SutraAcquisim::~SutraAcquisim() {
   // TODO Auto-generated destructor stub
 }
 
-int SutraAcquisim::set_validsubs(int64_t nvalid, int32_t *validsubsx,
+int32_t SutraAcquisim::set_validsubs(int64_t nvalid, int32_t *validsubsx,
                                   int32_t *validsubsy) {
   int64_t dims[2] = {1, nvalid};
   this->d_validsubsx =
@@ -43,11 +43,11 @@ int SutraAcquisim::set_validsubs(int64_t nvalid, int32_t *validsubsx,
   return EXIT_SUCCESS;
 }
 
-int SutraAcquisim::comp_image(long *dims, float *bimage) {
+int32_t SutraAcquisim::comp_image(int64_t *dims, float *bimage) {
   return comp_image(dims, bimage, this->wfs->d_bincube);
 }
 
-int SutraAcquisim::comp_image(long *dims, float *bimage,
+int32_t SutraAcquisim::comp_image(int64_t *dims, float *bimage,
                                CarmaObj<float> *d_bincube) {
   this->current_context->set_active_device(this->device, 1);
   CarmaObj<float> tmp_yObj(this->current_context, dims, bimage);
@@ -57,16 +57,16 @@ int SutraAcquisim::comp_image(long *dims, float *bimage,
                             this->current_context->get_device(this->device));
 }
 
-int SutraAcquisim::comp_image_2D(long *dims, float *bimage, int *num_ssp) {
+int32_t SutraAcquisim::comp_image_2D(int64_t *dims, float *bimage, int32_t *num_ssp) {
   this->current_context->set_active_device(this->device, 1);
   CarmaObj<float> tmp_yObj(this->current_context, dims, bimage);
-  long dims1[2] = {1, this->nxsub * this->nxsub};
-  CarmaObj<int> d_num_ssp(this->current_context, dims1, num_ssp);
+  int64_t dims1[2] = {1, this->nxsub * this->nxsub};
+  CarmaObj<int32_t> d_num_ssp(this->current_context, dims1, num_ssp);
   return fillbincube_2D<float>(tmp_yObj, *(this->wfs->d_bincube), this->npix,
                                this->nxsub, d_num_ssp);
 }
 
-int SutraAcquisim::comp_image_tele(long *dims, float *bimage) {
+int32_t SutraAcquisim::comp_image_tele(int64_t *dims, float *bimage) {
   this->current_context->set_active_device(this->device, 1);
   CarmaObj<float> tmp_yObj(this->current_context, dims, bimage);
   return fillbincube_async<float>(

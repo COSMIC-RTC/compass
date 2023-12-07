@@ -25,9 +25,9 @@ echo "Installing compass at ${COMPASS_INSTALL_PATH}"
 if [ ! -z "$CUDA_SM" ]
 then
     echo "CUDA_SM found: ${CUDA_SM}"
+    CUDA_ARG='-o cuda_sm='${CUDA_SM}
 else
     echo "CUDA_SM not found. Use auto detection."
-    CUDA_SM=Auto
 fi
 
 if [[ "${COMPASS_DO_HALF,,}" =~ ^(yes|true|on)$ ]]
@@ -52,17 +52,36 @@ if [[ -z $PYTHON_VERSION ]]
 then
     PYTHON_VERSION=$(python --version | cut -d' ' -f2 | cut -d'.' -f1,2)
     echo "python version ${PYTHON_VERSION} used"
+else
+    echo "python version ${PYTHON_VERSION} provided"
 fi
 
 # Exit on first error.
 set -e
 
+# DEBUG="-s build_type=Debug"
+
 # Resolves dependencies.
-conan install $CONAN_LOCATION -if $LOCAL_DIR/build -b missing \
-    -o compass:cuda_sm=${CUDA_SM}                             \
-    -o compass:half=${COMPASS_DO_HALF}                        \
-    -o compass:libs=${BUILD_LIBS}                             \
-    -o compass:python_version=${PYTHON_VERSION}
+conan build $CONAN_LOCATION -b missing   \
+    ${CUDA_ARG} ${DEBUG}                 \
+    -o half=${COMPASS_DO_HALF}           \
+    -o libs=${BUILD_LIBS}                \
+    -o python_version=${PYTHON_VERSION}
+
+if [[ -z $DEBUG ]]
+then
+    CONAN_PRESET="conan-release"
+else
+    CONAN_PRESET="conan-debug"
+fi
+
+cmake -DCMAKE_INSTALL_PREFIX=${COMPASS_INSTALL_PATH} --preset ${CONAN_PRESET}
+cmake --build -t install --preset ${CONAN_PRESET}
+
+echo
+echo "Configuration and installation done, next time, you can simply run this command to install compass:"
+echo "  cmake --build -t install --preset ${CONAN_PRESET}"
+echo
 
 # The commands generate build system in build/ subfolder, build it and install it
 # conan build $CONAN_LOCATION -bf $LOCAL_DIR/build -pf ${COMPASS_INSTALL_PATH} && cmake --install build
@@ -71,4 +90,4 @@ conan install $CONAN_LOCATION -if $LOCAL_DIR/build -b missing \
 # conan build $CONAN_LOCATION -bf $LOCAL_DIR/build -pf ${COMPASS_INSTALL_PATH} --configure && cmake --build build -j
 
 # Install compass to specified location
-conan package $CONAN_LOCATION -bf $LOCAL_DIR/build -pf ${COMPASS_INSTALL_PATH}
+# conan package $CONAN_LOCATION -bf $LOCAL_DIR/build -pf ${COMPASS_INSTALL_PATH}

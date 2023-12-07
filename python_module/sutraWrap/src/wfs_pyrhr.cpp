@@ -13,19 +13,48 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <wyrm>
+#include "sutraWrapUtils.hpp"
 
 #include <sutra_wfs_pyr_pyrhr.h>
 
 namespace py = pybind11;
 
-typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;
-typedef py::array_t<int, py::array::f_style | py::array::forcecast> F_arrayI;
+int32_t set_pyr_modulation_points(SutraWfs_PyrHR &sp, ArrayFStyle<float> &cx, ArrayFStyle<float> &cy, int32_t npts)
+{
+  return sp.set_pyr_modulation_points(cx.mutable_data(), cy.mutable_data(), npts);
+}
 
-void declare_wfs_pyrhr(py::module &mod) {
-  auto carmaWrap = py::module::import("carmaWrap");
-  auto complex128 = carmaWrap.attr("complex128");
-  auto complex64 = carmaWrap.attr("complex64");
+int32_t set_pyr_modulation_points_with_weights(SutraWfs_PyrHR &sp, ArrayFStyle<float> &cx, ArrayFStyle<float> &cy, ArrayFStyle<float> &weights, int32_t npts)
+{
+  return sp.set_pyr_modulation_points(cx.mutable_data(), cy.mutable_data(), weights.mutable_data(), npts);
+}
+
+int32_t load_arrays(SutraWfs_PyrHR &sp, ArrayFStyle<std::complex<float>> &halfxy, 
+                ArrayFStyle<float> &cx, ArrayFStyle<float> &cy, ArrayFStyle<float> &weights,
+                ArrayFStyle<float> &sincar, ArrayFStyle<float> &submask, ArrayFStyle<int32_t> &validsubsx,
+                ArrayFStyle<int32_t> &validsubsy, ArrayFStyle<int32_t> &phasemap, ArrayFStyle<float> &fluxPerSub,
+                ArrayFStyle<float> &ttprojmat)
+{
+  return sp.load_arrays(reinterpret_cast<cuFloatComplex *>(halfxy.mutable_data()), cx.mutable_data(), cy.mutable_data(), weights.mutable_data(), sincar.mutable_data(), submask.mutable_data(), validsubsx.mutable_data(), validsubsy.mutable_data(), phasemap.mutable_data(), fluxPerSub.mutable_data(), ttprojmat.mutable_data());
+}
+
+int32_t set_phalfxy(SutraWfs_PyrHR &sp, ArrayFStyle<std::complex<float>> &phalfxy)
+{
+  return sp.set_phalfxy(reinterpret_cast<cuFloatComplex *>(phalfxy.mutable_data()));
+}
+
+int32_t set_pyr_mod_weights(SutraWfs_PyrHR &sp, ArrayFStyle<float> &weights, int32_t npts)
+{
+  return sp.set_pyr_mod_weights(weights.mutable_data(), npts);
+}
+
+int32_t copy_valid_pix(SutraWfs_PyrHR &sp, ArrayFStyle<float> &img, ArrayFStyle<int32_t> &validx, ArrayFStyle<int32_t> &validy, int32_t im_dim)
+{
+  return sp.copy_valid_pix(img.mutable_data(), validx.mutable_data(), validy.mutable_data(), im_dim);
+}
+
+void declare_wfs_pyrhr(py::module &mod)
+{
   py::class_<SutraWfs_PyrHR, SutraWfs>(mod, "PYRWFS")
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
@@ -36,11 +65,13 @@ void declare_wfs_pyrhr(py::module &mod) {
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
       //
       .def_property_readonly(
-          "npupils", [](SutraWfs_PyrHR &sp) { return sp.npupils; },
+          "npupils", [](SutraWfs_PyrHR &sp)
+          { return sp.npupils; },
           "Number of pupil images")
 
       .def_property_readonly(
-          "d_hrimg", [](SutraWfs_PyrHR &sp) { return sp.d_hrimg; },
+          "d_hrimg", [](SutraWfs_PyrHR &sp)
+          { return sp.d_hrimg; },
           "TODO: docstring")
 
       .def_readwrite("compute_pyrfocalplane",
@@ -49,32 +80,39 @@ void declare_wfs_pyrhr(py::module &mod) {
 
       .def_property_readonly(
           "d_pyrfocalplane",
-          [](SutraWfs_PyrHR &sp) { return sp.d_pyrfocalplane; },
+          [](SutraWfs_PyrHR &sp)
+          { return sp.d_pyrfocalplane; },
           "TODO: docstring")
 
       .def_property_readonly(
-          "d_psum", [](SutraWfs_PyrHR &sp) { return sp.d_psum; },
+          "d_psum", [](SutraWfs_PyrHR &sp)
+          { return sp.d_psum; },
           "TODO: docstring")
 
       .def_property_readonly(
-          "d_phalfxy", [](SutraWfs_PyrHR &sp) { return sp.d_phalfxy; },
+          "d_phalfxy", [](SutraWfs_PyrHR &sp)
+          { return sp.d_phalfxy; },
           "TODO: docstring")
 
       .def_property_readonly(
-          "d_poffsets", [](SutraWfs_PyrHR &sp) { return sp.d_poffsets; },
+          "d_poffsets", [](SutraWfs_PyrHR &sp)
+          { return sp.d_poffsets; },
           "TODO: docstring")
 
       .def_property_readonly(
-          "pyr_cx", [](SutraWfs_PyrHR &sp) { return sp.pyr_cx; },
+          "pyr_cx", [](SutraWfs_PyrHR &sp)
+          { return sp.pyr_cx; },
           "TODO: docstring")
 
       .def_property_readonly(
-          "pyr_cy", [](SutraWfs_PyrHR &sp) { return sp.pyr_cy; },
+          "pyr_cy", [](SutraWfs_PyrHR &sp)
+          { return sp.pyr_cy; },
           "Modulation points X-positions")
 
       .def_property_readonly(
           "pyr_mod_weights",
-          [](SutraWfs_PyrHR &sp) { return sp.pyr_mod_weights; },
+          [](SutraWfs_PyrHR &sp)
+          { return sp.pyr_mod_weights; },
           "Ponderation weights for each modulation points")
 
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
@@ -83,7 +121,7 @@ void declare_wfs_pyrhr(py::module &mod) {
       //  ██║╚██╔╝██║██╔══╝     ██║   ██╔══██║██║   ██║██║  ██║╚════██║
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
-      .def("load_arrays", wy::colCast(&SutraWfs_PyrHR::load_arrays), R"pbdoc(
+      .def("load_arrays", &load_arrays, R"pbdoc(
   Load PYRHR WFS arrays
 
   Args:
@@ -144,7 +182,8 @@ void declare_wfs_pyrhr(py::module &mod) {
       //
       .def(
           "set_pyrimg",
-          [](SutraWfs_PyrHR &sp, F_arrayS data) {
+          [](SutraWfs_PyrHR &sp, ArrayFStyle<float> data)
+          {
             if (data.size() == sp.d_binimg->get_nb_elements())
               sp.d_binimg->host2device(data.mutable_data());
             else
@@ -158,9 +197,7 @@ void declare_wfs_pyrhr(py::module &mod) {
       )pbdoc",
           py::arg("img"))
 
-      .def("set_pyr_modulation_points",
-           wy::colCast((int (SutraWfs_PyrHR::*)(float *, float *, int)) &
-                       SutraWfs_PyrHR::set_pyr_modulation_points),
+      .def("set_pyr_modulation_points", &set_pyr_modulation_points,
            R"pbdoc(
     Set the modulation points of a PWFS
 
@@ -173,10 +210,7 @@ void declare_wfs_pyrhr(py::module &mod) {
       )pbdoc",
            py::arg("cx"), py::arg("cy"), py::arg("npts"))
 
-      .def("set_pyr_modulation_points",
-           wy::colCast(
-               (int (SutraWfs_PyrHR::*)(float *, float *, float *, int)) &
-               SutraWfs_PyrHR::set_pyr_modulation_points),
+      .def("set_pyr_modulation_points", &set_pyr_modulation_points_with_weights,
            R"pbdoc(
     Set the modulation points and weights of a PWFS
 
@@ -192,7 +226,7 @@ void declare_wfs_pyrhr(py::module &mod) {
            py::arg("cx"), py::arg("cy"), py::arg("weights"), py::arg("npts"))
 
       .def("set_phalfxy",
-           wy::colCast(&SutraWfs_PyrHR::set_phalfxy), R"pbdoc(
+           &set_phalfxy, R"pbdoc(
     Set the pyramid mask for each modulation point
 
     Args:
@@ -201,7 +235,7 @@ void declare_wfs_pyrhr(py::module &mod) {
            py::arg("phalfxy"))
 
       .def("set_pyr_mod_weights",
-           wy::colCast(&SutraWfs_PyrHR::set_pyr_mod_weights), R"pbdoc(
+           &set_pyr_mod_weights, R"pbdoc(
     Set the modulation points weights of a PWFS
 
     Args:
@@ -213,7 +247,8 @@ void declare_wfs_pyrhr(py::module &mod) {
 
       .def(
           "set_submask",
-          [](SutraWfs_PyrHR &sp, F_arrayS data) {
+          [](SutraWfs_PyrHR &sp, ArrayFStyle<float> data)
+          {
             if (data.size() == sp.d_submask->get_nb_elements())
               sp.d_submask->host2device(data.mutable_data());
             else
@@ -229,12 +264,15 @@ void declare_wfs_pyrhr(py::module &mod) {
 
       .def(
           "set_validpix",
-          [](SutraWfs_PyrHR &sp, F_arrayI datax, F_arrayI datay) {
+          [](SutraWfs_PyrHR &sp, ArrayFStyle<int32_t> &datax, ArrayFStyle<int32_t> &datay)
+          {
             if (datax.size() == sp.d_validsubsx->get_nb_elements() &&
-                datay.size() == sp.d_validsubsy->get_nb_elements()) {
+                datay.size() == sp.d_validsubsy->get_nb_elements())
+            {
               sp.d_validsubsx->host2device(datax.mutable_data());
               sp.d_validsubsy->host2device(datay.mutable_data());
-            } else
+            }
+            else
               DEBUG_TRACE("Wrong dimensions");
           },
           R"pbdoc(
@@ -247,7 +285,7 @@ void declare_wfs_pyrhr(py::module &mod) {
       )pbdoc",
           py::arg("datax"), py::arg("datay"))
 
-      .def("copy_valid_pix", wy::colCast(&SutraWfs_PyrHR::copy_valid_pix),
+      .def("copy_valid_pix", &copy_valid_pix,
            R"pbdoc(
     Copy the given pixels on the right place in the binimg of PWFS
 

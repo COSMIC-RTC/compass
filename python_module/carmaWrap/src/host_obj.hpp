@@ -20,12 +20,9 @@
 
 #include <carma.h>
 
-#include <wyrm>
-
 #include <type_list.hpp>
 
 namespace py = pybind11;
-
 
 
 struct CarmaHostObjInterfacer {
@@ -36,8 +33,8 @@ struct CarmaHostObjInterfacer {
     py::class_<Class>(mod, name.data(), py::buffer_protocol())
         .def(py::init([](const py::array_t<T, py::array::f_style |
                                                   py::array::forcecast> &data) {
-               int ndim = data.ndim() + 1;
-               std::vector<long> data_dims(ndim);
+               int32_t ndim = data.ndim() + 1;
+               std::vector<int64_t> data_dims(ndim);
                data_dims[0] = data.ndim();
                copy(data.shape(), data.shape() + data.ndim(),
                     begin(data_dims) + 1);
@@ -55,7 +52,7 @@ struct CarmaHostObjInterfacer {
 
         .def_buffer([](Class &frame) -> py::buffer_info {
 
-          const long *dims = frame.get_dims();
+          const int64_t *dims = frame.get_dims();
           std::vector<ssize_t> shape(dims[0]);
           std::vector<ssize_t> strides(dims[0]);
           ssize_t stride = sizeof(T);
@@ -82,16 +79,16 @@ struct CarmaHostObjInterfacer {
 
         // .def("__repr__", &std::string)
 
-        // const long *get_dims()
+        // const int64_t *get_dims()
         .def_property_readonly("shape",
-                               [](Class &frame) -> py::array_t<long> {
-                                 long nb_dim = frame.get_dims(0);
-                                 const long *c_dim = frame.get_dims() + 1;
-                                 return py::array_t<long>(nb_dim, c_dim);
+                               [](Class &frame) -> py::array_t<int64_t> {
+                                 int64_t nb_dim = frame.get_dims(0);
+                                 const int64_t *c_dim = frame.get_dims() + 1;
+                                 return py::array_t<int64_t>(nb_dim, c_dim);
                                },
                                "TODO") // TODO do the documentation...
 
-        // int get_nb_elements()
+        // int32_t get_nb_elements()
         .def_property_readonly("nbElem", &Class::get_nb_elements,
                                "TODO") // TODO do the documentation...
     ;

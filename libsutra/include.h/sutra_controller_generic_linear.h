@@ -8,7 +8,7 @@
 
 //! \file      sutra_controller_generic_linear.h
 //! \ingroup   libsutra
-//! \class     sutra_controller_generic_linear
+//! \class     SutraControllerGenericLinear
 //! \brief     this class provides the controller_generic features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
 //! \version   5.5.0
@@ -23,7 +23,7 @@
 #include <memory>
 
 template <typename Tcomp, typename Tout>
-class sutra_controller_generic_linear : public SutraController<Tcomp, Tout> {
+class SutraControllerGenericLinear : public SutraController<Tcomp, Tout> {
 
 
 private:
@@ -32,12 +32,12 @@ private:
 
   bool m_polc;              //!< flag to compute POL slopes
   bool m_modal;             //!< flag to do projection from modes to actu
-  int m_n_slope_buffers;    //!< num of historic slopes vectors to use
-  int m_n_states;           //!< num of states in state vector
-  int m_n_state_buffers;    //!< num of historic state vectors to use
-  int m_n_modes;            //!< num of modes in mode vector
-  int m_n_iir_in;           //!< num of input mode vectors for iir filter
-  int m_n_iir_out;          //!< num of output mode vectors for iir filter
+  int32_t m_n_slope_buffers;    //!< num of historic slopes vectors to use
+  int32_t m_n_states;           //!< num of states in state vector
+  int32_t m_n_state_buffers;    //!< num of historic state vectors to use
+  int32_t m_n_modes;            //!< num of modes in mode vector
+  int32_t m_n_iir_in;           //!< num of input mode vectors for iir filter
+  int32_t m_n_iir_out;          //!< num of output mode vectors for iir filter
 
   using SutraController<Tcomp,Tout>::a; //!< coefficient used to comp delay
   using SutraController<Tcomp,Tout>::b; //!< coefficient used to comp delay
@@ -48,12 +48,12 @@ public:
 
   bool polc(){return m_polc;}
   bool modal(){return m_modal;}
-  int n_slope_buffers(){return m_n_slope_buffers;}
-  int n_states(){return m_n_states;}
-  int n_state_buffers(){return m_n_state_buffers;}
-  int n_modes(){return m_n_modes;}
-  int n_iir_in(){return m_n_iir_in;}
-  int n_iir_out(){return m_n_iir_out;}
+  int32_t n_slope_buffers(){return m_n_slope_buffers;}
+  int32_t n_states(){return m_n_states;}
+  int32_t n_state_buffers(){return m_n_state_buffers;}
+  int32_t n_modes(){return m_n_modes;}
+  int32_t n_iir_in(){return m_n_iir_in;}
+  int32_t n_iir_out(){return m_n_iir_out;}
 
   std::unique_ptr<CarmaObj<Tcomp>> d_x_now;   //!< vector used for state calcs
   std::unique_ptr<CarmaObj<Tcomp>> d_s_now;   //!< vector used for slope calcs
@@ -79,38 +79,38 @@ public:
   using SutraController<Tcomp,Tout>::delay;
 
  public:
- sutra_controller_generic_linear() = delete;
-  sutra_controller_generic_linear(
-    CarmaContext *context, int nslope, int nslopes_buffers, int nactu, int nstates,
-    int nstates_buffers, int nmodes, int niir_in, int niir_out,
+ SutraControllerGenericLinear() = delete;
+  SutraControllerGenericLinear(
+    CarmaContext *context, int32_t nslope, int32_t nslopes_buffers, int32_t nactu, int32_t nstates,
+    int32_t nstates_buffers, int32_t nmodes, int32_t niir_in, int32_t niir_out,
     float delay, bool polc, bool is_modal,
-    SutraDms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro);
-  //sutra_controller_generic_linear(const sutra_controller_generic_linear &controller);
-  ~sutra_controller_generic_linear();
+    SutraDms *dms, int32_t *idx_dms, int32_t ndm, int32_t *idx_centro, int32_t ncentro);
+  //SutraControllerGenericLinear(const SutraControllerGenericLinear &controller);
+  ~SutraControllerGenericLinear();
 
   string get_type();
   string get_commandlaw();
-  int set_matA(float * A, int i);
-  int set_matL(float * L, int i);
-  int set_matK(float * K);
-  int set_matD(float * D);
-  int set_matF(float * F);
-  int set_iir_a(float * iir_a, int i);
-  int set_iir_b(float * iir_b, int i);
-  int set_polc(bool p);
+  int32_t set_matA(float * A, int32_t i);
+  int32_t set_matL(float * L, int32_t i);
+  int32_t set_matK(float * K);
+  int32_t set_matD(float * D);
+  int32_t set_matF(float * F);
+  int32_t set_iir_a(float * iir_a, int32_t i);
+  int32_t set_iir_b(float * iir_b, int32_t i);
+  int32_t set_polc(bool p);
   using SutraController<Tcomp,Tout>::comp_polc;
-  int comp_polc();
-  int comp_com();
+  int32_t comp_polc();
+  int32_t comp_com();
 
-  int recursion();
-  int innovation();
-  int modal_projection();
-  int filter_iir_in();
-  int filter_iir_out();
+  int32_t recursion();
+  int32_t innovation();
+  int32_t modal_projection();
+  int32_t filter_iir_in();
+  int32_t filter_iir_out();
 
 };
 
 template <typename T>
-void pad_cmat(T *idata, int m, int n, T *odata, int m2, int n2,
+void pad_cmat(T *idata, int32_t m, int32_t n, T *odata, int32_t m2, int32_t n2,
               CarmaDevice *device);
 #endif  // _SUTRA_CONTROLLER_GENERIC_LINEAR_H_

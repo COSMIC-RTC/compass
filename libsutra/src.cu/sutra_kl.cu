@@ -16,17 +16,17 @@
 
 #include <sutra_kl.h>
 
-__device__ float kl_sfi(float *rabas, float *azbas, int npix, int nrow) {
+__device__ float kl_sfi(float *rabas, float *azbas, int32_t npix, int32_t nrow) {
   return rabas[npix] * azbas[nrow];
 }
 
 __device__ void kl_interp(float alpha, float ampli, float *odata, float *rabas,
-                          float *azbas, float xbi, float ybi, int nr, int np,
-                          int tido) {
+                          float *azbas, float xbi, float ybi, int32_t nr, int32_t np,
+                          int32_t tido) {
   if ((xbi >= 0) && (xbi <= nr - 1) && (ybi >= 0) && (ybi <= np - 1)) {
-    int i0, i1, j0, j1;
-    long ibi = (long)xbi;
-    long jbi = (long)ybi;
+    int32_t i0, i1, j0, j1;
+    int64_t ibi = (int64_t)xbi;
+    int64_t jbi = (int64_t)ybi;
 
     i0 = ibi;
     if (ibi < nr - 1)
@@ -59,13 +59,13 @@ __device__ void kl_interp(float alpha, float ampli, float *odata, float *rabas,
     odata[tido] = 0.0f;
 }
 
-__device__ void kl_interp(float alpha, float *ampli, int nkl, float *odata,
+__device__ void kl_interp(float alpha, float *ampli, int32_t nkl, float *odata,
                           float *rabas, float *azbas, float xbi, float ybi,
-                          int nr, int np, int tido) {
+                          int32_t nr, int32_t np, int32_t tido) {
   if ((xbi >= 0) && (xbi <= nr - 1) && (ybi >= 0) && (ybi <= np - 1)) {
-    int i0, i1, j0, j1;
-    long ibi = (long)xbi;
-    long jbi = (long)ybi;
+    int32_t i0, i1, j0, j1;
+    int64_t ibi = (int64_t)xbi;
+    int64_t jbi = (int64_t)ybi;
 
     i0 = ibi;
     if (ibi < nr - 1)
@@ -99,17 +99,17 @@ __device__ void kl_interp(float alpha, float *ampli, int nkl, float *odata,
 }
 
 __global__ void getkl_krnl(float alpha, float ampli, float *odata, float *rabas,
-                           float *azbas, float *cr, float *cp, int nr, int np,
-                           int nx, int Nx, int xoff, int yoff) {
-  int xid = threadIdx.x + blockIdx.x * blockDim.x;
-  int yid = threadIdx.y + blockIdx.y * blockDim.y;
+                           float *azbas, float *cr, float *cp, int32_t nr, int32_t np,
+                           int32_t nx, int32_t Nx, int32_t xoff, int32_t yoff) {
+  int32_t xid = threadIdx.x + blockIdx.x * blockDim.x;
+  int32_t yid = threadIdx.y + blockIdx.y * blockDim.y;
 
   if ((xid < nx) && (yid < nx)) {
-    int xref = xid + xoff;
-    int yref = yid + yoff;
-    int tido = xref + yref * Nx;
+    int32_t xref = xid + xoff;
+    int32_t yref = yid + yoff;
+    int32_t tido = xref + yref * Nx;
 
-    int tid = xid + yid * nx;
+    int32_t tid = xid + yid * nx;
     float xbi = cr[tid];
     float ybi = cp[tid];
 
@@ -117,28 +117,28 @@ __global__ void getkl_krnl(float alpha, float ampli, float *odata, float *rabas,
   }
 }
 
-__global__ void combikl_krnl(float *com, int nkl, float *odata, float *rabas,
-                             int *d_ord, float *azbas, float *cr, float *cp,
-                             int nr, int np, int nx, int Nx, int xoff,
-                             int yoff) {
-  int xid = threadIdx.x + blockIdx.x * blockDim.x;
-  int yid = threadIdx.y + blockIdx.y * blockDim.y;
+__global__ void combikl_krnl(float *com, int32_t nkl, float *odata, float *rabas,
+                             int32_t *d_ord, float *azbas, float *cr, float *cp,
+                             int32_t nr, int32_t np, int32_t nx, int32_t Nx, int32_t xoff,
+                             int32_t yoff) {
+  int32_t xid = threadIdx.x + blockIdx.x * blockDim.x;
+  int32_t yid = threadIdx.y + blockIdx.y * blockDim.y;
 
   if ((xid < nx) && (yid < nx)) {
-    int xref = xid + xoff;
-    int yref = yid + yoff;
-    int tido = xref + yref * Nx;
+    int32_t xref = xid + xoff;
+    int32_t yref = yid + yoff;
+    int32_t tido = xref + yref * Nx;
 
-    int tid = xid + yid * nx;
+    int32_t tid = xid + yid * nx;
     float xbi = cr[tid];
     float ybi = cp[tid];
 
     odata[tido] = 0.0f;
-    int tmp;
+    int32_t tmp;
     float *rabas_cc;
     float *azbas_cc;
-    // int cc=10;
-    for (int cc = 0; cc < nkl; cc++) {
+    // int32_t cc=10;
+    for (int32_t cc = 0; cc < nkl; cc++) {
       tmp = d_ord[cc] - 1;
       rabas_cc = &(rabas[cc * nr]);
       azbas_cc = &(azbas[tmp * np]);
@@ -149,17 +149,17 @@ __global__ void combikl_krnl(float *com, int nkl, float *odata, float *rabas,
   }
 }
 
-int getkl(float alpha, float ampli, float *d_odata, float *rabas, float *azbas,
-          float *cr, float *cp, int nr, int np, int nx, int Nx, int xoff,
-          int yoff) {
-  int block_size = 8;
-  int nnx =
+int32_t getkl(float alpha, float ampli, float *d_odata, float *rabas, float *azbas,
+          float *cr, float *cp, int32_t nr, int32_t np, int32_t nx, int32_t Nx, int32_t xoff,
+          int32_t yoff) {
+  int32_t block_size = 8;
+  int32_t nnx =
       nx + block_size - nx % block_size;  // find next multiple of BLOCK_SZ
-  int nny = nx + block_size - nx % block_size;
+  int32_t nny = nx + block_size - nx % block_size;
   dim3 blocks(nnx / block_size, nny / block_size),
       threads(block_size, block_size);
 
-  // int smemSize = (block_size +1) * (block_size +1) * sizeof(float);
+  // int32_t smemSize = (block_size +1) * (block_size +1) * sizeof(float);
 
   getkl_krnl<<<blocks, threads>>>(alpha, ampli, d_odata, rabas, azbas, cr, cp,
                                   nr, np, nx, Nx, xoff, yoff);
@@ -168,31 +168,31 @@ int getkl(float alpha, float ampli, float *d_odata, float *rabas, float *azbas,
   return EXIT_SUCCESS;
 }
 
-int getkl(float ampli, float *d_odata, float *rabas, float *azbas, float *cr,
-          float *cp, int nr, int np, int nx, int Nx, int xoff, int yoff) {
+int32_t getkl(float ampli, float *d_odata, float *rabas, float *azbas, float *cr,
+          float *cp, int32_t nr, int32_t np, int32_t nx, int32_t Nx, int32_t xoff, int32_t yoff) {
   return getkl(0.0f, ampli, d_odata, rabas, azbas, cr, cp, nr, np, nx, Nx, xoff,
                yoff);
 }
 
-int getkl(float *d_odata, float *rabas, float *azbas, float *cr, float *cp,
-          int nr, int np, int nx, int Nx, int xoff, int yoff) {
+int32_t getkl(float *d_odata, float *rabas, float *azbas, float *cr, float *cp,
+          int32_t nr, int32_t np, int32_t nx, int32_t Nx, int32_t xoff, int32_t yoff) {
   return getkl(0.0f, 1.0f, d_odata, rabas, azbas, cr, cp, nr, np, nx, Nx, xoff,
                yoff);
 }
 
-int combikl(float *com, int nkl, float *d_odata, float *rabas, int *d_ord,
-            float *azbas, float *cr, float *cp, int nr, int np, int nx, int Nx,
-            int xoff, int yoff) {
-  int block_size = 8;
-  int nnx =
+int32_t combikl(float *com, int32_t nkl, float *d_odata, float *rabas, int32_t *d_ord,
+            float *azbas, float *cr, float *cp, int32_t nr, int32_t np, int32_t nx, int32_t Nx,
+            int32_t xoff, int32_t yoff) {
+  int32_t block_size = 8;
+  int32_t nnx =
       nx + block_size - nx % block_size;  // find next multiple of BLOCK_SZ
-  int nny = nx + block_size - nx % block_size;
+  int32_t nny = nx + block_size - nx % block_size;
   dim3 blocks(nnx / block_size, nny / block_size),
       threads(block_size, block_size);
 
-  // int smemSize = (block_size +1) * (block_size +1) * sizeof(float);
+  // int32_t smemSize = (block_size +1) * (block_size +1) * sizeof(float);
 
-  // for (int cc=0;cc<nkl;cc++)
+  // for (int32_t cc=0;cc<nkl;cc++)
   combikl_krnl<<<blocks, threads>>>(com, nkl, d_odata, rabas, d_ord, azbas, cr,
                                     cp, nr, np, nx, Nx, xoff, yoff);
 
@@ -201,13 +201,13 @@ int combikl(float *com, int nkl, float *d_odata, float *rabas, int *d_ord,
 }
 
 // Florian features
-__global__ void flokrnl(long dim, float *bas) {
-  int tid = blockIdx.x;
+__global__ void flokrnl(int64_t dim, float *bas) {
+  int32_t tid = blockIdx.x;
   if (tid < dim) bas[tid * dim + tid] = tid;
 }
 
-int cget_flokl(long nkl, long dim, float *covmat, float *filter, float *bas) {
-  // int i;
+int32_t cget_flokl(int64_t nkl, int64_t dim, float *covmat, float *filter, float *bas) {
+  // int32_t i;
   printf("flag CUDA \n");
   // for (i=0;i<dim;i++) bas[i] = i;
   flokrnl<<<dim, 1>>>(dim, bas);

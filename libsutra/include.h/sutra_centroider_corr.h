@@ -20,56 +20,56 @@
 
 #include <sutra_centroider.h>
 
-template <class Tin, class T>
-class SutraCentroiderCorr : public SutraCentroider<Tin, T> {
+template <class Tin, class Tcomp>
+class SutraCentroiderCorr : public SutraCentroider<Tin, Tcomp> {
  public:
-  int interp_sizex;
-  int interp_sizey;
+  int32_t interp_sizex;
+  int32_t interp_sizey;
   CarmaObj<cuFloatComplex> *d_corrfnct;
   CarmaObj<cuFloatComplex> *d_corrspot;
-  CarmaObj<T> *d_corrnorm;
-  CarmaObj<int> *d_corrmax;
-  CarmaObj<T> *d_corr;
-  CarmaObj<T> *d_interpmat;
+  CarmaObj<Tcomp> *d_corrnorm;
+  CarmaObj<int32_t> *d_corrmax;
+  CarmaObj<Tcomp> *d_corr;
+  CarmaObj<Tcomp> *d_interpmat;
 
  public:
-  SutraCentroiderCorr(CarmaContext *context, SutraWfs *wfs, long nvalid,
-                        float offset, float scale, bool filter_TT, int device);
+  SutraCentroiderCorr(CarmaContext *context, SutraWfs *wfs, int64_t nvalid,
+                        float offset, float scale, bool filter_TT, int32_t device);
   SutraCentroiderCorr(const SutraCentroiderCorr &centroider);
   ~SutraCentroiderCorr();
 
   string get_type();
-  int fill_bincube(T *img);
+  int32_t fill_bincube(Tcomp *img);
 
-  int init_corr(int isizex, int isizey, T *interpmat);
-  int load_corr(T *corr, T *corr_norm, int ndim);
+  int32_t init_corr(int32_t isizex, int32_t isizey, Tcomp *interpmat);
+  int32_t load_corr(Tcomp *corr, Tcomp *corr_norm, int32_t ndim);
 
-  int get_cog(float *cube, float *intensities, T *centroids, int nvalid,
-              int npix, int ntot, cudaStream_t stream=0);
-  int get_cog(float *intensities, T *slopes, bool noise);
-  int get_cog();
+  int32_t get_cog(float *cube, float *intensities, Tcomp *centroids, int32_t nvalid,
+              int32_t npix, int32_t ntot, cudaStream_t stream=0);
+  int32_t get_cog(float *intensities, Tcomp *slopes, bool noise);
+  int32_t get_cog();
 };
 
-template <class T>
-void subap_sortmaxi(int threads, int blocks, T *d_idata, int *values, int nmax,
-                    int offx, int offy, int npix, int Npix);
-template <class T>
-void subap_pinterp(int threads, int blocks, T *d_idata, int *values,
-                   T *d_centroids, T *d_matinterp, int sizex, int sizey,
-                   int nvalid, int Npix, float scale, float offset);
+template <class Tcomp>
+void subap_sortmaxi(int32_t threads, int32_t blocks, Tcomp *d_idata, int32_t *values, int32_t nmax,
+                    int32_t offx, int32_t offy, int32_t npix, int32_t Npix);
+template <class Tcomp>
+void subap_pinterp(int32_t threads, int32_t blocks, Tcomp *d_idata, int32_t *values,
+                   Tcomp *d_centroids, Tcomp *d_matinterp, int32_t sizex, int32_t sizey,
+                   int32_t nvalid, int32_t Npix, float scale, float offset);
 
-template <class Tcu, class T>
-int fillcorr(Tcu *d_out, T *d_in, int npix_in, int npix_out, int N, int nvalid,
+template <class Tcu, class Tcomp>
+int32_t fillcorr(Tcu *d_out, Tcomp *d_in, int32_t npix_in, int32_t npix_out, int32_t N, int32_t nvalid,
              CarmaDevice *device);
 
-template <class T>
-int correl(T *d_odata, T *d_idata, int N, CarmaDevice *device);
+template <class Tcomp>
+int32_t correl(Tcomp *d_odata, Tcomp *d_idata, int32_t N, CarmaDevice *device);
 
-template <class Tcu, class T>
-int roll2real(T *d_odata, Tcu *d_idata, int n, int Npix, int N,
+template <class Tcu, class Tcomp>
+int32_t roll2real(Tcomp *d_odata, Tcu *d_idata, int32_t n, int32_t Npix, int32_t N,
               CarmaDevice *device);
 
-template <class T>
-int corr_norm(T *d_odata, T *d_idata, int Npix, int N, CarmaDevice *device);
+template <class Tcomp>
+int32_t corr_norm(Tcomp *d_odata, Tcomp *d_idata, int32_t Npix, int32_t N, CarmaDevice *device);
 
 #endif  // _SUTRA_CENTROIDER_CORR_H_

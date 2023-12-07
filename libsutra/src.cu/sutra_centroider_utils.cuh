@@ -7,21 +7,21 @@ namespace sutra
 {
 
     struct SlopesIndex {
-        int factor, offset;
+        int32_t factor, offset;
 
-        __host__ __device__ SlopesIndex(int nvalid, SlopeOrder so):
+        __host__ __device__ SlopesIndex(int32_t nvalid, SlopeOrder so):
             factor((so == SlopeOrder::untied) ? 1 : 2),
             offset((so == SlopeOrder::untied) ? nvalid : 1)
         {}
 
         __host__ __device__
-        constexpr int x(std::size_t pos) const noexcept
+        constexpr int32_t x(std::size_t pos) const noexcept
         {
             return factor * pos;
         }
 
         __host__ __device__
-        constexpr int y(std::size_t pos) const noexcept
+        constexpr int32_t y(std::size_t pos) const noexcept
         {
             return factor * pos + offset;
         }

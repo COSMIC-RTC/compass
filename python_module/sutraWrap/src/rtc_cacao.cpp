@@ -13,7 +13,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <wyrm>
+#include "sutraWrapUtils.hpp"
 
 #include <sutra_rtc_cacao.h>
 
@@ -32,7 +32,7 @@ void rtc_cacao_impl(py::module &mod, const char *name) {
   using rtc_cacao = SutraRtcCacao<Tin, Tcomp, Tout>;
 
   py::class_<rtc_cacao, rtc>(mod, name)
-      .def(py::init(wy::colCast(rtc_cacao_init<Tin, Tcomp, Tout>)), R"pbdoc(
+      .def(py::init(&rtc_cacao_init<Tin, Tcomp, Tout>), R"pbdoc(
     Create and initialise a cacao rtc object
 
     Args:

@@ -16,20 +16,20 @@
 
 #include <carma_timer.h>
 
-__global__ void clockKernel(long long int* clock_counter) {
+__global__ void clockKernel(int64_t* clock_counter) {
   *clock_counter = clock64();
 }
 
-__global__ void clockKernel(double* time_buffer, long long int* clock_counter,
+__global__ void clockKernel(double* time_buffer, int64_t* clock_counter,
                             double gpu_freq) {
   time_buffer[0] = (clock64() - *clock_counter) / gpu_freq;
 }
 
-void get_clock_count(long long int* clock_counter) {
+void get_clock_count(int64_t* clock_counter) {
   clockKernel<<<1, 1>>>(clock_counter);
 }
 
-void get_clock_count(double* time_buffer, long long int* clock_counter,
+void get_clock_count(double* time_buffer, int64_t* clock_counter,
                    double gpu_freq) {
   clockKernel<<<1, 1>>>(time_buffer, clock_counter, gpu_freq);
 }

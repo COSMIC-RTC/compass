@@ -6,7 +6,7 @@
 
 // -----------------------------------------------------------------------------
 
-//! \file      SutraRtc_brahma.h
+//! \file      sutra_rtc_brahma.h
 //! \ingroup   libsutra
 //! \class     SutraRtcBrahma
 //! \brief     this class provides the rtc_brahma features to COMPASS
@@ -19,7 +19,7 @@
 
 #include <BRAHMA_context.h>
 #include <sutra_rtc.h>
-#include <SutraRtcBrahmaListenerImpl.h>
+#include <sutra_rtc_brahmaListenerImpl.h>
 #include <sutra_target.h>
 #include <sutra_wfs.h>
 
@@ -30,7 +30,7 @@ class SutraRtcBrahma : public SutraRtc<float, T, float> {
   DDS::Publisher_var pub;
 
   DDS::DataReaderListener_var cmd_listener;
-  SutraRtcBrahmaListenerImpl<T> *cmd_listener_servant;
+  sutra_rtc_brahmaListenerImpl<T> *cmd_listener_servant;
   DDS::DataReader_var cmd_dr;
 
   DDS::DataWriter_var superframe_base_dw;
@@ -57,21 +57,21 @@ class SutraRtcBrahma : public SutraRtc<float, T, float> {
   CORBA::ULong *dims_target;
   CORBA::ULong *dims_target_phase;
 
-  long framecounter;
+  int64_t framecounter;
   ACE_Mutex lock_;
 
-  int wfs_size;
-  int wfs_phase_size;
+  int32_t wfs_size;
+  int32_t wfs_phase_size;
   SutraSensors *wfs;
-  int target_size;
-  int target_phase_size;
+  int32_t target_size;
+  int32_t target_phase_size;
   SutraTarget *target;
 
-  int nslp;
-  int ncmd;
-  int nvalid;
+  int32_t nslp;
+  int32_t ncmd;
+  int32_t nvalid;
 
-  int is_initialised;
+  int32_t is_initialised;
 
  public:
   SutraRtcBrahma(CarmaContext *context, SutraSensors *wfs,

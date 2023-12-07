@@ -16,7 +16,7 @@
 
 #include <sutra_phase.h>
 
-SutraPhase::SutraPhase(CarmaContext *current_context, long size) {
+SutraPhase::SutraPhase(CarmaContext *current_context, int64_t size) {
   this->current_context = current_context;
   this->screen_size = size;
   this->mat = 0;
@@ -24,7 +24,7 @@ SutraPhase::SutraPhase(CarmaContext *current_context, long size) {
   this->zer_coeff = 0;
   this->device = current_context->get_active_device();
 
-  long *dims_data2 = new long[3];
+  int64_t *dims_data2 = new int64_t[3];
   dims_data2[0] = 2;
   dims_data2[1] = this->screen_size;
   dims_data2[2] = this->screen_size;

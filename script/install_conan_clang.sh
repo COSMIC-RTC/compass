@@ -1,21 +1,18 @@
 #!/bin/bash
 
-rm -rf ~/.conan
+rm -rf ~/.conan2
 
 # install dependencies
 conda install --file script/requirements-conda.txt -y
 pip install -r script/requirements-dev.txt --upgrade
 
 # Adds obspm conan repository if it is not already the case.
-conan remote list | grep obspm || conan remote add obspm https://conan.obspm.fr/conan False
+conan remote list | grep obspm || conan remote add obspm https://conan.obspm.fr/conan
 
-# OPTIONAL: Adds hippo6 conan repository if it is not already the case.
-#conan remote list | grep hippo6 || conan remote add hippo6 https://hippo6.obspm.fr/conan False
+CC=/usr/bin/clang CXX=/usr/bin/clang++ conan profile detect > /dev/null
 
-conan profile new default --detect --force > /dev/null
-conan profile update settings.compiler=clang default
-conan profile update settings.compiler.version=14 default
-conan profile update settings.compiler.libcxx=libstdc++11 default
-conan profile update env.CC=/usr/bin/clang default
-conan profile update env.CXX=/usr/bin/clang++ default
+echo "[buildenv]" >> ~/.conan2/profiles/default
+echo "CC=/usr/bin/clang" >> ~/.conan2/profiles/default
+echo "CXX=/usr/bin/clang++" >> ~/.conan2/profiles/default
 
+echo "tools.build:skip_test=True" >> ~/.conan2/global.conf 

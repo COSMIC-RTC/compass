@@ -29,35 +29,35 @@ texture<float, 1, cudaReadModeElementType> texFloat;
 ////////////////////////////////////////////////////////////////////////////////
 /// Position convolution kernel center at (0, 0) in the image
 ////////////////////////////////////////////////////////////////////////////////
-__global__ void padKernel_kernel(float *d_Dst, float *d_Src, int fftH, int fftW,
-                                 int kernelH, int kernelW, int kernelY,
-                                 int kernelX) {
-  const int y = blockDim.y * blockIdx.y + threadIdx.y;
-  const int x = blockDim.x * blockIdx.x + threadIdx.x;
+__global__ void padKernel_kernel(float *d_Dst, float *d_Src, int32_t fftH, int32_t fftW,
+                                 int32_t kernelH, int32_t kernelW, int32_t kernelY,
+                                 int32_t kernelX) {
+  const int32_t y = blockDim.y * blockIdx.y + threadIdx.y;
+  const int32_t x = blockDim.x * blockIdx.x + threadIdx.x;
 
   if (y < kernelH && x < kernelW) {
-    int ky = y - kernelY;
+    int32_t ky = y - kernelY;
     if (ky < 0) ky += fftH;
-    int kx = x - kernelX;
+    int32_t kx = x - kernelX;
     if (kx < 0) kx += fftW;
     d_Dst[ky * fftW + kx] = LOAD_FLOAT(y * kernelW + x);
   }
 }
 
-__global__ void pad_kernel_3d_kernel(float *d_Dst, float *d_Src, int fftH,
-                                   int fftW, int kernelH, int kernelW,
-                                   int kernelY, int kernelX, int nim) {
-  const int y = blockDim.y * blockIdx.y + threadIdx.y;
-  const int x = blockDim.x * blockIdx.x + threadIdx.x;
-  const int z = blockDim.z * blockIdx.z + threadIdx.z;
+__global__ void pad_kernel_3d_kernel(float *d_Dst, float *d_Src, int32_t fftH,
+                                   int32_t fftW, int32_t kernelH, int32_t kernelW,
+                                   int32_t kernelY, int32_t kernelX, int32_t nim) {
+  const int32_t y = blockDim.y * blockIdx.y + threadIdx.y;
+  const int32_t x = blockDim.x * blockIdx.x + threadIdx.x;
+  const int32_t z = blockDim.z * blockIdx.z + threadIdx.z;
 
   if (y < kernelH && x < kernelW && z < nim) {
-    int ky = y - kernelY;
+    int32_t ky = y - kernelY;
     if (ky < 0) ky += fftH;
-    int kx = x - kernelX;
+    int32_t kx = x - kernelX;
     if (kx < 0) kx += fftW;
-    int kz_dst = z * (fftH * fftW);
-    int kz_src = z * (kernelH * kernelW);
+    int32_t kz_dst = z * (fftH * fftW);
+    int32_t kz_src = z * (kernelH * kernelW);
 
     d_Dst[ky * fftW + kx + kz_dst] = LOAD_FLOAT(y * kernelW + x + kz_src);
   }
@@ -67,16 +67,16 @@ __global__ void pad_kernel_3d_kernel(float *d_Dst, float *d_Src, int fftH,
 // Prepare data for "pad to border" addressing mode
 ////////////////////////////////////////////////////////////////////////////////
 __global__ void pad_data_clamp_to_border_kernel(float *d_Dst, float *d_Src,
-                                            int fftH, int fftW, int dataH,
-                                            int dataW, int kernelH, int kernelW,
-                                            int kernelY, int kernelX) {
-  const int y = blockDim.y * blockIdx.y + threadIdx.y;
-  const int x = blockDim.x * blockIdx.x + threadIdx.x;
-  const int borderH = dataH + kernelY;
-  const int borderW = dataW + kernelX;
+                                            int32_t fftH, int32_t fftW, int32_t dataH,
+                                            int32_t dataW, int32_t kernelH, int32_t kernelW,
+                                            int32_t kernelY, int32_t kernelX) {
+  const int32_t y = blockDim.y * blockIdx.y + threadIdx.y;
+  const int32_t x = blockDim.x * blockIdx.x + threadIdx.x;
+  const int32_t borderH = dataH + kernelY;
+  const int32_t borderW = dataW + kernelX;
 
   if (y < fftH && x < fftW) {
-    int dy, dx;
+    int32_t dy, dx;
 
     if (y < dataH) dy = y;
     if (x < dataW) dx = x;
@@ -90,21 +90,21 @@ __global__ void pad_data_clamp_to_border_kernel(float *d_Dst, float *d_Src,
 }
 
 __global__ void pad_data_clamp_to_border_3d_kernel(float *d_Dst, float *d_Src,
-                                              int fftH, int fftW, int dataH,
-                                              int dataW, int kernelH,
-                                              int kernelW, int kernelY,
-                                              int kernelX, int nim) {
-  const int y = blockDim.y * blockIdx.y + threadIdx.y;
-  const int x = blockDim.x * blockIdx.x + threadIdx.x;
-  const int z = blockDim.z * blockIdx.z + threadIdx.z;
+                                              int32_t fftH, int32_t fftW, int32_t dataH,
+                                              int32_t dataW, int32_t kernelH,
+                                              int32_t kernelW, int32_t kernelY,
+                                              int32_t kernelX, int32_t nim) {
+  const int32_t y = blockDim.y * blockIdx.y + threadIdx.y;
+  const int32_t x = blockDim.x * blockIdx.x + threadIdx.x;
+  const int32_t z = blockDim.z * blockIdx.z + threadIdx.z;
 
-  const int borderH = dataH + kernelY;
-  const int borderW = dataW + kernelX;
+  const int32_t borderH = dataH + kernelY;
+  const int32_t borderW = dataW + kernelX;
 
   if (y < fftH && x < fftW && z < nim) {
-    int dy, dx;
-    int kz_dst = z * (fftH * fftW);
-    int kz_src = z * (dataH * dataW);
+    int32_t dy, dx;
+    int32_t kz_dst = z * (fftH * fftW);
+    int32_t kz_src = z * (dataH * dataW);
 
     if (y < dataH) dy = y;
     if (x < dataW) dx = x;
@@ -128,8 +128,8 @@ inline __device__ void mulAndScale(fComplex &a, const fComplex &b,
 }
 
 __global__ void modulate_and_normalize_kernel(fComplex *d_Dst, fComplex *d_Src,
-                                            int dataSize, float c) {
-  const int i = blockDim.x * blockIdx.x + threadIdx.x;
+                                            int32_t dataSize, float c) {
+  const int32_t i = blockDim.x * blockIdx.x + threadIdx.x;
   if (i >= dataSize) return;
 
   fComplex a = d_Src[i];

@@ -8,20 +8,47 @@
 
 //! \file      controller_ls.cpp
 //! \ingroup   libsutra
-//! \brief     this file provides pybind wrapper for sutra_controller_ls
+//! \brief     this file provides pybind wrapper for SutraControllerLs
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <wyrm>
+#include "sutraWrapUtils.hpp"
 
 #include <sutra_controller_ls.h>
 
 namespace py = pybind11;
 
 template <typename Tcomp, typename Tout>
+int32_t init_modalOpti(SutraControllerLs<Tcomp, Tout> &sc, int32_t nmodes, int32_t nrec, ArrayFStyle<Tcomp> &M2V, Tcomp gmin, Tcomp gmax,
+                    int32_t ngain, Tcomp Fs) {
+    return sc.init_modalOpti(nmodes, nrec, M2V.mutable_data(), gmin, gmax, ngain, Fs);
+}
+
+template <typename Tcomp, typename Tout>
+int32_t loadopen_loopSlp(SutraControllerLs<Tcomp, Tout> &sc, ArrayFStyle<Tcomp> &ol_slopes) {
+    return sc.loadopen_loopSlp(ol_slopes.mutable_data());
+}
+
+template <typename Tcomp, typename Tout>
+int32_t set_modal_gains(SutraControllerLs<Tcomp, Tout> &sc, ArrayFStyle<Tcomp> &mgain) {
+    return sc.set_modal_gains(mgain.mutable_data());
+}
+
+template <typename Tcomp, typename Tout>
+int32_t set_cmat(SutraControllerLs<Tcomp, Tout> &sc, ArrayFStyle<Tcomp> &cmat) {
+    return sc.set_cmat(cmat.mutable_data());
+}
+
+template <typename Tcomp, typename Tout>
+int32_t set_imat(SutraControllerLs<Tcomp, Tout> &sc, ArrayFStyle<Tcomp> &imat) {
+    return sc.set_imat(imat.mutable_data());
+}
+
+
+template <typename Tcomp, typename Tout>
 void controller_ls_impl(py::module &mod, const char *name) {
-  using controller_ls = sutra_controller_ls<Tcomp, Tout>;
+  using controller_ls = SutraControllerLs<Tcomp, Tout>;
 
   py::class_<controller_ls, SutraController<Tcomp, Tout>>(mod, name)
 
@@ -124,12 +151,11 @@ void controller_ls_impl(py::module &mod, const char *name) {
       //  ██║╚██╔╝██║██╔══╝     ██║   ██╔══██║██║   ██║██║  ██║╚════██║
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
-      .def("svdec_imat", wy::colCast(&controller_ls::svdec_imat),
+      .def("svdec_imat", &controller_ls::svdec_imat,
            "Performs interaction matrix SVD")
 
       .def("build_cmat",
-           wy::colCast((int (controller_ls::*)(int)) &
-                       controller_ls::build_cmat),
+           (int32_t (controller_ls::*)(int32_t)) &controller_ls::build_cmat,
            R"pbdoc(
     Computes the command matrix after imat SVD
 
@@ -138,7 +164,7 @@ void controller_ls_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("nfilt"))
 
-      .def("init_modalOpti", wy::colCast(&controller_ls::init_modalOpti),
+      .def("init_modalOpti", &init_modalOpti<Tcomp, Tout>,
            R"pbdoc(
     Initialize modal optimization control
 
@@ -160,7 +186,7 @@ void controller_ls_impl(py::module &mod, const char *name) {
            py::arg("nmodes"), py::arg("nrec"), py::arg("M2V"), py::arg("gmin"),
            py::arg("gmax"), py::arg("ngain"), py::arg("Fs"))
 
-      .def("loadopen_loopSlp", wy::colCast(&controller_ls::loadopen_loopSlp),
+      .def("loadopen_loopSlp", &loadopen_loopSlp<Tcomp, Tout>,
            R"pbdoc(
     Load recorded open loop slopes for modal optimization initialization
 
@@ -179,7 +205,7 @@ void controller_ls_impl(py::module &mod, const char *name) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
-      .def("set_modal_gains", wy::colCast(&controller_ls::set_modal_gains), R"pbdoc(
+      .def("set_modal_gains", &set_modal_gains<Tcomp, Tout>, R"pbdoc(
     Set the controller modal gains
 
     Args:
@@ -187,7 +213,7 @@ void controller_ls_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("mgain"))
 
-      .def("set_cmat", wy::colCast(&controller_ls::set_cmat), R"pbdoc(
+      .def("set_cmat", &set_cmat<Tcomp, Tout>, R"pbdoc(
     Set the command matrix
 
     Args:
@@ -195,7 +221,7 @@ void controller_ls_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("cmat"))
 
-      .def("set_imat", wy::colCast(&controller_ls::set_imat), R"pbdoc(
+      .def("set_imat", &set_imat<Tcomp, Tout>, R"pbdoc(
     Set the interaction matrix
 
     Args:

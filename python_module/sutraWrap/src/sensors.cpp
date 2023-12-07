@@ -13,27 +13,38 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_sensors.h>
+#include "sutraWrapUtils.hpp"
 
-#include <wyrm>
+#include <sutra_sensors.h>
 
 namespace py = pybind11;
 
 std::unique_ptr<SutraSensors> sensors_init(
-    CarmaContext &context, SutraTelescope *d_tel, vector<string> type, int nwfs,
-    long *nxsub, long *nvalid, long *npupils, long *npix, long *nphase,
-    long *nrebin, long *nfft, long *ntot, long *npup, float *pdiam,
-    float *nphot, float *nphot4imat, int *lgs, bool *fakecam,
-    int *max_flux_per_pix, int *max_pix_value, int device, bool roket) {
+    CarmaContext &context, SutraTelescope *d_tel, vector<string> type, int32_t nwfs,
+    ArrayFStyle<int64_t> &nxsub, ArrayFStyle<int64_t> &nvalid, ArrayFStyle<int64_t> &npupils, ArrayFStyle<int64_t> &npix, ArrayFStyle<int64_t> &nphase,
+    ArrayFStyle<int64_t> &nrebin, ArrayFStyle<int64_t> &nfft, ArrayFStyle<int64_t> &ntot, ArrayFStyle<int64_t> &npup, ArrayFStyle<float> &pdiam,
+    ArrayFStyle<float> &nphot, ArrayFStyle<float> &nphot4imat, ArrayFStyle<int32_t> &lgs, ArrayFStyle<bool> &fakecam,
+    ArrayFStyle<int32_t> &max_flux_per_pix, ArrayFStyle<int32_t> &max_pix_value, int32_t device, bool roket) {
   return std::unique_ptr<SutraSensors>(new SutraSensors(
-      &context, d_tel, type, nwfs, nxsub, nvalid, npupils, npix, nphase, nrebin,
-      nfft, ntot, npup, pdiam, nphot, nphot4imat, lgs, fakecam,
-      max_flux_per_pix, max_pix_value, device, roket));
+      &context, d_tel, type, nwfs, nxsub.mutable_data(), nvalid.mutable_data(), npupils.mutable_data(), npix.mutable_data(), nphase.mutable_data(),
+      nrebin.mutable_data(), nfft.mutable_data(), ntot.mutable_data(), npup.mutable_data(), pdiam.mutable_data(), nphot.mutable_data(), nphot4imat.mutable_data(),
+      lgs.mutable_data(), fakecam.mutable_data(), max_flux_per_pix.mutable_data(), max_pix_value.mutable_data(), device, roket));
+}
+
+int32_t initgs(SutraSensors &ss, ArrayFStyle<float> &xpos, ArrayFStyle<float> &ypos, ArrayFStyle<float> &lambda, ArrayFStyle<float> &mag, float zerop,
+             ArrayFStyle<int64_t> &size, ArrayFStyle<float> &noise, ArrayFStyle<int64_t> &seed, ArrayFStyle<float> &G, ArrayFStyle<float> &thetaML,
+             ArrayFStyle<float> &dx, ArrayFStyle<float> &dy) {
+    return ss.initgs(xpos.mutable_data(), ypos.mutable_data(), lambda.mutable_data(), mag.mutable_data(), zerop, size.mutable_data(), noise.mutable_data(),
+                     seed.mutable_data(), G.mutable_data(), thetaML.mutable_data(), dx.mutable_data(), dy.mutable_data());
+}
+
+int32_t set_field_stop(SutraSensors &ss, int32_t nwfs, ArrayFStyle<float> &field_stop, int32_t N) {
+    return ss.set_field_stop(nwfs, field_stop.mutable_data(), N);
 }
 
 void declare_sensors(py::module &mod) {
   py::class_<SutraSensors>(mod, "Sensors")
-      .def(py::init(wy::colCast(sensors_init)), R"pbdoc(
+      .def(py::init(&sensors_init), R"pbdoc(
         Create and initialise a sensors object
 
     Args:
@@ -43,7 +54,7 @@ void declare_sensors(py::module &mod) {
 
         type: (list of string): WFS types
 
-        nwfs: (int) : number of WFS
+        nwfs: (int32_t) : number of WFS
 
         nxsub: (np.ndarray[ndim=1, dtype=np.int64]) : number of ssp in the diameter for each WFS
 
@@ -138,12 +149,7 @@ void declare_sensors(py::module &mod) {
       //  ██║╚██╔╝██║██╔══╝     ██║   ██╔══██║██║   ██║██║  ██║╚════██║
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
-      .def("initgs",
-           wy::colCast(
-               (int (SutraSensors::*)(float *, float *, float *, float *, float,
-                                      long *, float *, long *, float *, float *,
-                                      float *, float *)) &
-               SutraSensors::initgs),
+      .def("initgs",&initgs,
            R"pbdoc(
     Initializes the guide stars of all WFS
 
@@ -183,7 +189,7 @@ void declare_sensors(py::module &mod) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
-        .def("set_field_stop", wy::colCast(&SutraSensors::set_field_stop), R"pbdoc(
+        .def("set_field_stop", &set_field_stop, R"pbdoc(
     Set new field stop for the specified SH WFS
 
     Args:

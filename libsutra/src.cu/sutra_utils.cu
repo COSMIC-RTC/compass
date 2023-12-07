@@ -17,15 +17,15 @@
 #include <sutra_utils.h>
 #include "carma_utils.cuh"
 
-int compute_nmaxhr(long nvalid) {
+int32_t compute_nmaxhr(int64_t nvalid) {
   // this is the big array => we use nmaxhr and treat it sequentially
 
-  int mnmax = 500;
-  int nmaxhr = mnmax;
+  int32_t mnmax = 500;
+  int32_t nmaxhr = mnmax;
   if (nvalid > 2 * mnmax) {
-    int tmp0 = nvalid % mnmax;
-    int tmp = 0;
-    for (int cc = 1; cc < mnmax / 5; cc++) {
+    int32_t tmp0 = nvalid % mnmax;
+    int32_t tmp = 0;
+    for (int32_t cc = 1; cc < mnmax / 5; cc++) {
       tmp = nvalid % (mnmax + cc);
       if ((tmp > tmp0) || (tmp == 0)) {
         if (tmp == 0)
@@ -41,8 +41,8 @@ int compute_nmaxhr(long nvalid) {
   return nvalid;
 }
 
-__global__ void cfillrealp_krnl(cuFloatComplex *odata, float *idata, int N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+__global__ void cfillrealp_krnl(cuFloatComplex *odata, float *idata, int32_t N) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
     odata[tid].x = idata[tid];
@@ -50,9 +50,9 @@ __global__ void cfillrealp_krnl(cuFloatComplex *odata, float *idata, int N) {
   }
 }
 
-int cfillrealp(cuFloatComplex *d_odata, float *d_idata, int N,
+int32_t cfillrealp(cuFloatComplex *d_odata, float *d_idata, int32_t N,
                CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
 
   dim3 grid(nb_blocks), threads(nb_threads);
@@ -63,8 +63,8 @@ int cfillrealp(cuFloatComplex *d_odata, float *d_idata, int N,
   return EXIT_SUCCESS;
 }
 
-__global__ void cgetrealp_krnl(float *odata, cuFloatComplex *idata, int N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+__global__ void cgetrealp_krnl(float *odata, cuFloatComplex *idata, int32_t N) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
     odata[tid] = idata[tid].x;
@@ -72,9 +72,9 @@ __global__ void cgetrealp_krnl(float *odata, cuFloatComplex *idata, int N) {
   }
 }
 
-int cgetrealp(float *d_odata, cuFloatComplex *d_idata, int N,
+int32_t cgetrealp(float *d_odata, cuFloatComplex *d_idata, int32_t N,
               CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
 
   dim3 grid(nb_blocks), threads(nb_threads);
@@ -85,10 +85,10 @@ int cgetrealp(float *d_odata, cuFloatComplex *d_idata, int N,
   return EXIT_SUCCESS;
 }
 
-__global__ void abs2_krnl(float *odata, cuFloatComplex *idata, int N) {
+__global__ void abs2_krnl(float *odata, cuFloatComplex *idata, int32_t N) {
   cuFloatComplex cache;
 
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
     cache = idata[tid];
@@ -97,8 +97,8 @@ __global__ void abs2_krnl(float *odata, cuFloatComplex *idata, int N) {
   }
 }
 
-int abs2(float *d_odata, cuFloatComplex *d_idata, int N, CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
+int32_t abs2(float *d_odata, cuFloatComplex *d_idata, int32_t N, CarmaDevice *device) {
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
 
   dim3 grid(nb_blocks), threads(nb_threads);
@@ -109,11 +109,11 @@ int abs2(float *d_odata, cuFloatComplex *d_idata, int N, CarmaDevice *device) {
   return EXIT_SUCCESS;
 }
 
-__global__ void abs2_krnl(float *odata, cuFloatComplex *idata, int N,
+__global__ void abs2_krnl(float *odata, cuFloatComplex *idata, int32_t N,
                           float fact) {
   cuFloatComplex cache;
 
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
     cache = idata[tid];
@@ -122,9 +122,9 @@ __global__ void abs2_krnl(float *odata, cuFloatComplex *idata, int N,
   }
 }
 
-int abs2(float *d_odata, cuFloatComplex *d_idata, int N, float fact,
+int32_t abs2(float *d_odata, cuFloatComplex *d_idata, int32_t N, float fact,
          CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
 
   dim3 grid(nb_blocks), threads(nb_threads);
@@ -136,9 +136,9 @@ int abs2(float *d_odata, cuFloatComplex *d_idata, int N, float fact,
 }
 
 __global__ void abs2c_krnl(cuFloatComplex *odata, cuFloatComplex *idata,
-                           int N) {
+                           int32_t N) {
   cuFloatComplex cache;
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
     cache = idata[tid];
@@ -148,9 +148,9 @@ __global__ void abs2c_krnl(cuFloatComplex *odata, cuFloatComplex *idata,
   }
 }
 
-int abs2c(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N,
+int32_t abs2c(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int32_t N,
           CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
 
   dim3 grid(nb_blocks), threads(nb_threads);
@@ -162,8 +162,8 @@ int abs2c(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N,
 }
 
 __global__ void subapnorm_krnl(float *odata, float *idata, float *fact,
-                               float *norm, float nphot, int n, int N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+                               float *norm, float nphot, int32_t n, int32_t N) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
     if (norm[tid / n] != 0) {
@@ -173,9 +173,9 @@ __global__ void subapnorm_krnl(float *odata, float *idata, float *fact,
   }
 }
 
-int subap_norm(float *d_odata, float *d_idata, float *fact, float *norm,
-               float nphot, int n, int N, CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
+int32_t subap_norm(float *d_odata, float *d_idata, float *fact, float *norm,
+               float nphot, int32_t n, int32_t N, CarmaDevice *device) {
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
 
   dim3 grid(nb_blocks), threads(nb_threads);
@@ -187,9 +187,9 @@ int subap_norm(float *d_odata, float *d_idata, float *fact, float *norm,
 }
 
 __global__ void subapnormasync_krnl(float *odata, float *idata, float *fact,
-                                    float *norm, float nphot, int n, int N,
-                                    int istart) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+                                    float *norm, float nphot, int32_t n, int32_t N,
+                                    int32_t istart) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
   tid += istart;
   while (tid < N) {
     odata[tid] = idata[tid] * fact[tid / n] / norm[tid / n] * nphot;
@@ -197,16 +197,16 @@ __global__ void subapnormasync_krnl(float *odata, float *idata, float *fact,
   }
 }
 
-int subap_norm_async(float *d_odata, float *d_idata, float *fact, float *norm,
-                     float nphot, int n, int N, CarmaStreams *streams,
+int32_t subap_norm_async(float *d_odata, float *d_idata, float *fact, float *norm,
+                     float nphot, int32_t n, int32_t N, CarmaStreams *streams,
                      CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
-  int nstreams = streams->get_nb_streams();
+  int32_t nb_threads = 0, nb_blocks = 0;
+  int32_t nstreams = streams->get_nb_streams();
   get_num_blocks_and_threads(device, N / nstreams, nb_blocks, nb_threads);
 
   dim3 grid(nb_blocks), threads(nb_threads);
 
-  for (int i = 0; i < nstreams; i++) {
+  for (int32_t i = 0; i < nstreams; i++) {
     subapnormasync_krnl<<<grid, threads, 0, streams->get_stream(i)>>>(
         d_odata, d_idata, fact, norm, nphot, n, N, i * nb_blocks * nb_threads);
     carma_check_msg("subapnormasync_kernel<<<>>> execution failed\n");
@@ -215,9 +215,9 @@ int subap_norm_async(float *d_odata, float *d_idata, float *fact, float *norm,
   return EXIT_SUCCESS;
 }
 
-__global__ void krnl_fillindx(float *odata, float *idata, int *indx,
-                              float alpha, float beta, int N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+__global__ void krnl_fillindx(float *odata, float *idata, int32_t *indx,
+                              float alpha, float beta, int32_t N) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
     odata[tid] = (alpha * idata[indx[tid]]) + beta;
@@ -225,9 +225,9 @@ __global__ void krnl_fillindx(float *odata, float *idata, int *indx,
   }
 }
 
-int fillindx(float *d_odata, float *d_idata, int *indx, float alpha, float beta,
-             int N, CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
+int32_t fillindx(float *d_odata, float *d_idata, int32_t *indx, float alpha, float beta,
+             int32_t N, CarmaDevice *device) {
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
 
   dim3 grid(nb_blocks), threads(nb_threads);
@@ -239,18 +239,18 @@ int fillindx(float *d_odata, float *d_idata, int *indx, float alpha, float beta,
   return EXIT_SUCCESS;
 }
 
-int fillindx(float *d_odata, float *d_idata, int *indx, int N,
+int32_t fillindx(float *d_odata, float *d_idata, int32_t *indx, int32_t N,
              CarmaDevice *device) {
   return fillindx(d_odata, d_idata, indx, 1.0f, 0.0f, N, device);
 }
-int fillindx(float *d_odata, float *d_idata, int *indx, float alpha, int N,
+int32_t fillindx(float *d_odata, float *d_idata, int32_t *indx, float alpha, int32_t N,
              CarmaDevice *device) {
   return fillindx(d_odata, d_idata, indx, alpha, 0.0f, N, device);
 }
-__global__ void fillarr2d_krnl(float *odata, float *idata, int tidx0, int Ncol,
-                               int NC, int N, int dir) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
-  int tidB;
+__global__ void fillarr2d_krnl(float *odata, float *idata, int32_t tidx0, int32_t Ncol,
+                               int32_t NC, int32_t N, int32_t dir) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
+  int32_t tidB;
 
   while (tid < N) {
     if (Ncol > 1)
@@ -265,9 +265,9 @@ __global__ void fillarr2d_krnl(float *odata, float *idata, int tidx0, int Ncol,
   }
 }
 
-int fillarr2d(float *d_odata, float *d_idata, int x0, int Ncol, int NC, int N,
-              int dir, CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
+int32_t fillarr2d(float *d_odata, float *d_idata, int32_t x0, int32_t Ncol, int32_t NC, int32_t N,
+              int32_t dir, CarmaDevice *device) {
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
 
   dim3 grid(nb_blocks), threads(nb_threads);
@@ -278,14 +278,14 @@ int fillarr2d(float *d_odata, float *d_idata, int x0, int Ncol, int NC, int N,
 
   return EXIT_SUCCESS;
 }
-int fillarr2d(float *d_odata, float *d_idata, int x0, int Ncol, int NC, int N,
+int32_t fillarr2d(float *d_odata, float *d_idata, int32_t x0, int32_t Ncol, int32_t NC, int32_t N,
               CarmaDevice *device) {
   return fillarr2d(d_odata, d_idata, x0, Ncol, NC, N, 1, device);
 }
-__global__ void getarr2d_krnl(float *odata, float *idata, int tidx0, int Ncol,
-                              int NC, int N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
-  int tidB;
+__global__ void getarr2d_krnl(float *odata, float *idata, int32_t tidx0, int32_t Ncol,
+                              int32_t NC, int32_t N) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
+  int32_t tidB;
 
   while (tid < N) {
     if (Ncol > 1)
@@ -297,9 +297,9 @@ __global__ void getarr2d_krnl(float *odata, float *idata, int tidx0, int Ncol,
   }
 }
 
-int getarr2d(float *d_odata, float *d_idata, int x0, int Ncol, int NC, int N,
+int32_t getarr2d(float *d_odata, float *d_idata, int32_t x0, int32_t Ncol, int32_t NC, int32_t N,
              CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
 
   dim3 grid(nb_blocks), threads(nb_threads);
@@ -312,8 +312,8 @@ int getarr2d(float *d_odata, float *d_idata, int x0, int Ncol, int NC, int N,
 }
 
 template <class T>
-__global__ void addai_krnl(T *odata, T *idata, int i, int sgn, int N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+__global__ void addai_krnl(T *odata, T *idata, int32_t i, int32_t sgn, int32_t N) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
     if (sgn == 1)
@@ -325,8 +325,8 @@ __global__ void addai_krnl(T *odata, T *idata, int i, int sgn, int N) {
 }
 
 template <class T>
-int addai(T *d_odata, T *i_data, int i, int sgn, int N, CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
+int32_t addai(T *d_odata, T *i_data, int32_t i, int32_t sgn, int32_t N, CarmaDevice *device) {
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
 
   dim3 grid(nb_blocks), threads(nb_threads);
@@ -337,26 +337,26 @@ int addai(T *d_odata, T *i_data, int i, int sgn, int N, CarmaDevice *device) {
 
   return EXIT_SUCCESS;
 }
-template int addai<float>(float *d_odata, float *i_data, int i, int sgn, int N,
+template int32_t addai<float>(float *d_odata, float *i_data, int32_t i, int32_t sgn, int32_t N,
                           CarmaDevice *device);
-template int addai<double>(double *d_odata, double *i_data, int i, int sgn,
-                           int N, CarmaDevice *device);
+template int32_t addai<double>(double *d_odata, double *i_data, int32_t i, int32_t sgn,
+                           int32_t N, CarmaDevice *device);
 
 template <class T>
-__global__ void roll_krnl(T *idata, int N, int M, int Nim) {
+__global__ void roll_krnl(T *idata, int32_t N, int32_t M, int32_t Nim) {
   T tmp;
 
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < (N * M / 2)) {
-    int x = tid % N;
-    int y = tid / N;
+    int32_t x = tid % N;
+    int32_t y = tid / N;
 
-    int xx = (x + N / 2) % N;
-    int yy = (y + M / 2) % M;
-    int tid2 = xx + yy * N;
+    int32_t xx = (x + N / 2) % N;
+    int32_t yy = (y + M / 2) % M;
+    int32_t tid2 = xx + yy * N;
 
-    for (int ii = 0; ii < Nim; ii++) {
+    for (int32_t ii = 0; ii < Nim; ii++) {
       tmp = idata[tid + ii * N * M];
       idata[tid + ii * N * M] = idata[tid2 + ii * N * M];
       idata[tid2 + ii * N * M] = tmp;
@@ -367,9 +367,9 @@ __global__ void roll_krnl(T *idata, int N, int M, int Nim) {
 }
 
 template <class T>
-int roll(T *idata, int N, int M, int nim, CarmaDevice *device) {
-  long Ntot = N * M;
-  int nb_blocks, nb_threads;
+int32_t roll(T *idata, int32_t N, int32_t M, int32_t nim, CarmaDevice *device) {
+  int64_t Ntot = N * M;
+  int32_t nb_blocks, nb_threads;
   get_num_blocks_and_threads(device, Ntot / 2, nb_blocks, nb_threads);
 
   dim3 grid(nb_blocks), threads(nb_threads);
@@ -380,28 +380,28 @@ int roll(T *idata, int N, int M, int nim, CarmaDevice *device) {
   return EXIT_SUCCESS;
 }
 
-template int roll<float>(float *idata, int N, int M, int nim,
+template int32_t roll<float>(float *idata, int32_t N, int32_t M, int32_t nim,
                          CarmaDevice *device);
 
-template int roll<double>(double *idata, int N, int M, int nim,
+template int32_t roll<double>(double *idata, int32_t N, int32_t M, int32_t nim,
                           CarmaDevice *device);
 
-template int roll<cuFloatComplex>(cuFloatComplex *idata, int N, int M, int nim,
+template int32_t roll<cuFloatComplex>(cuFloatComplex *idata, int32_t N, int32_t M, int32_t nim,
                                   CarmaDevice *device);
 
 template <class T>
-__global__ void roll_krnl(T *idata, int N, int M) {
+__global__ void roll_krnl(T *idata, int32_t N, int32_t M) {
   T tmp;
 
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < (N * M / 2)) {
-    int x = tid % N;
-    int y = tid / N;
+    int32_t x = tid % N;
+    int32_t y = tid / N;
 
-    int xx = (x + N / 2) % N;
-    int yy = (y + M / 2) % M;
-    int tid2 = xx + yy * N;
+    int32_t xx = (x + N / 2) % N;
+    int32_t yy = (y + M / 2) % M;
+    int32_t tid2 = xx + yy * N;
 
     tmp = idata[tid];
     idata[tid] = idata[tid2];
@@ -412,9 +412,9 @@ __global__ void roll_krnl(T *idata, int N, int M) {
 }
 
 template <class T>
-int roll(T *idata, int N, int M, CarmaDevice *device) {
-  long Ntot = N * M;
-  int nb_blocks, nb_threads;
+int32_t roll(T *idata, int32_t N, int32_t M, CarmaDevice *device) {
+  int64_t Ntot = N * M;
+  int32_t nb_blocks, nb_threads;
   get_num_blocks_and_threads(device, Ntot / 2, nb_blocks, nb_threads);
 
   dim3 grid(nb_blocks), threads(nb_threads);
@@ -425,24 +425,24 @@ int roll(T *idata, int N, int M, CarmaDevice *device) {
   return EXIT_SUCCESS;
 }
 
-template int roll<float>(float *idata, int N, int M, CarmaDevice *device);
+template int32_t roll<float>(float *idata, int32_t N, int32_t M, CarmaDevice *device);
 
-template int roll<double>(double *idata, int N, int M, CarmaDevice *device);
+template int32_t roll<double>(double *idata, int32_t N, int32_t M, CarmaDevice *device);
 
-template int roll<cuFloatComplex>(cuFloatComplex *idata, int N, int M,
+template int32_t roll<cuFloatComplex>(cuFloatComplex *idata, int32_t N, int32_t M,
                                   CarmaDevice *device);
 
 template <class T>
-__global__ void roll_mult_krnl(T *odata, T *idata, int N, int M, T alpha) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+__global__ void roll_mult_krnl(T *odata, T *idata, int32_t N, int32_t M, T alpha) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < (N * M / 2)) {
-    int x = tid % N;
-    int y = tid / N;
+    int32_t x = tid % N;
+    int32_t y = tid / N;
 
-    int xx = (x + N / 2) % N;
-    int yy = (y + M / 2) % M;
-    int tid2 = xx + yy * N;
+    int32_t xx = (x + N / 2) % N;
+    int32_t yy = (y + M / 2) % M;
+    int32_t tid2 = xx + yy * N;
 
     odata[tid] = alpha * idata[tid2];
     odata[tid2] = alpha * idata[tid];
@@ -452,9 +452,9 @@ __global__ void roll_mult_krnl(T *odata, T *idata, int N, int M, T alpha) {
 }
 
 template <class T>
-int roll_mult(T *odata, T *idata, int N, int M, T alpha, CarmaDevice *device) {
-  long Ntot = N * M;
-  int nb_blocks, nb_threads;
+int32_t roll_mult(T *odata, T *idata, int32_t N, int32_t M, T alpha, CarmaDevice *device) {
+  int64_t Ntot = N * M;
+  int32_t nb_blocks, nb_threads;
   get_num_blocks_and_threads(device, Ntot / 2, nb_blocks, nb_threads);
 
   dim3 grid(nb_blocks), threads(nb_threads);
@@ -465,18 +465,18 @@ int roll_mult(T *odata, T *idata, int N, int M, T alpha, CarmaDevice *device) {
   return EXIT_SUCCESS;
 }
 
-template int roll_mult<float>(float *odata, float *idata, int N, int M,
+template int32_t roll_mult<float>(float *odata, float *idata, int32_t N, int32_t M,
                               float alpha, CarmaDevice *device);
 
-template int roll_mult<double>(double *odata, double *idata, int N, int M,
+template int32_t roll_mult<double>(double *odata, double *idata, int32_t N, int32_t M,
                                double alpha, CarmaDevice *device);
 
 template <class T>
-__global__ void avg_krnl(T *data, T *p_sum, int N) {
+__global__ void avg_krnl(T *data, T *p_sum, int32_t N) {
   T *sdata = SharedMemory<T>();
   // Load shared memory
-  int tid = threadIdx.x + blockDim.x * blockIdx.x;
-  int sid = threadIdx.x;
+  int32_t tid = threadIdx.x + blockDim.x * blockIdx.x;
+  int32_t sid = threadIdx.x;
 
   if (tid < N)
     sdata[sid] = data[tid];
@@ -493,8 +493,8 @@ __global__ void avg_krnl(T *data, T *p_sum, int N) {
 }
 
 template <class T>
-__global__ void remove_avg_krnl(T *data, int N, T avg) {
-  int tid = threadIdx.x + blockDim.x * blockIdx.x;
+__global__ void remove_avg_krnl(T *data, int32_t N, T avg) {
+  int32_t tid = threadIdx.x + blockDim.x * blockIdx.x;
   while (tid < N) {
     data[tid] -= avg;
     tid += blockDim.x * gridDim.x;
@@ -502,11 +502,11 @@ __global__ void remove_avg_krnl(T *data, int N, T avg) {
 }
 
 template <class T>
-int remove_avg(T *data, int N, CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
+int32_t remove_avg(T *data, int32_t N, CarmaDevice *device) {
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
   dim3 grid(nb_blocks), threads(nb_threads);
-  int smemSize = nb_threads * sizeof(T);
+  int32_t smemSize = nb_threads * sizeof(T);
 
   T p_sum_c[nb_blocks];
   T *p_sum;
@@ -519,7 +519,7 @@ int remove_avg(T *data, int N, CarmaDevice *device) {
   carma_safe_call(cudaFree(p_sum));
 
   T avg = 0;
-  for (int i = 0; i < nb_blocks; i++) {
+  for (int32_t i = 0; i < nb_blocks; i++) {
     avg += p_sum_c[i];
   }
   avg /= N;
@@ -529,11 +529,11 @@ int remove_avg(T *data, int N, CarmaDevice *device) {
   return EXIT_SUCCESS;
 }
 
-template int remove_avg<float>(float *data, int N, CarmaDevice *device);
-template int remove_avg<double>(double *data, int N, CarmaDevice *device);
+template int32_t remove_avg<float>(float *data, int32_t N, CarmaDevice *device);
+template int32_t remove_avg<double>(double *data, int32_t N, CarmaDevice *device);
 
-__global__ void conv_krnl(cuFloatComplex *odata, cuFloatComplex *idata, int N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+__global__ void conv_krnl(cuFloatComplex *odata, cuFloatComplex *idata, int32_t N) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
   cuFloatComplex tmp;
 
   while (tid < N) {
@@ -544,9 +544,9 @@ __global__ void conv_krnl(cuFloatComplex *odata, cuFloatComplex *idata, int N) {
   }
 }
 
-int convolve(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N,
+int32_t convolve(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int32_t N,
              CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
 
   dim3 grid(nb_blocks), threads(nb_threads);
@@ -558,8 +558,8 @@ int convolve(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N,
 }
 
 __global__ void convmod_krnl(cuFloatComplex *odata, cuFloatComplex *idata,
-                             int mod, int N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+                             int32_t mod, int32_t N) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
   cuFloatComplex tmp;
 
   while (tid < N) {
@@ -570,9 +570,9 @@ __global__ void convmod_krnl(cuFloatComplex *odata, cuFloatComplex *idata,
   }
 }
 
-int convolve_modulate(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int mod,
-                      int N, CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
+int32_t convolve_modulate(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int32_t mod,
+                      int32_t N, CarmaDevice *device) {
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
 
   dim3 grid(nb_blocks), threads(nb_threads);
@@ -584,8 +584,8 @@ int convolve_modulate(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int mod,
 }
 
 template <class T>
-__global__ void mult_krnl(T *i_data, T *scale, int N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+__global__ void mult_krnl(T *i_data, T *scale, int32_t N) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
     i_data[tid] = i_data[tid] * scale[tid];
@@ -594,8 +594,8 @@ __global__ void mult_krnl(T *i_data, T *scale, int N) {
 }
 
 template <class T>
-__global__ void mult_krnl(T *i_data, T *scale, T gain, int N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+__global__ void mult_krnl(T *i_data, T *scale, T gain, int32_t N) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
     i_data[tid] = i_data[tid] * scale[tid] * gain;
@@ -604,8 +604,8 @@ __global__ void mult_krnl(T *i_data, T *scale, T gain, int N) {
 }
 
 template <class T>
-__global__ void mult_krnl(T *i_data, T gain, int N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+__global__ void mult_krnl(T *i_data, T gain, int32_t N) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
     i_data[tid] = i_data[tid] * gain;
@@ -613,8 +613,8 @@ __global__ void mult_krnl(T *i_data, T gain, int N) {
   }
 }
 
-__global__ void mult_int_krnl(float *o_data, float *i_data, float gain, int N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+__global__ void mult_int_krnl(float *o_data, float *i_data, float gain, int32_t N) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
     o_data[tid] = gain * i_data[tid] + o_data[tid];
@@ -623,8 +623,8 @@ __global__ void mult_int_krnl(float *o_data, float *i_data, float gain, int N) {
 }
 
 __global__ void mult_int_krnl(float *o_data, float *i_data, float *scale,
-                              float gain, int N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+                              float gain, int32_t N) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
     o_data[tid] = gain * (i_data[tid] * scale[tid]) + o_data[tid];
@@ -633,8 +633,8 @@ __global__ void mult_int_krnl(float *o_data, float *i_data, float *scale,
 }
 
 __global__ void mult_int_krnl(float *o_data, float *i_data, float *scale,
-                              float gain, int N, int istart) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+                              float gain, int32_t N, int32_t istart) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
   tid += istart;
 
   while (tid < N) {
@@ -644,8 +644,8 @@ __global__ void mult_int_krnl(float *o_data, float *i_data, float *scale,
 }
 
 __global__ void add_md_krnl(float *o_matrix, float *i_matrix, float *i_vector,
-                            int N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+                            int32_t N) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
     o_matrix[tid * (N + 1)] = i_matrix[tid * (N + 1)] + i_vector[tid];
@@ -654,8 +654,8 @@ __global__ void add_md_krnl(float *o_matrix, float *i_matrix, float *i_vector,
 }
 
 template <class T>
-int mult_vect(T *d_data, T *scale, int N, CarmaDevice *device) {
-  int nb_blocks, nb_threads;
+int32_t mult_vect(T *d_data, T *scale, int32_t N, CarmaDevice *device) {
+  int32_t nb_blocks, nb_threads;
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
   dim3 grid(nb_blocks), threads(nb_threads);
 
@@ -664,18 +664,18 @@ int mult_vect(T *d_data, T *scale, int N, CarmaDevice *device) {
   carma_check_msg("mult_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
-template int mult_vect<float>(float *d_data, float *scale, int N,
+template int32_t mult_vect<float>(float *d_data, float *scale, int32_t N,
                               CarmaDevice *device);
-template int mult_vect<double>(double *d_data, double *scale, int N,
+template int32_t mult_vect<double>(double *d_data, double *scale, int32_t N,
                                CarmaDevice *device);
 #ifdef CAN_DO_HALF
-template int mult_vect<half>(half *d_data, half *scale, int N,
+template int32_t mult_vect<half>(half *d_data, half *scale, int32_t N,
                              CarmaDevice *device);
 #endif
 
 template <class T>
-int mult_vect(T *d_data, T *scale, T gain, int N, CarmaDevice *device) {
-  int nb_blocks, nb_threads;
+int32_t mult_vect(T *d_data, T *scale, T gain, int32_t N, CarmaDevice *device) {
+  int32_t nb_blocks, nb_threads;
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
   dim3 grid(nb_blocks), threads(nb_threads);
 
@@ -685,18 +685,18 @@ int mult_vect(T *d_data, T *scale, T gain, int N, CarmaDevice *device) {
   return EXIT_SUCCESS;
 }
 
-template int mult_vect<float>(float *d_data, float *scale, float gain, int N,
+template int32_t mult_vect<float>(float *d_data, float *scale, float gain, int32_t N,
                               CarmaDevice *device);
-template int mult_vect<double>(double *d_data, double *scale, double gain,
-                               int N, CarmaDevice *device);
+template int32_t mult_vect<double>(double *d_data, double *scale, double gain,
+                               int32_t N, CarmaDevice *device);
 #ifdef CAN_DO_HALF
-template int mult_vect<half>(half *d_data, half *scale, half gain, int N,
+template int32_t mult_vect<half>(half *d_data, half *scale, half gain, int32_t N,
                              CarmaDevice *device);
 #endif
 
 template <class T>
-int mult_vect(T *d_data, T gain, int N, CarmaDevice *device) {
-  int nb_blocks, nb_threads;
+int32_t mult_vect(T *d_data, T gain, int32_t N, CarmaDevice *device) {
+  int32_t nb_blocks, nb_threads;
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
   dim3 grid(nb_blocks), threads(nb_threads);
 
@@ -706,25 +706,25 @@ int mult_vect(T *d_data, T gain, int N, CarmaDevice *device) {
   return EXIT_SUCCESS;
 }
 
-template int mult_vect<float>(float *d_data, float gain, int N,
+template int32_t mult_vect<float>(float *d_data, float gain, int32_t N,
                               CarmaDevice *device);
-template int mult_vect<double>(double *d_data, double gain, int N,
+template int32_t mult_vect<double>(double *d_data, double gain, int32_t N,
                                CarmaDevice *device);
 #ifdef CAN_DO_HALF
-template int mult_vect<half>(half *d_data, half gain, int N,
+template int32_t mult_vect<half>(half *d_data, half gain, int32_t N,
                              CarmaDevice *device);
 #endif
 
-int mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
+int32_t mult_int(float *o_data, float *i_data, float *scale, float gain, int32_t N,
              CarmaDevice *device, CarmaStreams *streams) {
-  int nb_threads = 0, nb_blocks = 0;
+  int32_t nb_threads = 0, nb_blocks = 0;
 
-  int nstreams = streams->get_nb_streams();
+  int32_t nstreams = streams->get_nb_streams();
   get_num_blocks_and_threads(device, N / nstreams, nb_blocks, nb_threads);
 
   dim3 grid(nb_blocks), threads(nb_threads);
 
-  for (int i = 0; i < nstreams; i++) {
+  for (int32_t i = 0; i < nstreams; i++) {
     mult_int_krnl<<<grid, threads, 0, streams->get_stream(i)>>>(
         o_data, i_data, scale, gain, N, i * nb_blocks * nb_threads);
     carma_check_msg("multint_kernel<<<>>> execution failed\n");
@@ -733,9 +733,9 @@ int mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
   return EXIT_SUCCESS;
 }
 
-int mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
+int32_t mult_int(float *o_data, float *i_data, float *scale, float gain, int32_t N,
              CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
+  int32_t nb_threads = 0, nb_blocks = 0;
 
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
 
@@ -747,9 +747,9 @@ int mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
   return EXIT_SUCCESS;
 }
 
-int mult_int(float *o_data, float *i_data, float gain, int N,
+int32_t mult_int(float *o_data, float *i_data, float gain, int32_t N,
              CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
+  int32_t nb_threads = 0, nb_blocks = 0;
 
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
 
@@ -761,9 +761,9 @@ int mult_int(float *o_data, float *i_data, float gain, int N,
   return EXIT_SUCCESS;
 }
 
-int add_md(float *o_matrix, float *i_matrix, float *i_vector, int N,
+int32_t add_md(float *o_matrix, float *i_matrix, float *i_vector, int32_t N,
            CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
   dim3 grid(nb_blocks), threads(nb_threads);
 

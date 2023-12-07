@@ -8,7 +8,7 @@
 
 //! \file      sutra_controller_generic.cpp
 //! \ingroup   libsutra
-//! \class     sutra_controller_generic
+//! \class     SutraControllerGeneric
 //! \brief     this class provides the controller_generic features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
 //! \version   5.5.0
@@ -17,20 +17,20 @@
 #include <sutra_controller_generic.h>
 
 template <typename T, typename Tout>
-sutra_controller_generic<T, Tout>::sutra_controller_generic(
-    CarmaContext *context, long nslope, long nactu, float delay,
-    SutraDms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro, int nstates)
+SutraControllerGeneric<T, Tout>::SutraControllerGeneric(
+    CarmaContext *context, int64_t nslope, int64_t nactu, float delay,
+    SutraDms *dms, int32_t *idx_dms, int32_t ndm, int32_t *idx_centro, int32_t ncentro, int32_t nstates)
     : SutraController<T, Tout>(context, nslope, nactu, delay, dms,
                                 idx_dms, ndm, idx_centro, ncentro) {
   this->command_law = "integrator";
   this->nstates = nstates;
   this->leaky_factor = 1.0f;
 
-  long dims_data1[2] = {1, nactu + nstates};
+  int64_t dims_data1[2] = {1, nactu + nstates};
   this->d_gain = new CarmaObj<T>(this->current_context, dims_data1);
   this->d_decayFactor = new CarmaObj<T>(this->current_context, dims_data1);
   this->d_compbuff = new CarmaObj<T>(this->current_context, dims_data1);
-  for (int k=0; k < this->d_circular_coms.size() ; k++) {
+  for (int32_t k=0; k < this->d_circular_coms.size() ; k++) {
     delete this->d_circular_coms[k];
   }
   this->d_circular_coms.clear();
@@ -39,12 +39,12 @@ sutra_controller_generic<T, Tout>::sutra_controller_generic(
   this->d_com1 = new CarmaObj<T>(this->current_context, dims_data1);
   if (this->delay > 0) {
       this->d_circular_coms.push_front(this->d_com1);
-      while (this->d_circular_coms.size() <= int(this->delay) + 1) {
+      while (this->d_circular_coms.size() <= int32_t(this->delay) + 1) {
         this->d_circular_coms.push_front(new CarmaObj<T>(context, dims_data1));
       }
     }
 
-  for (int cpt = 0; cpt < this->current_context->get_ndevice(); cpt++) {
+  for (int32_t cpt = 0; cpt < this->current_context->get_ndevice(); cpt++) {
     if( !this->current_context->can_p2p(this->device, cpt) ) {
       fprintf(stderr, "[%s@%d]: WARNING P2P not activate between %d and %d, it may failed\n",
         __FILE__, __LINE__, this->device, cpt);
@@ -72,7 +72,7 @@ sutra_controller_generic<T, Tout>::sutra_controller_generic(
   dims_data1[1] = this->nslope();
   this->d_olmeas = new CarmaObj<T>(this->current_context, dims_data1);
   this->d_compbuff2 = new CarmaObj<T>(this->current_context, dims_data1);
-  long dims_data2[3] = {2, nactu + nstates, nslope};
+  int64_t dims_data2[3] = {2, nactu + nstates, nslope};
   this->d_cmat = new CarmaObj<T>(this->current_context, dims_data2);
   this->d_cmat_ngpu.push_back(this->d_cmat);
   this->d_centroids_ngpu.push_back(this->d_centroids);
@@ -86,8 +86,8 @@ sutra_controller_generic<T, Tout>::sutra_controller_generic(
         this->d_centroids_ngpu.push_back(new CarmaObj<T>(this->current_context, dims_data1));
       }
     }
-    int dev_id = this->P2Pdevices.back();
-    int cpt = this->P2Pdevices.size() - 1;
+    int32_t dev_id = this->P2Pdevices.back();
+    int32_t cpt = this->P2Pdevices.size() - 1;
     dims_data2[2] = this->nslope() - cpt * (this->nslope() / this->P2Pdevices.size());
     dims_data1[1] = this->nslope() - cpt * (this->nslope() / this->P2Pdevices.size());
     this->current_context->set_active_device(dev_id, 1);
@@ -106,8 +106,8 @@ sutra_controller_generic<T, Tout>::sutra_controller_generic(
   this->polc = false;
 
   if (std::is_same<T, half>::value) {
-    int m = nactu + nstates;
-    int n = nslope;
+    int32_t m = nactu + nstates;
+    int32_t n = nslope;
     while (m % 8 != 0) m++;
     while (n % 8 != 0) n++;
     dims_data2[1] = m;
@@ -124,7 +124,7 @@ sutra_controller_generic<T, Tout>::sutra_controller_generic(
 }
 
 template <typename T, typename Tout>
-sutra_controller_generic<T, Tout>::~sutra_controller_generic() {
+SutraControllerGeneric<T, Tout>::~SutraControllerGeneric() {
   this->current_context->set_active_device(this->device, 1);
   delete this->d_gain;
   delete this->d_decayFactor;
@@ -134,59 +134,59 @@ sutra_controller_generic<T, Tout>::~sutra_controller_generic() {
 }
 
 template <typename T, typename Tout>
-int sutra_controller_generic<T, Tout>::set_polc(bool p) {
+int32_t SutraControllerGeneric<T, Tout>::set_polc(bool p) {
   this->polc = p;
   return EXIT_SUCCESS;
 }
 
 template <typename T, typename Tout>
-int sutra_controller_generic<T, Tout>::set_leaky_factor(T factor) {
+int32_t SutraControllerGeneric<T, Tout>::set_leaky_factor(T factor) {
   this->leaky_factor = factor;
   return EXIT_SUCCESS;
 }
 
 template <typename T, typename Tout>
-string sutra_controller_generic<T, Tout>::get_type() {
+string SutraControllerGeneric<T, Tout>::get_type() {
   this->current_context->set_active_device(this->device, 1);
   return "generic";
 }
 
 template <typename T, typename Tout>
-string sutra_controller_generic<T, Tout>::get_commandlaw() {
+string SutraControllerGeneric<T, Tout>::get_commandlaw() {
   this->current_context->set_active_device(this->device, 1);
   return this->command_law;
 }
 
 template <typename T, typename Tout>
-int sutra_controller_generic<T, Tout>::set_modal_gains(float *gain) {
+int32_t SutraControllerGeneric<T, Tout>::set_modal_gains(float *gain) {
   this->current_context->set_active_device(this->device, 1);
   this->d_gain->host2device(gain);
   return EXIT_SUCCESS;
 }
 
 template <typename T, typename Tout>
-int sutra_controller_generic<T, Tout>::set_decayFactor(float *decayFactor) {
+int32_t SutraControllerGeneric<T, Tout>::set_decayFactor(float *decayFactor) {
   this->current_context->set_active_device(this->device, 1);
   this->d_decayFactor->host2device(decayFactor);
   return EXIT_SUCCESS;
 }
 
 template <typename T, typename Tout>
-int sutra_controller_generic<T, Tout>::set_matE(float *matE) {
+int32_t SutraControllerGeneric<T, Tout>::set_matE(float *matE) {
   this->current_context->set_active_device(this->device, 1);
   this->d_matE->host2device(matE);
   return EXIT_SUCCESS;
 }
 
 template <typename T, typename Tout>
-int sutra_controller_generic<T, Tout>::set_imat(float *imat) {
+int32_t SutraControllerGeneric<T, Tout>::set_imat(float *imat) {
   this->current_context->set_active_device(this->device, 1);
   this->d_imat->host2device(imat);
   return EXIT_SUCCESS;
 }
 
 template <typename T, typename Tout>
-int sutra_controller_generic<T, Tout>::set_cmat(float *cmat) {
+int32_t SutraControllerGeneric<T, Tout>::set_cmat(float *cmat) {
   this->current_context->set_active_device(this->device, 1);
   // Copy the cmat on the master GPU and zero-fill it if needed
   this->d_cmat->host2device(cmat);
@@ -200,9 +200,9 @@ int sutra_controller_generic<T, Tout>::set_cmat(float *cmat) {
 }
 
 template <typename T, typename Tout>
-int sutra_controller_generic<T, Tout>::distribute_cmat() {
-    int N = this->nactu() * (this->nslope() / this->P2Pdevices.size());
-    int cpt = 1;
+int32_t SutraControllerGeneric<T, Tout>::distribute_cmat() {
+    int32_t N = this->nactu() * (this->nslope() / this->P2Pdevices.size());
+    int32_t cpt = 1;
     for (auto dev_id : this->P2Pdevices) {
       if(dev_id != this->device) {
         this->current_context->set_active_device(dev_id, 1);
@@ -216,25 +216,25 @@ int sutra_controller_generic<T, Tout>::distribute_cmat() {
 }
 
 template <typename T, typename Tout>
-int sutra_controller_generic<T, Tout>::fill_cmatPadded() {
+int32_t SutraControllerGeneric<T, Tout>::fill_cmatPadded() {
   return fill_cmatPadded_impl();
 }
 
 template <typename T, typename Tout>
-int sutra_controller_generic<T, Tout>::set_commandlaw(string law) {
+int32_t SutraControllerGeneric<T, Tout>::set_commandlaw(string law) {
   this->current_context->set_active_device(this->device, 1);
   this->command_law = law;
   return EXIT_SUCCESS;
 }
 
 template <typename T, typename Tout>
-int sutra_controller_generic<T, Tout>::comp_polc(){
+int32_t SutraControllerGeneric<T, Tout>::comp_polc(){
   comp_polc(*(this->d_centroids), *(this->d_imat), *(this->d_olmeas));
   return EXIT_SUCCESS;
 }
 
 template <typename T, typename Tout>
-int sutra_controller_generic<T, Tout>::comp_com() {
+int32_t SutraControllerGeneric<T, Tout>::comp_com() {
   this->current_context->set_active_device(this->device, 1);
   CarmaObj<T> *centroids;
   T berta = this->leaky_factor;
@@ -242,7 +242,7 @@ int sutra_controller_generic<T, Tout>::comp_com() {
   // carma_safe_call(cudaEventCreate(&start_event));
   // carma_safe_call(cudaEventCreate(&stop_event));
   // float gpuTime;
-  int m, n;
+  int32_t m, n;
 
   if (this->polc) {
     this->comp_polc();
@@ -251,7 +251,7 @@ int sutra_controller_generic<T, Tout>::comp_com() {
   } else {
     centroids = this->d_centroids;
   }
-  int cc = this->nslope() / this->P2Pdevices.size();
+  int32_t cc = this->nslope() / this->P2Pdevices.size();
   cudaEventRecord(start_mvm_event, this->streams[this->device]);
   for (auto dev_id : this->P2Pdevices) {
     if(dev_id != this->device) {
@@ -353,8 +353,8 @@ int sutra_controller_generic<T, Tout>::comp_com() {
 
 template <typename T, typename Tout>
 template <typename Q>
-typename std::enable_if<std::is_same<Q, half>::value, int>::type
-sutra_controller_generic<T, Tout>::fill_cmatPadded_impl() {
+typename std::enable_if<std::is_same<Q, half>::value, int32_t>::type
+SutraControllerGeneric<T, Tout>::fill_cmatPadded_impl() {
   pad_cmat(this->d_cmat->get_data(), this->d_cmat->get_dims(1),
            this->d_cmat->get_dims(2), this->d_cmatPadded->get_data(),
            this->d_cmatPadded->get_dims(1), this->d_cmatPadded->get_dims(2),
@@ -363,9 +363,9 @@ sutra_controller_generic<T, Tout>::fill_cmatPadded_impl() {
   return EXIT_SUCCESS;
 }
 
-template class sutra_controller_generic<float, float>;
-template class sutra_controller_generic<float, uint16_t>;
+template class SutraControllerGeneric<float, float>;
+template class SutraControllerGeneric<float, uint16_t>;
 #ifdef CAN_DO_HALF
-template class sutra_controller_generic<half, float>;
-template class sutra_controller_generic<half, uint16_t>;
+template class SutraControllerGeneric<half, float>;
+template class SutraControllerGeneric<half, uint16_t>;
 #endif

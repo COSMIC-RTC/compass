@@ -17,17 +17,14 @@
 
 #include <carma.h>
 
-#include <wyrm>
-
 #include "obj.hpp"
 #include "obj_complex.hpp"
 #include "obj_half.hpp"
 #include "type_list.hpp"
 
 void declare_carmaWrap_obj(py::module &mod) {
-  apply<CarmaObjInterfacer, GenericTypeList<int, uint16_t, uint32_t, float, double>>(mod);
-  apply<CarmaObjComplexInterfacer,
-        GenericTypeList<cuFloatComplex, cuDoubleComplex>>(mod);
+  apply<CarmaObjInterfacer, GenericTypeList<int32_t, uint16_t, uint32_t, float, double>>(mod);
+  apply<CarmaObjComplexInterfacer, GenericTypeList<float, double>>(mod);
 #ifdef CAN_DO_HALF
   apply<CarmaObjHalfInterfacer, GenericTypeList<half>>(mod);
 #endif

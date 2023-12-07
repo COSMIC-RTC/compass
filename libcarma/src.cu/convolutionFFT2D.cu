@@ -21,8 +21,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 /// Position convolution kernel center at (0, 0) in the image
 ////////////////////////////////////////////////////////////////////////////////
-extern "C" void pad_kernel(float *d_Dst, float *d_Src, int fftH, int fftW,
-                          int kernelH, int kernelW, int kernelY, int kernelX) {
+extern "C" void pad_kernel(float *d_Dst, float *d_Src, int32_t fftH, int32_t fftW,
+                          int32_t kernelH, int32_t kernelW, int32_t kernelY, int32_t kernelX) {
   assert(d_Src != d_Dst);
   dim3 threads(32, 8);
   dim3 grid(i_div_up(kernelW, threads.x), i_div_up(kernelH, threads.y));
@@ -33,9 +33,9 @@ extern "C" void pad_kernel(float *d_Dst, float *d_Src, int fftH, int fftW,
   carma_check_msg("padKernel_kernel<<<>>> execution failed\n");
 }
 
-extern "C" void pad_kernel_3d(float *d_Dst, float *d_Src, int fftH, int fftW,
-                            int kernelH, int kernelW, int kernelY, int kernelX,
-                            int nim) {
+extern "C" void pad_kernel_3d(float *d_Dst, float *d_Src, int32_t fftH, int32_t fftW,
+                            int32_t kernelH, int32_t kernelW, int32_t kernelY, int32_t kernelX,
+                            int32_t nim) {
   assert(d_Src != d_Dst);
   dim3 threads(16, 8, 8);
   dim3 grid(i_div_up(kernelW, threads.x), i_div_up(kernelH, threads.y),
@@ -52,10 +52,10 @@ extern "C" void pad_kernel_3d(float *d_Dst, float *d_Src, int fftH, int fftW,
 ////////////////////////////////////////////////////////////////////////////////
 // Prepare data for "pad to border" addressing mode
 ////////////////////////////////////////////////////////////////////////////////
-extern "C" void pad_data_clamp_to_border(float *d_Dst, float *d_Src, int fftH,
-                                     int fftW, int dataH, int dataW,
-                                     int kernelW, int kernelH, int kernelY,
-                                     int kernelX) {
+extern "C" void pad_data_clamp_to_border(float *d_Dst, float *d_Src, int32_t fftH,
+                                     int32_t fftW, int32_t dataH, int32_t dataW,
+                                     int32_t kernelW, int32_t kernelH, int32_t kernelY,
+                                     int32_t kernelX) {
   assert(d_Src != d_Dst);
   dim3 threads(32, 8);
   dim3 grid(i_div_up(fftW, threads.x), i_div_up(fftH, threads.y));
@@ -67,10 +67,10 @@ extern "C" void pad_data_clamp_to_border(float *d_Dst, float *d_Src, int fftH,
   carma_check_msg("pad_data_clamp_to_border_kernel<<<>>> execution failed\n");
 }
 
-extern "C" void pad_data_clamp_to_border_3d(float *d_Dst, float *d_Src, int fftH,
-                                       int fftW, int dataH, int dataW,
-                                       int kernelW, int kernelH, int kernelY,
-                                       int kernelX, int nim) {
+extern "C" void pad_data_clamp_to_border_3d(float *d_Dst, float *d_Src, int32_t fftH,
+                                       int32_t fftW, int32_t dataH, int32_t dataW,
+                                       int32_t kernelW, int32_t kernelH, int32_t kernelY,
+                                       int32_t kernelX, int32_t nim) {
   assert(d_Src != d_Dst);
   dim3 threads(16, 8, 8);
   dim3 grid(i_div_up(fftW, threads.x), i_div_up(fftH, threads.y),
@@ -87,10 +87,10 @@ extern "C" void pad_data_clamp_to_border_3d(float *d_Dst, float *d_Src, int fftH
 // Modulate Fourier image of padded data by Fourier image of padded kernel
 // and normalize by FFT size
 ////////////////////////////////////////////////////////////////////////////////
-extern "C" void modulate_and_normalize(fComplex *d_Dst, fComplex *d_Src, int fftH,
-                                     int fftW, int padding, int nim) {
+extern "C" void modulate_and_normalize(fComplex *d_Dst, fComplex *d_Src, int32_t fftH,
+                                     int32_t fftW, int32_t padding, int32_t nim) {
   assert(fftW % 2 == 0);
-  const int dataSize = fftH * (fftW / 2 + padding) * nim;
+  const int32_t dataSize = fftH * (fftW / 2 + padding) * nim;
 
   modulate_and_normalize_kernel<<<i_div_up(dataSize, 256), 256>>>(
       d_Dst, d_Src, dataSize, 1.0f / (float)(fftW * fftH));
@@ -104,7 +104,7 @@ static const double PI = 3.1415926535897932384626433832795;
 static const uint BLOCKDIM = 256;
 
 extern "C" void sp_postprocess_2d(void *d_Dst, void *d_Src, uint DY, uint DX,
-                                uint padding, int dir) {
+                                uint padding, int32_t dir) {
   assert(d_Src != d_Dst);
   assert(DX % 2 == 0);
 
@@ -126,7 +126,7 @@ extern "C" void sp_postprocess_2d(void *d_Dst, void *d_Src, uint DY, uint DX,
 }
 
 extern "C" void sp_preprocess_2d(void *d_Dst, void *d_Src, uint DY, uint DX,
-                               uint padding, int dir) {
+                               uint padding, int32_t dir) {
   assert(d_Src != d_Dst);
   assert(DX % 2 == 0);
 
@@ -151,7 +151,7 @@ extern "C" void sp_preprocess_2d(void *d_Dst, void *d_Src, uint DY, uint DX,
 // Combined sp_postprocess_2d + modulate_and_normalize + sp_preprocess_2d
 ////////////////////////////////////////////////////////////////////////////////
 extern "C" void sp_process_2d(void *d_Dst, void *d_SrcA, void *d_SrcB, uint DY,
-                            uint DX, int dir) {
+                            uint DX, int32_t dir) {
   assert(DY % 2 == 0);
 
 #if (POWER_OF_TWO)

@@ -8,20 +8,67 @@
 
 //! \file      controller_mv.cpp
 //! \ingroup   libsutra
-//! \brief     this file provides pybind wrapper for sutra_controller_mv
+//! \brief     this file provides pybind wrapper for SutraControllerMv
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <wyrm>
+#include "sutraWrapUtils.hpp"
 
 #include <sutra_controller_mv.h>
 
 namespace py = pybind11;
 
 template <typename Tcomp, typename Tout>
+int32_t load_noisemat(SutraControllerMv<Tcomp, Tout> &scmv, ArrayFStyle<Tcomp> &noise) {
+    return scmv.load_noisemat(noise.mutable_data());
+}
+
+template <typename Tcomp, typename Tout>
+int32_t filter_cphim(SutraControllerMv<Tcomp, Tout> &scmv, ArrayFStyle<Tcomp> &F, ArrayFStyle<Tcomp> &Nact) {
+    return scmv.filter_cphim(F.mutable_data(), Nact.mutable_data());
+}
+
+template <typename Tcomp, typename Tout>
+int32_t compute_Cmm(SutraControllerMv<Tcomp, Tout> &scmv, SutraAtmos *atmos, SutraSensors *sensors, ArrayFStyle<double> &L0,
+                ArrayFStyle<double> &cn2, ArrayFStyle<double> &alphaX, ArrayFStyle<double> &alphaY, double diamTel,
+                double cobs){
+    return scmv.compute_Cmm(atmos, sensors, L0.mutable_data(), cn2.mutable_data(), alphaX.mutable_data(), alphaY.mutable_data(), diamTel, cobs);
+}
+
+template <typename Tcomp, typename Tout>
+int32_t compute_Cphim(SutraControllerMv<Tcomp, Tout> &scmv, SutraAtmos *atmos, SutraSensors *sensors, SutraDms *dms,
+                ArrayFStyle<double> &L0, ArrayFStyle<double> &cn2, ArrayFStyle<double> &alphaX, ArrayFStyle<double> &alphaY,
+                ArrayFStyle<double> &X, ArrayFStyle<double> &Y, ArrayFStyle<double> &xactu, ArrayFStyle<double> &yactu,
+                double diamTel, ArrayFStyle<double> &k2, ArrayFStyle<int64_t> &NlayerDm,
+                ArrayFStyle<int64_t> &indLayerDm, double FoV, ArrayFStyle<double> &pitch,
+                ArrayFStyle<double> &alt_dm){
+    return scmv.compute_Cphim(atmos, sensors, dms, L0.mutable_data(), cn2.mutable_data(), alphaX.mutable_data(), alphaY.mutable_data(), X.mutable_data(),
+                            Y.mutable_data(), xactu.mutable_data(), yactu.mutable_data(), diamTel, k2.mutable_data(), NlayerDm.mutable_data(),
+                            indLayerDm.mutable_data(), FoV, pitch.mutable_data(), alt_dm.mutable_data());
+}
+                    
+template <typename Tcomp, typename Tout>
+int32_t set_modal_gains(SutraControllerMv<Tcomp, Tout> &scmv, ArrayFStyle<Tcomp> &mgain) {
+    return scmv.set_modal_gains(mgain.mutable_data());
+}
+
+template <typename Tcomp, typename Tout>
+int32_t set_cmat(SutraControllerMv<Tcomp, Tout> &scmv, ArrayFStyle<Tcomp> &cmat) {
+    return scmv.set_cmat(cmat.mutable_data());
+}
+
+template <typename Tcomp, typename Tout>
+int32_t set_imat(SutraControllerMv<Tcomp, Tout> &scmv, ArrayFStyle<Tcomp> &imat) {
+    return scmv.set_imat(imat.mutable_data());
+}
+
+
+
+
+template <typename Tcomp, typename Tout>
 void controller_mv_impl(py::module &mod, const char *name) {
-  using controller_mv = sutra_controller_mv<Tcomp, Tout>;
+  using controller_mv = SutraControllerMv<Tcomp, Tout>;
 
   py::class_<controller_mv, SutraController<Tcomp, Tout>>(mod, name)
 
@@ -96,7 +143,7 @@ void controller_mv_impl(py::module &mod, const char *name) {
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
 
       .def("build_cmat",
-           (int (controller_mv::*)(float)) & controller_mv::build_cmat,
+           (int32_t (controller_mv::*)(float)) & controller_mv::build_cmat,
            R"pbdoc(
     Computes the command matrix
 
@@ -105,7 +152,7 @@ void controller_mv_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("cond"))
 
-      .def("load_noisemat", wy::colCast(&controller_mv::load_noisemat),
+      .def("load_noisemat", &load_noisemat<Tcomp, Tout>,
            R"pbdoc(
     Load the noise covariance matrix
 
@@ -122,7 +169,7 @@ void controller_mv_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("cond"))
 
-      .def("filter_cphim", wy::colCast(&controller_mv::filter_cphim),
+      .def("filter_cphim", &filter_cphim<Tcomp, Tout>,
            R"pbdoc(
     Filter Cphim from piston and apply coupling
 
@@ -134,7 +181,7 @@ void controller_mv_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("F"), py::arg("Nact"))
 
-      .def("compute_Cmm", wy::colCast(&controller_mv::compute_Cmm),
+      .def("compute_Cmm", &compute_Cmm<Tcomp, Tout>,
            R"pbdoc(
     Compute the Cmm matrix
 
@@ -160,7 +207,7 @@ void controller_mv_impl(py::module &mod, const char *name) {
            py::arg("alphaX"), py::arg("alphaY"), py::arg("diamTel"),
            py::arg("cobs"))
 
-      .def("compute_Cphim", wy::colCast(&controller_mv::compute_Cphim),
+      .def("compute_Cphim", &compute_Cphim<Tcomp, Tout>,
            R"pbdoc(
     Compute the Cphim matrix
 
@@ -214,7 +261,7 @@ void controller_mv_impl(py::module &mod, const char *name) {
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
 
-      .def("set_modal_gains", wy::colCast(&controller_mv::set_modal_gains), R"pbdoc(
+      .def("set_modal_gains", &set_modal_gains<Tcomp, Tout>, R"pbdoc(
     Set the controller modal gains
 
     Args:
@@ -222,7 +269,7 @@ void controller_mv_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("mgain"))
 
-      .def("set_cmat", wy::colCast(&controller_mv::set_cmat), R"pbdoc(
+      .def("set_cmat", &set_cmat<Tcomp, Tout>, R"pbdoc(
     Set the command matrix
 
     Args:
@@ -230,7 +277,7 @@ void controller_mv_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("cmat"))
 
-      .def("set_imat", wy::colCast(&controller_mv::set_imat), R"pbdoc(
+      .def("set_imat", &set_imat<Tcomp, Tout>, R"pbdoc(
     Set the interaction matrix
 
     Args:

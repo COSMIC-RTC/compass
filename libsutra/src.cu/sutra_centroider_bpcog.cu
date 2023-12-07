@@ -18,12 +18,12 @@
 #include <sutra_centroider_utils.cuh>
 #include <carma_utils.cuh>
 
-template <int BLOCK_THREADS, typename T>
+template <int32_t BLOCK_THREADS, typename T>
 __launch_bounds__(BLOCK_THREADS) __global__
-    void centroids(float *d_img, T *d_centroids, T *ref, int *validx,
-                   int *validy, float *d_intensities, int nbpix,
-                   unsigned int npix, sutra::SlopesIndex si, unsigned int size, T scale, T offset,
-                   unsigned int nelem_thread) {
+    void centroids(float *d_img, T *d_centroids, T *ref, int32_t *validx,
+                   int32_t *validy, float *d_intensities, int32_t nbpix,
+                   uint32_t npix, sutra::SlopesIndex si, uint32_t size, T scale, T offset,
+                   uint32_t nelem_thread) {
   // Specialize BlockRadixSort for a 1D block of BLOCK_THREADS threads owning 1
   // item each
   typedef cub::BlockRadixSort<float, BLOCK_THREADS, 1> BlockRadixSortT;
@@ -38,12 +38,12 @@ __launch_bounds__(BLOCK_THREADS) __global__
   float xdata = 0;
   float ydata = 0;
 
-  unsigned int tid = threadIdx.x;
-  unsigned int xvalid = validx[blockIdx.x];
-  unsigned int yvalid = validy[blockIdx.x];
-  unsigned int x = tid % npix;
-  unsigned int y = tid / npix;
-  int idim = (x + xvalid) + (y + yvalid) * size;
+  uint32_t tid = threadIdx.x;
+  uint32_t xvalid = validx[blockIdx.x];
+  uint32_t yvalid = validy[blockIdx.x];
+  uint32_t x = tid % npix;
+  uint32_t y = tid / npix;
+  int32_t idim = (x + xvalid) + (y + yvalid) * size;
 
   float items[1];
   items[0] = ((idim < size * size) && (tid < npix * npix)) ? d_img[idim] : 0.f;
@@ -78,13 +78,13 @@ __launch_bounds__(BLOCK_THREADS) __global__
 }
 
 template <class T>
-void get_centroids(int size, int threads, int blocks, int npix, float *d_img,
-                   T *d_centroids, T *ref, int *validx, int *validy,
-                   float *intensities, int nbpix, float scale, float offset,
+void get_centroids(int32_t size, int32_t threads, int32_t blocks, int32_t npix, float *d_img,
+                   T *d_centroids, T *ref, int32_t *validx, int32_t *validy,
+                   float *intensities, int32_t nbpix, float scale, float offset,
                    SlopeOrder slope_order,
                    CarmaDevice *device, cudaStream_t stream) {
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  unsigned int nelem_thread = 1;
+  int32_t maxThreads = device->get_properties().maxThreadsPerBlock;
+  uint32_t nelem_thread = 1;
   while ((threads / nelem_thread > maxThreads) ||
          (threads % nelem_thread != 0)) {
     nelem_thread++;
@@ -135,24 +135,24 @@ void get_centroids(int size, int threads, int blocks, int npix, float *d_img,
   carma_check_msg("centroids_kernel<<<>>> execution failed\n");
 }
 
-template void get_centroids<float>(int size, int threads, int blocks, int npix,
+template void get_centroids<float>(int32_t size, int32_t threads, int32_t blocks, int32_t npix,
                                    float *d_img, float *d_centroids, float *ref,
-                                   int *validx, int *validy, float *intensities,
-                                   int nbpix, float scale, float offset,
+                                   int32_t *validx, int32_t *validy, float *intensities,
+                                   int32_t nbpix, float scale, float offset,
                                    SlopeOrder slope_order,
                                    CarmaDevice *device, cudaStream_t stream);
 
-template void get_centroids<double>(int size, int threads, int blocks, int npix,
+template void get_centroids<double>(int32_t size, int32_t threads, int32_t blocks, int32_t npix,
                                     float *d_img, double *d_centroids,
-                                    double *ref, int *validx, int *validy,
-                                    float *intensities, int nbpix, float scale,
+                                    double *ref, int32_t *validx, int32_t *validy,
+                                    float *intensities, int32_t nbpix, float scale,
                                     float offset, SlopeOrder slope_order,
                                     CarmaDevice *device, cudaStream_t stream);
 #ifdef CAN_DO_HALF
-template void get_centroids<half>(int size, int threads, int blocks, int npix,
+template void get_centroids<half>(int32_t size, int32_t threads, int32_t blocks, int32_t npix,
                                   float *d_img, half *d_centroids, half *ref,
-                                  int *validx, int *validy, float *intensities,
-                                  int nbpix, float scale, float offset,
+                                  int32_t *validx, int32_t *validy, float *intensities,
+                                  int32_t nbpix, float scale, float offset,
                                   SlopeOrder slope_order,
                                   CarmaDevice *device, cudaStream_t stream);
 #endif

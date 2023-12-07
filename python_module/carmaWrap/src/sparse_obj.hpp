@@ -19,9 +19,6 @@
 #include "declare_name.hpp"
 
 #include <carma.h>
-
-#include <wyrm>
-
 #include <carma_sparse_obj.h>
 
 #include <type_list.hpp>
@@ -36,12 +33,12 @@ struct CarmaSparseObjInterfacer {
     py::class_<Class>(mod, name.data(), py::buffer_protocol())
     .def("get_csr",[](Class &frame){
         py::object CSR = py::module::import("scipy.sparse").attr("csr_matrix");
-        int dim1 = frame.get_dims(1);
-        int dim2 = frame.get_dims(2);
-        int nnz = frame.nz_elem;
+        int32_t dim1 = frame.get_dims(1);
+        int32_t dim2 = frame.get_dims(2);
+        int32_t nnz = frame.nz_elem;
 
-        std::vector<int> rowind = std::vector<int>(dim1 + 1);
-        std::vector<int> colind = std::vector<int>(nnz);
+        std::vector<int32_t> rowind = std::vector<int32_t>(dim1 + 1);
+        std::vector<int32_t> colind = std::vector<int32_t>(nnz);
         std::vector<T> data = std::vector<T>(nnz);
 
         frame.sparse_to_host(rowind.data(), colind.data(), data.data());

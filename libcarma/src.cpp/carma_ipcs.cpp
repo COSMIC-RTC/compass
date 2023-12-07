@@ -21,7 +21,7 @@
  private methods
 */
 void * CarmaIPCS::create_shm(const char *name, size_t size) {
-  int tmp_fd;
+  int32_t tmp_fd;
   void * ret_ptr;
 
   if((tmp_fd = shm_open(name, O_CREAT | O_EXCL | O_RDWR, 0600)) == -1) //shm_open error, errno already set
@@ -38,7 +38,7 @@ void * CarmaIPCS::create_shm(const char *name, size_t size) {
 
 
 void * CarmaIPCS::get_shm(const char *name) {
-  int tmp_fd;
+  int32_t tmp_fd;
   void * ret_ptr;
   struct stat buf;
 
@@ -66,25 +66,25 @@ void CarmaIPCS::close_shm(void *p_shm, size_t size) {
 
 void CarmaIPCS::complete_clean() {
   if(!dptrs.empty()) {
-    std::map<unsigned int, sh_dptr *>::iterator it;
+    std::map<uint32_t, sh_dptr *>::iterator it;
     for(it = dptrs.begin(); it!=dptrs.end(); ++it)
       free_memHandle(it->first);
     dptrs.clear();
   }
   if(!events.empty()) {
-    std::map<unsigned int, sh_event *>::iterator it;
+    std::map<uint32_t, sh_event *>::iterator it;
     for(it = events.begin(); it!=events.end(); ++it)
       free_eventHandle(it->first);
     events.clear();
   }
   if(!buffers.empty()) {
-    std::map<unsigned int, sh_buffer *>::iterator it;
+    std::map<uint32_t, sh_buffer *>::iterator it;
     for(it = buffers.begin(); it!=buffers.end(); ++it)
       free_transfer_shm(it->first);
     buffers.clear();
   }
   if(!barriers.empty()) {
-    std::map<unsigned int, sh_barrier *>::iterator it;
+    std::map<uint32_t, sh_barrier *>::iterator it;
     for(it = barriers.begin(); it!=barriers.end(); ++it)
       free_barrier(it->first);
     barriers.clear();
@@ -111,11 +111,11 @@ CarmaIPCS::~CarmaIPCS() {
   Cuda handles methods
 */
 
-int CarmaIPCS::register_cudptr(unsigned int id,CUdeviceptr _dptr) {
-  int res = EXIT_FAILURE;
+int32_t CarmaIPCS::register_cudptr(uint32_t id,CUdeviceptr _dptr) {
+  int32_t res = EXIT_FAILURE;
   CUresult err;
 
-  std::map<unsigned int, sh_dptr *>::iterator it;
+  std::map<uint32_t, sh_dptr *>::iterator it;
   it = dptrs.find(id);
   if(it != dptrs.end()) { //id found in map
     errno = EEXIST;
@@ -154,11 +154,11 @@ int CarmaIPCS::register_cudptr(unsigned int id,CUdeviceptr _dptr) {
 }
 
 
-int CarmaIPCS::register_cuevent(unsigned int id, CUevent _event) {
-  int res = EXIT_FAILURE;
+int32_t CarmaIPCS::register_cuevent(uint32_t id, CUevent _event) {
+  int32_t res = EXIT_FAILURE;
   CUresult err;
 
-  std::map<unsigned int, sh_event *>::iterator it;
+  std::map<uint32_t, sh_event *>::iterator it;
   it = events.find(id);
   if(it != events.end()) { //id found in map
     errno = EEXIST;
@@ -200,10 +200,10 @@ int CarmaIPCS::register_cuevent(unsigned int id, CUevent _event) {
 
 
 
-int CarmaIPCS::get_memHandle(unsigned int id, CUipcMemHandle *phandle) {
-  int res = EXIT_FAILURE;
+int32_t CarmaIPCS::get_memHandle(uint32_t id, CUipcMemHandle *phandle) {
+  int32_t res = EXIT_FAILURE;
 
-  std::map<unsigned int, sh_dptr *>::iterator it;
+  std::map<uint32_t, sh_dptr *>::iterator it;
   it = dptrs.find(id);
   if(it == dptrs.end()) { //not found in map
     sh_dptr *dptr;
@@ -235,10 +235,10 @@ int CarmaIPCS::get_memHandle(unsigned int id, CUipcMemHandle *phandle) {
 
 
 
-int CarmaIPCS::get_eventHandle(unsigned int id, CUipcEventHandle *phandle) {
-  int res = EXIT_FAILURE;
+int32_t CarmaIPCS::get_eventHandle(uint32_t id, CUipcEventHandle *phandle) {
+  int32_t res = EXIT_FAILURE;
 
-  std::map<unsigned int, sh_event *>::iterator it;
+  std::map<uint32_t, sh_event *>::iterator it;
   it = events.find(id);
   if(it == events.end()) { //not found in map
     sh_event *event;
@@ -269,8 +269,8 @@ int CarmaIPCS::get_eventHandle(unsigned int id, CUipcEventHandle *phandle) {
 }
 
 
-void CarmaIPCS::free_memHandle(unsigned int id) {
-  std::map<unsigned int, sh_dptr *>::iterator it;
+void CarmaIPCS::free_memHandle(uint32_t id) {
+  std::map<uint32_t, sh_dptr *>::iterator it;
   it = dptrs.find(id);
   if(it == dptrs.end()) { //not found in map
     return;
@@ -288,8 +288,8 @@ void CarmaIPCS::free_memHandle(unsigned int id) {
 }
 
 
-void CarmaIPCS::free_eventHandle(unsigned int id) {
-  std::map<unsigned int, sh_event *>::iterator it;
+void CarmaIPCS::free_eventHandle(uint32_t id) {
+  std::map<uint32_t, sh_event *>::iterator it;
   it = events.find(id);
   if(it == events.end()) { //not found in map
     return;
@@ -312,8 +312,8 @@ void CarmaIPCS::free_eventHandle(unsigned int id) {
 /*
   Transfer via CPU memory methods
 */
-sh_buffer *CarmaIPCS::get_elem_tshm(unsigned int id) {
-  std::map<unsigned int, sh_buffer *>::iterator it;
+sh_buffer *CarmaIPCS::get_elem_tshm(uint32_t id) {
+  std::map<uint32_t, sh_buffer *>::iterator it;
 
   it = buffers.find(id);
   if(it == buffers.end()) { //not found in map
@@ -348,9 +348,9 @@ sh_buffer *CarmaIPCS::get_elem_tshm(unsigned int id) {
 
 
 
-int CarmaIPCS::alloc_transfer_shm(unsigned int id, size_t bsize, bool isBoard) {
-  int res = EXIT_FAILURE;
-  std::map<unsigned int, sh_buffer *>::iterator it;
+int32_t CarmaIPCS::alloc_transfer_shm(uint32_t id, size_t bsize, bool isBoard) {
+  int32_t res = EXIT_FAILURE;
+  std::map<uint32_t, sh_buffer *>::iterator it;
   it = buffers.find(id);
   if(it != buffers.end()) { //id found in map
     errno = EEXIST;
@@ -400,8 +400,8 @@ int CarmaIPCS::alloc_transfer_shm(unsigned int id, size_t bsize, bool isBoard) {
 }
 
 
-int CarmaIPCS::get_size_transfer_shm(unsigned int id, size_t *bsize) {
-  int res = EXIT_FAILURE;
+int32_t CarmaIPCS::get_size_transfer_shm(uint32_t id, size_t *bsize) {
+  int32_t res = EXIT_FAILURE;
   sh_buffer *buffer=NULL;
 
   if( (buffer = get_elem_tshm(id)) == NULL)
@@ -415,8 +415,8 @@ int CarmaIPCS::get_size_transfer_shm(unsigned int id, size_t *bsize) {
 }
 
 
-int CarmaIPCS::get_datasize_transfer_shm(unsigned int id, size_t *bsize) {
-  int res = EXIT_FAILURE;
+int32_t CarmaIPCS::get_datasize_transfer_shm(uint32_t id, size_t *bsize) {
+  int32_t res = EXIT_FAILURE;
   sh_buffer *buffer=NULL;
   //STAMP("in get_datasize\n");
   if( (buffer = get_elem_tshm(id)) == NULL)
@@ -438,8 +438,8 @@ int CarmaIPCS::get_datasize_transfer_shm(unsigned int id, size_t *bsize) {
 
 
 
-int CarmaIPCS::map_transfer_shm(unsigned int id) {
-  int res = EXIT_FAILURE;
+int32_t CarmaIPCS::map_transfer_shm(uint32_t id) {
+  int32_t res = EXIT_FAILURE;
   sh_buffer *buffer=NULL;
 
   if( (buffer = get_elem_tshm(id)) == NULL)
@@ -454,8 +454,8 @@ int CarmaIPCS::map_transfer_shm(unsigned int id) {
 
 
 
-int CarmaIPCS::write_gpu(void *dst, CUdeviceptr src, size_t bsize) {
-  int res = EXIT_FAILURE;
+int32_t CarmaIPCS::write_gpu(void *dst, CUdeviceptr src, size_t bsize) {
+  int32_t res = EXIT_FAILURE;
 
   if((errno = cuMemcpyDtoH(dst, src, bsize)) != CUDA_SUCCESS)
     res = -2;
@@ -467,8 +467,8 @@ int CarmaIPCS::write_gpu(void *dst, CUdeviceptr src, size_t bsize) {
 }
 
 
-int CarmaIPCS::read_gpu(CUdeviceptr dst, void *src, size_t bsize) {
-  int res = EXIT_FAILURE;
+int32_t CarmaIPCS::read_gpu(CUdeviceptr dst, void *src, size_t bsize) {
+  int32_t res = EXIT_FAILURE;
 
   if((errno = cuMemcpyHtoD(dst, src, bsize)) != CUDA_SUCCESS)
     res = -2;
@@ -480,8 +480,8 @@ int CarmaIPCS::read_gpu(CUdeviceptr dst, void *src, size_t bsize) {
 }
 
 
-int CarmaIPCS::write_transfer_shm(unsigned int id, const void *src, size_t bsize, bool isGpuBuffer) {
-  int res = EXIT_FAILURE;
+int32_t CarmaIPCS::write_transfer_shm(uint32_t id, const void *src, size_t bsize, bool isGpuBuffer) {
+  int32_t res = EXIT_FAILURE;
   sh_buffer *buffer=NULL;
 
   //STAMP("in write\n");
@@ -523,8 +523,8 @@ int CarmaIPCS::write_transfer_shm(unsigned int id, const void *src, size_t bsize
 }
 
 
-int CarmaIPCS::read_transfer_shm(unsigned int id, void *dst, size_t bsize, bool isGpuBuffer) {
-  int res = EXIT_FAILURE;
+int32_t CarmaIPCS::read_transfer_shm(uint32_t id, void *dst, size_t bsize, bool isGpuBuffer) {
+  int32_t res = EXIT_FAILURE;
   sh_buffer *buffer=NULL;
 
   //STAMP("in read\n");
@@ -568,8 +568,8 @@ int CarmaIPCS::read_transfer_shm(unsigned int id, void *dst, size_t bsize, bool 
   return res;
 }
 
-int CarmaIPCS::unmap_transfer_shm(unsigned int id) {
-  int res = EXIT_FAILURE;
+int32_t CarmaIPCS::unmap_transfer_shm(uint32_t id) {
+  int32_t res = EXIT_FAILURE;
   sh_buffer *buffer=NULL;
 
   if( (buffer = get_elem_tshm(id)) == NULL)
@@ -583,8 +583,8 @@ int CarmaIPCS::unmap_transfer_shm(unsigned int id) {
 }
 
 
-void CarmaIPCS::free_transfer_shm(unsigned int id) {
-  std::map<unsigned int, sh_buffer *>::iterator it;
+void CarmaIPCS::free_transfer_shm(uint32_t id) {
+  std::map<uint32_t, sh_buffer *>::iterator it;
 
   it = buffers.find(id);
   if(it == buffers.end()) { //not found in map
@@ -616,9 +616,9 @@ void CarmaIPCS::free_transfer_shm(unsigned int id) {
 /*
   Barrier methods
 */
-int CarmaIPCS::init_barrier(unsigned int id, unsigned int value) {
-  int res = EXIT_FAILURE;
-  std::map<unsigned int, sh_barrier *>::iterator it;
+int32_t CarmaIPCS::init_barrier(uint32_t id, uint32_t value) {
+  int32_t res = EXIT_FAILURE;
+  std::map<uint32_t, sh_barrier *>::iterator it;
   it = barriers.find(id);
   if(it != barriers.end()) { //id found in map
     errno = EEXIST;
@@ -660,9 +660,9 @@ int CarmaIPCS::init_barrier(unsigned int id, unsigned int value) {
 
 
 
-int CarmaIPCS::wait_barrier(unsigned int id) {
-  int res = EXIT_FAILURE;
-  std::map<unsigned int, sh_barrier *>::iterator it;
+int32_t CarmaIPCS::wait_barrier(uint32_t id) {
+  int32_t res = EXIT_FAILURE;
+  std::map<uint32_t, sh_barrier *>::iterator it;
   sh_barrier *barrier;
 
   it = barriers.find(id);
@@ -700,7 +700,7 @@ int CarmaIPCS::wait_barrier(unsigned int id) {
   if(barrier->waiters_cnt == barrier->val) {
     //STAMP("%d, post var_mutex, unlock\n", getpid());
     sem_post(&barrier->var_mutex);
-    for(unsigned int i = 1; i < barrier->val; ++i) {
+    for(uint32_t i = 1; i < barrier->val; ++i) {
       sem_post(&barrier->b_sem); //(val - 1) post
     }
   } else { //release var mutex and wait on barrier semaphore
@@ -722,8 +722,8 @@ int CarmaIPCS::wait_barrier(unsigned int id) {
 }
 
 
-void CarmaIPCS::free_barrier(unsigned int id) {
-  std::map<unsigned int, sh_barrier *>::iterator it;
+void CarmaIPCS::free_barrier(uint32_t id) {
+  std::map<uint32_t, sh_barrier *>::iterator it;
   it = barriers.find(id);
   if(it == barriers.end()) { //not found in map
     return;
@@ -735,7 +735,7 @@ void CarmaIPCS::free_barrier(unsigned int id) {
   barrier->nb_proc--;
   barrier->valid = false;
   if(barrier->waiters_cnt) {
-    for(unsigned int i = 0; i < barrier->waiters_cnt; ++i)
+    for(uint32_t i = 0; i < barrier->waiters_cnt; ++i)
       sem_post(&barrier->b_sem);
   }
   if(barrier->nb_proc == 0) {

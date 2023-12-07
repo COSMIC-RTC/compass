@@ -16,10 +16,10 @@
 
 #include <sutra_tscreen.h>
 
-SutraTurbuScreen::SutraTurbuScreen(CarmaContext *context, long size,
-                             long stencilSize, float r0, float altitude,
+SutraTurbuScreen::SutraTurbuScreen(CarmaContext *context, int64_t size,
+                             int64_t stencilSize, float r0, float altitude,
                              float windspeed, float winddir, float deltax,
-                             float deltay, int device) {
+                             float deltay, int32_t device) {
   this->current_context = context;
   this->screen_size = size;
   this->r0 = r0;
@@ -48,7 +48,7 @@ SutraTurbuScreen::SutraTurbuScreen(CarmaContext *context, long size,
   this->channel_desc =
       cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);
 
-  long dims_data2[3];
+  int64_t dims_data2[3];
   dims_data2[0] = 2;
   dims_data2[1] = this->screen_size;
   dims_data2[2] = this->screen_size;
@@ -58,11 +58,11 @@ SutraTurbuScreen::SutraTurbuScreen(CarmaContext *context, long size,
   dims_data2[2] = stencilSize;
   this->d_mat_a = new CarmaObj<float>(current_context, dims_data2);
 
-  long dims_data[2];
+  int64_t dims_data[2];
   dims_data[0] = 1;
   dims_data[1] = stencilSize;
-  this->d_istencilx = new CarmaObj<unsigned int>(current_context, dims_data);
-  this->d_istencily = new CarmaObj<unsigned int>(current_context, dims_data);
+  this->d_istencilx = new CarmaObj<uint32_t>(current_context, dims_data);
+  this->d_istencily = new CarmaObj<uint32_t>(current_context, dims_data);
   this->d_z = new CarmaObj<float>(current_context, dims_data);
 
   dims_data[1] = this->screen_size;
@@ -86,9 +86,9 @@ SutraTurbuScreen::~SutraTurbuScreen() {
   // delete current_context;
 }
 
-int SutraTurbuScreen::init_screen(float *h_A, float *h_B,
-                               unsigned int *h_istencilx,
-                               unsigned int *h_istencily, int seed) {
+int32_t SutraTurbuScreen::init_screen(float *h_A, float *h_B,
+                               uint32_t *h_istencilx,
+                               uint32_t *h_istencily, int32_t seed) {
   this->current_context->set_active_device(device, 1);
   // initial memcopies
   this->d_mat_a->host2device(h_A);
@@ -104,13 +104,13 @@ int SutraTurbuScreen::init_screen(float *h_A, float *h_B,
   return EXIT_SUCCESS;
 }
 
-int SutraTurbuScreen::refresh_screen() {
+int32_t SutraTurbuScreen::refresh_screen() {
   this->current_context->set_active_device(device, 1);
   this->d_tscreen->d_screen->reset();
   this->accumx = 0.0f;
   this->accumy = 0.0f;
 
-  for (int i = 0; i < 2 * this->screen_size; i++) {
+  for (int32_t i = 0; i < 2 * this->screen_size; i++) {
     if (this->deltax > 0) {
       this->extrude(1);
     } else {
@@ -120,7 +120,7 @@ int SutraTurbuScreen::refresh_screen() {
   return EXIT_SUCCESS;
 }
 
-int SutraTurbuScreen::set_seed(int seed) {
+int32_t SutraTurbuScreen::set_seed(int32_t seed) {
   this->current_context->set_active_device(device, 1);
   this->d_noise->init_prng_host(seed);
   this->d_noise->prng_host('N');
@@ -128,16 +128,16 @@ int SutraTurbuScreen::set_seed(int seed) {
   return EXIT_SUCCESS;
 }
 
-int SutraTurbuScreen::extrude(int dir) {
+int32_t SutraTurbuScreen::extrude(int32_t dir) {
   // dir =1 moving in x
 
   this->current_context->set_active_device(device, 1);
-  int x0, Ncol, NC, N;
+  int32_t x0, Ncol, NC, N;
   NC = screen_size;
 
   if (dir == 1 || dir == -1) {  // adding a column to the left
     fillindx(this->d_z->get_data(), this->d_tscreen->d_screen->get_data(),
-             (int *)this->d_istencilx->get_data(), this->d_z->get_nb_elements(),
+             (int32_t *)this->d_istencilx->get_data(), this->d_z->get_nb_elements(),
              current_context->get_device(device));
     if (dir == 1)
       x0 = this->screen_size - 1;  // not in stencil
@@ -145,7 +145,7 @@ int SutraTurbuScreen::extrude(int dir) {
       x0 = this->screen_size * (this->screen_size - 1);
   } else {
     fillindx(this->d_z->get_data(), this->d_tscreen->d_screen->get_data(),
-             (int *)this->d_istencily->get_data(), this->d_z->get_nb_elements(),
+             (int32_t *)this->d_istencily->get_data(), this->d_z->get_nb_elements(),
              current_context->get_device(device));
     if (dir == 2)
       x0 = this->screen_size * (this->screen_size - 1);
@@ -213,27 +213,27 @@ int SutraTurbuScreen::extrude(int dir) {
   return EXIT_SUCCESS;
 }
 
-int SutraTurbuScreen::set_deltax(float deltax) {
+int32_t SutraTurbuScreen::set_deltax(float deltax) {
   this->deltax = deltax;
   this->accumx = 0;
 
   return EXIT_SUCCESS;
 }
 
-int SutraTurbuScreen::set_deltay(float deltay) {
+int32_t SutraTurbuScreen::set_deltay(float deltay) {
   this->deltay = deltay;
   this->accumy = 0;
 
   return EXIT_SUCCESS;
 }
 
-int SutraTurbuScreen::set_istencilx(unsigned int* istencil) {
+int32_t SutraTurbuScreen::set_istencilx(uint32_t* istencil) {
   this->d_istencilx->host2device(istencil);
 
   return EXIT_SUCCESS;
 }
 
-int SutraTurbuScreen::set_istencily(unsigned int* istencil) {
+int32_t SutraTurbuScreen::set_istencily(uint32_t* istencil) {
   this->d_istencily->host2device(istencil);
 
   return EXIT_SUCCESS;
@@ -247,9 +247,9 @@ int SutraTurbuScreen::set_istencily(unsigned int* istencil) {
 //   ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝ ╚══════╝╚══════╝╚═════╝
 //
 
-int SutraTurbuScreen::init_vk(int seed, int pupd) {
+int32_t SutraTurbuScreen::init_vk(int32_t seed, int32_t pupd) {
   this->current_context->set_active_device(device, 1);
-  long *dims_data2 = new long[3];
+  int64_t *dims_data2 = new int64_t[3];
   dims_data2[0] = 2;
   dims_data2[1] = this->screen_size;
   dims_data2[2] = this->screen_size;
@@ -271,7 +271,7 @@ int SutraTurbuScreen::init_vk(int seed, int pupd) {
   return EXIT_SUCCESS;
 }
 
-int SutraTurbuScreen::generate_vk(float l0, int nalias) {
+int32_t SutraTurbuScreen::generate_vk(float l0, int32_t nalias) {
   this->current_context->set_active_device(device, 1);
   this->d_tscreen_o->prng_host('N');
 
@@ -280,7 +280,7 @@ int SutraTurbuScreen::generate_vk(float l0, int nalias) {
       data, 0, this->screen_size * this->screen_size * sizeof(cuFloatComplex)));
 
   float k0 = (l0 == 0. ? 0.0f : this->screen_size / l0);
-  int block_size = 8;
+  int32_t block_size = 8;
 
   float *data_o = this->d_tscreen_o->get_data();
   gene_vonkarman(data, data_o, k0, nalias, this->screen_size, this->screen_size,

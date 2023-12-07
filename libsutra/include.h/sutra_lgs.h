@@ -27,15 +27,15 @@ using std::vector;
 
 class SutraLGS {
  public:
-  int device;
-  long nvalid;
-  long npix;
-  long nmaxhr;
+  int32_t device;
+  int64_t nvalid;
+  int64_t npix;
+  int64_t nmaxhr;
   float hg;
   float h0;
   float deltah;
   float pixsize;
-  long nprof;
+  int64_t nprof;
 
   cufftHandle *ftlgskern_plan;
   CarmaObj<float> *d_doffaxis;
@@ -58,33 +58,33 @@ class SutraLGS {
  public:
   SutraLGS(CarmaContext *context, CarmaObj<float> *d_lgskern,
             CarmaObj<cuFloatComplex> *d_ftlgskern,
-            map<vector<int>, cufftHandle *> ftlgskern_plans, long nvalid,
-            long npix, long nmaxhr);
+            map<vector<int32_t>, cufftHandle *> ftlgskern_plans, int64_t nvalid,
+            int64_t npix, int64_t nmaxhr);
   ~SutraLGS();
 
-  int lgs_init(int nprof, float hg, float h0, float deltah, float pixsie,
+  int32_t lgs_init(int32_t nprof, float hg, float h0, float deltah, float pixsie,
                float *doffaxis, float *prof1d, float *profcum, float *beam,
                cuFloatComplex *ftbeam, float *azimuth);
-  int load_prof(float *prof1d, float *profcum, float hg, float h0,
+  int32_t load_prof(float *prof1d, float *profcum, float hg, float h0,
                 float deltah);
-  int lgs_update(CarmaDevice *device);
-  int lgs_makespot(CarmaDevice *device, int nin);
-  int load_kernels(float *h_lgskern, CarmaDevice *device);
+  int32_t lgs_update(CarmaDevice *device);
+  int32_t lgs_makespot(CarmaDevice *device, int32_t nin);
+  int32_t load_kernels(float *h_lgskern, CarmaDevice *device);
 };
 
 // General utilities
-int interp_prof(cuFloatComplex *profout, float *prof1d, float *profcum,
-                int npix, float *doffaxis, float hg, float pixsize, float h0,
-                float deltah, int hmax, int Ntot, CarmaDevice *device);
-int times_ftbeam(cuFloatComplex *profout, cuFloatComplex *fbeam, int N,
-                 int Ntot, CarmaDevice *device);
-int roll_beam_exp(float *imout, cuFloatComplex *iprof, float *beam, int N,
-                int Ntot, CarmaDevice *device);
-int lgs_rotate(cuFloatComplex *odata, float *idata, int width, int height,
-               float *theta, float center, int Ntot, CarmaDevice *device);
-// int rotate3d(cuFloatComplex *d_odata, cudaMemcpy3DParms copyParams,
-//              cudaArray *d_array, cudaChannelFormatDesc channel_desc, int width,
-//              int height, float *theta, float center, int Ntot,
+int32_t interp_prof(cuFloatComplex *profout, float *prof1d, float *profcum,
+                int32_t npix, float *doffaxis, float hg, float pixsize, float h0,
+                float deltah, int32_t hmax, int32_t Ntot, CarmaDevice *device);
+int32_t times_ftbeam(cuFloatComplex *profout, cuFloatComplex *fbeam, int32_t N,
+                 int32_t Ntot, CarmaDevice *device);
+int32_t roll_beam_exp(float *imout, cuFloatComplex *iprof, float *beam, int32_t N,
+                int32_t Ntot, CarmaDevice *device);
+int32_t lgs_rotate(cuFloatComplex *odata, float *idata, int32_t width, int32_t height,
+               float *theta, float center, int32_t Ntot, CarmaDevice *device);
+// int32_t rotate3d(cuFloatComplex *d_odata, cudaMemcpy3DParms copyParams,
+//              cudaArray *d_array, cudaChannelFormatDesc channel_desc, int32_t width,
+//              int32_t height, float *theta, float center, int32_t Ntot,
 //              CarmaDevice *device);
 
 #endif  // _SUTRA_LGS_H_

@@ -7,7 +7,6 @@ project(sutraWrap
 )
 
 find_package(pybind11 REQUIRED)
-find_package(wyrm REQUIRED)
 find_package(CUDAToolkit REQUIRED)
 
 pybind11_add_module(sutraWrap MODULE
@@ -35,7 +34,7 @@ pybind11_add_module(sutraWrap MODULE
     src/controller_geo.cpp
     src/controller_generic.cpp
     src/controller_generic_linear.cpp
-    src/controller_cured.cpp
+src/controller_cured.cpp
     src/rtc.cpp
     src/gamora.cpp
     src/groot.cpp
@@ -58,7 +57,6 @@ if (NOT TARGET sutra)
     message(STATUS "Found sutra: ${SUTRA_VERSION}")
     target_include_directories(carmaWrap PRIVATE ${SUTRA_INCLUDE_DIRS})
     target_link_libraries(sutraWrap PRIVATE 
-        wyrm::wyrm 
         PkgConfig::SUTRA
         CUDA::cudart
         CUDA::cufft
@@ -69,7 +67,7 @@ if (NOT TARGET sutra)
     )
 else()
     message(STATUS "Found sutra target in the project")
-    target_link_libraries(sutraWrap PRIVATE wyrm::wyrm sutra)
+    target_link_libraries(sutraWrap PRIVATE sutra)
 endif()
 
 

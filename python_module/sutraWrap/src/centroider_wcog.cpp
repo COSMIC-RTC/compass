@@ -13,11 +13,16 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
+#include "sutraWrapUtils.hpp"
+
 #include <sutra_centroider_wcog.h>
 
-#include <wyrm>
-
 namespace py = pybind11;
+
+template <typename Tin, typename Tcomp>
+int32_t load_weights(SutraCentroiderWcog<Tin, Tcomp> &scw, ArrayFStyle<float> &weights, int32_t ndim) {
+    return scw.load_weights(weights.mutable_data(), ndim);
+}
 
 template <typename Tin, typename Tcomp>
 void centroider_wcog_impl(py::module &mod, const char *name) {
@@ -49,7 +54,7 @@ void centroider_wcog_impl(py::module &mod, const char *name) {
       .def("init_weights", &centroider_wcog::init_weights,
            "Initializes WCOG computation")
 
-      .def("load_weights", wy::colCast(&centroider_wcog::load_weights),
+      .def("load_weights", &load_weights<Tin, Tcomp>,
            R"pbdoc(
     Load weights on WCOG
 

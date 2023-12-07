@@ -32,71 +32,66 @@ cusolverStatus_t carma_init_cusolver(cusolverDnHandle_t *cusolver_handle);
 cusolverStatus_t carma_shutdown_cusolver(cusolverDnHandle_t cusolver_handle);
 
 template <class T>
-int carma_syevd(char jobz, CarmaObj<T> *mat,
+int32_t carma_syevd(char jobz, CarmaObj<T> *mat,
                 CarmaObj<T> *eigenvals);
-// template <class T, int method>
-// int carma_syevd(cusolverDnHandle_t cusolver_handle, char jobz, CarmaObj<T> *mat, CarmaHostObj<T> *eigenvals);
+// template <class T, int32_t method>
+// int32_t carma_syevd(cusolverDnHandle_t cusolver_handle, char jobz, CarmaObj<T> *mat, CarmaHostObj<T> *eigenvals);
 // template <class T>
-// int carma_syevd_m(cusolverDnHandle_t cusolver_handle, long ngpu, char jobz, long N, T *mat, T *eigenvals);
+// int32_t carma_syevd_m(cusolverDnHandle_t cusolver_handle, int64_t ngpu, char jobz, int64_t N, T *mat, T *eigenvals);
 // template <class T>
-// int carma_syevd_m(cusolverDnHandle_t cusolver_handle, long ngpu, char jobz, CarmaHostObj<T> *mat,
+// int32_t carma_syevd_m(cusolverDnHandle_t cusolver_handle, int64_t ngpu, char jobz, CarmaHostObj<T> *mat,
 //                   CarmaHostObj<T> *eigenvals);
 // template <class T>
-// int carma_syevd_m(cusolverDnHandle_t cusolver_handle, long ngpu, char jobz, CarmaHostObj<T> *mat,
+// int32_t carma_syevd_m(cusolverDnHandle_t cusolver_handle, int64_t ngpu, char jobz, CarmaHostObj<T> *mat,
 //                   CarmaHostObj<T> *eigenvals, CarmaHostObj<T> *U);
 // template <class T>
-// int carma_getri(CarmaObj<T> *d_iA);
+// int32_t carma_getri(CarmaObj<T> *d_iA);
 template <class T>
-int carma_potr_inv(CarmaObj<T> *d_iA);
+int32_t carma_potr_inv(CarmaObj<T> *d_iA);
 // template <class T>
-// int carma_potr_inv_m(long num_gpus, CarmaHostObj<T> *h_A, CarmaObj<T> *d_iA);
+// int32_t carma_potr_inv_m(int64_t num_gpus, CarmaHostObj<T> *h_A, CarmaObj<T> *d_iA);
 
-// MAGMA functions (direct access)
 template <class T>
-int carma_syevd(cusolverDnHandle_t cusolver_handle, char jobz, long N, T *mat, T *eigenvals);
+int32_t carma_syevd(cusolverDnHandle_t cusolver_handle, char jobz, int64_t N, T *mat, T *eigenvals);
 template <class T>
-int carma_potr_inv(cusolverDnHandle_t cusolver_handle, long N, T *h_A);
+int32_t carma_potr_inv(cusolverDnHandle_t cusolver_handle, int64_t N, T *h_A);
 // template <class T>
-// int carma_potr_inv_m(cusolverDnHandle_t cusolver_handle, long num_gpus, long N, T *h_A, T *d_iA);
+// int32_t carma_potr_inv_m(cusolverDnHandle_t cusolver_handle, int64_t num_gpus, int64_t N, T *h_A, T *d_iA);
 
 // template <class T_data>
-// int carma_svd_cpu(CarmaHostObj<T_data> *imat,
+// int32_t carma_svd_cpu(CarmaHostObj<T_data> *imat,
 //                   CarmaHostObj<T_data> *eigenvals,
 //                   CarmaHostObj<T_data> *mod2act,
 //                   CarmaHostObj<T_data> *mes2mod);
 // template <class T>
-// int carma_getri_cpu(CarmaHostObj<T> *h_A);
+// int32_t carma_getri_cpu(CarmaHostObj<T> *h_A);
 // template <class T>
-// int carma_potr_inv_cpu(CarmaHostObj<T> *h_A);
+// int32_t carma_potr_inv_cpu(CarmaHostObj<T> *h_A);
 // template <class T>
-// int carma_syevd_cpu(char jobz, CarmaHostObj<T> *h_A,
+// int32_t carma_syevd_cpu(char jobz, CarmaHostObj<T> *h_A,
 //                     CarmaHostObj<T> *eigenvals);
 
-// // MAGMA functions (direct access)
-// // template <class T>
-// // int carma_svd_cpu(long N, long M, T *imat, T *eigenvals, T *mod2act,
-// //                   T *mes2mod);
 // template <class T>
-// int carma_getri_cpu(long N, T *h_A);
+// int32_t carma_getri_cpu(int64_t N, T *h_A);
 // template <class T>
-// int carma_potr_inv_cpu(long N, T *h_A);
+// int32_t carma_potr_inv_cpu(int64_t N, T *h_A);
 // template <class T>
-// int carma_syevd_cpu(char jobz, long N, T *h_A, T *eigenvals);
+// int32_t carma_syevd_cpu(char jobz, int64_t N, T *h_A, T *eigenvals);
 // template <class T>
-// int carma_axpy_cpu(long N, T alpha, T *h_X, long incX, T *h_Y, long incY);
+// int32_t carma_axpy_cpu(int64_t N, T alpha, T *h_X, int64_t incX, T *h_Y, int64_t incY);
 // template <class T>
-// int carma_gemm_cpu(char transa, char transb, long m, long n, long k, T alpha,
-//                    T *A, long lda, T *B, long ldb, T beta, T *C, long ldc);
+// int32_t carma_gemm_cpu(char transa, char transb, int64_t m, int64_t n, int64_t k, T alpha,
+//                    T *A, int64_t lda, T *B, int64_t ldb, T beta, T *C, int64_t ldc);
 
 // template <class T_data>
-// int carma_cusolver_csr2ell(CarmaSparseObj<T_data> *dA);
+// int32_t carma_cusolver_csr2ell(CarmaSparseObj<T_data> *dA);
 
 // template <class T_data>
-// int carma_cusolver_spmv(T_data alpha, CarmaSparseObj<T_data> *dA,
+// int32_t carma_cusolver_spmv(T_data alpha, CarmaSparseObj<T_data> *dA,
 //                      CarmaObj<T_data> *dx, T_data beta, CarmaObj<T_data>
 //                      *dy);
 
 // template <class T_data>
-// int carma_sparse_free(CarmaSparseObj<T_data> *dA);
+// int32_t carma_sparse_free(CarmaSparseObj<T_data> *dA);
 
 #endif  // _CARMA_CUSOLVER_H_

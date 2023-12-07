@@ -21,9 +21,9 @@
 
 class SutraTemplate {
  public:
-  int device;        // # device
+  int32_t device;        // # device
   std::string type;  // a name for your data
-  long dim;          // # of elements
+  int64_t dim;          // # of elements
 
   CarmaObj<float> *d_data;  // the data
   CarmaObj<float> *d_res;   // the result
@@ -31,16 +31,16 @@ class SutraTemplate {
   CarmaContext *current_context;  // the context in which it has been created
 
  public:
-  SutraTemplate(CarmaContext *context, const char *type, long dim,
-                   int device);
+  SutraTemplate(CarmaContext *context, const char *type, int64_t dim,
+                   int32_t device);
   SutraTemplate(const SutraTemplate &aotemplate);
   ~SutraTemplate();
 
-  int fill_data(float *idata);
-  int fill_data();
-  int do_compute();
+  int32_t fill_data(float *idata);
+  int32_t fill_data();
+  int32_t do_compute();
 };
 template <class T>
-void comp_aotemplate(int threads, int blocks, T *d_idata, T *d_odata, int N);
+void comp_aotemplate(int32_t threads, int32_t blocks, T *d_idata, T *d_odata, int32_t N);
 
 #endif  // _SUTRA_AOTEMPLATE_H_

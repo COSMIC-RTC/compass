@@ -13,26 +13,27 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <wyrm>
+#include "sutraWrapUtils.hpp"
 
 #include <sutra_target.h>
 
 namespace py = pybind11;
 
 std::unique_ptr<SutraTarget> target_init(CarmaContext &context,
-                                          SutraTelescope *d_tel, int ntargets,
-                                          float *xpos, float *ypos,
-                                          float *lambda, float *mag,
-                                          float zerop, long *sizes, int Npts,
-                                          int device) {
+                                          SutraTelescope *d_tel, int32_t ntargets,
+                                          ArrayFStyle<float> &xpos, ArrayFStyle<float> &ypos,
+                                          ArrayFStyle<float> &lambda, ArrayFStyle<float> &mag,
+                                          float zerop, ArrayFStyle<int64_t> &sizes, int32_t Npts,
+                                          int32_t device) {
   return std::unique_ptr<SutraTarget>(
-      new SutraTarget(&context, d_tel, ntargets, xpos, ypos, lambda, mag,
-                       zerop, sizes, Npts, device));
+      new SutraTarget(&context, d_tel, ntargets, xpos.mutable_data(), ypos.mutable_data(),
+                      lambda.mutable_data(), mag.mutable_data(), zerop, sizes.mutable_data(), Npts,
+                      device));
 }
 
 void declare_target(py::module &mod) {
   py::class_<SutraTarget>(mod, "Target")
-      .def(py::init(wy::colCast(target_init)), R"pbdoc(
+      .def(py::init(&target_init), R"pbdoc(
     Create and initialise an target object
 
     Args:
@@ -91,7 +92,7 @@ void declare_target(py::module &mod) {
              std::cout << "Source # | position(\") |  Mag | Lambda (mic.)"
                        << std::endl;
              vector<SutraSource *>::iterator it = st.d_targets.begin();
-             int i = 0;
+             int32_t i = 0;
              while (it != st.d_targets.end()) {
                std::cout << i << " | "
                          << "(" << (*it)->posx << "," << (*it)->posy << ") | "

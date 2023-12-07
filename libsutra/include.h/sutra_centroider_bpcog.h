@@ -22,31 +22,31 @@
 template <class Tin, class T>
 class SutraCentroiderBpcog : public SutraCentroider<Tin, T> {
  public:
-  int nmax;
+  int32_t nmax;
   CarmaObj<T> *d_bpix;
   CarmaObj<uint> *d_bpind;
 
  public:
-  SutraCentroiderBpcog(CarmaContext *context, SutraWfs *wfs, long nvalid,
-                         float offset, float scale, bool filter_TT, int device,
-                         int nmax);
+  SutraCentroiderBpcog(CarmaContext *context, SutraWfs *wfs, int64_t nvalid,
+                         float offset, float scale, bool filter_TT, int32_t device,
+                         int32_t nmax);
   SutraCentroiderBpcog(const SutraCentroiderBpcog &centroider);
   ~SutraCentroiderBpcog();
 
   string get_type();
 
-  int init_nmax(int nmax);
-  int set_nmax(int nmax);
+  int32_t init_nmax(int32_t nmax);
+  int32_t set_nmax(int32_t nmax);
 
-  int get_cog(float *cube, float *intensities, T *centroids, int nvalid,
-              int npix, int ntot, cudaStream_t stream=0);
-  int get_cog(float *intensities, T *slopes, bool noise);
-  int get_cog();
+  int32_t get_cog(float *cube, float *intensities, T *centroids, int32_t nvalid,
+              int32_t npix, int32_t ntot, cudaStream_t stream=0);
+  int32_t get_cog(float *intensities, T *slopes, bool noise);
+  int32_t get_cog();
 };
 template <class T>
-void get_centroids(int size, int threads, int blocks, int n, float *d_idata,
-                   T *d_odata, T *ref, int *validx, int *validy,
-                   float *intensities, int nbpix, float scale, float offset,
+void get_centroids(int32_t size, int32_t threads, int32_t blocks, int32_t n, float *d_idata,
+                   T *d_odata, T *ref, int32_t *validx, int32_t *validy,
+                   float *intensities, int32_t nbpix, float scale, float offset,
                    SlopeOrder slope_order,
                    CarmaDevice *device, cudaStream_t stream=0);
 

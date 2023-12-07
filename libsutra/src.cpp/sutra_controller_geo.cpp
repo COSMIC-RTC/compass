@@ -8,7 +8,7 @@
 
 //! \file      sutra_controller_geo.cpp
 //! \ingroup   libsutra
-//! \class     sutra_controller_geo
+//! \class     SutraControllerGeo
 //! \brief     this class provides the controller_geo features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
 //! \version   5.5.0
@@ -17,16 +17,16 @@
 #include <sutra_controller_geo.h>
 
 template <typename T, typename Tout>
-sutra_controller_geo<T, Tout>::sutra_controller_geo(CarmaContext *context,
-                                                    long nactu, long Nphi,
+SutraControllerGeo<T, Tout>::SutraControllerGeo(CarmaContext *context,
+                                                    int64_t nactu, int64_t Nphi,
                                                     float delay, SutraDms *dms,
-                                                    int *idx_dms, int ndm, int *idx_centro, int ncentro,
+                                                    int32_t *idx_dms, int32_t ndm, int32_t *idx_centro, int32_t ncentro,
                                                     bool wfs_direction)
     : SutraController<T, Tout>(context, 0, nactu, 0.0f, dms, idx_dms, ndm, idx_centro, ncentro) {
   this->gain = 0.0f;
   this->Nphi = Nphi;
 
-  //	long dims_data2[3];
+  //	int64_t dims_data2[3];
   //	dims_data2[0] = 2;
   //	dims_data2[1] = nactu;
   //	dims_data2[2] = Nphi;
@@ -47,7 +47,7 @@ sutra_controller_geo<T, Tout>::sutra_controller_geo(CarmaContext *context,
     */
   this->Ntt = 0;
 
-  long dims_data1[2];
+  int64_t dims_data1[2];
   dims_data1[0] = 1;
   dims_data1[1] = nactu;
   this->d_gain = new CarmaObj<T>(this->current_context, dims_data1);
@@ -55,15 +55,15 @@ sutra_controller_geo<T, Tout>::sutra_controller_geo(CarmaContext *context,
   this->d_compdouble = new CarmaObj<double>(this->current_context, dims_data1);
   dims_data1[1] = Nphi;
   this->d_phi = new CarmaObj<double>(this->current_context, dims_data1);
-  this->d_indx_pup = new CarmaObj<int>(this->current_context, dims_data1);
+  this->d_indx_pup = new CarmaObj<int32_t>(this->current_context, dims_data1);
   if (wfs_direction)
-    this->d_indx_mpup = new CarmaObj<int>(this->current_context, dims_data1);
+    this->d_indx_mpup = new CarmaObj<int32_t>(this->current_context, dims_data1);
   else
     this->d_indx_mpup = 0L;
 }
 
 template <typename T, typename Tout>
-sutra_controller_geo<T, Tout>::~sutra_controller_geo() {
+SutraControllerGeo<T, Tout>::~SutraControllerGeo() {
   this->current_context->set_active_device(this->device, 1);
   delete this->d_proj;
   delete this->d_gain;
@@ -79,21 +79,21 @@ sutra_controller_geo<T, Tout>::~sutra_controller_geo() {
 }
 
 template <typename T, typename Tout>
-string sutra_controller_geo<T, Tout>::get_type() {
+string SutraControllerGeo<T, Tout>::get_type() {
   return "geo";
 }
 
 template <typename T, typename Tout>
-int sutra_controller_geo<T, Tout>::load_mgain(T *mgain) {
+int32_t SutraControllerGeo<T, Tout>::load_mgain(T *mgain) {
   this->d_gain->host2device(mgain);
   return EXIT_SUCCESS;
 }
 
 template <typename T, typename Tout>
-int sutra_controller_geo<T, Tout>::load_Btt(T *Btt_pzt, T *Btt_TT) {
+int32_t SutraControllerGeo<T, Tout>::load_Btt(T *Btt_pzt, T *Btt_TT) {
   // the Btt given is Btt*Btt.transpose because of computation needs
   /*
-  long dims_data[3] = {2,n,m};
+  int64_t dims_data[3] = {2,n,m};
   if(this->d_geocov != 0L)
         delete this->d_geocov;
   this->d_geocov = new CarmaObj<T>(this->current_context, dims_data);
@@ -104,22 +104,22 @@ int sutra_controller_geo<T, Tout>::load_Btt(T *Btt_pzt, T *Btt_TT) {
   return EXIT_SUCCESS;
 }
 template <typename T, typename Tout>
-int sutra_controller_geo<T, Tout>::init_proj(SutraDms *dms, int *indx_dm,
-                                             T *unitpervolt, int *indx_pup) {
+int32_t SutraControllerGeo<T, Tout>::init_proj(SutraDms *dms, int32_t *indx_dm,
+                                             T *unitpervolt, int32_t *indx_pup) {
   this->current_context->set_active_device(this->device, 1);
-  long dims_data[3] = {2, this->Nphi, this->nactu()};
+  int64_t dims_data[3] = {2, this->Nphi, this->nactu()};
   CarmaObj<T> d_IF(this->current_context, dims_data);
   dims_data[1] = this->nactu();
   CarmaObj<T> d_tmp(this->current_context, dims_data);
-  long tmp_dim = this->Nphi * this->d_dmseen.size();
-  long dims_data1[2] = {1, tmp_dim};
-  CarmaObj<int> d_indx(this->current_context, dims_data1, indx_dm);
+  int64_t tmp_dim = this->Nphi * this->d_dmseen.size();
+  int64_t dims_data1[2] = {1, tmp_dim};
+  CarmaObj<int32_t> d_indx(this->current_context, dims_data1, indx_dm);
 
   this->d_indx_pup->host2device(indx_pup);
 
   // Get influence functions in d_IF
-  int indx_start = 0;
-  int ind = 0;
+  int32_t indx_start = 0;
+  int32_t ind = 0;
   vector<SutraDm *>::iterator p;
   p = this->d_dmseen.begin();
   while (p != this->d_dmseen.end()) {
@@ -150,8 +150,8 @@ int sutra_controller_geo<T, Tout>::init_proj(SutraDms *dms, int *indx_dm,
 }
 
 template <typename T, typename Tout>
-int sutra_controller_geo<T, Tout>::init_proj_sparse(
-    SutraDms *dms, int *indx_dm, T *unitpervolt, int *indx_pup, int *indx_mpup,
+int32_t SutraControllerGeo<T, Tout>::init_proj_sparse(
+    SutraDms *dms, int32_t *indx_dm, T *unitpervolt, int32_t *indx_pup, int32_t *indx_mpup,
     bool roket) {
   this->current_context->set_active_device(this->device, 1);
   vector<SutraDm *>::iterator p;
@@ -165,21 +165,21 @@ int sutra_controller_geo<T, Tout>::init_proj_sparse(
     }
   }
 
-  int Npzt = this->d_dmseen.size() - this->Ntt;
+  int32_t Npzt = this->d_dmseen.size() - this->Ntt;
   CarmaSparseObj<double> *d_IFi[Npzt];
-  long tmp_dim = this->Nphi * this->d_dmseen.size();
-  long dims_data1[2] = {1, tmp_dim};
-  CarmaObj<int> d_indx(this->current_context, dims_data1, indx_dm);
+  int64_t tmp_dim = this->Nphi * this->d_dmseen.size();
+  int64_t dims_data1[2] = {1, tmp_dim};
+  CarmaObj<int32_t> d_indx(this->current_context, dims_data1, indx_dm);
 
   this->d_indx_pup->host2device(indx_pup);
   if (this->d_indx_mpup != 0L) this->d_indx_mpup->host2device(indx_mpup);
 
   // Get influence functions of the DM #ind in d_IFi
-  int indx_start = 0;
-  int ind = 0;
-  int nnz = 0;
-  int NNZ[Npzt];
-  int Nact[Npzt];
+  int32_t indx_start = 0;
+  int32_t ind = 0;
+  int32_t nnz = 0;
+  int32_t NNZ[Npzt];
+  int32_t Nact[Npzt];
 
   p = this->d_dmseen.begin();
   while (p != this->d_dmseen.end() - this->Ntt) {
@@ -195,32 +195,32 @@ int sutra_controller_geo<T, Tout>::init_proj_sparse(
     p++;
   }
   // Create global d_IF_sparse from array of d_IFi
-  long dims_data[2] = {1, nnz};
+  int64_t dims_data[2] = {1, nnz};
   CarmaObj<double> d_val(this->current_context, dims_data);
-  CarmaObj<int> d_col(this->current_context, dims_data);
+  CarmaObj<int32_t> d_col(this->current_context, dims_data);
   dims_data[1] = (this->nactu() - 2 * this->Ntt) + 1;
-  CarmaObj<int> d_row(this->current_context, dims_data);
-  int cpt[Npzt];
-  int nact = 0;
+  CarmaObj<int32_t> d_row(this->current_context, dims_data);
+  int32_t cpt[Npzt];
+  int32_t nact = 0;
   cpt[0] = 0;
   p = this->d_dmseen.begin();
 
-  for (int i = 0; i < Npzt; i++) {
+  for (int32_t i = 0; i < Npzt; i++) {
     SutraDm *dm = *p;
     carma_safe_call(cudaMemcpyAsync(d_val.get_data_at(cpt[i]), d_IFi[i]->d_data,
                                   sizeof(double) * d_IFi[i]->nz_elem,
                                   cudaMemcpyDeviceToDevice));
     carma_safe_call(cudaMemcpyAsync(d_col.get_data_at(cpt[i]), d_IFi[i]->d_colind,
-                                  sizeof(int) * d_IFi[i]->nz_elem,
+                                  sizeof(int32_t) * d_IFi[i]->nz_elem,
                                   cudaMemcpyDeviceToDevice));
     if (i == 0)
       carma_safe_call(cudaMemcpyAsync(d_row.get_data(), d_IFi[i]->d_rowind,
-                                    sizeof(int) * (dm->nactus + 1),
+                                    sizeof(int32_t) * (dm->nactus + 1),
                                     cudaMemcpyDeviceToDevice));
     else
       carma_safe_call(cudaMemcpyAsync(
           d_row.get_data_at(nact + 1), &(d_IFi[i]->d_rowind[1]),
-          sizeof(int) * (dm->nactus), cudaMemcpyDeviceToDevice));
+          sizeof(int32_t) * (dm->nactus), cudaMemcpyDeviceToDevice));
     cpt[i + 1] = cpt[i] + d_IFi[i]->nz_elem;
     nact += dm->nactus;
     p++;
@@ -229,8 +229,8 @@ int sutra_controller_geo<T, Tout>::init_proj_sparse(
 
   if (Npzt > 1) {
     dims_data[1] = Npzt;
-    CarmaObj<int> d_NNZ(this->current_context, dims_data);
-    CarmaObj<int> d_nact(this->current_context, dims_data);
+    CarmaObj<int32_t> d_NNZ(this->current_context, dims_data);
+    CarmaObj<int32_t> d_nact(this->current_context, dims_data);
     d_NNZ.host2device(NNZ);
     d_nact.host2device(Nact);
 
@@ -239,7 +239,7 @@ int sutra_controller_geo<T, Tout>::init_proj_sparse(
                      this->current_context->get_device(this->device));
   }
 
-  long dims_data2[3] = {2, (this->nactu() - 2 * this->Ntt), this->Nphi};
+  int64_t dims_data2[3] = {2, (this->nactu() - 2 * this->Ntt), this->Nphi};
   this->d_IFsparse = new CarmaSparseObj<double>(
       this->current_context, dims_data2, d_val.get_data(), d_col.get_data(),
       d_row.get_data(), nnz, false);
@@ -275,13 +275,13 @@ int sutra_controller_geo<T, Tout>::init_proj_sparse(
 
     p = this->d_dmseen.begin();
     ind = 0;
-    int ind2 = 0;
+    int32_t ind2 = 0;
     while (p != this->d_dmseen.end()) {
       SutraDm *dm = *p;
       if (dm->type == "tt") {
         // dm->get_IF(this->d_TT->get_data_at(ind*Nphi),
         // d_indx.get_data_at(this->Nphi * ind2), this->Nphi, 1.0f);
-        for (int i = 0; i < dm->nactus; i++) {
+        for (int32_t i = 0; i < dm->nactus; i++) {
           dm->comp_oneactu(i, 1.0f);
 
           getIF<T>(this->d_TT->get_data_at(ind * this->Nphi),
@@ -318,7 +318,7 @@ int sutra_controller_geo<T, Tout>::init_proj_sparse(
 }
 
 template <typename T, typename Tout>
-int sutra_controller_geo<T, Tout>::comp_dphi(SutraSource *target,
+int32_t SutraControllerGeo<T, Tout>::comp_dphi(SutraSource *target,
                                              bool wfs_direction) {
   this->current_context->set_active_device(this->device, 1);
   // Get the target phase in the pupil
@@ -342,7 +342,7 @@ int sutra_controller_geo<T, Tout>::comp_dphi(SutraSource *target,
 }
 
 template <typename T, typename Tout>
-int sutra_controller_geo<T, Tout>::comp_com() {
+int32_t SutraControllerGeo<T, Tout>::comp_com() {
   // Project the phase on the actuators
   /*
   //Dense version
@@ -378,5 +378,5 @@ int sutra_controller_geo<T, Tout>::comp_com() {
   return EXIT_SUCCESS;
 }
 
-template class sutra_controller_geo<float, float>;
-template class sutra_controller_geo<float, uint16_t>;
+template class SutraControllerGeo<float, float>;
+template class SutraControllerGeo<float, uint16_t>;

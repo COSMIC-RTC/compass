@@ -28,19 +28,19 @@ class CarmaFFT {
   CarmaObj<T_out> *d_output;  ///< Output data
   cufftHandle plan;            ///< FFT plan
   cufftType type_plan;             ///< FFT plan type
-  int inplace;  ///< flag to select inplace transform or not (1 or 0)
+  int32_t inplace;  ///< flag to select inplace transform or not (1 or 0)
 
  public:
-  CarmaFFT(long *dims_data, int inplace);
+  CarmaFFT(int64_t *dims_data, int32_t inplace);
   ~CarmaFFT();
 
-  int host2device(T_in *data);
-  int device2host(T_out *data);
+  int32_t host2device(T_in *data);
+  int32_t device2host(T_out *data);
   /**< Memory transfers both ways */
 
-  int compute(int dir);
+  int32_t compute(int32_t dir);
   /**< Compute on the class members */
-  int compute(T_in *input, T_out *output, int dir);
+  int32_t compute(T_in *input, T_out *output, int32_t dir);
   /**< Compute on any array */
 };
 

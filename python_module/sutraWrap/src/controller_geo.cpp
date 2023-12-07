@@ -8,20 +8,37 @@
 
 //! \file      controller_geo.cpp
 //! \ingroup   libsutra
-//! \brief     this file provides pybind wrapper for sutra_controller_geo
+//! \brief     this file provides pybind wrapper for SutraControllerGeo
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_controller_geo.h>
+#include "sutraWrapUtils.hpp"
 
-#include <wyrm>
+#include <sutra_controller_geo.h>
 
 namespace py = pybind11;
 
+
+template <typename Tcomp, typename Tout>
+int32_t load_Btt(SutraControllerGeo<Tcomp, Tout> &scg, ArrayFStyle<Tcomp> &Btt_pzt, ArrayFStyle<Tcomp> &Btt_TT){
+    return scg.load_Btt(Btt_pzt.mutable_data(), Btt_TT.mutable_data());
+}
+
+template <typename Tcomp, typename Tout>
+int32_t load_mgain(SutraControllerGeo<Tcomp, Tout> &scg, ArrayFStyle<Tcomp> &mgain){
+    return scg.load_mgain(mgain.mutable_data());
+}
+
+template <typename Tcomp, typename Tout>
+int32_t init_proj_sparse(SutraControllerGeo<Tcomp, Tout> &scg, SutraDms *dms, ArrayFStyle<int32_t> &indx_dm, ArrayFStyle<Tcomp> &unitpervolt,
+                    ArrayFStyle<int32_t> &indx_pup, ArrayFStyle<int32_t> &indx_mpup, bool roket){
+    return scg.init_proj_sparse(dms, indx_dm.mutable_data(), unitpervolt.mutable_data(), indx_pup.mutable_data(), indx_mpup.mutable_data(), roket);
+}
+
 template <typename Tcomp, typename Tout>
 void controller_geo_impl(py::module &mod, const char *name) {
-  using controller_geo = sutra_controller_geo<Tcomp, Tout>;
+  using controller_geo = SutraControllerGeo<Tcomp, Tout>;
 
   py::class_<controller_geo, SutraController<Tcomp, Tout>>(mod, name)
 
@@ -91,7 +108,7 @@ void controller_geo_impl(py::module &mod, const char *name) {
       //  ██║╚██╔╝██║██╔══╝     ██║   ██╔══██║██║   ██║██║  ██║╚════██║
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
-      .def("load_Btt", wy::colCast(&controller_geo::load_Btt),
+      .def("load_Btt", &load_Btt<Tcomp, Tout>,
            R"pbdoc(
     Load the Btt modal basis in the geo controller for ROKET
 
@@ -102,7 +119,7 @@ void controller_geo_impl(py::module &mod, const char *name) {
         )pbdoc",
            py::arg("Btt_pzt"), py::arg("Btt_tt"))
 
-      .def("init_proj_sparse", wy::colCast(&controller_geo::init_proj_sparse),
+      .def("init_proj_sparse", &init_proj_sparse<Tcomp, Tout>,
            R"pbdoc(
     Initializes projection matrices
 
@@ -121,7 +138,7 @@ void controller_geo_impl(py::module &mod, const char *name) {
            py::arg("dms"), py::arg("indx_dm"), py::arg("unitpervolt"),
            py::arg("indx_pup"), py::arg("indx_mpup"), py::arg("roket"))
 
-      .def("comp_dphi", wy::colCast(&controller_geo::comp_dphi),
+      .def("comp_dphi", &controller_geo::comp_dphi,
            R"pbdoc(
     Get the pupil phase and remove piston before projection
 
@@ -140,7 +157,7 @@ void controller_geo_impl(py::module &mod, const char *name) {
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
 
-      .def("load_mgain", wy::colCast(&controller_geo::load_mgain),
+      .def("load_mgain", &load_mgain<Tcomp, Tout>,
            R"pbdoc(
     Set the controller modal gains
 

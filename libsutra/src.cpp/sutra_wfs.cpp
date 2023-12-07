@@ -20,11 +20,11 @@ SutraWfs::SutraWfs(CarmaContext *context, SutraTelescope *d_tel,
                      CarmaObj<cuFloatComplex> *d_camplipup,
                      CarmaObj<cuFloatComplex> *d_camplifoc,
                      CarmaObj<cuFloatComplex> *d_fttotim, string type,
-                     long nxsub, long nvalid, long npix, long nphase,
-                     long nrebin, long nfft, long ntot, long npup, float pdiam,
-                     float nphotons, float nphot4imat, int lgs, bool fakecam,
-                     int max_flux_per_pix, int max_pix_value, bool is_low_order,
-                     bool roket, int device)
+                     int64_t nxsub, int64_t nvalid, int64_t npix, int64_t nphase,
+                     int64_t nrebin, int64_t nfft, int64_t ntot, int64_t npup, float pdiam,
+                     float nphotons, float nphot4imat, int32_t lgs, bool fakecam,
+                     int32_t max_flux_per_pix, int32_t max_pix_value, bool is_low_order,
+                     bool roket, int32_t device)
     : device(device),
       type(type),
       nxsub(nxsub),
@@ -88,11 +88,11 @@ SutraWfs::SutraWfs(CarmaContext *context, SutraTelescope *d_tel,
   if (d_fttotim != nullptr && !is_low_order) this->d_fttotim = d_fttotim;
 }
 
-int SutraWfs::wfs_initgs(CarmaObj<float> *d_lgskern,
+int32_t SutraWfs::wfs_initgs(CarmaObj<float> *d_lgskern,
                           CarmaObj<cuFloatComplex> *d_ftlgskern,
-                          map<vector<int>, cufftHandle *> ftlgskern_plans,
+                          map<vector<int32_t>, cufftHandle *> ftlgskern_plans,
                           float xpos, float ypos, float lambda, float mag,
-                          float zerop, long size, float noise, long seed,
+                          float zerop, int64_t size, float noise, int64_t seed,
                           float G, float thetaML, float dx, float dy) {
   current_context->set_active_device(device, 1);
   this->d_gs = new SutraSource(current_context, xpos, ypos, lambda, mag, zerop,
@@ -114,7 +114,7 @@ int SutraWfs::wfs_initgs(CarmaObj<float> *d_lgskern,
   return EXIT_SUCCESS;
 }
 
-int SutraWfs::set_noise(float noise, long seed) {
+int32_t SutraWfs::set_noise(float noise, int64_t seed) {
   current_context->set_active_device(device, 1);
   this->noise = noise;
   if (this->type != "pyrhr") {
@@ -134,11 +134,11 @@ int SutraWfs::set_noise(float noise, long seed) {
   return EXIT_SUCCESS;
 }
 
-int SutraWfs::set_pupil(float *pupil) {
+int32_t SutraWfs::set_pupil(float *pupil) {
   current_context->set_active_device(device, 1);
   this->d_pupil->host2device(pupil);
-  int nbdevices = d_pupil_ngpu.size();
-  for (int ndevice = 1; ndevice < nbdevices; ndevice++) {
+  int32_t nbdevices = d_pupil_ngpu.size();
+  for (int32_t ndevice = 1; ndevice < nbdevices; ndevice++) {
     current_context->set_active_device(ndevice, 1);
     d_pupil_ngpu[ndevice]->host2device(pupil);
   }
@@ -146,7 +146,7 @@ int SutraWfs::set_pupil(float *pupil) {
   return EXIT_SUCCESS;
 }
 
-int SutraWfs::load_kernels(float *lgskern) {
+int32_t SutraWfs::load_kernels(float *lgskern) {
   current_context->set_active_device(device, 1);
   if (this->lgs)
     this->d_gs->d_lgs->load_kernels(lgskern,
@@ -155,7 +155,7 @@ int SutraWfs::load_kernels(float *lgskern) {
   return EXIT_SUCCESS;
 }
 
-int SutraWfs::sensor_trace(SutraAtmos *yatmos) {
+int32_t SutraWfs::sensor_trace(SutraAtmos *yatmos) {
   current_context->set_active_device(device, 1);
   // do raytracing to get the phase
   this->d_gs->raytrace(yatmos);
@@ -167,7 +167,7 @@ int SutraWfs::sensor_trace(SutraAtmos *yatmos) {
   return EXIT_SUCCESS;
 }
 
-int SutraWfs::sensor_trace(SutraDms *ydm, int rst) {
+int32_t SutraWfs::sensor_trace(SutraDms *ydm, int32_t rst) {
   current_context->set_active_device(device, 1);
   // do raytracing to get the phase
   this->d_gs->raytrace(ydm, rst, 0);
@@ -175,7 +175,7 @@ int SutraWfs::sensor_trace(SutraDms *ydm, int rst) {
   return EXIT_SUCCESS;
 }
 
-int SutraWfs::sensor_trace(int rst) {
+int32_t SutraWfs::sensor_trace(int32_t rst) {
   current_context->set_active_device(device, 1);
   // do raytracing to get the phase
   this->d_gs->raytrace(rst);
@@ -183,14 +183,14 @@ int SutraWfs::sensor_trace(int rst) {
   return EXIT_SUCCESS;
 }
 
-int SutraWfs::sensor_trace(SutraAtmos *yatmos, SutraDms *ydms) {
+int32_t SutraWfs::sensor_trace(SutraAtmos *yatmos, SutraDms *ydms) {
   this->d_gs->raytrace(yatmos);
   this->d_gs->raytrace(ydms, 0, 0);
 
   return EXIT_SUCCESS;
 }
 
-int SutraWfs::slopes_geom(float *slopes, int type) {
+int32_t SutraWfs::slopes_geom(float *slopes, int32_t type) {
   current_context->set_active_device(device, 1);
   /*
    normalization notes :
@@ -238,13 +238,13 @@ int SutraWfs::slopes_geom(float *slopes, int type) {
   return EXIT_SUCCESS;
 }
 
-int SutraWfs::slopes_geom(int type) {
+int32_t SutraWfs::slopes_geom(int32_t type) {
   this->slopes_geom(this->d_slopes->get_data(), type);
 
   return EXIT_SUCCESS;
 }
 
-int SutraWfs::set_binimg(float *binimg, int nElem) {
+int32_t SutraWfs::set_binimg(float *binimg, int32_t nElem) {
   current_context->set_active_device(device, 1);
 
   if (nElem == this->d_binimg->get_nb_elements()) {
@@ -254,7 +254,7 @@ int SutraWfs::set_binimg(float *binimg, int nElem) {
   return EXIT_SUCCESS;
 }
 
-int SutraWfs::set_dark(float *dark, int nElem) {
+int32_t SutraWfs::set_dark(float *dark, int32_t nElem) {
   current_context->set_active_device(device, 1);
 
   if (this->d_dark == nullptr) {
@@ -269,7 +269,7 @@ int SutraWfs::set_dark(float *dark, int nElem) {
   return EXIT_SUCCESS;
 }
 
-int SutraWfs::set_flat(float *flat, int nElem) {
+int32_t SutraWfs::set_flat(float *flat, int32_t nElem) {
   current_context->set_active_device(device, 1);
 
   if (this->d_flat == nullptr) {
@@ -284,7 +284,7 @@ int SutraWfs::set_flat(float *flat, int nElem) {
   return EXIT_SUCCESS;
 }
 
-int SutraWfs::set_fakecam(bool fakecam) {
+int32_t SutraWfs::set_fakecam(bool fakecam) {
   current_context->set_active_device(device, 1);
 
   this->fakecam = fakecam;
@@ -302,12 +302,12 @@ int SutraWfs::set_fakecam(bool fakecam) {
   return EXIT_SUCCESS;
 }
 
-int SutraWfs::set_max_flux_per_pix(int max_flux_per_pix) {
+int32_t SutraWfs::set_max_flux_per_pix(int32_t max_flux_per_pix) {
   this->max_flux_per_pix = max_flux_per_pix;
   return EXIT_SUCCESS;
 }
 
-int SutraWfs::set_max_pix_value(int max_pix_value) {
+int32_t SutraWfs::set_max_pix_value(int32_t max_pix_value) {
   this->max_pix_value = max_pix_value;
   return EXIT_SUCCESS;
 }

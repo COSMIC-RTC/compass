@@ -24,29 +24,29 @@ using std::vector;
 
 class SutraAtmos {
  public:
-  int nscreens;
+  int32_t nscreens;
   vector<SutraTurbuScreen *> d_screens;
   float r0;
   CarmaContext *current_context;
 
  public:
-  SutraAtmos(CarmaContext *context, int nscreens, float global_r0, float *r0,
-              long *size, long *size2, float *altitude, float *windspeed,
-              float *winddir, float *deltax, float *deltay, int device);
+  SutraAtmos(CarmaContext *context, int32_t nscreens, float global_r0, float *r0,
+              int64_t *size, int64_t *size2, float *altitude, float *windspeed,
+              float *winddir, float *deltax, float *deltay, int32_t device);
   ~SutraAtmos();
 
-  int init_screen(int idx, float *h_A, float *h_B, unsigned int *h_istencilx,
-                  unsigned int *h_istencily, int seed);
+  int32_t init_screen(int32_t idx, float *h_A, float *h_B, uint32_t *h_istencilx,
+                  uint32_t *h_istencily, int32_t seed);
 
-  int add_screen(float altitude, long size, long stencilSize, float amplitude,
+  int32_t add_screen(float altitude, int64_t size, int64_t stencilSize, float amplitude,
                  float windspeed, float winddir, float deltax, float deltay,
-                 int device);
-  int del_screen(const int idx);
-  int refresh_screen(int idx);
+                 int32_t device);
+  int32_t del_screen(const int32_t idx);
+  int32_t refresh_screen(int32_t idx);
 
-  int move_atmos();
-  int set_r0(float r0);
-  int set_seed(int idx, float seed);
+  int32_t move_atmos();
+  int32_t set_r0(float r0);
+  int32_t set_seed(int32_t idx, float seed);
 };
 
 #endif  // _SUTRA_ATMOS_H_

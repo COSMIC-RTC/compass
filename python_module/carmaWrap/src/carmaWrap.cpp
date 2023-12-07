@@ -17,8 +17,6 @@
 
 #include <carma.h>
 
-#include <wyrm>
-
 namespace py = pybind11;
 
 void declare_carmaWrap_host_obj(py::module &);

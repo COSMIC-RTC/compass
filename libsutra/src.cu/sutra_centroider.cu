@@ -27,8 +27,8 @@
  **********************************/
 template <class T>
 __global__ void convert_krnl(T *odata, T *idata, float offset, float scale,
-                             int N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+                             int32_t N) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
     odata[tid] = (idata[tid] - offset) * scale;
@@ -37,16 +37,16 @@ __global__ void convert_krnl(T *odata, T *idata, float offset, float scale,
 }
 
 template <class T>
-__global__ void fillvalidMask_krnl(T *d_validMask, int *validx, int *validy,
-                                   int npix, int size, int nelem_thread) {
+__global__ void fillvalidMask_krnl(T *d_validMask, int32_t *validx, int32_t *validy,
+                                   int32_t npix, int32_t size, int32_t nelem_thread) {
   // load shared mem
-  unsigned int tid = threadIdx.x;
-  unsigned int xvalid = validx[blockIdx.x];
-  unsigned int yvalid = validy[blockIdx.x];
-  unsigned int x, y;
-  int idim;
+  uint32_t tid = threadIdx.x;
+  uint32_t xvalid = validx[blockIdx.x];
+  uint32_t yvalid = validy[blockIdx.x];
+  uint32_t x, y;
+  int32_t idim;
 
-  for (int cc = 0; cc < nelem_thread; cc++) {
+  for (int32_t cc = 0; cc < nelem_thread; cc++) {
     x = ((tid * nelem_thread + cc) % npix);
     y = ((tid * nelem_thread + cc) / npix);
     // idim = tid * nelem_thread + cc + (blockDim.x * nelem_thread) *
@@ -62,17 +62,17 @@ __global__ void fillvalidMask_krnl(T *d_validMask, int *validx, int *validy,
 template <class T>
 __global__ void calibration_validPix_sh_krnl(T *img_raw, float *img_cal,
                                              float *dark, float *flat,
-                                             int *lutPix, int *validx,
-                                             int *validy, int npix, int size,
-                                             int nelem_thread) {
+                                             int32_t *lutPix, int32_t *validx,
+                                             int32_t *validy, int32_t npix, int32_t size,
+                                             int32_t nelem_thread) {
   // load shared mem
-  unsigned int tid = threadIdx.x;
-  unsigned int xvalid = validx[blockIdx.x];
-  unsigned int yvalid = validy[blockIdx.x];
-  unsigned int x, y;
-  int idim;
+  uint32_t tid = threadIdx.x;
+  uint32_t xvalid = validx[blockIdx.x];
+  uint32_t yvalid = validy[blockIdx.x];
+  uint32_t x, y;
+  int32_t idim;
 
-  for (int cc = 0; cc < nelem_thread; cc++) {
+  for (int32_t cc = 0; cc < nelem_thread; cc++) {
     x = ((tid * nelem_thread + cc) % npix);
     y = ((tid * nelem_thread + cc) / npix);
     // idim = tid * nelem_thread + cc + (blockDim.x * nelem_thread) *
@@ -87,12 +87,12 @@ __global__ void calibration_validPix_sh_krnl(T *img_raw, float *img_cal,
 template <class Tin>
 __global__ void calibration_validPix_pyr_krnl(Tin *img_raw, float *img_cal,
                                               float *dark, float *flat,
-                                              int *lutPix, int *validx,
-                                              int *validy, int nvalid,
-                                              int img_sizex) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+                                              int32_t *lutPix, int32_t *validx,
+                                              int32_t *validy, int32_t nvalid,
+                                              int32_t img_sizex) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
   while (tid < nvalid) {
-    int pos = validx[tid] + validy[tid] * img_sizex;
+    int32_t pos = validx[tid] + validy[tid] * img_sizex;
     img_cal[pos] = (float(img_raw[lutPix[pos]]) - dark[pos]) * flat[pos];
     tid += blockDim.x * gridDim.x;
   }
@@ -100,8 +100,8 @@ __global__ void calibration_validPix_pyr_krnl(Tin *img_raw, float *img_cal,
 
 template <class Tin>
 __global__ void calib_krnl(Tin *img_raw, float *img_cal, float *dark,
-                           float *flat, int *lutPix, int N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+                           float *flat, int32_t *lutPix, int32_t N) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
   while (tid < N) {
     img_cal[tid] = (float(img_raw[lutPix[tid]]) - dark[tid]) * flat[tid];
     tid += blockDim.x * gridDim.x;
@@ -117,9 +117,9 @@ __global__ void calib_krnl(Tin *img_raw, float *img_cal, float *dark,
  *
  */
 template <class T>
-int convert_centro(T *d_odata, T *d_idata, float offset, float scale, int N,
+int32_t convert_centro(T *d_odata, T *d_idata, float offset, float scale, int32_t N,
                    CarmaDevice *device) {
-  int nb_blocks, nb_threads;
+  int32_t nb_blocks, nb_threads;
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
   dim3 grid(nb_blocks), threads(nb_threads);
 
@@ -129,17 +129,17 @@ int convert_centro(T *d_odata, T *d_idata, float offset, float scale, int N,
   return EXIT_SUCCESS;
 }
 
-template int convert_centro<float>(float *d_odata, float *d_idata, float offset,
-                                   float scale, int N, CarmaDevice *device);
-template int convert_centro<double>(double *d_odata, double *d_idata,
-                                    float offset, float scale, int N,
+template int32_t convert_centro<float>(float *d_odata, float *d_idata, float offset,
+                                   float scale, int32_t N, CarmaDevice *device);
+template int32_t convert_centro<double>(double *d_odata, double *d_idata,
+                                    float offset, float scale, int32_t N,
                                     CarmaDevice *device);
 
-int fill_validMask(int size, int npix, int blocks, int *d_validMask,
-                   int *validx, int *validy, CarmaDevice *device) {
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int threads = npix * npix;
-  unsigned int nelem_thread = 1;
+int32_t fill_validMask(int32_t size, int32_t npix, int32_t blocks, int32_t *d_validMask,
+                   int32_t *validx, int32_t *validy, CarmaDevice *device) {
+  int32_t maxThreads = device->get_properties().maxThreadsPerBlock;
+  int32_t threads = npix * npix;
+  uint32_t nelem_thread = 1;
   while ((threads / nelem_thread > maxThreads) ||
          (threads % nelem_thread != 0)) {
     nelem_thread++;
@@ -157,13 +157,13 @@ int fill_validMask(int size, int npix, int blocks, int *d_validMask,
 }
 
 template <class Tin>
-int calibration_validPix_sh(int npix, int size, int blocks, Tin *img_raw,
+int32_t calibration_validPix_sh(int32_t npix, int32_t size, int32_t blocks, Tin *img_raw,
                             float *img_cal, float *dark, float *flat,
-                            int *lutPix, int *validx, int *validy,
+                            int32_t *lutPix, int32_t *validx, int32_t *validy,
                             CarmaDevice *device, cudaStream_t stream) {
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int threads = npix * npix;
-  unsigned int nelem_thread = 1;
+  int32_t maxThreads = device->get_properties().maxThreadsPerBlock;
+  int32_t threads = npix * npix;
+  uint32_t nelem_thread = 1;
   while ((threads / nelem_thread > maxThreads) ||
          (threads % nelem_thread != 0)) {
     nelem_thread++;
@@ -181,23 +181,23 @@ int calibration_validPix_sh(int npix, int size, int blocks, Tin *img_raw,
   return EXIT_SUCCESS;
 }
 
-template int calibration_validPix_sh<float>(int npix, int size, int block,
+template int32_t calibration_validPix_sh<float>(int32_t npix, int32_t size, int32_t block,
                                             float *img_raw, float *img_cal,
                                             float *dark, float *flat,
-                                            int *lutPix, int *validx,
-                                            int *validy, CarmaDevice *device,
+                                            int32_t *lutPix, int32_t *validx,
+                                            int32_t *validy, CarmaDevice *device,
                                             cudaStream_t stream);
-template int calibration_validPix_sh<uint16_t>(
-    int npix, int size, int block, uint16_t *img_raw, float *img_cal,
-    float *dark, float *flat, int *lutPix, int *validx, int *validy,
+template int32_t calibration_validPix_sh<uint16_t>(
+    int32_t npix, int32_t size, int32_t block, uint16_t *img_raw, float *img_cal,
+    float *dark, float *flat, int32_t *lutPix, int32_t *validx, int32_t *validy,
     CarmaDevice *device, cudaStream_t stream);
 
 template <class Tin>
-int calibration_validPix_pyr(Tin *img_raw, float *img_cal, float *dark,
-                             float *flat, int *lutPix, int *validx, int *validy,
-                             int nvalid, int img_sizex, CarmaDevice *device,
+int32_t calibration_validPix_pyr(Tin *img_raw, float *img_cal, float *dark,
+                             float *flat, int32_t *lutPix, int32_t *validx, int32_t *validy,
+                             int32_t nvalid, int32_t img_sizex, CarmaDevice *device,
                              cudaStream_t stream) {
-  int nb_blocks, nb_threads;
+  int32_t nb_blocks, nb_threads;
   get_num_blocks_and_threads(device, nvalid, nb_blocks, nb_threads);
   dim3 grid(nb_blocks), threads(nb_threads);
 
@@ -208,21 +208,21 @@ int calibration_validPix_pyr(Tin *img_raw, float *img_cal, float *dark,
   return EXIT_SUCCESS;
 }
 
-template int calibration_validPix_pyr<float>(float *img_raw, float *img_cal,
+template int32_t calibration_validPix_pyr<float>(float *img_raw, float *img_cal,
                                              float *dark, float *flat,
-                                             int *lutPix, int *validx,
-                                             int *validy, int nvalid,
-                                             int img_sizex, CarmaDevice *device,
+                                             int32_t *lutPix, int32_t *validx,
+                                             int32_t *validy, int32_t nvalid,
+                                             int32_t img_sizex, CarmaDevice *device,
                                              cudaStream_t stream);
-template int calibration_validPix_pyr<uint16_t>(
-    uint16_t *img_raw, float *img_cal, float *dark, float *flat, int *lutPix,
-    int *validx, int *validy, int nvalid, int img_sizex, CarmaDevice *device,
+template int32_t calibration_validPix_pyr<uint16_t>(
+    uint16_t *img_raw, float *img_cal, float *dark, float *flat, int32_t *lutPix,
+    int32_t *validx, int32_t *validy, int32_t nvalid, int32_t img_sizex, CarmaDevice *device,
     cudaStream_t stream);
 
 template <class Tin>
-int calibration(Tin *img_raw, float *img_cal, float *dark, float *flat,
-                int *lutPix, int N, CarmaDevice *device, cudaStream_t stream) {
-  int nb_blocks, nb_threads;
+int32_t calibration(Tin *img_raw, float *img_cal, float *dark, float *flat,
+                int32_t *lutPix, int32_t N, CarmaDevice *device, cudaStream_t stream) {
+  int32_t nb_blocks, nb_threads;
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
   dim3 grid(nb_blocks), threads(nb_threads);
 
@@ -232,9 +232,9 @@ int calibration(Tin *img_raw, float *img_cal, float *dark, float *flat,
   return EXIT_SUCCESS;
 }
 
-template int calibration<float>(float *img_raw, float *img_cal, float *dark,
-                                float *flat, int *lutPix, int N,
+template int32_t calibration<float>(float *img_raw, float *img_cal, float *dark,
+                                float *flat, int32_t *lutPix, int32_t N,
                                 CarmaDevice *device, cudaStream_t stream);
-template int calibration<uint16_t>(uint16_t *img_raw, float *img_cal,
-                                   float *dark, float *flat, int *lutPix, int N,
+template int32_t calibration<uint16_t>(uint16_t *img_raw, float *img_cal,
+                                   float *dark, float *flat, int32_t *lutPix, int32_t N,
                                    CarmaDevice *device, cudaStream_t stream);

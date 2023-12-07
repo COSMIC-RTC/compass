@@ -6,7 +6,7 @@
 
 // -----------------------------------------------------------------------------
 
-//! \file      SutraRtc_brahma.cpp
+//! \file      sutra_rtc_brahma.cpp
 //! \ingroup   libsutra
 //! \class     SutraRtcBrahma
 //! \brief     this class provides the rtc_brahma features to COMPASS
@@ -16,8 +16,8 @@
 
 #ifdef USE_BRAHMA
 
-#include <SutraRtc_brahma.h>
-#include <SutraRtcBrahmaListenerImpl.h>
+#include <sutra_rtc_brahma.h>
+#include <sutra_rtc_brahmaListenerImpl.h>
 
 template <typename T>
 BRAHMA::BRAHMADataType get_brahma_datatype() {
@@ -79,9 +79,9 @@ SutraRtcBrahma<T>::SutraRtcBrahma(CarmaContext *context,
     /*
         // Create an BRAHMA Command listener
         brahma.register_command_type(topics[BRAHMA::CommandType]);
-        cmd_listener = (new SutraRtcBrahmaListenerImpl);
+        cmd_listener = (new sutra_rtc_brahmaListenerImpl);
         cmd_listener_servant =
-            dynamic_cast<SutraRtcBrahmaListenerImpl *>(cmd_listener.in());
+            dynamic_cast<sutra_rtc_brahmaListenerImpl *>(cmd_listener.in());
 
         if (CORBA::is_nil(cmd_listener.in())) {
           throw "BRAHMA Command listener is nil.";
@@ -171,11 +171,11 @@ void SutraRtcBrahma<T>::allocate_buffers() {
     target_size = 0;
     target_phase_size = 0;
     if (target != 0L) {
-      for (unsigned int i = 0; i < wfs->d_wfs.size(); i++) {
+      for (uint32_t i = 0; i < wfs->d_wfs.size(); i++) {
         wfs_size += wfs->d_wfs[i]->d_binimg->get_nb_elements();
         wfs_phase_size += wfs->d_wfs[i]->d_gs->d_phase->d_screen->get_nb_elements();
       }
-      for (unsigned int i = 0; i < target->d_targets.size(); i++) {
+      for (uint32_t i = 0; i < target->d_targets.size(); i++) {
         target_size += target->d_targets[i]->d_image_se->get_nb_elements();
         target_phase_size +=
             target->d_targets[i]->d_phase->d_screen->get_nb_elements();
@@ -184,7 +184,7 @@ void SutraRtcBrahma<T>::allocate_buffers() {
 
     nslp = 0;
     ncmd = 0;
-    for (unsigned int i = 0; i < this->d_control.size(); i++) {
+    for (uint32_t i = 0; i < this->d_control.size(); i++) {
       nslp += this->d_control[i]->nslope();
       ncmd += this->d_control[i]->nactu();
     }
@@ -248,18 +248,18 @@ void SutraRtcBrahma<T>::publish() {
   CORBA::Float *buff_target_servant = (CORBA::Float *)buff_target;
   CORBA::Float *buff_target_phase_servant = (CORBA::Float *)buff_target_phase;
 
-  int nslp_current = 0;
-  int ncmd_current = 0;
-  int nvalid_current = 0;
+  int32_t nslp_current = 0;
+  int32_t ncmd_current = 0;
+  int32_t nvalid_current = 0;
 
-  for (unsigned int i = 0; i < this->d_centro.size(); i++) {
+  for (uint32_t i = 0; i < this->d_centro.size(); i++) {
     this->d_centro[i]->d_intensities->device2host(buff_intensities_servant +
                                                   nvalid_current);
     nvalid_current += this->d_centro[i]->nvalid;
   }
 
   nvalid_current = 0;
-  for (unsigned int i = 0; i < this->d_control.size(); i++) {
+  for (uint32_t i = 0; i < this->d_control.size(); i++) {
     this->d_control[i]->d_centroids->device2host(buff_slopes_servant +
                                                  nslp_current);
     this->d_control[i]->d_voltage->device2host(buff_commands_servant +
@@ -270,8 +270,8 @@ void SutraRtcBrahma<T>::publish() {
   }
 
   if (target != NULL) {
-    long idx = 0;
-    long idx_phase = 0;
+    int64_t idx = 0;
+    int64_t idx_phase = 0;
     for (size_t wfs_i = 0; wfs_i < wfs->d_wfs.size(); wfs_i++) {
       if (wfs->d_wfs[wfs_i]->type == "sh") wfs->d_wfs[wfs_i]->fill_binimage(0);
       wfs->d_wfs[wfs_i]->d_binimg->device2host(buff_wfs_servant + idx);

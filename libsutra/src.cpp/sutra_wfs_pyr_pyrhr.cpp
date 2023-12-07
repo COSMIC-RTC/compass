@@ -23,18 +23,18 @@ SutraWfs_PyrHR::SutraWfs_PyrHR(
     CarmaContext *context, SutraTelescope *d_tel,
     CarmaObj<cuFloatComplex> *d_camplipup,
     CarmaObj<cuFloatComplex> *d_camplifoc,
-    CarmaObj<cuFloatComplex> *d_fttotim, long nxsub, long nvalid, long npupils,
-    long npix, long nphase, long nrebin, long nfft, long ntot, long npup,
-    float pdiam, float nphotons, float nphot4imat, int lgs, bool fakecam,
-    int max_flux_per_pix, int max_pix_value, bool roket, int device)
+    CarmaObj<cuFloatComplex> *d_fttotim, int64_t nxsub, int64_t nvalid, int64_t npupils,
+    int64_t npix, int64_t nphase, int64_t nrebin, int64_t nfft, int64_t ntot, int64_t npup,
+    float pdiam, float nphotons, float nphot4imat, int32_t lgs, bool fakecam,
+    int32_t max_flux_per_pix, int32_t max_pix_value, bool roket, int32_t device)
     : SutraWfs(context, d_tel, d_camplipup, d_camplifoc, d_fttotim, "pyrhr",
                 nxsub, nvalid, npix, nphase, nrebin, nfft, ntot, npup, pdiam,
                 nphotons, nphot4imat, lgs, fakecam, max_flux_per_pix, max_pix_value,
                 false, roket, device) {
   context->set_active_device(device, 1);
-  long dims_data1[2];
+  int64_t dims_data1[2];
   dims_data1[0] = 1;
-  long dims_data2[3];
+  int64_t dims_data2[3];
   dims_data2[0] = 2;
 
   dims_data2[1] = nfft;
@@ -58,7 +58,7 @@ SutraWfs_PyrHR::SutraWfs_PyrHR(
 
   dims_data2[1] = nphase * nphase;
   dims_data2[2] = nvalid;
-  this->d_phasemap = new CarmaObj<int>(current_context, dims_data2);
+  this->d_phasemap = new CarmaObj<int32_t>(current_context, dims_data2);
 
   dims_data2[1] = nphase * nphase;
   dims_data2[2] = nvalid * 2;
@@ -105,8 +105,8 @@ SutraWfs_PyrHR::SutraWfs_PyrHR(
 
   this->d_fluxPerSub = new CarmaObj<float>(context, dims_data1);
   dims_data1[1] = npix;
-  this->d_validsubsx = new CarmaObj<int>(context, dims_data1);
-  this->d_validsubsy = new CarmaObj<int>(context, dims_data1);
+  this->d_validsubsx = new CarmaObj<int32_t>(context, dims_data1);
+  this->d_validsubsy = new CarmaObj<int32_t>(context, dims_data1);
   dims_data2[1] = nfft;
   dims_data2[2] = nfft;
   this->d_modu_gather = new CarmaObj<float>(current_context, dims_data2);
@@ -117,15 +117,15 @@ SutraWfs_PyrHR::SutraWfs_PyrHR(
     CarmaContext *context, SutraTelescope *d_tel,
     CarmaObj<cuFloatComplex> *d_camplipup,
     CarmaObj<cuFloatComplex> *d_camplifoc,
-    CarmaObj<cuFloatComplex> *d_fttotim, long nxsub, long nvalid, long npupils,
-    long npix, long nphase, long nrebin, long nfft, long ntot, long npup,
-    float pdiam, float nphotons, float nphot4imat, int lgs, bool fakecam,
-    int max_flux_per_pix, int max_pix_value, bool roket, int nbdevices, int *devices)
+    CarmaObj<cuFloatComplex> *d_fttotim, int64_t nxsub, int64_t nvalid, int64_t npupils,
+    int64_t npix, int64_t nphase, int64_t nrebin, int64_t nfft, int64_t ntot, int64_t npup,
+    float pdiam, float nphotons, float nphot4imat, int32_t lgs, bool fakecam,
+    int32_t max_flux_per_pix, int32_t max_pix_value, bool roket, int32_t nbdevices, int32_t *devices)
     : SutraWfs_PyrHR(context, d_tel, d_camplipup, d_camplifoc, d_fttotim,
                           nxsub, nvalid, npupils, npix, nphase, nrebin, nfft,
                           ntot, npup, pdiam, nphotons, nphot4imat, lgs, fakecam,
                           max_flux_per_pix, max_pix_value, roket, devices[0]) {
-  long dims_data2[3];
+  int64_t dims_data2[3];
   dims_data2[0] = 2;
 
   d_hrimg_ngpu.push_back(this->d_hrimg);
@@ -141,7 +141,7 @@ SutraWfs_PyrHR::SutraWfs_PyrHR(
   dims_data2[1] = nfft;
   dims_data2[2] = nfft;
   this->d_modu_gather = new CarmaObj<float>(current_context, dims_data2);
-  for (int device = 1; device < nbdevices; device++) {
+  for (int32_t device = 1; device < nbdevices; device++) {
     current_context->set_active_device(device, 1);
     dims_data2[1] = nfft;
     dims_data2[2] = nfft;
@@ -304,10 +304,10 @@ SutraWfs_PyrHR::~SutraWfs_PyrHR() {
   delete this->streams;
 }
 
-int SutraWfs_PyrHR::load_arrays(cuFloatComplex *halfxy, float *cx,
+int32_t SutraWfs_PyrHR::load_arrays(cuFloatComplex *halfxy, float *cx,
                                     float *cy, float *weights, float *sincar,
-                                    float *submask, int *validsubsx,
-                                    int *validsubsy, int *phasemap,
+                                    float *submask, int32_t *validsubsx,
+                                    int32_t *validsubsy, int32_t *phasemap,
                                     float *fluxPerSub, float *ttprojmat) {
   for (std::vector<CarmaObj<cuFloatComplex> *>::iterator it =
            this->d_phalfxy_ngpu.begin();
@@ -352,8 +352,8 @@ int SutraWfs_PyrHR::load_arrays(cuFloatComplex *halfxy, float *cx,
   return EXIT_SUCCESS;
 }
 
-int SutraWfs_PyrHR::set_submask(float *submask) {
-  int ngpu = d_screen_ngpu.size();
+int32_t SutraWfs_PyrHR::set_submask(float *submask) {
+  int32_t ngpu = d_screen_ngpu.size();
   if (ngpu < 2) {
     this->d_submask->host2device(submask);
   } else {
@@ -370,9 +370,9 @@ int SutraWfs_PyrHR::set_submask(float *submask) {
   return EXIT_SUCCESS;
 }
 
-void SutraWfs_PyrHR::comp_modulation(int cpt) {
-  // int cpt = 0;
-  int ngpu = d_screen_ngpu.size();
+void SutraWfs_PyrHR::comp_modulation(int32_t cpt) {
+  // int32_t cpt = 0;
+  int32_t ngpu = d_screen_ngpu.size();
   if (ngpu < 2) {
     carma_safe_call(
         cudaMemset(this->d_camplipup->get_data(), 0,
@@ -403,7 +403,7 @@ void SutraWfs_PyrHR::comp_modulation(int cpt) {
          this->nfft * this->nfft, fact,
          this->current_context->get_device(device));
   } else {
-    int cur_device = cpt % ngpu;
+    int32_t cur_device = cpt % ngpu;
     current_context->set_active_device(cur_device, 1);
 
     carma_safe_call(cudaMemset(
@@ -450,7 +450,7 @@ void SutraWfs_PyrHR::comp_modulation(int cpt) {
 // It starts by looking for the type of sensor. By default it assumes
 // a pyramid wfs. The pyramid can also be explicitely asked for, or
 // a roof prism can be asked for as well.
-int SutraWfs_PyrHR::comp_generic() {
+int32_t SutraWfs_PyrHR::comp_generic() {
   /*
    //___________________________________________________________________
    //  PYRAMID SENSOR MODEL
@@ -510,7 +510,7 @@ int SutraWfs_PyrHR::comp_generic() {
 
   current_context->set_active_device(device, 1);
 
-  for (int cpt = 0; cpt < this->npup; cpt++) {
+  for (int32_t cpt = 0; cpt < this->npup; cpt++) {
     comp_modulation(cpt);
   }
 
@@ -574,7 +574,7 @@ int SutraWfs_PyrHR::comp_generic() {
      this->d_validsubsy->get_data(), this->nfft / this->nrebin, this->nvalid,
                         this->current_context->get_device(device));
   */
-  int blocks, threads;
+  int32_t blocks, threads;
   //  get_num_blocks_and_threads(current_context->get_device(device),
   //  this->d_binimg->get_nb_elements(),
   //      blocks, threads);
@@ -620,9 +620,9 @@ int SutraWfs_PyrHR::comp_generic() {
   return EXIT_SUCCESS;
 }
 
-int SutraWfs_PyrHR::comp_image(bool noise) {
+int32_t SutraWfs_PyrHR::comp_image(bool noise) {
   current_context->set_active_device(device, 1);
-  int result;
+  int32_t result;
   if (noise)
     result = comp_generic();
   else {
@@ -641,7 +641,7 @@ int SutraWfs_PyrHR::comp_image(bool noise) {
   return result;
 }
 
-int SutraWfs_PyrHR::fill_binimage(int async) {
+int32_t SutraWfs_PyrHR::fill_binimage(int32_t async) {
   if (this->d_binimg == NULL) {
     DEBUG_TRACE(
         "ERROR : d_bincube not initialized, did you do the allocate_buffers?");
@@ -667,8 +667,8 @@ int SutraWfs_PyrHR::fill_binimage(int async) {
   return EXIT_SUCCESS;
 }
 
-int SutraWfs_PyrHR::copy_valid_pix(float *img, int *validx, int *validy,
-                                      int im_dim) {
+int32_t SutraWfs_PyrHR::copy_valid_pix(float *img, int32_t *validx, int32_t *validy,
+                                      int32_t im_dim) {
   current_context->set_active_device(device, 1);
   copy_imgin_binimg(this->d_binimg->get_data(), this->d_validsubsx->get_data(),
                   this->d_validsubsy->get_data(), this->d_binimg->get_dims(1),
@@ -677,7 +677,7 @@ int SutraWfs_PyrHR::copy_valid_pix(float *img, int *validx, int *validy,
   return EXIT_SUCCESS;
 }
 
-int SutraWfs_PyrHR::set_pyr_mod_weights(float *weights, int npts) {
+int32_t SutraWfs_PyrHR::set_pyr_mod_weights(float *weights, int32_t npts) {
   if (this->npup != npts) {
     DEBUG_TRACE("Number of elements mismatch the modulation points one");
     return EXIT_FAILURE;
@@ -686,15 +686,15 @@ int SutraWfs_PyrHR::set_pyr_mod_weights(float *weights, int npts) {
   return EXIT_SUCCESS;
 }
 
-int SutraWfs_PyrHR::set_pyr_modulation_points(float *cx, float *cy,
-                                            float *weights, int npts) {
-  int status;
+int32_t SutraWfs_PyrHR::set_pyr_modulation_points(float *cx, float *cy,
+                                            float *weights, int32_t npts) {
+  int32_t status;
   status = this->set_pyr_modulation_points(cx, cy, npts);
   status *= this->set_pyr_mod_weights(weights, npts);
   return status;
 }
 
-int SutraWfs_PyrHR::set_pyr_modulation_points(float *cx, float *cy, int npts) {
+int32_t SutraWfs_PyrHR::set_pyr_modulation_points(float *cx, float *cy, int32_t npts) {
   current_context->set_active_device(device, 1);
   this->npup = npts;
   if (this->pyr_cx != 0L) {
@@ -704,7 +704,7 @@ int SutraWfs_PyrHR::set_pyr_modulation_points(float *cx, float *cy, int npts) {
   if (this->pyr_mod_weights != 0L) {
     delete this->pyr_mod_weights;
   }
-  long dims_data1[2] = {1, npts};
+  int64_t dims_data1[2] = {1, npts};
   this->pyr_cx = new CarmaHostObj<float>(dims_data1, cx, MA_WRICOMB);
   this->pyr_cy = new CarmaHostObj<float>(dims_data1, cy, MA_WRICOMB);
   this->pyr_mod_weights = new CarmaHostObj<float>(dims_data1, MA_WRICOMB);
@@ -713,7 +713,7 @@ int SutraWfs_PyrHR::set_pyr_modulation_points(float *cx, float *cy, int npts) {
   return EXIT_SUCCESS;
 }
 
-int SutraWfs_PyrHR::comp_nphot(float ittime, float optthroughput,
+int32_t SutraWfs_PyrHR::comp_nphot(float ittime, float optthroughput,
                                     float diam, float cobs, float zerop,
                                     float gsmag) {
   this->d_gs->mag = gsmag;
@@ -722,9 +722,9 @@ int SutraWfs_PyrHR::comp_nphot(float ittime, float optthroughput,
   return EXIT_SUCCESS;
 }
 
-int SutraWfs_PyrHR::set_phalfxy(cuFloatComplex *phalfxy) {
-  int ngpus = this->d_screen_ngpu.size();
-  for (int dev = 0; dev < ngpus; dev++) {
+int32_t SutraWfs_PyrHR::set_phalfxy(cuFloatComplex *phalfxy) {
+  int32_t ngpus = this->d_screen_ngpu.size();
+  for (int32_t dev = 0; dev < ngpus; dev++) {
       current_context->set_active_device(dev, 1);
       this->d_phalfxy_ngpu[dev]->host2device(phalfxy);
   }

@@ -20,15 +20,15 @@
 template <class Tin, class T>
 SutraCentroiderCorr<Tin, T>::SutraCentroiderCorr(CarmaContext *context,
                                                      SutraWfs *wfs,
-                                                     long nvalid, float offset,
+                                                     int64_t nvalid, float offset,
                                                      float scale,
-                                                     bool filter_TT, int device)
+                                                     bool filter_TT, int32_t device)
     : SutraCentroider<Tin, T>(context, wfs, nvalid, offset, scale, filter_TT,
                                device) {
   context->set_active_device(device, 1);
 
   this->nslopes = 2 * nvalid;
-  long dims_data2[2] = {1, this->nslopes};
+  int64_t dims_data2[2] = {1, this->nslopes};
   this->d_centroids_ref = new CarmaObj<T>(this->current_context, dims_data2);
   this->d_centroids_ref->reset();
 
@@ -50,7 +50,7 @@ SutraCentroiderCorr<Tin, T>::SutraCentroiderCorr(CarmaContext *context,
     this->npix = 0;
     this->nxsub = 0;
   }
-  long dims_data3[4] = {3, this->npix, this->npix, this->nvalid};
+  int64_t dims_data3[4] = {3, this->npix, this->npix, this->nvalid};
   this->d_bincube = new CarmaObj<T>(this->current_context, dims_data3);
 
   this->interp_sizex = 0;
@@ -73,7 +73,7 @@ string SutraCentroiderCorr<Tin, T>::get_type() {
 }
 
 template <class Tin, class T>
-int SutraCentroiderCorr<Tin, T>::fill_bincube(T *img) {
+int32_t SutraCentroiderCorr<Tin, T>::fill_bincube(T *img) {
   this->current_context->set_active_device(this->device, 1);
 
   fillbincube(img, this->d_bincube->get_data(), this->npix, this->nvalid,
@@ -83,7 +83,7 @@ int SutraCentroiderCorr<Tin, T>::fill_bincube(T *img) {
 }
 
 template <class Tin, class T>
-int SutraCentroiderCorr<Tin, T>::init_corr(int isizex, int isizey,
+int32_t SutraCentroiderCorr<Tin, T>::init_corr(int32_t isizex, int32_t isizey,
                                              T *interpmat) {
   this->current_context->set_active_device(this->device, 1);
   if (this->d_corrfnct != 0L) delete this->d_corrfnct;
@@ -93,7 +93,7 @@ int SutraCentroiderCorr<Tin, T>::init_corr(int isizex, int isizey,
   if (this->d_corr != 0L) delete this->d_corr;
   if (this->d_interpmat != 0L) delete this->d_interpmat;
 
-  long *dims_data3 = new long[4];
+  int64_t *dims_data3 = new int64_t[4];
   dims_data3[0] = 3;
   dims_data3[1] = 2 * this->npix;
   dims_data3[2] = 2 * this->npix;
@@ -104,27 +104,27 @@ int SutraCentroiderCorr<Tin, T>::init_corr(int isizex, int isizey,
   this->d_corrspot =
       new CarmaObj<cuFloatComplex>(this->current_context, dims_data3);
 
-  int mdims[2];
-  mdims[0] = (int)dims_data3[1];
-  mdims[1] = (int)dims_data3[2];
+  int32_t mdims[2];
+  mdims[0] = (int32_t)dims_data3[1];
+  mdims[1] = (int32_t)dims_data3[2];
   cufftHandle *plan = this->d_corrfnct->get_plan();  ///< FFT plan
   carmafft_safe_call(cufftPlanMany(plan, 2, mdims, NULL, 1, 0, NULL, 1, 0,
-                                 CUFFT_C2C, (int)dims_data3[3]));
+                                 CUFFT_C2C, (int32_t)dims_data3[3]));
 
   dims_data3[1] = 2 * this->npix - 1;
   dims_data3[2] = 2 * this->npix - 1;
   this->d_corr = new CarmaObj<T>(this->current_context, dims_data3);
 
-  long *dims_data2 = new long[3];
+  int64_t *dims_data2 = new int64_t[3];
   dims_data2[0] = 2;
   dims_data2[1] = 2 * this->npix - 1;
   dims_data2[2] = 2 * this->npix - 1;
   this->d_corrnorm = new CarmaObj<T>(this->current_context, dims_data2);
 
-  long *dims_data1 = new long[2];
+  int64_t *dims_data1 = new int64_t[2];
   dims_data1[0] = 1;
   dims_data1[1] = this->nvalid;
-  this->d_corrmax = new CarmaObj<int>(this->current_context, dims_data1);
+  this->d_corrmax = new CarmaObj<int32_t>(this->current_context, dims_data1);
 
   this->interp_sizex = isizex;
   this->interp_sizey = isizey;
@@ -141,9 +141,9 @@ int SutraCentroiderCorr<Tin, T>::init_corr(int isizex, int isizey,
 }
 
 template <class Tin, class T>
-int SutraCentroiderCorr<Tin, T>::load_corr(T *corr, T *corr_norm, int ndim) {
+int32_t SutraCentroiderCorr<Tin, T>::load_corr(T *corr, T *corr_norm, int32_t ndim) {
   this->current_context->set_active_device(this->device, 1);
-  int nval = (ndim == 3) ? 1 : this->nvalid;
+  int32_t nval = (ndim == 3) ? 1 : this->nvalid;
 
   this->d_corrnorm->host2device(corr_norm);
 
@@ -181,9 +181,9 @@ int SutraCentroiderCorr<Tin, T>::load_corr(T *corr, T *corr_norm, int ndim) {
 }
 
 template <class Tin, class T>
-int SutraCentroiderCorr<Tin, T>::get_cog(float *img, float *intensities,
-                                           T *centroids, int nvalid, int npix,
-                                           int ntot, cudaStream_t stream) {
+int32_t SutraCentroiderCorr<Tin, T>::get_cog(float *img, float *intensities,
+                                           T *centroids, int32_t nvalid, int32_t npix,
+                                           int32_t ntot, cudaStream_t stream) {
   this->current_context->set_active_device(this->device, 1);
   cudaError err;
 
@@ -230,9 +230,9 @@ int SutraCentroiderCorr<Tin, T>::get_cog(float *img, float *intensities,
   // it won't fit in shared mem
   // so we window around the center of the array,
   // the max is expected to be found inside the npix x npix central part anyway
-  int nbmax = (2 * this->npix - 1 > 20) ? this->npix : 2 * this->npix - 1;
-  int xoff = this->d_corr->get_dims(1) / 2 - nbmax / 2;
-  int yoff = this->d_corr->get_dims(2) / 2 - nbmax / 2;
+  int32_t nbmax = (2 * this->npix - 1 > 20) ? this->npix : 2 * this->npix - 1;
+  int32_t xoff = this->d_corr->get_dims(1) / 2 - nbmax / 2;
+  int32_t yoff = this->d_corr->get_dims(2) / 2 - nbmax / 2;
 
   subap_sortmaxi<T>(nbmax * nbmax, this->nvalid, *(this->d_corr),
                     *(this->d_corrmax), 1, xoff, yoff, nbmax,
@@ -255,7 +255,7 @@ int SutraCentroiderCorr<Tin, T>::get_cog(float *img, float *intensities,
 }
 
 template <class Tin, class T>
-int SutraCentroiderCorr<Tin, T>::get_cog(float *intensities, T *slopes,
+int32_t SutraCentroiderCorr<Tin, T>::get_cog(float *intensities, T *slopes,
                                            bool noise) {
   if (this->wfs != nullptr) {
     return this->get_cog(*this->wfs->d_binimg, intensities, slopes,
@@ -268,7 +268,7 @@ int SutraCentroiderCorr<Tin, T>::get_cog(float *intensities, T *slopes,
 }
 
 template <class Tin, class T>
-int SutraCentroiderCorr<Tin, T>::get_cog() {
+int32_t SutraCentroiderCorr<Tin, T>::get_cog() {
   if (this->wfs != nullptr)
     return this->get_cog(*(this->wfs->d_intensities), *(this->wfs->d_slopes),
                          true);

@@ -30,12 +30,12 @@
 
 template <class T> struct SharedMemory {
   __device__ inline operator T *() {
-    extern __shared__ int __smem[];
+    extern __shared__ int32_t __smem[];
     return (T *)__smem;
   }
 
   __device__ inline operator const T *() const {
-    extern __shared__ int __smem[];
+    extern __shared__ int32_t __smem[];
     return (T *)__smem;
   }
 };
@@ -72,14 +72,14 @@ template <class T> __device__ inline void mswap(T &a, T &b) {
 }
 
 template <class T>
-__inline__ __device__ void reduce_krnl(T *sdata, int size, int n) {
+__inline__ __device__ void reduce_krnl(T *sdata, int32_t size, int32_t n) {
   if (size & (size - 1)) { // test if size is not a power of 2
-    unsigned int s;
+    uint32_t s;
     if ((size & 1) != 0)
       s = size / 2 + 1; //(size&1)==size%2
     else
       s = size / 2;
-    unsigned int s_old = size;
+    uint32_t s_old = size;
     while (s > 0) {
       if ((n < s) && (n + s < s_old)) {
         sdata[n] += sdata[n + s];
@@ -94,7 +94,7 @@ __inline__ __device__ void reduce_krnl(T *sdata, int size, int n) {
     }
   } else {
     // do reduction in shared mem
-    for (unsigned int s = size / 2; s > 0; s >>= 1) {
+    for (uint32_t s = size / 2; s > 0; s >>= 1) {
       if (n < s) {
         sdata[n] += sdata[n + s];
       }

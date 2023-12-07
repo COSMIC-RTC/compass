@@ -12,13 +12,15 @@
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
 //! \version   5.5.0
 //! \date      2022/01/24
+#define PYBIND11_DETAILED_ERROR_MESSAGES
 
-#include <pybind11/pybind11.h>
+#include "sutraWrapUtils.hpp"
+
 #include <carma.h>
 
 namespace py = pybind11;
 
-void declare_tscreen(py::module &);
+void declare_turbu_screen(py::module &);
 void declare_atmos(py::module &);
 void declare_telescope(py::module &);
 void declare_dms(py::module &);
@@ -62,11 +64,8 @@ void declare_rtc_cacao(py::module &);
 
 // Expose classes and methods to Python
 PYBIND11_MODULE(sutraWrap, mod) {
-  auto carmaWrap = py::module::import("carmaWrap");
-  auto complex128 = carmaWrap.attr("complex128");
-  auto complex64 = carmaWrap.attr("complex64");
   mod.doc() = "Binding module for libsutra";
-  declare_tscreen(mod);
+  declare_turbu_screen(mod);
   declare_atmos(mod);
   declare_telescope(mod);
   declare_dm(mod);

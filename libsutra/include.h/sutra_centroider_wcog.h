@@ -27,32 +27,32 @@ class SutraCentroiderWcog : public SutraCentroider<Tin, T> {
   CarmaObj<float> *d_weights;
 
  public:
-  SutraCentroiderWcog(CarmaContext *context, SutraWfs *wfs, long nvalid,
-                        float offset, float scale, bool filter_TT, int device);
+  SutraCentroiderWcog(CarmaContext *context, SutraWfs *wfs, int64_t nvalid,
+                        float offset, float scale, bool filter_TT, int32_t device);
   SutraCentroiderWcog(const SutraCentroiderWcog &centroider);
   ~SutraCentroiderWcog();
 
   string get_type();
 
-  int set_threshold(float threshold);
+  int32_t set_threshold(float threshold);
 
-  int init_weights();
-  int load_weights(float *weights, int ndim);
+  int32_t init_weights();
+  int32_t load_weights(float *weights, int32_t ndim);
 
-  int get_cog(float *cube, float *intensities, T *centroids, int nvalid,
-              int npix, int ntot, cudaStream_t stream=0);
-  int get_cog(float *intensities, T *slopes, bool noise);
-  int get_cog();
+  int32_t get_cog(float *cube, float *intensities, T *centroids, int32_t nvalid,
+              int32_t npix, int32_t ntot, cudaStream_t stream=0);
+  int32_t get_cog(float *intensities, T *slopes, bool noise);
+  int32_t get_cog();
 };
 
 template <class T>
-void get_centroids(int size, int threads, int blocks, int n, float *d_idata,
-                   T *d_odata, T *ref, int *validx, int *validy,
+void get_centroids(int32_t size, int32_t threads, int32_t blocks, int32_t n, float *d_idata,
+                   T *d_odata, T *ref, int32_t *validx, int32_t *validy,
                    float *intensities, float *d_weights, float threshold, float scale,
                    float offset,
                    SlopeOrder slope_order,
                    CarmaDevice *device, cudaStream_t stream=0);
 
 template <class T>
-int fill_weights(T *d_out, T *d_in, int npix, int N, CarmaDevice *device);
+int32_t fill_weights(T *d_out, T *d_in, int32_t npix, int32_t N, CarmaDevice *device);
 #endif  // _SUTRA_CENTROIDER_WCOG_H_

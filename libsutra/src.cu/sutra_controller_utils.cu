@@ -30,7 +30,7 @@
 //#define CudaSafeCall( err ) __cudaSafeCall( err, __FILE__, __LINE__ )
 #define CudaCheckError() __cudaCheckError(__FILE__, __LINE__)
 /*
-inline void __cudaSafeCall( cudaError err, const char *file, const int line )
+inline void __cudaSafeCall( cudaError err, const char *file, const int32_t line )
 {
 #ifdef CUDA_ERROR_CHECK
     if ( cudaSuccess != err )
@@ -44,7 +44,7 @@ inline void __cudaSafeCall( cudaError err, const char *file, const int line )
     return;
 }
 */
-inline void __cudaCheckError(const char *file, const int line) {
+inline void __cudaCheckError(const char *file, const int32_t line) {
 #ifdef CUDA_ERROR_CHECK
   cudaError err = cudaGetLastError();
   if (cudaSuccess != err) {
@@ -79,7 +79,7 @@ void process_err(cudaError_t e, const char *str) {
   }
 }
 //-----------------------------------------------------------------------
-double *arr2dAlloc_gpu_gb(long nbLin, long nbCol)
+double *arr2dAlloc_gpu_gb(int64_t nbLin, int64_t nbCol)
 /* DOCUMENT  array = arr2dAlloc(nblin,nbcol)
 
  Allocates a 2d array (double).
@@ -105,7 +105,7 @@ void arr2dFree_gpu_gb(double *tableau)
 //============================= tabDPHI FUNCTIONS/KERNEL(s)
 //==================================
 //============================================================================================
-__device__ double macdo_x56_gpu_gb(double x, int k)
+__device__ double macdo_x56_gpu_gb(double x, int32_t k)
 /* DOCUMENT  macdo_x56_gpu_gb(x)
 
  Computation of the function
@@ -136,7 +136,7 @@ __device__ double macdo_x56_gpu_gb(double x, int k)
   const double x2a = pow(x, (double)2. * a), x22 = x * x / 4.;
   double x2n;  // x^2.a, etc
   double s = 0.0;
-  int n;
+  int32_t n;
 
   const double Ga[11] = {0,
                          12.067619015983075,
@@ -206,7 +206,7 @@ __device__ double asymp_macdo_gpu_gb(double x)
   return res;
 }
 //------------------------------------------------------------------------------------
-__device__ double rodconan_gpu_gb(double r, double L0, int k)
+__device__ double rodconan_gpu_gb(double r, double L0, int32_t k)
 /* DOCUMENT rodconan_gpu_gb(r,L0,k=)
  The phase structure function is computed from the expression
  Dphi(r) = k1  * L0^(5./3) * (k2 - (2.pi.r/L0)^5/6 K_{5/6}(2.pi.r/L0))
@@ -241,14 +241,14 @@ __device__ double rodconan_gpu_gb(double r, double L0, int k)
 }
 
 __global__ void tabulateDPHI_gpu_gb_kernel(double *tabDPHI_d, double *L0diff_d,
-                                           long Nl0, long Ndphi,
+                                           int64_t Nl0, int64_t Ndphi,
                                            double convert) {
-  const int tx = threadIdx.x;
-  const int ty = blockIdx.x;
+  const int32_t tx = threadIdx.x;
+  const int32_t ty = blockIdx.x;
 
-  const int tid = ty * blockDim.x + tx;
-  int l = tid / Ndphi;
-  int j = tid % Ndphi;
+  const int32_t tid = ty * blockDim.x + tx;
+  int32_t l = tid / Ndphi;
+  int32_t j = tid % Ndphi;
 
   if (tid >= (Nl0 * Ndphi)) return;
 
@@ -256,7 +256,7 @@ __global__ void tabulateDPHI_gpu_gb_kernel(double *tabDPHI_d, double *L0diff_d,
 
   // double* mytabDPHI = tabDPHI_d + (l * Ndphi);
   //
-  // int j, k;
+  // int32_t j, k;
   //#pragma unroll
   // for(k = 0; k < (Ndphi/tabDPHI_thread_x); k++)
   //{
@@ -272,22 +272,22 @@ __global__ void tabulateDPHI_gpu_gb_kernel(double *tabDPHI_d, double *L0diff_d,
   //}
 }
 
-__device__ double Ij0t83_gb(double x, double *tab_x, double *tab_y, long npts) {
+__device__ double Ij0t83_gb(double x, double *tab_x, double *tab_y, int64_t npts) {
   if (x <= exp(-3.0))
     return (double)(0.75 * pow((double)x, 1 / 3.) * (1 - x * x / 112.));
   else {
     double dt = 14. / (npts - 1);  // 14 = tmax - tmin
     double convert = (log(x) + 4.) / dt;
-    long i0 = (long)convert;
-    long i1 = i0 + 1;
+    int64_t i0 = (int64_t)convert;
+    int64_t i1 = i0 + 1;
     /*
-    long i1 = 0;
+    int64_t i1 = 0;
     while(x > tab_x[i1])
         i1++;
-    long i0 = i1 - 1;
+    int64_t i0 = i1 - 1;
     */
-    // long i0 = (long) ((logf(x) + 4.0f) * convert);
-    // long i1 = i0 + 1;
+    // int64_t i0 = (int64_t) ((logf(x) + 4.0f) * convert);
+    // int64_t i1 = i0 + 1;
     // return  ((x - (double)i0 / convert) * tab_y[indexL0 * npts + i1]
     //    + ((double)i1 / convert - x) * tab_y[indexL0 * npts + i0]);
     return (((x - tab_x[i0]) * tab_y[/*indexL0 * npts +*/ i1] +
@@ -299,20 +299,20 @@ __device__ double Ij0t83_gb(double x, double *tab_x, double *tab_y, long npts) {
 __global__ void tabulateDPHI_lowpass_kernel(double *tabDPHI_d,
                                             double *tab_int_x,
                                             double *tab_int_y, double *dx,
-                                            double *L0diff_d, long Nl0,
-                                            long Ndphi, double convert,
-                                            double convert_int, long npts) {
-  const int tx = threadIdx.x;
-  const int ty = blockIdx.x;
+                                            double *L0diff_d, int64_t Nl0,
+                                            int64_t Ndphi, double convert,
+                                            double convert_int, int64_t npts) {
+  const int32_t tx = threadIdx.x;
+  const int32_t ty = blockIdx.x;
 
-  const int tid = ty * blockDim.x + tx;
-  int dm = tid / (Ndphi * Nl0);
-  int pos = tid - dm * (Ndphi * Nl0);
-  int l = pos / Ndphi;
-  // int j = tid % Ndphi;
-  int j = pos - l * Ndphi;
+  const int32_t tid = ty * blockDim.x + tx;
+  int32_t dm = tid / (Ndphi * Nl0);
+  int32_t pos = tid - dm * (Ndphi * Nl0);
+  int32_t l = pos / Ndphi;
+  // int32_t j = tid % Ndphi;
+  int32_t j = pos - l * Ndphi;
   double r = (double)j / convert;
-  // long indexL0 = 0;
+  // int64_t indexL0 = 0;
 
   if (tid >= (Nl0 * Ndphi)) return;
 
@@ -346,8 +346,8 @@ __device__ double DPHI_gpu_gb(double x, double y, double L0)
 
   return rodconan_gpu_gb(r, L0, 10);
   /*
-  long i0 = (long) (r * convert);
-  long i1 = i0 + 1;
+  int64_t i0 = (int64_t) (r * convert);
+  int64_t i1 = i0 + 1;
 
   return ((r - (double)i0 / convert) * tabDPHI[indexL0 * Ndphi + i1]
     + ((double)i1 / convert - r) * tabDPHI[indexL0 * Ndphi + i0]);
@@ -359,25 +359,25 @@ __device__ double DPHI_gpu_gb(double x, double y, double L0)
 //=============================
 //============================================================================================
 __global__ void subposition_gpu_gb_kernel(
-    long Nw, long Nx, long *Nsubap, long Nlayer, double *alphaX, double *alphaY,
-    double *h, double *GsAlt, long *Nssp, double *diamPup, double *thetaML,
-    long *ioff, double *X, double *Y, double *XPup, double *YPup, double *u,
+    int64_t Nw, int64_t Nx, int64_t *Nsubap, int64_t Nlayer, double *alphaX, double *alphaY,
+    double *h, double *GsAlt, int64_t *Nssp, double *diamPup, double *thetaML,
+    int64_t *ioff, double *X, double *Y, double *XPup, double *YPup, double *u,
     double *v) {
-  const int tx = threadIdx.x;
-  const int ty = blockIdx.x;
+  const int32_t tx = threadIdx.x;
+  const int32_t ty = blockIdx.x;
 
-  const int tid = ty * blockDim.x + tx;
-  long i;      // subaperture i
-  long n = 0;  // WFS n
-  long l;
+  const int32_t tid = ty * blockDim.x + tx;
+  int64_t i;      // subaperture i
+  int64_t n = 0;  // WFS n
+  int64_t l;
   const double rad = CARMA_PI / 180.;
 
   if (tid >= (Nx * Nlayer)) return;
 
   l = tid / Nx;
 
-  const int pos = tid - l * Nx;
-  long Nsubapx = Nsubap[0];
+  const int32_t pos = tid - l * Nx;
+  int64_t Nsubapx = Nsubap[0];
 
   while (pos >= Nsubapx) {
     n++;
@@ -394,7 +394,7 @@ __global__ void subposition_gpu_gb_kernel(
 
   const double rr = 1. - h[l] * GsAlt[n];
 
-  const long nssp = Nssp[n];
+  const int64_t nssp = Nssp[n];
 
   // magnification factor
   const double G = diamPup[n] / (double)(nssp);
@@ -426,7 +426,7 @@ __global__ void subposition_gpu_gb_kernel(
 //============================================================================================
 __device__ double cov_XX_gpu_gb(double du, double dv, double ac, double ad,
                                 double bc, double bd, double *tabDPHI,
-                                double L0, double convert, int Ndphi)
+                                double L0, double convert, int32_t Ndphi)
 /* DOCUMENT
   Compute the XX-covariance with the distance sqrt(du2+dv2). DPHI is precomputed
   on tabDPHI.
@@ -439,7 +439,7 @@ __device__ double cov_XX_gpu_gb(double du, double dv, double ac, double ad,
 //------------------------------------------------------------------------------------
 __device__ double cov_YY_gpu_gb(double du, double dv, double ac, double ad,
                                 double bc, double bd, double *tabDPHI,
-                                double L0, double convert, int Ndphi)
+                                double L0, double convert, int32_t Ndphi)
 /* DOCUMENT
    Compute the YY-covariance with the distance sqrt(du2+dv2). DPHI is
    precomputed on tabDPHI.
@@ -452,7 +452,7 @@ __device__ double cov_YY_gpu_gb(double du, double dv, double ac, double ad,
 //------------------------------------------------------------------------------------
 __device__ double cov_XY_gpu_gb(double du, double dv, double s0,
                                 double *tabDPHI, double L0, double convert,
-                                int Ndphi)
+                                int32_t Ndphi)
 /* DOCUMENT
    Compute the XY-covariance with the distance sqrt(du2+dv2). DPHI is
    precomputed on tabDPHI.
@@ -468,7 +468,7 @@ __device__ double cov_XY_gpu_gb(double du, double dv, double s0,
 //==================================
 //============================================================================================
 __device__ double DPHI_highpass_gb(double r, double fc, double *tab_x,
-                                   double *tab_y, long npts) {
+                                   double *tab_y, int64_t npts) {
   return pow(r, 5 / 3.) *
          (1.1183343328701949 -
           Ij0t83_gb(2 * CARMA_PI * fc * r, tab_x, tab_y, npts)) *
@@ -476,15 +476,15 @@ __device__ double DPHI_highpass_gb(double r, double fc, double *tab_x,
 }
 __device__ double DPHI_lowpass_gb(double x, double y, double L0, double fc,
                                   double *tab_int_x, double *tab_int_y,
-                                  long npts) {
+                                  int64_t npts) {
   /*
   double r = sqrt(x * x + y * y);
-  int npts = (int)1/pas;
+  int32_t npts = (int32_t)1/pas;
   double du = 2*pi*fc*r/npts;
   double dphi = 0;
   double u = 0;
   //for(double u=pas ; u <= 2*pi*fc*r ; u+=pas ){
-  for (int i=1 ; i < npts ; i++){
+  for (int32_t i=1 ; i < npts ; i++){
         u += du;
         dphi += pow(u*u + pow(2*pi*r/L0,2),-11/6.) * u * (1- j0(u)) * du;
   }
@@ -498,7 +498,7 @@ __device__ double DPHI_lowpass_gb(double x, double y, double L0, double fc,
 }
 __device__ double cphim_XX(double du, double dv, double posx, double posy,
                            double xref, double yref, double s2, double L0,
-                           double fc, long npts, double *tab_int_x,
+                           double fc, int64_t npts, double *tab_int_x,
                            double *tab_int_y)
 /* DOCUMENT
   Compute the XX-covariance with the distance sqrt(du2+dv2). DPHI is precomputed
@@ -523,7 +523,7 @@ __device__ double cphim_XX(double du, double dv, double posx, double posy,
 //------------------------------------------------------------------------------------
 __device__ double cphim_YY(double du, double dv, double posx, double posy,
                            double xref, double yref, double s2, double L0,
-                           double fc, long npts, double *tab_int_x,
+                           double fc, int64_t npts, double *tab_int_x,
                            double *tab_int_y)
 /* DOCUMENT
    Compute the YY-covariance with the distance sqrt(du2+dv2). DPHI is
@@ -548,12 +548,12 @@ __device__ double cphim_YY(double du, double dv, double posx, double posy,
 //============================= MATCOV 3 FUNCTIONS/KERNEL
 //====================================
 //============================================================================================
-__device__ double compute_element_3(int ipos, int jpos, double convert,
-                                    double *sspSizeL, long *Nssp, double *u,
+__device__ double compute_element_3(int32_t ipos, int32_t jpos, double convert,
+                                    double *sspSizeL, int64_t *Nssp, double *u,
                                     double *v, double pasDPHI, double *tabDPHI,
-                                    long *indexL0, double *cn2, int Ndphi,
-                                    int Nw, int Nlayer, int Nsubap,
-                                    int type_mat, double teldiam) {
+                                    int64_t *indexL0, double *cn2, int32_t Ndphi,
+                                    int32_t Nw, int32_t Nlayer, int32_t Nsubap,
+                                    int32_t type_mat, double teldiam) {
   /* *** Covariance matrix per-element generation ***
    *   Arguments
    *   =========
@@ -563,42 +563,42 @@ __device__ double compute_element_3(int ipos, int jpos, double convert,
    */
 
   const double lambda2 = 0.00026942094446267851;
-  const int nslps = Nsubap * 2;
+  const int32_t nslps = Nsubap * 2;
 
   // WFS m
-  int m = ipos / nslps;  // tab_wfs[ipos];
+  int32_t m = ipos / nslps;  // tab_wfs[ipos];
   if (type_mat == 3) m = Nw - 1;
   // WFS n
-  int n = jpos / nslps;  // tab_wfs[jpos];
+  int32_t n = jpos / nslps;  // tab_wfs[jpos];
   if (type_mat == 2) n = Nw - 1;
 
   // subap i
-  int i = ipos % (nslps / 2);  // tab_subap[ipos];
+  int32_t i = ipos % (nslps / 2);  // tab_subap[ipos];
   // subap j
-  int j = jpos % (nslps / 2);  // tab_subap[jpos];;
+  int32_t j = jpos % (nslps / 2);  // tab_subap[jpos];;
 
   // xy i
-  int xy_i = (ipos / (nslps / 2)) % 2;  // tab_xy[ipos];
+  int32_t xy_i = (ipos / (nslps / 2)) % 2;  // tab_xy[ipos];
   // xy j
-  int xy_j = (jpos / (nslps / 2)) % 2;  // tab_xy[jpos];
+  int32_t xy_j = (jpos / (nslps / 2)) % 2;  // tab_xy[jpos];
 
   const double sspSizem = teldiam / Nssp[m];
   const double sspSizen = teldiam / Nssp[n];
 
   const double kk = lambda2 / (sspSizem * sspSizen);
 
-  int type = xy_i * 2 + xy_j;
+  int32_t type = xy_i * 2 + xy_j;
 
   // Layer l
   double covar = 0.0;
 #pragma unroll
-  for (int l = 0; l < Nlayer; l++) {
+  for (int32_t l = 0; l < Nlayer; l++) {
     const double sspSizeml = sspSizeL[m * Nlayer + l];
     const double sspSizenl = sspSizeL[n * Nlayer + l];
     // test if the altitude layers is not higher than the LGS altitude
     if ((sspSizeml > 0) && (sspSizenl > 0)) {
-      const int pos1 = m + i * Nw + l * Nw * Nsubap;
-      const int pos2 = n + j * Nw + l * Nw * Nsubap;
+      const int32_t pos1 = m + i * Nw + l * Nw * Nsubap;
+      const int32_t pos2 = n + j * Nw + l * Nw * Nsubap;
       const double du = u[pos1] - u[pos2];
       const double dv = v[pos1] - v[pos2];
 
@@ -636,36 +636,36 @@ __device__ double compute_element_3(int ipos, int jpos, double convert,
   return (double)covar;
 }
 
-__global__ void matcov_kernel_3(char uplo, char copy, double *data, int nrows,
-                                int ncols, int xoffset, int yoffset, int lda,
-                                double convert, double *sspSizeL, long *Nssp,
+__global__ void matcov_kernel_3(char uplo, char copy, double *data, int32_t nrows,
+                                int32_t ncols, int32_t xoffset, int32_t yoffset, int32_t lda,
+                                double convert, double *sspSizeL, int64_t *Nssp,
                                 double *u, double *v, double pasDPHI,
-                                double *tabDPHI, long *indexL0, double *cn2,
-                                int Ndphi, int Nw, int Nlayer, int Nsubap,
-                                int type_mat, double teldiam) {
+                                double *tabDPHI, int64_t *indexL0, double *cn2,
+                                int32_t Ndphi, int32_t Nw, int32_t Nlayer, int32_t Nsubap,
+                                int32_t type_mat, double teldiam) {
   /* *** covariance matrix generation kernel ***
    *	The kernel generates the element values in a given matrix/submatrix
-   *   The generation function can be any function, as long as each element
+   *   The generation function can be any function, as int64_t as each element
    *   can be computed both individually and independently
    *
    *	see argument description in the kernel driver
    */
 
   // local thread coordinates w.r.t. thread block
-  const int tx_ = threadIdx.x;
-  const int ty_ = threadIdx.y;
+  const int32_t tx_ = threadIdx.x;
+  const int32_t ty_ = threadIdx.y;
 
   // local thread block coordinates w.r.t. kernel grid
-  const int bx_ = blockIdx.x;
-  const int by_ = blockIdx.y;
+  const int32_t bx_ = blockIdx.x;
+  const int32_t by_ = blockIdx.y;
 
   // local coordinates of the element w.r.t. submatrix
-  int lx = bx_ * blockDim.x + tx_;
-  int ly = by_ * blockDim.y + ty_;
+  int32_t lx = bx_ * blockDim.x + tx_;
+  int32_t ly = by_ * blockDim.y + ty_;
 
   // global coordinates of the elemnt w.r.t. the entire matrix
-  int gx = lx + xoffset;
-  int gy = ly + yoffset;
+  int32_t gx = lx + xoffset;
+  int32_t gy = ly + yoffset;
 
   // out-of-bound threads should terminate
   if ((lx >= nrows) || (ly >= ncols)) return;
@@ -708,11 +708,11 @@ __global__ void matcov_kernel_3(char uplo, char copy, double *data, int nrows,
 //============================= MATCOV TS FUNCTIONS/KERNEL
 //===================================
 //============================================================================================
-__device__ double compute_element_ts_(int ipos, int jpos, double convert,
-                                      double *X, double *Y, long *Nssp,
+__device__ double compute_element_ts_(int32_t ipos, int32_t jpos, double convert,
+                                      double *X, double *Y, int64_t *Nssp,
                                       double pasDPHI, double *tabDPHI,
-                                      long *indexL0, double *cn2, int Ndphi,
-                                      int Nw, int Nlayer, int Nsubap,
+                                      int64_t *indexL0, double *cn2, int32_t Ndphi,
+                                      int32_t Nw, int32_t Nlayer, int32_t Nsubap,
                                       double teldiam) {
   /* *** Covariance matrix per-element generation ***
    *   Arguments
@@ -727,19 +727,19 @@ __device__ double compute_element_ts_(int ipos, int jpos, double convert,
   double lambda2 = 0.00026942094446267851;
   // WFS Nw-1
   // subap i
-  int i = ipos < Nsubap ? ipos : ipos - Nsubap;
+  int32_t i = ipos < Nsubap ? ipos : ipos - Nsubap;
   // subap j
-  int j = jpos < Nsubap ? jpos : jpos - Nsubap;
+  int32_t j = jpos < Nsubap ? jpos : jpos - Nsubap;
   // xy i
-  int xy_i = ipos < Nsubap ? 0 : 1;
+  int32_t xy_i = ipos < Nsubap ? 0 : 1;
   // xy j
-  int xy_j = jpos < Nsubap ? 0 : 1;
+  int32_t xy_j = jpos < Nsubap ? 0 : 1;
 
   double sspSize = teldiam / Nssp[Nw - 1];
 
   double kk = lambda2 / (sspSize * sspSize);
 
-  int type = xy_i * 2 + xy_j;
+  int32_t type = xy_i * 2 + xy_j;
 
   double s = sspSize * 0.5;
 
@@ -760,7 +760,7 @@ __device__ double compute_element_ts_(int ipos, int jpos, double convert,
   // Layer l
   double covar = 0.0;
 #pragma unroll
-  for (int l = 0; l < Nlayer; l++) {
+  for (int32_t l = 0; l < Nlayer; l++) {
     // test if the altitude layers is not higher than the LGS altitude
     if (sspSize > 0) {
       if (type == 0)
@@ -787,35 +787,35 @@ __device__ double compute_element_ts_(int ipos, int jpos, double convert,
   return (double)covar;
 }
 //--------------------------------------------------------------------------------------------
-__global__ void matcov_ts_kernel(double *data, int nrows, int ncols,
-                                 int xoffset, int yoffset, int lda,
+__global__ void matcov_ts_kernel(double *data, int32_t nrows, int32_t ncols,
+                                 int32_t xoffset, int32_t yoffset, int32_t lda,
                                  double convert, double *X, double *Y,
-                                 long *Nssp, double pasDPHI, double *tabDPHI,
-                                 long *indexL0, double *cn2, int Ndphi, int Nw,
-                                 int Nlayer, int Nsubap, double teldiam) {
+                                 int64_t *Nssp, double pasDPHI, double *tabDPHI,
+                                 int64_t *indexL0, double *cn2, int32_t Ndphi, int32_t Nw,
+                                 int32_t Nlayer, int32_t Nsubap, double teldiam) {
   /* *** covariance matrix generation kernel ***
    *	The kernel generates the element values in a given matrix/submatrix
-   *   The generation function can be any function, as long as each element
+   *   The generation function can be any function, as int64_t as each element
    *   can be computed both individually and independently
    *
    *	see argument description in the kernel driver
    */
 
   // local thread coordinates w.r.t. thread block
-  const int tx_ = threadIdx.x;
-  const int ty_ = threadIdx.y;
+  const int32_t tx_ = threadIdx.x;
+  const int32_t ty_ = threadIdx.y;
 
   // local thread block coordinates w.r.t. kernel grid
-  const int bx_ = blockIdx.x;
-  const int by_ = blockIdx.y;
+  const int32_t bx_ = blockIdx.x;
+  const int32_t by_ = blockIdx.y;
 
   // local coordinates of the element w.r.t. submatrix
-  int lx = bx_ * blockDim.x + tx_;
-  int ly = by_ * blockDim.y + ty_;
+  int32_t lx = bx_ * blockDim.x + tx_;
+  int32_t ly = by_ * blockDim.y + ty_;
 
   // global coordinates of the elemnt w.r.t. the entire matrix
-  int gx = lx + xoffset;
-  int gy = ly + yoffset;
+  int32_t gx = lx + xoffset;
+  int32_t gy = ly + yoffset;
 
   // out-of-bound threads should terminate
   if ((lx >= nrows) || (ly >= ncols)) return;
@@ -835,8 +835,8 @@ __global__ void matcov_ts_kernel(double *data, int nrows, int ncols,
 //===================================================
 //============================================================================================
 /*
-void matts_gpu_gb(double* data, int nrows, int ncols, int xoffset, int yoffset,
-int lda, struct tomo_struct tomo, struct gtomo_struct *tomo_gpu)
+void matts_gpu_gb(double* data, int32_t nrows, int32_t ncols, int32_t xoffset, int32_t yoffset,
+int32_t lda, struct tomo_struct tomo, struct gtomo_struct *tomo_gpu)
 {
         /* *** matcov gpu kernel driver ***
         *  Arguments
@@ -865,19 +865,19 @@ element in the matrix/submatrix
         *  lda		integer: The leading dimension of the matrix/submatrix
         */
 /*
-  const long Nw = tomo.Nw;
+  const int64_t Nw = tomo.Nw;
   const double crmax = tomo.rmax;
   const double pasDPHI = 1./tomo.pasDPHI; //inverse du pas de rr
-  const long Ndphi = floor(crmax*pasDPHI)+1;
+  const int64_t Ndphi = floor(crmax*pasDPHI)+1;
   const double convert = (double)(Ndphi-1)/(crmax+1./pasDPHI);
 
 
-  int nbx = nrows / matcov_thread_x + (nrows%matcov_thread_x != 0);
-  int nby = ncols / matcov_thread_y + (ncols%matcov_thread_y != 0);
+  int32_t nbx = nrows / matcov_thread_x + (nrows%matcov_thread_x != 0);
+  int32_t nby = ncols / matcov_thread_y + (ncols%matcov_thread_y != 0);
 
   dim3 dimBlock(matcov_thread_x, matcov_thread_y);
   dim3 dimGrid(nbx, nby);
-  const long Nsubap = tomo.Nsubap[Nw-1];
+  const int64_t Nsubap = tomo.Nsubap[Nw-1];
 
   matcov_ts_kernel<<<dimGrid, dimBlock, 0, tomo_gpu->matcov_stream>>>(data,
 nrows, ncols, xoffset, yoffset, lda,
@@ -891,31 +891,31 @@ nrows, ncols, xoffset, yoffset, lda,
 //============================= MATCOV COPY KERNEL
 //===========================================
 //============================================================================================
-__global__ void matcov_kernel_copy(double *data, int nrows, int ncols,
-                                   int xoffset, int yoffset, int lda) {
+__global__ void matcov_kernel_copy(double *data, int32_t nrows, int32_t ncols,
+                                   int32_t xoffset, int32_t yoffset, int32_t lda) {
   /* *** covariance matrix generation kernel ***
    *	The kernel generates the element values in a given matrix/submatrix
-   *   The generation function can be any function, as long as each element
+   *   The generation function can be any function, as int64_t as each element
    *   can be computed both individually and independently
    *
    *	see argument description in the kernel driver
    */
 
   // local thread coordinates w.r.t. thread block
-  const int tx_ = threadIdx.x;
-  const int ty_ = threadIdx.y;
+  const int32_t tx_ = threadIdx.x;
+  const int32_t ty_ = threadIdx.y;
 
   // local thread block coordinates w.r.t. kernel grid
-  const int bx_ = blockIdx.x;
-  const int by_ = blockIdx.y;
+  const int32_t bx_ = blockIdx.x;
+  const int32_t by_ = blockIdx.y;
 
   // local coordinates of the element w.r.t. submatrix
-  int lx = bx_ * blockDim.x + tx_;
-  int ly = by_ * blockDim.y + ty_;
+  int32_t lx = bx_ * blockDim.x + tx_;
+  int32_t ly = by_ * blockDim.y + ty_;
 
   // global coordinates of the elemnt w.r.t. the entire matrix
-  int gx = lx + xoffset;
-  int gy = ly + yoffset;
+  int32_t gx = lx + xoffset;
+  int32_t gy = ly + yoffset;
 
   // out-of-bound threads should terminate
   if ((lx >= nrows) || (ly >= ncols)) return;
@@ -964,15 +964,15 @@ void init_tomo_gpu_gb(struct gtomo_struct *tomo_gpu, SutraAtmos *atmos,
   tomo_gpu->pasDPHI = 0.0001;
 
   tomo_gpu->Nx = 0;
-  tomo_gpu->Nssp = (long *)malloc(tomo_gpu->Nw * sizeof(long));
-  tomo_gpu->Nsubap = (long *)malloc(tomo_gpu->Nw * sizeof(long));
+  tomo_gpu->Nssp = (int64_t *)malloc(tomo_gpu->Nw * sizeof(int64_t));
+  tomo_gpu->Nsubap = (int64_t *)malloc(tomo_gpu->Nw * sizeof(int64_t));
   tomo_gpu->diamPup = (double *)malloc(tomo_gpu->Nw * sizeof(double));
   tomo_gpu->XPup = (double *)malloc(tomo_gpu->Nw * sizeof(double));
   tomo_gpu->YPup = (double *)malloc(tomo_gpu->Nw * sizeof(double));
   tomo_gpu->thetaML = (double *)malloc(tomo_gpu->Nw * sizeof(double));
   tomo_gpu->GsAlt = (double *)malloc(tomo_gpu->Nw * sizeof(double));
 
-  for (int i = 0; i < tomo_gpu->Nw; i++) {
+  for (int32_t i = 0; i < tomo_gpu->Nw; i++) {
     tomo_gpu->Nssp[i] = sensors->d_wfs[i]->nxsub;
     tomo_gpu->Nsubap[i] = sensors->d_wfs[i]->nvalid;
     tomo_gpu->diamPup[i] = (double)tomo_gpu->Nssp[i];
@@ -988,7 +988,7 @@ void init_tomo_gpu_gb(struct gtomo_struct *tomo_gpu, SutraAtmos *atmos,
   }
 
   e = cudaMalloc((void **)&(tomo_gpu->indexL0_d),
-                 atmos->nscreens * sizeof(long));
+                 atmos->nscreens * sizeof(int64_t));
   process_err(e, "alloc gpu indexL0_d");
 
   e = cudaMalloc((void **)&(tomo_gpu->u_d),
@@ -1009,13 +1009,13 @@ void init_tomo_gpu_gb(struct gtomo_struct *tomo_gpu, SutraAtmos *atmos,
   e = cudaMalloc((void **)&(tomo_gpu->h_d), atmos->nscreens * sizeof(double));
   process_err(e, "alloc gpu h_d");
 
-  e = cudaMalloc((void **)&(tomo_gpu->Nssp_d), tomo_gpu->Nw * sizeof(long));
+  e = cudaMalloc((void **)&(tomo_gpu->Nssp_d), tomo_gpu->Nw * sizeof(int64_t));
   process_err(e, "alloc gpu Nssp_d");
 
-  e = cudaMalloc((void **)&(tomo_gpu->Nsubap_d), tomo_gpu->Nw * sizeof(long));
+  e = cudaMalloc((void **)&(tomo_gpu->Nsubap_d), tomo_gpu->Nw * sizeof(int64_t));
   process_err(e, "alloc gpu Nsubap_d");
 
-  e = cudaMalloc((void **)&(tomo_gpu->ioff_d), tomo_gpu->Nw * sizeof(long));
+  e = cudaMalloc((void **)&(tomo_gpu->ioff_d), tomo_gpu->Nw * sizeof(int64_t));
   process_err(e, "alloc gpu ioff_d");
 
   e = cudaMalloc((void **)&(tomo_gpu->alphaX_d), tomo_gpu->Nw * sizeof(double));
@@ -1138,10 +1138,10 @@ void free_tomo_gpu_gb(struct gtomo_struct *tomo_gpu) {
 //=============================
 //============================================================================================
 void tab_dphi_lowpass(double *tab_dphi, struct cphim_struct *cphim_struct,
-                      long Ndphi, double *L0diff_d, int Nl0, double convert,
+                      int64_t Ndphi, double *L0diff_d, int32_t Nl0, double convert,
                       double convert_int)
 // void tabulateDPHI_gpu_gb(double* tabDPHI_d, double* rr_d,struct tomo_struct
-// tomo, long Ndphi, long *indexL0_h)
+// tomo, int64_t Ndphi, int64_t *indexL0_h)
 /* DOCUMENT tabDPHI = tabulateDPHI(rr,tomo,Ndphi, indexL0)
  <tomo>            :  structure with all the needed information
  <Ndphi>           :  size of rr
@@ -1159,7 +1159,7 @@ void tab_dphi_lowpass(double *tab_dphi, struct cphim_struct *cphim_struct,
  */
 {
   // Assume one thread per element
-  // int nb_blocks = (Ndphi * Nl0) / tabDPHI_thread_x +
+  // int32_t nb_blocks = (Ndphi * Nl0) / tabDPHI_thread_x +
   //               (((Ndphi * Nl0) % tabDPHI_thread_x) != 0);
   // dim3 dimBlock(tabDPHI_thread_x, 1);
   // dim3 dimGrid(nb_blocks, 1);
@@ -1177,9 +1177,9 @@ void tab_dphi_lowpass(double *tab_dphi, struct cphim_struct *cphim_struct,
 //=============================
 //============================================================================================
 void tab_dphi_gpu_gb(double *tab_dphi, struct gtomo_struct *tomo_gpu,
-                     long Ndphi, double *L0diff_d, int Nl0, double convert)
+                     int64_t Ndphi, double *L0diff_d, int32_t Nl0, double convert)
 // void tabulateDPHI_gpu_gb(double* tabDPHI_d, double* rr_d,struct tomo_struct
-// tomo, long Ndphi, long *indexL0_h)
+// tomo, int64_t Ndphi, int64_t *indexL0_h)
 /* DOCUMENT tabDPHI = tabulateDPHI(rr,tomo,Ndphi, indexL0)
  <tomo>            :  structure with all the needed information
  <Ndphi>           :  size of rr
@@ -1197,7 +1197,7 @@ void tab_dphi_gpu_gb(double *tab_dphi, struct gtomo_struct *tomo_gpu,
  */
 {
   // Assume one thread per element
-  int nb_blocks = (Ndphi * Nl0) / tabDPHI_thread_x +
+  int32_t nb_blocks = (Ndphi * Nl0) / tabDPHI_thread_x +
                 (((Ndphi * Nl0) % tabDPHI_thread_x) != 0);
   dim3 dimBlock(tabDPHI_thread_x, 1);
   dim3 dimGrid(nb_blocks, 1);
@@ -1209,7 +1209,7 @@ void tab_dphi_gpu_gb(double *tab_dphi, struct gtomo_struct *tomo_gpu,
 }
 //------------------------------------------------------------------------------------
 // extern "C"
-void sub_pos_gpu_gb(struct gtomo_struct *tomo_gpu, long Nlayer)
+void sub_pos_gpu_gb(struct gtomo_struct *tomo_gpu, int64_t Nlayer)
 // void subap_position_gpu_gb(struct tomo_struct tomo, double ***u, double ***v)
 /* DOCUMENT DOCUMENT         subap_position(tomo, u, v)
    <tomo>                : structure with all the needed information.
@@ -1221,17 +1221,17 @@ void sub_pos_gpu_gb(struct gtomo_struct *tomo_gpu, long Nlayer)
    the layer
  */
 {
-  int msize = Nlayer * tomo_gpu->Nx;
-  int nb_blocks = msize / tabDPHI_thread_x + ((msize % tabDPHI_thread_x) != 0);
+  int32_t msize = Nlayer * tomo_gpu->Nx;
+  int32_t nb_blocks = msize / tabDPHI_thread_x + ((msize % tabDPHI_thread_x) != 0);
   dim3 dimBlock(tabDPHI_thread_x, 1);
   dim3 dimGrid(nb_blocks, 1);
   /*
-    int nb = (int)(2);
-      long *tmp;
-      tmp=(long*)malloc((nb)*sizeof(long));
-      carma_safe_call(cudaMemcpy(tmp, tomo_gpu->ioff_d, sizeof(long) * nb,
+    int32_t nb = (int32_t)(2);
+      int64_t *tmp;
+      tmp=(int64_t*)malloc((nb)*sizeof(int64_t));
+      carma_safe_call(cudaMemcpy(tmp, tomo_gpu->ioff_d, sizeof(int64_t) * nb,
                     cudaMemcpyDeviceToHost));
-      for (int ii = 0 ; ii < nb ; ii++){
+      for (int32_t ii = 0 ; ii < nb ; ii++){
           printf("%5.5d \n",tmp[ii]);
       }
   */
@@ -1244,12 +1244,12 @@ void sub_pos_gpu_gb(struct gtomo_struct *tomo_gpu, long Nlayer)
       tomo_gpu->YPup_d, tomo_gpu->u_d, tomo_gpu->v_d);
   carma_check_msg("subposition_gpu_gb_kernel<<<>>> execution failed\n");
   /*
-     int nb = (int)tomo_gpu->Nx * Nlayer;
+     int32_t nb = (int32_t)tomo_gpu->Nx * Nlayer;
         double *tmpp;
         tmpp=(double*)malloc((nb)*sizeof(double));
         carma_safe_call(cudaMemcpy(tmpp, tomo_gpu->v_d, sizeof(double) * nb,
                             cudaMemcpyDeviceToHost));
-        for (int ii = 0 ; ii < nb ; ii++){
+        for (int32_t ii = 0 ; ii < nb ; ii++){
           printf("%5.5f \n",tmpp[ii]);
         }
         */
@@ -1267,7 +1267,7 @@ void update_tomo_atm_gpu_gb(struct gtomo_struct *tomo_gpu,
   cudaError_t e;
 
   double h[atmos->nscreens];
-  int ii = 0;
+  int32_t ii = 0;
   for (vector<SutraTurbuScreen *>::iterator it = atmos->d_screens.begin();
        it != atmos->d_screens.end(); ++it) {
     h[ii] = (double)(*it)->altitude;
@@ -1276,8 +1276,8 @@ void update_tomo_atm_gpu_gb(struct gtomo_struct *tomo_gpu,
   // DEBUG_TRACE("Here !\n");
   double dmax = 0.0;
   double maxalt = h[atmos->nscreens - 1];
-  long minssp = tomo_gpu->Nssp[0];
-  for (int cc = 0; cc < tomo_gpu->Nw; cc++) {
+  int64_t minssp = tomo_gpu->Nssp[0];
+  for (int32_t cc = 0; cc < tomo_gpu->Nw; cc++) {
     double tmp = sqrtf(alphaX[cc] * alphaX[cc] + alphaY[cc] * alphaY[cc]);
     if (tmp > dmax) dmax = tmp;
     if (minssp > tomo_gpu->Nssp[cc]) minssp = tomo_gpu->Nssp[cc];
@@ -1285,7 +1285,7 @@ void update_tomo_atm_gpu_gb(struct gtomo_struct *tomo_gpu,
   const double crmax =
       dmax * 2 * maxalt + (1 + 1. / minssp) * tomo_gpu->DiamTel;
   const double pasDPHI = 1. / tomo_gpu->pasDPHI;  // inverse du pas de rr
-  const long Ndphi = floor(crmax * pasDPHI) + 1;
+  const int64_t Ndphi = floor(crmax * pasDPHI) + 1;
   // const double convert = (double)(Ndphi-1)/(crmax+1./pasDPHI);
 
   e = cudaMemcpyAsync(tomo_gpu->h_d, h, atmos->nscreens * sizeof(double),
@@ -1298,9 +1298,9 @@ void update_tomo_atm_gpu_gb(struct gtomo_struct *tomo_gpu,
   process_err(e, "copy gpu cn2_d");
   double *sspSizeL =
       (double *)malloc(sizeof(double) * tomo_gpu->Nw * atmos->nscreens);
-  for (int cc = 0; cc < tomo_gpu->Nw * atmos->nscreens; cc++) {
-    int n = cc / atmos->nscreens;
-    int l = cc - n * atmos->nscreens;
+  for (int32_t cc = 0; cc < tomo_gpu->Nw * atmos->nscreens; cc++) {
+    int32_t n = cc / atmos->nscreens;
+    int32_t l = cc - n * atmos->nscreens;
     if (n >= sensors->nsensors()) n -= 1;
     sspSizeL[cc] = (((double)(tomo_gpu->DiamTel / sensors->d_wfs[n]->nxsub)) *
                     (1. - tomo_gpu->GsAlt[n] * h[l]));
@@ -1313,11 +1313,11 @@ void update_tomo_atm_gpu_gb(struct gtomo_struct *tomo_gpu,
   process_err(e, "copy gpu sspSizeL_d");
   cudaStreamSynchronize(tomo_gpu->matcov_stream);
   // Search the different L0 and build indexL0
-  const long Nlayer = atmos->nscreens;
-  long i, j;
-  int cpt = 1;
+  const int64_t Nlayer = atmos->nscreens;
+  int64_t i, j;
+  int32_t cpt = 1;
   double tmp[Nlayer];
-  long indexL0[Nlayer];
+  int64_t indexL0[Nlayer];
   tmp[0] = L0[0];
   indexL0[0] = 0;
   // DEBUG_TRACE("HERE !");
@@ -1338,12 +1338,12 @@ void update_tomo_atm_gpu_gb(struct gtomo_struct *tomo_gpu,
     }
   }
   e = cudaMemcpyAsync((tomo_gpu->indexL0_d), indexL0,
-                      atmos->nscreens * sizeof(long), cudaMemcpyHostToDevice,
+                      atmos->nscreens * sizeof(int64_t), cudaMemcpyHostToDevice,
                       tomo_gpu->matcov_stream);
   process_err(e, "copy gpu indexL0_d");
   // DEBUG_TRACE("HERE !");
 
-  int Nl0 = cpt;
+  int32_t Nl0 = cpt;
   /*
   double L0diff[Nl0];
    //DEBUG_TRACE("Cpt = %d ",cpt);
@@ -1385,7 +1385,7 @@ void update_tomo_atm_gpu_gb(struct gtomo_struct *tomo_gpu,
   // DEBUG_TRACE("HERE !");
 
   // Computes  u and v
-  sub_pos_gpu_gb(tomo_gpu, (long)atmos->nscreens);
+  sub_pos_gpu_gb(tomo_gpu, (int64_t)atmos->nscreens);
   // DEBUG_TRACE("HERE !");
 
   carma_safe_call(cudaDeviceSynchronize());
@@ -1399,13 +1399,13 @@ void update_tomo_sys_gpu_gb(struct gtomo_struct *tomo_gpu,
                             double *alphaY) {
   cudaError_t e;
 
-  long ioff[tomo_gpu->Nw];
+  int64_t ioff[tomo_gpu->Nw];
   ioff[0] = 0;
-  for (int i = 1; i < tomo_gpu->Nw; i++) {
+  for (int32_t i = 1; i < tomo_gpu->Nw; i++) {
     ioff[i] = ioff[i - 1] + sensors->d_wfs[i - 1]->nvalid;
   }
 
-  e = cudaMemcpyAsync(tomo_gpu->ioff_d, ioff, tomo_gpu->Nw * sizeof(long),
+  e = cudaMemcpyAsync(tomo_gpu->ioff_d, ioff, tomo_gpu->Nw * sizeof(int64_t),
                       cudaMemcpyHostToDevice, tomo_gpu->matcov_stream);
   process_err(e, "copy gpu ioff_d");
 
@@ -1423,12 +1423,12 @@ void update_tomo_sys_gpu_gb(struct gtomo_struct *tomo_gpu,
   process_err(e, "copy gpu GsAlt_d");
 
   e = cudaMemcpyAsync(tomo_gpu->Nssp_d, tomo_gpu->Nssp,
-                      tomo_gpu->Nw * sizeof(long), cudaMemcpyHostToDevice,
+                      tomo_gpu->Nw * sizeof(int64_t), cudaMemcpyHostToDevice,
                       tomo_gpu->matcov_stream);
   process_err(e, "copy gpu Nssp_d");
 
   e = cudaMemcpyAsync(tomo_gpu->Nsubap_d, tomo_gpu->Nsubap,
-                      tomo_gpu->Nw * sizeof(long), cudaMemcpyHostToDevice,
+                      tomo_gpu->Nw * sizeof(int64_t), cudaMemcpyHostToDevice,
                       tomo_gpu->matcov_stream);
   process_err(e, "copy gpu Nsubap_d");
 
@@ -1455,27 +1455,27 @@ void update_tomo_sys_gpu_gb(struct gtomo_struct *tomo_gpu,
 
   double *X;
   double *Y;
-  int *tmpX;
-  int *tmpY;
+  int32_t *tmpX;
+  int32_t *tmpY;
   X = (double *)malloc((tomo_gpu->Nx) * sizeof(double));
   Y = (double *)malloc((tomo_gpu->Nx) * sizeof(double));
-  tmpX = (int *)malloc((tomo_gpu->Nx) * sizeof(int));
-  tmpY = (int *)malloc((tomo_gpu->Nx) * sizeof(int));
-  int ind = 0;
+  tmpX = (int32_t *)malloc((tomo_gpu->Nx) * sizeof(int32_t));
+  tmpY = (int32_t *)malloc((tomo_gpu->Nx) * sizeof(int32_t));
+  int32_t ind = 0;
   double p2m;
-  for (int i = 0; i < tomo_gpu->Nw; i++) {
+  for (int32_t i = 0; i < tomo_gpu->Nw; i++) {
     e = cudaMemcpyAsync(tmpX, sensors->d_wfs[i]->d_validsubsx->get_data(),
-                        sizeof(int) * sensors->d_wfs[i]->nvalid,
+                        sizeof(int32_t) * sensors->d_wfs[i]->nvalid,
                         cudaMemcpyDeviceToHost, tomo_gpu->matcov_stream);
     process_err(e, "copy tmpX");
     e = cudaMemcpyAsync(tmpY, sensors->d_wfs[i]->d_validsubsy->get_data(),
-                        sizeof(int) * sensors->d_wfs[i]->nvalid,
+                        sizeof(int32_t) * sensors->d_wfs[i]->nvalid,
                         cudaMemcpyDeviceToHost, tomo_gpu->matcov_stream);
     process_err(e, "copy tmpY");
     p2m = (tomo_gpu->DiamTel / (double)sensors->d_wfs[i]->nxsub) /
           ((double)(tmpX[1] - tmpX[0]));
 
-    for (int j = 0; j < sensors->d_wfs[i]->nvalid; j++) {
+    for (int32_t j = 0; j < sensors->d_wfs[i]->nvalid; j++) {
       X[ind + j] = ((double)tmpX[j] * p2m) -
                    (double)((tomo_gpu->DiamTel / 2.) *
                             (1. - 1. / (double)sensors->d_wfs[i]->nxsub));
@@ -1486,10 +1486,10 @@ void update_tomo_sys_gpu_gb(struct gtomo_struct *tomo_gpu,
     ind += sensors->d_wfs[i]->nvalid;
   }
   /*
-    for (int ii = 0; ii<tomo_gpu->Nx ; ii++){
+    for (int32_t ii = 0; ii<tomo_gpu->Nx ; ii++){
           std::cout << "X : " << X[ii] << std::endl;
     }
-    for (int jj = 0; jj<tomo_gpu->Nx ; jj++){
+    for (int32_t jj = 0; jj<tomo_gpu->Nx ; jj++){
           std::cout << "Y : " << Y[jj] << std::endl;
     }
   */
@@ -1504,12 +1504,12 @@ void update_tomo_sys_gpu_gb(struct gtomo_struct *tomo_gpu,
   // DEBUG_TRACE("Update \n");
   cudaStreamSynchronize(tomo_gpu->matcov_stream);
   /*
-    int nb = (int)(408);
+    int32_t nb = (int32_t)(408);
     double *tmp;
     tmp=(double*)malloc((nb)*sizeof(double));
     carma_safe_call(cudaMemcpy(tmp, tomo_gpu->Y_d, sizeof(double) * nb,
                     cudaMemcpyDeviceToHost));
-    for (int ii = 0 ; ii < nb ; ii++){
+    for (int32_t ii = 0 ; ii < nb ; ii++){
           printf("%5.5f \n",tmp[ii]);
     }
   */
@@ -1527,26 +1527,26 @@ each WFS on the telescope pupil and the number of subaperture of ezach WFS
 {
   const double bornemin = -tomo->DiamTel / 2.;
   const double Rtel2 = (tomo->DiamTel * tomo->DiamTel) / 4.;
-  long NsubapTot = 0;
-  long n;
+  int64_t NsubapTot = 0;
+  int64_t n;
 
   // Total number of subapertures (without obstruction)
   for (n = 0; n < tomo->Nw; n++) {
     NsubapTot += tomo->Nssp[n] * tomo->Nssp[n];
   }
   // DEBUG_TRACE("Here !\n");
-  const long cNsubapTot = NsubapTot;
+  const int64_t cNsubapTot = NsubapTot;
   double x[cNsubapTot], y[cNsubapTot];
-  int index[cNsubapTot];
+  int32_t index[cNsubapTot];
 
-  int cpt = 0;
-  int ioff = 0;
+  int32_t cpt = 0;
+  int32_t ioff = 0;
 
   // Computation of all the subapertures' positions
   for (n = 0; n < tomo->Nw; n++) {
-    long Nsap = 0;
+    int64_t Nsap = 0;
     double pas = tomo->DiamTel / (1. * tomo->Nssp[n]);
-    int i;
+    int32_t i;
     double Robs2;
 
     // to avoid some bug that eliminates useful central subapertures when
@@ -1561,7 +1561,7 @@ each WFS on the telescope pupil and the number of subaperture of ezach WFS
       for (i = 0; i < tomo->Nssp[n]; i++) {
         double tp =
             bornemin + pas / 2. * (2. * i + 1.);  // y-coord of current subap
-        int j;
+        int32_t j;
 
         for (j = 0; j < tomo->Nssp[n]; j++) {
           x[ioff + j] =
@@ -1596,10 +1596,10 @@ each WFS on the telescope pupil and the number of subaperture of ezach WFS
   Y = (double *)malloc((cNsubapTot - cpt) * sizeof(double));
   tomo->Nx = cNsubapTot - cpt;
 
-  int a = 0;
-  int off = 0;
-  int borne = 0;
-  int i;
+  int32_t a = 0;
+  int32_t off = 0;
+  int32_t borne = 0;
+  int32_t i;
   // Suppress the non-valid subapertures
   while (a <= cpt) {
     if (a == cpt) {
@@ -1631,8 +1631,8 @@ each WFS on the telescope pupil and the number of subaperture of ezach WFS
 //============================================================================================
 // extern "C"
 /*
-void matcov_gpu_3(double* data, int nrows, int ncols, int xoffset, int yoffset,
-int lda, struct tomo_struct tomo, struct gtomo_struct *tomo_gpu)
+void matcov_gpu_3(double* data, int32_t nrows, int32_t ncols, int32_t xoffset, int32_t yoffset,
+int32_t lda, struct tomo_struct tomo, struct gtomo_struct *tomo_gpu)
 {
         /* *** matcov gpu kernel driver ***
         *  Arguments
@@ -1668,7 +1668,7 @@ element in the matrix/submatrix
   uplo = 'f';	// full generation is enabled by default
   copy = 'c';
 
-  int type_mat = tomo.part;
+  int32_t type_mat = tomo.part;
 
   if(type_mat == 1) // Caa matrix
   {
@@ -1700,20 +1700,20 @@ generation is assumed
   // %%%%%%% Pre-computation of DPHI %%%%%%%%%%
   //Computes an array of DPHI (tabDPHI) for an array of subaperture distance rr
 for each DIFFERENT L0
-  //const long Nw = tomo.Nw;
+  //const int64_t Nw = tomo.Nw;
   const double crmax = tomo.rmax;
   const double pasDPHI = 1./tomo.pasDPHI; //inverse du pas de rr
-  const long Ndphi = floor(crmax*pasDPHI)+1;
+  const int64_t Ndphi = floor(crmax*pasDPHI)+1;
   const double convert = (double)(Ndphi-1)/(crmax+1./pasDPHI);
 
-  //int size = tomo.Nslopes - 2 * tomo.Nsubap[tomo.Nw-1];
+  //int32_t size = tomo.Nslopes - 2 * tomo.Nsubap[tomo.Nw-1];
 
-  int nbx = nrows / matcov_thread_x + (nrows%matcov_thread_x != 0);
-  int nby = ncols / matcov_thread_y + (ncols%matcov_thread_y != 0);
+  int32_t nbx = nrows / matcov_thread_x + (nrows%matcov_thread_x != 0);
+  int32_t nby = ncols / matcov_thread_y + (ncols%matcov_thread_y != 0);
 
   dim3 dimBlock(matcov_thread_x, matcov_thread_y);
   dim3 dimGrid(nbx, nby);
-  const long Nsubap = tomo.Nsubap[0];
+  const int64_t Nsubap = tomo.Nsubap[0];
 
   // generate a full matrix
   matcov_kernel_3<<<dimGrid, dimBlock, 0, tomo_gpu->matcov_stream>>>(uplo, copy,
@@ -1735,11 +1735,11 @@ yoffset, lda);
 //==============================
 //============================================================================================
 __device__ double compute_element_4(
-    int ipos, int jpos, double convert, double *sspSizeL, long *Nssp, double *u,
+    int32_t ipos, int32_t jpos, double convert, double *sspSizeL, int64_t *Nssp, double *u,
     double *v, double pasDPHI, double *tabDPHI, double *indexL0, double *cn2,
-    int Ndphi, int Nw, int Nlayer, long *Nsubap_wfs, long Nx, double *alphaX,
+    int32_t Ndphi, int32_t Nw, int32_t Nlayer, int64_t *Nsubap_wfs, int64_t Nx, double *alphaX,
     double *alphaY, double lgs_cst, double noise_var, double spotWidth,
-    double dH_lgs, double alt_lgs, int type_mat, int nlgs, double teldiam) {
+    double dH_lgs, double alt_lgs, int32_t type_mat, int32_t nlgs, double teldiam) {
   /* *** Covariance matrix per-element generation ***
    *   Arguments
    *   =========
@@ -1751,41 +1751,41 @@ __device__ double compute_element_4(
   // for now return a dummy value
 
   const double lambda2 = 0.00026942094446267851;
-  // long Nsubap = Nsubap_wfs[0];
+  // int64_t Nsubap = Nsubap_wfs[0];
   // WFS m
 
-  long Nsubapx = Nsubap_wfs[0];
-  int m = 0;
+  int64_t Nsubapx = Nsubap_wfs[0];
+  int32_t m = 0;
   while ((ipos / (2 * Nsubapx)) >= 1) {
     m++;
     Nsubapx += Nsubap_wfs[m];
   }
   Nsubapx -= Nsubap_wfs[m];
 
-  // int m = ipos / (2 * Nsubap);
+  // int32_t m = ipos / (2 * Nsubap);
   if (type_mat == 3) m = Nw - 1;
   // WFS n
 
-  long Nsubapy = Nsubap_wfs[0];
-  int n = 0;
+  int64_t Nsubapy = Nsubap_wfs[0];
+  int32_t n = 0;
   while ((jpos / (2 * Nsubapy)) >= 1) {
     n++;
     Nsubapy += Nsubap_wfs[n];
   }
   Nsubapy -= Nsubap_wfs[n];
 
-  // int n = jpos / (2 * Nsubap);
+  // int32_t n = jpos / (2 * Nsubap);
   if (type_mat == 2) n = Nw - 1;
   // subap i
-  // int i = ipos % (2 * Nsubap_wfs[m]);
-  int i = ipos - 2 * Nsubapx;
+  // int32_t i = ipos % (2 * Nsubap_wfs[m]);
+  int32_t i = ipos - 2 * Nsubapx;
   // subap j
-  // int j = jpos % (2 * Nsubap_wfs[n]);
-  int j = jpos - 2 * Nsubapy;
+  // int32_t j = jpos % (2 * Nsubap_wfs[n]);
+  int32_t j = jpos - 2 * Nsubapy;
   // xy i
-  int xy_i;
+  int32_t xy_i;
   // xy j
-  int xy_j;
+  int32_t xy_j;
   if (i >= Nsubap_wfs[m]) {
     i -= Nsubap_wfs[m];
     xy_i = 1;
@@ -1802,18 +1802,18 @@ __device__ double compute_element_4(
 
   const double kk = lambda2 / (sspSizem * sspSizen);
 
-  int type = xy_i * 2 + xy_j;
+  int32_t type = xy_i * 2 + xy_j;
 
   // Layer l
   double covar = 0.0;
 #pragma unroll
-  for (int l = 0; l < Nlayer; l++) {
+  for (int32_t l = 0; l < Nlayer; l++) {
     double sspSizeml = sspSizeL[m * Nlayer + l];
     double sspSizenl = sspSizeL[n * Nlayer + l];
     // test if the altitude layers is not higher than the LGS altitude
     if ((sspSizeml > 0) && (sspSizenl > 0)) {
-      int pos1 = i + Nsubapx + l * Nx;
-      int pos2 = j + Nsubapy + l * Nx;
+      int32_t pos1 = i + Nsubapx + l * Nx;
+      int32_t pos2 = j + Nsubapy + l * Nx;
       // if(threadIdx.x == 6 && threadIdx.y == 0 && blockIdx.x == 6 &&
       // blockIdx.y == 1) if((pos1 >= 6840) || (pos2 >= 6839))
       //{
@@ -1860,7 +1860,7 @@ __device__ double compute_element_4(
     if (m < nlgs) {
       if (i == j) {
         // lgs case
-        const int pos1 = i + Nsubapx;
+        const int32_t pos1 = i + Nsubapx;
         double x = u[pos1];
         double y = v[pos1];
         double xwfs = alphaX[m] * 206265;
@@ -1909,13 +1909,13 @@ __device__ double compute_element_4(
 }
 
 __device__ double compute_cphim_element(
-    int ipos, int jpos, double convert, double *sspSizeL, long *Nssp, double *u,
-    double *v, double *xact, double *yact, double xref, double yref, long npts,
-    double *L0, double *cn2, int Ndphi, int Nw, int Ndm, int Nlayer,
-    long *Nsubap, long Nx, long *Nactu_tot, int Nact, long *NlayerDM,
-    long *indLayerDm, double *dx, double *alphaX, double *alphaY,
+    int32_t ipos, int32_t jpos, double convert, double *sspSizeL, int64_t *Nssp, double *u,
+    double *v, double *xact, double *yact, double xref, double yref, int64_t npts,
+    double *L0, double *cn2, int32_t Ndphi, int32_t Nw, int32_t Ndm, int32_t Nlayer,
+    int64_t *Nsubap, int64_t Nx, int64_t *Nactu_tot, int32_t Nact, int64_t *NlayerDM,
+    int64_t *indLayerDm, double *dx, double *alphaX, double *alphaY,
     double lgs_cst, double noise_var, double spotWidth, double dH_lgs,
-    double alt_lgs, double *Hlayer, double *Hdm, double FoV, int nlgs,
+    double alt_lgs, double *Hlayer, double *Hdm, double FoV, int32_t nlgs,
     double teldiam, double *k2, double *tab_int_x, double *tab_int_y) {
   /* *** Covariance matrix per-element generation ***
    *   Arguments
@@ -1931,16 +1931,16 @@ __device__ double compute_cphim_element(
       0.016414031750058719;  // RASC * 0.5 * 1e-6 / 2. / pi ie lambda = 0.5e-6
 
   // DM m
-  int m = 0;
-  long Nactux = Nactu_tot[0];
+  int32_t m = 0;
+  int64_t Nactux = Nactu_tot[0];
   while ((ipos / Nactux) >= 1) {
     m++;
     Nactux += Nactu_tot[m];
   }
   Nactux -= Nactu_tot[m];
   // WFS n
-  long Nsubapx = Nsubap[0];
-  int n = 0;  // jpos / (2 * Nsubap);
+  int64_t Nsubapx = Nsubap[0];
+  int32_t n = 0;  // jpos / (2 * Nsubap);
   while ((jpos / (2 * Nsubapx)) >= 1) {
     n++;
     Nsubapx += Nsubap[n];
@@ -1949,19 +1949,19 @@ __device__ double compute_cphim_element(
   // if (type_mat == 2) n = Nw-1;
 
   // Nact i
-  int i = ipos - Nactux;
+  int32_t i = ipos - Nactux;
   // subap j
-  int j = jpos - 2 * Nsubapx;
-  int type = 0;
+  int32_t j = jpos - 2 * Nsubapx;
+  int32_t type = 0;
   if (j >= Nsubap[n]) {
     j -= Nsubap[n];
     type = 1;
   }
   /*
   //xy i
-  int xy_i;
+  int32_t xy_i;
   //xy j
-  int xy_j;
+  int32_t xy_j;
   if (i>=Nact/Ndm) {
     i-= Nact/Ndm;
     xy_i = 1;
@@ -1979,13 +1979,13 @@ __device__ double compute_cphim_element(
 
   // Layer l
   double covar = 0.0;
-  // long Nlayer4Dm = NlayerDM[m];
-  long otherDM = 0;
-  for (int ll = 0; ll < m; ll++) otherDM += NlayerDM[ll];
+  // int64_t Nlayer4Dm = NlayerDM[m];
+  int64_t otherDM = 0;
+  for (int32_t ll = 0; ll < m; ll++) otherDM += NlayerDM[ll];
 
 #pragma unroll
-  for (int l = 0; l < Nlayer; l++) {
-    long dolayer = 0;
+  for (int32_t l = 0; l < Nlayer; l++) {
+    int64_t dolayer = 0;
 
     if (indLayerDm[l] == m) dolayer = 1;
 
@@ -1993,10 +1993,10 @@ __device__ double compute_cphim_element(
       double sspSizenl = sspSizeL[n * Nlayer + l];
       // test if the altitude layers is not higher than the LGS altitude
       if ((sspSizenl > 0)) {
-        int pos_act = i + Nactux;  // + l * Nact;
-        int pos_ssp = j + Nsubapx + l * Nx;
-        // int pos_act = ipos;
-        // int pos_ssp = jpos;
+        int32_t pos_act = i + Nactux;  // + l * Nact;
+        int32_t pos_ssp = j + Nsubapx + l * Nx;
+        // int32_t pos_act = ipos;
+        // int32_t pos_ssp = jpos;
         double deltah = abs(Hlayer[l] - Hdm[m]);
         // double pDiam = teldiam + 2 * FoV * Hdm[m];
         // double hproj = pDiam / FoV;
@@ -2033,39 +2033,39 @@ __device__ double compute_cphim_element(
 }
 
 //------------------------------------------------------------------------------------------
-__global__ void matcov_kernel_4(char uplo, char copy, float *data, int nrows,
-                                int ncols, int xoffset, int yoffset, int lda,
-                                double convert, double *sspSizeL, long *Nssp,
+__global__ void matcov_kernel_4(char uplo, char copy, float *data, int32_t nrows,
+                                int32_t ncols, int32_t xoffset, int32_t yoffset, int32_t lda,
+                                double convert, double *sspSizeL, int64_t *Nssp,
                                 double *u, double *v, double pasDPHI,
                                 double *tabDPHI, double *indexL0, double *cn2,
-                                int Ndphi, int Nw, int Nlayer, long *Nsubap,
-                                long Nx, double *alphaX, double *alphaY,
+                                int32_t Ndphi, int32_t Nw, int32_t Nlayer, int64_t *Nsubap,
+                                int64_t Nx, double *alphaX, double *alphaY,
                                 double lgs_cst, double noise_var,
                                 double spotWidth, double dH_lgs, double alt_lgs,
-                                int type_mat, int nlgs, double teldiam) {
+                                int32_t type_mat, int32_t nlgs, double teldiam) {
   /* *** covariance matrix generation kernel ***
    *	The kernel generates the element values in a given matrix/submatrix
-   *   The generation function can be any function, as long as each element
+   *   The generation function can be any function, as int64_t as each element
    *   can be computed both individually and independently
    *
    *	see argument description in the kernel driver
    */
 
   // local thread coordinates w.r.t. thread block
-  const int tx_ = threadIdx.x;
-  const int ty_ = threadIdx.y;
+  const int32_t tx_ = threadIdx.x;
+  const int32_t ty_ = threadIdx.y;
 
   // local thread block coordinates w.r.t. kernel grid
-  const int bx_ = blockIdx.x;
-  const int by_ = blockIdx.y;
+  const int32_t bx_ = blockIdx.x;
+  const int32_t by_ = blockIdx.y;
 
   // local coordinates of the element w.r.t. submatrix
-  int lx = bx_ * blockDim.x + tx_;
-  int ly = by_ * blockDim.y + ty_;
+  int32_t lx = bx_ * blockDim.x + tx_;
+  int32_t ly = by_ * blockDim.y + ty_;
 
   // global coordinates of the elemnt w.r.t. the entire matrix
-  int gx = lx + xoffset;
-  int gy = ly + yoffset;
+  int32_t gx = lx + xoffset;
+  int32_t gy = ly + yoffset;
 
   // out-of-bound threads should terminate
   if ((lx >= nrows) || (ly >= ncols)) return;
@@ -2112,38 +2112,38 @@ __global__ void matcov_kernel_4(char uplo, char copy, float *data, int nrows,
 }
 
 __global__ void CPHIM_kernel(
-    float *data, int nrows, int ncols, int xoffset, int yoffset, int lda,
-    double convert, double *sspSizeL, long *Nssp, double *u, double *v,
-    double *xact, double *yact, double xref, double yref, long npts, double *L0,
-    double *cn2, int Ndphi, int Nw, int Ndm, int Nlayer, long *Nsubap, long Nx,
-    long *Nactu, int Nact, long *NlayerDM, long *indLayerDm, double *dx,
+    float *data, int32_t nrows, int32_t ncols, int32_t xoffset, int32_t yoffset, int32_t lda,
+    double convert, double *sspSizeL, int64_t *Nssp, double *u, double *v,
+    double *xact, double *yact, double xref, double yref, int64_t npts, double *L0,
+    double *cn2, int32_t Ndphi, int32_t Nw, int32_t Ndm, int32_t Nlayer, int64_t *Nsubap, int64_t Nx,
+    int64_t *Nactu, int32_t Nact, int64_t *NlayerDM, int64_t *indLayerDm, double *dx,
     double *alphaX, double *alphaY, double lgs_cst, double noise_var,
     double spotWidth, double dH_lgs, double alt_lgs, double *Hlayer,
-    double *Hdm, double FoV, int nlgs, double teldiam, double *k2,
+    double *Hdm, double FoV, int32_t nlgs, double teldiam, double *k2,
     double *tab_int_x, double *tab_int_y) {
   /* *** covariance matrix generation kernel ***
    *	The kernel generates the element values in a given matrix/submatrix
-   *   The generation function can be any function, as long as each element
+   *   The generation function can be any function, as int64_t as each element
    *   can be computed both individually and independently
    *
    *	see argument description in the kernel driver
    */
 
   // local thread coordinates w.r.t. thread block
-  const int tx_ = threadIdx.x;
-  const int ty_ = threadIdx.y;
+  const int32_t tx_ = threadIdx.x;
+  const int32_t ty_ = threadIdx.y;
 
   // local thread block coordinates w.r.t. kernel grid
-  const int bx_ = blockIdx.x;
-  const int by_ = blockIdx.y;
+  const int32_t bx_ = blockIdx.x;
+  const int32_t by_ = blockIdx.y;
 
   // local coordinates of the element w.r.t. submatrix
-  int lx = bx_ * blockDim.x + tx_;
-  int ly = by_ * blockDim.y + ty_;
+  int32_t lx = bx_ * blockDim.x + tx_;
+  int32_t ly = by_ * blockDim.y + ty_;
 
   // global coordinates of the elemnt w.r.t. the entire matrix
-  int gx = lx + xoffset;
-  int gy = ly + yoffset;
+  int32_t gx = lx + xoffset;
+  int32_t gy = ly + yoffset;
 
   // out-of-bound threads should terminate
   if ((lx >= nrows) || (ly >= ncols)) return;
@@ -2164,8 +2164,8 @@ __global__ void CPHIM_kernel(
 //============================= MATCOV 4 (NOISE)
 //=============================================
 //============================================================================================
-void matcov_gpu_4(float *data, int nrows, int ncols, int xoffset, int yoffset,
-                  int lda, struct gtomo_struct *tomo_gpu, SutraAtmos *atmos,
+void matcov_gpu_4(float *data, int32_t nrows, int32_t ncols, int32_t xoffset, int32_t yoffset,
+                  int32_t lda, struct gtomo_struct *tomo_gpu, SutraAtmos *atmos,
                   SutraSensors *sensors, double *alphaX, double *alphaY) {
   /* *** matcov gpu kernel driver ***
    *  Arguments
@@ -2196,7 +2196,7 @@ void matcov_gpu_4(float *data, int nrows, int ncols, int xoffset, int yoffset,
   uplo = 'f';  // full generation is enabled by default
   copy = 'c';
 
-  int type_mat = 1;
+  int32_t type_mat = 1;
 
   if (type_mat == 1) {  // Caa matrix
     // check if a square diagonal tile is generated then we set uplo to 'l' or
@@ -2222,7 +2222,7 @@ void matcov_gpu_4(float *data, int nrows, int ncols, int xoffset, int yoffset,
   // Computes an array of DPHI (tabDPHI) for an array of subaperture distance rr
   // for each DIFFERENT L0
   double h[atmos->nscreens];
-  int ii = 0;
+  int32_t ii = 0;
   for (vector<SutraTurbuScreen *>::iterator it = atmos->d_screens.begin();
        it != atmos->d_screens.end(); ++it) {
     h[ii] = (double)(*it)->altitude;
@@ -2231,8 +2231,8 @@ void matcov_gpu_4(float *data, int nrows, int ncols, int xoffset, int yoffset,
 
   double dmax = 0.0;
   double maxalt = h[atmos->nscreens - 1];
-  int minssp = tomo_gpu->Nssp[0];
-  for (int cc = 0; cc < tomo_gpu->Nw; cc++) {
+  int32_t minssp = tomo_gpu->Nssp[0];
+  for (int32_t cc = 0; cc < tomo_gpu->Nw; cc++) {
     double tmp = sqrtf(alphaX[cc] * alphaX[cc] + alphaY[cc] * alphaY[cc]);
     if (tmp > dmax) dmax = tmp;
     if (tomo_gpu->Nssp[cc] < minssp) minssp = tomo_gpu->Nssp[cc];
@@ -2241,22 +2241,22 @@ void matcov_gpu_4(float *data, int nrows, int ncols, int xoffset, int yoffset,
       dmax * 2 * maxalt + (1 + 1. / minssp) * tomo_gpu->DiamTel;
 
   const double pasDPHI = 1. / tomo_gpu->pasDPHI;  // inverse du pas de rr
-  const long Ndphi = floor(crmax * pasDPHI) + 1;
+  const int64_t Ndphi = floor(crmax * pasDPHI) + 1;
   const double convert = (double)(Ndphi - 1) / (crmax + 1. / pasDPHI);
 
-  int nbx = nrows / matcov_thread_x + (nrows % matcov_thread_x != 0);
-  int nby = ncols / matcov_thread_y + (ncols % matcov_thread_y != 0);
+  int32_t nbx = nrows / matcov_thread_x + (nrows % matcov_thread_x != 0);
+  int32_t nby = ncols / matcov_thread_y + (ncols % matcov_thread_y != 0);
 
   dim3 dimBlock(matcov_thread_x, matcov_thread_y);
   dim3 dimGrid(nbx, nby);
-  const long Nsubap = sensors->d_wfs[0]->nvalid;  // tomo_gpu->Nx;
+  const int64_t Nsubap = sensors->d_wfs[0]->nvalid;  // tomo_gpu->Nx;
   /*
-    int nb = (int)(atmos->nscreens*tomo_gpu->Nw);
+    int32_t nb = (int32_t)(atmos->nscreens*tomo_gpu->Nw);
     double *tmp;
     tmp=(double*)malloc((nb)*sizeof(double));
     carma_safe_call(cudaMemcpy(tmp, tomo_gpu->sspSizeL_d, sizeof(double) * nb,
                     cudaMemcpyDeviceToHost));
-    for (int ii = 0 ; ii < nb ; ii++){
+    for (int32_t ii = 0 ; ii < nb ; ii++){
           printf("%f \n",tmp[ii]);
     }
     //printf("convert : %9.9f\n",convert);
@@ -2274,13 +2274,13 @@ void matcov_gpu_4(float *data, int nrows, int ncols, int xoffset, int yoffset,
   carma_check_msg("matcov_kernel_4<<<>>> execution failed\n");
   cudaStreamSynchronize(tomo_gpu->matcov_stream);
   /*
-  int nb = (int)sensors->d_wfs[0]->nvalid * 2;
+  int32_t nb = (int32_t)sensors->d_wfs[0]->nvalid * 2;
   nb = nb*nb;
     double *tmp;
     tmp=(double*)malloc((nb)*sizeof(double));
     carma_safe_call(cudaMemcpy(tmp, data, sizeof(double) * nb,
                     cudaMemcpyDeviceToHost));
-    for (int ii = 0 ; ii < nb ; ii++)
+    for (int32_t ii = 0 ; ii < nb ; ii++)
         std::cout << tmp[ii] << std::endl;
         */
   // if (type_mat == 1)
@@ -2292,7 +2292,7 @@ void matcov_gpu_4(float *data, int nrows, int ncols, int xoffset, int yoffset,
 //============================= CPHIM
 //=============================================
 //============================================================================================
-void CPHIM(float *data, int nrows, int ncols, int xoffset, int yoffset, int lda,
+void CPHIM(float *data, int32_t nrows, int32_t ncols, int32_t xoffset, int32_t yoffset, int32_t lda,
            struct cphim_struct *cphim_struct, SutraAtmos *atmos,
            SutraSensors *sensors, double *alphaX, double *alphaY,
            CarmaDevice *device) {
@@ -2324,7 +2324,7 @@ void CPHIM(float *data, int nrows, int ncols, int xoffset, int yoffset, int lda,
   // for each DIFFERENT L0
 
   double h[atmos->nscreens];
-  int ii = 0;
+  int32_t ii = 0;
   for (vector<SutraTurbuScreen *>::iterator it = atmos->d_screens.begin();
        it != atmos->d_screens.end(); ++it) {
     h[ii] = (double)(*it)->altitude;
@@ -2333,8 +2333,8 @@ void CPHIM(float *data, int nrows, int ncols, int xoffset, int yoffset, int lda,
 
   double dmax = 0.0;
   double maxalt = h[atmos->nscreens - 1];
-  int minssp = cphim_struct->Nssp[0];
-  for (int cc = 0; cc < cphim_struct->Nw; cc++) {
+  int32_t minssp = cphim_struct->Nssp[0];
+  for (int32_t cc = 0; cc < cphim_struct->Nw; cc++) {
     double tmp = sqrtf(alphaX[cc] * alphaX[cc] + alphaY[cc] * alphaY[cc]);
     if (tmp > dmax) dmax = tmp;
     if (cphim_struct->Nssp[cc] < minssp) minssp = cphim_struct->Nssp[cc];
@@ -2343,23 +2343,23 @@ void CPHIM(float *data, int nrows, int ncols, int xoffset, int yoffset, int lda,
       dmax * 2 * maxalt + (1 + 1. / minssp) * cphim_struct->DiamTel;
 
   const double pasDPHI = 1. / cphim_struct->pasDPHI;  // inverse du pas de rr
-  const long Ndphi = floor(crmax * pasDPHI) + 1;
+  const int64_t Ndphi = floor(crmax * pasDPHI) + 1;
   const double convert = (double)(Ndphi - 1) / (crmax + 1. / pasDPHI);
 
-  int nbx = nrows / matcov_thread_x + (nrows % matcov_thread_x != 0);
-  int nby = ncols / matcov_thread_y + (ncols % matcov_thread_y != 0);
+  int32_t nbx = nrows / matcov_thread_x + (nrows % matcov_thread_x != 0);
+  int32_t nby = ncols / matcov_thread_y + (ncols % matcov_thread_y != 0);
 
   dim3 dimBlock(matcov_thread_x, matcov_thread_y);
   dim3 dimGrid(nbx, nby);
-  const long Nsubap = sensors->d_wfs[0]->nvalid;
+  const int64_t Nsubap = sensors->d_wfs[0]->nvalid;
 
   /*
-    int nb = (int)(1224);
+    int32_t nb = (int32_t)(1224);
     double *tmp;
     tmp=(double*)malloc((nb)*sizeof(double));
     carma_safe_call(cudaMemcpy(tmp, tomo_gpu->u_d, sizeof(double) * nb,
                     cudaMemcpyDeviceToHost));
-    for (int ii = 0 ; ii < nb ; ii++){
+    for (int32_t ii = 0 ; ii < nb ; ii++){
           printf("%5.20f \n",tmp[ii]);
     }
     printf("convert : %9.9f\n",convert);
@@ -2392,9 +2392,9 @@ __device__ double unMoinsJ0(double x) {
     return (double)(1.0 - j0((double)x));
 }
 
-__global__ void compute_u831J0(double *x, double *y, int npts, double tmin,
+__global__ void compute_u831J0(double *x, double *y, int32_t npts, double tmin,
                                double tmax, double dt) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
   double t;
   while (tid < npts) {
     t = tmin + tid * dt;
@@ -2404,8 +2404,8 @@ __global__ void compute_u831J0(double *x, double *y, int npts, double tmin,
   }
 }
 
-__global__ void cuda_zcen_krnl(double *idata, double *odata, int N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+__global__ void cuda_zcen_krnl(double *idata, double *odata, int32_t N) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
     odata[tid] = (idata[tid + 1] + idata[tid]) / 2.0;
@@ -2413,15 +2413,15 @@ __global__ void cuda_zcen_krnl(double *idata, double *odata, int N) {
   }
 }
 
-__global__ void intfrominftomin(double *data, double smallInt, int N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+__global__ void intfrominftomin(double *data, double smallInt, int32_t N) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
   while (tid < N) {
     data[tid] += smallInt;
     tid += blockDim.x * gridDim.x;
   }
 }
 
-void sub_pos_cphim(struct cphim_struct *cphim_struct, long Nlayer)
+void sub_pos_cphim(struct cphim_struct *cphim_struct, int64_t Nlayer)
 // void subap_position_gpu_gb(struct tomo_struct tomo, double ***u, double ***v)
 /* DOCUMENT DOCUMENT         subap_position(tomo, u, v)
    <tomo>                : structure with all the needed information.
@@ -2433,17 +2433,17 @@ void sub_pos_cphim(struct cphim_struct *cphim_struct, long Nlayer)
    the layer
  */
 {
-  int msize = Nlayer * cphim_struct->Nx;
-  int nb_blocks = msize / tabDPHI_thread_x + ((msize % tabDPHI_thread_x) != 0);
+  int32_t msize = Nlayer * cphim_struct->Nx;
+  int32_t nb_blocks = msize / tabDPHI_thread_x + ((msize % tabDPHI_thread_x) != 0);
   dim3 dimBlock(tabDPHI_thread_x, 1);
   dim3 dimGrid(nb_blocks, 1);
   /*
-    int nb = (int)(msize);
+    int32_t nb = (int32_t)(msize);
         double *tmpp;
         tmpp=(double*)malloc((nb)*sizeof(double));
         carma_safe_call(cudaMemcpy(tmpp, cphim_struct->X_d, sizeof(double) * nb,
                             cudaMemcpyDeviceToHost));
-        for (int ii = 0 ; ii < nb ; ii++){
+        for (int32_t ii = 0 ; ii < nb ; ii++){
           printf("%5.5f \n",tmpp[ii]);
         }
         */
@@ -2460,12 +2460,12 @@ void sub_pos_cphim(struct cphim_struct *cphim_struct, long Nlayer)
 
   carma_check_msg("subposition_gpu_gb_kernel<<<>>> execution failed\n");
   /*
-     int nb = (int)(184);
+     int32_t nb = (int32_t)(184);
         double *tmpp;
         tmpp=(double*)malloc((nb)*sizeof(double));
         carma_safe_call(cudaMemcpy(tmpp, tomo_gpu->u_d, sizeof(double) * nb,
                             cudaMemcpyDeviceToHost));
-        for (int ii = 0 ; ii < nb ; ii++){
+        for (int32_t ii = 0 ; ii < nb ; ii++){
           printf("%5.5f \n",tmpp[ii]);
         }
   */
@@ -2479,8 +2479,8 @@ void init_cphim_struct(struct cphim_struct *cphim_struct, SutraAtmos *atmos,
   cphim_struct->DiamTel = diamTel;
   cphim_struct->Nw = sensors->nsensors();
 
-  int Nactu = 0;
-  int Ndm = 0;
+  int32_t Nactu = 0;
+  int32_t Ndm = 0;
   vector<SutraDm *>::iterator p;
   p = dms->d_dms.begin();
   while (p != dms->d_dms.end()) {
@@ -2497,11 +2497,11 @@ void init_cphim_struct(struct cphim_struct *cphim_struct, SutraAtmos *atmos,
   cphim_struct->Nlayer = atmos->nscreens;
   cphim_struct->int_npts = 10000;
   cphim_struct->pasDu = 0.0001;
-  cphim_struct->Nactu_tot = (long *)malloc(cphim_struct->Ndm * sizeof(long));
-  cphim_struct->NlayerDM = (long *)malloc(cphim_struct->Ndm * sizeof(long));
-  cphim_struct->indLayerDm = (long *)malloc(atmos->nscreens * sizeof(long));
+  cphim_struct->Nactu_tot = (int64_t *)malloc(cphim_struct->Ndm * sizeof(int64_t));
+  cphim_struct->NlayerDM = (int64_t *)malloc(cphim_struct->Ndm * sizeof(int64_t));
+  cphim_struct->indLayerDm = (int64_t *)malloc(atmos->nscreens * sizeof(int64_t));
   p = dms->d_dms.begin();
-  int indx = 0;
+  int32_t indx = 0;
   while (p != dms->d_dms.end()) {
     SutraDm *dm = *p;
     if (dm->type != "tt") {
@@ -2519,15 +2519,15 @@ void init_cphim_struct(struct cphim_struct *cphim_struct, SutraAtmos *atmos,
   cphim_struct->pasDPHI = 0.0001;
 
   cphim_struct->Nx = 0;
-  cphim_struct->Nssp = (long *)malloc(cphim_struct->Nw * sizeof(long));
-  cphim_struct->Nsubap = (long *)malloc(cphim_struct->Nw * sizeof(long));
+  cphim_struct->Nssp = (int64_t *)malloc(cphim_struct->Nw * sizeof(int64_t));
+  cphim_struct->Nsubap = (int64_t *)malloc(cphim_struct->Nw * sizeof(int64_t));
   cphim_struct->diamPup = (double *)malloc(cphim_struct->Nw * sizeof(double));
   cphim_struct->XPup = (double *)malloc(cphim_struct->Nw * sizeof(double));
   cphim_struct->YPup = (double *)malloc(cphim_struct->Nw * sizeof(double));
   cphim_struct->thetaML = (double *)malloc(cphim_struct->Nw * sizeof(double));
   cphim_struct->GsAlt = (double *)malloc(cphim_struct->Nw * sizeof(double));
 
-  for (int i = 0; i < cphim_struct->Nw; i++) {
+  for (int32_t i = 0; i < cphim_struct->Nw; i++) {
     cphim_struct->Nssp[i] = sensors->d_wfs[i]->nxsub;
     cphim_struct->Nsubap[i] = sensors->d_wfs[i]->nvalid;
     cphim_struct->diamPup[i] = (double)cphim_struct->Nssp[i];
@@ -2544,19 +2544,19 @@ void init_cphim_struct(struct cphim_struct *cphim_struct, SutraAtmos *atmos,
   }
 
   e = cudaMalloc((void **)&(cphim_struct->Nactu_tot_d),
-                 cphim_struct->Ndm * sizeof(long));
+                 cphim_struct->Ndm * sizeof(int64_t));
   process_err(e, "alloc gpu Nactu_tot_d");
 
   e = cudaMalloc((void **)&(cphim_struct->NlayerDM_d),
-                 cphim_struct->Ndm * sizeof(long));
+                 cphim_struct->Ndm * sizeof(int64_t));
   process_err(e, "alloc gpu NlayerDM_d");
 
   e = cudaMalloc((void **)&(cphim_struct->indLayerDm_d),
-                 atmos->nscreens * sizeof(long));
+                 atmos->nscreens * sizeof(int64_t));
   process_err(e, "alloc gpu Nactu_tot_d");
 
   e = cudaMalloc((void **)&(cphim_struct->indexL0_d),
-                 atmos->nscreens * sizeof(long));
+                 atmos->nscreens * sizeof(int64_t));
   process_err(e, "alloc gpu indexL0_d");
 
   e = cudaMalloc((void **)&(cphim_struct->u_d),
@@ -2588,15 +2588,15 @@ void init_cphim_struct(struct cphim_struct *cphim_struct, SutraAtmos *atmos,
   process_err(e, "alloc gpu h_d");
 
   e = cudaMalloc((void **)&(cphim_struct->Nssp_d),
-                 cphim_struct->Nw * sizeof(long));
+                 cphim_struct->Nw * sizeof(int64_t));
   process_err(e, "alloc gpu Nssp_d");
 
   e = cudaMalloc((void **)&(cphim_struct->Nsubap_d),
-                 cphim_struct->Nw * sizeof(long));
+                 cphim_struct->Nw * sizeof(int64_t));
   process_err(e, "alloc gpu Nsubap_d");
 
   e = cudaMalloc((void **)&(cphim_struct->ioff_d),
-                 cphim_struct->Nw * sizeof(long));
+                 cphim_struct->Nw * sizeof(int64_t));
   process_err(e, "alloc gpu ioff_d");
 
   e = cudaMalloc((void **)&(cphim_struct->alphaX_d),
@@ -2671,7 +2671,7 @@ void init_cphim_struct(struct cphim_struct *cphim_struct, SutraAtmos *atmos,
   process_err(e, "create cphim stream");
 }
 
-void tab_u831J0(double *tab_int_x, double *tab_int_y, long npts) {
+void tab_u831J0(double *tab_int_x, double *tab_int_y, int64_t npts) {
   // DEBUG_TRACE("tab_int !\n");
 
   double tmin = -4.;
@@ -2686,20 +2686,20 @@ void tab_u831J0(double *tab_int_x, double *tab_int_y, long npts) {
   double *tab;
   tab = (double *)malloc((npts) * sizeof(double));
   double *temp_d;
-  // int nb_blocks = 0 , nb_threads = 0;
+  // int32_t nb_blocks = 0 , nb_threads = 0;
   double dt = (tmax - tmin) / (npts - 1);
   // get_num_blocks_and_threads(device, npts, nb_blocks, nb_threads);
   /*
-  int nb_blocks = msize / tabDPHI_thread_x + ( ( msize % tabDPHI_thread_x) != 0);
+  int32_t nb_blocks = msize / tabDPHI_thread_x + ( ( msize % tabDPHI_thread_x) != 0);
   dim3 dimBlock(tabDPHI_thread_x, 1);
   dim3 dimGrid(nb_blocks, 1);
   */
-  int device;
+  int32_t device;
   cudaGetDevice(&device);
   struct cudaDeviceProp props;
   cudaGetDeviceProperties(&props, device);
-  int nb_threads = props.maxThreadsPerBlock;
-  int nb_blocks = npts / nb_threads + ((npts % nb_threads) != 0);
+  int32_t nb_threads = props.maxThreadsPerBlock;
+  int32_t nb_blocks = npts / nb_threads + ((npts % nb_threads) != 0);
   dim3 grid(nb_blocks), threads(nb_threads);
   compute_u831J0<<<grid, threads>>>(tab_int_x, tab_int_y, npts, tmin, tmax, dt);
   carma_check_msg("compute_u831J0<<<>>> execution failed\n");
@@ -2729,15 +2729,15 @@ void tab_u831J0(double *tab_int_x, double *tab_int_y, long npts) {
   carma_check_msg("intfrominftomin<<<>>> execution failed\n");
 }
 
-void cumsum(double *odata, double *idata, int N) {
+void cumsum(double *odata, double *idata, int32_t N) {
   odata[0] = 0;
-  for (int i = 1; i < N; i++) {
+  for (int32_t i = 1; i < N; i++) {
     odata[i] = idata[i - 1] + odata[i - 1];
   }
 }
 
-void cuda_zcen(double *idata, double *odata, int N, CarmaDevice *device) {
-  int nb_blocks = 0, nb_threads = 0;
+void cuda_zcen(double *idata, double *odata, int32_t N, CarmaDevice *device) {
+  int32_t nb_blocks = 0, nb_threads = 0;
   get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
   dim3 grid(nb_blocks), threads(nb_threads);
 
@@ -2751,7 +2751,7 @@ void update_cphim_atm(struct cphim_struct *cphim_struct, SutraSensors *sensors,
   cudaError_t e;
 
   double h[atmos->nscreens];
-  int ii = 0;
+  int32_t ii = 0;
   for (vector<SutraTurbuScreen *>::iterator it = atmos->d_screens.begin();
        it != atmos->d_screens.end(); ++it) {
     h[ii] = (double)(*it)->altitude;
@@ -2760,8 +2760,8 @@ void update_cphim_atm(struct cphim_struct *cphim_struct, SutraSensors *sensors,
   // DEBUG_TRACE("Here !\n");
   double dmax = 0.0;
   double maxalt = h[atmos->nscreens - 1];
-  long minssp = cphim_struct->Nssp[0];
-  for (int cc = 0; cc < cphim_struct->Nw; cc++) {
+  int64_t minssp = cphim_struct->Nssp[0];
+  for (int32_t cc = 0; cc < cphim_struct->Nw; cc++) {
     double tmp = sqrtf(alphaX[cc] * alphaX[cc] + alphaY[cc] * alphaY[cc]);
     if (tmp > dmax) dmax = tmp;
     if (minssp > cphim_struct->Nssp[cc]) minssp = cphim_struct->Nssp[cc];
@@ -2769,7 +2769,7 @@ void update_cphim_atm(struct cphim_struct *cphim_struct, SutraSensors *sensors,
   const double crmax =
       dmax * 2. * maxalt + (1 + 1. / minssp) * cphim_struct->DiamTel;
   const double pasDPHI = 1. / cphim_struct->pasDPHI;  // inverse du pas de rr
-  const long Ndphi = floor(crmax * pasDPHI) + 1;
+  const int64_t Ndphi = floor(crmax * pasDPHI) + 1;
   cphim_struct->Ndphi = Ndphi;
   // const double convert = (double)(Ndphi-1)/(crmax+1./pasDPHI);
   // const double convert_int = (double)(cphim_struct->int_npts
@@ -2787,9 +2787,9 @@ void update_cphim_atm(struct cphim_struct *cphim_struct, SutraSensors *sensors,
   // DEBUG_TRACE("Here !\n");
   double *sspSizeL =
       (double *)malloc(sizeof(double) * cphim_struct->Nw * atmos->nscreens);
-  for (int cc = 0; cc < cphim_struct->Nw * atmos->nscreens; cc++) {
-    int n = cc / atmos->nscreens;
-    int l = cc - n * atmos->nscreens;
+  for (int32_t cc = 0; cc < cphim_struct->Nw * atmos->nscreens; cc++) {
+    int32_t n = cc / atmos->nscreens;
+    int32_t l = cc - n * atmos->nscreens;
     if (n >= sensors->nsensors()) n -= 1;
     sspSizeL[cc] =
         (((double)(cphim_struct->DiamTel / sensors->d_wfs[n]->nxsub)) *
@@ -2804,11 +2804,11 @@ void update_cphim_atm(struct cphim_struct *cphim_struct, SutraSensors *sensors,
   process_err(e, "copy gpu sspSizeL_d");
   cudaStreamSynchronize(cphim_struct->cphim_stream);
   // Search the different L0 and build indexL0
-  const long Nlayer = atmos->nscreens;
-  long i, j;
-  int cpt = 1;
+  const int64_t Nlayer = atmos->nscreens;
+  int64_t i, j;
+  int32_t cpt = 1;
   double tmp[Nlayer];
-  long indexL0[Nlayer];
+  int64_t indexL0[Nlayer];
   tmp[0] = L0[0];
   indexL0[0] = 0;
 
@@ -2828,10 +2828,10 @@ void update_cphim_atm(struct cphim_struct *cphim_struct, SutraSensors *sensors,
     }
   }
   e = cudaMemcpyAsync((cphim_struct->indexL0_d), indexL0,
-                      atmos->nscreens * sizeof(long), cudaMemcpyHostToDevice,
+                      atmos->nscreens * sizeof(int64_t), cudaMemcpyHostToDevice,
                       cphim_struct->cphim_stream);
   process_err(e, "copy gpu indexL0_d");
-  int Nl0 = cpt;
+  int32_t Nl0 = cpt;
   /*
   double L0diff[Nl0];
   // DEBUG_TRACE("Here !\n");
@@ -2862,13 +2862,13 @@ void update_cphim_atm(struct cphim_struct *cphim_struct, SutraSensors *sensors,
 
   // DEBUG_TRACE("%5.5d %5.5d %5.5f\n",Ndphi,Nl0,convert);
   /*
-  int nb = (int)(3);
+  int32_t nb = (int32_t)(3);
   // FILE *f = fopen("tabDPHI_d.txt","w");
     double *tmpp;
     tmpp=(double*)malloc((nb)*sizeof(double));
     carma_safe_call(cudaMemcpy(tmpp, cphim_struct->h_d, sizeof(double) * nb,
                     cudaMemcpyDeviceToHost));
-    for (int ii = 0 ; ii < nb ; ii++){
+    for (int32_t ii = 0 ; ii < nb ; ii++){
         DEBUG_TRACE("%5.5f \n",tmpp[ii]);
     }
     */
@@ -2877,12 +2877,12 @@ void update_cphim_atm(struct cphim_struct *cphim_struct, SutraSensors *sensors,
   // cphim_struct->L0diff_d, Nl0,convert,convert_int);
   // carma_safe_call(cudaDeviceSynchronize());
   /*
-  int nb = (int)(Ndphi);
+  int32_t nb = (int32_t)(Ndphi);
    // FILE *f = fopen("tabDPHI_d.txt","w");
       double *tmpp;
       tmpp=(double*)malloc((nb)*sizeof(double));
       carma_safe_call(cudaMemcpy(tmpp, cphim_struct->tabDPHI_d, sizeof(double) *
-  nb, cudaMemcpyDeviceToHost)); for (int ii = 0 ; ii < nb ; ii++){ printf("%5.5f
+  nb, cudaMemcpyDeviceToHost)); for (int32_t ii = 0 ; ii < nb ; ii++){ printf("%5.5f
   \n",tmpp[ii]);
       }
       */
@@ -2892,16 +2892,16 @@ void update_cphim_atm(struct cphim_struct *cphim_struct, SutraSensors *sensors,
   // number 0 at altitude 3
 
   // Computes  u and v
-  // DEBUG_TRACE("Here %d %d %d!\n", (long)atmos->nscreens,
-  // (long)cphim_struct->Nw, (long)sensors->d_wfs[0]->nvalid);
-  sub_pos_cphim(cphim_struct, (long)atmos->nscreens);
+  // DEBUG_TRACE("Here %d %d %d!\n", (int64_t)atmos->nscreens,
+  // (int64_t)cphim_struct->Nw, (int64_t)sensors->d_wfs[0]->nvalid);
+  sub_pos_cphim(cphim_struct, (int64_t)atmos->nscreens);
   // carma_safe_call(cudaDeviceSynchronize());
   /*
-    int nb = (int)(atmos->nscreens * sensors->d_wfs[0]->nvalid *
+    int32_t nb = (int32_t)(atmos->nscreens * sensors->d_wfs[0]->nvalid *
     cphim_struct->Nw); double *tmpp; tmpp=(double*)malloc((nb)*sizeof(double));
       carma_safe_call(cudaMemcpy(tmpp, cphim_struct->u_d, sizeof(double) * nb,
                     cudaMemcpyDeviceToHost));
-      for (int ii = 0 ; ii < nb ; ii++){
+      for (int32_t ii = 0 ; ii < nb ; ii++){
           printf("%5.5f \n",tmpp[ii]);
       }
   */
@@ -2911,21 +2911,21 @@ void update_cphim_atm(struct cphim_struct *cphim_struct, SutraSensors *sensors,
 
 void update_cphim_sys(struct cphim_struct *cphim_struct, SutraSensors *sensors,
                       double *alphaX, double *alphaY, double *xactu,
-                      double *yactu, double *X, double *Y, long *NlayerDm,
-                      long *indLayerDm, double *alt_dm, double *pitch,
+                      double *yactu, double *X, double *Y, int64_t *NlayerDm,
+                      int64_t *indLayerDm, double *alt_dm, double *pitch,
                       double *k2, double FoV) {
   cudaError_t e;
 
-  long ioff[cphim_struct->Nw];
+  int64_t ioff[cphim_struct->Nw];
   ioff[0] = 0;
-  for (int i = 1; i < cphim_struct->Nw; i++) {
+  for (int32_t i = 1; i < cphim_struct->Nw; i++) {
     ioff[i] = ioff[i - 1] + sensors->d_wfs[i - 1]->nvalid;
   }
 
   cphim_struct->FoV = FoV;
 
   e = cudaMemcpyAsync(cphim_struct->Nactu_tot_d, cphim_struct->Nactu_tot,
-                      cphim_struct->Ndm * sizeof(long), cudaMemcpyHostToDevice,
+                      cphim_struct->Ndm * sizeof(int64_t), cudaMemcpyHostToDevice,
                       cphim_struct->cphim_stream);
   process_err(e, "copy gpu Nactu_tot_d");
 
@@ -2935,12 +2935,12 @@ void update_cphim_sys(struct cphim_struct *cphim_struct, SutraSensors *sensors,
   process_err(e, "copy gpu hDm_d");
 
   e = cudaMemcpyAsync(cphim_struct->NlayerDM_d, NlayerDm,
-                      cphim_struct->Ndm * sizeof(long), cudaMemcpyHostToDevice,
+                      cphim_struct->Ndm * sizeof(int64_t), cudaMemcpyHostToDevice,
                       cphim_struct->cphim_stream);
   process_err(e, "copy gpu NlayerDM_d");
 
   e = cudaMemcpyAsync(cphim_struct->indLayerDm_d, indLayerDm,
-                      cphim_struct->Nlayer * sizeof(long),
+                      cphim_struct->Nlayer * sizeof(int64_t),
                       cudaMemcpyHostToDevice, cphim_struct->cphim_stream);
   process_err(e, "copy gpu indLayerDm_d");
 
@@ -2950,7 +2950,7 @@ void update_cphim_sys(struct cphim_struct *cphim_struct, SutraSensors *sensors,
   process_err(e, "copy gpu k2_d");
 
   e = cudaMemcpyAsync(cphim_struct->ioff_d, ioff,
-                      cphim_struct->Nw * sizeof(long), cudaMemcpyHostToDevice,
+                      cphim_struct->Nw * sizeof(int64_t), cudaMemcpyHostToDevice,
                       cphim_struct->cphim_stream);
   process_err(e, "copy gpu ioff_d");
 
@@ -2970,12 +2970,12 @@ void update_cphim_sys(struct cphim_struct *cphim_struct, SutraSensors *sensors,
   process_err(e, "copy gpu GsAlt_d");
 
   e = cudaMemcpyAsync(cphim_struct->Nssp_d, cphim_struct->Nssp,
-                      cphim_struct->Nw * sizeof(long), cudaMemcpyHostToDevice,
+                      cphim_struct->Nw * sizeof(int64_t), cudaMemcpyHostToDevice,
                       cphim_struct->cphim_stream);
   process_err(e, "copy gpu Nssp_d");
 
   e = cudaMemcpyAsync(cphim_struct->Nsubap_d, cphim_struct->Nsubap,
-                      cphim_struct->Nw * sizeof(long), cudaMemcpyHostToDevice,
+                      cphim_struct->Nw * sizeof(int64_t), cudaMemcpyHostToDevice,
                       cphim_struct->cphim_stream);
   process_err(e, "copy gpu Nsubap_d");
 
@@ -3002,24 +3002,24 @@ void update_cphim_sys(struct cphim_struct *cphim_struct, SutraSensors *sensors,
   /*
     double *X;
     double *Y;
-    int *tmpX;
-    int *tmpY;
+    int32_t *tmpX;
+    int32_t *tmpY;
     X=(double*)malloc((cphim_struct->Nx)*sizeof(double));
     Y=(double*)malloc((cphim_struct->Nx)*sizeof(double));
-    tmpX=(int*)malloc((sensors->d_wfs[0]->nvalid)*sizeof(int));
-    tmpY=(int*)malloc((sensors->d_wfs[0]->nvalid)*sizeof(int));
-    int ind = 0;
+    tmpX=(int32_t*)malloc((sensors->d_wfs[0]->nvalid)*sizeof(int32_t));
+    tmpY=(int32_t*)malloc((sensors->d_wfs[0]->nvalid)*sizeof(int32_t));
+    int32_t ind = 0;
     double p2m;
-    for(int i=0 ; i<cphim_struct->Nw ; i++){
+    for(int32_t i=0 ; i<cphim_struct->Nw ; i++){
           if(i<sensors->nsensors()){
                   e =
     cudaMemcpyAsync(tmpX,sensors->d_wfs[i]->d_validsubsx->get_data() ,
-    sizeof(int) * sensors->d_wfs[i]->nvalid,
+    sizeof(int32_t) * sensors->d_wfs[i]->nvalid,
                     cudaMemcpyDeviceToHost,cphim_struct->cphim_stream);
                   process_err(e,"copy tmpX");
                   e =
     cudaMemcpyAsync(tmpY,sensors->d_wfs[i]->d_validsubsy->get_data() ,
-    sizeof(int) * sensors->d_wfs[i]->nvalid,
+    sizeof(int32_t) * sensors->d_wfs[i]->nvalid,
                             cudaMemcpyDeviceToHost,cphim_struct->cphim_stream);
                   process_err(e,"copy tmpY");
                   p2m =
@@ -3028,19 +3028,19 @@ void update_cphim_sys(struct cphim_struct *cphim_struct, SutraSensors *sensors,
           else{
                   e =
     cudaMemcpyAsync(tmpX,sensors->d_wfs[i-1]->d_validsubsx->get_data() ,
-    sizeof(int) * sensors->d_wfs[i-1]->nvalid,
+    sizeof(int32_t) * sensors->d_wfs[i-1]->nvalid,
                                     cudaMemcpyDeviceToHost,cphim_struct->cphim_stream);
                   process_err(e,"copy tmpX");
                   e =
     cudaMemcpyAsync(tmpY,sensors->d_wfs[i-1]->d_validsubsy->get_data() ,
-    sizeof(int) * sensors->d_wfs[i-1]->nvalid,
+    sizeof(int32_t) * sensors->d_wfs[i-1]->nvalid,
                                             cudaMemcpyDeviceToHost,cphim_struct->cphim_stream);
                   process_err(e,"copy tmpY");
                   p2m =
     (cphim_struct->DiamTel/(double)sensors->d_wfs[i-1]->nxsub)/((double)(tmpX[1]-tmpX[0]));
           }
 
-          for(int j=0 ; j<sensors->d_wfs[0]->nvalid ; j++){
+          for(int32_t j=0 ; j<sensors->d_wfs[0]->nvalid ; j++){
                   if(i<sensors->nsensors()){
                           X[ind + j] = ((double)tmpX[j] * p2m)-
     (double)((cphim_struct->DiamTel/2.)*(1.-1./(double)sensors->d_wfs[i]->nxsub));
@@ -3059,10 +3059,10 @@ void update_cphim_sys(struct cphim_struct *cphim_struct, SutraSensors *sensors,
           else ind += sensors->d_wfs[i-1]->nvalid;
     }
     /*
-    for (int ii = 0; ii<cphim_struct->Nx ; ii++){
+    for (int32_t ii = 0; ii<cphim_struct->Nx ; ii++){
           std::cout << "X : " << X[ii] << std::endl;
     }
-    for (int jj = 0; jj<cphim_struct->Nx ; jj++){
+    for (int32_t jj = 0; jj<cphim_struct->Nx ; jj++){
           std::cout << "Y : " << Y[jj] << std::endl;
     }
     */
@@ -3099,12 +3099,12 @@ void update_cphim_sys(struct cphim_struct *cphim_struct, SutraSensors *sensors,
   // DEBUG_TRACE("Update \n");
   cudaStreamSynchronize(cphim_struct->cphim_stream);
   /*
-    int nb = (int)(cphim_struct->Nactu);
+    int32_t nb = (int32_t)(cphim_struct->Nactu);
     double *tmp;
     tmp=(double*)malloc((nb)*sizeof(double));
     carma_safe_call(cudaMemcpy(tmp, cphim_struct->yact_d, sizeof(double) * nb,
                     cudaMemcpyDeviceToHost));
-    for (int ii = 0 ; ii < nb ; ii++){
+    for (int32_t ii = 0 ; ii < nb ; ii++){
           printf("%5.5f \n",tmp[ii]);
     }
   */
@@ -3217,15 +3217,15 @@ void free_cphim_struct(struct cphim_struct *cphim_struct) {
 }
 
 __global__ void test_dphi_highpass_krnl(double *odata, double *r, double *tabx,
-                                        double *taby, double d, long N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+                                        double *taby, double d, int64_t N) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
   if (tid < N) {
     double fc = 1 / (2 * d);
     odata[tid] = DPHI_highpass_gb(r[tid], fc, tabx, taby, N);
   }
 }
 
-void test_DPHI_highpass(double R, double x0, long npts, CarmaDevice *device) {
+void test_DPHI_highpass(double R, double x0, int64_t npts, CarmaDevice *device) {
   // DEBUG_TRACE("tab_int !\n");
   cudaError_t e;
   double *tabx_d;
@@ -3244,7 +3244,7 @@ void test_DPHI_highpass(double R, double x0, long npts, CarmaDevice *device) {
   process_err(e, "copy taby");
   FILE *myfile;
   myfile = fopen("tabulated_int.txt", "w");
-  for (int i = 0; i < npts; i++) {
+  for (int32_t i = 0; i < npts; i++) {
     fprintf(myfile, "%9.9f %9.9f\n", tabx[i], taby[i]);
   }
   fclose(myfile);
@@ -3254,7 +3254,7 @@ void test_DPHI_highpass(double R, double x0, long npts, CarmaDevice *device) {
   double *r;
   r = (double *)malloc(npts * sizeof(double));
   double dr = R / (npts - 1);
-  for (int i = 0; i < npts; i++) {
+  for (int32_t i = 0; i < npts; i++) {
     r[i] = i * dr;
   }
   double *r_d;
@@ -3262,8 +3262,8 @@ void test_DPHI_highpass(double R, double x0, long npts, CarmaDevice *device) {
   e = cudaMemcpy(r_d, r, (npts) * sizeof(double), cudaMemcpyHostToDevice);
   process_err(e, "copy cpu temp");
   process_err(e, "alloc gpu temp_d");
-  int nb_blocks = 0;
-  int nb_threads = 0;
+  int32_t nb_blocks = 0;
+  int32_t nb_threads = 0;
   get_num_blocks_and_threads(device, npts, nb_blocks, nb_threads);
   dim3 grid(nb_blocks), threads(nb_threads);
   test_dphi_highpass_krnl<<<grid, threads>>>(odata, r_d, tabx_d, taby_d, x0,
@@ -3274,7 +3274,7 @@ void test_DPHI_highpass(double R, double x0, long npts, CarmaDevice *device) {
   e = cudaMemcpy(taby, odata, (npts) * sizeof(double), cudaMemcpyDeviceToHost);
   process_err(e, "copy taby");
   myfile = fopen("DPHI_highpass.txt", "w");
-  for (int i = 0; i < npts; i++) {
+  for (int32_t i = 0; i < npts; i++) {
     fprintf(myfile, "%9.9f %9.9f\n", tabx[i], taby[i]);
   }
   fclose(myfile);

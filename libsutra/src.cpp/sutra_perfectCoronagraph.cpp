@@ -17,8 +17,8 @@
 #include <sutra_perfectCoronagraph.h>
 
 SutraPerfectCoronagraph::SutraPerfectCoronagraph(CarmaContext *context, SutraSource *d_source,
-                                    int im_dimx, int im_dimy, float *wavelength, int nWavelength,
-                                    int device):
+                                    int32_t im_dimx, int32_t im_dimy, float *wavelength, int32_t nWavelength,
+                                    int32_t device):
     SutraCoronagraph(context, "perfect", d_source, im_dimx, im_dimy, wavelength, nWavelength, device),
     tmp_mft(nullptr) {
 
@@ -36,16 +36,16 @@ SutraPerfectCoronagraph::SutraPerfectCoronagraph(CarmaContext *context, SutraSou
         };
     }
 
-int SutraPerfectCoronagraph::set_mft(cuFloatComplex *A, cuFloatComplex *B, float* norm0,
+int32_t SutraPerfectCoronagraph::set_mft(cuFloatComplex *A, cuFloatComplex *B, float* norm0,
                                         std::string mftType) {
     if(AA.count(mftType) < 1) {
         std::cout << "Invalid mftType. Must be img or psf" << std::endl;
         return EXIT_FAILURE;
     }
 
-    long dims[3];
+    int64_t dims[3];
     dims[0] = 2;
-    for (int i = 0; i < wavelength.size() ; i++) {
+    for (int32_t i = 0; i < wavelength.size() ; i++) {
         dims[1] = imageDimx;
         dims[2] = pupDimx;
         AA[mftType][i] = new CarmaObj<cuFloatComplex>(current_context, dims, A + i * imageDimx * pupDimx);
@@ -63,7 +63,7 @@ int SutraPerfectCoronagraph::set_mft(cuFloatComplex *A, cuFloatComplex *B, float
     return EXIT_SUCCESS;
 }
 
-int SutraPerfectCoronagraph::_compute_image(bool psf, bool accumulate, bool remove_coro) {
+int32_t SutraPerfectCoronagraph::_compute_image(bool psf, bool accumulate, bool remove_coro) {
     CarmaObj<float> *img_se = d_image_se;
     CarmaObj<float> *img_le = d_image_le;
     std::vector<CarmaObj<cuFloatComplex>*> mftA = AA["img"];
@@ -78,7 +78,7 @@ int SutraPerfectCoronagraph::_compute_image(bool psf, bool accumulate, bool remo
     }
 
     img_se->reset();
-    for (int i = 0 ; i < wavelength.size(); i++) {
+    for (int32_t i = 0 ; i < wavelength.size(); i++) {
         compute_electric_field(i);
         if(!remove_coro) {
             cuFloatComplex sum = d_electric_field->sum();
@@ -101,10 +101,10 @@ int SutraPerfectCoronagraph::_compute_image(bool psf, bool accumulate, bool remo
     return EXIT_SUCCESS;
 }
 
-int SutraPerfectCoronagraph::compute_psf(bool accumulate) {
+int32_t SutraPerfectCoronagraph::compute_psf(bool accumulate) {
     return _compute_image(true, accumulate, true);
 }
 
-int SutraPerfectCoronagraph::compute_image(bool accumulate) {
+int32_t SutraPerfectCoronagraph::compute_image(bool accumulate) {
     return _compute_image(false, accumulate, false);
 }

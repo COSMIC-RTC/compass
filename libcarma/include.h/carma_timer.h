@@ -60,23 +60,23 @@ class CarmaTimer {
   double elapsed() { return total_time; }
 };
 
-void get_clock_count(long long int *clock_counter);
-void get_clock_count(double *, long long int *clock_counter, double gpu_freq);
+void get_clock_count(int64_t *clock_counter);
+void get_clock_count(double *, int64_t *clock_counter, double gpu_freq);
 class CarmaClock {
  public:
   CarmaObj<double> *time_buffer;
   double gpu_freq;
-  long cc;
-  long long int *clock_counter;
+  int64_t cc;
+  int64_t *clock_counter;
 
-  CarmaClock(CarmaContext *context, int i) {
+  CarmaClock(CarmaContext *context, int32_t i) {
     cudaDeviceProp cdp;
     cudaGetDeviceProperties(&cdp, context->get_active_device());
     gpu_freq = cdp.clockRate * 1000;
-    long dims[2] = {1, i};
+    int64_t dims[2] = {1, i};
     time_buffer = new CarmaObj<double>(context, dims);
     cc = 0;
-    cudaMalloc(&clock_counter, sizeof(long long int));
+    cudaMalloc(&clock_counter, sizeof(int64_t));
   }
 
   ~CarmaClock() {

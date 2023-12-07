@@ -20,16 +20,16 @@
 template <class Tin, class T>
 SutraCentroiderWcog<Tin, T>::SutraCentroiderWcog(CarmaContext *context,
                                                      SutraWfs *wfs,
-                                                     long nvalid, float offset,
+                                                     int64_t nvalid, float offset,
                                                      float scale,
-                                                     bool filter_TT, int device)
+                                                     bool filter_TT, int32_t device)
     : SutraCentroider<Tin, T>(context, wfs, nvalid, offset, scale, filter_TT,
                                device) {
   context->set_active_device(device, 1);
 
   this->nslopes = 2 * nvalid;
   this->d_weights = 0L;
-  long dims_data2[2] = {1, this->nslopes};
+  int64_t dims_data2[2] = {1, this->nslopes};
   this->d_centroids_ref = new CarmaObj<T>(this->current_context, dims_data2);
   this->d_centroids_ref->reset();
   this->threshold = 0;
@@ -48,11 +48,11 @@ string SutraCentroiderWcog<Tin, T>::get_type() {
 }
 
 template <class Tin, class T>
-int SutraCentroiderWcog<Tin, T>::init_weights() {
+int32_t SutraCentroiderWcog<Tin, T>::init_weights() {
   this->current_context->set_active_device(this->device, 1);
   if (this->d_weights != 0L) delete this->d_weights;
 
-  long *dims_data3 = new long[4];
+  int64_t *dims_data3 = new int64_t[4];
   dims_data3[0] = 3;
   dims_data3[1] = this->npix;
   dims_data3[2] = this->npix;
@@ -67,7 +67,7 @@ int SutraCentroiderWcog<Tin, T>::init_weights() {
 }
 
 template <class Tin, class T>
-int SutraCentroiderWcog<Tin, T>::load_weights(float *weights, int ndim) {
+int32_t SutraCentroiderWcog<Tin, T>::load_weights(float *weights, int32_t ndim) {
   if (ndim == 3)
     this->d_weights->host2device(weights);
   else {
@@ -89,16 +89,16 @@ int SutraCentroiderWcog<Tin, T>::load_weights(float *weights, int ndim) {
 }
 
 template <class Tin, class T>
-int SutraCentroiderWcog<Tin, T>::set_threshold(float threshold) {
+int32_t SutraCentroiderWcog<Tin, T>::set_threshold(float threshold) {
   this->threshold = threshold;
 
   return EXIT_SUCCESS;
 }
 
 template <class Tin, class T>
-int SutraCentroiderWcog<Tin, T>::get_cog(float *img, float *intensities,
-                                           T *centroids, int nvalid, int npix,
-                                           int ntot, cudaStream_t stream) {
+int32_t SutraCentroiderWcog<Tin, T>::get_cog(float *img, float *intensities,
+                                           T *centroids, int32_t nvalid, int32_t npix,
+                                           int32_t ntot, cudaStream_t stream) {
   // wcog
   // TODO: Implement SutraCentroiderWcog<Tin, T>::get_cog_async
   // subap_reduce<T>(ntot, npix * npix, nvalid, cube, intensities,
@@ -124,7 +124,7 @@ int SutraCentroiderWcog<Tin, T>::get_cog(float *img, float *intensities,
 }
 
 template <class Tin, class T>
-int SutraCentroiderWcog<Tin, T>::get_cog(float *intensities, T *slopes,
+int32_t SutraCentroiderWcog<Tin, T>::get_cog(float *intensities, T *slopes,
                                            bool noise) {
   if (this->wfs != nullptr) {
     if (noise || this->wfs->roket == false)
@@ -141,7 +141,7 @@ int SutraCentroiderWcog<Tin, T>::get_cog(float *intensities, T *slopes,
 }
 
 template <class Tin, class T>
-int SutraCentroiderWcog<Tin, T>::get_cog() {
+int32_t SutraCentroiderWcog<Tin, T>::get_cog() {
   if (this->wfs != nullptr)
     return this->get_cog(*(this->wfs->d_intensities), *(this->wfs->d_slopes),
                          true);

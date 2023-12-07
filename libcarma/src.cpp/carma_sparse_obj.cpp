@@ -28,16 +28,16 @@ CarmaSparseObj<T_data>::CarmaSparseObj(CarmaContext *current_context) {
 #if CUDA_VERSION < 12000
 template <class T_data>
 template <cusparseStatus_t CUSPARSEAPI (*ptr_nnz)(
-              cusparseHandle_t handle, cusparseDirection_t dirA, int m, int n,
-              const cusparseMatDescr_t descrA, const T_data *A, int lda,
-              int *nnzPerRowCol, int *nnzTotalDevHostPtr),
+              cusparseHandle_t handle, cusparseDirection_t dirA, int32_t m, int32_t n,
+              const cusparseMatDescr_t descrA, const T_data *A, int32_t lda,
+              int32_t *nnzPerRowCol, int32_t *nnzTotalDevHostPtr),
           cusparseStatus_t CUSPARSEAPI (*ptr_dense2csr)(
-              cusparseHandle_t handle, int m, int n,
-              const cusparseMatDescr_t descrA, const T_data *A, int lda,
-              const int *nnzPerRow, T_data *csrValA, int *csrRowPtrA,
-              int *csrColIndA)>
+              cusparseHandle_t handle, int32_t m, int32_t n,
+              const cusparseMatDescr_t descrA, const T_data *A, int32_t lda,
+              const int32_t *nnzPerRow, T_data *csrValA, int32_t *csrRowPtrA,
+              int32_t *csrColIndA)>
 void CarmaSparseObj<T_data>::init_carma_sparse_obj(
-    CarmaContext *current_context, const long *dims, T_data *M,
+    CarmaContext *current_context, const int64_t *dims, T_data *M,
     bool load_from_host) {
   _create(0, 0, 0);
   this->current_context = current_context;
@@ -51,12 +51,12 @@ void CarmaSparseObj<T_data>::init_carma_sparse_obj(
   } else {
     d_M = M;
   }
-  int *nnzPerRow = NULL, nnzTotalDevHostPtr = 0;
-  cudaMalloc((void **)&nnzPerRow, dims[1] * sizeof(int));
+  int32_t *nnzPerRow = NULL, nnzTotalDevHostPtr = 0;
+  cudaMalloc((void **)&nnzPerRow, dims[1] * sizeof(int32_t));
   // nz_elem=0;
   if (dims[1] == 1) {
-    int *tmp_colind = NULL;
-    cudaMalloc((void **)&tmp_colind, dims[2] * sizeof(int));
+    int32_t *tmp_colind = NULL;
+    cudaMalloc((void **)&tmp_colind, dims[2] * sizeof(int32_t));
     find_nnz(d_M, tmp_colind, dims[2], nnzPerRow, nnzTotalDevHostPtr,
              current_context->get_device(device));
     if (!nnzTotalDevHostPtr) {
@@ -96,7 +96,7 @@ void CarmaSparseObj<T_data>::init_carma_sparse_obj(
 #else
 template <class T_data>
 void CarmaSparseObj<T_data>::init_carma_sparse_obj(
-    CarmaContext *current_context, const long *dims, T_data *M,
+    CarmaContext *current_context, const int64_t *dims, T_data *M,
     bool load_from_host) {
   _create(0, 0, 0);
   this->current_context = current_context;
@@ -132,7 +132,7 @@ void CarmaSparseObj<T_data>::init_carma_sparse_obj(
   carma_check_cusparse_status(cusparseSpMatGetSize(this->sp_descr, &num_rows_tmp, &num_cols_tmp,
                                          &nnz));
   this->nz_elem = nnz;
-  cudaMalloc((void**) &d_colind, nnz * sizeof(int));
+  cudaMalloc((void**) &d_colind, nnz * sizeof(int32_t));
   cudaMalloc((void**) &d_data, nnz * sizeof(T_data));
   carma_check_cusparse_status(cusparseCsrSetPointers(this->sp_descr, this->d_rowind, this->d_colind,
                                            this->d_data));
@@ -145,33 +145,33 @@ void CarmaSparseObj<T_data>::init_carma_sparse_obj(
 }
 #endif
 template <class T_data>
-void CarmaSparseObj<T_data>::sparse_to_host(int *h_rowInd, int *h_colInd,
+void CarmaSparseObj<T_data>::sparse_to_host(int32_t *h_rowInd, int32_t *h_colInd,
                                               T_data *h_data) {
-  cudaMemcpy(h_rowInd, this->d_rowind, (this->dims_data[1] + 1) * sizeof(int),
+  cudaMemcpy(h_rowInd, this->d_rowind, (this->dims_data[1] + 1) * sizeof(int32_t),
              cudaMemcpyDeviceToHost);
-  cudaMemcpy(h_colInd, this->d_colind, (this->nz_elem) * sizeof(int),
+  cudaMemcpy(h_colInd, this->d_colind, (this->nz_elem) * sizeof(int32_t),
              cudaMemcpyDeviceToHost);
   cudaMemcpy(h_data, this->d_data, (this->nz_elem) * sizeof(T_data),
              cudaMemcpyDeviceToHost);
 }
 
 template <>
-void CarmaSparseObj<double>::sparse_to_host(int *h_rowInd, int *h_colInd,
+void CarmaSparseObj<double>::sparse_to_host(int32_t *h_rowInd, int32_t *h_colInd,
                                               double *h_data) {
-  cudaMemcpy(h_rowInd, this->d_rowind, (this->dims_data[1] + 1) * sizeof(int),
+  cudaMemcpy(h_rowInd, this->d_rowind, (this->dims_data[1] + 1) * sizeof(int32_t),
              cudaMemcpyDeviceToHost);
-  cudaMemcpy(h_colInd, this->d_colind, (this->nz_elem) * sizeof(int),
+  cudaMemcpy(h_colInd, this->d_colind, (this->nz_elem) * sizeof(int32_t),
              cudaMemcpyDeviceToHost);
   cudaMemcpy(h_data, this->d_data, (this->nz_elem) * sizeof(double),
              cudaMemcpyDeviceToHost);
 }
 
 template <>
-void CarmaSparseObj<float>::sparse_to_host(int *h_rowInd, int *h_colInd,
+void CarmaSparseObj<float>::sparse_to_host(int32_t *h_rowInd, int32_t *h_colInd,
                                              float *h_data) {
-  cudaMemcpy(h_rowInd, this->d_rowind, (this->dims_data[1] + 1) * sizeof(int),
+  cudaMemcpy(h_rowInd, this->d_rowind, (this->dims_data[1] + 1) * sizeof(int32_t),
              cudaMemcpyDeviceToHost);
-  cudaMemcpy(h_colInd, this->d_colind, (this->nz_elem) * sizeof(int),
+  cudaMemcpy(h_colInd, this->d_colind, (this->nz_elem) * sizeof(int32_t),
              cudaMemcpyDeviceToHost);
   cudaMemcpy(h_data, this->d_data, (this->nz_elem) * sizeof(float),
              cudaMemcpyDeviceToHost);
@@ -179,7 +179,7 @@ void CarmaSparseObj<float>::sparse_to_host(int *h_rowInd, int *h_colInd,
 
 template <class T_data>
 CarmaSparseObj<T_data>::CarmaSparseObj(CarmaContext *current_context,
-                                           const long *dims, T_data *M,
+                                           const int64_t *dims, T_data *M,
                                            bool load_from_host) {
   _create(0, 0, 0);
 }
@@ -187,14 +187,14 @@ CarmaSparseObj<T_data>::CarmaSparseObj(CarmaContext *current_context,
 #if CUDA_VERSION < 12000
 template <>
 CarmaSparseObj<float>::CarmaSparseObj(CarmaContext *current_context,
-                                          const long *dims, float *M,
+                                          const int64_t *dims, float *M,
                                           bool load_from_host) {
   init_carma_sparse_obj<cusparseSnnz, cusparseSdense2csr>(current_context, dims,
                                                           M, load_from_host);
 }
 template <>
 CarmaSparseObj<double>::CarmaSparseObj(CarmaContext *current_context,
-                                           const long *dims, double *M,
+                                           const int64_t *dims, double *M,
                                            bool load_from_host) {
   init_carma_sparse_obj<cusparseDnnz, cusparseDdense2csr>(current_context, dims,
                                                           M, load_from_host);
@@ -202,13 +202,13 @@ CarmaSparseObj<double>::CarmaSparseObj(CarmaContext *current_context,
 #else
 template <>
 CarmaSparseObj<float>::CarmaSparseObj(CarmaContext *current_context,
-                                          const long *dims, float *M,
+                                          const int64_t *dims, float *M,
                                           bool load_from_host) {
   init_carma_sparse_obj(current_context, dims, M, load_from_host);
 }
 template <>
 CarmaSparseObj<double>::CarmaSparseObj(CarmaContext *current_context,
-                                           const long *dims, double *M,
+                                           const int64_t *dims, double *M,
                                            bool load_from_host) {
   init_carma_sparse_obj(current_context, dims, M, load_from_host);
 }
@@ -216,8 +216,8 @@ CarmaSparseObj<double>::CarmaSparseObj(CarmaContext *current_context,
 #endif
 template <class T_data>
 CarmaSparseObj<T_data>::CarmaSparseObj(CarmaContext *current_context,
-                                           const long *dims, T_data *values,
-                                           int *colind, int *rowind, int nz,
+                                           const int64_t *dims, T_data *values,
+                                           int32_t *colind, int32_t *rowind, int32_t nz,
                                            bool load_from_host) {
   _create(nz, dims[1], dims[2]);
   this->current_context = current_context;
@@ -227,16 +227,16 @@ CarmaSparseObj<T_data>::CarmaSparseObj(CarmaContext *current_context,
   if (load_from_host) {
     cudaMemcpy(this->d_data, values, nz * sizeof(T_data),
                cudaMemcpyHostToDevice);
-    cudaMemcpy(this->d_colind, colind, nz * sizeof(int),
+    cudaMemcpy(this->d_colind, colind, nz * sizeof(int32_t),
                cudaMemcpyHostToDevice);
-    cudaMemcpy(this->d_rowind, rowind, (dims[1] + 1) * sizeof(int),
+    cudaMemcpy(this->d_rowind, rowind, (dims[1] + 1) * sizeof(int32_t),
                cudaMemcpyHostToDevice);
   } else {
     cudaMemcpy(this->d_data, values, nz * sizeof(T_data),
                cudaMemcpyDeviceToDevice);
-    cudaMemcpy(this->d_colind, colind, nz * sizeof(int),
+    cudaMemcpy(this->d_colind, colind, nz * sizeof(int32_t),
                cudaMemcpyDeviceToDevice);
-    cudaMemcpy(this->d_rowind, rowind, (dims[1] + 1) * sizeof(int),
+    cudaMemcpy(this->d_rowind, rowind, (dims[1] + 1) * sizeof(int32_t),
                cudaMemcpyDeviceToDevice);
   }
 #if CUDA_VERSION >= 11000
@@ -247,11 +247,11 @@ CarmaSparseObj<T_data>::CarmaSparseObj(CarmaContext *current_context,
 #endif
 }
 // template CarmaSparseObj<float>::CarmaSparseObj(
-//     CarmaContext *current_context, const long *dims, float *values,
-//     int *colind, int *rowind, int nz, bool load_from_host);
+//     CarmaContext *current_context, const int64_t *dims, float *values,
+//     int32_t *colind, int32_t *rowind, int32_t nz, bool load_from_host);
 // template CarmaSparseObj<double>::CarmaSparseObj(
-//     CarmaContext *current_context, const long *dims, double *values,
-//     int *colind, int *rowind, int nz, bool load_from_host);
+//     CarmaContext *current_context, const int64_t *dims, double *values,
+//     int32_t *colind, int32_t *rowind, int32_t nz, bool load_from_host);
 
 template <class T_data>
 CarmaSparseObj<T_data>::CarmaSparseObj(CarmaObj<T_data> *M) {
@@ -288,9 +288,9 @@ CarmaSparseObj<T_data>::CarmaSparseObj(CarmaSparseObj<T_data> *M) {
 
   cudaMemcpy(d_data, M->d_data, nz_elem * sizeof(T_data),
              cudaMemcpyDeviceToDevice);
-  cudaMemcpy(d_rowind, M->d_rowind, (M->get_dims(1) + 1) * sizeof(int),
+  cudaMemcpy(d_rowind, M->d_rowind, (M->get_dims(1) + 1) * sizeof(int32_t),
              cudaMemcpyDeviceToDevice);
-  cudaMemcpy(d_colind, M->d_colind, nz_elem * sizeof(int),
+  cudaMemcpy(d_colind, M->d_colind, nz_elem * sizeof(int32_t),
              cudaMemcpyDeviceToDevice);
 
   major_dim = M->major_dim;
@@ -321,9 +321,9 @@ CarmaSparseObj<T_data>::CarmaSparseObj(CarmaContext *current_context,
 
   cudaMemcpy(d_data, M->h_data, nz_elem * sizeof(T_data),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(d_rowind, M->rowind, (M->get_dims(1) + 1) * sizeof(int),
+  cudaMemcpy(d_rowind, M->rowind, (M->get_dims(1) + 1) * sizeof(int32_t),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(d_colind, M->colind, nz_elem * sizeof(int),
+  cudaMemcpy(d_colind, M->colind, nz_elem * sizeof(int32_t),
              cudaMemcpyHostToDevice);
 
   major_dim = M->get_major_dim();
@@ -342,9 +342,9 @@ void CarmaSparseObj<T_data>::operator=(CarmaSparseObj<T_data> &M) {
   resize(M.nz_elem, M.get_dims(1), M.get_dims(2));
   cudaMemcpy(d_data, M.d_data, nz_elem * sizeof(T_data),
              cudaMemcpyDeviceToDevice);
-  cudaMemcpy(d_rowind, M.d_rowind, (M.get_dims(1) + 1) * sizeof(int),
+  cudaMemcpy(d_rowind, M.d_rowind, (M.get_dims(1) + 1) * sizeof(int32_t),
              cudaMemcpyDeviceToDevice);
-  cudaMemcpy(d_colind, M.d_colind, nz_elem * sizeof(int),
+  cudaMemcpy(d_colind, M.d_colind, nz_elem * sizeof(int32_t),
              cudaMemcpyDeviceToDevice);
 
   major_dim = M.major_dim;
@@ -371,9 +371,9 @@ void CarmaSparseObj<T_data>::operator=(CarmaSparseHostObj<T_data> &M) {
   resize(M.nz_elem, M.get_dims(1), M.get_dims(2));
   cudaMemcpy(d_data, M.h_data, nz_elem * sizeof(T_data),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(d_rowind, M.rowind, (M.get_dims(1) + 1) * sizeof(int),
+  cudaMemcpy(d_rowind, M.rowind, (M.get_dims(1) + 1) * sizeof(int32_t),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(d_colind, M.colind, nz_elem * sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemcpy(d_colind, M.colind, nz_elem * sizeof(int32_t), cudaMemcpyHostToDevice);
 
   major_dim = M.get_major_dim();
   this->format = "CSR";
@@ -386,13 +386,13 @@ void CarmaSparseObj<T_data>::operator=(CarmaSparseHostObj<T_data> &M) {
 }
 
 template <class T_data>
-void CarmaSparseObj<T_data>::resize(int nz_elem_, int dim1_, int dim2_) {
+void CarmaSparseObj<T_data>::resize(int32_t nz_elem_, int32_t dim1_, int32_t dim2_) {
     _clear();
     _create(nz_elem_, dim1_, dim2_);
 }
 
 template <class T_data>
-void CarmaSparseObj<T_data>::allocate(int nz_elem, int dim1, int dim2) {
+void CarmaSparseObj<T_data>::allocate(int32_t nz_elem, int32_t dim1, int32_t dim2) {
   if (d_data != NULL) {
     carma_check_msg(cudaFree(d_data));
     carma_check_msg(cudaFree(d_rowind));
@@ -412,7 +412,7 @@ void CarmaSparseObj<T_data>::allocate(int nz_elem, int dim1, int dim2) {
 }
 
 template <class T_data>
-void CarmaSparseObj<T_data>::_create(int nz_elem_, int dim1_, int dim2_) {
+void CarmaSparseObj<T_data>::_create(int32_t nz_elem_, int32_t dim1_, int32_t dim2_) {
   cusparseStatus_t status;
   nz_elem = nz_elem_;
   dims_data[0] = 2;
@@ -421,8 +421,8 @@ void CarmaSparseObj<T_data>::_create(int nz_elem_, int dim1_, int dim2_) {
 
   if (nz_elem > 0) {
     cudaMalloc((void **)&d_data, nz_elem * sizeof(T_data));
-    cudaMalloc((void **)&d_rowind, (dim1_ + 1) * sizeof(int));
-    cudaMalloc((void **)&d_colind, nz_elem * sizeof(int));
+    cudaMalloc((void **)&d_rowind, (dim1_ + 1) * sizeof(int32_t));
+    cudaMalloc((void **)&d_colind, nz_elem * sizeof(int32_t));
   } else {
     d_data = NULL;
     d_rowind = d_colind = NULL;
@@ -482,12 +482,12 @@ template <class T_data>
 void CarmaSparseObj<T_data>::transpose() {
 
   T_data *csc_val;
-  int *csc_rows;
-  int *csc_cols;
+  int32_t *csc_rows;
+  int32_t *csc_cols;
 
   cudaMalloc((void**)&csc_val, nz_elem * sizeof(T_data));
-  cudaMalloc((void**)&csc_rows, nz_elem * sizeof(int));
-  cudaMalloc((void**)&csc_cols, (this->get_dims(2) + 1) * sizeof(int));
+  cudaMalloc((void**)&csc_rows, nz_elem * sizeof(int32_t));
+  cudaMalloc((void**)&csc_cols, (this->get_dims(2) + 1) * sizeof(int32_t));
 
   size_t buffer_size = 0;
   void *d_buffer;
@@ -514,9 +514,9 @@ void CarmaSparseObj<T_data>::transpose() {
 
   cudaMemcpy(d_data, csc_val, nz_elem * sizeof(T_data),
               cudaMemcpyDeviceToDevice);
-  cudaMemcpy(d_colind, csc_rows, nz_elem * sizeof(int),
+  cudaMemcpy(d_colind, csc_rows, nz_elem * sizeof(int32_t),
               cudaMemcpyDeviceToDevice);
-  cudaMemcpy(d_rowind, csc_cols, (this->get_dims(1) + 1) * sizeof(int),
+  cudaMemcpy(d_rowind, csc_cols, (this->get_dims(1) + 1) * sizeof(int32_t),
               cudaMemcpyDeviceToDevice);
 
   cudaFree(csc_val);
@@ -551,13 +551,13 @@ template <class T_data>
 bool CarmaSparseObj<T_data>::is_column_major() {
   bool colMajor = true;
   /* TODO: demerdé ça
-    int colm1 = 0;
-    int rowm1 = 0;
+    int32_t colm1 = 0;
+    int32_t rowm1 = 0;
 
     CarmaSparseHostObj<T_data> A_tmp;
     kp_cu2kp_smatrix(A_tmp, *this);
 
-    for (int i = 0; i < nz_elem; i++) {
+    for (int32_t i = 0; i < nz_elem; i++) {
 
       if (A_tmp.d_colind[i] == colm1) {
         colMajor = colMajor && (A_tmp.d_rowind[i] > rowm1);
@@ -596,10 +596,10 @@ template class CarmaSparseObj<double>;
 //       CarmaSparseObj<T_data> &M);                                        \
 //   template void CarmaSparseObj<T_data>::operator=(                       \
 //       CarmaSparseHostObj<T_data> &M);                                   \
-//   template void CarmaSparseObj<T_data>::resize(int nz_elem_, int dim1_,  \
-//                                                  int dim2_);               \
-//   template void CarmaSparseObj<T_data>::_create(int nz_elem_, int dim1_, \
-//                                                   int dim2_);              \
+//   template void CarmaSparseObj<T_data>::resize(int32_t nz_elem_, int32_t dim1_,  \
+//                                                  int32_t dim2_);               \
+//   template void CarmaSparseObj<T_data>::_create(int32_t nz_elem_, int32_t dim1_, \
+//                                                   int32_t dim2_);              \
 //   template void CarmaSparseObj<T_data>::_clear();                        \
 //   template void CarmaSparseObj<T_data>::transpose(             \
 //       CarmaSparseObj<T_data> *M);                                        \

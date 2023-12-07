@@ -32,7 +32,7 @@
 
 class CarmaDevice {
  protected:
-  int id;
+  int32_t id;
   cudaDeviceProp properties;
   float compute_perf;
   float cores_per_sm;
@@ -45,12 +45,12 @@ class CarmaDevice {
   cudaStream_t main_stream;
 
  public:
-  CarmaDevice(int devid);
-  int set_cublas_math_mode(bool tensor);
+  CarmaDevice(int32_t devid);
+  int32_t set_cublas_math_mode(bool tensor);
   // CarmaDevice(const CarmaDevice& device);
   ~CarmaDevice();
   cudaStream_t get_stream() { return main_stream; }
-  int get_id() { return id; }
+  int32_t get_id() { return id; }
   cudaDeviceProp get_properties() { return properties; }
   float get_compute_perf() { return compute_perf; }
   float get_cores_per_sm() { return cores_per_sm; }
@@ -78,92 +78,92 @@ class CarmaDevice {
 
 class CarmaContext {
  private:
-  int ndevice;
+  int32_t ndevice;
   std::vector<CarmaDevice*> devices;
-  int active_device;
-  int** can_access_peer;
+  int32_t active_device;
+  int32_t** can_access_peer;
 
   /// singleton context
   static std::shared_ptr<CarmaContext> s_instance;
 
   CarmaContext();
-  CarmaContext(int num_device);
-  CarmaContext(int nb_devices, int32_t* devices);
+  CarmaContext(int32_t num_device);
+  CarmaContext(int32_t nb_devices, const int32_t* devices);
 
   CarmaContext& operator=(const CarmaContext&) { return *s_instance; }
   CarmaContext(const CarmaContext&)
       : ndevice(0), active_device(0), can_access_peer(nullptr) {}
 
-  void init_context(const int nb_devices, int32_t* devices_id);
+  void init_context(const int32_t nb_devices, const int32_t* devices_id);
 
  public:
   ~CarmaContext();
 
-  static CarmaContext& instance_1gpu(int num_device);
-  static CarmaContext& instance_ngpu(int nb_devices, int32_t* devices_id);
+  static CarmaContext& instance_1gpu(int32_t num_device);
+  static CarmaContext& instance_ngpu(int32_t nb_devices, const int32_t* devices_id);
   static CarmaContext& instance();
 
-  int get_ndevice() { return ndevice; }
-  CarmaDevice* get_device(int dev) { return devices[dev]; }
-  int get_active_device() { return active_device; }
-  int get_active_real_device() { return devices[active_device]->get_id(); }
+  int32_t get_ndevice() { return ndevice; }
+  CarmaDevice* get_device(int32_t dev) { return devices[dev]; }
+  int32_t get_active_device() { return active_device; }
+  int32_t get_active_real_device() { return devices[active_device]->get_id(); }
 
-  int get_cuda_runtime_get_version() {
-    int runtime_version;
+  int32_t get_cuda_runtime_get_version() {
+    int32_t runtime_version;
     carma_safe_call(cudaRuntimeGetVersion(&runtime_version));
     return runtime_version;
   }
 
-  int get_cuda_driver_get_version() {
-    int driver_version;
+  int32_t get_cuda_driver_get_version() {
+    int32_t driver_version;
     carma_safe_call(cudaRuntimeGetVersion(&driver_version));
     return driver_version;
   }
 
-  std::string get_device_name(int device);
-  std::string get_device_info(int device);
-  std::string get_device_mem_info(int device);
+  std::string get_device_name(int32_t device);
+  std::string get_device_info(int32_t device);
+  std::string get_device_mem_info(int32_t device);
 
-  inline int _set_active_device_for_copy(int new_device, int silent,
-                                     std::string file, int line) {
+  inline int32_t _set_active_device_for_copy(int32_t new_device, int32_t silent,
+                                     std::string file, int32_t line) {
     if (new_device > ndevice) return -1;
     return (can_access_peer[active_device][new_device] != 1)
                ? _set_active_device(new_device, silent, file, line)
                : active_device;
   }
-  inline int _set_active_device(int new_device, int silent, std::string file,
-                               int line) {
+  inline int32_t _set_active_device(int32_t new_device, int32_t silent, std::string file,
+                               int32_t line) {
     return (this->active_device != new_device)
                ? _set_active_device_force(new_device, silent, file, line)
                : active_device;
   }
-  int _set_active_device_force(int new_device, int silent, std::string file,
-                             int line);
-  int get_max_gflops_device_id();
+  int32_t _set_active_device_force(int32_t new_device, int32_t silent, std::string file,
+                             int32_t line);
+  int32_t get_max_gflops_device_id();
   cublasHandle_t get_cublas_handle() { return get_cublas_handle(active_device); }
   cusparseHandle_t get_cusparse_handle() {
     return get_cusparse_handle(active_device);
   }
 
-  cublasHandle_t get_cublas_handle(int device) {
+  cublasHandle_t get_cublas_handle(int32_t device) {
     return devices[device]->get_cublas_handle();
   }
-  cusparseHandle_t get_cusparse_handle(int device) {
+  cusparseHandle_t get_cusparse_handle(int32_t device) {
     return devices[device]->get_cusparse_handle();
   }
-  bool can_p2p(int dev1, int dev2) { return can_access_peer[dev1][dev2]; }
+  bool can_p2p(int32_t dev1, int32_t dev2) { return can_access_peer[dev1][dev2]; }
 
   std::string magma_info();
 };
 
 /// from /usr/local/cuda/samples/common/inc/helper_cuda.h
-inline int convert_sm_version2cores(int major, int minor) {
+inline int32_t convert_sm_version2cores(int32_t major, int32_t minor) {
   // Defines for GPU Architecture types (using the SM version to determine the #
   // of cores per SM
   typedef struct {
-    int SM;  // 0xMm (hexidecimal notation), M = SM Major version, and m = SM
+    int32_t SM;  // 0xMm (hexidecimal notation), M = SM Major version, and m = SM
              // minor version
-    int Cores;
+    int32_t Cores;
   } sSMtoCores;
 
   sSMtoCores nGpuArchCoresPerSM[] = {
@@ -186,7 +186,7 @@ inline int convert_sm_version2cores(int major, int minor) {
       {0x86, 64},   // Ampere Generation (SM 8.6) GA104 class
       {-1, -1}};
 
-  int index = 0;
+  int32_t index = 0;
 
   while (nGpuArchCoresPerSM[index].SM != -1) {
     if (nGpuArchCoresPerSM[index].SM == ((major << 4) + minor)) {

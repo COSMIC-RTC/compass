@@ -17,9 +17,9 @@
 #include <sutra_source.h>
 
 SutraSource::SutraSource(CarmaContext *context, float xpos, float ypos,
-                           float lambda, float mag, float zerop, long size,
-                           string type, CarmaObj<float> *pupil, int Npts,
-                           int device)
+                           float lambda, float mag, float zerop, int64_t size,
+                           string type, CarmaObj<float> *pupil, int32_t Npts,
+                           int32_t device)
     : current_context(context),
       device(device),
       d_pupil(pupil),
@@ -32,16 +32,16 @@ SutraSource::SutraSource(CarmaContext *context, float xpos, float ypos,
   float *h_pupil = new float[this->d_pupil->get_nb_elements()];
   this->d_pupil->device2host(h_pupil);
 
-  long *dims_data1 = new long[2];
+  int64_t *dims_data1 = new int64_t[2];
   dims_data1[0] = 1;
-  dims_data1[1] = pow(2, (long)(logf(Npts) / logf(2)) + 1);
+  dims_data1[1] = pow(2, (int64_t)(logf(Npts) / logf(2)) + 1);
   // this->d_phasepts = new CarmaObj<float>(this->current_context, dims_data1);
   dims_data1[1] = Npts;
   this->d_phasepts = new CarmaObj<float>(this->current_context, dims_data1);
-  this->d_wherephase = new CarmaObj<int>(this->current_context, dims_data1);
-  int *wherephase = new int[Npts];
-  int cpt = 0;
-  for (int cc = 0; cc < this->d_pupil->get_nb_elements(); cc++) {
+  this->d_wherephase = new CarmaObj<int32_t>(this->current_context, dims_data1);
+  int32_t *wherephase = new int32_t[Npts];
+  int32_t cpt = 0;
+  for (int32_t cc = 0; cc < this->d_pupil->get_nb_elements(); cc++) {
     if (h_pupil[cc] > 0) {
       wherephase[cpt] = cc;
       cpt += 1;
@@ -55,8 +55,8 @@ SutraSource::SutraSource(CarmaContext *context, float xpos, float ypos,
 }
 
 SutraSource::SutraSource(CarmaContext *context, float xpos, float ypos,
-                           float lambda, float mag, float zerop, long size,
-                           string type, int device)
+                           float lambda, float mag, float zerop, int64_t size,
+                           string type, int32_t device)
     : current_context(context), device(device), d_ncpa_phase(nullptr) {
   this->device = device;
   current_context = context;
@@ -65,10 +65,10 @@ SutraSource::SutraSource(CarmaContext *context, float xpos, float ypos,
                     device);
 }
 
-inline int SutraSource::init_source(CarmaContext *context, float xpos,
+inline int32_t SutraSource::init_source(CarmaContext *context, float xpos,
                                      float ypos, float lambda, float mag,
-                                     float zerop, long size, string type,
-                                     int device) {
+                                     float zerop, int64_t size, string type,
+                                     int32_t device) {
   current_context->set_active_device(device, 1);
   this->current_context = context;
   this->strehl_counter = 0;
@@ -92,16 +92,16 @@ inline int SutraSource::init_source(CarmaContext *context, float xpos,
 
   // cudaDeviceProp deviceProperties =
   // current_context->get_device(device)->get_properties();
-  // this->blockSize = (int)sqrt(deviceProperties.maxThreadsPerBlock);
+  // this->blockSize = (int32_t)sqrt(deviceProperties.maxThreadsPerBlock);
   this->block_size = 8;
   this->phase_var_avg = 0;
   this->phase_var_count = -10;
 
-  long *dims_data2 = new long[3];
+  int64_t *dims_data2 = new int64_t[3];
   dims_data2[0] = 2;
   dims_data2[1] = size;
   dims_data2[2] = size;
-  int nstreams =
+  int32_t nstreams =
       (size + this->block_size - size % this->block_size) / this->block_size;
 
   this->phase_telemetry =
@@ -114,9 +114,9 @@ inline int SutraSource::init_source(CarmaContext *context, float xpos,
   this->d_wherephase = 0L;
 
   if (type != "wfs") {
-    int mradix = 2;  // fft_goodsize(size);
+    int32_t mradix = 2;  // fft_goodsize(size);
 
-    int fft_size = pow(mradix, (long)(logf(2 * size) / logf(mradix)) + 1);
+    int32_t fft_size = pow(mradix, (int64_t)(logf(2 * size) / logf(mradix)) + 1);
     dims_data2[1] = fft_size;
     dims_data2[2] = fft_size;
 
@@ -162,7 +162,7 @@ SutraSource::~SutraSource() {
   this->yoff.clear();
 }
 
-int SutraSource::init_strehlmeter() {
+int32_t SutraSource::init_strehlmeter() {
   current_context->set_active_device(device, 1);
   this->strehl_counter = 0;
   this->comp_image(1, false);
@@ -185,7 +185,7 @@ int SutraSource::init_strehlmeter() {
   return EXIT_SUCCESS;
 }
 
-int SutraSource::reset_strehlmeter() {
+int32_t SutraSource::reset_strehlmeter() {
   carma_safe_call(cudaMemset(this->d_image_le->get_data(), 0,
                            sizeof(float) * this->d_image_le->get_nb_elements()));
   this->strehl_counter = 0;
@@ -193,11 +193,11 @@ int SutraSource::reset_strehlmeter() {
   return EXIT_SUCCESS;
 }
 
-int SutraSource::reset_phase() {
+int32_t SutraSource::reset_phase() {
   this->d_phase->d_screen->reset();
   return EXIT_SUCCESS;
 }
-int SutraSource::add_layer(string type, int idx, float mxoff, float myoff) {
+int32_t SutraSource::add_layer(string type, int32_t idx, float mxoff, float myoff) {
   current_context->set_active_device(device, 1);
   xoff[make_pair(type, idx)] = mxoff;
   yoff[make_pair(type, idx)] = myoff;
@@ -205,7 +205,7 @@ int SutraSource::add_layer(string type, int idx, float mxoff, float myoff) {
   return EXIT_SUCCESS;
 }
 
-int SutraSource::remove_layer(string type, int idx) {
+int32_t SutraSource::remove_layer(string type, int32_t idx) {
   current_context->set_active_device(device, 1);
   xoff.erase(make_pair(type, idx));
   yoff.erase(make_pair(type, idx));
@@ -213,7 +213,7 @@ int SutraSource::remove_layer(string type, int idx) {
   return EXIT_SUCCESS;
 }
 
-int SutraSource::raytrace(SutraAtmos *yatmos, bool async) {
+int32_t SutraSource::raytrace(SutraAtmos *yatmos, bool async) {
   //  carma_safe_call(cudaDeviceSynchronize());
   current_context->set_active_device(device, 1);
   carma_safe_call(
@@ -228,16 +228,16 @@ int SutraSource::raytrace(SutraAtmos *yatmos, bool async) {
     string types = p->first.first;
 
     if (types.find("atmos") == 0) {
-      int idx = p->first.second;
+      int32_t idx = p->first.second;
       SutraTurbuScreen *ps;
       ps = yatmos->d_screens[idx];
       if ((p == xoff.end()) && async) {
         target_raytrace_async(
             this->phase_telemetry, this->d_phase->d_screen->get_data(),
             ps->d_tscreen->d_screen->get_data(),
-            (int)d_phase->d_screen->get_dims(1),
-            (int)d_phase->d_screen->get_dims(2),
-            (int)ps->d_tscreen->d_screen->get_dims(1),
+            (int32_t)d_phase->d_screen->get_dims(1),
+            (int32_t)d_phase->d_screen->get_dims(2),
+            (int32_t)ps->d_tscreen->d_screen->get_dims(1),
             xoff[std::make_pair("atmos", idx)],
             yoff[std::make_pair("atmos", idx)], this->block_size);
       } else {
@@ -246,9 +246,9 @@ int SutraSource::raytrace(SutraAtmos *yatmos, bool async) {
         }
         target_raytrace(this->d_phase->d_screen->get_data(),
                           ps->d_tscreen->d_screen->get_data(),
-                          (int)d_phase->d_screen->get_dims(1),
-                          (int)d_phase->d_screen->get_dims(2),
-                          (int)ps->d_tscreen->d_screen->get_dims(1),
+                          (int32_t)d_phase->d_screen->get_dims(1),
+                          (int32_t)d_phase->d_screen->get_dims(2),
+                          (int32_t)ps->d_tscreen->d_screen->get_dims(1),
                           xoff[std::make_pair("atmos", idx)] + ps->accumx,
                           yoff[std::make_pair("atmos", idx)] + ps->accumy, this->G,
                           this->thetaML, this->dx, this->dy, this->block_size, delta);
@@ -260,7 +260,7 @@ int SutraSource::raytrace(SutraAtmos *yatmos, bool async) {
   return EXIT_SUCCESS;
 }
 
-int SutraSource::raytrace(SutraDms *ydms, bool rst, bool do_phase_var,
+int32_t SutraSource::raytrace(SutraDms *ydms, bool rst, bool do_phase_var,
                            bool async) {
   current_context->set_active_device(device, 1);
   if (rst) this->d_phase->d_screen->reset();
@@ -271,16 +271,16 @@ int SutraSource::raytrace(SutraDms *ydms, bool rst, bool do_phase_var,
     string types = p->first.first;
     if ((types.find("pzt") == 0) || (types.find("tt") == 0) ||
         (types.find("kl") == 0)) {
-      int inddm = p->first.second;
+      int32_t inddm = p->first.second;
       if (inddm < 0) throw "error in SutraSource::raytrace, dm not find";
       SutraDm *ps = ydms->d_dms[inddm];
       if ((p == xoff.end()) && async) {
         target_raytrace_async(this->phase_telemetry,
                               this->d_phase->d_screen->get_data(),
                               ps->d_shape->d_screen->get_data(),
-                              (int)d_phase->d_screen->get_dims(1),
-                              (int)d_phase->d_screen->get_dims(2),
-                              (int)ps->d_shape->d_screen->get_dims(1),
+                              (int32_t)d_phase->d_screen->get_dims(1),
+                              (int32_t)d_phase->d_screen->get_dims(2),
+                              (int32_t)ps->d_shape->d_screen->get_dims(1),
                               xoff[make_pair(types, inddm)],
                               yoff[make_pair(types, inddm)], this->block_size);
       } else {
@@ -289,9 +289,9 @@ int SutraSource::raytrace(SutraDms *ydms, bool rst, bool do_phase_var,
         }
         target_raytrace(this->d_phase->d_screen->get_data(),
                           ps->d_shape->d_screen->get_data(),
-                          (int)d_phase->d_screen->get_dims(1),
-                          (int)d_phase->d_screen->get_dims(2),
-                          (int)ps->d_shape->d_screen->get_dims(1),
+                          (int32_t)d_phase->d_screen->get_dims(1),
+                          (int32_t)d_phase->d_screen->get_dims(2),
+                          (int32_t)ps->d_shape->d_screen->get_dims(1),
                           xoff[std::make_pair(types, inddm)],
                           yoff[std::make_pair(types, inddm)], this->G * ps->G,
                           this->thetaML + ps->thetaML, this->dx + ps->dx, this->dy + ps->dy, this->block_size, delta);
@@ -331,7 +331,7 @@ int SutraSource::raytrace(SutraDms *ydms, bool rst, bool do_phase_var,
   return EXIT_SUCCESS;
 }
 
-int SutraSource::raytrace(bool rst) {
+int32_t SutraSource::raytrace(bool rst) {
   this->current_context->set_active_device(this->device, 1);
 
   if (rst) {
@@ -344,7 +344,7 @@ int SutraSource::raytrace(bool rst) {
   return EXIT_SUCCESS;
 }
 
-int SutraSource::raytrace(SutraTelescope *tel, bool rst) {
+int32_t SutraSource::raytrace(SutraTelescope *tel, bool rst) {
   this->current_context->set_active_device(this->device, 1);
 
   if (rst) {
@@ -368,9 +368,9 @@ int SutraSource::raytrace(SutraTelescope *tel, bool rst) {
 
     target_raytrace(this->d_phase->d_screen->get_data(),
                     tel->d_input_phase->get_data_at(tel->pup_size_m * tel->pup_size_m * tel->input_phase_counter),
-                    (int)d_phase->d_screen->get_dims(1),
-                    (int)d_phase->d_screen->get_dims(2),
-                    (int)tel->d_input_phase->get_dims(1),
+                    (int32_t)d_phase->d_screen->get_dims(1),
+                    (int32_t)d_phase->d_screen->get_dims(2),
+                    (int32_t)tel->d_input_phase->get_dims(1),
                     xoff,
                     yoff, 1.0f,
                     0.f, 0.f, 0.f, this->block_size, 1.f);
@@ -379,7 +379,7 @@ int SutraSource::raytrace(SutraTelescope *tel, bool rst) {
   return EXIT_SUCCESS;
 }
 
-int SutraSource::raytrace(SutraTelescope *tel, SutraAtmos *atmos,
+int32_t SutraSource::raytrace(SutraTelescope *tel, SutraAtmos *atmos,
                            SutraDms *ydms, bool do_phase_var, bool async) {
   this->current_context->set_active_device(this->device, 1);
   this->raytrace(atmos, async);
@@ -388,7 +388,7 @@ int SutraSource::raytrace(SutraTelescope *tel, SutraAtmos *atmos,
   this->raytrace(false);
   return EXIT_SUCCESS;
 }
-int SutraSource::comp_image(int puponly, bool comp_le) {
+int32_t SutraSource::comp_image(int32_t puponly, bool comp_le) {
   current_context->set_active_device(device, 1);
   if (this->d_amplipup == 0) return -1;
 
@@ -417,7 +417,7 @@ int SutraSource::comp_image(int puponly, bool comp_le) {
   this->d_image_se->scale(1.0f / this->d_wherephase->get_dims(1), 1);
   this->d_image_se->scale(1.0f / this->d_wherephase->get_dims(1), 1);
 
-  // if long exposure image is not null
+  // if int64_t exposure image is not null
   if (this->d_image_le != 0L && comp_le) {
     // add new short exposure
     this->d_image_le->axpy(1.0f, this->d_image_se, 1, 1);
@@ -445,16 +445,16 @@ float sinc(double x) {
  * @param img_size size of the d_img leading dimension
  * @return float Strehl fitted
  */
-float SutraSource::fitmax2x1dSinc(float *d_img, int ind_max, int img_size) {
-  const int small_size = 2 * this->d_smallimg_size + 1;
+float SutraSource::fitmax2x1dSinc(float *d_img, int32_t ind_max, int32_t img_size) {
+  const int32_t small_size = 2 * this->d_smallimg_size + 1;
   extract(this->d_smallimg->get_data(), d_img, img_size, ind_max, small_size,
           true);
   std::vector<float> smallimg(small_size * small_size);
-  const int center = ((small_size * small_size) - 1) / 2;
-  const int right_ind = center + 1;
-  const int left_ind = center - 1;
-  const int down_ind = center - small_size;
-  const int up_ind = center + small_size;
+  const int32_t center = ((small_size * small_size) - 1) / 2;
+  const int32_t right_ind = center + 1;
+  const int32_t left_ind = center - 1;
+  const int32_t down_ind = center - small_size;
+  const int32_t up_ind = center + small_size;
 
   this->d_smallimg->device2host(smallimg.data());
 
@@ -471,10 +471,10 @@ float SutraSource::fitmax2x1dSinc(float *d_img, int ind_max, int img_size) {
 
   // interpolation exacte par shannon(theoreme des sinus cardinaux)
   float valmax = 0.0;
-  int ind = 0;
-  for (int i = -this->d_smallimg_size; i < this->d_smallimg_size + 1; ++i) {
+  int32_t ind = 0;
+  for (int32_t i = -this->d_smallimg_size; i < this->d_smallimg_size + 1; ++i) {
     const float tmpi = sinc(x0 - i);
-    for (int j = -this->d_smallimg_size; j < this->d_smallimg_size + 1; ++j) {
+    for (int32_t j = -this->d_smallimg_size; j < this->d_smallimg_size + 1; ++j) {
       const float tmpj = sinc(y0 - j);
       valmax += tmpi * tmpj * smallimg[ind++];
     }
@@ -482,13 +482,13 @@ float SutraSource::fitmax2x1dSinc(float *d_img, int ind_max, int img_size) {
   return valmax;
 }
 
-int SutraSource::comp_strehl(bool do_fit) {
+int32_t SutraSource::comp_strehl(bool do_fit) {
   current_context->set_active_device(device, 1);
 
-  const int max_se = this->d_image_se->aimax(1);
-  const int max_le = this->d_image_le->aimax(1);
+  const int32_t max_se = this->d_image_se->aimax(1);
+  const int32_t max_le = this->d_image_le->aimax(1);
   if (do_fit) {
-    const int img_size = d_image_se->get_dims(1);
+    const int32_t img_size = d_image_se->get_dims(1);
     this->strehl_se =
         fitmax2x1dSinc(this->d_image_se->get_data(), max_se, img_size);
     this->strehl_le =

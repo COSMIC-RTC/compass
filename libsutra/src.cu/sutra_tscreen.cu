@@ -20,16 +20,16 @@
 extern __shared__ float cache_shm[];
 
 __global__ void vonkarman_krnl(cuFloatComplex *odata, float *idata, float k0,
-                               int nalias, int nx, int ny, int blockSize) {
-  int x = threadIdx.x + blockIdx.x * blockDim.x;
-  int y = threadIdx.y + blockIdx.y * blockDim.y;
+                               int32_t nalias, int32_t nx, int32_t ny, int32_t blockSize) {
+  int32_t x = threadIdx.x + blockIdx.x * blockDim.x;
+  int32_t y = threadIdx.y + blockIdx.y * blockDim.y;
 
   cache_shm[threadIdx.x + threadIdx.y * blockSize] = 0.0f;
 
   if ((x < nx) && (y < ny)) {
     // generate von karman spectrum
-    for (int i = -nalias; i <= nalias; i++) {
-      for (int j = -nalias; j <= nalias; j++) {
+    for (int32_t i = -nalias; i <= nalias; i++) {
+      for (int32_t j = -nalias; j <= nalias; j++) {
         if ((i == 0) && (j == 0)) {
           float xc = nx / 2;
           float yc = ny / 2;
@@ -64,15 +64,15 @@ __global__ void vonkarman_krnl(cuFloatComplex *odata, float *idata, float k0,
   }
 }
 
-int gene_vonkarman(cuFloatComplex *d_odata, float *d_idata, float k0,
-                   int nalias, int nx, int ny, int block_size) {
-  int nnx =
+int32_t gene_vonkarman(cuFloatComplex *d_odata, float *d_idata, float k0,
+                   int32_t nalias, int32_t nx, int32_t ny, int32_t block_size) {
+  int32_t nnx =
       nx + block_size - nx % block_size;  // find next multiple of BLOCK_SZ
-  int nny = ny + block_size - ny % block_size;
+  int32_t nny = ny + block_size - ny % block_size;
   dim3 blocks(nnx / block_size, nny / block_size),
       threads(block_size, block_size);
 
-  int smemSize = (block_size + 1) * (block_size + 1) * sizeof(float);
+  int32_t smemSize = (block_size + 1) * (block_size + 1) * sizeof(float);
 
   vonkarman_krnl<<<blocks, threads, smemSize>>>(d_odata, d_idata, k0, nalias,
                                                 nx, ny, block_size);
@@ -81,9 +81,9 @@ int gene_vonkarman(cuFloatComplex *d_odata, float *d_idata, float k0,
   return EXIT_SUCCESS;
 }
 
-__global__ void dphix_krnl(float *odata, float *idata, int N, int iter,
-                           int nx) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+__global__ void dphix_krnl(float *odata, float *idata, int32_t N, int32_t iter,
+                           int32_t nx) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid + iter < N) {
     if (tid % nx < nx - iter)
@@ -93,9 +93,9 @@ __global__ void dphix_krnl(float *odata, float *idata, int N, int iter,
   }
 }
 
-__global__ void dphiy_krnl(float *odata, float *idata, int N, int iter,
-                           int nx) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+__global__ void dphiy_krnl(float *odata, float *idata, int32_t N, int32_t iter,
+                           int32_t nx) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid + iter * nx < N) {
     odata[tid] = (idata[tid] - idata[tid + iter * nx]) *
@@ -104,10 +104,10 @@ __global__ void dphiy_krnl(float *odata, float *idata, int N, int iter,
   }
 }
 
-int norm_pscreen(float *d_odata, float *d_idata, int nx, int ny,
+int32_t norm_pscreen(float *d_odata, float *d_idata, int32_t nx, int32_t ny,
                  float norm_fact, CarmaDevice *device) {
   float sfx, sfy, norm = 0;
-  int nb_threads = 0, nb_blocks = 0;
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, nx * ny, nb_blocks, nb_threads);
 
   dim3 grid(nb_blocks), threads(nb_threads);
@@ -115,8 +115,8 @@ int norm_pscreen(float *d_odata, float *d_idata, int nx, int ny,
   cublasHandle_t cublas_handle;
   cublasCreate(&cublas_handle);
 
-  int npts = 5;
-  for (int i = 1; i < npts + 1; i++) {
+  int32_t npts = 5;
+  for (int32_t i = 1; i < npts + 1; i++) {
     carma_safe_call(cudaMemset(d_odata, 0, sizeof(float) * nx * ny));
     dphix_krnl<<<grid, threads>>>(d_odata, d_idata, nx * ny, i, nx);
     carma_check_msg("dphix_kernel<<<>>> execution failed\n");

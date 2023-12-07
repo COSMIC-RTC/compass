@@ -18,10 +18,10 @@
 
 // texture<float, 3, cudaReadModeElementType> tex3;  // 3D texture
 
-__device__ float interp_transf(float *idata, float tidim, int npix,
+__device__ float interp_transf(float *idata, float tidim, int32_t npix,
                                float pixsize, float norm, float shiftx,
-                               float deltah, int hmax) {
-  int xref;
+                               float deltah, int32_t hmax) {
+  int32_t xref;
   float weightx;
 
   // determine the interpolated position
@@ -40,7 +40,7 @@ __device__ float interp_transf(float *idata, float tidim, int npix,
     weightx = 0.;
   } else {
     if (tidim < hmax - 2) {
-      xref = (int)tidim;
+      xref = (int32_t)tidim;
       weightx = tidim - xref;
     } else {
       xref = hmax - 2;
@@ -52,13 +52,13 @@ __device__ float interp_transf(float *idata, float tidim, int npix,
 }
 
 __global__ void iprof_krnl(cuFloatComplex *profout, float *profin,
-                           float *profinc, int npix, float *doffaxis, float hg,
-                           float pixsize, float h0, float deltah, int hmax,
-                           int Ntot) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+                           float *profinc, int32_t npix, float *doffaxis, float hg,
+                           float pixsize, float h0, float deltah, int32_t hmax,
+                           int32_t Ntot) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < Ntot) {
-    int nim = tid / npix;
+    int32_t nim = tid / npix;
     float tidim = tid - nim * npix;
     float norm;
 
@@ -80,10 +80,10 @@ __global__ void iprof_krnl(cuFloatComplex *profout, float *profin,
   }
 }
 
-int interp_prof(cuFloatComplex *profout, float *prof1d, float *profcum,
-                int npix, float *doffaxis, float hg, float pixsize, float h0,
-                float deltah, int hmax, int Ntot, CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
+int32_t interp_prof(cuFloatComplex *profout, float *prof1d, float *profcum,
+                int32_t npix, float *doffaxis, float hg, float pixsize, float h0,
+                float deltah, int32_t hmax, int32_t Ntot, CarmaDevice *device) {
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, Ntot, nb_blocks, nb_threads);
 
   dim3 grid(nb_blocks), threads(nb_threads);
@@ -96,9 +96,9 @@ int interp_prof(cuFloatComplex *profout, float *prof1d, float *profcum,
 }
 
 __global__ void tftbeam_krnl(cuFloatComplex *profout, cuFloatComplex *fbeam,
-                             int N, int Ntot) {
-  int idim;
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+                             int32_t N, int32_t Ntot) {
+  int32_t idim;
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < Ntot) {
     idim = tid % N;
@@ -109,9 +109,9 @@ __global__ void tftbeam_krnl(cuFloatComplex *profout, cuFloatComplex *fbeam,
   }
 }
 
-int times_ftbeam(cuFloatComplex *profout, cuFloatComplex *ftbeam, int N,
-                 int Ntot, CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
+int32_t times_ftbeam(cuFloatComplex *profout, cuFloatComplex *ftbeam, int32_t N,
+                 int32_t Ntot, CarmaDevice *device) {
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, Ntot, nb_blocks, nb_threads);
 
   dim3 grid(nb_blocks), threads(nb_threads);
@@ -123,23 +123,23 @@ int times_ftbeam(cuFloatComplex *profout, cuFloatComplex *ftbeam, int N,
 }
 
 __global__ void rollbeamexp_krnl(float *imout, cuFloatComplex *iprof,
-                                 float *beam, int N, int Ntot) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+                                 float *beam, int32_t N, int32_t Ntot) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < Ntot) {
-    int nim = tid / (N * N);
-    int tidim = tid % (N * N);
-    int tidprof = tidim % N;
-    int tidbeam = tidim / N;
-    int x = (tidprof + (N / 2)) % N + nim * N;  // for roll
+    int32_t nim = tid / (N * N);
+    int32_t tidim = tid % (N * N);
+    int32_t tidprof = tidim % N;
+    int32_t tidbeam = tidim / N;
+    int32_t x = (tidprof + (N / 2)) % N + nim * N;  // for roll
     imout[tid] = abs(iprof[x].x) * beam[tidbeam];
     tid += blockDim.x * gridDim.x;
   }
 }
 
-int roll_beam_exp(float *imout, cuFloatComplex *iprof, float *beam, int N,
-                int Ntot, CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
+int32_t roll_beam_exp(float *imout, cuFloatComplex *iprof, float *beam, int32_t N,
+                int32_t Ntot, CarmaDevice *device) {
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, Ntot, nb_blocks, nb_threads);
 
   dim3 grid(nb_blocks), threads(nb_threads);
@@ -150,19 +150,19 @@ int roll_beam_exp(float *imout, cuFloatComplex *iprof, float *beam, int N,
   return EXIT_SUCCESS;
 }
 
-__global__ void rotate_krnl(cuFloatComplex *odata, float *idata, int width,
-                            int height, float *theta, float center, int N,
-                            int Ntot)
+__global__ void rotate_krnl(cuFloatComplex *odata, float *idata, int32_t width,
+                            int32_t height, float *theta, float center, int32_t N,
+                            int32_t Ntot)
 // rotate a cube manually
 {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < Ntot) {
-    int nim = tid / N;
-    int tidim = tid - nim * N;
+    int32_t nim = tid / N;
+    int32_t tidim = tid - nim * N;
 
-    int y = tidim / width;
-    int x = tidim - y * width;
+    int32_t y = tidim / width;
+    int32_t x = tidim - y * width;
 
     float ucent = width / 2 - center;
     float vcent = height / 2 - center;
@@ -173,7 +173,7 @@ __global__ void rotate_krnl(cuFloatComplex *odata, float *idata, int width,
     float tu = u * cos(theta[nim]) + v * sin(theta[nim]) + ucent;
     float tv = -u * sin(theta[nim]) + v * cos(theta[nim]) + ucent;
 
-    int uref, vref;
+    int32_t uref, vref;
     float weightu, weightv;
 
     if (tu < 0) {
@@ -181,7 +181,7 @@ __global__ void rotate_krnl(cuFloatComplex *odata, float *idata, int width,
       weightu = 0.;
     } else {
       if (tu < width - 2) {
-        uref = (int)tu;
+        uref = (int32_t)tu;
         weightu = tu - uref;
       } else {
         uref = width - 2;
@@ -194,7 +194,7 @@ __global__ void rotate_krnl(cuFloatComplex *odata, float *idata, int width,
       weightv = 0.;
     } else {
       if (tv < height - 2) {
-        vref = (int)tv;
+        vref = (int32_t)tv;
         weightv = tv - vref;
       } else {
         vref = height - 2;
@@ -202,7 +202,7 @@ __global__ void rotate_krnl(cuFloatComplex *odata, float *idata, int width,
       }
     }
 
-    int ind1, ind2, ind3, ind4;
+    int32_t ind1, ind2, ind3, ind4;
     ind1 = ind2 = ind3 = ind4 = nim * N;
 
     ind1 += uref + vref * width;
@@ -219,13 +219,13 @@ __global__ void rotate_krnl(cuFloatComplex *odata, float *idata, int width,
   }
 }
 
-int lgs_rotate(cuFloatComplex *odata, float *idata, int width, int height,
-               float *theta, float center, int Ntot, CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
+int32_t lgs_rotate(cuFloatComplex *odata, float *idata, int32_t width, int32_t height,
+               float *theta, float center, int32_t Ntot, CarmaDevice *device) {
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, Ntot, nb_blocks, nb_threads);
   dim3 grid(nb_blocks), threads(nb_threads);
 
-  int N = width * height;
+  int32_t N = width * height;
 
   rotate_krnl<<<grid, threads>>>(odata, idata, width, height, theta, center, N,
                                  Ntot);
@@ -234,18 +234,18 @@ int lgs_rotate(cuFloatComplex *odata, float *idata, int width, int height,
   return EXIT_SUCCESS;
 }
 
-// __global__ void rotate3d_krnl(cuFloatComplex *g_odata, int width, int height,
-//                               int N, float *theta, float center, int Ntot)
+// __global__ void rotate3d_krnl(cuFloatComplex *g_odata, int32_t width, int32_t height,
+//                               int32_t N, float *theta, float center, int32_t Ntot)
 // // rotate a cube using 3d texture fetch
 // {
-//   int tid = threadIdx.x + blockIdx.x * blockDim.x;
+//   int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 
 //   while (tid < Ntot) {
-//     int nim = tid / N;
-//     int tidim = tid - nim * N;
+//     int32_t nim = tid / N;
+//     int32_t tidim = tid - nim * N;
 
-//     int y = tidim / width;
-//     int x = tidim - y * width;
+//     int32_t y = tidim / width;
+//     int32_t x = tidim - y * width;
 
 //     float ucent = width / 2 - center;
 //     float vcent = height / 2 - center;
@@ -262,9 +262,9 @@ int lgs_rotate(cuFloatComplex *odata, float *idata, int width, int height,
 //   }
 // }
 
-// int rotate3d(cuFloatComplex *d_odata, cudaMemcpy3DParms copyParams,
-//              cudaArray *d_array, cudaChannelFormatDesc channel_desc, int width,
-//              int height, float *theta, float center, int Ntot,
+// int32_t rotate3d(cuFloatComplex *d_odata, cudaMemcpy3DParms copyParams,
+//              cudaArray *d_array, cudaChannelFormatDesc channel_desc, int32_t width,
+//              int32_t height, float *theta, float center, int32_t Ntot,
 //              CarmaDevice *device) {
 //   tex3.normalized = false;
 //   tex3.filterMode = cudaFilterModeLinear;      // linear interpolation
@@ -277,9 +277,9 @@ int lgs_rotate(cuFloatComplex *odata, float *idata, int width, int height,
 //   // bind array to 3D texture
 //   carma_safe_call(cudaBindTextureToArray(tex3, d_array, channel_desc));
 
-//   int N = width * height;
+//   int32_t N = width * height;
 
-//   int nb_blocks, nb_threads;
+//   int32_t nb_blocks, nb_threads;
 //   get_num_blocks_and_threads(device, Ntot, nb_blocks, nb_threads);
 //   dim3 grid(nb_blocks), threads(nb_threads);
 

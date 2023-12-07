@@ -13,9 +13,9 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_centroider_pyr.h>
+#include "sutraWrapUtils.hpp"
 
-#include <wyrm>
+#include <sutra_centroider_pyr.h>
 
 namespace py = pybind11;
 
@@ -45,7 +45,7 @@ void centroider_pyr_impl(py::module &mod, const char *name) {
     Set the pyramid method for slopes computation
 
     Args:
-            method : (int) : new centroiding method (0: nosinus global
+            method : (int32_t) : new centroiding method (0: nosinus global
                                                     1: sinus global
                                                     2: nosinus local
                                                     3: sinus local)

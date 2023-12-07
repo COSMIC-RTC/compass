@@ -53,10 +53,10 @@ void SutraRtcCacao<Tin, Tcomp, Tout>::allocate_buffers() {
   nslp_ = 0;
   ncmd_ = 0;
   nvalid_ = 0;
-  for (unsigned int i = 0; i < this->d_centro.size(); i++) {
+  for (uint32_t i = 0; i < this->d_centro.size(); i++) {
     nvalid_ += this->d_centro[i]->d_intensities->get_nb_elements();
   }
-  for (unsigned int i = 0; i < this->d_control.size(); i++) {
+  for (uint32_t i = 0; i < this->d_control.size(); i++) {
     nslp_ += this->d_control[i]->nslope();
     ncmd_ += this->d_control[i]->nactu();
   }
@@ -96,17 +96,17 @@ void SutraRtcCacao<Tin, Tcomp, Tout>::publish() {
 
   Tcomp* zFrame = interface_loop_frame_->outputPtr();
 
-  for (unsigned int i = 0; i < this->d_centro.size(); i++) {
+  for (uint32_t i = 0; i < this->d_centro.size(); i++) {
     // this->d_centro[i]->d_intensities->device2host(zFrame);
     zFrame += this->d_centro[i]->d_intensities->get_nb_elements();
   }
 
-  for (unsigned int i = 0; i < this->d_control.size(); i++) {
+  for (uint32_t i = 0; i < this->d_control.size(); i++) {
     this->d_control[i]->d_centroids->device2host(zFrame);
     zFrame += this->d_control[i]->nslope();
   }
 
-  for (unsigned int i = 0; i < this->d_control.size(); i++) {
+  for (uint32_t i = 0; i < this->d_control.size(); i++) {
     this->d_control[i]->d_com_clipped->device2host(zFrame);
     zFrame += this->d_control[i]->nactu();
   }

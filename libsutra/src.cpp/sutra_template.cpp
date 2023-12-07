@@ -17,7 +17,7 @@
 #include <sutra_template.h>
 
 SutraTemplate::SutraTemplate(CarmaContext *context, const char *type,
-                                   long dim, int device) {
+                                   int64_t dim, int32_t device) {
   // some inits
   this->current_context = context;
   this->dim = dim;
@@ -25,7 +25,7 @@ SutraTemplate::SutraTemplate(CarmaContext *context, const char *type,
   this->device = device;
 
   // allocate data and result
-  long *dims_data1 = new long[2];
+  int64_t *dims_data1 = new int64_t[2];
   dims_data1[0] = 1;
   dims_data1[1] = dim;
   this->d_data = new CarmaObj<float>(context, dims_data1);
@@ -39,14 +39,14 @@ SutraTemplate::~SutraTemplate() {
   delete this->d_res;
 }
 
-int SutraTemplate::fill_data(float *idata) {
+int32_t SutraTemplate::fill_data(float *idata) {
   // fill data with an external array
   this->d_data->host2device(idata);
 
   return EXIT_SUCCESS;
 }
 
-int SutraTemplate::fill_data() {
+int32_t SutraTemplate::fill_data() {
   // fill data with random numbers
   this->d_data->init_prng();
   this->d_data->prng('N');
@@ -54,9 +54,9 @@ int SutraTemplate::fill_data() {
   return EXIT_SUCCESS;
 }
 
-int SutraTemplate::do_compute() {
+int32_t SutraTemplate::do_compute() {
   // do computation on data and store in result
-  int nb_threads = 0, nb_blocks = 0;
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(current_context->get_device(device), this->dim,
                          nb_blocks, nb_threads);
 

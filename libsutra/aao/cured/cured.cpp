@@ -9,11 +9,11 @@
 
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 #define min(a, b) (((a) < (b)) ? (a) : (b))
-#define round(a) ((a >= 0) ? (int)(a + 0.5) : (int)(a - 0.5))
+#define round(a) ((a >= 0) ? (int32_t)(a + 0.5) : (int32_t)(a - 0.5))
 
-sysCure *cureSystem(int linenum, int numofelems, int numofresults, int *I_sub,
-                    int ndivs) {
-  int i, j;
+sysCure *cureSystem(int32_t linenum, int32_t numofelems, int32_t numofresults, int32_t *I_sub,
+                    int32_t ndivs) {
+  int32_t i, j;
   // float readme;
   sysCure *sys;
 
@@ -23,14 +23,14 @@ sysCure *cureSystem(int linenum, int numofelems, int numofresults, int *I_sub,
   sys->numofelems = numofelems;
   sys->numofresults = numofresults;
 
-  sys->I_sub = (int *)malloc(linenum * linenum * sizeof(int));
-  sys->I_fried = (int *)malloc((linenum + 1) * (linenum + 1) * sizeof(int));
+  sys->I_sub = (int32_t *)malloc(linenum * linenum * sizeof(int32_t));
+  sys->I_fried = (int32_t *)malloc((linenum + 1) * (linenum + 1) * sizeof(int32_t));
   sys->I_act = sys->I_fried;
 
   sys->dataX = (float *)malloc(numofelems * sizeof(float));
   sys->dataY = (float *)malloc(numofelems * sizeof(float));
 
-  memcpy(sys->I_sub, I_sub, linenum * linenum * sizeof(int));
+  memcpy(sys->I_sub, I_sub, linenum * linenum * sizeof(int32_t));
 
   sys->ndivs = ndivs;
 
@@ -57,19 +57,19 @@ sysCure *cureSystem(int linenum, int numofelems, int numofresults, int *I_sub,
 }
 
 parCure *cureInit(sysCure *sys) {
-  int i, j, k, l, start, help, help2, row, sum;
-  int ndivs = sys->ndivs; /* handover of system parameters */
-  int numofelems = sys->numofelems;
-  int numofresults = sys->numofresults;
-  // int numofacts = numofresults;
-  int linenum = sys->linenum;
-  int *I_sub = sys->I_sub;
-  int parts = 1 << ndivs;
-  int mainpartsize, rest;
-  int *iter, *S_iter;
-  int *partsize = (int *)malloc(parts * sizeof(int));
-  int *S_connect = (int *)malloc(numofelems * sizeof(int));
-  int **I_sub_p_iter = (int **)malloc(parts * parts * sizeof(int *));
+  int32_t i, j, k, l, start, help, help2, row, sum;
+  int32_t ndivs = sys->ndivs; /* handover of system parameters */
+  int32_t numofelems = sys->numofelems;
+  int32_t numofresults = sys->numofresults;
+  // int32_t numofacts = numofresults;
+  int32_t linenum = sys->linenum;
+  int32_t *I_sub = sys->I_sub;
+  int32_t parts = 1 << ndivs;
+  int32_t mainpartsize, rest;
+  int32_t *iter, *S_iter;
+  int32_t *partsize = (int32_t *)malloc(parts * sizeof(int32_t));
+  int32_t *S_connect = (int32_t *)malloc(numofelems * sizeof(int32_t));
+  int32_t **I_sub_p_iter = (int32_t **)malloc(parts * parts * sizeof(int32_t *));
   float *startweight;
   float **Sx_p = (float **)malloc(parts * parts * sizeof(float *));
   float **Sy_p = (float **)malloc(parts * parts * sizeof(float *));
@@ -103,7 +103,7 @@ parCure *cureInit(sysCure *sys) {
     for (j = 0; j < parts; j++) {
       start = i * parts + j;
       part_par[start].I_sub =
-          (int *)malloc((partsize[i]) * (partsize[j]) * sizeof(int));
+          (int32_t *)malloc((partsize[i]) * (partsize[j]) * sizeof(int32_t));
       I_sub_p_iter[start] = part_par[start].I_sub;
       part_par[start].numofelems = 0;
       part_par[start].linenumX = partsize[i];
@@ -141,42 +141,42 @@ parCure *cureInit(sysCure *sys) {
   /* create the parameters and fields for the parts for faster computation */
   for (k = 0; k < parts * parts; k++) {
     part_par[k].lineX_start =
-        (int *)malloc((part_par[k].linenumX) * sizeof(int));
+        (int32_t *)malloc((part_par[k].linenumX) * sizeof(int32_t));
     part_par[k].lineX_length =
-        (int *)malloc((part_par[k].linenumX) * sizeof(int));
+        (int32_t *)malloc((part_par[k].linenumX) * sizeof(int32_t));
     part_par[k].lineX_starta =
-        (int *)malloc((part_par[k].linenumX) * sizeof(int));
+        (int32_t *)malloc((part_par[k].linenumX) * sizeof(int32_t));
     part_par[k].lineX_startb =
-        (int *)malloc((part_par[k].linenumX) * sizeof(int));
+        (int32_t *)malloc((part_par[k].linenumX) * sizeof(int32_t));
     part_par[k].lineX_enda =
-        (int *)malloc((part_par[k].linenumX) * sizeof(int));
+        (int32_t *)malloc((part_par[k].linenumX) * sizeof(int32_t));
     part_par[k].lineX_endb =
-        (int *)malloc((part_par[k].linenumX) * sizeof(int));
+        (int32_t *)malloc((part_par[k].linenumX) * sizeof(int32_t));
     part_par[k].actX_start =
-        (int *)malloc((part_par[k].linenumX + 1) * sizeof(int));
+        (int32_t *)malloc((part_par[k].linenumX + 1) * sizeof(int32_t));
     part_par[k].actX_length =
-        (int *)malloc((part_par[k].linenumX + 1) * sizeof(int));
+        (int32_t *)malloc((part_par[k].linenumX + 1) * sizeof(int32_t));
     part_par[k].lineY_start =
-        (int *)malloc((part_par[k].linenumY) * sizeof(int));
+        (int32_t *)malloc((part_par[k].linenumY) * sizeof(int32_t));
     part_par[k].lineY_length =
-        (int *)malloc((part_par[k].linenumY) * sizeof(int));
+        (int32_t *)malloc((part_par[k].linenumY) * sizeof(int32_t));
     part_par[k].lineY_starta =
-        (int *)malloc((part_par[k].linenumY) * sizeof(int));
+        (int32_t *)malloc((part_par[k].linenumY) * sizeof(int32_t));
     part_par[k].lineY_startb =
-        (int *)malloc((part_par[k].linenumY) * sizeof(int));
+        (int32_t *)malloc((part_par[k].linenumY) * sizeof(int32_t));
     part_par[k].lineY_enda =
-        (int *)malloc((part_par[k].linenumY) * sizeof(int));
+        (int32_t *)malloc((part_par[k].linenumY) * sizeof(int32_t));
     part_par[k].lineY_endb =
-        (int *)malloc((part_par[k].linenumY) * sizeof(int));
-    part_par[k].connect_length = (int *)malloc(4 * sizeof(int));
-    part_par[k].empty = (int *)malloc(4 * sizeof(int));
-    part_par[k].connect_pos = (int *)malloc(
+        (int32_t *)malloc((part_par[k].linenumY) * sizeof(int32_t));
+    part_par[k].connect_length = (int32_t *)malloc(4 * sizeof(int32_t));
+    part_par[k].empty = (int32_t *)malloc(4 * sizeof(int32_t));
+    part_par[k].connect_pos = (int32_t *)malloc(
         (2 * part_par[k].linenumX + 2 * part_par[k].linenumY + 4) *
-        sizeof(int));
+        sizeof(int32_t));
     part_par[k].act_weight =
         (float *)malloc((part_par[k].numofresults) * sizeof(float));
     part_par[k].actconnect =
-        (int *)malloc((part_par[k].numofresults) * sizeof(int));
+        (int32_t *)malloc((part_par[k].numofresults) * sizeof(int32_t));
 
     part_arrays[k].linestart =
         (float **)malloc(part_par[k].linenumY *
@@ -614,22 +614,22 @@ parCure *cureInit(sysCure *sys) {
   return par;
 }
 
-int safefree(void *ptr) {
+int32_t safefree(void *ptr) {
   if (ptr != NULL) free(ptr);
   return 0;
 }
 
 void curefree(sysCure *sys, parCure *par) {
-  int ndivs = sys->ndivs; /* handover of system parameters */
-  // int numofelems = sys->numofelems;
-  // int numofresults = sys->numofresults;
-  // int numofacts = numofresults;
-  // int linenum = sys->linenum;
-  // int *I_sub = sys->I_sub;
-  int parts = 1 << ndivs;
+  int32_t ndivs = sys->ndivs; /* handover of system parameters */
+  // int32_t numofelems = sys->numofelems;
+  // int32_t numofresults = sys->numofresults;
+  // int32_t numofacts = numofresults;
+  // int32_t linenum = sys->linenum;
+  // int32_t *I_sub = sys->I_sub;
+  int32_t parts = 1 << ndivs;
   p_par *part_par = par->parts;
   p_arrays *part_arrays = par->arrays;
-  int i, k;
+  int32_t i, k;
   if (par != NULL) {
     safefree(par->result);
     for (i = 0; i < parts * parts; i++) {
@@ -709,21 +709,21 @@ void curefree(sysCure *sys, parCure *par) {
   }
 }
 
-void fModPyrMeas__ao(const int nSubap, const float Sx[], const float Sy[],
+void fModPyrMeas__ao(const int32_t nSubap, const float Sx[], const float Sy[],
                      float Sxs[], float Sys[])
 
 {
-  int jc;
-  int ic;
-  int ja1;
-  int ja2;
+  int32_t jc;
+  int32_t ic;
+  int32_t ja1;
+  int32_t ja2;
   float s;
-  int ja;
-  int b_ja;
-  int i0;
-  int ia;
-  int jb;
-  int i1;
+  int32_t ja;
+  int32_t b_ja;
+  int32_t i0;
+  int32_t ia;
+  int32_t jb;
+  int32_t i1;
 
   // XAO 200 subaps
   // static const float kernel[11] = { -0.0462, 0.0, -0.1366, 0.0,
@@ -792,28 +792,28 @@ void fModPyrMeas__ao(const int nSubap, const float Sx[], const float Sy[],
 }
 
 /* CuRe implementation for computing the parts */
-int cure(p_par part_par, p_arrays part_arrays, float *dataX, float *dataY,
+int32_t cure(p_par part_par, p_arrays part_arrays, float *dataX, float *dataY,
          float *result, float *connect) {
-  int i, j, row, sum;
-  int linenumX = part_par.linenumX;
-  int linenumY = part_par.linenumY;
-  // int numofelems = part_par.numofelems;
-  int numofresults = part_par.numofresults;
-  // int *I_sub = part_par.I_sub;
-  int *par_lineX_start = part_par.lineX_start;
-  int *par_lineX_length = part_par.lineX_length;
-  int *par_lineX_starta = part_par.lineX_starta;
-  int *par_lineX_startb = part_par.lineX_startb;
-  int *par_lineX_enda = part_par.lineX_enda;
-  int *par_lineX_endb = part_par.lineX_endb;
-  int *par_actX_start = part_par.actX_start;
-  int *par_actX_length = part_par.actX_length;
-  int *par_lineY_start = part_par.lineY_start;
-  int *par_lineY_length = part_par.lineY_length;
-  int *par_lineY_starta = part_par.lineY_starta;
-  int *par_lineY_startb = part_par.lineY_startb;
-  int *par_lineY_enda = part_par.lineY_enda;
-  int *par_lineY_endb = part_par.lineY_endb;
+  int32_t i, j, row, sum;
+  int32_t linenumX = part_par.linenumX;
+  int32_t linenumY = part_par.linenumY;
+  // int32_t numofelems = part_par.numofelems;
+  int32_t numofresults = part_par.numofresults;
+  // int32_t *I_sub = part_par.I_sub;
+  int32_t *par_lineX_start = part_par.lineX_start;
+  int32_t *par_lineX_length = part_par.lineX_length;
+  int32_t *par_lineX_starta = part_par.lineX_starta;
+  int32_t *par_lineX_startb = part_par.lineX_startb;
+  int32_t *par_lineX_enda = part_par.lineX_enda;
+  int32_t *par_lineX_endb = part_par.lineX_endb;
+  int32_t *par_actX_start = part_par.actX_start;
+  int32_t *par_actX_length = part_par.actX_length;
+  int32_t *par_lineY_start = part_par.lineY_start;
+  int32_t *par_lineY_length = part_par.lineY_length;
+  int32_t *par_lineY_starta = part_par.lineY_starta;
+  int32_t *par_lineY_startb = part_par.lineY_startb;
+  int32_t *par_lineY_enda = part_par.lineY_enda;
+  int32_t *par_lineY_endb = part_par.lineY_endb;
   float *par_act_weight = part_par.act_weight;
 
   float *startdataX = dataX, *startdataY = dataY;
@@ -1122,20 +1122,20 @@ int cure(p_par part_par, p_arrays part_arrays, float *dataX, float *dataY,
   return 0;
 }
 
-int cured(sysCure *sys, parCure *par, float *data, float *result_vec,
+int32_t cured(sysCure *sys, parCure *par, float *data, float *result_vec,
           float *ttX, float *ttY) {
   /* variable definitions */
-  int i, j, k, l, m, start, help, len1, len2, len3, len4;
-  int ii;
-  int ndivs = sys->ndivs;
-  int parts = 1 << ndivs;
-  int numofelems = sys->numofelems;
-  int numofresults = sys->numofresults;
+  int32_t i, j, k, l, m, start, help, len1, len2, len3, len4;
+  int32_t ii;
+  int32_t ndivs = sys->ndivs;
+  int32_t parts = 1 << ndivs;
+  int32_t numofelems = sys->numofelems;
+  int32_t numofresults = sys->numofresults;
 
-  int linenum = sys->linenum;
-  int *I_sub = sys->I_sub;
+  int32_t linenum = sys->linenum;
+  int32_t *I_sub = sys->I_sub;
 
-  int *S_connect = par->S_connect;
+  int32_t *S_connect = par->S_connect;
   float error, v1, v2, diff1, diff2, diff3, diff4, shift1, shift2, shift3;
   float tiptiltX = 0.0, tiptiltY = 0.0;
   float *dataX;
@@ -1169,13 +1169,13 @@ int cured(sysCure *sys, parCure *par, float *data, float *result_vec,
   }
 
   // Preprocessing for PWFS
-  int PWFS = 0;
+  int32_t PWFS = 0;
   if (PWFS) {
     float Sx[linenum * linenum];
     float Sy[linenum * linenum];
     float Sxs[linenum * linenum];
     float Sys[linenum * linenum];
-    int idx = 0;
+    int32_t idx = 0;
     for (ii = 0; ii < linenum * linenum; ii++) {
       if (I_sub[ii]) {
         Sx[ii] = dataX[idx];

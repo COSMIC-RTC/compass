@@ -24,7 +24,7 @@
 #define carma_check_cusparse_status(status) \
   carma_check_cusparse_status_v2(status, __LINE__, __FILE__)
 
-cusparseStatus_t carma_check_cusparse_status_v2(cusparseStatus_t status, int line,
+cusparseStatus_t carma_check_cusparse_status_v2(cusparseStatus_t status, int32_t line,
                                               std::string file);
 cusparseStatus_t carma_init_cusparse(cusparseHandle_t *cusparse_handle);
 cusparseStatus_t carma_shutdown_cusparse(cusparseHandle_t cusparse_handle);

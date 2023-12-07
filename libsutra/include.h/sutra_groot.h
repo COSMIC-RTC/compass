@@ -26,12 +26,12 @@
 class SutraGroot {
  public:
   CarmaContext *current_context;
-  int device;
+  int32_t device;
 
-  int nactus;     // number of actuators
-  int nssp;       // number of valid ssp
-  int nlayers;    // number of atmos layers
-  int npts;       // number of samples for aliasig computation
+  int32_t nactus;     // number of actuators
+  int32_t nssp;       // number of valid ssp
+  int32_t nlayers;    // number of atmos layers
+  int32_t npts;       // number of samples for aliasig computation
   float gsangle;  // Guide star angle [rad]
   float fc;       // DM cut-off frequency [m]
   float scale;
@@ -62,39 +62,39 @@ class SutraGroot {
   CarmaObj<float> *d_tab_int_y;
 
  public:
-  SutraGroot(CarmaContext *context, int device, int nactus, int nlayers,
+  SutraGroot(CarmaContext *context, int32_t device, int32_t nactus, int32_t nlayers,
               float gsangle, float *vdt, float *Htheta, float *L0,
               float *winddir, float *scale, float *pzt2tt, float *TTPfilter,
               float *Nact, float *xpos, float *ypos, float fc);
 
-  SutraGroot(CarmaContext *context, int device, int nssp, float *weights,
+  SutraGroot(CarmaContext *context, int32_t device, int32_t nssp, float *weights,
               float scale, float *xpos, float *ypos, float fc, float d,
-              int npts);
+              int32_t npts);
   ~SutraGroot();
 
   cublasHandle_t cublas_handle() { return current_context->get_cublas_handle(); }
-  void init_common(CarmaContext *context, int device, float *xpos, float *ypos,
-                   int N, float fc);
-  int compute_Cerr();
-  int compute_Calias();
+  void init_common(CarmaContext *context, int32_t device, float *xpos, float *ypos,
+                   int32_t N, float fc);
+  int32_t compute_Cerr();
+  int32_t compute_Calias();
 };
 template <class T_data>
-int compute_Cerr_layer(T_data *Cerr, int N, T_data *tab_int_x,
+int32_t compute_Cerr_layer(T_data *Cerr, int32_t N, T_data *tab_int_x,
                        T_data *tab_int_y, T_data *xpos, T_data *ypos,
                        T_data vdt, T_data Htheta, T_data L0, T_data fc,
-                       T_data winddir, T_data gsangle, T_data scale, int Ntab,
+                       T_data winddir, T_data gsangle, T_data scale, int32_t Ntab,
                        CarmaDevice *device);
 template <class T_data>
-int compute_Ca(T_data *CaXX, T_data *CaYY, int nssp, T_data *tab_int_x,
+int32_t compute_Ca(T_data *CaXX, T_data *CaYY, int32_t nssp, T_data *tab_int_x,
                T_data *tab_int_y, T_data *xpos, T_data *ypos, T_data offset,
-               T_data d, T_data fc, T_data scale, T_data weight, int Ntab,
+               T_data d, T_data fc, T_data scale, T_data weight, int32_t Ntab,
                CarmaDevice *device);
 template <class T_data>
-int tab_u831J0(T_data *tab_int_x, T_data *tab_int_y, int N,
+int32_t tab_u831J0(T_data *tab_int_x, T_data *tab_int_y, int32_t N,
                CarmaDevice *device);
 template <class T_data>
-void cumsum(T_data *odata, T_data *idata, int N);
+void cumsum(T_data *odata, T_data *idata, int32_t N);
 template <class T_data>
-int add_transpose(T_data *Cerr, int N, CarmaDevice *device);
+int32_t add_transpose(T_data *Cerr, int32_t N, CarmaDevice *device);
 
 #endif

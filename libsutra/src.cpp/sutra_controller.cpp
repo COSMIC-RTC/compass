@@ -19,9 +19,9 @@
 
 template <typename Tcomp, typename Tout>
 SutraController<Tcomp, Tout>::SutraController(CarmaContext *context,
-                                                int nslope, int nactu, float delay,
-                                                SutraDms *dms, int *idx_dms,
-                                                int ndm, int *idx_centro, int ncentro) {
+                                                int32_t nslope, int32_t nactu, float delay,
+                                                SutraDms *dms, int32_t *idx_dms,
+                                                int32_t ndm, int32_t *idx_centro, int32_t ncentro) {
   this->current_context = context;
   this->device = context->get_active_device();
 
@@ -47,7 +47,7 @@ SutraController<Tcomp, Tout>::SutraController(CarmaContext *context,
 
   this->set_delay(delay);
 
-  long dims_data1[2] = {1, 0};
+  int64_t dims_data1[2] = {1, 0};
 
   dims_data1[1] = nslope;
   this->d_centroids = new CarmaObj<Tcomp>(context, dims_data1);
@@ -58,7 +58,7 @@ SutraController<Tcomp, Tout>::SutraController(CarmaContext *context,
   this->d_com1 = new CarmaObj<Tcomp>(context, dims_data1);
   if (this->delay > 0) {
     this->d_circular_coms.push_front(d_com1);
-    while (this->d_circular_coms.size() <= int(this->delay) + 1) {
+    while (this->d_circular_coms.size() <= int32_t(this->delay) + 1) {
       this->d_circular_coms.push_front(new CarmaObj<Tcomp>(context, dims_data1));
     }
   }
@@ -66,24 +66,24 @@ SutraController<Tcomp, Tout>::SutraController(CarmaContext *context,
 
   this->init_voltage();
 
-  for (int i = 0; i < ndm; i++) {
+  for (int32_t i = 0; i < ndm; i++) {
     this->d_dmseen.push_back(dms->d_dms[idx_dms[i]]);
   }
 
-  for (int i = 0; i < ncentro; i++) {
+  for (int32_t i = 0; i < ncentro; i++) {
     this->centro_idx.push_back(idx_centro[i]);
   }
 
 }
 
 template <typename Tcomp, typename Tout>
-int SutraController<Tcomp, Tout>::set_gain(float gain) {
+int32_t SutraController<Tcomp, Tout>::set_gain(float gain) {
   this->gain = Tcomp(gain);
   return EXIT_SUCCESS;
 }
 
 template <typename Tcomp, typename Tout>
-int SutraController<Tcomp, Tout>::set_open_loop(int open_loop_status,
+int32_t SutraController<Tcomp, Tout>::set_open_loop(int32_t open_loop_status,
                                                 bool rst) {
   current_context->set_active_device(device, 1);
   this->open_loop = open_loop_status;
@@ -95,7 +95,7 @@ int SutraController<Tcomp, Tout>::set_open_loop(int open_loop_status,
 }
 
 template <typename Tcomp, typename Tout>
-int SutraController<Tcomp, Tout>::reset_coms() {
+int32_t SutraController<Tcomp, Tout>::reset_coms() {
   current_context->set_active_device(device, 1);
   for (auto cobj : this->d_circular_coms) {
     cobj->reset();
@@ -105,14 +105,14 @@ int SutraController<Tcomp, Tout>::reset_coms() {
 }
 
 template <typename Tcomp, typename Tout>
-int SutraController<Tcomp, Tout>::add_perturb_voltage(string name,
-                                                       float *perturb, int N) {
+int32_t SutraController<Tcomp, Tout>::add_perturb_voltage(string name,
+                                                       float *perturb, int32_t N) {
   std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
   current_context->set_active_device(device, 1);
 
   if (this->d_perturb_map.count(name) < 1) {
-    long dims_data2[3] = {2, N, this->nactu()};
-    int cpt = 0;
+    int64_t dims_data2[3] = {2, N, this->nactu()};
+    int32_t cpt = 0;
     CarmaObj<Tcomp> *d_perturb =
         new CarmaObj<Tcomp>(current_context, dims_data2);
     d_perturb->host2device(perturb);
@@ -124,8 +124,8 @@ int SutraController<Tcomp, Tout>::add_perturb_voltage(string name,
 }
 
 template <typename Tcomp, typename Tout>
-int SutraController<Tcomp, Tout>::set_perturb_voltage(string name,
-                                                       float *perturb, int N) {
+int32_t SutraController<Tcomp, Tout>::set_perturb_voltage(string name,
+                                                       float *perturb, int32_t N) {
   current_context->set_active_device(device, 1);
 
   if (this->d_perturb_map.count(name)) {
@@ -137,10 +137,10 @@ int SutraController<Tcomp, Tout>::set_perturb_voltage(string name,
 }
 
 template <typename Tcomp, typename Tout>
-int SutraController<Tcomp, Tout>::remove_perturb_voltage(string name) {
+int32_t SutraController<Tcomp, Tout>::remove_perturb_voltage(string name) {
   std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
   current_context->set_active_device(device, 1);
-  typename map<string, tuple<CarmaObj<Tcomp> *, int, bool>>::iterator it;
+  typename map<string, tuple<CarmaObj<Tcomp> *, int32_t, bool>>::iterator it;
 
   if (this->d_perturb_map.count(name)) {
     it = this->d_perturb_map.find(name);
@@ -153,10 +153,10 @@ int SutraController<Tcomp, Tout>::remove_perturb_voltage(string name) {
 }
 
 template <typename Tcomp, typename Tout>
-int SutraController<Tcomp, Tout>::enable_perturb_voltage(string name) {
+int32_t SutraController<Tcomp, Tout>::enable_perturb_voltage(string name) {
   std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
   current_context->set_active_device(device, 1);
-  typename map<string, tuple<CarmaObj<Tcomp> *, int, bool>>::iterator it;
+  typename map<string, tuple<CarmaObj<Tcomp> *, int32_t, bool>>::iterator it;
 
   if (this->d_perturb_map.count(name)) {
     it = this->d_perturb_map.find(name);
@@ -168,10 +168,10 @@ int SutraController<Tcomp, Tout>::enable_perturb_voltage(string name) {
 }
 
 template <typename Tcomp, typename Tout>
-int SutraController<Tcomp, Tout>::disable_perturb_voltage(string name) {
+int32_t SutraController<Tcomp, Tout>::disable_perturb_voltage(string name) {
   std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
   current_context->set_active_device(device, 1);
-  typename map<string, tuple<CarmaObj<Tcomp> *, int, bool>>::iterator it;
+  typename map<string, tuple<CarmaObj<Tcomp> *, int32_t, bool>>::iterator it;
 
   if (this->d_perturb_map.count(name)) {
     it = this->d_perturb_map.find(name);
@@ -183,10 +183,10 @@ int SutraController<Tcomp, Tout>::disable_perturb_voltage(string name) {
 }
 
 template <typename Tcomp, typename Tout>
-int SutraController<Tcomp, Tout>::reset_perturb_voltage() {
+int32_t SutraController<Tcomp, Tout>::reset_perturb_voltage() {
   std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
   current_context->set_active_device(device, 1);
-  typename map<string, tuple<CarmaObj<Tcomp> *, int, bool>>::iterator it;
+  typename map<string, tuple<CarmaObj<Tcomp> *, int32_t, bool>>::iterator it;
   it = this->d_perturb_map.begin();
   while (it != this->d_perturb_map.end()) {
     delete std::get<0>(it->second);
@@ -198,7 +198,7 @@ int SutraController<Tcomp, Tout>::reset_perturb_voltage() {
 }
 
 template <typename Tcomp, typename Tout>
-int SutraController<Tcomp, Tout>::command_delay() {
+int32_t SutraController<Tcomp, Tout>::command_delay() {
   current_context->set_active_device(device, 1);
 
   if (delay > 0) {
@@ -214,7 +214,7 @@ int SutraController<Tcomp, Tout>::command_delay() {
 }
 
 template <typename Tcomp, typename Tout>
-int SutraController<Tcomp, Tout>::clip_commands() {
+int32_t SutraController<Tcomp, Tout>::clip_commands() {
   current_context->set_active_device(device, 1);
   if (this->volt_min < this->volt_max)
     this->d_com_clipped->clip(this->volt_min, this->volt_max, this->mainStream);
@@ -225,7 +225,7 @@ int SutraController<Tcomp, Tout>::clip_commands() {
 }
 
 template <typename Tcomp, typename Tout>
-int SutraController<Tcomp, Tout>::comp_latency() {
+int32_t SutraController<Tcomp, Tout>::comp_latency() {
   // Command increment = a * d[k] + b*d[k-1] + c*d[k-2] + perturb
   this->current_context->set_active_device(this->device, 1);
   if (this->delay > 0) {
@@ -238,7 +238,7 @@ int SutraController<Tcomp, Tout>::comp_latency() {
 }
 
 template <typename Tcomp, typename Tout>
-int SutraController<Tcomp, Tout>::comp_voltage() {
+int32_t SutraController<Tcomp, Tout>::comp_voltage() {
   std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
   current_context->set_active_device(device, 1);
   if (this->delay > 0) {
@@ -259,11 +259,11 @@ int SutraController<Tcomp, Tout>::comp_voltage() {
 }
 
 template <typename Tcomp, typename Tout>
-int SutraController<Tcomp, Tout>::add_perturb() {
-  typename map<string, tuple<CarmaObj<Tcomp> *, int, bool>>::iterator it;
-  int cpt;
+int32_t SutraController<Tcomp, Tout>::add_perturb() {
+  typename map<string, tuple<CarmaObj<Tcomp> *, int32_t, bool>>::iterator it;
+  int32_t cpt;
   CarmaObj<Tcomp> *d_perturb;
-  int any_perturb = 0;
+  int32_t any_perturb = 0;
   for (it = this->d_perturb_map.begin(); it != this->d_perturb_map.end();
        ++it) {
     if (std::get<2>(it->second)) {
@@ -286,7 +286,7 @@ SutraController<Tcomp, Tout>::~SutraController() {
   if (this->d_centroids != nullptr) delete this->d_centroids;
   if (this->d_centroids_padded != nullptr) delete this->d_centroids_padded;
   if (this->d_com_padded != nullptr) delete this->d_com_padded;
-  for (int k=0; k < this->d_circular_coms.size() ; k++) {
+  for (int32_t k=0; k < this->d_circular_coms.size() ; k++) {
     delete this->d_circular_coms[k];
   }
   this->d_circular_coms.clear();
@@ -301,7 +301,7 @@ SutraController<Tcomp, Tout>::~SutraController() {
 }
 
 template <typename Tcomp, typename Tout>
-int SutraController<Tcomp, Tout>::set_com(float *com, int nElem) {
+int32_t SutraController<Tcomp, Tout>::set_com(float *com, int32_t nElem) {
   current_context->set_active_device(device, 1);
   if (nElem == this->d_com->get_nb_elements()) {
     this->d_com->host2device(com);
@@ -314,10 +314,10 @@ int SutraController<Tcomp, Tout>::set_com(float *com, int nElem) {
 }
 
 template <typename Tcomp, typename Tout>
-int SutraController<Tcomp, Tout>::set_delay(float delay) {
+int32_t SutraController<Tcomp, Tout>::set_delay(float delay) {
 
   this->delay = delay;
-  int floor = (int)delay;
+  int32_t floor = (int32_t)delay;
   this->a = Tcomp(delay - floor);
   this->b = Tcomp(1 - a);
 
@@ -326,29 +326,29 @@ int SutraController<Tcomp, Tout>::set_delay(float delay) {
 }
 
 template <typename Tcomp, typename Tout>
-int SutraController<Tcomp, Tout>::set_volt_min(float volt_min) {
+int32_t SutraController<Tcomp, Tout>::set_volt_min(float volt_min) {
   this->volt_min = volt_min;
   return EXIT_SUCCESS;
 }
 
 template <typename Tcomp, typename Tout>
-int SutraController<Tcomp, Tout>::set_volt_max(float volt_max) {
+int32_t SutraController<Tcomp, Tout>::set_volt_max(float volt_max) {
   this->volt_max = volt_max;
   return EXIT_SUCCESS;
 }
 
 template <typename Tcomp, typename Tout>
-int SutraController<Tcomp, Tout>::set_val_max(float val_max) {
+int32_t SutraController<Tcomp, Tout>::set_val_max(float val_max) {
   this->val_max = Tcomp(val_max);
   return EXIT_SUCCESS;
 }
 
 template <typename Tcomp, typename Tout>
-int SutraController<Tcomp, Tout>::comp_polc(CarmaObj<Tcomp>& sk,
+int32_t SutraController<Tcomp, Tout>::comp_polc(CarmaObj<Tcomp>& sk,
    CarmaObj<Tcomp>& iMat, CarmaObj<Tcomp>& ol_meas){
 
-  long n_slope = iMat.get_dims(1);
-  long n_actu  = iMat.get_dims(2);
+  int64_t n_slope = iMat.get_dims(1);
+  int64_t n_actu  = iMat.get_dims(2);
 
   std::string err = "";
   if(sk.get_dims(1) != n_slope){
@@ -381,99 +381,3 @@ template class SutraController<float, uint16_t>;
 template class SutraController<half, float>;
 template class SutraController<half, uint16_t>;
 #endif
-// template<class T>
-// int SutraController<Tcomp, Tout>::syevd_f(char meth, CarmaObj<float> *d_U,
-//                               CarmaHostObj<float> *h_eigenvals) {
-//   current_context->set_active_device(device, 1);
-
-//   // Init double arrays
-//   const long dims_data[3] = {2, d_U->get_dims()[1], d_U->get_dims()[2]};
-//   CarmaObj<double> *d_Udouble =
-//       new CarmaObj<double>(current_context, dims_data);
-//   const long dims_data2[2] = {1, h_eigenvals->get_dims()[1]};
-//   CarmaHostObj<double> *h_eigen_double =
-//       new CarmaHostObj<double>(dims_data2, MA_PAGELOCK);
-
-//   // Copy float array in double array
-//   float_to_double(d_U->get_data(), d_Udouble->get_data(), d_U->get_nb_elements(),
-//                 this->current_context->get_device(device));
-
-//   // Doing syevd<double>
-//   carma_magma_syevd<double, 1>(meth, d_Udouble, h_eigen_double);
-
-//   // Reverse copy
-//   double_to_float(d_Udouble->get_data(), d_U->get_data(), d_U->get_nb_elements(),
-//                 this->current_context->get_device(device));
-
-//   for (int cc = 0; cc < h_eigenvals->get_nb_elements(); cc++) {
-//     h_eigenvals->get_data()[cc] = (float)h_eigen_double->get_data()[cc];
-//   }
-
-//   delete d_Udouble;
-//   delete h_eigen_double;
-
-//   return EXIT_SUCCESS;
-// }
-
-// template<class T>
-// int SutraController<Tcomp, Tout>::invgen(CarmaObj<float> *d_mat, float
-// cond, int job)
-// {
-//   current_context->set_active_device(device, 1);
-//   const long dims_data[3] = {2, d_mat->get_dims()[1], d_mat->get_dims()[2]};
-//   CarmaObj<float> *d_U = new CarmaObj<float>(current_context, dims_data);
-//   CarmaObj<float> *d_tmp = new CarmaObj<float>(current_context, dims_data);
-//   int i;
-
-//   const long dims_data2[2] = {1, d_mat->get_dims()[1]};
-//   CarmaObj<float> *d_eigenvals_inv =
-//       new CarmaObj<float>(current_context, dims_data2);
-//   CarmaHostObj<float> *h_eigenvals =
-//       new CarmaHostObj<float>(dims_data2, MA_PAGELOCK);
-//   CarmaHostObj<float> *h_eigenvals_inv =
-//       new CarmaHostObj<float>(dims_data2, MA_PAGELOCK);
-
-//   d_U->copy(d_mat, 1, 1);
-//   carma_magma_syevd<float, 1>(SOLVER_EIG_MODE_VECTOR, d_U, h_eigenvals);
-
-//   // syevd_f(SOLVER_EIG_MODE_VECTOR,d_U,h_eigenvals);
-//   if (job == 1) {  // Conditionnement
-//     float maxe = h_eigenvals->get_data()[d_mat->get_dims()[1] - 1];
-
-//     for (i = 0; i < d_mat->get_dims()[1]; i++) {
-//       if (h_eigenvals->get_data()[i] < maxe / cond)
-//         h_eigenvals_inv->get_data()[i] = 0.;
-//       else
-//         h_eigenvals_inv->get_data()[i] = 1. / h_eigenvals->get_data()[i];
-//     }
-//   }
-
-//   if (job == 0) {  // Filtre #cond modes
-//     for (i = 0; i < d_mat->get_dims()[1]; i++) {
-//       if (i < cond)
-//         h_eigenvals_inv->get_data()[i] = 0.;
-//       else
-//         h_eigenvals_inv->get_data()[i] = 1. / h_eigenvals->get_data()[i];
-//     }
-//   }
-
-//   d_eigenvals_inv->host2device(*h_eigenvals_inv);
-
-//   carma_dgmm(this->cublas_handle(), CUBLAS_SIDE_RIGHT, d_mat->get_dims()[1],
-//              d_mat->get_dims()[2], d_U->get_data(), d_mat->get_dims()[1],
-//              d_eigenvals_inv->get_data(), 1, d_tmp->get_data(),
-//              d_mat->get_dims()[1]);
-//   carma_gemm<float>(this->cublas_handle(), 'n', 't', d_mat->get_dims()[1],
-//                     d_mat->get_dims()[1], d_mat->get_dims()[2], 1.0f,
-//                     d_tmp->get_data(), d_mat->get_dims()[1], d_U->get_data(),
-//                     d_mat->get_dims()[1], 0.0f, d_mat->get_data(),
-//                     d_mat->get_dims()[1]);
-
-//   delete d_U;
-//   delete d_tmp;
-//   delete d_eigenvals_inv;
-//   delete h_eigenvals;
-//   delete h_eigenvals_inv;
-
-//   return EXIT_SUCCESS;
-// }

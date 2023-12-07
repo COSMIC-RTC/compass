@@ -17,7 +17,7 @@
 #include <sutra_groot.h>
 
 template <class T_data, typename Fn>
-__device__ T_data macdo_x56_gpu_gb(Fn const &ptr_pow, T_data x, int k)
+__device__ T_data macdo_x56_gpu_gb(Fn const &ptr_pow, T_data x, int32_t k)
 /* DOCUMENT  macdo_x56_gpu_gb(x)
 
  Computation of the function
@@ -48,7 +48,7 @@ __device__ T_data macdo_x56_gpu_gb(Fn const &ptr_pow, T_data x, int k)
   const T_data x2a = ptr_pow(x, (T_data)2. * a), x22 = x * x / 4.;
   T_data x2n;  // x^2.a, etc
   T_data s = 0.0;
-  int n;
+  int32_t n;
 
   const T_data Ga[11] = {0,
                          12.067619015983075,
@@ -86,11 +86,11 @@ __device__ T_data macdo_x56_gpu_gb(Fn const &ptr_pow, T_data x, int k)
   return s;
 }
 
-__device__ float macdo_x56_gpu(float x, int k) {
+__device__ float macdo_x56_gpu(float x, int32_t k) {
   return macdo_x56_gpu_gb<float>(powf, x, k);
 }
 
-__device__ double macdo_x56_gpu(double x, int k) {
+__device__ double macdo_x56_gpu(double x, int32_t k) {
   return macdo_x56_gpu_gb<double, double (*)(double, double)>(pow, x, k);
 }
 
@@ -140,7 +140,7 @@ __device__ double asymp_macdo_gpu(double x) {
 
 //------------------------------------------------------------------------------------
 template <class T_data, typename Fn>
-__device__ T_data rodconan_gpu_gb(Fn const &ptr_pow, T_data r, T_data L0, int k)
+__device__ T_data rodconan_gpu_gb(Fn const &ptr_pow, T_data r, T_data L0, int32_t k)
 /* DOCUMENT rodconan_gpu_gb(r,L0,k=)
  The phase structure function is computed from the expression
  Dphi(r) = k1  * L0^(5./3) * (k2 - (2.pi.r/L0)^5/6 K_{5/6}(2.pi.r/L0))
@@ -174,11 +174,11 @@ __device__ T_data rodconan_gpu_gb(Fn const &ptr_pow, T_data r, T_data L0, int k)
   return res;
 }
 
-__device__ float rodconan_gpu(float r, float L0, int k) {
+__device__ float rodconan_gpu(float r, float L0, int32_t k) {
   return rodconan_gpu_gb<float>(powf, r, L0, k);
 }
 
-__device__ double rodconan_gpu(double r, double L0, int k) {
+__device__ double rodconan_gpu(double r, double L0, int32_t k) {
   return rodconan_gpu_gb<double, double (*)(double, double)>(pow, r, L0, k);
 }
 
@@ -196,9 +196,9 @@ template __device__ double unMoinsJ0<double>(double x);
 
 template <class T_data, typename Fn>
 __device__ void compute_u831J0_gen(Fn const &ptr_exp, T_data *x, T_data *y,
-                                   int npts, T_data tmin, T_data tmax,
+                                   int32_t npts, T_data tmin, T_data tmax,
                                    T_data dt) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
   T_data t;
   while (tid < npts) {
     t = tmin + tid * dt;
@@ -209,16 +209,16 @@ __device__ void compute_u831J0_gen(Fn const &ptr_exp, T_data *x, T_data *y,
 }
 
 template <class T_data>
-__global__ void compute_u831J0(T_data *x, T_data *y, int npts, T_data tmin,
+__global__ void compute_u831J0(T_data *x, T_data *y, int32_t npts, T_data tmin,
                                T_data tmax, T_data dt, CarmaDevice *device);
 template <>
-__global__ void compute_u831J0<float>(float *x, float *y, int npts, float tmin,
+__global__ void compute_u831J0<float>(float *x, float *y, int32_t npts, float tmin,
                                       float tmax, float dt,
                                       CarmaDevice *device) {
   compute_u831J0_gen<float>(expf, x, y, npts, tmin, tmax, dt);
 }
 template <>
-__global__ void compute_u831J0<double>(double *x, double *y, int npts,
+__global__ void compute_u831J0<double>(double *x, double *y, int32_t npts,
                                        double tmin, double tmax, double dt,
                                        CarmaDevice *device) {
   compute_u831J0_gen<double, double (*)(double)>(exp, x, y, npts, tmin, tmax,
@@ -226,8 +226,8 @@ __global__ void compute_u831J0<double>(double *x, double *y, int npts,
 }
 
 template <class T_data>
-__global__ void intfrominftomin(T_data *data, T_data smallInt, int N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+__global__ void intfrominftomin(T_data *data, T_data smallInt, int32_t N) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
   while (tid < N) {
     data[tid] += smallInt;
     tid += blockDim.x * gridDim.x;
@@ -235,13 +235,13 @@ __global__ void intfrominftomin(T_data *data, T_data smallInt, int N) {
 }
 
 template __global__ void intfrominftomin<float>(float *data, float smallInt,
-                                                int N);
+                                                int32_t N);
 template __global__ void intfrominftomin<double>(double *data, double smallInt,
-                                                 int N);
+                                                 int32_t N);
 
 template <class T_data>
-__global__ void cuda_zcen_krnl(T_data *idata, T_data *odata, int N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+__global__ void cuda_zcen_krnl(T_data *idata, T_data *odata, int32_t N) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
     odata[tid] = (idata[tid + 1] + idata[tid]) / 2.0;
@@ -250,23 +250,23 @@ __global__ void cuda_zcen_krnl(T_data *idata, T_data *odata, int N) {
 }
 
 template __global__ void cuda_zcen_krnl<float>(float *idata, float *odata,
-                                               int N);
+                                               int32_t N);
 template __global__ void cuda_zcen_krnl<double>(double *idata, double *odata,
-                                                int N);
+                                                int32_t N);
 
 template <class T_data>
-void cumsum(T_data *odata, T_data *idata, int N) {
+void cumsum(T_data *odata, T_data *idata, int32_t N) {
   odata[0] = 0;
-  for (int i = 1; i < N; i++) {
+  for (int32_t i = 1; i < N; i++) {
     odata[i] = idata[i - 1] + odata[i - 1];
   }
 }
 
-template void cumsum<float>(float *odata, float *idata, int N);
-template void cumsum<double>(double *odata, double *idata, int N);
+template void cumsum<float>(float *odata, float *idata, int32_t N);
+template void cumsum<double>(double *odata, double *idata, int32_t N);
 
 template <class T_data>
-int tab_u831J0(T_data *tab_int_x, T_data *tab_int_y, int npts,
+int32_t tab_u831J0(T_data *tab_int_x, T_data *tab_int_y, int32_t npts,
                CarmaDevice *device) {
   T_data tmin = -4.;
   T_data tmax = 10.;
@@ -281,7 +281,7 @@ int tab_u831J0(T_data *tab_int_x, T_data *tab_int_y, int npts,
   T_data *temp_d;
   T_data dt = (tmax - tmin) / (npts - 1);
 
-  int nb_threads = 0, nb_blocks = 0;
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, npts, nb_blocks, nb_threads);
   dim3 grid(nb_blocks), threads(nb_threads);
 
@@ -316,40 +316,40 @@ int tab_u831J0(T_data *tab_int_x, T_data *tab_int_y, int npts,
 
   return EXIT_SUCCESS;
 }
-template int tab_u831J0(float *tab_int_x, float *tab_int_y, int npts,
+template int32_t tab_u831J0(float *tab_int_x, float *tab_int_y, int32_t npts,
                         CarmaDevice *device);
 
-template int tab_u831J0(double *tab_int_x, double *tab_int_y, int npts,
+template int32_t tab_u831J0(double *tab_int_x, double *tab_int_y, int32_t npts,
                         CarmaDevice *device);
 
 template <class T_data, typename Fn, typename Fne, typename Fnl>
 __device__ T_data Ij0t83_gen(Fn const &ptr_pow, Fne const &ptr_exp,
                              Fnl const &ptr_log, T_data x, T_data *tab_x,
-                             T_data *tab_y, long npts) {
+                             T_data *tab_y, int64_t npts) {
   if (x <= ptr_exp(-3.0))
     return (T_data)(0.75 * ptr_pow((T_data)x, 1 / 3.) * (1 - x * x / 112.));
   else {
     T_data dt = 14. / (npts - 1);  // 14 = tmax - tmin
     T_data convert = (ptr_log(x) + 4.) / dt;
-    long i0 = (long)convert;
-    long i1 = i0 + 1;
+    int64_t i0 = (int64_t)convert;
+    int64_t i1 = i0 + 1;
 
     return (((x - tab_x[i0]) * tab_y[i1] + (tab_x[i1] - x) * tab_y[i0])) /
            (tab_x[i1] - tab_x[i0]);
   }
 }
 
-__device__ float Ij0t83(float x, float *tab_x, float *tab_y, long npts) {
+__device__ float Ij0t83(float x, float *tab_x, float *tab_y, int64_t npts) {
   return Ij0t83_gen<float>(powf, expf, logf, x, tab_x, tab_y, npts);
 }
-__device__ double Ij0t83(double x, double *tab_x, double *tab_y, long npts) {
+__device__ double Ij0t83(double x, double *tab_x, double *tab_y, int64_t npts) {
   return Ij0t83_gen<double, double (*)(double, double), double (*)(double),
                     double (*)(double)>(pow, exp, log, x, tab_x, tab_y, npts);
 }
 
 template <class T_data, typename Fn>
 __device__ T_data DPHI_highpass_gen(Fn const &ptr_pow, T_data r, T_data fc,
-                                    T_data *tab_x, T_data *tab_y, long npts) {
+                                    T_data *tab_x, T_data *tab_y, int64_t npts) {
   return ptr_pow(r, 5 / 3.) *
          (1.1183343328701949 -
           Ij0t83(2 * CARMA_PI * fc * r, tab_x, tab_y, npts)) *
@@ -357,11 +357,11 @@ __device__ T_data DPHI_highpass_gen(Fn const &ptr_pow, T_data r, T_data fc,
 }
 
 __device__ float DPHI_highpass(float r, float fc, float *tab_x, float *tab_y,
-                               long npts) {
+                               int64_t npts) {
   return DPHI_highpass_gen<float>(powf, r, fc, tab_x, tab_y, npts);
 }
 __device__ double DPHI_highpass(double r, double fc, double *tab_x,
-                                double *tab_y, long npts) {
+                                double *tab_y, int64_t npts) {
   return DPHI_highpass_gen<double, double (*)(double, double)>(
       pow, r, fc, tab_x, tab_y, npts);
 }
@@ -369,16 +369,16 @@ __device__ double DPHI_highpass(double r, double fc, double *tab_x,
 template <class T_data, typename Fn>
 __device__ T_data DPHI_highpass_gen(Fn const &ptr_sqrt, T_data x, T_data y,
                                     T_data fc, T_data *tab_x, T_data *tab_y,
-                                    long npts) {
+                                    int64_t npts) {
   return DPHI_highpass(ptr_sqrt(x * x + y * y), fc, tab_x, tab_y, npts);
 }
 
 __device__ float DPHI_highpass(float x, float y, float fc, float *tab_x,
-                               float *tab_y, long npts) {
+                               float *tab_y, int64_t npts) {
   return DPHI_highpass_gen<float>(sqrtf, x, y, fc, tab_x, tab_y, npts);
 }
 __device__ double DPHI_highpass(double x, double y, double fc, double *tab_x,
-                                double *tab_y, long npts) {
+                                double *tab_y, int64_t npts) {
   return DPHI_highpass_gen<double, double (*)(double)>(sqrt, x, y, fc, tab_x,
                                                        tab_y, npts);
 }
@@ -386,7 +386,7 @@ __device__ double DPHI_highpass(double x, double y, double fc, double *tab_x,
 template <class T_data, typename Fn>
 __device__ T_data DPHI_lowpass_gen(Fn const &ptr_sqrt, T_data x, T_data y,
                                    T_data L0, T_data fc, T_data *tab_int_x,
-                                   T_data *tab_int_y, long npts) {
+                                   T_data *tab_int_y, int64_t npts) {
   T_data r = ptr_sqrt(x * x + y * y);
 
   return rodconan_gpu(r, L0, 10) -
@@ -394,27 +394,27 @@ __device__ T_data DPHI_lowpass_gen(Fn const &ptr_sqrt, T_data x, T_data y,
 }
 
 __device__ float DPHI_lowpass(float x, float y, float L0, float fc,
-                              float *tab_int_x, float *tab_int_y, long npts) {
+                              float *tab_int_x, float *tab_int_y, int64_t npts) {
   return DPHI_lowpass_gen<float>(sqrtf, x, y, L0, fc, tab_int_x, tab_int_y,
                                  npts);
 }
 __device__ double DPHI_lowpass(double x, double y, double L0, double fc,
                                double *tab_int_x, double *tab_int_y,
-                               long npts) {
+                               int64_t npts) {
   return DPHI_lowpass_gen<double, double (*)(double)>(
       sqrt, x, y, L0, fc, tab_int_x, tab_int_y, npts);
 }
 
 template <class T_data>
-__global__ void compute_Ca_element_XX(T_data *CaXX, int N, T_data *tab_int_x,
+__global__ void compute_Ca_element_XX(T_data *CaXX, int32_t N, T_data *tab_int_x,
                                       T_data *tab_int_y, T_data *xpos,
                                       T_data *ypos, T_data d, T_data fc,
                                       T_data scale, T_data weight,
-                                      T_data offset, int Ntab) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+                                      T_data offset, int32_t Ntab) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
   while (tid < N * N) {
-    int i = tid / N;
-    int j = tid - i * N;
+    int32_t i = tid / N;
+    int32_t j = tid - i * N;
     T_data yoff = offset;
     // if(j < i)
     //   yoff = -offset;
@@ -431,27 +431,27 @@ __global__ void compute_Ca_element_XX(T_data *CaXX, int N, T_data *tab_int_x,
   }
 }
 
-template __global__ void compute_Ca_element_XX(float *CaXX, int nssp,
+template __global__ void compute_Ca_element_XX(float *CaXX, int32_t nssp,
                                                float *tab_int_x,
                                                float *tab_int_y, float *xpos,
                                                float *ypos, float d, float fc,
                                                float scale, float weight,
-                                               float offset, int Ntab);
+                                               float offset, int32_t Ntab);
 template __global__ void compute_Ca_element_XX(
-    double *CaXX, int nssp, double *tab_int_x, double *tab_int_y, double *xpos,
+    double *CaXX, int32_t nssp, double *tab_int_x, double *tab_int_y, double *xpos,
     double *ypos, double d, double fc, double scale, double weight,
-    double offset, int Ntab);
+    double offset, int32_t Ntab);
 
 template <class T_data>
-__global__ void compute_Ca_element_YY(T_data *CaYY, int N, T_data *tab_int_x,
+__global__ void compute_Ca_element_YY(T_data *CaYY, int32_t N, T_data *tab_int_x,
                                       T_data *tab_int_y, T_data *xpos,
                                       T_data *ypos, T_data d, T_data fc,
                                       T_data scale, T_data weight,
-                                      T_data offset, int Ntab) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+                                      T_data offset, int32_t Ntab) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
   while (tid < N * N) {
-    int i = tid / N;
-    int j = tid - i * N;
+    int32_t i = tid / N;
+    int32_t j = tid - i * N;
     T_data xoff = offset;
     // if(j < i)
     //   xoff = -offset;
@@ -468,29 +468,29 @@ __global__ void compute_Ca_element_YY(T_data *CaYY, int N, T_data *tab_int_x,
   }
 }
 
-template __global__ void compute_Ca_element_YY(float *CaYY, int nssp,
+template __global__ void compute_Ca_element_YY(float *CaYY, int32_t nssp,
                                                float *tab_int_x,
                                                float *tab_int_y, float *xpos,
                                                float *ypos, float d, float fc,
                                                float scale, float weight,
-                                               float offset, int Ntab);
+                                               float offset, int32_t Ntab);
 template __global__ void compute_Ca_element_YY(
-    double *CaYY, int nssp, double *tab_int_x, double *tab_int_y, double *xpos,
+    double *CaYY, int32_t nssp, double *tab_int_x, double *tab_int_y, double *xpos,
     double *ypos, double d, double fc, double scale, double weight,
-    double offset, int Ntab);
+    double offset, int32_t Ntab);
 
 template <class T_data, typename Fnc, typename Fns>
 __device__ void compute_Cerr_element_gen(Fnc const &ptr_cos, Fns const &ptr_sin,
-                                         T_data *Cerr, int N, T_data *tab_int_x,
+                                         T_data *Cerr, int32_t N, T_data *tab_int_x,
                                          T_data *tab_int_y, T_data *xpos,
                                          T_data *ypos, T_data vdt,
                                          T_data Htheta, T_data L0, T_data fc,
                                          T_data winddir, T_data gsangle,
-                                         T_data scale, int Ntab) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+                                         T_data scale, int32_t Ntab) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
   while (tid < N * N) {
-    int i = tid / N;
-    int j = tid - i * N;
+    int32_t i = tid / N;
+    int32_t j = tid - i * N;
 
     T_data xij = xpos[j] - xpos[i];
     T_data yij = ypos[j] - ypos[i];
@@ -524,30 +524,30 @@ __device__ void compute_Cerr_element_gen(Fnc const &ptr_cos, Fns const &ptr_sin,
   }
 }
 template <class T_data>
-__global__ void compute_Cerr_element(T_data *Cerr, int N, T_data *tab_int_x,
+__global__ void compute_Cerr_element(T_data *Cerr, int32_t N, T_data *tab_int_x,
                                      T_data *tab_int_y, T_data *xpos,
                                      T_data *ypos, T_data vdt, T_data Htheta,
                                      T_data L0, T_data fc, T_data winddir,
-                                     T_data gsangle, T_data scale, int Ntab,
+                                     T_data gsangle, T_data scale, int32_t Ntab,
                                      CarmaDevice *device);
 
 template <>
-__global__ void compute_Cerr_element(float *Cerr, int N, float *tab_int_x,
+__global__ void compute_Cerr_element(float *Cerr, int32_t N, float *tab_int_x,
                                      float *tab_int_y, float *xpos, float *ypos,
                                      float vdt, float Htheta, float L0,
                                      float fc, float winddir, float gsangle,
-                                     float scale, int Ntab,
+                                     float scale, int32_t Ntab,
                                      CarmaDevice *device) {
   return compute_Cerr_element_gen<float>(cosf, sinf, Cerr, N, tab_int_x,
                                          tab_int_y, xpos, ypos, vdt, Htheta, L0,
                                          fc, winddir, gsangle, scale, Ntab);
 }
 template <>
-__global__ void compute_Cerr_element(double *Cerr, int N, double *tab_int_x,
+__global__ void compute_Cerr_element(double *Cerr, int32_t N, double *tab_int_x,
                                      double *tab_int_y, double *xpos,
                                      double *ypos, double vdt, double Htheta,
                                      double L0, double fc, double winddir,
-                                     double gsangle, double scale, int Ntab,
+                                     double gsangle, double scale, int32_t Ntab,
                                      CarmaDevice *device) {
   return compute_Cerr_element_gen<double, double (*)(double),
                                   double (*)(double)>(
@@ -556,15 +556,15 @@ __global__ void compute_Cerr_element(double *Cerr, int N, double *tab_int_x,
 }
 
 template <class T_data>
-__global__ void add_transpose_krnl(T_data *Cerr, int N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+__global__ void add_transpose_krnl(T_data *Cerr, int32_t N) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
   while (tid < N * (N + 1) / 2) {
-    int ii = N * (N + 1) / 2 - 1 - tid;
-    int K = (int)(sqrt(2 * ii + 0.25) - 0.5);
-    int i = N - 1 - K;
-    int j = tid + i * (i + 1) / 2 - N * i;
-    int otid = j + i * N;
-    int otidT = i + j * N;
+    int32_t ii = N * (N + 1) / 2 - 1 - tid;
+    int32_t K = (int32_t)(sqrt(2 * ii + 0.25) - 0.5);
+    int32_t i = N - 1 - K;
+    int32_t j = tid + i * (i + 1) / 2 - N * i;
+    int32_t otid = j + i * N;
+    int32_t otidT = i + j * N;
     T_data Cij = Cerr[otid];
     T_data Cji = Cerr[otidT];
 
@@ -575,16 +575,16 @@ __global__ void add_transpose_krnl(T_data *Cerr, int N) {
   }
 }
 
-template __global__ void add_transpose_krnl<float>(float *Cerr, int N);
-template __global__ void add_transpose_krnl<double>(double *Cerr, int N);
+template __global__ void add_transpose_krnl<float>(float *Cerr, int32_t N);
+template __global__ void add_transpose_krnl<double>(double *Cerr, int32_t N);
 
 template <class T_data>
-int compute_Cerr_layer(T_data *Cerr, int N, T_data *tab_int_x,
+int32_t compute_Cerr_layer(T_data *Cerr, int32_t N, T_data *tab_int_x,
                        T_data *tab_int_y, T_data *xpos, T_data *ypos,
                        T_data vdt, T_data Htheta, T_data L0, T_data fc,
-                       T_data winddir, T_data gsangle, T_data scale, int Ntab,
+                       T_data winddir, T_data gsangle, T_data scale, int32_t Ntab,
                        CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, N * N, nb_blocks, nb_threads);
   dim3 grid(nb_blocks), threads(nb_threads);
 
@@ -596,22 +596,22 @@ int compute_Cerr_layer(T_data *Cerr, int N, T_data *tab_int_x,
   return EXIT_SUCCESS;
 }
 
-template int compute_Cerr_layer<float>(float *Cerr, int N, float *tab_int_x,
+template int32_t compute_Cerr_layer<float>(float *Cerr, int32_t N, float *tab_int_x,
                                        float *tab_int_y, float *xpos,
                                        float *ypos, float vdt, float Htheta,
                                        float L0, float fc, float winddir,
-                                       float gsangle, float scale, int Ntab,
+                                       float gsangle, float scale, int32_t Ntab,
                                        CarmaDevice *device);
-template int compute_Cerr_layer<double>(double *Cerr, int N, double *tab_int_x,
+template int32_t compute_Cerr_layer<double>(double *Cerr, int32_t N, double *tab_int_x,
                                         double *tab_int_y, double *xpos,
                                         double *ypos, double vdt, double Htheta,
                                         double L0, double fc, double winddir,
-                                        double gsangle, double scale, int Ntab,
+                                        double gsangle, double scale, int32_t Ntab,
                                         CarmaDevice *device);
 
 template <class T_data>
-int add_transpose(T_data *Cerr, int N, CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
+int32_t add_transpose(T_data *Cerr, int32_t N, CarmaDevice *device) {
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, N * (N + 1) / 2, nb_blocks, nb_threads);
   dim3 grid2(nb_blocks), threads2(nb_threads);
   add_transpose_krnl<<<grid2, threads2>>>(Cerr, N);
@@ -619,15 +619,15 @@ int add_transpose(T_data *Cerr, int N, CarmaDevice *device) {
 
   return EXIT_SUCCESS;
 }
-template int add_transpose<float>(float *Cerr, int N, CarmaDevice *device);
-template int add_transpose<double>(double *Cerr, int N, CarmaDevice *device);
+template int32_t add_transpose<float>(float *Cerr, int32_t N, CarmaDevice *device);
+template int32_t add_transpose<double>(double *Cerr, int32_t N, CarmaDevice *device);
 
 template <class T_data>
-int compute_Ca(T_data *CaXX, T_data *CaYY, int nssp, T_data *tab_int_x,
+int32_t compute_Ca(T_data *CaXX, T_data *CaYY, int32_t nssp, T_data *tab_int_x,
                T_data *tab_int_y, T_data *xpos, T_data *ypos, T_data offset,
-               T_data d, T_data fc, T_data scale, T_data weight, int Ntab,
+               T_data d, T_data fc, T_data scale, T_data weight, int32_t Ntab,
                CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, nssp * nssp, nb_blocks, nb_threads);
   dim3 grid(nb_blocks), threads(nb_threads);
 
@@ -644,11 +644,11 @@ int compute_Ca(T_data *CaXX, T_data *CaYY, int nssp, T_data *tab_int_x,
   return EXIT_SUCCESS;
 }
 
-template int compute_Ca(float *CaXX, float *CaYY, int nssp, float *tab_int_x,
+template int32_t compute_Ca(float *CaXX, float *CaYY, int32_t nssp, float *tab_int_x,
                         float *tab_int_y, float *xpos, float *ypos,
                         float offset, float d, float fc, float scale,
-                        float weight, int Ntab, CarmaDevice *device);
-template int compute_Ca(double *CaXX, double *CaYY, int nssp, double *tab_int_x,
+                        float weight, int32_t Ntab, CarmaDevice *device);
+template int32_t compute_Ca(double *CaXX, double *CaYY, int32_t nssp, double *tab_int_x,
                         double *tab_int_y, double *xpos, double *ypos,
                         double offset, double d, double fc, double scale,
-                        double weight, int Ntab, CarmaDevice *device);
+                        double weight, int32_t Ntab, CarmaDevice *device);

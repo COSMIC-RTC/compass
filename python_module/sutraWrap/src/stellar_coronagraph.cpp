@@ -13,28 +13,41 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <wyrm>
+#include "sutraWrapUtils.hpp"
 
 #include <sutra_stellarCoronagraph.h>
 
 namespace py = pybind11;
 
 std::unique_ptr<SutraStellarCoronagraph> stellar_coronagraph_init(CarmaContext &context,
-                                SutraSource *d_source,int im_dimx, int im_dimy,
-                                int fpm_dimx, int fpm_dimy,
-                                float *wavelength, int nWavelength, int babinet, int device) {
+                                SutraSource *d_source,int32_t im_dimx, int32_t im_dimy,
+                                int32_t fpm_dimx, int32_t fpm_dimy,
+                                ArrayFStyle<float> &wavelength, int32_t nWavelength, int32_t babinet, int32_t device) {
   return std::unique_ptr<SutraStellarCoronagraph>(new SutraStellarCoronagraph(&context, d_source,
                                                     im_dimx, im_dimy, fpm_dimx, fpm_dimy,
-                                                    wavelength, nWavelength, babinet, device));
+                                                    wavelength.mutable_data() , nWavelength, babinet, device));
 };
 
+int32_t set_mft(SutraStellarCoronagraph &ssc, ArrayFStyle<std::complex<float>> &A, ArrayFStyle<std::complex<float>> &B, ArrayFStyle<float> &norm, std::string &mftType) {
+    return ssc.set_mft(reinterpret_cast<cuFloatComplex*>(A.mutable_data()), reinterpret_cast<cuFloatComplex*>(B.mutable_data()), norm.mutable_data(), mftType);
+}
+
+int32_t set_focal_plane_mask(SutraStellarCoronagraph &ssc, ArrayFStyle<float> &mask) {
+    return ssc.set_focal_plane_mask(mask.mutable_data());
+}
+
+int32_t set_apodizer(SutraStellarCoronagraph &ssc, ArrayFStyle<float> &apodizer) {
+    return ssc.set_apodizer(apodizer.mutable_data());
+}
+
+int32_t set_lyot_stop(SutraStellarCoronagraph &ssc, ArrayFStyle<float> &lyot_stop) {
+    return ssc.set_lyot_stop(lyot_stop.mutable_data());
+}
+
 void declare_stellar_coronagraph(py::module &mod) {
-  auto carmaWrap = py::module::import("carmaWrap");
-  auto complex128 = carmaWrap.attr("complex128");
-  auto complex64 = carmaWrap.attr("complex64");
   py::class_<SutraStellarCoronagraph, SutraCoronagraph>(mod, "StellarCoronagraph")
 
-      .def(py::init(wy::colCast(stellar_coronagraph_init)), R"pbdoc(
+      .def(py::init(&stellar_coronagraph_init), R"pbdoc(
         Instantiates a StellarCoronagraph object
 
         Args:
@@ -95,7 +108,7 @@ void declare_stellar_coronagraph(py::module &mod) {
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
 
-      .def("set_mft", wy::colCast(&SutraStellarCoronagraph::set_mft),
+      .def("set_mft", &set_mft,
            R"pbdoc(
     Set MFT matrices for coronagraphic image computation
 
@@ -111,7 +124,7 @@ void declare_stellar_coronagraph(py::module &mod) {
     )pbdoc",
            py::arg("A"), py::arg("B"), py::arg("norm"), py::arg("mft_type"))
 
-      .def("set_focal_plane_mask", wy::colCast(&SutraStellarCoronagraph::set_focal_plane_mask),
+      .def("set_focal_plane_mask", &set_focal_plane_mask,
            R"pbdoc(
     Set focal plane mask for coronagraphic image computation
 
@@ -120,7 +133,7 @@ void declare_stellar_coronagraph(py::module &mod) {
     )pbdoc",
            py::arg("mask"))
 
-      .def("set_apodizer", wy::colCast(&SutraStellarCoronagraph::set_apodizer),
+      .def("set_apodizer", &set_apodizer,
            R"pbdoc(
     Set apodizer for coronagraphic image computation
 
@@ -129,7 +142,7 @@ void declare_stellar_coronagraph(py::module &mod) {
     )pbdoc",
            py::arg("mask"))
 
-      .def("set_lyot_stop", wy::colCast(&SutraStellarCoronagraph::set_lyot_stop),
+      .def("set_lyot_stop", &set_lyot_stop,
            R"pbdoc(
     Set lyot_stop for coronagraphic image computation
 

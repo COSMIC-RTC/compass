@@ -83,3 +83,4 @@ graph_info.json
 shesha/doc/compass-doc
 stubs
 doc/html/report_unit_test.html
+CMakeUserPresets.json

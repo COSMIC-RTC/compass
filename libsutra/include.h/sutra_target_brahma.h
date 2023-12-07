@@ -36,21 +36,21 @@ class SutraTargetBrahma : public SutraTarget {
 
   CORBA::ULong *dims_pixels;
 
-  long framecounter;
-  long samplecounter;
-  int subsample;
+  int64_t framecounter;
+  int64_t samplecounter;
+  int32_t subsample;
   ACE_Mutex lock_;
 
-  int is_initialised;
+  int32_t is_initialised;
 
  public:
   SutraTargetBrahma(CarmaContext *context, ACE_TCHAR *name,
-                      SutraTelescope *d_tel, int subsample, int ntargets,
+                      SutraTelescope *d_tel, int32_t subsample, int32_t ntargets,
                       float *xpos, float *ypos, float *lambda, float *mag,
-                      float zerop, long *sizes, int Npts, int device);
+                      float zerop, int64_t *sizes, int32_t Npts, int32_t device);
   ~SutraTargetBrahma();
 
-  void set_subsample(int ntarget, int subsample);
+  void set_subsample(int32_t ntarget, int32_t subsample);
   void publish();
 
  private:

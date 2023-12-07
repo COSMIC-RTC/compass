@@ -8,7 +8,7 @@
 
 //! \file      sutra_controller_generic.h
 //! \ingroup   libsutra
-//! \class     sutra_controller_generic
+//! \class     SutraControllerGeneric
 //! \brief     this class provides the controller_generic features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
 //! \version   5.5.0
@@ -21,7 +21,7 @@
 #include <sutra_controller.h>
 
 template <typename Tcomp, typename Tout>
-class sutra_controller_generic : public SutraController<Tcomp, Tout> {
+class SutraControllerGeneric : public SutraController<Tcomp, Tout> {
  public:
   CarmaObj<Tcomp> *d_matE;
   CarmaObj<Tcomp> *d_cmat;
@@ -35,50 +35,50 @@ class sutra_controller_generic : public SutraController<Tcomp, Tout> {
   std::vector<CarmaObj<Tcomp> *> d_err_ngpu;
   std::vector<CarmaObj<Tcomp> *> d_centroids_ngpu;
   std::vector<CarmaObj<Tcomp> *> d_cmat_ngpu;
-  std::vector<int> P2Pdevices;
+  std::vector<int32_t> P2Pdevices;
   std::vector<cudaEvent_t> events;
   cudaEvent_t start_mvm_event;
   std::vector<cudaStream_t> streams;
   bool polc;
-  int nstates;
+  int32_t nstates;
   Tcomp leaky_factor;
   string command_law;
 
  public:
-  sutra_controller_generic(CarmaContext *context, long nslope,
-                           long nactu, float delay, SutraDms *dms,
-                           int *idx_dms, int ndm, int *idx_centro, int ncentro, int nstates);
-  sutra_controller_generic(const sutra_controller_generic &controller);
-  ~sutra_controller_generic();
+  SutraControllerGeneric(CarmaContext *context, int64_t nslope,
+                           int64_t nactu, float delay, SutraDms *dms,
+                           int32_t *idx_dms, int32_t ndm, int32_t *idx_centro, int32_t ncentro, int32_t nstates);
+  SutraControllerGeneric(const SutraControllerGeneric &controller);
+  ~SutraControllerGeneric();
 
   string get_type();
   string get_commandlaw();
-  int set_decayFactor(float *decayFactor);
-  int set_modal_gains(float *gain);
-  int set_cmat(float *cmat);
-  int set_matE(float *matE);
-  int set_commandlaw(string law);
-  int set_polc(bool p);
-  int set_imat(float *imat);
-  int set_leaky_factor(Tcomp factor);
+  int32_t set_decayFactor(float *decayFactor);
+  int32_t set_modal_gains(float *gain);
+  int32_t set_cmat(float *cmat);
+  int32_t set_matE(float *matE);
+  int32_t set_commandlaw(string law);
+  int32_t set_polc(bool p);
+  int32_t set_imat(float *imat);
+  int32_t set_leaky_factor(Tcomp factor);
   using SutraController<Tcomp,Tout>::comp_polc;
-  int comp_polc();
-  int comp_com();
-  int fill_cmatPadded();
-  int distribute_cmat();
+  int32_t comp_polc();
+  int32_t comp_com();
+  int32_t fill_cmatPadded();
+  int32_t distribute_cmat();
 
  private:
   template <typename Q = Tcomp>
-  typename std::enable_if<!std::is_same<Q, half>::value, int>::type
+  typename std::enable_if<!std::is_same<Q, half>::value, int32_t>::type
   fill_cmatPadded_impl() {
     return EXIT_SUCCESS;
   };
   template <typename Q = Tcomp>
-  typename std::enable_if<std::is_same<Q, half>::value, int>::type
+  typename std::enable_if<std::is_same<Q, half>::value, int32_t>::type
   fill_cmatPadded_impl();
 };
 
 template <typename T>
-void pad_cmat(T *idata, int m, int n, T *odata, int m2, int n2,
+void pad_cmat(T *idata, int32_t m, int32_t n, T *odata, int32_t m2, int32_t n2,
               CarmaDevice *device);
 #endif  // _SUTRA_CONTROLLER_GENERIC_H_

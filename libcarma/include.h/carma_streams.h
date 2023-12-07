@@ -25,27 +25,27 @@ class CarmaStreams {
  protected:
   std::vector<cudaStream_t> streams;
   std::vector<cudaEvent_t> events;
-  int eventflags;
+  int32_t eventflags;
 
  public:
   CarmaStreams();
-  CarmaStreams(unsigned int nb_streams);
+  CarmaStreams(uint32_t nb_streams);
   // carma_stream(const carma_stream& src_carma_stream);
   ~CarmaStreams();
 
-  cudaStream_t get_stream(int stream);
-  cudaEvent_t get_event(int stream);
-  cudaStream_t operator[](int idx) { return get_stream(idx); }
+  cudaStream_t get_stream(int32_t stream);
+  cudaEvent_t get_event(int32_t stream);
+  cudaStream_t operator[](int32_t idx) { return get_stream(idx); }
 
-  int get_nb_streams();
-  int add_stream();
-  int add_stream(int nb);
-  int del_stream();
-  int del_stream(int nb);
-  int del_all_streams();
-  int wait_event(int stream);
-  int wait_stream(int stream);
-  int wait_all_streams();
+  int32_t get_nb_streams();
+  int32_t add_stream();
+  int32_t add_stream(int32_t nb);
+  int32_t del_stream();
+  int32_t del_stream(int32_t nb);
+  int32_t del_all_streams();
+  int32_t wait_event(int32_t stream);
+  int32_t wait_stream(int32_t stream);
+  int32_t wait_all_streams();
 };
 
 #endif  // _CARMA_STREAM_H_

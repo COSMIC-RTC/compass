@@ -18,20 +18,20 @@
 
 using namespace indicators;
 
-SutraGamora::SutraGamora(CarmaContext *context, int device, char *type,
-                           int nactus, int nmodes, int niter, float *IFvalue,
-                           int *IFrowind, int *IFcolind, int IFnz, float *TT,
-                           float *pupil, int size, int Npts, float scale,
+SutraGamora::SutraGamora(CarmaContext *context, int32_t device, char *type,
+                           int32_t nactus, int32_t nmodes, int32_t niter, float *IFvalue,
+                           int32_t *IFrowind, int32_t *IFcolind, int32_t IFnz, float *TT,
+                           float *pupil, int32_t size, int32_t Npts, float scale,
                            float *Btt, float *covmodes) {
   this->current_context = context;
 
-  const int ngpu = context->get_ndevice();
+  const int32_t ngpu = context->get_ndevice();
   DEBUG_TRACE("using GAMORA with %d GPUs", ngpu);
   if (ngpu == 1)
     this->device = device;
   else {
-    int devices[ngpu];
-    for (int i = 0; i < ngpu; i++) {
+    int32_t devices[ngpu];
+    for (int32_t i = 0; i < ngpu; i++) {
       devices[i] = i;
     }
     this->device = devices[0];
@@ -61,29 +61,29 @@ SutraGamora::SutraGamora(CarmaContext *context, int device, char *type,
   this->d_IF = NULL;
   this->d_TT = NULL;
 
-  int mradix = 2;
-  int fft_size = pow(mradix, (long)(logf(2 * size) / logf(mradix)) + 1);
+  int32_t mradix = 2;
+  int32_t fft_size = pow(mradix, (int64_t)(logf(2 * size) / logf(mradix)) + 1);
 
-  long dims_data2[3] = {2, niter, nactus};
-  long dims_data1[2] = {1, Npts};
+  int64_t dims_data2[3] = {2, niter, nactus};
+  int64_t dims_data1[2] = {1, Npts};
 
   if (strcmp(type, "roket") == 0) {
     // Command error
     this->d_err = new CarmaObj<float>(this->current_context, dims_data2);
   }
 
-  int *wherephase;
-  wherephase = (int *)malloc(Npts * sizeof(int));
-  int cpt = 0;
+  int32_t *wherephase;
+  wherephase = (int32_t *)malloc(Npts * sizeof(int32_t));
+  int32_t cpt = 0;
   // Phase point index in spupil
-  for (int cc = 0; cc < size * size; cc++) {
+  for (int32_t cc = 0; cc < size * size; cc++) {
     if (pupil[cc] > 0) {
       wherephase[cpt] = cc;
       cpt += 1;
     }
   }
   this->d_wherephase =
-      new CarmaObj<int>(this->current_context, dims_data1, wherephase);
+      new CarmaObj<int32_t>(this->current_context, dims_data1, wherephase);
   this->d_phase = new CarmaObj<float>(this->current_context, dims_data1);
 
   // dims_data2[1] = size;
@@ -107,9 +107,9 @@ SutraGamora::SutraGamora(CarmaContext *context, int device, char *type,
   dims_data1[1] = IFnz;
 
   CarmaObj<float> d_val(this->current_context, dims_data1, IFvalue);
-  CarmaObj<int> d_row(this->current_context, dims_data1, IFrowind);
+  CarmaObj<int32_t> d_row(this->current_context, dims_data1, IFrowind);
   dims_data1[1] = this->nactus - 2 + 1;
-  CarmaObj<int> d_col(this->current_context, dims_data1, IFcolind);
+  CarmaObj<int32_t> d_col(this->current_context, dims_data1, IFcolind);
   dims_data2[1] = nactus - 2;
   dims_data2[2] = Npts;
   this->d_IF = new CarmaSparseObj<float>(this->current_context, dims_data2,
@@ -166,7 +166,7 @@ SutraGamora::SutraGamora(CarmaContext *context, int device, char *type,
     this->d_pupfft_ngpu.push_back(this->d_pupfft);
     this->d_Dphi_ngpu.push_back(this->d_Dphi);
 
-    for (int d = 1; d < ngpu; d++) {
+    for (int32_t d = 1; d < ngpu; d++) {
       current_context->set_active_device(d, 1);
       dims_data2[1] = fft_size;
       dims_data2[2] = fft_size;
@@ -203,9 +203,9 @@ SutraGamora::SutraGamora(CarmaContext *context, int device, char *type,
 
       dims_data1[1] = IFnz;
       CarmaObj<float> d_val_tmp(this->current_context, dims_data1, IFvalue);
-      CarmaObj<int> d_row_tmp(this->current_context, dims_data1, IFrowind);
+      CarmaObj<int32_t> d_row_tmp(this->current_context, dims_data1, IFrowind);
       dims_data1[1] = this->nactus - 2 + 1;
-      CarmaObj<int> d_col_tmp(this->current_context, dims_data1, IFcolind);
+      CarmaObj<int32_t> d_col_tmp(this->current_context, dims_data1, IFcolind);
 
       d_IF_ngpu.push_back(new CarmaSparseObj<float>(
           this->current_context, dims_data2, d_val_tmp.get_data(),
@@ -217,7 +217,7 @@ SutraGamora::SutraGamora(CarmaContext *context, int device, char *type,
           new CarmaObj<float>(this->current_context, dims_data2, TT));
       dims_data1[1] = Npts;
       d_wherephase_ngpu.push_back(
-          new CarmaObj<int>(this->current_context, dims_data1, wherephase));
+          new CarmaObj<int32_t>(this->current_context, dims_data1, wherephase));
       d_phase_ngpu.push_back(
           new CarmaObj<float>(this->current_context, dims_data1));
     }
@@ -258,7 +258,7 @@ SutraGamora::~SutraGamora() {
   }
 
   if (this->d_wherephase) {
-    for (std::vector<CarmaObj<int> *>::iterator it =
+    for (std::vector<CarmaObj<int32_t> *>::iterator it =
              this->d_wherephase_ngpu.begin();
          this->d_wherephase_ngpu.end() != it; ++it) {
       current_context->set_active_device((*it)->get_device(), 1);
@@ -325,7 +325,7 @@ SutraGamora::~SutraGamora() {
   }
 }
 
-int SutraGamora::psf_rec_roket(float *err) {
+int32_t SutraGamora::psf_rec_roket(float *err) {
   this->current_context->set_active_device(this->device, 1);
   // Get the error command buffer
   this->d_err->host2device(err);
@@ -333,7 +333,7 @@ int SutraGamora::psf_rec_roket(float *err) {
   carma_safe_call(cudaMemset(this->d_psf->get_data(), 0,
                            sizeof(float) * this->d_psf->get_nb_elements()));
 
-  for (int cc = 0; cc < this->niter; cc++) {
+  for (int32_t cc = 0; cc < this->niter; cc++) {
     // set amplipup to 0
     carma_safe_call(
         cudaMemset(this->d_amplipup->get_data(), 0,
@@ -373,7 +373,7 @@ int SutraGamora::psf_rec_roket(float *err) {
   return EXIT_SUCCESS;
 }
 
-int SutraGamora::psf_rec_Vii() {
+int32_t SutraGamora::psf_rec_Vii() {
   // Telescope OTF computation and mask
   // Get the pupil
   this->current_context->set_active_device(this->device, 1);
@@ -457,7 +457,7 @@ int SutraGamora::psf_rec_Vii() {
   ProgressBar bar{option::BarWidth{50}, option::ForegroundColor{Color::white},
                   option::ShowElapsedTime{true}, option::ShowRemainingTime{true},
                   option::PrefixText{"Computing Vii: "}, option::MaxProgress{this->nmodes}};
-  for (int k = 0; k < this->nmodes; k++) {
+  for (int32_t k = 0; k < this->nmodes; k++) {
     compute_Dphi_on_mode_k(k);
     bar.tick();
     // printf("\rComputing OTF with %d Vii :
@@ -501,9 +501,9 @@ int SutraGamora::psf_rec_Vii() {
   return EXIT_SUCCESS;
 }
 
-void SutraGamora::compute_Dphi_on_mode_k(int k) {
+void SutraGamora::compute_Dphi_on_mode_k(int32_t k) {
   this->current_context->set_active_device(this->device, 1);
-  int ngpu = d_pupfft_ngpu.size();
+  int32_t ngpu = d_pupfft_ngpu.size();
   if (ngpu < 2) {
     carma_safe_call(
         cudaMemset(this->d_amplipup->get_data(), 0,
@@ -552,7 +552,7 @@ void SutraGamora::compute_Dphi_on_mode_k(int k) {
              this->d_Dphi->get_nb_elements(),
              this->current_context->get_device(this->device));
   } else {
-    int cur_device = k % ngpu;
+    int32_t cur_device = k % ngpu;
     this->current_context->set_active_device(cur_device, 1);
     carma_safe_call(
         cudaMemset(this->d_amplipup_ngpu[cur_device]->get_data(), 0,

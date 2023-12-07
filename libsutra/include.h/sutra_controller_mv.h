@@ -8,7 +8,7 @@
 
 //! \file      sutra_controller_mv.h
 //! \ingroup   libsutra
-//! \class     sutra_controller_mv
+//! \class     SutraControllerMv
 //! \brief     this class provides the controller_mv features to COMPASS
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
 //! \version   5.5.0
@@ -26,7 +26,7 @@
 #include <sutra_wfs.h>
 
 template <typename Tcomp, typename Tout>
-class sutra_controller_mv : public SutraController<Tcomp, Tout> {
+class SutraControllerMv : public SutraController<Tcomp, Tout> {
  public:
   CarmaObj<Tcomp> *d_imat;
   CarmaObj<Tcomp> *d_cmat;
@@ -53,51 +53,51 @@ class sutra_controller_mv : public SutraController<Tcomp, Tout> {
   cublasHandle_t cublas_handle;
 
  public:
-  sutra_controller_mv(CarmaContext *context, long nslope,
-                      long nactu, float delay, SutraDms *dms, int *idx_dms,
-                      int ndm, int *idx_centro, int ncentro);
-  sutra_controller_mv(const sutra_controller_mv &controller);
-  ~sutra_controller_mv();
+  SutraControllerMv(CarmaContext *context, int64_t nslope,
+                      int64_t nactu, float delay, SutraDms *dms, int32_t *idx_dms,
+                      int32_t ndm, int32_t *idx_centro, int32_t ncentro);
+  SutraControllerMv(const SutraControllerMv &controller);
+  ~SutraControllerMv();
 
   string get_type();
 
-  int svdec_imat();
-  int build_cmat(const char *dmtype, char *method);
-  int build_cmat(Tcomp cond);
-  int frame_delay();
-  int comp_com();
-  int set_modal_gains(Tcomp *mgain);
-  int set_cmat(Tcomp *cmat);
-  int set_imat(Tcomp *imat);
+  int32_t svdec_imat();
+  int32_t build_cmat(const char *dmtype, char *method);
+  int32_t build_cmat(Tcomp cond);
+  int32_t frame_delay();
+  int32_t comp_com();
+  int32_t set_modal_gains(Tcomp *mgain);
+  int32_t set_cmat(Tcomp *cmat);
+  int32_t set_imat(Tcomp *imat);
   // Florian features
-  int load_noisemat(Tcomp *noise);
-  int do_covmat(SutraDm *ydm, char *method, int *indx_pup, long dim,
-                Tcomp *xpos, Tcomp *ypos, long Nkl, Tcomp norm, Tcomp ampli);
-  int do_geomat(CarmaObj<Tcomp> *d_geocov, CarmaObj<Tcomp> *d_IF, long n_pts,
+  int32_t load_noisemat(Tcomp *noise);
+  int32_t do_covmat(SutraDm *ydm, char *method, int32_t *indx_pup, int64_t dim,
+                Tcomp *xpos, Tcomp *ypos, int64_t Nkl, Tcomp norm, Tcomp ampli);
+  int32_t do_geomat(CarmaObj<Tcomp> *d_geocov, CarmaObj<Tcomp> *d_IF, int64_t n_pts,
                 Tcomp ampli);
-  int piston_filt(CarmaObj<Tcomp> *d_statcov);
-  int piston_filt_cphim(CarmaObj<Tcomp> *d_cphim, Tcomp *F);
-  int filter_cphim(Tcomp *F, Tcomp *Nact);
-  int filter_cmat(Tcomp cond);
-  int invgen(CarmaObj<Tcomp> *d_mat, Tcomp cond, int job);
-  int invgen(CarmaObj<Tcomp> *d_mat, CarmaHostObj<Tcomp> *h_eigen,
+  int32_t piston_filt(CarmaObj<Tcomp> *d_statcov);
+  int32_t piston_filt_cphim(CarmaObj<Tcomp> *d_cphim, Tcomp *F);
+  int32_t filter_cphim(Tcomp *F, Tcomp *Nact);
+  int32_t filter_cmat(Tcomp cond);
+  int32_t invgen(CarmaObj<Tcomp> *d_mat, Tcomp cond, int32_t job);
+  int32_t invgen(CarmaObj<Tcomp> *d_mat, CarmaHostObj<Tcomp> *h_eigen,
              Tcomp cond);
-  int invgen_cpu(CarmaObj<Tcomp> *d_mat, CarmaHostObj<Tcomp> *h_eigen,
+  int32_t invgen_cpu(CarmaObj<Tcomp> *d_mat, CarmaHostObj<Tcomp> *h_eigen,
                  Tcomp cond);
-  // int
-  // do_statmat(T *statcov,long dim, T *xpos, T *ypos, T norm,
+  // int32_t
+  // do_statmat(T *statcov,int64_t dim, T *xpos, T *ypos, T norm,
   // CarmaDevice *device);
-  int DDiago(CarmaObj<Tcomp> *d_statcov, CarmaObj<Tcomp> *d_geocov);
-  int load_covmat(Tcomp *covmat);
-  int load_klbasis(Tcomp *klbasis);
-  int compute_Cmm(SutraAtmos *atmos, SutraSensors *sensors, double *L0,
+  int32_t DDiago(CarmaObj<Tcomp> *d_statcov, CarmaObj<Tcomp> *d_geocov);
+  int32_t load_covmat(Tcomp *covmat);
+  int32_t load_klbasis(Tcomp *klbasis);
+  int32_t compute_Cmm(SutraAtmos *atmos, SutraSensors *sensors, double *L0,
                   double *cn2, double *alphaX, double *alphaY, double diamTel,
                   double cobs);
-  int compute_Cphim(SutraAtmos *atmos, SutraSensors *sensors, SutraDms *dms,
+  int32_t compute_Cphim(SutraAtmos *atmos, SutraSensors *sensors, SutraDms *dms,
                     double *L0, double *cn2, double *alphaX, double *alphaY,
                     double *X, double *Y, double *xactu, double *yactu,
-                    double diamTel, double *k2, long *NlayerDm,
-                    long *indLayerDm, double FoV, double *pitch,
+                    double diamTel, double *k2, int64_t *NlayerDm,
+                    int64_t *indLayerDm, double FoV, double *pitch,
                     double *alt_dm);
 };
 

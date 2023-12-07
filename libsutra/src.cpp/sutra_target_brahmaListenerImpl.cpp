@@ -49,7 +49,7 @@ void SutraTargetBrahmaListenerImpl::on_data_available(
            << " _narrow failed." << endl;
       ACE_OS::exit(1);
     }
-    int count = 0;
+    int32_t count = 0;
     while (true) {
       DDS::SampleInfo si;
       BRAHMA::Command cmd;
@@ -73,8 +73,8 @@ void SutraTargetBrahmaListenerImpl::on_data_available(
               carma_utils::split(cmd_splited, type, '_');
 
               if (cmd_splited[0] == "canapassExposure") {
-                int ntarget = carma_utils::from_string<int>(cmd_splited[1]);
-                int subsample = carma_utils::from_string<int>(cmd_splited[2]);
+                int32_t ntarget = carma_utils::from_string<int32_t>(cmd_splited[1]);
+                int32_t subsample = carma_utils::from_string<int32_t>(cmd_splited[2]);
                 DEBUG_TRACE("Updating canapassExposure on target %d to %d",
                             ntarget, subsample);
 

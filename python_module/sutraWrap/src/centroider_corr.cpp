@@ -13,11 +13,21 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
+#include "sutraWrapUtils.hpp"
+
 #include <sutra_centroider_corr.h>
 
-#include <wyrm>
-
 namespace py = pybind11;
+
+template <typename Tin, typename Tcomp>
+int32_t init_corr(SutraCentroiderCorr<Tin, Tcomp> &sc, int32_t isizex, int32_t isizey, ArrayFStyle<float> &interpmat) {
+    return sc.init_corr(isizex, isizey, interpmat.mutable_data());
+}
+
+template <typename Tin, typename Tcomp>
+int32_t load_corr(SutraCentroiderCorr<Tin, Tcomp> &sc, ArrayFStyle<Tcomp> &corr, ArrayFStyle<Tcomp> &corr_norm, int32_t ndim) {
+    return sc.load_corr(corr.mutable_data(), corr_norm.mutable_data(), ndim);
+}
 
 template <typename Tin, typename Tcomp>
 void centroider_corr_impl(py::module &mod, const char *name) {
@@ -73,7 +83,7 @@ void centroider_corr_impl(py::module &mod, const char *name) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
-      .def("init_corr", wy::colCast(&centroider_corr::init_corr), R"pbdoc(
+      .def("init_corr", &init_corr<Tin, Tcomp>, R"pbdoc(
     Initializes corr computation
 
     Args:
@@ -85,7 +95,7 @@ void centroider_corr_impl(py::module &mod, const char *name) {
         )pbdoc",
            py::arg("isizex"), py::arg("isizey"), py::arg("interpmat"))
 
-      .def("load_corr", wy::colCast(&centroider_corr::load_corr), R"pbdoc(
+      .def("load_corr", &load_corr<Tin, Tcomp>, R"pbdoc(
     Load arrays for correlation computation
 
     Args:

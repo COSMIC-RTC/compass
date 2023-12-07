@@ -22,9 +22,9 @@ CarmaStreams::CarmaStreams() {
   CarmaStreams(0);
 }
 
-CarmaStreams::CarmaStreams(unsigned int nb_streams) {
+CarmaStreams::CarmaStreams(uint32_t nb_streams) {
   // this->streams  = new vector<cudaStream_t>();
-  for (unsigned int i = 0; i < nb_streams; i++) {
+  for (uint32_t i = 0; i < nb_streams; i++) {
     add_stream();
   }
 
@@ -37,7 +37,7 @@ CarmaStreams::CarmaStreams(unsigned int nb_streams) {
 /*
  carma_stream::carma_stream(const carma_stream& src_carma_stream)
  {
- int nb_streams=src_carma_stream.get_nb_streams();
+ int32_t nb_streams=src_carma_stream.get_nb_streams();
  carma_stream(nb_streams);
  }
  */
@@ -50,9 +50,9 @@ CarmaStreams::~CarmaStreams() {
   // cudaEventDestroy(this->stop_event);
 }
 
-int CarmaStreams::get_nb_streams() { return this->streams.size(); }
+int32_t CarmaStreams::get_nb_streams() { return this->streams.size(); }
 
-int CarmaStreams::add_stream() {
+int32_t CarmaStreams::add_stream() {
   cudaStream_t stream_tmp;
 
   carma_safe_call(cudaStreamCreate(&stream_tmp));
@@ -69,12 +69,12 @@ int CarmaStreams::add_stream() {
   return get_nb_streams();
 }
 
-int CarmaStreams::add_stream(int nb) {
-  for (int stream = 0; stream < nb; stream++) add_stream();
+int32_t CarmaStreams::add_stream(int32_t nb) {
+  for (int32_t stream = 0; stream < nb; stream++) add_stream();
   return get_nb_streams();
 }
 
-int CarmaStreams::del_stream() {
+int32_t CarmaStreams::del_stream() {
   if (streams.empty()) return 0;
 
 #if DEBUG
@@ -89,36 +89,36 @@ int CarmaStreams::del_stream() {
   return get_nb_streams();
 }
 
-int CarmaStreams::del_stream(int nb) {
-  for (int stream = 0; stream < nb && !streams.empty(); stream++) del_stream();
+int32_t CarmaStreams::del_stream(int32_t nb) {
+  for (int32_t stream = 0; stream < nb && !streams.empty(); stream++) del_stream();
   return get_nb_streams();
 }
 
-int CarmaStreams::del_all_streams() {
+int32_t CarmaStreams::del_all_streams() {
   while (!streams.empty()) del_stream();
   return get_nb_streams();
 }
 
-cudaStream_t CarmaStreams::get_stream(int stream) {
+cudaStream_t CarmaStreams::get_stream(int32_t stream) {
   return this->streams[stream];
 }
 
-cudaEvent_t CarmaStreams::get_event(int stream) {
+cudaEvent_t CarmaStreams::get_event(int32_t stream) {
   return this->events[stream];
 }
 
-int CarmaStreams::wait_event(int stream) {
+int32_t CarmaStreams::wait_event(int32_t stream) {
   carma_safe_call(cudaEventSynchronize(this->events[stream]));
   return EXIT_SUCCESS;
 }
 
-int CarmaStreams::wait_stream(int stream) {
+int32_t CarmaStreams::wait_stream(int32_t stream) {
   carma_safe_call(cudaStreamSynchronize(this->streams[stream]));
   return EXIT_SUCCESS;
 }
 
-int CarmaStreams::wait_all_streams() {
-  for (unsigned int stream = 0; stream < streams.size(); stream++)
+int32_t CarmaStreams::wait_all_streams() {
+  for (uint32_t stream = 0; stream < streams.size(); stream++)
     carma_safe_call(cudaStreamSynchronize(this->streams[stream]));
   return EXIT_SUCCESS;
 }

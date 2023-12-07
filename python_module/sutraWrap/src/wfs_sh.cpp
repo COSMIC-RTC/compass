@@ -13,16 +13,26 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_wfs_sh.h>
+#include "sutraWrapUtils.hpp"
 
-#include <wyrm>
+#include <sutra_wfs_sh.h>
 
 namespace py = pybind11;
 
+int32_t load_arrays(SutraWfsSH &ssh, ArrayFStyle<int32_t> &phasemap, ArrayFStyle<int32_t> &hrmap, ArrayFStyle<int32_t> &binmap,
+                ArrayFStyle<float> &offsets, ArrayFStyle<float> &fluxPerSub, ArrayFStyle<int32_t> &validsubsx,
+                ArrayFStyle<int32_t> &validsubsy, ArrayFStyle<int32_t> &istart, ArrayFStyle<int32_t> &jstart,
+                ArrayFStyle<float> &ttprojmat, ArrayFStyle<std::complex<float>> &kernel) {
+  return ssh.load_arrays(phasemap.mutable_data(), hrmap.mutable_data(), binmap.mutable_data(), offsets.mutable_data(),
+                               fluxPerSub.mutable_data(), validsubsx.mutable_data(), validsubsy.mutable_data(), istart.mutable_data(),
+                               jstart.mutable_data(), ttprojmat.mutable_data(), reinterpret_cast<cuFloatComplex *>(kernel.mutable_data()));
+}
+
+int32_t set_bincube(SutraWfsSH &ssh, ArrayFStyle<float> &bincube, int32_t nElem) {
+  return ssh.set_bincube(bincube.mutable_data(), nElem);
+}
+
 void declare_wfs_sh(py::module &mod) {
-  auto carmaWrap = py::module::import("carmaWrap");
-  auto complex128 = carmaWrap.attr("complex128");
-  auto complex64 = carmaWrap.attr("complex64");
   py::class_<SutraWfsSH, SutraWfs>(mod, "SHWFS")
 
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
@@ -56,7 +66,7 @@ void declare_wfs_sh(py::module &mod) {
       //  ██║╚██╔╝██║██╔══╝     ██║   ██╔══██║██║   ██║██║  ██║╚════██║
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
-      .def("load_arrays", wy::colCast(&SutraWfsSH::load_arrays), R"pbdoc(
+      .def("load_arrays", &load_arrays, R"pbdoc(
     Load SH WFS arrays
 
     Args:
@@ -119,7 +129,7 @@ void declare_wfs_sh(py::module &mod) {
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
-      .def("set_bincube", wy::colCast(&SutraWfsSH::set_bincube), R"pbdoc(
+      .def("set_bincube", &set_bincube, R"pbdoc(
     Set the bincube of the SH WFS
 
     Args:

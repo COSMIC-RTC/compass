@@ -17,24 +17,24 @@
 #include <sutra_stellarCoronagraph.h>
 
 SutraStellarCoronagraph::SutraStellarCoronagraph(CarmaContext *context, SutraSource *d_source,
-                                    int im_dimx, int im_dimy, int fpm_dimx, int fpm_dimy,
-                                    float *wavelength, int nWavelength, bool babinet,
-                                    int device):
+                                    int32_t im_dimx, int32_t im_dimy, int32_t fpm_dimx, int32_t fpm_dimy,
+                                    float *wavelength, int32_t nWavelength, bool babinet,
+                                    int32_t device):
     SutraCoronagraph(context, "perfect", d_source, im_dimx, im_dimy, wavelength, nWavelength, device),
     fpmDimx(fpm_dimx),
     fpmDimy(fpm_dimy),
     babinet(babinet) {
         AA = {
-            {"img", make_tuple(mftVec(nWavelength, nullptr), vector<long>({2, imageDimx, pupDimx}))},
-            {"psf", make_tuple(mftVec(nWavelength, nullptr), vector<long>({2, imageDimx, pupDimx}))},
-            {"fpm", make_tuple(mftVec(nWavelength, nullptr), vector<long>({2, fpmDimx, pupDimx}))},
-            {"lyot", make_tuple(mftVec(nWavelength, nullptr), vector<long>({2, pupDimx, fpmDimx}))}
+            {"img", make_tuple(mftVec(nWavelength, nullptr), vector<int64_t>({2, imageDimx, pupDimx}))},
+            {"psf", make_tuple(mftVec(nWavelength, nullptr), vector<int64_t>({2, imageDimx, pupDimx}))},
+            {"fpm", make_tuple(mftVec(nWavelength, nullptr), vector<int64_t>({2, fpmDimx, pupDimx}))},
+            {"lyot", make_tuple(mftVec(nWavelength, nullptr), vector<int64_t>({2, pupDimx, fpmDimx}))}
         };
         BB = {
-            {"img", make_tuple(mftVec(nWavelength, nullptr), vector<long>({2, pupDimy, imageDimy}))},
-            {"psf", make_tuple(mftVec(nWavelength, nullptr), vector<long>({2, pupDimy, imageDimy}))},
-            {"fpm", make_tuple(mftVec(nWavelength, nullptr), vector<long>({2, pupDimy, fpmDimy}))},
-            {"lyot", make_tuple(mftVec(nWavelength, nullptr), vector<long>({2, fpmDimy, pupDimy}))}
+            {"img", make_tuple(mftVec(nWavelength, nullptr), vector<int64_t>({2, pupDimy, imageDimy}))},
+            {"psf", make_tuple(mftVec(nWavelength, nullptr), vector<int64_t>({2, pupDimy, imageDimy}))},
+            {"fpm", make_tuple(mftVec(nWavelength, nullptr), vector<int64_t>({2, pupDimy, fpmDimy}))},
+            {"lyot", make_tuple(mftVec(nWavelength, nullptr), vector<int64_t>({2, fpmDimy, pupDimy}))}
         };
         norm = {
             {"img", vector<float>(nWavelength, 1)},
@@ -43,13 +43,13 @@ SutraStellarCoronagraph::SutraStellarCoronagraph(CarmaContext *context, SutraSou
             {"lyot", vector<float>(nWavelength, 1)}
         };
         tmp_mft = {
-            {"img", make_tuple(nullptr, vector<long>({2, imageDimx, pupDimy}))},
-            {"psf", make_tuple(nullptr, vector<long>({2, imageDimx, pupDimy}))},
-            {"fpm", make_tuple(nullptr, vector<long>({2, fpmDimx, pupDimy}))},
-            {"lyot", make_tuple(nullptr, vector<long>({2, pupDimx, fpmDimy}))}
+            {"img", make_tuple(nullptr, vector<int64_t>({2, imageDimx, pupDimy}))},
+            {"psf", make_tuple(nullptr, vector<int64_t>({2, imageDimx, pupDimy}))},
+            {"fpm", make_tuple(nullptr, vector<int64_t>({2, fpmDimx, pupDimy}))},
+            {"lyot", make_tuple(nullptr, vector<int64_t>({2, pupDimx, fpmDimy}))}
         };
 
-        long dims[3] = {2, pupDimx, pupDimy};
+        int64_t dims[3] = {2, pupDimx, pupDimy};
         d_apodizer = new CarmaObj<float>(current_context, dims);
         d_lyot_stop = new CarmaObj<float>(current_context, dims);
         d_electric_field_babinet = new CarmaObj<cuFloatComplex>(current_context, dims);
@@ -58,17 +58,17 @@ SutraStellarCoronagraph::SutraStellarCoronagraph(CarmaContext *context, SutraSou
         d_electric_field_fpm = new CarmaObj<cuFloatComplex>(current_context, dims);
 }
 
-int SutraStellarCoronagraph::set_mft(cuFloatComplex *A, cuFloatComplex *B, float* norm0,
+int32_t SutraStellarCoronagraph::set_mft(cuFloatComplex *A, cuFloatComplex *B, float* norm0,
                                         std::string mftType) {
     if(AA.count(mftType) < 1) {
         std::cout << "Invalid mftType. Must be img or psf" << std::endl;
         return EXIT_FAILURE;
     }
 
-    vector<long> dims;
+    vector<int64_t> dims;
     CarmaObj<cuFloatComplex> *data;
 
-    for (int i = 0; i < wavelength.size() ; i++) {
+    for (int32_t i = 0; i < wavelength.size() ; i++) {
         dims = std::get<1>(AA[mftType]);
         std::get<0>(AA[mftType])[i] = new CarmaObj<cuFloatComplex>(current_context, dims.data(), A + i * dims[1] * dims[2]);
         dims = std::get<1>(BB[mftType]);
@@ -83,17 +83,17 @@ int SutraStellarCoronagraph::set_mft(cuFloatComplex *A, cuFloatComplex *B, float
     return EXIT_SUCCESS;
 }
 
-int SutraStellarCoronagraph::set_focal_plane_mask(float *mask) {
-    long dims[3] = {2, fpmDimx, fpmDimy};
+int32_t SutraStellarCoronagraph::set_focal_plane_mask(float *mask) {
+    int64_t dims[3] = {2, fpmDimx, fpmDimy};
 
     if (focal_plane_mask.empty()) {
-        for (int i = 0; i < wavelength.size() ; i++) {
+        for (int32_t i = 0; i < wavelength.size() ; i++) {
             focal_plane_mask.push_back(new CarmaObj<float>(current_context, dims,
                                                             mask + i * dims[1] * dims[2]));
         }
     }
     else {
-        for (int i = 0; i < wavelength.size() ; i++) {
+        for (int32_t i = 0; i < wavelength.size() ; i++) {
             focal_plane_mask[i]->host2device(mask + i * dims[1] * dims[2]);
         }
     }
@@ -101,17 +101,17 @@ int SutraStellarCoronagraph::set_focal_plane_mask(float *mask) {
     return EXIT_SUCCESS;
 }
 
-int SutraStellarCoronagraph::set_apodizer(float *apodizer) {
+int32_t SutraStellarCoronagraph::set_apodizer(float *apodizer) {
     d_apodizer->host2device(apodizer);
     return EXIT_SUCCESS;
 }
 
-int SutraStellarCoronagraph::set_lyot_stop(float *lyot_stop) {
+int32_t SutraStellarCoronagraph::set_lyot_stop(float *lyot_stop) {
     d_lyot_stop->host2device(lyot_stop);
     return EXIT_SUCCESS;
 }
 
-int SutraStellarCoronagraph::_compute_image(bool center_on_pixel, bool accumulate, bool no_fpm) {
+int32_t SutraStellarCoronagraph::_compute_image(bool center_on_pixel, bool accumulate, bool no_fpm) {
     std::vector<CarmaObj<cuFloatComplex>*> mftA = std::get<0>(AA["img"]);
     std::vector<CarmaObj<cuFloatComplex>*> mftB = std::get<0>(BB["img"]);
     CarmaObj<cuFloatComplex>* tmp = std::get<0>(tmp_mft["img"]);
@@ -124,7 +124,7 @@ int SutraStellarCoronagraph::_compute_image(bool center_on_pixel, bool accumulat
     }
 
     d_image_se->reset();
-    for (int i = 0 ; i < wavelength.size(); i++) {
+    for (int32_t i = 0 ; i < wavelength.size(); i++) {
         compute_electric_field(i);
         apply_mask(d_electric_field->get_data(), d_apodizer->get_data(),
                     d_electric_field->get_nb_elements(), current_context->get_device(device));
@@ -160,9 +160,9 @@ int SutraStellarCoronagraph::_compute_image(bool center_on_pixel, bool accumulat
     return EXIT_SUCCESS;
 }
 
-int SutraStellarCoronagraph::compute_psf(bool accumulate) {
+int32_t SutraStellarCoronagraph::compute_psf(bool accumulate) {
     d_psf_se->reset();
-    for (int i = 0 ; i < wavelength.size(); i++) {
+    for (int32_t i = 0 ; i < wavelength.size(); i++) {
         compute_electric_field(i);
         apply_mask(d_electric_field->get_data(), d_apodizer->get_data(),
                     d_electric_field->get_nb_elements(), current_context->get_device(device));
@@ -182,10 +182,10 @@ int SutraStellarCoronagraph::compute_psf(bool accumulate) {
     return EXIT_SUCCESS;
 }
 
-int SutraStellarCoronagraph::compute_image(bool accumulate) {
+int32_t SutraStellarCoronagraph::compute_image(bool accumulate) {
     return _compute_image(false, accumulate, false);
 }
 
-int SutraStellarCoronagraph::compute_image_normalization() {
+int32_t SutraStellarCoronagraph::compute_image_normalization() {
     return _compute_image(true, false, true);
 }

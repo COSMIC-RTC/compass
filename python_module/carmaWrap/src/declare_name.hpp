@@ -16,6 +16,11 @@
 #ifndef _DECLARE_NAME_H_
 #define _DECLARE_NAME_H_
 
+#include <pybind11/pybind11.h>
+#include "pybind11/complex.h"
+#include <pybind11/numpy.h>
+#include <pybind11/stl.h>
+
 #include <string>
 #include <cstdint>
 #include <cuComplex.h>
@@ -45,8 +50,8 @@ constexpr static char const* explicit_name();
 // DECLARE_NAME_CARMA(u64, Uint64)
 // DECLARE_NAME_CARMA(i64, Int64)
 
-DECLARE_NAME_CARMA(int, int);
-DECLARE_NAME_CARMA(unsigned int, uint);
+DECLARE_NAME_CARMA(int32_t, int32_t);
+DECLARE_NAME_CARMA(uint32_t, uint);
 DECLARE_NAME_CARMA(uint16_t, uint16);
 
 #ifdef CAN_DO_HALF

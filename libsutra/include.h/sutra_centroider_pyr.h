@@ -25,7 +25,7 @@ struct Method_CoG {
   Method_CoG(bool isLocal_ = false, bool isSinus_ = true)
       : is_local(isLocal_), is_sinus(isSinus_) {}
 
-  /** Method_CoG(int method)
+  /** Method_CoG(int32_t method)
    * where method is
    *        0: sinus global
    *        1: nosinus global
@@ -49,25 +49,25 @@ class SutraCentroiderPyr : public SutraCentroider<Tin, T> {
   string pyr_type;
 
  public:
-  SutraCentroiderPyr(CarmaContext *context, SutraWfs *wfs, long nvalid,
-                       float offset, float scale, bool filter_TT, int device);
+  SutraCentroiderPyr(CarmaContext *context, SutraWfs *wfs, int64_t nvalid,
+                       float offset, float scale, bool filter_TT, int32_t device);
   SutraCentroiderPyr(const SutraCentroiderPyr &centroider);
   ~SutraCentroiderPyr();
 
   string get_type();
-  int set_valid_thresh(T valid_thresh);
+  int32_t set_valid_thresh(T valid_thresh);
   T get_valid_thresh();
 
-  int set_method(Method_CoG method);
+  int32_t set_method(Method_CoG method);
   Method_CoG get_method();
   string get_method_str();
 
-  int get_pyr(float *cube, float *intensities, T *centroids, int *subindx,
-              int *subindy, int nvalid, int ns, int nim, cudaStream_t stream=0);
-  int get_cog(float *cube, float *intensities, T *centroids, int nvalid,
-              int npix, int ntot, cudaStream_t stream=0);
-  int get_cog(float *intensities, T *slopes, bool noise);
-  int get_cog();
+  int32_t get_pyr(float *cube, float *intensities, T *centroids, int32_t *subindx,
+              int32_t *subindy, int32_t nvalid, int32_t ns, int32_t nim, cudaStream_t stream=0);
+  int32_t get_cog(float *cube, float *intensities, T *centroids, int32_t nvalid,
+              int32_t npix, int32_t ntot, cudaStream_t stream=0);
+  int32_t get_cog(float *intensities, T *slopes, bool noise);
+  int32_t get_cog();
 
  private:
   T valid_thresh;
@@ -75,8 +75,8 @@ class SutraCentroiderPyr : public SutraCentroider<Tin, T> {
 };
 
 template <class T>
-void pyr_slopes(T *d_odata, T *ref, T *d_idata, int *subindx, int *subindy,
-                 float *intensities, int ns, int nvalid, float scale,
-                 T valid_thresh, int do_sin, SlopeOrder slope_order,
+void pyr_slopes(T *d_odata, T *ref, T *d_idata, int32_t *subindx, int32_t *subindy,
+                 float *intensities, int32_t ns, int32_t nvalid, float scale,
+                 T valid_thresh, int32_t do_sin, SlopeOrder slope_order,
                  CarmaDevice *device, cudaStream_t stream=0);
 #endif  // _SUTRA_CENTROIDER_PYR_H_

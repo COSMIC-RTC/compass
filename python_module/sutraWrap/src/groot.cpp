@@ -13,37 +13,37 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <wyrm>
+#include "sutraWrapUtils.hpp"
 
 #include <sutra_groot.h>
 
 namespace py = pybind11;
-typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;
 
-std::unique_ptr<SutraGroot> groot_init(CarmaContext &context, int device,
-                                        int nactus, int nlayers, float gsangle,
-                                        float *vdt, float *Htheta, float *L0,
-                                        float *winddir, float *scale,
-                                        float *pzt2tt, float *TTPfilter,
-                                        float *Nact, float *xpos, float *ypos,
+std::unique_ptr<SutraGroot> groot_init(CarmaContext &context, int32_t device,
+                                        int32_t nactus, int32_t nlayers, float gsangle,
+                                        ArrayFStyle<float> &vdt, ArrayFStyle<float> &Htheta, ArrayFStyle<float> &L0,
+                                        ArrayFStyle<float> &winddir, ArrayFStyle<float> &scale,
+                                        ArrayFStyle<float> &pzt2tt, ArrayFStyle<float> &TTPfilter,
+                                        ArrayFStyle<float> &Nact, ArrayFStyle<float> &xpos, ArrayFStyle<float> &ypos,
                                         float fc) {
   return std::unique_ptr<SutraGroot>(new SutraGroot(
-      &context, device, nactus, nlayers, gsangle, vdt, Htheta, L0, winddir,
-      scale, pzt2tt, TTPfilter, Nact, xpos, ypos, fc));
+      &context, device, nactus, nlayers, gsangle, vdt.mutable_data(), Htheta.mutable_data(), L0.mutable_data(),
+      winddir.mutable_data(), scale.mutable_data(), pzt2tt.mutable_data(), TTPfilter.mutable_data(),
+      Nact.mutable_data(), xpos.mutable_data(), ypos.mutable_data(), fc));
 };
 
 std::unique_ptr<SutraGroot> groot_init_alias(CarmaContext &context,
-                                              int device, int nssp,
-                                              float *weights, float scale,
-                                              float *xpos, float *ypos,
-                                              float fc, float d, int npts) {
+                                              int32_t device, int32_t nssp,
+                                              ArrayFStyle<float> &weights, float scale,
+                                              ArrayFStyle<float> &xpos, ArrayFStyle<float> &ypos,
+                                              float fc, float d, int32_t npts) {
   return std::unique_ptr<SutraGroot>(new SutraGroot(
-      &context, device, nssp, weights, scale, xpos, ypos, fc, d, npts));
+      &context, device, nssp, weights.mutable_data(), scale, xpos.mutable_data(), ypos.mutable_data(), fc, d, npts));
 };
 
 void declare_groot(py::module &mod) {
   py::class_<SutraGroot>(mod, "Groot")
-      .def(py::init(wy::colCast(groot_init)), R"pbdoc(
+      .def(py::init(&groot_init), R"pbdoc(
     Initializes Groot to compute aniso and bandwidth model
 
     Args:
@@ -85,7 +85,7 @@ void declare_groot(py::module &mod) {
            py::arg("scale"), py::arg("pzt2tt"), py::arg("TTPfilter"),
            py::arg("Nact"), py::arg("xpos"), py::arg("ypos"), py::arg("fc"))
 
-      .def(py::init(wy::colCast(groot_init_alias)), R"pbdoc(
+      .def(py::init(&groot_init_alias), R"pbdoc(
     Initializes Groot to compute aliasing model
 
     Args:
@@ -201,9 +201,9 @@ void declare_groot(py::module &mod) {
       //  ██║╚██╔╝██║██╔══╝     ██║   ██╔══██║██║   ██║██║  ██║╚════██║
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
-      .def("compute_Cerr", wy::colCast(&SutraGroot::compute_Cerr),
+      .def("compute_Cerr", &SutraGroot::compute_Cerr,
            "Computes the aniso and bandwidth error covariance matrix")
 
-      .def("compute_Calias", wy::colCast(&SutraGroot::compute_Calias),
+      .def("compute_Calias", &SutraGroot::compute_Calias,
            "Computes the aliasing error covariance matrix");
 };

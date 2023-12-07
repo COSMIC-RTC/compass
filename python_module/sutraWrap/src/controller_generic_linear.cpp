@@ -8,20 +8,56 @@
 
 //! \file      controller_generic_linear.cpp
 //! \ingroup   libsutra
-//! \brief     this file provides pybind wrapper for sutra_controller_generic_linear
+//! \brief     this file provides pybind wrapper for SutraControllerGenericLinear
 //! \author    COMPASS Team <https://github.com/ANR-COMPASS>
 //! \version   5.5.0
 //! \date      2021/05/12
 
-#include <sutra_controller_generic_linear.h>
+#include "sutraWrapUtils.hpp"
 
-#include <wyrm>
+#include <sutra_controller_generic_linear.h>
 
 namespace py = pybind11;
 
+
+template <typename Tcomp, typename Tout>
+int32_t set_matA(SutraControllerGenericLinear<Tcomp, Tout> &scgl, ArrayFStyle<float> &A, int32_t i){
+    return scgl.set_matA(A.mutable_data(), i);
+}
+
+template <typename Tcomp, typename Tout>
+int32_t set_matL(SutraControllerGenericLinear<Tcomp, Tout> &scgl, ArrayFStyle<float> &L, int32_t i){
+    return scgl.set_matL(L.mutable_data(), i);
+}
+
+template <typename Tcomp, typename Tout>
+int32_t set_matK(SutraControllerGenericLinear<Tcomp, Tout> &scgl, ArrayFStyle<float> &K){
+    return scgl.set_matK(K.mutable_data());
+}
+
+template <typename Tcomp, typename Tout>
+int32_t set_matD(SutraControllerGenericLinear<Tcomp, Tout> &scgl, ArrayFStyle<float> &D){
+    return scgl.set_matD(D.mutable_data());
+}
+
+template <typename Tcomp, typename Tout>
+int32_t set_matF(SutraControllerGenericLinear<Tcomp, Tout> &scgl, ArrayFStyle<float> &F){
+    return scgl.set_matF(F.mutable_data());
+}
+
+template <typename Tcomp, typename Tout>
+int32_t set_iir_a(SutraControllerGenericLinear<Tcomp, Tout> &scgl, ArrayFStyle<float> &iir_a, int32_t i){
+    return scgl.set_iir_a(iir_a.mutable_data(), i);
+}
+
+template <typename Tcomp, typename Tout>
+int32_t set_iir_b(SutraControllerGenericLinear<Tcomp, Tout> &scgl, ArrayFStyle<float> &iir_b, int32_t i){
+    return scgl.set_iir_b(iir_b.mutable_data(), i);
+}
+
 template <typename Tcomp, typename Tout>
 void controller_generic_linear_impl(py::module &mod, const char *name) {
-  using controller_generic_linear = sutra_controller_generic_linear<Tcomp, Tout>;
+  using controller_generic_linear = SutraControllerGenericLinear<Tcomp, Tout>;
 
   py::class_<controller_generic_linear, SutraController<Tcomp, Tout>>(mod, name)
 
@@ -206,7 +242,7 @@ void controller_generic_linear_impl(py::module &mod, const char *name) {
       //  ███████║███████╗  ██║     ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝  ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
       //
-      .def("set_polc", wy::colCast(&controller_generic_linear::set_polc),
+      .def("set_polc", &controller_generic_linear::set_polc,
            R"pbdoc(
     Set the POLC flag
 
@@ -215,7 +251,7 @@ void controller_generic_linear_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("polc"))
 
-      .def("set_matA", wy::colCast(&controller_generic_linear::set_matA),
+      .def("set_matA", &set_matA< Tcomp, Tout >,
            R"pbdoc(
     Set a single A matrix within the list of A matrices (state recursions)
 
@@ -226,7 +262,7 @@ void controller_generic_linear_impl(py::module &mod, const char *name) {
            py::arg("M"),
 	   py::arg("i"))
 
-      .def("set_matL", wy::colCast(&controller_generic_linear::set_matL),
+      .def("set_matL", &set_matL< Tcomp, Tout >,
            R"pbdoc(
     Set a single L matrix within the list of L matrices (innovations)
 
@@ -237,7 +273,7 @@ void controller_generic_linear_impl(py::module &mod, const char *name) {
            py::arg("M"),
 	   py::arg("i"))
 
-      .def("set_matK", wy::colCast(&controller_generic_linear::set_matK),
+      .def("set_matK", &set_matK< Tcomp, Tout >,
            R"pbdoc(
     Set K matrix (state to mode projection)
 
@@ -246,7 +282,7 @@ void controller_generic_linear_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("M"))
 
-      .def("set_matD", wy::colCast(&controller_generic_linear::set_matD),
+      .def("set_matD", &set_matD< Tcomp, Tout >,
            R"pbdoc(
     Set D matrix (interaction matrix)
 
@@ -255,7 +291,7 @@ void controller_generic_linear_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("M"))
 
-      .def("set_matF", wy::colCast(&controller_generic_linear::set_matF),
+      .def("set_matF", &set_matF< Tcomp, Tout >,
            R"pbdoc(
     Set F matrix (mode to actuator voltage projection)
 
@@ -264,7 +300,7 @@ void controller_generic_linear_impl(py::module &mod, const char *name) {
     )pbdoc",
            py::arg("M"))
 
-      .def("set_iir_a", wy::colCast(&controller_generic_linear::set_iir_a),
+      .def("set_iir_a", &set_iir_a< Tcomp, Tout >,
            R"pbdoc(
     Set a single iir 'a' vector within list (combined with iir outputs)
 
@@ -275,7 +311,7 @@ void controller_generic_linear_impl(py::module &mod, const char *name) {
            py::arg("M"),
 	   py::arg("i"))
 
-      .def("set_iir_b", wy::colCast(&controller_generic_linear::set_iir_b),
+      .def("set_iir_b", &set_iir_b< Tcomp, Tout >,
            R"pbdoc(
     Set a single iir 'b' vector within list (combined with iir inputs)
 

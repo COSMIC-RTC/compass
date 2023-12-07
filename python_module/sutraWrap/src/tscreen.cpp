@@ -13,14 +13,22 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <wyrm>
+#include "sutraWrapUtils.hpp"
 
 #include <sutra_tscreen.h>
 
 namespace py = pybind11;
 
-void declare_tscreen(py::module &mod) {
-  py::class_<SutraTurbuScreen>(mod, "Tscreen")
+int32_t set_istencilx(SutraTurbuScreen &st, ArrayFStyle<uint32_t> &istencil) {
+    return st.set_istencilx(istencil.mutable_data());
+}
+
+int32_t set_istencily(SutraTurbuScreen &st, ArrayFStyle<uint32_t> &istencil) {
+    return st.set_istencily(istencil.mutable_data());
+}
+
+void declare_turbu_screen(py::module &mod) {
+  py::class_<SutraTurbuScreen>(mod, "TurbuScreen")
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
       //  ██████╔╝██████╔╝██║   ██║██████╔╝█████╗  ██████╔╝   ██║    ╚████╔╝
@@ -130,7 +138,7 @@ void declare_tscreen(py::module &mod) {
           py::arg("deltay"))
 
       .def(
-          "set_istencilx", wy::colCast(&SutraTurbuScreen::set_istencilx),
+          "set_istencilx", &set_istencilx,
           R"pbdoc(
     Set the stencil along the X-Axis
 
@@ -140,7 +148,7 @@ void declare_tscreen(py::module &mod) {
           py::arg("stencil"))
 
       .def(
-          "set_istencily", wy::colCast(&SutraTurbuScreen::set_istencily),
+          "set_istencily", &set_istencily,
           R"pbdoc(
     Set the stencil along the Y-Axis
 

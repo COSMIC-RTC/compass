@@ -37,7 +37,7 @@ class CarmaException {
  private:
   std::string a_reason;  //!< a detailed description of the error
   std::string a_file;    //!< in which file this exception has been created
-  unsigned int a_line;   //!< on which line this exception has been created
+  uint32_t a_line;   //!< on which line this exception has been created
  public:
   /*!
    *  \brief Constructor
@@ -49,7 +49,7 @@ class CarmaException {
    *  \param line : which line this exception has been created
    */
 
-  CarmaException(std::string reason, std::string file, unsigned int line)
+  CarmaException(std::string reason, std::string file, uint32_t line)
       : a_reason(reason), a_file(file), a_line(line) {}
 
   /*!

@@ -47,12 +47,12 @@ using std::vector;
 
 class SutraDm {
  public:
-  int device;
+  int32_t device;
   string type;
   float altitude;
-  long nactus;
-  long influsize;
-  long dim;
+  int64_t nactus;
+  int64_t influsize;
+  int64_t dim;
   float push4imat;
   float volt_min;
   float volt_max;
@@ -69,14 +69,14 @@ class SutraDm {
 
   CarmaObj<float> *d_influ;  // if relevant
 
-  CarmaObj<int> *d_istart;
-  CarmaObj<int> *d_npoints;
+  CarmaObj<int32_t> *d_istart;
+  CarmaObj<int32_t> *d_npoints;
 
-  CarmaObj<int> *d_influpos;
+  CarmaObj<int32_t> *d_influpos;
 
   // pzt
-  CarmaObj<int> *d_xoff;
-  CarmaObj<int> *d_yoff;
+  CarmaObj<int32_t> *d_xoff;
+  CarmaObj<int32_t> *d_yoff;
   CarmaObj<float> *d_KLbasis;
   // CarmaSparseObj<float> *d_IFsparse;
   // CarmaObj<float> *d_comdouble;
@@ -91,41 +91,41 @@ class SutraDm {
   }
 
  public:
-  SutraDm(CarmaContext *context, const char *type, float altitude, long dim,
-           long nactus, long influsize, long ninflupos, long n_npoints,
-           float push4imat, long nord, float dx, float dy, float thetaML, float G, int device);
+  SutraDm(CarmaContext *context, const char *type, float altitude, int64_t dim,
+           int64_t nactus, int64_t influsize, int64_t ninflupos, int64_t n_npoints,
+           float push4imat, int64_t nord, float dx, float dy, float thetaML, float G, int32_t device);
   ~SutraDm();
 
-  int nact();
-  int pzt_loadarrays(float *influ, int *influpos, int *npoints, int *istart,
-                     int *xoff, int *yoff);
-  int kl_loadarrays(float *rabas, float *azbas, int *ord, float *cr, float *cp);
-  int tt_loadarrays(float *influ);
-  int reset_shape();
-  int comp_shape();
+  int32_t nact();
+  int32_t pzt_loadarrays(float *influ, int32_t *influpos, int32_t *npoints, int32_t *istart,
+                     int32_t *xoff, int32_t *yoff);
+  int32_t kl_loadarrays(float *rabas, float *azbas, int32_t *ord, float *cr, float *cp);
+  int32_t tt_loadarrays(float *influ);
+  int32_t reset_shape();
+  int32_t comp_shape();
 
-  int comp_shape(uint16_t *comm);
-  int comp_shape(float *comm);
-  int comp_oneactu(int nactu, float ampli);
+  int32_t comp_shape(uint16_t *comm);
+  int32_t comp_shape(float *comm);
+  int32_t comp_oneactu(int32_t nactu, float ampli);
   // Florian features
-  int kl_floloadarrays(float *covmat, float *filter, float *evals, float *bas);
+  int32_t kl_floloadarrays(float *covmat, float *filter, float *evals, float *bas);
 
   template <class T>
-  int get_IF(T *IF, int *indx_pup, long nb_pts, float ampli);
+  int32_t get_IF(T *IF, int32_t *indx_pup, int64_t nb_pts, float ampli);
   template <class T>
-  int get_IF_sparse(CarmaSparseObj<T> *&d_IFsparse, int *indx_pup,
-                    long nb_pts, float ampli, int puponly);
+  int32_t get_IF_sparse(CarmaSparseObj<T> *&d_IFsparse, int32_t *indx_pup,
+                    int64_t nb_pts, float ampli, int32_t puponly);
 
-  int do_geomat(float *d_geocov, float *d_IF, long n_pts);
+  int32_t do_geomat(float *d_geocov, float *d_IF, int64_t n_pts);
 
   template <class T>
-  int do_geomat_from_sparse(T *d_geocov, CarmaSparseObj<T> *d_IFsparse);
+  int32_t do_geomat_from_sparse(T *d_geocov, CarmaSparseObj<T> *d_IFsparse);
 
-  int DDiago(CarmaObj<float> *d_statcov, CarmaObj<float> *d_geocov);
-  int compute_KLbasis(float *xpos, float *ypos, int *indx, long dim, float norm,
+  int32_t DDiago(CarmaObj<float> *d_statcov, CarmaObj<float> *d_geocov);
+  int32_t compute_KLbasis(float *xpos, float *ypos, int32_t *indx, int64_t dim, float norm,
                       float ampli);
-  int piston_filt(CarmaObj<float> *d_statcov);
-  int set_registration(float dx, float dy, float thetaML, float G);
+  int32_t piston_filt(CarmaObj<float> *d_statcov);
+  int32_t set_registration(float dx, float dy, float thetaML, float G);
 };
 
 //  ██████╗ ███╗   ███╗███████╗
@@ -144,48 +144,48 @@ class SutraDms {
   SutraDms();
   ~SutraDms();
 
-  int add_dm(CarmaContext *context, const char *type, float alt, long dim,
-             long nactus, long influsize, long ninflupos, long n_npoints,
-             float push4imat, long nord, float dx, float dy, float thetaML, float G,  int device);
-  int add_dm(CarmaContext *context, const char *type, float alt, long dim,
-             long nactus, long influsize, long ninflupos, long n_npoints,
-             float push4imat, long nord, int device);
-  int insert_dm(CarmaContext *context, const char *type, float alt, long dim,
-                long nactus, long influsize, long ninflupos, long n_npoints,
-                float push4imat, long nord, float dx, float dy, float thetaML, float G, int device, int idx);
-  int remove_dm(int idx);
+  int32_t add_dm(CarmaContext *context, const char *type, float alt, int64_t dim,
+             int64_t nactus, int64_t influsize, int64_t ninflupos, int64_t n_npoints,
+             float push4imat, int64_t nord, float dx, float dy, float thetaML, float G,  int32_t device);
+  int32_t add_dm(CarmaContext *context, const char *type, float alt, int64_t dim,
+             int64_t nactus, int64_t influsize, int64_t ninflupos, int64_t n_npoints,
+             float push4imat, int64_t nord, int32_t device);
+  int32_t insert_dm(CarmaContext *context, const char *type, float alt, int64_t dim,
+                int64_t nactus, int64_t influsize, int64_t ninflupos, int64_t n_npoints,
+                float push4imat, int64_t nord, float dx, float dy, float thetaML, float G, int32_t device, int32_t idx);
+  int32_t remove_dm(int32_t idx);
 
-  int ndm() { return d_dms.size(); };
-  int nact_total();
+  int32_t ndm() { return d_dms.size(); };
+  int32_t nact_total();
 };
 
 template <class T>
-void comp_dmshape(int threads, int blocks, T *d_idata, T *d_odata, int *pos,
-                  int *istart, int *npts, T *comm, unsigned int n, int N);
+void comp_dmshape(int32_t threads, int32_t blocks, T *d_idata, T *d_odata, int32_t *pos,
+                  int32_t *istart, int32_t *npts, T *comm, uint32_t n, int32_t N);
 
 template <class T>
 void comp_dmshape2(T *outData, const T *cmdVector, const T *influData,
-                   const int *iStart_t, const int *iPos, const int roiLength,
-                   const dim3 threads, const dim3 blocks, const int shared);
+                   const int32_t *iStart_t, const int32_t *iPos, const int32_t roiLength,
+                   const dim3 threads, const dim3 blocks, const int32_t shared);
 
 template <class T>
-void oneactu(int threads, int blocks, T *d_idata, T *d_odata, int nactu,
-             T ampli, int *xoff, int *yoff, int dim_im, int dim_influ, int N);
+void oneactu(int32_t threads, int32_t blocks, T *d_idata, T *d_odata, int32_t nactu,
+             T ampli, int32_t *xoff, int32_t *yoff, int32_t dim_im, int32_t dim_influ, int32_t N);
 template <class T>
-void oneactu(int threads, int blocks, T *d_idata, T *d_odata, int nactu,
-             T ampli, int dim_im, int dim_influ, int N);
+void oneactu(int32_t threads, int32_t blocks, T *d_idata, T *d_odata, int32_t nactu,
+             T ampli, int32_t dim_im, int32_t dim_influ, int32_t N);
 template <class T>
-void comp_fulldmshape(int threads, int blocks, T *d_idata, T *d_odata,
-                      int nactus, int diminflu, T *comm, int N);
+void comp_fulldmshape(int32_t threads, int32_t blocks, T *d_idata, T *d_odata,
+                      int32_t nactus, int32_t diminflu, T *comm, int32_t N);
 
 template <class T>
-int getIF(T *IF, float *dmshape, int *indx_pup, long nb_pts, int column,
-          long nb_col, int puponly, CarmaDevice *device);
-int dm_dostatmat(float *d_statcov, long Nkl, float *d_xpos, float *d_ypos,
+int32_t getIF(T *IF, float *dmshape, int32_t *indx_pup, int64_t nb_pts, int32_t column,
+          int64_t nb_col, int32_t puponly, CarmaDevice *device);
+int32_t dm_dostatmat(float *d_statcov, int64_t Nkl, float *d_xpos, float *d_ypos,
                  float norm, CarmaDevice *device);
-int fill_filtermat(float *filter, int nactu, int N, CarmaDevice *device);
-int find_nnz(float *d_data, int N, CarmaDevice *device);
-int convertToCom(uint16_t *volts, float *com, int N, float volt_min, float volt_max,
+int32_t fill_filtermat(float *filter, int32_t nactu, int32_t N, CarmaDevice *device);
+int32_t find_nnz(float *d_data, int32_t N, CarmaDevice *device);
+int32_t convertToCom(uint16_t *volts, float *com, int32_t N, float volt_min, float volt_max,
                  uint16_t val_max, CarmaDevice *device);
 
 #endif  // _SUTRA_DM_H_

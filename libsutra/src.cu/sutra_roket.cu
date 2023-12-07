@@ -16,11 +16,11 @@
 
 #include <sutra_roket.h>
 
-__global__ void separate_modes_krnl(float *modes, float *filtmodes, int nmodes,
-                                    int nfilt) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
-  int bornemin = nmodes - nfilt - 2;
-  int bornemax = nmodes - 2;
+__global__ void separate_modes_krnl(float *modes, float *filtmodes, int32_t nmodes,
+                                    int32_t nfilt) {
+  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
+  int32_t bornemin = nmodes - nfilt - 2;
+  int32_t bornemax = nmodes - 2;
   while (tid < nmodes) {
     if (tid >= bornemin && tid < bornemax) {
       filtmodes[tid] = modes[tid];
@@ -32,9 +32,9 @@ __global__ void separate_modes_krnl(float *modes, float *filtmodes, int nmodes,
   }
 }
 
-int separate_modes(float *modes, float *filtmodes, int nmodes, int nfilt,
+int32_t separate_modes(float *modes, float *filtmodes, int32_t nmodes, int32_t nfilt,
                    CarmaDevice *device) {
-  int nb_threads = 0, nb_blocks = 0;
+  int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(device, nmodes, nb_blocks, nb_threads);
   dim3 grid(nb_blocks), threads(nb_threads);
 

@@ -20,16 +20,16 @@
 
 template <typename T, typename Tout>
 SutraControllerCured<T, Tout>::SutraControllerCured(
-    CarmaContext *context, long nslopes, long nactu, float delay,
-    SutraDms *dms, int *idx_dms, int ndm, int *idx_centro, int ncentro)
+    CarmaContext *context, int64_t nslopes, int64_t nactu, float delay,
+    SutraDms *dms, int32_t *idx_dms, int32_t ndm, int32_t *idx_centro, int32_t ncentro)
     : SutraController<T, Tout>(context, nslopes, nactu, delay, dms,
                                 idx_dms, ndm, idx_centro, ncentro),
       ndivs(0),
       tt_flag(false),
       h_syscure(nullptr),
       h_parcure(nullptr) {
-  long dims_data1[2] = {1, 0};
-  long dims_data2[3] = {2, 0, 0};
+  int64_t dims_data1[2] = {1, 0};
+  int64_t dims_data2[3] = {2, 0, 0};
 
   dims_data1[1] = nslopes;
   this->d_centroids = new CarmaObj<T>(context, dims_data1);
@@ -45,9 +45,9 @@ SutraControllerCured<T, Tout>::SutraControllerCured(
   dims_data2[2] = nactu;
 
   this->d_imat = new CarmaObj<T>(context, dims_data2);
-  if ((int)delay > 0) {
+  if ((int32_t)delay > 0) {
     dims_data2[1] = nslopes;
-    dims_data2[2] = (int)delay + 1;
+    dims_data2[2] = (int32_t)delay + 1;
     this->d_cenbuff = new CarmaObj<T>(context, dims_data2);
   } else
     this->d_cenbuff = 0L;
@@ -66,7 +66,7 @@ SutraControllerCured<T, Tout>::~SutraControllerCured() {
 }
 
 template <typename T, typename Tout>
-int SutraControllerCured<T, Tout>::comp_com() {
+int32_t SutraControllerCured<T, Tout>::comp_com() {
   this->current_context->set_active_device(this->device, 1);
 
   // this->frame_delay();
@@ -94,8 +94,8 @@ int SutraControllerCured<T, Tout>::comp_com() {
 }
 
 template <typename T, typename Tout>
-int SutraControllerCured<T, Tout>::init_cured(int nxsubs, int *isvalid,
-                                                int ndivs, int tt) {
+int32_t SutraControllerCured<T, Tout>::init_cured(int32_t nxsubs, int32_t *isvalid,
+                                                int32_t ndivs, int32_t tt) {
   if (tt > 0)
     this->tt_flag = true;
   else
@@ -109,18 +109,18 @@ int SutraControllerCured<T, Tout>::init_cured(int nxsubs, int *isvalid,
 }
 
 template <typename T, typename Tout>
-int SutraControllerCured<T, Tout>::frame_delay() {
+int32_t SutraControllerCured<T, Tout>::frame_delay() {
   // here we place the content of d_centroids into cenbuf and get
   // the actual centroid frame for error computation depending on delay value
 
-  if ((int)this->delay > 0) {
-    for (int cc = 0; cc < this->delay; cc++)
+  if ((int32_t)this->delay > 0) {
+    for (int32_t cc = 0; cc < this->delay; cc++)
       shift_buf(&((this->d_cenbuff->get_data())[cc * this->nslope()]), 1,
                 this->nslope(),
                 this->current_context->get_device(this->device));
 
     carma_safe_call(cudaMemcpy(
-        this->d_cenbuff->get_data_at((int)this->delay * this->nslope()),
+        this->d_cenbuff->get_data_at((int32_t)this->delay * this->nslope()),
         this->d_centroids->get_data(), sizeof(T) * this->nslope(),
         cudaMemcpyDeviceToDevice));
 

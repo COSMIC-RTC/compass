@@ -17,6 +17,7 @@
 #define CARMA_MULTITHREAD_H
 
 // Simple portable thread library.
+#include <cstdint>
 
 // POSIX threads.
 #include <pthread.h>
@@ -30,8 +31,8 @@ typedef void *(*carma_routine)(void *);
 struct CarmaThreadBarrier {
   pthread_mutex_t mutex;
   pthread_cond_t conditionVariable;
-  int releaseCount;
-  int count;
+  int32_t releaseCount;
+  int32_t count;
 };
 
 #ifdef __cplusplus
@@ -45,9 +46,9 @@ void carma_end_thread(carma_thread thread);
 // Destroy thread
 void carma_destroy_thread(carma_thread thread);
 // Wait for multiple threads
-void carma_wait4thread(const carma_thread *threads, int num);
+void carma_wait4thread(const carma_thread *threads, int32_t num);
 // Create barrier.
-CarmaThreadBarrier carma_create_barrier(int releaseCount);
+CarmaThreadBarrier carma_create_barrier(int32_t releaseCount);
 // Increment barrier. (excution continues)
 void carma_increment_barrier(CarmaThreadBarrier *barrier);
 // Wait for barrier release.

@@ -113,13 +113,13 @@ namespace termcolor
     // All comments are below.
     namespace _internal
     {
-        inline int colorize_index();
+        inline int32_t colorize_index();
         inline FILE* get_standard_stream(const std::ostream& stream);
         inline bool is_colorized(std::ostream& stream);
         inline bool is_atty(const std::ostream& stream);
 
     #if defined(TERMCOLOR_TARGET_WINDOWS)
-        inline void win_change_attributes(std::ostream& stream, int foreground, int background=-1);
+        inline void win_change_attributes(std::ostream& stream, int32_t foreground, int32_t background=-1);
     #endif
     }
 
@@ -846,9 +846,9 @@ namespace termcolor
         // that static variables ain't shared between translation units, inline
         // function with local static variable is used to do the trick and share
         // the variable value between translation units.
-        inline int colorize_index()
+        inline int32_t colorize_index()
         {
-            static int colorize_index = std::ios_base::xalloc();
+            static int32_t colorize_index = std::ios_base::xalloc();
             return colorize_index;
         }
 
@@ -901,7 +901,7 @@ namespace termcolor
     #if defined(TERMCOLOR_TARGET_WINDOWS)
         //! Change Windows Terminal colors attribute. If some
         //! parameter is `-1` then attribute won't changed.
-        inline void win_change_attributes(std::ostream& stream, int foreground, int background)
+        inline void win_change_attributes(std::ostream& stream, int32_t foreground, int32_t background)
         {
             // yeah, i know.. it's ugly, it's windows.
             static WORD defaultAttributes = 0;
@@ -986,7 +986,7 @@ namespace indicators {
 
 static inline std::pair<size_t, size_t> terminal_size() {
   CONSOLE_SCREEN_BUFFER_INFO csbi;
-  int cols, rows;
+  int32_t cols, rows;
   GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
   cols = csbi.srWindow.Right - csbi.srWindow.Left + 1;
   rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
@@ -1326,7 +1326,7 @@ namespace indicators {
 
 #ifdef _MSC_VER
 
-static inline void move(int x, int y) {
+static inline void move(int32_t x, int32_t y) {
   auto hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
   if (!hStdout)
     return;
@@ -1341,17 +1341,17 @@ static inline void move(int x, int y) {
   SetConsoleCursorPosition(hStdout, cursor);
 }
 
-static inline void move_up(int lines) { move(0, -lines); }
-static inline void move_down(int lines) { move(0, -lines); }
-static inline void move_right(int cols) { move(cols, 0); }
-static inline void move_left(int cols) { move(-cols, 0); }
+static inline void move_up(int32_t lines) { move(0, -lines); }
+static inline void move_down(int32_t lines) { move(0, -lines); }
+static inline void move_right(int32_t cols) { move(cols, 0); }
+static inline void move_left(int32_t cols) { move(-cols, 0); }
 
 #else
 
-static inline void move_up(int lines) { std::cout << "\033[" << lines << "A"; }
-static inline void move_down(int lines) { std::cout << "\033[" << lines << "B"; }
-static inline void move_right(int cols) { std::cout << "\033[" << cols << "C"; }
-static inline void move_left(int cols) { std::cout << "\033[" << cols << "D"; }
+static inline void move_up(int32_t lines) { std::cout << "\033[" << lines << "A"; }
+static inline void move_down(int32_t lines) { std::cout << "\033[" << lines << "B"; }
+static inline void move_right(int32_t cols) { std::cout << "\033[" << cols << "C"; }
+static inline void move_left(int32_t cols) { std::cout << "\033[" << cols << "D"; }
 
 #endif
 
@@ -1403,7 +1403,7 @@ namespace details {
  * class, the width choice depends purely on a preference of backward
  * compatibility with either historic CJK or Western practice.
  * Choosing single-width for these characters is easy to justify as
- * the appropriate long-term solution, as the CJK practice of
+ * the appropriate int64_t-term solution, as the CJK practice of
  * displaying these characters as double-width comes from historic
  * implementation simplicity (8-bit encoded characters were displayed
  * single-width and 16-bit ones double-width, even for Greek,
@@ -1439,14 +1439,14 @@ namespace details {
  */
 
 struct interval {
-  int first;
-  int last;
+  int32_t first;
+  int32_t last;
 };
 
 /* auxiliary function for binary search in interval table */
-static inline int bisearch(wchar_t ucs, const struct interval *table, int max) {
-  int min = 0;
-  int mid;
+static inline int32_t bisearch(wchar_t ucs, const struct interval *table, int32_t max) {
+  int32_t min = 0;
+  int32_t mid;
 
   if (ucs < table[0].first || ucs > table[max].last)
     return 0;
@@ -1495,7 +1495,7 @@ static inline int bisearch(wchar_t ucs, const struct interval *table, int max) {
  * in ISO 10646.
  */
 
-static inline int mk_wcwidth(wchar_t ucs) {
+static inline int32_t mk_wcwidth(wchar_t ucs) {
   /* sorted list of non-overlapping intervals of non-spacing characters */
   /* generated by "uniset +cat=Me +cat=Mn +cat=Cf -00AD +1160-11FF +200B c" */
   static const struct interval combining[] = {
@@ -1576,8 +1576,8 @@ static inline int mk_wcwidth(wchar_t ucs) {
            (ucs >= 0x30000 && ucs <= 0x3fffd)));
 }
 
-static inline int mk_wcswidth(const wchar_t *pwcs, size_t n) {
-  int w, width = 0;
+static inline int32_t mk_wcswidth(const wchar_t *pwcs, size_t n) {
+  int32_t w, width = 0;
 
   for (; *pwcs && n-- > 0; pwcs++)
     if ((w = mk_wcwidth(*pwcs)) < 0)
@@ -1597,7 +1597,7 @@ static inline int mk_wcswidth(const wchar_t *pwcs, size_t n) {
  * the traditional terminal character-width behaviour. It is not
  * otherwise recommended for general use.
  */
-static inline int mk_wcwidth_cjk(wchar_t ucs) {
+static inline int32_t mk_wcwidth_cjk(wchar_t ucs) {
   /* sorted list of non-overlapping intervals of East Asian Ambiguous
    * characters, generated by "uniset +WIDTH-A -cat=Me -cat=Mn -cat=Cf c" */
   static const struct interval ambiguous[] = {
@@ -1661,8 +1661,8 @@ static inline int mk_wcwidth_cjk(wchar_t ucs) {
   return mk_wcwidth(ucs);
 }
 
-static inline int mk_wcswidth_cjk(const wchar_t *pwcs, size_t n) {
-  int w, width = 0;
+static inline int32_t mk_wcswidth_cjk(const wchar_t *pwcs, size_t n) {
+  int32_t w, width = 0;
 
   for (; *pwcs && n-- > 0; pwcs++)
     if ((w = mk_wcwidth_cjk(*pwcs)) < 0)
@@ -1704,12 +1704,12 @@ static inline std::wstring utf8_decode(const std::string& s) {
 
 } // namespace details
 
-static inline int display_width(const std::string &input) {
+static inline int32_t display_width(const std::string &input) {
   using namespace unicode::details;
   return mk_wcswidth(utf8_decode(input).c_str(), input.size());
 }
 
-static inline int display_width(const std::wstring &input) {
+static inline int32_t display_width(const std::wstring &input) {
   return details::mk_wcswidth(input.c_str(), input.size());
 }
 
@@ -1797,7 +1797,7 @@ inline void set_font_style(std::ostream &os, FontStyle style) {
 inline std::ostream &write_duration(std::ostream &os, std::chrono::nanoseconds ns) {
   using namespace std;
   using namespace std::chrono;
-  using days = duration<int, ratio<86400>>;
+  using days = duration<int32_t, ratio<86400>>;
   char fill = os.fill();
   os.fill('0');
   auto d = duration_cast<days>(ns);
@@ -2153,7 +2153,7 @@ private:
     }
   }
 
-  std::pair<std::string, int> get_prefix_text() {
+  std::pair<std::string, int32_t> get_prefix_text() {
     std::stringstream os;
     os << get_value<details::ProgressBarOption::prefix_text>();
     const auto result = os.str();
@@ -2161,7 +2161,7 @@ private:
     return {result, result_size};
   }
 
-  std::pair<std::string, int> get_postfix_text() {
+  std::pair<std::string, int32_t> get_postfix_text() {
     std::stringstream os;
     const auto max_progress =
         get_value<details::ProgressBarOption::max_progress>();
@@ -2194,7 +2194,7 @@ private:
       if (saved_start_time) {
         auto eta = std::chrono::nanoseconds(
             progress_ > 0
-                ? static_cast<long long>(std::ceil(float(elapsed_.count()) *
+                ? static_cast<int64_t>(std::ceil(float(elapsed_.count()) *
                                                    max_progress / progress_))
                 : 0);
         auto remaining = eta > elapsed_ ? (eta - elapsed_) : (elapsed_ - eta);
@@ -2274,7 +2274,7 @@ public:
     const auto end_length = get_value<details::ProgressBarOption::end>().size();
     const auto terminal_width = terminal_size().second;
     // prefix + bar_width + postfix should be <= terminal_width
-    const int remaining = terminal_width - (prefix_length + start_length + bar_width + end_length + postfix_length);
+    const int32_t remaining = terminal_width - (prefix_length + start_length + bar_width + end_length + postfix_length);
     if (prefix_length == -1 || postfix_length == -1) {
       os << "\r";
     } else if (remaining > 0) {
@@ -2464,7 +2464,7 @@ private:
     }
   }
 
-  std::pair<std::string, int> get_prefix_text() {
+  std::pair<std::string, int32_t> get_prefix_text() {
     std::stringstream os;
     os << get_value<details::ProgressBarOption::prefix_text>();
     const auto result = os.str();
@@ -2472,7 +2472,7 @@ private:
     return {result, result_size};
   }
 
-  std::pair<std::string, int> get_postfix_text() {
+  std::pair<std::string, int32_t> get_postfix_text() {
     std::stringstream os;
     const auto max_progress = get_value<details::ProgressBarOption::max_progress>();
     auto now = std::chrono::high_resolution_clock::now();
@@ -2502,7 +2502,7 @@ private:
       if (saved_start_time) {
         auto eta = std::chrono::nanoseconds(
             progress_ > 0
-                ? static_cast<long long>(std::ceil(float(elapsed.count()) *
+                ? static_cast<int64_t>(std::ceil(float(elapsed.count()) *
                                                    max_progress / progress_))
                 : 0);
         auto remaining = eta > elapsed ? (eta - elapsed) : (elapsed - eta);
@@ -2568,7 +2568,7 @@ public:
     const auto end_length = get_value<details::ProgressBarOption::end>().size();
     const auto terminal_width = terminal_size().second;
     // prefix + bar_width + postfix should be <= terminal_width
-    const int remaining = terminal_width - (prefix_length + start_length + bar_width + end_length + postfix_length);
+    const int32_t remaining = terminal_width - (prefix_length + start_length + bar_width + end_length + postfix_length);
     if (prefix_length == -1 || postfix_length == -1) {
       os << "\r";
     } else if (remaining > 0) {
@@ -2753,7 +2753,7 @@ private:
   template <typename Indicator> friend class DynamicProgress;
   std::atomic<bool> multi_progress_mode_{false};
 
-  std::pair<std::string, int> get_prefix_text() {
+  std::pair<std::string, int32_t> get_prefix_text() {
     std::stringstream os;
     os << get_value<details::ProgressBarOption::prefix_text>();
     const auto result = os.str();
@@ -2761,7 +2761,7 @@ private:
     return {result, result_size};
   }
 
-  std::pair<std::string, int> get_postfix_text() {
+  std::pair<std::string, int32_t> get_postfix_text() {
     std::stringstream os;
     os << " " << get_value<details::ProgressBarOption::postfix_text>();
 
@@ -2811,7 +2811,7 @@ public:
     const auto end_length = get_value<details::ProgressBarOption::end>().size();
     const auto terminal_width = terminal_size().second;
     // prefix + bar_width + postfix should be <= terminal_width
-    const int remaining = terminal_width - (prefix_length + start_length + bar_width + end_length + postfix_length);
+    const int32_t remaining = terminal_width - (prefix_length + start_length + bar_width + end_length + postfix_length);
     if (prefix_length == -1 || postfix_length == -1) {
       os << "\r";
     } else if (remaining > 0) {
@@ -3020,7 +3020,7 @@ public:
     } else {
       // Don't hide any bars
       if (started_)
-        move_up(static_cast<int>(total_count_));
+        move_up(static_cast<int32_t>(total_count_));
       for (auto &bar : bars_) {
         bar.get().print_progress(true);
         std::cout << "\n";
@@ -3236,7 +3236,7 @@ public:
         os << " [";
       auto eta = std::chrono::nanoseconds(
           progress_ > 0
-              ? static_cast<long long>(std::ceil(float(elapsed.count()) *
+              ? static_cast<int64_t>(std::ceil(float(elapsed.count()) *
                                                  max_progress / progress_))
               : 0);
       auto remaining = eta > elapsed ? (eta - elapsed) : (elapsed - eta);

@@ -25,10 +25,10 @@ struct gtomo_struct {
   double DiamTel;   // Telescope diameter [m]
   double obs;       // Central obstruction
   double pasDPHI;   // DPHI step
-  long Nw;          // Number of WFS
-  long Nx;          // Total number of valid ssp
-  long *Nssp;       // Number of nxsub for each wfs
-  long *Nsubap;     // Number of valid subap for each wfs
+  int64_t Nw;          // Number of WFS
+  int64_t Nx;          // Total number of valid ssp
+  int64_t *Nssp;       // Number of nxsub for each wfs
+  int64_t *Nsubap;     // Number of valid subap for each wfs
   double *diamPup;  // Nssp
   double *XPup;     // 0
   double *YPup;     // 0
@@ -41,11 +41,11 @@ struct gtomo_struct {
   double spot_width;  // 1
   double lgs_depth;   // 10000
   double lgs_alt;     // 90000.
-  int nlgs;           // 0
+  int32_t nlgs;           // 0
 
-  long *ioff_d;  // Cumulative number of nvalid ssp with ioff[0] = 0
-  long *Nssp_d;  // Nssp
-  long *Nsubap_d;
+  int64_t *ioff_d;  // Cumulative number of nvalid ssp with ioff[0] = 0
+  int64_t *Nssp_d;  // Nssp
+  int64_t *Nsubap_d;
 
   double *alphaX_d;
   double *alphaY_d;
@@ -57,8 +57,8 @@ struct gtomo_struct {
   double *XPup_d;
   double *YPup_d;
 
-  long max_Nl0;
-  long *indexL0_d;
+  int64_t max_Nl0;
+  int64_t *indexL0_d;
   double *L0diff_d;
   double *h_d;
   double *cn2_d;
@@ -72,20 +72,20 @@ struct gtomo_struct {
 
 struct cphim_struct {
   double DiamTel;
-  long Ndphi;  // Useless ?
-  long Nlayer;
+  int64_t Ndphi;  // Useless ?
+  int64_t Nlayer;
   double pasDPHI;
   double pasDu;  // Useless
-  long int_npts;
-  long Nw;
-  long Nx;
-  long Ndm;
-  long Nactu;
-  long *Nactu_tot;
-  long *indLayerDm;
-  long *NlayerDM;
-  long *Nssp;
-  long *Nsubap;  // Number of valid subap for each wfs
+  int64_t int_npts;
+  int64_t Nw;
+  int64_t Nx;
+  int64_t Ndm;
+  int64_t Nactu;
+  int64_t *Nactu_tot;
+  int64_t *indLayerDm;
+  int64_t *NlayerDM;
+  int64_t *Nssp;
+  int64_t *Nsubap;  // Number of valid subap for each wfs
   double *diamPup;
   double *XPup;
   double *YPup;
@@ -100,13 +100,13 @@ struct cphim_struct {
   double spot_width;
   double lgs_depth;
   double lgs_alt;
-  int nlgs;
+  int32_t nlgs;
 
-  long *ioff_d;
-  long *Nssp_d;
-  long *Nactu_tot_d;
-  long *indLayerDm_d;
-  long *NlayerDM_d;
+  int64_t *ioff_d;
+  int64_t *Nssp_d;
+  int64_t *Nactu_tot_d;
+  int64_t *indLayerDm_d;
+  int64_t *NlayerDM_d;
   double *alphaX_d;
   double *alphaY_d;
   double *GsAlt_d;
@@ -117,9 +117,9 @@ struct cphim_struct {
   double *XPup_d;
   double *YPup_d;
 
-  long max_Nl0;
-  long *indexL0_d;
-  long *Nsubap_d;  // Number of valid subap for each wfs
+  int64_t max_Nl0;
+  int64_t *indexL0_d;
+  int64_t *Nsubap_d;  // Number of valid subap for each wfs
   double *L0diff_d;
   double *h_d;
   double *hDm_d;
@@ -140,8 +140,8 @@ struct cphim_struct {
 };
 
 void process_err(cudaError_t e, const char *str);
-void matts_gpu_gb(double *data, int nrows, int ncols, int xoffset, int yoffset,
-                  int lda, struct tomo_struct tomo,
+void matts_gpu_gb(double *data, int32_t nrows, int32_t ncols, int32_t xoffset, int32_t yoffset,
+                  int32_t lda, struct tomo_struct tomo,
                   struct gtomo_struct *tomo_gpu);
 void init_tomo_gpu_gb(struct gtomo_struct *tomo_gpu, SutraAtmos *atmos,
                       SutraSensors *sensors, double diamTel, double cobs);
@@ -158,31 +158,31 @@ void update_cphim_atm(struct cphim_struct *cphim_struct, SutraSensors *sensors,
                       double *alphaX, double *alphaY);
 void update_cphim_sys(struct cphim_struct *cphim_struct, SutraSensors *sensors,
                       double *alphaX, double *alphaY, double *xactu,
-                      double *yactu, double *X, double *Y, long *NlayerDm,
-                      long *indLayerDm, double *alt_dm, double *pitch,
+                      double *yactu, double *X, double *Y, int64_t *NlayerDm,
+                      int64_t *indLayerDm, double *alt_dm, double *pitch,
                       double *k2, double FoV);
-void matcov_gpu_3(double *data, int nrows, int ncols, int xoffset, int yoffset,
-                  int lda, struct tomo_struct tomo,
+void matcov_gpu_3(double *data, int32_t nrows, int32_t ncols, int32_t xoffset, int32_t yoffset,
+                  int32_t lda, struct tomo_struct tomo,
                   struct gtomo_struct *tomo_gpu);
-void matcov_gpu_4(float *data, int nrows, int ncols, int xoffset, int yoffset,
-                  int lda, struct gtomo_struct *tomo_gpu, SutraAtmos *atmos,
+void matcov_gpu_4(float *data, int32_t nrows, int32_t ncols, int32_t xoffset, int32_t yoffset,
+                  int32_t lda, struct gtomo_struct *tomo_gpu, SutraAtmos *atmos,
                   SutraSensors *sensors, double *alphaX, double *alphaY);
-void CPHIM(float *data, int nrows, int ncols, int xoffset, int yoffset, int lda,
+void CPHIM(float *data, int32_t nrows, int32_t ncols, int32_t xoffset, int32_t yoffset, int32_t lda,
            struct cphim_struct *cphim_struct, SutraAtmos *atmos,
            SutraSensors *sensors, double *alphaX, double *alphaY,
            CarmaDevice *device);
 void generateXY(struct gtomo_struct *tomo_gpu, SutraSensors *sensors);
 void tab_dphi_gpu_gb(double *tab_dphi, struct gtomo_struct *tomo_gpu,
-                     long Ndphi, double *L0diff_d, int Nl0, double convert);
-void sub_pos_gpu_gb(struct gtomo_struct *tomo_gpu, long Nlayer);
-void sub_pos_cphim(struct cphim_struct *cphim_struct, long Nlayer, long Nw,
-                   long Nsubap);
-void tab_u831J0(double *tab_int_x, double *tab_int_y, long npts);
-void cuda_zcen(double *idata, double *odata, int N, CarmaDevice *device);
-void cumsum(double *odata, double *idata, int N);
+                     int64_t Ndphi, double *L0diff_d, int32_t Nl0, double convert);
+void sub_pos_gpu_gb(struct gtomo_struct *tomo_gpu, int64_t Nlayer);
+void sub_pos_cphim(struct cphim_struct *cphim_struct, int64_t Nlayer, int64_t Nw,
+                   int64_t Nsubap);
+void tab_u831J0(double *tab_int_x, double *tab_int_y, int64_t npts);
+void cuda_zcen(double *idata, double *odata, int32_t N, CarmaDevice *device);
+void cumsum(double *odata, double *idata, int32_t N);
 void init_cphim_struct(struct cphim_struct *cphim_struct, SutraAtmos *atmos,
                        SutraSensors *sensors, SutraDms *dms, double diamTel);
 void free_cphim_struct(struct cphim_struct *cphim_struct);
-void test_DPHI_highpass(double R, double x0, long npts, CarmaDevice *device);
+void test_DPHI_highpass(double R, double x0, int64_t npts, CarmaDevice *device);
 
 #endif  // SUTRA_CONTROLLER_UTILS_H_

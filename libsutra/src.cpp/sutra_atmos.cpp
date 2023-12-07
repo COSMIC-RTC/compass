@@ -17,16 +17,16 @@
 #include <sutra_atmos.h>
 #include <algorithm>
 
-SutraAtmos::SutraAtmos(CarmaContext *context, int nscreens, float global_r0,
-                         float *r0, long *size, long *stencilSize,
+SutraAtmos::SutraAtmos(CarmaContext *context, int32_t nscreens, float global_r0,
+                         float *r0, int64_t *size, int64_t *stencilSize,
                          float *altitude, float *windspeed, float *winddir,
-                         float *deltax, float *deltay, int device) {
+                         float *deltax, float *deltay, int32_t device) {
   this->nscreens = nscreens;
   // this->r0       = r0;
   this->current_context = context;
   this->r0 = global_r0;
 
-  for (int i = 0; i < nscreens; i++) {
+  for (int32_t i = 0; i < nscreens; i++) {
     d_screens.push_back(new SutraTurbuScreen(
         context, size[i], stencilSize[i], r0[i], altitude[i], windspeed[i],
         winddir[i], deltax[i], deltay[i], device));
@@ -43,9 +43,9 @@ SutraAtmos::~SutraAtmos() {
   // d_screens.erase(d_screens.begin(),d_screens.end());
 }
 
-int SutraAtmos::init_screen(int idx, float *h_A, float *h_B,
-                             unsigned int *h_istencilx,
-                             unsigned int *h_istencily, int seed) {
+int32_t SutraAtmos::init_screen(int32_t idx, float *h_A, float *h_B,
+                             uint32_t *h_istencilx,
+                             uint32_t *h_istencily, int32_t seed) {
   if (idx < this->d_screens.size()) {
     d_screens[idx]->init_screen(h_A, h_B, h_istencilx, h_istencily, seed);
     d_screens[idx]->refresh_screen();
@@ -55,7 +55,7 @@ int SutraAtmos::init_screen(int idx, float *h_A, float *h_B,
   return EXIT_SUCCESS;
 }
 
-int SutraAtmos::refresh_screen(int idx) {
+int32_t SutraAtmos::refresh_screen(int32_t idx) {
   if (idx < this->d_screens.size())
     this->d_screens[idx]->refresh_screen();
   else
@@ -63,9 +63,9 @@ int SutraAtmos::refresh_screen(int idx) {
   return EXIT_SUCCESS;
 }
 
-int SutraAtmos::add_screen(float alt, long size, long stencilSize,
+int32_t SutraAtmos::add_screen(float alt, int64_t size, int64_t stencilSize,
                             float r0_thislayer, float windspeed, float winddir,
-                            float deltax, float deltay, int device) {
+                            float deltax, float deltay, int32_t device) {
   this->d_screens.push_back(
       new SutraTurbuScreen(current_context, size, stencilSize, r0_thislayer, alt,
                         windspeed, winddir, deltax, deltay, device));
@@ -76,7 +76,7 @@ int SutraAtmos::add_screen(float alt, long size, long stencilSize,
   return EXIT_SUCCESS;
 }
 
-int SutraAtmos::del_screen(int idx) {
+int32_t SutraAtmos::del_screen(int32_t idx) {
   if (idx < this->d_screens.size()) {
     this->nscreens--;
     this->r0 =
@@ -92,7 +92,7 @@ int SutraAtmos::del_screen(int idx) {
   return EXIT_SUCCESS;
 }
 
-int SutraAtmos::move_atmos() {
+int32_t SutraAtmos::move_atmos() {
   vector<SutraTurbuScreen *>::iterator p;
   p = this->d_screens.begin();
 
@@ -100,20 +100,20 @@ int SutraAtmos::move_atmos() {
     (*p)->accumx += (*p)->deltax;
     (*p)->accumy += (*p)->deltay;
 
-    int deltax = (int)(*p)->accumx;
-    int deltay = (int)(*p)->accumy;
-    int cx = deltax > 0 ? 1 : -1;
-    int cy = deltay > 0 ? 1 : -1;
-    for (int cc = 0; cc < cx * deltax; cc++) (*p)->extrude(1 * cx);
+    int32_t deltax = (int32_t)(*p)->accumx;
+    int32_t deltay = (int32_t)(*p)->accumy;
+    int32_t cx = deltax > 0 ? 1 : -1;
+    int32_t cy = deltay > 0 ? 1 : -1;
+    for (int32_t cc = 0; cc < cx * deltax; cc++) (*p)->extrude(1 * cx);
     (*p)->accumx -= deltax;
-    for (int cc = 0; cc < cy * deltay; cc++) (*p)->extrude(2 * cy);
+    for (int32_t cc = 0; cc < cy * deltay; cc++) (*p)->extrude(2 * cy);
     (*p)->accumy -= deltay;
     ++p;
   }
   return EXIT_SUCCESS;
 }
 
-int SutraAtmos::set_r0(float r0) {
+int32_t SutraAtmos::set_r0(float r0) {
   // this->amplitude = powf(r0, -5.0f / 6.0f)
   float scaling = powf(r0 / this->r0, -5.0f / 6.0f);
   for (vector<SutraTurbuScreen *>::iterator it = this->d_screens.begin();
@@ -125,7 +125,7 @@ int SutraAtmos::set_r0(float r0) {
   return EXIT_SUCCESS;
 }
 
-int SutraAtmos::set_seed(int idx, float seed) {
+int32_t SutraAtmos::set_seed(int32_t idx, float seed) {
   if (idx < this->d_screens.size())
     this->d_screens[idx]->set_seed(seed);
   else

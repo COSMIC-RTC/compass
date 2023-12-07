@@ -13,28 +13,33 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <wyrm>
+#include "sutraWrapUtils.hpp"
 
 #include <sutra_gamora.h>
 
 namespace py = pybind11;
-typedef py::array_t<float, py::array::f_style | py::array::forcecast> F_arrayS;
 
-std::unique_ptr<SutraGamora> gamora_init(CarmaContext &context, int device,
-                                          char *type, int nactus, int nmodes,
-                                          int niter, float *IFvalue,
-                                          int *IFrowind, int *IFcolind,
-                                          int IFnz, float *d_TT, float *pupil,
-                                          int size, int Npts, float scale,
-                                          float *Btt, float *covmodes) {
+std::unique_ptr<SutraGamora> gamora_init(CarmaContext &context, int32_t device,
+                                          ArrayFStyle<char> &type, int32_t nactus, int32_t nmodes,
+                                          int32_t niter, ArrayFStyle<float> &IFvalue,
+                                          ArrayFStyle<int32_t> &IFrowind, ArrayFStyle<int32_t> &IFcolind,
+                                          int32_t IFnz, ArrayFStyle<float> &d_TT, ArrayFStyle<float> &pupil,
+                                          int32_t size, int32_t Npts, float scale,
+                                          ArrayFStyle<float> &Btt, ArrayFStyle<float> &covmodes) {
   return std::unique_ptr<SutraGamora>(new SutraGamora(
-      &context, device, type, nactus, nmodes, niter, IFvalue, IFrowind,
-      IFcolind, IFnz, d_TT, pupil, size, Npts, scale, Btt, covmodes));
+      &context, device, type.mutable_data(), nactus, nmodes, niter,
+      IFvalue.mutable_data(), IFrowind.mutable_data(), IFcolind.mutable_data(), IFnz,
+      d_TT.mutable_data(), pupil.mutable_data(), size, Npts, scale,
+      Btt.mutable_data(), covmodes.mutable_data()));
+};
+
+int32_t psf_rec_roket(SutraGamora &sg, ArrayFStyle<float> &err) {
+  return sg.psf_rec_roket(err.mutable_data());
 };
 
 void declare_gamora(py::module &mod) {
   py::class_<SutraGamora>(mod, "Gamora")
-      .def(py::init(wy::colCast(gamora_init)), R"pbdoc(
+      .def(py::init(&gamora_init), R"pbdoc(
     Initializes Gamora
 
     Args:
@@ -44,11 +49,11 @@ void declare_gamora(py::module &mod) {
 
           type : (str) : reconstruction method used ("roket" or "Vii")
 
-          nactus : (int) : number of actuators
+          nactus : (int32_t) : number of actuators
 
-          nmodes (int) : number of modes
+          nmodes (int32_t) : number of modes
 
-          niter : (int) : number of iterations performed with roket
+          niter : (int32_t) : number of iterations performed with roket
 
           IFvalue : (np.ndarray[ndim=1,dtype=float32_t]) : Non zeros values of pzt influence function matrix
 
@@ -187,7 +192,7 @@ void declare_gamora(py::module &mod) {
       //  ██║╚██╔╝██║██╔══╝     ██║   ██╔══██║██║   ██║██║  ██║╚════██║
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
-      .def("psf_rec_roket", wy::colCast(&SutraGamora::psf_rec_roket), R"pbdoc(
+      .def("psf_rec_roket", &psf_rec_roket, R"pbdoc(
     Reconstruct the PSF from ROKET error buffer
 
     Args:

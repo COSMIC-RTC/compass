@@ -13,11 +13,15 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <wyrm>
+#include "sutraWrapUtils.hpp"
 
 #include <sutra_coronagraph.h>
 
 namespace py = pybind11;
+
+int32_t set_amplitude(SutraCoronagraph &sc, ArrayFStyle<float> &amplitude) {
+    return sc.set_amplitude(amplitude.mutable_data());
+}
 
 void declare_coronagraph(py::module &mod) {
   py::class_<SutraCoronagraph>(mod, "Coronagraph")
@@ -103,7 +107,7 @@ void declare_coronagraph(py::module &mod) {
     Computes the coronagraphic image from the source phase screen
 
     Args:
-        accumulate: (bool, optionnal): If True (default), accumulate the short exposure image in the long exposure one
+        accumulate: (bool, optionnal): If True (default), accumulate the short exposure image in the int64_t exposure one
     )pbdoc",
            py::arg("accumulate") = true)
 
@@ -112,16 +116,16 @@ void declare_coronagraph(py::module &mod) {
     Computes the psf from the source phase screen
 
     Args:
-        accumulate: (bool, optionnal): If True (default), accumulate the short exposure psf in the long exposure one
+        accumulate: (bool, optionnal): If True (default), accumulate the short exposure psf in the int64_t exposure one
     )pbdoc",
            py::arg("accumulate") = true)
 
       .def("reset", &SutraCoronagraph::reset,
            R"pbdoc(
-    Reset long exposure image and counter
+    Reset int64_t exposure image and counter
     )pbdoc")
 
-      .def("set_amplitude", wy::colCast(&SutraCoronagraph::set_amplitude),
+      .def("set_amplitude", &set_amplitude,
            R"pbdoc(
     Set the electric field amplitude
 

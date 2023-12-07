@@ -13,9 +13,9 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_centroider_maskedPix.h>
+#include "sutraWrapUtils.hpp"
 
-#include <wyrm>
+#include <sutra_centroider_maskedPix.h>
 
 namespace py = pybind11;
 
@@ -47,7 +47,6 @@ void centroider_maskedPix_impl(py::module &mod, const char *name) {
           [](centroider_maskedPix &sc, CarmaObj<Tcomp> &centroids) {
             sc.fill_selected_pix(centroids);
           },
-          // wy::colCast(&centroider_maskedPix::fill_selected_pix),
           R"pbdoc(
     Return the given pixels vector in an image format
 
