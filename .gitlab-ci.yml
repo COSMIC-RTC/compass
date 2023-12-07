@@ -193,8 +193,8 @@ pages:
     SHESHA_ROOT: $COMPASS_ROOT/shesha
     NAGA_ROOT: $COMPASS_ROOT/naga
   dependencies:
-    - build_release_focal
-    - test_release_focal
+    - build_debug_focal
+    - test_debug_focal
   script:
     - export PYTHONPATH=$SHESHA_ROOT:$NAGA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
