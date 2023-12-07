@@ -2,6 +2,8 @@
 # Exit on first error.
 set -e
 
+pytest --junitxml=report.xml $COMPASS_ROOT/shesha/tests/pytest/rtc $COMPASS_ROOT/shesha/tests/pytest/supervisor
+
 coverage run -m pytest $COMPASS_ROOT/python_module/carmaWrap/test 
 coverage run -a -m pytest $SHESHA_ROOT/tests/pytest/rtc $SHESHA_ROOT/tests/pytest/rtc_standalone $SHESHA_ROOT/tests/pytest/supervisor #|| echo "It's just a scratch"
 

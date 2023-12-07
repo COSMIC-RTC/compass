@@ -59,16 +59,16 @@ fi
 # Exit on first error.
 set -e
 
-# DEBUG="-s build_type=Debug"
+# COMPASS_DEBUG="-s build_type=Debug"
 
 # Resolves dependencies.
 conan build $CONAN_LOCATION -b missing   \
-    ${CUDA_ARG} ${DEBUG}                 \
+    ${CUDA_ARG} ${COMPASS_DEBUG}                 \
     -o half=${COMPASS_DO_HALF}           \
     -o libs=${BUILD_LIBS}                \
     -o python_version=${PYTHON_VERSION}
 
-if [[ -z $DEBUG ]]
+if [[ -z $COMPASS_DEBUG ]]
 then
     CONAN_PRESET="conan-release"
 else
