@@ -37,7 +37,7 @@ else
     COMPASS_DO_HALF=False
 fi
 
-# If `conanlocal.py` exists, use it instead of `conanfile.py`
+# If `conanlocal.py` exists, use it instead of `.`
 if [ -f $LOCAL_DIR/conanlocal.py ]
 then
     CONAN_LOCATION=$LOCAL_DIR/conanlocal.py
@@ -63,7 +63,7 @@ set -e
 
 # Resolves dependencies.
 conan build $CONAN_LOCATION -b missing   \
-    ${CUDA_ARG} ${COMPASS_DEBUG}                 \
+    ${CUDA_ARG} ${COMPASS_DEBUG}         \
     -o half=${COMPASS_DO_HALF}           \
     -o libs=${BUILD_LIBS}                \
     -o python_version=${PYTHON_VERSION}

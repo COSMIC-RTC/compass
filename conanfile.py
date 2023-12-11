@@ -65,6 +65,8 @@ class CompassConan(ConanFile):
 
         # If cuda_sm is not set, detect local compute capabilities.
         sm = self.options.cuda_sm if self.options.cuda_sm else cuda.compute_capabilities()
+
+        print("CUDA compute capabilities: ", sm)
         tc.variables['CMAKE_CUDA_ARCHITECTURES'] = sm
 
         # Check if they are all above or equal 60. Disable half if not.

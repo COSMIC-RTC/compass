@@ -199,8 +199,9 @@ inline int32_t convert_sm_version2cores(int32_t major, int32_t minor) {
   // If we don't find the values, we default use the previous one to run
   // properly
   printf(
-      "MapSMtoCores for SM %d.%d is undefined.  Default to use %d Cores/SM\n",
+      "MapSMtoCores for SM %d.%d is undefined. Default to use %d Cores/SM\n",
       major, minor, nGpuArchCoresPerSM[index - 1].Cores);
   return nGpuArchCoresPerSM[index - 1].Cores;
 }
+
 #endif  // _CARMA_CONTEXT_H_

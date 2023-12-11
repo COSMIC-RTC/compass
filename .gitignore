@@ -7,15 +7,11 @@ obj
 .DS_Store
 ._.DS_Store
 
-# cython generated files
+# compilation generated files
 build
-cython_debug
 
 # python bytecodes
 *.pyc
-
-# specific param files
-shesha/par.pxi
 
 # Data files -- you can still git add them manually
 *.h5
@@ -56,22 +52,10 @@ doc/doxygen-doc
 setup.cfg
 *.egg-info
 
-lib/
-python/
 *.log
-shesha/shesha/widgets/*.log
-shesha/shesha/*.log
-.pytest*
 local/
-*lastfailed
 doc/_build
 public
-*,cover
-*_cov_html
-.coverage
-doc/html/coverage
-compass_cov.xml
-compass_tests.xml
 
 # Conan
 conanlocal.py

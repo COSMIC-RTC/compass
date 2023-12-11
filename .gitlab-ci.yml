@@ -13,8 +13,9 @@ build_generic:
   script:
     - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
     - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
+    - unset CUDA_SM
     - ./script/install_conan_gcc.sh
-    - ./compile.sh $PWD/local
+    - ./compile.py $PWD/local
   when: manual
   # only:
   #  - develop
@@ -63,7 +64,7 @@ build_debug_focal:
   image: aocompass/base-20.04:11.8.0
   extends: build_generic
   variables:
-    COMPASS_DEBUG: "-s build_type=Debug"
+    COMPASS_DEBUG: "Debug"
   when: always
   only:
     - merge_requests
@@ -108,7 +109,7 @@ build_debug_jammy:
   image: aocompass/base-22.04:11.8.0
   extends: build_generic
   variables:
-    COMPASS_DEBUG: "-s build_type=Debug"
+    COMPASS_DEBUG: "Debug"
   when: always
   only:
     - merge_requests
@@ -154,7 +155,7 @@ build_debug_rockylinux8:
   image: aocompass/base-rockylinux8:11.8.0
   extends: build_generic
   variables:
-    COMPASS_DEBUG: "-s build_type=Debug"
+    COMPASS_DEBUG: "Debug"
   when: always
   only:
     - merge_requests

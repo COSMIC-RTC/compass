@@ -3,8 +3,8 @@
 rm -rf ~/.conan2
 
 # install dependencies
-conda install --file script/requirements-conda.txt -y
-pip install -r script/requirements-dev.txt --upgrade
+pip install -U -r script/requirements.txt
+pip install -U -r script/requirements-dev.txt
 
 # Adds obspm conan repository if it is not already the case.
 conan remote list | grep obspm || conan remote add obspm https://conan.obspm.fr/conan
