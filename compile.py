@@ -5,10 +5,16 @@ import sys
 import subprocess
 from pathlib import Path
 
+from rich.console import Console
+from rich.progress import Progress
+
+console = Console()
+
 def get_install_path(args, project_dir):
     """Get the installation path."""
     default_path = os.environ.get('COMPASS_INSTALL_PATH', project_dir / 'local')
-    return args[0] if args else default_path
+    build_type = os.environ.get('COMPASS_DEBUG', default='Release')
+    return args[0] if args else default_path, build_type
 
 def get_env_vars():
     """Get environment variables."""
@@ -16,11 +22,11 @@ def get_env_vars():
     do_half = os.environ.get('COMPASS_DO_HALF', default='off').lower() in ['yes', 'true', 'on']
     build_libs = os.environ.get('BUILD_LIBS', default='on').lower() in ['yes', 'true', 'on']
     python_version = os.environ.get('PYTHON_VERSION', default=f'{sys.version_info.major}.{sys.version_info.minor}')
-    build_type = os.environ.get('COMPASS_DEBUG', default='Release')
-    return cuda_sm, do_half, build_libs, python_version, build_type
+    return cuda_sm, do_half, build_libs, python_version
 
-def generate_conan_cmd(do_half, build_libs, python_version, build_type, cuda_args):
+def generate_conan_cmd(build_type):
     """Generate the command args to install compass."""
+    cuda_args, do_half, build_libs, python_version = get_env_vars()
     return ' '.join(['conan', 'build', '.', '-b', 'missing',
                      '-o', f'half={do_half}',
                      '-o', f'libs={build_libs}',
@@ -31,26 +37,23 @@ def generate_conan_cmd(do_half, build_libs, python_version, build_type, cuda_arg
 
 def run_command(project_dir, cmd):
     """Print and run a command."""
-    print(f'Running {cmd}')
     try:
         sp_kwargs = {'shell': True, 'check': True, 'cwd': project_dir}
+        console.print(f'Running {cmd}', style="bold green")
         subprocess.run(cmd, **sp_kwargs)
     except subprocess.CalledProcessError as e:
-        print(f'Error calling {e.cmd} with return code {e.returncode}')
+        console.print(f'Error calling {e.cmd} with return code {e.returncode}', style="bold red")
         sys.exit(e.returncode)
 
 def main():
     args = sys.argv[1:]
     project_dir = Path(__file__).absolute().parent
 
-    install_path = get_install_path(args, project_dir)
-    cuda_args, do_half, build_libs, python_version, build_type = get_env_vars()
-    
-    conan_cmd = generate_conan_cmd(do_half, build_libs, python_version, build_type, cuda_args)
-
+    install_path, build_type = get_install_path(args, project_dir)
     build_dir = project_dir / 'build' / build_type
-
+    
     if not build_dir.exists():
+        conan_cmd = generate_conan_cmd(build_type)
         run_command(project_dir, conan_cmd)
         cmake_cmd = f'cmake -DCMAKE_INSTALL_PREFIX={install_path} --preset conan-{build_type.lower()} .'
         run_command(project_dir, cmake_cmd)
