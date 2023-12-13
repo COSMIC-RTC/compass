@@ -11,25 +11,25 @@ import shesha.config as conf
 simul_name = "scexao"
 
 # loop
-p_loop = conf.Param_loop()
+p_loop = conf.ParamLoop()
 
 p_loop.set_niter(5000)
 p_loop.set_ittime(0.0005)  # =1/2000 - assuming loop at 2kHz
 p_loop.set_devices([0, 1, 2, 3])
 # geom
-p_geom = conf.Param_geom()
+p_geom = conf.ParamGeom()
 
 p_geom.set_zenithangle(0.)
 
 # tel
-p_tel = conf.Param_tel()
+p_tel = conf.ParamTel()
 
 p_tel.set_diam(8.3)  # Subaru diameter
 p_tel.set_cobs(0.12)  # TBC (central obstruction)
 
 # atmos
 # here we simulate the first stage of correction of ao188
-p_atmos = conf.Param_atmos()
+p_atmos = conf.ParamAtmos()
 
 p_atmos.set_r0(0.16)  # Fried parameters @ 500 nm
 p_atmos.set_nscreens(1)  # Number of layers
@@ -41,7 +41,7 @@ p_atmos.set_L0(
         [15])  # in meters. here we simulate ao188's precorrection. Layers outer scale
 
 # target
-p_target = conf.Param_target()
+p_target = conf.ParamTarget()
 p_targets = [p_target]
 p_target.set_xpos(0.)
 p_target.set_ypos(0.)
@@ -49,7 +49,7 @@ p_target.set_Lambda(1.65)
 p_target.set_mag(10.)
 
 # wfs
-p_wfs0 = conf.Param_wfs(
+p_wfs0 = conf.ParamWfs(
         roket=True
 )  #permet de calculer des trucs supplementaires - RTFM permet d'avoir un analyseur completement geometrique
 p_wfss = [p_wfs0]
@@ -74,8 +74,8 @@ p_wfs0.set_pyr_pup_sep(p_wfs0.nxsub)  # separation between the 4 images of the p
 p_wfs0.set_atmos_seen(1)  # If False, the WFS don’t see the atmosphere layers
 
 # dm
-p_dm0 = conf.Param_dm()
-p_dm1 = conf.Param_dm()
+p_dm0 = conf.ParamDm()
+p_dm1 = conf.ParamDm()
 p_dms = [p_dm0, p_dm1]
 p_dm0.set_type("pzt")
 # nact = p_wfs0.nxsub + 1
@@ -95,7 +95,7 @@ p_dm1.set_alt(0.)
 p_dm1.set_unitpervolt(1)  #par default, pousser de 1V donne 1um.
 p_dm1.set_push4imat(0.005)
 # centroiders
-p_centroider0 = conf.Param_centroider()
+p_centroider0 = conf.ParamCentroider()
 p_centroiders = [p_centroider0]
 
 p_centroider0.set_nwfs(0)
@@ -104,7 +104,7 @@ p_centroider0.set_type("pyr")
 # p_centroider0.set_type_fct("model")
 
 # controllers
-p_controller0 = conf.Param_controller()
+p_controller0 = conf.ParamController()
 p_controllers = [p_controller0]
 
 p_controller0.set_type("generic")  # ls (classic easy simple) or generic

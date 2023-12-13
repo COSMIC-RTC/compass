@@ -47,14 +47,15 @@ Options:
   -i, --interactive  keep the script interactive
 """
 
-import os, sys
+import os
+import sys
 import numpy as np
 
 from rich.progress import track
 
 try:
     from PyQt5 import QtWidgets
-except ModuleNotFoundError as e:
+except ModuleNotFoundError:
     try:    
         from PySide2 import QtWidgets
     except ModuleNotFoundError as e:
@@ -65,7 +66,7 @@ from typing import Any
 from docopt import docopt
 
 from shesha.widgets.widget_base import WidgetBase
-from shesha.widgets.widget_ao import widgetAOWindow, widgetAOWindow
+from shesha.widgets.widget_ao import widgetAOWindow
 
 global server
 server = None
@@ -151,7 +152,7 @@ class widgetCanapassWindowPyro(widgetAOWindow):
                 print("Lauching pyramid widget...")
                 self.initPyrTools()
                 print("Done")
-            except:
+            except Exception:
                 raise ValueError("ERROR: ADOPT  not found. Cannot launch Pyramid tools")
         else:
             if (self.uiAO.actionShow_Pyramid_Tools.isChecked()):
@@ -180,7 +181,7 @@ class widgetCanapassWindowPyro(widgetAOWindow):
                 user = out.split(b"\n")[0].decode("utf-8")
                 print("User is " + user)
 
-            if(self.supervisor.corono == None):
+            if(self.supervisor.corono is None):
                 from shesha.util.pyroEmptyClass import PyroEmptyClass
                 coro2pyro = PyroEmptyClass()
             else:
@@ -192,12 +193,12 @@ class widgetCanapassWindowPyro(widgetAOWindow):
             names = ["supervisor", "supervisor_rtc", "supervisor_wfs", 
             "supervisor_target", "supervisor_tel", "supervisor_basis", "supervisor_calibration", 
             "supervisor_atmos", "supervisor_dms", "supervisor_config", "supervisor_modalgains","supervisor_corono",  "wao_loop"]
-            nname = [];  
+            nname = []  
             for name in names: 
                 nname.append(name+"_"+user) 
             server = PyroServer(listDevices=devices, listNames=nname)
             server.start()
-        except:
+        except Exception:
             raise Exception("Error could not connect to Pyro server.\n It can  be:\n - Missing dependencies? (check if Pyro4 is installed)\n - pyro server not running")
         return server
 

@@ -1,22 +1,22 @@
-import shesha.config as ao
 import shesha.constants as scons
+import shesha.config as conf
 import numpy as np
 
 simul_name = ""
 layout = "layoutDeFab"
 
 # loop
-p_loop = ao.Param_loop()
+p_loop = conf.ParamLoop()
 p_loop.set_niter(1000)
 p_loop.set_ittime(1 / 500.)  # =1/500Hz = 2ms
 p_loop.set_devices([0, 1, 2, 3, 4, 5, 6, 7])
 
 # geom
-p_geom = ao.Param_geom()
+p_geom = conf.ParamGeom()
 p_geom.set_zenithangle(0.)
 
 # tel
-p_tel = ao.Param_tel()
+p_tel = conf.ParamTel()
 p_tel.set_type_ap("EELT")
 p_tel.set_diam(39)
 p_tel.set_pupangle(0)  #ELT pup rotation in degrees
@@ -28,7 +28,7 @@ p_tel.set_t_spiders(0.51)  #Spider size in meters
 # median=0.144
 # Q3=0.127
 # Q4=0.089
-p_atmos = ao.Param_atmos()
+p_atmos = conf.ParamAtmos()
 p_atmos.set_r0(0.144)
 p_atmos.set_nscreens(1)
 p_atmos.set_frac([1.0])
@@ -38,7 +38,7 @@ p_atmos.set_winddir([45.])
 p_atmos.set_L0([25.])
 
 # 1 Lambda targets
-p_target = ao.Param_target()
+p_target = conf.ParamTarget()
 p_targets = [p_target]
 p_target.set_xpos(0)
 p_target.set_ypos(0)
@@ -46,8 +46,8 @@ p_target.set_Lambda(2.2)
 p_target.set_mag(4)
 
 # wfs params
-p_wfs0 = ao.Param_wfs(roket=True)
-#p_wfs0= ao.Param_wfs()
+p_wfs0 = conf.ParamWfs(roket=True)
+#p_wfs0= conf.ParamWfs()
 p_wfss = [p_wfs0]
 p_wfs0.set_type("pyrhr")  # type of WFS: "sh", "pyrhr", "pyr"
 p_wfs0.set_nxsub(92)  # 92 sub aps
@@ -74,8 +74,8 @@ pupsep = 52/2+92/2 = 72
 p_wfs0.set_pyr_pup_sep(72)  # half pupil separation (center-to-center)
 
 # dms parameters
-p_dm0 = ao.Param_dm()
-p_dm1 = ao.Param_dm()
+p_dm0 = conf.ParamDm()
+p_dm1 = conf.ParamDm()
 p_dms = [p_dm0, p_dm1]
 p_dm0.set_type(scons.DmType.PZT)
 nact = p_wfs0.nxsub + 1
@@ -97,13 +97,13 @@ p_dm1.set_unitpervolt(1)
 p_dm1.set_push4imat(0.005 * 2)
 
 # centroiders params
-p_centroider0 = ao.Param_centroider()
+p_centroider0 = conf.ParamCentroider()
 p_centroiders = [p_centroider0]
 p_centroider0.set_nwfs(0)
 p_centroider0.set_type(scons.CentroiderType.PYR)
 
 # controllers params
-p_controller0 = ao.Param_controller()
+p_controller0 = conf.ParamController()
 p_controllers = [p_controller0]
 
 #p_controller0.set_type("ls")     # V(k) = V(k-1) + g.R.m(k)

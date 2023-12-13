@@ -1,21 +1,21 @@
-import shesha.config as ao
 import shesha.constants as scons
+import shesha.config as conf
 import numpy as np
 simul_name = ""
 layout = "layoutDeFab"
 
 # loop
-p_loop = ao.Param_loop()
+p_loop = conf.ParamLoop()
 
 p_loop.set_niter(1000)
 p_loop.set_ittime(1 / 500.)  # =1/500
 p_loop.set_devices([0, 1, 2, 3])
 # geom
-p_geom = ao.Param_geom()
+p_geom = conf.ParamGeom()
 p_geom.set_zenithangle(0.)
 
 # tel
-p_tel = ao.Param_tel()
+p_tel = conf.ParamTel()
 p_tel.set_cobs(0.28)
 
 #E_ELT PUPIL
@@ -91,7 +91,7 @@ windESO = [
 ]
 
 # atmos
-p_atmos = ao.Param_atmos()
+p_atmos = conf.ParamAtmos()
 """
 r0 = r01L
 alt = alt1L
@@ -125,7 +125,7 @@ p_atmos.set_winddir([45.])
 p_atmos.set_L0([25.])  # Not simulated in Yorick?
 
 # target
-#p_target = ao.Param_target()
+#p_target = conf.ParamTarget()
 #p_targets = [p_target]
 
 #p_target.set_xpos(0)
@@ -134,7 +134,7 @@ p_atmos.set_L0([25.])  # Not simulated in Yorick?
 #p_target.set_mag(4.)
 
 # 3 Lambda targets
-#p_targets= [ao.Param_target() for _ in range(3)]
+#p_targets= [conf.ParamTarget() for _ in range(3)]
 #Lambda = [1.2, 1.65, 2.2]
 #k = 0
 #for p_target in p_targets:
@@ -145,14 +145,14 @@ p_atmos.set_L0([25.])  # Not simulated in Yorick?
 #k += 1
 
 # 1 Lambda targets
-p_target = ao.Param_target()
+p_target = conf.ParamTarget()
 p_targets = [p_target]
 p_target.set_xpos(0)
 p_target.set_ypos(0)
 p_target.set_Lambda(2.2)
 p_target.set_mag(4)
 """
-p_target=ao.Param_target()
+p_target=conf.ParamTarget()
 p_target.set_ntargets(11)
 p_target.set_xpos([0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50])
 p_target.set_ypos([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
@@ -160,8 +160,8 @@ p_target.set_Lambda([2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2])
 p_target.set_mag([4, 4., 4, 4., 4, 4., 4, 4., 4, 4., 4.])
 # wfs
 """
-p_wfs0 = ao.Param_wfs(roket=True)
-#p_wfs0= ao.Param_wfs()
+p_wfs0 = conf.ParamWfs(roket=True)
+#p_wfs0= conf.ParamWfs()
 p_wfss = [p_wfs0]
 
 p_wfs0.set_type("pyrhr")
@@ -194,8 +194,8 @@ pupsep = 52/2+92/2 = 72
 p_wfs0.set_pyr_pup_sep((72))
 
 # dm
-p_dm0 = ao.Param_dm()
-p_dm1 = ao.Param_dm()
+p_dm0 = conf.ParamDm()
+p_dm1 = conf.ParamDm()
 p_dms = [p_dm0, p_dm1]
 p_dm0.set_type(scons.DmType.PZT)
 nact = p_wfs0.nxsub + 1
@@ -222,7 +222,7 @@ p_dm1.set_push4imat(0.005)
 #p_dm1.set_gain(0.2)
 
 # centroiders
-p_centroider0 = ao.Param_centroider()
+p_centroider0 = conf.ParamCentroider()
 p_centroiders = [p_centroider0]
 
 p_centroider0.set_nwfs(0)
@@ -236,7 +236,7 @@ p_centroider0.set_type("pyr")
 # p_centroider0.set_type_fct("model")
 
 # controllers
-p_controller0 = ao.Param_controller()
+p_controller0 = conf.ParamController()
 p_controllers = [p_controller0]
 
 #p_controller0.set_type("ls")
@@ -256,7 +256,7 @@ p_controller0.set_gain(1)
 # p_controller0.set_ngain(500)
 
 # rtc
-#p_rtc = ao.Param_rtc()
+#p_rtc = conf.Param_rtc()
 #
 #p_rtc.set_nwfs(1)
 #p_rtc.set_centroiders(p_centroiders)

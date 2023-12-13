@@ -35,16 +35,15 @@
 #  You should have received a copy of the GNU Lesser General Public License along with COMPASS.
 #  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 
-import numpy as np
-import naga as ng
-import matplotlib.pyplot as plt
-plt.ion()
 import os
+import numpy as np
+import matplotlib.pyplot as plt
 from shesha.sutra_wrap import Rtc_FFF as Rtc, Rtc_FHF as RtcH
 from shesha.supervisor.compassSupervisor import CompassSupervisor as Supervisor
 import carmaWrap
 from rich.progress import track
 
+plt.ion()
 dec = 5
 sup = Supervisor(
         os.getenv("COMPASS_ROOT") + "/shesha/data/par/MICADO/micado_39m_PYR_ELTPupil.py")

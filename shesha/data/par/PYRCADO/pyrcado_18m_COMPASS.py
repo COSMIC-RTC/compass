@@ -5,23 +5,23 @@ import numpy as np
 simul_name = ""
 
 # loop
-p_loop = conf.Param_loop()
+p_loop = conf.ParamLoop()
 
 p_loop.set_niter(1000)
 p_loop.set_ittime(1 / 500.)  # =1/500
 p_loop.set_devices([4, 5, 6, 7])
 
 # geom
-p_geom = conf.Param_geom()
+p_geom = conf.ParamGeom()
 p_geom.set_zenithangle(0.)
 #p_geom.set_pupdiam(304)
 
 # tel
-p_tel = conf.Param_tel()
+p_tel = conf.ParamTel()
 p_tel.set_diam(18.)
 
 # atmos
-p_atmos = conf.Param_atmos()
+p_atmos = conf.ParamAtmos()
 
 p_atmos.set_r0(0.129)
 p_atmos.set_nscreens(1)
@@ -32,7 +32,7 @@ p_atmos.set_winddir([45.])
 p_atmos.set_L0([25.])  # Not simulated in Yorick?
 
 # Lambda target(s)
-p_targets = [conf.Param_target() for _ in range(2)]
+p_targets = [conf.ParamTarget() for _ in range(2)]
 Lambda = [0.658, 1.65]
 k = 0
 for p_target in p_targets:
@@ -43,7 +43,7 @@ for p_target in p_targets:
     k += 1
 
 # wfs
-p_wfs0 = conf.Param_wfs()
+p_wfs0 = conf.ParamWfs()
 p_wfss = [p_wfs0]
 
 p_wfs0.set_type(scons.WFSType.PYRHR)
@@ -67,8 +67,8 @@ p_wfs0.set_pyr_ampl(rMod)
 p_wfs0.set_pyr_pup_sep((32))
 
 # dm
-p_dm0 = conf.Param_dm()
-p_dm1 = conf.Param_dm()
+p_dm0 = conf.ParamDm()
+p_dm1 = conf.ParamDm()
 p_dms = [p_dm0, p_dm1]
 p_dm0.set_type(scons.DmType.PZT)
 nact = p_wfs0.nxsub + 1
@@ -87,14 +87,14 @@ p_dm1.set_unitpervolt(658e-9 / 18. * scons.CONST.RAD2ARCSEC)
 p_dm1.set_push4imat(0.1)
 
 # centroiders
-p_centroider0 = conf.Param_centroider()
+p_centroider0 = conf.ParamCentroider()
 p_centroiders = [p_centroider0]
 
 p_centroider0.set_nwfs(0)
 p_centroider0.set_type(scons.CentroiderType.PYR)
 
 # controllers
-p_controller0 = conf.Param_controller()
+p_controller0 = conf.ParamController()
 p_controllers = [p_controller0]
 
 #p_controller0.set_type("ls")

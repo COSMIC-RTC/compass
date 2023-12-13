@@ -8,7 +8,8 @@ Options:
   -o, --output=<outputfile> Filename to write [default: config.md].
 """
 
-import shlex, sys
+import sys
+import shlex
 from subprocess import PIPE, Popen
 from docopt import docopt
 from glob import glob

@@ -36,7 +36,6 @@
 #  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 
 
-p_geom = wao.config.p_geom
 
 import shesha.util.make_pupil as mkP
 import shesha.util.utilities as util
@@ -46,6 +45,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 plt.ion()
 
+if 'wao' not in globals():
+    wao = None
+    raise RuntimeError('wao not found in globals()')
+
+p_geom = wao.config.p_geom
 cent = p_geom.pupdiam / 2. + 0.5
 
 p_tel = wao.config.p_tel

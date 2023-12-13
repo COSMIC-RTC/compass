@@ -4,21 +4,21 @@ import shesha.constants as scons
 simul_name = ""
 
 #loop
-p_loop = conf.Param_loop()
+p_loop = conf.ParamLoop()
 
 p_loop.set_niter(1000)  #500Hz: 1mn = 30000, 1kH = 60000
 p_loop.set_ittime(1 / 500.)  #=1/500
 
 #geom
-p_geom = conf.Param_geom()
+p_geom = conf.ParamGeom()
 p_geom.set_zenithangle(0.)
 
 #tel
-p_tel = conf.Param_tel()
+p_tel = conf.ParamTel()
 p_tel.set_diam(18.)
 
 #atmos
-p_atmos = conf.Param_atmos()
+p_atmos = conf.ParamAtmos()
 
 p_atmos.set_r0(0.129)
 p_atmos.set_nscreens(1)
@@ -31,7 +31,7 @@ p_atmos.set_L0([25.])  # Not simulated in Yorick?
 # No target
 
 # Fake WFS for raytracing
-p_wfs0 = conf.Param_wfs()
+p_wfs0 = conf.ParamWfs()
 p_wfss = [p_wfs0]
 
 p_wfs0.set_type(scons.WFSType.SH)
@@ -53,7 +53,7 @@ p_wfs0.set_fstop(scons.FieldStopType.ROUND)
 p_wfs0.set_fssize(2.4)
 
 #dm
-p_dm0 = conf.Param_dm()
+p_dm0 = conf.ParamDm()
 p_dms = [p_dm0]
 p_dm0.set_type(scons.DmType.PZT)
 nact = 39
@@ -68,6 +68,6 @@ p_dm0.set_coupling(
 p_dm0.set_unitpervolt(1)
 p_dm0.set_push4imat(1.)
 
-# p_controller0 = conf.Param_controller()
+# p_controller0 = conf.ParamController()
 # p_controllers = [p_controller0]
 # p_controller0.set_ndm([0])

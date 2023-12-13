@@ -1,26 +1,25 @@
-import shesha.config as ao
-import numpy as np
+import shesha.config as conf
 
 simul_name = ""
 #loop
-p_loop = ao.Param_loop()
+p_loop = conf.ParamLoop()
 
 p_loop.set_niter(20000)
 p_loop.set_ittime(0.002)  #=1/500
 
 #geom
-p_geom = ao.Param_geom()
+p_geom = conf.ParamGeom()
 
 p_geom.set_zenithangle(0.)
 
 #tel
-p_tel = ao.Param_tel()
+p_tel = conf.ParamTel()
 
 p_tel.set_diam(8.0)
 p_tel.set_cobs(0.)
 
 #atmos
-p_atmos = ao.Param_atmos()
+p_atmos = conf.ParamAtmos()
 
 p_atmos.set_r0(0.16)
 p_atmos.set_nscreens(12)
@@ -36,16 +35,16 @@ p_atmos.set_winddir([345, -292, -115, -161, -179, -266, -208, 185, 265, 116, 6, 
 p_atmos.set_L0([100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100])
 
 #target
-p_target = conf.Param_target()
+p_target = conf.ParamTarget()
 p_targets = [p_target]
 p_target.set_xpos(0.)
 p_target.set_ypos(0.)
 p_target.set_Lambda(1.65)
 p_target.set_mag(10.)
 #wfs
-#p_wfs0= ao.Param_wfs()
-#p_wfs1= ao.Param_wfs()
-p_wfss = [ao.Param_wfs(roket=True)]
+#p_wfs0= conf.ParamWfs()
+#p_wfs1= conf.ParamWfs()
+p_wfss = [conf.ParamWfs(roket=True)]
 
 for i in range(len(p_wfss)):
     p_wfss[i].set_type("sh")
@@ -72,9 +71,9 @@ for i in range(len(p_wfss)):
 #p_wfss[0].set_beamsize(0.8)
 
 #dm
-#p_dm0=ao.Param_dm()
-#p_dm1=ao.Param_dm()
-p_dms = [ao.Param_dm(), ao.Param_dm()]
+#p_dm0=conf.ParamDm()
+#p_dm1=conf.ParamDm()
+p_dms = [conf.ParamDm(), conf.ParamDm()]
 p_dms[0].set_type("pzt")
 nact = p_wfss[0].nxsub + 1
 p_dms[0].set_nact(nact)
@@ -90,8 +89,8 @@ p_dms[1].set_unitpervolt(1.)
 p_dms[1].set_push4imat(1.)
 
 #centroiders
-#p_centroider0=ao.Param_centroider()
-p_centroiders = [ao.Param_centroider()]
+#p_centroider0=conf.ParamCentroider()
+p_centroiders = [conf.ParamCentroider()]
 
 for i in range(len(p_centroiders)):
 
@@ -103,7 +102,7 @@ for i in range(len(p_centroiders)):
 #p_centroider0.set_type_fct("model")
 
 #controllers
-p_controller1 = ao.Param_controller()
+p_controller1 = conf.ParamController()
 p_controllers = [p_controller1]
 
 p_controller1.set_type("ls")

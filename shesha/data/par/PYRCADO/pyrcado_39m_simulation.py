@@ -5,18 +5,18 @@ import numpy as np
 # FOR BOTH SIMU AND RTC STANDALONE
 simul_name = "PYRCADO_39m_20190122"
 
-p_loop = conf.Param_loop()
+p_loop = conf.ParamLoop()
 p_loop.set_niter(1000)
 p_loop.set_ittime(1 / 500.)  # =1/500
 p_loop.set_devices([4, 5, 6, 7])
 
 # FOR THE SIMULATION ONLY
 # geom
-p_geom = conf.Param_geom()
+p_geom = conf.ParamGeom()
 p_geom.set_zenithangle(0.)
 
 # tel
-p_tel = conf.Param_tel()
+p_tel = conf.ParamTel()
 
 #E_ELT PUPIL Rico like
 p_tel.set_type_ap(scons.ApertureType.EELT)
@@ -26,7 +26,7 @@ p_tel.set_pupangle(0)  #ELT pup rotation in degrees
 p_tel.set_t_spiders(0.)
 
 # atmos
-p_atmos = conf.Param_atmos()
+p_atmos = conf.ParamAtmos()
 
 p_atmos.set_r0(0.129)
 p_atmos.set_nscreens(1)
@@ -37,7 +37,7 @@ p_atmos.set_winddir([45.])
 p_atmos.set_L0([25.])
 
 # Lambda target(s)
-p_targets = [conf.Param_target() for _ in range(2)]
+p_targets = [conf.ParamTarget() for _ in range(2)]
 Lambda = [0.658, 1.65]
 for k, p_target in enumerate(p_targets):
     p_target.set_xpos(0.)
@@ -46,7 +46,7 @@ for k, p_target in enumerate(p_targets):
     p_target.set_mag(4.)
 
 # wfs
-p_wfs0 = conf.Param_wfs()
+p_wfs0 = conf.ParamWfs()
 p_wfss = [p_wfs0]
 
 p_wfs0.set_type(scons.WFSType.PYRHR)
@@ -76,8 +76,8 @@ pupsep = 52/2+92/2 = 72
 p_wfs0.set_pyr_pup_sep(72)  # half pupil separation (center-to-center)
 
 # dm
-p_dm0 = conf.Param_dm()
-p_dm1 = conf.Param_dm()
+p_dm0 = conf.ParamDm()
+p_dm1 = conf.ParamDm()
 p_dms = [p_dm0, p_dm1]
 
 p_dm0.set_type(scons.DmType.PZT)

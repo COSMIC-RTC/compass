@@ -3,17 +3,17 @@ import shesha.config as conf
 #simul_name="METIS_PyWFS_reg"
 
 #loop
-p_loop = conf.Param_loop()
+p_loop = conf.ParamLoop()
 p_loop.set_niter(2000)  #Number of iterations
 p_loop.set_ittime(0.001)  #Loop frequency [s] 1000Hz
 
 #geom
-p_geom = conf.Param_geom()
+p_geom = conf.ParamGeom()
 p_geom.set_zenithangle(30.)  #Zenith angle [deg] 0-30-60 deg
 #p_geom.set_pupdiam(1440)
 
 #tel
-p_tel = conf.Param_tel()
+p_tel = conf.ParamTel()
 p_tel.set_diam(37.0)  #Telescope diameter [m] -> METIS: cercle inscrit dans le M1
 p_tel.set_cobs(0.3)  #11.1/37.0 = 0.3 occ [/]
 #p_tel.set_type_ap("EELT-Nominal")
@@ -23,7 +23,7 @@ p_tel.set_t_spiders(
 ##p_tel.set_pupangle(0)
 
 #atmos
-p_atmos = conf.Param_atmos()
+p_atmos = conf.ParamAtmos()
 p_atmos.set_r0(0.160204)
 #mseeing = 0.98*5.e-7/0.157*206265
 #arc2rad = 1./(3600.*180./!pi)
@@ -57,7 +57,7 @@ p_atmos.set_L0([
 ])  #Outer scale Lo [m]
 
 #target
-p_target = conf.Param_target()
+p_target = conf.ParamTarget()
 p_targets = [p_target]
 
 p_target.set_xpos(0.)
@@ -66,7 +66,7 @@ p_target.set_Lambda(2.2)  #Sensing wavelength = K-band
 p_target.set_mag(10.)  #Star mag at the WFS wavelength
 
 #wfs
-p_wfs0 = conf.Param_wfs()
+p_wfs0 = conf.ParamWfs()
 p_wfss = [p_wfs0]
 p_wfs0.set_type("pyrhr")
 p_wfs0.set_nxsub(74)  #Nb sub-apperture over Tel diameter
@@ -97,8 +97,8 @@ p_wfs0.set_optthroughput(0.1575)
 p_wfs0.set_zerop(1.66e12)  #[ph/m2/s]
 
 #dm (2 DM, un TT et un HO)
-p_dm0 = conf.Param_dm()
-p_dm1 = conf.Param_dm()
+p_dm0 = conf.ParamDm()
+p_dm1 = conf.ParamDm()
 p_dms = [p_dm0, p_dm1]
 
 #DM1 - HO
@@ -119,13 +119,13 @@ p_dm1.set_unitpervolt(0.0001)
 p_dm1.set_push4imat(2000.)
 
 #centroiders
-p_centroider0 = conf.Param_centroider()
+p_centroider0 = conf.ParamCentroider()
 p_centroiders = [p_centroider0]
 p_centroider0.set_nwfs(0)
 p_centroider0.set_type("pyr")
 
 #controllers
-p_controller0 = conf.Param_controller()
+p_controller0 = conf.ParamController()
 p_controllers = [p_controller0]
 p_controller0.set_type("ls")
 p_controller0.set_nwfs([0])

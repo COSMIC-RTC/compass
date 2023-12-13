@@ -1,29 +1,29 @@
-import shesha.config as ao
 import shesha.constants as scons
+import shesha.config as conf
 import numpy as np
 
 simul_name = ""
 layout = "layoutDeFab"
 
 # LOOP
-p_loop = ao.Param_loop()
+p_loop = conf.ParamLoop()
 p_loop.set_niter(1000)
 p_loop.set_ittime(1 / 500.)
 p_loop.set_devices([0, 1, 2, 3])
 
 # GEOM
-p_geom = ao.Param_geom()
+p_geom = conf.ParamGeom()
 p_geom.set_zenithangle(0.)
 
 # TEL
-p_tel = ao.Param_tel()
+p_tel = conf.ParamTel()
 p_tel.set_type_ap("EELT")       # E_ELT PUPIL Rico like
 p_tel.set_diam(40.0)            # causes rescaling
 p_tel.set_pupangle(0.)          # ELT pup rotation in degrees
 p_tel.set_t_spiders(0.51)       # Spider size in meters
 
 # ATMOS
-p_atmos = ao.Param_atmos()
+p_atmos = conf.ParamAtmos()
 p_atmos.set_r0(0.129)
 p_atmos.set_nscreens(1)
 p_atmos.set_frac([1.0])
@@ -33,7 +33,7 @@ p_atmos.set_winddir([45.])
 p_atmos.set_L0([25.0])          # Not simulated in Yorick?
 
 # 1 LAMBDA TARGET
-p_target = ao.Param_target()
+p_target = conf.ParamTarget()
 p_targets = [p_target]
 p_target.set_xpos(0)
 p_target.set_ypos(0)
@@ -44,7 +44,7 @@ rMod = 3  # Modulation radius, in lam/D units
 nbPtMod = int(np.ceil(int(rMod * 2 * 3.141592653589793) / 4.) * 4)
 
 # WFS
-p_wfs0 = ao.Param_wfs(roket=True)
+p_wfs0 = conf.ParamWfs(roket=True)
 p_wfss = [p_wfs0]
 p_wfs0.set_type("pyrhr")        # type de WFS: "sh", "pyrhr", "pyr"
 p_wfs0.set_nxsub(100)           # to get 95 after rescaling
@@ -64,8 +64,8 @@ p_wfs0.set_pyr_ampl(rMod)       # define modulation amplitude
 p_wfs0.set_pyr_pup_sep(72)      # half pupil separation (center-to-center)
 
 # DMS
-p_dm0 = ao.Param_dm()
-p_dm1 = ao.Param_dm()
+p_dm0 = conf.ParamDm()
+p_dm1 = conf.ParamDm()
 p_dms = [p_dm0, p_dm1]
 p_dm0.set_type(scons.DmType.PZT)
 p_dm0.set_thresh(0.)  # fraction units
@@ -80,13 +80,13 @@ p_dm1.set_unitpervolt(1)
 p_dm1.set_push4imat(0.005)
 
 # CENTROIDERS
-p_centroider0 = ao.Param_centroider()
+p_centroider0 = conf.ParamCentroider()
 p_centroiders = [p_centroider0]
 p_centroider0.set_nwfs(0)
 p_centroider0.set_type("pyr")
 
 # CONTROLLERS
-p_controller0 = ao.Param_controller()
+p_controller0 = conf.ParamController()
 p_controllers = [p_controller0]
 p_controller0.set_type("generic")   # V(k) = a.E.V(k-1) + g.R.m(k)
 p_controller0.set_nwfs([0])

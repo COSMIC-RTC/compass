@@ -37,7 +37,7 @@
 
 import numpy as np
 import naga as ng
-import os, time
+import os
 import pytest
 
 from shesha.sutra_wrap import Rtc_cacao_FFF as Rtc

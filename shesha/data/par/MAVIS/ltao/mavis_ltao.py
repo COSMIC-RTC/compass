@@ -5,24 +5,24 @@ AOtype="ltao"
 
 ###################
 # LOOP
-p_loop = conf.Param_loop()
+p_loop = conf.ParamLoop()
 p_loop.set_niter(1)
 p_loop.set_ittime(0.0007)  # =1/500
 
 ###################
 # GEOM
-p_geom = conf.Param_geom()
+p_geom = conf.ParamGeom()
 p_geom.set_zenithangle(0.)
 
 ###################
 # TEL
-p_tel = conf.Param_tel()
+p_tel = conf.ParamTel()
 p_tel.set_diam(8.0)
 p_tel.set_cobs(0.)
 
 ###################
 # ATMOS
-p_atmos = conf.Param_atmos()
+p_atmos = conf.ParamAtmos()
 p_atmos.set_r0(0.12)
 p_atmos.set_nscreens(4)
 p_atmos.set_frac([0.5, 0.2, 0.2, 0.1])
@@ -43,7 +43,7 @@ tar_ypos   =np.array([0.])
 if (NTAR > 1):
     tar_xpos, tar_ypos = np.meshgrid(np.linspace(-RADIUS_TAR, RADIUS_TAR, NTAR_side), np.linspace(-RADIUS_TAR, RADIUS_TAR, NTAR_side))
 for t in np.arange(NTAR):
-    p_targets.append(conf.Param_target())
+    p_targets.append(conf.ParamTarget())
     p_targets[t].set_xpos(tar_xpos.flatten()[t])
     p_targets[t].set_ypos(tar_ypos.flatten()[t])
     #IR 1.6 / visible 0.65
@@ -94,13 +94,13 @@ asterism_y = asterism_y + [0.]
 #create wfs lists
 #LGS
 for i in range(NLGS):
-    p_wfs_lgs.append(conf.Param_wfs())
+    p_wfs_lgs.append(conf.ParamWfs())
 #NGS
 for i in range(NNGS+1):
-    p_wfs_ngs.append(conf.Param_wfs())
+    p_wfs_ngs.append(conf.ParamWfs())
 #TS
 for i in range(NTS):
-    p_wfs_ts.append(conf.Param_wfs())
+    p_wfs_ts.append(conf.ParamWfs())
 #concatenate LGS and NGS
 p_wfss = p_wfs_lgs + p_wfs_ngs
 
@@ -167,7 +167,7 @@ for p_wfs in p_wfs_ts:
 p_dms = [ ]
 #adding target DMs
 for t in range(NTAR):
-    p_dms.append(conf.Param_dm())
+    p_dms.append(conf.ParamDm())
     p_dms[-1].set_type("pzt")
     p_dms[-1].set_nact(41)
     p_dms[-1].set_alt(0.)
@@ -177,7 +177,7 @@ for t in range(NTAR):
     p_dms[-1].set_push4imat(1)
 
 ##tip-tilt
-#p_dms.append(conf.Param_dm())
+#p_dms.append(conf.ParamDm())
 #p_dms[-1].set_type("tt")
 #p_dms[-1].set_alt(0.)
 #p_dms[-1].set_unitpervolt(0.0005)
@@ -187,7 +187,7 @@ for t in range(NTAR):
 # CENTROIDERS
 p_centroiders = []
 for i in range( NNGS+NLGS):
-    p_centroiders.append(conf.Param_centroider())
+    p_centroiders.append(conf.ParamCentroider())
 
 for p_centroider in p_centroiders:
     k=p_centroiders.index(p_centroider)
@@ -196,7 +196,7 @@ for p_centroider in p_centroiders:
 
 ###################
 # CONTROLLERS
-p_controller0 = conf.Param_controller()
+p_controller0 = conf.ParamController()
 p_controllers = [p_controller0]
 
 p_controller0.set_type("generic")

@@ -127,7 +127,7 @@ class WidgetAOExpert(ExpertClassTemplate):
     def updateDMrange(self, push4imat: float = None, unitpervolt: float = None) -> None:
         numdm = str(self.uiExpert.wao_selectDM.currentText())
         numwfs = str(self.uiExpert.wao_dmActuPushArcSecNumWFS.currentText())
-        if ((numdm is not "") and (numwfs is not "") and (push4imat != 0) and
+        if ((numdm != "") and (numwfs != "") and (push4imat != 0) and
             (unitpervolt != 0)):
             arcsecDMrange = self.computeDMrange(
                     int(numdm), int(numwfs), push4imat=push4imat,

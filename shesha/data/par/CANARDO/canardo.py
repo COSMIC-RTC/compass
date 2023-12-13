@@ -1,27 +1,26 @@
 import shesha.config as conf
-import shesha.constants as scons
 import numpy as np
 
 simul_name = "CANARDO"
 layout = "layoutDeFab"
 
 # loop
-p_loop = conf.Param_loop()
+p_loop = conf.ParamLoop()
 
 p_loop.set_niter(1000)
 p_loop.set_ittime(1 / 500.)  # =1/500
 p_loop.set_devices([4, 5, 6, 7]) 
 
 # geom
-p_geom = conf.Param_geom()
+p_geom = conf.ParamGeom()
 p_geom.set_zenithangle(0.)
 
 # tel
-p_tel = conf.Param_tel()
+p_tel = conf.ParamTel()
 p_tel.set_diam(4.2)
 
 # atmos
-p_atmos = conf.Param_atmos()
+p_atmos = conf.ParamAtmos()
 
 p_atmos.set_r0(0.129)
 p_atmos.set_nscreens(1)
@@ -32,7 +31,7 @@ p_atmos.set_winddir([45.])
 p_atmos.set_L0([1.e5])
 
 # target
-p_targets = [conf.Param_target()]
+p_targets = [conf.ParamTarget()]
 
 p_targets[0].set_xpos(0.)
 p_targets[0].set_ypos(0.)
@@ -42,7 +41,7 @@ p_targets[0].set_mag(4.)
 rMod = 3  # Modulation radius, in lam/D units
 nbPtMod = int(np.ceil(int(rMod * 2 * 3.141592653589793) / 4.) * 4)
 # wfs
-p_wfs0 = conf.Param_wfs(roket=True)
+p_wfs0 = conf.ParamWfs(roket=True)
 p_wfss = [p_wfs0]
 p_wfs0.set_type("pyrhr")        # type de WFS: "sh", "pyrhr", "pyr"
 p_wfs0.set_nxsub(100)           # to get 95 after rescaling
@@ -62,8 +61,8 @@ p_wfs0.set_pyr_ampl(rMod)       # define modulation amplitude
 p_wfs0.set_pyr_pup_sep(72)      # half pupil separation (center-to-center)
 
 # dm
-p_dm0 = conf.Param_dm()
-p_dm1 = conf.Param_dm()
+p_dm0 = conf.ParamDm()
+p_dm1 = conf.ParamDm()
 p_dms = [p_dm0, p_dm1]
 p_dm0.set_type("pzt")
 p_dm0.set_file_influ_fits("simuALPAO4KDM.fits")
@@ -79,14 +78,14 @@ p_dm1.set_unitpervolt(0.0005)
 p_dm1.set_push4imat(10.)
 
 # centroiders
-p_centroider0 = conf.Param_centroider()
+p_centroider0 = conf.ParamCentroider()
 p_centroiders = [p_centroider0]
 
 p_centroider0.set_nwfs(0)
 p_centroider0.set_type("pyr")
 
 # controllers
-p_controller0 = conf.Param_controller()
+p_controller0 = conf.ParamController()
 p_controllers = [p_controller0]
 
 #p_controller0.set_type("ls")     # V(k) = V(k-1) + g.R.m(k)

@@ -3,24 +3,24 @@ import numpy as np
 simul_name = "mavis"
 
 # loop
-p_loop = conf.Param_loop()
+p_loop = conf.ParamLoop()
 
 p_loop.set_niter(5000)
 p_loop.set_ittime(0.0007)  # =1/1500
 
 # geom
-p_geom = conf.Param_geom()
+p_geom = conf.ParamGeom()
 
 p_geom.set_zenithangle(0.)
 
 # tel
-p_tel = conf.Param_tel()
+p_tel = conf.ParamTel()
 
 p_tel.set_diam(8.0)
 p_tel.set_cobs(0.12)
 
 # atmos
-p_atmos = conf.Param_atmos()
+p_atmos = conf.ParamAtmos()
 
 p_atmos.set_r0(0.12)
 p_atmos.set_nscreens(4)
@@ -32,7 +32,7 @@ p_atmos.set_L0([25., 25., 25., 25.])
 
 # target
 ntargets = 49
-p_targets = [conf.Param_target() for _ in range(49)]
+p_targets = [conf.ParamTarget() for _ in range(49)]
 
 xpos, ypos = np.meshgrid(np.linspace(-15, 15, 7), np.linspace(-15, 15, 7))
 xpos = xpos.flatten()
@@ -48,8 +48,8 @@ for p_target in p_targets:
 n_lgs = 6
 n_ngs = 3
 
-p_wfs_lgs = [conf.Param_wfs() for _ in range(n_lgs)]
-p_wfs_ngs = [conf.Param_wfs() for _ in range(n_ngs)]
+p_wfs_lgs = [conf.ParamWfs() for _ in range(n_lgs)]
+p_wfs_ngs = [conf.ParamWfs() for _ in range(n_ngs)]
 p_wfss = p_wfs_lgs + p_wfs_ngs
 
 for p_wfs in p_wfs_lgs:
@@ -104,9 +104,9 @@ for p_wfs in p_wfs_ngs:
     k += 1
 
 # dm
-p_dm0 = conf.Param_dm()
-p_dm1 = conf.Param_dm()
-p_dm2 = conf.Param_dm()
+p_dm0 = conf.ParamDm()
+p_dm1 = conf.ParamDm()
+p_dm2 = conf.ParamDm()
 p_dms = [p_dm0, p_dm1, p_dm2]
 
 p_dm0.set_type("pzt")
@@ -134,7 +134,7 @@ p_dm2.set_unitpervolt(0.01)
 p_dm2.set_push4imat(100.)
 
 # centroiders
-p_centroiders = [conf.Param_centroider() for _ in range(len(p_wfss))]
+p_centroiders = [conf.ParamCentroider() for _ in range(len(p_wfss))]
 
 k = 0
 for p_centroider in p_centroiders:
@@ -143,7 +143,7 @@ for p_centroider in p_centroiders:
     k += 1
 
 # controllers
-p_controller0 = conf.Param_controller()
+p_controller0 = conf.ParamController()
 p_controllers = [p_controller0]
 
 p_controller0.set_type("mv")

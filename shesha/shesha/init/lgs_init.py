@@ -38,8 +38,7 @@
 import os
 try:
     shesha_db = os.environ['SHESHA_DB_ROOT']
-except KeyError as err:
-    import warnings
+except KeyError:
     shesha_db = os.environ['SHESHA_ROOT'] + "/data/"
     # warnings.warn("'SHESHA_DB_ROOT' not defined, using default one: " + shesha_db)
 finally:
@@ -48,19 +47,18 @@ finally:
 
 import shesha.config as conf
 import shesha.constants as scons
-from shesha.util import utilities as util
 import numpy as np
 
 from shesha.sutra_wrap import Sensors
 import scipy.ndimage.interpolation as sci
 
 
-def make_lgs_prof1d(p_wfs: conf.Param_wfs, p_tel: conf.Param_tel, prof: np.ndarray,
+def make_lgs_prof1d(p_wfs: conf.ParamWfs, p_tel: conf.ParamTel, prof: np.ndarray,
                     h: np.ndarray, beam: float, center=""):
     """same as prep_lgs_prof but cpu only. original routine from rico
 
     Args:
-        p_tel: (Param_tel) : telescope settings
+        p_tel: (ParamTel) : telescope settings
 
         prof: (np.ndarray[dtype=np.float32]) : Na profile intensity, in arbitrary units
 
@@ -100,7 +98,7 @@ def make_lgs_prof1d(p_wfs: conf.Param_wfs, p_tel: conf.Param_tel, prof: np.ndarr
     profi = np.zeros((p_wfs._Ntot, p_wfs._nvalid), dtype=np.float32)
 
     subsdone = np.ones(p_wfs._nvalid, dtype=np.int32)
-    dif2do = np.zeros(p_wfs._nvalid, dtype=np.int32)
+    # dif2do = np.zeros(p_wfs._nvalid, dtype=np.int32)
 
     while (np.any(subsdone)):
         tmp = dOffAxis[np.where(subsdone)][0]
@@ -174,12 +172,12 @@ def make_lgs_prof1d(p_wfs: conf.Param_wfs, p_tel: conf.Param_tel, prof: np.ndarr
 
     p_wfs._azimuth = azimuth
 
-    if (center == "image"):
-        xcent = p_wfs._Ntot / 2. - 0.5
-        ycent = xcent
-    else:
-        xcent = p_wfs._Ntot / 2.  #+ 1
-        ycent = xcent
+    # if (center == "image"):
+    #     xcent = p_wfs._Ntot / 2. - 0.5
+    #     ycent = xcent
+    # else:
+    #     xcent = p_wfs._Ntot / 2.  #+ 1
+    #     ycent = xcent
 
     if (ysubs.size > 0):
         # TODO rotate
@@ -198,18 +196,18 @@ def make_lgs_prof1d(p_wfs: conf.Param_wfs, p_tel: conf.Param_tel, prof: np.ndarr
     p_wfs._lgskern = im.T
 
 
-def prep_lgs_prof(p_wfs: conf.Param_wfs, nsensors: int, p_tel: conf.Param_tel,
+def prep_lgs_prof(p_wfs: conf.ParamWfs, nsensors: int, p_tel: conf.ParamTel,
                   sensors: Sensors, center="", imat=0):
     """The function returns an image array(double,n,n) of a laser beacon elongated by perpective
     effect. It is obtaind by convolution of a gaussian of width "lgsWidth" arcseconds, with the
     line of the sodium profile "prof". The altitude of the profile is the array "h".
 
         Args:
-            p_wfs: (Param_wfs) : WFS settings
+            p_wfs: (ParamWfs) : WFS settings
 
             nsensors: (int) : wfs index
 
-            p_tel: (Param_tel) : telescope settings
+            p_tel: (ParamTel) : telescope settings
 
             Sensors: (Sensors) : WFS object
 

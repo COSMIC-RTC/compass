@@ -38,8 +38,6 @@
 import numpy as np
 
 from shesha.constants import CentroiderType, WFSType
-from shesha.init.dm_init import dm_init_standalone
-from shesha.init.rtc_init import rtc_standalone
 from shesha.sutra_wrap import carmaWrap_context
 
 from shesha.supervisor.components import RtcStandalone
@@ -268,9 +266,9 @@ class BenchSupervisor(GenericSupervisor):
 
         s = '--- BenchSupervisor ---\nRTC: ' + repr(self.rtc)
         if hasattr(self, '_cam'):
-            s += '\nCAM: ' + repr(cam)
+            s += '\nCAM: ' + repr(self._cam)
         if hasattr(self, '_dm'):
-            s += '\nDM: ' + repr(dm)
+            s += '\nDM: ' + repr(self._dm)
         return s
 
     def load_new_wfs_frame(self, centro_index: int = 0) -> None:
@@ -336,7 +334,7 @@ class BenchSupervisor(GenericSupervisor):
         """ Reset the DM
         """
         if hasattr(self, '_dm'):
-            dm.reset_dm()
+            self._dm.reset_dm()
 
     def reset_command(self, nctrl: int = -1) -> None:
         """ Reset the nctrl Controller command buffer, reset all controllers if nctrl  == -1

@@ -1,21 +1,21 @@
-import shesha.config as conf
 import shesha.constants as scons
+import shesha.config as conf
 import numpy as np
 
 simul_name = "micado_8m_SH"
 
 #loop
-p_loop = conf.Param_loop()
+p_loop = conf.ParamLoop()
 
 p_loop.set_niter(1000)
 p_loop.set_ittime(1 / 500.)  #=1/500
 
 #geom
-p_geom = conf.Param_geom()
+p_geom = conf.ParamGeom()
 p_geom.set_zenithangle(0.)
 
 #tel
-p_tel = conf.Param_tel()
+p_tel = conf.ParamTel()
 p_tel.set_diam(8.)
 p_tel.set_cobs(0.1)
 """
@@ -31,7 +31,7 @@ p_tel.set_std_piston(0.050) # microns
 """
 
 #atmos
-p_atmos = conf.Param_atmos()
+p_atmos = conf.ParamAtmos()
 
 p_atmos.set_r0(0.129)
 p_atmos.set_nscreens(1)
@@ -41,7 +41,7 @@ p_atmos.set_windspeed([10.])
 p_atmos.set_winddir([45.])
 p_atmos.set_L0([1.e5])  # Not simulated in Yorick?
 
-p_targets = [conf.Param_target() for _ in range(2)]
+p_targets = [conf.ParamTarget() for _ in range(2)]
 Lambda = [1.65, 0.5]
 k = 0
 for p_target in p_targets:
@@ -51,7 +51,7 @@ for p_target in p_targets:
     p_target.set_mag(4.)
 
 #target
-# p_target=conf.Param_target()
+# p_target=conf.ParamTarget()
 #p_target.set_nTargets(1)
 #p_target.set_xpos([0])
 #p_target.set_ypos([0.])
@@ -59,8 +59,8 @@ for p_target in p_targets:
 #p_target.set_mag([4.])
 
 #wfs
-# p_wfs0= conf.Param_wfs(roket=True)
-p_wfs0 = conf.Param_wfs()
+# p_wfs0= conf.ParamWfs(roket=True)
+p_wfs0 = conf.ParamWfs()
 p_wfss = [p_wfs0]
 
 p_wfs0.set_type(scons.WFSType.PYRHR)
@@ -84,8 +84,8 @@ p_wfs0.set_pyr_pup_sep(int(2 / 3. * p_wfs0.nxsub))
 p_wfs0.set_pyr_pup_sep(8 * 2)
 
 #dm
-p_dm0 = conf.Param_dm()
-p_dm1 = conf.Param_dm()
+p_dm0 = conf.ParamDm()
+p_dm1 = conf.ParamDm()
 p_dms = [p_dm0, p_dm1]
 p_dm0.set_type(scons.DmType.PZT)
 nact = p_wfs0.nxsub + 1
@@ -107,7 +107,7 @@ p_dm1.set_push4imat(0.02)
 #p_dm0.set_unitpervolt(0.01)
 #p_dm0.set_push4imat(100.)
 #centroiders
-p_centroider0 = conf.Param_centroider()
+p_centroider0 = conf.ParamCentroider()
 p_centroiders = [p_centroider0]
 
 p_centroider0.set_nwfs(0)
@@ -122,7 +122,7 @@ p_centroider0.set_method(scons.PyrCentroiderMethod.NOSINUSGLOBAL)
 #p_centroider0.set_type_fct("model")
 
 #controllers
-p_controller0 = conf.Param_controller()
+p_controller0 = conf.ParamController()
 p_controllers = [p_controller0]
 
 p_controller0.set_type(scons.ControllerType.LS)

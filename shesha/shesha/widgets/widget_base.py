@@ -36,10 +36,9 @@
 #  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 
 import os
-import sys
 import threading
 import warnings
-from typing import Any, Callable, Dict
+from typing import Any, Callable
 
 import numpy as np
 import pyqtgraph as pg
@@ -48,7 +47,7 @@ try:
     from PyQt5 import QtWidgets
     from PyQt5.QtCore import QThread, QTimer
     from PyQt5.uic import loadUiType
-except ModuleNotFoundError as e:
+except ModuleNotFoundError:
     try:
         from PySide2 import QtWidgets
         from PySide2.QtCore import  QThread, QTimer
@@ -101,7 +100,7 @@ class WidgetBase(BaseClassTemplate):
         self.gui_timer = QTimer()  # type: QTimer
         self.gui_timer.timeout.connect(self.updateDisplay)
         if self.uiBase.wao_Display.isChecked():
-            self.gui_timer.start(1000. / self.uiBase.wao_frameRate.value())
+            self.gui_timer.start(1000 // int(self.uiBase.wao_frameRate.value()))
         self.loopLock = threading.Lock(
         )  # type: Threading.Lock # Asynchronous loop / display safe-threading
         self.hide_histograms = hide_histograms
@@ -143,7 +142,7 @@ class WidgetBase(BaseClassTemplate):
     def gui_timer_config(self, state) -> None:
         self.uiBase.wao_frameRate.setDisabled(state)
         if state:
-            self.gui_timer.start(1000. / self.uiBase.wao_frameRate.value())
+            self.gui_timer.start(1000 // int(self.uiBase.wao_frameRate.value()))
         else:
             self.gui_timer.stop()
 
@@ -284,7 +283,7 @@ class WidgetBase(BaseClassTemplate):
             try:
                 cmap = pg.colormap.get('viridis') # prepare a viridis color map
                 iv.setColorMap(cmap)
-            except:
+            except Exception:
                 pass
             if (self.hide_histograms):
                 iv.ui.histogram.hide()

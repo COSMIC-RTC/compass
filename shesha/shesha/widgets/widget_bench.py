@@ -49,16 +49,17 @@ Options:
   -i, --interactive  keep the script interactive
 """
 
-import os, sys
+import os
+import sys
 import time
 
 try:
     from PyQt5 import QtWidgets
-    from PyQt5.QtCore import QThread, Qt
-except ModuleNotFoundError as e:
+    from PyQt5.QtCore import Qt
+except ModuleNotFoundError:
     try:    
         from PySide2 import QtWidgets
-        from PySide2.QtCore import QThread, Qt
+        from PySide2.QtCore import Qt
     except ModuleNotFoundError as e:
         raise ModuleNotFoundError("No module named 'PyQt5' or PySide2', please install one of them\nException raised: "+e.msg)
 
@@ -67,11 +68,10 @@ from typing import Any
 from docopt import docopt
 
 from shesha.widgets.widget_base import WidgetBase, uiLoader
-BenchWindowTemplate, BenchClassTemplate = uiLoader('widget_bench')
-
-import matplotlib.pyplot as plt
 
 from shesha.supervisor.benchSupervisor import WFSType, BenchSupervisor as Supervisor
+
+BenchWindowTemplate, BenchClassTemplate = uiLoader('widget_bench')
 
 # For debug
 # from IPython.core.debugger import Pdb
@@ -175,12 +175,12 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
 
         try:
             sys.path.remove(self.defaultParPath)
-        except:
+        except Exception:
             pass
 
         try:
             self.nwfs = len(self.config.p_wfss)
-        except:
+        except Exception:
             self.nwfs = 1  # Default. config may very well not define p_wfss
         for wfs in range(self.nwfs):
             name = 'slpComp_%d' % wfs
@@ -238,7 +238,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
         # Thread carmaWrap context reload:
         try:
             self.supervisor.force_context()
-        except:
+        except Exception:
             print('Warning: could not call supervisor.force_context().')
 
         for i in range(self.nwfs):
@@ -319,7 +319,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
                     currentFreq = 1 / loopTime
                     self.uiBench.wao_currentFreq.setValue(currentFreq)
                     self.refreshTime = start
-            except:
+            except Exception:
                 pass
             finally:
                 self.loopLock.release()

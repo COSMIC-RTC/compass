@@ -14,7 +14,7 @@ class Param_camera:
         self.framerate = 0
         self.symcode = 0
 
-p_loop = conf.Param_loop()
+p_loop = conf.ParamLoop()
 p_loop.set_devices([0])
 
 # Camera params
@@ -31,7 +31,7 @@ p_cams[0].framerate = 100
 p_cams[0].symcode = 5
 
 # WFS params
-p_wfss = [conf.Param_wfs()]
+p_wfss = [conf.ParamWfs()]
 p_wfss[0].set_type("sh")
 p_wfss[0].set_nxsub(80)
 p_wfss[0].set_npix(8)
@@ -53,20 +53,20 @@ p_wfss[0].set_npix(8)
 #   [Y0, Y1, ..., YN]
 
 #DM params
-p_dms = [conf.Param_dm()]
+p_dms = [conf.ParamDm()]
 p_dms[0].set_type("pzt")
 p_dms[0].set_alt(0.)
 p_dms[0].set_nact(4096)
 
 # Centroiders params
-p_centroiders = [conf.Param_centroider()]
+p_centroiders = [conf.ParamCentroider()]
 p_centroiders[0].set_nwfs(0)
 p_centroiders[0].set_type("cog")
 # p_centroiders[0].set_type("corr")
 # p_centroiders[0].set_type_fct("model")
 
 # Controller params
-p_controllers = [conf.Param_controller()]
+p_controllers = [conf.ParamController()]
 p_controllers[0].set_type("ls")
 p_controllers[0].set_nwfs([0])
 p_controllers[0].set_ndm([0, 1])

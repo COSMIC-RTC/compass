@@ -1,11 +1,10 @@
 import shesha.config as conf
 import shesha.constants as scons
-import numpy as np
 
 # FOR BOTH SIMU AND RTC STANDALONE
 simul_name = "PYRCADO_8m_20190115"
 
-p_loop = conf.Param_loop()
+p_loop = conf.ParamLoop()
 p_loop.set_niter(1000)
 p_loop.set_ittime(1 / 500.)  # =1/500
 p_loop.set_devices([4, 5])
@@ -28,14 +27,14 @@ p_cams[0].expo_usec = 1000
 p_cams[0].framerate = 100
 
 # centroider
-p_centroider0 = conf.Param_centroider()
+p_centroider0 = conf.ParamCentroider()
 p_centroiders = [p_centroider0]
 
 p_centroider0.set_nwfs(0)
 p_centroider0.set_type(scons.CentroiderType.MASKEDPIX)
 
 # controller
-p_controller0 = conf.Param_controller()
+p_controller0 = conf.ParamController()
 p_controllers = [p_controller0]
 
 p_controller0.set_type(scons.ControllerType.GENERIC)

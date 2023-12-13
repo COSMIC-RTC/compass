@@ -36,11 +36,9 @@
 #  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 
 import numpy as np
-import naga as ng
 import os
 from shesha.sutra_wrap import Rtc_FHF as Rtc
 from shesha.supervisor.compassSupervisor import CompassSupervisor as Supervisor
-from scipy.ndimage.measurements import center_of_mass
 from rich.progress import track
 
 precision = 1e-2
