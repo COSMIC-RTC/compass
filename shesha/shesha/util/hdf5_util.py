@@ -41,6 +41,22 @@ import os
 import numpy as np
 from subprocess import check_output
 
+shesha_db = None
+try:
+    shesha_db = os.environ['SHESHA_DB_ROOT']
+except KeyError:
+    # if SHESHA_DB_ROOT is not defined, test if SHESHA_ROOT is defined
+    if 'SHESHA_ROOT' in os.environ:
+        shesha_db = os.environ['SHESHA_ROOT'] + "/data"
+    else: # if SHESHA_ROOT is not defined, search for the data directory in the default package location
+        if os.path.isdir(os.path.dirname(__file__) + "/../../data"):
+            shesha_db = os.path.dirname(__file__) + "/../../data"
+
+if not shesha_db:
+    raise RuntimeError("neither SHESHA_DB_ROOT nor SHESHA_ROOT are defined, and the default data directory is not found. Please define SHESHA_DB_ROOT or SHESHA_ROOT to point to the data directory (see documentation).")
+
+shesha_savepath = shesha_db
+
 
 def updateParamDict(pdict, pClass, prefix):
     """
