@@ -6,23 +6,31 @@ import subprocess
 from pathlib import Path
 
 from rich.console import Console
-from rich.progress import Progress
 
 console = Console()
 
+
 def get_install_path(args, project_dir):
     """Get the installation path."""
-    default_path = os.environ.get('COMPASS_INSTALL_PATH', project_dir / 'local')
-    build_type = os.environ.get('COMPASS_DEBUG', default='Release')
+    default_path = os.environ.get('COMPASS_INSTALL_PATH',
+                                  default=project_dir / 'local')
+    build_type = os.environ.get('COMPASS_DEBUG',
+                                default='Release')
     return args[0] if args else default_path, build_type
+
 
 def get_env_vars():
     """Get environment variables."""
-    cuda_sm = ['-o', 'cuda_sm=' + os.environ.get('CUDA_SM')] if os.environ.get('CUDA_SM') else []
-    do_half = os.environ.get('COMPASS_DO_HALF', default='off').lower() in ['yes', 'true', 'on']
-    build_libs = os.environ.get('BUILD_LIBS', default='on').lower() in ['yes', 'true', 'on']
-    python_version = os.environ.get('PYTHON_VERSION', default=f'{sys.version_info.major}.{sys.version_info.minor}')
+    cuda_sm = (['-o', 'cuda_sm=' + os.environ.get('CUDA_SM')]
+               if os.environ.get('CUDA_SM') else [])
+    do_half = (os.environ.get('COMPASS_DO_HALF', default='off').lower()
+               in ['yes', 'true', 'on'])
+    build_libs = (os.environ.get('BUILD_LIBS', default='on').lower()
+                  in ['yes', 'true', 'on'])
+    python_version_ = f'{sys.version_info.major}.{sys.version_info.minor}'
+    python_version = os.environ.get('PYTHON_VERSION', default=python_version_)
     return cuda_sm, do_half, build_libs, python_version
+
 
 def generate_conan_cmd(build_type):
     """Generate the command args to install compass."""
@@ -35,6 +43,7 @@ def generate_conan_cmd(build_type):
                      *cuda_args
                      ])
 
+
 def run_command(project_dir, cmd):
     """Print and run a command."""
     try:
@@ -42,8 +51,10 @@ def run_command(project_dir, cmd):
         console.print(f'Running {cmd}', style="bold green")
         subprocess.run(cmd, **sp_kwargs)
     except subprocess.CalledProcessError as e:
-        console.print(f'Error calling {e.cmd} with return code {e.returncode}', style="bold red")
+        console.print(f'Error calling {e.cmd} with return code {e.returncode}',
+                      style="bold red")
         sys.exit(e.returncode)
+
 
 def main():
     args = sys.argv[1:]
@@ -51,15 +62,17 @@ def main():
 
     install_path, build_type = get_install_path(args, project_dir)
     build_dir = project_dir / 'build' / build_type
-    
+    conan_preset = f"--preset conan-{build_type.lower()}"
+
     if not build_dir.exists():
         conan_cmd = generate_conan_cmd(build_type)
         run_command(project_dir, conan_cmd)
-        cmake_cmd = f'cmake -DCMAKE_INSTALL_PREFIX={install_path} --preset conan-{build_type.lower()} .'
-        run_command(project_dir, cmake_cmd)
+        cmake_arg = f'-DCMAKE_INSTALL_PREFIX={install_path} {conan_preset} .'
+        run_command(project_dir, f'cmake {cmake_arg}')
 
-    cmake_cmd = f'cmake --build {build_dir} -t install --preset conan-{build_type.lower()} --parallel'
-    run_command(project_dir, cmake_cmd)
+    cmake_arg = f'--build {build_dir} -t install {conan_preset} --parallel'
+    run_command(project_dir, f'cmake {cmake_arg}')
+
 
 if __name__ == '__main__':
     main()

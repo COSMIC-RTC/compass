@@ -61,13 +61,6 @@ set -e
 
 # COMPASS_DEBUG="-s build_type=Debug"
 
-# Resolves dependencies.
-conan build $CONAN_LOCATION -b missing   \
-    ${CUDA_ARG} ${COMPASS_DEBUG}         \
-    -o half=${COMPASS_DO_HALF}           \
-    -o libs=${BUILD_LIBS}                \
-    -o python_version=${PYTHON_VERSION}
-
 if [[ -z $COMPASS_DEBUG ]]
 then
     CONAN_PRESET="conan-release"
@@ -75,12 +68,22 @@ else
     CONAN_PRESET="conan-debug"
 fi
 
-cmake -DCMAKE_INSTALL_PREFIX=${COMPASS_INSTALL_PATH} --preset ${CONAN_PRESET}
-cmake --build -t install --preset ${CONAN_PRESET}
+if ! [[ -d $LOCAL_DIR/build ]]
+then
+    # Resolves dependencies.
+    conan build $CONAN_LOCATION -b missing   \
+        ${CUDA_ARG} ${COMPASS_DEBUG}         \
+        -o half=${COMPASS_DO_HALF}           \
+        -o libs=${BUILD_LIBS}                \
+        -o python_version=${PYTHON_VERSION}
+    cmake -DCMAKE_INSTALL_PREFIX=${COMPASS_INSTALL_PATH} --preset ${CONAN_PRESET}
+fi
+
+cmake --build $LOCAL_DIR/build -t install --preset ${CONAN_PRESET} --parallel
 
 echo
 echo "Configuration and installation done, next time, you can simply run this command to install compass:"
-echo "  cmake --build -t install --preset ${CONAN_PRESET}"
+echo "  cmake --build -t install --preset ${CONAN_PRESET} --parallel"
 echo
 
 # The commands generate build system in build/ subfolder, build it and install it
