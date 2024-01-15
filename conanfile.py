@@ -1,9 +1,10 @@
 from conan import ConanFile
 from conan.tools.cmake import CMake, CMakeToolchain, cmake_layout
-from conan.tools.files import save, load, get
-from conan.tools.layout import basic_layout
+from conan.tools.files import load
 
-import os, re
+import os
+import re
+
 
 class CompassConan(ConanFile):
     name = "compass"
@@ -14,14 +15,13 @@ class CompassConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     generators = ["CMakeDeps"]
 
-    python_requires = "conan_cuda/1.0.0"
-
     options = {
         "shared":         [True, False],
         "fPIC":           [True, False],
         "libs":           [True, False],
         "half":           [True, False],
-        "cuda_sm":        [None, "ANY"],
+        "cuda_sm":        ["native", "all", "all-major", "60", "61", "62",
+                           "70", "72", "75", "80", "86", "89", "90"],
         "python_version": [None, "ANY"]
     }
     options_description = {
@@ -29,18 +29,25 @@ class CompassConan(ConanFile):
         "fPIC":           "Build with -fPIC",
         "libs":           "Build libraries",
         "half":           "Build with half support",
-        "cuda_sm":        "CUDA compute capabilities, Auto for local compute capabilities",
-        "python_version": "Python version, None for no python bindings"
+        "cuda_sm":        ("CUDA compute capabilities, native for local "
+                           "compute capabilities: native, all, all-major, ",
+                           "60, 61, 62, 70, 72, 75, ...\n",
+                           "see https://developer.nvidia.com/cuda-gpus for ",
+                           "more information"),
+        "python_version": "Python version, None for no python bindings",
     }
     default_options = {
         "shared":         True,
         "fPIC":           True,
         "libs":           True,
         "half":           False,
+        "cuda_sm":        "native",
+        "python_version": None,
     }
 
     def set_version(self):
-        content = load(self, os.path.join(self.recipe_folder, "CMakeLists.txt"))
+        content = load(self,
+                       os.path.join(self.recipe_folder, "CMakeLists.txt"))
         version = re.search(r"set\(VERSION_INFO (\d+\.\d+\.\d+)[^\)]*\)",
                             content
                             ).group(1)
@@ -50,28 +57,17 @@ class CompassConan(ConanFile):
         cmake_layout(self)
 
     def requirements(self):
-        cuda_major = self.python_requires["conan_cuda"].module.properties().major
-        if int(cuda_major) < 11:
-            self.requires("cub/1.8.0@cosmic/stable")
-
         if self.options.python_version:
             self.requires("pybind11/2.11.1")
 
     def generate(self):
         tc = CMakeToolchain(self)
 
-        # cuda helper
-        cuda = self.python_requires['conan_cuda'].module
+        print("CUDA compute capabilities: ", self.options.cuda_sm)
+        tc.variables['CMAKE_CUDA_ARCHITECTURES'] = self.options.cuda_sm
 
-        # If cuda_sm is not set, detect local compute capabilities.
-        sm = self.options.cuda_sm if self.options.cuda_sm else cuda.compute_capabilities()
-
-        print("CUDA compute capabilities: ", sm)
-        tc.variables['CMAKE_CUDA_ARCHITECTURES'] = sm
-
-        # Check if they are all above or equal 60. Disable half if not.
-        tc.variables["do_half"] = self.options.half and min(map(int, str(sm).split(";"))) >= 60
-
+        # If cuda_sm is not above or equal to 60, disable it.
+        tc.variables["do_half"] = self.options.half
         tc.variables["libs_build"] = self.options.libs
 
         if self.options.python_version:

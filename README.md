@@ -39,22 +39,22 @@ The faster procedure consist to follow instructions from this page: https://lesi
 
 ## Manual install of COMPASS
 
-### Install Anaconda with python3
+### Install Mambaforge with python3
 
-more info: <https://www.continuum.io/downloads#linux>
+more info: <https://github.com/mamba-org/mamba>
 
 #### setup .bashrc
 
 ```bashrc
-export CONDA_ROOT=$HOME/miniconda3
+export CONDA_ROOT=$HOME/miniforge
 export PATH=$CONDA_ROOT/bin:$PATH
 ```
 
 #### Download and installation
 
 ```bash
-wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
-bash Miniconda3-latest-Linux-x86_64.sh -b -p $CONDA_ROOT
+wget https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh
+bash Mambaforge-Linux-x86_64.sh -b -p $CONDA_ROOT
 ```
 
 ### Install the platform
