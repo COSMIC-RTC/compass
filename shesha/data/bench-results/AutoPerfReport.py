@@ -12,10 +12,10 @@ LaTeX distribution needed + lmodern package
 """
 import os
 import pandas
-import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-from pylatex import Document, Section, Subsection, Tabular, Figure, NoEscape, Command
+from pylatex import (Document, Section, Subsection, Tabular,
+                     Figure, NoEscape, Command)
 from subprocess import check_output
 
 matplotlib.use('Agg')
@@ -40,11 +40,11 @@ def depouillePerf(filename, version=None, mode="profile"):
         df = store.get(version)
 
     simulnames = df["simulname"].values
-    wfs_type = np.unique(df["sensor_type"].values)
-    nxsub = np.unique(df["nxsub"].values)
-    npix = np.unique(df["npix"].values)
-    controllers = np.unique(df["controller"].values)
-    centroiders = np.unique(df["centroider"].values)
+#     wfs_type = np.unique(df["sensor_type"].values)
+#     nxsub = np.unique(df["nxsub"].values)
+#     npix = np.unique(df["npix"].values)
+#     controllers = np.unique(df["controller"].values)
+#     centroiders = np.unique(df["centroider"].values)
 
     times = [
             "move_atmos", "target_trace_atmos", "target_trace_dm",
@@ -62,8 +62,8 @@ def depouillePerf(filename, version=None, mode="profile"):
     pos = []
     lab = []
     for indx in df.index:
-        ce = df.loc[indx, "centroider"]
-        co = df.loc[indx, "controller"]
+        # ce = df.loc[indx, "centroider"]
+        # co = df.loc[indx, "controller"]
         ccc = 0
         if (mode == "full"):
             plt.barh(cc, df.loc[indx, times[0]], width, color=colors[ccc])
@@ -163,9 +163,8 @@ doc.preamble.append(Command('date', '%d/%d/%d' % (date[2], date[1], date[0])))
 doc.append(NoEscape(r'\maketitle'))
 
 with doc.create(Section('Environment')):
-    doc.append(
-            'Simulations have been performed within the following environment:\n '
-    )
+    doc.append(("Simulations have been performed within the following ",
+                "environment:\n"))
     with doc.create(Tabular('|l|c|')) as table:
         table.add_hline()
         table.add_row(("Platform", str(df["platform"].values[0])))
@@ -186,10 +185,10 @@ with doc.create(Section('Environment')):
         table.add_hline()
 
 with doc.create(Section('Simulation parameters')):
-    doc.append(
-            'We ran several simulation cases: SCAO cases with Shack-Hartman sensor and pyramid sensor,\
-         MCAO cases with tomographic controller. The following tables show the relevant parameters for performance study.\n '
-    )
+    doc.append(('We ran several simulation cases: SCAO cases with ',
+                'Shack-Hartman sensor and pyramid sensor, MCAO cases with ',
+                'tomographic controller. The following tables show the ',
+                'relevant parameters for performance study.\n '))
     for indx in df.index:
         with doc.create(Subsection(df.loc[indx, "simulname"])):
             with doc.create(Tabular('|l|c|')) as table:
@@ -214,9 +213,11 @@ with doc.create(Section('Simulation parameters')):
                 table.add_row(
                         ("Centroider type", str(df.loc[indx, "centroider"])))
                 table.add_hline()
-                # table.add_row(("Total number of slopes",str(df.loc[indx,"nslopes"])))
+                # table.add_row(("Total number of slopes",
+                #                str(df.loc[indx,"nslopes"])))
                 # table.add_hline()
-                # table.add_row(("Total number of actuators",str(df.loc[indx,"nactus"])))
+                # table.add_row(("Total number of actuators",
+                #                str(df.loc[indx,"nactus"])))
                 # table.add_hline()
             doc.append('\n')
 

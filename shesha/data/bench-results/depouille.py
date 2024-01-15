@@ -5,11 +5,9 @@ Created on Tue Jan 19 15:41:57 2016
 @author: fferreira
 """
 import os
-import sys
 import pandas
 import numpy as np
 import matplotlib.pyplot as plt
-from subprocess import check_output
 import shesha
 
 SHESHA = os.environ.get('SHESHA_ROOT')
@@ -41,8 +39,8 @@ def depouilleSR(filename, version=None):
     for d in dates:
         dd = str(d[2]) + "/" + str(d[1]) + "/" + str(d[0]) + "/"
         for w in wfs_type:
-            for l in LGS:
-                if(l):
+            for lgs_id in LGS:
+                if(lgs_id):
                     star = "LGS"
                 else:
                     star = "NGS"
@@ -64,7 +62,7 @@ def depouilleSR(filename, version=None):
                                 for co in controllers:
                                     for indx in df.index:
                                         if(df.loc[indx, "date"] == d and df.loc[indx, "sensor_type"] == w
-                                           and df.loc[indx, "LGS"] == l and df.loc[indx, "noisy"] == n
+                                           and df.loc[indx, "LGS"] == lgs_id and df.loc[indx, "noisy"] == n
                                            and df.loc[indx, "nxsub"] == nx and df.loc[indx, "npix"] == N
                                            and df.loc[indx, "controller"] == co and df.loc[indx, "centroider"] == ce):
                                             cevalid.append(ce)
@@ -116,8 +114,8 @@ def depouillePerf(filename, version=None, mode="profile"):
     for d in dates:
         dd = str(d[2]) + "/" + str(d[1]) + "/" + str(d[0]) + "/"
         for w in wfs_type:
-            for l in LGS:
-                if(l):
+            for lgs_id in LGS:
+                if(lgs_id):
                     star = "LGS"
                 else:
                     star = "NGS"
@@ -140,7 +138,7 @@ def depouillePerf(filename, version=None, mode="profile"):
                                 for co in controllers:
                                     for indx in df.index:
                                         if(df.loc[indx, "date"] == d and df.loc[indx, "sensor_type"] == w
-                                           and df.loc[indx, "LGS"] == l and df.loc[indx, "noisy"] == n
+                                           and df.loc[indx, "LGS"] == lgs_id and df.loc[indx, "noisy"] == n
                                            and df.loc[indx, "nxsub"] == nx and df.loc[indx, "npix"] == N
                                            and df.loc[indx, "controller"] == co and df.loc[indx, "centroider"] == ce):
                                             cevalid.append(ce)
