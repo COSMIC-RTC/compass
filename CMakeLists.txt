@@ -6,8 +6,8 @@ endif()
 
 
 project(compass
-VERSION ${VERSION_INFO} DESCRIPTION "COMPASS library"
-LANGUAGES CUDA CXX)
+        VERSION ${VERSION_INFO} DESCRIPTION "COMPASS library"
+        LANGUAGES CUDA CXX)
 
 option(libs_build "Compile Python Wrappers" ON)
 option(python_build "Compile Python Wrappers" ON)
