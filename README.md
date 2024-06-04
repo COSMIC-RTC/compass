@@ -46,15 +46,16 @@ more info: <https://github.com/mamba-org/mamba>
 #### setup .bashrc
 
 ```bashrc
-export CONDA_ROOT=$HOME/miniforge
-export PATH=$CONDA_ROOT/bin:$PATH
+export MAMBA_ROOT=$HOME/miniforge
+export PATH=$MAMBA_ROOT/bin:$PATH
 ```
 
 #### Download and installation
 
 ```bash
 wget https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh
-bash Mambaforge-Linux-x86_64.sh -b -p $CONDA_ROOT
+bash Mambaforge-Linux-x86_64.sh -b -p $MAMBA_ROOT
+mamba init
 ```
 
 ### Install the platform
@@ -93,12 +94,16 @@ export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$COMPASS_INSTALL_ROOT/lib/pkgconfig
 
 ```bash
 cd $COMPASS_ROOT
-./script/install_conan_gcc.sh
+mamba env create --file environment.yml
+conda activate compass
+export VCPKG_ROOT=$HOME/vcpkg
+export PATH=$VCPKG_ROOT:$PATH
+./script/install_vcpkg.sh $VCPKG_ROOT
 ```
 
 #### Install COMPASS
 
 ```bash
 cd $COMPASS_ROOT
-./compile.sh
+./compile_vcpkg.py
 ```
