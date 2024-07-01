@@ -45,182 +45,191 @@ import shesha.constants as scons
 
 
 class ParamWfs:
-
+    """Class that contains the configuration for the WFS module of the COMPASS simulator.
+    
+    This class contains the configuration for the WFS module of the COMPASS simulator.
+    
+    Attributes:
+        type (str): Type of WFS ("sh" or "pyr").
+        nxsub (long): Linear number of subaps.
+        npix (long): Number of pixels per subap.
+        pixsize (float): Pixel size (in arcsec) for a subap.
+        Lambda (float): Observation wavelength (in um) for a subap.
+        optthroughput (float): WFS global throughput.
+        fracsub (float): Minimal illumination fraction for valid subaps.
+        open_loop (bool): 1 if in "open-loop" mode (i.e. does not see dm).
+        fssize (float): Size of field stop in arcsec.
+        fstop (str): Fields of the WFS diaphragm shape ("square" or "none").
+        atmos_seen (bool): 1 if the WFS sees the atmosphere layers.
+        dms_seen (np.ndarray[ndim=1, dtype=np.int32]): Index of DMS seen by the WFS.
+        roket (bool): If True, enable error budget analysis for the simulation.
+        is_low_order (bool): If True, WFS is considered as a low order one and so will not profit from array mutualisation.
+        xpos (float): Guide star x position on sky (in arcsec).
+        ypos (float): Guide star x position on sky (in arcsec).
+        gsalt (float): Altitude of guide star (in m) 0 if NGS.
+        gsmag (float): Magnitude of guide star.
+        zerop (float): Detector zero point expressed in ph/m**2/s in the bandwidth of the WFS.
+        noise (float): Desired noise : < 0 = no noise / 0 = photon only / > 0 photon + ron.
+        kernel (int): .
+        ftkernel (np.ndarray[ndim=1, dtype=np.float32]): .
+        lgsreturnperwatt (float): Return per watt factor (high season : 10 ph/cm2/s/W).
+        laserpower (float): Laser power in W.
+        lltx (float): X position (in meters) of LLT.
+        llty (float): Y position (in meters) of LLT.
+        proftype (str): Type of sodium profile "gauss", "exp", etc ...
+        beamsize (str): Laser beam fwhm
+        G (float): Magnifying factor.
+        thetaML (float): WFS rotation angle in the pupil.
+        dx (float): X axis misalignment in pixels.
+        dy (float): Y axis misalignment in pixels.
+        fakecam (bool): uint16 computation flag for WFS image.
+        max_flux_per_pix (int): Maximum number of photons allowed before pixel computation (only used if fakecam is True).
+        max_pix_value (int): Maximum number of ADU photons allowed in the uint16 image (only used if fakecam is True).
+        pdiam (float): Pupil diam for a subap (in pixel).
+        Nfft (long): Array size for fft for a subap (in pixel).
+        Ntot (long): Total size of hr image for a subap (in pixel).
+        nrebin (long): Rebin factor from hr to binned image for a subap.
+        nvalid (long): Number of valid subaps.
+        nphotons (long): Number of photons per subap.
+        nphotons4imat (float): Number of photons per subap used for doing imat.
+        subapd (float): Subap diameter (m).
+        fluxPerSub (np.ndarray[ndim=1, dtype=np.float32]): Fraction of nphotons per subap.
+        qpixsize (float): Quantum pixel size for the simulation.
+        validpuppixx (np.ndarray[ndim=1, dtype=np.int32]): X start indexes for cutting phase screens.
+        validpuppixy (np.ndarray[ndim=1, dtype=np.int32]): Y start indexes for cutting phase screens.
+        validsubsx (np.ndarray[ndim=1, dtype=np.int32]): X-indices of bottom left pixel of each valid subaps [pixels].
+        validsubsy (np.ndarray[ndim=1, dtype=np.int32]): Y-indices of bottom left pixel of each valid subaps [pixels].
+        isvalid (np.ndarray[ndim=1, dtype=np.int32]): Array of 0/1
+        phasemap (np.ndarray[ndim=1, dtype=np.int32]): Array of pixels transform from phase screen into subaps phase screens.
+        ttprojmat (np.ndarray[ndim=1, dtype=np.float32]): Matrices to project subap phase to geometric slope (considering valid pup).
+        hrmap (np.ndarray[ndim=1, dtype=np.int32]): Array of pixels transform from minimal FoV image to (in case type is sh or geo).
+        sincar (np.ndarray[ndim=1, dtype=np.float32]): Array of pixels transform from minimal FoV image to (in case type is "pyr" or "roof").
+        binmap (np.ndarray[ndim=1, dtype=np.int32]): Array of pixels transform from full FoV hr images to binned images.
+        halfxy (np.ndarray[ndim=1, dtype=np.float32]): Phase offset for 1/2 pixel shift in (x,y).
+        submask (np.ndarray[ndim=1, dtype=np.float32]): Fieldstop for each subap.
+        lgskern (np.ndarray[ndim=1, dtype=np.float32]): LGS kernels for each subap.
+        profna (np.ndarray[ndim=1, dtype=np.float32]): Sodium profile.
+        altna (np.ndarray[ndim=1, dtype=np.float32]): Corresponding altitude.
+        prof1d (np.ndarray[ndim=1, dtype=np.float32]): HR profile.
+        profcum (np.ndarray[ndim=1, dtype=np.float32]): HR profile cumulated.
+        beam (np.ndarray[ndim=1, dtype=np.float32]): 1d beam function.
+        ftbeam (np.ndarray[ndim=1, dtype=np.float32]): 1d beam function fft.
+        azimuth (np.ndarray[ndim=1, dtype=np.float32]): Angles of rotation for each spot.
+        pyr_ampl (float): Pyramid WFS modulation amplitude radius [arcsec].
+        pyr_npts (long): Total number of point along modulation circle [unitless].
+        pyr_pos (np.ndarray[ndim=1, dtype=np.float32]): Positions for modulation, overwrites ampl and npts [arcsec].
+        pyr_loc (str): Location of modulation, before/after the field stop.
+        pyrtype (int): Type of pyramid, either 0 for "Pyramid" or 1 for "RoofPrism".
+        pyr_pup_sep (int): Number of Pyramid facets.
+        nPupils (long): Pyramid pupil separation.
+        pyr_misalignments (np.ndarray[ndim=1, dtype=np.float32]): Pyramid quadrant misalignments: by how much pupil subimages are off from their expected positions (in rebinned pixels).
+        pyr_compute_focalplane (bool): Compute the pyramid focalplane image.
+        pyr_cx (np.ndarray[ndim=1, dtype=np.float32]): .
+        pyr_cy (np.ndarray[ndim=1, dtype=np.float32]): .
+        pyr_weights (np.ndarray[ndim=1, dtype=np.float32]): Modulation points ponderation weights.
+        pyr_scale_pos (float): Scale to apply on cx, cy.
+    """
     def __init__(self, roket=False):
-        self.__type = None
-        """ type of wfs : "sh" or "pyr"."""
-        self.__nxsub = 0
-        """ linear number of subaps."""
-        self.__npix = 0
-        """ number of pixels per subap."""
-        self.__pixsize = 0
-        """ pixel size (in arcsec) for a subap."""
-        self.__Lambda = 0
-        """ observation wavelength (in um) for a subap."""
-        self.__optthroughput = 0
-        """ wfs global throughput."""
-        self.__fracsub = 0
-        """ minimal illumination fraction for valid subaps."""
-        self.__open_loop = False
-        """ 1 if in "open-loop" mode (i.e. does not see dm)."""
-        self.__fssize = 0
-        """ size of field stop in arcsec."""
-        self.__fstop = None
-        """ Fields of the wfs diaphragm shape : "square" or "none" """
+        self.__type = None  # type of wfs : "sh" or "pyr"
+        self.__nxsub = 0  # linear number of subaps
+        self.__npix = 0  # number of pixels per subap
+        self.__pixsize = 0  # pixel size (in arcsec) for a subap
+        self.__Lambda = 0  # observation wavelength (in um) for a subap
+        self.__optthroughput = 0  # wfs global throughput
+        self.__fracsub = 0  # minimal illumination fraction for valid subaps
+        self.__open_loop = False  # 1 if in "open-loop" mode (i.e. does not see dm)
+        self.__fssize = 0  # size of field stop in arcsec
+        self.__fstop = None  # fields of the wfs diaphragm shape : "square" or "none"
 
-        self.__atmos_seen = 0
-        """ 1 if the WFS sees the atmosphere layers"""
-        self.__dms_seen = None
-        """ index of dms seen by the WFS"""
-        self.__roket = roket
-        """ If True, enable error budget analysis for the simulation"""
-        self.__is_low_order = False
-        """If True, WFS is considered as a low order one and so will not profit from array mutualisation"""
+        self.__atmos_seen = 0  # 1 if the WFS sees the atmosphere layers
+        self.__dms_seen = None  # index of dms seen by the WFS
+        self.__roket = roket  # if True, enable error budget analysis for the simulation
+        self.__is_low_order = False  # if True, WFS is considered as a low order one and so will not profit from array mutualisation
+
         # target kwrd
-        self.__xpos = 0
-        """ guide star x position on sky (in arcsec)."""
-        self.__ypos = 0
-        """ guide star x position on sky (in arcsec)."""
-        self.__gsalt = 0
-        """ altitude of guide star (in m) 0 if ngs."""
-        self.__gsmag = 0
-        """ magnitude of guide star."""
-        self.__zerop = 0
-        """ detector zero point expressed in ph/m**2/s in the bandwidth of the WFS"""
-        self.__noise = 0
-        """ desired noise : < 0 = no noise / 0 = photon only / > 0 photon + ron."""
+        self.__xpos = 0  # guide star x position on sky (in arcsec)
+        self.__ypos = 0  # guide star x position on sky (in arcsec)
+        self.__gsalt = 0  # altitude of guide star (in m) 0 if ngs
+        self.__gsmag = 0  # magnitude of guide star
+        self.__zerop = 0  # detector zero point expressed in ph/m**2/s in the bandwidth of the WFS
+        self.__noise = 0  # desired noise : < 0 = no noise / 0 = photon only / > 0 photon + ron.
 
-        self.__kernel = 0  #
+        self.__kernel = 0  # 
         self.__ftkernel = None  # (float*)
 
         # lgs only
-        self.__lgsreturnperwatt = 0
-        """ return per watt factor (high season : 10 ph/cm2/s/W)."""
-        self.__laserpower = 0
-        """ laser power in W."""
-        self.__lltx = 0
-        """ x position (in meters) of llt."""
-        self.__llty = 0
-        """ y position (in meters) of llt."""
-        self.__proftype = None
-        """ type of sodium profile "gauss", "exp", etc ..."""
-        self.__beamsize = None
-        """ laser beam fwhm on-sky (in arcsec)."""
+        self.__lgsreturnperwatt = 0  # return per watt factor (high season : 10 ph/cm2/s/W)
+        self.__laserpower = 0  # laser power in W
+        self.__lltx = 0  # x position (in meters) of llt
+        self.__llty = 0  # y position (in meters) of llt
+        self.__proftype = None  # type of sodium profile "gauss", "exp", etc ...
+        self.__beamsize = None  # laser beam fwhm (in arcsec)
 
         # misalignment
-
-        self.__G = 1.0
-        """ Magnifying factor"""
-        self.__thetaML = 0.0
-        """ WFS rotation angle in the pupil"""
-        self.__dx = 0.0
-        """ X axis misalignment in pixels"""
-        self.__dy = 0.0
-        """ Y axis misalignment in pixels"""
+        self.__G = 1.0  # magnifying factor
+        self.__thetaML = 0.0  # WFS rotation angle in the pupil
+        self.__dx = 0.0  # X axis misalignment in pixels
+        self.__dy = 0.0  # Y axis misalignment in pixels
 
         # Fakecam mode (uint16)
-        self.__fakecam = False
-        """ uint16 computation flag for WFS image """
-        self.__max_flux_per_pix = 0
-        """ Maximum number of photons allowed before pixel computation (only used if fakecam is True) """
-        self.__max_pix_value = 0
-        """ Maximum number of ADU photons allowed in the uint16 image (only used if fakecam is True) """
+        self.__fakecam = False  # uint16 computation flag for WFS image
+        self.__max_flux_per_pix = 0  # maximum number of photons allowed before pixel computation (only used if fakecam is True)
+        self.__max_pix_value = 0  # maximum number of ADU photons allowed in the uint16 image (only used if fakecam is True)
+
         # internal kwrd
-        self.__pdiam = 0
-        """ pupil diam for a subap (in pixel)"""
-        self.__Nfft = 0
-        """ array size for fft for a subap (in pixel)"""
-        self.__Ntot = 0
-        """ total size of hr image for a subap (in pixel)"""
-        self.__nrebin = 0
-        """ rebin factor from hr to binned image for a subap"""
-        self.__nvalid = 0
-        """ number of valid subaps"""
+        self.__pdiam = 0  # pupil diam for a subap (in pixel)
+        self.__Nfft = 0  # array size for fft for a subap (in pixel)
+        self.__Ntot = 0  # total size of hr image for a subap (in pixel)
+        self.__nrebin = 0  # rebin factor from hr to binned image for a subap
+        self.__nvalid = 0  # number of valid subaps
 
-        self.__nphotons = 0
-        """ number of photons per subap"""
-        self.__nphotons4imat = 1.e5
-        """ number of photons per subap used for doing imat"""
-        self.__subapd = 0
-        """ subap diameter (m)"""
-        self.__fluxPerSub = None
-        """ fraction of nphotons per subap"""
-        self.__qpixsize = 0
-        """ quantum pixel size for the simulation"""
+        self.__nphotons = 0  # number of photons per subap
+        self.__nphotons4imat = 1.e5  # number of photons per subap used for doing imat
+        self.__subapd = 0  # subap diameter (m)
+        self.__fluxPerSub = None  # fraction of nphotons per subap
+        self.__qpixsize = 0  # quantum pixel size for the simulation
 
-        self.__validpuppixx = None
-        """ (int*) x start indexes for cutting phase screens"""
-        self.__validpuppixy = None
-        """ (int*) y start indexes for cutting phase screens"""
+        self.__validpuppixx = None  # (int*) x start indexes for cutting phase screens
+        self.__validpuppixy = None  # (int*) y start indexes for cutting phase screens
         # cdef np.ndarray _validsubs    # (i,j) indices of valid subaps
-        self.__validsubsx = None
-        """ (int*) X-indices of bottom left pixel of each valid subaps [pixels]"""
-        self.__validsubsy = None
-        """ (int*) Y-indices of bottom left pixel of each valid subaps [pixels]"""
-        self.__isvalid = None
-        """ (int*) array of 0/1 for valid subaps"""
-        self.__phasemap = None
-        """ (int*) array of pixels transform from phase screen into subaps phase screens"""
-        self.__ttprojmat = None
-        """ (float*) matrices to project subap phase to geometric slope (considering valid pup)"""
-        self.__hrmap = None
-        """ (int*) array of pixels transform from minimal FoV image to (in case type is sh or geo)"""
-        self.__sincar = None
-        """ (float*) array of pixels transform from minimal FoV image to (in case type is "pyr" or "roof")"""
+        self.__validsubsx = None  # (int*) X-indices of bottom left pixel of each valid subaps [pixels]
+        self.__validsubsy = None  # (int*) Y-indices of bottom left pixel of each valid subaps [pixels]
+        self.__isvalid = None  # (int*) array of 0/1
+        self.__phasemap = None  # (int*) array of pixels transform from phase screen into subaps phase screens
+        self.__ttprojmat = None  # (float*) matrices to project subap phase to geometric slope (considering valid pup)
+        self.__hrmap = None  # (int*) array of pixels transform from minimal FoV image to (in case type is sh or geo)
+        self.__sincar = None  # (float*) array of pixels transform from minimal FoV image to (in case type is "pyr" or "roof")
         # full FoV image (array of 0 if the same)
-        self.__binmap = None
-        """ (int*) array of pixels transform from full FoV hr images to binned images"""
-        self.__halfxy = None
-        """ (float*) phase offset for 1/2 pixel shift in (x,y)"""
+        self.__binmap = None  # (int*) array of pixels transform from full FoV hr images to binned images
+        self.__halfxy = None  # (float*) phase offset for 1/2 pixel shift in (x,y)
+ 
+        self.__submask = None  # (float*) fieldstop for each subap
 
-        self.__submask = None
-        """ (float*) fieldstop for each subap"""
-
-        self.__lgskern = None
-        """ lgs kernels for each subap"""
-        self.__profna = None
-        """ sodium profile"""
-        self.__altna = None
-        """ corresponding altitude"""
-        self.__prof1d = None
-        """ hr profile"""
-        self.__profcum = None
-        """ hr profile cumulated"""
-        self.__beam = None
-        """ 1d beam function"""
-        self.__ftbeam = None
-        """ 1d beam function fft"""
-        self.__azimuth = None
-        """ angles of rotation for each spot"""
+        self.__lgskern = None  # (float*) lgs kernels for each subap
+        self.__profna = None  # (float*) sodium profile
+        self.__altna = None  # (float*) corresponding altitude
+        self.__prof1d = None  # (float*) hr profile
+        self.__profcum = None  # (float*) hr profile cumulated
+        self.__beam = None  # (float*) 1d beam function
+        self.__ftbeam = None  # (float*) 1d beam function fft
+        self.__azimuth = None  # (float*) angles of rotation for each spot
 
         # pyramid-nly kwrds
-        self.__pyr_ampl = 0
-        """ pyramid wfs modulation amplitude radius [arcsec]."""
-        self.__pyr_npts = 0
-        """ total number of point along modulation circle [unitless]."""
-        self.__pyr_pos = None
-        """ positions for modulation, overwrites ampl and npts [arcsec]"""
-        self.__pyr_loc = None
-        """ Location of modulation, before/after the field stop.
-        valid value are "before" or "after" (default "after")."""
-        self.__pyrtype = None
-        """ Type of pyramid, either 0 for "Pyramid" or 1 for "RoofPrism"."""
-        self.__pyr_pup_sep = -1
-        """ Number of Pyramid facets """
-        self.__nPupils = 0
-        """ Pyramid pupil separation. (default: long(wfs.nxsub))"""
-        self.__pyr_misalignments = None
-        """ Pyramid quadrant misalignments: by how much pupil subimages
-        are off from their expected positions (in rebinned pixels)"""
-        self.__pyr_compute_focalplane = False
-        """ Compute the pyramid focalplane image """
+        self.__pyr_ampl = 0  # pyramid wfs modulation amplitude radius [arcsec]
+        self.__pyr_npts = 0  # total number of point along modulation circle [unitless]
+        self.__pyr_pos = None  # (float*) positions for modulation, overwrites ampl and npts [arcsec]
+        self.__pyr_loc = None  # location of modulation, before/after the field stop valid value are "before" or "after" (default "after")."""
+        self.__pyrtype = None  # type of pyramid, either 0 for "Pyramid" or 1 for "RoofPrism"
+        self.__pyr_pup_sep = -1  # pyramid pupil separation
+        self.__nPupils = 0  # pyramid pupil separation
+        self.__pyr_misalignments = None  # (float*) pyramid quadrant misalignments: by how much pupil subimages are off from their expected positions (in rebinned pixels)
+        self.__pyr_compute_focalplane = False  # compute the pyramid focalplane image
 
         # pyramid internal kwrds
         self._pyr_offsets = None  # (float*)
         self.__pyr_cx = None  # (float*)
         self.__pyr_cy = None  # (float*)
-        self.__pyr_weights = None
-        """ Modulation points ponderation weights"""
+        self.__pyr_weights = None  # (float*) modulation points ponderation weights
         self.__pyr_scale_pos = None  # (float) : scale to apply on cx, cy
 
     def get_type(self):

@@ -1,5 +1,5 @@
 ## @package   shesha.config
-## @brief     Parameter classes for COMPASS
+## @brief     Package that contains the configuration classes for the different modules of the COMPASS simulator.
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   5.5.0
 ## @date      2022/01/24

@@ -1,5 +1,5 @@
-## @package   shesha.config.PDMS
-## @brief     ParamDm class definition
+## @package   shesha.config.pDms
+## @brief     Class definition for the DM parameters
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   5.5.0
 ## @date      2022/01/24
@@ -40,13 +40,52 @@ import shesha.constants as scons
 import shesha.config.config_setter_utils as csu
 
 
-#################################################
-# P-Class (parametres) ParamDm
-#################################################
 class ParamDm:
+    """Class definition for the DM parameters
+
+    This class contains the parameters for the DM.
+
+    Attributes:
+        ap (float): The value of ap.
+        nfunc (int): The value of nfunc.
+        pzt_extent (int): The extent of pzt dm.
+        segmented_mirror (bool): The flag indicating whether the mirror is segmented.
+        influ_type (str): The influence function type for the pzt DM.
+        type_kl (str): The type of KL used for computation.
+        type (str): Type of dm.
+        type_pattern (str): Type of pattern.
+        file_influ_fits (str): Filename for influ hdf5 file.
+        center_name (str): Center name in hdf5.
+        cube_name (str): Influence function cube name in hdf5.
+        x_name (str): x coord name in hdf5.
+        y_name (str): y coord name in hdf5.
+        influ_res (str): Influence resolution name in hdf5.
+        diam_dm (float): Diameter of the tel pupil projected on the dm plane.
+        diam_dm_proj (float): Diameter of the dm pupil projected on the tel pupil plane.
+        nact (int): Number of actuators in the dm.
+        margin_out (float): Margin for outside actuator select.
+        margin_in (float): Margin for inside actuator select (central obstruction).
+        alt (float): Conjugaison altitude.
+        thresh (float): Threshold on response for selection.
+        keep_all_actu (bool): Keep all actuator flag.
+        coupling (float): Actuators coupling.
+        unitpervolt (float): Influence function sensitivity in unit/volt.
+        push4imat (float): Nominal voltage for imat.
+        dim_screen (int): Phase screen dimension.
+        nkl (int): Number of KL modes used for computation of covmat in case of minimum variance controller.
+        outscl (float): Outer scale in units of telescope diam for Karman KL.
+        nr (int): Number of radial points.
+        npp (int): Number of elements.
+        ord (np.ndarray): The radial orders of the basis.
+        rabas (np.ndarray): The radial array of the basis.
+        azbas (np.ndarray): The azimuthal array of the basis.
+        ncp (int): Dim of grid.
+        cr (np.ndarray): Radial coord in cartesien grid.
+        cp (np.ndarray): Phi coord in cartesien grid.
+        ap (float): The value of ap.
+    """
 
     def __init__(self):
-
         # DM properties
         self.__nact = 0  # linear number of actuators across the pupil diameter
         self.__alt = 0.0  # DM conjugation altitude
@@ -61,13 +100,13 @@ class ParamDm:
         self.__unitpervolt = 0.01
         # Influence function sensitivity in unit/volt. Optional [0.01]
         # Stackarray: mic/volt, Tip-tilt: arcsec/volt.
-        self.__push4imat = 1.  # nominal voltage for imat
+        self.__push4imat = 1.0  # nominal voltage for imat
 
         # Margins for actuator selection
         self.__margin_out = None  # outer margin (pitches) from pupil diameter
         # inner margin (pitches) from central obstruction
-        self.__margin_in = 0.
-        self.__pzt_extent = 5.  # Extent of pzt DM (pitches)
+        self.__margin_in = 0.0
+        self.__pzt_extent = 5.0  # Extent of pzt DM (pitches)
         self.__segmented_mirror = False  # Crop influence functions where spiders are.
 
         # KL DM
@@ -103,936 +142,1037 @@ class ParamDm:
 
         # PXD cleanup
         # internal kwrd
-        self.__pitch = None
-        """ inter-actuator space in pixels"""
-        self.__ntotact = None
-        """ total number of actuators over the full area of the pupil"""
-        self.__influsize = None
-        """ influ function support size"""
-        self.__n1 = None
-        """ position of leftmost pixel in largest support"""
-        self.__n2 = None
-        """ position of rightmost pixel in largest support"""
+        self.__pitch = None  # inter-actuator space in pixels
+        self.__ntotact = None  # total number of actuators over the full area of the pupil
+        self.__influsize = None  # influ function support size
+        self.__n1 = None  # position of leftmost pixel in largest support
+        self.__n2 = None  # position of rightmost pixel in largest support
         self.__puppixoffset = None
-        self.__influ = None
-        """ influence functions"""
-        self.__xpos = None
-        """ x positions of influ functions"""
-        self.__ypos = None
-        """ y positions of influ functions"""
-        self.__i1 = None
-        self.__j1 = None
-        self.__influpos = None
-        self.__ninflu = None
-        """ Influence functions"""
+        self.__influ = None  # influence functions
+        self.__xpos = None  # x positions of influ functions
+        self.__ypos = None  # y positions of influ functions
+        self.__i1 = None  # position of bottom left pixel in the largest support
+        self.__j1 = None  # position of bottom left pixel in the largest support
+        self.__influpos = None  # pixels that contributes to each DM pixel
+        self.__ninflu = None  # number of pixels in each influence function
         self.__influstart = None  # np.ndarray - Influence function handling
 
         # Registration
-        self.__G = 1.0
-        """ Magnifying factor"""
-        self.__theta = 0.0
-        """ WFS rotation angle in the pupil"""
-        self.__dx = 0.0
-        """ X axis misalignment in meters"""
-        self.__dy = 0.0
-        """ Y axis misalignment in meters"""
+        self.__G = 1.0  # Magnifying factor
+        self.__theta = 0.0  # Rotation angle in the pupil
+        self.__dx = 0.0  # X axis misalignment in meters
+        self.__dy = 0.0  # Y axis misalignment in meters
 
-    def get_ap(self):
-        """ Get ap TODO!!!
+    def get_ap(self) -> float:
+        """Get ap.
 
-        :return: (float) : TODO
+        Returns:
+            float: The value of ap.
         """
         return self.__ap
 
-    def set_ap(self, ap):
-        """ Set ap TODO!!!
+    def set_ap(self, ap: float) -> None:
+        """Set ap.
 
-        :param ap: (float) : TODO
+        Args:
+            ap (float): The value of ap.
         """
-        self.__ap = csu.enforce_arrayMultiDim(ap, (ap.shape[0], ap.shape[1]),
-                                              dtype=np.float32)
+        self.__ap = csu.enforce_arrayMultiDim(ap, (ap.shape[0], ap.shape[1]), dtype=np.float32)
 
-    ap = property(get_ap, set_ap)
+    ap: float = property(get_ap, set_ap)
 
-    def get_nfunc(self):
-        """ Get nfunc TODO !!!
+    def get_nfunc(self) -> int:
+        """Get nfunc.
 
-        :return: (int) : TODO
+        Returns:
+            int: The value of nfunc.
         """
         return self.__nfunc
 
-    def set_nfunc(self, nfunc):
-        """ Set nfunc TODO !!!
+    def set_nfunc(self, nfunc: int) -> None:
+        """Set nfunc.
 
-        :param nfunc: (int) : TODO
+        Args:
+            nfunc (int): The value of nfunc.
         """
         self.__nfunc = csu.enforce_int(nfunc)
 
-    nfunc = property(get_nfunc, set_nfunc)
+    nfunc: int = property(get_nfunc, set_nfunc)
 
-    def get_pzt_extent(self):
-        """ Get extent of pzt dm in pich unit default = 5
+    def get_pzt_extent(self) -> int:
+        """Get extent of pzt dm in pitch unit.
 
-        :return: (int) : extent pzt dm
+        Returns:
+            int: The extent of pzt dm.
         """
         return self.__pzt_extent
 
-    def set_pzt_extent(self, p):
-        """ Set extent of pzt dm in pich unit default = 5
+    def set_pzt_extent(self, p: int) -> None:
+        """Set extent of pzt dm in pitch unit.
 
-        :param p: (int) : extent pzt dm
+        Args:
+            p (int): The extent of pzt dm.
         """
         self.__pzt_extent = csu.enforce_int(p)
 
-    pzt_extent = property(get_pzt_extent, set_pzt_extent)
+    pzt_extent: int = property(get_pzt_extent, set_pzt_extent)
 
-    def get_segmented_mirror(self):
+    def get_segmented_mirror(self) -> bool:
+        """Get the flag indicating whether the mirror is segmented.
+
+        Returns:
+            bool: The flag indicating whether the mirror is segmented.
+        """
         return self.__segmented_mirror
 
-    def set_segmented_mirror(self, b):
-        """ Define mirror influence functions to be cropped by the spiders
-        (more generally, pupil edges)
+    def set_segmented_mirror(self, b: bool) -> None:
+        """Set the flag indicating whether the mirror is segmented.
 
-        :param p: (bool) : segment the mirror
+        Args:
+            b (bool): The flag indicating whether the mirror is segmented.
         """
         self.__segmented_mirror = csu.enforce_or_cast_bool(b)
 
-    segmented_mirror = property(get_segmented_mirror, set_segmented_mirror)
+    segmented_mirror: bool = property(get_segmented_mirror, set_segmented_mirror)
 
-    def get_influ_type(self):
-        """ Get the influence function type for pzt DM
+    def get_influ_type(self) -> str:
+        """Get the influence function type for the pzt DM.
 
-        :return: (str) : centroider type
+        Returns:
+            str: The influence function type.
         """
         return self.__influ_type
 
-    def set_influ_type(self, t):
-        """ Set the influence function type for pzt DM
+    def set_influ_type(self, t: str) -> None:
+        """Set the influence function type for the pzt DM.
 
-        :param t: (str) : centroider type
+        Args:
+            t (str): The influence function type.
         """
         self.__influ_type = scons.check_enum(scons.InfluType, t)
 
-    influ_type = property(get_influ_type, set_influ_type)
+    influ_type: str = property(get_influ_type, set_influ_type)
 
-    def get_influpos(self):
-        """ Get the influence functions pixels that contributes to each DM pixel
+    def get_influpos(self) -> np.ndarray:
+        """Get the influence function pixels that contribute to each DM pixel.
 
-        :return: (np.ndarray[ndim=1, drype=np.int32]) : influpos
+        Returns:
+            np.ndarray: The influence function pixels.
         """
         return self.__influpos
 
-    def set_influpos(self, ip):
-        """ Set the influence functions pixels that contributes to each DM pixel
+    def set_influpos(self, ip: np.ndarray) -> None:
+        """Set the influence function pixels that contribute to each DM pixel.
 
-        :param ip: (np.ndarray[ndim=1, drype=np.int32]) : influpos
+        Args:
+            ip (np.ndarray): The influence function pixels.
         """
         self.__influpos = csu.enforce_array(ip, ip.size, dtype=np.int32)
 
-    _influpos = property(get_influpos, set_influpos)
+    _influpos: np.ndarray = property(get_influpos, set_influpos)
 
-    def get_ninflu(self):
-        """ Get the number of influence functions pixels that contributes
-        to each DM pixel
+    def get_ninflu(self) -> np.ndarray:
+        """Get the number of influence functions pixels that contribute
+        to each DM pixel.
 
-        :return: (np.ndarray[ndim=1, drype=np.int32]) : ninflu
+        Returns:
+            np.ndarray: The number of influence functions pixels.
         """
         return self.__ninflu
 
-    def set_ninflu(self, n):
-        """ Set the number of influence functions pixels that contributes
-        to each DM pixel
+    def set_ninflu(self, n: np.ndarray) -> None:
+        """Set the number of influence functions pixels that contribute
+        to each DM pixel.
 
-        :param n: (np.ndarray[ndim=1, drype=np.int32]) : ninflu
+        Args:
+            n (np.ndarray): The number of influence functions pixels.
         """
         self.__ninflu = csu.enforce_array(n, n.size, dtype=np.int32)
 
-    _ninflu = property(get_ninflu, set_ninflu)
+    _ninflu: np.ndarray = property(get_ninflu, set_ninflu)
 
-    def get_influstart(self):
-        """ Get the index where to start a new DM pixel shape in the array influpos
-        to each DM pixel
+    def get_influstart(self) -> np.ndarray:
+        """Get the index where to start a new DM pixel shape in the array influpos
+        to each DM pixel.
 
-        :return: (np.ndarray[ndim=1, drype=np.int32]) : influstart
+        Returns:
+            np.ndarray: The index where to start a new DM pixel shape.
         """
         return self.__influstart
 
-    def set_influstart(self, n):
-        """ Set the index where to start a new DM pixel shape in the array influpos
-        to each DM pixel
+    def set_influstart(self, n: np.ndarray) -> None:
+        """Set the index where to start a new DM pixel shape in the array influpos
+        to each DM pixel.
 
-        :param n: (np.ndarray[ndim=1, drype=np.int32]) : influstart
+        Args:
+            n (np.ndarray): The index where to start a new DM pixel shape.
         """
         self.__influstart = csu.enforce_array(n, n.size, dtype=np.int32)
 
-    _influstart = property(get_influstart, set_influstart)
+    _influstart: np.ndarray = property(get_influstart, set_influstart)
 
-    def get_gain(self):
-        """ Get the gain to apply to the actuators of the dm
+    def get_gain(self) -> float:
+        """Get the gain to apply to the actuators of the DM.
 
-        :return: (float) : gain
+        Returns:
+            float: The gain.
         """
         return self.__gain
 
-    def set_gain(self, g):
-        """ Set the gain to apply to the actuators of the dm
+    def set_gain(self, g: float) -> None:
+        """Set the gain to apply to the actuators of the DM.
 
-        :param g: (float) : gain
+        Args:
+            g (float): The gain.
         """
         self.__gain = csu.enforce_float(g)
 
-    gain = property(get_gain, set_gain)
+    gain: float = property(get_gain, set_gain)
 
-    def _get_dim_screen(self):
-        """ Get the phase screen dimension
+    def _get_dim_screen(self) -> int:
+        """Get the phase screen dimension.
 
-        :return: (long) : phase screen dimension
+        Returns:
+            int: The phase screen dimension.
         """
         return self.__dim_screen
 
-    def _set_dim_screen(self, n):
-        """ Set the phase screen dimension
+    def _set_dim_screen(self, n: int) -> None:
+        """Set the phase screen dimension.
 
-        :param n: (long) : phase screen dimension
+        Args:
+            n (int): The phase screen dimension.
         """
         self.__dim_screen = csu.enforce_int(n)
 
-    _dim_screen = property(_get_dim_screen, _set_dim_screen)
+    _dim_screen: int = property(_get_dim_screen, _set_dim_screen)
 
-    def get_nkl(self):
-        """ Get the number of KL modes used for computation of covmat in case of minimum variance controller
+    def get_nkl(self) -> int:
+        """Get the number of KL modes used for computation of covmat in case of minimum variance controller.
 
-        :return: (long) : number of KL modes
+        Returns:
+            int: The number of KL modes.
         """
         return self.__nkl
 
-    def set_nkl(self, n):
-        """ Set the number of KL modes used for computation of covmat in case of minimum variance controller
+    def set_nkl(self, n: int) -> None:
+        """Set the number of KL modes used for computation of covmat in case of minimum variance controller.
 
-        :param n: (long) : number of KL modes
+        Args:
+            n (int): The number of KL modes.
         """
         self.__nkl = csu.enforce_int(n)
 
-    nkl = property(get_nkl, set_nkl)
+    nkl: int = property(get_nkl, set_nkl)
 
-    def get_type_kl(self):
-        """ Get the type of KL used for computation
+    def get_type_kl(self) -> str:
+        """Get the type of KL used for computation.
 
-        :return: (string) : KL types : kolmo or karman
+        Returns:
+            str: The KL types: kolmo or karman.
         """
         return self.__type_kl
 
-    def set_type_kl(self, t):
-        """ Set the type of KL used for computation
+    def set_type_kl(self, t: str) -> None:
+        """Set the type of KL used for computation.
 
-        :param t: (string) : KL types : kolmo or karman
+        Args:
+            t (str): The KL types: kolmo or karman.
         """
         self.__type_kl = scons.check_enum(scons.KLType, t)
 
-    type_kl = property(get_type_kl, set_type_kl)
+    type_kl: str = property(get_type_kl, set_type_kl)
 
-    def get_type(self):
-        """ Get the dm type
+    def get_type(self) -> str:
+        """Get the dm type
 
-        :return: (str) : type of dm
+        Returns:
+            str: Type of dm
         """
         return self.__type
 
-    def set_type(self, t):
-        """ set the dm type
+    def set_type(self, t: str) -> None:
+        """Set the dm type
 
-        :param t: (str) : type of dm
+        Args:
+            t (str): Type of dm
         """
         self.__type = scons.check_enum(scons.DmType, t)
 
-    type = property(get_type, set_type)
+    type: str = property(get_type, set_type)
 
-    def get_type_pattern(self):
-        """ Get the pattern type
+    def get_type_pattern(self) -> str:
+        """Get the pattern type
 
-        :return: (str) : type of pattern
+        Returns:
+            str: Type of pattern
         """
         return self.__type_pattern
 
-    def set_type_pattern(self, t):
-        """ set the pattern type
+    def set_type_pattern(self, t: str) -> None:
+        """Set the pattern type
 
-        :param t: (str) : type of pattern
+        Args:
+            t (str): Type of pattern
         """
         self.__type_pattern = scons.check_enum(scons.PatternType, t)
 
-    type_pattern = property(get_type_pattern, set_type_pattern)
+    type_pattern: str = property(get_type_pattern, set_type_pattern)
 
-    def get_file_influ_fits(self):
-        """ Get the name of hdf5 influence file
+    def get_file_influ_fits(self) -> str:
+        """Get the name of hdf5 influence file
 
-        :return: (str) : Hdf5 file influence name
+        Returns:
+            str: Hdf5 file influence name
         """
         return self.__file_influ_fits
 
-    def set_file_influ_fits(self, f):
-        """ set the name of hdf5 influence file
+    def set_file_influ_fits(self, f: str) -> None:
+        """Set the name of hdf5 influence file
 
-        :param filename: (str) : Hdf5 file influence name
+        Args:
+            f (str): Hdf5 file influence name
         """
         self.__file_influ_fits = f
 
-    file_influ_fits = property(get_file_influ_fits, set_file_influ_fits)
+    file_influ_fits: str = property(get_file_influ_fits, set_file_influ_fits)
 
-    def get_center_name(self):
-        """ Get the name of hdf5 influence file
+    def get_center_name(self) -> str:
+        """Get the name of hdf5 influence file
 
-        :return: (str) : Hdf5 file influence name
+        Returns:
+            str: Hdf5 file influence name
         """
         return self.__center_name
 
-    def set_center_name(self, f):
-        """ set the name of hdf5 influence file
+    def set_center_name(self, f: str) -> None:
+        """Set the name of hdf5 influence file
 
-        :param filename: (str) : Hdf5 file influence name
+        Args:
+            f (str): Hdf5 file influence name
         """
         self.__center_name = f
 
-    center_name = property(get_center_name, set_center_name)
+    center_name: str = property(get_center_name, set_center_name)
 
-    def get_cube_name(self):
-        """ Get the name of influence cube in hdf5
+    def get_cube_name(self) -> str:
+        """Get the name of influence cube in hdf5
 
-        :return: (str) : name of influence cube
+        Returns:
+            str: Name of influence cube
         """
         return self.__cube_name
 
-    def set_cube_name(self, cubename):
-        """ set the name of influence cube in hdf5
+    def set_cube_name(self, cubename: str) -> None:
+        """Set the name of influence cube in hdf5
 
-        :param cubename: (str) : name of influence cube
+        Args:
+            cubename (str): Name of influence cube
         """
         self.__cube_name = cubename
 
-    cube_name = property(get_cube_name, set_cube_name)
+    cube_name: str = property(get_cube_name, set_cube_name)
 
-    def get_x_name(self):
-        """ Get the name of x coord of influence fonction in file
+    def get_x_name(self) -> str:
+        """Get the name of x coord of influence function in file
 
-        :return: (str) : name of x coord of influence
+        Returns:
+            str: Name of x coord of influence
         """
         return self.__x_name
 
-    def set_x_name(self, xname):
-        """ set the name of x coord of influence fonction in file
+    def set_x_name(self, xname: str) -> None:
+        """Set the name of x coord of influence function in file
 
-        :param t: (str) : name of x coord of influence
+        Args:
+            xname (str): Name of x coord of influence
         """
         self.__x_name = xname
 
-    x_name = property(get_x_name, set_x_name)
+    x_name: str = property(get_x_name, set_x_name)
 
-    def get_y_name(self):
-        """ Get the name of y coord of influence fonction in file
+    def get_y_name(self) -> str:
+        """Get the name of y coord of influence function in file
 
-        :return: (str) : name of y coord of influence
+        Returns:
+            str: Name of y coord of influence
         """
         return self.__y_name
 
-    def set_y_name(self, yname):
-        """ set the name of y coord of influence fonction in file
+    def set_y_name(self, yname: str) -> None:
+        """Set the name of y coord of influence function in file
 
-        :param yname: (str) : name of y coord of influence
+        Args:
+            yname (str): Name of y coord of influence
         """
         self.__y_name = yname
 
-    y_name = property(get_y_name, set_y_name)
+    y_name: str = property(get_y_name, set_y_name)
 
-    def get_influ_res(self):
-        """ Get the name of influence fonction resolution in file
+    def get_influ_res(self) -> str:
+        """Get the name of influence function resolution in file
 
-        :return: (str) : name of resoltion (meter/pixel) of influence
+        Returns:
+            str: Name of resolution (meter/pixel) of influence
         """
         return self.__influ_res
 
-    def set_influ_res(self, res):
-        """ set the name of influence fonction resolution in file
+    def set_influ_res(self, res: str) -> None:
+        """Set the name of influence function resolution in file
 
-        :param res: (str) : name of resoltion (meter/pixel) of influence
+        Args:
+            res (str): Name of resolution (meter/pixel) of influence
         """
         self.__influ_res = res
 
-    influ_res = property(get_influ_res, set_influ_res)
+    influ_res: str = property(get_influ_res, set_influ_res)
 
-    def get_diam_dm(self):
-        """ Get the diameter of the tel pupil projected on the dm plane
+    def get_diam_dm(self) -> float:
+        """Get the diameter of the tel pupil projected on the dm plane
 
-        :return: (float) : diameter (meters) of the tel pupil projected on the dm plane
+        Returns:
+            float: Diameter (meters) of the tel pupil projected on the dm plane
         """
         return self.__diam_dm
 
-    def set_diam_dm(self, di):
-        """ Set the diameter of the tel pupil projected on the dm plane
+    def set_diam_dm(self, di: float) -> None:
+        """Set the diameter of the tel pupil projected on the dm plane
 
-        :param di: (float) : diameter (meters) of the tel pupil projected on the dm plane
+        Args:
+            di (float): Diameter (meters) of the tel pupil projected on the dm plane
         """
         self.__diam_dm = di
 
-    diam_dm = property(get_diam_dm, set_diam_dm)
+    diam_dm: float = property(get_diam_dm, set_diam_dm)
 
-    def get_diam_dm_proj(self):
-        """ Get the diameter of the dm pupil projected on the tel pupil plane
+    def get_diam_dm_proj(self) -> float:
+        """Get the diameter of the dm pupil projected on the tel pupil plane
 
-        :return: (float) : diameter (meters) of the dm pupil projected on the tel pupil plane
+        Returns:
+            float: Diameter (meters) of the dm pupil projected on the tel pupil plane
         """
         return self.__diam_dm_proj
 
-    def set_diam_dm_proj(self, dp):
-        """ Set the diameter of the dm pupil projected on the tel pupil plane
+    def set_diam_dm_proj(self, dp: float) -> None:
+        """Set the diameter of the dm pupil projected on the tel pupil plane
 
-        :param dp: (float) : diameter (meters) of the dm pupil projected on the tel pupil plane
+        Args:
+            dp (float): Diameter (meters) of the dm pupil projected on the tel pupil plane
         """
         self.__diam_dm_proj = dp
 
-    diam_dm_proj = property(get_diam_dm_proj, set_diam_dm_proj)
+    diam_dm_proj: float = property(get_diam_dm_proj, set_diam_dm_proj)
 
-    def get_nact(self):
-        """ Get the number of actuator
+    def get_nact(self) -> int:
+        """Get the number of actuator
 
-        :return: (long) : number of actuators in the dm
+        Returns:
+            int: Number of actuators in the dm
         """
         return self.__nact
 
-    def set_nact(self, n):
-        """ set the number of actuator
+    def set_nact(self, n: int) -> None:
+        """Set the number of actuator
 
-        :param n: (long) : number of actuators in the dm
+        Args:
+            n (int): Number of actuators in the dm
         """
         self.__nact = csu.enforce_int(n)
 
-    nact = property(get_nact, set_nact)
+    nact: int = property(get_nact, set_nact)
 
-    def get_margin_out(self):
-        """ Get the margin for outside actuator select
+    def get_margin_out(self) -> float:
+        """Get the margin for outside actuator select
 
-        :return: (float) : unit is actuator pitch (+) for extra (-) for intra
+        Returns:
+            float: Unit is actuator pitch (+) for extra (-) for intra
         """
         return self.__margin_out
 
-    def set_margin_out(self, n):
-        """ set the margin for outside actuator select
+    def set_margin_out(self, n: float) -> None:
+        """Set the margin for outside actuator select
 
-        :param n: (float) : unit is actuator pitch (+) for extra (-) for intra
+        Args:
+            n (float): Unit is actuator pitch (+) for extra (-) for intra
         """
         self.__margin_out = csu.enforce_float(n)
 
-    margin_out = property(get_margin_out, set_margin_out)
+    margin_out: float = property(get_margin_out, set_margin_out)
 
-    def get_margin_in(self):
-        """ Get the margin for inside actuator select (central obstruction)
+    def get_margin_in(self) -> float:
+        """Get the margin for inside actuator select (central obstruction)
 
-        :return: (float) : unit is actuator pitch (+) for extra (-) for intra
+        Returns:
+            float: Unit is actuator pitch (+) for extra (-) for intra
         """
         return self.__margin_in
 
-    def set_margin_in(self, n):
-        """ set the margin for inside actuator select (central obstruction)
+    def set_margin_in(self, n: float) -> None:
+        """Set the margin for inside actuator select (central obstruction)
 
-        :param n: (float) : unit is actuator pitch (+) for extra (-) for intra
+        Args:
+            n (float): Unit is actuator pitch (+) for extra (-) for intra
         """
         self.__margin_in = csu.enforce_float(n)
 
-    margin_in = property(get_margin_in, set_margin_in)
+    margin_in: float = property(get_margin_in, set_margin_in)
 
-    def get_alt(self):
-        """ Get the conjugaison altitude
+    def get_alt(self) -> float:
+        """Get the conjugaison altitude
 
-        :return: (float) : conjugaison altitude (im m)
+        Returns:
+            float: Conjugaison altitude (in m)
         """
         return self.__alt
 
-    def set_alt(self, a):
-        """ set the conjugaison altitude
+    def set_alt(self, a: float) -> None:
+        """Set the conjugaison altitude
 
-        :param a: (float) : conjugaison altitude (im m)
+        Args:
+            a (float): Conjugaison altitude (in m)
         """
         self.__alt = csu.enforce_float(a)
 
-    alt = property(get_alt, set_alt)
+    alt: float = property(get_alt, set_alt)
 
-    def get_thresh(self):
-        """ Get the threshold on response for selection
+    def get_thresh(self) -> float:
+        """Get the threshold on response for selection
 
-        :return: (float) : threshold on response for selection (<1)
+        Returns:
+            float: Threshold on response for selection (<1)
         """
         return self.__thresh
 
-    def set_thresh(self, t):
-        """ set the threshold on response for selection
+    def set_thresh(self, t: float) -> None:
+        """Set the threshold on response for selection
 
-        :param t: (float) : threshold on response for selection (<1)
+        Args:
+            t (float): Threshold on response for selection (<1)
         """
         self.__thresh = csu.enforce_float(t)
 
-    thresh = property(get_thresh, set_thresh)
+    thresh: float = property(get_thresh, set_thresh)
 
-    def get_keep_all_actu(self):
-        """ Get the flag for keeping all actuators
+    def get_keep_all_actu(self) -> bool:
+        """Get the flag for keeping all actuators
 
-        :return: (bool) : keep all actuator flag (boolean)
+        Returns:
+            bool: keep all actuator flag
         """
         return self.__keep_all_actu
 
-    def set_keep_all_actu(self, k):
-        """ set the flag for keeping all actuators
+    def set_keep_all_actu(self, k: bool) -> None:
+        """Set the flag for keeping all actuators
 
-        :param k: (f) : keep all actuator flag (boolean)
+        Args:
+            k (bool): keep all actuator flag
         """
         self.__keep_all_actu = csu.enforce_or_cast_bool(k)
 
-    keep_all_actu = property(get_keep_all_actu, set_keep_all_actu)
+    keep_all_actu: bool = property(get_keep_all_actu, set_keep_all_actu)
 
-    def get_coupling(self):
-        """ Get the actuators coupling
+    def get_coupling(self) -> float:
+        """Get the actuators coupling
 
-        :return: (float) : actuators coupling (<0.3)
+        Returns:
+            float: actuators coupling
         """
         return self.__coupling
 
-    def set_coupling(self, c):
-        """ set the actuators coupling
+    def set_coupling(self, c: float) -> None:
+        """Set the actuators coupling
 
-        :param c: (float) : actuators coupling (<0.3)
+        Args:
+            c (float): actuators coupling
         """
         self.__coupling = csu.enforce_float(c)
 
-    coupling = property(get_coupling, set_coupling)
+    coupling: float = property(get_coupling, set_coupling)
 
-    def get_unitpervolt(self):
-        """ Get the Influence function sensitivity
+    def get_unitpervolt(self) -> float:
+        """Get the Influence function sensitivity
 
-        :return: (float) : Influence function sensitivity in unit/volt
+        Returns:
+            float: Influence function sensitivity in unit/volt
         """
         return self.__unitpervolt
 
-    def set_unitpervolt(self, u):
-        """ set the Influence function sensitivity
+    def set_unitpervolt(self, u: float) -> None:
+        """Set the Influence function sensitivity
 
-        :param u: (float) : Influence function sensitivity in unit/volt
+        Args:
+            u (float): Influence function sensitivity in unit/volt
         """
         self.__unitpervolt = csu.enforce_float(u)
 
-    unitpervolt = property(get_unitpervolt, set_unitpervolt)
+    unitpervolt: float = property(get_unitpervolt, set_unitpervolt)
 
-    def get_push4imat(self):
-        """ Get the nominal voltage for imat
+    def get_push4imat(self) -> float:
+        """Get the nominal voltage for imat
 
-        :return: (float) : nominal voltage for imat
+        Returns:
+            float: nominal voltage for imat
         """
         return self.__push4imat
 
-    def set_push4imat(self, p):
-        """ set the nominal voltage for imat
+    def set_push4imat(self, p: float) -> None:
+        """Set the nominal voltage for imat
 
-        :param p: (float) : nominal voltage for imat
+        Args:
+            p (float): nominal voltage for imat
         """
         self.__push4imat = csu.enforce_float(p)
 
-    push4imat = property(get_push4imat, set_push4imat)
+    push4imat: float = property(get_push4imat, set_push4imat)
 
-    def get_ntotact(self):
-        """ Get the total number of actuators
+    def get_ntotact(self) -> int:
+        """Get the total number of actuators
 
-        :return: (long) : total number of actuators
+        Returns:
+            int: Total number of actuators
         """
         return self.__ntotact
 
-    def set_ntotact(self, n):
-        """ set the total number of actuators
+    def set_ntotact(self, n: int) -> None:
+        """Set the total number of actuators
 
-        :param n: (long) : total number of actuators
+        Args:
+            n (int): Total number of actuators
         """
         self.__ntotact = csu.enforce_int(n)
 
-    _ntotact = property(get_ntotact, set_ntotact)
+    _ntotact: int = property(get_ntotact, set_ntotact)
 
-    def get_pitch(self):
-        """ Get the actuators pitch [pixels]
+    def get_pitch(self) -> float:
+        """Get the actuators pitch [pixels]
 
-        :return: (float) : actuators pitch [pixels]
+        Returns:
+            float: Actuators pitch [pixels]
         """
         return self.__pitch
 
-    def set_pitch(self, p):
-        """ set the actuators pitch [pixels]
+    def set_pitch(self, p: float) -> None:
+        """Set the actuators pitch [pixels]
 
-        :param p: (float) : actuators pitch [pixels]
+        Args:
+            p (float): Actuators pitch [pixels]
         """
         self.__pitch = csu.enforce_float(p)
 
-    _pitch = property(get_pitch, set_pitch)
+    _pitch: float = property(get_pitch, set_pitch)
 
-    def get_influsize(self):
-        """ Get the actuators influsize [pixels]
+    def get_influsize(self) -> int:
+        """Get the actuators influsize [pixels]
 
-        :return: (int) : actuators influsize [pixels]
+        Returns:
+            int: Actuators influsize [pixels]
         """
         return self.__influsize
 
-    def set_influsize(self, s):
-        """ set the actuators influsize [pixels]
+    def set_influsize(self, s: int) -> None:
+        """Set the actuators influsize [pixels]
 
-        :param s: (int) : actuators influsize [pixels]
+        Args:
+            s (int): Actuators influsize [pixels]
         """
         self.__influsize = csu.enforce_int(s)
 
-    _influsize = property(get_influsize, set_influsize)
+    _influsize: int = property(get_influsize, set_influsize)
 
-    def get_n1(self):
-        """ Get the position of bottom left pixel in the largest support
+    def get_n1(self) -> int:
+        """Get the position of bottom left pixel in the largest support
 
-        :return: (int) : actuators n1 [pixels]
+        Returns:
+            int: Position of bottom left pixel in the largest support
         """
         return self.__n1
 
-    def set_n1(self, n):
-        """ set the position of bottom left pixel in the largest support
+    def set_n1(self, n: int) -> None:
+        """Set the position of bottom left pixel in the largest support
 
-        :param n: (int) : actuators n1 [pixels]
+        Args:
+            n (int): Position of bottom left pixel in the largest support
         """
         self.__n1 = csu.enforce_int(n)
 
-    _n1 = property(get_n1, set_n1)
+    _n1: int = property(get_n1, set_n1)
 
-    def get_n2(self):
-        """ Get the position of bottom right pixel in the largest support
+    def get_n2(self) -> int:
+        """Get the position of bottom right pixel in the largest support
 
-        :return: (int) : actuators n2 [pixels]
+        Returns:
+            int: Position of bottom right pixel in the largest support
         """
         return self.__n2
 
-    def set_n2(self, n):
-        """ set the position of bottom right pixel in the largest support
+    def set_n2(self, n: int) -> None:
+        """Set the position of bottom right pixel in the largest support
 
-        :param n: (int) : actuators n2 [pixels]
+        Args:
+            n (int): Position of bottom right pixel in the largest support
         """
         self.__n2 = csu.enforce_int(n)
 
-    _n2 = property(get_n2, set_n2)
+    _n2: int = property(get_n2, set_n2)
 
-    def get_xpos(self):
-        """ Get the x positions of influ functions (lower left corner)
+    def get_xpos(self) -> np.ndarray:
+        """Get the x positions of influ functions (lower left corner)
 
-        :return: (np.ndarray[ndim=1,dtype=np.float32_t]) : x positions of influ functions
+        Returns:
+            np.ndarray[ndim=1,dtype=np.float32_t]: x positions of influ functions
         """
         return self.__xpos
 
-    def set_xpos(self, xpos):
-        """ Set the x positions of influ functions (lower left corner)
+    def set_xpos(self, xpos: np.ndarray) -> None:
+        """Set the x positions of influ functions (lower left corner)
 
-        :param xpos: (np.ndarray[ndim=1,dtype=np.float32_t]) : x positions of influ functions
+        Args:
+            xpos (np.ndarray[ndim=1,dtype=np.float32_t]): x positions of influ functions
         """
         self.__xpos = csu.enforce_array(xpos, self.__ntotact, dtype=np.float32)
 
-    _xpos = property(get_xpos, set_xpos)
+    _xpos: np.ndarray = property(get_xpos, set_xpos)
 
-    def get_ypos(self):
-        """ Get the y positions of influ functions (lower left corner)
+    def get_ypos(self) -> np.ndarray:
+        """Get the y positions of influ functions (lower left corner)
 
-        :return: (np.ndarray[ndim=1,dtype=np.float32_t]) : y positions of influ functions
+        Returns:
+            np.ndarray[ndim=1,dtype=np.float32_t]: y positions of influ functions
         """
         return self.__ypos
 
-    def set_ypos(self, ypos):
-        """ Set the y positions of influ functions (lower left corner)
+    def set_ypos(self, ypos: np.ndarray) -> None:
+        """Set the y positions of influ functions (lower left corner)
 
-        :param ypos: (np.ndarray[ndim=1,dtype=np.float32_t]) : y positions of influ functions
+        Args:
+            ypos (np.ndarray[ndim=1,dtype=np.float32_t]): y positions of influ functions
         """
         self.__ypos = csu.enforce_array(ypos, self.__ntotact, dtype=np.float32)
 
-    _ypos = property(get_ypos, set_ypos)
+    _ypos: np.ndarray = property(get_ypos, set_ypos)
 
-    def get_i1(self):
-        """ Get the X-position of the bottom left corner of each influence function
+    def get_i1(self) -> np.ndarray:
+        """Get the X-position of the bottom left corner of each influence function
 
-        :return: (np.ndarray[ndim=1,dtype=np.int32_t]) :
+        Returns:
+            np.ndarray[ndim=1,dtype=np.int32_t]:
         """
         return self.__i1
 
-    def set_i1(self, i1):
-        """ Set the X-position of the bottom left corner of each influence function
+    def set_i1(self, i1: np.ndarray) -> None:
+        """Set the X-position of the bottom left corner of each influence function
 
-        :param i1: (np.ndarray[ndim=1,dtype=np.int32_t]) :
+        Args:
+            i1 (np.ndarray[ndim=1,dtype=np.int32_t]):
         """
         self.__i1 = csu.enforce_array(i1, self.__ntotact, dtype=np.int32)
 
-    _i1 = property(get_i1, set_i1)
+    _i1: np.ndarray = property(get_i1, set_i1)
 
-    def get_j1(self):
-        """ Get the Y-position of the bottom left corner of each influence function
+    def get_j1(self) -> np.ndarray:
+        """Get the Y-position of the bottom left corner of each influence function
 
-        :return: (np.ndarray[ndim=1,dtype=np.int32_t]) :
+        Returns:
+            np.ndarray[ndim=1,dtype=np.int32_t]:
         """
         return self.__j1
 
-    def set_j1(self, j1):
-        """ Set the Y-position of the bottom left corner of each influence function
+    def set_j1(self, j1: np.ndarray) -> None:
+        """Set the Y-position of the bottom left corner of each influence function
 
-        :param j1: (np.ndarray[ndim=1,dtype=np.int32_t]) :
+        Args:
+            j1 (np.ndarray[ndim=1,dtype=np.int32_t]):
         """
         self.__j1 = csu.enforce_array(j1, self.__ntotact, dtype=np.int32)
 
-    _j1 = property(get_j1, set_j1)
+    _j1: np.ndarray = property(get_j1, set_j1)
 
-    def get_influ(self):
-        """ Get the influence function
+    def get_influ(self) -> np.ndarray:
+        """Get the influence function
 
-        :return: (np.ndarray[ndim=3,dtype=np.float32_t]) : influence function
+        Returns:
+            np.ndarray[ndim=3,dtype=np.float32_t]: influence function
         """
         return self.__influ
 
-    def set_influ(self, influ):
-        """ Set the influence function
+    def set_influ(self, influ: np.ndarray) -> None:
+        """Set the influence function
 
-        :param influ: (np.ndarray[ndim=3,dtype=np.float32_t]) : influence function
+        Args:
+            influ (np.ndarray[ndim=3,dtype=np.float32_t]): influence function
         """
-        self.__influ = csu.enforce_arrayMultiDim(influ,
-                                                 (self.__influsize, self.__influsize,
-                                                  self._ntotact), dtype=np.float32)
+        self.__influ = csu.enforce_arrayMultiDim(
+            influ, (self.__influsize, self.__influsize, self._ntotact), dtype=np.float32
+        )
 
-    _influ = property(get_influ, set_influ)
+    _influ: np.ndarray = property(get_influ, set_influ)
 
-    def get_pupoffset(self):
-        """ Get the pupil offset in meters
+    def get_pupoffset(self) -> np.ndarray:
+        """Get the pupil offset in meters
 
-        :return: (np.ndarray[ndim=1,dtype=np.float32_t]) : offsets [m]
+        Returns:
+            np.ndarray: offsets [m]
         """
         return self.__pupoffset
 
-    def set_pupoffset(self, off):
-        """ Set the pupil offset in meters
+    def set_pupoffset(self, off: np.ndarray) -> None:
+        """Set the pupil offset in meters
 
-        :param off: (np.ndarray[ndim=1,dtype=np.float32_t]) : offsets [m]
+        Args:
+            off (np.ndarray): offsets [m]
         """
         self.__pupoffset = csu.enforce_array(off, 2, dtype=np.float32)
 
-    pupoffset = property(get_pupoffset, set_pupoffset)
+    pupoffset: np.ndarray = property(get_pupoffset, set_pupoffset)
 
-    def get_puppixoffset(self):
-        """ Get the pupil offset in pixels
+    def get_puppixoffset(self) -> np.ndarray:
+        """Get the pupil offset in pixels
 
-        :return: (np.ndarray[ndim=1,dtype=np.float32_t]) : offsets [pixels]
+        Returns:
+            np.ndarray: offsets [pixels]
         """
         return self.__puppixoffset
 
-    def set_puppixoffset(self, off):
-        """ Set the pupil offset in pixels
+    def set_puppixoffset(self, off: np.ndarray) -> None:
+        """Set the pupil offset in pixels
 
-        :param off: (np.ndarray[ndim=1,dtype=np.float32_t]) : offsets [pixels]
+        Args:
+            off (np.ndarray): offsets [pixels]
         """
         self.__puppixoffset = csu.enforce_array(off, 2, dtype=np.float32)
 
-    _puppixoffset = property(get_puppixoffset, set_puppixoffset)
+    _puppixoffset: np.ndarray = property(get_puppixoffset, set_puppixoffset)
 
-    def get_outscl(self):
-        """ Get the outer scale for KL with Von Karman spectrum
+    def get_outscl(self) -> float:
+        """Get the outer scale for KL with Von Karman spectrum
 
-        :return: (float) : outer scale [m]
+        Returns:
+            float: outer scale [m]
         """
         return self.__outscl
 
-    def set_outscl(self, L0):
-        """ Set the outer scale for KL with Von Karman spectrum
+    def set_outscl(self, L0: float) -> None:
+        """Set the outer scale for KL with Von Karman spectrum
 
-        :param L0: (float) : outer scale [m]
+        Args:
+            L0 (float): outer scale [m]
         """
         self.__outscl = csu.enforce_float(L0)
 
-    outscl = property(get_outscl, set_outscl)
+    outscl: float = property(get_outscl, set_outscl)
 
-    def get_nr(self):
-        """ Get the number of radial points for KL
+    def get_nr(self) -> int:
+        """Get the number of radial points for KL
 
-        :return: (int) : number of radial points
+        Returns:
+            int: Number of radial points
         """
         return self.__nr
 
-    def set_nr(self, n):
-        """ Set the number of radial points for KL
+    def set_nr(self, n: int) -> None:
+        """Set the number of radial points for KL
 
-        :param n: (int) : number of radial points
+        Args:
+            n (int): Number of radial points
         """
         self.__nr = csu.enforce_int(n)
 
-    _nr = property(get_nr, set_nr)
+    _nr: int = property(get_nr, set_nr)
 
-    def get_npp(self):
-        """ Get the number of elements (?) for KL
+    def get_npp(self) -> int:
+        """Get the number of elements (?) for KL
 
-        :return: (int) : number of elements
+        Returns:
+            int: Number of elements
         """
         return self.__npp
 
-    def set_npp(self, n):
-        """ Set the number of elements (?) for KL
+    def set_npp(self, n: int) -> None:
+        """Set the number of elements (?) for KL
 
-        :param n: (int) : number of elements
+        Args:
+            n (int): Number of elements
         """
         self.__npp = csu.enforce_int(n)
 
-    _npp = property(get_npp, set_npp)
+    _npp: int = property(get_npp, set_npp)
 
-    def get_ncp(self):
-        """ Get the dimension of grid (?)
+    def get_ncp(self) -> int:
+        """Get the dimension of grid (?)
 
-        :return: (int) : dimension
+        Returns:
+            int: Dimension
         """
         return self.__ncp
 
-    def set_ncp(self, n):
-        """ Set the dimension of grid (?)
+    def set_ncp(self, n: int) -> None:
+        """Set the dimension of grid (?)
 
-        :param n: (int) : dimension
+        Args:
+            n (int): Dimension
         """
         self.__ncp = csu.enforce_int(n)
 
-    _ncp = property(get_ncp, set_ncp)
+    _ncp: int = property(get_ncp, set_ncp)
 
-    def get_ord(self):
-        """ Get the radial orders of the basis
+    def get_ord(self) -> np.ndarray:
+        """Get the radial orders of the basis
 
-        :return: (int) : radial order of the basis
+        Returns:
+            np.ndarray: Radial order of the basis
         """
         return self.__ord
 
-    def set_ord(self, n):
-        """ Set the radial orders of the basis
+    def set_ord(self, n: np.ndarray) -> None:
+        """Set the radial orders of the basis
 
-        :param n: (int) : radial order of the basis
+        Args:
+            n (np.ndarray): Radial order of the basis
         """
         self.__ord = csu.enforce_array(n, n.size, dtype=np.int32)
 
-    _ord = property(get_ord, set_ord)
+    _ord: np.ndarray = property(get_ord, set_ord)
 
-    def get_rabas(self):
-        """ Get the radial array of the KL basis
+    def get_rabas(self) -> np.ndarray:
+        """Get the radial array of the KL basis
 
-        :return: (np.ndarray[ndim=1,dtype=np.float32_t]) : radial array
+        Returns:
+            np.ndarray: Radial array
         """
         return self.__rabas
 
-    def set_rabas(self, r):
-        """ Set the radial array of the KL basis
+    def set_rabas(self, r: np.ndarray) -> None:
+        """Set the radial array of the KL basis
 
-        :param r: (np.ndarray[ndim=1,dtype=np.float32_t]) : radial array
+        Args:
+            r (np.ndarray): Radial array
         """
         self.__rabas = csu.enforce_arrayMultiDim(r, r.shape, dtype=np.float32)
 
-    _rabas = property(get_rabas, set_rabas)
+    _rabas: np.ndarray = property(get_rabas, set_rabas)
 
-    def get_azbas(self):
-        """ Get the azimuthal array of the KL basis
+    def get_azbas(self) -> np.ndarray:
+        """Get the azimuthal array of the KL basis
 
-        :return: (np.ndarray[ndim=1,dtype=np.float32_t]) : azimuthal array
+        Returns:
+            np.ndarray: Azimuthal array
         """
         return self.__azbas
 
-    def set_azbas(self, r):
-        """ Set the azimuthal array of the KL basis
+    def set_azbas(self, r: np.ndarray) -> None:
+        """Set the azimuthal array of the KL basis
 
-        :param r: (np.ndarray[ndim=1,dtype=np.float32_t]) : azimuthal array
+        Args:
+            r (np.ndarray): Azimuthal array
         """
         self.__azbas = csu.enforce_arrayMultiDim(r, r.shape, dtype=np.float32)
 
-    _azbas = property(get_azbas, set_azbas)
+    _azbas: np.ndarray = property(get_azbas, set_azbas)
 
-    def get_cr(self):
-        """ Get the radial coordinates in carthesian grid
+    def get_cr(self) -> np.ndarray:
+        """Get the radial coordinates in Cartesian grid
 
-        :return: (np.ndarray[ndim=1,dtype=np.float32_t]) : radial coordinates in carthesian grid
+        Returns:
+            np.ndarray: Radial coordinates in Cartesian grid
         """
         return self.__cr
 
-    def set_cr(self, r):
-        """ Set the radial coordinates in carthesian grid
+    def set_cr(self, r: np.ndarray) -> None:
+        """Set the radial coordinates in Cartesian grid
 
-        :param r: (np.ndarray[ndim=1,dtype=np.float32_t]) : radial coordinates in carthesian grid
+        Args:
+            r (np.ndarray): Radial coordinates in Cartesian grid
         """
         self.__cr = csu.enforce_arrayMultiDim(r, r.shape, dtype=np.float32)
 
-    _cr = property(get_cr, set_cr)
+    _cr: np.ndarray = property(get_cr, set_cr)
 
-    def get_cp(self):
-        """ Get the phi coordinates in carthesian grid
+    def get_cp(self) -> np.ndarray:
+        """Get the phi coordinates in Cartesian grid
 
-        :return: (np.ndarray[ndim=1,dtype=np.float32_t]) : phi coordinates in carthesian grid
+        Returns:
+            np.ndarray: Phi coordinates in Cartesian grid
         """
         return self.__cp
 
-    def set_cp(self, r):
-        """ Set the phi coordinates in carthesian grid
+    def set_cp(self, r: np.ndarray) -> None:
+        """Set the phi coordinates in Cartesian grid
 
-        :param r: (np.ndarray[ndim=1,dtype=np.float32_t]) : phi coordinates in carthesian grid
+        Args:
+            r (np.ndarray): Phi coordinates in Cartesian grid
         """
         self.__cp = csu.enforce_arrayMultiDim(r, r.shape, dtype=np.float32)
 
-    _cp = property(get_cp, set_cp)
+    _cp: np.ndarray = property(get_cp, set_cp)
 
-    def get_G(self):
-        """ Get the magnifying factor
+    def get_G(self) -> float:
+        """Get the magnifying factor
 
-        :return: (float) : magnifying factor
+        Returns:
+            float: Magnifying factor
         """
         return self.__G
 
-    def set_G(self, G):
-        """ Set the magnifying factor
+    def set_G(self, G: float) -> None:
+        """Set the magnifying factor
 
-        :param G: (float) : magnifying factor
+        Args:
+            G (float): Magnifying factor
         """
         self.__G = csu.enforce_float(G)
 
-    G = property(get_G, set_G)
+    G: float = property(get_G, set_G)
 
-    def get_theta(self):
-        """ Get the rotation angle in the pupil
+    def get_theta(self) -> float:
+        """Get the rotation angle in the pupil.
 
-        :return: (float) : rotation angle (rad)
+        Returns:
+            float: The rotation angle in radians.
         """
         return self.__theta
 
-    def set_theta(self, theta):
-        """ Set the rotation angle in the pupil
+    def set_theta(self, theta: float) -> None:
+        """Set the rotation angle in the pupil.
 
-        :param theta: (float) : rotation angle (rad)
+        Args:
+            theta (float): The rotation angle in radians.
         """
         self.__theta = csu.enforce_float(theta)
 
-    theta = property(get_theta, set_theta)
+    theta: float = property(get_theta, set_theta)
 
-    def get_dx(self):
-        """ Get the X axis misalignment
+    def get_dx(self) -> float:
+        """Get the X axis misalignment.
 
-        :return: (float) : dx (pix)
+        Returns:
+            float: The X axis misalignment in pixels.
         """
         return self.__dx
 
-    def set_dx(self, dx):
-        """ Set the X axis misalignment
+    def set_dx(self, dx: float) -> None:
+        """Set the X axis misalignment.
 
-        :param dx: (float) : dx (pix)
+        Args:
+            dx (float): The X axis misalignment in pixels.
         """
         self.__dx = csu.enforce_float(dx)
 
-    dx = property(get_dx, set_dx)
+    dx: float = property(get_dx, set_dx)
 
-    def get_dy(self):
-        """ Get the Y axis misalignment
+    def get_dy(self) -> float:
+        """Get the Y axis misalignment.
 
-        :return: (float) : dy (pix)
+        Returns:
+            float: The Y axis misalignment in pixels.
         """
         return self.__dy
 
-    def set_dy(self, dy):
-        """ Set the Y axis misalignment
+    def set_dy(self, dy: float) -> None:
+        """Set the Y axis misalignment.
 
-        :param dy: (float) : dy (pix)
+        Args:
+            dy (float): The Y axis misalignment in pixels.
         """
         self.__dy = csu.enforce_float(dy)
 
-    dy = property(get_dy, set_dy)
+    dy: float = property(get_dy, set_dy)

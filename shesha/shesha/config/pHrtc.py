@@ -1,5 +1,5 @@
 ## @package   shesha.config.pHrtc
-## @brief     ParamHrtc class definition
+## @brief     Class that contains the configuration for the HRTC module of the COMPASS simulator.
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   5.4.4
 ## @date      2022/01/24
@@ -40,139 +40,117 @@ from . import config_setter_utils as csu
 import shesha.constants as scons
 
 
-#################################################
-# P-Class (parametres) ParamHrtc
-#################################################
 class ParamHrtc:
+    """Class that contains the configuration for the HRTC module of the COMPASS simulator.
+
+    This class contains the configuration for the HRTC module of the COMPASS simulator.
+
+    Attributes:
+        hrtc_host (str): HRTC host in format 'IP:port'.
+        local_host (str): Local host in format 'IP:port'.
+        wfs_payload_size (int): MUDPI payload size for WFS frame.
+        com_payload_size (int): MUDPI payload size for DM command.
+        framesize (int): H-RTC WFS frame size.
+        frame_shm (str): H-RTC WFS frame SHM name for localhost link.
+        com_shm (str): H-RTC DM commands SHM name for localhost link.
+    """
 
     def __init__(self):
-        self.__wfs_payload_size = 1000 
-        """ MUDPI payload size for WFS frame"""
-        self.__com_payload_size = 1000 
-        """ MUDPI payload size for DM command"""
-        self.__hrtc_host = None 
-        """ H-RTC host in format 'IP:port'"""
-        self.__local_host = None 
-        """ local host in format 'IP:port'"""
-        self.__framesize = None 
-        """ H-RTC WFS frame size"""
-        self.__frame_shm = None 
-        """ H-RTC WFS frame SHM name for localhost link"""
-        self.__com_shm = None 
-        """ H-RTC DM commands SHM name for localhost link"""
+        self.__wfs_payload_size = 1000  # MUDPI payload size for WFS frame
+        self.__com_payload_size = 1000  # MUDPI payload size for DM command
+        self.__hrtc_host = None  # H-RTC host in format 'IP:port'
+        self.__local_host = None  # local host in format 'IP:port'
+        self.__framesize = None  # H-RTC WFS frame size
+        self.__frame_shm = None  # H-RTC WFS frame SHM name for localhost link
+        self.__com_shm = None  # H-RTC DM commands SHM name for localhost link
 
-    def get_hrtc_host(self):
-        """ Get the hrtc host
+    @property
+    def hrtc_host(self):
+        """Get or set the HRTC host.
 
-        :return: (str) : hrtc host
+        Returns:
+            str: HRTC host.
         """
         return self.__hrtc_host
 
-    def set_hrtc_host(self, host):
-        """ Set the hrtc host
-
-        Args:
-            t: (str) : hrtc host
-        """
+    @hrtc_host.setter
+    def hrtc_host(self, host):
         self.__hrtc_host = host
 
-    hrtc_host = property(get_hrtc_host, set_hrtc_host)
+    @property
+    def local_host(self):
+        """Get or set the local host.
 
-    def get_local_host(self):
-        """ Get the local host
-
-        :return: (str) : local host
+        Returns:
+            str: Local host.
         """
         return self.__local_host
 
-    def set_local_host(self, host):
-        """ Set the local host
-
-        Args:
-            t: (str) : local host
-        """
+    @local_host.setter
+    def local_host(self, host):
         self.__local_host = host
 
-    local_host = property(get_local_host, set_local_host)
+    @property
+    def wfs_payload_size(self):
+        """Get or set the payload size for WFS frame.
 
-    def get_wfs_payload_size(self):
-        """ Get the payload size for WFS frame
-
-        :return: (int) : WFS payload size
+        Returns:
+            int: WFS payload size.
         """
         return self.__wfs_payload_size
 
-    def set_wfs_payload_size(self, ps):
-        """ set the payload size for WFS frame
-
-        :return: (int) : WFS payload size
-        """
+    @wfs_payload_size.setter
+    def wfs_payload_size(self, ps):
         self.__wfs_payload_size = csu.enforce_int(ps)
 
-    wfs_payload_size = property(get_wfs_payload_size, set_wfs_payload_size)
+    @property
+    def com_payload_size(self):
+        """Get or set the payload size for DM command.
 
-    def get_com_payload_size(self):
-        """ Get the payload size for DM com
-
-        :return: (int) : com payload size
+        Returns:
+            int: DM payload size.
         """
         return self.__com_payload_size
 
-    def set_com_payload_size(self, ps):
-        """ set the payload size for DM com
-
-        :return: (int) : com payload size
-        """
+    @com_payload_size.setter
+    def com_payload_size(self, ps):
         self.__com_payload_size = csu.enforce_int(ps)
 
-    com_payload_size = property(get_com_payload_size, set_com_payload_size)    
-    
-    def get_framesize(self):
-        """ Get the hrtc wfs frame size
+    @property
+    def framesize(self):
+        """Get or set the HRTC WFS frame size.
 
-        :return: (int) : com payload size
+        Returns:
+            int: HRTC WFS frame size.
         """
         return self.__framesize
 
-    def set_framesize(self, fs):
-        """ set the hrtc wfs frame size
-
-        :return: (int) : com payload size
-        """
+    @framesize.setter
+    def framesize(self, fs):
         self.__framesize = csu.enforce_int(fs)
 
-    framesize = property(get_framesize, set_framesize)
-    
-    def get_frame_shm(self):
-        """ Get the hrtc WFS Frame SHM name
+    @property
+    def frame_shm(self):
+        """Get or set the HRTC WFS Frame SHM name.
 
-        :return: (str) : hrtc WFS Frame SHM name
+        Returns:
+            str: HRTC WFS Frame SHM name.
         """
         return self.__frame_shm
 
-    def set_frame_shm(self, name):
-        """ Set the hrtc WFS Frame SHM name
-
-        Args:
-            t: (str) : hrtc WFS Frame SHM name
-        """
+    @frame_shm.setter
+    def frame_shm(self, name):
         self.__frame_shm = name
 
-    frame_shm = property(get_frame_shm, set_frame_shm)
+    @property
+    def com_shm(self):
+        """Get or set the HRTC DM commands SHM name.
 
-    def get_com_shm(self):
-        """ Get the hrtc DM commands SHM name
-
-        :return: (str) : hrtc DM commands SHM name
+        Returns:
+            str: HRTC DM commands SHM name.
         """
         return self.__com_shm
 
-    def set_com_shm(self, name):
-        """ Set the hrtc DM commands SHM name
-
-        Args:
-            t: (str) : hrtc DM commands SHM name
-        """
+    @com_shm.setter
+    def com_shm(self, name):
         self.__com_shm = name
-
-    com_shm = property(get_com_shm, set_com_shm)

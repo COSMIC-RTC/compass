@@ -1,5 +1,5 @@
-## @package   shesha.config.PCONTROLLER
-## @brief     ParamController class definition
+## @package   shesha.config.pController
+## @brief     Class for the controller parameters
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   5.5.0
 ## @date      2022/01/24
@@ -39,726 +39,817 @@ import numpy as np
 import shesha.config.config_setter_utils as csu
 import shesha.constants as scons
 
-#################################################
-# P-Class (parametres) ParamController
-#################################################
-
 
 class ParamController:
+    """Class for the controller parameters
+
+    Attributes:
+        type (str): type of controller
+        command_law (str): type of command law type for generic controller only
+        nwfs (np.ndarray[ndim=1, dtype=np.int32]): index of wfss in controller
+        nvalid (int): number of valid subaps
+        nslope (int): number of slope to handle
+        nslope_buffer (int): number of previous slopes to use in control
+        ndm (np.ndarray[ndim=1, dtype=np.int32]): index of dms in controller
+        nactu (int): number of controled actuator
+        imat (np.ndarray[ndim=2,dtype=np.float32_t]): full interaction matrix
+        cmat (np.ndarray[ndim=2,dtype=np.float32_t]): full control matrix
+        maxcond (float): max condition number
+        TTcond (float): tiptilt condition number for cmat filtering with mv controller
+        delay (float): loop delay [frames]
+        gain (float): loop gain
+        nkl (int): number of KL modes used in imat_kl and used for computation of covmat in case of minimum variance controller
+        cured_ndivs (int): subdivision levels in cured
+        modopti (bool): Flag for modal optimization
+        nrec (int): Number of sample of open loop slopes for modal optimization computation
+        nmodes (int): Number of modes for M2V matrix (modal optimization)
+        nmode_buffer (int): Number of previous modal vectors to use for control
+        gmin (float): Minimum gain for modal optimization
+        gmax (float): Maximum gain for modal optimization
+        ngain (int): Number of tested gains
+        do_kl_imat (bool): set imat kl on-off
+        klpush (np.ndarray[ndim=1, dtype=np.float32]): Modal pushes values
+        klgain (np.ndarray[ndim=1, dtype=np.float32]): Gain applied to modes at cMat inversion
+        nstates (int): Number of states for generic linear controller
+        nstate_buffer (int): Number of state vectors to use for control
+        close_opti (bool): Flag for modal optimization with close
+        mgain_init (float): Initial values of the modal gains
+        lfdownup (tuple): Modal gain correction learning factor
+        close_learning_factor (float): Autocorrelation learning factor
+        close_target (float): Update framerate
+        close_update_index (int): Target value
+        n_iir_in (int): number of input taps to iir filter
+        n_iir_out (int): number of output taps to iir filter
+        polc (int): flag to do polc in generic linear controller
+        modal (int): flag to use a modal control in generic linenar controller
+        kernconv4imat (int): Flag to use kernel convolution when computing imat
+        calpix_name (str): topic name of calpix stream
+        loopdata_name (str): topic name of calpix stream
+    """
 
     def __init__(self):
-        self.__type = None
-        """ type of controller"""
-        self.__command_law = None
-        """ type of command law type for generic controller only"""
-        self.__nwfs = None
-        """ index of wfss in controller"""
-        self.__nvalid = 0
-        """ number of valid subaps"""
-        self.__nslope = 0
-        """ number of slope to handle"""
-        self.__nslope_buffer = 1
-        """ number of previous slopes to use in control"""
-        self.__ndm = None
-        """ index of dms in controller"""
-        self.__nactu = 0
-        """ number of controled actuator"""
-        self.__imat = None
-        """ full interaction matrix"""
-        self.__cmat = None
-        """ full control matrix"""
-        self.__maxcond = None
-        """ max condition number"""
-        self.__TTcond = None
-        """ tiptilt condition number for cmat filtering with mv controller"""
-        self.__delay = None
-        """ loop delay [frames]"""
-        self.__gain = None
-        """ loop gain """
-        self.__nkl = None
-        self.__cured_ndivs = None
-        """ subdivision levels in cured"""
-        ''' MODAL OPTIMIZATION (style Gendron Lena 1994)'''
-        self.__modopti = False
-        """ Flag for modal optimization"""
-        self.__nrec = 2048
-        """ Number of sample of open loop slopes for modal optimization computation"""
-        self.__nmodes = None
-        """ Number of modes for M2V matrix (modal optimization)"""
-        self.__nmode_buffer = 0
-        """ Number of previous modal vectors to use for control"""
-        self.__gmin = 0.
-        """ Minimum gain for modal optimization"""
-        self.__gmax = 1.
-        """ Maximum gain for modal optimization"""
-        self.__ngain = 15
-        """ Number of tested gains"""
-        ''' KL (actually BTT) BASIS INITIALIZATION '''
-        self.__do_kl_imat = False
-        """ set imat kl on-off"""
-        self.__klpush = None
-        """ Modal pushes values """
-        self.__klgain = None
-        """ Gain applied to modes at cMat inversion """
-        self.__nstates = 0
-        """ Number of states for generic linear controller """
-        self.__nstate_buffer = 0
-        """ Number of state vectors to use for control"""
-        ''' MODAL OPTIMIZATION CLOSE'''
-        self.__close_opti = False
-        """ Flag for modal optimization with close """
-        self.__mgain_init = 1.0
-        """ Initial values of the modal gains """
-        self.__lfdownup = (0.01, 0.01)
-        """ Modal gain correction learning factor """
-        self.__close_learning_factor = 0.3
-        """ Autocorrelation learning factor """
-        self.__close_target = 0.0
-        """ Update framerate """
-        self.__close_update_index = 1
-        """ Target value """
-        self.__n_iir_in = 0
-        """ number of input taps to iir filter """
-        self.__n_iir_out = 0
-        """ number of output taps to iir filter """
-        self.__polc = 0
-        """ flag to do polc in generic linear controller """
-        self.__modal = 0
-        """ flag to use a modal control in generic linenar controller """
-        self.__kernconv4imat = 1
-        """ Flag to use kernel convolution when computing imat """
-        self.__calpix_name = "compass_calPix"
-        self.__loopdata_name = "compass_loopData"
+        self.__type = None  # type of controller
+        self.__command_law = None  # type of command law type for generic controller only
+        self.__nwfs = None  # index of wfss in controller
+        self.__nvalid = 0  # number of valid subaps
+        self.__nslope = 0  # number of slope to handle
+        self.__nslope_buffer = 1  # number of previous slopes to use in control
+        self.__ndm = None  # index of dms in controller
+        self.__nactu = 0  # number of controled actuator
+        self.__imat = None  # full interaction matrix
+        self.__cmat = None  # full control matrix
+        self.__maxcond = None  # max condition number
+        self.__TTcond = None  # tiptilt condition number for cmat filtering with mv controller
+        self.__delay = None  # loop delay [frames]
+        self.__gain = None  # loop gain
+        self.__nkl = None  # number of KL modes used in imat_kl and used for computation of covmat in case of minimum variance controller
+        self.__cured_ndivs = None  # subdivision levels in cured
 
+        """ MODAL OPTIMIZATION (style Gendron Lena 1994)"""
+        self.__modopti = False  # Flag for modal optimization
+        self.__nrec = (
+            2048  # Number of sample of open loop slopes for modal optimization computation
+        )
+        self.__nmodes = None  # Number of modes for M2V matrix (modal optimization)
+        self.__nmode_buffer = 0  # Number of previous modal vectors to use for control
+        self.__gmin = 0.0  # Minimum gain for modal optimization
+        self.__gmax = 1.0  # Maximum gain for modal optimization
+        self.__ngain = 15  # Number of tested gains
 
-    def get_calpix_name(self):
-        """ Get the topic name of calpix stream
+        """ KL (actually BTT) BASIS INITIALIZATION """
+        self.__do_kl_imat = False  # set imat kl on-off
+        self.__klpush = None  # Modal pushes values
+        self.__klgain = None  # Gain applied to modes at cMat inversion
+        self.__nstates = 0  # Number of states for generic linear controller
+        self.__nstate_buffer = 0  # Number of state vectors to use for control
 
-        :return: (string) : type
+        """ MODAL OPTIMIZATION CLOSE"""
+        self.__close_opti = False  # Flag for modal optimization with close
+        self.__mgain_init = 1.0  # Initial values of the modal gains
+        self.__lfdownup = (0.01, 0.01)  # Modal gain correction learning factor
+        self.__close_learning_factor = 0.3  # Autocorrelation learning factor
+        self.__close_target = 0.0  # Update framerate
+        self.__close_update_index = 1  # Target value
+        self.__n_iir_in = 0  # number of input taps to iir filter
+        self.__n_iir_out = 0  # number of output taps to iir filter
+        self.__polc = 0  # flag to do polc in generic linear controller
+        self.__modal = 0  # flag to use a modal control in generic linenar controller
+        self.__kernconv4imat = 1  # Flag to use kernel convolution when computing imat
+        self.__calpix_name = "compass_calPix"  # topic name of calpix stream
+        self.__loopdata_name = "compass_loopData"  # topic name of loopData stream
+
+    def get_calpix_name(self) -> str:
+        """Get the topic name of calpix stream.
+
+        Returns:
+            str: The topic name of calpix stream.
         """
         return self.__calpix_name
 
-    def set_calpix_name(self, calpix_name):
-        """ Set the calpix topic name type
+    def set_calpix_name(self, calpix_name: str) -> None:
+        """Set the calpix topic name.
 
-        :param t: (string) : type
+        Args:
+            calpix_name (str): The topic name of calpix stream.
         """
         self.__calpix_name = calpix_name
 
-    calpix_name = property(get_calpix_name, set_calpix_name)
+    calpix_name: str = property(get_calpix_name, set_calpix_name)
 
-    def get_loopdata_name(self):
-        """ Get the topic name of calpix stream
+    def get_loopdata_name(self) -> str:
+        """Get the topic name of calpix stream
 
-        :return: (string) : type
+        Returns:
+            str: The topic name of calpix stream
         """
         return self.__loopdata_name
 
-    def set_loopdata_name(self, loopdata_name):
-        """ Set the loop data topic name type
+    def set_loopdata_name(self, loopdata_name: str) -> None:
+        """Set the loop data topic name
 
-        :param t: (string) : type
+        Args:
+            loopdata_name (str): The topic name of loopData stream
         """
         self.__loopdata_name = loopdata_name
 
-    loopdata_name = property(get_loopdata_name, set_loopdata_name)
+    loopdata_name: str = property(get_loopdata_name, set_loopdata_name)
 
-    def get_type(self):
-        """ Get the controller type
+    def get_type(self) -> str:
+        """Get the controller type
 
-        :return: (string) : type
+        Returns:
+            str: The type of controller
         """
         return self.__type
 
-    def set_type(self, t):
-        """ Set the controller type
+    def set_type(self, t: str) -> None:
+        """Set the controller type
 
-        :param t: (string) : type
+        Args:
+            t (str): The type of controller
         """
         self.__type = scons.check_enum(scons.ControllerType, t)
 
-    type = property(get_type, set_type)
+    type: str = property(get_type, set_type)
 
-    def get_command_law(self):
-        """ Get the command law type for generic controller only
+    def get_command_law(self) -> str:
+        """Get the command law type for generic controller only
 
-        :return: (string) : Command law type
+        Returns:
+            str: Command law type
         """
         return self.__command_law
 
-    def set_command_law(self, t):
-        """ Set the command law type for generic controller only
+    def set_command_law(self, t: str) -> None:
+        """Set the command law type for generic controller only
 
-        :param t: (string) : Command law type
+        Args:
+            t (str): Command law type
         """
         self.__command_law = scons.check_enum(scons.CommandLawType, t)
 
-    command_law = property(get_command_law, set_command_law)
+    command_law: str = property(get_command_law, set_command_law)
 
-    def get_do_kl_imat(self):
+    def get_do_kl_imat(self) -> bool:
         """Get type imat, for imat on kl set at 1
 
-        :return: (int) : imat kl
+        Returns:
+            bool: imat kl
         """
         return self.__do_kl_imat
 
-    def set_do_kl_imat(self, n):
+    def set_do_kl_imat(self, n: bool) -> None:
         """Set type imat, for imat on kl set at 1
 
-        :param k: (int) : imat kl
+        Args:
+            n (bool): imat kl
         """
         self.__do_kl_imat = csu.enforce_or_cast_bool(n)
 
-    do_kl_imat = property(get_do_kl_imat, set_do_kl_imat)
+    do_kl_imat: bool = property(get_do_kl_imat, set_do_kl_imat)
 
-    def get_klpush(self):
-        """ Get klgain for imatkl size = number of kl mode
+    def get_klpush(self) -> np.ndarray:
+        """Get klpush for imatkl size = number of kl mode
 
-        :return: (np.ndarray[ndim=1, dtype=np.float32]) : g
+        Returns:
+            np.ndarray: klpush
+                Array of shape (nkl,) containing klpush values.
         """
         return self.__klpush
 
-    def set_klpush(self, g):
-        """ Set klgain for imatkl size = number of kl mode
+    def set_klpush(self, klpush: np.ndarray) -> None:
+        """Set klpush for imatkl size = number of kl mode
 
-        :param g: (np.ndarray[ndim=1, dtype=np.float32]) : g
+        Args:
+            klpush (np.ndarray): klpush
+                Array of shape (nkl,) containing klpush values.
         """
-        self.__klpush = csu.enforce_array(g, len(g), dtype=np.float32)
+        self.__klpush = csu.enforce_array(klpush, len(klpush), dtype=np.float32)
 
-    klpush = property(get_klpush, set_klpush)
+    klpush: np.ndarray = property(get_klpush, set_klpush)
 
-    def get_klgain(self):
-        """ Get klgain for imatkl size = number of kl mode
+    def get_klgain(self) -> np.ndarray:
+        """Get klgain for imatkl size = number of kl mode
 
-        :return: (np.ndarray[ndim=1, dtype=np.float32]) : g
+        Returns:
+            np.ndarray: klgain
+                Array of shape (nkl,) containing klgain values.
         """
         return self.__klgain
 
-    def set_klgain(self, g):
-        """ Set klgain for imatkl size = number of kl mode
+    def set_klgain(self, klgain: np.ndarray) -> None:
+        """Set klgain for imatkl size = number of kl mode
 
-        :param g: (np.ndarray[ndim=1, dtype=np.float32]) : g
+        Args:
+            klgain (np.ndarray): klgain
+                Array of shape (nkl,) containing klgain values.
         """
-        self.__klgain = csu.enforce_array(g, len(g), dtype=np.float32)
+        self.__klgain = csu.enforce_array(klgain, len(klgain), dtype=np.float32)
 
-    klgain = property(get_klgain, set_klgain)
+    klgain: np.ndarray = property(get_klgain, set_klgain)
 
-    def get_nkl(self):
-        """ Get the number of KL modes used in imat_kl and used for computation of covmat in case of minimum variance controller
+    def get_nkl(self) -> int:
+        """Get the number of KL modes used in imat_kl and used for computation of covmat in case of minimum variance controller
 
-        :return: (long) : number of KL modes
+        Returns:
+            int: The number of KL modes
         """
         return self.__nkl
 
-    def set_nkl(self, n):
-        """ Set the number of KL modes used in imat_kl and used for computation of covmat in case of minimum variance controller
+    def set_nkl(self, n: int) -> None:
+        """Set the number of KL modes used in imat_kl and used for computation of covmat in case of minimum variance controller
 
-        :param n: (long) : number of KL modes
+        Args:
+            n (int): The number of KL modes
         """
         self.__nkl = csu.enforce_int(n)
 
-    nkl = property(get_nkl, set_nkl)
+    nkl: int = property(get_nkl, set_nkl)
 
-    def get_nwfs(self):
-        """ Get the indices of wfs
+    def get_nwfs(self) -> np.ndarray:
+        """Get the indices of wfs
 
-        :return: (np.ndarray[ndim=1, dtype=np.int32]) : indices of wfs
+        Returns:
+            np.ndarray[ndim=1, dtype=np.int32]: The indices of wfs
         """
         return self.__nwfs
 
-    def set_nwfs(self, index_wfs):
-        """ Set the indices of wfs
+    def set_nwfs(self, index_wfs: np.ndarray) -> None:
+        """Set the indices of wfs
 
-        :param index_wfs: (np.ndarray[ndim=1, dtype=np.int32]) : indices of wfs
+        Args:
+            index_wfs (np.ndarray[ndim=1, dtype=np.int32]): The indices of wfs
         """
-        self.__nwfs = csu.enforce_array(index_wfs, len(index_wfs), dtype=np.int32, scalar_expand=False)
+        self.__nwfs = csu.enforce_array(
+            index_wfs, len(index_wfs), dtype=np.int32, scalar_expand=False
+        )
 
-    nwfs = property(get_nwfs, set_nwfs)
+    nwfs: np.ndarray = property(get_nwfs, set_nwfs)
 
-    def get_ndm(self):
-        """ Get the indices of dms
+    def get_ndm(self) -> np.ndarray:
+        """Get the indices of dms
 
-        :return: (np.ndarray[ndim=1, dtype=np.int32]) : indices of dms
+        Returns:
+            np.ndarray[ndim=1, dtype=np.int32]: indices of dms
         """
         return self.__ndm
 
-    def set_ndm(self, index_dm):
-        """ Set the indices of dms
+    def set_ndm(self, index_dm: np.ndarray) -> None:
+        """Set the indices of dms
 
-        :param index_dm: (np.ndarray[ndim=1, dtype=np.int32]) : indices of dms
+        Args:
+            index_dm (np.ndarray[ndim=1, dtype=np.int32]): indices of dms
         """
         self.__ndm = csu.enforce_array(index_dm, len(index_dm), dtype=np.int32, scalar_expand=False)
 
-    ndm = property(get_ndm, set_ndm)
+    ndm: np.ndarray = property(get_ndm, set_ndm)
 
-    def get_nactu(self):
-        """ Get the number of actuators
+    def get_nactu(self) -> int:
+        """Get the number of actuators
 
-        :return: (int) : number of actus
+        Returns:
+            int: number of actuators
         """
         return self.__nactu
 
-    def set_nactu(self, nb_actu):
-        """ Set the number of actuators
+    def set_nactu(self, nb_actu: int) -> None:
+        """Set the number of actuators
 
-        :param nb_actu: (int) : number of actus
+        Args:
+            nb_actu (int): number of actuators
         """
         self.__nactu = csu.enforce_int(nb_actu)
 
-    nactu = property(get_nactu, set_nactu)
+    nactu: int = property(get_nactu, set_nactu)
 
-    def get_nslope(self):
-        """ Get the number of slopes
+    def get_nslope(self) -> int:
+        """Get the number of slopes
 
-        :return: (int) : number of slopes
+        Returns:
+            int: The number of slopes
         """
         return self.__nslope
 
-    def set_nslope(self, nb_slopes):
-        """ Set the number of slopes
+    def set_nslope(self, nb_slopes: int) -> None:
+        """Set the number of slopes
 
-        :param nb_slopes: (int) : number of slopes
+        Args:
+            nb_slopes (int): The number of slopes
         """
         self.__nslope = csu.enforce_int(nb_slopes)
 
-    nslope = property(get_nslope, set_nslope)
+    nslope: int = property(get_nslope, set_nslope)
 
-    def get_nslope_buffer(self):
-        """ Get the number of slope buffers
+    def get_nslope_buffer(self) -> int:
+        """Get the number of slope buffers
 
-        :return: (int) : number of slopes buffers
+        Returns:
+            int: The number of slope buffers
         """
         return self.__nslope_buffer
 
-    def set_nslope_buffer(self, nb_slopes_buffer):
-        """ Set the number of slope buffers
+    def set_nslope_buffer(self, nb_slopes_buffer: int) -> None:
+        """Set the number of slope buffers
 
-        :param nb_slopes_buffer: (int) : number of slope buffers
+        Args:
+            nb_slopes_buffer (int): The number of slope buffers
         """
         self.__nslope_buffer = csu.enforce_int(nb_slopes_buffer)
 
-    nslope_buffer = property(get_nslope_buffer, set_nslope_buffer)
+    nslope_buffer: int = property(get_nslope_buffer, set_nslope_buffer)
 
-    def get_nvalid(self):
-        """ Get the number of valid subaps
+    def get_nvalid(self) -> int:
+        """Get the number of valid subaps
 
-        :return: (list of int) : number of valid subaps
+        Returns:
+            int: The number of valid subaps
         """
         return self.__nvalid
 
-    def set_nvalid(self, nvalid):
-        """ Set the number of valid subaps
+    def set_nvalid(self, nvalid: int) -> None:
+        """Set the number of valid subaps
 
-        :param nvalid: (list of int) : number of valid subaps
+        Args:
+            nvalid (int): The number of valid subaps
         """
         self.__nvalid = csu.enforce_int(nvalid)
 
-    nvalid = property(get_nvalid, set_nvalid)
+    nvalid: int = property(get_nvalid, set_nvalid)
 
-    def get_maxcond(self):
-        """ Get the max condition number
+    def get_maxcond(self) -> float:
+        """Get the max condition number
 
-        :return: (float) : max condition number
+        Returns:
+            float: The max condition number
         """
         return self.__maxcond
 
-    def set_maxcond(self, maxcond):
-        """ Set the max condition number
+    def set_maxcond(self, maxcond: float) -> None:
+        """Set the max condition number
 
-        :param maxcond: (float) : max condition number
+        Args:
+            maxcond (float): The max condition number
         """
         self.__maxcond = csu.enforce_float(maxcond)
 
-    maxcond = property(get_maxcond, set_maxcond)
+    maxcond: float = property(get_maxcond, set_maxcond)
 
-    def get_TTcond(self):
-        """ Get the tiptilt condition number for cmat filtering with mv controller
+    def get_TTcond(self) -> float:
+        """Get the tiptilt condition number for cmat filtering with mv controller.
 
-        :return: (float) : tiptilt condition number
+        Returns:
+            float: The tiptilt condition number.
         """
         return self.__TTcond
 
-    def set_TTcond(self, ttcond):
-        """ Set the tiptilt condition number for cmat filtering with mv controller
+    def set_TTcond(self, ttcond: float) -> None:
+        """Set the tiptilt condition number for cmat filtering with mv controller.
 
-        :param ttcond: (float) : tiptilt condition number
+        Args:
+            ttcond (float): The tiptilt condition number.
         """
         self.__TTcond = csu.enforce_float(ttcond)
 
-    TTcond = property(get_TTcond, set_TTcond)
+    TTcond: float = property(get_TTcond, set_TTcond)
 
-    def get_delay(self):
-        """ Get the loop delay expressed in frames
+    def get_delay(self) -> float:
+        """Get the loop delay expressed in frames.
 
-        :return: (float) :delay [frames]
+        Returns:
+            float: The loop delay [frames].
         """
         return self.__delay
 
-    def set_delay(self, delay):
-        """ Set the loop delay expressed in frames
+    def set_delay(self, delay: float) -> None:
+        """Set the loop delay expressed in frames.
 
-        :param delay: (float) :delay [frames]
+        Args:
+            delay (float): The loop delay [frames].
         """
         self.__delay = csu.enforce_float(delay)
 
-    delay = property(get_delay, set_delay)
+    delay: float = property(get_delay, set_delay)
 
-    def get_gain(self):
-        """ Get the loop gain
+    def get_gain(self) -> float:
+        """Get the loop gain.
 
-        :return: (float) : loop gain
+        Returns:
+            float: The loop gain.
         """
         return self.__gain
 
-    def set_gain(self, gain):
-        """ Set the loop gain
+    def set_gain(self, gain: float) -> None:
+        """Set the loop gain.
 
-        :param gain: (float) : loop gain
+        Args:
+            gain (float): The loop gain.
         """
         self.__gain = csu.enforce_float(gain)
 
-    gain = property(get_gain, set_gain)
+    gain: float = property(get_gain, set_gain)
 
-    def get_cured_ndivs(self):
-        """ Get the subdivision levels in cured
+    def get_cured_ndivs(self) -> int:
+        """Get the subdivision levels in cured.
 
-        :return: (long) : subdivision levels in cured
+        Returns:
+            int: The subdivision levels in cured.
         """
         return self.__cured_ndivs
 
-    def set_cured_ndivs(self, ndivs):
-        """ Set the subdivision levels in cured
+    def set_cured_ndivs(self, ndivs: int) -> None:
+        """Set the subdivision levels in cured.
 
-        :param ndivs: (long) : subdivision levels in cured
+        Args:
+            ndivs (int): The subdivision levels in cured.
         """
         self.__cured_ndivs = csu.enforce_int(ndivs)
 
-    cured_ndivs = property(get_cured_ndivs, set_cured_ndivs)
+    cured_ndivs: int = property(get_cured_ndivs, set_cured_ndivs)
 
-    def get_modopti(self):
-        """ Get the flag for modal optimization
+    def get_modopti(self) -> bool:
+        """Get the flag for modal optimization.
 
-        :return: (int) : flag for modal optimization
+        Returns:
+            bool: Flag for modal optimization.
         """
         return self.__modopti
 
-    def set_modopti(self, modopti):
-        """ Set the flag for modal optimization
+    def set_modopti(self, modopti: bool) -> None:
+        """Set the flag for modal optimization.
 
-        :param modopti: (int) : flag for modal optimization
+        Args:
+            modopti (bool): Flag for modal optimization.
         """
         self.__modopti = csu.enforce_or_cast_bool(modopti)
 
-    modopti = property(get_modopti, set_modopti)
+    modopti: bool = property(get_modopti, set_modopti)
 
-    def get_nrec(self):
-        """ Get the number of sample of open loop slopes for modal optimization computation
+    def get_nrec(self) -> int:
+        """Get the number of samples of open loop slopes for modal optimization computation.
 
-        :return: (int) : number of sample
+        Returns:
+            int: Number of samples.
         """
         return self.__nrec
 
-    def set_nrec(self, nrec):
-        """ Set the number of sample of open loop slopes for modal optimization computation
+    def set_nrec(self, nrec: int) -> None:
+        """Set the number of samples of open loop slopes for modal optimization computation.
 
-        :param nrec: (int) : number of sample
+        Args:
+            nrec (int): Number of samples.
         """
         self.__nrec = csu.enforce_int(nrec)
 
-    nrec = property(get_nrec, set_nrec)
+    nrec: int = property(get_nrec, set_nrec)
 
-    def get_nmodes(self):
-        """ Get the number of modes for M2V matrix (modal optimization)
+    def get_nmodes(self) -> int:
+        """Get the number of modes for M2V matrix (modal optimization)
 
-        :return: (int) : number of modes
+        Returns:
+            int: Number of modes
         """
         return self.__nmodes
 
-    def set_nmodes(self, nmodes):
-        """ Set the number of modes for M2V matrix (modal optimization)
+    def set_nmodes(self, nmodes: int) -> None:
+        """Set the number of modes for M2V matrix (modal optimization)
 
-        :param nmodes: (int) : number of modes
+        Args:
+            nmodes (int): Number of modes
         """
         self.__nmodes = csu.enforce_int(nmodes)
 
-    nmodes = property(get_nmodes, set_nmodes)
+    nmodes: int = property(get_nmodes, set_nmodes)
 
-    def get_nmode_buffer(self):
-        """ Get the number of mode buffers
+    def get_nmode_buffer(self) -> int:
+        """Get the number of mode buffers
 
-        :return: (int) : number of mode buffers
+        Returns:
+            int: Number of mode buffers
         """
         return self.__nmode_buffer
 
-    def set_nmode_buffer(self, nmode_buffer):
-        """ Set the number of mode buffers
+    def set_nmode_buffer(self, nmode_buffer: int) -> None:
+        """Set the number of mode buffers
 
-        :param nmode_buffer: (int) : number of modes buffers
+        Args:
+            nmode_buffer (int): Number of mode buffers
         """
         self.__nmode_buffer = csu.enforce_int(nmode_buffer)
 
-    nmode_buffer = property(get_nmode_buffer, set_nmode_buffer)
+    nmode_buffer: int = property(get_nmode_buffer, set_nmode_buffer)
 
-    def get_gmin(self):
-        """ Get the minimum gain for modal optimization
+    def get_gmin(self) -> float:
+        """Get the minimum gain for modal optimization.
 
-        :return: (float) : minimum gain for modal optimization
+        Returns:
+            float: The minimum gain for modal optimization.
         """
         return self.__gmin
 
-    def set_gmin(self, gmin):
-        """ Set the minimum gain for modal optimization
+    def set_gmin(self, gmin: float) -> None:
+        """Set the minimum gain for modal optimization.
 
-        :param gmin: (float) : minimum gain for modal optimization
+        Args:
+            gmin (float): The minimum gain for modal optimization.
         """
         self.__gmin = csu.enforce_float(gmin)
 
-    gmin = property(get_gmin, set_gmin)
+    gmin: float = property(get_gmin, set_gmin)
 
-    def get_gmax(self):
-        """ Get the maximum gain for modal optimization
+    def get_gmax(self) -> float:
+        """Get the maximum gain for modal optimization.
 
-        :return: (float) : maximum gain for modal optimization
+        Returns:
+            float: The maximum gain for modal optimization.
         """
         return self.__gmax
 
-    def set_gmax(self, gmax):
-        """ Set the maximum gain for modal optimization
+    def set_gmax(self, gmax: float) -> None:
+        """Set the maximum gain for modal optimization.
 
-        :param gmax: (float) : maximum gain for modal optimization
+        Args:
+            gmax (float): The maximum gain for modal optimization.
         """
         self.__gmax = csu.enforce_float(gmax)
 
-    gmax = property(get_gmax, set_gmax)
+    gmax: float = property(get_gmax, set_gmax)
 
-    def get_ngain(self):
-        """ Get the number of tested gains
+    def get_ngain(self) -> int:
+        """Get the number of tested gains.
 
-        :return: (int) : number of tested gains
+        Returns:
+            int: The number of tested gains.
         """
         return self.__ngain
 
-    def set_ngain(self, ngain):
-        """ Set the number of tested gains
+    def set_ngain(self, ngain: int) -> None:
+        """Set the number of tested gains.
 
-        :param ngain: (int) : number of tested gains
+        Args:
+            ngain (int): The number of tested gains.
         """
         self.__ngain = csu.enforce_int(ngain)
 
-    ngain = property(get_ngain, set_ngain)
+    ngain: int = property(get_ngain, set_ngain)
 
-    def get_imat(self):
-        """ Get the full interaction matrix
+    def get_imat(self) -> np.ndarray:
+        """Get the full interaction matrix.
 
-        :return: (np.ndarray[ndim=2,dtype=np.float32_t]) : full interaction matrix
+        Returns:
+            np.ndarray: Full interaction matrix.
         """
         return self.__imat
 
-    def set_imat(self, imat):
-        """ Set the full interaction matrix
+    def set_imat(self, imat: np.ndarray) -> None:
+        """Set the full interaction matrix.
 
-        :param imat: (np.ndarray[ndim=2,dtype=np.float32_t]) : full interaction matrix
+        Args:
+            imat (np.ndarray): Full interaction matrix.
         """
         self.__imat = csu.enforce_arrayMultiDim(
-                imat,
-                (self.nslope, -1),  # Allow nModes or nActu as second dimension
-                dtype=np.float32)
+            imat,
+            (self.nslope, -1),  # Allow nModes or nActu as second dimension
+            dtype=np.float32,
+        )
 
-    _imat = property(get_imat, set_imat)
+    _imat: np.ndarray = property(get_imat, set_imat)
 
-    def get_cmat(self):
-        """ Get the full control matrix
+    def get_cmat(self) -> np.ndarray:
+        """Get the full control matrix.
 
-        :return: (np.ndarray[ndim=2,dtype=np.float32_t]) : full control matrix
+        Returns:
+            np.ndarray: Full control matrix.
         """
         return self.__cmat
 
-    def set_cmat(self, cmat):
-        """ Set the full control matrix
+    def set_cmat(self, cmat: np.ndarray) -> None:
+        """Set the full control matrix.
 
-        :param cmat: (np.ndarray[ndim=2,dtype=np.float32_t]) : full control matrix
+        Args:
+            cmat (np.ndarray): Full control matrix.
         """
-        self.__cmat = csu.enforce_arrayMultiDim(cmat, (self.nactu, self.nslope),
-                                                dtype=np.float32)
+        self.__cmat = csu.enforce_arrayMultiDim(cmat, (self.nactu, self.nslope), dtype=np.float32)
 
-    _cmat = property(get_cmat, set_cmat)
+    _cmat: np.ndarray = property(get_cmat, set_cmat)
 
-    def get_nstates(self):
-        """ Get the number of states
+    def get_nstates(self) -> int:
+        """Get the number of states.
 
-        :return: (int) : number of states
+        Returns:
+            int: Number of states.
         """
         return self.__nstates
 
-    def set_nstates(self, nstates):
-        """ Set the number of states
+    def set_nstates(self, nstates: int) -> None:
+        """Set the number of states.
 
-        :param nstates: (int) : number of states
+        Args:
+            nstates (int): Number of states.
         """
         self.__nstates = csu.enforce_int(nstates)
 
-    nstates = property(get_nstates, set_nstates)
+    nstates: int = property(get_nstates, set_nstates)
 
-    def get_nstate_buffer(self):
-        """ Get the number of state buffer
+    def get_nstate_buffer(self) -> int:
+        """Get the number of state buffer.
 
-        :return: (int) : number of state buffer
+        Returns:
+            int: The number of state buffer.
         """
         return self.__nstate_buffer
 
-    def set_nstate_buffer(self, nstate_buffer):
-        """ Set the number of state buffer
+    def set_nstate_buffer(self, nstate_buffer: int) -> None:
+        """Set the number of state buffer.
 
-        :param nstate_buffer: (int) : number of state buffer
+        Args:
+            nstate_buffer (int): The number of state buffer.
         """
         self.__nstate_buffer = csu.enforce_int(nstate_buffer)
 
-    nstate_buffer = property(get_nstate_buffer, set_nstate_buffer)
+    nstate_buffer: int = property(get_nstate_buffer, set_nstate_buffer)
 
-    def get_close_opti(self):
-        """ Get flag for CLOSE modal optimization
+    def get_close_opti(self) -> bool:
+        """Get the flag for CLOSE modal optimization.
 
-        :return: (bool) : CLOSE flag
+        Returns:
+            bool: The CLOSE flag.
         """
         return self.__close_opti
 
-    def set_close_opti(self, close_opti):
-        """ Set the flag for CLOSE modal optimization
+    def set_close_opti(self, close_opti: bool) -> None:
+        """Set the flag for CLOSE modal optimization.
 
-        :param close_opti: (bool) : CLOSE flag
+        Args:
+            close_opti (bool): The CLOSE flag.
         """
         self.__close_opti = close_opti
 
-    close_opti = property(get_close_opti, set_close_opti)
+    close_opti: bool = property(get_close_opti, set_close_opti)
 
-    def get_mgain_init(self):
-        """ Get the initial value of modal gains
+    def get_mgain_init(self) -> float:
+        """Get the initial value of modal gains.
 
-        :return: (float) : initial value for modal gains
+        Returns:
+            float: The initial value for modal gains.
         """
         return self.__mgain_init
 
-    def set_mgain_init(self, mgain_init):
-        """ Set the initial value of modal gains
+    def set_mgain_init(self, mgain_init: float) -> None:
+        """Set the initial value of modal gains.
 
-        :param mgain_init: (float) : init valuo of modal gain
+        Args:
+            mgain_init (float): The initial value of modal gains.
         """
         self.__mgain_init = csu.enforce_float(mgain_init)
 
-    mgain_init = property(get_mgain_init, set_mgain_init)
+    mgain_init: float = property(get_mgain_init, set_mgain_init)
 
-    def get_lfdownup(self):
-        """ Get the autocorrelation learning factors
+    def get_lfdownup(self) -> tuple:
+        """Get the autocorrelation learning factors.
 
-        :return: (tuple) : learning factors for autocorrelation
+        Returns:
+            tuple: The learning factors for autocorrelation.
         """
         return self.__lfdownup
 
-    def set_lfdownup(self, qminus, qplus):
-        """ Set the autocorrelation learning factor
+    def set_lfdownup(self, qminus: float, qplus: float) -> None:
+        """Set the autocorrelation learning factors.
 
-        :param qminus: (float) : learning factor when higher than target
-        :param qplus: (float) : learning factor when lower than target
+        Args:
+            qminus (float): The learning factor when higher than the target.
+            qplus (float): The learning factor when lower than the target.
         """
         self.__lfdownup = (csu.enforce_float(qminus), csu.enforce_float(qplus))
 
-    lfdownup = property(get_lfdownup, set_lfdownup)
+    lfdownup: tuple[float, float] = property(get_lfdownup, set_lfdownup)
 
-    def get_close_learning_factor(self):
-        """ Get the modal gain learning factor
+    def get_close_learning_factor(self) -> float:
+        """Get the modal gain learning factor.
 
-        :return: (float) : learning factor for modal gain
+        Returns:
+            float: The learning factor for modal gain.
         """
         return self.__close_learning_factor
 
-    def set_close_learning_factor(self, close_learning_factor):
-        """ Set the modal gain optimization learning factor
+    def set_close_learning_factor(self, close_learning_factor: float) -> None:
+        """Set the modal gain optimization learning factor.
 
-        :param close_learning_factor: (float) : learning factor
+        Args:
+            close_learning_factor (float): The learning factor.
         """
         self.__close_learning_factor = csu.enforce_float(close_learning_factor)
 
-    lf = property(get_close_learning_factor, set_close_learning_factor)
+    lf: float = property(get_close_learning_factor, set_close_learning_factor)
 
-    def get_close_target(self):
-        """ Get the autocorrelation target
+    def get_close_target(self) -> float:
+        """Get the autocorrelation target.
 
-        :return: (float) : CLOSE autocorrelation target
+        Returns:
+            float: The CLOSE autocorrelation target.
         """
         return self.__close_target
 
-    def set_close_target(self, close_target):
-        """ Set the autocorrelation target
+    def set_close_target(self, close_target: float) -> None:
+        """Set the autocorrelation target.
 
-        :param close_target: (float) : close target
+        Args:
+            close_target (float): The close target.
         """
         self.__close_target = csu.enforce_float(close_target)
 
-    close_target = property(get_close_target, set_close_target)
+    close_target: float = property(get_close_target, set_close_target)
 
-    def get_close_update_index(self):
-        """ Get the modal gains update rate
+    def get_close_update_index(self) -> int:
+        """Get the modal gains update rate.
 
-        :return: (int) : CLOSE update index
+        Returns:
+            int: The CLOSE update index.
         """
         return self.__close_update_index
 
-    def set_close_update_index(self, idx):
-        """ Set the modal gains update rate
+    def set_close_update_index(self, idx: int) -> None:
+        """Set the modal gains update rate.
 
-        :param idx: (int) : close update index
+        Args:
+            idx (int): The CLOSE update index.
         """
         self.__close_update_index = csu.enforce_int(idx)
 
-    close_update_index = property(get_close_update_index, set_close_update_index)
+    close_update_index: int = property(get_close_update_index, set_close_update_index)
 
-    def get_n_iir_in(self):
-        """ Get the number of inputs used in iir filter
+    def get_n_iir_in(self) -> int:
+        """Get the number of inputs used in the IIR filter.
 
-        :return: (int) : number of iir inputs
+        Returns:
+            int: The number of IIR inputs.
         """
         return self.__n_iir_in
 
-    def set_n_iir_in(self, n_iir_in):
-        """ Set the number of inputs used in iir filter
+    def set_n_iir_in(self, n_iir_in: int) -> None:
+        """Set the number of inputs used in the IIR filter.
 
-        :param n_iir_in: (int) : number of iir inputs
+        Args:
+            n_iir_in (int): The number of IIR inputs.
         """
         self.__n_iir_in = csu.enforce_int(n_iir_in)
 
-    n_iir_in = property(get_n_iir_in, set_n_iir_in)
+    n_iir_in: int = property(get_n_iir_in, set_n_iir_in)
 
-    def get_n_iir_out(self):
-        """ Get the number of outputs used in iir filter
+    def get_n_iir_out(self) -> int:
+        """Get the number of outputs used in the IIR filter.
 
-        :return: (int) : number of iir outputs
+        Returns:
+            int: The number of IIR outputs.
         """
         return self.__n_iir_out
 
-    def set_n_iir_out(self, n_iir_out):
-        """ Set the number of outputs used in iir filter
+    def set_n_iir_out(self, n_iir_out: int) -> None:
+        """Set the number of outputs used in the IIR filter.
 
-        :param n_iir_out: (int) : number of iir outputs
+        Args:
+            n_iir_out (int): The number of IIR outputs.
         """
         self.__n_iir_out = csu.enforce_int(n_iir_out)
 
-    n_iir_out = property(get_n_iir_out, set_n_iir_out)
+    n_iir_out: int = property(get_n_iir_out, set_n_iir_out)
 
-    def get_polc(self):
-        """ Get POLC flag (True means using POL slopes)
+    def get_polc(self) -> bool:
+        """Get POLC flag (True means using POL slopes)
 
-        :return: (bool) : POLC flag
+        Returns:
+            bool: POLC flag
         """
         return self.__polc
 
-    def set_polc(self, polc):
-        """ Set POLC flag (True means using POL slopes)
+    def set_polc(self, polc: bool) -> None:
+        """Set POLC flag (True means using POL slopes)
 
-        :param polc: (bool) : POLC flag
+        Args:
+            polc (bool): POLC flag
         """
         self.__polc = csu.enforce_or_cast_bool(polc)
 
-    polc = property(get_polc, set_polc)
+    polc: bool = property(get_polc, set_polc)
 
     def get_modal(self):
         """ Get flag to use modal control \n(allows MVM from modes to actu)
@@ -776,20 +867,40 @@ class ParamController:
 
     modal = property(get_modal, set_modal)
 
-    def get_kernconv4imat(self):
-        """Get kernconv4imat, i.e. a flag for using kernel convolution to have better
-        sensitivity on SH spot movements for imat computation
+    def get_kernconv4imat(self) -> int:
+        """Get the value of kernconv4imat.
 
-        :return: (int) : kernconv4imat
+        Returns:
+            int: The value of kernconv4imat.
         """
         return self.__kernconv4imat
 
-    def set_kernconv4imat(self, kernconv4imat):
+    def set_kernconv4imat(self, kernconv4imat: int) -> None:
+        """Set the value of kernconv4imat.
+
+        Args:
+            kernconv4imat (int): The value of kernconv4imat.
+        """
+        self.__kernconv4imat = kernconv4imat
+
+    kernconv4imat: int = property(get_kernconv4imat, set_kernconv4imat)
+
+    def get_kernconv4imat(self) -> int:
+        """Get kernconv4imat, i.e. a flag for using kernel convolution to have better
+        sensitivity on SH spot movements for imat computation
+
+        Returns:
+            int: The value of kernconv4imat
+        """
+        return self.__kernconv4imat
+
+    def set_kernconv4imat(self, kernconv4imat: int) -> None:
         """Set kernconv4imat, i.e. a flag for using kernel convolution to have better
         sensitivity on SH spot movements for imat computation
 
-        :param kernconv4imat: (int) : kernconv4imat
+        Args:
+            kernconv4imat (int): The value of kernconv4imat
         """
         self.__kernconv4imat = csu.enforce_or_cast_bool(kernconv4imat)
 
-    kernconv4imat = property(get_kernconv4imat, set_kernconv4imat)
+    kernconv4imat: int = property(get_kernconv4imat, set_kernconv4imat)

@@ -1,5 +1,5 @@
-## @package   shesha.config.PLOOP
-## @brief     ParamLoop class definition
+## @package   shesha.config.pLoop
+## @brief     Class that contains the configuration for the loop module of the COMPASS simulator.
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   5.5.0
 ## @date      2022/01/24
@@ -39,43 +39,50 @@ import numpy as np
 import shesha.config.config_setter_utils as csu
 
 
-#################################################
-# P-Class (parametres) ParamLoop
-#################################################
 class ParamLoop:
+    """Class that contains the configuration for the loop module of the COMPASS simulator.
+
+    This class contains the configuration for the loop module of the COMPASS simulator.
+
+    Attributes:
+        niter (long): Number of iteration.
+        ittime (float): Iteration time.
+        devices (np.ndarray[ndim=1, dtype=np.int32_t]): List of GPU devices.
+    """
 
     def __init__(self):
         self.__niter = 0
-        self.__ittime = 0.
+        self.__ittime = 0.0
         self.__devices = np.array([0], dtype=np.int32)
 
     def get_devices(self):
-        """ Get the list of GPU devices used
+        """Get the list of GPU devices used
 
         :return: (np.ndarray[ndim=1, dtype=np.int32_t]) : list of GPU devices
         """
         return self.__devices
 
     def set_devices(self, devices):
-        """ Set the list of GPU devices used
+        """Set the list of GPU devices used
 
         Args:
             devices: (np.ndarray[ndim=1, dtype=np.int32_t]) : list of GPU devices
         """
-        self.__devices = csu.enforce_array(devices, len(devices), dtype=np.int32,
-                                           scalar_expand=False)
+        self.__devices = csu.enforce_array(
+            devices, len(devices), dtype=np.int32, scalar_expand=False
+        )
 
     devices = property(get_devices, set_devices)
 
     def get_niter(self):
-        """ Get the number of iteration
+        """Get the number of iteration
 
         :return: (long) : number of iteration
         """
         return self.__niter
 
     def set_niter(self, n):
-        """ Set the number of iteration
+        """Set the number of iteration
 
         Args:
             n: (long) : number of iteration
@@ -85,14 +92,14 @@ class ParamLoop:
     niter = property(get_niter, set_niter)
 
     def get_ittime(self):
-        """ Get iteration time
+        """Get iteration time
 
         :return: (float) :iteration time
         """
         return self.__ittime
 
     def set_ittime(self, t):
-        """ Set iteration time
+        """Set iteration time
 
         Args:
             t: (float) :iteration time

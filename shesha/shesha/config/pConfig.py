@@ -1,5 +1,5 @@
-## @package   shesha.config
-## @brief     Parameters configuration class
+## @package   shesha.config.pConfig
+## @brief     Configuration class for the COMPASS simulator.
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   5.5.0
 ## @date      2022/01/24
@@ -39,160 +39,153 @@ import os
 from collections import OrderedDict
 import numpy as np
 import shesha.constants as scons
-from typing import NoReturn, Dict
+from typing import List, Dict, Tuple
+
 
 class ParamConfig(object):
-    """ Shesha parameters configuration class. It embeds all the
+    """Shesha parameters configuration class. It embeds all the
     parameters classes instances needed for the simulation run.
 
     This class also exposes most useful getters from its components
     to allow an easier access and exposition through Pyro
 
     Attributes:
-        simul_name : (str) : Simulation run name
-
-        p_atmos : (ParamAtmos) : A ParamAtmos instance
-
-        p_geom : (ParamGeom) : A ParamGeom instance
-
-        p_tel : (ParamTel) : A ParamTel instance
-
-        p_dms : (List of ParamDm) : List of ParamDm instance
-
-        p_wfss : (List of ParamWfs) : List of ParamWfs instance
-
-        p_targets : (List of ParamTarget) : List of ParamTarget instance
-
-        p_loop : (ParamLoop) : A ParamLoop instance
-
-        p_centroiders : (List of ParamCentroider) : List of ParamCentroider instance
-
-        p_controllers : (List of ParamController) : List of Param controller instance
-
-        _config : (configuration module from parfile) : Raw parameter file module
+        simul_name: (str): Simulation run name
+        p_atmos: (ParamAtmos): A ParamAtmos instance
+        p_geom: (ParamGeom): A ParamGeom instance
+        p_tel: (ParamTel): A ParamTel instance
+        p_dms: (List of ParamDm): List of ParamDm instance
+        p_wfss: (List of ParamWfs): List of ParamWfs instance
+        p_targets: (List of ParamTarget): List of ParamTarget instance
+        p_loop: (ParamLoop): A ParamLoop instance
+        p_centroiders: (List of ParamCentroider): List of ParamCentroider instance
+        p_controllers: (List of ParamController): List of Param controller instance
+        _config: (configuration module from parfile): Raw parameter file module
     """
-    def __init__(self, param_file : str):
+
+    def __init__(self, param_file: str) -> None:
+        """Initialize the ParamConfig class.
+
+        Args:
+            param_file: Path to the parameter file.
+        """
         self._load_config_from_file(param_file)
-        self.simul_name = self._config.simul_name
-        self.p_atmos = self._config.p_atmos
-        self.p_tel = self._config.p_tel
-        self.p_geom = self._config.p_geom
-        self.p_wfss = self._config.p_wfss
-        self.p_dms = self._config.p_dms
-        self.p_targets = self._config.p_targets
-        self.p_loop = self._config.p_loop
-        self.p_centroiders = self._config.p_centroiders
-        self.p_controllers = self._config.p_controllers
+        self.simul_name: str = self._config.simul_name
+        self.p_atmos: ParamAtmos = self._config.p_atmos
+        self.p_tel: ParamTel = self._config.p_tel
+        self.p_geom: ParamGeom = self._config.p_geom
+        self.p_wfss: List[ParamWfs] = self._config.p_wfss
+        self.p_dms: List[ParamDm] = self._config.p_dms
+        self.p_targets: List[ParamTarget] = self._config.p_targets
+        self.p_loop: ParamLoop = self._config.p_loop
+        self.p_centroiders: List[ParamCentroider] = self._config.p_centroiders
+
+        self.p_controllers: List[ParamController] = self._config.p_controllers
         self.p_coronos = self._config.p_coronos
         self.p_hrtc = self._config.p_hrtc
 
-    def _load_config_from_file(self, filename_path: str) -> NoReturn:
-        """ Load the parameters from the parameters file
+    def _load_config_from_file(self, filename_path: str) -> None:
+        """Load the parameters from the parameters file.
 
         Args:
-            filename_path: (str): path to the parameters file
+            filename_path: Path to the parameters file.
         """
         path = os.path.dirname(filename_path)
 
-        # If the path not exists try to find it in the package directory
         if not os.path.isdir(path):
             path = os.path.dirname(__file__) + "/../../" + path
-            
+
         path = os.path.abspath(path)
 
         filename = os.path.basename(filename_path)
         name, ext = os.path.splitext(filename)
 
-        if (ext == ".py"):
-            if (path not in sys.path):
+        if ext == ".py":
+            if path not in sys.path:
                 sys.path.insert(0, path)
 
-            return self._load_config_from_module(name)
+            self._load_config_from_module(name)
 
-            # exec("import %s as wao_config" % filename)
             sys.path.remove(path)
         elif importlib.util.find_spec(filename_path) is not None:
-            return self._load_config_from_module(filename_path)
+            self._load_config_from_module(filename_path)
         else:
             raise ValueError("Config file must be .py or a module")
 
-
-    def _load_config_from_module(self, filepath: str) -> NoReturn:
-        """
-        Load the parameters from the parameters module
+    def _load_config_from_module(self, filepath: str) -> None:
+        """Load the parameters from the parameters module.
 
         Args:
-            filename_path: (str): path to the parameters file
-
-        Returns:
-            config : (config) : a config module
+            filepath: Path to the parameters file.
         """
-        filename = filepath.split('.')[-1]
+        filename = filepath.split(".")[-1]
         print("loading: %s" % filename)
 
         config = importlib.import_module(filepath)
         del sys.modules[config.__name__]  # Forced reload
         self._config = importlib.import_module(filepath)
 
-        if hasattr(config, 'par'):
+        if hasattr(config, "par"):
             self._config = getattr("config.par.par4bench", filename)
 
-        # Set missing config attributes to None
-        if not hasattr(self._config, 'p_loop'):
+        if not hasattr(self._config, "p_loop"):
             self._config.p_loop = None
-        if not hasattr(self._config, 'p_geom'):
+        if not hasattr(self._config, "p_geom"):
             self._config.p_geom = None
-        if not hasattr(self._config, 'p_tel'):
+        if not hasattr(self._config, "p_tel"):
             self._config.p_tel = None
-        if not hasattr(self._config, 'p_atmos'):
+        if not hasattr(self._config, "p_atmos"):
             self._config.p_atmos = None
-        if not hasattr(self._config, 'p_dms'):
+        if not hasattr(self._config, "p_dms"):
             self._config.p_dms = None
-        if not hasattr(self._config, 'p_targets'):
+        if not hasattr(self._config, "p_targets"):
             self._config.p_targets = None
-        if not hasattr(self._config, 'p_wfss'):
+        if not hasattr(self._config, "p_wfss"):
             self._config.p_wfss = None
-        if not hasattr(self._config, 'p_centroiders'):
+        if not hasattr(self._config, "p_centroiders"):
             self._config.p_centroiders = None
-        if not hasattr(self._config, 'p_controllers'):
+        if not hasattr(self._config, "p_controllers"):
             self._config.p_controllers = None
-        if not hasattr(self._config, 'p_coronos'):
+        if not hasattr(self._config, "p_coronos"):
             self._config.p_coronos = None
-        if not hasattr(self._config, 'p_hrtc'):
+        if not hasattr(self._config, "p_hrtc"):
             self._config.p_hrtc = None
 
-        if not hasattr(self._config, 'simul_name'):
+        if not hasattr(self._config, "simul_name"):
             self._config.simul_name = None
 
-    def get_pupil(self, pupil_type) -> np.ndarray:
-        """ Returns the specified pupil of COMPASS.
+    def get_pupil(self, pupil_type: str) -> np.ndarray:
+        """Returns the specified pupil of COMPASS.
 
-        Possible args value are :
-            - "i" or "ipupil" : returns the biggest pupil of size (Nfft x Nfft)
-            - "m" or "mpupil" : returns the medium pupil, used for WFS computation
-            - "s" or "spupil" : returns the smallest pupil of size (p_geom.pupdiam x p_geom.pupdiam)
+        Args:
+            pupil_type: Type of pupil to retrieve. Possible values are:
+                - "i" or "ipupil": returns the biggest pupil of size (Nfft x Nfft)
+                - "m" or "mpupil": returns the medium pupil, used for WFS computation
+                - "s" or "spupil": returns the smallest pupil of size (p_geom.pupdiam x p_geom.pupdiam)
 
         Returns:
-            pupil : (np.ndarray) : pupil
+            pupil: The specified pupil as a numpy array.
         """
         if scons.PupilType(pupil_type) is scons.PupilType.SPUPIL:
             return self.p_geom.get_spupil()
-        if scons.PupilType(pupil_type) is scons.PupilType.MPUPIL:
+        elif scons.PupilType(pupil_type) is scons.PupilType.MPUPIL:
             return self.p_geom.get_mpupil()
-        if scons.PupilType(pupil_type) is scons.PupilType.IPUPIL:
+        elif scons.PupilType(pupil_type) is scons.PupilType.IPUPIL:
             return self.p_geom.get_ipupil()
+        raise ValueError("Invalid pupil type")
 
-    def export_config(self) -> [Dict, Dict]:
-        """
-        Extract and convert compass supervisor configuration parameters
-        into 2 dictionnaries containing relevant AO parameters
+    def export_config(self) -> Tuple[OrderedDict, Dict]:
+        """Extract and convert compass supervisor configuration parameters
+        into 2 dictionaries containing relevant AO parameters.
 
-        Returns : 2 dictionnaries
+        Returns:
+            aodict: Ordered dictionary containing AO parameters.
+            dataDict: Dictionary containing data parameters.
         """
         aodict = OrderedDict()
         dataDict = {}
 
-        if (self.p_tel is not None):
+        if self.p_tel is not None:
             aodict.update({"teldiam": self.p_tel.diam})
             aodict.update({"telobs": self.p_tel.cobs})
             aodict.update({"pixsize": self.p_geom._pixsize})
@@ -255,11 +248,11 @@ class ParamConfig(object):
         dms_seen = []
         # colTmpList = []
         noise = []
-        #new_hduwfsl = pfits.HDUList()
-        #new_hduwfsSubapXY = pfits.HDUList()
+        # new_hduwfsl = pfits.HDUList()
+        # new_hduwfsSubapXY = pfits.HDUList()
         for i in range(aodict["nbWfs"]):
-            #new_hduwfsl.append(pfits.ImageHDU(self.p_wfss[i]._isvalid))  # Valid subap array
-            #new_hduwfsl[i].header["DATATYPE"] = "valid_wfs%d" % i
+            # new_hduwfsl.append(pfits.ImageHDU(self.p_wfss[i]._isvalid))  # Valid subap array
+            # new_hduwfsl[i].header["DATATYPE"] = "valid_wfs%d" % i
             dataDict["wfsValid_" + str(i)] = self.p_wfss[i]._isvalid
 
             xytab = np.zeros((2, self.p_wfss[i]._validsubsx.shape[0]))
@@ -267,20 +260,20 @@ class ParamConfig(object):
             xytab[1, :] = self.p_wfss[i]._validsubsy
             dataDict["wfsValidXY_" + str(i)] = xytab
 
-            #new_hduwfsSubapXY.append(pfits.ImageHDU(xytab))  # Valid subap array inXx Y on the detector
-            #new_hduwfsSubapXY[i].header["DATATYPE"] = "validXY_wfs%d" % i
+            # new_hduwfsSubapXY.append(pfits.ImageHDU(xytab))  # Valid subap array inXx Y on the detector
+            # new_hduwfsSubapXY[i].header["DATATYPE"] = "validXY_wfs%d" % i
             pixsize.append(self.p_wfss[i].pixsize)
-            """
-            if (self.p_centroiders[i].type == "maskedpix"):
-                factor = 4
-            else:
-                factor = 2
-            NslopesList.append(
-                    self.p_wfss[i]._nvalid * factor)  # slopes per wfs
-            """
+
+            # if (self.p_centroiders[i].type == "maskedpix"):
+            #     factor = 4
+            # else:
+            #     factor = 2
+            # NslopesList.append(
+            #         self.p_wfss[i]._nvalid * factor)  # slopes per wfs
+
             listCentroType.append(
-                    self.p_centroiders[i].
-                    type)  # assumes that there is the same number of centroiders and wfs
+                self.p_centroiders[i].type
+            )  # assumes that there is the same number of centroiders and wfs
             NsubapList.append(self.p_wfss[i]._nvalid)  # subap per wfs
             listWfsType.append(self.p_wfss[i].type)
             xPosList.append(self.p_wfss[i].xpos)
@@ -290,16 +283,16 @@ class ParamConfig(object):
             nxsubList.append(self.p_wfss[i].nxsub)
             nysubList.append(self.p_wfss[i].nxsub)
             lambdaList.append(self.p_wfss[i].Lambda)
-            if (self.p_wfss[i].dms_seen is not None):
+            if self.p_wfss[i].dms_seen is not None:
                 dms_seen.append(list(self.p_wfss[i].dms_seen))
                 noise.append(self.p_wfss[i].noise)
 
-            if (self.p_centroiders[i].type == scons.CentroiderType.MASKEDPIX):
+            if self.p_centroiders[i].type == scons.CentroiderType.MASKEDPIX:
                 NslopesList.append(self.p_wfss[i]._nvalid * 4)  # slopes per wfs
             else:
                 NslopesList.append(self.p_wfss[i]._nvalid * 2)  # slopes per wfs
 
-            if (self.p_wfss[i].type == "pyrhr"):
+            if self.p_wfss[i].type == "pyrhr":
                 pyrModulationList.append(self.p_wfss[i].pyr_ampl)
                 pyr_npts.append(self.p_wfss[i].pyr_npts)
                 pyr_pupsep.append(self.p_wfss[i].pyr_pup_sep)
@@ -309,15 +302,15 @@ class ParamConfig(object):
                 pyr_npts.append(0)
                 pyr_pupsep.append(0)
                 npixPerSub.append(self.p_wfss[i].npix)
-        """
-        confname = filepath.split("/")[-1].split('.conf')[0]
-        print(filepath.split(".conf")[0] + '_wfsConfig.fits')
-        new_hduwfsl.writeto(
-                filepath.split(".conf")[0] + '_wfsConfig.fits', overwrite=True)
-        new_hduwfsSubapXY.writeto(
-                filepath.split(".conf")[0] + '_wfsValidXYConfig.fits', overwrite=True)
-        """
-        if (len(dms_seen) != 0):
+
+        # confname = filepath.split("/")[-1].split('.conf')[0]
+        # print(filepath.split(".conf")[0] + '_wfsConfig.fits')
+        # new_hduwfsl.writeto(
+        #         filepath.split(".conf")[0] + '_wfsConfig.fits', overwrite=True)
+        # new_hduwfsSubapXY.writeto(
+        #         filepath.split(".conf")[0] + '_wfsValidXYConfig.fits', overwrite=True)
+
+        if len(dms_seen) != 0:
             aodict.update({"listWFS_dms_seen": dms_seen})
 
         aodict.update({"listWFS_NslopesList": NslopesList})
@@ -335,7 +328,7 @@ class ParamConfig(object):
         aodict.update({"listWFS_Nsub": nysubList})
         aodict.update({"listWFS_NpixPerSub": npixPerSub})
         aodict.update({"listWFS_Lambda": lambdaList})
-        if (len(noise) != 0):
+        if len(noise) != 0:
             aodict.update({"listWFS_noise": noise})
 
         listDmsType = []
@@ -345,20 +338,18 @@ class ParamConfig(object):
         push4imat = []
         coupling = []
         push4iMatArcSec = []
-        #new_hdudmsl = pfits.HDUList()
+        # new_hdudmsl = pfits.HDUList()
 
         for j in range(aodict["nbDms"]):
             listDmsType.append(self.p_dms[j].type)
-            NactuX.append(
-                    self.p_dms[j].nact)  # nb of actuators across the diameter !!
+            NactuX.append(self.p_dms[j].nact)  # nb of actuators across the diameter !!
             Nactu.append(self.p_dms[j]._ntotact)  # nb of actuators in total
             unitPerVolt.append(self.p_dms[j].unitpervolt)
             push4imat.append(self.p_dms[j].push4imat)
             coupling.append(self.p_dms[j].coupling)
             tmp = []
-            if (self.p_dms[j]._i1 is
-                        not None):  # Simu Case where i1 j1 is known (simulated)
-                if (self.p_dms[j].type != 'tt'):
+            if self.p_dms[j]._i1 is not None:  # Simu Case where i1 j1 is known (simulated)
+                if self.p_dms[j].type != "tt":
                     tmpdata = np.zeros((4, len(self.p_dms[j]._i1)))
                     tmpdata[0, :] = self.p_dms[j]._j1
                     tmpdata[1, :] = self.p_dms[j]._i1
@@ -372,13 +363,13 @@ class ParamConfig(object):
                 new_hdudmsl.append(pfits.ImageHDU(tmpdata))  # Valid subap array
                 new_hdudmsl[j].header["DATATYPE"] = "valid_dm%d" % j
                 """
-                #for k in range(aodict["nbWfs"]):
+                # for k in range(aodict["nbWfs"]):
                 #    tmp.append(supervisor.computeDMrange(j, k))
 
                 push4iMatArcSec.append(tmp)
 
         # new_hdudmsl.writeto(filepath.split(".conf")[0] + '_dmsConfig.fits', overwrite=True)
-        if (len(push4iMatArcSec) != 0):
+        if len(push4iMatArcSec) != 0:
             aodict.update({"listDMS_push4iMat": push4imat})
             aodict.update({"listDMS_unitPerVolt": unitPerVolt})
         aodict.update({"listDMS_Nxactu": NactuX})
@@ -388,7 +379,7 @@ class ParamConfig(object):
         aodict.update({"listDMS_type": listDmsType})
         aodict.update({"listDMS_coupling": coupling})
 
-        if (self.p_targets is not None):  # simu case
+        if self.p_targets is not None:  # simu case
             listTargetsLambda = []
             listTargetsXpos = []
             listTargetsYpos = []
@@ -401,9 +392,11 @@ class ParamConfig(object):
                 listTargetsYpos.append(self.p_targets[k].ypos)
                 listTargetsMag.append(self.p_targets[k].mag)
                 listTargetsDmsSeen.append(list(self.p_targets[k].dms_seen))
-                PSFPixsize = (self.p_targets[k].Lambda * 1e-6) / (
-                        self.p_geom._pixsize *
-                        self.p_geom.get_ipupil().shape[0]) * 206265.
+                PSFPixsize = (
+                    (self.p_targets[k].Lambda * 1e-6)
+                    / (self.p_geom._pixsize * self.p_geom.get_ipupil().shape[0])
+                    * 206265.0
+                )
                 listTARGETS_pixsize.append(PSFPixsize)
 
             aodict.update({"listTARGETS_Lambda": listTargetsLambda})

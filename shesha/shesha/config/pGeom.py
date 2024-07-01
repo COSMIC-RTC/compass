@@ -1,5 +1,5 @@
-## @package   shesha.config.PGEOM
-## @brief     ParamGeom class definition
+## @package   shesha.config.pGeom
+## @brief     Class for the geometric parameters of the simulation
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   5.5.0
 ## @date      2022/01/24
@@ -39,28 +39,41 @@ import shesha.config.config_setter_utils as csu
 import numpy as np
 
 
-#################################################
-# P-Class (parametres) ParamGeom
-#################################################
 class ParamGeom:
-
+    """Class for the geometric parameters of the simulation
+    
+    This class contains the geometric parameters of the simulation.
+    
+    Attributes:
+        is_init (bool): True if the object is initialized.
+        ssize (long): Linear size of full image (in pixels).
+        zenithangle (float): Observations zenith angle (in deg).
+        apod (bool): True if apodizer is used.
+        apod_file (str): Apodizer file name.
+        pupdiam (long): Linear size of total pupil (in pixels).
+        cent (float): Central point of the simulation.
+        pixsize (float): Pixel size of the simulation [meters].
+        ipupil (np.ndarray[ndim=2, dtype=np.float32]): Pupil in the biggest support.
+        mpupil (np.ndarray[ndim=2, dtype=np.float32]): Pupil in the middle support.
+        spupil (np.ndarray[ndim=2, dtype=np.float32]): Pupil in the smallest support.
+        phase_ab_M1 (np.ndarray[ndim=2, dtype=np.float32]): Phase aberration of the M1 defined in spupil support.
+        phase_ab_M1_m (np.ndarray[ndim=2, dtype=np.float32]): Phase aberration of the M1 defined in mpupil support.
+        apodizer (np.ndarray[ndim=2, dtype=np.float32]): Apodizer defined in spupil support.
+        p1 (long): Bottom-left corner coordinates of the pupil in the mpupil support.
+        p2 (long): Upper-right corner coordinates of the pupil in the mpupil support.
+        n (long): Linear size of mpupil.
+        n1 (long): Bottom-left corner coordinates of the pupil in the ipupil support.
+        n2 (long): Upper-right corner coordinates of the pupil in the ipupil support.
+    """
     def __init__(self):
-        """ Private members were initialized yet """
-        self.__is_init = False
-        """ linear size of full image (in pixels)."""
-        self.__ssize = 0
-        """ observations zenith angle (in deg)."""
-        self.__zenithangle = 0.
-        """ boolean for apodizer"""
-        self.__apod = False
-        """ File to load an apodizer from """
-        self.__apod_file = None
-        """ linear size of total pupil (in pixels)."""
-        self.__pupdiam = 0
-        """ central point of the simulation."""
-        self.__cent = 0.
-        """ Pixel size of the simulation [meters]."""
-        self.__pixsize = 0.
+        self.__is_init = False  # True if the object is initialized
+        self.__ssize = 0  # linear size of full image (in pixels)
+        self.__zenithangle = 0.0  # observations zenith angle (in deg)
+        self.__apod = False  # True if apodizer is used
+        self.__apod_file = None  # apodizer file name
+        self.__pupdiam = 0  # linear size of total pupil (in pixels)
+        self.__cent = 0.0  # central point of the simulation
+        self.__pixsize = 0.0  # pixel size of the simulation [meters]
 
         # Internals
         self.__ipupil = None  # total pupil (include full guard band)
@@ -77,14 +90,14 @@ class ParamGeom:
         self.__n2 = 0  # max x,y for valid points in ipupil
 
     def get_is_init(self):
-        """ Get the is_init flag
+        """Get the is_init flag
 
         :return: (bool) : is_init flag
         """
         return self.__is_init
 
     def set_is_init(self, i):
-        """ set the is_init flag
+        """set the is_init flag
 
         :param i: (bool) : is_init flag
         """
@@ -93,14 +106,14 @@ class ParamGeom:
     is_init = property(get_is_init, set_is_init)
 
     def get_ipupil(self):
-        """ Get the pupil in the biggest support
+        """Get the pupil in the biggest support
 
         :return: (np.ndarray[ndim=2, dtype=np.float32]) : pupil
         """
         return self.__ipupil
 
     def set_ipupil(self, s):
-        """ Set the pupil in the biggest support
+        """Set the pupil in the biggest support
 
         :param s: (np.ndarray[ndim=2, dtype=np.float32]) : pupil
         """
@@ -109,14 +122,14 @@ class ParamGeom:
     _ipupil = property(get_ipupil, set_ipupil)
 
     def get_mpupil(self):
-        """ Get the pupil in the middle support
+        """Get the pupil in the middle support
 
         :return: (np.ndarray[ndim=2, dtype=np.float32]) : pupil
         """
         return self.__mpupil
 
     def set_mpupil(self, s):
-        """ Set the pupil in the middle support
+        """Set the pupil in the middle support
 
         :param s: (np.ndarray[ndim=2, dtype=np.float32]) : pupil
         """
@@ -125,14 +138,14 @@ class ParamGeom:
     _mpupil = property(get_mpupil, set_mpupil)
 
     def get_spupil(self):
-        """ Get the pupil in the smallest support
+        """Get the pupil in the smallest support
 
         :return: (np.ndarray[ndim=2, dtype=np.float32]) : pupil
         """
         return self.__spupil
 
     def set_spupil(self, s):
-        """ Set the pupil in the smallest support
+        """Set the pupil in the smallest support
 
         :param s: (np.ndarray[ndim=2, dtype=np.float32]) : pupil
         """
@@ -141,65 +154,66 @@ class ParamGeom:
     _spupil = property(get_spupil, set_spupil)
 
     def get_phase_ab_M1(self):
-        """ Get the phase aberration of the M1 defined in spupil support
+        """Get the phase aberration of the M1 defined in spupil support
 
         :return: (np.ndarray[ndim=2, dtype=np.float32]) : phase aberrations
         """
         return self.__phase_ab_M1
 
     def set_phase_ab_M1(self, s):
-        """ Set the phase aberration of the M1 defined in spupil support
+        """Set the phase aberration of the M1 defined in spupil support
 
         :param s: (np.ndarray[ndim=2, dtype=np.float32]) : phase aberrations
         """
-        self.__phase_ab_M1 = csu.enforce_arrayMultiDim(s.copy(), self.__spupil.shape,
-                                                       dtype=np.float32)
+        self.__phase_ab_M1 = csu.enforce_arrayMultiDim(
+            s.copy(), self.__spupil.shape, dtype=np.float32
+        )
 
     _phase_ab_M1 = property(get_phase_ab_M1, set_phase_ab_M1)
 
     def get_phase_ab_M1_m(self):
-        """ Get the phase aberration of the M1 defined in mpupil support
+        """Get the phase aberration of the M1 defined in mpupil support
 
         :return: (np.ndarray[ndim=2, dtype=np.float32]) : phase aberrations
         """
         return self.__phase_ab_M1_m
 
     def set_phase_ab_M1_m(self, s):
-        """ Set the phase aberration of the M1 defined in mpupil support
+        """Set the phase aberration of the M1 defined in mpupil support
 
         :param s: (np.ndarray[ndim=2, dtype=np.float32]) : phase aberrations
         """
-        self.__phase_ab_M1_m = csu.enforce_arrayMultiDim(s.copy(), self.__mpupil.shape,
-                                                         dtype=np.float32)
+        self.__phase_ab_M1_m = csu.enforce_arrayMultiDim(
+            s.copy(), self.__mpupil.shape, dtype=np.float32
+        )
 
     _phase_ab_M1_m = property(get_phase_ab_M1_m, set_phase_ab_M1_m)
 
     def get_apodizer(self):
-        """ Get the apodizer defined in spupil support
+        """Get the apodizer defined in spupil support
 
         :return: (np.ndarray[ndim=2, dtype=np.float32]) : apodizer
         """
         return self.__apodizer
 
     def set_apodizer(self, s):
-        """ Set the apodizer defined in spupil support
+        """Set the apodizer defined in spupil support
 
         :param s: (np.ndarray[ndim=2, dtype=np.float32]) : apodizer
         """
-        self.__apodizer = csu.enforce_arrayMultiDim(s.copy(), self.__spupil.shape,
-                                                    dtype=np.float32)
+        self.__apodizer = csu.enforce_arrayMultiDim(s.copy(), self.__spupil.shape, dtype=np.float32)
 
     _apodizer = property(get_apodizer, set_apodizer)
 
     def get_ssize(self):
-        """ Get linear size of full image
+        """Get linear size of full image
 
         :return: (long) : linear size of full image (in pixels).
         """
         return self.__ssize
 
     def set_ssize(self, s):
-        """ Set linear size of full image
+        """Set linear size of full image
 
         :param s: (long) : linear size of full image (in pixels).
         """
@@ -208,14 +222,14 @@ class ParamGeom:
     ssize = property(get_ssize, set_ssize)
 
     def get_n(self):
-        """ Get the linear size of mpupil
+        """Get the linear size of mpupil
 
         :return: (long) : coordinate (same in x and y) [pixel]
         """
         return self.__n
 
     def set_n(self, s):
-        """ Set the linear size of mpupil
+        """Set the linear size of mpupil
 
         :param s: (long) : coordinate (same in x and y) [pixel]
         """
@@ -224,14 +238,14 @@ class ParamGeom:
     _n = property(get_n, set_n)
 
     def get_n1(self):
-        """ Get the bottom-left corner coordinates of the pupil in the ipupil support
+        """Get the bottom-left corner coordinates of the pupil in the ipupil support
 
         :return: (long) : coordinate (same in x and y) [pixel]
         """
         return self.__n1
 
     def set_n1(self, s):
-        """ Set the bottom-left corner coordinates of the pupil in the ipupil support
+        """Set the bottom-left corner coordinates of the pupil in the ipupil support
 
         :param s: (long) : coordinate (same in x and y) [pixel]
         """
@@ -240,14 +254,14 @@ class ParamGeom:
     _n1 = property(get_n1, set_n1)
 
     def get_n2(self):
-        """ Get the upper-right corner coordinates of the pupil in the ipupil support
+        """Get the upper-right corner coordinates of the pupil in the ipupil support
 
         :return: (long) : coordinate (same in x and y) [pixel]
         """
         return self.__n2
 
     def set_n2(self, s):
-        """ Set the upper-right corner coordinates of the pupil in the ipupil support
+        """Set the upper-right corner coordinates of the pupil in the ipupil support
 
         :param s: (long) : coordinate (same in x and y) [pixel]
         """
@@ -256,14 +270,14 @@ class ParamGeom:
     _n2 = property(get_n2, set_n2)
 
     def get_p2(self):
-        """ Get the upper-right corner coordinates of the pupil in the mpupil support
+        """Get the upper-right corner coordinates of the pupil in the mpupil support
 
         :return: (long) : coordinate (same in x and y) [pixel]
         """
         return self.__p2
 
     def set_p2(self, s):
-        """ Set the upper-right corner coordinates of the pupil in the mpupil support
+        """Set the upper-right corner coordinates of the pupil in the mpupil support
 
         :param s: (long) : coordinate (same in x and y) [pixel]
         """
@@ -272,14 +286,14 @@ class ParamGeom:
     _p2 = property(get_p2, set_p2)
 
     def get_p1(self):
-        """ Get the bottom-left corner coordinates of the pupil in the mpupil support
+        """Get the bottom-left corner coordinates of the pupil in the mpupil support
 
         :return: (long) : coordinate (same in x and y) [pixel]
         """
         return self.__p1
 
     def set_p1(self, s):
-        """ Set the bottom-left corner coordinates of the pupil in the mpupil support
+        """Set the bottom-left corner coordinates of the pupil in the mpupil support
 
         :param s: (long) : coordinate (same in x and y) [pixel]
         """
@@ -288,14 +302,14 @@ class ParamGeom:
     _p1 = property(get_p1, set_p1)
 
     def get_zenithangle(self):
-        """ Get observations zenith angle
+        """Get observations zenith angle
 
         :return: (float) : observations zenith angle (in deg).
         """
         return self.__zenithangle
 
     def set_zenithangle(self, z):
-        """ Set observations zenith angle
+        """Set observations zenith angle
 
         :param z: (float) : observations zenith angle (in deg).
         """
@@ -304,14 +318,14 @@ class ParamGeom:
     zenithangle = property(get_zenithangle, set_zenithangle)
 
     def get_pupdiam(self):
-        """ Get the linear size of total pupil
+        """Get the linear size of total pupil
 
         :return: (long) : linear size of total pupil (in pixels).
         """
         return self.__pupdiam
 
     def set_pupdiam(self, p):
-        """ Set the linear size of total pupil
+        """Set the linear size of total pupil
 
         :param p: (long) : linear size of total pupil (in pixels).
         """
@@ -320,14 +334,14 @@ class ParamGeom:
     pupdiam = property(get_pupdiam, set_pupdiam)
 
     def get_cent(self):
-        """ Get the central point of the simulation
+        """Get the central point of the simulation
 
         :return: (float) : central point of the simulation.
         """
         return self.__cent
 
     def set_cent(self, c):
-        """ Set the central point of the simulation
+        """Set the central point of the simulation
 
         :param c: (float) : central point of the simulation.
         """
@@ -336,7 +350,7 @@ class ParamGeom:
     cent = property(get_cent, set_cent)
 
     def get_apod(self):
-        """ Gells if the apodizer is used
+        """Gells if the apodizer is used
             The apodizer is used if a is not 0
 
         :return: (int) boolean for apodizer
@@ -344,7 +358,7 @@ class ParamGeom:
         return self.__apod
 
     def set_apod(self, a):
-        """ Tells if the apodizer is used
+        """Tells if the apodizer is used
             The apodizer is used if a is not 0
 
         :param a: (int) boolean for apodizer
@@ -354,14 +368,14 @@ class ParamGeom:
     apod = property(get_apod, set_apod)
 
     def get_apod_file(self):
-        """ Get the path of apodizer file
+        """Get the path of apodizer file
 
         :return: (str) : apodizer file name
         """
         return self.__apod_file
 
     def set_apod_file(self, f):
-        """ Set the path of apodizer file
+        """Set the path of apodizer file
 
         :param filename: (str) : apodizer file name
         """
@@ -370,14 +384,14 @@ class ParamGeom:
     apod_file = property(get_apod_file, set_apod_file)
 
     def get_pixsize(self):
-        """ Get the pixsizeral point of the simulation
+        """Get the pixsizeral point of the simulation
 
         :return: (float) : pixsizeral point of the simulation.
         """
         return self.__pixsize
 
     def set_pixsize(self, c):
-        """ Set the pixel size of the simulation
+        """Set the pixel size of the simulation
 
         :param c: (float) : pixel size of the simulation.
         """

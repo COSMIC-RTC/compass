@@ -2,7 +2,7 @@ name: compass
 channels:
   - conda-forge
 dependencies:
-  - python
+  - python<3.12
   - astropy
   - docopt
   - h5py
@@ -15,9 +15,8 @@ dependencies:
   - pytables
   - tabulate
   - rich
-  - conan
+  - aenum
   - cmake
-  - pybind11
   - coverage
   - pytest-cov
   - pytest-html
