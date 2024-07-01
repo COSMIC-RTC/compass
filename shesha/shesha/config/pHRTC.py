@@ -43,7 +43,7 @@ import shesha.constants as scons
 #################################################
 # P-Class (parametres) Param_hrtc
 #################################################
-class Param_hrtc:
+class ParamHrtc:
 
     def __init__(self):
         self.__wfs_payload_size = 1000  # 'custom', 'SPHERE_APLC', or 'perfect'
