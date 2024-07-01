@@ -36,6 +36,7 @@
 #  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 
 from shesha.supervisor.components.rtc.rtcCompass import RtcCompass
+from shesha.supervisor.components.rtc.rtcCosmic import RtcCosmic
 from shesha.supervisor.components.rtc.rtcStandalone import RtcStandalone
 
-__all__ = ['RtcCompass', 'RtcStandalone']
+__all__ = ['RtcCompass', 'RtcCosmic', 'RtcStandalone']

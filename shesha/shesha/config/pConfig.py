@@ -84,6 +84,7 @@ class ParamConfig(object):
         self.p_centroiders = self._config.p_centroiders
         self.p_controllers = self._config.p_controllers
         self.p_coronos = self._config.p_coronos
+        self.p_hrtc = self._config.p_hrtc
 
     def _load_config_from_file(self, filename_path: str) -> NoReturn:
         """ Load the parameters from the parameters file
@@ -157,6 +158,8 @@ class ParamConfig(object):
             self._config.p_controllers = None
         if not hasattr(self._config, 'p_coronos'):
             self._config.p_coronos = None
+        if not hasattr(self._config, 'p_hrtc'):
+            self._config.p_hrtc = None
 
         if not hasattr(self._config, 'simul_name'):
             self._config.simul_name = None

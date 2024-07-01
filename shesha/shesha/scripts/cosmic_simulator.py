@@ -1,7 +1,9 @@
-## @package   shesha.config
-## @brief     Parameter classes for COMPASS
+#!/usr/bin/env python
+
+## @package   shesha.scripts.cosmic_simulator
+## @brief     script test to simulate a closed loop
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   5.5.0
+## @version   5.4.4
 ## @date      2022/01/24
 ## @copyright GNU Lesser General Public License
 #
@@ -34,21 +36,51 @@
 #
 #  You should have received a copy of the GNU Lesser General Public License along with COMPASS.
 #  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
+"""
+script test to simulate a closed loop
 
-from shesha.config.pAtmos import ParamAtmos
-from shesha.config.pCentroider import ParamCentroider
-from shesha.config.pConfig import ParamConfig
-from shesha.config.pController import ParamController
-from shesha.config.pCoronagraph import ParamCoronagraph
-from shesha.config.pDms import ParamDm
-from shesha.config.pGeom import ParamGeom
-from shesha.config.pLoop import ParamLoop
-from shesha.config.pTarget import ParamTarget
-from shesha.config.pTel import ParamTel
-from shesha.config.pWfs import ParamWfs
-from shesha.config.PHRTC import Param_hrtc
+Usage:
+  cosmic_simulator.py <parameters_filename> [options]
 
-__all__ = ['ParamConfig', 'ParamAtmos', 'ParamCoronagraph', 
-           'ParamDm', 'ParamGeom', 'ParamLoop', 'ParamTel', 
-           'ParamWfs', 'ParamTarget', 'ParamController', 
-           'ParamCentroider', 'Param_hrtc']
+with 'parameters_filename' the path to the parameters file
+
+Options:
+  -h --help          Show this help message and exit
+  -n --niter niter   Number of iterations
+  -g --generic       Use generic controller
+  -f --fast          Compute PSF only during monitoring
+  -d --devices dev   Use devices (comma separated)
+"""
+from shesha.config import ParamConfig
+from docopt import docopt
+from shesha.supervisor.cosmicSupervisor import CosmicSupervisor as Supervisor
+
+if __name__ == "__main__":
+    arguments = docopt(__doc__)
+
+    param_file = arguments["<parameters_filename>"]
+    compute_tar_psf = not arguments["--fast"]
+
+    config = ParamConfig(param_file)
+
+    # Get parameters from file
+    if arguments["--devices"]:
+        config.p_loop.set_devices([
+                int(device) for device in arguments["--devices"].split(",")
+        ])
+
+    if arguments["--generic"]:
+        config.p_controllers[0].set_type("generic")
+        print("Using GENERIC controller...")
+
+    if arguments["--niter"]:
+        config.p_loop.set_niter(int(arguments["--niter"]))
+
+    supervisor = Supervisor(config)
+
+    supervisor.loop(supervisor.config.p_loop.niter, compute_tar_psf=compute_tar_psf)
+
+    if arguments["--interactive"]:
+        from shesha.util.ipython_embed import embed
+        from os.path import basename
+        embed(basename(__file__), locals())

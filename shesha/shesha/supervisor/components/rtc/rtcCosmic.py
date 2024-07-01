@@ -1,7 +1,7 @@
 ## @package   shesha.supervisor
 ## @brief     User layer for initialization and execution of a COMPASS simulation
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
-## @version   5.5.0
+## @version   5.4.4
 ## @date      2022/01/24
 ## @copyright GNU Lesser General Public License
 #
@@ -35,13 +35,62 @@
 #  You should have received a copy of the GNU Lesser General Public License along with COMPASS.
 #  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 
-from shesha.supervisor.components.atmosCompass import AtmosCompass
-from shesha.supervisor.components.dmCompass import DmCompass
-from shesha.supervisor.components.rtc import RtcCompass, RtcCosmic, RtcStandalone
-from shesha.supervisor.components.targetCompass import TargetCompass
 from shesha.supervisor.components.sourceCompass import SourceCompass
-from shesha.supervisor.components.telescopeCompass import TelescopeCompass
-from shesha.supervisor.components.wfsCompass import WfsCompass
-from shesha.supervisor.components.coronagraph import CoronagraphCompass, GenericCoronagraph, PerfectCoronagraphCompass, StellarCoronagraphCompass
+import shesha.constants as scons
+import numpy as np
+from typing import Union
 
-__all__ = ['AtmosCompass', 'DmCompass', 'RtcCompass', 'RtcCosmic', 'RtcStandalone', 'TargetCompass', 'SourceCompass', 'TelescopeCompass', 'WfsCompass', 'CoronagraphCompass', 'GenericCoronagraph', 'PerfectCoronagraphCompass', 'StellarCoronagraphCompass']
+import tides.streamers as ts
+
+class RtcCosmic():
+    """ RTC handler for compass simulation
+    """
+
+    def __init__(self, config, wfs, dms):
+        """ Initialize a RtcCompass component for rtc related supervision
+
+        Args:
+
+            config : (config module) : Parameters configuration structure module
+
+            wfs: (Sensors) : Sensors object
+
+            dms: (Dms) : Dms object
+
+        """
+        self.framesize = config.p_hrtc.framesize
+        self._wfs = wfs
+        self._dms = dms
+        self.config = config
+
+        com_shape = np.sum([p_dm._ntotact for p_dm in config.p_dms])
+        self.hrtc_host = config.p_hrtc.hrtc_host
+        self.local_host = config.p_hrtc.local_host
+
+        self.frame = ts.MudpiFrame(np.zeros((self.framesize, self.framesize), dtype=np.uint16), config.p_hrtc.wfs_payload_size)
+        self.com = ts.MudpiFrame(np.zeros(com_shape, dtype=np.float32), config.p_hrtc.com_payload_size)
+
+        self.publisher = ts.Streamer("rtms")
+        self.publisher.configure(self.hrtc_host, self.frame)
+
+        self.subscriber = ts.Streamer("rtms")
+        self.subscriber.configure(self.local_host, self.com)
+
+        self.framecounter = 2
+        img_shape = wfs.get_wfs_image(0).shape
+        self.crop = (img_shape[0] - self.framesize) // 2
+
+    def do_control(self):
+        """ Send WFS frame to H-RTC and receipt DM command
+        """
+        wfs_cropped = self._wfs.get_wfs_image(0)[self.crop:self.crop + self.framesize, self.crop:self.crop + self.framesize]
+        self.frame = ts.MudpiFrame(wfs_cropped.astype(np.uint16), self.config.p_hrtc.wfs_payload_size)
+        self.frame.framecounter = self.framecounter
+        self.publisher.publish(self.hrtc_host, self.frame)
+        self.com = self.subscriber.getFrame({self.local_host:1})
+        self.framecounter += 1
+    
+    def apply_control(self):
+        """ Apply DM command to DM
+        """
+        self._dms.set_command(np.array(self.com[self.local_host][0]))
