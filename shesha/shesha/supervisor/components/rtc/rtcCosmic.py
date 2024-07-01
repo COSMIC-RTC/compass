@@ -62,35 +62,51 @@ class RtcCosmic():
         self._wfs = wfs
         self._dms = dms
         self.config = config
+        self.publisher = None
+        self.subscriber = None
+        self.frame_shm = None
+        self.com_shm = None
 
-        com_shape = np.sum([p_dm._ntotact for p_dm in config.p_dms])
-        self.hrtc_host = config.p_hrtc.hrtc_host
-        self.local_host = config.p_hrtc.local_host
+        if self.config.p_hrtc.frame_shm is None:
+            com_shape = np.sum([p_dm._ntotact for p_dm in config.p_dms])
+            self.hrtc_host = config.p_hrtc.hrtc_host
+            self.local_host = config.p_hrtc.local_host
 
-        self.frame = ts.MudpiFrame(np.zeros((self.framesize, self.framesize), dtype=np.uint16), config.p_hrtc.wfs_payload_size)
-        self.com = ts.MudpiFrame(np.zeros(com_shape, dtype=np.float32), config.p_hrtc.com_payload_size)
+            self.frame = ts.MudpiFrame(np.zeros((self.framesize, self.framesize), dtype=np.uint16), config.p_hrtc.wfs_payload_size)
+            self.com = ts.MudpiFrame(np.zeros(com_shape, dtype=np.float32), config.p_hrtc.com_payload_size)
 
-        self.publisher = ts.Streamer("rtms")
-        self.publisher.configure(self.hrtc_host, self.frame)
+            self.publisher = ts.Streamer("rtms")
+            self.publisher.configure(self.hrtc_host, self.frame)
 
-        self.subscriber = ts.Streamer("rtms")
-        self.subscriber.configure(self.local_host, self.com)
+            self.subscriber = ts.Streamer("rtms")
+            self.subscriber.configure(self.local_host, self.com)
 
-        self.framecounter = 2
+            
+        else:
+            import CacaoInterfaceWrap as ciw
+            self.frame_shm = ciw.CacaoInterfaceWrap(self.config.p_hrtc.frame_shm)
+            self.com_shm = ciw.CacaoInterfaceWrap(self.config.p_hrtc.com_shm)
+            
         img_shape = wfs.get_wfs_image(0).shape
         self.crop = (img_shape[0] - self.framesize) // 2
-
+        self.framecounter = 2
+        
     def do_control(self):
         """ Send WFS frame to H-RTC and receipt DM command
         """
         wfs_cropped = self._wfs.get_wfs_image(0)[self.crop:self.crop + self.framesize, self.crop:self.crop + self.framesize]
-        self.frame = ts.MudpiFrame(wfs_cropped.astype(np.uint16), self.config.p_hrtc.wfs_payload_size)
-        self.frame.framecounter = self.framecounter
-        self.publisher.publish(self.hrtc_host, self.frame)
-        self.com = self.subscriber.getFrame({self.local_host:1})
+        if self.publisher is not None:
+            self.frame = ts.MudpiFrame(wfs_cropped.astype(np.uint16), self.config.p_hrtc.wfs_payload_size)
+            self.frame.framecounter = self.framecounter
+            self.publisher.publish(self.hrtc_host, self.frame)
+            tmp = self.subscriber.getFrame({self.local_host:1})
+            self.com = np.array(tmp[self.local_host][0])
+        else:
+            self.frame_shm.send(wfs_cropped)
+            self.com = self.com_shm.recv()
         self.framecounter += 1
     
     def apply_control(self):
         """ Apply DM command to DM
         """
-        self._dms.set_command(np.array(self.com[self.local_host][0]))
+        self._dms.set_command(self.com)
