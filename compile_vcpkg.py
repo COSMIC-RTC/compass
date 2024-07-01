@@ -3,11 +3,12 @@
 Compile COMPASS
 ===============
 
-Usage: compile.py [INSTALL_PATH]
+Usage: compile.py [options] [INSTALL_PATH] 
 
 Options:
     INSTALL_PATH          The install path. Default is $COMPASS_INSTALL_ROOT.
-
+    --rt                  Allow parallel build on isolated cores. Default is False.
+    
 Environment variables:
     COMPASS_INSTALL_ROOT  The install path. Default is $project_dir/local.
     COMPASS_DEBUG         The build type. Default is Release.
@@ -140,6 +141,10 @@ if __name__ == '__main__':
     arguments = docopt(__doc__,
                        version='Compile COMPASS 2.0',
                        options_first=True)
+    if arguments['--rt']:
+        import os
+        pid = os.getpid()
+        os.system(f"sudo chrt -r --pid 1 {pid}")
     args = arguments['INSTALL_PATH']
 
     project_dir = Path(__file__).absolute().parent

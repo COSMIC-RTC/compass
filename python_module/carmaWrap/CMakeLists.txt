@@ -6,8 +6,11 @@ project(carmaWrap
     LANGUAGES CXX CUDA
 )
 
+find_package(PkgConfig REQUIRED)
 find_package(pybind11 REQUIRED)
 find_package(CUDAToolkit REQUIRED)
+pkg_check_modules(OCTOPUS IMPORTED_TARGET octopus)
+link_directories(${OCTOPUS_LIBRARY_DIRS})
 
 pybind11_add_module(carmaWrap MODULE
     src/context.cpp

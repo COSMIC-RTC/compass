@@ -7,7 +7,7 @@ find_package(CUDAToolkit REQUIRED)
 
 pkg_check_modules(MAGMA   IMPORTED_TARGET magma)
 pkg_check_modules(OCTOPUS IMPORTED_TARGET octopus)
-
+link_directories(${OCTOPUS_LIBRARY_DIRS})
 add_library(carma
     src.cpp/carma_context.cpp
     src.cpp/carma_cublas.cpp
@@ -72,8 +72,10 @@ if (${CUDAToolkit_VERSION_MAJOR} LESS 11)
 endif()
 
 if(${OCTOPUS_FOUND})
-  target_link_libraries(carma PUBLIC PkgConfig::OCTOPUS)
   target_compile_definitions(carma PUBLIC USE_OCTOPUS=1)
+  target_compile_options(carma PUBLIC ${OCTOPUS_CFLAGS})
+  target_include_directories(carma PUBLIC ${OCTOPUS_INCLUDE_DIRS})
+  target_link_libraries(carma PUBLIC ${OCTOPUS_LIBRARIES})
 else()
   message(STATUS "OCTOPUS_ROOT not found, CACAO features disabled")
 endif()
