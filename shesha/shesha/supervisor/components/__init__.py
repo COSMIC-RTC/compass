@@ -37,11 +37,11 @@
 
 from shesha.supervisor.components.atmosCompass import AtmosCompass
 from shesha.supervisor.components.dmCompass import DmCompass
-from shesha.supervisor.components.rtc import RtcCompass, RtcCosmic, RtcStandalone
+from shesha.supervisor.components.rtc import RtcCompass, RtcStandalone
 from shesha.supervisor.components.targetCompass import TargetCompass
 from shesha.supervisor.components.sourceCompass import SourceCompass
 from shesha.supervisor.components.telescopeCompass import TelescopeCompass
 from shesha.supervisor.components.wfsCompass import WfsCompass
 from shesha.supervisor.components.coronagraph import CoronagraphCompass, GenericCoronagraph, PerfectCoronagraphCompass, StellarCoronagraphCompass
 
-__all__ = ['AtmosCompass', 'DmCompass', 'RtcCompass', 'RtcCosmic', 'RtcStandalone', 'TargetCompass', 'SourceCompass', 'TelescopeCompass', 'WfsCompass', 'CoronagraphCompass', 'GenericCoronagraph', 'PerfectCoronagraphCompass', 'StellarCoronagraphCompass']
+__all__ = ['AtmosCompass', 'DmCompass', 'RtcCompass', 'RtcStandalone', 'TargetCompass', 'SourceCompass', 'TelescopeCompass', 'WfsCompass', 'CoronagraphCompass', 'GenericCoronagraph', 'PerfectCoronagraphCompass', 'StellarCoronagraphCompass']

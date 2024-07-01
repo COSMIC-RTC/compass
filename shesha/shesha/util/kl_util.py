@@ -606,7 +606,7 @@ def pol2car(pol, p_dm, mask=0):
     # However, points not in the aperture are actually treated
     # as though they were at the first or last radial polar value
     # -- a small fudge, but not serious  ?*******
-    #cd = interpolate.interp2d(cr, cp,pol)
+    #cd = interpolate.RectBivariateSpline(cr, cp,pol)
     ncp = p_dm._ncp
     cr = p_dm._cr
     cp = p_dm._cp

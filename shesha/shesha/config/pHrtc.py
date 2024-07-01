@@ -1,5 +1,5 @@
-## @package   shesha.config.PHRTC
-## @brief     Param_hrtc class definition
+## @package   shesha.config.pHrtc
+## @brief     ParamHrtc class definition
 ## @author    COMPASS Team <https://github.com/ANR-COMPASS>
 ## @version   5.4.4
 ## @date      2022/01/24
@@ -41,7 +41,7 @@ import shesha.constants as scons
 
 
 #################################################
-# P-Class (parametres) Param_hrtc
+# P-Class (parametres) ParamHrtc
 #################################################
 class ParamHrtc:
 

@@ -124,4 +124,4 @@ if __name__ == "__main__":
         df.loc[idx, "T Init"] = str(t_init)
         df.loc[idx, "T Loop"] = str(t_loop/config.p_loop.niter)
 
-        df.to_hdf("check.h5", "check")
+        df.to_hdf("check.h5", key="check")

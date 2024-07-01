@@ -658,7 +658,7 @@ def init_custom_dm(p_dm: conf.ParamDm, p_geom: conf.ParamGeom, diam: float):
         # p_dm._xpos[i] = ci_i1 + smallsize/2.0
         # p_dm._ypos[i] = ci_j1 + smallsize/2.0
 
-        f = interpolate.interp2d(ci_y, ci_x, f_influ[:, :, i], kind='cubic')
+        f = interpolate.RectBivariateSpline(ci_y, ci_x, f_influ[:, :, i])
         temp = f(ci_ypix, ci_xpix) * p_dm.unitpervolt
         # temp[np.where(temp<1e-6)] = 0.
         p_dm._influ[:, :, i] = temp

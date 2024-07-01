@@ -46,9 +46,9 @@ from shesha.config.pLoop import ParamLoop
 from shesha.config.pTarget import ParamTarget
 from shesha.config.pTel import ParamTel
 from shesha.config.pWfs import ParamWfs
-from shesha.config.PHRTC import Param_hrtc
+from shesha.config.pHrtc import ParamHrtc
 
 __all__ = ['ParamConfig', 'ParamAtmos', 'ParamCoronagraph', 
            'ParamDm', 'ParamGeom', 'ParamLoop', 'ParamTel', 
            'ParamWfs', 'ParamTarget', 'ParamController', 
-           'ParamCentroider', 'Param_hrtc']
+           'ParamCentroider', 'ParamHrtc']
