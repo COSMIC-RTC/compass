@@ -95,7 +95,7 @@ export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$COMPASS_INSTALL_ROOT/lib/pkgconfig
 ```bash
 cd $COMPASS_ROOT
 mamba env create --file environment.yml
-conda activate compass
+mamba activate compass
 export VCPKG_ROOT=$HOME/vcpkg
 export PATH=$VCPKG_ROOT:$PATH
 ./script/install_vcpkg.sh $VCPKG_ROOT

@@ -281,13 +281,13 @@ def mft_matrices(dim_input,
     # check dimensions and type of dim_input
     error_string_dim_input = "'dim_input' must be an int (square input) or tuple of ints of dimension 2"
     if np.isscalar(dim_input):
-        if isinstance(dim_input, int):
+        if isinstance(dim_input, (int, np.int32)):
             dim_input_x = dim_input
             dim_input_y = dim_input
         else:
             raise TypeError(dim_input)
     elif isinstance(dim_input, tuple):
-        if all(isinstance(dims, int) for dims in dim_input) & (len(dim_input) == 2):
+        if all(isinstance(dims, (int, np.int32)) for dims in dim_input) & (len(dim_input) == 2):
             dim_input_x = dim_input[0]
             dim_input_y = dim_input[1]
         else:
@@ -300,13 +300,13 @@ def mft_matrices(dim_input,
         real_dim_input = dim_input
     error_string_real_dim_input = "'real_dim_input' must be an int (square input pupil) or tuple of ints of dimension 2"
     if np.isscalar(real_dim_input):
-        if isinstance(real_dim_input, int):
+        if isinstance(real_dim_input, (int, np.int32)):
             real_dim_input_x = real_dim_input
             real_dim_input_y = real_dim_input
         else:
             raise TypeError(error_string_real_dim_input)
     elif isinstance(real_dim_input, tuple):
-        if all(isinstance(dims, int) for dims in real_dim_input) & (len(real_dim_input) == 2):
+        if all(isinstance(dims, (int, np.int32)) for dims in real_dim_input) & (len(real_dim_input) == 2):
             real_dim_input_x = real_dim_input[0]
             real_dim_input_y = real_dim_input[1]
         else:
@@ -317,13 +317,13 @@ def mft_matrices(dim_input,
     # check dimensions and type of dim_output
     error_string_dim_output = "'dim_output' must be an int (square output) or tuple of ints of dimension 2"
     if np.isscalar(dim_output):
-        if isinstance(dim_output, int):
+        if isinstance(dim_output, (int, np.int32)):
             dim_output_x = dim_output
             dim_output_y = dim_output
         else:
             raise TypeError(error_string_dim_output)
     elif isinstance(dim_output, tuple):
-        if all(isinstance(dims, int) for dims in dim_output) & (len(dim_output) == 2):
+        if all(isinstance(dims, (int, np.int32)) for dims in dim_output) & (len(dim_output) == 2):
             dim_output_x = dim_output[0]
             dim_output_y = dim_output[1]
         else:
@@ -334,13 +334,13 @@ def mft_matrices(dim_input,
     # check dimensions and type of nbres
     error_string_nbr = "'nbres' must be an float or int (square output) or tuple of float or int of dimension 2"
     if np.isscalar(nbres):
-        if isinstance(nbres, (float, int)):
+        if isinstance(nbres, (float, np.float32, int, np.int32)):
             nbresx = float(nbres)
             nbresy = float(nbres)
         else:
             raise TypeError(error_string_nbr)
     elif isinstance(nbres, tuple):
-        if all(isinstance(nbresi, (float, int)) for nbresi in nbres) & (len(nbres) == 2):
+        if all(isinstance(nbresi, (float, np.float32, int, np.int32)) for nbresi in nbres) & (len(nbres) == 2):
             nbresx = float(nbres[0])
             nbresy = float(nbres[1])
         else:

@@ -10,13 +10,20 @@ build_generic:
   variables:
     COMPASS_ROOT: /builds/compass/compass
     SHESHA_ROOT: $COMPASS_ROOT/shesha
+    VCPKG_ROOT: /builds/compass/vcpkg
     COMPASS_DO_HALF: "OFF"
   script:
-    - export PYTHONPATH=$SHESHA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
-    - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
+    - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$COMPASS_ROOT/local/python
+    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_ROOT/local/lib
+    - export PATH=$PATH:$VCPKG_ROOT
     - unset CUDA_SM
-    - ./script/install_conan_gcc.sh
-    - ./compile.py $PWD/local
+    - . $CONDA_ROOT/etc/profile.d/conda.sh
+    - . $CONDA_ROOT/etc/profile.d/mamba.sh
+    - mamba env create --file environment.yml
+    - mamba activate compass
+    - ./script/install_vcpkg.sh $VCPKG_ROOT
+    - ./compile_vcpkg.py
+
   when: manual
   # only:
   #  - develop
@@ -32,8 +39,12 @@ test_generic:
     SHESHA_ROOT: $COMPASS_ROOT/shesha
     NAGA_ROOT: $COMPASS_ROOT/naga
   script:
-    - export PYTHONPATH=$NAGA_ROOT:$SHESHA_ROOT:$NAGA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
-    - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
+    - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$NAGA_ROOT:$COMPASS_ROOT/local/python
+    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_ROOT/local/lib
+    - . $CONDA_ROOT/etc/profile.d/conda.sh
+    - . $CONDA_ROOT/etc/profile.d/mamba.sh
+    - mamba env create --file environment.yml
+    - mamba activate compass
     - pip install -r script/requirements.txt
     - pip install -r script/requirements-test.txt
     - $COMPASS_ROOT/shesha/tests/checkCompass.sh 
@@ -108,9 +119,13 @@ code_quality_debug_focal:
   before_script:
     - 'pip3 install ruff'
   script:
-    - export PYTHONPATH=$NAGA_ROOT:$SHESHA_ROOT:$NAGA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
-    - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$LD_LIBRARY_PATH
-    - ruff shesha > gl-code-quality-report.json
+    - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$NAGA_ROOT:$COMPASS_ROOT/local/python
+    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_ROOT/local/lib
+    - . $CONDA_ROOT/etc/profile.d/conda.sh
+    - . $CONDA_ROOT/etc/profile.d/mamba.sh
+    - mamba env create --file environment.yml
+    - mamba activate compass
+    - ruff check shesha > gl-code-quality-report.json
   when: always
   only:
     - merge_requests
@@ -223,8 +238,12 @@ pages:
     - build_debug_focal
     - test_debug_focal
   script:
-    - export PYTHONPATH=$SHESHA_ROOT:$NAGA_ROOT:$COMPASS_ROOT/local/python:$PYTHONPATH
-    - export LD_LIBRARY_PATH=$COMPASS_ROOT/local/lib:$MAGMA_ROOT/lib:$LD_LIBRARY_PATH
+    - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$NAGA_ROOT:$COMPASS_ROOT/local/python
+    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_ROOT/local/lib
+    - . $CONDA_ROOT/etc/profile.d/conda.sh
+    - . $CONDA_ROOT/etc/profile.d/mamba.sh
+    - mamba env create --file environment.yml
+    - mamba activate compass
     - pip install -r script/requirements.txt
     - pip install -r script/requirements-test.txt
     - pip install -r script/requirements-doc.txt
