@@ -69,6 +69,9 @@ class ParamConfig(object):
         Args:
             param_file: Path to the parameter file.
         """
+        from shesha.config import (ParamAtmos, ParamTel, ParamGeom, ParamWfs, ParamDm,
+                                   ParamTarget, ParamLoop, ParamCentroider, ParamController)
+        
         self._load_config_from_file(param_file)
         self.simul_name: str = self._config.simul_name
         self.p_atmos: ParamAtmos = self._config.p_atmos

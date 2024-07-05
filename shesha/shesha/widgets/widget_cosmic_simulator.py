@@ -47,14 +47,12 @@ Options:
   -i, --interactive  keep the script interactive
 """
 
-import os, sys
-import numpy as np
+import sys
 
-from rich.progress import track
 
 try:
     from PyQt5 import QtWidgets
-except ModuleNotFoundError as e:
+except ModuleNotFoundError:
     try:    
         from PySide2 import QtWidgets
     except ModuleNotFoundError as e:
@@ -65,7 +63,7 @@ from typing import Any
 from docopt import docopt
 
 from shesha.widgets.widget_base import WidgetBase
-from shesha.widgets.widget_ao import widgetAOWindow, widgetAOWindow
+from shesha.widgets.widget_ao import widgetAOWindow
 
 global server
 server = None

@@ -28,20 +28,20 @@ script = 'compile.py'
 line-length = 100
 
 # Enable Pyflakes `E` and `F` codes by default.
-select = ["E", "F"]
+lint.select = ["E", "F"]
 
 # ignore E501 Line too long
-ignore = ["E501"]
+lint.ignore = ["E501"]
 
 # Assume Python 3.11.
 target-version = "py311"
 
-[tool.ruff.flake8-quotes]
+[tool.ruff.lint.flake8-quotes]
 docstring-quotes = "double"
 
-[tool.ruff.mccabe]
+[tool.ruff.lint.mccabe]
 # Unlike Flake8, default to a complexity level of 10.
 max-complexity = 10
 
-[tool.ruff.pydocstyle]
+[tool.ruff.lint.pydocstyle]
 convention = "google"  # Accepts: "google", "numpy", or "pep257".

@@ -36,7 +36,6 @@
 #  If not, see <https://www.gnu.org/licenses/lgpl-3.0.txt>.
 
 import shesha.config.config_setter_utils as csu
-import shesha.constants as scons
 import numpy as np
 from typing import List
 

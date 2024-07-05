@@ -45,8 +45,6 @@ test_generic:
     - . $CONDA_ROOT/etc/profile.d/mamba.sh
     - mamba env create --file environment.yml
     - mamba activate compass
-    - pip install -r script/requirements.txt
-    - pip install -r script/requirements-test.txt
     - $COMPASS_ROOT/shesha/tests/checkCompass.sh 
     - $COMPASS_ROOT/doc/generate_coverage.sh
     - coverage report

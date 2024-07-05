@@ -42,6 +42,6 @@ __all__ = ['RtcCompass', 'RtcStandalone']
 
 try:
     from shesha.supervisor.components.rtc.rtcCosmic import RtcCosmic
-    __all__.append('RtcCosmic')
+    __all__ += ['RtcCosmic']
 except ImportError:
     pass
