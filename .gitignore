@@ -69,3 +69,5 @@ stubs
 doc/html/report_unit_test.html
 CMakeUserPresets.json
 CMakePresets.json
+.coverage
+report.xml
