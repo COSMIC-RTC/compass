@@ -1,28 +1,28 @@
 
 stages:
-  - build
-  - lint
-  - test
-  - pages
+- build
+- lint
+- test
+- pages
 
 build_generic:
   stage: build
   variables:
-    COMPASS_ROOT: /builds/compass/compass
-    SHESHA_ROOT: $COMPASS_ROOT/shesha
-    VCPKG_ROOT: /builds/compass/vcpkg
+    COMPASS_ROOT: "/builds/compass/compass"
+    SHESHA_ROOT: "$COMPASS_ROOT/shesha"
+    VCPKG_ROOT: "/builds/compass/vcpkg"
     COMPASS_DO_HALF: "OFF"
   script:
-    - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$COMPASS_ROOT/local/python
-    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_ROOT/local/lib
-    - export PATH=$PATH:$VCPKG_ROOT
-    - unset CUDA_SM
-    - . $CONDA_ROOT/etc/profile.d/conda.sh
-    - . $CONDA_ROOT/etc/profile.d/mamba.sh
-    - mamba env create --file environment.yml
-    - mamba activate compass
-    - ./script/install_vcpkg.sh $VCPKG_ROOT
-    - ./compile_vcpkg.py
+  - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$COMPASS_ROOT/local/python
+  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_ROOT/local/lib
+  - export PATH=$PATH:$VCPKG_ROOT
+  - unset CUDA_SM
+  - . $CONDA_ROOT/etc/profile.d/conda.sh
+  - . $CONDA_ROOT/etc/profile.d/mamba.sh
+  - mamba env create --file environment.yml
+  - mamba activate compass
+  - ./script/install_vcpkg.sh $VCPKG_ROOT
+  - ./compile_vcpkg.py
 
   when: manual
   # only:
@@ -30,31 +30,31 @@ build_generic:
   artifacts:
     name: "${CI_JOB_NAME}_binaires"
     paths:
-      - local/
+    - local/
     expire_in: 6 mos
 
 test_generic:
   variables:
-    COMPASS_ROOT: /builds/compass/compass
-    SHESHA_ROOT: $COMPASS_ROOT/shesha
-    NAGA_ROOT: $COMPASS_ROOT/naga
+    COMPASS_ROOT: "/builds/compass/compass"
+    SHESHA_ROOT: "$COMPASS_ROOT/shesha"
+    NAGA_ROOT: "$COMPASS_ROOT/naga"
   script:
-    - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$NAGA_ROOT:$COMPASS_ROOT/local/python
-    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_ROOT/local/lib
-    - . $CONDA_ROOT/etc/profile.d/conda.sh
-    - . $CONDA_ROOT/etc/profile.d/mamba.sh
-    - mamba env create --file environment.yml
-    - mamba activate compass
-    - $COMPASS_ROOT/shesha/tests/checkCompass.sh 
-    - $COMPASS_ROOT/doc/generate_coverage.sh
-    - coverage report
+  - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$NAGA_ROOT:$COMPASS_ROOT/local/python
+  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_ROOT/local/lib
+  - . $CONDA_ROOT/etc/profile.d/conda.sh
+  - . $CONDA_ROOT/etc/profile.d/mamba.sh
+  - mamba env create --file environment.yml
+  - mamba activate compass
+  - $COMPASS_ROOT/shesha/tests/checkCompass.sh 
+  - $COMPASS_ROOT/doc/generate_coverage.sh
+  - coverage report
   coverage: '/^TOTAL.*\s+(\d+\%)$/'
   artifacts:
     name: "${CI_PROJECT_NAME}_coverage"
     paths:
-      - .coverage
-      - report.xml
-      - report_E2E.md
+    - .coverage
+    - report.xml
+    - report_E2E.md
     reports:
       junit: report.xml
     expire_in: 6 mos
@@ -66,9 +66,9 @@ build_release_focal:
   extends: build_generic
   when: always
   only:
-    - main
-    - rc
-    - tags
+  - main
+  - rc
+  - tags
 
 build_debug_focal:
   image: aocompass/base-20.04:11.8.0
@@ -77,57 +77,57 @@ build_debug_focal:
     COMPASS_DEBUG: "Debug"
   when: always
   only:
-    - merge_requests
-    - develop
+  - merge_requests
+  - develop
   artifacts:
     paths:
-      - local/
+    - local/
     expire_in: 6 mos
 
 test_release_focal:
   image: aocompass/base-20.04:11.8.0
   extends: test_generic
   dependencies:
-    - build_release_focal
+  - build_release_focal
   when: always
   only:
-    - main
-    - rc
-    - tags
+  - main
+  - rc
+  - tags
 
 test_debug_focal:
   image: aocompass/base-20.04:11.8.0
   extends: test_generic
   dependencies:
-    - build_debug_focal
+  - build_debug_focal
   when: always
   only:
-    - merge_requests
-    - develop
+  - merge_requests
+  - develop
 
 code_quality_debug_focal:
   stage: lint
   image: aocompass/base-20.04:11.8.0
   dependencies:
-    - build_debug_focal
+  - build_debug_focal
   variables:
-    COMPASS_ROOT: /builds/compass/compass
-    SHESHA_ROOT: $COMPASS_ROOT/shesha
+    COMPASS_ROOT: "/builds/compass/compass"
+    SHESHA_ROOT: "$COMPASS_ROOT/shesha"
     COMPASS_DO_HALF: "OFF"
   before_script:
-    - 'pip3 install ruff'
+  - 'pip3 install ruff'
   script:
-    - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$NAGA_ROOT:$COMPASS_ROOT/local/python
-    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_ROOT/local/lib
-    - . $CONDA_ROOT/etc/profile.d/conda.sh
-    - . $CONDA_ROOT/etc/profile.d/mamba.sh
-    - mamba env create --file environment.yml
-    - mamba activate compass
-    - ruff check shesha > gl-code-quality-report.json
+  - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$NAGA_ROOT:$COMPASS_ROOT/local/python
+  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_ROOT/local/lib
+  - . $CONDA_ROOT/etc/profile.d/conda.sh
+  - . $CONDA_ROOT/etc/profile.d/mamba.sh
+  - mamba env create --file environment.yml
+  - mamba activate compass
+  - ruff check shesha > gl-code-quality-report.json
   when: always
   only:
-    - merge_requests
-    - develop
+  - merge_requests
+  - develop
   artifacts:
     name: "${CI_PROJECT_NAME}_code_quality"
     when: always
@@ -140,9 +140,9 @@ build_release_jammy:
   extends: build_generic
   when: always
   only:
-    - main
-    - rc
-    - tags
+  - main
+  - rc
+  - tags
 
 build_debug_jammy:
   image: aocompass/base-22.04:11.8.0
@@ -151,33 +151,33 @@ build_debug_jammy:
     COMPASS_DEBUG: "Debug"
   when: always
   only:
-    - merge_requests
-    - develop
+  - merge_requests
+  - develop
   artifacts:
     paths:
-      - local/
+    - local/
     expire_in: 6 mos
 
 test_release_jammy:
   image: aocompass/base-22.04:11.8.0
   extends: test_generic
   dependencies:
-    - build_release_jammy
+  - build_release_jammy
   when: always
   only:
-    - main
-    - rc
-    - tags
+  - main
+  - rc
+  - tags
 
 test_debug_jammy:
   image: aocompass/base-22.04:11.8.0
   extends: test_generic
   dependencies:
-    - build_debug_jammy
+  - build_debug_jammy
   when: always
   only:
-    - merge_requests
-    - develop
+  - merge_requests
+  - develop
 
 
 
@@ -186,9 +186,9 @@ build_release_rockylinux8:
   extends: build_generic
   when: always
   only:
-    - main
-    - rc
-    - tags
+  - main
+  - rc
+  - tags
 
 build_debug_rockylinux8:
   image: aocompass/base-rockylinux8:11.8.0
@@ -197,64 +197,64 @@ build_debug_rockylinux8:
     COMPASS_DEBUG: "Debug"
   when: always
   only:
-    - merge_requests
-    - develop
+  - merge_requests
+  - develop
   artifacts:
     paths:
-      - local/
+    - local/
     expire_in: 6 mos
 
 test_release_rockylinux8:
   image: aocompass/base-rockylinux8:11.8.0
   extends: test_generic
   dependencies:
-    - build_release_rockylinux8
+  - build_release_rockylinux8
   when: always
   only:
-    - main
-    - rc
-    - tags
+  - main
+  - rc
+  - tags
 
 test_debug_rockylinux8:
   image: aocompass/base-rockylinux8:11.8.0
   extends: test_generic
   dependencies:
-    - build_debug_rockylinux8
+  - build_debug_rockylinux8
   when: always
   only:
-    - merge_requests
-    - develop
+  - merge_requests
+  - develop
 
 pages:
   image: aocompass/base-20.04:11.8.0
   stage: pages
   variables:
-    COMPASS_ROOT: /builds/compass/compass
-    SHESHA_ROOT: $COMPASS_ROOT/shesha
-    NAGA_ROOT: $COMPASS_ROOT/naga
+    COMPASS_ROOT: "/builds/compass/compass"
+    SHESHA_ROOT: "$COMPASS_ROOT/shesha"
+    NAGA_ROOT: "$COMPASS_ROOT/naga"
   dependencies:
-    - build_debug_focal
-    - test_debug_focal
+  - build_debug_focal
+  - test_debug_focal
   script:
-    - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$NAGA_ROOT:$COMPASS_ROOT/local/python
-    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_ROOT/local/lib
-    - . $CONDA_ROOT/etc/profile.d/conda.sh
-    - . $CONDA_ROOT/etc/profile.d/mamba.sh
-    - mamba env create --file environment.yml
-    - mamba activate compass
-    - pip install -r script/requirements.txt
-    - pip install -r script/requirements-test.txt
-    - pip install -r script/requirements-doc.txt
-    - $COMPASS_ROOT/doc/py_filter_install.sh
-    - $COMPASS_ROOT/doc/generate_stubs.sh
-    - $COMPASS_ROOT/doc/generate_reports.sh
-    - $COMPASS_ROOT/doc/correctDoxygen_gitlab.sh
+  - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$NAGA_ROOT:$COMPASS_ROOT/local/python
+  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_ROOT/local/lib
+  - . $CONDA_ROOT/etc/profile.d/conda.sh
+  - . $CONDA_ROOT/etc/profile.d/mamba.sh
+  - mamba env create --file environment.yml
+  - mamba activate compass
+  - pip install -r script/requirements.txt
+  - pip install -r script/requirements-test.txt
+  - pip install -r script/requirements-doc.txt
+  - $COMPASS_ROOT/doc/py_filter_install.sh
+  - $COMPASS_ROOT/doc/generate_stubs.sh
+  - $COMPASS_ROOT/doc/generate_reports.sh
+  - $COMPASS_ROOT/doc/correctDoxygen_gitlab.sh
   artifacts:
     paths:
     - public
   when: always  # manual / always
   only:
-    - develop
+  - develop
 
 # pages:
 #   stage: deploy
@@ -274,3 +274,7 @@ pages:
 #   only:
 #     - develop
 
+sast:
+  stage: test
+include:
+- template: Security/SAST.gitlab-ci.yml
