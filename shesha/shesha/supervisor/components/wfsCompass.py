@@ -72,8 +72,8 @@ class WfsCompass(SourceCompass):
         self.sources = [wfs.d_gs for wfs in self._wfs.d_wfs]
 
     def get_wfs_image(self, wfs_index : int) -> np.ndarray:
-        """ Get an image from the WFS (wfs[0] by default), or from the centroider handling the WFS
-        to get the calibrated image
+        """ Get an image from the WFS or from the centroider handling the WFS to get the
+        calibrated image
 
         Args:
             wfs_index : (int) : index of the WFS (or the centroider) to request an image
@@ -87,7 +87,7 @@ class WfsCompass(SourceCompass):
             return np.array(self._wfs.d_wfs[wfs_index].d_binimg)
 
     def set_wfs_image(self, wfs_index : int, img: np.ndarray):
-        """ Set an image in the WFS (wfs[0] by default)
+        """ Set an image in the WFS
         Args:
             wfs_index : (int) : index of the WFS (or the centroider) to request an image
             img: (np.ndarray) : Image to set
