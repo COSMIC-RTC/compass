@@ -651,7 +651,6 @@ def configFromH5(filename, config):
             config.p_controllers[i].set_gmax(f.attrs.get("gmax")[i])
             config.p_controllers[i].set_ngain(f.attrs.get("ngain")[i])
             config.p_controllers[i].set_TTcond(f.attrs.get("TTcond")[i])
-            config.p_controllers[i].set_cured_ndivs(f.attrs.get("cured_ndivs")[i])
         config.p_rtc.set_controllers(config.p_controllers)
 
     config.p_rtc.set_nwfs(f.attrs.get("nwfs"))

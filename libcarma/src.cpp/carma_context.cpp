@@ -24,12 +24,6 @@
 #include "carma_cusparse.hpp"
 #include "carma_cusolver.hpp"
 
-#ifdef USE_MAGMA
-// MAGMA headers
-#include "magma.h"
-#include "magma_lapack.h"
-#endif  // USE_MAGMA
-
 CarmaDevice::CarmaDevice(int32_t devid) {
   carma_safe_call(cudaSetDevice(devid));
 
@@ -174,7 +168,7 @@ void CarmaContext::init_context(const int32_t nb_devices, const int32_t *devices
     current_device++;
   }
 
-  can_access_peer = new int32_t *[this->ndevice];
+  can_access_peer = new int32_t*[this->ndevice];
 
   for (int32_t i = 0; i < ndevice; i++) {
     can_access_peer[i] = new int32_t[this->ndevice];
@@ -224,21 +218,6 @@ void CarmaContext::init_context(const int32_t nb_devices, const int32_t *devices
   this->active_device =
       set_active_device_force(0, 1);  // get_max_gflops_device_id(), 1);
 
-#ifdef USE_MAGMA
-
-// MAGMA init
-#ifdef USE_MAGMA_PATCHED
-  magma_init(nb_devices, devices_id);
-#else   // ifdef USE_MAGMA_PATCHED
-  magma_init();
-#endif  // USE_MAGMA_PATCHED
-
-#if DEBUG
-
-//  magma_print_environment();
-#endif  // DEBUG
-#endif  // USE_MAGMA
-
 #if DEBUG
   printf("CARMA Context created @ %p\n", this);
 #endif  // DEBUG
@@ -246,12 +225,6 @@ void CarmaContext::init_context(const int32_t nb_devices, const int32_t *devices
 
 CarmaContext::~CarmaContext() {
   carma_safe_call(cudaDeviceSynchronize());
-
-#ifdef USE_MAGMA
-
-  // MAGMA finalize
-  magma_finalize();
-#endif  // USE_MAGMA
 
   size_t idx = 0;
 
@@ -375,20 +348,4 @@ int32_t CarmaContext::get_max_gflops_device_id() {
     --current_device;
   }
   return max_perf_device;
-}
-
-std::string CarmaContext::magma_info() {
-  std::ostringstream stream;
-#ifdef USE_MAGMA
-  magma_int_t major, minor, micro;
-  magma_version(&major, &minor, &micro);
-
-  stream << "MAGMA " << (int64_t)major << "." << (int64_t)minor << "."
-         << (int64_t)micro << ", " << (int64_t)(8 * sizeof(magma_int_t))
-         << "-bit magma_int_t, " << (int64_t)(8 * sizeof(void *))
-         << "-bit pointer.";
-#else   // ifdef USE_MAGMA
-  stream << "MAGMA not used";
-#endif  // USE_MAGMA
-  return stream.str();
 }

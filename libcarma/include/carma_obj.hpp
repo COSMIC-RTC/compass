@@ -18,6 +18,7 @@
 #define _CARMA_OBJ_H_
 
 #include <carma_context.hpp>
+#include <carma_cublas.hpp>
 #include <carma_streams.hpp>
 #include <carma_utils.hpp>
 #include <curand.h>
@@ -357,6 +358,7 @@ class CarmaObj {
   int32_t prng_host(char gtype, T_data stddev, T_data alpha);
   int32_t destroy_prng_host();
 };
+
 typedef CarmaObj<int32_t> CarmaObjI;
 typedef CarmaObj<uint32_t> CarmaObjUI;
 typedef CarmaObj<uint16_t> CarmaObjUSI;

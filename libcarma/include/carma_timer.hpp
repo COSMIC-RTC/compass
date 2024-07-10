@@ -76,7 +76,7 @@ class CarmaClock {
     int64_t dims[2] = {1, i};
     time_buffer = new CarmaObj<double>(context, dims);
     cc = 0;
-    cudaMalloc(&clock_counter, sizeof(int64_t));
+    cudaMalloc((void**)&clock_counter, sizeof(int64_t));
   }
 
   ~CarmaClock() {
@@ -92,4 +92,5 @@ class CarmaClock {
     if (cc >= time_buffer->get_nb_elements()) cc = 0;
   }
 };
+
 #endif  // CARMA_TIMER_H_

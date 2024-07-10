@@ -352,7 +352,7 @@ void controller_impl(py::module &mod, const char *name)
         nElem: (int): Number of elements in com
         )pbdoc",
              py::arg("com"), py::arg("nElem"));
-};
+}
 
 void declare_controller(py::module &mod)
 {

@@ -152,8 +152,6 @@ class CarmaContext {
     return devices[device]->get_cusparse_handle();
   }
   bool can_p2p(int32_t dev1, int32_t dev2) { return can_access_peer[dev1][dev2]; }
-
-  std::string magma_info();
 };
 
 /// from /usr/local/cuda/samples/common/inc/helper_cuda.h

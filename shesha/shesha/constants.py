@@ -109,7 +109,6 @@ class ControllerType:
     GENERIC_LINEAR = 'generic_linear'
     LS = 'ls'
     MV = 'mv'
-    CURED = 'cured'
     GEO = 'geo'
 
 

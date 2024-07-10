@@ -44,7 +44,6 @@ with 'parameters_filename' the path to the parameters file
 
 Options:
   -h --help          Show this help message and exit
-  --brahma            Distribute data with brahma
   -d, --devices devices      Specify the devices
   -i, --interactive  keep the script interactive
 """
@@ -81,12 +80,11 @@ BenchWindowTemplate, BenchClassTemplate = uiLoader('widget_bench')
 
 class widgetBenchWindow(BenchClassTemplate, WidgetBase):
 
-    def __init__(self, config_file: Any = None, brahma: bool = False,
+    def __init__(self, config_file: Any = None,
                  devices: str = None) -> None:
         WidgetBase.__init__(self)
         BenchClassTemplate.__init__(self)
 
-        self.brahma = brahma
         self.devices = devices
 
         self.uiBench = BenchWindowTemplate()
@@ -164,7 +162,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
         config_file = str(self.uiBase.wao_selectConfig.currentText())
         sys.path.insert(0, self.defaultParPath)
 
-        self.supervisor = Supervisor(config_file, self.brahma)
+        self.supervisor = Supervisor(config_file)
 
         self.config = self.supervisor.get_config()
 
@@ -339,7 +337,7 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     app.setStyle('cleanlooks')
     wao = widgetBenchWindow(arguments["<parameters_filename>"],
-                            brahma=arguments["--brahma"], devices=arguments["--devices"])
+                            devices=arguments["--devices"])
     wao.show()
     if arguments["--interactive"]:
         from shesha.util.ipython_embed import embed

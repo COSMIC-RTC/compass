@@ -186,10 +186,6 @@ SutraRtc<Tin, T, Tout>::add_controller_impl(
     d_control.push_back(new SutraControllerMv<T, Tout>(
         context, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro,
         ncentro));
-  } else if (typec.compare("cured") == 0) {
-    d_control.push_back(new SutraControllerCured<T, Tout>(
-        context, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro,
-        ncentro));
   } else if (typec.compare("generic") == 0) {
     d_control.push_back(new SutraControllerGeneric<T, Tout>(
         context, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro,

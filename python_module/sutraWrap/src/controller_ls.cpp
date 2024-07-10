@@ -151,11 +151,13 @@ void controller_ls_impl(py::module &mod, const char *name) {
       //  ██║╚██╔╝██║██╔══╝     ██║   ██╔══██║██║   ██║██║  ██║╚════██║
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
+
       .def("svdec_imat", &controller_ls::svdec_imat,
            "Performs interaction matrix SVD")
 
-      .def("build_cmat",
-           (int32_t (controller_ls::*)(int32_t)) &controller_ls::build_cmat,
+      .def("build_cmat", [](controller_ls &sc, int nfilt) { 
+            return sc.build_cmat(nfilt); 
+        },
            R"pbdoc(
     Computes the command matrix after imat SVD
 

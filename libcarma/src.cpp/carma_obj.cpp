@@ -14,7 +14,6 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <carma_magma.hpp>
 #include <carma_obj.hpp>
 #include <cstdlib> /* required for randomize() and random() */
 
@@ -148,7 +147,7 @@ CarmaObj<T_data>::~CarmaObj() {
   this->d_data = nullptr;
 
   if (dims_data) {
-    delete[](this->dims_data);
+    delete [](this->dims_data);
     this->dims_data = nullptr;
   }
   if(d_num_valid) {

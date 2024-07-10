@@ -65,7 +65,7 @@ class TargetCompass(SourceCompass):
         print("->target init")
         self._target = target_init(self._context, tel._tel, self._config.p_targets,
                                    self._config.p_atmos, self._config.p_tel,
-                                   self._config.p_geom, self._config.p_dms, brahma=False)
+                                   self._config.p_geom, self._config.p_dms)
         self.sources = self._target.d_targets
 
     def get_tar_image(self, tar_index : int, *, expo_type: str = "se") -> np.ndarray:

@@ -59,7 +59,6 @@ class ParamController:
         delay (float): loop delay [frames]
         gain (float): loop gain
         nkl (int): number of KL modes used in imat_kl and used for computation of covmat in case of minimum variance controller
-        cured_ndivs (int): subdivision levels in cured
         modopti (bool): Flag for modal optimization
         nrec (int): Number of sample of open loop slopes for modal optimization computation
         nmodes (int): Number of modes for M2V matrix (modal optimization)
@@ -103,7 +102,6 @@ class ParamController:
         self.__delay = None  # loop delay [frames]
         self.__gain = None  # loop gain
         self.__nkl = None  # number of KL modes used in imat_kl and used for computation of covmat in case of minimum variance controller
-        self.__cured_ndivs = None  # subdivision levels in cured
 
         """ MODAL OPTIMIZATION (style Gendron Lena 1994)"""
         self.__modopti = False  # Flag for modal optimization
@@ -467,24 +465,6 @@ class ParamController:
         self.__gain = csu.enforce_float(gain)
 
     gain: float = property(get_gain, set_gain)
-
-    def get_cured_ndivs(self) -> int:
-        """Get the subdivision levels in cured.
-
-        Returns:
-            int: The subdivision levels in cured.
-        """
-        return self.__cured_ndivs
-
-    def set_cured_ndivs(self, ndivs: int) -> None:
-        """Set the subdivision levels in cured.
-
-        Args:
-            ndivs (int): The subdivision levels in cured.
-        """
-        self.__cured_ndivs = csu.enforce_int(ndivs)
-
-    cured_ndivs: int = property(get_cured_ndivs, set_cured_ndivs)
 
     def get_modopti(self) -> bool:
         """Get the flag for modal optimization.

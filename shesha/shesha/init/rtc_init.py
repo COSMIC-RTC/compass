@@ -46,7 +46,7 @@ from shesha.init import dm_init
 from typing import List
 
 import numpy as np
-from shesha.sutra_wrap import (carmaWrap_context, Sensors, Dms, Rtc_brahma,
+from shesha.sutra_wrap import (carmaWrap_context, Sensors, Dms,
                                Rtc_cacao_FFF, Atmos, Telescope)
 from shesha.sutra_wrap import Rtc_FFF as Rtc
 
@@ -54,7 +54,7 @@ from shesha.sutra_wrap import Rtc_FFF as Rtc
 def rtc_init(context: carmaWrap_context, tel: Telescope, wfs: Sensors, dms: Dms,
              atmos: Atmos, p_wfss: list, p_tel: conf.ParamTel, p_geom: conf.ParamGeom,
              p_atmos: conf.ParamAtmos, ittime: float, p_centroiders=None,
-             p_controllers=None, p_dms=None, do_refslp=False, brahma=False, cacao=False,
+             p_controllers=None, p_dms=None, do_refslp=False, cacao=False,
              tar=None, dataBase={}, use_DB=False):
     """Initialize all the SutraRtc objects : centroiders and controllers
 
@@ -88,8 +88,6 @@ def rtc_init(context: carmaWrap_context, tel: Telescope, wfs: Sensors, dms: Dms,
 
         do_refslp : (bool): do ref slopes flag, default=False
 
-        brahma: (bool) : brahma flag
-
         cacao: (bool) : cacao flag
 
         tar: (Target) : Target object
@@ -103,9 +101,7 @@ def rtc_init(context: carmaWrap_context, tel: Telescope, wfs: Sensors, dms: Dms,
     """
     # initialisation var
     # ________________________________________________
-    if brahma:
-        rtc = Rtc_brahma(context, wfs, tar, "rtc_brahma")
-    elif cacao:
+    if cacao:
         rtc = Rtc_cacao_FFF(p_controllers[0].calpix_name, p_controllers[0].loopdata_name)
     else:
         rtc = Rtc()
@@ -174,7 +170,7 @@ def rtc_init(context: carmaWrap_context, tel: Telescope, wfs: Sensors, dms: Dms,
 
 def rtc_standalone(context: carmaWrap_context, nwfs: int, nvalid: list, nactu: int,
                    centroider_type: list, delay: list, offset: list, scale: list,
-                   brahma: bool = False, fp16: bool = False, cacao: bool = False) -> Rtc:
+                   fp16: bool = False, cacao: bool = False) -> Rtc:
     """Initialize all the SutraRtc objects : centroiders and controllers
 
     Args:
@@ -195,8 +191,6 @@ def rtc_standalone(context: carmaWrap_context, nwfs: int, nvalid: list, nactu: i
         scale: (list): scale factor used in the cog computation of each WFS
 
     Kwargs:
-        brahma: (bool) : brahma flag (default=False)
-
         fp16: (bool) : fp16 flag (default=False)
 
         cacao: (bool) : cacao flag (default=False)
@@ -205,9 +199,7 @@ def rtc_standalone(context: carmaWrap_context, nwfs: int, nvalid: list, nactu: i
         Rtc : (Rtc) : Rtc object
     """
     print("start rtc_standalone")
-    if brahma:
-        rtc = Rtc_brahma(context, None, None, "rtc_brahma")
-    elif cacao:
+    if cacao:
         if fp16:
             from shesha.sutra_wrap import Rtc_cacao_FHF
             rtc = Rtc_cacao_FHF("compass_calPix", "compass_loopData")
@@ -475,15 +467,12 @@ def init_controller(context, i: int, p_controller: conf.ParamController, p_wfss:
     if (p_controller.type == scons.ControllerType.GEO):
         init_controller_geo(i, rtc, dms, p_geom, p_controller, p_dms)
 
-    if (p_controller.type == scons.ControllerType.LS):
+    elif (p_controller.type == scons.ControllerType.LS):
         init_controller_ls(i, p_controller, p_wfss, p_geom, p_dms, p_atmos, ittime,
                            p_tel, rtc, dms, wfs, tel, atmos, dataBase=dataBase,
                            use_DB=use_DB)
 
-    if (p_controller.type == scons.ControllerType.CURED):
-        init_controller_cured(i, rtc, p_controller, p_dms, p_wfss)
-
-    if (p_controller.type == scons.ControllerType.MV):
+    elif (p_controller.type == scons.ControllerType.MV):
         init_controller_mv(i, p_controller, p_wfss, p_geom, p_dms, p_atmos, p_tel, rtc,
                            dms, wfs, atmos)
 
@@ -495,6 +484,11 @@ def init_controller(context, i: int, p_controller: conf.ParamController, p_wfss:
         except BaseException:
             print("p_controller._imat not set")
 
+    elif (p_controller.type == scons.ControllerType.GENERIC_LINEAR):
+        ...  # Use configure_generic_linear before calling add_controller, is it necessary to do something here?
+
+    else:
+        raise ValueError("Controller type not recognized")
 
 def init_controller_geo(i: int, rtc: Rtc, dms: Dms, p_geom: conf.ParamGeom,
                         p_controller: conf.ParamController, p_dms: list, roket=False):
@@ -616,32 +610,6 @@ def init_controller_ls(i: int, p_controller: conf.ParamController, p_wfss: list,
             mgain[cc:cc + ndm._ntotact] = ndm.gain
             cc += ndm._ntotact
         rtc.d_control[i].set_modal_gains(mgain)
-
-
-def init_controller_cured(i: int, rtc: Rtc, p_controller: conf.ParamController,
-                          p_dms: list, p_wfss: list):
-    """ Initialize the CURED controller
-
-    Args:
-        i : (int) : controller index
-
-        rtc: (Rtc) : Rtc objet
-
-        p_controller: (ParamController) : controller settings
-
-        p_dms: (list of ParamDms) : dms settings
-
-        p_wfss: (list of ParamWfs) : wfs settings
-    """
-
-    print("initializing cured controller")
-    if (scons.DmType.TT in [p_dms[j].type for j in range(len(p_dms))]):
-        tt_flag = True
-    else:
-        tt_flag = False
-    rtc.d_control[i].init_cured(p_wfss[0].nxsub, p_wfss[0]._isvalid,
-                                p_controller.cured_ndivs, tt_flag)
-    rtc.d_control[i].set_gain(p_controller.gain)
 
 
 def init_controller_mv(i: int, p_controller: conf.ParamController, p_wfss: list,

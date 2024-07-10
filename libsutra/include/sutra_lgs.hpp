@@ -17,6 +17,7 @@
 #ifndef _SUTRA_LGS_H_
 #define _SUTRA_LGS_H_
 
+#include <map>
 #include <carma.hpp>
 #include <carma_obj.hpp>
 #include <sutra_utils.hpp>

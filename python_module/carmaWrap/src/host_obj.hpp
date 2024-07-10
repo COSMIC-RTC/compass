@@ -93,55 +93,6 @@ struct CarmaHostObjInterfacer {
                                "TODO") // TODO do the documentation...
     ;
 
-#ifdef USE_MAGMA
-    // MAGMA functions
-
-    // template<class T>
-    // int carma_svd(CarmaObj<T> *imat, CarmaObj<T> *eigenvals,
-    //               CarmaObj<T> *mod2act, CarmaObj<T> *mes2mod);
-    mod.def(appendName<T>("magma_svd_cpu_").data(), py::overload_cast<Class *,
-                  Class *, Class *, Class *>(&carma_magma_svd_cpu<T>));
-
-    // TODO after CarmaHostObj
-    // template<class T>
-    // int carma_magma_syevd(char jobz, CarmaObj<T> *mat, CarmaHostObj<T>
-    // *eigenvals);
-    // mod.def(appendName<T>("syevd_").data(), &carma_magma_syevd<T>);
-    mod.def(appendName<T>("magma_syevd_cpu_").data(), py::overload_cast<char, Class *, Class *>(&carma_magma_syevd_cpu<T>));
-
-    // template<class T, int method>
-    // int carma_magma_syevd(char jobz, CarmaObj<T> *mat, CarmaHostObj<T>
-    // *eigenvals); template<class T> int carma_magma_syevd_m(long ngpu, char jobz,
-    // long N, T *mat, T *eigenvals); template<class T> int carma_magma_syevd_m(long
-    // ngpu, char jobz, CarmaHostObj<T> *mat,
-    //                   CarmaHostObj<T> *eigenvals);
-    // template<class T>
-    // int carma_magma_syevd_m(long ngpu, char jobz, CarmaHostObj<T> *mat,
-    //                   CarmaHostObj<T> *eigenvals, CarmaHostObj<T> *U);
-    // template<class T>
-    // int carma_magma_getri(CarmaObj<T> *d_iA);
-    mod.def(appendName<T>("magma_getri_cpu_").data(), py::overload_cast<Class *>(&carma_magma_getri_cpu<T>));
-
-    // template<class T>
-    // int carma_magma_potr_inv(CarmaObj<T> *d_iA);
-    mod.def(appendName<T>("magma_potri_cpu_").data(), py::overload_cast<Class *>(&carma_magma_potr_inv_cpu<T>));
-
-    // TODO after CarmaHostObj
-    // template<class T>
-    // int carma_magma_potr_inv_m(long num_gpus, CarmaHostObj<T> *h_A, CarmaObj<T>
-    // *d_iA);
-
-    // MAGMA functions (direct access)
-    // template<class T>
-    // int carma_magma_syevd(char jobz, long N, T *mat, T *eigenvals);
-    // template<class T, int method>
-    // int carma_magma_syevd(char jobz, long N, T *mat, T *eigenvals);
-    // template<class T>
-    // int carma_magma_syevd_m(long ngpu, char jobz, long N, T *mat, T *eigenvals);
-    // template<class T>
-    // int carma_magma_potr_inv_m(long num_gpus, long N, T *h_A, T *d_iA);
-#endif
-
   }
 };
 #endif

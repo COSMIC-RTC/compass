@@ -138,4 +138,4 @@ void declare_wfs_sh(py::module &mod) {
         nElem: (int): Number of elements in bincube
       )pbdoc",
            py::arg("bincube"), py::arg("nElem"));
-};
+}

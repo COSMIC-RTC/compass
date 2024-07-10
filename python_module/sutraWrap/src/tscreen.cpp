@@ -157,4 +157,4 @@ void declare_turbu_screen(py::module &mod) {
       )pbdoc",
           py::arg("stencil"))
 ;
-};
+}

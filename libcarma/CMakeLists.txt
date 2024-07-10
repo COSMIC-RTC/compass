@@ -5,9 +5,9 @@ project(carma VERSION ${VERSION_INFO} DESCRIPTION "COMPASS CARMA lirary" LANGUAG
 find_package(PkgConfig REQUIRED)
 find_package(CUDAToolkit REQUIRED)
 
-pkg_check_modules(MAGMA   IMPORTED_TARGET magma)
 pkg_check_modules(OCTOPUS IMPORTED_TARGET octopus)
 link_directories(${OCTOPUS_LIBRARY_DIRS})
+
 add_library(carma
     src.cpp/carma_context.cpp
     src.cpp/carma_cublas.cpp
@@ -16,10 +16,6 @@ add_library(carma
     src.cpp/carma_fft.cpp
     # src.cpp/carma_fft_conv.cpp
     src.cpp/carma_host_obj.cpp
-    src.cpp/carma_ipcs.cpp
-    src.cpp/carma_ksparse.cpp
-    src.cpp/carma_magma.cpp
-    src.cpp/carma_multithread.cpp
     src.cpp/carma_sparse_host_obj.cpp
     src.cpp/carma_sparse_obj.cpp
     src.cpp/carma_streams.cpp
@@ -79,14 +75,6 @@ if(${OCTOPUS_FOUND})
 else()
   message(STATUS "OCTOPUS_ROOT not found, CACAO features disabled")
 endif()
-
-if(${MAGMA_FOUND})
-    target_link_libraries(carma PUBLIC PkgConfig::MAGMA)
-    target_compile_definitions(carma PUBLIC $<$<COMPILE_LANGUAGE:CXX>:USE_MAGMA=1>)
-else()
-    message(STATUS "MAGMA not found, MAGMA features disabled")
-endif()
-
 
 if(do_half)
     message(STATUS "COMPASS half precision enabled")

@@ -29,7 +29,6 @@
 #include <sutra_controller_geo.hpp>
 #include <sutra_controller_ls.hpp>
 #include <sutra_controller_mv.hpp>
-#include <sutra_controller_cured.hpp>
 
 template <typename Tin, typename Tcomp, typename Tout>
 class SutraRtc {

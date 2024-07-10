@@ -40,12 +40,12 @@ import shesha.config as conf
 from shesha.constants import CONST
 
 import numpy as np
-from shesha.sutra_wrap import carmaWrap_context, Target, Target_brahma, Telescope
+from shesha.sutra_wrap import carmaWrap_context, Target, Telescope
 
 
 def target_init(ctxt: carmaWrap_context, telescope: Telescope, p_targets: list,
                 p_atmos: conf.ParamAtmos, p_tel: conf.ParamTel,
-                p_geom: conf.ParamGeom, dm=None, brahma=False):
+                p_geom: conf.ParamGeom, dm=None):
     """Create a cython target from parametres structures
 
     Args:
@@ -56,7 +56,6 @@ def target_init(ctxt: carmaWrap_context, telescope: Telescope, p_targets: list,
         p_tel: (ParamTel) : telescope settings
         p_geom: (ParamGeom) : geom settings
         dm: (ParamDm) : (optional) dm settings
-        brahma: (bool): (optional) brahma flag
     :return:
         tar: (Target): Target object
     """
@@ -88,12 +87,8 @@ def target_init(ctxt: carmaWrap_context, telescope: Telescope, p_targets: list,
     mag = np.array([p_target.mag for p_target in p_targets], dtype=np.float32)
     zerop = p_targets[0].zerop
 
-    if (brahma):
-        target = Target_brahma(ctxt, "target_brahma", telescope, 0, len(p_targets), xpos,
-                               ypos, Lambda, mag, zerop, sizes, Npts, ctxt.active_device)
-    else:
-        target = Target(ctxt, telescope, len(p_targets), xpos, ypos, Lambda, mag, zerop,
-                        sizes, Npts, ctxt.active_device)
+    target = Target(ctxt, telescope, len(p_targets), xpos, ypos, Lambda, mag, zerop,
+                    sizes, Npts, ctxt.active_device)
 
     # cc=i
     for i in range(len(p_targets)):

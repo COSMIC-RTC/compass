@@ -45,7 +45,7 @@ class RtcStandalone(RtcAbstract):
 
     def __init__(self, context: carmaWrap_context, config, nwfs: int, nvalid: list,
                  nactu: int, centroider_type: list, delay: list, offset: list,
-                 scale: list, *, brahma: bool = False, fp16: bool = False,
+                 scale: list, *, fp16: bool = False,
                  cacao: bool = False):
         """ Initialize a RtcStandalone component for rtc related supervision
 
@@ -69,16 +69,13 @@ class RtcStandalone(RtcAbstract):
             scale: (list): scale factor used in the cog computation of each WFS
 
         Kwargs:
-            brahma : (bool, optional) : If True, enables BRAHMA features in RTC (Default is False)
-                                      Requires BRAHMA to be installed
-
             fp16 : (bool, optional) : If True, enables FP16 features in RTC (Default is False)
                                       Requires CUDA_SM>60 to be installed
 
             cacao : (bool) : If True, enables CACAO features in RTC (Default is False)
                                       Requires OCTOPUS to be installed
         """
-        RtcAbstract.__init__(self, context, config, brahma=brahma, fp16=fp16,
+        RtcAbstract.__init__(self, context, config, fp16=fp16,
                              cacao=cacao)
 
         self.rtc_init(nwfs, nvalid, nactu, centroider_type, delay, offset, scale)
@@ -103,5 +100,5 @@ class RtcStandalone(RtcAbstract):
             scale: (list): scale factor used in the cog computation of each WFS
         """
         self._rtc = rtc_standalone(self._context, nwfs, nvalid, nactu, centroider_type,
-                                   delay, offset, scale, brahma=self.brahma,
+                                   delay, offset, scale,
                                    fp16=self.fp16, cacao=self.cacao)

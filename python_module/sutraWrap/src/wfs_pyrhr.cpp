@@ -302,4 +302,4 @@ void declare_wfs_pyrhr(py::module &mod)
            py::arg("dim"))
 
       ;
-};
+}

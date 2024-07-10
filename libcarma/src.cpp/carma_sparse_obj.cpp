@@ -83,9 +83,6 @@ void CarmaSparseObj<T_data>::init_carma_sparse_obj(
                                       CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
                                       CUSPARSE_INDEX_BASE_ZERO, this->get_data_type()));
 #endif
-#ifndef USE_MAGMA_SPARSE
-  d_sparse_mat = s_sparse_mat = 0L;
-#endif
 
   cudaFree(nnzPerRow);
   if (load_from_host) {
@@ -296,9 +293,6 @@ CarmaSparseObj<T_data>::CarmaSparseObj(CarmaSparseObj<T_data> *M) {
   major_dim = M->major_dim;
   format = M->format;
 
-  d_sparse_mat = M->d_sparse_mat;
-  s_sparse_mat = M->s_sparse_mat;
-
   cusparseSetMatDiagType(descr, cusparseGetMatDiagType(M->descr));
   cusparseSetMatFillMode(descr, cusparseGetMatFillMode(M->descr));
   cusparseSetMatIndexBase(descr, cusparseGetMatIndexBase(M->descr));
@@ -349,9 +343,6 @@ void CarmaSparseObj<T_data>::operator=(CarmaSparseObj<T_data> &M) {
 
   major_dim = M.major_dim;
   this->format = M.format;
-
-  d_sparse_mat = M.d_sparse_mat;
-  s_sparse_mat = M.s_sparse_mat;
 
   cusparseSetMatDiagType(descr, cusparseGetMatDiagType(M.descr));
   cusparseSetMatFillMode(descr, cusparseGetMatFillMode(M.descr));
@@ -524,9 +515,6 @@ void CarmaSparseObj<T_data>::transpose() {
   cudaFree(csc_cols);
   cudaFree(d_buffer);
 
-  d_sparse_mat = this->d_sparse_mat;
-  s_sparse_mat = this->s_sparse_mat;
-
   if (this->major_dim == 'C')
     major_dim = 'R';
   else if (this->major_dim == 'R')
@@ -574,9 +562,6 @@ bool CarmaSparseObj<T_data>::is_column_major() {
 
 template <class T_data>
 CarmaSparseObj<T_data>::~CarmaSparseObj<T_data>() {
-#ifdef USE_MAGMA_SPARSE
-  carma_magma_sparse_free<T_data>(this);
-#endif
 
   _clear();
 }

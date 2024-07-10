@@ -12,6 +12,7 @@
 #ifndef CONVOLUTIONFFT2D_COMMON_H
 #define CONVOLUTIONFFT2D_COMMON_H
 
+#include <cstdint>
 typedef uint32_t uint;
 
 #ifdef __CUDACC__

@@ -262,8 +262,6 @@ class WidgetAOExpert(ExpertClassTemplate):
         elif (type_contro == scons.ControllerType.LS and
               self.sim.config.p_controllers[0].modopti):
             self.uiExpert.wao_controlTypeSelector.setCurrentIndex(3)
-        elif (type_contro == scons.ControllerType.CURED):
-            self.uiExpert.wao_controlTypeSelector.setCurrentIndex(4)
         elif (type_contro == scons.ControllerType.GENERIC):
             self.uiExpert.wao_controlTypeSelector.setCurrentIndex(5)
         else:

@@ -37,7 +37,6 @@ pybind11_add_module(sutraWrap MODULE
     src/controller_geo.cpp
     src/controller_generic.cpp
     src/controller_generic_linear.cpp
-src/controller_cured.cpp
     src/rtc.cpp
     src/gamora.cpp
     src/groot.cpp
@@ -45,7 +44,6 @@ src/controller_cured.cpp
     src/perfect_coronagraph.cpp
     src/stellar_coronagraph.cpp
     src/sutraWrap.cpp
-    ${BRAHMA_CPP}
 )
 
 target_compile_features(sutraWrap PUBLIC cxx_std_14)

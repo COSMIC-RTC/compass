@@ -23,13 +23,6 @@
 template <class T_data>
 class CarmaSparseHostObj;
 
-#ifndef USE_MAGMA_SPARSE
-typedef void *magma_d_sparse_matrix;
-typedef void *magma_s_sparse_matrix;
-#else
-#include "magmasparse.h"
-#endif
-
 template <class T_data>
 class CarmaSparseObj {
  public:
@@ -52,13 +45,6 @@ class CarmaSparseObj {
   std::string format;
   int32_t block_dim;  // blockdim for BSR format
 
-  // Magma stuff
-  union {
-    magma_d_sparse_matrix d_sparse_mat;
-    magma_s_sparse_matrix s_sparse_mat;
-  };
-
- private:
  public:
   CarmaSparseObj(CarmaContext *current_context);
   CarmaSparseObj(CarmaObj<T_data> *M);

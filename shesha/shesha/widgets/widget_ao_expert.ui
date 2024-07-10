@@ -1338,11 +1338,6 @@
                     </item>
                     <item>
                      <property name="text">
-                      <string>CuReD</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
                       <string>Generic</string>
                      </property>
                     </item>

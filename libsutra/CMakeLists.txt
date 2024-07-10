@@ -10,7 +10,6 @@ ENDIF(CMAKE_BUILD_TYPE MATCHES "Debug")
 
 add_library(sutra
     src.cpp/sutra_acquisim.cpp
-    src.cpp/sutra_template.cpp
     src.cpp/sutra_atmos.cpp
     src.cpp/sutra_centroider_bpcog.cpp
     src.cpp/sutra_centroider_cog.cpp
@@ -21,7 +20,6 @@ add_library(sutra
     src.cpp/sutra_centroider_tcog.cpp
     src.cpp/sutra_centroider_wcog.cpp
     src.cpp/sutra_controller.cpp
-src.cpp/sutra_controller_cured.cpp
     src.cpp/sutra_controller_generic.cpp
     src.cpp/sutra_controller_generic_linear.cpp
     src.cpp/sutra_controller_geo.cpp
@@ -49,7 +47,6 @@ src.cpp/sutra_controller_cured.cpp
     src.cpp/sutra_perfectCoronagraph.cpp
     src.cpp/sutra_stellarCoronagraph.cpp
     src.cu/sutra_acquisim.cu
-    src.cu/sutra_template.cu
     src.cu/sutra_utils.cu
     src.cu/sutra_centroider.cu
     src.cu/sutra_centroider_cog.cu
@@ -72,14 +69,12 @@ src.cpp/sutra_controller_cured.cpp
     src.cu/sutra_tscreen.cu
     src.cu/sutra_wfs.cu
     src.cu/sutra_coronagraph.cu
-aao/cured/cured.cpp
 )
 
 target_include_directories(sutra
     PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/include ${BRAHMA_INC}
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
     PRIVATE
-$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/aao/cured>
         $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CURRENT_SOURCE_DIR}/include.cuh>
         $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CURRENT_SOURCE_DIR}/src.cu>
 )
