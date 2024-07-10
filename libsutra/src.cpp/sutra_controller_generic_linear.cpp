@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_controller_generic_linear.h>
+#include <sutra_controller_generic_linear.hpp>
 
 template<typename T>
 int32_t rotate_circular_buffer(std::deque<CarmaObj<T> *> &buffer){

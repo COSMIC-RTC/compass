@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <carma_obj.h>
+#include <carma_obj.hpp>
 
 /** These templates are used to select the proper cufft type
  from the T_in and T_out types. */

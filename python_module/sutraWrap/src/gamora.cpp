@@ -15,7 +15,7 @@
 
 #include "sutraWrapUtils.hpp"
 
-#include <sutra_gamora.h>
+#include <sutra_gamora.hpp>
 
 namespace py = pybind11;
 

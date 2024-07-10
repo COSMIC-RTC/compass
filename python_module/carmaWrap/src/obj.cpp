@@ -15,7 +15,7 @@
 
 #include "declare_name.hpp"
 
-#include <carma.h>
+#include <carma.hpp>
 
 #include "obj.hpp"
 #include "obj_complex.hpp"

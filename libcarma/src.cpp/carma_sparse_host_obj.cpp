@@ -15,9 +15,9 @@
 //! \date      2022/01/24
 
 
-#include "carma_sparse_host_obj.h"
+#include "carma_sparse_host_obj.hpp"
 #include <algorithm>
-#include "carma_sparse_obj.h"
+#include "carma_sparse_obj.hpp"
 
 template <class T_data>
 CarmaSparseHostObj<T_data>::CarmaSparseHostObj() {

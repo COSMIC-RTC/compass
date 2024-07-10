@@ -15,7 +15,7 @@
 
 #include "sutraWrapUtils.hpp"
 
-#include <sutra_tscreen.h>
+#include <sutra_tscreen.hpp>
 
 namespace py = pybind11;
 

@@ -14,7 +14,7 @@
 //! \date      2022/01/24
 
 
-#include <carma_obj.h>
+#include <carma_obj.hpp>
 #include <thrust/device_ptr.h>
 #include <thrust/reduce.h>
 #include <thrust/complex.h>

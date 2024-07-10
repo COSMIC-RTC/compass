@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_target.h>
+#include <sutra_target.hpp>
 
 __device__ void generic_raytrace(float *odata, float *idata, int32_t nx, int32_t ny,
                                  float xoff, float yoff, float G, float thetaML,

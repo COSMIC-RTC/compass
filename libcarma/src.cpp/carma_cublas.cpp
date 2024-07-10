@@ -13,8 +13,8 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <carma_cublas.h>
-#include <carma_utils.h>
+#include <carma_cublas.hpp>
+#include <carma_utils.hpp>
 #include <iostream>
 #include <stdexcept>
 #include <string>

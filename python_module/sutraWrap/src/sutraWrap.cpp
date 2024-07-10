@@ -16,7 +16,7 @@
 
 #include "sutraWrapUtils.hpp"
 
-#include <carma.h>
+#include <carma.hpp>
 
 namespace py = pybind11;
 

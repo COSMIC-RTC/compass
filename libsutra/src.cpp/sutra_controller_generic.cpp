@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_controller_generic.h>
+#include <sutra_controller_generic.hpp>
 
 template <typename T, typename Tout>
 SutraControllerGeneric<T, Tout>::SutraControllerGeneric(

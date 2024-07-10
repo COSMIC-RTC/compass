@@ -14,7 +14,7 @@
 //! \date      2022/01/24
 
 
-#include <carma_timer.h>
+#include <carma_timer.hpp>
 
 __global__ void clockKernel(int64_t* clock_counter) {
   *clock_counter = clock64();

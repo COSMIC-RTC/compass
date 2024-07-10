@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_roket.h>
+#include <sutra_roket.hpp>
 
 __global__ void separate_modes_krnl(float *modes, float *filtmodes, int32_t nmodes,
                                     int32_t nfilt) {

@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_centroider_maskedPix.h>
+#include <sutra_centroider_maskedPix.hpp>
 #include <carma_utils.cuh>
 
 template <class T>

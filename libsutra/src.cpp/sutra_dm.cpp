@@ -15,7 +15,7 @@
 //! \date      2022/01/24
 
 #include <stdio.h>
-#include <sutra_dm.h>
+#include <sutra_dm.hpp>
 
 //#include <sutra_dm.cuh>
 

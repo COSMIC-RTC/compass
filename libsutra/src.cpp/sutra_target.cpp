@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_target.h>
+#include <sutra_target.hpp>
 
 SutraTarget::SutraTarget(CarmaContext *context, SutraTelescope *yTelescope,
                            int32_t ntargets, float *xpos, float *ypos,

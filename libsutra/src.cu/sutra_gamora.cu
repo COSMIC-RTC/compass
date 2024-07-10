@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_gamora.h>
+#include <sutra_gamora.hpp>
 
 __global__ void fillamplikrnl(cuFloatComplex *amplipup, float *phase,
                               int32_t *wherephase, float scale, int32_t Npts, int32_t nx,

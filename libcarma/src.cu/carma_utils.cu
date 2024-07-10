@@ -16,7 +16,7 @@
 #include <thrust/device_ptr.h>
 #include <thrust/sort.h>
 #include "carma_utils.cuh"
-#include "carma_utils.h"
+#include "carma_utils.hpp"
 
 template <class T_data>
 __global__ void find_nnz_krnl(T_data *d_data, int32_t *colind, int32_t *d_nnz, int32_t N) {

@@ -15,7 +15,7 @@
 //! \date      2022/01/24
 
 
-#include <sutra_centroider_cog.h>
+#include <sutra_centroider_cog.hpp>
 #include <string>
 
 template <class Tin, class T>

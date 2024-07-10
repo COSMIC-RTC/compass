@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_centroider.h>
+#include <sutra_centroider.hpp>
 #include "carma_utils.cuh"
 
 /**********************************

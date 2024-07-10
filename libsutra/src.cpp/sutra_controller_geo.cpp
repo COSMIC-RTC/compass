@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_controller_geo.h>
+#include <sutra_controller_geo.hpp>
 
 template <typename T, typename Tout>
 SutraControllerGeo<T, Tout>::SutraControllerGeo(CarmaContext *context,

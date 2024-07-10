@@ -14,10 +14,10 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <carma_utils.h>
-#include <sutra_telescope.h>
-#include <sutra_utils.h>
-#include <sutra_wfs_geom.h>
+#include <carma_utils.hpp>
+#include <sutra_telescope.hpp>
+#include <sutra_utils.hpp>
+#include <sutra_wfs_geom.hpp>
 
 SutraWfsGeom::SutraWfsGeom(CarmaContext *context, SutraTelescope *d_tel,
                                int64_t nxsub, int64_t nvalid, int64_t nphase, int64_t npup,

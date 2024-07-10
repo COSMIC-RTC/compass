@@ -37,7 +37,7 @@ add_library(carma
 )
 
 target_include_directories(carma PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/include.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
     $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CURRENT_SOURCE_DIR}/include.cuh>
 )
 
@@ -106,7 +106,7 @@ install(TARGETS carma
         ARCHIVE DESTINATION lib
         LIBRARY DESTINATION lib)
 
-install(DIRECTORY include.h/ DESTINATION include)
+install(DIRECTORY include DESTINATION include)
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/carma.pc
         DESTINATION "${INSTALL_PKGCONFIG_DIR}")

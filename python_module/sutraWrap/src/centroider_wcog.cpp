@@ -15,7 +15,7 @@
 
 #include "sutraWrapUtils.hpp"
 
-#include <sutra_centroider_wcog.h>
+#include <sutra_centroider_wcog.hpp>
 
 namespace py = pybind11;
 

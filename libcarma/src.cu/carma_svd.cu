@@ -14,7 +14,7 @@
 //! \date      2022/01/24
 
 #if 0
-#include <carma_svd.h>
+#include <carma_svd.hpp>
 
 __global__ void kernel_setidd(double *d,int32_t N) {
   int32_t idx = blockIdx.x*blockDim.x + threadIdx.x;

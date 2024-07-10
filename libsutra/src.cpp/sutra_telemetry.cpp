@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_telemetry.h>
+#include <sutra_telemetry.hpp>
 
 SutraTelemetry::SutraTelemetry() { streams = new CarmaStreams(); }
 

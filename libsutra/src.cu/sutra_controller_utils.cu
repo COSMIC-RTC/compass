@@ -13,8 +13,8 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_atmos.h>
-#include <sutra_controller_utils.h>
+#include <sutra_atmos.hpp>
+#include <sutra_controller_utils.hpp>
 
 /*  Tuning parameters of tbulateDPHI kernel*/
 #define tabDPHI_thread_x (256)

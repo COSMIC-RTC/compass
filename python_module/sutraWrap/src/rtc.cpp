@@ -15,7 +15,7 @@
 
 #include "sutraWrapUtils.hpp"
 
-#include <sutra_rtc.h>
+#include <sutra_rtc.hpp>
 
 namespace py = pybind11;
 

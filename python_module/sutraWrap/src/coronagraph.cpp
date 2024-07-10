@@ -15,7 +15,7 @@
 
 #include "sutraWrapUtils.hpp"
 
-#include <sutra_coronagraph.h>
+#include <sutra_coronagraph.hpp>
 
 namespace py = pybind11;
 

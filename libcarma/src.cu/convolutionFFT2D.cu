@@ -14,7 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 //#include <cutil.h>
-#include <carma_obj.h>
+#include <carma_obj.hpp>
 #include "convolutionFFT2D.cuh"
 #include "convolutionFFT2D_common.h"
 

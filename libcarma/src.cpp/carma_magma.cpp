@@ -13,7 +13,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <carma_magma.h>
+#include <carma_magma.hpp>
 
 #include <type_list.hpp>
 

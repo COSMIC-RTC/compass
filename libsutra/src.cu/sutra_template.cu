@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_template.h>
+#include <sutra_template.hpp>
 #include "carma_utils.cuh"
 
 template <class T>

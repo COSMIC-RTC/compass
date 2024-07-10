@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_dm.h>
+#include <sutra_dm.hpp>
 #include "carma_utils.cuh"
 
 #include <cuda.h>

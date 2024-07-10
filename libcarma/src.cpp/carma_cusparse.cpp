@@ -13,9 +13,9 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <carma_cusparse.h>
-#include <carma_obj.h>
-#include <carma_sparse_obj.h>
+#include <carma_cusparse.hpp>
+#include <carma_obj.hpp>
+#include <carma_sparse_obj.hpp>
 #include <string>
 
 cusparseStatus_t carma_check_cusparse_status_v2(cusparseStatus_t status, int32_t line,

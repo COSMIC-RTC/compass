@@ -14,9 +14,9 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_lgs.h>
-#include <sutra_utils.h>
-#include <sutra_wfs.h>
+#include <sutra_lgs.hpp>
+#include <sutra_utils.hpp>
+#include <sutra_wfs.hpp>
 
 SutraLGS::SutraLGS(CarmaContext *context, CarmaObj<float> *d_lgskern,
                      CarmaObj<cuFloatComplex> *d_ftlgskern,

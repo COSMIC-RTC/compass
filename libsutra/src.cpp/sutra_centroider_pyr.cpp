@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_centroider_pyr.h>
+#include <sutra_centroider_pyr.hpp>
 #include <iostream>
 #include <string>
 

@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_template.h>
+#include <sutra_template.hpp>
 
 SutraTemplate::SutraTemplate(CarmaContext *context, const char *type,
                                    int64_t dim, int32_t device) {

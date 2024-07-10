@@ -14,9 +14,9 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <carma_utils.h>
-#include <sutra_utils.h>
-#include <sutra_wfs_pyr_pyrhr.h>
+#include <carma_utils.hpp>
+#include <sutra_utils.hpp>
+#include <sutra_wfs_pyr_pyrhr.hpp>
 #include <cmath>
 
 SutraWfs_PyrHR::SutraWfs_PyrHR(

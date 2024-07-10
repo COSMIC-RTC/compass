@@ -13,8 +13,8 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <carma.h>
-#include <carma_sparse_obj.h>
+#include <carma.hpp>
+#include <carma_sparse_obj.hpp>
 
 #include "sparse_obj.hpp"
 

@@ -16,8 +16,8 @@
 
 #ifdef USE_BRAHMA
 
-#include <sutra_rtc_brahma.h>
-#include <sutra_rtc_brahmaListenerImpl.h>
+#include <sutra_rtc_brahma.hpp>
+#include <sutra_rtc_brahmaListenerImpl.hpp>
 
 template <typename T>
 BRAHMA::BRAHMADataType get_brahma_datatype() {

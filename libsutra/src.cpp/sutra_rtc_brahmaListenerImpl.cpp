@@ -16,12 +16,12 @@
 
 #ifdef USE_BRAHMA
 
-#include <sutra_rtc_brahmaListenerImpl.h>
+#include <sutra_rtc_brahmaListenerImpl.hpp>
 #include "ace/streams.h"
 #include "dds/DCPS/Service_Participant.h"
 #include "libBRAHMATypeSupportImpl.h"
 
-#include "sutra_rtc_brahma.h"
+#include "sutra_rtc_brahma.hpp"
 
 // Constructor
 template <typename T>

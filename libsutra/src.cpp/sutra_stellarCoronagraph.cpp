@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_stellarCoronagraph.h>
+#include <sutra_stellarCoronagraph.hpp>
 
 SutraStellarCoronagraph::SutraStellarCoronagraph(CarmaContext *context, SutraSource *d_source,
                                     int32_t im_dimx, int32_t im_dimy, int32_t fpm_dimx, int32_t fpm_dimy,

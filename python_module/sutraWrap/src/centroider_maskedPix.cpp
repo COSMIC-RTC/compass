@@ -15,7 +15,7 @@
 
 #include "sutraWrapUtils.hpp"
 
-#include <sutra_centroider_maskedPix.h>
+#include <sutra_centroider_maskedPix.hpp>
 
 namespace py = pybind11;
 

@@ -13,8 +13,8 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <carma_context.h>
-#include <carma_utils.h>
+#include <carma_context.hpp>
+#include <carma_utils.hpp>
 #include <cuda_profiler_api.h>
 #include <cmath>
 #include <iomanip>  // std::setprecision

@@ -77,7 +77,7 @@ aao/cured/cured.cpp
 
 target_include_directories(sutra
     PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/include.h ${BRAHMA_INC}
+        ${CMAKE_CURRENT_SOURCE_DIR}/include ${BRAHMA_INC}
     PRIVATE
 $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/aao/cured>
         $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CURRENT_SOURCE_DIR}/include.cuh>
@@ -100,7 +100,7 @@ target_link_libraries(sutra PUBLIC
 
 if(${OCTOPUS_FOUND})
     target_sources(sutra PRIVATE src.cpp/sutra_rtc_cacao.cpp)
-    set(OCTOPUS_H include.h/sutra_rtc_cacao.h)
+    set(OCTOPUS_H include/sutra_rtc_cacao.hpp)
     target_compile_definitions(carma PUBLIC USE_CACAO)
 endif()
 
@@ -115,7 +115,7 @@ install(TARGETS sutra
         ARCHIVE DESTINATION lib
         LIBRARY DESTINATION lib)
 
-install(DIRECTORY include.h/ DESTINATION include)
+install(DIRECTORY include DESTINATION include)
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/sutra.pc
         DESTINATION "${INSTALL_PKGCONFIG_DIR}")

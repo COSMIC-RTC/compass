@@ -15,7 +15,7 @@
 //! \date      2022/01/24
 
 #include <cublas_v2.h>
-#include <sutra_tscreen.h>
+#include <sutra_tscreen.hpp>
 
 extern __shared__ float cache_shm[];
 

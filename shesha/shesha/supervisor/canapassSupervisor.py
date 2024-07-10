@@ -67,7 +67,7 @@ from shesha.supervisor.compassSupervisor import CompassSupervisor
 # from carmaWrap.magma import syevd_Double, svd_host_Double
 # from carmaWrap.context import context as carmaWrap_context
 
-# from carmaWrap.host_obj import host_obj_Double1D, host_obj_Double2D
+# from carmaWrap.hppost_obj import host_obj_Double1D, host_obj_Double2D
 
 
 class CanapassSupervisor(CompassSupervisor):

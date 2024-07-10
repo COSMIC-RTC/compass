@@ -1,7 +1,7 @@
 #ifndef SUTRA_CENTROIDER_UTILS_CUH
 #define SUTRA_CENTROIDER_UTILS_CUH
 
-#include <sutra_centroider.h>
+#include <sutra_centroider.hpp>
 
 namespace sutra
 {

@@ -15,7 +15,7 @@
 
 #include "sutraWrapUtils.hpp"
 
-#include <sutra_wfs_sh.h>
+#include <sutra_wfs_sh.hpp>
 
 namespace py = pybind11;
 

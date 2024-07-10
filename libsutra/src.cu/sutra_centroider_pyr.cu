@@ -16,7 +16,7 @@
 
 #include <carma_utils.cuh>
 #include "sutra_centroider_utils.cuh"
-#include <sutra_centroider_pyr.h>
+#include <sutra_centroider_pyr.hpp>
 
 template <class T, T fct_sin(T)>
 __global__ void pyr2slopes_krnl(T *g_odata, T *ref, T *g_idata, int32_t *subindx,

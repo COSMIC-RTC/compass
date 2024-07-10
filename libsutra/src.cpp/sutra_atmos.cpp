@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_atmos.h>
+#include <sutra_atmos.hpp>
 #include <algorithm>
 
 SutraAtmos::SutraAtmos(CarmaContext *context, int32_t nscreens, float global_r0,

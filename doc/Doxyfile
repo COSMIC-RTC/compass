@@ -823,7 +823,7 @@ WARN_LOGFILE           =
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = libcarma/include.h libsutra/include.h shesha/shesha stubs CHANGELOG.md  CONTRIBUTING.md  LICENSE.md  README.md  report_E2E.md doc/html
+INPUT                  = libcarma/include libsutra/include shesha/shesha stubs CHANGELOG.md  CONTRIBUTING.md  LICENSE.md  README.md  report_E2E.md doc/html
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses

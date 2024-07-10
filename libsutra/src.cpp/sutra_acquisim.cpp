@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include "sutra_acquisim.h"
+#include "sutra_acquisim.hpp"
 
 SutraAcquisim::SutraAcquisim(SutraSensors *sensors, int32_t wfs_num)
     : device(sensors->d_wfs[wfs_num]->device),

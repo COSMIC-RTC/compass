@@ -14,9 +14,9 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_phase.h>
-#include <sutra_telescope.h>
-#include <sutra_utils.h>
+#include <sutra_phase.hpp>
+#include <sutra_telescope.hpp>
+#include <sutra_utils.hpp>
 
 SutraTelescope::SutraTelescope(CarmaContext *current_context, int64_t n_pup,
                                  int64_t npos, float *pupil, int64_t n_pup_m,

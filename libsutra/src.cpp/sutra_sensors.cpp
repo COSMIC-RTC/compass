@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_sensors.h>
+#include <sutra_sensors.hpp>
 
 SutraSensors::SutraSensors(CarmaContext *context, SutraTelescope *d_tel,
                              vector<string> type, int32_t nwfs, int64_t *nxsub,

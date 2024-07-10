@@ -16,8 +16,8 @@
 
 #ifdef USE_BRAHMA
 
-#include <sutra_target_brahma.h>
-#include <sutra_telescope.h>
+#include <sutra_target_brahma.hpp>
+#include <sutra_telescope.hpp>
 
 SutraTargetBrahma::SutraTargetBrahma(CarmaContext *context,
                                          ACE_TCHAR *name,

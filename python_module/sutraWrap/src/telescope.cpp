@@ -15,7 +15,7 @@
 
 #include "sutraWrapUtils.hpp"
 
-#include <sutra_telescope.h>
+#include <sutra_telescope.hpp>
 
 namespace py = pybind11;
 

@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_kl.h>
+#include <sutra_kl.hpp>
 
 __device__ float kl_sfi(float *rabas, float *azbas, int32_t npix, int32_t nrow) {
   return rabas[npix] * azbas[nrow];

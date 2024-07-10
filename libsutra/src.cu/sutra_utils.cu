@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_utils.h>
+#include <sutra_utils.hpp>
 #include "carma_utils.cuh"
 
 int32_t compute_nmaxhr(int64_t nvalid) {

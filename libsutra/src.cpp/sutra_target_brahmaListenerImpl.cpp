@@ -16,13 +16,13 @@
 
 #ifdef USE_BRAHMA
 
-#include <sutra_target_brahmaListenerImpl.h>
+#include <sutra_target_brahmaListenerImpl.hpp>
 #include "ace/streams.h"
 #include "dds/DCPS/Service_Participant.h"
 #include "libBRAHMATypeSupportC.h"
 #include "libBRAHMATypeSupportImpl.h"
 
-#include "sutra_target_brahma.h"
+#include "sutra_target_brahma.hpp"
 
 // Constructor
 SutraTargetBrahmaListenerImpl::SutraTargetBrahmaListenerImpl()

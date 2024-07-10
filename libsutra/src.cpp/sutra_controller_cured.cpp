@@ -15,7 +15,7 @@
 //! \date      2022/01/24
 
 #include <cured.h>
-#include <sutra_controller_cured.h>
+#include <sutra_controller_cured.hpp>
 #include <string>
 
 template <typename T, typename Tout>

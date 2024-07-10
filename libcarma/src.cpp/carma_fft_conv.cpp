@@ -1,4 +1,4 @@
-#include <carma_obj.h>
+#include <carma_obj.hpp>
 #include <string>
 #include "convolutionFFT2D_common.h"
 

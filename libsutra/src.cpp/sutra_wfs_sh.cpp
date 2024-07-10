@@ -14,9 +14,9 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <carma_utils.h>
-#include <sutra_utils.h>
-#include <sutra_wfs_sh.h>
+#include <carma_utils.hpp>
+#include <sutra_utils.hpp>
+#include <sutra_wfs_sh.hpp>
 #include <cmath>
 
 SutraWfsSH::SutraWfsSH(CarmaContext *context, SutraTelescope *d_tel,

@@ -14,8 +14,8 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <carma_streams.h>
-#include <carma_utils.h>
+#include <carma_streams.hpp>
+#include <carma_utils.hpp>
 
 CarmaStreams::CarmaStreams() {
   this->eventflags = 0;

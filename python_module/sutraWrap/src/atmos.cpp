@@ -15,7 +15,7 @@
 
 #include "sutraWrapUtils.hpp"
 
-#include <sutra_atmos.h>
+#include <sutra_atmos.hpp>
 
 namespace py = pybind11;
 

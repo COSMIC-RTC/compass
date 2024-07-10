@@ -14,9 +14,9 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_rtc.h>
-#include <sutra_wfs_pyr_pyrhr.h>
-#include <sutra_wfs_sh.h>
+#include <sutra_rtc.hpp>
+#include <sutra_wfs_pyr_pyrhr.hpp>
+#include <sutra_wfs_sh.hpp>
 
 using namespace indicators;
 

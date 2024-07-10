@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_kl.h>
+#include <sutra_kl.hpp>
 
 SutraKL::SutraKL(CarmaContext *context, int64_t dim, int64_t nr, int64_t np, int64_t nkl,
                    int64_t nord, int32_t device) {

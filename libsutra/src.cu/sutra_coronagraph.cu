@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_coronagraph.h>
+#include <sutra_coronagraph.hpp>
 #include <carma_utils.cuh>
 
 __global__ void compute_electric_field_krnl(cuFloatComplex *ef, float* opd, float scale,

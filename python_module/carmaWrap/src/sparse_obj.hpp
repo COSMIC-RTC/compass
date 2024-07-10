@@ -18,8 +18,8 @@
 
 #include "declare_name.hpp"
 
-#include <carma.h>
-#include <carma_sparse_obj.h>
+#include <carma.hpp>
+#include <carma_sparse_obj.hpp>
 
 #include <type_list.hpp>
 

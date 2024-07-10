@@ -15,7 +15,7 @@
 
 #include "sutraWrapUtils.hpp"
 
-#include <sutra_controller_geo.h>
+#include <sutra_controller_geo.hpp>
 
 namespace py = pybind11;
 

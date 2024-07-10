@@ -15,7 +15,7 @@
 
 
 #include <assert.h>
-#include <carma_obj.h>
+#include <carma_obj.hpp>
 #include <curand_normal.h>
 #include <curand_uniform.h>
 

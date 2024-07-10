@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_roket.h>
+#include <sutra_roket.hpp>
 
 SutraRoket::SutraRoket(CarmaContext *context, int32_t device, SutraRtc *rtc,
                          SutraSensors *sensors, SutraTarget *target,

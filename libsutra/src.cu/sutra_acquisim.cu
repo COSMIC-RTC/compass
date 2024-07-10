@@ -14,8 +14,8 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_acquisim.h>
-#include <sutra_utils.h>
+#include <sutra_acquisim.hpp>
+#include <sutra_utils.hpp>
 
 template <class T>
 __global__ void bcube_krnl_2D(T *bimage, T *bcube, int32_t *num_ssp) {

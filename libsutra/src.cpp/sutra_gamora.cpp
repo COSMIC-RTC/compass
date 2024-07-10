@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_gamora.h>
+#include <sutra_gamora.hpp>
 
 using namespace indicators;
 

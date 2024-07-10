@@ -148,7 +148,7 @@ class PyrCentroiderMethod:
         Local flux normalization (eq SH quad-cell, ray optics. Ragazzonni 1996)
         Global flux normalization (Verinaud 2004, most > 2010 Pyr applications)
         Resulting (A+/-B-/+C-D)/(A+B+C+D) or sin((A+/-B-/+C-D)/(A+B+C+D))
-        ref. code sutra_centroider_pyr.h
+        ref. code sutra_centroider_pyr.hpp
     """
     NOSINUSGLOBAL = 0
     SINUSGLOBAL = 1

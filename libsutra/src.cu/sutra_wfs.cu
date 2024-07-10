@@ -14,8 +14,8 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_utils.h>
-#include <sutra_wfs.h>
+#include <sutra_utils.hpp>
+#include <sutra_wfs.hpp>
 #include "carma_utils.cuh"
 
 __global__ void camplipup_krnl(cuFloatComplex *amplipup, float *phase,

@@ -13,7 +13,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <carma_obj.h>
+#include <carma_obj.hpp>
 #include <convolutionFFT2D_common.h>
 
 __global__ void fftconv_upadkrnl(float *odata, float *idata, int32_t fftW,

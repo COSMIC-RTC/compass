@@ -6,7 +6,7 @@
 
 // -----------------------------------------------------------------------------
 
-//! \file      sutra_centroider_corr.h
+//! \file      sutra_centroider_corr.hpp
 //! \ingroup   libsutra
 //! \class     SutraCentroiderCorr
 //! \brief     this class provides the centroider_corr features to COMPASS
@@ -15,7 +15,7 @@
 //! \date      2022/01/24
 
 
-#include <sutra_centroider_corr.h>
+#include <sutra_centroider_corr.hpp>
 #include <carma_utils.cuh>
 
 template <class Tcu, class T>

@@ -15,7 +15,7 @@
 //! \date      2022/01/24
 
 
-#include <sutra_centroider_cog.h>
+#include <sutra_centroider_cog.hpp>
 #include <sutra_centroider_utils.cuh>
 #include <carma_utils.cuh>
 

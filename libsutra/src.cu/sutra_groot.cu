@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_groot.h>
+#include <sutra_groot.hpp>
 
 template <class T_data, typename Fn>
 __device__ T_data macdo_x56_gpu_gb(Fn const &ptr_pow, T_data x, int32_t k)

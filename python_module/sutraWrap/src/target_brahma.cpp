@@ -15,7 +15,7 @@
 
 #include "sutraWrapUtils.hpp"
 
-#include <sutra_target_brahma.h>
+#include <sutra_target_brahma.hpp>
 
 namespace py = pybind11;
 

@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_phase.h>
+#include <sutra_phase.hpp>
 
 SutraPhase::SutraPhase(CarmaContext *current_context, int64_t size) {
   this->current_context = current_context;

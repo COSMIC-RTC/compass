@@ -19,10 +19,10 @@
 #include <stdexcept>
 #include <string>
 
-#include <carma_context.h>
-#include "carma_cublas.h"
-#include "carma_cusparse.h"
-#include "carma_cusolver.h"
+#include <carma_context.hpp>
+#include "carma_cublas.hpp"
+#include "carma_cusparse.hpp"
+#include "carma_cusolver.hpp"
 
 #ifdef USE_MAGMA
 // MAGMA headers

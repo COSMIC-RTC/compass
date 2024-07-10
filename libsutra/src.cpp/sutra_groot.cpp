@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_groot.h>
+#include <sutra_groot.hpp>
 
 SutraGroot::SutraGroot(CarmaContext *context, int32_t device, int32_t nactus,
                          int32_t nlayers, float gsangle, float *vdt, float *Htheta,

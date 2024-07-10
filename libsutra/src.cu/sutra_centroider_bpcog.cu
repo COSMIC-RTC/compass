@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_centroider_bpcog.h>
+#include <sutra_centroider_bpcog.hpp>
 #include <sutra_centroider_utils.cuh>
 #include <carma_utils.cuh>
 

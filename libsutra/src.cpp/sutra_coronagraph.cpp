@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_coronagraph.h>
+#include <sutra_coronagraph.hpp>
 
 SutraCoronagraph::SutraCoronagraph(CarmaContext *context, std::string type, SutraSource *d_source,
                                     int32_t dimx, int32_t dimy, float *wavelength, int32_t nWavelength,

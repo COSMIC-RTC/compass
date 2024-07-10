@@ -15,8 +15,8 @@
 //! \date      2022/01/24
 
 
-#include <carma_host_obj.h>
-#include <carma_obj.h>
+#include <carma_host_obj.hpp>
+#include <carma_obj.hpp>
 
 #include <cuda_runtime.h>
 #include <sys/mman.h>  // for mmap() / munmap()

@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_rtc_cacao.h>
+#include <sutra_rtc_cacao.hpp>
 
 template <typename Tin, typename Tcomp, typename Tout>
 SutraRtcCacao<Tin, Tcomp, Tout>::SutraRtcCacao(std::string interface_cal_frame_name,

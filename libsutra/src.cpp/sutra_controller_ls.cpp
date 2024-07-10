@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_controller_ls.h>
+#include <sutra_controller_ls.hpp>
 #include <string>
 
 template <typename T, typename Tout>

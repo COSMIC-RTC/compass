@@ -15,7 +15,7 @@
 //! \date      2022/01/24
 
 #include <math_constants.h>
-#include <sutra_controller.h>
+#include <sutra_controller.hpp>
 /*
   _  __                    _
  | |/ /___ _ __ _ __   ___| |___

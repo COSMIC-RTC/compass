@@ -6,7 +6,7 @@
 
 // -----------------------------------------------------------------------------
 
-//! \file      sutra_centroider_pbcog.h
+//! \file      sutra_centroider_pbcog.hpp
 //! \ingroup   libsutra
 //! \class     sutra_centroider_pbcog
 //! \brief     this class provides the centroider_pbcog features to COMPASS
@@ -14,7 +14,7 @@
 //! \version   5.5.0
 //! \date      2022/01/24
 
-#include <sutra_centroider_bpcog.h>
+#include <sutra_centroider_bpcog.hpp>
 
 template <class Tin, class T>
 SutraCentroiderBpcog<Tin, T>::SutraCentroiderBpcog(
