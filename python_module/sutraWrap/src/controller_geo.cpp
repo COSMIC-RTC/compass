@@ -48,7 +48,6 @@ void controller_geo_impl(py::module &mod, const char *name) {
       //  ██╔═══╝ ██╔══██╗██║   ██║██╔═══╝ ██╔══╝  ██╔══██╗   ██║     ╚██╔╝
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
-      //
 
       .def_property_readonly(
           "Nphi", [](controller_geo &sc) { return sc.Nphi; },
@@ -108,6 +107,7 @@ void controller_geo_impl(py::module &mod, const char *name) {
       //  ██║╚██╔╝██║██╔══╝     ██║   ██╔══██║██║   ██║██║  ██║╚════██║
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
+
       .def("load_Btt", &load_Btt<Tcomp, Tout>,
            R"pbdoc(
     Load the Btt modal basis in the geo controller for ROKET
@@ -155,7 +155,6 @@ void controller_geo_impl(py::module &mod, const char *name) {
       //  ╚════██║██╔══╝     ██║      ██║   ██╔══╝  ██╔══██╗╚════██║
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
-      //
 
       .def("load_mgain", &load_mgain<Tcomp, Tout>,
            R"pbdoc(

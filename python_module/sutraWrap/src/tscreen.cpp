@@ -29,13 +29,14 @@ int32_t set_istencily(SutraTurbuScreen &st, ArrayFStyle<uint32_t> &istencil) {
 
 void declare_turbu_screen(py::module &mod) {
   py::class_<SutraTurbuScreen>(mod, "TurbuScreen")
+
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
       //  ██████╔╝██████╔╝██║   ██║██████╔╝█████╗  ██████╔╝   ██║    ╚████╔╝
       //  ██╔═══╝ ██╔══██╗██║   ██║██╔═══╝ ██╔══╝  ██╔══██╗   ██║     ╚██╔╝
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
-      //
+
       .def_property_readonly(
           "device", [](SutraTurbuScreen &st) { return st.device; }, "Device index")
 
@@ -116,7 +117,7 @@ void declare_turbu_screen(py::module &mod) {
       //  ╚════██║██╔══╝     ██║      ██║   ██╔══╝  ██╔══██╗╚════██║
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
-      //
+
       .def(
           "set_deltax", &SutraTurbuScreen::set_deltax,
           R"pbdoc(

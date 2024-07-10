@@ -73,7 +73,7 @@ void centroider_impl(py::module &mod, const char *name) {
       //  ██╔═══╝ ██╔══██╗██║   ██║██╔═══╝ ██╔══╝  ██╔══██╗   ██║     ╚██╔╝
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
-      //
+
       .def_property_readonly("context",
                              [](centroider &sc) { return sc.current_context; },
                              "GPU context")
@@ -176,6 +176,7 @@ void centroider_impl(py::module &mod, const char *name) {
       //  ██║╚██╔╝██║██╔══╝     ██║   ██╔══██║██║   ██║██║  ██║╚════██║
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
+
       .def("get_cog",
            (int32_t (centroider::*)(void)) & centroider::get_cog,
            "Computes centroids and stores it in d_slopes of the WFS")
@@ -268,7 +269,7 @@ void centroider_impl(py::module &mod, const char *name) {
       //  ╚════██║██╔══╝     ██║      ██║   ██╔══╝  ██╔══██╗╚════██║
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
-      //
+
       .def("set_centroids_ref", &set_centroids_ref<Tin, Tcomp>,
            R"pbdoc(
      Set the references slopes

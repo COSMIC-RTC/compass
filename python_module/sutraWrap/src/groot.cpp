@@ -112,13 +112,13 @@ void declare_groot(py::module &mod) {
            py::arg("context"), py::arg("device"), py::arg("nssp"),
            py::arg("weights"), py::arg("scale"), py::arg("xpos"),
            py::arg("ypos"), py::arg("fc"), py::arg("d"), py::arg("npts"))
+
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
       //  ██████╔╝██████╔╝██║   ██║██████╔╝█████╗  ██████╔╝   ██║    ╚████╔╝
       //  ██╔═══╝ ██╔══██╗██║   ██║██╔═══╝ ██╔══╝  ██╔══██╗   ██║     ╚██╔╝
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
-      //
 
       .def_property_readonly(
           "device", [](SutraGroot &sg) { return sg.device; }, "GPU device")
@@ -201,6 +201,7 @@ void declare_groot(py::module &mod) {
       //  ██║╚██╔╝██║██╔══╝     ██║   ██╔══██║██║   ██║██║  ██║╚════██║
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
+
       .def("compute_Cerr", &SutraGroot::compute_Cerr,
            "Computes the aniso and bandwidth error covariance matrix")
 

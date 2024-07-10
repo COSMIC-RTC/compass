@@ -25,8 +25,9 @@ build_generic:
   - ./compile_vcpkg.py
 
   when: manual
-  # only:
-  #  - develop
+  only:
+  - merge_requests
+  - develop
   artifacts:
     name: "${CI_JOB_NAME}_binaires"
     paths:
@@ -59,6 +60,9 @@ test_generic:
       junit: report.xml
     expire_in: 6 mos
   when: manual
+  only:
+  - merge_requests
+  - develop
 
 
 build_release_focal:
@@ -67,7 +71,6 @@ build_release_focal:
   when: always
   only:
   - main
-  - rc
   - tags
 
 build_debug_focal:
@@ -92,7 +95,6 @@ test_release_focal:
   when: always
   only:
   - main
-  - rc
   - tags
 
 test_debug_focal:
@@ -141,7 +143,6 @@ build_release_jammy:
   when: always
   only:
   - main
-  - rc
   - tags
 
 build_debug_jammy:
@@ -166,7 +167,6 @@ test_release_jammy:
   when: always
   only:
   - main
-  - rc
   - tags
 
 test_debug_jammy:
@@ -187,7 +187,6 @@ build_release_rockylinux8:
   when: always
   only:
   - main
-  - rc
   - tags
 
 build_debug_rockylinux8:
@@ -212,7 +211,6 @@ test_release_rockylinux8:
   when: always
   only:
   - main
-  - rc
   - tags
 
 test_debug_rockylinux8:
@@ -275,6 +273,7 @@ pages:
 #     - develop
 
 sast:
-  stage: test
+  stage: lint
 include:
-- template: Security/SAST.gitlab-ci.yml
+- template: Jobs/Dependency-Scanning.latest.gitlab-ci.yml
+- template: Jobs/SAST.latest.gitlab-ci.yml

@@ -58,7 +58,6 @@ void controller_ls_impl(py::module &mod, const char *name) {
       //  ██╔═══╝ ██╔══██╗██║   ██║██╔═══╝ ██╔══╝  ██╔══██╗   ██║     ╚██╔╝
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
-      //
 
       .def_property_readonly(
           "d_imat", [](controller_ls &sc) { return sc.d_imat; },
@@ -206,7 +205,7 @@ void controller_ls_impl(py::module &mod, const char *name) {
       //  ╚════██║██╔══╝     ██║      ██║   ██╔══╝  ██╔══██╗╚════██║
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
-      //
+
       .def("set_modal_gains", &set_modal_gains<Tcomp, Tout>, R"pbdoc(
     Set the controller modal gains
 
@@ -232,7 +231,7 @@ void controller_ls_impl(py::module &mod, const char *name) {
            py::arg("imat"))
 
       ;
-};
+}
 
 void declare_controller_ls(py::module &mod) {
   controller_ls_impl<float, float>(mod, "ControllerLS_FF");

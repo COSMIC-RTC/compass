@@ -47,7 +47,7 @@ int32_t compute_Cphim(SutraControllerMv<Tcomp, Tout> &scmv, SutraAtmos *atmos, S
                             Y.mutable_data(), xactu.mutable_data(), yactu.mutable_data(), diamTel, k2.mutable_data(), NlayerDm.mutable_data(),
                             indLayerDm.mutable_data(), FoV, pitch.mutable_data(), alt_dm.mutable_data());
 }
-                    
+
 template <typename Tcomp, typename Tout>
 int32_t set_modal_gains(SutraControllerMv<Tcomp, Tout> &scmv, ArrayFStyle<Tcomp> &mgain) {
     return scmv.set_modal_gains(mgain.mutable_data());
@@ -64,8 +64,6 @@ int32_t set_imat(SutraControllerMv<Tcomp, Tout> &scmv, ArrayFStyle<Tcomp> &imat)
 }
 
 
-
-
 template <typename Tcomp, typename Tout>
 void controller_mv_impl(py::module &mod, const char *name) {
   using controller_mv = SutraControllerMv<Tcomp, Tout>;
@@ -78,7 +76,7 @@ void controller_mv_impl(py::module &mod, const char *name) {
       //  ██╔═══╝ ██╔══██╗██║   ██║██╔═══╝ ██╔══╝  ██╔══██╗   ██║     ╚██╔╝
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
-      //
+
       .def_property_readonly(
           "d_imat", [](controller_mv &sc) { return sc.d_imat; },
           "Interaction matrix")
@@ -143,7 +141,7 @@ void controller_mv_impl(py::module &mod, const char *name) {
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
 
       .def("build_cmat",
-           (int32_t (controller_mv::*)(float)) & controller_mv::build_cmat,
+           [](controller_mv &sc, float cond) { return sc.build_cmat(cond); },
            R"pbdoc(
     Computes the command matrix
 
@@ -253,13 +251,13 @@ void controller_mv_impl(py::module &mod, const char *name) {
            py::arg("Y"), py::arg("xactu"), py::arg("yactu"), py::arg("diamTel"),
            py::arg("k2"), py::arg("NlayerDm"), py::arg("indLayerDm"),
            py::arg("FoV"), py::arg("pitch"), py::arg("alt_dm"))
+
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝
       //  ███████╗█████╗     ██║      ██║   █████╗  ██████╔╝███████╗
       //  ╚════██║██╔══╝     ██║      ██║   ██╔══╝  ██╔══██╗╚════██║
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
-      //
 
       .def("set_modal_gains", &set_modal_gains<Tcomp, Tout>, R"pbdoc(
     Set the controller modal gains
@@ -286,7 +284,7 @@ void controller_mv_impl(py::module &mod, const char *name) {
            py::arg("imat"))
 
       ;
-};
+}
 
 void declare_controller_mv(py::module &mod) {
   controller_mv_impl<float, float>(mod, "ControllerMV_FF");

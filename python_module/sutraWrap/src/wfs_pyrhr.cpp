@@ -63,7 +63,7 @@ void declare_wfs_pyrhr(py::module &mod)
       //  ██╔═══╝ ██╔══██╗██║   ██║██╔═══╝ ██╔══╝  ██╔══██╗   ██║     ╚██╔╝
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
-      //
+
       .def_property_readonly(
           "npupils", [](SutraWfs_PyrHR &sp)
           { return sp.npupils; },
@@ -121,6 +121,7 @@ void declare_wfs_pyrhr(py::module &mod)
       //  ██║╚██╔╝██║██╔══╝     ██║   ██╔══██║██║   ██║██║  ██║╚════██║
       //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
       //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
+
       .def("load_arrays", &load_arrays, R"pbdoc(
   Load PYRHR WFS arrays
 
@@ -179,7 +180,7 @@ void declare_wfs_pyrhr(py::module &mod)
       //  ╚════██║██╔══╝     ██║      ██║   ██╔══╝  ██╔══██╗╚════██║
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
-      //
+
       .def(
           "set_pyrimg",
           [](SutraWfs_PyrHR &sp, ArrayFStyle<float> data)

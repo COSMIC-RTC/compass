@@ -24,6 +24,7 @@ void centroider_tcog_impl(py::module &mod, const char *name) {
   using centroider_tcog = SutraCentroiderTcog<Tin, Tcomp>;
 
   py::class_<centroider_tcog, SutraCentroider<Tin, Tcomp>>(mod, name)
+
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
       //  ██████╔╝██████╔╝██║   ██║██████╔╝█████╗  ██████╔╝   ██║    ╚████╔╝
@@ -41,7 +42,7 @@ void centroider_tcog_impl(py::module &mod, const char *name) {
       //  ╚════██║██╔══╝     ██║      ██║   ██╔══╝  ██╔══██╗╚════██║
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
-      //
+
       .def("set_threshold", &centroider_tcog::set_threshold,
            R"pbdoc(
     Set the threshold value of a TCOG centroider

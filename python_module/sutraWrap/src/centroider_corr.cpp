@@ -34,6 +34,7 @@ void centroider_corr_impl(py::module &mod, const char *name) {
   using centroider_corr = SutraCentroiderCorr<Tin, Tcomp>;
 
   py::class_<centroider_corr, SutraCentroider<Tin, Tcomp>>(mod, name)
+
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
       //  ██████╔╝██████╔╝██║   ██║██████╔╝█████╗  ██████╔╝   ██║    ╚████╔╝
@@ -76,13 +77,14 @@ void centroider_corr_impl(py::module &mod, const char *name) {
       .def_property_readonly(
           "d_interpmat", [](centroider_corr &sc) { return sc.d_interpmat; },
           "TODO: docstring")
+
       //  ███████╗███████╗████████╗████████╗███████╗██████╗ ███████╗
       //  ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗██╔════╝
       //  ███████╗█████╗     ██║      ██║   █████╗  ██████╔╝███████╗
       //  ╚════██║██╔══╝     ██║      ██║   ██╔══╝  ██╔══██╗╚════██║
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
-      //
+
       .def("init_corr", &init_corr<Tin, Tcomp>, R"pbdoc(
     Initializes corr computation
 

@@ -29,6 +29,7 @@ void centroider_wcog_impl(py::module &mod, const char *name) {
   using centroider_wcog = SutraCentroiderWcog<Tin, Tcomp>;
 
   py::class_<centroider_wcog, SutraCentroider<Tin, Tcomp>>(mod, name)
+
       //  ██████╗ ██████╗  ██████╗ ██████╗ ███████╗██████╗ ████████╗██╗   ██╗
       //  ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝
       //  ██████╔╝██████╔╝██║   ██║██████╔╝█████╗  ██████╔╝   ██║    ╚████╔╝
@@ -50,7 +51,7 @@ void centroider_wcog_impl(py::module &mod, const char *name) {
       //  ╚════██║██╔══╝     ██║      ██║   ██╔══╝  ██╔══██╗╚════██║
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
-      //
+
       .def("init_weights", &centroider_wcog::init_weights,
            "Initializes WCOG computation")
 

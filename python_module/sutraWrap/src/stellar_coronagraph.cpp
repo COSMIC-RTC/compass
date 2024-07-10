@@ -81,7 +81,7 @@ void declare_stellar_coronagraph(py::module &mod) {
       //  ██╔═══╝ ██╔══██╗██║   ██║██╔═══╝ ██╔══╝  ██╔══██╗   ██║     ╚██╔╝
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
-      //
+
       .def_property_readonly(
           "babinet", [](SutraStellarCoronagraph &sc) { return sc.babinet; }, "Babinet trick flag")
       .def_property_readonly(
@@ -162,5 +162,4 @@ void declare_stellar_coronagraph(py::module &mod) {
       //  ╚════██║██╔══╝     ██║      ██║   ██╔══╝  ██╔══██╗╚════██║
       //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
-      //
 };

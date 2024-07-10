@@ -67,7 +67,6 @@ void controller_generic_linear_impl(py::module &mod, const char *name) {
       //  ██╔═══╝ ██╔══██╗██║   ██║██╔═══╝ ██╔══╝  ██╔══██╗   ██║     ╚██╔╝
       //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
       //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
-      //
 
       .def_property_readonly(
           "polc", [](controller_generic_linear &sc) {
@@ -241,7 +240,7 @@ void controller_generic_linear_impl(py::module &mod, const char *name) {
       //  ╚════██║██╔══╝    ██║     ██║   ██╔══╝  ██╔══██╗╚════██║
       //  ███████║███████╗  ██║     ██║   ███████╗██║  ██║███████║
       //  ╚══════╝╚══════╝  ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
-      //
+
       .def("set_polc", &controller_generic_linear::set_polc,
            R"pbdoc(
     Set the POLC flag

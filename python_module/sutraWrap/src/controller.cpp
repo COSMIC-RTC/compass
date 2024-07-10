@@ -81,7 +81,7 @@ void controller_impl(py::module &mod, const char *name)
         //  ██╔═══╝ ██╔══██╗██║   ██║██╔═══╝ ██╔══╝  ██╔══██╗   ██║     ╚██╔╝
         //  ██║     ██║  ██║╚██████╔╝██║     ███████╗██║  ██║   ██║      ██║
         //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═╝
-        //
+
         .def_property_readonly(
             "context", [](controller &sc)
             { return sc.current_context; },
@@ -196,6 +196,7 @@ void controller_impl(py::module &mod, const char *name)
         //  ██║╚██╔╝██║██╔══╝     ██║   ██╔══██║██║   ██║██║  ██║╚════██║
         //  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
         //  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
+
         .def("add_perturb", &controller::add_perturb,
              "Add the perturbation voltage to the command")
 
@@ -237,7 +238,7 @@ void controller_impl(py::module &mod, const char *name)
         //  ╚════██║██╔══╝     ██║      ██║   ██╔══╝  ██╔══██╗╚════██║
         //  ███████║███████╗   ██║      ██║   ███████╗██║  ██║███████║
         //  ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
-        //
+
         .def("add_perturb_voltage", &add_perturb_voltage<Tcomp, Tout>,
              R"pbdoc(
     Add a new perturbation voltage buffer
