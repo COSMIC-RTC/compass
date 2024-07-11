@@ -8,7 +8,7 @@ import re
 
 class CompassConan(ConanFile):
     name = "compass"
-    author = "COMPASS Team <https://github.com/ANR-COMPASS>"
+    author = "COSMIC Team <https://github.com/COSMIC-RTC/compass>"
     url = "https://anr-compass.github.io/compass/"
     description = "End-to-end AO simulation tool using GPU acceleration"
     topics = "Adaptive Optics", "Simulation"

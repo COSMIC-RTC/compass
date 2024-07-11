@@ -1,13 +1,13 @@
 ## @package   shesha.config.pConfig
 ## @brief     Configuration class for the COMPASS simulator.
-## @author    COMPASS Team <https://github.com/ANR-COMPASS>
+## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
 ## @version   5.5.0
 ## @date      2022/01/24
-## @copyright GNU Lesser General Public License
+## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 #  This file is part of COMPASS <https://anr-compass.github.io/compass/>
 #
-#  Copyright (C) 2011-2023 COMPASS Team <https://github.com/ANR-COMPASS>
+#  Copyright (C) 2011-2023 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #  All rights reserved.
 #  Distributed under GNU - LGPL
 #
