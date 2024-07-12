@@ -22,7 +22,6 @@
 
 
 import numpy as np
-import naga as ng
 import os
 from shesha.sutra_wrap import Rtc_FHF as Rtc
 from shesha.supervisor.compassSupervisor import CompassSupervisor as Supervisor
@@ -59,9 +58,9 @@ rtc.d_centro[0].load_img(frame, frame.shape[0])
 rtc.d_centro[0].calibrate_img()
 
 rtc.do_centroids(0)
-slp = ng.array(rtc.d_control[0].d_centroids)
+slp = np.array(rtc.d_control[0].d_centroids)
 rtc.do_control(0)
-com = ng.array(rtc.d_control[0].d_com)
+com = np.array(rtc.d_control[0].d_com)
 
 dark = np.random.random(frame.shape)
 flat = np.random.random(frame.shape)
@@ -79,5 +78,5 @@ def test_doCentroids_maskedPix():
     psum = binimg[xvalid, yvalid].sum() / slopes.size
     for k in range(slopes.size):
         slopes[k] = binimg[xvalid[k], yvalid[k]] / psum
-    assert (relative_array_error(ng.array(control.d_centroids).toarray(), slopes) <
+    assert (relative_array_error(np.array(control.d_centroids), slopes) <
             precision)

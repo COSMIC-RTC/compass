@@ -69,7 +69,6 @@ test_generic:
   variables:
     COMPASS_ROOT: "/builds/compass/compass"
     SHESHA_ROOT: "$COMPASS_ROOT/shesha"
-    NAGA_ROOT: "$COMPASS_ROOT/naga"
   script:
   - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$NAGA_ROOT:$COMPASS_ROOT/local/python
   - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_ROOT/local/lib
@@ -254,7 +253,6 @@ pages:
   variables:
     COMPASS_ROOT: "/builds/compass/compass"
     SHESHA_ROOT: "$COMPASS_ROOT/shesha"
-    NAGA_ROOT: "$COMPASS_ROOT/naga"
   dependencies:
   - build_debug_focal
   - test_debug_focal

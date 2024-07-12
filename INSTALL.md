@@ -59,7 +59,6 @@ Add the following lines to the `.bashrc` file:
 ```bash
 export COMPASS_ROOT=${HOME}/compass
 export SHESHA_ROOT=${COMPASS_ROOT}/shesha
-export NAGA_ROOT=${COMPASS_ROOT}/naga
 export VCPKG_ROOT=${HOME}/vcpkg
 export COMPASS_DO_HALF=OFF
 export PYTHONPATH=${SHESHA_ROOT}:${COMPASS_ROOT}/local/

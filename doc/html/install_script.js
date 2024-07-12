@@ -60,7 +60,6 @@ function generate_script(div_text, access, conda_path, cuda_path, hf16) {
     <div class="line">export COMPASS_INSTALL_ROOT=$COMPASS_ROOT/local</div>
     <div class="line">export COMPASS_DO_HALF="${
         hf16}" # set to ON if you want to use half precision RTC (needs SM>=60)</div>
-    <div class="line">export NAGA_ROOT=$COMPASS_ROOT/naga</div>
     <div class="line">export SHESHA_ROOT=$COMPASS_ROOT/shesha</div>
     <div class="line">export LD_LIBRARY_PATH=$COMPASS_INSTALL_ROOT/lib:$LD_LIBRARY_PATH</div>
     <div class="line">export PYTHONPATH=$NAGA_ROOT:$SHESHA_ROOT:$COMPASS_INSTALL_ROOT/python:$PYTHONPATH</div>

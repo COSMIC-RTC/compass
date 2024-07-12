@@ -13,7 +13,7 @@ Develop status:
     - [Environment requirements](#environment-requirements)
   - [Automatic Install of COMPASS](#automatic-install-of-compass)
   - [Manual install of COMPASS](#manual-install-of-compass)
-    - [Install Anaconda with python3](#install-anaconda-with-python3)
+    - [Install Mambaforge with python3](#install-mambaforge-with-python3)
       - [setup .bashrc](#setup-bashrc)
       - [Download and installation](#download-and-installation)
     - [Install the platform](#install-the-platform)
@@ -83,7 +83,6 @@ export LD_LIBRARY_PATH=$CUDA_LIB_PATH_64:$CUDA_LIB_PATH:$LD_LIBRARY_PATH
 export COMPASS_ROOT=$HOME/compass
 export COMPASS_INSTALL_ROOT=$COMPASS_ROOT/local
 export COMPASS_DO_HALF="OFF"  # set to ON if you want to use half precision RTC (needs SM>=60)
-export NAGA_ROOT=$COMPASS_ROOT/naga
 export SHESHA_ROOT=$COMPASS_ROOT/shesha
 export LD_LIBRARY_PATH=$COMPASS_INSTALL_ROOT/lib:$LD_LIBRARY_PATH
 export PYTHONPATH=$NAGA_ROOT:$SHESHA_ROOT:$COMPASS_INSTALL_ROOT/python:$PYTHONPATH

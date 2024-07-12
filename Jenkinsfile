@@ -18,7 +18,6 @@ pipeline {
         COMPASS_INSTALL_ROOT="$COMPASS_ROOT/local"
         COMPASS_DO_HALF="OFF"
         COMPASS_DEBUG="-DCMAKE_BUILD_TYPE=Debug"
-        NAGA_ROOT="$COMPASS_ROOT/naga"
         SHESHA_ROOT="$COMPASS_ROOT/shesha"
 
         PATH="/var/lib/jenkins/miniconda3/bin:$CUDA_ROOT/bin:$PATH"
