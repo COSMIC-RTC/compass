@@ -1,1 +1,0 @@
-rm -rf libcarma/ libsutra build/ CHANGELOG.md check_var.sh cmake/ CMake_cmd.sh CMakeLists.txt compile.sh cpp-pre-commit.sh define_var.sh doc/ generate_reports.sh .git* ldd_test.sh minigitconfig.bash .pre-commit-config.yaml README.md report_E2E.md setup.py .style.yapf tplib cleanup_src
