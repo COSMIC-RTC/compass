@@ -1,0 +1,6 @@
+version: '2'
+plugins:
+  sonar-python:
+    enabled: true
+  pep8:
+    enabled: true

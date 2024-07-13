@@ -1,11 +1,10 @@
 
 stages:
 - build
-- lint
 - test
 - pages
 
-build_generic:
+.build_generic:
   stage: build
   variables:
     COMPASS_ROOT: "/builds/compass/compass"
@@ -23,10 +22,6 @@ build_generic:
   - mamba activate compass
   - ./script/install_vcpkg.sh $VCPKG_ROOT
   - ./compile_vcpkg.py
-  when: manual
-  only:
-  - merge_requests
-  - develop
   artifacts:
     name: "${CI_JOB_NAME}_binaires"
     paths:
@@ -34,13 +29,25 @@ build_generic:
     expire_in: 6 mos
 
 sast:
-  stage: lint
+  stage: test
 include:
 - template: Jobs/Dependency-Scanning.latest.gitlab-ci.yml
 - template: Jobs/SAST.latest.gitlab-ci.yml
+- template: Jobs/Code-Quality.gitlab-ci.yml
 
-code_quality_generic:
-  stage: lint
+code_quality:
+  services:            # Shut off Docker-in-Docker
+  tags:
+  - cq-sans-dind     # Set this job to only run on our new specialized runner
+  rules:
+    - if: $CODE_QUALITY_DISABLED
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" # Run code quality job in merge request pipelines
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH      # Run code quality job in pipelines on the default branch (but not in other branch pipelines)
+    - if: $CI_COMMIT_TAG                               # Run code quality job in pipelines for tags
+
+.lint_generic:
+  stage: test
   variables:
     COMPASS_ROOT: "/builds/compass/compass"
     SHESHA_ROOT: "$COMPASS_ROOT/shesha"
@@ -54,18 +61,15 @@ code_quality_generic:
   - . $CONDA_ROOT/etc/profile.d/mamba.sh
   - mamba env create --file environment.yml
   - mamba activate compass
-  - ruff check shesha > gl-code-quality-report.json
-  when: manual
-  only:
-  - develop
+  - ruff check shesha > ruff-report.json
   artifacts:
-    name: "${CI_PROJECT_NAME}_code_quality"
+    name: "${CI_PROJECT_NAME}_lint"
     when: always
     reports:
-      codequality: gl-code-quality-report.json
+      codequality: ruff-report.json
     expire_in: 6 mos
 
-test_generic:
+.test_generic:
   variables:
     COMPASS_ROOT: "/builds/compass/compass"
     SHESHA_ROOT: "$COMPASS_ROOT/shesha"
@@ -89,22 +93,19 @@ test_generic:
     reports:
       junit: report.xml
     expire_in: 6 mos
-  when: manual
-  only:
-  - develop
 
-build_release_focal:
-  image: aocompass/base-20.04:11.8.0
+build_release_jammy_11.8.0:
+  image: aocompass/base-22.04:11.8.0
   environment: production
-  extends: build_generic
+  extends: .build_generic
   when: always
   only:
   - main
 
-build_debug_focal:
-  image: aocompass/base-20.04:11.8.0
+build_debug_jammy_11.8.0:
+  image: aocompass/base-22.04:11.8.0
   environment: development
-  extends: build_generic
+  extends: .build_generic
   variables:
     COMPASS_DEBUG: "Debug"
   when: always
@@ -116,39 +117,39 @@ build_debug_focal:
     - local/
     expire_in: 6 mos
 
-test_release_focal:
-  image: aocompass/base-20.04:11.8.0
+test_release_jammy_11.8.0:
+  image: aocompass/base-22.04:11.8.0
   environment: production
-  extends: test_generic
+  extends: .test_generic
   dependencies:
-  - build_release_focal
+  - build_release_jammy_11.8.0
   when: always
   only:
   - main
 
-test_debug_focal:
-  image: aocompass/base-20.04:11.8.0
+test_debug_jammy_11.8.0:
+  image: aocompass/base-22.04:11.8.0
   environment: development
-  extends: test_generic
+  extends: .test_generic
   dependencies:
-  - build_debug_focal
+  - build_debug_jammy_11.8.0
   when: always
   only:
   - merge_requests
   - develop
 
-build_release_jammy:
-  image: aocompass/base-22.04:11.8.0
+build_release_rockylinux8_11.8.0:
+  image: aocompass/base-rockylinux8:11.8.0
   environment: production
-  extends: build_generic
+  extends: .build_generic
   when: always
   only:
   - main
 
-build_debug_jammy:
-  image: aocompass/base-22.04:11.8.0
+build_debug_rockylinux8_11.8.0:
+  image: aocompass/base-rockylinux8:11.8.0
   environment: development
-  extends: build_generic
+  extends: .build_generic
   variables:
     COMPASS_DEBUG: "Debug"
   when: always
@@ -160,102 +161,58 @@ build_debug_jammy:
     - local/
     expire_in: 6 mos
 
-test_release_jammy:
-  image: aocompass/base-22.04:11.8.0
+test_release_rockylinux8_11.8.0:
+  image: aocompass/base-rockylinux8:11.8.0
   environment: production
-  extends: test_generic
+  extends: .test_generic
   dependencies:
-  - build_release_jammy
+  - build_release_rockylinux8_11.8.0
   when: always
   only:
   - main
 
-test_debug_jammy:
-  image: aocompass/base-22.04:11.8.0
+test_debug_rockylinux8_11.8.0:
+  image: aocompass/base-rockylinux8:11.8.0
   environment: development
-  extends: test_generic
+  extends: .test_generic
   dependencies:
-  - build_debug_jammy
+  - build_debug_rockylinux8_11.8.0
   when: always
   only:
   - merge_requests
   - develop
 
-build_release_rockylinux8:
+lint_release_rockylinux8_11.8.0:
   image: aocompass/base-rockylinux8:11.8.0
   environment: production
-  extends: build_generic
+  extends: .lint_generic
+  dependencies:
+  - build_release_rockylinux8_11.8.0
   when: always
   only:
   - main
 
-build_debug_rockylinux8:
+lint_debug_rockylinux8_11.8.0:
   image: aocompass/base-rockylinux8:11.8.0
   environment: development
-  extends: build_generic
-  variables:
-    COMPASS_DEBUG: "Debug"
-  when: always
-  only:
-  - merge_requests
-  - develop
-  artifacts:
-    paths:
-    - local/
-    expire_in: 6 mos
-
-code_quality_release_rockylinux8:
-  image: aocompass/base-rockylinux8:11.8.0
-  environment: production
-  extends: code_quality_generic
+  extends: .lint_generic
   dependencies:
-  - build_release_rockylinux8
-  when: always
-  only:
-  - main
-
-code_quality_debug_rockylinux8:
-  image: aocompass/base-rockylinux8:11.8.0
-  environment: development
-  extends: code_quality_generic
-  dependencies:
-  - build_debug_rockylinux8
-  when: always
-  only:
-  - merge_requests
-  - develop
-
-test_release_rockylinux8:
-  image: aocompass/base-rockylinux8:11.8.0
-  environment: production
-  extends: test_generic
-  dependencies:
-  - build_release_rockylinux8
-  when: always
-  only:
-  - main
-
-test_debug_rockylinux8:
-  image: aocompass/base-rockylinux8:11.8.0
-  environment: development
-  extends: test_generic
-  dependencies:
-  - build_debug_rockylinux8
+  - build_debug_rockylinux8_11.8.0
   when: always
   only:
   - merge_requests
   - develop
 
 pages:
-  image: aocompass/base-20.04:11.8.0
+  image: aocompass/base-rockylinux8:11.8.0
   environment: development
   stage: pages
   variables:
     COMPASS_ROOT: "/builds/compass/compass"
     SHESHA_ROOT: "$COMPASS_ROOT/shesha"
   dependencies:
-  - build_debug_focal
-  - test_debug_focal
+  - build_debug_rockylinux8_11.8.0
+  - test_debug_rockylinux8_11.8.0
   script:
   - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$NAGA_ROOT:$COMPASS_ROOT/local/python
   - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_ROOT/local/lib
