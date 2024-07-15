@@ -158,6 +158,3 @@ template int32_t transposeCU<cuDoubleComplex>(cuDoubleComplex *d_idata,
 // template int32_t transposeCU<tuple_t<float>>(tuple_t<float> *d_idata,
 //                                          tuple_t<float> *d_odata, int64_t N1,
 //                                          int64_t N2);
-#ifdef CAN_DO_HALF
-template int32_t transposeCU<half>(half *d_idata, half *d_odata, int64_t N1, int64_t N2);
-#endif

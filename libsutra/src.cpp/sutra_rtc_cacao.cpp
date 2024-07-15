@@ -126,9 +126,3 @@ template class SutraRtcCacao<float, float, float>;
 template class SutraRtcCacao<uint16_t, float, float>;
 template class SutraRtcCacao<float, float, uint16_t>;
 template class SutraRtcCacao<uint16_t, float, uint16_t>;
-#ifdef CAN_DO_HALF
-template class SutraRtcCacao<float, half, float>;
-template class SutraRtcCacao<uint16_t, half, float>;
-template class SutraRtcCacao<float, half, uint16_t>;
-template class SutraRtcCacao<uint16_t, half, uint16_t>;
-#endif

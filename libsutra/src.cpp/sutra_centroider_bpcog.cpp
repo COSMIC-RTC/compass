@@ -125,34 +125,3 @@ int32_t SutraCentroiderBpcog<Tin, T>::get_cog() {
 
 template class SutraCentroiderBpcog<float, float>;
 template class SutraCentroiderBpcog<uint16_t, float>;
-
-#ifdef CAN_DO_HALF
-template <>
-int32_t SutraCentroiderBpcog<float, half>::get_cog(float *intensities,
-                                                 half *slopes, bool noise) {
-  DEBUG_TRACE("Not implemented for half precision");
-  return EXIT_FAILURE;
-}
-
-template <>
-int32_t SutraCentroiderBpcog<uint16_t, half>::get_cog(float *intensities,
-                                                    half *slopes, bool noise) {
-  DEBUG_TRACE("Not implemented for half precision");
-  return EXIT_FAILURE;
-}
-
-template <>
-int32_t SutraCentroiderBpcog<float, half>::get_cog() {
-  DEBUG_TRACE("Not implemented for half precision");
-  return EXIT_FAILURE;
-}
-
-template <>
-int32_t SutraCentroiderBpcog<uint16_t, half>::get_cog() {
-  DEBUG_TRACE("Not implemented for half precision");
-  return EXIT_FAILURE;
-}
-
-template class SutraCentroiderBpcog<float, half>;
-template class SutraCentroiderBpcog<uint16_t, half>;
-#endif

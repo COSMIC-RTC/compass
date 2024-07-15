@@ -75,7 +75,6 @@ SutraControllerGeneric<T, Tout>::SutraControllerGeneric(
   }
   this->current_context->set_active_device(this->device, 1);
   cudaEventCreateWithFlags(&start_mvm_event, cudaEventDisableTiming);
-  this->d_cmatPadded = nullptr;
   dims_data1[1] = this->nslope();
   this->d_olmeas = new CarmaObj<T>(this->current_context, dims_data1);
   this->d_compbuff2 = new CarmaObj<T>(this->current_context, dims_data1);
@@ -111,23 +110,6 @@ SutraControllerGeneric<T, Tout>::SutraControllerGeneric(
   this->d_imat = new CarmaObj<T>(this->current_context, dims_data2);
 
   this->polc = false;
-
-  if (std::is_same<T, half>::value) {
-    int32_t m = nactu + nstates;
-    int32_t n = nslope;
-    while (m % 8 != 0) m++;
-    while (n % 8 != 0) n++;
-    dims_data2[1] = m;
-    dims_data2[2] = n;
-    this->d_cmatPadded = new CarmaObj<T>(this->current_context, dims_data2);
-    this->d_cmatPadded->reset();
-    dims_data1[1] = n;
-    this->d_centroids_padded = new CarmaObj<T>(context, dims_data1);
-    this->d_centroids->swap_ptr(this->d_centroids_padded->get_data());
-    dims_data1[1] = m;
-    this->d_com_padded = new CarmaObj<T>(context, dims_data1);
-    this->d_com->swap_ptr(this->d_com_padded->get_data());
-  }
 }
 
 template <typename T, typename Tout>
@@ -197,7 +179,6 @@ int32_t SutraControllerGeneric<T, Tout>::set_cmat(float *cmat) {
   this->current_context->set_active_device(this->device, 1);
   // Copy the cmat on the master GPU and zero-fill it if needed
   this->d_cmat->host2device(cmat);
-  this->fill_cmatPadded();
   // Distribute it on the available GPUs
   if(this->P2Pdevices.size() > 1) {
     this->distribute_cmat();
@@ -220,11 +201,6 @@ int32_t SutraControllerGeneric<T, Tout>::distribute_cmat() {
     this->current_context->set_active_device(this->device, 1);
 
   return EXIT_SUCCESS;
-}
-
-template <typename T, typename Tout>
-int32_t SutraControllerGeneric<T, Tout>::fill_cmatPadded() {
-  return fill_cmatPadded_impl();
 }
 
 template <typename T, typename Tout>
@@ -274,15 +250,9 @@ int32_t SutraControllerGeneric<T, Tout>::comp_com() {
   }
   this->current_context->set_active_device(this->device, 1);
   CarmaObj<T> *cmat;
-  // if (std::is_same<T, half>::value) {
-  //   cmat = this->d_cmatPadded;
-  //   m = this->d_cmatPadded->get_dims(1);
-  //   n = this->d_cmatPadded->get_dims(2);
-  // } else {
     cmat = this->d_cmat;
     m = this->d_cmat->get_dims(1);
     n = this->d_cmat->get_dims(2);
-  //}
 
   if (this->command_law == "integrator") {
     // cublasSetStream(this->cublas_handle(),
@@ -358,21 +328,5 @@ int32_t SutraControllerGeneric<T, Tout>::comp_com() {
   return EXIT_SUCCESS;
 }
 
-template <typename T, typename Tout>
-template <typename Q>
-typename std::enable_if<std::is_same<Q, half>::value, int32_t>::type
-SutraControllerGeneric<T, Tout>::fill_cmatPadded_impl() {
-  pad_cmat(this->d_cmat->get_data(), this->d_cmat->get_dims(1),
-           this->d_cmat->get_dims(2), this->d_cmatPadded->get_data(),
-           this->d_cmatPadded->get_dims(1), this->d_cmatPadded->get_dims(2),
-           this->current_context->get_device(this->device));
-
-  return EXIT_SUCCESS;
-}
-
 template class SutraControllerGeneric<float, float>;
 template class SutraControllerGeneric<float, uint16_t>;
-#ifdef CAN_DO_HALF
-template class SutraControllerGeneric<half, float>;
-template class SutraControllerGeneric<half, uint16_t>;
-#endif

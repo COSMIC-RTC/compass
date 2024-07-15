@@ -36,8 +36,6 @@ SutraController<Tcomp, Tout>::SutraController(CarmaContext *context,
   this->nslopes = nslope;
   // current_context->set_active_device(device,1);
   this->d_com1 = nullptr;
-  this->d_com_padded = nullptr;
-  this->d_centroids_padded = nullptr;
 
   this->mainStream = NULL;
   cublasSetStream(this->cublas_handle(), this->mainStream);
@@ -291,8 +289,6 @@ template <typename Tcomp, typename Tout>
 SutraController<Tcomp, Tout>::~SutraController() {
 
   if (this->d_centroids != nullptr) delete this->d_centroids;
-  if (this->d_centroids_padded != nullptr) delete this->d_centroids_padded;
-  if (this->d_com_padded != nullptr) delete this->d_com_padded;
   for (int32_t k=0; k < this->d_circular_coms.size() ; k++) {
     delete this->d_circular_coms[k];
   }
@@ -383,8 +379,3 @@ int32_t SutraController<Tcomp, Tout>::comp_polc(CarmaObj<Tcomp>& sk,
 
 template class SutraController<float, float>;
 template class SutraController<float, uint16_t>;
-
-#ifdef CAN_DO_HALF
-template class SutraController<half, float>;
-template class SutraController<half, uint16_t>;
-#endif

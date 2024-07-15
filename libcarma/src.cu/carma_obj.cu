@@ -143,10 +143,7 @@ template void clip_array<uint16_t>(uint16_t *d_data, uint16_t min, uint16_t max,
 
 template void clip_array<double>(double *d_data, double min, double max, int32_t N,
                                  CarmaDevice *device, cudaStream_t stream);
-#ifdef CAN_DO_HALF
-template void clip_array<half>(half *d_data, half min, half max, int32_t N,
-                               CarmaDevice *device, cudaStream_t stream);
-#endif
+
 template <>
 void clip_array(cuFloatComplex *d_data, cuFloatComplex min, cuFloatComplex max,
                 int32_t N, CarmaDevice *device, cudaStream_t stream) {
@@ -442,28 +439,6 @@ template int32_t fill_sym_matrix<float>(char uplo, float *d_data, int32_t Ncol, 
 
 template int32_t fill_sym_matrix<double>(char uplo, double *d_data, int32_t Ncol, int32_t N,
                                      CarmaDevice *device);
-
-#ifdef CAN_DO_HALF
-__global__ void half_axpy_krnl(half *source, half *dest, half alpha, int32_t incx,
-                               int32_t incy, int32_t N) {
-  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
-  while (tid < N) {
-    dest[tid] += alpha * source[tid];
-    tid += blockDim.x * gridDim.x;
-  }
-}
-
-int32_t custom_half_axpy(half alpha, half *source, int32_t incx, int32_t incy, int32_t N,
-                     half *dest, CarmaDevice *device) {
-  int32_t nb_blocks, nb_threads;
-  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
-  dim3 grid(nb_blocks), threads(nb_threads);
-
-  half_axpy_krnl<<<grid, threads>>>(source, dest, alpha, incx, incy, N);
-  carma_check_msg("half_axpy_krnl<<<>>> execution failed");
-  return EXIT_SUCCESS;
-}
-#endif
 
 /**
  * @brief Kernel to extract a part of the image centred on center_pos

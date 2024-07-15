@@ -336,10 +336,4 @@ void declare_controller_generic_linear(py::module &mod) {
    "ControllerGENERICLINEAR_FF");
   controller_generic_linear_impl<float, uint16_t>(mod,
    "ControllerGENERICLINEAR_FU");
-/*#ifdef CAN_DO_HALF
-  controller_generic_linear_impl<half, float>(mod,
-   "ControllerGENERICLINEAR_HF");
-  controller_generic_linear_impl<half, uint16_t>(mod,
-   "ControllerGENERICLINEAR_HU");
-#endif*/
 }

@@ -76,13 +76,6 @@ else()
   message(STATUS "OCTOPUS_ROOT not found, CACAO features disabled")
 endif()
 
-if(do_half)
-    message(STATUS "COMPASS half precision enabled")
-    target_compile_definitions(carma PUBLIC CAN_DO_HALF=1)
-else()
-    message(STATUS "COMPASS half precision disabled")
-endif()
-
 set(INSTALL_PKGCONFIG_DIR "lib/pkgconfig"
     CACHE PATH "Installation directory for pkgconfig (.pc) files")
 

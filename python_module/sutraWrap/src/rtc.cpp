@@ -74,54 +74,27 @@ void add_controller_impl(SutraRtc<Tin, Tcomp, Tout> &sr, CarmaContext &context,
 }
 
 template <typename Tin, typename Tcomp, typename Tout>
-typename std::enable_if<!std::is_same<Tcomp, half>::value, void>::type
-build_cmat_impl(SutraRtc<Tin, Tcomp, Tout> &sr, int32_t ncontrol, int32_t nfilt,
+void build_cmat_impl(SutraRtc<Tin, Tcomp, Tout> &sr, int32_t ncontrol, int32_t nfilt,
                 bool filt_tt) {
   SutraControllerLs<Tcomp, Tout> *control =
       dynamic_cast<SutraControllerLs<Tcomp, Tout> *>(sr.d_control[ncontrol]);
   control->build_cmat(nfilt, filt_tt);
 }
-#ifdef CAN_DO_HALF
-template <typename Tin, typename Tcomp, typename Tout>
-typename std::enable_if<std::is_same<Tcomp, half>::value, void>::type
-build_cmat_impl(SutraRtc<Tin, Tcomp, Tout> &sr, int32_t ncontrol, int32_t nfilt,
-                bool filt_tt) {
-  throw std::runtime_error("Not implemented");
-};
-#endif
 
 template <typename Tin, typename Tcomp, typename Tout>
-typename std::enable_if<!std::is_same<Tcomp, half>::value, void>::type
-set_modal_gains_impl(SutraRtc<Tin, Tcomp, Tout> &sr, int32_t ncontrol,
+void set_modal_gains_impl(SutraRtc<Tin, Tcomp, Tout> &sr, int32_t ncontrol,
                      ArrayFStyle<Tcomp> data) {
   SutraControllerLs<Tcomp, Tout> *control =
       dynamic_cast<SutraControllerLs<Tcomp, Tout> *>(sr.d_control[ncontrol]);
   control->set_modal_gains(data.mutable_data());
 }
-#ifdef CAN_DO_HALF
-template <typename Tin, typename Tcomp, typename Tout>
-typename std::enable_if<std::is_same<Tcomp, half>::value, void>::type
-set_modal_gains_impl(SutraRtc<Tin, Tcomp, Tout> &sr, int32_t ncontrol,
-                     ArrayFStyle<Tcomp> data) {
-  throw std::runtime_error("Not implemented");
-}
-#endif
 
 template <typename Tin, typename Tcomp, typename Tout>
-typename std::enable_if<!std::is_same<Tcomp, half>::value, void>::type
-svdec_imat_impl(SutraRtc<Tin, Tcomp, Tout> &sr, int32_t ncontrol) {
+void svdec_imat_impl(SutraRtc<Tin, Tcomp, Tout> &sr, int32_t ncontrol) {
   SutraControllerLs<Tcomp, Tout> *control =
       dynamic_cast<SutraControllerLs<Tcomp, Tout> *>(sr.d_control[ncontrol]);
   control->svdec_imat();
 }
-
-#ifdef CAN_DO_HALF
-template <typename Tin, typename Tcomp, typename Tout>
-typename std::enable_if<std::is_same<Tcomp, half>::value, void>::type
-svdec_imat_impl(SutraRtc<Tin, Tcomp, Tout> &sr, int32_t ncontrol) {
-  throw std::runtime_error("Not implemented");
-}
-#endif
 
 template <typename Tin, typename Tcomp, typename Tout>
 void rtc_impl(py::module &mod, const char *name) {
@@ -518,10 +491,4 @@ void declare_rtc(py::module &mod) {
   rtc_impl<float, float, uint16_t>(mod, "Rtc_FFU");
   rtc_impl<uint16_t, float, float>(mod, "Rtc_UFF");
   rtc_impl<uint16_t, float, uint16_t>(mod, "Rtc_UFU");
-#ifdef CAN_DO_HALF
-  rtc_impl<float, half, float>(mod, "Rtc_FHF");
-  rtc_impl<float, half, uint16_t>(mod, "Rtc_FHU");
-  rtc_impl<uint16_t, half, float>(mod, "Rtc_UHF");
-  rtc_impl<uint16_t, half, uint16_t>(mod, "Rtc_UHU");
-#endif
 }

@@ -76,12 +76,6 @@ protected:
   SutraCentroider(CarmaContext *context, SutraWfs *wfs, int64_t nvalid,
                    float offset, float scale, bool filter_TT, int32_t device);
 
-private:
-  template <typename Q = Tout>
-  typename std::enable_if<std::is_same<Q, float>::value, int32_t>::type
-  apply_TT_filter_impl(Tout *centroids, std::true_type);
-  int32_t apply_TT_filter_impl(Tout *centroids, std::false_type);
-
 public:
   virtual ~SutraCentroider();
   int32_t set_scale(float scale);

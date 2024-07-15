@@ -117,7 +117,4 @@ public:
 
 };
 
-template <typename T>
-void pad_cmat(T *idata, int32_t m, int32_t n, T *odata, int32_t m2, int32_t n2,
-              CarmaDevice *device);
 #endif  // _SUTRA_CONTROLLER_GENERIC_LINEAR_H_

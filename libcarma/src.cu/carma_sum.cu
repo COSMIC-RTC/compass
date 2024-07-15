@@ -283,13 +283,6 @@ void reduce<cuDoubleComplex>(int32_t size, int32_t threads, int32_t blocks,
                              cuDoubleComplex *d_odata) {
   DEBUG_TRACE("Not implemented");
 }
-#ifdef CAN_DO_HALF
-template <>
-void reduce<half>(int32_t size, int32_t threads, int32_t blocks, half *d_idata,
-                  half *d_odata) {
-  DEBUG_TRACE("Not implemented");
-}
-#endif
 
 template <class T>
 T reduce(T *data, int32_t N) {
@@ -327,14 +320,6 @@ cuDoubleComplex reduce<cuDoubleComplex>(cuDoubleComplex *data, int32_t N) {
   DEBUG_TRACE("Not implemented for this data type");
   return make_cuDoubleComplex(0, 0);
 }
-
-#ifdef CAN_DO_HALF
-template <>
-half reduce<half>(half *data, int32_t N) {
-  DEBUG_TRACE("Not implemented for thhis data type");
-  return 0;
-}
-#endif
 
 // template <>
 // tuple_t<float> reduce<tuple_t<float>>(tuple_t<float> *data, int32_t N) {
@@ -388,10 +373,6 @@ void init_reduceCubCU<cuDoubleComplex>(cuDoubleComplex *&cub_data,
                                        cuDoubleComplex *&o_data, int32_t N) {
   DEBUG_TRACE("Not implemented");
 }
-#ifdef CAN_DO_HALF
-template void init_reduceCubCU<half>(half *&cub_data, size_t &cub_data_size,
-                                     half *data, half *&o_data, int32_t N);
-#endif
 
 template <class T>
 void reduceCubCU(T *cub_data, size_t cub_data_size, T *data, T *o_data, int32_t N, cudaStream_t stream) {
@@ -429,7 +410,3 @@ void reduceCubCU<cuDoubleComplex>(cuDoubleComplex *cub_data,
                                   cuDoubleComplex *o_data, int32_t N, cudaStream_t stream) {
   DEBUG_TRACE("Not implemented");
 }
-#ifdef CAN_DO_HALF
-template void reduceCubCU<half>(half *cub_data, size_t cub_data_size,
-                                half *data, half *o_data, int32_t N, cudaStream_t stream);
-#endif

@@ -28,15 +28,9 @@
 
 #include <type_list.hpp>
 
-#ifdef CAN_DO_HALF
-using TypeListObj = GenericTypeList<int32_t, uint32_t, uint16_t, float, double,
-                                    half, cuFloatComplex,
-                                    cuDoubleComplex>;  // , tuple_t<float>>;
-#else
 using TypeListObj =
     GenericTypeList<int32_t, uint32_t, uint16_t, float, double, cuFloatComplex,
                     cuDoubleComplex>;  // , tuple_t<float>>;
-#endif
 
 #define CARMA_NIY                                            \
   {                                                          \
@@ -532,20 +526,7 @@ cublasStatus_t carma_gemv<cuDoubleComplex>(cublasHandle_t cublas_handle,
                                              &alpha, matA, lda, vectx, incx,
                                              &beta, vecty, incy));
 }
-#ifdef CAN_DO_HALF
-template <>
-cublasStatus_t carma_gemv<half>(cublasHandle_t cublas_handle, char trans, int32_t m,
-                                int32_t n, half alpha, half *matA, int32_t lda,
-                                half *vectx, int32_t incx, half beta, half *vecty,
-                                int32_t incy) {
-  int32_t k = (((trans == 'N') || (trans == 'n')) ? n : m);
-  cublasOperation_t transa2 = carma_char2cublas_operation(trans);
-  cublasOperation_t transb2 = carma_char2cublas_operation('N');
-  return carma_checkCublasStatus(cublasHgemm(cublas_handle, transa2, transb2, m,
-                                             1, k, &alpha, matA, lda, vectx, n,
-                                             &beta, vecty, n));
-}
-#endif
+
 /** These templates are used to select the proper ger executable from T_data*/
 template <class T_data>
 cublasStatus_t carma_ger(cublasHandle_t cublas_handle, int32_t m, int32_t n,
@@ -693,20 +674,6 @@ cublasStatus_t carma_gemm<cuDoubleComplex>(cublasHandle_t cublas_handle,
                                              &beta, matC, ldc));
 }
 
-#ifdef CAN_DO_HALF
-template <>
-cublasStatus_t carma_gemm<half>(cublasHandle_t cublas_handle, char transa,
-                                char transb, int32_t m, int32_t n, int32_t k, half alpha,
-                                half *matA, int32_t lda, half *matB, int32_t ldb,
-                                half beta, half *matC, int32_t ldc) {
-  cublasOperation_t transa2 = carma_char2cublas_operation(transa);
-  cublasOperation_t transb2 = carma_char2cublas_operation(transb);
-  return carma_checkCublasStatus(cublasHgemm(cublas_handle, transa2, transb2, m,
-                                             n, k, &alpha, matA, lda, matB, ldb,
-                                             &beta, matC, ldc));
-}
-#endif
-
 /** These templates are used to select the proper batched gemm
  * executable from T_data*/
 template <class T_data>
@@ -771,23 +738,6 @@ cublasStatus_t carma_gemm_strided_batched<cuDoubleComplex>(
                       matsB, ldb, strideB, &beta, matsC, ldc, strideC,
                       batch_count));
 }
-
-#ifdef CAN_DO_HALF
-template <>
-cublasStatus_t carma_gemm_strided_batched<half>(cublasHandle_t cublas_handle,
-                      char transa, char transb, int32_t m, int32_t n, int32_t k, half alpha,
-                      half *matsA, int32_t lda, int64_t strideA,
-                      half *matsB, int32_t ldb, int64_t strideB, half beta,
-                      half *matsC, int32_t ldc, int64_t strideC,
-                      int32_t batch_count) {
-  cublasOperation_t transa2 = carma_char2cublas_operation(transa);
-  cublasOperation_t transb2 = carma_char2cublas_operation(transb);
-  return carma_checkCublasStatus(cublasHgemmStridedBatched(cublas_handle,
-                      transa2, transb2, m, n, k, &alpha, matsA, lda, strideA,
-                      matsB, ldb, strideB, &beta, matsC, ldc, strideC,
-                      batch_count));
-}
-#endif
 
 /** These templates are used to select the proper symm
  * executable from T_data*/
@@ -1026,17 +976,6 @@ cublasStatus_t carma_dgmm<int32_t>(cublasHandle_t cublas_handle, char side, int3
   DEBUG_TRACE("Not implemented");
   return carma_checkCublasStatus(CUBLAS_STATUS_NOT_SUPPORTED);
 }
-
-#ifdef CAN_DO_HALF
-template <>
-cublasStatus_t carma_dgmm<half>(cublasHandle_t cublas_handle, char side, int32_t m,
-                                int32_t n, const half *matA, int32_t lda,
-                                const half *vectx, int32_t incx, half *matC,
-                                int32_t ldc) {
-  DEBUG_TRACE("Not implemented");
-  return carma_checkCublasStatus(CUBLAS_STATUS_NOT_SUPPORTED);
-}
-#endif
 
 template <>
 cublasStatus_t carma_dgmm<float>(cublasHandle_t cublas_handle, char side, int32_t m,

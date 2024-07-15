@@ -268,25 +268,6 @@ template int32_t CarmaObj<cuFloatComplex>::device2host<cuFloatComplex>(
 template int32_t CarmaObj<cuDoubleComplex>::device2host<cuDoubleComplex>(
     cuDoubleComplex *data);
 
-#ifdef CAN_DO_HALF
-template int32_t CarmaObj<half>::host2device<half>(const half *data);
-template int32_t CarmaObj<half>::device2host<half>(half *data);
-template <>
-template <>
-// std::enable_if_t<std::is_same<T_data, half>::value>
-int32_t CarmaObj<half>::host2device<float>(const float *data) {
-  return copy_from_float_to_half(data, this->d_data, this->nb_elem,
-                             this->current_context->get_device(this->device));
-}
-template <>
-template <>
-// std::enable_if_t<std::is_same<T_data, half>::value>
-int32_t CarmaObj<half>::device2host<float>(float *data) {
-  return copy_from_half_to_float(this->d_data, data, this->nb_elem,
-                             this->current_context->get_device(this->device));
-}
-#endif
-
 template <class T_data>
 int32_t CarmaObj<T_data>::host2device_async(const T_data *data,
                                         cudaStream_t stream) {
@@ -522,40 +503,16 @@ int32_t CarmaObj<T>::init_prng(int64_t seed) {
   return EXIT_SUCCESS;
 }
 
-#ifdef CAN_DO_HALF
-template <>
-int32_t CarmaObjH::init_prng(int64_t seed) {
-  DEBUG_TRACE("Not implemented for half precision");
-  return EXIT_SUCCESS;
-}
-#endif
-
 template <class T>
 int32_t CarmaObj<T>::init_prng() {
   return this->init_prng(1234);
 }
-
-#ifdef CAN_DO_HALF
-template <>
-int32_t CarmaObjH::init_prng() {
-  DEBUG_TRACE("Not implemented for half precision");
-  return EXIT_SUCCESS;
-}
-#endif
 
 template <class T>
 int32_t CarmaObj<T>::destroy_prng() {
   carma_safe_call(cudaFree(this->d_states));
   return EXIT_SUCCESS;
 }
-
-#ifdef CAN_DO_HALF
-template <>
-int32_t CarmaObjH::destroy_prng() {
-  DEBUG_TRACE("Not implemented for half precision");
-  return EXIT_SUCCESS;
-}
-#endif
 
 template <class T>
 int32_t CarmaObj<T>::prng(T *output, char gtype, float alpha, float beta) {
@@ -565,14 +522,6 @@ int32_t CarmaObj<T>::prng(T *output, char gtype, float alpha, float beta) {
   return EXIT_SUCCESS;
 }
 
-#ifdef CAN_DO_HALF
-template <>
-int32_t CarmaObjH::prng(half *output, char gtype, float alpha, float beta) {
-  DEBUG_TRACE("Not implemented for half precision");
-  return EXIT_SUCCESS;
-}
-#endif
-
 template <class T>
 int32_t CarmaObj<T>::prng_montagn(float init_montagn) {
   carma_curand_montagn(this->d_states, this->d_data, this->nb_elem,
@@ -580,14 +529,6 @@ int32_t CarmaObj<T>::prng_montagn(float init_montagn) {
 
   return EXIT_SUCCESS;
 }
-
-#ifdef CAN_DO_HALF
-template <>
-int32_t CarmaObjH::prng_montagn(float init_montagn) {
-  DEBUG_TRACE("Not implemented for half precision");
-  return EXIT_SUCCESS;
-}
-#endif
 
 template <class T>
 int32_t CarmaObj<T>::prng(T *output, char gtype, float alpha) {
@@ -597,52 +538,20 @@ int32_t CarmaObj<T>::prng(T *output, char gtype, float alpha) {
   return EXIT_SUCCESS;
 }
 
-#ifdef CAN_DO_HALF
-template <>
-int32_t CarmaObjH::prng(half *output, char gtype, float alpha) {
-  DEBUG_TRACE("Not implemented for half precision");
-  return EXIT_SUCCESS;
-}
-#endif
-
 template <class T>
 int32_t CarmaObj<T>::prng(char gtype) {
   return prng(this->d_data, gtype, 1.0f, 0.0f);
 }
-
-#ifdef CAN_DO_HALF
-template <>
-int32_t CarmaObjH::prng(char gtype) {
-  DEBUG_TRACE("Not implemented for half precision");
-  return EXIT_SUCCESS;
-}
-#endif
 
 template <class T>
 int32_t CarmaObj<T>::prng(char gtype, float alpha) {
   return prng(this->d_data, gtype, alpha, 0.0f);
 }
 
-#ifdef CAN_DO_HALF
-template <>
-int32_t CarmaObjH::prng(char gtype, float alpha) {
-  DEBUG_TRACE("Not implemented for half precision");
-  return EXIT_SUCCESS;
-}
-#endif
-
 template <class T>
 int32_t CarmaObj<T>::prng(char gtype, float alpha, float beta) {
   return prng(this->d_data, gtype, alpha, beta);
 }
-
-#ifdef CAN_DO_HALF
-template <>
-int32_t CarmaObjH::prng(char gtype, float alpha, float beta) {
-  DEBUG_TRACE("Not implemented for half precision");
-  return EXIT_SUCCESS;
-}
-#endif
 
 template <class T>
 int32_t CarmaObj<T>::init_prng_host(int32_t seed) {
@@ -655,14 +564,6 @@ int32_t CarmaObj<T>::init_prng_host(int32_t seed) {
 
   return EXIT_SUCCESS;
 }
-
-#ifdef CAN_DO_HALF
-template <>
-int32_t CarmaObjH::init_prng_host(int32_t seed) {
-  DEBUG_TRACE("Not implemented for half precision");
-  return EXIT_SUCCESS;
-}
-#endif
 
 template <class T>
 int32_t CarmaObj<T>::prng_host(char gtype) {
@@ -761,14 +662,6 @@ int32_t CarmaObj<T>::destroy_prng_host() {
   curandDestroyGenerator(this->gen);
   return EXIT_SUCCESS;
 }
-
-#ifdef CAN_DO_HALF
-template <>
-int32_t CarmaObjH::destroy_prng_host() {
-  DEBUG_TRACE("Not implemented for half precision");
-  return EXIT_SUCCESS;
-}
-#endif
 
 template <class T_data>
 int32_t CarmaObj<T_data>::host2device_vect(const T_data *data, int32_t incx, int32_t incy) {
@@ -1213,90 +1106,3 @@ template class CarmaObj<double>;
 template class CarmaObj<cuFloatComplex>;
 template class CarmaObj<cuDoubleComplex>;
 // template class CarmaObj<struct tuple_t<float>>;
-
-#ifdef CAN_DO_HALF
-template <>
-int32_t CarmaObjH::aimax(int32_t incx) {
-  DEBUG_TRACE("Not implemented for half precision");
-  return EXIT_FAILURE;
-}
-template <>
-int32_t CarmaObjH::aimin(int32_t incx) {
-  DEBUG_TRACE("Not implemented for half precision");
-  return EXIT_FAILURE;
-}
-template <>
-half CarmaObjH::asum(int32_t incx) {
-  DEBUG_TRACE("Not implemented for half precision");
-  return __float2half(0.f);
-}
-template <>
-half CarmaObjH::nrm2(int32_t incx) {
-  DEBUG_TRACE("Not implemented for half precision");
-  return __float2half(0.f);
-}
-template <>
-void CarmaObjH::scale(half alpha, int32_t incx) {
-  DEBUG_TRACE("Not implemented for half precision");
-}
-template <>
-void CarmaObjH::copy(CarmaObjH *, int32_t incx, int32_t incy) {
-  DEBUG_TRACE("Not implemented for half precision");
-}
-template <>
-void CarmaObjH::swap(CarmaObjH *, int32_t incx, int32_t incy) {
-  DEBUG_TRACE("Not implemented for half precision");
-}
-template <>
-void CarmaObjH::axpy(half alpha, CarmaObjH *source, int32_t incx, int32_t incy, int32_t offset) {
-  custom_half_axpy(alpha, source->get_data_at(offset), incx, incy,
-                   this->get_nb_elements(), this->d_data,
-                   current_context->get_device(this->device));
-}
-template <>
-half CarmaObjH::dot(CarmaObjH *source, int32_t incx, int32_t incy) {
-  DEBUG_TRACE("Not implemented for half precision");
-  return __float2half(0.f);
-}
-template <>
-void CarmaObjH::rot(CarmaObjH *source, int32_t incx, int32_t incy, half, half) {
-  DEBUG_TRACE("Not implemented for half precision");
-}
-template <>
-void CarmaObjH::gemv(char trans, half alpha, CarmaObjH *matA, int32_t lda, CarmaObjH *vectx,
-                  int32_t incx, half beta, int32_t incy) {
-  int32_t k = (((trans == 'N') || (trans == 'n')) ? matA->dims_data[2]
-                                              : matA->dims_data[1]);
-
-  carma_gemm(current_context->get_cublas_handle(), trans, 'N',
-             this->dims_data[1], 1, k, alpha, matA->d_data, lda, vectx->d_data,
-             vectx->dims_data[1], beta, this->d_data, this->dims_data[1]);
-}
-template <>
-void CarmaObjH::ger(half, CarmaObjH *, int32_t, CarmaObjH *, int32_t, int32_t) {
-  DEBUG_TRACE("Not implemented for half precision");
-}
-template <>
-void CarmaObjH::symv(char, half, CarmaObjH *, int32_t, CarmaObjH *, int32_t, half, int32_t) {
-  DEBUG_TRACE("Not implemented for half precision");
-}
-template void CarmaObjH::gemm(char, char, half, CarmaObjH *, int32_t, CarmaObjH *, int32_t, half,
-                           int32_t);
-template <>
-void CarmaObjH::symm(char, char, half, CarmaObjH *, int32_t, CarmaObjH *, int32_t, half, int32_t) {
-  DEBUG_TRACE("Not implemented for half precision");
-}
-template <>
-void CarmaObjH::syrk(char, char, half, CarmaObjH *, int32_t, half, int32_t) {
-  DEBUG_TRACE("Not implemented for half precision");
-}
-template <>
-void CarmaObjH::syrkx(char, char, half, CarmaObjH *, int32_t, CarmaObjH *, int32_t, half, int32_t) {
-  DEBUG_TRACE("Not implemented for half precision");
-}
-template void CarmaObjH::geam(char, char, half, CarmaObjH *, int32_t, half, CarmaObjH *, int32_t,
-                           int32_t);
-template void CarmaObjH::dgmm(char, CarmaObjH *, int32_t, CarmaObjH *, int32_t, int32_t);
-template class CarmaObj<half>;
-
-#endif

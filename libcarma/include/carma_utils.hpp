@@ -157,15 +157,6 @@ template <typename T_data>
 int32_t fill_array_with_value(T_data *d_data, T_data value, int32_t N,
                           CarmaDevice *device);
 
-#ifdef CAN_DO_HALF
-int32_t copy_from_float_to_half(const float *data, half *dest, int32_t N,
-                        CarmaDevice *device);
-int32_t copy_from_half_to_float(const half *d_data, float *h_dest, int32_t N,
-                        CarmaDevice *device);
-half *float_to_half_array(float *source, int32_t N, CarmaDevice *device);
-float *half_to_float_array(half *source, int32_t N, CarmaDevice *device);
-#endif
-
 void carma_start_profile();
 void carma_stop_profile();
 

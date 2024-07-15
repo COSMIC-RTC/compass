@@ -356,9 +356,4 @@ void centroider_impl(py::module &mod, const char *name) {
 void declare_centroider(py::module &mod) {
   centroider_impl<float, float>(mod, "Centroider_FF");
   centroider_impl<uint16_t, float>(mod, "Centroider_UF");
-#ifdef CAN_DO_HALF
-  centroider_impl<float, half>(mod, "Centroider_FH");
-  centroider_impl<uint16_t, half>(mod, "Centroider_UH");
-
-#endif
 }

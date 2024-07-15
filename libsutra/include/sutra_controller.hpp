@@ -73,9 +73,7 @@ class SutraController {
             // non-integer delay
   vector<SutraDm *> d_dmseen;
   CarmaObj<Tcomp> *d_centroids;        // current centroids
-  CarmaObj<Tcomp> *d_centroids_padded;  // current centroids
   CarmaObj<Tcomp> *d_com;              // current command
-  CarmaObj<Tcomp> *d_com_padded;        // current command
   CarmaObj<Tcomp> *d_com_clipped;       // current command
   CarmaObj<Tout> *d_voltage;  // commands after perturbation and clipping
   CarmaObj<Tcomp> *d_com1;    // commands k-1
@@ -184,4 +182,7 @@ int32_t absnormfft(cuFloatComplex *idata, float *odata, int32_t N, float norm,
                CarmaDevice *device);
 int32_t adjust_csr_index(int32_t *rowind, int32_t *NNZ, int32_t *nact, int32_t nact_tot,
                      int32_t row_off, CarmaDevice *device);
+template <typename T>
+void pad_cmat(T *idata, int32_t m, int32_t n, T *odata, int32_t m2, int32_t n2,
+              CarmaDevice *device);
 #endif  // _SUTRA_CONTROLLER_H_

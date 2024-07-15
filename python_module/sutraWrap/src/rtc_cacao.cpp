@@ -133,12 +133,6 @@ void rtc_cacao_impl(py::module &mod, const char *name) {
 }
 
 void declare_rtc_cacao(py::module &mod) {
-#ifdef CAN_DO_HALF
-  rtc_cacao_impl<float, half, float>(mod, "Rtc_cacao_FHF");
-  rtc_cacao_impl<uint16_t, half, float>(mod, "Rtc_cacao_UHF");
-  rtc_cacao_impl<float, half, uint16_t>(mod, "Rtc_cacao_FHU");
-  rtc_cacao_impl<uint16_t, half, uint16_t>(mod, "Rtc_cacao_UHU");
-#endif
   rtc_cacao_impl<float, float, float>(mod, "Rtc_cacao_FFF");
   rtc_cacao_impl<uint16_t, float, float>(mod, "Rtc_cacao_UFF");
   rtc_cacao_impl<float, float, uint16_t>(mod, "Rtc_cacao_FFU");

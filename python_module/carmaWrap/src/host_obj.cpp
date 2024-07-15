@@ -24,14 +24,8 @@
 #include <carma.hpp>
 #include "type_list.hpp"
 
-// #ifdef CAN_DO_HALF
-// using TypeListHostObj =
-//     GenericTypeList<int32_t, float, double, half, cuFloatComplex,
-//     cuDoubleComplex>;
-// #else
 using TypeListHostObj =
     GenericTypeList<int32_t, float, double, cuFloatComplex, cuDoubleComplex>;
-// #endif
 
 void declare_carmaWrap_host_obj(py::module &mod) {
   py::enum_<MemAlloc>(mod, "MemAlloc")

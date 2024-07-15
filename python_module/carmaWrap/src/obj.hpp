@@ -276,29 +276,7 @@ struct CarmaObjInterfacer {
              py::arg("vecty") = nullptr, py::arg("beta") = 0)  // &Class::gemv)
     // void ger(T_data alpha, CarmaObj<T_data> *vectx, int32_t incx,
     //          CarmaObj<T_data> *vecty, int32_t incy, int32_t lda);
-#ifdef CAN_DO_HALF
-        .def("gemv",
-             [](CarmaObj<half> &mat, CarmaObj<half> &vectx, float alpha,
-                char op, CarmaObj<half> *vecty, float beta) {
-               if (vecty == nullptr) {
-                 int64_t dims[] = {1, 0, 1};
-                 if (op == 'N' || op == 'n') {
-                   dims[1] = mat.get_dims(1);
-                 } else {
-                   dims[1] = mat.get_dims(2);
-                 }
-                 vecty = new CarmaObj<half>(mat.get_context(), dims);
-                 vecty->reset();
-               }
-               vecty->gemv(op, __float2half(alpha), &mat, mat.get_dims(1),
-                           &vectx, 1, __float2half(beta), 1);
-               return vecty;
-             },
-             "this method performs one of the matrix‐vector operations vecty = "
-             "alpha * op(mat) * vectx + beta * vecty",
-             py::arg("vectx"), py::arg("alpha") = 1, py::arg("op") = 'N',
-             py::arg("vecty") = nullptr, py::arg("beta") = 0)  // &Class::gemv)
-#endif
+
         // void ger(T_data alpha, CarmaObj<T_data> *vectx, int32_t incx,
         //          CarmaObj<T_data> *vecty, int32_t incy, int32_t lda);
         .def("ger",

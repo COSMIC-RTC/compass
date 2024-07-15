@@ -183,8 +183,4 @@ void controller_generic_impl(py::module &mod, const char *name) {
 void declare_controller_generic(py::module &mod) {
   controller_generic_impl<float, float>(mod, "ControllerGENERIC_FF");
   controller_generic_impl<float, uint16_t>(mod, "ControllerGENERIC_FU");
-#ifdef CAN_DO_HALF
-  controller_generic_impl<half, float>(mod, "ControllerGENERIC_HF");
-  controller_generic_impl<half, uint16_t>(mod, "ControllerGENERIC_HU");
-#endif
 }

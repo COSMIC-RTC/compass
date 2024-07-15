@@ -77,13 +77,11 @@ def get_install_path(args, project_dir):
 def get_env_vars():
     """Get environment variables."""
     cuda_sm = os.environ.get('CUDA_SM', "native")
-    do_half = (os.environ.get('COMPASS_DO_HALF', default='off').lower()
-               in ['yes', 'true', 'on'])
     build_libs = (os.environ.get('BUILD_LIBS', default='on').lower()
                   in ['yes', 'true', 'on'])
     python_version_ = f'{sys.version_info.major}.{sys.version_info.minor}'
     python_version = os.environ.get('PYTHON_VERSION', default=python_version_)
-    return cuda_sm, do_half, build_libs, python_version
+    return cuda_sm, build_libs, python_version
 
 
 def run_command(project_dir, cmd):
@@ -102,7 +100,7 @@ def run_command(project_dir, cmd):
 
 def generate_CMakePresets_json(install_path, build_dir, build_type):
     """Generate the command args to install."""
-    cuda_args, do_half, build_libs, python_version = get_env_vars()
+    cuda_args, build_libs, python_version = get_env_vars()
 
     # CMakePresets.json file
     cmake_presets = {
@@ -119,7 +117,6 @@ def generate_CMakePresets_json(install_path, build_dir, build_type):
                     "CMAKE_CUDA_ARCHITECTURES":  cuda_args,
                     "CMAKE_POSITION_INDEPENDENT_CODE": "ON",
                     "PYBIND11_PYTHON_VERSION":  python_version,
-                    "do_half": do_half,
                     "python_build": "ON" if python_version != "" else "OFF",
                     "libs_build": build_libs,
                 }

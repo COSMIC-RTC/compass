@@ -377,10 +377,6 @@ typedef CarmaObj<cuFloatComplex> CarmaObjC;
 typedef CarmaObj<cuDoubleComplex> CarmaObjZ;
 // typedef CarmaObj<tuple_t<float>> CarmaObjTF;
 
-#ifdef CAN_DO_HALF
-typedef CarmaObj<half> CarmaObjH;
-#endif
-
 template <class T_data>
 std::ostream &operator<<(std::ostream &os, CarmaObj<T_data> &obj) {
   os << "-----------------------" << std::endl;
@@ -480,10 +476,6 @@ int32_t carma_plusai(T *d_odata, T *i_data, int32_t i, int32_t sgn, int32_t N,
 // int32_t carma_fftconv(CarmaObjS *data_out, CarmaObjS *padded_data,
 //                   CarmaObjC *padded_spectrum, int32_t kernelY, int32_t kernelX);
 
-#ifdef CAN_DO_HALF
-int32_t custom_half_axpy(half alpha, half *source, int32_t incx, int32_t incy, int32_t N,
-                     half *dest, CarmaDevice *device);
-#endif
 
 /**
  * @brief Kernel to extract a part of the image centred on center_pos

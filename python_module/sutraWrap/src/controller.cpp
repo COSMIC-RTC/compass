@@ -27,53 +27,26 @@
 namespace py = pybind11;
 
 template <typename Tcomp, typename Tout>
-typename std::enable_if<!std::is_same<Tcomp, half>::value, float>::type
+int32_t 
 add_perturb_voltage(SutraController<Tcomp, Tout> &sc, string name, ArrayFStyle<Tcomp> &perturb, int32_t N)
 {
     return sc.add_perturb_voltage(name, perturb.mutable_data(), N);
 }
 
 template <typename Tcomp, typename Tout>
-typename std::enable_if<!std::is_same<Tcomp, half>::value, float>::type
+int32_t 
 set_perturb_voltage(SutraController<Tcomp, Tout> &sc, string name, ArrayFStyle<Tcomp> &perturb, int32_t N)
 {
     return sc.set_perturb_voltage(name, perturb.mutable_data(), N);
 }
 
 template <typename Tcomp, typename Tout>
-typename std::enable_if<!std::is_same<Tcomp, half>::value, float>::type
+int32_t 
 set_com(SutraController<Tcomp, Tout> &sc, ArrayFStyle<Tcomp> &perturb, int32_t N)
 {
     return sc.set_com(perturb.mutable_data(), N);
 }
 
-template <typename Tcomp, typename Tout>
-typename std::enable_if<!std::is_same<Tcomp, half>::value, float>::type
-get_gain(SutraController<Tcomp, Tout> &sc)
-{
-    return float(sc.gain);
-}
-
-template <typename Tcomp, typename Tout>
-typename std::enable_if<std::is_same<Tcomp, half>::value, float>::type get_gain(
-    SutraController<Tcomp, Tout> &sc)
-{
-    return __half2float(sc.gain);
-}
-
-template <typename Tcomp, typename Tout>
-typename std::enable_if<!std::is_same<Tcomp, half>::value, float>::type
-get_delay(SutraController<Tcomp, Tout> &sc)
-{
-    return float(sc.delay);
-}
-
-template <typename Tcomp, typename Tout>
-typename std::enable_if<std::is_same<Tcomp, half>::value, float>::type
-get_delay(SutraController<Tcomp, Tout> &sc)
-{
-    return __half2float(sc.delay);
-}
 
 template <typename Tcomp, typename Tout>
 void controller_impl(py::module &mod, const char *name)
@@ -116,7 +89,7 @@ void controller_impl(py::module &mod, const char *name)
 
         .def_property_readonly(
             "gain", [](controller &sc)
-            { return get_gain(sc); },
+            { return sc.gain; },
             "Controller gain")
         .def_property_readonly(
             "open_loop", [](controller &sc)
@@ -125,7 +98,7 @@ void controller_impl(py::module &mod, const char *name)
 
         .def_property_readonly(
             "delay", [](controller &sc)
-            { return get_delay(sc); },
+            { return sc.delay; },
             "Loop delay")
 
         .def_property_readonly(
@@ -366,8 +339,4 @@ void declare_controller(py::module &mod)
 {
     controller_impl<float, float>(mod, "Controller_FF");
     controller_impl<float, uint16_t>(mod, "Controller_FU");
-#ifdef CAN_DO_HALF
-    controller_impl<half, float>(mod, "Controller_HF");
-    controller_impl<half, uint16_t>(mod, "Controller_HU");
-#endif
 }

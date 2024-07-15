@@ -32,10 +32,6 @@
 #include <cstdint>
 #include <cuComplex.h>
 
-#ifdef CAN_DO_HALF
-#include <cuda_fp16.h>
-#endif
-
 template <typename T>
 constexpr static char const* explicit_name();
 
@@ -60,10 +56,6 @@ constexpr static char const* explicit_name();
 DECLARE_NAME_CARMA(int32_t, int32_t);
 DECLARE_NAME_CARMA(uint32_t, uint);
 DECLARE_NAME_CARMA(uint16_t, uint16);
-
-#ifdef CAN_DO_HALF
-DECLARE_NAME_CARMA(half, half);
-#endif
 DECLARE_NAME_CARMA(float, float);
 DECLARE_NAME_CARMA(double, double);
 

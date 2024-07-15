@@ -11,7 +11,6 @@ project(compass
 
 option(libs_build "Compile Python Wrappers" ON)
 option(python_build "Compile Python Wrappers" ON)
-option(do_half "Compile half codes" OFF)
 
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
     set(GCOV gcov)

@@ -73,9 +73,4 @@ void centroider_bpcog_impl(py::module &mod, const char *name) {
 void declare_centroider_bpcog(py::module &mod) {
   centroider_bpcog_impl<float, float>(mod, "CentroiderBPCOG_FF");
   centroider_bpcog_impl<uint16_t, float>(mod, "CentroiderBPCOG_UF");
-#ifdef CAN_DO_HALF
-  centroider_bpcog_impl<float, half>(mod, "CentroiderBPCOG_FH");
-  centroider_bpcog_impl<uint16_t, half>(mod, "CentroiderBPCOG_UH");
-
-#endif
 }

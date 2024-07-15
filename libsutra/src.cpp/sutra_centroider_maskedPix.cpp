@@ -43,9 +43,7 @@ SutraCentroiderMaskedPix<Tin, T>::SutraCentroiderMaskedPix(
   this->d_intensities->init_reduceCub();
   int64_t dims_data2[2] = {1, this->nslopes};
   this->d_centroids_ref = new CarmaObj<T>(this->current_context, dims_data2);
-#ifndef CAN_DO_HALF
   this->d_centroids_ref->memset(1);
-#endif
   this->d_selected_pix = nullptr;
   this->d_mask = nullptr;
 
@@ -182,33 +180,3 @@ int32_t SutraCentroiderMaskedPix<Tin, T>::get_cog() {
 
 template class SutraCentroiderMaskedPix<float, float>;
 template class SutraCentroiderMaskedPix<uint16_t, float>;
-#ifdef CAN_DO_HALF
-template <>
-int32_t SutraCentroiderMaskedPix<float, half>::get_cog(float *intensities,
-                                                   half *slopes, bool noise) {
-  DEBUG_TRACE("Not implemented for half precision");
-  return EXIT_FAILURE;
-}
-
-template <>
-int32_t SutraCentroiderMaskedPix<uint16_t, half>::get_cog(float *intensities,
-                                                      half *slopes,
-                                                      bool noise) {
-  DEBUG_TRACE("Not implemented for half precision");
-  return EXIT_FAILURE;
-}
-
-template <>
-int32_t SutraCentroiderMaskedPix<float, half>::get_cog() {
-  DEBUG_TRACE("Not implemented for half precision");
-  return EXIT_FAILURE;
-}
-
-template <>
-int32_t SutraCentroiderMaskedPix<uint16_t, half>::get_cog() {
-  DEBUG_TRACE("Not implemented for half precision");
-  return EXIT_FAILURE;
-}
-template class SutraCentroiderMaskedPix<float, half>;
-template class SutraCentroiderMaskedPix<uint16_t, half>;
-#endif

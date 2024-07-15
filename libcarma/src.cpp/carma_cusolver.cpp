@@ -24,15 +24,9 @@
 
 #include <type_list.hpp>
 
-#ifdef CAN_DO_HALF
-using TypeListObj = GenericTypeList<uint16_t, int32_t, uint32_t, float, double,
-                                    half, cuFloatComplex,
-                                    cuDoubleComplex>;  // , tuple_t<float>>;
-#else
 using TypeListObj =
     GenericTypeList<uint16_t, int32_t, uint32_t, float, double, cuFloatComplex,
                     cuDoubleComplex>;  // , tuple_t<float>>;
-#endif
 
 #define CHECK_CUSOLVER(fct)                                             \
   do {                                                                  \

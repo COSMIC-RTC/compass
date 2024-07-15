@@ -115,59 +115,6 @@ class SutraRtc {
   int32_t comp_voltage(int32_t ncntrl);
   int32_t remove_ref(int32_t ncntrl);
   int32_t set_centroids_ref(float *centroids_ref);
-
- private:
-  template <typename Q = Tcomp>
-  typename std::enable_if<std::is_same<Q, float>::value, int32_t>::type
-  do_imat_impl(int32_t ncntrl, SutraDms *ydm, int32_t kernconv, std::true_type);
-  int32_t do_imat_impl(int32_t ncntrl, SutraDms *ydm, int32_t kernconv, std::false_type);
-
-  template <typename Q = Tcomp>
-  typename std::enable_if<std::is_same<Q, float>::value, int32_t>::type
-  do_imat_basis_impl(int32_t ncntrl, SutraDms *ydm, int32_t nModes, Tcomp *m2v,
-                     Tcomp *pushAmpl, int32_t kernconv, std::true_type);
-  int32_t do_imat_basis_impl(int32_t ncntrl, SutraDms *ydm, int32_t nModes, Tcomp *m2v,
-                         Tcomp *pushAmpl, int32_t kernconv, std::false_type);
-  template <typename Q = Tcomp>
-  typename std::enable_if<std::is_same<Q, float>::value, int32_t>::type
-  do_imat_geom_impl(int32_t ncntrl, SutraDms *ydm, int32_t type, std::true_type);
-  int32_t do_imat_geom_impl(int32_t ncntrl, SutraDms *ydm, int32_t type, std::false_type);
-
-  template <typename Q = Tcomp>
-  typename std::enable_if<std::is_same<Q, float>::value, int32_t>::type
-  do_centroids_geom_impl(int32_t ncntrl, int32_t type, std::true_type);
-  int32_t do_centroids_geom_impl(int32_t ncntrl, int32_t type, std::false_type);
-
-  template <typename Q = Tcomp>
-  typename std::enable_if<!std::is_same<Q, half>::value, int32_t>::type
-  add_centroider_impl(CarmaContext *context, int64_t nvalid, float offset,
-                      float scale, bool filter_TT, int64_t device,
-                      std::string typec, SutraWfs *wfs, std::false_type);
-  int32_t add_centroider_impl(CarmaContext *context, int64_t nvalid, float offset,
-                          float scale, bool filter_TT, int64_t device,
-                          std::string typec, SutraWfs *wfs, std::true_type);
-
-  template <typename Q = Tcomp>
-  typename std::enable_if<!std::is_same<Q, half>::value, int32_t>::type
-  add_controller_impl(CarmaContext *context,
-                      vector<SutraController<Tcomp, Tout> *> &d_control,
-                      std::string typec,int64_t device, float delay,  int32_t nslope, int32_t nactu,
-                      int32_t nslope_buffers, int32_t nstates, int32_t nstate_buffers, int32_t nmodes,
-                      int32_t niir_in, int32_t niir_out, bool polc,bool is_modal,
-                      SutraDms *dms, int32_t *idx_dms, int32_t ndm, int32_t *idx_centro, int32_t ncentro,
-                      int32_t Nphi, bool wfs_direction,
-                      std::false_type);
-
-
-
-  int32_t add_controller_impl(CarmaContext *context,
-                          vector<SutraController<Tcomp, Tout> *> &d_control,
-                          std::string typec,int64_t device, float delay,  int32_t nslope, int32_t nactu,
-                          int32_t nslope_buffers, int32_t nstates, int32_t nstate_buffers, int32_t nmodes,
-                          int32_t niir_in, int32_t niir_out, bool polc,bool is_modal,
-                          SutraDms *dms, int32_t *idx_dms, int32_t ndm, int32_t *idx_centro, int32_t ncentro,
-                          int32_t Nphi, bool wfs_direction,
-                          std::true_type);
 };
 
 #endif  // _SUTRA_RTC_H_

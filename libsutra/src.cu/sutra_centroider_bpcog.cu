@@ -155,11 +155,3 @@ template void get_centroids<double>(int32_t size, int32_t threads, int32_t block
                                     float *intensities, int32_t nbpix, float scale,
                                     float offset, SlopeOrder slope_order,
                                     CarmaDevice *device, cudaStream_t stream);
-#ifdef CAN_DO_HALF
-template void get_centroids<half>(int32_t size, int32_t threads, int32_t blocks, int32_t npix,
-                                  float *d_img, half *d_centroids, half *ref,
-                                  int32_t *validx, int32_t *validy, float *intensities,
-                                  int32_t nbpix, float scale, float offset,
-                                  SlopeOrder slope_order,
-                                  CarmaDevice *device, cudaStream_t stream);
-#endif

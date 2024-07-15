@@ -65,9 +65,4 @@ void centroider_tcog_impl(py::module &mod, const char *name) {
 void declare_centroider_tcog(py::module &mod) {
   centroider_tcog_impl<float, float>(mod, "CentroiderTCOG_FF");
   centroider_tcog_impl<uint16_t, float>(mod, "CentroiderTCOG_UF");
-#ifdef CAN_DO_HALF
-  centroider_tcog_impl<float, half>(mod, "CentroiderTCOG_FH");
-  centroider_tcog_impl<uint16_t, half>(mod, "CentroiderTCOG_UH");
-
-#endif
 }

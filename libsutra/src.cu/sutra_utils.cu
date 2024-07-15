@@ -675,10 +675,6 @@ template int32_t mult_vect<float>(float *d_data, float *scale, int32_t N,
                               CarmaDevice *device);
 template int32_t mult_vect<double>(double *d_data, double *scale, int32_t N,
                                CarmaDevice *device);
-#ifdef CAN_DO_HALF
-template int32_t mult_vect<half>(half *d_data, half *scale, int32_t N,
-                             CarmaDevice *device);
-#endif
 
 template <class T>
 int32_t mult_vect(T *d_data, T *scale, T gain, int32_t N, CarmaDevice *device) {
@@ -696,10 +692,6 @@ template int32_t mult_vect<float>(float *d_data, float *scale, float gain, int32
                               CarmaDevice *device);
 template int32_t mult_vect<double>(double *d_data, double *scale, double gain,
                                int32_t N, CarmaDevice *device);
-#ifdef CAN_DO_HALF
-template int32_t mult_vect<half>(half *d_data, half *scale, half gain, int32_t N,
-                             CarmaDevice *device);
-#endif
 
 template <class T>
 int32_t mult_vect(T *d_data, T gain, int32_t N, CarmaDevice *device) {
@@ -717,10 +709,6 @@ template int32_t mult_vect<float>(float *d_data, float gain, int32_t N,
                               CarmaDevice *device);
 template int32_t mult_vect<double>(double *d_data, double gain, int32_t N,
                                CarmaDevice *device);
-#ifdef CAN_DO_HALF
-template int32_t mult_vect<half>(half *d_data, half gain, int32_t N,
-                             CarmaDevice *device);
-#endif
 
 int32_t mult_int(float *o_data, float *i_data, float *scale, float gain, int32_t N,
              CarmaDevice *device, CarmaStreams *streams) {

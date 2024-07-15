@@ -75,18 +75,6 @@ int32_t SutraRtc<Tin, T, Tout>::add_centroider(CarmaContext *context, int64_t nv
                                            float offset, float scale,
                                            bool filter_TT, int64_t device,
                                            std::string typec, SutraWfs *wfs) {
-  return add_centroider_impl(context, nvalid, offset, scale, filter_TT, device,
-                             typec, wfs, std::is_same<T, half>());
-}
-
-template <typename Tin, typename T, typename Tout>
-template <typename Q>
-typename std::enable_if<!std::is_same<Q, half>::value, int32_t>::type
-SutraRtc<Tin, T, Tout>::add_centroider_impl(CarmaContext *context, int64_t nvalid,
-                                            float offset, float scale,
-                                            bool filter_TT, int64_t device,
-                                            std::string typec, SutraWfs *wfs,
-                                            std::false_type) {
   if (typec.compare("bpcog") == 0)
     this->d_centro.push_back(new SutraCentroiderBpcog<Tin, T>(
         context, wfs, nvalid, offset, scale, filter_TT, device, 10));
@@ -123,40 +111,6 @@ SutraRtc<Tin, T, Tout>::add_centroider_impl(CarmaContext *context, int64_t nvali
   return EXIT_SUCCESS;
 }
 
-#ifdef CAN_DO_HALF
-template <typename Tin, typename T, typename Tout>
-int32_t SutraRtc<Tin, T, Tout>::add_centroider_impl(CarmaContext *context,
-                                                int64_t nvalid, float offset,
-                                                float scale, bool filter_TT,
-                                                int64_t device, std::string typec,
-                                                SutraWfs *wfs, std::true_type) {
-  if (typec.compare("cog") == 0)
-    this->d_centro.push_back(new SutraCentroiderCog<Tin, T>(
-        context, wfs, nvalid, offset, scale, filter_TT, device));
-  else if (typec.compare("bpcog") == 0)
-    this->d_centro.push_back(new SutraCentroiderBpcog<Tin, T>(
-        context, wfs, nvalid, offset, scale, filter_TT, device, 10));
-  else if (typec.compare("tcog") == 0)
-    this->d_centro.push_back(new SutraCentroiderTcog<Tin, T>(
-        context, wfs, nvalid, offset, scale, filter_TT, device));
-  else if (typec.compare("maskedpix") == 0) {
-    if (wfs == nullptr) {
-      this->d_centro.push_back(new SutraCentroiderMaskedPix<Tin, T>(
-          context, wfs, nvalid, offset, scale, filter_TT, device));
-    } else if (wfs->type == "pyrhr") {
-      SutraWfs_PyrHR *pwfs = dynamic_cast<SutraWfs_PyrHR *>(wfs);
-      this->d_centro.push_back(new SutraCentroiderMaskedPix<Tin, T>(
-          context, pwfs, nvalid * pwfs->npupils, offset, scale, filter_TT,
-          device));
-    } else
-      DEBUG_TRACE("WFS must be pyrhr");
-  } else
-    DEBUG_TRACE("Not implemented for half precision yet");
-
-  return EXIT_SUCCESS;
-}
-#endif
-
 template <typename Tin, typename T, typename Tout>
 int32_t SutraRtc<Tin, T, Tout>::add_controller(CarmaContext *context, std::string typec,int64_t device,
                     float delay, int32_t nslope, int32_t nactu,
@@ -164,22 +118,6 @@ int32_t SutraRtc<Tin, T, Tout>::add_controller(CarmaContext *context, std::strin
                     int32_t niir_in, int32_t niir_out, bool polc,bool is_modal,
                     SutraDms *dms, int32_t *idx_dms, int32_t ndm, int32_t *idx_centro, int32_t ncentro,
                     int32_t Nphi, bool wfs_direction) {
-  return add_controller_impl(context, this->d_control, typec,device,
-                        delay, nslope, nactu, nslope_buffers, nstates, nstate_buffers, nmodes,
-                        niir_in, niir_out, polc, is_modal, dms, idx_dms, ndm,
-                        idx_centro, ncentro, Nphi, wfs_direction, std::is_same<T, half>());
-}
-
-template <typename Tin, typename T, typename Tout>
-template <typename Q>
-typename std::enable_if<!std::is_same<Q, half>::value, int32_t>::type
-SutraRtc<Tin, T, Tout>::add_controller_impl(
-    CarmaContext *context, vector<SutraController<T, Tout> *> &d_control,
-    std::string typec,int64_t device, float delay, int32_t nslope, int32_t nactu,
-    int32_t nslope_buffers, int32_t nstates, int32_t nstate_buffers, int32_t nmodes,
-    int32_t niir_in, int32_t niir_out, bool polc,bool is_modal,
-    SutraDms *dms, int32_t *idx_dms, int32_t ndm, int32_t *idx_centro, int32_t ncentro,
-    int32_t Nphi, bool wfs_direction, std::false_type) {
   if (typec.compare("ls") == 0) {
     d_control.push_back(new SutraControllerLs<T, Tout>(
         context, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro,
@@ -210,42 +148,7 @@ SutraRtc<Tin, T, Tout>::add_controller_impl(
 }
 
 template <typename Tin, typename T, typename Tout>
-int32_t SutraRtc<Tin, T, Tout>::add_controller_impl(
-    CarmaContext *context, vector<SutraController<T, Tout> *> &d_control,
-    std::string typec,int64_t device, float delay, int32_t nslope, int32_t nactu,
-    int32_t nslope_buffers, int32_t nstates, int32_t nstate_buffers, int32_t nmodes,
-    int32_t niir_in, int32_t niir_out, bool polc,bool is_modal,
-    SutraDms *dms, int32_t *idx_dms, int32_t ndm, int32_t *idx_centro, int32_t ncentro,
-    int32_t Nphi, bool wfs_direction, std::true_type) {
-  if (typec.compare("generic") == 0) {
-    d_control.push_back(new SutraControllerGeneric<T, Tout>(
-        context, nslope, nactu, delay, dms, idx_dms, ndm, idx_centro,
-        ncentro, nstates));
-
-  } else {
-    DEBUG_TRACE("Not implemented in half precision yet");
-    return EXIT_FAILURE;
-  }
-  return EXIT_SUCCESS;
-}
-
-template <typename Tin, typename T, typename Tout>
 int32_t SutraRtc<Tin, T, Tout>::do_imat(int32_t ncntrl, SutraDms *ydm, int32_t kernconv) {
-  return do_imat_impl(ncntrl, ydm, kernconv, std::is_same<T, float>());
-}
-
-template <typename Tin, typename T, typename Tout>
-int32_t SutraRtc<Tin, T, Tout>::do_imat_impl(int32_t ncntrl, SutraDms *ydm, int32_t kernconv,
-                                         std::false_type) {
-  DEBUG_TRACE("Not implemented for this computation type");
-  return EXIT_FAILURE;
-}
-
-template <typename Tin, typename T, typename Tout>
-template <typename Q>
-typename std::enable_if<std::is_same<Q, float>::value, int32_t>::type
-SutraRtc<Tin, T, Tout>::do_imat_impl(int32_t ncntrl, SutraDms *ydm, int32_t kernconv,
-                                     std::true_type) {
   CarmaObj<T> *d_imat = NULL;
   if (this->d_control[ncntrl]->get_type().compare("ls") == 0) {
     SutraControllerLs<T, Tout> *control =
@@ -392,24 +295,6 @@ SutraRtc<Tin, T, Tout>::do_imat_impl(int32_t ncntrl, SutraDms *ydm, int32_t kern
 template <typename Tin, typename T, typename Tout>
 int32_t SutraRtc<Tin, T, Tout>::do_imat_basis(int32_t ncntrl, SutraDms *ydm, int32_t nModes,
                                           T *m2v, T *pushAmpl, int32_t kernconv) {
-  return do_imat_basis_impl(ncntrl, ydm, nModes, m2v, pushAmpl, kernconv,
-                            std::is_same<T, float>());
-}
-
-template <typename Tin, typename T, typename Tout>
-int32_t SutraRtc<Tin, T, Tout>::do_imat_basis_impl(int32_t ncntrl, SutraDms *ydm,
-                                               int32_t nModes, T *m2v, T *pushAmpl, int32_t kernconv,
-                                               std::false_type) {
-  DEBUG_TRACE("Not implemented for this computation type");
-  return EXIT_FAILURE;
-}
-
-template <typename Tin, typename T, typename Tout>
-template <typename Q>
-typename std::enable_if<std::is_same<Q, float>::value, int32_t>::type
-SutraRtc<Tin, T, Tout>::do_imat_basis_impl(int32_t ncntrl, SutraDms *ydm,
-                                           int32_t nModes, T *m2v, T *pushAmpl, int32_t kernconv,
-                                           std::true_type) {
   CarmaObj<T> d_m2v(this->d_control[ncntrl]->current_context,
                     std::vector<int64_t>{2, ydm->nact_total(), nModes}.data(),
                     m2v);
@@ -512,21 +397,6 @@ int32_t SutraRtc<Tin, T, Tout>::comp_images_imat(SutraDms *ydm, int32_t kernconv
 
 template <typename Tin, typename T, typename Tout>
 int32_t SutraRtc<Tin, T, Tout>::do_imat_geom(int32_t ncntrl, SutraDms *ydm, int32_t type) {
-  return do_imat_geom_impl(ncntrl, ydm, type, std::is_same<T, float>());
-}
-
-template <typename Tin, typename T, typename Tout>
-int32_t SutraRtc<Tin, T, Tout>::do_imat_geom_impl(int32_t ncntrl, SutraDms *ydm,
-                                              int32_t type, std::false_type) {
-  DEBUG_TRACE("Not implemented for this computation type");
-  return EXIT_FAILURE;
-}
-
-template <typename Tin, typename T, typename Tout>
-template <typename Q>
-typename std::enable_if<std::is_same<Q, float>::value, int32_t>::type
-SutraRtc<Tin, T, Tout>::do_imat_geom_impl(int32_t ncntrl, SutraDms *ydm, int32_t type,
-                                          std::true_type) {
   vector<SutraDm *>::iterator p;
   p = this->d_control[ncntrl]->d_dmseen.begin();
   int32_t inds1, inds2;
@@ -643,21 +513,6 @@ int32_t SutraRtc<Tin, T, Tout>::do_centroids(int32_t ncntrl, bool noise) {
 
 template <typename Tin, typename T, typename Tout>
 int32_t SutraRtc<Tin, T, Tout>::do_centroids_geom(int32_t ncntrl, int32_t type) {
-  return do_centroids_geom_impl(ncntrl, type, std::is_same<T, float>());
-}
-
-template <typename Tin, typename T, typename Tout>
-int32_t SutraRtc<Tin, T, Tout>::do_centroids_geom_impl(int32_t ncntrl, int32_t type,
-                                                   std::false_type) {
-  DEBUG_TRACE("Not implemented for this compuation type");
-  return EXIT_FAILURE;
-}
-
-template <typename Tin, typename T, typename Tout>
-template <typename Q>
-typename std::enable_if<std::is_same<Q, float>::value, int32_t>::type
-SutraRtc<Tin, T, Tout>::do_centroids_geom_impl(int32_t ncntrl, int32_t type,
-                                               std::true_type) {
   int32_t inds2 = 0;
 
   for (size_t idxh = 0; idxh < this->d_control[ncntrl]->centro_idx.size();
@@ -796,9 +651,3 @@ template class SutraRtc<float, float, float>;
 template class SutraRtc<float, float, uint16_t>;
 template class SutraRtc<uint16_t, float, float>;
 template class SutraRtc<uint16_t, float, uint16_t>;
-#ifdef CAN_DO_HALF
-template class SutraRtc<float, half, float>;
-template class SutraRtc<float, half, uint16_t>;
-template class SutraRtc<uint16_t, half, float>;
-template class SutraRtc<uint16_t, half, uint16_t>;
-#endif

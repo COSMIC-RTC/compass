@@ -298,17 +298,6 @@ int32_t adjust_csr_index(int32_t *rowind, int32_t *NNZ, int32_t *nact, int32_t n
   return EXIT_SUCCESS;
 }
 
-#ifdef CAN_DO_HALF
-__global__ void convertVoltage_krnl(half *d_idata, float *d_odata, int32_t N,
-                                    float volt_min, float volt_max, uint16_t val_max) {
-  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
-  while (tid < N) {
-    d_odata[tid] = __half2float(d_idata[tid]);
-    tid += blockDim.x * gridDim.x;
-  }
-}
-#endif
-
 template <typename T>
 __global__ void convertVoltage_krnl(T *d_idata, uint16_t *d_odata, int32_t N,
                                     float volt_min, float volt_max, uint16_t val_max) {
@@ -337,17 +326,6 @@ template void
                                       float volt_min, float volt_max, uint16_t val_max,
                                       CarmaDevice *device, cudaStream_t stream);
 
-#ifdef CAN_DO_HALF
-template void
-convert_to_voltage<half, float, std::enable_if<!std::is_same<half, float>::value>>(half *d_idata, float *d_odata, int32_t N, float volt_min,
-                              float volt_max, uint16_t val_max,
-                              CarmaDevice *device, cudaStream_t stream);
-template void
-    convert_to_voltage<half, uint16_t, std::enable_if<!std::is_same<half, uint16_t>::value>>(half *d_idata, uint16_t *d_odata, int32_t N,
-                                     float volt_min, float volt_max, uint16_t val_max,
-                                     CarmaDevice *device, cudaStream_t stream);
-#endif
-
 template <typename T>
 __global__ void padCmat_krnl(T *idata, int32_t m, int32_t n, T *odata, int32_t m2, int32_t n2) {
   int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
@@ -370,8 +348,3 @@ void pad_cmat(T *idata, int32_t m, int32_t n, T *odata, int32_t m2, int32_t n2,
   padCmat_krnl<<<grid, threads>>>(idata, m, n, odata, m2, n2);
   carma_check_msg("padCmat_krnl<<<>>> execution failed\n");
 }
-
-#ifdef CAN_DO_HALF
-template void pad_cmat<half>(half *idata, int32_t m, int32_t n, half *odata, int32_t m2,
-                             int32_t n2, CarmaDevice *device);
-#endif

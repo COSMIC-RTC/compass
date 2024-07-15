@@ -80,7 +80,6 @@ class CMakeBuildExt(build_ext):
                 ]
 
         cmake_args += ['-DVERSION_INFO={}'.format(self.distribution.get_version())]
-        cmake_args += ['-Ddo_half=OFF']
 
         subprocess.check_call(['cmake', ext.sourcedir] + cmake_args, cwd=self.build_temp)
         subprocess.check_call(['cmake', '--build', '.'] + build_args,

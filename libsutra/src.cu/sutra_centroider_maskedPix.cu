@@ -60,12 +60,6 @@ template void get_masked_pix<float>(float *d_odata, float *ref, float *d_idata,
                                   float *intensities, int32_t ns, int32_t nslopes,
                                   CarmaDevice *device, cudaStream_t stream);
 
-#ifdef CAN_DO_HALF
-template void get_masked_pix<half>(half *d_odata, half *ref, float *d_idata,
-                                 int32_t *subindx, int32_t *subindy, float *intensities,
-                                 int32_t ns, int32_t nslopes, CarmaDevice *device, cudaStream_t stream);
-#endif
-
 __global__ void fill_intensities_krnl(float *g_odata, float *g_idata,
                                       int32_t *subindx, int32_t *subindy, int32_t ns,
                                       int32_t nslopes) {
@@ -122,11 +116,6 @@ template void pyr_fill_selected_pix<double>(double *img, int32_t img_sizex,
                                             double *pix, int32_t *subindx,
                                             int32_t *subindy, int32_t nvalid,
                                             CarmaDevice *device);
-#ifdef CAN_DO_HALF
-template void pyr_fill_selected_pix<half>(half *img, int32_t img_sizex, half *pix,
-                                          int32_t *subindx, int32_t *subindy,
-                                          int32_t nvalid, CarmaDevice *device);
-#endif
 
 template <typename T>
 __global__ void pyr_fill_mask_krnl(T *img, int32_t img_sizex,
@@ -160,8 +149,3 @@ template void pyr_fill_mask<double>(double *img, int32_t img_sizex,
                                             int32_t *subindx,
                                             int32_t *subindy, int32_t nvalid,
                                             CarmaDevice *device);
-#ifdef CAN_DO_HALF
-template void pyr_fill_mask<half>(half *img, int32_t img_sizex,
-                                          int32_t *subindx, int32_t *subindy,
-                                          int32_t nvalid, CarmaDevice *device);
-#endif

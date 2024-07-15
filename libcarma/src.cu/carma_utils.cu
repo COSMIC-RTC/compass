@@ -142,98 +142,6 @@ int32_t double_to_float(double *i_data, float *o_data, int32_t N, CarmaDevice *d
   return EXIT_SUCCESS;
 }
 
-#ifdef CAN_DO_HALF
-__global__ void float_to_half_array_krnl(float *source, half *dest, int32_t N) {
-  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
-  while (tid < N) {
-    dest[tid] = __float2half(source[tid]);
-    tid += blockDim.x * gridDim.x;
-  }
-}
-
-half *float_to_half_array(float *source, int32_t N, CarmaDevice *device) {
-  int32_t nb_threads = 0, nb_blocks = 0;
-  half *dest;
-  carma_safe_call(cudaMalloc((void **)&(dest), sizeof(half) * N));
-  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
-  dim3 grid(nb_blocks), threads(nb_threads);
-  float_to_half_array_krnl<<<grid, threads>>>(source, dest, N);
-  carma_check_msg("float_to_half_array_krnl\n");
-
-  return dest;
-}
-
-__global__ void half_to_float_array_krnl(half *source, float *dest, int32_t N) {
-  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
-  while (tid < N) {
-    dest[tid] = __half2float(source[tid]);
-    tid += blockDim.x * gridDim.x;
-  }
-}
-
-float *half_to_float_array(half *source, int32_t N, CarmaDevice *device) {
-  int32_t nb_threads = 0, nb_blocks = 0;
-  float *dest;
-  carma_safe_call(cudaMalloc((void **)&(dest), sizeof(float) * N));
-  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
-  dim3 grid(nb_blocks), threads(nb_threads);
-  half_to_float_array_krnl<<<grid, threads>>>(source, dest, N);
-  carma_check_msg("half_to_float_array_krnl\n");
-
-  return dest;
-}
-
-__global__ void copy_from_float_to_half_krnl(const float *data, half *dest, int32_t N) {
-  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
-  while (tid < N) {
-    dest[tid] = __float2half(data[tid]);
-    tid += blockDim.x * gridDim.x;
-  }
-}
-
-int32_t copy_from_float_to_half(const float *h_data, half *d_dest, int32_t N,
-                        CarmaDevice *device) {
-  int32_t nb_threads = 0, nb_blocks = 0;
-  float *d_data;
-  carma_safe_call(cudaMalloc((void **)&d_data, sizeof(float) * N));
-  carma_safe_call(
-      cudaMemcpy(d_data, h_data, sizeof(float) * N, cudaMemcpyHostToDevice));
-
-  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
-  dim3 grid(nb_blocks), threads(nb_threads);
-  copy_from_float_to_half_krnl<<<grid, threads>>>(d_data, d_dest, N);
-  carma_check_msg("copy_from_float_to_half_krnl\n");
-  cudaFree(d_data);
-
-  return EXIT_SUCCESS;
-}
-
-__global__ void copy_from_half_to_float_krnl(const half *data, float *dest, int32_t N) {
-  int32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
-  while (tid < N) {
-    dest[tid] = __half2float(data[tid]);
-    tid += blockDim.x * gridDim.x;
-  }
-}
-
-int32_t copy_from_half_to_float(const half *d_data, float *h_dest, int32_t N,
-                        CarmaDevice *device) {
-  int32_t nb_threads = 0, nb_blocks = 0;
-  float *d_dest;
-  carma_safe_call(cudaMalloc((void **)&d_dest, sizeof(float) * N));
-  get_num_blocks_and_threads(device, N, nb_blocks, nb_threads);
-  dim3 grid(nb_blocks), threads(nb_threads);
-  copy_from_half_to_float_krnl<<<grid, threads>>>(d_data, d_dest, N);
-  carma_check_msg("copy_from_half_to_float_krnl\n");
-  carma_safe_call(
-      cudaMemcpy(h_dest, d_dest, sizeof(float) * N, cudaMemcpyDeviceToHost));
-
-  cudaFree(d_dest);
-
-  return EXIT_SUCCESS;
-}
-#endif
-
 template <typename T>
 __global__ void fill_array_krnl(T *d_data, T value, int32_t N) {
   int32_t tid = threadIdx.x + blockDim.x * blockIdx.x;
@@ -273,8 +181,3 @@ template int32_t fill_array_with_value<cuDoubleComplex>(cuDoubleComplex *d_data,
                                                     cuDoubleComplex value,
                                                     int32_t N,
                                                     CarmaDevice *device);
-
-#ifdef CAN_DO_HALF
-template int32_t fill_array_with_value<half>(half *d_data, half value, int32_t N,
-                                         CarmaDevice *device);
-#endif

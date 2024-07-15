@@ -32,7 +32,6 @@ class SutraControllerGeneric : public SutraController<Tcomp, Tout> {
  public:
   CarmaObj<Tcomp> *d_matE;
   CarmaObj<Tcomp> *d_cmat;
-  CarmaObj<Tcomp> *d_cmatPadded;
   CarmaObj<Tcomp> *d_gain;
   CarmaObj<Tcomp> *d_decayFactor;
   CarmaObj<Tcomp> *d_compbuff;  // Buffer for computations
@@ -71,21 +70,7 @@ class SutraControllerGeneric : public SutraController<Tcomp, Tout> {
   using SutraController<Tcomp,Tout>::comp_polc;
   int32_t comp_polc();
   int32_t comp_com();
-  int32_t fill_cmatPadded();
   int32_t distribute_cmat();
-
- private:
-  template <typename Q = Tcomp>
-  typename std::enable_if<!std::is_same<Q, half>::value, int32_t>::type
-  fill_cmatPadded_impl() {
-    return EXIT_SUCCESS;
-  };
-  template <typename Q = Tcomp>
-  typename std::enable_if<std::is_same<Q, half>::value, int32_t>::type
-  fill_cmatPadded_impl();
 };
 
-template <typename T>
-void pad_cmat(T *idata, int32_t m, int32_t n, T *odata, int32_t m2, int32_t n2,
-              CarmaDevice *device);
 #endif  // _SUTRA_CONTROLLER_GENERIC_H_

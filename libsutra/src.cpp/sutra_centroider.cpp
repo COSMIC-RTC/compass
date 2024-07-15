@@ -322,14 +322,6 @@ int32_t SutraCentroider<Tin, Tout>::init_TT_filter() {
 
 template <class Tin, class Tout>
 int32_t SutraCentroider<Tin, Tout>::apply_TT_filter(Tout *centroids) {
-  return this->apply_TT_filter_impl(centroids, std::is_same<Tout, float>());
-}
-
-template <class Tin, class Tout>
-template <typename Q>
-typename std::enable_if<std::is_same<Q, float>::value, int32_t>::type
-SutraCentroider<Tin, Tout>::apply_TT_filter_impl(Tout *centroids,
-                                                 std::true_type) {
   this->d_centro_filtered->copy_from(centroids, this->nslopes);
 
   float tip = this->d_centro_filtered->dot(this->d_ref_Tip, 1, 1);
@@ -346,16 +338,5 @@ SutraCentroider<Tin, Tout>::apply_TT_filter_impl(Tout *centroids,
   return EXIT_SUCCESS;
 }
 
-template <class Tin, class Tout>
-int32_t SutraCentroider<Tin, Tout>::apply_TT_filter_impl(Tout *centroids,
-                                                     std::false_type) {
-  DEBUG_TRACE("Tip/tilt filtering is only implemented in single precision");
-  return EXIT_SUCCESS;
-}
-
 template class SutraCentroider<float, float>;
 template class SutraCentroider<uint16_t, float>;
-#ifdef CAN_DO_HALF
-template class SutraCentroider<float, half>;
-template class SutraCentroider<uint16_t, half>;
-#endif
