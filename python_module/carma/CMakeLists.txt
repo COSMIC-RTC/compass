@@ -7,7 +7,7 @@ project(pycarma
 )
 
 find_package(PkgConfig REQUIRED)
-find_package(Python COMPONENTS Interpreter Development)
+find_package(Python3 COMPONENTS Interpreter Development.Module)
 find_package(pybind11 CONFIG)
 find_package(CUDAToolkit REQUIRED)
 
