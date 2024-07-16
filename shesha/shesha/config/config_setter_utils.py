@@ -1,7 +1,6 @@
 ## @package   shesha.config.config_setter
 ## @brief     Utility functions for enforcing types in a property setter
 ## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @version   5.5.0
 ## @date      2022/01/24
 ## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #

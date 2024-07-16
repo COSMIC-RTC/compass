@@ -2,7 +2,6 @@
 ## @package   shesha.widgets.widget_ao
 ## @brief     Widget to simulate a closed loop
 ## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @version   5.5.0
 ## @date      2022/01/24
 ## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
@@ -419,7 +418,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         self.uiAO.wao_deviceNumber.setDisabled(True)
 
     def init_configFinished(self) -> None:
-        # Thread carmaWrap context reload:
+        # Thread carma context reload:
         self.supervisor.force_context()
 
         for i in range(self.natm):

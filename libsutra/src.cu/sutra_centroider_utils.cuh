@@ -18,7 +18,6 @@
 //! \class     SlopesIndex
 //! \brief     this struct allows easy manipulation of x-y slopes indices
 //! \author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-//! \version   5.5.0
 //! \date      2016/01/24
 
 #ifndef SUTRA_CENTROIDER_UTILS_CUH

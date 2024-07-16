@@ -1,7 +1,6 @@
 ## @package   shesha.init.geom_init
 ## @brief     Initialization of the system geometry and of the Telescope object
 ## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @version   5.5.0
 ## @date      2022/01/24
 ## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
@@ -27,17 +26,17 @@ from shesha.constants import CONST
 
 import shesha.util.make_pupil as mkP
 import shesha.util.utilities as util
-from shesha.sutra_wrap import carmaWrap_context, Telescope
+from shesha.sutra_wrap import carma_context, Telescope
 import numpy as np
 
 
-def tel_init(context: carmaWrap_context, p_geom: conf.ParamGeom, p_tel: conf.ParamTel,
+def tel_init(context: carma_context, p_geom: conf.ParamGeom, p_tel: conf.ParamTel,
              r0=None, ittime=None, p_wfss=None, dm=None):
     """
         Initialize the overall geometry of the AO system, including pupil and WFS
 
     Args:
-        context: (carmaWrap_context) : context
+        context: (carma_context) : context
 
         p_geom: (ParamGeom) : geom settings
 

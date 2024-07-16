@@ -12,9 +12,9 @@
 .. autoclass:: shesha.sutra_wrap.Atmos
    :members:
 
-.. _shesha.sutra_wrap.carmaWrap_context class:
+.. _shesha.sutra_wrap.carma_context class:
 
-.. autoclass:: shesha.sutra_wrap.carmaWrap_context
+.. autoclass:: shesha.sutra_wrap.carma_context
    :members:
 
 .. _shesha.sutra_wrap.Dms class:

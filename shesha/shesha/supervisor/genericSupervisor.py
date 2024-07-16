@@ -1,7 +1,6 @@
 ## @package   shesha.supervisor.aoSupervisor
 ## @brief     Abstract layer for initialization and execution of a AO supervisor
 ## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @version   5.5.0
 ## @date      2022/01/24
 ## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
@@ -22,7 +21,7 @@
 
 
 from abc import ABC, abstractmethod
-from shesha.sutra_wrap import carmaWrap_context
+from shesha.sutra_wrap import carma_context
 
 
 class GenericSupervisor(ABC):
@@ -54,10 +53,10 @@ class GenericSupervisor(ABC):
         self.iter = 0
 
         if (self.config.p_loop.devices.size > 1):
-            self.context = carmaWrap_context.get_instance_ngpu(
+            self.context = carma_context.get_instance_ngpu(
                     self.config.p_loop.devices.size, self.config.p_loop.devices)
         else:
-            self.context = carmaWrap_context.get_instance_1gpu(
+            self.context = carma_context.get_instance_1gpu(
                     self.config.p_loop.devices[0])
         self.force_context()
 

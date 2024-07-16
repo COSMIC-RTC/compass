@@ -18,7 +18,6 @@
 //! \class     SutraKL
 //! \brief     this class provides the kl features to COMPASS
 //! \author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-//! \version   5.5.0
 //! \date      2022/01/24
 
 #ifndef _SUTRA_KL_H_

@@ -1,7 +1,6 @@
 ## @package   shesha.init.target_init
 ## @brief     Initialization of a Target object
 ## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @version   5.5.0
 ## @date      2022/01/24
 ## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
@@ -26,16 +25,16 @@ import shesha.config as conf
 from shesha.constants import CONST
 
 import numpy as np
-from shesha.sutra_wrap import carmaWrap_context, Target, Telescope
+from shesha.sutra_wrap import carma_context, Target, Telescope
 
 
-def target_init(ctxt: carmaWrap_context, telescope: Telescope, p_targets: list,
+def target_init(ctxt: carma_context, telescope: Telescope, p_targets: list,
                 p_atmos: conf.ParamAtmos, p_tel: conf.ParamTel,
                 p_geom: conf.ParamGeom, dm=None):
     """Create a cython target from parametres structures
 
     Args:
-        ctxt: (carmaWrap_context) :
+        ctxt: (carma_context) :
         telescope: (Telescope): Telescope object
         p_targets: (lis of ParamTarget) : target_settings
         p_atmos: (ParamAtmos) : atmos settings

@@ -219,7 +219,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
         self.supervisor.init_config()
 
     def init_configFinished(self) -> None:
-        # Thread carmaWrap context reload:
+        # Thread carma context reload:
         try:
             self.supervisor.force_context()
         except Exception:

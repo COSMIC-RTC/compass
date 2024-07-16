@@ -1,7 +1,6 @@
 ## @package   shesha.supervisor
 ## @brief     User layer for initialization and execution of a COMPASS simulation
 ## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @version   5.5.0
 ## @date      2022/01/24
 ## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
@@ -33,7 +32,7 @@ class WfsCompass(SourceCompass):
     Attributes:
         sources : (List) : List of SutraSource instances used for raytracing
 
-        _wfs : (sutraWrap.Wfs) : SutraSensors instance
+        _wfs : (sutra.Wfs) : SutraSensors instance
 
         _context : (carmaContext) : CarmaContext instance
 

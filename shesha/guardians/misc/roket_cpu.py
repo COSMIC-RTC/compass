@@ -1,7 +1,6 @@
 ## @package   guardians.misc
 ## @brief     Miscellaneous roket scripts
 ## @author    Florian Ferreira <florian.ferreira@obspm.fr>
-## @version   5.5.0
 ## @date      2019/01/24
 ## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
@@ -29,7 +28,7 @@ Created on Wed Apr 27 09:28:23 2016
 import sys
 import os
 import numpy as np
-import carmaWrap as ch
+import carma as ch
 import time
 import hdf5_util as h5u
 
@@ -95,8 +94,8 @@ else:
                                                config, param_dict)
 #initialisation:
 #   context
-#c=ch.carmaWrap_context(7)
-c = ch.carmaWrap_context(devices=np.array([6], dtype=np.int32))
+#c=ch.carma_context(7)
+c = ch.carma_context(devices=np.array([6], dtype=np.int32))
 #c.set_active_device(device)
 
 #    wfs

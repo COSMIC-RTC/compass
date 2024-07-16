@@ -1,7 +1,6 @@
 ## @package   shesha.supervisor.benchSupervisor
 ## @brief     Initialization and execution of a Bench supervisor
 ## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @version   5.5.0
 ## @date      2022/01/24
 ## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
@@ -24,7 +23,7 @@
 import numpy as np
 
 from shesha.constants import CentroiderType, WFSType
-from shesha.sutra_wrap import carmaWrap_context
+from shesha.sutra_wrap import carma_context
 
 from shesha.supervisor.components import RtcStandalone
 
@@ -78,10 +77,10 @@ class BenchSupervisor(GenericSupervisor):
         print("Configuration of", self.number_of_wfs, "wfs ...")
 
         if (hasattr(self.config, 'p_loop') and self.config.p_loop.devices.size > 1):
-            self.context = carmaWrap_context.get_instance_ngpu(
+            self.context = carma_context.get_instance_ngpu(
                     self.config.p_loop.devices.size, self.config.p_loop.devices)
         else:
-            self.context = carmaWrap_context.get_instance_1gpu(
+            self.context = carma_context.get_instance_1gpu(
                     self.config.p_loop.devices[0])
         nact = self.config.p_controllers[0].nactu
 

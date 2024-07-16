@@ -10,7 +10,6 @@
 //! \class     SutraCentroiderMaskedPix
 //! \brief     this class provides the centroider_maskedPix features to COMPASS
 //! \author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-//! \version   5.5.0
 //! \date      2022/01/24
 
 #ifndef _SUTRA_CENTROIDER_MASKEDPIX_H_

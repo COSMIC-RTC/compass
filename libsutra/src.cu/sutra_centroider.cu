@@ -18,7 +18,6 @@
 //! \class     SutraCentroider
 //! \brief     this class provides the centroider features to COMPASS
 //! \author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-//! \version   5.5.0
 //! \date      2022/01/24
 
 #include <sutra_centroider.hpp>

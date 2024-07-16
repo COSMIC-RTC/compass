@@ -1,7 +1,6 @@
 ## @package   guardians.groot
 ## @brief     Gpu-based Residual errOr cOvariance maTrix
 ## @author    Florian Ferreira <florian.ferreira@obspm.fr>
-## @version   5.5.0
 ## @date      2019/01/24
 ## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
@@ -25,7 +24,7 @@ Python module for modelization of error covariance matrix
 """
 import numpy as np
 import h5py
-from shesha.sutra_wrap import carmaWrap_context, Groot
+from shesha.sutra_wrap import carma_context, Groot
 
 import time
 from rich.progress import track
@@ -38,7 +37,7 @@ plt.ion()
 #gpudevices = np.array([0, 1, 2, 3], dtype=np.int32)
 gpudevices = np.array([0], dtype=np.int32)
 
-cxt = carmaWrap_context.get_instance_ngpu(gpudevices.size, gpudevices)
+cxt = carma_context.get_instance_ngpu(gpudevices.size, gpudevices)
 
 
 def compute_Cerr(filename, modal=True, ctype="float", speed=None, H=None, theta=None,
@@ -273,8 +272,8 @@ def compare_GPU_vs_CPU(filename):
         filename : (string) : full path to the ROKET file
 
     """
-    from carmaWrap import timer as carmaWrap_timer
-    timer = carmaWrap_timer()
+    from carma import timer as carma_timer
+    timer = carma_timer()
 
     timer.start()
     timer.stop()

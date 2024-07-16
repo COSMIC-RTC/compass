@@ -1,7 +1,6 @@
 ## @package   shesha.init.dm_init
 ## @brief     Initialization of a Dms object
 ## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @version   5.5.0
 ## @date      2022/01/24
 ## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
@@ -31,7 +30,7 @@ from shesha.util import hdf5_util as h5u
 import numpy as np
 
 from scipy import interpolate
-from shesha.sutra_wrap import carmaWrap_context, Dms
+from shesha.sutra_wrap import carma_context, Dms
 
 from typing import List
 
@@ -51,13 +50,13 @@ except KeyError:
             raise RuntimeError("SHESHA_DM_ROOT and SHESHA_ROOT are not defined")
 
 
-def dm_init(context: carmaWrap_context, p_dms: List[conf.ParamDm],
+def dm_init(context: carma_context, p_dms: List[conf.ParamDm],
             p_tel: conf.ParamTel, p_geom: conf.ParamGeom,
             p_wfss: List[conf.ParamWfs] = None) -> Dms:
     """Create and initialize a Dms object on the gpu
 
     Args:
-        context: (carmaWrap_context): context
+        context: (carma_context): context
         p_dms: (list of ParamDms) : dms settings
         p_tel: (ParamTel) : telescope settings
         p_geom: (ParamGeom) : geom settings
@@ -90,13 +89,13 @@ def dm_init(context: carmaWrap_context, p_dms: List[conf.ParamDm],
     return dms
 
 
-def _dm_init(context: carmaWrap_context, dms: Dms, p_dm: conf.ParamDm, xpos_wfs: list,
+def _dm_init(context: carma_context, dms: Dms, p_dm: conf.ParamDm, xpos_wfs: list,
              ypos_wfs: list, p_geom: conf.ParamGeom, diam: float, cobs: float,
              pupAngle: float, max_extent: int):
     """ inits a Dms object on the gpu
 
     Args:
-        context: (carmaWrap_context): context
+        context: (carma_context): context
         dms: (Dms) : dm object
 
         p_dm: (ParamDms) : dm settings
@@ -204,14 +203,14 @@ def _dm_init(context: carmaWrap_context, dms: Dms, p_dm: conf.ParamDm, xpos_wfs:
     return max_extent
 
 
-def _dm_init_factorized(context: carmaWrap_context, dms: Dms, p_dm: conf.ParamDm,
+def _dm_init_factorized(context: carma_context, dms: Dms, p_dm: conf.ParamDm,
                         xpos_wfs: list, ypos_wfs: list, p_geom: conf.ParamGeom,
                         diam: float, cobs: float, pupAngle: float, max_extent: int):
     """ inits a Dms object on the gpu
     NOTE: This is the
 
     Args:
-        context: (carmaWrap_context): context
+        context: (carma_context): context
 
         dms: (Dms) : dm object
 
@@ -302,7 +301,7 @@ def _dm_init_factorized(context: carmaWrap_context, dms: Dms, p_dm: conf.ParamDm
     return max_extent
 
 
-def dm_init_standalone(context: carmaWrap_context, p_dms: list, p_geom: conf.ParamGeom,
+def dm_init_standalone(context: carma_context, p_dms: list, p_geom: conf.ParamGeom,
                        diam=1., cobs=0., pupAngle=0., wfs_xpos=[0], wfs_ypos=[0]):
     """Create and initialize a Dms object on the gpu
 
@@ -834,7 +833,7 @@ def correct_dm(context, dms: Dms, p_dms: list, p_controller: conf.ParamControlle
     """Correct the geometry of the DMs using the imat (filter unseen actuators)
 
     Args:
-        context: (carmaWrap_context): context
+        context: (carma_context): context
         dms: (Dms) : Dms object
         p_dms: (list of ParamDm) : dms settings
         p_controller: (ParamController) : controller settings

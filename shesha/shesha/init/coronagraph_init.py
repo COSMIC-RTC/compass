@@ -1,7 +1,6 @@
 ## @package   shesha.init.coronagraph_init
 ## @brief     Initialization of a Coronagraph object
 ## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @version   5.5.0
 ## @date      2023/03/02
 ## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #

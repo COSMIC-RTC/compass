@@ -1,7 +1,6 @@
 ## @package   guardians.misc
 ## @brief     Miscellaneous roket scripts
 ## @author    Florian Ferreira <florian.ferreira@obspm.fr>
-## @version   5.5.0
 ## @date      2019/01/24
 ## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #

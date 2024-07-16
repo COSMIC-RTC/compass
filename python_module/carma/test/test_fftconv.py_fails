@@ -1,0 +1,43 @@
+## @package   carma.test
+## @brief     Unit tests for carma
+## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
+## @date      2022/01/24
+## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
+#
+# This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
+
+# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation, either version 3 of the 
+# License, or any later version.
+
+# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+# See the GNU Lesser General Public License for more details.
+
+# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
+# If not, see <https://www.gnu.org/licenses/>
+
+# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+import carma as ch
+import numpy as np
+
+size=1024
+sizeKer=512
+width=20
+
+c=ch.context.get_instance()
+
+a=ch.obj_Float2D(c,dims=np.array([2,size,10],dtype=np.int64))
+k=ch.obj_Float2D(c,dims=np.array([2,sizeKer,width],dtype=np.int64))
+c=ch.obj_Float2D(c,dims=np.array([2,16,16],dtype=np.int64))
+
+a_pad=a.fftconv_init(k)
+spec_pad=a.fftconv_init(k,"complex")
+
+print type(sizeKer)
+print sizeKer/2
+c.fftconv(a,k,a_pad, spec_pad,sizeKer/2,sizeKer/2)
+
+
+def test_fft_conv():
+    return 1

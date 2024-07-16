@@ -17,7 +17,6 @@
 //! \defgroup  libsutra Sutra
 //! \brief     Sutra is a library that provides OA tools with GPU acceleration
 //! \author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-//! \version   5.5.0
 //! \date      2022/01/24
 
 #ifndef _SUTRA_H_

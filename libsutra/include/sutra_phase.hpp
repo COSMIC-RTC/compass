@@ -18,7 +18,6 @@
 //! \class     SutraPhase
 //! \brief     this class provides the phase features to COMPASS
 //! \author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-//! \version   5.5.0
 //! \date      2022/01/24
 
 #ifndef _SUTRA_PHASE_H_

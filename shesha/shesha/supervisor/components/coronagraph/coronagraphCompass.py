@@ -1,7 +1,6 @@
 ## @package   shesha.components.coronagraph.coronagraphCompass
 ## @brief     User layer for compass coronagraph object
 ## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @version   5.5.0
 ## @date      2023/03/02
 ## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
@@ -23,7 +22,7 @@
 import numpy as np
 import shesha.config as conf
 import shesha.constants as scons
-from carmaWrap import context
+from carma import context
 from shesha.supervisor.components.targetCompass import TargetCompass
 
 class CoronagraphCompass():

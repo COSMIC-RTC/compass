@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.18)
 
-project(carma VERSION ${VERSION_INFO} DESCRIPTION "COMPASS CARMA lirary" LANGUAGES CUDA CXX)
+project(libcarma VERSION ${VERSION_INFO} DESCRIPTION "COMPASS CARMA lirary" LANGUAGES CUDA CXX)
 
 find_package(PkgConfig REQUIRED)
 find_package(CUDAToolkit REQUIRED)
 
-add_library(carma
+add_library(libcarma
     src.cpp/carma_context.cpp
     src.cpp/carma_cublas.cpp
     src.cpp/carma_cusolver.cpp
@@ -29,27 +29,27 @@ add_library(carma
     src.cu/carma_transpose.cu
 )
 
-target_include_directories(carma PUBLIC
+target_include_directories(libcarma PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_CURRENT_SOURCE_DIR}/include.cuh>
 )
 
-set_target_properties(carma PROPERTIES
+set_target_properties(libcarma PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
 )
 
-target_compile_features(carma PUBLIC cxx_std_14)
+target_compile_features(libcarma PUBLIC cxx_std_14)
 
-target_compile_options(carma PUBLIC -Wno-deprecated-declarations
+target_compile_options(libcarma PUBLIC -Wno-deprecated-declarations
     $<$<COMPILE_LANGUAGE:CUDA>:-use_fast_math>
 )
 
-target_compile_definitions(carma PUBLIC
+target_compile_definitions(libcarma PUBLIC
     $<$<COMPILE_LANGUAGE:CXX>:VERSION_INFO=${VERSION_INFO} USE_P2P_ACCESS>
 )
 
-target_link_libraries(carma PUBLIC
+target_link_libraries(libcarma PUBLIC
     CUDA::cudart
     CUDA::cufft
     CUDA::cublas
@@ -61,21 +61,21 @@ target_link_libraries(carma PUBLIC
 
 if (${CUDAToolkit_VERSION_MAJOR} LESS 11)
     find_package(cub REQUIRED)
-    target_link_libraries(carma PUBLIC cub::cub)
+    target_link_libraries(libcarma PUBLIC cub::cub)
 endif()
 
 set(INSTALL_PKGCONFIG_DIR "lib/pkgconfig"
     CACHE PATH "Installation directory for pkgconfig (.pc) files")
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/carma.pc.in
-               ${CMAKE_CURRENT_BINARY_DIR}/carma.pc @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libcarma.pc.in
+               ${CMAKE_CURRENT_BINARY_DIR}/libcarma.pc @ONLY)
 
-install(TARGETS carma
+install(TARGETS libcarma
         EXPORT CarmaConfig
         ARCHIVE DESTINATION lib
         LIBRARY DESTINATION lib)
 
 install(DIRECTORY include DESTINATION include)
 
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/carma.pc
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libcarma.pc
         DESTINATION "${INSTALL_PKGCONFIG_DIR}")

@@ -1,7 +1,6 @@
 ## @package   shesha.init.wfs_init
 ## @brief     Initialization of a Sensors object
 ## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @version   5.5.0
 ## @date      2022/01/24
 ## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
@@ -26,17 +25,17 @@ import shesha.constants as scons
 from shesha.constants import CONST
 
 from . import lgs_init as LGS
-from shesha.sutra_wrap import carmaWrap_context, Sensors, Telescope
+from shesha.sutra_wrap import carma_context, Sensors, Telescope
 import numpy as np
 
 
-def wfs_init(context: carmaWrap_context, telescope: Telescope, p_wfss: list,
+def wfs_init(context: carma_context, telescope: Telescope, p_wfss: list,
              p_tel: conf.ParamTel, p_geom: conf.ParamGeom, p_dms=None, p_atmos=None):
     """
     Create and initialise  a Sensors object
 
     Args:
-        context : (carmaWrap_context)
+        context : (carma_context)
         telescope: (Telescope) : Telescope object
         p_wfss: (list of ParamWfs) : wfs settings
         p_tel: (ParamTel) : telescope settings

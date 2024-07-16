@@ -1,7 +1,6 @@
 ## @package   guardians.gamora
 ## @brief     Gpu Accelerated Module fOr psf Reconstruction Algorithms
 ## @author    Florian Ferreira <florian.ferreira@obspm.fr>
-## @version   5.5.0
 ## @date      2019/01/24
 ## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
@@ -23,7 +22,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import h5py
-from shesha.sutra_wrap import carmaWrap_context, Gamora
+from shesha.sutra_wrap import carma_context, Gamora
 import time
 from guardians import drax
 
@@ -31,7 +30,7 @@ plt.ion()
 
 #gpudevices = np.array([0, 1, 2, 3], dtype=np.int32)
 gpudevices = np.array([0], dtype=np.int32)
-c = carmaWrap_context.get_instance_ngpu(gpudevices.size, gpudevices)
+c = carma_context.get_instance_ngpu(gpudevices.size, gpudevices)
 
 
 def psf_rec_Vii(filename, err=None, fitting=True, covmodes=None, cov=None):

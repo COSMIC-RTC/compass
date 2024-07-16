@@ -1,7 +1,6 @@
 ## @package   shesha.init.rtc_init
 ## @brief     Initialization of a Rtc object
 ## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @version   5.5.0
 ## @date      2022/01/24
 ## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
@@ -32,11 +31,11 @@ from shesha.init import dm_init
 from typing import List
 
 import numpy as np
-from shesha.sutra_wrap import (carmaWrap_context, Sensors, Dms, Atmos, Telescope)
+from shesha.sutra_wrap import (carma_context, Sensors, Dms, Atmos, Telescope)
 from shesha.sutra_wrap import Rtc_FFF as Rtc
 
 
-def rtc_init(context: carmaWrap_context, tel: Telescope, wfs: Sensors, dms: Dms,
+def rtc_init(context: carma_context, tel: Telescope, wfs: Sensors, dms: Dms,
              atmos: Atmos, p_wfss: list, p_tel: conf.ParamTel, p_geom: conf.ParamGeom,
              p_atmos: conf.ParamAtmos, ittime: float, p_centroiders=None,
              p_controllers=None, p_dms=None, do_refslp=False,
@@ -44,7 +43,7 @@ def rtc_init(context: carmaWrap_context, tel: Telescope, wfs: Sensors, dms: Dms,
     """Initialize all the SutraRtc objects : centroiders and controllers
 
     Args:
-        context: (carmaWrap_context): context
+        context: (carma_context): context
 
         tel: (Telescope) : Telescope object
 
@@ -148,12 +147,12 @@ def rtc_init(context: carmaWrap_context, tel: Telescope, wfs: Sensors, dms: Dms,
     return rtc
 
 
-def rtc_standalone(context: carmaWrap_context, nwfs: int, nvalid: list, nactu: int,
+def rtc_standalone(context: carma_context, nwfs: int, nvalid: list, nactu: int,
                    centroider_type: list, delay: list, offset: list, scale: list) -> Rtc:
     """Initialize all the SutraRtc objects : centroiders and controllers
 
     Args:
-        context: (carmaWrap_context): context
+        context: (carma_context): context
 
         nwfs: (int): number of wavefront sensors
 
@@ -196,7 +195,7 @@ def init_centroider(context, nwfs: int, p_wfs: conf.ParamWfs,
     """ Initialize a centroider object in Rtc
 
     Args:
-        context: (carmaWrap_context): context
+        context: (carma_context): context
 
         nwfs : (int) : index of wfs
 
@@ -339,7 +338,7 @@ def init_controller(context, i: int, p_controller: conf.ParamController, p_wfss:
     """ Initialize the controller part of rtc
 
     Args:
-        context: (carmaWrap_context): context
+        context: (carma_context): context
 
         i : (int) : controller index
 

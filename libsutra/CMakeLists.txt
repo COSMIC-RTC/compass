@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.18)
 
-project(sutra VERSION ${VERSION_INFO} DESCRIPTION "COMPASS SUTRA lirary" LANGUAGES CXX CUDA)
+project(libsutra VERSION ${VERSION_INFO} DESCRIPTION "COMPASS SUTRA lirary" LANGUAGES CXX CUDA)
 
 find_package(CUDAToolkit REQUIRED)
 
@@ -8,7 +8,7 @@ IF(CMAKE_BUILD_TYPE MATCHES "Debug")
   set(GCOV gcov)
 ENDIF(CMAKE_BUILD_TYPE MATCHES "Debug")
 
-add_library(sutra
+add_library(libsutra
     src.cpp/sutra_acquisim.cpp
     src.cpp/sutra_atmos.cpp
     src.cpp/sutra_centroider_bpcog.cpp
@@ -71,7 +71,7 @@ add_library(sutra
     src.cu/sutra_coronagraph.cu
 )
 
-target_include_directories(sutra
+target_include_directories(libsutra
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
     PRIVATE
@@ -80,15 +80,15 @@ target_include_directories(sutra
 )
 
 
-set_target_properties(sutra PROPERTIES
+set_target_properties(libsutra PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
 )
 
-target_compile_features(sutra PUBLIC cxx_std_14)
+target_compile_features(libsutra PUBLIC cxx_std_14)
 
-target_link_libraries(sutra PUBLIC
-    carma
+target_link_libraries(libsutra PUBLIC
+    libcarma
     CUDA::cudart
     ${GCOV}
 )
@@ -96,15 +96,15 @@ target_link_libraries(sutra PUBLIC
 set(INSTALL_PKGCONFIG_DIR "lib/pkgconfig"
     CACHE PATH "Installation directory for pkgconfig (.pc) files")
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/sutra.pc.in
-               ${CMAKE_CURRENT_BINARY_DIR}/sutra.pc @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libsutra.pc.in
+               ${CMAKE_CURRENT_BINARY_DIR}/libsutra.pc @ONLY)
 
-install(TARGETS sutra
+install(TARGETS libsutra
         EXPORT SutraConfig
         ARCHIVE DESTINATION lib
         LIBRARY DESTINATION lib)
 
 install(DIRECTORY include DESTINATION include)
 
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/sutra.pc
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libsutra.pc
         DESTINATION "${INSTALL_PKGCONFIG_DIR}")

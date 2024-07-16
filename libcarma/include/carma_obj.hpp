@@ -18,7 +18,6 @@
 //! \class     CarmaObj
 //! \brief     this class provides wrappers to the generic carma object
 //! \author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-//! \version   5.5.0
 //! \date      2022/01/24
 
 #ifndef _CARMA_OBJ_H_

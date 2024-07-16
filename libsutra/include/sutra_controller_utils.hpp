@@ -17,7 +17,6 @@
 //! \ingroup   libsutra
 //! \brief     this file provides the controller utilities to COMPASS
 //! \author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-//! \version   5.5.0
 //! \date      2022/01/24
 
 #ifndef SUTRA_CONTROLLER_UTILS_H_

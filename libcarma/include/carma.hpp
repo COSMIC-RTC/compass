@@ -17,7 +17,6 @@
 //! \defgroup  libcarma Carma
 //! \brief     Carma is a library that provides GPU acceleration
 //! \author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-//! \version   5.5.0
 //! \date      2022/01/24
 
 #ifndef _CARMA_H_

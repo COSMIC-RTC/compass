@@ -1,7 +1,6 @@
 ## @package   shesha.tests
 ## @brief     Timing of the RTC module
 ## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @version   5.5.0
 ## @date      2022/01/24
 ## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
@@ -26,7 +25,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from shesha.sutra_wrap import Rtc_FFF as Rtc, Rtc_FHF as RtcH
 from shesha.supervisor.compassSupervisor import CompassSupervisor as Supervisor
-import carmaWrap
+import carma
 from rich.progress import track
 
 plt.ion()
@@ -67,7 +66,7 @@ rtcH.d_control[0].set_cmat(cmat)
 rtcH.d_control[0].set_gain(sup.config.p_controllers[0].gain)
 rtcH.d_centro[0].load_img(frame, frame.shape[0])
 
-timer = carmaWrap.timer()
+timer = carma.timer()
 niter = 100000
 FP32 = np.zeros(niter)
 FP16 = np.zeros(niter)

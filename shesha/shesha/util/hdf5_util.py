@@ -1,7 +1,6 @@
 ## @package   shesha.util.hdf5_util
 ## @brief     Functions for handling the database system
 ## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @version   5.5.0
 ## @date      2022/01/24
 ## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #

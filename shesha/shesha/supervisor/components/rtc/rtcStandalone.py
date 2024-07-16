@@ -1,7 +1,6 @@
 ## @package   shesha.supervisor
 ## @brief     User layer for initialization and execution of a COMPASS simulation
 ## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @version   5.5.0
 ## @date      2022/01/24
 ## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
@@ -22,14 +21,14 @@
 
 from shesha.init.rtc_init import rtc_standalone
 
-from shesha.supervisor.components.rtc.rtcAbstract import RtcAbstract, carmaWrap_context
+from shesha.supervisor.components.rtc.rtcAbstract import RtcAbstract, carma_context
 
 
 class RtcStandalone(RtcAbstract):
     """ RTC handler for compass standalone
     """
 
-    def __init__(self, context: carmaWrap_context, config, nwfs: int, nvalid: list,
+    def __init__(self, context: carma_context, config, nwfs: int, nvalid: list,
                  nactu: int, centroider_type: list, delay: list, offset: list,
                  scale: list):
         """ Initialize a RtcStandalone component for rtc related supervision

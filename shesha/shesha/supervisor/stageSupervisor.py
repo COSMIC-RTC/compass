@@ -1,7 +1,6 @@
 ## @package   shesha.supervisor.stageSupervisor
 ## @brief     Initialization and execution of a single stage supervisor for cascaded AO systems
 ## @author    SAXO+ Team <https://github.com/ANR-COMPASS> (Clementine Bechet)
-## @version   5.5.0
 ## @date      2023/01/31
 ## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #

@@ -1,7 +1,6 @@
 ## @package   shesha.supervisor
 ## @brief     User layer for initialization and execution of a COMPASS simulation
 ## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @version   5.5.0
 ## @date      2022/01/24
 ## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
@@ -21,7 +20,7 @@
 # Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
 
 
-from shesha.sutra_wrap import carmaWrap_context
+from shesha.sutra_wrap import carma_context
 
 from shesha.supervisor.components.sourceCompass import SourceCompass
 import shesha.constants as scons
@@ -35,14 +34,14 @@ class RtcAbstract(ABC):
     """ RTC handler for compass simulation
 
     Attributes:
-        _rtc : (sutraWrap.Rtc) : Sutra rtc instance
+        _rtc : (sutra.Rtc) : Sutra rtc instance
 
         _context : (carmaContext) : CarmaContext instance
 
         _config : (config module) : Parameters configuration structure module
     """
 
-    def __init__(self, context: carmaWrap_context, config):
+    def __init__(self, context: carma_context, config):
         """ Initialize a RtcCompass component for rtc related supervision
 
         Args:

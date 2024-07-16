@@ -18,7 +18,6 @@
 //! \class     SutraTurbuScreen
 //! \brief     this class provides the turbulent screen features to COMPASS
 //! \author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-//! \version   5.5.0
 //! \date      2022/01/24
 
 #ifndef _SUTRA_TSCREEN_H_

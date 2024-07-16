@@ -1,7 +1,6 @@
 ## @package   shesha
 ## @brief     Shesha package
 ## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @version   5.5.0
 ## @date      2022/01/24
 ## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
@@ -59,25 +58,25 @@ def smart_import(mod, cls, verbose=False, silent=False):
         return tmp_cls
 
 
-# The import of carmaWrap MUST be done first
+# The import of carma MUST be done first
 # since MAGMA >= 2.5.0
 # Otherwise, it causes huge memory leak
 # plus not working code
 # Why ? We don't know... TB check with further version of MAGMA
-carmaWrap_context = smart_import("carmaWrap", "context")
+carma_context = smart_import("carma", "context")
 
-Dms = smart_import("sutraWrap", "Dms")
-Rtc_FFF = smart_import("sutraWrap", "Rtc_FFF")
-Rtc_FHF = smart_import("sutraWrap", "Rtc_FHF", silent=True)
-Rtc_UFF = smart_import("sutraWrap", "Rtc_UFF", silent=True)
-Rtc_UHF = smart_import("sutraWrap", "Rtc_UHF", silent=True)
-Rtc_FFU = smart_import("sutraWrap", "Rtc_FFU", silent=True)
-Rtc_FHU = smart_import("sutraWrap", "Rtc_FHU", silent=True)
-Rtc_UFU = smart_import("sutraWrap", "Rtc_UFU", silent=True)
-Rtc_UHU = smart_import("sutraWrap", "Rtc_UHU", silent=True)
-Sensors = smart_import("sutraWrap", "Sensors")
-Atmos = smart_import("sutraWrap", "Atmos")
-Telescope = smart_import("sutraWrap", "Telescope")
-Target = smart_import("sutraWrap", "Target")
-Gamora = smart_import("sutraWrap", "Gamora")
-Groot = smart_import("sutraWrap", "Groot")
+Dms = smart_import("sutra", "Dms")
+Rtc_FFF = smart_import("sutra", "Rtc_FFF")
+Rtc_FHF = smart_import("sutra", "Rtc_FHF", silent=True)
+Rtc_UFF = smart_import("sutra", "Rtc_UFF", silent=True)
+Rtc_UHF = smart_import("sutra", "Rtc_UHF", silent=True)
+Rtc_FFU = smart_import("sutra", "Rtc_FFU", silent=True)
+Rtc_FHU = smart_import("sutra", "Rtc_FHU", silent=True)
+Rtc_UFU = smart_import("sutra", "Rtc_UFU", silent=True)
+Rtc_UHU = smart_import("sutra", "Rtc_UHU", silent=True)
+Sensors = smart_import("sutra", "Sensors")
+Atmos = smart_import("sutra", "Atmos")
+Telescope = smart_import("sutra", "Telescope")
+Target = smart_import("sutra", "Target")
+Gamora = smart_import("sutra", "Gamora")
+Groot = smart_import("sutra", "Groot")

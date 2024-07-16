@@ -1,13 +1,12 @@
 rm -rf stubs
 
-pybind11-stubgen sutraWrap
-pybind11-stubgen carmaWrap
+pybind11-stubgen sutra
+pybind11-stubgen carma
 
-cat > stubs/sutraWrap.py << EOF
-## @package   sutraWrap
-## @brief     stubs for sutraWrap module
+cat > stubs/sutra.py << EOF
+## @package   sutra
+## @brief     stubs for sutra module
 ## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @version   5.5.0
 ## @date      2022/01/24
 ## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
@@ -28,13 +27,12 @@ cat > stubs/sutraWrap.py << EOF
 
 EOF
 
-cat stubs/sutraWrap.pyi >> stubs/sutraWrap.py
+cat stubs/sutra.pyi >> stubs/sutra.py
 
-cat > stubs/carmaWrap.py << EOF
-## @package   carmaWrap
-## @brief     stubs for carmaWrap module
+cat > stubs/carma.py << EOF
+## @package   carma
+## @brief     stubs for carma module
 ## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @version   5.5.0
 ## @date      2022/01/24
 ## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
@@ -55,4 +53,4 @@ cat > stubs/carmaWrap.py << EOF
 
 EOF
 
-cat stubs/carmaWrap.pyi >> stubs/carmaWrap.py
+cat stubs/carma.pyi >> stubs/carma.py

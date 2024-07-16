@@ -18,7 +18,6 @@
 //! \class     carma_exception
 //! \brief     this class provides the exception to CarmaObj
 //! \author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-//! \version   5.5.0
 //! \date      2022/01/24
 
 

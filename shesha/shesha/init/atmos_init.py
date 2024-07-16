@@ -1,7 +1,6 @@
 ## @package   shesha.init.atmos_init
 ## @brief     Initialization of a Atmos object
 ## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @version   5.5.0
 ## @date      2022/01/24
 ## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
@@ -25,19 +24,19 @@ import shesha.config as conf
 from shesha.constants import CONST
 import shesha.util.iterkolmo as itK
 import shesha.util.hdf5_util as h5u
-from shesha.sutra_wrap import carmaWrap_context, Atmos
+from shesha.sutra_wrap import carma_context, Atmos
 from rich.progress import track
 import numpy as np
 
 
-def atmos_init(context: carmaWrap_context, p_atmos: conf.ParamAtmos,
+def atmos_init(context: carma_context, p_atmos: conf.ParamAtmos,
                p_tel: conf.ParamTel, p_geom: conf.ParamGeom, ittime=None, p_wfss=None,
                p_targets=None, dataBase={}, use_DB=False):
     """
     Initializes an Atmos object
 
     Args:
-        context: (carmaWrap_context): GPU device context
+        context: (carma_context): GPU device context
 
         p_atmos: (ParamAtmos): Atmosphere parameters
 
@@ -62,7 +61,7 @@ def atmos_init(context: carmaWrap_context, p_atmos: conf.ParamAtmos,
     if not p_geom.is_init:
         raise RuntimeError("Cannot init atmosphere with uninitialized p_geom.")
 
-    # Deleted carmaWrap_context : get the singleton
+    # Deleted carma_context : get the singleton
 
     if p_atmos.r0 is None:
         p_atmos.r0 = 0.

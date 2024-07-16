@@ -83,7 +83,7 @@ NOTE: if you update the dependencies, you need to remove the `build` directory a
 ### Tests
 
 1. **Unit Tests**: Run the unit tests with:
-    - `pytest $COMPASS_ROOT/python_module/carmaWrap/test`
+    - `pytest $COMPASS_ROOT/python_module/carma/test`
     - `pytest $COMPASS_ROOT/shesha/tests/pytest/rtc`
     - `pytest $COMPASS_ROOT/shesha/tests/pytest/supervisor`
 

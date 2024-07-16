@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "compass-libs"
-version = "5.5.0-0"
+version = "6.0.0-0"
 description = "this is the C++ libraries and python wrappers of the COMPASS platform designed to meet the need of high-performance for the simulation of AO systems"
 authors = [
     "Florian Ferreira <florian.ferreira@obspm.fr>",

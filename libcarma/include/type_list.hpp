@@ -17,7 +17,6 @@
 //! \ingroup   libcarma
 //! \brief     this file provides the list of types supported in COMPASS
 //! \author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-//! \version   5.5.0
 //! \date      2022/01/24
 
 #ifndef CARMA_TYPE_LIST_H

@@ -18,7 +18,6 @@
 //! \class     CarmaSparseHostObj
 //! \brief     this class provides wrappers to the generic carma sparse host object
 //! \author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-//! \version   5.5.0
 //! \date      2022/01/24
 
 

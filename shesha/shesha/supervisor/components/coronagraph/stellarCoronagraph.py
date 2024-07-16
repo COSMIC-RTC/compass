@@ -1,7 +1,6 @@
 ## @package   shesha.components.coronagraph.stellarCoronagraph
 ## @brief     Stellar Coronagraph Class definition
 ## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @version   5.5.0
 ## @date      2023/03/02
 ## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
@@ -26,8 +25,8 @@ import shesha.constants as scons
 from shesha.supervisor.components.coronagraph.genericCoronagraph import GenericCoronagraph
 from shesha.init.coronagraph_init import init_coronagraph, init_mft
 from shesha.supervisor.components.targetCompass import TargetCompass
-from sutraWrap import StellarCoronagraph
-from carmaWrap import context
+from sutra import StellarCoronagraph
+from carma import context
 class StellarCoronagraphCompass(GenericCoronagraph):
     """ Class supervising stellar coronagraph component
 
@@ -82,7 +81,7 @@ class StellarCoronagraphCompass(GenericCoronagraph):
         """ Initialize a stellar coronagraph instance
 
         Args:
-            context: (CarmaWrap.context): GPU context
+            context: (carma.context): GPU context
 
             targetCompass: (TargetCompass): Compass Target used as input for the coronagraph
 

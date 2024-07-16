@@ -1,7 +1,6 @@
 ## @package   shesha.supervisor.canapassSupervisor
 ## @brief     Initialization and execution of a CANAPASS supervisor
 ## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @version   5.5.0
 ## @date      2022/01/24
 ## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
@@ -49,11 +48,11 @@ import shesha.constants as scons
 
 from shesha.supervisor.compassSupervisor import CompassSupervisor
 
-# from carmaWrap.obj import obj_Double2D
-# from carmaWrap.magma import syevd_Double, svd_host_Double
-# from carmaWrap.context import context as carmaWrap_context
+# from carma.obj import obj_Double2D
+# from carma.magma import syevd_Double, svd_host_Double
+# from carma.context import context as carma_context
 
-# from carmaWrap.hppost_obj import host_obj_Double1D, host_obj_Double2D
+# from carma.hppost_obj import host_obj_Double1D, host_obj_Double2D
 
 
 class CanapassSupervisor(CompassSupervisor):

@@ -1,21 +1,21 @@
 #!/bin/bash
 
-# pytest --html=doc/html/report_unit_test.html --self-contained-html python_module/carmaWrap/test shesha/tests/pytest/rtc
+# pytest --html=doc/html/report_unit_test.html --self-contained-html python_module/carma/test shesha/tests/pytest/rtc
 
-# pytest --cov-report html:doc/html/carma_cov_html --cov=carmaWrap python_module/carmaWrap/test
-# pytest --cov-report html:doc/html/sutra_cov_html --cov=sutraWrap shesha/tests/pytest
+# pytest --cov-report html:doc/html/carma_cov_html --cov=carma python_module/carma/test
+# pytest --cov-report html:doc/html/sutra_cov_html --cov=sutra shesha/tests/pytest
 # pytest --cov-report html:doc/html/shesha_cov_html --cov=shesha shesha/tests/pytest
 
-# pytest --cov-report xml:carma_cov.xml --cov=carmaWrap python_module/carmaWrap/test
-# pytest --cov-report xml:sutra_cov.xml --cov=sutraWrap shesha/tests/pytest
+# pytest --cov-report xml:carma_cov.xml --cov=carma python_module/carma/test
+# pytest --cov-report xml:sutra_cov.xml --cov=sutra shesha/tests/pytest
 # pytest --cov-report xml:shesha_cov.xml --cov=shesha shesha/tests/pytest
 
 rm $COMPASS_ROOT/doc/html/report_unit_test.html report.xml
 # TODO: generate large file with errors... Need to be fixed
 pytest --html=$COMPASS_ROOT/doc/html/report_unit_test.html --self-contained-html $COMPASS_ROOT/shesha/tests/pytest/rtc $COMPASS_ROOT/shesha/tests/pytest/supervisor
-pytest --cov-report html:$COMPASS_ROOT/doc/html/coverage --cov=carmaWrap $COMPASS_ROOT/python_module/carmaWrap/test
-pytest --cov-append --cov-report html:$COMPASS_ROOT/doc/html/coverage --cov=carmaWrap --cov=sutraWrap --cov=shesha $COMPASS_ROOT/shesha/tests/pytest/rtc
-pytest --cov-append --cov-report html:$COMPASS_ROOT/doc/html/coverage --cov=carmaWrap --cov=sutraWrap --cov=shesha $COMPASS_ROOT/shesha/tests/pytest/supervisor
+pytest --cov-report html:$COMPASS_ROOT/doc/html/coverage --cov=carma $COMPASS_ROOT/python_module/carma/test
+pytest --cov-append --cov-report html:$COMPASS_ROOT/doc/html/coverage --cov=carma --cov=sutra --cov=shesha $COMPASS_ROOT/shesha/tests/pytest/rtc
+pytest --cov-append --cov-report html:$COMPASS_ROOT/doc/html/coverage --cov=carma --cov=sutra --cov=shesha $COMPASS_ROOT/shesha/tests/pytest/supervisor
 
 # script="$SHESHA_ROOT/shesha/tests/check.py"
 rm -f $COMPASS_ROOT/check.h5
@@ -46,4 +46,4 @@ mkdir -p $COMPASS_ROOT/public/coverage
 coverage html --omit="*/data/*,*/guardians/*,*canapass*,*/scripts/*,*/widgets/*,*/tao/*,*/pytest/*" -d $COMPASS_ROOT/public/coverage
 
 echo 'Documentation generated in $COMPASS_ROOT/public/. To Publish it:'
-echo 'rsync -PaW --inplace --del $COMPASS_ROOT/public/* lesia:compass-doc/html/v5.5.0'
+echo 'rsync -PaW --inplace --del $COMPASS_ROOT/public/* lesia:compass-doc/html/v6.0.0'

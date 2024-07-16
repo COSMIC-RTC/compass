@@ -1,2 +1,2 @@
-add_subdirectory(carmaWrap)
-add_subdirectory(sutraWrap)
+add_subdirectory(carma)
+add_subdirectory(sutra)

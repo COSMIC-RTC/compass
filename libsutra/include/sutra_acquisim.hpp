@@ -18,7 +18,6 @@
 //! \class     SutraAcquisim
 //! \brief     this class provides the acquisition simulator to COMPASS
 //! \author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-//! \version   5.5.0
 //! \date      2022/01/24
 
 #ifndef SUTRA_ACQUISIM_H_

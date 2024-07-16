@@ -1,7 +1,6 @@
 ## @package   shesha.scripts.dm_standalone
 ## @brief     Python dm standalone script
 ## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @version   5.5.0
 ## @date      2022/01/24
 ## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
@@ -25,7 +24,7 @@
 # import pstats as ps
 
 # import numpy as np
-import carmaWrap as ch
+import carma as ch
 import shesha.config as conf
 import numpy as np
 import matplotlib.pyplot as plt

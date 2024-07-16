@@ -1,7 +1,6 @@
 ## @package   shesha.components.coronagraph.perfectCoronagraph
 ## @brief     Perfect Coronagraph Class definition
 ## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @version   5.5.0
 ## @date      2023/03/02
 ## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
@@ -26,8 +25,8 @@ import shesha.constants as scons
 from shesha.supervisor.components.coronagraph.genericCoronagraph import GenericCoronagraph
 from shesha.init.coronagraph_init import init_coronagraph, init_mft
 from shesha.supervisor.components.targetCompass import TargetCompass
-from sutraWrap import PerfectCoronagraph
-from carmaWrap import context
+from sutra import PerfectCoronagraph
+from carma import context
 
 
 class PerfectCoronagraphCompass(GenericCoronagraph):
@@ -72,7 +71,7 @@ class PerfectCoronagraphCompass(GenericCoronagraph):
         """ Initialize a perfect coronagraph instance
 
         Args:
-            context: (CarmaWrap.context): GPU context
+            context: (carma.context): GPU context
 
             targetCompass: (TargetCompass): Compass Target used as input for the coronagraph
 
