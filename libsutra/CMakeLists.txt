@@ -93,12 +93,6 @@ target_link_libraries(sutra PUBLIC
     ${GCOV}
 )
 
-if(${OCTOPUS_FOUND})
-    target_sources(sutra PRIVATE src.cpp/sutra_rtc_cacao.cpp)
-    set(OCTOPUS_H include/sutra_rtc_cacao.hpp)
-    target_compile_definitions(carma PUBLIC USE_CACAO)
-endif()
-
 set(INSTALL_PKGCONFIG_DIR "lib/pkgconfig"
     CACHE PATH "Installation directory for pkgconfig (.pc) files")
 

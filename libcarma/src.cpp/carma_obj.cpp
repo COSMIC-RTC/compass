@@ -374,32 +374,6 @@ int32_t CarmaObj<T_data>::copy_from_async(const T_data *data, int32_t nb_elem, c
   return EXIT_SUCCESS;
 }
 
-#ifdef USE_OCTOPUS
-template <class T_data>
-int32_t CarmaObj<T_data>::copy_into(ipc::Cacao<T_data> *cacaoInterface) {
-  /** \brief device2host data transfer.
-   * \param data : output data
-   *
-   * this method copies the values in d_output to the output array
-   */
-  this->copy_into((T_data *)cacaoInterface->outputPtr(), this->nb_elem);
-
-  return EXIT_SUCCESS;
-}
-
-template <class T_data>
-int32_t CarmaObj<T_data>::copy_from(ipc::Cacao<T_data> *cacaoInterface) {
-  /** \brief device2host data transfer.
-   * \param data : output data
-   *
-   * this method copies the values in d_output to the output array
-   */
-  this->copy_from((T_data *)cacaoInterface->outputPtr(), this->nb_elem);
-
-  return EXIT_SUCCESS;
-}
-
-#endif
 template <class T_data>
 T_data CarmaObj<T_data>::sum() {
   return reduce<T_data>(this->d_data, this->nb_elem);

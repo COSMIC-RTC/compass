@@ -512,10 +512,6 @@ def test_set_scale():
     sup.rtc.set_scale(0, 1)
     assert(True)
 
-@pytest.mark.skipif(sup.cacao is False, reason="cacao only")
-def test_publish():
-    sup.rtc.publish()
-    assert(True)
 #    __  __         _      _ ___          _
 #   |  \/  |___  __| |__ _| | _ ) __ _ __(_)___
 #   | |\/| / _ \/ _` / _` | | _ \/ _` (_-< (_-<

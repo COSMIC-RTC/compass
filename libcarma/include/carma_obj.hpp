@@ -249,11 +249,6 @@ class CarmaObj {
   int32_t copy_from(const T_data *data, int32_t nb_elem);
   int32_t copy_from_async(const T_data *data, int32_t nb_elem, cudaStream_t stream);
 
-#ifdef USE_OCTOPUS
-  int32_t copy_into(ipc::Cacao<T_data> *cacaoInterface);
-  int32_t copy_from(ipc::Cacao<T_data> *cacaoInterface);
-#endif
-
   inline int32_t reset() {
     return cudaMemset(this->d_data, 0, this->nb_elem * sizeof(T_data));
   }

@@ -31,7 +31,6 @@ with 'parameters_filename' the path to the parameters file
 
 Options:
   -h --help          Show this help message and exit
-  --cacao            Distribute data with cacao
   --expert           Display expert panel
   -d, --devices devices      Specify the devices
   -i, --interactive  keep the script interactive
@@ -86,13 +85,12 @@ AOWindowTemplate, AOClassTemplate = uiLoader('widget_ao')
 
 class widgetAOWindow(AOClassTemplate, WidgetBase):
 
-    def __init__(self, config_file: Any = None, cacao: bool = False,
+    def __init__(self, config_file: Any = None,
                  expert: bool = False, devices: str = None,
                  hide_histograms: bool = False, twoStages: bool = False) -> None:
         WidgetBase.__init__(self, hide_histograms=hide_histograms)
         AOClassTemplate.__init__(self)
         self.twoStages = twoStages
-        self.cacao = cacao
         self.rollingWindow = 100
         self.SRLE = deque(maxlen=self.rollingWindow)
         self.SRSE = deque(maxlen=self.rollingWindow)
@@ -412,9 +410,9 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
     def init_config(self) -> None:
         if(self.twoStages):
             from shesha.supervisor.stageSupervisor import StageSupervisor
-            self.supervisor = StageSupervisor(self.config, cacao=self.cacao)
+            self.supervisor = StageSupervisor(self.config)
         else:
-            self.supervisor = CompassSupervisor(self.config, cacao=self.cacao)
+            self.supervisor = CompassSupervisor(self.config)
         WidgetBase.init_config(self)
 
     def init_configThread(self) -> None:
@@ -804,8 +802,9 @@ if __name__ == '__main__':
     arguments = docopt(__doc__)
     app = QtWidgets.QApplication(sys.argv)
     app.setStyle('cleanlooks')
-    wao = widgetAOWindow(arguments["<parameters_filename>"], cacao=arguments["--cacao"],
-                         expert=arguments["--expert"], devices=arguments["--devices"])
+    wao = widgetAOWindow(arguments["<parameters_filename>"],
+                         expert=arguments["--expert"], 
+                         devices=arguments["--devices"])
     wao.show()
 
     print("")

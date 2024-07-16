@@ -58,10 +58,10 @@ from shesha.supervisor.compassSupervisor import CompassSupervisor
 
 class CanapassSupervisor(CompassSupervisor):
 
-    def __init__(self, config, cacao: bool = True) -> None:
+    def __init__(self, config) -> None:
         print("switching to a generic controller")
         config.p_controllers[0].type = scons.ControllerType.GENERIC
-        CompassSupervisor.__init__(self, config, cacao=cacao)
+        CompassSupervisor.__init__(self, config)
 
 
 ########################## PROTO #############################
@@ -144,7 +144,7 @@ if __name__ == '__main__':
         config.p_targets[1].set_xpos(float(arguments["--offaxis"]))
         config.p_targets[2].set_xpos(float(arguments["--offaxis"]))
 
-    supervisor = CanapassSupervisor(config, cacao=True)
+    supervisor = CanapassSupervisor(config)
 
     try:
         from hraa.server.pyroServer import PyroServer

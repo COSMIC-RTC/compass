@@ -31,7 +31,7 @@ with 'parameters_filename2' the path to the parameters file for second stage
 with 'freqratio' the ratio of the frequencies of the two stages
 
 Options:
-  -a, --adopt       used to connect ADOPT (via pyro + shm cacao)
+  -a, --adopt       used to connect ADOPT (via pyro4)
 
 Example: 
     ipython -i widget_twoStages.py ../../data/par/SPHERE+/sphere.py ../../data/par/SPHERE+/sphere+.py
@@ -59,15 +59,13 @@ server = None
 class widgetTwoStagesWindowPyro():
 
     def __init__(self, config_file1: Any = None, config_file2: Any = None, freqratio : int = None, 
-                 cacao: bool = False, expert: bool = False) -> None:
+                 expert: bool = False) -> None:
         self.config1 = config_file1
         self.config2 = config_file2
         self.freqratio = freqratio
 
-
-
-        self.wao2=widgetAOWindow(config_file2, cacao=cacao, hide_histograms=True, twoStages=True)
-        self.wao1=widgetAOWindow(config_file1, cacao=cacao, hide_histograms=True, twoStages=True)
+        self.wao2=widgetAOWindow(config_file2, hide_histograms=True, twoStages=True)
+        self.wao1=widgetAOWindow(config_file1, hide_histograms=True, twoStages=True)
         pupdiam_first_stage = self.wao1.supervisor.config.p_geom.pupdiam
         pupdiam_second_stage = self.wao2.supervisor.config.p_geom.pupdiam
         if(pupdiam_first_stage != pupdiam_second_stage):
@@ -81,7 +79,6 @@ class widgetTwoStagesWindowPyro():
         self.wpyr = None
         self.current_buffer = 1
         self.manager = None
-        self.cacao = cacao
         #############################################################
         #                 CONNECTED BUTTONS                         #
         #############################################################
@@ -96,9 +93,9 @@ class widgetTwoStagesWindowPyro():
         #############################################################
 
         self.manager = TwoStagesManager(self.wao1.supervisor, self.wao2.supervisor, self.freqratio)
-        if(self.cacao):
-            global server
-            server = self.start_pyro_server()
+
+        global server
+        server = self.start_pyro_server()
 
     def loop_once(self) -> None:
         self.manager.next()
@@ -293,7 +290,7 @@ if __name__ == '__main__':
     app.setStyle('cleanlooks')
     wao = widgetTwoStagesWindowPyro(arguments["<parameters_filename1>"], 
                                     arguments["<parameters_filename2>"], 
-                                    arguments["<freqratio>"], cacao=adopt)
+                                    arguments["<freqratio>"])
 
     wao.wao1.show()
     wao.wao2.show()

@@ -35,7 +35,7 @@ with 'parameters_filename1' the path to the parameters file the first stage
 with 'parameters_filename2' the path to the parameters file the second stage
 with 'freqratio' the ratio of the frequencies of the two stages
 Options:
-  -a, --adopt       used to connect optional ADOPT client to the manager (via pyro + shm cacao)
+  -a, --adopt       used to connect optional ADOPT client to the manager (via pyro4)
 
 Example: 
     ipython -i twoStagesManager.py ../../data/par/SPHERE+/sphere.py ../../data/par/SPHERE+/sphere+.py 3
@@ -236,8 +236,8 @@ if __name__ == '__main__':
     config2 = ParamConfig(arguments["<parameters_filename2>"])
     frequency_ratio = arguments["<freqratio>"]
 
-    first_stage = StageSupervisor(config1, cacao=adopt)
-    second_stage = StageSupervisor(config2, cacao=adopt)
+    first_stage = StageSupervisor(config1)
+    second_stage = StageSupervisor(config2)
     manager = TwoStagesManager(first_stage, second_stage, frequency_ratio)
 
     if(adopt): 

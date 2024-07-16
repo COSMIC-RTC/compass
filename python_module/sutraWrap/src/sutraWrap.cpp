@@ -59,10 +59,6 @@ void declare_coronagraph(py::module &mod);
 void declare_perfect_coronagraph(py::module &mod);
 void declare_stellar_coronagraph(py::module &mod);
 
-#ifdef USE_CACAO
-void declare_rtc_cacao(py::module &);
-#endif  // USE_CACAO
-
 // Expose classes and methods to Python
 PYBIND11_MODULE(sutraWrap, mod) {
   mod.doc() = "Binding module for libsutra";
@@ -97,10 +93,6 @@ PYBIND11_MODULE(sutraWrap, mod) {
   declare_coronagraph(mod);
   declare_perfect_coronagraph(mod);
   declare_stellar_coronagraph(mod);
-
-#ifdef USE_CACAO
-  declare_rtc_cacao(mod);
-#endif  // USE_CACAO
 
 #ifdef VERSION_INFO
 #define STRINGIFY(x) #x

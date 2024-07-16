@@ -8,7 +8,8 @@ Usage: compile.py [options] [INSTALL_PATH]
 Options:
     INSTALL_PATH          The install path. Default is $COMPASS_INSTALL_ROOT.
     --rt                  Allow parallel build on isolated cores. Default is False.
-    
+    --config              Force the configuration of the project. Default is False.
+
 Environment variables:
     COMPASS_INSTALL_ROOT  The install path. Default is $project_dir/local.
     COMPASS_DEBUG         The build type. Default is Release.
@@ -150,9 +151,10 @@ if __name__ == '__main__':
     install_path, build_type = get_install_path(args, project_dir)
 
     generate_CMakePresets_json(install_path, build_dir, build_type)
-    if not build_dir.exists():
+
+    # test if the Makefile exists in the build directory
+    if not build_dir.exists() or not (build_dir / 'Makefile').exists() or arguments['--config']:
         run_command(project_dir, 'cmake --preset=default')
 
     run_command(project_dir,
                 f'cmake --build {build_dir} --target install --parallel')
-

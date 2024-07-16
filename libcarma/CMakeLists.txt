@@ -5,9 +5,6 @@ project(carma VERSION ${VERSION_INFO} DESCRIPTION "COMPASS CARMA lirary" LANGUAG
 find_package(PkgConfig REQUIRED)
 find_package(CUDAToolkit REQUIRED)
 
-pkg_check_modules(OCTOPUS IMPORTED_TARGET octopus)
-link_directories(${OCTOPUS_LIBRARY_DIRS})
-
 add_library(carma
     src.cpp/carma_context.cpp
     src.cpp/carma_cublas.cpp
@@ -65,15 +62,6 @@ target_link_libraries(carma PUBLIC
 if (${CUDAToolkit_VERSION_MAJOR} LESS 11)
     find_package(cub REQUIRED)
     target_link_libraries(carma PUBLIC cub::cub)
-endif()
-
-if(${OCTOPUS_FOUND})
-  target_compile_definitions(carma PUBLIC USE_OCTOPUS=1)
-  target_compile_options(carma PUBLIC ${OCTOPUS_CFLAGS})
-  target_include_directories(carma PUBLIC ${OCTOPUS_INCLUDE_DIRS})
-  target_link_libraries(carma PUBLIC ${OCTOPUS_LIBRARIES})
-else()
-  message(STATUS "OCTOPUS_ROOT not found, CACAO features disabled")
 endif()
 
 set(INSTALL_PKGCONFIG_DIR "lib/pkgconfig"

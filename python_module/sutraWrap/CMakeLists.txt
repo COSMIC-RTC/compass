@@ -7,10 +7,9 @@ project(sutraWrap
 )
 
 find_package(PkgConfig REQUIRED)
-find_package(pybind11 REQUIRED)
+find_package(Python COMPONENTS Interpreter Development)
+find_package(pybind11 CONFIG)
 find_package(CUDAToolkit REQUIRED)
-pkg_check_modules(OCTOPUS IMPORTED_TARGET octopus)
-link_directories(${OCTOPUS_LIBRARY_DIRS})
 
 pybind11_add_module(sutraWrap MODULE
     src/telescope.cpp
@@ -47,10 +46,6 @@ pybind11_add_module(sutraWrap MODULE
 )
 
 target_compile_features(sutraWrap PUBLIC cxx_std_14)
-
-if (${OCTOPUS_FOUND})
-    target_sources(sutraWrap PRIVATE src/rtc_cacao.cpp)
-endif()
 
 if (NOT TARGET sutra)
     find_package(PkgConfig REQUIRED)

@@ -54,8 +54,6 @@ class StageSupervisor(CompassSupervisor):
 
         rtc : (RtcComponent) : A Rtc component instance
 
-        cacao : (bool) : CACAO features enabled in the RTC
-
         basis : (ModalBasis) : a ModalBasis instance (optimizer)
 
         calibration : (Calibration) : a Calibration instance (optimizer)
@@ -139,9 +137,6 @@ class StageSupervisor(CompassSupervisor):
                         self.rtc.do_control(nControl, sources=self.target.sources)
                         self.target.raytrace(t, dms=self.dms, ncpa=True, reset=False)
 
-                    if self.cacao:
-                        self.rtc.publish()
-
         else:
             # start updating the DM shape
             if apply_control:
@@ -186,10 +181,6 @@ class StageSupervisor(CompassSupervisor):
 
                     if do_control:
                         self.rtc.do_control(ncontrol)
-
-            if self.cacao:
-                self.rtc.publish()
-
 
         if compute_tar_psf:
             for tar_index in tar_trace:

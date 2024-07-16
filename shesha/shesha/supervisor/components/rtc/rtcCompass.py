@@ -30,8 +30,7 @@ class RtcCompass(RtcAbstract):
     """ RTC handler for compass simulation
     """
 
-    def __init__(self, context: carmaWrap_context, config, tel, wfs, dms, atm, *,
-                 fp16: bool = False, cacao: bool = False):
+    def __init__(self, context: carmaWrap_context, config, tel, wfs, dms, atm):
         """ Initialize a RtcCompass component for rtc related supervision
 
         Args:
@@ -46,16 +45,8 @@ class RtcCompass(RtcAbstract):
             dms: (Dms) : Dms object
 
             atm: (Atmos) : Atmos object
-
-        Kwargs:
-            fp16 : (bool, optional) : If True, enables FP16 features in RTC (Default is False)
-                                       Requires CUDA_SM>60 to be installed
-
-            cacao : (bool) : If True, enables CACAO features in RTC (Default is False)
-                                       Requires OCTOPUS to be installed
         """
-        RtcAbstract.__init__(self, context, config, fp16=fp16,
-                             cacao=cacao)
+        RtcAbstract.__init__(self, context, config)
         self.rtc_init(tel, wfs, dms, atm)
 
     def rtc_init(self, tel, wfs, dms, atm):
@@ -74,5 +65,4 @@ class RtcCompass(RtcAbstract):
                              self._config.p_wfss, self._config.p_tel,
                              self._config.p_geom, self._config.p_atmos,
                              self._config.p_loop.ittime, self._config.p_centroiders,
-                             self._config.p_controllers, self._config.p_dms,
-                             cacao=self.cacao)
+                             self._config.p_controllers, self._config.p_dms)

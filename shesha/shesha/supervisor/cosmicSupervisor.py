@@ -54,8 +54,6 @@ class CosmicSupervisor(CompassSupervisor):
 
         rtc : (RtcComponent) : A Rtc component instance
 
-        cacao : (bool) : CACAO features enabled in the RTC
-
         basis : (ModalBasis) : a ModalBasis instance (optimizer)
 
         calibration : (Calibration) : a Calibration instance (optimizer)

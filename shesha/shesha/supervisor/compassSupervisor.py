@@ -57,8 +57,6 @@ class CompassSupervisor(GenericSupervisor):
 
         rtc : (RtcComponent) : A Rtc component instance
 
-        cacao : (bool) : CACAO features enabled in the RTC
-
         basis : (ModalBasis) : a ModalBasis instance (optimizer)
 
         calibration : (Calibration) : a Calibration instance (optimizer)
@@ -68,17 +66,12 @@ class CompassSupervisor(GenericSupervisor):
         close_modal_gains : (list of floats) : list of the previous values of the modal gains
     """
 
-    def __init__(self, config, *, cacao: bool = False):
+    def __init__(self, config):
         """ Instantiates a CompassSupervisor object
 
         Args:
             config: (config module) : Configuration module
-
-        Kwargs:
-            cacao : (bool) : If True, enables CACAO features in RTC (Default is False)
-                                      Requires OCTOPUS to be installed
         """
-        self.cacao = cacao
         self.tel = None
         self.atmos = None
         self.target = None
@@ -136,7 +129,7 @@ class CompassSupervisor(GenericSupervisor):
         """
         if self.wfs is not None:
             self.rtc = RtcCompass(self.context, self.config, self.tel, self.wfs,
-                                  self.dms, self.atmos, cacao=self.cacao)
+                                  self.dms, self.atmos)
         else:
             raise ValueError("Configuration not loaded or Telescope not initilaized")
 
@@ -229,8 +222,6 @@ class CompassSupervisor(GenericSupervisor):
                         self.target.raytrace(t, dms=self.dms, ncpa=True, reset=False)
                         if apply_control:
                             self.rtc.apply_control(nControl)
-                        if self.cacao:
-                            self.rtc.publish()
         else:
             if tar_trace is not None: # already checked at line 213?
                 for t in tar_trace:
@@ -259,9 +250,6 @@ class CompassSupervisor(GenericSupervisor):
             if apply_control:
                 for ncontrol in nControl :
                     self.rtc.apply_control(ncontrol)
-
-            if self.cacao:
-                self.rtc.publish()
 
         if compute_tar_psf:
             for tar_index in tar_trace:

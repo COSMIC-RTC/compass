@@ -40,14 +40,9 @@ class RtcAbstract(ABC):
         _context : (carmaContext) : CarmaContext instance
 
         _config : (config module) : Parameters configuration structure module
-
-        fp16 : (bool) : FP16 features enabled in the RTC
-
-        cacao : (bool) : CACAO features enabled in the RTC
     """
 
-    def __init__(self, context: carmaWrap_context, config, *,
-                 fp16: bool = False, cacao: bool = False):
+    def __init__(self, context: carmaWrap_context, config):
         """ Initialize a RtcCompass component for rtc related supervision
 
         Args:
@@ -55,15 +50,7 @@ class RtcAbstract(ABC):
 
             config : (config module) : Parameters configuration structure module
 
-        Kwargs:
-            fp16 : (bool, optional) : If True, enables FP16 features in RTC (Default is False)
-                                      Requires CUDA_SM>60 to be installed
-
-            cacao : (bool) : If True, enables CACAO features in RTC (Default is False)
-                                      Requires OCTOPUS to be installed
         """
-        self.fp16 = fp16
-        self.cacao = cacao
         self._context = context
         self._config = config  # Parameters configuration coming from supervisor init
         self._rtc = None
@@ -777,16 +764,6 @@ class RtcAbstract(ABC):
             scale : (float) : scale factor to apply on slopes
         """
         self._rtc.d_centro[centroider_index].set_scale(scale)
-
-    def publish(self) -> None:
-        """ Publish loop data on DDS topics
-
-        only with cacao enabled, requires OCTOPUS
-        """
-        if self.cacao:
-            self._rtc.publish()
-        else:
-            raise AttributeError("CACAO must be enabled")
 
     def get_image_raw(self, centroider_index: int) -> np.ndarray:
         """ Return the raw image currently loaded on the specified centroider

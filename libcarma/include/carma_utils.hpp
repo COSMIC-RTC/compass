@@ -44,10 +44,6 @@
 
 #include <carma_indicators.hpp>
 
-#ifdef USE_OCTOPUS
-#include <Cacao.h>
-#endif
-
 #define CARMA_PI 3.1415926535897932384626433832
 
 struct doubleint {

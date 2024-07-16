@@ -50,25 +50,20 @@ class BenchSupervisor(GenericSupervisor):
     Attributes:
         rtc : (RtcComponent) : A Rtc component instance
 
-        cacao : (bool) : CACAO features enabled in the RTC
-
         basis : (ModalBasis) : a ModalBasis instance (optimizer)
 
         calibration : (Calibration) : a Calibration instance (optimizer)
     """
 
-    def __init__(self, config_file: str = None, cacao: bool = False):
+    def __init__(self, config_file: str = None):
         """ Init the COMPASS wih the config_file
 
-        Kwargs:
+        Args:
             config_file : (str) : path to the configuration file. Default is None
-
-            cacao : (bool) : Flag to use cacao rtc. Default is False
         """
         self.pause_loop = None
         self.rtc = None
         self.frame = None
-        self.cacao = cacao
         self.iter = 0
         self.slopes_index = None
         config = load_config_from_file(config_file)
@@ -145,8 +140,7 @@ class BenchSupervisor(GenericSupervisor):
 
         # Create RTC
         self.rtc = RtcStandalone(self.context, self.config, self.number_of_wfs, nvalid,
-                                 nact, centroider_type, delay, offset, scale,
-                                 cacao=self.cacao)
+                                 nact, centroider_type, delay, offset, scale)
 
         self.slopes_index = np.cumsum([0] +
                                       [wfs.nslopes for wfs in self.rtc._rtc.d_centro])
@@ -206,8 +200,6 @@ class BenchSupervisor(GenericSupervisor):
         if (self.pause_loop is not True):
             self.compute_wfs_frame()
             self.set_command(0, np.array(self.rtc._rtc.d_control[0].d_voltage))
-        if self.cacao:
-            self.rtc.publish()
         self.iter += 1
 
     def get_tar_image(self, tar_index, expo_type: str = "se") -> np.ndarray:

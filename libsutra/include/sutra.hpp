@@ -48,7 +48,6 @@
 #include "sutra_phase.hpp"
 #include "sutra_roket.hpp"
 #include "sutra_rtc.hpp"
-#include "sutra_rtc_cacao.hpp"
 #include "sutra_sensors.hpp"
 #include "sutra_source.hpp"
 #include "sutra_target.hpp"

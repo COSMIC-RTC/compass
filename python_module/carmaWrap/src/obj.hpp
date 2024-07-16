@@ -124,13 +124,6 @@ struct CarmaObjInterfacer {
         }, "TODO",
              py::arg("ptr"))  // TODO do the documentation...
     // int32_t wait_all_streams()
-#ifdef USE_OCTOPUS
-        .def("swap_ptr", [](Class &obj, ipc::Cacao<T> &obj2){
-          obj.swap_ptr(obj2.inputPtr());
-        }, "TODO",
-             py::arg("ptr"))  // TODO do the documentation...
-    // int32_t wait_all_streams()
-#endif
         .def("wait_all_streams", &Class::wait_all_streams,
              "TODO")  // TODO do the documentation...
 
@@ -191,10 +184,6 @@ struct CarmaObjInterfacer {
              },
              "TODO", py::arg("data"),
              py::arg("nb_elem") = -1)  // TODO do the documentation...
-#ifdef USE_OCTOPUS
-        .def("copy_into",(int32_t (Class::*)(ipc::Cacao<T>*))&Class::copy_into)
-        .def("copy_from",(int32_t (Class::*)(ipc::Cacao<T>*))&Class::copy_from)
-#endif
         // inline int32_t reset()
         .def("reset", (int32_t (Class::*)(void)) &Class::reset, "TODO")  // TODO do the documentation...
 

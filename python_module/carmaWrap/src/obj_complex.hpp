@@ -216,12 +216,6 @@ struct CarmaObjComplexInterfacer
         },
         "TODO", py::arg("data"),
         py::arg("nb_elem") = -1); // TODO do the documentation...
-#ifdef USE_OCTOPUS
-    carmaWrapObj.def("copy_into",
-                     (int32_t(Class::*)(ipc::Cacao<Type> *)) & Class::copy_into);
-    carmaWrapObj.def("copy_from",
-                     (int32_t(Class::*)(ipc::Cacao<Type> *)) & Class::copy_from);
-#endif
     // inline int32_t reset()
     carmaWrapObj.def("reset", (int32_t(Class::*)(void)) & Class::reset,
                      "TODO"); // TODO do the documentation...

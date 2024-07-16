@@ -23,6 +23,7 @@
 
 import numpy as np
 
+import CacaoInterfaceWrap as ciw
 import tides.streamers as ts
 
 class RtcCosmic():
@@ -63,10 +64,7 @@ class RtcCosmic():
 
             self.subscriber = ts.Streamer("rtms")
             self.subscriber.configure(self.local_host, self.com)
-
-            
         else:
-            import CacaoInterfaceWrap as ciw
             self.frame_shm = ciw.CacaoInterfaceWrap(self.config.p_hrtc.frame_shm)
             self.com_shm = ciw.CacaoInterfaceWrap(self.config.p_hrtc.com_shm)
             

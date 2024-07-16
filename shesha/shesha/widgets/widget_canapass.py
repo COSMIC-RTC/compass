@@ -60,9 +60,9 @@ server = None
 
 class widgetCanapassWindowPyro(widgetAOWindow):
 
-    def __init__(self, config_file: Any = None, cacao: bool = False,
+    def __init__(self, config_file: Any = None,
                  expert: bool = False) -> None:
-        widgetAOWindow.__init__(self, config_file, cacao, hide_histograms=True)
+        widgetAOWindow.__init__(self, config_file, hide_histograms=True)
         #Pyro.core.ObjBase.__init__(self)
         self.CB = {}
         self.wpyr = None
@@ -210,7 +210,7 @@ if __name__ == '__main__':
     arguments = docopt(__doc__)
     app = QtWidgets.QApplication(sys.argv)
     app.setStyle('cleanlooks')
-    wao = widgetCanapassWindowPyro(arguments["<parameters_filename>"], cacao=True)
+    wao = widgetCanapassWindowPyro(arguments["<parameters_filename>"])
     wao.show()
     # if arguments["--interactive"]:
     #     from shesha.util.ipython_embed import embed

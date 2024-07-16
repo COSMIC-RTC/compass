@@ -32,15 +32,14 @@ from shesha.init import dm_init
 from typing import List
 
 import numpy as np
-from shesha.sutra_wrap import (carmaWrap_context, Sensors, Dms,
-                               Rtc_cacao_FFF, Atmos, Telescope)
+from shesha.sutra_wrap import (carmaWrap_context, Sensors, Dms, Atmos, Telescope)
 from shesha.sutra_wrap import Rtc_FFF as Rtc
 
 
 def rtc_init(context: carmaWrap_context, tel: Telescope, wfs: Sensors, dms: Dms,
              atmos: Atmos, p_wfss: list, p_tel: conf.ParamTel, p_geom: conf.ParamGeom,
              p_atmos: conf.ParamAtmos, ittime: float, p_centroiders=None,
-             p_controllers=None, p_dms=None, do_refslp=False, cacao=False,
+             p_controllers=None, p_dms=None, do_refslp=False,
              tar=None, dataBase={}, use_DB=False):
     """Initialize all the SutraRtc objects : centroiders and controllers
 
@@ -74,8 +73,6 @@ def rtc_init(context: carmaWrap_context, tel: Telescope, wfs: Sensors, dms: Dms,
 
         do_refslp : (bool): do ref slopes flag, default=False
 
-        cacao: (bool) : cacao flag
-
         tar: (Target) : Target object
 
         dataBase: (dict): dict containig paths to files to load
@@ -87,10 +84,7 @@ def rtc_init(context: carmaWrap_context, tel: Telescope, wfs: Sensors, dms: Dms,
     """
     # initialisation var
     # ________________________________________________
-    if cacao:
-        rtc = Rtc_cacao_FFF(p_controllers[0].calpix_name, p_controllers[0].loopdata_name)
-    else:
-        rtc = Rtc()
+    rtc = Rtc()
 
     if p_wfss is None:
         return rtc
@@ -155,8 +149,7 @@ def rtc_init(context: carmaWrap_context, tel: Telescope, wfs: Sensors, dms: Dms,
 
 
 def rtc_standalone(context: carmaWrap_context, nwfs: int, nvalid: list, nactu: int,
-                   centroider_type: list, delay: list, offset: list, scale: list,
-                   fp16: bool = False, cacao: bool = False) -> Rtc:
+                   centroider_type: list, delay: list, offset: list, scale: list) -> Rtc:
     """Initialize all the SutraRtc objects : centroiders and controllers
 
     Args:
@@ -176,27 +169,11 @@ def rtc_standalone(context: carmaWrap_context, nwfs: int, nvalid: list, nactu: i
 
         scale: (list): scale factor used in the cog computation of each WFS
 
-    Kwargs:
-        fp16: (bool) : fp16 flag (default=False)
-
-        cacao: (bool) : cacao flag (default=False)
-
     Returns:
         Rtc : (Rtc) : Rtc object
     """
     print("start rtc_standalone")
-    if cacao:
-        if fp16:
-            from shesha.sutra_wrap import Rtc_cacao_FHF
-            rtc = Rtc_cacao_FHF("compass_calPix", "compass_loopData")
-        else:
-            rtc = Rtc_cacao_FFF("compass_calPix", "compass_loopData")
-    else:
-        if fp16:
-            from shesha.sutra_wrap import Rtc_FHF
-            rtc = Rtc_FHF()
-        else:
-            rtc = Rtc()
+    rtc = Rtc()
     for k in range(nwfs):
         # print(context, nvalid[k], offset[k], scale[k], False,
         #                 context.active_device, centroider_type[k])
