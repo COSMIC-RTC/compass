@@ -14,14 +14,12 @@ stages:
   script:
   - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$COMPASS_ROOT/local/python
   - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_ROOT/local/lib
-  - export PATH=$PATH:$VCPKG_ROOT
   - unset CUDA_SM
   - . $CONDA_ROOT/etc/profile.d/conda.sh
   - . $CONDA_ROOT/etc/profile.d/mamba.sh
   - mamba env create --file environment.yml
   - mamba activate compass
-  - ./script/install_vcpkg.sh $VCPKG_ROOT
-  - ./compile_vcpkg.py
+  - ./compile.py
   artifacts:
     name: "${CI_JOB_NAME}_binaires"
     paths:

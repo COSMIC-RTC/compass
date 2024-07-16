@@ -17,6 +17,7 @@ dependencies:
   - rich
   - aenum
   - cmake
+  - pybind11
   - coverage
   - pytest-cov
   - pytest-html
