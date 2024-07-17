@@ -1,23 +1,20 @@
-## @package   shesha.components.coronagraph.coronagraphCompass
-## @brief     User layer for compass coronagraph object
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2023/03/02
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 
 import numpy as np
 import shesha.config as conf
@@ -25,8 +22,9 @@ import shesha.constants as scons
 from carma import context
 from shesha.supervisor.components.targetCompass import TargetCompass
 
-class CoronagraphCompass():
-    """ Class for Compass Coronagraph modules
+
+class CoronagraphCompass:
+    """Class for Compass Coronagraph modules
 
     Attributes:
         _spupil: (np.ndarray[ndim=2, dtype=np.float32]): Telescope pupil mask
@@ -45,8 +43,9 @@ class CoronagraphCompass():
 
         _coronos: (Coronagraph): Coronagraph instances
     """
+
     def __init__(self):
-        """ Initialize a coronagraph instance with generic attributes
+        """Initialize a coronagraph instance with generic attributes
 
         Args:
             p_corono: (ParamCoronagraph): Compass coronagraph parameters
@@ -60,9 +59,14 @@ class CoronagraphCompass():
 
         self._coronos = []
 
-    def add_corono(self, context:context, p_corono: conf.ParamCoronagraph, p_geom: conf.ParamGeom,
-                   targetCompass: TargetCompass):
-        """ Add a coronagraph
+    def add_corono(
+        self,
+        context: context,
+        p_corono: conf.ParamCoronagraph,
+        p_geom: conf.ParamGeom,
+        targetCompass: TargetCompass,
+    ):
+        """Add a coronagraph
 
         Args:
             p_corono: (ParamCoronagraph): Compass coronagraph parameters
@@ -71,16 +75,28 @@ class CoronagraphCompass():
 
             targetCompass: (TargetCompass): Compass Target used as input for the coronagraph
         """
-        if(p_corono._type == scons.CoronoType.CUSTOM) or (p_corono._type == scons.CoronoType.SPHERE_APLC):
-            from shesha.supervisor.components.coronagraph.stellarCoronagraph import StellarCoronagraphCompass
-            self._coronos.append(StellarCoronagraphCompass(context, targetCompass, p_corono, p_geom))
+        if (p_corono._type == scons.CoronoType.CUSTOM) or (
+            p_corono._type == scons.CoronoType.SPHERE_APLC
+        ):
+            from shesha.supervisor.components.coronagraph.stellarCoronagraph import (
+                StellarCoronagraphCompass,
+            )
 
-        elif(p_corono._type == scons.CoronoType.PERFECT):
-            from shesha.supervisor.components.coronagraph.perfectCoronagraph import PerfectCoronagraphCompass
-            self._coronos.append(PerfectCoronagraphCompass(context, targetCompass, p_corono, p_geom))
+            self._coronos.append(
+                StellarCoronagraphCompass(context, targetCompass, p_corono, p_geom)
+            )
+
+        elif p_corono._type == scons.CoronoType.PERFECT:
+            from shesha.supervisor.components.coronagraph.perfectCoronagraph import (
+                PerfectCoronagraphCompass,
+            )
+
+            self._coronos.append(
+                PerfectCoronagraphCompass(context, targetCompass, p_corono, p_geom)
+            )
 
     def compute_image(self, coro_index: int, *, comp_psf: bool = True, accumulate: bool = True):
-        """ Compute the SE coronagraphic image, and accumulate it in the LE image
+        """Compute the SE coronagraphic image, and accumulate it in the LE image
 
         Args:
             coro_index: (int): Index of the coronagraph
@@ -93,7 +109,7 @@ class CoronagraphCompass():
         self._coronos[coro_index].compute_image(comp_psf=comp_psf, accumulate=accumulate)
 
     def compute_psf(self, coro_index: int, *, accumulate: bool = True):
-        """ Compute the SE psf, and accumulate it in the LE image
+        """Compute the SE psf, and accumulate it in the LE image
 
         Args:
             coro_index: (int): Index of the coronagraph
@@ -103,8 +119,8 @@ class CoronagraphCompass():
         """
         self._coronos[coro_index].compute_psf(accumulate=accumulate)
 
-    def get_image(self, coro_index: int, *, expo_type:str=scons.ExposureType.LE):
-        """ Return the coronagraphic image
+    def get_image(self, coro_index: int, *, expo_type: str = scons.ExposureType.LE):
+        """Return the coronagraphic image
 
         Args:
             coro_index: (int): Index of the coronagraph
@@ -117,8 +133,8 @@ class CoronagraphCompass():
         """
         return self._coronos[coro_index].get_image(expo_type=expo_type)
 
-    def get_psf(self, coro_index: int, *, expo_type:str=scons.ExposureType.LE):
-        """ Return the psf
+    def get_psf(self, coro_index: int, *, expo_type: str = scons.ExposureType.LE):
+        """Return the psf
 
         Args:
             coro_index: (int): Index of the coronagraph
@@ -131,8 +147,8 @@ class CoronagraphCompass():
         """
         return self._coronos[coro_index].get_psf(expo_type=expo_type)
 
-    def reset(self, *, coro_index: int=None):
-        """ Reset long exposure image and PSF
+    def reset(self, *, coro_index: int = None):
+        """Reset long exposure image and PSF
 
         Args:
             coro_index: (int): Index of the coronagraph to reset. If not provided, reset all coronagraphs
@@ -143,8 +159,17 @@ class CoronagraphCompass():
         else:
             self._coronos[coro_index].reset()
 
-    def get_contrast(self, coro_index, *, expo_type=scons.ExposureType.LE, d_min=None, d_max=None, width=None, normalized_by_psf=True):
-        """ Computes average, standard deviation, minimum and maximum of coronagraphic
+    def get_contrast(
+        self,
+        coro_index,
+        *,
+        expo_type=scons.ExposureType.LE,
+        d_min=None,
+        d_max=None,
+        width=None,
+        normalized_by_psf=True,
+    ):
+        """Computes average, standard deviation, minimum and maximum of coronagraphic
         image intensity, over rings at several angular distances from the optical axis.
 
         A ring includes the pixels between the following angular distances :
@@ -180,12 +205,16 @@ class CoronagraphCompass():
 
             maxi: (1D array): corresponding maximums
         """
-        return self._coronos[coro_index].get_contrast(expo_type=expo_type, d_min=d_min, d_max=d_max,
-                                                       width=width,
-                                                       normalized_by_psf=normalized_by_psf)
+        return self._coronos[coro_index].get_contrast(
+            expo_type=expo_type,
+            d_min=d_min,
+            d_max=d_max,
+            width=width,
+            normalized_by_psf=normalized_by_psf,
+        )
 
-    def set_electric_field_amplitude(self, coro_index, amplitude:np.ndarray):
-        """ Set the amplitude of the electric field
+    def set_electric_field_amplitude(self, coro_index, amplitude: np.ndarray):
+        """Set the amplitude of the electric field
 
         Args:
             coro_index: (int): Index of the coronagraph

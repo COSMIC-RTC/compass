@@ -1,23 +1,20 @@
-## @package   carma.test
-## @brief     Unit tests for carma
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 import numpy as np
 import carma as ch
 import numpy.testing as npt
@@ -28,7 +25,7 @@ n = 1024
 min_mn = min(m, n)
 
 dec = 3
-prec = 10**(-dec)
+prec = 10 ** (-dec)
 
 c = ch.context.get_instance()
 
@@ -136,7 +133,6 @@ print("precision: ", prec)
 
 
 def test_float_potri_gpu():
-
     d_mat = ch.obj_float(c, np.random.randn(m, m))
     d_mat.random(np.int32(time.perf_counter() * 1e3))
     a = np.array(d_mat)
@@ -145,7 +141,7 @@ def test_float_potri_gpu():
 
     identity = ch.obj_float(c, np.identity(m))
 
-    d_res = d_mat.gemm(d_mat, op_a='n', op_b='t', beta=1, matC=identity)
+    d_res = d_mat.gemm(d_mat, op_a="n", op_b="t", beta=1, matC=identity)
 
     b = np.dot(a, a.T)
     mat = np.array(d_res)
@@ -164,7 +160,6 @@ def test_float_potri_gpu():
 
 
 def test_double_potri_gpu():
-
     d_mat = ch.obj_double(c, np.random.randn(m, m))
     d_mat.random(np.int32(time.perf_counter() * 1e3))
     a = np.array(d_mat)
@@ -173,7 +168,7 @@ def test_double_potri_gpu():
 
     identity = ch.obj_double(c, np.identity(m))
 
-    d_res = d_mat.gemm(d_mat, op_a='n', op_b='t', beta=1, matC=identity)
+    d_res = d_mat.gemm(d_mat, op_a="n", op_b="t", beta=1, matC=identity)
 
     b = np.dot(a, a.T)
     mat = np.array(d_res)
@@ -192,13 +187,12 @@ def test_double_potri_gpu():
 
 
 def test_float_syevd():
-
     d_mat = ch.obj_float(c, np.random.randn(m, m))
     d_U = ch.obj_float(c, np.random.randn(m, m))
     d_EV = ch.obj_float(c, np.random.randn(m))
     d_EV2 = ch.obj_float(c, np.random.randn(m))
 
-    d_res = d_mat.gemm(d_mat, op_a='n', op_b='t')
+    d_res = d_mat.gemm(d_mat, op_a="n", op_b="t")
     mat = np.array(d_res)
 
     ch.syevd_float(d_res, d_EV, d_U)
@@ -207,8 +201,7 @@ def test_float_syevd():
     res = np.array(d_res)
     EV = np.diag(d_EV)
 
-    npt.assert_almost_equal(
-            np.dot(np.dot(U, EV), U.T).astype(np.float32), res, decimal=dec - 1)
+    npt.assert_almost_equal(np.dot(np.dot(U, EV), U.T).astype(np.float32), res, decimal=dec - 1)
 
     err = np.amax(np.abs(res - np.dot(np.dot(U, EV), U.T)))
 
@@ -217,9 +210,9 @@ def test_float_syevd():
     print("out of place, compute U")
     print(err)
 
-    npt.assert_almost_equal(err, 0., decimal=dec)
+    npt.assert_almost_equal(err, 0.0, decimal=dec)
 
-    d_res = d_mat.gemm(d_mat, op_a='n', op_b='t')
+    d_res = d_mat.gemm(d_mat, op_a="n", op_b="t")
     ch.syevd_float(d_res, d_EV2, computeU=False)
 
     err = np.amax(np.abs(np.array(d_EV) - np.array(d_EV2)))
@@ -230,13 +223,12 @@ def test_float_syevd():
 
 
 def test_double_syevd():
-
     d_mat = ch.obj_double(c, np.random.randn(m, m))
     d_U = ch.obj_double(c, np.random.randn(m, m))
     d_EV = ch.obj_double(c, np.random.randn(m))
     d_EV2 = ch.obj_double(c, np.random.randn(m))
 
-    d_res = d_mat.gemm(d_mat, op_a='n', op_b='t')
+    d_res = d_mat.gemm(d_mat, op_a="n", op_b="t")
 
     ch.syevd_double(d_res, d_EV, d_U)
 
@@ -253,9 +245,9 @@ def test_double_syevd():
     print("out of place, compute U")
     print(err)
 
-    npt.assert_almost_equal(err, 0., decimal=dec)
+    npt.assert_almost_equal(err, 0.0, decimal=dec)
 
-    d_res = d_mat.gemm(d_mat, op_a='n', op_b='t')
+    d_res = d_mat.gemm(d_mat, op_a="n", op_b="t")
     ch.syevd_double(d_res, d_EV2, computeU=False)
 
     err = np.amax(np.abs(np.array(d_EV) - np.array(d_EV2)))

@@ -1,23 +1,20 @@
-## @package   guardians.misc
-## @brief     Miscellaneous roket scripts
-## @author    Florian Ferreira <florian.ferreira@obspm.fr>
-## @date      2019/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 """
 Created on Wed Oct 5 14:28:23 2016
 
@@ -34,23 +31,26 @@ from bokeh.models.layouts import HBox, VBox
 import glob
 import matplotlib.pyplot as plt
 from scipy.special import jv  # Bessel function
+
 plt.ion()
 
 
 def dphi_highpass(r, x0, tabx, taby):
-    return (r**
-            (5. / 3.)) * (1.1183343328701949 - Ij0t83(r * (np.pi / x0), tabx, taby)) * (
-                    2 * (2 * np.pi)**(8 / 3.) * 0.0228956)
+    return (
+        (r ** (5.0 / 3.0))
+        * (1.1183343328701949 - Ij0t83(r * (np.pi / x0), tabx, taby))
+        * (2 * (2 * np.pi) ** (8 / 3.0) * 0.0228956)
+    )
 
 
 def dphi_lowpass(r, x0, L0, tabx, taby):
     return rodconan(r, L0) - dphi_highpass(r, x0, tabx, taby)
-    #return (r**(5./3.)) * Ij0t83(r*(np.pi/x0), tabx, taby) * (2*(2*np.pi)**(8/3.)*0.0228956)
+    # return (r**(5./3.)) * Ij0t83(r*(np.pi/x0), tabx, taby) * (2*(2*np.pi)**(8/3.)*0.0228956)
 
 
 def Ij0t83(x, tabx, taby):
-    if (x < np.exp(-3.0)):
-        return 0.75 * x**(1. / 3) * (1 - x**2 / 112.)
+    if x < np.exp(-3.0):
+        return 0.75 * x ** (1.0 / 3) * (1 - x**2 / 112.0)
     else:
         return np.interp(x, tabx, taby)
 
@@ -68,12 +68,12 @@ def tabulateIj0(L0):
     t = np.linspace(-4, 10, n)
     dt = (t[-1] - t[0]) / (n - 1)
     smallx = np.exp(-4.0)
-    A = 0.75 * smallx**(1. / 3) * (1 - smallx**2 / 112.)
+    A = 0.75 * smallx ** (1.0 / 3) * (1 - smallx**2 / 112.0)
     X = np.exp(t)
-    #Y = np.exp(-t*(5./3.))*unMoinsJ0(X)
-    Y = (np.exp(2 * t) + (1. / L0)**2)**(-8. / 6.) * unMoinsJ0(X) * np.exp(t)
-    Y[1:] = np.cumsum(Y[:-1] + np.diff(Y) / 2.)
-    Y[0] = 0.
+    # Y = np.exp(-t*(5./3.))*unMoinsJ0(X)
+    Y = (np.exp(2 * t) + (1.0 / L0) ** 2) ** (-8.0 / 6.0) * unMoinsJ0(X) * np.exp(t)
+    Y[1:] = np.cumsum(Y[:-1] + np.diff(Y) / 2.0)
+    Y[0] = 0.0
     Y = Y * dt + A
 
     return X, Y
@@ -86,30 +86,43 @@ def asymp_macdo(x):
     a2 = -0.08641975308641974829
     a3 = 0.08001828989483310284
 
-    x_1 = 1. / x
-    res = k2 - k3 * np.exp(-x) * x**(1. / 3.) * (1.0 + x_1 * (a1 + x_1 *
-                                                              (a2 + x_1 * a3)))
+    x_1 = 1.0 / x
+    res = k2 - k3 * np.exp(-x) * x ** (1.0 / 3.0) * (1.0 + x_1 * (a1 + x_1 * (a2 + x_1 * a3)))
     return res
 
 
 def macdo(x):
-    a = 5. / 6.
-    x2a = x**(2. * a)
-    x22 = x * x / 4.
+    a = 5.0 / 6.0
+    x2a = x ** (2.0 * a)
+    x22 = x * x / 4.0
     s = 0.0
 
     Ga = [
-            0, 12.067619015983075, 5.17183672113560444, 0.795667187867016068,
-            0.0628158306210802181, 0.00301515986981185091, 9.72632216068338833e-05,
-            2.25320204494595251e-06, 3.93000356676612095e-08, 5.34694362825451923e-10,
-            5.83302941264329804e-12
+        0,
+        12.067619015983075,
+        5.17183672113560444,
+        0.795667187867016068,
+        0.0628158306210802181,
+        0.00301515986981185091,
+        9.72632216068338833e-05,
+        2.25320204494595251e-06,
+        3.93000356676612095e-08,
+        5.34694362825451923e-10,
+        5.83302941264329804e-12,
     ]
 
     Gma = [
-            -3.74878707653729304, -2.04479295083852408, -0.360845814853857083,
-            -0.0313778969438136685, -0.001622994669507603, -5.56455315259749673e-05,
-            -1.35720808599938951e-06, -2.47515152461894642e-08, -3.50257291219662472e-10,
-            -3.95770950530691961e-12, -3.65327031259100284e-14
+        -3.74878707653729304,
+        -2.04479295083852408,
+        -0.360845814853857083,
+        -0.0313778969438136685,
+        -0.001622994669507603,
+        -5.56455315259749673e-05,
+        -1.35720808599938951e-06,
+        -2.47515152461894642e-08,
+        -3.50257291219662472e-10,
+        -3.95770950530691961e-12,
+        -3.65327031259100284e-14,
     ]
 
     x2n = 0.5
@@ -120,7 +133,6 @@ def macdo(x):
     x2n *= x22
 
     for n in np.arange(10) + 1:
-
         s += (Gma[n] * x2a + Ga[n]) * x2n
         x2n *= x22
 
@@ -131,18 +143,18 @@ def rodconan(r, L0):
     res = 0
     k1 = 0.1716613621245709486
     dprf0 = (2 * np.pi / L0) * r
-    if (dprf0 > 4.71239):
+    if dprf0 > 4.71239:
         res = asymp_macdo(dprf0)
     else:
         res = -macdo(dprf0)
 
-    res *= k1 * L0**(5. / 3.)
+    res *= k1 * L0 ** (5.0 / 3.0)
 
     return res
 
 
 def variance(f, contributors, method="Default"):
-    """ Return the error variance of specified contributors
+    """Return the error variance of specified contributors
     params:
         f : (h5py.File) : roket hdf5 file opened with h5py
         contributors : (list of string) : list of the contributors
@@ -154,15 +166,17 @@ def variance(f, contributors, method="Default"):
     nmodes = P.shape[0]
     swap = np.arange(nmodes) - 2
     swap[0:2] = [nmodes - 2, nmodes - 1]
-    if (method == b"Default"):
-        err = f[contributors[0]][:] * 0.
+    if method == b"Default":
+        err = f[contributors[0]][:] * 0.0
         for c in contributors:
             err += f[c][:]
-        return np.var(P.dot(err), axis=1)[swap], np.var(
-                P.dot(f["tomography"][:]),
-                axis=1)[swap], np.var(P.dot(f["bandwidth"][:]), axis=1)[swap]
+        return (
+            np.var(P.dot(err), axis=1)[swap],
+            np.var(P.dot(f["tomography"][:]), axis=1)[swap],
+            np.var(P.dot(f["bandwidth"][:]), axis=1)[swap],
+        )
 
-    elif (method == b"Independence"):
+    elif method == b"Independence":
         nmodes = P.shape[0]
         v = np.zeros(nmodes)
         for c in contributors:
@@ -174,7 +188,7 @@ def variance(f, contributors, method="Default"):
 
 
 def varianceMultiFiles(fs, frac_per_layer, contributors):
-    """ Return the variance computed from the sum of contributors of roket
+    """Return the variance computed from the sum of contributors of roket
     files fs, ponderated by frac
     params:
         fs : (list) : list of hdf5 files opened with h5py
@@ -188,7 +202,7 @@ def varianceMultiFiles(fs, frac_per_layer, contributors):
     nmodes = P.shape[0]
     swap = np.arange(nmodes) - 2
     swap[0:2] = [nmodes - 2, nmodes - 1]
-    err = f[contributors[0]][:] * 0.
+    err = f[contributors[0]][:] * 0.0
     for f in fs:
         frac = frac_per_layer[f.attrs["atm.alt"][0]]
         for c in contributors:
@@ -198,7 +212,7 @@ def varianceMultiFiles(fs, frac_per_layer, contributors):
 
 
 def cumulativeSR(v, Lambda_tar):
-    """ Returns the cumulative Strehl ratio over the modes from the variance
+    """Returns the cumulative Strehl ratio over the modes from the variance
     on each mode
     params:
         v : (np.array(dim=1)) : variance vector
@@ -206,7 +220,7 @@ def cumulativeSR(v, Lambda_tar):
         s : (np.array(dim=1)) : cumulative SR
     """
     s = np.cumsum(v)
-    s = np.exp(-s * (2 * np.pi / Lambda_tar)**2)
+    s = np.exp(-s * (2 * np.pi / Lambda_tar) ** 2)
 
     return s
 
@@ -222,52 +236,64 @@ def update(attrs, old, new):
     x = xmap[xname]
 
     ind = np.ones(ydata.shape[0])
-    if (direction != "All"):
-        ind *= (xmap["Winddir"] == float(direction))
-    if (speed != "All"):
-        ind *= (xmap["Windspeed"] == float(speed))
-    if (g != "All"):
-        ind *= (xmap["Gain"] == float(g))
+    if direction != "All":
+        ind *= xmap["Winddir"] == float(direction)
+    if speed != "All":
+        ind *= xmap["Windspeed"] == float(speed)
+    if g != "All":
+        ind *= xmap["Gain"] == float(g)
 
     ind = np.where(ind)
-    if (yname == b"Var(t)"):
+    if yname == b"Var(t)":
         # Hthetak = Htheta / xmap["Gain"]
         y_model = np.ones(ind[0].shape[0])
-        #y_model = y_model * 6.88 * (Htheta/r0)**(5./3.) * 0.5
+        # y_model = y_model * 6.88 * (Htheta/r0)**(5./3.) * 0.5
         for k in range(ind[0].shape[0]):
-            y_model[k] = dphi_lowpass(Htheta, 0.2, L0, tabx, taby) * (1 / r0)**(
-                    5. / 3.) * 0.5  #* xmap["Gain"][ind][k]**2
-    if (yname == b"Var(bp)"):
+            y_model[k] = (
+                dphi_lowpass(Htheta, 0.2, L0, tabx, taby) * (1 / r0) ** (5.0 / 3.0) * 0.5
+            )  # * xmap["Gain"][ind][k]**2
+    if yname == b"Var(bp)":
         vdt = xmap["Windspeed"] * dt / xmap["Gain"]
         y_model = np.zeros(vdt[ind].shape[0])
         for k in range(vdt[ind].shape[0]):
-            y_model[k] = dphi_lowpass(vdt[ind][k], 0.2, L0, tabx,
-                                      taby) * (1. / r0)**(5. / 3.) * 0.5
-    if (yname == b"Covar"):
+            y_model[k] = (
+                dphi_lowpass(vdt[ind][k], 0.2, L0, tabx, taby) * (1.0 / r0) ** (5.0 / 3.0) * 0.5
+            )
+    if yname == b"Covar":
         vdt = xmap["Windspeed"] * dt / xmap["Gain"]
         # Hthetak = Htheta / xmap["Gain"]
-        gamma = np.arctan2(ypos, xpos) - xmap["Winddir"] * np.pi / 180.
-        rho = np.sqrt(Htheta**2 + (vdt)**2 - 2 * Htheta * vdt * np.cos(gamma))
+        gamma = np.arctan2(ypos, xpos) - xmap["Winddir"] * np.pi / 180.0
+        rho = np.sqrt(Htheta**2 + (vdt) ** 2 - 2 * Htheta * vdt * np.cos(gamma))
         Drho = np.zeros(rho[ind].shape[0])
         Dt = Drho.copy()
         for k in range(rho[ind].shape[0]):
-            Drho[k] = dphi_lowpass(rho[ind][k], 0.2, L0, tabx,
-                                   taby) * (1 / r0)**(5. / 3.)
-        #Drho = 6.88 * (rho[ind]/r0)**(5./3.)
+            Drho[k] = dphi_lowpass(rho[ind][k], 0.2, L0, tabx, taby) * (1 / r0) ** (5.0 / 3.0)
+        # Drho = 6.88 * (rho[ind]/r0)**(5./3.)
         for k in range(Dt.shape[0]):
-            Dt[k] = dphi_lowpass(Htheta, 0.2, L0, tabx, taby) * (1 / r0)**(
-                    5. / 3.)  # * xmap["Gain"][ind][k]**2
-        #Dt =  6.88 * (Htheta/r0)**(5./3.)
+            Dt[k] = dphi_lowpass(Htheta, 0.2, L0, tabx, taby) * (1 / r0) ** (
+                5.0 / 3.0
+            )  # * xmap["Gain"][ind][k]**2
+        # Dt =  6.88 * (Htheta/r0)**(5./3.)
         Dbp = np.zeros(vdt[ind].shape[0])
         for k in range(vdt[ind].shape[0]):
-            Dbp[k] = dphi_lowpass(vdt[ind][k], 0.2, L0, tabx, taby) * (1 / r0)**(5. / 3.)
-        #Dbp = 6.88 * (vdt[ind]/r0) ** (5./3.)
+            Dbp[k] = dphi_lowpass(vdt[ind][k], 0.2, L0, tabx, taby) * (1 / r0) ** (5.0 / 3.0)
+        # Dbp = 6.88 * (vdt[ind]/r0) ** (5./3.)
         y_model = 0.5 * (Dt + Dbp - Drho)
 
-    source.data = dict(x=x[ind], y=ydata[ind], speed=xmap["Windspeed"][ind],
-                       theta=xmap["Winddir"][ind], gain=xmap["Gain"][ind])
-    source_model.data = dict(x=x[ind], y=y_model, speed=xmap["Windspeed"][ind],
-                             theta=xmap["Winddir"][ind], gain=xmap["Gain"][ind])
+    source.data = dict(
+        x=x[ind],
+        y=ydata[ind],
+        speed=xmap["Windspeed"][ind],
+        theta=xmap["Winddir"][ind],
+        gain=xmap["Gain"][ind],
+    )
+    source_model.data = dict(
+        x=x[ind],
+        y=y_model,
+        speed=xmap["Windspeed"][ind],
+        theta=xmap["Winddir"][ind],
+        gain=xmap["Gain"][ind],
+    )
 
 
 datapath = "/home/fferreira/Data/correlation/"
@@ -275,8 +301,8 @@ filenames = glob.glob(datapath + "roket_8m_1layer_dir*_cpu.h5")
 
 files = []
 for f in filenames:
-    ff = h5py.File(f, mode='r')
-    #if(ff.attrs["validity"]):
+    ff = h5py.File(f, mode="r")
+    # if(ff.attrs["validity"]):
     files.append(ff)
 
 nmodes = (files[0])["P"][:].shape[0]
@@ -288,11 +314,11 @@ Lambda_wfs = files[0].attrs["wfs.Lambda"][0]
 L0 = files[0].attrs["L0"][0]
 dt = files[0].attrs["ittime"]
 H = files[0].attrs["atm.alt"][0]
-RASC = 180 / np.pi * 3600.
-Htheta = np.linalg.norm(
-        [xpos, ypos]
-) / RASC * H  # np.sqrt(2)*4/RASC*H # Hardcoded for angular separation of sqrt(2)*4 arcsec
-r0 = files[0].attrs["r0"] * (Lambda_tar / Lambda_wfs)**(6. / 5.)
+RASC = 180 / np.pi * 3600.0
+Htheta = (
+    np.linalg.norm([xpos, ypos]) / RASC * H
+)  # np.sqrt(2)*4/RASC*H # Hardcoded for angular separation of sqrt(2)*4 arcsec
+r0 = files[0].attrs["r0"] * (Lambda_tar / Lambda_wfs) ** (6.0 / 5.0)
 nfiles = len(files)
 data = np.zeros((nmodes, 4, nfiles))
 theta = np.zeros(nfiles)
@@ -311,27 +337,36 @@ for f in files:
     data[:, 3, ind] = variance(f, contributors, method="Independence")
     theta[ind] = f.attrs["winddir"][0]
     speeds[ind] = f.attrs["windspeed"][0]
-    gain[ind] = float('%.1f' % f.attrs["gain"][0])
+    gain[ind] = float("%.1f" % f.attrs["gain"][0])
     ind += 1
-data = data * ((2 * np.pi / Lambda_tar)**2)
-covar = (data[:, 0, :] - data[:, 3, :]) / 2.
+data = data * ((2 * np.pi / Lambda_tar) ** 2)
+covar = (data[:, 0, :] - data[:, 3, :]) / 2.0
 
-xaxis_select = Select(title="X-axis", value="Windspeed",
-                      options=["Windspeed", "Winddir", "Gain"])
+xaxis_select = Select(title="X-axis", value="Windspeed", options=["Windspeed", "Winddir", "Gain"])
 yaxis_select = Select(
-        title="Y-axis", value="Covar",
-        options=["Covar", "Var(t+bp)", "Var(t)", "Var(bp)", "Var(t)+Var(bp)"])
+    title="Y-axis",
+    value="Covar",
+    options=["Covar", "Var(t+bp)", "Var(t)", "Var(bp)", "Var(t)+Var(bp)"],
+)
 
-speed_select = Select(title="Windspeeds", value="All",
-                      options=["All"] + [str(s) for s in np.unique(speeds)])
-dir_select = Select(title="Winddirs", value="All",
-                    options=["All"] + [str(s) for s in np.unique(theta)])
-gain_select = Select(title="Gain", value="All",
-                     options=["All"] + [str(s)[:3] for s in np.unique(gain)])
+speed_select = Select(
+    title="Windspeeds",
+    value="All",
+    options=["All"] + [str(s) for s in np.unique(speeds)],
+)
+dir_select = Select(
+    title="Winddirs",
+    value="All",
+    options=["All"] + [str(s) for s in np.unique(theta)],
+)
+gain_select = Select(
+    title="Gain",
+    value="All",
+    options=["All"] + [str(s)[:3] for s in np.unique(gain)],
+)
 source = ColumnDataSource(data=dict(x=[], y=[], speed=[], theta=[], gain=[]))
 source_model = ColumnDataSource(data=dict(x=[], y=[], speed=[], theta=[], gain=[]))
-hover = HoverTool(tooltips=[("Speed", "@speed"), ("Winddir", "@theta"), ("Gain",
-                                                                         "@gain")])
+hover = HoverTool(tooltips=[("Speed", "@speed"), ("Winddir", "@theta"), ("Gain", "@gain")])
 TOOLS = "resize,save,pan,box_zoom,tap, box_select, wheel_zoom, lasso_select,reset"
 
 p = figure(plot_height=600, plot_width=700, title="", tools=[hover, TOOLS])
@@ -340,18 +375,22 @@ p.circle(x="x", y="y", source=source_model, size=7, color="red")
 
 xmap = {"Windspeed": speeds, "Winddir": theta, "Gain": gain}
 ymap = {
-        "Covar": np.sum(covar, axis=0),
-        "Var(t+bp)": np.sum(data[:, 0, :], axis=0),
-        "Var(t)": np.sum(data[:, 1, :], axis=0),
-        "Var(bp)": np.sum(data[:, 2, :], axis=0),
-        "Var(t)+Var(bp)": np.sum(data[:, 3, :], axis=0)
+    "Covar": np.sum(covar, axis=0),
+    "Var(t+bp)": np.sum(data[:, 0, :], axis=0),
+    "Var(t)": np.sum(data[:, 1, :], axis=0),
+    "Var(bp)": np.sum(data[:, 2, :], axis=0),
+    "Var(t)+Var(bp)": np.sum(data[:, 3, :], axis=0),
 }
 
 buttons = [xaxis_select, speed_select, dir_select, yaxis_select, gain_select]
 for b in buttons:
-    b.on_change('value', update)
+    b.on_change("value", update)
 
 curdoc().clear()
 update(None, None, None)
 curdoc().add_root(
-        HBox(VBox(xaxis_select, yaxis_select, speed_select, dir_select, gain_select), p))
+    HBox(
+        VBox(xaxis_select, yaxis_select, speed_select, dir_select, gain_select),
+        p,
+    )
+)

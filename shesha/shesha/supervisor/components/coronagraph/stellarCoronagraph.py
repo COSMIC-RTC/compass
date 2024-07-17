@@ -1,34 +1,35 @@
-## @package   shesha.components.coronagraph.stellarCoronagraph
-## @brief     Stellar Coronagraph Class definition
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2023/03/02
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 
 import numpy as np
 import shesha.config as conf
 import shesha.constants as scons
-from shesha.supervisor.components.coronagraph.genericCoronagraph import GenericCoronagraph
+from shesha.supervisor.components.coronagraph.genericCoronagraph import (
+    GenericCoronagraph,
+)
 from shesha.init.coronagraph_init import init_coronagraph, init_mft
 from shesha.supervisor.components.targetCompass import TargetCompass
 from sutra import StellarCoronagraph
 from carma import context
+
+
 class StellarCoronagraphCompass(GenericCoronagraph):
-    """ Class supervising stellar coronagraph component
+    """Class supervising stellar coronagraph component
 
     Attributes:
         _spupil: (np.ndarray[ndim=2, dtype=np.float32]): Telescope pupil mask
@@ -76,9 +77,15 @@ class StellarCoronagraphCompass(GenericCoronagraph):
         _indices_pup: (tuple): Tuple of ndarray containing X and Y indices of illuminated
                                 pixels in the pupil
     """
-    def __init__(self, context: context, targetCompass: TargetCompass, p_corono: conf.ParamCoronagraph,
-                 p_geom: conf.ParamGeom):
-        """ Initialize a stellar coronagraph instance
+
+    def __init__(
+        self,
+        context: context,
+        targetCompass: TargetCompass,
+        p_corono: conf.ParamCoronagraph,
+        p_geom: conf.ParamGeom,
+    ):
+        """Initialize a stellar coronagraph instance
 
         Args:
             context: (carma.context): GPU context
@@ -94,49 +101,75 @@ class StellarCoronagraphCompass(GenericCoronagraph):
         GenericCoronagraph.__init__(self, p_corono, p_geom, targetCompass)
         self._wav_vec = p_corono._wav_vec
 
-        self._AA_apod_to_fpm, self._BB_apod_to_fpm, self._norm0_apod_to_fpm = init_mft(self._p_corono,
-                                                                                       self._pupdiam,
-                                                                                       planes='apod_to_fpm')
-        self._AA_fpm_to_lyot, self._BB_fpm_to_lyot, self._norm0_fpm_to_lyot = init_mft(self._p_corono,
-                                                                                       self._pupdiam,
-                                                                                       planes='fpm_to_lyot')
-        self._AA_lyot_to_image, self._BB_lyot_to_image, self._norm0_lyot_to_image = init_mft(self._p_corono,
-                                                                                             self._pupdiam,
-                                                                                             planes='lyot_to_image')
-        self._AA_lyot_to_image_c, self._BB_lyot_to_image_c, self._norm0_lyot_to_image_c = init_mft(self._p_corono,
-                                                                                                   self._pupdiam,
-                                                                                                   planes='lyot_to_image',
-                                                                                                   center_on_pixel=True)
-        self._coronagraph = StellarCoronagraph(context, self._target.sources[0],
-                                               self._dim_image, self._dim_image,
-                                               self._p_corono._dim_fpm, self._p_corono._dim_fpm,
-                                               self._wav_vec, self._wav_vec.size,
-                                               self._p_corono._babinet_trick, 0)
+        self._AA_apod_to_fpm, self._BB_apod_to_fpm, self._norm0_apod_to_fpm = init_mft(
+            self._p_corono, self._pupdiam, planes="apod_to_fpm"
+        )
+        self._AA_fpm_to_lyot, self._BB_fpm_to_lyot, self._norm0_fpm_to_lyot = init_mft(
+            self._p_corono, self._pupdiam, planes="fpm_to_lyot"
+        )
+        (
+            self._AA_lyot_to_image,
+            self._BB_lyot_to_image,
+            self._norm0_lyot_to_image,
+        ) = init_mft(self._p_corono, self._pupdiam, planes="lyot_to_image")
+        (
+            self._AA_lyot_to_image_c,
+            self._BB_lyot_to_image_c,
+            self._norm0_lyot_to_image_c,
+        ) = init_mft(
+            self._p_corono,
+            self._pupdiam,
+            planes="lyot_to_image",
+            center_on_pixel=True,
+        )
+        self._coronagraph = StellarCoronagraph(
+            context,
+            self._target.sources[0],
+            self._dim_image,
+            self._dim_image,
+            self._p_corono._dim_fpm,
+            self._p_corono._dim_fpm,
+            self._wav_vec,
+            self._wav_vec.size,
+            self._p_corono._babinet_trick,
+            0,
+        )
 
-        self._coronagraph.set_mft(self._AA_lyot_to_image,
-                                  self._BB_lyot_to_image,
-                                  self._norm0_lyot_to_image, scons.MftType.IMG)
-        self._coronagraph.set_mft(self._AA_lyot_to_image_c,
-                                  self._BB_lyot_to_image_c,
-                                  self._norm0_lyot_to_image_c, scons.MftType.PSF)
-        self._coronagraph.set_mft(self._AA_apod_to_fpm,
-                                  self._BB_apod_to_fpm,
-                                  self._norm0_apod_to_fpm, scons.MftType.FPM)
-        self._coronagraph.set_mft(self._AA_fpm_to_lyot,
-                                  self._BB_fpm_to_lyot,
-                                  self._norm0_fpm_to_lyot, scons.MftType.LYOT)
+        self._coronagraph.set_mft(
+            self._AA_lyot_to_image,
+            self._BB_lyot_to_image,
+            self._norm0_lyot_to_image,
+            scons.MftType.IMG,
+        )
+        self._coronagraph.set_mft(
+            self._AA_lyot_to_image_c,
+            self._BB_lyot_to_image_c,
+            self._norm0_lyot_to_image_c,
+            scons.MftType.PSF,
+        )
+        self._coronagraph.set_mft(
+            self._AA_apod_to_fpm,
+            self._BB_apod_to_fpm,
+            self._norm0_apod_to_fpm,
+            scons.MftType.FPM,
+        )
+        self._coronagraph.set_mft(
+            self._AA_fpm_to_lyot,
+            self._BB_fpm_to_lyot,
+            self._norm0_fpm_to_lyot,
+            scons.MftType.LYOT,
+        )
 
         self._coronagraph.set_apodizer(self._p_corono._apodizer)
         self._coronagraph.set_lyot_stop(self._p_corono._lyot_stop)
         fpm = np.rollaxis(np.array(self._p_corono._focal_plane_mask), 0, 3)
         if self._p_corono._babinet_trick:
-            fpm = 1. - fpm
+            fpm = 1.0 - fpm
         self._coronagraph.set_focal_plane_mask(fpm)
         self._compute_normalization()
 
     def _compute_normalization(self):
-        """ Compute the normalization factor of coronagraphic images
-        """
+        """Compute the normalization factor of coronagraphic images"""
         self._target.reset_tar_phase(0)
         self._coronagraph.compute_image_normalization()
         self._norm_img = np.max(self.get_image(expo_type=scons.ExposureType.SE))

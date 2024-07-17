@@ -1,23 +1,20 @@
-## @package   shesha.ao.basis
-## @brief     Functions for modal basis (DM basis, KL, Btt, etc...)
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 
 
 import numpy as np
@@ -33,10 +30,15 @@ from typing import List
 from rich.progress import track
 
 
-def compute_KL2V(p_controller: conf.ParamController, dms: Dms, p_dms: list,
-                 p_geom: conf.ParamGeom, p_atmos: conf.ParamAtmos,
-                 p_tel: conf.ParamTel):
-    """ Compute the Karhunen-Loeve to Volt matrix
+def compute_KL2V(
+    p_controller: conf.ParamController,
+    dms: Dms,
+    p_dms: list,
+    p_geom: conf.ParamGeom,
+    p_atmos: conf.ParamAtmos,
+    p_tel: conf.ParamTel,
+):
+    """Compute the Karhunen-Loeve to Volt matrix
     (transfer matrix between the KL space and volt space for a pzt dm)
 
     Args:
@@ -65,40 +67,47 @@ def compute_KL2V(p_controller: conf.ParamController, dms: Dms, p_dms: list,
 
     for i in range(p_controller.ndm.size):
         ndm = p_controller.ndm[i]
-        if (p_dms[ndm].type == scons.DmType.PZT):
+        if p_dms[ndm].type == scons.DmType.PZT:
             tmp = (p_geom._ipupil.shape[0] - (p_dms[ndm]._n2 - p_dms[ndm]._n1 + 1)) // 2
             tmp_e0 = p_geom._ipupil.shape[0] - tmp
             tmp_e1 = p_geom._ipupil.shape[1] - tmp
             pup = p_geom._ipupil[tmp:tmp_e0, tmp:tmp_e1]
             indx_valid = np.where(pup.flatten("F") > 0)[0].astype(np.int32)
             p2m = p_tel.diam / p_geom.pupdiam
-            norm = -(p2m * p_tel.diam / (2 * p_atmos.r0))**(5. / 3)
+            norm = -((p2m * p_tel.diam / (2 * p_atmos.r0)) ** (5.0 / 3))
 
-            dms.d_dms[ndm].compute_KLbasis(p_dms[ndm]._xpos, p_dms[ndm]._ypos,
-                                           indx_valid, indx_valid.size, norm, 1.0)
+            dms.d_dms[ndm].compute_KLbasis(
+                p_dms[ndm]._xpos,
+                p_dms[ndm]._ypos,
+                indx_valid,
+                indx_valid.size,
+                norm,
+                1.0,
+            )
 
-            KL2V[indx_act:indx_act + ntotact[ndm], indx_act:indx_act + ntotact[ndm]] = \
-                np.fliplr(dms.d_dms[ndm].d_KLbasis)
+            KL2V[
+                indx_act : indx_act + ntotact[ndm],
+                indx_act : indx_act + ntotact[ndm],
+            ] = np.fliplr(dms.d_dms[ndm].d_KLbasis)
             indx_act += ntotact[ndm]
-        elif (p_dms[ndm].type == scons.DmType.TT):
+        elif p_dms[ndm].type == scons.DmType.TT:
             nTT += 1
-    if (p_controller.nmodes is not None and
-                p_controller.nmodes < KL2V.shape[1] - 2 * nTT):
-        KL2V = KL2V[:, :p_controller.nmodes]
+    if p_controller.nmodes is not None and p_controller.nmodes < KL2V.shape[1] - 2 * nTT:
+        KL2V = KL2V[:, : p_controller.nmodes]
     else:
-        KL2V = KL2V[:, :KL2V.shape[1] - 2 * nTT]
-    if (nTT > 1):
+        KL2V = KL2V[:, : KL2V.shape[1] - 2 * nTT]
+    if nTT > 1:
         raise ValueError("More than 1 TipTilt found! Stupid")
-    if (nTT != 0):
-        KL2V[:, :KL2V.shape[1] - 2] = KL2V[:, 2:]
-        KL2V[:, KL2V.shape[1] - 2:] = np.zeros((np.sum(ntotact), 2), dtype=np.float32)
-        KL2V[np.sum(ntotact) - 2:, KL2V.shape[1] - 2:] = np.identity(2, dtype=np.float32)
+    if nTT != 0:
+        KL2V[:, : KL2V.shape[1] - 2] = KL2V[:, 2:]
+        KL2V[:, KL2V.shape[1] - 2 :] = np.zeros((np.sum(ntotact), 2), dtype=np.float32)
+        KL2V[np.sum(ntotact) - 2 :, KL2V.shape[1] - 2 :] = np.identity(2, dtype=np.float32)
 
     return KL2V
 
 
 def compute_dm_basis(g_dm, p_dm: conf.ParamDm, p_geom: conf.ParamGeom):
-    """ Compute a the DM basis as a sparse matrix :
+    """Compute a the DM basis as a sparse matrix :
             - push on each actuator
             - get the corresponding dm shape
             - apply pupil mask and store in a column
@@ -120,13 +129,13 @@ def compute_dm_basis(g_dm, p_dm: conf.ParamDm, p_geom: conf.ParamGeom):
     pup = p_geom._ipupil[tmp:tmp_e0, tmp:tmp_e1]
     indx_valid = np.where(pup.flatten("F") > 0)[0].astype(np.int32)
 
-    #IFbasis = np.ndarray((indx_valid.size, p_dm._ntotact), dtype=np.float32)
+    # IFbasis = np.ndarray((indx_valid.size, p_dm._ntotact), dtype=np.float32)
     for i in track(range(p_dm._ntotact)):
         g_dm.reset_shape()
         g_dm.comp_oneactu(i, 1.0)
         shape = np.array(g_dm.d_shape)
         IFvec = csr_matrix(shape.flatten("F")[indx_valid])
-        if (i == 0):
+        if i == 0:
             val = IFvec.data
             col = IFvec.indices
             row = np.append(0, IFvec.getnnz())
@@ -140,7 +149,7 @@ def compute_dm_basis(g_dm, p_dm: conf.ParamDm, p_geom: conf.ParamGeom):
 
 
 def compute_IFsparse(g_dm: Dms, p_dms: list, p_geom: conf.ParamGeom):
-    """ Compute the influence functions of all DMs as a sparse matrix :
+    """Compute the influence functions of all DMs as a sparse matrix :
             - push on each actuator
             - get the corresponding dm shape
             - apply pupil mask and store in a column
@@ -160,7 +169,7 @@ def compute_IFsparse(g_dm: Dms, p_dms: list, p_geom: conf.ParamGeom):
     ndm = len(p_dms)
     for i in range(ndm):
         IFi = compute_dm_basis(g_dm.d_dms[i], p_dms[i], p_geom)
-        if (i == 0):
+        if i == 0:
             val = IFi.data
             col = IFi.indices
             row = IFi.indptr
@@ -173,7 +182,7 @@ def compute_IFsparse(g_dm: Dms, p_dms: list, p_geom: conf.ParamGeom):
 
 
 def command_on_Btt(rtc: Rtc, dms: Dms, p_dms: list, p_geom: conf.ParamGeom, nfilt: int):
-    """ Compute a command matrix in Btt modal basis (see error breakdown) and set
+    """Compute a command matrix in Btt modal basis (see error breakdown) and set
     it on the sutra_rtc. It computes by itself the volts to Btt matrix.
 
     Args:
@@ -192,14 +201,14 @@ def command_on_Btt(rtc: Rtc, dms: Dms, p_dms: list, p_geom: conf.ParamGeom, nfil
     IFs = compute_IFsparse(dms, p_dms, p_geom).T
     n = IFs.shape[1]
     IFtt = IFs[:, -2:].copy().toarray()
-    IFpzt = IFs[:, :n - 2]
+    IFpzt = IFs[:, : n - 2]
 
     Btt, P = compute_btt(IFpzt, IFtt)
     compute_cmat_with_Btt(rtc, Btt, nfilt)
 
 
 def compute_cmat_with_Btt(rtc: Rtc, Btt: np.ndarray, nfilt: int):
-    """ Compute a command matrix on the Btt basis and load it in the GPU
+    """Compute a command matrix on the Btt basis and load it in the GPU
 
     Args:
 
@@ -210,11 +219,11 @@ def compute_cmat_with_Btt(rtc: Rtc, Btt: np.ndarray, nfilt: int):
         nfilt: (int): number of modes to filter
     """
     D = np.array(rtc.d_control[0].d_imat)
-    #D = ao.imat_geom(wfs,config.p_wfss,config.p_controllers[0],dms,config.p_dms,meth=0)
+    # D = ao.imat_geom(wfs,config.p_wfss,config.p_controllers[0],dms,config.p_dms,meth=0)
     # Filtering on Btt modes
     Btt_filt = np.zeros((Btt.shape[0], Btt.shape[1] - nfilt))
-    Btt_filt[:, :Btt_filt.shape[1] - 2] = Btt[:, :Btt.shape[1] - (nfilt + 2)]
-    Btt_filt[:, Btt_filt.shape[1] - 2:] = Btt[:, Btt.shape[1] - 2:]
+    Btt_filt[:, : Btt_filt.shape[1] - 2] = Btt[:, : Btt.shape[1] - (nfilt + 2)]
+    Btt_filt[:, Btt_filt.shape[1] - 2 :] = Btt[:, Btt.shape[1] - 2 :]
 
     # Modal interaction basis
     Dm = D.dot(Btt_filt)
@@ -227,10 +236,17 @@ def compute_cmat_with_Btt(rtc: Rtc, Btt: np.ndarray, nfilt: int):
     return cmat.astype(np.float32)
 
 
-def command_on_KL(rtc: Rtc, dms: Dms, p_controller: conf.ParamController,
-                  p_dms: List[conf.ParamDm], p_geom: conf.ParamGeom,
-                  p_atmos: conf.ParamAtmos, p_tel: conf.ParamTel, nfilt: int):
-    """ Compute a command matrix in KL modal basis and set
+def command_on_KL(
+    rtc: Rtc,
+    dms: Dms,
+    p_controller: conf.ParamController,
+    p_dms: List[conf.ParamDm],
+    p_geom: conf.ParamGeom,
+    p_atmos: conf.ParamAtmos,
+    p_tel: conf.ParamTel,
+    nfilt: int,
+):
+    """Compute a command matrix in KL modal basis and set
     it on the sutra_rtc. It computes by itself the volts to KL matrix.
 
     Args:
@@ -254,7 +270,7 @@ def command_on_KL(rtc: Rtc, dms: Dms, p_controller: conf.ParamController,
 
 
 def compute_cmat_with_KL(rtc: Rtc, KL2V: np.ndarray, nfilt: int):
-    """ Compute a command matrix on the KL basis and load it in the GPU
+    """Compute a command matrix on the KL basis and load it in the GPU
 
     Args:
 
@@ -266,8 +282,8 @@ def compute_cmat_with_KL(rtc: Rtc, KL2V: np.ndarray, nfilt: int):
     """
     D = np.array(rtc.d_control[0].d_imat)
     KL2V_filt = np.zeros((KL2V.shape[0], KL2V.shape[1] - nfilt))
-    KL2V_filt[:, :KL2V_filt.shape[1] - 2] = KL2V[:, :KL2V.shape[1] - (nfilt + 2)]
-    KL2V_filt[:, KL2V_filt.shape[1] - 2:] = KL2V[:, KL2V.shape[1] - 2:]
+    KL2V_filt[:, : KL2V_filt.shape[1] - 2] = KL2V[:, : KL2V.shape[1] - (nfilt + 2)]
+    KL2V_filt[:, KL2V_filt.shape[1] - 2 :] = KL2V[:, KL2V.shape[1] - 2 :]
 
     # Modal interaction basis
     Dm = D.dot(KL2V_filt)
@@ -280,24 +296,29 @@ def compute_cmat_with_KL(rtc: Rtc, KL2V: np.ndarray, nfilt: int):
     return cmat.astype(np.float32)
 
 
-def compute_fourier(nActu: int, pitch: float, actu_x_pos: np.ndarray,
-                    actu_y_pos: np.ndarray, periodic='n'):
-    '''
-        Values you are looking for are:
-            config.p_dms[0].nact
-            config.p_dms[0]._pitch
-            config.p_dms[0]._i1
-            config.p_dms[0]._j1
-    '''
+def compute_fourier(
+    nActu: int,
+    pitch: float,
+    actu_x_pos: np.ndarray,
+    actu_y_pos: np.ndarray,
+    periodic="n",
+):
+    """
+    Values you are looking for are:
+        config.p_dms[0].nact
+        config.p_dms[0]._pitch
+        config.p_dms[0]._i1
+        config.p_dms[0]._j1
+    """
     # Offset xpos and ypos to get integer indices.
     # Compute nact x nact x nact x nact Fourier basis # Periodic condition n / n-1 as option
     # Extract values for actuators - flatten
 
     # Periodic may be 'n' or 'n-1'
     # Will work only for squared pitch mirrors so far
-    if periodic == 'n':
+    if periodic == "n":
         n = nActu
-    elif periodic == 'n-1':
+    elif periodic == "n-1":
         n = nActu - 1
     else:
         raise ValueError('periodic can only be "n" or "n-1" to set boundary condition.')
@@ -308,16 +329,16 @@ def compute_fourier(nActu: int, pitch: float, actu_x_pos: np.ndarray,
     data = np.zeros((n, n, n, n), dtype=np.float32)
     for i in range(n):
         for j in range(n):
-            data[i, j, i, j] = 1.
+            data[i, j, i, j] = 1.0
 
     data = np.fft.fftn(data, axes=(2, 3))
 
     takeSine = np.zeros((n, n), dtype=bool)  # Where to take sine instead of cosine
-    takeSine[0, n // 2 + 1:] = 1  # Half of first line
+    takeSine[0, n // 2 + 1 :] = 1  # Half of first line
     if n % 2 == 0:
-        takeSine[n // 2, n // 2 + 1:] = 1  # Half of waffle line
+        takeSine[n // 2, n // 2 + 1 :] = 1  # Half of waffle line
 
-    takeSine[n // 2 + 1:, :] = 1  # Bottom half
+    takeSine[n // 2 + 1 :, :] = 1  # Bottom half
 
     data[takeSine] *= 1j
     data = data.real
@@ -331,7 +352,7 @@ def compute_fourier(nActu: int, pitch: float, actu_x_pos: np.ndarray,
 
 
 def compute_btt(IFpzt, IFtt, influ_petal=None, return_delta=False):
-    """ Returns Btt to Volts and Volts to Btt matrices
+    """Returns Btt to Volts and Volts to Btt matrices
 
     Args:
 
@@ -353,14 +374,15 @@ def compute_btt(IFpzt, IFtt, influ_petal=None, return_delta=False):
     """
     N = IFpzt.shape[0]
     n = IFpzt.shape[1]
-    if (n > N):
+    if n > N:
         raise ValueError("Influence functions must be arrange as (Npts_pup x nactus)")
 
     delta = IFpzt.T.dot(IFpzt).toarray() / N
 
     # Tip-tilt + piston
     Tp = np.ones((IFtt.shape[0], IFtt.shape[1] + 1))
-    Tp[:, :2] = IFtt.copy(
+    Tp[:, :2] = (
+        IFtt.copy()
     )  # THIS IS NOT A SPARSE OBJECT !!!!! STOP PUTTING .toarray() HERE PLEASE !!!
     deltaT = IFpzt.T.dot(Tp) / N
     # Tip tilt projection on the pzt dm
@@ -371,8 +393,9 @@ def compute_btt(IFpzt, IFtt, influ_petal=None, return_delta=False):
         # Petal basis generation (orthogonal to global piston)
         nseg = influ_petal.toarray().shape[0]
         petal_modes = -1 / (nseg - 1) * np.ones((nseg, (nseg - 1)))
-        petal_modes += nseg / (nseg - 1) * np.eye(nseg)[:, 0:(
-                nseg - 1)]  # petal modes within the petal dm space
+        petal_modes += (
+            nseg / (nseg - 1) * np.eye(nseg)[:, 0 : (nseg - 1)]
+        )  # petal modes within the petal dm space
         tau_petal = IFpzt.T.dot(influ_petal).toarray().dot(petal_modes.T)
         tau = np.concatenate((tau_petal, np.linalg.inv(delta).dot(deltaT)), axis=1)
         nfilt = 8
@@ -385,16 +408,16 @@ def compute_btt(IFpzt, IFtt, influ_petal=None, return_delta=False):
     # Base orthonormee sans TT
     gdg = G.T.dot(delta).dot(G)
     U, s, V = np.linalg.svd(gdg)
-    U = U[:, :U.shape[1] - nfilt]
-    s = s[:s.size - nfilt]
+    U = U[:, : U.shape[1] - nfilt]
+    s = s[: s.size - nfilt]
     L = np.identity(s.size) / np.sqrt(s)
     B = G.dot(U).dot(L)
 
     # Rajout du TT
     TT = IFtt.T.dot(IFtt) / N
     Btt = np.zeros((n + 2, n - 1))
-    Btt[:B.shape[0], :B.shape[1]] = B
-    mini = 1. / np.sqrt(np.abs(TT))
+    Btt[: B.shape[0], : B.shape[1]] = B
+    mini = 1.0 / np.sqrt(np.abs(TT))
     mini[0, 1] = 0
     mini[1, 0] = 0
     Btt[n:, -2:] = mini
@@ -403,7 +426,7 @@ def compute_btt(IFpzt, IFtt, influ_petal=None, return_delta=False):
 
     # Calcul du projecteur actus-->modes
     Delta = np.zeros((n + IFtt.shape[1], n + IFtt.shape[1]))
-    #IFpzt = rtc.get_IFpztsparse(1).T
+    # IFpzt = rtc.get_IFpztsparse(1).T
     Delta[:-2, :-2] = delta
     Delta[-2:, -2:] = TT
     if return_delta:

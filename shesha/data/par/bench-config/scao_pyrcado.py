@@ -2,7 +2,6 @@ import shesha.config as conf
 
 
 class Param_camera:
-
     def __init__(self) -> None:
         self.camAddr = ""
         self.width = 0
@@ -44,7 +43,7 @@ p_wfss[0].set_npix(8)
 
 p_dms = [conf.ParamDm()]
 p_dms[0].set_type("pzt")
-p_dms[0].set_alt(0.)
+p_dms[0].set_alt(0.0)
 p_dms[0].set_nact(4096)
 
 # centroiders0
@@ -59,6 +58,6 @@ p_controllers = [conf.ParamController()]
 p_controllers[0].set_type("ls")
 p_controllers[0].set_nwfs([0])
 p_controllers[0].set_ndm([0, 1])
-p_controllers[0].set_maxcond(100.)
+p_controllers[0].set_maxcond(100.0)
 p_controllers[0].set_delay(1)
 p_controllers[0].set_gain(0.4)

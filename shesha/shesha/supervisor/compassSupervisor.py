@@ -1,27 +1,32 @@
-## @package   shesha.supervisor.compassSupervisor
-## @brief     Initialization and execution of a COMPASS supervisor
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 
 
 from shesha.supervisor.genericSupervisor import GenericSupervisor
-from shesha.supervisor.components import AtmosCompass, DmCompass, RtcCompass, TargetCompass, TelescopeCompass, WfsCompass, CoronagraphCompass
+from shesha.supervisor.components import (
+    AtmosCompass,
+    DmCompass,
+    RtcCompass,
+    TargetCompass,
+    TelescopeCompass,
+    WfsCompass,
+    CoronagraphCompass,
+)
 from shesha.supervisor.optimizers import ModalBasis, Calibration, ModalGains
 import numpy as np
 import time
@@ -32,7 +37,7 @@ from typing import Iterable
 
 
 class CompassSupervisor(GenericSupervisor):
-    """ This class implements generic supervisor to handle compass simulation
+    """This class implements generic supervisor to handle compass simulation
 
     Attributes inherited from GenericSupervisor:
         context : (CarmaContext) : a CarmaContext instance
@@ -66,7 +71,7 @@ class CompassSupervisor(GenericSupervisor):
     """
 
     def __init__(self, config):
-        """ Instantiates a CompassSupervisor object
+        """Instantiates a CompassSupervisor object
 
         Args:
             config: (config module) : Configuration module
@@ -81,60 +86,66 @@ class CompassSupervisor(GenericSupervisor):
 
         GenericSupervisor.__init__(self, config)
         self.basis = ModalBasis(self.config, self.dms, self.target)
-        self.calibration = Calibration(self.config, self.tel, self.atmos, self.dms,
-                                       self.target, self.rtc, self.wfs)
+        self.calibration = Calibration(
+            self.config,
+            self.tel,
+            self.atmos,
+            self.dms,
+            self.target,
+            self.rtc,
+            self.wfs,
+        )
         if config.p_controllers is not None:
             self.modalgains = ModalGains(self.config, self.rtc)
         self.close_modal_gains = []
 
-#     ___                  _      __  __     _   _            _
-#    / __|___ _ _  ___ _ _(_)__  |  \/  |___| |_| |_  ___  __| |___
-#   | (_ / -_) ' \/ -_) '_| / _| | |\/| / -_)  _| ' \/ _ \/ _` (_-<
-#    \___\___|_||_\___|_| |_\__| |_|  |_\___|\__|_||_\___/\__,_/__/
+    #     ___                  _      __  __     _   _            _
+    #    / __|___ _ _  ___ _ _(_)__  |  \/  |___| |_| |_  ___  __| |___
+    #   | (_ / -_) ' \/ -_) '_| / _| | |\/| / -_)  _| ' \/ _ \/ _` (_-<
+    #    \___\___|_||_\___|_| |_\__| |_|  |_\___|\__|_||_\___/\__,_/__/
 
     def _init_tel(self):
-        """Initialize the telescope component of the supervisor as a TelescopeCompass
-        """
+        """Initialize the telescope component of the supervisor as a TelescopeCompass"""
         self.tel = TelescopeCompass(self.context, self.config)
 
     def _init_atmos(self):
-        """Initialize the atmosphere component of the supervisor as a AtmosCompass
-        """
+        """Initialize the atmosphere component of the supervisor as a AtmosCompass"""
         self.atmos = AtmosCompass(self.context, self.config)
 
     def _init_dms(self):
-        """Initialize the DM component of the supervisor as a DmCompass
-        """
+        """Initialize the DM component of the supervisor as a DmCompass"""
         self.dms = DmCompass(self.context, self.config)
 
     def _init_target(self):
-        """Initialize the target component of the supervisor as a TargetCompass
-        """
+        """Initialize the target component of the supervisor as a TargetCompass"""
         if self.tel is not None:
             self.target = TargetCompass(self.context, self.config, self.tel)
         else:
             raise ValueError("Configuration not loaded or Telescope not initilaized")
 
     def _init_wfs(self):
-        """Initialize the wfs component of the supervisor as a WfsCompass
-        """
+        """Initialize the wfs component of the supervisor as a WfsCompass"""
         if self.tel is not None:
             self.wfs = WfsCompass(self.context, self.config, self.tel)
         else:
             raise ValueError("Configuration not loaded or Telescope not initilaized")
 
     def _init_rtc(self):
-        """Initialize the rtc component of the supervisor as a RtcCompass
-        """
+        """Initialize the rtc component of the supervisor as a RtcCompass"""
         if self.wfs is not None:
-            self.rtc = RtcCompass(self.context, self.config, self.tel, self.wfs,
-                                  self.dms, self.atmos)
+            self.rtc = RtcCompass(
+                self.context,
+                self.config,
+                self.tel,
+                self.wfs,
+                self.dms,
+                self.atmos,
+            )
         else:
             raise ValueError("Configuration not loaded or Telescope not initilaized")
 
     def _init_components(self) -> None:
-        """ Initialize all the components
-        """
+        """Initialize all the components"""
 
         if self.config.p_tel is None or self.config.p_geom is None:
             raise ValueError("Telescope geometry must be defined (p_geom and p_tel)")
@@ -156,16 +167,23 @@ class CompassSupervisor(GenericSupervisor):
         GenericSupervisor._init_components(self)
 
     def _init_coronagraph(self):
-        """ Initialize the coronagraph
-        """
+        """Initialize the coronagraph"""
         self.corono = CoronagraphCompass()
         for p_corono in self.config.p_coronos:
             self.corono.add_corono(self.context, p_corono, self.config.p_geom, self.target)
 
-    def next(self, *, move_atmos: bool = True, nControl: int = 0,
-             tar_trace: Iterable[int] = None, wfs_trace: Iterable[int] = None,
-             do_control: bool = True, apply_control: bool = True,
-             compute_tar_psf: bool = True, compute_corono: bool=True) -> None:
+    def next(
+        self,
+        *,
+        move_atmos: bool = True,
+        nControl: int = 0,
+        tar_trace: Iterable[int] = None,
+        wfs_trace: Iterable[int] = None,
+        do_control: bool = True,
+        apply_control: bool = True,
+        compute_tar_psf: bool = True,
+        compute_corono: bool = True,
+    ) -> None:
         """Iterates the AO loop, with optional parameters.
 
         Overload the GenericSupervisor next() method to handle the GEO controller
@@ -194,9 +212,15 @@ class CompassSupervisor(GenericSupervisor):
             # nControl is not an iterable creating a list
             nControl = [nControl]
 
-        #get the index of the first GEO controller (-1 if there is no GEO controller)
-        geo_index = next(( i for i,c in enumerate(self.config.p_controllers)
-            if c.type== scons.ControllerType.GEO ), -1)
+        # get the index of the first GEO controller (-1 if there is no GEO controller)
+        geo_index = next(
+            (
+                i
+                for i, c in enumerate(self.config.p_controllers)
+                if c.type == scons.ControllerType.GEO
+            ),
+            -1,
+        )
 
         if tar_trace is None and self.target is not None:
             tar_trace = range(len(self.config.p_targets))
@@ -207,7 +231,7 @@ class CompassSupervisor(GenericSupervisor):
             self.atmos.move_atmos()
         # in case there is at least 1 controller GEO in the controller list : use this one only
         self.tel.update_input_phase()
-        if ( geo_index > -1):
+        if geo_index > -1:
             nControl = geo_index
             if tar_trace is not None:
                 for t in tar_trace:
@@ -222,15 +246,14 @@ class CompassSupervisor(GenericSupervisor):
                         if apply_control:
                             self.rtc.apply_control(nControl)
         else:
-            if tar_trace is not None: # already checked at line 213?
+            if tar_trace is not None:  # already checked at line 213?
                 for t in tar_trace:
                     if self.atmos.is_enable:
-                        self.target.raytrace(t, tel=self.tel, atm=self.atmos,
-                                             dms=self.dms)
+                        self.target.raytrace(t, tel=self.tel, atm=self.atmos, dms=self.dms)
                     else:
                         self.target.raytrace(t, tel=self.tel, dms=self.dms)
 
-            if wfs_trace is not None: # already checked at line 215?
+            if wfs_trace is not None:  # already checked at line 215?
                 for w in wfs_trace:
                     if self.atmos.is_enable:
                         self.wfs.raytrace(w, tel=self.tel, atm=self.atmos)
@@ -241,13 +264,13 @@ class CompassSupervisor(GenericSupervisor):
                         self.wfs.raytrace(w, dms=self.dms, ncpa=False, reset=False)
                     self.wfs.compute_wfs_image(w)
             if do_control and self.rtc is not None:
-                for ncontrol in nControl : # range(len(self.config.p_controllers)):
+                for ncontrol in nControl:  # range(len(self.config.p_controllers)):
                     self.rtc.do_centroids(ncontrol)
                     self.rtc.do_control(ncontrol)
                     self.rtc.do_clipping(ncontrol)
 
             if apply_control:
-                for ncontrol in nControl :
+                for ncontrol in nControl:
                     self.rtc.apply_control(ncontrol)
 
         if compute_tar_psf:
@@ -265,9 +288,15 @@ class CompassSupervisor(GenericSupervisor):
 
         self.iter += 1
 
-    def _print_strehl(self, monitoring_freq: int, iters_time: float, total_iters: int, *,
-                      tar_index: int = 0):
-        """ Print the Strehl ratio SE and LE from a target on the terminal, the estimated remaining time and framerate
+    def _print_strehl(
+        self,
+        monitoring_freq: int,
+        iters_time: float,
+        total_iters: int,
+        *,
+        tar_index: int = 0,
+    ):
+        """Print the Strehl ratio SE and LE from a target on the terminal, the estimated remaining time and framerate
 
         Args:
             monitoring_freq : (int) : Number of frames between two prints
@@ -282,12 +311,20 @@ class CompassSupervisor(GenericSupervisor):
         framerate = monitoring_freq / iters_time
         strehl = self.target.get_strehl(tar_index)
         etr = (total_iters - self.iter) / framerate
-        print("%d \t %.3f \t  %.3f\t     %.1f \t %.1f" % (self.iter + 1, strehl[0],
-                                                          strehl[1], etr, framerate))
+        print(
+            "%d \t %.3f \t  %.3f\t     %.1f \t %.1f"
+            % (self.iter + 1, strehl[0], strehl[1], etr, framerate)
+        )
 
-    def loop(self, number_of_iter: int, *, monitoring_freq: int = 100,
-             compute_tar_psf: bool = True, **kwargs):
-        """ Perform the AO loop for <number_of_iter> iterations
+    def loop(
+        self,
+        number_of_iter: int,
+        *,
+        monitoring_freq: int = 100,
+        compute_tar_psf: bool = True,
+        **kwargs,
+    ):
+        """Perform the AO loop for <number_of_iter> iterations
 
         Args:
             number_of_iter: (int) : Number of iteration that will be done
@@ -299,8 +336,7 @@ class CompassSupervisor(GenericSupervisor):
                                                  Else, only computes it each <monitoring_freq> frames
         """
         if not compute_tar_psf:
-            print("WARNING: Target PSF will be computed (& accumulated) only during monitoring"
-                  )
+            print("WARNING: Target PSF will be computed (& accumulated) only during monitoring")
 
         print("----------------------------------------------------")
         print("iter# | S.E. SR | L.E. SR | ETR (s) | Framerate (Hz)")
@@ -309,9 +345,9 @@ class CompassSupervisor(GenericSupervisor):
         t0 = time.time()
         t1 = time.time()
         if number_of_iter == -1:  # Infinite loop
-            while (True):
+            while True:
                 self.next(compute_tar_psf=compute_tar_psf, **kwargs)
-                if ((self.iter + 1) % monitoring_freq == 0):
+                if (self.iter + 1) % monitoring_freq == 0:
                     if not compute_tar_psf:
                         self.target.comp_tar_image(0)
                         self.target.comp_strehl(0)
@@ -320,19 +356,27 @@ class CompassSupervisor(GenericSupervisor):
 
         for _ in range(number_of_iter):
             self.next(compute_tar_psf=compute_tar_psf, **kwargs)
-            if ((self.iter + 1) % monitoring_freq == 0):
+            if (self.iter + 1) % monitoring_freq == 0:
                 if not compute_tar_psf:
                     self.target.comp_tar_image(0)
                     self.target.comp_strehl(0)
                 self._print_strehl(monitoring_freq, time.time() - t1, number_of_iter)
                 t1 = time.time()
         t1 = time.time()
-        print(" loop execution time:", t1 - t0, "  (", number_of_iter, "iterations), ",
-              (t1 - t0) / number_of_iter, "(mean)  ", number_of_iter / (t1 - t0), "Hz")
+        print(
+            " loop execution time:",
+            t1 - t0,
+            "  (",
+            number_of_iter,
+            "iterations), ",
+            (t1 - t0) / number_of_iter,
+            "(mean)  ",
+            number_of_iter / (t1 - t0),
+            "Hz",
+        )
 
     def reset(self):
-        """ Reset the simulation to return to its original state
-        """
+        """Reset the simulation to return to its original state"""
         self.atmos.reset_turbu()
         self.wfs.reset_noise()
         for tar_index in range(len(self.config.p_targets)):
@@ -341,20 +385,28 @@ class CompassSupervisor(GenericSupervisor):
         self.rtc.open_loop()
         self.rtc.close_loop()
 
-
-#    ___              _  __ _      __  __     _   _            _
-#   / __|_ __  ___ __(_)/ _(_)__  |  \/  |___| |_| |_  ___  __| |___
-#   \__ \ '_ \/ -_) _| |  _| / _| | |\/| / -_)  _| ' \/ _ \/ _` (_-<
-#   |___/ .__/\___\__|_|_| |_\__| |_|  |_\___|\__|_||_\___/\__,_/__/
-#       |_|
+    #    ___              _  __ _      __  __     _   _            _
+    #   / __|_ __  ___ __(_)/ _(_)__  |  \/  |___| |_| |_  ___  __| |___
+    #   \__ \ '_ \/ -_) _| |  _| / _| | |\/| / -_)  _| ' \/ _ \/ _` (_-<
+    #   |___/ .__/\___\__|_|_| |_\__| |_|  |_\___|\__|_||_\___/\__,_/__/
+    #       |_|
 
     def record_ao_circular_buffer(
-            self, cb_count: int, sub_sample: int = 1, controller_index: int = 0,
-            tar_index: int = 0, see_atmos: bool = True, cube_data_type: str = None,
-            cube_data_file_path: str = "", ncpa: int = 0, ncpa_wfs: np.ndarray = None,
-            ref_slopes: np.ndarray = None, ditch_strehl: bool = True,
-            projection_matrix: np.ndarray = None):
-        """ Used to record a synchronized circular buffer AO loop data.
+        self,
+        cb_count: int,
+        sub_sample: int = 1,
+        controller_index: int = 0,
+        tar_index: int = 0,
+        see_atmos: bool = True,
+        cube_data_type: str = None,
+        cube_data_file_path: str = "",
+        ncpa: int = 0,
+        ncpa_wfs: np.ndarray = None,
+        ref_slopes: np.ndarray = None,
+        ditch_strehl: bool = True,
+        projection_matrix: np.ndarray = None,
+    ):
+        """Used to record a synchronized circular buffer AO loop data.
 
         Args:
             cb_count: (int) : the number of iterations to record.
@@ -417,24 +469,26 @@ class CompassSupervisor(GenericSupervisor):
         # Starting CB loop...
         for j in range(cb_count):
             print(j, end="\r")
-            if (ncpa):
-                if (j % ncpa == 0):
+            if ncpa:
+                if j % ncpa == 0:
                     ncpa_diff = ref_slopes[None, :]
                     ncpa_turbu = self.calibration.do_imat_phase(
-                            controller_index, -ncpa_wfs[None, :, :], noise=False,
-                            with_turbu=True)
+                        controller_index,
+                        -ncpa_wfs[None, :, :],
+                        noise=False,
+                        with_turbu=True,
+                    )
                     g_ncpa = float(
-                            np.sqrt(
-                                    np.dot(ncpa_diff, ncpa_diff.T) / np.dot(
-                                            ncpa_turbu, ncpa_turbu.T)))
-                    if (g_ncpa > 1e18):
+                        np.sqrt(np.dot(ncpa_diff, ncpa_diff.T) / np.dot(ncpa_turbu, ncpa_turbu.T))
+                    )
+                    if g_ncpa > 1e18:
                         g_ncpa = 0
-                        print('Warning NCPA ref slopes gain too high!')
+                        print("Warning NCPA ref slopes gain too high!")
                         g_ncpa_list.append(g_ncpa)
                         self.rtc.set_ref_slopes(-ref_slopes * g_ncpa)
                     else:
                         g_ncpa_list.append(g_ncpa)
-                        print('NCPA ref slopes gain: %4.3f' % g_ncpa)
+                        print("NCPA ref slopes gain: %4.3f" % g_ncpa)
                         self.rtc.set_ref_slopes(-ref_slopes / g_ncpa)
 
             self.atmos.enable_atmos(see_atmos)
@@ -445,46 +499,56 @@ class CompassSupervisor(GenericSupervisor):
             srse, srle, _, _ = self.target.get_strehl(tar_index)
             sthrel_se_list.append(srse)
             sthrel_le_list.append(srle)
-            if (j % sub_sample == 0):
-                if (projection_matrix is not None):
+            if j % sub_sample == 0:
+                if projection_matrix is not None:
                     ai_vector = self.calibration.compute_modal_residuals(
-                            projection_matrix, selected_actus=self.basis.selected_actus)
-                    if (ai_data is None):
+                        projection_matrix,
+                        selected_actus=self.basis.selected_actus,
+                    )
+                    if ai_data is None:
                         ai_data = np.zeros((len(ai_vector), int(cb_count / sub_sample)))
                     ai_data[:, k] = ai_vector
 
                 slopes_vector = self.rtc.get_slopes(controller_index)
-                if (slopes_data is None):
-                    slopes_data = np.zeros((len(slopes_vector),
-                                            int(cb_count / sub_sample)))
+                if slopes_data is None:
+                    slopes_data = np.zeros((len(slopes_vector), int(cb_count / sub_sample)))
                 slopes_data[:, k] = slopes_vector
 
                 volts_vector = self.rtc.get_command(
-                        controller_index)  # get_command or get_voltages ?
-                if (volts_data is None):
-                    volts_data = np.zeros((len(volts_vector),
-                                           int(cb_count / sub_sample)))
+                    controller_index
+                )  # get_command or get_voltages ?
+                if volts_data is None:
+                    volts_data = np.zeros((len(volts_vector), int(cb_count / sub_sample)))
                 volts_data[:, k] = volts_vector
 
-                if (cube_data_type):
-                    if (cube_data_type == "tarPhase"):
+                if cube_data_type:
+                    if cube_data_type == "tarPhase":
                         dataArray = self.target.get_tar_phase(tar_index, pupil=True)
-                    elif (cube_data_type == "psfse"):
+                    elif cube_data_type == "psfse":
                         dataArray = self.target.get_tar_image(tar_index, expo_type="se")
                     else:
                         raise ValueError("unknown dataData" % cube_data_type)
-                    if (cube_data is None):
-                        cube_data = np.zeros((*dataArray.shape,
-                                              int(cb_count / sub_sample)))
+                    if cube_data is None:
+                        cube_data = np.zeros((*dataArray.shape, int(cb_count / sub_sample)))
                     cube_data[:, :, k] = dataArray
                 k += 1
-        if (cube_data_file_path != ""):
+        if cube_data_file_path != "":
             print("Saving tarPhase cube at: ", cube_data_file_path)
             from astropy.io import fits as pf
+
             pf.writeto(cube_data_file_path, cube_data, overwrite=True)
 
         psf_le = self.target.get_tar_image(tar_index, expo_type="le")
-        return slopes_data, volts_data, ai_data, psf_le, sthrel_se_list, sthrel_le_list, g_ncpa_list, cube_data
+        return (
+            slopes_data,
+            volts_data,
+            ai_data,
+            psf_le,
+            sthrel_se_list,
+            sthrel_le_list,
+            g_ncpa_list,
+            cube_data,
+        )
 
     def export_config(self):
         """

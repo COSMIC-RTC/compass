@@ -1,23 +1,20 @@
-## @package   carma.test
-## @brief     Unit tests for carma
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 import numpy as np
 import carma as ch
 import numpy.testing as npt
@@ -37,16 +34,15 @@ print("Precision: ", prec)
 
 c = ch.context.get_instance()
 
-#generatig random context.obj 2d
+# generatig random context.obj 2d
 
-#generating random symetric context.obj 2d
+# generating random symetric context.obj 2d
 
-#generating 3 random context.obj 1d
+# generating 3 random context.obj 1d
 
 
 def test_float_gemv():
-
-    #function gemv
+    # function gemv
     # testing: y=A.x
     # x and y are vector, A a matrix
 
@@ -74,9 +70,9 @@ def test_float_gemv():
 
     # Vecty = ch.obj_float(c, np.random.randn((sizem)))
 
-    Mat.gemv(Vectx, alpha, 'N', Vecty, beta)
-    Vecty_2 = Mat.gemv(Vectx, alpha, 'N')
-    Vecty_3 = MatT.gemv(Vectx, alpha, 'T')
+    Mat.gemv(Vectx, alpha, "N", Vecty, beta)
+    Vecty_2 = Mat.gemv(Vectx, alpha, "N")
+    Vecty_3 = MatT.gemv(Vectx, alpha, "T")
 
     npt.assert_array_almost_equal(y, np.array(Vecty), decimal=dec - 1)
     npt.assert_array_almost_equal(y2, np.array(Vecty_2), decimal=dec - 1)
@@ -112,7 +108,7 @@ def test_float_ger():
 
 
 def test_float_symv():
-    #function symv
+    # function symv
     # testing: y=A.x
     # x and y are vector, A a symetric matrix
 
@@ -141,8 +137,7 @@ def test_float_symv():
 
 
 def test_double_gemv():
-
-    #function gemv
+    # function gemv
     # testing: y=A.x
     # x and y are vector, A a matrix
 
@@ -170,9 +165,9 @@ def test_double_gemv():
 
     # Vecty = ch.obj_double(c, np.random.randn((sizem)))
 
-    Mat.gemv(Vectx, alpha, 'N', Vecty, beta)
-    Vecty_2 = Mat.gemv(Vectx, alpha, 'N')
-    Vecty_3 = MatT.gemv(Vectx, alpha, 'T')
+    Mat.gemv(Vectx, alpha, "N", Vecty, beta)
+    Vecty_2 = Mat.gemv(Vectx, alpha, "N")
+    Vecty_3 = MatT.gemv(Vectx, alpha, "T")
 
     npt.assert_array_almost_equal(y, np.array(Vecty), decimal=dec - 1)
     npt.assert_array_almost_equal(y2, np.array(Vecty_2), decimal=dec - 1)
@@ -208,7 +203,7 @@ def test_double_ger():
 
 
 def test_double_symv():
-    #function symv
+    # function symv
     # testing: y=A.x
     # x and y are vector, A a symetric matrix
 

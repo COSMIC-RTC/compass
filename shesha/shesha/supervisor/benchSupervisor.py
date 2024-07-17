@@ -1,23 +1,20 @@
-## @package   shesha.supervisor.benchSupervisor
-## @brief     Initialization and execution of a Bench supervisor
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 
 
 import numpy as np
@@ -35,7 +32,7 @@ from typing import Callable
 
 
 class BenchSupervisor(GenericSupervisor):
-    """ This class implements generic supervisor to handle compass simulation
+    """This class implements generic supervisor to handle compass simulation
 
     Attributes inherited from GenericSupervisor:
         context : (CarmaContext) : a CarmaContext instance
@@ -55,7 +52,7 @@ class BenchSupervisor(GenericSupervisor):
     """
 
     def __init__(self, config_file: str = None):
-        """ Init the COMPASS wih the config_file
+        """Init the COMPASS wih the config_file
 
         Args:
             config_file : (str) : path to the configuration file. Default is None
@@ -70,18 +67,17 @@ class BenchSupervisor(GenericSupervisor):
         GenericSupervisor.__init__(self, config)
 
     def _init_rtc(self):
-        """Initialize the rtc component of the supervisor as a RtcCompass
-        """
+        """Initialize the rtc component of the supervisor as a RtcCompass"""
         print("->RTC")
         self.number_of_wfs = len(self.config.p_wfss)
         print("Configuration of", self.number_of_wfs, "wfs ...")
 
-        if (hasattr(self.config, 'p_loop') and self.config.p_loop.devices.size > 1):
+        if hasattr(self.config, "p_loop") and self.config.p_loop.devices.size > 1:
             self.context = carma_context.get_instance_ngpu(
-                    self.config.p_loop.devices.size, self.config.p_loop.devices)
+                self.config.p_loop.devices.size, self.config.p_loop.devices
+            )
         else:
-            self.context = carma_context.get_instance_1gpu(
-                    self.config.p_loop.devices[0])
+            self.context = carma_context.get_instance_1gpu(self.config.p_loop.devices[0])
         nact = self.config.p_controllers[0].nactu
 
         nvalid = []
@@ -95,25 +91,22 @@ class BenchSupervisor(GenericSupervisor):
 
         # Get parameters
         for wfs in range(self.number_of_wfs):
-
             if self.config.p_wfss[wfs].type == WFSType.SH:
                 npix.append(self.config.p_wfss[wfs].npix)
-                if self.config.p_wfss[wfs]._validsubsx is None or \
-                        self.config.p_wfss[wfs]._validsubsy is None:
-
+                if (
+                    self.config.p_wfss[wfs]._validsubsx is None
+                    or self.config.p_wfss[wfs]._validsubsy is None
+                ):
                     from hraa.tools.doit import makessp
-                    roiTab = makessp(self.config.p_wfss[wfs].nxsub, obs=0., rmax=0.98)
-                    self.config.p_wfss[wfs]._nvalid = roiTab[0].size
-                    self.config.p_wfss[
-                            wfs]._validsubsx = roiTab[0] * self.config.p_wfss[wfs].npix
-                    self.config.p_wfss[
-                            wfs]._validsubsy = roiTab[1] * self.config.p_wfss[wfs].npix
-                else:
-                    self.config.p_wfss[wfs]._nvalid = self.config.p_wfss[
-                            wfs]._validsubsx.size
 
-                nvalid.append(
-                        np.array([self.config.p_wfss[wfs]._nvalid], dtype=np.int32))
+                    roiTab = makessp(self.config.p_wfss[wfs].nxsub, obs=0.0, rmax=0.98)
+                    self.config.p_wfss[wfs]._nvalid = roiTab[0].size
+                    self.config.p_wfss[wfs]._validsubsx = roiTab[0] * self.config.p_wfss[wfs].npix
+                    self.config.p_wfss[wfs]._validsubsy = roiTab[1] * self.config.p_wfss[wfs].npix
+                else:
+                    self.config.p_wfss[wfs]._nvalid = self.config.p_wfss[wfs]._validsubsx.size
+
+                nvalid.append(np.array([self.config.p_wfss[wfs]._nvalid], dtype=np.int32))
                 # print("nvalid : %d" % nvalid[wfs])
                 centroider_type.append(self.config.p_centroiders[wfs].type)
                 delay.append(self.config.p_controllers[0].delay)  # ???
@@ -122,11 +115,13 @@ class BenchSupervisor(GenericSupervisor):
                 gain.append(1)
                 cmat_size.append(2 * nvalid[wfs][0])
 
-            elif self.config.p_wfss[wfs].type == WFSType.PYRHR or self.config.p_wfss[
-                    wfs].type == WFSType.PYRLR:
+            elif (
+                self.config.p_wfss[wfs].type == WFSType.PYRHR
+                or self.config.p_wfss[wfs].type == WFSType.PYRLR
+            ):
                 nvalid.append(
-                        np.array([self.config.p_wfss[wfs]._nvalid],
-                                 dtype=np.int32))  # Number of valid SUBAPERTURES
+                    np.array([self.config.p_wfss[wfs]._nvalid], dtype=np.int32)
+                )  # Number of valid SUBAPERTURES
                 centroider_type.append(self.config.p_centroiders[wfs].type)
                 delay.append(self.config.p_controllers[0].delay)  # ???
                 offset.append(0)
@@ -135,21 +130,30 @@ class BenchSupervisor(GenericSupervisor):
                 cmat_size.append(self.config.p_wfss[wfs].nPupils * nvalid[wfs][0])
                 npix.append(0)
             else:
-                raise ValueError('WFS type not supported')
+                raise ValueError("WFS type not supported")
 
         # Create RTC
-        self.rtc = RtcStandalone(self.context, self.config, self.number_of_wfs, nvalid,
-                                 nact, centroider_type, delay, offset, scale)
+        self.rtc = RtcStandalone(
+            self.context,
+            self.config,
+            self.number_of_wfs,
+            nvalid,
+            nact,
+            centroider_type,
+            delay,
+            offset,
+            scale,
+        )
 
-        self.slopes_index = np.cumsum([0] +
-                                      [wfs.nslopes for wfs in self.rtc._rtc.d_centro])
+        self.slopes_index = np.cumsum([0] + [wfs.nslopes for wfs in self.rtc._rtc.d_centro])
 
         # Create centroiders
         for wfs in range(self.number_of_wfs):
             self.rtc._rtc.d_centro[wfs].load_validpos(
-                    self.config.p_wfss[wfs]._validsubsx,
-                    self.config.p_wfss[wfs]._validsubsy,
-                    self.config.p_wfss[wfs]._validsubsx.size)
+                self.config.p_wfss[wfs]._validsubsx,
+                self.config.p_wfss[wfs]._validsubsy,
+                self.config.p_wfss[wfs]._validsubsx.size,
+            )
             if self.config.p_centroiders[wfs].type is CentroiderType.BPCOG:
                 self.rtc._rtc.d_centro[wfs].set_nmax(self.config.p_centroiders[wfs].nmax)
             self.rtc._rtc.d_centro[wfs].set_npix(npix[wfs])
@@ -162,18 +166,15 @@ class BenchSupervisor(GenericSupervisor):
 
         # Initiate RTC
         self.rtc._rtc.d_control[0].set_cmat(cMat)
-        self.rtc._rtc.d_control[0].set_decayFactor(
-                np.ones(nact, dtype=np.float32) * (gain[0] - 1))
+        self.rtc._rtc.d_control[0].set_decayFactor(np.ones(nact, dtype=np.float32) * (gain[0] - 1))
         self.rtc._rtc.d_control[0].set_matE(np.identity(nact, dtype=np.float32))
-        self.rtc._rtc.d_control[0].set_modal_gains(
-                np.ones(nact, dtype=np.float32) * -gain[0])
+        self.rtc._rtc.d_control[0].set_modal_gains(np.ones(nact, dtype=np.float32) * -gain[0])
 
         print("RTC initialized")
         self.is_init = True
 
     def _init_components(self) -> None:
-        """ Initialize all the components
-        """
+        """Initialize all the components"""
         if self.config.p_controllers is not None or self.config.p_centroiders is not None:
             self._init_rtc()
 
@@ -192,22 +193,20 @@ class BenchSupervisor(GenericSupervisor):
     # |_|  |_|\___|\__|_| |_|\___/ \__,_|___/
 
     def next(self) -> None:
-        """ Performs a single loop iteration
-        """
+        """Performs a single loop iteration"""
         self.load_new_wfs_frame()
 
-        if (self.pause_loop is not True):
+        if self.pause_loop is not True:
             self.compute_wfs_frame()
             self.set_command(0, np.array(self.rtc._rtc.d_control[0].d_voltage))
         self.iter += 1
 
     def get_tar_image(self, tar_index, expo_type: str = "se") -> np.ndarray:
-        """ NOT IMPLEMENTED
-        """
+        """NOT IMPLEMENTED"""
         raise NotImplementedError("Not implemented")
 
     def set_command(self, nctrl: int, command: np.ndarray) -> None:
-        """ Immediately sets provided command to DMs - does not affect integrator
+        """Immediately sets provided command to DMs - does not affect integrator
 
         Args:
             nctrl : (int) : Controller index (unused)
@@ -220,7 +219,7 @@ class BenchSupervisor(GenericSupervisor):
         # self.rtc._rtc.d_control[nctrl].set_com(command, command.size)
 
     def get_command(self) -> np.ndarray:
-        """ Get command from DM
+        """Get command from DM
 
         Returns:
             command : (np.ndarray) : Command vector
@@ -240,34 +239,36 @@ class BenchSupervisor(GenericSupervisor):
     #       |_|
 
     def __repr__(self):
-
-        s = '--- BenchSupervisor ---\nRTC: ' + repr(self.rtc)
-        if hasattr(self, '_cam'):
-            s += '\nCAM: ' + repr(self._cam)
-        if hasattr(self, '_dm'):
-            s += '\nDM: ' + repr(self._dm)
+        s = "--- BenchSupervisor ---\nRTC: " + repr(self.rtc)
+        if hasattr(self, "_cam"):
+            s += "\nCAM: " + repr(self._cam)
+        if hasattr(self, "_dm"):
+            s += "\nDM: " + repr(self._dm)
         return s
 
     def load_new_wfs_frame(self, centro_index: int = 0) -> None:
-        """ Acquire a new WFS frame and load it
+        """Acquire a new WFS frame and load it
 
         Args:
             centro_index : (int) : Index of the centroider where to load the frame
         """
         self.frame = self.cam_callback()
-        if (type(self.frame) is tuple):
+        if type(self.frame) is tuple:
             centro_index = len(self.frame)
             for i in range(centro_index):
-                self.rtc._rtc.d_centro[i].load_img(self.frame[i], self.frame[i].shape[0],
-                                                   self.frame[i].shape[1], -1)
+                self.rtc._rtc.d_centro[i].load_img(
+                    self.frame[i],
+                    self.frame[i].shape[0],
+                    self.frame[i].shape[1],
+                    -1,
+                )
         else:
-            self.rtc._rtc.d_centro[centro_index].load_img(self.frame,
-                                                          self.frame.shape[0],
-                                                          self.frame.shape[1], -1)
+            self.rtc._rtc.d_centro[centro_index].load_img(
+                self.frame, self.frame.shape[0], self.frame.shape[1], -1
+            )
 
     def compute_wfs_frame(self):
-        """ Compute the WFS frame: calibrate, centroid, commands.
-        """
+        """Compute the WFS frame: calibrate, centroid, commands."""
         # for index, centro in enumerate(self.rtc._rtc.d_centro):
         for centro in self.rtc._rtc.d_centro:
             centro.calibrate_img()
@@ -276,9 +277,8 @@ class BenchSupervisor(GenericSupervisor):
         self.rtc.do_clipping(0)
         self.rtc._rtc.comp_voltage(0)
 
-    def set_one_actu(self, nctrl: int, nactu: int, *, ampli: float = 1,
-                     reset: bool = True) -> None:
-        """ Push the selected actuator
+    def set_one_actu(self, nctrl: int, nactu: int, *, ampli: float = 1, reset: bool = True) -> None:
+        """Push the selected actuator
 
         Args:
             nctrl : (int) : controller index
@@ -297,7 +297,7 @@ class BenchSupervisor(GenericSupervisor):
         self.set_command(nctrl, command)
 
     def force_context(self) -> None:
-        """ Active all the GPU devices specified in the parameters file
+        """Active all the GPU devices specified in the parameters file
         Required for using with widgets, due to multithreaded init
         and in case GPU 0 is not used by the simu
         """
@@ -308,34 +308,34 @@ class BenchSupervisor(GenericSupervisor):
             self.context.set_active_device(current_device)
 
     def reset_dm(self) -> None:
-        """ Reset the DM
-        """
-        if hasattr(self, '_dm'):
+        """Reset the DM"""
+        if hasattr(self, "_dm"):
             self._dm.reset_dm()
 
     def reset_command(self, nctrl: int = -1) -> None:
-        """ Reset the nctrl Controller command buffer, reset all controllers if nctrl  == -1
+        """Reset the nctrl Controller command buffer, reset all controllers if nctrl  == -1
 
         Kwargs:
             nctrl : (int) : Controller index. If -1 (default), all controllers commands are reset
         """
-        if (nctrl == -1):  # All Dms reset
+        if nctrl == -1:  # All Dms reset
             for control in self.rtc._rtc.d_control:
                 control.d_com.reset()
         else:
             self.rtc._rtc.d_control[nctrl].d_com.reset()
 
     def load_config(self, config_file: str = None) -> None:
-        """ Init the COMPASS with the config_file
+        """Init the COMPASS with the config_file
 
         Args:
             config_file : (str) : path to the configuration file
         """
         from shesha.config import ParamConfig
+
         self.config = ParamConfig(config_file)
 
     def set_cam_callback(self, cam_callback: Callable):
-        """ Set the externally defined function that allows to grab frames
+        """Set the externally defined function that allows to grab frames
 
         Args:
             cam_callback : (Callable) : function that allows to grab frames
@@ -343,7 +343,7 @@ class BenchSupervisor(GenericSupervisor):
         self.cam_callback = cam_callback
 
     def set_dm_callback(self, dm_get_callback: Callable, dm_set_callback: Callable):
-        """ Set the externally defined function that allows to communicate with the DM
+        """Set the externally defined function that allows to communicate with the DM
 
         Args:
             dm_get_callback : (Callable) : function that allows to retrieve commands
@@ -353,7 +353,7 @@ class BenchSupervisor(GenericSupervisor):
         self.dm_set_callback = dm_set_callback
 
     def adaptive_windows(self, init_config=False, centro_index: int = 0):
-        """ Re-centre the centroiding boxes around the spots, and loads
+        """Re-centre the centroiding boxes around the spots, and loads
         the new box coordinates in the slopes computation supervisor
         pipeline.
 
@@ -366,20 +366,23 @@ class BenchSupervisor(GenericSupervisor):
             # reset de la configuration initiale
             ij_subap = self.config.p_wfss[centro_index].get_validsub()
             nsubap = ij_subap.shape[1]
-            self.rtc._rtc.d_centro[centro_index].load_validpos(
-                    ij_subap[0], ij_subap[1], nsubap)
+            self.rtc._rtc.d_centro[centro_index].load_validpos(ij_subap[0], ij_subap[1], nsubap)
         else:
             # acquire slopes first
             nslopes = 10
-            s = 0.
+            s = 0.0
             for i in range(nslopes):
                 self.load_new_wfs_frame()  # sinon toutes les slopes sont les memes
                 self.compute_wfs_frame()
-                s = s + self.get_slopes()[self.slopes_index[centro_index]:self.
-                                          slopes_index[centro_index + 1]]
+                s = (
+                    s
+                    + self.get_slopes()[
+                        self.slopes_index[centro_index] : self.slopes_index[centro_index + 1]
+                    ]
+                )
             s /= nslopes
             # get coordinates of valid sub-apertures
-            #ij_subap = self.config.p_wfss[centro_index].get_validsub()
+            # ij_subap = self.config.p_wfss[centro_index].get_validsub()
             i_subap = np.array(self.rtc._rtc.d_centro[centro_index].d_validx)
             j_subap = np.array(self.rtc._rtc.d_centro[centro_index].d_validy)
             # get number of subaps
@@ -390,11 +393,10 @@ class BenchSupervisor(GenericSupervisor):
             new_i_subap = (i_subap + s[0, :].round()).astype(int)
             new_j_subap = (j_subap + s[1, :].round()).astype(int)
             # load the new positions of boxes
-            self.rtc._rtc.d_centro[centro_index].load_validpos(
-                    new_i_subap, new_j_subap, nsubap)
+            self.rtc._rtc.d_centro[centro_index].load_validpos(new_i_subap, new_j_subap, nsubap)
 
     def get_current_windows_pos(self, centro_index: int = 0):
-        """ Returns the currently used subapertures positions
+        """Returns the currently used subapertures positions
 
         Args:
             centro_index : (int) : Index of the centroider
@@ -407,7 +409,7 @@ class BenchSupervisor(GenericSupervisor):
         return i_subap, j_subap
 
     def get_slopes_index(self):
-        """ Return the index of the first position of each WFS slopes vector
+        """Return the index of the first position of each WFS slopes vector
         inside the global RTC slopes vector
 
         Returns:

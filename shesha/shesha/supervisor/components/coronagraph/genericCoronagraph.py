@@ -1,23 +1,20 @@
-## @package   shesha.components.coronagraph.genericCoronagraph
-## @brief     Abstracted layer for coronagraph object
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2023/03/02
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 
 import numpy as np
 import shesha.config as conf
@@ -26,8 +23,9 @@ from shesha.supervisor.components.targetCompass import TargetCompass
 from abc import ABC
 from shesha.util.coronagraph_utils import compute_contrast
 
+
 class GenericCoronagraph(ABC):
-    """ Generic class for Compass Coronagraph modules
+    """Generic class for Compass Coronagraph modules
 
     Attributes:
         _spupil: (np.ndarray[ndim=2, dtype=np.float32]): Telescope pupil mask
@@ -46,8 +44,14 @@ class GenericCoronagraph(ABC):
 
         _coronagraph: (SutraCoronagraph): Sutra coronagraph instance
     """
-    def __init__(self, p_corono: conf.ParamCoronagraph, p_geom: conf.ParamGeom, targetCompass: TargetCompass):
-        """ Initialize a coronagraph instance with generic attributes
+
+    def __init__(
+        self,
+        p_corono: conf.ParamCoronagraph,
+        p_geom: conf.ParamGeom,
+        targetCompass: TargetCompass,
+    ):
+        """Initialize a coronagraph instance with generic attributes
 
         Args:
             p_corono: (ParamCoronagraph): Compass coronagraph parameters
@@ -67,7 +71,7 @@ class GenericCoronagraph(ABC):
         self._coronagraph = None
 
     def compute_image(self, *, comp_psf: bool = True, accumulate: bool = True):
-        """ Compute the SE coronagraphic image, and accumulate it in the LE image
+        """Compute the SE coronagraphic image, and accumulate it in the LE image
 
         Args:
             comp_psf: (bool, optionnal): If True (default), also compute the PSF SE & LE
@@ -79,7 +83,7 @@ class GenericCoronagraph(ABC):
             self.compute_psf(accumulate=accumulate)
 
     def compute_psf(self, *, accumulate: bool = True):
-        """ Compute the SE psf, and accumulate it in the LE image
+        """Compute the SE psf, and accumulate it in the LE image
 
         Args:
             accumulate: (bool, optional): If True (default), the computed SE psf is accumulated in
@@ -87,8 +91,8 @@ class GenericCoronagraph(ABC):
         """
         self._coronagraph.compute_psf(accumulate=accumulate)
 
-    def get_image(self, *, expo_type:str=scons.ExposureType.LE):
-        """ Return the coronagraphic image
+    def get_image(self, *, expo_type: str = scons.ExposureType.LE):
+        """Return the coronagraphic image
 
         Args:
             expo_type: (str, optional): If "le" (default), returns the long exposure image.
@@ -99,14 +103,14 @@ class GenericCoronagraph(ABC):
         """
         if expo_type == scons.ExposureType.LE:
             img = np.array(self._coronagraph.d_image_le)
-            if(self._coronagraph.cntImg):
+            if self._coronagraph.cntImg:
                 img /= self._coronagraph.cntImg
         if expo_type == scons.ExposureType.SE:
             img = np.array(self._coronagraph.d_image_se)
         return img / self._norm_img
 
-    def get_psf(self, *, expo_type:str=scons.ExposureType.LE):
-        """ Return the psf
+    def get_psf(self, *, expo_type: str = scons.ExposureType.LE):
+        """Return the psf
 
         Args:
             expo_type: (str, optional): If "le" (default), returns the long exposure psf.
@@ -117,19 +121,26 @@ class GenericCoronagraph(ABC):
         """
         if expo_type == scons.ExposureType.LE:
             img = np.array(self._coronagraph.d_psf_le)
-            if(self._coronagraph.cntPsf):
+            if self._coronagraph.cntPsf:
                 img /= self._coronagraph.cntPsf
         if expo_type == scons.ExposureType.SE:
             img = np.array(self._coronagraph.d_psf_se)
         return img / self._norm_psf
 
     def reset(self):
-        """ Reset long exposure image and PSF
-        """
+        """Reset long exposure image and PSF"""
         self._coronagraph.reset()
 
-    def get_contrast(self, *, expo_type=scons.ExposureType.LE, d_min=None, d_max=None, width=None, normalized_by_psf=True):
-        """ Computes average, standard deviation, minimum and maximum of coronagraphic
+    def get_contrast(
+        self,
+        *,
+        expo_type=scons.ExposureType.LE,
+        d_min=None,
+        d_max=None,
+        width=None,
+        normalized_by_psf=True,
+    ):
+        """Computes average, standard deviation, minimum and maximum of coronagraphic
         image intensity, over rings at several angular distances from the optical axis.
 
         A ring includes the pixels between the following angular distances :
@@ -186,8 +197,8 @@ class GenericCoronagraph(ABC):
         angular_distances = distances / image_sampling
         return angular_distances, mean, std, mini, maxi
 
-    def set_electric_field_amplitude(self, amplitude:np.ndarray):
-        """ Set the amplitude of the electric field
+    def set_electric_field_amplitude(self, amplitude: np.ndarray):
+        """Set the amplitude of the electric field
 
         Args:
             amplitude: (np.ndarray[ndim=3, dtype=np.float32]): amplitude for each wavelength

@@ -1,24 +1,20 @@
-## @package   shesha.widgets.widget_cosmic
-## @brief     Widget to simulate a closed loop using cosmic
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @version   4.3.0
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 
 """
 Widget to simulate a closed loop using cosmic
@@ -39,10 +35,13 @@ import sys
 try:
     from PyQt5 import QtWidgets
 except ModuleNotFoundError:
-    try:    
+    try:
         from PySide2 import QtWidgets
     except ModuleNotFoundError as e:
-        raise ModuleNotFoundError("No module named 'PyQt5' or PySide2', please install one of them\nException raised: "+e.msg)
+        raise ModuleNotFoundError(
+            "No module named 'PyQt5' or PySide2', please install one of them\nException raised: "
+            + e.msg
+        )
 
 from shesha.supervisor.cosmicSupervisor import CosmicSupervisor
 from typing import Any
@@ -56,20 +55,17 @@ server = None
 
 
 class widgetCosmic(widgetAOWindow):
-
     def __init__(self, config_file: Any = None, expert: bool = False) -> None:
         widgetAOWindow.__init__(self, config_file, hide_histograms=True)
 
-        #############################################################
         #                       METHODS                             #
-        #############################################################
+
     def init_config(self) -> None:
         self.supervisor = CosmicSupervisor(self.config)
         WidgetBase.init_config(self)
 
 
 class loopHandler:
-
     def __init__(self, wao):
         self.wao = wao
 
@@ -85,10 +81,10 @@ class loopHandler:
         return "alive"
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     arguments = docopt(__doc__)
     app = QtWidgets.QApplication(sys.argv)
-    app.setStyle('cleanlooks')
+    app.setStyle("cleanlooks")
     wao = widgetCosmic(arguments["<parameters_filename>"])
     wao.show()
     # if arguments["--interactive"]:

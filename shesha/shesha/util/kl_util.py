@@ -1,23 +1,20 @@
-## @package   shesha.util.kl_util
-## @brief     Functions for DM KL initialization
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 
 
 import shesha.constants as scons
@@ -28,22 +25,23 @@ from typing import Tuple
 
 
 def make_radii(cobs: float, nr: int) -> float:
-    """ TODO: docstring
+    """TODO: docstring
 
-        Args:
+    Args:
 
-            cobs: (float) : central obstruction
+        cobs: (float) : central obstruction
 
-            nr : (int) :
+        nr : (int) :
     """
-    d = (1. - cobs * cobs) / nr
-    rad2 = cobs**2 + d / 16. + d * (np.arange(nr, dtype=np.float32))
+    d = (1.0 - cobs * cobs) / nr
+    rad2 = cobs**2 + d / 16.0 + d * (np.arange(nr, dtype=np.float32))
     radp = np.sqrt(rad2)
     return radp
 
 
-def make_kernels(cobs: float, nr: int, radp: np.ndarray, kl_type: bytes,
-                 outscl: float = 3.) -> np.ndarray:
+def make_kernels(
+    cobs: float, nr: int, radp: np.ndarray, kl_type: bytes, outscl: float = 3.0
+) -> np.ndarray:
     """
     This routine generates the kernel used to find the KL modes.
     The  kernel constructed here should be simply a discretization
@@ -71,26 +69,30 @@ def make_kernels(cobs: float, nr: int, radp: np.ndarray, kl_type: bytes,
     """
     nth = 5 * nr
     kers = np.zeros((nth, nr, nr), dtype=np.float32)
-    cth = np.cos((np.arange(nth, dtype=np.float32)) * (2. * np.pi / nth))
-    dth = 2. * np.pi / nth
-    fnorm = -1. / (2 * np.pi * (1. - cobs**2)) * 0.5
+    cth = np.cos((np.arange(nth, dtype=np.float32)) * (2.0 * np.pi / nth))
+    dth = 2.0 * np.pi / nth
+    fnorm = -1.0 / (2 * np.pi * (1.0 - cobs**2)) * 0.5
     # the 0.5 is to give  the r**2 kernel, not the r kernel
     for i in range(nr):
         for j in range(i + 1):
-            te = 0.5 * np.sqrt(radp[i]**2 + radp[j]**2 - (2 * radp[i] * radp[j]) * cth)
+            te = 0.5 * np.sqrt(radp[i] ** 2 + radp[j] ** 2 - (2 * radp[i] * radp[j]) * cth)
             # te in units of the diameter, not the radius
-            if (kl_type == scons.KLType.KOLMO):
+            if kl_type == scons.KLType.KOLMO:
+                te = 6.88 * te ** (5.0 / 3.0)
 
-                te = 6.88 * te**(5. / 3.)
-
-            elif (kl_type == scons.KLType.KARMAN):
-
-                te = 6.88 * te**(5. / 3.) * (1 - 1.485 * (te / outscl)**
-                                             (1. / 3.) + 5.383 * (te / outscl)**
-                                             (2) - 6.281 * (te / outscl)**(7. / 3.))
+            elif kl_type == scons.KLType.KARMAN:
+                te = (
+                    6.88
+                    * te ** (5.0 / 3.0)
+                    * (
+                        1
+                        - 1.485 * (te / outscl) ** (1.0 / 3.0)
+                        + 5.383 * (te / outscl) ** (2)
+                        - 6.281 * (te / outscl) ** (7.0 / 3.0)
+                    )
+                )
 
             else:
-
                 raise TypeError("kl type unknown")
 
             f = np.fft.fft(te, axis=-1)
@@ -100,43 +102,43 @@ def make_kernels(cobs: float, nr: int, radp: np.ndarray, kl_type: bytes,
 
 
 def piston_orth(nr: int) -> np.ndarray:
-    """ TODO: docstring
+    """TODO: docstring
 
-        Args:
+    Args:
 
-            nr:
+        nr:
 
-        :return:
+    :return:
 
-            s:
+        s:
     """
     s = np.zeros((nr, nr), dtype=np.float32)  # type: np.ndarray[np.float32]
     for j in range(nr - 1):
-        rnm = 1. / np.sqrt(np.float32((j + 1) * (j + 2)))
-        s[0:j + 1, j] = rnm
+        rnm = 1.0 / np.sqrt(np.float32((j + 1) * (j + 2)))
+        s[0 : j + 1, j] = rnm
         s[j + 1, j] = -1 * (j + 1) * rnm
 
-    rnm = 1. / np.sqrt(nr)
+    rnm = 1.0 / np.sqrt(nr)
     s[:, nr - 1] = rnm
     return s
 
 
 def make_azimuth(nord: int, npp: int) -> np.ndarray:
-    """ TODO: docstring
+    """TODO: docstring
 
-        Args:
+    Args:
 
-            nord:
+        nord:
 
-            npp:
+        npp:
 
-        :return:
+    :return:
 
-            azbas:
+        azbas:
     """
 
     azbas = np.zeros((npp, np.int32(1 + nord)), dtype=np.float32)
-    th = np.arange(npp, dtype=np.float32) * (2. * np.pi / npp)
+    th = np.arange(npp, dtype=np.float32) * (2.0 * np.pi / npp)
 
     azbas[:, 0] = 1.0
     for i in np.arange(1, nord, 2):
@@ -171,15 +173,15 @@ def radii(nr: int, npp: int, cobs: float) -> np.ndarray:
             r
     """
 
-    r2 = cobs**2 + (np.arange(nr, dtype=np.float32) + 0.) / nr * (1.0 - cobs**2)
+    r2 = cobs**2 + (np.arange(nr, dtype=np.float32) + 0.0) / nr * (1.0 - cobs**2)
     rs = np.sqrt(r2)
     r = np.transpose(np.tile(rs, (npp, 1)))
 
     return r
 
 
-#__________________________________________________________________________
-#__________________________________________________________________________
+# __________________________________________________________________________
+# __________________________________________________________________________
 
 
 def polang(r: np.ndarray) -> np.ndarray:
@@ -200,19 +202,20 @@ def polang(r: np.ndarray) -> np.ndarray:
     s = r.shape
     nr = s[0]
     np1 = s[1]
-    phi1 = np.arange(np1, dtype=np.float32) / float(np1) * 2. * np.pi
+    phi1 = np.arange(np1, dtype=np.float32) / float(np1) * 2.0 * np.pi
     p1, p2 = np.meshgrid(np.ones(nr), phi1)
     p = np.transpose(p2)
 
     return p
 
 
-#__________________________________________________________________________
-#__________________________________________________________________________
+# __________________________________________________________________________
+# __________________________________________________________________________
 
 
-def setpincs(ax: np.ndarray, ay: np.ndarray, px: np.ndarray, py: np.ndarray,
-             cobs: float) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+def setpincs(
+    ax: np.ndarray, ay: np.ndarray, px: np.ndarray, py: np.ndarray, cobs: float
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     This routine determines a set of squares for interpolating
     from cartesian to polar coordinates, using only those points
@@ -271,7 +274,7 @@ def setpincs(ax: np.ndarray, ay: np.ndarray, px: np.ndarray, py: np.ndarray,
     pincw[3, :, :] = (1 - shx) * shy
 
     axy = ax**2 + ay**2
-    axyinap = np.clip(axy, cobs**2. + 1.e-3, 0.999)
+    axyinap = np.clip(axy, cobs**2.0 + 1.0e-3, 0.999)
     # sizeaxyinap=axyinap.shape[1]# not used
 
     # pincw = pincw*axyinap[pincx+(pincy-1)*sizeaxyinap] --->
@@ -279,8 +282,9 @@ def setpincs(ax: np.ndarray, ay: np.ndarray, px: np.ndarray, py: np.ndarray,
     for z in range(pincw.shape[0]):
         for i in range(pincw.shape[1]):
             for j in range(pincw.shape[2]):
-                pincw[z, i, j] = pincw[z, i, j] * axyinap[np.int32(pincx[z, i, j]),
-                                                          np.int32(pincy[z, i, j])]
+                pincw[z, i, j] = (
+                    pincw[z, i, j] * axyinap[np.int32(pincx[z, i, j]), np.int32(pincy[z, i, j])]
+                )
 
     pincw = pincw * np.tile(1.0 / np.sum(pincw, axis=0), (4, 1, 1))
 
@@ -333,7 +337,7 @@ def pcgeom(nr, npp, cobs, ncp, ncmar):
     """
     nused = ncp - 2 * ncmar
     ff = 0.5 * nused
-    hw = np.float32(ncp - 1) / 2.
+    hw = np.float32(ncp - 1) / 2.0
 
     r = radii(nr, npp, cobs)
     p = polang(r)
@@ -343,7 +347,10 @@ def pcgeom(nr, npp, cobs, ncp, ncmar):
     px = ff * px0 + hw
     py = ff * py0 + hw
     ax = np.reshape(
-            np.arange(int(ncp)**2, dtype=np.float32) + 1, (int(ncp), int(ncp)), order='F')
+        np.arange(int(ncp) ** 2, dtype=np.float32) + 1,
+        (int(ncp), int(ncp)),
+        order="F",
+    )
     ax = np.float32(ax - 1) % ncp - 0.5 * (ncp - 1)
     ax = ax / (0.5 * nused)
     ay = np.transpose(ax)
@@ -351,16 +358,16 @@ def pcgeom(nr, npp, cobs, ncp, ncmar):
     pincx, pincy, pincw = setpincs(ax, ay, px0, py0, cobs)
 
     dpi = 2 * np.pi
-    cr2 = (ax**2 + ay**2)
-    ap = np.clip(cr2, cobs**2 + 1.e-3, 0.999)
-    #cr = (cr2 - cobs**2) / (1 - cobs**2) * nr - 0.5;
+    cr2 = ax**2 + ay**2
+    ap = np.clip(cr2, cobs**2 + 1.0e-3, 0.999)
+    # cr = (cr2 - cobs**2) / (1 - cobs**2) * nr - 0.5;
     cr = (cr2 - cobs**2) / (1 - cobs**2) * nr
     cp = (np.arctan2(ay, ax) + dpi) % dpi
     cp = (npp / dpi) * cp
 
-    cr = np.clip(cr, 1.e-3, nr - 1.001)
+    cr = np.clip(cr, 1.0e-3, nr - 1.001)
     # fudge -----, but one of the less bad ones
-    cp = np.clip(cp, 1.e-3, npp - 1.001)
+    cp = np.clip(cp, 1.0e-3, npp - 1.001)
     # fudge -----  this is the line which
     # gives that step in the cartesian grid
     # at phi = 0.
@@ -415,12 +422,11 @@ def set_pctr(dim: int, nr, npp, nkl: int, cobs: float, nord, ncmar=None, ncp=Non
         ap
     """
     ncp = dim
-    if (ncmar is None):
+    if ncmar is None:
         ncmar = 2
-    if (ncp is None):
+    if ncp is None:
         ncp = 128
-    ncp, ncmar, px, py, cr, cp, pincx, pincy, pincw, ap = pcgeom(
-            nr, npp, cobs, ncp, ncmar)
+    ncp, ncmar, px, py, cr, cp, pincx, pincy, pincw, ap = pcgeom(nr, npp, cobs, ncp, ncmar)
     return ncp, ncmar, px, py, cr, cp, pincx, pincy, pincw, ap
 
 
@@ -446,7 +452,7 @@ def gkl_fcom(kers: np.ndarray, cobs: float, nf: int):
     nr = st[1]
     nt = st[0]
     nxt = 0
-    fktom = (1. - cobs**2) / nr
+    fktom = (1.0 - cobs**2) / nr
 
     evs = np.zeros((nr, nt), dtype=np.float32)
     # ff isnt used - the normalisation for
@@ -464,15 +470,13 @@ def gkl_fcom(kers: np.ndarray, cobs: float, nf: int):
 
     ts = np.transpose(s)
     # b1 = ((ts(,+)*zom(+,))(,+)*s(+,))(1:nr-1, 1:nr-1)
-    btemp = (ts.dot(zom).dot(s))[0:nr - 1, 0:nr - 1]
+    btemp = (ts.dot(zom).dot(s))[0 : nr - 1, 0 : nr - 1]
 
-    #newev = SVdec(fktom*b1,v0,vt)
-    v0, newev, vt = np.linalg.svd(
-            fktom * btemp, full_matrices=True
-    )  # type: np.ndarray[np.float32], np.ndarray[np.float32],np.ndarray[np.float32]
+    # newev = SVdec(fktom*b1,v0,vt)
+    v0, newev, vt = np.linalg.svd(fktom * btemp, full_matrices=True)  # type: np.ndarray[np.float32], np.ndarray[np.float32],np.ndarray[np.float32]
 
     v1 = np.zeros((nr, nr), dtype=np.float32)
-    v1[0:nr - 1, 0:nr - 1] = v0
+    v1[0 : nr - 1, 0 : nr - 1] = v0
     v1[nr - 1, nr - 1] = 1
 
     vs = s.dot(v1)
@@ -486,20 +490,20 @@ def gkl_fcom(kers: np.ndarray, cobs: float, nf: int):
         vs, newev, vt = np.linalg.svd(fktom * kers[nxt, :, :], full_matrices=True)
         # newev = SVdec(fktom*kers(,,nxt),vs,vt)
         evs[:, nxt] = np.float32(newev)
-        kers[nxt, :, :] = np.sqrt(2. * nr) * vs
+        kers[nxt, :, :] = np.sqrt(2.0 * nr) * vs
         mxn = max(np.float32(newev))
-        egtmxn = np.floor(evs[:, 0:nxt + 1] > mxn)
+        egtmxn = np.floor(evs[:, 0 : nxt + 1] > mxn)
         nxt = nxt + 1
-        if ((2 * np.sum(egtmxn) - np.sum(egtmxn[:, 0])) >= nkl):
+        if (2 * np.sum(egtmxn) - np.sum(egtmxn[:, 0])) >= nkl:
             break
 
     nus = nxt - 1
-    kers = kers[0:nus + 1, :, :]
+    kers = kers[0 : nus + 1, :, :]
 
-    #evs = reform (evs [:, 1:nus], nr*(nus))
+    # evs = reform (evs [:, 1:nus], nr*(nus))
 
-    evs = np.reshape(evs[:, 0:nus + 1], nr * (nus + 1), order='F')
-    a = np.argsort(-1. * evs)[0:nkl]
+    evs = np.reshape(evs[:, 0 : nus + 1], nr * (nus + 1), order="F")
+    a = np.argsort(-1.0 * evs)[0:nkl]
 
     # every eigenvalue occurs twice except
     # those for the zeroth order mode. This
@@ -508,11 +512,11 @@ def gkl_fcom(kers: np.ndarray, cobs: float, nf: int):
 
     no = 0
     ni = 0
-    #oind = array(long,nf+1)
+    # oind = array(long,nf+1)
     oind = np.zeros(nkl + 1, dtype=np.int32)
 
     while True:
-        if (a[ni] < nr):
+        if a[ni] < nr:
             oind[no] = a[ni]
             no = no + 1
         else:
@@ -521,7 +525,7 @@ def gkl_fcom(kers: np.ndarray, cobs: float, nf: int):
             no = no + 2
 
         ni = ni + 1
-        if (no >= (nkl)):
+        if no >= (nkl):
             break
 
     oind = oind[0:nkl]
@@ -546,14 +550,14 @@ def gkl_fcom(kers: np.ndarray, cobs: float, nf: int):
     return evals, nord, npo, ordd, rabas
 
 
-#-------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 # function for calculate DM_kl on python
 
 
 def gkl_sfi(p_dm, i):
-    #DOCUMENT
-    #This routine returns the i'th function from the generalised KL
-    #basis bas. bas must be generated first with gkl_bas.
+    # DOCUMENT
+    # This routine returns the i'th function from the generalised KL
+    # basis bas. bas must be generated first with gkl_bas.
     nr = p_dm._nr
     npp = p_dm._npp
     ordd = p_dm._ord
@@ -561,11 +565,10 @@ def gkl_sfi(p_dm, i):
     azbas = p_dm._azbas
     nkl = p_dm.nkl
 
-    if (i > nkl - 1):
+    if i > nkl - 1:
         raise TypeError("kl funct order it's so big")
 
     else:
-
         ordi = np.int32(ordd[i])
         rabasi = rabas[:, i]
         azbasi = np.transpose(azbas)
@@ -591,7 +594,7 @@ def pol2car(pol, p_dm, mask=0):
     # However, points not in the aperture are actually treated
     # as though they were at the first or last radial polar value
     # -- a small fudge, but not serious  ?*******
-    #cd = interpolate.RectBivariateSpline(cr, cp,pol)
+    # cd = interpolate.RectBivariateSpline(cr, cp,pol)
     ncp = p_dm._ncp
     cr = p_dm._cr
     cp = p_dm._cp
@@ -608,14 +611,26 @@ def pol2car(pol, p_dm, mask=0):
     newy = np.linspace(-1, 1, ncp)
     tx, ty = np.meshgrid(newx, newy)
 
-    cd = interpolate.griddata((tab_r.flatten(), tab_phi.flatten()), pol.flatten(),
-                              (cr, cp), method='cubic')
-    cdf = interpolate.griddata((tab_r.flatten("F"), tab_phi.flatten("F")),
-                               pol.flatten("F"), (cr, cp), method='cubic')
-    cdxy = interpolate.griddata((tab_y.flatten(), tab_x.flatten()), pol.flatten(),
-                                (tx, ty), method='cubic')
+    cd = interpolate.griddata(
+        (tab_r.flatten(), tab_phi.flatten()),
+        pol.flatten(),
+        (cr, cp),
+        method="cubic",
+    )
+    cdf = interpolate.griddata(
+        (tab_r.flatten("F"), tab_phi.flatten("F")),
+        pol.flatten("F"),
+        (cr, cp),
+        method="cubic",
+    )
+    cdxy = interpolate.griddata(
+        (tab_y.flatten(), tab_x.flatten()),
+        pol.flatten(),
+        (tx, ty),
+        method="cubic",
+    )
 
-    if (mask == 1):
+    if mask == 1:
         ap = p_dm.ap
         cd = cd * (ap)
         cdf = cdf * (ap)
@@ -625,7 +640,6 @@ def pol2car(pol, p_dm, mask=0):
 
 
 def kl_view(p_dm, mask=1):
-
     nkl = p_dm.nkl
     ncp = p_dm._ncp
 
@@ -634,8 +648,6 @@ def kl_view(p_dm, mask=1):
     tab_klxy = np.zeros((nkl, ncp, ncp), dtype=np.float64)
 
     for i in range(nkl):
-
-        tab_kl[i, :, :], tab_klf[i, :, :], tab_klxy[i, :, :] = pol2car(
-                gkl_sfi(p_dm, i), p_dm, mask)
+        tab_kl[i, :, :], tab_klf[i, :, :], tab_klxy[i, :, :] = pol2car(gkl_sfi(p_dm, i), p_dm, mask)
 
     return tab_kl, tab_klf, tab_klxy

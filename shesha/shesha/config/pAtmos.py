@@ -1,23 +1,20 @@
-## @package   shesha.config.pAtmos
-## @brief     Class that contains the configuration for the atmosphere module of the COMPASS simulator.
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 
 
 import numpy as np
@@ -187,7 +184,10 @@ class ParamAtmos:
             wind_layers (List[float]): Wind directions.
         """
         self.__winddir = csu.enforce_array(
-            wind_layers, size=self.nscreens, dtype=np.float32, scalar_expand=True
+            wind_layers,
+            size=self.nscreens,
+            dtype=np.float32,
+            scalar_expand=True,
         )
 
     winddir: List[float] = property(get_winddir, set_winddir)
@@ -207,7 +207,10 @@ class ParamAtmos:
             windspeed_layers (List[float]): Wind speeds.
         """
         self.__windspeed = csu.enforce_array(
-            windspeed_layers, size=self.nscreens, dtype=np.float32, scalar_expand=True
+            windspeed_layers,
+            size=self.nscreens,
+            dtype=np.float32,
+            scalar_expand=True,
         )
 
     windspeed: List[float] = property(get_windspeed, set_windspeed)
@@ -247,7 +250,10 @@ class ParamAtmos:
             deltax_layers (List[float]): The translation speed on the x-axis for each layer.
         """
         self.__deltax = csu.enforce_array(
-            deltax_layers, size=self.nscreens, dtype=np.float32, scalar_expand=True
+            deltax_layers,
+            size=self.nscreens,
+            dtype=np.float32,
+            scalar_expand=True,
         )
 
     deltax: List[float] = property(get_deltax, set_deltax)
@@ -267,7 +273,10 @@ class ParamAtmos:
             deltay_layers (List[float]): The translation speed on the y-axis for each layer.
         """
         self.__deltay = csu.enforce_array(
-            deltay_layers, size=self.nscreens, dtype=np.float32, scalar_expand=True
+            deltay_layers,
+            size=self.nscreens,
+            dtype=np.float32,
+            scalar_expand=True,
         )
 
     deltay: List[float] = property(get_deltay, set_deltay)

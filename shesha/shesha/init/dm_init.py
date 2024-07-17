@@ -1,23 +1,20 @@
-## @package   shesha.init.dm_init
-## @brief     Initialization of a Dms object
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 
 
 import shesha.config as conf
@@ -37,22 +34,27 @@ from typing import List
 from rich.progress import track
 
 import os
+
 try:
-    shesha_dm = os.environ['SHESHA_DM_ROOT']
+    shesha_dm = os.environ["SHESHA_DM_ROOT"]
 except KeyError:
     # if SHESHA_DM_ROOT is not defined, test if SHESHA_ROOT is defined
-    if 'SHESHA_ROOT' in os.environ:
-        shesha_dm = os.environ['SHESHA_ROOT'] + "/data/dm-data"
-    else: # if SHESHA_ROOT is not defined, search for the data directory in the default package location
+    if "SHESHA_ROOT" in os.environ:
+        shesha_dm = os.environ["SHESHA_ROOT"] + "/data/dm-data"
+    else:  # if SHESHA_ROOT is not defined, search for the data directory in the default package location
         if os.path.isdir(os.path.dirname(__file__) + "/../../data/dm-data"):
             shesha_dm = os.path.dirname(__file__) + "/../../data/dm-data"
         else:
             raise RuntimeError("SHESHA_DM_ROOT and SHESHA_ROOT are not defined")
 
 
-def dm_init(context: carma_context, p_dms: List[conf.ParamDm],
-            p_tel: conf.ParamTel, p_geom: conf.ParamGeom,
-            p_wfss: List[conf.ParamWfs] = None) -> Dms:
+def dm_init(
+    context: carma_context,
+    p_dms: List[conf.ParamDm],
+    p_tel: conf.ParamTel,
+    p_geom: conf.ParamGeom,
+    p_wfss: List[conf.ParamWfs] = None,
+) -> Dms:
     """Create and initialize a Dms object on the gpu
 
     Args:
@@ -65,7 +67,7 @@ def dm_init(context: carma_context, p_dms: List[conf.ParamDm],
         Dms: (Dms): Dms object
     """
     max_extent = 0
-    if (p_wfss is not None):
+    if p_wfss is not None:
         xpos_wfs = []
         ypos_wfs = []
         for i in range(len(p_wfss)):
@@ -74,7 +76,7 @@ def dm_init(context: carma_context, p_dms: List[conf.ParamDm],
     else:
         xpos_wfs = [0]
         ypos_wfs = [0]
-    if (len(p_dms) != 0):
+    if len(p_dms) != 0:
         dms = Dms()
         types_dm = [p_dm.type for p_dm in p_dms]
         if scons.DmType.TT in types_dm:
@@ -83,16 +85,35 @@ def dm_init(context: carma_context, p_dms: List[conf.ParamDm],
                 raise RuntimeError("TT must be defined at the end of the dms parameters")
 
         for i in range(len(p_dms)):
-            max_extent = _dm_init(context, dms, p_dms[i], xpos_wfs, ypos_wfs, p_geom,
-                                  p_tel.diam, p_tel.cobs, p_tel.pupangle, max_extent)
+            max_extent = _dm_init(
+                context,
+                dms,
+                p_dms[i],
+                xpos_wfs,
+                ypos_wfs,
+                p_geom,
+                p_tel.diam,
+                p_tel.cobs,
+                p_tel.pupangle,
+                max_extent,
+            )
 
     return dms
 
 
-def _dm_init(context: carma_context, dms: Dms, p_dm: conf.ParamDm, xpos_wfs: list,
-             ypos_wfs: list, p_geom: conf.ParamGeom, diam: float, cobs: float,
-             pupAngle: float, max_extent: int):
-    """ inits a Dms object on the gpu
+def _dm_init(
+    context: carma_context,
+    dms: Dms,
+    p_dm: conf.ParamDm,
+    xpos_wfs: list,
+    ypos_wfs: list,
+    p_geom: conf.ParamGeom,
+    diam: float,
+    cobs: float,
+    pupAngle: float,
+    max_extent: int,
+):
+    """inits a Dms object on the gpu
 
     Args:
         context: (carma_context): context
@@ -119,22 +140,22 @@ def _dm_init(context: carma_context, dms: Dms, p_dm: conf.ParamDm, xpos_wfs: lis
 
     """
 
-    if (p_dm.pupoffset is not None):
+    if p_dm.pupoffset is not None:
         p_dm._puppixoffset = p_dm.pupoffset / diam * p_geom.pupdiam
     # For patchDiam
-    patchDiam = dm_util.dim_dm_patch(p_geom.pupdiam, diam, p_dm.type, p_dm.alt, xpos_wfs,
-                                     ypos_wfs)
+    patchDiam = dm_util.dim_dm_patch(p_geom.pupdiam, diam, p_dm.type, p_dm.alt, xpos_wfs, ypos_wfs)
 
-    if (p_dm.type == scons.DmType.PZT):
+    if p_dm.type == scons.DmType.PZT:
         if p_dm.file_influ_fits is None:
             if p_dm._pitch is None:
                 p_dm._pitch = patchDiam / float(p_dm.nact - 1)
-            print(f"DM pitch = {p_dm._pitch:8.5f} pix = {p_dm._pitch*diam/p_geom.pupdiam:8.5f} m",
-                    flush=True)
+            print(
+                f"DM pitch = {p_dm._pitch:8.5f} pix = {p_dm._pitch*diam/p_geom.pupdiam:8.5f} m",
+                flush=True,
+            )
             # + 2.5 pitch each side
             extent = p_dm._pitch * (p_dm.nact + p_dm.pzt_extent)
-            p_dm._n1, p_dm._n2 = dm_util.dim_dm_support(p_geom.cent, extent,
-                                                        p_geom.ssize)
+            p_dm._n1, p_dm._n2 = dm_util.dim_dm_support(p_geom.cent, extent, p_geom.ssize)
 
             # calcul defaut influsize
             make_pzt_dm(p_dm, p_geom, cobs, pupAngle)
@@ -147,18 +168,34 @@ def _dm_init(context: carma_context, dms: Dms, p_dm: conf.ParamDm, xpos_wfs: lis
         dim = max(p_dm._n2 - p_dm._n1 + 1, p_geom._mpupil.shape[0])
         p_dm._dim_screen = dim
         ninflupos = p_dm._influpos.size
-        n_npts = p_dm._ninflu.size  #// 2
-        dms.add_dm(context, p_dm.type, p_dm.alt, dim, p_dm._ntotact, p_dm._influsize,
-                   ninflupos, n_npts, p_dm.push4imat, 0, context.active_device)
-        #infludata = p_dm._influ.flatten()[p_dm._influpos]
-        dms.d_dms[-1].pzt_loadarrays(p_dm._influ, p_dm._influpos.astype(np.int32),
-                                     p_dm._ninflu, p_dm._influstart, p_dm._i1, p_dm._j1)
+        n_npts = p_dm._ninflu.size  # // 2
+        dms.add_dm(
+            context,
+            p_dm.type,
+            p_dm.alt,
+            dim,
+            p_dm._ntotact,
+            p_dm._influsize,
+            ninflupos,
+            n_npts,
+            p_dm.push4imat,
+            0,
+            context.active_device,
+        )
+        # infludata = p_dm._influ.flatten()[p_dm._influpos]
+        dms.d_dms[-1].pzt_loadarrays(
+            p_dm._influ,
+            p_dm._influpos.astype(np.int32),
+            p_dm._ninflu,
+            p_dm._influstart,
+            p_dm._i1,
+            p_dm._j1,
+        )
 
-    elif (p_dm.type == scons.DmType.TT):
-
+    elif p_dm.type == scons.DmType.TT:
         if (p_dm.alt == 0) and (max_extent != 0):
             extent = int(max_extent * 1.05)
-            if (extent % 2 != 0):
+            if extent % 2 != 0:
                 extent += 1
         else:
             extent = p_geom.pupdiam + 16
@@ -169,12 +206,22 @@ def _dm_init(context: carma_context, dms: Dms, p_dm: conf.ParamDm, xpos_wfs: lis
         dim = p_dm._n2 - p_dm._n1 + 1
         make_tiptilt_dm(p_dm, patchDiam, p_geom, diam)
         p_dm._dim_screen = dim
-        dms.add_dm(context, p_dm.type, p_dm.alt, dim, 2, dim, 1, 1, p_dm.push4imat, 0,
-                   context.active_device)
+        dms.add_dm(
+            context,
+            p_dm.type,
+            p_dm.alt,
+            dim,
+            2,
+            dim,
+            1,
+            1,
+            p_dm.push4imat,
+            0,
+            context.active_device,
+        )
         dms.d_dms[-1].tt_loadarrays(p_dm._influ)
 
-    elif (p_dm.type == scons.DmType.KL):
-
+    elif p_dm.type == scons.DmType.KL:
         extent = p_geom.pupdiam + 16
         p_dm._n1, p_dm._n2 = dm_util.dim_dm_support(p_geom.cent, extent, p_geom.ssize)
         # max_extent
@@ -187,14 +234,23 @@ def _dm_init(context: carma_context, dms: Dms, p_dm: conf.ParamDm, xpos_wfs: lis
         # ninflu = p_dm.nkl
         p_dm._dim_screen = dim
 
-        dms.add_dm(context, p_dm.type, p_dm.alt, dim, p_dm.nkl, p_dm._ncp, p_dm._nr,
-                   p_dm._npp, p_dm.push4imat, p_dm._ord.max(), context.active_device)
+        dms.add_dm(
+            context,
+            p_dm.type,
+            p_dm.alt,
+            dim,
+            p_dm.nkl,
+            p_dm._ncp,
+            p_dm._nr,
+            p_dm._npp,
+            p_dm.push4imat,
+            p_dm._ord.max(),
+            context.active_device,
+        )
 
-        dms.d_dms[-1].kl_loadarrays(p_dm._rabas, p_dm._azbas, p_dm._ord, p_dm._cr,
-                                    p_dm._cp)
+        dms.d_dms[-1].kl_loadarrays(p_dm._rabas, p_dm._azbas, p_dm._ord, p_dm._cr, p_dm._cp)
 
     else:
-
         raise TypeError("This type of DM doesn't exist ")
         # Verif
         # res1 = pol2car(*y_dm(n)._klbas,gkl_sfi(*y_dm(n)._klbas, 1));
@@ -203,10 +259,19 @@ def _dm_init(context: carma_context, dms: Dms, p_dm: conf.ParamDm, xpos_wfs: lis
     return max_extent
 
 
-def _dm_init_factorized(context: carma_context, dms: Dms, p_dm: conf.ParamDm,
-                        xpos_wfs: list, ypos_wfs: list, p_geom: conf.ParamGeom,
-                        diam: float, cobs: float, pupAngle: float, max_extent: int):
-    """ inits a Dms object on the gpu
+def _dm_init_factorized(
+    context: carma_context,
+    dms: Dms,
+    p_dm: conf.ParamDm,
+    xpos_wfs: list,
+    ypos_wfs: list,
+    p_geom: conf.ParamGeom,
+    diam: float,
+    cobs: float,
+    pupAngle: float,
+    max_extent: int,
+):
+    """inits a Dms object on the gpu
     NOTE: This is the
 
     Args:
@@ -235,16 +300,15 @@ def _dm_init_factorized(context: carma_context, dms: Dms, p_dm: conf.ParamDm,
 
     """
 
-    if (p_dm.pupoffset is not None):
+    if p_dm.pupoffset is not None:
         p_dm._puppixoffset = p_dm.pupoffset / diam * p_geom.pupdiam
     # For patchDiam
-    patchDiam = dm_util.dim_dm_patch(p_geom.pupdiam, diam, p_dm.type, p_dm.alt, xpos_wfs,
-                                     ypos_wfs)
+    patchDiam = dm_util.dim_dm_patch(p_geom.pupdiam, diam, p_dm.type, p_dm.alt, xpos_wfs, ypos_wfs)
 
     if (p_dm.type == scons.DmType.PZT) and p_dm.file_influ_fits is not None:
         init_custom_dm(p_dm, p_geom, diam)
     else:
-        if (p_dm.type == scons.DmType.PZT):
+        if p_dm.type == scons.DmType.PZT:
             p_dm._pitch = patchDiam / float(p_dm.nact - 1)
             # + 2.5 pitch each side
             extent = p_dm._pitch * (p_dm.nact + p_dm.pzt_extent)
@@ -252,15 +316,15 @@ def _dm_init_factorized(context: carma_context, dms: Dms, p_dm: conf.ParamDm,
             # calcul defaut influsize
             make_pzt_dm(p_dm, p_geom, cobs, pupAngle)
 
-        elif (p_dm.type == scons.DmType.TT):
+        elif p_dm.type == scons.DmType.TT:
             if (p_dm.alt == 0) and (max_extent != 0):
                 extent = int(max_extent * 1.05)
-                if (extent % 2 != 0):
+                if extent % 2 != 0:
                     extent += 1
             else:
                 extent = p_geom.pupdiam + 16
 
-        elif (p_dm.type == scons.DmType.KL):
+        elif p_dm.type == scons.DmType.KL:
             extent = p_geom.pupdiam + 16
         else:
             raise TypeError("This type of DM doesn't exist ")
@@ -276,33 +340,79 @@ def _dm_init_factorized(context: carma_context, dms: Dms, p_dm: conf.ParamDm,
 
     dim = max(p_dm._n2 - p_dm._n1 + 1, p_geom._mpupil.shape[0])
 
-    if (p_dm.type == scons.DmType.PZT):
+    if p_dm.type == scons.DmType.PZT:
         ninflupos = p_dm._influpos.size
-        n_npts = p_dm._ninflu.size  #// 2
-        dms.add_dm(context, p_dm.type, p_dm.alt, dim, p_dm._ntotact, p_dm._influsize,
-                   ninflupos, n_npts, p_dm.push4imat, 0, context.active_device)
-        #infludata = p_dm._influ.flatten()[p_dm._influpos]
-        dms.d_dms[-1].pzt_loadarrays(p_dm._influ, p_dm._influpos.astype(np.int32),
-                                     p_dm._ninflu, p_dm._influstart, p_dm._i1, p_dm._j1)
-    elif (p_dm.type == scons.DmType.TT):
+        n_npts = p_dm._ninflu.size  # // 2
+        dms.add_dm(
+            context,
+            p_dm.type,
+            p_dm.alt,
+            dim,
+            p_dm._ntotact,
+            p_dm._influsize,
+            ninflupos,
+            n_npts,
+            p_dm.push4imat,
+            0,
+            context.active_device,
+        )
+        # infludata = p_dm._influ.flatten()[p_dm._influpos]
+        dms.d_dms[-1].pzt_loadarrays(
+            p_dm._influ,
+            p_dm._influpos.astype(np.int32),
+            p_dm._ninflu,
+            p_dm._influstart,
+            p_dm._i1,
+            p_dm._j1,
+        )
+    elif p_dm.type == scons.DmType.TT:
         make_tiptilt_dm(p_dm, patchDiam, p_geom, diam)
-        dms.add_dm(context, p_dm.type, p_dm.alt, dim, 2, dim, 1, 1, p_dm.push4imat, 0,
-                   context.active_device)
+        dms.add_dm(
+            context,
+            p_dm.type,
+            p_dm.alt,
+            dim,
+            2,
+            dim,
+            1,
+            1,
+            p_dm.push4imat,
+            0,
+            context.active_device,
+        )
         dms.d_dms[-1].tt_loadarrays(p_dm._influ)
-    elif (p_dm.type == scons.DmType.KL):
+    elif p_dm.type == scons.DmType.KL:
         make_kl_dm(p_dm, patchDiam, p_geom, cobs)
         # ninflu = p_dm.nkl
 
-        dms.add_dm(context, p_dm.type, p_dm.alt, dim, p_dm.nkl, p_dm._ncp, p_dm._nr,
-                   p_dm._npp, p_dm.push4imat, p_dm._ord.max(), context.active_device)
-        dms.d_dms[-1].kl_loadarrays(p_dm._rabas, p_dm._azbas, p_dm._ord, p_dm._cr,
-                                    p_dm._cp)
+        dms.add_dm(
+            context,
+            p_dm.type,
+            p_dm.alt,
+            dim,
+            p_dm.nkl,
+            p_dm._ncp,
+            p_dm._nr,
+            p_dm._npp,
+            p_dm.push4imat,
+            p_dm._ord.max(),
+            context.active_device,
+        )
+        dms.d_dms[-1].kl_loadarrays(p_dm._rabas, p_dm._azbas, p_dm._ord, p_dm._cr, p_dm._cp)
 
     return max_extent
 
 
-def dm_init_standalone(context: carma_context, p_dms: list, p_geom: conf.ParamGeom,
-                       diam=1., cobs=0., pupAngle=0., wfs_xpos=[0], wfs_ypos=[0]):
+def dm_init_standalone(
+    context: carma_context,
+    p_dms: list,
+    p_geom: conf.ParamGeom,
+    diam=1.0,
+    cobs=0.0,
+    pupAngle=0.0,
+    wfs_xpos=[0],
+    wfs_ypos=[0],
+):
     """Create and initialize a Dms object on the gpu
 
     Args:
@@ -322,16 +432,25 @@ def dm_init_standalone(context: carma_context, p_dms: list, p_geom: conf.ParamGe
 
     """
     max_extent = [0]
-    if (len(p_dms) != 0):
+    if len(p_dms) != 0:
         dms = Dms()
         for i in range(len(p_dms)):
-            _dm_init(context, dms, p_dms[i], wfs_xpos, wfs_ypos, p_geom, diam, cobs,
-                     pupAngle, max_extent)
+            _dm_init(
+                context,
+                dms,
+                p_dms[i],
+                wfs_xpos,
+                wfs_ypos,
+                p_geom,
+                diam,
+                cobs,
+                pupAngle,
+                max_extent,
+            )
     return dms
 
 
-def make_pzt_dm(p_dm: conf.ParamDm, p_geom: conf.ParamGeom, cobs: float,
-                pupAngle: float):
+def make_pzt_dm(p_dm: conf.ParamDm, p_geom: conf.ParamGeom, cobs: float, pupAngle: float):
     """Compute the actuators positions and the influence functions for a pzt DM.
     NOTE: if the DM is in altitude, central obstruction is forced to 0
 
@@ -349,7 +468,7 @@ def make_pzt_dm(p_dm: conf.ParamDm, p_geom: conf.ParamGeom, cobs: float,
 
     """
     # Petal DM (segmentation of M4)
-    if (p_dm.influ_type == scons.InfluType.PETAL):
+    if p_dm.influ_type == scons.InfluType.PETAL:
         makePetalDm(p_dm, p_geom, pupAngle)
         return
 
@@ -358,17 +477,17 @@ def make_pzt_dm(p_dm: conf.ParamDm, p_geom: conf.ParamGeom, cobs: float,
     pitch = p_dm._pitch  # unit is pixels
     smallsize = 0
 
-    if (p_dm.influ_type == scons.InfluType.RADIALSCHWARTZ):
+    if p_dm.influ_type == scons.InfluType.RADIALSCHWARTZ:
         smallsize = influ_util.makeRadialSchwartz(pitch, coupling)
-    elif (p_dm.influ_type == scons.InfluType.SQUARESCHWARTZ):
+    elif p_dm.influ_type == scons.InfluType.SQUARESCHWARTZ:
         smallsize = influ_util.makeSquareSchwartz(pitch, coupling)
-    elif (p_dm.influ_type == scons.InfluType.BLACKNUTT):
+    elif p_dm.influ_type == scons.InfluType.BLACKNUTT:
         smallsize = influ_util.makeBlacknutt(pitch, coupling)
-    elif (p_dm.influ_type == scons.InfluType.GAUSSIAN):
+    elif p_dm.influ_type == scons.InfluType.GAUSSIAN:
         smallsize = influ_util.makeGaussian(pitch, coupling)
-    elif (p_dm.influ_type == scons.InfluType.BESSEL):
+    elif p_dm.influ_type == scons.InfluType.BESSEL:
         smallsize = influ_util.makeBessel(pitch, coupling, p_dm.type_pattern)
-    elif (p_dm.influ_type == scons.InfluType.DEFAULT):
+    elif p_dm.influ_type == scons.InfluType.DEFAULT:
         smallsize = influ_util.makeRigaut(pitch, coupling)
     else:
         print("ERROR influtype not recognized ")
@@ -387,12 +506,16 @@ def make_pzt_dm(p_dm: conf.ParamDm, p_geom: conf.ParamGeom, cobs: float,
         p_dm.keep_all_actu = True
         xypos = dm_util.createDoubleHexaPattern(pitch, p_geom.pupdiam * 1.1, pupAngle)
         if p_dm.margin_out is not None:
-            print(f'p_dm.margin_out={p_dm.margin_out} is being '
-                  'used for pupil-based actuator filtering')
+            print(
+                f"p_dm.margin_out={p_dm.margin_out} is being "
+                "used for pupil-based actuator filtering"
+            )
             pup_side = p_geom._ipupil.shape[0]
-            cub_off = dm_util.filterActuWithPupil(xypos + pup_side // 2 - 0.5,
-                                                  p_geom._ipupil,
-                                                  p_dm.margin_out * p_dm.get_pitch())
+            cub_off = dm_util.filterActuWithPupil(
+                xypos + pup_side // 2 - 0.5,
+                p_geom._ipupil,
+                p_dm.margin_out * p_dm.get_pitch(),
+            )
             xypos = cub_off - pup_side // 2 + 0.5
             p_dm.set_ntotact(xypos.shape[1])
     elif p_dm.type_pattern == scons.PatternType.SQUARE:
@@ -404,11 +527,18 @@ def make_pzt_dm(p_dm: conf.ParamDm, p_geom: conf.ParamGeom, cobs: float,
     if p_dm.keep_all_actu:
         inbigcirc = np.arange(xypos.shape[1])
     else:
-        if (p_dm.alt > 0):
+        if p_dm.alt > 0:
             cobs = 0
-        inbigcirc = dm_util.select_actuators(xypos[0, :], xypos[1, :], p_dm.nact,
-                                             p_dm._pitch, cobs, p_dm.margin_in,
-                                             p_dm.margin_out, p_dm._ntotact)
+        inbigcirc = dm_util.select_actuators(
+            xypos[0, :],
+            xypos[1, :],
+            p_dm.nact,
+            p_dm._pitch,
+            cobs,
+            p_dm.margin_in,
+            p_dm.margin_out,
+            p_dm._ntotact,
+        )
     p_dm._ntotact = inbigcirc.size
 
     # converting to array coordinates:
@@ -433,39 +563,41 @@ def make_pzt_dm(p_dm: conf.ParamDm, p_geom: conf.ParamGeom, cobs: float,
     # Computation of influence function for each actuator
     print("Computing Influence Function type : ", p_dm.influ_type)
     for i in track(range(ntotact)):
-
         i1 = i1t[i]
-        x = np.tile(np.arange(i1, i1 + smallsize, dtype=np.float32),
-                    (smallsize, 1)).T  # pixel coords in ref frame "dm support"
+        x = np.tile(
+            np.arange(i1, i1 + smallsize, dtype=np.float32), (smallsize, 1)
+        ).T  # pixel coords in ref frame "dm support"
         # pixel coords in ref frame "pupil support"
         x += p_dm._n1
         # pixel coords in local ref frame
         x -= xpos[i]
 
         j1 = j1t[i]
-        y = np.tile(np.arange(j1, j1 + smallsize, dtype=np.float32),
-                    (smallsize, 1))  # idem as X, in Y
+        y = np.tile(
+            np.arange(j1, j1 + smallsize, dtype=np.float32), (smallsize, 1)
+        )  # idem as X, in Y
         y += p_dm._n1
         y -= ypos[i]
         # print("Computing Influence Function #%d/%d \r" % (i, ntotact), end=' ')
 
-        if (p_dm.influ_type == scons.InfluType.RADIALSCHWARTZ):
+        if p_dm.influ_type == scons.InfluType.RADIALSCHWARTZ:
             influ[:, :, i] = influ_util.makeRadialSchwartz(pitch, coupling, x=x, y=y)
-        elif (p_dm.influ_type == scons.InfluType.SQUARESCHWARTZ):
+        elif p_dm.influ_type == scons.InfluType.SQUARESCHWARTZ:
             influ[:, :, i] = influ_util.makeSquareSchwartz(pitch, coupling, x=x, y=y)
-        elif (p_dm.influ_type == scons.InfluType.BLACKNUTT):
+        elif p_dm.influ_type == scons.InfluType.BLACKNUTT:
             influ[:, :, i] = influ_util.makeBlacknutt(pitch, coupling, x=x, y=y)
-        elif (p_dm.influ_type == scons.InfluType.GAUSSIAN):
+        elif p_dm.influ_type == scons.InfluType.GAUSSIAN:
             influ[:, :, i] = influ_util.makeGaussian(pitch, coupling, x=x, y=y)
-        elif (p_dm.influ_type == scons.InfluType.BESSEL):
-            influ[:, :, i] = influ_util.makeBessel(pitch, coupling, x=x, y=y,
-                                                   patternType=p_dm.type_pattern)
-        elif (p_dm.influ_type == scons.InfluType.DEFAULT):
+        elif p_dm.influ_type == scons.InfluType.BESSEL:
+            influ[:, :, i] = influ_util.makeBessel(
+                pitch, coupling, x=x, y=y, patternType=p_dm.type_pattern
+            )
+        elif p_dm.influ_type == scons.InfluType.DEFAULT:
             influ[:, :, i] = influ_util.makeRigaut(pitch, coupling, x=x, y=y)
         else:
             print("ERROR influtype not recognized (defaut or gaussian or bessel)")
 
-    if (p_dm._puppixoffset is not None):
+    if p_dm._puppixoffset is not None:
         xpos += p_dm._puppixoffset[0]
         ypos += p_dm._puppixoffset[1]
 
@@ -475,23 +607,26 @@ def make_pzt_dm(p_dm: conf.ParamDm, p_geom: conf.ParamGeom, cobs: float,
         s = (p_geom._ipupil.shape[0] - p_geom._mpupil.shape[0]) // 2
 
         from skimage.morphology import label
+
         k = 0
         for i in track(range(ntotact)):
             # Pupil area corresponding to influ data
             i1, j1 = i1t[i] + s - smallsize // 2, j1t[i] + s - smallsize // 2
-            pupilSnapshot = p_geom._ipupil[i1:i1 + smallsize, j1:j1 + smallsize]
+            pupilSnapshot = p_geom._ipupil[i1 : i1 + smallsize, j1 : j1 + smallsize]
             if np.all(pupilSnapshot):  # We have at least one non-pupil pixel
                 continue
             labels, num = label(pupilSnapshot, background=0, return_num=True)
             if num <= 1:
                 continue
             k += 1
-            maxPerArea = np.array([
+            maxPerArea = np.array(
+                [
                     (influ[:, :, i] * (labels == k).astype(np.float32)).max()
                     for k in range(1, num + 1)
-            ])
+                ]
+            )
             influ[:, :, i] *= (labels == np.argmax(maxPerArea) + 1).astype(np.float32)
-        print(f'{k} cross-spider influence functions trimmed.')
+        print(f"{k} cross-spider influence functions trimmed.")
 
     influ = influ * float(p_dm.unitpervolt / np.max(influ))
 
@@ -501,7 +636,6 @@ def make_pzt_dm(p_dm: conf.ParamDm, p_geom: conf.ParamGeom, cobs: float,
 
     # dim = max(p_geom._mpupil.shape[0], p_dm._n2 - p_dm._n1 + 1)
     # off = (dim - p_dm._influsize) // 2
-
 
 
 def init_custom_dm(p_dm: conf.ParamDm, p_geom: conf.ParamGeom, diam: float):
@@ -537,52 +671,55 @@ def init_custom_dm(p_dm: conf.ParamDm, p_geom: conf.ParamGeom, diam: float):
 
     # read fits file
     file_name = p_dm.file_influ_fits
-    if(not os.path.isfile(file_name)):
+    if not os.path.isfile(file_name):
         file_name = shesha_dm + "/" + p_dm.file_influ_fits
 
     hdul = pfits.open(file_name)
     print("Read influence function from fits file : ", file_name)
 
-    dm_fits_version = hdul[0].header['VERSION']
+    dm_fits_version = hdul[0].header["VERSION"]
 
     # read mandatory keywords from the FITS file
-    f_xC = hdul[0].header['XCENTER']
-    f_yC = hdul[0].header['YCENTER']
-    f_pixsize = hdul[0].header['PIXSIZE']
-    if(dm_fits_version < 1.2 ):
-        fi_i1 , fi_j1  = hdul[1].data
-        f_influ        = hdul[2].data
+    f_xC = hdul[0].header["XCENTER"]
+    f_yC = hdul[0].header["YCENTER"]
+    f_pixsize = hdul[0].header["PIXSIZE"]
+    if dm_fits_version < 1.2:
+        fi_i1, fi_j1 = hdul[1].data
+        f_influ = hdul[2].data
         f_xpos, f_ypos = hdul[3].data
     else:
-        fi_i1, fi_j1 = hdul['I1_J1'].data
-        f_influ = hdul['INFLU'].data
-        f_xpos, f_ypos = hdul['XPOS_YPOS'].data
+        fi_i1, fi_j1 = hdul["I1_J1"].data
+        f_influ = hdul["INFLU"].data
+        f_xpos, f_ypos = hdul["XPOS_YPOS"].data
 
     # Analysis of the requirements set in the COMPASS configuration file
-    cases = [ p_dm.diam_dm is not None, p_dm._pitch is not None,
-              p_dm.diam_dm_proj is not None ]
+    cases = [
+        p_dm.diam_dm is not None,
+        p_dm._pitch is not None,
+        p_dm.diam_dm_proj is not None,
+    ]
 
     # Projecting the dm in the tel pupil plane with the desired factor
     if cases == [False, False, False]:
-        f_pupm = hdul[0].header['PUPM']
+        f_pupm = hdul[0].header["PUPM"]
         scale = diam / f_pupm
-        print('Custom DM: stretching DM to fit PUPM (%f) to compass (%f)' % (f_pupm, diam))
+        print("Custom DM: stretching DM to fit PUPM (%f) to compass (%f)" % (f_pupm, diam))
     elif cases == [True, False, False]:
         scale = diam / p_dm.diam_dm
     elif cases == [False, True, False]:
-        f_pitchm = hdul[0].header['PITCHM']
+        f_pitchm = hdul[0].header["PITCHM"]
         scale = p_dm._pitch / f_pitchm
     elif cases == [False, False, True]:
-        f_pupm = hdul[0].header['PUPM']
+        f_pupm = hdul[0].header["PUPM"]
         scale = p_dm.diam_dm_proj / f_pupm
     else:
-        err_msg = '''Invalid rescaling parameters
+        err_msg = """Invalid rescaling parameters
         To set the scale of the custom dm, MAXIMUM ONE of the following parameters should be set:
         - p_dm.set_pitch(val) : if the pitch in the tel pupil plane is known
         - p_dm.set_diam_dm(val) : if the pupil diameter in the dm plane is known
         - p_dm.set_diam_dm_proj(val) : if the dm pupil diameter projected in the tel pupil plane is known
         If none of the above is set, the dm will be scaled so that the PUPM parameter in the fits file matches the tel pupil.
-        '''
+        """
         raise RuntimeError(err_msg)
 
     f_pixsize *= scale
@@ -602,14 +739,16 @@ def init_custom_dm(p_dm: conf.ParamDm, p_geom: conf.ParamGeom, diam: float):
     # computing IF spport size in compass system
     iSize, jSize, ntotact = f_influ.shape
     if iSize != jSize:
-        raise ('Error')
+        raise ("Error")
 
-    ess1 = np.ceil((fi_i1+iSize) * scaleToCompass + offsetXToCompass) \
-        - np.floor(fi_i1 * scaleToCompass + offsetXToCompass)
+    ess1 = np.ceil((fi_i1 + iSize) * scaleToCompass + offsetXToCompass) - np.floor(
+        fi_i1 * scaleToCompass + offsetXToCompass
+    )
     ess1 = np.max(ess1)
 
-    ess2 = np.ceil((fi_j1+jSize) * scaleToCompass + offsetYToCompass) \
-        - np.floor(fi_j1 * scaleToCompass + offsetYToCompass)
+    ess2 = np.ceil((fi_j1 + jSize) * scaleToCompass + offsetYToCompass) - np.floor(
+        fi_j1 * scaleToCompass + offsetYToCompass
+    )
     ess2 = np.max(ess2)
     smallsize = np.maximum(ess1, ess2).astype(int)
 
@@ -669,8 +808,7 @@ def init_custom_dm(p_dm: conf.ParamDm, p_geom: conf.ParamGeom, diam: float):
     comp_dmgeom(p_dm, p_geom)
 
 
-def make_tiptilt_dm(p_dm: conf.ParamDm, patchDiam: int, p_geom: conf.ParamGeom,
-                    diam: float):
+def make_tiptilt_dm(p_dm: conf.ParamDm, patchDiam: int, p_geom: conf.ParamGeom, diam: float):
     """Compute the influence functions for a tip-tilt DM
 
     Args:
@@ -686,15 +824,20 @@ def make_tiptilt_dm(p_dm: conf.ParamDm, patchDiam: int, p_geom: conf.ParamGeom,
 
     """
     dim = max(p_dm._n2 - p_dm._n1 + 1, p_geom._mpupil.shape[0])
-    #norms = [np.linalg.norm([w.xpos, w.ypos]) for w in p_wfs]
+    # norms = [np.linalg.norm([w.xpos, w.ypos]) for w in p_wfs]
 
     nzer = 2
-    influ = dm_util.make_zernike(nzer + 1, dim, patchDiam, p_geom.cent - p_dm._n1 - 0.5,
-                                 p_geom.cent - p_dm._n1 - 0.5, 1)[:, :, 1:]
+    influ = dm_util.make_zernike(
+        nzer + 1,
+        dim,
+        patchDiam,
+        p_geom.cent - p_dm._n1 - 0.5,
+        p_geom.cent - p_dm._n1 - 0.5,
+        1,
+    )[:, :, 1:]
 
     # normalization factor: one unit of tilt gives 1 arcsec:
-    current = influ[dim // 2 - 1, dim // 2 - 1, 0] - \
-        influ[dim // 2 - 2, dim // 2 - 2, 0]
+    current = influ[dim // 2 - 1, dim // 2 - 1, 0] - influ[dim // 2 - 2, dim // 2 - 2, 0]
     fact = p_dm.unitpervolt * diam / p_geom.pupdiam * 4.848 / current
 
     influ = influ * fact
@@ -705,8 +848,7 @@ def make_tiptilt_dm(p_dm: conf.ParamDm, patchDiam: int, p_geom: conf.ParamGeom,
     return influ
 
 
-def make_kl_dm(p_dm: conf.ParamDm, patchDiam: int, p_geom: conf.ParamGeom,
-               cobs: float) -> None:
+def make_kl_dm(p_dm: conf.ParamDm, patchDiam: int, p_geom: conf.ParamGeom, cobs: float) -> None:
     """Compute the influence function for a Karhunen-Loeve DM
 
     Args:
@@ -723,7 +865,7 @@ def make_kl_dm(p_dm: conf.ParamDm, patchDiam: int, p_geom: conf.ParamGeom,
 
     print("KL type: ", p_dm.type_kl)
 
-    if (p_dm.nkl < 13):
+    if p_dm.nkl < 13:
         nr = np.int64(5.0 * np.sqrt(52))  # one point per degree
         npp = np.int64(10.0 * nr)
     else:
@@ -739,7 +881,8 @@ def make_kl_dm(p_dm: conf.ParamDm, patchDiam: int, p_geom: conf.ParamGeom,
     azbas = kl_util.make_azimuth(nord, npp)
 
     ncp, ncmar, px, py, cr, cp, pincx, pincy, pincw, ap = kl_util.set_pctr(
-            patchDiam, nr, npp, p_dm.nkl, cobs, nord)
+        patchDiam, nr, npp, p_dm.nkl, cobs, nord
+    )
 
     p_dm._ntotact = p_dm.nkl
     p_dm._nr = nr  # number of radial points
@@ -750,10 +893,8 @@ def make_kl_dm(p_dm: conf.ParamDm, patchDiam: int, p_geom: conf.ParamGeom,
     p_dm._ncp = ncp  # dim of grid
     p_dm._cr = cr  # radial coord in cartesien grid
     p_dm._cp = cp  # phi coord in cartesien grid
-    p_dm._i1 = np.zeros((p_dm.nkl), dtype=np.int32) + \
-        (dim - patchDiam) // 2
-    p_dm._j1 = np.zeros((p_dm.nkl), dtype=np.int32) + \
-        (dim - patchDiam) // 2
+    p_dm._i1 = np.zeros((p_dm.nkl), dtype=np.int32) + (dim - patchDiam) // 2
+    p_dm._j1 = np.zeros((p_dm.nkl), dtype=np.int32) + (dim - patchDiam) // 2
     p_dm._ntotact = p_dm.nkl
     p_dm.ap = ap
 
@@ -771,11 +912,11 @@ def comp_dmgeom(p_dm: conf.ParamDm, p_geom: conf.ParamGeom):
     dm_dim = int(p_dm._n2 - p_dm._n1 + 1)
     mpup_dim = p_geom._mpupil.shape[0]
 
-    if (dm_dim < mpup_dim):
-        print('DM support is smaller than mpupil')
+    if dm_dim < mpup_dim:
+        print("DM support is smaller than mpupil")
         offs = (mpup_dim - dm_dim) // 2
     else:
-        print('DM support is larger than mpupil')
+        print("DM support is larger than mpupil")
         offs = 0
         mpup_dim = dm_dim
 
@@ -810,7 +951,7 @@ def comp_dmgeom(p_dm: conf.ParamDm, p_geom: conf.ParamGeom):
         npts[tmps_unique[i]] = cpt[i]
     istart[1:] = np.cumsum(npts[:-1])
 
-    p_dm._influpos = itmps[:np.sum(npts)].astype(np.int32)
+    p_dm._influpos = itmps[: np.sum(npts)].astype(np.int32)
     # infludata = p_dm._influ.flatten()[p_dm._influpos]
     # p_dm._influ = infludata[:,None,None]
     # p_dm._influpos = p_dm._influpos / (smallsize * smallsize)
@@ -827,9 +968,16 @@ def comp_dmgeom(p_dm: conf.ParamDm, p_geom: conf.ParamGeom):
     # p_dm._ninflu = ninflu
 
 
-def correct_dm(context, dms: Dms, p_dms: list, p_controller: conf.ParamController,
-               p_geom: conf.ParamGeom, imat: np.ndarray = None, dataBase: dict = {},
-               use_DB: bool = False):
+def correct_dm(
+    context,
+    dms: Dms,
+    p_dms: list,
+    p_controller: conf.ParamController,
+    p_geom: conf.ParamGeom,
+    imat: np.ndarray = None,
+    dataBase: dict = {},
+    use_DB: bool = False,
+):
     """Correct the geometry of the DMs using the imat (filter unseen actuators)
 
     Args:
@@ -853,10 +1001,11 @@ def correct_dm(context, dms: Dms, p_dms: list, p_controller: conf.ParamControlle
         nm = p_controller.ndm[nmc]
         nactu_nm = p_dms[nm]._ntotact
         # filter actuators only in stackarray mirrors:
-        if (p_dms[nm].type == scons.DmType.PZT):
+        if p_dms[nm].type == scons.DmType.PZT:
             if "dm" in dataBase:
                 influpos, ninflu, influstart, i1, j1, ok = h5u.load_dm_geom_from_dataBase(
-                        dataBase, nmc)
+                    dataBase, nmc
+                )
                 p_dms[nm].set_ntotact(ok.shape[0])
                 p_dms[nm].set_influ(p_dms[nm]._influ[:, :, ok.tolist()])
                 p_dms[nm].set_xpos(p_dms[nm]._xpos[ok])
@@ -867,7 +1016,7 @@ def correct_dm(context, dms: Dms, p_dms: list, p_controller: conf.ParamControlle
                 p_dms[nm]._i1 = i1
                 p_dms[nm]._j1 = j1
             else:
-                tmp = resp[inds:inds + p_dms[nm]._ntotact]
+                tmp = resp[inds : inds + p_dms[nm]._ntotact]
                 ok = np.where(tmp > p_dms[nm].thresh * np.max(tmp))[0]
                 # nok = np.where(tmp <= p_dms[nm].thresh * np.max(tmp))[0]
 
@@ -880,30 +1029,53 @@ def correct_dm(context, dms: Dms, p_dms: list, p_controller: conf.ParamControlle
 
                 comp_dmgeom(p_dms[nm], p_geom)
                 if use_DB:
-                    h5u.save_dm_geom_in_dataBase(nmc, p_dms[nm]._influpos,
-                                                 p_dms[nm]._ninflu,
-                                                 p_dms[nm]._influstart, p_dms[nm]._i1,
-                                                 p_dms[nm]._j1, ok)
+                    h5u.save_dm_geom_in_dataBase(
+                        nmc,
+                        p_dms[nm]._influpos,
+                        p_dms[nm]._ninflu,
+                        p_dms[nm]._influstart,
+                        p_dms[nm]._i1,
+                        p_dms[nm]._j1,
+                        ok,
+                    )
 
             dim = max(p_dms[nm]._n2 - p_dms[nm]._n1 + 1, p_geom._mpupil.shape[0])
             ninflupos = p_dms[nm]._influpos.size
             n_npts = p_dms[nm]._ninflu.size
             dms.remove_dm(nm)
-            dms.insert_dm(context, p_dms[nm].type, p_dms[nm].alt, dim,
-                          p_dms[nm]._ntotact, p_dms[nm]._influsize, ninflupos, n_npts,
-                          p_dms[nm].push4imat, 0, p_dms[nm].dx / p_geom._pixsize,
-                          p_dms[nm].dy / p_geom._pixsize, p_dms[nm].theta, p_dms[nm].G,
-                          context.active_device, nm)
-            dms.d_dms[nm].pzt_loadarrays(p_dms[nm]._influ, p_dms[nm]._influpos.astype(
-                    np.int32), p_dms[nm]._ninflu, p_dms[nm]._influstart, p_dms[nm]._i1,
-                                         p_dms[nm]._j1)
+            dms.insert_dm(
+                context,
+                p_dms[nm].type,
+                p_dms[nm].alt,
+                dim,
+                p_dms[nm]._ntotact,
+                p_dms[nm]._influsize,
+                ninflupos,
+                n_npts,
+                p_dms[nm].push4imat,
+                0,
+                p_dms[nm].dx / p_geom._pixsize,
+                p_dms[nm].dy / p_geom._pixsize,
+                p_dms[nm].theta,
+                p_dms[nm].G,
+                context.active_device,
+                nm,
+            )
+            dms.d_dms[nm].pzt_loadarrays(
+                p_dms[nm]._influ,
+                p_dms[nm]._influpos.astype(np.int32),
+                p_dms[nm]._ninflu,
+                p_dms[nm]._influstart,
+                p_dms[nm]._i1,
+                p_dms[nm]._j1,
+            )
 
         inds += nactu_nm
     print("Done")
 
 
 def makePetalDm(p_dm, p_geom, pupAngleDegree):
-    '''
+    """
     makePetalDm(p_dm, p_geom, pupAngleDegree)
 
     The function builds a DM, segmented in petals according to the pupil
@@ -916,7 +1088,7 @@ def makePetalDm(p_dm, p_geom, pupAngleDegree):
     <pupAngleDegree> : rotation/clocking angle of the pupil in degrees
 
 
-    '''
+    """
     p_dm._n1 = p_geom._n1
     p_dm._n2 = p_geom._n2
     influ, i1, j1, smallsize, nbSeg = make_petal_dm_core(p_geom._mpupil, pupAngleDegree)
@@ -949,6 +1121,7 @@ def make_petal_dm_core(pupImage, pupAngleDegree):
     # be identified as relevant connex areas
     from scipy.ndimage import label
     from scipy.ndimage.morphology import binary_opening
+
     s = np.ones((2, 2), dtype=bool)
     segments, nbSeg = label(binary_opening(pupImage, s))
 
@@ -995,10 +1168,10 @@ def make_petal_dm_core(pupImage, pupAngleDegree):
             j1 = npt - smallsize
         if (i1 + smallsize) > npt:
             i1 = npt - smallsize
-        #petal = segments==(i+1) # determine le segment pupille veritable
+        # petal = segments==(i+1) # determine le segment pupille veritable
         k = petalMap[i1 + smallsize // 2, j1 + smallsize // 2]
-        petal = (petalMap == k)
-        influ[:, :, k] = petal[i1:i1 + smallsize, j1:j1 + smallsize]
+        petal = petalMap == k
+        influ[:, :, k] = petal[i1 : i1 + smallsize, j1 : j1 + smallsize]
         ii1[k] = i1
         jj1[k] = j1
 
@@ -1031,7 +1204,7 @@ def build_petals(nbSeg, pupAngleDegree, i0, j0, npt):
     esoOffsetAngle = -np.pi / 6  # -30°, ESO definition.
     x = np.arange(npt) - i0
     y = np.arange(npt) - j0
-    X, Y = np.meshgrid(x, y, indexing='ij')
+    X, Y = np.meshgrid(x, y, indexing="ij")
     theta = (np.arctan2(Y, X) - rot + 2 * np.pi - esoOffsetAngle) % (2 * np.pi)
 
     # Compute separation angle between segments: start and end.

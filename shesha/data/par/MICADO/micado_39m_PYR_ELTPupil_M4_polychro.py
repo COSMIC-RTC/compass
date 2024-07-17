@@ -9,21 +9,21 @@ layout = "layoutDeArielle"
 p_loop = conf.ParamLoop()
 
 p_loop.set_niter(1000)
-p_loop.set_ittime(1 / 500.)  # =1/500
+p_loop.set_ittime(1 / 500.0)  # =1/500
 p_loop.set_devices([0, 1, 2, 3])
 # geom
 p_geom = conf.ParamGeom()
-p_geom.set_zenithangle(0.)
+p_geom.set_zenithangle(0.0)
 
 # tel
 p_tel = conf.ParamTel()
 
-#E_ELT PUPIL Rico like
+# E_ELT PUPIL Rico like
 p_tel.set_type_ap("EELT")
 p_tel.set_diam(40)
-p_tel.set_pupangle(0.)  #ELT pup rotation in degrees
+p_tel.set_pupangle(0.0)  # ELT pup rotation in degrees
 # p_tel.set_t_spiders(0.51)  #Spider size in meters
-p_tel.set_t_spiders(0.51)  #Spider size in meters
+p_tel.set_t_spiders(0.51)  # Spider size in meters
 
 """
 #E_ELT PUPIL Alexis like
@@ -47,23 +47,122 @@ p_tel.set_std_piston(0.050) # microns
 
 r0Q3 = 0.1275
 
-zenithAngle = 30.
-altESO = np.array([
-        30, 90, 150, 200, 245, 300, 390, 600, 1130, 1880, 2630, 3500, 4500, 5500, 6500,
-        7500, 8500, 9500, 10500, 11500, 12500, 13500, 14500, 15500, 16500, 17500, 18500,
-        19500, 20500, 21500, 22500, 23500, 24500, 25500, 26500
-]) / np.cos(zenithAngle * 2 * np.pi / 360)
+zenithAngle = 30.0
+altESO = np.array(
+    [
+        30,
+        90,
+        150,
+        200,
+        245,
+        300,
+        390,
+        600,
+        1130,
+        1880,
+        2630,
+        3500,
+        4500,
+        5500,
+        6500,
+        7500,
+        8500,
+        9500,
+        10500,
+        11500,
+        12500,
+        13500,
+        14500,
+        15500,
+        16500,
+        17500,
+        18500,
+        19500,
+        20500,
+        21500,
+        22500,
+        23500,
+        24500,
+        25500,
+        26500,
+    ]
+) / np.cos(zenithAngle * 2 * np.pi / 360)
 altESO = altESO.astype(int)
 
 fracQ3 = [
-        25.5, 11.9, 9.32, 5.57, 4.5, 4.5, 4.5, 4.5, 4.19, 4.04, 2.02, 3.04, 1.82, 1.21,
-        0.86, 1.03, 0.34, 1.2, 1.11, 0.6, 1.43, 2.31, 1.7, 0.88, 0.55, 0.36, 0.22, 0.19,
-        0.17, 0.12, 0.1, 0.06, 0.08, 0.04, 0.04
+    25.5,
+    11.9,
+    9.32,
+    5.57,
+    4.5,
+    4.5,
+    4.5,
+    4.5,
+    4.19,
+    4.04,
+    2.02,
+    3.04,
+    1.82,
+    1.21,
+    0.86,
+    1.03,
+    0.34,
+    1.2,
+    1.11,
+    0.6,
+    1.43,
+    2.31,
+    1.7,
+    0.88,
+    0.55,
+    0.36,
+    0.22,
+    0.19,
+    0.17,
+    0.12,
+    0.1,
+    0.06,
+    0.08,
+    0.04,
+    0.04,
 ]
 
 windESO = [
-        5.5, 5.5, 5.1, 5.5, 5.6, 5.7, 5.8, 6, 6.5, 7, 7.5, 8.5, 9.5, 11.5, 17.5, 23, 26,
-        29, 32, 27, 22, 14.5, 9.5, 6.3, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10, 10
+    5.5,
+    5.5,
+    5.1,
+    5.5,
+    5.6,
+    5.7,
+    5.8,
+    6,
+    6.5,
+    7,
+    7.5,
+    8.5,
+    9.5,
+    11.5,
+    17.5,
+    23,
+    26,
+    29,
+    32,
+    27,
+    22,
+    14.5,
+    9.5,
+    6.3,
+    5.5,
+    6,
+    6.5,
+    7,
+    7.5,
+    8,
+    8.5,
+    9,
+    9.5,
+    10,
+    10,
 ]
 
 r0 = r0Q3
@@ -76,7 +175,6 @@ nbLayers = len(alt)
 # atmos
 p_atmos = conf.ParamAtmos()
 
-## 1 Layer
 
 p_atmos.set_r0(0.129)
 # p_atmos.set_r0(0.215)
@@ -84,10 +182,9 @@ p_atmos.set_nscreens(1)
 p_atmos.set_frac([1.0])
 p_atmos.set_alt([0.0])
 p_atmos.set_windspeed([9.1])
-p_atmos.set_winddir([45.])
-p_atmos.set_L0([25.])  # Not simulated in Yorick?
+p_atmos.set_winddir([45.0])
+p_atmos.set_L0([25.0])  # Not simulated in Yorick?
 
-## 35 Layers
 
 # p_atmos.set_r0(r0)
 # p_atmos.set_nscreens(nbLayers)
@@ -98,20 +195,20 @@ p_atmos.set_L0([25.])  # Not simulated in Yorick?
 # p_atmos.set_L0([25.] * nbLayers)  # Not simulated in Yorick?
 
 # target
-#p_target = conf.ParamTarget()
-#p_target.set_nTargets(1)
-#p_target.set_xpos([0])
-#p_target.set_ypos([0.])
-#p_target.set_Lambda([1.65])
-#p_target.set_mag([4.])
+# p_target = conf.ParamTarget()
+# p_target.set_nTargets(1)
+# p_target.set_xpos([0])
+# p_target.set_ypos([0.])
+# p_target.set_Lambda([1.65])
+# p_target.set_mag([4.])
 
 # 3 Lambda targets
-#p_target=conf.ParamTarget()
-#p_target.set_nTargets(3)
-#p_target.set_xpos([0, 0, 0])
-#p_target.set_ypos([0, 0, 0])
-#p_target.set_Lambda([1.2, 1.65, 2.2])
-#p_target.set_mag([4, 4., 4])
+# p_target=conf.ParamTarget()
+# p_target.set_nTargets(3)
+# p_target.set_xpos([0, 0, 0])
+# p_target.set_ypos([0, 0, 0])
+# p_target.set_Lambda([1.2, 1.65, 2.2])
+# p_target.set_mag([4, 4., 4])
 
 # 1 Lambda targets
 p_target = conf.ParamTarget()
@@ -124,74 +221,80 @@ p_target.set_mag(4)
 p_wfs0 = conf.ParamWfs(roket=True)
 p_wfs1 = conf.ParamWfs(roket=True)
 p_wfs2 = conf.ParamWfs(roket=True)
-#p_wfs0= conf.ParamWfs()
+# p_wfs0= conf.ParamWfs()
 p_wfss = [p_wfs0, p_wfs1, p_wfs2]
 
-p_wfs0.set_type("pyrhr") # type de WFS: "sh", "pyrhr", "pyr"
+p_wfs0.set_type("pyrhr")  # type de WFS: "sh", "pyrhr", "pyr"
 
 p_wfs0.set_nxsub(
-        92
+    92
 )  # 92 sub aps for hexagonal grid of actuators eq. 78 subaps square grid. (pitch = 0.5m)
-p_wfs0.set_fracsub(0.01) # 0.01 for pixels below spider, nominal = 0.1 Minimal illumination fraction
-p_wfs0.set_xpos(0.)     # direction of guide star in X (arcsec)
-p_wfs0.set_ypos(0.)     # direction of guide star in Y (arcsec)
+p_wfs0.set_fracsub(
+    0.01
+)  # 0.01 for pixels below spider, nominal = 0.1 Minimal illumination fraction
+p_wfs0.set_xpos(0.0)  # direction of guide star in X (arcsec)
+p_wfs0.set_ypos(0.0)  # direction of guide star in Y (arcsec)
 p_wfs0.set_Lambda(0.7)  # wavelength (microns)
-p_wfs0.set_gsmag(11)    # magnitude of guide star
-p_wfs0.set_optthroughput(0.28) # optical transmission
+p_wfs0.set_gsmag(11)  # magnitude of guide star
+p_wfs0.set_optthroughput(0.28)  # optical transmission
 p_wfs0.set_zerop(2.6e10)  # 2.6e10 ph/s/m**2 computed by Rico in R band for MOSAIC
-p_wfs0.set_noise(0.3)   # units: electrons/pixel
-p_wfs0.set_atmos_seen(1)   # tell if atmos is seen or not
-p_wfs0.set_fstop("square") # shape of field stop, "round", "square"
-p_wfs0.set_fssize(1.6)     # size of field stop (arcsec)
-rMod = 3.  # Modulation radius, in lam/D units
-nbPtMod = int(np.ceil(int(rMod * 2 * 3.141592653589793) / 4.) * 4)
-p_wfs0.set_pyr_npts(nbPtMod) # nb pts modu around circle
+p_wfs0.set_noise(0.3)  # units: electrons/pixel
+p_wfs0.set_atmos_seen(1)  # tell if atmos is seen or not
+p_wfs0.set_fstop("square")  # shape of field stop, "round", "square"
+p_wfs0.set_fssize(1.6)  # size of field stop (arcsec)
+rMod = 3.0  # Modulation radius, in lam/D units
+nbPtMod = int(np.ceil(int(rMod * 2 * 3.141592653589793) / 4.0) * 4)
+p_wfs0.set_pyr_npts(nbPtMod)  # nb pts modu around circle
 p_wfs0.set_pyr_ampl(rMod)  # define modulation amplitude
 
 
-p_wfs1.set_type("pyrhr") # type de WFS: "sh", "pyrhr", "pyr"
+p_wfs1.set_type("pyrhr")  # type de WFS: "sh", "pyrhr", "pyr"
 
 p_wfs1.set_nxsub(
-        92
+    92
 )  # 92 sub aps for hexagonal grid of actuators eq. 78 subaps square grid. (pitch = 0.5m)
-p_wfs1.set_fracsub(0.01) # 0.01 for pixels below spider, nominal = 0.1 Minimal illumination fraction
-p_wfs1.set_xpos(0.)     # direction of guide star in X (arcsec)
-p_wfs1.set_ypos(0.)     # direction of guide star in Y (arcsec)
+p_wfs1.set_fracsub(
+    0.01
+)  # 0.01 for pixels below spider, nominal = 0.1 Minimal illumination fraction
+p_wfs1.set_xpos(0.0)  # direction of guide star in X (arcsec)
+p_wfs1.set_ypos(0.0)  # direction of guide star in Y (arcsec)
 p_wfs1.set_Lambda(0.6)  # wavelength (microns)
-p_wfs1.set_gsmag(11)    # magnitude of guide star
-p_wfs1.set_optthroughput(0.28) # optical transmission
+p_wfs1.set_gsmag(11)  # magnitude of guide star
+p_wfs1.set_optthroughput(0.28)  # optical transmission
 p_wfs1.set_zerop(2.6e10)  # 2.6e10 ph/s/m**2 computed by Rico in R band for MOSAIC
-p_wfs1.set_noise(0.3)   # units: electrons/pixel
-p_wfs1.set_atmos_seen(1)   # tell if atmos is seen or not
-p_wfs1.set_fstop("square") # shape of field stop, "round", "square"
-p_wfs1.set_fssize(1.6)     # size of field stop (arcsec)
-rMod = 3.*0.7/0.6    # Modulation radius, in lam/D units
-nbPtMod = int(np.ceil(int(rMod * 2 * 3.141592653589793) / 4.) * 4)
-p_wfs1.set_pyr_npts(nbPtMod) # nb pts modu around circle
+p_wfs1.set_noise(0.3)  # units: electrons/pixel
+p_wfs1.set_atmos_seen(1)  # tell if atmos is seen or not
+p_wfs1.set_fstop("square")  # shape of field stop, "round", "square"
+p_wfs1.set_fssize(1.6)  # size of field stop (arcsec)
+rMod = 3.0 * 0.7 / 0.6  # Modulation radius, in lam/D units
+nbPtMod = int(np.ceil(int(rMod * 2 * 3.141592653589793) / 4.0) * 4)
+p_wfs1.set_pyr_npts(nbPtMod)  # nb pts modu around circle
 p_wfs1.set_pyr_ampl(rMod)  # define modulation amplitude
 # p_wfs1.set_pyr_npts(1)
 # p_wfs1.set_pyr_pos(np.zeros((1,2)))
 
 
-p_wfs2.set_type("pyrhr") # type de WFS: "sh", "pyrhr", "pyr"
+p_wfs2.set_type("pyrhr")  # type de WFS: "sh", "pyrhr", "pyr"
 
 p_wfs2.set_nxsub(
-        92
+    92
 )  # 92 sub aps for hexagonal grid of actuators eq. 78 subaps square grid. (pitch = 0.5m)
-p_wfs2.set_fracsub(0.01) # 0.01 for pixels below spider, nominal = 0.1 Minimal illumination fraction
-p_wfs2.set_xpos(0.)     # direction of guide star in X (arcsec)
-p_wfs2.set_ypos(0.)     # direction of guide star in Y (arcsec)
+p_wfs2.set_fracsub(
+    0.01
+)  # 0.01 for pixels below spider, nominal = 0.1 Minimal illumination fraction
+p_wfs2.set_xpos(0.0)  # direction of guide star in X (arcsec)
+p_wfs2.set_ypos(0.0)  # direction of guide star in Y (arcsec)
 p_wfs2.set_Lambda(0.8)  # wavelength (microns)
-p_wfs2.set_gsmag(11)    # magnitude of guide star
-p_wfs2.set_optthroughput(0.28) # optical transmission
+p_wfs2.set_gsmag(11)  # magnitude of guide star
+p_wfs2.set_optthroughput(0.28)  # optical transmission
 p_wfs2.set_zerop(2.6e10)  # 2.6e10 ph/s/m**2 computed by Rico in R band for MOSAIC
-p_wfs2.set_noise(0.3)   # units: electrons/pixel
-p_wfs2.set_atmos_seen(1)   # tell if atmos is seen or not
-p_wfs2.set_fstop("square") # shape of field stop, "round", "square"
-p_wfs2.set_fssize(1.6)     # size of field stop (arcsec)
-rMod = 3.*0.7/0.8  # Modulation radius, in lam/D units
-nbPtMod = int(np.ceil(int(rMod * 2 * 3.141592653589793) / 4.) * 4)
-p_wfs2.set_pyr_npts(nbPtMod) # nb pts modu around circle
+p_wfs2.set_noise(0.3)  # units: electrons/pixel
+p_wfs2.set_atmos_seen(1)  # tell if atmos is seen or not
+p_wfs2.set_fstop("square")  # shape of field stop, "round", "square"
+p_wfs2.set_fssize(1.6)  # size of field stop (arcsec)
+rMod = 3.0 * 0.7 / 0.8  # Modulation radius, in lam/D units
+nbPtMod = int(np.ceil(int(rMod * 2 * 3.141592653589793) / 4.0) * 4)
+p_wfs2.set_pyr_npts(nbPtMod)  # nb pts modu around circle
 p_wfs2.set_pyr_ampl(rMod)  # define modulation amplitude
 
 # a = np.zeros((20,2))
@@ -209,15 +312,15 @@ p_wfs2.set_pyr_ampl(rMod)  # define modulation amplitude
 # p_wfs0.set_pyr_npts(1)
 # p_wfs0.set_pyr_pos(np.zeros((1,2)))
 
-#p_wfs0.set_pyr_pup_sep(int(2 / 3. * p_wfs0.nxsub)) # diffraction effect
-#p_wfs0.set_pyr_pup_sep((p_wfs0.nxsub))
+# p_wfs0.set_pyr_pup_sep(int(2 / 3. * p_wfs0.nxsub)) # diffraction effect
+# p_wfs0.set_pyr_pup_sep((p_wfs0.nxsub))
 
 """
 With 52 pixels of margin between 2 edges of pupils on a 240x240 detector and 92 pixels of pupil:
 in Compass pupsep is separation between 1 pupil center and Half of detector
 pupsep = 52/2+92/2 = 72
 """
-p_wfs0.set_pyr_pup_sep(72) # half pupil separation (center-to-center)
+p_wfs0.set_pyr_pup_sep(72)  # half pupil separation (center-to-center)
 p_wfs1.set_pyr_pup_sep(72)
 p_wfs2.set_pyr_pup_sep(72)
 
@@ -226,10 +329,10 @@ p_dm0 = conf.ParamDm()
 p_dm1 = conf.ParamDm()
 p_dm2 = conf.ParamDm()
 p_dms = [p_dm0, p_dm2, p_dm1]
-#p_dms = [p_dm0, p_dm1]
+# p_dms = [p_dm0, p_dm1]
 p_dm0.set_type(scons.DmType.PZT)
 nact = p_wfs0.nxsub + 1
-#nact = 9
+# nact = 9
 
 """
 #p_dm0.set_nact(nact)
@@ -248,23 +351,23 @@ p_dm0.segmented_mirror = True
 """
 
 p_dm0.set_unitpervolt(1)
-p_dm0.set_thresh(0.)  # fraction units
+p_dm0.set_thresh(0.0)  # fraction units
 p_dm0.set_margin_out(0.6)
-#p_dm0.set_file_influ_fits('/home/abertrou/m4_eelt_compass/testJojo.fits')
-p_dm0.set_file_influ_fits('/home/abertrou/m4_henri_compass/cropped_M4IF.fits')
+# p_dm0.set_file_influ_fits('/home/abertrou/m4_eelt_compass/testJojo.fits')
+p_dm0.set_file_influ_fits("/home/abertrou/m4_henri_compass/cropped_M4IF.fits")
 p_dm0.set_push4imat(0.01)
 p_dm0.set_diam_dm(40.0)
 
-#p_dm0.set_gain(0.2)
+# p_dm0.set_gain(0.2)
 
 p_dm1.set_type("tt")
-p_dm1.set_alt(0.)
+p_dm1.set_alt(0.0)
 p_dm1.set_unitpervolt(1)
 p_dm1.set_push4imat(0.005)
-#p_dm1.set_gain(0.2)
+# p_dm1.set_gain(0.2)
 
-p_dm2.set_type('pzt')
-p_dm2.set_alt(0.)
+p_dm2.set_type("pzt")
+p_dm2.set_alt(0.0)
 p_dm2.set_unitpervolt(1)
 p_dm2.set_push4imat(0.01)
 p_dm2.set_influType("petal")
@@ -297,14 +400,14 @@ p_centroider2.set_type("pyr")
 p_controller0 = conf.ParamController()
 p_controllers = [p_controller0]
 
-#p_controller0.set_type("ls")     # V(k) = V(k-1) + g.R.m(k)
-p_controller0.set_type("generic") # V(k) = a.E.V(k-1) + g.R.m(k)
-#p_controller0.set_type("geo")    # bypass the WFS (direct DM proj)
+# p_controller0.set_type("ls")     # V(k) = V(k-1) + g.R.m(k)
+p_controller0.set_type("generic")  # V(k) = a.E.V(k-1) + g.R.m(k)
+# p_controller0.set_type("geo")    # bypass the WFS (direct DM proj)
 
 p_controller0.set_nwfs([0, 1, 2])
 p_controller0.set_ndm([0, 2])
-p_controller0.set_maxcond(150.)
-p_controller0.set_delay(0)   # loop delay. "0 = 1 frame delay".
+p_controller0.set_maxcond(150.0)
+p_controller0.set_delay(0)  # loop delay. "0 = 1 frame delay".
 p_controller0.set_gain(1)
 # p_controller0.set_nstates(6)
 

@@ -1,23 +1,20 @@
-## @package   shesha.util
-## @brief     Shesha utilities
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 def write_gs(file_name, zero_point, lgs_return_per_watt, zenith_angle):
     """Write (append) guide stars parameters to file for YAO
 
@@ -30,13 +27,13 @@ def write_gs(file_name, zero_point, lgs_return_per_watt, zenith_angle):
 
         zenith_angle : (float) : zenithal angle (degree)
     """
-    f=open(file_name,"a+")
+    f = open(file_name, "a+")
     f.write("\n\n//------------------------------")
     f.write("\n//GS parameters")
     f.write("\n//------------------------------")
 
     # N.B. YAO zeropoint is in flux/telescope aperture, so this value is scaled
     # in outer function
-    f.write("\ngs.zeropoint         = " + str(zero_point)+";")
-    f.write("\ngs.lgsreturnperwatt  = " + str(lgs_return_per_watt)+";")
+    f.write("\ngs.zeropoint         = " + str(zero_point) + ";")
+    f.write("\ngs.lgsreturnperwatt  = " + str(lgs_return_per_watt) + ";")
     f.write("\ngs.zenithangle       = " + str(zenith_angle) + ";")

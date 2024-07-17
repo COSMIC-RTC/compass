@@ -1,88 +1,100 @@
-## @package   shesha.util
-## @brief     Shesha utilities
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 from importlib import reload
 import numpy as np
 
 
 from shesha.util.tao import ltao
 from shesha.util.tao import mcao
+
 reload(ltao)
 reload(mcao)
 
-TILE_SIZE="1000"
+TILE_SIZE = "1000"
 
-STARPU_FLAGS=""
+STARPU_FLAGS = ""
 
-#variable necessary to run TAO
-TAO_SETTINGS={"SCHED":"dmdas",
-      "STARPU_FLAGS":"",
-      "GPU_IDS":0,
-      "TILE_SIZE":TILE_SIZE,
-      "INPUT_PATH":0,
-      "TAO_PATH":0
-      }
+# variable necessary to run TAO
+TAO_SETTINGS = {
+    "SCHED": "dmdas",
+    "STARPU_FLAGS": "",
+    "GPU_IDS": 0,
+    "TILE_SIZE": TILE_SIZE,
+    "INPUT_PATH": 0,
+    "TAO_PATH": 0,
+}
 
 
 def check():
-    """Checks that variable are initialized
-    """
-    stop=0
-    try :
-        if (not isinstance(TAO_SETTINGS["SCHED"], str)):
-            print("you must select a scheduler (dmda,dmdas,dmdar...)\n\tex: TAO_SETTINGS[\"SCHED\"]=\"dmdas\"")
-            stop=1
+    """Checks that variable are initialized"""
+    stop = 0
+    try:
+        if not isinstance(TAO_SETTINGS["SCHED"], str):
+            print(
+                'you must select a scheduler (dmda,dmdas,dmdar...)\n\tex: TAO_SETTINGS["SCHED"]="dmdas"'
+            )
+            stop = 1
     except BaseException:
-        print("you must select a scheduler (dmda,dmdas,dmdar...)\n\tex: TAO_SETTINGS[\"SCHED\"]=\"dmdas\"")
-        stop=1
-    try :
-        if( not isinstance(TAO_SETTINGS["GPU_IDS"], str)):
-            print("you must define the GPUs to use as a string \n\tex:TAO_SETTINGS[\"GPU_IDS\"]=\"1,2\"")
-            stop=1
+        print(
+            'you must select a scheduler (dmda,dmdas,dmdar...)\n\tex: TAO_SETTINGS["SCHED"]="dmdas"'
+        )
+        stop = 1
+    try:
+        if not isinstance(TAO_SETTINGS["GPU_IDS"], str):
+            print(
+                'you must define the GPUs to use as a string \n\tex:TAO_SETTINGS["GPU_IDS"]="1,2"'
+            )
+            stop = 1
     except BaseException:
-        print("you must define the GPUs to use as a string \n\tex:TAO_SETTINGS[\"GPU_IDS\"]=\"1,2\"")
-        stop=1
-    try :
-        if( not isinstance(TAO_SETTINGS["INPUT_PATH"], str)):
-            print("you must define the location of the system parameters \n\tex: TAO_SETTINGS[\"INPUT_PATH\"]=\"~/workspace/compass/params\"")
-            stop=1
+        print('you must define the GPUs to use as a string \n\tex:TAO_SETTINGS["GPU_IDS"]="1,2"')
+        stop = 1
+    try:
+        if not isinstance(TAO_SETTINGS["INPUT_PATH"], str):
+            print(
+                'you must define the location of the system parameters \n\tex: TAO_SETTINGS["INPUT_PATH"]="~/workspace/compass/params"'
+            )
+            stop = 1
     except BaseException:
-        print("you must define the location of the system parameters \n\tex: TAO_SETTINGS[\"INPUTPATH\"]=\"~/workspace/compass/params\"")
-        stop=1
-    try :
-        if( not isinstance(TAO_SETTINGS["TAO_PATH"], str)):
-            print("you must define the location of the tao executables \n\tex: TAO_SETTINGS[\"TAO_PATH\"]=\"~/workspace/tao/install/bin\"")
-            stop=1
+        print(
+            'you must define the location of the system parameters \n\tex: TAO_SETTINGS["INPUTPATH"]="~/workspace/compass/params"'
+        )
+        stop = 1
+    try:
+        if not isinstance(TAO_SETTINGS["TAO_PATH"], str):
+            print(
+                'you must define the location of the tao executables \n\tex: TAO_SETTINGS["TAO_PATH"]="~/workspace/tao/install/bin"'
+            )
+            stop = 1
     except BaseException:
-        print("you must define the location of the tao executables \n\tex: TAO_SETTINGS[\"TAOPATH\"]=\"~/workspace/tao/install/bin\"")
-        stop=1
-    try :
+        print(
+            'you must define the location of the tao executables \n\tex: TAO_SETTINGS["TAOPATH"]="~/workspace/tao/install/bin"'
+        )
+        stop = 1
+    try:
         TAO_SETTINGS["STARPU_FLAGS"]
     except BaseException:
-        TAO_SETTINGS["STARPU_FLAGS"]=""
+        TAO_SETTINGS["STARPU_FLAGS"] = ""
 
     return stop
 
 
-def init(sup, mod, *,wfs="all", dm_use_tt=False, n_filt=None):
-    """ Set up the compass loop
+def init(sup, mod, *, wfs="all", dm_use_tt=False, n_filt=None):
+    """Set up the compass loop
 
     set the interaction matrix, loop gain and write parameter files for TAO
 
@@ -100,7 +112,7 @@ def init(sup, mod, *,wfs="all", dm_use_tt=False, n_filt=None):
         n_filt : (int) : (optional), default None number of meta interaction matrix singular values filtered out
     """
 
-    #setting open loop
+    # setting open loop
     sup.rtc._rtc.d_control[0].set_polc(True)
 
     if n_filt is None:
@@ -108,8 +120,9 @@ def init(sup, mod, *,wfs="all", dm_use_tt=False, n_filt=None):
     else:
         mod.init(TAO_SETTINGS, sup, dm_use_tt=dm_use_tt, wfs=wfs, n_filt=n_filt)
 
+
 def reconstructor(mod):
-    """ Compute the TAO reconstructor for a given AO mode
+    """Compute the TAO reconstructor for a given AO mode
 
     Args:
         mod : (module)  : AO mode requested (among: ltao , mcao)
@@ -117,9 +130,18 @@ def reconstructor(mod):
     return mod.reconstructor(TAO_SETTINGS)
 
 
-def run(sup, mod, *, n_iter=1000, initialisation=True, reset=True, wfs="all",
-    dm_use_tt=False, n_filt=None):
-    """ Computes a tao reconstructor and run a compass loop with it
+def run(
+    sup,
+    mod,
+    *,
+    n_iter=1000,
+    initialisation=True,
+    reset=True,
+    wfs="all",
+    dm_use_tt=False,
+    n_filt=None,
+):
+    """Computes a tao reconstructor and run a compass loop with it
 
     Args:
         sup : (CompassSupervisor) : current supervisor
@@ -141,25 +163,30 @@ def run(sup, mod, *, n_iter=1000, initialisation=True, reset=True, wfs="all",
     """
     check()
 
-    #setting open loop
+    # setting open loop
     sup.rtc._rtc.d_control[0].set_polc(True)
 
-    #if generic: need to update imat in controller
-    if(np.abs(np.array(sup.rtc._rtc.d_control[0].d_imat)).max()==0):
-        #imat not set yet for controller
+    # if generic: need to update imat in controller
+    if np.abs(np.array(sup.rtc._rtc.d_control[0].d_imat)).max() == 0:
+        # imat not set yet for controller
         sup.rtc._rtc.d_control[0].set_imat(sup.config.p_controllers[0]._imat)
-    #update gain
-    sup.rtc._rtc.set_gain(0,sup.config.p_controllers[0].gain)
+    # update gain
+    sup.rtc._rtc.set_gain(0, sup.config.p_controllers[0].gain)
 
-    if(initialisation):
+    if initialisation:
         init(sup, mod, wfs=wfs, dm_use_tt=dm_use_tt, n_filt=n_filt)
-    M=reconstructor(mod)
-    if(reset):
+    M = reconstructor(mod)
+    if reset:
         sup.reset()
-    cmat_shape=sup.rtc.get_command_matrix(0).shape
-    if(M.shape[0] != cmat_shape[0] or M.shape[1] != cmat_shape[1]):
-        print("ToR shape is not valid:\n\twaiting for:",cmat_shape,"\n\tgot        :",M.shape)
+    cmat_shape = sup.rtc.get_command_matrix(0).shape
+    if M.shape[0] != cmat_shape[0] or M.shape[1] != cmat_shape[1]:
+        print(
+            "ToR shape is not valid:\n\twaiting for:",
+            cmat_shape,
+            "\n\tgot        :",
+            M.shape,
+        )
     else:
-        sup.rtc.set_command_matrix(0,M)
-        if(n_iter>0):
+        sup.rtc.set_command_matrix(0, M)
+        if n_iter > 0:
             sup.loop(n_iter)

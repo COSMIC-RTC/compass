@@ -1,31 +1,27 @@
-## @package   shesha.util.iterkolmo
-## @brief     Stencil and matrices computation for the creation of a turbulent screen
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 
 
 import numpy as np
 
 
 def create_stencil(n):
-    """ TODO: docstring
-    """
+    """TODO: docstring"""
     Zx = np.array(np.tile(np.arange(n), (n, 1)), dtype=np.float64) + 1
     Zy = Zx.T
 
@@ -37,18 +33,18 @@ def create_stencil(n):
 
     stencil[:, 0] = 1
     for i in range(2, ns):
-        stencil[::2**(i - 1), 2**(i - 2)] = 1
-        stencil.itemset(2**(i - 1) - 1, 1)
+        stencil[:: 2 ** (i - 1), 2 ** (i - 2)] = 1
+        stencil.itemset(2 ** (i - 1) - 1, 1)
         # stencil[0,2**(i-1)-1]=1
 
     # i=ns
-    stencil.itemset(2**(ns - 1) - 1, 1)
-    for i in range(0, n, 2**(ns - 1)):
-        stencil.itemset(2**(ns - 2) + i * n, 1)
+    stencil.itemset(2 ** (ns - 1) - 1, 1)
+    for i in range(0, n, 2 ** (ns - 1)):
+        stencil.itemset(2 ** (ns - 2) + i * n, 1)
     # i=ns+1
-    stencil.itemset(2**(ns) - 1, 1)
-    for i in range(0, n, 2**(ns)):
-        stencil.itemset(2**(ns - 1) + i * n, 1)
+    stencil.itemset(2 ** (ns) - 1, 1)
+    for i in range(0, n, 2 ** (ns)):
+        stencil.itemset(2 ** (ns - 1) + i * n, 1)
 
     stencil = np.roll(stencil, n // 2, axis=0)
     stencil = np.fliplr(stencil)
@@ -59,30 +55,29 @@ def create_stencil(n):
 
 
 def stencil_size(n):
-    """ TODO: docstring
-    """
+    """TODO: docstring"""
     stencil = np.zeros((n, n))
     ns = int(np.log2(n + 1) + 1)
 
     stencil[:, 0] = 1
     for i in range(2, ns):
-        stencil[::2**(i - 1), 2**(i - 2)] = 1
-        stencil.itemset(2**(i - 1) - 1, 1)
+        stencil[:: 2 ** (i - 1), 2 ** (i - 2)] = 1
+        stencil.itemset(2 ** (i - 1) - 1, 1)
 
     # i=ns
-    stencil.itemset(2**(ns - 1) - 1, 1)
-    for i in range(0, n, 2**(ns - 1)):
-        stencil.itemset(2**(ns - 2) + i * n, 1)
+    stencil.itemset(2 ** (ns - 1) - 1, 1)
+    for i in range(0, n, 2 ** (ns - 1)):
+        stencil.itemset(2 ** (ns - 2) + i * n, 1)
     # i=ns+1
-    stencil.itemset(2**(ns) - 1, 1)
-    for i in range(0, n, 2**(ns)):
-        stencil.itemset(2**(ns - 1) + i * n, 1)
+    stencil.itemset(2 ** (ns) - 1, 1)
+    for i in range(0, n, 2 ** (ns)):
+        stencil.itemset(2 ** (ns - 1) + i * n, 1)
 
     return np.sum(stencil)
 
 
 def stencil_size_array(size):
-    """ Compute_size2(np.ndarray[ndim=1, dtype=np.int64_t] size)
+    """Compute_size2(np.ndarray[ndim=1, dtype=np.int64_t] size)
 
     Compute the size of a stencil, given the screen size
 
@@ -98,7 +93,7 @@ def stencil_size_array(size):
 
 
 def Cxz(n, Zx, Zy, Xx, Xy, istencil, L0):
-    """ Cxz computes the covariance matrix between the new phase vector x (new
+    """Cxz computes the covariance matrix between the new phase vector x (new
     column for the phase screen), and the already known phase values z.
 
     The known values z are the values of the phase screen that are pointed by
@@ -115,10 +110,10 @@ def Cxz(n, Zx, Zy, Xx, Xy, istencil, L0):
     Zx_r = np.resize(Zx_s, (size, size2))
     Zy_r = np.resize(Zy_s, (size, size2))
 
-    tmp = phase_struct((Zx[0, size - 1] - Xx)**2 + (Zy[0, size - 1] - Xy)**2, L0)
-    tmp2 = phase_struct((Zx[0, size - 1] - Zx_s)**2 + (Zy[0, size - 1] - Zy_s)**2, L0)
+    tmp = phase_struct((Zx[0, size - 1] - Xx) ** 2 + (Zy[0, size - 1] - Xy) ** 2, L0)
+    tmp2 = phase_struct((Zx[0, size - 1] - Zx_s) ** 2 + (Zy[0, size - 1] - Zy_s) ** 2, L0)
 
-    xz = -phase_struct((Xx_r.T - Zx_r)**2 + (Xy_r.T - Zy_r)**2, L0)
+    xz = -phase_struct((Xx_r.T - Zx_r) ** 2 + (Xy_r.T - Zy_r) ** 2, L0)
 
     xz += np.resize(tmp, (size2, size)).T + np.resize(tmp2, (size, size2))
 
@@ -128,16 +123,16 @@ def Cxz(n, Zx, Zy, Xx, Xy, istencil, L0):
 
 
 def Cxx(n, Zxn, Zyn, Xx, Xy, L0):
-    """ Cxx computes the covariance matrix of the new phase vector x (new
-   column for the phase screen).
+    """Cxx computes the covariance matrix of the new phase vector x (new
+    column for the phase screen).
     """
     size = Xx.shape[0]
     Xx_r = np.resize(Xx, (size, size))
     Xy_r = np.resize(Xy, (size, size))
 
-    tmp = np.resize(phase_struct((Zxn - Xx)**2 + (Zyn - Xy)**2, L0), (size, size))
+    tmp = np.resize(phase_struct((Zxn - Xx) ** 2 + (Zyn - Xy) ** 2, L0), (size, size))
 
-    xx = -phase_struct((Xx_r - Xx_r.T)**2 + (Xy_r - Xy_r.T)**2, L0)  # + \
+    xx = -phase_struct((Xx_r - Xx_r.T) ** 2 + (Xy_r - Xy_r.T) ** 2, L0)  # + \
     #    tmp+tmp.T
 
     xx += tmp + tmp.T
@@ -148,11 +143,11 @@ def Cxx(n, Zxn, Zyn, Xx, Xy, L0):
 
 
 def Czz(n, Zx, Zy, ist, L0):
-    """ Czz computes the covariance matrix of the already known phase values z.
+    """Czz computes the covariance matrix of the already known phase values z.
 
-   The known values z are the values of the phase screen that are pointed by
-   the stencil indexes (istencil)
-   """
+    The known values z are the values of the phase screen that are pointed by
+    the stencil indexes (istencil)
+    """
 
     size = ist.shape[0]
     Zx_s = Zx.flatten()[ist]
@@ -161,11 +156,11 @@ def Czz(n, Zx, Zy, ist, L0):
     Zy_r = np.resize(Zy_s, (size, size))
 
     tmp = np.resize(
-            phase_struct((Zx[0, n - 1] - Zx_s)**2 + (Zy[0, n - 1] - Zy_s)**2, L0),
-            (size, size))
+        phase_struct((Zx[0, n - 1] - Zx_s) ** 2 + (Zy[0, n - 1] - Zy_s) ** 2, L0),
+        (size, size),
+    )
 
-    zz = -phase_struct((Zx_r - Zx_r.T) ** 2 + (Zy_r - Zy_r.T) ** 2, L0) + \
-        tmp + tmp.T
+    zz = -phase_struct((Zx_r - Zx_r.T) ** 2 + (Zy_r - Zy_r.T) ** 2, L0) + tmp + tmp.T
 
     zz *= 0.5
 
@@ -173,7 +168,7 @@ def Czz(n, Zx, Zy, ist, L0):
 
 
 def AB(n, L0, deltax, deltay, rank=0):
-    """ DOCUMENT AB, n, A, B, istencil
+    """DOCUMENT AB, n, A, B, istencil
     This function initializes some matrices A, B and a list of stencil indexes
     istencil for iterative extrusion of a phase screen.
 
@@ -202,7 +197,7 @@ def AB(n, L0, deltax, deltay, rank=0):
     U, s, V = np.linalg.svd(zz)
     s1 = s
     s1[s.size - 1] = 1
-    s1 = 1. / s1
+    s1 = 1.0 / s1
     s1[s.size - 1] = 0
     zz1 = np.dot(np.dot(U, np.diag(s1)), V)
     #    if (rank == 0):
@@ -226,19 +221,23 @@ def AB(n, L0, deltax, deltay, rank=0):
     test = np.zeros((n * n), np.float32)
     test[istencil] = np.arange(A.shape[1]) + 1
     test = np.reshape(test, (n, n), "C")
-    isty = np.argsort(test.T.flatten("C")).astype(np.uint32)[n * n - A.shape[1]:]
+    isty = np.argsort(test.T.flatten("C")).astype(np.uint32)[n * n - A.shape[1] :]
 
-    if (deltay < 0):
+    if deltay < 0:
         isty = (n * n - 1) - isty
-    if (deltax < 0):
+    if deltax < 0:
         istencil = (n * n - 1) - istencil
 
-    return np.asfortranarray(A.astype(np.float32)), np.asfortranarray(
-            B.astype(np.float32)), istencil.astype(np.uint32), isty.astype(np.uint32)
+    return (
+        np.asfortranarray(A.astype(np.float32)),
+        np.asfortranarray(B.astype(np.float32)),
+        istencil.astype(np.uint32),
+        isty.astype(np.uint32),
+    )
 
 
 def extrude(p, r0, A, B, istencil):
-    """ DOCUMENT p1 = extrude(p,r0,A,B,istencil)
+    """DOCUMENT p1 = extrude(p,r0,A,B,istencil)
 
     Extrudes a phase screen p1 from initial phase screen p.
     p1 prolongates p by 1 column on the right end.
@@ -260,36 +259,35 @@ def extrude(p, r0, A, B, istencil):
     SEE ALSO: AB() createStencil() Cxx() Cxz() Czz()
     """
 
-    amplitude = r0**(-5. / 6)
+    amplitude = r0 ** (-5.0 / 6)
     n = p.shape[0]
     z = p.flatten()[istencil]
     zref = p[0, n - 1]
     z -= zref
     newColumn = np.dot(A, z) + np.dot(B, np.random.normal(0, 1, n) * amplitude) + zref
     p1 = np.zeros((n, n), dtype=np.float32)
-    p1[:, 0:n - 1] = p[:, 1:]
+    p1[:, 0 : n - 1] = p[:, 1:]
     p1[:, n - 1] = newColumn
 
     return p1
 
 
 def phase_struct(r, L0=None):
-    """ TODO: docstring
-    """
+    """TODO: docstring"""
     if L0 is None:
-        return 6.88 * r**(5. / 6.)
+        return 6.88 * r ** (5.0 / 6.0)
     else:
         return rodconan(np.sqrt(r), L0)
 
 
 def rodconan(r, L0):
-    """ The phase structure function is computed from the expression
-     Dphi(r) = k1  * L0^(5./3) * (k2 - (2.pi.r/L0)^5/6 K_{5/6}(2.pi.r/L0))
+    """The phase structure function is computed from the expression
+    Dphi(r) = k1  * L0^(5./3) * (k2 - (2.pi.r/L0)^5/6 K_{5/6}(2.pi.r/L0))
 
-     For small r, the expression is computed from a development of
-     K_5/6 near 0. The value of k2 is not used, as this same value
-     appears in the series and cancels with k2.
-     For large r, the expression is taken from an asymptotic form.
+    For small r, the expression is computed from a development of
+    K_5/6 near 0. The value of k2 is not used, as this same value
+    appears in the series and cancels with k2.
+    For large r, the expression is taken from an asymptotic form.
     """
 
     # k1 is the value of :
@@ -301,7 +299,7 @@ def rodconan(r, L0):
     ilarge = np.where(dprf0 > Xlim)
     ismall = np.where(dprf0 <= Xlim)
 
-    res = r * 0.
+    res = r * 0.0
     """
     # TODO  those lines have been changed (cf trunk/yoga_ao/yorick/yoga_turbu.i l 258->264)
     if((ilarge[0].size > 0)and(ismall[0].size == 0)):
@@ -314,27 +312,27 @@ def rodconan(r, L0):
         res[ismall] = -macdo_x56(dprf0[ismall])
         res[ilarge] = asymp_macdo(dprf0[ilarge])
     """
-    if (ilarge[0].size > 0):
+    if ilarge[0].size > 0:
         res[ilarge] = asymp_macdo(dprf0[ilarge])
-    if (ismall[0].size > 0):
+    if ismall[0].size > 0:
         res[ismall] = -macdo_x56(dprf0[ismall])
 
-    return k1 * L0**(5. / 3.) * res
+    return k1 * L0 ** (5.0 / 3.0) * res
 
 
 def asymp_macdo(x):
-    """ Computes a term involved in the computation of the phase struct
-     function with a finite outer scale according to the Von-Karman
-     model. The term involves the MacDonald function (modified bessel
-     function of second kind) K_{5/6}(x), and the algorithm uses the
-     asymptotic form for x ~ infinity.
+    """Computes a term involved in the computation of the phase struct
+    function with a finite outer scale according to the Von-Karman
+    model. The term involves the MacDonald function (modified bessel
+    function of second kind) K_{5/6}(x), and the algorithm uses the
+    asymptotic form for x ~ infinity.
 
-     Warnings :
+    Warnings :
 
-         - This function makes a floating point interrupt for x=0
-           and should not be used in this case.
+        - This function makes a floating point interrupt for x=0
+          and should not be used in this case.
 
-         - Works only for x>0.
+        - Works only for x>0.
     """
     # k2 is the value for
     # gamma_R(5./6)*2^(-1./6)
@@ -343,13 +341,13 @@ def asymp_macdo(x):
     a1 = 0.22222222222222222222  # 2/9
     a2 = -0.08641975308641974829  # -7/89
     a3 = 0.08001828989483310284  # 175/2187
-    x_1 = 1. / x
-    res = k2 - k3 * np.exp(-x) * x**(1 / 3.) * (1.0 + x_1 * (a1 + x_1 * (a2 + x_1 * a3)))
+    x_1 = 1.0 / x
+    res = k2 - k3 * np.exp(-x) * x ** (1 / 3.0) * (1.0 + x_1 * (a1 + x_1 * (a2 + x_1 * a3)))
     return res
 
 
 def macdo_x56(x, k=10):
-    """ Computation of the function
+    """Computation of the function
     f(x) = x^(5/6)*K_{5/6}(x)
     using a series for the esimation of K_{5/6}, taken from Rod Conan thesis :
     K_a(x)=1/2 \\sum_{n=0}^\\infty \\frac{(-1)^n}{n!}
@@ -371,10 +369,10 @@ def macdo_x56(x, k=10):
     vanishes with another term in the expression of Dphi.
     """
 
-    a = 5. / 6.
-    fn = 1.  # initialisation factorielle 0!=1
-    x2a = x**(2. * a)
-    x22 = x * x / 4.  # (x/2)^2
+    a = 5.0 / 6.0
+    fn = 1.0  # initialisation factorielle 0!=1
+    x2a = x ** (2.0 * a)
+    x22 = x * x / 4.0  # (x/2)^2
     x2n = 0.5  # init (1/2) * x^0
     Ga = 2.01126983599717856777  # Gamma(a) / (1/2)^a
     Gma = -3.74878707653729348337  # Gamma(-a) * (1/2.)^a
@@ -386,12 +384,12 @@ def macdo_x56(x, k=10):
         dd *= x2n
         dd /= fn
         # addition to s, with multiplication by (-1)^n
-        if (n % 2):
+        if n % 2:
             s -= dd
         else:
             s += dd
         # prepare recurrence iteration for next step
-        if (n < k):
+        if n < k:
             fn *= n + 1  # factorial
             Gma /= -a - n - 1  # gamma function
             Ga /= a - n - 1  # idem
@@ -425,21 +423,20 @@ def create_screen_assist(screen_size, L0, r0):
 
 
 def create_screen(r0, pupixsize, screen_size, L0, A, B, ist):
-    """ DOCUMENT create_screen
-        screen = create_screen(r0,pupixsize,screen_size,&A,&B,&ist)
+    """DOCUMENT create_screen
+    screen = create_screen(r0,pupixsize,screen_size,&A,&B,&ist)
 
-        creates a phase screen and fill it with turbulence
-        r0          : total r0 @ 0.5m
-        pupixsize   : pupil pixel size (in meters)
-        screen_size : screen size (in pixels)
-        A           : A array for future extrude
-        B           : B array for future extrude
-        ist         : istencil array for future extrude
-     """
+    creates a phase screen and fill it with turbulence
+    r0          : total r0 @ 0.5m
+    pupixsize   : pupil pixel size (in meters)
+    screen_size : screen size (in pixels)
+    A           : A array for future extrude
+    B           : B array for future extrude
+    ist         : istencil array for future extrude
+    """
 
     # AB, screen_size, A, B, ist,L0   # initialisation for A and B matrices for phase extrusion
-    screen = np.zeros((screen_size, screen_size),
-                      dtype=np.float32)  # init of first phase screen
+    screen = np.zeros((screen_size, screen_size), dtype=np.float32)  # init of first phase screen
     for i in range(2 * screen_size):
         screen = extrude(screen, r0 / pupixsize, A, B, ist)
 

@@ -178,7 +178,6 @@ nbLayers = len(alt)
 # atmos
 p_atmos = ao.ParamAtmos()
 
-## 1 Layer
 
 p_atmos.set_r0(0.129)
 # p_atmos.set_r0(0.078)
@@ -190,7 +189,6 @@ p_atmos.set_windspeed([9.1])
 p_atmos.set_winddir([45.0])
 p_atmos.set_L0([25.0])  # Not simulated in Yorick?
 
-## 35 Layers
 
 # p_atmos.set_r0(r0)
 # p_atmos.set_nscreens(nbLayers)

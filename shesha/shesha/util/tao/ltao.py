@@ -1,23 +1,20 @@
-## @package   shesha.util
-## @brief     Shesha utilities
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 import os
 from astropy.io import fits
 
@@ -26,7 +23,8 @@ from shesha.ao import cmats
 
 from shesha.util.tao import writer
 
-def init(tao_settings,sup,*,n_filt=10, wfs="all", dm_use_tt=False):
+
+def init(tao_settings, sup, *, n_filt=10, wfs="all", dm_use_tt=False):
     """Initialize the LTAO mode
 
     compute meta matrix of interaction / command and write parameter files
@@ -44,24 +42,30 @@ def init(tao_settings,sup,*,n_filt=10, wfs="all", dm_use_tt=False):
         dm_use_tt : (bool) : (optional), default False using a TT DM
     """
 
-    #compute meta imat
-    meta_D = imats.get_metaD(sup,0,0)
-    #get svd of (D.T*D)
+    # compute meta imat
+    meta_D = imats.get_metaD(sup, 0, 0)
+    # get svd of (D.T*D)
     SVD = cmats.svd_for_cmat(meta_D)
-    #plt.plot(SVD[1])
-    meta_Dx = cmats.get_cmat(meta_D,nfilt=n_filt,svd=SVD)
+    # plt.plot(SVD[1])
+    meta_Dx = cmats.get_cmat(meta_D, nfilt=n_filt, svd=SVD)
 
-    #write MOAO pipeline inputs
+    # write MOAO pipeline inputs
     data_path = tao_settings["INPUT_PATH"]
-    lgs_filter_cst=0.1
-    if(dm_use_tt):
-        lgs_filter_cst=0.
-    writer.generate_files(sup, path=data_path, single_file=True,
-        dm_use_tt=dm_use_tt, wfs=wfs, lgs_filter_cst=lgs_filter_cst)
-    writer.write_meta_Dx(meta_Dx,nTS=sup.config.NTS,path=data_path)
+    lgs_filter_cst = 0.1
+    if dm_use_tt:
+        lgs_filter_cst = 0.0
+    writer.generate_files(
+        sup,
+        path=data_path,
+        single_file=True,
+        dm_use_tt=dm_use_tt,
+        wfs=wfs,
+        lgs_filter_cst=lgs_filter_cst,
+    )
+    writer.write_meta_Dx(meta_Dx, nTS=sup.config.NTS, path=data_path)
 
 
-def reconstructor(tao_settings,*,apply_log="./log"):
+def reconstructor(tao_settings, *, apply_log="./log"):
     """Initialize the LTAO mode
 
     compute meta matrix of interaction / command and write parameter files
@@ -80,10 +84,22 @@ def reconstructor(tao_settings,*,apply_log="./log"):
     tao_path = tao_settings["TAO_PATH"]
     data_path = tao_settings["INPUT_PATH"]
     gpus = tao_settings["GPU_IDS"]
-    tile_size = str( tao_settings["TILE_SIZE"])
-    apply_cmd = flags + " " + tao_path + "/ltao_reconstructor --sys_path=" \
-        + data_path + " --atm_path=" + data_path + " --ncores=1 --gpuIds=" \
-        + gpus + " --ts=" + tile_size + " --sync=1 --warmup=0  >" + apply_log \
-        +" 2>&1"
+    tile_size = str(tao_settings["TILE_SIZE"])
+    apply_cmd = (
+        flags
+        + " "
+        + tao_path
+        + "/ltao_reconstructor --sys_path="
+        + data_path
+        + " --atm_path="
+        + data_path
+        + " --ncores=1 --gpuIds="
+        + gpus
+        + " --ts="
+        + tile_size
+        + " --sync=1 --warmup=0  >"
+        + apply_log
+        + " 2>&1"
+    )
     os.system(apply_cmd)
     return fits.open("M_ltao_0.fits")[0].data.T

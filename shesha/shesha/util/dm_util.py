@@ -1,23 +1,20 @@
-## @package   shesha.util.dm_util
-## @brief     Utilities function for DM geometry initialization
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 
 
 import math
@@ -33,7 +30,7 @@ from typing import List
 
 
 def dim_dm_support(cent: float, extent: int, ssize: int):
-    """ Compute the DM support dimensions
+    """Compute the DM support dimensions
 
     Args:
 
@@ -45,17 +42,23 @@ def dim_dm_support(cent: float, extent: int, ssize: int):
     """
     n1 = np.floor(cent - extent / 2)
     n2 = np.ceil(cent + extent / 2)
-    if (n1 < 1):
+    if n1 < 1:
         n1 = 1
-    if (n2 > ssize):
+    if n2 > ssize:
         n2 = ssize
 
     return int(n1), int(n2)
 
 
-def dim_dm_patch(pupdiam: int, diam: float, type: bytes, alt: float,
-                 xpos_wfs: List[float], ypos_wfs: List[float]):
-    """ compute patchDiam for DM
+def dim_dm_patch(
+    pupdiam: int,
+    diam: float,
+    type: bytes,
+    alt: float,
+    xpos_wfs: List[float],
+    ypos_wfs: List[float],
+):
+    """compute patchDiam for DM
 
     Args:
 
@@ -73,15 +76,13 @@ def dim_dm_patch(pupdiam: int, diam: float, type: bytes, alt: float,
     """
 
     if len(xpos_wfs) == 0:
-        norms = 0.  # type: Union[float, List[float]]
+        norms = 0.0  # type: Union[float, List[float]]
     else:
-        norms = [
-                np.linalg.norm([xpos_wfs[w], ypos_wfs[w]]) for w in range(len(xpos_wfs))
-        ]
-    if ((type == scons.DmType.PZT) or (type == scons.DmType.TT)):
-        pp = (diam / pupdiam)
-    elif (type == scons.DmType.KL):
-        pp = (pupdiam)
+        norms = [np.linalg.norm([xpos_wfs[w], ypos_wfs[w]]) for w in range(len(xpos_wfs))]
+    if (type == scons.DmType.PZT) or (type == scons.DmType.TT):
+        pp = diam / pupdiam
+    elif type == scons.DmType.KL:
+        pp = pupdiam
     else:
         raise TypeError("This type of DM doesn't exist ")
 
@@ -105,7 +106,7 @@ def createSquarePattern(pitch: float, nxact: int):
         xy: (np.ndarray(dims=2,dtype=np.float32)) : xy[M,2] list of coodinates
     """
 
-    xy = np.tile(np.arange(nxact) - (nxact - 1.) / 2., (nxact, 1)).astype(np.float32)
+    xy = np.tile(np.arange(nxact) - (nxact - 1.0) / 2.0, (nxact, 1)).astype(np.float32)
     xy = np.array([xy.flatten(), xy.T.flatten()]) * pitch
     xy = np.float32(xy)
     return xy
@@ -139,8 +140,8 @@ def createHexaPattern(pitch: float, supportSize: int):
     Ny = y.shape[0]
     x = np.tile(x, (Ny, 1)).flatten()
     y = np.tile(y, (Nx, 1)).T.flatten()
-    x = np.append(x, x + pitch / 2.)
-    y = np.append(y, y + pitch * V3 / 2.)
+    x = np.append(x, x + pitch / 2.0)
+    y = np.append(y, y + pitch * V3 / 2.0)
     xy = np.float32(np.array([y, x]))
     return xy
 
@@ -174,11 +175,11 @@ def createDoubleHexaPattern(pitch: float, supportSize: int, pupAngleDegree: floa
     x = (V3 * pitch) * (np.arange(2 * nx + 1, dtype=np.float32) - nx)
     # LA ligne de code qui change tout: on shifte le reseau de 1 pitch en X.
     x = x + pitch
-    x, y = np.meshgrid(x, y, indexing='ij')
+    x, y = np.meshgrid(x, y, indexing="ij")
     x = x.flatten()
     y = y.flatten()
-    x = np.append(x, x + pitch * V3 / 2.)
-    y = np.append(y, y + pitch / 2.)
+    x = np.append(x, x + pitch * V3 / 2.0)
+    y = np.append(y, y + pitch / 2.0)
 
     # classement dans l'ordre kivabien
     u = x + 1e-3 * y
@@ -209,31 +210,43 @@ def createDoubleHexaPattern(pitch: float, supportSize: int, pupAngleDegree: floa
     return np.float32(XY)
 
 
-def filterActuWithPupil(actuPos: np.ndarray, pupil: np.ndarray,
-                        threshold: float) -> np.ndarray:
-    '''
-        Select actuators based on their distance to the nearest pupil pixel
-        The implementation proposed here is easy but limits it precision to
-        an integer roundoff of the threshold
+def filterActuWithPupil(actuPos: np.ndarray, pupil: np.ndarray, threshold: float) -> np.ndarray:
+    """
+    Select actuators based on their distance to the nearest pupil pixel
+    The implementation proposed here is easy but limits it precision to
+    an integer roundoff of the threshold
 
-        actuPos: 2 x nActu np.array[float]: actuator position list - pupil pixel units
-        pupil: nPup x nPup np.ndarray[bool]: pupil mask
-        threshold: float: max allowed distance - pupil pixel units
-    '''
+    actuPos: 2 x nActu np.array[float]: actuator position list - pupil pixel units
+    pupil: nPup x nPup np.ndarray[bool]: pupil mask
+    threshold: float: max allowed distance - pupil pixel units
+    """
 
     # Gen a dilation mask of expected size
     from scipy.ndimage.morphology import binary_dilation
+
     k = np.ceil(threshold)
-    i, j = np.meshgrid(np.arange(2 * k + 1), np.arange(2 * k + 1), indexing='ij')
-    disk = ((i - k)**2 + (j - k)**2)**.5 <= k
+    i, j = np.meshgrid(np.arange(2 * k + 1), np.arange(2 * k + 1), indexing="ij")
+    disk = ((i - k) ** 2 + (j - k) ** 2) ** 0.5 <= k
     dilatedPupil = binary_dilation(pupil, disk)
-    actuIsIn = dilatedPupil[(np.round(actuPos[0]).astype(np.int32),
-                             np.round(actuPos[1]).astype(np.int32))]
+    actuIsIn = dilatedPupil[
+        (
+            np.round(actuPos[0]).astype(np.int32),
+            np.round(actuPos[1]).astype(np.int32),
+        )
+    ]
     return actuPos[:, actuIsIn]
 
 
-def select_actuators(xc: np.ndarray, yc: np.ndarray, nxact: int, pitch: int, cobs: float,
-                     margin_in: float, margin_out: float, N=None):
+def select_actuators(
+    xc: np.ndarray,
+    yc: np.ndarray,
+    nxact: int,
+    pitch: int,
+    cobs: float,
+    margin_in: float,
+    margin_out: float,
+    N=None,
+):
     """
     Select the "valid" actuators according to the system geometry
 
@@ -269,9 +282,9 @@ def select_actuators(xc: np.ndarray, yc: np.ndarray, nxact: int, pitch: int, cob
     rad_in = (((nxact - 1) / 2) * cobs - margin_in) * pitch
 
     if N is None:
-        if (margin_out is None):
+        if margin_out is None:
             margin_out = 1.44
-        rad_out = ((nxact - 1.) / 2. + margin_out) * pitch
+        rad_out = ((nxact - 1.0) / 2.0 + margin_out) * pitch
 
         valid_actus = np.where((dis <= rad_out) * (dis >= rad_in))[0]
 
@@ -279,15 +292,15 @@ def select_actuators(xc: np.ndarray, yc: np.ndarray, nxact: int, pitch: int, cob
         valid_actus = np.where(dis >= rad_in)[0]
         indsort = np.argsort(dis[valid_actus])
 
-        if (N > valid_actus.size):
-            print('Too many actuators wanted, restricted to ', valid_actus.size)
+        if N > valid_actus.size:
+            print("Too many actuators wanted, restricted to ", valid_actus.size)
         else:
             valid_actus = np.sort(indsort[:N])
 
     return valid_actus
 
 
-def make_zernike(nzer: int, size: int, diameter: int, xc=-1., yc=-1., ext=0):
+def make_zernike(nzer: int, size: int, diameter: int, xc=-1.0, yc=-1.0, ext=0):
     """Compute the zernike modes
 
     Args:
@@ -311,12 +324,12 @@ def make_zernike(nzer: int, size: int, diameter: int, xc=-1., yc=-1., ext=0):
     m = 0
     n = 0
 
-    if (xc == -1):
+    if xc == -1:
         xc = size / 2
-    if (yc == -1):
+    if yc == -1:
         yc = size / 2
 
-    radius = (diameter) / 2.
+    radius = (diameter) / 2.0
     zr = util.dist(size, xc, yc).astype(np.float32).T / radius
     zmask = np.zeros((zr.shape[0], zr.shape[1], nzer), dtype=np.float32)
     zmaskmod = np.zeros((zr.shape[0], zr.shape[1], nzer), dtype=np.float32)
@@ -342,29 +355,35 @@ def make_zernike(nzer: int, size: int, diameter: int, xc=-1., yc=-1., ext=0):
 
         if ext:
             for i in range((n - m) // 2 + 1):
-                z[:, :, zn] = z[:, :, zn] + (-1.) ** i * zrmod ** (n - 2. * i) * float(math.factorial(n - i)) / \
-                    float(math.factorial(i) * math.factorial((n + m) // 2 - i) *
-                          math.factorial((n - m) // 2 - i))
+                z[:, :, zn] = z[:, :, zn] + (-1.0) ** i * zrmod ** (n - 2.0 * i) * float(
+                    math.factorial(n - i)
+                ) / float(
+                    math.factorial(i)
+                    * math.factorial((n + m) // 2 - i)
+                    * math.factorial((n - m) // 2 - i)
+                )
         else:
             for i in range((n - m) // 2 + 1):
-                z[:, :, zn] = z[:, :, zn] + (-1.) ** i * zr ** (n - 2. * i) * float(math.factorial(n - i)) / \
-                    float(math.factorial(i) * math.factorial((n + m) // 2 - i) *
-                          math.factorial((n - m) // 2 - i))
+                z[:, :, zn] = z[:, :, zn] + (-1.0) ** i * zr ** (n - 2.0 * i) * float(
+                    math.factorial(n - i)
+                ) / float(
+                    math.factorial(i)
+                    * math.factorial((n + m) // 2 - i)
+                    * math.factorial((n - m) // 2 - i)
+                )
 
-        if ((zn + 1) % 2 == 1):
-            if (m == 0):
-                z[:, :, zn] = z[:, :, zn] * np.sqrt(n + 1.)
+        if (zn + 1) % 2 == 1:
+            if m == 0:
+                z[:, :, zn] = z[:, :, zn] * np.sqrt(n + 1.0)
             else:
-                z[:, :, zn] = z[:, :, zn] * \
-                    np.sqrt(2. * (n + 1)) * np.sin(m * zteta)
+                z[:, :, zn] = z[:, :, zn] * np.sqrt(2.0 * (n + 1)) * np.sin(m * zteta)
         else:
-            if (m == 0):
-                z[:, :, zn] = z[:, :, zn] * np.sqrt(n + 1.)
+            if m == 0:
+                z[:, :, zn] = z[:, :, zn] * np.sqrt(n + 1.0)
             else:
-                z[:, :, zn] = z[:, :, zn] * \
-                    np.sqrt(2. * (n + 1)) * np.cos(m * zteta)
+                z[:, :, zn] = z[:, :, zn] * np.sqrt(2.0 * (n + 1)) * np.cos(m * zteta)
 
-    if (ext):
+    if ext:
         return z * zmaskmod
     else:
         return z * zmask
@@ -389,17 +408,17 @@ def zernumero(zn: int):
     j = 0
     for n in range(101):
         for m in range(n + 1):
-            if ((n - m) % 2 == 0):
+            if (n - m) % 2 == 0:
                 j = j + 1
-                if (j == zn):
+                if j == zn:
                     return n, m
-                if (m != 0):
+                if m != 0:
                     j = j + 1
-                    if (j == zn):
+                    if j == zn:
                         return n, m
 
 
-dm_fits_content="""The DM FITS file is compatible with COMPASS DM database.
+dm_fits_content = """The DM FITS file is compatible with COMPASS DM database.
     The primary header contains the keywords:
     * PIXSIZE : the size of the pixels on the maps in meters.
 
@@ -419,14 +438,31 @@ dm_fits_content="""The DM FITS file is compatible with COMPASS DM database.
     * Extension 'XPOS_YPOS' are the coordinates (xpos, ypos) of the  physical location of the actuator, in pixels. This data is provided for information only and does not directly participate to build the DM. The present coordinates are positions in M1 space, i.e. include the distorsion due to telescope optics.
 """
 
+
 def add_doc_content(*content):
     """adds content to a docstring (to be used as decorator)"""
+
     def dec(obj):
         obj.__doc__ = obj.__doc__.format(content)
         return obj
+
     return dec
 
-def write_dm_custom_fits(file_name, i1, j1, influ_cube, xpos, ypos, xcenter, ycenter,pixsize,pupm, *,pitchm=None):
+
+def write_dm_custom_fits(
+    file_name,
+    i1,
+    j1,
+    influ_cube,
+    xpos,
+    ypos,
+    xcenter,
+    ycenter,
+    pixsize,
+    pupm,
+    *,
+    pitchm=None,
+):
     """Write a custom_dm fits file based on user provided data (see args)
 
     Args:
@@ -456,27 +492,28 @@ def write_dm_custom_fits(file_name, i1, j1, influ_cube, xpos, ypos, xcenter, yce
     Returns:
         (HDUList) : custom_dm data
     """
-    fits_version=1.2
+    fits_version = 1.2
     primary_hdu = fits.PrimaryHDU()
-    primary_hdu.header['VERSION'] = (fits_version,'file format version')
-    primary_hdu.header['XCENTER'] = (xcenter     ,'DM centre along X in pixels')
-    primary_hdu.header['YCENTER'] = (ycenter     ,'DM centre along Y in pixels')
-    primary_hdu.header['PIXSIZE'] = (pixsize     ,'pixel size (meters)')
-    primary_hdu.header['PUPM']    = (pupm        ,'nominal pupil diameter (meters)')
-    if(pitchm is not None):
-        primary_hdu.header['PITCHM'] = (pitchm,'DM pitch (meters)')
+    primary_hdu.header["VERSION"] = (fits_version, "file format version")
+    primary_hdu.header["XCENTER"] = (xcenter, "DM centre along X in pixels")
+    primary_hdu.header["YCENTER"] = (ycenter, "DM centre along Y in pixels")
+    primary_hdu.header["PIXSIZE"] = (pixsize, "pixel size (meters)")
+    primary_hdu.header["PUPM"] = (pupm, "nominal pupil diameter (meters)")
+    if pitchm is not None:
+        primary_hdu.header["PITCHM"] = (pitchm, "DM pitch (meters)")
 
     for line in dm_fits_content.splitlines():
         primary_hdu.header.add_comment(line)
 
-    image_hdu = fits.ImageHDU(np.c_[i1 , j1 ].T, name="I1_J1")
+    image_hdu = fits.ImageHDU(np.c_[i1, j1].T, name="I1_J1")
     image_hdu2 = fits.ImageHDU(influ_cube, name="INFLU")
     image_hdu3 = fits.ImageHDU(np.c_[xpos, ypos].T, name="XPOS_YPOS")
 
     dm_custom = fits.HDUList([primary_hdu, image_hdu, image_hdu2, image_hdu3])
 
-    dm_custom.writeto(file_name,overwrite=1)
+    dm_custom.writeto(file_name, overwrite=1)
     return dm_custom
+
 
 @add_doc_content(dm_fits_content)
 def export_custom_dm(file_name, p_dm, p_geom, *, p_tel=None):
@@ -500,7 +537,7 @@ def export_custom_dm(file_name, p_dm, p_geom, *, p_tel=None):
 
     pixsize = p_geom.get_pixsize()
     diam = p_geom.pupdiam * p_geom._pixsize
-    if(p_tel is not None):
+    if p_tel is not None:
         diam = p_tel.diam
     xpos = p_dm._xpos
     ypos = p_dm._ypos
@@ -511,9 +548,21 @@ def export_custom_dm(file_name, p_dm, p_geom, *, p_tel=None):
     xcenter = p_geom.cent
     ycenter = p_geom.cent
 
-    pitchm=None
-    if p_dm._pitch :
-        pitchm = p_dm._pitch*pixsize
-    dm_custom = write_dm_custom_fits(file_name,i1,j1,influ,xpos,ypos,xcenter,ycenter,pixsize,diam,pitchm=pitchm)
+    pitchm = None
+    if p_dm._pitch:
+        pitchm = p_dm._pitch * pixsize
+    dm_custom = write_dm_custom_fits(
+        file_name,
+        i1,
+        j1,
+        influ,
+        xpos,
+        ypos,
+        xcenter,
+        ycenter,
+        pixsize,
+        diam,
+        pitchm=pitchm,
+    )
 
     return dm_custom

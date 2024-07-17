@@ -1,23 +1,20 @@
-## @package   shesha.util.psfMap
-## @brief     class PSF_map
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 
 
 import numpy as np
@@ -26,10 +23,19 @@ import matplotlib.pyplot as plt
 
 
 class PSF_map:
-
-    def __init__(self, SR=np.zeros((0, 0)), radius=0, wl=0, NGS=None, LGS=None, TS=None,
-                 AOtype="AO", sup=None, filename=None):
-        """ SR_map class
+    def __init__(
+        self,
+        SR=np.zeros((0, 0)),
+        radius=0,
+        wl=0,
+        NGS=None,
+        LGS=None,
+        TS=None,
+        AOtype="AO",
+        sup=None,
+        filename=None,
+    ):
+        """SR_map class
 
         SR      : np.ndarray        : array of strehl (organised by position)
         radius  : float             : radius of the map (in arcsec)
@@ -51,7 +57,7 @@ class PSF_map:
         self._Rngs = 0
         self._Rlgs = 0
         self._Rlgs = 0
-        if (NGS is not None):
+        if NGS is not None:
             self.NGSx = NGS[0]
             self.NGSy = NGS[1]
             self._Rngs = max((self.NGSx.max(), self.NGSy.max()))
@@ -59,7 +65,7 @@ class PSF_map:
             self.NGSx = np.zeros((0))
             self.NGSy = np.zeros((0))
 
-        if (LGS is not None):
+        if LGS is not None:
             self.LGSx = LGS[0]
             self.LGSy = LGS[1]
             self._Rlgs = max(self.LGSx.max(), self.LGSy.max())
@@ -67,7 +73,7 @@ class PSF_map:
             self.LGSx = np.zeros((0))
             self.LGSy = np.zeros((0))
 
-        if (TS is not None):
+        if TS is not None:
             self.TSx = TS[0]
             self.TSy = TS[1]
             self._Rts = max(self.TSx.max(), self.TSy.max())
@@ -78,7 +84,7 @@ class PSF_map:
         self.wavelength = wl
         self.type = AOtype
 
-        if (sup is not None):
+        if sup is not None:
             self.NGSx = np.array([t.xpos for t in sup.config.p_wfs_ngs[:-1]])
             self.NGSy = np.array([t.ypos for t in sup.config.p_wfs_ngs[:-1]])
             self._Rngs = max((self.NGSx.max(), self.NGSy.max()))
@@ -91,20 +97,20 @@ class PSF_map:
             self.wavelength = sup.config.p_targets[0].Lambda
             NTAR = len(sup.config.p_targets)
             NTAR_side = int(np.sqrt(NTAR))
-            if (NTAR != NTAR_side**2):
+            if NTAR != NTAR_side**2:
                 raise ValueError("not a square nb of targets")
             self.map = np.zeros((NTAR_side, NTAR_side))
             for i in range(NTAR):
-                #self.map.itemset(i,sup._sim.get_strehl(i)[1])
+                # self.map.itemset(i,sup._sim.get_strehl(i)[1])
                 self.map.itemset(i, sup._sim.get_strehl(i)[0])
                 tar = sup._sim.tar.d_targets[i]
                 self._Rtar = max(self._Rtar, tar.posx, tar.posy)
 
-        elif (filename is not None):
+        elif filename is not None:
             self.read(filename)
 
     def setNGS(self, NGS, NGSy=None):
-        if (NGSy is None):
+        if NGSy is None:
             self.NGSx = NGS[0]
             self.NGSy = NGS[1]
         else:
@@ -113,7 +119,7 @@ class PSF_map:
         self._Rngs = max((self.NGSx.max(), self.NGSy.max()))
 
     def setLGS(self, LGS, LGSy=None):
-        if (LGSy is None):
+        if LGSy is None:
             self.LGSx = LGS[0]
             self.LGSy = LGS[1]
         else:
@@ -122,7 +128,7 @@ class PSF_map:
         self._Rlgs = max(self.LGSx.max(), self.LGSy.max())
 
     def setTS(self, TS, TSy=None):
-        if (TSy is None):
+        if TSy is None:
             self.TSx = TS[0]
             self.TSy = TS[1]
         else:
@@ -134,24 +140,26 @@ class PSF_map:
         self.wavelength = wl
 
     def plot(self, title=False, GS=False, WFS=False, LGS=False, NGS=False, TS=False):
-        if (self.map.shape[0] > 0 and self.map.shape[1] > 0):
-            plt.matshow(self.map,
-                        extent=[-self._Rtar, self._Rtar, -self._Rtar, self._Rtar])
+        if self.map.shape[0] > 0 and self.map.shape[1] > 0:
+            plt.matshow(
+                self.map,
+                extent=[-self._Rtar, self._Rtar, -self._Rtar, self._Rtar],
+            )
             plt.colorbar()
-            if (GS or WFS or LGS):
+            if GS or WFS or LGS:
                 plt.scatter(self.LGSy, self.LGSx, color="red")
-            if (GS or WFS or NGS):
+            if GS or WFS or NGS:
                 plt.scatter(self.NGSy, self.NGSx, color="blue")
-            if (GS or TS):
+            if GS or TS:
                 plt.scatter(self.TSy, self.TSx, color="yellow", s=1)
 
             t = self.type + " Strehl"
-            if (self.wavelength > 0):
+            if self.wavelength > 0:
                 t += " @ {:.3f} nm".format(self.wavelength)
 
-            if (self._Rts > 0):
+            if self._Rts > 0:
                 t += ", {:.2f}".format(self._Rts) + " arcsec ring optim"
-            if (title):
+            if title:
                 plt.title(t)
 
     def save(self, name=""):
@@ -169,16 +177,14 @@ class PSF_map:
         hdu_TSX = fits.ImageHDU(self.TSx, name="TSX")
         hdu_TSY = fits.ImageHDU(self.TSy, name="TSY")
 
-        hdul = fits.HDUList([
-                hdu_map, hdu_LGSX, hdu_LGSY, hdu_NGSX, hdu_NGSY, hdu_TSX, hdu_TSY
-        ])
+        hdul = fits.HDUList([hdu_map, hdu_LGSX, hdu_LGSY, hdu_NGSX, hdu_NGSY, hdu_TSX, hdu_TSY])
         t = self.type + "_StrehlMap"
-        if (self.wavelength > 0):
+        if self.wavelength > 0:
             t += "_{:.3f}nm".format(self.wavelength)
-        if (self._Rts > 0):
+        if self._Rts > 0:
             t += "_{:.2f}arcsec".format(self._Rts)
         t += ".fits"
-        if (name == ""):
+        if name == "":
             name = t
         hdul.writeto(name, overwrite=1)
 

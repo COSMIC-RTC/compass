@@ -1,23 +1,20 @@
-## @package   shesha.supervisor.canapassSupervisor
-## @brief     Initialization and execution of a CANAPASS supervisor
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 
 """
 Initialization and execution of a CANAPASS supervisor
@@ -56,14 +53,11 @@ from shesha.supervisor.compassSupervisor import CompassSupervisor
 
 
 class CanapassSupervisor(CompassSupervisor):
-
     def __init__(self, config) -> None:
         print("switching to a generic controller")
         config.p_controllers[0].type = scons.ControllerType.GENERIC
         CompassSupervisor.__init__(self, config)
 
-
-########################## PROTO #############################
 
 # def initModalGain(self, gain, cmatModal, modal_basis, control=0, reset_gain=True):
 #     """
@@ -91,8 +85,8 @@ class CanapassSupervisor(CompassSupervisor):
 #     ctrl = self._sim.rtc.d_control[control]
 #     ctrl.set_commandlaw('integrator')
 
-class loopHandler:
 
+class loopHandler:
     def __init__(self):
         pass
 
@@ -105,39 +99,47 @@ class loopHandler:
     def alive(self):
         return "alive"
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     from docopt import docopt
     from shesha.config import ParamConfig
+
     arguments = docopt(__doc__)
     config = ParamConfig(arguments["<parameters_filename>"])
-    if (arguments["--freq"]):
+    if arguments["--freq"]:
         print("Warning changed frequency loop to: ", arguments["--freq"])
         config.p_loop.set_ittime(1 / float(arguments["--freq"]))
-    if (arguments["--delay"]):
+    if arguments["--delay"]:
         print("Warning changed delay loop to: ", arguments["--delay"])
         config.p_controllers[0].set_delay(float(arguments["--delay"]))
-    if (arguments["--spiders"]):
+    if arguments["--spiders"]:
         print("Warning changed spiders size to: ", arguments["--spiders"])
         config.p_tel.set_t_spiders(float(arguments["--spiders"]))
-    if (arguments["--nxsub"]):
-        print("Warning changed number of pixels per subaperture to: ", arguments["--nxsub"])
+    if arguments["--nxsub"]:
+        print(
+            "Warning changed number of pixels per subaperture to: ",
+            arguments["--nxsub"],
+        )
         config.p_wfss[0].set_nxsub(int(arguments["--nxsub"]))
-    if (arguments["--pupsep"]):
-        print("Warning changed distance between subaperture center and frame center to: ", arguments["--pupsep"])
+    if arguments["--pupsep"]:
+        print(
+            "Warning changed distance between subaperture center and frame center to: ",
+            arguments["--pupsep"],
+        )
         config.p_wfss[0].set_pyr_pup_sep(int(arguments["--pupsep"]))
-    if (arguments["--gsmag"]):
+    if arguments["--gsmag"]:
         print("Warning changed guide star magnitude to: ", arguments["--gsmag"])
         config.p_wfss[0].set_gsmag(float(arguments["--gsmag"]))
-    if (arguments["--setr0"]):
+    if arguments["--setr0"]:
         print("Warning changed r0 to: ", arguments["--setr0"])
         config.p_atmos.set_r0(float(arguments["--setr0"]))
-    if (arguments["--rmod"]):
+    if arguments["--rmod"]:
         print("Warning changed modulation radius to: ", arguments["--rmod"])
         rMod = int(arguments["--rmod"])
-        nbPtMod = int(np.ceil(int(rMod * 2 * 3.141592653589793) / 4.) * 4)
+        nbPtMod = int(np.ceil(int(rMod * 2 * 3.141592653589793) / 4.0) * 4)
         config.p_wfss[0].set_pyr_npts(nbPtMod)
         config.p_wfss[0].set_pyr_ampl(rMod)
-    if (arguments["--offaxis"]):
+    if arguments["--offaxis"]:
         print("Warning changed target x position: ", arguments["--offaxis"])
         config.p_targets[0].set_xpos(float(arguments["--offaxis"]))
         config.p_targets[1].set_xpos(float(arguments["--offaxis"]))
@@ -148,36 +150,55 @@ if __name__ == '__main__':
     try:
         from hraa.server.pyroServer import PyroServer
         import Pyro4
+
         Pyro4.config.REQUIRE_EXPOSE = False
         p = Popen("whoami", shell=True, stdout=PIPE, stderr=PIPE)
         out, err = p.communicate()
-        if (err != b''):
+        if err != b"":
             print(err)
             raise Exception("ERROR CANNOT RECOGNIZE USER")
         else:
             user = out.split(b"\n")[0].decode("utf-8")
             print("User is " + user)
-        if (supervisor.corono is None):
+        if supervisor.corono is None:
             from shesha.util.pyroEmptyClass import PyroEmptyClass
+
             coro2pyro = PyroEmptyClass()
         else:
             coro2pyro = supervisor.corono
         devices = [
-                supervisor, supervisor.rtc, supervisor.wfs, supervisor.target,
-                supervisor.tel, supervisor.basis, supervisor.calibration,
-                supervisor.atmos, supervisor.dms, supervisor.config, supervisor.modalgains, coro2pyro
+            supervisor,
+            supervisor.rtc,
+            supervisor.wfs,
+            supervisor.target,
+            supervisor.tel,
+            supervisor.basis,
+            supervisor.calibration,
+            supervisor.atmos,
+            supervisor.dms,
+            supervisor.config,
+            supervisor.modalgains,
+            coro2pyro,
         ]
         names = [
-                "supervisor", "supervisor_rtc", "supervisor_wfs", "supervisor_target",
-                "supervisor_tel", "supervisor_basis", "supervisor_calibration",
-                "supervisor_atmos", "supervisor_dms", "supervisor_config", "supervisor_modalgains", "supervisor_corono",
+            "supervisor",
+            "supervisor_rtc",
+            "supervisor_wfs",
+            "supervisor_target",
+            "supervisor_tel",
+            "supervisor_basis",
+            "supervisor_calibration",
+            "supervisor_atmos",
+            "supervisor_dms",
+            "supervisor_config",
+            "supervisor_modalgains",
+            "supervisor_corono",
         ]
         nname = []
         for name in names:
             nname.append(name + "_" + user)
         server = PyroServer(listDevices=devices, listNames=nname)
-        #server.add_device(supervisor, "waoconfig_" + user)
+        # server.add_device(supervisor, "waoconfig_" + user)
         server.start()
     except BaseException:
-        raise EnvironmentError(
-                "Missing dependencies (code HRAA or Pyro4 or Dill Serializer)")
+        raise EnvironmentError("Missing dependencies (code HRAA or Pyro4 or Dill Serializer)")

@@ -1,36 +1,35 @@
-## @package   shesha.supervisor
-## @brief     User layer for initialization and execution of a COMPASS simulation
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 
 
 from shesha.init.rtc_init import rtc_init
 
-from shesha.supervisor.components.rtc.rtcAbstract import RtcAbstract, carma_context
+from shesha.supervisor.components.rtc.rtcAbstract import (
+    RtcAbstract,
+    carma_context,
+)
 
 
 class RtcCompass(RtcAbstract):
-    """ RTC handler for compass simulation
-    """
+    """RTC handler for compass simulation"""
 
     def __init__(self, context: carma_context, config, tel, wfs, dms, atm):
-        """ Initialize a RtcCompass component for rtc related supervision
+        """Initialize a RtcCompass component for rtc related supervision
 
         Args:
             context : (carmaContext) : CarmaContext instance
@@ -49,7 +48,7 @@ class RtcCompass(RtcAbstract):
         self.rtc_init(tel, wfs, dms, atm)
 
     def rtc_init(self, tel, wfs, dms, atm):
-        """ Initialize a RtcCompass component for rtc related supervision
+        """Initialize a RtcCompass component for rtc related supervision
 
         Args:
             tel: (Telescope) : Telescope object
@@ -60,8 +59,18 @@ class RtcCompass(RtcAbstract):
 
             atm: (Atmos) : Atmos object
         """
-        self._rtc = rtc_init(self._context, tel._tel, wfs._wfs, dms._dms, atm._atmos,
-                             self._config.p_wfss, self._config.p_tel,
-                             self._config.p_geom, self._config.p_atmos,
-                             self._config.p_loop.ittime, self._config.p_centroiders,
-                             self._config.p_controllers, self._config.p_dms)
+        self._rtc = rtc_init(
+            self._context,
+            tel._tel,
+            wfs._wfs,
+            dms._dms,
+            atm._atmos,
+            self._config.p_wfss,
+            self._config.p_tel,
+            self._config.p_geom,
+            self._config.p_atmos,
+            self._config.p_loop.ittime,
+            self._config.p_centroiders,
+            self._config.p_controllers,
+            self._config.p_dms,
+        )

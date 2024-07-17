@@ -1,23 +1,20 @@
-## @package   guardians.drax
-## @brief     Utilities for ROKET files analysis
-## @author    Florian Ferreira <florian.ferreira@obspm.fr>
-## @date      2019/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 
 import numpy as np
 import h5py
@@ -26,7 +23,7 @@ from scipy.sparse import csr_matrix
 
 
 def variance(f, contributors, method="Default"):
-    """ Return the error variance of specified contributors
+    """Return the error variance of specified contributors
     params:
         f : (h5py.File) : roket hdf5 file opened with h5py
         contributors : (list of string) : list of the contributors
@@ -38,25 +35,25 @@ def variance(f, contributors, method="Default"):
     nmodes = P.shape[0]
     swap = np.arange(nmodes) - 2
     swap[0:2] = [nmodes - 2, nmodes - 1]
-    if (method == "Default"):
-        err = f[contributors[0]][:] * 0.
+    if method == "Default":
+        err = f[contributors[0]][:] * 0.0
         for c in contributors:
             err += f[c][:]
-        return np.var(P.dot(err), axis=1)  #[swap]
+        return np.var(P.dot(err), axis=1)  # [swap]
 
-    elif (method == "Independence"):
+    elif method == "Independence":
         nmodes = P.shape[0]
         v = np.zeros(nmodes)
         for c in contributors:
             v += np.var(P.dot(f[c][:]), axis=1)
-        return v  #[swap]
+        return v  # [swap]
 
     else:
         raise TypeError("Wrong method input")
 
 
 def varianceMultiFiles(fs, frac_per_layer, contributors):
-    """ Return the variance computed from the sum of contributors of roket
+    """Return the variance computed from the sum of contributors of roket
     files fs, ponderated by frac
     params:
         fs : (list) : list of hdf5 files opened with h5py
@@ -70,17 +67,17 @@ def varianceMultiFiles(fs, frac_per_layer, contributors):
     nmodes = P.shape[0]
     swap = np.arange(nmodes) - 2
     swap[0:2] = [nmodes - 2, nmodes - 1]
-    err = f[contributors[0]][:] * 0.
+    err = f[contributors[0]][:] * 0.0
     for f in fs:
         frac = frac_per_layer[f.attrs["_ParamAtmos__.alt"][0]]
         for c in contributors:
             err += np.sqrt(frac) * f[c][:]
 
-    return np.var(P.dot(err), axis=1)  #[swap]
+    return np.var(P.dot(err), axis=1)  # [swap]
 
 
 def cumulativeSR(v, Lambda_tar):
-    """ Returns the cumulative Strehl ratio over the modes from the variance
+    """Returns the cumulative Strehl ratio over the modes from the variance
     on each mode
     params:
         v : (np.array(dim=1)) : variance vector
@@ -88,7 +85,7 @@ def cumulativeSR(v, Lambda_tar):
         s : (np.array(dim=1)) : cumulative SR
     """
     s = np.cumsum(v)
-    s = np.exp(-s * (2 * np.pi / Lambda_tar)**2)
+    s = np.exp(-s * (2 * np.pi / Lambda_tar) ** 2)
 
     return s
 
@@ -101,12 +98,16 @@ def get_cumSR(filename):
     Args:
         filename: (str): path to the ROKET file
     """
-    f = h5py.File(filename, 'r')
+    f = h5py.File(filename, "r")
     error_list = [
-            "noise", "aliasing", "tomography", "filtered modes", "non linearity",
-            "bandwidth"
+        "noise",
+        "aliasing",
+        "tomography",
+        "filtered modes",
+        "non linearity",
+        "bandwidth",
     ]
-    if (list(f.attrs.keys()).count("_ParamTarget__Lambda")):
+    if list(f.attrs.keys()).count("_ParamTarget__Lambda"):
         Lambda = f.attrs["_ParamTarget__Lambda"][0]
     else:
         Lambda = 1.65
@@ -125,9 +126,9 @@ def get_cumSR(filename):
 
     data = np.var(data, axis=1)
     data = np.cumsum(data[swap])
-    data = np.exp(-data * (2 * np.pi / Lambda)**2)
+    data = np.exp(-data * (2 * np.pi / Lambda) ** 2)
     data2 = np.cumsum(data2[swap])
-    data2 = np.exp(-data2 * (2 * np.pi / Lambda)**2)
+    data2 = np.exp(-data2 * (2 * np.pi / Lambda) ** 2)
     data *= np.exp(-f["fitting"].value)
     data2 *= np.exp(-f["fitting"].value)
 
@@ -143,7 +144,7 @@ def get_Btt(filename):
     Args:
         filename: (str): path to the ROKET file
     """
-    f = h5py.File(filename, 'r')
+    f = h5py.File(filename, "r")
     return f["Btt"][:]
 
 
@@ -153,7 +154,7 @@ def get_P(filename):
     Args:
         filename: (str): path to the ROKET file
     """
-    f = h5py.File(filename, 'r')
+    f = h5py.File(filename, "r")
     return f["P"][:]
 
 
@@ -167,13 +168,13 @@ def get_contribution(filename, contributor):
     :return:
         v: (np.array[ndim=1, dtype=np.float32]): variance of the contributor
     """
-    f = h5py.File(filename, 'r')
+    f = h5py.File(filename, "r")
     P = f["P"][:]
     nmodes = P.shape[0]
     swap = np.arange(nmodes) - 2
     swap[0:2] = [nmodes - 2, nmodes - 1]
 
-    return np.var(np.dot(P, f[contributor][:]), axis=1)  #[swap]
+    return np.var(np.dot(P, f[contributor][:]), axis=1)  # [swap]
 
 
 def get_err_contributors(filename, contributors):
@@ -186,9 +187,9 @@ def get_err_contributors(filename, contributors):
     :return:
         err: (np.ndarray[ndim=2,dtype=np.float32]): Sum of the error buffers
     """
-    f = h5py.File(filename, 'r')
+    f = h5py.File(filename, "r")
     # Get the sum of error contributors
-    err = f["noise"][:] * 0.
+    err = f["noise"][:] * 0.0
     for c in contributors:
         err += f[c][:]
     f.close()
@@ -206,7 +207,7 @@ def get_err(filename):
         err: (np.ndarray[ndim=2,dtype=np.float32]): Sum of the error buffers
     """
 
-    f = h5py.File(filename, 'r')
+    f = h5py.File(filename, "r")
     # Get the sum of error contributors
     err = f["noise"][:]
     err += f["aliasing"][:]
@@ -229,7 +230,7 @@ def get_coverr_independence(filename):
         err: (np.ndarray[ndim=2,dtype=np.float32]): Covariance matrix
     """
 
-    f = h5py.File(filename, 'r')
+    f = h5py.File(filename, "r")
     # Get the sum of error contributors
     N = f["noise"][:].shape[1]
     err = f["noise"][:].dot(f["noise"][:].T)
@@ -254,7 +255,7 @@ def get_coverr_independence_contributors(filename, contributors):
         err: (np.ndarray[ndim=2,dtype=np.float32]): Covariance matrix
     """
 
-    f = h5py.File(filename, 'r')
+    f = h5py.File(filename, "r")
     # Get the sum of error contributors
     N = f["noise"][:].shape[1]
     err = np.zeros((f["noise"][:].shape[0], f["noise"][:].shape[0]))
@@ -277,8 +278,8 @@ def get_covmat_contrib(filename, contributors, modal=True):
     :return:
         covmat: (np.ndarray(ndim=2, dtype=np.float32)): covariance matrix
     """
-    h5f = h5py.File(filename, 'r')
-    contrib = h5f["bandwidth"][:] * 0.
+    h5f = h5py.File(filename, "r")
+    contrib = h5f["bandwidth"][:] * 0.0
     for c in contributors:
         contrib += h5f[c][:]
     covmat = contrib.dot(contrib.T) / contrib.shape[1]
@@ -299,17 +300,19 @@ def get_pup(filename):
         spup: (np.ndarray[ndim=2,dtype=np.float32]): pupil
 
     """
-    f = h5py.File(filename, 'r')
-    if (list(f.keys()).count("spup")):
+    f = h5py.File(filename, "r")
+    if list(f.keys()).count("spup"):
         spup = f["spup"][:]
     else:
         indx_pup = f["indx_pup"][:]
         pup = np.zeros((f["dm_dim"].value, f["dm_dim"].value))
         pup_F = pup.flatten()
-        pup_F[indx_pup] = 1.
+        pup_F[indx_pup] = 1.0
         pup = pup_F.reshape(pup.shape)
-        spup = pup[np.where(pup)[0].min():np.where(pup)[0].max() + 1,
-                   np.where(pup)[1].min():np.where(pup)[1].max() + 1]
+        spup = pup[
+            np.where(pup)[0].min() : np.where(pup)[0].max() + 1,
+            np.where(pup)[1].min() : np.where(pup)[1].max() + 1,
+        ]
 
     f.close()
     return spup
@@ -324,7 +327,7 @@ def get_breakdown(filename):
     :return:
         breakdown: (dict): dictionnary containing the error breakdown
     """
-    f = h5py.File(filename, 'r')
+    f = h5py.File(filename, "r")
     P = f["P"][:]
     noise = f["noise"][:]
     trunc = f["non linearity"][:]
@@ -344,7 +347,7 @@ def get_breakdown(filename):
     C = np.var(P.dot(filt + noise + trunc + bp + tomo + aliasing), axis=1)
     inde = N + S + B + T + A + F
 
-    if (list(f.attrs.keys()).count("_ParamTarget__Lambda")):
+    if list(f.attrs.keys()).count("_ParamTarget__Lambda"):
         Lambda = f.attrs["_ParamTarget__Lambda"][0]
     else:
         Lambda = 1.65
@@ -355,28 +358,26 @@ def get_breakdown(filename):
     print("tomo :", np.sqrt(np.sum(T)) * 1e3, " nm rms")
     print("aliasing :", np.sqrt(np.sum(A)) * 1e3, " nm rms")
     print("filt :", np.sqrt(np.sum(F)) * 1e3, " nm rms")
-    print("fitting :",
-          np.mean(np.sqrt(f["fitting"].value / ((2 * np.pi / Lambda)**2)) * 1e3),
-          " nm rms")
-    print("cross-terms :", np.sqrt(np.abs(np.sum(C) - np.sum(inde))) * 1e3, " nm rms")
+    print(
+        "fitting :",
+        np.mean(np.sqrt(f["fitting"].value / ((2 * np.pi / Lambda) ** 2)) * 1e3),
+        " nm rms",
+    )
+    print(
+        "cross-terms :",
+        np.sqrt(np.abs(np.sum(C) - np.sum(inde))) * 1e3,
+        " nm rms",
+    )
     return {
-            "noise":
-                    np.sqrt(np.sum(N)) * 1e3,
-            "non linearity":
-                    np.sqrt(np.sum(S)) * 1e3,
-            "bandwidth":
-                    np.sqrt(np.sum(B)) * 1e3,
-            "tomography":
-                    np.sqrt(np.sum(T)) * 1e3,
-            "aliasing":
-                    np.sqrt(np.sum(A)) * 1e3,
-            "filtered modes":
-                    np.sqrt(np.sum(F)) * 1e3,
-            "fitting":
-                    np.mean(
-                            np.sqrt(f["fitting"].value /
-                                    ((2 * np.pi / Lambda)**2)) * 1e3)
+        "noise": np.sqrt(np.sum(N)) * 1e3,
+        "non linearity": np.sqrt(np.sum(S)) * 1e3,
+        "bandwidth": np.sqrt(np.sum(B)) * 1e3,
+        "tomography": np.sqrt(np.sum(T)) * 1e3,
+        "aliasing": np.sqrt(np.sum(A)) * 1e3,
+        "filtered modes": np.sqrt(np.sum(F)) * 1e3,
+        "fitting": np.mean(np.sqrt(f["fitting"].value / ((2 * np.pi / Lambda) ** 2)) * 1e3),
     }
+
 
 def plotCovCor(filename, maparico=None):
     """
@@ -386,12 +387,19 @@ def plotCovCor(filename, maparico=None):
         maparico: (str): (optional) matplotlib colormap to use
 
     """
-    f = h5py.File(filename, 'r')
+    f = h5py.File(filename, "r")
     cov = f["cov"][:]
     cor = f["cor"][:]
 
-    labels = ["noise", "WF deviation", "aliasing", "filt. modes", "bandwidth", "aniso"]
-    if (maparico is None):
+    labels = [
+        "noise",
+        "WF deviation",
+        "aliasing",
+        "filt. modes",
+        "bandwidth",
+        "aniso",
+    ]
+    if maparico is None:
         maparico = "viridis"
     x = np.arange(6)
     plt.matshow(cov, cmap=maparico)
@@ -415,9 +423,9 @@ def get_IF(filename):
         IF: (csr_matrix): pzt influence function (sparse)
         T: (np.ndarray[ndim=2,dtype=np.float32]): tip tilt influence function
     """
-    f = h5py.File(filename, 'r')
+    f = h5py.File(filename, "r")
     IF = csr_matrix((f["IF.data"][:], f["IF.indices"][:], f["IF.indptr"][:]))
-    if (list(f.keys()).count("TT")):
+    if list(f.keys()).count("TT"):
         T = f["TT"][:]
     else:
         T = IF[-2:, :].toarray()
@@ -435,7 +443,7 @@ def get_mode(filename, n):
     :return:
         sc: (np.ndarray[ndim=2,dtype=np.float32]): mode #n of the Btt basis
     """
-    f = h5py.File(filename, 'r')
+    f = h5py.File(filename, "r")
     Btt = f["Btt"][:]
     IF, TT = get_IF(filename)
     dim = f["dm_dim"].value
@@ -474,7 +482,7 @@ def getMap(filename, covmat):
     :return:
         Map: (np.ndarray[ndim=2,dtype=np.float32]): covariance map
     """
-    f = h5py.File(filename, 'r')
+    f = h5py.File(filename, "r")
     # nn, c'est, en gros un where(actus==valides)
     xpos = f["dm.xpos"][:]
     ypos = f["dm.ypos"][:]
@@ -484,9 +492,9 @@ def getMap(filename, covmat):
     y = ((ypos - ypos.min()) / pitch).astype(np.int32)
     nn = (x, y)
 
-    #creation du tableau des decalages
-    #xx et yy c'est les cood des actus valides
-    #dx et dy c'est la matrice des differences de coordonnees, entre -nssp et +nssp
+    # creation du tableau des decalages
+    # xx et yy c'est les cood des actus valides
+    # dx et dy c'est la matrice des differences de coordonnees, entre -nssp et +nssp
     xx = np.tile(np.arange(nact), (nact, 1))
     yy = xx.T
     dx = np.zeros((x.size, x.size), dtype=np.int32)
@@ -496,8 +504,8 @@ def getMap(filename, covmat):
         dy[k, :] = yy[nn][k] - yy[nn]
 
     # transformation des decalages en indice de tableau
-    dx += (nact - 1)
-    dy += (nact - 1)
+    dx += nact - 1
+    dy += nact - 1
 
     # transformation d'un couple de decalages (dx,dy) en un indice du tableau 'Map'
     Map = np.zeros((nact * 2 - 1, nact * 2 - 1)).flatten()
@@ -529,7 +537,7 @@ def SlopesMap(covmat, filename=None, nssp=None, validint=None):
         Map: (np.ndarray[ndim=2,dtype=np.float32]): covariance map
     """
     if filename is not None:
-        f = h5py.File(filename, 'r')
+        f = h5py.File(filename, "r")
         nssp = f.attrs["_ParamWfs__nxsub"][0]
         validint = f.attrs["_ParamTel__cobs"]
         f.close()
@@ -559,8 +567,8 @@ def SlopesMap(covmat, filename=None, nssp=None, validint=None):
         dy[k, :] = yy[k] - yy
 
     # transformation des decalages en indice de tableau
-    dx += (nssp - 1)
-    dy += (nssp - 1)
+    dx += nssp - 1
+    dy += nssp - 1
 
     # transformation d'un couple de decalages (dx,dy) en un indice du tableau 'Map'
     Map = np.zeros((nssp * 2 - 1, nssp * 2 - 1)).flatten()
@@ -592,7 +600,7 @@ def covFromMap(Map, nsub, filename=None, nssp=None, validint=None):
         Map: (np.ndarray[ndim=2,dtype=np.float32]): covariance map
     """
     if filename is not None:
-        f = h5py.File(filename, 'r')
+        f = h5py.File(filename, "r")
         nssp = f.attrs["_ParamWfs__nxsub"][0]
         validint = f.attrs["_ParamTel__cobs"]
         f.close()
@@ -621,8 +629,8 @@ def covFromMap(Map, nsub, filename=None, nssp=None, validint=None):
         dy[k, :] = yy[k] - yy
 
     # transformation des decalages en indice de tableau
-    dx += (nssp - 1)
-    dy += (nssp - 1)
+    dx += nssp - 1
+    dy += nssp - 1
 
     # transformation d'un couple de decalages (dx,dy) en un indice du tableau 'Map'
     covmat = np.zeros((nsub, nsub))
@@ -648,20 +656,24 @@ def getCovFromMap(Map, nsub, filename=None, nssp=None, validint=None):
         Map: (np.ndarray[ndim=2,dtype=np.float32]): covariance map
     """
     if filename is not None:
-        f = h5py.File(filename, 'r')
+        f = h5py.File(filename, "r")
         nssp = f.attrs["_ParamWfs__nxsub"][0]
         f.close()
     mapSize = 2 * nssp - 1
     covmat = np.zeros((nsub, nsub))
 
-    covmat[:nsub // 2, :nsub // 2] = covFromMap(Map[:mapSize, :mapSize], nsub // 2,
-                                                filename=filename)
-    covmat[nsub // 2:, nsub // 2:] = covFromMap(Map[mapSize:, mapSize:], nsub // 2,
-                                                filename=filename)
-    covmat[:nsub // 2, nsub // 2:] = covFromMap(Map[:mapSize, mapSize:], nsub // 2,
-                                                filename=filename)
-    covmat[nsub // 2:, :nsub // 2] = covFromMap(Map[mapSize:, :mapSize], nsub // 2,
-                                                filename=filename)
+    covmat[: nsub // 2, : nsub // 2] = covFromMap(
+        Map[:mapSize, :mapSize], nsub // 2, filename=filename
+    )
+    covmat[nsub // 2 :, nsub // 2 :] = covFromMap(
+        Map[mapSize:, mapSize:], nsub // 2, filename=filename
+    )
+    covmat[: nsub // 2, nsub // 2 :] = covFromMap(
+        Map[:mapSize, mapSize:], nsub // 2, filename=filename
+    )
+    covmat[nsub // 2 :, : nsub // 2] = covFromMap(
+        Map[mapSize:, :mapSize], nsub // 2, filename=filename
+    )
 
     return covmat
 
@@ -679,23 +691,28 @@ def get_slopessMap(covmat, filename=None, nssp=None, validint=None):
         Map: (np.ndarray[ndim=2,dtype=np.float32]): covariance map
     """
     if filename is not None:
-        f = h5py.File(filename, 'r')
+        f = h5py.File(filename, "r")
         nssp = f.attrs["_ParamWfs__nxsub"][0]
         f.close()
     nsub = covmat.shape[0] // 2
     mapSize = 2 * nssp - 1
     Map = np.zeros((2 * mapSize, 2 * mapSize))
 
-    Map[:mapSize, :mapSize] = SlopesMap(covmat[:nsub, :nsub], filename=filename,
-                                        nssp=nssp, validint=validint)
-    Map[:mapSize, mapSize:] = SlopesMap(covmat[:nsub, nsub:], filename=filename,
-                                        nssp=nssp, validint=validint)
-    Map[mapSize:, :mapSize] = SlopesMap(covmat[nsub:, :nsub], filename=filename,
-                                        nssp=nssp, validint=validint)
-    Map[mapSize:, mapSize:] = SlopesMap(covmat[nsub:, nsub:], filename=filename,
-                                        nssp=nssp, validint=validint)
+    Map[:mapSize, :mapSize] = SlopesMap(
+        covmat[:nsub, :nsub], filename=filename, nssp=nssp, validint=validint
+    )
+    Map[:mapSize, mapSize:] = SlopesMap(
+        covmat[:nsub, nsub:], filename=filename, nssp=nssp, validint=validint
+    )
+    Map[mapSize:, :mapSize] = SlopesMap(
+        covmat[nsub:, :nsub], filename=filename, nssp=nssp, validint=validint
+    )
+    Map[mapSize:, mapSize:] = SlopesMap(
+        covmat[nsub:, nsub:], filename=filename, nssp=nssp, validint=validint
+    )
 
     return Map
+
 
 def get_psf(filename):
     """
@@ -704,11 +721,12 @@ def get_psf(filename):
     Args:
         filename : (str): path to the ROKET file
     """
-    f = h5py.File(filename, 'r')
+    f = h5py.File(filename, "r")
     psf = f["psf"][:]
     f.close()
     return psf
-    
+
+
 def ensquare_PSF(filename, psf, N, display=False, cmap="jet"):
     """
     Return the ensquared PSF
@@ -722,17 +740,21 @@ def ensquare_PSF(filename, psf, N, display=False, cmap="jet"):
     :return:
         psf: (np.ndarray[ndim=2,dtype=np.float32]): the ensquared psf
     """
-    f = h5py.File(filename, 'r')
+    f = h5py.File(filename, "r")
     Lambda_tar = f.attrs["_ParamTarget__Lambda"][0]
-    RASC = 180 / np.pi * 3600.
-    pixsize = Lambda_tar * 1e-6 / (psf.shape[0] * f.attrs["_ParamTel__diam"] / f.attrs[
-            "_ParamGeom__pupdiam"]) * RASC
+    RASC = 180 / np.pi * 3600.0
+    pixsize = (
+        Lambda_tar
+        * 1e-6
+        / (psf.shape[0] * f.attrs["_ParamTel__diam"] / f.attrs["_ParamGeom__pupdiam"])
+        * RASC
+    )
     # x = (np.arange(psf.shape[0]) - psf.shape[0] / 2) * pixsize / (
     #         Lambda_tar * 1e-6 / f.attrs["_ParamTel__diam"] * RASC)
     w = int(N * (Lambda_tar * 1e-6 / f.attrs["_ParamTel__diam"] * RASC) / pixsize)
     mid = psf.shape[0] // 2
-    psfe = np.abs(psf[mid - w:mid + w, mid - w:mid + w])
-    if (display):
+    psfe = np.abs(psf[mid - w : mid + w, mid - w : mid + w])
+    if display:
         plt.matshow(np.log10(psfe), cmap=cmap)
         plt.colorbar()
         xt = np.linspace(0, psfe.shape[0] - 1, 6).astype(np.int32)
@@ -741,7 +763,7 @@ def ensquare_PSF(filename, psf, N, display=False, cmap="jet"):
         plt.yticks(xt, yt)
 
     f.close()
-    return psf[mid - w:mid + w, mid - w:mid + w]
+    return psf[mid - w : mid + w, mid - w : mid + w]
 
 
 def ensquared_energy(filename, psf, N):
@@ -763,20 +785,29 @@ def cutsPSF(filename, psf, psfs):
         psf: (np.ndarray[ndim=2,dtype=np.float32]): first PSF
         psfs: (np.ndarray[ndim=2,dtype=np.float32]): second PSF
     """
-    f = h5py.File(filename, 'r')
+    f = h5py.File(filename, "r")
     Lambda_tar = f.attrs["_ParamTarget__Lambda"][0]
-    RASC = 180 / np.pi * 3600.
-    pixsize = Lambda_tar * 1e-6 / (psf.shape[0] * f.attrs["_ParamTel__diam"] / f.attrs[
-            "_ParamGeom__pupdiam"]) * RASC
-    x = (np.arange(psf.shape[0]) - psf.shape[0] / 2) * pixsize / (
-            Lambda_tar * 1e-6 / f.attrs["_ParamTel__diam"] * RASC)
+    RASC = 180 / np.pi * 3600.0
+    pixsize = (
+        Lambda_tar
+        * 1e-6
+        / (psf.shape[0] * f.attrs["_ParamTel__diam"] / f.attrs["_ParamGeom__pupdiam"])
+        * RASC
+    )
+    x = (
+        (np.arange(psf.shape[0]) - psf.shape[0] / 2)
+        * pixsize
+        / (Lambda_tar * 1e-6 / f.attrs["_ParamTel__diam"] * RASC)
+    )
     plt.figure()
     plt.subplot(2, 1, 1)
     plt.semilogy(x, psf[psf.shape[0] // 2, :], color="blue")
     plt.semilogy(x, psfs[psf.shape[0] // 2, :], color="red")
-    plt.semilogy(x,
-                 np.abs(psf[psf.shape[0] // 2, :] - psfs[psf.shape[0] // 2, :]),
-                 color="green")
+    plt.semilogy(
+        x,
+        np.abs(psf[psf.shape[0] // 2, :] - psfs[psf.shape[0] // 2, :]),
+        color="green",
+    )
     plt.xlabel("X-axis angular distance [units of lambda/D]")
     plt.ylabel("Normalized intensity")
     plt.legend(["PSF exp", "PSF model", "Diff"])
@@ -785,15 +816,17 @@ def cutsPSF(filename, psf, psfs):
     plt.subplot(2, 1, 2)
     plt.semilogy(x, psf[:, psf.shape[0] // 2], color="blue")
     plt.semilogy(x, psfs[:, psf.shape[0] // 2], color="red")
-    plt.semilogy(x,
-                 np.abs(psf[:, psf.shape[0] // 2] - psfs[:, psf.shape[0] // 2]),
-                 color="green")
+    plt.semilogy(
+        x,
+        np.abs(psf[:, psf.shape[0] // 2] - psfs[:, psf.shape[0] // 2]),
+        color="green",
+    )
     plt.xlabel("Y-axis angular distance [units of lambda/D]")
     plt.ylabel("Normalized intensity")
     plt.legend(["PSF exp", "PSF model", "Diff"])
     plt.xlim(-20, 20)
     plt.ylim(1e-7, 1)
-    plt.savefig('thefig.png')
+    plt.savefig("thefig.png")
     f.close()
 
 
@@ -809,18 +842,16 @@ def compDerivativeCmm(filename=None, slopes=None, dt=1, dd=False, ss=False):
         dCmm: (np.ndarray[ndim=2,dtype=np.float32]: covariance matrix of slopes with their derivative
     """
     if filename is not None:
-        f = h5py.File(filename, 'r')
+        f = h5py.File(filename, "r")
         slopes = f["slopes"][:]
         f.close()
     if slopes is not None:
         if dd:
-            dCmm = (slopes[:, dt:] - slopes[:, :-dt]).dot(
-                    (slopes[:, dt:] - slopes[:, :-dt]).T / 2)
+            dCmm = (slopes[:, dt:] - slopes[:, :-dt]).dot((slopes[:, dt:] - slopes[:, :-dt]).T / 2)
         elif ss:
             dCmm = slopes[:, :-dt].dot(slopes[:, dt:].T)
         else:
-            dCmm = (slopes[:, dt:] - slopes[:, :-dt]).dot(
-                    (slopes[:, dt:] + slopes[:, :-dt]).T / 2)
+            dCmm = (slopes[:, dt:] - slopes[:, :-dt]).dot((slopes[:, dt:] + slopes[:, :-dt]).T / 2)
 
         return dCmm / slopes[:, dt:].shape[1]
 
@@ -840,8 +871,7 @@ def compProfile(filename, nlayers):
 
     mapC = get_slopessMap(compDerivativeCmm(filename, dt=dk), filename)
     size = mapC.shape[0] // 2
-    minimap = mapC[size:, size:] + mapC[size:, :size] + mapC[:size,
-                                                             size:] + mapC[:size, :size]
+    minimap = mapC[size:, size:] + mapC[size:, :size] + mapC[:size, size:] + mapC[:size, :size]
 
     ws = np.zeros(nlayers)
     wd = np.zeros(nlayers)
@@ -858,11 +888,13 @@ def compProfile(filename, nlayers):
         r = np.linalg.norm([x - size / 2, y - size / 2]) * pdiam
         ws[k] = r / (dk * dt)
         wd[k] = np.arctan2(x - size / 2, y - size / 2) * 180 / np.pi
-        if (wd[k] < 0):
+        if wd[k] < 0:
             wd[k] += 360
-        minimap[x - 2:x + 3, y - 2:y + 3] = 0
-        minimap[(size - x - 1) - 2:(size - x - 1) + 3, (size - y - 1) - 2:
-                (size - y - 1) + 3] = 0
+        minimap[x - 2 : x + 3, y - 2 : y + 3] = 0
+        minimap[
+            (size - x - 1) - 2 : (size - x - 1) + 3,
+            (size - y - 1) - 2 : (size - y - 1) + 3,
+        ] = 0
     frac /= frac.sum()
 
     ind = np.argsort(f.attrs["_ParamAtmos__frac"])[::-1]

@@ -1,23 +1,20 @@
-## @package   carma.test
-## @brief     Unit tests for carma
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 
 import carma as ch
 import numpy as np
@@ -48,7 +45,7 @@ def test_float_aimax():
     # Vect.random_host(seed, 'U')
     v = np.array(Vect)
 
-    #imax return the index in column major of the maximum absolute value element
+    # imax return the index in column major of the maximum absolute value element
     imaxC = np.abs(v).argmax()
     imaxG = Vect.aimax()
 
@@ -62,7 +59,7 @@ def test_float_aimin():
     # Vect.random_host(seed*2, 'U')
     v = np.array(Vect)
 
-    #imax return the index in column major of the minimum obsolute value element
+    # imax return the index in column major of the minimum obsolute value element
     iminC = np.abs(v).argmin()
     iminG = Vect.aimin()
 
@@ -177,8 +174,8 @@ def test_float_dot():
 
     M = np.max(np.abs(dotC))
     d = 1
-    if (M > 0):
-        d = 10**np.ceil(np.log10(M))
+    if M > 0:
+        d = 10 ** np.ceil(np.log10(M))
     npt.assert_almost_equal(dotC / d, dotG / d, decimal=dec)
 
 
@@ -188,7 +185,7 @@ def test_double_aimax():
     # Vect.random_host(seed, 'U')
     v = np.array(Vect)
 
-    #imax return the index in column major of the maximum absolute value element
+    # imax return the index in column major of the maximum absolute value element
     imaxC = np.abs(v).argmax()
     imaxG = Vect.aimax()
 
@@ -202,7 +199,7 @@ def test_double_aimin():
     # Vect.random_host(seed*2, 'U')
     v = np.array(Vect)
 
-    #imax return the index in column major of the minimum obsolute value element
+    # imax return the index in column major of the minimum obsolute value element
     iminC = np.abs(v).argmin()
     iminG = Vect.aimin()
 
@@ -317,6 +314,6 @@ def test_double_dot():
 
     M = np.max(np.abs(dotC))
     d = 1
-    if (M > 0):
-        d = 10**np.ceil(np.log10(M))
+    if M > 0:
+        d = 10 ** np.ceil(np.log10(M))
     npt.assert_almost_equal(dotC / d, dotG / d, decimal=2 * dec)

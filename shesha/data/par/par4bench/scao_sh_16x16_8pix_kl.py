@@ -11,7 +11,7 @@ p_loop.set_ittime(0.002)  # =1/500
 # geom
 p_geom = conf.ParamGeom()
 
-p_geom.set_zenithangle(0.)
+p_geom.set_zenithangle(0.0)
 
 # tel
 p_tel = conf.ParamTel()
@@ -27,16 +27,16 @@ p_atmos.set_nscreens(1)
 p_atmos.set_frac([1.0])
 p_atmos.set_alt([0.0])
 p_atmos.set_windspeed([20.0])
-p_atmos.set_winddir([45.])
-p_atmos.set_L0([1.e5])
+p_atmos.set_winddir([45.0])
+p_atmos.set_L0([1.0e5])
 
 # target
 p_target = conf.ParamTarget()
 p_targets = [p_target]
-p_target.set_xpos(0.)
-p_target.set_ypos(0.)
+p_target.set_xpos(0.0)
+p_target.set_ypos(0.0)
 p_target.set_Lambda(1.65)
-p_target.set_mag(10.)
+p_target.set_mag(10.0)
 
 # wfs
 p_wfs0 = conf.ParamWfs()
@@ -47,13 +47,13 @@ p_wfs0.set_nxsub(16)
 p_wfs0.set_npix(8)
 p_wfs0.set_pixsize(0.3)
 p_wfs0.set_fracsub(0.8)
-p_wfs0.set_xpos(0.)
-p_wfs0.set_ypos(0.)
+p_wfs0.set_xpos(0.0)
+p_wfs0.set_ypos(0.0)
 p_wfs0.set_Lambda(0.5)
-p_wfs0.set_gsmag(3.)
+p_wfs0.set_gsmag(3.0)
 p_wfs0.set_optthroughput(0.5)
-p_wfs0.set_zerop(1.e11)
-p_wfs0.set_noise(-1.)
+p_wfs0.set_zerop(1.0e11)
+p_wfs0.set_noise(-1.0)
 p_wfs0.set_atmos_seen(1)
 
 # lgs parameters
@@ -71,11 +71,11 @@ p_dms = [p_dm0]
 p_dm0.set_type("kl")
 nact = p_wfs0.nxsub + 1
 p_dm0.set_nkl(100)
-p_dm0.set_alt(0.)
+p_dm0.set_alt(0.0)
 p_dm0.set_thresh(0.3)
 p_dm0.set_coupling(0.2)
 p_dm0.set_unitpervolt(0.001)
-p_dm0.set_push4imat(1.)
+p_dm0.set_push4imat(1.0)
 
 # centroiders
 p_centroider0 = conf.ParamCentroider()
@@ -93,8 +93,8 @@ p_controllers = [p_controller0]
 p_controller0.set_type("ls")
 p_controller0.set_nwfs([0])
 p_controller0.set_ndm([0])
-p_controller0.set_maxcond(150.)
-p_controller0.set_delay(1.)
+p_controller0.set_maxcond(150.0)
+p_controller0.set_delay(1.0)
 p_controller0.set_gain(0.4)
 
 p_controller0.set_modopti(0)

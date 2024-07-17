@@ -4,7 +4,7 @@
 
 [Unit Tests report](report_unit_test.html)
 
-## Summary
+
 
 |    | Test name                      | Init   | SR@100iter          |   T Init |    T Loop |
 |---:|:-------------------------------|:-------|:--------------------|---------:|----------:|

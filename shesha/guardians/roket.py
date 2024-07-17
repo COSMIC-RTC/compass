@@ -1,23 +1,20 @@
-## @package   guardians.roket
-## @brief     erROr breaKdown Estimation Tool
-## @author    Florian Ferreira <florian.ferreira@obspm.fr>
-## @date      2019/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 """
 ROKET (erROr breaKdown Estimation Tool)
 
@@ -46,7 +43,7 @@ class Roket(CompassSupervisor):
     Inherits from CompassSupervisor
     """
 
-    def __init__(self, str=None, N_preloop=1000, gamma=1.):
+    def __init__(self, str=None, N_preloop=1000, gamma=1.0):
         """
         Initializes an instance of Roket class
 
@@ -63,12 +60,12 @@ class Roket(CompassSupervisor):
         """
         Initializes the COMPASS simulation and the ROKET buffers
         """
-        #super().init_config()
+        # super().init_config()
         self.iter_number = 0
         self.n = self.config.p_loop.niter + self.N_preloop
-        #self.nfiltered = int(self.config.p_controllers[0].maxcond)
+        # self.nfiltered = int(self.config.p_controllers[0].maxcond)
         self.nfiltered = 20
-        #self.nactus = self.get_command(0).size
+        # self.nactus = self.get_command(0).size
         self.nactus = self.rtc.get_command(0).size
         self.nslopes = self.rtc.get_slopes(0).size
         self.com = np.zeros((self.n, self.nactus), dtype=np.float32)
@@ -91,12 +88,12 @@ class Roket(CompassSupervisor):
         self.centroid_gain = 0
         self.centroid_gain2 = 0
         self.slopes = np.zeros((self.n, self.nslopes), dtype=np.float32)
-        #gamma = 1.0
+        # gamma = 1.0
         self.config.p_loop.set_niter(self.n)
-        #self.IFpzt = self.get_influ_basis_sparse(1)
+        # self.IFpzt = self.get_influ_basis_sparse(1)
         self.IFpzt = self.rtc._rtc.d_control[1].d_IFsparse.get_csr().astype(np.float32)
-        #self.IFpzt.P = scipy.sparse.csr_matrix.transpose(self.IFpzt.get_csr())
-        #self.TT = self.get_tt_influ_basis(1)
+        # self.IFpzt.P = scipy.sparse.csr_matrix.transpose(self.IFpzt.get_csr())
+        # self.TT = self.get_tt_influ_basis(1)
         self.TT = np.array(self.rtc._rtc.d_control[1].d_TT)
 
         self.Btt, self.P = compute_btt(self.IFpzt.T, self.TT)
@@ -143,21 +140,39 @@ class Roket(CompassSupervisor):
         t0 = time.time()
         for i in range(self.n):
             self.loop_next(**kwargs)
-            if ((i + 1) % monitoring_freq == 0):
+            if (i + 1) % monitoring_freq == 0:
                 framerate = (i + 1) / (time.time() - t0)
                 # self.target.comp_tar_image(0)
                 # self.target.comp_strehl(0)
                 strehltmp = self.target.get_strehl(0)
                 etr = (self.n - i) / framerate
-                print("%d \t %.2f \t  %.2f\t %.2f \t %.2f \t    %.1f \t %.1f" %
-                      (i + 1, strehltmp[0], strehltmp[1], np.exp(-strehltmp[2]),
-                       np.exp(-strehltmp[3]), etr, framerate))
+                print(
+                    "%d \t %.2f \t  %.2f\t %.2f \t %.2f \t    %.1f \t %.1f"
+                    % (
+                        i + 1,
+                        strehltmp[0],
+                        strehltmp[1],
+                        np.exp(-strehltmp[2]),
+                        np.exp(-strehltmp[3]),
+                        etr,
+                        framerate,
+                    )
+                )
         t1 = time.time()
 
-        print(" loop execution time:", t1 - t0, "  (", self.n, "iterations), ",
-              (t1 - t0) / self.n, "(mean)  ", self.n / (t1 - t0), "Hz")
+        print(
+            " loop execution time:",
+            t1 - t0,
+            "  (",
+            self.n,
+            "iterations), ",
+            (t1 - t0) / self.n,
+            "(mean)  ",
+            self.n / (t1 - t0),
+            "Hz",
+        )
 
-        #self.tar.comp_image(0)
+        # self.tar.comp_image(0)
         SRs = self.target.get_strehl(0)
         self.SR2 = np.exp(-SRs[3])
         self.SR = SRs[1]
@@ -194,60 +209,58 @@ class Roket(CompassSupervisor):
         self.com[self.iter_number, :] = Dcom
         tarphase = self.target.get_tar_phase(0)
         self.slopes[self.iter_number, :] = self.rtc.get_slopes(0)
-        
-        ###########################################################################
-        ## Noise contribution
-        ###########################################################################
-        if (self.config.p_wfss[0].type == scons.WFSType.SH):
+
+        if self.config.p_wfss[0].type == scons.WFSType.SH:
             ideal_img = np.array(self.wfs._wfs.d_wfs[0].d_binimg_notnoisy)
             binimg = np.array(self.wfs._wfs.d_wfs[0].d_binimg)
-            if (self.config.p_centroiders[0].type == scons.CentroiderType.TCOG
-                ):  # Select the same pixels with or without noise
+            if (
+                self.config.p_centroiders[0].type == scons.CentroiderType.TCOG
+            ):  # Select the same pixels with or without noise
                 invalidpix = np.where(binimg <= self.config.p_centroiders[0].thresh)
                 ideal_img[invalidpix] = 0
                 self.rtc.set_centroider_threshold(0, -1e16)
             self.wfs._wfs.d_wfs[0].set_binimg(ideal_img, ideal_img.size)
-        elif (self.config.p_wfss[0].type == scons.centroiderType.PYRHR):
+        elif self.config.p_wfss[0].type == scons.centroiderType.PYRHR:
             ideal_pyrimg = np.array(self.wfs._wfs.d_wfs[0].d_binimg_notnoisy)
             self.wfs._wfs.d_wfs[0].set_binimg(ideal_pyrimg, ideal_pyrimg.size)
 
         self.rtc.do_centroids(0)
-        if (self.config.p_centroiders[0].type == scons.CentroiderType.TCOG):
+        if self.config.p_centroiders[0].type == scons.CentroiderType.TCOG:
             self.rtc.set_centroider_threshold(0, config.p_centroiders[0].thresh)
 
         self.rtc.do_control(0)
         E = self.rtc.get_err(0)
         E_meas = self.rtc.get_slopes(0)
-        self.noise_buf[self.iter_number, :] = (Derr - E)
+        self.noise_buf[self.iter_number, :] = Derr - E
         # Apply loop filter to get contribution of noise on commands
         # if (self.iter_number + 1 < self.config.p_loop.niter):
-        self.noise_com[self.iter_number, :] = self.noise_com[self.iter_number - 1, :] - self.gRD.dot(
-                    self.noise_com[self.iter_number - self.delay, :]) + g * self.noise_buf[self.iter_number - self.delay, :]
-        ###########################################################################
-        ## Sampling/truncature contribution
-        ###########################################################################
+        self.noise_com[self.iter_number, :] = (
+            self.noise_com[self.iter_number - 1, :]
+            - self.gRD.dot(self.noise_com[self.iter_number - self.delay, :])
+            + g * self.noise_buf[self.iter_number - self.delay, :]
+        )
         self.rtc.do_centroids_geom(0)
         self.rtc.do_control(0)
         F = self.rtc.get_err(0)
         F_meas = self.rtc.get_slopes(0)
         self.trunc_meas[self.iter_number, :] = E_meas - F_meas
-        self.trunc_buf[self.iter_number, :] = (E - self.gamma * F)
+        self.trunc_buf[self.iter_number, :] = E - self.gamma * F
         # Apply loop filter to get contribution of sampling/truncature on commands
-        #if (self.iter_number + 1 < self.config.p_loop.niter):
-        self.trunc_com[self.iter_number, :] = self.trunc_com[self.iter_number - 1, :] - self.gRD.dot(
-                    self.trunc_com[self.iter_number - self.delay, :]) + g * self.trunc_buf[self.iter_number - self.delay, :]
+        # if (self.iter_number + 1 < self.config.p_loop.niter):
+        self.trunc_com[self.iter_number, :] = (
+            self.trunc_com[self.iter_number - 1, :]
+            - self.gRD.dot(self.trunc_com[self.iter_number - self.delay, :])
+            + g * self.trunc_buf[self.iter_number - self.delay, :]
+        )
         self.centroid_gain += centroid_gain(E, F)
-        #Derr = np.ones(Derr)
-        #print(Derr)
-        #print(F)
+        # Derr = np.ones(Derr)
+        # print(Derr)
+        # print(F)
         self.centroid_gain2 += centroid_gain(Derr, F)
-        ###########################################################################
-        ## Aliasing contribution on WFS direction
-        ###########################################################################
-        #self.rtc.do_control(1, 0, wfs_direction=True)
+        # self.rtc.do_control(1, 0, wfs_direction=True)
         self.rtc.do_control(1, sources=self.wfs.sources, is_wfs_phase=True)
-        #self.rtc.do_control(0)
-        #self.rtc.do_control(1)
+        # self.rtc.do_control(0)
+        # self.rtc.do_control(1)
         self.rtc.apply_control(1)
         for w in range(len(self.config.p_wfss)):
             self.wfs.raytrace(w, dms=self.dms, reset=False)
@@ -270,73 +283,69 @@ class Roket(CompassSupervisor):
         self.ageom[self.iter_number, :] = self.rtc.get_err(0)
         self.alias_meas[self.iter_number, :] = self.rtc.get_slopes(0)
         # if (self.iter_number + 1 < self.config.p_loop.niter):
-        self.alias_wfs_com[self.iter_number, :] = self.alias_wfs_com[self.iter_number - 1, :] - self.gRD.dot(
-                    self.alias_wfs_com[self.iter_number - self.delay, :]) + self.gamma * g * self.ageom[self.iter_number - self.delay, :]# - (E-F))
+        self.alias_wfs_com[self.iter_number, :] = (
+            self.alias_wfs_com[self.iter_number - 1, :]
+            - self.gRD.dot(self.alias_wfs_com[self.iter_number - self.delay, :])
+            + self.gamma * g * self.ageom[self.iter_number - self.delay, :]
+        )  # - (E-F))
 
-        ###########################################################################
-        ## Wavefront + filtered modes reconstruction
-        ###########################################################################
         self.target.raytrace(0, atm=self.atmos, ncpa=False)
-        #self.rtc.do_control(1, 0, wfs_direction=False)
+        # self.rtc.do_control(1, 0, wfs_direction=False)
         self.rtc.do_control(1, sources=self.target.sources, is_wfs_phase=False)
-        #self.rtc.do_control(0)
-        #self.rtc.do_control(1)
+        # self.rtc.do_control(0)
+        # self.rtc.do_control(1)
         B = self.rtc.get_command(1)
 
-        ###########################################################################
-        ## Fitting
-        ###########################################################################
         self.rtc.apply_control(1)
         self.target.raytrace(0, dms=self.dms, ncpa=False, reset=False, comp_avg_var=False)
         self.target.comp_tar_image(0, compLE=False)
         self.target.comp_strehl(0)
         self.fit[self.iter_number] = self.target.get_strehl(0)[2]
-        if (self.iter_number >= self.N_preloop):
-            self.psf_ortho += self.target.get_tar_image(0, expo_type='se')
+        if self.iter_number >= self.N_preloop:
+            self.psf_ortho += self.target.get_tar_image(0, expo_type="se")
 
-        ###########################################################################
-        ## Filtered modes error & Commanded modes
-        ###########################################################################
         modes = self.P.dot(B)
-        modes_filt = modes.copy() * 0.
-        modes_filt[-self.nfiltered - 2:-2] = modes[-self.nfiltered - 2:-2]
+        modes_filt = modes.copy() * 0.0
+        modes_filt[-self.nfiltered - 2 : -2] = modes[-self.nfiltered - 2 : -2]
         self.H_com[self.iter_number, :] = self.Btt.dot(modes_filt)
-        modes[-self.nfiltered - 2:-2] = 0
+        modes[-self.nfiltered - 2 : -2] = 0
         self.mod_com[self.iter_number, :] = self.Btt.dot(modes)
 
-        ###########################################################################
-        ## Bandwidth error
-        ###########################################################################
         C = self.mod_com[self.iter_number, :] - self.mod_com[self.iter_number - 1, :]
 
-        self.bp_com[self.iter_number, :] = self.bp_com[self.iter_number - 1, :] - self.gRD.dot(
-                self.bp_com[self.iter_number - self.delay, :]) - C
+        self.bp_com[self.iter_number, :] = (
+            self.bp_com[self.iter_number - 1, :]
+            - self.gRD.dot(self.bp_com[self.iter_number - self.delay, :])
+            - C
+        )
 
-        ###########################################################################
-        ## Tomographic error
-        ###########################################################################
-        #G = F - (mod_com[self.iter_number,:] + Ageom - np.dot(RDgeom,com[self.iter_number-1,:]))
+        # G = F - (mod_com[self.iter_number,:] + Ageom - np.dot(RDgeom,com[self.iter_number-1,:]))
         for w in range(len(self.config.p_wfss)):
             self.wfs.raytrace(w, atm=self.atmos)
 
-        #self.rtc.do_control(1, 0, wfs_direction=True)
+        # self.rtc.do_control(1, 0, wfs_direction=True)
         self.rtc.do_control(1, sources=self.wfs.sources, is_wfs_phase=True)
-        #self.rtc.do_control(0)
-        #self.rtc.do_control(1)
+        # self.rtc.do_control(0)
+        # self.rtc.do_control(1)
         G = self.rtc.get_command(1)
         modes = self.P.dot(G)
-        modes[-self.nfiltered - 2:-2] = 0
+        modes[-self.nfiltered - 2 : -2] = 0
         self.wf_com[self.iter_number, :] = self.Btt.dot(modes)
 
-        self.tomo_buf[self.iter_number, :] = self.mod_com[self.iter_number, :] - self.wf_com[self.iter_number, :]
+        self.tomo_buf[self.iter_number, :] = (
+            self.mod_com[self.iter_number, :] - self.wf_com[self.iter_number, :]
+        )
         # if (self.iter_number + 1 < self.config.p_loop.niter):
-        self.tomo_com[self.iter_number, :] = self.tomo_com[self.iter_number - 1, :] - self.gRD.dot(
-                    self.tomo_com[self.iter_number - self.delay, :]) - g * self.gamma * self.RD.dot(self.tomo_buf[self.iter_number - self.delay, :])
+        self.tomo_com[self.iter_number, :] = (
+            self.tomo_com[self.iter_number - 1, :]
+            - self.gRD.dot(self.tomo_com[self.iter_number - self.delay, :])
+            - g * self.gamma * self.RD.dot(self.tomo_buf[self.iter_number - self.delay, :])
+        )
 
         # Without anyone noticing...
-        #self._sim.tar.d_targets[0].set_phase(tarphase)
+        # self._sim.tar.d_targets[0].set_phase(tarphase)
         self.target.set_tar_phase(0, tarphase)
-        #self._sim.rtc.d_control[0].set_com(Dcom, Dcom.size)
+        # self._sim.rtc.d_control[0].set_com(Dcom, Dcom.size)
         self.rtc.set_command(0, Dcom)
 
     def save_in_hdf5(self, savename):
@@ -346,87 +355,56 @@ class Roket(CompassSupervisor):
         Args:
             savename: (str): name of the output file
         """
-        tmp = (self.config.p_geom._ipupil.shape[0] -
-               (self.config.p_dms[0]._n2 - self.config.p_dms[0]._n1 + 1)) // 2
+        tmp = (
+            self.config.p_geom._ipupil.shape[0]
+            - (self.config.p_dms[0]._n2 - self.config.p_dms[0]._n1 + 1)
+        ) // 2
         tmp_e0 = self.config.p_geom._ipupil.shape[0] - tmp
         tmp_e1 = self.config.p_geom._ipupil.shape[1] - tmp
         pup = self.config.p_geom._ipupil[tmp:tmp_e0, tmp:tmp_e1]
         indx_pup = np.where(pup.flatten() > 0)[0].astype(np.int32)
         dm_dim = self.config.p_dms[0]._n2 - self.config.p_dms[0]._n1 + 1
         self.cov_cor()
-        psf = self.target.get_tar_image(0, expo_type='le')
-        if(os.getenv("DATA_GUARDIAN") is not None):
-                fname = os.getenv("DATA_GUARDIAN") + "/" + savename
+        psf = self.target.get_tar_image(0, expo_type="le")
+        if os.getenv("DATA_GUARDIAN") is not None:
+            fname = os.getenv("DATA_GUARDIAN") + "/" + savename
         else:
-                fname = savename
-        #fname = "test"
+            fname = savename
+        # fname = "test"
         pdict = {
-                "noise":
-                        self.noise_com[self.N_preloop:, :].T,
-                "aliasing":
-                        self.alias_wfs_com[self.N_preloop:, :].T,
-                "tomography":
-                        self.tomo_com[self.N_preloop:, :].T,
-                "filtered modes":
-                        self.H_com[self.N_preloop:, :].T,
-                "non linearity":
-                        self.trunc_com[self.N_preloop:, :].T,
-                "bandwidth":
-                        self.bp_com[self.N_preloop:, :].T,
-                "wf_com":
-                        self.wf_com[self.N_preloop:, :].T,
-                "P":
-                        self.P,
-                "Btt":
-                        self.Btt,
-                "IF.data":
-                        self.IFpzt.data,
-                "IF.indices":
-                        self.IFpzt.indices,
-                "IF.indptr":
-                        self.IFpzt.indptr,
-                "TT":
-                        self.TT,
-                "dm_dim":
-                        dm_dim,
-                "indx_pup":
-                        indx_pup,
-                "fitting":
-                        np.mean(self.fit[self.N_preloop:]),
-                "SR":
-                        self.SR,
-                "SR2":
-                        self.SR2,
-                "cov":
-                        self.cov,
-                "cor":
-                        self.cor,
-                "psfortho":
-                        np.fft.fftshift(self.psf_ortho) /
-                        (self.config.p_loop.niter - self.N_preloop),
-                "centroid_gain":
-                        self.centroid_gain / (self.config.p_loop.niter - self.N_preloop),
-                "centroid_gain2":
-                        self.centroid_gain2 /
-                        (self.config.p_loop.niter - self.N_preloop),
-                "dm.xpos":
-                        self.config.p_dms[0]._xpos,
-                "dm.ypos":
-                        self.config.p_dms[0]._ypos,
-                "R":
-                        self.rtc.get_command_matrix(0),
-                "D":
-                        self.rtc.get_interaction_matrix(0),
-                "Nact":
-                        self.Nact,
-                "com":
-                        self.com[self.N_preloop:, :].T,
-                "slopes":
-                        self.slopes[self.N_preloop:, :].T,
-                "alias_meas":
-                        self.alias_meas[self.N_preloop:, :].T,
-                "trunc_meas":
-                        self.trunc_meas[self.N_preloop:, :].T
+            "noise": self.noise_com[self.N_preloop :, :].T,
+            "aliasing": self.alias_wfs_com[self.N_preloop :, :].T,
+            "tomography": self.tomo_com[self.N_preloop :, :].T,
+            "filtered modes": self.H_com[self.N_preloop :, :].T,
+            "non linearity": self.trunc_com[self.N_preloop :, :].T,
+            "bandwidth": self.bp_com[self.N_preloop :, :].T,
+            "wf_com": self.wf_com[self.N_preloop :, :].T,
+            "P": self.P,
+            "Btt": self.Btt,
+            "IF.data": self.IFpzt.data,
+            "IF.indices": self.IFpzt.indices,
+            "IF.indptr": self.IFpzt.indptr,
+            "TT": self.TT,
+            "dm_dim": dm_dim,
+            "indx_pup": indx_pup,
+            "fitting": np.mean(self.fit[self.N_preloop :]),
+            "SR": self.SR,
+            "SR2": self.SR2,
+            "cov": self.cov,
+            "cor": self.cor,
+            "psfortho": np.fft.fftshift(self.psf_ortho)
+            / (self.config.p_loop.niter - self.N_preloop),
+            "centroid_gain": self.centroid_gain / (self.config.p_loop.niter - self.N_preloop),
+            "centroid_gain2": self.centroid_gain2 / (self.config.p_loop.niter - self.N_preloop),
+            "dm.xpos": self.config.p_dms[0]._xpos,
+            "dm.ypos": self.config.p_dms[0]._ypos,
+            "R": self.rtc.get_command_matrix(0),
+            "D": self.rtc.get_interaction_matrix(0),
+            "Nact": self.Nact,
+            "com": self.com[self.N_preloop :, :].T,
+            "slopes": self.slopes[self.N_preloop :, :].T,
+            "alias_meas": self.alias_meas[self.N_preloop :, :].T,
+            "trunc_meas": self.trunc_meas[self.N_preloop :, :].T,
         }
         h5u.save_h5(fname, "psf", self.config, psf)
         for k in list(pdict.keys()):
@@ -439,21 +417,21 @@ class Roket(CompassSupervisor):
         self.cov = np.zeros((6, 6))
         self.cor = np.zeros((6, 6))
         bufdict = {
-                "0": self.noise_com.T,
-                "1": self.trunc_com.T,
-                "2": self.alias_wfs_com.T,
-                "3": self.H_com.T,
-                "4": self.bp_com.T,
-                "5": self.tomo_com.T
+            "0": self.noise_com.T,
+            "1": self.trunc_com.T,
+            "2": self.alias_wfs_com.T,
+            "3": self.H_com.T,
+            "4": self.bp_com.T,
+            "5": self.tomo_com.T,
         }
         for i in range(self.cov.shape[0]):
             for j in range(self.cov.shape[1]):
-                if (j >= i):
+                if j >= i:
                     tmpi = self.P.dot(bufdict[str(i)])
                     tmpj = self.P.dot(bufdict[str(j)])
                     self.cov[i, j] = np.sum(
-                            np.mean(tmpi * tmpj, axis=1) -
-                            np.mean(tmpi, axis=1) * np.mean(tmpj, axis=1))
+                        np.mean(tmpi * tmpj, axis=1) - np.mean(tmpi, axis=1) * np.mean(tmpj, axis=1)
+                    )
                 else:
                     self.cov[i, j] = self.cov[j, i]
 
@@ -463,22 +441,20 @@ class Roket(CompassSupervisor):
         self.cor[ok] = self.cov[ok] / np.sqrt(sst[ok])
 
 
-###############################################################################
 #
 #                                 MAIN
 #
-###############################################################################
 if __name__ == "__main__":
     from shesha.config import ParamConfig
 
-    if (len(sys.argv) < 2):
+    if len(sys.argv) < 2:
         error = 'command line should be at least:"python -i test.py parameters_filename"\n with "parameters_filename" the path to the parameters file'
         raise Exception(error)
 
-    #get parameters from file
+    # get parameters from file
     param_file = sys.argv[1]
 
-    if (len(sys.argv) > 2):
+    if len(sys.argv) > 2:
         savename = sys.argv[2]
     else:
         savename = "roket_default.h5"

@@ -1,23 +1,20 @@
-## @package   guardians.gamora
-## @brief     Gpu Accelerated Module fOr psf Reconstruction Algorithms
-## @author    Florian Ferreira <florian.ferreira@obspm.fr>
-## @date      2019/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -28,7 +25,7 @@ from guardians import drax
 
 plt.ion()
 
-#gpudevices = np.array([0, 1, 2, 3], dtype=np.int32)
+# gpudevices = np.array([0, 1, 2, 3], dtype=np.int32)
 gpudevices = np.array([0], dtype=np.int32)
 c = carma_context.get_instance_ngpu(gpudevices.size, gpudevices)
 
@@ -51,19 +48,19 @@ def psf_rec_Vii(filename, err=None, fitting=True, covmodes=None, cov=None):
         gpu: (Gamora): Gamora GPU object (for manipulation and debug)
     """
 
-    f = h5py.File(filename, 'r')
+    f = h5py.File(filename, "r")
     spup = drax.get_pup(filename)
     # Sparse IF matrix
     IF, T = drax.get_IF(filename)
     # Covariance matrix
     P = f["P"][:]
     print("Projecting error buffer into modal space...")
-    if ((err is None) and (cov is None)):
+    if (err is None) and (cov is None):
         err = drax.get_err(filename)
         err = P.dot(err)
     print("Computing covariance matrix...")
-    if (cov is None):
-        if (covmodes is None):
+    if cov is None:
+        if covmodes is None:
             covmodes = err.dot(err.T) / err.shape[1]
         else:
             covmodes = (P.dot(covmodes)).dot(P.T)
@@ -75,10 +72,25 @@ def psf_rec_Vii(filename, err=None, fitting=True, covmodes=None, cov=None):
     # Scale factor
     scale = float(2 * np.pi / f.attrs["_ParamTarget__Lambda"][0])
     # Init GPU
-    gpu = Gamora(c, c.active_device, "Vii", Btt.shape[0], covmodes.shape[0],
-                 f["noise"][:].shape[1], IF.data, IF.indices, IF.indptr, IF.data.size, T,
-                 spup, spup.shape[0],
-                 np.where(spup)[0].size, scale, Btt, covmodes)
+    gpu = Gamora(
+        c,
+        c.active_device,
+        "Vii",
+        Btt.shape[0],
+        covmodes.shape[0],
+        f["noise"][:].shape[1],
+        IF.data,
+        IF.indices,
+        IF.indptr,
+        IF.data.size,
+        T,
+        spup,
+        spup.shape[0],
+        np.where(spup)[0].size,
+        scale,
+        Btt,
+        covmodes,
+    )
     # Launch computation
     # gamora.set_eigenvals(e)
     # gamora.set_covmodes(V)
@@ -89,7 +101,7 @@ def psf_rec_Vii(filename, err=None, fitting=True, covmodes=None, cov=None):
     otf2 = np.array(gpu.d_otfVii)
 
     otftel /= otftel.max()
-    if (list(f.keys()).count("psfortho") and fitting):
+    if list(f.keys()).count("psfortho") and fitting:
         print("\nAdding fitting to PSF...")
         psfortho = f["psfortho"][:]
         otffit = np.real(np.fft.fft2(psfortho))
@@ -98,7 +110,7 @@ def psf_rec_Vii(filename, err=None, fitting=True, covmodes=None, cov=None):
     else:
         psf = np.fft.fftshift(np.real(np.fft.ifft2(otftel * otf2)))
 
-    psf *= (psf.shape[0] * psf.shape[0] / float(np.where(spup)[0].shape[0]))
+    psf *= psf.shape[0] * psf.shape[0] / float(np.where(spup)[0].shape[0])
     f.close()
     tac = time.time()
     print(" ")
@@ -120,20 +132,20 @@ def psf_rec_vii_cpu(filename):
         psf: (np.ndarray[ndim=2, dtype=np.float32]): LE PSF
     """
 
-    f = h5py.File(filename, 'r')
+    f = h5py.File(filename, "r")
     IF, T = drax.get_IF(filename)
     ratio_lambda = 2 * np.pi / f.attrs["_ParamTarget__Lambda"][0]
     # Telescope OTF
     print("Computing telescope OTF...")
     spup = drax.get_pup(filename)
     mradix = 2
-    fft_size = mradix**int((np.log(2 * spup.shape[0]) / np.log(mradix)) + 1)
+    fft_size = mradix ** int((np.log(2 * spup.shape[0]) / np.log(mradix)) + 1)
     pup = np.zeros((fft_size, fft_size))
-    pup[:spup.shape[0], :spup.shape[0]] = spup
+    pup[: spup.shape[0], : spup.shape[0]] = spup
     pupfft = np.fft.fft2(pup)
     conjpupfft = np.conjugate(pupfft)
     otftel = np.real(np.fft.ifft2(pupfft * conjpupfft))
-    den = 1. / otftel
+    den = 1.0 / otftel
     den[np.where(np.isinf(den))] = 0
     mask = np.ones((fft_size, fft_size))
     mask[np.where(otftel < 1e-5)] = 0
@@ -145,7 +157,7 @@ def psf_rec_vii_cpu(filename):
     P = f["P"][:]
     err = P.dot(err)
     Btt = f["Btt"][:]
-    #modes = IF.T.dot(Btt)
+    # modes = IF.T.dot(Btt)
     covmodes = err.dot(err.T) / err.shape[1]
     print("Done")
     # Vii algorithm
@@ -156,15 +168,15 @@ def psf_rec_vii_cpu(filename):
     newmodek = tmp.copy()
     ind = np.where(pup)
     for k in range(err.shape[0]):
-        #newmodek[ind] = IF.T.dot(V[:,k])
-        #newmodek[ind] = modes.dot(V[:,k])
+        # newmodek[ind] = IF.T.dot(V[:,k])
+        # newmodek[ind] = modes.dot(V[:,k])
         tmp2 = Btt.dot(V[:, k])
         newmodek[ind] = IF.T.dot(tmp2[:-2])
         newmodek[ind] += T.T.dot(tmp2[-2:])
         term1 = np.real(np.fft.fft2(newmodek**2) * conjpupfft)
-        term2 = np.abs(np.fft.fft2(newmodek))**2
-        tmp += ((term1 - term2) * e[k])
-        print(" Computing Vii : %d/%d\r" % (k, covmodes.shape[0]), end=' ')
+        term2 = np.abs(np.fft.fft2(newmodek)) ** 2
+        tmp += (term1 - term2) * e[k]
+        print(" Computing Vii : %d/%d\r" % (k, covmodes.shape[0]), end=" ")
     print("Vii computed")
 
     dphi = np.real(np.fft.ifft2(2 * tmp)) * den * mask * ratio_lambda**2
@@ -172,7 +184,7 @@ def psf_rec_vii_cpu(filename):
     otf2 = otf2 / otf2.max()
 
     psf = np.fft.fftshift(np.real(np.fft.ifft2(otftel * otf2)))
-    psf *= (fft_size * fft_size / float(np.where(pup)[0].shape[0]))
+    psf *= fft_size * fft_size / float(np.where(pup)[0].shape[0])
 
     f.close()
     return otftel, otf2, psf
@@ -214,7 +226,7 @@ def add_fitting_to_psf(filename, otf, otffit):
     print("\nAdding fitting to PSF...")
     spup = drax.get_pup(filename)
     psf = np.fft.fftshift(np.real(np.fft.ifft2(otffit * otf)))
-    psf *= (psf.shape[0] * psf.shape[0] / float(np.where(spup)[0].shape[0]))
+    psf *= psf.shape[0] * psf.shape[0] / float(np.where(spup)[0].shape[0])
 
     return psf
 
@@ -310,18 +322,19 @@ def intersample(Cvvmap, pupilImage, IFImage, pixscale, dactu, lambdaIR):
     # The (dactu^2) needs to be expressed in pixels because our integral $(fi^2) is not
     # a real integral : it's just summing pixels instead.
 
-    corr = np.fft.fft2(np.abs(np.fft.fft2(IFImage))**2 * np.fft.fft2(MAP)).real / (
-            IFImage.size * dactupix**2)
+    corr = np.fft.fft2(np.abs(np.fft.fft2(IFImage)) ** 2 * np.fft.fft2(MAP)).real / (
+        IFImage.size * dactupix**2
+    )
     # From correlation to Dphi
     # Dphi(r) = 2*C(0) - 2*C(r)
     # We take advantage we need to do a multiplication to multiply by another factor
     # in the same line. This is to translate dphi from m^2 into rd^2
-    fact = 2 * (2 * np.pi / lambdaIR)**2
+    fact = 2 * (2 * np.pi / lambdaIR) ** 2
     corr = np.fft.fftshift(corr)
     dphi = fact * corr[0, 0] - fact * corr
 
     # computation of the PSF
-    FTOtel = np.fft.ifft2(np.abs(np.fft.fft2(pupilImage))**2).real
+    FTOtel = np.fft.ifft2(np.abs(np.fft.fft2(pupilImage)) ** 2).real
     # FTOtel is normalized with np.sum(FTOtel)=1
     # This ensures to get a PSF with SR=np.max(psf), when the PSF is computed
     # using just np.fft.fft2() without other normalisation

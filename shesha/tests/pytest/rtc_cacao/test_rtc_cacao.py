@@ -1,23 +1,20 @@
-## @package   shesha.tests
-## @brief     Tests the RTC module
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 
 
 import numpy as np
@@ -32,21 +29,32 @@ from shesha.config import ParamConfig
 
 precision = 1e-5
 
-config = ParamConfig(os.getenv("COMPASS_ROOT") +
-        "/shesha/tests/pytest/par/test_sh.py")
+config = ParamConfig(os.getenv("COMPASS_ROOT") + "/shesha/tests/pytest/par/test_sh.py")
 sup = Supervisor(config)
 sup.next()
 sup.rtc.open_loop(0)
 sup.rtc.close_loop(0)
 sup.rtc.do_control(0)
 rtc = Rtc("compass_calPix", "compass_loopData")
-rtc.add_centroider(sup.context, sup.config.p_wfss[0]._nvalid,
-                   sup.config.p_wfss[0].npix / 2 - 0.5, sup.config.p_wfss[0].pixsize, False, 0,
-                   "cog")
-rtc.add_controller(sup.context, "generic",  0, sup.config.p_controllers[0].delay,
-                   sup.config.p_wfss[0]._nvalid * 2, sup.config.p_controllers[0].nactu,
-                   idx_centro=np.zeros(1),
-                   ncentro=1)
+rtc.add_centroider(
+    sup.context,
+    sup.config.p_wfss[0]._nvalid,
+    sup.config.p_wfss[0].npix / 2 - 0.5,
+    sup.config.p_wfss[0].pixsize,
+    False,
+    0,
+    "cog",
+)
+rtc.add_controller(
+    sup.context,
+    "generic",
+    0,
+    sup.config.p_controllers[0].delay,
+    sup.config.p_wfss[0]._nvalid * 2,
+    sup.config.p_controllers[0].nactu,
+    idx_centro=np.zeros(1),
+    ncentro=1,
+)
 centro = rtc.d_centro[0]
 control = rtc.d_control[0]
 rtc.d_centro[0].set_npix(sup.config.p_wfss[0].npix)
@@ -77,73 +85,73 @@ def relative_array_error(array1, array2):
 
 
 def test_initCentro_nvalid():
-    assert (centro.nvalid - sup.config.p_wfss[0]._nvalid < precision)
+    assert centro.nvalid - sup.config.p_wfss[0]._nvalid < precision
 
 
 def test_initCentro_offset():
-    assert (centro.offset - (sup.config.p_wfss[0].npix / 2 - 0.5) < precision)
+    assert centro.offset - (sup.config.p_wfss[0].npix / 2 - 0.5) < precision
 
 
 def test_initCentro_scale():
-    assert (centro.scale - sup.config.p_wfss[0].pixsize < precision)
+    assert centro.scale - sup.config.p_wfss[0].pixsize < precision
 
 
 def test_initCentro_type():
-    assert (centro.type == "cog")
+    assert centro.type == "cog"
 
 
 def test_initControl_nslope():
-    assert (control.nslope - sup.config.p_wfss[0]._nvalid * 2 < precision)
+    assert control.nslope - sup.config.p_wfss[0]._nvalid * 2 < precision
 
 
 def test_initControl_nactu():
-    assert (control.nactu - sup.config.p_controllers[0].nactu < precision)
+    assert control.nactu - sup.config.p_controllers[0].nactu < precision
 
 
 def test_initControl_type():
-    assert (control.type == "generic")
+    assert control.type == "generic"
 
 
 def test_initControl_delay():
-    assert (control.delay - sup.config.p_controllers[0].delay < precision)
+    assert control.delay - sup.config.p_controllers[0].delay < precision
 
 
 def test_set_npix():
-    assert (centro.npix - sup.config.p_wfss[0].npix < precision)
+    assert centro.npix - sup.config.p_wfss[0].npix < precision
 
 
 def test_load_validposX():
-    assert (relative_array_error(np.array(centro.d_validx), xvalid) < precision)
+    assert relative_array_error(np.array(centro.d_validx), xvalid) < precision
 
 
 def test_load_validposY():
-    assert (relative_array_error(np.array(centro.d_validy), yvalid) < precision)
+    assert relative_array_error(np.array(centro.d_validy), yvalid) < precision
 
 
 def test_set_cmat():
-    assert (relative_array_error(np.array(control.d_cmat), cmat) < precision)
+    assert relative_array_error(np.array(control.d_cmat), cmat) < precision
 
 
 def test_set_gain():
-    assert (control.gain - sup.config.p_controllers[0].gain < precision)
+    assert control.gain - sup.config.p_controllers[0].gain < precision
 
 
 def test_load_img():
-    assert (relative_array_error(np.array(centro.d_img_raw), frame) < precision)
+    assert relative_array_error(np.array(centro.d_img_raw), frame) < precision
 
 
 def test_set_dark():
-    assert (relative_array_error(np.array(centro.d_dark), dark) < precision)
+    assert relative_array_error(np.array(centro.d_dark), dark) < precision
 
 
 def test_set_flat():
-    assert (relative_array_error(np.array(centro.d_flat), flat) < precision)
+    assert relative_array_error(np.array(centro.d_flat), flat) < precision
 
 
 def test_calibrate_img():
     centro.calibrate_img()
     imgCal = (frame - dark) * flat
-    assert (relative_array_error(np.array(centro.d_img), imgCal) < precision)
+    assert relative_array_error(np.array(centro.d_img), imgCal) < precision
 
 
 def test_doCentroids_cog():
@@ -155,8 +163,7 @@ def test_doCentroids_cog():
         tmp = center_of_mass(bincube[:, :, k])
         slopes[k] = (tmp[0] - offset) * scale
         slopes[k + sup.config.p_wfss[0]._nvalid] = (tmp[1] - offset) * scale
-    assert (relative_array_error(np.array(control.d_centroids), slopes) <
-            precision)
+    assert relative_array_error(np.array(control.d_centroids), slopes) < precision
 
 
 def test_do_control_generic():
@@ -164,13 +171,12 @@ def test_do_control_generic():
     gain = control.gain
     cmat = np.array(control.d_cmat)
     commands = cmat.dot(slopes) * gain * (-1)
-    assert (relative_array_error(np.array(control.d_com), commands) <
-            precision)
+    assert relative_array_error(np.array(control.d_com), commands) < precision
 
 
 def test_set_comRange():
     control.set_comRange(-1, 1)
-    assert (control.comRange == (-1, 1))
+    assert control.comRange == (-1, 1)
 
 
 def test_clipping():
@@ -181,20 +187,18 @@ def test_clipping():
     C_clipped = C.copy()
     C_clipped[np.where(C > 1)] = 1
     C_clipped[np.where(C < -1)] = -1
-    assert (relative_array_error(np.array(control.d_com_clipped), C_clipped) <
-            precision)
+    assert relative_array_error(np.array(control.d_com_clipped), C_clipped) < precision
 
 
 def test_add_perturb_voltage():
     C = np.random.random(sup.config.p_controllers[0].nactu)
     control.add_perturb_voltage("test", C, 1)
-    assert (relative_array_error(
-            np.array(control.d_perturb_map["test"][0]), C) < precision)
+    assert relative_array_error(np.array(control.d_perturb_map["test"][0]), C) < precision
 
 
 def test_remove_perturb_voltage():
     control.remove_perturb_voltage("test")
-    assert (control.d_perturb_map == {})
+    assert control.d_perturb_map == {}
 
 
 def test_add_perturb():
@@ -202,15 +206,14 @@ def test_add_perturb():
     control.add_perturb_voltage("test", C, 1)
     com = np.array(control.d_com_clipped)
     control.add_perturb()
-    assert (relative_array_error(np.array(control.d_com_clipped), com + C) <
-            precision)
+    assert relative_array_error(np.array(control.d_com_clipped), com + C) < precision
 
 
 def test_disable_perturb_voltage():
     control.disable_perturb_voltage("test")
     com = np.array(control.d_com)
     control.add_perturb()
-    assert (relative_array_error(np.array(control.d_com), com) < precision)
+    assert relative_array_error(np.array(control.d_com), com) < precision
 
 
 def test_enable_perturb_voltage():
@@ -218,13 +221,12 @@ def test_enable_perturb_voltage():
     com = np.array(control.d_com_clipped)
     C = np.array(control.d_perturb_map["test"][0])
     control.add_perturb()
-    assert (relative_array_error(np.array(control.d_com_clipped), com + C) <
-            precision)
+    assert relative_array_error(np.array(control.d_com_clipped), com + C) < precision
 
 
 def test_reset_perturb_voltage():
     control.reset_perturb_voltage()
-    assert (control.d_perturb_map == {})
+    assert control.d_perturb_map == {}
 
 
 def test_comp_voltage():
@@ -245,19 +247,24 @@ def test_comp_voltage():
     comPertu = commands + C
     comPertu[np.where(comPertu > volt_max)] = volt_max
     comPertu[np.where(comPertu < volt_min)] = volt_min
-    assert (relative_array_error(np.array(control.d_voltage), comPertu) <
-            precision)
+    assert relative_array_error(np.array(control.d_voltage), comPertu) < precision
 
 
 def test_remove_centroider():
     rtc.remove_centroider(0)
-    assert (rtc.d_centro == [])
+    assert rtc.d_centro == []
 
 
 def test_doCentroids_tcog():
-    rtc.add_centroider(sup.context, sup.config.p_wfss[0]._nvalid,
-                       sup.config.p_wfss[0].npix / 2 - 0.5, sup.config.p_wfss[0].pixsize,
-                       False, 0, "tcog")
+    rtc.add_centroider(
+        sup.context,
+        sup.config.p_wfss[0]._nvalid,
+        sup.config.p_wfss[0].npix / 2 - 0.5,
+        sup.config.p_wfss[0].pixsize,
+        False,
+        0,
+        "tcog",
+    )
 
     centro = rtc.d_centro[-1]
     threshold = 0.1
@@ -278,15 +285,20 @@ def test_doCentroids_tcog():
         tmp = center_of_mass(bincube[:, :, k])
         slopes[k] = (tmp[0] - offset) * scale
         slopes[k + sup.config.p_wfss[0]._nvalid] = (tmp[1] - offset) * scale
-    assert (relative_array_error(np.array(control.d_centroids), slopes) <
-            precision)
+    assert relative_array_error(np.array(control.d_centroids), slopes) < precision
 
 
 def test_doCentroids_bpcog():
     rtc.remove_centroider(0)
-    rtc.add_centroider(sup.context, sup.config.p_wfss[0]._nvalid,
-                       sup.config.p_wfss[0].npix / 2 - 0.5, sup.config.p_wfss[0].pixsize,
-                       False, 0, "bpcog")
+    rtc.add_centroider(
+        sup.context,
+        sup.config.p_wfss[0]._nvalid,
+        sup.config.p_wfss[0].npix / 2 - 0.5,
+        sup.config.p_wfss[0].pixsize,
+        False,
+        0,
+        "bpcog",
+    )
 
     centro = rtc.d_centro[-1]
     bpix = 8
@@ -309,8 +321,7 @@ def test_doCentroids_bpcog():
         tmp = center_of_mass(imagette)
         slopes[k] = (tmp[0] - offset) * scale
         slopes[k + sup.config.p_wfss[0]._nvalid] = (tmp[1] - offset) * scale
-    assert (relative_array_error(np.array(control.d_centroids), slopes) <
-            precision)
+    assert relative_array_error(np.array(control.d_centroids), slopes) < precision
 
 
 def test_publish_calPix():
@@ -318,7 +329,7 @@ def test_publish_calPix():
     rtc.publish()
     interface = CacaoInterface.getInterface("compass_calPix")
     tmp = np.array(interface)
-    assert (relative_array_error(np.array(centro.d_img), tmp) < precision)
+    assert relative_array_error(np.array(centro.d_img), tmp) < precision
 
 
 @pytest.mark.skip(reason="intensities disabled")
@@ -332,6 +343,6 @@ def test_publish_loopData():
     nactus = sup.config.p_controllers[0].nactu
     tmp = np.zeros(nvalid + nslopes + nactus)
     tmp[:nvalid] = np.array(centro.d_intensities)
-    tmp[nvalid:nvalid + nslopes] = np.array(control.d_centroids)
-    tmp[nvalid + nslopes:] = np.array(control.d_com)
-    assert (relative_array_error(data, tmp) < precision)
+    tmp[nvalid : nvalid + nslopes] = np.array(control.d_centroids)
+    tmp[nvalid + nslopes :] = np.array(control.d_com)
+    assert relative_array_error(data, tmp) < precision

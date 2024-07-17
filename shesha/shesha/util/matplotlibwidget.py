@@ -1,25 +1,24 @@
-## @package   shesha.util
-## @brief     Shesha utilities
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigationtoolbar
+from matplotlib.backends.backend_qt5agg import (
+    NavigationToolbar2QT as Navigationtoolbar,
+)
 from matplotlib.figure import Figure
 from matplotlib import gridspec
 
@@ -29,7 +28,10 @@ except ModuleNotFoundError:
     try:
         from PySide2 import QtWidgets
     except ModuleNotFoundError as e:
-        raise ModuleNotFoundError("No module named 'PyQt5' or PySide2', please install one of them\nException raised: "+e.msg)
+        raise ModuleNotFoundError(
+            "No module named 'PyQt5' or PySide2', please install one of them\nException raised: "
+            + e.msg
+        )
 
 # import matplotlib
 # matplotlib.use('Qt5Agg')
@@ -72,23 +74,24 @@ class MatplotlibWidget(QtGui.QWidget):
 """
 
 
-#Embeddable matplotlib figure/canvas
+# Embeddable matplotlib figure/canvas
 class MplCanvas(FigureCanvas):
-
     def __init__(self):
         self.fig = Figure(frameon=True)
         self.gs1 = gridspec.GridSpec(1, 1)
         self.axes = self.fig.add_subplot(self.gs1[0], aspect="auto")
 
         FigureCanvas.__init__(self, self.fig)
-        FigureCanvas.setSizePolicy(self, QtWidgets.QSizePolicy.Expanding,
-                                   QtWidgets.QSizePolicy.Expanding)
+        FigureCanvas.setSizePolicy(
+            self,
+            QtWidgets.QSizePolicy.Expanding,
+            QtWidgets.QSizePolicy.Expanding,
+        )
         FigureCanvas.updateGeometry(self)
 
 
-#creates embeddable matplotlib figure/canvas with toolbar
+# creates embeddable matplotlib figure/canvas with toolbar
 class MatplotlibWidget(QtWidgets.QWidget):
-
     def __init__(self, parent=None):
         QtWidgets.QWidget.__init__(self, parent)
         self.create_framentoolbar()

@@ -1,8 +1,3 @@
-## @package   shesha.config.pConfig
-## @brief     Configuration class for the COMPASS simulator.
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 #  This file is part of COMPASS <https://anr-compass.github.io/compass/>
 #
@@ -68,9 +63,18 @@ class ParamConfig(object):
         Args:
             param_file: Path to the parameter file.
         """
-        from shesha.config import (ParamAtmos, ParamTel, ParamGeom, ParamWfs, ParamDm,
-                                   ParamTarget, ParamLoop, ParamCentroider, ParamController)
-        
+        from shesha.config import (
+            ParamAtmos,
+            ParamTel,
+            ParamGeom,
+            ParamWfs,
+            ParamDm,
+            ParamTarget,
+            ParamLoop,
+            ParamCentroider,
+            ParamController,
+        )
+
         self._load_config_from_file(param_file)
         self.simul_name: str = self._config.simul_name
         self.p_atmos: ParamAtmos = self._config.p_atmos

@@ -1,23 +1,20 @@
-## @package   shesha.ao.tomo
-## @brief     Computation of tomographic reconstructor
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 
 
 import numpy as np
@@ -30,11 +27,20 @@ from shesha.sutra_wrap import Sensors, Dms, Rtc_FFF as Rtc, Atmos
 from typing import List
 
 
-def do_tomo_matrices(ncontrol: int, rtc: Rtc, p_wfss: List[conf.ParamWfs], dms: Dms,
-                     atmos: Atmos, wfs: Sensors, p_controller: conf.ParamController,
-                     p_geom: conf.ParamGeom, p_dms: list, p_tel: conf.ParamTel,
-                     p_atmos: conf.ParamAtmos):
-    """ Compute Cmm and Cphim matrices for the MV controller on GPU
+def do_tomo_matrices(
+    ncontrol: int,
+    rtc: Rtc,
+    p_wfss: List[conf.ParamWfs],
+    dms: Dms,
+    atmos: Atmos,
+    wfs: Sensors,
+    p_controller: conf.ParamController,
+    p_geom: conf.ParamGeom,
+    p_dms: list,
+    p_tel: conf.ParamTel,
+    p_atmos: conf.ParamAtmos,
+):
+    """Compute Cmm and Cphim matrices for the MV controller on GPU
 
     Args:
 
@@ -64,7 +70,7 @@ def do_tomo_matrices(ncontrol: int, rtc: Rtc, p_wfss: List[conf.ParamWfs], dms: 
     # Bring bottom left corner of valid subapertures in ipupil
     ipup = p_geom._ipupil
     spup = p_geom._spupil
-    s2ipup = (ipup.shape[0] - spup.shape[0]) / 2.
+    s2ipup = (ipup.shape[0] - spup.shape[0]) / 2.0
     # Total number of subapertures
     nvalid = sum([nvalidperwfs[j] for j in p_controller.nwfs])
     ind = 0
@@ -80,19 +86,18 @@ def do_tomo_matrices(ncontrol: int, rtc: Rtc, p_wfss: List[conf.ParamWfs], dms: 
         posx = posx - ipup.shape[0] / 2 - 1
         posy = p_wfss[k]._validpuppixy + s2ipup
         posy = posy.T - ipup.shape[0] / 2 - 1
-        p2m = (p_tel.diam / p_wfss[k].nxsub) / \
-            p_wfss[k]._pdiam  # Size of one pixel in meters
+        p2m = (p_tel.diam / p_wfss[k].nxsub) / p_wfss[k]._pdiam  # Size of one pixel in meters
         posx *= p2m  # Positions in meters
         posy *= p2m
-        X[ind:ind + p_wfss[k]._nvalid] = posx
-        Y[ind:ind + p_wfss[k]._nvalid] = posy
+        X[ind : ind + p_wfss[k]._nvalid] = posx
+        Y[ind : ind + p_wfss[k]._nvalid] = posy
         ind += p_wfss[k]._nvalid
 
     # Get the total number of pzt DM and actuators to control
     nactu = 0
     npzt = 0
     for k in p_controller.ndm:
-        if (p_dms[k].type == scons.DmType.PZT):
+        if p_dms[k].type == scons.DmType.PZT:
             nactu += p_dms[k]._ntotact
             npzt += 1
 
@@ -104,16 +109,16 @@ def do_tomo_matrices(ncontrol: int, rtc: Rtc, p_wfss: List[conf.ParamWfs], dms: 
     ind = 0
     indk = 0
     for k in p_controller.ndm:
-        if (p_dms[k].type == scons.DmType.PZT):
+        if p_dms[k].type == scons.DmType.PZT:
             p2m = p_tel.diam / p_geom.pupdiam
             # Conversion in meters in the center of ipupil
             actu_x = (p_dms[k]._xpos - ipup.shape[0] / 2) * p2m
             actu_y = (p_dms[k]._ypos - ipup.shape[0] / 2) * p2m
             pitch[indk] = actu_x[1] - actu_x[0]
-            k2[indk] = p_wfss[0].Lambda / 2. / np.pi / p_dms[k].unitpervolt
+            k2[indk] = p_wfss[0].Lambda / 2.0 / np.pi / p_dms[k].unitpervolt
             alt_DM[indk] = p_dms[k].alt
-            Xactu[ind:ind + p_dms[k]._ntotact] = actu_x
-            Yactu[ind:ind + p_dms[k]._ntotact] = actu_y
+            Xactu[ind : ind + p_dms[k]._ntotact] = actu_x
+            Yactu[ind : ind + p_dms[k]._ntotact] = actu_y
 
             ind += p_dms[k]._ntotact
             indk += 1
@@ -128,7 +133,7 @@ def do_tomo_matrices(ncontrol: int, rtc: Rtc, p_wfss: List[conf.ParamWfs], dms: 
     wfs_distance = np.zeros(len(p_controller.nwfs), dtype=np.float64)
     ind = 0
     for k in p_controller.nwfs:
-        wfs_distance[ind] = np.sqrt(p_wfss[k].xpos**2 + p_wfss[k].ypos**2)
+        wfs_distance[ind] = np.sqrt(p_wfss[k].xpos ** 2 + p_wfss[k].ypos ** 2)
         ind += 1
     FoV = np.max(wfs_distance) / CONST.RAD2ARCSEC
 
@@ -143,36 +148,54 @@ def do_tomo_matrices(ncontrol: int, rtc: Rtc, p_wfss: List[conf.ParamWfs], dms: 
         ind += 1
 
     L0_d = np.copy(p_atmos.L0).astype(np.float64)
-    frac_d = np.copy(p_atmos.frac * (p_atmos.r0**(-5.0 / 3.0))).astype(np.float64)
+    frac_d = np.copy(p_atmos.frac * (p_atmos.r0 ** (-5.0 / 3.0))).astype(np.float64)
 
     print("Computing Cphim...")
-    rtc.d_control[ncontrol].compute_Cphim(atmos, wfs, dms, L0_d, frac_d, alphaX, alphaY,
-                                          X, Y, Xactu, Yactu, p_tel.diam, k2, NlayersDM,
-                                          indlayersDM, FoV, pitch,
-                                          alt_DM.astype(np.float64))
+    rtc.d_control[ncontrol].compute_Cphim(
+        atmos,
+        wfs,
+        dms,
+        L0_d,
+        frac_d,
+        alphaX,
+        alphaY,
+        X,
+        Y,
+        Xactu,
+        Yactu,
+        p_tel.diam,
+        k2,
+        NlayersDM,
+        indlayersDM,
+        FoV,
+        pitch,
+        alt_DM.astype(np.float64),
+    )
     print("Done")
 
     print("Computing Cmm...")
-    rtc.d_control[ncontrol].compute_Cmm(atmos, wfs, L0_d, frac_d, alphaX, alphaY,
-                                        p_tel.diam, p_tel.cobs)
+    rtc.d_control[ncontrol].compute_Cmm(
+        atmos, wfs, L0_d, frac_d, alphaX, alphaY, p_tel.diam, p_tel.cobs
+    )
     print("Done")
 
     Nact = np.zeros([nactu, nactu], dtype=np.float32)
     F = np.zeros([nactu, nactu], dtype=np.float32)
     ind = 0
     for k in range(len(p_controller.ndm)):
-        if (p_dms[k].type == "pzt"):
-            Nact[ind:ind + p_dms[k]._ntotact, ind:ind +
-                 p_dms[k]._ntotact] = create_nact_geom(p_dms[k])
-            F[ind:ind + p_dms[k]._ntotact, ind:ind +
-              p_dms[k]._ntotact] = create_piston_filter(p_dms[k])
+        if p_dms[k].type == "pzt":
+            Nact[ind : ind + p_dms[k]._ntotact, ind : ind + p_dms[k]._ntotact] = create_nact_geom(
+                p_dms[k]
+            )
+            F[ind : ind + p_dms[k]._ntotact, ind : ind + p_dms[k]._ntotact] = create_piston_filter(
+                p_dms[k]
+            )
             ind += p_dms[k]._ntotact
     rtc.d_control[ncontrol].filter_cphim(F, Nact)
 
 
-def selectDMforLayers(p_atmos: conf.ParamAtmos, p_controller: conf.ParamController,
-                      p_dms: list):
-    """ For each atmos layer, select the DM which have to handle it in the Cphim computation for MV controller
+def selectDMforLayers(p_atmos: conf.ParamAtmos, p_controller: conf.ParamController, p_dms: list):
+    """For each atmos layer, select the DM which have to handle it in the Cphim computation for MV controller
 
     Args:
 
@@ -191,7 +214,7 @@ def selectDMforLayers(p_atmos: conf.ParamAtmos, p_controller: conf.ParamControll
         mindif = 1e6
         for j in p_controller.ndm:
             alt_diff = np.abs(p_dms[j].alt - p_atmos.alt[i])
-            if (alt_diff < mindif):
+            if alt_diff < mindif:
                 indlayersDM[i] = j
                 mindif = alt_diff
 
@@ -199,7 +222,7 @@ def selectDMforLayers(p_atmos: conf.ParamAtmos, p_controller: conf.ParamControll
 
 
 def create_nact_geom(p_dm: conf.ParamDm):
-    """ Compute the DM coupling matrix
+    """Compute the DM coupling matrix
 
     :param:
 
@@ -244,7 +267,7 @@ def create_nact_geom(p_dm: conf.ParamDm):
 
 
 def create_piston_filter(p_dm: conf.ParamDm):
-    """ Create the piston filter matrix
+    """Create the piston filter matrix
 
     Args:
 

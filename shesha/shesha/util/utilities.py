@@ -1,24 +1,20 @@
-## @package   shesha.util.utilities
-## @brief     Basic utilities function
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
-
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 
 
 import numpy as np
@@ -41,7 +37,7 @@ def fft_goodsize(s):
 
          s: (int) size
     """
-    return 2**(int(np.log2(s)) + 1)
+    return 2 ** (int(np.log2(s)) + 1)
     # return fft.next_fast_len(s)
 
 
@@ -62,7 +58,7 @@ def bin2d(data_in, binfact):
 
         binfact: (int) : binning factor
     """
-    if (binfact < 1):
+    if binfact < 1:
         raise ValueError("binfact has to be >= 1")
 
     nx = data_in.shape[0]
@@ -78,9 +74,9 @@ def bin2d(data_in, binfact):
                 for j2 in range(binfact):
                     i = i1 * binfact + i2
                     j = j1 * binfact + j2
-                    if (i >= nx):
+                    if i >= nx:
                         i = nx - 1
-                    if (j >= ny):
+                    if j >= ny:
                         j = ny - 1
                     data_out[i1, j1] += data_in[i, j]
 
@@ -97,7 +93,7 @@ def pad_array(A, N):
     D1 = (N - S[0]) // 2
     D2 = (N - S[1]) // 2
     padded = np.zeros((N, N))
-    padded[D1:D1 + S[0], D2:D2 + S[1]] = A
+    padded[D1 : D1 + S[0], D2 : D2 + S[1]] = A
     return padded
 
 
@@ -107,10 +103,10 @@ def dist(dim, xc=-1, yc=-1):
 
     """
 
-    if (xc < 0):
-        xc = int(dim / 2.)
-    if (yc < 0):
-        yc = int(dim / 2.)
+    if xc < 0:
+        xc = int(dim / 2.0)
+    if yc < 0:
+        yc = int(dim / 2.0)
 
     dx = np.tile(np.arange(dim) - xc, (dim, 1))
     dy = np.tile(np.arange(dim) - yc, (dim, 1)).T
@@ -134,14 +130,14 @@ def makegaussian(size, fwhm, xc=-1, yc=-1, norm=0):
 
     :param norm: (int) : (optional) normalization
     """
-    tmp = np.exp(-(dist(size, xc, yc) / (fwhm / 1.66))**2.)
-    if (norm > 0):
-        tmp = tmp / (fwhm**2. * 1.140075)
+    tmp = np.exp(-((dist(size, xc, yc) / (fwhm / 1.66)) ** 2.0))
+    if norm > 0:
+        tmp = tmp / (fwhm**2.0 * 1.140075)
     return tmp
 
 
-def generate_square(radius: float, density: float = 1.):
-    """ Generate modulation points positions following a square pattern
+def generate_square(radius: float, density: float = 1.0):
+    """Generate modulation points positions following a square pattern
 
     Args:
         radius : (float) : half the length of a side in lambda/D
@@ -154,31 +150,32 @@ def generate_square(radius: float, density: float = 1.):
         cy : (np.ndarray) : Y-positions of the modulation points
     """
     x = np.linspace(-radius, radius, 1 + 2 * int(radius * density))
-    cx, cy = np.meshgrid(x, x, indexing='ij')
+    cx, cy = np.meshgrid(x, x, indexing="ij")
     cx = cx.flatten()
     cy = cy.flatten()
     return (cx, cy)
 
 
-def generate_circle(radius: float, density: float = 1.):
-    """ Generate modulation points positions following a circular pattern
-s
-    Args:
-        radius : (float) : half the length of a side in lambda/D
+def generate_circle(radius: float, density: float = 1.0):
+    """Generate modulation points positions following a circular pattern
+    s
+        Args:
+            radius : (float) : half the length of a side in lambda/D
 
-        density : (float), optional) : number of psf per lambda/D. Default is 1
+            density : (float), optional) : number of psf per lambda/D. Default is 1
 
-    Returns:
-        cx : (np.ndarray) : X-positions of the modulation points
+        Returns:
+            cx : (np.ndarray) : X-positions of the modulation points
 
-        cy : (np.ndarray) : Y-positions of the modulation points
+            cy : (np.ndarray) : Y-positions of the modulation points
     """
     cx, cy = generate_square(radius, density)
     r = cx * cx + cy * cy <= radius**2
     return (cx[r], cy[r])
 
-def generate_pseudo_source(radius: float, additional_psf=0, density=1.):
-    """ Used to generate a pseudo source for PYRWFS
+
+def generate_pseudo_source(radius: float, additional_psf=0, density=1.0):
+    """Used to generate a pseudo source for PYRWFS
 
     Args:
         radius : (float) : TODO description
@@ -198,9 +195,9 @@ def generate_pseudo_source(radius: float, additional_psf=0, density=1.):
 
         yc : TODO description & explicit naming
     """
-    struct_size = (1 + 2 * additional_psf)**2
+    struct_size = (1 + 2 * additional_psf) ** 2
     center_x, center_y = generate_square(additional_psf, density)
-    center_weight = (1 + 2 * int(additional_psf * density))**2 * [1]
+    center_weight = (1 + 2 * int(additional_psf * density)) ** 2 * [1]
     center_size = 1 + 2 * int(additional_psf * density)
 
     weight_edge = [(1 + 2 * int(radius * density) - center_size) // 2]
@@ -247,13 +244,12 @@ def generate_pseudo_source(radius: float, additional_psf=0, density=1.):
             pup_cent_y.append(m * pup_cent_dist)
     ox = np.concatenate((center_x, V_edge_x, H_edge_x, pup_cent_x))
     oy = np.concatenate((center_y, V_edge_y, H_edge_y, pup_cent_y))
-    w = np.concatenate((center_weight, V_edge_weight, H_edge_weight,
-                        pup_cent_weight))
+    w = np.concatenate((center_weight, V_edge_weight, H_edge_weight, pup_cent_weight))
     return (ox, oy, w, xc, yc)
 
 
 def first_non_zero(array: np.ndarray, axis: int, invalid_val: int = -1) -> np.ndarray:
-    """ Find the first non zero element of an array
+    """Find the first non zero element of an array
 
     Args:
         array : (np.ndarray) : input array

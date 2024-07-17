@@ -1,23 +1,20 @@
-## @package   shesha.util.tools
-## @brief     Imported from CANARY
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 
 
 import numpy as np
@@ -39,7 +36,7 @@ def clr(*figs):
     clears the current figure (no arg) or specified window
 
     """
-    if (figs):
+    if figs:
         for fig in figs:
             # fig = fig[i]
             plt.figure(num=fig)
@@ -67,19 +64,26 @@ def system(cmd, output=False):
     out, err = proc.communicate()
     exitcode = proc.returncode
     #
-    if ('\n' in out):
-        out = out.split('\n')[:-1]
+    if "\n" in out:
+        out = out.split("\n")[:-1]
 
     for i in range(len(out)):
         print((out[i]))
 
-    if (output):
+    if output:
         # print("here")
         return out, exitcode, err
 
 
-def pli(data, color='gist_earth', cmin=9998, cmax=9998, win=1, origin=None,
-        aspect='equal'):
+def pli(
+    data,
+    color="gist_earth",
+    cmin=9998,
+    cmax=9998,
+    win=1,
+    origin=None,
+    aspect="equal",
+):
     """
     plots the transpose of the data
 
@@ -87,28 +91,26 @@ def pli(data, color='gist_earth', cmin=9998, cmax=9998, win=1, origin=None,
     http://wiki.scipy.org/Cookbook/Matplotlib/Show_colormaps
 
     """
-    options = ''
-    if (cmin != 9998):
+    options = ""
+    if cmin != 9998:
         exec('options += ",vmin=cmin"')
 
-    if (cmax != 9998):
+    if cmax != 9998:
         exec('options += ",vmax=cmax"')
 
-    if (color == b'yorick'):
-        color = 'gist_earth'
-    if (origin is None):
+    if color == b"yorick":
+        color = "gist_earth"
+    if origin is None:
         origin = ""
-    if (aspect != 'auto'):
-        aspect = "\'" + aspect + "\'"
+    if aspect != "auto":
+        aspect = "'" + aspect + "'"
     else:
-        aspect = "\'auto\'"
+        aspect = "'auto'"
 
-    exec('plt.matshow(data, aspect=' + aspect + ', fignum=win, cmap=color' + options +
-         origin + ")")
+    exec("plt.matshow(data, aspect=" + aspect + ", fignum=win, cmap=color" + options + origin + ")")
 
 
 def binning(w, footprint):
-
     # the averaging block
     # prelocate memory
     binned = np.zeros(w.shape[0] * w.shape[1]).reshape(w.shape[0], w.shape[1])
@@ -126,12 +128,12 @@ def minmax(tab):
 
 
 def plg(
-        data,
-        x="",
-        win=1,
-        xlog=0,
-        ylog=0,
-        color="black",
+    data,
+    x="",
+    win=1,
+    xlog=0,
+    ylog=0,
+    color="black",
 ):
     """
 
@@ -148,48 +150,47 @@ def plg(
     ax = fig.add_subplot(1, 1, 1)
     try:
         data.ndim
-        if (data.ndim > 1):
-            print(("Warning %dD dimensions. Cannot plot data. Use pli instead. " %
-                   data.ndim))
+        if data.ndim > 1:
+            print(("Warning %dD dimensions. Cannot plot data. Use pli instead. " % data.ndim))
     except BaseException:
         return
-    if (x == ""):
+    if x == "":
         ax.plot(data, color=color)
     else:
         ax.plot(x, data, color=color)
 
-    if (xlog == 1):
-        ax.set_xscale('log')
+    if xlog == 1:
+        ax.set_xscale("log")
     else:
-        ax.set_xscale('linear')
+        ax.set_xscale("linear")
 
-    if (ylog == 1):
-        ax.set_yscale('log')
+    if ylog == 1:
+        ax.set_yscale("log")
     else:
-        ax.set_yscale('linear')
+        ax.set_yscale("linear")
     fig.show()
     return fig, ax
 
 
 def zcen(data):
     data = np.array(data)
-    if (len(data.shape) > 1):
+    if len(data.shape) > 1:
         print("oups zcen with dims > 1 not coded yet...")
         return 0
     tmp = tmp2 = []
     for i in range(len(data) - 1):
-        tmp = (float(data[i]) + float(data[i + 1])) / 2.
+        tmp = (float(data[i]) + float(data[i + 1])) / 2.0
         tmp2 = np.append(tmp2, tmp)
     return tmp2
 
 
 def getValidSubapArray(nssp, rext, rint, return2d=False):
     # The Grata case, tip-tilt sensor only.
-    if (nssp == 1):
+    if nssp == 1:
         return [1]
     # to avoid some bug that eliminates useful central subapertures when
     # obs=0.286
-    if ((nssp == 7) and (rint > 0.285 and rint < 0.29)):
+    if (nssp == 7) and (rint > 0.285 and rint < 0.29):
         rint = 0.285
         print("cas particulier")
     x = zcen(np.linspace(-1, 1, num=nssp + 1))
@@ -199,11 +200,11 @@ def getValidSubapArray(nssp, rext, rint, return2d=False):
     x = np.reshape(xx, (nssp, nssp))
     y = np.transpose(x)
     r = np.sqrt(x * x + y * y)
-    valid2dext = ((r < rext)) * 1
-    valid2dint = ((r >= rint)) * 1
+    valid2dext = (r < rext) * 1
+    valid2dint = (r >= rint) * 1
     valid2d = valid2dint * valid2dext
 
-    if (return2d):
+    if return2d:
         return valid2d
     else:
         valid = np.reshape(valid2d, [nssp * nssp])
@@ -246,7 +247,14 @@ def plpyr(slopesvector, validArray):
     plt.quiver(x, y, slopesvector[0:nslopes], slopesvector[nslopes:])
 
 
-def plsh(slopesvector, nssp, validint, sparta=False, invertxy=False, returnquiver=False):
+def plsh(
+    slopesvector,
+    nssp,
+    validint,
+    sparta=False,
+    invertxy=False,
+    returnquiver=False,
+):
     """
     <slopesvector> is the input vector of slopes
     <nssp> is the number of subapertures in the diameter of the pupil
@@ -283,7 +291,7 @@ def plsh(slopesvector, nssp, validint, sparta=False, invertxy=False, returnquive
     # feeding data <slopesvector> into <vv>
     vx = np.zeros([nssp, nssp])
     vy = np.zeros([nssp, nssp])
-    if (sparta is False):
+    if sparta is False:
         # Canary, compass, etc..  slopes ordered xxxxxxxyyyyyyy
         vy[ivalid] = slopesvector[0:nsub]
         vx[ivalid] = slopesvector[nsub:]
@@ -291,15 +299,15 @@ def plsh(slopesvector, nssp, validint, sparta=False, invertxy=False, returnquive
         # SPARTA case, slopes ordered xyxyxyxyxyxy...
         vx[ivalid] = slopesvector[0::2]
         vy[ivalid] = slopesvector[1::2]
-    if (invertxy is True):
+    if invertxy is True:
         # swaps X and Y
         tmp = vx
         vx = vy
         vy = tmp
-    if (returnquiver):
+    if returnquiver:
         return x, y, vx, vy
     else:
-        plt.quiver(x, y, vx, vy, pivot='mid')
+        plt.quiver(x, y, vx, vy, pivot="mid")
 
 
 def pl3d(im):
@@ -318,17 +326,17 @@ def pl3d(im):
 
 
 def FFThz(signal, fe, freq=0):
-    """ PSD = FFThz( signal, fe )   OU  f = FFThz( 1024, fe, freq=1 )
+    """PSD = FFThz( signal, fe )   OU  f = FFThz( 1024, fe, freq=1 )
     On the first form, returns the power spectral density of signal.
     If signal has units 'u', the PSD has units 'u^2/Hz'.
     The frequency axis can be get by using the keyword freq=1."""
     if freq == 1:
         n = signal.size
-        d = np.linspace(0, fe, n + 1)[0:n / 2 + 1]
+        d = np.linspace(0, fe, n + 1)[0 : n / 2 + 1]
         return d[1:]
     else:
         n = signal.size
-        d = np.abs(np.fft.fft(signal))[0:n / 2 + 1]
+        d = np.abs(np.fft.fft(signal))[0 : n / 2 + 1]
         d = d**2 / (fe * n / 2)
         d[n / 2] /= 2
         return d[1:]
@@ -342,7 +350,7 @@ def computePSD(zerall, fe, izerNum, wfsNum):
         PSD = FFThz(zerall[ii][izerNum, :], fe)
 
     PSD /= len(wfsNum)
-    if (len(wfsNum) > 1):
+    if len(wfsNum) > 1:
         ff = FFThz(zerall[wfsNum][izerNum, :], fe, freq=1)
     else:
         ff = FFThz(zerall[wfsNum[0]][izerNum, :], fe, freq=1)
@@ -363,10 +371,10 @@ def plotSubapRectangles(pup, isvalid, istart, jstart):
     pdiam = istart[1] - istart[0]
     for i in istart:
         for j in jstart:
-            if (isvalid[i // pdiam, j // pdiam]):
+            if isvalid[i // pdiam, j // pdiam]:
                 color = "green"
             else:
                 color = "red"
             fig.axes.add_patch(
-                    plt.Rectangle((i - 0.5, j - 0.5), pdiam, pdiam, fill=False,
-                                  color=color))
+                plt.Rectangle((i - 0.5, j - 0.5), pdiam, pdiam, fill=False, color=color)
+            )

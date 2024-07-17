@@ -1,23 +1,20 @@
-## @package   shesha.init.wfs_init
-## @brief     Initialization of a Sensors object
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 
 
 import shesha.config as conf
@@ -29,8 +26,15 @@ from shesha.sutra_wrap import carma_context, Sensors, Telescope
 import numpy as np
 
 
-def wfs_init(context: carma_context, telescope: Telescope, p_wfss: list,
-             p_tel: conf.ParamTel, p_geom: conf.ParamGeom, p_dms=None, p_atmos=None):
+def wfs_init(
+    context: carma_context,
+    telescope: Telescope,
+    p_wfss: list,
+    p_tel: conf.ParamTel,
+    p_geom: conf.ParamGeom,
+    p_dms=None,
+    p_atmos=None,
+):
     """
     Create and initialise  a Sensors object
 
@@ -50,8 +54,12 @@ def wfs_init(context: carma_context, telescope: Telescope, p_wfss: list,
     nsensors = len(p_wfss)
     # arrays needed to call Sensors constructor
     t_wfs = [
-            'shlo' if (o.type == scons.WFSType.SH and o.is_low_order) else
-            'pyrhr' if o.type == scons.WFSType.PYRLR else o.type for o in p_wfss
+        "shlo"
+        if (o.type == scons.WFSType.SH and o.is_low_order)
+        else "pyrhr"
+        if o.type == scons.WFSType.PYRLR
+        else o.type
+        for o in p_wfss
     ]
 
     # cdef np.ndarray t_wfs  = np.array([o.type  for o in
@@ -88,20 +96,51 @@ def wfs_init(context: carma_context, telescope: Telescope, p_wfss: list,
 
     roket_flag = any([w.roket for w in p_wfss])
 
-    if (p_wfss[0].type == scons.WFSType.SH):
-        g_wfs = Sensors(context, telescope, t_wfs, nsensors, nxsub, nvalid, nPupils,
-                        npix, nphase, nrebin, nfft, ntota, npup, pdiam, nphot,
-                        nphot4imat, lgs, fakecam, maxFlux, max_pix_value,
-                        context.active_device, roket_flag)
+    if p_wfss[0].type == scons.WFSType.SH:
+        g_wfs = Sensors(
+            context,
+            telescope,
+            t_wfs,
+            nsensors,
+            nxsub,
+            nvalid,
+            nPupils,
+            npix,
+            nphase,
+            nrebin,
+            nfft,
+            ntota,
+            npup,
+            pdiam,
+            nphot,
+            nphot4imat,
+            lgs,
+            fakecam,
+            maxFlux,
+            max_pix_value,
+            context.active_device,
+            roket_flag,
+        )
 
         mag = np.array([o.gsmag for o in p_wfss], dtype=np.float32)
         noise = np.array([o.noise for o in p_wfss], dtype=np.float32)
 
-        g_wfs.initgs(xpos, ypos, Lambda, mag, zerop, size, noise, seed, G, thetaML, dx,
-                     dy)
+        g_wfs.initgs(
+            xpos,
+            ypos,
+            Lambda,
+            mag,
+            zerop,
+            size,
+            noise,
+            seed,
+            G,
+            thetaML,
+            dx,
+            dy,
+        )
 
-    elif (p_wfss[0].type == scons.WFSType.PYRHR or
-          p_wfss[0].type == scons.WFSType.PYRLR):
+    elif p_wfss[0].type == scons.WFSType.PYRHR or p_wfss[0].type == scons.WFSType.PYRLR:
         npup = np.array([o.pyr_npts for o in p_wfss])
         npix = np.array([o._validsubsx.size for o in p_wfss])
         G = np.array([o.G for o in p_wfss], dtype=np.float32)
@@ -109,15 +148,47 @@ def wfs_init(context: carma_context, telescope: Telescope, p_wfss: list,
         dx = np.array([o.dx for o in p_wfss], dtype=np.float32)
         dy = np.array([o.dy for o in p_wfss], dtype=np.float32)
 
-        g_wfs = Sensors(context, telescope, t_wfs, nsensors, nxsub, nvalid, nPupils,
-                        npix, nphase, nrebin, nfft, ntota, npup, pdiam, nphot,
-                        nphot4imat, lgs, fakecam, maxFlux, max_pix_value,
-                        context.active_device, roket_flag)
+        g_wfs = Sensors(
+            context,
+            telescope,
+            t_wfs,
+            nsensors,
+            nxsub,
+            nvalid,
+            nPupils,
+            npix,
+            nphase,
+            nrebin,
+            nfft,
+            ntota,
+            npup,
+            pdiam,
+            nphot,
+            nphot4imat,
+            lgs,
+            fakecam,
+            maxFlux,
+            max_pix_value,
+            context.active_device,
+            roket_flag,
+        )
 
         mag = np.array([o.gsmag for o in p_wfss], dtype=np.float32)
         noise = np.array([o.noise for o in p_wfss], dtype=np.float32)
-        g_wfs.initgs(xpos, ypos, Lambda, mag, zerop, size, noise, seed, G, thetaML, dx,
-                     dy)
+        g_wfs.initgs(
+            xpos,
+            ypos,
+            Lambda,
+            mag,
+            zerop,
+            size,
+            noise,
+            seed,
+            G,
+            thetaML,
+            dx,
+            dy,
+        )
 
     else:
         raise Exception("WFS type unknown")
@@ -130,24 +201,42 @@ def wfs_init(context: carma_context, telescope: Telescope, p_wfss: list,
         fluxPerSub = p_wfs._fluxPerSub.T[np.where(p_wfs._isvalid.T > 0)].copy()
         if p_wfs.type == scons.WFSType.PYRHR or p_wfs.type == scons.WFSType.PYRLR:
             halfxy = np.exp(1j * p_wfs._halfxy).astype(np.complex64).T.copy()
-            if (p_wfs._pyr_weights is None):
+            if p_wfs._pyr_weights is None:
                 p_wfs.set_pyr_weights(np.ones(p_wfs._pyr_cx.size))
             wfs.compute_pyrfocalplane = p_wfs.pyr_compute_focalplane
-            wfs.load_arrays(halfxy, p_wfs._pyr_cx, p_wfs._pyr_cy, p_wfs._pyr_weights,
-                            p_wfs._sincar, p_wfs._submask, p_wfs._validsubsx,
-                            p_wfs._validsubsy, p_wfs._phasemap, fluxPerSub,
-                            p_wfs._ttprojmat)
+            wfs.load_arrays(
+                halfxy,
+                p_wfs._pyr_cx,
+                p_wfs._pyr_cy,
+                p_wfs._pyr_weights,
+                p_wfs._sincar,
+                p_wfs._submask,
+                p_wfs._validsubsx,
+                p_wfs._validsubsy,
+                p_wfs._phasemap,
+                fluxPerSub,
+                p_wfs._ttprojmat,
+            )
         else:
-            wfs.load_arrays(p_wfs._phasemap, p_wfs._hrmap, p_wfs._binmap, p_wfs._halfxy,
-                            fluxPerSub, p_wfs._validsubsx, p_wfs._validsubsy,
-                            p_wfs._validpuppixx, p_wfs._validpuppixy, p_wfs._ttprojmat,
-                            p_wfs._ftkernel)
-            if (p_wfs._submask is not None):
+            wfs.load_arrays(
+                p_wfs._phasemap,
+                p_wfs._hrmap,
+                p_wfs._binmap,
+                p_wfs._halfxy,
+                fluxPerSub,
+                p_wfs._validsubsx,
+                p_wfs._validsubsy,
+                p_wfs._validpuppixx,
+                p_wfs._validpuppixy,
+                p_wfs._ttprojmat,
+                p_wfs._ftkernel,
+            )
+            if p_wfs._submask is not None:
                 g_wfs.set_field_stop(i, p_wfs._submask, p_wfs._submask.shape[0])
 
     # lgs case
     for i in range(nsensors):
-        if (p_wfss[i].gsalt > 0):
+        if p_wfss[i].gsalt > 0:
             # lgs mode requested
             # init sensor lgs object with necessary data
             LGS.prep_lgs_prof(p_wfss[i], i, p_tel, g_wfs)
@@ -157,37 +246,49 @@ def wfs_init(context: carma_context, telescope: Telescope, p_wfss: list,
     for i in range(len(p_wfss)):
         p_wfs = p_wfss[i]
         if p_wfs.gsalt > 0:
-            gsalt = 1. / p_wfs.gsalt
+            gsalt = 1.0 / p_wfs.gsalt
         else:
             gsalt = 0
 
         if p_wfs.atmos_seen is not None and p_atmos is not None:
             for j in range(p_atmos.nscreens):
-                xoff = (gsalt * p_atmos.alt[j] * p_tel.diam / 2. +
-                        p_wfs.xpos * CONST.ARCSEC2RAD * p_atmos.alt[j]) / \
-                    p_atmos.pupixsize
-                yoff = (gsalt * p_atmos.alt[j] * p_tel.diam / 2. +
-                        p_wfs.ypos * CONST.ARCSEC2RAD * p_atmos.alt[j]) / \
-                    p_atmos.pupixsize
-                xoff = xoff + (p_atmos.dim_screens[j] - p_geom._n) / 2.
-                yoff = yoff + (p_atmos.dim_screens[j] - p_geom._n) / 2.
+                xoff = (
+                    gsalt * p_atmos.alt[j] * p_tel.diam / 2.0
+                    + p_wfs.xpos * CONST.ARCSEC2RAD * p_atmos.alt[j]
+                ) / p_atmos.pupixsize
+                yoff = (
+                    gsalt * p_atmos.alt[j] * p_tel.diam / 2.0
+                    + p_wfs.ypos * CONST.ARCSEC2RAD * p_atmos.alt[j]
+                ) / p_atmos.pupixsize
+                xoff = xoff + (p_atmos.dim_screens[j] - p_geom._n) / 2.0
+                yoff = yoff + (p_atmos.dim_screens[j] - p_geom._n) / 2.0
                 g_wfs.d_wfs[i].d_gs.add_layer(type_target, j, xoff, yoff)
 
-        if (not p_wfs.open_loop and p_dms is not None):
-            if (p_wfs.dms_seen is None):
+        if not p_wfs.open_loop and p_dms is not None:
+            if p_wfs.dms_seen is None:
                 p_wfs.dms_seen = np.arange(len(p_dms)).astype(np.int32)
             for j in range(p_wfs.dms_seen.size):
                 k = p_wfs.dms_seen[j]
                 dims = p_dms[k]._n2 - p_dms[k]._n1 + 1
                 dim = p_geom._mpupil.shape[0]
-                if (dim < dims):
+                if dim < dims:
                     dim = dims
-                xoff = (gsalt * p_dms[k].alt * p_tel.diam / 2. + \
-                        p_wfs.xpos * CONST.ARCSEC2RAD * p_dms[k].alt ) * \
-                        p_geom.pupdiam / p_tel.diam
-                yoff = (gsalt * p_dms[k].alt * p_tel.diam / 2. + \
-                        p_wfs.ypos * CONST.ARCSEC2RAD * p_dms[k].alt ) * \
-                        p_geom.pupdiam / p_tel.diam
+                xoff = (
+                    (
+                        gsalt * p_dms[k].alt * p_tel.diam / 2.0
+                        + p_wfs.xpos * CONST.ARCSEC2RAD * p_dms[k].alt
+                    )
+                    * p_geom.pupdiam
+                    / p_tel.diam
+                )
+                yoff = (
+                    (
+                        gsalt * p_dms[k].alt * p_tel.diam / 2.0
+                        + p_wfs.ypos * CONST.ARCSEC2RAD * p_dms[k].alt
+                    )
+                    * p_geom.pupdiam
+                    / p_tel.diam
+                )
                 xoff = xoff + (dim - p_geom._n) / 2
                 yoff = yoff + (dim - p_geom._n) / 2
                 g_wfs.d_wfs[i].d_gs.add_layer(p_dms[k].type, k, xoff, yoff)

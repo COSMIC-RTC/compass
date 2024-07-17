@@ -1,41 +1,43 @@
-## @package   shesha.util
-## @brief     Shesha utilities
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
-# from shesha.util.writers.yao.general import 
-from shesha.util.writers.yao.wfs     import init_wfs, write_wfss, finish_wfs
-from shesha.util.writers.yao.dm      import init_dm, write_dms, finish_dm
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
+# from shesha.util.writers.yao.general import
+from shesha.util.writers.yao.wfs import init_wfs, write_wfss, finish_wfs
+from shesha.util.writers.yao.dm import init_dm, write_dms, finish_dm
 from shesha.util.writers.yao.targets import write_targets
-from shesha.util.writers.yao.atmos   import write_atm
-from shesha.util.writers.yao.loop    import write_loop
-from shesha.util.writers.yao.gs      import write_gs
+from shesha.util.writers.yao.atmos import write_atm
+from shesha.util.writers.yao.loop import write_loop
+from shesha.util.writers.yao.gs import write_gs
 from shesha.util.writers.yao import write_general
 from shesha.util.writers import common
 import numpy as np
 
-def write_parfiles(sup, *,  param_file_name="./yao.par",
-                            fits_file_name="./yao.fits",
-                            screen_dir="\"./yao_screen\"",
-                            n_wfs=None,
-                            controller_id=-1,
-                            influ_index=0,
-                            imat_type="controller"):
+
+def write_parfiles(
+    sup,
+    *,
+    param_file_name="./yao.par",
+    fits_file_name="./yao.fits",
+    screen_dir='"./yao_screen"',
+    n_wfs=None,
+    controller_id=-1,
+    influ_index=0,
+    imat_type="controller",
+):
     """Write parameter files for YAO simulations
 
     Args:
@@ -57,36 +59,53 @@ def write_parfiles(sup, *,  param_file_name="./yao.par",
         imat_type : (str) : (optional), default "controller" use of regular controller or split tomography (among "controller", "splitTomo")
     """
     conf = sup.config
-    if(n_wfs is None):
+    if n_wfs is None:
         n_wfs = len(conf.p_wfss)
-    zerop = conf.p_wfss[0].zerop * sup.get_s_pupil().sum() * \
-                (conf.p_tel.diam / conf.p_geom.pupdiam) ** 2
+    zerop = (
+        conf.p_wfss[0].zerop
+        * sup.get_s_pupil().sum()
+        * (conf.p_tel.diam / conf.p_geom.pupdiam) ** 2
+    )
     lgs_return_per_watt = max([w.lgsreturnperwatt for w in conf.p_wfss])
 
     print("writing parameter file to " + param_file_name)
-    write_general(param_file_name, conf.p_geom, conf.p_controllers,
-                  conf.p_tel, conf.simul_name)
+    write_general(
+        param_file_name,
+        conf.p_geom,
+        conf.p_controllers,
+        conf.p_tel,
+        conf.simul_name,
+    )
     wfs_offset = 0
     dm_offset = 0
     ndm = init_dm(param_file_name)
     for sub_system, c in enumerate(conf.p_controllers):
-        dms = [ conf.p_dms[i]  for i in c.get_ndm() ]
-        ndm += write_dms (param_file_name, dms ,sub_system=sub_system + 1,
-                        offset=dm_offset)
-        dm_offset = dm_offset+len(dms)
+        dms = [conf.p_dms[i] for i in c.get_ndm()]
+        ndm += write_dms(param_file_name, dms, sub_system=sub_system + 1, offset=dm_offset)
+        dm_offset = dm_offset + len(dms)
     finish_dm(param_file_name, ndm)
     gs = init_wfs(param_file_name)
     for sub_system, c in enumerate(conf.p_controllers):
-        wfss = [ conf.p_wfss[i] for i in c.get_nwfs()]
-        n_ngs, n_lgs = write_wfss(param_file_name, wfss, sub_system=sub_system + 1,
-                                n_wfs=n_wfs, offset=wfs_offset)
+        wfss = [conf.p_wfss[i] for i in c.get_nwfs()]
+        n_ngs, n_lgs = write_wfss(
+            param_file_name,
+            wfss,
+            sub_system=sub_system + 1,
+            n_wfs=n_wfs,
+            offset=wfs_offset,
+        )
         gs = (gs[0] + n_ngs, gs[1] + n_lgs)
         wfs_offset = wfs_offset + len(wfss)
     finish_wfs(param_file_name, gs[0], gs[1])
     write_targets(param_file_name, conf.p_targets)
-    write_gs(param_file_name, zerop, lgs_return_per_watt,
-             conf.p_geom.zenithangle)
-    write_atm(param_file_name, conf.p_atmos, screen_dir,conf.p_geom.zenithangle)
+    write_gs(param_file_name, zerop, lgs_return_per_watt, conf.p_geom.zenithangle)
+    write_atm(param_file_name, conf.p_atmos, screen_dir, conf.p_geom.zenithangle)
     write_loop(param_file_name, conf.p_loop, conf.p_controllers[0])
-    common.write_data(fits_file_name, sup, wfss_indices=np.arange(n_wfs),
-       controller_id=controller_id, influ=influ_index, compose_type=imat_type)
+    common.write_data(
+        fits_file_name,
+        sup,
+        wfss_indices=np.arange(n_wfs),
+        controller_id=controller_id,
+        influ=influ_index,
+        compose_type=imat_type,
+    )

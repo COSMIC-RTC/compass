@@ -1,23 +1,20 @@
-## @package   shesha.supervisor.stageSupervisor
-## @brief     Initialization and execution of a single stage supervisor for cascaded AO systems
-## @author    SAXO+ Team <https://github.com/ANR-COMPASS> (Clementine Bechet)
-## @date      2023/01/31
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 
 
 from shesha.supervisor.compassSupervisor import CompassSupervisor
@@ -28,7 +25,7 @@ from typing import Iterable
 
 
 class StageSupervisor(CompassSupervisor):
-    """ This class implements a single stage (e.g. first stage, second stage) supervisor
+    """This class implements a single stage (e.g. first stage, second stage) supervisor
     to handle compass simulations of cascaded AO. The main supervision will be handled by another
     supervisor (manager).
 
@@ -62,11 +59,20 @@ class StageSupervisor(CompassSupervisor):
         close_modal_gains : (list of floats) : list of the previous values of the modal gains
     """
 
-    def next(self, *, move_atmos: bool = True, nControl: int = 0,
-             tar_trace: Iterable[int] = None, wfs_trace: Iterable[int] = None,
-             do_control: bool = True, apply_control: bool = True,
-             compute_tar_psf: bool = True, stack_wfs_image: bool = False,
-             do_centroids: bool = True, compute_corono: bool=True) -> None:
+    def next(
+        self,
+        *,
+        move_atmos: bool = True,
+        nControl: int = 0,
+        tar_trace: Iterable[int] = None,
+        wfs_trace: Iterable[int] = None,
+        do_control: bool = True,
+        apply_control: bool = True,
+        compute_tar_psf: bool = True,
+        stack_wfs_image: bool = False,
+        do_centroids: bool = True,
+        compute_corono: bool = True,
+    ) -> None:
         """Iterates the AO loop, with optional parameters, considering it is a single
         stage and may be called in the middle of WFS frames.
         Overload the CompassSupervisor next() method to arrange tasks orders and allow cascaded
@@ -104,9 +110,15 @@ class StageSupervisor(CompassSupervisor):
             # nControl is not an iterable creating a list
             nControl = [nControl]
 
-        #get the index of the first GEO controller (-1 if there is no GEO controller)
-        geo_index = next(( i for i,c in enumerate(self.config.p_controllers)
-            if c.type== scons.ControllerType.GEO ), -1)
+        # get the index of the first GEO controller (-1 if there is no GEO controller)
+        geo_index = next(
+            (
+                i
+                for i, c in enumerate(self.config.p_controllers)
+                if c.type == scons.ControllerType.GEO
+            ),
+            -1,
+        )
 
         if tar_trace is None and self.target is not None:
             tar_trace = range(len(self.config.p_targets))
@@ -118,12 +130,11 @@ class StageSupervisor(CompassSupervisor):
         # in case there is at least 1 controller GEO in the controller list : use this one only
         self.tel.update_input_phase()
 
-        if ( geo_index > -1):
+        if geo_index > -1:
             nControl = geo_index
 
             if tar_trace is not None:
                 for t in tar_trace:
-
                     if apply_control:
                         self.rtc.apply_control(nControl)
 
@@ -139,21 +150,20 @@ class StageSupervisor(CompassSupervisor):
         else:
             # start updating the DM shape
             if apply_control:
-                for ncontrol in nControl :
+                for ncontrol in nControl:
                     # command buffer is updated and commands voltages update is applied
                     self.rtc.apply_control(ncontrol)
                     # Note: clipping is always made by apply_control (CBE. 2023.01.27)
 
             # start the propagations
-            if tar_trace is not None: # already checked at line 213?
+            if tar_trace is not None:  # already checked at line 213?
                 for t in tar_trace:
                     if self.atmos.is_enable:
-                        self.target.raytrace(t, tel=self.tel, atm=self.atmos,
-                                             dms=self.dms)
+                        self.target.raytrace(t, tel=self.tel, atm=self.atmos, dms=self.dms)
                     else:
                         self.target.raytrace(t, tel=self.tel, dms=self.dms)
 
-            if wfs_trace is not None: # already checked at line 215?
+            if wfs_trace is not None:  # already checked at line 215?
                 for w in wfs_trace:
                     if self.atmos.is_enable:
                         self.wfs.raytrace(w, tel=self.tel, atm=self.atmos)
@@ -172,7 +182,7 @@ class StageSupervisor(CompassSupervisor):
                         self.wfs.compute_wfs_image(w)
 
             if self.rtc is not None:
-                for ncontrol in nControl : # range(len(self.config.p_controllers)):
+                for ncontrol in nControl:  # range(len(self.config.p_controllers)):
                     # modified to allow do_centroids when the WFS exposure is over.
                     # Also useful for calibration. (CBE 2023.01.30)
                     if do_centroids:
@@ -195,7 +205,6 @@ class StageSupervisor(CompassSupervisor):
             self.close_modal_gains.append(self.modalgains.get_modal_gains())
 
         self.iter += 1
-
 
     def reset(self):
         """

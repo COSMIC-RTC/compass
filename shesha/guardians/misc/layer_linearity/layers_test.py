@@ -1,28 +1,26 @@
-## @package   guardians.misc
-## @brief     Miscellaneous roket scripts
-## @author    Florian Ferreira <florian.ferreira@obspm.fr>
-## @date      2019/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 """
 Created on Wed Oct 5 14:28:23 2016
 
 @author: fferreira
 """
+
 import numpy as np
 import h5py
 import matplotlib.pyplot as plt
@@ -52,7 +50,12 @@ print("--------------------------------------------")
 
 nmodes = f_layers["P"][:].shape[0]
 contributors = [
-        "tomography", "bandwidth", "non linearity", "noise", "filtered modes", "aliasing"
+    "tomography",
+    "bandwidth",
+    "non linearity",
+    "noise",
+    "filtered modes",
+    "aliasing",
 ]
 Lambda_tar = f_layers.attrs["_ParamTarget__Lambda"][0]
 fracs = f_layers.attrs["_ParamAtmos__frac"]
@@ -64,16 +67,16 @@ for a in alts:
     i += 1
 
 frac = []
-buferr_layers = drax.get_err(datapath + fname_layer_i[0]) * 0.
+buferr_layers = drax.get_err(datapath + fname_layer_i[0]) * 0.0
 for k in range(len(files)):
     frac.append(frac_per_layer[files[k].attrs["_ParamAtmos__alt"][0]])
     buferr_layers += drax.get_err(datapath + fname_layer_i[k]) * np.sqrt(
-            frac_per_layer[files[k].attrs["_ParamAtmos__alt"][0]])
+        frac_per_layer[files[k].attrs["_ParamAtmos__alt"][0]]
+    )
 
 C_layers = np.zeros((buferr_layers.shape[0], buferr_layers.shape[0]))
 for k in range(len(files)):
-    C_layers += (
-            frac[k] * drax.get_covmat_contrib(datapath + fname_layer_i[k], contributors))
+    C_layers += frac[k] * drax.get_covmat_contrib(datapath + fname_layer_i[k], contributors)
 print("contributors : ", contributors)
 
 # Column 1 : with correlation, column 2 : independence assumption
@@ -89,7 +92,7 @@ for f in files:
     err_layer_i[:, atm_layer + 1] = drax.variance(f, contributors, method="Independence")
     atm_layer += 2
 
-#err_layer1p2 = varianceMultiFiles([f_layer1,f_layer2], frac_per_layer, contributors)
+# err_layer1p2 = varianceMultiFiles([f_layer1,f_layer2], frac_per_layer, contributors)
 inderr = np.zeros(nmodes)
 derr = np.zeros(nmodes)
 for atm_layer in range(nlayers):
@@ -97,8 +100,7 @@ for atm_layer in range(nlayers):
     derr += frac[atm_layer] * err_layer_i[:, 2 * atm_layer]
 
 otftel_ref, otf2_ref, psf_ref, gpu = gamora.psf_rec_Vii(datapath + fname_layers)
-otftel_sum, otf2_sum, psf_sum, gpu = gamora.psf_rec_Vii(datapath + fname_layers,
-                                                        err=buferr_layers)
+otftel_sum, otf2_sum, psf_sum, gpu = gamora.psf_rec_Vii(datapath + fname_layers, err=buferr_layers)
 
 # Plots
 plt.figure(1)
@@ -133,15 +135,18 @@ plt.xlabel("Modes #")
 plt.ylabel("SR")
 plt.title("Resulting SR")
 
-RASC = 180 / np.pi * 3600.
-#pixsize = (Lambda_tar*1e-6 / 8. * RASC) * 16./64.
-#lambda/(Nfft*pupdiam/D)
-pixsize = Lambda_tar * 1e-6 / (psf_ref.shape[0] * 8. / 640) * RASC
-x = (np.arange(psf_ref.shape[0]) - psf_ref.shape[0] / 2) * pixsize / (
-        Lambda_tar * 1e-6 / 8. * RASC)
-font = {'family': 'normal', 'weight': 'bold', 'size': 22}
+RASC = 180 / np.pi * 3600.0
+# pixsize = (Lambda_tar*1e-6 / 8. * RASC) * 16./64.
+# lambda/(Nfft*pupdiam/D)
+pixsize = Lambda_tar * 1e-6 / (psf_ref.shape[0] * 8.0 / 640) * RASC
+x = (
+    (np.arange(psf_ref.shape[0]) - psf_ref.shape[0] / 2)
+    * pixsize
+    / (Lambda_tar * 1e-6 / 8.0 * RASC)
+)
+font = {"family": "normal", "weight": "bold", "size": 22}
 
-matplotlib.rc('font', **font)
+matplotlib.rc("font", **font)
 
 plt.figure()
 plt.semilogy(x, psf_ref[psf_ref.shape[0] / 2, :], color="blue")

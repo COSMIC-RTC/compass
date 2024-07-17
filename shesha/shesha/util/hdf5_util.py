@@ -1,23 +1,20 @@
-## @package   shesha.util.hdf5_util
-## @brief     Functions for handling the database system
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 
 
 import h5py
@@ -28,17 +25,19 @@ from subprocess import check_output
 
 shesha_db = None
 try:
-    shesha_db = os.environ['SHESHA_DB_ROOT']
+    shesha_db = os.environ["SHESHA_DB_ROOT"]
 except KeyError:
     # if SHESHA_DB_ROOT is not defined, test if SHESHA_ROOT is defined
-    if 'SHESHA_ROOT' in os.environ:
-        shesha_db = os.environ['SHESHA_ROOT'] + "/data"
-    else: # if SHESHA_ROOT is not defined, search for the data directory in the default package location
+    if "SHESHA_ROOT" in os.environ:
+        shesha_db = os.environ["SHESHA_ROOT"] + "/data"
+    else:  # if SHESHA_ROOT is not defined, search for the data directory in the default package location
         if os.path.isdir(os.path.dirname(__file__) + "/../../data"):
             shesha_db = os.path.dirname(__file__) + "/../../data"
 
 if not shesha_db:
-    raise RuntimeError("neither SHESHA_DB_ROOT nor SHESHA_ROOT are defined, and the default data directory is not found. Please define SHESHA_DB_ROOT or SHESHA_ROOT to point to the data directory (see documentation).")
+    raise RuntimeError(
+        "neither SHESHA_DB_ROOT nor SHESHA_ROOT are defined, and the default data directory is not found. Please define SHESHA_DB_ROOT or SHESHA_ROOT to point to the data directory (see documentation)."
+    )
 
 shesha_savepath = shesha_db
 
@@ -48,16 +47,19 @@ def updateParamDict(pdict, pClass, prefix):
     Update parameters dictionnary pdict with all the parameters of pClass.
     Prefix must be set to define the key value of the new dict entries
     """
-    if (isinstance(pClass, list)):
+    if isinstance(pClass, list):
         params = pClass[0].__dict__.keys()
         for k in params:
-            pdict.update({
+            pdict.update(
+                {
                     k: [
-                            p.__dict__[k].encode("utf8") if isinstance(
-                                    p.__dict__[k], str) else
-                            p.__dict__[k] for p in pClass
+                        p.__dict__[k].encode("utf8")
+                        if isinstance(p.__dict__[k], str)
+                        else p.__dict__[k]
+                        for p in pClass
                     ]
-            })
+                }
+            )
 
     else:
         params = pClass.__dict__.keys()
@@ -70,7 +72,7 @@ def updateParamDict(pdict, pClass, prefix):
 
 
 def params_dictionary(config):
-    """ Create and returns a dictionary of all the config parameters with the
+    """Create and returns a dictionary of all the config parameters with the
     corresponding keys for further creation of database and save files
 
     :param config: (module) : simulation parameters
@@ -80,7 +82,10 @@ def params_dictionary(config):
 
     commit = check_output(["git", "rev-parse", "--short", "HEAD"]).strip()
 
-    param_dict = {"simul_name": config.simul_name.encode('utf8'), "commit": commit}
+    param_dict = {
+        "simul_name": config.simul_name.encode("utf8"),
+        "commit": commit,
+    }
 
     updateParamDict(param_dict, config.p_loop, "_ParamLoop__")
     updateParamDict(param_dict, config.p_geom, "_ParamGeom__")
@@ -112,7 +117,7 @@ def params_dictionary(config):
 
 
 def create_file_attributes(filename, param_dict):
-    """ create_file_attributes(filename,config)
+    """create_file_attributes(filename,config)
     Create an hdf5 file wtih attributes corresponding to all simulation parameters
 
     :param:
@@ -124,19 +129,17 @@ def create_file_attributes(filename, param_dict):
     f = h5py.File(filename, "w")
 
     for i in list(param_dict.keys()):
-        if (isinstance(param_dict[i], str)):
+        if isinstance(param_dict[i], str):
             attr = param_dict[i].encode("utf-8")
-        elif (isinstance(param_dict[i], list)):
-            attr = [
-                    s.encode("utf-8") if isinstance(s, str) else s for s in param_dict[i]
-            ]
+        elif isinstance(param_dict[i], list):
+            attr = [s.encode("utf-8") if isinstance(s, str) else s for s in param_dict[i]]
         else:
             attr = param_dict[i]
-        if(isinstance(attr, np.ndarray)):
+        if isinstance(attr, np.ndarray):
             save_hdf5(filename, i, attr)
-        elif(isinstance(attr, list)):
-            if(isinstance(attr[0], np.ndarray)):
-                for k,data in enumerate(attr):
+        elif isinstance(attr, list):
+            if isinstance(attr[0], np.ndarray):
+                for k, data in enumerate(attr):
                     save_hdf5(filename, i + str(k), data)
             else:
                 f.attrs.create(i, attr)
@@ -148,9 +151,8 @@ def create_file_attributes(filename, param_dict):
 
 
 def init_hdf5_files(savepath, param_dict, matricesToLoad):
-    """ TODO: docstring
-    """
-    commit = check_output(["git", "rev-parse", "--short", "HEAD"]).decode('utf8').strip()
+    """TODO: docstring"""
+    commit = check_output(["git", "rev-parse", "--short", "HEAD"]).decode("utf8").strip()
     # if not(matricesToLoad.has_key("A")):
     if "A" not in matricesToLoad:
         df = pandas.read_hdf(savepath + "matricesDataBase.h5", "A")
@@ -175,7 +177,7 @@ def init_hdf5_files(savepath, param_dict, matricesToLoad):
 
 
 def initDataBase(savepath, param_dict):
-    """ Initialize and create the database for all the saved matrices. This database
+    """Initialize and create the database for all the saved matrices. This database
     will be placed on the top of the savepath and be named matricesDataBase.h5.
 
     Args:
@@ -197,7 +199,7 @@ def initDataBase(savepath, param_dict):
 
 
 def updateDataBase(h5file, savepath, matrix_type):
-    """ Update the database adding a new row to the matrix_type database.
+    """Update the database adding a new row to the matrix_type database.
 
     Args:
 
@@ -209,7 +211,7 @@ def updateDataBase(h5file, savepath, matrix_type):
                                                          "istx","eigenv","imat","U"
                                                          "pztok" or "pztnok")
     """
-    if (matrix_type == "A" or matrix_type == "imat" or matrix_type == "dm"):
+    if matrix_type == "A" or matrix_type == "imat" or matrix_type == "dm":
         f = h5py.File(h5file, "r")
         store = pandas.HDFStore(savepath + "matricesDataBase.h5")
         df = store[matrix_type]
@@ -226,7 +228,7 @@ def updateDataBase(h5file, savepath, matrix_type):
 
 
 def save_hdf5(filename, dataname, data):
-    """ save_hdf5(filename, dataname, data)
+    """save_hdf5(filename, dataname, data)
     Create a dataset in an existing hdf5 file filename and store data in it
 
     :param:
@@ -243,7 +245,7 @@ def save_hdf5(filename, dataname, data):
 
 
 def save_h5(filename, dataname, config, data):
-    """ save_hdf5(filename, dataname, config, data)
+    """save_hdf5(filename, dataname, config, data)
     Create a hdf5 file and store data in it with full header from config parameters
     Usefull to backtrace data origins
 
@@ -264,7 +266,7 @@ def save_h5(filename, dataname, config, data):
 
 
 def checkMatricesDataBase(savepath, config, param_dict):
-    """ Check in the database if the current config have been already run. If so,
+    """Check in the database if the current config have been already run. If so,
     return a dictionary containing the matrices to load and their path. Matrices
     which don't appear in the dictionary will be computed, stored and added
     to the database during the simulation.
@@ -284,7 +286,7 @@ def checkMatricesDataBase(savepath, config, param_dict):
     """
 
     matricesToLoad = {}
-    if (os.path.exists(savepath + "matricesDataBase.h5")):
+    if os.path.exists(savepath + "matricesDataBase.h5"):
         checkTurbuParams(savepath, config, param_dict, matricesToLoad)
         checkDmsParams(savepath, config, param_dict, matricesToLoad)
         #        if(matricesToLoad.has_key("pztok")):
@@ -298,7 +300,7 @@ def checkMatricesDataBase(savepath, config, param_dict):
 
 
 def checkTurbuParams(savepath, config, pdict, matricesToLoad):
-    """ Compare the current turbulence parameters to the database. If similar parameters
+    """Compare the current turbulence parameters to the database. If similar parameters
     are found, the matricesToLoad dictionary is completed.
     Since all the turbulence matrices are computed together, we only check the parameters
     for the A matrix : if we load A, we load B, istx and isty too.
@@ -311,19 +313,27 @@ def checkTurbuParams(savepath, config, pdict, matricesToLoad):
     """
     dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "A")
     param2test = [
-            "_ParamAtmos__r0", "_ParamAtmos__seeds", "_ParamAtmos__L0",
-            "_ParamAtmos__alt", "_ParamTel__diam", "_ParamTel__cobs",
-            "_ParamGeom__pupdiam", "_ParamGeom__zenithangle", "_ParamTarget__xpos",
-            "_ParamTarget__ypos", "_ParamWfs__xpos", "_ParamWfs__ypos"
+        "_ParamAtmos__r0",
+        "_ParamAtmos__seeds",
+        "_ParamAtmos__L0",
+        "_ParamAtmos__alt",
+        "_ParamTel__diam",
+        "_ParamTel__cobs",
+        "_ParamGeom__pupdiam",
+        "_ParamGeom__zenithangle",
+        "_ParamTarget__xpos",
+        "_ParamTarget__ypos",
+        "_ParamWfs__xpos",
+        "_ParamWfs__ypos",
     ]
 
     for i in dataBase.index:
         cc = 0
         commit = check_output(["git", "rev-parse", "--short", "HEAD"]).strip()
-        if (dataBase.loc[i, "validity"] and (dataBase.loc[i, "commit"] == commit)):
+        if dataBase.loc[i, "validity"] and (dataBase.loc[i, "commit"] == commit):
             cond = True
-            while (cond):
-                if (cc >= len(param2test)):
+            while cond:
+                if cc >= len(param2test):
                     break
                 else:
                     cond = dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]
@@ -331,16 +341,18 @@ def checkTurbuParams(savepath, config, pdict, matricesToLoad):
                         cond = cond.all()
                     cc += 1
             # For debug
-            #############################
             if not cond:
                 cc -= 1
-                print(param2test[cc] + " has changed from ",
-                      dataBase.loc[i, param2test[cc]], " to ", pdict[param2test[cc]])
-            ###############################
+                print(
+                    param2test[cc] + " has changed from ",
+                    dataBase.loc[i, param2test[cc]],
+                    " to ",
+                    pdict[param2test[cc]],
+                )
         else:
             cond = False
 
-        if (cond):
+        if cond:
             matricesToLoad["index_turbu"] = i
             matricesToLoad["A"] = dataBase.loc[i, "path2file"]
             # dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "B")
@@ -355,7 +367,7 @@ def checkTurbuParams(savepath, config, pdict, matricesToLoad):
 
 
 def checkControlParams(savepath, config, pdict, matricesToLoad):
-    """ Compare the current controller parameters to the database. If similar parameters
+    """Compare the current controller parameters to the database. If similar parameters
     are found, matricesToLoad dictionary is completed.
     Since all the controller matrices are computed together, we only check the parameters
     for the imat matrix : if we load imat, we load eigenv and U too.
@@ -369,33 +381,65 @@ def checkControlParams(savepath, config, pdict, matricesToLoad):
     dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "imat")
 
     param2test = [
-            "_ParamTel__diam", "_ParamTel__t_spiders", "_ParamTel__spiders_type",
-            "_ParamTel__pupangle", "_ParamTel__referr", "_ParamTel__std_piston",
-            "_ParamTel__std_tt", "_ParamTel__type_ap", "_ParamTel__nbrmissing",
-            "_ParamTel__cobs", "_ParamGeom__pupdiam", "nwfs", "_ParamWfs__type",
-            "_ParamWfs__nxsub", "_ParamWfs__npix", "_ParamWfs__pixsize",
-            "_ParamWfs__fracsub", "_ParamWfs__xpos", "_ParamWfs__ypos",
-            "_ParamWfs__Lambda", "_ParamWfs__dms_seen", "_ParamWfs__fssize",
-            "_ParamWfs__fstop", "_ParamWfs__pyr_ampl", "_ParamWfs__pyr_loc",
-            "_ParamWfs__pyr_npts", "_ParamWfs__pyr_pup_sep", "_ParamWfs__pyrtype",
-            "ndms", "_ParamDm__type", "_ParamDm__alt", "_ParamDm__coupling",
-            "_ParamDm__margin_in", "_ParamDm__margin_out", "_ParamDm__nact",
-            "_ParamDm__nkl", "_ParamDm__type_kl", "_ParamDm__push4imat",
-            "_ParamDm__thresh", "_ParamDm__unitpervolt", "ncentroiders",
-            "_ParamCentroider__type", "_ParamCentroider__nmax",
-            "_ParamCentroider__nwfs", "_ParamCentroider__sizex",
-            "_ParamCentroider__sizey", "_ParamCentroider__thresh",
-            "_ParamCentroider__type_fct", "_ParamCentroider__weights",
-            "_ParamCentroider__width"
+        "_ParamTel__diam",
+        "_ParamTel__t_spiders",
+        "_ParamTel__spiders_type",
+        "_ParamTel__pupangle",
+        "_ParamTel__referr",
+        "_ParamTel__std_piston",
+        "_ParamTel__std_tt",
+        "_ParamTel__type_ap",
+        "_ParamTel__nbrmissing",
+        "_ParamTel__cobs",
+        "_ParamGeom__pupdiam",
+        "nwfs",
+        "_ParamWfs__type",
+        "_ParamWfs__nxsub",
+        "_ParamWfs__npix",
+        "_ParamWfs__pixsize",
+        "_ParamWfs__fracsub",
+        "_ParamWfs__xpos",
+        "_ParamWfs__ypos",
+        "_ParamWfs__Lambda",
+        "_ParamWfs__dms_seen",
+        "_ParamWfs__fssize",
+        "_ParamWfs__fstop",
+        "_ParamWfs__pyr_ampl",
+        "_ParamWfs__pyr_loc",
+        "_ParamWfs__pyr_npts",
+        "_ParamWfs__pyr_pup_sep",
+        "_ParamWfs__pyrtype",
+        "ndms",
+        "_ParamDm__type",
+        "_ParamDm__alt",
+        "_ParamDm__coupling",
+        "_ParamDm__margin_in",
+        "_ParamDm__margin_out",
+        "_ParamDm__nact",
+        "_ParamDm__nkl",
+        "_ParamDm__type_kl",
+        "_ParamDm__push4imat",
+        "_ParamDm__thresh",
+        "_ParamDm__unitpervolt",
+        "ncentroiders",
+        "_ParamCentroider__type",
+        "_ParamCentroider__nmax",
+        "_ParamCentroider__nwfs",
+        "_ParamCentroider__sizex",
+        "_ParamCentroider__sizey",
+        "_ParamCentroider__thresh",
+        "_ParamCentroider__type_fct",
+        "_ParamCentroider__weights",
+        "_ParamCentroider__width",
     ]
 
     for i in dataBase.index:
         cc = 0
         commit = check_output(["git", "rev-parse", "--short", "HEAD"]).strip()
-        if (dataBase.loc[i, "validity"] and (dataBase.loc[i, "commit"] == commit)):
+        if dataBase.loc[i, "validity"] and (dataBase.loc[i, "commit"] == commit):
             cond = True
-            while (cond):
-                if (cc >= len(param2test)):
+            while cond:
+                if cc >= len(param2test):
                     break
                 else:
                     cond = dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]
@@ -403,23 +447,25 @@ def checkControlParams(savepath, config, pdict, matricesToLoad):
                         cond = cond.all()
                     cc += 1
             # For debug
-            #############################
             if not cond:
                 cc -= 1
-                print(param2test[cc] + " has changed from ",
-                      dataBase.loc[i, param2test[cc]], " to ", pdict[param2test[cc]])
-            ###############################
+                print(
+                    param2test[cc] + " has changed from ",
+                    dataBase.loc[i, param2test[cc]],
+                    " to ",
+                    pdict[param2test[cc]],
+                )
         else:
             cond = False
 
-        if (cond):
+        if cond:
             matricesToLoad["index_control"] = i
             matricesToLoad["imat"] = dataBase.loc[i, "path2file"]
             return
 
 
 def checkDmsParams(savepath, config, pdict, matricesToLoad):
-    """ Compare the current controller parameters to the database. If similar parameters
+    """Compare the current controller parameters to the database. If similar parameters
     are found, matricesToLoad dictionary is completed.
     Since all the dms matrices are computed together, we only check the parameters
     for the pztok matrix : if we load pztok, we load pztnok too.
@@ -433,28 +479,55 @@ def checkDmsParams(savepath, config, pdict, matricesToLoad):
     dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "dm")
 
     param2test = [
-            "_ParamTel__diam", "_ParamTel__t_spiders", "_ParamTel__spiders_type",
-            "_ParamTel__pupangle", "_ParamTel__referr", "_ParamTel__std_piston",
-            "_ParamTel__std_tt", "_ParamTel__type_ap", "_ParamTel__nbrmissing",
-            "_ParamTel__cobs", "_ParamGeom__pupdiam", "nwfs", "_ParamWfs__type",
-            "_ParamWfs__nxsub", "_ParamWfs__npix", "_ParamWfs__pixsize",
-            "_ParamWfs__fracsub", "_ParamWfs__xpos", "_ParamWfs__ypos",
-            "_ParamWfs__Lambda", "_ParamWfs__dms_seen", "_ParamWfs__fssize",
-            "_ParamWfs__fstop", "_ParamWfs__pyr_ampl", "_ParamWfs__pyr_loc",
-            "_ParamWfs__pyr_npts", "_ParamWfs__pyrtype", "_ParamWfs__pyr_pup_sep",
-            "ndms", "_ParamDm__type", "_ParamDm__alt", "_ParamDm__coupling",
-            "_ParamDm__margin_in", "_ParamDm__margin_out", "_ParamDm__nkl",
-            "_ParamDm__nact", "_ParamDm__type_kl", "_ParamDm__push4imat",
-            "_ParamDm__thresh", "_ParamDm__unitpervolt"
+        "_ParamTel__diam",
+        "_ParamTel__t_spiders",
+        "_ParamTel__spiders_type",
+        "_ParamTel__pupangle",
+        "_ParamTel__referr",
+        "_ParamTel__std_piston",
+        "_ParamTel__std_tt",
+        "_ParamTel__type_ap",
+        "_ParamTel__nbrmissing",
+        "_ParamTel__cobs",
+        "_ParamGeom__pupdiam",
+        "nwfs",
+        "_ParamWfs__type",
+        "_ParamWfs__nxsub",
+        "_ParamWfs__npix",
+        "_ParamWfs__pixsize",
+        "_ParamWfs__fracsub",
+        "_ParamWfs__xpos",
+        "_ParamWfs__ypos",
+        "_ParamWfs__Lambda",
+        "_ParamWfs__dms_seen",
+        "_ParamWfs__fssize",
+        "_ParamWfs__fstop",
+        "_ParamWfs__pyr_ampl",
+        "_ParamWfs__pyr_loc",
+        "_ParamWfs__pyr_npts",
+        "_ParamWfs__pyrtype",
+        "_ParamWfs__pyr_pup_sep",
+        "ndms",
+        "_ParamDm__type",
+        "_ParamDm__alt",
+        "_ParamDm__coupling",
+        "_ParamDm__margin_in",
+        "_ParamDm__margin_out",
+        "_ParamDm__nkl",
+        "_ParamDm__nact",
+        "_ParamDm__type_kl",
+        "_ParamDm__push4imat",
+        "_ParamDm__thresh",
+        "_ParamDm__unitpervolt",
     ]
 
     for i in dataBase.index:
         cc = 0
         commit = check_output(["git", "rev-parse", "--short", "HEAD"]).strip()
-        if (dataBase.loc[i, "validity"] and (dataBase.loc[i, "commit"] == commit)):
+        if dataBase.loc[i, "validity"] and (dataBase.loc[i, "commit"] == commit):
             cond = True
-            while (cond):
-                if (cc >= len(param2test)):
+            while cond:
+                if cc >= len(param2test):
                     break
                 else:
                     cond = dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]
@@ -462,24 +535,27 @@ def checkDmsParams(savepath, config, pdict, matricesToLoad):
                         cond = cond.all()
                     cc += 1
             # For debug
-            #############################
             if not cond:
                 cc -= 1
-                print((param2test[cc] + " has changed from ",
-                       dataBase.loc[i, param2test[cc]], " to ", pdict[param2test[cc]]))
-            ###############################
+                print(
+                    (
+                        param2test[cc] + " has changed from ",
+                        dataBase.loc[i, param2test[cc]],
+                        " to ",
+                        pdict[param2test[cc]],
+                    )
+                )
         else:
             cond = False
 
-        if (cond):
+        if cond:
             matricesToLoad["index_dms"] = i
             matricesToLoad["dm"] = dataBase.loc[i, "path2file"]
             return
 
 
 def validDataBase(savepath, matricesToLoad):
-    """ TODO: docstring
-    """
+    """TODO: docstring"""
     store = pandas.HDFStore(savepath + "matricesDataBase.h5")
     if "A" not in matricesToLoad:
         validInStore(store, savepath, "A")
@@ -491,16 +567,14 @@ def validDataBase(savepath, matricesToLoad):
 
 
 def validFile(filename):
-    """ TODO: docstring
-    """
+    """TODO: docstring"""
     f = h5py.File(filename, "r+")
     f.attrs["validity"] = True
     f.close()
 
 
 def validInStore(store, savepath, matricetype):
-    """ TODO: docstring
-    """
+    """TODO: docstring"""
     df = store[matricetype]
     ind = len(df.index) - 1
     df.loc[ind, "validity"] = True
@@ -509,9 +583,8 @@ def validInStore(store, savepath, matricetype):
 
 
 def configFromH5(filename, config):
-    """ TODO: docstring
-    """
-    #import shesha.config as conf
+    """TODO: docstring"""
+    # import shesha.config as conf
 
     f = h5py.File(filename, "r")
 
@@ -552,7 +625,7 @@ def configFromH5(filename, config):
     config.p_target.set_ypos(f.attrs.get("target.ypos"))
     config.p_target.set_Lambda(f.attrs.get("target.Lambda"))
     config.p_target.set_mag(f.attrs.get("target.mag"))
-    if (f.attrs.get("target.dms_seen") > -1):
+    if f.attrs.get("target.dms_seen") > -1:
         config.p_target.set_dms_seen(f.attrs.get("target.dms_seen"))
 
     # WFS
@@ -578,7 +651,7 @@ def configFromH5(filename, config):
         config.p_wfss[i].set_pyrtype(str(f.attrs.get("pyrtype")[i]))
         config.p_wfss[i].set_pyr_loc(str(f.attrs.get("pyr_loc")[i]))
         config.p_wfss[i].set_fssize(f.attrs.get("fssize")[i])
-        if ((f.attrs.get("dms_seen")[i] > -1).all()):
+        if (f.attrs.get("dms_seen")[i] > -1).all():
             config.p_wfss[i].set_dms_seen(f.attrs.get("dms_seen")[i])
 
         # LGS
@@ -592,7 +665,7 @@ def configFromH5(filename, config):
 
     # DMs
     config.p_dms = []
-    if (f.attrs.get("ndms")):
+    if f.attrs.get("ndms"):
         for i in range(f.attrs.get("ndms")):
             config.p_dms.append(config.ParamDm())
             config.p_dms[i].set_type(str(f.attrs.get("type")[i]))
@@ -605,7 +678,7 @@ def configFromH5(filename, config):
 
     # Centroiders
     config.p_centroiders = []
-    if (f.attrs.get("ncentroiders")):
+    if f.attrs.get("ncentroiders"):
         for i in range(f.attrs.get("ncentroiders")):
             config.p_centroiders.append(config.ParamCentroider())
             config.p_centroiders[i].set_nwfs(f.attrs.get("centro.nwfs")[i])
@@ -613,14 +686,14 @@ def configFromH5(filename, config):
             config.p_centroiders[i].set_type_fct(str(f.attrs.get("type_fct")[i]))
             config.p_centroiders[i].set_nmax(f.attrs.get("nmax")[i])
             config.p_centroiders[i].set_thresh(f.attrs.get("centroider.thresh")[i])
-            if (f.attrs.get("weights")[i]):
+            if f.attrs.get("weights")[i]:
                 config.p_centroiders[i].set_weights(f.attrs.get("weights")[i])
             config.p_centroiders[i].set_width(f.attrs.get("width")[i])
         config.p_rtc.set_centroiders(config.p_centroiders)
 
     # Controllers
     config.p_controllers = []
-    if (f.attrs.get("ncontrollers")):
+    if f.attrs.get("ncontrollers"):
         for i in range(f.attrs.get("ncontrollers")):
             config.p_controllers.append(config.ParamController())
             config.p_controllers[i].set_type(str(f.attrs.get("type")[i]))
@@ -644,7 +717,7 @@ def configFromH5(filename, config):
 
 
 def writeHdf5SingleDataset(filename, data, datasetName="dataset"):
-    """ Write a hdf5 file containig a single field
+    """Write a hdf5 file containig a single field
 
     If the file already exists, it will be overwritten
 
@@ -663,7 +736,7 @@ def writeHdf5SingleDataset(filename, data, datasetName="dataset"):
 
 
 def readHdf5SingleDataset(filename, datasetName="dataset"):
-    """ Read a single dataset from an hdf5 file
+    """Read a single dataset from an hdf5 file
 
     Args:
 
@@ -679,7 +752,7 @@ def readHdf5SingleDataset(filename, datasetName="dataset"):
 
 
 def load_AB_from_dataBase(database, ind):
-    """ Read and return A, B, istx and isty from the database
+    """Read and return A, B, istx and isty from the database
 
     Args:
 
@@ -688,7 +761,7 @@ def load_AB_from_dataBase(database, ind):
         ind: (int): layer index
     """
     print("loading", database["A"])
-    f = h5py.File(database["A"], 'r')
+    f = h5py.File(database["A"], "r")
     A = f["A_" + str(ind)][:]
     B = f["B_" + str(ind)][:]
     istx = f["istx_" + str(ind)][:]
@@ -699,7 +772,7 @@ def load_AB_from_dataBase(database, ind):
 
 
 def save_AB_in_database(k, A, B, istx, isty):
-    """ Save A, B, istx and isty in the database
+    """Save A, B, istx and isty in the database
 
     Args:
 
@@ -713,13 +786,13 @@ def save_AB_in_database(k, A, B, istx, isty):
 
         isty:
     """
-    commit = check_output(["git", "rev-parse", "--short", "HEAD"]).decode('utf8').strip()
+    commit = check_output(["git", "rev-parse", "--short", "HEAD"]).decode("utf8").strip()
     print("writing files and updating database")
-    df = pandas.read_hdf(
-            os.getenv('SHESHA_ROOT') + "/data/dataBase/matricesDataBase.h5", "A")
+    df = pandas.read_hdf(os.getenv("SHESHA_ROOT") + "/data/dataBase/matricesDataBase.h5", "A")
     ind = len(df.index) - 1
-    savename = os.getenv('SHESHA_ROOT') + "/data/dataBase/turbu/A_" + \
-        commit + "_" + str(ind) + ".h5"
+    savename = (
+        os.getenv("SHESHA_ROOT") + "/data/dataBase/turbu/A_" + commit + "_" + str(ind) + ".h5"
+    )
     save_hdf5(savename, "A_" + str(k), A)
     save_hdf5(savename, "B_" + str(k), B)
     save_hdf5(savename, "istx_" + str(k), istx)
@@ -727,7 +800,7 @@ def save_AB_in_database(k, A, B, istx, isty):
 
 
 def load_dm_geom_from_dataBase(database, ndm):
-    """ Read and return the DM geometry
+    """Read and return the DM geometry
 
     Args:
 
@@ -736,7 +809,7 @@ def load_dm_geom_from_dataBase(database, ndm):
         ndm: (int): dm index
     """
     print("loading", database["dm"])
-    f = h5py.File(database["dm"], 'r')
+    f = h5py.File(database["dm"], "r")
     influpos = f["influpos_" + str(ndm)][:]
     ninflu = f["ninflu_" + str(ndm)][:]
     influstart = f["influstart_" + str(ndm)][:]
@@ -749,7 +822,7 @@ def load_dm_geom_from_dataBase(database, ndm):
 
 
 def save_dm_geom_in_dataBase(ndm, influpos, ninflu, influstart, i1, j1, ok):
-    """ Save the DM geometry in the database
+    """Save the DM geometry in the database
 
     Args:
 
@@ -765,13 +838,11 @@ def save_dm_geom_in_dataBase(ndm, influpos, ninflu, influstart, i1, j1, ok):
 
         j1:
     """
-    commit = check_output(["git", "rev-parse", "--short", "HEAD"]).decode('utf8').strip()
+    commit = check_output(["git", "rev-parse", "--short", "HEAD"]).decode("utf8").strip()
     print("writing files and updating database")
-    df = pandas.read_hdf(
-            os.getenv('SHESHA_ROOT') + "/data/dataBase/matricesDataBase.h5", "dm")
+    df = pandas.read_hdf(os.getenv("SHESHA_ROOT") + "/data/dataBase/matricesDataBase.h5", "dm")
     ind = len(df.index) - 1
-    savename = os.getenv('SHESHA_ROOT') + "/data/dataBase/mat/dm_" + \
-        commit + "_" + str(ind) + ".h5"
+    savename = os.getenv("SHESHA_ROOT") + "/data/dataBase/mat/dm_" + commit + "_" + str(ind) + ".h5"
     save_hdf5(savename, "influpos_" + str(ndm), influpos)
     save_hdf5(savename, "ninflu_" + str(ndm), ninflu)
     save_hdf5(savename, "influstart_" + str(ndm), influstart)
@@ -781,14 +852,14 @@ def save_dm_geom_in_dataBase(ndm, influpos, ninflu, influstart, i1, j1, ok):
 
 
 def load_imat_from_dataBase(database):
-    """ Read and return the imat
+    """Read and return the imat
 
     Args:
 
         database: (dict): dictionary containing paths to matrices to load
     """
     print("loading", database["imat"])
-    f = h5py.File(database["imat"], 'r')
+    f = h5py.File(database["imat"], "r")
     imat = f["imat"][:]
     f.close()
 
@@ -796,17 +867,17 @@ def load_imat_from_dataBase(database):
 
 
 def save_imat_in_dataBase(imat):
-    """ Save the DM geometry in the database
+    """Save the DM geometry in the database
 
     Args:
 
         imat: (np.ndarray): imat to save
     """
-    commit = check_output(["git", "rev-parse", "--short", "HEAD"]).decode('utf8').strip()
+    commit = check_output(["git", "rev-parse", "--short", "HEAD"]).decode("utf8").strip()
     print("writing files and updating database")
-    df = pandas.read_hdf(
-            os.getenv('SHESHA_ROOT') + "/data/dataBase/matricesDataBase.h5", "imat")
+    df = pandas.read_hdf(os.getenv("SHESHA_ROOT") + "/data/dataBase/matricesDataBase.h5", "imat")
     ind = len(df.index) - 1
-    savename = os.getenv('SHESHA_ROOT') + "/data/dataBase/mat/imat_" + \
-        commit + "_" + str(ind) + ".h5"
+    savename = (
+        os.getenv("SHESHA_ROOT") + "/data/dataBase/mat/imat_" + commit + "_" + str(ind) + ".h5"
+    )
     save_hdf5(savename, "imat", imat)

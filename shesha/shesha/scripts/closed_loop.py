@@ -1,25 +1,22 @@
 #!/usr/bin/env python
 
-## @package   shesha.scripts.closed_loop
-## @brief     script test to simulate a closed loop
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 
 """
 script test to simulate a closed loop
@@ -38,6 +35,7 @@ Options:
   -g --generic       Use generic controller
   -f --fast          Compute PSF only during monitoring
 """
+
 from shesha.config import ParamConfig
 from docopt import docopt
 
@@ -51,14 +49,16 @@ if __name__ == "__main__":
 
     # Get parameters from file
     if arguments["--bench"]:
-        from shesha.supervisor.benchSupervisor import BenchSupervisor as Supervisor
+        from shesha.supervisor.benchSupervisor import (
+            BenchSupervisor as Supervisor,
+        )
     else:
-        from shesha.supervisor.compassSupervisor import CompassSupervisor as Supervisor
+        from shesha.supervisor.compassSupervisor import (
+            CompassSupervisor as Supervisor,
+        )
 
     if arguments["--devices"]:
-        config.p_loop.set_devices([
-                int(device) for device in arguments["--devices"].split(",")
-        ])
+        config.p_loop.set_devices([int(device) for device in arguments["--devices"].split(",")])
 
     if arguments["--generic"]:
         config.p_controllers[0].set_type("generic")
@@ -74,4 +74,5 @@ if __name__ == "__main__":
     if arguments["--interactive"]:
         from shesha.util.ipython_embed import embed
         from os.path import basename
+
         embed(basename(__file__), locals())

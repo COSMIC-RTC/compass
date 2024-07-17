@@ -1,24 +1,20 @@
-## @package   shesha.widgets.widget_bench
-## @brief     Widget to use on a bench
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @version   4.3.0
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 
 """
 Widget to use on a bench
@@ -42,11 +38,14 @@ try:
     from PyQt5 import QtWidgets
     from PyQt5.QtCore import Qt
 except ModuleNotFoundError:
-    try:    
+    try:
         from PySide2 import QtWidgets
         from PySide2.QtCore import Qt
     except ModuleNotFoundError as e:
-        raise ModuleNotFoundError("No module named 'PyQt5' or PySide2', please install one of them\nException raised: "+e.msg)
+        raise ModuleNotFoundError(
+            "No module named 'PyQt5' or PySide2', please install one of them\nException raised: "
+            + e.msg
+        )
 
 from typing import Any
 
@@ -54,9 +53,12 @@ from docopt import docopt
 
 from shesha.widgets.widget_base import WidgetBase, uiLoader
 
-from shesha.supervisor.benchSupervisor import WFSType, BenchSupervisor as Supervisor
+from shesha.supervisor.benchSupervisor import (
+    WFSType,
+    BenchSupervisor as Supervisor,
+)
 
-BenchWindowTemplate, BenchClassTemplate = uiLoader('widget_bench')
+BenchWindowTemplate, BenchClassTemplate = uiLoader("widget_bench")
 
 # For debug
 # from IPython.core.debugger import Pdb
@@ -65,9 +67,7 @@ BenchWindowTemplate, BenchClassTemplate = uiLoader('widget_bench')
 
 
 class widgetBenchWindow(BenchClassTemplate, WidgetBase):
-
-    def __init__(self, config_file: Any = None,
-                 devices: str = None) -> None:
+    def __init__(self, config_file: Any = None, devices: str = None) -> None:
         WidgetBase.__init__(self)
         BenchClassTemplate.__init__(self)
 
@@ -76,9 +76,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
         self.uiBench = BenchWindowTemplate()
         self.uiBench.setupUi(self)
 
-        #############################################################
         #                   ATTRIBUTES                              #
-        #############################################################
 
         self.supervisor = None
         self.config = None
@@ -90,9 +88,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
         self.loopThread = None  # type: QThread
         self.assistant = None  # type: Any
 
-        #############################################################
         #                 CONNECTED BUTTONS                         #
-        #############################################################
         # Default path for config files
         self.defaultParPath = os.environ["SHESHA_ROOT"] + "/data/par/bench-config"
         self.defaultAreaPath = os.environ["SHESHA_ROOT"] + "/data/layouts"
@@ -125,9 +121,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
             self.load_config()
             self.init_config()
 
-    #############################################################
-    #                       METHODS                             #
-    #############################################################
+        #                       METHODS                             #
 
     # def updateStatsInTerminal(self, state):
     #     self.dispStatsInTerminal = state
@@ -141,9 +135,9 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
             d.addWidget(self.uiBench.wao_Strehl)
 
     def load_config(self) -> None:
-        '''
-            Callback when 'LOAD' button is hit
-        '''
+        """
+        Callback when 'LOAD' button is hit
+        """
         WidgetBase.load_config(self)
         config_file = str(self.uiBase.wao_selectConfig.currentText())
         sys.path.insert(0, self.defaultParPath)
@@ -167,9 +161,9 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
         except Exception:
             self.nwfs = 1  # Default. config may very well not define p_wfss
         for wfs in range(self.nwfs):
-            name = 'slpComp_%d' % wfs
+            name = "slpComp_%d" % wfs
             self.add_dispDock(name, self.wao_graphgroup_cb, "MPL")
-            name = 'wfs_%d' % wfs
+            name = "wfs_%d" % wfs
             self.add_dispDock(name, self.wao_imagesgroup_cb)
 
         self.uiBench.wao_run.setDisabled(True)
@@ -178,7 +172,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
 
         self.uiBase.wao_init.setDisabled(False)
 
-        if (hasattr(self.config, "layout")):
+        if hasattr(self.config, "layout"):
             area_filename = self.defaultAreaPath + "/" + self.config.layout + ".area"
             self.loadArea(filename=area_filename)
 
@@ -199,7 +193,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
             self.stop = True
 
     def aoLoopOpen(self, pressed: bool) -> None:
-        if (pressed):
+        if pressed:
             self.supervisor.open_loop()
             self.uiAO.wao_open_loop.setText("Close Loop")
         else:
@@ -223,14 +217,17 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
         try:
             self.supervisor.force_context()
         except Exception:
-            print('Warning: could not call supervisor.force_context().')
+            print("Warning: could not call supervisor.force_context().")
 
         for i in range(self.nwfs):
             if self.config.p_wfss[i].type == WFSType.SH:
                 key = "wfs_%d" % i
-                self.addSHGrid(self.docks[key].widgets[0],
-                               self.config.p_wfss[i].get_validsub(),
-                               self.config.p_wfss[i].npix, self.config.p_wfss[i].npix)
+                self.addSHGrid(
+                    self.docks[key].widgets[0],
+                    self.config.p_wfss[i].get_validsub(),
+                    self.config.p_wfss[i].npix,
+                    self.config.p_wfss[i].npix,
+                )
 
         self.updateDisplay()
 
@@ -242,8 +239,11 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
         WidgetBase.init_configFinished(self)
 
     def updateDisplay(self) -> None:
-        if (self.supervisor is None) or (not self.supervisor.is_init()) or (
-                not self.uiBase.wao_Display.isChecked()):
+        if (
+            (self.supervisor is None)
+            or (not self.supervisor.is_init())
+            or (not self.uiBase.wao_Display.isChecked())
+        ):
             # print("Widget not fully initialized")
             return
         if not self.loopLock.acquire(False):
@@ -258,7 +258,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
                         data = None
                         if "wfs" in key:
                             data = self.supervisor.wfs.get_wfs_image(index)
-                            if (data is not None):
+                            if data is not None:
                                 autoscale = True  # self.uiBench.actionAuto_Scale.isChecked()
                                 # if (autoscale):
                                 #     # inits levels
@@ -267,8 +267,10 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
                                 # self.p1.autoRange()
 
                         elif "slp" in key:  # Slope display
-                            if (self.config.p_wfss[index].type == WFSType.PYRHR or
-                                        self.config.p_wfss[index].type == WFSType.PYRLR):
+                            if (
+                                self.config.p_wfss[index].type == WFSType.PYRHR
+                                or self.config.p_wfss[index].type == WFSType.PYRLR
+                            ):
                                 raise RuntimeError("PYRHR not usable")
                             self.imgs[key].canvas.axes.clear()
                             x, y = self.supervisor.config.p_wfss[index].get_validsub()
@@ -280,9 +282,14 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
 
                             offset = (self.supervisor.config.p_wfss[index].npix - 1) / 2
                             self.imgs[key].canvas.axes.quiver(
-                                    x + offset, y + offset, vy, vx, angles='xy',
-                                    scale_units='xy',
-                                    scale=1)  # wao.supervisor.config.p_wfss[0].pixsize)
+                                x + offset,
+                                y + offset,
+                                vy,
+                                vx,
+                                angles="xy",
+                                scale_units="xy",
+                                scale=1,
+                            )  # wao.supervisor.config.p_wfss[0].pixsize)
                             self.imgs[key].canvas.draw()
 
             finally:
@@ -297,9 +304,9 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
                 start = time.time()
                 self.supervisor.single_next()
                 loopTime = time.time() - start
-                refreshDisplayTime = 1. / self.uiBase.wao_frameRate.value()
+                refreshDisplayTime = 1.0 / self.uiBase.wao_frameRate.value()
 
-                if (time.time() - self.refreshTime > refreshDisplayTime):
+                if time.time() - self.refreshTime > refreshDisplayTime:
                     currentFreq = 1 / loopTime
                     self.uiBench.wao_currentFreq.setValue(currentFreq)
                     self.refreshTime = start
@@ -318,14 +325,14 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
             self.uiBench.wao_run.setChecked(False)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     arguments = docopt(__doc__)
     app = QtWidgets.QApplication(sys.argv)
-    app.setStyle('cleanlooks')
-    wao = widgetBenchWindow(arguments["<parameters_filename>"],
-                            devices=arguments["--devices"])
+    app.setStyle("cleanlooks")
+    wao = widgetBenchWindow(arguments["<parameters_filename>"], devices=arguments["--devices"])
     wao.show()
     if arguments["--interactive"]:
         from shesha.util.ipython_embed import embed
         from os.path import basename
+
         embed(basename(__file__), locals())

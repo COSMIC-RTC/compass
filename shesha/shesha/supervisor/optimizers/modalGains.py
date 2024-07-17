@@ -1,27 +1,25 @@
-## @package   shesha.supervisor.optimizers
-## @brief     User layer for optimizing AO supervisor loop
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 import numpy as np
 
+
 class ModalGains(object):
-    """ This optimizer class handles the modal gain optimization related operations
+    """This optimizer class handles the modal gain optimization related operations
     using the CLOSE algorithm. Should be used with a modal integrator command law.
 
     Attributes:
@@ -62,7 +60,7 @@ class ModalGains(object):
     """
 
     def __init__(self, config, rtc):
-        """ Instantiate a ModalGains optimizer object.
+        """Instantiate a ModalGains optimizer object.
 
         Args:
             config : (config module) : Parameters configuration structure module
@@ -73,7 +71,7 @@ class ModalGains(object):
         self._rtc = rtc
         self._ntotact = config.p_controllers[0].nactu
         # parameters of the CLOSE optimization
-        self.modal_basis = None # carrée !!
+        self.modal_basis = None  # carrée !!
         self.cmat_modal = None
         self._mask = np.ones(self._ntotact)
         self._ac_idx = int(config.p_controllers[0].delay * 2 + 1)
@@ -90,14 +88,14 @@ class ModalGains(object):
         # out variables
         self.mgains = np.ones(self._ntotact) * self._initial_gain
         self.close_iter = 0
-        if (self._config.p_controllers[0].close_opti):
+        if self._config.p_controllers[0].close_opti:
             self._rtc.set_modal_gains(0, self.mgains)
         # print(f"total number of actuators {self._ntotact}")
         # print(f"Autocorrelation index for CLOSE optimization is {self._ac_idx}")
 
     def update_modal_meas(self):
         """Save the modal measurement of the current iter"""
-        if self.cmat_modal is None or self.modal_basis is None :
+        if self.cmat_modal is None or self.modal_basis is None:
             raise Exception("Modal basis and cmat modal should be not None")
         slp = self._rtc.get_slopes(0)
         self._modal_meas.append(self.cmat_modal.dot(slp))
@@ -109,9 +107,9 @@ class ModalGains(object):
         This function computes and updates the modal gains according to the
         CLOSE algorithm.
         """
-        #ctrl_modes = self._mask != 0    # where modes are controlled
-        ctrl_modes = np.where(self._mask)[0]    # where modes are controlled
-        if self.cmat_modal is None or self.modal_basis is None :
+        # ctrl_modes = self._mask != 0    # where modes are controlled
+        ctrl_modes = np.where(self._mask)[0]  # where modes are controlled
+        if self.cmat_modal is None or self.modal_basis is None:
             raise Exception("Modal basis and cmat modal should be not None")
         # get new measurement
         slp = self._rtc.get_slopes(0)
@@ -119,27 +117,35 @@ class ModalGains(object):
         self._modal_meas.append(temp_modal_meas)
         # estimate autocorrelation
         if np.all(self._ac_est_0 == 0):
-
             self._ac_est_0[ctrl_modes] = self._modal_meas[-1][ctrl_modes] ** 2
         else:
-            self._ac_est_0[ctrl_modes] = self._ac_est_0[ctrl_modes] * (1 - self._lf) + self._modal_meas[-1][ctrl_modes] ** 2 * self._lf
+            self._ac_est_0[ctrl_modes] = (
+                self._ac_est_0[ctrl_modes] * (1 - self._lf)
+                + self._modal_meas[-1][ctrl_modes] ** 2 * self._lf
+            )
         if len(self._modal_meas) == self._ac_idx + 1:
             if np.all(self._ac_est_dt == 0):
-                self._ac_est_dt[ctrl_modes] = self._modal_meas[0][ctrl_modes] * self._modal_meas[-1][ctrl_modes]
+                self._ac_est_dt[ctrl_modes] = (
+                    self._modal_meas[0][ctrl_modes] * self._modal_meas[-1][ctrl_modes]
+                )
             else:
-                self._ac_est_dt[ctrl_modes] = self._ac_est_dt[ctrl_modes] * (1 - self._lf) \
+                self._ac_est_dt[ctrl_modes] = (
+                    self._ac_est_dt[ctrl_modes] * (1 - self._lf)
                     + self._modal_meas[0][ctrl_modes] * self._modal_meas[-1][ctrl_modes] * self._lf
+                )
             # compute new modal gains
             x = self._ac_est_dt[ctrl_modes] / self._ac_est_0[ctrl_modes] - self._trgt
             self._buffer.append(x)
             if len(self._buffer) >= self._up_idx:
                 mean = np.mean(self._buffer, axis=0)
                 sign_ac = (mean > 0).astype(np.int8)
-                self.mgains[ctrl_modes] = self.mgains[ctrl_modes] * (1 + self._lfdownup[sign_ac] * x)
+                self.mgains[ctrl_modes] = self.mgains[ctrl_modes] * (
+                    1 + self._lfdownup[sign_ac] * x
+                )
                 self._rtc.set_modal_gains(0, self.mgains)
                 self._buffer = []
             self._modal_meas.pop(0)
-        self.close_iter +=1
+        self.close_iter += 1
 
     def reset_close(self):
         """Reset modal gain and computation variables"""
@@ -150,7 +156,6 @@ class ModalGains(object):
         self.close_iter = 0
         self._rtc.set_modal_gains(0, self.mgains)
         self.adapt_modal_gains(False)
-
 
     def reset_mgains(self):
         """Reset the modal gains only"""
@@ -170,7 +175,7 @@ class ModalGains(object):
         Args:
             modal_basis : (np.ndarray) : modal basis (KL2V) to be used (square)
         """
-        if (modal_basis.shape[0] != modal_basis.shape[1]):
+        if modal_basis.shape[0] != modal_basis.shape[1]:
             raise Exception("Modal basis should be square matrix")
         self.modal_basis = modal_basis
         self._rtc.set_E_matrix(0, modal_basis)
@@ -211,7 +216,6 @@ class ModalGains(object):
         self.mgains = mgains
         self._rtc.set_modal_gains(0, mgains)
 
-
     def set_mask(self, mask):
         """Set the mode mask
 
@@ -245,8 +249,8 @@ class ModalGains(object):
             qplus: (float) : learning factor for mgain optimization when higher than target
 
             target: (float) : autocorrelation target for optimization
-        
-            up_idx: (int) : modal gains update rate [frame] 
+
+            up_idx: (int) : modal gains update rate [frame]
         """
         self._lf = p
         self._config.p_controllers[0].set_close_learning_factor(p)

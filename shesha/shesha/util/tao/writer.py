@@ -1,36 +1,33 @@
-## @package   shesha.util
-## @brief     Shesha utilities
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 import numpy as np
 import astropy.io.fits as fits
 import shutil
 
-#filtering
-#for:
-#mavis_ltao keep 1320 values
-#mavis_mcao keep 5400 values
-#mavis_moao keep 1320 values
+# filtering
+# for:
+# mavis_ltao keep 1320 values
+# mavis_mcao keep 5400 values
+# mavis_moao keep 1320 values
 #
 
 
-def used_actu(xpos, ypos,*, Np=-1):
+def used_actu(xpos, ypos, *, Np=-1):
     """return the indices of the used actuators
 
     Args:
@@ -45,11 +42,11 @@ def used_actu(xpos, ypos,*, Np=-1):
     u = np.unique(xpos)
     pMin = u.min()
     u -= pMin
-    if (Np > 0 and Np != u.size):
+    if Np > 0 and Np != u.size:
         raise ValueError("Number of actuator along the diameter unconsistent")
     else:
         Np = u.size
-    #if(not np.testing.assert_array_almost_equal(np.arange(Np)*u[1],u,1)):
+    # if(not np.testing.assert_array_almost_equal(np.arange(Np)*u[1],u,1)):
     #    print((np.arange(Np)*u[1]-u).max())
     #    raise ValueError("non uniform positions")
     X = (xpos - pMin) / u[1]
@@ -72,18 +69,18 @@ def get_idx(p_dm, *, xpos=None, ypos=None):
         index_map :  (np.ndarray[ndim=1, dtype=np.int32]) : correspondance between the covariance matrix indices and the covariance map indices
     """
 
-    if (xpos is not None and ypos is not None):
+    if xpos is not None and ypos is not None:
         csI = used_actu(xpos, ypos)
     else:
         csI = p_dm.csI
 
     Np = p_dm.nact
     # dm.csI: valid actuators
-    xx = np.tile(np.arange(Np), (Np, 1)).flatten('C')[csI]
+    xx = np.tile(np.arange(Np), (Np, 1)).flatten("C")[csI]
     xx = -np.tile(xx, (xx.size, 1))
     dx = xx - xx.T
 
-    yy = np.tile(np.arange(Np), (Np, 1)).flatten('F')[csI]
+    yy = np.tile(np.arange(Np), (Np, 1)).flatten("F")[csI]
     yy = -np.tile(yy, (yy.size, 1))
     dy = yy - yy.T
     #  // transformation des decalages en indice de tableau
@@ -93,15 +90,15 @@ def get_idx(p_dm, *, xpos=None, ypos=None):
     return dx.flatten("F") + (p_dm.nact * 2 - 1) * (dy.flatten("F") - 1)
 
 
-def get_abs2fi(sup, *,dm=0):
+def get_abs2fi(sup, *, dm=0):
     size = sup.config.p_geom.pupdiam
-    N = 2**(int(np.log(2 * size) / np.log(2) + 1))  #SutraTarget:138,
+    N = 2 ** (int(np.log(2 * size) / np.log(2) + 1))  # SutraTarget:138,
 
     supportFi = np.zeros((N, N), dtype=np.float32)
     fi = sup.config.p_dms[0]._influ[:, :, 0] * 1e-6
-    supportFi[:fi.shape[0], :fi.shape[1]] = fi
+    supportFi[: fi.shape[0], : fi.shape[1]] = fi
 
-    abs2fi = np.abs(np.fft.fft2(supportFi.T))**2
+    abs2fi = np.abs(np.fft.fft2(supportFi.T)) ** 2
 
     return abs2fi.T
 
@@ -109,9 +106,9 @@ def get_abs2fi(sup, *,dm=0):
 def OTF_telescope(sup):
     """otf = OTF_telescope(fourier)
 
-   Computes the OTF of the telescope, so that
-   > fft(OTF_telescope()).re
-   produces a PSF normalized with max(psf)=SR=1.0
+    Computes the OTF of the telescope, so that
+    > fft(OTF_telescope()).re
+    produces a PSF normalized with max(psf)=SR=1.0
 
     """
     # size = sup.config.p_geom.pupdiam
@@ -123,7 +120,7 @@ def OTF_telescope(sup):
     # x2 = np.tile(x * x, (x.size, 1))
     # r = np.sqrt(x2 + x2.T)
 
-    #pup=(r<=1.0)*1 * (r>sup.config.p_tel.cobs)*1
+    # pup=(r<=1.0)*1 * (r>sup.config.p_tel.cobs)*1
     pup = sup.config.p_geom._ipupil
     #  factor that will normalize the psf
     #  with PSF(0)=1.00 when diffraction-limited
@@ -136,13 +133,13 @@ def OTF_telescope(sup):
     #  just fft(FTO).re produces a psf with max(psf)=SR
     #  In fact, FTOtel is normalized so that sum(FTOtel)=1.
     #  FTOtel = autocorrelation(pup) / factnorm;
-    #FTOtel=autocorrelation(pup)/factnorm
-    FTOtel = autocorrelation(pup) / np.sum(pup)**2
+    # FTOtel=autocorrelation(pup)/factnorm
+    FTOtel = autocorrelation(pup) / np.sum(pup) ** 2
     return FTOtel
 
 
 def get_subaps(sup, *, wfs="all"):
-    """ Return the number of valid subaps (per wfs) as well as their position
+    """Return the number of valid subaps (per wfs) as well as their position
 
     Args:
         sup : (CompassSupervisor) : current supervisor
@@ -151,20 +148,20 @@ def get_subaps(sup, *, wfs="all"):
         wfs : (str) : (optional), default "all" wfs used by tao ( among "all", "lgs", "ngs")
 
     """
-    #X=(sup.config.p_wfss[0]._validpuppixx-mpup.shape[0]/2-1)*(sup.config.p_tel.diam/sup.config.p_wfss[0].nxsub/sup.config.p_wfss[0]._pdiam )
+    # X=(sup.config.p_wfss[0]._validpuppixx-mpup.shape[0]/2-1)*(sup.config.p_tel.diam/sup.config.p_wfss[0].nxsub/sup.config.p_wfss[0]._pdiam )
     nsubap = []
     X = []
     Y = []
-    if (wfs == "ngs"):
+    if wfs == "ngs":
         p_wfss = sup.config.p_wfs_ngs
-    elif (wfs == "lgs"):
+    elif wfs == "lgs":
         p_wfss = sup.config.p_wfs_lgs + [sup.config.p_wfs_ngs[-1]]
     else:  # case all
         p_wfss = sup.config.p_wfs_lgs + sup.config.p_wfs_ngs
     for wfs in p_wfss:
         validX = wfs._validpuppixx
         validY = wfs._validpuppixy
-        toMeter = (sup.config.p_tel.diam / wfs.nxsub / wfs._pdiam)
+        toMeter = sup.config.p_tel.diam / wfs.nxsub / wfs._pdiam
         validX = (validX - validX.max() / 2) * toMeter
         validY = (validY - validY.max() / 2) * toMeter
         X += list(validX)
@@ -174,7 +171,7 @@ def get_subaps(sup, *, wfs="all"):
 
 
 def autocorrelation(a):
-    """ computes the autocorrelation so that
+    """computes the autocorrelation so that
 
     max(aa) == sum(a^2)
 
@@ -182,10 +179,10 @@ def autocorrelation(a):
         a: (np.ndarray[ndim=2, dtype=np.float32]): matrix to compute the autocorrelation on
 
     """
-    if (a.ndim == 2):
+    if a.ndim == 2:
         b = np.abs(np.fft.fft2(a))
         b = np.fft.ifft2(b * b).real * a.size
-    elif (a.ndim == 1):
+    elif a.ndim == 1:
         b = np.abs(np.fft.fft(a))
         b = np.fft.ifft(b * b).real
     else:
@@ -197,7 +194,7 @@ def autocorrelation(a):
 
 
 def func_influ(x, y, x0):
-    #/* DOCUMENT opd_metres = func_influ(x,y,x0)
+    # /* DOCUMENT opd_metres = func_influ(x,y,x0)
     #
     #   The arguments <x>, <y> and <x0> must all be in the same units.
     #
@@ -210,11 +207,19 @@ def func_influ(x, y, x0):
     #
     #
     #  // allez on va dire que ce sont des metres !
-    return 1.e-6 * np.exp(-(x * x + y * y) / (2 * x0 * x0))
+    return 1.0e-6 * np.exp(-(x * x + y * y) / (2 * x0 * x0))
 
 
-def generate_files(sup, *,path=".", single_file=False, dm_use_tt=False, wfs="all",
-    lgs_filter_cst=0.1, tar=-1):
+def generate_files(
+    sup,
+    *,
+    path=".",
+    single_file=False,
+    dm_use_tt=False,
+    wfs="all",
+    lgs_filter_cst=0.1,
+    tar=-1,
+):
     """write inputs parameters
 
     sys-params.txt: contains the system parameters
@@ -238,15 +243,15 @@ def generate_files(sup, *,path=".", single_file=False, dm_use_tt=False, wfs="all
         tar : (list) : (optional), default -1 index of the target
     """
     p_dm = sup.config.p_dms[0]
-    if (p_dm.type == 'tt'):
+    if p_dm.type == "tt":
         print("ERROR: first dm must not be a 'tip-tilt")
         return
     nact = p_dm.nact
     ntotact = p_dm._ntotact
 
-    if (dm_use_tt):
+    if dm_use_tt:
         p_dm_tt = sup.config.p_dms[-1]
-        if (p_dm_tt.type != 'tt'):
+        if p_dm_tt.type != "tt":
             print("ERROR: tip-tilt dm must be the last one")
             return
         ntotact += 2
@@ -257,7 +262,7 @@ def generate_files(sup, *,path=".", single_file=False, dm_use_tt=False, wfs="all
     otf = OTF_telescope(sup)
     abs2fi = get_abs2fi(sup)
     nsubaps, X, Y = get_subaps(sup, wfs=wfs)
-    if (not single_file):
+    if not single_file:
         hdu_idx = fits.PrimaryHDU(idx)
         hdu_idx.header["NACT"] = nact
         hdu_idx.header["NTOTACT"] = ntotact
@@ -282,20 +287,28 @@ def generate_files(sup, *,path=".", single_file=False, dm_use_tt=False, wfs="all
         hdu_idx.header["NTOTACT"] = ntotact
         hdu_abs2fi = fits.ImageHDU(abs2fi, name="ABS2FI")
         hdu_otf = fits.ImageHDU(otf, name="OTF")
-        hdul = fits.HDUList([
-                hdu_prime, hdu_nsubap, hdu_Xpos, hdu_Ypos, hdu_idx, hdu_abs2fi, hdu_otf
-        ])
+        hdul = fits.HDUList(
+            [
+                hdu_prime,
+                hdu_nsubap,
+                hdu_Xpos,
+                hdu_Ypos,
+                hdu_idx,
+                hdu_abs2fi,
+                hdu_otf,
+            ]
+        )
         hdul.writeto(path + "/sys-inputs.fits", overwrite=1)
 
 
 def to_str(a=""):
-    """  transform a np.array into a string
+    """transform a np.array into a string
 
     Kwargs:
         a : (np.ndarray[ndim=1, dtype=np.int32]) : input array
     """
     string = ""
-    if (type(a) is np.ndarray):
+    if type(a) is np.ndarray:
         for i in range(a.size):
             string += str(a[i]) + " "
     if isinstance(a, list):
@@ -306,8 +319,9 @@ def to_str(a=""):
 
     return string
 
+
 def write_sys_param(sup, path=".", wfs="all", lgs_filter_cst=0.1, tar=-1):
-    """ Write a sysParam file for tao based on the compass configuration
+    """Write a sysParam file for tao based on the compass configuration
 
     Args:
         sup : (CompassSupervisor) : current supervisor
@@ -322,13 +336,13 @@ def write_sys_param(sup, path=".", wfs="all", lgs_filter_cst=0.1, tar=-1):
         tar : (list) : (optional), default -1 index of the target
     """
     bdw = 3.3e-7
-    lgs_depth = 5000.
-    through_atm = 1.
+    lgs_depth = 5000.0
+    through_atm = 1.0
     p_wfs_ngs = sup.config.p_wfs_ngs
     p_wfs_lgs = sup.config.p_wfs_lgs
-    if (wfs == "ngs"):
+    if wfs == "ngs":
         p_wfss = p_wfs_ngs
-    elif (wfs == "lgs"):
+    elif wfs == "lgs":
         p_wfss = p_wfs_lgs + [p_wfs_ngs[-1]]
     else:  # case all
         p_wfss = p_wfs_lgs + p_wfs_ngs
@@ -337,23 +351,27 @@ def write_sys_param(sup, path=".", wfs="all", lgs_filter_cst=0.1, tar=-1):
     p_tel = sup.config.p_tel
     p_loop = sup.config.p_loop
 
-    if (len(p_wfs_lgs) > 0):
-        lgs_flux = p_wfs_lgs[0].lgsreturnperwatt * p_wfs_lgs[0].laserpower * p_wfs_lgs[
-                0].optthroughput * 10**4
+    if len(p_wfs_lgs) > 0:
+        lgs_flux = (
+            p_wfs_lgs[0].lgsreturnperwatt
+            * p_wfs_lgs[0].laserpower
+            * p_wfs_lgs[0].optthroughput
+            * 10**4
+        )
         lgs_pix_size = p_wfs_lgs[0].pixsize
         lambda_lgs = p_wfs_lgs[0].Lambda * 1e-6
         through_lgs = p_wfs_lgs[0].optthroughput
         spot_width = p_wfs_lgs[0].beamsize
         lgs_alt = p_wfs_lgs[0].gsalt
     else:
-        lgs_flux = 7.e6
+        lgs_flux = 7.0e6
         lgs_pix_size = 0.7
         lambda_lgs = 5.89e-07
         through_lgs = 0.382
         spot_width = 0.8
         lgs_alt = 90000
 
-    if (len(p_wfs_ts) > 0):
+    if len(p_wfs_ts) > 0:
         ts_xpos = [w.xpos for w in p_wfs_ts]
         ts_ypos = [w.ypos for w in p_wfs_ts]
     else:
@@ -374,14 +392,14 @@ def write_sys_param(sup, path=".", wfs="all", lgs_filter_cst=0.1, tar=-1):
     f.write("\nnTS        :           : number of Truth Sensor\n")
     f.write(to_str(len(p_wfs_ts)))
     f.write("\nnTarget    :           : number of Target\n")
-    if(tar==-1):
+    if tar == -1:
         f.write(to_str(len(p_targets)))
     else:
         f.write("1")
     f.write("\nNssp       :           : number of subaperture per wfs along the diameter\n")
     f.write(to_str([wfs.nxsub for wfs in p_wfss]))
     f.write("\nfracsub    : %         : Minimal illumination fraction for valid subap\n")
-    f.write("-1")  #to_str(p_wfss[0].fracsub))
+    f.write("-1")  # to_str(p_wfss[0].fracsub))
     f.write("\ngsAlt      : meter^-1  : inverse of lazer altitude\n")
     f.write(to_str([1 / w.gsalt for w in p_wfs_lgs] + [0 for w in p_wfs_ngs]))
     f.write("\ntype       :           : guide star type (1:NGS, 2:LGS)\n")
@@ -400,30 +418,28 @@ def write_sys_param(sup, path=".", wfs="all", lgs_filter_cst=0.1, tar=-1):
     f.write(to_str([0 for i in range(len(p_wfss))]))
     f.write("\nsensibility:           : sensitivity coeff of this WFS\n")
     f.write(to_str([1 for i in range(len(p_wfss))]))
-    f.write("\ntracking   : arcsec^2  : telescope tracking error parameters (x^2, y^2 and xy)\n"
-            )
+    f.write("\ntracking   : arcsec^2  : telescope tracking error parameters (x^2, y^2 and xy)\n")
     f.write(to_str("1 1 1"))
-    f.write("\npasDPHI    :           : Precision of DPHI precomputation. //deprecated\n"
-            )
+    f.write("\npasDPHI    :           : Precision of DPHI precomputation. //deprecated\n")
     f.write(to_str(0.0001))
     f.write("\nncpu       :           : Number of CPU used (only with openMP)\n")
     f.write(to_str(1))
     f.write("\nmrNGS      :           : magnitude of NGS\n")
-    if (len(p_wfs_ngs) > 0):
+    if len(p_wfs_ngs) > 0:
         f.write(to_str([w.gsmag for w in p_wfs_ngs]))
     else:
         f.write(to_str([0.0]))
     f.write("\nlgsFlux    : (ph/m2/s) : LGS photon return at M1\n")
     f.write(to_str(lgs_flux))
     f.write("\nngsPixSize : arcsec    : NGS pixel size\n")
-    if (len(p_wfs_ngs) > 0):
+    if len(p_wfs_ngs) > 0:
         f.write(to_str(p_wfs_ngs[0].pixsize))
     else:
         f.write(to_str(0.0))
     f.write("\nlgsPixSize : arcsec    : LGS pixel size\n")
     f.write(to_str(lgs_pix_size))
     f.write("\nlambdaNGS  : meter     : wave length for NGS\n")
-    if (len(p_wfs_ngs) > 0):
+    if len(p_wfs_ngs) > 0:
         f.write(to_str(p_wfs_ngs[0].Lambda * 1e-6))
     else:
         f.write(to_str(0.0))
@@ -432,7 +448,7 @@ def write_sys_param(sup, path=".", wfs="all", lgs_filter_cst=0.1, tar=-1):
     f.write("\nbdw_m      : meter     : bandwidth\n")
     f.write(to_str(bdw))
     f.write("\nthroughNGS : percent   : transmission for NGS\n")
-    if (len(p_wfs_ngs) > 0):
+    if len(p_wfs_ngs) > 0:
         f.write(to_str(p_wfs_ngs[0].optthroughput))
     else:
         f.write(to_str(0.0))
@@ -442,7 +458,9 @@ def write_sys_param(sup, path=".", wfs="all", lgs_filter_cst=0.1, tar=-1):
     f.write(to_str(through_atm))
     f.write("\nRON        : nb of e-  : Read Out Noise \n")
     f.write(to_str(int(np.ceil(p_wfss[0].noise))))
-    f.write("\nlgsCst     :           : constant on lgs (simulate that LGS cannot measure tip-tilt and focus)\n")
+    f.write(
+        "\nlgsCst     :           : constant on lgs (simulate that LGS cannot measure tip-tilt and focus)\n"
+    )
     f.write(to_str(lgs_filter_cst))
     f.write("\nspotWidth  : arcsec    : lazer width\n")
     f.write(to_str(spot_width))
@@ -451,23 +469,23 @@ def write_sys_param(sup, path=".", wfs="all", lgs_filter_cst=0.1, tar=-1):
     f.write("\nlgsDepth   : meter     : depth of the sodium layer\n")
     f.write(to_str(lgs_depth))
     f.write("\ntargetX_as : arcsec    :  taget direction on x axis\n")
-    if(tar==-1):
+    if tar == -1:
         f.write(to_str(ts_xpos + [t.xpos for t in p_targets]))
-    elif(isinstance(tar,(list,np.ndarray))):
+    elif isinstance(tar, (list, np.ndarray)):
         f.write(to_str(ts_xpos + [tar[0]]))
     else:
         f.write(to_str(ts_xpos + [p_targets[tar].xpos]))
     f.write("\ntargetY_as : arcsec    :  taget direction on y axis\n")
-    if(tar==-1):
+    if tar == -1:
         f.write(to_str(ts_ypos + [t.ypos for t in p_targets]))
-    elif(isinstance(tar,(list,np.ndarray))):
+    elif isinstance(tar, (list, np.ndarray)):
         f.write(to_str(ts_ypos + [tar[1]]))
     else:
         f.write(to_str(ts_ypos + [p_targets[tar].ypos]))
 
 
-def write_atm_param(sup, *,path="."):
-    """ Write a atmParam file for tao based on the compass configuration
+def write_atm_param(sup, *, path="."):
+    """Write a atmParam file for tao based on the compass configuration
 
     Args:
         sup : (CompassSupervisor) : current supervisor
@@ -494,7 +512,7 @@ def write_atm_param(sup, *,path="."):
     shutil.copyfile(path + "/prof-1-atmos-night0.txt", path + "/prof0-atmos-night0.txt")
 
 
-def write_meta_Dx(meta_Dx, *,nTS=0, nmeas=None, trans=True, path="."):
+def write_meta_Dx(meta_Dx, *, nTS=0, nmeas=None, trans=True, path="."):
     """Write command matrices
 
     split the meta command matrix
@@ -510,24 +528,24 @@ def write_meta_Dx(meta_Dx, *,nTS=0, nmeas=None, trans=True, path="."):
         trans: (bool): (optional), default=True. Transpose the matrix if true
 
         path: (str): (optional), default './' path where the files are written
-        """
-    if (nTS < 1):
-        if (trans):
+    """
+    if nTS < 1:
+        if trans:
             fits.writeto(path + "/Dx.fits", meta_Dx.T, overwrite=True)
         else:
             fits.writeto(path + "/Dx.fits", meta_Dx, overwrite=True)
         return
 
-    if (nmeas is None):
+    if nmeas is None:
         n = meta_Dx.shape[1] // nTS
         nmeas = np.arange(0, meta_Dx.shape[1] + n, n)
     else:
         nmeas = np.append(0, nmeas.cumsum())
 
     for i in range(nTS):
-        print(i + 1, "out of", nTS, end='\r')
-        Dx = meta_Dx[:, nmeas[i]:nmeas[i + 1]]
-        if (trans):
+        print(i + 1, "out of", nTS, end="\r")
+        Dx = meta_Dx[:, nmeas[i] : nmeas[i + 1]]
+        if trans:
             fits.writeto(path + "/Dx" + str(i) + ".fits", Dx.T, overwrite=True)
         else:
             fits.writeto(path + "/Dx" + str(i) + ".fits", Dx, overwrite=True)

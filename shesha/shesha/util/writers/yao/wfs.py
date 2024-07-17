@@ -1,36 +1,35 @@
-## @package   shesha.util
-## @brief     Shesha utilities
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
+YAO_WFSTYPE = {"sh": '"hartmann"', "pyrhr": '"pyramid"'}
 
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
-YAO_WFSTYPE={"sh":"\"hartmann\"", "pyrhr":"\"pyramid\""}
 
 def init_wfs(file_name):
-    """ Initialise wfs entry in yao parameter file
+    """Initialise wfs entry in yao parameter file
 
     Args:
         file_name : (str) : yao parameter file name
     """
-    f = open(file_name,"a+")
+    f = open(file_name, "a+")
     f.write("\n\n//------------------------------")
     f.write("\n//WFS parameters")
     f.write("\n//------------------------------")
-    return (0,0)
+    return (0, 0)
+
 
 def write_wfs(file_name, wfs, index, *, sub_system=1):
     """Write (append) wfs parameter to file for YAO use for a single wfs
@@ -59,24 +58,20 @@ def write_wfs(file_name, wfs, index, *, sub_system=1):
     f.write("\n" + obj + ".dispzoom      = 1.0; // not set by compass")
     f.write("\n" + obj + ".fracIllum     = " + str(wfs.fracsub) + ";")
     f.write("\n" + obj + ".rotation      = " + str(wfs.thetaML) + ";")
-    f.write("\n" + obj + ".shift         = [ " + str(wfs.dx)   + " , " + \
-            str(wfs.dy) + " ];")
-    f.write("\n" + obj + ".LLTxy         = [ " + str(wfs.lltx) + " , " + \
-            str(wfs.llty) + " ];")
-    f.write("\n" + obj + ".gspos         = [ " + str(wfs.xpos) + " , " + \
-            str(wfs.ypos) + " ];")
-    if(wfs.noise<0):
-        f.write("\n" +obj + ".noise         = 1;")
-        f.write("\n" +obj + ".ron           = 0;")
+    f.write("\n" + obj + ".shift         = [ " + str(wfs.dx) + " , " + str(wfs.dy) + " ];")
+    f.write("\n" + obj + ".LLTxy         = [ " + str(wfs.lltx) + " , " + str(wfs.llty) + " ];")
+    f.write("\n" + obj + ".gspos         = [ " + str(wfs.xpos) + " , " + str(wfs.ypos) + " ];")
+    if wfs.noise < 0:
+        f.write("\n" + obj + ".noise         = 1;")
+        f.write("\n" + obj + ".ron           = 0;")
     else:
         f.write("\n" + obj + ".noise         = 1;")
         f.write("\n" + obj + ".ron           = " + str(wfs.noise) + ";")
     f.write("\n" + obj + ".darkcurrent   = 0 ; // not set by compass ")
-    if(wfs.gsalt > 0):
+    if wfs.gsalt > 0:
         f.write("\n" + obj + ".gsalt         = " + str(wfs.gsalt) + ";")
         f.write("\n" + obj + ".gsdepth       = " + str(1) + ";")
-        f.write("\n" + obj + ".optthroughput = " + str(wfs.optthroughput) +\
-                ";")
+        f.write("\n" + obj + ".optthroughput = " + str(wfs.optthroughput) + ";")
         f.write("\n" + obj + ".laserpower    = " + str(wfs.laserpower) + ";")
         f.write("\n" + obj + ".filtertilt    = " + str(1) + ";")
         f.write("\n" + obj + ".correctUpTT   = " + str(1) + ";")
@@ -103,33 +98,32 @@ def write_wfss(file_name, wfss, *, n_wfs=-1, sub_system=1, offset=0):
         n_ngs : (int) : number of ngs passed to yao
         n_lgs : (int) : number of lgs passed to yao
     """
-    #counting nb of lgs and ngs
-    n_ngs=0
-    n_lgs=0
-    if(n_wfs<0):
+    # counting nb of lgs and ngs
+    n_ngs = 0
+    n_lgs = 0
+    if n_wfs < 0:
         n_wfs = len(wfss)
     for w in wfss[:n_wfs]:
-        if(w.gsalt>0):
+        if w.gsalt > 0:
             n_lgs += 1
         else:
             n_ngs += 1
     n_wfs = n_ngs + n_lgs
-    f=open(file_name, "a+")
+    f = open(file_name, "a+")
 
     i = 1
-    for w in wfss[:n_wfs] :
+    for w in wfss[:n_wfs]:
         f.write("\n\n//WFS" + str(i + offset))
         f.flush()
         write_wfs(file_name, w, i + offset, sub_system=sub_system)
         i += 1
 
     f.close()
-    return (n_ngs , n_lgs)
+    return (n_ngs, n_lgs)
 
-################################
 
 def finish_wfs(file_name, n_ngs, n_lgs):
-    """ Finalize wfs section in yao parameter file
+    """Finalize wfs section in yao parameter file
 
     Args:
         file_name : (str) : yao parameter file name
@@ -138,8 +132,8 @@ def finish_wfs(file_name, n_ngs, n_lgs):
 
         n_lgs : (int) : number of lgs written to yao parameter file
     """
-    f=open(file_name,"a+")
-    f.write("\n\nnngs = "+str(n_ngs)+";")
-    f.write("\nnlgs = "+str(n_lgs)+";")
-    f.write("\nnwfs = "+str(n_ngs+n_lgs)+";")
+    f = open(file_name, "a+")
+    f.write("\n\nnngs = " + str(n_ngs) + ";")
+    f.write("\nnlgs = " + str(n_lgs) + ";")
+    f.write("\nnwfs = " + str(n_ngs + n_lgs) + ";")
     f.close()

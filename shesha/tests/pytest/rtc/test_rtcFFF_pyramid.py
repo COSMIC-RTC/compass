@@ -1,23 +1,20 @@
-## @package   shesha.tests
-## @brief     Tests the RTC module
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 
 
 import numpy as np
@@ -35,11 +32,25 @@ sup.rtc.open_loop(0)
 sup.rtc.close_loop(0)
 sup.rtc.do_control(0)
 rtc = Rtc()
-rtc.add_centroider(sup.context, sup.config.p_wfss[0]._nvalid * sup.config.p_wfss[0].nPupils, 0, sup.config.p_wfss[0].pixsize,
-                   False, 0, "maskedpix")
-rtc.add_controller(sup.context, "generic", 0, sup.config.p_controllers[0].delay,
-                   sup.config.p_controllers[0].nslope, sup.config.p_controllers[0].nactu,
-                    idx_centro=np.zeros(1), ncentro=1)
+rtc.add_centroider(
+    sup.context,
+    sup.config.p_wfss[0]._nvalid * sup.config.p_wfss[0].nPupils,
+    0,
+    sup.config.p_wfss[0].pixsize,
+    False,
+    0,
+    "maskedpix",
+)
+rtc.add_controller(
+    sup.context,
+    "generic",
+    0,
+    sup.config.p_controllers[0].delay,
+    sup.config.p_controllers[0].nslope,
+    sup.config.p_controllers[0].nactu,
+    idx_centro=np.zeros(1),
+    ncentro=1,
+)
 centro = rtc.d_centro[0]
 control = rtc.d_control[0]
 rtc.d_centro[0].set_npix(sup.config.p_wfss[0].npix)
@@ -72,6 +83,5 @@ def test_doCentroids_maskedPix():
     slopes = np.zeros(xvalid.size)
     psum = binimg[xvalid, yvalid].sum() / slopes.size
     for k in range(slopes.size):
-        slopes[k] = binimg[xvalid[k], yvalid[k]] / psum - 1 # -1 for ref slopes
-    assert (relative_array_error(np.array(control.d_centroids), slopes) <
-            precision)
+        slopes[k] = binimg[xvalid[k], yvalid[k]] / psum - 1  # -1 for ref slopes
+    assert relative_array_error(np.array(control.d_centroids), slopes) < precision

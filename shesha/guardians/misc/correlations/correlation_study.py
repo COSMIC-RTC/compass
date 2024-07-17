@@ -1,23 +1,20 @@
-## @package   guardians.misc
-## @brief     Miscellaneous roket scripts
-## @author    Florian Ferreira <florian.ferreira@obspm.fr>
-## @date      2019/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 """
 Created on Wed Oct 5 14:28:23 2016
 
@@ -33,9 +30,10 @@ import gamora
 import matplotlib.pyplot as plt
 import matplotlib
 import time
-font = {'family': 'normal', 'weight': 'bold', 'size': 22}
 
-matplotlib.rc('font', **font)
+font = {"family": "normal", "weight": "bold", "size": 22}
+
+matplotlib.rc("font", **font)
 
 
 def compute_psf(filename):
@@ -50,10 +48,10 @@ def compute_psf_independence(filename):
 
 
 def compute_and_compare_PSFs(filename, plot=False):
-    f = h5py.File(filename, 'r')
+    f = h5py.File(filename, "r")
     psf_compass = np.fft.fftshift(f["psf"][:])
-    #psf = compute_psf(filename)
-    #psfi = compute_psf_independence(filename)
+    # psf = compute_psf(filename)
+    # psfi = compute_psf_independence(filename)
     # psfc = 0
     psfs = 0
     tic = time.time()
@@ -77,12 +75,13 @@ def compute_and_compare_PSFs(filename, plot=False):
     tmp = add_TT_model(filename, Cbp)
     tmp[:-2, :-2] = Cbp_filtered
     Ctt += tmp
-    #contributors = ["noise","aliasing","non linearity","filtered modes"]
-    #cov_err = rexp.get_coverr_independence_contributors(filename,contributors)
+    # contributors = ["noise","aliasing","non linearity","filtered modes"]
+    # cov_err = rexp.get_coverr_independence_contributors(filename,contributors)
     P = f["P"][:]
     cov_err = P.dot(Ctt).dot(P.T)
-    otftels, otf2s, psfs, gpu = gamora.psf_rec_Vii(filename, fitting=False,
-                                                   cov=cov_err.astype(np.float32))
+    otftels, otf2s, psfs, gpu = gamora.psf_rec_Vii(
+        filename, fitting=False, cov=cov_err.astype(np.float32)
+    )
     tac = time.time()
     print("PSF estimated in ", tac - tic, " seconds")
     t = f["tomography"][:]
@@ -90,15 +89,20 @@ def compute_and_compare_PSFs(filename, plot=False):
     tb = t + b
     tb = tb.dot(tb.T) / float(tb.shape[1])
     cov_err = P.dot(tb).dot(P.T)
-    otftel, otf2, psf, gpu = gamora.psf_rec_Vii(filename, fitting=False,
-                                                cov=cov_err.astype(np.float32))
-    if (plot):
+    otftel, otf2, psf, gpu = gamora.psf_rec_Vii(
+        filename, fitting=False, cov=cov_err.astype(np.float32)
+    )
+    if plot:
         Lambda_tar = f.attrs["target.Lambda"][0]
-        RASC = 180 / np.pi * 3600.
-        pixsize = Lambda_tar * 1e-6 / (
-                psf.shape[0] * f.attrs["tel_diam"] / f.attrs["pupdiam"]) * RASC
-        x = (np.arange(psf.shape[0]) - psf.shape[0] / 2) * pixsize / (
-                Lambda_tar * 1e-6 / f.attrs["tel_diam"] * RASC)
+        RASC = 180 / np.pi * 3600.0
+        pixsize = (
+            Lambda_tar * 1e-6 / (psf.shape[0] * f.attrs["tel_diam"] / f.attrs["pupdiam"]) * RASC
+        )
+        x = (
+            (np.arange(psf.shape[0]) - psf.shape[0] / 2)
+            * pixsize
+            / (Lambda_tar * 1e-6 / f.attrs["tel_diam"] * RASC)
+        )
         plt.figure()
         plt.subplot(2, 1, 1)
         plt.semilogy(x, psf[psf.shape[0] / 2, :], color="blue")
@@ -107,7 +111,7 @@ def compute_and_compare_PSFs(filename, plot=False):
         plt.ylabel("Normalized intensity")
         plt.legend(["PSF exp", "PSF model"])
 
-        #plt.semilogy(x,psf_compass[psf.shape[0]/2,:],color="red")
+        # plt.semilogy(x,psf_compass[psf.shape[0]/2,:],color="red")
         plt.legend(["PSF exp", "PSF model"])
         plt.subplot(2, 1, 2)
         plt.semilogy(x, psf[:, psf.shape[0] / 2], color="blue")
@@ -115,9 +119,9 @@ def compute_and_compare_PSFs(filename, plot=False):
         plt.xlabel("Y-axis angular distance [units of lambda/D]")
         plt.ylabel("Normalized intensity")
 
-        #plt.semilogy(x,psf_compass[psf.shape[0]/2,:],color="red")
+        # plt.semilogy(x,psf_compass[psf.shape[0]/2,:],color="red")
         plt.legend(["PSF exp", "PSF model"])
-    '''
+    """
     if(correction):
         #plt.semilogy(x,psfc[psf.shape[0]/2,:],color="purple")
         if(synth):
@@ -132,7 +136,7 @@ def compute_and_compare_PSFs(filename, plot=False):
 
     else:
         plt.legend(["PSF rec","PSF ind. assumption", "PSF COMPASS"])
-    '''
+    """
 
     f.close()
     return psf_compass, psf, psfs
@@ -149,7 +153,7 @@ def filter_piston_TT(filename, C):
 
     # Tip-tilt + piston
     Tp = np.ones((T.shape[0], T.shape[1] + 1))
-    Tp[:, :2] = T.copy()  #.toarray()
+    Tp[:, :2] = T.copy()  # .toarray()
     deltaT = IF.T.dot(Tp) / N
     # Tip tilt projection on the pzt dm
     tau = np.linalg.inv(delta).dot(deltaT)
@@ -186,19 +190,19 @@ def filter_TT(filename, C):
 
 
 def compute_covariance_model(filename):
-    f = h5py.File(filename, 'r')
+    f = h5py.File(filename, "r")
     Lambda_tar = f.attrs["target.Lambda"][0]
     Lambda_wfs = f.attrs["wfs.Lambda"]
     dt = f.attrs["ittime"]
     gain = f.attrs["gain"]
     wxpos = f.attrs["wfs.xpos"][0]
     wypos = f.attrs["wfs.ypos"][0]
-    r0 = f.attrs["r0"] * (Lambda_tar / Lambda_wfs)**(6. / 5.)
-    RASC = 180. / np.pi * 3600.
+    r0 = f.attrs["r0"] * (Lambda_tar / Lambda_wfs) ** (6.0 / 5.0)
+    RASC = 180.0 / np.pi * 3600.0
     xpos = f["dm.xpos"][:]
     ypos = f["dm.ypos"][:]
     p2m = f.attrs["tel_diam"] / f.attrs["pupdiam"]
-    pupshape = int(2**np.ceil(np.log2(f.attrs["pupdiam"]) + 1))
+    pupshape = int(2 ** np.ceil(np.log2(f.attrs["pupdiam"]) + 1))
     xactu = (xpos - pupshape / 2) * p2m
     yactu = (ypos - pupshape / 2) * p2m
     Ccov = np.zeros((xpos.size, xpos.size))
@@ -213,7 +217,7 @@ def compute_covariance_model(filename):
         H = f.attrs["atm.alt"][atm_layer]
         L0 = f.attrs["L0"][atm_layer]
         speed = f.attrs["windspeed"][atm_layer]
-        theta = f.attrs["winddir"][atm_layer] * np.pi / 180.
+        theta = f.attrs["winddir"][atm_layer] * np.pi / 180.0
         frac = f.attrs["frac"][atm_layer]
 
         Htheta = np.linalg.norm([wxpos, wypos]) / RASC * H
@@ -225,17 +229,21 @@ def compute_covariance_model(filename):
         Mhvdt = M.copy()
         angleht = np.arctan2(wypos, wxpos)
         fc = xactu[1] - xactu[0]
-        #fc = 0.05
+        # fc = 0.05
 
         M = np.linalg.norm([xij, yij], axis=0)
-        Mvdt = np.linalg.norm([xij - vdt * np.cos(theta), yij - vdt * np.sin(theta)],
-                              axis=0)
+        Mvdt = np.linalg.norm([xij - vdt * np.cos(theta), yij - vdt * np.sin(theta)], axis=0)
         Mht = np.linalg.norm(
-                [xij - Htheta * np.cos(angleht), yij - Htheta * np.sin(angleht)], axis=0)
-        Mhvdt = np.linalg.norm([
+            [xij - Htheta * np.cos(angleht), yij - Htheta * np.sin(angleht)],
+            axis=0,
+        )
+        Mhvdt = np.linalg.norm(
+            [
                 xij - vdt * np.cos(theta) - Htheta * np.cos(angleht),
-                yij - vdt * np.sin(theta) - Htheta * np.sin(angleht)
-        ], axis=0)
+                yij - vdt * np.sin(theta) - Htheta * np.sin(angleht),
+            ],
+            axis=0,
+        )
         # for i in range(xpos.size):
         #     for j in range(xpos.size):
         #         Mvdt[i,j] = (np.sqrt((xactu[i]-(xactu[j]-vdt*np.cos(theta)))**2 + (yactu[i]-(yactu[j]-vdt*np.sin(theta)))**2))
@@ -244,16 +252,39 @@ def compute_covariance_model(filename):
         #         #Mhvdt[i,j] = (np.sqrt((xactu[i]-(xactu[j]+rho*np.cos(anglehvdt)))**2 + (yactu[i]-(yactu[j]+rho*np.sin(anglehvdt)))**2))
         #         Mhvdt[i,j] = (np.sqrt(((xactu[i]+vdt*np.cos(theta))-(xactu[j]-Htheta*np.cos(angleht)))**2 + ((yactu[i]+vdt*np.sin(theta))-(yactu[j]-Htheta*np.sin(angleht)))**2))
 
-        Ccov +=  0.5 * (Dphi.dphi_lowpass(Mhvdt,fc,L0,tabx,taby) - Dphi.dphi_lowpass(Mht,fc,L0,tabx,taby) \
-                - Dphi.dphi_lowpass(Mvdt,fc,L0,tabx,taby) + Dphi.dphi_lowpass(M,fc,L0,tabx,taby)) * (1./r0)**(5./3.) * frac
+        Ccov += (
+            0.5
+            * (
+                Dphi.dphi_lowpass(Mhvdt, fc, L0, tabx, taby)
+                - Dphi.dphi_lowpass(Mht, fc, L0, tabx, taby)
+                - Dphi.dphi_lowpass(Mvdt, fc, L0, tabx, taby)
+                + Dphi.dphi_lowpass(M, fc, L0, tabx, taby)
+            )
+            * (1.0 / r0) ** (5.0 / 3.0)
+            * frac
+        )
 
-        Caniso += 0.5 * (Dphi.dphi_lowpass(Mht, fc, L0, tabx, taby) - Dphi.dphi_lowpass(
-                M, fc, L0, tabx, taby)) * (1. / r0)**(5. / 3.) * frac
-        Cbp += 0.5 * (Dphi.dphi_lowpass(Mvdt, fc, L0, tabx, taby) - Dphi.dphi_lowpass(
-                M, fc, L0, tabx, taby)) * (1. / r0)**(5. / 3.) * frac
+        Caniso += (
+            0.5
+            * (
+                Dphi.dphi_lowpass(Mht, fc, L0, tabx, taby)
+                - Dphi.dphi_lowpass(M, fc, L0, tabx, taby)
+            )
+            * (1.0 / r0) ** (5.0 / 3.0)
+            * frac
+        )
+        Cbp += (
+            0.5
+            * (
+                Dphi.dphi_lowpass(Mvdt, fc, L0, tabx, taby)
+                - Dphi.dphi_lowpass(M, fc, L0, tabx, taby)
+            )
+            * (1.0 / r0) ** (5.0 / 3.0)
+            * frac
+        )
 
-    #Sp = (f.attrs["tel_diam"]/f.attrs["nxsub"])**2/2.
-    Sp = (Lambda_tar / (2 * np.pi))**2  #/3.45
+    # Sp = (f.attrs["tel_diam"]/f.attrs["nxsub"])**2/2.
+    Sp = (Lambda_tar / (2 * np.pi)) ** 2  # /3.45
     f.close()
     return (Caniso + Caniso.T) * Sp, (Cbp + Cbp.T) * Sp, Ccov * Sp
 
@@ -305,17 +336,16 @@ def load_datas(files):
     ind = 0
     print("Loading data...")
     for f in files:
-        vartot[ind, :] = rexp.variance(f, contributors) * ((2 * np.pi / Lambda_tar)**2)
-        vartomo[ind, :] = rexp.variance(f, ["tomography"]) * (
-                (2 * np.pi / Lambda_tar)**2)
-        varbp[ind, :] = rexp.variance(f, ["bandwidth"]) * ((2 * np.pi / Lambda_tar)**2)
+        vartot[ind, :] = rexp.variance(f, contributors) * ((2 * np.pi / Lambda_tar) ** 2)
+        vartomo[ind, :] = rexp.variance(f, ["tomography"]) * ((2 * np.pi / Lambda_tar) ** 2)
+        varbp[ind, :] = rexp.variance(f, ["bandwidth"]) * ((2 * np.pi / Lambda_tar) ** 2)
         theta[ind] = f.attrs["winddir"][0]
         speeds[ind] = f.attrs["windspeed"][0]
-        gain[ind] = float('%.1f' % f.attrs["gain"][0])
+        gain[ind] = float("%.1f" % f.attrs["gain"][0])
         ind += 1
         print(ind, "/", len(files))
 
-    covar = (vartot - (vartomo + varbp)) / 2.
+    covar = (vartot - (vartomo + varbp)) / 2.0
 
     stot = np.sum(vartot, axis=1)
     sbp = np.sum(varbp, axis=1)
@@ -326,17 +356,16 @@ def load_datas(files):
 
 
 def ensquare_PSF(filename, psf, N, display=False):
-    f = h5py.File(filename, 'r')
+    f = h5py.File(filename, "r")
     Lambda_tar = f.attrs["target.Lambda"][0]
-    RASC = 180 / np.pi * 3600.
-    pixsize = Lambda_tar * 1e-6 / (
-            psf.shape[0] * f.attrs["tel_diam"] / f.attrs["pupdiam"]) * RASC
+    RASC = 180 / np.pi * 3600.0
+    pixsize = Lambda_tar * 1e-6 / (psf.shape[0] * f.attrs["tel_diam"] / f.attrs["pupdiam"]) * RASC
     # x = (np.arange(psf.shape[0]) - psf.shape[0] / 2) * pixsize / (
     #         Lambda_tar * 1e-6 / f.attrs["tel_diam"] * RASC)
     w = int(N * (Lambda_tar * 1e-6 / f.attrs["tel_diam"] * RASC) / pixsize)
     mid = psf.shape[0] / 2
-    psfe = psf[mid - w:mid + w, mid - w:mid + w]
-    if (display):
+    psfe = psf[mid - w : mid + w, mid - w : mid + w]
+    if display:
         plt.matshow(np.log10(psfe))
         xt = np.linspace(0, psfe.shape[0] - 1, 6).astype(np.int32)
         yt = np.linspace(-N, N, 6).astype(np.int32)
@@ -344,17 +373,19 @@ def ensquare_PSF(filename, psf, N, display=False):
         plt.yticks(xt, yt)
 
     f.close()
-    return psf[mid - w:mid + w, mid - w:mid + w]
+    return psf[mid - w : mid + w, mid - w : mid + w]
 
 
 def cutsPSF(filename, psf, psfs):
-    f = h5py.File(filename, 'r')
+    f = h5py.File(filename, "r")
     Lambda_tar = f.attrs["target.Lambda"][0]
-    RASC = 180 / np.pi * 3600.
-    pixsize = Lambda_tar * 1e-6 / (
-            psf.shape[0] * f.attrs["tel_diam"] / f.attrs["pupdiam"]) * RASC
-    x = (np.arange(psf.shape[0]) - psf.shape[0] / 2) * pixsize / (
-            Lambda_tar * 1e-6 / f.attrs["tel_diam"] * RASC)
+    RASC = 180 / np.pi * 3600.0
+    pixsize = Lambda_tar * 1e-6 / (psf.shape[0] * f.attrs["tel_diam"] / f.attrs["pupdiam"]) * RASC
+    x = (
+        (np.arange(psf.shape[0]) - psf.shape[0] / 2)
+        * pixsize
+        / (Lambda_tar * 1e-6 / f.attrs["tel_diam"] * RASC)
+    )
     plt.figure()
     plt.subplot(2, 1, 1)
     plt.semilogy(x, psf[psf.shape[0] / 2, :], color="blue")
@@ -377,16 +408,16 @@ def cutsPSF(filename, psf, psfs):
 
 def Hcor(f, Fe, g, dt):
     p = 1j * 2 * np.pi * f
-    return np.abs(1 / (1 + g * Fe / p * np.exp(-dt * p)))**2
+    return np.abs(1 / (1 + g * Fe / p * np.exp(-dt * p))) ** 2
 
 
 def Hretard(f, Fe, g, dt):
     p = 1j * 2 * np.pi * f
-    return np.abs(1 - np.exp(-p * dt / g))**2
+    return np.abs(1 - np.exp(-p * dt / g)) ** 2
 
 
 def compareTransferFunctions(filename):
-    rfile = h5py.File(filename, 'r')
+    rfile = h5py.File(filename, "r")
     v = rfile.attrs["windspeed"][0]
     dt = rfile.attrs["ittime"]
     Fe = 1 / dt
@@ -406,11 +437,11 @@ def compareTransferFunctions(filename):
     rfile.close()
 
 
-datapath = '/home/fferreira/Data/correlation/'
-filenames = glob.glob(datapath + 'roket_8m_1layer_dir*_cpu.h5')
+datapath = "/home/fferreira/Data/correlation/"
+filenames = glob.glob(datapath + "roket_8m_1layer_dir*_cpu.h5")
 files = []
 for f in filenames:
-    files.append(h5py.File(f, 'r'))
+    files.append(h5py.File(f, "r"))
 
 tabx, taby = Dphi.tabulateIj0()
 
@@ -421,7 +452,7 @@ gain = np.zeros(nfiles)
 SRcompass = np.zeros(nfiles)
 SRroket = np.zeros(nfiles)
 SRi = np.zeros(nfiles)
-fROKET = h5py.File('ROKETStudy.h5', 'r')
+fROKET = h5py.File("ROKETStudy.h5", "r")
 psfr = fROKET["psf"][:]
 psfi = fROKET["psfi"][:]
 nrjcompass = np.zeros(nfiles)
@@ -432,17 +463,15 @@ ind = 0
 for f in files:
     theta[ind] = f.attrs["winddir"][0]
     speeds[ind] = f.attrs["windspeed"][0]
-    gain[ind] = float('%.1f' % f.attrs["gain"][0])
+    gain[ind] = float("%.1f" % f.attrs["gain"][0])
     SRcompass[ind] = f["psf"][:].max()
     SRroket[ind] = psfr[:, :, ind].max()
     SRi[ind] = psfi[:, :, ind].max()
-    nrjcompass[ind] = np.sum(
-            ensquare_PSF(filenames[ind], np.fft.fftshift(f["psf"][:]),
-                         5)) / f["psf"][:].sum()
-    nrjroket[ind] = np.sum(ensquare_PSF(filenames[ind], psfr[:, :, ind],
-                                        5)) / psfr[:, :, ind].sum()
-    nrji[ind] = np.sum(ensquare_PSF(filenames[ind], psfi[:, :, ind],
-                                    5)) / psfi[:, :, ind].sum()
+    nrjcompass[ind] = (
+        np.sum(ensquare_PSF(filenames[ind], np.fft.fftshift(f["psf"][:]), 5)) / f["psf"][:].sum()
+    )
+    nrjroket[ind] = np.sum(ensquare_PSF(filenames[ind], psfr[:, :, ind], 5)) / psfr[:, :, ind].sum()
+    nrji[ind] = np.sum(ensquare_PSF(filenames[ind], psfi[:, :, ind], 5)) / psfi[:, :, ind].sum()
     ind += 1
 """
 eSR = np.abs(SRroket-SRcompass) / SRcompass
@@ -484,7 +513,7 @@ plt.plot([nrjcompass.min(),nrjcompass.max()],[nrjcompass.min(),nrjcompass.max()]
 plt.xlabel("COMPASS PSF ensquared energy")
 plt.ylabel("ROKET PSF ensquared energy")
 """
-f = h5py.File('corStudy_Nact.h5', 'r')
+f = h5py.File("corStudy_Nact.h5", "r")
 psf = f["psf"][:]
 psfs = f["psfs"][:]
 nrj = f["nrj5"][:]

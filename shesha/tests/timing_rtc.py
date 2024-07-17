@@ -1,23 +1,20 @@
-## @package   shesha.tests
-## @brief     Timing of the RTC module
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 
 
 import os
@@ -30,8 +27,7 @@ from rich.progress import track
 
 plt.ion()
 dec = 5
-sup = Supervisor(
-        os.getenv("COMPASS_ROOT") + "/shesha/data/par/par4bench/scao_sh_80x80_8pix.py")
+sup = Supervisor(os.getenv("COMPASS_ROOT") + "/shesha/data/par/par4bench/scao_sh_80x80_8pix.py")
 sup.config.p_controllers[0].set_type("generic")
 sup.init()
 sup.next()
@@ -42,11 +38,25 @@ frame = sup.wfs.get_wfs_image(0)
 frame /= frame.max()
 
 rtc = Rtc()
-rtc.add_centroider(sup.context, sup.config.p_wfss[0]._nvalid,
-                   sup.config.p_wfss[0].npix / 2 - 0.5, sup.config.p_wfss[0].pixsize, False, 0, "cog")
-rtc.add_controller(sup.context, "generic",  0, sup.config.p_controllers[0].delay,
-                   sup.config.p_wfss[0]._nvalid * 2, sup.config.p_controllers[0].nactu,
-                   idx_centro=np.zeros(1), ncentro=1)
+rtc.add_centroider(
+    sup.context,
+    sup.config.p_wfss[0]._nvalid,
+    sup.config.p_wfss[0].npix / 2 - 0.5,
+    sup.config.p_wfss[0].pixsize,
+    False,
+    0,
+    "cog",
+)
+rtc.add_controller(
+    sup.context,
+    "generic",
+    0,
+    sup.config.p_controllers[0].delay,
+    sup.config.p_wfss[0]._nvalid * 2,
+    sup.config.p_controllers[0].nactu,
+    idx_centro=np.zeros(1),
+    ncentro=1,
+)
 rtc.d_centro[0].set_npix(sup.config.p_wfss[0].npix)
 rtc.d_centro[0].load_validpos(xvalid, yvalid, xvalid.size)
 rtc.d_control[0].set_cmat(cmat)
@@ -54,12 +64,25 @@ rtc.d_control[0].set_gain(sup.config.p_controllers[0].gain)
 rtc.d_centro[0].load_img(frame, frame.shape[0])
 
 rtcH = RtcH()
-rtcH.add_centroider(sup.context, sup.config.p_wfss[0]._nvalid,
-                    sup.config.p_wfss[0].npix / 2 - 0.5, sup.config.p_wfss[0].pixsize, False, 0,
-                    "cog")
-rtcH.add_controller(sup.context, "generic", 0, sup.config.p_controllers[0].delay,
-                    sup.config.p_wfss[0]._nvalid * 2, sup.config.p_controllers[0].nactu,
-                    idx_centro=np.zeros(1), ncentro=1)
+rtcH.add_centroider(
+    sup.context,
+    sup.config.p_wfss[0]._nvalid,
+    sup.config.p_wfss[0].npix / 2 - 0.5,
+    sup.config.p_wfss[0].pixsize,
+    False,
+    0,
+    "cog",
+)
+rtcH.add_controller(
+    sup.context,
+    "generic",
+    0,
+    sup.config.p_controllers[0].delay,
+    sup.config.p_wfss[0]._nvalid * 2,
+    sup.config.p_controllers[0].nactu,
+    idx_centro=np.zeros(1),
+    ncentro=1,
+)
 rtcH.d_centro[0].set_npix(sup.config.p_wfss[0].npix)
 rtcH.d_centro[0].load_validpos(xvalid, yvalid, xvalid.size)
 rtcH.d_control[0].set_cmat(cmat)

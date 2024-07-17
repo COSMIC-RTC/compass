@@ -1,29 +1,25 @@
-## @package   guardians.misc
-## @brief     Miscellaneous roket scripts
-## @author    Florian Ferreira <florian.ferreira@obspm.fr>
-## @date      2019/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 """
 Created on Wed Apr 27 09:28:23 2016
 
 @author: fferreira
 """
-
 
 import sys
 import os
@@ -39,18 +35,16 @@ import hdf5_util as h5u
 
 c = ch.carma_context(devices=np.array([6], dtype=np.int32))
 
-############################################################################
 #  _       _ _
 # (_)_ __ (_) |_ ___
 # | | '_ \| | __/ __|
 # | | | | | | |_\__ \
 # |_|_| |_|_|\__|___/
-############################################################################
 
 
 def init_config(config):
-    if (hasattr(config, "simul_name")):
-        if (config.simul_name is None):
+    if hasattr(config, "simul_name"):
+        if config.simul_name is None:
             simul_name = ""
         else:
             simul_name = config.simul_name
@@ -59,29 +53,47 @@ def init_config(config):
     print("simul name is", simul_name)
 
     matricesToLoad = {}
-    if (simul_name == b""):
+    if simul_name == b"":
         clean = 1
     else:
         clean = 0
         param_dict = h5u.params_dictionary(config)
-        matricesToLoad = h5u.checkMatricesDataBase(os.environ["SHESHA_ROOT"] + "/data/",
-                                                   config, param_dict)
-    #initialisation:
+        matricesToLoad = h5u.checkMatricesDataBase(
+            os.environ["SHESHA_ROOT"] + "/data/", config, param_dict
+        )
+    # initialisation:
     #   context
 
-    #c=ch.carma_context(devices=np.array([4,5,6,7], dtype=np.int32))
-    #c.set_active_device(device)
+    # c=ch.carma_context(devices=np.array([4,5,6,7], dtype=np.int32))
+    # c.set_active_device(device)
 
     #    wfs
     print("->wfs")
-    wfs, tel = wfs_init(config.p_wfss, config.p_atmos, config.p_tel, config.p_geom,
-                           config.p_target, config.p_loop, config.p_dms)
+    wfs, tel = wfs_init(
+        config.p_wfss,
+        config.p_atmos,
+        config.p_tel,
+        config.p_geom,
+        config.p_target,
+        config.p_loop,
+        config.p_dms,
+    )
 
     #   atmos
     print("->atmos")
-    atm = atmos_init(c, config.p_atmos, config.p_tel, config.p_geom, config.p_loop,
-                        config.p_wfss, wfs, config.p_target, rank=0, clean=clean,
-                        load=matricesToLoad)
+    atm = atmos_init(
+        c,
+        config.p_atmos,
+        config.p_tel,
+        config.p_geom,
+        config.p_loop,
+        config.p_wfss,
+        wfs,
+        config.p_target,
+        rank=0,
+        clean=clean,
+        load=matricesToLoad,
+    )
 
     #   dm
     print("->dm")
@@ -89,14 +101,34 @@ def init_config(config):
 
     #   target
     print("->target")
-    tar = target_init(c, tel, config.p_target, config.p_atmos, config.p_geom,
-                         config.p_tel, config.p_dms)
+    tar = target_init(
+        c,
+        tel,
+        config.p_target,
+        config.p_atmos,
+        config.p_geom,
+        config.p_tel,
+        config.p_dms,
+    )
 
     print("->rtc")
     #   rtc
-    rtc = rtc_init(tel, wfs, config.p_wfss, dms, config.p_dms, config.p_geom,
-                      config.p_rtc, config.p_atmos, atm, config.p_tel, config.p_loop,
-                      clean=clean, simul_name=simul_name, load=matricesToLoad)
+    rtc = rtc_init(
+        tel,
+        wfs,
+        config.p_wfss,
+        dms,
+        config.p_dms,
+        config.p_geom,
+        config.p_rtc,
+        config.p_atmos,
+        atm,
+        config.p_tel,
+        config.p_loop,
+        clean=clean,
+        simul_name=simul_name,
+        load=matricesToLoad,
+    )
 
     if not clean:
         h5u.validDataBase(os.environ["SHESHA_ROOT"] + "/data/", matricesToLoad)
@@ -121,13 +153,11 @@ def init_config(config):
     return atm, wfs, tel, dms, tar, rtc
 
 
-##############################################################################
 #    _   ___    _
 #   /_\ / _ \  | |___  ___ _ __
 #  / _ \ (_) | | / _ \/ _ \ '_ \
 # /_/ \_\___/  |_\___/\___/ .__/
 #                         |_|
-##############################################################################
 def loop(config, n):
     """
     Performs the main AO loop for n interations. First, initialize buffers
@@ -157,7 +187,7 @@ def loop(config, n):
 
         SR : (float) : final strehl ratio returned by the simulation
     """
-    if (error_flag):
+    if error_flag:
         # Initialize buffers for error breakdown
         nactu = rtc.get_command(0).size
         com = np.zeros((n, nactu), dtype=np.float32)
@@ -170,13 +200,13 @@ def loop(config, n):
         mod_com = np.copy(noise_com)
         bp_com = np.copy(noise_com)
         fit = np.zeros(n)
-        psf_ortho = tar.get_image(0, 'se') * 0.
+        psf_ortho = tar.get_image(0, "se") * 0.0
 
     t0 = time.time()
     for i in range(n):
         atm.move_atmos()
 
-        if (config.p_controllers[0].type == b"geo"):
+        if config.p_controllers[0].type == b"geo":
             for t in range(config.p_target.ntargets):
                 tar.atmos_trace(t, atm, tel)
                 rtc.docontrol_geo(0, dms, tar, 0)
@@ -192,28 +222,70 @@ def loop(config, n):
             rtc.docentroids(0)
             rtc.docontrol(0)
 
-            if (error_flag):
-                #compute the error breakdown for this iteration
-                error_breakdown(com, noise_com, alias_wfs_com, tomo_com, H_com,
-                                trunc_com, bp_com, wf_com, mod_com, fit, psf_ortho, i)
+            if error_flag:
+                # compute the error breakdown for this iteration
+                error_breakdown(
+                    com,
+                    noise_com,
+                    alias_wfs_com,
+                    tomo_com,
+                    H_com,
+                    trunc_com,
+                    bp_com,
+                    wf_com,
+                    mod_com,
+                    fit,
+                    psf_ortho,
+                    i,
+                )
 
             rtc.applycontrol(0, dms)
 
-        if ((i + 1) % 10 == 0 and i > -1):
+        if (i + 1) % 10 == 0 and i > -1:
             strehltmp = tar.get_strehl(0)
-            print(i + 1, "\t", strehltmp[0], "\t", strehltmp[1], "\t",
-                  np.exp(-strehltmp[2]), "\t", np.exp(-strehltmp[3]))
+            print(
+                i + 1,
+                "\t",
+                strehltmp[0],
+                "\t",
+                strehltmp[1],
+                "\t",
+                np.exp(-strehltmp[2]),
+                "\t",
+                np.exp(-strehltmp[3]),
+            )
     t1 = time.time()
-    print(" loop execution time:", t1 - t0, "  (", n, "iterations), ", (t1 - t0) / n,
-          "(mean)  ", n / (t1 - t0), "Hz")
-    if (error_flag):
-        #Returns the error breakdown
+    print(
+        " loop execution time:",
+        t1 - t0,
+        "  (",
+        n,
+        "iterations), ",
+        (t1 - t0) / n,
+        "(mean)  ",
+        n / (t1 - t0),
+        "Hz",
+    )
+    if error_flag:
+        # Returns the error breakdown
         SR2 = np.exp(-tar.get_strehl(0, comp_strehl=False)[3])
         SR = tar.get_strehl(0, comp_strehl=False)[1]
-        #bp_com[-1,:] = bp_com[-2,:]
-        #SR = tar.get_strehl(0,comp_strehl=False)[1]
-        return com, noise_com, alias_wfs_com, tomo_com, H_com, trunc_com, bp_com, mod_com, np.mean(
-                fit[N_preloop:]), SR, SR2, psf_ortho
+        # bp_com[-1,:] = bp_com[-2,:]
+        # SR = tar.get_strehl(0,comp_strehl=False)[1]
+        return (
+            com,
+            noise_com,
+            alias_wfs_com,
+            tomo_com,
+            H_com,
+            trunc_com,
+            bp_com,
+            mod_com,
+            np.mean(fit[N_preloop:]),
+            SR,
+            SR2,
+            psf_ortho,
+        )
 
 
 def preloop(config, n):
@@ -248,7 +320,7 @@ def preloop(config, n):
     for i in range(0, n):
         atm.move_atmos()
 
-        if (config.p_controllers[0].type == b"geo"):
+        if config.p_controllers[0].type == b"geo":
             for t in range(config.p_target.ntargets):
                 tar.atmos_trace(t, atm, tel)
                 rtc.docontrol_geo(0, dms, tar, 0)
@@ -265,14 +337,25 @@ def preloop(config, n):
             rtc.applycontrol(0, dms)
 
 
-###################################################################################
 #  ___                   ___              _      _
 # | __|_ _ _ _ ___ _ _  | _ )_ _ ___ __ _| |____| |_____ __ ___ _
 # | _|| '_| '_/ _ \ '_| | _ \ '_/ -_) _` | / / _` / _ \ V  V / ' \
 # |___|_| |_| \___/_|   |___/_| \___\__,_|_\_\__,_\___/\_/\_/|_||_|
-###################################################################################
-def error_breakdown(config, com, noise_com, alias_wfs_com, tomo_com, H_com, trunc_com, bp_com,
-                    wf_com, mod_com, fit, psf_ortho, i):
+def error_breakdown(
+    config,
+    com,
+    noise_com,
+    alias_wfs_com,
+    tomo_com,
+    H_com,
+    trunc_com,
+    bp_com,
+    wf_com,
+    mod_com,
+    fit,
+    psf_ortho,
+    i,
+):
     """
     Compute the error breakdown of the AO simulation. Returns the error commands of
     each contributors. Suppose no delay (for now) and only 2 controllers : the main one, controller #0, (specified on the parameter file)
@@ -330,45 +413,35 @@ def error_breakdown(config, com, noise_com, alias_wfs_com, tomo_com, H_com, trun
     Derr = rtc.get_err(0)
     com[i, :] = Dcom
     tarphase = tar.get_phase(0)
-    ###########################################################################
-    ## Noise contribution
-    ###########################################################################
-    if (config.p_wfss[0].type == b"sh"):
+    if config.p_wfss[0].type == b"sh":
         ideal_bincube = wfs.get_bincubeNotNoisy(0)
         bincube = wfs.get_bincube(0)
-        if (config.p_centroiders[0].type == b"tcog"
-            ):  # Select the same pixels with or without noise
+        if config.p_centroiders[0].type == b"tcog":  # Select the same pixels with or without noise
             invalidpix = np.where(bincube <= config.p_centroiders[0].thresh)
             ideal_bincube[invalidpix] = 0
             rtc.setthresh(0, -1e16)
         wfs.set_bincube(0, ideal_bincube)
-    elif (config.p_wfss[0].type == b"pyrhr"):
+    elif config.p_wfss[0].type == b"pyrhr":
         ideal_pyrimg = wfs.get_binimg_notnoisy(0)
         wfs.set_pyrimg(0, ideal_pyrimg)
 
     rtc.docentroids(0)
-    if (config.p_centroiders[0].type == b"tcog"):
+    if config.p_centroiders[0].type == b"tcog":
         rtc.setthresh(0, config.p_centroiders[0].thresh)
 
     rtc.docontrol(0)
     E = rtc.get_err(0)
     # Apply loop filter to get contribution of noise on commands
-    if (i + 1 < config.p_loop.niter):
+    if i + 1 < config.p_loop.niter:
         noise_com[i + 1, :] = gRD.dot(noise_com[i, :]) + g * (Derr - E)
 
-    ###########################################################################
-    ## Sampling/truncature contribution
-    ###########################################################################
     rtc.docentroids_geom(0)
     rtc.docontrol(0)
     F = rtc.get_err(0)
     # Apply loop filter to get contribution of sampling/truncature on commands
-    if (i + 1 < config.p_loop.niter):
+    if i + 1 < config.p_loop.niter:
         trunc_com[i + 1, :] = gRD.dot(trunc_com[i, :]) + g * (E - F)
 
-    ###########################################################################
-    ## Aliasing contribution on WFS direction
-    ###########################################################################
     rtc.docontrol_geo_onwfs(1, dms, wfs, 0)
     rtc.applycontrol(1, dms)
     for w in range(len(config.p_wfss)):
@@ -390,56 +463,41 @@ def error_breakdown(config, com, noise_com, alias_wfs_com, tomo_com, H_com, trun
     rtc.docentroids_geom(0)
     rtc.docontrol(0)
     Ageom = rtc.get_err(0)
-    if (i + 1 < config.p_loop.niter):
+    if i + 1 < config.p_loop.niter:
         alias_wfs_com[i + 1, :] = gRD.dot(alias_wfs_com[i, :]) + g * (Ageom)
 
-    ###########################################################################
-    ## Wavefront + filtered modes reconstruction
-    ###########################################################################
     tar.atmos_trace(0, atm, tel)
     rtc.docontrol_geo(1, dms, tar, 0)
     B = rtc.get_command(1)
 
-    ###########################################################################
-    ## Fitting
-    ###########################################################################
     rtc.applycontrol(1, dms)
     tar.dmtrace(0, dms, do_phase_var=0)
     fit[i] = tar.get_strehl(0, comp_strehl=False)[2]
-    if (i >= N_preloop):
-        psf_ortho += tar.get_image(0, 'se') / niters
+    if i >= N_preloop:
+        psf_ortho += tar.get_image(0, "se") / niters
 
-    ###########################################################################
-    ## Filtered modes error & Commanded modes
-    ###########################################################################
     modes = P.dot(B)
-    modes_filt = modes.copy() * 0.
-    modes_filt[-nfiltered - 2:-2] = modes[-nfiltered - 2:-2]
+    modes_filt = modes.copy() * 0.0
+    modes_filt[-nfiltered - 2 : -2] = modes[-nfiltered - 2 : -2]
     H_com[i, :] = Btt.dot(modes_filt)
-    modes[-nfiltered - 2:-2] = 0
+    modes[-nfiltered - 2 : -2] = 0
     mod_com[i, :] = Btt.dot(modes)
 
-    ###########################################################################
-    ## Bandwidth error
-    ###########################################################################
     C = mod_com[i, :] - mod_com[i - 1, :]
 
     bp_com[i, :] = gRD.dot(bp_com[i - 1, :]) - C
 
-    ###########################################################################
-    ## Tomographic error
-    ###########################################################################
-    #G = F - (mod_com[i,:] + Ageom - np.dot(RDgeom,com[i-1,:]))
+    # G = F - (mod_com[i,:] + Ageom - np.dot(RDgeom,com[i-1,:]))
     for w in range(len(config.p_wfss)):
         wfs.sensors_trace(w, "atmos", tel, atm, dms)
     rtc.docontrol_geo_onwfs(1, dms, wfs, 0)
     G = rtc.get_command(1)
     modes = P.dot(G)
-    modes[-nfiltered - 2:-2] = 0
+    modes[-nfiltered - 2 : -2] = 0
     wf_com[i, :] = Btt.dot(modes)
 
     G = mod_com[i, :] - wf_com[i, :]
-    if (i + 1 < config.p_loop.niter):
+    if i + 1 < config.p_loop.niter:
         tomo_com[i + 1, :] = gRD.dot(tomo_com[i, :]) - g * RD.dot(G)
 
     # Without anyone noticing...
@@ -447,26 +505,24 @@ def error_breakdown(config, com, noise_com, alias_wfs_com, tomo_com, H_com, trun
     rtc.setCom(0, Dcom)
 
 
-################################################################################
 #  ___          _
 # | _ ) __ _ __(_)___
 # | _ \/ _` (_-< (_-<
 # |___/\__,_/__/_/__/
-################################################################################
 def compute_btt2():
     IF = rtc.get_IFsparse(1).T
     N = IF.shape[0]
     n = IF.shape[1]
-    #T = IF[:,-2:].copy()
+    # T = IF[:,-2:].copy()
     T = rtc.get_IFtt(1)
-    #IF = IF[:,:n-2]
+    # IF = IF[:,:n-2]
     n = IF.shape[1]
 
     delta = IF.T.dot(IF).toarray() / N
 
     # Tip-tilt + piston
     Tp = np.ones((T.shape[0], T.shape[1] + 1))
-    Tp[:, :2] = T.copy()  #.toarray()
+    Tp[:, :2] = T.copy()  # .toarray()
     deltaT = IF.T.dot(Tp) / N
     # Tip tilt projection on the pzt dm
     tau = np.linalg.inv(delta).dot(deltaT)
@@ -480,23 +536,23 @@ def compute_btt2():
     # Base orthonormee sans TT
     gdg = G.T.dot(delta).dot(G)
     U, s, V = np.linalg.svd(gdg)
-    U = U[:, :U.shape[1] - 3]
-    s = s[:s.size - 3]
+    U = U[:, : U.shape[1] - 3]
+    s = s[: s.size - 3]
     L = np.identity(s.size) / np.sqrt(s)
     B = G.dot(U).dot(L)
 
     # Rajout du TT
-    TT = T.T.dot(T) / N  #.toarray()/N
+    TT = T.T.dot(T) / N  # .toarray()/N
     Btt = np.zeros((n + 2, n - 1))
-    Btt[:B.shape[0], :B.shape[1]] = B
-    mini = 1. / np.sqrt(TT)
+    Btt[: B.shape[0], : B.shape[1]] = B
+    mini = 1.0 / np.sqrt(TT)
     mini[0, 1] = 0
     mini[1, 0] = 0
-    Btt[n:, n - 3:] = mini
+    Btt[n:, n - 3 :] = mini
 
     # Calcul du projecteur actus-->modes
     delta = np.zeros((n + T.shape[1], n + T.shape[1]))
-    #IF = rtc.get_IFsparse(1).T
+    # IF = rtc.get_IFsparse(1).T
     delta[:-2, :-2] = IF.T.dot(IF).toarray() / N
     delta[-2:, -2:] = T.T.dot(T) / N
     P = Btt.T.dot(delta)
@@ -509,7 +565,7 @@ def compute_btt():
     N = IF.shape[0]
     n = IF.shape[1]
     T = IF[:, -2:].copy()
-    IF = IF[:, :n - 2]
+    IF = IF[:, : n - 2]
     n = IF.shape[1]
 
     delta = IF.T.dot(IF).toarray() / N
@@ -530,19 +586,19 @@ def compute_btt():
     # Base orthonormée sans TT
     gdg = G.T.dot(delta).dot(G)
     U, s, V = np.linalg.svd(gdg)
-    U = U[:, :U.shape[1] - 3]
-    s = s[:s.size - 3]
+    U = U[:, : U.shape[1] - 3]
+    s = s[: s.size - 3]
     L = np.identity(s.size) / np.sqrt(s)
     B = G.dot(U).dot(L)
 
     # Rajout du TT
     TT = T.T.dot(T).toarray() / N
     Btt = np.zeros((n + 2, n - 1))
-    Btt[:B.shape[0], :B.shape[1]] = B
-    mini = 1. / np.sqrt(TT)
+    Btt[: B.shape[0], : B.shape[1]] = B
+    mini = 1.0 / np.sqrt(TT)
     mini[0, 1] = 0
     mini[1, 0] = 0
-    Btt[n:, n - 3:] = mini
+    Btt[n:, n - 3 :] = mini
 
     # Calcul du projecteur actus-->modes
     IF = rtc.get_IFsparse(1).T
@@ -554,11 +610,11 @@ def compute_btt():
 
 def compute_cmatWithBtt(Btt, nfilt):
     D = rtc.get_imat(0)
-    #D = imat_geom(wfs,config.p_wfss,config.p_controllers[0],dms,config.p_dms,meth=0)
+    # D = imat_geom(wfs,config.p_wfss,config.p_controllers[0],dms,config.p_dms,meth=0)
     # Filtering on Btt modes
     Btt_filt = np.zeros((Btt.shape[0], Btt.shape[1] - nfilt))
-    Btt_filt[:, :Btt_filt.shape[1] - 2] = Btt[:, :Btt.shape[1] - (nfilt + 2)]
-    Btt_filt[:, Btt_filt.shape[1] - 2:] = Btt[:, Btt.shape[1] - 2:]
+    Btt_filt[:, : Btt_filt.shape[1] - 2] = Btt[:, : Btt.shape[1] - (nfilt + 2)]
+    Btt_filt[:, Btt_filt.shape[1] - 2 :] = Btt[:, Btt.shape[1] - 2 :]
 
     # Modal interaction basis
     Dm = D.dot(Btt_filt)
@@ -578,8 +634,8 @@ def compute_cmatWithBtt2(Btt, nfilt):
     # Filtering on modal imat
     DmtDm = Dm.T.dot(Dm)
     U, s, V = np.linalg.svd(DmtDm)
-    s = 1. / s
-    s[s.shape[0] - nfilt - 2:s.shape[0] - 2] = 0.
+    s = 1.0 / s
+    s[s.shape[0] - nfilt - 2 : s.shape[0] - 2] = 0.0
     DmtDm1 = U.dot(np.diag(s)).dot(U.T)
     Dmp = DmtDm1.dot(Dm.T)
     # Command matrix
@@ -588,33 +644,31 @@ def compute_cmatWithBtt2(Btt, nfilt):
     return Dm.astype(np.float32), cmat.astype(np.float32)
 
 
-###########################################################################################
 #     ___                  _                    __                          _      _   _
 #    / __|_____ ____ _ _ _(_)__ _ _ _  __ ___  / _|___   __ ___ _ _ _ _ ___| |__ _| |_(_)___ _ _
 #   | (__/ _ \ V / _` | '_| / _` | ' \/ _/ -_) > _|_ _| / _/ _ \ '_| '_/ -_) / _` |  _| / _ \ ' \
 #    \___\___/\_/\__,_|_| |_\__,_|_||_\__\___| \_____|  \__\___/_| |_| \___|_\__,_|\__|_\___/_||_|
 #
-###########################################################################################
 
 
 def cov_cor(P, noise, trunc, alias, H, bp, tomo):
     cov = np.zeros((6, 6))
     bufdict = {
-            "0": noise.T,
-            "1": trunc.T,
-            "2": alias.T,
-            "3": H.T,
-            "4": bp.T,
-            "5": tomo.T
+        "0": noise.T,
+        "1": trunc.T,
+        "2": alias.T,
+        "3": H.T,
+        "4": bp.T,
+        "5": tomo.T,
     }
     for i in range(cov.shape[0]):
         for j in range(cov.shape[1]):
-            if (j >= i):
+            if j >= i:
                 tmpi = P.dot(bufdict[str(i)])
                 tmpj = P.dot(bufdict[str(j)])
                 cov[i, j] = np.sum(
-                        np.mean(tmpi * tmpj, axis=1) -
-                        np.mean(tmpi, axis=1) * np.mean(tmpj, axis=1))
+                    np.mean(tmpi * tmpj, axis=1) - np.mean(tmpi, axis=1) * np.mean(tmpj, axis=1)
+                )
             else:
                 cov[i, j] = cov[j, i]
 
@@ -625,20 +679,17 @@ def cov_cor(P, noise, trunc, alias, H, bp, tomo):
     return cov, cor
 
 
-###########################################################################################
 #  ___
 # / __| __ ___ _____
 # \__ \/ _` \ V / -_)
 # |___/\__,_|\_/\___|
-###########################################################################################
 
 
 def save_it(config, filename):
     IF = rtc.get_IFsparse(1)
     TT = rtc.get_IFtt(1)
 
-    tmp = (config.p_geom._ipupil.shape[0] -
-           (config.p_dms[0]._n2 - config.p_dms[0]._n1 + 1)) / 2
+    tmp = (config.p_geom._ipupil.shape[0] - (config.p_dms[0]._n2 - config.p_dms[0]._n1 + 1)) / 2
     tmp_e0 = config.p_geom._ipupil.shape[0] - tmp
     tmp_e1 = config.p_geom._ipupil.shape[1] - tmp
     pup = config.p_geom._ipupil[tmp:tmp_e0, tmp:tmp_e1]
@@ -649,58 +700,58 @@ def save_it(config, filename):
 
     fname = "/home/fferreira/Data/" + filename
     pdict = {
-            "noise": noise_com.T,
-            "aliasing": alias_wfs_com.T,
-            "tomography": tomo_com.T,
-            "filtered modes": H_com.T,
-            "non linearity": trunc_com.T,
-            "bandwidth": bp_com.T,
-            "wf_com": wf_com.T,
-            "P": P,
-            "Btt": Btt,
-            "IF.data": IF.data,
-            "IF.indices": IF.indices,
-            "IF.indptr": IF.indptr,
-            "TT": TT,
-            "dm_dim": dm_dim,
-            "indx_pup": indx_pup,
-            "fitting": fit,
-            "SR": SR,
-            "SR2": SR2,
-            "cov": cov,
-            "cor": cor,
-            "psfortho": np.fft.fftshift(psf_ortho),
-            "dm.xpos": config.p_dms[0]._xpos,
-            "dm.ypos": config.p_dms[0]._ypos
+        "noise": noise_com.T,
+        "aliasing": alias_wfs_com.T,
+        "tomography": tomo_com.T,
+        "filtered modes": H_com.T,
+        "non linearity": trunc_com.T,
+        "bandwidth": bp_com.T,
+        "wf_com": wf_com.T,
+        "P": P,
+        "Btt": Btt,
+        "IF.data": IF.data,
+        "IF.indices": IF.indices,
+        "IF.indptr": IF.indptr,
+        "TT": TT,
+        "dm_dim": dm_dim,
+        "indx_pup": indx_pup,
+        "fitting": fit,
+        "SR": SR,
+        "SR2": SR2,
+        "cov": cov,
+        "cor": cor,
+        "psfortho": np.fft.fftshift(psf_ortho),
+        "dm.xpos": config.p_dms[0]._xpos,
+        "dm.ypos": config.p_dms[0]._ypos,
     }
     h5u.save_h5(fname, "psf", config, psf)
-    #h5u.writeHdf5SingleDataset(fname,com.T,datasetName="com")
+    # h5u.writeHdf5SingleDataset(fname,com.T,datasetName="com")
     for k in list(pdict.keys()):
         h5u.save_hdf5(fname, k, pdict[k])
 
 
-###############################################################################################
 #  _            _
 # | |_ ___  ___| |_ ___
 # | __/ _ \/ __| __/ __|
 # | ||  __/\__ \ |_\__ \
 #  \__\___||___/\__|___/
-###############################################################################################
-param_file = "/home/fferreira/compass/trunk/shesha/data/par/par4roket/correlation_study/roket_8m_1layer.py"
+param_file = (
+    "/home/fferreira/compass/trunk/shesha/data/par/par4roket/correlation_study/roket_8m_1layer.py"
+)
 error_flag = True
 config = None
-if (param_file.split('.')[-1] == b"py"):
-    filename = param_file.split('/')[-1]
+if param_file.split(".")[-1] == b"py":
+    filename = param_file.split("/")[-1]
     param_path = param_file.split(filename)[0]
     sys.path.insert(0, param_path)
     exec("import %s as config" % filename.split(".py")[0])
-    #sys.path.remove(param_path)
+    # sys.path.remove(param_path)
 nfiltered = 20
 N_preloop = 1000
 niters = config.p_loop.niter
 config.p_loop.set_niter(niters + N_preloop)
 winddirs = [0, 45, 90, 135, 180]
-windspeeds = [5., 10., 15., 20.]
+windspeeds = [5.0, 10.0, 15.0, 20.0]
 
 d = float(sys.argv[1])
 s = float(sys.argv[2])
@@ -712,7 +763,7 @@ config.p_atmos.set_windspeed([s])
 config.p_controllers[0].set_gain(g)
 
 atm, wfs, tel, dms, tar, rtc = init_config(config)
-#config.p_loop.set_niter(niters)
+# config.p_loop.set_niter(niters)
 Btt, P = compute_btt2()
 rtc.load_Btt(1, Btt.dot(Btt.T))
 Dm, cmat = compute_cmatWithBtt(Btt, nfiltered)
@@ -722,8 +773,20 @@ imat = rtc.get_imat(0)
 RD = np.dot(R, imat).astype(np.float32)
 gRD = (np.identity(RD.shape[0]) - config.p_controllers[0].gain * RD).astype(np.float32)
 
-com, noise_com, alias_wfs_com, tomo_com, H_com, trunc_com, bp_com, wf_com, fit, SR, SR2, psf_ortho = loop( config, 
-        niters + N_preloop)
+(
+    com,
+    noise_com,
+    alias_wfs_com,
+    tomo_com,
+    H_com,
+    trunc_com,
+    bp_com,
+    wf_com,
+    fit,
+    SR,
+    SR2,
+    psf_ortho,
+) = loop(config, niters + N_preloop)
 noise_com = noise_com[N_preloop:, :]
 trunc_com = trunc_com[N_preloop:, :]
 alias_wfs_com = alias_wfs_com[N_preloop:, :]

@@ -1,23 +1,20 @@
-## @package   shesha.supervisor.aoSupervisor
-## @brief     Abstract layer for initialization and execution of a AO supervisor
-## @author    COSMIC Team <https://github.com/COSMIC-RTC/compass>
-## @date      2022/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 
 
 from abc import ABC, abstractmethod
@@ -25,7 +22,7 @@ from shesha.sutra_wrap import carma_context
 
 
 class GenericSupervisor(ABC):
-    """ This class defines generic methods and behavior of a supervisor
+    """This class defines generic methods and behavior of a supervisor
     It is not intended to be instantiated as it is : prefer to build
     a supervisor class inheriting from it. This approach allows to build multiple
     supervisors with various components and less effort
@@ -41,7 +38,7 @@ class GenericSupervisor(ABC):
     """
 
     def __init__(self, config):
-        """ Init the a supervisor
+        """Init the a supervisor
 
         Args:
             config : (config module) : Configuration module
@@ -52,18 +49,18 @@ class GenericSupervisor(ABC):
         self.is_init = False
         self.iter = 0
 
-        if (self.config.p_loop.devices.size > 1):
+        if self.config.p_loop.devices.size > 1:
             self.context = carma_context.get_instance_ngpu(
-                    self.config.p_loop.devices.size, self.config.p_loop.devices)
+                self.config.p_loop.devices.size, self.config.p_loop.devices
+            )
         else:
-            self.context = carma_context.get_instance_1gpu(
-                    self.config.p_loop.devices[0])
+            self.context = carma_context.get_instance_1gpu(self.config.p_loop.devices[0])
         self.force_context()
 
         self._init_components()
 
     def get_config(self):
-        """ Returns the configuration in use, in a supervisor specific format ?
+        """Returns the configuration in use, in a supervisor specific format ?
 
         Returns:
             config : (config module) : Current supervisor configuration
@@ -79,8 +76,7 @@ class GenericSupervisor(ABC):
         return self.iter
 
     def force_context(self) -> None:
-        """ Active all the GPU devices specified in the parameters file
-        """
+        """Active all the GPU devices specified in the parameters file"""
         if self.context is not None:
             current_device = self.context.active_device
             for device in range(len(self.config.p_loop.devices)):
@@ -89,6 +85,5 @@ class GenericSupervisor(ABC):
 
     @abstractmethod
     def _init_components(self) -> None:
-        """ Initialize all the components
-        """
+        """Initialize all the components"""
         self.is_init = True

@@ -1,23 +1,20 @@
-## @package   guardians.misc
-## @brief     Miscellaneous roket scripts
-## @author    Florian Ferreira <florian.ferreira@obspm.fr>
-## @date      2019/01/24
-## @copyright 2011-2024 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #
 # This file is part of COMPASS <https://github.com/COSMIC-RTC/compass>
-
-# COMPASS is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
-# General Public License as published by the Free Software Foundation, either version 3 of the 
-# License, or any later version.
-
-# COMPASS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+# COMPASS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# COMPASS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License along with COMPASS. 
-# If not, see <https://www.gnu.org/licenses/>
-
-# Copyright (C) 2011-2024 COSMIC Team <https//://github.com/COSMIC-RTC/compass>
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011-2024 COSMIC Team
 """script for ROKET
 
 Usage:
@@ -48,7 +45,7 @@ Usage with Ipython: ipython [-i] script_roket.py -- [options]
 
 from docopt import docopt
 
-#from guardian.roket import Roket
+# from guardian.roket import Roket
 from roket import Roket
 from shesha.util.utilities import load_config_from_file
 
@@ -64,7 +61,7 @@ else:
 gamma = 1.0
 if arguments["--gamma"]:
     gamma = 1 / float(arguments["--gamma"])
-    
+
 config = load_config_from_file(param_file)
 roket = Roket(config, gamma=gamma)
 
@@ -94,7 +91,7 @@ if arguments["--seeds"]:
 if arguments["--alt"]:
     roket.config.p_atmos.set_alt([float(arguments["--alt"])])
 
-#if arguments["--devices"]:
+# if arguments["--devices"]:
 #    devices = []
 #    for k in range(len(arguments["--devices"])):
 #        devices.append(int(arguments["--devices"][k]))
