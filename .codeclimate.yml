@@ -2,5 +2,7 @@ version: '2'
 plugins:
   sonar-python:
     enabled: true
+  cppcheck:
+    enabled: true
   pep8:
     enabled: true
