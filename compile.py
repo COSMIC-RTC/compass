@@ -31,6 +31,7 @@ default is native. You can also set it to a specific architecture, like 75.
 
 The Python version can be set with the environment variable PYTHON_VERSION.
 The default is the current version. You can also set it to a specific version,
+like 3.8. If you set it to OFF, the Python module will not be built.
 
 The script generates a CMakePresets.json file and calls cmake to build the
 project. It then installs the project using the install target.
@@ -42,6 +43,8 @@ Example:
     $ ./compile.py /opt/compass
     $ COMPASS_INSTALL_ROOT=/opt/compass ./compile.py
     $ COMPASS_DEBUG=Debug ./compile.py /opt/compass
+    $ CUDA_SM=75 ./compile.py /opt/compass
+    $ PYTHON_VERSION=3.8 ./compile.py /opt/compass
 
 Note:
     This script is intended to be used with the CI/CD pipeline. It is not
@@ -117,7 +120,7 @@ def generate_CMakePresets_json(install_path, build_dir, build_type):
                     "CMAKE_INSTALL_PREFIX": install_path,
                     "CMAKE_CUDA_ARCHITECTURES": cuda_args,
                     "CMAKE_POSITION_INDEPENDENT_CODE": "ON",
-                    "python_build": "ON" if python_version != "" else "OFF",
+                    "build_python_module": "ON" if python_version != "OFF" else "OFF",
                     "libs_build": build_libs,
                 },
             }

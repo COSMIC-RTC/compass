@@ -10,7 +10,7 @@ project(compass
         LANGUAGES CUDA CXX)
 
 option(libs_build "Compile Python Wrappers" ON)
-option(python_build "Compile Python Wrappers" ON)
+option(build_python_module "Compile Python Wrappers" ON)
 
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
     set(GCOV gcov)
@@ -21,6 +21,6 @@ if(libs_build)
     add_subdirectory(libsutra)
 endif()
 
-if(python_build)
+if(build_python_module)
     add_subdirectory(python_module)
 endif()

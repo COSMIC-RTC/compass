@@ -20,6 +20,7 @@
 import numpy as np
 import astropy.io.fits as fits
 import matplotlib.pyplot as plt
+from shesha.util.iterkolmo import index_to_coord
 
 
 class PSF_map:
@@ -102,7 +103,8 @@ class PSF_map:
             self.map = np.zeros((NTAR_side, NTAR_side))
             for i in range(NTAR):
                 # self.map.itemset(i,sup._sim.get_strehl(i)[1])
-                self.map.itemset(i, sup._sim.get_strehl(i)[0])
+                # self.map.itemset(i, sup._sim.get_strehl(i)[0])
+                self.map[index_to_coord(i, NTAR_side)] = sup._sim.get_strehl(i)[0]
                 tar = sup._sim.tar.d_targets[i]
                 self._Rtar = max(self._Rtar, tar.posx, tar.posy)
 

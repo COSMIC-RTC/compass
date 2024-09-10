@@ -20,31 +20,62 @@
 import numpy as np
 
 
+def index_to_coord(index, n):
+    """
+    Convert a flattened index to multi-dimensional coordinates.
+    
+    Parameters:
+    - index (int): The flattened index.
+    - n (int): The dimensions of the grid (n, n)
+    
+    Returns:
+    - tuple: The two-dimensional coordinates.
+    """
+    return (index // n, index % n)
+
+
 def create_stencil(n):
-    """TODO: docstring"""
-    Zx = np.array(np.tile(np.arange(n), (n, 1)), dtype=np.float64) + 1
-    Zy = Zx.T
+    """
+    Create a stencil matrix and related arrays for a grid of size n.
 
-    Xx = np.array(np.zeros(n) + n + 1, dtype=np.float64)
-    Xy = np.array(np.arange(n) + 1, dtype=np.float64)
+    This function generates a stencil matrix used for finite difference methods 
+    or other numerical simulations. It returns the following:
 
+    - Zx: Grid coordinates in the x-direction.
+    - Zy: Grid coordinates in the y-direction.
+    - Xx: X-coordinates for the grid.
+    - Xy: Y-coordinates for the grid.
+    - istencil: Indices of non-zero elements in the stencil matrix.
+
+    Parameters:
+    - n (int): The size of the grid (assumed to be a power of 2).
+
+    Returns:
+    - tuple: (Zx, Zy, Xx, Xy, istencil)
+    """
+    # Generate grid coordinates
+    Zx, Zy = np.meshgrid(np.arange(n) + 1, np.arange(n) + 1, indexing='xy')
+
+    # X-coordinates and Y-coordinates for the grid
+    Xx = np.full(n, n + 1, dtype=np.float64)
+    Xy = np.arange(n) + 1
+    
     ns = int(np.log2(n + 1) + 1)
     stencil = np.zeros((n, n))
 
     stencil[:, 0] = 1
     for i in range(2, ns):
         stencil[:: 2 ** (i - 1), 2 ** (i - 2)] = 1
-        stencil.itemset(2 ** (i - 1) - 1, 1)
-        # stencil[0,2**(i-1)-1]=1
+        stencil[index_to_coord(2 ** (i - 1) - 1, n)] = 1
 
     # i=ns
-    stencil.itemset(2 ** (ns - 1) - 1, 1)
+    stencil[index_to_coord(2 ** (ns - 1) - 1, n)] = 1
     for i in range(0, n, 2 ** (ns - 1)):
-        stencil.itemset(2 ** (ns - 2) + i * n, 1)
+        stencil[index_to_coord(2 ** (ns - 2) + i * n, n)] = 1
     # i=ns+1
-    stencil.itemset(2 ** (ns) - 1, 1)
+    stencil[index_to_coord(2 ** (ns) - 1, n)] = 1
     for i in range(0, n, 2 ** (ns)):
-        stencil.itemset(2 ** (ns - 1) + i * n, 1)
+        stencil[index_to_coord(2 ** (ns - 1) + i * n, n)] = 1
 
     stencil = np.roll(stencil, n // 2, axis=0)
     stencil = np.fliplr(stencil)
@@ -62,16 +93,16 @@ def stencil_size(n):
     stencil[:, 0] = 1
     for i in range(2, ns):
         stencil[:: 2 ** (i - 1), 2 ** (i - 2)] = 1
-        stencil.itemset(2 ** (i - 1) - 1, 1)
+        stencil[index_to_coord(2 ** (i - 1) - 1, n)] = 1
 
     # i=ns
-    stencil.itemset(2 ** (ns - 1) - 1, 1)
+    stencil[index_to_coord(2 ** (ns - 1) - 1, n)] = 1
     for i in range(0, n, 2 ** (ns - 1)):
-        stencil.itemset(2 ** (ns - 2) + i * n, 1)
+        stencil[index_to_coord(2 ** (ns - 2) + i * n, n)] = 1
     # i=ns+1
-    stencil.itemset(2 ** (ns) - 1, 1)
+    stencil[index_to_coord(2 ** (ns) - 1, n)] = 1
     for i in range(0, n, 2 ** (ns)):
-        stencil.itemset(2 ** (ns - 1) + i * n, 1)
+        stencil[index_to_coord(2 ** (ns - 1) + i * n, n)] = 1
 
     return np.sum(stencil)
 
