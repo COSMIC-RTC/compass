@@ -28,7 +28,7 @@ prec = 10**-dec
 print("Test cublas 1")
 print("precision: ", prec)
 
-seed = np.int32(time.perf_counter() * 1e3)
+seed = np.int32(time.perf_counter())
 c = ch.context.get_instance()
 
 # aa = np.random.random((size * size)).astype(np.float32)

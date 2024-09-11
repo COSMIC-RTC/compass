@@ -27,7 +27,7 @@ sizem = 128
 sizen = 256
 sizek = 512
 
-seed = np.int32(time.perf_counter() * 1e3)
+seed = np.int32(time.perf_counter())
 
 print("")
 print("Test cublas 3")
