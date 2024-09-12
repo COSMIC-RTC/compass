@@ -44,6 +44,17 @@ code_quality:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH      # Run code quality job in pipelines on the default branch (but not in other branch pipelines)
     - if: $CI_COMMIT_TAG                               # Run code quality job in pipelines for tags
 
+semgrep-sast:
+  services:            # Shut off Docker-in-Docker
+  tags:
+  - cq-sans-dind     # Set this job to only run on our new specialized runner
+  rules:
+    - if: $CODE_QUALITY_DISABLED
+      when: manual
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" # Run code quality job in merge request pipelines
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH      # Run code quality job in pipelines on the default branch (but not in other branch pipelines)
+    - if: $CI_COMMIT_TAG                               # Run code quality job in pipelines for tags
+
 .lint_generic:
   stage: test
   variables:
