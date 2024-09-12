@@ -28,6 +28,43 @@
   - [Release v2.0](#release-v20)
   - [Release v1.1](#release-v11)
 
+## Release v6.0.0 :
+
+This release is a major update of COMPASS. The main goal is to improve the code quality and the readability of the source code. This is a major (and disruptive) update, there are changes in most supervisor codes: scripts need to be updated according to these changes.
+
+Since this release, COMPASS is now under the LGPL v3 license, including carma and sutra libraries
+
+- Refactor create_stencil to remove itemset function
+- Format license and python files
+- Refactor build system to remove conan
+- Rename carmaWrap to carma, rename sutraWrap to sutra, remove version in the source file
+- Remove OCTOPUS Dependency and rtc_cacao
+- Remove FP16 support (unused)
+- Remove naga
+- Add LICENSE LGPL v3 and license notifications in all files
+- Refactor code to remove unused imports and classes: 
+  - carma_ipcs 
+  - carma_magma 
+  - carma_multithread 
+  - cured controller 
+  - brahma publishers
+- Change .h to .hpp
+- Fixed docstring
+- Add code_quality report
+- Update docstring, update python dependency to version <3.12 and add aenum dependency
+- Update new scipy API for interpolate, update new pandas API for to_hdf
+- Change PHRTC filename to pHRTC
+- Add cosmic simulator + widget
+- Update COMPASS installation procedure to use vcpkg
+- Update COMPASS installation instructions and CUDA compute capabilities
+- Fix file paths in test scripts
+- Update dependencies and check SHESHA-COMPASS versions
+- Update naming convention https://google.github.io/styleguide/pyguide.html#316-naming
+- Use rich console print
+- Add python compile script
+- Modify building of Python wrappers and update dependencies
+- Remove cupy dependency
+
 ## Release v5.5.0 :
 
 - Add cuda stream in all centroiders
