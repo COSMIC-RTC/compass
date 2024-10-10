@@ -729,11 +729,16 @@ int32_t SutraWfs_PyrHR::comp_nphot(float ittime, float optthroughput,
 }
 
 int32_t SutraWfs_PyrHR::set_phalfxy(cuFloatComplex *phalfxy) {
-  int32_t ngpus = this->d_screen_ngpu.size();
-  for (int32_t dev = 0; dev < ngpus; dev++) {
-      current_context->set_active_device(dev, 1);
-      this->d_phalfxy_ngpu[dev]->host2device(phalfxy);
+  int32_t ngpus = this->d_phalfxy_ngpu.size();
+  if (ngpus) {
+    for (int32_t dev = 0; dev < ngpus; dev++) {
+        current_context->set_active_device(dev, 1);
+        this->d_phalfxy_ngpu[dev]->host2device(phalfxy);
+    }
+    current_context->set_active_device(this->device, 1);
   }
-  current_context->set_active_device(this->device, 1);
+  else {
+    this->d_phalfxy->host2device(phalfxy);
+  }
   return EXIT_SUCCESS;
 }
