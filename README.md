@@ -8,11 +8,11 @@ Develop status:
 [![coverage report](https://gitlab.obspm.fr/compass/compass/badges/develop/coverage.svg)](https://compass.pages.obspm.fr/compass/coverage/index.html)
 
 - [COMPASS](#compass)
+  - [Citations](#citations)
   - [Overview](#overview)
     - [Hardware requirements](#hardware-requirements)
     - [Environment requirements](#environment-requirements)
-  - [Automatic Install of COMPASS](#automatic-install-of-compass)
-  - [Manual install of COMPASS](#manual-install-of-compass)
+  - [Installation](#installation)
     - [Install Mambaforge with python3](#install-mambaforge-with-python3)
       - [setup .bashrc](#setup-bashrc)
       - [Download and installation](#download-and-installation)
@@ -20,6 +20,16 @@ Develop status:
       - [Download sources](#download-sources)
       - [Install dependencies (if not already done)](#install-dependencies-if-not-already-done)
       - [Install COMPASS](#install-compass)
+  - [Contributing](#contributing)
+  - [License](#license)
+
+## Citations
+If you use COMPASS in your research, please cite one of the following papers:
+
+- [Ferreira, F. et al, “COMPASS: an efficient GPU-based simulation software for adaptive optics systems”, HPCS 2018](https://doi.org/10.1109/HPCS.2018.00043)
+- [Ferreira, F. et al., “Real-time end-to-end AO simulations at ELT scale on multiple GPUs with the COMPASS platform”, SPIE 2018](https://doi.org/10.1117/12.2312593)
+- [Gratadour, D. et al, "COMPASS: an efficient, scalable and versatile numerical platform for the development of ELT AO systems"](https://doi.org/10.1117/12.2056358)
+- [Gratadour, D. et al, “GPUs for adaptive optics: simulations and real-time control”, SPIE, 2012](https://doi.org/10.1117/12.925723)
 
 ## Overview
 
@@ -33,11 +43,7 @@ The system must contain at least an x86 CPU and a CUDA capable GPU. list of comp
 
 The system must be running a 64 bit distribution of Linux with the latest NVIDIA drivers and CUDA toolkit. The following installation instructions are valid if the default installation paths have been selected for these components.
 
-## Automatic Install of COMPASS
-
-The faster procedure consist to follow instructions from this page: https://lesia.obspm.fr/compass/latest/md_doc_html_install_script.html
-
-## Manual install of COMPASS
+## Installation
 
 ### Install Mambaforge with python3
 
@@ -105,3 +111,12 @@ export PATH=$VCPKG_ROOT:$PATH
 cd $COMPASS_ROOT
 ./compile_vcpkg.py
 ```
+
+## Contributing
+
+If you want to contribute to COMPASS, please read the [CONTRIBUTING.md](CONTRIBUTING.md) file.
+Contributions must go through merge requests.
+
+## License
+
+COMPASS is distributed under the LGPLv3 license. See [LICENSE](LICENSE) for more information.
