@@ -1,11 +1,11 @@
 # COMPASS
 
 Main status:
-[![Main status](https://gitlab.obspm.fr/compass/compass/badges/main/pipeline.svg)](https://gitlab.obspm.fr/compass/compass/commits/main)
+[![Main status](https://gitlab.obspm.fr/cosmic-rtc/compass/badges/main/pipeline.svg)](https://gitlab.obspm.fr/cosmic-rtc/compass/commits/main)
 
 Develop status:
-[![Develop status](https://gitlab.obspm.fr/compass/compass/badges/develop/pipeline.svg)](https://gitlab.obspm.fr/compass/compass/commits/develop)
-[![coverage report](https://gitlab.obspm.fr/compass/compass/badges/develop/coverage.svg)](https://compass.pages.obspm.fr/compass/coverage/index.html)
+[![Develop status](https://gitlab.obspm.fr/cosmic-rtc/compass/badges/develop/pipeline.svg)](https://gitlab.obspm.fr/cosmic-rtc/compass/commits/develop)
+[![coverage report](https://gitlab.obspm.fr/cosmic-rtc/compass/badges/develop/coverage.svg)](https://cosmic-rtc.pages.obspm.fr/compass/coverage/index.html)
 
 - [COMPASS](#compass)
   - [Citations](#citations)
@@ -71,7 +71,7 @@ mamba init
 First check out the latest version from the svn repository :
 
 ```bash
-git clone https://gitlab.obspm.fr/compass/compass
+git clone https://gitlab.obspm.fr/cosmic-rtc/compass
 ```
 
 once there, you need to modify system variables in our .bashrc :

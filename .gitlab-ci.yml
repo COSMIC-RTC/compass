@@ -7,9 +7,9 @@ stages:
 .build_generic:
   stage: build
   variables:
-    COMPASS_ROOT: "/builds/compass/compass"
+    COMPASS_ROOT: "$CI_PROJECT_DIR"
     SHESHA_ROOT: "$COMPASS_ROOT/shesha"
-    VCPKG_ROOT: "/builds/compass/vcpkg"
+    VCPKG_ROOT: "$CI_PROJECT_DIR/vcpkg"
     COMPASS_DO_HALF: "OFF"
   script:
   - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$COMPASS_ROOT/local/python
@@ -58,7 +58,7 @@ semgrep-sast:
 .lint_generic:
   stage: test
   variables:
-    COMPASS_ROOT: "/builds/compass/compass"
+    COMPASS_ROOT: "$CI_PROJECT_DIR"
     SHESHA_ROOT: "$COMPASS_ROOT/shesha"
     COMPASS_DO_HALF: "OFF"
   before_script:
@@ -80,7 +80,7 @@ semgrep-sast:
 
 .test_generic:
   variables:
-    COMPASS_ROOT: "/builds/compass/compass"
+    COMPASS_ROOT: "$CI_PROJECT_DIR"
     SHESHA_ROOT: "$COMPASS_ROOT/shesha"
   script:
   - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$NAGA_ROOT:$COMPASS_ROOT/local/python
@@ -217,7 +217,7 @@ pages:
   environment: development
   stage: pages
   variables:
-    COMPASS_ROOT: "/builds/compass/compass"
+    COMPASS_ROOT: "$CI_PROJECT_DIR"
     SHESHA_ROOT: "$COMPASS_ROOT/shesha"
   dependencies:
   - build_debug_rockylinux8_11.8.0
