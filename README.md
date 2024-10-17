@@ -13,7 +13,7 @@ Develop status:
     - [Hardware requirements](#hardware-requirements)
     - [Environment requirements](#environment-requirements)
   - [Installation](#installation)
-    - [Install Mambaforge with python3](#install-mambaforge-with-python3)
+    - [Install Miniforge3 with python3](#install-miniforge3-with-python3)
       - [setup .bashrc](#setup-bashrc)
       - [Download and installation](#download-and-installation)
     - [Install the platform](#install-the-platform)
@@ -45,22 +45,22 @@ The system must be running a 64 bit distribution of Linux with the latest NVIDIA
 
 ## Installation
 
-### Install Mambaforge with python3
+### Install Miniforge3 with python3
 
 more info: <https://github.com/mamba-org/mamba>
 
 #### setup .bashrc
 
 ```bashrc
-export MAMBA_ROOT=$HOME/miniforge
+export MAMBA_ROOT=$HOME/miniforge3
 export PATH=$MAMBA_ROOT/bin:$PATH
 ```
 
 #### Download and installation
 
 ```bash
-wget https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh
-bash Mambaforge-Linux-x86_64.sh -b -p $MAMBA_ROOT
+wget https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh
+bash Miniforge3-Linux-x86_64.sh -b -p $MAMBA_ROOT
 mamba init
 ```
 

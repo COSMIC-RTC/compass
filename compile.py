@@ -118,6 +118,8 @@ def generate_CMakePresets_json(install_path, build_dir, build_type):
                 "cacheVariables": {
                     "CMAKE_BUILD_TYPE": build_type,
                     "CMAKE_INSTALL_PREFIX": install_path,
+                    "CMAKE_TOOLCHAIN_FILE":
+                        "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
                     "CMAKE_CUDA_ARCHITECTURES": cuda_args,
                     "CMAKE_POSITION_INDEPENDENT_CODE": "ON",
                     "build_python_module": "ON" if python_version != "OFF" else "OFF",
