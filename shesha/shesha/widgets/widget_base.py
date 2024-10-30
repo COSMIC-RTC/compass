@@ -26,9 +26,9 @@ import numpy as np
 import pyqtgraph as pg
 
 try:
-    from PyQt5 import QtWidgets
-    from PyQt5.QtCore import QThread, QTimer
-    from PyQt5.uic import loadUiType
+    from PyQt6 import QtWidgets, QtCore
+    from PyQt6.QtCore import QThread, QTimer
+    from PyQt6.uic import loadUiType
 except ModuleNotFoundError:
     try:
         from PySide2 import QtWidgets
@@ -36,7 +36,7 @@ except ModuleNotFoundError:
         from PySide2.QtUiTools import loadUiType
     except ModuleNotFoundError as e:
         raise ModuleNotFoundError(
-            "No module named 'PyQt5' or PySide2', please install one of them\nException raised: "
+            "No module named 'PyQt6' or PySide2', please install one of them\nException raised: "
             + e.msg
         )
 
@@ -72,12 +72,13 @@ class PupilBoxes(QtWidgets.QGraphicsPathItem):
 
 class WidgetBase(BaseClassTemplate):
     def __init__(self, parent=None, hide_histograms=False) -> None:
+        self.app = QtCore.QCoreApplication.instance()
         BaseClassTemplate.__init__(self, parent=parent)
-
         self.uiBase = BaseWidgetTemplate()
+        print("UI SETUP")
         self.uiBase.setupUi(self)
-
         #                   ATTRIBUTES                              #
+        print("QTimer")
 
         self.gui_timer = QTimer()  # type: QTimer
         self.gui_timer.timeout.connect(self.updateDisplay)
@@ -86,6 +87,7 @@ class WidgetBase(BaseClassTemplate):
         self.loopLock = threading.Lock()  # type: Threading.Lock # Asynchronous loop / display safe-threading
         self.hide_histograms = hide_histograms
         #               PYQTGRAPH DockArea INIT                     #
+        print("DockArea")
 
         self.area = DockArea()
         self.uiBase.wao_DisplayDock.setWidget(self.area)
@@ -93,6 +95,7 @@ class WidgetBase(BaseClassTemplate):
 
         #                 CONNECTED BUTTONS                         #
         # Default path for config files
+        print("Buttons")
         self.defaultParPath = "."
         self.defaultAreaPath = "."
         self.uiBase.wao_load_config.clicked.connect(self.load_config)
@@ -131,11 +134,11 @@ class WidgetBase(BaseClassTemplate):
             self,
             "Message",
             "Are you sure to quit?",
-            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-            QtWidgets.QMessageBox.No,
+            QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No,
+            QtWidgets.QMessageBox.StandardButton.No,
         )
 
-        if reply == QtWidgets.QMessageBox.Yes:
+        if reply == QtWidgets.QMessageBox.StandardButton.Yes:
             if event:
                 event.accept()
             quit()
@@ -318,17 +321,17 @@ class WidgetBase(BaseClassTemplate):
         self.wao_phasesgroup_cb = QtWidgets.QMenu(self)
         self.uiBase.wao_phasesgroup_tb.setMenu(self.wao_phasesgroup_cb)
         self.uiBase.wao_phasesgroup_tb.setText("Select")
-        self.uiBase.wao_phasesgroup_tb.setPopupMode(QtWidgets.QToolButton.InstantPopup)
+        self.uiBase.wao_phasesgroup_tb.setPopupMode(QtWidgets.QToolButton.ToolButtonPopupMode.InstantPopup)
 
         self.wao_graphgroup_cb = QtWidgets.QMenu(self)
         self.uiBase.wao_graphgroup_tb.setMenu(self.wao_graphgroup_cb)
         self.uiBase.wao_graphgroup_tb.setText("Select")
-        self.uiBase.wao_graphgroup_tb.setPopupMode(QtWidgets.QToolButton.InstantPopup)
+        self.uiBase.wao_graphgroup_tb.setPopupMode(QtWidgets.QToolButton.ToolButtonPopupMode.InstantPopup)
 
         self.uiBase.wao_imagesgroup_tb.setText("Select")
         self.wao_imagesgroup_cb = QtWidgets.QMenu(self)
         self.uiBase.wao_imagesgroup_tb.setMenu(self.wao_imagesgroup_cb)
-        self.uiBase.wao_imagesgroup_tb.setPopupMode(QtWidgets.QToolButton.InstantPopup)
+        self.uiBase.wao_imagesgroup_tb.setPopupMode(QtWidgets.QToolButton.ToolButtonPopupMode.InstantPopup)
 
         # self.uiBase.wao_init.setDisabled(False)
         #

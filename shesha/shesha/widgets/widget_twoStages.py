@@ -40,7 +40,7 @@ import numpy as np
 import time
 
 from rich.progress import track
-from PyQt5 import QtWidgets
+from PyQt6 import QtWidgets
 from shesha.supervisor.twoStagesManager import TwoStagesManager
 
 from typing import Any

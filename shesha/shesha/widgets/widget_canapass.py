@@ -36,13 +36,13 @@ import numpy as np
 from rich.progress import track
 
 try:
-    from PyQt5 import QtWidgets
+    from PyQt6 import QtWidgets
 except ModuleNotFoundError:
     try:
         from PySide2 import QtWidgets
     except ModuleNotFoundError as e:
         raise ModuleNotFoundError(
-            "No module named 'PyQt5' or PySide2', please install one of them\nException raised: "
+            "No module named 'PyQt6' or PySide2', please install one of them\nException raised: "
             + e.msg
         )
 

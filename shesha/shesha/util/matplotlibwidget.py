@@ -23,13 +23,13 @@ from matplotlib.figure import Figure
 from matplotlib import gridspec
 
 try:
-    from PyQt5 import QtWidgets
+    from PyQt6 import QtWidgets
 except ModuleNotFoundError:
     try:
         from PySide2 import QtWidgets
     except ModuleNotFoundError as e:
         raise ModuleNotFoundError(
-            "No module named 'PyQt5' or PySide2', please install one of them\nException raised: "
+            "No module named 'PyQt6' or PySide2', please install one of them\nException raised: "
             + e.msg
         )
 
@@ -59,7 +59,7 @@ class MplCanvas(FigureCanvas):
         # We want the axes cleared every time plot() is called
         self.axes.hold(False)
         FigureCanvas.__init__(self, self.fig)
-        FigureCanvas.setSizePolicy(self, QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Expanding)
+        FigureCanvas.setSizePolicy(self, QtGui.QSizePolicy.Policy.Expanding,QtGui.QSizePolicy.Policy.Expanding)
         FigureCanvas.updateGeometry(self)
 
 
@@ -84,8 +84,8 @@ class MplCanvas(FigureCanvas):
         FigureCanvas.__init__(self, self.fig)
         FigureCanvas.setSizePolicy(
             self,
-            QtWidgets.QSizePolicy.Expanding,
-            QtWidgets.QSizePolicy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Expanding,
         )
         FigureCanvas.updateGeometry(self)
 

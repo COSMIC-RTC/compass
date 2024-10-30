@@ -45,15 +45,15 @@ from shesha.util.tools import plsh, plpyr
 from shesha.config import ParamConfig
 
 try:
-    from PyQt5 import QtWidgets
-    from PyQt5.QtCore import Qt
+    from PyQt6 import QtWidgets, QtCore
+    from PyQt6.QtCore import Qt
 except ModuleNotFoundError:
     try:
         from PySide2 import QtWidgets
         from PySide2.QtCore import Qt
     except ModuleNotFoundError as e:
         raise ModuleNotFoundError(
-            "No module named 'PyQt5' or PySide2', please install one of them\nException raised: "
+            "No module named 'PyQt6' or PySide2', please install one of them\nException raised: "
             + e.msg
         )
 
@@ -91,6 +91,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         hide_histograms: bool = False,
         twoStages: bool = False,
     ) -> None:
+        self.app = QtCore.QCoreApplication.instance()
         WidgetBase.__init__(self, hide_histograms=hide_histograms)
         AOClassTemplate.__init__(self)
         self.twoStages = twoStages
