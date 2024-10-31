@@ -18,7 +18,9 @@
 
 from shesha.ao import basis
 import shesha.util.utilities as util
+import shesha.util.tools as tools
 import shesha.util.make_pupil as mkP
+import shesha.util.modesDM as modes
 import shesha.constants as scons
 import scipy.ndimage
 from scipy.sparse import csr_matrix
@@ -397,3 +399,436 @@ class ModalBasis(object):
                 norm = 1
             phase_to_modes[i] = phase / norm
         return phase_to_modes
+
+    def compute_ipos_in_pupil(self, d_obs=11.4, d_pup=37., pixsize=None, xpos=None, ypos=None, n_pix=None):
+        """
+        Return actuators indexes located inside and outside of a set pupil. 
+        The "in pupil" selected actuators are inside a ring of inner diameter d_obs and outer diameter d_pup.
+        
+        Input:
+        pixsize : size of a pixel in the pupil. If None : take the value given by ADOPT
+        xpos, ypos : actuators positions in pixels. If None : take the value given by ADOPT
+        n_pix : size in pixels of the support where xpos and ypos are expressed
+        d_obs : diameter of the inner ring in meters, defined by the pupil obstruction.
+        d_pup : diameter of the outer ring in meters, defined by the telescope pupil diameter.
+
+        Output:
+        ipos_in : index of actuators inside the defined pupil
+        ipos_out : index of actuators outside of the defined pupil (complement of ipos_pup)
+
+        Example :
+        ipos_in, ipos_out = basis.compute_ipos_in_pupil(d_obs=.28 * 40, d_pup=38.5)
+
+        """
+
+        if (xpos is None) and (ypos is None) and (n_pix is None):
+            xpos = self._config.p_dms[0]._xpos
+            ypos = self._config.p_dms[0]._ypos
+            n_pix = self._config.p_geom._ipupil.shape[0]
+            d_center = n_pix//2 - 0.5
+        else:
+            xpos = np.array(xpos)
+            ypos = np.array(ypos)
+            d_center = n_pix//2 - 0.5
+        
+        if (pixsize == None):
+            pixsize = self._config.p_geom._pixsize
+        
+        dist = np.sqrt((xpos - d_center)**2 + (ypos - d_center)**2)
+        dist *= pixsize
+        ipos_in = np.where((dist < (d_pup/2)) * (dist > (d_obs/2)))[0]
+        ipos_out = np.where(np.isin(np.arange(len(xpos)), ipos_in)==False)[0]
+        
+        return ipos_in, ipos_out
+
+    def compute_ipos_spider(self, n_seg=6, dm_diam=42*1.2, d_spi=0.54, pixsize=None, xpos=None, ypos=None, n_pix=None):
+        """
+        find the index of actuators along spiders
+        comes without any guarantee regarding bugs!
+
+        Input:
+        com : ADOPT command class
+        ao : ADOPT ao class
+        n_pix : number of pixels of the 
+        pixsize : size of a pixel in the pupil. If None : take the value given by ADOPT
+        xpos, ypos : actuators positions in pixels. If None : take the value given by ADOPT
+        n_seg : number of fragment of the pupil
+        dm_diam : diameter of the deformable mirror in meters
+        d_spi : width of the spider arms in meters
+
+        Output:
+        ipos_spi1 : index of actuators located on one side of the spider arms
+        ipos_spi2 : index of actuators located on the other side of the spider arms
+
+        Example :
+        # If running a simulation with COMPASS, ADOPT already know your DM so you don't have to provide pixsize, xpos, ypos and n_pix
+        spi1, spi2 = compute_ipos_spider(com, ao, n_seg=6, dm_diam=42, d_spi=0.6)
+
+        """
+        if (xpos is None) and (ypos is None) and (n_pix is None):
+            xpos = self._config.p_dms[0]._xpos
+            ypos = self._config.p_dms[0]._ypos
+            n_pix = self._config.p_geom._ipupil.shape[0]
+        
+        if (pixsize is None):
+            pixsize = self._config.p_geom._pixsize
+        
+        print("Create 2 pupils with 1/2 spiders")
+        dm_pup1 = self.create_pupil(n_pix, dm_diam / pixsize, n_seg=n_seg, d_spider = 1e-5, d_spider2 = 2*d_spi / pixsize)
+        dm_pup2 = self.create_pupil(n_pix, dm_diam / pixsize, n_seg=n_seg, d_spider = 2*d_spi / pixsize, d_spider2 = 1e-5)
+
+        print("Find actuators indexes along the spiders")
+        spi1 = []
+        spi2_temp = []
+
+        for i in range(len(xpos)):
+            if dm_pup1[int(xpos[i]), int(ypos[i])] ==0:
+                spi1 += [i]
+            elif dm_pup2[int(xpos[i]), int(ypos[i])] ==0:
+                spi2_temp += [i]
+        spi1 = np.array(spi1, dtype=np.int32)
+        spi2_temp = np.array(spi2_temp, dtype=np.int32)
+
+        x = np.linspace(-1, 1, n_pix)
+        xx, yy = np.meshgrid(x, x)
+        _, theta = tools.cart2polar(xx, yy)
+
+        xpos = np.array(xpos, dtype=np.int32)
+        ypos = np.array(ypos, dtype=np.int32)
+
+        print("Sort the indexes to get compatibles pairs of actuators")
+        r1 = np.argsort(np.diag(theta.T[xpos[spi1]][:, ypos[spi1]]))
+        r2 = np.argsort(np.diag(theta.T[xpos[spi2_temp]][:, ypos[spi2_temp]]))
+
+        spi1 = spi1[r1]
+        spi2 = spi2_temp*0
+        tt = len(spi2_temp)/n_seg
+        if not tt.is_integer():
+            print("Warning, number of actuators along spiders is not multiple of n_seg")
+        tt = int(tt)
+        for i in range(n_seg):
+            spi2[i*tt:(i+1)*tt] = spi2_temp[r2[i*tt:(i+1)*tt][::-1]]
+        
+        return spi1, spi2
+
+
+    def compute_Bg(self, ipos_in=None, IFdelta=None, tt_mode=False, pixsize=None, xpos=None, ypos=None):
+        """
+        Calcul de la base de Gendron : vecteurs propres de la matrice de covariance des distances inter actionneurs puissance 5/3
+        
+        Input:
+        <ipos_in> : (1D np.arr) : Optional (default=None), actuators indexes inside the effective pupil. The number of modes will be equal to the number of given actuators.
+        <IFdelta> : (2D np.arr) : Optional (default=None), but required for basis normalization, Influence Functions covariance matrix
+        <tt_mode> : (bool) : Optional (default=False), if True filter the tip tilt from the M4 space and add these modes to the Tip Tilt mirror
+        <pixsize> : (float) : Optional (default=None), size of a pixel in the pupil. If None : take the value given by ADOPT
+        <xpos> : (1D np.arr) : Optional (default=None), actuators positions in pixels. If None : take the value given by ADOPT
+        <ypos> : (1D np.arr) : Optional (default=None), actuators positions in pixels. If None : take the value given by ADOPT
+
+        Output:
+        Bg : (2D np.arr) : Gendon modal Basis with number of degrees of freedom defined over ipos_in
+        Bgext : (2D np.arr) : Gendon modal Basis with 2 lines for the tip tilt mirror
+
+        Example :
+        # If running a simulation with COMPASS, ADOPT already know your DM so you don't have to provide pixsize, xpos, ypos
+        ipos_in, ipos_out = compute_ipos_in_pupil(com, ao, d_obs=.28 * 40, d_pup=38.5)
+        IFdelta = IFsp.dot(IFsp.T) / IFsp.shape[0]          # IFdelta tableau Nactu x Nactu
+        Bg, Bgext = compute_Bg(ao, ipos_in=ipos_in, IFdelta=IFdelta)
+        """
+
+        if (xpos is None) and (ypos is None):
+            xpos = self._config.p_dms[0]._xpos
+            ypos = self._config.p_dms[0]._ypos
+        else:
+            xpos = np.array(xpos)
+            ypos = np.array(ypos)
+        
+        if (pixsize is None):
+            pixsize = self._config.p_geom._pixsize
+        
+        dist = np.sqrt((xpos[:, None] - xpos[None, :])**2 + (ypos[:, None] - ypos[None, :])**2)    # [pixels]
+        dist *= pixsize    # [meters]
+
+        n_actu = len(xpos)
+
+        # Calcul des modes
+        L0 = 1e4   # valeur fausse, mais proche de l'infini, donc pas grave.
+        if ipos_in is not None:
+            B, l = modes.KLmodes(xpos[ipos_in], ypos[ipos_in], L0, True)
+            n_modes = len(ipos_in)
+        else:
+            B, l = modes.KLmodes(xpos, ypos, L0, True)
+            n_modes = len(xpos)
+
+        # Normalisation de la base 
+        if IFdelta is not None:
+            if ipos_in is not None:
+                var = B.T.dot(IFdelta[ipos_in][:,ipos_in].dot(B))
+                Bt = B / (np.sqrt(np.diag(var))[None,:])
+                Bg = np.zeros((n_actu, n_modes))
+                Bg[ipos_in,:] = Bt
+            else:
+                var = B.T.dot(IFdelta.dot(B))
+                Bg = B / (np.sqrt(np.diag(var))[None,:])
+        else:
+            Bg = np.zeros((n_actu, n_modes))
+            Bg[ipos_in,:] = B
+        # On ajoute le Tip Tilt au début
+        Bgext, itt, _ = modes.moreLines(Bg, 2)
+
+        if tt_mode:
+            Bgext[:, 0:2] = 0.0
+            Bgext[np.ix_(itt, [0,1])] = np.eye(2)
+            # Normalisation du Tip Tilt par une méthode """adéquate"""
+            Bgext[itt, 0:2] *= 0.02
+
+        return Bg, Bgext
+
+
+    def compute_Br(self, Bg, ipos_in, ipos_out, L0=1e4, r0=0.1, alpha=0, IFdelta=None, tt_mode=False, pixsize=None, xpos=None, ypos=None):
+        """
+        Extend the modal basis to the actuators located outside of the pupil, so that the mode stays "Kolmo - compatible"
+        
+        Input:
+        <Bg> : (2D np.arr) : Required, Gendron modal basis (or any other basis)
+        <ipos_in> : (1D np.arr) : Required, actuators indexes inside the effective pupil and used as "master" to extrapolate
+        <ipos_out> : (1D np.arr) : Required, actuators indexes to be extended
+        <L0> : (float) : Optional (default=1e4), Outer scale in meters, can be set to add more or less high frequencies during extrapolation
+        <r0> : (float) : Optional (default=0.1), Fried parameter in meters, take a physical value but it will not change the world order
+        <alpha> : (float) : Optional (default=0), used for regularization -> ON GOING, keep alpha=0 !!
+        <IFdelta> : (2D np.arr) : Optional (default=None) but required for basis normalization, Influence Functions covariance matrix
+        <pixsize> : (float) : Optional (default=None), size of a pixel in the pupil. If None : take the value given by ADOPT
+        <xpos> : (1D np.arr) : Optional (default=None), actuators positions in pixels. If None : take the value given by ADOPT
+        <ypos> : (1D np.arr) : Optional (default=None), actuators positions in pixels. If None : take the value given by ADOPT
+
+        Output:
+        Br : (2D np.arr) : Gendon modal Basis with number of degrees of freedom defined over ipos_in, extended to all actuators, even the outer ring actuators
+        Brext : (2D np.arr) : Gendon modal Basis with 2 lines for the tip tilt mirror
+        
+        Example :
+        # If running a simulation with COMPASS, ADOPT already know your DM so you don't have to provide pixsize, xpos, ypos
+        ipos_in, ipos_out = compute_ipos_in_pupil(com, ao, d_obs=.28 * 40, d_pup=38.5)
+        IFdelta = IFsp.dot(IFsp.T) / IFsp.shape[0]          # IFdelta tableau Nactu x Nactu
+        Br, Brext = compute_Bg(ao, Bg, ipos_in, ipos_out, IFdelta=IFdelta)
+        """
+
+        if (xpos is None) and (ypos is None):
+            xpos = self._config.p_dms[0]._xpos
+            ypos = self._config.p_dms[0]._ypos
+        if (pixsize is None):
+            pixsize = self._config.p_geom._pixsize
+        
+        dist = np.sqrt((xpos[:, None] - xpos[None, :])**2 + (ypos[:, None] - ypos[None, :])**2)    # distances entre actus [mètres]
+        dist *= pixsize
+        Br = modes.computeMmseMatrix(Bg, dist, ipos_out, ipos_in, L0=L0, r0 = r0, alpha = alpha)
+        if IFdelta is not None:
+            Br = self.normalize_basis(Br, IFdelta)
+        Brext, itt, _ = modes.moreLines(Br, 2) 
+
+        return Br, Brext
+
+
+    def compute_Bp(ao, Br, spi1, spi2, IFdelta=None):
+        """
+        Pairing of the actuators at each edge of the spider arms
+
+        Input:
+        ao : Required, ADOPT ao class
+        <Br> : (2D np.arr) : Required, Gendron modal basis extended to the ring (or any other basis)
+        <ipos_spi1> : (1D np.arr) : Required, actuators indexes located on one side of the spider arms
+        <ipos_spi2> : (1D np.arr) : Required, actuators indexes located on the other side of the spider arms
+        <IFdelta> : (2D np.arr) : Optional (default=None) but required for basis normalization, Influence Functions covariance matrix
+        Output:
+        Bp : (2D np.arr) : Paired modal Basis
+        Bpext : (2D np.arr) : Paired modal Basis with 2 lines for the tip tilt mirror
+        """
+        Bp = Br.copy()
+        Bp[spi1] = Bp[spi2]
+        if IFdelta is not None:
+            Bp = normalize_basis(Bp, IFdelta)
+        Bpext, itt, _ = modes.moreLines(Bp, 2)
+
+        return Bp, Bpext
+
+
+    def compute_Bc(ao, Br, spi1, L0=1e4, r0=0.1, alpha=0, IFdelta=None, pixsize=None, xpos=None, ypos=None):
+        """
+        Remove pure piston degrees of freedom to avoid petalling while keeping the modes "Kolmo compatible"
+
+        Input:
+        ao : Required, ADOPT ao class
+        <Br> : (2D np.arr) : Required, Gendron modal basis extended to the ring (or any other basis)
+        <ipos_spi1> : (1D np.arr) : Required, actuators indexes located on one side of the spider arms
+        <L0> : (float) : Optional (default=1e4), Outer scale in meters, can be set to add more or less high frequencies during extrapolation
+        <r0> : (float) : Optional (default=0.1), Fried parameter in meters, take a physical value but it will not change the world order
+        <alpha> : (float) : Optional (default=0), used for regularization -> ON GOING, keep alpha=0 !!
+        <IFdelta> : (2D np.arr) : Optional (default=None) but required for basis normalization, Influence Functions covariance matrix
+        <pixsize> : (float) : Optional (default=None), size of a pixel in the pupil. If None : take the value given by ADOPT
+        <xpos> : (1D np.arr) : Optional (default=None), actuators positions in pixels. If None : take the value given by ADOPT
+        <ypos> : (1D np.arr) : Optional (default=None), actuators positions in pixels. If None : take the value given by ADOPT
+
+        Output:
+        Bc : (2D np.arr) : Continuous modal basis
+        Bcext : (2D np.arr) : Continuous modal basis with 2 lines for the tip tilt mirror
+        """
+        
+        if (xpos is None) and (ypos is None):
+            xpos = self._config.p_dms[0]._xpos
+            ypos = self._config.p_dms[0]._ypos
+            n_pix = self._config.p_geom._ipupil.shape[0]
+        if (pixsize is None):
+            pixsize = self._config.p_geom._pixsize
+        
+        dist = np.sqrt((xpos[:, None] - xpos[None, :])**2 + (ypos[:, None] - ypos[None, :])**2)    # distances entre actus [mètres]
+        dist *= pixsize
+        ipos_all = np.arange(len(xpos))
+        ipos_interieur = ipos_all[np.where(np.isin(ipos_all, spi1) == False)]
+        Bc = mmse.computeMmseMatrix(Br, dist, spi1, ipos_interieur, L0=L0, r0=r0, alpha=alpha)
+        if IFdelta is not None:
+            Bc = normalize_basis(Bc, IFdelta)
+        Bcext, itt, _ = modes.moreLines(Bc, 2)
+        return Bc, Bcext
+
+
+    def filter_mode(B, fmode, IFdelta):
+        """
+        Filter a mode from the basis
+
+        Input:
+        ao : Required, ADOPT ao class
+        <B> : (2D np.arr) : Required, Modal basis
+        <fmode> : (1D np.arr) : mode expressed over the actuator space to be filtered
+        <IFdelta> : (2D np.arr) : Required, Influence Functions covariance matrix
+
+        Output:
+        Bf : (2D np.arr) : Filtered modal basis
+        """
+        Bf = B.copy()
+        dd = np.linalg.inv(fmode.T.dot(IFdelta).dot(fmode))
+        Bf -= fmode.dot(dd).dot(fmode.T.dot(IFdelta).dot(B))
+
+        return Bf
+
+
+    def normalize_basis(self, B, IFdelta):
+        """
+        Normalization of the modal basis in the phase space
+
+        Input:
+        <B> : (2D np.arr) : Required, Modal basis
+        <IFdelta> : (2D np.arr) : Required, Influence Functions covariance matrix
+
+        Output:
+        Bf : (2D np.arr) : Filtered modal basis
+        """
+        # normalisation de la base
+        print("Normalization ...")
+        var = B.T.dot(IFdelta.dot(B))
+        Bn = B / (np.sqrt(np.diag(var))[None,:])
+
+        return Bn
+
+
+    def control_unseen_actu(ao, cmat, pos_actu, L0=1e4, r0=0.2, pixsize=None, xpos=None, ypos=None):
+        """
+        Remove a given actuator as degree of freedom from the command matrix, in a way that it provides a "Kolmo compatible" command.
+
+        Input:
+        ao : Required, ADOPT ao class
+        <cmat> : (2D np.arr) : Actuators command matrix
+        <pos_actu> : (int, 1D np.arr) : Index or array of indexes of the actuators to be "mmse-ifier"
+        <L0> : (float) : Optional (default=1e4), Outer scale in meters, can be set to add more or less high frequencies during extrapolation
+        <r0> : (float) : Optional (default=0.1), Fried parameter in meters, take a physical value but it will not change the world order
+        <alpha> : (float) : Optional (default=0), used for regularization -> ON GOING, keep alpha=0 !!
+        <pixsize> : (float) : Optional (default=None), size of a pixel in the pupil. If None : take the value given by ADOPT
+        <xpos> : (1D np.arr) : Optional (default=None), actuators positions in pixels. If None : take the value given by ADOPT
+        <ypos> : (1D np.arr) : Optional (default=None), actuators positions in pixels. If None : take the value given by ADOPT
+
+        Output:
+        cmat_u : (2D np.arr) : New command matrix
+        """
+        
+        if (xpos is None) and (ypos is None):
+            xpos = self._config.p_dms[0]._xpos
+            ypos = self._config.p_dms[0]._ypos
+            n_pix = self._config.p_geom._ipupil.shape[0]
+        if pixsize is None:
+            pixsize = self._config.p_geom._pixsize
+        dist = np.sqrt((xpos[:, None] - xpos[None, :])**2 + (ypos[:, None] - ypos[None, :])**2)    # distances entre actus [mètres]
+        dist *= pixsize
+
+        pos_all_actu = np.arange(len(xpos))  # indice de tous les actionneurs
+
+        comp_pos_actu = pos_all_actu[np.where(np.isin(pos_all_actu, pos_actu) == False)]    # indice des actionneurs à ne pas mmse-er (à garder)
+        cmat_u = mmse.computeMmseMatrix(cmat, dist, pos_actu, comp_pos_actu, L0=L0, r0=r0)
+
+        return cmat_u
+
+
+    def create_pupil(self, n_pix, d_tel, n_seg=0, d_obs=0, d_spider=0, d_spider2 = 0, obs_shape=None, custom_obs=None):
+        """
+        create a pupil with parameters
+        all distances expressed in pixels with respect to n_pix
+        """
+        x = np.linspace(-1, 1, n_pix)
+        xx, yy = np.meshgrid(x, x)
+        r = np.sqrt(xx**2 + yy**2)
+
+        from scipy.ndimage import rotate
+        my_pup = (r < d_tel/n_pix) * 1
+
+        if d_spider2 != 0.:
+            my_pup[int(n_pix/2 - d_spider/2):int(n_pix/2 + d_spider2/2), n_pix//2:] = 0
+        else:
+            my_pup[int(n_pix/2 - d_spider/2):int(n_pix/2 + d_spider/2), n_pix//2:] = 0
+        
+        my_pup_rot = my_pup
+        for i in range(n_seg):
+            my_pup_rot = rotate(my_pup_rot, 360 / n_seg, reshape=False)
+            my_pup *= my_pup_rot
+
+        if obs_shape is "ELT":
+            my_pup[np.where(r < d_obs / n_pix)] = custom_obs[np.where(r < d_obs / n_pix)]
+        
+        elif obs_shape is "hexa":
+            centers = np.c_[np.cos((2 * np.arange(n_seg) + 1) * np.pi/n_seg), np.sin((2 * np.arange(n_seg) +1) * np.pi/n_seg)]
+            h = np.abs(np.min(np.asarray([(c[0]) * xx + (c[1]) * yy for c in centers]), axis=0))
+
+            my_pup[np.where(h < d_obs / n_pix)] = 0
+        else:
+            my_pup *= (r >= d_obs/n_pix) * 1
+
+        return my_pup
+
+
+    def compute_petal_basis(ao, n_pix, dm_pix, d_obs, n_seg, d_spider, xpos=None, ypos=None):
+        """
+        Create petal modes following given deformable mirror parameters. Not normalized !!
+
+        Input:
+        ao : Required, ADOPT ao class
+        <n_pix> : (int) : Required, Deformable Mirror support size in pixels
+        <dm_pix> : (float) : Required, DM diameter in pixels
+        <d_obs> : (float) : Required, DM obstruction in pixels (d_obs < dm_pix)
+        <n_seg> : (int) : Required, number of fragments of the DM
+        <d_spider> : (float) : Required, width of the spider arms
+        Output:
+        modepetal : (2D np.arr) : Petal modal basis
+        a : (2D np.arr) : Pupil morphology with indexed fragments
+        """
+        dm_pup = create_pupil(n_pix, dm_pix, n_seg=n_seg, d_spider = d_spider, d_obs = d_obs)
+        a, ns = label(dm_pup)
+        if ns != n_seg:
+            print(ns)
+            print("bug in the number of petals")
+
+        if (xpos == None) and (ypos == None):
+            xpos = np.array(ao.dm0.CsX, dtype=np.int32)
+            ypos = np.array(ao.dm0.CsY, dtype=np.int32)
+
+        mode_petal = np.zeros((ao.Nactu, n_seg))
+        for i in range(n_seg):
+            for k in range(ao.dm0.Nactu):
+                if a[xpos[k], ypos[k]] == i+1:
+                    mode_petal[k, i] = 1
+        
+        return mode_petal, a

@@ -27,7 +27,8 @@ from time import sleep
 # from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 import matplotlib.pyplot as plt
-
+import time
+from math import factorial as fac
 
 def clr(*figs):
     """
@@ -378,3 +379,299 @@ def plotSubapRectangles(pup, isvalid, istart, jstart):
             fig.axes.add_patch(
                 plt.Rectangle((i - 0.5, j - 0.5), pdiam, pdiam, fill=False, color=color)
             )
+
+def gaussian(x, a, x0, sigma, b):
+
+    """
+    This function dives a gaussian profile.
+
+    :param x: 1d array of distances to central pixel [μm]
+    :param a: signal peak value
+    :param x0: position of the center [μm]
+    :param sigma: variance
+    :return:
+    """
+
+    gaus = a * np.exp(-(x - x0)**2 / (2 * sigma**2)) + b
+    return gaus
+
+
+def min_array(array):
+    """
+    Compute min of array excluding nan values
+    """
+
+    return np.min(array[np.where(np.isnan(array) == False)])
+
+
+def max_array(array):
+    """
+    Compute max of array excluding nan values
+    """
+
+    return np.max(array[np.where(np.isnan(array) == False)])
+
+
+def wait_until(predicate, timeout, period):
+    mustend = time.time() + timeout
+
+    while time.time() < mustend:
+        if predicate:
+            return True
+        else:
+            time.sleep(period)
+
+    return print("Reach Time Out = {} s".format(timeout))
+
+
+def zernike(n_pix, m, n):
+    """
+    Noll Zernike term expansion
+
+    :param n_pix: <int> size of zernike support
+    :param m: <int> angular meridional frequency
+    :param n: <int> radial order ; n>0, n >= m
+    :return:
+    """
+
+    x = np.linspace(-1, 1, n_pix)
+    y = np.linspace(-1, 1, n_pix)
+    xx, yy = np.meshgrid(x, y)
+
+    ro, theta = cart2polar(xx, yy)
+    w = np.where(ro > 1)
+    w2 = np.where(ro <= 1)
+    # ro[w] = 0
+
+    if m > n or n < 0:
+        print('Error Zernike index should verify: n >= m and n > 0')
+        return 0
+
+    elif (m == 0) and (n == 0):
+        z = 2 * np.cos(0 * theta)
+
+    elif m >= 0:
+        if (n - m) % 2 == 0:
+            R = sum(
+                (((-1) ** kk * fac(n - kk)) / (fac(kk) * fac((n + m) / 2 - kk) * fac((n - m) / 2 - kk))) * ro ** (
+                            n - 2 * kk) for kk in range(int((n - m) / 2) + 1))
+        else:
+            R = 0
+        z = R * np.cos(m * theta)
+
+    else:
+        mb = np.abs(m)
+        if (n - mb) % 2 == 0:
+            R = sum(
+                (((-1) ** kk * fac(n - kk)) / (fac(kk) * fac((n + mb) / 2 - kk) * fac((n - mb) / 2 - kk))) * ro ** (
+                            n - 2 * kk) for kk in range(int((n - mb) / 2) + 1))
+        else:
+            R = 0
+        z = R * np.sin(mb * theta)
+
+    # z[w] = 0
+
+    # print("mean map = {}", np.mean(z[w2]))
+
+    return z/2
+
+
+def list_of_zernike(n_pix):
+    """
+
+    :param n_pix:
+    :return:
+    """
+
+    m = np.array([0, 1, -1, 0, 2, -2, 1, -1, 3, -3, 0, 2, -2, 4, -4, 1, -1, 3, -3, 5, -5])
+    n = np.array([0, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5])
+    name = ['piston', 'tip', 'tilt', 'defocus', 'astigmatism', 'astigmatism', 'coma', 'coma', 'trefoil', 'trefoil',
+            'spherical', 'astigmatism 2', 'astigmatism 2', 'quadrafoil', 'quadrafoil', 'coma 2', 'coma2', 'trefoil 2',
+            'trefoil 2', 'pentafoil', 'pentafoil']
+
+    z = []
+
+    for i in np.arange(len(m)):
+        z.append(zernike(n_pix, m[i], n[i]))
+
+    return z
+
+
+def m_n_zernike(n_z):
+    m = np.array([0, 1, -1, 0, 2, -2, 1, -1, 3, -3, 0, 2, -2, 4, -4, 1, -1, 3, -3, 5, -5, 0, 2, -2, 4, -4, 6, -6, 1, -1,
+                  3, -3, 5, -5, 7, -7, 0, 2, -2, 4, -4, 6, -6, 8, -8])
+    n = np.array([0, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7,
+                  7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8])
+
+    return m[n_z], n[n_z]
+
+
+def cart2polar(xx, yy):
+    """
+    Convert cartesian coordinates into polar coordinates
+    :param xx: 2D-square array of x linear coordinates
+    :param yy: 2D-square array of y linear coordinates - should have same dimensions as xx
+    :return: r, xx/yy like array, normalized radius
+            theta, xx/yy like array, angle in radian
+    """
+
+    phi = np.arctan2(-yy, -xx)
+    theta = phi - np.min(phi)
+    r = np.sqrt(xx ** 2 + yy ** 2)
+
+    return r, theta
+
+
+def rad2arcsec(x):
+    return x * 180 / np.pi * 3600
+
+
+def embed_f(matrix, factor):
+    """
+    Embed a Matrix in another matrix factor times larger
+    :param matrix: matrix to embedded
+    :param factor: factor for new matrix
+    :return:
+    """
+
+    n_matrix = len(matrix)
+    n_embed = int(factor * len(matrix))
+    matrix_embed = np.zeros((n_embed, n_embed), dtype=complex)
+    s = int(n_embed / 2 - n_matrix / 2)
+    e = int(n_embed / 2 + n_matrix / 2)
+    matrix_embed[s:e, s:e] = matrix
+
+    return matrix_embed
+
+
+def embed_len(matrix, n_embed):
+    """
+    Embed a matrix in another one with length n_embed
+    :param matrix: matrix to be embedded
+    :param n_embed: length of the created matrix
+    :return:
+    """
+
+    n_matrix = len(matrix)
+    matrix_embed = np.zeros((n_embed, n_embed), dtype=complex)
+    s = int(n_embed / 2 - n_matrix / 2)
+    e = int(n_embed / 2 + n_matrix / 2)
+    matrix_embed[s:e, s:e] = matrix
+
+    return matrix_embed
+
+
+def find_nearest(array, value):
+    """
+    Find index of the nearest value in an array.
+    :param array:
+    :param value:
+    :return:
+    """
+    array = np.asarray(array)
+    idx = (np.abs(array - value)).argmin()
+    return idx
+
+
+def eq_mod(data, mod_value):
+    """
+    Equivalent of modulo, except it returns the closest value to zero between data%mod_value and data%-mod_value
+    :param data: array of data to be processed
+    :mod_value: value for modulo operation
+    :return: processed data 
+    Example :
+        mod(0.68, 0.7) = 0.68
+        eq_mod(0.68, 0.7) = 0.02
+    """
+    set1 = data%mod_value
+    set2 = data%-mod_value
+
+    new_data = np.zeros(data.shape)
+    w1 = np.where(np.abs(set1) == np.minimum(np.abs(set1), np.abs(set2)))
+    w2 = np.where(np.abs(set2) == np.minimum(np.abs(set1), np.abs(set2)))
+
+    new_data[w1] = set1[w1]
+    new_data[w2] = set2[w2]
+
+    return new_data
+
+
+def jump_counter(data, mod_value):
+    """
+    Number of times when data jump of more than the mod_value.
+    Usefull for hopping differential piston.
+    """
+
+    set1 = data - np.floor_divide(data, mod_value) * mod_value
+    set2 = data - np.floor_divide(data, - mod_value) * (- mod_value)
+
+    # w1 = np.where(np.abs(set1) == np.minimum(np.abs(set1), np.abs(set2)))
+    w2 = np.where(np.abs(set2) == np.minimum(np.abs(set1), np.abs(set2)))
+
+    new_set = np.floor_divide(data, mod_value)
+    new_set[w2] = - np.floor_divide(data, -mod_value)[w2]
+
+    return np.sum(np.abs(np.diff(new_set, axis=0)))
+
+
+def compute_pv_strehl(pv, lwfs=0.7):
+    """
+    pv data des 6 pistons calculés à tous les seeings, toutes les réalisations de phase, toutes les trames en boucle fermée
+    lwfs longueur d'onde de l'analyseur
+    """
+    srpv = np.zeros(pv.shape[0])
+    npetal = pv.shape[1]
+    for k in range(pv.shape[0]):    # toutes les trames
+        r = pv[k]
+        srpv[k] = np.sum(np.cos((r[None,:] - r[:,None])*2*np.pi/lwfs)) / (npetal**2)
+    stdpv = np.sqrt(-np.log(srpv))
+    return srpv, stdpv
+
+
+def psf_pf(dzl, n, N=1024):
+    """
+    dzl = D.z / lambda
+    n taille du support voulu pour la tache d'Airy
+    """
+    P = int(np.round(N*dzl))
+    x = np.linspace(-1, 1, N)
+    #intermède coordonnées polaires pour calcul rayon
+    xx, yy = np.meshgrid(x, x)
+    r = np.sqrt(xx ** 2 + yy ** 2)
+    # création pupille
+    pup = np.zeros((N, N))
+    pup[r<P/N] = 1
+    # tache d'airy
+    ft_pup = np.fft.fftshift(np.fft.fft2(pup)) / np.sum(pup)
+    ft_pup_crop = ft_pup[(N-n)//2: (N+n)//2, (N-n)//2: (N+n)//2]
+    return pup, np.abs(ft_pup_crop)**2
+
+
+def compute_psf(pup, phi, lambda2rad=1):
+    field = pup * np.exp(1j * phi * lambda2rad)
+    tfield = np.fft.fftshift(np.fft.fft2(field))
+    return (np.abs(tfield) / np.sum(pup))**2
+
+
+def create_pupil(n_pix, d_tel, n_seg=0, d_obs=0, d_spider=0, d_spider2 = 0, form=None, d_in=None):
+    """
+    all distances expressed in pixels with respect to n_pix
+    """
+    x = np.linspace(-1, 1, n_pix)
+    xx, yy = np.meshgrid(x, x)
+    r = np.sqrt(xx**2 + yy**2)
+    from scipy.ndimage import rotate
+    my_pup = (r < d_tel/n_pix) * (r >= d_obs/n_pix) * 1
+    if d_spider2 != 0:
+        my_pup[int(n_pix//2 - d_spider//2):int(n_pix//2 + d_spider2//2), n_pix//2:] = 0
+    else:
+        my_pup[int(n_pix//2 - d_spider//2):int(n_pix//2 + d_spider//2), n_pix//2:] = 0
+    my_pup_rot = my_pup
+    for i in range(n_seg):
+        my_pup_rot = rotate(my_pup_rot, 360 / n_seg, reshape=False)
+        my_pup *= my_pup_rot
+
+    if form is not None:
+        my_pup[np.where(r<d_in/n_pix)] = ipup[np.where(r<d_in/n_pix)]
+
+    return my_pup
