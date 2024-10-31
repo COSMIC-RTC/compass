@@ -627,7 +627,7 @@ class ModalBasis(object):
         return Br, Brext
 
 
-    def compute_Bp(ao, Br, spi1, spi2, IFdelta=None):
+    def compute_Bp(self, Br, spi1, spi2, IFdelta=None):
         """
         Pairing of the actuators at each edge of the spider arms
 
@@ -650,7 +650,7 @@ class ModalBasis(object):
         return Bp, Bpext
 
 
-    def compute_Bc(ao, Br, spi1, L0=1e4, r0=0.1, alpha=0, IFdelta=None, pixsize=None, xpos=None, ypos=None):
+    def compute_Bc(self, Br, spi1, L0=1e4, r0=0.1, alpha=0, IFdelta=None, pixsize=None, xpos=None, ypos=None):
         """
         Remove pure piston degrees of freedom to avoid petalling while keeping the modes "Kolmo compatible"
 
@@ -688,27 +688,6 @@ class ModalBasis(object):
         Bcext, itt, _ = modes.moreLines(Bc, 2)
         return Bc, Bcext
 
-
-    def filter_mode(B, fmode, IFdelta):
-        """
-        Filter a mode from the basis
-
-        Input:
-        ao : Required, ADOPT ao class
-        <B> : (2D np.arr) : Required, Modal basis
-        <fmode> : (1D np.arr) : mode expressed over the actuator space to be filtered
-        <IFdelta> : (2D np.arr) : Required, Influence Functions covariance matrix
-
-        Output:
-        Bf : (2D np.arr) : Filtered modal basis
-        """
-        Bf = B.copy()
-        dd = np.linalg.inv(fmode.T.dot(IFdelta).dot(fmode))
-        Bf -= fmode.dot(dd).dot(fmode.T.dot(IFdelta).dot(B))
-
-        return Bf
-
-
     def normalize_basis(self, B, IFdelta):
         """
         Normalization of the modal basis in the phase space
@@ -726,43 +705,6 @@ class ModalBasis(object):
         Bn = B / (np.sqrt(np.diag(var))[None,:])
 
         return Bn
-
-
-    def control_unseen_actu(ao, cmat, pos_actu, L0=1e4, r0=0.2, pixsize=None, xpos=None, ypos=None):
-        """
-        Remove a given actuator as degree of freedom from the command matrix, in a way that it provides a "Kolmo compatible" command.
-
-        Input:
-        ao : Required, ADOPT ao class
-        <cmat> : (2D np.arr) : Actuators command matrix
-        <pos_actu> : (int, 1D np.arr) : Index or array of indexes of the actuators to be "mmse-ifier"
-        <L0> : (float) : Optional (default=1e4), Outer scale in meters, can be set to add more or less high frequencies during extrapolation
-        <r0> : (float) : Optional (default=0.1), Fried parameter in meters, take a physical value but it will not change the world order
-        <alpha> : (float) : Optional (default=0), used for regularization -> ON GOING, keep alpha=0 !!
-        <pixsize> : (float) : Optional (default=None), size of a pixel in the pupil. If None : take the value given by ADOPT
-        <xpos> : (1D np.arr) : Optional (default=None), actuators positions in pixels. If None : take the value given by ADOPT
-        <ypos> : (1D np.arr) : Optional (default=None), actuators positions in pixels. If None : take the value given by ADOPT
-
-        Output:
-        cmat_u : (2D np.arr) : New command matrix
-        """
-        
-        if (xpos is None) and (ypos is None):
-            xpos = self._config.p_dms[0]._xpos
-            ypos = self._config.p_dms[0]._ypos
-            n_pix = self._config.p_geom._ipupil.shape[0]
-        if pixsize is None:
-            pixsize = self._config.p_geom._pixsize
-        dist = np.sqrt((xpos[:, None] - xpos[None, :])**2 + (ypos[:, None] - ypos[None, :])**2)    # distances entre actus [mètres]
-        dist *= pixsize
-
-        pos_all_actu = np.arange(len(xpos))  # indice de tous les actionneurs
-
-        comp_pos_actu = pos_all_actu[np.where(np.isin(pos_all_actu, pos_actu) == False)]    # indice des actionneurs à ne pas mmse-er (à garder)
-        cmat_u = mmse.computeMmseMatrix(cmat, dist, pos_actu, comp_pos_actu, L0=L0, r0=r0)
-
-        return cmat_u
-
 
     def create_pupil(self, n_pix, d_tel, n_seg=0, d_obs=0, d_spider=0, d_spider2 = 0, obs_shape=None, custom_obs=None):
         """
@@ -798,37 +740,3 @@ class ModalBasis(object):
             my_pup *= (r >= d_obs/n_pix) * 1
 
         return my_pup
-
-
-    def compute_petal_basis(ao, n_pix, dm_pix, d_obs, n_seg, d_spider, xpos=None, ypos=None):
-        """
-        Create petal modes following given deformable mirror parameters. Not normalized !!
-
-        Input:
-        ao : Required, ADOPT ao class
-        <n_pix> : (int) : Required, Deformable Mirror support size in pixels
-        <dm_pix> : (float) : Required, DM diameter in pixels
-        <d_obs> : (float) : Required, DM obstruction in pixels (d_obs < dm_pix)
-        <n_seg> : (int) : Required, number of fragments of the DM
-        <d_spider> : (float) : Required, width of the spider arms
-        Output:
-        modepetal : (2D np.arr) : Petal modal basis
-        a : (2D np.arr) : Pupil morphology with indexed fragments
-        """
-        dm_pup = create_pupil(n_pix, dm_pix, n_seg=n_seg, d_spider = d_spider, d_obs = d_obs)
-        a, ns = label(dm_pup)
-        if ns != n_seg:
-            print(ns)
-            print("bug in the number of petals")
-
-        if (xpos == None) and (ypos == None):
-            xpos = np.array(ao.dm0.CsX, dtype=np.int32)
-            ypos = np.array(ao.dm0.CsY, dtype=np.int32)
-
-        mode_petal = np.zeros((ao.Nactu, n_seg))
-        for i in range(n_seg):
-            for k in range(ao.dm0.Nactu):
-                if a[xpos[k], ypos[k]] == i+1:
-                    mode_petal[k, i] = 1
-        
-        return mode_petal, a
