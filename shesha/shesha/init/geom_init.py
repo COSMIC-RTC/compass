@@ -280,11 +280,26 @@ def init_wfs_size(p_wfs: conf.ParamWfs, r0: float, p_tel: conf.ParamTel, verbose
 
         # quantum pixel size
     else:
+	# this case is for a wfs with fixed # of phase points                                                                              
         pdiam = p_wfs._pdiam
-        # this case is for a wfs with fixed # of phase points
-        Nfft = util.fft_goodsize(2 * pdiam)
-    # size of the support in fourier domain
 
+        # CBE 2024-12-05: Despite forced value for PDIAM, try to respect
+        # PIXSIZE value we look for the best compromise between pixsize and fov
+        if (p_wfs.type == scons.WFSType.SH):
+            subapdiam = p_tel.diam / float(p_wfs.nxsub)  # diam of subap
+            
+            nrebin = (
+                int(2 * subapdiam * p_wfs.pixsize / (p_wfs.Lambda * 1.e-6) / CONST.RAD2ARCSEC) + 1
+            )
+            nrebin = max(2, nrebin)
+            # first atempt on a rebin factor
+            
+            # we try to respect both PDIAM and PIXSIZE so we compute the best
+            # nfft value
+            # size of the support in fourier domain
+            Nfft = util.fft_goodsize(int(pdiam / subapdiam * nrebin / p_wfs.pixsize * CONST.RAD2ARCSEC *
+                                         (p_wfs.Lambda * 1.e-6)))
+            
     # qpixsize = pdiam * \
     #     (p_wfs.Lambda * 1.e-6) / subapdiam * CONST.RAD2ARCSEC / Nfft
     # # quantum pixel size
