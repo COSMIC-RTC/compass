@@ -71,7 +71,7 @@ mamba init
 First check out the latest version from the svn repository :
 
 ```bash
-git clone https://gitlab.obspm.fr/cosmic-rtc/compass.git
+git clone https://github.com/COSMIC-RTC/compass
 ```
 
 once there, you need to modify system variables in our .bashrc :
