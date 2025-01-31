@@ -121,6 +121,12 @@ void declare_wfs_pyrhr(py::module &mod)
           { return sp.pyr_mod_weights; },
           "Ponderation weights for each modulation points")
 
+      .def_property_readonly(
+          "d_hrimg_modu",
+          [](SutraWfs_PyrHR &sp)
+          { return sp.d_hrimg_modu; },
+          "Pyramid HR img on each modulation point")
+
       //  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
       //  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝
       //  ██╔████╔██║█████╗     ██║   ███████║██║   ██║██║  ██║███████╗

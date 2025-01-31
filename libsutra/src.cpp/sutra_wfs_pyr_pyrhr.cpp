@@ -49,6 +49,9 @@ SutraWfs_PyrHR::SutraWfs_PyrHR(
   this->npupils = npupils;
   this->compute_pyrfocalplane = false;
   this->d_hrimg = new CarmaObj<float>(context, dims_data2);  // Useless for SH
+  for (int i = 0; i < this->npup; i++) {
+    this->d_hrimg_modu.push_back(new CarmaObj<float>(context, dims_data2));
+  }
   this->d_submask = new CarmaObj<float>(context, dims_data2);
   this->d_camplipup = new CarmaObj<cuFloatComplex>(context, dims_data2);
   this->d_camplifoc = new CarmaObj<cuFloatComplex>(context, dims_data2);
@@ -383,6 +386,9 @@ void SutraWfs_PyrHR::comp_modulation(int32_t cpt) {
     carma_safe_call(
         cudaMemset(this->d_camplipup->get_data(), 0,
                    sizeof(cuFloatComplex) * this->d_camplipup->get_nb_elements()));
+    carma_safe_call(
+        cudaMemset(this->d_hrimg_modu[cpt]->get_data(), 0,
+                   sizeof(float) * this->d_hrimg_modu[cpt]->get_nb_elements()));    
     pyr_getpup(
         this->d_camplipup->get_data(), this->d_gs->d_phase->d_screen->get_data(),
         this->d_pupil->get_data(), this->ntot, this->nfft, this->d_gs->lambda,
@@ -405,7 +411,7 @@ void SutraWfs_PyrHR::comp_modulation(int32_t cpt) {
     CarmaFFT(this->d_camplifoc->get_data(), this->d_fttotim->get_data(), 1,
               *this->d_camplipup->get_plan());
 
-    abs2(this->d_hrimg->get_data(), this->d_fttotim->get_data(),
+    abs2(this->d_hrimg_modu[cpt]->get_data(), this->d_fttotim->get_data(),
          this->nfft * this->nfft, fact,
          this->current_context->get_device(device));
   } else {
@@ -518,6 +524,8 @@ int32_t SutraWfs_PyrHR::comp_generic() {
 
   for (int32_t cpt = 0; cpt < this->npup; cpt++) {
     comp_modulation(cpt);
+    if (current_context->get_ndevice() == 1)
+      this->d_hrimg->axpy(1.0f, this->d_hrimg_modu[cpt], 1, 1);
   }
 
   current_context->set_active_device(device, 1);

@@ -46,6 +46,7 @@ class SutraWfs_PyrHR : public SutraWfs {
   CarmaHostObj<float> *pyr_cx;
   CarmaHostObj<float> *pyr_cy;
   CarmaHostObj<float> *pyr_mod_weights;
+  std::vector<CarmaObj<float>*> d_hrimg_modu;
 
 
  public:
