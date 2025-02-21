@@ -109,7 +109,7 @@ export PATH=$VCPKG_ROOT:$PATH
 
 ```bash
 cd $COMPASS_ROOT
-./compile_vcpkg.py
+./compile.py
 ```
 
 ## Contributing
