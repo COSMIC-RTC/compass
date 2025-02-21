@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.18)
 
 project(libcarma VERSION ${VERSION_INFO} DESCRIPTION "COMPASS CARMA lirary" LANGUAGES CUDA CXX)
 
+include(CheckIPOSupported)
+check_ipo_supported(RESULT supported OUTPUT error)
+
 find_package(PkgConfig REQUIRED)
 find_package(CUDAToolkit REQUIRED)
 
@@ -28,6 +31,13 @@ add_library(libcarma
     src.cu/carma_sum.cu
     src.cu/carma_transpose.cu
 )
+
+if( supported )
+    message(STATUS "IPO / LTO enabled")
+    set_property(TARGET libcarma PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+else()
+    message(STATUS "IPO / LTO not supported: <${error}>")
+endif()
 
 target_include_directories(libcarma PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
