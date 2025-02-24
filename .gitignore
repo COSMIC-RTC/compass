@@ -72,3 +72,4 @@ CMakePresets.json
 .coverage
 report.xml
 gl-code-quality-report.json
+vcpkg_installed

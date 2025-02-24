@@ -1,10 +1,16 @@
 {
     "default-registry": {
       "kind": "git",
-      "baseline": "7032c5759f823fc8699a5c37d5f7072464ccb9a8",
+      "baseline": "d5ec528843d29e3a52d745a64b469f810b2cedbf",
       "repository": "https://github.com/microsoft/vcpkg"
     },
     "registries": [
+      {
+        "kind": "git",
+        "baseline": "6dd1b0ef94de7ae735f5cce61b6625d854a271e2",
+        "repository": "https://github.com/COSMIC-RTC/vcpkg-registry",
+        "packages": [ "pybind11" ]
+      },
       {
         "kind": "artifact",
         "location": "https://github.com/microsoft/vcpkg-ce-catalog/archive/refs/heads/main.zip",

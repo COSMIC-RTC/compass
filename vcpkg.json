@@ -1,6 +1,9 @@
 {
     "dependencies": [
-      "pybind11"
+      { 
+        "name": "pybind11", 
+        "default-features": false 
+      }
     ]
-  }
+}
   
