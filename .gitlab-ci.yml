@@ -357,6 +357,8 @@ pages:
   image: aocompass/base-rockylinux9:12.8.0
   environment: development
   stage: pages
+  tags:
+  - compass
   variables:
     COMPASS_ROOT: "$CI_PROJECT_DIR"
     SHESHA_ROOT: "$COMPASS_ROOT/shesha"
