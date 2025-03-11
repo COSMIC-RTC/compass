@@ -4,28 +4,6 @@ stages:
 - test
 - pages
 
-.build_generic:
-  stage: build
-  variables:
-    COMPASS_ROOT: "$CI_PROJECT_DIR"
-    SHESHA_ROOT: "$COMPASS_ROOT/shesha"
-    VCPKG_ROOT: "$CI_PROJECT_DIR/vcpkg"
-    COMPASS_DO_HALF: "OFF"
-  script:
-  - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$COMPASS_ROOT/local/python
-  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_ROOT/local/lib
-  - unset CUDA_SM
-  - . $CONDA_ROOT/etc/profile.d/conda.sh
-  - . $CONDA_ROOT/etc/profile.d/mamba.sh
-  - mamba env create --file environment.yml
-  - mamba activate compass
-  - ./compile.py
-  artifacts:
-    name: "${CI_JOB_NAME}_binaires"
-    paths:
-    - local/
-    expire_in: 6 mos
-
 sast:
   stage: test
 include:
@@ -55,8 +33,37 @@ semgrep-sast:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH      # Run code quality job in pipelines on the default branch (but not in other branch pipelines)
     - if: $CI_COMMIT_TAG                               # Run code quality job in pipelines for tags
 
+.build_generic:
+  stage: build
+  tags:
+  - compass
+  variables:
+    COMPASS_ROOT: "$CI_PROJECT_DIR"
+    SHESHA_ROOT: "$COMPASS_ROOT/shesha"
+    
+    COMPASS_DO_HALF: "OFF"
+  script:
+  - export VCPKG_ROOT="$HOME/vcpkg"
+  - export PATH=$PATH:/usr/local/cuda/bin/
+  - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$COMPASS_ROOT/local/python
+  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_ROOT/local/lib
+  - unset CUDA_SM
+  - . $CONDA_ROOT/etc/profile.d/conda.sh
+  - . $CONDA_ROOT/etc/profile.d/mamba.sh
+  - mamba env create --file environment.yml
+  - mamba activate compass
+  - ./script/install_vcpkg.sh
+  - ./compile.py
+  artifacts:
+    name: "${CI_JOB_NAME}_binaires"
+    paths:
+    - local/
+    expire_in: 6 mos
+
 .lint_generic:
   stage: test
+  tags:
+  - compass
   variables:
     COMPASS_ROOT: "$CI_PROJECT_DIR"
     SHESHA_ROOT: "$COMPASS_ROOT/shesha"
@@ -79,6 +86,8 @@ semgrep-sast:
     expire_in: 6 mos
 
 .test_generic:
+  tags:
+  - compass
   variables:
     COMPASS_ROOT: "$CI_PROJECT_DIR"
     SHESHA_ROOT: "$COMPASS_ROOT/shesha"
@@ -191,37 +200,169 @@ test_debug_rockylinux8_11.8.0:
   - merge_requests
   - develop
 
-lint_release_rockylinux8_11.8.0:
-  image: aocompass/base-rockylinux8:11.8.0
+build_release_jammy_12.8.0:
+  image: aocompass/base-22.04:12.8.0
   environment: production
-  extends: .lint_generic
-  dependencies:
-  - build_release_rockylinux8_11.8.0
+  extends: .build_generic
   when: always
   only:
   - main
 
-lint_debug_rockylinux8_11.8.0:
-  image: aocompass/base-rockylinux8:11.8.0
+build_debug_jammy_12.8.0:
+  image: aocompass/base-22.04:12.8.0
+  environment: development
+  extends: .build_generic
+  variables:
+    COMPASS_DEBUG: "Debug"
+  when: always
+  only:
+  - merge_requests
+  - develop
+  artifacts:
+    paths:
+    - local/
+    expire_in: 6 mos
+
+test_release_jammy_12.8.0:
+  image: aocompass/base-22.04:12.8.0
+  environment: production
+  extends: .test_generic
+  dependencies:
+  - build_release_jammy_12.8.0
+  when: always
+  only:
+  - main
+
+test_debug_jammy_12.8.0:
+  image: aocompass/base-22.04:12.8.0
+  environment: development
+  extends: .test_generic
+  dependencies:
+  - build_debug_jammy_12.8.0
+  when: always
+  only:
+  - merge_requests
+  - develop
+
+build_release_rockylinux8_12.8.0:
+  image: aocompass/base-rockylinux8:12.8.0
+  environment: production
+  extends: .build_generic
+  when: always
+  only:
+  - main
+
+build_debug_rockylinux8_12.8.0:
+  image: aocompass/base-rockylinux8:12.8.0
+  environment: development
+  extends: .build_generic
+  variables:
+    COMPASS_DEBUG: "Debug"
+  when: always
+  only:
+  - merge_requests
+  - develop
+  artifacts:
+    paths:
+    - local/
+    expire_in: 6 mos
+
+test_release_rockylinux8_12.8.0:
+  image: aocompass/base-rockylinux8:12.8.0
+  environment: production
+  extends: .test_generic
+  dependencies:
+  - build_release_rockylinux8_12.8.0
+  when: always
+  only:
+  - main
+
+test_debug_rockylinux8_12.8.0:
+  image: aocompass/base-rockylinux8:12.8.0
+  environment: development
+  extends: .test_generic
+  dependencies:
+  - build_debug_rockylinux8_12.8.0
+  when: always
+  only:
+  - merge_requests
+  - develop
+
+build_release_rockylinux9_12.8.0:
+  image: aocompass/base-rockylinux9:12.8.0
+  environment: production
+  extends: .build_generic
+  when: always
+  only:
+  - main
+
+build_debug_rockylinux9_12.8.0:
+  image: aocompass/base-rockylinux9:12.8.0
+  environment: development
+  extends: .build_generic
+  variables:
+    COMPASS_DEBUG: "Debug"
+  when: always
+  only:
+  - merge_requests
+  - develop
+  artifacts:
+    paths:
+    - local/
+    expire_in: 6 mos
+
+test_release_rockylinux9_12.8.0:
+  image: aocompass/base-rockylinux9:12.8.0
+  environment: production
+  extends: .test_generic
+  dependencies:
+  - build_release_rockylinux9_12.8.0
+  when: always
+  only:
+  - main
+
+test_debug_rockylinux9_12.8.0:
+  image: aocompass/base-rockylinux9:12.8.0
+  environment: development
+  extends: .test_generic
+  dependencies:
+  - build_debug_rockylinux9_12.8.0
+  when: always
+  only:
+  - merge_requests
+  - develop
+
+lint_release_rockylinux9_12.8.0:
+  image: aocompass/base-rockylinux9:12.8.0
+  environment: production
+  extends: .lint_generic
+  dependencies:
+  - build_release_rockylinux9_12.8.0
+  when: always
+  only:
+  - main
+
+lint_debug_rockylinux9_12.8.0:
+  image: aocompass/base-rockylinux9:12.8.0
   environment: development
   extends: .lint_generic
   dependencies:
-  - build_debug_rockylinux8_11.8.0
+  - build_debug_rockylinux9_12.8.0
   when: always
   only:
   - merge_requests
   - develop
 
 pages:
-  image: aocompass/base-rockylinux8:11.8.0
+  image: aocompass/base-rockylinux9:12.8.0
   environment: development
   stage: pages
   variables:
     COMPASS_ROOT: "$CI_PROJECT_DIR"
     SHESHA_ROOT: "$COMPASS_ROOT/shesha"
   dependencies:
-  - build_debug_rockylinux8_11.8.0
-  - test_debug_rockylinux8_11.8.0
+  - build_debug_rockylinux9_12.8.0
+  - test_debug_rockylinux9_12.8.0
   script:
   - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$NAGA_ROOT:$COMPASS_ROOT/local/python
   - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_ROOT/local/lib
