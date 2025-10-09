@@ -34,6 +34,7 @@ Options:
   -n --niter niter   Number of iterations
   -g --generic       Use generic controller
   -f --fast          Compute PSF only during monitoring
+  --load             Load the matrices from files
 """
 
 from shesha.config import ParamConfig
@@ -70,40 +71,46 @@ if __name__ == "__main__":
 
     supervisor = Supervisor(config)
 
-    # Specific MICADO stuff
-    # Index of the actuators in and outside the pupil
-    ipos_in, ipos_out = supervisor.basis.compute_ipos_in_pupil(d_obs=11.4, d_pup=37.)
-    # Index of the actuators along the spiders
-    ipos_spi1, ipos_spi2 = supervisor.basis.compute_ipos_spider()
-    # Number of M4 actuators
-    Nactu = supervisor.config.p_dms[0]._ntotact
-    # ???
-    ipos_out2 = np.unique(np.r_[ipos_out, ipos_spi1])
-    ipos_in2 = np.arange(Nactu)[np.where(np.isin(np.arange(Nactu), ipos_out2) == False)]
-    # Normalization matrix
-    IFdelta = supervisor.basis.compute_influ_delta(0)
-    # Gendron basis
-    Bg, Bgext = supervisor.basis.compute_Bg(ipos_in=ipos_in2, IFdelta=IFdelta)
-    # Continuous basis = Modal basis used
-    Bc, Bcext = supervisor.basis.compute_Br(Bg, ipos_in2, ipos_out2, IFdelta=IFdelta)
-    # Zeros padding to integrate TT
-    Bext = np.zeros((Nactu+2,Nactu+2))
-    nmodes = Bc.shape[1]-1
-    Bext[-2:,0:2] = 0.02 * np.eye(2)
-    Bext[:-2, 2:nmodes] = Bc[:, 2:-1].copy()    
-    # Push4imat vector
-    pushDMMic = 0.01
-    pushTTArcsec = 0.005
-    modesAmpli = np.ones(Bext.shape[0]) # shape[1] ?
-    modesAmpli[0:nmodes - 2] = pushDMMic
-    modesAmpli[nmodes - 2:] = pushTTArcsec
-    # Compute imat
-    imat = supervisor.calibration.do_imat_modal(0, modesAmpli, Bext[:, :nmodes], nmodes_max=0, noise=False, with_turbu=False, push_pull=True)
-    # Compute cmat
-    rmatc = np.linalg.pinv(imat)
-    Nslopes = 26912
-    Cext = np.zeros((Nactu + 2, Nslopes))
-    Cext[:nmodes, :] = rmatc.copy()
+    if arguments["--load"]:
+        Bext = np.load("Bext.npy")
+        Cext = np.load("Cext.npy")
+        nmodes = 3707
+        Nactu = 5352    
+    else:
+        # Specific MICADO stuff
+        # Index of the actuators in and outside the pupil
+        ipos_in, ipos_out = supervisor.basis.compute_ipos_in_pupil(d_obs=11.4, d_pup=37.)
+        # Index of the actuators along the spiders
+        ipos_spi1, ipos_spi2 = supervisor.basis.compute_ipos_spider()
+        # Number of M4 actuators
+        Nactu = supervisor.config.p_dms[0]._ntotact
+        # ???
+        ipos_out2 = np.unique(np.r_[ipos_out, ipos_spi1])
+        ipos_in2 = np.arange(Nactu)[np.where(np.isin(np.arange(Nactu), ipos_out2) == False)]
+        # Normalization matrix
+        IFdelta = supervisor.basis.compute_influ_delta(0)
+        # Gendron basis
+        Bg, Bgext = supervisor.basis.compute_Bg(ipos_in=ipos_in2, IFdelta=IFdelta)
+        # Continuous basis = Modal basis used
+        Bc, Bcext = supervisor.basis.compute_Br(Bg, ipos_in2, ipos_out2, IFdelta=IFdelta)
+        # Zeros padding to integrate TT
+        Bext = np.zeros((Nactu+2,Nactu+2))
+        nmodes = Bc.shape[1]-1
+        Bext[-2:,0:2] = 0.02 * np.eye(2)
+        Bext[:-2, 2:nmodes] = Bc[:, 2:-1].copy()    
+        # Push4imat vector
+        pushDMMic = 0.01
+        pushTTArcsec = 0.005
+        modesAmpli = np.ones(Bext.shape[0]) # shape[1] ?
+        modesAmpli[0:nmodes - 2] = pushDMMic
+        modesAmpli[nmodes - 2:] = pushTTArcsec
+        # Compute imat
+        imat = supervisor.calibration.do_imat_modal(0, modesAmpli, Bext[:, :nmodes], nmodes_max=0, noise=False, with_turbu=False, push_pull=True)
+        # Compute cmat
+        rmatc = np.linalg.pinv(imat)
+        Nslopes = 26912
+        Cext = np.zeros((Nactu + 2, Nslopes))
+        Cext[:nmodes, :] = rmatc.copy()
     # CLOSE config
     gain = 0.5 ; qp = 0.05 ; qm = 2 * qp ; trgt = 0.0
     mask = 1.0 * np.r_[np.ones(nmodes), np.zeros(Nactu+2 - nmodes, dtype=np.float32)]
@@ -111,11 +118,15 @@ if __name__ == "__main__":
     supervisor.rtc.set_modal_integrator_law(0)
     supervisor.modalgains.set_modal_basis(Bext)
     supervisor.modalgains.set_cmat_modal(Cext)
-    supervisor.modalgains.set_mask(mask)
-    supervisor.modalgains.set_config(0.3, qm, qp, trgt, 1)
-    supervisor.modalgains.adapt_modal_gains(True)
+    # supervisor.modalgains.set_mask(mask)
+    # supervisor.modalgains.set_config(0.3, qm, qp, trgt, 1)
+    # supervisor.modalgains.adapt_modal_gains(True)
     supervisor.rtc.set_gain(0, gain)
     # AO loop
+    supervisor.rtc.open_loop(0)
+    supervisor.next()
+    supervisor.next()
+    supervisor.rtc.close_loop(0)    
     supervisor.loop(supervisor.config.p_loop.niter, compute_tar_psf=compute_tar_psf)
 
     if arguments["--interactive"]:

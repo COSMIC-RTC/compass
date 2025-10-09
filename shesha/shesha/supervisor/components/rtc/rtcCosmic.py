@@ -67,12 +67,13 @@ class RtcCosmic:
             self.subscriber = ts.Streamer("rtms")
             self.subscriber.configure(self.local_host, self.com)
         else:
-            self.frame_shm = ciw.CacaoInterfaceWrap(self.config.p_hrtc.frame_shm)
-            self.com_shm = ciw.CacaoInterfaceWrap(self.config.p_hrtc.com_shm)
+            self.frame_shm = ciw.CacaoInterfaceFloat(self.config.p_hrtc.frame_shm)
+            self.com_shm = ciw.CacaoInterfaceFloat(self.config.p_hrtc.com_shm)
 
         img_shape = wfs.get_wfs_image(0).shape
         self.crop = (img_shape[0] - self.framesize) // 2
         self.framecounter = 2
+        self.com = np.sum([p_dm._ntotact for p_dm in config.p_dms])
 
     def do_control(self):
         """Send WFS frame to H-RTC and receipt DM command"""

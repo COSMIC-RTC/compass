@@ -23,6 +23,6 @@ dependencies:
   - pytest-html
   - pytest-metadata
   - ruff
+  - anaconda::pyqt
   - pip:
-    - pyqt6
     - pyqtgraph

@@ -45,6 +45,7 @@ from shesha.supervisor.twoStagesManager import TwoStagesManager
 
 from typing import Any
 from docopt import docopt
+import rpyc
 
 from shesha.widgets.widget_ao import widgetAOWindow
 
@@ -52,7 +53,7 @@ global server
 server = None
 
 
-class widgetTwoStagesWindowPyro:
+class widgetTwoStagesWindowPyro(rpyc.Service):
     def __init__(
         self,
         config_file1: Any = None,
@@ -85,15 +86,15 @@ class widgetTwoStagesWindowPyro:
         # Default path for config files
         # self.wao1.uiAO.wao_open_loop.setChecked(False)
         # self.wao1.uiAO.wao_open_loop.setText("Close Loop")
-        self.wao1.uiAO.actionShow_Pyramid_Tools.toggled.connect(self.show_pyr_tools)
-        self.wao2.uiAO.actionShow_Pyramid_Tools.toggled.connect(self.show_pyr_tools)
-        self.wpyrNbBuffer = 1
+        # self.wao1.uiAO.actionShow_Pyramid_Tools.toggled.connect(self.show_pyr_tools)
+        # self.wao2.uiAO.actionShow_Pyramid_Tools.toggled.connect(self.show_pyr_tools)
+        # self.wpyrNbBuffer = 1
         #                       METHODS                             #
 
         self.manager = TwoStagesManager(self.wao1.supervisor, self.wao2.supervisor, self.freqratio)
 
         global server
-        server = self.start_pyro_server()
+        # server = self.start_pyro_server()
 
     def loop_once(self) -> None:
         self.manager.next()
@@ -302,8 +303,16 @@ class widgetTwoStagesWindowPyro:
                 "- pyro server not running"
             )
         return server
-
-
+    
+    def connectRpycService(self):
+        from rpyc.utils.server import ThreadedServer
+        
+        t=ThreadedServer(self, 
+                         port=18862, 
+                         protocol_config={'allow_public_attrs': True, 
+                                          'bind_threads': False})
+        t.start()
+        
 class loopHandler:
     def __init__(self, wao):
         self.wao = wao
@@ -330,7 +339,6 @@ if __name__ == "__main__":
         arguments["<parameters_filename2>"],
         arguments["<freqratio>"],
     )
-
     wao.wao1.show()
     wao.wao2.show()
     wao.wao2.uiAO.wao_run.hide()
@@ -340,3 +348,9 @@ if __name__ == "__main__":
         wao.loop_once
     )  # very dirty (for some reason this does not work during class init...)
     wao.wao2.loop_once = wao.loop_once  # very dirty bis
+    import threading
+    t = threading.Thread(target=wao.connectRpycService)
+    t.start()
+    import sys
+    sys.exit(app.exec())  # Start the Qt event loop
+    # wao.connectRpycService()

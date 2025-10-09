@@ -16,6 +16,7 @@ build
 # Data files -- you can still git add them manually
 *.h5
 *.fits
+*.npy
 
 # Pyro and DDS namebases
 repo.ior

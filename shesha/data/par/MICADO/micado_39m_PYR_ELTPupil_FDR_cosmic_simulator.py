@@ -10,7 +10,7 @@ p_loop = ao.ParamLoop()
 
 p_loop.set_niter(1000)
 p_loop.set_ittime(1 / 500.0)  # =1/500
-p_loop.set_devices([0, 1, 2, 3])
+p_loop.set_devices([0])
 # geom
 p_geom = ao.ParamGeom()
 p_geom.set_zenithangle(0.0)
@@ -372,11 +372,14 @@ p_controller0.set_gain(1)
 
 p_hrtc = ao.ParamHrtc()
 
-p_hrtc.set_hrtc_host("192.168.1.40:10000")
-p_hrtc.set_local_host("192.168.1.31:6001")
-p_hrtc.set_wfs_payload_size(960)
-p_hrtc.set_com_payload_size(960)
-p_hrtc.set_framesize(240)
+p_hrtc.hrtc_host = "192.168.1.40:10000"
+p_hrtc.local_host = "192.168.1.31:6001"
+p_hrtc.frame_shm = "RawWFSframeInterface"
+p_hrtc.com_shm = "VoltsInterface"
+p_hrtc.framesize = 240
+
+p_hrtc.wfs_payload_size = 960
+p_hrtc.com_payload_size = 960
 """
  PERFECT CORONO FOR MICADO
 

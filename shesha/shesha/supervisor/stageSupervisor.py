@@ -18,6 +18,7 @@
 
 
 from shesha.supervisor.compassSupervisor import CompassSupervisor
+from shesha.supervisor.components.rtc import RtcCosmic
 
 import shesha.constants as scons
 
@@ -58,7 +59,14 @@ class StageSupervisor(CompassSupervisor):
 
         close_modal_gains : (list of floats) : list of the previous values of the modal gains
     """
-
+    def _init_rtc(self):
+        """Initialize the rtc component of the supervisor as a RtcCompass"""
+        super()._init_rtc()
+        if self.config.p_hrtc is not None:
+            self.hrtc = RtcCosmic(self.config, self.wfs, self.dms)
+        else:
+            self.hrtc = None
+            
     def next(
         self,
         *,
@@ -150,12 +158,8 @@ class StageSupervisor(CompassSupervisor):
         else:
             # start updating the DM shape
             if apply_control:
-                for ncontrol in nControl:
-                    # command buffer is updated and commands voltages update is applied
-                    self.rtc.apply_control(ncontrol)
-                    # Note: clipping is always made by apply_control (CBE. 2023.01.27)
-
-            # start the propagations
+                self.apply_control(nControl)
+                # start the propagations
             if tar_trace is not None:  # already checked at line 213?
                 for t in tar_trace:
                     if self.atmos.is_enable:
@@ -188,8 +192,8 @@ class StageSupervisor(CompassSupervisor):
                     if do_centroids:
                         self.rtc.do_centroids(ncontrol)
 
-                    if do_control:
-                        self.rtc.do_control(ncontrol)
+            if do_control:
+                self.do_control(nControl)
 
         if compute_tar_psf:
             for tar_index in tar_trace:
@@ -220,3 +224,23 @@ class StageSupervisor(CompassSupervisor):
         self.dms.reset_dm()
         self.rtc.open_loop()
         self.rtc.close_loop()
+
+    def do_control(self, nControl: int = 0):
+        """Perform the control operation for the specified controller number."""
+        if self.hrtc is not None:
+            self.hrtc.do_control()
+        elif self.rtc is not None:
+            for ncontrol in nControl:
+                self.rtc.do_control(ncontrol)
+        else:
+            raise RuntimeError("No RTC component available to perform control operation.")
+    
+    def apply_control(self, nControl):
+        """Apply the control operation for the specified controller number."""
+        if self.hrtc is not None:
+            self.hrtc.apply_control()
+        elif self.rtc is not None:
+            for ncontrol in nControl:
+                self.rtc.apply_control(ncontrol)
+        else:
+            raise RuntimeError("No RTC component available to apply control operation.")

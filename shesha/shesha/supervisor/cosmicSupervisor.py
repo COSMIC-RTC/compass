@@ -18,7 +18,7 @@
 
 
 from shesha.supervisor.compassSupervisor import CompassSupervisor
-from shesha.supervisor.components import RtcCosmic
+from shesha.supervisor.components.rtc import RtcCosmic
 import time
 
 
