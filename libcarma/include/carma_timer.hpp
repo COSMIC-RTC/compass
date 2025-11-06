@@ -76,9 +76,14 @@ class CarmaClock {
   int64_t *clock_counter;
 
   CarmaClock(CarmaContext *context, int32_t i) {
-    int clockRateKHz;
-    cudaDeviceGetAttribute(&clockRateKHz, cudaDevAttrClockRate, context->get_active_device());
-    gpu_freq = clockRateKHz * 1000;
+    int clock_khz = 0;
+    cudaError_t err = cudaDeviceGetAttribute(
+        &clock_khz, cudaDevAttrClockRate, context->get_active_device());
+    if (err != cudaSuccess) {
+        throw std::runtime_error("cudaDevAttrClockRate unavailable");
+    }
+    gpu_freq = static_cast<int64_t>(clock_khz) * 1000; // Hz
+
     int64_t dims[2] = {1, i};
     time_buffer = new CarmaObj<double>(context, dims);
     cc = 0;
