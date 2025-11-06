@@ -44,8 +44,10 @@ CarmaDevice::CarmaDevice(int32_t devid) {
   cudaGetDeviceProperties(&(this->properties), devid);
   this->cores_per_sm =
       convert_sm_version2cores(this->properties.major, this->properties.minor);
+  int clock_khz = 0;
+  cudaDeviceGetAttribute(&clock_khz, cudaDevAttrClockRate, devid);
   this->compute_perf = this->properties.multiProcessorCount *
-                       this->cores_per_sm * this->properties.clockRate;
+                       this->cores_per_sm * clock_khz;
 
   carma_safe_call(cudaMemGetInfo(&total_mem, &total_mem));
 
@@ -328,14 +330,20 @@ int32_t CarmaContext::get_max_gflops_device_id() {
   while (current_device >= 0) {
     deviceProp = devices[current_device]->get_properties();
 
-    if (deviceProp.computeMode != cudaComputeModeProhibited) {
+    int compute_mode = 0;
+    cudaDeviceGetAttribute(&compute_mode, cudaDevAttrComputeMode, devices[current_device]->get_id());
+
+    if (compute_mode != cudaComputeModeProhibited) {
       if ((deviceProp.major == 9999) && (deviceProp.minor == 9999)) {
         cores_per_sm = 1;
       } else {
         cores_per_sm = convert_sm_version2cores(deviceProp.major, deviceProp.minor);
       }
-      int32_t compute_perf =
-          deviceProp.multiProcessorCount * cores_per_sm * deviceProp.clockRate;
+
+      int clock_khz = 0;
+      cudaDeviceGetAttribute(&clock_khz, cudaDevAttrClockRate, devices[current_device]->get_id());
+
+      int32_t compute_perf = deviceProp.multiProcessorCount * cores_per_sm * clock_khz;
 
       if (compute_perf >= max_compute_perf) {
         // If we find GPU with SM major > 2, search only these
