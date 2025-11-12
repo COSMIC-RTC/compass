@@ -25,7 +25,7 @@ local compass_install = os.getenv("HOME") .. "/local/compass"
 local shesha = os.getenv("HOME") .. "/compass/shesha"
 pushenv("COMPASS_ROOT", compass)
 pushenv("COMPASS_INSTALL_ROOT", compass_install)
-pushenv("SHESHA_ROOT", compass)
+pushenv("SHESHA_ROOT", shesha)
 prepend_path("PYTHONPATH", shesha)
 prepend_path("PYTHONPATH", compass_install .. "/python")
 prepend_path("LD_LIBRARY_PATH", compass_install .. "/lib")
@@ -38,7 +38,7 @@ if (not isloaded("cuda")) then
     load("cuda")
 end
 
-execute{cmd="mamba activate cosmic", modeA={"load"}}
+execute{cmd="mamba activate compass", modeA={"load"}}
 execute{cmd="mamba deactivate", modeA={"unload"}}
--- execute{cmd="source " .. home_local .. "cosmic-env/bin/activate", modeA={"load"}}
+-- execute{cmd="source " .. home_local .. "compass-env/bin/activate", modeA={"load"}}
 -- execute{cmd="deactivate", modeA={"unload"}}

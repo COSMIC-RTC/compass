@@ -169,7 +169,7 @@ class EnvironmentChecker:
         
         # Try requirements.txt first
         if compass_root:
-            requirements_file = Path(compass_root) / "requirements.txt"
+            requirements_file = Path(compass_root) / "cli/requirements.txt"
             if requirements_file.exists():
                 try:
                     packages = []
