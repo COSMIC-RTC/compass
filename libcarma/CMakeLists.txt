@@ -37,6 +37,7 @@ target_include_directories(libcarma PUBLIC
 set_target_properties(libcarma PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
+    POSITION_INDEPENDENT_CODE ON
 )
 
 target_compile_features(libcarma PUBLIC cxx_std_14)

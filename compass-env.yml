@@ -19,9 +19,11 @@ dependencies:
   - cmake
   - pybind11
   - coverage
+  - psutil
   - pytest-cov
   - pytest-html
   - pytest-metadata
+  - pyyaml
   - ruff
   - anaconda::pyqt
   - pip:

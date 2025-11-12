@@ -1,28 +1,66 @@
-[tool.poetry]
-name = "compass-libs"
-version = "6.0.0-0"
-description = "this is the C++ libraries and python wrappers of the COMPASS platform designed to meet the need of high-performance for the simulation of AO systems"
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "compass-cli"
+version = "6.0.0"
+description = "COMPASS CLI - Deployment and management framework for COMPASS AO systems"
+readme = "cli/README.md"
+requires-python = ">=3.8"
+license = {text = "LGPL-3.0-or-later"}
 authors = [
-    "Florian Ferreira <florian.ferreira@obspm.fr>",
-    "Damien Gratadour <damien.gratadour@obspm.fr>",
-    "Arnaud Sevin <arnaud.sevin@obspm.fr>",
+    {name = "Florian Ferreira", email = "florian.ferreira@obspm.fr"},
+    {name = "Damien Gratadour", email = "damien.gratadour@obspm.fr"},
+    {name = "Arnaud Sevin", email = "arnaud.sevin@obspm.fr"},
 ]
 maintainers = [
-    "Florian Ferreira <florian.ferreira@obspm.fr>",
-    "Arnaud Sevin <arnaud.sevin@obspm.fr>",
+    {name = "Florian Ferreira", email = "florian.ferreira@obspm.fr"},
+    {name = "Arnaud Sevin", email = "arnaud.sevin@obspm.fr"},
 ]
-license = "LGPL-3.0-or-later"
-readme = "README.md"
-repository = "https://github.com/ANR-COMPASS/shesha"
-documentation = "https://shesha.readthedocs.io/en/master/"
-packages = [
-    { include = "CHANGELOG.md" },
-    { include = "report_E2E.md" },
+keywords = ["astronomy", "adaptive-optics", "simulation", "deployment"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Astronomy",
 ]
 
-[tool.poetry.build]
-generate-setup-file = false
-script = 'compile.py'
+dependencies = [
+    "rich>=13.0.0",
+    "pyyaml>=6.0",
+    "psutil>=5.9.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+]
+
+[project.scripts]
+compass = "compass.cli:main"
+compass-build = "compass.deployment.build:main"
+
+[project.urls]
+Homepage = "https://github.com/ANR-COMPASS/shesha"
+Documentation = "https://shesha.readthedocs.io/en/master/"
+Repository = "https://github.com/ANR-COMPASS/shesha"
+
+[tool.setuptools.packages.find]
+where = ["cli"]
+include = ["compass*"]
+exclude = ["tests*"]
 
 [tool.ruff]
 line-length = 100
@@ -45,3 +83,8 @@ max-complexity = 10
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"  # Accepts: "google", "numpy", or "pep257".
+
+[tool.black]
+line-length = 100
+target-version = ["py38", "py39", "py310", "py311"]
+

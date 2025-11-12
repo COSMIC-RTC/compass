@@ -83,6 +83,7 @@ target_include_directories(libsutra
 set_target_properties(libsutra PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
+    POSITION_INDEPENDENT_CODE ON
 )
 
 target_compile_features(libsutra PUBLIC cxx_std_14)
