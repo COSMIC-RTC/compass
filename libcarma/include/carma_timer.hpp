@@ -76,9 +76,9 @@ class CarmaClock {
   int64_t *clock_counter;
 
   CarmaClock(CarmaContext *context, int32_t i) {
-    cudaDeviceProp cdp;
-    cudaGetDeviceProperties(&cdp, context->get_active_device());
-    gpu_freq = cdp.clockRate * 1000;
+    int clockRateKHz;
+    cudaDeviceGetAttribute(&clockRateKHz, cudaDevAttrClockRate, context->get_active_device());
+    gpu_freq = clockRateKHz * 1000;
     int64_t dims[2] = {1, i};
     time_buffer = new CarmaObj<double>(context, dims);
     cc = 0;

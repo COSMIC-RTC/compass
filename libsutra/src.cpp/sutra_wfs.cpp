@@ -317,3 +317,8 @@ int32_t SutraWfs::set_max_pix_value(int32_t max_pix_value) {
   this->max_pix_value = max_pix_value;
   return EXIT_SUCCESS;
 }
+
+int32_t SutraWfs::set_nphotons(float nphot) {
+  this->nphot = nphot;
+  return EXIT_SUCCESS;
+}

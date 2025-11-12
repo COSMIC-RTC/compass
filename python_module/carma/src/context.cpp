@@ -28,7 +28,6 @@ namespace py = pybind11;
 void declare_carma_context(py::module &mod) {
   py::class_<CarmaDevice>(mod, "device")
       .def_property_readonly("id", &CarmaDevice::get_properties)
-      .def_property_readonly("compute_perf", &CarmaDevice::get_compute_perf)
       .def_property_readonly("cores_per_sm", &CarmaDevice::get_cores_per_sm)
       .def_property_readonly("name", &CarmaDevice::get_name)
       .def_property_readonly("total_mem", &CarmaDevice::get_total_mem)

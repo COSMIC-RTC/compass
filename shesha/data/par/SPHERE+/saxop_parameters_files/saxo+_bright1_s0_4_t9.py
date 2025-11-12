@@ -21,6 +21,7 @@ import os
 # FIXME: should us remove mark: [?]
 
 simul_name = "saxoplus"  # [?]
+layout = "saxo+simu"
 
 freq_second_stage = 3000. # /?\ Setup here second stage frequency
 
@@ -174,13 +175,13 @@ p_corono0.set_image_sampling(image_sampling)  # size of lambda/D in pixel
                                     # 0.054 μm = bandwidth of H3 IRDIS filter
                                     # this value is just an example, not a fixed parameter
 
-# p_hrtc = conf.ParamHrtc()
+p_hrtc = conf.ParamHrtc()
 
-# # p_hrtc.hrtc_host = "192.168.1.40:10000"
-# # p_hrtc.local_host = "192.168.1.31:6001"
-# p_hrtc.frame_shm = "UnscrambledWFSframeInterfaceCPU"
-# p_hrtc.com_shm = "DisturbedModesInterfaceCPU"
-# p_hrtc.framesize = 128
+# p_hrtc.hrtc_host = "192.168.1.40:10000"
+# p_hrtc.local_host = "192.168.1.31:6001"
+p_hrtc.frame_shm = "RawWFSframeInterfaceCPU"
+p_hrtc.com_shm = "DisturbedModesInterfaceCPU"
+p_hrtc.framesize = 128
 
 # p_hrtc.wfs_payload_size = 960
 # p_hrtc.com_payload_size = 960

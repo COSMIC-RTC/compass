@@ -24,6 +24,7 @@ atmosphere = __import__("atmosphere")
 # _my_dm_dir = os.path.abspath(os.path.join(_my_cases_dir, "../data"))
 
 simul_name = "sphere"  # [?]
+layout = "SCAO_SH"
 
 # FIXME: question "should us remove?" at mark: [?]
 
@@ -135,7 +136,7 @@ p_dm0.set_alt(0.)             # /!\
 p_dm0.set_unitpervolt(1.)     # /!\
 p_dm0.set_push4imat(0.180)    # to displace about half a pixel
 dm_data = 'data/dm-and-cmat-data/saxo/'
-p_dm0.set_file_influ_fits('SAXO_HODM_gauss_fitSPARTA.fits') # /!\ to use a custom SAXO HO DM
+p_dm0.set_file_influ_fits('HODM_gauss_fitSPARTA.fits') # /!\ to use a custom SAXO HO DM
 
 # tip-tilt
 p_dm1.set_type("tt")         # /!\

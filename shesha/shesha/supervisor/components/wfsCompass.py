@@ -472,3 +472,13 @@ class WfsCompass(SourceCompass):
             focal_plane : (np.ndarray) : psf on the top of the pyramid
         """
         return np.fft.fftshift(np.array(self._wfs.d_wfs[wfs_index].d_pyrfocalplane))
+
+    def set_nphotons(self, wfs_index: int, nphot: float) -> None:
+        """Set the number of photons per frame for the given WFS
+
+        Args:
+            wfs_index : (int) : WFS index
+
+            nphot : (float) : number of photons per frame
+        """
+        self._wfs.d_wfs[wfs_index].set_nphotons(nphot)

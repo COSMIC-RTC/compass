@@ -127,6 +127,7 @@ class SutraWfs {
   int32_t set_fakecam(bool fakecam);
   int32_t set_max_flux_per_pix(int32_t max_flux_per_pix);
   int32_t set_max_pix_value(int32_t max_pix_value);
+  int32_t set_nphotons(float nphot);
 
   int32_t load_kernels(float *lgskern);
   int32_t sensor_trace(SutraAtmos *yatmos);

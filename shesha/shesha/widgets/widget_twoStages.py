@@ -310,7 +310,8 @@ class widgetTwoStagesWindowPyro(rpyc.Service):
         t=ThreadedServer(self, 
                          port=18862, 
                          protocol_config={'allow_public_attrs': True, 
-                                          'bind_threads': False})
+                                          'bind_threads': False,
+                                          'allow_pickle': True})
         t.start()
         
 class loopHandler:
@@ -351,6 +352,6 @@ if __name__ == "__main__":
     import threading
     t = threading.Thread(target=wao.connectRpycService)
     t.start()
-    import sys
-    sys.exit(app.exec())  # Start the Qt event loop
+    # import sys
+    # sys.exit(app.exec())  # Start the Qt event loop
     # wao.connectRpycService()

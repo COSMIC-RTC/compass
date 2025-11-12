@@ -40,7 +40,6 @@ class CarmaDevice {
  protected:
   int32_t id;
   cudaDeviceProp properties;
-  float compute_perf;
   float cores_per_sm;
   size_t free_mem;
   size_t total_mem;
@@ -58,7 +57,6 @@ class CarmaDevice {
   cudaStream_t get_stream() { return main_stream; }
   int32_t get_id() { return id; }
   cudaDeviceProp get_properties() { return properties; }
-  float get_compute_perf() { return compute_perf; }
   float get_cores_per_sm() { return cores_per_sm; }
   bool is_gpu_capable_p2p() { return (bool)(properties.major >= 2); }
 
@@ -145,7 +143,6 @@ class CarmaContext {
   }
   int32_t _set_active_device_force(int32_t new_device, int32_t silent, std::string file,
                              int32_t line);
-  int32_t get_max_gflops_device_id();
   cublasHandle_t get_cublas_handle() { return get_cublas_handle(active_device); }
   cusparseHandle_t get_cusparse_handle() {
     return get_cusparse_handle(active_device);

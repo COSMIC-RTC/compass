@@ -44,8 +44,6 @@ CarmaDevice::CarmaDevice(int32_t devid) {
   cudaGetDeviceProperties(&(this->properties), devid);
   this->cores_per_sm =
       convert_sm_version2cores(this->properties.major, this->properties.minor);
-  this->compute_perf = this->properties.multiProcessorCount *
-                       this->cores_per_sm * this->properties.clockRate;
 
   carma_safe_call(cudaMemGetInfo(&total_mem, &total_mem));
 
@@ -299,59 +297,4 @@ std::string CarmaContext::get_device_mem_info(int32_t device) {
       << "\" memory used " << usedMem << "MB / " << total_mem << "MB ("
       << usedMem * 100. / total_mem << "%)";
   return buf.str();
-}
-
-int32_t CarmaContext::get_max_gflops_device_id() {
-  /*! \brief Get the fastest device on the machine (with maximum GFLOPS).
-   *
-   * This function returns the identifier of the best available GPU (with
-   * maximum GFLOPS)
-   */
-  int32_t current_device = 0, cores_per_sm = 0;
-  int32_t max_compute_perf = 0, max_perf_device = 0;
-  int32_t device_count = 0, best_SM_arch = 0;
-  cudaDeviceProp deviceProp;
-
-  cudaGetDeviceCount(&device_count);
-
-  // Find the best major SM Architecture GPU device
-  while (current_device < device_count) {
-    if (devices[current_device]->get_properties().major > best_SM_arch) {
-      best_SM_arch = devices[current_device]->get_properties().major;
-    }
-    current_device++;
-  }
-
-  // Find the best CUDA capable GPU device
-  current_device = device_count - 1;
-
-  while (current_device >= 0) {
-    deviceProp = devices[current_device]->get_properties();
-
-    if (deviceProp.computeMode != cudaComputeModeProhibited) {
-      if ((deviceProp.major == 9999) && (deviceProp.minor == 9999)) {
-        cores_per_sm = 1;
-      } else {
-        cores_per_sm = convert_sm_version2cores(deviceProp.major, deviceProp.minor);
-      }
-      int32_t compute_perf =
-          deviceProp.multiProcessorCount * cores_per_sm * deviceProp.clockRate;
-
-      if (compute_perf >= max_compute_perf) {
-        // If we find GPU with SM major > 2, search only these
-        if (best_SM_arch > 2) {
-          // If our device==dest_SM_arch, choose this, or else pass
-          if (deviceProp.major == best_SM_arch) {
-            max_compute_perf = compute_perf;
-            max_perf_device = current_device;
-          }
-        } else {
-          max_compute_perf = compute_perf;
-          max_perf_device = current_device;
-        }
-      }
-    }
-    --current_device;
-  }
-  return max_perf_device;
 }

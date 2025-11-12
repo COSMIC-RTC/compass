@@ -351,5 +351,15 @@ void declare_wfs(py::module &mod) {
 
         nElem: (int): Number of elements in flat
       )pbdoc",
-           py::arg("flat"), py::arg("nElem"));
+           py::arg("flat"), py::arg("nElem"))
+           
+      .def("set_nphotons", &SutraWfs::set_nphotons, R"pbdoc(
+    Set the number of photons seen by the WFS
+
+    Args:
+        nphotons: (float): desired nphotons 
+        )pbdoc",
+           py::arg("nphotons"))
+
+;
 };
