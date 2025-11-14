@@ -168,9 +168,20 @@ class Builder(LoggerMixin):
         
         return self._run_command(cmake_args, cwd=self.compass_root)
     
-    def _run_cmake_build(self) -> bool:
-        """Run CMake build."""
-        self.console.print("[cyan]Building...[/cyan]")
+    def _run_cmake_build(self, targets: Optional[List[str]] = None) -> bool:
+        """
+        Run CMake build.
+        
+        Args:
+            targets: List of specific targets to build (None = all)
+        
+        Returns:
+            True if build succeeded
+        """
+        if targets:
+            self.console.print(f"[cyan]Building targets: {', '.join(targets)}...[/cyan]")
+        else:
+            self.console.print("[cyan]Building all targets...[/cyan]")
         
         # Detect number of cores
         import multiprocessing
@@ -181,6 +192,11 @@ class Builder(LoggerMixin):
             "--build", str(self.build_dir),
             "--parallel", str(n_cores),
         ]
+        
+        # Add specific targets if requested
+        if targets:
+            for target in targets:
+                cmake_args.extend(["--target", target])
         
         return self._run_command(cmake_args, cwd=self.build_dir)
     
@@ -252,7 +268,6 @@ class Builder(LoggerMixin):
     def build_all(
         self,
         clean: bool = False,
-        clean_install: bool = False,
         components: Optional[List[str]] = None,
     ) -> bool:
         """
@@ -260,30 +275,37 @@ class Builder(LoggerMixin):
         
         Args:
             clean: Clean build directories before building
-            clean_install: Clean installation directories
             components: List of specific components to build (None = all)
+                       Available: libcarma, libsutra, python_module
         
         Returns:
             True if build succeeded
         """
-        self.console.print("\n[bold cyan]🔨 Building COMPASS Components[/bold cyan]\n")
+        if components:
+            self.console.print(f"\n[bold cyan]🔨 Building COMPASS Components: {', '.join(components)}[/bold cyan]\n")
+        else:
+            self.console.print("\n[bold cyan]🔨 Building COMPASS Components[/bold cyan]\n")
         
-        # Clean if requested
-        if clean_install:
-            self.clean_install()
+        # Validate component names
+        valid_components = {"libcarma", "libsutra", "python_module"}
+        if components:
+            invalid = set(components) - valid_components
+            if invalid:
+                self.console.print(f"[red]✗ Invalid components: {', '.join(invalid)}[/red]")
+                self.console.print(f"[yellow]Valid components: {', '.join(sorted(valid_components))}[/yellow]")
+                return False
         
+        # Clean if requested     
         if clean:
             self.clean_build()
+            self.clean_install()
         
-        # Build using CMake (COMPASS uses unified CMake build)
-        success = True
-        
-        # Configure
+        # Configure (always needed, even for partial builds)
         if not self._run_cmake_configure():
             return False
         
-        # Build
-        if not self._run_cmake_build():
+        # Build with specific targets or all
+        if not self._run_cmake_build(targets=components):
             return False
         
         # Install
@@ -340,7 +362,6 @@ def main():
     
     parser = argparse.ArgumentParser(description="Build COMPASS components")
     parser.add_argument("--clean", action="store_true", help="Clean before building")
-    parser.add_argument("--clean-install", action="store_true", help="Clean install directory")
     parser.add_argument("-c", "--components", nargs="*", help="Specific components to build")
     parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
     
@@ -349,7 +370,6 @@ def main():
     builder = Builder(verbose=args.verbose)
     success = builder.build_all(
         clean=args.clean,
-        clean_install=args.clean_install,
         components=args.components,
     )
     

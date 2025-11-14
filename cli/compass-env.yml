@@ -26,5 +26,8 @@ dependencies:
   - pyyaml
   - ruff
   - anaconda::pyqt
+  - qtconsole
+  - pyzmq
+  - ipykernel
   - pip:
     - pyqtgraph

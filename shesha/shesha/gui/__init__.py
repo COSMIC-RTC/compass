@@ -15,6 +15,22 @@
 # along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
 #
 # Copyright (C) 2011-2024 COSMIC Team
-"""@package shesha
-Documentation for shesha.
+
 """
+COMPASS GUI package
+"""
+
+from .main_window import CompassMainWindow
+from .supervisor_thread import SupervisorThread
+from .display_widgets import SelectableImageDisplayWidget, ImageDisplayWidget, PlotWidget, DualPlotWidget
+from .layout_manager import LayoutManager
+
+__all__ = [
+    'CompassMainWindow', 
+    'SupervisorThread',
+    'SelectableImageDisplayWidget',
+    'ImageDisplayWidget',
+    'PlotWidget',
+    'DualPlotWidget',
+    'LayoutManager'
+]

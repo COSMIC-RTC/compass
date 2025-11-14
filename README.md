@@ -13,13 +13,18 @@ Develop status:
     - [Hardware requirements](#hardware-requirements)
     - [Environment requirements](#environment-requirements)
   - [Installation](#installation)
-    - [Install Miniforge3 with python3](#install-miniforge3-with-python3)
-      - [setup .bashrc](#setup-bashrc)
-      - [Download and installation](#download-and-installation)
-    - [Install the platform](#install-the-platform)
-      - [Download sources](#download-sources)
-      - [Install dependencies (if not already done)](#install-dependencies-if-not-already-done)
-      - [Install COMPASS](#install-compass)
+    - [Prerequisites](#prerequisites)
+    - [Step 1: Download COMPASS](#step-1-download-compass)
+    - [Step 2: Setup Python Environment](#step-2-setup-python-environment)
+    - [Step 3: Activate the Environment](#step-3-activate-the-environment)
+    - [Step 4: Install COMPASS CLI](#step-4-install-compass-cli)
+    - [Step 5: Initialize Modulefiles](#step-5-initialize-modulefiles)
+    - [Step 6: Build COMPASS](#step-6-build-compass)
+  - [Usage](#usage)
+    - [Quick Start](#quick-start)
+    - [Simulation Commands](#simulation-commands)
+    - [Other Useful Commands](#other-useful-commands)
+    - [Configuration](#configuration)
   - [Contributing](#contributing)
   - [License](#license)
 
@@ -45,72 +50,247 @@ The system must be running a 64 bit distribution of Linux with the latest NVIDIA
 
 ## Installation
 
-### Install Miniforge3 with python3
+### Prerequisites
 
-more info: <https://github.com/mamba-org/mamba>
+Before installing COMPASS, ensure you have:
+- **NVIDIA CUDA Toolkit** installed (compatible GPU required)
+- **Lmod** (Environment Modules) installed on your system
+  - Install via package manager: `sudo apt install lmod` (Debian/Ubuntu) or `sudo yum install Lmod` (RHEL/CentOS)
+  - More info: <https://lmod.readthedocs.io/>
+- **Python 3** with either `mamba`/`conda` or `venv`
 
-#### setup .bashrc
+### Step 1: Download COMPASS
 
-```bashrc
-export MAMBA_ROOT=$HOME/miniforge3
-export PATH=$MAMBA_ROOT/bin:$PATH
-```
-
-#### Download and installation
-
-```bash
-wget https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh
-bash Miniforge3-Linux-x86_64.sh -b -p $MAMBA_ROOT
-mamba init
-```
-
-### Install the platform
-
-#### Download sources
-
-First check out the latest version from the svn repository :
+Clone the repository:
 
 ```bash
 git clone https://gitlab.obspm.fr/cosmic-rtc/compass.git
+cd compass
 ```
 
-once there, you need to modify system variables in our .bashrc :
+### Step 2: Setup Python Environment
+
+COMPASS provides a setup script that creates a Python environment with all required dependencies. Choose between `mamba` (recommended) or `venv`:
+
+**Option A: Using Mamba (Recommended)**
 
 ```bash
-## CUDA default definitions
-export CUDA_ROOT=/usr/local/cuda
-export CUDA_INC_PATH=$CUDA_ROOT/include
-export CUDA_LIB_PATH=$CUDA_ROOT/lib
-export CUDA_LIB_PATH_64=$CUDA_ROOT/lib64
-export PATH=$CUDA_ROOT/bin:$PATH
-export LD_LIBRARY_PATH=$CUDA_LIB_PATH_64:$CUDA_LIB_PATH:$LD_LIBRARY_PATH
-
-#COMPASS default definitions
-export COMPASS_ROOT=$HOME/compass
-export COMPASS_INSTALL_ROOT=$COMPASS_ROOT/local
-export SHESHA_ROOT=$COMPASS_ROOT/shesha
-export LD_LIBRARY_PATH=$COMPASS_INSTALL_ROOT/lib:$LD_LIBRARY_PATH
-export PYTHONPATH=$NAGA_ROOT:$SHESHA_ROOT:$COMPASS_INSTALL_ROOT/python:$PYTHONPATH
-export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$COMPASS_INSTALL_ROOT/lib/pkgconfig
+./cli/scripts/setup_python_env.sh --mamba
 ```
 
-#### Install dependencies (if not already done)
+**Option B: Using Python venv**
 
 ```bash
-cd $COMPASS_ROOT
-mamba env create --file environment.yml
+./cli/scripts/setup_python_env.sh --venv
+```
+
+The script will:
+- Create a new environment named `compass`
+- Install all Python dependencies (NumPy, Astropy, PyYAML, Rich, etc.)
+
+### Step 3: Activate the Environment
+
+After the setup completes, activate the newly created environment:
+
+**For Mamba:**
+```bash
 mamba activate compass
-export VCPKG_ROOT=$HOME/vcpkg
-export PATH=$VCPKG_ROOT:$PATH
-./script/install_vcpkg.sh $VCPKG_ROOT
 ```
 
-#### Install COMPASS
+**For venv:**
+```bash
+source compass-venv/bin/activate
+```
+
+### Step 4: Install COMPASS CLI
+
+With the environment activated, install COMPASS in editable mode:
 
 ```bash
-cd $COMPASS_ROOT
-./compile_vcpkg.py
+pip install -e .
 ```
+
+This installs the `compass` command-line interface with all subcommands.
+
+### Step 5: Initialize Modulefiles
+
+Setup COMPASS modulefiles for environment management:
+
+```bash
+compass init
+```
+
+This command:
+- Adds COMPASS modulefiles directory to your `MODULEPATH`
+- Updates your `~/.bashrc` with the necessary configuration
+- Enables `module load compass/local` for future sessions
+
+For automatic load of the Python environment when loading COMPASS module, comment/uncomment the relevant lines at the end of `modulefiles/compass/local`, depending on your setup with venv or mamba.
+
+After this step, reload your shell or source your bashrc:
+```bash
+source ~/.bashrc
+module load compass/local
+```
+
+### Step 6: Build COMPASS
+
+Compile and install the C++/CUDA libraries:
+
+```bash
+compass build
+```
+
+This will:
+- Build **libcarma** and **libsutra** C++/CUDA libraries
+- Build Python extensions (**carma.so**, **sutra.so**)
+- Install everything to `local/` directory
+
+You can check the installation status at any time with:
+```bash
+compass check
+```
+
+## Usage
+
+COMPASS provides a powerful command-line interface for running AO simulations. The main simulation commands are available through `compass sim`.
+
+### Quick Start
+
+1. **List available parameter files:**
+   ```bash
+   compass sim list
+   ```
+   This shows all parameter directories in `shesha/data/par/`
+
+2. **List parameter files in a specific directory:**
+   ```bash
+   compass sim list MICADO
+   ```
+   Shows all `.py` parameter files in the MICADO directory
+
+3. **Run a simulation (interactive CLI mode):**
+   ```bash
+   compass sim run shesha/data/par/MICADO/micado_full.py
+   ```
+   Launches an interactive IPython session with your simulation
+
+4. **Run a GUI simulation:**
+   ```bash
+   compass sim gui shesha/data/par/MICADO/micado_full.py
+   ```
+   Launches the graphical interface for your simulation
+
+### Simulation Commands
+
+#### `compass sim run` - Interactive CLI Simulations
+
+Run simulations in an interactive IPython session with the default script (default: `closed_loop.py`):
+
+```bash
+# Basic usage
+compass sim run <parameter_file>
+
+# With options
+compass sim run shesha/data/par/MICADO/micado_full.py \
+  --iterations 1000 \
+  --devices 0,1
+
+# Pass additional arguments to the script
+compass sim run parfile.py -- --custom-arg value
+```
+
+**Options:**
+- `--iterations N` - Set number of iterations
+- `--devices 0,1` - Specify GPU devices (comma-separated)
+- `-- <args>` - Pass additional arguments to the simulation script
+
+#### `compass sim gui` - GUI Simulations
+
+Run simulations with a graphical interface using the default GUI script (default: `widget_ao.py`):
+
+```bash
+# Basic usage
+compass sim gui <parameter_file>
+
+# With options
+compass sim gui shesha/data/par/MICADO/micado_full.py \
+  --iterations 1000 \
+  --devices 0
+```
+
+#### `compass sim script` - Manage CLI Scripts
+
+Configure which script to use for CLI simulations:
+
+```bash
+# Show current default script
+compass sim script show
+
+# List available scripts
+compass sim script list
+
+# Set default script (by name from shesha/scripts/)
+compass sim script set closed_loop.py
+
+# Set custom script (absolute path)
+compass sim script set /path/to/my_custom_script.py
+```
+
+Available CLI scripts in `shesha/scripts/`:
+- `closed_loop.py` - Standard closed-loop AO simulation
+- `cosmic_simulator.py` - COSMIC instrument simulator
+- `dm_standalone.py` - Deformable mirror standalone test
+- `micado_loop.py` - MICADO-specific simulation loop
+
+#### `compass sim gui-script` - Manage GUI Scripts
+
+Configure which widget to use for GUI simulations:
+
+```bash
+# Show current GUI script
+compass sim gui-script show
+
+# List available GUI widgets
+compass sim gui-script list
+
+# Set default GUI script
+compass sim gui-script set widget_ao.py
+```
+
+Available GUI widgets in `shesha/widgets/`:
+- `widget_ao.py` - Standard AO widget (default)
+- `widget_bench.py` - Bench testing widget
+- `widget_ao_expert.py` - Expert mode AO widget
+- `widget_canapass.py` - CANAPASS instrument widget
+- `widget_cosmic_simulator.py` - COSMIC simulator widget
+- `widget_twoStages.py` - Two-stage AO widget
+
+### Other Useful Commands
+
+```bash
+# Check system status (packages, modules, builds)
+compass check
+
+# Build specific components
+compass build libcarma
+compass build libsutra
+compass build python_module
+
+# Show current configuration
+compass config show
+
+# Display version
+compass --version
+```
+
+### Configuration
+
+COMPASS stores simulation preferences in `~/.compass/sim_config.json`:
+- `default_script` - Default CLI simulation script (absolute path)
+- `default_gui_script` - Default GUI simulation script (absolute path)
+
+You can edit this file manually or use the `compass sim script` and `compass sim gui-script` commands.
 
 ## Contributing
 

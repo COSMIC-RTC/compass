@@ -30,7 +30,6 @@ def cmd_build(args):
     builder = Builder(verbose=verbose)
     success = builder.build_all(
         clean=args.clean,
-        clean_install=args.clean_install,
         components=list(args.components) if args.components else None,
     )
     
@@ -342,8 +341,8 @@ Examples:
     # Build command
     build_parser = subparsers.add_parser("build", help="Build COMPASS components")
     build_parser.add_argument("--clean", action="store_true", help="Clean build directories before building")
-    build_parser.add_argument("--clean-install", action="store_true", help="Clean install directories")
-    build_parser.add_argument("-c", "--components", nargs="*", default=[], help="Specific components to build")
+    build_parser.add_argument("-c", "--components", nargs="*", default=[], 
+                             help="Specific components to build (libcarma, libsutra, python_module)")
     build_parser.set_defaults(func=cmd_build)
     
     # Config subcommand

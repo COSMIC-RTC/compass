@@ -1,0 +1,143 @@
+{
+  "version": "1.0",
+  "docks": [
+    {
+      "dock_name": "Atmosphere_1",
+      "category": "Atmosphere",
+      "option_idx": 0,
+      "display_name": "Atmospheric Phase",
+      "data_type": "atmos_phase",
+      "data_index": 0,
+      "log_scale": false,
+      "colormap": "viridis"
+    },
+    {
+      "dock_name": "DM_2",
+      "category": "DM",
+      "option_idx": 0,
+      "display_name": "DM 0 - Shape",
+      "data_type": "dm_shape",
+      "data_index": 0,
+      "log_scale": false,
+      "colormap": "viridis"
+    },
+    {
+      "dock_name": "DM_3",
+      "category": "DM",
+      "option_idx": 1,
+      "display_name": "DM 1 - Shape",
+      "data_type": "dm_shape",
+      "data_index": 1,
+      "log_scale": false,
+      "colormap": "viridis"
+    },
+    {
+      "dock_name": "Target_4",
+      "category": "Target",
+      "option_idx": 0,
+      "display_name": "Target 0 - PSF SE",
+      "data_type": "target_psf_se",
+      "data_index": 0,
+      "log_scale": false,
+      "colormap": "viridis"
+    },
+    {
+      "dock_name": "Target_5",
+      "category": "Target",
+      "option_idx": 1,
+      "display_name": "Target 0 - PSF LE",
+      "data_type": "target_psf_le",
+      "data_index": 0,
+      "log_scale": false,
+      "colormap": "viridis"
+    },
+    {
+      "dock_name": "WFS_6",
+      "category": "WFS",
+      "option_idx": 0,
+      "display_name": "WFS 0 - Image",
+      "data_type": "wfs_image",
+      "data_index": 0,
+      "log_scale": false,
+      "colormap": "viridis"
+    }
+  ],
+  "dock_area_state": {
+    "main": [
+      "vertical",
+      [
+        [
+          "horizontal",
+          [
+            [
+              "dock",
+              "Atmospheric Phase",
+              {}
+            ],
+            [
+              "dock",
+              "WFS 0 - Image",
+              {}
+            ]
+          ],
+          {
+            "sizes": [
+              485,
+              393
+            ]
+          }
+        ],
+        [
+          "horizontal",
+          [
+            [
+              "dock",
+              "DM 0 - Shape",
+              {}
+            ],
+            [
+              "dock",
+              "DM 1 - Shape",
+              {}
+            ]
+          ],
+          {
+            "sizes": [
+              439,
+              439
+            ]
+          }
+        ],
+        [
+          "horizontal",
+          [
+            [
+              "dock",
+              "Target 0 - PSF SE",
+              {}
+            ],
+            [
+              "dock",
+              "Target 0 - PSF LE",
+              {}
+            ]
+          ],
+          {
+            "sizes": [
+              439,
+              439
+            ]
+          }
+        ]
+      ],
+      {
+        "sizes": [
+          239,
+          238,
+          239
+        ]
+      }
+    ],
+    "float": []
+  }
+}

@@ -90,11 +90,11 @@ p_dm0 = conf.ParamDm()
 p_dms = [p_dm0]
 
 p_dm0.set_type("pzt")  # /!\
-p_dm0.set_thresh(-200)  # /!\ to get all Boston actuators
+p_dm0.set_thresh(0.5)  # /!\ to get all Boston actuators
 p_dm0.set_alt(0.0)  # /!\
 p_dm0.set_unitpervolt(1.0)  # /!\
 p_dm0.set_push4imat(1.0e-3)
-p_dm0.set_file_influ_fits(boston_dm_file)  # /!\ choice made at the begin. of this file
+# p_dm0.set_file_influ_fits(boston_dm_file)  # /!\ choice made at the begin. of this file
 boston_dms = [
     "Boston24x24_flat.fits",
     "Boston28x28_flat.fits",

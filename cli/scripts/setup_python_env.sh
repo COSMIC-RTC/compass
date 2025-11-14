@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Setup Python environment for COSMIC
+# Setup Python environment for COMPASS
 # Supports both mamba (conda) and venv
 #
 # Usage:
@@ -237,7 +237,7 @@ setup_venv_env() {
     print_info "Using requirements file: $REQUIREMENTS_TXT"
     
     # Environment directory
-    VENV_DIR="$PROJECT_ROOT/$ENV_NAME"
+    VENV_DIR="$HOME/local/venv/$ENV_NAME"
     
     # Check if environment already exists
     if [ -d "$VENV_DIR" ]; then
@@ -281,7 +281,7 @@ setup_venv_env() {
 print_activation_instructions_venv() {
     echo ""
     print_info "To activate the environment, run:"
-    echo -e "  ${CYAN}source $PROJECT_ROOT/$ENV_NAME/bin/activate${NC}"
+    echo -e "  ${CYAN}source $VENV_DIR/bin/activate${NC}"
     echo ""
     print_info "To deactivate, run:"
     echo -e "  ${CYAN}deactivate${NC}"
@@ -290,14 +290,14 @@ print_activation_instructions_venv() {
 # Function to show help
 show_help() {
     cat << EOF
-${BLUE}COSMIC Python Environment Setup${NC}
+${BLUE}COMPASS Python Environment Setup${NC}
 
 ${CYAN}Usage:${NC}
   $0 [--mamba | --venv]
 
 ${CYAN}Options:${NC}
-  --mamba    Create environment using mamba/micromamba from cosmic-env.yml
-  --venv     Create environment using Python venv from cosmic-requirements.txt
+  --mamba    Create environment using mamba/micromamba from compass-env.yml
+  --venv     Create environment using Python venv from compass-requirements.txt
   --help     Show this help message
 
 ${CYAN}Examples:${NC}
@@ -305,17 +305,17 @@ ${CYAN}Examples:${NC}
   $0 --venv
 
 ${CYAN}Description:${NC}
-  This script sets up a Python environment for COSMIC development.
+  This script sets up a Python environment for compass development.
   
   ${YELLOW}Mamba mode:${NC}
     - Installs Miniforge (includes mamba) if not already installed
-    - Creates a conda environment from cosmic-env.yml
-    - Environment name: cosmic
+    - Creates a conda environment from compass-env.yml
+    - Environment name: compass
   
   ${YELLOW}Venv mode:${NC}
     - Creates a Python virtual environment
-    - Installs packages from cosmic-requirements.txt
-    - Environment location: $PROJECT_ROOT/cosmic
+    - Installs packages from compass-requirements.txt
+    - Environment location: $HOME/local/venv/compass
 
 EOF
 }
