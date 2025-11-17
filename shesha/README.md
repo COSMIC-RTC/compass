@@ -90,6 +90,56 @@ cd $SHESHA_ROOT
 ipython -i shesha/widgets/widget_ao.py
 ```
 
+## New PyQt6-based GUI
+
+COMPASS now features a modern PyQt6-based GUI with advanced features:
+
+**Features:**
+- Flexible docking layout for custom display arrangements
+- Real-time telemetry visualization
+- Interactive IPython console for advanced control
+- **Remote mode**: Run supervisor on one machine, GUI on another
+- Save/load custom layouts
+- Multiple control modes (loop control, atmosphere, Strehl reset)
+
+**Local Usage:**
+```bash
+cd $SHESHA_ROOT
+python -m shesha.gui.main
+```
+
+**Remote Mode:**
+
+1. **Server Side** (GPU machine with full COMPASS installation):
+```bash
+python shesha/run_remote_server.py data/par/par4bench/scao_sh_16x16_8pix.py --auto-start
+```
+
+2. **Client Side** (lightweight - no CUDA/sutra/carma required):
+
+   First, install minimal dependencies on client machine:
+   ```bash
+   pip install -r shesha/requirements-remote-client.txt
+   ```
+
+   Then launch the remote client:
+   ```bash
+   # Auto-connect to server
+   python shesha/run_remote_client.py --server 192.168.1.100 --auto-connect
+   
+   # Or launch and connect manually via GUI
+   python shesha/run_remote_client.py --server gpu-server
+   ```
+
+   The client script automatically enables remote mode and can connect without full COMPASS installation.
+
+The remote mode uses ZeroMQ for efficient communication, allowing you to:
+- Run GPU-intensive simulations on a server
+- Display and control from a lightweight client
+- Multiple GUIs can connect to the same server
+
+See `shesha/GUI_QUICKSTART.md` for detailed GUI documentation.
+
 
 
 Project GitHub pages with a detailed user manual : https://anr-compass.github.io/compass/

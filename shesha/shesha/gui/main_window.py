@@ -24,7 +24,7 @@ from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
     QLabel, QFileDialog, QMessageBox, QGroupBox, QGridLayout,
     QSpinBox, QDoubleSpinBox, QStatusBar, QTabWidget, QSplitter,
-    QApplication, QCheckBox, QDialog
+    QApplication, QCheckBox, QDialog, QComboBox
 )
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QAction
@@ -39,7 +39,7 @@ except ImportError:
     print("Install with: pip install qtconsole")
 
 from .supervisor_thread import SupervisorThread
-from .display_widgets import ImageDisplayWidget, PlotWidget, DualPlotWidget, SelectableImageDisplayWidget
+from .display_widgets import PlotWidget, DualPlotWidget, SelectableImageDisplayWidget
 from .layout_manager import LayoutManager
 from .connection_dialog import ConnectionDialog
 from .remote_supervisor_client import RemoteSupervisorClient
@@ -53,6 +53,12 @@ class CompassMainWindow(QMainWindow):
         self.supervisor_thread = None
         self.config = None
         self.param_file = None
+        
+        # Two-stages mode support
+        self.is_two_stages = False
+        self.two_stages_manager = None
+        self.first_stage_supervisor = None
+        self.second_stage_supervisor = None
         
         # Remote mode support
         self.remote_mode = False
@@ -235,6 +241,16 @@ class CompassMainWindow(QMainWindow):
         self.close_loop_btn.setEnabled(False)
         layout.addWidget(self.close_loop_btn, 2, 2)
         
+        # Two-stages mode selector
+        layout.addWidget(QLabel("Display Stage:"), 2, 3)
+        self.stage_selector = QComboBox()
+        self.stage_selector.addItem("Second Stage (Default)")
+        self.stage_selector.addItem("First Stage")
+        self.stage_selector.currentIndexChanged.connect(self._change_displayed_stage)
+        self.stage_selector.setEnabled(False)
+        self.stage_selector.setVisible(False)
+        layout.addWidget(self.stage_selector, 2, 5)
+        
         self.reset_strehl_btn = QPushButton("Reset Strehl")
         self.reset_strehl_btn.clicked.connect(self._reset_strehl)
         self.reset_strehl_btn.setEnabled(False)
@@ -385,6 +401,12 @@ class CompassMainWindow(QMainWindow):
                 'np': __import__('numpy'),
             }
             
+            # Add two-stages specific objects if in two-stages mode
+            if self.is_two_stages:
+                namespace['manager'] = self.two_stages_manager
+                namespace['first_stage'] = self.first_stage_supervisor
+                namespace['second_stage'] = self.second_stage_supervisor
+            
             # Add supervisor_thread if available
             if self.supervisor_thread:
                 namespace['supervisor_thread'] = self.supervisor_thread
@@ -393,10 +415,22 @@ class CompassMainWindow(QMainWindow):
             
             # Print welcome message in console
             if self.supervisor:
-                self.kernel_manager.kernel.shell.run_cell(
-                    "print('\\n=== COMPASS GUI Console ===')\n"
-                    "print('Available objects:')\n"
-                    "print('  - supervisor: CompassSupervisor instance')\n"
+                if self.is_two_stages:
+                    self.kernel_manager.kernel.shell.run_cell(
+                        "print('\\n=== COMPASS GUI Console (Two-Stages Mode) ===')\n"
+                        "print('Available objects:')\n"
+                        "print('  - manager: TwoStagesManager instance')\n"
+                        "print('  - first_stage: First stage StageSupervisor')\n"
+                        "print('  - second_stage: Second stage StageSupervisor')\n"
+                        "print('  - config: Parameter configuration (first stage)')\n"
+                        "print('  - gui: Main window instance')\n"
+                        "print('  - np: NumPy module')"
+                    )
+                else:
+                    self.kernel_manager.kernel.shell.run_cell(
+                        "print('\\n=== COMPASS GUI Console ===')\n"
+                        "print('Available objects:')\n"
+                        "print('  - supervisor: CompassSupervisor instance')\n"
                     "print('  - config: Parameter configuration')\n"
                     "print('  - supervisor_thread: Worker thread')\n"
                     "print('  - gui: Main window instance')\n"
@@ -437,12 +471,43 @@ class CompassMainWindow(QMainWindow):
             return
             
         try:
-            from shesha.supervisor.compassSupervisor import CompassSupervisor
             self.status_bar.showMessage("Initializing supervisor...")
             self.status_label.setText("Initializing...")
             
-            # Create supervisor
-            self.supervisor = CompassSupervisor(self.config)
+            # Check if this is a two-stages configuration
+            if hasattr(self, 'param_file2') and self.param_file2 is not None:
+                # Two-stages mode: use TwoStagesManager with StageSupervisor
+                from shesha.supervisor.twoStagesManager import TwoStagesManager
+                from shesha.supervisor.stageSupervisor import StageSupervisor
+                from shesha.config import ParamConfig
+                
+                self.status_bar.showMessage("Initializing two-stages supervisor...")
+                
+                # Load both configurations
+                config1 = ParamConfig(self.param_file)
+                config2 = ParamConfig(self.param_file2)
+                
+                # Create both StageSupervisors (NOT CompassSupervisor!)
+                supervisor1 = StageSupervisor(config1)
+                supervisor2 = StageSupervisor(config2)
+                
+                # Create two-stages manager
+                freq_ratio = getattr(self, 'frequency_ratio', 1)
+                self.two_stages_manager = TwoStagesManager(supervisor1, supervisor2, freq_ratio)
+                
+                # Store references
+                self.first_stage_supervisor = supervisor1
+                self.second_stage_supervisor = supervisor2
+                self.supervisor = self.two_stages_manager  # Main reference
+                self.config = config1  # Use first stage config for display options
+                self.is_two_stages = True
+                
+                self.status_bar.showMessage("Two-stages supervisor initialized successfully")
+            else:
+                # Single stage mode: use standard CompassSupervisor
+                from shesha.supervisor.compassSupervisor import CompassSupervisor
+                self.supervisor = CompassSupervisor(self.config)
+                self.is_two_stages = False
             
             # Create and setup supervisor thread
             self.supervisor_thread = SupervisorThread(self.supervisor)
@@ -458,6 +523,11 @@ class CompassMainWindow(QMainWindow):
             self.close_loop_btn.setEnabled(True)
             self.close_loop_btn.setChecked(True)  # Start in closed-loop
             self.reset_strehl_btn.setEnabled(True)
+            
+            # Enable stage selector if two-stages mode
+            if self.is_two_stages:
+                self.stage_selector.setEnabled(True)
+                self.stage_selector.setVisible(True)
             self.enable_atmos_btn.setEnabled(True)
             self.enable_atmos_btn.setChecked(True)
             self.init_btn.setEnabled(False)
@@ -494,9 +564,21 @@ class CompassMainWindow(QMainWindow):
         self.supervisor_thread.loop_finished.connect(self._on_loop_finished)
         self.supervisor_thread.status_changed.connect(self._on_status_changed)
     
-    def _populate_display_options(self):
-        """Populate dropdown menus based on supervisor configuration"""
-        if not self.supervisor or not self.config:
+    def _populate_display_options(self, stage_config=None):
+        """Populate dropdown menus based on supervisor configuration
+        
+        Args:
+            stage_config: Optional specific stage config (for two-stages mode)
+        """
+        if not self.supervisor:
+            return
+        
+        # Determine which config to use
+        if stage_config is not None:
+            config = stage_config
+        elif self.config is not None:
+            config = self.config
+        else:
             return
         
         # Build options dictionary for all categories
@@ -504,7 +586,7 @@ class CompassMainWindow(QMainWindow):
         
         # Atmosphere options
         atmos_options = []
-        if self.config.p_atmos is not None:
+        if config.p_atmos is not None:
             atmos_options.append(("Atmospheric Phase", "atmos_phase", 0))
         self.atmos_display.set_options(atmos_options)
         if atmos_options:
@@ -512,8 +594,8 @@ class CompassMainWindow(QMainWindow):
         
         # Target options
         target_options = []
-        if self.config.p_targets is not None:
-            for i in range(len(self.config.p_targets)):
+        if config.p_targets is not None:
+            for i in range(len(config.p_targets)):
                 target_options.append((f"Target {i} - PSF SE", "target_psf_se", i))
                 target_options.append((f"Target {i} - PSF LE", "target_psf_le", i))
                 target_options.append((f"Target {i} - Phase", "target_phase", i))
@@ -523,8 +605,8 @@ class CompassMainWindow(QMainWindow):
         
         # WFS options
         wfs_options = []
-        if self.config.p_wfss is not None:
-            for i in range(len(self.config.p_wfss)):
+        if config.p_wfss is not None:
+            for i in range(len(config.p_wfss)):
                 wfs_options.append((f"WFS {i} - Image", "wfs_image", i))
                 wfs_options.append((f"WFS {i} - Phase", "wfs_phase", i))
         self.wfs_display.set_options(wfs_options)
@@ -533,8 +615,8 @@ class CompassMainWindow(QMainWindow):
         
         # DM options
         dm_options = []
-        if self.config.p_dms is not None:
-            for i in range(len(self.config.p_dms)):
+        if config.p_dms is not None:
+            for i in range(len(config.p_dms)):
                 dm_options.append((f"DM {i} - Shape", "dm_shape", i))
         self.dm_display.set_options(dm_options)
         if dm_options:
@@ -542,8 +624,8 @@ class CompassMainWindow(QMainWindow):
         
         # Coronagraph options
         corono_options = []
-        if self.config.p_coronos is not None:
-            for i in range(len(self.config.p_coronos)):
+        if config.p_coronos is not None:
+            for i in range(len(config.p_coronos)):
                 corono_options.append((f"Coronagraph {i} - Image", "corono_image", i))
         self.corono_display.set_options(corono_options)
         if corono_options:
@@ -768,35 +850,89 @@ class CompassMainWindow(QMainWindow):
                 QMessageBox.critical(self, "Error", f"Reset failed:\n{str(e)}")
     
     def _toggle_loop_state(self, closed):
-        """Toggle between open and closed loop"""
-        if not self.supervisor:
+        """Toggle between open and closed loop."""
+        if not self.supervisor and not self.remote_mode:
             return
         
         try:
+            if self.remote_mode:
+                cmd = 'close_loop' if closed else 'open_loop'
+                response = self.remote_client._send_command(cmd, {})
+                if response.get('status') != 'ok':
+                    raise Exception(response.get('error', 'Unknown error'))
+            else:
+                # Handle two-stages mode
+                if self.is_two_stages:
+                    # Apply to both stages
+                    if closed:
+                        self.first_stage_supervisor.rtc.close_loop()
+                        self.second_stage_supervisor.rtc.close_loop()
+                    else:
+                        self.first_stage_supervisor.rtc.open_loop()
+                        self.second_stage_supervisor.rtc.open_loop()
+                else:
+                    if closed:
+                        self.supervisor.rtc.close_loop()
+                    else:
+                        self.supervisor.rtc.open_loop()
+            
             if closed:
-                # Close the loop
-                self.supervisor.rtc.close_loop()
                 self.close_loop_btn.setText("Loop Closed")
                 self.status_bar.showMessage("Loop closed")
             else:
-                # Open the loop
-                self.supervisor.rtc.open_loop()
                 self.close_loop_btn.setText("Loop Opened")
-                self.status_bar.showMessage("Loop Opened")
+                self.status_bar.showMessage("Loop opened")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to toggle loop:\n{str(e)}")
             # Revert button state
             self.close_loop_btn.setChecked(not closed)
     
+    def _change_displayed_stage(self, index):
+        """Change which stage is displayed in two-stages mode."""
+        if not self.is_two_stages or not self.supervisor_thread:
+            return
+        
+        # Update which supervisor is used for telemetry
+        self.supervisor_thread.set_displayed_stage(index)
+        
+        # Update display options to match the selected stage
+        if index == 0:
+            # Second stage
+            stage_config = self.second_stage_supervisor.config
+            stage_name = "Second Stage"
+        else:
+            # First stage
+            stage_config = self.first_stage_supervisor.config
+            stage_name = "First Stage"
+        
+        # Repopulate display options with the selected stage's configuration
+        self._populate_display_options(stage_config)
+        
+        # Show status message
+        self.status_bar.showMessage(f"Now displaying {stage_name}")
+        
+        # Force immediate telemetry update to show new stage
+        if hasattr(self.supervisor_thread, '_emit_telemetry'):
+            self.supervisor_thread._emit_telemetry()
+    
     def _reset_strehl(self):
-        """Reset Strehl ratio on all targets"""
-        if not self.supervisor:
+        """Reset Strehl ratio on all targets."""
+        if not self.supervisor and not self.remote_mode:
             return
         
         try:
-            # Reset Strehl for all targets
-            for tar_idx in range(len(self.config.p_targets)):
-                self.supervisor.target.reset_strehl(tar_idx)
+            if self.remote_mode:
+                response = self.remote_client._send_command('reset_strehl', {})
+                if response.get('status') != 'ok':
+                    raise Exception(response.get('error', 'Unknown error'))
+            else:
+                if self.is_two_stages:
+                    # Two-stages mode: reset both stages
+                    self.two_stages_manager.reset_exposure()
+                else:
+                    # Reset Strehl for all targets
+                    for tar_idx in range(len(self.config.p_targets)):
+                        self.supervisor.target.reset_strehl(tar_idx)
             
             # Clear the Strehl plot
             self.strehl_plot.clear()
@@ -806,12 +942,32 @@ class CompassMainWindow(QMainWindow):
             QMessageBox.critical(self, "Error", f"Failed to reset Strehl:\n{str(e)}")
     
     def _toggle_atmosphere(self, enabled):
-        """Enable or disable atmosphere"""
-        if not self.supervisor or not self.supervisor.atmos:
+        """Enable or disable atmosphere."""
+        if not self.supervisor and not self.remote_mode:
+            return
+        
+        # Check if atmos exists (handle two-stages mode)
+        has_atmos = False
+        if self.is_two_stages:
+            has_atmos = self.first_stage_supervisor.atmos is not None
+        elif self.supervisor:
+            has_atmos = self.supervisor.atmos is not None
+        
+        if not has_atmos and not self.remote_mode:
             return
         
         try:
-            self.supervisor.atmos.enable_atmos(enabled)
+            if self.remote_mode:
+                response = self.remote_client._send_command('enable_atmos', {'enabled': enabled})
+                if response.get('status') != 'ok':
+                    raise Exception(response.get('error', 'Unknown error'))
+            else:
+                if self.is_two_stages:
+                    # Two-stages: only enable/disable first stage atmos
+                    # Second stage atmos is always disabled by TwoStagesManager
+                    self.first_stage_supervisor.atmos.enable_atmos(enabled)
+                else:
+                    self.supervisor.atmos.enable_atmos(enabled)
             
             if enabled:
                 self.enable_atmos_btn.setText("Atmos Enabled")
@@ -849,91 +1005,52 @@ class CompassMainWindow(QMainWindow):
         self.framerate_plot.add_point(iter_num, framerate)
     
     # New signal handlers for selective data display
-    def _on_atmos_phase_updated(self, phase):
-        """Update atmosphere display"""
-        if self.atmos_display.current_data_type == 'atmos_phase':
-            self.atmos_display.update_image(phase)
+    def _update_display_if_matching(self, data_type, data, index=None):
+        """Helper method to update displays if they match the data type and index."""
+        # Update main tabs
+        for display in [self.atmos_display, self.target_display, self.wfs_display,
+                       self.dm_display, self.corono_display]:
+            if display.current_data_type == data_type:
+                if index is None or display.current_index == index:
+                    display.update_image(data)
+        
         # Update custom layout displays
         for display in self.layout_manager.get_displays():
-            if display.current_data_type == 'atmos_phase':
-                self.layout_manager.update_display(display, phase)
+            if display.current_data_type == data_type:
+                if index is None or display.current_index == index:
+                    self.layout_manager.update_display(display, data)
+    
+    def _on_atmos_phase_updated(self, phase):
+        """Update atmosphere display"""
+        self._update_display_if_matching('atmos_phase', phase)
     
     def _on_target_psf_se_updated(self, psf_image, tar_index):
         """Update target PSF SE display"""
-        if (self.target_display.current_data_type == 'target_psf_se' and 
-            self.target_display.current_index == tar_index):
-            self.target_display.update_image(psf_image)
-        # Update custom layout displays
-        for display in self.layout_manager.get_displays():
-            if (display.current_data_type == 'target_psf_se' and 
-                display.current_index == tar_index):
-                self.layout_manager.update_display(display, psf_image)
+        self._update_display_if_matching('target_psf_se', psf_image, tar_index)
     
     def _on_target_psf_le_updated(self, psf_image, tar_index):
         """Update target PSF LE display"""
-        if (self.target_display.current_data_type == 'target_psf_le' and 
-            self.target_display.current_index == tar_index):
-            self.target_display.update_image(psf_image)
-        # Update custom layout displays
-        for display in self.layout_manager.get_displays():
-            if (display.current_data_type == 'target_psf_le' and 
-                display.current_index == tar_index):
-                self.layout_manager.update_display(display, psf_image)
+        self._update_display_if_matching('target_psf_le', psf_image, tar_index)
     
     def _on_target_phase_updated(self, phase, tar_index):
         """Update target phase display"""
-        if (self.target_display.current_data_type == 'target_phase' and 
-            self.target_display.current_index == tar_index):
-            self.target_display.update_image(phase)
-        # Update custom layout displays
-        for display in self.layout_manager.get_displays():
-            if (display.current_data_type == 'target_phase' and 
-                display.current_index == tar_index):
-                self.layout_manager.update_display(display, phase)
+        self._update_display_if_matching('target_phase', phase, tar_index)
         
     def _on_wfs_image_updated(self, wfs_image, wfs_index):
         """Update WFS image display"""
-        if (self.wfs_display.current_data_type == 'wfs_image' and 
-            self.wfs_display.current_index == wfs_index):
-            self.wfs_display.update_image(wfs_image)
-        # Update custom layout displays
-        for display in self.layout_manager.get_displays():
-            if (display.current_data_type == 'wfs_image' and 
-                display.current_index == wfs_index):
-                self.layout_manager.update_display(display, wfs_image)
+        self._update_display_if_matching('wfs_image', wfs_image, wfs_index)
     
     def _on_wfs_phase_updated(self, wfs_phase, wfs_index):
         """Update WFS phase display"""
-        if (self.wfs_display.current_data_type == 'wfs_phase' and 
-            self.wfs_display.current_index == wfs_index):
-            self.wfs_display.update_image(wfs_phase)
-        # Update custom layout displays
-        for display in self.layout_manager.get_displays():
-            if (display.current_data_type == 'wfs_phase' and 
-                display.current_index == wfs_index):
-                self.layout_manager.update_display(display, wfs_phase)
+        self._update_display_if_matching('wfs_phase', wfs_phase, wfs_index)
     
     def _on_dm_shape_updated(self, dm_shape, dm_index):
         """Update DM shape display"""
-        if (self.dm_display.current_data_type == 'dm_shape' and 
-            self.dm_display.current_index == dm_index):
-            self.dm_display.update_image(dm_shape)
-        # Update custom layout displays
-        for display in self.layout_manager.get_displays():
-            if (display.current_data_type == 'dm_shape' and 
-                display.current_index == dm_index):
-                self.layout_manager.update_display(display, dm_shape)
+        self._update_display_if_matching('dm_shape', dm_shape, dm_index)
     
     def _on_corono_image_updated(self, corono_image, coro_index):
         """Update coronagraph image display"""
-        if (self.corono_display.current_data_type == 'corono_image' and 
-            self.corono_display.current_index == coro_index):
-            self.corono_display.update_image(corono_image)
-        # Update custom layout displays
-        for display in self.layout_manager.get_displays():
-            if (display.current_data_type == 'corono_image' and 
-                display.current_index == coro_index):
-                self.layout_manager.update_display(display, corono_image)
+        self._update_display_if_matching('corono_image', corono_image, coro_index)
         
     def _on_error(self, error_msg):
         """Handle error from supervisor thread"""
@@ -956,7 +1073,7 @@ class CompassMainWindow(QMainWindow):
         self.status_label.setText(status)
         
     def _process_gui_events(self):
-        """Periodically process GUI events to ensure responsiveness"""
+        """Periodically process GUI events to ensure responsiveness during simulation."""
         QApplication.processEvents()
         
     def _show_about(self):
@@ -994,7 +1111,7 @@ class CompassMainWindow(QMainWindow):
             self.init_btn.setEnabled(self.param_file is not None)
     
     def _connect_remote(self):
-        """Open connection dialog and connect to remote server"""
+        """Open connection dialog and connect to remote supervisor server."""
         dialog = ConnectionDialog(self)
         
         if dialog.exec() == QDialog.DialogCode.Accepted:

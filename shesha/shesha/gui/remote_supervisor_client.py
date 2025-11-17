@@ -67,7 +67,6 @@ class RemoteSupervisorClient:
         self.iter = 0
         self.config = None
         self.config_info = {}  # Serializable config info from server
-        self.config_info = {}  # Serializable config info from server
         
         logger.info(f"RemoteSupervisorClient initialized (server:{server_address}:{command_port})")
     

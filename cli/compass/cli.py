@@ -158,11 +158,41 @@ def cmd_sim_gui(args):
     
     runner = SimulationRunner(verbose=verbose)
     
+    # Check if server mode is requested
+    if args.server:
+        if not args.param_file:
+            console.print("[red]✗ Parameter file required for server mode[/red]")
+            console.print("[yellow]Usage: compass sim gui --server <param_file> [<param_file2> <freq_ratio>][/yellow]")
+            sys.exit(1)
+        success = runner.gui_server(
+            args.param_file,
+            param_file2=args.param_file2,
+            frequency_ratio=args.frequency_ratio,
+            command_port=args.command_port,
+            telemetry_port=args.telemetry_port,
+            bind_address=args.bind_address,
+            iterations=args.iterations,
+            devices=args.devices,
+        )
+        sys.exit(0 if success else 1)
+    
+    # Check if remote client mode is requested
+    if args.host:
+        success = runner.gui_remote(
+            host=args.host,
+            command_port=args.command_port,
+            telemetry_port=args.telemetry_port,
+        )
+        sys.exit(0 if success else 1)
+    
+    # Otherwise, run normal local GUI (param_file is optional)
     # Collect any extra arguments passed after --
     script_args = getattr(args, 'script_args', None)
     
     success = runner.gui(
-        args.param_file,
+        args.param_file,  # Can be None
+        param_file2=args.param_file2,
+        frequency_ratio=args.frequency_ratio,
         iterations=args.iterations,
         devices=args.devices,
         script_args=script_args,
@@ -196,7 +226,12 @@ def cmd_sim_gui_script(args):
         table.add_column("Setting", style="cyan")
         table.add_column("Value", style="green")
         
-        if str(runner.shesha_root / "shesha" / "widgets") in str(script_path):
+        shesha_scripts_dir = str(runner.shesha_root / "shesha" / "scripts")
+        shesha_widgets_dir = str(runner.shesha_root / "shesha" / "widgets")
+        
+        if shesha_scripts_dir in str(script_path):
+            display_name = script_path.name
+        elif shesha_widgets_dir in str(script_path):
             display_name = script_path.name
         else:
             display_name = str(script_path)
@@ -208,17 +243,24 @@ def cmd_sim_gui_script(args):
         console.print(table)
         sys.exit(0)
     elif args.script_action == "list":
-        # List available GUI scripts
+        # List available GUI scripts from both scripts and widgets directories
+        scripts_dir = runner.shesha_root / "shesha" / "scripts"
         widgets_dir = runner.shesha_root / "shesha" / "widgets"
         
-        if not widgets_dir.exists():
-            console.print(f"[red]✗ Widgets directory not found: {widgets_dir}[/red]")
-            sys.exit(1)
+        all_scripts = []
         
-        scripts = sorted([s for s in widgets_dir.glob("*.py") if s.name != "__init__.py"])
+        # Collect from scripts directory
+        if scripts_dir.exists():
+            scripts = [s for s in scripts_dir.glob("*gui*.py") if s.name != "__init__.py"]
+            all_scripts.extend([(s, "scripts") for s in scripts])
         
-        if not scripts:
-            console.print(f"[yellow]No GUI scripts found in {widgets_dir}[/yellow]")
+        # Collect from widgets directory (backwards compatibility)
+        if widgets_dir.exists():
+            scripts = [s for s in widgets_dir.glob("widget_*.py") if s.name != "__init__.py"]
+            all_scripts.extend([(s, "widgets") for s in scripts])
+        
+        if not all_scripts:
+            console.print(f"[yellow]No GUI scripts found[/yellow]")
             sys.exit(0)
         
         config = runner.load_config()
@@ -227,13 +269,14 @@ def cmd_sim_gui_script(args):
         console.print(f"\n[bold cyan]Available GUI Scripts[/bold cyan]\n")
         
         from rich.table import Table
-        table = Table(title=f"Scripts in {widgets_dir.relative_to(runner.compass_root)}")
+        table = Table(title="GUI Scripts")
         table.add_column("Script", style="cyan")
+        table.add_column("Location", style="yellow")
         table.add_column("Status", style="green")
         
-        for script in scripts:
+        for script, location in sorted(all_scripts, key=lambda x: x[0].name):
             status = "✓ [default]" if str(script.absolute()) == default_gui_path else ""
-            table.add_row(script.name, status)
+            table.add_row(script.name, location, status)
         
         console.print(table)
         console.print(f"\n[dim]Set default with: compass sim gui-script set <script_name_or_path>[/dim]")
@@ -313,7 +356,9 @@ Examples:
   compass sim script show               Show current default script
   compass sim script set closed_loop.py Set default simulation script
   compass sim run parfile.py            Run simulation (interactive IPython)
-  compass sim gui parfile.py            Run GUI simulation
+  compass sim gui parfile.py            Run local GUI simulation
+  compass sim gui --server parfile.py   Run GUI as remote server
+  compass sim gui --host hostname       Connect GUI to remote server
   compass sim gui-script show           Show current GUI script
   compass sim list                      List parameter directories
   compass sim list MICADO               List MICADO parameter files
@@ -382,10 +427,20 @@ Examples:
     
     # Sim gui
     gui_parser = sim_subparsers.add_parser("gui", help="Run COMPASS GUI simulation")
-    gui_parser.add_argument("param_file", help="Path to parameter file")
+    gui_parser.add_argument("param_file", nargs="?", help="Path to parameter file (required for local/server mode)")
     gui_parser.add_argument("--iterations", type=int, help="Number of iterations")
     gui_parser.add_argument("--devices", help="GPU devices (comma-separated)")
     gui_parser.add_argument("script_args", nargs="*", help="Additional arguments to pass to the GUI script")
+    
+    # Server mode options
+    gui_parser.add_argument("--server", action="store_true", help="Run as remote GUI server")
+    gui_parser.add_argument("--command-port", type=int, default=5555, help="Command port for server/client (default: 5555)")
+    gui_parser.add_argument("--telemetry-port", type=int, default=5556, help="Telemetry port for server/client (default: 5556)")
+    gui_parser.add_argument("--bind-address", default="*", help="Server bind address (default: * for all interfaces)")
+    
+    # Remote client mode options
+    gui_parser.add_argument("--host", help="Connect to remote server at this hostname/IP")
+    
     gui_parser.set_defaults(func=cmd_sim_gui)
     
     # Sim script

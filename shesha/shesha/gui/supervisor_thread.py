@@ -89,6 +89,9 @@ class SupervisorThread(QThread):
             'corono_image': set(),  # Set of coronagraph indices
         }
         
+        # Two-stages mode: which stage to display (0=second stage, 1=first stage)
+        self.displayed_stage_index = 0
+        
     def set_supervisor(self, supervisor):
         """Set or update the supervisor instance"""
         self.supervisor = supervisor
@@ -96,6 +99,10 @@ class SupervisorThread(QThread):
     def set_remote_server(self, remote_server):
         """Set or update the remote server for telemetry publishing"""
         self.remote_server = remote_server
+    
+    def set_displayed_stage(self, stage_index):
+        """Set which stage to display in two-stages mode (0=second, 1=first)"""
+        self.displayed_stage_index = stage_index
         
     def run(self):
         """Main loop running in the worker thread"""
@@ -146,12 +153,19 @@ class SupervisorThread(QThread):
             self.status_changed.emit("Stopped")
             
     def _execute_iteration(self):
-        """Execute a single supervisor iteration and emit updates"""
-        # Run one iteration of the supervisor
-        self.supervisor.next(compute_tar_psf=True)
+        """Execute a single supervisor iteration and emit updates."""
+        # Check if this is a TwoStagesManager
+        is_two_stages = hasattr(self.supervisor, 'first_stage') and hasattr(self.supervisor, 'second_stage')
         
-        # Emit iteration counter
-        iter_num = self.supervisor.get_frame_counter()
+        if is_two_stages:
+            # Two-stages mode: call manager's next method
+            self.supervisor.next(do_control=True)
+            # Get iteration from first stage
+            iter_num = self.supervisor.first_stage.get_frame_counter()
+        else:
+            # Standard mode: run one iteration of the supervisor
+            self.supervisor.next(compute_tar_psf=True)
+            iter_num = self.supervisor.get_frame_counter()
         self.iteration_done.emit(iter_num)
         
         # Update GUI periodically to avoid overwhelming it
@@ -164,6 +178,21 @@ class SupervisorThread(QThread):
     def _emit_telemetry(self):
         """Emit telemetry data to update GUI displays - only requested data"""
         try:
+            # Check if this is a TwoStagesManager
+            is_two_stages = hasattr(self.supervisor, 'first_stage') and hasattr(self.supervisor, 'second_stage')
+            
+            # Select which supervisor to use for telemetry
+            if is_two_stages:
+                # Use displayed_stage_index to determine which stage to show
+                if self.displayed_stage_index == 0:
+                    active_supervisor = self.supervisor.second_stage
+                else:
+                    active_supervisor = self.supervisor.first_stage
+                iter_num = self.supervisor.first_stage.get_frame_counter()
+            else:
+                active_supervisor = self.supervisor
+                iter_num = self.supervisor.get_frame_counter()
+            
             # Calculate framerate
             current_time = time.time()
             elapsed = current_time - self._last_time
@@ -173,8 +202,8 @@ class SupervisorThread(QThread):
             self._last_time = current_time
             
             # Always emit Strehl ratio if target exists
-            if self.supervisor.target is not None:
-                strehl = self.supervisor.target.get_strehl(0)
+            if active_supervisor.target is not None:
+                strehl = active_supervisor.target.get_strehl(0)
                 self.strehl_updated.emit(float(strehl[0]), float(strehl[1]))
                 
                 # Publish to remote server if available
@@ -182,70 +211,71 @@ class SupervisorThread(QThread):
                     self.remote_server.publish_status({
                         'strehl_se': float(strehl[0]),
                         'strehl_le': float(strehl[1]),
-                        'iter': self.supervisor.get_frame_counter(),
-                        'framerate': framerate if 'framerate' in locals() else 0
+                        'iter': iter_num,
+                        'framerate': framerate if 'framerate' in locals() else 0,
+                        'two_stages': is_two_stages
                     })
             
             # Emit atmospheric phase if requested
-            if self.telemetry_requests['atmos_phase'] and self.supervisor.atmos is not None:
-                atmos_phase = self.supervisor.atmos.get_atmos_layer(0)
+            if self.telemetry_requests['atmos_phase'] and active_supervisor.atmos is not None:
+                atmos_phase = active_supervisor.atmos.get_atmos_layer(0)
                 if atmos_phase is not None:
                     self.atmos_phase_updated.emit(atmos_phase.copy())
                     if self.remote_server:
                         self.remote_server.publish_image('atmos', 'Phase Screen', atmos_phase)
             
             # Emit target data if requested
-            if self.supervisor.target is not None:
+            if active_supervisor.target is not None:
                 for tar_idx in self.telemetry_requests['target_psf_se']:
-                    psf_se = self.supervisor.target.get_tar_image(tar_idx, expo_type='se')
+                    psf_se = active_supervisor.target.get_tar_image(tar_idx, expo_type='se')
                     if psf_se is not None:
                         self.target_psf_se_updated.emit(psf_se.copy(), tar_idx)
                         if self.remote_server:
                             self.remote_server.publish_image('target', f'PSF SE {tar_idx}', psf_se)
                 
                 for tar_idx in self.telemetry_requests['target_psf_le']:
-                    psf_le = self.supervisor.target.get_tar_image(tar_idx, expo_type='le')
+                    psf_le = active_supervisor.target.get_tar_image(tar_idx, expo_type='le')
                     if psf_le is not None:
                         self.target_psf_le_updated.emit(psf_le.copy(), tar_idx)
                         if self.remote_server:
                             self.remote_server.publish_image('target', f'PSF LE {tar_idx}', psf_le)
                 
                 for tar_idx in self.telemetry_requests['target_phase']:
-                    phase = self.supervisor.target.get_tar_phase(tar_idx)
+                    phase = active_supervisor.target.get_tar_phase(tar_idx)
                     if phase is not None:
                         self.target_phase_updated.emit(phase.copy(), tar_idx)
                         if self.remote_server:
                             self.remote_server.publish_image('target', f'Phase {tar_idx}', phase)
             
             # Emit WFS data if requested
-            if self.supervisor.wfs is not None:
+            if active_supervisor.wfs is not None:
                 for wfs_idx in self.telemetry_requests['wfs_image']:
-                    wfs_image = self.supervisor.wfs.get_wfs_image(wfs_idx)
+                    wfs_image = active_supervisor.wfs.get_wfs_image(wfs_idx)
                     if wfs_image is not None:
                         self.wfs_image_updated.emit(wfs_image.copy(), wfs_idx)
                         if self.remote_server:
                             self.remote_server.publish_image('wfs', f'Image {wfs_idx}', wfs_image)
                 
                 for wfs_idx in self.telemetry_requests['wfs_phase']:
-                    wfs_phase = self.supervisor.wfs.get_wfs_phase(wfs_idx)
+                    wfs_phase = active_supervisor.wfs.get_wfs_phase(wfs_idx)
                     if wfs_phase is not None:
                         self.wfs_phase_updated.emit(wfs_phase.copy(), wfs_idx)
                         if self.remote_server:
                             self.remote_server.publish_image('wfs', f'Phase {wfs_idx}', wfs_phase)
             
             # Emit DM data if requested
-            if self.supervisor.dms is not None:
+            if active_supervisor.dms is not None:
                 for dm_idx in self.telemetry_requests['dm_shape']:
-                    dm_shape = self.supervisor.dms.get_dm_shape(dm_idx)
+                    dm_shape = active_supervisor.dms.get_dm_shape(dm_idx)
                     if dm_shape is not None:
                         self.dm_shape_updated.emit(dm_shape.copy(), dm_idx)
                         if self.remote_server:
                             self.remote_server.publish_image('dm', f'Shape {dm_idx}', dm_shape)
             
             # Emit coronagraph data if requested
-            if self.supervisor.corono is not None:
+            if active_supervisor.corono is not None:
                 for coro_idx in self.telemetry_requests['corono_image']:
-                    coro_image = self.supervisor.corono.get_image(coro_idx)
+                    coro_image = active_supervisor.corono.get_image(coro_idx)
                     if coro_image is not None:
                         self.corono_image_updated.emit(coro_image.copy(), coro_idx)
                         if self.remote_server:

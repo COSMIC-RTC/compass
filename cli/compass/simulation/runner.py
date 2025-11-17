@@ -35,7 +35,7 @@ class SimulationRunner(LoggerMixin):
         self.shesha_root = Path(os.getenv("SHESHA_ROOT", self.compass_root / "shesha"))
         self.config_file = Path.home() / ".compass" / "sim_config.json"
         self.default_script = "closed_loop.py"
-        self.default_gui_script = "widget_ao.py"
+        self.default_gui_script = "compass_gui.py"
     
     def get_script_path(self, script_name: Optional[str] = None, script_type: str = "default") -> Path:
         """
@@ -62,22 +62,27 @@ class SimulationRunner(LoggerMixin):
             return script_path
         
         # Otherwise, look in appropriate directory
-        if script_type == "gui":
-            # GUI scripts are in shesha/widgets
-            script_path = self.shesha_root / "shesha" / "widgets" / script_name
-        else:
-            # Regular scripts are in shesha/scripts
-            script_path = self.shesha_root / "shesha" / "scripts" / script_name
+        # Both GUI and regular scripts are in shesha/scripts
+        script_path = self.shesha_root / "shesha" / "scripts" / script_name
         
         if not script_path.exists():
+            # For backwards compatibility, also check widgets directory for GUI scripts
+            if script_type == "gui":
+                widget_path = self.shesha_root / "shesha" / "widgets" / script_name
+                if widget_path.exists():
+                    return widget_path
+            
             # Try without .py extension
             if not script_name.endswith(".py"):
-                if script_type == "gui":
-                    alt_path = self.shesha_root / "shesha" / "widgets" / f"{script_name}.py"
-                else:
-                    alt_path = self.shesha_root / "shesha" / "scripts" / f"{script_name}.py"
+                alt_path = self.shesha_root / "shesha" / "scripts" / f"{script_name}.py"
                 if alt_path.exists():
                     return alt_path
+                
+                # Also check widgets for GUI scripts (backwards compatibility)
+                if script_type == "gui":
+                    widget_alt_path = self.shesha_root / "shesha" / "widgets" / f"{script_name}.py"
+                    if widget_alt_path.exists():
+                        return widget_alt_path
         
         return script_path
     
@@ -198,7 +203,7 @@ class SimulationRunner(LoggerMixin):
     
     def _run_simulation(
         self,
-        param_file: str,
+        param_file: Optional[str],
         script_type: str = "default",
         iterations: Optional[int] = None,
         devices: Optional[str] = None,
@@ -208,7 +213,7 @@ class SimulationRunner(LoggerMixin):
         Run a COMPASS simulation with configured script.
         
         Args:
-            param_file: Path to parameter file (relative or absolute)
+            param_file: Path to parameter file (optional for GUI mode)
             script_type: Type of script ("default" for CLI or "gui" for GUI)
             iterations: Number of iterations (optional)
             devices: GPU devices to use (comma-separated, optional)
@@ -217,17 +222,19 @@ class SimulationRunner(LoggerMixin):
         Returns:
             True if simulation completed successfully
         """
-        # Handle both relative and absolute paths for parameter file
-        param_path = Path(param_file)
-        if not param_path.is_absolute():
-            # Try relative to current directory first
+        # Handle parameter file path (optional for GUI mode)
+        param_path = None
+        if param_file:
+            param_path = Path(param_file)
+            if not param_path.is_absolute():
+                # Try relative to current directory first
+                if not param_path.exists():
+                    # Try relative to COMPASS root
+                    param_path = self.compass_root / param_file
+            
             if not param_path.exists():
-                # Try relative to COMPASS root
-                param_path = self.compass_root / param_file
-        
-        if not param_path.exists():
-            self.console.print(f"[red]✗ Parameter file not found: {param_file}[/red]")
-            return False
+                self.console.print(f"[red]✗ Parameter file not found: {param_file}[/red]")
+                return False
         
         # Get the configured script based on type
         script_path = self.get_script_path(script_type=script_type)
@@ -241,14 +248,17 @@ class SimulationRunner(LoggerMixin):
         # Configure display based on script type
         is_gui = script_type == "gui"
         title = "🖥️  Running COMPASS GUI Simulation" if is_gui else "🔭 Running COMPASS Simulation (Interactive)"
-        script_dir = "widgets" if is_gui else "scripts"
         success_msg = "GUI session ended" if is_gui else "Simulation session ended"
         
         self.console.print(f"\n[bold cyan]{title}[/bold cyan]")
-        self.console.print(f"[cyan]Parameter file: {param_path.absolute()}[/cyan]")
+        if param_path:
+            self.console.print(f"[cyan]Parameter file: {param_path.absolute()}[/cyan]")
         
         # Show script name if in shesha directory, otherwise show full path
-        if str(self.shesha_root / "shesha" / script_dir) in str(script_path):
+        shesha_scripts_dir = str(self.shesha_root / "shesha" / "scripts")
+        shesha_widgets_dir = str(self.shesha_root / "shesha" / "widgets")
+        
+        if shesha_scripts_dir in str(script_path) or shesha_widgets_dir in str(script_path):
             script_label = "GUI script" if is_gui else "script"
             self.console.print(f"[cyan]Using {script_label}: {script_path.name}[/cyan]\n")
         else:
@@ -256,10 +266,16 @@ class SimulationRunner(LoggerMixin):
         
         # Build command based on script type
         if is_gui:
-            # GUI: use python directly
-            cmd = ["ipython", "-i", "--gui=qt", str(script_path.absolute()), str(param_path.absolute())]
+            # GUI: run the script directly with python
+            # compass_gui.py handles its own GUI setup and event loop
+            cmd = ["python", str(script_path.absolute())]
+            if param_path:
+                cmd.append(str(param_path.absolute()))
         else:
             # CLI: use ipython for interactive session
+            if not param_path:
+                self.console.print("[red]✗ Parameter file required for CLI mode[/red]")
+                return False
             cmd = ["ipython", "-i", str(script_path.absolute()), "--", str(param_path.absolute())]
         
         # Add any additional script arguments
@@ -329,7 +345,9 @@ class SimulationRunner(LoggerMixin):
     
     def gui(
         self,
-        param_file: str,
+        param_file: Optional[str] = None,
+        param_file2: Optional[str] = None,
+        frequency_ratio: int = 1,
         iterations: Optional[int] = None,
         devices: Optional[str] = None,
         script_args: Optional[List[str]] = None,
@@ -338,7 +356,9 @@ class SimulationRunner(LoggerMixin):
         Run a COMPASS simulation with GUI using configured GUI script.
         
         Args:
-            param_file: Path to parameter file (relative or absolute)
+            param_file: Path to parameter file (optional)
+            param_file2: Optional second parameter file for two-stages mode
+            frequency_ratio: Frequency ratio for two-stages mode (default: 1)
             iterations: Number of iterations (optional)
             devices: GPU devices to use (comma-separated, optional)
             script_args: Additional arguments to pass to the script (optional)
@@ -346,7 +366,198 @@ class SimulationRunner(LoggerMixin):
         Returns:
             True if simulation completed successfully
         """
-        return self._run_simulation(param_file, "gui", iterations, devices, script_args)
+        # Build script args to include two-stages parameters if provided
+        combined_args = script_args or []
+        if param_file2:
+            # For two-stages mode, pass both files and frequency ratio
+            combined_args = [param_file2, str(frequency_ratio)] + combined_args
+        
+        return self._run_simulation(param_file, "gui", iterations, devices, combined_args)
+    
+    def gui_server(
+        self,
+        param_file: str,
+        param_file2: Optional[str] = None,
+        frequency_ratio: int = 1,
+        command_port: int = 5555,
+        telemetry_port: int = 5556,
+        bind_address: str = "*",
+        iterations: Optional[int] = None,
+        devices: Optional[str] = None,
+    ) -> bool:
+        """
+        Run a COMPASS simulation with GUI in server mode for remote control.
+        
+        Args:
+            param_file: Path to parameter file (relative or absolute)
+            param_file2: Optional second parameter file for two-stages mode
+            frequency_ratio: Frequency ratio for two-stages mode (default: 1)
+            command_port: Port for command socket (default: 5555)
+            telemetry_port: Port for telemetry socket (default: 5556)
+            bind_address: Address to bind to (default: "*" for all interfaces)
+            iterations: Number of iterations (optional)
+            devices: GPU devices to use (comma-separated, optional)
+        
+        Returns:
+            True if server started successfully
+        """
+        # Handle both relative and absolute paths for parameter file
+        param_path = Path(param_file)
+        if not param_path.is_absolute():
+            # Try relative to current directory first
+            if not param_path.exists():
+                # Try relative to COMPASS root
+                param_path = self.compass_root / param_file
+        
+        if not param_path.exists():
+            self.console.print(f"[red]✗ Parameter file not found: {param_file}[/red]")
+            return False
+        
+        # Handle second parameter file for two-stages mode
+        param_path2 = None
+        is_two_stages = param_file2 is not None
+        
+        if is_two_stages:
+            param_path2 = Path(param_file2)
+            if not param_path2.is_absolute():
+                if not param_path2.exists():
+                    param_path2 = self.compass_root / param_file2
+            
+            if not param_path2.exists():
+                self.console.print(f"[red]✗ Second parameter file not found: {param_file2}[/red]")
+                return False
+        
+        # Get the remote server script
+        server_script = self.shesha_root / "shesha" / "scripts" / "run_remote_server.py"
+        
+        if not server_script.exists():
+            self.console.print(f"[red]✗ Remote server script not found: {server_script}[/red]")
+            return False
+        
+        if is_two_stages:
+            self.console.print("\n[bold cyan]🖥️  Starting COMPASS Remote GUI Server (Two-Stages Mode)[/bold cyan]")
+            self.console.print(f"[cyan]First stage: {param_path.absolute()}[/cyan]")
+            self.console.print(f"[cyan]Second stage: {param_path2.absolute()}[/cyan]")
+            self.console.print(f"[cyan]Frequency ratio: {frequency_ratio}[/cyan]")
+        else:
+            self.console.print("\n[bold cyan]🖥️  Starting COMPASS Remote GUI Server[/bold cyan]")
+            self.console.print(f"[cyan]Parameter file: {param_path.absolute()}[/cyan]")
+        
+        self.console.print(f"[cyan]Command port: {command_port}[/cyan]")
+        self.console.print(f"[cyan]Telemetry port: {telemetry_port}[/cyan]")
+        self.console.print(f"[cyan]Bind address: {bind_address}[/cyan]\n")
+        
+        # Build command
+        cmd = [
+            "python",
+            str(server_script.absolute()),
+            str(param_path.absolute()),
+        ]
+        
+        # Add second param file and frequency ratio if two-stages
+        if is_two_stages:
+            cmd.append(str(param_path2.absolute()))
+            cmd.append(str(frequency_ratio))
+        
+        cmd.extend([
+            "--host", bind_address,
+            "--cmd-port", str(command_port),
+            "--tel-port", str(telemetry_port),
+        ])
+        
+        # Set environment
+        env = os.environ.copy()
+        
+        if devices:
+            env["CUDA_VISIBLE_DEVICES"] = devices
+            self.console.print(f"[cyan]GPU devices: {devices}[/cyan]")
+        
+        if iterations:
+            env["SHESHA_ITERATIONS"] = str(iterations)
+            self.console.print(f"[cyan]Iterations: {iterations}[/cyan]")
+        
+        self.console.print()
+        
+        # Run server
+        try:
+            result = subprocess.run(
+                cmd,
+                env=env,
+                cwd=self.compass_root,
+            )
+            
+            if result.returncode == 0:
+                self.console.print("\n[bold green]✓ Server shut down successfully[/bold green]")
+                return True
+            else:
+                self.console.print(f"\n[red]✗ Server failed with code {result.returncode}[/red]")
+                return False
+                
+        except KeyboardInterrupt:
+            self.console.print("\n[yellow]⚠ Server interrupted by user[/yellow]")
+            return True
+        except Exception as e:
+            self.console.print(f"\n[red]✗ Error running server: {e}[/red]")
+            return False
+    
+    def gui_remote(
+        self,
+        host: str,
+        command_port: int = 5555,
+        telemetry_port: int = 5556,
+    ) -> bool:
+        """
+        Launch a remote GUI client that connects to a COMPASS server.
+        
+        Args:
+            host: Hostname or IP address of the remote server
+            command_port: Command port of the remote server (default: 5555)
+            telemetry_port: Telemetry port of the remote server (default: 5556)
+        
+        Returns:
+            True if GUI client started successfully
+        """
+        # Get the remote client script
+        client_script = self.shesha_root / "shesha" / "scripts" / "run_remote_client.py"
+        
+        if not client_script.exists():
+            self.console.print(f"[red]✗ Remote client script not found: {client_script}[/red]")
+            return False
+        
+        self.console.print("\n[bold cyan]🖥️  Starting COMPASS Remote GUI Client[/bold cyan]")
+        self.console.print(f"[cyan]Server: {host}:{command_port}[/cyan]")
+        self.console.print(f"[cyan]Telemetry: {host}:{telemetry_port}[/cyan]\n")
+        
+        # Build command
+        cmd = [
+            "python",
+            str(client_script.absolute()),
+            "--server", host,
+            "--cmd-port", str(command_port),
+            "--tel-port", str(telemetry_port),
+            "--auto-connect",
+        ]
+        
+        # Run GUI client
+        try:
+            result = subprocess.run(
+                cmd,
+                cwd=self.compass_root,
+            )
+            
+            if result.returncode == 0:
+                self.console.print("\n[bold green]✓ GUI client ended[/bold green]")
+                return True
+            else:
+                # Non-zero exit is common for GUI apps
+                return True
+                
+        except KeyboardInterrupt:
+            self.console.print("\n[yellow]⚠ GUI interrupted by user[/yellow]")
+            return False
+        except Exception as e:
+            self.console.print(f"\n[red]✗ Error running GUI client: {e}[/red]")
+            return False
     
     def list_examples(self, directory: Optional[str] = None):
         """

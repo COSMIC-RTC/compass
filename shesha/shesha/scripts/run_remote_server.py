@@ -6,7 +6,11 @@ This script initializes a COMPASS supervisor from a parameter file
 and runs it as a remote server that can be controlled via ZeroMQ.
 
 Usage:
+    # Single stage
     python run_remote_server.py <parameter_file> [options]
+    
+    # Two-stages mode
+    python run_remote_server.py <param_file1> <param_file2> <frequency_ratio> [options]
     
 Options:
     --host HOST           Host to bind to (default: "*" for all interfaces)
@@ -42,8 +46,10 @@ logger = logging.getLogger(__name__)
 class RemoteServerRunner:
     """Manages the remote supervisor server"""
     
-    def __init__(self, param_file, host="*", cmd_port=5555, tel_port=5556, auto_start=False):
+    def __init__(self, param_file, param_file2=None, frequency_ratio=1, host="*", cmd_port=5555, tel_port=5556, auto_start=False):
         self.param_file = param_file
+        self.param_file2 = param_file2
+        self.frequency_ratio = frequency_ratio
         self.host = host
         self.cmd_port = cmd_port
         self.tel_port = tel_port
@@ -54,28 +60,60 @@ class RemoteServerRunner:
         self.server = None
         self.thread = None
         self.running = False
+        self.is_two_stages = param_file2 is not None
+        self.first_stage = None
+        self.second_stage = None
         
     def initialize(self):
         """Initialize supervisor and server"""
-        logger.info(f"Loading parameters from: {self.param_file}")
-        
-        # Load configuration
-        try:
-            self.config = ParamConfig(self.param_file)
-        except Exception as e:
-            logger.error(f"Failed to load parameter file: {e}")
-            return False
-        
-        logger.info("Initializing COMPASS supervisor...")
-        
-        # Create supervisor
-        try:
-            self.supervisor = CompassSupervisor(self.config)
-        except Exception as e:
-            logger.error(f"Failed to initialize supervisor: {e}")
-            return False
-        
-        logger.info("Supervisor initialized successfully")
+        if self.is_two_stages:
+            logger.info(f"Loading two-stages parameters from: {self.param_file} and {self.param_file2}")
+            
+            # Load both configurations
+            try:
+                from shesha.supervisor.twoStagesManager import TwoStagesManager
+                from shesha.supervisor.stageSupervisor import StageSupervisor
+                
+                config1 = ParamConfig(self.param_file)
+                config2 = ParamConfig(self.param_file2)
+            except Exception as e:
+                logger.error(f"Failed to load parameter files: {e}")
+                return False
+            
+            logger.info("Initializing two-stages supervisor...")
+            
+            # Create both supervisors
+            try:
+                self.first_stage = StageSupervisor(config1)
+                self.second_stage = StageSupervisor(config2)
+                self.supervisor = TwoStagesManager(self.first_stage, self.second_stage, self.frequency_ratio)
+                self.config = config1  # Use first stage config for telemetry setup
+            except Exception as e:
+                logger.error(f"Failed to initialize two-stages supervisor: {e}")
+                return False
+            
+            logger.info(f"Two-stages supervisor initialized (frequency ratio: {self.frequency_ratio})")
+        else:
+            logger.info(f"Loading parameters from: {self.param_file}")
+            
+            # Load configuration
+            try:
+                self.config = ParamConfig(self.param_file)
+            except Exception as e:
+                logger.error(f"Failed to load parameter file: {e}")
+                return False
+            
+            logger.info("Initializing COMPASS supervisor...")
+            
+            # Create supervisor
+            try:
+                from shesha.supervisor.compassSupervisor import CompassSupervisor
+                self.supervisor = CompassSupervisor(self.config)
+            except Exception as e:
+                logger.error(f"Failed to initialize supervisor: {e}")
+                return False
+            
+            logger.info("Supervisor initialized successfully")
         
         # Create supervisor thread first
         self.thread = SupervisorThread(self.supervisor)
@@ -105,30 +143,33 @@ class RemoteServerRunner:
     
     def _request_all_telemetry(self):
         """Request all available telemetry data"""
+        # In two-stages mode, request telemetry from second stage (by default)
+        active_supervisor = self.second_stage if self.is_two_stages else self.supervisor
+        
         # Atmosphere
-        if self.supervisor.atmos is not None:
+        if active_supervisor.atmos is not None:
             self.thread.request_telemetry('atmos_phase', enable=True)
         
         # Targets
-        if self.supervisor.target is not None and self.config.p_targets:
+        if active_supervisor.target is not None and self.config.p_targets:
             for tar_idx in range(len(self.config.p_targets)):
                 self.thread.request_telemetry('target_psf_se', tar_idx, True)
                 self.thread.request_telemetry('target_psf_le', tar_idx, True)
                 self.thread.request_telemetry('target_phase', tar_idx, True)
         
         # WFS
-        if self.supervisor.wfs is not None and self.config.p_wfss:
+        if active_supervisor.wfs is not None and self.config.p_wfss:
             for wfs_idx in range(len(self.config.p_wfss)):
                 self.thread.request_telemetry('wfs_image', wfs_idx, True)
                 self.thread.request_telemetry('wfs_phase', wfs_idx, True)
         
         # DM
-        if self.supervisor.dms is not None and self.config.p_dms:
+        if active_supervisor.dms is not None and self.config.p_dms:
             for dm_idx in range(len(self.config.p_dms)):
                 self.thread.request_telemetry('dm_shape', dm_idx, True)
         
         # Coronagraph
-        if self.supervisor.corono is not None and self.config.p_coronos:
+        if active_supervisor.corono is not None and self.config.p_coronos:
             for coro_idx in range(len(self.config.p_coronos)):
                 self.thread.request_telemetry('corono_image', coro_idx, True)
     
@@ -239,7 +280,9 @@ Examples:
         """
     )
     
-    parser.add_argument('param_file', help='COMPASS parameter file')
+    parser.add_argument('param_file', help='COMPASS parameter file (first stage for two-stages)')
+    parser.add_argument('param_file2', nargs='?', default=None, help='Second parameter file (for two-stages mode)')
+    parser.add_argument('frequency_ratio', nargs='?', type=int, default=1, help='Frequency ratio for two-stages mode (default: 1)')
     parser.add_argument('--host', default='*', help='Host to bind to (default: "*" for all)')
     parser.add_argument('--cmd-port', type=int, default=5555, help='Command port (default: 5555)')
     parser.add_argument('--tel-port', type=int, default=5556, help='Telemetry port (default: 5556)')
@@ -247,9 +290,13 @@ Examples:
     
     args = parser.parse_args()
     
-    # Check parameter file exists
+    # Check parameter file(s) exist
     if not os.path.exists(args.param_file):
         logger.error(f"Parameter file not found: {args.param_file}")
+        return 1
+    
+    if args.param_file2 and not os.path.exists(args.param_file2):
+        logger.error(f"Second parameter file not found: {args.param_file2}")
         return 1
     
     # Create QCoreApplication for Qt event loop (required for SupervisorThread signals)
@@ -264,6 +311,8 @@ Examples:
     # Create and initialize server
     runner = RemoteServerRunner(
         args.param_file,
+        param_file2=args.param_file2,
+        frequency_ratio=args.frequency_ratio,
         host=args.host,
         cmd_port=args.cmd_port,
         tel_port=args.tel_port,
