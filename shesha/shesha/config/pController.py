@@ -79,6 +79,7 @@ class ParamController:
         self.__nactu = 0  # number of controled actuator
         self.__imat = None  # full interaction matrix
         self.__cmat = None  # full control matrix
+        self.__cmat_file = None  # full control matrix file path
         self.__maxcond = None  # max condition number
         self.__TTcond = None  # tiptilt condition number for cmat filtering with mv controller
         self.__delay = None  # loop delay [frames]
@@ -613,6 +614,24 @@ class ParamController:
         self.__cmat = csu.enforce_arrayMultiDim(cmat, (self.nactu, self.nslope), dtype=np.float32)
 
     _cmat: np.ndarray = property(get_cmat, set_cmat)
+
+    def get_cmat_file(self) -> str:
+        """Get the full control matrix file path
+
+        Returns:
+            str: Full control matrix.
+        """
+        return self.__cmat_file
+
+    def set_cmat_file(self, cmat_file: str) -> None:
+        """Set the full control matrix.
+
+        Args:
+            cmat_file (str): Full control matrix.
+        """
+        self.__cmat_file = cmat_file
+
+    cmat_file: str = property(get_cmat_file, set_cmat_file)
 
     def get_nstates(self) -> int:
         """Get the number of states.

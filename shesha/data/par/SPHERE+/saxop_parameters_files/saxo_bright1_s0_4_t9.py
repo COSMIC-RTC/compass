@@ -162,7 +162,8 @@ p_controller0.set_type("generic")   # /?\ ls (classic easy simple) or generic
 p_controller0.set_nwfs([0])         # /!\
 p_controller0.set_ndm([0, 1])       # /!\
 p_controller0.set_delay(saxo_frequency_delay_pair[1]) # /!\ see at the head of the file. [?]
-p_controller0.set_gain(0.2)
+p_controller0.set_gain(0.15)
+p_controller0.set_cmat_file("/home/micado/saxo_cmat.fits")  # /!\ SAXO SH40 cmat
 
 # coronagraph
 p_corono0 = conf.ParamCoronagraph()

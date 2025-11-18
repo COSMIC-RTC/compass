@@ -55,7 +55,22 @@ class RemoteSupervisorServer:
         # Server state
         self.running = False
         
-        logger.info(f"RemoteSupervisorServer initialized (cmd:{command_port}, tel:{telemetry_port})")
+        # Detect two-stages mode
+        self.is_two_stages = hasattr(supervisor, 'first_stage') and hasattr(supervisor, 'second_stage')
+        
+        logger.info(f"RemoteSupervisorServer initialized (cmd:{command_port}, tel:{telemetry_port}, two_stages:{self.is_two_stages})")
+    
+    def _get_active_supervisor(self):
+        """Get the active supervisor (second stage for two-stages, or main supervisor)"""
+        if self.is_two_stages:
+            return self.supervisor.second_stage
+        return self.supervisor
+    
+    def _get_config(self):
+        """Get the config (from active supervisor or first stage for two-stages)"""
+        if self.is_two_stages:
+            return self.supervisor.first_stage.config
+        return self.supervisor.config
     
     def start(self):
         """Start the server and bind sockets."""
@@ -218,23 +233,42 @@ class RemoteSupervisorServer:
             
             # RTC commands
             elif cmd == "close_loop":
-                self.supervisor.rtc.close_loop()
+                if self.is_two_stages:
+                    # Close loop on both stages
+                    self.supervisor.first_stage.rtc.close_loop()
+                    self.supervisor.second_stage.rtc.close_loop()
+                else:
+                    self.supervisor.rtc.close_loop()
                 result = "Loop closed"
             
             elif cmd == "open_loop":
-                self.supervisor.rtc.open_loop()
+                if self.is_two_stages:
+                    # Open loop on both stages
+                    self.supervisor.first_stage.rtc.open_loop()
+                    self.supervisor.second_stage.rtc.open_loop()
+                else:
+                    self.supervisor.rtc.open_loop()
                 result = "Loop opened"
             
             # Target commands
             elif cmd == "reset_strehl":
-                for target in self.supervisor.target:
-                    target.reset_strehl()
+                if self.is_two_stages:
+                    # Reset both stages using TwoStagesManager method
+                    self.supervisor.reset_exposure()
+                else:
+                    for target in self.supervisor.target:
+                        target.reset_strehl()
                 result = "Strehl reset on all targets"
             
             # Atmosphere commands
             elif cmd == "enable_atmos":
                 enabled = args.get("enabled", True)
-                self.supervisor.atmos.enable_atmos(enabled)
+                if self.is_two_stages:
+                    # Only enable/disable first stage atmos
+                    # Second stage atmos is always disabled by TwoStagesManager
+                    self.supervisor.first_stage.atmos.enable_atmos(enabled)
+                else:
+                    self.supervisor.atmos.enable_atmos(enabled)
                 result = f"Atmosphere {'enabled' if enabled else 'disabled'}"
             
             # Generic attribute access
@@ -260,13 +294,17 @@ class RemoteSupervisorServer:
             elif cmd == "get_config":
                 # Don't send the full config - it contains unpicklable objects
                 # Send serializable info that clients need for UI setup
+                active_supervisor = self._get_active_supervisor()
+                config = self._get_config()
+                
                 config_info = {
                     "iter": self.supervisor.iter if hasattr(self.supervisor, 'iter') else 0,
-                    "has_atmos": self.supervisor.atmos is not None,
-                    "n_targets": len(self.supervisor.config.p_targets) if self.supervisor.config.p_targets else 0,
-                    "n_wfs": len(self.supervisor.config.p_wfss) if self.supervisor.config.p_wfss else 0,
-                    "n_dms": len(self.supervisor.config.p_dms) if self.supervisor.config.p_dms else 0,
-                    "n_coronos": len(self.supervisor.config.p_coronos) if self.supervisor.config.p_coronos else 0,
+                    "has_atmos": active_supervisor.atmos is not None,
+                    "n_targets": len(config.p_targets) if config.p_targets else 0,
+                    "n_wfs": len(config.p_wfss) if config.p_wfss else 0,
+                    "n_dms": len(config.p_dms) if config.p_dms else 0,
+                    "n_coronos": len(config.p_coronos) if config.p_coronos else 0,
+                    "is_two_stages": self.is_two_stages,
                 }
                 result = config_info
             

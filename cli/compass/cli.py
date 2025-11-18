@@ -428,6 +428,8 @@ Examples:
     # Sim gui
     gui_parser = sim_subparsers.add_parser("gui", help="Run COMPASS GUI simulation")
     gui_parser.add_argument("param_file", nargs="?", help="Path to parameter file (required for local/server mode)")
+    gui_parser.add_argument("param_file2", nargs="?", help="Path to second parameter file (for two-stages mode)")
+    gui_parser.add_argument("frequency_ratio", nargs="?", type=int, default=1, help="Frequency ratio for two-stages mode (default: 1)")
     gui_parser.add_argument("--iterations", type=int, help="Number of iterations")
     gui_parser.add_argument("--devices", help="GPU devices (comma-separated)")
     gui_parser.add_argument("script_args", nargs="*", help="Additional arguments to pass to the GUI script")

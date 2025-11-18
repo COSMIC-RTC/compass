@@ -862,13 +862,17 @@ def init_controller_generic(i: int, p_controller: conf.ParamController, p_dms: l
     decayFactor = np.ones(size, dtype=np.float32)
     mgain = np.ones(size, dtype=np.float32) * p_controller.gain
     matE = np.identity(size, dtype=np.float32)
-    cmat = np.zeros((size, p_controller.nslope), dtype=np.float32)
+    cmat = np.zeros((size, p_controller.nslope), dtype=np.float32)    
+    if p_controller.cmat_file is not None:
+        import astropy.io.fits as pf
+        cmat = pf.getdata(p_controller.cmat_file).astype(np.float32)
 
     if p_controller.command_law is not None:
         rtc.d_control[i].set_commandlaw(p_controller.command_law)
 
     rtc.d_control[i].set_decayFactor(decayFactor)
     rtc.d_control[i].set_modal_gains(mgain)
+    rtc.d_control[i].set_gain(p_controller.gain)
     rtc.d_control[i].set_cmat(cmat)
     rtc.d_control[i].set_matE(matE)
 

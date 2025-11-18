@@ -1141,6 +1141,16 @@ class CompassMainWindow(QMainWindow):
                 self.supervisor = self.remote_client
                 self.config = self.remote_client.config
                 
+                # Check if remote server is in two-stages mode
+                config_info = self.remote_client.config_info
+                self.is_two_stages = config_info.get('is_two_stages', False)
+                
+                # Enable stage selector if two-stages mode
+                if self.is_two_stages:
+                    self.stage_selector.setEnabled(True)
+                    self.stage_selector.setVisible(True)
+                    self.param_label.setText(f"Connected to {conn_info['server_address']} (Two-Stages)")
+                
                 # Populate display options based on remote config
                 self._populate_display_options()
                 
