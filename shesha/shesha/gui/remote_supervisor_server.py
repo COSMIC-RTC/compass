@@ -271,6 +271,38 @@ class RemoteSupervisorServer:
                     self.supervisor.atmos.enable_atmos(enabled)
                 result = f"Atmosphere {'enabled' if enabled else 'disabled'}"
             
+            # Two-stages stage selection
+            elif cmd == "set_displayed_stage":
+                stage_index = args.get("stage_index", 0)
+                if self.supervisor_thread:
+                    self.supervisor_thread.set_displayed_stage(stage_index)
+                    stage_name = "Second Stage" if stage_index == 0 else "First Stage"
+                    result = f"Now displaying {stage_name}"
+                else:
+                    result = "Stage selection only available with supervisor thread"
+            
+            elif cmd == "get_stage_config":
+                if not self.is_two_stages:
+                    return {
+                        "status": "error",
+                        "error": "Not in two-stages mode"
+                    }
+                
+                stage_index = args.get("stage_index", 0)
+                if stage_index == 0:
+                    stage_supervisor = self.supervisor.second_stage
+                else:
+                    stage_supervisor = self.supervisor.first_stage
+                
+                stage_config = stage_supervisor.config
+                config_info = {
+                    "n_targets": len(stage_config.p_targets) if stage_config.p_targets else 0,
+                    "n_wfs": len(stage_config.p_wfss) if stage_config.p_wfss else 0,
+                    "n_dms": len(stage_config.p_dms) if stage_config.p_dms else 0,
+                    "n_coronos": len(stage_config.p_coronos) if stage_config.p_coronos else 0,
+                }
+                result = config_info
+            
             # Generic attribute access
             elif cmd == "get_attr":
                 obj_path = args.get("obj_path")  # e.g., "rtc.delay"

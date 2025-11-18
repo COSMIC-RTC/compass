@@ -889,31 +889,75 @@ class CompassMainWindow(QMainWindow):
     
     def _change_displayed_stage(self, index):
         """Change which stage is displayed in two-stages mode."""
-        if not self.is_two_stages or not self.supervisor_thread:
+        if not self.is_two_stages:
             return
         
-        # Update which supervisor is used for telemetry
-        self.supervisor_thread.set_displayed_stage(index)
-        
-        # Update display options to match the selected stage
-        if index == 0:
-            # Second stage
-            stage_config = self.second_stage_supervisor.config
-            stage_name = "Second Stage"
+        if self.remote_mode:
+            # Remote mode: send command to server and update local display options
+            try:
+                # Send command to remote server to change displayed stage
+                response = self.remote_client._send_command('set_displayed_stage', {'stage_index': index})
+                if response.get('status') != 'ok':
+                    raise Exception(response.get('error', 'Unknown error'))
+                
+                # Get stage config from server
+                config_response = self.remote_client._send_command('get_stage_config', {'stage_index': index})
+                if config_response.get('status') == 'ok':
+                    stage_config_info = config_response.get('result')
+                    
+                    # Create mock config for display options
+                    class MockStageConfig:
+                        def __init__(self, config_info):
+                            n_targets = config_info.get('n_targets', 0)
+                            self.p_targets = [f"target_{i}" for i in range(n_targets)] if n_targets > 0 else None
+                            
+                            n_wfs = config_info.get('n_wfs', 0)
+                            self.p_wfss = [f"wfs_{i}" for i in range(n_wfs)] if n_wfs > 0 else None
+                            
+                            n_dms = config_info.get('n_dms', 0)
+                            self.p_dms = [f"dm_{i}" for i in range(n_dms)] if n_dms > 0 else None
+                            
+                            n_coronos = config_info.get('n_coronos', 0)
+                            self.p_coronos = [f"corono_{i}" for i in range(n_coronos)] if n_coronos > 0 else None
+                            
+                            self.p_atmos = "mock"  # Always present for remote
+                    
+                    stage_config = MockStageConfig(stage_config_info)
+                    self._populate_display_options(stage_config)
+                
+                stage_name = "Second Stage" if index == 0 else "First Stage"
+                self.status_bar.showMessage(f"Now displaying {stage_name}")
+                
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"Failed to change stage:\n{str(e)}")
+                return
         else:
-            # First stage
-            stage_config = self.first_stage_supervisor.config
-            stage_name = "First Stage"
-        
-        # Repopulate display options with the selected stage's configuration
-        self._populate_display_options(stage_config)
-        
-        # Show status message
-        self.status_bar.showMessage(f"Now displaying {stage_name}")
-        
-        # Force immediate telemetry update to show new stage
-        if hasattr(self.supervisor_thread, '_emit_telemetry'):
-            self.supervisor_thread._emit_telemetry()
+            # Local mode: update supervisor thread and display options
+            if not self.supervisor_thread:
+                return
+            
+            # Update which supervisor is used for telemetry
+            self.supervisor_thread.set_displayed_stage(index)
+            
+            # Update display options to match the selected stage
+            if index == 0:
+                # Second stage
+                stage_config = self.second_stage_supervisor.config
+                stage_name = "Second Stage"
+            else:
+                # First stage
+                stage_config = self.first_stage_supervisor.config
+                stage_name = "First Stage"
+            
+            # Repopulate display options with the selected stage's configuration
+            self._populate_display_options(stage_config)
+            
+            # Show status message
+            self.status_bar.showMessage(f"Now displaying {stage_name}")
+            
+            # Force immediate telemetry update to show new stage
+            if hasattr(self.supervisor_thread, '_emit_telemetry'):
+                self.supervisor_thread._emit_telemetry()
     
     def _reset_strehl(self):
         """Reset Strehl ratio on all targets."""
