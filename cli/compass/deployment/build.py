@@ -5,6 +5,7 @@ Handles building libcarma, libsutra, and Python wrappers.
 """
 
 import os
+import sys
 import logging
 import subprocess
 from pathlib import Path
@@ -165,6 +166,16 @@ class Builder(LoggerMixin):
         cuda_root = os.getenv("CUDA_ROOT")
         if cuda_root:
             cmake_args.append(f"-DCUDA_TOOLKIT_ROOT_DIR={cuda_root}")
+
+        # Add pybind11 support
+        try:
+            pybind11_dir = subprocess.check_output(
+                [sys.executable, "-m", "pybind11", "--cmakedir"],
+                text=True
+            ).strip()
+            cmake_args.append(f"-Dpybind11_DIR={pybind11_dir}")
+        except subprocess.CalledProcessError:
+            self.logger.warning("Could not determine pybind11 CMake directory")
         
         return self._run_command(cmake_args, cwd=self.compass_root)
     

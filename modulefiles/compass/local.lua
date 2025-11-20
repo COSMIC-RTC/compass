@@ -30,15 +30,8 @@ prepend_path("PYTHONPATH", shesha)
 prepend_path("PYTHONPATH", compass_install .. "/python")
 prepend_path("LD_LIBRARY_PATH", compass_install .. "/lib")
 prepend_path("PKG_CONFIG_PATH", compass_install .. "/lib/pkgconfig")
--- if (not isloaded("mamba")) then
---     load("mamba")
--- end
 
 if (not isloaded("cuda")) then
     load("cuda")
 end
 
-execute{cmd="mamba activate compass", modeA={"load"}}
-execute{cmd="mamba deactivate", modeA={"unload"}}
--- execute{cmd="source " .. home_local .. "compass-env/bin/activate", modeA={"load"}}
--- execute{cmd="deactivate", modeA={"unload"}}
