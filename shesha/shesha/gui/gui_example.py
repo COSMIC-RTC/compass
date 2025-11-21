@@ -5,7 +5,7 @@ Example script showing how to use COMPASS GUI programmatically
 and how to extend it with custom functionality
 """
 
-from PyQt6.QtWidgets import QApplication, QPushButton, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import QApplication
 from shesha.gui.main_window import CompassMainWindow
 from shesha.config import ParamConfig
 import sys

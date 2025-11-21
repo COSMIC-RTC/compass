@@ -86,7 +86,7 @@ if __name__ == "__main__":
         Nactu = supervisor.config.p_dms[0]._ntotact
         # ???
         ipos_out2 = np.unique(np.r_[ipos_out, ipos_spi1])
-        ipos_in2 = np.arange(Nactu)[np.where(np.isin(np.arange(Nactu), ipos_out2) == False)]
+        ipos_in2 = np.arange(Nactu)[~np.isin(np.arange(Nactu), ipos_out2)]
         # Normalization matrix
         IFdelta = supervisor.basis.compute_influ_delta(0)
         # Gendron basis
@@ -112,7 +112,10 @@ if __name__ == "__main__":
         Cext = np.zeros((Nactu + 2, Nslopes))
         Cext[:nmodes, :] = rmatc.copy()
     # CLOSE config
-    gain = 0.5 ; qp = 0.05 ; qm = 2 * qp ; trgt = 0.0
+    gain = 0.5
+    qp = 0.05
+    qm = 2 * qp
+    trgt = 0.0
     mask = 1.0 * np.r_[np.ones(nmodes), np.zeros(Nactu+2 - nmodes, dtype=np.float32)]
     # Loop and CLOSE setup
     supervisor.rtc.set_modal_integrator_law(0)

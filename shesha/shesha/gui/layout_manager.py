@@ -21,9 +21,9 @@ Custom layout manager using pyqtgraph DockArea for flexible display arrangement
 """
 
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QPushButton, QDialog,
-    QListWidget, QDialogButtonBox, QLabel, QHBoxLayout,
-    QToolBar, QMenu, QComboBox, QFileDialog, QMessageBox
+    QWidget, QVBoxLayout, QDialog,
+    QListWidget, QDialogButtonBox, QLabel,
+    QToolBar, QComboBox, QFileDialog, QMessageBox
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QAction

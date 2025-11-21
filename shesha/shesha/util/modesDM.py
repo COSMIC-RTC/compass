@@ -107,7 +107,7 @@ def geometricModes(x, y, coupling, filterPiston):
         P = computePistonFilteringMatrix(Nactu)
         delta = P.dot(delta.dot(P))
     print('Diagonalisation')
-    l, U = np.linalg.eigh(delta)
+    val, U = np.linalg.eigh(delta)
     print('done')
     return U[:, ::-1]
 
@@ -153,10 +153,10 @@ def KLmodes(x, y, L0, filterPiston):
     # L'unite des valuers propres est en radians^2 a la longueur d'onde ou
     # est exprime r0, et sachant que tout est normalise pour (D/r0)=1.
     #
-    l, U = np.linalg.eigh(kolmo)
-    l = l / Nactu
+    val, U = np.linalg.eigh(kolmo)
+    val = val / Nactu
     print('done')
-    return U[:, ::-1], l[::-1]
+    return U[:, ::-1], val[::-1]
 
 def macdo_x56(x,k=10):
     """   
@@ -533,18 +533,18 @@ def continuityExtension(x, y, userSelection, filterPiston=True, mergeTilt=True):
         P = computePistonFilteringMatrix(nc)
         Ccc = P.dot(Ccc.dot(P))
         print('Diagonalisation + filtering piston')
-        l, U = np.linalg.eigh(Ccc)
+        val, U = np.linalg.eigh(Ccc)
         U = U[:, :1:-1]  # Remove piston mode and swap ordering
     else:
         print('Diagonalisation, no filtering of piston')
-        l, U = np.linalg.eigh(Ccc)
+        val, U = np.linalg.eigh(Ccc)
         U = U[:, ::-1] # swap ordering
         
     # Application of the extension/continuity matrix to the basis U
     Ufull = E.dot(U)
     
     # management of tiptilt
-    if mergeTilt==True:
+    if mergeTilt:
         # Gestion du tiptilt pour compass
         Ufull = rajouteTilt(Ufull, int(2))
     return Ufull
@@ -643,7 +643,7 @@ def moreLines(mat, nline, follow=None, pos=None):
 
     """
     idest, jdest = mat.shape
-    if pos == None:
+    if pos is None:
         pos = idest
     if pos < 0:
         pos = pos + idest
@@ -658,7 +658,7 @@ def moreLines(mat, nline, follow=None, pos=None):
 
     imore = list(np.arange(nline) + pos)
 
-    if follow != None:
+    if follow is not None:
         for i in range(len(follow)):
             follow[i] = insertElem(follow[i], pos, nline)
 
@@ -685,7 +685,7 @@ def moreColumns(mat, ncol, follow=None, pos=None):
 
     """
     idest, jdest = mat.shape
-    if pos == None:
+    if pos is None:
         pos = jdest
     if pos < 0:
         pos = pos + jdest
@@ -700,7 +700,7 @@ def moreColumns(mat, ncol, follow=None, pos=None):
 
     jmore = list(np.arange(ncol) + pos)
 
-    if follow != None:
+    if follow is not None:
         for i in range(len(follow)):
             follow[i] = insertElem(follow[i], pos, ncol)
 

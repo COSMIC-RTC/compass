@@ -401,7 +401,7 @@ def min_array(array):
     Compute min of array excluding nan values
     """
 
-    return np.min(array[np.where(np.isnan(array) == False)])
+    return np.min(array[~np.isnan(array)])
 
 
 def max_array(array):
@@ -409,7 +409,7 @@ def max_array(array):
     Compute max of array excluding nan values
     """
 
-    return np.max(array[np.where(np.isnan(array) == False)])
+    return np.max(array[~np.isnan(array)])
 
 
 def wait_until(predicate, timeout, period):
@@ -439,8 +439,8 @@ def zernike(n_pix, m, n):
     xx, yy = np.meshgrid(x, y)
 
     ro, theta = cart2polar(xx, yy)
-    w = np.where(ro > 1)
-    w2 = np.where(ro <= 1)
+    # w = np.where(ro > 1)
+    # w2 = np.where(ro <= 1)
     # ro[w] = 0
 
     if m > n or n < 0:
@@ -485,9 +485,9 @@ def list_of_zernike(n_pix):
 
     m = np.array([0, 1, -1, 0, 2, -2, 1, -1, 3, -3, 0, 2, -2, 4, -4, 1, -1, 3, -3, 5, -5])
     n = np.array([0, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5])
-    name = ['piston', 'tip', 'tilt', 'defocus', 'astigmatism', 'astigmatism', 'coma', 'coma', 'trefoil', 'trefoil',
-            'spherical', 'astigmatism 2', 'astigmatism 2', 'quadrafoil', 'quadrafoil', 'coma 2', 'coma2', 'trefoil 2',
-            'trefoil 2', 'pentafoil', 'pentafoil']
+    # name = ['piston', 'tip', 'tilt', 'defocus', 'astigmatism', 'astigmatism', 'coma', 'coma', 'trefoil', 'trefoil',
+    #         'spherical', 'astigmatism 2', 'astigmatism 2', 'quadrafoil', 'quadrafoil', 'coma 2', 'coma2', 'trefoil 2',
+    #         'trefoil 2', 'pentafoil', 'pentafoil']
 
     z = []
 
@@ -672,6 +672,6 @@ def create_pupil(n_pix, d_tel, n_seg=0, d_obs=0, d_spider=0, d_spider2 = 0, form
         my_pup *= my_pup_rot
 
     if form is not None:
-        my_pup[np.where(r<d_in/n_pix)] = ipup[np.where(r<d_in/n_pix)]
+        my_pup[np.where(r<d_in/n_pix)] = form[np.where(r<d_in/n_pix)]
 
     return my_pup

@@ -8,7 +8,7 @@ from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
     QPushButton, QSpinBox, QGroupBox, QFormLayout, QMessageBox
 )
-from PyQt6.QtCore import Qt
+
 
 
 class ConnectionDialog(QDialog):

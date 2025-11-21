@@ -431,13 +431,13 @@ class ModalBasis(object):
             ypos = np.array(ypos)
             d_center = n_pix//2 - 0.5
         
-        if (pixsize == None):
+        if pixsize is None:
             pixsize = self._config.p_geom._pixsize
         
         dist = np.sqrt((xpos - d_center)**2 + (ypos - d_center)**2)
         dist *= pixsize
         ipos_in = np.where((dist < (d_pup/2)) * (dist > (d_obs/2)))[0]
-        ipos_out = np.where(np.isin(np.arange(len(xpos)), ipos_in)==False)[0]
+        ipos_out = np.where(~np.isin(np.arange(len(xpos)), ipos_in))[0]
         
         return ipos_in, ipos_out
 
@@ -553,10 +553,10 @@ class ModalBasis(object):
         # Calcul des modes
         L0 = 1e4   # valeur fausse, mais proche de l'infini, donc pas grave.
         if ipos_in is not None:
-            B, l = modes.KLmodes(xpos[ipos_in], ypos[ipos_in], L0, True)
+            B, val = modes.KLmodes(xpos[ipos_in], ypos[ipos_in], L0, True)
             n_modes = len(ipos_in)
         else:
-            B, l = modes.KLmodes(xpos, ypos, L0, True)
+            B, val = modes.KLmodes(xpos, ypos, L0, True)
             n_modes = len(xpos)
 
         # Normalisation de la base 
@@ -644,7 +644,7 @@ class ModalBasis(object):
         Bp = Br.copy()
         Bp[spi1] = Bp[spi2]
         if IFdelta is not None:
-            Bp = normalize_basis(Bp, IFdelta)
+            Bp = self.normalize_basis(Bp, IFdelta)
         Bpext, itt, _ = modes.moreLines(Bp, 2)
 
         return Bp, Bpext
@@ -674,17 +674,17 @@ class ModalBasis(object):
         if (xpos is None) and (ypos is None):
             xpos = self._config.p_dms[0]._xpos
             ypos = self._config.p_dms[0]._ypos
-            n_pix = self._config.p_geom._ipupil.shape[0]
+            # n_pix = self._config.p_geom._ipupil.shape[0]
         if (pixsize is None):
             pixsize = self._config.p_geom._pixsize
         
         dist = np.sqrt((xpos[:, None] - xpos[None, :])**2 + (ypos[:, None] - ypos[None, :])**2)    # distances entre actus [mètres]
         dist *= pixsize
         ipos_all = np.arange(len(xpos))
-        ipos_interieur = ipos_all[np.where(np.isin(ipos_all, spi1) == False)]
-        Bc = mmse.computeMmseMatrix(Br, dist, spi1, ipos_interieur, L0=L0, r0=r0, alpha=alpha)
+        ipos_interieur = ipos_all[~np.isin(ipos_all, spi1)]
+        Bc = modes.computeMmseMatrix(Br, dist, spi1, ipos_interieur, L0=L0, r0=r0, alpha=alpha)
         if IFdelta is not None:
-            Bc = normalize_basis(Bc, IFdelta)
+            Bc = self.normalize_basis(Bc, IFdelta)
         Bcext, itt, _ = modes.moreLines(Bc, 2)
         return Bc, Bcext
 
@@ -728,10 +728,10 @@ class ModalBasis(object):
             my_pup_rot = rotate(my_pup_rot, 360 / n_seg, reshape=False)
             my_pup *= my_pup_rot
 
-        if obs_shape is "ELT":
+        if obs_shape == "ELT":
             my_pup[np.where(r < d_obs / n_pix)] = custom_obs[np.where(r < d_obs / n_pix)]
         
-        elif obs_shape is "hexa":
+        elif obs_shape == "hexa":
             centers = np.c_[np.cos((2 * np.arange(n_seg) + 1) * np.pi/n_seg), np.sin((2 * np.arange(n_seg) +1) * np.pi/n_seg)]
             h = np.abs(np.min(np.asarray([(c[0]) * xx + (c[1]) * yy for c in centers]), axis=0))
 

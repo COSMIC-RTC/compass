@@ -31,7 +31,6 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from shesha.config import ParamConfig
-from shesha.supervisor.compassSupervisor import CompassSupervisor
 from shesha.gui.remote_supervisor_server import RemoteSupervisorServer
 from shesha.gui.supervisor_thread import SupervisorThread
 
@@ -184,7 +183,7 @@ class RemoteServerRunner:
         # Start ZeroMQ server
         self.server.start()
         
-        logger.info(f"Server listening on:")
+        logger.info("Server listening on:")
         logger.info(f"  Command port:   {self.cmd_port}")
         logger.info(f"  Telemetry port: {self.tel_port}")
         logger.info("Server is ready for connections")
@@ -205,7 +204,7 @@ class RemoteServerRunner:
         try:
             from PyQt6.QtCore import QCoreApplication
             qt_app = QCoreApplication.instance()
-        except:
+        except Exception:
             qt_app = None
         
         try:
@@ -302,11 +301,10 @@ Examples:
     # Create QCoreApplication for Qt event loop (required for SupervisorThread signals)
     try:
         from PyQt6.QtCore import QCoreApplication
-        app = QCoreApplication(sys.argv)
+        _ = QCoreApplication(sys.argv)
         logger.info("Qt event loop initialized")
     except ImportError:
         logger.warning("PyQt6 not available - running without Qt event loop")
-        app = None
     
     # Create and initialize server
     runner = RemoteServerRunner(

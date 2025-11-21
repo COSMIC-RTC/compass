@@ -6,6 +6,7 @@ Main status:
 Develop status:
 [![Develop status](https://gitlab.obspm.fr/cosmic-rtc/compass/badges/develop/pipeline.svg)](https://gitlab.obspm.fr/cosmic-rtc/compass/commits/develop)
 [![coverage report](https://gitlab.obspm.fr/cosmic-rtc/compass/badges/develop/coverage.svg)](https://cosmic-rtc.pages.obspm.fr/compass/coverage/index.html)
+[![Code Quality](https://gitlab.obspm.fr/cosmic-rtc/compass/badges/develop/code_quality.svg)](https://gitlab.obspm.fr/cosmic-rtc/compass/pipelines)
 
 - [COMPASS](#compass)
   - [Citations](#citations)
@@ -57,6 +58,9 @@ Before installing COMPASS, ensure you have:
 - **Lmod** (Environment Modules) installed on your system
   - Install via package manager: `sudo apt install lmod` (Debian/Ubuntu) or `sudo yum install Lmod` (RHEL/CentOS)
   - More info: <https://lmod.readthedocs.io/>
+- **Git LFS** (Large File Storage) installed
+  - Install via package manager: `sudo apt install git-lfs` (Debian/Ubuntu) or `sudo dnf install git-lfs` (RHEL/CentOS)
+  - Initialize: `git lfs install`
 - **Python 3** 
 
 ### Step 1: Download COMPASS

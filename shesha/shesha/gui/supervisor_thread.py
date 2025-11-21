@@ -23,11 +23,11 @@ Supervisor worker thread for running the AO loop independently from the GUI
 from PyQt6.QtCore import QThread, pyqtSignal
 import numpy as np
 import time
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 from queue import Queue, Empty
 
 if TYPE_CHECKING:
-    from .remote_supervisor_server import RemoteSupervisorServer
+    pass
 
 
 class SupervisorThread(QThread):

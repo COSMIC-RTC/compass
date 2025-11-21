@@ -12,18 +12,49 @@ include:
 - template: Jobs/Code-Quality.gitlab-ci.yml
 
 code_quality:
-  services:            # Shut off Docker-in-Docker
+  image: docker:27
+  services: []            # Disable Docker-in-Docker service
   tags:
   - cq-sans-dind     # Set this job to only run on our new specialized runner
+  variables:
+    DOCKER_HOST: "unix:///var/run/docker.sock"
+    DOCKER_API_VERSION: "1.45"
+  script:
+    - docker pull codeclimate/codeclimate:latest
+    - export VOL_NAME="code_quality_vol_${CI_JOB_ID}"
+    - docker volume create "$VOL_NAME"
+    - |
+      # Populate the volume with source code
+      docker create --name "helper_${CI_JOB_ID}" -v "$VOL_NAME":/code docker:27 /bin/true
+      tar -cf - . | docker cp - "helper_${CI_JOB_ID}":/code
+      docker rm "helper_${CI_JOB_ID}"
+      
+      # Get the physical path of the volume on the host
+      HOST_VOL_PATH=$(docker volume inspect --format '{{ .Mountpoint }}' "$VOL_NAME")
+      
+      # Run Code Climate with --no-docker to avoid spawning sibling containers.
+      # This avoids the issue where temp config files cannot be mounted across DooD boundaries.
+      docker run --rm \
+        --env DOCKER_API_VERSION="$DOCKER_API_VERSION" \
+        --volume "$HOST_VOL_PATH":/code \
+        codeclimate/codeclimate:latest \
+        analyze --no-docker -f json > gl-code-quality-report.json || EXIT_CODE=$?
+      
+      docker volume rm "$VOL_NAME"
+      exit ${EXIT_CODE:-0}
+  artifacts:
+    reports:
+      codequality: gl-code-quality-report.json
   rules:
     - if: $CODE_QUALITY_DISABLED
       when: never
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" # Run code quality job in merge request pipelines
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH      # Run code quality job in pipelines on the default branch (but not in other branch pipelines)
     - if: $CI_COMMIT_TAG                               # Run code quality job in pipelines for tags
+  allow_failure: true      # Allow job to fail without blocking pipeline
 
 semgrep-sast:
-  services:            # Shut off Docker-in-Docker
+  services: []            # Disable Docker-in-Docker
   tags:
   - cq-sans-dind     # Set this job to only run on our new specialized runner
   rules:

@@ -31,7 +31,6 @@ import argparse
 # Check for required GUI dependencies
 try:
     from PyQt6.QtWidgets import QApplication, QMessageBox
-    from PyQt6.QtCore import Qt
 except ImportError:
     print("ERROR: PyQt6 is required but not installed.")
     print("Install with: pip install PyQt6")
@@ -39,6 +38,7 @@ except ImportError:
 
 try:
     import pyqtgraph as pg
+    _ = pg
 except ImportError:
     print("ERROR: pyqtgraph is required but not installed.")
     print("Install with: pip install pyqtgraph")
@@ -46,6 +46,7 @@ except ImportError:
 
 try:
     import zmq
+    _ = zmq
 except ImportError:
     print("ERROR: pyzmq is required but not installed.")
     print("Install with: pip install pyzmq")
@@ -53,6 +54,7 @@ except ImportError:
 
 try:
     import numpy as np
+    _ = np
 except ImportError:
     print("ERROR: numpy is required but not installed.")
     print("Install with: pip install numpy")
@@ -80,11 +82,13 @@ def check_optional_dependencies():
     
     try:
         import matplotlib
+        _ = matplotlib
     except ImportError:
         warnings.append("matplotlib (colormaps will be limited)")
     
     try:
         import qtconsole
+        _ = qtconsole
     except ImportError:
         warnings.append("qtconsole (IPython console will be disabled)")
     
@@ -193,6 +197,7 @@ Notes:
             # Update IPython console if available
             try:
                 from qtconsole.rich_jupyter_widget import RichJupyterWidget
+                _ = RichJupyterWidget
                 if window.kernel_manager:
                     window._update_console_namespace()
             except ImportError:

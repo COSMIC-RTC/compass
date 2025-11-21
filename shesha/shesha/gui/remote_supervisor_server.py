@@ -156,7 +156,7 @@ class RemoteSupervisorServer:
                     "traceback": traceback.format_exc()
                 }
                 self.command_socket.send(pickle.dumps(error_response))
-            except:
+            except Exception:
                 pass
             return False
     

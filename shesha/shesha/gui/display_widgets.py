@@ -145,14 +145,13 @@ class SelectableImageDisplayWidget(QWidget):
         try:
             # Try to get matplotlib colormap
             import matplotlib.cm as cm
-            import matplotlib.colors as mcolors
             
             cmap = cm.get_cmap(self.current_colormap)
             # Convert to pyqtgraph format (Nx3 array of RGB values)
             colors = cmap(np.linspace(0, 1, 256))[:, :3] * 255
             colormap = pg.ColorMap(pos=np.linspace(0.0, 1.0, 256), color=colors)
             self.image_view.setColorMap(colormap)
-        except:
+        except Exception:
             # Fallback to pyqtgraph built-in colormaps
             pass
         

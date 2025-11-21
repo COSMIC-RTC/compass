@@ -10,7 +10,6 @@
 
 import shesha.config as conf
 import numpy as np
-import os
 # from saxoPlusUtils import saxoplus_compute_delay
 # import dictionary_handler as simu      # for dictionary of simulations
 

@@ -23,7 +23,7 @@ Main window for the COMPASS GUI application
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
     QLabel, QFileDialog, QMessageBox, QGroupBox, QGridLayout,
-    QSpinBox, QDoubleSpinBox, QStatusBar, QTabWidget, QSplitter,
+    QSpinBox, QStatusBar, QTabWidget, QSplitter,
     QApplication, QCheckBox, QDialog, QComboBox
 )
 from PyQt6.QtCore import Qt, QTimer
@@ -805,7 +805,7 @@ class CompassMainWindow(QMainWindow):
         """Stop the simulation loop"""
         if self.remote_mode:
             try:
-                response = self.remote_client._send_command('stop_thread', {})
+                self.remote_client._send_command('stop_thread', {})
                 # Don't wait for thread to finish on remote side
                 # Just update UI immediately
                 self.start_btn.setEnabled(True)
@@ -1028,7 +1028,7 @@ class CompassMainWindow(QMainWindow):
         """Update the monitoring frequency"""
         if self.remote_mode:
             # In remote mode, monitoring frequency is controlled by server
-            self.status_bar.showMessage(f"Note: Monitoring frequency controlled by server in remote mode")
+            self.status_bar.showMessage("Note: Monitoring frequency controlled by server in remote mode")
         elif self.supervisor_thread:
             self.supervisor_thread.set_monitoring_frequency(value)
             
