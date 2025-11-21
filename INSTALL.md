@@ -25,11 +25,11 @@ dnf install -y git wget vim xorg-x11-xauth zip gvim clang curl zip unzip tar aut
 For conda installation, we recommend to use Mamba, a faster and more efficient package manager. To install Mamba, run the following commands:
 
 ```bash
-export CONDA_ROOT=${HOME}/mambaforge
-export PATH=${CONDA_ROOT}/bin:${PATH}
-wget -O Mambaforge-Linux-x86_64.sh https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh
-bash Mambaforge-Linux-x86_64.sh -b -p ${CONDA_ROOT}
-rm Mambaforge-Linux-x86_64.sh
+export MAMBA_ROOT=$HOME/miniforge3
+export PATH=$MAMBA_ROOT/bin:$PATH
+wget https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh
+bash Miniforge3-Linux-x86_64.sh -b -p $MAMBA_ROOT
+mamba init
 ```
 
 Note that the `CONDA_ROOT` path can be adjusted as needed and `wget -O` can be replaced with `curl --output`.
@@ -76,9 +76,9 @@ make sure to set the previous environment variables (defined in the `.bashrc` fi
 
 1. **Environment Activation**: Activate the `compass` environment: `conda activate compass`.
     
-2. **Dependency Installation**: Compile Vcpkg dependencies with `compile_vcpkg.py`.
+2. **Dependency Installation**: Compile Vcpkg dependencies with `compile.py`.
 
-NOTE: if you update the dependencies, you need to remove the `build` directory and run `compile_vcpkg.py` again.
+NOTE: if you update the dependencies, you need to remove the `build` directory and run `compile.py` again.
 
 ### Tests
 

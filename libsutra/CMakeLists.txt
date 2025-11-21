@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.18)
 
 project(libsutra VERSION ${VERSION_INFO} DESCRIPTION "COMPASS SUTRA lirary" LANGUAGES CXX CUDA)
 
+include(CheckIPOSupported)
+check_ipo_supported(RESULT supported OUTPUT error)
+
 find_package(CUDAToolkit REQUIRED)
 
 IF(CMAKE_BUILD_TYPE MATCHES "Debug")
@@ -70,6 +73,13 @@ add_library(libsutra
     src.cu/sutra_wfs.cu
     src.cu/sutra_coronagraph.cu
 )
+
+if( supported )
+    message(STATUS "IPO / LTO enabled")
+    set_property(TARGET libsutra PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+else()
+    message(STATUS "IPO / LTO not supported: <${error}>")
+endif()
 
 target_include_directories(libsutra
     PUBLIC

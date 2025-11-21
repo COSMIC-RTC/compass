@@ -33,7 +33,7 @@ do
     current_test=$(expr $current_test + 1)
 done
 
-python -m $script osef --displayResult --repportResult=$COMPASS_ROOT/report_E2E.md
+python $script osef --displayResult --repportResult=$COMPASS_ROOT/report_E2E.md
 
 rm -rf $COMPASS_ROOT/public
 
