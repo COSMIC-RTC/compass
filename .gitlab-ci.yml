@@ -44,10 +44,10 @@ semgrep-sast:
     COMPASS_DO_HALF: "OFF"
 
   script:
-  - . $CONDA_ROOT/etc/profile.d/conda.sh
-  - . $CONDA_ROOT/etc/profile.d/mamba.sh
-  - mamba create -p $COMPASS_INSTALL_ROOT/env/compass -y "python<3.14"
-  - mamba activate $COMPASS_INSTALL_ROOT/env/compass
+  - export MAMBA_ROOT_PREFIX=$CONDA_ROOT
+  - mamba create -n compass -y "python<3.14"
+  - eval "$(mamba shell hook --shell bash)"
+  - mamba activate compass
   - pip install -e .
   - compass build
   # - export PATH=$PATH:/usr/local/cuda/bin/
@@ -77,12 +77,13 @@ semgrep-sast:
     SHESHA_ROOT: "$COMPASS_ROOT/shesha"
     COMPASS_DO_HALF: "OFF"
   script:
+  - export MAMBA_ROOT_PREFIX=$CONDA_ROOT
   - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$COMPASS_INSTALL_ROOT/python
   - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_INSTALL_ROOT/lib
-  # - . $CONDA_ROOT/etc/profile.d/conda.sh
-  # - . $CONDA_ROOT/etc/profile.d/mamba.sh
-  # - mamba env create --file environment.yml
-  - mamba activate $COMPASS_INSTALL_ROOT/env/compass
+  - mamba create -n compass -y "python<3.14"
+  - eval "$(mamba shell hook --shell bash)"
+  - mamba activate compass
+  - pip install -e .
   - ruff check shesha > ruff-report.json
   artifacts:
     name: "${CI_PROJECT_NAME}_lint"
@@ -99,12 +100,13 @@ semgrep-sast:
     COMPASS_INSTALL_ROOT: "$COMPASS_ROOT/local"
     SHESHA_ROOT: "$COMPASS_ROOT/shesha"
   script:
+  - export MAMBA_ROOT_PREFIX=$CONDA_ROOT
   - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$COMPASS_INSTALL_ROOT/python
   - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_INSTALL_ROOT/lib
-  # - . $CONDA_ROOT/etc/profile.d/conda.sh
-  # - . $CONDA_ROOT/etc/profile.d/mamba.sh
-  # - mamba env create --file environment.yml
-  - mamba activate $COMPASS_INSTALL_ROOT/env/compass
+  - mamba create -n compass -y "python<3.14"
+  - eval "$(mamba shell hook --shell bash)"
+  - mamba activate compass
+  - pip install -e .
   - $COMPASS_ROOT/shesha/tests/checkCompass.sh 
   - $COMPASS_ROOT/doc/generate_coverage.sh
   - coverage report
@@ -118,94 +120,6 @@ semgrep-sast:
     reports:
       junit: report.xml
     expire_in: 6 mos
-
-build_release_jammy_11.8.0:
-  image: aocompass/base-22.04:11.8.0
-  environment: production
-  extends: .build_generic
-  when: always
-  only:
-  - main
-
-build_debug_jammy_11.8.0:
-  image: aocompass/base-22.04:11.8.0
-  environment: development
-  extends: .build_generic
-  variables:
-    COMPASS_DEBUG: "Debug"
-  when: always
-  only:
-  - merge_requests
-  - develop
-  artifacts:
-    paths:
-    - local/
-    expire_in: 6 mos
-
-test_release_jammy_11.8.0:
-  image: aocompass/base-22.04:11.8.0
-  environment: production
-  extends: .test_generic
-  dependencies:
-  - build_release_jammy_11.8.0
-  when: always
-  only:
-  - main
-
-test_debug_jammy_11.8.0:
-  image: aocompass/base-22.04:11.8.0
-  environment: development
-  extends: .test_generic
-  dependencies:
-  - build_debug_jammy_11.8.0
-  when: always
-  only:
-  - merge_requests
-  - develop
-
-build_release_rockylinux8_11.8.0:
-  image: aocompass/base-rockylinux8:11.8.0
-  environment: production
-  extends: .build_generic
-  when: always
-  only:
-  - main
-
-build_debug_rockylinux8_11.8.0:
-  image: aocompass/base-rockylinux8:11.8.0
-  environment: development
-  extends: .build_generic
-  variables:
-    COMPASS_DEBUG: "Debug"
-  when: always
-  only:
-  - merge_requests
-  - develop
-  artifacts:
-    paths:
-    - local/
-    expire_in: 6 mos
-
-test_release_rockylinux8_11.8.0:
-  image: aocompass/base-rockylinux8:11.8.0
-  environment: production
-  extends: .test_generic
-  dependencies:
-  - build_release_rockylinux8_11.8.0
-  when: always
-  only:
-  - main
-
-test_debug_rockylinux8_11.8.0:
-  image: aocompass/base-rockylinux8:11.8.0
-  environment: development
-  extends: .test_generic
-  dependencies:
-  - build_debug_rockylinux8_11.8.0
-  when: always
-  only:
-  - merge_requests
-  - develop
 
 build_release_jammy_12.8.0:
   image: aocompass/base-22.04:12.8.0
@@ -246,50 +160,6 @@ test_debug_jammy_12.8.0:
   extends: .test_generic
   dependencies:
   - build_debug_jammy_12.8.0
-  when: always
-  only:
-  - merge_requests
-  - develop
-
-build_release_rockylinux8_12.8.0:
-  image: aocompass/base-rockylinux8:12.8.0
-  environment: production
-  extends: .build_generic
-  when: always
-  only:
-  - main
-
-build_debug_rockylinux8_12.8.0:
-  image: aocompass/base-rockylinux8:12.8.0
-  environment: development
-  extends: .build_generic
-  variables:
-    COMPASS_DEBUG: "Debug"
-  when: always
-  only:
-  - merge_requests
-  - develop
-  artifacts:
-    paths:
-    - local/
-    expire_in: 6 mos
-
-test_release_rockylinux8_12.8.0:
-  image: aocompass/base-rockylinux8:12.8.0
-  environment: production
-  extends: .test_generic
-  dependencies:
-  - build_release_rockylinux8_12.8.0
-  when: always
-  only:
-  - main
-
-test_debug_rockylinux8_12.8.0:
-  image: aocompass/base-rockylinux8:12.8.0
-  environment: development
-  extends: .test_generic
-  dependencies:
-  - build_debug_rockylinux8_12.8.0
   when: always
   only:
   - merge_requests
@@ -374,15 +244,13 @@ pages:
   - build_debug_rockylinux9_12.8.0
   - test_debug_rockylinux9_12.8.0
   script:
+  - export MAMBA_ROOT_PREFIX=$CONDA_ROOT
   - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$COMPASS_INSTALL_ROOT/python
   - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_INSTALL_ROOT/lib
-  # - . $CONDA_ROOT/etc/profile.d/conda.sh
-  # - . $CONDA_ROOT/etc/profile.d/mamba.sh
-  # - mamba env create --file environment.yml
-  - mamba activate $COMPASS_INSTALL_ROOT/env/compass
-  - pip install -r script/requirements.txt
-  - pip install -r script/requirements-test.txt
-  - pip install -r script/requirements-doc.txt
+  - mamba create -n compass -y "python<3.14"
+  - eval "$(mamba shell hook --shell bash)"
+  - mamba activate compass
+  - pip install -e .
   - $COMPASS_ROOT/doc/py_filter_install.sh
   - $COMPASS_ROOT/doc/generate_stubs.sh
   - $COMPASS_ROOT/doc/generate_reports.sh
