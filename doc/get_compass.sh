@@ -87,7 +87,7 @@ OEF
 	echo "install compass from label $CUDA_VERSION$EXTENSION"
     conda install -y -c compass/label/cuda$CUDA_VERSION$EXTENSION compass aenum
     cd $HOME
-    git clone https://github.com/ANR-COMPASS/shesha.git
+    git clone https://github.com/COSMIC-RTC/compass.git
 }
 
 test_compass() {

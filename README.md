@@ -38,7 +38,7 @@ If you use COMPASS in your research, please cite one of the following papers:
 
 ## Overview
 
-The COMPASS platform is distributed as a single bundle of CArMA and SuTrA C++ / Cuda libraries and their Python extensions NAGA & SHESHA.
+The COMPASS platform is distributed as a single bundle of CArMA and SuTrA C++ / Cuda libraries and their Python extension SHESHA.
 
 ### Hardware requirements
 
@@ -57,7 +57,7 @@ Before installing COMPASS, ensure you have:
 - **Lmod** (Environment Modules) installed on your system
   - Install via package manager: `sudo apt install lmod` (Debian/Ubuntu) or `sudo yum install Lmod` (RHEL/CentOS)
   - More info: <https://lmod.readthedocs.io/>
-- **Python 3** with either `mamba`/`conda` or `venv`
+- **Python 3** 
 
 ### Step 1: Download COMPASS
 
@@ -68,80 +68,24 @@ git clone https://gitlab.obspm.fr/cosmic-rtc/compass.git
 cd compass
 ```
 
-### Step 2: Setup Python Environment
-
-COMPASS provides a setup script that creates a Python environment with all required dependencies. Choose between `mamba` (recommended) or `venv`:
-
-**Option A: Using Mamba (Recommended)**
-
-```bash
-./cli/scripts/setup_python_env.sh --mamba
-```
-
-**Option B: Using Python venv**
-
-```bash
-./cli/scripts/setup_python_env.sh --venv
-```
-
-The script will:
-- Create a new environment named `compass`
-- Install all Python dependencies (NumPy, Astropy, PyYAML, Rich, etc.)
-
-### Step 3: Activate the Environment
-
-After the setup completes, activate the newly created environment:
-
-**For Mamba:**
-```bash
-mamba activate compass
-```
-
-**For venv:**
-```bash
-source compass-venv/bin/activate
-```
-
-### Step 4: Install COMPASS CLI
-
-With the environment activated, install COMPASS in editable mode:
+### Step 2: Install COMPASS CLI
 
 ```bash
 pip install -e .
 ```
 
-This installs the `compass` command-line interface with all subcommands.
-
-### Step 5: Initialize Modulefiles
-
-Setup COMPASS modulefiles for environment management:
+### Step 3: Initialize and build COMPASS
 
 ```bash
 compass init
-```
-
-This command:
-- Adds COMPASS modulefiles directory to your `MODULEPATH`
-- Updates your `~/.bashrc` with the necessary configuration
-- Enables `module load compass/local` for future sessions
-
-For automatic load of the Python environment when loading COMPASS module, comment/uncomment the relevant lines at the end of `modulefiles/compass/local`, depending on your setup with venv or mamba.
-
-After this step, reload your shell or source your bashrc:
-```bash
-source ~/.bashrc
-module load compass/local
-```
-
-### Step 6: Build COMPASS
-
-Compile and install the C++/CUDA libraries:
-
-```bash
 compass build
 ```
 
 This will:
+- Adds COMPASS modulefiles directory to your `MODULEPATH`
+- Updates your `~/.bashrc` with the necessary configuration
+- Enables `module load compass/local` for future sessions
+- Setup the compass modulefile 
 - Build **libcarma** and **libsutra** C++/CUDA libraries
 - Build Python extensions (**carma.so**, **sutra.so**)
 - Install everything to `local/` directory

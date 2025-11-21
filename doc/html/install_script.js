@@ -76,7 +76,7 @@ function generate_script(div_text, access, conda_path, cuda_path, hf16) {
     text_html += `
     <div class="line">conda install -y -c compass compass</div>
       <div class="line">cd $HOME</div>
-      <div class="line">git clone https://github.com/ANR-COMPASS/shesha.git</div>
+      <div class="line">git clone https://github.com/COSMIC-RTC/compass.git</div>
     `;
   } else {
     text_html += `
