@@ -53,6 +53,8 @@ dependencies = [
     "pybind11",
     "coverage",
     "pytest-cov",
+    "pytest-cover",
+    "pytest-coverage",
     "pytest-html",
     "pytest-metadata",
     "ruff",
@@ -61,6 +63,11 @@ dependencies = [
     "qtconsole",
     "pyzmq",
     "ipykernel",
+    "doxypypy",
+    "sphinx",
+    "sphinx-rtd-theme",
+    "pybind11-stubgen",
+    "breathe",
 ]
 
 [project.optional-dependencies]

@@ -40,20 +40,27 @@ semgrep-sast:
   variables:
     COMPASS_ROOT: "$CI_PROJECT_DIR"
     SHESHA_ROOT: "$COMPASS_ROOT/shesha"
-    
+    COMPASS_INSTALL_ROOT: "$COMPASS_ROOT/local"
     COMPASS_DO_HALF: "OFF"
+
   script:
-  - export VCPKG_ROOT="$HOME/vcpkg"
-  - export PATH=$PATH:/usr/local/cuda/bin/
-  - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$COMPASS_ROOT/local/python
-  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_ROOT/local/lib
-  - unset CUDA_SM
   - . $CONDA_ROOT/etc/profile.d/conda.sh
   - . $CONDA_ROOT/etc/profile.d/mamba.sh
-  - mamba env create --file environment.yml
-  - mamba activate compass
-  - ./script/install_vcpkg.sh
-  - ./compile.py
+  - mamba create -p $COMPASS_INSTALL_ROOT/env/compass -y "python<3.14"
+  - mamba activate $COMPASS_INSTALL_ROOT/env/compass
+  - pip install -e .
+  - compass build
+  # - export PATH=$PATH:/usr/local/cuda/bin/
+  # - export VCPKG_ROOT="$HOME/vcpkg"
+  # - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$COMPASS_ROOT/local/python
+  # - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_ROOT/local/lib
+  # - unset CUDA_SM
+  # - . $CONDA_ROOT/etc/profile.d/conda.sh
+  # - . $CONDA_ROOT/etc/profile.d/mamba.sh
+  # - mamba env create --file environment.yml
+  # - mamba activate compass
+  # - ./script/install_vcpkg.sh
+  # - ./compile.py
   artifacts:
     name: "${CI_JOB_NAME}_binaires"
     paths:
@@ -66,17 +73,16 @@ semgrep-sast:
   - compass
   variables:
     COMPASS_ROOT: "$CI_PROJECT_DIR"
+    COMPASS_INSTALL_ROOT: "$COMPASS_ROOT/local"
     SHESHA_ROOT: "$COMPASS_ROOT/shesha"
     COMPASS_DO_HALF: "OFF"
-  before_script:
-  - 'pip3 install ruff'
   script:
-  - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$NAGA_ROOT:$COMPASS_ROOT/local/python
-  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_ROOT/local/lib
-  - . $CONDA_ROOT/etc/profile.d/conda.sh
-  - . $CONDA_ROOT/etc/profile.d/mamba.sh
-  - mamba env create --file environment.yml
-  - mamba activate compass
+  - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$COMPASS_INSTALL_ROOT/python
+  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_INSTALL_ROOT/lib
+  # - . $CONDA_ROOT/etc/profile.d/conda.sh
+  # - . $CONDA_ROOT/etc/profile.d/mamba.sh
+  # - mamba env create --file environment.yml
+  - mamba activate $COMPASS_INSTALL_ROOT/env/compass
   - ruff check shesha > ruff-report.json
   artifacts:
     name: "${CI_PROJECT_NAME}_lint"
@@ -90,14 +96,15 @@ semgrep-sast:
   - compass
   variables:
     COMPASS_ROOT: "$CI_PROJECT_DIR"
+    COMPASS_INSTALL_ROOT: "$COMPASS_ROOT/local"
     SHESHA_ROOT: "$COMPASS_ROOT/shesha"
   script:
-  - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$NAGA_ROOT:$COMPASS_ROOT/local/python
-  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_ROOT/local/lib
-  - . $CONDA_ROOT/etc/profile.d/conda.sh
-  - . $CONDA_ROOT/etc/profile.d/mamba.sh
-  - mamba env create --file environment.yml
-  - mamba activate compass
+  - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$COMPASS_INSTALL_ROOT/python
+  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_INSTALL_ROOT/lib
+  # - . $CONDA_ROOT/etc/profile.d/conda.sh
+  # - . $CONDA_ROOT/etc/profile.d/mamba.sh
+  # - mamba env create --file environment.yml
+  - mamba activate $COMPASS_INSTALL_ROOT/env/compass
   - $COMPASS_ROOT/shesha/tests/checkCompass.sh 
   - $COMPASS_ROOT/doc/generate_coverage.sh
   - coverage report
@@ -361,17 +368,18 @@ pages:
   - compass
   variables:
     COMPASS_ROOT: "$CI_PROJECT_DIR"
+    COMPASS_INSTALL_ROOT: "$COMPASS_ROOT/local"
     SHESHA_ROOT: "$COMPASS_ROOT/shesha"
   dependencies:
   - build_debug_rockylinux9_12.8.0
   - test_debug_rockylinux9_12.8.0
   script:
-  - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$NAGA_ROOT:$COMPASS_ROOT/local/python
-  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_ROOT/local/lib
-  - . $CONDA_ROOT/etc/profile.d/conda.sh
-  - . $CONDA_ROOT/etc/profile.d/mamba.sh
-  - mamba env create --file environment.yml
-  - mamba activate compass
+  - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$COMPASS_INSTALL_ROOT/python
+  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_INSTALL_ROOT/lib
+  # - . $CONDA_ROOT/etc/profile.d/conda.sh
+  # - . $CONDA_ROOT/etc/profile.d/mamba.sh
+  # - mamba env create --file environment.yml
+  - mamba activate $COMPASS_INSTALL_ROOT/env/compass
   - pip install -r script/requirements.txt
   - pip install -r script/requirements-test.txt
   - pip install -r script/requirements-doc.txt
