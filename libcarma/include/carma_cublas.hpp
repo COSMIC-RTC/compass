@@ -32,7 +32,7 @@
   __carma_checkCublasStatus(status, __LINE__, __FILE__)
 
 cublasStatus_t __carma_checkCublasStatus(cublasStatus_t status, int32_t line,
-                                         std::string file);
+                                         const std::string &file);
 
 cublasStatus_t carma_init_cublas(cublasHandle_t *cublas_handle);
 cublasStatus_t carma_shutdown_cublas(cublasHandle_t cublas_handle);

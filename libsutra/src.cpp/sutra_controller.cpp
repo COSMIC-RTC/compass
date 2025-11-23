@@ -267,7 +267,6 @@ int32_t SutraController<Tcomp, Tout>::add_perturb() {
   typename map<string, tuple<CarmaObj<Tcomp> *, int32_t, bool>>::iterator it;
   int32_t cpt;
   CarmaObj<Tcomp> *d_perturb;
-  int32_t any_perturb = 0;
   for (it = this->d_perturb_map.begin(); it != this->d_perturb_map.end();
        ++it) {
     if (std::get<2>(it->second)) {
@@ -293,10 +292,10 @@ SutraController<Tcomp, Tout>::~SutraController() {
   }
   this->d_circular_coms.clear();
   if (this->d_com_clipped != nullptr &&
-      (void *)this->d_com_clipped != (void *)this->d_com)
+      reinterpret_cast<void *>(this->d_com_clipped) != reinterpret_cast<void *>(this->d_com))
     delete this->d_com_clipped;
   if (this->d_voltage != nullptr &&
-      (void *)this->d_voltage != (void *)this->d_com_clipped)
+      reinterpret_cast<void *>(this->d_voltage) != reinterpret_cast<void *>(this->d_com_clipped))
     delete this->d_voltage;
   this->reset_perturb_voltage();
 

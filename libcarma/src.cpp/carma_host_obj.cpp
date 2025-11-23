@@ -369,10 +369,10 @@ void CarmaHostObj<T_data>::init(const int64_t *dims_data, const T_data *data,
                                 cudaHostAllocWriteCombined));
   } else if (malloc_type == MA_GENEPIN) {
     cudaSetDeviceFlags(cudaDeviceBlockingSync | cudaDeviceMapHost);
-    this->data_UA = (T_data *)mmap(
+    this->data_UA = reinterpret_cast<T_data *>(mmap(
         NULL, (sizeof(T_data) * this->nb_elem + MEMORY_ALIGNMENT),
-        PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
-    this->h_data = (T_data *)ALIGN_UP(data_UA, MEMORY_ALIGNMENT);
+        PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0));
+    this->h_data = reinterpret_cast<T_data *>(ALIGN_UP(data_UA, MEMORY_ALIGNMENT));
     carma_safe_call(cudaHostRegister(h_data, sizeof(T_data) * this->nb_elem,
                                    cudaHostRegisterMapped));
   } else

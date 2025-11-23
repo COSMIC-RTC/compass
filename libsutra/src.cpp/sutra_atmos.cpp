@@ -41,7 +41,7 @@ SutraAtmos::SutraAtmos(CarmaContext *context, int32_t nscreens, float global_r0,
 
 SutraAtmos::~SutraAtmos() {
   for (vector<SutraTurbuScreen *>::iterator it = this->d_screens.begin();
-       this->d_screens.end() != it; it++) {
+       this->d_screens.end() != it; ++it) {
     delete *it;
   }
 
@@ -123,7 +123,7 @@ int32_t SutraAtmos::set_r0(float r0) {
   // this->amplitude = powf(r0, -5.0f / 6.0f)
   float scaling = powf(r0 / this->r0, -5.0f / 6.0f);
   for (vector<SutraTurbuScreen *>::iterator it = this->d_screens.begin();
-       this->d_screens.end() != it; it++) {
+       this->d_screens.end() != it; ++it) {
     (*it)->r0 *= this->r0 / r0;
     (*it)->amplitude *= scaling;
   }

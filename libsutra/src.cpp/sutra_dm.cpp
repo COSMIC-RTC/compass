@@ -29,7 +29,7 @@ SutraDms::SutraDms() {}
 
 SutraDms::~SutraDms() {
   for (std::vector<SutraDm *>::iterator it = this->d_dms.begin();
-       this->d_dms.end() != it; it++) {
+       this->d_dms.end() != it; ++it) {
     delete *it;
   }
   this->d_dms.clear();
@@ -267,7 +267,6 @@ int32_t SutraDm::comp_shape(float *comvec) {
 
   dim3 threads(BLOCKSIZE);
   dim3 blocks(CEIL(this->d_shape->d_screen->get_nb_elements() << 2, threads.x));
-  int32_t shared = 0;
 
   int32_t nb_threads = 0, nb_blocks = 0;
   get_num_blocks_and_threads(current_context->get_device(device),
@@ -275,6 +274,7 @@ int32_t SutraDm::comp_shape(float *comvec) {
                          nb_threads);
 
   if (this->type == "pzt") {
+    int32_t shared = 0;
     comp_dmshape2<float>(
         this->d_shape->d_screen->get_data(), comvec, this->d_influ->get_data(),
         this->d_istart->get_data(), this->d_npoints->get_data(),
@@ -369,8 +369,8 @@ int32_t SutraDm::get_IF_sparse(CarmaSparseObj<T> *&d_IFsparse, int32_t *indx_pup
     // DEBUG_TRACE("nnz : %d \n",d_IFsparse_vec->get_nonzero_elem());
 
     NZ[i] = d_IFsparse_vec->get_nonzero_elem();
-    values[i] = (float *)malloc(NZ[i] * sizeof(T));
-    colind[i] = (int32_t *)malloc(NZ[i] * sizeof(int32_t));
+    values[i] = static_cast<float *>(malloc(NZ[i] * sizeof(T)));
+    colind[i] = static_cast<int32_t *>(malloc(NZ[i] * sizeof(int32_t)));
 
     carma_safe_call(cudaMemcpyAsync(values[i], d_IFsparse_vec->get_data(),
                                   sizeof(T) * NZ[i], cudaMemcpyDeviceToHost));

@@ -25,7 +25,7 @@
 #include <string>
 
 cusparseStatus_t carma_check_cusparse_status_v2(cusparseStatus_t status, int32_t line,
-                                              std::string file) {
+                                              const std::string &file) {
   /**< Generic CUSPARSE check status routine */
   switch (status) {
     case CUSPARSE_STATUS_SUCCESS:

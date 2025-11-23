@@ -79,7 +79,7 @@ SutraGamora::SutraGamora(CarmaContext *context, int32_t device, char *type,
   }
 
   int32_t *wherephase;
-  wherephase = (int32_t *)malloc(Npts * sizeof(int32_t));
+  wherephase = static_cast<int32_t *>(malloc(Npts * sizeof(int32_t)));
   int32_t cpt = 0;
   // Phase point index in spupil
   for (int32_t cc = 0; cc < size * size; cc++) {
@@ -178,9 +178,9 @@ SutraGamora::SutraGamora(CarmaContext *context, int32_t device, char *type,
       dims_data2[2] = fft_size;
       d_amplipup_ngpu.push_back(
           new CarmaObj<cuFloatComplex>(this->current_context, dims_data2));
-      cufftHandle *plan = this->d_amplipup_ngpu[d]->get_plan();  ///< FFT plan
+      cufftHandle *plan_gpu = this->d_amplipup_ngpu[d]->get_plan();  ///< FFT plan
       carmafft_safe_call(
-          cufftPlan2d(plan, dims_data2[1], dims_data2[2], CUFFT_C2C));
+          cufftPlan2d(plan_gpu, dims_data2[1], dims_data2[2], CUFFT_C2C));
       d_term1_ngpu.push_back(
           new CarmaObj<float>(this->current_context, dims_data2));
       d_term2_ngpu.push_back(

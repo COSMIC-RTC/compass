@@ -79,14 +79,14 @@ SutraLGS::SutraLGS(CarmaContext *context, CarmaObj<float> *d_lgskern,
   if (ftlgskern_plans.find(vdims) == ftlgskern_plans.end()) {
     // DEBUG_TRACE("Creating FFT plan : %d %d
     // %d",mdims[0],mdims[1],dims_data3[3]);print_mem_info();
-    cufftHandle *plan = (cufftHandle *)malloc(
-        sizeof(cufftHandle));  // = this->d_camplipup->get_plan(); ///< FFT plan
-    carmafft_safe_call(cufftPlanMany(plan, 2, mdims, NULL, 1, 0, NULL, 1, 0,
+    cufftHandle *plan_kern = static_cast<cufftHandle *>(malloc(
+        sizeof(cufftHandle)));  // = this->d_camplipup->get_plan(); ///< FFT plan
+    carmafft_safe_call(cufftPlanMany(plan_kern, 2, mdims, NULL, 1, 0, NULL, 1, 0,
                                    CUFFT_C2C, (int32_t)dims_data3[3]));
 
-    ftlgskern_plans.insert(pair<vector<int32_t>, cufftHandle *>(vdims, plan));
+    ftlgskern_plans.insert(pair<vector<int32_t>, cufftHandle *>(vdims, plan_kern));
 
-    this->ftlgskern_plan = plan;
+    this->ftlgskern_plan = plan_kern;
     // DEBUG_TRACE("FFT plan created");print_mem_info();
   } else {
     this->ftlgskern_plan = ftlgskern_plans.at(vdims);

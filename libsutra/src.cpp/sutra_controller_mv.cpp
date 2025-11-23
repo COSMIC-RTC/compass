@@ -180,7 +180,7 @@ int32_t SutraControllerMv<Tcomp, Tout>::compute_Cphim(
     if (dm->type != "tt") {
       Nactu += dm->nactus;
     }
-    p++;
+    ++p;
   }
 
   int64_t dims_data2[3] = {2, Nactu, this->nslope()};

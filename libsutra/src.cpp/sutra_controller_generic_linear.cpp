@@ -104,14 +104,14 @@ SutraControllerGenericLinear<T, Tout>::SutraControllerGenericLinear(
 template<typename T, typename Tout>
 SutraControllerGenericLinear<T, Tout>::~SutraControllerGenericLinear() {
   this->current_context->set_active_device(this->device, 1);
-  for(auto &c : d_circular_x)    {delete c;}
-  for(auto &c : d_circular_s)    {delete c;}
-  for(auto &c : d_circular_u_in) {delete c;}
-  for(auto &c : d_circular_u_out){delete c;}
-  for(auto &v : d_iir_a){delete v;}
-  for(auto &v : d_iir_b){delete v;}
-  for(auto &v : d_matA){delete v;}
-  for(auto &v : d_matL){delete v;}
+  for(const auto &c : d_circular_x)    {delete c;}
+  for(const auto &c : d_circular_s)    {delete c;}
+  for(const auto &c : d_circular_u_in) {delete c;}
+  for(const auto &c : d_circular_u_out){delete c;}
+  for(const auto &v : d_iir_a){delete v;}
+  for(const auto &v : d_iir_b){delete v;}
+  for(const auto &v : d_matA){delete v;}
+  for(const auto &v : d_matL){delete v;}
   d_circular_x.clear();
   d_circular_s.clear();
   d_circular_u_in.clear();

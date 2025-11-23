@@ -72,7 +72,6 @@ int32_t SutraStellarCoronagraph::set_mft(cuFloatComplex *A, cuFloatComplex *B, f
     }
 
     vector<int64_t> dims;
-    CarmaObj<cuFloatComplex> *data;
 
     for (int32_t i = 0; i < wavelength.size() ; i++) {
         dims = std::get<1>(AA[mftType]);

@@ -55,8 +55,6 @@ int32_t carma_syevd_gen(Fn_bufferSize const &ptr_syevd_gpu_bufferSize,
   T *d_work = NULL;
   int32_t lwork = 0;
 
-  int32_t info_gpu = 0;
-
   // step 2: query working space of syevd
   cublasFillMode_t uplo = CUBLAS_FILL_MODE_LOWER;
   cusolverEigMode_t jobz =
@@ -142,8 +140,6 @@ int32_t carma_potr_inv_gen(Fn_bufferSize const &ptr_potri_gpu_bufferSize,
   int32_t *devInfo = NULL;
   T *d_work = NULL;
   int32_t lwork = 0;
-
-  int32_t info_gpu = 0;
 
   cublasFillMode_t uplo = CUBLAS_FILL_MODE_LOWER;
   CHECK_CUSOLVER(ptr_potri_gpu_bufferSize(device->get_cusolver_handle(), uplo,

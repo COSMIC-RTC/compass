@@ -181,7 +181,6 @@ int32_t SutraControllerGeo<T, Tout>::init_proj_sparse(
   if (this->d_indx_mpup != 0L) this->d_indx_mpup->host2device(indx_mpup);
 
   // Get influence functions of the DM #ind in d_IFi
-  int32_t indx_start = 0;
   int32_t ind = 0;
   int32_t nnz = 0;
   int32_t NNZ[Npzt];
@@ -196,9 +195,8 @@ int32_t SutraControllerGeo<T, Tout>::init_proj_sparse(
     NNZ[ind] = d_IFi[ind]->nz_elem;
     Nact[ind] = dm->nactus;
     nnz += d_IFi[ind]->nz_elem;
-    indx_start += dm->nactus;
     ind++;
-    p++;
+    ++p;
   }
   // Create global d_IF_sparse from array of d_IFi
   int64_t dims_data[2] = {1, nnz};
@@ -229,7 +227,7 @@ int32_t SutraControllerGeo<T, Tout>::init_proj_sparse(
           sizeof(int32_t) * (dm->nactus), cudaMemcpyDeviceToDevice));
     cpt[i + 1] = cpt[i] + d_IFi[i]->nz_elem;
     nact += dm->nactus;
-    p++;
+    ++p;
     delete d_IFi[i];
   }
 
@@ -310,7 +308,7 @@ int32_t SutraControllerGeo<T, Tout>::init_proj_sparse(
                this->d_geocovTT->get_data(), 2 * this->Ntt);
 
     T *tmp;
-    tmp = (T *)malloc(this->d_geocovTT->get_nb_elements() * sizeof(T));
+    tmp = static_cast<T *>(malloc(this->d_geocovTT->get_nb_elements() * sizeof(T)));
     this->d_geocovTT->device2host(tmp);
     tmp[0] = 1.0f / tmp[0];
     tmp[3] = 1.0f / tmp[3];

@@ -173,10 +173,10 @@ int32_t CarmaFFT(T_in *input, T_out *output, int32_t dir, cufftHandle plan) {
    */
 
   // CUFFT_FORWARD = -1 and CUFFT_INVERSE = 1 (cf cufft.h)
-  // carmafft_safe_call( fft_compute(plan, (T_in*)input, (T_out*)output, dir *
+  // carmafft_safe_call( fft_compute(plan, reinterpret_cast<T_in*>(input), reinterpret_cast<T_out*>(output), dir *
   // CUFFT_FORWARD));
   carmafft_safe_call(
-      fft_compute(plan, (T_in *)input, (T_out *)output, dir * CUFFT_FORWARD));
+      fft_compute(plan, reinterpret_cast<T_in *>(input), reinterpret_cast<T_out *>(output), dir * CUFFT_FORWARD));
   return EXIT_SUCCESS;
 }
 template int32_t CarmaFFT<cuFloatComplex, cufftReal>(cuFloatComplex *input,

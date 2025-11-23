@@ -91,8 +91,8 @@ int32_t carma_fftconv(CarmaObjS *data_out, CarmaObjS *padded_data,
   int32_t nim;
   nim = data_out->get_dims(0) == 3 ? data_out->get_dims(3) : 1;
 
-  modulate_and_normalize((fComplex *)(padded_spectrum->get_data()),
-                       (fComplex *)(padded_spectrum->get_o_data()),
+  modulate_and_normalize(reinterpret_cast<fComplex *>(padded_spectrum->get_data()),
+                       reinterpret_cast<fComplex *>(padded_spectrum->get_o_data()),
                        padded_data->get_dims(1), padded_data->get_dims(2), 1,
                        nim);
 

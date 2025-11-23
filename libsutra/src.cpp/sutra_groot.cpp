@@ -193,9 +193,8 @@ int32_t SutraGroot::compute_Calias() {
   carma_safe_call(cudaMemset(this->d_CaYY->get_data(), 0,
                            sizeof(float) * this->d_CaYY->get_nb_elements()));
 
-  float offset;
   for (int32_t k = 0; k < this->npts; k++) {
-    offset = k / float(this->npts - 1) * this->d;
+    float offset = k / float(this->npts - 1) * this->d;
     compute_Ca<float>(this->d_CaXX->get_data(), this->d_CaYY->get_data(),
                       this->nssp, this->d_tab_int_x->get_data(),
                       this->d_tab_int_y->get_data(), this->d_xpos->get_data(),

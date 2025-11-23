@@ -57,7 +57,7 @@ SutraTelemetry::SutraTelemetry(std::string type_obj, int32_t num_obj,
 SutraTelemetry::~SutraTelemetry() {
   for (std::map<type_telemetry_pair, CarmaHostObj<float> *>::iterator it =
            objs.begin();
-       objs.end() != it; it++) {
+       objs.end() != it; ++it) {
     delete it->second;
   }
   this->objs.clear();

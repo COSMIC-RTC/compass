@@ -9,15 +9,15 @@ import sys
 import logging
 import subprocess
 from pathlib import Path
-from typing import List, Optional, Dict
+from typing import List, Optional
 from dataclasses import dataclass, field
 from enum import Enum
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
+from rich.progress import Progress
 from rich.console import Console
 from rich.table import Table
 
 from compass.core.environment import EnvironmentChecker
-from compass.core.logger import setup_logger, LoggerMixin
+from compass.core.logger import LoggerMixin
 
 
 class BuildType(Enum):

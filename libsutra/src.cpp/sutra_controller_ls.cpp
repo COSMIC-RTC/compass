@@ -391,7 +391,6 @@ int32_t SutraControllerLs<T, Tout>::modalControlOptimization() {
   CarmaObj<T> d_phaseError(this->current_context, dims_data);
   int64_t dims_data2[3] = {2, this->nrec, this->nmodes};
   CarmaObj<T> d_modes(this->current_context, dims_data2);
-  int32_t imin;
   T mgain[this->nmodes];
 
   // 1. modes = S2M * slopes_open_loop and transpose for fft
@@ -415,7 +414,7 @@ int32_t SutraControllerLs<T, Tout>::modalControlOptimization() {
                0.0f, d_phaseError.get_data(), 1);
 
     // Find and store optimum gain for mode i
-    imin = carma_where_amin(this->cublas_handle(), this->ngain,
+    int32_t imin = carma_where_amin(this->cublas_handle(), this->ngain,
                             d_phaseError.get_data(), 1) -
            1;
     mgain[i] =

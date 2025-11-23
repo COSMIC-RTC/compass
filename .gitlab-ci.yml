@@ -112,18 +112,55 @@ cpp_code_quality:
   - compass
   variables:
     COMPASS_ROOT: "$CI_PROJECT_DIR"
+    COMPASS_INSTALL_ROOT: "$CI_PROJECT_DIR/local"
   script:
-    # Generate compilation database using CMake
-    - mkdir -p build_cq
-    - cd build_cq
-    - cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .. || echo "CMake configuration warning - continuing"
-    - cd ..
-
-    # Run clang-tidy on C++ source files
+    # Setup environment and generate CMakePresets.json using compile.py strategy
+    - pip install docopt
+    - mamba create -n compass -y "python<3.14"
+    - eval "$(mamba shell hook --shell bash)"
+    - mamba activate compass
+    - pip install -e .
+    
+    # Generate CMakePresets.json (compile.py strategy)
     - |
-      find libcarma libsutra -name "*.cpp" -o -name "*.hpp" | while read file; do
-        clang-tidy -p build_cq "$file" 2>&1 || true
-      done | tee clang-tidy-report.txt
+      python3 << 'EOF'
+      import json
+      import os
+      from pathlib import Path
+      
+      build_dir = Path("build")
+      install_path = os.environ.get("COMPASS_INSTALL_ROOT", str(Path.cwd() / "local"))
+      build_type = os.environ.get("COMPASS_DEBUG", "Release")
+      cuda_sm = os.environ.get("CUDA_SM", "native")
+      
+      cmake_presets = {
+          "version": 3,
+          "configurePresets": [
+              {
+                  "name": "default",
+                  "binaryDir": str(build_dir),
+                  "cacheVariables": {
+                      "CMAKE_BUILD_TYPE": build_type,
+                      "CMAKE_INSTALL_PREFIX": install_path,
+                      "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+                      "CMAKE_CUDA_ARCHITECTURES": cuda_sm,
+                      "CMAKE_POSITION_INDEPENDENT_CODE": "ON",
+                      "build_python_module": "ON",
+                      "libs_build": True,
+                      "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+                  },
+              }
+          ],
+      }
+      
+      with open("CMakePresets.json", "w") as f:
+          json.dump(cmake_presets, f, indent=4)
+      print("Generated CMakePresets.json")
+      EOF
+    
+    # Configure and build using CMake (compile.py strategy)
+    - cmake --preset=default || echo "CMake configuration warning - continuing"
+    - cmake --build build --parallel 4 || echo "Build warning - continuing"
 
     # Run cppcheck with XML output
     - |

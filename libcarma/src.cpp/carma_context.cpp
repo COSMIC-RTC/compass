@@ -255,7 +255,7 @@ int32_t CarmaContext::_set_active_device_force(int32_t new_device, int32_t silen
     silent = 0;
 #endif  // DEBUG
 
-    if (!silent) {
+    if (silent == 0) {
       std::cout << "Using device " << devices[new_device]->get_id() << ": \""
                 << devices[new_device]->get_properties().name
                 << "\" with Compute "

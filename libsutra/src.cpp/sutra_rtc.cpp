@@ -271,6 +271,7 @@ int32_t SutraRtc<Tin, T, Tout>::do_imat(int32_t ncntrl, SutraDms *ydm, int32_t k
       dm->comp_oneactu(j, -1.0f * dm->push4imat);
       this->comp_images_imat(ydm, kernconv);
       device = this->d_control[ncntrl]->d_centroids->get_device();
+      device = this->d_control[ncntrl]->d_centroids->get_device();
       do_centroids(ncntrl, true);
 
       float alphai = -.5f / dm->push4imat;
@@ -343,26 +344,7 @@ int32_t SutraRtc<Tin, T, Tout>::do_imat_basis(int32_t ncntrl, SutraDms *ydm, int
     }
     this->comp_images_imat(ydm, kernconv);  // Raytrace & compute all WFS
     do_centroids(ncntrl, true);
-    int32_t device = this->d_control[ncntrl]->d_centroids->get_device();
-    this->d_control[ncntrl]->d_centroids->scale(0.5f / pushAmpl[j], 1);
-    this->d_control[ncntrl]->d_centroids->copy_into(
-        d_imat->get_data_at(inds1), this->d_control[ncntrl]->nslope());
 
-    // Pull
-    actuCount = 0;
-    d_comm.scale(-1.0f, 1);
-    p = this->d_control[ncntrl]->d_dmseen.begin();
-    while (p != this->d_control[ncntrl]->d_dmseen.end()) {
-      // Set each dm
-      SutraDm *dm = *p;
-      dm->comp_shape(d_comm.get_data_at(actuCount));
-      actuCount += dm->nactus;
-      ++p;
-    }
-    this->comp_images_imat(ydm, kernconv);  // Raytrace & compute all WFS
-    do_centroids(ncntrl, true);
-
-    device = this->d_control[ncntrl]->d_centroids->get_device();
     float alphai = -0.5f / pushAmpl[j];
     cublasSaxpy(this->d_control[ncntrl]->current_context->get_cublas_handle(),
                 this->d_control[ncntrl]->d_centroids->get_nb_elements(),
@@ -546,7 +528,7 @@ int32_t SutraRtc<Tin, T, Tout>::do_centroids_ref(int32_t ncntrl) {
   sc = this->d_centro.begin();
   while (sc != this->d_centro.end()) {
     (*sc)->d_centroids_ref->reset();
-    sc++;
+    ++sc;
   }
   this->do_centroids(ncntrl);
   sc = this->d_centro.begin();
@@ -556,7 +538,7 @@ int32_t SutraRtc<Tin, T, Tout>::do_centroids_ref(int32_t ncntrl) {
     (*sc)->d_centroids_ref->axpy(1.0f, this->d_control[ncntrl]->d_centroids, 1,
                                  1, inds);
     inds += (*sc)->nslopes;
-    sc++;
+    ++sc;
   }
 
   return EXIT_SUCCESS;
@@ -571,7 +553,7 @@ int32_t SutraRtc<Tin, T, Tout>::set_centroids_ref(float *centroids_ref) {
   while (sc != this->d_centro.end()) {
     (*sc)->set_centroids_ref(&centroids_ref[inds]);
     inds += (*sc)->nslopes;
-    sc++;
+    ++sc;
   }
 
   return EXIT_SUCCESS;
@@ -640,7 +622,7 @@ int32_t SutraRtc<Tin, T, Tout>::apply_control(int32_t ncntrl, bool compVoltage) 
     SutraDm *dm = *p;
     dm->comp_shape(this->d_control[ncntrl]->d_voltage->get_data_at(idx));
     idx += dm->nactus;
-    p++;
+    ++p;
   }
 
   return EXIT_SUCCESS;

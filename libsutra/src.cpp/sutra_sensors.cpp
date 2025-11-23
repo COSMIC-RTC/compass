@@ -113,16 +113,16 @@ SutraSensors::SutraSensors(CarmaContext *context, SutraTelescope *d_tel,
             nphot4imat[i], lgs[i], fakecam[i], max_flux_per_pix[i], max_pix_value[i],
             roket, device);
       } else {
-        int32_t devices[ngpu];
-        for (int32_t i = 0; i < ngpu; i++) {
-          devices[i] = i;
+        int32_t devices_ngpu[ngpu];
+        for (int32_t j = 0; j < ngpu; j++) {
+          devices_ngpu[j] = j;
         }
         wfs = new SutraWfs_PyrHR(
             context, d_tel, this->d_camplipup, this->d_camplifoc,
             this->d_fttotim, nxsub[i], nvalid[i], npupils[i], npix[i],
             nphase[i], nrebin[i], nfft[i], ntot[i], npup[i], pdiam[i], nphot[i],
             nphot4imat[i], lgs[i], fakecam[i], max_flux_per_pix[i], max_pix_value[i],
-            roket, ngpu, devices);
+            roket, ngpu, devices_ngpu);
       }
     }
 
@@ -142,15 +142,15 @@ SutraSensors::~SutraSensors() {
     d_wfs.pop_back();
   }
   map<vector<int32_t>, cufftHandle *>::iterator it;
-  for (it = campli_plans.begin(); it != campli_plans.end(); it++) {
+  for (it = campli_plans.begin(); it != campli_plans.end(); ++it) {
     cufftDestroy(*it->second);
     free(it->second);
   }
-  for (it = fttotim_plans.begin(); it != fttotim_plans.end(); it++) {
+  for (it = fttotim_plans.begin(); it != fttotim_plans.end(); ++it) {
     cufftDestroy(*it->second);
     free(it->second);
   }
-  for (it = ftlgskern_plans.begin(); it != ftlgskern_plans.end(); it++) {
+  for (it = ftlgskern_plans.begin(); it != ftlgskern_plans.end(); ++it) {
     cufftDestroy(*it->second);
     free(it->second);
   }

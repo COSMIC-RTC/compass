@@ -38,7 +38,7 @@ using TypeListObj =
   }
 
 cublasStatus_t __carma_checkCublasStatus(cublasStatus_t status, int32_t line,
-                                         std::string file) {
+                                         const std::string &file) {
   /**< Generic CUBLAS check status routine */
   switch (status) {
     case CUBLAS_STATUS_SUCCESS:

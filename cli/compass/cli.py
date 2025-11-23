@@ -12,7 +12,7 @@ from rich.console import Console
 
 from compass import __version__
 from compass.core.environment import EnvironmentChecker
-from compass.core.config import Config, Environment
+from compass.core.config import Environment
 from compass.deployment.build import Builder
 from compass.simulation.runner import SimulationRunner
 from compass.system.lmod import LmodManager
@@ -25,9 +25,7 @@ console = Console()
 
 def cmd_build(args):
     """Build COMPASS components."""
-    verbose = not args.silent
-    
-    builder = Builder(verbose=verbose)
+    builder = Builder(verbose=not args.silent)
     success = builder.build_all(
         clean=args.clean,
         components=list(args.components) if args.components else None,
@@ -38,8 +36,6 @@ def cmd_build(args):
 
 def cmd_config_export(args):
     """Export environment configuration to shell script."""
-    verbose = not args.silent
-    
     env = Environment()
     output_path = Path(args.output)
     env.export_to_shell_script(output_path)
@@ -53,16 +49,13 @@ def cmd_config_export(args):
 
 def cmd_config_show(args):
     """Show current COMPASS configuration."""
-    verbose = not args.silent
-    env_checker = EnvironmentChecker(verbose=verbose)
+    env_checker = EnvironmentChecker(verbose=not args.silent)
     env_checker.show_status()
     sys.exit(0)
 
 
 def cmd_config_init(args):
     """Create a default configuration file."""
-    verbose = not args.silent
-    
     output_path = Path(args.output)
     
     # Create default configuration
@@ -94,7 +87,7 @@ def cmd_config_init(args):
     
     if not args.silent:
         console.print(f"[green]✓ Configuration file created: {output_path}[/green]")
-        console.print(f"[cyan]Edit and then run: compass config export[/cyan]")
+        console.print("[cyan]Edit and then run: compass config export[/cyan]")
     
     sys.exit(0)
 

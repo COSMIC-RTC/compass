@@ -260,7 +260,7 @@ int32_t SutraSource::raytrace(SutraAtmos *yatmos, bool async) {
                           this->thetaML, this->dx, this->dy, this->block_size, delta);
       }
     }
-    p++;
+    ++p;
   }
 
   return EXIT_SUCCESS;
@@ -303,7 +303,7 @@ int32_t SutraSource::raytrace(SutraDms *ydms, bool rst, bool do_phase_var,
                           this->thetaML + ps->thetaML, this->dx + ps->dx, this->dy + ps->dy, this->block_size, delta);
         }
       }
-    p++;
+    ++p;
   }
 
   if (type != "wfs") {

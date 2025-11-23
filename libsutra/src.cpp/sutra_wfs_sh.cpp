@@ -131,8 +131,8 @@ int32_t SutraWfsSH::allocate_buffers(
   if (campli_plans.find(vdims) == campli_plans.end()) {
     // DEBUG_TRACE("Creating FFT plan : %d %d
     // %d",mdims[0],mdims[1],dims_data3[3]);print_mem_info();
-    cufftHandle *plan = (cufftHandle *)malloc(
-        sizeof(cufftHandle));  // = this->d_camplipup->get_plan(); ///< FFT plan
+    cufftHandle *plan = static_cast<cufftHandle *>(malloc(
+        sizeof(cufftHandle)));  // = this->d_camplipup->get_plan(); ///< FFT plan
     carmafft_safe_call(cufftPlanMany(plan, 2, mdims, NULL, 1, 0, NULL, 1, 0,
                                    CUFFT_C2C, (int32_t)dims_data3[3]));
 
@@ -179,18 +179,18 @@ int32_t SutraWfsSH::allocate_buffers(
 
     mdims[0] = (int32_t)dims_data3[1];
     mdims[1] = (int32_t)dims_data3[2];
-    int32_t vector_dims[3] = {mdims[0], mdims[1], (int32_t)dims_data3[3]};
-    vector<int32_t> vdims(vector_dims,
-                      vector_dims + sizeof(vector_dims) / sizeof(int32_t));
+    int32_t vector_dims_tot[3] = {mdims[0], mdims[1], (int32_t)dims_data3[3]};
+    vector<int32_t> vdims_tot(vector_dims_tot,
+                      vector_dims_tot + sizeof(vector_dims_tot) / sizeof(int32_t));
 
-    if (fttotim_plans.find(vdims) == fttotim_plans.end()) {
-      cufftHandle *plan = (cufftHandle *)malloc(
-          sizeof(cufftHandle));  // = this->d_fttotim->get_plan(); ///< FFT plan
+    if (fttotim_plans.find(vdims_tot) == fttotim_plans.end()) {
+      cufftHandle *plan = static_cast<cufftHandle *>(malloc(
+          sizeof(cufftHandle)));  // = this->d_fttotim->get_plan(); ///< FFT plan
       // DEBUG_TRACE("Creating FFT plan :%d %d
       // %d",mdims[0],mdims[1],dims_data3[3]);print_mem_info();
       carmafft_safe_call(cufftPlanMany(plan, 2, mdims, NULL, 1, 0, NULL, 1, 0,
                                      CUFFT_C2C, (int32_t)dims_data3[3]));
-      fttotim_plans.insert(pair<vector<int32_t>, cufftHandle *>(vdims, plan));
+      fttotim_plans.insert(pair<vector<int32_t>, cufftHandle *>(vdims_tot, plan));
       this->fttotim_plan = plan;
       // DEBUG_TRACE("FFT plan created : ");print_mem_info();
     } else {
@@ -210,24 +210,24 @@ int32_t SutraWfsSH::allocate_buffers(
       // dims_data3);
       mdims[0] = (int32_t)dims_data3[1];
       mdims[1] = (int32_t)dims_data3[2];
-      int32_t vector_dims[3] = {mdims[0], mdims[1], (int32_t)dims_data3[3]};
-      vector<int32_t> vdims(vector_dims,
-                        vector_dims + sizeof(vector_dims) / sizeof(int32_t));
+      int32_t vector_dims_lgs[3] = {mdims[0], mdims[1], (int32_t)dims_data3[3]};
+      vector<int32_t> vdims_lgs(vector_dims_lgs,
+                        vector_dims_lgs + sizeof(vector_dims_lgs) / sizeof(int32_t));
 
-      if (fttotim_plans.find(vdims) == fttotim_plans.end()) {
+      if (fttotim_plans.find(vdims_lgs) == fttotim_plans.end()) {
         // DEBUG_TRACE("Creating FFT plan : %d %d
         // %d",mdims[0],mdims[1],dims_data3[3]);print_mem_info();
-        cufftHandle *plan = (cufftHandle *)malloc(sizeof(
-            cufftHandle));  // = this->d_fttotim->get_plan(); ///< FFT plan
+        cufftHandle *plan = static_cast<cufftHandle *>(malloc(sizeof(
+            cufftHandle)));  // = this->d_fttotim->get_plan(); ///< FFT plan
         carmafft_safe_call(cufftPlanMany(plan, 2, mdims, NULL, 1, 0, NULL, 1, 0,
                                        CUFFT_C2C, (int32_t)dims_data3[3]));
-        fttotim_plans.insert(pair<vector<int32_t>, cufftHandle *>(vdims, plan));
+        fttotim_plans.insert(pair<vector<int32_t>, cufftHandle *>(vdims_lgs, plan));
         this->fttotim_plan = plan;
         // DEBUG_TRACE("FFT plan created : ");print_mem_info();
       } else {
         // DEBUG_TRACE("FFT plan already exists : %d %d
         // %d",mdims[0],mdims[1],dims_data3[3]);
-        this->fttotim_plan = fttotim_plans.at(vdims);
+        this->fttotim_plan = fttotim_plans.at(vdims_lgs);
       }
     }
   }
@@ -689,8 +689,8 @@ int32_t SutraWfsSH::set_field_stop(map<vector<int32_t>, cufftHandle *> campli_pl
   if (campli_plans.find(vector_dims) == campli_plans.end()) {
     // DEBUG_TRACE("Creating FFT plan : %d %d
     // %d",mdims[0],mdims[1],dims_data3[3]);print_mem_info();
-    cufftHandle *plan = (cufftHandle *)malloc(
-        sizeof(cufftHandle));  // = this->d_camplipup->get_plan(); ///< FFT plan
+    cufftHandle *plan = static_cast<cufftHandle *>(malloc(
+        sizeof(cufftHandle)));  // = this->d_camplipup->get_plan(); ///< FFT plan
     carmafft_safe_call(cufftPlan2d(plan, N, N, CUFFT_C2C));
 
     campli_plans.insert(pair<vector<int32_t>, cufftHandle *>(vector_dims, plan));

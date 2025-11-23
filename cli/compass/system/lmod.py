@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Optional, List
 from rich.console import Console
 
-from compass.core.logger import setup_logger, LoggerMixin
+from compass.core.logger import LoggerMixin
 
 
 class LmodManager(LoggerMixin):
@@ -162,7 +162,7 @@ class LmodManager(LoggerMixin):
         # Show available modules
         modules = self.get_available_modules()
         if modules:
-            self.console.print(f"\n[bold]Available modules:[/bold]")
+            self.console.print("\n[bold]Available modules:[/bold]")
             for module in modules:
                 self.console.print(f"  • {module}")
         
@@ -176,7 +176,7 @@ class LmodManager(LoggerMixin):
             self.console.print("  [cyan]1. Add to your shell:[/cyan]")
             self.console.print(f"     [cyan]export MODULEPATH={self.modulefiles_root}:$MODULEPATH[/cyan]")
             self.console.print("  [cyan]2. Or add to ~/.bashrc (automatic):[/cyan]")
-            self.console.print(f"     [cyan]compass lmod setup[/cyan]")
+            self.console.print("     [cyan]compass lmod setup[/cyan]")
         
         self.console.print("  [cyan]3. Load the module:[/cyan]")
         self.console.print("     [cyan]module load compass/local[/cyan]\n")

@@ -5,8 +5,6 @@ Provides consistent logging across all modules with Rich console output.
 """
 
 import logging
-import sys
-from typing import Optional
 from rich.logging import RichHandler
 from rich.console import Console
 

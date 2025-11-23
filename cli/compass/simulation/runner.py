@@ -137,7 +137,6 @@ class SimulationRunner(LoggerMixin):
     def show_script_config(self):
         """Show current script configuration."""
         config = self.load_config()
-        default_script_stored = config.get("default_script", self.default_script)
         script_path = self.get_script_path()
         
         self.console.print("\n[bold cyan]Current Simulation Script Configuration[/bold cyan]\n")
@@ -183,10 +182,9 @@ class SimulationRunner(LoggerMixin):
             self.console.print(f"[yellow]No scripts found in {scripts_dir}[/yellow]")
             return
         
-        config = self.load_config()
         default_script_path = str(self.get_script_path().absolute())
         
-        self.console.print(f"\n[bold cyan]Available Simulation Scripts[/bold cyan]\n")
+        self.console.print("\n[bold cyan]Available Simulation Scripts[/bold cyan]\n")
         
         table = Table(title=f"Scripts in {scripts_dir.relative_to(self.compass_root)}")
         table.add_column("Script", style="cyan")
@@ -197,8 +195,8 @@ class SimulationRunner(LoggerMixin):
             table.add_row(script.name, status)
         
         self.console.print(table)
-        self.console.print(f"\n[dim]Set default with: compass sim script set <script_name_or_path>[/dim]")
-        self.console.print(f"[dim]You can also use absolute paths outside this directory[/dim]")
+        self.console.print("\n[dim]Set default with: compass sim script set <script_name_or_path>[/dim]")
+        self.console.print("[dim]You can also use absolute paths outside this directory[/dim]")
 
     
     def _run_simulation(
@@ -606,7 +604,7 @@ class SimulationRunner(LoggerMixin):
             
             if not target_dir.exists():
                 self.console.print(f"[red]✗ Directory not found: {directory}[/red]")
-                self.console.print(f"[yellow]Use 'compass sim list' to see available directories[/yellow]")
+                self.console.print("[yellow]Use 'compass sim list' to see available directories[/yellow]")
                 return
             
             self.console.print(f"[bold cyan]Parameter Files in {directory}:[/bold cyan]\n")

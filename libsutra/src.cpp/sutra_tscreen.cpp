@@ -143,7 +143,7 @@ int32_t SutraTurbuScreen::extrude(int32_t dir) {
 
   if (dir == 1 || dir == -1) {  // adding a column to the left
     fillindx(this->d_z->get_data(), this->d_tscreen->d_screen->get_data(),
-             (int32_t *)this->d_istencilx->get_data(), this->d_z->get_nb_elements(),
+             reinterpret_cast<int32_t *>(this->d_istencilx->get_data()), this->d_z->get_nb_elements(),
              current_context->get_device(device));
     if (dir == 1)
       x0 = this->screen_size - 1;  // not in stencil
@@ -151,7 +151,7 @@ int32_t SutraTurbuScreen::extrude(int32_t dir) {
       x0 = this->screen_size * (this->screen_size - 1);
   } else {
     fillindx(this->d_z->get_data(), this->d_tscreen->d_screen->get_data(),
-             (int32_t *)this->d_istencily->get_data(), this->d_z->get_nb_elements(),
+             reinterpret_cast<int32_t *>(this->d_istencily->get_data()), this->d_z->get_nb_elements(),
              current_context->get_device(device));
     if (dir == 2)
       x0 = this->screen_size * (this->screen_size - 1);

@@ -101,11 +101,11 @@ void _poidev(float *xmv, int64_t n)
   float gammln(float xx);
   /*  float ran1(int64_t *idum);*/
   static float sq, alxm, g, oldm = (-1.0);
-  float xm, em, t, y;
+  float em, t, y;
   int64_t i;
 
   for (i = 0; i < n; i++) {
-    xm = (float)xmv[i];
+    float xm = (float)xmv[i];
     if (xm == 0.0f) continue;
     if (xm < 20.0) { /* Use direct method. */
       if (xm != oldm) {
@@ -141,7 +141,7 @@ void _poidev(float *xmv, int64_t n)
 float gammln(float xx) {
   /* Returns the value ln[?(xx)] for xx>0. */
   float x, y, tmp, ser;
-  static float cof[6] = {76.18009172947146,     -86.50532032941677,
+  static const float cof[6] = {76.18009172947146,     -86.50532032941677,
                          24.01409824083091,     -1.231739572450155,
                          0.1208650973866179e-2, -0.5395239384953e-5};
   int32_t j;
