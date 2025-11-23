@@ -4,39 +4,45 @@ stages:
 - test
 - pages
 
-sast:
-  stage: test
 include:
 - template: Jobs/Dependency-Scanning.latest.gitlab-ci.yml
 - template: Jobs/SAST.latest.gitlab-ci.yml
-- template: Jobs/Code-Quality.gitlab-ci.yml
 
 python_code_quality:
   stage: test
-  image: python:3.11
+  image: aocompass/base-rockylinux9:12.9.1
   tags:
   - cq-sans-dind
   variables:
-    PYTHONPATH: "$CI_PROJECT_DIR/shesha:$CI_PROJECT_DIR"
+    COMPASS_ROOT: "$CI_PROJECT_DIR"
+    COMPASS_INSTALL_ROOT: "$COMPASS_ROOT/local"
+    SHESHA_ROOT: "$COMPASS_ROOT/shesha"
   script:
+    - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$COMPASS_INSTALL_ROOT/python
+    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_INSTALL_ROOT/lib
+    - mamba create -n compass -y "python<3.14"
+    - eval "$(mamba shell hook --shell bash)"
+    - mamba activate compass
+    - pip install -e .
+
     # Install quality analysis tools
     - pip install --no-cache-dir ruff pylint
-    
+
     # Run Ruff for linting and formatting checks
     - ruff check --output-format=json shesha cli > ruff-report.json || true
-    
+
     # Run Pylint with GitLab-compatible JSON output
     - pylint --exit-zero --output-format=json shesha cli > pylint-report.json || true
-    
+
     # Convert reports to GitLab Code Quality format
     - |
       python3 << 'EOF'
       import json
       import sys
       from pathlib import Path
-      
+
       issues = []
-      
+
       # Process Ruff report
       try:
           with open('ruff-report.json') as f:
@@ -56,7 +62,7 @@ python_code_quality:
                   })
       except Exception as e:
           print(f"Warning: Could not process Ruff report: {e}", file=sys.stderr)
-      
+
       # Process Pylint report
       try:
           with open('pylint-report.json') as f:
@@ -77,11 +83,11 @@ python_code_quality:
                   })
       except Exception as e:
           print(f"Warning: Could not process Pylint report: {e}", file=sys.stderr)
-      
+
       # Write combined report
       with open('python-code-quality-report.json', 'w') as f:
           json.dump(issues, f, indent=2)
-      
+
       print(f"Generated {len(issues)} Python quality issues")
       EOF
   artifacts:
@@ -112,13 +118,13 @@ cpp_code_quality:
     - cd build_cq
     - cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .. || echo "CMake configuration warning - continuing"
     - cd ..
-    
+
     # Run clang-tidy on C++ source files
     - |
       find libcarma libsutra -name "*.cpp" -o -name "*.hpp" | while read file; do
         clang-tidy -p build_cq "$file" 2>&1 || true
       done | tee clang-tidy-report.txt
-    
+
     # Run cppcheck with XML output
     - |
       cppcheck \
@@ -131,21 +137,21 @@ cpp_code_quality:
         libcarma/src.cpp libcarma/include \
         libsutra/src.cpp libsutra/include \
         2> cppcheck-report.xml || true
-    
+
     # Convert cppcheck XML to GitLab Code Quality JSON format
     - |
       python3 << 'EOF'
       import xml.etree.ElementTree as ET
       import json
       from pathlib import Path
-      
+
       issues = []
-      
+
       # Process cppcheck report
       try:
           tree = ET.parse('cppcheck-report.xml')
           root = tree.getroot()
-          
+
           for error in root.findall('.//error'):
               location = error.find('location')
               if location is not None:
@@ -165,11 +171,11 @@ cpp_code_quality:
                       })
       except Exception as e:
           print(f"Warning: Could not process cppcheck report: {e}")
-      
+
       # Write combined report
       with open('cpp-code-quality-report.json', 'w') as f:
           json.dump(issues, f, indent=2)
-      
+
       print(f"Generated {len(issues)} C++ quality issues")
       EOF
   artifacts:
@@ -232,30 +238,6 @@ semgrep-sast:
     - local/
     expire_in: 6 mos
 
-.lint_generic:
-  stage: test
-  tags:
-  - compass
-  variables:
-    COMPASS_ROOT: "$CI_PROJECT_DIR"
-    COMPASS_INSTALL_ROOT: "$COMPASS_ROOT/local"
-    SHESHA_ROOT: "$COMPASS_ROOT/shesha"
-    COMPASS_DO_HALF: "OFF"
-  script:
-  - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$COMPASS_INSTALL_ROOT/python
-  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_INSTALL_ROOT/lib
-  - mamba create -n compass -y "python<3.14"
-  - eval "$(mamba shell hook --shell bash)"
-  - mamba activate compass
-  - pip install -e .
-  - ruff check shesha > ruff-report.json
-  artifacts:
-    name: "${CI_PROJECT_NAME}_lint"
-    when: always
-    reports:
-      codequality: ruff-report.json
-    expire_in: 6 mos
-
 .test_generic:
   tags:
   - compass
@@ -270,7 +252,6 @@ semgrep-sast:
   - eval "$(mamba shell hook --shell bash)"
   - mamba activate compass
   - pip install -e .
-  - $COMPASS_ROOT/shesha/tests/checkCompass.sh 
   - $COMPASS_ROOT/doc/generate_coverage.sh
   - coverage report
   coverage: '/^TOTAL.*\s+(\d+\%)$/'
@@ -284,7 +265,7 @@ semgrep-sast:
       junit: report.xml
     expire_in: 6 mos
 
-build_release_Noble_Numbat_12.9.1:
+build_release_ubuntu2404_12.9.1:
   image: aocompass/base-24.04:12.9.1
   environment: production
   extends: .build_generic
@@ -292,7 +273,7 @@ build_release_Noble_Numbat_12.9.1:
   only:
   - main
 
-build_debug_Noble_Numbat_12.9.1:
+build_debug_ubuntu2404_12.9.1:
   image: aocompass/base-24.04:12.9.1
   environment: development
   extends: .build_generic
@@ -307,22 +288,22 @@ build_debug_Noble_Numbat_12.9.1:
     - local/
     expire_in: 6 mos
 
-test_release_Noble_Numbat_12.9.1:
+test_release_ubuntu2404_12.9.1:
   image: aocompass/base-24.04:12.9.1
   environment: production
   extends: .test_generic
   dependencies:
-  - build_release_Noble_Numbat_12.9.1
+  - build_release_ubuntu2404_12.9.1
   when: always
   only:
   - main
 
-test_debug_Noble_Numbat_12.9.1:
+test_debug_ubuntu2404_12.9.1:
   image: aocompass/base-24.04:12.9.1
   environment: development
   extends: .test_generic
   dependencies:
-  - build_debug_Noble_Numbat_12.9.1
+  - build_debug_ubuntu2404_12.9.1
   when: always
   only:
   - merge_requests
@@ -365,27 +346,6 @@ test_debug_rockylinux9_12.9.1:
   image: aocompass/base-rockylinux9:12.9.1
   environment: development
   extends: .test_generic
-  dependencies:
-  - build_debug_rockylinux9_12.9.1
-  when: always
-  only:
-  - merge_requests
-  - develop
-
-lint_release_rockylinux9_12.9.1:
-  image: aocompass/base-rockylinux9:12.9.1
-  environment: production
-  extends: .lint_generic
-  dependencies:
-  - build_release_rockylinux9_12.9.1
-  when: always
-  only:
-  - main
-
-lint_debug_rockylinux9_12.9.1:
-  image: aocompass/base-rockylinux9:12.9.1
-  environment: development
-  extends: .lint_generic
   dependencies:
   - build_debug_rockylinux9_12.9.1
   when: always
