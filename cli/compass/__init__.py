@@ -16,7 +16,7 @@ Modules
 - compass.simulation: Simulation control and monitoring
 """
 
-__version__ = "6.0.0"
+__version__ = "6.2.0"
 __author__ = "COMPASS Team"
 __license__ = "LGPL-3.0-or-later"
 

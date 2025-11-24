@@ -159,7 +159,7 @@ def KLmodes(x, y, L0, filterPiston):
     return U[:, ::-1], val[::-1]
 
 def macdo_x56(x,k=10):
-    """   
+    r"""   
     Computation of the Mc Donald function.
 
     f(x) = x**(5/6)*K_{5/6}(x)

@@ -20,7 +20,7 @@ cat > stubs/sutra.py << EOF
 # You should have received a copy of the GNU Lesser General Public License
 # along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
 #
-# Copyright (C) 2011-2024 COSMIC Team
+# Copyright (C) 2011-2025 COSMIC Team
 
 EOF
 
@@ -43,7 +43,7 @@ cat > stubs/carma.py << EOF
 # You should have received a copy of the GNU Lesser General Public License
 # along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
 #
-# Copyright (C) 2011-2024 COSMIC Team
+# Copyright (C) 2011-2025 COSMIC Team
 
 EOF
 

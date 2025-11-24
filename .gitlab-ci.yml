@@ -258,17 +258,6 @@ semgrep-sast:
   - mamba activate compass
   - pip install -e .
   - compass build
-  # - export PATH=$PATH:/usr/local/cuda/bin/
-  # - export VCPKG_ROOT="$HOME/vcpkg"
-  # - export PYTHONPATH=$PYTHONPATH:$SHESHA_ROOT:$COMPASS_ROOT/local/python
-  # - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COMPASS_ROOT/local/lib
-  # - unset CUDA_SM
-  # - . $CONDA_ROOT/etc/profile.d/conda.sh
-  # - . $CONDA_ROOT/etc/profile.d/mamba.sh
-  # - mamba env create --file environment.yml
-  # - mamba activate compass
-  # - ./script/install_vcpkg.sh
-  # - ./compile.py
   artifacts:
     name: "${CI_JOB_NAME}_binaires"
     paths:

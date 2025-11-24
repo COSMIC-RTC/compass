@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "compass-cli"
-version = "6.0.0"
+version = "6.2.0"
 description = "COMPASS CLI - Deployment and management framework for COMPASS AO systems"
 readme = "cli/README.md"
 requires-python = ">=3.8"

@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
 #
-# Copyright (C) 2011-2024 COSMIC Team
+# Copyright (C) 2011-2025 COSMIC Team
 from shesha.util.writers.tao.sysParams import write_json_sys_param
 from shesha.util.writers.tao.atmParams import write_json_atm_param
 from shesha.util.writers import common

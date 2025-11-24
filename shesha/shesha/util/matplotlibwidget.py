@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
 #
-# Copyright (C) 2011-2024 COSMIC Team
+# Copyright (C) 2011-2025 COSMIC Team
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import (
     NavigationToolbar2QT as Navigationtoolbar,

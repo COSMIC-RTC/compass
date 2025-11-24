@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
 #
-# Copyright (C) 2011-2024 COSMIC Team
+# Copyright (C) 2011-2025 COSMIC Team
 
 """
 Main window for the COMPASS GUI application
@@ -1127,7 +1127,7 @@ class CompassMainWindow(QMainWindow):
             "About COMPASS GUI",
             "<h3>COMPASS GUI</h3>"
             "<p>Graphical User Interface for COMPASS AO Simulation</p>"
-            "<p>Copyright (C) 2011-2024 COSMIC Team</p>"
+            "<p>Copyright (C) 2011-2025 COSMIC Team</p>"
             "<p><a href='https://github.com/COSMIC-RTC/compass'>https://github.com/COSMIC-RTC/compass</a></p>"
         )
     

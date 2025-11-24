@@ -1,6 +1,9 @@
 # COMPASS Change logs
 
 - [COMPASS Change logs](#compass-change-logs)
+  - [Release v6.2.0 :](#release-v620-)
+  - [Release v6.1.0 :](#release-v610-)
+  - [Release v6.0.0 :](#release-v600-)
   - [Release v5.5.0 :](#release-v550-)
   - [Release v5.4.4 :](#release-v544-)
   - [Release v5.4.3 :](#release-v543-)
@@ -27,6 +30,49 @@
   - [Release v3.0](#release-v30)
   - [Release v2.0](#release-v20)
   - [Release v1.1](#release-v11)
+
+## Release v6.2.0 :
+
+- Add comprehensive unit tests for shesha utility modules (rtc_util, wfs_util, coronagraph_utils, influ_util)
+  - Achieve 100% coverage for rtc_util module
+  - Increase overall test coverage
+  - Add 87 new unit tests covering 230 total tests
+- Refactor CI/CD pipeline for improved code quality checks
+  - Enhance coverage reporting in GitLab CI
+  - Improve Python and C++ code quality checks
+  - Optimize coverage generation script
+- Add support for CUDA 13
+  - Update GPU compute capability support
+  - Ensure compatibility with latest NVIDIA drivers
+- Add `set_nphotons` method on WFS for photon noise simulation
+- Implement Python version of coronagraph module for electric field retrieval in focal plane
+- Add Cosmic Simulator integration
+- Enhance COMPASS two-stages mode support
+  - Implement remote stage selection and configuration retrieval
+  - Add PyQt6-based GUI with two-stages mode support
+  - Add COMPASS GUI and Remote Server functionality
+  - Add COMPASS CLI with environment configuration
+- Improve build system
+  - Add pybind11 support to build process
+  - Add Interprocedural Optimization (IPO) support for libcarma and libsutra
+  - Update pybind to v2.13.6
+  - Update vcpkg configuration for improved dependency management
+  - Add CUDA 12.8 and Rocky Linux 9 support
+  - Remove deprecated linters
+- Refactor code for improved readability and consistency
+  - Clean up obsolete files
+  - Update repository references
+  - Apply code formatting improvements
+  - Optimize FFT size selection for SHWFS subapertures (SAXO+ project needs)
+- Update installation instructions and script names for Mamba and Vcpkg
+- Add conda environment files and Sphinx documentation setup
+- Add specialized layouts and parameter files (Micado, Sphere+, Arielle basis)
+
+## Release v6.1.0 :
+
+- Add support for Python 3.12 and QT 6
+- Update dependencies to latest versions
+- Minor bug fixes and improvements
 
 ## Release v6.0.0 :
 

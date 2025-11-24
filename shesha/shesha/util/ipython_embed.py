@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with COMPASS. If not, see <https://www.gnu.org/licenses/>.
 #
-# Copyright (C) 2011-2024 COSMIC Team
+# Copyright (C) 2011-2025 COSMIC Team
 try:
     from IPython.terminal.prompts import Prompts, Token
     from IPython.terminal.embed import embed as std_embed

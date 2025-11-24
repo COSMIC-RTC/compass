@@ -1,7 +1,7 @@
 #
 #  This file is part of COMPASS <https://anr-compass.github.io/compass/>
 #
-#  Copyright (C) 2011-2023 COSMIC Team <https://github.com/COSMIC-RTC/compass>
+#  Copyright (C) 2011-2025 COSMIC Team <https://github.com/COSMIC-RTC/compass>
 #  All rights reserved.
 #  Distributed under GNU - LGPL
 #

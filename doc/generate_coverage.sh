@@ -51,13 +51,21 @@ echo ""
 echo "=== Coverage Summary ==="
 coverage report
 
+# Generate detailed coverage report to a file for easy parsing
+coverage report > coverage_report.txt 2>&1
+
 # Generate HTML coverage report for GitLab pages
 coverage html -d htmlcov
 
-# Generate XML coverage report (for potential CI tools)
+# Generate XML coverage report (for CI tools - required for GitLab coverage badges)
 coverage xml -o coverage.xml
+
+# Generate JSON report for detailed module statistics
+coverage json -o coverage.json
 
 echo "Coverage reports generated:"
 echo "  - Text report (above)"
+echo "  - Text file report: coverage_report.txt"
 echo "  - HTML report: htmlcov/index.html"
-echo "  - XML report: coverage.xml"
+echo "  - XML report: coverage.xml (for GitLab coverage badges)"
+echo "  - JSON report: coverage.json (for detailed stats)"

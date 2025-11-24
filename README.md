@@ -6,7 +6,6 @@ Main status:
 Develop status:
 [![Develop status](https://gitlab.obspm.fr/cosmic-rtc/compass/badges/develop/pipeline.svg)](https://gitlab.obspm.fr/cosmic-rtc/compass/commits/develop)
 [![coverage report](https://gitlab.obspm.fr/cosmic-rtc/compass/badges/develop/coverage.svg)](https://cosmic-rtc.pages.obspm.fr/compass/coverage/index.html)
-[![Code Quality](https://gitlab.obspm.fr/cosmic-rtc/compass/badges/develop/code_quality.svg)](https://gitlab.obspm.fr/cosmic-rtc/compass/pipelines)
 
 - [COMPASS](#compass)
   - [Citations](#citations)
