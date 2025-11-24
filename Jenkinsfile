@@ -42,12 +42,12 @@ pipeline {
         }
         stage('Unit tests') {
             steps {
-                sh  'python -m pytest --verbose --junit-xml compass_tests.xml  $SHESHA_ROOT/tests/pytest/rtc'
+                sh  'python -m pytest --verbose --junit-xml compass_tests.xml  $SHESHA_ROOT/tests/rtc'
             }
         }
         stage('Coverage') {
             steps {
-                sh  'pytest --cov-report xml:compass_cov.xml --cov=shesha/shesha shesha/tests/pytest/rtc'
+                sh  'pytest --cov-report xml:compass_cov.xml --cov=shesha/shesha shesha/tests/rtc'
             }
         }
     }

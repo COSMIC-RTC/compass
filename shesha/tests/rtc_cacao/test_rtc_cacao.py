@@ -29,7 +29,7 @@ from shesha.config import ParamConfig
 
 precision = 1e-5
 
-config = ParamConfig(os.getenv("COMPASS_ROOT") + "/shesha/tests/pytest/par/test_sh.py")
+config = ParamConfig(os.getenv("COMPASS_ROOT") + "/shesha/tests/par/test_sh.py")
 sup = Supervisor(config)
 sup.next()
 sup.rtc.open_loop(0)

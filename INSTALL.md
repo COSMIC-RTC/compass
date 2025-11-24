@@ -84,7 +84,7 @@ NOTE: if you update the dependencies, you need to remove the `build` directory a
 
 1. **Unit Tests**: Run the unit tests with:
     - `pytest $COMPASS_ROOT/python_module/carma/test`
-    - `pytest $COMPASS_ROOT/shesha/tests/pytest/rtc`
-    - `pytest $COMPASS_ROOT/shesha/tests/pytest/supervisor`
+    - `pytest $COMPASS_ROOT/shesha/tests/rtc`
+    - `pytest $COMPASS_ROOT/shesha/tests/supervisor`
 
 2. **Integration Tests**: Run the integration tests with: `$COMPASS_ROOT/shesha/tests/checkCompass.sh`.
