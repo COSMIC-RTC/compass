@@ -83,7 +83,7 @@ class EnvironmentChecker:
         console.print(table)
         
         # Check for Python packages
-        console.print(f"\n[bold]Python Environment:[/bold]")
+        console.print("[bold]Python Environment:[/bold]")
         self._check_python_packages()
     
     def _check_python_packages(self):

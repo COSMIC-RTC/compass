@@ -36,7 +36,7 @@ SutraGamora::SutraGamora(CarmaContext *context, int32_t device, char *type,
   if (ngpu == 1)
     this->device = device;
   else {
-    int32_t devices[ngpu];
+    std::vector<int32_t> devices(ngpu);
     for (int32_t i = 0; i < ngpu; i++) {
       devices[i] = i;
     }

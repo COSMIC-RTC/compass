@@ -262,7 +262,6 @@ int32_t SutraRtc<Tin, T, Tout>::do_imat(int32_t ncntrl, SutraDms *ydm, int32_t k
       this->comp_images_imat(ydm, kernconv);
       do_centroids(ncntrl, true);
 
-      int32_t device = this->d_control[ncntrl]->d_centroids->get_device();
       this->d_control[ncntrl]->d_centroids->scale(0.5f / dm->push4imat, 1);
       this->d_control[ncntrl]->d_centroids->copy_into(
           d_imat->get_data_at(inds1), this->d_control[ncntrl]->nslope());
@@ -270,8 +269,6 @@ int32_t SutraRtc<Tin, T, Tout>::do_imat(int32_t ncntrl, SutraDms *ydm, int32_t k
       // Pull
       dm->comp_oneactu(j, -1.0f * dm->push4imat);
       this->comp_images_imat(ydm, kernconv);
-      device = this->d_control[ncntrl]->d_centroids->get_device();
-      device = this->d_control[ncntrl]->d_centroids->get_device();
       do_centroids(ncntrl, true);
 
       float alphai = -.5f / dm->push4imat;

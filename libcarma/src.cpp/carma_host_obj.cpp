@@ -405,7 +405,7 @@ void CarmaHostObj<T_data>::get_devpntr(void **pntr_dev) {
    */
   // carma_safe_call(cudaHostGetDevicePointer((void **)&d_a, (void
   // *)(this->d_data), this->malloc_type));
-  carma_safe_call(cudaHostGetDevicePointer(pntr_dev, (void *)(this->h_data), 0));
+  carma_safe_call(cudaHostGetDevicePointer(pntr_dev, static_cast<void *>(this->h_data), 0));
 }
 
 /*

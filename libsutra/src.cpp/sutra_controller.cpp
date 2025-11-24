@@ -194,7 +194,7 @@ int32_t SutraController<Tcomp, Tout>::reset_perturb_voltage() {
   it = this->d_perturb_map.begin();
   while (it != this->d_perturb_map.end()) {
     delete std::get<0>(it->second);
-    it++;
+    ++it;
   }
   this->d_perturb_map.clear();
 

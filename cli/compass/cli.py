@@ -209,8 +209,6 @@ def cmd_sim_gui_script(args):
         sys.exit(0 if success else 1)
     elif args.script_action == "show":
         # Show GUI script configuration
-        config = runner.load_config()
-        default_gui_script = config.get("default_gui_script", runner.default_gui_script)
         script_path = runner.get_script_path(script_type="gui")
         
         console.print("\n[bold cyan]Current GUI Script Configuration[/bold cyan]\n")
@@ -253,13 +251,12 @@ def cmd_sim_gui_script(args):
             all_scripts.extend([(s, "widgets") for s in scripts])
         
         if not all_scripts:
-            console.print(f"[yellow]No GUI scripts found[/yellow]")
+            console.print("[yellow]No GUI scripts found[/yellow]")
             sys.exit(0)
         
-        config = runner.load_config()
         default_gui_path = str(runner.get_script_path(script_type="gui").absolute())
         
-        console.print(f"\n[bold cyan]Available GUI Scripts[/bold cyan]\n")
+        console.print("\n[bold cyan]Available GUI Scripts[/bold cyan]\n")
         
         from rich.table import Table
         table = Table(title="GUI Scripts")
@@ -272,7 +269,7 @@ def cmd_sim_gui_script(args):
             table.add_row(script.name, location, status)
         
         console.print(table)
-        console.print(f"\n[dim]Set default with: compass sim gui-script set <script_name_or_path>[/dim]")
+        console.print("\n[dim]Set default with: compass sim gui-script set <script_name_or_path>[/dim]")
         sys.exit(0)
     else:
         console.print("[red]✗ Unknown action[/red]")

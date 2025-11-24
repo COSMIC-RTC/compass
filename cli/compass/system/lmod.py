@@ -285,7 +285,7 @@ class LmodManager(LoggerMixin):
             self.console.print("[green]✓ COMPASS modulefiles in MODULEPATH[/green]")
         else:
             self.console.print("[yellow]⚠ COMPASS modulefiles NOT in MODULEPATH[/yellow]")
-            self.console.print(f"  Run: [cyan]compass lmod setup[/cyan]")
+            self.console.print("  Run: [cyan]compass lmod setup[/cyan]")
 
 
 def main():

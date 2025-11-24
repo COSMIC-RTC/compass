@@ -12,7 +12,6 @@ from pathlib import Path
 from typing import List, Optional
 from dataclasses import dataclass, field
 from enum import Enum
-from rich.progress import Progress
 from rich.console import Console
 from rich.table import Table
 
@@ -257,7 +256,7 @@ class Builder(LoggerMixin):
                     raise subprocess.CalledProcessError(process.returncode, cmd)
             else:
                 # Capture output silently when not verbose
-                result = subprocess.run(
+                subprocess.run(
                     cmd,
                     cwd=cwd,
                     capture_output=True,

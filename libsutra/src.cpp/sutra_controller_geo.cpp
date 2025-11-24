@@ -135,7 +135,7 @@ int32_t SutraControllerGeo<T, Tout>::init_proj(SutraDms *dms, int32_t *indx_dm,
                   1.0f /*unitpervolt[ind]*/);
     indx_start += dm->nactus;
     ind++;
-    p++;
+    ++p;
   }
 
   // d_tmp = (transpose(d_IF) * d_IF)⁻¹
@@ -167,7 +167,7 @@ int32_t SutraControllerGeo<T, Tout>::init_proj_sparse(
     while (p != this->d_dmseen.end()) {
       SutraDm *dm = *p;
       if (dm->type == "tt") this->Ntt += 1;
-      p++;
+      ++p;
     }
   }
 
@@ -299,7 +299,7 @@ int32_t SutraControllerGeo<T, Tout>::init_proj_sparse(
         }
       }
       ind2++;
-      p++;
+      ++p;
     }
 
     carma_gemm(this->cublas_handle(), 't', 'n', 2 * this->Ntt, 2 * this->Ntt,

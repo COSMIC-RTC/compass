@@ -136,7 +136,6 @@ class SimulationRunner(LoggerMixin):
     
     def show_script_config(self):
         """Show current script configuration."""
-        config = self.load_config()
         script_path = self.get_script_path()
         
         self.console.print("\n[bold cyan]Current Simulation Script Configuration[/bold cyan]\n")
