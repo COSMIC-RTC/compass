@@ -58,7 +58,7 @@ dependencies = [
     "pytest-html",
     "pytest-metadata",
     "ruff",
-    "PyQt6",
+    "PyQt6<6.10",
     "pyqtgraph",
     "qtconsole",
     "pyzmq",

@@ -18,7 +18,6 @@
 
 
 from shesha.supervisor.compassSupervisor import CompassSupervisor
-from shesha.supervisor.components.rtc import RtcCosmic
 
 import shesha.constants as scons
 
@@ -63,6 +62,7 @@ class StageSupervisor(CompassSupervisor):
         """Initialize the rtc component of the supervisor as a RtcCompass"""
         super()._init_rtc()
         if self.config.p_hrtc is not None:
+            from shesha.supervisor.components.rtc import RtcCosmic
             self.hrtc = RtcCosmic(self.config, self.wfs, self.dms)
         else:
             self.hrtc = None
