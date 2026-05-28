@@ -29,7 +29,6 @@ void declare_carma_host_obj(py::module &);
 void declare_carma_obj(py::module &);
 void declare_carma_sparse_obj(py::module &);
 void declare_carma_context(py::module &);
-void declare_carma_timer(py::module &);
 
 // Expose classes and methods to Python
 PYBIND11_MODULE(carma, mod) {
@@ -39,7 +38,6 @@ PYBIND11_MODULE(carma, mod) {
   declare_carma_obj(mod);
   declare_carma_host_obj(mod);
   declare_carma_sparse_obj(mod);
-  declare_carma_timer(mod);
 
   // declare_carma_obj<cuDoubleComplex>(mod, "double_complex");
 

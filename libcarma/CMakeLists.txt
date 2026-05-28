@@ -22,7 +22,6 @@ add_library(libcarma
     src.cpp/carma_utils.cpp
     src.cpp/carma_obj.cpp
     # src.cu/carma_fft_conv.cu
-    src.cu/carma_timer.cu
     src.cu/carma_rng.cu
     src.cu/carma_svd.cu
     src.cu/carma_utils.cu

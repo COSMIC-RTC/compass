@@ -33,7 +33,6 @@
 // #include "carma_sparse_host_obj.hpp"
 // #include "carma_sparse_obj.hpp"
 #include "carma_streams.hpp"
-#include "carma_timer.hpp"
 #include "carma_utils.hpp"
 
 #endif  // _CARMA_H_

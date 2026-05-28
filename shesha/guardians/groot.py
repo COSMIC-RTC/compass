@@ -310,65 +310,6 @@ def test_Cerr(filename):
     return psf, psfr
 
 
-def compare_GPU_vs_CPU(filename):
-    """Compare results of GROOT vs its CPU version in terms of execution time
-    and precision on the PSF renconstruction
-    :parameter:
-        filename : (string) : full path to the ROKET file
-
-    """
-    from carma import timer as carma_timer
-
-    timer = carma_timer()
-
-    timer.start()
-    timer.stop()
-    synctime = timer.total_time
-    timer.reset()
-
-    timer.start()
-    cov_err_gpu_s = compute_Cerr(filename)
-    timer.stop()
-    gpu_time_s = timer.total_time - synctime
-    timer.reset()
-
-    timer.start()
-    cov_err_gpu_d = compute_Cerr(filename, ctype="double")
-    timer.stop()
-    gpu_time_d = timer.total_time - synctime
-    timer.reset()
-
-    tic = time.time()
-    cov_err_cpu = compute_Cerr_cpu(filename)
-    tac = time.time()
-    cpu_time = tac - tic
-
-    otftel, otf2, psf_cpu, gpu = gamora.psf_rec_Vii(
-        filename, fitting=False, cov=cov_err_cpu.astype(np.float32)
-    )
-    otftel, otf2, psf_gpu_s, gpu = gamora.psf_rec_Vii(
-        filename, fitting=False, cov=cov_err_gpu_s.astype(np.float32)
-    )
-    otftel, otf2, psf_gpu_d, gpu = gamora.psf_rec_Vii(
-        filename, fitting=False, cov=cov_err_gpu_d.astype(np.float32)
-    )
-
-    print("-----------------------------------------")
-    print("CPU time : ", cpu_time, " s ")
-    print("GPU time simple precision : ", gpu_time_s, " s ")
-    print("GPU time double precision : ", gpu_time_d, " s ")
-    print(
-        "Max absolute difference in PSFs simple precision : ",
-        np.abs(psf_cpu - psf_gpu_s).max(),
-    )
-    print(
-        "Max absolute difference in PSFs double precision : ",
-        np.abs(psf_cpu - psf_gpu_d).max(),
-    )
-    gamora.cutsPSF(filename, psf_cpu, psf_gpu_s)
-    gamora.cutsPSF(filename, psf_cpu, psf_gpu_d)
-
-
 def compute_Ca_cpu(filename, modal=True):
     """Returns the aliasing error covariance matrix using CPU version of GROOT
     from a ROKET file

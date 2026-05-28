@@ -23,7 +23,6 @@
 
 #include "carma_sparse_obj.hpp"
 #include "carma_sparse_host_obj.hpp"
-#include "carma_timer.hpp"
 
 template <class T_data>
 CarmaSparseObj<T_data>::CarmaSparseObj(CarmaContext *current_context) {
