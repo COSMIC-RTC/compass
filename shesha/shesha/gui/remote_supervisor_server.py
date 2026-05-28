@@ -119,10 +119,15 @@ class RemoteSupervisorServer:
     def handle_command(self, timeout_ms: int = 100) -> bool:
         """
         Handle a single command request (non-blocking with timeout).
-        
+
+        .. warning::
+            Commands are deserialised with :mod:`pickle`.  Only bind to trusted
+            network interfaces — a malicious client can execute arbitrary code on
+            the server via crafted pickle payloads.
+
         Args:
             timeout_ms: Timeout in milliseconds for waiting for commands
-            
+
         Returns:
             True if a command was processed, False if timeout
         """
@@ -134,7 +139,7 @@ class RemoteSupervisorServer:
             if self.command_socket.poll(timeout_ms, zmq.POLLIN):
                 # Receive command
                 message = self.command_socket.recv()
-                request = pickle.loads(message)
+                request = pickle.loads(message)  # nosec B301 – trusted internal channel
                 
                 # Execute command
                 response = self._execute_command(request)
@@ -148,12 +153,11 @@ class RemoteSupervisorServer:
         except Exception as e:
             logger.error(f"Error handling command: {e}")
             logger.error(traceback.format_exc())
-            # Send error response
+            # Send error response — traceback is logged server-side only
             try:
                 error_response = {
                     "status": "error",
                     "error": str(e),
-                    "traceback": traceback.format_exc()
                 }
                 self.command_socket.send(pickle.dumps(error_response))
             except Exception:
@@ -353,30 +357,50 @@ class RemoteSupervisorServer:
             
         except Exception as e:
             logger.error(f"Error executing command {cmd}: {e}")
+            logger.error(traceback.format_exc())
+            # Traceback is logged server-side only — not sent to client
             return {
                 "status": "error",
                 "error": str(e),
-                "traceback": traceback.format_exc()
             }
     
+    @staticmethod
+    def _validate_attr_path(path: str) -> None:
+        """Reject attribute paths containing private or dunder components.
+
+        Args:
+            path: Dot-notation attribute path, e.g. "rtc.delay".
+
+        Raises:
+            ValueError: If any path component starts with ``_``.
+        """
+        for part in path.split('.'):
+            if part.startswith('_'):
+                raise ValueError(
+                    f"Access to private/dunder attribute '{part}' is not permitted"
+                )
+
     def _get_nested_attr(self, obj: Any, path: str) -> Any:
         """Get nested attribute from object using dot notation."""
+        self._validate_attr_path(path)
         parts = path.split('.')
         result = obj
         for part in parts:
             result = getattr(result, part)
         return result
-    
+
     def _set_nested_attr(self, obj: Any, path: str, value: Any):
         """Set nested attribute on object using dot notation."""
+        self._validate_attr_path(path)
         parts = path.split('.')
         target = obj
         for part in parts[:-1]:
             target = getattr(target, part)
         setattr(target, parts[-1], value)
-    
+
     def _get_nested_obj_and_method(self, obj: Any, path: str):
         """Get object and method name from path like 'rtc.close_loop'."""
+        self._validate_attr_path(path)
         parts = path.split('.')
         target = obj
         for part in parts[:-1]:

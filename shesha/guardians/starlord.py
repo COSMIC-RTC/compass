@@ -25,13 +25,20 @@ from scipy.special import jv  # Bessel function
 
 
 def dphi_highpass(r, x0, tabx, taby):
-    """
-    Fonction de structure de phase "haute frequence"
-    A renormalise en fonction du r0
-    :params:
-        r : distance [m]
-        x0 : distance interactionneur [m]
-        tabx, taby : integrale tabulee obtenue avec la fonction tabulateIj0
+    """High-pass component of the phase structure function (von Kármán model).
+
+    Computes the high-spatial-frequency contribution to the phase structure
+    function (spatial frequencies above 1/(2*x0)). Result must be scaled by
+    (1/r0)**(5/3) to obtain physical units.
+
+    Args:
+        r (np.ndarray): Separation distances [m].
+        x0 (float): Inter-actuator pitch [m]; sets the high-pass cut-off frequency.
+        tabx (np.ndarray): Abscissa of the tabulated Ij0 integral (from tabulateIj0).
+        taby (np.ndarray): Values of the tabulated Ij0 integral (from tabulateIj0).
+
+    Returns:
+        np.ndarray: High-pass phase structure function, dimensionless (scale by (1/r0)**(5/3)).
     """
     return (
         (r ** (5.0 / 3.0))
@@ -41,25 +48,43 @@ def dphi_highpass(r, x0, tabx, taby):
 
 
 def dphi_lowpass(r, x0, L0, tabx, taby):
-    """
-    Fonction de structure de phase "basse frequence"
-    A renormalise en fonction du r0
-    :params:
-        r : distance [m]
-        x0 : distance interactionneur [m]
-        tabx, taby : integrale tabulee obtenue avec la fonction tabulateIj0
+    """Low-pass component of the phase structure function (von Kármán model).
+
+    Computes the low-spatial-frequency contribution to the phase structure
+    function (spatial frequencies below 1/(2*x0)), including outer-scale effects.
+    Result must be scaled by (1/r0)**(5/3) to obtain physical units.
+
+    Args:
+        r (np.ndarray): Separation distances [m].
+        x0 (float): Inter-actuator pitch [m]; sets the low-pass cut-off frequency.
+        L0 (float): Outer scale of atmospheric turbulence [m].
+        tabx (np.ndarray): Abscissa of the tabulated Ij0 integral (from tabulateIj0).
+        taby (np.ndarray): Values of the tabulated Ij0 integral (from tabulateIj0).
+
+    Returns:
+        np.ndarray: Low-pass phase structure function, dimensionless (scale by (1/r0)**(5/3)).
     """
     return rodconan(r, L0) - dphi_highpass(r, x0, tabx, taby)
 
 
 def Ij0t83(x, tabx, taby):
-    """
-     Calcul de l'integrale tabulee
-     x
-    $ t^(-8/3) (1-bessel_j(0,t)) dt
-     0
+    """Evaluate the tabulated integral of t^(-8/3) * (1 - J0(t)) from 0 to x.
 
-     Pres de 0, le resultat s'approxime par (3/4.)*x^(1./3)*(1-x^2/112.+...)
+    The integral is:
+
+        I(x) = integral_0^x  t^(-8/3) * (1 - J0(t)) dt
+
+    where J0 is the Bessel function of the first kind of order 0.
+    Near the origin the approximation I(x) ≈ (3/4) x^(1/3) (1 - x²/112 + …)
+    is used; for larger x the result is looked up from (tabx, taby).
+
+    Args:
+        x (np.ndarray): Evaluation points (must be ≥ 0).
+        tabx (np.ndarray): Pre-computed abscissa grid (from tabulateIj0).
+        taby (np.ndarray): Pre-computed integral values (from tabulateIj0).
+
+    Returns:
+        np.ndarray: Integral values, same shape as *x*.
     """
     res = x.copy()
     ismall = np.where(res < np.exp(-3.0))
@@ -73,9 +98,15 @@ def Ij0t83(x, tabx, taby):
 
 
 def tabulateIj0():
-    """
-    Tabulation de l'intesgrale
-    Necessaire avant utilisation des fonction dphi_lowpass et dphi_highpass
+    """Pre-compute the lookup table for the Ij0t83 integral.
+
+    Tabulates the integral I(x) = integral_0^x t^(-8/3) (1 - J0(t)) dt over a
+    logarithmic grid covering [exp(-4), exp(10)].  The result must be passed as
+    (tabx, taby) to dphi_lowpass and dphi_highpass.
+
+    Returns:
+        tuple[np.ndarray, np.ndarray]: (tabx, taby) where *tabx* is the abscissa
+        grid and *taby* the corresponding integral values.
     """
     n = 10000
     t = np.linspace(-4, 10, n)
@@ -92,6 +123,22 @@ def tabulateIj0():
 
 
 def asymp_macdo(x):
+    """Asymptotic expansion of the Macdo function for large arguments (x > 4.71).
+
+    Used internally by rodconan to evaluate the von Kármán phase structure
+    function.  The expansion is:
+
+        asymp_macdo(x) ≈ k2 - k3 * exp(-x) * x^(1/3) * (1 + a1/x + a2/x² + a3/x³)
+
+    where the coefficients reproduce the large-argument behaviour of the
+    integral that defines the generalised structure function.
+
+    Args:
+        x (np.ndarray): Dimensionless separation, x = 2π r / L0.  Must satisfy x > 4.71.
+
+    Returns:
+        np.ndarray: Asymptotic approximation, same shape as *x*.
+    """
     k2 = 1.00563491799858928388289314170833
     k3 = 1.25331413731550012081
     a1 = 0.22222222222222222222
@@ -104,6 +151,22 @@ def asymp_macdo(x):
 
 
 def macdo(x):
+    """Evaluate the Macdo function using a power-series expansion for small arguments (x ≤ 4.71).
+
+    The Macdo function arises in the von Kármán phase structure function and is
+    defined through an integral involving modified Bessel functions.  For small
+    arguments the series
+
+        macdo(x) = sum_n [ Gma[n] * x^(5/3) + Ga[n] ] * (x²/4)^n
+
+    converges rapidly.
+
+    Args:
+        x (float | np.ndarray): Dimensionless separation, x = 2π r / L0.  Must satisfy x ≤ 4.71.
+
+    Returns:
+        float | np.ndarray: Function value, same type/shape as *x*.
+    """
     a = 5.0 / 6.0
     x2a = x ** (2.0 * a)
     x22 = x * x / 4.0
@@ -152,9 +215,23 @@ def macdo(x):
 
 
 def rodconan(r, L0):
-    """
-    Fonction de structure de phase avec prise en compte de l'echelle externe
-    A renormalise en fonction du r0
+    """Von Kármán phase structure function with outer-scale correction.
+
+    Evaluates the normalised (r0-independent) phase structure function for
+    Kolmogorov turbulence modified by a finite outer scale L0:
+
+        D_phi(r) = (r0)^(-5/3) * rodconan(r, L0)
+
+    The piecewise implementation uses asymp_macdo for 2πr/L0 > 4.71 and
+    macdo otherwise to ensure numerical accuracy across all separations.
+
+    Args:
+        r (np.ndarray): Separation distances [m].
+        L0 (float): Outer scale of atmospheric turbulence [m].
+
+    Returns:
+        np.ndarray: Normalised structure function values, same shape as *r*.
+        Multiply by (1/r0)**(5/3) to get physical phase variance [rad²].
     """
     res = r * 0.0
     k1 = 0.1716613621245709486

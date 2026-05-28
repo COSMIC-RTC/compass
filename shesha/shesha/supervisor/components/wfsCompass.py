@@ -190,8 +190,8 @@ class WfsCompass(SourceCompass):
                 scale_circ * np.cos((np.arange(niters)) * 2.0 * np.pi / niters)
                 + k[1] * self._config.p_wfss[wfs_index]._pyr_scale_pos
             )
-        cx = np.concatenate(np.array(temp_cx))
-        cy = np.concatenate(np.array(temp_cy))
+        cx = np.concatenate(temp_cx)
+        cy = np.concatenate(temp_cy)
         # Gives the arguments to the simulation
         if weights is not None:
             w = []

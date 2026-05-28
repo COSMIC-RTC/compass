@@ -21,6 +21,7 @@
 //! \date      2022/01/24
 
 #include <carma_utils.hpp>
+#include <stdexcept>
 #include <sutra_utils.hpp>
 #include <sutra_wfs_pyr_pyrhr.hpp>
 #include <cmath>
@@ -651,7 +652,7 @@ int32_t SutraWfs_PyrHR::fill_binimage(int32_t async) {
   if (this->d_binimg == NULL) {
     DEBUG_TRACE(
         "ERROR : d_bincube not initialized, did you do the allocate_buffers?");
-    throw "ERROR : d_bincube not initialized, did you do the allocate_buffers?";
+    throw std::runtime_error("d_bincube not initialized, did you call allocate_buffers?");
   }
   if (noise > 0) this->d_binimg->prng('N', this->noise);
 
@@ -663,7 +664,7 @@ int32_t SutraWfs_PyrHR::fill_binimage(int32_t async) {
     //        this->d_validsubsy->get_data(), this->d_binimg->get_nb_elements(), false,
     //        this->current_context->get_device(device));
     DEBUG_TRACE("ERROR : async version of fill_binimage not implemented...");
-    throw "ERROR : async version of fill_binimage not implemented...";
+    throw std::runtime_error("Async version of fill_binimage is not implemented");
   } else {
     pyr_fillbinimg(this->d_binimg->get_data(), this->d_bincube->get_data(),
                    this->nfft / this->nrebin, false,

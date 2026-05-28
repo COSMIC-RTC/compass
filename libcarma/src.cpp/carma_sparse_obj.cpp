@@ -23,6 +23,7 @@
 
 #include "carma_sparse_obj.hpp"
 #include "carma_sparse_host_obj.hpp"
+#include <stdexcept>
 
 template <class T_data>
 CarmaSparseObj<T_data>::CarmaSparseObj(CarmaContext *current_context) {
@@ -445,7 +446,7 @@ void CarmaSparseObj<T_data>::_clear() {
   if (nz_elem > 0) {
     if (d_data == NULL || d_rowind == NULL || d_colind == NULL) {
       DEBUG_TRACE("Error | CarmaSparseObj<T_data>::_clear | double clear");
-      throw "Error | CarmaSparseObj<T_data>::_clear | double clear";
+      throw std::runtime_error("Error | CarmaSparseObj<T_data>::_clear | double clear");
     }
     cudaFree(d_data);
     cudaFree(d_rowind);

@@ -24,6 +24,8 @@ import os
 import numpy as np
 import pytest
 
+pytestmark = pytest.mark.gpu
+
 config = ParamConfig(os.path.dirname(__file__) + "/../par/test_pyrhr.py")
 config.p_controllers[0].set_type("generic")
 

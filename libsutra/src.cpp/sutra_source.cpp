@@ -21,6 +21,7 @@
 //! \date      2022/01/24
 
 #include <sutra_source.hpp>
+#include <stdexcept>
 
 SutraSource::SutraSource(CarmaContext *context, float xpos, float ypos,
                            float lambda, float mag, float zerop, int64_t size,
@@ -278,7 +279,7 @@ int32_t SutraSource::raytrace(SutraDms *ydms, bool rst, bool do_phase_var,
     if ((types.find("pzt") == 0) || (types.find("tt") == 0) ||
         (types.find("kl") == 0)) {
       int32_t inddm = p->first.second;
-      if (inddm < 0) throw "error in SutraSource::raytrace, dm not find";
+      if (inddm < 0) throw std::runtime_error("SutraSource::raytrace: DM not found");
       SutraDm *ps = ydms->d_dms[inddm];
       if ((p == xoff.end()) && async) {
         target_raytrace_async(this->phase_telemetry,

@@ -52,6 +52,9 @@ class RemoteSupervisorClient:
         # Connection state
         self.connected = False
         
+        # Lock to serialise command socket usage across threads
+        self._cmd_lock = threading.Lock()
+        
         # Telemetry handling
         self._telemetry_thread: Optional[threading.Thread] = None
         self._telemetry_running = False
@@ -158,9 +161,10 @@ class RemoteSupervisorClient:
         self._stop_telemetry_thread()
         
         # Close sockets
-        if self.command_socket:
-            self.command_socket.close()
-            self.command_socket = None
+        with self._cmd_lock:
+            if self.command_socket:
+                self.command_socket.close()
+                self.command_socket = None
         
         if self.telemetry_socket:
             self.telemetry_socket.close()
@@ -178,11 +182,16 @@ class RemoteSupervisorClient:
     def _send_command(self, cmd: str, args: Dict[str, Any]) -> Dict[str, Any]:
         """
         Send a command to the server and wait for response.
-        
+
+        .. warning::
+            Data is serialised with :mod:`pickle`.  Only connect to trusted
+            servers on secured networks — a malicious server can execute
+            arbitrary code on the client via crafted pickle payloads.
+
         Args:
             cmd: Command name
             args: Command arguments dictionary
-            
+
         Returns:
             Response dictionary with 'status' and optional 'result' or 'error'
         """
@@ -191,29 +200,60 @@ class RemoteSupervisorClient:
                 "status": "error",
                 "error": "Not connected to server"
             }
-        
+
+        with self._cmd_lock:
+            try:
+                request = {"cmd": cmd, "args": args}
+                self.command_socket.send(pickle.dumps(request))
+
+                # Wait for response
+                message = self.command_socket.recv()
+                response = pickle.loads(message)  # nosec B301 – trusted internal channel
+
+                return response
+
+            except zmq.Again:
+                # ZMQ REQ socket is left in a broken state after a timeout.
+                # The socket MUST be closed and recreated before the next send().
+                logger.error(f"Command '{cmd}' timeout after {self.timeout_ms}ms — reconnecting socket")
+                self._reconnect_command_socket()
+                return {
+                    "status": "error",
+                    "error": f"Timeout after {self.timeout_ms}ms"
+                }
+            except zmq.ZMQError as e:
+                logger.error(f"ZMQ error sending command '{cmd}': {e} — reconnecting socket")
+                self._reconnect_command_socket()
+                return {
+                    "status": "error",
+                    "error": str(e)
+                }
+            except Exception as e:
+                logger.error(f"Error sending command '{cmd}': {e}")
+                return {
+                    "status": "error",
+                    "error": str(e)
+                }
+
+    def _reconnect_command_socket(self) -> None:
+        """Close and recreate the command socket to recover from a broken REQ state."""
+        if self.command_socket:
+            try:
+                self.command_socket.close(linger=0)
+            except Exception:
+                pass
+            self.command_socket = None
+
         try:
-            request = {"cmd": cmd, "args": args}
-            self.command_socket.send(pickle.dumps(request))
-            
-            # Wait for response
-            message = self.command_socket.recv()
-            response = pickle.loads(message)
-            
-            return response
-            
-        except zmq.Again:
-            logger.error(f"Command '{cmd}' timeout after {self.timeout_ms}ms")
-            return {
-                "status": "error",
-                "error": f"Timeout after {self.timeout_ms}ms"
-            }
+            self.command_socket = self.context.socket(zmq.REQ)
+            self.command_socket.setsockopt(zmq.RCVTIMEO, self.timeout_ms)
+            self.command_socket.setsockopt(zmq.SNDTIMEO, self.timeout_ms)
+            command_address = f"tcp://{self.server_address}:{self.command_port}"
+            self.command_socket.connect(command_address)
+            logger.info(f"Command socket reconnected to {command_address}")
         except Exception as e:
-            logger.error(f"Error sending command '{cmd}': {e}")
-            return {
-                "status": "error",
-                "error": str(e)
-            }
+            logger.error(f"Failed to reconnect command socket: {e}")
+            self.connected = False
     
     # Supervisor interface methods
     

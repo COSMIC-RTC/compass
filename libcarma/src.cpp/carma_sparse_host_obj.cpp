@@ -23,6 +23,7 @@
 
 #include "carma_sparse_host_obj.hpp"
 #include <algorithm>
+#include <stdexcept>
 #include "carma_sparse_obj.hpp"
 
 template <class T_data>
@@ -228,7 +229,7 @@ void CarmaSparseHostObj<T_data>::_clear() {
   if (h_data == NULL || rowind == NULL || colind == NULL) {
     std::cerr << "Error | CarmaSparseHostObj<T_data>::_clear | double clear"
               << std::endl;
-    throw "Error | CarmaSparseHostObj<T_data>::_clear | double clear";
+    throw std::runtime_error("Error | CarmaSparseHostObj<T_data>::_clear | double clear");
     // exit(EXIT_FAILURE);
   }
   delete[] h_data;
@@ -254,7 +255,7 @@ void carma_gemv(T_data alpha, CarmaSparseHostObj<T_data> *A,
                                   T_data *beta, T_data *y)) {
   if (A->get_dims(2) != x->get_dims(1) || A->get_dims(1) != y->get_dims(1)) {
     std::cerr << "Error | kp_cscmv | diminsion problem" << std::endl;
-    throw "Error | kp_cscmv | diminsion problem";
+    throw std::runtime_error("Error | kp_cscmv | dimension problem");
     // exit(EXIT_FAILURE);
   }
   //   A.check();
@@ -337,7 +338,7 @@ void CarmaSparseHostObj<T_data>::resize2row_major() {
     rowind2 = nullptr;
     colind2 = nullptr;
     values2 = nullptr;
-    throw "Erreur | CarmaSparseHostObj<T_data>::resize2row_major | erreur lors de la conversion.";
+    throw std::runtime_error("Error | CarmaSparseHostObj<T_data>::resize2row_major | conversion failed.");
     // exit(EXIT_FAILURE);
   }
 
@@ -386,7 +387,7 @@ void CarmaSparseHostObj<T_data>::resize2col_major() {
     rowind2 = nullptr;
     colind2 = nullptr;
     values2 = nullptr;
-    throw "Erreur | CarmaSparseHostObj<T_data>::resize2col_major | erreur lors de la conversion.";
+    throw std::runtime_error("Error | CarmaSparseHostObj<T_data>::resize2col_major | conversion failed.");
     // exit(EXIT_FAILURE);
   }
 

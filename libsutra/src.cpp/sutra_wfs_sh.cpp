@@ -21,6 +21,7 @@
 //! \date      2022/01/24
 
 #include <carma_utils.hpp>
+#include <stdexcept>
 #include <sutra_utils.hpp>
 #include <sutra_wfs_sh.hpp>
 #include <cmath>
@@ -312,7 +313,7 @@ int32_t SutraWfsSH::load_arrays(int32_t *phasemap, int32_t *hrmap, int32_t *binm
   if (this->d_bincube == NULL) {
     DEBUG_TRACE(
         "ERROR : d_bincube not initialized, did you do the allocate_buffers?");
-    throw "ERROR : d_bincube not initialized, did you do the allocate_buffers?";
+    throw std::runtime_error("d_bincube not initialized, did you call allocate_buffers?");
   }
   current_context->set_active_device(device, 1);
   this->d_phasemap->host2device(&phasemap[offset * nphase * nphase]);
@@ -338,7 +339,7 @@ int32_t SutraWfsSH::comp_generic() {
   if (this->d_bincube == NULL) {
     DEBUG_TRACE(
         "ERROR : d_bincube not initialized, did you do the allocate_buffers?");
-    throw "ERROR : d_bincube not initialized, did you do the allocate_buffers?";
+    throw std::runtime_error("d_bincube not initialized, did you call allocate_buffers?");
   }
   current_context->set_active_device(device, 1);
 
@@ -600,7 +601,7 @@ int32_t SutraWfsSH::fill_binimage(int32_t async = 0) {
   if (this->d_binimg == NULL) {
     DEBUG_TRACE(
         "ERROR : d_bincube not initialized, did you do the allocate_buffers?");
-    throw "ERROR : d_bincube not initialized, did you do the allocate_buffers?";
+    throw std::runtime_error("d_bincube not initialized, did you call allocate_buffers?");
   }
   if (noise > 0) this->d_binimg->prng('N', this->noise);
 

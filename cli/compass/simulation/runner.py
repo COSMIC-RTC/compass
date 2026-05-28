@@ -219,6 +219,11 @@ class SimulationRunner(LoggerMixin):
         Returns:
             True if simulation completed successfully
         """
+        # Validate iterations
+        if iterations is not None and iterations <= 0:
+            self.console.print(f"[red]✗ iterations must be a positive integer, got {iterations}[/red]")
+            return False
+
         # Handle parameter file path (optional for GUI mode)
         param_path = None
         if param_file:
@@ -398,6 +403,17 @@ class SimulationRunner(LoggerMixin):
         Returns:
             True if server started successfully
         """
+        # Validate port numbers
+        for port_name, port_val in (("command_port", command_port), ("telemetry_port", telemetry_port)):
+            if not (1 <= port_val <= 65535):
+                self.console.print(f"[red]✗ Invalid {port_name}: {port_val} (must be 1–65535)[/red]")
+                return False
+
+        # Validate iterations
+        if iterations is not None and iterations <= 0:
+            self.console.print(f"[red]✗ iterations must be a positive integer, got {iterations}[/red]")
+            return False
+
         # Handle both relative and absolute paths for parameter file
         param_path = Path(param_file)
         if not param_path.is_absolute():

@@ -48,7 +48,7 @@ def rtc_init(
     p_dms=None,
     do_refslp=False,
     tar=None,
-    dataBase={},
+    dataBase=None,
     use_DB=False,
 ):
     """Initialize all the SutraRtc objects : centroiders and controllers
@@ -92,6 +92,8 @@ def rtc_init(
     Returns:
         Rtc : (Rtc) : Rtc object
     """
+    if dataBase is None:
+        dataBase = {}
     # initialisation var
     # ________________________________________________
     rtc = Rtc()

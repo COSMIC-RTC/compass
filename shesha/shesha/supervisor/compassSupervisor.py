@@ -235,7 +235,7 @@ class CompassSupervisor(GenericSupervisor):
             nControl = geo_index
             if tar_trace is not None:
                 for t in tar_trace:
-                    if self.atmos.is_enable:
+                    if self.atmos is not None and self.atmos.is_enable:
                         self.target.raytrace(t, tel=self.tel, atm=self.atmos, ncpa=False)
                     else:
                         self.target.raytrace(t, tel=self.tel, ncpa=False)
@@ -248,14 +248,14 @@ class CompassSupervisor(GenericSupervisor):
         else:
             if tar_trace is not None:  # already checked at line 213?
                 for t in tar_trace:
-                    if self.atmos.is_enable:
+                    if self.atmos is not None and self.atmos.is_enable:
                         self.target.raytrace(t, tel=self.tel, atm=self.atmos, dms=self.dms)
                     else:
                         self.target.raytrace(t, tel=self.tel, dms=self.dms)
 
             if wfs_trace is not None:  # already checked at line 215?
                 for w in wfs_trace:
-                    if self.atmos.is_enable:
+                    if self.atmos is not None and self.atmos.is_enable:
                         self.wfs.raytrace(w, tel=self.tel, atm=self.atmos)
                     else:
                         self.wfs.raytrace(w, tel=self.tel)
@@ -273,7 +273,7 @@ class CompassSupervisor(GenericSupervisor):
                 for ncontrol in nControl:
                     self.rtc.apply_control(ncontrol)
 
-        if compute_tar_psf:
+        if compute_tar_psf and tar_trace is not None:
             for tar_index in tar_trace:
                 self.target.comp_tar_image(tar_index)
                 self.target.comp_strehl(tar_index)
@@ -282,7 +282,9 @@ class CompassSupervisor(GenericSupervisor):
             for coro_index in range(len(self.config.p_coronos)):
                 self.corono.compute_image(coro_index)
 
-        if self.config.p_controllers[0].close_opti and (not self.rtc._rtc.d_control[0].open_loop):
+        if (self.config.p_controllers
+                and self.config.p_controllers[0].close_opti
+                and not self.rtc._rtc.d_control[0].open_loop):
             self.modalgains.update_mgains()
             self.close_modal_gains.append(self.modalgains.get_modal_gains())
 
@@ -363,27 +365,35 @@ class CompassSupervisor(GenericSupervisor):
                 self._print_strehl(monitoring_freq, time.time() - t1, number_of_iter)
                 t1 = time.time()
         t1 = time.time()
+        iter_time = t1 - t0
+        mean_time = iter_time / number_of_iter if number_of_iter > 0 else float('nan')
+        hz = number_of_iter / iter_time if iter_time > 0 else float('inf')
         print(
             " loop execution time:",
-            t1 - t0,
+            iter_time,
             "  (",
             number_of_iter,
             "iterations), ",
-            (t1 - t0) / number_of_iter,
+            mean_time,
             "(mean)  ",
-            number_of_iter / (t1 - t0),
+            hz,
             "Hz",
         )
 
     def reset(self):
         """Reset the simulation to return to its original state"""
-        self.atmos.reset_turbu()
-        self.wfs.reset_noise()
-        for tar_index in range(len(self.config.p_targets)):
-            self.target.reset_strehl(tar_index)
-        self.dms.reset_dm()
-        self.rtc.open_loop()
-        self.rtc.close_loop()
+        if self.atmos is not None:
+            self.atmos.reset_turbu()
+        if self.wfs is not None:
+            self.wfs.reset_noise()
+        if self.config.p_targets is not None:
+            for tar_index in range(len(self.config.p_targets)):
+                self.target.reset_strehl(tar_index)
+        if self.dms is not None:
+            self.dms.reset_dm()
+        if self.rtc is not None:
+            self.rtc.open_loop()
+            self.rtc.close_loop()
 
     #    ___              _  __ _      __  __     _   _            _
     #   / __|_ __  ___ __(_)/ _(_)__  |  \/  |___| |_| |_  ___  __| |___
@@ -527,7 +537,7 @@ class CompassSupervisor(GenericSupervisor):
                     elif cube_data_type == "psfse":
                         dataArray = self.target.get_tar_image(tar_index, expo_type="se")
                     else:
-                        raise ValueError("unknown dataData" % cube_data_type)
+                        raise ValueError(f"unknown cube_data_type: {cube_data_type!r}")
                     if cube_data is None:
                         cube_data = np.zeros((*dataArray.shape, int(cb_count / sub_sample)))
                     cube_data[:, :, k] = dataArray

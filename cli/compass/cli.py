@@ -38,6 +38,7 @@ def cmd_config_export(args):
     """Export environment configuration to shell script."""
     env = Environment()
     output_path = Path(args.output)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     env.export_to_shell_script(output_path)
     
     if not args.silent:
@@ -80,6 +81,7 @@ def cmd_config_init(args):
     }
     
     import yaml
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, 'w') as f:
         f.write("# COMPASS Configuration File\n")
         f.write("# Edit this file and run: compass config export\n\n")

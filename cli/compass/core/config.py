@@ -6,6 +6,7 @@ This module provides centralized configuration management for COMPASS.
 
 import os
 import yaml
+import shlex
 from pathlib import Path
 from typing import Dict, Optional, Any
 from dataclasses import dataclass, field
@@ -146,7 +147,7 @@ class Environment:
             
             for key, value in env_dict.items():
                 if key not in ["HOME"]:  # Don't override HOME
-                    f.write(f'export {key}="{value}"\n')
+                    f.write(f'export {key}={shlex.quote(value)}\n')
             
             f.write("\necho 'COMPASS environment configured:'\n")
             f.write("echo '  COMPASS_ROOT='$COMPASS_ROOT\n")
@@ -179,7 +180,7 @@ class Config:
     def load(self, config_path: Path):
         """Load configuration from YAML file."""
         with open(config_path, 'r') as f:
-            self.data = yaml.safe_load(f)
+            self.data = yaml.safe_load(f) or {}
         
         # Update environment from config
         if 'paths' in self.data:

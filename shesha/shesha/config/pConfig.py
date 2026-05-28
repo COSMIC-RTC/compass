@@ -125,14 +125,15 @@ class ParamConfig(object):
             filepath: Path to the parameters file.
         """
         filename = filepath.split(".")[-1]
-        print("loading: %s" % filename)
+        import logging as _logging
+        _logging.getLogger(__name__).info("loading: %s", filename)
 
         config = importlib.import_module(filepath)
         del sys.modules[config.__name__]  # Forced reload
         self._config = importlib.import_module(filepath)
 
-        if hasattr(config, "par"):
-            self._config = getattr("config.par.par4bench", filename)
+        if hasattr(config, "par") and hasattr(config.par, "par4bench"):
+            self._config = getattr(config.par.par4bench, filename)
 
         if not hasattr(self._config, "p_loop"):
             self._config.p_loop = None
@@ -172,11 +173,11 @@ class ParamConfig(object):
         Returns:
             pupil: The specified pupil as a numpy array.
         """
-        if scons.PupilType(pupil_type) is scons.PupilType.SPUPIL:
+        if scons.PupilType(pupil_type) == scons.PupilType.SPUPIL:
             return self.p_geom.get_spupil()
-        elif scons.PupilType(pupil_type) is scons.PupilType.MPUPIL:
+        elif scons.PupilType(pupil_type) == scons.PupilType.MPUPIL:
             return self.p_geom.get_mpupil()
-        elif scons.PupilType(pupil_type) is scons.PupilType.IPUPIL:
+        elif scons.PupilType(pupil_type) == scons.PupilType.IPUPIL:
             return self.p_geom.get_ipupil()
         raise ValueError("Invalid pupil type")
 

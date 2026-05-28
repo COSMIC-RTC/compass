@@ -21,6 +21,7 @@
 
 #include <carma_obj.hpp>
 #include <carma_utils.cuh>
+#include <stdexcept>
 
 /*
  short	2 bytes
@@ -146,12 +147,12 @@ template void clip_array<double>(double *d_data, double min, double max, int32_t
 template <>
 void clip_array(cuFloatComplex *d_data, cuFloatComplex min, cuFloatComplex max,
                 int32_t N, CarmaDevice *device, cudaStream_t stream) {
-  throw "not implemented";
+  throw std::runtime_error("clip_array not implemented for cuFloatComplex");
 }
 template <>
 void clip_array(cuDoubleComplex *d_data, cuDoubleComplex min,
                 cuDoubleComplex max, int32_t N, CarmaDevice *device, cudaStream_t stream) {
-  throw "not implemented";
+  throw std::runtime_error("clip_array not implemented for cuDoubleComplex");
 }
 // template <>
 // void clip_array(tuple_t<float> *d_data, tuple_t<float> min, tuple_t<float>

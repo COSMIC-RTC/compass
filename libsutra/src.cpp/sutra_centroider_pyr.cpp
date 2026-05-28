@@ -90,8 +90,6 @@ template <class Tin, class T>
 int32_t SutraCentroiderPyr<Tin, T>::get_cog(float *cube, float *intensities,
                                           T *centroids, int32_t nvalid, int32_t npix,
                                           int32_t ntot, cudaStream_t stream) {
-  // TODO(Implement SutraCentroiderPyr<Tin, T>::get_cog)
-
   return get_pyr(cube, intensities, centroids, this->d_validx->get_data(),
                  this->d_validy->get_data(), this->nvalid,
                  this->d_img->get_dims(1), 4, stream);

@@ -22,6 +22,7 @@
 #include <carma_cusparse.hpp>
 #include <carma_obj.hpp>
 #include <carma_sparse_obj.hpp>
+#include <stdexcept>
 #include <string>
 
 cusparseStatus_t carma_check_cusparse_status_v2(cusparseStatus_t status, int32_t line,
@@ -357,7 +358,7 @@ template<typename T> constexpr auto sparse_csr =   detail::Sparse<T>::csr();
       std::cerr
           << "Error | carma_gemm (sparse) | Matrix-matrix multiplication failed"
           << std::endl;
-      throw "Error | carma_gemm (sparse) | Matrix-matrix multiplication failed";
+      throw std::runtime_error("Error | carma_gemm (sparse) | Matrix-matrix multiplication failed");
       // exit(EXIT_FAILURE);
     }
     return status;
@@ -418,7 +419,7 @@ template<typename T> constexpr auto sparse_csr =   detail::Sparse<T>::csr();
         std::cerr
             << "Error | carma_gemm (sparse) | Matrix-matrix multiplication failed"
             << std::endl;
-        throw "Error | carma_gemm (sparse) | Matrix-matrix multiplication failed";
+        throw std::runtime_error("Error | carma_gemm (sparse) | Matrix-matrix multiplication failed");
         // exit(EXIT_FAILURE);
       }
     }
@@ -463,7 +464,7 @@ cusparseStatus_t carma_csr2dense(CarmaSparseObj<T_data> *A, T_data *B) {
   if (status != CUSPARSE_STATUS_SUCCESS) {
     std::cerr << "Error | carma_csr2dense (sparse) | csr2dense failed"
               << std::endl;
-    throw "Error | carma_csr2dense (sparse) | csr2dense failed";
+    throw std::runtime_error("Error | carma_csr2dense (sparse) | csr2dense failed");
   }
   return status;
 }

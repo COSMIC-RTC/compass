@@ -25,6 +25,7 @@
 #include <carma_obj.hpp>
 
 #include <cuda_runtime.h>
+#include <stdexcept>
 #include <sys/mman.h>  // for mmap() / munmap()
 
 template <class T_data>
@@ -352,7 +353,7 @@ void CarmaHostObj<T_data>::init(const int64_t *dims_data, const T_data *data,
     cudaGetDeviceProperties(&prop, 0);
     if (!prop.canMapHostMemory) {
       DEBUG_TRACE("Can't map host memory");
-      throw "Can't map host memory\n";
+      throw std::runtime_error("Can't map host memory");
     }
     cudaSetDeviceFlags(cudaDeviceMapHost);
     carma_safe_call(
@@ -376,7 +377,7 @@ void CarmaHostObj<T_data>::init(const int64_t *dims_data, const T_data *data,
     carma_safe_call(cudaHostRegister(h_data, sizeof(T_data) * this->nb_elem,
                                    cudaHostRegisterMapped));
   } else
-    throw "Error : type of malloc unknown";
+    throw std::runtime_error("Error : type of malloc unknown");
 
   streams = new CarmaStreams();
   if (malloc_type != MA_MALLOC) {

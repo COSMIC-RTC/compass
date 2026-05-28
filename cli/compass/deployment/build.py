@@ -173,7 +173,7 @@ class Builder(LoggerMixin):
                 text=True
             ).strip()
             cmake_args.append(f"-Dpybind11_DIR={pybind11_dir}")
-        except subprocess.CalledProcessError:
+        except (subprocess.CalledProcessError, FileNotFoundError, OSError):
             self.logger.warning("Could not determine pybind11 CMake directory")
         
         return self._run_command(cmake_args, cwd=self.compass_root)
@@ -247,10 +247,12 @@ class Builder(LoggerMixin):
                     bufsize=1,
                 )
                 
-                for line in process.stdout:
-                    print(line, end='')
-                
-                process.wait()
+                try:
+                    for line in process.stdout:
+                        print(line, end='')
+                finally:
+                    process.stdout.close()
+                    process.wait()
                 
                 if process.returncode != 0:
                     raise subprocess.CalledProcessError(process.returncode, cmd)
@@ -307,8 +309,8 @@ class Builder(LoggerMixin):
         
         # Clean if requested     
         if clean:
-            self.clean_build()
-            self.clean_install()
+            if not self.clean_build() or not self.clean_install():
+                return False
         
         # Configure (always needed, even for partial builds)
         if not self._run_cmake_configure():
